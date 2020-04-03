@@ -5314,7 +5314,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                 CodechalDbgAttr::attrOutput,
                 "MvData",
                 MeOutputParams.psMeMvBuffer->dwHeight *MeOutputParams.psMeMvBuffer->dwPitch,
-                CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64) * (m_downscaledFrameFieldHeightInMb4x * 4) : 0,
+                m_hmeKernel ? m_hmeKernel->Get4xMeMvBottomFieldOffset() : (uint32_t)m_meMvBottomFieldOffset,
                 CODECHAL_MEDIA_STATE_4X_ME));
 
             if (MeOutputParams.psMeDistortionBuffer)
@@ -5341,7 +5341,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                         CodechalDbgAttr::attrOutput,
                         "MvData",
                         MeOutputParams.psMeMvBuffer->dwHeight *MeOutputParams.psMeMvBuffer->dwPitch,
-                        CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
+                        m_hmeKernel ? m_hmeKernel->Get16xMeMvBottomFieldOffset() : (uint32_t)m_meMv16xBottomFieldOffset,
                         CODECHAL_MEDIA_STATE_16X_ME));
 
                 if (m_32xMeEnabled)
@@ -5357,7 +5357,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                             CodechalDbgAttr::attrOutput,
                             "MvData",
                             MeOutputParams.psMeMvBuffer->dwHeight *MeOutputParams.psMeMvBuffer->dwPitch,
-                            CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb32x * 32), 64) * (m_downscaledFrameFieldHeightInMb32x * 4) : 0,
+                            m_hmeKernel ? m_hmeKernel->Get32xMeMvBottomFieldOffset() : (uint32_t)m_meMv32xBottomFieldOffset,
                             CODECHAL_MEDIA_STATE_32X_ME));
                 }
             }

@@ -339,12 +339,17 @@ MOS_STATUS CodechalEncoderState::AllocateResources4xMe(
     allocParamsForBuffer2D.TileType = MOS_TILE_LINEAR;
     allocParamsForBuffer2D.Format   = Format_Buffer_2D;
 
+    uint32_t adjustedHeight =
+        m_downscaledHeightInMb4x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_4x;
+    uint32_t downscaledFieldHeightInMb4x =
+        CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((adjustedHeight + 1) >> 1) / SCALE_FACTOR_4x);
+
     MOS_ZeroMemory(param->ps4xMeMvDataBuffer, sizeof(MOS_SURFACE));
     param->ps4xMeMvDataBuffer->TileType        = MOS_TILE_LINEAR;
     param->ps4xMeMvDataBuffer->bArraySpacing   = true;
     param->ps4xMeMvDataBuffer->Format          = Format_Buffer_2D;
     param->ps4xMeMvDataBuffer->dwWidth         = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64); // MediaBlockRW requires pitch multiple of 64 bytes when linear.
-    param->ps4xMeMvDataBuffer->dwHeight        = (m_downscaledHeightInMb4x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER);
+    param->ps4xMeMvDataBuffer->dwHeight        = 2 * (downscaledFieldHeightInMb4x * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER);
     param->ps4xMeMvDataBuffer->dwPitch         = param->ps4xMeMvDataBuffer->dwWidth;
 
     allocParamsForBuffer2D.dwWidth  = param->ps4xMeMvDataBuffer->dwWidth;
@@ -366,11 +371,6 @@ MOS_STATUS CodechalEncoderState::AllocateResources4xMe(
 
     if (param->b4xMeDistortionBufferSupported)
     {
-        uint32_t adjustedHeight                   =
-                        m_downscaledHeightInMb4x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_4x;
-        uint32_t downscaledFieldHeightInMb4x     =
-                        CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((adjustedHeight + 1) >> 1)/4);
-
         MOS_ZeroMemory(param->ps4xMeDistortionBuffer, sizeof(MOS_SURFACE));
         param->ps4xMeDistortionBuffer->TileType        = MOS_TILE_LINEAR;
         param->ps4xMeDistortionBuffer->bArraySpacing   = true;
@@ -419,6 +419,11 @@ MOS_STATUS CodechalEncoderState::AllocateResources16xMe(
     allocParamsForBuffer2D.TileType = MOS_TILE_LINEAR;
     allocParamsForBuffer2D.Format   = Format_Buffer_2D;
 
+    uint32_t adjustedHeight =
+        m_downscaledHeightInMb16x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_16x;
+    uint32_t downscaledFieldHeightInMB16x =
+        CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((adjustedHeight + 1) >> 1) / SCALE_FACTOR_16x);
+
     if (m_16xMeSupported)
     {
         MOS_ZeroMemory(param->ps16xMeMvDataBuffer, sizeof(MOS_SURFACE));
@@ -426,7 +431,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources16xMe(
         param->ps16xMeMvDataBuffer->bArraySpacing = true;
         param->ps16xMeMvDataBuffer->Format        = Format_Buffer_2D;
         param->ps16xMeMvDataBuffer->dwWidth       = MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64); // MediaBlockRW requires pitch multiple of 64 bytes when linear
-        param->ps16xMeMvDataBuffer->dwHeight      = (m_downscaledHeightInMb16x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER);
+        param->ps16xMeMvDataBuffer->dwHeight      = 2 * (downscaledFieldHeightInMB16x * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER);
         param->ps16xMeMvDataBuffer->dwPitch       = param->ps16xMeMvDataBuffer->dwWidth;
 
         allocParamsForBuffer2D.dwWidth  = param->ps16xMeMvDataBuffer->dwWidth;
@@ -468,6 +473,11 @@ MOS_STATUS CodechalEncoderState::AllocateResources32xMe(
     allocParamsForBuffer2D.TileType = MOS_TILE_LINEAR;
     allocParamsForBuffer2D.Format   = Format_Buffer_2D;
 
+    uint32_t adjustedHeight =
+        m_downscaledHeightInMb32x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_32x;
+    uint32_t downscaledFieldHeightInMB32x =
+        CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((adjustedHeight + 1) >> 1) / SCALE_FACTOR_32x);
+
     if (m_32xMeSupported)
     {
         MOS_ZeroMemory(param->ps32xMeMvDataBuffer, sizeof(MOS_SURFACE));
@@ -475,7 +485,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources32xMe(
         param->ps32xMeMvDataBuffer->bArraySpacing = true;
         param->ps32xMeMvDataBuffer->Format        = Format_Buffer_2D;
         param->ps32xMeMvDataBuffer->dwWidth       = MOS_ALIGN_CEIL((m_downscaledWidthInMb32x * 32), 64); // MediaBlockRW requires pitch multiple of 64 bytes when linear
-        param->ps32xMeMvDataBuffer->dwHeight      = (m_downscaledHeightInMb32x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER);
+        param->ps32xMeMvDataBuffer->dwHeight      = 2 * (downscaledFieldHeightInMB32x * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER);
         param->ps32xMeMvDataBuffer->dwPitch       = param->ps32xMeMvDataBuffer->dwWidth;
 
         allocParamsForBuffer2D.dwWidth  = param->ps32xMeMvDataBuffer->dwWidth;

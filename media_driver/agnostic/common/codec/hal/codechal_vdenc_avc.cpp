@@ -5516,7 +5516,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
             CodechalDbgAttr::attrOutput,
             "MvData",
             meOutputParams.psMeMvBuffer->dwHeight * meOutputParams.psMeMvBuffer->dwPitch,
-            CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
+            m_hmeKernel ? m_hmeKernel->Get16xMeMvBottomFieldOffset() : (uint32_t)m_meMv16xBottomFieldOffset,
             CODECHAL_MEDIA_STATE_16X_ME));
 
         meOutputParams.pResVdenStreamInBuffer = &(m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
