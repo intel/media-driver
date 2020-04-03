@@ -44,6 +44,7 @@
 #include "mhw_vdbox_hcp_interface.h"
 #include "mhw_vdbox_huc_interface.h"
 #include "mhw_vdbox_vdenc_interface.h"
+#include "mhw_blt.h"
 
 template class MediaInterfacesFactory<MhwInterfaces>;
 template class MediaInterfacesFactory<MmdDevice>;
