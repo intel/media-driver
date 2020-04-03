@@ -4328,6 +4328,7 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->offsets[0]               = 0;
         break;
     case Media_Format_R5G6B5:
+        vaimg->format.bits_per_pixel    = 16;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
@@ -4438,7 +4439,7 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->pitches[1]               =
         vaimg->pitches[2]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
-        if(MEDIA_IS_WA(&mediaCtx->WaTable, FtrE2ECompression))
+        if(MEDIA_IS_WA(&mediaCtx->WaTable, WaDisableGmmLibOffsetInDeriveImage))
         {
             vaimg->offsets[1]           = mediaSurface->iHeight * mediaSurface->iPitch;
             vaimg->offsets[2]           = vaimg->offsets[1] + 1;

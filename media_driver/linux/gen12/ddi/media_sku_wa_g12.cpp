@@ -308,6 +308,10 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
 
+    /*software wa to disable calculate the UV offset by gmmlib
+      CPU blt call will add/remove padding on the platform*/
+    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
+
     return true;
 }
 
