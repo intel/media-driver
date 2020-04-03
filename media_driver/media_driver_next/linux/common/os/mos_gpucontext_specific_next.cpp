@@ -698,7 +698,7 @@ MOS_STATUS GpuContextSpecificNext::ResizeCommandBufferAndPatchList(
 
     if (requestedPatchListSize > m_maxPatchLocationsize)
     {
-        PPATCHLOCATIONLIST newPatchList = (PPATCHLOCATIONLIST)realloc(m_patchLocationList, sizeof(PATCHLOCATIONLIST) * requestedPatchListSize);
+        PPATCHLOCATIONLIST newPatchList = (PPATCHLOCATIONLIST)MOS_ReallocMemory(m_patchLocationList, sizeof(PATCHLOCATIONLIST) * requestedPatchListSize);
         MOS_OS_CHK_NULL_RETURN(newPatchList);
 
         m_patchLocationList = newPatchList;
