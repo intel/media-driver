@@ -1790,6 +1790,22 @@ public:
         uint32_t    dwSize);
 
     //!
+    //! \brief    MOS log data dictionary item
+    //! \details  Dictionary is name:value pair
+    //! \param    [in] name
+    //!           Indicates item name
+    //! \param    [in] pBuf
+    //!           Indicates value address
+    //! \param    [in] size
+    //!           Indicates value size
+    //! \return   void
+    //!
+    static void MosTraceDataDictionary(
+        const char* pcName,
+        const void* pBuf,
+        uint32_t    dwSize);
+
+    //!
     //! \brief    MosGfxInfoRTErr
     //! \details  Custom gfx info trace to report runtime errors detected by each component.
     //! \param    [in] ver

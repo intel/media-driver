@@ -2035,6 +2035,8 @@ MOS_STATUS MosUtilities::MosUserFeatureWriteValuesTblID(
     MOS_STATUS                          eStatus            = MOS_STATUS_SUCCESS;
     char                                WritePathWithPID[MAX_PATH];
     int32_t                             pid;
+    uint64_t                            ulTraceData         = 0;
+    bool                                isValid             = false;
 
     //--------------------------------------------------
     MOS_OS_CHK_NULL_RETURN(pWriteValues);
@@ -2058,6 +2060,30 @@ MOS_STATUS MosUtilities::MosUserFeatureWriteValuesTblID(
         //append write path with pid
         sprintf_s(WritePathWithPID, MAX_PATH, "%s\\%d", pUserFeature->pcWritePath, pid);
 
+        // Trace data in case opening user feature for write fails
+        switch (pUserFeature->ValueType)
+        {
+            case MOS_USER_FEATURE_VALUE_TYPE_BOOL:
+            case MOS_USER_FEATURE_VALUE_TYPE_INT32:
+            case MOS_USER_FEATURE_VALUE_TYPE_UINT32:
+            case MOS_USER_FEATURE_VALUE_TYPE_FLOAT:
+                ulTraceData = pWriteValues[ui].Value.u32Data;
+                isValid = true;
+                break;
+            case MOS_USER_FEATURE_VALUE_TYPE_INT64:
+            case MOS_USER_FEATURE_VALUE_TYPE_UINT64:
+                ulTraceData = pWriteValues[ui].Value.u64Data;
+                isValid = true;
+                break;
+            default:
+                MOS_OS_NORMALMESSAGE("Unknown value type %d", pUserFeature->ValueType);
+        }
+
+        if (isValid)
+        {
+            MosTraceDataDictionary(pUserFeature->pValueName, &ulTraceData, sizeof(ulTraceData));
+        }
+
         //try to open Write path with pid first
         if ((eStatus = MosUserFeatureOpen(
                  pUserFeature->Type,
@@ -2072,7 +2098,7 @@ MOS_STATUS MosUtilities::MosUserFeatureWriteValuesTblID(
                      KEY_WRITE,
                      &UFKey)) != MOS_STATUS_SUCCESS)
             {
-                MOS_OS_NORMALMESSAGE("Failed to open user feature for reading.");
+                MOS_OS_NORMALMESSAGE("Failed to open user feature for writing.");
                 eStatus = MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
                 goto finish;
             }

@@ -2163,6 +2163,22 @@ void MOS_TraceDataDump(
     uint32_t    dwSize);
 
 //!
+//! \brief    MOS log data dictionary item
+//! \details  Dictionary is name:value pair
+//! \param    [in] name
+//!           Indicates item name
+//! \param    [in] pBuf
+//!           Indicates value address
+//! \param    [in] size
+//!           Indicates value size
+//! \return   void
+//!
+void MOS_TraceDataDictionary(
+    const char* pcName,
+    const void* pBuf,
+    uint32_t    dwSize);
+
+//!
 //! \brief    MOS log trace event Msg
 //! \details  log trace event msg w/ level/compID/functionname/lineNum arguments
 //!           arguments are in raw data format, need match data structure in manifest.

@@ -2129,6 +2129,14 @@ void MosUtilities::MosTraceDataDump(
 {
 }
 
+void MosUtilities::MosTraceDataDictionary(
+    const char* pcName,
+    const void* pBuf,
+    uint32_t    dwSize)
+{
+    // not implemented
+}
+
 MOS_STATUS MosUtilities::MosGfxInfoInit()
 {
     // not implemented

@@ -106,7 +106,8 @@ typedef enum _MEDIA_EVENT
     EVENT_OCA_ERROR,                //! event for OCA error.
     EVENT_DATA_DUMP,                //! event for debug data dump
     EVENT_HECI_OBJ,                 //! event for heci duplicate handle
-    EVENT_PLAT_INFO                 //! event for static platform info
+    EVENT_PLAT_INFO,                //! event for static platform info
+    EVENT_DATA_DICTIONARY           //! event for data dictionary (name:value pair)
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

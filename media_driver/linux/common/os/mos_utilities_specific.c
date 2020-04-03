@@ -3043,6 +3043,15 @@ void MOS_TraceDataDump(
     // not implemented
 }
 
+void MOS_TraceDataDictionary(
+    const char* pcName,
+    const void* pBuf,
+    uint32_t    dwSize)
+{
+    // not implemented
+}
+
+
 MOS_STATUS MOS_GfxInfoInit()
 {
     // not implemented
