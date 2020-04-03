@@ -71,9 +71,9 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesFixedSizes()
         m_osInterface,
         &m_resSyncObjectWaContextInUse));
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_hevcRefList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
 
     MOS_ZeroMemory(&m_secondLevelBatchBuffer, CODEC_HEVC_NUM_SECOND_BB * sizeof(MHW_BATCH_BUFFER));
     if (m_shortFormatInUse)
@@ -1266,7 +1266,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
         m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-    AllocateResourcesVariableSizes();
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesVariableSizes());
 
     // Calculate Tile info
     if (m_hevcPicParams->tiles_enabled_flag)

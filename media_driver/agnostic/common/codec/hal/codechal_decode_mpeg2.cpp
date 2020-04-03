@@ -363,9 +363,9 @@ MOS_STATUS CodechalDecodeMpeg2::AllocateResources ()
         m_osInterface,
         &m_resSyncObjectVideoContextInUse));
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_mpeg2RefList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2));
 
     for (uint32_t i = 0; i < CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2; i++)
     {

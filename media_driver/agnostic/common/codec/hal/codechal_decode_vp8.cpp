@@ -897,9 +897,9 @@ MOS_STATUS CodechalDecodeVp8::AllocateResourcesFixedSizes()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &m_resSyncObject));
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_vp8RefList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface,

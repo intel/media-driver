@@ -2902,9 +2902,9 @@ MOS_STATUS CodechalDecodeVc1::AllocateResources()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(m_osInterface, &m_resSyncObject));
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_vc1RefList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_VC1));
 
     m_vldSliceRecord =
         (PCODECHAL_VC1_VLD_SLICE_RECORD)MOS_AllocAndZeroMemory(m_picHeightInMb * sizeof(CODECHAL_VC1_VLD_SLICE_RECORD));

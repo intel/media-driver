@@ -591,9 +591,9 @@ MOS_STATUS CodechalDecodeVp9 :: AllocateResourcesFixedSizes()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateSyncResource(
         m_osInterface, &m_resSyncObjectVideoContextInUse));
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_vp9RefList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP9));
 
     // VP9 Probability buffer
     for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS + 1; i++)
