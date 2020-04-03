@@ -1170,7 +1170,7 @@ MOS_STATUS MOS_UserFeature_WriteValues(
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.StringData.pStringData = (value);\
-    UserFeatureWriteData.Value.StringData.uSize = (len);\
+    UserFeatureWriteData.Value.StringData.uSize = (len+1);\
     UserFeatureWriteData.ValueID        = (key);\
     MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
 }
