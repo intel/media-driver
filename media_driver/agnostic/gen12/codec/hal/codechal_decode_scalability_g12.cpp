@@ -514,6 +514,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams_G12(
         else
         {
             *pucDecPassNum = pScalabilityState->ucScalablePipeNum + 1; // FE + all BEs
+            pScalabilityState->bFESeparateSubmission = pScalabilityState->bFESeparateSubmissionVT;
         }
     }
     else
@@ -954,6 +955,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
         pScalabilityState->bFESeparateSubmission = false;
     }
 #endif
+
+    pScalabilityState->bFESeparateSubmissionVT = pScalabilityState->bFESeparateSubmission;
 
     if (pScalabilityState->bFESeparateSubmission)
     {

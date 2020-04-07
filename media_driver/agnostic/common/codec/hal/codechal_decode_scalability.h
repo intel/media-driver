@@ -127,6 +127,7 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
     bool                            bScalableDecodeMode;
 
     bool                            bFESeparateSubmission;
+    bool                            bFESeparateSubmissionVT;
     bool                            bShortFormatInUse;
     bool                            bUseSecdryCmdBuffer;
     bool                            bIsEvenSplit;
