@@ -304,22 +304,21 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
 
     if (m_4xMeSupported)
     {
-        uint32_t adjustedHeight =
-            m_downscaledHeightInMb4x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_4x;
-        uint32_t downscaledFieldHeightInMB4x =
-            CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((adjustedHeight + 1) >> 1) / SCALE_FACTOR_4x);
-
         if (!m_HME4xMVSurface)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateSurface2D(
                 MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64),  // MediaBlockRW requires pitch multiple of 64 bytes when linear.,
-                2 * (downscaledFieldHeightInMB4x * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
+                (m_downscaledHeightInMb4x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
                 CM_SURFACE_FORMAT_A8,
                 m_HME4xMVSurface));
         }
 
         if (m_4xMeDistortionBufferSupported)
         {
+            uint32_t ajustedHeight =
+                m_downscaledHeightInMb4x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_4x;
+            uint32_t downscaledFieldHeightInMB4x =
+                CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((ajustedHeight + 1) >> 1) / 4);
             if (!m_HME4xDistortionSurface)
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateSurface2D(
@@ -333,16 +332,11 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
 
     if (m_16xMeSupported)
     {
-        uint32_t adjustedHeight =
-            m_downscaledHeightInMb16x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_16x;
-        uint32_t downscaledFieldHeightInMB16x =
-            CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((adjustedHeight + 1) >> 1) / SCALE_FACTOR_16x);
-
         if (!m_HME16xMVSurface)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateSurface2D(
                 MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64),  // MediaBlockRW requires pitch multiple of 64 bytes when linear,
-                2 * (downscaledFieldHeightInMB16x * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
+                (m_downscaledHeightInMb16x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
                 CM_SURFACE_FORMAT_A8,
                 m_HME16xMVSurface));
         }
@@ -350,16 +344,11 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
 
     if (m_32xMeSupported)
     {
-        uint32_t adjustedHeight =
-            m_downscaledHeightInMb32x * CODECHAL_MACROBLOCK_HEIGHT * SCALE_FACTOR_32x;
-        uint32_t downscaledFieldHeightInMB32x =
-            CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(((adjustedHeight + 1) >> 1) / SCALE_FACTOR_32x);
-
         if (!m_HME32xMVSurface)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateSurface2D(
                 MOS_ALIGN_CEIL((m_downscaledWidthInMb32x * 32), 64),  // MediaBlockRW requires pitch multiple of 64 bytes when linear
-                2 * (downscaledFieldHeightInMB32x * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
+                (m_downscaledHeightInMb32x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
                 CM_SURFACE_FORMAT_A8,
                 m_HME32xMVSurface));
         }
