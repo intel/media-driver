@@ -74,13 +74,15 @@
 
 ## Supported Video Processing CSC/Scaling Format
 
-|    Platform           | Format | NV12 | YV12 | I420 | P010 | YUY2 | UYVY | Y210 | AYUV | Y410 |
-|-----------------------|--------|------|------|------|------|------|------|------|------|------|
-|      BDW              | Input  |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|                       | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|SKL/BXT/KBL/CFL/WHL/CML| Input  |  Y   |  Y   |  Y   |  Y   |  Y   |      |      |      |      |
-|                       | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |
-|      ICL              | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
-|                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |
-|      TGL              | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
-|                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |
+|    Platform           | Format | NV12 | YV12 | I420 | P010 | YUY2 | UYVY | Y210 | AYUV | Y410 | P016*| Y216*| Y416*|
+|-----------------------|--------|------|------|------|------|------|------|------|------|------|------|------|------|
+|      BDW              | Input  |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |      |      |      |
+|                       | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |      |      |      |
+|SKL/BXT/KBL/CFL/WHL/CML| Input  |  Y   |  Y   |  Y   |  Y   |  Y   |      |      |      |      |      |      |      |
+|                       | Output |  Y   |  Y   |  Y   |      |  Y   |      |      |      |      |      |      |      |
+|      ICL              | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |      |      |      |
+|                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |      |      |      |
+|      TGL              | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
+|                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
+
+* \* For SFC path, there are NOT real 16bit, SFC precision is 12bit; For kernel path, we support real 16bit.
