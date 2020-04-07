@@ -470,16 +470,15 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncJPEG;
-    VAConfigAttribValEncJPEG jpegAttribVal;
-    jpegAttribVal.bits.arithmatic_coding_mode = 0;
-    jpegAttribVal.bits.progressive_dct_mode = 0;
-    jpegAttribVal.bits.non_interleaved_mode = 0;
-    jpegAttribVal.bits.differential_mode = 0;
-    jpegAttribVal.bits.max_num_components = jpegNumComponent;
-    jpegAttribVal.bits.max_num_scans = 1;
-    jpegAttribVal.bits.max_num_huffman_tables = JPEG_MAX_NUM_HUFF_TABLE_INDEX;
-    jpegAttribVal.bits.max_num_quantization_tables = JPEG_MAX_QUANT_TABLE;
-    attrib.value = jpegAttribVal.value;
+    attrib.value =
+        ((JPEG_MAX_QUANT_TABLE << 14)       | // max_num_quantization_tables : 3
+         (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)   | // max_num_huffman_tables : 3
+         (1 << 7)                    | // max_num_scans : 4
+         (jpegNumComponent << 4));              // max_num_components : 3
+    // arithmatic_coding_mode = 0
+    // progressive_dct_mode = 0
+    // non_interleaved_mode = 0
+    // differential_mode = 0
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncQualityRange;

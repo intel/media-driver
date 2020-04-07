@@ -46,7 +46,8 @@ enum CodecJpegComponents
     jpegComponentY      = 0,    //!< Component Y
     jpegComponentU      = 1,    //!< Component U
     jpegComponentV      = 2,    //!< Component V
-    jpegNumComponent    = 3,    //!< Component number
+    jpegComponentA      = 3,    //!< Component A
+    jpegNumComponent    = 4,    //!< Component number
 };
 
 //!
