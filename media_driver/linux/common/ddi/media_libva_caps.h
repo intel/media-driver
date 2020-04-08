@@ -801,6 +801,8 @@ protected:
 
     MediaLibvaCapsCpInterface* m_CapsCp;
 
+    static constexpr uint32_t m_configAttribNone = 0x00000000; //!< Define for empty attrib
+
     //!
     //! \brief  Store all the supported encode format
     //!
@@ -1336,5 +1338,28 @@ protected:
             VAProfile profile,
             VAEntrypoint entrypoint,
             VAConfigAttrib* attrib);
+    //!
+    //! \brief    Check the encode attribute list  according to profile and entrypoint
+    //!
+    //! \param    [in] profile
+    //!           VAProfile
+    //!
+    //! \param    [in] entrypoint
+    //!           VAEntrypoint
+    //!
+    //! \param    [in] attrib
+    //!           Pointer to a pointer of VAConfigAttrib
+    //!
+    //! \param    [in] numAttribs
+    //!           number of of VAConfigAttrib
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    VAStatus CheckAttribList(
+            VAProfile profile,
+            VAEntrypoint entrypoint,
+            VAConfigAttrib* attrib,
+            int32_t numAttribs);
 };
 #endif
