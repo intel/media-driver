@@ -324,7 +324,7 @@ MOS_STATUS CodechalDecodeVp9G12 :: InitializeDecodeMode ()
         initParams.u32PicHeightInPixel = m_usFrameHeightAlignedMinBlk;
         initParams.format              = m_decodeParams.m_destSurface->Format;
         initParams.gpuCtxInUse         = GetVideoContext();
-        initParams.usingSecureDecode   = m_secureDecoder ? m_secureDecoder->IsSecureDecodeEnabled() : false;
+        initParams.usingSecureDecode   = m_secureDecoder!= nullptr;
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_InitScalableParams_G12(
             m_scalabilityState,
