@@ -480,12 +480,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
     }
     else
     {
-        // Check Pitch and Size
-#ifdef ANDROID
+        // Check Pitch
         if (gmmPitch > pitch)
-#else
-        if (gmmPitch > pitch || gmmSize > bo->size)
-#endif
         {
             DDI_ASSERTMESSAGE("External Surface doesn't meet the reqirements of Media driver.");
             DdiMediaUtil_FreeSurface(mediaSurface);

@@ -152,7 +152,7 @@ VAStatus VpGetExternalSurfaceInfo(
     PDDI_MEDIA_SURFACE pMediaSurface,
     PVPHAL_SURFACE pVphalSurface)
 {
-    if (pMediaSurface->pSurfDesc && !(pMediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_PROTECTED))
+    if (pMediaSurface->pSurfDesc)
     {
         if (pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM ||
             pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
@@ -172,11 +172,22 @@ VAStatus VpGetExternalSurfaceInfo(
                     pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
                     break;
                 case 3:
-                    pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
-                    pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
-                    pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
-                    pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
-                    pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    if (pMediaSurface->format == Media_Format_YV12)
+                    {
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    }
+                    else
+                    {
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    }
                     break;
                 default:
                     DDI_ASSERTMESSAGE("Invalid plane number.");
