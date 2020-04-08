@@ -663,6 +663,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
             {
                 maxSize +=
                     mhw_sfc_g12_X::SFC_LOCK_CMD::byteSize +
+                    2 * mhw_mi_g12_X::VD_CONTROL_STATE_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_STATE_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_AVS_STATE_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_AVS_LUMA_Coeff_Table_CMD::byteSize +
@@ -704,6 +705,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
                 {
                     maxSize +=
                         mhw_sfc_g12_X::SFC_LOCK_CMD::byteSize +
+                        2 * mhw_mi_g12_X::VD_CONTROL_STATE_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_STATE_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_AVS_STATE_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_AVS_LUMA_Coeff_Table_CMD::byteSize +
@@ -782,6 +784,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
             {
                 maxSize +=
                     mhw_sfc_g12_X::SFC_LOCK_CMD::byteSize +
+                    2 * mhw_mi_g12_X::VD_CONTROL_STATE_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_STATE_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_AVS_STATE_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_AVS_LUMA_Coeff_Table_CMD::byteSize +
@@ -797,6 +800,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
 
                 maxSize +=
                     mhw_vdbox_hcp_g12_X::HCP_TILE_CODING_CMD::byteSize +
+                    2 * mhw_mi_g12_X::VD_CONTROL_STATE_CMD::byteSize +
                     mhw_mi_g12_X::MI_ATOMIC_CMD::byteSize * 4 +   // used to reset semaphore in BEs
                     mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize +   // for streamout buffer writing over allocated size
                     mhw_mi_g12_X::MI_SEMAPHORE_WAIT_CMD::byteSize * 3 +   // for FE & BE0, BEs sync
@@ -824,6 +828,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
                 {
                     maxSize +=
                         mhw_sfc_g12_X::SFC_LOCK_CMD::byteSize +
+                        2 * mhw_mi_g12_X::VD_CONTROL_STATE_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_STATE_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_AVS_STATE_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_AVS_LUMA_Coeff_Table_CMD::byteSize +
@@ -886,6 +891,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpPrimitiveCommandSize(
                 2 * mhw_vdbox_hcp_g12_X::HCP_REF_IDX_STATE_CMD::byteSize +
                 2 * mhw_vdbox_hcp_g12_X::HCP_WEIGHTOFFSET_STATE_CMD::byteSize +
                 mhw_vdbox_hcp_g12_X::HCP_SLICE_STATE_CMD::byteSize +
+                2 * mhw_mi_g12_X::VD_CONTROL_STATE_CMD::byteSize +
                 mhw_vdbox_hcp_g12_X::HCP_TILE_CODING_CMD::byteSize +
                 mhw_vdbox_hcp_g12_X::HCP_PALETTE_INITIALIZER_STATE_CMD::byteSize +
                 mhw_vdbox_hcp_g12_X::HCP_BSD_OBJECT_CMD::byteSize +

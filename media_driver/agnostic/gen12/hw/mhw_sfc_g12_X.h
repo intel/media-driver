@@ -31,6 +31,7 @@
 #include "mhw_sfc_hwcmd_g12_X.h"
 #include "mhw_utilities.h"
 #include "mos_os.h"
+#include "mhw_mi_g12_X.h"
 
 static const int   MHW_SFC_MAX_WIDTH_G12  = 16 * 1024;
 static const int   MHW_SFC_MAX_HEIGHT_G12 = 16 * 1024;

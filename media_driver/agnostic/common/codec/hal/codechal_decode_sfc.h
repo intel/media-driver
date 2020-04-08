@@ -30,6 +30,7 @@
 
 #include "codechal.h"
 #include "codechal_hw.h"
+#include "mhw_mi.h"
 
 #define CODECHAL_SFC_ALIGNMENT_16        16
 #define CODECHAL_SFC_ALIGNMENT_8         8
@@ -186,6 +187,7 @@ public:
     CodechalHwInterface *m_hwInterface    = nullptr;  //!< HW Interface
     MhwVeboxInterface *  m_veboxInterface = nullptr;  //!< Vebox Interface
     PMHW_SFC_INTERFACE   m_sfcInterface   = nullptr;  //!< Sfc Interface
+    MhwMiInterface *     m_miInterface    = nullptr;  //!< Mi Interface
 
     bool         m_deblockingEnabled = false;    //!< Indicate if Deblocking is enabled
     uint32_t     m_inputFrameWidth   = 0;        //!< Input Frame Width

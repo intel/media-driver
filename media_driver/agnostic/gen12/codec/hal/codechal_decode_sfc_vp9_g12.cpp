@@ -387,6 +387,9 @@ MOS_STATUS CodechalVp9SfcStateG12::AddSfcCommands(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+    MEDIA_WA_TABLE *m_waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    MHW_CHK_NULL_RETURN(m_waTable);
+
     CODECHAL_HW_FUNCTION_ENTER;
 
     CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
@@ -409,6 +412,16 @@ MOS_STATUS CodechalVp9SfcStateG12::AddSfcCommands(
     CODECHAL_HW_CHK_STATUS_RETURN(SetSfcStateParams(&sfcStateParams, &sfcOutSurfaceParams));
 
     CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcLock(cmdBuffer, &sfcLockParams));
+    //insert 2 dummy VD_CONTROL_STATE packets with data = 0 after every HCP_SFC_LOCK
+    if (MEDIA_IS_WA(m_waTable, Wa_14010222001))
+    {
+        MHW_MI_VD_CONTROL_STATE_PARAMS vdCtrlParam;
+        MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
+        for (int i = 0; i < 2; i++)
+        {
+            CODECHAL_HW_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiVdControlStateCmd(cmdBuffer, &vdCtrlParam));
+        }
+    }
     CODECHAL_HW_CHK_STATUS_RETURN(m_sfcInterface->AddSfcState(cmdBuffer, &sfcStateParams, &sfcOutSurfaceParams));
 
     if (m_scaling)

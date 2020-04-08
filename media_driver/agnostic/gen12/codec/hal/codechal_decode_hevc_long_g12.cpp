@@ -37,6 +37,7 @@ HevcDecodeSliceLongG12::HevcDecodeSliceLongG12(
     m_decoder = decoder;
     m_hcpInterface = static_cast<MhwVdboxHcpInterfaceG12*>(hcpInterface);
     m_miInterface = miInterface;
+    m_osInterface  = m_decoder->GetOsInterface();
 
     //copy other params from decoder
     m_numSlices = m_decoder->m_numSlices;
@@ -70,6 +71,9 @@ HevcDecodeSliceLongG12::HevcDecodeSliceLongG12(
 
 MOS_STATUS HevcDecodeSliceLongG12::ProcessSliceLong(uint8_t *cmdResBase, uint32_t cmdBufSize)
 {
+    MEDIA_WA_TABLE *m_waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    MHW_CHK_NULL_RETURN(m_waTable);
+
     auto eStatus = MOS_STATUS_SUCCESS;
     auto slc = m_hevcSliceParams;
     auto slcBase = slc;
@@ -182,7 +186,22 @@ MOS_STATUS HevcDecodeSliceLongG12::ProcessSliceLong(uint8_t *cmdResBase, uint32_
                     MOS_SafeFreeMemory(sliceTileParams);
                     CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
                 }
-
+                //insert 2 dummy VD_CONTROL_STATE packets with data=0 before every HCP_TILE_CODING
+                if (MEDIA_IS_WA(m_waTable, Wa_14010222001))
+                {
+                    MHW_MI_VD_CONTROL_STATE_PARAMS vdCtrlParam;
+                    MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
+                    for (int i = 0; i < 2; i++)
+                    {
+                        eStatus = (static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiVdControlStateCmd(cmdBuf, &vdCtrlParam));
+                        if (eStatus != MOS_STATUS_SUCCESS)
+                        {
+                            MOS_SafeFreeMemory(sliceTileParams);
+                            MOS_SafeFreeMemory(cmdBufArray);
+                            CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
+                        }
+                    }
+                }
                 eStatus = (MOS_STATUS)(m_hcpInterface->AddHcpTileCodingCmd(cmdBuf, &tileCodingParams));
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {

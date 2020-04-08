@@ -857,12 +857,13 @@ MOS_STATUS CodechalSfcState::InitializeSfcState(
     CODECHAL_DECODE_CHK_NULL_RETURN(hwInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(osInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(hwInterface->GetVeboxInterface());
+    CODECHAL_DECODE_CHK_NULL_RETURN(hwInterface->GetMiInterface());
 
     m_decoder        = inDecoder;
     m_osInterface    = osInterface;
     m_hwInterface    = hwInterface;
     m_veboxInterface = hwInterface->GetVeboxInterface();
     m_sfcInterface   = hwInterface->GetSfcInterface();  // No need to check null for pSfcInterface. It will be checked in IsSfcSupported().
-
+    m_miInterface    = hwInterface->GetMiInterface();
     return eStatus;
 }

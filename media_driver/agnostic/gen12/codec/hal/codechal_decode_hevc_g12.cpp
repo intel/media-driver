@@ -1940,6 +1940,16 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
             m_scalabilityState,
             m_hevcPicParams,
             &hcpTileCodingParam));
+        //insert 2 dummy VD_CONTROL_STATE packets with data=0 before every HCP_TILE_CODING
+        if (MEDIA_IS_WA(m_waTable, Wa_14010222001))
+        {
+            MHW_MI_VD_CONTROL_STATE_PARAMS vdCtrlParam;
+            MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
+            for (int i = 0; i < 2; i++)
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiVdControlStateCmd(cmdBufferInUse, &vdCtrlParam));
+            }
+        }
         CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<MhwVdboxHcpInterfaceG12*>(m_hcpInterface)->AddHcpTileCodingCmd(
             cmdBufferInUse,
             &hcpTileCodingParam));

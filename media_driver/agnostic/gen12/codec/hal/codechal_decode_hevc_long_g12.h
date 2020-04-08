@@ -32,6 +32,7 @@
 #include "codechal_decode_hevc_g12.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "codechal_secure_decode_interface.h"
+#include "mhw_mi_g12_X.h"
 
 //!
 //! \class HevcDecodeSliceLongG12
@@ -329,6 +330,7 @@ protected:
         PMHW_VDBOX_HEVC_SLICE_STATE_G12 sliceState);
 
 private:
+    PMOS_INTERFACE              m_osInterface   = nullptr;      //!< Pointer to OS interface
     CodechalDecodeHevcG12       *m_decoder = nullptr;            //!< Pointer to the HEVC decoder
     MhwVdboxHcpInterfaceG12     *m_hcpInterface = nullptr;       //!< Pointer to MHW HCP interface
     MhwMiInterface              *m_miInterface = nullptr;        //!< Pointer to MHW MI interface
