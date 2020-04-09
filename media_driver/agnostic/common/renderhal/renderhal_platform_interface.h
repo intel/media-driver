@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -430,6 +430,17 @@ public:
     //!           MOS_STATUS_UNIMPLEMENTED is returned in base class implementation.
     virtual MOS_STATUS FreeScratchSpaceBuffer(
         RENDERHAL_INTERFACE *renderHal) { return MOS_STATUS_UNIMPLEMENTED; }
+
+    //!
+    //! \brief      enable/disable the fusedEUDispatch flag in the VFE_PARAMS
+    //! \return     no return value
+    //!
+    virtual void SetFusedEUDispatch(bool enable)
+    {
+        MOS_UNUSED(enable);
+
+        return;
+    }
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__

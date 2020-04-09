@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1144,6 +1144,8 @@ protected:
 
     float                           m_fScaleX = 1.0f;
     float                           m_fScaleY = 1.0f;
+
+    bool                            m_FusedEuDispatch = false;
 };
 
 typedef CompositeState * PCComposite;

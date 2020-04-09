@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, Intel Corporation
+* Copyright (c) 2016-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -248,7 +248,7 @@ public:
     //! \brief      enable/disable the fusedEUDispatch flag in the VFE_PARAMS
     //! \return     no return value
     //!
-    void SetFusedEUDispatch(bool enable);
+    virtual void SetFusedEUDispatch(bool enable);
 
     //!
     //! \brief      set the number of walkers in the VFE_PARAMS
