@@ -2175,11 +2175,21 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
     bool                            bHDRToneMappingNeed             = false;
 
     OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
-    pTarget    = pcRenderParams->pTarget[0];
 
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pcRenderParams->pTarget[0]);
+
+    pTarget    = pcRenderParams->pTarget[0];
     bCompBypassFeasible = IS_COMP_BYPASS_FEASIBLE(*pbCompNeeded, pcRenderParams, pSrcSurface);
 
     if (!bCompBypassFeasible)
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
+    //For dst crop of composite case force to render path
+    if (pTarget->dwHeight != pTarget->rcDst.bottom - pTarget->rcDst.top ||
+        pTarget->dwWidth != pTarget->rcDst.right - pTarget->rcDst.left)
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
         goto finish;
