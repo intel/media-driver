@@ -1551,9 +1551,15 @@ VAStatus DdiMedia__Initialize (
         mediaCtx->m_useSwSwizzling          = mosCtx.bUseSwSwizzling;
         mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
         mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
-
-        DDI_CHK_NULL(mosCtx.ppMediaMemDecompState, "media decomp state is null", VA_STATUS_ERROR_INVALID_PARAMETER);
+#ifdef _MMC_SUPPORTED
+        if (mosCtx.ppMediaMemDecompState == nullptr)
+        {
+            DDI_ASSERTMESSAGE("media decomp state is null.");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
         mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
+#endif
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
