@@ -49,6 +49,148 @@ MOS_STATUS MhwMiInterfaceG12::AddMiSemaphoreWaitCmd(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MhwMiInterfaceG12::AddPipeControl(
+    PMOS_COMMAND_BUFFER      cmdBuffer,
+    PMHW_BATCH_BUFFER        batchBuffer,
+    PMHW_PIPE_CONTROL_PARAMS params)
+{
+    MHW_FUNCTION_ENTER;
+
+    MHW_MI_CHK_NULL(params);
+
+    MHW_MI_CHK_NULL(m_osInterface);
+    MEDIA_WA_TABLE *pWaTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    MHW_MI_CHK_NULL(pWaTable);
+
+    if (cmdBuffer == nullptr && batchBuffer == nullptr)
+    {
+        MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+        return MOS_STATUS_NULL_POINTER;
+    }
+
+    mhw_mi_g12_X::PIPE_CONTROL_CMD     cmd;
+    cmd.DW1.PipeControlFlushEnable     = true;
+    cmd.DW1.CommandStreamerStallEnable = !params->bDisableCSStall;
+    cmd.DW4_5.Value[0]                 = params->dwDataDW1;
+    cmd.DW4_5.Value[1]                 = params->dwDataDW2;
+
+    if (params->presDest)
+    {
+        cmd.DW1.PostSyncOperation      = params->dwPostSyncOp;
+        cmd.DW1.DestinationAddressType = UseGlobalGtt.m_cs;
+
+        MHW_RESOURCE_PARAMS resourceParams;
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params->presDest;
+        resourceParams.dwOffset        = params->dwResourceOffset;
+        resourceParams.pdwCmd          = &(cmd.DW2.Value);
+        resourceParams.dwLocationInCmd = 2;
+        resourceParams.dwLsbNum        = MHW_COMMON_MI_PIPE_CONTROL_SHIFT;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_PIPE_CONTROL;
+
+        MHW_MI_CHK_STATUS(AddResourceToCmd(
+            m_osInterface,
+            cmdBuffer,
+            &resourceParams));
+    }
+    else
+    {
+        if (MEDIA_IS_WA(pWaTable, Wa_14010840176))
+        {
+            cmd.DW0.HdcPipelineFlush                = true;
+            cmd.DW1.ConstantCacheInvalidationEnable = false;
+        }
+        else
+        {
+            cmd.DW1.ConstantCacheInvalidationEnable = true;
+        }
+        cmd.DW1.StateCacheInvalidationEnable     = true;
+        cmd.DW1.VfCacheInvalidationEnable        = true;
+        cmd.DW1.InstructionCacheInvalidateEnable = true;
+        cmd.DW1.RenderTargetCacheFlushEnable     = true;
+        cmd.DW1.PostSyncOperation                = cmd.POST_SYNC_OPERATION_NOWRITE;
+    }
+
+    // Cache flush mode
+    switch (params->dwFlushMode)
+    {
+    // Flush all Write caches
+    case MHW_FLUSH_WRITE_CACHE:
+        cmd.DW1.RenderTargetCacheFlushEnable = true;
+        cmd.DW1.DcFlushEnable                = true;
+        break;
+
+    // Invalidate all Read-only caches
+    case MHW_FLUSH_READ_CACHE:
+        if (MEDIA_IS_WA(pWaTable, Wa_14010840176))
+        {
+            cmd.DW0.HdcPipelineFlush                = true;
+            cmd.DW1.ConstantCacheInvalidationEnable = false;
+        }
+        else
+        {
+            cmd.DW1.ConstantCacheInvalidationEnable = true;
+        }
+        cmd.DW1.RenderTargetCacheFlushEnable     = false;
+        cmd.DW1.StateCacheInvalidationEnable     = true;
+        cmd.DW1.VfCacheInvalidationEnable        = true;
+        cmd.DW1.InstructionCacheInvalidateEnable = true;
+        break;
+
+    // Custom flush parameters
+    case MHW_FLUSH_CUSTOM:
+        if (MEDIA_IS_WA(pWaTable, Wa_14010840176) && params->bInvalidateConstantCache)
+        {
+            cmd.DW0.HdcPipelineFlush                = true;
+            cmd.DW1.StateCacheInvalidationEnable    = true;
+            cmd.DW1.ConstantCacheInvalidationEnable = false;
+        }
+        else
+        {
+            cmd.DW1.StateCacheInvalidationEnable    = params->bInvalidateStateCache;
+            cmd.DW1.ConstantCacheInvalidationEnable = params->bInvalidateConstantCache;
+        }
+
+        cmd.DW1.RenderTargetCacheFlushEnable     = params->bFlushRenderTargetCache;
+        cmd.DW1.DcFlushEnable                    = params->bFlushRenderTargetCache;  // same as above
+        cmd.DW1.VfCacheInvalidationEnable        = params->bInvalidateVFECache;
+        cmd.DW1.InstructionCacheInvalidateEnable = params->bInvalidateInstructionCache;
+        cmd.DW1.TlbInvalidate                    = params->bTlbInvalidate;
+        cmd.DW1.TextureCacheInvalidationEnable   = params->bInvalidateTextureCache;
+        break;
+
+    // No-flush operation requested
+    case MHW_FLUSH_NONE:
+    default:
+        cmd.DW1.RenderTargetCacheFlushEnable = false;
+        break;
+    }
+
+    // When PIPE_CONTROL stall bit is set, one of the following must also be set, otherwise set stall bit to 0
+    if (cmd.DW1.CommandStreamerStallEnable &&
+        (cmd.DW1.DcFlushEnable == 0 && cmd.DW1.NotifyEnable == 0 && cmd.DW1.PostSyncOperation == 0 &&
+            cmd.DW1.DepthStallEnable == 0 && cmd.DW1.StallAtPixelScoreboard == 0 && cmd.DW1.DepthCacheFlushEnable == 0 &&
+            cmd.DW1.RenderTargetCacheFlushEnable == 0))
+    {
+        cmd.DW1.CommandStreamerStallEnable = 0;
+    }
+
+    if (params->bGenericMediaStateClear)
+    {
+        cmd.DW1.GenericMediaStateClear = true;
+    }
+
+    if (params->bIndirectStatePointersDisable)
+    {
+        cmd.DW1.IndirectStatePointersDisable = true;
+    }
+
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MhwMiInterfaceG12::AddMiBatchBufferStartCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer,
     PMHW_BATCH_BUFFER                   batchBuffer)

@@ -104,6 +104,11 @@ struct MhwMiInterfaceG12 : public MhwMiInterfaceGeneric<mhw_mi_g12_X>
         PMOS_COMMAND_BUFFER                 cmdBuffer,
         PMHW_MI_FORCE_WAKEUP_PARAMS         params);
 
+    MOS_STATUS AddPipeControl(
+        PMOS_COMMAND_BUFFER                 cmdBuffer,
+        PMHW_BATCH_BUFFER                   batchBuffer,
+        PMHW_PIPE_CONTROL_PARAMS            params);
+
     //!
     //! \brief    Adds Mi Vd control state cmd in command buffer
     //!
