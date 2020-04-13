@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2020, Intel Corporation
+* Copyright (c) 2016-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1436,7 +1436,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
             }
         }
         initParams.usingSFC             = sfcInUse;
-        initParams.usingSecureDecode    = codecHalSetting->secureMode;
+        initParams.usingSecureDecode    = codecHalSetting->DecodeEncType();
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
             pScalState,
             &initParams));

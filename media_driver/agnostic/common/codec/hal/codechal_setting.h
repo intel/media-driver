@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,11 @@ public:
     //! \brief    Return the indicate if cenc advance is used or not 
     //!
     virtual bool CheckCencAdvance() {return false; };
+
+    //!
+    //! \brief    Return the decode enc type 
+    //!
+    virtual uint32_t DecodeEncType() {return 0; };
 
     //!
     //! \brief    Create CodechalSetting instance 
