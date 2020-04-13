@@ -1341,6 +1341,13 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         picParams->bUseRawPicForRef                                = vaEncMiscParamPrivate->useRawPicForRef;
         break;
     }
+    case VAEncMiscParameterTypeMaxFrameSize:
+    {
+        VAEncMiscParameterBufferMaxFrameSize *vaEncData  = (VAEncMiscParameterBufferMaxFrameSize *)miscParamBuf->data;
+        seqParams->UserMaxIFrameSize = vaEncData->max_frame_size>>3; // convert to bytes
+        seqParams->UserMaxPBFrameSize = vaEncData->max_frame_size>>3; // convert to bytes
+        break;
+    }
     default:
         DDI_ASSERTMESSAGE("unsupported misc parameter type.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;

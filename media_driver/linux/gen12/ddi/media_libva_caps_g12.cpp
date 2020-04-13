@@ -1577,7 +1577,7 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
             (VAConfigAttribType)VAConfigAttribCustomRoundingControl, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
-    if (IsAvcProfile(profile))
+    if (IsAvcProfile(profile) || IsHevcProfile(profile) )
     {
         attrib.type = (VAConfigAttribType)VAConfigAttribMaxFrameSize;
         VAConfigAttribValMaxFrameSize attribValMaxFrameSize;
