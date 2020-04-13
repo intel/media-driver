@@ -1927,9 +1927,9 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
         bDiVarianceEnable,
         &VeboxSurfaceStateCmdParams);
 
-    pVeboxState->SetupVeboxState(
+    VPHAL_RENDER_CHK_STATUS(pVeboxState->SetupVeboxState(
         bDiVarianceEnable,
-        &VeboxStateCmdParams);
+        &VeboxStateCmdParams));
 
     // Ensure LACE LUT table is ready to be written
     if (VeboxStateCmdParams.pLaceLookUpTables)

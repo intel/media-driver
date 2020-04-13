@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -241,10 +241,16 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     // Read output file name
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.StringData.pStringData = m_outputFileName;
-    MOS_UserFeature_ReadValue_ID(
+    status = MOS_UserFeature_ReadValue_ID(
         NULL,
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE,
         &userFeatureData);
+
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MOS_UnlockMutex(m_mutex);
+        return status;
+    }
 
     if (userFeatureData.StringData.uSize == MOS_MAX_PATH_LENGTH + 1)
     {
