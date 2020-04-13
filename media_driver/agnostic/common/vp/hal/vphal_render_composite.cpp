@@ -6692,6 +6692,7 @@ bool CompositeState::BuildFilter(
                 case Format_A8P8:
                 case Format_A8:
                 case Format_Y416:
+                case Format_Y410:
                     pFilter->bFillOutputAlphaWithConstant = false;
                     break;
 

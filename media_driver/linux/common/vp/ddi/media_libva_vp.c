@@ -3666,6 +3666,10 @@ static bool hasAlphaInSurface(PVPHAL_SURFACE pSurface)
             case Format_A8B8G8R8:
             case Format_A8P8:
             case Format_AYUV:
+            case Format_Y410:
+            case Format_Y416:
+            case Format_R10G10B10A2:
+            case Format_B10G10R10A2:
                 return true;
             default:
                 return false;
@@ -3693,6 +3697,7 @@ DdiVp_SetProcPipelineBlendingParams(
 {
     PVPHAL_RENDER_PARAMS      pVpHalRenderParams;
     PVPHAL_SURFACE            pSrc;
+    PVPHAL_SURFACE            pTarget;
     bool                      bGlobalAlpha;
     bool                      bPreMultAlpha;
 
@@ -3723,8 +3728,21 @@ DdiVp_SetProcPipelineBlendingParams(
 
     // So far vaapi does not have alpha fill mode API.
     // And for blending support, we use VPHAL_ALPHA_FILL_MODE_NONE by default.
-    pVpHalRenderParams->pCompAlpha->fAlpha      = 1.0f;
-    pVpHalRenderParams->pCompAlpha->AlphaMode = VPHAL_ALPHA_FILL_MODE_NONE;
+    pTarget = pVpHalRenderParams->pTarget[0];
+    DDI_CHK_NULL(pTarget, "Null pTarget.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    //For surface with alpha, we need to bypass SFC that could change the output alpha.
+    if (hasAlphaInSurface(pSrc) &&
+        hasAlphaInSurface(pTarget))
+    {
+        pVpHalRenderParams->pCompAlpha->fAlpha      = 0.0f;
+        pVpHalRenderParams->pCompAlpha->AlphaMode = VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM;
+    }
+    else
+    {
+        pVpHalRenderParams->pCompAlpha->fAlpha      = 1.0f;
+        pVpHalRenderParams->pCompAlpha->AlphaMode = VPHAL_ALPHA_FILL_MODE_NONE;
+    }
 
     // First, no Blending
     if(!blend_state)
