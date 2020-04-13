@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -5923,7 +5923,7 @@ static MOS_STATUS MOS_UserFeature_ReadValueString(
     }
     if (strlen(pcTmpStr) > 0)
     {
-        pFeatureValue->Value.StringData.pStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
+        MOS_OS_CHK_NULL_RETURN(pFeatureValue->Value.StringData.pStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1));
 
         MOS_SecureMemcpy(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr), pcTmpStr, strlen(pcTmpStr));
         pFeatureValue->Value.StringData.uSize = dwUFSize;
