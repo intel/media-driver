@@ -2304,23 +2304,14 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G12_BASE::GetOutputPipe(
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState              = this;
 
     OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pcRenderParams);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(pcRenderParams->pTarget[0]);
 
-    pTarget             = pcRenderParams->pTarget[0];
     bCompBypassFeasible = IS_COMP_BYPASS_FEASIBLE(pRenderData->bCompNeeded, pcRenderParams, pSrcSurface);
 
     if (!bCompBypassFeasible)
-    {
-        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
-        goto finish;
-    }
-
-    //For dst crop of composite case force to render path
-    if (pTarget->dwHeight != pTarget->rcDst.bottom - pTarget->rcDst.top ||
-        pTarget->dwWidth != pTarget->rcDst.right - pTarget->rcDst.left)
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
         goto finish;
@@ -2351,6 +2342,9 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G12_BASE::GetOutputPipe(
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
         goto finish;
     }
+
+    pTarget             = pcRenderParams->pTarget[0];
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pcRenderParams->pTarget[0]);
 
     bHDRToneMappingNeed = (pSrcSurface->pHDRParams || pTarget->pHDRParams);
     // Check if SFC can be the output pipe
