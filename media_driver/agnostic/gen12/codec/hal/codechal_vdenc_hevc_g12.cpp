@@ -1089,7 +1089,7 @@ MOS_STATUS CodechalVdencHevcStateG12::AllocatePakResources()
                                                 &m_resVdBoxSemaphoreMem[i].sResource,
                                                 &lockFlagsWriteOnly));
 
-            *data = 1;
+            *data = 0;
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
                 m_osInterface,
@@ -2411,20 +2411,6 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
             &cmdBuffer,
             &forceWakeupParams));
 
-        // clean-up per VDBOX semaphore memory, only in the first BRC pass. Same semaphore is re-used across BRC passes for stitch command
-        if (IsFirstPass())
-        {
-            if (!Mos_ResourceIsNull(&m_resVdBoxSemaphoreMem[currentPipe].sResource))
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(
-                    SetSemaphoreMem(
-                        &m_resVdBoxSemaphoreMem[currentPipe].sResource,
-                        &cmdBuffer,
-                        0));
-            }
-
-            // Do not clear BRC PAK semaphore because of timing issue with =0 on 1st pipe and +1 on 2nd pipe
-        }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
     }
     else if (IsFirstPass())
