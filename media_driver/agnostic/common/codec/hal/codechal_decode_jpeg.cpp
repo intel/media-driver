@@ -783,7 +783,7 @@ MOS_STATUS CodechalDecodeJpeg::DecodePrimitiveLevel()
     MHW_VDBOX_QM_PARAMS qmParams;
     MOS_ZeroMemory(&qmParams, sizeof(qmParams));
     qmParams.Standard = CODECHAL_JPEG;
-    qmParams.pJpegQuantMatrix = (CodecJpegQuantMatrix *)m_jpegQMatrix;
+    qmParams.pJpegQuantMatrix = m_jpegQMatrix;
 
     // Swapping QM(x,y) to QM(y,x) for 90/270 degree rotation
     if ((m_jpegPicParams->m_rotation == jpegRotation90) ||

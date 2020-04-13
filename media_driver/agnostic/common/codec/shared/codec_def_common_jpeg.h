@@ -31,6 +31,7 @@
 
 #define JPEG_MAX_NUM_HUFF_TABLE_INDEX           2    // For baseline only allowed 2, else could have 4.
 #define JPEG_NUM_QUANTMATRIX                    64   // Elements of 8x8 matrix in zig-zag scan order.
+#define JPEG_MAX_NUM_OF_QUANTMATRIX             4    // JPEG decoders can store up to 4 different quantization matrix
 
 #define JPEG_NUM_HUFF_TABLE_DC_BITS             12   // Huffman Table DC BITS
 #define JPEG_NUM_HUFF_TABLE_DC_HUFFVAL          12   // Huffman Table DC HUFFVAL
@@ -46,8 +47,7 @@ enum CodecJpegComponents
     jpegComponentY      = 0,    //!< Component Y
     jpegComponentU      = 1,    //!< Component U
     jpegComponentV      = 2,    //!< Component V
-    jpegComponentA      = 3,    //!< Component A
-    jpegNumComponent    = 4,    //!< Component number
+    jpegNumComponent    = 3,    //!< Component number
 };
 
 //!
@@ -56,8 +56,8 @@ enum CodecJpegComponents
 //!
 struct CodecJpegQuantMatrix
 {
-    uint32_t            m_jpegQMTableType[jpegNumComponent];                       //!< Quant Matrix table type
-    uint8_t             m_quantMatrix[jpegNumComponent][JPEG_NUM_QUANTMATRIX];     //!< Quant Matrix
+    uint32_t m_jpegQMTableType[JPEG_MAX_NUM_OF_QUANTMATRIX];                    //!< Quant Matrix table type
+    uint8_t  m_quantMatrix[JPEG_MAX_NUM_OF_QUANTMATRIX][JPEG_NUM_QUANTMATRIX];  //!< Quant Matrix
 };
 
 #endif  // __CODEC_DEF_COMMON_JPEG_H__

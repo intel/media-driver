@@ -122,6 +122,9 @@ MOS_STATUS CodechalEncodeJpegStateG11::ExecuteSliceLevel()
     CodecJpegQuantMatrix *tempJpegQuantMatrix = (CodecJpegQuantMatrix *)MOS_AllocAndZeroMemory(sizeof(CodecJpegQuantMatrix));
     CODECHAL_ENCODE_CHK_NULL_RETURN(tempJpegQuantMatrix);
 
+    static_assert(JPEG_MAX_NUM_QUANT_TABLE_INDEX <= JPEG_MAX_NUM_OF_QUANTMATRIX,
+        "access to CodecJpegQuantMatrix is controlled by numQuantTables");
+
     uint32_t numQuantTables = JPEG_MAX_NUM_QUANT_TABLE_INDEX;
     for (uint32_t scanCount = 0; scanCount < m_encodeParams.dwNumSlices; scanCount++)
     {
