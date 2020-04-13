@@ -2275,7 +2275,8 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateStandard (
                 this,
                 m_scalabilityState,
                 m_hwInterface,
-                m_shortFormatInUse));
+                m_shortFormatInUse,
+                settings));
         }
         else
         {

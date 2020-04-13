@@ -841,7 +841,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     CodechalDecode                     *pDecoder,
     PCODECHAL_DECODE_SCALABILITY_STATE  pScalabilityStateBase,
     CodechalHwInterface                *hwInterface,
-    bool                                bShortFormat)
+    bool                                bShortFormat,
+    CodechalSetting                    *settings)
 {
     PMOS_VIRTUALENGINE_INTERFACE   pVEInterface;
     MOS_VIRTUALENGINE_INIT_PARAMS  VEInitParms;
@@ -962,13 +963,17 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     {
         MOS_GPU_CONTEXT         GpuContext = MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO : MOS_GPU_CONTEXT_VIDEO4;
         GpuContext                         = MOS_VE_MULTINODESCALING_SUPPORTED(osInterface) ? MOS_GPU_CONTEXT_VIDEO4 : GpuContext;
-        MOS_GPUCTX_CREATOPTIONS createOpts;
 
+        MOS_GPUCTX_CREATOPTIONS_ENHANCED createOpts;
+        createOpts.UsingSFC = settings->sfcInUseHinted && settings->downsamplingHinted
+                              && (MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrSFCPipe)
+                              && !MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrDisableVDBox2SFC));
         CODECHAL_DECODE_CHK_STATUS(osInterface->pfnCreateGpuContext(
-            osInterface,
-            GpuContext,
-            MOS_GPU_NODE_VIDEO,
-            &createOpts));
+              osInterface,
+              GpuContext,
+              MOS_GPU_NODE_VIDEO,
+              &createOpts));
+
         pScalabilityState->VideoContextForFE = GpuContext;
     }
 

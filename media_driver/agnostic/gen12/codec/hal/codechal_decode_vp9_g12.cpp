@@ -1247,7 +1247,8 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateStandard (
                 this,
                 m_scalabilityState,
                 m_hwInterface,
-                false));
+                false,
+                settings));
         }
         else
         {

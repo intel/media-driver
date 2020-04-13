@@ -307,7 +307,9 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
         CodecHalDecodeMapGpuNodeToGpuContex(MOS_GPU_NODE_VIDEO, m_videoContextForWa, true);
     }
 
-    MOS_GPUCTX_CREATOPTIONS createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption;
+    createOption.UsingSFC = codecHalSettings->sfcInUseHinted && codecHalSettings->downsamplingHinted
+                          && (MEDIA_IS_SKU(m_skuTable, FtrSFCPipe)) && !(MEDIA_IS_SKU(m_skuTable, FtrDisableVDBox2SFC));
     eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         m_videoContextForWa,

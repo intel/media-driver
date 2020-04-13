@@ -345,7 +345,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     CodechalDecode                      *pDecoder,
     PCODECHAL_DECODE_SCALABILITY_STATE  pScalabilityState,
     CodechalHwInterface                 *hwInterface,
-    bool                                bShortFormat);
+    bool                                bShortFormat,
+    CodechalSetting                     *settings);
 
 //!
 //! \brief    State initialization for virtual engine decode supporting scalable and single pipe mode
