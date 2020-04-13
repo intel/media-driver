@@ -2202,7 +2202,8 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G11_BASE::GetOutputPipe(
          (pSrcSurface->Format == Format_P010 ||
           pSrcSurface->Format == Format_P016 ||
           pSrcSurface->Format == Format_NV12)) ||
-         !this->IsDiFormatSupported(pSrcSurface)))
+         !this->IsDiFormatSupported(pSrcSurface) ||
+         MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrDisableVEBoxFeatures)))
     {
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
         goto finish;

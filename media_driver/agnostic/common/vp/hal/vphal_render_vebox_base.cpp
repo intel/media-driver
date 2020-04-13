@@ -2391,6 +2391,14 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
 
     pRenderHal                  = pVeboxState->m_pRenderHal;
 
+    // VEBOX needed to be bypass for VE+COMP/SFC cases when no vebox feature.
+    if (MEDIA_IS_SKU(pVeboxState->GetSkuTable(), FtrDisableVEBoxFeatures) &&
+        !IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
+    {
+        pRenderData->bVeboxBypass = true;
+        return;
+    }
+
     VeboxSetCommonRenderingFlags(pSrc, pRenderTarget);
 
     // surface height should be a multiple of 4 when DN/DI is enabled and input format is Planar 420
