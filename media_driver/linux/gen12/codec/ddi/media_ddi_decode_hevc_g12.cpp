@@ -1001,13 +1001,6 @@ VAStatus DdiDecodeHEVCG12::CodecHalInit(
     }
 #endif
 
-    m_ddiDecodeCtx->DecodeParams.m_subsetParams = MOS_AllocAndZeroMemory(sizeof(CODEC_HEVC_SUBSET_PARAMS));
-    if (m_ddiDecodeCtx->DecodeParams.m_subsetParams == nullptr)
-    {
-        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        goto CleanUpandReturn;
-    }
-
     vaStatus = CreateCodecHal(mediaCtx,
         ptr,
         &standardInfo);

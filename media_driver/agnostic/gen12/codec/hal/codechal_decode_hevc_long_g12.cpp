@@ -371,7 +371,6 @@ MOS_STATUS HevcDecodeSliceLongG12::InitSliceTileParams(
     uint32_t                    bsdOffset = 0;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(sliceTileParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(m_hevcSubsetParams);
 
     slc = sliceTileParams->slc;
     CODECHAL_DECODE_CHK_NULL_RETURN(slc);
@@ -379,7 +378,11 @@ MOS_STATUS HevcDecodeSliceLongG12::InitSliceTileParams(
 
     tileX = sliceTileParams->tileX;
     tileY = sliceTileParams->tileY;
-    entryPointOffsets = &m_hevcSubsetParams->entry_point_offset_minus1[slc->EntryOffsetToSubsetArray];
+
+    if (m_hevcSubsetParams)
+        entryPointOffsets = &m_hevcSubsetParams->entry_point_offset_minus1[slc->EntryOffsetToSubsetArray];
+    else
+        entryPointOffsets = NULL;
 
     for (uint16_t i = 0; i < sliceTileParams->numTiles; i++)
     {
@@ -389,7 +392,7 @@ MOS_STATUS HevcDecodeSliceLongG12::InitSliceTileParams(
         if (i == 0)
         {
             sliceTileParams->TileArray[i].bsdLength = slc->ByteOffsetToSliceData + slc->NumEmuPrevnBytesInSliceHdr;
-            sliceTileParams->TileArray[i].bsdLength += entryPointOffsets[i] + 1;
+            sliceTileParams->TileArray[i].bsdLength += entryPointOffsets ? entryPointOffsets[i] + 1 : 1;
         }
         else if (i == sliceTileParams->numTiles - 1)
         {
@@ -397,7 +400,7 @@ MOS_STATUS HevcDecodeSliceLongG12::InitSliceTileParams(
         }
         else
         {
-            sliceTileParams->TileArray[i].bsdLength = entryPointOffsets[i] + 1;
+            sliceTileParams->TileArray[i].bsdLength = entryPointOffsets ? entryPointOffsets[i] + 1 : 1;
         }
         bsdOffset += sliceTileParams->TileArray[i].bsdLength;
         if (++tileX > m_hevcPicParams->num_tile_columns_minus1)
