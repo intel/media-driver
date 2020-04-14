@@ -626,6 +626,7 @@ MOS_STATUS CodechalDecodeHevcG12 ::InitializeDecodeMode()
         initParams.u32PicWidthInPixel  = m_width;
         initParams.u32PicHeightInPixel = m_height;
         initParams.bIsTileEnabled      = m_hevcPicParams->tiles_enabled_flag;
+        initParams.bHasSubsetParams    = !!m_decodeParams.m_subsetParams;
         initParams.format              = m_decodeParams.m_destSurface->Format;
         initParams.usingSecureDecode   = m_secureDecoder ? m_secureDecoder->IsSecureDecodeEnabled() : false;
         // Only support SCC real tile mode. SCC virtual tile scalability mode is disabled here

@@ -433,6 +433,14 @@ VAStatus DdiDecodeHEVC::RenderPicture(
         }
         case VASubsetsParameterBufferType:
         {
+
+            if (m_ddiDecodeCtx->DecodeParams.m_subsetParams == nullptr) {
+                m_ddiDecodeCtx->DecodeParams.m_subsetParams = MOS_AllocAndZeroMemory(sizeof(CODEC_HEVC_SUBSET_PARAMS));
+
+                if (m_ddiDecodeCtx->DecodeParams.m_subsetParams == nullptr)
+                    break;
+            }
+
             MOS_SecureMemcpy(m_ddiDecodeCtx->DecodeParams.m_subsetParams, dataSize, data, dataSize);
             break;
         }

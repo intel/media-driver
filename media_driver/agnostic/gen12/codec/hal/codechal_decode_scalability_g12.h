@@ -61,6 +61,7 @@ typedef struct _CODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12 : public _CODECHAL_D
 {
     bool             bIsTileEnabled;                 //!< The picture can be partitioned into tiles
     bool             bIsSccDecoding;                 //!< Codec is HEVC SCC decoding
+    bool             bHasSubsetParams;               //!< Whether it has subset parameters
 }CODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12, *PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12;
 
 typedef struct _CODECHAL_DECODE_SFC_SCALABILITY_PARAMS

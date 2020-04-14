@@ -492,7 +492,8 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams_G12(
             u8MaxTileColumn = pScalabilityState->ucScalablePipeNum;
 #endif
         bCanEnableRealTile = bCanEnableRealTile && pInitParams->bIsTileEnabled && (pInitParams->u8NumTileColumns > 1) &&
-            (pInitParams->u8NumTileColumns <= u8MaxTileColumn) && (pInitParams->u8NumTileRows <= HEVC_NUM_MAX_TILE_ROW);
+            (pInitParams->u8NumTileColumns <= u8MaxTileColumn) && (pInitParams->u8NumTileRows <= HEVC_NUM_MAX_TILE_ROW) &&
+            pInitParams->bHasSubsetParams;
         if (bCanEnableRealTile)
         {
             pScalabilityState->bIsRtMode = true;
@@ -1430,7 +1431,8 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
         u8MaxTileColumn = 2;
 #endif
     bCanEnableRealTile = bCanEnableRealTile && pInitParamsG12->bIsTileEnabled && (pInitParams->u8NumTileColumns > 1) &&
-                         (pInitParams->u8NumTileColumns <= u8MaxTileColumn) && (pInitParams->u8NumTileRows <= HEVC_NUM_MAX_TILE_ROW);
+                         (pInitParams->u8NumTileColumns <= u8MaxTileColumn) && (pInitParams->u8NumTileRows <= HEVC_NUM_MAX_TILE_ROW) &&
+                         pInitParamsG12->bHasSubsetParams;
 
     if (pInitParams->usingSFC)
     {
