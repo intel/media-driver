@@ -426,8 +426,8 @@ MOS_STATUS Mos_DumpCommandBuffer(
         case MOS_GPU_CONTEXT_VIDEO7:
             MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
             break;
-        case MOS_GPU_CONTEXT_RTE:
-            MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RTE_ENGINE);
+        case MOS_GPU_CONTEXT_TEE:
+            MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_TEE_ENGINE);
             break;
         case MOS_GPU_CONTEXT_RENDER:
         case MOS_GPU_CONTEXT_RENDER2:

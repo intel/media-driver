@@ -153,21 +153,21 @@ public:
         return false;
     }
 
-    virtual MOS_STATUS AllocateRTEPhysicalBuffer(
-        void        **ppRTEBuffer,
+    virtual MOS_STATUS AllocateTEEPhysicalBuffer(
+        void        **ppTEEBuffer,
         uint32_t    *pBufferSize)
     {
-        MOS_UNUSED(ppRTEBuffer);
+        MOS_UNUSED(ppTEEBuffer);
         MOS_UNUSED(pBufferSize);
 
         OsStubMessage();
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS DeAllocateRTEPhysicalBuffer(
-        void      *pRTEBuffer)
+    virtual MOS_STATUS DeAllocateTEEPhysicalBuffer(
+        void      *pTEEBuffer)
     {
-        MOS_UNUSED(pRTEBuffer);
+        MOS_UNUSED(pTEEBuffer);
 
         OsStubMessage();
         return MOS_STATUS_SUCCESS;

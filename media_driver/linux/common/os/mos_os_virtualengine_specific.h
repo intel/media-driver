@@ -64,21 +64,21 @@ struct _MOS_SPECIFIC_VE_HINT_PARAMS
     uint8_t        EngineInstance[MOS_MAX_ENGINE_INSTANCE_PER_CLASS];
 };
 
-typedef struct _MOS_RTE_INPUT_OUTPUT_BUFFER_PARAMS
+typedef struct _MOS_TEE_INPUT_OUTPUT_BUFFER_PARAMS
 {
     uint32_t                            inputlength;   // input buffer length
     uint32_t                            outputlength;  // output buffer length
     uint64_t                            inputaddress;  // input buffer address
     uint64_t                            outputaddress; // output buffer address
     uint8_t                             MEclient;      // fixed ME client
-}MOS_RTE_INPUT_OUTPUT_BUFFER_PARAMS;
+}MOS_TEE_INPUT_OUTPUT_BUFFER_PARAMS;
 
 struct _MOS_CMD_BUF_ATTRI_VE
 {
     int32_t                             bUseVirtualEngineHint;
     MOS_VIRTUALENGINE_HINT_PARAMS       VEngineHintParams;
-    int32_t                             bRTEparamspresent;
-    MOS_RTE_INPUT_OUTPUT_BUFFER_PARAMS  RTEInputOutPutParams;
+    int32_t                             bTEEparamspresent;
+    MOS_TEE_INPUT_OUTPUT_BUFFER_PARAMS  TEEInputOutPutParams;
 };
 
 #endif //__MOS_OS_VIRTUALENGINE_SPECIFIC_H__
