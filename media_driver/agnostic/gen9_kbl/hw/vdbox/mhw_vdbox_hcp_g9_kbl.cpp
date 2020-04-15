@@ -1578,7 +1578,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
 
     cmd.DW21.Value = (0 << 31) | 1;
 
-    cmd.DW31.Value = (0 << 30) | 1;
+    //DW31 is for restricting the compressed frames minimum size
+    //and we don't impose any.
 
     if (params->uiMaxBitRate || params->uiMinBitRate)
     {
