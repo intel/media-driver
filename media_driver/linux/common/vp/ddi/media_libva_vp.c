@@ -234,8 +234,9 @@ VAStatus VpGetExternalSurfaceInfo(
         }
         else
         {
-            DDI_ASSERTMESSAGE("Unsupported memory type.");
-            return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
+            pVphalSurface->b16UsrPtr                   = false;
+            pVphalSurface->OsResource.b16UsrPtrMode    = false;
+            pVphalSurface->OsResource.bExternalSurface = false;
         }
     }
     else
