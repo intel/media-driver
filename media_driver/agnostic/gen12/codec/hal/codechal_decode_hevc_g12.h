@@ -83,6 +83,9 @@ struct HUC_HEVC_S2L_BSS_G12
     // Flag to indicate if create dummy HCP_REF_IDX_STATE or not
     uint32_t                    DummyRefIdxState;
 
+    //Flag to indicate if insert dummy HCP_VD_CONTROL_STATE or not
+    uint32_t                    DummyVDControlState;
+
     // Picture level DMEM data
     HUC_HEVC_S2L_PIC_BSS_G12    PictureBss;
 
