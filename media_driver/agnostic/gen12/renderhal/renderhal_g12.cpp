@@ -1019,6 +1019,7 @@ bool XRenderHal_Interface_g12::IsFormatMMCSupported(MOS_FORMAT format)
         (format != Format_400P)             &&
         (format != Format_420O)             &&
         (format != Format_R8UN)             &&
+        (format != Format_A8)               &&
         (format != Format_R8G8UN))
     {
         MHW_RENDERHAL_NORMALMESSAGE("Unsupported Format '0x%08x' for Render MMC.", format);
