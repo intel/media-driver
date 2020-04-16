@@ -2396,6 +2396,16 @@ MOS_STATUS MOS_UserFeatureSetValueEx(
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
+
+    if (dwType == UF_SZ || dwType == UF_MULTI_SZ)
+    {
+        if (lpData == nullptr || strlen((const char*)lpData) == 0)
+        {
+            MOS_OS_NORMALMESSAGE("NULL string, skip to report");
+            return MOS_STATUS_SUCCESS;
+        }
+    }
+
     if (( pUFKeyOps != nullptr) && (pUFKeyOps->pfnUserFeatureSetValueEx!= nullptr))
     {
         return pUFKeyOps->pfnUserFeatureSetValueEx(UFKey, lpValueName, Reserved, dwType, lpData, cbData);

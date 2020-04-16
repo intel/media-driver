@@ -1478,6 +1478,15 @@ MOS_STATUS MosUtilities::MosUserFeatureSetValueEx(
     uint8_t         *lpData,
     uint32_t        cbData)
 {
+    if (dwType == UF_SZ || dwType == UF_MULTI_SZ)
+    {
+        if (lpData == nullptr || strlen((const char*)lpData) == 0)
+        {
+            MOS_OS_NORMALMESSAGE("NULL string, skip to report");
+            return MOS_STATUS_SUCCESS;
+        }
+    }
+
     return MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(UFKey, lpValueName, Reserved, dwType, lpData, cbData);
 }
 
