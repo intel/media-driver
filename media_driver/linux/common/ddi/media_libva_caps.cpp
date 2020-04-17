@@ -512,6 +512,14 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     {
         attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
     }
+    else if(IsVp9Profile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_RAW_DATA;
+    }
+    else if(IsVp8Profile(profile))
+    {
+        attrib.value = VA_ENC_PACKED_HEADER_NONE;
+    }
 
     (*attribList)[attrib.type] = attrib.value;
     if(IsJpegProfile(profile))

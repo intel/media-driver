@@ -54,7 +54,7 @@ public:
              VA_RT_FORMAT_RGB32_10BPP | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV422_10},
             {VP9, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP |
              VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10 | VA_RT_FORMAT_RGB32 |
-             VA_RT_FORMAT_RGB32_10BPP},
+             VA_RT_FORMAT_RGB32_10BPP | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV422_10},
         };
         m_encodeFormatTable = (struct EncodeFormatTable*)(&encodeFormatTableTGL[0]);
         m_encodeFormatCount = sizeof(encodeFormatTableTGL)/sizeof(struct EncodeFormatTable);
