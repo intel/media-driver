@@ -4084,6 +4084,8 @@ VAStatus DdiMedia_CreateImage(
     vaimg->height               = height;
     vaimg->data_size            = size;
 
+    mediaCtx->pGmmClientContext->DestroyResInfoObject(gmmResourceInfo);
+
      switch(format->fourcc)
     {
         case VA_FOURCC_RGBA:
