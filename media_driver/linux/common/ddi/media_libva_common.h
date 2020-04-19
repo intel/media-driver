@@ -324,6 +324,7 @@ typedef struct _DDI_MEDIA_BUFFER
     uint32_t               uiMemtype;
     uint32_t               uiExportcount;
     uintptr_t              handle;
+    bool                   bPostponedBufFree;
 
     bool                   bCFlushReq; // No LLC between CPU & GPU, requries to call CPU Flush for CPU mapped buffer
     PDDI_MEDIA_SURFACE     pSurface;

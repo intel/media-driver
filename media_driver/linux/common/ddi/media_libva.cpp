@@ -3370,8 +3370,12 @@ VAStatus DdiMedia_DestroyBuffer (
             else
             {
                 DdiMediaUtil_UnRefBufObjInMediaBuffer(buf);
+
+                if (buf->uiExportcount) {
+                    buf->bPostponedBufFree = true;
+                    return VA_STATUS_SUCCESS;
+                }
             }
-            break;
             break;
         case VAProcPipelineParameterBufferType:
         case VAProcFilterParameterBufferType:
@@ -6035,6 +6039,12 @@ VAStatus DdiMedia_ReleaseBufferHandle(
         buf->uiMemtype = 0;
     }
     DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+
+    if (!buf->uiExportcount && buf->bPostponedBufFree) {
+        MOS_FreeMemory(buf);
+        DdiMedia_DestroyBufFromVABufferID(mediaCtx, buf_id);
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
