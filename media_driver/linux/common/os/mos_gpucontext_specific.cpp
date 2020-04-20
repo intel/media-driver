@@ -1170,9 +1170,23 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 pthread_mutex_lock(&command_dump_mutex);
 if (osInterface->bDumpCommandBuffer)
     {
-        mos_bo_map(cmd_bo, 0);
-        osInterface->pfnDumpCommandBuffer(osInterface, cmdBuffer);
-        mos_bo_unmap(cmd_bo);
+        if (scalaEnabled)
+        {
+            it = m_secondaryCmdBufs.begin();
+            while(it != m_secondaryCmdBufs.end())
+            {
+                mos_bo_map(it->second->OsResource.bo, 0);
+                osInterface->pfnDumpCommandBuffer(osInterface, it->second);
+                mos_bo_unmap(it->second->OsResource.bo);
+                it++;
+            }
+        }
+        else
+        {
+            mos_bo_map(cmd_bo, 0);
+            osInterface->pfnDumpCommandBuffer(osInterface, cmdBuffer);
+            mos_bo_unmap(cmd_bo);
+        }
     }
     pthread_mutex_unlock(&command_dump_mutex);
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
