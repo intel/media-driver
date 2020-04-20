@@ -371,6 +371,7 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrHcpDecMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, Ftr10bitDecMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, FtrSFCPipe, 1);
+    MEDIA_WR_SKU(skuTable, FtrDisableVDBox2SFC, 1);
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
