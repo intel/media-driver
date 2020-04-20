@@ -1025,7 +1025,6 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         VAEncMiscParameterHRD *vaEncMiscParamHRD = (VAEncMiscParameterHRD *)miscParamBuf->data;
         seqParams->VBVBufferSizeInBit            = vaEncMiscParamHRD->buffer_size;
         seqParams->InitVBVBufferFullnessInBit    = vaEncMiscParamHRD->initial_buffer_fullness;
-        seqParams->RateControlMethod             = RATECONTROL_CBR;
         break;
     }
     case VAEncMiscParameterTypeFrameRate:
