@@ -1405,6 +1405,7 @@ MOS_STATUS MosInterface::LockSyncCallback(
 }
 
 MOS_STATUS MosInterface::TrimResidency(
+    MOS_DEVICE_HANDLE device,
     bool      periodicTrim,
     bool      restartPeriodicTrim,
     uint64_t &numBytesToTrim,
@@ -1414,6 +1415,18 @@ MOS_STATUS MosInterface::TrimResidency(
     MOS_OS_FUNCTION_ENTER;
 
     // No residency to trim
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS UpdateResidency(
+    MOS_DEVICE_HANDLE device,
+    OsSpecificRes     resInfo,
+    uint32_t          index)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // No residency to update
 
     return MOS_STATUS_SUCCESS;
 }

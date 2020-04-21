@@ -683,6 +683,13 @@ void _MOS_Assert(
     MOS_CHK_NULL_WITH_HR(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
 
 //!
+//! \def MOS_OS_CHK_NULL_WITH_HR_RETURN(_ptr)
+//!  MOS_CHK_NULL_WITH_HR \a _ptr with MOS utility comp/subcomp info
+//!
+#define MOS_OS_CHK_NULL_WITH_HR_RETURN(_ptr) \
+    MOS_CHK_NULL_WITH_HR_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
+
+//!
 //! \def MOS_OS_CHECK_CONDITION(_condition, _str, _ret)
 //!  MOS_CHECK_CONDITION \a _condition with MOS utility comp/subcomp info
 //!

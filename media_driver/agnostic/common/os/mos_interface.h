@@ -1027,6 +1027,8 @@ public:
     //!
     //! \brief    Trim Residency
     //!
+    //! \param    [in] device
+    //!           MOS device handle
     //! \param    [in] periodicTrim
     //!           Indicate if the trim is periodic
     //! \param    [in] restartPeriodicTrim
@@ -1042,11 +1044,31 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!        
     static MOS_STATUS TrimResidency(
+        MOS_DEVICE_HANDLE device,
         bool periodicTrim, 
         bool restartPeriodicTrim, 
         uint64_t &numBytesToTrim, 
         bool trimToMinimum,
         bool trimOnlyMediaResources);
+
+    //!
+    //! \brief    Update Residency
+    //!
+    //! \param    [in] device
+    //!           MOS device handle
+    //! \param    [in] resInfo
+    //!           Os specific resource info
+    //! \param    [in] index
+    //!           Resource index
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!  
+    static MOS_STATUS UpdateResidency(
+        MOS_DEVICE_HANDLE device,
+        OsSpecificRes     resInfo,
+        uint32_t          index);
+    
 
     // Memory compression interfaces
 
