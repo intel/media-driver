@@ -4383,6 +4383,7 @@ MOS_STATUS CodechalEncodeAvcEnc::BrcFrameUpdateKernel()
     brcUpdateSurfaceParams.presMbStatBuffer = &m_resMbStatsBuffer;  //Starting from GEN9
 
     PMOS_SURFACE buffer4xMeMvData = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer) : &m_4xMeMvDataBuffer;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(buffer4xMeMvData);
     uint32_t dwMvBufferHeightBack = buffer4xMeMvData->dwHeight; // save 4x ME output MV buffer height
     if (bMvDataNeededByBRC) //starting from G95
     {
