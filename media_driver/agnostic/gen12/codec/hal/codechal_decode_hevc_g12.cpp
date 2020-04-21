@@ -163,7 +163,9 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourcesVariableSizes ()
     {
         if (m_secureDecoder && m_secureDecoder->IsAuxDataInvalid(&m_destSurface.OsResource))
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_destSurface.OsResource, false));
+            // Not use CODECHAL_DECODE_CHK_STATUS_RETURN() here to avoid adding local variable
+            // Error can still be caught by CODECHAL_DECODE_CHK_STATUS_RETURN() in InitAuxSurface
+            eStatus = m_secureDecoder->InitAuxSurface(&m_destSurface.OsResource, false);
         }
         else
         {
