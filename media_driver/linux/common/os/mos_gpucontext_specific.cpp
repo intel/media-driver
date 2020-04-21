@@ -300,6 +300,25 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
                 }
             }
         }
+        else if (GpuNode == MOS_GPU_NODE_BLT)
+        {
+            __u16 engine_class = I915_ENGINE_CLASS_COPY;
+            __u64 caps = 0;
+
+            if (mos_query_engines(osInterface->pOsContext->bufmgr, engine_class, caps, &nengine, engine_map))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to query engines.\n");
+                MOS_SafeFreeMemory(engine_map);
+                return MOS_STATUS_UNKNOWN;
+            }
+
+            if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
+            {
+                MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
+                MOS_SafeFreeMemory(engine_map);
+                return MOS_STATUS_UNKNOWN;
+            }
+        }
         else
         {
             MOS_OS_ASSERTMESSAGE("Unknown engine class.\n");
