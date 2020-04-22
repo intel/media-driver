@@ -300,6 +300,8 @@ typedef struct _DDI_MEDIA_SURFACE
     uint8_t                 *pSystemShadow;           // Shadow surface in system memory
 
     uint32_t                uiMapFlag;
+
+    uint32_t                uiVariantFlag;
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
@@ -561,7 +563,6 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 //!
 DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID);
 
-
 //!
 //! \brief  replace the surface with given format
 //!
@@ -574,6 +575,17 @@ DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaC
 //!     Pointer to new ddi media surface
 //!
 PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat);
+
+//!
+//! \brief  replace the surface with correlation variant format
+//!
+//! \param  [in] surface
+//!     Pointer to the old surface
+//!
+//! \return DDI_MEDIA_SURFACE*
+//!     Pointer to new ddi media surface
+//!
+PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface, VAEntrypoint entrypoint);
 
 //!
 //! \brief  Get VA surface ID  from surface
