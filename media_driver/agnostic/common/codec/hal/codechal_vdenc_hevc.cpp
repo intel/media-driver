@@ -2761,10 +2761,10 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
         m_hevcPicParams->NumROI = 0;
     }
 
-    //VDEnc StreamIn enabled if case of ROI (All frames), DirtyRect and SHME (ldB frames)
-
-        m_vdencStreamInEnabled = (m_vdencEnabled) && (m_hevcPicParams->NumROI ||
-                                                     (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)) || (m_b16XMeEnabled));
+    //VDEnc StreamIn enabled if case of ROI (All frames), MBQP(LCUQP), DirtyRect and SHME (ldB frames)
+    m_vdencStreamInEnabled = (m_vdencEnabled) && (m_hevcPicParams->NumROI ||
+                                                  m_encodeParams.bMbQpDataEnabled ||
+                                                  (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)) || (m_b16XMeEnabled));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(PrepareVDEncStreamInData());
 
