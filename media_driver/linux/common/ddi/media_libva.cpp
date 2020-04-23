@@ -1676,7 +1676,7 @@ VAStatus DdiMedia__Initialize (
             &gmmGtInfo,
             &mediaCtx->iDeviceId,
             &mediaCtx->fd,
-            &platform);
+            &mediaCtx->platform);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             FreeForMediaContext(mediaCtx);
