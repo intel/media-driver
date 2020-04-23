@@ -765,6 +765,29 @@ struct BrcQpReport
 };
 
 //!
+//! \struct LookaheadStatus
+//! \brief  Struct of Query bit rate control and QP Status
+//!
+struct LookaheadReport
+{
+    uint32_t StatusReportNumber;
+    union
+    {
+        struct
+        {
+            uint32_t cqmHint    : 8;
+            uint32_t intraHint  : 1;
+            uint32_t reserved2  : 22;
+            uint32_t isValid    : 1;
+        };
+        uint32_t encodeHints;
+    };
+    uint32_t targetFrameSize;
+    uint32_t targetBufferFulness;
+    uint32_t reserved3[12];
+};
+
+//!
 //! \struct    EncodeBrcBuffers
 //! \brief     Encode brc buffers
 //!
@@ -890,6 +913,7 @@ struct EncodeStatusReport
     uint8_t                         UsedVdBoxNumber;        //!< Number of vdbox used.
     uint32_t                        SizeOfSliceSizesBuffer; //!< Store the size of slice size buffer
     uint16_t                        *pSliceSizes;           //!< Pointer to the slice size buffer
+    uint8_t                         cqmHint;                //!< CQM hint. 0x00 - flat matrix; 0x01 - enable CQM; 0xFF - invalid hint; other vlaues are reserved.
     uint32_t                        SizeOfTileInfoBuffer;   //!< Store the size of tile info buffer
     CodechalTileInfo*               pHEVCTileinfo;          //!< Pointer to the tile info buffer
     uint32_t                        NumTileReported;        //!< The number of tiles reported in status
@@ -900,7 +924,7 @@ struct EncodeStatusReport
     */
     uint32_t                        StreamId;
 
-    uint8_t                         cqmHint; //!< CQM hint. 0x00 - flat matrix; 0x01 - enable CQM; 0xFF - invalid hint; other vlaues are reserved.
+    LookaheadReport*                pLookaheadStatus;       //!< Pointer to the lookahead status buffer. Valid in lookahead pass only.
 };
 
 //!
@@ -931,14 +955,18 @@ struct EncodeStatus
     uint32_t                        dwStoredData;           //!< SW stored data
     uint32_t                        dwMFCBitstreamByteCountPerFrame;         //!< Media fixed function bitstream byte count per frame
     uint32_t                        dwMFCBitstreamSyntaxElementOnlyBitCount; //!< Media fixed function bitstream bit count for syntax element only
-    uint32_t                        lookaheadStatus;        //!< Lookahead status. valid in lookahead pass only
+    uint32_t                        reserved;
     uint32_t                        dwImageStatusMask;      //!< MUST ENSURE THAT THIS IS QWORD ALIGNED as it's used for the conditional BB end
     MHW_VDBOX_IMAGE_STATUS_CONTROL  ImageStatusCtrl;        //!< Used for storing the control flags for the image status
     uint32_t                        HuCStatusRegMask;       //!< MUST ENSURE THAT THIS IS QWORD ALIGNED as it's used for the conditional BB end
     uint32_t                        HuCStatusReg;           //!< Register value saving HuC Status
     MHW_VDBOX_PAK_NUM_OF_SLICES     NumSlices;              //!< Num of slices for encode
     uint32_t                        dwErrorFlags;           //!< The definition is different on SNB/IVB, hence DWORD
-    BrcQpReport                     BrcQPReport;            //!< Query bit rate control and QP Status
+    union
+    {
+        BrcQpReport                 BrcQPReport;            //!< Query bit rate control and QP Status
+        LookaheadReport             lookaheadStatus;        //!< Lookahead status. valid in lookahead pass only
+    };
     uint32_t                        dwNumberPasses;         //!< Number of passes
     uint32_t                        dwHeaderBytesInserted;  //!< The size including header, prevention bytes and dummy "0xff" inserted by SW driver
     CodechalQpStatusCount           QpStatusCount;          //!< This is used to obtain the cumulative QP
@@ -1042,7 +1070,10 @@ struct VdencBrcPakMmio
 //!
 struct CodechalEncodeLaData
 {
-    uint32_t reserved0[5];
+    uint32_t reserved0[1];
+    uint32_t targetFrameSize;
+    uint32_t targetBufferFulness;
+    uint32_t reserved1[2];
     union
     {
         struct
@@ -1052,7 +1083,7 @@ struct CodechalEncodeLaData
         };
         uint32_t report;
     };
-    uint32_t reserved1[10];
+    uint32_t reserved3[10];
 };
 
 //!
@@ -1701,9 +1732,10 @@ public:
     uint32_t                        m_sizeCurrSkipFrame = 0;    //!< size of curr skipped frame for skipflag = 2
 
     // Lookahead
-    MOS_RESOURCE                    m_resLaDataBuffer = {};          //!< Resource of lookahead data buffer
+    MOS_RESOURCE                    m_resLaDataBuffer = {};     //!< Resource of lookahead data buffer
     uint8_t                         m_lookaheadDepth = 0;       //!< Number of frames to lookahead
     uint8_t                         m_currLaDataIdx = 0;        //!< Current lookahead data index
+    uint32_t                        m_averageFrameSize = 0;     //!< Average frame size based on targed bitrate and frame rate, in unit of bits
 
     MHW_VDBOX_NODE_IND              m_vdboxIndex = MHW_VDBOX_NODE_MAX;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler

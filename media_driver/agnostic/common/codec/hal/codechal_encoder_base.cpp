@@ -2891,6 +2891,14 @@ MOS_STATUS CodechalEncoderState::SetStatusReportParams(
     encodeStatusReport->NumberTilesInFrame = m_numberTilesInFrame;
     encodeStatusReport->UsedVdBoxNumber    = m_numUsedVdbox;
 
+    if (m_lookaheadDepth > 0)
+    {
+        uint32_t laStatusIndex = (encodeStatusBuf->wCurrIndex + m_lookaheadDepth - 1) % CODECHAL_ENCODE_STATUS_NUM;
+        EncodeStatus* encodeStatus =
+            (EncodeStatus*)(encodeStatusBuf->pEncodeStatus + laStatusIndex * encodeStatusBuf->dwReportSize);
+        encodeStatus->lookaheadStatus.StatusReportNumber = m_statusReportFeedbackNumber;
+    }
+
     return eStatus;
 }
 

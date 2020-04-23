@@ -2655,6 +2655,22 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
     m_lookaheadDepth = m_hevcSeqParams->LookaheadDepth;
     m_lookaheadPass  = (m_lookaheadDepth > 0) && (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP);
 
+    if (m_lookaheadPass)
+    {
+        double frameRate = 0;
+        if (m_hevcSeqParams->FrameRate.Denominator != 0)
+        {
+            frameRate = (double)m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator;
+        }
+        uint64_t targetBitRate = (uint64_t)m_hevcSeqParams->TargetBitRate * CODECHAL_ENCODE_BRC_KBPS;
+        if ((frameRate < 1) || (targetBitRate < frameRate) || (targetBitRate > 0xFFFFFFFF))
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid FrameRate or TargetBitRate in lookahead pass!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        m_averageFrameSize = (uint32_t)(targetBitRate / frameRate);
+    }
+
     return eStatus;
 }
 
@@ -2961,12 +2977,27 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
     encodeStatusReport->cqmHint = 0xFF;
     if (m_lookaheadPass && m_lookaheadUpdate)
     {
-        encodeStatusReport->cqmHint = (uint8_t)(encodeStatus->lookaheadStatus & 0xFF);
-        if (encodeStatusReport->cqmHint > 1)
+        encodeStatusReport->pLookaheadStatus = &encodeStatus->lookaheadStatus;
+        encodeStatus->lookaheadStatus.isValid = 1;
+        uint64_t targetFrameSize = (uint64_t)encodeStatus->lookaheadStatus.targetFrameSize * m_averageFrameSize;
+        encodeStatus->lookaheadStatus.targetFrameSize = (uint32_t)((targetFrameSize + (32*8)) / (64*8)); // Convert bits to bytes. 64 is normalized average frame size used in lookahead analysis kernel
+        uint64_t targetBufferFulness = (uint64_t)encodeStatus->lookaheadStatus.targetBufferFulness * m_averageFrameSize;
+        encodeStatus->lookaheadStatus.targetBufferFulness = (uint32_t)((targetBufferFulness + 32) / 64); // 64 is normalized average frame size used in lookahead analysis kernel
+        encodeStatusReport->cqmHint = encodeStatus->lookaheadStatus.cqmHint;
+        if (encodeStatus->lookaheadStatus.cqmHint > 1)
         {
             // Currently only 0x00 and 0x01 are valid. Report invalid (0xFF) for other values.
             encodeStatusReport->cqmHint = 0xFF;
+            encodeStatus->lookaheadStatus.cqmHint = 0xFF;
         }
+    }
+    else
+    {
+        encodeStatusReport->pLookaheadStatus = nullptr;
+        encodeStatus->lookaheadStatus.isValid = 0;
+        encodeStatus->lookaheadStatus.cqmHint = 0xFF;
+        encodeStatus->lookaheadStatus.targetFrameSize = 0;
+        encodeStatus->lookaheadStatus.targetBufferFulness = 0;
     }
 
     return eStatus;

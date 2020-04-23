@@ -7659,7 +7659,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     m_lastTaskInPhase  = !m_singleTaskPhaseSupported;
 
     // set DMEM
-    uint32_t avgFrameSize = m_hevcSeqParams->TargetBitRate * CODECHAL_ENCODE_BRC_KBPS * m_hevcSeqParams->FrameRate.Denominator / m_hevcSeqParams->FrameRate.Numerator;
     uint32_t initVbvFullness = MOS_MIN(m_hevcSeqParams->InitVBVBufferFullnessInBit, m_hevcSeqParams->VBVBufferSizeInBit);
     MOS_LOCK_PARAMS lockFlagsWriteOnly;
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
@@ -7672,10 +7671,10 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
 
     dmem->lookAheadFunc      = 0;
     dmem->lengthAhead        = m_lookaheadDepth;
-    dmem->vbvBufferSize      = m_hevcSeqParams->VBVBufferSizeInBit / avgFrameSize;
-    dmem->vbvInitialFullness = initVbvFullness / avgFrameSize;
+    dmem->vbvBufferSize      = m_hevcSeqParams->VBVBufferSizeInBit / m_averageFrameSize;
+    dmem->vbvInitialFullness = initVbvFullness / m_averageFrameSize;
     dmem->statsRecords       = m_numLaDataEntry;
-    dmem->averageFrameSize   = avgFrameSize >> 3;
+    dmem->averageFrameSize   = m_averageFrameSize >> 3;
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaInitDmemBuffer);
 
@@ -7843,7 +7842,13 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     miCpyMemMemParams.presSrc = m_encodeParams.psLaDataBuffer;
     miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, report);
     miCpyMemMemParams.presDst = &encodeStatusBuf.resStatusBuffer;
-    miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset;
+    miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, encodeHints);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
+    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, targetFrameSize);
+    miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, targetFrameSize);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
+    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, targetBufferFulness);
+    miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, targetBufferFulness);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
 
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
