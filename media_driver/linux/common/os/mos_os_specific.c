@@ -7276,7 +7276,11 @@ int32_t Mos_ResourceIsNull(
     PMOS_RESOURCE   pOsResource)
 {
     //---------------------
-    MOS_OS_ASSERT(pOsResource);
+    if( nullptr == pOsResource )
+    {
+        MOS_OS_ASSERTMESSAGE("found pOsResource nullptr\n");
+        return true;
+    }
     //---------------------
 
     return ((pOsResource->bo == nullptr)
