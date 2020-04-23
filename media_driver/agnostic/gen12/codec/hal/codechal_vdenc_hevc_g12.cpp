@@ -2491,26 +2491,25 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     // Ensure the previous BRC Update is done, before executing PAK
     if (m_vdencHucUsed && (m_numPipe >= 2))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resBrcPakSemaphoreMem.sResource, 1, MHW_MI_ATOMIC_INC, &cmdBuffer));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(
-            &m_resBrcPakSemaphoreMem.sResource,
-            &cmdBuffer,
-            m_numPipe));
-
-        // Program some placeholder cmds to resolve the hazard between pipe sync
-        MHW_MI_STORE_DATA_PARAMS dataParams;
-        dataParams.pOsResource = &m_resDelayMinus;
-        dataParams.dwResourceOffset = 0;
-        dataParams.dwValue = 0xDE1A;
-        for (uint32_t i = 0; i < m_numDelay; i++)
+        if (IsFirstPipe())
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(
+                &m_resBrcPakSemaphoreMem.sResource,
                 &cmdBuffer,
-                &dataParams));
+                m_numPipe));
         }
+        else
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(
+                &m_resBrcPakSemaphoreMem.sResource,
+                &cmdBuffer,
+                m_numPipe));
 
-        //clean HW semaphore memory
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(&m_resBrcPakSemaphoreMem.sResource, 1, MHW_MI_ATOMIC_DEC, &cmdBuffer));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(
+                &m_resBrcPakSemaphoreMem.sResource,
+                &cmdBuffer,
+                0x0));
+         }
     }
 
     if ((!IsFirstPass()) && m_vdencHuCConditional2ndPass)
