@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -335,7 +335,6 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
         uint32_t width,
         uint32_t height)
 {
-    uint32_t maxWidth, maxHeight;
     switch (profile)
     {
         case VAProfileJPEGBaseline:
@@ -343,6 +342,16 @@ VAStatus MediaLibvaCapsG10::CheckEncodeResolution(
                     || width < m_encJpegMinWidth
                     || height > m_encJpegMaxHeight
                     || height < m_encJpegMinHeight)
+            {
+                return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
+            }
+            break;
+        case VAProfileMPEG2Simple:
+        case VAProfileMPEG2Main:
+            if( width > CODEC_MAX_PIC_WIDTH
+                    || width < m_encMinWidth
+                    || height > CODEC_MAX_PIC_HEIGHT
+                    || height < m_encMinHeight)
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
