@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -203,7 +203,7 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, Ftr10bitDecMemoryCompression, 0);
 
     MEDIA_WR_SKU(skuTable, FtrCCSNode, 1);
-
+    MEDIA_WR_SKU(skuTable, FtrRAMode, 1);
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
     MEDIA_WR_SKU(skuTable, FtrVp10BitSupport, 1);
     MEDIA_WR_SKU(skuTable, FtrVp16BitSupport, 1);

@@ -1241,7 +1241,8 @@ MOS_STATUS VphalRenderer::UpdateRenderGpuContext(MOS_GPU_CONTEXT currentGpuConte
     PVPHAL_VEBOX_STATE      pVeboxState = nullptr;
     int                     i           = 0;
 
-    if (m_pOsInterface->osCpInterface->IsCpEnabled() &&
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrRAMode) &&
+        m_pOsInterface->osCpInterface->IsCpEnabled() &&
         (m_pOsInterface->osCpInterface->IsHMEnabled() || m_pOsInterface->osCpInterface->IsSMEnabled()))
     {
         if (currentGpuContext == MOS_GPU_CONTEXT_COMPUTE ||
