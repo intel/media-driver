@@ -706,7 +706,8 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
                 unsigned long flags,
                 uint32_t tiling_mode,
                 unsigned long stride,
-                unsigned int alignment)
+                unsigned int alignment,
+                int mem_type)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
     struct mos_bo_gem *bo_gem;
@@ -846,28 +847,31 @@ static struct mos_linux_bo *
 mos_gem_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
                   const char *name,
                   unsigned long size,
-                  unsigned int alignment)
+                  unsigned int alignment,
+                  int mem_type)
 {
     return mos_gem_bo_alloc_internal(bufmgr, name, size,
                            I915_TILING_NONE, 0,
                            BO_ALLOC_FOR_RENDER,
-                           alignment);
+                           alignment, mem_type);
 }
 
 static struct mos_linux_bo *
 mos_gem_bo_alloc(struct mos_bufmgr *bufmgr,
                const char *name,
                unsigned long size,
-               unsigned int alignment)
+               unsigned int alignment,
+               int mem_type)
 {
     return mos_gem_bo_alloc_internal(bufmgr, name, size, 0,
-                           I915_TILING_NONE, 0, 0);
+                           I915_TILING_NONE, 0, 0, mem_type);
 }
 
 static struct mos_linux_bo *
 mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
                  int x, int y, int cpp, uint32_t *tiling_mode,
-                 unsigned long *pitch, unsigned long flags)
+                 unsigned long *pitch, unsigned long flags,
+                 int mem_type)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
     unsigned long size, stride;
@@ -911,7 +915,7 @@ mos_gem_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
         stride = 0;
 
     return mos_gem_bo_alloc_internal(bufmgr, name, size, flags,
-                           tiling, stride, 0);
+                           tiling, stride, 0, mem_type);
 }
 
 static struct mos_linux_bo *

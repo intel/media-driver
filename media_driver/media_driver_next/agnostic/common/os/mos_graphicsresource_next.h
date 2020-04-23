@@ -32,6 +32,8 @@
 #include <string>
 #include "mos_context_next.h"
 
+
+
 class GraphicsResourceNext
 {
 public:
@@ -125,6 +127,11 @@ public:
         uint32_t m_width = 0;
 
         //!
+        //! \brief   allocation memory type
+        //!
+        uint32_t m_memType = MOS_MEMPOOL_VIDEOMEMORY;
+
+        //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
         //!
         CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams)
@@ -145,6 +152,7 @@ public:
             m_type            = pParams->Type;
             m_flags           = pParams->Flags;
             m_width           = pParams->dwWidth;
+            m_memType         = pParams->dwMemType;
         };
 
         CreateParams()

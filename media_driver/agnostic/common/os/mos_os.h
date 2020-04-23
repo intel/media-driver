@@ -435,6 +435,7 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
     MOS_RESOURCE_MMC_MODE   CompressionMode;                                    //!< [in] Compression mode.
     int32_t             bIsPersistent;                                          //!< [in] Optional parameter. Used to indicate that resource can not be evicted
     int32_t             bBypassMODImpl;
+    int32_t             dwMemType;                                              //!< [in] Optional paramerter. Prefer memory type
 } MOS_ALLOC_GFXRES_PARAMS, *PMOS_ALLOC_GFXRES_PARAMS;
 
 //!

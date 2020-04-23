@@ -29,6 +29,7 @@
 
 #include "mos_graphicsresource_specific.h"
 #include "mos_context_specific.h"
+#include "memory_policy_manager.h"
 
 GraphicsResourceSpecific::GraphicsResourceSpecific()
 {
@@ -141,6 +142,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     uint32_t           alignedHeight   = params.m_height;
     uint32_t           bufHeight       = params.m_height;
     GMM_RESOURCE_TYPE  resourceType    = RESOURCE_2D;
+    int                mem_type        = MOS_MEMPOOL_VIDEOMEMORY;
 
     GMM_RESCREATE_PARAMS    gmmParams;
     MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
@@ -280,6 +282,11 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     char bufName[m_maxBufNameLength];
     MOS_SecureStrcpy(bufName, m_maxBufNameLength, params.m_name.c_str());
 
+    if(!params.m_pSystemMemory)
+    {
+        mem_type = MemoryPolicyManager::UpdateMemoryPolicy(pOsContextSpecific->GetSkuTable(), gmmResourceInfoPtr, params.m_memType);
+    }
+
     if (nullptr != params.m_pSystemMemory)
     {
         boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
@@ -293,11 +300,20 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     // Only Linear and Y TILE supported
     else if (tileFormatLinux == I915_TILING_NONE)
     {
-        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096);
+        boPtr = mos_bo_alloc(pOsContextSpecific->m_bufmgr, bufName, bufSize, 4096, mem_type);
     }
     else
     {
-        boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr, bufName, bufPitch, bufSize/bufPitch, 1, &tileFormatLinux, &linuxPitch, 0);
+        boPtr = mos_bo_alloc_tiled(pOsContextSpecific->m_bufmgr,
+                        bufName,
+                        bufPitch,
+                        bufSize/bufPitch,
+                        1,
+                        &tileFormatLinux,
+                        &linuxPitch,
+                        0,
+                        mem_type);
+
         bufPitch = (uint32_t)linuxPitch;
     }
 

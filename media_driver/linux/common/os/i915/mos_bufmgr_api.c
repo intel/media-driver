@@ -49,9 +49,9 @@
 
 struct mos_linux_bo *
 mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
-           unsigned long size, unsigned int alignment)
+           unsigned long size, unsigned int alignment, int mem_type)
 {
-    return bufmgr->bo_alloc(bufmgr, name, size, alignment);
+    return bufmgr->bo_alloc(bufmgr, name, size, alignment, mem_type);
 }
 
 void
@@ -63,9 +63,9 @@ mos_bo_set_exec_object_async(struct mos_linux_bo *bo)
 
 struct mos_linux_bo *
 mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr, const char *name,
-                  unsigned long size, unsigned int alignment)
+                  unsigned long size, unsigned int alignment, int mem_type)
 {
-    return bufmgr->bo_alloc_for_render(bufmgr, name, size, alignment);
+    return bufmgr->bo_alloc_for_render(bufmgr, name, size, alignment, mem_type);
 }
 
 struct mos_linux_bo *
@@ -85,10 +85,11 @@ mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
 struct mos_linux_bo *
 mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr, const char *name,
                         int x, int y, int cpp, uint32_t *tiling_mode,
-                        unsigned long *pitch, unsigned long flags)
+                        unsigned long *pitch, unsigned long flags,
+                        int mem_type)
 {
     return bufmgr->bo_alloc_tiled(bufmgr, name, x, y, cpp,
-                      tiling_mode, pitch, flags);
+                      tiling_mode, pitch, flags, mem_type);
 }
 
 void

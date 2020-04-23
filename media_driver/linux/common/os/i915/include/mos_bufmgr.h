@@ -126,11 +126,12 @@ struct mos_aub_annotation {
 #define BO_ALLOC_FOR_RENDER (1<<0)
 
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr, const char *name,
-                 unsigned long size, unsigned int alignment);
+                 unsigned long size, unsigned int alignment, int mem_type);
 struct mos_linux_bo *mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned long size,
-                        unsigned int alignment);
+                        unsigned int alignment,
+                        int mem_type);
 struct mos_linux_bo *mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
                     const char *name,
                     void *addr, uint32_t tiling_mode,
@@ -141,7 +142,8 @@ struct mos_linux_bo *mos_bo_alloc_tiled(struct mos_bufmgr *bufmgr,
                        int x, int y, int cpp,
                        uint32_t *tiling_mode,
                        unsigned long *pitch,
-                       unsigned long flags);
+                       unsigned long flags,
+                       int mem_type);
 void mos_bo_reference(struct mos_linux_bo *bo);
 void mos_bo_unreference(struct mos_linux_bo *bo);
 int mos_bo_map(struct mos_linux_bo *bo, int write_enable);
@@ -360,7 +362,8 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
                 unsigned long flags,
                 uint32_t tiling_mode,
                 unsigned long stride,
-                unsigned int alignment);
+                unsigned int alignment,
+                int mem_type);
 drm_export int
 mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
               drm_clip_rect_t * cliprects, int num_cliprects, int DR4);

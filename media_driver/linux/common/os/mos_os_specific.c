@@ -63,6 +63,8 @@
 #include "mos_os_virtualengine_singlepipe_next.h"
 #include "mos_os_virtualengine_scalability_next.h"
 
+#include "memory_policy_manager.h"
+
 //!
 //! \brief DRM VMAP patch
 //!
@@ -208,7 +210,7 @@ int32_t Linux_GetCommandBuffer(
     }
 
     // Allocate the command buffer from GEM
-    cmd_bo = mos_bo_alloc(pOsContext->bufmgr,"MOS CmdBuf",iSize,4096);     // Align to page boundary
+    cmd_bo = mos_bo_alloc(pOsContext->bufmgr,"MOS CmdBuf",iSize,4096, MOS_MEMPOOL_VIDEOMEMORY);     // Align to page boundary
     if (cmd_bo == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Allocation of command buffer failed.");
@@ -869,7 +871,7 @@ MOS_STATUS Linux_InitGPUStatus(
     }
 
     // Allocate the command buffer from GEM
-    bo = mos_bo_alloc(pOsContext->bufmgr,"GPU Status Buffer", sizeof(MOS_GPU_STATUS_DATA)  * MOS_GPU_CONTEXT_MAX, 4096);     // Align to page boundary
+    bo = mos_bo_alloc(pOsContext->bufmgr,"GPU Status Buffer", sizeof(MOS_GPU_STATUS_DATA)  * MOS_GPU_CONTEXT_MAX, 4096, MOS_MEMPOOL_VIDEOMEMORY);     // Align to page boundary
     if (bo == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Allocation of GPU Status Buffer failed.");
@@ -2123,6 +2125,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
     GMM_RESCREATE_PARAMS GmmParams;
     GMM_RESOURCE_INFO *  pGmmResourceInfo = nullptr;
     GMM_RESOURCE_TYPE    resourceType = RESOURCE_INVALID;
+    int                  mem_type = MOS_MEMPOOL_VIDEOMEMORY;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -2352,14 +2355,16 @@ MOS_STATUS Mos_Specific_AllocateResource(
     iSize       = GFX_ULONG_CAST(pGmmResourceInfo->GetSizeSurface());
     iHeight     = pGmmResourceInfo->GetBaseHeight();
 
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&pOsInterface->pOsContext->SkuTable, pGmmResourceInfo, pParams->dwMemType);
+
     // Only Linear and Y TILE supported
     if( tileformat_linux == I915_TILING_NONE )
     {
-        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096);
+        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096, mem_type);
     }
     else
     {
-        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0);
+        bo = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize/iPitch, 1, &tileformat_linux, &ulPitch, 0, mem_type);
         iPitch = (int32_t)ulPitch;
     }
 
@@ -3829,7 +3834,7 @@ MOS_LINUX_BO * Mos_GetNopCommandBuffer_Linux(
         return nullptr;
     }
 
-    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, "NOP_CMD_BO", 4096, 4096);
+    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, "NOP_CMD_BO", 4096, 4096, MOS_MEMPOOL_VIDEOMEMORY);
     if(bo == nullptr)
     {
         return nullptr;
@@ -3864,7 +3869,7 @@ MOS_LINUX_BO * Mos_GetBadCommandBuffer_Linux(
         return nullptr;
     }
 
-    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, "BAD_CMD_BO", 4096, 4096);
+    bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, "BAD_CMD_BO", 4096, 4096, MOS_MEMPOOL_VIDEOMEMORY);
     if(bo == nullptr)
     {
         return nullptr;

@@ -44,6 +44,7 @@
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
 #include "media_libva_caps.h"
+#include "memory_policy_manager.h"
 
 // default protected surface tag
 #define PROTECTED_SURFACE_TAG   0x3000f
@@ -170,6 +171,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     int32_t alignedWidth  = width;
     int32_t alignedHeight = height;
     uint32_t tag          = 0;
+    int mem_type          = MOS_MEMPOOL_VIDEOMEMORY;
 
     switch (format)
     {
@@ -443,6 +445,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         goto finish;
     }
 
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaDrvCtx->SkuTable, mediaSurface->pGmmResourceInfo);
+
     if (!DdiMediaUtil_IsExternalSurface(mediaSurface) ||
         mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
@@ -465,12 +469,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
         unsigned long  ulPitch = 0;
         if ( tileformat == I915_TILING_NONE )
         {
-            bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096);
+            bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096, mem_type);
             pitch = gmmPitch;
         }
         else
         {
-            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
+            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0, mem_type);
             pitch = ulPitch;
         }
     }
@@ -560,25 +564,7 @@ VAStatus DdiMediaUtil_AllocateBuffer(
        return VA_STATUS_ERROR_INVALID_PARAMETER;
 
     VAStatus     hRes = VA_STATUS_SUCCESS;
-    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096);
-
-    mediaBuffer->bMapped = false;
-    if (bo)
-    {
-        mediaBuffer->format     = format;
-        mediaBuffer->iSize      = size;
-        mediaBuffer->iRefCount  = 0;
-        mediaBuffer->bo         = bo;
-        mediaBuffer->pData      = (uint8_t*) bo->virt;
-
-        DDI_VERBOSEMESSAGE("Alloc %7d bytes resource.",size);
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes resource.",size);
-        hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        goto finish;
-    }
+    int32_t          mem_type = MOS_MEMPOOL_VIDEOMEMORY;
 
     // create fake GmmResourceInfo
     GMM_RESCREATE_PARAMS    gmmParams;
@@ -599,6 +585,28 @@ VAStatus DdiMediaUtil_AllocateBuffer(
     mediaBuffer->pGmmResourceInfo->OverrideSize(mediaBuffer->iSize);
     mediaBuffer->pGmmResourceInfo->OverrideBaseWidth(mediaBuffer->iSize);
     mediaBuffer->pGmmResourceInfo->OverridePitch(mediaBuffer->iSize);
+
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaBuffer->pMediaCtx->SkuTable, mediaBuffer->pGmmResourceInfo);
+    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type);
+
+    mediaBuffer->bMapped = false;
+    if (bo)
+    {
+        mediaBuffer->format     = format;
+        mediaBuffer->iSize      = size;
+        mediaBuffer->iRefCount  = 0;
+        mediaBuffer->bo         = bo;
+        mediaBuffer->pData      = (uint8_t*) bo->virt;
+
+        DDI_VERBOSEMESSAGE("Alloc %8d bytes resource.",size);
+    }
+    else
+    {
+        DDI_ASSERTMESSAGE("Fail to Alloc %8d bytes resource.",size);
+        hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        goto finish;
+    }
+
 finish:
     return hRes;
 }
@@ -631,6 +639,7 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     int32_t  size           = 0;
     uint32_t tileformat     = I915_TILING_NONE;
     VAStatus hRes           = VA_STATUS_SUCCESS;
+    int32_t  mem_type       = MOS_MEMPOOL_VIDEOMEMORY;
 
     // Create GmmResourceInfo
     GMM_RESCREATE_PARAMS        gmmParams;
@@ -665,8 +674,10 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaBuffer->pMediaCtx->SkuTable, mediaBuffer->pGmmResourceInfo);
+
     MOS_LINUX_BO  *bo;
-    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096);
+    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type);
 
     mediaBuffer->bMapped = false;
     if (bo)

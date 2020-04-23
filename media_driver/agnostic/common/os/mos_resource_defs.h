@@ -534,4 +534,11 @@ typedef enum _MOS_RESOURCE_MMC_MODE
     MOS_MMC_RC
 } MOS_RESOURCE_MMC_MODE;
 
+enum Mos_MemPool
+{
+    MOS_MEMPOOL_VIDEOMEMORY,            //Default setting, Resource will be in video memory
+    MOS_MEMPOOL_DEVICEMEMORY,           //Resource will be in device video memory
+    MOS_MEMPOOL_SYSTEMMEMORY            //Resource will be in system video memory
+};
+
 #endif //__MOS_RESOURCE_DEFS_H__
