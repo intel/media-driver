@@ -562,6 +562,11 @@ MOS_STATUS VphalState::Render(
     VPHAL_PUBLIC_CHK_NULL(pcRenderParams);
     RenderParams    = *pcRenderParams;
 
+    // Explicitly initialize the maxSrcRect of VphalRenderer
+    // so that the maxSrcRect for the last set of surfaces does not get
+    // re-used for the current set of surfaces.
+    m_renderer->InitMaxSrcRect();
+
     if (VpHal_IsAvsSampleForMultiStreamsEnabled(pcRenderParams))
     {
         eStatus = VpHal_RenderWithAvsForMultiStreams(m_renderer, pcRenderParams);

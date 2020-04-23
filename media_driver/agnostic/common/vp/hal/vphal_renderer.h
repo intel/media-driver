@@ -312,6 +312,21 @@ public:
     //!
     virtual MOS_STATUS SetRenderGpuContext(VPHAL_RENDER_PARAMS& RenderParams);
 
+    //!
+    //! \brief    Explicitly initialize the maxSrcRect member
+    //! \details  The maxSrcRect member keeps track of the maximum rectangle
+    //!           among a set of source surfaces.  There is a need to
+    //!           explicitly re-initialize this member in VphalState::Render
+    //!           prior to calling the main render function.  This is so that
+    //!           the maxSrcRect value for the last set of surfaces does not
+    //!           get re-used for the current set of surfaces.
+    //! \return   void
+    //!
+    void InitMaxSrcRect()
+    {
+        maxSrcRect = {0, 0, 0, 0};
+    }
+
 protected:
     //!
     //! \brief    Prepare input surface list for top level render processing
