@@ -304,16 +304,16 @@ void* MmdDevice::CreateFactory(
 {
 #define MMD_FAILURE()                                       \
 {                                                           \
-    if (osInterface != nullptr)                             \
-    {                                                       \
-        osInterface->pfnDestroy(osInterface, false);        \
-        MOS_FreeMemory(osInterface);                        \
-    }                                                       \
     if (mhwInterfaces != nullptr)                           \
     {                                                       \
         mhwInterfaces->Destroy();                           \
     }                                                       \
     MOS_Delete(mhwInterfaces);                              \
+    if (osInterface != nullptr)                             \
+    {                                                       \
+        osInterface->pfnDestroy(osInterface, false);        \
+        MOS_FreeMemory(osInterface);                        \
+    }                                                       \
     MOS_Delete(device);                                     \
     return nullptr;                                         \
 }

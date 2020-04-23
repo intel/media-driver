@@ -388,6 +388,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             return MOS_STATUS_INVALID_HANDLE;
         }
         m_fd = osDriverContext->fd;
+
         m_bufmgr = mos_bufmgr_gem_init(m_fd, BATCH_BUFFER_SIZE);
         if (nullptr == m_bufmgr)
         {
@@ -409,6 +410,11 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         {
             MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
             return eStatus;
+        }
+
+        if (MEDIA_IS_SKU(&m_skuTable, FtrEnableMediaKernels) == 0)
+        {
+            MEDIA_WR_WA(&m_waTable, WaHucStreamoutOnlyDisable, 0);
         }
 
         MediaUserSettingsMgr::MediaUserSettingsInit(m_platformInfo.eProductFamily);
