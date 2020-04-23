@@ -669,7 +669,7 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         if (IsHevcProfile(profile))
         {
             if (entrypoint != VAEntrypointEncSliceLP)
-                attrib.value |= VA_RC_ICQ;
+                attrib.value |= VA_RC_ICQ | VA_RC_QVBR;
 
             attrib.value |= VA_RC_VCM;
         }
