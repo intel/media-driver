@@ -1282,7 +1282,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
     uint32_t        uiOffset;
     uint32_t        i;
     double          dInverseGamma       = 0;
-    double          dForwardGamma       = 0;
+    double          dForwardGamma       = 1.0;    // init as 1.0 as default to avoid divisor be 0
     MOS_STATUS      eStatus             = MOS_STATUS_SUCCESS;
     uint16_t        usGE_Values[256][8] = {0};
     bool            bEnableCCM = false;
@@ -1293,6 +1293,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
     mhw_vebox_g12_X::Gamut_Expansion_Gamma_Correction_CMD *pVeboxGEGammaCorrection, VeboxGEGammaCorrection;
 
     MHW_CHK_NULL(pVeboxGamutParams);
+    MHW_CHK_NULL(pVeboxIecpParams);
     MHW_CHK_NULL(m_veboxHeap);
 
     pVeboxHeap = m_veboxHeap;

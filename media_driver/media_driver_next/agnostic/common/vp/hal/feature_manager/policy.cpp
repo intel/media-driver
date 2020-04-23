@@ -193,7 +193,7 @@ MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAM
 
     VP_EXECUTE_CAPS  caps = {};
     SwFilterSubPipe* inputPipe = nullptr;
-    uint32_t index;
+    uint32_t index = 0;
 
     VP_PUBLIC_NORMALMESSAGE("Only Support primary layer for advanced processing");
     inputPipe = subSwFilterPipe.GetSwFilterPrimaryPipe(index);
@@ -636,7 +636,7 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
 
     SwFilterSubPipe* inputPipe = nullptr;
     SwFilter*        feature   = nullptr;
-    uint32_t         index;
+    uint32_t         index     = 0;
 
     inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
 
@@ -726,7 +726,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
     VP_FUNC_CALL();
 
     // Select the Pipe Engine for primary pipe
-    uint32_t index;
+    uint32_t index = 0;
     SwFilterSubPipe* inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
     SwFilter* feature = nullptr;
     VP_SURFACE* surfInput = nullptr;
@@ -812,9 +812,9 @@ MOS_STATUS vp::Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE
 {
     VP_FUNC_CALL();
 
-    VP_SURFACE* surfInput = nullptr;
+    VP_SURFACE* surfInput  = nullptr;
     VP_SURFACE* surfOutput = nullptr;
-    uint32_t    index;
+    uint32_t    index      = 0;
     SwFilterSubPipe* inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
 
     if (featurePipe.IsPrimaryEmpty())
