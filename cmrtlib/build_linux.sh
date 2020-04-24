@@ -130,7 +130,7 @@ EXTRA_OPTIONS=
 EXTRA_CMAKE_FLAGS=
 
 if [[ $BUILD_EMU -eq 1 ]]; then
-    EXTRA_CMAKE_FLAGS="$EXTRA_CMAKE_FLAGS -DLIBVA_INSTALL_PATH=$(realpath ../../../../libva-prebuilt-headers)"
+    EXTRA_CMAKE_FLAGS="$EXTRA_CMAKE_FLAGS -DLATEST_CPP_NEEDED=TRUE -DLIBVA_INSTALL_PATH=$(realpath ../../../../libva-prebuilt-headers)"
 fi
 
 case $BUILD_SIZE in
