@@ -781,11 +781,10 @@ MOS_STATUS Mos_InitInterface(
         1);
 
     // Apo wrapper
-    if (g_apoMosEnabled)
+    if (g_apoMosEnabled && !pOsInterface->streamStateIniter)
     {
         pOsInterface->osStreamState->component                = pOsInterface->Component;
         pOsInterface->osStreamState->currentGpuContextHandle  = pOsInterface->CurrentGpuContextHandle;
-        pOsInterface->osStreamState->GpuResetCount            = pOsInterface->dwGPUResetCount;
         pOsInterface->osStreamState->mediaReset               = pOsInterface->bMediaReset;
         pOsInterface->osStreamState->nullHwAccelerationEnable = pOsInterface->NullHWAccelerationEnable;
         pOsInterface->osStreamState->osCpInterface            = pOsInterface->osCpInterface;
@@ -805,6 +804,7 @@ MOS_STATUS Mos_InitInterface(
 #endif  // _DEBUG || _RELEASE_INTERNAL
 
         pOsInterface->osStreamState->ctxBasedScheduling       = pOsInterface->ctxBasedScheduling;
+        pOsInterface->osStreamState->multiNodeScaling         = pOsInterface->multiNodeScaling;
         pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
     }
 
@@ -1076,6 +1076,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         // Update ctx based scheduling flag also in APO MOS stream state
         MOS_OS_CHK_NULL_RETURN(osInterface->osStreamState);
         osInterface->osStreamState->ctxBasedScheduling = osInterface->ctxBasedScheduling;
+        osInterface->osStreamState->multiNodeScaling   = osInterface->multiNodeScaling;
     }
     MOS_OS_VERBOSEMESSAGE("Virtual Engine Context based SCheduling enabled:%d.\n", osInterface->ctxBasedScheduling);
     MOS_OS_VERBOSEMESSAGE("Virtual Engine Multi-node Scaling enabled:%d.\n", osInterface->multiNodeScaling);

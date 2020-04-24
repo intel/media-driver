@@ -34,6 +34,20 @@
 #include "mos_os_virtualengine_scalability_specific_next.h"
 #include "mos_graphicsresource_specific_next.h"
 
+MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
+{
+    // No MOS_OS_FUNCTION_ENTER since utilities not enabled
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::CloseOsUtilities()
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::CreateOsDeviceContext(DDI_DEVICE_CONTEXT ddiDeviceContext, MOS_DEVICE_HANDLE *deviceContext)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -66,7 +80,9 @@ MOS_STATUS MosInterface::DestroyOsDeviceContext(MOS_DEVICE_HANDLE deviceContext)
 
 MOS_STATUS MosInterface::CreateOsStreamState(
     MOS_STREAM_HANDLE *streamState,
-    MOS_DEVICE_HANDLE  deviceContext)
+    MOS_DEVICE_HANDLE  deviceContext,
+    MOS_INTERFACE_HANDLE osInterface,
+    MOS_COMPONENT component)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -1749,6 +1765,14 @@ GMM_CLIENT_CONTEXT *MosInterface::GetGmmClientContext(
     return nullptr;
 }
 
+uint64_t MosInterface::GetAuxTableBaseAddr(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return 0;
+}
+
 MosCpInterface *MosInterface::GetCpInterface(MOS_STREAM_HANDLE streamState)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -2093,3 +2117,58 @@ void MosInterface::IncPerfBufferID(
 
     return;
 }
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+MOS_STATUS MosInterface::DumpCommandBufferInit(
+    MOS_STREAM_HANDLE streamState)
+{
+    char sFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
+    MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+    char *psFileNameAfterPrefix = nullptr;
+    size_t nSizeFileNamePrefix = 0;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    // Check if command buffer dump was enabled in user feature.
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
+        &UserFeatureData);
+    streamState->dumpCommandBuffer            = (UserFeatureData.i32Data != 0);
+    streamState->dumpCommandBufferToFile      = ((UserFeatureData.i32Data & 1) != 0);
+    streamState->dumpCommandBufferAsMessages  = ((UserFeatureData.i32Data & 2) != 0);
+
+    if (streamState->dumpCommandBufferToFile)
+    {
+        // Create output directory.
+        eStatus = MosUtilDebug::MosLogFileNamePrefix(streamState->sDirName);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
+            return eStatus;
+        }
+
+        memcpy(sFileName, streamState->sDirName, MOS_MAX_HLT_FILENAME_LEN);
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
+        MOS_SecureStringPrint(
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s",
+            MOS_DIR_SEPERATOR,
+            MOS_COMMAND_BUFFER_OUT_DIR);
+
+        eStatus = MosUtilities::MosCreateDirectory(sFileName);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
+            return eStatus;
+        }
+    }
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED

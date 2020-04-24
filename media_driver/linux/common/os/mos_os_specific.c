@@ -7023,7 +7023,11 @@ MOS_STATUS Mos_Specific_InitInterface(
     if (g_apoMosEnabled)
     {
         pOsContext->m_osDeviceContext = pOsDriverContext->m_osDeviceContext;
-        MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(&pOsInterface->osStreamState, (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext));
+        MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(
+            &pOsInterface->osStreamState,
+            (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext,
+            (MOS_INTERFACE_HANDLE)pOsInterface,
+            pOsInterface->Component));
     }
 
     iDeviceId                                 = pOsDriverContext->iDeviceId;

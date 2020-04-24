@@ -75,6 +75,31 @@ protected:
 
 public:
     //!
+    //! \brief    Init Os Utilities
+    //! \details  Include Utilities, user settings key, mem ninja etc
+    //! \details  Must be first called MOS interface before CreateOsDeviceContext
+    //! \details  Caller: DDI only.
+    //!
+    //! \param    [in] ddiDeviceContext
+    //!           Pointer of device context in DDI to init Os Device Context
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext);
+
+    //!
+    //! \brief    Close Os Utilities
+    //! \details  Include Utilities, user settings key, mem ninja etc
+    //! \details  Must be last called MOS interface after DestroyOsDeviceContext
+    //! \details  Caller: DDI only.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS CloseOsUtilities();
+
+    //!
     //! \brief    Create Os Device Context
     //! \details  Create the Os Device Context in device level.
     //! \details  Caller: DDI only.
@@ -117,14 +142,22 @@ public:
     //!           Handle of Os Stream State to create. If creation failed, it is INVALID_HANLE.
     //!           OsStreamState is a stream level state which stores the flags, info specific to OS specfic to that stream.
     //!           It is be binded with a valid OsDeviceContext to indicate the inclusion relationship between device and stream.
+    //! \param    [in] deviceContext
+    //!           Device context to init streamState
+    //! \param    [in] osInterface
+    //!           Os interface to store streamState
+    //! \param    [in] component
+    //!           Indicate which component the stream state to create belongs to
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS CreateOsStreamState(
         MOS_STREAM_HANDLE *streamState,
-        MOS_DEVICE_HANDLE deviceContext);
-
+        MOS_DEVICE_HANDLE deviceContext,
+        MOS_INTERFACE_HANDLE osInterface,
+        MOS_COMPONENT component);
+     
     //!
     //! \brief    Destroy Os Stream State
     //! \details  Destroy the Os Stream State in stream level
@@ -227,12 +260,25 @@ public:
     //!
     //! \brief    Get current gmmclientcontext
     //! \details  Get current gmmclientcontext
-    //! \param    PMOS_INTERFACE pOsInterface
-    //!           [in] OS Interface
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //!
     //! \return   GMM_CLIENT_CONTEXT
     //!           Current gmmclientcontext
     //!
     static GMM_CLIENT_CONTEXT *GetGmmClientContext(
+        MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief    Get AuxTable base address
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   uint64_t
+    //!           64bit base address value of AuxTable
+    //!
+    static uint64_t GetAuxTableBaseAddr(
         MOS_STREAM_HANDLE streamState);
 
     //!
@@ -1608,6 +1654,18 @@ private:
     //!           GPU Context instance got by GPU context handle, nullptr if get failed
     //!
     static GpuContextSpecificNext *GetGpuContext(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE handle);
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    //! \brief    Unified dump command buffer initialization
+    //! \details  check if dump command buffer was enabled and create the output directory
+    //! \param    [in/out] streamState
+    //!           Os stream state to init cmd buffer dump
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS DumpCommandBufferInit(
+        MOS_STREAM_HANDLE streamState);
+#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 };
 
 #endif  // __MOS_INTERFACE_H__

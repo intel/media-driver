@@ -554,30 +554,48 @@ struct MosStreamState
     GPU_CONTEXT_HANDLE currentGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
     MOS_COMPONENT      component;
 
-    MosVeInterface *virtualEngineInterface = nullptr;
-    MosCpInterface *osCpInterface = nullptr;
+    bool supportVirtualEngine = false; //!< Flag to indicate using virtual engine interface
+    MosVeInterface *virtualEngineInterface = nullptr; //!< Interface to virtual engine state
+    bool useHwSemaForResSyncInVe = false; //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface
+    bool veEnable = false;                //!< Flag to indicate virtual engine enabled (Can enable VE without using virtual engine interface)
+    bool phasedSubmission = false;        //!< Flag to indicate if secondary command buffers are submitted together or separately due to different OS
+    bool frameSplit = true;               //!< Flag to indicate if frame split is enabled (only active when phasedSubmission is true)
+    bool hcpDecScalabilityMode = false;   //!< Hcp scalability mode
+    bool veboxScalabilityMode = false;    //!< Vebox scalability mode
 
-    bool mediaReset    = false;
-    uint32_t GpuResetCount = 0;
+    bool ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
+    bool multiNodeScaling = false;    //!< Flag to indicate if multi-node scaling is enabled for virtual engine (only active when ctxBasedScheduling is true)
+
+    bool softReset = false;  //!< trigger soft reset
+
+    MosCpInterface *osCpInterface = nullptr; //!< CP interface
+
+    bool mediaReset    = false;  //!< Flag to indicate media reset is enabled
 
     bool simIsActive = false;  //!< Flag to indicate if Simulation is enabled
     MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable; //!< To indicate which components to enable Null HW support
+
+    bool usesPatchList = false;               //!< Uses patch list instead of graphic address directly
+    bool usesGfxAddress = false;              //!< Uses graphic address directly instead of patch list
+    bool enableKmdMediaFrameTracking = false; //!< Enable KMD Media frame tracking
+    bool usesCmdBufHeaderInResize = false;    //!< Use cmd buffer header in resize
+    bool usesCmdBufHeader = false;            //!< Use cmd buffer header
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     // Command buffer dump
     bool  dumpCommandBuffer = false;                      //!< Flag to indicate if Dump command buffer is enabled
     bool  dumpCommandBufferToFile = false;                //!< Indicates that the command buffer should be dumped to a file
     bool  dumpCommandBufferAsMessages = false;            //!< Indicates that the command buffer should be dumped via MOS normal messages
+    char  sDirName[MOS_MAX_HLT_FILENAME_LEN] = {0};         //!< Dump Directory name - maximum 260 bytes length
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 #if _DEBUG || _RELEASE_INTERNAL
-    bool  enableDbgOvrdInVirtualEngine = false;
+    bool  enableDbgOvrdInVirtualEngine = false; //!< enable debug override in virtual engine
 
-    int32_t eForceVdbox = 0;   //!< Force select Vdbox
+    int32_t eForceVdbox = 0;  //!< Force select Vdbox
     int32_t eForceVebox = 0;  //!< Force select Vebox
 #endif // _DEBUG || _RELEASE_INTERNAL
 
-    bool  ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
     OS_PER_STREAM_PARAMETERS  perStreamParameters = nullptr; //!< Parameters of OS specific per stream
 };
 
@@ -594,6 +612,7 @@ typedef void *              OsSpecificRes;       //!< stand for different os spe
 typedef void *              OS_HANDLE;           //!< stand for different os handles
 typedef MOS_SURFACE         MosResourceInfo;
 typedef void *              DDI_DEVICE_CONTEXT;  //!< stand for different os specific device context
+typedef void *              MOS_INTERFACE_HANDLE;
 
 class GpuContextMgr;
 //!
@@ -1299,6 +1318,8 @@ typedef struct _MOS_INTERFACE
     int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
     int32_t                         bSoftReset;                                   //!< trigger soft reset
 #endif // (_DEBUG || _RELEASE_INTERNAL)
+    bool streamStateIniter = false;
+
     //!< os interface extension
     void                            *pOsExt;
 } MOS_INTERFACE;
