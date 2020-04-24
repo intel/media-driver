@@ -3110,7 +3110,7 @@ MOS_STATUS CodechalVdencHevcState::AllocateEncResources()
 
     if (m_hucCmdInitializer)
     {
-        m_hucCmdInitializer->CmdInitializerAllocateResources(m_hwInterface);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucCmdInitializer->CmdInitializerAllocateResources(m_hwInterface));
     }
 
     return eStatus;
