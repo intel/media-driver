@@ -389,7 +389,7 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribCustomRoundingControl:
         {
-            *value = 0;
+            *value = 1;
             break;
         }
         default:
@@ -1400,6 +1400,10 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     if (entrypoint == VAEntrypointEncSliceLP)
     {
         attrib.value = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
+        if (IsHevcProfile(profile))
+        {
+            attrib.value = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES_LDB | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES_LDB << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
+        }
     }
     else
     {
@@ -1451,7 +1455,15 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     attrib.type = VAConfigAttribEncSliceStructure;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
-        attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
+        if (IsHevcProfile(profile))
+        {
+            attrib.value = VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
+        }
+        else
+        {
+            attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE |
+                       VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS;
+        }
     }
     else
     {
@@ -1542,11 +1554,26 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = (VAConfigAttribType)VAConfigAttribEncDirtyRect;
-    attrib.value = 4;
+    if((entrypoint == VAEntrypointEncSliceLP) && IsHevcProfile(profile))
+    {
+        attrib.value = CODECHAL_ENCODE_HEVC_MAX_NUM_DIRTYRECT;
+    }
+    else
+    {
+        attrib.value = 4;
+    }
+
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncParallelRateControl;
-    attrib.value = 1;
+    if(entrypoint == VAEntrypointEncSliceLP)
+    {
+        attrib.value = 0;
+    }
+    else
+    {
+        attrib.value = 1;
+    }
     (*attribList)[attrib.type] = attrib.value;
 
     if ((entrypoint == VAEntrypointFEI) && (IsAvcProfile(profile) || IsHevcProfile(profile)))
@@ -1596,12 +1623,22 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
         (*attribList)[attrib.type] = attrib.value;
     }
 
-    if (IsAvcProfile(profile) && (entrypoint == VAEntrypointEncSliceLP))
+    if(entrypoint == VAEntrypointEncSliceLP)
     {
-        attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS;
-        (*attribList)[attrib.type] = attrib.value;
+        if (IsAvcProfile(profile))
+        {
+            attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
+            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS;
+            (*attribList)[attrib.type] = attrib.value;
+        }
+        else if (IsHevcProfile(profile))
+        {
+            attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
+            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE;
+            (*attribList)[attrib.type] = attrib.value;
+        }
     }
+
     return status;
 }
 

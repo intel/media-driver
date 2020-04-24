@@ -341,7 +341,7 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribCustomRoundingControl:
         {
-            *value = 0;
+            *value = 1;
             break;
         }
         case VAConfigAttribEncMaxSlices:
@@ -416,6 +416,9 @@ VAStatus MediaLibvaCapsG11::LoadHevcEncLpProfileEntrypoints()
         status = CreateEncAttributes(VAProfileHEVCMain, VAEntrypointEncSliceLP, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         (*attributeList)[VAConfigAttribEncTileSupport] = 1;
+        (*attributeList)[VAConfigAttribEncMaxRefFrames] = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES_LDB | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES_LDB << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
+        (*attributeList)[VAConfigAttribEncDirtyRect] = CODECHAL_ENCODE_HEVC_MAX_NUM_DIRTYRECT;
+        (*attributeList)[VAConfigAttribEncParallelRateControl] = 0;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain))
