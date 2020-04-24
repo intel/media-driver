@@ -4673,8 +4673,52 @@ static VAStatus DdiMedia_CopySurfaceToImage(
         return vaStatus;
     }
 
+#ifndef _FULL_OPEN_SOURCE
     MOS_SecureMemcpy(imageData, image->data_size, surfData, image->data_size);
+#else
+    uint8_t *ySrc = nullptr;
+    uint8_t *yDst = (uint8_t*)imageData;
+    uint8_t *swizzleData = (uint8_t*)MOS_AllocMemory(surface->data_size);
 
+    if (surface->TileType != I915_TILING_NONE)
+    {
+        SwizzleSurface(surface->pMediaCtx, surface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)surface->TileType, (uint8_t *)swizzleData, false);
+        ySrc = swizzleData;
+    }
+    else
+    {
+        ySrc = (uint8_t*)surfData;
+    }
+
+    if(surface->data_size == image->data_size)
+    {
+        MOS_SecureMemcpy(imageData, image->data_size, surfData, image->data_size);
+    }
+    else
+    {
+        DdiMedia_CopyPlane(yDst, image->pitches[0], ySrc, surface->iPitch, image->height);
+        if (image->num_planes > 1)
+        {
+            uint8_t *uSrc = ySrc + surface->iPitch * surface->iHeight;
+            uint8_t *uDst = yDst + image->offsets[1];
+            uint32_t chromaPitch       = 0;
+            uint32_t chromaHeight      = 0;
+            uint32_t imageChromaPitch  = 0;
+            uint32_t imageChromaHeight = 0;
+            DdiMedia_GetChromaPitchHeight(DdiMedia_MediaFormatToOsFormat(surface->format), surface->iPitch, surface->iHeight, &chromaPitch, &chromaHeight);
+            DdiMedia_GetChromaPitchHeight(image->format.fourcc, image->pitches[0], image->height, &imageChromaPitch, &imageChromaHeight);
+            DdiMedia_CopyPlane(uDst, image->pitches[1], uSrc, chromaPitch, imageChromaHeight);
+
+            if(image->num_planes > 2)
+            {
+                uint8_t *vSrc = uSrc + chromaPitch * chromaHeight;
+                uint8_t *vDst = yDst + image->offsets[2];
+                DdiMedia_CopyPlane(vDst, image->pitches[2], vSrc, chromaPitch, imageChromaHeight);
+            }
+        }
+    }
+    MOS_FreeMemory(swizzleData);
+#endif
     vaStatus = DdiMedia_UnmapBuffer(ctx, image->buf);
     if (vaStatus != VA_STATUS_SUCCESS)
     {
@@ -4738,13 +4782,10 @@ VAStatus DdiMedia_GetImage(
     DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, vaimg->buf);
     DDI_CHK_NULL(buf,       "nullptr buf.",         VA_STATUS_ERROR_INVALID_BUFFER);
 
-    DDI_MEDIA_SURFACE *inputSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
-    DDI_CHK_NULL(inputSurface,     "nullptr inputSurface.",      VA_STATUS_ERROR_INVALID_SURFACE);
-    DDI_CHK_NULL(inputSurface->bo, "nullptr inputSurface->bo.",  VA_STATUS_ERROR_INVALID_SURFACE);
-
     VAStatus        vaStatus       = VA_STATUS_SUCCESS;
-    VASurfaceID     target_surface = VA_INVALID_SURFACE;
 
+#ifndef _FULL_OPEN_SOURCE
+    VASurfaceID     target_surface = VA_INVALID_SURFACE;
     //Always call VP to do swizzle if needed, and keep same layout between surface and image
     VAContextID context = VA_INVALID_ID;
 
@@ -4807,7 +4848,13 @@ VAStatus DdiMedia_GetImage(
     {
         DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
     }
-
+#else
+    DDI_MEDIA_SURFACE *inputSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
+    DDI_CHK_NULL(inputSurface,     "nullptr inputSurface.",      VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(inputSurface->bo, "nullptr inputSurface->bo.",  VA_STATUS_ERROR_INVALID_SURFACE);
+    vaStatus = DdiMedia_CopySurfaceToImage(ctx, inputSurface, vaimg);
+    DDI_CHK_RET(vaStatus, "Copy surface to image failed.");
+#endif
     return VA_STATUS_SUCCESS;
 }
 
