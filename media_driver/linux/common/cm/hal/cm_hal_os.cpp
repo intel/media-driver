@@ -28,6 +28,8 @@
 #include "cm_def_os.h"
 #include "i915_drm.h"
 #include "cm_execution_adv.h"
+#include "mos_graphicsresource.h"
+#include "mos_utilities.h"
 
 #define Y_TILE_WIDTH  128
 #define Y_TILE_HEIGHT 32
@@ -143,7 +145,6 @@ MOS_STATUS HalCm_GetSurfaceAndRegister(
             CM_CHK_HRESULT_GOTOFINISH_MOSERROR(renderHal->pOsInterface->pfnRegisterResource(
                 renderHal->pOsInterface, &(state->bufferTable[index].osResource), true, true));
             surface->OsResource  = state->bufferTable[index].osResource;
-
         break;
 
         case CM_ARGUMENT_SURFACE3D:
@@ -440,7 +441,9 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
     const char              *fmt;
     PMOS_RESOURCE           osResource;
     MOS_LINUX_BO             *bo = nullptr;
+    GMM_RESCREATE_PARAMS    gmmParams;
 
+    MOS_ZeroMemory(&gmmParams, sizeof(GMM_RESCREATE_PARAMS));
     size  = param->size;
     tileformat = I915_TILING_NONE;
 
@@ -506,9 +509,31 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
                 osInterface,
                 &allocParams,
                 &entry->osResource));
+
         }
         else  //BufferUP
         {
+            // If user provides a system memory pointer, the gfx resource is backed
+            // by the system memory pages. The resource is required to be linear.
+            gmmParams.Flags.Info.Linear = true;
+            gmmParams.Flags.Info.Cacheable = true;
+            gmmParams.NoGfxMemory = true;
+            gmmParams.Type = RESOURCE_BUFFER;
+            gmmParams.Flags.Gpu.State = true;
+
+            gmmParams.BaseWidth = param->size;
+            gmmParams.BaseHeight = 1;  //iAlignedHeight;
+            gmmParams.ArraySize = 1;
+            gmmParams.Format = osInterface->pfnFmt_MosToGmm(Format_Buffer);
+
+            GMM_CLIENT_CONTEXT* pGmmClientContext = osInterface->pfnGetGmmClientContext(osInterface);
+            uint32_t  _memAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+            GMM_RESOURCE_INFO* tmpGmmResInfoPtr = pGmmClientContext->CreateResInfoObject(&gmmParams);
+            osResource->pGmmResInfo = tmpGmmResInfoPtr;
+
+            MosMemAllocCounterGfx++;
+            GraphicsResource::SetMemAllocCounterGfx(++_memAllocCounterGfx);
+
 #if defined(DRM_IOCTL_I915_GEM_USERPTR)
            bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,
                                  "CM Buffer UP",
