@@ -4049,7 +4049,6 @@ VAStatus DdiMedia_CreateImage(
     gmmParams.ArraySize         = 1;
     gmmParams.Type              = RESOURCE_2D;
     gmmParams.Flags.Gpu.Video   = true;
-    gmmParams.Flags.Info.Linear = true;
     gmmParams.Format            = mediaCtx->m_caps->ConvertFourccToGmmFmt(format->fourcc);
 
     if (gmmParams.Format == GMM_FORMAT_INVALID)
@@ -4679,9 +4678,6 @@ static VAStatus DdiMedia_CopySurfaceToImage(
         return vaStatus;
     }
 
-#ifndef _FULL_OPEN_SOURCE
-    MOS_SecureMemcpy(imageData, image->data_size, surfData, image->data_size);
-#else
     uint8_t *ySrc = nullptr;
     uint8_t *yDst = (uint8_t*)imageData;
     uint8_t *swizzleData = (uint8_t*)MOS_AllocMemory(surface->data_size);
@@ -4698,7 +4694,7 @@ static VAStatus DdiMedia_CopySurfaceToImage(
 
     if(surface->data_size == image->data_size)
     {
-        MOS_SecureMemcpy(imageData, image->data_size, surfData, image->data_size);
+        MOS_SecureMemcpy(imageData, image->data_size, ySrc, image->data_size);
     }
     else
     {
@@ -4724,7 +4720,7 @@ static VAStatus DdiMedia_CopySurfaceToImage(
         }
     }
     MOS_FreeMemory(swizzleData);
-#endif
+
     vaStatus = DdiMedia_UnmapBuffer(ctx, image->buf);
     if (vaStatus != VA_STATUS_SUCCESS)
     {
@@ -4788,52 +4784,60 @@ VAStatus DdiMedia_GetImage(
     DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, vaimg->buf);
     DDI_CHK_NULL(buf,       "nullptr buf.",         VA_STATUS_ERROR_INVALID_BUFFER);
 
-    VAStatus        vaStatus       = VA_STATUS_SUCCESS;
+    DDI_MEDIA_SURFACE *inputSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
+    DDI_CHK_NULL(inputSurface,     "nullptr inputSurface.",      VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(inputSurface->bo, "nullptr inputSurface->bo.",  VA_STATUS_ERROR_INVALID_SURFACE);
 
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
 #ifndef _FULL_OPEN_SOURCE
-    VASurfaceID     target_surface = VA_INVALID_SURFACE;
-    //Always call VP to do swizzle if needed, and keep same layout between surface and image
-    VAContextID context = VA_INVALID_ID;
+    VASurfaceID target_surface = VA_INVALID_SURFACE;
+    VASurfaceID output_surface = surface;
 
-    //Create VP Context.
-    vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
-    DDI_CHK_RET(vaStatus, "Create VP Context failed.");
-
-    //Create target surface for VP pipeline.
-    DDI_MEDIA_FORMAT mediaFmt = DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
-    if (mediaFmt == Media_Format_Count)
+    if (inputSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+        width != vaimg->width || height != vaimg->height)
     {
-        DDI_ASSERTMESSAGE("Unsupported surface type.");
-        return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-    }
-    PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = (PDDI_MEDIA_SURFACE_DESCRIPTOR)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
-    surfDesc->uiVaMemType = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
-    target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, surfDesc, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC);
-    DDI_CHK_RET(vaStatus, "Create temp surface failed.");
+        VAContextID context = VA_INVALID_ID;
+        //Create VP Context.
+        vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &context);
+        DDI_CHK_RET(vaStatus, "Create VP Context failed.");
 
-    VARectangle srcRect, dstRect;
-    srcRect.x      = x;
-    srcRect.y      = y;
-    srcRect.width  = width;
-    srcRect.height = height;
-    dstRect.x      = 0;
-    dstRect.y      = 0;
-    dstRect.width  = vaimg->width;
-    dstRect.height = vaimg->height;
+        //Create target surface for VP pipeline.
+        DDI_MEDIA_FORMAT mediaFmt = DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
+        if (mediaFmt == Media_Format_Count)
+        {
+            DDI_ASSERTMESSAGE("Unsupported surface type.");
+            return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+        }
+        PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = (PDDI_MEDIA_SURFACE_DESCRIPTOR)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
+        surfDesc->uiVaMemType = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
+        target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, surfDesc, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC);
+        DDI_CHK_RET(vaStatus, "Create temp surface failed.");
 
-    //Execute VP pipeline.
-    vaStatus = DdiVp_VideoProcessPipeline(ctx, context, surface, &srcRect, target_surface, &dstRect);
-    if (vaStatus != VA_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("VP Pipeline failed.");
-        DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
-        return vaStatus;
+        VARectangle srcRect, dstRect;
+        srcRect.x      = x;
+        srcRect.y      = y;
+        srcRect.width  = width;
+        srcRect.height = height;
+        dstRect.x      = 0;
+        dstRect.y      = 0;
+        dstRect.width  = vaimg->width;
+        dstRect.height = vaimg->height;
+
+        //Execute VP pipeline.
+        vaStatus = DdiVp_VideoProcessPipeline(ctx, context, surface, &srcRect, target_surface, &dstRect);
+        if (vaStatus != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("VP Pipeline failed.");
+            DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+            return vaStatus;
+        }
+        vaStatus = DdiMedia_SyncSurface(ctx, target_surface);
+        vaStatus = DdiVp_DestroyContext(ctx, context);
+        output_surface = target_surface;
     }
-    vaStatus = DdiMedia_SyncSurface(ctx, target_surface);
-    vaStatus = DdiVp_DestroyContext(ctx, context);
 
     //Get Media Surface from output surface ID
-    DDI_MEDIA_SURFACE *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, target_surface);
+    DDI_MEDIA_SURFACE *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, output_surface);
     DDI_CHK_NULL(mediaSurface,     "nullptr mediaSurface.",      VA_STATUS_ERROR_INVALID_SURFACE);
     DDI_CHK_NULL(mediaSurface->bo, "nullptr mediaSurface->bo.",  VA_STATUS_ERROR_INVALID_SURFACE);
 
@@ -4855,9 +4859,6 @@ VAStatus DdiMedia_GetImage(
         DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
     }
 #else
-    DDI_MEDIA_SURFACE *inputSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
-    DDI_CHK_NULL(inputSurface,     "nullptr inputSurface.",      VA_STATUS_ERROR_INVALID_SURFACE);
-    DDI_CHK_NULL(inputSurface->bo, "nullptr inputSurface->bo.",  VA_STATUS_ERROR_INVALID_SURFACE);
     vaStatus = DdiMedia_CopySurfaceToImage(ctx, inputSurface, vaimg);
     DDI_CHK_RET(vaStatus, "Copy surface to image failed.");
 #endif
