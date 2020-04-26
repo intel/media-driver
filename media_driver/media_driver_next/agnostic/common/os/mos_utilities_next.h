@@ -1755,9 +1755,9 @@ public:
     static void MosTraceEvent(
         uint16_t         usId,
         uint8_t          ucType,
-        void * const     pArg1,
+        const void       *pArg1,
         uint32_t         dwSize1,
-        void * const     pArg2,
+        const void       *pArg2,
         uint32_t         dwSize2);
 
     //!

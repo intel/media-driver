@@ -2990,9 +2990,9 @@ void MOS_TraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFam
 void MOS_TraceEvent(
     uint16_t         usId,
     uint8_t          ucType,
-    void * const     pArg1,
+    const void       *pArg1,
     uint32_t         dwSize1,
-    void * const     pArg2,
+    const void       *pArg2,
     uint32_t         dwSize2)
 {
     if (g_apoMosEnabled)
