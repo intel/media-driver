@@ -111,6 +111,7 @@ MOS_STATUS BltState::CopyMainSurface(
     BLT_CHK_NULL_RETURN(dst);
     BLT_CHK_NULL_RETURN(&src->OsResource);
     BLT_CHK_NULL_RETURN(&dst->OsResource);
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
     MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
     bltStateParam.bCopyMainSurface = true;
@@ -124,7 +125,7 @@ MOS_STATUS BltState::CopyMainSurface(
     flag.Value     = 0;
     flag.WriteOnly = 1;
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnLockSyncRequest(m_osInterface, &dst->OsResource, &flag));
-
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return MOS_STATUS_SUCCESS;
 }
 

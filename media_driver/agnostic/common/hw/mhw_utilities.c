@@ -64,6 +64,8 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
 
     pbCmdBufBase = (uint8_t*)pCmdBuffer->pCmdBase;
 
+    MOS_TraceEventExt(EVENT_RESOURCE_REGISTER, EVENT_TYPE_INFO2, &pParams->HwCommandType, sizeof(uint32_t), &pParams->dwLocationInCmd, sizeof(uint32_t));
+
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
         pParams->presResource,
@@ -177,6 +179,8 @@ MOS_STATUS Mhw_AddResourceToCmd_PatchList(
     MHW_CHK_NULL(pParams);
     MHW_CHK_NULL(pParams->presResource);
     MHW_CHK_NULL(pCmdBuffer);
+
+    MOS_TraceEventExt(EVENT_RESOURCE_REGISTER, EVENT_TYPE_INFO2, &pParams->HwCommandType, sizeof(uint32_t), &pParams->dwLocationInCmd, sizeof(uint32_t));
 
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,

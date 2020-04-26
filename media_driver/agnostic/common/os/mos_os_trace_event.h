@@ -107,7 +107,8 @@ typedef enum _MEDIA_EVENT
     EVENT_DATA_DUMP,                //! event for debug data dump
     EVENT_HECI_OBJ,                 //! event for heci duplicate handle
     EVENT_PLAT_INFO,                //! event for static platform info
-    EVENT_DATA_DICTIONARY           //! event for data dictionary (name:value pair)
+    EVENT_DATA_DICTIONARY,          //! event for data dictionary (name:value pair)
+    EVENT_MEDIA_COPY                //! event for media decompresss/copy/blt
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
@@ -115,6 +116,7 @@ typedef enum _MEDIA_EVENT_TYPE
     EVENT_TYPE_INFO  = 0,           //! function information event
     EVENT_TYPE_START = 1,           //! function entry event
     EVENT_TYPE_END   = 2,           //! function exit event
+    EVENT_TYPE_INFO2 = 3,           //! function extra information event
 } MEDIA_EVENT_TYPE;
 
 #endif

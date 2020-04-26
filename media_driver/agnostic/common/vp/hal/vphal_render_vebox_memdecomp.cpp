@@ -144,7 +144,7 @@ MOS_STATUS MediaVeboxDecompState::MemoryDecompress(PMOS_RESOURCE targetResource)
     MHW_FUNCTION_ENTER;
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(targetResource);
-    
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 #if MOS_MEDIASOLO_SUPPORTED
     if (m_osInterface->bSoloInUse)
     {
@@ -174,7 +174,7 @@ MOS_STATUS MediaVeboxDecompState::MemoryDecompress(PMOS_RESOURCE targetResource)
             }
         }
     }
-
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return eStatus;
 }
 
@@ -189,6 +189,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputResource);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(outputResource);
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
     MOS_SURFACE             sourceSurface;
     MOS_SURFACE             targetSurface;
@@ -236,7 +237,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(RenderDoubleBufferDecompCMD(&sourceSurface, &targetSurface));
 
     DumpSurfaceMemDecomp(targetSurface, m_surfaceDumpCounter++, 1, VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP);
-
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return eStatus;
 }
 
@@ -255,6 +256,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputResource);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(outputResource);
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
     MOS_SURFACE             sourceSurface;
     MOS_SURFACE             targetSurface;
@@ -306,7 +308,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(RenderDoubleBufferDecompCMD(&sourceSurface, &targetSurface));
 
     DumpSurfaceMemDecomp(targetSurface, m_surfaceDumpCounter++, 1, VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP);
-
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return eStatus;
 }
 
