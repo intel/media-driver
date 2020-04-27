@@ -483,7 +483,7 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
                 {
                     Format = Format_P010;
                 }
-                else if(rtTbl->pCurrentRT->format == Media_Format_P016)
+                else if(rtTbl->pCurrentRT->format == Media_Format_P016 || rtTbl->pCurrentRT->format == Media_Format_P012)
                 {
                     Format = Format_P016;
                 }
@@ -521,7 +521,7 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
             if (picParams->chroma_format_idc == 1)                 //420
             {
                 Format = Format_P010;
-                if(rtTbl->pCurrentRT->format == Media_Format_P016)
+                if(rtTbl->pCurrentRT->format == Media_Format_P016 || rtTbl->pCurrentRT->format == Media_Format_P012)
                 {
                     Format = Format_P016;
                 }

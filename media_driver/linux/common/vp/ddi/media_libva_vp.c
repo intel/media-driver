@@ -324,6 +324,7 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_P010:
         format = Format_P010;
         break;
+    case Media_Format_P012:
     case Media_Format_P016:
         format = Format_P016;
         break;
