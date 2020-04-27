@@ -246,11 +246,24 @@ VAStatus DdiMediaUtil_AllocateSurface(
 #endif
             }
             alignedWidth = MOS_ALIGN_CEIL(width, 8);
-            if ((mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE) &&
-                ((format == Media_Format_YV12) ||
-                 (format == Media_Format_I420)))
+            if (mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE)
             {
-                alignedWidth = MOS_ALIGN_CEIL(width, 128);
+                if ((format == Media_Format_YV12) ||
+                    (format == Media_Format_I420))
+                {
+                    alignedWidth = MOS_ALIGN_CEIL(width, 128);
+                }
+
+                if (format == Media_Format_NV12)
+                {
+#if UFO_GRALLOC_NEW_FORMAT
+                    //Planar type surface align 64 to improve performance.
+                    alignedHeight = MOS_ALIGN_CEIL(height, 64);
+#else
+                    //Planar type surface align 32 to improve performance.
+                    alignedHeight = MOS_ALIGN_CEIL(height, 32);
+#endif
+                }
             }
             tileformat = I915_TILING_Y;
             break;
