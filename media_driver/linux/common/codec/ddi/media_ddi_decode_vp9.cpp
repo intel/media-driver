@@ -586,7 +586,7 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
         (picParams->BitDepthMinus8 > 0))
     {
         Format = Format_P010;
-        if((picParams->BitDepthMinus8 > 2) || (rtTbl->pCurrentRT->format == Media_Format_P016))
+        if((picParams->BitDepthMinus8 > 2) || (rtTbl->pCurrentRT->format == Media_Format_P016 || rtTbl->pCurrentRT->format == Media_Format_P012))
         {
             Format = Format_P016;
         }

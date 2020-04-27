@@ -455,6 +455,8 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_P208;
         case Media_Format_P010:
             return VA_FOURCC_P010;
+        case Media_Format_P012:
+            return VA_FOURCC_P012;
         case Media_Format_P016:
             return VA_FOURCC_P016;
         case Media_Format_Y210:
@@ -580,6 +582,8 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
             return Media_Format_Buffer;
         case VA_FOURCC_P010:
             return Media_Format_P010;
+        case VA_FOURCC_P012:
+            return Media_Format_P012;
         case VA_FOURCC_P016:
             return Media_Format_P016;
         case VA_FOURCC_Y210:
@@ -624,6 +628,7 @@ static VAStatus DdiMedia_GetChromaPitchHeight(
     {
         case VA_FOURCC_NV12:
         case VA_FOURCC_P010:
+        case VA_FOURCC_P012:
         case VA_FOURCC_P016:
             *chromaHeight = MOS_ALIGN_CEIL(height, 2) / 2;
             *chromaPitch = pitch;
@@ -2268,7 +2273,7 @@ DdiMedia_CreateSurfaces2(
             expected_fourcc = VA_FOURCC_NV12;
             break;
         case VA_RT_FORMAT_YUV420_12:
-            expected_fourcc = VA_FOURCC_P016;
+            expected_fourcc = VA_FOURCC_P012;
             break;
         case VA_RT_FORMAT_YUV422:
             expected_fourcc = VA_FOURCC_YUY2;
@@ -2350,6 +2355,9 @@ DdiMedia_CreateSurfaces2(
             break;
         case VA_FOURCC_P010:
             expected_fourcc = VA_FOURCC_P010;
+            break;
+        case VA_FOURCC_P012:
+            expected_fourcc = VA_FOURCC_P012;
             break;
         case VA_FOURCC_P016:
             expected_fourcc = VA_FOURCC_P016;
@@ -4123,6 +4131,7 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_NV12:
         case VA_FOURCC_NV21:
         case VA_FOURCC_P010:
+        case VA_FOURCC_P012:
         case VA_FOURCC_P016:
             vaimg->num_planes = 2;
             vaimg->pitches[0] = pitch;
@@ -4424,6 +4433,7 @@ VAStatus DdiMedia_DeriveImage (
         vaimg->offsets[2]               = mediaSurface->iHeight * mediaSurface->iPitch * 2;
         break;
     case Media_Format_P010:
+    case Media_Format_P012:
     case Media_Format_P016:
         vaimg->format.bits_per_pixel    = 24;
         vaimg->num_planes               = 2;
@@ -6093,6 +6103,7 @@ static uint32_t DdiMedia_GetPlaneNum(PDDI_MEDIA_SURFACE mediaSurface, bool hasAu
         case VA_FOURCC_NV12:
         case VA_FOURCC_NV21:
         case VA_FOURCC_P010:
+        case VA_FOURCC_P012:
         case VA_FOURCC_P016:
             plane_num = hasAuxPlane ? 4 : 2;
             break;
@@ -6154,6 +6165,7 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
         case VA_FOURCC_Y800:
             return DRM_FORMAT_R8;
         case VA_FOURCC_P010:
+        case VA_FOURCC_P012:
         case VA_FOURCC_P016:
         case VA_FOURCC_I010:
             return DRM_FORMAT_R16;
@@ -6200,6 +6212,7 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
         case VA_FOURCC_YV16:
             return DRM_FORMAT_R8;
         case VA_FOURCC_P010:
+        case VA_FOURCC_P012:
         case VA_FOURCC_P016:
             return DRM_FORMAT_GR1616;
         case VA_FOURCC_I010:
@@ -6241,6 +6254,8 @@ static uint32_t DdiMedia_GetDrmFormatOfCompositeObject(uint32_t fourcc)
         return DRM_FORMAT_R8;
     case VA_FOURCC_P010:
         return DRM_FORMAT_P010;
+    case VA_FOURCC_P012:
+        return DRM_FORMAT_P016;
     case VA_FOURCC_P016:
         return DRM_FORMAT_P016;
     case VA_FOURCC_ARGB:

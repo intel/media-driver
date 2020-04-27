@@ -221,6 +221,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_IMC3:
         case Media_Format_400P:
         case Media_Format_P010:
+        case Media_Format_P012:
         case Media_Format_P016:
         case Media_Format_YUY2:
         case Media_Format_Y210:
