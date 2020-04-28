@@ -472,8 +472,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
 
-        MosUtilities::MosSecureMemcpy(&m_perfData, sizeof(PERF_DATA), osDriverContext->pPerfData, sizeof(PERF_DATA));
-
         m_use64BitRelocs = true;
 
         osDriverContext->bufmgr                 = m_bufmgr;

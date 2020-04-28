@@ -313,11 +313,6 @@ private:
     struct PerfInfo     m_performanceInfo = {};
 
     //!
-    //! \brief  Performance specific information for debug purpose
-    //!
-    PERF_DATA           m_perfData = {};
-
-    //!
     //! \brief  switch for 64bit KMD relocation
     //!
     bool                m_use64BitRelocs = false;

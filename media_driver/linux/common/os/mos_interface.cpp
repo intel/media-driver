@@ -1965,7 +1965,9 @@ void MosInterface::SetPerfTag(MOS_STREAM_HANDLE streamState, uint32_t perfTag)
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
 
-    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    auto osParameters   = (PMOS_CONTEXT)streamState->perStreamParameters;
+    PERF_DATA *perfData = osParameters->pPerfData;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(perfData);
 
     switch (streamState->component)
     {
@@ -1991,11 +1993,11 @@ void MosInterface::SetPerfTag(MOS_STREAM_HANDLE streamState, uint32_t perfTag)
         break;
 
     default:
-        componentTag = 0xF000 & osParameters->GetDmaBufID(osParameters);
+        componentTag = 0xF000 & perfData->dmaBufID;
         break;
     }
 
-    osParameters->SetDmaBufID(osParameters, componentTag | (perfTag & 0x0fff));
+    perfData->dmaBufID = componentTag | (perfTag & 0x0fff);
 
     return;
 }
@@ -2016,7 +2018,14 @@ int32_t MosInterface::IsPerfTagSet(MOS_STREAM_HANDLE streamState)
 
     auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
 
-    componentTag = 0xF000 & osParameters->GetDmaBufID(osParameters);
+    PERF_DATA *perfData     = osParameters->pPerfData;
+    if (perfData == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("perfData invalid nullptr");
+        return false;
+    }
+
+    componentTag = 0xF000 & perfData->dmaBufID;
 
     switch (componentTag)
     {
@@ -2078,8 +2087,10 @@ void MosInterface::SetPerfHybridKernelID(
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
 
     auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    PERF_DATA *perfData     = osParameters->pPerfData;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(perfData);
 
-    osParameters->SetPerfHybridKernelID(osParameters, kernelID);
+    perfData->dmaBufID = (perfData->dmaBufID & 0xF0FF) | ((kernelID << 8) & 0x0F00);
 
     return;
 }
