@@ -1302,6 +1302,33 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    uint32_t GetHWTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
+    {
+        uint32_t tileMode = 0;
+
+        if (gmmTileEnabled)
+        {
+            return tileModeGMM;
+        }
+
+        switch (tileType)
+        {
+        case MOS_TILE_LINEAR:
+            tileMode = 0;
+            break;
+        case MOS_TILE_YS:
+            tileMode = 1;
+            break;
+        case MOS_TILE_X:
+            tileMode = 2;
+            break;
+        default:
+            tileMode = 3;
+            break;
+        }
+        return tileMode;
+    }
+
     MOS_STATUS AddVdencSrcSurfaceStateCmd(
         PMOS_COMMAND_BUFFER       cmdBuffer,
         PMHW_VDBOX_SURFACE_PARAMS params) override
@@ -1320,17 +1347,9 @@ public:
 
         cmd.Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->ucVDirection;
 
-        cmd.Dwords25.DW1.TiledSurface = IS_TILE_FORMAT(params->psSurface->TileType) ? 1 : 0;
-
-        if (cmd.Dwords25.DW1.TiledSurface)
-        {
-            cmd.Dwords25.DW1.TileWalk = (params->psSurface->TileType);
-        }
-
-        if (params->psSurface->TileType == MOS_TILE_LINEAR)
-        {
-            cmd.Dwords25.DW1.TileWalk = 0;
-        }
+        uint32_t tilemode             = GetHWTileType(params->psSurface->TileType, params->psSurface->TileModeGMM, params->psSurface->bGMMTileEnabled);
+        cmd.Dwords25.DW1.TiledSurface = (tilemode & 0x2) >> 1;
+        cmd.Dwords25.DW1.TileWalk     = tilemode & 0x1;
 
         cmd.Dwords25.DW1.SurfaceFormat            = MosFormatToVdencSurfaceRawFormat(params->psSurface->Format);
         cmd.Dwords25.DW0.SurfaceFormatByteSwizzle = params->bDisplayFormatSwizzle;
@@ -1384,12 +1403,9 @@ public:
 
         cmd.Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->ucVDirection;
 
-        cmd.Dwords25.DW1.TiledSurface = IS_TILE_FORMAT(params->psSurface->TileType) ? 1 : 0;
-
-        if (cmd.Dwords25.DW1.TiledSurface)
-        {
-            cmd.Dwords25.DW1.TileWalk = (params->psSurface->TileType);
-        }
+        uint32_t tilemode             = GetHWTileType(params->psSurface->TileType, params->psSurface->TileModeGMM, params->psSurface->bGMMTileEnabled);
+        cmd.Dwords25.DW1.TiledSurface = (tilemode & 0x2) >> 1;
+        cmd.Dwords25.DW1.TileWalk     = tilemode & 0x1;
 
         cmd.Dwords25.DW1.SurfaceFormat = MosFormatToVdencSurfaceReconFormat(params->psSurface->Format);
 
@@ -1430,6 +1446,7 @@ public:
         PMHW_VDBOX_SURFACE_PARAMS params,
         uint8_t                   numSurfaces) override
     {
+        uint32_t tilemode = 0;
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(cmdBuffer);
@@ -1450,13 +1467,9 @@ public:
         }
         cmd.Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->ucVDirection;
 
-        cmd.Dwords25.DW1.TiledSurface =
-            IS_TILE_FORMAT(params->psSurface->TileType) ? 1 : 0;
-
-        if (cmd.Dwords25.DW1.TiledSurface)
-        {
-            cmd.Dwords25.DW1.TileWalk = (params->psSurface->TileType);
-        }
+        tilemode                      = GetHWTileType(params->psSurface->TileType, params->psSurface->TileModeGMM, params->psSurface->bGMMTileEnabled);
+        cmd.Dwords25.DW1.TiledSurface = (tilemode & 0x2) >> 1;
+        cmd.Dwords25.DW1.TileWalk     = tilemode & 0x1;
 
         cmd.Dwords25.DW1.SurfaceFormat    = TVdencCmds::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
         cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
@@ -1481,12 +1494,9 @@ public:
             }
             cmd.Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->ucVDirection;
 
-            cmd.Dwords69.DW1.TiledSurface = IS_TILE_FORMAT(params->psSurface->TileType) ? 1 : 0;
-
-            if (cmd.Dwords69.DW1.TiledSurface)
-            {
-                cmd.Dwords69.DW1.TileWalk = (params->psSurface->TileType);
-            }
+            tilemode                          = GetHWTileType(params->psSurface->TileType, params->psSurface->TileModeGMM, params->psSurface->bGMMTileEnabled);
+            cmd.Dwords69.DW1.TiledSurface     = (tilemode & 0x2) >> 1;
+            cmd.Dwords69.DW1.TileWalk         = tilemode & 0x1;
 
             cmd.Dwords69.DW1.SurfaceFormat    = TVdencCmds::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
             cmd.Dwords69.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
