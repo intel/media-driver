@@ -1173,13 +1173,18 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     case VAEncMiscParameterTypeROI:
     {
         VAEncMiscParameterBufferROI *vaEncMiscParamROI = (VAEncMiscParameterBufferROI *)miscParamBuf->data;
-        uint32_t                     maxROIsupported   = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;
         uint8_t                      blockSize         = (m_encodeCtx->bVdencActive) ? vdencRoiBlockSize : CODECHAL_MACROBLOCK_WIDTH;
 
          uint32_t frameWidth = (seqParams->wFrameWidthInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
          uint32_t frameHeight = (seqParams->wFrameHeightInMinCbMinus1 + 1) << (seqParams->log2_min_coding_block_size_minus3 + 3);
          uint16_t rightBorder = (uint16_t)CODECHAL_GET_WIDTH_IN_BLOCKS(frameWidth, blockSize) - 1;
          uint16_t bottomBorder = (uint16_t)CODECHAL_GET_HEIGHT_IN_BLOCKS(frameHeight, blockSize) - 1;
+
+         if(vaEncMiscParamROI->num_roi > CODECHAL_ENCODE_HEVC_MAX_NUM_ROI)
+         {
+             DDI_ASSERTMESSAGE("The number of ROI rect is greater than %d", CODECHAL_ENCODE_HEVC_MAX_NUM_ROI);
+             return VA_STATUS_ERROR_INVALID_PARAMETER;
+         }
 
         if (vaEncMiscParamROI->num_roi)
         {
@@ -1205,18 +1210,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
                     DDI_ASSERTMESSAGE("ROI Top > ROI Bottom.");
                     return VA_STATUS_ERROR_INVALID_PARAMETER;
                 }
-
-
-                if (m_encodeCtx->bVdencActive == false)
-                {
-                    // align to CTB edge (32 on Gen9) to avoid QP average issue
-                    pic_param_roi.Left   = MOS_ALIGN_FLOOR(pic_param_roi.Left, 32);
-                    pic_param_roi.Right  = MOS_ALIGN_CEIL(pic_param_roi.Right, 32);
-                    pic_param_roi.Top    = MOS_ALIGN_FLOOR(pic_param_roi.Top, 32);
-                    pic_param_roi.Bottom = MOS_ALIGN_CEIL(pic_param_roi.Bottom, 32);
-                }
-
-
+              
                 // Convert from pixel units to block size units
                 pic_param_roi.Left   /= blockSize;
                 pic_param_roi.Right  /= blockSize;
@@ -1229,12 +1223,13 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
                  pic_param_roi.Top    = pic_param_roi.Top    > bottomBorder ? bottomBorder : pic_param_roi.Top;
                  pic_param_roi.Bottom = pic_param_roi.Bottom > bottomBorder ? bottomBorder : pic_param_roi.Bottom;
 
-                 // DDI defination for right and bottom parameters is inclusive whereas
-                 // the defination in BRC kernel input is exclusive. So adding 1 to right & bottom.
-                 pic_param_roi.Right += 1;
-                 pic_param_roi.Bottom += 1;
+                  // DDI defination for right and bottom parameters is inclusive whereas
+                  // the defination in BRC kernel input is exclusive. So adding 1 to right & bottom.
+                  pic_param_roi.Right += 1;
+                  pic_param_roi.Bottom += 1;
+
             }
-            picParams->NumROI = MOS_MIN(vaEncMiscParamROI->num_roi, maxROIsupported);
+            picParams->NumROI = vaEncMiscParamROI->num_roi;
         }
 #ifndef ANDROID
         // support DeltaQP based ROI by default
