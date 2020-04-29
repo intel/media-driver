@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 #include "media_libva_encoder.h"
 #include "media_libva_cp_interface.h"
 #include "media_libva_vp.h"
-#include "cplib_utils.h"
+#include "cp_interfaces.h"
 #include <typeinfo>
 
 static void DdiStubMessage()
@@ -42,35 +42,30 @@ static void DdiStubMessage()
 
 DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx)
 {
-    DdiCpInterface* pDdiCpInterface = nullptr;
-    using Create_DdiCpFuncType = DdiCpInterface* (*)(MOS_CONTEXT* pMosCtx);
-    CPLibUtils::InvokeCpFunc<Create_DdiCpFuncType>(
-        pDdiCpInterface, 
-        CPLibUtils::FUNC_CREATE_DDICP, &mosCtx);
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (nullptr == cp_interface)
+    {
+        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_DDI, "NULL pointer prot");
+        return nullptr;
+    }
 
-    if(nullptr == pDdiCpInterface) DdiStubMessage();
+    DdiCpInterface* pDdiCpInterface = nullptr;
+    pDdiCpInterface = cp_interface->Create_DdiCpInterface(mosCtx);
+    MOS_Delete(cp_interface);
+
+    if (nullptr == pDdiCpInterface) DdiStubMessage();
 
     return nullptr == pDdiCpInterface ? MOS_New(DdiCpInterface, mosCtx) : pDdiCpInterface;
 }
 
 void Delete_DdiCpInterface(DdiCpInterface* pDdiCpInterface)
 {
-    if(nullptr == pDdiCpInterface)
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (pDdiCpInterface != nullptr && cp_interface != nullptr)
     {
-         return;
+        cp_interface->Delete_DdiCpInterface(pDdiCpInterface);
     }
-
-    if(typeid(*pDdiCpInterface) == typeid(DdiCpInterface))
-    {
-        MOS_Delete(pDdiCpInterface);
-    }
-    else
-    {
-        using Delete_DdiCp= void (*)(DdiCpInterface*);
-        CPLibUtils::InvokeCpFunc<Delete_DdiCp>(
-            CPLibUtils::FUNC_DELETE_DDICP, 
-            pDdiCpInterface);
-    }
+    MOS_Delete(cp_interface);
 }
 
 void DdiCpInterface::SetCpParams(uint32_t encryptionType, CodechalSetting *setting)
