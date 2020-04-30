@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -836,8 +836,11 @@ VAStatus VpUpdateProcHdrState(
                 pVpHalSurf->pHDRParams->white_point_y = pHDR10MetaData->white_point_y;
                 VP_DDI_NORMALMESSAGE("pHDR10MetaData white_point_x %d, white_point_y %d.", pHDR10MetaData->white_point_x, pHDR10MetaData->white_point_y);
 
-                pVpHalSurf->pHDRParams->max_display_mastering_luminance = pHDR10MetaData->max_display_mastering_luminance;
-                pVpHalSurf->pHDRParams->min_display_mastering_luminance = pHDR10MetaData->min_display_mastering_luminance;
+                // From VAAPI defintion which is following video spec, max/min_display_mastering_luminance are in units of 0.0001 candelas per square metre.
+                uint32_t max_display_mastering_luminance = (pHDR10MetaData->max_display_mastering_luminance > 655350000 ) ? 655350000 : pHDR10MetaData->max_display_mastering_luminance;
+                uint32_t min_display_mastering_luminance = (pHDR10MetaData->min_display_mastering_luminance > 655350000 ) ? 655350000 : pHDR10MetaData->min_display_mastering_luminance;
+                pVpHalSurf->pHDRParams->max_display_mastering_luminance = (uint16_t)(pHDR10MetaData->max_display_mastering_luminance / 10000);
+                pVpHalSurf->pHDRParams->min_display_mastering_luminance = (uint16_t)(pHDR10MetaData->min_display_mastering_luminance / 10000);
                 VP_DDI_NORMALMESSAGE("pHDR10MetaData max_display_mastering_luminance %d, min_display_mastering_luminance %d.", pHDR10MetaData->max_display_mastering_luminance, pHDR10MetaData->min_display_mastering_luminance);
 
                 pVpHalSurf->pHDRParams->MaxCLL  = pHDR10MetaData->max_content_light_level;
