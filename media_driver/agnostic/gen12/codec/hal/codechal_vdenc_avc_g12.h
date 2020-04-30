@@ -53,6 +53,8 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
 
     MOS_STATUS InitializeState() override;
 
+    MOS_STATUS SetPictureStructs() override;
+
     MOS_STATUS GetTrellisQuantization(
         PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS params,
         PCODECHAL_ENCODE_AVC_TQ_PARAMS       trellisQuantParams) override;
@@ -140,9 +142,20 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
         PMOS_COMMAND_BUFFER  cmdBuffer);
 
     //!
+    //! \brief    Set VDENC StreamIn QP Surface state
+    //!
+    //! \param    [in] vdencStreamIn
+    //!           StreamIn Surface Resource.
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetupMBQPStreamIn(PMOS_RESOURCE vdencStreamIn);
+
+    //!
     //! \brief    Encode User Feature Key Report.
     //! \details  Report user feature values set by encode.
-    //! 
+    //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!

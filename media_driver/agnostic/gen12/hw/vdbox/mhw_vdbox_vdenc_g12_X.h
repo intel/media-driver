@@ -1724,7 +1724,14 @@ public:
         {
             cmd.DW34.FwdPredictor0MvEnable = 1;
             cmd.DW34.PpmvDisable           = 1;
+
+            if ((!params->bVdencBRCEnabled && avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED)
+                && ((avcPicParams->NumROI && !avcPicParams->bNativeROI) || paramsG12->bStreamInMbQpEnabled))
+            {
+                cmd.DW34.MbLevelQpEnable = 1;
+            }
         }
+
         if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
