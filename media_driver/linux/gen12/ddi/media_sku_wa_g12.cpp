@@ -312,6 +312,7 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
       CPU blt call will add/remove padding on the platform*/
     MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
 
+    /*software wa to fix some corner cases of HEVC/VP9 SFC and Scalability*/
     MEDIA_WR_WA(waTable, Wa_14010222001, 1);
 
     return true;
