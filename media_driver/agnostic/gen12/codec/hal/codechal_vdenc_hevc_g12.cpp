@@ -7780,10 +7780,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[1].presRegion = &m_vdencLaStatsBuffer;
     virtualAddrParams.regionParams[2].presRegion = m_encodeParams.psLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true;
-    if (m_osInterface->pfnSkipResourceSyncDynamic)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSkipResourceSyncDynamic(m_encodeParams.psLaDataBuffer));
-    }
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
@@ -7839,14 +7835,14 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
         (encodeStatusBuf.wCurrIndex * encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // pEncodeStatus is offset by 2 DWs in the resource
     MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
     miCpyMemMemParams.presSrc = m_encodeParams.psLaDataBuffer;
-    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, report);
+    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, encodeHints);
     miCpyMemMemParams.presDst = &encodeStatusBuf.resStatusBuffer;
     miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, encodeHints);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
-    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, targetFrameSize);
+    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, targetFrameSize);
     miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, targetFrameSize);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
-    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, targetBufferFulness);
+    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, targetBufferFulness);
     miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, targetBufferFulness);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
 
@@ -7881,8 +7877,6 @@ MOS_STATUS CodechalVdencHevcStateG12::AnalyzeLookaheadStats()
 
     if (m_lookaheadUpdate)
     {
-        CODECHAL_ENCODE_CHK_COND_RETURN(!m_encodeParams.bLaDataEnabled, "Lookahead Data Buffer is missing.");
-
         if (m_lookaheadInit)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadInit());
@@ -7904,7 +7898,7 @@ MOS_STATUS CodechalVdencHevcStateG12::AnalyzeLookaheadStats()
             m_encodeParams.psLaDataBuffer,
             CodechalDbgAttr::attrVdencOutput,
             "_LookaheadData",
-            m_numLaDataEntry * sizeof(CodechalEncodeLaData),
+            m_brcLooaheadDataBufferSize,
             0,
             CODECHAL_NUM_MEDIA_STATES)));
 
@@ -7923,11 +7917,6 @@ MOS_STATUS CodechalVdencHevcStateG12::AnalyzeLookaheadStats()
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
                 m_numValidLaRecords--;
-            }
-
-            if (!m_encodeParams.bLaDataEnabled)
-            {
-                m_osInterface->pfnFreeResource(m_osInterface, m_encodeParams.psLaDataBuffer);
             }
         }
     }

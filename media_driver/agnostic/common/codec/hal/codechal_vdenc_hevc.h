@@ -57,6 +57,28 @@ struct CodechalVdencHevcLaStats
 };
 
 //!
+//! \struct    CodechalVdencHevcLaData
+//! \brief     Codechal encode lookahead analysis output data structure
+//!
+struct CodechalVdencHevcLaData
+{
+    uint32_t reserved0[1];
+    uint32_t targetFrameSize;
+    uint32_t targetBufferFulness;
+    uint32_t reserved1[2];
+    union
+    {
+        struct
+        {
+            uint32_t cqmHint    : 8;  //!< Custom quantization matrix hint. 0x00 - flat matrix; 0x01 - CQM; 0xFF - invalid hint; other values are reserved.
+            uint32_t reserved2  : 24;
+        };
+        uint32_t encodeHints;
+    };
+    uint32_t reserved3[10];
+};
+
+//!
 //! \struct    DeltaQpForROI
 //! \brief     This struct is defined for BRC Update HUC kernel
 //!            region 10 - Delta Qp for ROI Buffer
@@ -124,6 +146,7 @@ public:
     static constexpr uint32_t               m_roiStreamInBufferSize = 65536 * CODECHAL_CACHELINE_SIZE; //!< ROI Streamin buffer size (part of BRC Update)
     static constexpr uint32_t               m_deltaQpBufferSize = 65536;              //!< DeltaQp buffer size (part of BRC Update)
     static constexpr uint32_t               m_brcLooaheadStatsBufferSize = m_numLaDataEntry * sizeof(CodechalVdencHevcLaStats); //!< Lookahead statistics buffer size
+    static constexpr uint32_t               m_brcLooaheadDataBufferSize = m_numLaDataEntry * sizeof(CodechalVdencHevcLaData); //!< Lookahead data buffer size
     static constexpr uint32_t               m_vdboxHucHevcBrcInitKernelDescriptor = 8;//!< Huc HEVC Brc init kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcUpdateKernelDescriptor = 9;//!< Huc HEVC Brc update kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcLowdelayKernelDescriptor = 10;//!< Huc HEVC Brc low delay kernel descriptor
@@ -218,6 +241,7 @@ public:
 
     // Lookahead
     MOS_RESOURCE                            m_vdencLaStatsBuffer;                              //!< VDEnc statistics buffer for lookahead
+    MOS_RESOURCE                            m_vdencLaDataBuffer;                               //!< lookahead data buffer, output of lookahead analysis
     MOS_RESOURCE                            m_vdencLaInitDmemBuffer = {};                           //!< VDEnc Lookahead Init DMEM buffer
     MOS_RESOURCE                            m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                  //!< VDEnc Lookahead Update DMEM buffer
     MOS_RESOURCE                            m_vdencLaHistoryBuffer = {};                            //!< VDEnc lookahead history buffer

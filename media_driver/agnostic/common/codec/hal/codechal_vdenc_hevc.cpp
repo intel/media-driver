@@ -2768,6 +2768,11 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(PrepareVDEncStreamInData());
 
+    if (m_encodeParams.bLaDataEnabled == false)
+    {
+        m_encodeParams.psLaDataBuffer = &m_vdencLaDataBuffer;
+    }
+
     return eStatus;
 }
 
@@ -3354,6 +3359,24 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
     MOS_ZeroMemory(lookaheadInfo, allocParamsForBufferLinear.dwBytes);
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaStatsBuffer);
 
+    // Buffer to store lookahead output
+    allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_brcLooaheadDataBufferSize, CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDENC Lookahead Data Buffer";
+
+    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_vdencLaDataBuffer),
+        "Failed to create VDENC Lookahead Data Buffer");
+
+    CodechalVdencHevcLaData *lookaheadData = (CodechalVdencHevcLaData *)m_osInterface->pfnLockResource(
+        m_osInterface,
+        &m_vdencLaDataBuffer,
+        &lockFlagsWriteOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(lookaheadData);
+    MOS_ZeroMemory(lookaheadData, allocParamsForBufferLinear.dwBytes);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaDataBuffer);
+
     return eStatus;
 }
 
@@ -3398,6 +3421,7 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcDbgBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencOutputROIStreaminBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaStatsBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaDataBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaInitDmemBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaHistoryBuffer);
 
@@ -3595,6 +3619,7 @@ CodechalVdencHevcState::CodechalVdencHevcState(
     MOS_ZeroMemory(&m_vdenc2ndLevelBatchBuffer, sizeof(m_vdenc2ndLevelBatchBuffer));
     MOS_ZeroMemory(m_resSliceReport, sizeof(m_resSliceReport));
     MOS_ZeroMemory(&m_vdencLaStatsBuffer, sizeof(m_vdencLaStatsBuffer));
+    MOS_ZeroMemory(&m_vdencLaDataBuffer, sizeof(m_vdencLaDataBuffer));
 
 }
 
