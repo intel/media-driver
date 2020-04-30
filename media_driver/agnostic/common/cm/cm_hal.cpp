@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -10343,6 +10343,13 @@ void LoadUserFeatures(MOS_GPUCTX_CREATOPTIONS *createOptions)
     {
         createOptions->RAMode = 1;
     }
+
+    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    userFeatureWriteData.Value.i32Data = createOptions->RAMode;
+    userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE;
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+
 #endif
     return;
 }
