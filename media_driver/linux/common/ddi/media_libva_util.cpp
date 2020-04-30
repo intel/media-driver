@@ -254,7 +254,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
                     alignedWidth = MOS_ALIGN_CEIL(width, 128);
                 }
 
-                if (format == Media_Format_NV12)
+                if ((format == Media_Format_NV12) ||
+                    (format == Media_Format_P010))
                 {
 #if UFO_GRALLOC_NEW_FORMAT
                     //Planar type surface align 64 to improve performance.
