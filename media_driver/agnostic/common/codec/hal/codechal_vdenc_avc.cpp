@@ -5308,6 +5308,17 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
                 m_avcSeqParam,
                 m_avcPicParam,
                 &m_avcSliceParams[i]));
+        }
+
+        if (m_avcPicParam->NumROI || m_avcPicParam->NumDirtyROI || m_encodeParams.bMbQpDataEnabled)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &(m_resVdencStreamInBuffer[m_currRecycledBufIdx]),
+                CodechalDbgAttr::attrStreamIn,
+                m_encodeParams.bMbQpDataEnabled ? "_MBQP" : "_ROI",
+                m_picWidthInMb * m_picHeightInMb * CODECHAL_CACHELINE_SIZE,
+                0,
+                CODECHAL_NUM_MEDIA_STATES))
         })
 
     // Set min/max QP values in AVC State based on frame type if atleast one of them is non-zero
