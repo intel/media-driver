@@ -460,8 +460,13 @@ void* GraphicsResourceSpecificNext::Lock(OsContextNext* osContextPtr, LockParams
             MOS_RESOURCE mosResource = {};
             ConvertToMosResource(&mosResource);
 
-            MOS_OS_ASSERT(pOsContextSpecific);
-            pOsContextSpecific->MemoryDecompress(&mosResource);
+            MosDecompression *mosDecompression = pOsContextSpecific->GetMosDecompression();
+            if (nullptr == mosDecompression)
+            {
+                MOS_OS_ASSERTMESSAGE("mosDecompression is NULL.");
+                return nullptr;
+            }
+            mosDecompression->MemoryDecompress(&mosResource);
         }
 
         if(false == m_mapped)
@@ -891,9 +896,19 @@ void* GraphicsResourceSpecificNext::LockExternalResource(
             (((GmmFlags.Gpu.MMC || GmmFlags.Gpu.CCS) && GmmFlags.Info.MediaCompressed) ||
             resource->pGmmResInfo->IsMediaMemoryCompressed(0)))
         {
-            OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
-            MOS_OS_ASSERT(osCtx);
-            osCtx->MemoryDecompress(resource);
+            OsContextNext *osCtx = streamState->osDeviceContext;
+            if (nullptr == osCtx)
+            {
+                MOS_OS_ASSERTMESSAGE("osCtx is NULL.");
+                return nullptr;
+            }
+            MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+            if (nullptr == mosDecompression)
+            {
+                MOS_OS_ASSERTMESSAGE("mosDecompression is NULL.");
+                return nullptr;
+            }
+            mosDecompression->MemoryDecompress(resource);
         }
 
         if (false == resource->bMapped)

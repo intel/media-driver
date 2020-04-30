@@ -27,6 +27,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
 )
 
 set(TMP_HEADERS_
@@ -37,6 +38,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

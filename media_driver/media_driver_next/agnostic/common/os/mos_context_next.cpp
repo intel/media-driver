@@ -81,9 +81,11 @@ MOS_STATUS OsContextNext::Init(DDI_DEVICE_CONTEXT osDriverContext)
 void OsContextNext::CleanUp()
 {
     MOS_OS_FUNCTION_ENTER;
+
 #ifdef _MMC_SUPPORTED
-    MOS_Delete(m_mediaMemDecompState);
+    MOS_Delete(m_mosDecompression);
 #endif
+
     if (m_gpuContextMgr != nullptr)
     {
         m_gpuContextMgr->CleanUp();

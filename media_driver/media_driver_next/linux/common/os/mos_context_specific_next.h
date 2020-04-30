@@ -162,63 +162,6 @@ public:
     //!
     void SetSliceCount(uint32_t *pSliceCount);
 
-    //!
-    //! \brief    Media memory decompression
-    //! \details  Entry point to decompress media memory
-    //! \param    [in] osResource
-    //!           The surface will be decompressed
-    //!
-    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
-    //!
-    MOS_STATUS MemoryDecompress(
-        PMOS_RESOURCE osResource);
-
-    //!
-    //! \brief    Media memory copy
-    //! \details  Entry point to copy media memory, input can support both compressed/uncompressed
-    //! \param    [in] inputResource
-    //!            The surface resource will be decompressed
-    //! \param    [out] outputResource
-    //!            The target uncompressed surface resource will be copied to
-    //! \param    [in] outputCompressed
-    //!            The surface resource will compressed if true for compressilbe surface
-    //!
-    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
-    //!
-    MOS_STATUS MediaMemoryCopy(
-        PMOS_RESOURCE inputResource,
-        PMOS_RESOURCE outputResource,
-        bool          outputCompressed);
-
-    //!
-    //! \brief    Media memory copy 2D
-    //! \details  Entry point to decompress media memory and copy with byte in unit
-    //! \param    [in] inputResource
-    //!            The source surface resource
-    //! \param    [out] outputResource
-    //!            The target surface resource will be copied to
-    //! \param    [in] copyWidth
-    //!            The 2D surface Width
-    //! \param    [in] copyHeight
-    //!            The 2D surface height
-    //! \param    [in] copyInputOffset
-    //!            The offset of copied surface from
-    //! \param    [in] copyOutputOffset
-    //!            The offset of copied to
-    //! \param    [in] outputCompressed
-    //!            true means apply compression on output surface, else output uncompressed surface
-    //!
-    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
-    //!
-    MOS_STATUS MediaMemoryCopy2D(
-        PMOS_RESOURCE inputResource,
-        PMOS_RESOURCE outputResource,
-        uint32_t      copyWidth,
-        uint32_t      copyHeight,
-        uint32_t      copyInputOffset,
-        uint32_t      copyOutputOffset,
-        bool          outputCompressed);
-
 private:
     //!
     //! \brief  connect and create share memory for driver secure IPC

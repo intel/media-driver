@@ -1616,14 +1616,17 @@ MOS_STATUS MosInterface::DoubleBufferCopyResource(
     MOS_OS_CHK_NULL_RETURN(outputResource);
     MOS_OS_CHK_NULL_RETURN(streamState);
 
-    OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
-    MOS_OS_CHK_NULL_RETURN(osCtx);
-
     if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
         outputResource && outputResource->bo && outputResource->pGmmResInfo)
     {
+        OsContextNext *osCtx = streamState->osDeviceContext;
+        MOS_OS_CHK_NULL_RETURN(osCtx);
+
+        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+
         // Double Buffer Copy can support any tile status surface with/without compression
-        osCtx->MediaMemoryCopy(inputResource, outputResource, outputCompressed);
+        mosDecompression->MediaMemoryCopy(inputResource, outputResource, outputCompressed);
     }
 
     return status;
@@ -1646,14 +1649,17 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     MOS_OS_CHK_NULL_RETURN(outputResource);
     MOS_OS_CHK_NULL_RETURN(streamState);
 
-    OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
-    MOS_OS_CHK_NULL_RETURN(osCtx);
-
     if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
         outputResource && outputResource->bo && outputResource->pGmmResInfo)
     {
+        OsContextNext *osCtx = streamState->osDeviceContext;
+        MOS_OS_CHK_NULL_RETURN(osCtx);
+
+        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+
         // Double Buffer Copy can support any tile status surface with/without compression
-        osCtx->MediaMemoryCopy2D(inputResource, outputResource,
+        mosDecompression->MediaMemoryCopy2D(inputResource, outputResource,
             copyWidth, copyHeight, copyInputOffset, copyOutputOffset, outputCompressed);
     }
 
@@ -1675,9 +1681,13 @@ MOS_STATUS MosInterface::DecompResource(
     MOS_LINUX_BO *bo = resource->bo;
     if (resource->pGmmResInfo->IsMediaMemoryCompressed(0))
     {
-        OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
+        OsContextNext *osCtx = streamState->osDeviceContext;
         MOS_OS_CHK_NULL_RETURN(osCtx);
-        osCtx->MemoryDecompress(resource);
+
+        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+
+        mosDecompression->MemoryDecompress(resource);
     }
 
     return MOS_STATUS_SUCCESS;

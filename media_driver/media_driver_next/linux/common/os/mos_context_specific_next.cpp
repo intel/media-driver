@@ -46,7 +46,6 @@
 #include "mos_gpucontextmgr_next.h"
 #include "mos_cmdbufmgr_next.h"
 #include "media_user_settings_mgr.h"
-#include "media_interfaces_mmd.h"
 #define BATCH_BUFFER_SIZE 0x80000
 
 OsContextSpecificNext::OsContextSpecificNext()
@@ -561,7 +560,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         m_inlineCodecStatusUpdate   = true;
 
         SetOsContextValid(true);
-
         // Prepare the command buffer manager
         m_cmdBufMgr = CmdBufMgrNext::GetObject();
         MOS_OS_CHK_NULL_RETURN(m_cmdBufMgr);
@@ -573,61 +571,17 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         //It must be done with m_gpuContextMgr ready. Insides it will create gpu context.
 #ifdef _MMC_SUPPORTED
-        m_mediaMemDecompState = static_cast<MediaMemDecompBaseState *>(MmdDevice::CreateFactory(osDriverContext));
-        if(m_mediaMemDecompState == nullptr)
+        m_mosDecompression = MOS_New(MosDecompression, osDriverContext);
+        MOS_OS_CHK_NULL_RETURN(m_mosDecompression);
+        osDriverContext->ppMediaMemDecompState = m_mosDecompression->GetMediaMemDecompState();
+        MOS_OS_CHK_NULL_RETURN(osDriverContext->ppMediaMemDecompState);
+        if (*osDriverContext->ppMediaMemDecompState == nullptr)
         {
             MOS_OS_NORMALMESSAGE("Decomp state creation failed");
         }
-        osDriverContext->ppMediaMemDecompState = (void **)&m_mediaMemDecompState;
 #endif
     }
     return eStatus;
-}
-
-
-MOS_STATUS OsContextSpecificNext::MemoryDecompress(
-    PMOS_RESOURCE osResource)
-{
-    MOS_OS_CHK_NULL_RETURN(m_mediaMemDecompState);
-    m_mediaMemDecompState->MemoryDecompress(osResource);
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS OsContextSpecificNext::MediaMemoryCopy(
-    PMOS_RESOURCE inputResource,
-    PMOS_RESOURCE outputResource,
-    bool          outputCompressed)
-{
-    MOS_OS_CHK_NULL_RETURN(m_mediaMemDecompState);
-    m_mediaMemDecompState->MediaMemoryCopy(
-        inputResource,
-        outputResource,
-        outputCompressed);
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS OsContextSpecificNext::MediaMemoryCopy2D(
-    PMOS_RESOURCE inputResource,
-    PMOS_RESOURCE outputResource,
-    uint32_t      copyWidth,
-    uint32_t      copyHeight,
-    uint32_t      copyInputOffset,
-    uint32_t      copyOutputOffset,
-    bool          outputCompressed)
-{
-    MOS_OS_CHK_NULL_RETURN(m_mediaMemDecompState);
-
-    m_mediaMemDecompState->MediaMemoryCopy2D(
-        inputResource,
-        outputResource,
-        copyWidth,
-        copyHeight,
-        copyInputOffset,
-        copyOutputOffset,
-        outputCompressed);
-
-    return MOS_STATUS_SUCCESS;
 }
 
 void OsContextSpecificNext::Destroy()
@@ -672,6 +626,7 @@ void OsContextSpecificNext::Destroy()
         {
             MOS_OS_ASSERTMESSAGE("gmm init failed.");
         }
+
         SetOsContextValid(false);
     }
 }

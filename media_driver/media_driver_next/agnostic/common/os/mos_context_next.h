@@ -30,7 +30,7 @@
 #include "mos_os_next.h"
 #include "mos_cmdbufmgr_next.h" 
 #include "mos_gpucontextmgr_next.h"
-#include "mediamemdecomp.h"
+#include "mos_decompression.h"
 
 class OsContextNext
 {
@@ -139,13 +139,21 @@ public:
     //!
     GMM_CLIENT_CONTEXT *GetGmmClientContext() { return m_gmmClientContext; }
 
+    //!
+    //! \brief  Get MosDecompression
+    //! \return ptr to MosDecompression
+    //!
+    MosDecompression *GetMosDecompression()
+    {
+        return m_mosDecompression;
+    }
+
     static const uint32_t m_cmdBufAlignment = 16;   //!> Cmd buffer alignment
 
 protected:
     GpuContextMgrNext              *m_gpuContextMgr     = nullptr; //!> GPU context manager of the device
     CmdBufMgrNext                  *m_cmdBufMgr         = nullptr; //!> Cmd buffer manager of the device
     GMM_CLIENT_CONTEXT             *m_gmmClientContext  = nullptr; //!> GMM client context of the device
-    MediaMemDecompBaseState        *m_mediaMemDecompState = nullptr; //!> Internal media state for memory decompression
 
     //! \brief  Platform string including product family, chipset family, etc
     PLATFORM                        m_platformInfo = {};
@@ -207,5 +215,8 @@ protected:
 
     //! \brief   Flag to indicate if implicit Tile is needed
     bool                            m_implicitTileNeeded = false;
+
+    //! \brief  the ptr to mos decompression module
+    MosDecompression *m_mosDecompression = nullptr;
 };
 #endif // #ifndef __MOS_CONTEXTNext_NEXT_H__
