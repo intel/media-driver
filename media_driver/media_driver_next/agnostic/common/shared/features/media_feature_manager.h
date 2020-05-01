@@ -48,7 +48,7 @@ enum SubComponentIDs
 {
     FEATURE_SUBCOMPONENT_COMMON = 0,
     FEATURE_SUBCOMPONENT_HEVC,
-
+    FEATURE_SUBCOMPONENT_VP9,
     reserve0,
 };
 
