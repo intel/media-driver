@@ -441,9 +441,7 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
     const char              *fmt;
     PMOS_RESOURCE           osResource;
     MOS_LINUX_BO             *bo = nullptr;
-    GMM_RESCREATE_PARAMS    gmmParams;
 
-    MOS_ZeroMemory(&gmmParams, sizeof(GMM_RESCREATE_PARAMS));
     size  = param->size;
     tileformat = I915_TILING_NONE;
 
@@ -515,24 +513,33 @@ MOS_STATUS HalCm_AllocateBuffer_Linux(
         {
             // If user provides a system memory pointer, the gfx resource is backed
             // by the system memory pages. The resource is required to be linear.
+            GMM_RESCREATE_PARAMS    gmmParams;
+            MOS_ZeroMemory(&gmmParams, sizeof(GMM_RESCREATE_PARAMS));
+
             gmmParams.Flags.Info.Linear = true;
             gmmParams.Flags.Info.Cacheable = true;
             gmmParams.NoGfxMemory = true;
             gmmParams.Type = RESOURCE_BUFFER;
             gmmParams.Flags.Gpu.State = true;
-
             gmmParams.BaseWidth = param->size;
-            gmmParams.BaseHeight = 1;  //iAlignedHeight;
+            gmmParams.BaseHeight = 1;
             gmmParams.ArraySize = 1;
             gmmParams.Format = osInterface->pfnFmt_MosToGmm(Format_Buffer);
 
             GMM_CLIENT_CONTEXT* pGmmClientContext = osInterface->pfnGetGmmClientContext(osInterface);
-            uint32_t  _memAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
             GMM_RESOURCE_INFO* tmpGmmResInfoPtr = pGmmClientContext->CreateResInfoObject(&gmmParams);
             osResource->pGmmResInfo = tmpGmmResInfoPtr;
 
-            MosMemAllocCounterGfx++;
-            GraphicsResource::SetMemAllocCounterGfx(++_memAllocCounterGfx);
+            if (g_apoMosEnabled )
+            {
+                // GfxPlatform.eProductFamily >= IGFX_TIGERLAKE_LP
+                MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocCounterGfx);
+            }
+            else
+            {
+                // GfxPlatform.eProductFamily < IGFX_TIGERLAKE_LP
+                MosMemAllocCounterGfx++;
+            }
 
 #if defined(DRM_IOCTL_I915_GEM_USERPTR)
            bo =  mos_bo_alloc_userptr(osInterface->pOsContext->bufmgr,
