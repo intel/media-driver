@@ -1509,7 +1509,8 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->apoMosEnabled = g_apoMosEnabled;
 
     // LoadCPLib after mediaCtx->apoMosEnabled is set correctly. cp lib init would use it.
-    if (!CPLibUtils::LoadCPLib(ctx))
+    mediaCtx->cpLibWasLoaded = CPLibUtils::LoadCPLib(ctx);
+    if (!mediaCtx->cpLibWasLoaded)
     {
         DDI_NORMALMESSAGE("CPLIB is not loaded.");
     }
@@ -1942,7 +1943,10 @@ static VAStatus DdiMedia_Terminate (
     MOS_FreeMemory(mediaCtx);
 
     ctx->pDriverData = nullptr;
-    CPLibUtils::UnloadCPLib(ctx);
+    if (mediaCtx->cpLibWasLoaded)
+    {
+        CPLibUtils::UnloadCPLib(ctx);
+    }
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
