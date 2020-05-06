@@ -184,23 +184,41 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
     {
         MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_RENDER2;
         MOS_GPU_NODE renderGpuNode = MOS_GPU_NODE_3D;
+        MOS_GPUCTX_CREATOPTIONS createOption;
 
         if (!MEDIA_IS_SKU(m_skuTable, FtrCCSNode))
         {
             m_computeContextEnabled = false;
         }
 
-        if (m_computeContextEnabled)
+        if (m_osInterface->osCpInterface->IsHMEnabled() && MEDIA_IS_SKU(m_skuTable, FtrRAMode))
         {
-            gpuContext = MOS_GPU_CONTEXT_COMPUTE;
-            renderGpuNode = MOS_GPU_NODE_COMPUTE;
+            if (m_computeContextEnabled)
+            {
+                gpuContext          = MOS_GPU_CONTEXT_COMPUTE_RA;
+                renderGpuNode       = MOS_GPU_NODE_COMPUTE;
+            }
+            else
+            {
+                gpuContext          = MOS_GPU_CONTEXT_RENDER_RA;
+                renderGpuNode       = MOS_GPU_NODE_3D;
+            }
+            createOption.RAMode     = 1;
         }
         else
         {
-            gpuContext = MOS_GPU_CONTEXT_RENDER2;
-            renderGpuNode = MOS_GPU_NODE_3D;
+            if (m_computeContextEnabled)
+            {
+                gpuContext    = MOS_GPU_CONTEXT_COMPUTE;
+                renderGpuNode = MOS_GPU_NODE_COMPUTE;
+            }
+            else
+            {
+                gpuContext    = MOS_GPU_CONTEXT_RENDER2;
+                renderGpuNode = MOS_GPU_NODE_3D;
+            }
+            createOption.RAMode = 0;
         }
-        MOS_GPUCTX_CREATOPTIONS createOption;
 
         if (m_hwInterface->m_slicePowerGate)
         {
