@@ -4682,7 +4682,7 @@ static VAStatus DdiMedia_CopySurfaceToImage(
     uint8_t *yDst = (uint8_t*)imageData;
     uint8_t *swizzleData = (uint8_t*)MOS_AllocMemory(surface->data_size);
 
-    if (surface->TileType != I915_TILING_NONE)
+    if (!surface->pMediaCtx->bIsAtomSOC && surface->TileType != I915_TILING_NONE)
     {
         SwizzleSurface(surface->pMediaCtx, surface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)surface->TileType, (uint8_t *)swizzleData, false);
         ySrc = swizzleData;
