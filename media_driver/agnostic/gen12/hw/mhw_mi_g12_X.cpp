@@ -284,6 +284,37 @@ MOS_STATUS MhwMiInterfaceG12::AddMiConditionalBatchBufferEndCmd(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MhwMiInterfaceG12::AddMiFlushDwCmd(PMOS_COMMAND_BUFFER cmdBuffer, PMHW_MI_FLUSH_DW_PARAMS params)
+{
+    MHW_MI_CHK_NULL(cmdBuffer);
+    MHW_MI_CHK_NULL(params);
+    MHW_MI_CHK_NULL(m_osInterface);
+
+    auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    MHW_MI_CHK_NULL(waTable);
+
+    // Insert a flush to make sure HW block sync at the same stage.
+    if (MEDIA_IS_WA(waTable, Wa_16010946120) &&
+        (!params->pOsResource                ||
+        (params->pOsResource && Mos_ResourceIsNull(params->pOsResource))))
+    {
+        MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.pOsResource = (PMOS_RESOURCE)& m_dummyresource;
+        flushDwParams.dwDataDW1 = 1;
+        flushDwParams.postSyncOperation = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
+        MHW_MI_CHK_STATUS(MhwMiInterfaceGeneric<mhw_mi_g12_X>::AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
+    }
+
+    MHW_MI_CHK_STATUS(MhwMiInterfaceGeneric<mhw_mi_g12_X>::AddMiFlushDwCmd(
+        cmdBuffer,
+        params));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MhwMiInterfaceG12::AddMiSetPredicateCmd(
     PMOS_COMMAND_BUFFER                 cmdBuffer,
     MHW_MI_SET_PREDICATE_ENABLE         enableFlag)

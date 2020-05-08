@@ -64,13 +64,33 @@ struct MhwMiInterfaceG12 : public MhwMiInterfaceGeneric<mhw_mi_g12_X>
         {
             MHW_FUNCTION_ENTER;
             InitMmioRegisters();
+
+            MOS_ALLOC_GFXRES_PARAMS params;
+            MOS_ZeroMemory(&params, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+
+            params.dwWidth = 4096;
+            params.dwHeight = 1;
+            params.Format = Format_Buffer;
+            params.bIsCompressible = false;
+            params.pBufName = "MI_DummySurface";
+            params.dwArraySize = 1;
+
+            osInterface->pfnAllocateResource(osInterface, &params, &m_dummyresource);
         }
 
-    ~MhwMiInterfaceG12() { MHW_FUNCTION_ENTER; };
+    virtual ~MhwMiInterfaceG12()
+    {
+        MHW_FUNCTION_ENTER;
+        m_osInterface->pfnFreeResource(m_osInterface, &m_dummyresource);
+    };
 
     MOS_STATUS AddMiConditionalBatchBufferEndCmd(
         PMOS_COMMAND_BUFFER                         cmdBuffer,
         PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS params);
+
+    MOS_STATUS AddMiFlushDwCmd(
+        PMOS_COMMAND_BUFFER         cmdBuffer,
+        PMHW_MI_FLUSH_DW_PARAMS     params);
 
     MOS_STATUS AddMiSetPredicateCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
@@ -146,7 +166,8 @@ private:
     //
     static const uint32_t m_mmioMaxRelativeOffset   = M_MMIO_MAX_RELATIVE_OFFSET;               //!< Max reg relative offset in an engine
     static const uint32_t m_mmioMediaLowOffset      = M_MMIO_MEDIA_LOW_OFFSET;             //!< Low bound of VDBox and VEBox MMIO offset
-    static const uint32_t m_mmioMediaHighOffset     = M_MMIO_MEDIA_HIGH_OFFSET;             //!< High bound of VDBox and VEBox MMIO offset 
+    static const uint32_t m_mmioMediaHighOffset     = M_MMIO_MEDIA_HIGH_OFFSET;             //!< High bound of VDBox and VEBox MMIO offset
+    MOS_RESOURCE m_dummyresource = {};
 
     //!
     //! \brief    Check and convert meida registers to relative offset
