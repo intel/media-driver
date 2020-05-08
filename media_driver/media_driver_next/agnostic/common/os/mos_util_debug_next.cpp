@@ -30,8 +30,8 @@
 #if MOS_MESSAGES_ENABLED
 #include "mos_utilities_next.h"
 
-extern MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
-extern uint8_t                   subComponentCount[MOS_COMPONENT_COUNT];
+extern const MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
+extern const uint8_t                   subComponentCount[MOS_COMPONENT_COUNT];
 
 //!
 //! \brief HLT file name template
@@ -49,7 +49,7 @@ const char * const *MosUtilDebug::m_mosComponentName        = MOS_ComponentName;
 
 const MOS_USER_FEATURE_VALUE_ID (*const MosUtilDebug::m_pcComponentUserFeatureKeys)[3] = pcComponentUserFeatureKeys;
 
-const uint8_t * const MosUtilDebug::m_subComponentCount     = subComponentCount;
+const uint8_t* const MosUtilDebug::m_subComponentCount     = subComponentCount;
 
 MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParams            = {};
 MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParamsDdiDump     = {};

@@ -1126,7 +1126,7 @@ public:
     //!
     //! \brief    Opens the specified user feature key
     //! \details  Opens the specified user feature key
-    //! \param    [in] UFKey
+    //! \param    [in] ufKey
     //!           A handle to an open user feature key.
     //! \param    [in] lpSubKey
     //!           The name of the user feature subkey to be opened.
@@ -1142,7 +1142,7 @@ public:
     //!           in mos_utilitiesNext.h.
     //!
     static MOS_STATUS MosUserFeatureOpenKey(
-        void              *UFKey,
+        void              *ufKey,
         const char        *lpSubKey,
         uint32_t          ulOptions,
         uint32_t          samDesired,
@@ -1151,7 +1151,7 @@ public:
     //!
     //! \brief    Closes a handle to the specified user feature key
     //! \details  Closes a handle to the specified user feature key
-    //! \param    [in] UFKey
+    //! \param    [in] ufKey
     //!           A handle to an open user feature key.
     //! \return   MOS_STATUS
     //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
@@ -1159,7 +1159,7 @@ public:
     //!           in mos_utilitiesNext.h.
     //!
     static MOS_STATUS MosUserFeatureCloseKey(
-        void               *UFKey);
+        void               *ufKey);
 
     //!
     //! \brief    Retrieves the type and data for the specified user feature value

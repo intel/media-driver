@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@ const char * const MOS_ComponentName[MOS_COMPONENT_COUNT] = {
 MOS_MESSAGE_PARAMS g_MosMsgParams;
 MOS_MESSAGE_PARAMS g_MosMsgParams_DDI_Dump;
 
-MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
+extern const MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
     {
     __MOS_USER_FEATURE_KEY_MESSAGE_OS_TAG_ID,
     __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_OS_ID,
@@ -133,7 +133,7 @@ MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
     }
 };
 
-uint8_t subComponentCount[MOS_COMPONENT_COUNT] = {
+extern const uint8_t subComponentCount[MOS_COMPONENT_COUNT] = {
     MOS_SUBCOMP_COUNT,
     MOS_HW_SUBCOMP_COUNT,
     MOS_CODEC_SUBCOMP_COUNT,
@@ -264,18 +264,7 @@ void MOS_SubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8_t subCompID, 
 //!
 void MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
 {
-    if (g_apoMosEnabled)
-    {
-        return MosUtilDebug::MosCompAssertEnableDisable(compID, bEnable);
-    }
-
-    if (compID >= MOS_COMPONENT_COUNT)
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid component %d.", compID);
-        return;
-    }
-
-    g_MosMsgParams.components[compID].component.bAssertEnabled = bEnable;
+    return MosUtilDebug::MosCompAssertEnableDisable(compID, bEnable);
 }
 
 //!
@@ -378,109 +367,6 @@ void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
 }
 
 //!
-//! \brief    Initialize or refresh the Hybrid Log and Trace facility
-//! \details  Initialize or refresh the Hybrid Log and Trace facility
-//!           Called during MOS init
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_HLTInit()
-{
-    uint32_t                                    nPID = 0;
-    char                                        hltFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
-    MOS_USER_FEATURE_VALUE                      UserFeatureValue = __NULL_USER_FEATURE_VALUE__;
-    char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
-    int32_t                                     bUseHybridLogTrace = false;
-    MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
-    MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
-
-    if (g_MosMsgParams.uiCounter != 0)
-    {
-        MOS_OS_NORMALMESSAGE("HLT settings already set.");
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    g_MosMsgParams.bUseHybridLogTrace = false;
-    g_MosMsgParams.pLogFile           = nullptr;
-    g_MosMsgParams.pTraceFile         = nullptr;
-
-    // Check if HLT should be enabled.
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    eStatus = MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED_ID,
-        &UserFeatureData);
-    // If the user feature key was not found, create it with the default value.
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
-        UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
-        UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
-    }
-
-    bUseHybridLogTrace = MosUltFlag ? 1 : UserFeatureData.u32Data;
-
-    // Dumping memory mapped regions to trace file disabled for now
-    // Need to add new user feature key or derive from the above key.
-    g_MosMsgParams.bEnableMaps = 0;
-
-    if (!bUseHybridLogTrace)
-    {
-        MOS_OS_NORMALMESSAGE("HLT not enabled.");
-        return MOS_STATUS_SUCCESS;               //[SH]: Check this.
-    }
-
-    nPID = MosUltFlag ? 0 : MOS_GetPid();
-
-    // Get logfile directory.
-    MOS_LogFileNamePrefix(fileNamePrefix);
-    MOS_SecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, MosLogPathTemplate, fileNamePrefix, nPID, "log");
-
-#if defined(LINUX) || defined(ANDROID)
-    eStatus = MOS_CreateDirectory(fileNamePrefix);
-    if (MOS_FAILED(eStatus))
-    {
-        MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
-    }
-#endif
-
-    eStatus = MOS_SecureFileOpen(&g_MosMsgParams.pLogFile, hltFileName, "w");
-
-    if (MOS_FAILED(eStatus))
-    {
-        MOS_OS_NORMALMESSAGE("Failed to open log file '%s'.", hltFileName);
-        g_MosMsgParams.pLogFile = nullptr;
-    }
-
-    if(g_MosMsgParams.pLogFile == nullptr)
-    {
-        return MOS_STATUS_HLT_INIT_FAILED;
-    }
-
-    // Only if logfile init succeeded, bUseHybridLogTrace is set.
-    g_MosMsgParams.bUseHybridLogTrace = true;
-
-    // Output preface information
-    MOS_HltpPreface(g_MosMsgParams.pLogFile);
-    MOS_OS_NORMALMESSAGE("HLT initialized successfuly (%s).", hltFileName);
-
-    //[SH]: Trace and log are enabled with the same key right now. This can be changed to enable/disable them independently.
-    MOS_SecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, MosLogPathTemplate, fileNamePrefix, nPID, "hlt");
-
-    eStatus = MOS_SecureFileOpen(&g_MosMsgParams.pTraceFile, hltFileName, "w");
-
-    if (MOS_FAILED(eStatus))
-    {
-        MOS_OS_NORMALMESSAGE("Failed to open trace file '%s'.", hltFileName);
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-//!
 //! \brief    Initialize or refresh the DDI Dump facility
 //! \details  Initialize or refresh the DDI Dump facility
 //!           Called during MOS init
@@ -545,61 +431,7 @@ void MOS_MessageInit()
     MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
-    if (g_apoMosEnabled)
-    {
-        return MosUtilDebug::MosMessageInit();
-    }
-
-    if(g_MosMsgParams.uiCounter == 0)   // first time only
-    {
-        // Set all sub component messages to critical level by default.
-        MOS_SetCompMessageLevelAll(MOS_MESSAGE_LVL_CRITICAL);
-
-        // Set print level and asserts for each component
-        for(i = 0; i < MOS_COMPONENT_COUNT; i++)
-        {
-            MOS_MessageInitComponent((MOS_COMPONENT_ID)i);
-        }
-
-        // Check if MOS messages are enabled
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        eStatus = MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED_ID,
-            &UserFeatureData);
-        // If the user feature key was not found, create it with default value.
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
-            UserFeatureWriteData.Value.i32Data = UserFeatureData.i32Data;
-            UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
-        }
-
-        g_MosMsgParams.bUseOutputDebugString = UserFeatureData.i32Data;
-
-        if (MosUltFlag)
-        {
-            MOS_SetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
-            MOS_SetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_VERBOSE);
-            g_MosMsgParams.bUseOutputDebugString = 0;
-            g_MosMsgParams.components[MOS_COMPONENT_OS].bBySubComponent = 0;
-            MOS_CompAssertEnableDisable(MOS_COMPONENT_CM, 0);
-        }
-
-        MOS_HLTInit();
-        MOS_DDIDumpInit();
-
-        // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
-        MosMemAllocCounter     = 0;
-        MosMemAllocFakeCounter = 0;
-        MosMemAllocCounterGfx  = 0;
-        MOS_OS_VERBOSEMESSAGE("MemNinja leak detection begin");
-    }
-
-    // uiCounter's thread safety depends on global_lock in VPG_Initialize
-    g_MosMsgParams.uiCounter++;     // Will be zero initially since it is part of a global structure.
-
+    return MosUtilDebug::MosMessageInit();
 }
 
 //!
@@ -652,20 +484,7 @@ void MOS_DDIDumpClose()
 //!
 void MOS_MessageClose()
 {
-    if (g_apoMosEnabled)
-        return MosUtilDebug::MosMessageClose();
-
-    // uiCounter's thread safety depends on global_lock in VPG_Terminate
-    if(g_MosMsgParams.uiCounter == 1)
-    {
-        MOS_DDIDumpClose();
-        MOS_HLTClose();
-        MOS_ZeroMemory(&g_MosMsgParams, sizeof(MOS_MESSAGE_PARAMS));
-    }
-    else
-    {
-        g_MosMsgParams.uiCounter--;
-    }
+    return MosUtilDebug::MosMessageClose();
 }
 
 //!

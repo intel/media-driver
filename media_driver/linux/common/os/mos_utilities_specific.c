@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,16 +40,12 @@
 #include "codechal_user_settings_mgr_ext.h"
 #include "vphal_user_settings_mgr_ext.h"
 #endif // _MEDIA_RESERVED
-#ifndef ANDROID
+
 #include <sys/ipc.h>   // System V IPC
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <signal.h>
 #include <unistd.h>    // fork
-#else
-#include <cutils/properties.h>
-#endif // ANDROID
-
 #include "mos_utilities_specific_next.h"
 static const char* szUserFeatureFile = USER_FEATURE_FILE;
 
@@ -107,29 +103,13 @@ void PerfUtility::stopTick(std::string tag)
 #endif // __cplusplus
 
 //!
-//! \brief    Get current run time
-//! \details  Get current run time in us
-//! \return   double
-//!           Returns time in us
-//!
-double MOS_GetTime()
-{
-    struct timespec ts = {};
-    clock_gettime(CLOCK_REALTIME, &ts);
-    return double(ts.tv_sec) * 1000000.0 + double(ts.tv_nsec) / 1000.0;
-}
-
-//!
 //! \brief Linux specific user feature define, used in MOS_UserFeature_ParsePath
 //!        They can be unified with the win definitions, since they are identical.
 //!
 #define MOS_UF_SEPARATOR  "\\"
 #define MOS_UFKEY_EXT     "UFKEY_EXTERNAL"
 #define MOS_UFKEY_INT     "UFKEY_INTERNAL"
-PUFKEYOPS      pUFKeyOps = nullptr;
-
-extern int32_t MosMemAllocCounterNoUserFeature;
-extern int32_t MosMemAllocCounterNoUserFeatureGfx;
+PUFKEYOPS pUFKeyOps = nullptr;
 
 //!
 //! \brief Linux specific trace entry path and file description.
@@ -2189,148 +2169,19 @@ MOS_STATUS MOS_UserFeatureSetValueEx_File(
     return eStatus;
 }
 
-MOS_STATUS MOS_OS_Utilities_Init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo)
-{
-    MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
-    MOS_UNUSED(userFeatureKeyPathInfo);
-
-    // lock mutex to avoid multi init in multi-threading env
-    MOS_LockMutex(&gMosUtilMutex);
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // Get use user feature file from env, instead of default.
-    FILE* fp = nullptr;
-    static char* tmpFile = getenv("GFX_FEATURE_FILE");
-
-    if (tmpFile != nullptr)
-    {
-      if ((fp = fopen(tmpFile, "r")) != nullptr)
-      {
-        szUserFeatureFile = tmpFile;
-        fclose(fp);
-        MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE", szUserFeatureFile);
-      }
-      else
-      {
-        MOS_OS_ASSERTMESSAGE("Can't open %s for USER_FEATURE_FILE!!!", tmpFile);
-        eStatus =  MOS_STATUS_FILE_NOT_FOUND;
-        goto finish;
-      }
-    }
-#endif
-
-    if (uiMOSUtilInitCount == 0)
-    {
-        pUFKeyOps = (PUFKEYOPS)MOS_AllocAndZeroMemory(sizeof(UFKEYOPS));
-        MOS_OS_CHK_NULL(pUFKeyOps);
-#ifdef ANDROID
-        if (MOS_InitAndroidPropInfo() == MOS_STATUS_SUCCESS)
-        {
-            pUFKeyOps->pfnUserFeatureOpenKey = MOS_UserFeatureOpenKey_AndroidProp;
-            pUFKeyOps->pfnUserFeatureGetValue = MOS_UserFeatureGetValue_AndroidProp;
-            pUFKeyOps->pfnUserFeatureSetValueEx = MOS_UserFeatureSetValueEx_AndroidProp;
-        }
-        else
-#endif
-        {
-            pUFKeyOps->pfnUserFeatureOpenKey = MOS_UserFeatureOpenKey_File;
-            pUFKeyOps->pfnUserFeatureGetValue = MOS_UserFeatureGetValue_File;
-            pUFKeyOps->pfnUserFeatureSetValueEx = MOS_UserFeatureSetValueEx_File;
-        }
-        //Init MOS User Feature Key from mos desc table
-        eStatus = MOS_DeclareUserFeatureKeysForAllDescFields();
-
-#if _MEDIA_RESERVED
-        codecUserFeatureExt = new CodechalUserSettingsMgr();
-        vpUserFeatureExt    = new VphalUserSettingsMgr();
-#endif // _MEDIA_RESERVED
-        eStatus = MOS_GenerateUserFeatureKeyXML();
-#if MOS_MESSAGES_ENABLED
-        // Initialize MOS message params structure and HLT
-        MOS_MessageInit();
-#endif // MOS_MESSAGES_ENABLED
-        MosMemAllocCounter     = 0;
-        MosMemAllocFakeCounter = 0;
-        MosMemAllocCounterGfx  = 0;
-        MOS_TraceEventInit();
-    }
-    uiMOSUtilInitCount++;
-
-finish:
-    MOS_UnlockMutex(&gMosUtilMutex);
-    return eStatus;
-}
-
-MOS_STATUS MOS_OS_Utilities_Close()
-{
-    int32_t                             MemoryCounter = 0;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
-
-    // lock mutex to avoid multi close in multi-threading env
-    MOS_LockMutex(&gMosUtilMutex);
-    uiMOSUtilInitCount--;
-    if (uiMOSUtilInitCount == 0 )
-    {
-        MOS_TraceEventClose();
-        MosMemAllocCounter -= MosMemAllocFakeCounter;
-        MemoryCounter = MosMemAllocCounter + MosMemAllocCounterGfx;
-        MosMemAllocCounterNoUserFeature = MosMemAllocCounter;
-        MosMemAllocCounterNoUserFeatureGfx = MosMemAllocCounterGfx;
-        MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
-
-        UserFeatureWriteData.Value.i32Data    =   MemoryCounter;
-        UserFeatureWriteData.ValueID          = __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER_ID;
-        MOS_UserFeature_WriteValues_ID(NULL, &UserFeatureWriteData, 1);
-
-        eStatus = MOS_DestroyUserFeatureKeysForAllDescFields();
-#if _MEDIA_RESERVED
-        if (codecUserFeatureExt)
-        {
-            delete codecUserFeatureExt;
-            codecUserFeatureExt = nullptr;
-        }
-        if (vpUserFeatureExt)
-        {
-            delete vpUserFeatureExt;
-            vpUserFeatureExt = nullptr;
-        }
-#endif // _MEDIA_RESERVED
-#if (_DEBUG || _RELEASE_INTERNAL)
-        // MOS maintains a reference counter,
-        // so if there still is another active lib instance, logs would still be printed.
-        MOS_MessageClose();
-#endif
-        MOS_FreeMemory(pUFKeyOps);
-        pUFKeyOps = nullptr;
-    }
-    MOS_UnlockMutex(&gMosUtilMutex);
-    return eStatus;
-}
-
 MOS_STATUS MOS_UserFeatureOpenKey(
-    void       *UFKey,
+    void       *ufKey,
     const char *lpSubKey,
     uint32_t   ulOptions,
     uint32_t   samDesired,
     void       **phkResult)
 {
-    char           pcKeyName[MAX_USERFEATURE_LINE_LENGTH];
-    MOS_STATUS     iRet;
-    intptr_t       h_key = (intptr_t)UFKey;
-
-    if((h_key == 0) /*|| (lpSubKey == nullptr)*/ || (phkResult == nullptr))    //[SH]: subkey can be NULL???
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-    if (( pUFKeyOps != nullptr) && (pUFKeyOps->pfnUserFeatureOpenKey != nullptr))
-    {
-        return pUFKeyOps->pfnUserFeatureOpenKey(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
-    }
-    else
-    {
-        return MOS_UserFeatureOpenKey_File(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
-    }
+    return MosUtilities::MosUserFeatureOpenKey(
+        ufKey,
+        lpSubKey,
+        ulOptions,
+        samDesired,
+        phkResult);
 }
 
 MOS_STATUS MOS_UserFeatureCloseKey(void  *UFKey)
@@ -2953,32 +2804,12 @@ MOS_STATUS MOS_GetLocalTime(
 
 void MOS_TraceEventInit()
 {
-    if (g_apoMosEnabled)
-    {
-        return MosUtilities::MosTraceEventInit();
-    }
-    // close first, if already opened.
-    if (MosTraceFd >= 0)
-    {
-        close(MosTraceFd);
-        MosTraceFd = -1;
-    }
-    MosTraceFd = open(MosTracePath, O_WRONLY);
-    return;
+    return MosUtilities::MosTraceEventInit();
 }
 
 void MOS_TraceEventClose()
 {
-    if (g_apoMosEnabled)
-    {
-        return MosUtilities::MosTraceEventClose();
-    }
-    if (MosTraceFd >= 0)
-    {
-        close(MosTraceFd);
-        MosTraceFd = -1;
-    }
-    return;
+    return MosUtilities::MosTraceEventClose();
 }
 
 void MOS_TraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID)
@@ -2995,53 +2826,7 @@ void MOS_TraceEvent(
     const void       *pArg2,
     uint32_t         dwSize2)
 {
-    if (g_apoMosEnabled)
-    {
-        return MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2);
-    }
-
-    if (MosTraceFd >= 0)
-    {
-        char  *pTraceBuf = (char *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
-        uint32_t   nLen = 0;
-
-        if (pTraceBuf)
-        {
-            MOS_SecureStringPrint(pTraceBuf,
-                        TRACE_EVENT_MAX_SIZE,
-                        (TRACE_EVENT_MAX_SIZE-1),
-                        "IMTE|%d|%d", // magic number IMTE (IntelMediaTraceEvent)
-                        usId,
-                        ucType);
-            nLen = strlen(pTraceBuf);
-            if (pArg1)
-            {
-                // convert raw event data to string. native raw data will be supported
-                // from linux kernel 4.10, hopefully we can skip this convert in the future.
-                const static char n2c[] = "0123456789ABCDEF";
-                unsigned char *pData = (unsigned char *)pArg1;
-
-                pTraceBuf[nLen++] = '|'; // prefix splite marker.
-                while(dwSize1-- > 0 && nLen < TRACE_EVENT_MAX_SIZE-2)
-                {
-                    pTraceBuf[nLen++] = n2c[(*pData) >> 4];
-                    pTraceBuf[nLen++] = n2c[(*pData++) & 0xf];
-                }
-                if (pArg2)
-                {
-                    pData = (unsigned char *)pArg2;
-                    while(dwSize2-- > 0 && nLen < TRACE_EVENT_MAX_SIZE-2)
-                    {
-                        pTraceBuf[nLen++] = n2c[(*pData) >> 4];
-                        pTraceBuf[nLen++] = n2c[(*pData++) & 0xf];
-                    }
-                }
-            }
-            size_t writeSize = write(MosTraceFd, pTraceBuf, nLen);
-            MOS_FreeMemory(pTraceBuf);
-        }
-    }
-    return;
+    return MosUtilities::MosTraceEvent(usId, ucType, pArg1, dwSize1, pArg2, dwSize2);
 }
 
 void MOS_TraceDataDump(

@@ -135,14 +135,7 @@ MediaPerfProfiler::MediaPerfProfiler()
     {
         // m_mutex is destroyed after MemNinja report, this will cause fake memory leak,
         // the following 2 lines is to circumvent Memninja counter validation and log parser
-        if(g_apoMosEnabled)
-        {
-            MOS_AtomicDecrement(&MosUtilities::m_mosMemAllocCounter);
-        }
-        else
-        {
-            MOS_AtomicDecrement(&MosMemAllocCounter);
-        }
+        MOS_AtomicDecrement(&MosUtilities::m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(m_mutex, __FUNCTION__, __FILE__, __LINE__);
     }
     else

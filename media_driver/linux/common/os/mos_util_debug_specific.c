@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,96 +57,6 @@ const PCCHAR MosUltLogPathPrefix = "./";
 extern MOS_MESSAGE_PARAMS g_MosMsgParams;
 extern uint8_t            MosUltFlag;
 static MOS_MUTEX gMosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
-
-/*----------------------------------------------------------------------------
-| Name      : MOS_HltpCopyFile
-| Purpose   : Copy all file content from the source file to the target file.
-| Arguments : szFileName - source file name to copy from
-|             pFile - target file
-| Returns   : Returns one of the MOS_STATUS error codes if failed,
-|             else MOS_STATUS_SUCCESS
-| Comments  :
-\---------------------------------------------------------------------------*/
-#define HLT_COPY_BUFFER_LENGTH 200
-static MOS_STATUS MOS_HltpCopyFile(PFILE pFile, const PCCHAR szFileName)
-{
-    PFILE   pFileSrc;
-    char    szBuffer[HLT_COPY_BUFFER_LENGTH];
-    int32_t nRead;
-
-    nRead = 0;
-    if( (pFileSrc = fopen(szFileName , "r" )) == nullptr)
-    {
-        printf("open file %s failed", szFileName);
-        return MOS_STATUS_FILE_OPEN_FAILED;
-    }
-    do
-    {
-        nRead = fread(szBuffer, 1, HLT_COPY_BUFFER_LENGTH, pFileSrc);
-        if( ( nRead > 0 ) && (nRead <= HLT_COPY_BUFFER_LENGTH) )
-        {
-            fwrite(szBuffer, 1, nRead, pFile);
-        }
-    } while( nRead > 0 );
-
-    fclose(pFileSrc);
-
-    return MOS_STATUS_SUCCESS;
-}
-
-/*----------------------------------------------------------------------------
-| Name      : MOS_HltpPreface
-| Purpose   : Add preface information to the HLT log when initialized
-| Arguments : pFile - Pointer to the log file
-| Returns   : None
-| Comments  :
-\---------------------------------------------------------------------------*/
-void MOS_HltpPreface(PFILE pFile)
-{
-    time_t      rawtime;
-    struct tm*  timeinfo;
-
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    if (timeinfo == nullptr)
-    {
-        printf("fail to call localtime in MOS_HltpPreface\n");
-        return;
-    }
-
-    fprintf(pFile, "//\n"
-                   "// HLT log file: version1.0\n"
-                   "// Logtime %d-%d-%d %d:%d:%d; Machine=",
-                   timeinfo->tm_year,timeinfo->tm_mon, timeinfo->tm_yday,
-                   timeinfo->tm_hour,timeinfo->tm_min,timeinfo->tm_sec);
-
-    fwrite("\n", 1, 1, pFile);
-    MOS_HltpCopyFile(pFile, "/etc/hosts");
-
-    // This section has been temporarily commented out because it's printing a non standard character to the logfile and corrupting it.
-    /*
-    fprintf(pFile, "\n"
-                   "// PID=%d; Process name=",
-                   getpid());
-
-    MOS_HltpCopyFile(pFile, "/proc/self/cmdline");
-    */
-
-    fwrite("\n", 1, 1, pFile);
-
-    MOS_HltpCopyFile(pFile, "/proc/version");
-    // Linux version 2.6.35-22-generic (buildd@rothera) (gcc version 4.4.5 (Ubuntu/Linaro // 4.4.4-14ubuntu4) ) #33-Ubuntu SMP Sun Sep 19 20:34:50 UTC 2010
-
-    if(g_MosMsgParams.bEnableMaps)
-    {
-        fwrite("\n// Loaded modules:\n", 20, 1, pFile);
-
-        MOS_HltpCopyFile(pFile, "/proc/self/maps");
-        fwrite("\n", 1, 1, pFile);
-    }
-
-    fflush(pFile);
-}
 
 //!
 //! \brief    Form a string that will prefix MOS's log file name
@@ -249,249 +159,91 @@ void MOS_Message(
     ...)
 {
     va_list var_args;
+
     uint32_t nLen = 0;
     PCCHAR func = functionName;
-    if(g_apoMosEnabled)
-    {
-        uint32_t nLen = 0;
-        PCCHAR func = functionName;
 
-        if (MosUtilDebugSpecific::MosShouldPrintMessage(level, compID, subCompID, message) == false)
-        {
-            return;
-        }
-
-        va_start(var_args, message);
-        MosUtilities::MosLockMutex(&MosUtilDebugSpecific::m_mosMsgMutex);
-        // Proceed to print the message
-        if (functionName == nullptr)
-        {
-            MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
-                    MOS_MAX_MSG_BUF_SIZE,
-                    (MOS_MAX_MSG_BUF_SIZE-1),
-                    "%s%s - ",
-                    MosUtilDebug::m_mosComponentName[compID],
-                    MosUtilDebug::m_mosLogLevelName[level]);
-            nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
-        }
-        else
-        {
-#if USE_PRETTY_FUNCTION
-        // call MOS_getClassMethod to convert pretty function to class::function
-        // return string locate in static memory, mutex should be hold.
-            func = MosUtilDebugSpecific::MosGetClassMethod(functionName);
-#endif //USE_PRETTY_FUNCTION
-            if (lineNum < 0)
-            {
-                // no line number output
-                MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
-                    MOS_MAX_MSG_BUF_SIZE,
-                    (MOS_MAX_MSG_BUF_SIZE-1),
-                    "%s%s - %s",
-                    MosUtilDebug::m_mosComponentName[compID],
-                    MosUtilDebug::m_mosLogLevelName[level],
-                    func);
-                nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
-            }
-            else
-            {
-                MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
-                        MOS_MAX_MSG_BUF_SIZE,
-                        (MOS_MAX_MSG_BUF_SIZE-1),
-                        "%s%s - %s:%d: ",
-                        MosUtilDebug::m_mosComponentName[compID],
-                        MosUtilDebug::m_mosLogLevelName[level],
-                        func,
-                        lineNum);
-                nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
-            }
-        }
-        MosUtilities::MosSecureVStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer + nLen,
-                    MOS_MAX_MSG_BUF_SIZE - nLen,
-                    (MOS_MAX_MSG_BUF_SIZE - 1 - nLen),
-                    message,
-                    var_args);
-
-        // Dump message to debugger if print to output window enabled
-        if (MosUtilDebug::m_mosMsgParams.bUseOutputDebugString)
-        {
-            printf("%s\n", MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
-        }
-
-        // Write to log file if HLT enabled. File already open to add preface information
-        if (MosUtilDebug::m_mosMsgParams.bUseHybridLogTrace)
-        {
-            if (MosUtilDebug::m_mosMsgParams.pLogFile != nullptr)
-            {
-                nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
-                fwrite(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer, nLen, 1, MosUtilDebug::m_mosMsgParams.pLogFile);
-                fprintf(MosUtilDebug::m_mosMsgParams.pLogFile, "\n");
-            }
-            else
-            {
-                printf("ERROR: m_mosMsgParams.pLogFile is NULL!\n");
-            }
-        }
-        MosUtilities::MosUnlockMutex(&MosUtilDebugSpecific::m_mosMsgMutex);
-
-        va_end(var_args);
-        return;
-    }
-
-    if (MOS_ShouldPrintMessage(level, compID, subCompID, message) == false)
+    if (MosUtilDebugSpecific::MosShouldPrintMessage(level, compID, subCompID, message) == false)
     {
         return;
     }
 
     va_start(var_args, message);
-    MOS_LockMutex(&gMosMsgMutex);
+    MosUtilities::MosLockMutex(&MosUtilDebugSpecific::m_mosMsgMutex);
     // Proceed to print the message
     if (functionName == nullptr)
     {
-        MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer,
+        MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
                 MOS_MAX_MSG_BUF_SIZE,
                 (MOS_MAX_MSG_BUF_SIZE-1),
                 "%s%s - ",
-                MOS_ComponentName[compID],
-                MOS_LogLevelName[level]);
-        nLen = strlen(g_MosMsgParams.g_MosMsgBuffer);
+                MosUtilDebug::m_mosComponentName[compID],
+                MosUtilDebug::m_mosLogLevelName[level]);
+        nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
     }
     else
     {
 #if USE_PRETTY_FUNCTION
-        PCCHAR MOS_getClassMethod(PCCHAR pcPrettyFunction);
-        // call MOS_getClassMethod to convert pretty function to class::function
-        // return string locate in static memory, mutex should be hold.
-        func = MOS_getClassMethod(functionName);
+    // call MosGetClassMethod to convert pretty function to class::function
+    // return string locate in static memory, mutex should be hold.
+        func = MosUtilDebugSpecific::MosGetClassMethod(functionName);
 #endif //USE_PRETTY_FUNCTION
         if (lineNum < 0)
         {
             // no line number output
-            MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer,
+            MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
                 MOS_MAX_MSG_BUF_SIZE,
                 (MOS_MAX_MSG_BUF_SIZE-1),
                 "%s%s - %s",
-                MOS_ComponentName[compID],
-                MOS_LogLevelName[level],
+                MosUtilDebug::m_mosComponentName[compID],
+                MosUtilDebug::m_mosLogLevelName[level],
                 func);
-            nLen = strlen(g_MosMsgParams.g_MosMsgBuffer);
+            nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
         }
         else
         {
-            MOS_SecureStringPrint(g_MosMsgParams.g_MosMsgBuffer,
+            MosUtilities::MosSecureStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer,
                     MOS_MAX_MSG_BUF_SIZE,
                     (MOS_MAX_MSG_BUF_SIZE-1),
                     "%s%s - %s:%d: ",
-                    MOS_ComponentName[compID],
-                    MOS_LogLevelName[level],
+                    MosUtilDebug::m_mosComponentName[compID],
+                    MosUtilDebug::m_mosLogLevelName[level],
                     func,
                     lineNum);
-            nLen = strlen(g_MosMsgParams.g_MosMsgBuffer);
+            nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
         }
     }
-    MOS_SecureVStringPrint(g_MosMsgParams.g_MosMsgBuffer + nLen,
+    MosUtilities::MosSecureVStringPrint(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer + nLen,
                 MOS_MAX_MSG_BUF_SIZE - nLen,
                 (MOS_MAX_MSG_BUF_SIZE - 1 - nLen),
                 message,
                 var_args);
 
     // Dump message to debugger if print to output window enabled
-    if (g_MosMsgParams.bUseOutputDebugString)
+    if (MosUtilDebug::m_mosMsgParams.bUseOutputDebugString)
     {
-#ifdef ANDROID
-        int android_level;
-        switch (level)
-        {
-            case MOS_MESSAGE_LVL_CRITICAL:
-                android_level = ANDROID_LOG_ERROR;
-                break;
-            case MOS_MESSAGE_LVL_NORMAL:
-                android_level = ANDROID_LOG_DEBUG;
-                break;
-            case MOS_MESSAGE_LVL_VERBOSE:
-                android_level = ANDROID_LOG_VERBOSE;
-                break;
-            case MOS_MESSAGE_LVL_FUNCTION_ENTRY:
-            case MOS_MESSAGE_LVL_FUNCTION_EXIT:
-            case MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE:
-            case MOS_MESSAGE_LVL_MEMNINJA:
-            default:
-                android_level = ANDROID_LOG_INFO;
-                break;
-        }
-
-        __android_log_print(android_level, logtag, "%s\n", g_MosMsgParams.g_MosMsgBuffer);
-
-#else // ANDROID
-
-        printf("%s\n", g_MosMsgParams.g_MosMsgBuffer);
-
-#endif // ANDROID
+        printf("%s\n", MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
     }
 
     // Write to log file if HLT enabled. File already open to add preface information
-    if (g_MosMsgParams.bUseHybridLogTrace)
+    if (MosUtilDebug::m_mosMsgParams.bUseHybridLogTrace)
     {
-        if (g_MosMsgParams.pLogFile != nullptr)
+        if (MosUtilDebug::m_mosMsgParams.pLogFile != nullptr)
         {
-            nLen = strlen(g_MosMsgParams.g_MosMsgBuffer);
-            fwrite(g_MosMsgParams.g_MosMsgBuffer, nLen, 1, g_MosMsgParams.pLogFile);
-            fprintf(g_MosMsgParams.pLogFile, "\n");
+            nLen = strlen(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer);
+            fwrite(MosUtilDebug::m_mosMsgParams.g_MosMsgBuffer, nLen, 1, MosUtilDebug::m_mosMsgParams.pLogFile);
+            fprintf(MosUtilDebug::m_mosMsgParams.pLogFile, "\n");
         }
         else
         {
-#ifdef ANDROID
-            __android_log_print(ANDROID_LOG_ERROR, logtag, "ERROR: g_MosMsgParams.pLogFile is NULL!");
-#else // ANDROID
-            printf("ERROR: g_MosMsgParams.pLogFile is NULL!\n");
-#endif // ANDROID
+            printf("ERROR: m_mosMsgParams.pLogFile is NULL!\n");
         }
     }
-    MOS_UnlockMutex(&gMosMsgMutex);
+    MosUtilities::MosUnlockMutex(&MosUtilDebugSpecific::m_mosMsgMutex);
+
     va_end(var_args);
+    return;
 }
-
-//!
-//! When printing from a C++ class, we'd like the class and function to be printed.
-//! With our current Linux compiler, __FUNCTION__ does not include the class name.
-//! So we use __PRETTY_FUNCTION__ and call MOS_getClassMethod(__PRETTY_FUNCTION__) to remove extra data.
-//! This is not needed for prints from C files so they will usually use __FUNCTION__.
-//!
-#if USE_PRETTY_FUNCTION
-
-//!
-//! gFunctionName is used to temporarily store the concatinated __PRETTY_FUNCTION__,
-//! when calling MOS_getClassMethod().
-//!
-static char gFunctionName[256]; // 256 is an arbitrary long enough size.
-
-//!
-//! \brief    Converts a __PRETTY_FUNCTION__ into Class::Method
-//! \details  Converts a __PRETTY_FUNCTION__ into Class::Method to allow prettier debug output
-//! \param    PCCHAR pcPrettyFunction
-//!           [in] in the form of "TYPE [CLASS::]FUNCTION(INPUT LIST)"
-//! \return   PCCHAR in the form of [CLASS::]FUNCTION
-//!
-PCCHAR MOS_getClassMethod(PCCHAR pcPrettyFunction)
-{
-    PCCHAR end  = nullptr;
-    uint32_t len  = 0;
-
-    memset(gFunctionName, '\0', sizeof(gFunctionName));
-
-    // Find the first '(', if it exists.
-    end = strchr(pcPrettyFunction, '(');
-
-    // We want to copy pcPrettyFunction into gFunction, only up to the first '('.
-    len = end ? (uint32_t)(end - pcPrettyFunction) : strlen(pcPrettyFunction);
-
-    MOS_SecureMemcpy(gFunctionName, sizeof(gFunctionName), pcPrettyFunction, len);
-
-    // dismiss anything before the last ' '.
-    return strrchr(gFunctionName, ' ') ? strrchr(gFunctionName, ' ') + 1 : gFunctionName;
-}
-
-#endif // USE_PRETTY_FUNCTION
 
 #if MOS_ASSERT_ENABLED
 
@@ -511,22 +263,7 @@ extern int32_t MOS_ShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID);
 //!
 void _MOS_Assert(MOS_COMPONENT_ID compID, uint8_t subCompID)
 {
-    if(g_apoMosEnabled)
-   {
-        return MosUtilDebug::MosAssert(compID,subCompID);
-   }
-
-    if (MOS_ShouldAssert(compID, subCompID) == false)
-    {
-        return;
-    }
-
-    //! NOTE: 
-    //! If you hit asserts here and do not want to, you can cancel them by updating user feature keys under __MEDIA_USER_FEATURE_SUBKEY_INTERNAL.
-    //! These keys can be found in USER_FEATURE_FILE (currently "/etc/igfx_user_feature.txt").
-    //! First figure out what component is asserting (check element number compID in MOS_COMPONENT_ID).
-    //! Then in the user feature key "<component> Message Tags", set the forth bit to zero.
-    raise(SIGTRAP);
+    return MosUtilDebug::MosAssert(compID,subCompID);
 }
 
 #endif // MOS_ASSERT_ENABLED

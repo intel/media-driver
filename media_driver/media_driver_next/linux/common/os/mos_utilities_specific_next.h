@@ -91,7 +91,7 @@ static MOS_STATUS MosUserFeatureGetValueFile(
 /*----------------------------------------------------------------------------
 | Name      : MosUserFeatureOpenKeyFile
 | Purpose   : Opens the specified user feature key.
-| Arguments : UFKey        [in]  A handle to an open user feature key.
+| Arguments : ufKey        [in]  A handle to an open user feature key.
 |             lpSubKey     [in]  The name of the user feature subkey to be opened.
 |             ulOptions    [in]  This parameter is reserved and must be zero.
 |             samDesired   [in]  Reserved, could be any REGSAM type value
@@ -103,7 +103,7 @@ static MOS_STATUS MosUserFeatureGetValueFile(
 | Comments  :
 \---------------------------------------------------------------------------*/
 static MOS_STATUS MosUserFeatureOpenKeyFile(
-    void       *UFKey,
+    void       *ufKey,
     const char *lpSubKey,
     uint32_t   ulOptions,  // reserved
     uint32_t   samDesired,

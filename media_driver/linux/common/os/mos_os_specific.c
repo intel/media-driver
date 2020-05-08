@@ -80,9 +80,6 @@
 //!
 #define DUAL_VDBOX_KEY ('D'<<24|'V'<<8|'X'<<0)
 
-//MemNinja graphics counter
-extern int32_t MosMemAllocCounterGfx;
-
 //============= PRIVATE FUNCTIONS <BEGIN>=========================================
 
 void SetupApoMosSwitch(int32_t fd)
@@ -2182,7 +2179,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
             return MOS_STATUS_INVALID_HANDLE;
         }
 
-        GraphicsResource::SetMemAllocCounterGfx(MosMemAllocCounterGfx);
+        GraphicsResource::SetMemAllocCounterGfx(MosUtilities::m_mosMemAllocCounterGfx);
 
         GraphicsResource::CreateParams params(pParams);
         eStatus = pOsResource->pGfxResource->Allocate(pOsInterface->osContextPtr, params);
@@ -2199,7 +2196,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
             return MOS_STATUS_INVALID_HANDLE;
         }
 
-        MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+        MosUtilities::m_mosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
         MOS_OS_CHK_NULL(pOsResource->pGmmResInfo);
         MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
             (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
@@ -2390,7 +2387,7 @@ MOS_STATUS Mos_Specific_AllocateResource(
         eStatus = MOS_STATUS_NO_SPACE;
     }
 
-    MosMemAllocCounterGfx++;
+    MosUtilities::m_mosMemAllocCounterGfx++;
     MOS_MEMNINJA_GFX_ALLOC_MESSAGE(pOsResource->pGmmResInfo, bufname, pOsInterface->Component,
         (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface(), pParams->dwArraySize, functionName, filename, line);
 
@@ -2642,7 +2639,7 @@ void Mos_Specific_FreeResource(
             return;
         }
 
-        GraphicsResource::SetMemAllocCounterGfx(MosMemAllocCounterGfx);
+        GraphicsResource::SetMemAllocCounterGfx(MosUtilities::m_mosMemAllocCounterGfx);
 
         if (pOsResource && pOsResource->pGfxResource)
         {
@@ -2655,7 +2652,7 @@ void Mos_Specific_FreeResource(
         MOS_Delete(pOsResource->pGfxResource);
         pOsResource->pGfxResource = nullptr;
 
-        MosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
+        MosUtilities::m_mosMemAllocCounterGfx = GraphicsResource::GetMemAllocCounterGfx();
         MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
         MOS_ZeroMemory(pOsResource, sizeof(*pOsResource));
         return;
@@ -2705,7 +2702,7 @@ void Mos_Specific_FreeResource(
             pOsInterface->pOsContext != nullptr &&
             pOsInterface->pOsContext->pGmmClientContext != nullptr)
         {
-            MosMemAllocCounterGfx--;
+            MosUtilities::m_mosMemAllocCounterGfx--;
             MOS_MEMNINJA_GFX_FREE_MESSAGE(pOsResource->pGmmResInfo, functionName, filename, line);
 
             pOsInterface->pOsContext->pGmmClientContext->DestroyResInfoObject(pOsResource->pGmmResInfo);
@@ -7165,16 +7162,10 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;
-    pOsUserFeatureInterface->pfnEnableNotification      = MOS_UserFeature_EnableNotification;
-    pOsUserFeatureInterface->pfnDisableNotification     = MOS_UserFeature_DisableNotification;
-    pOsUserFeatureInterface->pfnParsePath               = MOS_UserFeature_ParsePath;
 
-    if (g_apoMosEnabled)
-    {
-        pOsUserFeatureInterface->pfnEnableNotification      = MosUtilities::MosUserFeatureEnableNotification;
-        pOsUserFeatureInterface->pfnDisableNotification     = MosUtilities::MosUserFeatureDisableNotification;
-        pOsUserFeatureInterface->pfnParsePath               = MosUtilities::MosUserFeatureParsePath;
-    }
+    pOsUserFeatureInterface->pfnEnableNotification      = MosUtilities::MosUserFeatureEnableNotification;
+    pOsUserFeatureInterface->pfnDisableNotification     = MosUtilities::MosUserFeatureDisableNotification;
+    pOsUserFeatureInterface->pfnParsePath               = MosUtilities::MosUserFeatureParsePath;
 
     // Init reset count for the context
     ret = mos_get_reset_stats(pOsInterface->pOsContext->intel_context, &dwResetCount, nullptr, nullptr);

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -102,80 +102,33 @@ uint64_t MOS_GetCurTime();
 
 #endif // __cplusplus
 
-//!
-//! \brief    Get current run time
-//! \details  Get current run time in us
-//! \return   double
-//!           Returns time in us
-//!
-double MOS_GetTime();
-
-extern int32_t MosMemAllocCounter;
-extern int32_t MosMemAllocFakeCounter;
-extern int32_t MosMemAllocCounterGfx;
-extern uint8_t MosUltFlag;
-extern uint32_t g_apoMosEnabled;
 
 class MosUtilities;
 
 //! Helper Macros for MEMNINJA debug messages
 #define MOS_MEMNINJA_ALLOC_MESSAGE(ptr, size, functionName, filename, line)                                                                                 \
-    if(g_apoMosEnabled)                                                                                                                                     \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-            "MemNinjaSysAlloc: Time = %f, MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "                                            \
-            "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, size, functionName, filename, line);      \
-    }                                                                                                                                                       \
-    else                                                                                                                                                    \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-            "MemNinjaSysAlloc: Time = %f, MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "                                            \
-            "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounter, ptr, size, functionName, filename, line);                                   \
-    }
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaSysAlloc: Time = %f, MemNinjaCounter = %d, memPtr = %p, size = %d, functionName = \"%s\", "                                                \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, size, functionName, filename, line);          \
+
 
 #define MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line)                                                                                        \
-    if(g_apoMosEnabled)                                                                                                                                     \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-           "MemNinjaSysFree: Time = %f, MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                                                         \
-           "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, functionName, filename, line);             \
-    }                                                                                                                                                       \
-    else                                                                                                                                                    \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-           "MemNinjaSysFree: Time = %f, MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                                                         \
-           "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounter, ptr, functionName, filename, line);                                          \
-    }
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaSysFree: Time = %f, MemNinjaCounter = %d, memPtr = %p, functionName = \"%s\", "                                                            \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounter, ptr, functionName, filename, line);                \
+
 
 #define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line)                                              \
-    if(g_apoMosEnabled)                                                                                                                                     \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-            "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "                                  \
-            "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr, \
-            bufName, component, size, arraySize, functionName, filename, line);                                                                             \
-    }                                                                                                                                                       \
-    else                                                                                                                                                    \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-            "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "                                  \
-            "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounterGfx, ptr,                              \
-            bufName, component, size, arraySize, functionName, filename, line);                                                                             \
-    }
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "                                      \
+        "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr,     \
+        bufName, component, size, arraySize, functionName, filename, line);                                                                                 \
 
 #define MOS_MEMNINJA_GFX_FREE_MESSAGE(ptr, functionName, filename, line)                                                                                    \
-    if(g_apoMosEnabled)                                                                                                                                     \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-            "MemNinjaGfxFree: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                                                     \
-            "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr, functionName, filename, line);         \
-    }                                                                                                                                                       \
-    else                                                                                                                                                    \
-    {                                                                                                                                                       \
-        MOS_OS_MEMNINJAMESSAGE(                                                                                                                              \
-            "MemNinjaGfxFree: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                                                     \
-            "filename = \"%s\", line = %d/", MOS_GetTime(), MosMemAllocCounterGfx, ptr, functionName, filename, line);                                      \
-    }
+    MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
+        "MemNinjaGfxFree: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, functionName = \"%s\", "                                                         \
+        "filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr, functionName, filename, line);             \
+
 
 #include "mos_utilities_next.h"
 
@@ -218,33 +171,11 @@ template<class _Ty, class... _Types>
 _Ty* MOS_NewUtil(_Types&&... _Args)
 #endif
 {
-    if (g_apoMosEnabled)
-    {
 #if MOS_MESSAGES_ENABLED
-        return MosUtilities::MosNewUtil<_Ty, _Types...>(functionName, filename, line, std::forward<_Types>(_Args)...);
+    return MosUtilities::MosNewUtil<_Ty, _Types...>(functionName, filename, line, std::forward<_Types>(_Args)...);
 #else
-        return MosUtilities::MosNewUtil<_Ty, _Types...>(std::forward<_Types>(_Args)...);
+    return MosUtilities::MosNewUtil<_Ty, _Types...>(std::forward<_Types>(_Args)...);
 #endif
-    }
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-        //Simulate allocate memory fail if flag turned on
-        if (MOS_SimulateAllocMemoryFail(sizeof(_Ty), NO_ALLOC_ALIGNMENT, functionName, filename, line))
-        {
-            return nullptr;
-        }
-#endif
-        _Ty* ptr = new (std::nothrow) _Ty(std::forward<_Types>(_Args)...);
-        if (ptr != nullptr)
-        {
-            MOS_AtomicIncrement(&MosMemAllocCounter);
-            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, sizeof(_Ty), functionName, filename, line);
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("Fail to create class.");
-        }
-        return ptr;
 }
 
 #if MOS_MESSAGES_ENABLED
@@ -257,29 +188,11 @@ template<class _Ty, class... _Types>
 _Ty* MOS_NewArrayUtil(int32_t numElements)
 #endif
 {
-    if (g_apoMosEnabled)
-    {
 #if MOS_MESSAGES_ENABLED
-        return MosUtilities::MosNewArrayUtil<_Ty>(functionName, filename, line, numElements);
+    return MosUtilities::MosNewArrayUtil<_Ty>(functionName, filename, line, numElements);
 #else
-        return MosUtilities::MosNewArrayUtil<_Ty>(numElements);
+    return MosUtilities::MosNewArrayUtil<_Ty>(numElements);
 #endif
-    }
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-        //Simulate allocate memory fail if flag turned on
-        if (MOS_SimulateAllocMemoryFail(sizeof(_Ty) * numElements, NO_ALLOC_ALIGNMENT, functionName, filename, line))
-        {
-            return nullptr;
-        }
-#endif
-        _Ty* ptr = new (std::nothrow) _Ty[numElements]();
-        if (ptr != nullptr)
-        {
-            MOS_AtomicIncrement(&MosMemAllocCounter);
-            MOS_MEMNINJA_ALLOC_MESSAGE(ptr, numElements*sizeof(_Ty), functionName, filename, line);
-        }
-        return ptr;
 }
 
 #if MOS_MESSAGES_ENABLED
@@ -302,23 +215,12 @@ template<class _Ty> inline
 void MOS_DeleteUtil(_Ty& ptr)
 #endif
 {
-    if (g_apoMosEnabled)
-    {
 #if MOS_MESSAGES_ENABLED
-        MosUtilities::MosDeleteUtil<_Ty>(functionName, filename, line, ptr);
+    MosUtilities::MosDeleteUtil<_Ty>(functionName, filename, line, ptr);
 #else
-        MosUtilities::MosDeleteUtil<_Ty>(ptr);
+    MosUtilities::MosDeleteUtil<_Ty>(ptr);
 #endif
-        return;
-    }
-
-    if (ptr != nullptr)
-    {
-        MOS_AtomicDecrement(&MosMemAllocCounter);
-        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-        delete(ptr);
-        ptr = nullptr;
-    }
+    return;
 }
 
 #if MOS_MESSAGES_ENABLED
@@ -333,23 +235,12 @@ template <class _Ty> inline
 void MOS_DeleteArrayUtil(_Ty& ptr)
 #endif
 {
-    if (g_apoMosEnabled)
-    {
 #if MOS_MESSAGES_ENABLED
-        MosUtilities::MosDeleteArrayUtil<_Ty>(functionName, filename, line, ptr);
+    MosUtilities::MosDeleteArrayUtil<_Ty>(functionName, filename, line, ptr);
 #else
-        MosUtilities::MosDeleteArrayUtil<_Ty>(ptr);
+    MosUtilities::MosDeleteArrayUtil<_Ty>(ptr);
 #endif
-        return;
-    }
-    if (ptr != nullptr)
-    {
-        MOS_AtomicDecrement(&MosMemAllocCounter);
-        MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line);
-
-        delete[](ptr);
-        ptr = nullptr;
-    }
+    return;
 }
 
 #if MOS_MESSAGES_ENABLED
@@ -399,11 +290,7 @@ MOS_STATUS MOS_utilities_close();
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-#ifdef __cplusplus
 MOS_STATUS MOS_OS_Utilities_Init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo = NULL);
-#else
-MOS_STATUS MOS_OS_Utilities_Init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo);
-#endif
 
 //!
 //! \brief    Close Function for MOS OS utilities

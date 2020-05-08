@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,11 +40,11 @@
 #include "codechal_user_settings_mgr_ext.h"
 #include "vphal_user_settings_mgr_ext.h"
 #endif // _MEDIA_RESERVED
-#include <sys/ipc.h>   // System V IPC
+#include <sys/ipc.h>  // System V IPC
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <signal.h>
-#include <unistd.h>    // fork
+#include <unistd.h>  // fork
 
 const char *MosUtilitiesSpecificNext::m_szUserFeatureFile = USER_FEATURE_FILE;
 
@@ -1411,26 +1411,18 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose()
 }
 
 MOS_STATUS MosUtilities::MosUserFeatureOpenKey(
-    void       *UFKey,
+    void       *ufKey,
     const char *lpSubKey,
     uint32_t   ulOptions,
     uint32_t   samDesired,
     void       **phkResult)
 {
-    char           pcKeyName[MAX_USERFEATURE_LINE_LENGTH];
-    MOS_STATUS     iRet;
-    intptr_t       h_key = (intptr_t)UFKey;
-
-    if((h_key == 0) /*|| (lpSubKey == nullptr)*/ || (phkResult == nullptr))    //[SH]: subkey can be NULL???
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-    return MosUtilitiesSpecificNext::MosUserFeatureOpenKeyFile(UFKey, lpSubKey, ulOptions, samDesired, phkResult);
+    return MosUtilitiesSpecificNext::MosUserFeatureOpenKeyFile(ufKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 
-MOS_STATUS MosUtilities::MosUserFeatureCloseKey(void  *UFKey)
+MOS_STATUS MosUtilities::MosUserFeatureCloseKey(void  *ufKey)
 {
-    MOS_UNUSED(UFKey);
+    MOS_UNUSED(ufKey);
     //always return success, because we actually dong't have a key opened.
     return MOS_STATUS_SUCCESS;
 }
@@ -1444,16 +1436,6 @@ MOS_STATUS MosUtilities::MosUserFeatureGetValue(
     void       *pvData,
     uint32_t   *pcbData)
 {
-    char          pcKeyName[MAX_USERFEATURE_LINE_LENGTH];
-    MOS_STATUS    eStatus;
-
-    if(UFKey == nullptr)
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    eStatus = MOS_STATUS_UNKNOWN;
-
     return MosUtilitiesSpecificNext::MosUserFeatureGetValueFile(UFKey, lpSubKey, lpValue, dwFlags, pdwType, pvData, pcbData);
 
 }
@@ -1585,6 +1567,18 @@ int32_t MosUtilities::MosUserFeatureWaitForSingleObject(
     return (iRet != 0);
 }
 
+int32_t MosUtilities::MosUnregisterWaitEx(PTP_WAIT hWaitHandle)
+{
+    int32_t       iPid;
+    LARGE_INTEGER largeInteger;
+
+    largeInteger.QuadPart = (int64_t)hWaitHandle;
+
+    iPid = largeInteger.u.LowPart;
+    kill(iPid, SIGKILL);
+    return true;
+}
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_STATUS MosUtilities::MosGetApoMosEnabledUserFeatureFile()
 {
@@ -1674,18 +1668,6 @@ MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureVa
 
     MosUserFeatureCloseKey(UFKey);  // Closes the key if not nullptr
     return eStatus;
-}
-
-int32_t MosUtilities::MosUnregisterWaitEx(PTP_WAIT hWaitHandle)
-{
-    int32_t iPid;
-    LARGE_INTEGER largeInteger;
-
-    largeInteger.QuadPart = (int64_t)hWaitHandle;
-
-    iPid = largeInteger.u.LowPart;
-    kill(iPid,SIGKILL);
-    return true;
 }
 
 MOS_STATUS MosUtilities::MosUserFeatureParsePath(

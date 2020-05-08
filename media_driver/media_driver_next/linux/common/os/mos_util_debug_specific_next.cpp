@@ -214,7 +214,7 @@ void MosUtilDebugSpecific::MosMessageInternal(
     else
     {
 #if USE_PRETTY_FUNCTION
-        // call MOS_getClassMethod to convert pretty function to class::function
+        // call MosGetClassMethod to convert pretty function to class::function
         // return string locate in static memory, mutex should be hold.
         func = MosGetClassMethod(functionName);
 #endif //USE_PRETTY_FUNCTION
@@ -294,14 +294,14 @@ void MosUtilDebugSpecific::MosMessage(
 //!
 //! When printing from a C++ class, we'd like the class and function to be printed.
 //! With our current Linux compiler, __FUNCTION__ does not include the class name.
-//! So we use __PRETTY_FUNCTION__ and call MOS_getClassMethod_Next(__PRETTY_FUNCTION__) to remove extra data.
+//! So we use __PRETTY_FUNCTION__ and call MosGetClassMethod(__PRETTY_FUNCTION__) to remove extra data.
 //! This is not needed for prints from C files so they will usually use __FUNCTION__.
 //!
 #if USE_PRETTY_FUNCTION
 
 //!
 //! m_functionName is used to temporarily store the concatinated __PRETTY_FUNCTION__,
-//! when calling MOS_getClassMethod_Next().
+//! when calling MosGetClassMethod().
 //!
 char MosUtilDebugSpecific::m_functionName[256] = {}; // 256 is an arbitrary long enough size.
 
