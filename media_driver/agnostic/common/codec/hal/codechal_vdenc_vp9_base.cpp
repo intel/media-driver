@@ -5564,12 +5564,6 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
             m_refFrameFlags &= ~0x4;
         }
 
-        // MaxNum_Reference is 1 for TU7
-        if (m_refFrameFlags != 1 && m_vp9SeqParams->TargetUsage == TU_PERFORMANCE)
-        {
-            m_refFrameFlags = 1;
-        }
-
         if (m_refFrameFlags == 0)
         {
             CODECHAL_ENCODE_ASSERTMESSAGE("Ref list is empty!.");
@@ -5603,7 +5597,7 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
 
             m_goldenRefPic = &refList[index]->sRefBuffer;
             CodecHalGetResourceInfo(m_osInterface, m_goldenRefPic);
-            m_goldenRefPic->dwWidth  = refList[index]->dwFrameWidth;
+            m_goldenRefPic->dwWidth = refList[index]->dwFrameWidth;
             m_goldenRefPic->dwHeight = refList[index]->dwFrameHeight;
             m_numRefFrames++;
 
@@ -5622,7 +5616,7 @@ MOS_STATUS CodechalVdencVp9State::SetPictureStructs()
 
             m_altRefPic = &refList[index]->sRefBuffer;
             CodecHalGetResourceInfo(m_osInterface, m_altRefPic);
-            m_altRefPic->dwWidth  = refList[index]->dwFrameWidth;
+            m_altRefPic->dwWidth = refList[index]->dwFrameWidth;
             m_altRefPic->dwHeight = refList[index]->dwFrameHeight;
             m_numRefFrames++;
 
