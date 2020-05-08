@@ -969,7 +969,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS GetVdencPictureSecondLevelCommandsSize(
+    virtual MOS_STATUS GetVdencPictureSecondLevelCommandsSize(
         uint32_t                    mode,
         uint32_t                   *commandsSize);
 
