@@ -787,7 +787,6 @@ MOS_STATUS Mos_InitInterface(
         pOsInterface->osStreamState->currentGpuContextHandle  = pOsInterface->CurrentGpuContextHandle;
         pOsInterface->osStreamState->mediaReset               = pOsInterface->bMediaReset;
         pOsInterface->osStreamState->nullHwAccelerationEnable = pOsInterface->NullHWAccelerationEnable;
-        pOsInterface->osStreamState->osCpInterface            = pOsInterface->osCpInterface;
         pOsInterface->osStreamState->osDeviceContext          = (OsDeviceContext *)pOsInterface->pOsContext->m_osDeviceContext;
         pOsInterface->osStreamState->simIsActive              = pOsInterface->bSimIsActive;
         pOsInterface->osStreamState->virtualEngineInterface   = nullptr; // Will be updated by HAL on demand
@@ -806,6 +805,11 @@ MOS_STATUS Mos_InitInterface(
         pOsInterface->osStreamState->ctxBasedScheduling       = pOsInterface->ctxBasedScheduling;
         pOsInterface->osStreamState->multiNodeScaling         = pOsInterface->multiNodeScaling;
         pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
+    }
+
+    if (g_apoMosEnabled)
+    {
+        pOsInterface->osStreamState->osCpInterface = pOsInterface->osCpInterface;
     }
 
     return eStatus;
