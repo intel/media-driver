@@ -74,7 +74,7 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
     {
         for (auto i = generatedReportCount; i < requireNum; i++)
         {
-            eStatus = SetStatus(((uint8_t *)status + m_sizeOfReport * i), reportedCount);
+            eStatus = SetStatus(((uint8_t *)status + m_sizeOfReport * i), CounterToIndex(reportedCount));
         }
     }
 
