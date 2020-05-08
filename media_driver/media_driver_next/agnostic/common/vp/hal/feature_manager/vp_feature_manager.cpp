@@ -123,6 +123,9 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
+    VP_PUBLIC_CHK_NULL_RETURN(pvpParams->pSrc[0]);
+    VP_PUBLIC_CHK_NULL_RETURN(pvpParams->pTarget[0]);
+
     if (pvpParams->pSrc[0]->SurfType != SURF_IN_PRIMARY)
     {
         return MOS_STATUS_SUCCESS;
@@ -132,6 +135,14 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
     VP_PUBLIC_CHK_STATUS_RETURN(RectSurfaceAlignment(pvpParams->pSrc[0], pvpParams->pTarget[0]->Format));
     VP_PUBLIC_CHK_STATUS_RETURN(RectSurfaceAlignment(pvpParams->pTarget[0], pvpParams->pTarget[0]->Format));
 
+    //Force 8K to render. Handle this case in APG path after render path being enabled.
+    if (pvpParams->bDisableVeboxFor8K &&
+        ((pvpParams->pSrc[0]->dwWidth >= VPHAL_RNDR_8K_WIDTH || pvpParams->pSrc[0]->dwHeight >= VPHAL_RNDR_8K_HEIGHT) ||
+         (pvpParams->pTarget[0]->dwWidth >= VPHAL_RNDR_8K_WIDTH || pvpParams->pTarget[0]->dwHeight >= VPHAL_RNDR_8K_HEIGHT)))
+    {
+        VP_PUBLIC_NORMALMESSAGE("Disable VEBOX/SFC for 8k resolution");
+        return MOS_STATUS_SUCCESS;
+    }
 
     if (IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
     {
