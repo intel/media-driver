@@ -191,6 +191,8 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourceRefBefLoopFilter()
     }
 
     MOS_SURFACE surface;
+    MOS_ZeroMemory(&surface, sizeof(MOS_SURFACE));
+
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateSurface(
                                                   &surface,
                                                   m_destSurface.dwPitch,
