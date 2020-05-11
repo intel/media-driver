@@ -198,7 +198,8 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourceRefBefLoopFilter()
                                                   m_destSurface.dwPitch,
                                                   m_destSurface.dwHeight,
                                                   "Reference before loop filter",
-                                                  m_destSurface.Format),
+                                                  m_destSurface.Format,
+                                                  m_destSurface.bCompressible),
         "Failed to allocate reference before loop filter for IBC.");
 
     m_resRefBeforeLoopFilter = surface.OsResource;
