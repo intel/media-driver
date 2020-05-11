@@ -926,6 +926,7 @@ MOS_STATUS VP_SURFACE::Clean()
     MOS_ZeroMemory(&rcSrc, sizeof(rcSrc));
     MOS_ZeroMemory(&rcDst, sizeof(rcDst));
     MOS_ZeroMemory(&rcMaxSrc, sizeof(rcMaxSrc));
+    bVEBOXCroppingUsed  = false;
 
     return MOS_STATUS_SUCCESS;
 }

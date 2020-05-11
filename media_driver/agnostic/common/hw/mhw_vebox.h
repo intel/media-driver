@@ -734,7 +734,9 @@ typedef struct _MHW_VEBOX_SURFACE_PARAMS
     MOS_TILE_TYPE               TileType;            //!<  Tile Type
     MOS_TILE_MODE_GMM           TileModeGMM;         //!<  Tile Mode from GMM Definition
     bool                        bGMMTileEnabled;     //!<  GMM defined tile mode flag
+    RECT                        rcSrc = {0, 0, 0, 0};  //!< Source rectangle
     RECT                        rcMaxSrc;            //!< Max source rectangle
+    bool                        bVEBOXCroppingUsed = false;  //!<Vebox crop case need use rcSrc as vebox input.
     PMOS_RESOURCE               pOsResource;         //!<  Surface resource
 } MHW_VEBOX_SURFACE_PARAMS, *PMHW_VEBOX_SURFACE_PARAMS;
 

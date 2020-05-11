@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -112,7 +112,9 @@ MOS_STATUS VpHal_InitVeboxSurfaceParams(
     pMhwVeboxSurface->TileType               = pVpHalVeboxSurface->TileType;
     pMhwVeboxSurface->TileModeGMM            = pVpHalVeboxSurface->TileModeGMM;
     pMhwVeboxSurface->bGMMTileEnabled        = pVpHalVeboxSurface->bGMMTileEnabled;
+    pMhwVeboxSurface->rcSrc                  = pVpHalVeboxSurface->rcSrc;
     pMhwVeboxSurface->rcMaxSrc               = pVpHalVeboxSurface->rcMaxSrc;
+    pMhwVeboxSurface->bVEBOXCroppingUsed     = pVpHalVeboxSurface->bVEBOXCroppingUsed;
     pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->OsResource;
     pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->bIsCompressed;
     pMhwVeboxSurface->dwCompressionFormat    = pVpHalVeboxSurface->CompressionFormat;

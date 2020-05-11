@@ -62,7 +62,7 @@ struct VP_SURFACE
     RECT                        rcSrc;              //!< Source rectangle
     RECT                        rcDst;              //!< Destination rectangle
     RECT                        rcMaxSrc;           //!< Max source rectangle
-
+    bool                        bVEBOXCroppingUsed; //!<Vebox crop case need use rcSrc as vebox input.
     // Return true if no resource assigned to current vp surface.
     bool        IsEmpty();
     // Clean the vp surface to empty state. Only valid for false == isResourceOwner case.

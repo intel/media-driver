@@ -902,6 +902,8 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceParams(
     {
         pMhwVeboxSurface->rcMaxSrc           = pVpHalVeboxSurface->rcMaxSrc;
     }
+    pMhwVeboxSurface->rcSrc                  = pVpHalVeboxSurface->rcSrc;
+    pMhwVeboxSurface->bVEBOXCroppingUsed     = pVpHalVeboxSurface->bVEBOXCroppingUsed;
     pMhwVeboxSurface->pOsResource            = &pVpHalVeboxSurface->osSurface->OsResource;
     pMhwVeboxSurface->bIsCompressed          = pVpHalVeboxSurface->osSurface->bIsCompressed;
 

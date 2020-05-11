@@ -981,6 +981,7 @@ struct VPHAL_SURFACE
     bool                        bFastColorFill = false;           //!< enable fast color fill without copy surface
     bool                        bMaxRectChanged = false;          //!< indicate rcMaxSrc been updated
     bool                        b16UsrPtr = false;                //!< is 16 byte aligned system linear memory.
+    bool                        bVEBOXCroppingUsed = false;       //!< Vebox crop case need use rcSrc as vebox input.
 
     // Interlaced Scaling
     bool                        bInterlacedScaling = false;            //!< Interlaced scaling
