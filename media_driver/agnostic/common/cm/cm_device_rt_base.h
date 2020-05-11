@@ -424,8 +424,6 @@ public:
 
     virtual HANDLE QueryRegHandleInternal(PCM_HAL_STATE pCmHalState) = 0;
 
-    static CSync m_globalCriticalSectionSurf2DUserDataLock;
-
 protected:
     int32_t Initialize(MOS_CONTEXT *pUmdContext);
     int32_t DestroyQueue(CmQueueRT* & pQueue);

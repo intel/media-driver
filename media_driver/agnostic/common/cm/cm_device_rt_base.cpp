@@ -66,8 +66,6 @@ namespace CMRT_UMD
 {
 const uint32_t CmDeviceRTBase::m_maxPrintBuffer = 16;
 
-CSync CmDeviceRTBase::m_globalCriticalSectionSurf2DUserDataLock = CSync();
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Cm Device Acquire: Increae the m_cmDeviceRefCount
 //| Returns:    CM_SUCCESS
