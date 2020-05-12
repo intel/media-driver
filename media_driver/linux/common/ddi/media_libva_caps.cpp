@@ -591,35 +591,13 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = CODEC_MAX_PIC_WIDTH;
-    if(profile == VAProfileJPEGBaseline)
-    {
-        attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
-    }
-    if(IsHevcProfile(profile))
-    {
-        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
-    }
-    if(IsAvcProfile(profile) || IsVp8Profile(profile))
-    {
-        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
-    }
+    GetPlatformSpecificAttrib(profile, entrypoint,
+        VAConfigAttribMaxPictureWidth, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = CODEC_MAX_PIC_HEIGHT;
-    if(profile == VAProfileJPEGBaseline)
-    {
-        attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
-    }
-    if(IsHevcProfile(profile))
-    {
-        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
-    }
-    if(IsAvcProfile(profile) || IsVp8Profile(profile))
-    {
-        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
-    }
+    GetPlatformSpecificAttrib(profile, entrypoint,
+        VAConfigAttribMaxPictureWidth, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncJPEG;
