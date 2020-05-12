@@ -1531,6 +1531,8 @@ public:
         return m_osInterface ? m_osInterface->bSimIsActive : false;
     }
 
+    virtual bool UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard);
+
     //! \brief    default disable vdbox balancing by UMD
     bool bEnableVdboxBalancingbyUMD = false;
     

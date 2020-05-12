@@ -605,7 +605,7 @@ MOS_STATUS CodechalHwInterface::Initialize(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    if (CodecHalUsesRenderEngine(settings->codecFunction, settings->standard) ||
+    if (UsesRenderEngine(settings->codecFunction, settings->standard) ||
         CodecHalIsEnableFieldScaling(settings->codecFunction, settings->standard, settings->downsamplingHinted))
     {
         CODECHAL_HW_CHK_NULL_RETURN(m_renderInterface);
@@ -1865,4 +1865,21 @@ MOS_STATUS CodechalHwInterface::SetStatusTagByMiCommand(
         &storeDataParams);
 
     return result;
+}
+
+bool CodechalHwInterface::UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard)
+{
+    if(codecFunction == CODECHAL_FUNCTION_ENC ||
+        (codecFunction == CODECHAL_FUNCTION_ENC_PAK) ||
+        codecFunction == CODECHAL_FUNCTION_HYBRIDPAK ||
+        ((codecFunction == CODECHAL_FUNCTION_DECODE) && (standard == CODECHAL_VC1)) ||
+        codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK ||
+        codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC ||
+        codecFunction == CODECHAL_FUNCTION_FEI_ENC   ||
+        codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK)
+     {
+        return true;
+     }
+
+     return false;
 }

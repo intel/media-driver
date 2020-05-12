@@ -180,7 +180,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
         m_osInterface->pfnSetEncodePakContext(m_osInterface, m_videoContext);
     }
 
-    if (CodecHalUsesRenderEngine(m_codecFunction, m_standard))
+    if (m_hwInterface->UsesRenderEngine(m_codecFunction, m_standard))
     {
         MOS_GPU_CONTEXT gpuContext = MOS_GPU_CONTEXT_RENDER2;
         MOS_GPU_NODE renderGpuNode = MOS_GPU_NODE_3D;
@@ -556,7 +556,7 @@ MOS_STATUS CodechalEncoderState::Allocate(CodechalSetting * codecHalSettings)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CreateGpuContexts());
 
-    if (CodecHalUsesRenderEngine(codecHalSettings->codecFunction, codecHalSettings->standard))
+    if (m_hwInterface->UsesRenderEngine(codecHalSettings->codecFunction, codecHalSettings->standard))
     {
         m_renderContextUsesNullHw = m_useNullHw[m_renderContext];
     }
@@ -632,7 +632,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
         m_pakEnabled = true;
     }
 
-    if (CodecHalUsesRenderEngine(m_codecFunction, m_standard))
+    if (m_hwInterface->UsesRenderEngine(m_codecFunction, m_standard))
     {
         m_encEnabled = true;
     }
@@ -4392,7 +4392,7 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
         // Check if source surface needs to be synchronized and should wait for decode or VPP or any other context
         syncParams.presSyncResource = &m_rawSurface.OsResource;
 
-        if (CodecHalUsesRenderEngine(m_codecFunction, m_standard) &&
+        if (m_hwInterface->UsesRenderEngine(m_codecFunction, m_standard) &&
             m_firstField)
         {
             syncParams.GpuContext = m_renderContext;
@@ -4463,7 +4463,7 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             m_trackedBuf->SetAllocationFlag(false);
         }
 
-        if (CodecHalUsesRenderEngine(m_codecFunction, m_standard))
+        if (m_hwInterface->UsesRenderEngine(m_codecFunction, m_standard))
         {
             // set render engine context
             m_osInterface->pfnSetGpuContext(m_osInterface, m_renderContext);

@@ -3361,7 +3361,7 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting *settings)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Initialize());
 
     // common function for all codecs needed
-    if (m_cscDsState && CodecHalUsesRenderEngine(m_codecFunction, m_standard))
+    if (m_cscDsState && m_hwInterface->UsesRenderEngine(m_codecFunction, m_standard))
     {
         if (m_hmeSupported)
         {
