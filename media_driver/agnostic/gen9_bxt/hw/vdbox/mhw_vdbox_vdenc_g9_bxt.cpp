@@ -204,11 +204,24 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Bxt::AddVdencImgStateCmd(
     if ((avcPicParams->CodingType != I_TYPE) && (avcPicParams->EnableRollingIntraRefresh != ROLLING_I_DISABLED))
     {
         cmd.DW1.VdencExtendedPakObjCmdEnable      = 1;
-        cmd.DW21.IntraRefreshEnableRollingIEnable = avcPicParams->EnableRollingIntraRefresh != ROLLING_I_DISABLED ? 1 : 0;        // 0->Row based ; 1->Column based
-        cmd.DW21.IntraRefreshMode                 = avcPicParams->EnableRollingIntraRefresh == ROLLING_I_ROW ? 0 : 1;
+        cmd.DW21.IntraRefreshEnableRollingIEnable = avcPicParams->EnableRollingIntraRefresh != ROLLING_I_DISABLED ? 1 : 0;
+        cmd.DW21.IntraRefreshMode                 = avcPicParams->EnableRollingIntraRefresh == ROLLING_I_ROW ? 0 : 1;        // 0->Row based ; 1->Column based
         cmd.DW21.IntraRefreshMBPos                = avcPicParams->IntraRefreshMBNum;
         cmd.DW21.IntraRefreshMBSizeMinusOne       = avcPicParams->IntraRefreshUnitinMB;
         cmd.DW21.QpAdjustmentForRollingI          = avcPicParams->IntraRefreshQPDelta;
+
+        auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+        MHW_MI_CHK_NULL(waTable);
+
+        // WA to prevent error propagation from top-right direction.
+        // Disable prediction modes 3, 7 for 4x4
+        // and modes 0, 2, 3, 4, 5, 7 for 8x8 (due to filtering)
+        if (avcPicParams->EnableRollingIntraRefresh == ROLLING_I_COLUMN &&
+            MEDIA_IS_WA(waTable, Wa_18011246551))
+        {
+            cmd.DW17.AvcIntra4X4ModeMask = 0x88;
+            cmd.DW17.AvcIntra8X8ModeMask = 0xBD;
+        }
     }
 
     // Setting MinMaxQP values if they are presented
