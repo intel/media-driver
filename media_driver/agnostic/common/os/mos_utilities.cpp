@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_utilities.c
+//! \file     mos_utilities.cpp
 //! \brief    Common OS service across different platform
 //! \details  Common OS service across different platform
 //!

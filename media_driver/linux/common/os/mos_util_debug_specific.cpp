@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_util_debug_specific.c
+//! \file     mos_util_debug_specific.cpp
 //! \brief    This module implments Linux MOS debug functionalities
 //!
 

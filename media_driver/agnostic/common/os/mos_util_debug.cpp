@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_util_debug.c
+//! \file     mos_util_debug.cpp
 //! \brief    Common OS debug across different platform
 //! \details  Common OS debug across different platform
 //!
