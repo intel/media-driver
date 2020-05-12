@@ -314,7 +314,6 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
 
     /*software wa to fix some corner cases of HEVC/VP9 SFC and Scalability*/
     MEDIA_WR_WA(waTable, Wa_14010222001, 1);
-    MEDIA_WR_WA(waTable, Wa_16010946120, 1); // Wa HW block sync issue
 
     return true;
 }
