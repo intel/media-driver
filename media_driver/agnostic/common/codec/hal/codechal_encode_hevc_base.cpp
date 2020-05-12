@@ -69,6 +69,7 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
 
 #ifndef _FULL_OPEN_SOURCE
     // for HEVC: the Ds+Copy kernel is by default used to do CSC and copy non-aligned surface
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_cscDsState);
     m_cscDsState->EnableCopy();
     m_cscDsState->EnableColor();
 #endif
