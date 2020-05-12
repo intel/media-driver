@@ -392,6 +392,46 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             *value = 1;
             break;
         }
+        case VAConfigAttribMaxPictureWidth:
+        {
+            if(profile == VAProfileJPEGBaseline)
+            {
+                *value = ENCODE_JPEG_MAX_PIC_WIDTH;
+            }
+            else if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
+            {
+                *value = CODEC_8K_MAX_PIC_WIDTH;
+            }
+            else if(IsAvcProfile(profile))
+            {
+                *value = CODEC_4K_MAX_PIC_WIDTH;
+            }
+            else
+            {
+                *value = CODEC_MAX_PIC_WIDTH;
+            }
+            break;
+        }
+        case VAConfigAttribMaxPictureHeight:
+        {
+            if(profile == VAProfileJPEGBaseline)
+            {
+                *value = ENCODE_JPEG_MAX_PIC_HEIGHT;
+            }
+            else if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
+            {
+                *value = CODEC_8K_MAX_PIC_HEIGHT;
+            }
+            else if(IsAvcProfile(profile))
+            {
+                *value = CODEC_4K_MAX_PIC_HEIGHT;
+            }
+            else
+            {
+                *value = CODEC_MAX_PIC_HEIGHT;
+            }
+            break;
+        }
         default:
             status = VA_STATUS_ERROR_INVALID_PARAMETER;
             break;
@@ -1267,35 +1307,13 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureWidth;
-    attrib.value = CODEC_MAX_PIC_WIDTH;
-    if(profile == VAProfileJPEGBaseline)
-    {
-        attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
-    }
-    if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
-    {
-        attrib.value = CODEC_8K_MAX_PIC_WIDTH;
-    }
-    if(IsAvcProfile(profile))
-    {
-        attrib.value = CODEC_4K_MAX_PIC_WIDTH;
-    }
+    GetPlatformSpecificAttrib(profile, entrypoint,
+        VAConfigAttribMaxPictureWidth, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
-    attrib.value = CODEC_MAX_PIC_HEIGHT;
-    if(profile == VAProfileJPEGBaseline)
-    {
-        attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
-    }
-    if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
-    {
-        attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
-    }
-    if(IsAvcProfile(profile))
-    {
-        attrib.value = CODEC_4K_MAX_PIC_HEIGHT;
-    }
+    GetPlatformSpecificAttrib(profile, entrypoint,
+        VAConfigAttribMaxPictureWidth, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncJPEG;
