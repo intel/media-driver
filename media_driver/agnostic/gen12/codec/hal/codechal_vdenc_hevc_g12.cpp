@@ -238,10 +238,23 @@ uint32_t CodechalVdencHevcStateG12::GetMaxBtCount()
     auto btIdxAlignment = m_stateHeapInterface->pStateHeapInterface->GetBtIdxAlignment();
 
     // DsConversion kernel
-    maxBtCount = 2 * (MOS_ALIGN_CEIL(m_cscDsState->GetBTCount(), btIdxAlignment));
+    maxBtCount = (m_32xMeSupported ? 3 : 2) * (MOS_ALIGN_CEIL(m_cscDsState->GetBTCount(), btIdxAlignment));
+
+    // add ME and stream-in kernel
+    if(m_b16XMeEnabled)
+    {
+        MHW_KERNEL_STATE kernelState = m_lowDelay ? m_vdencMeKernelState : m_vdencMeKernelStateRAB;
+        if(m_b32XMeEnabled)
+        {
+            maxBtCount += MOS_ALIGN_CEIL(kernelState.KernelParams.iBTCount, btIdxAlignment);
+        }
+        maxBtCount += MOS_ALIGN_CEIL(kernelState.KernelParams.iBTCount, btIdxAlignment);
+
+        kernelState = m_lowDelay ? m_vdencStreaminKernelState : m_vdencStreaminKernelStateRAB;
+        maxBtCount += MOS_ALIGN_CEIL(kernelState.KernelParams.iBTCount, btIdxAlignment);
+    }
 #endif
 
-    // add ME and stream-in later
     return maxBtCount;
 }
 
@@ -2038,8 +2051,9 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
 
     if (m_16xMeSupported)
     {
-        // disable SingleTaskPhase for now with SHME
-        m_singleTaskPhaseSupported = false;
+        // Enable SingleTaskPhase for now with SHME
+        m_singleTaskPhaseSupported = true;
+        m_maxBtCount = GetMaxBtCount();
 
         CodechalEncodeCscDs::KernelParams cscScalingKernelParams;
         MOS_ZeroMemory(&cscScalingKernelParams, sizeof(cscScalingKernelParams));
@@ -2049,6 +2063,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
         cscScalingKernelParams.bLastTaskInPhase16xDS    = !(m_32xMeSupported || m_hmeEnabled);
         cscScalingKernelParams.bLastTaskInPhase32xDS    = !m_hmeEnabled;
 
+        m_firstTaskInPhase = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->SetHevcCscFlagAndRawColor());
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cscDsState->KernelFunctions(&cscScalingKernelParams));
 
@@ -2078,13 +2093,16 @@ MOS_STATUS CodechalVdencHevcStateG12::EncodeKernelFunctions()
         if (m_b32XMeEnabled)
         {
             //HME_P kernel for 32xME
+            m_lastTaskInPhase = false;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeMeKernel(HME_LEVEL_32x));
         }
  
         //HME_P kernel for 16xME
+        m_lastTaskInPhase = false;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeMeKernel(HME_LEVEL_16x));
  
         //StreamIn kernel, 4xME
+        m_lastTaskInPhase = true;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EncodeMeKernel(HME_LEVEL_4x));
     }
 
