@@ -193,6 +193,16 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureValueDescFields_g12[MOS_NUM_USER_FEA
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "1",
         "HEVC Vme encode break12 setting:[0, 3]. (Default 1"),
+    /* codec hp based */
+        MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_HEVC_VME_ENABLE_RENDER_CONTEXT_ID_G12HP,
+        "HEVC VME HP Render Context Enable",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Codec",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+        "0",
+        "HEVC Vme encode G12HP enable render context. (Default 0)"),
     /* VP gen12 based */
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE_ID_G12,
      "SFC Output Centering Disable",
