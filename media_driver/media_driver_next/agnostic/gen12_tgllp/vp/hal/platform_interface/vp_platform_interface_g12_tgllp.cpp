@@ -24,7 +24,7 @@
 //! \file     vp_platform_interface_g12_tgllp.cpp
 //! \brief    Factories for vp object creation.
 //!
-#include "vp_feature_manager.h"
+#include "vp_feature_manager_m12_0.h"
 #include "vp_platform_interface_g12_tgllp.h"
 #include "vp_vebox_cmd_packet_g12.h"
 
@@ -51,7 +51,7 @@ MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpRenderHwCaps()
 
 VPFeatureManager *VpPlatformInterfaceG12Tgllp::CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface)
 {
-    return MOS_New(VPFeatureManager, hwInterface);
+    return MOS_New(VPFeatureManagerM12_0, hwInterface);
 }
 
 VpCmdPacket *VpPlatformInterfaceG12Tgllp::CreateVeboxPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc)

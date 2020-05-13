@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-media_include_subdirectory(gen12)
-media_include_subdirectory(gen12_tgllp)
-media_include_subdirectory(m12)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_manager_m12_0.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_feature_manager_m12_0.h
+)
+
+set(SOURCES_NEW
+    ${SOURCES_NEW}
+    ${TMP_SOURCES_}
+)
+
+set(HEADERS_NEW
+    ${HEADERS_NEW}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( VpHalNext\\Gen12\\FeatureManager FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+
+media_add_curr_to_include_path()
