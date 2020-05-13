@@ -2046,6 +2046,12 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
         &CmdBuffer,
         &VeboxDiIecpCmdParams));
 
+    if (MEDIA_IS_WA(pRenderHal->pWaTable, Wa_16010946120))
+    {
+        MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
+        VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiFlushDwCmd(&CmdBuffer, &FlushDwParams));
+    }
+
     //---------------------------------
     // Write GPU Status Tag for Tag based synchronization
     //---------------------------------
