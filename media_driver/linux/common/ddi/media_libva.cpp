@@ -4803,6 +4803,7 @@ VAStatus DdiMedia_GetImage(
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
         }
         PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = (PDDI_MEDIA_SURFACE_DESCRIPTOR)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
+        DDI_CHK_NULL(surfDesc, "nullptr surfDesc.", VA_STATUS_ERROR_ALLOCATION_FAILED);
         surfDesc->uiVaMemType = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
         target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, surfDesc, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC);
         DDI_CHK_RET(vaStatus, "Create temp surface failed.");
