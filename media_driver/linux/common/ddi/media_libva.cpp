@@ -6306,7 +6306,7 @@ VAStatus DdiMedia_ExportSurfaceHandle(
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
     desc->width           = mediaSurface->iWidth;
-    desc->height          = mediaSurface->iHeight;
+    desc->height          = mediaSurface->iRealHeight;
     desc->num_objects     = 1;
     desc->objects[0].fd   = mediaSurface->name;
     desc->objects[0].size = mediaSurface->pGmmResourceInfo->GetSizeSurface();
