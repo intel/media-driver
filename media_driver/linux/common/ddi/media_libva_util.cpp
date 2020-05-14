@@ -354,12 +354,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 gmmParams.BaseHeight = mediaSurface->pSurfDesc->uiSize / mediaSurface->pSurfDesc->uiPitches[0];
             }
         }
-        if(mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
-        {
-            gmmParams.ExistingSysMemSize = mediaSurface->pSurfDesc->uiBuffserSize;
-            gmmParams.pExistingSysMem    = mediaSurface->pSurfDesc->ulBuffer;
-            gmmParams.Flags.Info.ExistingSysMem = true;
-        }
     }
     else
     {
@@ -411,12 +405,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t    gmmPitch;
     uint32_t    gmmSize;
     uint32_t    gmmHeight;
-
-    gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
-    if( DdiMediaUtil_IsExternalSurface(mediaSurface) && ( mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR ) && mediaSurface->pSurfDesc->uiPitches[0])
-    {
-        gmmResourceInfo->OverridePitch(mediaSurface->pSurfDesc->uiPitches[0]);
-    }
     gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
     gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
