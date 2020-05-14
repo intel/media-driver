@@ -86,7 +86,7 @@ MOS_STATUS CodechalJpegSfcStateG12::SetSfcStateParams(
 
     CODECHAL_HW_CHK_STATUS_RETURN(CodechalSfcState::SetSfcStateParams(sfcStateParams, outSurfaceParams));
 
-    if (CodecHalMmcState::IsMmcEnabled())
+    if (m_mmcEnabled)
     {
         MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
         CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, &m_sfcOutputSurface->OsResource, &mmcMode));

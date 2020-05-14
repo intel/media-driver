@@ -124,7 +124,8 @@ public:
     //!
     virtual MOS_STATUS InitAuxSurface(
         PMOS_RESOURCE res,
-        bool auxUV) = 0;
+        bool auxUV,
+        bool isMmcEnabled) = 0;
 
     //!
     //! \brief  Is Dummy SteamOut Enabled

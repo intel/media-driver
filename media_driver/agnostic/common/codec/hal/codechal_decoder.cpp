@@ -522,6 +522,7 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
     if (!m_mmc)
     {
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
     }
 
     if (codecHalSettings->secureMode)
@@ -593,7 +594,7 @@ MOS_STATUS CodechalDecode::AllocateRefSurfaces(
             allocHeight,
             "DownsamplingRefSurface",
             format,
-            CodecHalMmcState::IsMmcEnabled());
+            m_mmc->IsMmcEnabled());
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -629,8 +630,8 @@ MOS_STATUS CodechalDecode::RefSurfacesResize(
         height,
         "DownsamplingRefSurface",
         format,
-        CodecHalMmcState::IsMmcEnabled());
-  
+        m_mmc->IsMmcEnabled());
+
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Failed to allocate decode downsampling reference surface.");
@@ -1755,7 +1756,7 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface                    = m_osInterface;
     genericPrologParams.pvMiInterface                   = m_miInterface;
-    genericPrologParams.bMmcEnabled                     = CodecHalMmcState::IsMmcEnabled();
+    genericPrologParams.bMmcEnabled                     = m_mmc->IsMmcEnabled();
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
         cmdBuffer,

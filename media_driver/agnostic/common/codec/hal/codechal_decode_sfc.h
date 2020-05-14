@@ -234,6 +234,8 @@ protected:
     MOS_RESOURCE m_resSyncObject = {0};  //!< Sync Object
 
 protected:
+    bool m_mmcEnabled = false;
+
     //!
     //! \brief    Allocate Resources for SFC
     //! \details  Allocate Buffer for SFC and initialize AVS params

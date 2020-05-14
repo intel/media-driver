@@ -3379,10 +3379,6 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
     }
     else
     {
-        static int8_t DevThreshPB0_S8[8];
-        static int8_t DevThreshVBR0_S8[8];
-        static int8_t DevThreshI0_S8[8];
-
         uint64_t inputbitsperframe = uint64_t(hucVdencBrcInitDmem->MaxRate_U32*100. / (hucVdencBrcInitDmem->FrameRateM_U32 * 100.0 / hucVdencBrcInitDmem->FrameRateD_U32));
         if (m_brcEnabled && !hucVdencBrcInitDmem->BufSize_U32)
         {
@@ -3395,19 +3391,15 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
         if (bps_ratio > m_bpsRatioHigh) bps_ratio = m_bpsRatioHigh;
 
         for (int i = 0; i < m_numDevThreshlds / 2; i++) {
-            DevThreshPB0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshPBFPNEG[i], bps_ratio));
-            DevThreshPB0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshPBFPPOS[i], bps_ratio));
+            hucVdencBrcInitDmem->DevThreshPB0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshPBFPNEG[i], bps_ratio));
+            hucVdencBrcInitDmem->DevThreshPB0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshPBFPPOS[i], bps_ratio));
 
-            DevThreshI0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshIFPNEG[i], bps_ratio));
-            DevThreshI0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshIFPPOS[i], bps_ratio));
+            hucVdencBrcInitDmem->DevThreshI0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshIFPNEG[i], bps_ratio));
+            hucVdencBrcInitDmem->DevThreshI0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_postMultPB*pow(m_devThreshIFPPOS[i], bps_ratio));
 
-            DevThreshVBR0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshVBRNEG[i], bps_ratio));
-            DevThreshVBR0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_posMultVBR*pow(m_devThreshVBRPOS[i], bps_ratio));
+            hucVdencBrcInitDmem->DevThreshVBR0_S8[i] = (signed char)(m_negMultPB*pow(m_devThreshVBRNEG[i], bps_ratio));
+            hucVdencBrcInitDmem->DevThreshVBR0_S8[i + m_numDevThreshlds / 2] = (signed char)(m_posMultVBR*pow(m_devThreshVBRPOS[i], bps_ratio));
         }
-
-        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshPB0_S8, 8 * sizeof(int8_t), (void*)DevThreshPB0_S8, 8 * sizeof(int8_t));
-        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshVBR0_S8, 8 * sizeof(int8_t), (void*)DevThreshVBR0_S8, 8 * sizeof(int8_t));
-        MOS_SecureMemcpy(hucVdencBrcInitDmem->DevThreshI0_S8, 8 * sizeof(int8_t), (void*)DevThreshI0_S8, 8 * sizeof(int8_t));
     }
 
     MOS_SecureMemcpy(hucVdencBrcInitDmem->InstRateThreshP0_S8, 4 * sizeof(int8_t), (void *)m_instRateThreshP0, 4 * sizeof(int8_t));
@@ -5593,7 +5585,7 @@ MOS_STATUS CodechalVdencHevcStateG11::SendPrologWithFrameTracking(
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_hwInterface->GetOsInterface();
     genericPrologParams.pvMiInterface = m_hwInterface->GetMiInterface();
-    genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
+    genericPrologParams.bMmcEnabled = m_mmcState ? m_mmcState->IsMmcEnabled() : false;
     genericPrologParams.dwStoreDataValue = m_storeData - 1;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(commandBufferInUse, &genericPrologParams));

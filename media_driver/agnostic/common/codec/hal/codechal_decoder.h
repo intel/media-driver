@@ -657,6 +657,12 @@ public:
         m_dummyReferenceStatus = status;
     }
 
+    //!
+    //! \brief  Get mmc enable flag
+    //! \return bool
+    //!
+    bool IsDecoderMmcEnabled(){return m_mmc ? m_mmc->IsMmcEnabled() : false;}
+
 protected:
 
     //!

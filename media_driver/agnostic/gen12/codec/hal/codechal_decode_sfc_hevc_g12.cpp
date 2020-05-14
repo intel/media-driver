@@ -466,7 +466,7 @@ MOS_STATUS CodechalHevcSfcStateG12::SetSfcStateParams(
     sfcStateParamsG12->dwOutputFrameWidth = sfcStateParamsG12->dwScaledRegionWidth;
     sfcStateParamsG12->dwOutputFrameHeight = sfcStateParamsG12->dwScaledRegionHeight;
 
-    if (CodecHalMmcState::IsMmcEnabled())
+    if (m_mmcEnabled)
     {
         MOS_MEMCOMP_STATE mmcMode   = MOS_MEMCOMP_DISABLED;
         CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, &m_sfcOutputSurface->OsResource, &mmcMode));

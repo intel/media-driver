@@ -182,7 +182,7 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
     {
         if (m_secureDecoder && m_secureDecoder->IsAuxDataInvalid(&m_destSurface.OsResource))
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_destSurface.OsResource, false));
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_destSurface.OsResource, false, true));
         }
         else
         {

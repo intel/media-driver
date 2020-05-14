@@ -2140,7 +2140,7 @@ bool CodechalVdencVp9State::IsToBeCompressed(bool isDownScaledSurface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
     // For regular encoding, we always compress this surface regardless of downscaling
-    return CodecHalMmcState::IsMmcEnabled();
+    return m_mmcState ? m_mmcState->IsMmcEnabled() : false;
 }
 
 MOS_STATUS CodechalVdencVp9State::DysRefFrames()
@@ -4244,7 +4244,8 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(Resize4x8xforDS(scalingIdx));
-            
+
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf);
             dsRefSurface4x[0] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[0]));
             dsRefSurface8x[0] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
@@ -4262,6 +4263,7 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(Resize4x8xforDS(scalingIdx));
 
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf);
             dsRefSurface4x[1] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[1]));
             dsRefSurface8x[1] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);
@@ -4278,7 +4280,8 @@ MOS_STATUS CodechalVdencVp9State::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAM
 
             scalingIdx        = m_refList[m_vp9PicParams->RefFrameList[refPicIndex].FrameIdx]->ucScalingIdx;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(Resize4x8xforDS(scalingIdx));
-            
+
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBuf);
             dsRefSurface4x[2] = m_trackedBuf->Get4xDsReconSurface(scalingIdx);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, dsRefSurface4x[2]));
             dsRefSurface8x[2] = m_trackedBuf->Get8xDsReconSurface(scalingIdx);

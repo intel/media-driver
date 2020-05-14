@@ -865,5 +865,7 @@ MOS_STATUS CodechalSfcState::InitializeSfcState(
     m_veboxInterface = hwInterface->GetVeboxInterface();
     m_sfcInterface   = hwInterface->GetSfcInterface();  // No need to check null for pSfcInterface. It will be checked in IsSfcSupported().
     m_miInterface    = hwInterface->GetMiInterface();
+    m_mmcEnabled     = m_decoder->IsDecoderMmcEnabled();
+
     return eStatus;
 }

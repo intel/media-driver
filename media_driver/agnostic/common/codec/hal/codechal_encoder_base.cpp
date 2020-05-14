@@ -3553,7 +3553,7 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
         genericPrologParams.pOsInterface = m_osInterface;
         genericPrologParams.pvMiInterface = m_miInterface;
-        genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
+        genericPrologParams.bMmcEnabled = m_mmcState ? m_mmcState->IsMmcEnabled() : false;
         genericPrologParams.presStoreData = (renderEngineInUse) ?
             &encodeStatusBufRcs->resStatusBuffer : &encodeStatusBuf->resStatusBuffer;
         genericPrologParams.dwStoreDataValue = m_storeData;
@@ -4251,6 +4251,7 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     }
 
 #ifdef _MMC_SUPPORTED
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
 #endif
 
@@ -4258,7 +4259,7 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface            = m_osInterface;
     genericPrologParams.pvMiInterface     = m_miInterface;
-    genericPrologParams.bMmcEnabled             = CodecHalMmcState::IsMmcEnabled();
+    genericPrologParams.bMmcEnabled             = m_mmcState ? m_mmcState->IsMmcEnabled() : false;
     genericPrologParams.dwStoreDataValue = m_storeData - 1;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(cmdBuffer, &genericPrologParams, mmioRegister));
 
