@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1341,6 +1341,15 @@ MOS_STATUS Mos_InitInterface(
     PMOS_INTERFACE      pOsInterface,
     PMOS_CONTEXT        pOsDriverContext,
     MOS_COMPONENT       component);
+
+//! \brief    Destroy the mos interface
+//! \details  MOS Interface release
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in/out] Pointer to OS Interface
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface);
 
 //! \brief    Unified OS add command to command buffer
 //! \details  Offset returned is dword aligned but size requested can be byte aligned

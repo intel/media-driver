@@ -1048,8 +1048,16 @@ MOS_STATUS MosInterface::DestroySpecificResourceInfo(OsSpecificRes resource)
 MOS_STATUS MosInterface::AllocateResource(
     MOS_STREAM_HANDLE        streamState,
     PMOS_ALLOC_GFXRES_PARAMS params,
-    MOS_RESOURCE_HANDLE     &resource)
+    MOS_RESOURCE_HANDLE      &resource
+#if MOS_MESSAGES_ENABLED
+    ,
+    const char              *functionName,
+    const char              *filename,
+    int32_t                 line
+#endif
+)
 {
+    MOS_STATUS estatus = MOS_STATUS_SUCCESS;
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(resource);
@@ -1064,29 +1072,44 @@ MOS_STATUS MosInterface::AllocateResource(
 
         GraphicsResourceNext::CreateParams createParams(params);
         auto eStatus = resource->pGfxResourceNext->Allocate(streamState->osDeviceContext, createParams);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_ASSERTMESSAGE("Allocate graphic resource failed");
-            return MOS_STATUS_INVALID_HANDLE;
-        }
-        
-        eStatus = resource->pGfxResourceNext->ConvertToMosResource(resource);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_ASSERTMESSAGE("Convert graphic resource failed");
-            return MOS_STATUS_INVALID_HANDLE;
-        }
+        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Allocate graphic resource failed");
 
-        return eStatus;
+        eStatus = resource->pGfxResourceNext->ConvertToMosResource(resource);
+        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Convert graphic resource failed");
+    }
+    else
+    {
+        estatus = GraphicsResourceSpecificNext::AllocateExternalResource(streamState, params, resource);
+        MOS_OS_CHK_STATUS_MESSAGE_RETURN(estatus, "Allocate external graphic resource failed");
     }
 
-    return GraphicsResourceSpecificNext::AllocateExternalResource(streamState, params, resource);
+    MOS_OS_CHK_NULL_RETURN(resource->pGmmResInfo);
+    MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocCounterGfx);
+
+    MOS_MEMNINJA_GFX_ALLOC_MESSAGE(
+        resource->pGmmResInfo,
+        params->pBufName,
+        streamState->component,
+        (uint32_t)resource->pGmmResInfo->GetSizeSurface(),
+        params->dwArraySize,
+        functionName,
+        filename,
+        line);
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MosInterface::FreeResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,
-    uint32_t            flag)
+    uint32_t            flag
+#if MOS_MESSAGES_ENABLED
+    ,
+    const char          *functionName,
+    const char          *filename,
+    int32_t             line
+#endif  // MOS_MESSAGES_ENABLED
+)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -1094,7 +1117,11 @@ MOS_STATUS MosInterface::FreeResource(
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
 
-    if (!resource->bConvertedFromDDIResource && resource->pGfxResourceNext)
+    bool osContextValid = streamState->osDeviceContext->GetOsContextValid();
+
+    bool byPassMod = !((!resource->bConvertedFromDDIResource) && (osContextValid == true) && (resource->pGfxResourceNext));
+
+    if (!byPassMod)
     {
         if (resource && resource->pGfxResourceNext)
         {
@@ -1107,10 +1134,31 @@ MOS_STATUS MosInterface::FreeResource(
         MOS_Delete(resource->pGfxResourceNext);
         resource->pGfxResourceNext = nullptr;
 
+        MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounterGfx);
+        MOS_MEMNINJA_GFX_FREE_MESSAGE(resource->pGmmResInfo, functionName, filename, line);
+        MOS_ZeroMemory(resource, sizeof(*resource));
+
         return MOS_STATUS_SUCCESS;
     }
 
-    return GraphicsResourceSpecificNext::FreeExternalResource(streamState, resource, flag);
+    MOS_STATUS status = GraphicsResourceSpecificNext::FreeExternalResource(streamState, resource, flag);
+
+    if (resource->pGmmResInfo != nullptr &&
+        streamState->perStreamParameters != nullptr)
+    {
+        PMOS_CONTEXT perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+        if (perStreamParameters && perStreamParameters->pGmmClientContext)
+        {
+            MosUtilities::m_mosMemAllocCounterGfx--;
+            MOS_MEMNINJA_GFX_FREE_MESSAGE(resource->pGmmResInfo, functionName, filename, line);
+
+            perStreamParameters->pGmmClientContext->DestroyResInfoObject(resource->pGmmResInfo);
+
+            resource->pGmmResInfo = nullptr;
+        }
+    }
+
+    return status;
 }
 
 MOS_STATUS MosInterface::GetResourceInfo(

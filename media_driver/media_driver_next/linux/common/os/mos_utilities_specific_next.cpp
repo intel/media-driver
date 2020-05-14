@@ -1625,7 +1625,7 @@ MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureVa
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
-        MOS_OS_ASSERTMESSAGE("Failed to open ApoMosEnable user feature key , error status %d.", eStatus);
+        MOS_OS_NORMALMESSAGE("Failed to open ApoMosEnable user feature key , error status %d.", eStatus);
         return eStatus;
     }
 

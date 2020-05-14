@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -448,6 +448,20 @@ void _MOS_Assert(
 }
 
 //!
+//! \def MOS_CHK_NULL_RETURN(_compID, _subCompID, _ptr)
+//!  Check if \a _ptr == nullptr, if so assert and return an error
+//!
+#define MOS_CHK_NULL_MESSAGE_RETURN(_compID, _subCompID, _ptr, _message, ...)       \
+    {                                                                               \
+        if ((_ptr) == nullptr)                                                      \
+        {                                                                           \
+            MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);        \
+            return MOS_STATUS_NULL_POINTER;                                         \
+        }                                                                           \
+    }
+
+
+//!
 //! \def MOS_CHK_STATUS(_compID, _subCompID, _stmt)
 //!  Check MOS_STATUS \a _stmt, assert and return an error for failure
 //!
@@ -662,6 +676,13 @@ void _MOS_Assert(
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
 
 //!
+//! \def MOS_OS_CHK_NULL_MESSAGE_RETURN(_ptr)
+//!  MOS_CHK_NULL \a _ptr with MOS utility comp/subcomp info
+//!
+#define MOS_OS_CHK_NULL_MESSAGE_RETURN(_ptr, _message, ...) \
+    MOS_CHK_NULL_MESSAGE_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr, _message,  ##__VA_ARGS__)
+
+//!
 //! \def MOS_OS_CHK_HR(_ptr)
 //!  MOS_CHK_HR \a _ptr with MOS utility comp/subcomp info
 //!
@@ -716,6 +737,13 @@ void _MOS_Assert(
 //!
 #define MOS_OS_CHK_STATUS_RETURN(_stmt)                                                            \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _stmt)
+
+//!
+//! \def MOS_OS_CHK_STATUS_MESSAGE_RETURN(_stmt, _message, ......)
+//!  MOS_CHK_STATUS \a _stmt with MOS utility comp/subcomp info
+//!
+#define MOS_OS_CHK_STATUS_MESSAGE_RETURN(_stmt, _message, ...)                                  \
+    MOS_CHK_STATUS_MESSAGE_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _stmt, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_OS_ASSERTMESSAGE(_message, ...)

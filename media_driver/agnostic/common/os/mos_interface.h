@@ -772,9 +772,16 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS AllocateResource(
-        MOS_STREAM_HANDLE streamState,
-        PMOS_ALLOC_GFXRES_PARAMS params,    // user provided va
-        MOS_RESOURCE_HANDLE &resource);
+        MOS_STREAM_HANDLE           streamState,
+        PMOS_ALLOC_GFXRES_PARAMS    params,    // user provided va
+        MOS_RESOURCE_HANDLE         &resource
+#if MOS_MESSAGES_ENABLED
+        ,
+        const char                  *functionName,
+        const char                  *filename,
+        int32_t                     line
+#endif
+    );
 
     //!
     //! \brief    Free Resource
@@ -795,9 +802,16 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS FreeResource(
-        MOS_STREAM_HANDLE streamState,
-        MOS_RESOURCE_HANDLE resource,
-        uint32_t flag);
+        MOS_STREAM_HANDLE       streamState,
+        MOS_RESOURCE_HANDLE     resource,
+        uint32_t                flag
+#if MOS_MESSAGES_ENABLED
+        ,
+        const char              *functionName,
+        const char              *filename,
+        int32_t                 line
+#endif  // MOS_MESSAGES_ENABLED
+    );
 
     //!
     //! \brief    Get Resource Info
