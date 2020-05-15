@@ -432,6 +432,18 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             }
             break;
         }
+        case VAConfigAttribQPBlockSize:
+        {
+            if(IsAvcProfile(profile))
+            {
+                *value = CODECHAL_MACROBLOCK_WIDTH;
+            }
+            else
+            {
+                status = VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+            break;
+        }
         default:
             status = VA_STATUS_ERROR_INVALID_PARAMETER;
             break;

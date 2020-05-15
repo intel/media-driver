@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -890,6 +890,28 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     GetPlatformSpecificAttrib(profile, entrypoint,
             (VAConfigAttribType)VAConfigAttribCustomRoundingControl, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
+
+    if(IsAvcProfile(profile))
+    {
+        // Use VAConfigAttribQPBlockSize to report MBQP support:
+        // >0 means supported, 0 unsupported. Previous versions of driver
+        // return VA_ATTRIB_NOT_SUPPORTED for that attribute.
+        attrib.type = VAConfigAttribQPBlockSize;
+        if(entrypoint == VAEntrypointEncSliceLP)
+        {
+            GetPlatformSpecificAttrib(profile, entrypoint,
+                                      VAConfigAttribQPBlockSize, &attrib.value);
+            if(attrib.value == VA_ATTRIB_NOT_SUPPORTED)
+            {
+                attrib.value = 0;
+            }
+        } else
+        {
+            // MBQP always supported for VME
+            attrib.value = CODECHAL_MACROBLOCK_WIDTH;
+        }
+        (*attribList)[attrib.type] = attrib.value;
+    }
 
     if (IsAvcProfile(profile))
     {
