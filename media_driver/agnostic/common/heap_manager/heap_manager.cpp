@@ -63,8 +63,8 @@ MOS_STATUS HeapManager::AcquireSpace(
     }
 
     spaceNeeded = 0;
-    if ((m_blockManager.AcquireSpace(params, blocks, spaceNeeded)) ==
-        MOS_STATUS_CLIENT_AR_NO_SPACE)
+    MOS_STATUS acquireSpaceResult = m_blockManager.AcquireSpace(params, blocks, spaceNeeded);
+    if (acquireSpaceResult == MOS_STATUS_CLIENT_AR_NO_SPACE)
     {
         bool blocksUpdated = false;
         // no need to refresh the block states for every space acquisition
@@ -86,6 +86,10 @@ MOS_STATUS HeapManager::AcquireSpace(
             HEAP_CHK_STATUS(BehaveWhenNoSpace());
             HEAP_CHK_STATUS(m_blockManager.AcquireSpace(params, blocks, spaceNeeded));
         }
+    }
+    else
+    {
+        HEAP_CHK_STATUS(acquireSpaceResult);
     }
 
     return MOS_STATUS_SUCCESS;
