@@ -586,7 +586,7 @@ struct MosStreamState
     bool  dumpCommandBuffer = false;                      //!< Flag to indicate if Dump command buffer is enabled
     bool  dumpCommandBufferToFile = false;                //!< Indicates that the command buffer should be dumped to a file
     bool  dumpCommandBufferAsMessages = false;            //!< Indicates that the command buffer should be dumped via MOS normal messages
-    char  sDirName[MOS_MAX_HLT_FILENAME_LEN] = {0};         //!< Dump Directory name - maximum 260 bytes length
+    char  sDirName[MOS_MAX_HLT_FILENAME_LEN] = {0};       //!< Dump Directory name - maximum 260 bytes length
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 #if _DEBUG || _RELEASE_INTERNAL

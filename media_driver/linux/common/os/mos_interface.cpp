@@ -335,7 +335,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     uint32_t dwBytesWritten   = 0;
     uint32_t dwNumberOfDwords = 0;
     uint32_t dwSizeToAllocate = 0;
-    char     sFileName[MOS_MAX_HLT_FILENAME_LEN];
+    char     sFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
     // Maximum length of engine name is 6
     char sEngName[6];
     size_t nSizeFileNamePrefix   = 0;
@@ -383,13 +383,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
 
     if (streamState->dumpCommandBufferToFile)
     {
-        // Set the file name.
-        eStatus = MOS_LogFileNamePrefix(sFileName);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
-            return eStatus;
-        }
+        MosUtilities::MosSecureMemcpy(sFileName, MOS_MAX_HLT_FILENAME_LEN, streamState->sDirName, MOS_MAX_HLT_FILENAME_LEN);
 
         nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
         MosUtilities::MosSecureStringPrint(
