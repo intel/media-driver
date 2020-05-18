@@ -173,7 +173,7 @@ MOS_STATUS MediaVeboxDecompStateG12::IsVeboxDecompressionEnabled()
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 
-#ifdef LINUX
+#ifdef __linux__
     UserFeatureData.bData = false; // disable VE Decompress on Linux
 #else
     UserFeatureData.bData = true;

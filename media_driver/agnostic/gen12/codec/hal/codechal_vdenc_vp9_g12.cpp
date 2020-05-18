@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3300,7 +3300,7 @@ MOS_STATUS CodechalVdencVp9StateG12::SetSequenceStructs()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifdef LINUX
+#ifdef __linux__
     MOS_SURFACE rawSurface;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)m_encodeParams.pSeqParams;
     rawSurface = *(m_encodeParams.psRawSurface);

@@ -1212,7 +1212,7 @@ MOS_STATUS VphalRenderer::Render(
         VPHAL_RENDER_CHK_STATUS(RenderPass(&RenderParams));
     }
 
-#if defined(LINUX)
+#if defined(__linux__)
     if (m_reporting)
     {
         WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID, m_reporting->OutputPipeMode);

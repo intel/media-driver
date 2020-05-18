@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -838,7 +838,7 @@ MOS_STATUS XRenderHal_Interface_g12::IsRenderHalMMCEnabled(
     // Read user feature key to set MMC for Fast Composition surfaces
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-#ifdef LINUX
+#ifdef __linux__
     UserFeatureData.bData       = false; // disable MMC on Linux
 #else
     UserFeatureData.bData       = true; // init as default value to enable MMCD on Gen12LP

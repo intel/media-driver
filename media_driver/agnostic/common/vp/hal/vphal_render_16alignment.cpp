@@ -1,6 +1,6 @@
 /*
 *
-* Copyright (c) Intel Corporation (2018 - 2019).
+* Copyright (c) Intel Corporation (2018 - 2020).
 *
 * INTEL MAKES NO WARRANTY OF ANY KIND REGARDING THE CODE.  THIS CODE IS
 * LICENSED ON AN "AS IS" BASIS AND INTEL WILL NOT PROVIDE ANY SUPPORT,
@@ -154,7 +154,7 @@ MOS_STATUS VpHal_16AlignLoadStaticData(
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             break;
     }
-#if defined(LINUX)
+#if defined(__linux__)
     WalkerStatic.DW10.Output_Pitch            = p16AlignState->pTarget->OsResource.iPitch;
     WalkerStatic.DW10.Output_Height           = p16AlignState->pTarget->OsResource.iHeight;
 #endif
@@ -1049,7 +1049,7 @@ MOS_STATUS VpHal_16AlignSetupSurfaceStatesInt(
     PRENDERHAL_SURFACE_STATE_ENTRY      pSurfaceEntry;
     MOS_FORMAT                          format  = pSurface->Format;
     uint32_t                            width   = pSurface->dwWidth;
-#if defined(LINUX)
+#if defined(__linux__)
     uint32_t                            dwSize  = pSurface->dwHeight * pSurface->OsResource.iPitch;
 #else
     uint32_t                            dwSize  = pSurface->dwHeight * pSurface->dwPitch;

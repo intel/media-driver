@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -282,7 +282,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit()
     MosLogFileNamePrefix(fileNamePrefix);
     MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "log");
 
-#if defined(LINUX) || defined(ANDROID)
+#if defined(__linux__) || defined(ANDROID)
     eStatus = MosUtilities::MosCreateDirectory(fileNamePrefix);
     if (MOS_FAILED(eStatus))
     {

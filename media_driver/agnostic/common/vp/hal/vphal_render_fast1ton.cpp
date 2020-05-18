@@ -1,6 +1,6 @@
 /*
 *
-* Copyright (c) Intel Corporation (2018).
+* Copyright (c) Intel Corporation (2018 - 2020).
 *
 * INTEL MAKES NO WARRANTY OF ANY KIND REGARDING THE CODE.  THIS CODE IS
 * LICENSED ON AN "AS IS" BASIS AND INTEL WILL NOT PROVIDE ANY SUPPORT,
@@ -111,7 +111,7 @@ MOS_STATUS VpHal_Fast1toNLoadStaticData(
         {
             WalkerStatic.DW4.Dst_Index0      = FAST1TON_DST_INDEX0;
             WalkerStatic.DW10.Dst_16Aligned |= ALIGN16_DST0;
-#if defined(LINUX)
+#if defined(__linux__)
             WalkerStatic.DW10.Dst_pitch0     = pFast1toNState->pTarget[0]->OsResource.iPitch;
             WalkerStatic.DW12.Dst_UVOffset0  = pFast1toNState->pTarget[0]->OsResource.iHeight;
 #endif
@@ -134,7 +134,7 @@ MOS_STATUS VpHal_Fast1toNLoadStaticData(
         {
             WalkerStatic.DW6.Dst_Index1      = FAST1TON_DST_INDEX1;
             WalkerStatic.DW10.Dst_16Aligned |= ALIGN16_DST1;
-#if defined(LINUX)
+#if defined(__linux__)
             WalkerStatic.DW11.Dst_pitch1     = pFast1toNState->pTarget[1]->OsResource.iPitch;
             WalkerStatic.DW12.Dst_UVOffset1  = pFast1toNState->pTarget[1]->OsResource.iHeight;
 #endif
@@ -157,7 +157,7 @@ MOS_STATUS VpHal_Fast1toNLoadStaticData(
         {
             WalkerStatic.DW8.Dst_Index2      = FAST1TON_DST_INDEX2;
             WalkerStatic.DW10.Dst_16Aligned |= ALIGN16_DST2;
-#if defined(LINUX)
+#if defined(__linux__)
             WalkerStatic.DW11.Dst_pitch2     = pFast1toNState->pTarget[2]->OsResource.iPitch;
             WalkerStatic.DW13.Dst_UVOffset2  = pFast1toNState->pTarget[2]->OsResource.iHeight;
 #endif
@@ -1050,7 +1050,7 @@ MOS_STATUS VpHal_Fast1toNSetupSurfaceStates(
             format   = pFast1toNState->pTarget[index]->Format;
             width    = pFast1toNState->pTarget[index]->dwWidth;
             pFast1toNState->pTarget[index]->Format  = Format_RAW;
-#if defined(LINUX)
+#if defined(__linux__)
             pFast1toNState->pTarget[index]->dwWidth = (pFast1toNState->pTarget[index]->dwHeight * pFast1toNState->pTarget[index]->OsResource.iPitch) * 3/2;
 #endif
             pFast1toNState->pTarget[index]->dwWidth = MOS_ALIGN_CEIL(pFast1toNState->pTarget[index]->dwWidth, 128);

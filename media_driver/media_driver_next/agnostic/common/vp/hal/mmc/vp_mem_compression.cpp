@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ VPMediaMemComp::VPMediaMemComp(
     m_mmcFeatureId = __VPHAL_ENABLE_MMC_ID;
     m_mmcInuseFeatureId = __VPHAL_ENABLE_MMC_IN_USE_ID;
 
-#if(LINUX)
+#if(__linux__)
     m_bComponentMmcEnabled = false;
 #else
     m_bComponentMmcEnabled = true;
