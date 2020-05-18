@@ -31,6 +31,6 @@ set(HEADERS_
     linkfile.h
 )
 
-add_definitions(-DLINUX_)
+add_definitions(-D__linux__)
 
 add_executable(GenKrnBin ${SOURCE_} ${HEADERS_})

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1221,7 +1221,7 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodePrimitiveLevel()
         m_osInterface,
         &syncParams));
 
- #ifdef LINUX 
+ #ifdef __linux__
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CODECHAL_DEBUG_TOOL(
     if (m_sfcState->m_sfcOutputSurface)

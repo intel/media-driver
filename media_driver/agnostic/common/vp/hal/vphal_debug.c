@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2159,7 +2159,7 @@ void VphalSurfaceDumper::GetSurfaceDumpSpec()
             UserFeatureData.StringData.pStringData,
             UserFeatureData.StringData.uSize);
     }
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
     else
     {
         std::string vphalDumpFilePath;
@@ -2519,7 +2519,7 @@ void VphalHwStateDumper::GetStateDumpSpec()
             pUserFeatureData->StringData.pStringData,
             pUserFeatureData->StringData.uSize);
     }
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
     else
     {
         std::string vphalDumpFilePath;
@@ -3161,7 +3161,7 @@ void VphalParameterDumper::GetParametersDumpSpec()
             UserFeatureData.StringData.uSize);
         bDumpEnabled = true;
     }
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
     else
     {
         std::string vphalDumpFilePath;

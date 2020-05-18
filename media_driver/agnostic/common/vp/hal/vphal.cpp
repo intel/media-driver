@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -892,7 +892,7 @@ MOS_STATUS VphalState::GetStatusReport(
         }
         else
         {   // here we have the first not ready entry.
-#if (LINUX || ANDROID)
+#if (__linux__ || ANDROID)
             uiNewHead = (uiIndex + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 #else
             uiNewHead = uiIndex;

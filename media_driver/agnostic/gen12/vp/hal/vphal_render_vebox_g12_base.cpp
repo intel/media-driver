@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3112,7 +3112,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::Initialize(
     // Read user feature key for MMC enable
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-#if(LINUX)
+#if(__linux__)
     UserFeatureData.bData       = !MEDIA_IS_WA(pVeboxState->m_pWaTable, WaDisableVPMmc); // enable MMC by default
 #else
     UserFeatureData.bData = true;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -88,7 +88,7 @@ VPHAL_VEBOX_STATE_XE_HPM::VPHAL_VEBOX_STATE_XE_HPM(
     }
     dwNumofVebox = 0;
 
-#if LINUX
+#if __linux__
     char* ScalingHQPerfMode = getenv("SET_SCALINGHQ_AS_PERFMODE");
     if (ScalingHQPerfMode)
     {

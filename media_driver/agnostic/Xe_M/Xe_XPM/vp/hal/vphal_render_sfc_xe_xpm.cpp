@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2020-2021, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -52,7 +52,7 @@ VphalSfcStateXe_Xpm::VphalSfcStateXe_Xpm(
         true);
     VP_PUBLIC_NORMALMESSAGE("m_disableSfcDithering = %d", m_disableSfcDithering);
 
-#if LINUX
+#if __linux__
     char *Sfc2PassPerfMode = getenv("SET_SFC2PASS_PERFMODE");
     if (Sfc2PassPerfMode)
     {

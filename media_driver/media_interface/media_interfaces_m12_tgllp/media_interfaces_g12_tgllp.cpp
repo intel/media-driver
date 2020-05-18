@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,7 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     MOS_STATUS      *eStatus)
 {
     MOS_OS_CHK_NULL_RETURN(eStatus);
-#if LINUX
+#if __linux__
     bool bApogeiosEnable = true;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));

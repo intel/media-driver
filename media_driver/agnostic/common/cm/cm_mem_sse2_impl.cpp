@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 #include "cm_mem.h"
 #include "cm_mem_sse2_impl.h"
 
-#if defined(__SSE2__) || !(defined(LINUX) || defined(ANDROID))
+#if defined(__SSE2__) || !(defined(__linux__) || defined(ANDROID))
 
 #include <mmintrin.h>
 

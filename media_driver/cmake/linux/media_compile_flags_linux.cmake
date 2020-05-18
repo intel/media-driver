@@ -55,8 +55,9 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -m${ARCH}
 
     # Global defines
-    -DLINUX=1
-    -DLINUX
+    -D__linux__=1
+
+    -D__linux__
     -DNO_RTTI
     -DNO_EXCEPTION_HANDLING
     -DINTEL_NOT_PUBLIC
