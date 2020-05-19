@@ -169,6 +169,7 @@ typedef struct _VPHAL_HDR_STATE
     bool                            bNullHwRenderHdr;               //!< Null rendering flag for HDR function
     bool                            bSplitFrame;                    //!< Split Frame flag for iTouch 5ms requirement
     uint32_t                        uiSplitFramePortions = 1;       //!< Split Frame flag
+    bool                            bForceSplitFrame     = false;
 
     uint32_t                        uSourceCount;                                               //!< Number of sources
     uint32_t                        uTargetCount;                                               //!< Number of targets

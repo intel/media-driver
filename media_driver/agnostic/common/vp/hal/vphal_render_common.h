@@ -2312,6 +2312,7 @@ typedef enum _VEBOX_EXECUTION_MODE
     VEBOX_EXEC_MODE_2_TO_0 = 3                                                  //!< No future frame so switch back to non-parallel serial legacy mode.
 } VEBOX_EXECUTION_MODE;
 
+#define MAX_VEBOX_EXECUTION_MODE 4
 //!
 //! \brief Controls Vebox execution mode
 //!
@@ -2323,6 +2324,7 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
     bool                    bSpeculativeCopy;                                   //!< true, update VEBOX state for frame N+1 using frame N state
     bool                    bFrcActive;                                         //!< When FRC is active, stay in VEBOX_EXEC_MODE_0
     bool                    bPostponedFMDCalc;                                  //!< When in mode2, need to calc fmd variance after composition
+    uint32_t                ModeCount[MAX_VEBOX_EXECUTION_MODE] = {0};
 } VPHAL_VEBOX_EXEC_STATE, *PVPHAL_VEBOX_EXEC_STATE;
 
 #define RESET_VEBOX_SPECULATIVE_COPY(_a)              (_a->bSpeculativeCopy = false)

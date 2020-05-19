@@ -336,8 +336,6 @@ protected:
     PMOS_INTERFACE              m_osInterface;
     char                        m_dumpPrefix[MAX_PATH];     // Called frequently, so avoid repeated stack resizing with member data
     char                        m_dumpLoc[MAX_PATH];        // to avoid recursive call from diff owner but sharing the same buffer
-    static uint32_t             m_frameNumInVp;             // For use when vp dump its compressed surface, override the frame number given from MediaVeboxDecompState
-    static char                 m_dumpLocInVp[MAX_PATH];    // For use when vp dump its compressed surface, to distinguish each vp loc's pre/post decomp
 
 private:
 

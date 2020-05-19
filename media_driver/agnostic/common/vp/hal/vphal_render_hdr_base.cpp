@@ -35,7 +35,6 @@
 #include "renderhal_platform_interface.h"
 #include "vphal_render_hdr_g9_base.h"
 
-static bool sForceSplitFrame = false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 static bool sEnableKernelDump = false;
@@ -93,14 +92,14 @@ MOS_STATUS VpHal_HdrInitialize(
     // no matter HW support preemption or not.
     // If it is not set, and HW doesn't support preemption, then the split portions
     // will be calculted based on resolution.
-    if (!sForceSplitFrame)
+    if (!pHdrState->bForceSplitFrame)
     {
         if (MEDIA_IS_SKU(pHdrState->pSkuTable, FtrMediaMidBatchPreempt) ||
             MEDIA_IS_SKU(pHdrState->pSkuTable, FtrMediaThreadGroupLevelPreempt) ||
             MEDIA_IS_SKU(pHdrState->pSkuTable, FtrMediaMidThreadLevelPreempt))
         {
             pHdrState->uiSplitFramePortions = 1;
-            sForceSplitFrame = true;
+            pHdrState->bForceSplitFrame     = true;
         }
     }
 
