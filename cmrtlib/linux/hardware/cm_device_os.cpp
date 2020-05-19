@@ -59,7 +59,7 @@ volatile static char cmrtCurrentVersion[] = "cmrt_current_version: " \
 CSync gDeviceCreationCriticalSection;
 
 
-int32_t CmDevice_RT::GetSupportedRenderer(uint32_t& count)
+int32_t CmDevice_RT::GetSupportedAdapters(uint32_t& count)
 {
     INSERT_PROFILER_RECORD();
     int32_t result = CM_SUCCESS;
@@ -103,6 +103,270 @@ int32_t CmDevice_RT::GetSupportedRenderer(uint32_t& count)
 }
 
 
+
+int32_t CmDevice_RT::CreateCmDeviceFromAdapter(CmDevice_RT* &pCmDev, int32_t adapterIndex, uint32_t CreateOption)
+{
+    INSERT_PROFILER_RECORD();
+
+    int32_t result = CM_SUCCESS;
+
+    pCmDev = new CmDevice_RT(nullptr, CreateOption);
+
+    if (pCmDev)
+    {
+        result = pCmDev->Initialize(true, adapterIndex);
+        if (result != CM_SUCCESS)
+        {
+            CmAssert(0);
+            Destroy(pCmDev);
+        }
+    }
+    else
+    {
+        CmAssert(0);
+        result = CM_OUT_OF_HOST_MEMORY;
+    }
+
+    return result;
+}
+
+
+extern "C" CM_RT_API int32_t DestroyCmDevice(CmDevice* &device);
+//! Helper function to get hardware platform specifc info from CM device APIs
+
+int32_t CmDevice_RT::GetPlatformInfo(uint32_t adapterIndex)
+{
+    uint32_t version = 0;
+    CmDevice_RT* pDev;
+    CmDevice* pCmDev = nullptr;
+    // Create a CM Device
+    int32_t result = CreateCmDeviceFromAdapter(pDev, adapterIndex);
+    if ((result != CM_SUCCESS) || (pDev == nullptr)) {
+        return CM_FAILURE;
+    }
+
+    pCmDev = static_cast<CmDevice*>(pDev);
+    uint32_t gpu_platform = 0;
+    uint32_t gt_platform = 0;
+    CM_PLATFORM_INFO platform_info;
+    uint32_t count;
+    uint32_t samplers;
+    size_t size = 4;
+
+    result = pCmDev->GetCaps(CAP_HW_THREAD_COUNT, size, &count);
+    result = pCmDev->GetCaps(CAP_GT_PLATFORM, size, &gt_platform);
+    result = pCmDev->GetCaps(CAP_SAMPLER_COUNT, size, &samplers);
+    size = sizeof(CM_PLATFORM_INFO);
+    result = pCmDev->GetCaps(CAP_PLATFORM_INFO, size, &platform_info);
+    if (result == CM_SUCCESS)
+    {
+        g_AdapterList[adapterIndex]->MaxThread = count;
+        g_AdapterList[adapterIndex]->EuNumber = platform_info.numSlices * platform_info.numSubSlices * platform_info.numEUsPerSubSlice;
+        g_AdapterList[adapterIndex]->TileNumber = 1;
+    }
+    DestroyCmDevice(pCmDev);
+    return result;
+}
+
+
+int32_t CmDevice_RT::QueryAdapterInfo(uint32_t adapterIndex, AdapterInfoType infoName, void *info, uint32_t infoSize, uint32_t *OutInfoSize)
+{
+    int32_t result = CM_SUCCESS;
+
+    if (adapterIndex < g_supportedAdapterCount)
+    {
+        switch (infoName)
+        {
+        case Description:
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo);
+                if (info != g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo)
+                {
+                    memcpy_s(info, infoSize, (void*)g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo, *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+        case VendorId:
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->vendor_id))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->vendor_id);
+                if (info != &g_AdapterList[adapterIndex]->deviceinfo.pci->vendor_id)
+                {
+                    memcpy_s(info, infoSize, (void*)&g_AdapterList[adapterIndex]->deviceinfo.pci->vendor_id, *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+        case DeviceId:
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->device_id))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->device_id);
+                if (info != &g_AdapterList[adapterIndex]->deviceinfo.pci->device_id)
+                {
+                    memcpy_s(info, infoSize, (void*)&g_AdapterList[adapterIndex]->deviceinfo.pci->device_id, *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+
+        case SubSysId:
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->subdevice_id))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->subdevice_id);
+                uint32_t SubSystemID = (g_AdapterList[adapterIndex]->deviceinfo.pci->subdevice_id << 16) | g_AdapterList[adapterIndex]->deviceinfo.pci->subvendor_id;
+                if (info != &g_AdapterList[adapterIndex]->deviceinfo.pci->subdevice_id)
+                {
+                    memcpy_s(info, infoSize, (void*)&SubSystemID, *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+
+        case DedicatedVideoMemory:
+        {
+            int k = 1;
+            uint64_t max = g_AdapterList[adapterIndex]->deviceinfo.pci->videoMem[0];
+
+            for (int i = 1; i < 4; i++)
+            {
+                if (g_AdapterList[adapterIndex]->deviceinfo.pci->videoMem[i] > max)
+                {
+                    max = g_AdapterList[adapterIndex]->deviceinfo.pci->videoMem[i];
+                    k = i;
+                }
+            }
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->videoMem[k]))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->videoMem[k]);
+                if (info != &g_AdapterList[adapterIndex]->deviceinfo.pci->videoMem[k])
+                {
+                    memcpy_s(info, infoSize, (void*)&g_AdapterList[adapterIndex]->deviceinfo.pci->videoMem[k], *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+        }
+        break;
+
+        case DedicatedSystemMemory:
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->systemMem[0]))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->systemMem[0]);
+                if (info != &g_AdapterList[adapterIndex]->deviceinfo.pci->systemMem[0])
+                {
+                    memcpy_s(info, infoSize, (void*)&g_AdapterList[adapterIndex]->deviceinfo.pci->systemMem[0], *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+
+        case SharedSystemMemory:
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->sharedMem[0]))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->sharedMem[0]);
+                if (info != &g_AdapterList[adapterIndex]->deviceinfo.pci->sharedMem[0])
+                {
+                    memcpy_s(info, infoSize, (void*)&g_AdapterList[adapterIndex]->deviceinfo.pci->sharedMem[1], *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+
+            ////////////////////// Hardware platform specific information need to pull from CM device//////////////////////
+        case MaxThread:
+            if (g_AdapterList[adapterIndex]->MaxThread == 0)
+                result = GetPlatformInfo(adapterIndex);
+
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->MaxThread))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->MaxThread);
+                if (info != &g_AdapterList[adapterIndex]->MaxThread)
+                {
+                    memcpy_s(info, infoSize, &g_AdapterList[adapterIndex]->MaxThread, *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+
+        case EuNumber:
+            if (g_AdapterList[adapterIndex]->MaxThread == 0)
+                result = GetPlatformInfo(adapterIndex);
+
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->EuNumber))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->EuNumber);
+                if (info != &g_AdapterList[adapterIndex]->EuNumber)
+                {
+                    memcpy_s(info, infoSize, &g_AdapterList[adapterIndex]->EuNumber, *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+
+        case TileNumber:
+            if (g_AdapterList[adapterIndex]->MaxThread == 0)
+                result = GetPlatformInfo(adapterIndex);
+
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->TileNumber))
+            {
+                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->TileNumber);
+                if (info != &g_AdapterList[adapterIndex]->TileNumber)
+                {
+                    memcpy_s(info, infoSize, &g_AdapterList[adapterIndex]->TileNumber, *OutInfoSize);
+                }
+                result = CM_SUCCESS;
+            }
+            else
+            {
+                result = CM_INVALID_ARG_VALUE;
+            }
+            break;
+
+        default:
+            // unknown Info name
+            result = CM_INVALID_ARG_VALUE;
+            break;
+        }
+    }
+    return result;
+}
 int32_t CmDevice_RT::Create(CmDevice_RT* &device, uint32_t createOption)
 {
     INSERT_PROFILER_RECORD();
@@ -112,7 +376,7 @@ int32_t CmDevice_RT::Create(CmDevice_RT* &device, uint32_t createOption)
 
     if (g_AdapterCount == 0 )
     {
-        result = GetSupportedRenderer(count);
+        result = GetSupportedAdapters(count);
     }
 
     if (g_supportedAdapterCount > 0)

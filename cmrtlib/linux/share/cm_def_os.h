@@ -251,6 +251,22 @@ typedef enum _VA_CM_FORMAT {
 //      Platform dependent definitions (End)
 ////////////////////////////////////////////////////////////////////////////////////
 
+typedef enum _AdapterInfoType
+{
+    Description,                    //    char Description[ 256 ];
+    VendorId,                       //    uint32_t VendorId;
+    DeviceId,                       //    uint32_t DeviceId;
+    SubSysId,                       //    uint32_t SubSysId;
+    Revision,                       //    uint32_t Revision;
+    DedicatedVideoMemory,           //    uint32_t DedicatedVideoMemory;
+    DedicatedSystemMemory,          //    uint32_t DedicatedSystemMemory;
+    SharedSystemMemory,             //    uint32_t SharedSystemMemory;
+    MaxThread,                      //    uint32_t hardware thread count
+    EuNumber,                       //    uint32_t EU count
+    TileNumber,                     //    uint32_t Tile count
+    Reserved                        //    uint32_t
+} AdapterInfoType;
+
 typedef enum _REGISTRATION_OP
 {
     REG_IGNORE          = 0,

@@ -33,7 +33,11 @@ class CmSurfaceManager;
 class CmDevice_RT : public CmDevice
 {
 public:
-    static int32_t GetSupportedRenderer(uint32_t &count);
+    static int32_t GetSupportedAdapters(uint32_t& count);
+    static int32_t CreateCmDeviceFromAdapter(CmDevice_RT*& pCmDev, int32_t adapterIndex, uint32_t createOption = 0);
+    static int32_t GetPlatformInfo(uint32_t adapterIndex);
+    static int32_t QueryAdapterInfo(uint32_t adapterIndex, AdapterInfoType infoName, void* info, uint32_t infoSize, uint32_t* outInfoSize);
+
     static int32_t Create( CmDevice_RT* &device, uint32_t createOption );
     static int32_t Destroy( CmDevice_RT* &device );
     static int32_t Create(VADisplay &vaDisplay, CmDevice_RT* &device,uint32_t createOption );

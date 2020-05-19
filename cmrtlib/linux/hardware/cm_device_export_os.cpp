@@ -43,44 +43,127 @@
 //! \retval     CM_FAILURE otherwise
 //!
 extern "C"
+CM_RT_API int32_t GetCmSupportedAdapters(uint32_t& count)
+{
+    INSERT_PROFILER_RECORD();
+    return CmDevice_RT::GetSupportedAdapters(count);
+}
+
+
+//!
+//! \brief      Creates CM Device according to user specified GPU adapter in hardware mode.
+//! \details    This API is supported from Cm 4.0. The DevCreateOption is supported
+//!
+//! \param      [out] pCmDev
+//!             Reference to the pointer to the CmDevice to be created
+//! \param      [out] version
+//!             Reference to CM API version supported by the runtime library
+//! \param      [in] adapterIndex
+//!             Specify an index number of the GPU adapter to use from the supported GPU adapter list
+//! \param      [in] DevCreateOption
+//!             Device creation option flag
+//! \retval     CM_SUCCESS if the CmDevice is successfully created.
+//! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory.
+//! \retval     CM_FAILURE otherwise.
+//!
+extern "C"
+CM_RT_API int32_t CreateCmDeviceFromAdapter(CmDevice* &pCmDev, uint32_t& version, int32_t adapterIndex, uint32_t CreateOption = 0)
+{
+    INSERT_PROFILER_RECORD();
+
+    int32_t result = CM_FAILURE;
+    uint32_t count = 0;
+    CmDevice_RT* pDev = nullptr;
+    if (GetCmSupportedAdapters(count) == CM_SUCCESS)
+    {
+        if (adapterIndex <= count)
+        {
+            result = CmDevice_RT::CreateCmDeviceFromAdapter(pDev, adapterIndex, CreateOption);
+
+            pCmDev = static_cast<CmDevice*>(pDev);
+            if (result == CM_SUCCESS)
+            {
+                version = CURRENT_CM_VERSION;
+            }
+            else
+            {
+                version = 0;
+            }
+        }
+        else
+        {
+            result = CM_INVALID_ARG_VALUE;
+        }
+    }
+    return result;
+}
+
+
+//!
+//! \brief      Creates CM Device for hardware mode in linux
+//! \details    Creates a CmDevice from scratch or creates a CmDevice based on the input
+//!             vaDisplay interface. If CmDevice is created from scratch, an
+//!             internal vaDisplay interface will be created by the runtime.
+//!             Creation of more than one CmDevice for concurrent use is supported.
+//!             The CM API version supported by the library will be returned
+//!             in parameter version.
+//! \param      [out] device
+//!             Reference to the pointer to the CmDevice to be created
+//! \param      [out] version
+//!             Reference to CM API version supported by the runtime library
+//! \param      [in] vaDisplay
+//!             Reference to a given VADisplay from vaInitialize if NOT nullptr
+//! \retval     CM_SUCCESS if device successfully created
+//! \retval     CM_OUT_OF_HOST_MEMORY if out of system memory
+//! \retval     CM_INVALID_LIBVA_INITIALIZE if vaInitialize failed
+//! \retval     CM_FAILURE otherwise
+//!
+extern "C"
 CM_RT_API int32_t CreateCmDevice(CmDevice* &device, uint32_t & version, VADisplay vaDisplay = nullptr)
 {
     INSERT_PROFILER_RECORD();
 
-    CmDevice_RT* p=NULL;
+    CmDevice_RT* pDev = nullptr;
     int32_t result = CM_FAILURE;
+    uint32_t count = 0;
 
-    if ( vaDisplay == nullptr)
+    if (GetCmSupportedAdapters(count) == CM_SUCCESS)
     {
-        result = CmDevice_RT::Create(p, CM_DEVICE_CREATE_OPTION_DEFAULT);
-    }
-    else
-    {
-        result = CmDevice_RT::Create(vaDisplay, p, CM_DEVICE_CREATE_OPTION_DEFAULT);
-    }
+        if (count > 0)
+        {
+            if (vaDisplay == nullptr)
+            {
+                result = CmDevice_RT::Create(pDev, CM_DEVICE_CREATE_OPTION_DEFAULT);
+            }
+            else
+            {
+                result = CmDevice_RT::Create(vaDisplay, pDev, CM_DEVICE_CREATE_OPTION_DEFAULT);
+            }
 
-    device = static_cast< CmDevice* >(p);
-    if( result == CM_SUCCESS )
-    {
-        version = CURRENT_CM_VERSION;
+            device = static_cast<CmDevice*>(pDev);
+            if (result == CM_SUCCESS)
+            {
+                version = CURRENT_CM_VERSION;
+            }
+            else
+            {
+                version = 0;
+            }
+        }
     }
-    else
-    {
-        version = 0;
-    }
-
     return result;
 }
 
+
 //!
 //! \brief      Creates CM Device according to user specified config for hardware mode in linux
-//! \details    This API is supported from Cm 4.0. The definition of DevCreateOption is described 
-//!             in below table. Scratch memory space is used to provide the memory for kernel's 
-//!             spill code per thread. If there is no spill code exists in kernel, it is wise to 
-//!             disable scratch space in device creation.The benefit is that video memory could 
-//!             be saved and the time spent on device creation could be shortened.The default 
-//!             scratch space size for HSW is 128K per hardware thread.If the kernel does not 
-//!             need such big memory, it is recommended that programmer to specify the 
+//! \details    This API is supported from Cm 4.0. The definition of DevCreateOption is described
+//!             in below table. Scratch memory space is used to provide the memory for kernel's
+//!             spill code per thread. If there is no spill code exists in kernel, it is wise to
+//!             disable scratch space in device creation.The benefit is that video memory could
+//!             be saved and the time spent on device creation could be shortened.The default
+//!             scratch space size for HSW is 128K per hardware thread.If the kernel does not
+//!             need such big memory, it is recommended that programmer to specify the
 //!             scratch space size which kernel actually need by setting the bits[1:3].\n
 //!       <table>
 //!             <TR>
@@ -212,19 +295,19 @@ CM_RT_API int32_t CreateCmDeviceEx(CmDevice* &device, uint32_t & version, VADisp
 {
     INSERT_PROFILER_RECORD();
 
-    CmDevice_RT* p=NULL;
+    CmDevice_RT* pDev = nullptr;
     int32_t result = CM_FAILURE;
 
     if ( vaDisplay == nullptr)
     {
-        result = CmDevice_RT::Create(p, createOption);
+        result = CmDevice_RT::Create(pDev, createOption);
     }
     else
     {
-        result = CmDevice_RT::Create(vaDisplay, p, createOption);
+        result = CmDevice_RT::Create(vaDisplay, pDev, createOption);
     }
 
-    device = static_cast< CmDevice* >(p);
+    device = static_cast< CmDevice* >(pDev);
     if( result == CM_SUCCESS )
     {
         version = CURRENT_CM_VERSION;
@@ -237,3 +320,38 @@ CM_RT_API int32_t CreateCmDeviceEx(CmDevice* &device, uint32_t & version, VADisp
     return result;
 }
 
+
+//!
+//! \brief      Query the GPU adapter information by adapter index from supported adapter list in hardware mode
+//! \details    This API is supported from Cm 4.0.  give caller a copy of requested GPU adapter hardware info.
+//!
+//! \param      [in] adapterIndex
+//!             Adapter index number from supported GPU adapter list
+//! \param      [in] infoName
+//!             Adapter hardware information type
+//! \param      [in/out] *info
+//!             pointer to info from caller to get a copy of specified adapter infomation content
+//!
+//! \param      [in] infoSize
+//!             provide the memroy size of the variable info from the caller
+//! \param      [out] OutInfoSize
+//!             pointer to caller provided variable to return actual memroy size of the returned information element
+//! \retval     CM_SUCCESS if the adapter exists
+//! \retval     CM_FAILURE otherwise.
+//!
+extern "C"
+CM_RT_API int32_t QueryCmAdapterInfo(uint32_t adapterIndex, AdapterInfoType infoName, void *info, uint32_t infoSize, uint32_t *OutInfoSize)
+{
+    INSERT_PROFILER_RECORD();
+    uint32_t count = 0;
+    int32_t result = CM_FAILURE;
+
+    if (GetCmSupportedAdapters(count) == CM_SUCCESS)
+    {
+        if (adapterIndex <= count)
+        {
+            result = CmDevice_RT::QueryAdapterInfo(adapterIndex, infoName, info, infoSize, OutInfoSize);
+        }
+    }
+    return result;
+}

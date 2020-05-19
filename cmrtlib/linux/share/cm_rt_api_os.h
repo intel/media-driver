@@ -194,6 +194,25 @@ private:
 };
 
 #endif /* __SURFACE_SAMPLER_INDEX_DEFINED__ */
+typedef enum _AdapterInfoType
+{
+    Description,                    //    char Description[ 256 ];
+    VendorId,                       //    uint32_t VendorId;
+    DeviceId,                       //    uint32_t DeviceId;
+    SubSysId,                       //    uint32_t SubSysId;
+    Revision,                       //    uint32_t Revision;
+    DedicatedVideoMemory,           //    uint32_t DedicatedVideoMemory;
+    DedicatedSystemMemory,          //    uint32_t DedicatedSystemMemory;
+    SharedSystemMemory,             //    uint32_t SharedSystemMemory;
+    MaxThread,                      //    uint32_t hardware thread count
+    EuNumber,                       //    uint32_t EU count
+    TileNumber,                     //    uint32_t Tile count
+    Reserved                        //    uint32_t
+} AdapterInfoType;
+
+EXTERN_C CM_RT_API int32_t GetCmSupportedAdapters(uint32_t& count);
+EXTERN_C CM_RT_API int32_t QueryCmAdapterInfo(uint32_t AdapterIndex, AdapterInfoType infoName, void *info, uint32_t infoSize, uint32_t *OutInfoSize);
+EXTERN_C CM_RT_API int32_t CreateCmDeviceFromAdapter(CmDevice* &pCmDev, uint32_t& version, uint32_t AdapterIndex, uint32_t DevCreateOption = 0);
 
 EXTERN_C CM_RT_API INT CreateCmDevice(CmDevice* &device, UINT& version, VADisplay vaDisplay = nullptr);
 EXTERN_C CM_RT_API INT CreateCmDeviceEx(CmDevice* &device, UINT& version, VADisplay vaDisplay, UINT DevCreateOption = CM_DEVICE_CREATE_OPTION_DEFAULT);
