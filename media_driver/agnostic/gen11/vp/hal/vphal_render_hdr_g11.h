@@ -77,7 +77,7 @@ public:
         uint16_t                            hdr3DLutSurfaceHeight;
     };
 
-    Hdr3DLutCmRender(uint32_t* kernelBinary, uint32_t kernelSize);
+    Hdr3DLutCmRender(uint32_t *kernelBinary, uint32_t kernelSize, CmContext *cmContext);
     Hdr3DLutCmRender(const Hdr3DLutCmRender&) = delete;
     Hdr3DLutCmRender& operator=(const Hdr3DLutCmRender&) = delete;
     virtual ~Hdr3DLutCmRender();
@@ -96,7 +96,7 @@ private:
 class Hdr3DLutGenerator
 {
 public:
-    explicit Hdr3DLutGenerator(PRENDERHAL_INTERFACE vphalRenderer, uint32_t* kernelBinary, uint32_t kernelSize);
+    explicit Hdr3DLutGenerator(PRENDERHAL_INTERFACE vphalRenderer, uint32_t *kernelBinary, uint32_t kernelSize);
     Hdr3DLutGenerator(const Hdr3DLutGenerator &) = delete;
     Hdr3DLutGenerator &operator=(const Hdr3DLutGenerator &) = delete;
     virtual ~Hdr3DLutGenerator();
@@ -118,6 +118,7 @@ private:
     Hdr3DLutCmRender                    *m_hdr3DLutCmRender    = nullptr;
     float                               *m_hdrcoefBuffer       = nullptr;
     uint8_t                             *m_hdr3DLutSysBuffer   = nullptr;
+    CmContext                           *m_cmContext           = nullptr;
 
     bool     m_bHdr3DLutInit            = false;
     uint32_t m_savedMaxDLL              = 1000;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,8 +34,8 @@
 const std::string DumpRoot("C:\\temp\\HVS\\");
 const std::string OutputDumpDirectory(DumpRoot + "Output\\");
 
-HVSDenoise::HVSDenoise(const PRENDERHAL_INTERFACE vphalRenderer, void *kernelBinary, int32_t kerneBinarySize):
-    VPCmRenderer("HVSDenoise"),
+HVSDenoise::HVSDenoise(const PRENDERHAL_INTERFACE vphalRenderer, void *kernelBinary, int32_t kerneBinarySize, CmContext *cmContext) :
+    VPCmRenderer("HVSDenoise", cmContext),
     m_cmProgram(nullptr),
     m_cmKernel(nullptr),
     m_payload(nullptr)
@@ -46,7 +46,8 @@ HVSDenoise::HVSDenoise(const PRENDERHAL_INTERFACE vphalRenderer, void *kernelBin
         VPHAL_RENDER_ASSERTMESSAGE("CM LoadProgram error\n");
     }
 
-    CmDevice *dev = CmContext::GetCmContext().GetCmDevice();
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(cmContext);
+    CmDevice *dev = cmContext->GetCmDevice();
     int result = dev->CreateKernel(m_cmProgram, _NAME(getDenoiseFactor), m_cmKernel);
     if (result != CM_SUCCESS)
     {
@@ -56,7 +57,8 @@ HVSDenoise::HVSDenoise(const PRENDERHAL_INTERFACE vphalRenderer, void *kernelBin
 
 HVSDenoise::~HVSDenoise()
 {
-    CmDevice *dev = CmContext::GetCmContext().GetCmDevice();  
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
+    CmDevice *dev = m_cmContext->GetCmDevice();  
     if (m_cmKernel)
     {
         dev->DestroyKernel(m_cmKernel);
@@ -132,7 +134,10 @@ VphalHVSDenoiser::VphalHVSDenoiser(PRENDERHAL_INTERFACE renderHal) :
     m_savedStrength(0),
     m_initHVSDenoise(false)
 {
-    m_eventManager = MOS_New(EventManager, "HVSEventManager");
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal->pOsInterface);
+    m_cmContext    = MOS_New(CmContext, m_renderHal->pOsInterface->pOsContext);
+    m_eventManager = MOS_New(EventManager, "HVSEventManager", m_cmContext);
     VPHAL_RENDER_NORMALMESSAGE("Constructor!");
 }
 
@@ -143,10 +148,11 @@ VphalHVSDenoiser::~VphalHVSDenoiser()
     MOS_Delete(m_eventManager);
     if (m_initHVSDenoise)
     {
-        CmContext::GetCmContext().DecRefCount();
+        VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
+        m_cmContext->DecRefCount();
         m_initHVSDenoise = false;
     }        
-
+    MOS_Delete(m_cmContext);
     VPHAL_RENDER_NORMALMESSAGE("Destructor!");
 }
 
@@ -160,7 +166,7 @@ void VphalHVSDenoiser::AllocateResouces(const uint32_t width, const uint32_t hei
 {
     uint32_t size         = width * height;
     
-    m_hvsDenoiseCmSurface = MOS_New(VpCmSurfaceHolder<CmBuffer>, size, 1, 1, GMM_FORMAT_A8_UNORM_TYPE);
+    m_hvsDenoiseCmSurface = MOS_New(VpCmSurfaceHolder<CmBuffer>, size, 1, 1, GMM_FORMAT_A8_UNORM_TYPE, m_cmContext);
     if (nullptr == m_hvsDenoiseCmSurface)
     {
         VPHAL_RENDER_NORMALMESSAGE("[0x%x] Failed to Allocate m_hvsDenoiseCmSurface(gpu memory) GMM_FORMAT_A8_UNORM_TYPE %d*%d!", this, width, height);
@@ -194,10 +200,10 @@ MOS_STATUS VphalHVSDenoiser::Render(const PVPHAL_SURFACE pSrcSuface)
 
     if (nullptr == m_hvsDenoise)
     {
-        CmContext::sOsContext = m_renderHal->pOsInterface->pOsContext;
-        CmContext::GetCmContext().AddRefCount();
+        VPHAL_RENDER_CHK_NULL_RETURN(m_cmContext);
+        m_cmContext->AddRefCount();
 
-        m_hvsDenoise = MOS_New(HVSDenoise, m_renderHal, m_kernelBinary, m_kernelBinarySize);
+        m_hvsDenoise = MOS_New(HVSDenoise, m_renderHal, m_kernelBinary, m_kernelBinarySize, m_cmContext);
         AllocateResouces(m_denoiseBufferInBytes, 1);
 
         m_initHVSDenoise = true;
@@ -212,10 +218,11 @@ MOS_STATUS VphalHVSDenoiser::Render(const PVPHAL_SURFACE pSrcSuface)
         denoisePayload.Strength                         = strength;
         denoisePayload.QP                               = qp;
 
-        CmContext::GetCmContext().ConnectEventListener(m_eventManager);
+        VPHAL_RENDER_CHK_NULL_RETURN(m_cmContext);
+        m_cmContext->ConnectEventListener(m_eventManager);
         m_hvsDenoise->Render(&denoisePayload);
-        CmContext::GetCmContext().FlushBatchTask(false);
-        CmContext::GetCmContext().ConnectEventListener(nullptr);
+        m_cmContext->FlushBatchTask(false);
+        m_cmContext->ConnectEventListener(nullptr);
          
         m_hvsDenoiseCmSurface->GetCmSurface()->ReadSurface((uint8_t *)m_hvsDenoiseParam, nullptr, m_denoiseBufferInBytes);
 
