@@ -204,6 +204,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
             }
         case Media_Format_RGBP:
         case Media_Format_BGRP:
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
+            {
+                tileformat = I915_TILING_NONE;
+                break;
+            }
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER) &&
