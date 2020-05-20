@@ -36,10 +36,7 @@ CodechalMmcEncodeMpeg2G12::CodechalMmcEncodeMpeg2G12(
     m_mpeg2State = (CodechalEncodeMpeg2 *)standardState;
     CODECHAL_HW_ASSERT(m_mpeg2State);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    m_compressibleId = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;
-    m_compressModeId = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;
-#endif
+    InitEncodeMmcEnable(hwInterface);
 }
 
 MOS_STATUS CodechalMmcEncodeMpeg2G12::SetPipeBufAddr(
@@ -54,10 +51,13 @@ MOS_STATUS CodechalMmcEncodeMpeg2G12::SetPipeBufAddr(
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
             &m_mpeg2State->m_reconSurface.OsResource, &pipeBufAddrParams->PreDeblockSurfMmcState));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
+            &m_mpeg2State->m_rawSurface.OsResource, &pipeBufAddrParams->RawSurfMmcState));
     }
     else
     {
         pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+        pipeBufAddrParams->RawSurfMmcState        = MOS_MEMCOMP_DISABLED;
     }
     pipeBufAddrParams->PostDeblockSurfMmcState = pipeBufAddrParams->PreDeblockSurfMmcState;
 
