@@ -844,12 +844,10 @@ MOS_STATUS XRenderHal_Interface_g12::IsRenderHalMMCEnabled(
     UserFeatureData.bData       = true; // init as default value to enable MMCD on Gen12LP
 #endif
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
         &UserFeatureData));
-#endif
 
     m_renderHalMMCEnabled = UserFeatureData.bData && MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrE2ECompression);
     pRenderHal->isMMCEnabled = m_renderHalMMCEnabled;
