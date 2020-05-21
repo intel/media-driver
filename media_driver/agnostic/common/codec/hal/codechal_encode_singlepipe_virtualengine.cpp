@@ -50,7 +50,7 @@ MOS_STATUS CodecHalEncodeSinglePipeVE_ConstructParmsForGpuCtxCreation(
     if (pOsInterface->bEnableDbgOvrdInVE)
     {
         gpuCtxCreatOpts->DebugOverride      = true;
-        if (g_apoMosEnabled)
+        if (pOsInterface->apoMosEnabled)
         {
             CODECHAL_ENCODE_CHK_NULL_RETURN(pVEInterface->veInterface);
             CODECHAL_ENCODE_ASSERT(pVEInterface->veInterface->GetEngineCount() == 1);

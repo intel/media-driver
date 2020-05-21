@@ -504,6 +504,7 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
     mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
+    mosCtx.m_apoMosEnabled       = mediaCtx->m_apoMosEnabled;
 
     if (nullptr == mosCtx.pPerfData)
     {

@@ -450,7 +450,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams_G12(
     {
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
         {
-            if (g_apoMosEnabled)
+            if (pOsInterface->apoMosEnabled)
             {
                 CODECHAL_DECODE_CHK_NULL(pVEInterface->veInterface);
                 pScalabilityState->ucScalablePipeNum = pVEInterface->veInterface->GetEngineCount() - 1;
@@ -1552,14 +1552,16 @@ MOS_STATUS CodechalDecodeScalability_DebugOvrdDecidePipeNum_G12(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalState)
 {
     PMOS_VIRTUALENGINE_INTERFACE pVEInterface;
-    MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
-
+    MOS_STATUS                   eStatus        = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE               pOsInterface   = nullptr;
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState);
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pVEInterface);
 
     pVEInterface = pScalState->pVEInterface;
+    pOsInterface = pVEInterface->pOsInterface;
+    CODECHAL_DECODE_CHK_NULL_RETURN(pOsInterface);
 
-    if (g_apoMosEnabled)
+    if (pOsInterface->apoMosEnabled)
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
         auto veInterface = pVEInterface->veInterface;

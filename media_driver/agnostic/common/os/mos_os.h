@@ -719,6 +719,8 @@ typedef struct _MOS_INTERFACE
     int32_t                         bTriggerVPHang;                               //!< trigger GPU HANG in VP
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
+    bool                            apoMosEnabled;                                //!< apo mos or not
+
     MEMORY_OBJECT_CONTROL_STATE (* pfnCachePolicyGetMemoryObject) (
         MOS_HW_RESOURCE_DEF         Usage,
         GMM_CLIENT_CONTEXT          *pGmmClientContext);

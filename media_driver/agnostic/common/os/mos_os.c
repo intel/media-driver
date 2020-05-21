@@ -34,9 +34,6 @@
 #include "mos_util_user_interface.h"
 #include "mos_interface.h"
 
-int16_t  g_apoMosFlagInited = 0;
-uint32_t g_apoMosEnabled = 0;
-
 PerfUtility* g_perfutility = PerfUtility::getInstance();
 
 AutoPerfUtility::AutoPerfUtility(std::string tag, std::string comp, std::string level)
@@ -78,45 +75,7 @@ MOS_STATUS Mos_AddCommand(
     const void              *pCmd,
     uint32_t                dwCmdSize)
 {
-    uint32_t dwCmdSizeDwAligned = 0;
-
-    if (g_apoMosEnabled)
-    {
-        return MosInterface::AddCommand(pCmdBuffer, pCmd, dwCmdSize);
-    }
-
-    //---------------------------------------------
-    MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
-    MOS_OS_CHK_NULL_RETURN(pCmd);
-    //---------------------------------------------
-
-    if (dwCmdSize == 0)
-    {
-        MOS_OS_ASSERTMESSAGE("Incorrect command size to add to command buffer.");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    dwCmdSizeDwAligned = MOS_ALIGN_CEIL(dwCmdSize, sizeof(uint32_t));
-
-    pCmdBuffer->iOffset    += dwCmdSizeDwAligned;
-    pCmdBuffer->iRemaining -= dwCmdSizeDwAligned;
-
-    if (pCmdBuffer->iRemaining < 0)
-    {
-        pCmdBuffer->iOffset    -= dwCmdSizeDwAligned;
-        pCmdBuffer->iRemaining += dwCmdSizeDwAligned;
-        MOS_OS_ASSERTMESSAGE("Unable to add command: remaining space = %d, command size = %d.",
-                            pCmdBuffer->iRemaining, dwCmdSizeDwAligned);
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    MOS_OS_VERBOSEMESSAGE("The command was successfully added: remaining space = %d, buffer size = %d.",
-                        pCmdBuffer->iRemaining, pCmdBuffer->iOffset + pCmdBuffer->iRemaining);
-
-    MOS_SecureMemcpy(pCmdBuffer->pCmdPtr, dwCmdSize, pCmd, dwCmdSize);
-    pCmdBuffer->pCmdPtr += (dwCmdSizeDwAligned / sizeof(uint32_t));
-
-    return MOS_STATUS_SUCCESS;
+    return MosInterface::AddCommand(pCmdBuffer, pCmd, dwCmdSize);
 }
 
 //!
@@ -405,7 +364,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pCmdBuffer);
 
-    if (g_apoMosEnabled)
+    if (pOsInterface->apoMosEnabled)
     {
         return MosInterface::DumpCommandBuffer(pOsInterface->osStreamState, pCmdBuffer);
     }
@@ -781,7 +740,7 @@ MOS_STATUS Mos_InitInterface(
         1);
 
     // Apo wrapper
-    if (g_apoMosEnabled && !pOsInterface->streamStateIniter)
+    if (pOsInterface->apoMosEnabled && !pOsInterface->streamStateIniter)
     {
         pOsInterface->osStreamState->component                = pOsInterface->Component;
         pOsInterface->osStreamState->currentGpuContextHandle  = pOsInterface->CurrentGpuContextHandle;
@@ -807,7 +766,7 @@ MOS_STATUS Mos_InitInterface(
         pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
     }
 
-    if (g_apoMosEnabled)
+    if (pOsInterface->apoMosEnabled)
     {
         pOsInterface->osStreamState->osCpInterface = pOsInterface->osCpInterface;
     }
@@ -1075,7 +1034,7 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
         osInterface->multiNodeScaling = osInterface->ctxBasedScheduling && MEDIA_IS_SKU(skuTable, FtrVcs2) ? true : false;
     }
 
-    if (g_apoMosEnabled)
+    if (osInterface->apoMosEnabled)
     {
         // Update ctx based scheduling flag also in APO MOS stream state
         MOS_OS_CHK_NULL_RETURN(osInterface->osStreamState);

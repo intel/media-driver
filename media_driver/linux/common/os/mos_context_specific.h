@@ -445,5 +445,6 @@ private:
 
     GpuContextMgr      *m_gpuContextMgr = nullptr;
     CmdBufMgr          *m_cmdBufMgr = nullptr;
+    bool                m_apoMosEnabled = false;
 };
 #endif // #ifndef __MOS_CONTEXT_SPECIFIC_H__

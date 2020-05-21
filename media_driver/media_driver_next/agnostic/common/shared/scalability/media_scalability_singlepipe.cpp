@@ -49,7 +49,7 @@ MOS_STATUS MediaScalabilitySinglePipe::Initialize(const MediaScalabilityOption &
         MOS_ZeroMemory(&VEInitParams, sizeof(VEInitParams));
         VEInitParams.bScalabilitySupported = false;
 
-        if (g_apoMosEnabled)
+        if (m_osInterface->apoMosEnabled)
         {
             SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
             SCALABILITY_CHK_STATUS_RETURN(MosInterface::CreateVirtualEngineState(
@@ -81,7 +81,7 @@ MOS_STATUS MediaScalabilitySinglePipe::Initialize(const MediaScalabilityOption &
     if (m_osInterface->bEnableDbgOvrdInVE)
     {
         gpuCtxCreateOption->DebugOverride = true;
-        if (g_apoMosEnabled)
+        if (m_osInterface->apoMosEnabled)
         {
             SCALABILITY_ASSERT(MosInterface::GetVeEngineCount(m_osInterface->osStreamState) == 1);
             gpuCtxCreateOption->EngineInstance[0] = MosInterface::GetEngineLogicId(m_osInterface->osStreamState, 0);
@@ -176,7 +176,7 @@ MOS_STATUS MediaScalabilitySinglePipe::SetHintParams()
     SCALABILITY_FUNCTION_ENTER;
 
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
-    if (g_apoMosEnabled)
+    if (m_osInterface->apoMosEnabled)
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
     }
@@ -200,7 +200,7 @@ MOS_STATUS MediaScalabilitySinglePipe::SetHintParams()
         veParams.bSFCInUse                   = false;
     }
 
-    if (g_apoMosEnabled)
+    if (m_osInterface->apoMosEnabled)
     {
         SCALABILITY_CHK_STATUS_RETURN(MosInterface::SetVeHintParams(m_osInterface->osStreamState, &veParams));
     }

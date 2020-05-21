@@ -354,6 +354,7 @@ public:
     //! \brief    Add Command
     //! \details  [Cmd Buffer Interface] Add gpu commands into cmd buffer
     //! \details  Caller: MHW only
+    //! \details  It is not device stated function and can be used in both APO MHW and NON-APO MOS.
     //! \details  This func is called when a stream (Hal instance) adds gpu cmds into cmd buffer.
     //! \details  Before getting a cmd buffer to program GPU cmds, a valid GPU context must be setted into the stream.
     //! \details  Calling sequence is like: SetGpuContext -> GetCommandBuffer -> AddCommand ...
@@ -701,6 +702,7 @@ public:
     //! \brief    Convert Resource From Ddi
     //! \details  [Resource Interface] Convert Resource structure From OS/API specific to MOS reource.
     //! \details  Caller: DDI only
+    //! \details  It is not device stated function and can be used in both APO DDI and NON-APO MOS.
     //! \details  MOS resoure is the structure inside MOS module. DDI specific resource depends on OS/API verison.
     //!           DDI call this to convert external resources (not created by hal) to Mos resources so that HAL & MHW can use them.
     //!
@@ -738,13 +740,14 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS CreateOsSpecificResourceInfo(OsSpecificRes resource, bool isInternal = false);
-    
+
     //!
     //! \brief    Destroy Os Specific Resource Info
     //! \details  [Resource Interface] Destroy OS/API specific resource structure.
     //! \details  Caller: DDI only
+    //! \details  It is not device stated function and can be used in both APO DDI and NON-APO MOS.
     //! \details  Os Specific resource info must be destroied if the resource is not used anymore.
-    //!           
+    //!
     //! \param    [in, out] resource
     //!           OS/API specific resource structure to initialize.
     //!
@@ -752,7 +755,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS DestroySpecificResourceInfo(OsSpecificRes resource);
-        
+
     //!
     //! \brief    Allocate Resource
     //! \details  [Resource Interface] Allocate a graphic resource.
@@ -953,6 +956,7 @@ public:
     //! \brief    Skip Resource Sync
     //! \details  [Resource Interface] Skip the sync handling of the resource 
     //! \details  Caller: HAL only
+    //! \details  It is not device stated function and can be used in both APO HAL and NON-APO MOS.
     //! \details  Indicate the resource provided needn't to be synced. 
     //!           The resource skipping sync can be accessed by different cmd buffers on different GPU contexts at the same time.
     //! \details  RegisterResource and LockResource will not handling the sync of the resources between different GPU cotnexts.

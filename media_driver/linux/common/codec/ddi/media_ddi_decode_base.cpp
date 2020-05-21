@@ -1182,7 +1182,7 @@ VAStatus DdiMediaDecode::CreateCodecHal(
     }
 
 #ifdef _MMC_SUPPORTED
-    if (!g_apoMosEnabled                                                             &&
+    if (!osInterface->apoMosEnabled                                                  &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
         !mediaCtx->pMediaMemDecompState)
     {

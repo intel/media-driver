@@ -1300,10 +1300,13 @@ MOS_STATUS CodechalDecodeScalability_DebugOvrdDecidePipeNum(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState);
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pVEInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface);
 
     pVEInterface = pScalState->pVEInterface;
+    PMOS_INTERFACE pOsInterface = pScalState->pHwInterface->GetOsInterface();
+    CODECHAL_DECODE_CHK_NULL_RETURN(pOsInterface);
 
-    if (g_apoMosEnabled)
+    if (pOsInterface->apoMosEnabled)
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
         auto veInterface = pVEInterface->veInterface;
@@ -1395,7 +1398,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
         }
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDebugOvrdDecidePipeNum(pScalState));
 
-        if (g_apoMosEnabled)
+        if (pOsInterface->apoMosEnabled)
         {
             CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
             for (uint32_t i = 0; i < pVEInterface->veInterface->GetEngineCount(); i++)
@@ -1481,7 +1484,7 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     {
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
         {
-            if (g_apoMosEnabled)
+            if (pOsInterface->apoMosEnabled)
             {
                 CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
                 pScalabilityState->ucScalablePipeNum = pVEInterface->veInterface->GetEngineCount() - 1;

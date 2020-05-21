@@ -291,6 +291,7 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
 
     mosCtx.m_osDeviceContext     = mediaDrvCtx->m_osDeviceContext;
+    mosCtx.m_apoMosEnabled       = mediaDrvCtx->m_apoMosEnabled;
 
     if (nullptr == mosCtx.pPerfData)
     {
@@ -377,8 +378,8 @@ VAStatus DdiEncode_CreateContext(
 
 #ifdef _MMC_SUPPORTED
     PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
-    if (!g_apoMosEnabled                                                             &&
-        osInterface != nullptr                                                       &&
+    if (osInterface != nullptr                                                       &&
+        !osInterface->apoMosEnabled                                                  &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
         !mediaDrvCtx->pMediaMemDecompState)
     {

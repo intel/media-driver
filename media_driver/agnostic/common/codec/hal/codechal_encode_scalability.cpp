@@ -101,7 +101,7 @@ MOS_STATUS CodechalEncodeScalability_ConstructParmsForGpuCtxCreation(
 
         CODECHAL_ENCODE_CHK_NULL_RETURN(pVEInterface);
         gpuCtxCreatOpts->DebugOverride      = true;
-        if (g_apoMosEnabled)
+        if (pOsInterface->apoMosEnabled)
         {
             CODECHAL_ENCODE_CHK_NULL_RETURN(pVEInterface->veInterface);
             for (uint32_t i = 0; i < pVEInterface->veInterface->GetEngineCount(); i++)

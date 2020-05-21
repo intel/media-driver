@@ -885,7 +885,7 @@ static void DdiMedia_FreeContextHeapElements(VADriverContextP    ctx)
         DdiMedia_FreeContextHeap(ctx, mfeContextHeap, DDI_MEDIA_VACONTEXTID_OFFSET_MFE, mfeCtxNums);
 
     // Free media memory decompression data structure
-    if (!g_apoMosEnabled && mediaCtx->pMediaMemDecompState)
+    if (!mediaCtx->m_apoMosEnabled && mediaCtx->pMediaMemDecompState)
     {
         MediaMemDecompBaseState *mediaMemCompState =
             static_cast<MediaMemDecompBaseState*>(mediaCtx->pMediaMemDecompState);
@@ -1032,7 +1032,7 @@ void DdiMedia_MediaMemoryDecompressInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE o
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
-    if(g_apoMosEnabled && !mediaMemDecompState)
+    if (mosCtx->m_apoMosEnabled && !mediaMemDecompState)
     {
         DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
     }
@@ -1075,7 +1075,7 @@ void DdiMedia_MediaMemoryCopyInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE inputOs
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
-    if (g_apoMosEnabled && !mediaMemDecompState)
+    if (mosCtx->m_apoMosEnabled && !mediaMemDecompState)
     {
         DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
     }
@@ -1126,7 +1126,7 @@ void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE input
 
     MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
 
-    if (g_apoMosEnabled && !mediaMemDecompState)
+    if (mosCtx->m_apoMosEnabled && !mediaMemDecompState)
     {
         DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", );
     }
@@ -1212,6 +1212,7 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
         mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
+        mosCtx.m_apoMosEnabled       = mediaCtx->m_apoMosEnabled;
 
         pCpDdiInterface = Create_DdiCpInterface(mosCtx);
 
@@ -1505,10 +1506,8 @@ VAStatus DdiMedia__Initialize (
     ctx->pDriverData = (void *)mediaCtx;
     mediaCtx->fd     = devicefd;
 
-    SetupApoMosSwitch(devicefd);
-    mediaCtx->apoMosEnabled = g_apoMosEnabled;
+    mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd);
 
-    // LoadCPLib after mediaCtx->apoMosEnabled is set correctly. cp lib init would use it.
     mediaCtx->cpLibWasLoaded = CPLibUtils::LoadCPLib(ctx);
     if (!mediaCtx->cpLibWasLoaded)
     {
@@ -1522,7 +1521,7 @@ VAStatus DdiMedia__Initialize (
 #endif
     mediaCtx->modularizedGpuCtxEnabled = true;
 
-    if (g_apoMosEnabled)
+    if (mediaCtx->m_apoMosEnabled)
     {
         MosUtilities::MosUtilitiesInit();
 
@@ -1535,6 +1534,7 @@ VAStatus DdiMedia__Initialize (
 
         MOS_CONTEXT mosCtx                  = {};
         mosCtx.fd                           = mediaCtx->fd;
+        mosCtx.m_apoMosEnabled              = mediaCtx->m_apoMosEnabled;
         if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
         {
             DDI_ASSERTMESSAGE("Unable to create MOS device context.");
@@ -1884,7 +1884,7 @@ static VAStatus DdiMedia_Terminate (
 
     DdiMedia_HeapDestroy(mediaCtx);
 
-    if (g_apoMosEnabled)
+    if (mediaCtx->m_apoMosEnabled)
     {
         MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
         mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;

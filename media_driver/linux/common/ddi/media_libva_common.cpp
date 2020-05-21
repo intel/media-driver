@@ -53,155 +53,11 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
     DDI_CHK_NULL(mosResource, "nullptr mosResource",);
     DDI_ASSERT(mosResource->bo);
 
-    if (g_apoMosEnabled)
-    {
-        MosInterface::ConvertResourceFromDdi(mediaSurface, mosResource, OS_SPECIFIC_RESOURCE_SURFACE, 0);
-        return;
-    }
-
-    switch (mediaSurface->format)
-    {
-        case Media_Format_NV12:
-            mosResource->Format    = Format_NV12;
-            break;
-        case Media_Format_NV21:
-            mosResource->Format    = Format_NV21;
-            break;
-        case Media_Format_YUY2:
-            mosResource->Format    = Format_YUY2;
-            break;
-        case Media_Format_X8R8G8B8:
-            mosResource->Format    = Format_X8R8G8B8;
-            break;
-        case Media_Format_X8B8G8R8:
-            mosResource->Format    = Format_X8B8G8R8;
-            break;
-        case Media_Format_A8B8G8R8:
-        case Media_Format_R8G8B8A8:
-            mosResource->Format    = Format_A8B8G8R8;
-            break;
-        case Media_Format_A8R8G8B8:
-            mosResource->Format    = Format_A8R8G8B8;
-            break;
-        case Media_Format_R5G6B5:
-            mosResource->Format    = Format_R5G6B5;
-            break;
-        case Media_Format_R8G8B8:
-            mosResource->Format    = Format_R8G8B8;
-            break;
-        case Media_Format_RGBP:
-            mosResource->Format    = Format_RGBP;
-            break;
-        case Media_Format_BGRP:
-            mosResource->Format    = Format_BGRP;
-            break;
-        case Media_Format_444P:
-            mosResource->Format    = Format_444P;
-            break;
-        case Media_Format_411P:
-            mosResource->Format    = Format_411P;
-            break;
-        case Media_Format_IMC3:
-            mosResource->Format    = Format_IMC3;
-            break;
-        case Media_Format_400P:
-            mosResource->Format    = Format_400P;
-            break;
-        case Media_Format_422H:
-            mosResource->Format    = Format_422H;
-            break;
-        case Media_Format_422V:
-            mosResource->Format    = Format_422V;
-            break;
-        case Media_Format_Buffer:
-            mosResource->Format    = Format_Any;
-        case Media_Format_P010:
-            mosResource->Format    = Format_P010;
-            break;
-        case Media_Format_P016:
-            mosResource->Format    = Format_P016;
-            break;
-        case Media_Format_Y210:
-            mosResource->Format    = Format_Y210;
-            break;
-        case Media_Format_Y216:
-            mosResource->Format    = Format_Y216;
-            break;
-        case Media_Format_AYUV:
-            mosResource->Format    = Format_AYUV;
-            break;
-        case Media_Format_Y410:
-            mosResource->Format    = Format_Y410;
-            break;
-        case Media_Format_Y416:
-            mosResource->Format    = Format_Y416;
-            break;
-        case Media_Format_Y8:
-            mosResource->Format    = Format_Y8;
-            break;
-        case Media_Format_Y16S:
-            mosResource->Format    = Format_Y16S;
-            break;
-        case Media_Format_Y16U:
-            mosResource->Format    = Format_Y16U;
-            break;
-        case Media_Format_R10G10B10A2:
-        case Media_Format_R10G10B10X2:
-            mosResource->Format    = Format_R10G10B10A2;
-            break;
-        case Media_Format_B10G10R10A2:
-        case Media_Format_B10G10R10X2:
-            mosResource->Format    = Format_B10G10R10A2;
-            break;
-        case Media_Format_UYVY:
-            mosResource->Format    = Format_UYVY;
-            break;
-        case Media_Format_VYUY:
-            mosResource->Format    = Format_VYUY;
-            break;
-        case Media_Format_YVYU:
-            mosResource->Format    = Format_YVYU;
-            break;
-        case Media_Format_A16R16G16B16:
-            mosResource->Format    = Format_A16R16G16B16;
-            break;
-        case Media_Format_A16B16G16R16:
-            mosResource->Format    = Format_A16B16G16R16;
-            break;
-        default:
-            DDI_ASSERTMESSAGE("DDI: unsupported media format for surface.");
-            break;
-    }
-    mosResource->iWidth    = mediaSurface->iWidth;
-    mosResource->iHeight   = mediaSurface->iHeight;
-    mosResource->iPitch    = mediaSurface->iPitch;
-    mosResource->iCount    = mediaSurface->iRefCount;
-    mosResource->isTiled   = mediaSurface->isTiled;
-    mosResource->TileType  = LinuxToMosTileType(mediaSurface->TileType);
-    mosResource->bo        = mediaSurface->bo;
-    mosResource->name      = mediaSurface->name;
-
-    mosResource->ppCurrentFrameSemaphore   = &mediaSurface->pCurrentFrameSemaphore;
-    mosResource->ppReferenceFrameSemaphore = &mediaSurface->pReferenceFrameSemaphore;
-    mosResource->bSemInitialized           = false;
-    mosResource->bMapped                   = false;
-
-    if(mediaSurface->bMapped == true)
-    {
-        mosResource->pData     = mediaSurface->pData;
-    }
-    else
-    {
-        mosResource->pData     = nullptr;
-    }
-    mosResource->pGmmResInfo   = mediaSurface->pGmmResourceInfo;
-    mosResource->dwGfxAddress  = 0;
-
-    // for MOS wrapper
-    mosResource->bConvertedFromDDIResource = true;
+    MosInterface::ConvertResourceFromDdi(mediaSurface, mosResource, OS_SPECIFIC_RESOURCE_SURFACE, 0);
 
     Mos_Solo_SetOsResource(mediaSurface->pGmmResourceInfo, mosResource);
 
+    return;
 }
 
 void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOURCE *mosResource)
@@ -210,63 +66,11 @@ void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOUR
     DDI_CHK_NULL(mosResource, "nullptr mosResource",);
     DDI_ASSERT(mediaBuffer->bo);
 
-    if (g_apoMosEnabled)
-    {
-        MosInterface::ConvertResourceFromDdi(mediaBuffer, mosResource, OS_SPECIFIC_RESOURCE_BUFFER, 0);
-        return;
-    }
-
-    switch (mediaBuffer->format)
-    {
-        case Media_Format_Buffer:
-            mosResource->Format  = Format_Buffer;
-            mosResource->iWidth    = mediaBuffer->iSize;
-            mosResource->iHeight   = 1;
-            mosResource->iPitch    = mediaBuffer->iSize;
-            break;
-        case Media_Format_Perf_Buffer:
-            mosResource->Format  = Format_Buffer;
-            mosResource->iWidth    = mediaBuffer->iSize;
-            mosResource->iHeight   = 1;
-            mosResource->iPitch    = mediaBuffer->iSize;
-            break;
-        case Media_Format_2DBuffer:
-            mosResource->Format  = Format_Buffer_2D;
-            mosResource->iWidth    = mediaBuffer->uiWidth;
-            mosResource->iHeight   = mediaBuffer->uiHeight;
-            mosResource->iPitch    = mediaBuffer->uiPitch;
-            break;
-        case Media_Format_CPU:
-            return;
-        default:
-            mosResource->iWidth    = mediaBuffer->iSize;
-            mosResource->iHeight   = 1;
-            mosResource->iPitch    = mediaBuffer->iSize;
-            DDI_ASSERTMESSAGE("DDI: unsupported media format for surface.");
-            break;
-    }
-    mosResource->iCount    = mediaBuffer->iRefCount;
-    mosResource->isTiled   = 0;
-    mosResource->TileType  = LinuxToMosTileType(mediaBuffer->TileType);
-    mosResource->bo        = mediaBuffer->bo;
-    mosResource->name      = mediaBuffer->name;
-    mosResource->bMapped   = false;
-
-    if(mediaBuffer->bMapped == true)
-    {
-        mosResource->pData     = mediaBuffer->pData;
-    }
-    else
-    {
-        mosResource->pData     = nullptr;
-    }
-    mosResource->dwGfxAddress  = 0;
-    mosResource->pGmmResInfo   = mediaBuffer->pGmmResourceInfo;
-
-    // for MOS wrapper
-    mosResource->bConvertedFromDDIResource = true;
+    MosInterface::ConvertResourceFromDdi(mediaBuffer, mosResource, OS_SPECIFIC_RESOURCE_BUFFER, 0);
 
     Mos_Solo_SetOsResource(mediaBuffer->pGmmResourceInfo, mosResource);
+
+    return;
 }
 
 void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID, uint32_t *ctxType)

@@ -863,6 +863,12 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         case Media_Format_R8G8B8:
             resource->Format = Format_R8G8B8;
             break;
+        case Media_Format_RGBP:
+            resource->Format = Format_RGBP;
+            break;
+        case Media_Format_BGRP:
+            resource->Format = Format_BGRP;
+            break;
         case Media_Format_444P:
             resource->Format = Format_444P;
             break;

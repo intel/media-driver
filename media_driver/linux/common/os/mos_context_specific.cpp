@@ -392,7 +392,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_OS_ASSERT(false);
             return MOS_STATUS_INVALID_HANDLE;
         }
-    
+        m_apoMosEnabled = pOsDriverContext->m_apoMosEnabled;
         m_bufmgr        = pOsDriverContext->bufmgr;
         m_gpuContextMgr = static_cast<GpuContextMgr *>(pOsDriverContext->m_gpuContextMgr);
         m_cmdBufMgr     = static_cast<CmdBufMgr *>(pOsDriverContext->m_cmdBufMgr);
@@ -551,7 +551,7 @@ void OsContextSpecific::Destroy()
     if (GetOsContextValid() == true)
     {
         // APO MOS will destory each stream's GPU context at different place
-        if (!g_apoMosEnabled)
+        if (!m_apoMosEnabled)
         {
             for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
             {

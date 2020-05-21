@@ -91,7 +91,7 @@ MediaContext::~MediaContext()
 
         if (curAttribute.gpuContext != MOS_GPU_CONTEXT_INVALID_HANDLE)
         {
-            if (g_apoMosEnabled)
+            if (m_osInterface->apoMosEnabled)
             {
                 auto status = MosInterface::DestroyGpuContext(m_osInterface->osStreamState, curAttribute.gpuContext);
 
@@ -212,7 +212,7 @@ MOS_STATUS MediaContext::SearchContextAttributeTable(MediaFunction func, Scalabi
                 MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContextHandle(m_osInterface, curAttribute.gpuContext, curAttribute.ctxForLegacyMos));
                 // set legacy MOS ve interface to current reused scalability state's ve interface
                 m_osInterface->pVEInterf = curAttribute.scalabilityState->m_veInterface;
-                if (g_apoMosEnabled)
+                if (m_osInterface->apoMosEnabled)
                 {
                     MOS_OS_CHK_NULL_RETURN(curAttribute.scalabilityState->m_veState);
                     MOS_OS_CHK_STATUS_RETURN(MosInterface::SetVirtualEngineState(
