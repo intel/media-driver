@@ -29,7 +29,7 @@ set(_os_release_info TRUE)
 # of the local cmake environment.
 
 # Set cmake policies for at least this level:
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 
 
 # Function get_os_release_info - Determine and return OS name and version

@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(BUILD_ALL $ENV{BUILD_ALL})
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 project(CM_RT)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux)
 
