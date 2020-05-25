@@ -176,6 +176,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
          -Wno-deprecated
          -Wno-missing-braces
          -Wno-overloaded-virtual
+         -Wbitfield-constant-conversion
         )
     list(REMOVE_ITEM MEDIA_COMPILER_FLAGS_COMMON
          -funswitch-loops
