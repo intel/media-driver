@@ -52,7 +52,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -funswitch-loops
     -fno-short-enums
     -Wa,--noexecstack
-    -fno-strict-aliasing
 
     # Common defines
     -DUSE_MMX
