@@ -428,7 +428,7 @@ protected:
     //!           Pointer to chroma sampling params of Vebox
     //! \return   void
     //!
-    void SetupChromaSampling(
+    virtual void SetupChromaSampling(
         PMHW_VEBOX_CHROMA_SAMPLING    pChromaSampling);
 
     virtual VphalSfcState* CreateSfcState();
