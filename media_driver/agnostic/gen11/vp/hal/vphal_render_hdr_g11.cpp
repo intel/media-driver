@@ -34,7 +34,7 @@ static const std::string OutputDumpDirectory(DumpRoot + "Output\\");
 static const std::string Hdr3DLutKernelName("hdr_3dlut");
 
 static const bool enableDump        = false;
-static const int32_t lutWidth       = 65;
+static const int32_t lutWidth       = 65*2;
 static const int32_t lutHeight      = 65 * 128;
 
 static const float ccm_identity[12] = { 1.0f, 0.0f, 0.0f, 0.0f,
@@ -292,7 +292,7 @@ Hdr3DLutGenerator::Hdr3DLutGenerator(PRENDERHAL_INTERFACE renderHal, uint32_t *k
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal);
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_renderHal->pOsInterface);
     m_cmContext    = MOS_New(CmContext, m_renderHal->pOsInterface->pOsContext);
-    m_eventManager = MOS_New(EventManager, "EventManager", m_cmContext);
+
     VPHAL_RENDER_NORMALMESSAGE("Hdr3DLutGenerator Constructor!");
 
     m_kernelBinary = kernelBinary;
@@ -308,26 +308,29 @@ Hdr3DLutGenerator::~Hdr3DLutGenerator()
     MOS_Delete(m_eventManager);
 
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
-    m_cmContext->DecRefCount();
+    if (m_bHdr3DLutInit)
+    {
+        m_cmContext->DecRefCount();
+    }
     MOS_Delete(m_cmContext);
 
-    m_bHdr3DLutInit = false;    
+    m_bHdr3DLutInit = false;
 
     VPHAL_RENDER_NORMALMESSAGE("Hdr3DLutGenerator Destructor!");
 }
 
 void Hdr3DLutGenerator::AllocateResources()
-{    
+{
     const int32_t coefWidth     = 8;
     const int32_t coefHeight    = 8;
-    const int32_t lutWidth      = 65;
+    const int32_t lutWidth      = 65*2;
     const int32_t lutHeight     = 65 * 128;
 
     // Allocate 3DLut buffer in CPU memory to init 3DLut Surface
     m_hdr3DLutSysBuffer = MOS_NewArray(uint8_t, m_lutSizeInBytes);
     Init3DLutSurface();
     // Allocate 3DLut Surface
-    m_hdr3DLutSurface = MOS_New(VpCmSurfaceHolder<CmSurface2D>, lutWidth, lutHeight, 1, ConvertMosFmtToGmmFmt(Format_A16B16G16R16), m_cmContext);
+    m_hdr3DLutSurface = MOS_New(VpCmSurfaceHolder<CmSurface2D>, lutWidth, lutHeight, 1, ConvertMosFmtToGmmFmt(Format_A8R8G8B8), m_cmContext);
     m_hdr3DLutSurface->GetCmSurface()->WriteSurface(m_hdr3DLutSysBuffer, nullptr);
 
     // Allocate Coefficient Surface in GPU memory
@@ -462,6 +465,7 @@ void Hdr3DLutGenerator::Render(const uint32_t maxDLL, const uint32_t maxCLL, con
 
     if (false == m_bHdr3DLutInit)
     {
+        m_eventManager = MOS_New(EventManager, "EventManager", m_cmContext);
         VPHAL_RENDER_CHK_NULL_NO_STATUS(m_cmContext);
         m_cmContext->AddRefCount();
 
