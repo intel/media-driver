@@ -3626,44 +3626,17 @@ static VAStatus DdiMedia_EndPicture (
     return vaStatus;
 }
 
-/*
- * This function blocks until all pending operations on the render target
- * have been completed.  Upon return it is safe to use the render target for a
- * different picture.
- */
-static VAStatus DdiMedia_SyncSurface (
-    VADriverContextP    ctx,
-    VASurfaceID         render_target
+static VAStatus DdiMedia_StatusCheck (
+	PDDI_MEDIA_CONTEXT mediaCtx,
+    DDI_MEDIA_SURFACE  *surface,
+    VASurfaceID surface_id
 )
 {
-    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
-
     DDI_FUNCTION_ENTER();
-
-    DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
-
-    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
-    DDI_CHK_NULL(mediaCtx,               "nullptr mediaCtx",               VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "nullptr mediaCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_CONTEXT);
-
-    DDI_CHK_LESS((uint32_t)render_target, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid render_target", VA_STATUS_ERROR_INVALID_SURFACE);
-
-    DDI_MEDIA_SURFACE  *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, render_target);
-    DDI_CHK_NULL(surface,    "nullptr surface",      VA_STATUS_ERROR_INVALID_CONTEXT);
-    if (surface->pCurrentFrameSemaphore)
-    {
-        DdiMediaUtil_WaitSemaphore(surface->pCurrentFrameSemaphore);
-        DdiMediaUtil_PostSemaphore(surface->pCurrentFrameSemaphore);
-    }
-
-    // check the bo here?
-    // zero is a expected return value
-    uint32_t timeout_NS = 100000000;
-    while (0 != mos_gem_bo_wait(surface->bo, timeout_NS))
-    {
-        // Just loop while gem_bo_wait times-out.
-    }
-
+	
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+	DDI_CHK_NULL(surface,  "nullptr surface",  VA_STATUS_ERROR_INVALID_CONTEXT);
+	
     uint32_t i = 0;
     PDDI_DECODE_CONTEXT decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
     if (decCtx && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
@@ -3675,7 +3648,7 @@ static VAStatus DdiMedia_SyncSurface (
         DDI_CHK_NULL(codecHal, "nullptr decCtx->pCodecHal", VA_STATUS_SUCCESS);
 
         //return success just avoid vaDestroyContext is ahead of vaSyncSurface
-    #ifdef _APOGEIOS_SUPPORTED
+#ifdef _APOGEIOS_SUPPORTED
         if (codecHal->IsApogeiosEnabled())
         {
             DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(codecHal);
@@ -3683,7 +3656,7 @@ static VAStatus DdiMedia_SyncSurface (
             return DdiDecode_StatusReport(mediaCtx, decoder, surface);
         }
         else
-    #endif
+#endif
         {
             CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
             DDI_CHK_NULL(decoder, "nullptr (CodechalDecode *decoder)", VA_STATUS_SUCCESS);
@@ -3724,7 +3697,7 @@ static VAStatus DdiMedia_SyncSurface (
                 tempSurface->curStatusReport.vpp.status = (uint32_t)tempVpReport.dwStatus;
                 tempSurface->curStatusReportQueryState  = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED;
 
-                if(tempVpReport.StatusFeedBackID == render_target)
+                if(tempVpReport.StatusFeedBackID == surface_id)
                 {
                     break;
                 }
@@ -3753,7 +3726,131 @@ static VAStatus DdiMedia_SyncSurface (
     }
 
     return VA_STATUS_SUCCESS;
+
 }
+
+/*
+ * This function blocks until all pending operations on the render target
+ * have been completed.  Upon return it is safe to use the render target for a
+ * different picture.
+ */
+static VAStatus DdiMedia_SyncSurface (
+    VADriverContextP    ctx,
+    VASurfaceID         render_target
+)
+{
+    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+
+    DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,               "nullptr mediaCtx",               VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "nullptr mediaCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    DDI_CHK_LESS((uint32_t)render_target, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid render_target", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    DDI_MEDIA_SURFACE  *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, render_target);
+    DDI_CHK_NULL(surface,    "nullptr surface",      VA_STATUS_ERROR_INVALID_CONTEXT);
+    if (surface->pCurrentFrameSemaphore)
+    {
+        DdiMediaUtil_WaitSemaphore(surface->pCurrentFrameSemaphore);
+        DdiMediaUtil_PostSemaphore(surface->pCurrentFrameSemaphore);
+    }
+
+    // check the bo here?
+    // zero is a expected return value
+    uint32_t timeout_NS = 100000000;
+    while (0 != mos_gem_bo_wait(surface->bo, timeout_NS))
+    {
+        // Just loop while gem_bo_wait times-out.
+    }
+
+    return DdiMedia_StatusCheck(mediaCtx, surface, render_target);
+}
+
+/*
+ * This function blocks until all pending operations on the surface have been 
+ * completed or exceed timeout.  Upon return it is safe to use the render target for a
+ * different picture.
+ */
+static VAStatus DdiMedia_SyncSurface2 (
+    VADriverContextP    ctx,
+    VASurfaceID         surface_id,
+    uint64_t            timeout_ns
+)
+{
+    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+
+    DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,               "nullptr mediaCtx",               VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "nullptr mediaCtx->pSurfaceHeap", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    DDI_CHK_LESS((uint32_t)surface_id, mediaCtx->pSurfaceHeap->uiAllocatedHeapElements, "Invalid render_target", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    DDI_MEDIA_SURFACE  *surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface_id);
+    DDI_CHK_NULL(surface,    "nullptr surface",      VA_STATUS_ERROR_INVALID_CONTEXT);
+    if (surface->pCurrentFrameSemaphore)
+    {
+        DdiMediaUtil_WaitSemaphore(surface->pCurrentFrameSemaphore);
+        DdiMediaUtil_PostSemaphore(surface->pCurrentFrameSemaphore);
+    }
+
+    // zero is a expected return value when not hit timeout
+    int64_t timeoutBoWait = timeout_ns >= DDI_MAX_TIMEOUT ? DDI_INFINITE_TIMEOUT : (int64_t)timeout_ns;
+    auto ret = mos_gem_bo_wait(surface->bo, timeoutBoWait);
+    if (0 != ret)
+    {
+        DDI_NORMALMESSAGE("vaSyncSurface2: surface is still used by HW\n\r");
+        return VA_STATUS_ERROR_HW_BUSY;
+    }
+
+    return DdiMedia_StatusCheck(mediaCtx, surface, surface_id);
+}
+
+/*
+ * This function blocks until all pending operations on the buffer have been
+ * completed or exceed timeout.  Upon return it is safe to use the render target for a
+ * different picture.
+ */
+static VAStatus DdiMedia_SyncBuffer (
+    VADriverContextP    ctx,
+    VABufferID          buf_id,
+    uint64_t            timeout_ns
+)
+{
+    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+
+    DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,               "nullptr mediaCtx",               VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->pBufferHeap,  "nullptr mediaCtx->pBufferHeap",  VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    DDI_CHK_LESS((uint32_t)buf_id, mediaCtx->pBufferHeap->uiAllocatedHeapElements, "Invalid buffer", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    DDI_MEDIA_BUFFER  *buffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, buf_id);
+    DDI_CHK_NULL(buffer,    "nullptr buffer",      VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    // zero is a expected return value when not hit timeout
+    int64_t timeoutBoWait = timeout_ns >= DDI_MAX_TIMEOUT ? DDI_INFINITE_TIMEOUT : (int64_t)timeout_ns;
+    auto ret = mos_gem_bo_wait(buffer->bo, timeoutBoWait);
+    if (0 != ret)
+    {
+        DDI_NORMALMESSAGE("vaSyncBuffer: buffer is still used by HW\n\r");
+        return VA_STATUS_ERROR_HW_BUSY;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
 
 /*
  * Find out any pending ops on the render target
@@ -6532,6 +6629,9 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTable->vaRenderPicture                 = DdiMedia_RenderPicture;
     pVTable->vaEndPicture                    = DdiMedia_EndPicture;
     pVTable->vaSyncSurface                   = DdiMedia_SyncSurface;
+    pVTable->vaSyncSurface2                  = DdiMedia_SyncSurface2;
+    pVTable->vaSyncBuffer                    = DdiMedia_SyncBuffer;
+
     pVTable->vaQuerySurfaceStatus            = DdiMedia_QuerySurfaceStatus;
     pVTable->vaQuerySurfaceError             = DdiMedia_QuerySurfaceError;
     pVTable->vaQuerySurfaceAttributes        = DdiMedia_QuerySurfaceAttributes;
