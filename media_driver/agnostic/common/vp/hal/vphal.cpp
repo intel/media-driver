@@ -813,7 +813,7 @@ MOS_STATUS VphalState::GetStatusReport(
             continue;
         }
 
-#if (LINUX || ANDROID)
+#if (__linux__ || ANDROID)
         dwGpuTag           = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
         dwGpuTag           = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal, m_osInterface->streamIndex));
@@ -840,7 +840,7 @@ MOS_STATUS VphalState::GetStatusReport(
         }
         else
         {   // here we have the first not ready entry.
-#if (LINUX || ANDROID)
+#if (__linux__ || ANDROID)
             uiNewHead = (uiIndex + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 #else
             uiNewHead = uiIndex;

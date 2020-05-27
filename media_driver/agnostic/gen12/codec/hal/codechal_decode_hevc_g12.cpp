@@ -2173,7 +2173,7 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_AdvanceRealTilePass(m_scalabilityState));
     }
 
-#ifdef LINUX 
+#ifdef __linux__
  #ifdef _DECODE_PROCESSING_SUPPORTED
     CODECHAL_DEBUG_TOOL(
     if (m_sfcState->m_sfcOutputSurface)

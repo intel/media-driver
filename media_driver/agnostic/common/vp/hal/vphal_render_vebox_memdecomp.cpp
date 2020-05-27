@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -200,7 +200,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     targetSurface.Format     = Format_Invalid;
     targetSurface.OsResource = *outputResource;
 
-#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+#if !defined(__linux__) && !defined(ANDROID) && !EMUL
     // for Double Buffer copy, clear the allocationInfo temply
     MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
 #endif
@@ -267,7 +267,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     targetSurface.Format = Format_Invalid;
     targetSurface.OsResource = *outputResource;
 
-#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+#if !defined(__linux__) && !defined(ANDROID) && !EMUL
     // for Double Buffer copy, clear the allocationInfo temply
     MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
 #endif

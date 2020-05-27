@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include <sstream>
 #include <iomanip>
 
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
 #endif
 
@@ -73,7 +73,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_cpInterface = m_hwInterface->GetCpInterface();
     m_miInterface = m_hwInterface->GetMiInterface();
 
-#ifdef LINUX
+#ifdef __linux__
     char* customizedOutputPath = getenv("MOS_DEBUG_OUTPUT_LOCATION");
     if (customizedOutputPath != nullptr && strlen(customizedOutputPath) != 0)
     {
@@ -109,7 +109,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         }
         else
         {
-#if defined(LINUX) || defined(ANDROID)
+#if defined(__linux__) || defined(ANDROID)
             m_outputFilePath = MOS_DEBUG_DEFAULT_OUTPUT_LOCATION;
 #else
             // Use state separation APIs to obtain appropriate storage location
@@ -525,7 +525,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         uint32_t        sizeToBeCopied = 0;
         MOS_GFXRES_TYPE ResType;
 
-#if LINUX
+#if __linux__
         // Linux does not have OsResource->ResType
         ResType = surface->Type;
 #else
@@ -711,7 +711,7 @@ MOS_STATUS CodechalDebugInterface::DumpYUVSurface(
         }
 
         uint8_t* vPlaneData = surfBaseAddr;
-#ifdef LINUX
+#ifdef __linux__
         data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
         if (surface->Format == Format_422V
             || surface->Format == Format_IMC3)
@@ -1290,7 +1290,7 @@ MOS_STATUS CodechalDebugInterface::DumpNotSwizzled(
     const char* funcName = (m_codecFunction == CODECHAL_FUNCTION_DECODE) ? "_DEC" : (m_codecFunction == CODECHAL_FUNCTION_CENC_DECODE ? "_DEC" : "_ENC");
     int YOffset = surf.dwOffset + surf.YPlaneOffset.iYOffset * surf.dwPitch;
 
-#ifdef LINUX
+#ifdef __linux__
     int UOffset = surf.UPlaneOffset.iSurfaceOffset;
     int VOffset = surf.VPlaneOffset.iSurfaceOffset;
 #else

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -128,7 +128,7 @@
 
 #include "codechal_decode_histogram_g12.h"
 
-#if LINUX
+#if __linux__
 #include "vp_pipeline_adapter_g12.h"
 #endif
 

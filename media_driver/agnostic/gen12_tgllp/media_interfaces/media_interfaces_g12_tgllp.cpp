@@ -52,7 +52,7 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     MOS_STATUS      *eStatus)
 {
     MOS_OS_CHK_NULL_RETURN(eStatus);
-#if LINUX
+#if __linux__
     bool bApogeiosEnable = true;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
