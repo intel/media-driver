@@ -117,6 +117,11 @@
 // Enable unlimited output buffer, delete this build option (remove multiple output buffer) when it is verified
 #define ENABLE_ENC_UNLIMITED_OUTPUT
 
+// Max timeout for i915 bo_wait
+#define DDI_BO_MAX_TIMEOUT       (~(0x8000000000000000))
+// Negative value for infinite timeout for i915 bo_wait
+#define DDI_BO_INFINITE_TIMEOUT  (-1)
+
 typedef struct _DDI_CODEC_VC1BITPLANE_OBJECT
 {
     uint8_t       *pBitPlaneBase;
