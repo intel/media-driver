@@ -1,7 +1,7 @@
 /**************************************************************************
  *
  * Copyright © 2007 Red Hat Inc.
- * Copyright © 2007-2018 Intel Corporation
+ * Copyright © 2007-2019 Intel Corporation
  * Copyright 2006 Tungsten Graphics, Inc., Bismarck, ND., USA
  * All Rights Reserved.
  *
@@ -947,7 +947,7 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     memclear(userptr);
     userptr.user_ptr = (__u64)((unsigned long)addr);
     userptr.user_size = size;
-    userptr.flags = 0;
+    userptr.flags = flags;
 
     ret = drmIoctl(bufmgr_gem->fd,
             DRM_IOCTL_I915_GEM_USERPTR,
