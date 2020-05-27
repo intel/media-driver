@@ -1757,9 +1757,16 @@ MOS_STATUS CodechalDecodeHevcG12::AddPipeEpilog(
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
             CODECHAL_DEBUG_TOOL(
-                if (m_downsampledSurfaces && m_sfcState && m_sfcState->m_sfcOutputSurface) {
-                    m_downsampledSurfaces[m_hevcPicParams->CurrPic.FrameIdx].OsResource = m_sfcState->m_sfcOutputSurface->OsResource;
-                    decodeStatusReport.m_currSfcOutputPicRes                            = &m_downsampledSurfaces[m_hevcPicParams->CurrPic.FrameIdx].OsResource;
+                if (m_sfcState && m_sfcState->m_sfcOutputSurface) {
+                    if(m_downsampledSurfaces)
+                    {
+                        m_downsampledSurfaces[m_hevcPicParams->CurrPic.FrameIdx].OsResource = m_sfcState->m_sfcOutputSurface->OsResource;
+                        decodeStatusReport.m_currSfcOutputPicRes                            = &m_downsampledSurfaces[m_hevcPicParams->CurrPic.FrameIdx].OsResource;
+                    }
+                    else
+                    {
+                        decodeStatusReport.m_currSfcOutputPicRes = &(m_sfcState->m_sfcOutputSurface->OsResource);
+                    }
                 })
 #endif
             CODECHAL_DEBUG_TOOL(
@@ -2172,28 +2179,6 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_AdvanceRealTilePass(m_scalabilityState));
     }
-
-#ifdef LINUX 
- #ifdef _DECODE_PROCESSING_SUPPORTED
-    CODECHAL_DEBUG_TOOL(
-    if (m_sfcState->m_sfcOutputSurface)
-    {
-        MOS_SURFACE dstSurface;
-        MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
-        dstSurface.Format = Format_NV12;
-        dstSurface.OsResource = m_sfcState->m_sfcOutputSurface->OsResource;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
-                m_osInterface,
-                &dstSurface));
-
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
-                &dstSurface,
-                CodechalDbgAttr::attrSfcOutputSurface,
-                "SfcDstSurf"));
-    }
-)
-#endif
-#endif
     return eStatus;
 }
 
