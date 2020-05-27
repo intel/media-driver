@@ -56,27 +56,32 @@ int MemoryPolicyManager::UpdateMemoryPolicy(
         return mem_type;
     }
 
-    //Follow default setting, tiled resource in Devcie Memory
+    // Follow default setting, tiled resource in Devcie Memory, 1D linear resource in System Memory
     if (tile_type != GMM_NOT_TILED)
     {
-        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
-        resFlag.Info.LocalOnly = 1;
+        mem_type                  = MOS_MEMPOOL_DEVICEMEMORY;
+        resFlag.Info.LocalOnly    = 1;
         resFlag.Info.NonLocalOnly = 0;
     }
+    else if (tile_type == GMM_NOT_TILED && res_type == RESOURCE_1D)
+    {
+        mem_type                  = MOS_MEMPOOL_SYSTEMMEMORY;
+        resFlag.Info.LocalOnly    = 0;
+        resFlag.Info.NonLocalOnly = 1;
+    }
 
-    //Override setting, depending on preferredMemType
+    // Override setting, depending on preferredMemType
     if ((preferredMemType & MOS_MEMPOOL_DEVICEMEMORY) && !(mem_type & MOS_MEMPOOL_DEVICEMEMORY))
     {
-        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
-        resFlag.Info.LocalOnly = 1;
+        mem_type                  = MOS_MEMPOOL_DEVICEMEMORY;
+        resFlag.Info.LocalOnly    = 1;
         resFlag.Info.NonLocalOnly = 0;
     }
 
     if ((preferredMemType & MOS_MEMPOOL_SYSTEMMEMORY) && !(mem_type & MOS_MEMPOOL_SYSTEMMEMORY))
     {
         mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-
-        resFlag.Info.LocalOnly = 0;
+        resFlag.Info.LocalOnly    = 0;
         resFlag.Info.NonLocalOnly = 1;
     }
 
