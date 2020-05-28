@@ -537,6 +537,12 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysSliceLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
+    if (!m_singleTaskPhaseSupported)
+    {
+        PerfTagSetting perfTag;
+        CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE);
+    }
+
     MHW_BATCH_BUFFER secondLevelBatchBuffer;
     MOS_ZeroMemory(&secondLevelBatchBuffer, sizeof(secondLevelBatchBuffer));
     secondLevelBatchBuffer.dwOffset = 0;
@@ -3742,6 +3748,11 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+
+    if (!m_singleTaskPhaseSupported)
+    {
+        CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE);
+    }
 
     // Non scalable mode header
     if ((!m_singleTaskPhaseSupported || m_firstTaskInPhase) && !m_scalableMode)
