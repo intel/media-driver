@@ -307,14 +307,7 @@ Hdr3DLutGenerator::~Hdr3DLutGenerator()
 
     MOS_Delete(m_eventManager);
 
-    VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
-    if (m_bHdr3DLutInit)
-    {
-        m_cmContext->DecRefCount();
-    }
     MOS_Delete(m_cmContext);
-
-    m_bHdr3DLutInit = false;
 
     VPHAL_RENDER_NORMALMESSAGE("Hdr3DLutGenerator Destructor!");
 }
@@ -463,16 +456,13 @@ void Hdr3DLutGenerator::Render(const uint32_t maxDLL, const uint32_t maxCLL, con
     pOsInterface = m_renderHal->pOsInterface;
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pOsInterface);
 
-    if (false == m_bHdr3DLutInit)
+    if (nullptr == m_hdr3DLutCmRender)
     {
         m_eventManager = MOS_New(EventManager, "EventManager", m_cmContext);
         VPHAL_RENDER_CHK_NULL_NO_STATUS(m_cmContext);
-        m_cmContext->AddRefCount();
 
         m_hdr3DLutCmRender = MOS_New(Hdr3DLutCmRender, m_kernelBinary, m_kernelSize, m_cmContext);
         AllocateResources();
-
-        m_bHdr3DLutInit = true;
 
         VPHAL_RENDER_NORMALMESSAGE("Hdr3DLutGenerator Init Hdr3DLutCmRender and Allocate Necessary Resources!");
     }

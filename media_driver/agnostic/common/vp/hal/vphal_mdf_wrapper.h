@@ -86,19 +86,6 @@ public:
 
     void Destroy();
 
-    void AddRefCount()
-    {
-        mRefCount++;
-    }
-
-    void DecRefCount()
-    {
-        if (--mRefCount == 0)
-        {
-            Destroy();
-        }
-    }
-
     CmDevice* GetCmDevice() const
     {
         return mCmDevice;

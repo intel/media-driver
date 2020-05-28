@@ -58,7 +58,7 @@ HVSDenoise::HVSDenoise(const PRENDERHAL_INTERFACE vphalRenderer, void *kernelBin
 HVSDenoise::~HVSDenoise()
 {
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
-    CmDevice *dev = m_cmContext->GetCmDevice();  
+    CmDevice *dev = m_cmContext->GetCmDevice();
     if (m_cmKernel)
     {
         dev->DestroyKernel(m_cmKernel);
@@ -120,11 +120,11 @@ void HVSDenoise::PrepareKernel(CmKernel *kernel)
 
 void HVSDenoise::Dump()
 {
-    int width = 0, height = 0, depth = 0;   
+    int width = 0, height = 0, depth = 0;
     m_payload->denoiseParam->DumpSurfaceToFile(OutputDumpDirectory + std::to_string(width) + "x" + std::to_string(height) + ".dat");
 }
 
-VphalHVSDenoiser::VphalHVSDenoiser(PRENDERHAL_INTERFACE renderHal) : 
+VphalHVSDenoiser::VphalHVSDenoiser(PRENDERHAL_INTERFACE renderHal) :
     m_eventManager(nullptr),
     m_renderHal(renderHal),
     m_hvsDenoiseCmSurface(nullptr),
@@ -143,15 +143,9 @@ VphalHVSDenoiser::VphalHVSDenoiser(PRENDERHAL_INTERFACE renderHal) :
 
 VphalHVSDenoiser::~VphalHVSDenoiser()
 {
-    FreeResources();    
+    FreeResources();
     MOS_Delete(m_hvsDenoise);
     MOS_Delete(m_eventManager);
-    if (m_initHVSDenoise)
-    {
-        VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
-        m_cmContext->DecRefCount();
-        m_initHVSDenoise = false;
-    }        
     MOS_Delete(m_cmContext);
     VPHAL_RENDER_NORMALMESSAGE("Destructor!");
 }
@@ -165,7 +159,7 @@ void VphalHVSDenoiser::InitKernelParams(void *kernelBinary, const int32_t kerneB
 void VphalHVSDenoiser::AllocateResouces(const uint32_t width, const uint32_t height)
 {
     uint32_t size         = width * height;
-    
+
     m_hvsDenoiseCmSurface = MOS_New(VpCmSurfaceHolder<CmBuffer>, size, 1, 1, GMM_FORMAT_A8_UNORM_TYPE, m_cmContext);
     if (nullptr == m_hvsDenoiseCmSurface)
     {
@@ -201,12 +195,9 @@ MOS_STATUS VphalHVSDenoiser::Render(const PVPHAL_SURFACE pSrcSuface)
     if (nullptr == m_hvsDenoise)
     {
         VPHAL_RENDER_CHK_NULL_RETURN(m_cmContext);
-        m_cmContext->AddRefCount();
 
         m_hvsDenoise = MOS_New(HVSDenoise, m_renderHal, m_kernelBinary, m_kernelBinarySize, m_cmContext);
         AllocateResouces(m_denoiseBufferInBytes, 1);
-
-        m_initHVSDenoise = true;
 
         VPHAL_RENDER_NORMALMESSAGE("[0x%x] Init HVSDenoise[0x%x] and Allocate necessary resource!", this, m_hvsDenoise);
     }
@@ -223,14 +214,14 @@ MOS_STATUS VphalHVSDenoiser::Render(const PVPHAL_SURFACE pSrcSuface)
         m_hvsDenoise->Render(&denoisePayload);
         m_cmContext->FlushBatchTask(false);
         m_cmContext->ConnectEventListener(nullptr);
-         
+
         m_hvsDenoiseCmSurface->GetCmSurface()->ReadSurface((uint8_t *)m_hvsDenoiseParam, nullptr, m_denoiseBufferInBytes);
 
         m_savedQP           = qp;
         m_savedStrength     = strength;
 
         VPHAL_RENDER_NORMALMESSAGE("Render qp %d, strength %d!", qp, strength);
-    } 
+    }
 
     return eStatus;
 }
