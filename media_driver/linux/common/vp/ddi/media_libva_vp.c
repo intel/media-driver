@@ -1261,6 +1261,12 @@ DdiVp_SetProcPipelineParams(
     //vaStatus = DdiVp_UpdateProcDeinterlaceParams(pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
     //DDI_CHK_RET(vaStatus, "Failed to update vphal advance deinterlace!");
 
+    // Use Render to do scaling for resolution larger than 8K
+    if(MEDIA_IS_WA(&pMediaCtx->WaTable, WaDisableVeboxFor8K))
+    {
+        pVpHalRenderParams->bDisableVeboxFor8K = true;
+    }
+
     // Scaling algorithm
     uScalingflags                    = pPipelineParam->filter_flags & VA_FILTER_SCALING_MASK;
     pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_SFC;    // default
