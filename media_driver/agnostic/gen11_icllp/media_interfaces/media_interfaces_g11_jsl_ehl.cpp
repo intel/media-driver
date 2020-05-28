@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_interfaces_g11_ehl.cpp
-//! \brief    Helps with ehl factory creation.
+//! \file     media_interfaces_g11_jsl_ehl.cpp
+//! \brief    Helps with JSL and EHL factories creation.
 //!
 
 #include "media_interfaces_g11_icllp.h"
-#include "media_interfaces_g11_ehl.h"
+#include "media_interfaces_g11_jsl_ehl.h"
 #include "codechal_encoder_base.h"
 #include "codechal_debug.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
@@ -42,11 +42,11 @@ extern template class MediaInterfacesFactory<RenderHalDevice>;
 extern template class MediaInterfacesFactory<Nv12ToP010Device>;
 extern template class MediaInterfacesFactory<DecodeHistogramDevice>;
 
-static bool ehlRegisteredVphal =
+static bool jslEhlRegisteredVphal =
 MediaInterfacesFactory<VphalDevice>::
-RegisterHal<VphalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+RegisterHal<VphalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
-MOS_STATUS VphalInterfacesG11Ehl::Initialize(
+MOS_STATUS VphalInterfacesG11JslEhl::Initialize(
     PMOS_INTERFACE  osInterface,
     PMOS_CONTEXT    osDriverContext,
     MOS_STATUS      *eStatus)
@@ -60,14 +60,14 @@ MOS_STATUS VphalInterfacesG11Ehl::Initialize(
     return *eStatus;
 }
 
-static bool ehlRegisteredMhw =
+static bool jslEhlRegisteredMhw =
     MediaInterfacesFactory<MhwInterfaces>::
-    RegisterHal<MhwInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+    RegisterHal<MhwInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
 #define PLATFORM_INTEL_EHL 18
 #define GENX_ICLLP         10
 
-MOS_STATUS MhwInterfacesG11Ehl::Initialize(
+MOS_STATUS MhwInterfacesG11JslEhl::Initialize(
     CreateParams params,
     PMOS_INTERFACE osInterface)
 {
@@ -136,11 +136,11 @@ MOS_STATUS MhwInterfacesG11Ehl::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-static bool ehlRegisteredNv12ToP010 =
+static bool jslEhlRegisteredNv12ToP010 =
     MediaInterfacesFactory<Nv12ToP010Device>::
-    RegisterHal<Nv12ToP010DeviceG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+    RegisterHal<Nv12ToP010DeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
-MOS_STATUS Nv12ToP010DeviceG11Ehl::Initialize(
+MOS_STATUS Nv12ToP010DeviceG11JslEhl::Initialize(
     PMOS_INTERFACE            osInterface)
 {
     CODECHAL_PUBLIC_ASSERTMESSAGE("Not support Nv12 to P010 interfaces.")
@@ -148,11 +148,11 @@ MOS_STATUS Nv12ToP010DeviceG11Ehl::Initialize(
     return MOS_STATUS_INVALID_PARAMETER;
 }
 
-static bool ehlhpRegisteredCodecHal =
+static bool jslEhlhpRegisteredCodecHal =
     MediaInterfacesFactory<CodechalDevice>::
-    RegisterHal<CodechalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+    RegisterHal<CodechalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
-MOS_STATUS CodechalInterfacesG11Ehl::Initialize(
+MOS_STATUS CodechalInterfacesG11JslEhl::Initialize(
     void *standardInfo,
     void *settings,
     MhwInterfaces *mhwInterfaces,
@@ -389,11 +389,11 @@ MOS_STATUS CodechalInterfacesG11Ehl::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-static bool ehlRegisteredCMHal =
+static bool jslEhlRegisteredCMHal =
     MediaInterfacesFactory<CMHalDevice>::
-    RegisterHal<CMHalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+    RegisterHal<CMHalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
-MOS_STATUS CMHalInterfacesG11Ehl::Initialize(CM_HAL_STATE *pCmState)
+MOS_STATUS CMHalInterfacesG11JslEhl::Initialize(CM_HAL_STATE *pCmState)
 {
     if (pCmState == nullptr)
     {
@@ -416,11 +416,11 @@ MOS_STATUS CMHalInterfacesG11Ehl::Initialize(CM_HAL_STATE *pCmState)
     return MOS_STATUS_SUCCESS;
 }
 
-static bool ehlRegisteredMosUtil =
+static bool jslEhlRegisteredMosUtil =
     MediaInterfacesFactory<MosUtilDevice>::
-    RegisterHal<MosUtilDeviceG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+    RegisterHal<MosUtilDeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
-MOS_STATUS MosUtilDeviceG11Ehl::Initialize()
+MOS_STATUS MosUtilDeviceG11JslEhl::Initialize()
 {
 #define MOSUTIL_FAILURE()                                       \
 {                                                           \
@@ -450,11 +450,11 @@ MOS_STATUS MosUtilDeviceG11Ehl::Initialize()
     return MOS_STATUS_SUCCESS;
 }
 
-static bool ehlRegisteredRenderHal =
+static bool jslEhlRegisteredRenderHal =
     MediaInterfacesFactory<RenderHalDevice>::
-    RegisterHal<RenderHalInterfacesG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+    RegisterHal<RenderHalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
-MOS_STATUS RenderHalInterfacesG11Ehl::Initialize()
+MOS_STATUS RenderHalInterfacesG11JslEhl::Initialize()
 {
     m_renderhalDevice = MOS_New(XRenderHal);
     if (m_renderhalDevice == nullptr)
@@ -465,11 +465,11 @@ MOS_STATUS RenderHalInterfacesG11Ehl::Initialize()
     return MOS_STATUS_SUCCESS;
 }
 
-static bool ehlRegisteredDecodeHistogram =
+static bool jslEhlRegisteredDecodeHistogram =
 MediaInterfacesFactory<DecodeHistogramDevice>::
-RegisterHal<DecodeHistogramDeviceG11Ehl>((uint32_t)IGFX_ELKHARTLAKE);
+RegisterHal<DecodeHistogramDeviceG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 
-MOS_STATUS DecodeHistogramDeviceG11Ehl::Initialize(
+MOS_STATUS DecodeHistogramDeviceG11JslEhl::Initialize(
     CodechalHwInterface       *hwInterface,
     PMOS_INTERFACE            osInterface)
 {

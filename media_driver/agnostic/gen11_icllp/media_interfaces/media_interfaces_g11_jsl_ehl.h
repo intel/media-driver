@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_interfaces_g11_ehl.h
-//! \brief    All interfaces used for EHL that require factory creation
+//! \file     media_interfaces_g11_jsl_ehl.h
+//! \brief    All interfaces used for JSL and EHL that require factory creation
 //!
 
-#ifndef __MEDIA_INTERFACES_G11_EHL_H__
-#define __MEDIA_INTERFACES_G11_EHL_H__
+#ifndef __MEDIA_INTERFACES_G11_JSL_EHL_H__
+#define __MEDIA_INTERFACES_G11_JSL_EHL_H__
 
 #include "media_interfaces_mhw.h"
 #include "media_interfaces_codechal.h"
@@ -97,7 +97,7 @@
 #include "renderhal_g11.h"
 
 
-class MhwInterfacesG11Ehl : public MhwInterfaces
+class MhwInterfacesG11JslEhl : public MhwInterfaces
 {
 public:
     using Mi = MhwMiInterfaceG11;
@@ -108,7 +108,7 @@ public:
     using Mfx = MhwVdboxMfxInterfaceG11;
     using Hcp = MhwVdboxHcpInterfaceG11;
     using Huc = MhwVdboxHucInterfaceG11;
-    using Vdenc = MhwVdboxVdencInterfaceG11<mhw_vdbox_vdenc_g11_X>;
+    using Vdenc = MhwVdboxVdencInterfaceG11Icl;
     using Vebox = MhwVeboxInterfaceG11;
 
     MOS_STATUS Initialize(
@@ -116,7 +116,7 @@ public:
         PMOS_INTERFACE osInterface);
 };
 
-class Nv12ToP010DeviceG11Ehl : public Nv12ToP010Device
+class Nv12ToP010DeviceG11JslEhl : public Nv12ToP010Device
 {
 public:
 
@@ -124,7 +124,7 @@ public:
         PMOS_INTERFACE osInterface);
 };
 
-class CodechalDecodeInterfacesG11Ehl
+class CodechalDecodeInterfacesG11JslEhl
 {
 public:
 #ifdef _AVC_DECODE_SUPPORTED
@@ -153,11 +153,11 @@ public:
 #endif
 };
 
-class CodechalEncodeInterfacesG11Ehl
+class CodechalEncodeInterfacesG11JslEhl
 {
 public:
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
-    using AvcVdenc = CodechalVdencAvcStateG11;
+    using AvcVdenc = CodechalVdencAvcStateG11LP;
 #endif
     using CscDs = CodechalEncodeCscDsG11;
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
@@ -171,12 +171,12 @@ public:
 #endif
 };
 
-class CodechalInterfacesG11Ehl : public CodechalDevice
+class CodechalInterfacesG11JslEhl : public CodechalDevice
 {
 public:
-    using Decode = CodechalDecodeInterfacesG11Ehl;
+    using Decode = CodechalDecodeInterfacesG11JslEhl;
     using Hw = CodechalHwInterfaceG11;
-    using Encode = CodechalEncodeInterfacesG11Ehl;
+    using Encode = CodechalEncodeInterfacesG11JslEhl;
 
     MOS_STATUS Initialize(
         void *standardInfo,
@@ -185,7 +185,7 @@ public:
         PMOS_INTERFACE osInterface) override;
 };
 
-class CMHalInterfacesG11Ehl : public CMHalDevice
+class CMHalInterfacesG11JslEhl : public CMHalDevice
 {
 protected:
     using CMHal = CM_HAL_G11_X;
@@ -193,14 +193,14 @@ protected:
         CM_HAL_STATE *pCmState);
 };
 
-class MosUtilDeviceG11Ehl : public MosUtilDevice
+class MosUtilDeviceG11JslEhl : public MosUtilDevice
 {
 public:
     using MosUtil = MediaUserSettingsMgr;
 
     MOS_STATUS Initialize();
 };
-class VphalInterfacesG11Ehl : public VphalDevice
+class VphalInterfacesG11JslEhl : public VphalDevice
 {
 public:
     using VphalState = VphalStateG11Icllp;
@@ -211,14 +211,14 @@ public:
         MOS_STATUS      *eStatus);
 };
 
-class RenderHalInterfacesG11Ehl : public RenderHalDevice
+class RenderHalInterfacesG11JslEhl : public RenderHalDevice
 {
 protected:
     using XRenderHal = XRenderHal_Interface_g11;
     MOS_STATUS Initialize();
 };
 
-class DecodeHistogramDeviceG11Ehl : public DecodeHistogramDevice
+class DecodeHistogramDeviceG11JslEhl : public DecodeHistogramDevice
 {
 public:
     using DecodeHistogramVebox = CodechalDecodeHistogramVeboxG11;
@@ -228,4 +228,4 @@ public:
         PMOS_INTERFACE osInterface);
 };
 
-#endif // __MEDIA_INTERFACES_G11_EHL_H__
+#endif // __MEDIA_INTERFACES_G11_JSL_EHL_H__
