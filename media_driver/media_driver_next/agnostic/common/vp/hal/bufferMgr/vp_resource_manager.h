@@ -268,11 +268,11 @@ public:
 
     VP_SURFACE* GetVeboxDNOutputSurface()
     {
-        VP_SURFACE* surface = veboxDenoiseOutput[currentDnOutput];
+        VP_SURFACE* surface = m_veboxDenoiseOutput[m_currentDnOutput];
 
         if (surface)
         {
-            currentDnOutput  = (currentDnOutput +1) & 1;
+            m_currentDnOutput  = (m_currentDnOutput +1) & 1;
         }
 
         return surface;
@@ -280,7 +280,7 @@ public:
 
     VP_SURFACE* GetVeboxDNReferenceSurface()
     {
-        VP_SURFACE* surface = veboxDenoiseOutput[currentDnOutput];
+        VP_SURFACE* surface = m_veboxDenoiseOutput[m_currentDnOutput];
 
         return surface;
     }
@@ -289,45 +289,45 @@ public:
 
     VP_SURFACE* GetVeboxSTMMSurfaceIn()
     {
-        VP_SURFACE* surface = veboxSTMMSurface[currentStmmIndex];
+        VP_SURFACE* surface = m_veboxSTMMSurface[m_currentStmmIndex];
 
         return surface;
     }
 
     VP_SURFACE* GetVeboxSTMMSurfaceOut()
     {
-        if (veboxSTMMSurface[0])
+        if (m_veboxSTMMSurface[0])
         {
-            currentStmmIndex = (currentStmmIndex + 1) & 1;
+            m_currentStmmIndex = (m_currentStmmIndex + 1) & 1;
         }
 
-        VP_SURFACE* surface = veboxSTMMSurface[currentStmmIndex];
+        VP_SURFACE* surface = m_veboxSTMMSurface[m_currentStmmIndex];
         return surface;
     }
 
     VP_SURFACE* GetVeboxStatisticsSurface()
     {
-        return veboxStatisticsSurface;
+        return m_veboxStatisticsSurface;
     }
 
     virtual VP_SURFACE* GetVeboxRgbHistogram()
     {
-        return veboxRgbHistogram;
+        return m_veboxRgbHistogram;
     }
 
     VP_SURFACE* GetVeboxDNTempSurface()
     {
-        return veboxDNTempSurface;
+        return m_veboxDNTempSurface;
     }
 
     VP_SURFACE* GetVeboxDNSpatialConfigSurface()
     {
-        return veboxDNSpatialConfigSurface;
+        return m_veboxDNSpatialConfigSurface;
     }
 
     VP_SURFACE* GetVebox3DLookUpTables()
     {
-        return vebox3DLookUpTables;
+        return m_vebox3DLookUpTables;
     }
 
 protected:
@@ -341,17 +341,17 @@ protected:
     VphalFeatureReport           &m_reporting;
 
     // Vebox Resource
-    VP_SURFACE* veboxDenoiseOutput[VP_NUM_DN_SURFACES] = {};            //!< Vebox Denoise output surface
-    VP_SURFACE* veboxOutput[VP_MAX_NUM_VEBOX_SURFACES] = {};            //!< Vebox output surface, can be reuse be DI usages
-    VP_SURFACE* veboxSTMMSurface[VP_NUM_STMM_SURFACES] = {};            //!< Vebox STMM input/output surface
-    VP_SURFACE *veboxStatisticsSurface                 = nullptr;       //!< Statistics Surface for VEBOX
-    VP_SURFACE *veboxRgbHistogram                      = nullptr;       //!< RGB Histogram surface for Vebox
-    VP_SURFACE *veboxDNTempSurface                     = nullptr;       //!< Vebox DN Update kernels temp surface
-    VP_SURFACE *veboxDNSpatialConfigSurface            = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel
-    VP_SURFACE *vebox3DLookUpTables                    = nullptr;       //!< VEBOX 3D LUT surface for Vebox Gen12
-    uint32_t    currentDnOutput                        = 0;
-    uint32_t    currentStmmIndex                       = 0;
-    uint32_t    veboxOutputCount                       = 2;             //!< PE on: 4 used. PE off: 2 used
+    VP_SURFACE* m_veboxDenoiseOutput[VP_NUM_DN_SURFACES] = {};            //!< Vebox Denoise output surface
+    VP_SURFACE* m_veboxOutput[VP_MAX_NUM_VEBOX_SURFACES] = {};            //!< Vebox output surface, can be reuse be DI usages
+    VP_SURFACE* m_veboxSTMMSurface[VP_NUM_STMM_SURFACES] = {};            //!< Vebox STMM input/output surface
+    VP_SURFACE *m_veboxStatisticsSurface                 = nullptr;       //!< Statistics Surface for VEBOX
+    VP_SURFACE *m_veboxRgbHistogram                      = nullptr;       //!< RGB Histogram surface for Vebox
+    VP_SURFACE *m_veboxDNTempSurface                     = nullptr;       //!< Vebox DN Update kernels temp surface
+    VP_SURFACE *m_veboxDNSpatialConfigSurface            = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel
+    VP_SURFACE *m_vebox3DLookUpTables                    = nullptr;       //!< VEBOX 3D LUT surface for Vebox Gen12
+    uint32_t    m_currentDnOutput                        = 0;
+    uint32_t    m_currentStmmIndex                       = 0;
+    uint32_t    m_veboxOutputCount                       = 2;             //!< PE on: 4 used. PE off: 2 used
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__

@@ -142,45 +142,53 @@ VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &al
 VpResourceManager::~VpResourceManager()
 {
     // Clean all intermedia Resource
+    for (uint32_t i = 0; i < m_veboxOutputCount; i++)
+    {
+        if (m_veboxOutput[i])
+        {
+            m_allocator.DestroyVpSurface(m_veboxOutput[i]);
+        }
+    }
+
     for (uint32_t i = 0; i < VP_NUM_DN_SURFACES; i++)
     {
-        if (veboxDenoiseOutput[i])
+        if (m_veboxDenoiseOutput[i])
         {
-            m_allocator.DestroyVpSurface(veboxDenoiseOutput[i]);
+            m_allocator.DestroyVpSurface(m_veboxDenoiseOutput[i]);
         }
     }
 
     for (uint32_t i = 0; i < VP_NUM_STMM_SURFACES; i++)
     {
-        if (veboxSTMMSurface[i])
+        if (m_veboxSTMMSurface[i])
         {
-            m_allocator.DestroyVpSurface(veboxSTMMSurface[i]);
+            m_allocator.DestroyVpSurface(m_veboxSTMMSurface[i]);
         }
     }
 
-    if (veboxStatisticsSurface)
+    if (m_veboxStatisticsSurface)
     {
-        m_allocator.DestroyVpSurface(veboxStatisticsSurface);
+        m_allocator.DestroyVpSurface(m_veboxStatisticsSurface);
     }
 
-    if (veboxRgbHistogram)
+    if (m_veboxRgbHistogram)
     {
-        m_allocator.DestroyVpSurface(veboxRgbHistogram);
+        m_allocator.DestroyVpSurface(m_veboxRgbHistogram);
     }
 
-    if (veboxDNTempSurface)
+    if (m_veboxDNTempSurface)
     {
-        m_allocator.DestroyVpSurface(veboxDNTempSurface);
+        m_allocator.DestroyVpSurface(m_veboxDNTempSurface);
     }
 
-    if (veboxDNSpatialConfigSurface)
+    if (m_veboxDNSpatialConfigSurface)
     {
-        m_allocator.DestroyVpSurface(veboxDNSpatialConfigSurface);
+        m_allocator.DestroyVpSurface(m_veboxDNSpatialConfigSurface);
     }
 
-    if (vebox3DLookUpTables)
+    if (m_vebox3DLookUpTables)
     {
-        m_allocator.DestroyVpSurface(vebox3DLookUpTables);
+        m_allocator.DestroyVpSurface(m_vebox3DLookUpTables);
     }
 }
 
@@ -218,10 +226,10 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     {
         if (VeboxOutputNeeded(caps))
         {
-            for (i = 0; i < veboxOutputCount; i++)
+            for (i = 0; i < m_veboxOutputCount; i++)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-                    veboxOutput[i],
+                    m_veboxOutput[i],
                     "VeboxSurfaceOutput",
                     inputSurface->osSurface->Format,
                     MOS_GFXRES_2D,
@@ -232,10 +240,10 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                     surfCompressionMode,
                     bAllocated));
 
-                veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
-                veboxOutput[i]->rcDst      = inputSurface->rcDst;
-                veboxOutput[i]->rcSrc      = inputSurface->rcSrc;
-                veboxOutput[i]->rcMaxSrc   = inputSurface->rcMaxSrc;
+                m_veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
+                m_veboxOutput[i]->rcDst      = inputSurface->rcDst;
+                m_veboxOutput[i]->rcSrc      = inputSurface->rcSrc;
+                m_veboxOutput[i]->rcMaxSrc   = inputSurface->rcMaxSrc;
 
                 // When IECP is enabled and Bob or interlaced scaling is selected for interlaced input,
                 // output surface's SampleType should be same to input's. Bob is being
@@ -244,19 +252,19 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                     (caps.bDI && caps.bBobDI)) ||
                     (caps.bIScaling))
                 {
-                    veboxOutput[i]->SampleType = inputSurface->SampleType;
+                    m_veboxOutput[i]->SampleType = inputSurface->SampleType;
                 }
                 else
                 {
-                    veboxOutput[i]->SampleType = SAMPLE_PROGRESSIVE;
+                    m_veboxOutput[i]->SampleType = SAMPLE_PROGRESSIVE;
                 }
             }
         }
         else
         {
-            for (i = 0; i < veboxOutputCount; i++)
+            for (i = 0; i < m_veboxOutputCount; i++)
             {
-                m_allocator.DestroyVpSurface(veboxOutput[i]);
+                m_allocator.DestroyVpSurface(m_veboxOutput[i]);
             }
         }
 
@@ -265,7 +273,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
             for (i = 0; i < VP_NUM_DN_SURFACES; i++)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-                    veboxDenoiseOutput[i],
+                    m_veboxDenoiseOutput[i],
                     "VeboxFFDNSurface",
                     inputSurface->osSurface->Format,
                     MOS_GFXRES_2D,
@@ -298,14 +306,14 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                 }
 
                 // DN's output format should be same to input
-                veboxDenoiseOutput[i]->SampleType =
+                m_veboxDenoiseOutput[i]->SampleType =
                     inputSurface->SampleType;
 
                 // Set Colorspace of FFDN
-                veboxDenoiseOutput[i]->ColorSpace = inputSurface->ColorSpace;
+                m_veboxDenoiseOutput[i]->ColorSpace = inputSurface->ColorSpace;
 
                 // Copy FrameID and parameters, as DN output will be used as next blt's current
-                veboxDenoiseOutput[i]->FrameID = inputSurface->FrameID;
+                m_veboxDenoiseOutput[i]->FrameID = inputSurface->FrameID;
 
                 // Place Holder to update report for debug purpose
             }
@@ -315,7 +323,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
             // Free FFDN surfaces
             for (i = 0; i < VP_NUM_DN_SURFACES; i++)
             {
-                m_allocator.DestroyVpSurface(veboxDenoiseOutput[i]);
+                m_allocator.DestroyVpSurface(m_veboxDenoiseOutput[i]);
             }
         }
     }
@@ -331,7 +339,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         for (i = 0; i < VP_NUM_STMM_SURFACES; i++)
         {
             VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-                veboxSTMMSurface[i],
+                m_veboxSTMMSurface[i],
                 "VeboxSTMMSurface",
                 Format_STMM,
                 MOS_GFXRES_2D,
@@ -356,7 +364,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         // Free DI history buffers (STMM = Spatial-temporal motion measure)
         for (i = 0; i < VP_NUM_STMM_SURFACES; i++)
         {
-            m_allocator.DestroyVpSurface(veboxDenoiseOutput[i]);
+            m_allocator.DestroyVpSurface(m_veboxDenoiseOutput[i]);
         }
     }
 
@@ -367,7 +375,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     dwSize = MHW_PAGE_SIZE;
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-        veboxDNTempSurface,
+        m_veboxDNTempSurface,
         "VeboxDNTempSurface",
         Format_Buffer,
         MOS_GFXRES_BUFFER,
@@ -385,7 +393,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     dwSize = MHW_PAGE_SIZE;
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-        veboxDNSpatialConfigSurface,
+        m_veboxDNSpatialConfigSurface,
         "VeboxSpatialAttributesConfigurationSurface",
         Format_RAW,
         MOS_GFXRES_BUFFER,
@@ -413,7 +421,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         VP_VEBOX_MAX_SLICES;                                // Total number of slices
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-        veboxRgbHistogram,
+        m_veboxRgbHistogram,
         "VeboxLaceAceRgbHistogram",
         Format_Buffer,
         MOS_GFXRES_BUFFER,
@@ -435,7 +443,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     dwSize = dwWidth * dwHeight;
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-        veboxStatisticsSurface,
+        m_veboxStatisticsSurface,
         "VeboxStatisticsSurface",
         Format_Buffer,
         MOS_GFXRES_BUFFER,
@@ -459,42 +467,49 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
 
 VP_SURFACE* vp::VpResourceManager::GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps)
 {
-    VP_SURFACE* surface = nullptr;
-    if (!caps.bSFC && !caps.bRender) // Vebox output directlly to output surface
+    if (caps.bRender)
     {
+        // Place Holder when enable DI
+        return nullptr;
+    }
+
+    if (!caps.bSFC) // Vebox output directlly to output surface
+    {
+        // RenderTarget will be assigned in VpVeboxCmdPacket::GetSurface.
         return nullptr;
     }
     else if (caps.bDI && caps.bVebox) // Vebox DI enable
     {
         // Place Holder when enable DI
+        return nullptr;
     }
-    else if (caps.bIECP) // IECP enabled, output to internal surface
+    else if (caps.bIECP) // SFC + IECP enabled, output to internal surface
     {
-        surface = veboxOutput[currentDnOutput];
+        return m_veboxOutput[m_currentDnOutput];
     }
-    else if (caps.bDN) // DN only cases
+    else if (caps.bDN) // SFC + DN case
     {
-        return veboxDenoiseOutput[currentDnOutput];
+        // DN + SFC scenario needs IECP implicitly, which need vebox output surface being assigned.
+        // Use m_currentDnOutput to ensure m_veboxOutput surface paired with DN output surface.
+        return m_veboxOutput[m_currentDnOutput];
     }
     else
     {
-        // Write to SFC cases, Vebox output is not needed
+        // Write to SFC cases, Vebox output is not needed.
         VP_PUBLIC_NORMALMESSAGE("No need output for Vebox output");
         return nullptr;
     }
-
-    return surface;
 }
 
 MOS_STATUS VpResourceManager::InitVeboxSpatialAttributesConfiguration()
 {
     VP_FUNC_CALL();
 
-    VP_PUBLIC_CHK_NULL_RETURN(veboxDNSpatialConfigSurface);
-    VP_PUBLIC_CHK_NULL_RETURN(veboxDNSpatialConfigSurface->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_veboxDNSpatialConfigSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_veboxDNSpatialConfigSurface->osSurface);
 
     uint8_t* data = (uint8_t*)& g_cInit_VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATIONS;
-    return m_allocator.Write1DSurface(veboxDNSpatialConfigSurface, data,
+    return m_allocator.Write1DSurface(m_veboxDNSpatialConfigSurface, data,
         (uint32_t)sizeof(VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION));
 }
 
