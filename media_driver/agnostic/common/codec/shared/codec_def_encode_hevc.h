@@ -828,6 +828,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     uint32_t                bScreenContent;
 
     uint16_t                LcuMaxBitsizeAllowedHigh16b;
+    uint32_t                TargetFrameSize;
 
     /*! \brief Picture parameter, Same as syntax element.
     *
