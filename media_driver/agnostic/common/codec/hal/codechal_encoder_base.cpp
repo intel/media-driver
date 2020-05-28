@@ -4148,6 +4148,12 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
     userFeatureWriteData.Value.i32Data = m_computeContextEnabled;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID;
     MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+
+    // Single Task Phase support reporting
+    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    userFeatureWriteData.Value.i32Data = m_singleTaskPhaseSupported;
+    userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID;
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
 #endif
 
     return eStatus;
