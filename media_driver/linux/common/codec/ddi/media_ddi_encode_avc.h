@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -516,6 +516,25 @@ protected:
     uint16_t                                m_previousFRper100sec = 0;   //!< For saving FR value to be used in case of dynamic BRC reset.
 
 private:
+    //!
+    //! \brief    Check whether swizzle needed
+    //!
+    //! \param    [in] rawSurface
+    //!           Pointer of Raw Surface
+    //!
+    //! \return   bool, true if need, otherwise false
+    //!
+    inline bool NeedDisplayFormatSwizzle(DDI_MEDIA_SURFACE *rawSurface)
+    {
+        if (Media_Format_A8R8G8B8 == rawSurface->format ||
+            Media_Format_B10G10R10A2 == rawSurface->format)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     //! \brief H.264 current picture parameter set id
     uint8_t current_pic_parameter_set_id = 0;
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1466,6 +1466,7 @@ VAStatus DdiEncodeAvc::ParsePicParams(
     picParams->transform_8x8_mode_flag         = pic->pic_fields.bits.transform_8x8_mode_flag;
     picParams->pic_order_present_flag          = pic->pic_fields.bits.pic_order_present_flag;
     picParams->pic_scaling_matrix_present_flag = pic->pic_fields.bits.pic_scaling_matrix_present_flag;
+    picParams->bDisplayFormatSwizzle           = NeedDisplayFormatSwizzle(rtTbl->pCurrentRT);
     for (uint32_t i = 0; i < 12; i++)
     {
         picParams->pic_scaling_list_present_flag[i] = pic->pic_fields.bits.pic_scaling_matrix_present_flag;
