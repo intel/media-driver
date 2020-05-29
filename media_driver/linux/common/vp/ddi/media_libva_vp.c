@@ -2022,44 +2022,16 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
 /////////////////////////////////////////////////////////////////////////////////////////////
 VPHAL_CSPACE DdiVp_GetColorSpaceFromMediaFormat(DDI_MEDIA_FORMAT format)
 {
-    VPHAL_CSPACE ColorSpace = CSpace_None;
+    MOS_FORMAT mosFormat = VpGetFormatFromMediaFormat(format);
 
-    switch (format)
+    if (IS_RGB_FORMAT(mosFormat))
     {
-    case Media_Format_X8R8G8B8:
-    case Media_Format_CPU:
-    case Media_Format_R5G6B5:
-    case Media_Format_R8G8B8:
-    case Media_Format_A8R8G8B8:
-    case Media_Format_R10G10B10A2:
-    case Media_Format_B10G10R10A2:
-        ColorSpace = CSpace_sRGB;
-        break;
-    case Media_Format_YUY2:
-    case Media_Format_UYVY:
-    case Media_Format_YV12:
-    case Media_Format_IYUV:
-    case Media_Format_NV12:
-    case Media_Format_NV21:
-    case Media_Format_422H:
-    case Media_Format_422V:
-    case Media_Format_P010:
-    case Media_Format_IMC3:
-    case Media_Format_AYUV:
-    case Media_Format_Y210:
-    case Media_Format_Y410:
-    case Media_Format_P016:
-    case Media_Format_Y216:
-    case Media_Format_Y416:
-        ColorSpace = CSpace_BT601;
-        break;
-    default:
-        VP_DDI_ASSERTMESSAGE("Get ColorSpace from media format: unknown format.");
-        ColorSpace = CSpace_None;
-        break;
+        return CSpace_sRGB;
     }
-
-    return ColorSpace;
+    else
+    {
+        return CSpace_BT601;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
