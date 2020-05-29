@@ -270,6 +270,7 @@ void MosUtilities::MosFreeUserFeatureValueString(PMOS_USER_FEATURE_VALUE_STRING 
             if (pUserString->pStringData)
             {
                 MOS_FreeMemAndSetNull(pUserString->pStringData);
+                m_mosMemAllocFakeCounter--;
             }
             pUserString->uSize = 0;
         }
@@ -953,9 +954,6 @@ MOS_STATUS MosUtilities::MosCopyUserFeatureValueData(
                 pDstData->StringData.uSize,
                 pSrcData->StringData.pStringData,
                 pSrcData->StringData.uSize);
-
-            MOS_SafeFreeMemory(pSrcData->StringData.pStringData);
-            pSrcData->StringData.pStringData = nullptr;
         }
         break;
     case MOS_USER_FEATURE_VALUE_TYPE_MULTI_STRING:
@@ -1050,6 +1048,7 @@ MOS_STATUS MosUtilities::MosAssignUserFeatureValueData(
                 MOS_OS_ASSERTMESSAGE("Failed to allocate memory.");
                 return MOS_STATUS_NULL_POINTER;
             }
+            m_mosMemAllocFakeCounter++;
             eStatus = MosSecureStrcpy(
                 pDstData->StringData.pStringData,
                 pDstData->StringData.uSize + 1,
@@ -1555,10 +1554,23 @@ MOS_STATUS MosUtilities::MosUserFeatureReadValueString(
     }
     if (strlen(pcTmpStr) > 0)
     {
-        pFeatureValue->Value.StringData.pStringData = (char *)MOS_AllocAndZeroMemory(strlen(pcTmpStr) + 1);
+        if (!pFeatureValue->Value.StringData.pStringData)
+        {
+            m_mosMemAllocFakeCounter++;
+        }
+
+        if (pFeatureValue->Value.StringData.uSize < strlen(pcTmpStr))
+        {
+            pFeatureValue->Value.StringData.pStringData =
+                (char *)MOS_ReallocMemory(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr) + 1);
+            pFeatureValue->Value.StringData.uSize = strlen(pcTmpStr);
+        }
+
+        MOS_OS_CHK_NULL_RETURN(pFeatureValue->Value.StringData.pStringData);
+
+        MosZeroMemory(pFeatureValue->Value.StringData.pStringData, pFeatureValue->Value.StringData.uSize + 1);
 
         MosSecureMemcpy(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr), pcTmpStr, strlen(pcTmpStr));
-        pFeatureValue->Value.StringData.uSize = dwUFSize;
     }
     return eStatus;
 }

@@ -232,8 +232,6 @@ MediaUserSettingsMgr_g12::MediaUserSettingsMgr_g12()
         __MOS_USER_FEATURE_KEY_G12_MAX_ID,
         nullptr);
 
-    MosUtilUserInterface::SetDefaultValueChanged(true);
-
     if (MOS_FAILED(eStatus))
     {
         MOS_OS_ASSERTMESSAGE("MOS util G12 user feature key init error");

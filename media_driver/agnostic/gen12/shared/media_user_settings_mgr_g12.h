@@ -34,13 +34,6 @@ class MediaUserSettingsMgr_g12 : public MediaUserSettingsMgr
 public:
     MediaUserSettingsMgr_g12();
     virtual ~MediaUserSettingsMgr_g12();
-
-protected:
-    virtual bool SetDefaultValueChanged()
-    {
-        return MosUtilUserInterface::SetDefaultValueChanged(true);
-    }
-
 };
 
 //!

@@ -67,25 +67,6 @@ public:
     static PMOS_USER_FEATURE_VALUE GetValue(uint32_t keyId);
 
     //!
-    //! \brief    Set if default value can be changed
-    //! \details  true if default value can be changed, false if it cannot be changed
-    //! \return   bool
-    //!           Returns if default value can be changed.
-    //!
-    static bool SetDefaultValueChanged(bool bChanged = false)
-    {
-        return m_defaultValueChanged = bChanged;
-    }
-
-    //!
-    //! \brief    Get if default value can be changed
-    //! \details  true if default value can be changed, false if it cannot be changed
-    //! \return   bool
-    //!           Returns if default value can be changed.
-    //!
-    static bool  IsDefaultValueChanged() { return m_defaultValueChanged; }
-
-    //!
     //! \brief    Get user feature key map
     //! \details  Get user feature key map
     //! \return   UserFeatureValueMapType
@@ -99,7 +80,6 @@ public:
 private:
     static std::map<uint32_t, PMOS_USER_FEATURE_VALUE>  m_userFeatureKeyMap;
     static MosMutex                                     m_mosMutex;
-    static bool                                         m_defaultValueChanged;
 };
 
 
