@@ -1273,12 +1273,15 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
             resource->Format = Format_Y216;
             break;
         case Media_Format_AYUV:
+        case Media_Format_XYUV:
             resource->Format = Format_AYUV;
             break;
         case Media_Format_Y410:
+        case Media_Format_XV30:
             resource->Format = Format_Y410;
             break;
         case Media_Format_Y416:
+        case Media_Format_XV48:
             resource->Format = Format_Y416;
             break;
         case Media_Format_Y8:
