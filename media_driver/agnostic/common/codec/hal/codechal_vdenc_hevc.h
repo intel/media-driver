@@ -251,6 +251,7 @@ public:
     uint32_t                                m_vdencLaInitDmemBufferSize = 0;                   //!< Offset of Lookahead init DMEM buffer
     uint32_t                                m_vdencLaUpdateDmemBufferSize = 0;                 //!< Offset of Lookahead update DMEM buffer
     uint32_t                                m_numValidLaRecords = 0;                           //!< Number of valid lookahead records
+    int32_t                                 m_bufferFulnessError = 0;                          //!< VBV buffer fulness error between unit of bits (used by driver) and unit of frame (used by LA analsis kernel)
     uint8_t                                 m_cqmQpThreshold = 40;                             //!< QP threshold for CQM enable/disable. Used by lookahead analysis kernel.
 
 protected:

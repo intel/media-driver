@@ -447,7 +447,9 @@ struct BrcUpdateDmem
     uint8_t      EnableLookAhead;
     uint8_t      UPD_LA_Data_Offset_U8;
     uint8_t      UPD_CQMEnabled_U8;  // 0 indicates CQM is disabled for current frame; otherwise CQM is enabled.
-    uint8_t      RSVD2[24];
+    uint32_t     UPD_LA_TargetSize_U32;     // target frame size in lookahead BRC (if EnableLookAhead == 1) or TCBRC mode. If zero, lookahead BRC or TCBRC is disabled.
+    uint32_t     UPD_LA_TargetFulness_U32;  // target VBV buffer fulness in lookahead BRC mode (if EnableLookAhead == 1).
+    uint8_t      RSVD2[16];
 };
 using PBrcUpdateDmem = struct BrcUpdateDmem*;
 
@@ -1065,7 +1067,8 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     if (m_lookaheadDepth > 0)
     {
         hucVDEncBrcDmem->EnableLookAhead = 1;
-        hucVDEncBrcDmem->UPD_LA_Data_Offset_U8 = m_currLaDataIdx;
+        hucVDEncBrcDmem->UPD_LA_TargetSize_U32 = m_avcPicParam->TargetFrameSize << 3;
+        hucVDEncBrcDmem->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
     }
 
     CODECHAL_DEBUG_TOOL(

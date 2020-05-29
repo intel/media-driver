@@ -1732,10 +1732,11 @@ public:
     uint32_t                        m_sizeCurrSkipFrame = 0;    //!< size of curr skipped frame for skipflag = 2
 
     // Lookahead
-    MOS_RESOURCE                    m_resLaDataBuffer = {};     //!< Resource of lookahead data buffer
     uint8_t                         m_lookaheadDepth = 0;       //!< Number of frames to lookahead
     uint8_t                         m_currLaDataIdx = 0;        //!< Current lookahead data index
     uint32_t                        m_averageFrameSize = 0;     //!< Average frame size based on targed bitrate and frame rate, in unit of bits
+    uint32_t                        m_prevTargetFrameSize = 0;  //!< Target frame size of previous frame.
+    uint32_t                        m_targetBufferFulness = 0;  //!< Target encode buffer fulness in bits, used by BRC and calculated from initial buffer fulness, target frame size (from DDI) and average frame size
 
     MHW_VDBOX_NODE_IND              m_vdboxIndex = MHW_VDBOX_NODE_MAX;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
