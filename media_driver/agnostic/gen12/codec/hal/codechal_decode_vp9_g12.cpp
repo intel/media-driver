@@ -48,7 +48,7 @@ CodechalDecodeVp9G12 ::  ~CodechalDecodeVp9G12()
      }
      if (m_scalabilityState)
      {
-         CodecHalDecodeScalability_Destroy(m_scalabilityState);
+         CodecHalDecodeScalability_Destroy_G12(m_scalabilityState);
          MOS_FreeMemAndSetNull(m_scalabilityState);
      }
      //Note: virtual engine interface destroy is done in MOS layer

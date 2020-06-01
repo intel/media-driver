@@ -32,6 +32,10 @@
 
 #define CODECHAL_SCALABILITY_SLICE_STATE_CACHELINES_PER_SLICE_TGL  9
 
+#define CODECHAL_SCALABILITY_ADDITIONAL_BES_MEMORY_OF_TWO_PIPE  2
+
+#define CODECHAL_SCALABILITY_MAX_PIPE_INDEX_OF_TWO_PIPE  1
+
 inline static uint8_t CodecHalDecodeMaxNumPipesInUseG12(uint8_t vdboxNum)
 {
     uint8_t maxNumPipesInUs = 1;
@@ -83,6 +87,7 @@ typedef struct _CODECHAL_DECODE_SCALABILITY_STATE_G12 : public _CODECHAL_DECODE_
     uint8_t                         u8RtCurPhase;
     uint8_t                         u8RtPhaseNum;
     uint8_t                         u8RtPipeInLastPhase;
+    MOS_RESOURCE                    resSemaMemBEsAdditional[CODECHAL_SCALABILITY_ADDITIONAL_BES_MEMORY_OF_TWO_PIPE];  //!< Additional BEs sync for two pipes
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool                            bDisableRtMode;
@@ -398,6 +403,9 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_VariableSizes_G12(
     PMHW_VDBOX_HCP_BUFFER_SIZE_PARAMS         pHcpBufSizeParam,
     PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS      pAllocParam);
 
+MOS_STATUS CodecHalDecodeScalability_AllocateResources_FixedSizes_G12(
+    PCODECHAL_DECODE_SCALABILITY_STATE_G12 pScalabilityState);
+
 MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
     PCODECHAL_DECODE_SCALABILITY_STATE         pScalState,
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS   pInitParams);
@@ -414,5 +422,8 @@ MOS_STATUS CodechalDecodeScalability_DebugOvrdDecidePipeNum_G12(
 void CodecHalDecodeScalability_DecPhaseToSubmissionType_G12(
     PCODECHAL_DECODE_SCALABILITY_STATE_G12 pScalabilityState,
     PMOS_COMMAND_BUFFER pCmdBuffer);
+
+void CodecHalDecodeScalability_Destroy_G12(
+    PCODECHAL_DECODE_SCALABILITY_STATE_G12 pScalabilityState);
 
 #endif // __CODECHAL_DECODE_SCALABILITY_G12_H__

@@ -652,6 +652,7 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
     PMOS_INTERFACE                      pOsInterface;
     MhwMiInterface                      *pMiInterface;
     uint32_t                            HcpDecPhase;
+    uint32_t                            curPipeInUse;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
@@ -713,6 +714,24 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
             MHW_MI_SAD_EQUAL_SDD,
             pCmdBufferInUse));
 
+        //add additional BEs Sync for two pipes
+        if (u8PipeNum == 2 && !phasedSubmission)
+        {
+            if (pScalabilityState->bIsRtMode)
+            {
+                curPipeInUse = pScalabilityState->u8RtCurPipe;
+            }
+            else
+            {
+                curPipeInUse = HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE0 ? 0 : 1;
+            }
+            //pipe 0: resSemaMemBEsAdditional[0] + 1, pipe 1: resSemaMemBEsAdditional[1] + 1
+            CODECHAL_DECODE_CHK_STATUS(pScalabilityState->pHwInterface->SendMiAtomicDwordCmd(&pScalabilityState->resSemaMemBEsAdditional[curPipeInUse],
+                1,
+                MHW_MI_ATOMIC_INC,
+                pCmdBufferInUse));
+        }
+
         // Program some placeholder cmds to resolve the hazard between BEs sync
         MHW_MI_STORE_DATA_PARAMS dataParams;
         dataParams.pOsResource = &pScalabilityState->resDelayMinus;
@@ -724,9 +743,26 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
                 pCmdBufferInUse,
                 &dataParams));
         }
-
+        //additional Semaphore Wait: pipe 0 wait resSemaMemBEsAdditional[1] == 1, pipe 1 wait resSemaMemBEsAdditional[0] == 1
+        if (u8PipeNum == 2 && !phasedSubmission)
+        {
+            CODECHAL_DECODE_CHK_STATUS(pScalabilityState->pHwInterface->SendHwSemaphoreWaitCmd(
+                &pScalabilityState->resSemaMemBEsAdditional[CODECHAL_SCALABILITY_MAX_PIPE_INDEX_OF_TWO_PIPE - curPipeInUse],
+                1,
+                MHW_MI_SAD_EQUAL_SDD,
+                pCmdBufferInUse));
+        }
         //reset HW semaphore
         CODECHAL_DECODE_CHK_STATUS(pScalabilityState->pHwInterface->SendMiAtomicDwordCmd(&pScalabilityState->resSemaMemBEs, 1, MHW_MI_ATOMIC_DEC, pCmdBufferInUse));
+        //pipe 0 reset resSemaMemBEsAdditional[1], pipe 1 reset resSemaMemBEsAdditional[0]
+        if (u8PipeNum == 2 && !phasedSubmission)
+        {
+            CODECHAL_DECODE_CHK_STATUS(pScalabilityState->pHwInterface->SendMiAtomicDwordCmd(
+                &pScalabilityState->resSemaMemBEsAdditional[CODECHAL_SCALABILITY_MAX_PIPE_INDEX_OF_TWO_PIPE - curPipeInUse],
+                1,
+                MHW_MI_ATOMIC_DEC,
+                pCmdBufferInUse));
+        }
 
         if (!pScalabilityState->bIsRtMode)
         {
@@ -1041,7 +1077,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
 #endif
 
     pScalabilityState->sliceStateCLs = CODECHAL_SCALABILITY_SLICE_STATE_CACHELINES_PER_SLICE_TGL;
-    CODECHAL_DECODE_CHK_STATUS(CodecHalDecodeScalability_AllocateResources_FixedSizes(pScalabilityState));
+    CODECHAL_DECODE_CHK_STATUS(CodecHalDecodeScalability_AllocateResources_FixedSizes_G12(pScalabilityState));
 
 finish:
     return eStatus;
@@ -1404,6 +1440,94 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_VariableSizes_G12(
     }
 
     return eStatus;
+}
+
+MOS_STATUS CodecHalDecodeScalability_AllocateResources_FixedSizes_G12(
+    PCODECHAL_DECODE_SCALABILITY_STATE_G12 pScalabilityState)
+{
+    PMOS_INTERFACE          pOsInterface;
+    MOS_ALLOC_GFXRES_PARAMS AllocParamsForBufferLinear;
+    MOS_LOCK_PARAMS         LockFlagsWriteOnly;
+    uint8_t *               pData;
+    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState);
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pHwInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pHwInterface->GetOsInterface());
+
+    pOsInterface = pScalabilityState->pHwInterface->GetOsInterface();
+
+    MOS_ZeroMemory(&LockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+    LockFlagsWriteOnly.WriteOnly = 1;
+
+    // initiate allocation paramters
+    MOS_ZeroMemory(&AllocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    AllocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
+    AllocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+    AllocParamsForBufferLinear.Format   = Format_Buffer;
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_AllocateResources_FixedSizes(pScalabilityState));
+
+    //Allocate additional BEs Semaphore memory for two pipes to avoid race condition
+    if (!pOsInterface->phasedSubmission)
+    {
+        AllocParamsForBufferLinear.pBufName = "AdditionalBESemaphoreMemory";
+        AllocParamsForBufferLinear.dwBytes  = sizeof(uint32_t);
+        for (uint32_t i = 0; i < 2; i++)
+        {
+            eStatus = (MOS_STATUS)pOsInterface->pfnAllocateResource(
+                pOsInterface,
+                &AllocParamsForBufferLinear,
+                &pScalabilityState->resSemaMemBEsAdditional[i]);
+
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                CODECHAL_DECODE_ASSERTMESSAGE("Failed to allocate Additional BE Semaphore memory.");
+                return eStatus;
+            }
+
+            pData = (uint8_t *)pOsInterface->pfnLockResource(
+                pOsInterface,
+                &pScalabilityState->resSemaMemBEsAdditional[i],
+                &LockFlagsWriteOnly);
+
+            CODECHAL_DECODE_CHK_NULL_RETURN(pData);
+
+            MOS_ZeroMemory(pData, sizeof(uint32_t));
+
+            CODECHAL_DECODE_CHK_STATUS_RETURN(pOsInterface->pfnUnlockResource(
+                pOsInterface,
+                &pScalabilityState->resSemaMemBEsAdditional[i]));
+        }
+    }
+
+    return eStatus;
+}
+
+void CodecHalDecodeScalability_Destroy_G12(
+    PCODECHAL_DECODE_SCALABILITY_STATE_G12 pScalabilityState)
+{
+    PMOS_INTERFACE pOsInterface;
+
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(pScalabilityState);
+    CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(pScalabilityState->pHwInterface);
+    CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(pScalabilityState->pHwInterface->GetOsInterface());
+    pOsInterface = pScalabilityState->pHwInterface->GetOsInterface();
+
+    CodecHalDecodeScalability_Destroy(pScalabilityState);
+
+    for (int i = 0; i < 2; i++)
+    {
+        pOsInterface->pfnFreeResource(
+            pOsInterface,
+            &pScalabilityState->resSemaMemBEsAdditional[i]);
+    }
+
+    return;
 }
 
 MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
