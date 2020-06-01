@@ -204,12 +204,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
             }
         case Media_Format_RGBP:
         case Media_Format_BGRP:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
-            {
-                tileformat = I915_TILING_NONE;
-                break;
-            }
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER) &&
@@ -261,7 +255,9 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 }
 
                 if ((format == Media_Format_NV12) ||
-                    (format == Media_Format_P010))
+                    (format == Media_Format_P010) ||
+                    (format == Media_Format_RGBP) ||
+                    (format == Media_Format_BGRP))
                 {
 #if UFO_GRALLOC_NEW_FORMAT
                     //Planar type surface align 64 to improve performance.
