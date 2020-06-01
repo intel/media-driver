@@ -1818,10 +1818,12 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
         perStreamParameters->WaTable.reset();
         Mos_Specific_ClearGpuContext(perStreamParameters);
 
+#ifndef ANDROID
         if (perStreamParameters->bKMDHasVCS2)
         {
             DestroyIPC(perStreamParameters);
         }
+#endif
 
         if (perStreamParameters->contextOffsetList.size())
         {
