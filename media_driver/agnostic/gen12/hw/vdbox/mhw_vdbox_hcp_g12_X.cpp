@@ -3549,6 +3549,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateCmd(
 
     uint32_t curFrameWidth                      = vp9PicParams->FrameWidthMinus1 + 1;
     uint32_t curFrameHeight                     = vp9PicParams->FrameHeightMinus1 + 1;
+    bool isScaling                              = (curFrameWidth == params->dwPrevFrmWidth) && (curFrameHeight == params->dwPrevFrmHeight) ? false : true;
 
     cmd.DW1.FrameWidthInPixelsMinus1            = MOS_ALIGN_CEIL(curFrameWidth, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
     cmd.DW1.FrameHeightInPixelsMinus1           = MOS_ALIGN_CEIL(curFrameHeight, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
@@ -3565,6 +3566,27 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateCmd(
     cmd.DW2.SegmentationUpdateMap               = cmd.DW2.SegmentationEnabled && vp9PicParams->PicFlags.fields.segmentation_update_map;
     cmd.DW2.LosslessMode                        = vp9PicParams->PicFlags.fields.LosslessFlag;
     cmd.DW2.SegmentIdStreamoutEnable            = cmd.DW2.SegmentationUpdateMap;
+
+    uint8_t segmentIDStreaminEnable = 0;
+    if (vp9PicParams->PicFlags.fields.intra_only ||
+        (vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_KEY_FRAME)) {
+        segmentIDStreaminEnable = 1;
+    } else if (vp9PicParams->PicFlags.fields.segmentation_enabled) {
+        if (!vp9PicParams->PicFlags.fields.segmentation_update_map)
+            segmentIDStreaminEnable = 1;
+        else if (vp9PicParams->PicFlags.fields.segmentation_temporal_update)
+            segmentIDStreaminEnable = 1;
+    }
+    if (vp9PicParams->PicFlags.fields.error_resilient_mode) {
+            segmentIDStreaminEnable = 1;
+    }
+    // Resolution change will reset the segment ID buffer
+    if (isScaling)
+    {
+        segmentIDStreaminEnable = 1;
+    }
+
+    cmd.DW2.SegmentIdStreaminEnable       = segmentIDStreaminEnable;
 
     cmd.DW3.Log2TileRow                    = vp9PicParams->log2_tile_rows;        // No need to minus 1 here.
     cmd.DW3.Log2TileColumn                 = vp9PicParams->log2_tile_columns;     // No need to minus 1 here.
@@ -3605,9 +3627,6 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateCmd(
         uint32_t altRefFrameWidth     = vp9RefList[altRefPicIndex]->dwFrameWidth;
         uint32_t altRefFrameHeight    = vp9RefList[altRefPicIndex]->dwFrameHeight;
 
-        bool isScaling                = (curFrameWidth == params->dwPrevFrmWidth) && (curFrameHeight == params->dwPrevFrmHeight) ? 
-                                                    false : true;
-
         cmd.DW2.AllowHiPrecisionMv              = vp9PicParams->PicFlags.fields.allow_high_precision_mv;
         cmd.DW2.McompFilterType                 = vp9PicParams->PicFlags.fields.mcomp_filter_type;
         cmd.DW2.SegmentationTemporalUpdate      = cmd.DW2.SegmentationUpdateMap && vp9PicParams->PicFlags.fields.segmentation_temporal_update;
@@ -3618,15 +3637,18 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateCmd(
 
         cmd.DW2.LastFrameType                   = !params->PrevFrameParams.fields.KeyFrame;
 
-        cmd.DW2.UsePrevInFindMvReferences       = vp9PicParams->PicFlags.fields.error_resilient_mode    ||
-                                                    params->PrevFrameParams.fields.KeyFrame             || 
-                                                    params->PrevFrameParams.fields.IntraOnly            || 
-                                                    !params->PrevFrameParams.fields.Display             || 
-                                                    isScaling ? false : true;
-
-        cmd.DW2.SegmentIdStreaminEnable         = vp9PicParams->PicFlags.fields.error_resilient_mode    ||
-                                                    !cmd.DW2.SegmentationEnabled ||
-                                                    isScaling ? false : true;
+        // Reset UsePrevInFindMvReferences to zero if last picture has a different size,
+        // Current picture is error-resilient mode, Last picture was intra_only or keyframe,
+        // Last picture was not a displayed picture.
+        cmd.DW2.UsePrevInFindMvReferences       =
+                 !(vp9PicParams->PicFlags.fields.error_resilient_mode ||
+                 params->PrevFrameParams.fields.KeyFrame ||
+                 params->PrevFrameParams.fields.IntraOnly ||
+                 !params->PrevFrameParams.fields.Display);
+        // Reset UsePrevInFindMvReferences in case of resolution change on inter frames
+        if (isScaling) {
+            cmd.DW2.UsePrevInFindMvReferences   = 0;
+        }
 
         cmd.DW4.HorizontalScaleFactorForLast    = (lastRefFrameWidth * m_vp9ScalingFactor) / curFrameWidth;
         cmd.DW4.VerticalScaleFactorForLast      = (lastRefFrameHeight * m_vp9ScalingFactor) / curFrameHeight;
