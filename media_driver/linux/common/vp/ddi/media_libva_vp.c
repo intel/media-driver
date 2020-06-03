@@ -745,6 +745,30 @@ VpUpdateProcMirrorState(PVPHAL_SURFACE pVpHalSrcSurf, uint32_t mirror_state)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+//! \purpose Check whether there is only Procamp with adjusting Brightness
+//! \params
+//! [in]  pVpHalSrcSurf
+//! [out] None
+//! \returns true if call succeeds
+/////////////////////////////////////////////////////////////////////////////////////////////
+bool IsProcmpEnable(PVPHAL_SURFACE pVpHalSrcSurf)
+{
+    DDI_CHK_NULL(pVpHalSrcSurf, "Null pVpHalSrcSurf.", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if ((pVpHalSrcSurf->pProcampParams && pVpHalSrcSurf->pProcampParams->bEnabled) &&
+        (pVpHalSrcSurf->pProcampParams->fContrast == 1 && pVpHalSrcSurf->pProcampParams->fHue == 0 && pVpHalSrcSurf->pProcampParams->fSaturation == 1) &&
+        !pVpHalSrcSurf->pBlendingParams && !pVpHalSrcSurf->pLumaKeyParams && (!pVpHalSrcSurf->pIEFParams || !pVpHalSrcSurf->pIEFParams->bEnabled) &&
+        !pVpHalSrcSurf->pDeinterlaceParams && (!pVpHalSrcSurf->pDenoiseParams || (!pVpHalSrcSurf->pDenoiseParams->bEnableChroma && !pVpHalSrcSurf->pDenoiseParams->bEnableLuma)) &&
+        (!pVpHalSrcSurf->pColorPipeParams || (!pVpHalSrcSurf->pColorPipeParams->bEnableACE && !pVpHalSrcSurf->pColorPipeParams->bEnableSTE && !pVpHalSrcSurf->pColorPipeParams->bEnableTCC)) &&
+        !pVpHalSrcSurf->pHDRParams)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 //! \purpose Map Chroma Sitting flags to appropriate VPHAL chroma sitting params
 //! \params
 //! [in]  pVpHalSurf
@@ -968,6 +992,17 @@ VpSetRenderTargetParams(
             pVpHalTgtSurf->rcDst.bottom = pMediaSrcSurf->iHeight;
         }
     }
+
+    if (IsProcmpEnable(pVpHalTgtSurf))
+    {
+        // correct the ChromaSitting location if Procamp is enabled.
+#if (VA_MAJOR_VERSION < 1)
+        pPipelineParam->output_surface_flag = VA_CHROMA_SITING_HORIZONTAL_LEFT | VA_CHROMA_SITING_VERTICAL_TOP;
+#else
+        pPipelineParam->output_color_properties.chroma_sample_location = VA_CHROMA_SITING_HORIZONTAL_LEFT | VA_CHROMA_SITING_VERTICAL_TOP;
+#endif
+    }
+
 #if (VA_MAJOR_VERSION < 1)
     VpUpdateProcChromaSittingState(pVpHalTgtSurf, (uint8_t)(pPipelineParam->output_surface_flag & 0xff));
 #else
@@ -1498,6 +1533,19 @@ DdiVp_SetProcPipelineParams(
     // Note: the alpha blending region cannot overlay
     vaStatus = DdiVp_SetProcPipelineBlendingParams(pVpCtx, uSurfIndex, pPipelineParam);
     DDI_CHK_RET(vaStatus, "Failed to update Alpha Blending parameter!");
+
+    if (IsProcmpEnable(pVpHalSrcSurf))
+    {
+        // correct the ChromaSitting location if Procamp is enabled.
+#if (VA_MAJOR_VERSION < 1)
+        pPipelineParam->input_surface_flag = VA_CHROMA_SITING_HORIZONTAL_LEFT | VA_CHROMA_SITING_VERTICAL_TOP;
+        pPipelineParam->output_surface_flag = VA_CHROMA_SITING_HORIZONTAL_LEFT | VA_CHROMA_SITING_VERTICAL_TOP;
+#else
+        pPipelineParam->input_color_properties.chroma_sample_location = VA_CHROMA_SITING_HORIZONTAL_LEFT | VA_CHROMA_SITING_VERTICAL_TOP;
+        pPipelineParam->output_color_properties.chroma_sample_location = VA_CHROMA_SITING_HORIZONTAL_LEFT | VA_CHROMA_SITING_VERTICAL_TOP;
+#endif
+    }
+
 #if (VA_MAJOR_VERSION < 1)
     VpUpdateProcChromaSittingState(pVpHalSrcSurf, (uint8_t)(pPipelineParam->input_surface_flag&0xff));
     VpUpdateProcChromaSittingState(pVpHalTgtSurf, (uint8_t)(pPipelineParam->output_surface_flag&0xff));
