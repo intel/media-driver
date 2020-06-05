@@ -392,6 +392,19 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             *value = 1;
             break;
         }
+        case VAConfigAttribEncMaxSlices:
+        {
+            if (entrypoint == VAEntrypointEncSlice && IsHevcProfile(profile))
+            {
+                *value = CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6;
+            }
+            else
+            {
+                *value =0;
+                status = VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+            break;
+        }
         case VAConfigAttribMaxPictureWidth:
         {
             if(profile == VAProfileJPEGBaseline)
