@@ -1777,36 +1777,102 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
     {
         // at present, latest libva have not support RGB24.
         attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
-    } else if(profile == VAProfileHEVCMain10)
+    }
+    else if(profile == VAProfileHEVCMain)
     {
-        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10;
+        attrib.value = VA_RT_FORMAT_YUV420;
+    }
+    else if(profile == VAProfileHEVCMain10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV420_10BPP;
+    }
+    else if(profile == VAProfileHEVCMain12)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV420_10BPP
+            | VA_RT_FORMAT_YUV420_12
+            | VA_RT_FORMAT_YUV400;
     }
     else if(profile == VAProfileHEVCMain422_10)
     {
-        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10;
-    } else if(profile == VAProfileHEVCMain444)
-    {
-        attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
-        (*attribList)[attrib.type] = attrib.value;
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV420_10BPP
+            | VA_RT_FORMAT_YUV422
+            | VA_RT_FORMAT_YUV422_10
+            | VA_RT_FORMAT_YUV400;
     }
-    else if(profile == VAProfileHEVCMain444_10)
-    {
-        attrib.value = VA_RT_FORMAT_YUV420 |VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
-        attrib.value |= VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV444_10;
-        (*attribList)[attrib.type] = attrib.value;
-    }
-    else if (profile == VAProfileVP9Profile0
-          || profile == VAProfileVP9Profile2
-          || profile == VAProfileVP9Profile1
-          || profile == VAProfileVP9Profile3)
+    else if(profile == VAProfileHEVCMain422_12)
     {
         attrib.value = VA_RT_FORMAT_YUV420
-                      | VA_RT_FORMAT_YUV422
-                      | VA_RT_FORMAT_YUV444
-                      | VA_RT_FORMAT_YUV420_10
-                      | VA_RT_FORMAT_YUV444_10
-                      | VA_RT_FORMAT_RGB32
-                      | VA_RT_FORMAT_YUV420_10BPP;
+            | VA_RT_FORMAT_YUV420_10BPP
+            | VA_RT_FORMAT_YUV420_12
+            | VA_RT_FORMAT_YUV422
+            | VA_RT_FORMAT_YUV422_10
+            | VA_RT_FORMAT_YUV422_12
+            | VA_RT_FORMAT_YUV400;
+    }
+    else if(profile == VAProfileHEVCMain444 || profile == VAProfileHEVCSccMain444)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV422
+            | VA_RT_FORMAT_YUV444
+            | VA_RT_FORMAT_YUV400;
+    }
+    else if(profile == VAProfileHEVCMain444_10 || profile == VAProfileHEVCSccMain444_10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV420_10BPP
+            | VA_RT_FORMAT_YUV422
+            | VA_RT_FORMAT_YUV422_10
+            | VA_RT_FORMAT_YUV444
+            | VA_RT_FORMAT_YUV444_10
+            | VA_RT_FORMAT_YUV400;
+    }
+    else if(profile == VAProfileHEVCMain444_12)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV420_10BPP
+            | VA_RT_FORMAT_YUV420_12
+            | VA_RT_FORMAT_YUV422
+            | VA_RT_FORMAT_YUV422_10
+            | VA_RT_FORMAT_YUV422_12
+            | VA_RT_FORMAT_YUV444
+            | VA_RT_FORMAT_YUV444_10
+            | VA_RT_FORMAT_YUV444_12
+            | VA_RT_FORMAT_YUV400;
+    }
+    else if(profile == VAProfileHEVCSccMain)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV400;
+    }
+    else if(profile == VAProfileHEVCSccMain10)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420
+            | VA_RT_FORMAT_YUV420_10BPP
+            | VA_RT_FORMAT_YUV400;
+    }
+    else if (profile == VAProfileVP9Profile0)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420;
+    }
+    else if (profile == VAProfileVP9Profile1)
+    {
+        attrib.value = VA_RT_FORMAT_YUV422
+            | VA_RT_FORMAT_YUV444;
+    }
+    else if (profile == VAProfileVP9Profile2)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420_10BPP
+            | VA_RT_FORMAT_YUV420_12;
+    }
+    else if (profile == VAProfileVP9Profile3)
+    {
+        attrib.value = VA_RT_FORMAT_YUV422_10
+            | VA_RT_FORMAT_YUV444_10
+            | VA_RT_FORMAT_YUV422_12
+            | VA_RT_FORMAT_YUV444_12;
     }
     else
     {
