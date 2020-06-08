@@ -50,7 +50,7 @@ MOS_STATUS VpScalabilityOption::SetScalabilityOption(ScalabilityPars *params)
     {
         m_numPipe = 1;// switch back to the single VDBOX mode if invalid tile column test cases.
     }
-
+    m_raMode = params->raMode;
     SCALABILITY_VERBOSEMESSAGE("Tile Column = %d, System VDBOX Num = %d, Decided Pipe Num = %d.", params->numTileColumns, params->numVebox, m_numPipe);
 
     return MOS_STATUS_SUCCESS;
@@ -73,7 +73,8 @@ bool VpScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params)
     VpScalabilityOption newOption;
     newOption.SetScalabilityOption(params);
 
-    if (m_numPipe != newOption.GetNumPipe())
+    if (m_numPipe != newOption.GetNumPipe() ||
+        m_raMode != newOption.GetRAMode())
     {
         matched = false;
     }
