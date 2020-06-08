@@ -66,7 +66,7 @@ double MosUtilities::MosGetTime()
 //!
 //! \brief Linux specific trace entry path and file description.
 //!
-const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker";
+const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker_raw";
 int32_t           MosUtilitiesSpecificNext::m_mosTraceFd    = -1;
 
 //!
@@ -2050,7 +2050,8 @@ void MosUtilities::MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint3
     // not implemented
 }
 
-#define TRACE_EVENT_MAX_SIZE    4096
+#define TRACE_EVENT_MAX_SIZE    (1024)
+#define TRACE_EVENT_HEADER_SIZE (sizeof(uint32_t)*3)
 void MosUtilities::MosTraceEvent(
     uint16_t         usId,
     uint8_t          ucType,
@@ -2059,42 +2060,30 @@ void MosUtilities::MosTraceEvent(
     const void       *pArg2,
     uint32_t         dwSize2)
 {
-    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
+    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0 &&
+        TRACE_EVENT_MAX_SIZE > dwSize1 + dwSize2 + TRACE_EVENT_HEADER_SIZE)
     {
-        char  *pTraceBuf = (char *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
-        uint32_t   nLen = 0;
+        uint8_t  *pTraceBuf = (uint8_t *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
 
         if (pTraceBuf)
         {
-            MosSecureStringPrint(pTraceBuf,
-                        TRACE_EVENT_MAX_SIZE,
-                        (TRACE_EVENT_MAX_SIZE-1),
-                        "IMTE|%d|%d", // magic number IMTE (IntelMediaTraceEvent)
-                        usId,
-                        ucType);
-            nLen = strlen(pTraceBuf);
-            if (pArg1)
-            {
-                // convert raw event data to string. native raw data will be supported
-                // from linux kernel 4.10, hopefully we can skip this convert in the future.
-                const static char n2c[] = "0123456789ABCDEF";
-                unsigned char *pData = (unsigned char *)pArg1;
+            // trace header
+            uint32_t *header = (uint32_t *)pTraceBuf;
+            uint32_t    nLen = TRACE_EVENT_HEADER_SIZE;
 
-                pTraceBuf[nLen++] = '|'; // prefix splite marker.
-                while(dwSize1-- > 0 && nLen < TRACE_EVENT_MAX_SIZE-2)
-                {
-                    pTraceBuf[nLen++] = n2c[(*pData) >> 4];
-                    pTraceBuf[nLen++] = n2c[(*pData++) & 0xf];
-                }
-                if (pArg2)
-                {
-                    pData = (unsigned char *)pArg2;
-                    while(dwSize2-- > 0 && nLen < TRACE_EVENT_MAX_SIZE-2)
-                    {
-                        pTraceBuf[nLen++] = n2c[(*pData) >> 4];
-                        pTraceBuf[nLen++] = n2c[(*pData++) & 0xf];
-                    }
-                }
+            header[0] = 0x494D5445; // IMTE (IntelMediaTraceEvent) as ftrace raw marker tag
+            header[1] = usId << 16 | (dwSize1 + dwSize2);
+            header[2] = ucType;
+
+            if (pArg1 && dwSize1 > 0)
+            {
+                memcpy(pTraceBuf+nLen, pArg1, dwSize1);
+                nLen += dwSize1;
+            }
+            if (pArg2 && dwSize2 > 0)
+            {
+                memcpy(pTraceBuf+nLen, pArg2, dwSize2);
+                nLen += dwSize2;
             }
             size_t writeSize = write(MosUtilitiesSpecificNext::m_mosTraceFd, pTraceBuf, nLen);
             MOS_FreeMemory(pTraceBuf);
