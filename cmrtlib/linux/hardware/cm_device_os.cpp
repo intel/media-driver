@@ -178,11 +178,12 @@ int32_t CmDevice_RT::QueryAdapterInfo(uint32_t adapterIndex, AdapterInfoType inf
         switch (infoName)
         {
         case Description:
-            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo))
+            if (infoSize >= sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo) || infoSize > 250)
             {
-                *OutInfoSize = (uint32_t)sizeof(g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo);
+                *OutInfoSize = 250;
                 if (info != g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo)
                 {
+
                     memcpy_s(info, infoSize, (void*)g_AdapterList[adapterIndex]->deviceinfo.pci->driverInfo, *OutInfoSize);
                 }
                 result = CM_SUCCESS;
