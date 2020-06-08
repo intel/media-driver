@@ -493,6 +493,7 @@ VAStatus MediaLibvaCaps::CheckAttribList(
                 if((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] & VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS)
                 {
                     if((attrib[j].value & VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS)
+                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS)
                        ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_POWER_OF_TWO_ROWS)
                        ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS))
                     {
@@ -761,7 +762,8 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribEncSliceStructure;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
-        attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
+        attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS
+            | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
     }
     else
     {
