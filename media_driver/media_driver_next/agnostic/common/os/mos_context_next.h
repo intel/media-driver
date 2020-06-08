@@ -195,8 +195,8 @@ protected:
     CmdBufMgrNext                  *m_cmdBufMgr         = nullptr; //!> Cmd buffer manager of the device
     GMM_CLIENT_CONTEXT             *m_gmmClientContext  = nullptr; //!> GMM client context of the device
 
-    uint32_t                        m_dumpframeNum;             // For use when dump its compressed surface, override the frame number given from MediaVeboxDecompState
-    char                            m_dumpLoc[MAX_PATH];        // For use when dump its compressed surface, to distinguish each loc's pre/post decomp
+    uint32_t                        m_dumpframeNum = 0;             // For use when dump its compressed surface, override the frame number given from MediaVeboxDecompState
+    char                            m_dumpLoc[MAX_PATH] = {0};       // For use when dump its compressed surface, to distinguish each loc's pre/post decomp
 
     //! \brief  Platform string including product family, chipset family, etc
     PLATFORM                        m_platformInfo = {};
