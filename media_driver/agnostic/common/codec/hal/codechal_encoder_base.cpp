@@ -1610,6 +1610,17 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
                 &m_resPakMmioBuffer),
             "%s: Failed to allocate VDENC BRC PAK MMIO Buffer\n", __FUNCTION__);
 
+        // VDENC Huc Error Status Buffer
+        allocParamsForBufferLinear.dwBytes  = sizeof(VdencHucErrorStatus);
+        allocParamsForBufferLinear.pBufName = "VDENC Huc Error Status Buffer";
+
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(
+            m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_resHucErrorStatusBuffer),
+            "%s: Failed to allocate VDENC Huc Error Status Buffer\n", __FUNCTION__);
+
         // VDEnc StreamIn data buffers, shared between driver/ME kernel/VDEnc
         if ((m_mode == CODECHAL_ENCODE_MODE_HEVC) || (m_mode == CODECHAL_ENCODE_MODE_VP9))
         {
@@ -2240,6 +2251,10 @@ void CodechalEncoderState::FreeResources()
         m_osInterface->pfnFreeResource(
             m_osInterface,
             &m_resPakMmioBuffer);
+
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_resHucErrorStatusBuffer);
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_resHucFwBuffer);
 
@@ -3784,6 +3799,11 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                 m_statusReportDebugInterface->m_bufferDumpFrameNum = encodeStatus->dwStoredData;
             )
 
+            if (m_standard == CODECHAL_HEVC && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetHevcVdencHucErrorFlagMask()))
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("HuC status indicates error");
+            }
+
             // Current command is executed
             if (m_osInterface->pfnIsGPUHung(m_osInterface))
             {
@@ -4678,6 +4698,7 @@ CodechalEncoderState::CodechalEncoderState(
         MOS_ZeroMemory(&m_resVdencStreamInBuffer[i], sizeof(m_resVdencStreamInBuffer[i]));
     }
     MOS_ZeroMemory(&m_resPakMmioBuffer, sizeof(m_resPakMmioBuffer));
+    MOS_ZeroMemory(&m_resHucErrorStatusBuffer, sizeof(m_resHucErrorStatusBuffer));
     MOS_ZeroMemory(&m_resHucStatus2Buffer, sizeof(m_resHucStatus2Buffer));
     MOS_ZeroMemory(&m_resHucFwBuffer, sizeof(m_resHucFwBuffer));
 

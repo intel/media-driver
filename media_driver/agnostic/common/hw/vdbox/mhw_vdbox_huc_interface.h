@@ -98,6 +98,8 @@ protected:
                                                                   //!< bit 6: Valid IMEM Loaded
     static const uint32_t  m_hucErrorFlagsMask = 0xFFFE;          //!< HuC error 2 flags mask
 
+    static const uint32_t  m_hevcVdencHucErrorFlagMask = 0x40000000;  //!< HEVC VDEnc Huc error flag mask, bit 30
+
     static const uint32_t  m_hucStatusReEncodeMask = 0x80000000;  //! HUC PAK Integration kernel reEncode mask.
 
     MmioRegistersHuc       m_mmioRegisters[MHW_VDBOX_NODE_MAX] = { };  //!< HuC mmio registers
@@ -169,6 +171,17 @@ public:
     inline uint32_t GetHucErrorFlagsMask()
     {
         return m_hucErrorFlagsMask;
+    }
+
+    //!
+    //! \brief    Get HEVC VDEnc Huc Error Flag Mask
+    //!
+    //! \return   [out] uint32_t
+    //!           Mask got.
+    //!
+    inline uint32_t GetHevcVdencHucErrorFlagMask()
+    {
+        return m_hevcVdencHucErrorFlagMask;
     }
 
     //!

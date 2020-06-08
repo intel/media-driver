@@ -2795,6 +2795,8 @@ private:
 
     MOS_STATUS HuCLookaheadUpdate();
 
+    MOS_STATUS InsertConditionalBBEndWithHucErrorStatus(PMOS_COMMAND_BUFFER cmdBuffer);
+
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpHucPakIntegrate();
     MOS_STATUS DumpHucCqp();

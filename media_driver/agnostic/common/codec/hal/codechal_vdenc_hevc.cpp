@@ -3660,6 +3660,45 @@ CodechalVdencHevcState::CodechalVdencHevcState(
 
 }
 
+MOS_STATUS CodechalVdencHevcState::StoreHucErrorStatus(MmioRegistersHuc* mmioRegisters, PMOS_COMMAND_BUFFER cmdBuffer, bool addToEncodeStatus)
+{
+    // Write Huc Error Flag mask: DW1 (mask value)
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+    storeDataParams.pOsResource = &m_resHucErrorStatusBuffer;
+    storeDataParams.dwResourceOffset = sizeof(uint32_t);
+    storeDataParams.dwValue = CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_MEMORY_ACCESS_ERROR_MASK;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    // store HUC_STATUS register: DW0 (actual value)
+    MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegParams;
+    MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+    storeRegParams.presStoreBuffer = &m_resHucErrorStatusBuffer;
+    storeRegParams.dwOffset = 0;
+    storeRegParams.dwRegister = mmioRegisters->hucStatusRegOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegParams));
+
+    if(addToEncodeStatus)
+    {
+        EncodeStatusBuffer encodeStatusBuf = m_encodeStatusBuf;
+
+        uint32_t baseOffset =
+            (encodeStatusBuf.wCurrIndex * encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // pEncodeStatus is offset by 2 DWs in the resource
+
+        // store HUC_STATUS register
+        MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegParams;
+        MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+        storeRegParams.presStoreBuffer = &encodeStatusBuf.resStatusBuffer;
+        storeRegParams.dwOffset = baseOffset + encodeStatusBuf.dwHuCStatusRegOffset;
+        storeRegParams.dwRegister = mmioRegisters->hucStatusRegOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(
+            cmdBuffer,
+            &storeRegParams));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS CodechalVdencHevcState::DumpHucBrcInit()
 {

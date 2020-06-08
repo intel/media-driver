@@ -6767,6 +6767,9 @@ MOS_STATUS CodechalVdencHevcStateG12::HucPakIntegrate(
         cmdBuffer,
         &storeRegParams));
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(cmdBuffer));
+
     return eStatus;
 }
 
@@ -6859,6 +6862,9 @@ MOS_STATUS CodechalVdencHevcStateG12::HucPakIntegrateStitch(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(
         cmdBuffer,
         &storeRegParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(cmdBuffer));
 
     return eStatus;
 }
@@ -8167,6 +8173,11 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcInitReset()
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
+    CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
+    auto mmioRegisters = m_hucInterface->GetMmioRegisters(m_vdboxIndex);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, true));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
+
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && (m_numPipe == 1))
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
@@ -8364,6 +8375,9 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
     storeRegParams.dwRegister = mmioRegisters->hucStatusRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, true));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
+
     // DW0 & DW1 will considered together for conditional batch buffer end cmd later
     if ((!m_singleTaskPhaseSupported) && (m_osInterface->bNoParsingAssistanceInKmd) && (m_numPipe == 1))
     {
@@ -8486,7 +8500,9 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcTileRowUpdate(PMOS_COMMAND_BUFFER cm
     storeRegParams.dwRegister = mmioRegisters->hucStatusRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&tileRowBRCBatchBuf, &storeRegParams));
 
-    
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &tileRowBRCBatchBuf, true));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&tileRowBRCBatchBuf));
+
     // Set the tile row BRC update sync semaphore 
     MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
     storeDataParams.pOsResource = &m_resTileRowBRCsyncSemaphore;
@@ -9102,3 +9118,25 @@ MOS_STATUS CodechalVdencHevcStateG12::SetAddCommands(uint32_t commandType, PMOS_
 #endif
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS CodechalVdencHevcStateG12::InsertConditionalBBEndWithHucErrorStatus(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS  miEnhancedConditionalBatchBufferEndParams;
+
+    MOS_ZeroMemory(
+        &miEnhancedConditionalBatchBufferEndParams,
+        sizeof(MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
+
+    miEnhancedConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resHucErrorStatusBuffer;
+
+    miEnhancedConditionalBatchBufferEndParams.dwParamsType = MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS::ENHANCED_PARAMS;
+    miEnhancedConditionalBatchBufferEndParams.enableEndCurrentBatchBuffLevel = false;
+    miEnhancedConditionalBatchBufferEndParams.compareOperation = MAD_EQUAL_IDD;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+        cmdBuffer,
+        (PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS)(&miEnhancedConditionalBatchBufferEndParams)));
+
+    return MOS_STATUS_SUCCESS;
+}
+

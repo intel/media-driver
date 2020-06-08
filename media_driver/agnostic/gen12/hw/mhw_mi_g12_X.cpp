@@ -251,13 +251,10 @@ MOS_STATUS MhwMiInterfaceG12::AddMiConditionalBatchBufferEndCmd(
     cmd.DW0.CompareMaskMode     = !params->bDisableCompareMask;
     if (params->dwParamsType == MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS::ENHANCED_PARAMS)
     {
-        if (static_cast<MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS*>(params)->enableEndCurrentBatchBuffLevel)
-        {
-            cmd.DW0.EndCurrentBatchBufferLevel
-                = mhw_mi_g12_X::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::END_CURRENT_BATCH_BUFFER_LEVEL_UNNAMED1;
-            cmd.DW0.CompareOperation
-                = static_cast<MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS*>(params)->compareOperation;
-        }
+        cmd.DW0.EndCurrentBatchBufferLevel
+            = static_cast<MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS*>(params)->enableEndCurrentBatchBuffLevel;
+        cmd.DW0.CompareOperation
+            = static_cast<MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS*>(params)->compareOperation;
     }
     cmd.DW1.CompareDataDword    = params->dwValue;
 

@@ -733,6 +733,21 @@ public:
     MOS_STATUS StoreHuCStatus2Register(PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
+    //! \brief    Add store HUC_ERROR_STATUS register command in the command buffer
+    //!
+    //! \param    [in] mmioRegisters
+    //!           Pointer to mmio huc register
+    //! \param    [in] cmdBuffer
+    //!           Pointer to the command buffer
+    //! \param    [in] addToEnncodeStatus
+    //!           Flag to indicate whether huc error status will be stored in encode status buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StoreHucErrorStatus(MmioRegistersHuc* mmioRegisters, PMOS_COMMAND_BUFFER cmdBuffer, bool addToEnncodeStatus);
+
+    //!
     //! \brief    Put slice level commands in command buffer
     //!
     //! \param    [in] cmdBuffer

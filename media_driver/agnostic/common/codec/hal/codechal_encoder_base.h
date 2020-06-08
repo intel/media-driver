@@ -1065,6 +1065,15 @@ struct VdencBrcPakMmio
 };
 
 //!
+//! \struct VdencHucErrorStatus
+//! \brief  Huc Error Flags
+//!
+struct VdencHucErrorStatus
+{
+    uint32_t                dwErrorFlag[4];
+};
+
+//!
 //! \struct    CodechalEncodeLaData
 //! \brief     Codechal encode lookahead analysis output data structure, used by BRC kernel
 //!
@@ -1601,6 +1610,7 @@ public:
 
     //VDEnc HuC FW status
     MOS_RESOURCE                    m_resPakMmioBuffer = {};                 //!< Resource of PAK MMIO buffer
+    MOS_RESOURCE                    m_resHucErrorStatusBuffer = {};          //!< Resource of Huc Error Status buffer
     MOS_RESOURCE                    m_resHucStatus2Buffer = {};              //!< Resource of HuC status 2 buffer
     MOS_RESOURCE                    m_resHucFwBuffer = {};                   //!< Resource of HuC Fw buffer
     PMOS_RESOURCE                   m_resVdencBrcUpdateDmemBufferPtr[2] = {nullptr, nullptr}; //!< One for 1st pass of next frame, and the other for the next pass of current frame.
