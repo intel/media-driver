@@ -3415,6 +3415,12 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    if (m_swBrcMode != nullptr)
+    {
+        m_osInterface->pfnFreeLibrary(m_swBrcMode);
+        m_swBrcMode = nullptr;
+    }
+
     for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
     {
         m_osInterface->pfnFreeResource(

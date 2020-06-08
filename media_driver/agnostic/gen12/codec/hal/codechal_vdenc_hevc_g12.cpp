@@ -39,7 +39,9 @@
 #include "media_user_settings_mgr_g12.h"
 #include "mhw_mmio_g12.h"
 #include "hal_oca_interface.h"
-
+#ifdef _ENCODE_VDENC_RESERVED
+#include "codechal_debug_encode_brc.h"
+#endif
 const uint32_t CodechalVdencHevcStateG12::m_VdboxVDENCRegBase[4] = M_VDBOX_VDENC_REG_BASE;
 
 const double CodechalVdencHevcStateG12::m_devThreshIFPNEG[] = {
@@ -7941,6 +7943,31 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcInitReset()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#if (_DEBUG || _RELEASE_INTERNAL) && _ENCODE_VDENC_RESERVED
+    if (m_swBrcMode != nullptr && !m_enableTileReplay && !m_hevcVdencWeightedPredEnabled)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcInitReset());
+
+        MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams;
+        MOS_ZeroMemory(&virtualAddrParams, sizeof(virtualAddrParams));
+        virtualAddrParams.regionParams[0].presRegion = &m_vdencBrcHistoryBuffer;
+        virtualAddrParams.regionParams[0].isWritable = true;
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallHevcVdencSwBrcImpl(
+            m_debugInterface,
+            m_swBrcMode,
+            CODECHAL_MEDIA_STATE_BRC_INIT_RESET,
+            !m_brcInit,
+            &m_vdencBrcInitDmemBuffer[m_currRecycledBufIdx],
+            &m_resPakMmioBuffer,
+            &virtualAddrParams));
+
+        CODECHAL_DEBUG_TOOL(DumpHucBrcInit());
+
+        return eStatus;
+    }
+#endif
+
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
@@ -8030,9 +8057,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    MOS_COMMAND_BUFFER cmdBuffer;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
-
     *m_pipeBufAddrParams = {};
     if (m_pictureCodingType != I_TYPE)
     {
@@ -8058,14 +8082,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
     }
 #endif
 
-    if (((!m_singleTaskPhaseSupported) || ((m_firstTaskInPhase) && (!m_brcInit))) && (m_numPipe == 1))
-    {
-        // Send command buffer header at the beginning (OS dependent)
-        bool requestFrameTracking = m_singleTaskPhaseSupported ?
-            m_firstTaskInPhase : 0;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
-    }
-
     int32_t currentPass = GetCurrentPass();
     if (currentPass < 0)
     {
@@ -8074,6 +8090,41 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructBatchBufferHuCBRC(&m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass]));
+
+#if (_DEBUG || _RELEASE_INTERNAL) && _ENCODE_VDENC_RESERVED
+    if (m_swBrcMode != nullptr && !m_enableTileReplay && !m_hevcVdencWeightedPredEnabled)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcUpdate());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetConstDataHuCBrcUpdate());
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRegionsHuCBrcUpdate(&m_virtualAddrParams));
+
+        CODECHAL_DEBUG_TOOL(DumpHucBrcUpdate(true));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallHevcVdencSwBrcImpl(
+            m_debugInterface,
+            m_swBrcMode,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE,
+            (m_hevcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW),
+            &m_vdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass],
+            &m_resPakMmioBuffer,
+            &m_virtualAddrParams));
+
+        CODECHAL_DEBUG_TOOL(DumpHucBrcUpdate(false));
+
+        return eStatus;
+    }
+#endif
+
+    MOS_COMMAND_BUFFER cmdBuffer;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+
+    if (((!m_singleTaskPhaseSupported) || ((m_firstTaskInPhase) && (!m_brcInit))) && (m_numPipe == 1))
+    {
+        // Send command buffer header at the beginning (OS dependent)
+        bool requestFrameTracking = m_singleTaskPhaseSupported ?
+            m_firstTaskInPhase : 0;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
+    }
 
     // load kernel from WOPCM into L2 storage RAM
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;

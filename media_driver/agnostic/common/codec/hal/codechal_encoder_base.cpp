@@ -731,34 +731,6 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     m_ssdTargetUsageThreshold = (uint32_t)userFeatureData.i32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-                    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-                    MOS_UserFeature_ReadValue_ID(
-                        nullptr,
-                        __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
-                        &userFeatureData);
-
-                    if (userFeatureData.i32Data)
-                    {
-                        char path_buffer[256];
-                        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-                        MOS_ZeroMemory(path_buffer, 256);
-                        userFeatureData.StringData.pStringData = path_buffer;
-
-                        statusKey = MOS_UserFeature_ReadValue_ID(
-                            nullptr,
-                            __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_PATH_ID,
-                            &userFeatureData);
-
-                        if (statusKey == MOS_STATUS_SUCCESS && userFeatureData.StringData.uSize > 0)
-                        {
-                            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnLoadLibrary(m_osInterface, path_buffer, &m_swBrcMode));
-                        }
-                    }
-                    // SW BRC DLL Reporting
-                    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_IN_USE_ID, (m_swBrcMode == nullptr) ? false : true);
-#endif // _DEBUG || _RELEASE_INTERNAL
-
                     if (!m_sliceShutdownDefaultState &&
                         !m_sliceShutdownRequestState &&
                         !m_ssdTargetUsageThreshold   &&
@@ -788,6 +760,34 @@ MOS_STATUS CodechalEncoderState::Initialize(
                 }
             }
         }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
+            &userFeatureData);
+
+        if (userFeatureData.i32Data)
+        {
+            char path_buffer[256];
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            MOS_ZeroMemory(path_buffer, 256);
+            userFeatureData.StringData.pStringData = path_buffer;
+
+            statusKey = MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_PATH_ID,
+                &userFeatureData);
+
+            if (statusKey == MOS_STATUS_SUCCESS && userFeatureData.StringData.uSize > 0)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnLoadLibrary(m_osInterface, path_buffer, &m_swBrcMode));
+            }
+        }
+        // SW BRC DLL Reporting
+        CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_IN_USE_ID, (m_swBrcMode == nullptr) ? false : true);
+#endif // _DEBUG || _RELEASE_INTERNAL
 
         if (MEDIA_IS_SKU(m_skuTable, FtrSliceShutdown))
         {

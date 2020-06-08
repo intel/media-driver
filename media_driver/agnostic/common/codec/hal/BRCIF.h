@@ -53,7 +53,8 @@ enum ProcessType {
     UnknownProc = 0,
     BRCInit,
     BRCReset,
-    BRCUpdate
+    BRCUpdate,
+    BRCUpdateLD
 };
 
 //!
@@ -93,6 +94,28 @@ enum HEVCBufferType {
     HEVC_INITCURBE,
     HEVC_INTRADIST,
     HEVC_EXTD
+};
+
+//!
+//! \enum     HevcVdencBufferType
+//! \brief    HEVC VDEnc Buffer type
+//!
+enum HevcVdencBufferType {
+    HEVCVDENC_UnknownBuff = 0,
+    HEVCVDENC_INLINE_DMEM,
+    HEVCVDENC_HISTORY_BUFF,
+    HEVCVDENC_VDENC_STATISTICS_BUFF,
+    HEVCVDENC_PAK_STATISTICS_BUFF,
+    HEVCVDENC_INPUT_SLBB_BUFF,
+    HEVCVDENC_BRC_DATA_BUFF,
+    HEVCVDENC_CONSTANT_DATA_BUFF,
+    HEVCVDENC_OUTPUT_SLBB_BUFF,
+    HEVCVDENC_PAKMMIO_BUFF,
+    HEVCVDENC_SLICE_STATE_BUFF,
+    HEVCVDENC_INPUT_STREAMIN_BUFF,
+    HEVCVDENC_INPUT_DELTAQP_BUFF,
+    HEVCVDENC_OUTPUT_STREAMIN_BUFF,
+    HEVCVDENC_AUX_BUFF
 };
 
 extern "C"    void * MC_CreateInstance(ProcessType processor);
