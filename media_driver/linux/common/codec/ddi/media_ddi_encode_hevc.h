@@ -297,6 +297,13 @@ private:
         return ret;
     }
 
+    //!
+    //! \brief    if it is hevc scc profile
+    //!
+    //! \return   true or false
+    //!
+    bool IsSccProfile();
+
     //! \brief Number of Rectangle
     uint32_t    m_numDirtyRects = 0;
 

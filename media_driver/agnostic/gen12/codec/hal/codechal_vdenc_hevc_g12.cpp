@@ -570,12 +570,28 @@ MOS_STATUS CodechalVdencHevcStateG12::PlatformCapabilityCheck()
         }
     }
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_rsvdState->PlatformCapabilityCheck());
+        if (m_hevcPicParams->tiles_enabled_flag)
+        {
+            for (auto i = 0; i < m_hevcPicParams->num_tile_columns_minus1 + 1; i++)
+            {
+                if (m_hevcPicParams->tile_column_width[i] < 5)
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("SCC IBC mode can't support tile width < 5 LCU");
+                    return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+                }
+            }
+        }
+        else
+        {
+            if (MOS_ROUNDUP_DIVIDE(m_frameWidth, MAX_LCU_SIZE) < 5)
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("in tiling disabled case, SCC IBC mode can't support picture width < 5 LCU");
+                return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+            }
+        }
     }
-#endif
 
     return eStatus;
 }
@@ -1416,12 +1432,76 @@ MOS_STATUS CodechalVdencHevcStateG12::AllocateEncResources()
 
     // end of CodechalVdencHevcState::AllocateEncResources()
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (m_enableSCC)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_rsvdState->AllocateEncResources());
+        MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+        MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D;
+        uint32_t                alignedWidth, alignedHeight;
+
+        // Allocate the recon not filtered surface for IBC
+        // First align to LCU size 64x64
+        alignedWidth  = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
+        alignedHeight = MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE);
+
+        MOS_ZeroMemory(&allocParamsForBuffer2D, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        allocParamsForBuffer2D.Type     = MOS_GFXRES_2D;
+        allocParamsForBuffer2D.TileType = MOS_TILE_Y;
+        // default setting
+        allocParamsForBuffer2D.Format   = Format_NV12;
+        allocParamsForBuffer2D.pBufName = "Recon not Filtered Surface";
+        allocParamsForBuffer2D.dwWidth  = alignedWidth;
+        allocParamsForBuffer2D.dwHeight = alignedHeight;
+
+        // The format and size is dependent on chroma format and bit depth
+        CODECHAL_ENCODE_ASSERT(m_bitDepth < 12);
+
+        if (HCP_CHROMA_FORMAT_YUV420 == m_chromaFormat)
+        {
+            if (10 == m_bitDepth)
+            {
+                if (m_mmcState && m_mmcState->IsMmcEnabled())
+                {
+                    allocParamsForBuffer2D.dwWidth = alignedWidth * 2;
+                }
+                else
+                {
+                    allocParamsForBuffer2D.Format = Format_P010;
+                }
+            }
+        }
+        else if (HCP_CHROMA_FORMAT_YUV444 == m_chromaFormat)
+        {
+            if (8 == m_bitDepth)
+            {
+                allocParamsForBuffer2D.Format   = Format_AYUV;
+                allocParamsForBuffer2D.dwWidth  = alignedWidth >> 2;
+                allocParamsForBuffer2D.dwHeight = alignedHeight * 3;
+            }
+            else
+            {
+                allocParamsForBuffer2D.Format   = Format_Y410;
+                allocParamsForBuffer2D.dwWidth  = alignedWidth >> 1;
+                allocParamsForBuffer2D.dwHeight = alignedHeight * 3;
+            }
+        }
+        else
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("4:2:2 is not supported for SCC feature!");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            return eStatus;
+        }
+
+        if (m_mmcState && m_mmcState->IsMmcEnabled())
+        {
+            allocParamsForBuffer2D.bIsCompressible = true;
+            allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
+        }
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                                                      m_osInterface,
+                                                      &allocParamsForBuffer2D,
+                                                      &m_vdencRecNotFilteredBuffer),
+            "Failed to allocate Recon not filtered surface for IBC");
     }
-#endif
 
     return eStatus;
 }
@@ -1443,12 +1523,7 @@ MOS_STATUS CodechalVdencHevcStateG12::FreeEncResources()
     hmeParams.ps4xMeMvDataBuffer = &m_s4XMeMvDataBuffer;
     DestroyMEResources(&hmeParams);
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_rsvdState->FreeEncResources());
-    }
-#endif
+    m_osInterface->pfnFreeResource(m_osInterface, &m_vdencRecNotFilteredBuffer);
 
     return CodechalVdencHevcState::FreeEncResources();
 }
@@ -1698,12 +1773,18 @@ MOS_STATUS CodechalVdencHevcStateG12::SetPictureStructs()
         m_numPasses = 0;
     }
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    // Error concealment, disable IBC if slice coding type is I type
+    if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
-        m_rsvdState->SetPictureStructs();
+        for (uint32_t slcCount = 0; slcCount < m_numSlices; slcCount++)
+        {
+            if (m_hevcSliceParams[slcCount].slice_type == CODECHAL_ENCODE_HEVC_I_SLICE)
+            {
+                m_hevcPicParams->pps_curr_pic_ref_enabled_flag = false;
+                break;
+            }
+        }
     }
-#endif
 
     // EOS is not working on GEN12, disable it by setting below to false (WA)
     m_lastPicInSeq = false;
@@ -1956,12 +2037,11 @@ MOS_STATUS CodechalVdencHevcStateG12::ValidateRefFrameData(PCODEC_HEVC_ENCODE_SL
         }
     }
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (isRandomAccess && m_enableSCC)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_rsvdState->ValidateRefFrameData(isRandomAccess));
+        CODECHAL_ENCODE_ASSERT(false);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
-#endif
 
     uint8_t maxNumRef0 = isRandomAccess ? 2 : m_numMaxVdencL0Ref;
     uint8_t maxNumRef1 = isRandomAccess ? 1 : m_numMaxVdencL1Ref;
@@ -2671,13 +2751,12 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
 
 #ifdef _MMC_SUPPORTED
-    #ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
-        m_rsvdState->SetHcpReconSurfaceParams(reconSurfaceParams, m_slotForRecNotFiltered);
+        reconSurfaceParams.mmcSkipMask = (1 << m_slotForRecNotFiltered);
     }
-    #endif
 #endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &reconSurfaceParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHcpPipeBufAddrCmd(&cmdBuffer));
@@ -4743,12 +4822,12 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
     hucVdencBrcUpdateDmem->SceneChgPrevIntraPctThreshold_U8 = 96;
     hucVdencBrcUpdateDmem->SceneChgCurIntraPctThreshold_U8  = 192;
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    // SCC is in conflict with PAK only pass
+    if (m_enableSCC)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_rsvdState->SetDmemHuCBrcUpdate(hucVdencBrcUpdateDmem));
+        hucVdencBrcUpdateDmem->ReEncodePositiveQPDeltaThr_S8 = 0;
+        hucVdencBrcUpdateDmem->ReEncodeNegativeQPDeltaThr_S8 = 0;
     }
-#endif
 
     // reset skip frame statistics
     m_numSkipFrames = 0;
@@ -4889,12 +4968,10 @@ void CodechalVdencHevcStateG12::SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLIC
 
     static_cast<MHW_VDBOX_HEVC_SLICE_STATE_G12 &>(sliceStateParams).dwNumPipe = m_numPipe;
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (m_enableSCC)
     {
-        m_rsvdState->SetHcpSliceStateCommonParams(sliceStateParams, m_slotForRecNotFiltered);
+        static_cast<MHW_VDBOX_HEVC_SLICE_STATE_G12 &>(sliceStateParams).ucRecNotFilteredID = m_slotForRecNotFiltered;
     }
-#endif
 }
 
 void CodechalVdencHevcStateG12::SetHcpSliceStateParams(
@@ -5000,6 +5077,11 @@ void CodechalVdencHevcStateG12::SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE
         m_rsvdState->SetVdencPipeModeSelectParams(pipeModeSelectParams);
     }
 #endif
+
+    if (m_enableSCC && (m_hevcPicParams->pps_curr_pic_ref_enabled_flag || m_hevcSeqParams->palette_mode_enabled_flag))
+    {
+        pipeModeSelectParams.bVdencPakObjCmdStreamOutEnable = false;
+    }
 }
 
 void CodechalVdencHevcStateG12::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
@@ -5020,13 +5102,35 @@ void CodechalVdencHevcStateG12::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_
     // SAO Row Store is GEN12 specific
     pipeBufAddrParams.presSaoRowStoreBuffer = &m_vdencSAORowStoreBuffer;
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    // Set up the recon not filtered surface for IBC
+    if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
-        m_rsvdState->SetHcpPipeBufAddrParams(pipeBufAddrParams, m_slotForRecNotFiltered);
-    }
-#endif
+        // I frame is much simpler
+        if (m_pictureCodingType == I_TYPE)
+        {
+            pipeBufAddrParams.presReferences[0] = &m_vdencRecNotFilteredBuffer;
+            m_slotForRecNotFiltered             = 0;
+        }
+        // B frame
+        else
+        {
+            unsigned int i;
+            // Find one available slot
+            for (i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+            {
+                if (pipeBufAddrParams.presReferences[i] == nullptr)
+                {
+                    break;
+                }
+            }
 
+            CODECHAL_ENCODE_ASSERT(i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC);
+
+            //record the slot for HCP_REF_IDX_STATE
+            m_slotForRecNotFiltered             = (unsigned char)i;
+            pipeBufAddrParams.presReferences[i] = &m_vdencRecNotFilteredBuffer;
+        }
+    }
 }
 
 void CodechalVdencHevcStateG12::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& picStateParams)
@@ -5034,13 +5138,12 @@ void CodechalVdencHevcStateG12::SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE& p
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CodechalEncodeHevcBase::SetHcpPicStateParams(picStateParams);
-
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (m_enableSCC)
     {
-        m_rsvdState->SetHcpPicStateParams(picStateParams);
+        MHW_VDBOX_HEVC_PIC_STATE_G12& picStateParamsGen12 = dynamic_cast<MHW_VDBOX_HEVC_PIC_STATE_G12&>(picStateParams);
+        picStateParamsGen12.ucRecNotFilteredID  = m_slotForRecNotFiltered;
+        picStateParamsGen12.IBCControl = m_enableLBCOnly ? SCC_IBC_CONTROL_IBC_ONLY_LBC_G12 : SCC_IBC_CONTROL_IBC_ENABLED_TBCLBC_G12;
     }
-#endif
 }
 
 MOS_STATUS CodechalVdencHevcStateG12::AddHcpRefIdxCmd(
@@ -5092,12 +5195,16 @@ MOS_STATUS CodechalVdencHevcStateG12::AddHcpRefIdxCmd(
         refIdxParams.RefFieldPicFlag = 0; // there is no interlaced support in encoder
         refIdxParams.RefBottomFieldFlag = 0; // there is no interlaced support in encoder
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
-        m_rsvdState->SetRefIdxParams(refIdxParams);
+        refIdxParams.bIBCEnabled = true;
+        refIdxParams.ucRecNotFilteredID = m_slotForRecNotFiltered;
+
+        if ((m_hevcPicParams->CodingType == I_TYPE) && (m_hevcSliceParams->slice_type == MhwVdboxHcpInterface::hevcSliceP))
+        {
+            refIdxParams.ucNumRefForList = 0;
+        }
     }
-#endif
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpRefIdxStateCmd(cmdBuffer, batchBuffer, &refIdxParams));
 
@@ -5125,12 +5232,36 @@ void CodechalVdencHevcStateG12::SetVdencPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADD
         pipeBufAddrParams.dwVdencStatsStreamOutOffset = m_hevcTileStatsOffset.uiVdencStatistics;
     }
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    // Set up the recon not filtered surface for IBC
+    if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
-        m_rsvdState->SetVdencPipeBufAddrParams(pipeBufAddrParams);
+        // I frame is much simpler
+        if (m_pictureCodingType == I_TYPE)
+        {
+            pipeBufAddrParams.presVdencReferences[0] = &m_vdencRecNotFilteredBuffer;
+        }
+        // LDB
+        else
+        {
+            unsigned int i;
+
+            // Find one available slot
+            for (i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+            {
+                if (pipeBufAddrParams.presVdencReferences[i] == nullptr)
+                {
+                    break;
+                }
+            }
+
+            CODECHAL_ENCODE_ASSERT(i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC);
+            if (i != 0)
+            {
+                pipeBufAddrParams.dwNumRefIdxL0ActiveMinus1 += 1;
+            }
+            pipeBufAddrParams.presVdencReferences[i] = &m_vdencRecNotFilteredBuffer;
+        }
     }
-#endif
 
     pipeBufAddrParams.presVdencTileRowStoreBuffer = &m_vdencTileRowStoreBuffer;
     pipeBufAddrParams.presVdencCumulativeCuCountStreamoutSurface = &m_vdencCumulativeCuCountStreamoutSurface;
@@ -5873,12 +6004,8 @@ MOS_STATUS CodechalVdencHevcStateG12::AddVdencWalkerStateCmd(
         break;
     }
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
-    {
-        m_rsvdState->SetVdencWalkerStateParams(vdencWalkerStateParams);
-    }
-#endif
+    vdencWalkerStateParams.IBCControl =
+        m_enableLBCOnly ? SCC_IBC_CONTROL_IBC_ONLY_LBC_G12 : SCC_IBC_CONTROL_IBC_ENABLED_TBCLBC_G12;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencWalkerStateCmd(cmdBuffer, &vdencWalkerStateParams));
 
@@ -6010,6 +6137,19 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
 #ifdef _ENCODE_VDENC_RESERVED
     InitReserveState(settings);
 #endif
+    m_enableSCC = settings->isSCCEnabled;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    // LBC only Enable should be passed from DDI, will change later when DDI is ready
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_LBCONLY_ENABLE_ID,
+        &userFeatureData);
+    m_enableLBCOnly = userFeatureData.i32Data ? true : false;
+#endif
+
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
@@ -7017,8 +7157,6 @@ MOS_STATUS CodechalVdencHevcStateG12::InitReserveState(CodechalSetting * setting
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     m_rsvdState = MOS_New(CodechalVdencHevcG12Rsvd, m_hwInterface, this);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_rsvdState);
-    m_rsvdState->Initialize(settings);
     return MOS_STATUS_SUCCESS;
 }
 #endif
@@ -8075,12 +8213,33 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
         }
     }
 
-#ifdef _ENCODE_VDENC_RESERVED
-    if (m_rsvdState)
+    if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_rsvdState->HuCBrcUpdate(m_pipeBufAddrParams, m_slotForRecNotFiltered));
+        // I frame is much simpler
+        if (m_pictureCodingType == I_TYPE)
+        {
+            m_slotForRecNotFiltered = 0;
+        }
+        // LDB
+        else
+        {
+            unsigned int i;
+
+            // Find one available slot
+            for (i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+            {
+                if (m_pipeBufAddrParams->presReferences[i] == nullptr)
+                {
+                    break;
+                }
+            }
+
+            CODECHAL_ENCODE_ASSERT(i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC);
+
+            //record the slot for HCP_REF_IDX_STATE
+            m_slotForRecNotFiltered = (unsigned char)i;
+        }
     }
-#endif
 
     int32_t currentPass = GetCurrentPass();
     if (currentPass < 0)

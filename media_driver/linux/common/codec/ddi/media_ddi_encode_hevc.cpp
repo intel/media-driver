@@ -109,12 +109,12 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     codecHalSettings->mode            = m_encodeCtx->wModeType;
     codecHalSettings->standard        = CODECHAL_HEVC;
 
-    if(m_encodeCtx->vaProfile==VAProfileHEVCMain)
+    if(m_encodeCtx->vaProfile==VAProfileHEVCMain || m_encodeCtx->vaProfile==VAProfileHEVCSccMain)
     {
        codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
     }
-    else if(m_encodeCtx->vaProfile==VAProfileHEVCMain10)
+    else if(m_encodeCtx->vaProfile==VAProfileHEVCMain10 || m_encodeCtx->vaProfile==VAProfileHEVCSccMain10)
     {
        codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV420;
        codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
@@ -134,12 +134,12 @@ VAStatus DdiEncodeHevc::ContextInitialize(
         codecHalSettings->chromaFormat    = HCP_CHROMA_FORMAT_YUV422;
         codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_12_BITS;
     }
-    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444)
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444 || m_encodeCtx->vaProfile==VAProfileHEVCSccMain444)
     {
         codecHalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
         codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
     }
-    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_10)
+    else if (m_encodeCtx->vaProfile == VAProfileHEVCMain444_10 || m_encodeCtx->vaProfile==VAProfileHEVCSccMain444_10)
     {
         codecHalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
         codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
@@ -149,6 +149,7 @@ VAStatus DdiEncodeHevc::ContextInitialize(
         codecHalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
         codecHalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_12_BITS;
     }
+    codecHalSettings->isSCCEnabled = IsSccProfile();
 
     VAStatus eStatus = VA_STATUS_SUCCESS;
 
@@ -487,6 +488,12 @@ VAStatus DdiEncodeHevc::ParseSeqParams(void *ptr)
     hevcSeqParams->bit_depth_luma_minus8                = seqParams->seq_fields.bits.bit_depth_luma_minus8;
     hevcSeqParams->bit_depth_chroma_minus8              = seqParams->seq_fields.bits.bit_depth_chroma_minus8;
 
+    if (m_codechalSettings->isSCCEnabled)
+    {
+        hevcSeqParams->palette_mode_enabled_flag = seqParams->scc_fields.bits.palette_mode_enabled_flag;
+        hevcSeqParams->motion_vector_resolution_control_idc = 0;
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -644,6 +651,16 @@ VAStatus DdiEncodeHevc::ParsePicParams(
             DDI_ASSERTMESSAGE("invalid tile parameters!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
+    }
+
+    if (m_codechalSettings->isSCCEnabled)
+    {
+        // SCC
+        hevcPicParams->pps_curr_pic_ref_enabled_flag = picParams->scc_fields.bits.pps_curr_pic_ref_enabled_flag;
+        hevcPicParams->residual_adaptive_colour_transform_enabled_flag = 0;
+        hevcPicParams->pps_slice_act_qp_offsets_present_flag = 0;
+        // GEN12 HW only can support the initial palette size 0
+        hevcPicParams->PredictorPaletteSize = 0;
     }
 
     DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, picParams->coded_buf);
@@ -1357,6 +1374,14 @@ uint8_t DdiEncodeHevc::CodechalPicTypeFromVaSlcType(uint8_t vaSliceType)
     case sliceTypeI:
         return I_TYPE;
     case sliceTypeP:
+        if (m_codechalSettings->isSCCEnabled)
+        {
+            PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams = (PCODEC_HEVC_ENCODE_PICTURE_PARAMS)((uint8_t *)m_encodeCtx->pPicParams);
+            if (hevcPicParams->CodingType == I_TYPE && hevcPicParams->pps_curr_pic_ref_enabled_flag)
+            {
+                return I_TYPE;
+            }
+        }
         return P_TYPE;
     case sliceTypeB:
         return B_TYPE;
@@ -1450,4 +1475,12 @@ uint32_t DdiEncodeHevc::getPictureParameterBufferSize()
 uint32_t DdiEncodeHevc::getQMatrixBufferSize()
 {
     return sizeof(VAQMatrixBufferHEVC);
+}
+
+bool DdiEncodeHevc::IsSccProfile()
+{
+    return (m_encodeCtx->vaProfile==VAProfileHEVCSccMain
+           || m_encodeCtx->vaProfile==VAProfileHEVCSccMain10
+           || m_encodeCtx->vaProfile==VAProfileHEVCSccMain444
+           || m_encodeCtx->vaProfile==VAProfileHEVCSccMain444_10);
 }

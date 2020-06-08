@@ -3593,7 +3593,55 @@ public:
             };
             uint32_t                     Value;
         } DW9;
-        uint32_t DW_Reserved_10_15[6] = {0}; //!< Reserved
+        uint32_t DW_Reserved_10 = {0}; //!< Reserved
+        union
+        {
+            //!< DWORD 11
+            struct
+            {
+                uint32_t                 Reserved290                                      : __CODEGEN_BITFIELD( 0, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW11;
+        union
+        {
+            //!< DWORD 12
+            struct
+            {
+                uint32_t                 Reserved291                                      : __CODEGEN_BITFIELD(0, 25)    ; //!< Reserved
+                uint32_t                 PaletteModeEnable                                : __CODEGEN_BITFIELD(26, 26)    ; //!< PALETTE_MODE_ENABLE
+                uint32_t                 IbcControl                                       : __CODEGEN_BITFIELD(27, 28)    ; //!< IBC_CONTROL
+                uint32_t                 Reserved292                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW12;
+        union
+        {
+            //!< DWORD 13
+            struct
+            {
+                uint32_t                 Reserved293                                      : __CODEGEN_BITFIELD( 0, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW13;
+        union
+        {
+            //!< DWORD 14
+            struct
+            {
+                uint32_t                 Reserved294                                      : __CODEGEN_BITFIELD( 0, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW14;
+        union
+        {
+            //!< DWORD 15
+            struct
+            {
+                uint32_t                 Reserved295                                      : __CODEGEN_BITFIELD( 0, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW15;
         union
         {
             //!< DWORD 16

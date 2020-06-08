@@ -148,6 +148,13 @@ protected:
         vdencSurfaceFormatAyuvVariant     = 0x14,
     };
 
+    enum VDENC_WALKER_STATE_IBC_CONTROL
+    {
+        VDENC_WALKER_STATE_COMMAND_IBC_CONTROL_IBC_DISABLED_G12 = 0x0,
+        VDENC_WALKER_STATE_COMMAND_IBC_CONTROL_IBC_ONLY_LBC_G12 = 0x1,
+        VDENC_WALKER_STATE_COMMAND_IBC_CONTROL_IBC_ENABLED_TBCLBC_G12 = 0x3,
+    };
+
     MOS_STATUS InitRowstoreUserFeatureSettings() override
     {
         MHW_FUNCTION_ENTER;
@@ -1872,7 +1879,63 @@ public:
                     cmd.DW7.TileRowstoreOffset = num32x32InX;
                 }
             }
-            cmd.DW16.AdaptiveChannelThreshold = 6;
+
+            // for IBC
+            cmd.DW11.Value &= 0xfffc00ff;
+            cmd.DW12.Value = (cmd.DW12.Value & 0xfcffffff) | 0x1000000;
+            cmd.DW12.IbcControl = params->pHevcEncPicParams->pps_curr_pic_ref_enabled_flag ?
+                paramsG12->IBCControl : VDENC_WALKER_STATE_COMMAND_IBC_CONTROL_IBC_DISABLED_G12;
+
+            cmd.DW12.PaletteModeEnable = (seqParams->palette_mode_enabled_flag != 0) ? 1 : 0;
+            uint32_t sliceQP = picParams->QpY + sliceParams->slice_qp_delta;
+            uint32_t index;
+            if (sliceQP <= 12)
+            {
+                index = 0;
+            }
+            else if (sliceQP > 12 && sliceQP <= 47)
+            {
+                index = (sliceQP - 8) / 5;
+            }
+            else if (sliceQP > 47 && sliceQP <= 49)
+            {
+                index = 8;
+            }
+            else
+            {
+                index = 9;
+            }
+            const uint32_t table1[10] = {0x50001,0x50001,0x50001,0x50002,0x90002,0x90002,0x90002,0xd0002,0x190002,0x210003};
+            cmd.DW12.Value = (cmd.DW12.Value & 0xff80fff8) | table1[index];
+            const uint32_t table2[10] = {0x2000a,0x2000a,0x2000a,0x4000a,0x8000a,0xc0010,0xc0018,0xc0018,0x100020,0x180030};
+            cmd.DW13.Value = table2[index];
+            const uint32_t table3[10] = {0x101004,0x101004,0x101004,0xc1008,0x42004,0x42006,0x13f06,0x13f06,0x13f0c,0x13006};
+            cmd.DW14.Value = (cmd.DW14.Value & 0xffe0c0c0) | table3[index];
+            const uint32_t table4[10] = {0x100004,0x100004,0x100004,0x100004,0x200004,0x300004,0x400004,0x600004,0x800004,0x1000004};
+            cmd.DW15.Value = (cmd.DW15.Value & 0xfc00) | table4[index];
+
+            if (seqParams->bit_depth_luma_minus8 > 0 && seqParams->palette_mode_enabled_flag)
+            {
+
+                const uint32_t table1[10] = {0x3,0x3,0x3,0x4,0x4,0x4,0x4,0x4,0x4,0x5};
+                cmd.DW12.Value  = (cmd.DW12.Value & 0xfffffff8) | table1[index];
+                const uint32_t table2[10] = {0x80028,0x80028,0x80028,0x100028,0x200028,0x300040,0x300060,0x300060,0x400080,0x6000c0};
+                cmd.DW13.Value  = table2[index];
+                const uint32_t table3[10] = {0x400000,0x400000,0x400000,0x400000,0x800000,0xc00000,0x1000000,0x1800000,0x2000000,0x4000000};
+                cmd.DW15.Value = (cmd.DW15.Value & 0xffff) | table3[index];
+            }
+
+            cmd.DW12.Value &= 0xffff00ff;
+            cmd.DW14.Value = (cmd.DW14.Value & 0x9fffff) | 0xc8400000;
+            cmd.DW16.Value = (cmd.DW16.Value & 0xffffff) | 0xa6000000;
+            if (seqParams->TargetUsage == 7)
+            {
+                cmd.DW16.Value = (cmd.DW16.Value & 0xffc0c0c0) | 0x313131;
+            }
+            else
+            {
+                cmd.DW16.Value = (cmd.DW16.Value & 0xffc0c0c0) | 0x3f3f3f;
+            }
         }
         else if (params->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
@@ -2208,7 +2271,10 @@ public:
 
             if (params->pHevcEncPicParams->CodingType == I_TYPE)
             {
-                cmd.DW13.Value = (cmd.DW13.Value & 0xffffff) | 0x1e000000;
+                cmd.DW10.Value = 0x23131f0f;
+                cmd.DW11.Value = (cmd.DW11.Value & 0xffff0000) | 0x2313;
+                cmd.DW12.Value = 0x3e5c445c;
+                cmd.DW13.Value = (cmd.DW13.Value & 0xff00) | 0x1e040044;
                 cmd.DW16.Value = (cmd.DW16.Value & 0xffff) | 0x70000;
                 cmd.DW17.Value = 0xd0e1007;
                 cmd.DW18.Value = (cmd.DW18.Value & 0xffffff00) | 0x32;
@@ -2594,6 +2660,44 @@ public:
                         return MOS_STATUS_INVALID_PARAMETER;
                     }
                 }
+            }
+            if (hevcSeqParams->palette_mode_enabled_flag)
+            {
+                cmd.DW37.Value &= 0xffe0ffe0;
+                cmd.DW38.Value &= 0xffffffbf;
+                uint32_t index = hevcSeqParams->bit_depth_luma_minus8 == 0 ? 0 : 1;
+                const uint32_t table1[2] = {0x8000fc,0x20003f0};
+                cmd.DW39.Value = table1[index];
+
+                const uint32_t table2[2] = {0xb10080,0x2c40200};
+                cmd.DW40.Value = table2[index];
+
+                const uint32_t table3[2] = {0x300aa,0xc02a8};
+                cmd.DW41.Value = table3[index];
+
+                const uint32_t table4[2] = {0xd30069,0x34c01a4};
+                cmd.DW42.Value = table4[index];
+                const uint32_t table5[2] = {0xe000e9,0x38003a4};
+                cmd.DW43.Value = table5[index];
+
+                const uint32_t table6[2] = {0x940003,0x250000c};
+                cmd.DW44.Value = table6[index];
+
+                const uint32_t table7[2] = {0x56004d,0x1580134};
+                cmd.DW45.Value = table7[index];
+                const uint32_t table8[2] = {0x9500fd,0x25403f4};
+                cmd.DW46.Value = table8[index];
+
+                const uint32_t table9[2] = {0x17002d,0x5c00b4};
+                cmd.DW47.Value = table9[index];
+
+                const uint32_t table10[2] = {0xfd001f,0x3f4007c};
+                cmd.DW48.Value = table10[index];
+                const uint32_t table11[2] = {0x2006c,0x801b0};
+                cmd.DW49.Value = table11[index];
+
+                const uint32_t table12[2] = {0x800080,0x2000200};
+                cmd.DW50.Value = table12[index];
             }
 
             MHW_MI_CHK_NULL(extParams->pRefIdxMapping);

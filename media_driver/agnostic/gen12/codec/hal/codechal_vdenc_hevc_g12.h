@@ -520,6 +520,13 @@ enum CODECHAL_BINDING_TABLE_OFFSET_HEVC_VP9_VDENC_KERNEL_G12
     CODECHAL_VDENC_HME_END_G12,
 };
 
+enum SCC_IBC_CONTROL_IBC_G12
+{
+    SCC_IBC_CONTROL_IBC_DISABLED_G12 = 0x0,
+    SCC_IBC_CONTROL_IBC_ONLY_LBC_G12 = 0x1,
+    SCC_IBC_CONTROL_IBC_ENABLED_TBCLBC_G12 = 0x3,
+};
+
 struct MEDIA_OBJECT_HEVC_VP9_VDENC_ME_CURBE_G12
 {
     // DW0
@@ -2217,6 +2224,11 @@ public:
         bool isUsed;
         bool isRef;
     } slotInfo[CODECHAL_ENCODE_HEVC_VDENC_WP_DATA_BLOCK_NUMBER] = { { 0, 0, false, false } };
+
+    // SCC
+    bool          m_enableLBCOnly = false;               //!< Enable LBC only for IBC
+    bool          m_enableSCC = false;                   //!< Flag to indicate if HEVC SCC is enabled.
+    MOS_RESOURCE  m_vdencRecNotFilteredBuffer = {};
 
     //!
     //! \brief    Constructor

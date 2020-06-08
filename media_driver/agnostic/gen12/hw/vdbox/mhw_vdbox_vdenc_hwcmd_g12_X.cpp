@@ -586,6 +586,17 @@ mhw_vdbox_vdenc_g12_X::VDENC_WALKER_STATE_CMD::VDENC_WALKER_STATE_CMD()
 
     DW9.Value                                        = 0;        
 
+    DW11.Value                                       = 0;
+
+    DW12.Value                                       = 0;
+
+    DW13.Value                                       = 0;
+
+    DW14.Value                                       = 0x3f400000;
+
+    DW15.Value                                       = 0;
+
+    DW16.Value                                       = 0x3f3f3f;
 }
 
 mhw_vdbox_vdenc_g12_X::VDENC_CONTROL_STATE_CMD::VDENC_CONTROL_STATE_CMD()

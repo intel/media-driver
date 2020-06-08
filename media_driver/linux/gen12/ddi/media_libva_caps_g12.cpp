@@ -178,6 +178,10 @@ CODECHAL_MODE MediaLibvaCapsG12::GetEncodeCodecMode(VAProfile profile, VAEntrypo
         case VAProfileHEVCMain422_12:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
+        case VAProfileHEVCSccMain:
+        case VAProfileHEVCSccMain10:
+        case VAProfileHEVCSccMain444:
+        case VAProfileHEVCSccMain444_10:
             return CODECHAL_ENCODE_MODE_HEVC;
         default:
             DDI_ASSERTMESSAGE("Invalid Encode Mode");
@@ -301,6 +305,10 @@ std::string MediaLibvaCapsG12::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
         case VAProfileHEVCMain422_12:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
+        case VAProfileHEVCSccMain:
+        case VAProfileHEVCSccMain10:
+        case VAProfileHEVCSccMain444:
+        case VAProfileHEVCSccMain444_10:
             if (IsEncFei(entrypoint, feiFunction))
                 return ENCODE_ID_HEVCFEI;
             else
@@ -571,6 +579,69 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
         AddProfileEntry(VAProfileHEVCMain444_10, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain8bit420SCC))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+        {
+            for (int32_t j = 3; j < rcModeSize; j++)
+            {
+                AddEncConfig(m_encRcMode[j]);
+                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+            }
+        }
+        AddProfileEntry(VAProfileHEVCSccMain, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10bit420SCC))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+        {
+            for (int32_t j = 3; j < rcModeSize; j++)
+            {
+                AddEncConfig(m_encRcMode[j]);
+                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+            }
+        }
+        AddProfileEntry(VAProfileHEVCSccMain10, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+
+      if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain8bit444SCC))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+        {
+            for (int32_t j = 3; j < rcModeSize; j++)
+            {
+                AddEncConfig(m_encRcMode[j]);
+                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+            }
+        }
+        AddProfileEntry(VAProfileHEVCSccMain444, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10bit444SCC))
+    {
+        uint32_t configStartIdx = m_encConfigs.size();
+        AddEncConfig(VA_RC_CQP);
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
+        {
+            for (int32_t j = 3; j < rcModeSize; j++)
+            {
+                AddEncConfig(m_encRcMode[j]);
+                AddEncConfig(m_encRcMode[j] | VA_RC_PARALLEL);
+            }
+        }
+        AddProfileEntry(VAProfileHEVCSccMain444_10, VAEntrypointEncSliceLP, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
 #endif
     return status;
 }
@@ -719,6 +790,10 @@ VAStatus MediaLibvaCapsG12::CheckEncodeResolution(
         case VAProfileHEVCMain444_10:
         case VAProfileHEVCMain422_10:
         case VAProfileHEVCMain422_12:
+        case VAProfileHEVCSccMain:
+        case VAProfileHEVCSccMain10:
+        case VAProfileHEVCSccMain444:
+        case VAProfileHEVCSccMain444_10:
             if (width > m_maxHevcEncWidth
                     || width < m_encMinWidth
                     || height > m_maxHevcEncHeight

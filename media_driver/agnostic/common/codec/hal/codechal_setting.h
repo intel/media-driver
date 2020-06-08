@@ -68,6 +68,9 @@ public:
     bool                    enableCodecMmc = true;        //!< Applies to both of decode and encode, to indicate if codec MMC could be enabled by default
     bool                    secureMode = false;            //!< secure decoder is required if enabled
 
+    // HEVC Encode only
+    bool                     isSCCEnabled = false;          //!< Flag to indicate if HEVC SCC is enabled.
+
     //!
     //! \brief    Destructor 
     //!
