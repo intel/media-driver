@@ -1938,15 +1938,16 @@ static VAStatus DdiMedia_Terminate (
     mediaCtx->SkuTable.reset();
     mediaCtx->WaTable.reset();
 
-    // release media driver context, ctx creation is behind the mos_utilities_init
-    // If free earilier than MOS_utilities_close, memnja count error.
-    MOS_FreeMemory(mediaCtx);
-
-    ctx->pDriverData = nullptr;
     if (mediaCtx->cpLibWasLoaded)
     {
         CPLibUtils::UnloadCPLib(ctx);
     }
+
+    // release media driver context, ctx creation is behind the mos_utilities_init
+    // If free earilier than MOS_utilities_close, memnja count error.
+    MOS_FreeMemory(mediaCtx);
+    mediaCtx         = nullptr;
+    ctx->pDriverData = nullptr;
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
