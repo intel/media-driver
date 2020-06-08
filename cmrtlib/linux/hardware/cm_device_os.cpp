@@ -137,11 +137,12 @@ extern "C" CM_RT_API int32_t DestroyCmDevice(CmDevice* &device);
 int32_t CmDevice_RT::GetPlatformInfo(uint32_t adapterIndex)
 {
     uint32_t version = 0;
-    CmDevice_RT* pDev;
-    CmDevice* pCmDev = nullptr;
+    CmDevice_RT *pDev = nullptr;
+    CmDevice *pCmDev = nullptr;
     // Create a CM Device
     int32_t result = CreateCmDeviceFromAdapter(pDev, adapterIndex);
-    if ((result != CM_SUCCESS) || (pDev == nullptr)) {
+    if ((result != CM_SUCCESS) || (pDev == nullptr))
+    {
         return CM_FAILURE;
     }
 
