@@ -215,7 +215,10 @@ Codechal* CodechalDevice::CreateFactory(
         CODECHAL_PUBLIC_ASSERTMESSAGE("Status check failed, CodecHal creation failed!"); \
         if (osInterface != nullptr && osInterface->bDeallocateOnExit) \
         {                                       \
-            osInterface->pfnDestroy(osInterface, false); \
+            if (osInterface->pfnDestroy != nullptr) \
+            {                                   \
+                osInterface->pfnDestroy(osInterface, false); \
+            }                                   \
             MOS_FreeMemory(osInterface);        \
         }                                       \
         MOS_Delete(mhwInterfaces);              \
@@ -231,7 +234,10 @@ Codechal* CodechalDevice::CreateFactory(
         CODECHAL_PUBLIC_ASSERTMESSAGE("nullptr check failed, CodecHal creation failed!"); \
         if (osInterface != nullptr && osInterface->bDeallocateOnExit) \
         {                                       \
-            osInterface->pfnDestroy(osInterface, false); \
+            if (osInterface->pfnDestroy != nullptr) \
+            {                                   \
+                osInterface->pfnDestroy(osInterface, false); \
+            }                                   \
             MOS_FreeMemory(osInterface);        \
         }                                       \
         MOS_Delete(mhwInterfaces);              \
@@ -259,9 +265,9 @@ Codechal* CodechalDevice::CreateFactory(
         FAIL_CHK_NULL(osInterface);
 
         MOS_COMPONENT component = CodecHalIsDecode(CodecFunction) ? COMPONENT_Decode : COMPONENT_Encode;
-        FAIL_CHK_STATUS(Mos_InitInterface(osInterface, osDriverContext, component));
 
         osInterface->bDeallocateOnExit = true;
+        FAIL_CHK_STATUS(Mos_InitInterface(osInterface, osDriverContext, component));
     }
     // pOsInterface provided - use OS interface functions provided by DDI (OS emulation)
     else
