@@ -787,6 +787,8 @@ protected:
 
     static const uint32_t m_encMinWidth = 32; //!< Minimum width for encoding
     static const uint32_t m_encMinHeight = 32; //!< Minimum height for encoding
+    static const uint32_t m_hevcVDEncMinWidth = 128; //!< Minimum width for HEVC VDEnc
+    static const uint32_t m_hevcVDEncMinHeight = 128; //!< Minimum height for HEVC VDEnc
     static const uint32_t m_encMax4kWidth =
         CODEC_4K_MAX_PIC_WIDTH; //!< Minimum width for encoding
     static const uint32_t m_encMax4kHeight =
@@ -825,6 +827,8 @@ protected:
     std::vector<EncConfig> m_encConfigs; //!< Store supported encode configs
     std::vector<DecConfig> m_decConfigs; //!< Store supported decode configs
     std::vector<uint32_t> m_vpConfigs;   //!< Store supported vp configs
+
+    bool m_vdencActive = false;  //!< If vdenc is active on current platform
 
     //!
     //! \brief    Check entrypoint codec type

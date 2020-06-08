@@ -2000,6 +2000,7 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
                 rc_mb_flag = false;
                 break;
         }
+        m_vdencActive = true;
     }
 
     uint32_t feiFunction = 0;

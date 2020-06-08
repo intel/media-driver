@@ -669,9 +669,9 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
             if (width > m_maxHevcEncWidth 
-                    || width < m_encMinWidth
+                    || width < (m_vdencActive ? m_hevcVDEncMinWidth : m_encMinWidth)
                     || height > m_maxHevcEncHeight 
-                    || height < m_encMinHeight)
+                    || height < (m_vdencActive ? m_hevcVDEncMinHeight : m_encMinHeight))
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -1204,6 +1204,10 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = m_encJpegMinWidth;
         }
+        else if(IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinWidth : m_encMinWidth;
+        }
         i++;
 
         attribs[i].type = VASurfaceAttribMinHeight;
@@ -1213,6 +1217,10 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         if(profile == VAProfileJPEGBaseline)
         {
             attribs[i].value.value.i = m_encJpegMinHeight;
+        }
+        else if(IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinHeight : m_encMinHeight;
         }
         i++;
 
