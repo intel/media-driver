@@ -4315,8 +4315,8 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
 
     hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 0;
 
-    //QP modulation settings, allow HB gop 2/4/8
-    bool bAllowedPyramid = (m_hevcSeqParams->GopRefDist == 2) || (m_hevcSeqParams->GopRefDist == 4) || (m_hevcSeqParams->GopRefDist == 8);
+    //QP modulation settings
+    bool bAllowedPyramid = m_hevcSeqParams->GopRefDist != 3;
 
     if (m_hevcSeqParams->HierarchicalFlag && bAllowedPyramid)
     {
@@ -4718,7 +4718,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
             = (m_hevcVdencWeightedPredEnabled && m_hevcPicParams->bEnableGPUWeightedPrediction && !IsFirstPass()) ? 3 : 1;    // 01: BRC, 10: WP never used,  11: BRC + WP
     }
 
-    bool bAllowedPyramid = (m_hevcSeqParams->GopRefDist == 2) || (m_hevcSeqParams->GopRefDist == 4) || (m_hevcSeqParams->GopRefDist == 8); // allow HB gop 2/4/8
+    bool bAllowedPyramid = m_hevcSeqParams->GopRefDist != 3; 
 
     if (m_pictureCodingType == I_TYPE)
     {
@@ -8985,8 +8985,6 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRoundingValues()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    bool bAllowedPyramid = (m_hevcSeqParams->GopRefDist == 2) || (m_hevcSeqParams->GopRefDist == 4) || (m_hevcSeqParams->GopRefDist == 8); // allow HB gop 2/4/8
-
     if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingIntra)
     {
         m_roundIntraValue = m_hevcPicParams->CustomRoundingOffsetsParams.fields.RoundingOffsetIntra;
@@ -8997,7 +8995,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRoundingValues()
         {
             m_roundIntraValue = 10;
         }
-        else if (bAllowedPyramid && m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
+        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
         {
             if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
@@ -9028,7 +9026,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetRoundingValues()
         {
             m_roundInterValue = 4;
         }
-        else if (bAllowedPyramid && m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
+        else if (m_hevcSeqParams->HierarchicalFlag && m_hevcPicParams->HierarchLevelPlus1 > 0)
         {
             if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
