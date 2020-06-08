@@ -309,6 +309,12 @@ struct mos_bo_gem {
      *
      */
     uint64_t pad_to_size;
+
+    /**
+     * Will be written by HW. For softpin/no_reloc objects.
+     *
+     */
+    bool exec_write;
 };
 
 static unsigned int
@@ -534,6 +540,10 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
         flags |= EXEC_OBJECT_PINNED;
     if (bo_gem->exec_async)
         flags |= EXEC_OBJECT_ASYNC;
+    if (bo_gem->exec_write && bo_gem->is_softpin && bo_gem->tiling_mode != I915_TILING_NONE)
+    {
+        flags |= EXEC_OBJECT_WRITE;
+    }
 
     if (bo_gem->validate_index != -1) {
         bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= flags;
@@ -2279,7 +2289,7 @@ mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo)
 }
 
 static int
-mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)
+mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, uint32_t write_domain)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
@@ -2309,6 +2319,15 @@ mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *targ
 
         bo_gem->softpin_target_size = new_size;
     }
+
+    if (write_domain >= I915_GEM_DOMAIN_RENDER)
+    {
+        target_bo_gem->exec_write = true;
+    }
+    else
+    {
+        target_bo_gem->exec_write = false;
+    }
     bo_gem->softpin_target[bo_gem->softpin_target_count] = target_bo;
     mos_gem_bo_reference(target_bo);
     bo_gem->softpin_target_count++;
@@ -2337,7 +2356,7 @@ mos_gem_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
     struct mos_bo_gem *target_bo_gem = (struct mos_bo_gem *)target_bo;
 
     if (target_bo_gem->is_softpin)
-        return mos_gem_bo_add_softpin_target(bo, target_bo);
+        return mos_gem_bo_add_softpin_target(bo, target_bo, write_domain);
     else
         return do_bo_emit_reloc(bo, offset, target_bo, target_offset,
                     read_domains, write_domain,
@@ -2355,7 +2374,7 @@ mos_gem_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
 
     if (target_bo_gem->is_softpin)
     {
-        return mos_gem_bo_add_softpin_target(bo, target_bo);
+        return mos_gem_bo_add_softpin_target(bo, target_bo, write_domain);
     }
     else
     {

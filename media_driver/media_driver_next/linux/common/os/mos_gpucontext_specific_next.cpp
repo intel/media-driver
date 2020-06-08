@@ -995,22 +995,15 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
-        if (mos_gem_bo_is_softpin(alloc_bo))
-        {
-            ret = mos_bo_emit_reloc(tempCmdBo, 0, alloc_bo, 0, I915_GEM_DOMAIN_RENDER, I915_GEM_DOMAIN_CPU);
-        }
-        else
-        {
-            ret = mos_bo_emit_reloc2(
-                tempCmdBo,                                                         // Command buffer
-                currentPatch->PatchOffset,                                         // Offset in the command buffer
-                alloc_bo,                                                          // Allocation object for which the patch will be made.
-                currentPatch->AllocationOffset,                                    // Offset to the indirect state
-                I915_GEM_DOMAIN_RENDER,                                            // Read domain
-                (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
-                boOffset);
-        }
-        
+        ret = mos_bo_emit_reloc2(
+            tempCmdBo,                                                         // Command buffer
+            currentPatch->PatchOffset,                                         // Offset in the command buffer
+            alloc_bo,                                                          // Allocation object for which the patch will be made.
+            currentPatch->AllocationOffset,                                    // Offset to the indirect state
+            I915_GEM_DOMAIN_RENDER,                                            // Read domain
+            (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
+            boOffset);
+
         if (ret != 0)
         {
             MOS_OS_ASSERTMESSAGE("Error patching alloc_bo = 0x%x, cmd_bo = 0x%x.",
