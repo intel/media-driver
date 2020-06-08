@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -69,9 +69,14 @@ if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supporte
     endif ()
 
     if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+        set (TMP_3_SOURCES_
+            ${TMP_3_SOURCES_}
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g11_jsl_ehl.cpp
+        )
         set (TMP_3_HEADERS_
             ${TMP_3_HEADERS_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g11_lp.h
+            ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_avc_g11_jsl_ehl.h
         )
     endif ()
 endif ()
