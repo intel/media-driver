@@ -135,7 +135,7 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bSegmentationEnabled = false;
     PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState = nullptr;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams = nullptr;
-    bool                                    bPrevFrameSegEnabled;
+    bool                                    bPrevFrameSegEnabled = false;
     bool                                    bDynamicScalingEnabled = false;
     bool                                    temporalMVpEnable = false;
 
