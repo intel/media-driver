@@ -966,8 +966,10 @@ protected:
     uint32_t                    m_standard          = CODECHAL_UNDEFINED;
     //! \brief Current frame number
     uint32_t                    m_frameNum          = 0;
-    //! \brief Indicates if current field is second field(bottom field)
+    //! \brief Indicates if current field is second field
     bool                        m_secondField       = false;
+    //! \brief Indidates if fields are completed
+    uint32_t                    m_fullFieldsFrame     = 0;
     //! \brief picture information of current render target
     CODEC_PICTURE               m_crrPic            = {0};
     //! \brief Video GPU node inuse

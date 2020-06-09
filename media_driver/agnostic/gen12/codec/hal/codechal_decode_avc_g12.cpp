@@ -360,7 +360,7 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
                 }
             }
 
-            decodeStatusReport.m_secondField = CodecHal_PictureIsBottomField(m_avcPicParams->CurrPic);
+            decodeStatusReport.m_secondField = m_secondField;
             decodeStatusReport.m_frameType   = m_perfType;)
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));

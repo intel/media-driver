@@ -1270,8 +1270,34 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     }
 #endif
     m_crrPic = m_avcPicParams->CurrPic;
-    m_secondField =
-        CodecHal_PictureIsBottomField(m_avcPicParams->CurrPic);
+
+    if(m_fullFieldsFrame == (PICTURE_BOTTOM_FIELD | PICTURE_TOP_FIELD))
+    {
+        m_fullFieldsFrame = 0;
+    }
+
+    m_secondField = false;
+
+    if(CodecHal_PictureIsField(m_avcPicParams->CurrPic))
+    {
+       if(CodecHal_PictureIsTopField(m_avcPicParams->CurrPic))
+       {
+           m_fullFieldsFrame |= PICTURE_TOP_FIELD;
+       }
+       if (CodecHal_PictureIsBottomField(m_avcPicParams->CurrPic))
+       {
+           m_fullFieldsFrame |= PICTURE_BOTTOM_FIELD;
+       }
+    }
+    else
+    {
+        m_fullFieldsFrame = 0;
+    }
+
+    if(m_fullFieldsFrame == (PICTURE_BOTTOM_FIELD | PICTURE_TOP_FIELD))
+    {
+        m_secondField = true;
+    }
 
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic     = m_crrPic;
@@ -1835,7 +1861,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
                 }
             }
 
-            decodeStatusReport.m_secondField = CodecHal_PictureIsBottomField(m_avcPicParams->CurrPic);
+            decodeStatusReport.m_secondField = m_secondField;
             decodeStatusReport.m_frameType   = m_perfType;)
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
