@@ -593,6 +593,7 @@ MOS_STATUS CodechalDecodeHevcG12::SetHucDmemParams (
     hucHevcS2LBss->DummyRefIdxState = 
         MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive;
     hucHevcS2LBss->DummyVDControlState = MEDIA_IS_WA(m_waTable, Wa_14010222001);
+    hucHevcS2LBss->WaTileFlushScalability = MEDIA_IS_WA(m_waTable, Wa_2209620131);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LPictureBss(&hucHevcS2LBss->PictureBss));
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetHucDmemS2LSliceBss(&hucHevcS2LBss->SliceBss[0]));

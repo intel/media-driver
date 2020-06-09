@@ -86,6 +86,9 @@ struct HUC_HEVC_S2L_BSS_G12
     //Flag to indicate if insert dummy HCP_VD_CONTROL_STATE or not
     uint32_t                    DummyVDControlState;
 
+    //Flag to indicate if insert MFX_WAIT and VD_PIPELINE_FLUSH for Scalability
+    uint32_t                    WaTileFlushScalability;
+
     // Picture level DMEM data
     HUC_HEVC_S2L_PIC_BSS_G12    PictureBss;
 
