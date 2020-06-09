@@ -513,22 +513,9 @@ VAStatus DdiEncodeHevc::ParsePicParams(
 
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams = (PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams);
 
-    DDI_MEDIA_SURFACE *surface;
     if(picParams->decoded_curr_pic.picture_id != VA_INVALID_SURFACE)
     {
-        surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->decoded_curr_pic.picture_id);
-
-        if(m_encodeCtx->vaProfile == VAProfileHEVCMain444
-        || m_encodeCtx->vaProfile == VAProfileHEVCMain444_10
-        || m_encodeCtx->vaProfile == VAProfileHEVCMain444_12
-        || m_encodeCtx->vaProfile == VAProfileHEVCMain422_10
-        || m_encodeCtx->vaProfile == VAProfileHEVCMain422_12
-        || m_encodeCtx->vaProfile == VAProfileHEVCSccMain444
-        || m_encodeCtx->vaProfile == VAProfileHEVCSccMain444_10)
-        {
-            surface = DdiMedia_ReplaceSurfaceWithVariant(surface, m_encodeCtx->vaEntrypoint);
-        }
-        DDI_CHK_RET(RegisterRTSurfaces(&(m_encodeCtx->RTtbl),surface), "RegisterRTSurfaces failed!");
+        DDI_CHK_RET(RegisterRTSurfaces(&(m_encodeCtx->RTtbl), DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParams->decoded_curr_pic.picture_id)), "RegisterRTSurfaces failed!");
     }
 
     // Curr Recon Pic
@@ -783,6 +770,7 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
             hevcSlcParams->chroma_offset[1][i][1]       = MOS_CLAMP_MIN_MAX(vaEncSlcParamsHEVC->chroma_offset_l1[i][1], minChromaOffset, maxChromaOffset);
             hevcSlcParams->delta_chroma_weight[1][i][1] = vaEncSlcParamsHEVC->delta_chroma_weight_l1[i][1];
         }
+
         for (uint32_t i = 0; i < numMaxRefFrame; i++)
         {
             if(i >  hevcSlcParams->num_ref_idx_l0_active_minus1)
