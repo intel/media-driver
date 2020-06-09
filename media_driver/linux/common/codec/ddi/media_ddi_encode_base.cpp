@@ -176,19 +176,17 @@ VAStatus DdiEncodeBase::StatusReport(
     // Get encoded frame information from status buffer queue.
     while (VA_STATUS_SUCCESS == (eStatus = GetSizeFromStatusReportBuffer(mediaBuf, &size, &status, &index)))
     {
-        if ((index >= 0) && (size != 0))  //Get the matched encoded buffer information
+        if ((index >= 0) && ((size != 0) || (status & VA_CODED_BUF_STATUS_BAD_BITSTREAM))) //Get the matched encoded buffer information
         {
             // the first segment in the single-link list: pointer for the coded bitstream and the size
             m_encodeCtx->BufMgr.pCodedBufferSegment->buf    = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
             m_encodeCtx->BufMgr.pCodedBufferSegment->size   = size;
             m_encodeCtx->BufMgr.pCodedBufferSegment->status = status;
-            break;
-        }
-        else if ((index >= 0) && (size == 0) && (status & VA_CODED_BUF_STATUS_BAD_BITSTREAM))
-        {
-            m_encodeCtx->BufMgr.pCodedBufferSegment->buf    = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
-            m_encodeCtx->BufMgr.pCodedBufferSegment->size   = size;
-            m_encodeCtx->BufMgr.pCodedBufferSegment->status = status;
+
+            if (status & VA_CODED_BUF_STATUS_BAD_BITSTREAM)
+            {
+                return VA_STATUS_ERROR_ENCODING_ERROR;
+            }
             break;
         }
 
@@ -235,7 +233,7 @@ VAStatus DdiEncodeBase::StatusReport(
                 m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
                 m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
                 m_encodeCtx->statusReportBuf.ulUpdatePosition = (m_encodeCtx->statusReportBuf.ulUpdatePosition + 1) % DDI_ENCODE_MAX_STATUS_REPORT_BUFFER;
-                break;
+                return VA_STATUS_ERROR_ENCODING_ERROR;
             }
 
             // Report extra status for completed coded buffer
@@ -282,7 +280,7 @@ VAStatus DdiEncodeBase::StatusReport(
                 m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
                 UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
                 DDI_ASSERTMESSAGE("Something unexpected happened in HW, return error to application");
-                break;
+                return VA_STATUS_ERROR_ENCODING_ERROR;
             }
         }
         else if (CODECHAL_STATUS_ERROR == encodeStatusReport[0].CodecStatus)
@@ -292,7 +290,7 @@ VAStatus DdiEncodeBase::StatusReport(
             m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
             m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
             UpdateStatusReportBuffer(encodeStatusReport[0].bitstreamSize, m_encodeCtx->BufMgr.pCodedBufferSegment->status);
-            break;
+            return VA_STATUS_ERROR_ENCODING_ERROR;
         }
         else
         {
