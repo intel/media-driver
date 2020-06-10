@@ -221,6 +221,7 @@ CODECHAL_MODE MediaLibvaCapsG12::GetDecodeCodecMode(VAProfile profile)
         case VAProfileHEVCSccMain:
         case VAProfileHEVCSccMain10:
         case VAProfileHEVCSccMain444:
+        case VAProfileHEVCSccMain444_10:
             return CODECHAL_DECODE_MODE_HEVCVLD;
         case VAProfileVC1Simple:
         case VAProfileVC1Main:
@@ -264,6 +265,7 @@ std::string MediaLibvaCapsG12::GetDecodeCodecKey(VAProfile profile)
         case VAProfileHEVCSccMain:
         case VAProfileHEVCSccMain10:
         case VAProfileHEVCSccMain444:
+        case VAProfileHEVCSccMain444_10:
             return DECODE_ID_HEVC_G12;
         case VAProfileVC1Simple:
         case VAProfileVC1Main:
@@ -1112,6 +1114,19 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribs[i].value.value.i = VA_FOURCC_Y410;
             i++;
+        } else if (profile == VAProfileHEVCSccMain444_10)
+        {
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_AYUV;
+            i++;
+
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y410;
+            i++;
         }
         else if (profile == VAProfileJPEGBaseline)
         {
@@ -1802,7 +1817,8 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
         attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
         (*attribList)[attrib.type] = attrib.value;
     }
-    else if(profile == VAProfileHEVCMain444_10)
+    else if(profile == VAProfileHEVCMain444_10 ||
+            profile == VAProfileHEVCSccMain444_10)
     {
         attrib.value = VA_RT_FORMAT_YUV420 |VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV444;
         attrib.value |= VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV444_10;
@@ -2086,10 +2102,14 @@ VAStatus MediaLibvaCapsG12::LoadHevcDecProfileEntrypoints()
         LoadDecProfileEntrypoints(VAProfileHEVCSccMain10);
     }
 
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain8bit444SCC)
-            || MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10bit444SCC))
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain8bit444SCC))
     {
         LoadDecProfileEntrypoints(VAProfileHEVCSccMain444);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10bit444SCC))
+    {
+        LoadDecProfileEntrypoints(VAProfileHEVCSccMain444_10);
     }
 
 #endif
@@ -2109,7 +2129,8 @@ bool MediaLibvaCapsG12::IsHevcProfile(VAProfile profile)
             (profile == VAProfileHEVCMain444_12) ||
             (profile == VAProfileHEVCSccMain)    ||
             (profile == VAProfileHEVCSccMain10)  ||
-            (profile == VAProfileHEVCSccMain444)
+            (profile == VAProfileHEVCSccMain444) ||
+            (profile == VAProfileHEVCSccMain444_10)
            );
 }
 
