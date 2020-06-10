@@ -668,6 +668,7 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
     pOsInterface = pScalabilityStateBase->pHwInterface->GetOsInterface();
     pMiInterface = pScalabilityState->pHwInterface->GetMiInterface();
     HcpDecPhase = pScalabilityStateBase->HcpDecPhase;
+    curPipeInUse = 0;
 
     //FE& BE0 Sync. to refine (ucNumVdbox > )for GT3
     if (HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE0 && pScalabilityState->pHwInterface->GetMfxInterface()->GetNumVdbox() > 2)
@@ -1458,6 +1459,7 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_FixedSizes_G12(
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pHwInterface->GetOsInterface());
 
     pOsInterface = pScalabilityState->pHwInterface->GetOsInterface();
+    pData        = nullptr;
 
     MOS_ZeroMemory(&LockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     LockFlagsWriteOnly.WriteOnly = 1;
