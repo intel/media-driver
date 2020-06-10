@@ -331,7 +331,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
 //!  this is trace event interface extension, only for debug purpose.
 //!
 #define MOS_TraceEventExt MOS_TraceEvent
-#define MOS_TraceDump MOS_TraceDataDump
+#define MOS_TraceDumpExt MOS_TraceDataDump
 
 #else // !MOS_MESSAGES_ENABLED
 
@@ -340,7 +340,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
 //!            but are called in release drivers too.
 //!
 #define MOS_TraceEventExt(usId, usType, pArg1, dwSize1, pArg2, dwSize2)
-#define MOS_TraceDump(name, flags, pBuf, dwSize)
+#define MOS_TraceDumpExt(name, flags, pBuf, dwSize)
 
 #define MOS_FUNCTION_ENTER(_compID, _subCompID)
 #define MOS_FUNCTION_EXIT(_compID, _subCompID, hr)
