@@ -31,15 +31,11 @@
 #include "media_libva_caps_factory.h"
 
 const VAImageFormat m_supportedImageformatsG8[] =
-{   {VA_FOURCC_BGRA,   VA_LSB_FIRST,   32, 32, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_ARGB,   VA_LSB_FIRST,   32, 32, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000},
-    {VA_FOURCC_RGBA,   VA_LSB_FIRST,   32, 32, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
-    {VA_FOURCC_ABGR,   VA_LSB_FIRST,   32, 32, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000},
-    {VA_FOURCC_BGRX,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
-    {VA_FOURCC_XRGB,   VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},
-    {VA_FOURCC_RGBX,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
-    {VA_FOURCC_XBGR,   VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},
-    {VA_FOURCC_RGB565, VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},
+{   {VA_FOURCC_BGRA,           VA_LSB_FIRST,   32, 32, 0x00ff0000, 0x0000ff00, 0x000000ff,  0xff000000}, /* B:G:R:A 8:8:8:8    little endian [0:7]:B, [8:15]:G,  [16:23]:R, [24:31]: A */
+    {VA_FOURCC_RGBA,           VA_LSB_FIRST,   32, 32, 0x000000ff, 0x0000ff00, 0x00ff0000,  0xff000000}, /* R:G:B:A 8:8:8:8    little endian [0:7]:R, [8:15]:G,  [16:23]:B, [24:31]: A */
+    {VA_FOURCC_BGRX,           VA_LSB_FIRST,   32, 24, 0x00ff0000, 0x0000ff00, 0x000000ff,  0},          /* B:G:R:x 8:8:8:8    little endian [0:7]:B, [8:15]:G,  [16:23]:R, [24:31]: X */
+    {VA_FOURCC_RGBX,           VA_LSB_FIRST,   32, 24, 0x000000ff, 0x0000ff00, 0x00ff0000,  0},          /* R:G:B:x 8:8:8:8    little endian [0:7]:R, [8:15]:G,  [16:23]:B, [24:31]: X */
+    {VA_FOURCC_RGB565,         VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},          /* B:G:R   5:6:5      little endian [0:4]:B, [5:10]:G,  [11:15]:R             */
     {VA_FOURCC_NV12,   VA_LSB_FIRST,   12, 0,0,0,0,0},
     {VA_FOURCC_NV21,   VA_LSB_FIRST,   12, 0,0,0,0,0},
     {VA_FOURCC_YUY2,   VA_LSB_FIRST,   16, 0,0,0,0,0},
