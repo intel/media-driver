@@ -86,6 +86,9 @@ struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 : public MHW_VDBOX_PIPE_MODE_SELECT
     bool                        bStreamingBufferEnabled = false;
     bool                        bIsRandomAccess = false;
     bool                        bLookaheadPass = false;
+    uint8_t                     tuMinus1 = 3;
+    uint8_t                     ucQuantizationPrecision = 0;
+    uint8_t                     tuSettingsRevision = 0;
 };
 using PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 = MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 *;
 
@@ -94,6 +97,7 @@ struct MHW_VDBOX_AVC_IMG_PARAMS_G12 : public MHW_VDBOX_AVC_IMG_PARAMS
     bool                        bVDEncUltraModeEnabled = false;
     bool                        oneOnOneMapping        = false;
     bool                        bStreamInMbQpEnabled   = false;
+    uint8_t                     tuSettingsRevision     = 0;
 };
 using PMHW_VDBOX_AVC_IMG_PARAMS_G12 = MHW_VDBOX_AVC_IMG_PARAMS_G12 *;
 
