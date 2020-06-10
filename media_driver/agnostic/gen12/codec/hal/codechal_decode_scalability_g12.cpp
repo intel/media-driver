@@ -652,7 +652,7 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
     PMOS_INTERFACE                      pOsInterface;
     MhwMiInterface                      *pMiInterface;
     uint32_t                            HcpDecPhase;
-    uint32_t                            curPipeInUse;
+    uint32_t                            curPipeInUse = 0;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
@@ -1448,7 +1448,7 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_FixedSizes_G12(
     PMOS_INTERFACE          pOsInterface;
     MOS_ALLOC_GFXRES_PARAMS AllocParamsForBufferLinear;
     MOS_LOCK_PARAMS         LockFlagsWriteOnly;
-    uint8_t *               pData;
+    uint8_t *               pData = nullptr;
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
