@@ -565,7 +565,8 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
         //420 10bit
         Format = Format_P010;
     }
-    else if (m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444)
+    else if (m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444 ||
+             m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444_10)
     {
         //420/422/444 8bit
         if((picParams->bit_depth_luma_minus8 == 0) &&
@@ -896,7 +897,8 @@ VAStatus DdiDecodeHEVCG12::CodecHalInit(
     if (m_ddiDecodeAttr->profile == VAProfileHEVCMain10 ||
         m_ddiDecodeAttr->profile == VAProfileHEVCMain422_10 ||
         m_ddiDecodeAttr->profile == VAProfileHEVCMain444_10 ||
-        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain10)
+        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain10 ||
+        m_ddiDecodeAttr->profile == VAProfileHEVCMain444_10)
     {
         m_codechalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
     }
@@ -915,15 +917,10 @@ VAStatus DdiDecodeHEVCG12::CodecHalInit(
     
     if(m_ddiDecodeAttr->profile == VAProfileHEVCMain444 ||
        m_ddiDecodeAttr->profile == VAProfileHEVCMain444_10 ||
-       m_ddiDecodeAttr->profile == VAProfileHEVCMain444_12)
+       m_ddiDecodeAttr->profile == VAProfileHEVCMain444_12 ||
+       m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444 ||
+       m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444_10)
     {
-        m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
-    }
-
-    if(m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444)
-    {
-        // Since only one profile definition for SCC, so using maximun bitdepth and chrome id here
-        m_codechalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
         m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV444;
     }
 
@@ -1062,7 +1059,8 @@ bool DdiDecodeHEVCG12::IsRextProfile()
         m_ddiDecodeAttr->profile == VAProfileHEVCMain444_12 || \
         m_ddiDecodeAttr->profile == VAProfileHEVCSccMain    || \
         m_ddiDecodeAttr->profile == VAProfileHEVCSccMain10  || \
-        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444    \
+        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444 || \
+        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444_10 \
         );
 }
 
@@ -1071,7 +1069,8 @@ bool DdiDecodeHEVCG12::IsSccProfile()
     return (                                                   \
         m_ddiDecodeAttr->profile == VAProfileHEVCSccMain    || \
         m_ddiDecodeAttr->profile == VAProfileHEVCSccMain10  || \
-        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444    \
+        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444 || \
+        m_ddiDecodeAttr->profile == VAProfileHEVCSccMain444_10 \
         );
 }
 
