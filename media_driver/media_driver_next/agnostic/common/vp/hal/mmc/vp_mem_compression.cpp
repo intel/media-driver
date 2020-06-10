@@ -38,7 +38,7 @@ VPMediaMemComp::VPMediaMemComp(
     m_mmcInuseFeatureId = __VPHAL_ENABLE_MMC_IN_USE_ID;
 
 #if(LINUX)
-    m_bComponentMmcEnabled = false;
+    m_bComponentMmcEnabled = !MEDIA_IS_WA(vpInterface->m_waTable, WaDisableVPMmc);
 #else
     m_bComponentMmcEnabled = true;
 #endif

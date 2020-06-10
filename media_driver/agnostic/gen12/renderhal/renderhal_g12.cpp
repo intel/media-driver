@@ -855,11 +855,7 @@ MOS_STATUS XRenderHal_Interface_g12::IsRenderHalMMCEnabled(
     // Read user feature key to set MMC for Fast Composition surfaces
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-#ifdef LINUX
-    UserFeatureData.bData       = false; // disable MMC on Linux
-#else
     UserFeatureData.bData       = true; // init as default value to enable MMCD on Gen12LP
-#endif
 
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
