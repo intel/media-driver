@@ -1158,7 +1158,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
 
     m_ddiDecodeCtx->pCodecHal = codecHal;
 
-    m_codechalSettings->enableCodecMmc = false;
     m_codechalSettings->sfcInUseHinted = true;
 
     if (m_ddiDecodeAttr && m_ddiDecodeAttr->uiEncryptionType)

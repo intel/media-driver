@@ -373,7 +373,6 @@ VAStatus DdiEncode_CreateContext(
         return vaStatus;
     }
 
-    encCtx->m_encode->m_codechalSettings->enableCodecMmc = false;
     MOS_STATUS eStatus = pCodecHal->Allocate(encCtx->m_encode->m_codechalSettings);
 
 #ifdef _MMC_SUPPORTED
