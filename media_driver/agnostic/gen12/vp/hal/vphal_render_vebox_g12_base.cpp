@@ -3000,7 +3000,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::Initialize(
     // Read user feature key for MMC enable
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    UserFeatureData.bData       = false; // disable MMC by default
+    UserFeatureData.bData       = true; // enable MMC by default
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_ENABLE_MMC_ID,

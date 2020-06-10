@@ -291,7 +291,6 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, Wa_18011246551, 1);
 
     MEDIA_WR_WA(waTable, WaDisableVeboxFor8K, 1);
-    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
 
     return true;
 }
