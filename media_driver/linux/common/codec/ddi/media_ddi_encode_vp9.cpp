@@ -651,6 +651,12 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_encodeCtx->RTtbl);
 
     auto recon = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->reconstructed_frame);
+    if(m_encodeCtx->vaProfile == VAProfileVP9Profile1
+     ||m_encodeCtx->vaProfile == VAProfileVP9Profile2
+     ||m_encodeCtx->vaProfile == VAProfileVP9Profile3)
+    {
+        recon = DdiMedia_ReplaceSurfaceWithVariant(recon, m_encodeCtx->vaEntrypoint);
+    }
     DDI_CHK_RET(RegisterRTSurfaces(rtTbl, recon),"RegisterRTSurfaces failed!");
 
     SetupCodecPicture(mediaCtx, rtTbl, &vp9PicParam->CurrReconstructedPic,
