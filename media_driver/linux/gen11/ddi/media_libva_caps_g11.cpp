@@ -681,9 +681,9 @@ VAStatus MediaLibvaCapsG11::CheckEncodeResolution(
         case VAProfileVP9Profile2:
         case VAProfileVP9Profile3:
             if ((width > m_maxVp9EncWidth) ||
-                (width < m_encMinWidth) ||
+                (width < m_minVp9EncWidth) ||
                 (height > m_maxVp9EncHeight) ||
-                (height < m_encMinHeight))
+                (height < m_minVp9EncHeight) )
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -1213,13 +1213,17 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         attribs[i].value.type = VAGenericValueTypeInteger;
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = m_encMinWidth;
-        if(profile == VAProfileJPEGBaseline)
-        {
-            attribs[i].value.value.i = m_encJpegMinWidth;
-        }
-        else if(IsHevcProfile(profile))
+        if(IsHevcProfile(profile))
         {
             attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinWidth : m_encMinWidth;
+        }
+        else if (IsVp9Profile(profile))
+        {
+            attribs[i].value.value.i = m_vdencActive ? m_minVp9EncWidth : m_encMinWidth;
+        }
+        else if (profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinWidth;
         }
         i++;
 
@@ -1227,13 +1231,17 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
         attribs[i].value.type = VAGenericValueTypeInteger;
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = m_encMinHeight;
-        if(profile == VAProfileJPEGBaseline)
-        {
-            attribs[i].value.value.i = m_encJpegMinHeight;
-        }
-        else if(IsHevcProfile(profile))
+        if(IsHevcProfile(profile))
         {
             attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinHeight : m_encMinHeight;
+        }
+        else if (IsVp9Profile(profile))
+        {
+            attribs[i].value.value.i = m_vdencActive ? m_minVp9EncHeight : m_encMinHeight;
+        }
+        else if (profile == VAProfileJPEGBaseline)
+        {
+            attribs[i].value.value.i = m_encJpegMinHeight;
         }
         i++;
 
