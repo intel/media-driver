@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 */
 //!
 //! \file       renderhal_g12.cpp
-//! \brief      implementation of Gen11 hardware functions
+//! \brief      implementation of Gen12 hardware functions
 //! \details    Render functions
 //!
 
@@ -181,6 +181,21 @@ MOS_STATUS XRenderHal_Interface_g12::SetupSurfaceState (
         SurfStateParams.bTileWalk             = pSurfaceEntry->bTileWalk;
         SurfStateParams.dwCacheabilityControl = pRenderHal->pfnGetSurfaceMemoryObjectControl(pRenderHal, pParams);
         SurfStateParams.RotationMode          = g_cLookup_RotationMode_g12[pRenderHalSurface->Rotation];
+
+    #if !EMUL
+        if ((pSurface != nullptr) && (pRenderHal->pOsInterface !=nullptr))
+        {
+            GMM_RESOURCE_FLAG                   gmmFlags = {0};
+            gmmFlags = pSurface->OsResource.pGmmResInfo->GetResFlags();
+            if (gmmFlags.Gpu.CameraCapture)
+            {
+                SurfStateParams.dwCacheabilityControl = pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                    MOS_MHW_GMM_RESOURCE_USAGE_CAMERA_CAPTURE,
+                    pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)).DwordValue;
+                MHW_RENDERHAL_NORMALMESSAGE(" disable  CameraCapture  caches on render path ");
+            }
+        }
+    #endif
 
         if (IsFormatMMCSupported(pSurface->Format) &&
             m_renderHalMMCEnabled)

@@ -1050,6 +1050,19 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDiIecp(
 
     if (pVeboxDiIecpCmdParams->pOsResCurrInput)
     {
+     // For IPU Camera only
+    #if !EMUL
+        GMM_RESOURCE_FLAG         gmmFlags = {0};
+        gmmFlags = pVeboxDiIecpCmdParams->pOsResCurrInput->pGmmResInfo->GetResFlags();
+        if (gmmFlags.Gpu.CameraCapture)
+        {
+            pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value = pOsInterface->pfnCachePolicyGetMemoryObject(
+                MOS_MHW_GMM_RESOURCE_USAGE_CAMERA_CAPTURE,
+                pOsInterface->pfnGetGmmClientContext(pOsInterface)).DwordValue;
+            MHW_NORMALMESSAGE(" disable the CameraCapture input caches ");
+        }
+    #endif
+
         if (pVeboxDiIecpCmdParams->CurInputSurfMMCState != MOS_MEMCOMP_DISABLED)
         {
             mhw_vebox_g12_X::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD *pSurfCtrlBits;
@@ -1061,7 +1074,6 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDiIecp(
                 pSurfCtrlBits->DW0.CompressionType = pSurfCtrlBits->MEMORY_COMPRESSION_TYPE_RENDER_COMPRESSION_ENABLE;
             }
         }
-
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         ResourceParams.presResource    = pVeboxDiIecpCmdParams->pOsResCurrInput;
         ResourceParams.dwOffset        = pVeboxDiIecpCmdParams->dwCurrInputSurfOffset + pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value;

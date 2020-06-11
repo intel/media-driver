@@ -180,10 +180,12 @@ typedef enum _MOS_HW_RESOURCE_DEF
     MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                                //!< SFC AVS Line buffer Surface
     MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                                //!< SFC IEF Line buffer Surface
 
+    // Camera  caputure.
+    MOS_MHW_GMM_RESOURCE_USAGE_CAMERA_CAPTURE,
     // always last one
     MOS_HW_RESOURCE_DEF_MAX
 } MOS_HW_RESOURCE_DEF;
-C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 135); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
+C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 136); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
 
 //!
 //! \brief Enum allow callers to specify a command streamer.

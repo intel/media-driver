@@ -75,7 +75,18 @@ uint32_t CmSurfaceState::GetCacheabilityControl()
 {
     RENDERHAL_SURFACE_STATE_PARAMS  surfaceParam;
     MOS_ZeroMemory(&surfaceParam, sizeof(surfaceParam));
-    m_cmhal->cmHalInterface->HwSetSurfaceMemoryObjectControl(m_memoryObjectControl, &surfaceParam);
+
+    GMM_RESOURCE_FLAG gmm_flags = m_resource->pGmmResInfo->GetResFlags();
+    if (gmm_flags.Gpu.CameraCapture)
+    {
+        m_cmhal->cmHalInterface->HwSetSurfaceMemoryObjectControl(
+            MOS_MHW_GMM_RESOURCE_USAGE_CAMERA_CAPTURE << 8, &surfaceParam);
+    }
+    else
+    {
+        m_cmhal->cmHalInterface->HwSetSurfaceMemoryObjectControl(
+            m_memoryObjectControl, &surfaceParam);
+    }
     return surfaceParam.MemObjCtl;
 }
 

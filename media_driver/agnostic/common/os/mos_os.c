@@ -930,6 +930,9 @@ MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
         MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                                //!< SFC AVS Line buffer Surface
         MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                                //!< SFC IEF Line buffer Surface
 
+        // Camera capture
+        GMM_RESOURCE_USAGE_CAMERA_CAPTURE,
+
     };
 
     MOS_OS_ASSERT(pGmmClientContext);
