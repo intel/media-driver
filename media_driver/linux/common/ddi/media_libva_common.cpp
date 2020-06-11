@@ -223,6 +223,90 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surfa
     return dstSurface;
 }
 
+PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface, VAEntrypoint entrypoint)
+{
+    DDI_CHK_NULL(surface, "nullptr surface", nullptr);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = surface->pMediaCtx;
+    uint32_t aligned_width, aligned_height;
+    DDI_MEDIA_FORMAT aligned_format;
+
+    //check some conditions
+    if(surface->uiVariantFlag)
+    {
+        return surface;
+    }
+
+    VASurfaceID vaID = DdiMedia_GetVASurfaceIDFromSurface(surface);
+    if(VA_INVALID_SURFACE == vaID)
+    {
+        return nullptr;
+    }
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
+    if (nullptr == surfaceElement)
+    {
+        return nullptr;
+    }
+    surfaceElement += vaID;
+    aligned_format = surface->format;
+    switch (surface->format)
+    {
+        case Media_Format_AYUV:
+            aligned_width = MOS_ALIGN_CEIL(surface->iWidth, 128);
+            aligned_height = MOS_ALIGN_CEIL(surface->iHeight * 3 / 4, 64);
+            break;
+        case Media_Format_Y410:
+            aligned_width = MOS_ALIGN_CEIL(surface->iWidth, 64);
+            aligned_height = MOS_ALIGN_CEIL(surface->iHeight * 3 / 2, 64);
+            break;
+        case Media_Format_Y216:
+        case Media_Format_Y210:
+        case Media_Format_YUY2:
+            aligned_width = (surface->iWidth + 1) >> 1;
+            aligned_height = surface->iHeight * 2;
+            break;
+        case Media_Format_P010:
+            aligned_height = surface->iHeight;
+            aligned_width = surface->iWidth;
+            if(entrypoint == VAEntrypointEncSlice)
+            {
+                aligned_width = surface->iWidth * 2;
+                aligned_format = Media_Format_NV12;
+            }
+            else
+            {
+                aligned_format = Media_Format_P016;
+            }
+            break;
+        default:
+            return surface;
+       }
+
+    //create new dst surface and copy the structure
+    PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
+
+    MOS_SecureMemcpy(dstSurface,sizeof(DDI_MEDIA_SURFACE),surface,sizeof(DDI_MEDIA_SURFACE));
+    DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
+
+    dstSurface->uiVariantFlag = 1;
+    dstSurface->format = aligned_format;
+    dstSurface->iWidth = aligned_width;
+    dstSurface->iHeight = aligned_height;
+   //CreateNewSurface
+    if(DdiMediaUtil_CreateSurface(dstSurface,mediaCtx) != VA_STATUS_SUCCESS)
+    {
+        MOS_FreeMemory(dstSurface);
+        return surface;
+    }
+    //replace the surface
+    surfaceElement->pSurface = dstSurface;
+    //FreeSurface
+    DdiMediaUtil_FreeSurface(surface);
+    MOS_FreeMemory(surface);
+
+    return dstSurface;
+}
+
 DDI_MEDIA_BUFFER* DdiMedia_GetBufferFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
 {
     uint32_t                       i = 0;
