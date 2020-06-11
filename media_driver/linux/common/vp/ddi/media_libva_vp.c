@@ -2286,6 +2286,7 @@ DdiVp_SetProcFilterDinterlaceParams(
             DIMode = DI_MODE_BOB;
             break;
         case VAProcDeinterlacingMotionAdaptive:
+        case VAProcDeinterlacingMotionCompensated:
             DIMode = DI_MODE_ADI;
             break;
         case VAProcDeinterlacingWeave:
@@ -2293,7 +2294,6 @@ DdiVp_SetProcFilterDinterlaceParams(
             return VA_STATUS_SUCCESS;
         case VAProcDeinterlacingNone:
             return VA_STATUS_SUCCESS;
-        case VAProcDeinterlacingMotionCompensated:
         default:
             VP_DDI_ASSERTMESSAGE("Deinterlacing type is unsupported.");
             return VA_STATUS_ERROR_UNIMPLEMENTED;
@@ -4171,7 +4171,7 @@ DdiVp_QueryVideoProcFilterCaps (
 
         /* Deinterlacing filter */
         case VAProcFilterDeinterlacing:
-            uExistCapsNum  = 2;
+            uExistCapsNum = 3;
             /* set input filter caps number to the actual number of filters in vp module */
             *num_filter_caps = uExistCapsNum;
             /* set the actual filter caps attribute in vp module */
@@ -4184,8 +4184,9 @@ DdiVp_QueryVideoProcFilterCaps (
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
 
-                diCap[0].type                         = VAProcDeinterlacingBob;
-                diCap[1].type                         = VAProcDeinterlacingMotionAdaptive;
+                diCap[0].type = VAProcDeinterlacingBob;
+                diCap[1].type = VAProcDeinterlacingMotionAdaptive;
+                diCap[2].type = VAProcDeinterlacingMotionCompensated;
             }
             break;
 
