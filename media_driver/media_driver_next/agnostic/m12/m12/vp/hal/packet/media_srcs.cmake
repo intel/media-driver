@@ -18,5 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(m12)
-media_include_subdirectory(m12_0)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_m12.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_m12.h
+)
+
+set(SOURCES_NEW
+    ${SOURCES_NEW}
+    ${TMP_SOURCES_}
+)
+
+set(HEADERS_NEW
+    ${HEADERS_NEW}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( VpHalNext\\M12 FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+
+media_add_curr_to_include_path()

@@ -548,6 +548,24 @@ MOS_STATUS SfcRenderBase::AllocateResources()
                                   MOS_MMC_DISABLED,
                                   allocated));
 
+    // Allocate SFD Line Buffer surface----------------------------------------------
+    if (NEED_SFD_LINE_BUFFER(sfcStateParams->dwScaledRegionHeight))
+    {
+        size = SFD_LINE_BUFFER_SIZE(sfcStateParams->dwScaledRegionHeight);
+
+        VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
+            &m_SFDLineBufferSurface,
+            "SfcSFDLineBufferSurface",
+            Format_Buffer,
+            MOS_GFXRES_BUFFER,
+            MOS_TILE_LINEAR,
+            size,
+            1,
+            false,
+            MOS_MMC_DISABLED,
+            allocated));
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -559,6 +577,10 @@ MOS_STATUS SfcRenderBase::FreeResources()
 
     // Free IEF Line Buffer surface for SFC
     m_allocator->FreeResource(&m_IEFLineBufferSurface.OsResource);
+
+    // Free SFD Line Buffer surface for SFC
+    m_allocator->FreeResource(&m_SFDLineBufferSurface.OsResource);
+
     return MOS_STATUS_SUCCESS;
 }
 static const uint16_t k_WidthAlignUnit[4] = { 2, 2, 1, 1 };

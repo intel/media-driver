@@ -51,6 +51,7 @@ VphalSfcStateG12::VphalSfcStateG12(
     m_disableOutputCentering = UserFeatureData.bData ? true : false;
 }
 
+
 bool VphalSfcStateG12::IsInputFormatSupported(
     PVPHAL_SURFACE              srcSurface)
 {
@@ -208,12 +209,16 @@ MOS_STATUS VphalSfcStateG12::SetSfcStateParams(
     PVPHAL_SURFACE              pOutSurface)
 {
     MOS_STATUS                  eStatus;
-    PMHW_SFC_STATE_PARAMS       sfcStateParams;
+    PMHW_SFC_STATE_PARAMS_G12   sfcStateParams;
 
     eStatus                = MOS_STATUS_UNKNOWN;
-    sfcStateParams         = m_renderData.SfcStateParams;
+    sfcStateParams         = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.SfcStateParams);
+    VPHAL_RENDER_CHK_NULL_RETURN(sfcStateParams);
 
     eStatus = VphalSfcState::SetSfcStateParams(pRenderData, pSrcSurface, pOutSurface);
+
+    //set SFD linear surface
+    sfcStateParams->resSfdLineBuffer = Mos_ResourceIsNull(&m_SFDLineBufferSurface.OsResource) ? nullptr : &m_SFDLineBufferSurface.OsResource;
 
     VPHAL_RENDER_CHK_NULL_RETURN(m_sfcInterface);
     // Output centering

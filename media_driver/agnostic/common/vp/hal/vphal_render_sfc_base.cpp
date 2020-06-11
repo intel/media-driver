@@ -787,6 +787,11 @@ void VphalSfcState::FreeResources()
         m_osInterface,
         &m_IEFLineBufferSurface.OsResource);
 
+    // Free SFD Line Buffer surface for SFC
+    m_osInterface->pfnFreeResource(
+        m_osInterface,
+        &m_SFDLineBufferSurface.OsResource);
+
     return;
 }
 
@@ -802,6 +807,8 @@ MOS_STATUS VphalSfcState::AllocateResources()
     eStatus         = MOS_STATUS_UNKNOWN;
     bAllocated      = false;
     pSfcStateParams = m_renderData.SfcStateParams;
+
+    VPHAL_RENDER_CHK_NULL(pSfcStateParams);
 
     // Allocate AVS Line Buffer surface----------------------------------------------
     dwWidth  = 1;
@@ -838,6 +845,25 @@ MOS_STATUS VphalSfcState::AllocateResources()
         false,
         MOS_MMC_DISABLED,
         &bAllocated));
+
+    // Allocate SFD Line Buffer surface----------------------------------------------
+    if (NEED_SFD_LINE_BUFFER(pSfcStateParams->dwScaledRegionHeight))
+    {
+        dwSize = SFD_LINE_BUFFER_SIZE(pSfcStateParams->dwScaledRegionHeight);
+
+        VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+            m_osInterface,
+            &m_SFDLineBufferSurface,
+            "SfcSFDLineBufferSurface",
+            Format_Buffer,
+            MOS_GFXRES_BUFFER,
+            MOS_TILE_LINEAR,
+            dwSize,
+            1,
+            false,
+            MOS_MMC_DISABLED,
+            &bAllocated));
+    }
 
 finish:
     if (eStatus != MOS_STATUS_SUCCESS)

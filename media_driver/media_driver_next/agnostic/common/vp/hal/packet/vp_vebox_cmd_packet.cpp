@@ -29,6 +29,7 @@
 #include "vp_utils.h"
 #include "mos_resource_defs.h"
 #include "hal_oca_interface.h"
+#include "vp_render_sfc_m12.h"
 
 namespace vp {
 
@@ -1323,7 +1324,7 @@ MOS_STATUS VpVeboxCmdPacket::Init()
 
     if (m_sfcRender == nullptr)
     {
-        m_sfcRender = MOS_New(SfcRenderBase,
+        m_sfcRender = MOS_New(SfcRenderM12,
             m_hwInterface->m_osInterface,
             m_hwInterface->m_sfcInterface,
             m_allocator);

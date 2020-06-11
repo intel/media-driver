@@ -258,6 +258,7 @@ protected:
 
     VPHAL_SURFACE                   m_AVSLineBufferSurface = {};                //!< AVS Line Buffer Surface for SFC
     VPHAL_SURFACE                   m_IEFLineBufferSurface = {};                //!< IEF Line Buffer Surface for SFC
+    VPHAL_SURFACE                   m_SFDLineBufferSurface = {};                //!< SFD Line Buffer Surface for SFC
 
     // Allocator interface
     PVpAllocator                    &m_allocator;                               //!< vp pipeline allocator
