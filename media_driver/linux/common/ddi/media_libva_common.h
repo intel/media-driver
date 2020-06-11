@@ -220,6 +220,7 @@ typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR
     bool       bIsGralloc;                            // buffer allocated by Gralloc
     void      *pPrivateData;                          // brief reserved for passing private data
     GMM_RESCREATE_PARAMS GmmParam;                    // GMM Params for Gralloc buffer
+    uint64_t   modifier;                              // used for VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
 } DDI_MEDIA_SURFACE_DESCRIPTOR,*PDDI_MEDIA_SURFACE_DESCRIPTOR;
 
 //!

@@ -45,6 +45,7 @@
 #include "media_libva_encoder.h"
 #include "media_libva_caps.h"
 #include "memory_policy_manager.h"
+#include "drm_fourcc.h"
 
 // default protected surface tag
 #define PROTECTED_SURFACE_TAG   0x3000f
@@ -172,6 +173,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
     int32_t alignedHeight = height;
     uint32_t tag          = 0;
     int mem_type          = MOS_MEMPOOL_VIDEOMEMORY;
+    bool bMemCompEnable   = true;
+    bool bMemCompRC       = false;
 
     switch (format)
     {
@@ -314,6 +317,49 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
         }
+        else if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2)
+        {
+            bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
+            if( bo != nullptr )
+            {
+                pitch = mediaSurface->pSurfDesc->uiPitches[0];
+                switch (mediaSurface->pSurfDesc->modifier)
+                {
+                    case DRM_FORMAT_MOD_LINEAR:
+                        tileformat = I915_TILING_NONE;
+                        bMemCompEnable = false;
+                        break;
+                    case I915_FORMAT_MOD_X_TILED:
+                        tileformat = I915_TILING_X;
+                        bMemCompEnable = false;
+                        break;
+                    case I915_FORMAT_MOD_Y_TILED:
+                    case I915_FORMAT_MOD_Yf_TILED:
+                        tileformat = I915_TILING_Y;
+                        bMemCompEnable = false;
+                        break;
+                    case I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS:
+                        tileformat = I915_TILING_Y;
+                        bMemCompEnable = true;
+                        bMemCompRC = true;
+                        break;
+                    case I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS:
+                        tileformat = I915_TILING_Y;
+                        bMemCompEnable = true;
+                        bMemCompRC = false;
+                        break;
+                    default:
+                        DDI_ASSERTMESSAGE("Unsupported modifier.");
+                        hRes = VA_STATUS_ERROR_INVALID_PARAMETER;
+                        goto finish;
+                }
+            }
+            else
+            {
+                DDI_ASSERTMESSAGE("Failed to create drm buffer object according to input buffer descriptor.");
+                return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            }
+        }
         else if( mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR )
         {
 
@@ -410,13 +456,20 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case I915_TILING_Y:
             // Disable MMC for application required surfaces, because some cases' output streams have corruption.
             gmmParams.Flags.Gpu.MMC    = false;
-            if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression))
+            if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) && bMemCompEnable)
             {
-                gmmParams.Flags.Gpu.MMC = true;
-                gmmParams.Flags.Info.MediaCompressed = 1;
-                gmmParams.Flags.Gpu.CCS = 1;
-                gmmParams.Flags.Gpu.RenderTarget = 1;
+                gmmParams.Flags.Gpu.MMC               = true;
+                gmmParams.Flags.Info.MediaCompressed  = 1;
+                gmmParams.Flags.Info.RenderCompressed = 0;
+                gmmParams.Flags.Gpu.CCS               = 1;
+                gmmParams.Flags.Gpu.RenderTarget      = 1;
                 gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
+
+                if (bMemCompRC)
+                {
+                    gmmParams.Flags.Info.MediaCompressed  = 0;
+                    gmmParams.Flags.Info.RenderCompressed = 1;
+                }
 
                 if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
                 {
