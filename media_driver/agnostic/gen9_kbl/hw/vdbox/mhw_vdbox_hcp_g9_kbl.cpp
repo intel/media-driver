@@ -277,6 +277,10 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpPipeModeSelectCmd(
 
     m_cpInterface->SetProtectionSettingsForMfxPipeModeSelect((uint32_t *)cmd);
 
+    // Without having the HprVp9ModeSwitchEco disabled, the gen9 devices
+    // cause gpu to hang while decoding tiled 4k vp9 streams
+    cmd->DW4.HprVp9ModeSwitchEcoDisable = 1;
+
     cmd->DW1.PakPipelineStreamoutEnable = params->bStreamOutEnabled;
     cmd->DW1.AdvancedRateControlEnable = params->bAdvancedRateControlEnable;
 
