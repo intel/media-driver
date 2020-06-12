@@ -4793,7 +4793,7 @@ MOS_STATUS MOS_AssignUserFeatureValueData(
         pDstData->StringData.uMaxSize = MOS_USER_CONTROL_MAX_DATA_SIZE;
         if ((pData != nullptr) && (strlen(pData) != 0))
         {
-            pDstData->StringData.uSize = (uint32_t)strlen(pData);
+            pDstData->StringData.uSize = (uint32_t)strlen(pData) + 1;
             if (pDstData->StringData.uSize > pDstData->StringData.uMaxSize)
             {
                 pDstData->StringData.uSize = pDstData->StringData.uMaxSize;
@@ -4806,7 +4806,7 @@ MOS_STATUS MOS_AssignUserFeatureValueData(
             }
             eStatus = MOS_SecureStrcpy(
                 pDstData->StringData.pStringData,
-                pDstData->StringData.uSize + 1,
+                pDstData->StringData.uSize,
                 (char *)pData);
         }
         break;

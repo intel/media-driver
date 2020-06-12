@@ -1037,7 +1037,7 @@ MOS_STATUS MosUtilities::MosAssignUserFeatureValueData(
         pDstData->StringData.uMaxSize = MOS_USER_CONTROL_MAX_DATA_SIZE;
         if ((pData != nullptr) && (strlen(pData) != 0))
         {
-            pDstData->StringData.uSize = (uint32_t)strlen(pData);
+            pDstData->StringData.uSize = (uint32_t)strlen(pData) + 1;
             if (pDstData->StringData.uSize > pDstData->StringData.uMaxSize)
             {
                 pDstData->StringData.uSize = pDstData->StringData.uMaxSize;
@@ -1051,7 +1051,7 @@ MOS_STATUS MosUtilities::MosAssignUserFeatureValueData(
             m_mosMemAllocFakeCounter++;
             eStatus = MosSecureStrcpy(
                 pDstData->StringData.pStringData,
-                pDstData->StringData.uSize + 1,
+                pDstData->StringData.uSize,
                 (char *)pData);
         }
         break;
@@ -1559,18 +1559,18 @@ MOS_STATUS MosUtilities::MosUserFeatureReadValueString(
             m_mosMemAllocFakeCounter++;
         }
 
-        if (pFeatureValue->Value.StringData.uSize < strlen(pcTmpStr))
+        if (pFeatureValue->Value.StringData.uSize < strlen(pcTmpStr) + 1)
         {
             pFeatureValue->Value.StringData.pStringData =
                 (char *)MOS_ReallocMemory(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr) + 1);
-            pFeatureValue->Value.StringData.uSize = strlen(pcTmpStr);
+            pFeatureValue->Value.StringData.uSize = strlen(pcTmpStr) + 1;
         }
 
         MOS_OS_CHK_NULL_RETURN(pFeatureValue->Value.StringData.pStringData);
 
-        MosZeroMemory(pFeatureValue->Value.StringData.pStringData, pFeatureValue->Value.StringData.uSize + 1);
+        MosZeroMemory(pFeatureValue->Value.StringData.pStringData, pFeatureValue->Value.StringData.uSize);
 
-        MosSecureMemcpy(pFeatureValue->Value.StringData.pStringData, strlen(pcTmpStr), pcTmpStr, strlen(pcTmpStr));
+        MosSecureMemcpy(pFeatureValue->Value.StringData.pStringData, pFeatureValue->Value.StringData.uSize, pcTmpStr, strlen(pcTmpStr));
     }
     return eStatus;
 }
