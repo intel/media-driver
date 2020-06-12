@@ -30,6 +30,7 @@
 #define __MEDIA_VP_MEM_COMPRESSION_H__
 
 #include "media_mem_compression.h"
+#include "vp_pipeline_common.h"
 
 class VPMediaMemComp : public MediaMemComp
 {
@@ -40,7 +41,7 @@ public:
     //!
     VPMediaMemComp(
         PMOS_INTERFACE       osInterface,
-        MhwMiInterface      *miInterface);
+        PVP_MHWINTERFACE     vpInterface);
 
     //!
     //! \brief    Copy constructor
