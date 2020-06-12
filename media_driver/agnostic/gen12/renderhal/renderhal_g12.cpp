@@ -164,6 +164,7 @@ MOS_STATUS XRenderHal_Interface_g12::SetupSurfaceState (
         pSurfaceEntry = ppSurfaceEntries[i];
 
         pSurface = pSurfaceEntry->pSurface;
+        MHW_RENDERHAL_CHK_NULL(pSurface);
 
         // Set the Surface State Offset from base of SSH
         pSurfaceEntry->dwSurfStateOffset = pRenderHal->pStateHeap->iSurfaceStateOffset +                // Offset to Base Of Current Surface State Area
@@ -183,7 +184,7 @@ MOS_STATUS XRenderHal_Interface_g12::SetupSurfaceState (
         SurfStateParams.RotationMode          = g_cLookup_RotationMode_g12[pRenderHalSurface->Rotation];
 
     #if !EMUL
-        if ((pSurface != nullptr) && (pRenderHal->pOsInterface !=nullptr))
+        if (pRenderHal->pOsInterface !=nullptr)
         {
             GMM_RESOURCE_FLAG                   gmmFlags = {0};
             gmmFlags = pSurface->OsResource.pGmmResInfo->GetResFlags();
