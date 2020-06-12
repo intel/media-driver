@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 #include "media_interfaces_mhw.h"
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
+#include "media_interfaces_mcpy.h"
 #include "media_interfaces_cmhal.h"
 #include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
@@ -47,12 +48,14 @@
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "mhw_vdbox_huc_g12_X.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
+#include "mhw_blt.h"
 
 #ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
 #include "mhw_vdbox_vdenc_g12_X_ext.h"
 #endif
 
 #include "vphal_render_vebox_memdecomp_g12.h"
+#include "media_copy_m12_0.h"
 
 #include "codechal_hw_g12_X.h"
 #ifdef _AVC_DECODE_SUPPORTED
@@ -151,6 +154,7 @@ public:
     using Vdenc = MhwVdboxVdencInterfaceG12X;
 #endif
     using Vebox = MhwVeboxInterfaceG12;
+    using Blt     = MhwBltInterface;
 
     MOS_STATUS Initialize(
         CreateParams params,
@@ -165,6 +169,19 @@ public:
     MOS_STATUS Initialize(
         PMOS_INTERFACE osInterface,
         MhwInterfaces *mhwInterfaces);
+
+    MhwInterfaces* CreateMhwInterface(
+        PMOS_INTERFACE osInterface);
+};
+
+class McpyDeviceG12Tgllp : public McpyDevice
+{
+public :
+    using Mcpy = MediaCopyStateM12_0;
+
+    MOS_STATUS Initialize(
+    PMOS_INTERFACE osInterface,
+    MhwInterfaces *mhwInterfaces);
 
     MhwInterfaces* CreateMhwInterface(
         PMOS_INTERFACE osInterface);

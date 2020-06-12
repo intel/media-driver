@@ -27,6 +27,7 @@
 #include "media_interfaces_mhw.h"
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
+#include "media_interfaces_mcpy.h"
 #include "media_interfaces_cmhal.h"
 #include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
@@ -48,6 +49,7 @@
 
 template class MediaInterfacesFactory<MhwInterfaces>;
 template class MediaInterfacesFactory<MmdDevice>;
+template class MediaInterfacesFactory<McpyDevice>;
 template class MediaInterfacesFactory<MosUtilDevice>;
 template class MediaInterfacesFactory<CodechalDevice>;
 template class MediaInterfacesFactory<CMHalDevice>;
@@ -58,6 +60,7 @@ template class MediaInterfacesFactory<DecodeHistogramDevice>;
 
 typedef MediaInterfacesFactory<MhwInterfaces> MhwFactory;
 typedef MediaInterfacesFactory<MmdDevice> MmdFactory;
+typedef MediaInterfacesFactory<McpyDevice> McpyFactory;
 typedef MediaInterfacesFactory<MosUtilDevice> MosUtilFactory;
 typedef MediaInterfacesFactory<CodechalDevice> CodechalFactory;
 typedef MediaInterfacesFactory<CMHalDevice> CMHalFactory;
@@ -385,6 +388,87 @@ MhwInterfaces* MmdDevice::CreateMhwInterface(PMOS_INTERFACE osInterface)
     return mhw;
 }
 #endif
+
+void* McpyDevice::CreateFactory(
+    PMOS_CONTEXT    osDriverContext)
+{
+#define MCPY_FAILURE()                                       \
+{                                                           \
+    if (mhwInterfaces != nullptr)                           \
+    {                                                       \
+        mhwInterfaces->Destroy();                           \
+    }                                                       \
+    MOS_Delete(mhwInterfaces);                              \
+    if (osInterface != nullptr)                             \
+    {                                                       \
+        osInterface->pfnDestroy(osInterface, false);        \
+        MOS_FreeMemory(osInterface);                        \
+    }                                                       \
+    MOS_Delete(device);                                     \
+    return nullptr;                                         \
+}
+    MHW_FUNCTION_ENTER;
+
+    if (osDriverContext == nullptr)
+    {
+        MHW_ASSERTMESSAGE("Invalid(null) pOsDriverContext!");
+        return nullptr;
+    }
+
+    PMOS_INTERFACE osInterface   = nullptr;
+    MhwInterfaces *mhwInterfaces = nullptr;
+    McpyDevice     *device       = nullptr;
+
+    osInterface = (PMOS_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MOS_INTERFACE));
+    if (osInterface == nullptr)
+    {
+        return nullptr;
+    }
+    if (Mos_InitInterface(
+        osInterface,
+        osDriverContext,
+        COMPONENT_MCPY) != MOS_STATUS_SUCCESS)
+    {
+        MCPY_FAILURE();
+    }
+
+    PLATFORM platform = {};
+    osInterface->pfnGetPlatform(osInterface, &platform);
+    device = McpyFactory::CreateHal(platform.eProductFamily);
+    if (device == nullptr)
+    {
+        MCPY_FAILURE();
+    }
+
+    mhwInterfaces = device->CreateMhwInterface(osInterface);
+    if (mhwInterfaces == nullptr)
+    {
+        MCPY_FAILURE();
+    }
+    device->Initialize(osInterface, mhwInterfaces);
+    if (device->m_mcpyDevice == nullptr)
+    {
+        MCPY_FAILURE();
+    }
+
+    void *mcpyDevice = device->m_mcpyDevice;
+    MOS_Delete(mhwInterfaces);
+    MOS_Delete(device);
+
+    return mcpyDevice;
+}
+
+MhwInterfaces* McpyDevice::CreateMhwInterface(PMOS_INTERFACE osInterface)
+{
+    MhwInterfaces::CreateParams params;
+    MOS_ZeroMemory(&params, sizeof(params));
+    params.Flags.m_render    = true;
+    params.m_heapMode        = (uint8_t)2;
+    MhwInterfaces *mhw = MhwInterfaces::CreateFactory(params, osInterface);
+
+    return mhw;
+}
+
 CodechalDecodeNV12ToP010* Nv12ToP010Device::CreateFactory(
     PMOS_INTERFACE osInterface)
 {

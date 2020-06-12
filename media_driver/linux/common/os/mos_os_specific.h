@@ -556,6 +556,7 @@ struct _MOS_OS_CONTEXT
     bool                bTileYFlag;
 
     void                **ppMediaMemDecompState; //!<Media memory decompression data structure
+    void                **ppMediaCopyState;      //!<Media memory copy data structure
 
     // For modulized GPU context
     void*               m_gpuContextMgr;

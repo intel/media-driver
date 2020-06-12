@@ -22,7 +22,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_blt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
 )
 
@@ -30,7 +29,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
     ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_blt.h
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.h
 )
 

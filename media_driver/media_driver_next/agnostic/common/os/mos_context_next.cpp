@@ -85,6 +85,7 @@ void OsContextNext::CleanUp()
 #ifdef _MMC_SUPPORTED
     MOS_Delete(m_mosDecompression);
 #endif
+    MOS_Delete(m_mosMediaCopy);
 
     if (m_gpuContextMgr != nullptr)
     {
