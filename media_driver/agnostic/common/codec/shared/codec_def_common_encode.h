@@ -71,9 +71,6 @@
 
 #define CODECHAL_MAD_BUFFER_SIZE                4 // buffer size is 4 bytes
 
-#define CODEC_128_MIN_PIC_WIDTH        128
-#define CODEC_96_MIN_PIC_HEIGHT        96
-
 // HME
 #define SCALE_FACTOR_2x     2
 #define SCALE_FACTOR_4x     4

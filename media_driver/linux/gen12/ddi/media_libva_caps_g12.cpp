@@ -823,9 +823,9 @@ VAStatus MediaLibvaCapsG12::CheckEncodeResolution(
         case VAProfileVP9Profile2:
         case VAProfileVP9Profile3:
             if ((width > m_maxVp9EncWidth) ||
-                (width < m_minVp9EncWidth) ||
+                (width < m_encMinWidth) ||
                 (height > m_maxVp9EncHeight) ||
-                (height < m_minVp9EncHeight) )
+                (height < m_encMinHeight) )
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }
@@ -1388,17 +1388,13 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         attribs[i].value.type = VAGenericValueTypeInteger;
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = m_encMinWidth;
-        if(IsHevcProfile(profile))
-        {
-            attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinWidth : m_encMinWidth;
-        }
-        else if (IsVp9Profile(profile))
-        {
-            attribs[i].value.value.i = m_vdencActive ? m_minVp9EncWidth : m_encMinWidth;
-        }
-        else if (profile == VAProfileJPEGBaseline)
+        if(profile == VAProfileJPEGBaseline)
         {
             attribs[i].value.value.i = m_encJpegMinWidth;
+        }
+        else if(IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinWidth : m_encMinWidth;
         }
         i++;
 
@@ -1406,17 +1402,13 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         attribs[i].value.type = VAGenericValueTypeInteger;
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = m_encMinHeight;
-        if(IsHevcProfile(profile))
-        {
-            attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinHeight : m_encMinHeight;
-        }
-        else if (IsVp9Profile(profile))
-        {
-            attribs[i].value.value.i = m_vdencActive ? m_minVp9EncHeight : m_encMinHeight;
-        }
-        else if (profile == VAProfileJPEGBaseline)
+        if(profile == VAProfileJPEGBaseline)
         {
             attribs[i].value.value.i = m_encJpegMinHeight;
+        }
+        else if(IsHevcProfile(profile))
+        {
+            attribs[i].value.value.i = m_vdencActive ? m_hevcVDEncMinHeight : m_encMinHeight;
         }
         i++;
     }
