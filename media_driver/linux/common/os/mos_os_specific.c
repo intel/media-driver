@@ -6288,12 +6288,17 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
     PMOS_MEMCOMP_STATE  pResMmcMode)
 {
     PGMM_RESOURCE_INFO      pGmmResourceInfo;
-    GMM_RESOURCE_FLAG       flags; 
+    GMM_RESOURCE_FLAG       flags;
     MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
     MOS_OS_FUNCTION_ENTER;
-    MOS_OS_CHK_NULL(pOsResource);
-    MOS_OS_CHK_NULL(pResMmcMode);
-    MOS_OS_CHK_NULL(pOsInterface);
+
+    MOS_OS_CHK_NULL_RETURN(pOsResource);
+    MOS_OS_CHK_NULL_RETURN(pResMmcMode);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+
+    MediaFeatureTable* skuTable = nullptr;
+    skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(skuTable);
 
     if (pOsInterface->apoMosEnabled)
     {
@@ -6302,7 +6307,7 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
 
     // Get Gmm resource info
     pGmmResourceInfo = (GMM_RESOURCE_INFO*)pOsResource->pGmmResInfo;
-    MOS_OS_CHK_NULL(pGmmResourceInfo);
+    MOS_OS_CHK_NULL_RETURN(pGmmResourceInfo);
 
     flags = pOsResource->pGmmResInfo->GetResFlags();
     if (flags.Info.MediaCompressed || flags.Info.RenderCompressed)
@@ -6326,7 +6331,20 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
         }
     }
 
+    uint32_t          MmcFormat = 0;
+    GMM_RESOURCE_FORMAT gmmResFmt;
+
+    gmmResFmt = pGmmResourceInfo->GetResourceFormat();
+
+    if (*pResMmcMode == MOS_MEMCOMP_MC         &&
+       (!MEDIA_IS_SKU(skuTable, FtrFlatPhysCCS)))
+    {
+        MmcFormat = static_cast<uint32_t>(pOsInterface->pfnGetGmmClientContext(pOsInterface)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+        *pResMmcMode = (MmcFormat != 0) ? *pResMmcMode : MOS_MEMCOMP_DISABLED;
+    }
+
     eStatus = MOS_STATUS_SUCCESS;
+
 
 finish:
     return eStatus;
