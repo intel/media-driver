@@ -1762,8 +1762,7 @@ MOS_STATUS CodecHalAvcEncode_PackSliceHeader(
 
     // zero byte shall exist when the byte stream NAL unit syntax structure contains the first
     // NAL unit of an access unit in decoding order, as specified by subclause 7.4.1.2.3.
-    // VDEnc Slice header packing handled by PAK does not need the 0 byte inserted
-    if (params->UserFlags.bDisableAcceleratorHeaderPacking && (!params->bVdencEnabled))
+    if (params->UserFlags.bDisableAcceleratorHeaderPacking)
     {
         *bsbuffer->pCurrent = 0;
         bsbuffer->pCurrent++;
