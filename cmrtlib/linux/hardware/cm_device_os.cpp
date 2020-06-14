@@ -63,7 +63,6 @@ int32_t CmDevice_RT::GetSupportedAdapters(uint32_t& count)
 {
     INSERT_PROFILER_RECORD();
     int32_t result = CM_SUCCESS;
-    uint32_t i = 0;
     uint32_t k = 0;
     char* driver_name;
 
@@ -136,7 +135,6 @@ extern "C" CM_RT_API int32_t DestroyCmDevice(CmDevice* &device);
 
 int32_t CmDevice_RT::GetPlatformInfo(uint32_t adapterIndex)
 {
-    uint32_t version = 0;
     CmDevice_RT *pDev = nullptr;
     CmDevice *pCmDev = nullptr;
     // Create a CM Device
@@ -147,7 +145,6 @@ int32_t CmDevice_RT::GetPlatformInfo(uint32_t adapterIndex)
     }
 
     pCmDev = static_cast<CmDevice*>(pDev);
-    uint32_t gpu_platform = 0;
     uint32_t gt_platform = 0;
     CM_PLATFORM_INFO platform_info;
     uint32_t count;
