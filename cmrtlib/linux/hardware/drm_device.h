@@ -548,6 +548,7 @@ static int parse_separate_sysfs_files(int maj, int min,
     {
         int count = 0;
         count = read(fd, buffer, sizeof(buffer));
+        (void)count;
         close(fd);
     }
 
