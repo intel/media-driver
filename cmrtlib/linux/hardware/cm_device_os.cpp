@@ -171,7 +171,7 @@ int32_t CmDevice_RT::QueryAdapterInfo(uint32_t adapterIndex, AdapterInfoType inf
 {
     int32_t result = CM_SUCCESS;
 
-    if (adapterIndex < g_supportedAdapterCount)
+    if ((int32_t)adapterIndex < g_supportedAdapterCount)
     {
         switch (infoName)
         {
@@ -798,7 +798,7 @@ int32_t CmDevice_RT::GetLibvaDisplayDrm(VADisplay & vaDisplay)
         return CM_INVALID_LIBVA_INITIALIZE;
     }
 
-    if (m_drmIndex < g_supportedAdapterCount)
+    if ((int32_t)m_drmIndex < g_supportedAdapterCount)
     {
         m_driFileDescriptor = GetRendererFileDescriptor(g_AdapterList[m_drmIndex]->nodes[2]);
     }
