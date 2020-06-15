@@ -54,7 +54,8 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_mhwMiInterface);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(pMmioRegisters = m_mhwMiInterface->GetMmioRegisters());
 
-    if (surface->CompressionMode != MOS_MMC_MC  &&
+    if (surface->CompressionMode                &&
+        surface->CompressionMode != MOS_MMC_MC  &&
         surface->CompressionMode != MOS_MMC_RC)
     {
         VPHAL_MEMORY_DECOMP_NORMALMESSAGE("Input surface is uncompressed, In_Place resolve is not needed");
