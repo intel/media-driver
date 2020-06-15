@@ -51,6 +51,77 @@ VphalSfcStateG12::VphalSfcStateG12(
     m_disableOutputCentering = UserFeatureData.bData ? true : false;
 }
 
+bool VphalSfcStateG12::IsFormatSupported(
+    PVPHAL_SURFACE      pSrcSurface,
+    PVPHAL_SURFACE      pOutSurface,
+    PVPHAL_ALPHA_PARAMS pAlphaParams)
+{
+    // Init to false for in case the input parameters are nullptr
+    bool ret = false;
+
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pOutSurface);
+
+    // Default to true
+    ret = true;
+
+    // Check if Input Format is supported
+    if (!IsInputFormatSupported(pSrcSurface))
+    {
+        VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for SFC.", pSrcSurface->Format);
+        ret = false;
+        return ret;
+    }
+
+    // SFC can not support fp16 output. HDR path is the only way to handle any fp16 output.
+    // Before entering into HDR path, it is possible that we need to use SFC to do P010->ARGB10.
+    // As for SFC is needed or not, we use bHDRSfc to decide.
+    if (pOutSurface->Format == Format_A16R16G16B16F ||
+        pOutSurface->Format == Format_A16B16G16R16F)
+    {
+        ret = false;
+        return ret;
+    }
+
+    // Check if Output Format is supported
+    if (!IsOutputFormatSupported(pOutSurface))
+    {
+        ret = false;
+        return ret;
+    }
+
+    // Check if the input/output combination is supported, given certain alpha fill mode.
+    // So far SFC only supports filling constant alpha.
+    if (pAlphaParams &&
+        pAlphaParams->AlphaMode == VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM)
+    {
+        //No Alpha DDI for LIBVA, Always allow SFC to do detail feature on GEN12+ on linux
+        //No matter what the current alpha mode is.
+        if (pSrcSurface->bIEF == true)
+        {
+            pAlphaParams->AlphaMode = VPHAL_ALPHA_FILL_MODE_NONE;
+            return true;
+        }
+        else if ((pOutSurface->Format == Format_A8R8G8B8 ||
+                pOutSurface->Format == Format_A8B8G8R8 ||
+                pOutSurface->Format == Format_R10G10B10A2 ||
+                pOutSurface->Format == Format_B10G10R10A2 ||
+                pOutSurface->Format == Format_Y410 ||
+                pOutSurface->Format == Format_Y416 ||
+                pOutSurface->Format == Format_AYUV) &&
+            (pSrcSurface->Format == Format_A8B8G8R8 ||
+                pSrcSurface->Format == Format_A8R8G8B8 ||
+                pSrcSurface->Format == Format_Y410 ||
+                pSrcSurface->Format == Format_Y416 ||
+                pSrcSurface->Format == Format_AYUV))
+        {
+            return false;
+        }
+    }
+
+finish:
+    return ret;
+}
 
 bool VphalSfcStateG12::IsInputFormatSupported(
     PVPHAL_SURFACE              srcSurface)
