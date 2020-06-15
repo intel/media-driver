@@ -63,6 +63,11 @@ protected:
         PVPHAL_SURFACE  src,
         PVPHAL_SURFACE  renderTarget);
 
+    virtual bool IsFormatSupported(
+        PVPHAL_SURFACE      pSrcSurface,
+        PVPHAL_SURFACE      pOutSurface,
+        PVPHAL_ALPHA_PARAMS pAlphaParams);
+
     virtual bool IsInputFormatSupported(
         PVPHAL_SURFACE              srcSurface);
 
