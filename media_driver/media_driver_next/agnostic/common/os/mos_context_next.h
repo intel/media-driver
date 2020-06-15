@@ -31,7 +31,6 @@
 #include "mos_cmdbufmgr_next.h" 
 #include "mos_gpucontextmgr_next.h"
 #include "mos_decompression.h"
-#include "mos_mediacopy.h"
 
 class OsContextNext
 {
@@ -148,16 +147,6 @@ public:
     {
         return m_mosDecompression;
     }
-
-    //!
-    //! \brief  Get MosMediaCopy
-    //! \return ptr to MosMediaCopy
-    //!
-    MosMediaCopy *GetMosMediaCopy()
-    {
-        return m_mosMediaCopy;
-    }
-
     //! \brief  Get the DumpFrameNum
     //! \return The current dumped frameNum
     //!
@@ -272,8 +261,5 @@ protected:
 
     //! \brief  the ptr to mos decompression module
     MosDecompression *m_mosDecompression = nullptr;
-
-    //! \brief the ptr to mos media copy module
-    MosMediaCopy *m_mosMediaCopy = nullptr;
 };
 #endif // #ifndef __MOS_CONTEXTNext_NEXT_H__

@@ -1754,35 +1754,6 @@ MOS_STATUS MosInterface::DecompResource(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::MediaCopy(
-    MOS_STREAM_HANDLE   streamState,
-    MOS_RESOURCE_HANDLE inputResource,
-    MOS_RESOURCE_HANDLE outputResource,
-    uint32_t            preferMethod)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    MOS_STATUS status = MOS_STATUS_UNKNOWN;
-    MOS_OS_CHK_NULL_RETURN(inputResource);
-    MOS_OS_CHK_NULL_RETURN(outputResource);
-    MOS_OS_CHK_NULL_RETURN(streamState);
-
-    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
-        outputResource && outputResource->bo && outputResource->pGmmResInfo)
-    {
-        OsContextNext *osCtx = streamState->osDeviceContext;
-        MOS_OS_CHK_NULL_RETURN(osCtx);
-
-        MosMediaCopy *mosMediaCopy = osCtx->GetMosMediaCopy();
-        MOS_OS_CHK_NULL_RETURN(mosMediaCopy);
-
-        // Double Buffer Copy can support any tile status surface with/without compression
-        MOS_OS_CHK_STATUS_RETURN(mosMediaCopy->MediaCopy(inputResource, outputResource, (MCPY_METHOD)preferMethod));
-    }
-
-    return status;
-}
-
 uint32_t MosInterface::GetGpuStatusTag(
         MOS_STREAM_HANDLE  streamState,
         GPU_CONTEXT_HANDLE gpuContext)

@@ -238,9 +238,8 @@ enum MOS_COMPONENT
     COMPONENT_VPreP,
     COMPONENT_CP,
     COMPONENT_MEMDECOMP,
-    COMPONENT_MCPY,
 };
-C_ASSERT(COMPONENT_MCPY == 10); // When adding, update assert
+C_ASSERT(COMPONENT_MEMDECOMP == 9); // When adding, update assert
 
 //!
 //! \brief Structure to OS sync parameters
@@ -997,12 +996,6 @@ typedef struct _MOS_INTERFACE
         uint32_t              copyInputOffset,
         uint32_t              copyOutputOffset,
         bool                  bOutputCompressed);
-
-    MOS_STATUS(*pfnMediaCopy) (
-        PMOS_INTERFACE        pOsInterface,
-        PMOS_RESOURCE         pInputOsResource,
-        PMOS_RESOURCE         pOutputOsResource,
-        uint32_t              preferMethod);
 
     MOS_STATUS (* pfnFillResource) (
         PMOS_INTERFACE              pOsInterface,

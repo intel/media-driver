@@ -48,14 +48,6 @@ typedef struct _BLT_STATE_PARAM
     PMOS_SURFACE     pDstSurface;
 }BLT_STATE_PARAM, *PBLT_STATE_PARAM;
 
-typedef struct _BLT_STATE_PARAM2
-{
-    bool             bCopyMainSurface;
-    PMOS_RESOURCE    pSrcSurface;
-    PMOS_RESOURCE    pDstSurface;
-}BLT_STATE_PARAM2, *PBLT_STATE_PARAM2;
-
-
 class BltState
 {
 public:
@@ -79,7 +71,7 @@ public:
 
     //!
     //! \brief    Copy main surface
-    //! \details  BLT engine will copy source surface to destination surface
+    //! \details  BLT engine will copy source surface to destination surface 
     //! \param    src
     //!           [in] Pointer to source surface
     //! \param    dst
@@ -90,20 +82,6 @@ public:
     virtual MOS_STATUS CopyMainSurface(
         PMOS_SURFACE src,
         PMOS_SURFACE dst);
-
-    //!
-    //! \brief    Copy main surface
-    //! \details  BLT engine will copy source surface to destination surface
-    //! \param    src
-    //!           [in] Pointer to source resource
-    //! \param    dst
-    //!           [in] Pointer to destination resource
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS CopyMainSurface(
-        PMOS_RESOURCE src,
-        PMOS_RESOURCE dst);
 
 protected:
     virtual MOS_STATUS SetupFastCopyBltParam(
@@ -121,24 +99,6 @@ protected:
     //!
     virtual MOS_STATUS SubmitCMD(
         PBLT_STATE_PARAM pBltStateParam);
-
-
-    virtual MOS_STATUS SetupFastCopyBltParam(
-        PMHW_FAST_COPY_BLT_PARAM mhwParams,
-        PMOS_RESOURCE            inputSurface,
-        PMOS_RESOURCE            outputSurface);
-
-    //!
-    //! \brief    Submit command
-    //! \details  Submit BLT command
-    //! \param    pBltStateParam
-    //!           [in] Pointer to BLT_STATE_PARAM
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS SubmitCMD(
-        PBLT_STATE_PARAM2 pBltStateParam);
-
 
 public:
     PMOS_INTERFACE m_osInterface;

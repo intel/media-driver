@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,6 @@
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
-extern template class MediaInterfacesFactory<McpyDevice>;
 extern template class MediaInterfacesFactory<MosUtilDevice>;
 extern template class MediaInterfacesFactory<CodechalDevice>;
 extern template class MediaInterfacesFactory<CMHalDevice>;
@@ -193,10 +192,6 @@ MOS_STATUS MhwInterfacesG12Tgllp::Initialize(
 #endif
         m_vdencInterface = MOS_New(Vdenc, osInterface);
     }
-    if (params.Flags.m_blt)
-    {
-        m_bltInterface = MOS_New(Blt, osInterface);
-    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -265,73 +260,6 @@ MhwInterfaces* MmdDeviceG12Tgllp::CreateMhwInterface(
     return mhw;
 }
 #endif
-
-static bool tgllpRegisteredMcpy =
-    MediaInterfacesFactory<McpyDevice>::
-    RegisterHal<McpyDeviceG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
-
-MOS_STATUS McpyDeviceG12Tgllp::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfaces *mhwInterfaces)
-{
-#define MCPY_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MHW_FUNCTION_ENTER;
-
-    Mcpy *device = nullptr;
-
-    if (mhwInterfaces->m_miInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (mhwInterfaces->m_veboxInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (mhwInterfaces->m_bltInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-
-    device = MOS_New(Mcpy);
-
-    if (device == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (device->Initialize(
-        osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
-    {
-        MCPY_FAILURE();
-    }
-
-    m_mcpyDevice = device;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MhwInterfaces* McpyDeviceG12Tgllp::CreateMhwInterface(
-    PMOS_INTERFACE osInterface)
-{
-    MhwInterfaces::CreateParams params;
-    params.Flags.m_vebox  = true;
-    params.Flags.m_blt    = true;
-
-    // the destroy of interfaces happens when the mcpy deviced deconstructor funcs
-    MhwInterfaces *mhw = MhwInterfaces::CreateFactory(params, osInterface);
-
-    return mhw;
-}
 
 static bool tgllpRegisteredNv12ToP010 =
     MediaInterfacesFactory<Nv12ToP010Device>::
