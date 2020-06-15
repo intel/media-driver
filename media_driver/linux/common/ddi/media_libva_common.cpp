@@ -261,6 +261,10 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface
             break;
         case Media_Format_Y216:
         case Media_Format_Y210:
+            aligned_width = (surface->iWidth + 1) >> 1;
+            aligned_height = surface->iHeight * 2;
+            aligned_format = Media_Format_Y216;
+            break;
         case Media_Format_YUY2:
             aligned_width = (surface->iWidth + 1) >> 1;
             aligned_height = surface->iHeight * 2;
