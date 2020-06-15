@@ -7469,6 +7469,11 @@ void CodechalVdencAvcState::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS &pa
         param.dwVdencSliceMinusBytes = (m_pictureCodingType == I_TYPE) ? m_vdencSliceMinusI : m_vdencSliceMinusP;
     }
 
+    if (MEDIA_IS_WA(m_waTable, WaEnableOnlyASteppingFeatures))
+    {
+        param.bRollingIRestrictFracCand = true;
+    }
+
     param.bVdencEnabled   = true;
     param.pVDEncModeCost  = m_vdencModeCostTbl;
     param.pVDEncHmeMvCost = m_vdencHmeMvCostTbl;
