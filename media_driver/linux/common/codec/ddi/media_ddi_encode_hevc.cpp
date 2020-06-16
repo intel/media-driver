@@ -523,6 +523,8 @@ VAStatus DdiEncodeHevc::ParsePicParams(
         || m_encodeCtx->vaProfile == VAProfileHEVCMain444_12
         || m_encodeCtx->vaProfile == VAProfileHEVCMain422_10
         || m_encodeCtx->vaProfile == VAProfileHEVCMain422_12
+        || m_encodeCtx->vaProfile == VAProfileHEVCMain10
+        || m_encodeCtx->vaProfile == VAProfileHEVCSccMain10
         || m_encodeCtx->vaProfile == VAProfileHEVCSccMain444
         || m_encodeCtx->vaProfile == VAProfileHEVCSccMain444_10)
         {
