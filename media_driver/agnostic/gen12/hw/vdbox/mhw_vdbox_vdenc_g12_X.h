@@ -1745,8 +1745,7 @@ public:
             cmd.DW34.FwdPredictor0MvEnable = 1;
             cmd.DW34.PpmvDisable           = 1;
 
-            if ((!params->bVdencBRCEnabled && avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED)
-                && ((avcPicParams->NumROI && !avcPicParams->bNativeROI) || paramsG12->bStreamInMbQpEnabled))
+            if (!params->bVdencBRCEnabled && avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED && paramsG12->bStreamInMbQpEnabled)
             {
                 cmd.DW34.MbLevelQpEnable = 1;
             }
