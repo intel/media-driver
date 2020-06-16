@@ -231,3 +231,34 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    set Render Gpu Context
+//! \details  set Render Gpu Context based on lumakey and CCS status.
+//! \param    [in] RenderParams
+//!           VPHAL render parameter
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRendererG12Tgllp::SetRenderGpuContext(VPHAL_RENDER_PARAMS& RenderParams)
+{
+    MOS_GPU_CONTEXT currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
+    bool            bLumaKeyEnabled = false;
+
+    for (uint32_t uiSources = 0; uiSources < RenderParams.uSrcCount; uiSources++)
+    {
+        VPHAL_SURFACE* pSrc = (VPHAL_SURFACE*)RenderParams.pSrc[uiSources];
+        bLumaKeyEnabled = (pSrc && pSrc->pLumaKeyParams) ? true : false;
+        if (bLumaKeyEnabled)
+        {
+            break;
+        }
+    }
+    if (bLumaKeyEnabled)
+    {
+        currentGpuContext = MOS_GPU_CONTEXT_RENDER;
+    }
+    UpdateRenderGpuContext(currentGpuContext);
+
+    return MOS_STATUS_SUCCESS;
+}
+

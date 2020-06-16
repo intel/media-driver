@@ -81,6 +81,16 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS Render(PCVPHAL_RENDER_PARAMS   pcRenderParams);
+
+    //!
+    //! \brief    set Render Gpu Context
+    //! \details  set Render Gpu Context based on lumakey and CCS status.
+    //! \param    [in] RenderParams
+    //!           VPHAL render parameter
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetRenderGpuContext(VPHAL_RENDER_PARAMS& RenderParams);
 };
 
 #endif // __VPHAL_RENDER_G12TGLLP_H__
