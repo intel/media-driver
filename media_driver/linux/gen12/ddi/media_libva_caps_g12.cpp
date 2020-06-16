@@ -819,9 +819,9 @@ VAStatus MediaLibvaCapsG12::CheckEncodeResolution(
         case VAProfileVP9Profile2:
         case VAProfileVP9Profile3:
             if ((width > m_maxVp9EncWidth) ||
-                (width < m_encMinWidth) ||
+                (width < m_minVp9EncWidth) ||
                 (height > m_maxVp9EncHeight) ||
-                (height < m_encMinHeight) )
+                (height < m_minVp9EncHeight) )
             {
                 return VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED;
             }

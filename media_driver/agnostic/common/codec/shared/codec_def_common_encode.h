@@ -69,6 +69,9 @@
 #define CODEC_12K_MAX_PIC_HEIGHT       12288
 #define CODEC_16K_MAX_PIC_HEIGHT       16384
 
+#define CODEC_128_MIN_PIC_WIDTH        128
+#define CODEC_96_MIN_PIC_HEIGHT        96
+
 #define CODECHAL_MAD_BUFFER_SIZE                4 // buffer size is 4 bytes
 
 // HME
