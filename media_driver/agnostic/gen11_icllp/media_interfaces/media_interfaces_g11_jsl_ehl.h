@@ -83,16 +83,16 @@
 #include "codechal_encode_sfc.h"
 #include "codechal_encode_csc_ds_g11.h"
 
-#ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#include "codechal_vdenc_vp9_g11.h"
-#endif
-
-#ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#include "codechal_vdenc_vp9_g11.h"
-#endif
-
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_avc_g11_jsl_ehl.h"
+#endif
+
+#ifdef _HEVC_ENCODE_VDENC_SUPPORTED
+#include "codechal_vdenc_hevc_g11_jsl_ehl.h"
+#endif
+
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
+#include "codechal_vdenc_vp9_g11_jsl_ehl.h"
 #endif
 
 #include "cm_hal_g11.h"
@@ -165,13 +165,13 @@ public:
 #endif
     using CscDs = CodechalEncodeCscDsG11;
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-    using Vp9 = CodechalVdencVp9StateG11;
+    using Vp9 = CodechalVdencVp9StateG11JslEhl;
 #endif
 #ifdef _JPEG_ENCODE_SUPPORTED
     using Jpeg = CodechalEncodeJpegState;
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
-    using HevcVdenc = CodechalVdencHevcStateG11;
+    using HevcVdenc = CodechalVdencHevcStateG11JslEhl;
 #endif
 };
 

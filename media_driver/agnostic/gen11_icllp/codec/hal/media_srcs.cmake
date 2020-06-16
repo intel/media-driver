@@ -81,6 +81,28 @@ if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supporte
     endif ()
 endif ()
 
+if ("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+    set (TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc_g11_jsl_ehl.cpp
+    )
+    set (TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_hevc_g11_jsl_ehl.h
+    )
+endif ()
+
+if ("${VP9_Encode_VDEnc_Supported}" STREQUAL "yes")
+    set (TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_g11_jsl_ehl.cpp
+    )
+    set (TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_g11_jsl_ehl.h
+    )
+endif ()
+
 set(SOURCES_
     ${SOURCES_}
     ${TMP_1_SOURCES_}

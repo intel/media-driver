@@ -20,27 +20,27 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal_vdenc_avc_g11_jsl_ehl.h
+//! \file     codechal_vdenc_hevc_g11_jsl_ehl.h
 //! \brief    This file defines the base C++ class/interface for JSL and EHL
-//!           AVC VDENC encoding to be used across CODECHAL components.
+//!           HEVC VDENC encoding to be used across CODECHAL components.
 //!
 
-#include "codechal_vdenc_avc_g11_jsl_ehl.h"
+#include "codechal_vdenc_hevc_g11_jsl_ehl.h"
 
-MOS_STATUS CodechalVdencAvcStateG11JslEhl::Initialize(CodechalSetting* settings)
+MOS_STATUS CodechalVdencHevcStateG11JslEhl::Initialize(CodechalSetting* settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     // common initilization
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcStateG11LP::Initialize(settings));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcStateG11::Initialize(settings));
     m_cscDsState->DisableSfc(); // EHL and JSL don't support SFC
 
     return eStatus;
 }
 
-void CodechalVdencAvcStateG11JslEhl::MotionEstimationDisableCheck()
+void CodechalVdencHevcStateG11JslEhl::MotionEstimationDisableCheck()
 {
     m_16xMeSupported = false;
     m_32xMeSupported = false;

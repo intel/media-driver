@@ -20,28 +20,44 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal_vdenc_avc_g11_jsl_ehl.h
+//! \file     codechal_vdenc_hevc_g11_jsl_ehl.h
 //! \brief    This file defines the base C++ class/interface for JSL and EHL
-//!           AVC VDENC encoding to be used across CODECHAL components.
+//!           HEVC VDENC encoding to be used across CODECHAL components.
 //!
 
-#include "codechal_vdenc_avc_g11_jsl_ehl.h"
+#ifndef __CODECHAL_VDENC_HEVC_G11_EHLJSLLP_H__
+#define __CODECHAL_VDENC_HEVC_G11_EHLJSLLP_H__
 
-MOS_STATUS CodechalVdencAvcStateG11JslEhl::Initialize(CodechalSetting* settings)
+#include "codechal_vdenc_hevc_g11.h"
+#include "codeckrnheader.h"
+
+class CodechalVdencHevcStateG11JslEhl : public CodechalVdencHevcStateG11
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+public:
+    //!
+    //! \brief    Constructor
+    //!
+    CodechalVdencHevcStateG11JslEhl(
+        CodechalHwInterface* hwInterface,
+        CodechalDebugInterface* debugInterface,
+        PCODECHAL_STANDARD_INFO standardInfo)
+        : CodechalVdencHevcStateG11(hwInterface, debugInterface, standardInfo)
+    {
+    }
 
-    CODECHAL_ENCODE_FUNCTION_ENTER;
+    //!
+    //! \brief    Destructor
+    //!
+    virtual ~CodechalVdencHevcStateG11JslEhl() { }
 
-    // common initilization
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcStateG11LP::Initialize(settings));
-    m_cscDsState->DisableSfc(); // EHL and JSL don't support SFC
+    MOS_STATUS Initialize(CodechalSetting* settings) override;
 
-    return eStatus;
-}
+    //!
+    //! \brief  Motion Estimation Disable Check
+    //!
+    //! \return void
+    //!
+    virtual void MotionEstimationDisableCheck() override;
+};
 
-void CodechalVdencAvcStateG11JslEhl::MotionEstimationDisableCheck()
-{
-    m_16xMeSupported = false;
-    m_32xMeSupported = false;
-}
+#endif  // __CODECHAL_VDENC_HEVC_G11_EHLJSLLP_H__
