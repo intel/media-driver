@@ -832,11 +832,16 @@ MOS_STATUS CodechalEncoderState::Initialize(
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        NULL,
-        __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID,
-        &userFeatureData);
-    m_computeContextEnabled = (userFeatureData.u32Data) ? true : false;
+    statusKey = MOS_UserFeature_ReadValue_ID(
+                    NULL,
+                    __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID,
+                    &userFeatureData);
+
+    if (statusKey == MOS_STATUS_SUCCESS)
+    {
+        // Change the default value only when CCS=on/off is set directly
+        m_computeContextEnabled = (userFeatureData.u32Data) ? true : false;
+    }
 #endif
 
 #if USE_CODECHAL_DEBUG_TOOL
