@@ -28,6 +28,7 @@
 int MemoryPolicyManager::UpdateMemoryPolicy(
     MEDIA_FEATURE_TABLE* skuTable,
     GMM_RESOURCE_INFO* resInfo,
+    const char* resName,
     int preferredMemType)
 {
     int mem_type = MOS_MEMPOOL_VIDEOMEMORY;
@@ -40,7 +41,7 @@ int MemoryPolicyManager::UpdateMemoryPolicy(
 
     if(!MEDIA_IS_SKU(skuTable, FtrLocalMemory))
     {
-        MOS_OS_NORMALMESSAGE("No FtrLocalMemory");
+        MOS_OS_VERBOSEMESSAGE("No FtrLocalMemory");
         return mem_type;
     }
 
@@ -85,7 +86,9 @@ int MemoryPolicyManager::UpdateMemoryPolicy(
         resFlag.Info.NonLocalOnly = 1;
     }
 
-    MOS_OS_NORMALMESSAGE("preferredMemType %d, mem_type %d", preferredMemType, mem_type);
+    uint32_t surfSize = (uint32_t)resInfo->GetSizeSurface();
+
+    MOS_OS_NORMALMESSAGE("\"%s\" preferredMemType %d, mem_type %d, res_type %d, size %d", (resName ? resName : "Resource"), preferredMemType, mem_type, res_type, surfSize);
 
     return mem_type;
 }

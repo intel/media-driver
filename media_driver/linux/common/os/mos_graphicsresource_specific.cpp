@@ -284,7 +284,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
     if(!params.m_pSystemMemory)
     {
-        mem_type = MemoryPolicyManager::UpdateMemoryPolicy(pOsContextSpecific->GetSkuTable(), gmmResourceInfoPtr, params.m_memType);
+        mem_type = MemoryPolicyManager::UpdateMemoryPolicy(pOsContextSpecific->GetSkuTable(), gmmResourceInfoPtr, params.m_name.c_str(), params.m_memType);
     }
 
     if (nullptr != params.m_pSystemMemory)

@@ -41,11 +41,13 @@ public:
     //!          The pointer to MEDIA_FEATURE_TABLE
     //! \param   [in, out] resInfo
     //!          The pointer to GMM_RESOURCE_INFO, resource description which gets updated
+    //! \param   [in] resName
+    //!          The pointer to resource name
     //! \param   [in] preferredMemType
     //!          Prefer which type of memory is allocated (device memory, system memory or default setting).
     //!
     //! \return  new memory policy
-    static int UpdateMemoryPolicy(MEDIA_FEATURE_TABLE *skuTable, GMM_RESOURCE_INFO *resInfo, int preferredMemType = MOS_MEMPOOL_VIDEOMEMORY);
+    static int UpdateMemoryPolicy(MEDIA_FEATURE_TABLE *skuTable, GMM_RESOURCE_INFO *resInfo, const char* resName, int preferredMemType = MOS_MEMPOOL_VIDEOMEMORY);
 };
 
 
