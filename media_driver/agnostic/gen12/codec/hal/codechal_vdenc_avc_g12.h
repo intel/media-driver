@@ -184,6 +184,8 @@ protected:
         const CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS& genericParam,
         MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& param) override;
 
+    virtual void CopyMBQPDataToStreamIn(CODECHAL_VDENC_STREAMIN_STATE* pData, uint8_t* pInputData);
+
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
     virtual MOS_STATUS PopulateBrcInitParam(

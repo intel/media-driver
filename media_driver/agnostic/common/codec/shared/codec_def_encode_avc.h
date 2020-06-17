@@ -790,6 +790,7 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     uint8_t         NumROI;
     uint8_t         NumDirtyROI;                        //!< Number of dirty ROIs [0...4]
+    uint8_t         NumDeltaQpForNonRectROI;            //!< Number of DeltaQP for non-rectangular ROIs [0...16]
     /*! \brief Dictates the value of delta QP for any ROI should be within [MinDeltaQp..MaxDeltaQp]
     *
     *    Applies only to BRC case.
@@ -800,6 +801,13 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    Applies only to BRC case.
     */
     char            MinDeltaQp;
+    /*! \brief Determine possible DeltaQP values for NonRectROI. For BRC case values should be within [MinDeltaQp..MaxDeltaQp]
+    *
+    *    QP value for the MB is represented by NonRectROIDeltaQpList[QpData - 1],
+    *    where QpData - UCHAR in ENCODE_MBQPDATA structure.
+    *    if QpData == 0, the block is in the background, and slice QP (QpY + slice_qp_delta) is applied on this MB.
+    */
+    char            NonRectROIDeltaQpList[16];
     /*! \brief Defines ROI settings.
     *
     *    Value entries are ROI[0] up to ROI[NumROI – 1], inclusively, if NumROI > 0. And it can be ignored otherwise.

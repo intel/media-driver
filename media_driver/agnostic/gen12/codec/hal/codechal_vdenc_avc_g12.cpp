@@ -743,15 +743,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SetupMBQPStreamIn(
         &lockFlagsReadOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pInputData);
 
-    for (uint32_t curY = 0; curY < m_picHeightInMb; curY++)
-    {
-        for (uint32_t curX = 0; curX < m_picWidthInMb; curX++)
-        {
-            pData->DW0.RegionOfInterestRoiSelection = 0;
-            pData->DW1.Qpprimey = *(pInputData + m_encodeParams.psMbQpDataSurface->dwPitch * curY + curX);
-            pData++;
-        }
-    }
+    CopyMBQPDataToStreamIn(pData, pInputData);
 
     m_osInterface->pfnUnlockResource(
         m_osInterface,
@@ -1454,6 +1446,19 @@ void CodechalVdencAvcStateG12::SetMfxPipeModeSelectParams(
     if (avcSeqParams->EnableStreamingBufferLLC || avcSeqParams->EnableStreamingBufferDDR)
     {
         paramGen12->bStreamingBufferEnabled = true;
+    }
+}
+
+void CodechalVdencAvcStateG12::CopyMBQPDataToStreamIn(CODECHAL_VDENC_STREAMIN_STATE* pData, uint8_t* pInputData)
+{
+    for (uint32_t curY = 0; curY < m_picHeightInMb; curY++)
+    {
+        for (uint32_t curX = 0; curX < m_picWidthInMb; curX++)
+        {
+            pData->DW0.RegionOfInterestRoiSelection = 0;
+            pData->DW1.Qpprimey = *(pInputData + m_encodeParams.psMbQpDataSurface->dwPitch * curY + curX);
+            pData++;
+        }
     }
 }
 
