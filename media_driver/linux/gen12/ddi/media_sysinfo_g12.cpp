@@ -119,8 +119,6 @@ static bool InitTglShadowSku(struct GfxDeviceInfo *devInfo,
     skuTable->FtrDisplayYTiling = 1;
     skuTable->FtrEDram = devInfo->hasERAM;
 
-    bool enableCodecMMC = false;
-    bool enableVPMMC    = false;
     bool disableMMC     = false;
     skuTable->FtrE2ECompression = 1;
     // Disable MMC for all components if set reg key
@@ -135,35 +133,9 @@ static bool InitTglShadowSku(struct GfxDeviceInfo *devInfo,
         disableMMC = true;
     }
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_ENABLE_MMC_ID,
-        &userFeatureData);
-    if (userFeatureData.bData)
-    {
-        enableVPMMC = true;
-    }
-
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
-        &userFeatureData);
-    if (userFeatureData.bData)
-    {
-        enableCodecMMC = true;
-    }
-
     if (disableMMC)
     {
         skuTable->FtrE2ECompression = 0;
-    }else
-    {
-        if(!enableCodecMMC && !enableVPMMC)
-        {
-            skuTable->FtrE2ECompression = 0;
-        }
     }
 
     skuTable->FtrLinearCCS = 1;

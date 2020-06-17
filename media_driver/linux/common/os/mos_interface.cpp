@@ -1854,6 +1854,20 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
         }
     }
 
+    uint32_t          MmcFormat = 0;
+    GMM_RESOURCE_FORMAT gmmResFmt;
+    gmmResFmt = gmmResourceInfo->GetResourceFormat();
+    auto skuTable = GetSkuTable(streamState);
+    MOS_OS_CHK_NULL_RETURN(MosInterface::GetGmmClientContext(streamState));
+    MOS_OS_CHK_NULL_RETURN(skuTable);
+
+    if (resMmcMode == MOS_MEMCOMP_MC         &&
+       (!MEDIA_IS_SKU(skuTable, FtrFlatPhysCCS)))
+    {
+        MmcFormat = static_cast<uint32_t>(MosInterface::GetGmmClientContext(streamState)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+        resMmcMode = (MmcFormat != 0) ? resMmcMode : MOS_MEMCOMP_DISABLED;
+    }
+
     eStatus = MOS_STATUS_SUCCESS;
 
     return eStatus;
