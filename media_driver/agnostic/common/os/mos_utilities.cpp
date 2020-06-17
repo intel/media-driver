@@ -3963,36 +3963,6 @@ bool MOS_SimulateAllocMemoryFail(
 }
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
-
-//!
-//! \brief    Init Function for MOS utilities
-//! \details  Initial MOS utilities related structures, and only execute once for multiple entries
-//! \param    [in] userFeatureKeyPathInfo
-//!           user feature key path info
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_utilities_init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo)
-{
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-
-    MOS_OS_FUNCTION_ENTER;
-    return MosUtilities::MosUtilitiesInit(userFeatureKeyPathInfo);
-}
-
-//!
-//! \brief    Close Function for MOS utilities
-//! \details  close/remove MOS utilities related structures, and only execute once for multiple entries
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_utilities_close()
-{
-    return MosUtilities::MosUtilitiesClose();
-}
-
 //!
 //! \brief    Wrapper for user feature value string free(). Performs error checking.
 //! \details  Wrapper for user feature value string free(). Performs error checking.

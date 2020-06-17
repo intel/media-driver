@@ -1821,7 +1821,7 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
 #ifndef ANDROID
         if (perStreamParameters->bKMDHasVCS2)
         {
-            DestroyIPC(perStreamParameters);
+            OsContextSpecificNext::DestroyIPC(perStreamParameters);
         }
 #endif
 
@@ -6808,7 +6808,12 @@ int32_t Mos_Specific_IsGPUHung(
     if (pOsInterface == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Mos_Specific_IsGPUHung: pOsInterface == NULL");
-        goto finish;
+        return false;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::IsGPUHung(pOsInterface->osStreamState);
     }
 
     dwResetCount = dwActiveBatch = dwPendingBatch = 0;
@@ -7000,13 +7005,11 @@ MOS_STATUS Mos_Specific_InitInterface(
     PMOS_INTERFACE     pOsInterface,
     PMOS_CONTEXT       pOsDriverContext)
 {
-
     PMOS_OS_CONTEXT                 pOsContext = nullptr;
     PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface = nullptr;
     MOS_STATUS                      eStatus;
     MediaFeatureTable              *pSkuTable = nullptr;
     MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
-    int32_t                         iDeviceId = 0;
     uint32_t                        dwResetCount = 0;
     int32_t                         ret = 0;
     bool                            modularizedGpuCtxEnabled = false;
@@ -7022,33 +7025,47 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     MOS_OS_NORMALMESSAGE("mm:Mos_Specific_InitInterface called.");
 
-    pOsInterface->modularizedGpuCtxEnabled    = true;
-    pOsInterface->veDefaultEnable             = true;
-    pOsInterface->phasedSubmission            = true;
+    pOsInterface->modularizedGpuCtxEnabled  = true;
+    pOsInterface->veDefaultEnable           = true;
+    pOsInterface->phasedSubmission          = true;
 
-    pOsInterface->apoMosEnabled               = pOsDriverContext->m_apoMosEnabled;
-
-    // Create Linux OS Context
-    pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
-    if (pOsContext == nullptr)
+    pOsInterface->apoMosEnabled             = pOsDriverContext->m_apoMosEnabled;
+    if (pOsInterface->apoMosEnabled)
     {
-        MOS_OS_ASSERTMESSAGE("Unable to allocate memory.");
-        eStatus = MOS_STATUS_NO_SPACE;
-        goto finish;
-    }
-    pOsContext->m_apoMosEnabled = pOsInterface->apoMosEnabled;
+        pOsInterface->streamStateIniter = true;
+        MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(
+            &pOsInterface->osStreamState,
+            (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext,
+            (MOS_INTERFACE_HANDLE)pOsInterface,
+            pOsInterface->Component));
 
-    if (GMM_SUCCESS != OpenGmm(&pOsContext->GmmFuncs))
+        MOS_OS_CHK_STATUS(MosInterface::InitStreamParameters(
+            pOsInterface->osStreamState,
+            pOsDriverContext));
+
+        // Set interface functions for legacy HAL
+        pOsContext                          = (PMOS_OS_CONTEXT)pOsInterface->osStreamState->perStreamParameters;
+        MOS_OS_CHK_NULL_RETURN(pOsContext);
+
+        pOsContext->GetGPUTag                  = Linux_GetGPUTag;
+    }
+    else
     {
-        MOS_OS_ASSERTMESSAGE("Unable to open gmm");
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
-        goto finish;
+        // Create Linux OS Context
+        pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
+        MOS_OS_CHK_NULL_RETURN(pOsContext);
+
+        if (GMM_SUCCESS != OpenGmm(&pOsContext->GmmFuncs))
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to open gmm");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            goto finish;
+        }
     }
 
-    pOsContext->intel_context = nullptr;
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled())
     {
-        OsContext*  osContextPtr = OsContext::GetOsContextObject();
+        OsContext *osContextPtr = OsContext::GetOsContextObject();
         if (osContextPtr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("Unable to get the active OS context.");
@@ -7061,7 +7078,7 @@ MOS_STATUS Mos_Specific_InitInterface(
         if (pOsInterface->osContextPtr->GetOsContextValid() == false)
         {
             eStatus = pOsInterface->osContextPtr->Init(pOsDriverContext);
-            if( MOS_STATUS_SUCCESS != eStatus )
+            if (MOS_STATUS_SUCCESS != eStatus)
             {
                 MOS_OS_ASSERTMESSAGE("Unable to initialize MODS context.");
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -7069,9 +7086,13 @@ MOS_STATUS Mos_Specific_InitInterface(
             }
         }
 
-        OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
-        pOsContext->intel_context             = pOsContextSpecific->GetDrmContext();
-        pOsContext->pGmmClientContext         = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        //ApoMos do it in CreateOsStreamState
+        if (!pOsInterface->apoMosEnabled)
+        {
+            OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+            pOsContext->intel_context             = pOsContextSpecific->GetDrmContext();
+            pOsContext->pGmmClientContext         = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        }
     }
     else
     {
@@ -7093,30 +7114,31 @@ MOS_STATUS Mos_Specific_InitInterface(
         &UserFeatureData);
 #endif
     pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
-    pOsContext->bSimIsActive = pOsInterface->bSimIsActive;
+    if (!pOsInterface->apoMosEnabled)
+    {
+        pOsContext->bSimIsActive = pOsInterface->bSimIsActive;
+    }
 
     // Initialize
-    modularizedGpuCtxEnabled = pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled();
-    eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(), modularizedGpuCtxEnabled);
-    if( MOS_STATUS_SUCCESS != eStatus )
+    if (!pOsInterface->apoMosEnabled)
     {
-        MOS_OS_ASSERTMESSAGE("Unable to initialize context.");
-        goto finish;
+        modularizedGpuCtxEnabled = pOsInterface->modularizedGpuCtxEnabled && !Mos_Solo_IsEnabled();
+        eStatus = Linux_InitContext(pOsContext, pOsDriverContext, pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(), modularizedGpuCtxEnabled);
+        if( MOS_STATUS_SUCCESS != eStatus )
+        {
+            MOS_OS_ASSERTMESSAGE("Unable to initialize context.");
+            goto finish;
+        }
+
+        pOsContext->bFreeContext = true;
+
+        //Added by Ben for video memory allocation
+        pOsContext->bufmgr = pOsDriverContext->bufmgr;
+        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
     }
 
-    if (pOsInterface->apoMosEnabled)
-    {
-        pOsContext->m_osDeviceContext = pOsDriverContext->m_osDeviceContext;
-        MOS_OS_CHK_STATUS(MosInterface::CreateOsStreamState(
-            &pOsInterface->osStreamState,
-            (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext,
-            (MOS_INTERFACE_HANDLE)pOsInterface,
-            pOsInterface->Component));
-    }
-
-    iDeviceId                                 = pOsDriverContext->iDeviceId;
-    pOsContext->bFreeContext                  = true;
     pOsInterface->pOsContext                  = pOsContext;
+
     pOsInterface->bUsesPatchList              = true;
     pOsInterface->bUsesGfxAddress             = false;
     pOsInterface->bNoParsingAssistanceInKmd   = true;
@@ -7126,10 +7148,6 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->bInlineCodecStatusUpdate    = true;
     pOsInterface->bAllowExtraPatchToSameLoc   = false;
-
-    //Added by Ben for video memory allocation
-    pOsInterface->pOsContext->bufmgr = pOsDriverContext->bufmgr;
-    mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
 
     // Initialize OS interface functions
     pOsInterface->pfnSetGpuContext                          = Mos_Specific_SetGpuContext;
@@ -7313,23 +7331,24 @@ MOS_STATUS Mos_Specific_InitInterface(
 #if MOS_MEDIASOLO_SUPPORTED
     Mos_Solo_Initialize(pOsInterface);
 #endif // MOS_MEDIASOLO_SUPPORTED
+    if (!pOsInterface->apoMosEnabled)
+    {
+        // read the "Disable KMD Watchdog" user feature key
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
+            &UserFeatureData);
+        pOsContext->bDisableKmdWatchdog = (UserFeatureData.i32Data) ? true : false;
 
-    // read the "Disable KMD Watchdog" user feature key
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
-        &UserFeatureData);
-    pOsContext->bDisableKmdWatchdog = (UserFeatureData.i32Data) ? true : false;
-
-    // read "Linux PerformanceTag Enable" user feature key
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
-        &UserFeatureData);
-    pOsContext->uEnablePerfTag = UserFeatureData.i32Data;
-
+        // read "Linux PerformanceTag Enable" user feature key
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
+            &UserFeatureData);
+        pOsContext->uEnablePerfTag = UserFeatureData.i32Data;
+    }
     eStatus = Mos_Specific_InitInterface_Ve(pOsInterface);
     if(eStatus != MOS_STATUS_SUCCESS)
     {

@@ -573,13 +573,18 @@ struct MosStreamState
     bool mediaReset    = false;  //!< Flag to indicate media reset is enabled
 
     bool simIsActive = false;  //!< Flag to indicate if Simulation is enabled
-    MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable; //!< To indicate which components to enable Null HW support
+    MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable = {};     //!< To indicate which components to enable Null HW support
 
     bool usesPatchList = false;               //!< Uses patch list instead of graphic address directly
     bool usesGfxAddress = false;              //!< Uses graphic address directly instead of patch list
     bool enableKmdMediaFrameTracking = false; //!< Enable KMD Media frame tracking
     bool usesCmdBufHeaderInResize = false;    //!< Use cmd buffer header in resize
     bool usesCmdBufHeader = false;            //!< Use cmd buffer header
+
+    // GPU Reset Statistics
+    uint32_t gpuResetCount      = 0;
+    uint32_t gpuActiveBatch     = 0;
+    uint32_t gpuPendingBatch    = 0;
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     // Command buffer dump

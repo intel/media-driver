@@ -162,6 +162,22 @@ public:
     //!
     void SetSliceCount(uint32_t *pSliceCount);
 
+    //!
+    //! \brief  create per stream's secure IPC
+    //! \param  [in,out] perStreamParamters
+    //!         Parameters of OS specific per stream
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS CreateIPC(OS_PER_STREAM_PARAMETERS perStreamParamters);
+
+    //!
+    //! \brief  destroy per stream's secure IPC
+    //! \param  [in,out] perStreamParamters
+    //!         Parameters of OS specific per stream
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS DestroyIPC(OS_PER_STREAM_PARAMETERS perStreamParamters);
+
 private:
     //!
     //! \brief  connect and create share memory for driver secure IPC
@@ -175,7 +191,7 @@ private:
     //!         ptr to ptr for share memory
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS ConnectCreateShm(long key, uint32_t size, int32_t * pShmid, void* *ppShm);
+    static MOS_STATUS ConnectCreateShm(long key, uint32_t size, int32_t * pShmid, void* *ppShm);
 
     //!
     //! \brief  destory the share memory
@@ -185,7 +201,7 @@ private:
     //!         ptr to ptr for share memory
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS DetachDestroyShm(int32_t shmid, void* pShm);
+    static MOS_STATUS DetachDestroyShm(int32_t shmid, void* pShm);
 
     //!
     //! \brief  connect and create semaphore for driver secure IPC
@@ -195,7 +211,31 @@ private:
     //!         ptr to sem id created
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS ConnectCreateSemaphore(long key, int32_t *pSemid);
+    static MOS_STATUS ConnectCreateSemaphore(long key, int32_t *pSemid);
+
+    //!
+    //! \brief  unlock the semaphore used in driver IPC
+    //! \param  [in] semid
+    //!         semaphore id to be unlocked
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS UnLockSemaphore(int32_t semid);
+
+    //!
+    //! \brief  lock the semaphore used in driver IPC
+    //! \param  [in] semid
+    //!         semaphore id to be locked
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS LockSemaphore(int32_t semid);
+
+    //!
+    //! \brief  attach to the share memory instance
+    //! \param   shmid
+    //!          [in] share memory id to be attached
+    //! \return  share memory attached
+    //!
+    static short ShmAttachedNumber(unsigned int shmid);
 
     //!
     //! \brief  create driver secure IPC
@@ -204,33 +244,9 @@ private:
     MOS_STATUS CreateIPC();
 
     //!
-    //! \brief  unlock the semaphore used in driver IPC
-    //! \param  [in] semid
-    //!         semaphore id to be unlocked
-    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
-    //!
-    MOS_STATUS UnLockSemaphore(int32_t semid);
-
-    //!
-    //! \brief  lock the semaphore used in driver IPC
-    //! \param  [in] semid
-    //!         semaphore id to be locked
-    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
-    //!
-    MOS_STATUS LockSemaphore(int32_t semid);
-
-    //!
     //! \brief  destroy the IPC instance
     //!
     void DestroyIPC();
-
-    //!
-    //! \brief  attach to the share memory instance
-    //! \param   shmid
-    //!          [in] share memory id to be attached
-    //! \return  share memory attached
-    //!
-    short ShmAttachedNumber(unsigned int shmid);
 
     //!
     //! \brief  destroy the semaphore

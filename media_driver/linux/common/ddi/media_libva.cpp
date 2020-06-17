@@ -1528,7 +1528,11 @@ VAStatus DdiMedia__Initialize (
 
     if (mediaCtx->m_apoMosEnabled)
     {
-        MosUtilities::MosUtilitiesInit();
+        MOS_CONTEXT mosCtx     = {};
+        mosCtx.fd              = mediaCtx->fd;
+        mosCtx.m_apoMosEnabled = mediaCtx->m_apoMosEnabled;
+
+        MosInterface::InitOsUtilities(&mosCtx);
 
         mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
         if (nullptr == mediaCtx->pGtSystemInfo)
@@ -1537,9 +1541,6 @@ VAStatus DdiMedia__Initialize (
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
 
-        MOS_CONTEXT mosCtx                  = {};
-        mosCtx.fd                           = mediaCtx->fd;
-        mosCtx.m_apoMosEnabled              = mediaCtx->m_apoMosEnabled;
         if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
         {
             DDI_ASSERTMESSAGE("Unable to create MOS device context.");
@@ -1570,7 +1571,7 @@ VAStatus DdiMedia__Initialize (
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
         // prepare m_osContext
-        MOS_utilities_init();
+        MosUtilities::MosUtilitiesInit();
         //Read user feature key here for Per Utility Tool Enabling
 #if _RELEASE_INTERNAL
         if (!g_perfutility->bPerfUtilityKey)
@@ -1894,7 +1895,7 @@ static VAStatus DdiMedia_Terminate (
         MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
         mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
         MOS_FreeMemory(mediaCtx->pGtSystemInfo);
-        MosUtilities::MosUtilitiesClose();
+        MosInterface::CloseOsUtilities();
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
@@ -1930,7 +1931,7 @@ static VAStatus DdiMedia_Terminate (
         // Free GMM memory.
         mediaCtx->GmmFuncs.pfnDeleteClientContext(mediaCtx->pGmmClientContext);
         mediaCtx->GmmFuncs.pfnDestroySingletonContext();
-        MOS_utilities_close();
+        MosUtilities::MosUtilitiesClose();
     }
 
     if (mediaCtx->uiRef > 1)

@@ -323,6 +323,80 @@ void OsContextSpecificNext::DestroyIPC()
     }
 }
 
+MOS_STATUS OsContextSpecificNext::CreateIPC(OS_PER_STREAM_PARAMETERS perStreamParamters)
+{
+    MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
+    PMOS_CONTEXT context = nullptr;
+
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(perStreamParamters);
+
+    context = (PMOS_CONTEXT)perStreamParamters;
+
+    context->semid = MOS_LINUX_IPC_INVALID_ID;
+    context->shmid = MOS_LINUX_IPC_INVALID_ID;
+    context->pShm  = MOS_LINUX_SHM_INVALID;
+
+    struct semid_ds buf;
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
+
+    //wait and retry untill to get a valid semaphore
+    for (int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i++)
+    {
+        ConnectCreateSemaphore(m_dualVdboxKey, &context->semid);
+
+        //check whether the semid is initialized or not
+        if (semctl(context->semid, 0, IPC_STAT, &buf) == -1)
+        {
+            return MOS_STATUS_UNKNOWN;
+        }
+        if (buf.sem_otime != 0)
+        {
+            break;
+        }
+        MosUtilities::MosSleep(1);
+    }
+
+    LockSemaphore(context->semid);
+    eStatus = ConnectCreateShm(m_dualVdboxKey, sizeof(VDBOX_WORKLOAD), &context->shmid, &context->pShm);
+    UnLockSemaphore(context->semid);
+    MOS_OS_CHK_STATUS_RETURN(eStatus);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS OsContextSpecificNext::DestroyIPC(OS_PER_STREAM_PARAMETERS perStreamParamters)
+{
+    PMOS_CONTEXT context = nullptr;
+
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(perStreamParamters);
+    context = (PMOS_CONTEXT)perStreamParamters;
+
+    if (MOS_LINUX_IPC_INVALID_ID != context->semid)
+    {
+        int16_t iAttachedNum = 0;
+
+        if (MOS_LINUX_IPC_INVALID_ID != context->shmid)
+        {
+            LockSemaphore(context->semid);
+            iAttachedNum = ShmAttachedNumber(context->shmid);
+
+            DetachDestroyShm(context->shmid, context->pShm);
+            context->shmid = MOS_LINUX_IPC_INVALID_ID;
+            context->pShm  = MOS_LINUX_SHM_INVALID;
+
+            if (iAttachedNum)
+            {
+                --iAttachedNum;
+            }
+            UnLockSemaphore(context->semid);
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS OsContextSpecificNext::CreateSSEUIPC()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -375,8 +449,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
     eStatus = MOS_STATUS_SUCCESS;
 
     PMOS_CONTEXT osDriverContext = (PMOS_CONTEXT)ddiDriverContext;
-
-    OsContextNext::Init(ddiDriverContext);
 
     if (GetOsContextValid() == false)
     {

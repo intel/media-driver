@@ -258,30 +258,6 @@ extern "C" {
 #endif
 
 //!
-//! \brief    Init Function for MOS utilities
-//! \details  Initial MOS utilities related structures, and only execute once for multiple entries
-//! \param    [in] userFeatureKeyPathInfo
-//!           user feature key path info
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-#ifdef __cplusplus
-MOS_STATUS MOS_utilities_init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo = NULL);
-#else
-MOS_STATUS MOS_utilities_init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo);
-#endif
-
-//!
-//! \brief    Close Function for MOS utilities
-//! \details  close/remove MOS utilities related structures, and only execute once for multiple entries
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_utilities_close();
-
-//!
 //! \brief    Init Function for MOS OS specific utilities
 //! \details  Initial MOS OS specific utilities related structures, and only execute once for multiple entries
 //! \param    [in] userFeatureKeyPathInfo
