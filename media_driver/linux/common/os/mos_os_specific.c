@@ -6965,6 +6965,55 @@ uint64_t Mos_Specific_GetAuxTableBaseAddr(
     return auxTableMgr ? auxTableMgr->GetAuxTableBase() : 0;
 }
 
+
+//!
+//! \brief  Get gpu context priority from KMD
+//! \param  [in] pOsInterface
+//!         Pointer to OS interface
+//! \param  [out] pPriority
+//!         the priority of the  current context.
+//!
+void Mos_Specific_GetGpuPriority(
+        PMOS_INTERFACE              pOsInterface,
+        int32_t*                    pPriority)
+{
+    MOS_OS_ASSERT(pOsInterface);
+
+    if (pOsInterface->osContextPtr)
+    {
+        auto osCxtSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
+        osCxtSpecific->GetGpuPriority(pPriority);
+    }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE("OS context is nullptr.");
+    }
+}
+
+//!
+//! \brief  Set gpu priority to KMD
+//! \param  [in] pOsInterface
+//!         Pointer to OS interface
+//! \param  [in] priority
+//!         the priority set to current context.
+//!
+void Mos_Specific_SetGpuPriority(
+        PMOS_INTERFACE              pOsInterface,
+        int32_t                     priority)
+{
+    MOS_OS_ASSERT(pOsInterface);
+
+    if (pOsInterface->osContextPtr)
+    {
+        auto osCxtSpecific = static_cast<OsContextSpecific*>(pOsInterface->osContextPtr);
+        osCxtSpecific->SetGpuPriority(priority);
+    }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE("OS context is nullptr.");
+    }
+}
+
 //!
 //! \brief  Set slice count to shared memory and KMD
 //! \param  [in] pOsInterface
@@ -7373,7 +7422,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetAuxTableBaseAddr                    = Mos_Specific_GetAuxTableBaseAddr;
     pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
     pOsInterface->pfnGetResourceIndex                       = Mos_Specific_GetResourceIndex;
-    pOsInterface->pfnSetSliceCount                          = Mos_Specific_SetSliceCount;
+    pOsInterface->pfnGetGpuPriority                         = Mos_Specific_GetGpuPriority;
+    pOsInterface->pfnSetGpuPriority                         = Mos_Specific_SetGpuPriority;
     pOsInterface->pfnIsSetMarkerEnabled                     = Mos_Specific_IsSetMarkerEnabled;
     pOsInterface->pfnGetMarkerResource                      = Mos_Specific_GetMarkerResource;
     pOsInterface->pfnNotifyStreamIndexSharing               = Mos_Specific_NotifyStreamIndexSharing;

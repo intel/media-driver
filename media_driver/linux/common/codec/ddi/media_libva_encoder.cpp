@@ -225,6 +225,7 @@ VAStatus DdiEncode_CreateContext(
 
     VAProfile profile;
     VAEntrypoint entrypoint;
+    int32_t  priority = 0;
     uint32_t rcMode = 0;
     uint32_t feiFunction = 0;
     VAStatus vaStatus = mediaDrvCtx->m_caps->GetEncConfigAttr(
@@ -232,7 +233,8 @@ VAStatus DdiEncode_CreateContext(
             &profile,
             &entrypoint,
             &rcMode,
-            &feiFunction);
+            &feiFunction,
+            &priority);
     DDI_CHK_RET(vaStatus, "Invalide config_id!");
 
     vaStatus = mediaDrvCtx->m_caps->CheckEncodeResolution(
@@ -378,8 +380,11 @@ VAStatus DdiEncode_CreateContext(
 
     MOS_STATUS eStatus = pCodecHal->Allocate(encCtx->m_encode->m_codechalSettings);
 
-#ifdef _MMC_SUPPORTED
+    //Get the priority from VAAPI.
     PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
+    osInterface->pfnSetGpuPriority(osInterface, priority);
+
+#ifdef _MMC_SUPPORTED
     if (osInterface != nullptr                                                       &&
         !osInterface->apoMosEnabled                                                  &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&

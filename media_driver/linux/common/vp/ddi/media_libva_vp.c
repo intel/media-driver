@@ -36,6 +36,7 @@
 #include "media_libva.h"
 #include "media_libva_vp.h"
 #include "media_libva_util.h"
+#include "media_libva_caps.h"
 #include "hwinfo_linux.h"
 #include "mos_solo_generic.h"
 
@@ -3119,6 +3120,8 @@ VAStatus DdiVp_CreateContext (
     VAStatus                          vaStatus;
     PDDI_VP_CONTEXT                   pVpCtx;
     PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT pVaCtxHeapElmt;
+    PMOS_INTERFACE                    pOsInterface;
+
     DDI_UNUSED(vaConfigID);
     DDI_UNUSED(iWidth);
     DDI_UNUSED(iHeight);
@@ -3138,6 +3141,7 @@ VAStatus DdiVp_CreateContext (
     DDI_CHK_NULL(pMediaCtx,
                     "Null pMediaCtx.",
                     VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(pMediaCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     // allocate pVpCtx
     pVpCtx = (PDDI_VP_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_VP_CONTEXT));
@@ -3146,6 +3150,16 @@ VAStatus DdiVp_CreateContext (
     // init pVpCtx
     vaStatus = DdiVp_InitCtx(pVaDrvCtx, pVpCtx);
     DDI_CHK_RET(vaStatus, "VA_STATUS_ERROR_OPERATION_FAILED");
+
+    // set the context priority
+    VAProfile profile;
+    VAEntrypoint entrypoint;
+    int32_t priority = 0;
+    vaStatus = pMediaCtx->m_caps->GetVpConfigAttr(vaConfigID, &profile, &entrypoint, &priority);
+    DDI_CHK_RET(vaStatus, "Invalide config_id!");
+
+    pOsInterface = pVpCtx->pVpHal->GetOsInterface();
+    pOsInterface->pfnSetGpuPriority(pOsInterface, priority);
 
     DdiMediaUtil_LockMutex(&pMediaCtx->VpMutex);
 

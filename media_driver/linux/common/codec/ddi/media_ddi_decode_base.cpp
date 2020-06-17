@@ -1175,6 +1175,8 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         return vaStatus;
     }
 
+    // Set Gpu context priority from VAAPI
+    osInterface->pfnSetGpuPriority(osInterface, m_ddiDecodeAttr->uiPriority);
 #ifdef _MMC_SUPPORTED
     if (!osInterface->apoMosEnabled                                                  &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&

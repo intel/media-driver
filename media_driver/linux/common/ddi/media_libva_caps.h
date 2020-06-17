@@ -214,7 +214,8 @@ public:
             VAProfile *profile,
             VAEntrypoint *entrypoint,
             uint32_t *rcMode,
-            uint32_t *feiFunction);
+            uint32_t *feiFunction,
+            int32_t  *priority);
 
     //!
     //! \brief    Get attributes for a given decode config ID
@@ -246,7 +247,8 @@ public:
             VAEntrypoint *entrypoint,
             uint32_t *slicemode,
             uint32_t *encrypttype,
-            uint32_t *processmode);
+            uint32_t *processmode,
+            int32_t  *priority);
 
     //!
     //! \brief    Get attributes for a given Vp config ID
@@ -266,7 +268,8 @@ public:
     VAStatus GetVpConfigAttr(
             VAConfigID configId,
             VAProfile *profile,
-            VAEntrypoint *entrypoint);
+            VAEntrypoint *entrypoint,
+            int32_t *priority);
 
     //!
     //! \brief    Get process rate for a given config ID
@@ -717,9 +720,10 @@ protected:
         uint32_t m_sliceMode;   //!< Decode slice mode
         uint32_t m_encryptType; //!< Decode entrypoint Type
         uint32_t m_processType; //!< Decode processing Type
+        int32_t  m_priority;
 
-        DecConfig(const uint32_t sliceMode, const uint32_t encryptType, const uint32_t processType)
-        : m_sliceMode(sliceMode), m_encryptType(encryptType), m_processType(processType) {}
+        DecConfig(const uint32_t sliceMode, const uint32_t encryptType, const uint32_t processType, int32_t priority)
+        : m_sliceMode(sliceMode), m_encryptType(encryptType), m_processType(processType), m_priority(priority) {}
     };
 
     //!
@@ -730,8 +734,20 @@ protected:
     {
         uint32_t m_rcMode;      //!< RateControl Mode
         uint32_t m_FeiFunction; //!< Decode entrypoint Type
-        EncConfig(const uint32_t rcMode, const uint32_t FeiFunction)
-        : m_rcMode(rcMode), m_FeiFunction(FeiFunction) {}
+        int32_t  m_priority;
+        EncConfig(const uint32_t rcMode, const uint32_t FeiFunction, int32_t priority)
+        : m_rcMode(rcMode), m_FeiFunction(FeiFunction), m_priority(priority) {}
+    };
+
+    //!
+    //! \struct   VpConfig
+    //! \brief    Video Processing configuration
+    //!
+    struct VpConfig
+    {
+        int32_t  m_priority;
+        VpConfig(int32_t priority)
+        : m_priority(priority) {}
     };
 
     //!
@@ -834,7 +850,7 @@ protected:
 
     std::vector<EncConfig> m_encConfigs; //!< Store supported encode configs
     std::vector<DecConfig> m_decConfigs; //!< Store supported decode configs
-    std::vector<uint32_t> m_vpConfigs;   //!< Store supported vp configs
+    std::vector<VpConfig>  m_vpConfigs;   //!< Store supported vp configs
 
     bool m_vdencActive = false;  //!< If vdenc is active on current platform
 
@@ -889,7 +905,7 @@ protected:
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
-    VAStatus AddVpConfig(uint32_t attrib);
+    VAStatus AddVpConfig();
 
     //!
     //! \brief    Return profile and entrypoint for a give config ID
@@ -1373,5 +1389,15 @@ protected:
             VAEntrypoint entrypoint,
             VAConfigAttrib* attrib,
             int32_t numAttribs);
+
+   //! \brief Get the general attribute
+   //!
+   //! \param    [in,out] attrib
+   //!           Pointer to the CAConfigAttrib
+   //!
+   //! \return   VAStatus
+   //!           VA_STATUS_SUCCESS if success
+   //!
+   VAStatus GetGeneralConfigAttrib(VAConfigAttrib* attrib);
 };
 #endif

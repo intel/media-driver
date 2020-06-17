@@ -418,6 +418,7 @@ VAStatus DdiDecode_CreateContext (
 
     VAStatus va            = VA_STATUS_SUCCESS;
     decConfigAttr.uiDecSliceMode = VA_DEC_SLICE_MODE_BASE;
+    decConfigAttr.uiPriority = 0;
     *context            = VA_INVALID_ID;
 
     uint16_t mode               = CODECHAL_DECODE_MODE_AVCVLD;
@@ -442,7 +443,8 @@ VAStatus DdiDecode_CreateContext (
             &decConfigAttr.entrypoint,
             &decConfigAttr.uiDecSliceMode,
             &decConfigAttr.uiEncryptionType,
-            &decConfigAttr.uiDecProcessingType),"Invalide config_id!");
+            &decConfigAttr.uiDecProcessingType,
+            &decConfigAttr.uiPriority),"Invalide config_id!");
 
     mode = mediaCtx->m_caps->GetDecodeCodecMode(decConfigAttr.profile);
     codecKey =  mediaCtx->m_caps->GetDecodeCodecKey(decConfigAttr.profile);
