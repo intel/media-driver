@@ -5559,9 +5559,6 @@ MOS_STATUS CodechalEncodeAvcEnc::SetPictureStructs()
         bUseMbEncAdvKernel = true;
     }
 
-    // Force enable HME if BRC is enabled
-    m_hmeEnabled = bBrcEnabled ? m_pictureCodingType != I_TYPE : m_hmeEnabled;
-
     bMbEncIFrameDistEnabled =
         bBrcDistortionBufferSupported &&
         bBrcEnabled &&
