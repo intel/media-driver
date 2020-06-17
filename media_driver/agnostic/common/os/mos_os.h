@@ -1265,6 +1265,29 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface);
 
     //!
+    //! \brief    Get Gpu Priority
+    //! \param    [in] pOsInterface
+    //!           pointer to the current gpu context.
+    //! \param    [out] pPriority
+    //!           pointer to the priority get from gpu context.
+    //!
+    void (*pfnGetGpuPriority)(
+          PMOS_INTERFACE          pOsInterface,
+          int32_t*                pPriority);
+
+    //!
+    //! \brief    Set Gpu Priority
+    //!
+    //! \param    [in] pOsInterface
+    //!           pointer to the current gpu context
+    //! \param    [in] priority
+    //!           pointer to the priority set to gpu context
+    //!
+    void (*pfnSetGpuPriority)(
+          PMOS_INTERFACE           pOsInterface,
+          int32_t                  priority);
+
+    //!
     //! \brief  Set slice count to shared memory and KMD
     //! \param  [in] pOsInterface
     //!         pointer to the requested slice count for current context

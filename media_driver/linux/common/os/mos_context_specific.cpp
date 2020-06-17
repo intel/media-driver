@@ -365,6 +365,21 @@ void OsContextSpecific::DestroySSEUIPC()
     }
 }
 
+void OsContextSpecific::GetGpuPriority(int32_t* pPriority)
+{
+    mos_get_context_param(m_intelContext, 0, I915_CONTEXT_PARAM_PRIORITY,(uint64_t*)pPriority);
+}
+
+void OsContextSpecific::SetGpuPriority(int32_t priority)
+{
+    int ret = 0;
+    ret = mos_set_context_param(m_intelContext, 0, I915_CONTEXT_PARAM_PRIORITY,(uint64_t)priority);
+    if (ret != 0)
+    {
+        printf("Warning: failed to set the gpu priority, errno is %d\n", ret);
+    }
+}
+
 void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
 {
     if (pSliceCount == nullptr)
