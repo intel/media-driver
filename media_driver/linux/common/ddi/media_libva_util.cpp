@@ -38,6 +38,7 @@
 #include "media_libva_util.h"
 #include "mos_utilities.h"
 #include "mos_os.h"
+#include "mos_defs.h"
 #include "hwinfo_linux.h"
 #include "media_ddi_decode_base.h"
 #include "media_ddi_encode_base.h"
@@ -544,7 +545,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         }
         else
         {
-            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0, mem_type);
+            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, (MOS_ALIGN_CEIL(gmmSize, gmmPitch))/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0, mem_type);
             pitch = ulPitch;
         }
     }
