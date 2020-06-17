@@ -4851,13 +4851,22 @@ VAStatus DdiMedia_GetImage(
         if (mediaFmt == Media_Format_Count)
         {
             DDI_ASSERTMESSAGE("Unsupported surface type.");
+            DdiVp_DestroyContext(ctx, context);
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
         }
         PDDI_MEDIA_SURFACE_DESCRIPTOR surfDesc = (PDDI_MEDIA_SURFACE_DESCRIPTOR)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE_DESCRIPTOR));
-        DDI_CHK_NULL(surfDesc, "nullptr surfDesc.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+        if (!surfDesc) {
+            DDI_ASSERTMESSAGE("nullptr surfDesc.");
+            DdiVp_DestroyContext(ctx, context);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
         surfDesc->uiVaMemType = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
         target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, surfDesc, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC);
-        DDI_CHK_RET(vaStatus, "Create temp surface failed.");
+        if (VA_STATUS_SUCCESS != vaStatus) {
+            DDI_ASSERTMESSAGE("Create temp surface failed.");
+            DdiVp_DestroyContext(ctx, context);
+            return vaStatus;
+        }
 
         VARectangle srcRect, dstRect;
         srcRect.x      = x;
@@ -4875,6 +4884,7 @@ VAStatus DdiMedia_GetImage(
         {
             DDI_ASSERTMESSAGE("VP Pipeline failed.");
             DdiMedia_DestroySurfaces(ctx, &target_surface, 1);
+            DdiVp_DestroyContext(ctx, context);
             return vaStatus;
         }
         vaStatus = DdiMedia_SyncSurface(ctx, target_surface);
