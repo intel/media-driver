@@ -173,6 +173,14 @@ public:
     void       ResetGpuContextStatus();
 
     //!
+    //! \brief  Set the Gpu priority for workload scheduling.
+    //! \param [in] priority
+    //!             priority to set for current workload.
+    //! \return void
+    //!
+    void UpdatePriority(int32_t priority);
+
+    //!
     //! \brief    Allocate gpu status buffer for gpu sync
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
@@ -278,6 +286,8 @@ private:
     MOS_GPUCTX_CREATOPTIONS_ENHANCED *m_createOptionEnhanced = nullptr;
     MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];
     uint32_t     m_i915ExecFlag = 0;
+    int32_t      m_currCtxPriority = 0;
+
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
     std::vector<const void *> m_cmdResPtrs; //!< Command OS resource pointers registered by pfnRegisterResource
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED

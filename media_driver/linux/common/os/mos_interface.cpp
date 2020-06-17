@@ -364,6 +364,8 @@ MOS_STATUS MosInterface::InitStreamParameters(
         MOS_OS_NORMALMESSAGE("mos_get_reset_stats return error(%d)\n", ret);
         resetCount = 0;
     }
+
+    streamState->ctxPriority      = 0;
     streamState->gpuResetCount    = resetCount;
     streamState->gpuActiveBatch   = 0;
     streamState->gpuPendingBatch  = 0;
@@ -582,6 +584,8 @@ MOS_STATUS MosInterface::SetGpuContext(
     MOS_OS_CHK_NULL_RETURN(gpuContextPtr);
 
     streamState->currentGpuContextHandle = gpuContext;
+    auto instance = MosInterface::GetGpuContext(streamState, gpuContext);
+    instance->UpdatePriority(streamState->ctxPriority);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -803,7 +807,6 @@ MOS_STATUS MosInterface::SubmitCommandBuffer(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_CHK_NULL_RETURN(streamState);
-
     auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
 
@@ -2199,6 +2202,53 @@ GMM_CLIENT_CONTEXT *MosInterface::GetGmmClientContext(
     }
 
     return nullptr;
+}
+
+void MosInterface::GetGpuPriority(MOS_STREAM_HANDLE streamState, int32_t* pPriority)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    if (streamState == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to set the gpu priority");
+        return;
+    }
+
+    PMOS_OS_CONTEXT pOsContext = (PMOS_OS_CONTEXT)streamState->perStreamParameters;
+    if (pOsContext == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to set the gpu priority");
+        return;
+    }
+
+    uint64_t priority = 0;
+    mos_get_context_param(pOsContext->intel_context, 0, I915_CONTEXT_PARAM_PRIORITY, &priority);
+    *pPriority = (int32_t)priority;
+}
+
+void MosInterface::SetGpuPriority(MOS_STREAM_HANDLE streamState, int32_t priority)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    if (streamState == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to set the gpu priority");
+        return;
+    }
+
+    PMOS_OS_CONTEXT pOsContext = (PMOS_OS_CONTEXT)streamState->perStreamParameters;
+    if (pOsContext == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to set the gpu priority");
+        return;
+    }
+
+    streamState->ctxPriority = priority;
+    int32_t ret = mos_set_context_param(pOsContext->intel_context, 0, I915_CONTEXT_PARAM_PRIORITY,(uint64_t)priority);
+    if (ret != 0)
+    {
+        MOS_OS_ASSERTMESSAGE("failed to set the gpu priority, errno is %d", ret);
+    }
 }
 
 uint64_t MosInterface::GetAuxTableBaseAddr(
