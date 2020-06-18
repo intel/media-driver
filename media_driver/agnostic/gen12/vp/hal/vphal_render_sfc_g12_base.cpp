@@ -100,7 +100,6 @@ bool VphalSfcStateG12::IsFormatSupported(
         if (pSrcSurface->bIEF == true)
         {
             pAlphaParams->AlphaMode = VPHAL_ALPHA_FILL_MODE_NONE;
-            pAlphaParams->fAlpha    = 1.0;
             return true;
         }
         else if ((pOutSurface->Format == Format_A8R8G8B8 ||
