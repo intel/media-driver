@@ -2442,9 +2442,13 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
         ((pSrcSurface->dwWidth >= VPHAL_RNDR_8K_WIDTH || pSrcSurface->dwHeight >= VPHAL_RNDR_8K_HEIGHT) ||
          (pRenderTarget->dwWidth >= VPHAL_RNDR_8K_WIDTH || pRenderTarget->dwHeight >= VPHAL_RNDR_8K_HEIGHT)))
     {
-        VPHAL_RENDER_NORMALMESSAGE("Disable VEBOX/SFC for 8k resolution");
-        pRenderPassData->bCompNeeded = true;
-        goto finish;
+        // For HDR, still need Vebox to handle since there is no fallback Render path.
+        if (!pcRenderParams->pSrc[0]->pHDRParams && !pcRenderParams->pTarget[0]->pHDRParams)
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Disable VEBOX/SFC for 8k resolution");
+            pRenderPassData->bCompNeeded = true;
+            goto finish;
+        }
     }
 
     pRenderData->Init();
