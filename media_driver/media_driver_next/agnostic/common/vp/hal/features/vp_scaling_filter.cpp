@@ -400,6 +400,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         m_sfcScalingParams->fAVSXScalingRatio = (float)m_sfcScalingParams->dwScaledRegionWidth / (float)m_sfcScalingParams->dwSourceRegionWidth;
         m_sfcScalingParams->fAVSYScalingRatio = (float)m_sfcScalingParams->dwScaledRegionHeight / (float)m_sfcScalingParams->dwSourceRegionHeight;
 
+        m_sfcScalingParams->sfcScalingMode = m_scalingParams.scalingMode;
+
         VP_RENDER_CHK_STATUS_RETURN(SetColorFillParams());
     }
     // Need add support for Render engine

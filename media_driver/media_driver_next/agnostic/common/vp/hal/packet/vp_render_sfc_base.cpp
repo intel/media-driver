@@ -210,8 +210,9 @@ MOS_STATUS SfcRenderBase::SetIefStateParams(
 
 MOS_STATUS SfcRenderBase::SetAvsStateParams()
 {
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    PMHW_SFC_AVS_STATE          pMhwAvsState;
+    MOS_STATUS                  eStatus            = MOS_STATUS_SUCCESS;
+    PMHW_SFC_AVS_STATE          pMhwAvsState       = nullptr;
+    MHW_SCALING_MODE            scalingMode        = MHW_SCALING_AVS;
 
     VP_RENDER_CHK_NULL_RETURN(m_sfcInterface);
     VP_RENDER_CHK_NULL_RETURN(m_renderData);
@@ -235,6 +236,20 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
             pMhwAvsState->dwInputVerticalSitting = SFC_AVS_INPUT_SITING_COEF_4_OVER_8;
         }
     }
+
+    if (m_renderData->SfcScalingMode == VPHAL_SCALING_NEAREST)
+    {
+        scalingMode = MHW_SCALING_NEAREST;
+    }
+    else if (m_renderData->SfcScalingMode == VPHAL_SCALING_BILINEAR)
+    {
+        scalingMode = MHW_SCALING_BILINEAR;
+    }
+    else
+    {
+        scalingMode = MHW_SCALING_AVS;
+    }
+    VP_RENDER_CHK_STATUS_RETURN(m_sfcInterface->SetSfcAVSScalingMode(scalingMode));
 
     VP_RENDER_CHK_STATUS_RETURN(m_sfcInterface->SetSfcSamplerTable(
         &m_avsState.LumaCoeffs,

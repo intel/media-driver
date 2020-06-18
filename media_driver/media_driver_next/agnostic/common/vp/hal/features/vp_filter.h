@@ -115,7 +115,7 @@ struct _SFC_SCALING_PARAMS
     uint32_t                        dwInputFrameHeight;                         // Input Frame Height
     uint32_t                        dwInputFrameWidth;                          // Input Frame Width
 
-    uint32_t                        dwAVSFilterMode;                            // Bilinear, 5x5 or 8x8
+    uint32_t                        dwAVSFilterMode;                            // Bilinear filter only, 5x5 + bilinear (adaptive) or 8x8 + bilinear (adaptive) which are exactly equal to SFC_STATE cmd.DW4.AvsFilterMode
     uint32_t                        dwSourceRegionHeight;                       // Source/Crop region height
     uint32_t                        dwSourceRegionWidth;                        // Source/Crop region width
     uint32_t                        dwSourceRegionVerticalOffset;               // Source/Crop region vertical offset
@@ -129,6 +129,7 @@ struct _SFC_SCALING_PARAMS
 
     SFC_COLORFILL_PARAMS            sfcColorfillParams;                         // Colorfill Params
 
+    VPHAL_SCALING_MODE              sfcScalingMode;                             // Bilinear, Nearest, AVS and future extension (configured by AVS coefficients)
 };
 
 struct _SFC_CSC_PARAMS

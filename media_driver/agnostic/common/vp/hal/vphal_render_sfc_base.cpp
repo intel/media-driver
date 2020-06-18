@@ -120,6 +120,30 @@ MHW_ROTATION VpHal_GetMhwRotationParam(VPHAL_ROTATION Rotation)
     }
 }
 
+//!
+//! \brief    Get SFC Scaling mode parameter
+//! \details  Get MHW SFC Scaling mode parameter
+//! \param    [in] Scaling mode
+//!           VPHAL Scaling mode parameter
+//! \return   MHW_SCALING_MODE
+//!
+MHW_SCALING_MODE VpHal_GetMhwScalingModeParam(VPHAL_SCALING_MODE ScalingMode)
+{
+    switch (ScalingMode)
+    {
+    case VPHAL_SCALING_NEAREST:
+        return MHW_SCALING_NEAREST;                         // Nearest interpolation
+
+    case VPHAL_SCALING_BILINEAR:
+        return MHW_SCALING_BILINEAR;                        // Bilinear interpolation
+
+    case VPHAL_SCALING_AVS:
+    case VPHAL_SCALING_ADV_QUALITY:
+    default:
+        return MHW_SCALING_AVS;
+    }
+}
+
 bool VphalSfcState::IsFormatMMCSupported(
     MOS_FORMAT                  Format)
 {
@@ -1358,7 +1382,9 @@ MOS_STATUS VphalSfcState::SetSfcMmcStatus(
 MOS_STATUS VphalSfcState::SetAvsStateParams()
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    PMHW_SFC_AVS_STATE          pMhwAvsState;
+    PMHW_SFC_AVS_STATE          pMhwAvsState = nullptr;
+
+    MHW_SCALING_MODE            scalingMode  = MHW_SCALING_AVS;
 
     VPHAL_RENDER_CHK_NULL(m_sfcInterface);
 
@@ -1383,6 +1409,9 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
     }
 
     m_renderData.pAvsParams->bForcePolyPhaseCoefs = m_renderData.bForcePolyPhaseCoefs;
+
+    scalingMode = VpHal_GetMhwScalingModeParam(m_renderData.SfcScalingMode);
+    VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcAVSScalingMode(scalingMode));
 
     VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcSamplerTable(
         &m_avsState.LumaCoeffs,

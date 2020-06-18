@@ -170,6 +170,16 @@ typedef enum _MHW_CHROMA_SITING
 } MHW_CHROMA_SITING;
 
 //!
+//! \brief Scaling mode enum
+//!
+typedef enum _MHW_SCALING_MODE
+{
+    MHW_SCALING_NEAREST = 0,
+    MHW_SCALING_BILINEAR,
+    MHW_SCALING_AVS
+} MHW_SCALING_MODE;
+
+//!
 //! \brief  AVS Params
 //!
 typedef struct _MHW_AVS_PARAMS

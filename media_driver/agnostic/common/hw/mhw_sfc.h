@@ -479,6 +479,19 @@ public:
         float                           fHPStrength,
         float                           fLanczosT);
 
+    //!
+    //! \brief      Sets AVS Scaling Mode. Will configure the different coefficients of 8-Tap polyphase filter according to scaling mode.
+    //! \param      [in] ScalingMode
+    //!             AVS scaling mode e.g. Nearest, 8-Tap polyphase etc.
+    //! \return     MOS_STATUS
+    //!
+    virtual MOS_STATUS SetSfcAVSScalingMode(
+        MHW_SCALING_MODE  ScalingMode)
+    {
+        m_scalingMode = ScalingMode;
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
 
     MhwSfcInterface(PMOS_INTERFACE pOsInterface);
@@ -541,6 +554,8 @@ public:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_outputSurfCtrl;          // Output Frame caching control bits
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_avsLineBufferCtrl;       // AVS Line Buffer caching control bits
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_iefLineBufferCtrl;       // IEF Line Buffer caching control bits
+
+    MHW_SCALING_MODE                           m_scalingMode;
 };
 
 #endif // __MHW_SFC_H__

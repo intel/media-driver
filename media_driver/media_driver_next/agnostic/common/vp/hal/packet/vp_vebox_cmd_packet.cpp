@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -343,6 +343,7 @@ MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
 
         m_sfcRenderData.fScaleX = scalingParams->fAVSXScalingRatio;
         m_sfcRenderData.fScaleY = scalingParams->fAVSYScalingRatio;
+        m_sfcRenderData.SfcScalingMode = scalingParams->sfcScalingMode;
 
         // ColorFill/Alpha settings
         m_sfcRenderData.pColorFillParams            = &(scalingParams->sfcColorfillParams);
