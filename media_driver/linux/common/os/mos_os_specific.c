@@ -3299,6 +3299,42 @@ finish:
 }
 
 //!
+//! \brief    copy resource to another Buffer
+//! \details  copy resource to another
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] pointer to OS Interface structure
+//! \param    PMOS_RESOURCE inputOsResource
+//!           [in] Input Resource object
+//! \param    PMOS_RESOURCE outputOsResource
+//!           [out] output Resource object
+//! \param    [in] preferMethod
+//!            indicate which copy mode is prefered.
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if successful
+//!
+MOS_STATUS Mos_Specific_MediaCopy(
+    PMOS_INTERFACE        osInterface,
+    PMOS_RESOURCE         inputOsResource,
+    PMOS_RESOURCE         outputOsResource,
+    uint32_t              preferMethod)
+{
+    MOS_STATUS              eStatus = MOS_STATUS_UNIMPLEMENTED;
+
+    //---------------------------------------
+    MOS_OS_CHK_NULL_RETURN(osInterface);
+    MOS_OS_CHK_NULL_RETURN(inputOsResource);
+    MOS_OS_CHK_NULL_RETURN(outputOsResource);
+    //---------------------------------------
+
+    if (osInterface->apoMosEnabled)
+    {
+        return MosInterface::MediaCopy(osInterface->osStreamState, inputOsResource, outputOsResource, preferMethod);
+    }
+
+    return eStatus;
+}
+
+//!
 //! \brief    Set patch entry
 //! \details  Sets the patch entry in MS's patch list
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7191,6 +7227,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnDecompResource                         = Mos_Specific_DecompResource;
     pOsInterface->pfnDoubleBufferCopyResource               = Mos_Specific_DoubleBufferCopyResource;
     pOsInterface->pfnMediaCopyResource2D                    = Mos_Specific_MediaCopyResource2D;
+    pOsInterface->pfnMediaCopy                              = Mos_Specific_MediaCopy;
     pOsInterface->pfnRegisterResource                       = Mos_Specific_RegisterResource;
     pOsInterface->pfnResetResourceAllocationIndex           = Mos_Specific_ResetResourceAllocationIndex;
     pOsInterface->pfnGetResourceAllocationIndex             = Mos_Specific_GetResourceAllocationIndex;

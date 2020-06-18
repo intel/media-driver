@@ -652,6 +652,14 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             MOS_OS_NORMALMESSAGE("Decomp state creation failed");
         }
 #endif
+        m_mosMediaCopy = MOS_New(MosMediaCopy, osDriverContext);
+        MOS_OS_CHK_NULL_RETURN(m_mosMediaCopy);
+        osDriverContext->ppMediaCopyState = m_mosMediaCopy->GetMediaCopyState();
+        MOS_OS_CHK_NULL_RETURN(osDriverContext->ppMediaCopyState);
+        if (*osDriverContext->ppMediaCopyState == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Media Copy state creation failed");
+        }
     }
     return eStatus;
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,46 +20,36 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mos_context_next.cpp
-//! \brief    Container for parameters shared across different GPU contexts of the same device instance
+//! \file     mos_mediacopy.cpp
+//! \brief    MOS media copy functions
+//! \details  MOS media copy functions
 //!
 
-#include "mos_context_next.h"
-#include "mos_context_specific_next.h"
-#include "mediamemdecomp.h"
-#include "mos_util_debug_next.h"
-#include <new>
+#include "mos_mediacopy.h"
+#include "media_interfaces_mcpy.h"
 
-class OsContextNext* OsContextNext::GetOsContextObject()
+MosMediaCopy::MosMediaCopy(PMOS_CONTEXT osDriverContext)
 {
-    MOS_OS_FUNCTION_ENTER;
-    class OsContextNext* osContextPtr = MOS_New(OsContextSpecificNext);
-
-    return osContextPtr;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osDriverContext);
+    m_mediaCopyState = static_cast<MediaCopyBaseState *>(McpyDevice::CreateFactory(osDriverContext));
 }
 
-void OsContextNext::CleanUp()
+MosMediaCopy::~MosMediaCopy()
 {
-    MOS_OS_FUNCTION_ENTER;
+    MOS_Delete(m_mediaCopyState);
+}
 
-#ifdef _MMC_SUPPORTED
-    MOS_Delete(m_mosDecompression);
-#endif
-    MOS_Delete(m_mosMediaCopy);
+MOS_STATUS MosMediaCopy::MediaCopy(
+    PMOS_RESOURCE inputResource,
+    PMOS_RESOURCE outputResource,
+    MCPY_METHOD   preferMethod)
+{
+    MOS_OS_CHK_NULL_RETURN(m_mediaCopyState);
 
-    if (m_gpuContextMgr != nullptr)
-    {
-        m_gpuContextMgr->CleanUp();
-        MOS_Delete(m_gpuContextMgr);
-        m_gpuContextMgr = nullptr;
-    }
+    MOS_OS_CHK_STATUS_RETURN(m_mediaCopyState->SurfaceCopy(
+        inputResource,
+        outputResource,
+        preferMethod));
 
-    if (m_cmdBufMgr != nullptr)
-    {
-        m_cmdBufMgr->CleanUp();
-        MOS_Delete(m_cmdBufMgr);
-        m_cmdBufMgr = nullptr;
-    }
-
-    Destroy();
+    return MOS_STATUS_SUCCESS;
 }
