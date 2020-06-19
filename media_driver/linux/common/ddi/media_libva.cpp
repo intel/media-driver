@@ -4711,10 +4711,11 @@ static VAStatus DdiMedia_CopySurfaceToImage(
     DDI_CHK_NULL(ctx,       "nullptr ctx.",         VA_STATUS_ERROR_INVALID_CONTEXT);
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,  "nullptr mediaCtx.",    VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(surface,  "nullptr meida surface.", VA_STATUS_ERROR_INVALID_BUFFER);
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     //Lock Surface
-    if ((nullptr != surface) && (Media_Format_CPU != surface->format))
+    if ((Media_Format_CPU != surface->format))
     {
         vaStatus = DdiMedia_MediaMemoryDecompress(mediaCtx, surface);
 
