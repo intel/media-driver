@@ -2434,7 +2434,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         m_lastTaskInPhase = true;
     }
 
-    if (m_lookaheadUpdate)
+    if (m_lookaheadUpdate && (m_swLaMode == nullptr))
     {
         m_lastTaskInPhase = false;
     }
@@ -2703,7 +2703,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
             }
         }
 
-        if (!m_lookaheadUpdate)
+        if (!m_lookaheadUpdate || m_swLaMode)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
         }
@@ -7840,6 +7840,19 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     virtualAddrParams.regionParams[0].presRegion = &m_vdencLaHistoryBuffer;
     virtualAddrParams.regionParams[0].isWritable = true;
 
+#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+    if (m_swLaMode)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallSwLookaheadImpl(
+            m_debugInterface,
+            m_swLaMode,
+            CODECHAL_MEDIA_STATE_BRC_INIT_RESET,
+            &m_vdencLaInitDmemBuffer,
+            &virtualAddrParams));
+
+        return eStatus;
+    }
+#endif
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
@@ -7937,6 +7950,37 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[1].presRegion = &m_vdencLaStatsBuffer;
     virtualAddrParams.regionParams[2].presRegion = m_encodeParams.psLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true;
+
+#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+    if (m_swLaMode)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallSwLookaheadImpl(
+            m_debugInterface,
+            m_swLaMode,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE,
+            &m_vdencLaUpdateDmemBuffer[m_currRecycledBufIdx],
+            &virtualAddrParams));
+
+        EncodeStatusBuffer encodeStatusBuf = m_encodeStatusBuf;
+        uint32_t baseOffset = (encodeStatusBuf.wCurrIndex * encodeStatusBuf.dwReportSize);
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly = true;
+
+        CodechalEncodeLaData *data = (CodechalEncodeLaData *)m_osInterface->pfnLockResource(m_osInterface, m_encodeParams.psLaDataBuffer, &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        LookaheadReport *lookaheadStatus = (LookaheadReport *)(encodeStatusBuf.pEncodeStatus + baseOffset + encodeStatusBuf.dwLookaheadStatusOffset);
+        lookaheadStatus->targetFrameSize = data[dmem->offset].targetFrameSize;
+        lookaheadStatus->targetBufferFulness = data[dmem->offset].targetBufferFulness;
+        lookaheadStatus->encodeHints = data[dmem->offset].report;
+
+        m_osInterface->pfnUnlockResource(m_osInterface, m_encodeParams.psLaDataBuffer);
+
+        return eStatus;
+    }
+#endif
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));

@@ -2187,7 +2187,7 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
     }
 
-    if (!m_lookaheadUpdate)
+    if (!m_lookaheadUpdate || m_swLaMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
     }
@@ -2476,7 +2476,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     }
 #endif
 
-    if (!m_lookaheadUpdate)
+    if (!m_lookaheadUpdate || m_swLaMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
     }
@@ -3108,6 +3108,12 @@ MOS_STATUS CodechalVdencHevcState::FreePakResources()
         }
     }
 
+    if (m_swLaMode != nullptr)
+    {
+        m_osInterface->pfnFreeLibrary(m_swLaMode);
+        m_swLaMode = nullptr;
+    }
+
     return CodechalEncodeHevcBase::FreePakResources();
 }
 
@@ -3621,6 +3627,34 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
             &userFeatureData);
         m_32xMeSupported = (userFeatureData.i32Data) ? true : false;
     }
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_LA_SOFTWARE_ID,
+        &userFeatureData);
+
+    if (userFeatureData.i32Data)
+    {
+        MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
+        char path_buffer[256];
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_ZeroMemory(path_buffer, 256);
+        userFeatureData.StringData.pStringData = path_buffer;
+
+        statusKey = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENCODE_LA_SOFTWARE_PATH_ID,
+            &userFeatureData);
+
+        if (statusKey == MOS_STATUS_SUCCESS && userFeatureData.StringData.uSize > 0)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnLoadLibrary(m_osInterface, path_buffer, &m_swLaMode));
+        }
+    }
+
+    // SW LA DLL Reporting
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_LA_SOFTWARE_IN_USE_ID, (m_swLaMode == nullptr) ? false : true);
 
     return eStatus;
 }

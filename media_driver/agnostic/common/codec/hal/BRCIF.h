@@ -118,6 +118,35 @@ enum HevcVdencBufferType {
     HEVCVDENC_AUX_BUFF
 };
 
+enum LAErrorCode
+{
+    LA_SUCCEED = 0,
+    LA_NO_INLINE_DMEM,
+    LA_NO_HISTORY,
+    LA_NO_FRAME_STATISTICS,
+    LA_NO_OUTPUT,
+    LA_UNKNOWN_PROCESSTYPE,
+    LA_UNKNOWN_BUFFERTYPE,
+    LA_UNKNOWN_ERROR
+};
+
+enum LAProcessType
+{
+    LookaheadUnknownProc = 0,
+    LookaheadInit,
+    LookaheadReset,
+    LookaheadUpdate
+};
+
+enum LABufferType
+{
+    LA_UnknownBuff = 0,
+    LA_INLINE_DMEM,
+    LA_HISTORY_BUFF,
+    LA_FRAME_STATISTICS_BUFF,
+    LA_OUTPUT_BUFF
+};
+
 extern "C"    void * MC_CreateInstance(ProcessType processor);
 
 extern "C"    void MC_ReleaseInstance(void *obj);

@@ -36,6 +36,9 @@
 #include "mhw_vdbox_vdenc_g11_X.h"
 #include "codechal_huc_cmd_initializer_g11.h"
 #include "codechal_debug_encode_par_g11.h"
+#ifdef _ENCODE_VDENC_RESERVED
+#include "codechal_debug_encode_brc.h"
+#endif
 
 const double CodechalVdencHevcStateG11::m_devThreshIFPNEG[] = {
     0.80, 0.60, 0.34, 0.2,
@@ -1896,7 +1899,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
         m_lastTaskInPhase = true;
     }
 
-    if (m_lookaheadUpdate)
+    if (m_lookaheadUpdate && (m_swLaMode == nullptr))
     {
         m_lastTaskInPhase = false;
     }
@@ -2226,7 +2229,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
     }
 
-    if (IsFirstPipe() && !m_lookaheadUpdate)
+    if (IsFirstPipe() && (!m_lookaheadUpdate || m_swLaMode))
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
     }
@@ -5832,6 +5835,19 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadInit()
     virtualAddrParams.regionParams[0].presRegion = &m_vdencLaHistoryBuffer; 
     virtualAddrParams.regionParams[0].isWritable = true; 
 
+#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+    if (m_swLaMode)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallSwLookaheadImpl(
+            m_debugInterface,
+            m_swLaMode,
+            CODECHAL_MEDIA_STATE_BRC_INIT_RESET,
+            &m_vdencLaInitDmemBuffer,
+            &virtualAddrParams));
+
+        return eStatus;
+    }
+#endif
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
@@ -5929,6 +5945,38 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[1].presRegion = &m_vdencLaStatsBuffer; 
     virtualAddrParams.regionParams[2].presRegion = m_encodeParams.psLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true; 
+
+#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+    if (m_swLaMode)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallSwLookaheadImpl(
+            m_debugInterface,
+            m_swLaMode,
+            CODECHAL_MEDIA_STATE_BRC_UPDATE,
+            &m_vdencLaUpdateDmemBuffer[m_currRecycledBufIdx],
+            &virtualAddrParams));
+
+        EncodeStatusBuffer encodeStatusBuf = m_encodeStatusBuf;
+        uint32_t baseOffset = (encodeStatusBuf.wCurrIndex * encodeStatusBuf.dwReportSize);
+
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.ReadOnly = true;
+
+        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, m_encodeParams.psLaDataBuffer, &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        MOS_SecureMemcpy(
+            encodeStatusBuf.pEncodeStatus + baseOffset + encodeStatusBuf.dwLookaheadStatusOffset,
+            sizeof(uint32_t),
+            data + dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, report),
+            sizeof(uint32_t));
+
+        m_osInterface->pfnUnlockResource(m_osInterface, m_encodeParams.psLaDataBuffer);
+
+        return eStatus;
+    }
+#endif
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));

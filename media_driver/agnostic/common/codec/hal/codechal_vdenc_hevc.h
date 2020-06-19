@@ -104,12 +104,18 @@ struct CodechalVdencHevcLaDmem
     uint32_t mbCount;             // normalized 16x16 block count
     uint32_t statsRecords;        // # of statistic records
     uint32_t averageFrameSize;    // in the units of bytes
-    uint8_t  RSVD1[4];
+    uint16_t minGop;
+    uint16_t maxGop;
+    uint16_t BGop;
+    uint16_t AGop;
+    uint16_t AGop_Threshold;
+    uint16_t PGop;
     // for Update, valid only when lookAheadFunc = 1
     uint32_t validStatsRecords;   // # of valid stats records
     uint32_t offset;              // offset in unit of entries
     uint8_t  cqmQpThreshold;    // QP threshold for CQM enable/disable. If estimated QP > CQM_QP_threshold, kernel set HUC_HEVC_LA_DATA.enableCQM to 1.
-    uint8_t  RSVD2[23];
+    uint8_t  currentPass;
+    uint8_t  RSVD2[22];
 };
 
 using PCodechalVdencHevcLaDmem = CodechalVdencHevcLaDmem *;
@@ -253,6 +259,7 @@ public:
     uint32_t                                m_numValidLaRecords = 0;                           //!< Number of valid lookahead records
     int32_t                                 m_bufferFulnessError = 0;                          //!< VBV buffer fulness error between unit of bits (used by driver) and unit of frame (used by LA analsis kernel)
     uint8_t                                 m_cqmQpThreshold = 40;                             //!< QP threshold for CQM enable/disable. Used by lookahead analysis kernel.
+    HMODULE                                 m_swLaMode = nullptr;                              //!< Software lookahead analysis mode
 
 protected:
     //!
