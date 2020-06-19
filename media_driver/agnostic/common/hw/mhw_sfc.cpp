@@ -36,6 +36,7 @@ MhwSfcInterface::MhwSfcInterface(PMOS_INTERFACE pOsInterface)
     MOS_ZeroMemory(&m_avsLineBufferCtrl, sizeof(m_avsLineBufferCtrl));
     MOS_ZeroMemory(&m_iefLineBufferCtrl, sizeof(m_iefLineBufferCtrl));
     pfnAddResourceToCmd = nullptr;
+    m_scalingMode       = MHW_SCALING_AVS;
 
     if (pOsInterface == nullptr)
     {
@@ -58,8 +59,6 @@ MhwSfcInterface::MhwSfcInterface(PMOS_INTERFACE pOsInterface)
     {
         pfnAddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
     }
-
-    m_scalingMode = MHW_SCALING_AVS;
 }
 
 void MhwSfcInterface::SetSfcAVSChromaTable(
