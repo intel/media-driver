@@ -193,7 +193,9 @@ MOS_STATUS  AuxTableMgr::MapResource(GMM_RESOURCE_INFO *gmmResInfo, MOS_LINUX_BO
     }
 
     GMM_RESOURCE_FLAG flags = gmmResInfo->GetResFlags(); 
-    if ((flags.Info.MediaCompressed || flags.Info.RenderCompressed) && (bo->aux_mapped == false))
+    if ((flags.Info.MediaCompressed || flags.Info.RenderCompressed) && 
+        (flags.Gpu.MMC && flags.Gpu.CCS)                            &&
+        (bo->aux_mapped == false))
     {
         int ret = 0;
 
