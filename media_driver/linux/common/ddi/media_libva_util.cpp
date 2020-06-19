@@ -457,7 +457,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case I915_TILING_Y:
             // Disable MMC for application required surfaces, because some cases' output streams have corruption.
             gmmParams.Flags.Gpu.MMC    = false;
-            if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) && bMemCompEnable)
+            if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) &&
+                (!MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableVPMmc)    &&
+                !MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableCodecMmc)) &&
+                bMemCompEnable)
             {
                 gmmParams.Flags.Gpu.MMC               = true;
                 gmmParams.Flags.Info.MediaCompressed  = 1;
