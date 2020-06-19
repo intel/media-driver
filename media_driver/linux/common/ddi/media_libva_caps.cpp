@@ -83,7 +83,9 @@ const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
     VA_FOURCC_ARGB,
     VA_FOURCC_ABGR,
     VA_FOURCC_A2R10G10B10,
-    VA_FOURCC_A2B10G10R10
+    VA_FOURCC_A2B10G10R10,
+    VA_FOURCC_X2R10G10B10,
+    VA_FOURCC_X2B10G10R10
 };
 
 const uint32_t MediaLibvaCaps::m_jpegSurfaceAttr[m_numJpegSurfaceAttr] =
