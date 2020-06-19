@@ -6310,6 +6310,13 @@ MOS_STATUS Mos_Specific_GetMemoryCompressionMode(
     MOS_OS_CHK_NULL_RETURN(pGmmResourceInfo);
 
     flags = pOsResource->pGmmResInfo->GetResFlags();
+
+    if (!flags.Gpu.MMC || !flags.Gpu.CCS)
+    {
+        *pResMmcMode = MOS_MEMCOMP_DISABLED;
+        return MOS_STATUS_SUCCESS;
+    }
+
     if (flags.Info.MediaCompressed || flags.Info.RenderCompressed)
     {
         *pResMmcMode = flags.Info.RenderCompressed ? MOS_MEMCOMP_RC : MOS_MEMCOMP_MC;
