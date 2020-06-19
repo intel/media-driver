@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #include "mhw_sfc.h"
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
+#include "vp_packet_shared_context.h"
 
 namespace vp {
 
@@ -41,6 +42,11 @@ class VpCmdPacket : public CmdPacket
 public:
     VpCmdPacket(MediaTask *task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, PacketType packetId);
     virtual ~VpCmdPacket() {};
+
+    void SetPacketSharedContext(VP_PACKET_SHARED_CONTEXT *context)
+    {
+        m_packetSharedContext = context;
+    }
 
     // Need to remove vphal surface dependence from VpCmdPacket later.
     virtual MOS_STATUS PacketInit(
@@ -76,6 +82,7 @@ public:
 
 protected:
     PacketType          m_PacketId = VP_PIPELINE_PACKET_FF;
+    VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
 };
 }
 #endif // !__VP_CMD_PACKET_H__

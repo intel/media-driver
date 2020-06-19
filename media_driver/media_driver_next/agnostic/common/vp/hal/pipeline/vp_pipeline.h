@@ -38,6 +38,7 @@
 #include "vphal.h"
 #include "vp_dumper.h"
 #include "vp_feature_manager.h"
+#include "vp_packet_shared_context.h"
 
 namespace vp
 {
@@ -172,6 +173,8 @@ protected:
     virtual MOS_STATUS CreateResourceManager();
     virtual MOS_STATUS CheckFeatures(void *params, bool &bapgFuncSupported);
 
+    virtual MOS_STATUS CreatePacketSharedContext();
+
 protected:
     PVP_PIPELINE_PARAMS    m_pvpParams              = nullptr;  //!< vp Pipeline params
     PVP_MHWINTERFACE       m_pvpMhwInterface        = nullptr;  //!< vp Pipeline Mhw Interface
@@ -194,6 +197,7 @@ protected:
     PacketPipeFactory     *m_pPacketPipeFactory     = nullptr;
     VpResourceManager     *m_resourceManager        = nullptr;
     VPFeatureManager      *m_paramChecker           = nullptr;
+    VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
 };
 
 struct _VP_SFC_PACKET_PARAMS

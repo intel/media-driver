@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -49,12 +49,13 @@ void PacketFactory::ClearPacketPool(std::vector<VpCmdPacket *> &pool)
     }
 }
 
-MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc)
+MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext)
 {
     m_pTask = pTask;
     m_pHwInterface = pHwInterface;
     m_pAllocator = pAllocator;
     m_pMmc = pMmc;
+    m_packetSharedContext = packetSharedContext;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -108,12 +109,22 @@ void PacketFactory::ReturnPacket(VpCmdPacket *&pPacket)
 
 VpCmdPacket *PacketFactory::CreateVeboxPacket()
 {
-    return m_vpPlatformInterface ? m_vpPlatformInterface->CreateVeboxPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc) : nullptr;
+    VpCmdPacket *p = m_vpPlatformInterface ? m_vpPlatformInterface->CreateVeboxPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc) : nullptr;
+    if (p)
+    {
+        p->SetPacketSharedContext(m_packetSharedContext);
+    }
+    return p;
 }
 
 VpCmdPacket *PacketFactory::CreateRenderPacket()
 {
-    return m_vpPlatformInterface ? m_vpPlatformInterface->CreateRenderPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc) : nullptr;
+    VpCmdPacket *p = m_vpPlatformInterface ? m_vpPlatformInterface->CreateRenderPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc) : nullptr;
+    if (p)
+    {
+        p->SetPacketSharedContext(m_packetSharedContext);
+    }
+    return p;
 }
 
 PacketPipe::PacketPipe(PacketFactory &packetFactory) : m_PacketFactory(packetFactory)

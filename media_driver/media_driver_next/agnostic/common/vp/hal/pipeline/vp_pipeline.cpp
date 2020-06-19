@@ -57,6 +57,7 @@ VpPipeline::~VpPipeline()
     MOS_Delete(m_mmc);
     MOS_Delete(m_allocator);
     MOS_Delete(m_statusReport);
+    MOS_Delete(m_packetSharedContext);
     if (m_mediaContext)
     {
         MOS_Delete(m_mediaContext);
@@ -125,6 +126,13 @@ MOS_STATUS VpPipeline::UserFeatureReport()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpPipeline::CreatePacketSharedContext()
+{
+    m_packetSharedContext = MOS_New(VP_PACKET_SHARED_CONTEXT);
+    VP_PUBLIC_CHK_NULL_RETURN(m_packetSharedContext);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpPipeline::Init(void *settings)
 {
     VP_FUNC_CALL();
@@ -163,10 +171,11 @@ MOS_STATUS VpPipeline::Init(void *settings)
     m_pPacketFactory = MOS_New(PacketFactory, m_pvpMhwInterface->m_vpPlatformInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketFactory);
 
+    VP_PUBLIC_CHK_STATUS_RETURN(CreatePacketSharedContext());
     // Create active tasks
     MediaTask *pTask = GetTask(MediaTask::TaskType::cmdTask);
     VP_PUBLIC_CHK_NULL_RETURN(pTask);
-    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, m_pvpMhwInterface, m_allocator, m_mmc));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, m_pvpMhwInterface, m_allocator, m_mmc, m_packetSharedContext));
 
     m_pPacketPipeFactory = MOS_New(PacketPipeFactory, *m_pPacketFactory);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
@@ -476,8 +485,12 @@ MOS_STATUS VpPipeline::Execute()
     VP_FUNC_CALL();
 
     VP_PUBLIC_CHK_STATUS_RETURN(ExecuteVpPipeline())
-
     VP_PUBLIC_CHK_STATUS_RETURN(UserFeatureReport());
+
+    if (m_packetSharedContext && m_packetSharedContext->bFirstFrame)
+    {
+        m_packetSharedContext->bFirstFrame = false;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
