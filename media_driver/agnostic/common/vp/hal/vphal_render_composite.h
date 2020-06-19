@@ -728,6 +728,22 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    //! \brief    Update Inline Data status
+    //! \param    [in] pSurface
+    //!           point to input Surface
+    //! \param    [in] pStatic
+    //!           Pointer to static data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise MOS_STATUS_UNKNOWN
+    //!
+    virtual MOS_STATUS UpdateInlineDataStatus(
+        PVPHAL_SURFACE                 pSurface,
+        MEDIA_OBJECT_KA2_STATIC_DATA   *pStatic)
+    {
+        // Just need the sub class to implement if it is needed;
+        return MOS_STATUS_SUCCESS;
+    }
+
     //!
     //! \brief    Prepare phases for composite and allocate intermediate buffer for rendering
     //! \param    [in] pcRenderParams

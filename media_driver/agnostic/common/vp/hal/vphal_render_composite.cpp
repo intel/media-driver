@@ -4432,6 +4432,8 @@ bool CompositeState::SubmitStates(
 
     iInlineLength = CalculateInlineDataSize(pRenderingData, pStatic);
 
+    UpdateInlineDataStatus(pRenderingData->pLayers[0], pStatic);
+
     // Set Background color (use cspace of first layer)
     if (pRenderingData->pColorFill)
     {
