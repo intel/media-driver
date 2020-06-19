@@ -196,51 +196,7 @@ MOS_STATUS MhwInterfacesG11Icllp::Initialize(
 finish:
     if (status != MOS_STATUS_SUCCESS)
     {
-        if (m_cpInterface)
-        {
-            MOS_FreeMemory(m_cpInterface);
-            m_cpInterface = nullptr;
-        }
-        if (m_miInterface)
-        {
-            MOS_FreeMemory(m_miInterface);
-            m_miInterface = nullptr;
-        }
-        if (m_renderInterface)
-        {
-            MOS_FreeMemory(m_renderInterface);
-            m_renderInterface = nullptr;
-        }
-        if (m_stateHeapInterface)
-        {
-            MOS_FreeMemory(m_stateHeapInterface);
-            m_stateHeapInterface = nullptr;
-        }
-        if (m_sfcInterface)
-        {
-            MOS_FreeMemory(m_sfcInterface);
-            m_sfcInterface = nullptr;
-        }
-        if (m_veboxInterface)
-        {
-            MOS_FreeMemory(m_veboxInterface);
-            m_veboxInterface = nullptr;
-        }
-        if (m_mfxInterface)
-        {
-            MOS_FreeMemory(m_mfxInterface);
-            m_mfxInterface = nullptr;
-        }
-        if (m_hcpInterface)
-        {
-            MOS_FreeMemory(m_hcpInterface);
-            m_hcpInterface = nullptr;
-        }
-        if (m_hucInterface)
-        {
-            MOS_FreeMemory(m_hucInterface);
-            m_hucInterface = nullptr;
-        }
+        Destroy();
     }
     return status;
 }
