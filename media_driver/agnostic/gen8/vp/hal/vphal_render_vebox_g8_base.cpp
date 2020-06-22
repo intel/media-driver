@@ -536,6 +536,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::AllocateResources()
 
             // Set Colorspace of FFDI
             pVeboxState->FFDISurfaces[i]->ColorSpace = ColorSpace;
+            // Copy ScalingMode, it's used in setting SFC state
+            pVeboxState->FFDISurfaces[i]->ScalingMode = pVeboxState->m_currentSurface->ScalingMode;
         }
     }
     else
@@ -601,6 +603,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::AllocateResources()
             // Copy FrameID and parameters, as DN output will be used as next blt's current
             pVeboxState->FFDNSurfaces[i]->FrameID            = pVeboxState->m_currentSurface->FrameID;
             pVeboxState->FFDNSurfaces[i]->pDenoiseParams     = pVeboxState->m_currentSurface->pDenoiseParams;
+            // Copy ScalingMode, it's used in setting SFC state
+            pVeboxState->FFDNSurfaces[i]->ScalingMode        = pVeboxState->m_currentSurface->ScalingMode;
         }
     }
     else
