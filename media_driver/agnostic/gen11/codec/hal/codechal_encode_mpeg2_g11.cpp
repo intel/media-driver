@@ -2081,7 +2081,7 @@ MOS_STATUS CodechalEncodeMpeg2G11::ExecuteKernelFunctions()
                 CODECHAL_MEDIA_STATE_ENC_QUALITY));
         }
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_brcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+            &m_brcBuffers.resBrcImageStatesWriteBuffer,
             CodechalDbgAttr::attrOutput,
             "ImgStateWrite",
             BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),
@@ -2095,20 +2095,10 @@ MOS_STATUS CodechalEncodeMpeg2G11::ExecuteKernelFunctions()
             m_brcHistoryBufferSize,
             0,
             CODECHAL_MEDIA_STATE_BRC_UPDATE));
-        if (!Mos_ResourceIsNull(&m_brcBuffers.sBrcMbQpBuffer.OsResource))
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_brcBuffers.sBrcMbQpBuffer.OsResource,
-                CodechalDbgAttr::attrOutput,
-                "MbQp",
-                m_brcBuffers.sBrcMbQpBuffer.dwPitch*m_brcBuffers.sBrcMbQpBuffer.dwHeight,
-                m_brcBuffers.dwBrcMbQpBottomFieldOffset,
-                CODECHAL_MEDIA_STATE_BRC_UPDATE));
-        }
         if (m_brcBuffers.pMbEncKernelStateInUse)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCurbe(
-                CODECHAL_MEDIA_STATE_BRC_UPDATE,
+                CODECHAL_MEDIA_STATE_ENC_NORMAL,
                 m_brcBuffers.pMbEncKernelStateInUse));
         }
         if (m_mbencBrcBufferSize>0)

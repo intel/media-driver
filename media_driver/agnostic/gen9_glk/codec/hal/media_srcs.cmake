@@ -38,6 +38,16 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
 source_group( "CodecHal\\Encode" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 endif()
@@ -59,17 +69,28 @@ set(HEADERS_
     ${TMP_2_HEADERS_}
 )
 
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_2_HEADERS_}
+)
+
 source_group( "CodecHal\\HW Interface" FILES ${TMP_2_SOURCES_} ${TMP_2_HEADERS_} )
 
 #decode
 set(TMP_3_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_g9_glk.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_kernel_g9_glk.cpp
 )
 
 set(TMP_3_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_g9_glk.h
 )
+
+if(ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS)
+    set(TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_nv12top010_kernel_g9_glk.cpp
+    )
+endif()
 
 set(SOURCES_
     ${SOURCES_}
@@ -78,6 +99,16 @@ set(SOURCES_
 
 set(HEADERS_
     ${HEADERS_}
+    ${TMP_3_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_3_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_3_HEADERS_}
 )
 

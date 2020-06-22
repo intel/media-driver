@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -128,6 +128,7 @@ uint8_t DdiEncodeAvc::ConvertSliceStruct(uint32_t vaSliceStruct)
         return CODECHAL_SLICE_STRUCT_POW2ROWS;
     case VA_ENC_SLICE_STRUCTURE_ARBITRARY_MACROBLOCKS:
         return CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE;
+    case VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS:
     case VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS:
         return CODECHAL_SLICE_STRUCT_ROWSLICE;
     default:
@@ -935,7 +936,7 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         case VAEncPackedHeaderDataBufferType:
-            vaStatus = ParsePackedHeaderData(data);
+            DDI_CHK_STATUS(ParsePackedHeaderData(data), VA_STATUS_ERROR_INVALID_BUFFER);
             break;
 
         case VAEncMiscParameterBufferType:
@@ -948,8 +949,14 @@ VAStatus DdiEncodeAvc::RenderPicture(
             break;
 
         default:
-            DDI_ASSERTMESSAGE("not supported buffer type in vpgEncodeRenderPicture.");
-            // vaStatus = VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
+            if(m_encodeCtx->pCpDdiInterface)
+            {
+                vaStatus = m_encodeCtx->pCpDdiInterface->RenderCencPicture(ctx, context, buf, data);
+            }
+            else
+            {
+                vaStatus = VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
+            }
             break;
         }
         DdiMedia_UnmapBuffer(ctx, buffers[i]);
@@ -1460,6 +1467,7 @@ VAStatus DdiEncodeAvc::ParsePicParams(
     picParams->transform_8x8_mode_flag         = pic->pic_fields.bits.transform_8x8_mode_flag;
     picParams->pic_order_present_flag          = pic->pic_fields.bits.pic_order_present_flag;
     picParams->pic_scaling_matrix_present_flag = pic->pic_fields.bits.pic_scaling_matrix_present_flag;
+    picParams->bDisplayFormatSwizzle           = NeedDisplayFormatSwizzle(rtTbl->pCurrentRT);
     for (uint32_t i = 0; i < 12; i++)
     {
         picParams->pic_scaling_list_present_flag[i] = pic->pic_fields.bits.pic_scaling_matrix_present_flag;
@@ -1790,6 +1798,197 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderParams(void *ptr)
     return VA_STATUS_SUCCESS;
 }
 
+AvcOutBits::AvcOutBits(uint8_t *pOutBits, uint32_t BitSize)
+{
+    m_pOutBits = pOutBits;
+    m_BitSize = BitSize;
+    m_BitOffset = 0;
+}
+
+inline uint32_t AvcOutBits::GetBitOffset()
+{
+    return m_BitOffset;
+}
+
+void AvcOutBits::PutBit(uint32_t v)
+{
+    DDI_ASSERT(m_BitOffset + 1 <= m_BitSize);
+
+    uint32_t LeftOffset = m_BitOffset % 8;
+    uint8_t *p = m_pOutBits + m_BitOffset / 8;
+    (*p) |= ((v & 1) << (7 - LeftOffset));
+
+    m_BitOffset++;
+}
+
+void AvcOutBits::PutBits(uint32_t v, uint32_t n)
+{
+    DDI_ASSERT((n > 0) && (n <= 32));
+
+    uint32_t t = 0;
+
+    if (!(m_BitOffset % 8) && !(n % 8))
+    {
+        uint32_t nBytes = n / 8;
+        uint8_t *p = m_pOutBits + m_BitOffset / 8;
+
+        while (nBytes-- > 0)
+            (*p++) = (v >> nBytes) & 0xFF;
+
+        m_BitOffset += n;
+        return;
+    }
+
+    while (n-- > 0)
+        PutBit((v >> n) & 1);
+}
+
+AvcInBits::AvcInBits(uint8_t *pInBits, uint32_t BitSize)
+{
+    m_pInBits = pInBits;
+    m_BitSize = BitSize;
+    m_BitOffset = 0;
+}
+
+void AvcInBits::SkipBits(uint32_t n)
+{
+    DDI_ASSERT(n > 0);
+    DDI_ASSERT(m_BitOffset + n <= m_BitSize);
+
+    m_BitOffset += n;
+}
+
+uint32_t AvcInBits::GetBit()
+{
+    DDI_ASSERT(m_BitOffset + 1 <= m_BitSize);
+
+    uint32_t LeftOffset = m_BitOffset % 8;
+    uint8_t const *p = m_pInBits + m_BitOffset / 8;
+    uint32_t v = (*p >> (7 - LeftOffset)) & 1;
+
+    m_BitOffset++;
+    return v;
+}
+
+uint32_t AvcInBits::GetBits(uint32_t n)
+{
+    DDI_ASSERT((n > 0) && (n <= 32));
+
+    uint32_t v = 0;
+
+    if (!(m_BitOffset % 8) && !(n % 8))
+    {
+        uint32_t nBytes = n / 8;
+        uint8_t const *p = m_pInBits + m_BitOffset / 8;
+
+        while (nBytes-- > 0)
+            v = (v << 8) | (*p++);
+
+        m_BitOffset += n;
+        return v;
+    }
+
+    while (n-- > 0)
+        v = (v << 1) | GetBit();
+
+    return v;
+}
+
+uint32_t AvcInBits::AvcInBits::GetUE()
+{
+    uint32_t nZero = 0;
+    while(!GetBit())
+        nZero++;
+
+    return nZero ? ((1 << nZero) | GetBits(nZero)) - 1 : 0;
+}
+
+inline uint32_t AvcInBits::GetBitOffset()
+{
+    return m_BitOffset;
+}
+
+inline void AvcInBits::ResetBitOffset()
+{
+    m_BitOffset = 0;
+}
+
+MOS_STATUS DdiEncodeAvc::CheckPackedSlcHeaderData(
+    void *pInSlcHdr,
+    uint32_t InBitSize,
+    void **ppOutSlcHdr,
+    uint32_t &OutBitSize)
+{
+    MOS_STATUS status;
+    uint32_t HdrBitSize = 0;
+
+    *ppOutSlcHdr = NULL;
+    OutBitSize = 0;
+
+    if (VAEntrypointEncSliceLP != m_encodeCtx->vaEntrypoint)
+        return MOS_STATUS_SUCCESS;
+
+    if (0 == InBitSize || NULL == pInSlcHdr)
+        return MOS_STATUS_SUCCESS;
+
+    AvcInBits InBits((uint8_t*)pInSlcHdr, InBitSize);
+
+    // Skip start code
+    uint8_t StartCode = 0;
+    while (1 != StartCode) {
+        StartCode = InBits.GetBits(8);
+        HdrBitSize += 8;
+    }
+
+    uint32_t StartBitSize = HdrBitSize;
+
+    // Check NAL Unit type
+    HdrBitSize += 8;
+    InBits.SkipBits(1);
+    InBits.SkipBits(2);
+    uint32_t nalUnitType = InBits.GetBits(5);
+    if (20 == nalUnitType)
+    {
+        // MVC enxtension
+        InBits.SkipBits(24);
+        HdrBitSize += 24;
+    }
+
+    // find first_mb_in_slice
+    uint32_t first_mb_in_slice = InBits.GetUE();
+    if (0 == first_mb_in_slice)
+        return MOS_STATUS_SUCCESS;
+
+    // Force first_mb_in_slice to 0 for AVC VDENC
+    uint32_t LeftBitSize = InBitSize - InBits.GetBitOffset();
+    OutBitSize = LeftBitSize + HdrBitSize + 1;
+    *ppOutSlcHdr = MOS_AllocAndZeroMemory((OutBitSize + 7) / 8);
+
+    AvcOutBits OutBits((uint8_t*)(*ppOutSlcHdr), OutBitSize);
+
+    InBits.ResetBitOffset();
+    OutBits.PutBits(InBits.GetBits(StartBitSize), StartBitSize);
+    OutBits.PutBits(InBits.GetBits(8), 8);
+    if (20 == nalUnitType)
+        OutBits.PutBits(InBits.GetBits(24), 24);
+
+    // Replace first_mb_in_slice
+    first_mb_in_slice = InBits.GetUE();
+    OutBits.PutBit(0);
+
+    // Copy the left data
+    while (LeftBitSize >= 32)
+    {
+        OutBits.PutBits(InBits.GetBits(32), 32);
+        LeftBitSize -= 32;
+    }
+
+    if (LeftBitSize)
+        OutBits.PutBits(InBits.GetBits(LeftBitSize), LeftBitSize);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
 {
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -1810,16 +2009,40 @@ VAStatus DdiEncodeAvc::ParsePackedHeaderData(void *ptr)
     uint32_t hdrDataSize;
     if (true == m_encodeCtx->bLastPackedHdrIsSlice)
     {
+        void *temp_ptr = NULL;
+        uint32_t temp_size = 0;
+
+        MOS_STATUS status = CheckPackedSlcHeaderData(ptr,
+            m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize,
+            &temp_ptr, temp_size);
+        if (MOS_STATUS_SUCCESS != status)
+        {
+            DDI_ASSERTMESSAGE("DDI:packed slice header is not supported!");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        if (temp_size && temp_ptr)
+        {
+            m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize = temp_size;
+        }
+
         hdrDataSize = (m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].BitSize + 7) / 8;
 
-        MOS_STATUS status = MOS_SecureMemcpy(bsBuffer->pCurrent,
+        status = MOS_SecureMemcpy(bsBuffer->pCurrent,
             bsBuffer->BufferSize - bsBuffer->SliceOffset,
-            (uint8_t *)ptr,
+            (uint8_t *)(temp_ptr ? temp_ptr : ptr),
             hdrDataSize);
         if (MOS_STATUS_SUCCESS != status)
         {
             DDI_ASSERTMESSAGE("DDI:packed slice header size is too large to be supported!");
             return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        if (temp_size && temp_ptr)
+        {
+            MOS_FreeMemory(temp_ptr);
+            temp_size = 0;
+            temp_ptr = NULL;
         }
 
         m_encodeCtx->pSliceHeaderData[m_encodeCtx->uiSliceHeaderCnt].SliceOffset = bsBuffer->pCurrent - bsBuffer->pBase;

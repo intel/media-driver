@@ -1004,6 +1004,36 @@ public:
     }
 
     //!
+    //! \brief    Convert from Mfx mmio registers to MI mmio register
+    //!
+    //! \param    [in] index
+    //!           mmio registers index.
+    //! \param    [in] mmioRegister
+    //!           reference to MHW_MI_MMIOREGISTERS.
+    //!
+    //! \return   [out] bool
+    //!           return true if mmio register if found, otherwise return false
+    //!
+    inline bool ConvertToMiRegister(MHW_VDBOX_NODE_IND index, MHW_MI_MMIOREGISTERS &mmioRegister)
+    {
+        MmioRegistersMfx* mfxMmioReg = GetMmioRegisters(index);
+        if (mfxMmioReg)
+        {
+            mmioRegister.generalPurposeRegister0LoOffset = mfxMmioReg->generalPurposeRegister0LoOffset;
+            mmioRegister.generalPurposeRegister0HiOffset = mfxMmioReg->generalPurposeRegister0HiOffset;
+            mmioRegister.generalPurposeRegister4LoOffset = mfxMmioReg->generalPurposeRegister4LoOffset;
+            mmioRegister.generalPurposeRegister4HiOffset = mfxMmioReg->generalPurposeRegister4HiOffset;
+            mmioRegister.generalPurposeRegister11LoOffset = mfxMmioReg->generalPurposeRegister11LoOffset;
+            mmioRegister.generalPurposeRegister11HiOffset = mfxMmioReg->generalPurposeRegister11HiOffset;
+            mmioRegister.generalPurposeRegister12LoOffset = mfxMmioReg->generalPurposeRegister12LoOffset;
+            mmioRegister.generalPurposeRegister12HiOffset = mfxMmioReg->generalPurposeRegister12HiOffset;
+            return true;
+        }
+        else
+            return false;
+    }
+
+    //!
     //! \brief    Get brc pak passes num
     //! \details  Get brc pak passes num in mfx interface
     //!

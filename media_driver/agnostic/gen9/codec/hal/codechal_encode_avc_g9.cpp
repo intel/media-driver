@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1526,7 +1526,8 @@ MOS_STATUS CodechalEncodeAvcEncG9::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_AV
     auto picParams = m_avcPicParam;
     auto slcParams = m_avcSliceParams;
 
-    MHW_VDBOX_AVC_SLICE_STATE                       sliceState;
+    MHW_VDBOX_AVC_SLICE_STATE sliceState;
+    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.pEncodeAvcSeqParams = seqParams;
     sliceState.pEncodeAvcPicParams = picParams;
     sliceState.pEncodeAvcSliceParams = slcParams;
@@ -2146,7 +2147,9 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmdB
 
     if (params->bMBVProcStatsEnabled)
     {
-        size = (currFieldPicture ? 1 : 2) * params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * sizeof(uint32_t);
+        size = params->dwFrameWidthInMb *
+            (currFieldPicture ? params->dwFrameFieldHeightInMb : params->dwFrameHeightInMb) *
+            16 * sizeof(uint32_t);
 
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.dwSize = size;
@@ -2540,7 +2543,7 @@ MOS_STATUS CodechalEncodeAvcEncG9::SendAvcBrcFrameUpdateSurfaces(PMOS_COMMAND_BU
     // MV data buffer
     if (params->psMvDataBuffer)
     {
-        memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+        MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.bIs2DSurface = true;
         surfaceCodecParams.bMediaBlockRW = true;
         surfaceCodecParams.psSurface = params->psMvDataBuffer;
@@ -2651,8 +2654,8 @@ MOS_STATUS CodechalEncodeAvcEncG9::SetupROISurface()
         return eStatus;
     }
 
-    uint32_t bufferWidthInByte = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 4), 64);//(m_picWidthInMb * 4 + 63) & ~63;
-    uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);//(m_picHeightInMb + 7) & ~7;
+    uint32_t bufferWidthInByte  = BrcBuffers.sBrcRoiSurface.dwPitch;
+    uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);
     uint32_t numMBs = m_picWidthInMb * m_picHeightInMb;
     for (uint32_t mb = 0; mb <= numMBs; mb++)
     {

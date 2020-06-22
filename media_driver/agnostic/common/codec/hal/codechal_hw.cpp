@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -346,6 +346,126 @@ MOS_STATUS CodechalHwInterface::GetHxxPrimitiveCommandSize(
     return eStatus;
 }
 
+MOS_STATUS CodechalHwInterface::GetHcpStateCommandSize(
+    uint32_t                        mode,
+    uint32_t *                      commandsSize,
+    uint32_t *                      patchListSize,
+    PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard = CodecHal_GetStandardFromMode(mode);
+
+    uint32_t hcpCommandsSize  = 0;
+    uint32_t hcpPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hcpInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_VP9))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hcpInterface->GetHcpStateCommandSize(
+            mode, &hcpCommandsSize, &hcpPatchListSize, params));
+
+        m_cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hcpCommandsSize + cpCmdsize;
+    *patchListSize = hcpPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::GetHcpPrimitiveCommandSize(
+    uint32_t                        mode,
+    uint32_t                       *commandsSize,
+    uint32_t                       *patchListSize,
+    bool                            modeSpecific)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard = CodecHal_GetStandardFromMode(mode);
+
+    uint32_t hcpCommandsSize  = 0;
+    uint32_t hcpPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hcpInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_VP9))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hcpInterface->GetHcpPrimitiveCommandSize(
+            mode, &hcpCommandsSize, &hcpPatchListSize, modeSpecific ? true : false));
+
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hcpCommandsSize + cpCmdsize;
+    *patchListSize = hcpPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::GetHucStateCommandSize(
+    uint32_t                        mode,
+    uint32_t *                      commandsSize,
+    uint32_t *                      patchListSize,
+    PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard         = CodecHal_GetStandardFromMode(mode);
+    uint32_t hucCommandsSize  = 0;
+    uint32_t hucPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hucInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_CENC || standard == CODECHAL_VP9 || standard == CODECHAL_AVC))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucStateCommandSize(
+            mode, &hucCommandsSize, &hucPatchListSize, params));
+
+        m_cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hucCommandsSize + cpCmdsize;
+    *patchListSize = hucPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::GetHucPrimitiveCommandSize(
+    uint32_t                        mode,
+    uint32_t                       *commandsSize,
+    uint32_t                       *patchListSize)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    uint32_t standard         = CodecHal_GetStandardFromMode(mode);
+    uint32_t hucCommandsSize  = 0;
+    uint32_t hucPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
+
+    if (m_hucInterface && (standard == CODECHAL_HEVC || standard == CODECHAL_CENC || standard == CODECHAL_VP9))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucPrimitiveCommandSize(
+            mode, &hucCommandsSize, &hucPatchListSize));
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
+    *commandsSize  = hucCommandsSize + cpCmdsize;
+    *patchListSize = hucPatchListSize + cpPatchListSize;
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalHwInterface::GetVdencStateCommandsDataSize(
     uint32_t                    mode,
     uint32_t                   *commandsSize,
@@ -393,6 +513,31 @@ MOS_STATUS CodechalHwInterface::GetVdencStateCommandsDataSize(
         MHW_ASSERTMESSAGE("Unsupported encode mode.");
         return MOS_STATUS_UNKNOWN;
     }
+
+    *commandsSize = commands;
+    *patchListSize = patchList;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalHwInterface::GetVdencPrimitiveCommandsDataSize(
+    uint32_t                    mode,
+    uint32_t                   *commandsSize,
+    uint32_t                   *patchListSize)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    MHW_MI_CHK_NULL(m_miInterface);
+    MHW_MI_CHK_NULL(m_hcpInterface);
+    MHW_MI_CHK_NULL(m_vdencInterface);
+
+    uint32_t commands = 0;
+    uint32_t patchList = 0;
+
+    MHW_MI_CHK_STATUS(m_vdencInterface->GetVdencPrimitiveCommandsDataSize(
+        mode,
+        &commands,
+        &patchList));
 
     *commandsSize = commands;
     *patchListSize = patchList;
@@ -460,7 +605,7 @@ MOS_STATUS CodechalHwInterface::Initialize(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
-    if (CodecHalUsesRenderEngine(settings->codecFunction, settings->standard) ||
+    if (UsesRenderEngine(settings->codecFunction, settings->standard) ||
         CodecHalIsEnableFieldScaling(settings->codecFunction, settings->standard, settings->downsamplingHinted))
     {
         CODECHAL_HW_CHK_NULL_RETURN(m_renderInterface);
@@ -480,6 +625,8 @@ MOS_STATUS CodechalHwInterface::Initialize(
                 m_stateHeapSettings));
         }
     }
+
+    m_enableCodecMmc = !MEDIA_IS_WA(GetWaTable(), WaDisableCodecMmc);
 
     return eStatus;
 }
@@ -1718,4 +1865,21 @@ MOS_STATUS CodechalHwInterface::SetStatusTagByMiCommand(
         &storeDataParams);
 
     return result;
+}
+
+bool CodechalHwInterface::UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard)
+{
+    if(codecFunction == CODECHAL_FUNCTION_ENC ||
+        (codecFunction == CODECHAL_FUNCTION_ENC_PAK) ||
+        codecFunction == CODECHAL_FUNCTION_HYBRIDPAK ||
+        ((codecFunction == CODECHAL_FUNCTION_DECODE) && (standard == CODECHAL_VC1)) ||
+        codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK ||
+        codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC ||
+        codecFunction == CODECHAL_FUNCTION_FEI_ENC   ||
+        codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK)
+     {
+        return true;
+     }
+
+     return false;
 }

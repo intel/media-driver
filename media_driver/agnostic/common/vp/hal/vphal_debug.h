@@ -429,15 +429,21 @@ public:
     //!           The counter that tells which render this surface belongs to
     //! \param    [in] bLockSurface
     //!           True if need to lock the surface
+    //! \param    [in] bNoDecompWhenLock
+    //!           True if force not to do decompress when Lock
+    //! \param    [in] pData
+    //!           non-null if caller already locked the surface byitself
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS DumpSurfaceToFile(
+    virtual MOS_STATUS DumpSurfaceToFile(
         PMOS_INTERFACE              pOsInterface,
         PVPHAL_SURFACE              pSurface,
         const char                  *psPathPrefix,
         uint64_t                    iCounter,
-        bool                        bLockSurface);
+        bool                        bLockSurface,
+        bool                        bNoDecompWhenLock,
+        uint8_t*                    pData);
 
     VPHAL_DBG_SURF_DUMP_SPEC    m_dumpSpec;
 
@@ -533,7 +539,21 @@ protected:
         uint32_t                        Location,
         char*                           pcLocString);
 
+    //!
+    //! \brief    Check if an osResource have aux surf
+    //! \param    [in] osResource
+    //!           Pointer to MOS Resource
+    //! \return   bool
+    //!           Return true if has aux surf, otherwise false
+    //!
+    bool HasAuxSurf(
+        PMOS_RESOURCE                   osResource);
+
     PMOS_INTERFACE              m_osInterface;
+    char                        m_dumpPrefix[MAX_PATH];     // Called frequently, so avoid repeated stack resizing with member data
+    char                        m_dumpLoc[MAX_PATH];        // to avoid recursive call from diff owner but sharing the same buffer
+    static uint32_t             m_frameNumInVp;             // For use when vp dump its compressed surface, override the frame number given from MediaVeboxDecompState
+    static char                 m_dumpLocInVp[MAX_PATH];    // For use when vp dump its compressed surface, to distinguish each vp loc's pre/post decomp
 
 private:
 
@@ -551,6 +571,8 @@ private:
     //!           The total size of the surface
     //! \param    [in] auxEnable
     //!           Whether aux dump is enabled
+    //! \param    [in] isDeswizzled
+    //!           Whether deswizzleing is considered. If yes, uv offset should remove paddings
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
@@ -559,7 +581,8 @@ private:
         VPHAL_DBG_SURF_DUMP_SURFACE_DEF     *pPlanes,
         uint32_t*                           pdwNumPlanes,
         uint32_t*                           pdwSize,
-        bool                                auxEnable);
+        bool                                auxEnable,
+        bool                                isDeswizzled);
 
     //!
     //! \brief    Parse dump location

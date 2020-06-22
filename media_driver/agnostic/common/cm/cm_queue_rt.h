@@ -35,13 +35,6 @@
 #include "cm_csync.h"
 #include "cm_hal.h"
 
-enum CM_GPUCOPY_DIRECTION
-{
-    CM_FASTCOPY_GPU2CPU = 0,
-    CM_FASTCOPY_CPU2GPU = 1,
-    CM_FASTCOPY_GPU2GPU = 2,
-    CM_FASTCOPY_CPU2CPU = 3
-};
 
 namespace CMRT_UMD
 {
@@ -53,6 +46,7 @@ class CmEventRT;
 class CmThreadSpaceRT;
 class CmThreadGroupSpace;
 class CmVebox;
+class CmBuffer;
 class CmSurface2D;
 class CmSurface2DRT;
 
@@ -247,6 +241,15 @@ public:
 
     uint32_t StreamIndex() const { return m_streamIndex; }
 
+    int32_t EnqueueBufferCopy(  CmBuffer* buffer,
+                                size_t   offset,
+                                const unsigned char* sysMem,
+                                uint64_t sysMemSize,
+                                CM_GPUCOPY_DIRECTION dir,
+                                CmEvent* wait_event,
+                                CmEvent*& event,
+                                uint32_t option);
+
 protected:
     CmQueueRT(CmDeviceRT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);
 
@@ -343,6 +346,7 @@ protected:
     CSync m_criticalSectionTaskInternal;
 
     uint32_t m_eventCount;
+    uint64_t m_CPUperformanceFrequency;
 
     CmDynamicArray m_copyKernelParamArray;
     uint32_t m_copyKernelParamArrayCount;
@@ -361,22 +365,53 @@ protected:
     uint32_t m_fastTrackerIndex;
 
 private:
-    uint32_t m_streamIndex;
+    static const uint32_t INVALID_SYNC_BUFFER_HANDLE = 0xDEADBEEF;
 
+    //--------------------------------------------------------------------------------
+    // Create a GPU context for this object.
+    //--------------------------------------------------------------------------------
     MOS_STATUS CreateGpuContext(CM_HAL_STATE *halState,
                                 MOS_GPU_CONTEXT gpuContextName,
                                 MOS_GPU_NODE gpuNode,
                                 MOS_GPUCTX_CREATOPTIONS *createOptions);
 
+    //--------------------------------------------------------------------------------
     // Calls CM HAL API to submit a group task to command buffer.
+    //--------------------------------------------------------------------------------
     MOS_STATUS ExecuteGroupTask(CM_HAL_STATE *halState,
                                 CM_HAL_EXEC_TASK_GROUP_PARAM *taskParam,
                                 MOS_GPU_CONTEXT gpuContextName);
 
+    //--------------------------------------------------------------------------------
     // Calls CM HAL API to submit a general task to command buffer.
+    //--------------------------------------------------------------------------------
     MOS_STATUS ExecuteGeneralTask(CM_HAL_STATE *halState,
                                   CM_HAL_EXEC_TASK_PARAM *taskParam,
                                   MOS_GPU_CONTEXT gpuContextName);
+
+    //--------------------------------------------------------------------------------
+    // Creates a buffer to synchronize all tasks in this queue.
+    // It's useful only on certain operating systems.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS CreateSyncBuffer(CM_HAL_STATE *halState);
+
+    //--------------------------------------------------------------------------------
+    // Selects sync buffer in this queue so CM HAL can add it to the command buffer.
+    // It's useful only on certain operating systems.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS SelectSyncBuffer(CM_HAL_STATE *halState);
+
+    //--------------------------------------------------------------------------------
+    // Releases sync buffer in this queue if it's created.
+    //--------------------------------------------------------------------------------
+    MOS_STATUS ReleaseSyncBuffer(CM_HAL_STATE *halState);
+
+    uint32_t m_streamIndex;
+
+    GPU_CONTEXT_HANDLE m_gpuContextHandle;
+
+    // Handle of buffer resource for synchronizing tasks in this queue.
+    uint32_t m_syncBufferHandle;
 
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);

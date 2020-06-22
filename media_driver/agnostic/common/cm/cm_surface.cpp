@@ -231,47 +231,54 @@ int32_t CmSurface::SetMemoryObjectControl(MEMORY_OBJECT_CONTROL memCtrl, MEMORY_
 
     if (platform > IGFX_GEN8_CORE)
     {
+        MOS_HW_RESOURCE_DEF defaultMocs = MOS_CM_RESOURCE_USAGE_SurfaceState;
+        PCM_HAL_STATE  cmHalState = ((PCM_CONTEXT_DATA)cmDevice->GetAccelData())->cmHalState;
+        if (cmHalState && cmHalState->cmHalInterface)
+        {
+            defaultMocs = cmHalState->cmHalInterface->GetDefaultMOCS();
+        }
+
         switch (memCtrl)
         {
-        case CM_MEMORY_OBJECT_CONTROL_DEFAULT:
-            m_memObjCtrl.mem_ctrl = (unsigned int)MOS_CM_RESOURCE_USAGE_SurfaceState;
+        case MEMORY_OBJECT_CONTROL_DEFAULT:
+            m_memObjCtrl.mem_ctrl = (unsigned int)defaultMocs;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_NO_L3:
+        case MEMORY_OBJECT_CONTROL_NO_L3:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_L3_SurfaceState;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_NO_LLC_ELLC:
+        case MEMORY_OBJECT_CONTROL_NO_LLC_ELLC:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_NO_LLC:
+        case MEMORY_OBJECT_CONTROL_NO_LLC:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_LLC_SurfaceState;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_NO_ELLC:
+        case MEMORY_OBJECT_CONTROL_NO_ELLC:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_ELLC_SurfaceState;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_NO_LLC_L3:
+        case MEMORY_OBJECT_CONTROL_NO_LLC_L3:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_NO_ELLC_L3:
+        case MEMORY_OBJECT_CONTROL_NO_ELLC_L3:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_NO_CACHE:
+        case MEMORY_OBJECT_CONTROL_NO_CACHE:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_NO_CACHE_SurfaceState;
             break;
 
-        case CM_MEMORY_OBJECT_CONTROL_L1_ENABLED:
+        case MEMORY_OBJECT_CONTROL_L1_ENABLED:
             m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_L1_Enabled_SurfaceState;
             break;
 
         default:
             // any invalid CM_HAL_MEMORY_OBJECT_CONTROL value is converted to default
-            m_memObjCtrl.mem_ctrl = MOS_CM_RESOURCE_USAGE_SurfaceState;
+            m_memObjCtrl.mem_ctrl = (unsigned int)defaultMocs;
             break;
         }
     }

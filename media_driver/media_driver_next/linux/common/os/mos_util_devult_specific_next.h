@@ -28,8 +28,6 @@
 #ifndef __MOS_UTIL_DEVULT_SPECIFIC_NEXT_H__
 #define __MOS_UTIL_DEVULT_SPECIFIC_NEXT_H__
 
-extern uint8_t MosUltFlag;
-
 
 class MosUtilDevUltSpecific
 {
@@ -37,7 +35,7 @@ public:
     template<class _Fun, class... _Types>
     static void MOS_DEVULT_FuncCall(_Fun fun, _Types&&... ags)
     {
-        if (MosUltFlag && fun)
+        if (MosUtilities::m_mosUltFlag && fun)
         {
             fun(std::forward<_Types>(ags)...);
         }

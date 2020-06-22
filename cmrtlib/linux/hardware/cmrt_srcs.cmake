@@ -23,6 +23,5 @@ set(CMRT_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/cm_device_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_device_export_os.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cm_performance.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_timer_os.cpp
     )

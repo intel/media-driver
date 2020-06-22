@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,58 @@
 #define __MEDIA_DDI_ENCODE_AVC_H__
 
 #include "media_ddi_encode_base.h"
+
+class AvcInBits
+{
+public:
+    AvcInBits(uint8_t *pInBits, uint32_t BitSize);
+
+    virtual ~AvcInBits() {};
+
+    void SkipBits(uint32_t n);
+
+    uint32_t GetBit();
+
+    uint32_t GetBits(uint32_t n);
+
+    uint32_t GetUE();
+
+    uint32_t GetBitOffset();
+
+    void ResetBitOffset();
+
+protected:
+    uint8_t const *m_pInBits = nullptr;
+    uint32_t m_BitSize = 0;
+    uint32_t m_BitOffset = 0;
+
+private:
+    AvcInBits() {};
+};
+
+class AvcOutBits
+{
+public:
+    AvcOutBits(uint8_t *pOutBits, uint32_t BitSize);
+
+    virtual ~AvcOutBits() {};
+
+    void PutBit(uint32_t v);
+
+    void PutBits(uint32_t v, uint32_t n);
+
+    uint32_t GetBitOffset();
+
+protected:
+    uint8_t *m_pOutBits = nullptr;
+    uint8_t *m_pOutBitsEnd = nullptr;
+    uint32_t m_BitSize = 0;
+    uint32_t m_ByteSize = 0;
+    uint32_t m_BitOffset = 0;
+
+private:
+    AvcOutBits() {};
+};
 
 //!
 //! \class  DdiEncodeAvc
@@ -181,6 +233,12 @@ protected:
         void              *ptr) override;
 
     virtual void ClearPicParams() override;
+
+    virtual MOS_STATUS CheckPackedSlcHeaderData(
+        void *pInSlcHdr,
+        uint32_t InBitSize,
+        void **ppOutSlcHdr,
+        uint32_t &OutBitSize);
 
     //!
     //! \brief    Convert slice struct from VA to codechal
@@ -458,6 +516,25 @@ protected:
     uint16_t                                m_previousFRper100sec = 0;   //!< For saving FR value to be used in case of dynamic BRC reset.
 
 private:
+    //!
+    //! \brief    Check whether swizzle needed
+    //!
+    //! \param    [in] rawSurface
+    //!           Pointer of Raw Surface
+    //!
+    //! \return   bool, true if need, otherwise false
+    //!
+    inline bool NeedDisplayFormatSwizzle(DDI_MEDIA_SURFACE *rawSurface)
+    {
+        if (Media_Format_A8R8G8B8 == rawSurface->format ||
+            Media_Format_B10G10R10A2 == rawSurface->format)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     //! \brief H.264 current picture parameter set id
     uint8_t current_pic_parameter_set_id = 0;
 

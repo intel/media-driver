@@ -29,7 +29,7 @@
 #include "codechal_decode_scalability.h"
 #include "mos_util_user_interface.h"
 #include "mos_solo_generic.h"
-
+#include "mos_os_virtualengine_next.h"
 
 //!
 //! \brief    calculate secondary cmd buffer index
@@ -1300,8 +1300,40 @@ MOS_STATUS CodechalDecodeScalability_DebugOvrdDecidePipeNum(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState);
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pVEInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface);
 
     pVEInterface = pScalState->pVEInterface;
+    PMOS_INTERFACE pOsInterface = pScalState->pHwInterface->GetOsInterface();
+    CODECHAL_DECODE_CHK_NULL_RETURN(pOsInterface);
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+        auto veInterface = pVEInterface->veInterface;
+        if (veInterface->GetEngineCount() == 1)
+        {
+            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
+        }
+        else if (veInterface->GetEngineCount() == 2)
+        {
+            //engine count = 2, only support FE run on the same engine as one of BE for now.
+            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
+        }
+        else if (veInterface->GetEngineCount() == 4 &&
+                 veInterface->GetEngineLogicId(3) != veInterface->GetEngineLogicId(0) &&
+                 veInterface->GetEngineLogicId(3) != veInterface->GetEngineLogicId(1) &&
+                 veInterface->GetEngineLogicId(3) != veInterface->GetEngineLogicId(2))
+        {
+            pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_RESERVED;
+        }
+        else
+        {
+            CODECHAL_DECODE_ASSERTMESSAGE("invalid parameter settings in debug override.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        return eStatus;
+    }
 
     // debug override for virtual tile
     if (pVEInterface->ucEngineCount == 1)
@@ -1345,28 +1377,54 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(gpuCtxCreatOpts);
     CODECHAL_DECODE_CHK_NULL_RETURN(codecHalSetting);
-
-#if (_DEBUG || _RELEASE_INTERNAL)
+    bool sfcInUse = codecHalSetting->sfcInUseHinted && codecHalSetting->downsamplingHinted
+                       && (MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrSFCPipe)
+                       && !MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrDisableVDBox2SFC));
     pOsInterface    = pScalState->pHwInterface->GetOsInterface();
-
+    MEDIA_FEATURE_TABLE *m_skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+#if (_DEBUG || _RELEASE_INTERNAL)
     if (pOsInterface->bEnableDbgOvrdInVE)
     {
         PMOS_VIRTUALENGINE_INTERFACE pVEInterface = pScalState->pVEInterface;
-
         CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface);
         gpuCtxCreatOpts->DebugOverride      = true;
-        gpuCtxCreatOpts->UsingSFC           = false; // this param ignored when dbgoverride enabled
+        if (MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
+        {
+            gpuCtxCreatOpts->UsingSFC = false;// this param ignored when dbgoverride enabled
+        }
+        else
+        {
+            gpuCtxCreatOpts->UsingSFC = sfcInUse;  // this param ignored when dbgoverride enabled
+        }
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDebugOvrdDecidePipeNum(pScalState));
 
-        for (uint32_t i = 0; i < pVEInterface->ucEngineCount; i++)
+        if (pOsInterface->apoMosEnabled)
         {
-            gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->EngineLogicId[i];
+            CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+            for (uint32_t i = 0; i < pVEInterface->veInterface->GetEngineCount(); i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->veInterface->GetEngineLogicId(i);
+            }
+        }
+        else
+        {
+            for (uint32_t i = 0; i < pVEInterface->ucEngineCount; i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->EngineLogicId[i];
+            }
         }
     }
     else
 #endif
     {
-        gpuCtxCreatOpts->UsingSFC  = false;
+        if (MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
+        {
+            gpuCtxCreatOpts->UsingSFC = false;
+        }
+        else
+        {
+            gpuCtxCreatOpts->UsingSFC = sfcInUse;
+        }
 
         MOS_ZeroMemory(&initParams, sizeof(initParams));
         initParams.u32PicWidthInPixel   = MOS_ALIGN_CEIL(codecHalSetting->width, 8);
@@ -1380,7 +1438,8 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
                 initParams.format = Format_P010;
             }
         }
-        initParams.usingSFC             = false;
+        initParams.usingSFC             = sfcInUse;
+        initParams.usingSecureDecode    = codecHalSetting->DecodeEncType();
         CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
             pScalState,
             &initParams));
@@ -1425,7 +1484,15 @@ MOS_STATUS CodecHalDecodeScalability_InitScalableParams(
     {
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
         {
-            pScalabilityState->ucScalablePipeNum = pVEInterface->ucEngineCount - 1;
+            if (pOsInterface->apoMosEnabled)
+            {
+                CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+                pScalabilityState->ucScalablePipeNum = pVEInterface->veInterface->GetEngineCount() - 1;
+            }
+            else
+            {
+                pScalabilityState->ucScalablePipeNum = pVEInterface->ucEngineCount - 1;
+            }
             pScalabilityState->bScalableDecodeMode = true;
         }
         else
@@ -1729,12 +1796,6 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync(
             true,
             pCmdBufferInUse));
 
-        if (pOsInterface->osCpInterface &&
-            pOsInterface->osCpInterface->IsHMEnabled() &&
-            pScalabilityState->pHwInterface->GetCpInterface())
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(pScalabilityState->pHwInterface->GetCpInterface()->AddConditionalBatchBufferEndForEarlyExit(pOsInterface, pCmdBufferInUse));
-        }
     }
 
     return eStatus;

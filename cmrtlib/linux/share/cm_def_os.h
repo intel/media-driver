@@ -38,6 +38,16 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////////
+// MS-specific defines/typedefs, which are absent under Linux but still used
+////////////////////////////////////////////////////////////////////////////////////
+#define _aligned_malloc(size, alignment) memalign(alignment, size)
+#define _aligned_free(ptr) free(ptr)
+typedef uint8_t BOOLEAN, *PBOOLEAN;
+////////////////////////////////////////////////////////////////////////////////////
+// MS-specific defines/typedefs, which are absent under Linux but still used (End)
+////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////
 //      Platform dependent macros (Start)
 ////////////////////////////////////////////////////////////////////////////////////
 #define CM_STRCPY(dst, sizeInBytes, src)       strcpy(dst, src)
@@ -99,6 +109,9 @@ inline void CM_ALIGNED_FREE(void * memory)
   free(memory);
 }
 
+// max resolution for surface 2D
+#define CM_MAX_2D_SURF_WIDTH  16384
+#define CM_MAX_2D_SURF_HEIGHT 16384
 
 typedef enum _VA_CM_FORMAT {
 
@@ -126,10 +139,10 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_D16                  =  80,
     VA_CM_FMT_L16                  =  81,
     VA_CM_FMT_R16F                 = 111,
+    VA_CM_FMT_IA44                 = 112,
     VA_CM_FMT_A16B16G16R16F        = 113,
     VA_CM_FMT_R32F                 = 114,
     VA_CM_FMT_R32G32B32A32F        = 115,
-    VA_CM_FMT_IA44                 = 112,
     VA_CM_FMT_I420                 = VA_FOURCC('I','4','2','0'),
     VA_CM_FMT_P216                 = VA_FOURCC('P','2','1','6'),
     VA_CM_FMT_400P                 = VA_FOURCC('4','0','0','P'),
@@ -147,6 +160,7 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_IMC3                 = VA_FOURCC_IMC3,
     VA_CM_FMT_YV12                 = VA_FOURCC_YV12,
     VA_CM_FMT_P010                 = VA_FOURCC_P010,
+    VA_CM_FMT_P012                 = VA_FOURCC_P012,
     VA_CM_FMT_P016                 = VA_FOURCC_P016,
     VA_CM_FMT_P208                 = VA_FOURCC_P208,
     VA_CM_FMT_AYUV                 = VA_FOURCC_AYUV,
@@ -237,6 +251,22 @@ typedef enum _VA_CM_FORMAT {
 ////////////////////////////////////////////////////////////////////////////////////
 //      Platform dependent definitions (End)
 ////////////////////////////////////////////////////////////////////////////////////
+
+typedef enum _AdapterInfoType
+{
+    Description,                    //    char Description[ 256 ];
+    VendorId,                       //    uint32_t VendorId;
+    DeviceId,                       //    uint32_t DeviceId;
+    SubSysId,                       //    uint32_t SubSysId;
+    Revision,                       //    uint32_t Revision;
+    DedicatedVideoMemory,           //    uint32_t DedicatedVideoMemory;
+    DedicatedSystemMemory,          //    uint32_t DedicatedSystemMemory;
+    SharedSystemMemory,             //    uint32_t SharedSystemMemory;
+    MaxThread,                      //    uint32_t hardware thread count
+    EuNumber,                       //    uint32_t EU count
+    TileNumber,                     //    uint32_t Tile count
+    Reserved                        //    uint32_t
+} AdapterInfoType;
 
 typedef enum _REGISTRATION_OP
 {

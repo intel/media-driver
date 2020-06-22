@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -111,9 +111,30 @@ MOS_STATUS CodechalDecodeVp8G11::DecodeStateLevel()
     }
     else
     {
-        m_presLastRefSurface   = &(vp8RefList[lastRefPicIndex]->resRefPic);
-        m_presGoldenRefSurface = &(vp8RefList[goldenRefPicIndex]->resRefPic);
-        m_presAltRefSurface    = &(vp8RefList[altRefPicIndex]->resRefPic);
+        if((Mos_ResourceIsNull(&vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic)) && (m_presLastRefSurface))
+        {
+            vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic = *m_presLastRefSurface;
+        }
+        else
+        {
+            m_presLastRefSurface   = &(vp8RefList[lastRefPicIndex]->resRefPic);
+        }
+        if((Mos_ResourceIsNull(&vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic)) && (m_presGoldenRefSurface))
+        {
+            vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic = *m_presGoldenRefSurface;
+        }
+        else
+        {
+            m_presGoldenRefSurface = &(vp8RefList[goldenRefPicIndex]->resRefPic);
+        }
+        if((Mos_ResourceIsNull(&vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic)) && (m_presAltRefSurface))
+        {
+            vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic = *m_presAltRefSurface;
+        }
+        else
+        {
+            m_presAltRefSurface    = &(vp8RefList[altRefPicIndex]->resRefPic);
+        }
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
@@ -316,8 +337,7 @@ MOS_STATUS CodechalDecodeVp8G11::DecodePrimitiveLevel()
             m_huCCopyInUse = false;
     }
 
-
-    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 

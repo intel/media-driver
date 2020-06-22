@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -97,7 +97,7 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     uint32_t                                Mode;
     PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
     PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams;
-    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
     uint8_t                                *pucVdencMvCosts;
     uint8_t                                *pucVdencRdMvCosts;
     uint8_t                                *pucVdencHmeMvCosts;
@@ -105,6 +105,9 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
     void                                   *pInputParams;
     uint16_t                                usSADQPLambda = 0;
     uint16_t                                usRDQPLambda = 0;
+    uint8_t                                 frame_type;
+    uint8_t                                 qp;
+    bool                                    isLowDelay;
     bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
 } MHW_VDBOX_VDENC_CMD1_PARAMS, *PMHW_VDBOX_VDENC_CMD1_PARAMS;
 
@@ -125,13 +128,14 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bPartialFrameUpdateEnable = false;
     uint32_t                                roundInterValue = 0;
     uint32_t                                roundIntraValue = 0;
+    uint8_t                                 bStreaminRoiMode = 0;
 
     // VP9
     PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
     bool                                    bSegmentationEnabled = false;
     PMHW_VDBOX_VP9_SEGMENT_STATE            pVp9SegmentState = nullptr;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS       pVp9EncSeqParams = nullptr;
-    bool                                    bPrevFrameSegEnabled;
+    bool                                    bPrevFrameSegEnabled = false;
     bool                                    bDynamicScalingEnabled = false;
     bool                                    temporalMVpEnable = false;
 
@@ -143,6 +147,13 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     bool                                    bPakOnlyMultipassEnable = false;
     void                                    *pInputParams = nullptr;
     bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
+    
+    bool                                    bTileReplayEnable = false;
+    bool                                    bCaptureModeEnable = false;
+    uint8_t                                 m_WirelessSessionID = 0;
+    bool                                    bIsLowDelayB = false;
+    int8_t                                  *pRefIdxMapping = nullptr;
+    uint8_t                                 recNotFilteredID = 0;
     virtual ~MHW_VDBOX_VDENC_CMD2_STATE() {}
 };
 using PMHW_VDBOX_VDENC_CMD2_STATE = std::shared_ptr<MHW_VDBOX_VDENC_CMD2_STATE>;
@@ -176,6 +187,7 @@ protected:
 
     bool                        m_rowstoreCachingSupported = 0;
     MHW_VDBOX_ROWSTORE_CACHE    m_vdencRowStoreCache = {};    //!< vdenc row store cache
+    MHW_VDBOX_ROWSTORE_CACHE    m_vdencIpdlRowstoreCache = {}; //!< vdenc IntraPred row store cache
     bool                        m_rhoDomainStatsEnabled = false; //! indicate if rho domain stats is enabled
     bool                        m_perfModeSupported = true; //! indicate perf mode is supported
 
@@ -324,6 +336,17 @@ public:
     virtual MOS_STATUS GetVdencStateCommandsDataSize(
         uint32_t                        mode,
         uint32_t                        waAddDelayInVDEncDynamicSlice,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize) = 0;
+
+    //!
+    //! \brief    get Vdenc slice commands data size
+    //!
+    //! \return   uint32_t
+    //!           Vdenc slice commands data size got
+    //!
+    virtual MOS_STATUS GetVdencPrimitiveCommandsDataSize(
+        uint32_t                        mode,
         uint32_t                        *commandsSize,
         uint32_t                        *patchListSize) = 0;
 
@@ -577,6 +600,8 @@ public:
         PMHW_BATCH_BUFFER                   batchBuffer,
         PMHW_VDBOX_VDENC_CMD2_STATE         params) = 0;
 
+    virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams() = 0;
+    virtual void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) = 0;
 };
 
 #endif

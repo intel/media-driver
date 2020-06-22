@@ -37,14 +37,14 @@ uint32_t GraphicsResourceNext::m_memAllocCounterGfx;
 GraphicsResourceNext::GraphicsResourceNext()
 {
     MOS_OS_FUNCTION_ENTER;
-    m_allocationIndexMutex = MosUtilities::MOS_CreateMutex();
+    m_allocationIndexMutex = MosUtilities::MosCreateMutex();
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(m_allocationIndexMutex);
 }
 
 GraphicsResourceNext::~GraphicsResourceNext()
 {
     MOS_OS_FUNCTION_ENTER;
-    MosUtilities::MOS_DestroyMutex(m_allocationIndexMutex);
+    MosUtilities::MosDestroyMutex(m_allocationIndexMutex);
     m_allocationIndexMutex = nullptr;
 }
 
@@ -61,7 +61,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
 
     char        sPath[MOS_MAX_PATH_LENGTH + 1];
     uint32_t    dwWritten = 0;
-    MOS_SecureStringPrint(
+    MosUtilities::MosSecureStringPrint(
         sPath,
         sizeof(sPath),
         sizeof(sPath) - 1,
@@ -71,7 +71,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
 
     void*       hFile = nullptr;
     // Open file for writing
-    eStatus = MosUtilities::MOS_CreateFile(
+    eStatus = MosUtilities::MosCreateFile(
         &hFile,
         sPath,
         O_WRONLY|O_CREAT);
@@ -82,7 +82,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
         eStatus = MOS_STATUS_FILE_OPEN_FAILED;
         if (hFile != nullptr)
         {
-            MosUtilities::MOS_CloseHandle(hFile);
+            MosUtilities::MosCloseHandle(hFile);
         }
         return eStatus;
     }
@@ -96,7 +96,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
         MOS_OS_ASSERTMESSAGE("Failed to lock the gpu resource");
         if (hFile != nullptr)
         {
-            MOS_CloseHandle(hFile);
+            MosUtilities::MosCloseHandle(hFile);
         }
         return MOS_STATUS_UNKNOWN;
     }
@@ -104,7 +104,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
     pbData += overrideOffset;
 
     // Write the file
-    if ((eStatus = MOS_WriteFile(
+    if ((eStatus = MosUtilities::MosWriteFile(
         hFile,
         pbData,
         overrideSize,
@@ -115,7 +115,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
         eStatus = MOS_STATUS_FILE_WRITE_FAILED;
         if (hFile != nullptr)
         {
-            MOS_CloseHandle(hFile);
+            MosUtilities::MosCloseHandle(hFile);
         }
     }
 
@@ -127,7 +127,7 @@ MOS_STATUS GraphicsResourceNext::Dump(OsContextNext* osContextPtr, uint32_t over
 
     if (hFile != nullptr)
     {
-        MOS_CloseHandle(hFile);
+        MosUtilities::MosCloseHandle(hFile);
     }
 
     return eStatus;
@@ -160,7 +160,7 @@ int32_t GraphicsResourceNext::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHa
     int32_t curAllocIndex            = MOS_INVALID_ALLOC_INDEX;
     int32_t ret                      = MOS_INVALID_ALLOC_INDEX; 
 
-    MosUtilities::MOS_LockMutex(m_allocationIndexMutex);
+    MosUtilities::MosLockMutex(m_allocationIndexMutex);
     for (auto& curAllocationIndexTp : m_allocationIndexArray)
     {
         std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;
@@ -171,15 +171,15 @@ int32_t GraphicsResourceNext::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHa
         }
     }
 
-    MosUtilities::MOS_UnlockMutex(m_allocationIndexMutex);
+    MosUtilities::MosUnlockMutex(m_allocationIndexMutex);
     return ret;
 }
 
 void GraphicsResourceNext::ResetResourceAllocationIndex()
 {
     MOS_OS_FUNCTION_ENTER;
-    MosUtilities::MOS_LockMutex(m_allocationIndexMutex);
+    MosUtilities::MosLockMutex(m_allocationIndexMutex);
     m_allocationIndexArray.clear();
-    MosUtilities::MOS_UnlockMutex(m_allocationIndexMutex);
+    MosUtilities::MosUnlockMutex(m_allocationIndexMutex);
 }
 

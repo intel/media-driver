@@ -505,6 +505,7 @@ const char    *KernelDll_GetParserStateString(Kdll_ParserState state)
         case Parser_DualOutput              : return _T("DualOutput");
         case Parser_Rotation                : return _T("Rotation");
         case Parser_DestSurfIndex           : return _T("DestSurfIndex");
+        case Parser_Colorfill               : return _T("Colorfill");
         case Parser_WriteOutput             : return _T("WriteOutput");
         case Parser_End                     : return _T("End");
         default                             : return _T("Invalid parser state");
@@ -578,6 +579,7 @@ const char    *KernelDll_GetRuleIDString(Kdll_RuleID RID)
         case RID_IsSetCoeffMode     : return _T("IsSetCoeffMode");
         case RID_IsConstOutAlpha    : return _T("IsConstOutAlpha");
         case RID_IsDitherNeeded     : return _T("IsDitherNeeded");
+        case RID_IsScalingRatio     : return _T("IsScalingRatio");
         case RID_SetSrc0Procamp     : return _T("SetSrc0Procamp");
     }
 
@@ -2369,7 +2371,6 @@ bool KernelDll_FindRule(
                     {
                         break;
                     }
-
                 // Undefined search rule will fail
                 default:
                     VPHAL_RENDER_ASSERTMESSAGE("Invalid rule %d @ layer %d, state %d.", pRuleEntry->id, pSearchState->layer_number, pSearchState->state);
@@ -3430,8 +3431,8 @@ Kdll_State *KernelDll_AllocateStates(
 cleanup:
     if (pState)
     {
-        MOS_FreeMemory(pState->ComponentKernelCache.pCache);
         MOS_FreeMemory(pState->pSortedRules);
+        pState->pSortedRules = nullptr;
     }
 
     // Free DL States and temporary sort buffers
@@ -4235,7 +4236,8 @@ KernelDll_AddKernel(Kdll_State       *pState,           // Kernel Dll state
     // allocate space in kernel cache to store the kernel, filter, CSC parameters
     size  = pSearchState->KernelSize +                                  // Kernel
             pSearchState->iFilterSize * sizeof(Kdll_FilterEntry) * 2 +  // Original + Modified Filter
-            sizeof(Kdll_CSC_Params);                                    // CSC parameters
+            sizeof(Kdll_CSC_Params) +                                   // CSC parameters
+            sizeof(VPHAL_CSPACE);                                       // Intermediate Color Space for colorfill
 
     // Run garbage collection, create space for new kernel and metadata
     KernelDll_GarbageCollection(pState, size);
@@ -4278,6 +4280,9 @@ KernelDll_AddKernel(Kdll_State       *pState,           // Kernel Dll state
     pCacheEntry->pCscParams = (Kdll_CSC_Params *) (ptr);
     MOS_SecureMemcpy(ptr, sizeof(Kdll_CSC_Params), (void *)&pSearchState->CscParams, sizeof(Kdll_CSC_Params));
     ptr += sizeof(Kdll_CSC_Params);
+    // Save intermediate color space for colorfill
+    pCacheEntry->colorfill_cspace = pState->colorfill_cspace;
+    ptr += sizeof(VPHAL_CSPACE);
 
     // increment KCID (Range = 0x00010000 - 0x7fffffff)
     pState->KernelCache.iCacheID = 0x00010000 + (pState->KernelCache.iCacheID - 0x0000ffff) % 0x7fff0000;
@@ -4502,8 +4507,8 @@ bool KernelDll_SetupCSC(
 
     bool bCoeffID_0_Used = false;
 
-    VPHAL_CSPACE     cspace;                         // Current ColorSpace
-    VPHAL_CSPACE     out_cspace;                     // Render Target CS
+    VPHAL_CSPACE     cspace      = CSpace_None;      // Current ColorSpace
+    VPHAL_CSPACE     out_cspace  = CSpace_None;      // Render Target CS
     VPHAL_CSPACE     main_cspace = CSpace_None;      // Main video CS
     VPHAL_CSPACE     sel_cspace  = CSpace_Any;       // Selected CS
 
@@ -4641,6 +4646,10 @@ bool KernelDll_SetupCSC(
         }
     }
 
+    // Due to put the colorfill behind CSC, so Src0 cspace needs to change
+    // to selspace in order to fill colorfill values correctly.
+    pState->colorfill_cspace = sel_cspace;
+
     // color space is selected by now... setup CSC matrices
     matrix_count  = 0;
     iCoeffID = 1;
@@ -4752,6 +4761,321 @@ bool KernelDll_SetupCSC(
 
     // Save selected color space
     pCSC->ColorSpace = sel_cspace;
+
+    return true;
+}
+
+//---------------------------------------------------------------------------------------
+// Kdll_AddKernelList - Add kernel to CM FC kernel list
+//
+// Parameters:
+//    Kdll_KernelCache *pKernelCache     - [in]     Component kernel cache
+//    Kdll_KernelCache *pCmFcPatchCache  - [in]     Component kernel patch data cache
+//    Kdll_SearchState *pSearchState     - [in/out] Kernel search state
+//    Kdll_PatchData   *pKernelPatch     - [in]     Kernel Patch data
+//    void             *pPatchDst         - [in]     Patch data Dst address
+//    int32_t          iKUID             - [in]     Kernel Unique ID
+//    cm_fc_kernel_t   *Cm_Fc_Kernels    - [in/out] CM FC Kernels
+//
+// Output: true if suceeded, false otherwise
+//---------------------------------------------------------------------------------------
+bool Kdll_AddKernelList(Kdll_KernelCache *pKernelCache,
+                        Kdll_KernelCache *pCmFcPatchCache,
+                        Kdll_SearchState *pSearchState,
+                        int32_t           iKUID,
+                        Kdll_PatchData   *pKernelPatch,
+                        void             *pPatchDst,
+                        cm_fc_kernel_t   *Cm_Fc_Kernels)
+{
+    Kdll_State      *pState;
+    Kdll_Symbol     *pSymbols;
+    Kdll_CacheEntry *kernels;
+    Kdll_CacheEntry *pPatch;
+    Kdll_LinkData   *link;
+    Kdll_LinkData   *liSearch_reloc;
+    int             *size;
+    int             *left;
+    int             dwSize;
+    int             i;
+    int             base;
+    bool            bInline;
+    bool            res;
+
+    VPHAL_RENDER_FUNCTION_ENTER;
+
+    res = false;
+
+    // Check if Kernel ID is valid
+    if (iKUID >= pKernelCache->iCacheEntries)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("invalid Kernel ID %d.", iKUID);
+        goto finish;
+    }
+
+    // Get KDLL state
+    pState = pSearchState->pKdllState;
+
+    // Get current combined kernel
+    size = &pSearchState->KernelSize;
+    left = &pSearchState->KernelLeft;
+    pSymbols = &pSearchState->KernelLink;
+    base = (*size) >> 2;
+
+    // Find selected kernel/patch and kernel size; check if there is enough space 
+    kernels = &pKernelCache->pCacheEntries[iKUID];
+    pPatch = &pCmFcPatchCache->pCacheEntries[iKUID];
+    dwSize = kernels->iSize;
+    if (*left < dwSize)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("exceeded maximum kernel size.");
+        goto finish;
+    }
+
+    // Check if there is enough space for symbols
+    if (pSymbols->dwCount + kernels->nLink >= pSymbols->dwSize)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("exceeded maximum numbers of symbols to resolve.");
+        goto finish;
+    }
+
+#if EMUL || VPHAL_LIB
+    VPHAL_RENDER_NORMALMESSAGE("%s.", kernels->szName);
+
+    if (pState->pfnCbListKernel)
+    {
+        pState->pfnCbListKernel(pState->pToken, kernels->szName);
+    }
+#elif _DEBUG || _RELEASE_INTERNAL // EMUL || VPHAL_LIB
+    VPHAL_RENDER_NORMALMESSAGE("%s.", kernels->szName);
+#endif // _DEBUG
+
+    // Append symbols to resolve, relocate symbols
+    link = kernels->pLink;
+    liSearch_reloc = pSymbols->pLink + pSymbols->dwCount;
+
+    bInline = false;
+    if (link)
+    {
+        for (i = kernels->nLink; i > 0; i--, link++)
+        {
+            if (link->bInline)
+            {
+                // Inline code included
+                if (!link->bExport)
+                {
+                    bInline = true;
+                }
+            }
+            else
+            {
+                *liSearch_reloc = *link;
+                liSearch_reloc->dwOffset += base;
+                liSearch_reloc++;
+
+                pSymbols->dwCount++;
+            }
+        }
+    }
+
+    *size += dwSize;
+    *left -= dwSize;
+    Cm_Fc_Kernels->binary_buf = (const char *)kernels->pBinary;
+    Cm_Fc_Kernels->binary_size = kernels->iSize;
+    Cm_Fc_Kernels->patch_buf = (const char *)pPatch->pBinary;
+    Cm_Fc_Kernels->patch_size = pPatch->iSize;
+    res = true;
+
+finish:
+    return res;
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_BuildKernel_CmFc - Build CM based FC combine Kernel
+//
+// Parameters: [in/out] pState        - Pointer to Kernel binary file loaded in sys memory
+//             [in/out] pSearchState       - Kernel file size
+//
+// Output: bool
+//         TRUE - Successful FALSE - Failed
+//-----------------------------------------------------------------------------------------
+bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchState)
+{
+    Kdll_KernelCache *pKernelCache = &pState->ComponentKernelCache;
+    Kdll_KernelCache *pPatchCache = &pState->CmFcPatchCache;
+    Kdll_KernelCache *pCustomCache = pState->pCustomKernelCache;
+    bool              res;
+    int32_t           offset = 0;
+    int32_t           *pKernelID, *pPatchID;
+    uint8_t           *pPatchData;
+    Kdll_PatchData   *pKernelPatch;
+    uint8_t          *kernel = pSearchState->Kernel;
+    Kdll_Symbol      *pSymbols = &pSearchState->KernelLink;
+    uint32_t          nExports = pKernelCache->nExports;
+    Kdll_LinkData    *pExports = pKernelCache->pExports;
+    Kdll_LinkData    *pLink;
+    int32_t           iOffset;
+    uint32_t          dwResolveOffset[DL_MAX_EXPORT_COUNT];
+    uint32_t          dwTotalKernelCount;
+    size_t            stEstimatedKernelSize;
+    int32_t           iKUID;
+    bool              bResolveDone;
+    int32_t           i;
+    cm_fc_kernel_t    Cm_Fc_kernels[DL_MAX_KERNELS];
+
+    VPHAL_RENDER_FUNCTION_ENTER;
+
+    // Disable pop-up box window for STL assertion to avoid VM hang in auto test.
+#if (!LINUX)
+    ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+#if defined(_MSC_VER)
+    ::_set_error_mode(_OUT_TO_STDERR);
+    _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+#endif
+#endif
+
+    pSearchState->KernelLink.dwSize = DL_MAX_SYMBOLS;
+    pSearchState->KernelLink.dwCount = 0;
+    pSearchState->KernelLink.pLink = pSearchState->LinkArray;
+    pSearchState->KernelSize = 0;
+    pSearchState->KernelLeft = sizeof(pSearchState->Kernel);
+    pSearchState->KernelLink.dwCount = 0;
+
+    MOS_ZeroMemory(Cm_Fc_kernels, sizeof(Cm_Fc_kernels));
+    dwTotalKernelCount = 0;
+    stEstimatedKernelSize = 0;
+
+#if EMUL || VPHAL_LIB || _DEBUG
+    VPHAL_RENDER_NORMALMESSAGE("Component Kernels:");
+#endif // EMUL || VPHAL_LIB || _DEBUG
+
+    pKernelID = pSearchState->KernelID;
+    pPatchID = pSearchState->PatchID;
+    pPatchData = nullptr;
+
+    for (offset = 0; offset < pSearchState->KernelCount; offset++, pKernelID++, pPatchID++, dwTotalKernelCount++)
+    {
+        // Get patch information associated with the kernel
+        pKernelPatch = (*pPatchID >= 0) ? &(pSearchState->Patches[*pPatchID]) : nullptr;
+
+        // Append/Patch kernel from internal cache
+        res = Kdll_AddKernelList(pKernelCache, pPatchCache, pSearchState, *pKernelID, pKernelPatch, pPatchData, &Cm_Fc_kernels[dwTotalKernelCount]);
+
+        stEstimatedKernelSize += Cm_Fc_kernels[dwTotalKernelCount].binary_size;
+
+        if (*pKernelID == IDR_VP_EOT)
+        {
+            dwTotalKernelCount--;
+        }
+
+        if (!res)
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Failed to build kernel ID %d.", pSearchState->KernelID[offset]);
+            res = false;
+            goto finish;
+        }
+    }
+
+    // Resolve kernel dependencies
+    MOS_ZeroMemory(dwResolveOffset, sizeof(dwResolveOffset));
+
+    do
+    {
+        // Update exports
+        for (pLink = pSymbols->pLink, i = pSymbols->dwCount; i > 0; i--, pLink++)
+        {
+            if (pLink->bExport)
+            {
+                dwResolveOffset[pLink->iLabelID] = pLink->dwOffset;
+            }
+        }
+
+        bResolveDone = true;
+        for (pLink = pSymbols->pLink, i = pSymbols->dwCount; i > 0; i--, pLink++)
+        {
+            // validate label
+            if (pLink->iLabelID > nExports ||              // invalid label
+                pExports[pLink->iLabelID].bExport == 0)    // label not in the export table
+            {
+                VPHAL_RENDER_NORMALMESSAGE("Invalid/unresolved label %d.", pLink->iLabelID);
+                res = false;
+                goto finish;
+            }
+
+            // load dependencies
+            if (!pLink->bExport && !dwResolveOffset[pLink->iLabelID])
+            {
+                // set flag for another pass as newly loaded 
+                // kernels may contain dependencies of their own
+                bResolveDone = false;
+
+                // Add dependencies to kernel list
+                iKUID = pExports[pLink->iLabelID].iKUID;
+                res = Kdll_AddKernelList(pKernelCache, pPatchCache, pSearchState, iKUID, nullptr, nullptr, &Cm_Fc_kernels[dwTotalKernelCount]);
+
+                if (!res)
+                {
+                    VPHAL_RENDER_NORMALMESSAGE("Failed to build kernel ID %d.", pSearchState->KernelID[offset]);
+                    res = false;
+                    goto finish;
+                }
+
+                dwTotalKernelCount++;
+
+                // Restart
+                break;
+            }
+        } // for
+    } while (!bResolveDone);
+
+    if (stEstimatedKernelSize > DL_MAX_KERNEL_SIZE)
+    {
+        res = false;
+        VPHAL_RENDER_NORMALMESSAGE("Kernel size exceeded kdll limitatin.");
+        goto finish;
+    }
+
+    stEstimatedKernelSize = DL_MAX_KERNEL_SIZE;
+
+    // Get combine kernel binary from CMFC lib
+    if (CM_FC_OK != cm_fc_combine_kernels(dwTotalKernelCount, Cm_Fc_kernels, (char *)pSearchState->Kernel, &stEstimatedKernelSize, nullptr))
+    {
+        res = false;
+        VPHAL_RENDER_NORMALMESSAGE("cm_fc_combine_kernels() function call failed.");
+        goto finish;
+    }
+
+    // Get combine kernel binary size from CMFC lib
+    pSearchState->KernelSize = (int) stEstimatedKernelSize;
+
+    res = true;
+
+finish:
+    return res;
+}
+
+//---------------------------------------------------------------------------------------
+// KernelDll_SetupFunctionPointers - Setup Function pointers based on platform
+//
+// Parameters:
+//    KdllState  *pState    - [in/out] Kernel Dll state
+//
+// Output: true  - Function pointers are set
+//         false - Failed to setup function pointers (invalid platform)
+//-----------------------------------------------------------------------------------------
+bool KernelDll_SetupFunctionPointers_Ext(
+    Kdll_State  *pState)
+{
+    VPHAL_RENDER_FUNCTION_ENTER;
+
+    if (pState->bEnableCMFC)
+    {
+        pState->pfnBuildKernel      = KernelDll_BuildKernel_CmFc;
+    }
 
     return true;
 }

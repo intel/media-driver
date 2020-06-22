@@ -30,6 +30,9 @@
 #if MOS_MESSAGES_ENABLED
 #include "mos_utilities_next.h"
 
+extern const MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
+extern const uint8_t                   subComponentCount[MOS_COMPONENT_COUNT];
+
 //!
 //! \brief HLT file name template
 //!
@@ -38,105 +41,20 @@ const char * const MosUtilDebug::m_mosLogPathTemplate = MOS_LOG_PATH_TEMPLATE;
 //!
 //! \brief DDI dump file name template
 //!
-const char * const MosUtilDebug::m_DdiLogPathTemplate = "%s\\ddi_dump_%d.%s";
+const char * const MosUtilDebug::m_DdiLogPathTemplate       = "%s\\ddi_dump_%d.%s";
 
-const char * const MosUtilDebug::m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT] = {
-    "",          // DISABLED
-    "CRITICAL",
-    "NORMAL  ",
-    "VERBOSE ",
-    "ENTER   ",
-    "EXIT    ",
-    "ENTER   ",  // ENTER VERBOSE
-    "EXIT    ",  // EXIT VERBOSE
-};
+const char * const *MosUtilDebug::m_mosLogLevelName         = MOS_LogLevelName;
 
-const char * const MosUtilDebug::m_mosComponentName[MOS_COMPONENT_COUNT] = {
-    "[MOS]:  ",
-    "[MHW]:  ",
-    "[CODEC]:",
-    "[VP]:   ",
-    "[CP]:   ",
-    MOS_COMPONENT_NAME_DDI_STRING,
-    "[CM]:   "
-};
+const char * const *MosUtilDebug::m_mosComponentName        = MOS_ComponentName;
 
-MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParams = {};
-MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParamsDdiDump = {};
+const MOS_USER_FEATURE_VALUE_ID (*const MosUtilDebug::m_pcComponentUserFeatureKeys)[3] = pcComponentUserFeatureKeys;
 
-const MOS_USER_FEATURE_VALUE_ID MosUtilDebug::m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_OS_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_OS_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_OS_TAG_ID
-    },
+const uint8_t* const MosUtilDebug::m_subComponentCount     = subComponentCount;
 
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_HW_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_HW_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_HW_TAG_ID
-    },
+MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParams            = {};
+MOS_MESSAGE_PARAMS MosUtilDebug::m_mosMsgParamsDdiDump     = {};
 
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_CODEC_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CODEC_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CODEC_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_VP_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_VP_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_VP_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_CP_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CP_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CP_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_DDI_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_DDI_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_DDI_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_CM_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CM_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID
-    },
-
-    {
-    __MOS_USER_FEATURE_KEY_MESSAGE_BLT_TAG_ID,
-    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_BLT_ID,
-    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_BLT_TAG_ID
-    }
-};
-
-const uint8_t MosUtilDebug::m_subComponentCount[MOS_COMPONENT_COUNT] = {
-    MOS_SUBCOMP_COUNT,
-    MOS_HW_SUBCOMP_COUNT,
-    MOS_CODEC_SUBCOMP_COUNT,
-    MOS_VP_SUBCOMP_COUNT,
-    MOS_CP_SUBCOMP_COUNT,
-    MOS_DDI_SUBCOMP_COUNT,
-    MOS_CM_SUBCOMP_COUNT
-};
-
-void MosUtilDebug::MOS_SetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_MESSAGE_LEVEL msgLevel)
+void MosUtilDebug::MosSetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t subCompID, MOS_MESSAGE_LEVEL msgLevel)
 {
     if (compID >= MOS_COMPONENT_COUNT)
     {
@@ -159,7 +77,7 @@ void MosUtilDebug::MOS_SetSubCompMessageLevel(MOS_COMPONENT_ID compID, uint8_t s
     m_mosMsgParams.components[compID].subComponents[subCompID].uiMessageLevel = msgLevel;
 }
 
-void MosUtilDebug::MOS_SetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel)
+void MosUtilDebug::MosSetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_LEVEL msgLevel)
 {
     if (compID >= MOS_COMPONENT_COUNT)
     {
@@ -175,7 +93,7 @@ void MosUtilDebug::MOS_SetCompMessageLevel(MOS_COMPONENT_ID compID, MOS_MESSAGE_
     m_mosMsgParams.components[compID].component.uiMessageLevel = msgLevel;
 }
 
-void MosUtilDebug::MOS_SetCompMessageLevelAll(MOS_MESSAGE_LEVEL msgLevel)
+void MosUtilDebug::MosSetCompMessageLevelAll(MOS_MESSAGE_LEVEL msgLevel)
 {
     if (msgLevel >= MOS_MESSAGE_LVL_COUNT)
     {
@@ -187,11 +105,11 @@ void MosUtilDebug::MOS_SetCompMessageLevelAll(MOS_MESSAGE_LEVEL msgLevel)
 
     for(i = 0; i < MOS_COMPONENT_COUNT; i++)
     {
-        MOS_SetCompMessageLevel((MOS_COMPONENT_ID)i, msgLevel);
+        MosSetCompMessageLevel((MOS_COMPONENT_ID)i, msgLevel);
     }
 }
 
-void MosUtilDebug::MOS_SubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8_t subCompID, int32_t bEnable)
+void MosUtilDebug::MosSubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8_t subCompID, int32_t bEnable)
 {
     if (compID >= MOS_COMPONENT_COUNT)
     {
@@ -208,7 +126,7 @@ void MosUtilDebug::MOS_SubCompAssertEnableDisable(MOS_COMPONENT_ID compID, uint8
     m_mosMsgParams.components[compID].subComponents[subCompID].bAssertEnabled = bEnable;
 }
 
-void MosUtilDebug::MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
+void MosUtilDebug::MosCompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
 {
     if (compID >= MOS_COMPONENT_COUNT)
     {
@@ -219,7 +137,7 @@ void MosUtilDebug::MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t 
     m_mosMsgParams.components[compID].component.bAssertEnabled = bEnable;
 }
 
-void MosUtilDebug::MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
+void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID)
 {
     uint32_t                                    uiCompUserFeatureSetting = 0;
     uint64_t                                    uiSubCompUserFeatureSetting = 0;
@@ -241,8 +159,8 @@ void MosUtilDebug::MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
     BySubComponentsKey = m_pcComponentUserFeatureKeys[compID][1];
     SubComponentsKey   = m_pcComponentUserFeatureKeys[compID][2];
 
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    eStatus = MOS_UserFeature_ReadValue_ID(
+    MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MosUtilities::MosUserFeatureReadValueID(
                   nullptr,
                   MessageKey,
                   &UserFeatureData);
@@ -250,31 +168,31 @@ void MosUtilDebug::MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
     // If the user feature key was not found, create it with the default value.
     if (eStatus  != MOS_STATUS_SUCCESS)
     {
-        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+        MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = MessageKey;
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData,1);
+        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData,1);
     }
 
     uiCompUserFeatureSetting = UserFeatureData.u32Data;
 
     // Extract the 3-bit message level and 1-bit assert flag setting for this component.
-    MOS_SetCompMessageLevel(compID, (MOS_MESSAGE_LEVEL) (uiCompUserFeatureSetting & 0x7));
-    MOS_CompAssertEnableDisable(compID, (uiCompUserFeatureSetting >> 3) & 0x1);
+    MosSetCompMessageLevel(compID, (MOS_MESSAGE_LEVEL) (uiCompUserFeatureSetting & 0x7));
+    MosCompAssertEnableDisable(compID, (uiCompUserFeatureSetting >> 3) & 0x1);
 
     // Check if sub-components should be set seperately.
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    eStatus = MOS_UserFeature_ReadValue_ID(
+    MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         BySubComponentsKey,
         &UserFeatureData);
     // If the user feature key was not found, create it with default (0) value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
-        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+        MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = BySubComponentsKey;
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData,1);
+        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData,1);
     }
 
     m_mosMsgParams.components[compID].bBySubComponent = UserFeatureData.u32Data;
@@ -282,18 +200,18 @@ void MosUtilDebug::MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
     // Set sub components:
     if (m_mosMsgParams.components[compID].bBySubComponent)
     {
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        eStatus = MOS_UserFeature_ReadValue_ID(
+        MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        eStatus = MosUtilities::MosUserFeatureReadValueID(
             nullptr,
             SubComponentsKey,
             &UserFeatureData);
         // If the user feature key was not found, create it with default (0) value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+            MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
             UserFeatureWriteData.Value.u64Data = UserFeatureData.u64Data;
             UserFeatureWriteData.ValueID = SubComponentsKey;
-            MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+            MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1);
         }
 
         uiSubCompUserFeatureSetting = UserFeatureData.u64Data;
@@ -302,15 +220,15 @@ void MosUtilDebug::MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
         {
             // Extract the 3-bit message level and 1-bit assert flag setting for each sub-comp
             // from the user feature key and populate to the MOS message params structure
-            MOS_SetSubCompMessageLevel(compID, i, (MOS_MESSAGE_LEVEL)(uiSubCompUserFeatureSetting & 0x7));
-            MOS_SubCompAssertEnableDisable(compID, i, (uiSubCompUserFeatureSetting >> 3) & 0x1);
+            MosSetSubCompMessageLevel(compID, i, (MOS_MESSAGE_LEVEL)(uiSubCompUserFeatureSetting & 0x7));
+            MosSubCompAssertEnableDisable(compID, i, (uiSubCompUserFeatureSetting >> 3) & 0x1);
 
             uiSubCompUserFeatureSetting = (uiSubCompUserFeatureSetting >> 4);
         }
     }
 }
 
-MOS_STATUS MosUtilDebug::MOS_HLTInit()
+MOS_STATUS MosUtilDebug::MosHLTInit()
 {
     uint32_t                                    nPID = 0;
     char                                        hltFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
@@ -332,18 +250,18 @@ MOS_STATUS MosUtilDebug::MOS_HLTInit()
     m_mosMsgParams.pTraceFile         = nullptr;
 
     // Check if HLT should be enabled.
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    eStatus = MOS_UserFeature_ReadValue_ID(
+    MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED_ID,
         &UserFeatureData);
     // If the user feature key was not found, create it with the default value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
-        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+        MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1);
     }
 
     bUseHybridLogTrace = MosUtilities::m_mosUltFlag ? 1 : UserFeatureData.u32Data;
@@ -358,21 +276,21 @@ MOS_STATUS MosUtilDebug::MOS_HLTInit()
         return MOS_STATUS_SUCCESS;               //[SH]: Check this.
     }
 
-    nPID = MosUtilities::m_mosUltFlag ? 0 : MOS_GetPid();
+    nPID = MosUtilities::m_mosUltFlag ? 0 : MosUtilities::MosGetPid();
 
     // Get logfile directory.
-    MOS_LogFileNamePrefix(fileNamePrefix);
-    MosUtilities::MOS_SecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "log");
+    MosLogFileNamePrefix(fileNamePrefix);
+    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "log");
 
 #if defined(LINUX) || defined(ANDROID)
-    eStatus = MOS_CreateDirectory(fileNamePrefix);
+    eStatus = MosUtilities::MosCreateDirectory(fileNamePrefix);
     if (MOS_FAILED(eStatus))
     {
         MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
     }
 #endif
 
-    eStatus = MosUtilities::MOS_SecureFileOpen(&m_mosMsgParams.pLogFile, hltFileName, "w");
+    eStatus = MosUtilities::MosSecureFileOpen(&m_mosMsgParams.pLogFile, hltFileName, "w");
 
     if (MOS_FAILED(eStatus))
     {
@@ -389,13 +307,13 @@ MOS_STATUS MosUtilDebug::MOS_HLTInit()
     m_mosMsgParams.bUseHybridLogTrace = true;
 
     // Output preface information
-    MOS_HltpPreface(m_mosMsgParams.pLogFile);
+    MosHltpPreface(m_mosMsgParams.pLogFile);
     MOS_OS_NORMALMESSAGE("HLT initialized successfuly (%s).", hltFileName);
 
     //[SH]: Trace and log are enabled with the same key right now. This can be changed to enable/disable them independently.
-    MosUtilities::MOS_SecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "hlt");
+    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "hlt");
 
-    eStatus = MosUtilities::MOS_SecureFileOpen(&m_mosMsgParams.pTraceFile, hltFileName, "w");
+    eStatus = MosUtilities::MosSecureFileOpen(&m_mosMsgParams.pTraceFile, hltFileName, "w");
 
     if (MOS_FAILED(eStatus))
     {
@@ -405,7 +323,7 @@ MOS_STATUS MosUtilDebug::MOS_HLTInit()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosUtilDebug::MOS_DDIDumpInit()
+MOS_STATUS MosUtilDebug::MosDDIDumpInit()
 {
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
@@ -417,8 +335,8 @@ MOS_STATUS MosUtilDebug::MOS_DDIDumpInit()
     m_mosMsgParamsDdiDump.pTraceFile = nullptr;
 
     //Check if DDI dump is enabled
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    eStatus = MOS_UserFeature_ReadValue_ID(
+    MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DDI_DUMP_ENABLE_ID,
         &UserFeatureData);
@@ -426,17 +344,17 @@ MOS_STATUS MosUtilDebug::MOS_DDIDumpInit()
     if (UserFeatureData.i32Data == 1)
     {
         //Check for the DDI dump path from the user feature key
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        eStatus = MOS_UserFeature_ReadValue_ID(
+        MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        eStatus = MosUtilities::MosUserFeatureReadValueID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DDI_DUMP_DIRECTORY_ID,
             &UserFeatureData);
 
         // set-up DDI dump file name
-        MosUtilities::MOS_SecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_DdiLogPathTemplate,
-            (UserFeatureData.StringData.uSize > 0) ? UserFeatureData.StringData.pStringData : fileNamePrefix, MOS_GetPid(), "log");
+        MosUtilities::MosSecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_DdiLogPathTemplate,
+            (UserFeatureData.StringData.uSize > 0) ? UserFeatureData.StringData.pStringData : fileNamePrefix, MosUtilities::MosGetPid(), "log");
 
-        eStatus = MosUtilities::MOS_SecureFileOpen(&m_mosMsgParamsDdiDump.pLogFile, cDDIDumpFilePath, "w");
+        eStatus = MosUtilities::MosSecureFileOpen(&m_mosMsgParamsDdiDump.pLogFile, cDDIDumpFilePath, "w");
         if (MOS_FAILED(eStatus))
         {
             MOS_OS_NORMALMESSAGE("Failed to open log file '%s'.", cDDIDumpFilePath);
@@ -447,7 +365,7 @@ MOS_STATUS MosUtilDebug::MOS_DDIDumpInit()
     return MOS_STATUS_SUCCESS;
 }
 
-void MosUtilDebug::MOS_MessageInit()
+void MosUtilDebug::MosMessageInit()
 {
     uint8_t                                     i = 0;
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
@@ -457,47 +375,47 @@ void MosUtilDebug::MOS_MessageInit()
     if(m_mosMsgParams.uiCounter == 0)   // first time only
     {
         // Set all sub component messages to critical level by default.
-        MOS_SetCompMessageLevelAll(MOS_MESSAGE_LVL_CRITICAL);
+        MosSetCompMessageLevelAll(MOS_MESSAGE_LVL_CRITICAL);
 
         // Set print level and asserts for each component
         for(i = 0; i < MOS_COMPONENT_COUNT; i++)
         {
-            MOS_MessageInitComponent((MOS_COMPONENT_ID)i);
+            MosMessageInitComponent((MOS_COMPONENT_ID)i);
         }
 
         // Check if MOS messages are enabled
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        eStatus = MOS_UserFeature_ReadValue_ID(
+        MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        eStatus = MosUtilities::MosUserFeatureReadValueID(
             nullptr,
             __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED_ID,
             &UserFeatureData);
         // If the user feature key was not found, create it with default value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+            MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
             UserFeatureWriteData.Value.i32Data = UserFeatureData.i32Data;
             UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+            MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1);
         }
 
         m_mosMsgParams.bUseOutputDebugString = UserFeatureData.i32Data;
 
         if (MosUtilities::m_mosUltFlag)
         {
-            MOS_SetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
-            MOS_SetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_VERBOSE);
+            MosSetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
+            MosSetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_VERBOSE);
             m_mosMsgParams.bUseOutputDebugString = 0;
             m_mosMsgParams.components[MOS_COMPONENT_OS].bBySubComponent = 0;
-            MOS_CompAssertEnableDisable(MOS_COMPONENT_CM, 0);
+            MosCompAssertEnableDisable(MOS_COMPONENT_CM, 0);
         }
 
-        MOS_HLTInit();
-        MOS_DDIDumpInit();
+        MosHLTInit();
+        MosDDIDumpInit();
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
-        MosMemAllocCounter     = 0;
-        MosMemAllocFakeCounter = 0;
-        MosMemAllocCounterGfx  = 0;
+        MosUtilities::m_mosMemAllocCounter     = 0;
+        MosUtilities::m_mosMemAllocFakeCounter = 0;
+        MosUtilities::m_mosMemAllocCounterGfx  = 0;
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection begin");
     }
 
@@ -506,7 +424,7 @@ void MosUtilDebug::MOS_MessageInit()
 
 }
 
-void MosUtilDebug::MOS_HLTClose()
+void MosUtilDebug::MosHLTClose()
 {
     if(m_mosMsgParams.pTraceFile != nullptr)
     {
@@ -526,7 +444,7 @@ void MosUtilDebug::MOS_HLTClose()
     }
 }
 
-void  MosUtilDebug::MOS_DDIDumpClose()
+void  MosUtilDebug::MosDDIDumpClose()
 {
     if (m_mosMsgParamsDdiDump.pLogFile != nullptr)
     {
@@ -536,14 +454,14 @@ void  MosUtilDebug::MOS_DDIDumpClose()
     }
 }
 
-void MosUtilDebug::MOS_MessageClose()
+void MosUtilDebug::MosMessageClose()
 {
     // uiCounter's thread safety depends on global_lock in VPG_Terminate
     if(m_mosMsgParams.uiCounter == 1)
     {
-        MOS_DDIDumpClose();
-        MOS_HLTClose();
-        MOS_ZeroMemory(&m_mosMsgParams, sizeof(MOS_MESSAGE_PARAMS));
+        MosDDIDumpClose();
+        MosHLTClose();
+        MosUtilities::MosZeroMemory(&m_mosMsgParams, sizeof(MOS_MESSAGE_PARAMS));
     }
     else
     {
@@ -551,7 +469,7 @@ void MosUtilDebug::MOS_MessageClose()
     }
 }
 
-int32_t MosUtilDebug::MOS_ShouldPrintMessage(
+int32_t MosUtilDebug::MosShouldPrintMessage(
     MOS_MESSAGE_LEVEL  level,
     MOS_COMPONENT_ID   compID,
     uint8_t            subCompID,
@@ -585,11 +503,10 @@ int32_t MosUtilDebug::MOS_ShouldPrintMessage(
     return true;
 
 }
-#endif // MOS_MESSAGES_ENABLED
 
 #if MOS_ASSERT_ENABLED
 
-int32_t MosUtilDebug::MOS_ShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID)
+int32_t MosUtilDebug::MosShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompID)
 {
     if (compID    >= MOS_COMPONENT_COUNT      ||
         subCompID >= MOS_MAX_SUBCOMPONENT_COUNT)
@@ -614,3 +531,4 @@ int32_t MosUtilDebug::MOS_ShouldAssert(MOS_COMPONENT_ID compID, uint8_t subCompI
 }
 #endif // MOS_ASSERT_ENABLED
 
+#endif  // MOS_MESSAGES_ENABLED

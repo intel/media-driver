@@ -42,6 +42,8 @@ typedef struct _VPHAL_STATUS_ENTRY
     MOS_GPU_CONTEXT GpuContextOrdinal;
     uint32_t        dwTag;          // software tag, updated by driver for every command submit.
     uint32_t        dwStatus;       // 0:OK; 1:Not Ready; 2:Not Available; 3:Error;
+    uint16_t        streamIndex;    // stream index corresponding to the gpucontext
+    bool            isStreamIndexSet;
  } VPHAL_STATUS_ENTRY, *PVPHAL_STATUS_ENTRY;
 
 //!
@@ -67,6 +69,7 @@ typedef struct _STATUS_TABLE_UPDATE_PARAMS
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool                bTriggerGPUHang;
 #endif
+    bool                bUpdateStreamIndex;
  } STATUS_TABLE_UPDATE_PARAMS, *PSTATUS_TABLE_UPDATE_PARAMS;
 
 //!
@@ -97,7 +100,6 @@ typedef enum _VPREP_STATUS
 //!
 typedef struct _VP_CONFIG
 {
-    bool       bSettingReadDone;           // Settings have been read
     bool       bVpComponentReported;       // Vp Component has been reported
     uint32_t   dwVpPath;                   // Video Processing path
     uint32_t   dwVpComponent;              // Video Processing Component
@@ -175,6 +177,11 @@ typedef struct _VP_CONFIG
     //FALSE(0): no force color fill, TRUE(1): force color fill with default color,
     //ELSE(other non-zero value): force color fill with color info from dwForceColorFill
     uint32_t   dwForceColorFill;
+
+    //VEBOX perf is not enough for 8K@60fps processing
+    //add config to switch 8K resolution on VEBOX or render
+    //default is use render for 8k
+    uint32_t   dwUseVeboxFor8K;
 } VP_CONFIG, *PVP_CONFIG;
 
 //!

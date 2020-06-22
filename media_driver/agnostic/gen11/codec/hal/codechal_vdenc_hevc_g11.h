@@ -252,6 +252,7 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11
     // motion adaptive
     uint8_t    QPAdaptiveWeight[52];
     uint8_t    boostTable[52];
+    uint8_t    PenaltyForIntraNonDC32x32PredMode[52];
 };
 
 using PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11 = CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G11*;
@@ -369,6 +370,7 @@ public:
     bool                        m_enableVdBoxHWSemaphore = false;        //!< Enable VDBOX HW semaphore
     // scalability
     unsigned char                         m_numPipe            = 1;         //!< Number of pipes
+    unsigned char                         m_numPipePre         = 1;         //!< Number of pipes of previous frame
     unsigned char                         m_numPassesInOnePipe = 1;         //!< Number of PAK passes in one pipe
     CODECHAL_ENCODE_BUFFER                m_resPakSliceLevelStreamoutData;  //!< Surface for slice level stream out data from PAK
     CODECHAL_HEVC_VIRTUAL_ENGINE_OVERRIDE m_kmdVeOveride;                   //!< KMD override virtual engine index
@@ -393,7 +395,6 @@ public:
     MOS_COMMAND_BUFFER     m_veBatchBuffer[CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC][CODECHAL_HEVC_MAX_NUM_HCP_PIPE][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  //!< Virtual engine batch buffers
     MOS_COMMAND_BUFFER     m_realCmdBuffer;                                                                                                            //!< Virtual engine command buffer
     uint32_t               m_sizeOfVeBatchBuffer  = 0;                                                                                                 //!< Virtual engine batch buffer size
-    unsigned char          m_virtualEngineBbIndex = 0;                                                                                                 //!< Virtual engine batch buffer index
     CODECHAL_ENCODE_BUFFER m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                       //!< BRC HW semaphore
     CODECHAL_ENCODE_BUFFER m_resVdBoxSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                     //!< VDBox HW semaphore
     CODECHAL_ENCODE_BUFFER m_resBrcPakSemaphoreMem;                                                                                                    //!< BRC PAK HW semaphore
@@ -835,7 +836,6 @@ protected:
     virtual MOS_STATUS DumpHucPakIntegrate();
     virtual MOS_STATUS DumpVdencOutputs();
     virtual MOS_STATUS DumpHucCqp();
-    virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
 #endif
 
 };

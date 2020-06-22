@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -168,6 +168,7 @@ protected:
 
     // Auxiliary
     MEDIA_FEATURE_TABLE           *m_pSkuTable;
+    MEDIA_WA_TABLE              *m_pWaTable;
 
     void (*m_modifyKdllFunctionPointers)(PKdll_State);
 
@@ -300,6 +301,31 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS UpdateRenderGpuContext(MOS_GPU_CONTEXT renderGpuContext);
+
+    //!
+    //! \brief    set Render Gpu Context
+    //! \details  set Render Gpu Context based on lumakey and CCS status.
+    //! \param    [in] RenderParams
+    //!           VPHAL render parameter
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetRenderGpuContext(VPHAL_RENDER_PARAMS& RenderParams);
+
+    //!
+    //! \brief    Explicitly initialize the maxSrcRect member
+    //! \details  The maxSrcRect member keeps track of the maximum rectangle
+    //!           among a set of source surfaces.  There is a need to
+    //!           explicitly re-initialize this member in VphalState::Render
+    //!           prior to calling the main render function.  This is so that
+    //!           the maxSrcRect value for the last set of surfaces does not
+    //!           get re-used for the current set of surfaces.
+    //! \return   void
+    //!
+    void InitMaxSrcRect()
+    {
+        maxSrcRect = {0, 0, 0, 0};
+    }
 
 protected:
     //!
@@ -457,6 +483,26 @@ protected:
     //!
     virtual MOS_STATUS AllocateDebugDumper();
 
+    //!
+    //! \brief    Allocate surface dumper
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS CreateSurfaceDumper();
+
+    //!
+    //! \brief    Get Hdr path needed flag
+    //! \details  Get Hdr path needed flag
+    //! \param    pRenderParams
+    //!           [in] Pointer to VPHAL render parameter
+    //! \param    pRenderPassData
+    //!           [in,out] Pointer to the VPHAL render pass data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS GetHdrPathNeededFlag(
+        PVPHAL_RENDER_PARAMS    pRenderParams,
+        RenderpassData          *pRenderPassData);
 };
 
 #define VPHAL_RENDERER_GET_CACHE_CNTL(obj, pOsInterface, pPlatform, pSkuTable, pSettings)   \

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,9 @@
 #include <stdint.h>
 #include <va/va.h>
 #include "media_ddi_base.h"
+#ifdef _APOGEIOS_SUPPORTED
+#include "decode_pipeline_adapter.h"
+#endif
 
 struct DDI_DECODE_CONTEXT;
 struct DDI_MEDIA_CONTEXT;
@@ -415,6 +418,28 @@ protected:
     VAStatus ExtraDownScaling(
             VADriverContextP         ctx,
             VAContextID              context);
+
+    //! \brief    Init dummy reference
+    //! \details  Init dummy reference for decode
+    //!
+    //! \param    [in/out] decoder
+    //!           Codechal decoder
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    VAStatus InitDummyReference(CodechalDecode& decoder);
+
+#ifdef _APOGEIOS_SUPPORTED
+    //! \brief    Init dummy reference
+    //! \details  Init dummy reference for decode
+    //!
+    //! \param    [in/out] decoder
+    //!           DecodePipelineAdapter decoder
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    VAStatus InitDummyReference(DecodePipelineAdapter& decoder);
+#endif
 
     //! \brief  the type of decode base class
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure

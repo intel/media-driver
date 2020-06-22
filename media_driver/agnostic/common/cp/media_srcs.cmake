@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,11 +19,18 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/cp_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_cp_interface.h
 )
 
 set(HEADERS_
     ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 

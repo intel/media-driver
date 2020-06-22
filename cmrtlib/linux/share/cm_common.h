@@ -25,6 +25,9 @@
 
 #include "cm_include.h"
 
+#ifndef __SURFACE_SAMPLER_INDEX_DEFINED__
+#define __SURFACE_SAMPLER_INDEX_DEFINED__
+
 class SurfaceIndex
 {
 public:
@@ -67,6 +70,11 @@ private:
     unsigned char m_extraByte;
 };
 
+#endif /* __SURFACE_SAMPLER_INDEX_DEFINED__ */
+
+#ifndef __VME_INDEX_DEFINED__
+#define __VME_INDEX_DEFINED__
+
 class VmeIndex
 
 {
@@ -84,5 +92,7 @@ private:
      */
     unsigned char m_extraByte;
 };
+
+#endif /* __VME_INDEX_DEFINED__ */
 
 #endif  // #ifndef CMRTLIB_LINUX_SHARE_CM_COMMON_H_

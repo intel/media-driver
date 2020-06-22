@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,8 @@
 #include "mos_defs.h"
 #include "media_skuwa_specific.h"
 #include "mos_utilities.h"
+#include "mos_utilities_next.h"
+#include "mos_util_debug_next.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
 #include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality 
 #if (_RELEASE_INTERNAL || _DEBUG)
@@ -209,7 +211,7 @@ private:
 #define MOS_COMMAND_BUFFER_RENDER_ENGINE   "CS"
 #define MOS_COMMAND_BUFFER_VIDEO_ENGINE    "VCS"
 #define MOS_COMMAND_BUFFER_VEBOX_ENGINE    "VECS"
-#define MOS_COMMAND_BUFFER_RTE_ENGINE      "RTE"
+#define MOS_COMMAND_BUFFER_TEE_ENGINE      "TEE"
 #define MOS_COMMAND_BUFFER_PLATFORM_LEN    4
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
@@ -236,8 +238,9 @@ enum MOS_COMPONENT
     COMPONENT_VPreP,
     COMPONENT_CP,
     COMPONENT_MEMDECOMP,
+    COMPONENT_MCPY,
 };
-C_ASSERT(COMPONENT_MEMDECOMP == 9); // When adding, update assert
+C_ASSERT(COMPONENT_MCPY == 10); // When adding, update assert
 
 //!
 //! \brief Structure to OS sync parameters
@@ -258,19 +261,17 @@ typedef struct _MOS_SYNC_PARAMS
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 //!
-//! \brief Enum for forcing VDBOX
+//! \brief for forcing VDBOX
 //!
-typedef enum _MOS_FORCE_VDBOX
-{
-    MOS_FORCE_VDBOX_NONE    = 0,
-    MOS_FORCE_VDBOX_1       = 0x0001,
-    MOS_FORCE_VDBOX_2       = 0x0002,
-    //below is for scalability case,
-    //format is FE vdbox is specified as lowest 4 bits; BE0 is 2nd low 4 bits; BE1 is 3rd low 4bits.
-    MOS_FORCE_VDBOX_1_1_2   = 0x0211,
-    //FE-VDBOX2, BE0-VDBOX1, BE2-VDBOX2
-    MOS_FORCE_VDBOX_2_1_2   = 0x0212,
-} MOS_FORCE_VDBOX;
+
+#define    MOS_FORCE_VDBOX_NONE     0
+#define    MOS_FORCE_VDBOX_1        0x0001
+#define    MOS_FORCE_VDBOX_2        0x0002
+//below is for scalability case,
+//format is FE vdbox is specified as lowest 4 bits; BE0 is 2nd low 4 bits; BE1 is 3rd low 4bits.
+#define    MOS_FORCE_VDBOX_1_1_2    0x0211
+//FE-VDBOX2, BE0-VDBOX1, BE2-VDBOX2
+#define    MOS_FORCE_VDBOX_2_1_2    0x0212
 
 //!
 //! \brief Enum for forcing VEBOX
@@ -356,6 +357,7 @@ typedef enum _MOS_VEBOX_NODE_IND
 #define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT          24
 #define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_MASK           (0xff << SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT)
 #define SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE      (1 << SUBMISSION_TYPE_MULTI_PIPE_FLAGS_SHIFT)
+typedef int32_t MOS_SUBMISSION_TYPE;
 
 //!
 //! \brief Structure to command buffer
@@ -429,11 +431,12 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
     MOS_TILE_TYPE       TileType;                                               //!< [in] Defines the layout of a physical page. Optimal choice depends on usage model.
     MOS_FORMAT          Format;                                                 //!< [in] Pixel format
     void                *pSystemMemory;                                         //!< [in] Optional parameter. If non null, TileType must be set to linear.
-    const char          *pBufName;                                              //!< [in] Optional parameter only used in Linux. A string indicates the buffer name and is used for debugging. nullptr is OK.
-    int32_t             bIsCompressed;                                          //!< [in] Resource is compressed or not.
-    MOS_RESOURCE_MMC_MODE   CompressionMode;                                        //!< [in] Compression mode.
+    const char          *pBufName;                                              //!< [in] Optional parameter. A string indicates the buffer name and is used for debugging. nullptr is OK.
+    int32_t             bIsCompressible;                                        //!< [in] Resource is compressible or not.
+    MOS_RESOURCE_MMC_MODE   CompressionMode;                                    //!< [in] Compression mode.
     int32_t             bIsPersistent;                                          //!< [in] Optional parameter. Used to indicate that resource can not be evicted
     int32_t             bBypassMODImpl;
+    int32_t             dwMemType;                                              //!< [in] Optional paramerter. Prefer memory type
 } MOS_ALLOC_GFXRES_PARAMS, *PMOS_ALLOC_GFXRES_PARAMS;
 
 //!
@@ -468,6 +471,7 @@ typedef struct _MOS_PATCH_ENTRY_PARAMS
     uint32_t                    shiftAmount; //!< shift amount for patch
     uint32_t                    shiftDirection; //!< shift direction for patch
     MOS_PATCH_TYPE              patchType;   //!< patch type
+    MOS_COMMAND_BUFFER          *cmdBuffer;  //!< command buffer
 } MOS_PATCH_ENTRY_PARAMS, *PMOS_PATCH_ENTRY_PARAMS;
 
 typedef struct _MOS_GPUCTX_CREATOPTIONS MOS_GPUCTX_CREATOPTIONS, *PMOS_GPUCTX_CREATOPTIONS;
@@ -539,44 +543,82 @@ private:
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
 class OsContextNext;
+typedef void *     OS_PER_STREAM_PARAMETERS;
 typedef OsContextNext OsDeviceContext;
 typedef _MOS_GPUCTX_CREATOPTIONS GpuContextCreateOption;
 struct _MOS_INTERFACE;
-    
+class MosVeInterface;
+
 struct MosStreamState
 {
-    OsDeviceContext *  osDeviceContext         = nullptr;
+    OsDeviceContext   *osDeviceContext = nullptr;
     GPU_CONTEXT_HANDLE currentGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
     MOS_COMPONENT      component;
 
-    PMOS_VIRTUALENGINE_INTERFACE virtualEngineInterface = nullptr;
-    MosCpInterface *osCpInterface = nullptr;
+    bool supportVirtualEngine = false; //!< Flag to indicate using virtual engine interface
+    MosVeInterface *virtualEngineInterface = nullptr; //!< Interface to virtual engine state
+    bool useHwSemaForResSyncInVe = false; //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface
+    bool veEnable = false;                //!< Flag to indicate virtual engine enabled (Can enable VE without using virtual engine interface)
+    bool phasedSubmission = false;        //!< Flag to indicate if secondary command buffers are submitted together or separately due to different OS
+    bool frameSplit = true;               //!< Flag to indicate if frame split is enabled (only active when phasedSubmission is true)
+    bool hcpDecScalabilityMode = false;   //!< Hcp scalability mode
+    bool veboxScalabilityMode = false;    //!< Vebox scalability mode
 
-    bool mediaReset    = false;
-    uint32_t GpuResetCount = 0;
+    bool ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
+    bool multiNodeScaling = false;    //!< Flag to indicate if multi-node scaling is enabled for virtual engine (only active when ctxBasedScheduling is true)
+
+    bool softReset = false;  //!< trigger soft reset
+
+    MosCpInterface *osCpInterface = nullptr; //!< CP interface
+
+    bool mediaReset    = false;  //!< Flag to indicate media reset is enabled
 
     bool simIsActive = false;  //!< Flag to indicate if Simulation is enabled
-    MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable; //!< To indicate which components to enable Null HW support
+    MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable = {};     //!< To indicate which components to enable Null HW support
+
+    bool usesPatchList = false;               //!< Uses patch list instead of graphic address directly
+    bool usesGfxAddress = false;              //!< Uses graphic address directly instead of patch list
+    bool enableKmdMediaFrameTracking = false; //!< Enable KMD Media frame tracking
+    bool usesCmdBufHeaderInResize = false;    //!< Use cmd buffer header in resize
+    bool usesCmdBufHeader = false;            //!< Use cmd buffer header
+
+    // GPU Reset Statistics
+    uint32_t gpuResetCount      = 0;
+    uint32_t gpuActiveBatch     = 0;
+    uint32_t gpuPendingBatch    = 0;
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     // Command buffer dump
     bool  dumpCommandBuffer = false;                      //!< Flag to indicate if Dump command buffer is enabled
     bool  dumpCommandBufferToFile = false;                //!< Indicates that the command buffer should be dumped to a file
     bool  dumpCommandBufferAsMessages = false;            //!< Indicates that the command buffer should be dumped via MOS normal messages
+    char  sDirName[MOS_MAX_HLT_FILENAME_LEN] = {0};       //!< Dump Directory name - maximum 260 bytes length
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
-    _MOS_INTERFACE *osInterfaceLegacy = nullptr;
+#if _DEBUG || _RELEASE_INTERNAL
+    bool  enableDbgOvrdInVirtualEngine = false; //!< enable debug override in virtual engine
+
+    int32_t eForceVdbox = 0;  //!< Force select Vdbox
+    int32_t eForceVebox = 0;  //!< Force select Vebox
+#endif // _DEBUG || _RELEASE_INTERNAL
+
+    OS_PER_STREAM_PARAMETERS  perStreamParameters = nullptr; //!< Parameters of OS specific per stream
 };
 
+// OS agnostic MOS objects
 typedef OsDeviceContext *MOS_DEVICE_HANDLE;
 typedef MosStreamState  *MOS_STREAM_HANDLE;
 //typedef uint32_t             GPU_CONTEXT_HANDLE;
 typedef MOS_COMMAND_BUFFER *COMMAND_BUFFER_HANDLE;
 typedef MOS_RESOURCE       *MOS_RESOURCE_HANDLE;
-typedef void *              OsSpecificRes;
-typedef void *              OS_HANDLE;
+typedef MosVeInterface     *MOS_VE_HANDLE;
+
+// OS specific MOS objects
+typedef void *              OsSpecificRes;       //!< stand for different os specific resource structure (or info)
+typedef void *              OS_HANDLE;           //!< stand for different os handles
 typedef MOS_SURFACE         MosResourceInfo;
-typedef void *              DDI_DEVICE_CONTEXT;
+typedef void *              DDI_DEVICE_CONTEXT;  //!< stand for different os specific device context
+typedef void *              MOS_INTERFACE_HANDLE;
 
 class GpuContextMgr;
 //!
@@ -606,7 +648,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bUsesCmdBufHeaderInResize;
     int32_t                         bEnableKmdMediaFrameTracking;
     int32_t                         bNoParsingAssistanceInKmd;
-    bool                            bPitchAndUVPatchingNeeded;
+    bool                            bPitchAndUVPatchingNeeded = false;
     uint32_t                        dwCommandBufferReservedSpace;
     uint32_t                        dwNumNalUnitBytesIncluded;
 
@@ -664,6 +706,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bDumpCommandBufferToFile;                          //!< Indicates that the command buffer should be dumped to a file
     int32_t                         bDumpCommandBufferAsMessages;                      //!< Indicates that the command buffer should be dumped via MOS normal messages
     char                            sPlatformName[MOS_COMMAND_BUFFER_PLATFORM_LEN];    //!< Platform name - maximum 4 bytes length
+    char                            sDirName[MOS_MAX_HLT_FILENAME_LEN];                //!< Dump Directory name - maximum 260 bytes length
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 #if (_RELEASE_INTERNAL||_DEBUG)
@@ -676,21 +719,32 @@ typedef struct _MOS_INTERFACE
     bool                            bEnableVdboxBalancing;                            //!< Enable per BB VDBox balancing
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_FORCE_VDBOX                 eForceVdbox;                                  //!< Force select Vdbox
+    int                             eForceVdbox;                                  //!< Force select Vdbox
     uint32_t                        dwForceTileYfYs;                              // force to allocate Yf (=1) or Ys (=2), remove after full validation
     int32_t                         bTriggerCodecHang;                            // trigger GPU HANG in codec
     int32_t                         bTriggerVPHang;                               //!< trigger GPU HANG in VP
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
+    bool                            apoMosEnabled;                                //!< apo mos or not
+
     MEMORY_OBJECT_CONTROL_STATE (* pfnCachePolicyGetMemoryObject) (
         MOS_HW_RESOURCE_DEF         Usage,
         GMM_CLIENT_CONTEXT          *pGmmClientContext);
+
+    uint8_t (* pfnCachePolicyGetL1Config) (
+            MOS_HW_RESOURCE_DEF         Usage,
+            GMM_CLIENT_CONTEXT          *pGmmClientContext);
 
     MOS_STATUS (* pfnCreateGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext,
         MOS_GPU_NODE                GpuNode,
         PMOS_GPUCTX_CREATOPTIONS    createOption);
+
+    GPU_CONTEXT_HANDLE (*pfnCreateGpuComputeContext) (
+        PMOS_INTERFACE          osInterface,
+        MOS_GPU_CONTEXT         gpuContext,
+        MOS_GPUCTX_CREATOPTIONS *createOption);
 
     MOS_STATUS (* pfnDestroyGpuContext) (
         PMOS_INTERFACE              pOsInterface,
@@ -699,6 +753,10 @@ typedef struct _MOS_INTERFACE
     MOS_STATUS (* pfnSetGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
+
+    MOS_STATUS (*pfnSetGpuContextFromHandle)(PMOS_INTERFACE osInterface,
+                                             MOS_GPU_CONTEXT contextName,
+                                             GPU_CONTEXT_HANDLE contextHandle);
 
     MOS_STATUS (*pfnSetGpuContextHandle) (
         PMOS_INTERFACE     pOsInterface,
@@ -935,6 +993,22 @@ typedef struct _MOS_INTERFACE
         PMOS_RESOURCE         pOutputOsResource,
         bool                  bOutputCompressed);
 
+    MOS_STATUS(*pfnMediaCopyResource2D) (
+        PMOS_INTERFACE        pOsInterface,
+        PMOS_RESOURCE         pInputOsResource,
+        PMOS_RESOURCE         pOutputOsResource,
+        uint32_t              copyWidth,
+        uint32_t              copyHeight,
+        uint32_t              copyInputOffset,
+        uint32_t              copyOutputOffset,
+        bool                  bOutputCompressed);
+
+    MOS_STATUS(*pfnMediaCopy) (
+        PMOS_INTERFACE        pOsInterface,
+        PMOS_RESOURCE         pInputOsResource,
+        PMOS_RESOURCE         pOutputOsResource,
+        uint32_t              preferMethod);
+
     MOS_STATUS (* pfnFillResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource,
@@ -1031,10 +1105,6 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
 
-    void (* pfnSleepMs) (
-        PMOS_INTERFACE              pOsInterface,
-        uint32_t                    dwWaitMs);
-
     MOS_FORMAT (* pfnFmt_OsToMos) (
         MOS_OS_FORMAT               format);
 
@@ -1067,12 +1137,6 @@ typedef struct _MOS_INTERFACE
     int32_t (* pfnIsPerfTagSet) (
         PMOS_INTERFACE              pOsInterface);
 
-    void (* pfnQueryPerformanceFrequency) (
-        int64_t                     *pFrequency);
-
-    void (* pfnQueryPerformanceCounter) (
-        int64_t                     *pCount);
-
     MOS_STATUS (* pfnGetBitsPerPixel) (
         PMOS_INTERFACE              pOsInterface,
         MOS_FORMAT                  Format,
@@ -1085,10 +1149,6 @@ typedef struct _MOS_INTERFACE
 
     MOS_STATUS (*pfnFreeLibrary) (
         HINSTANCE                   hInstance);
-
-    void  *(*pfnGetProcAddress) (
-        HINSTANCE                   hInstance,
-        char                        *pModuleName);
 
     void (*pfnLogData)(
         char                        *pData);
@@ -1159,6 +1219,12 @@ typedef struct _MOS_INTERFACE
         PMOS_ALLOC_GFXRES_PARAMS    pParams);
 
     MOS_STATUS(*pfnSkipResourceSync)(
+        PMOS_RESOURCE               pOsResource);
+
+    MOS_STATUS(*pfnSkipResourceSyncDynamic)(
+        PMOS_RESOURCE               pOsResource);
+
+    MOS_STATUS(*pfnEnableResourceSyncDynamic)(
         PMOS_RESOURCE               pOsResource);
 
     bool(*pfnIsValidStreamID)(
@@ -1266,6 +1332,8 @@ typedef struct _MOS_INTERFACE
     int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
     int32_t                         bSoftReset;                                   //!< trigger soft reset
 #endif // (_DEBUG || _RELEASE_INTERNAL)
+    bool streamStateIniter = false;
+
     //!< os interface extension
     void                            *pOsExt;
 } MOS_INTERFACE;
@@ -1287,6 +1355,15 @@ MOS_STATUS Mos_InitInterface(
     PMOS_INTERFACE      pOsInterface,
     PMOS_CONTEXT        pOsDriverContext,
     MOS_COMPONENT       component);
+
+//! \brief    Destroy the mos interface
+//! \details  MOS Interface release
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in/out] Pointer to OS Interface
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface);
 
 //! \brief    Unified OS add command to command buffer
 //! \details  Offset returned is dword aligned but size requested can be byte aligned
@@ -1317,6 +1394,7 @@ MOS_STATUS Mos_AddCommand(
 MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
     MOS_HW_RESOURCE_DEF MosUsage,
     GMM_CLIENT_CONTEXT  *pGmmClientContext);
+
 #endif
 
 #ifdef __cplusplus

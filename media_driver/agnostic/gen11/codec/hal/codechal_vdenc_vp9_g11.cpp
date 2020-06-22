@@ -1820,7 +1820,11 @@ MOS_STATUS CodechalVdencVp9StateG11::GetStatusReport(
         m_osInterface,
         &currRefList.resBitstreamBuffer,
         &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(bitstream);
+    if (bitstream == nullptr)
+    {
+        MOS_SafeFreeMemory(tempBsBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(nullptr);
+    }
 
     for (uint32_t i = 0; i < encodeStatusReport->NumberTilesInFrame; i++)
     {
@@ -2460,13 +2464,6 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecuteSliceLevel()
     return ExecuteTileLevel();
 }
 
-PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencVp9StateG11::CreateMhwVdboxPipeModeSelectParams()
-{
-    auto pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11);
-
-    return pipeModeSelectParams;
-}
-
 void CodechalVdencVp9StateG11::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -2820,7 +2817,7 @@ MOS_STATUS CodechalVdencVp9StateG11::SendPrologWithFrameTracking(
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
         genericPrologParams.pOsInterface = m_hwInterface->GetOsInterface();
         genericPrologParams.pvMiInterface = m_hwInterface->GetMiInterface();
-        genericPrologParams.bMmcEnabled = CodecHalMmcState::IsMmcEnabled();
+        genericPrologParams.bMmcEnabled = m_mmcState ? m_mmcState->IsMmcEnabled() : false;
         genericPrologParams.dwStoreDataValue = m_storeData - 1;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(commandBufferInUse, &genericPrologParams));
     }
@@ -4327,6 +4324,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
     // set HCP_PIPE_BUF_ADDR_STATE values
     PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams = nullptr;
     pipeBufAddrParams = CreateHcpPipeBufAddrParams(pipeBufAddrParams);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pipeBufAddrParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpPipeBufAddrParams(*pipeBufAddrParams, refSurface, refSurfaceNonScaled, dsRefSurface4x, dsRefSurface8x));
     pipeBufAddrParams->pRawSurfParam = &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID];
     pipeBufAddrParams->pDecodedReconParam = &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID];
@@ -4338,7 +4336,7 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
 
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
-    pipeModeSelectParams = CreateMhwVdboxPipeModeSelectParams();
+    pipeModeSelectParams = m_vdencInterface->CreateMhwVdboxPipeModeSelectParams();
     SetHcpPipeModeSelectParams(*pipeModeSelectParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
 

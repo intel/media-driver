@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -196,6 +196,25 @@ protected:
     //!
     MOS_STATUS MapResourcesToAuxTable(mos_linux_bo *cmd_bo);
 
+    //!
+    //! \brief    Submit command buffer for single pipe in scalability mode
+    //! \return   int32_t
+    //!           Return 0 if successful, otherwise error code
+    //!
+    int32_t SubmitPipeCommands(MOS_COMMAND_BUFFER *cmdBuffer,
+                               MOS_LINUX_BO *cmdBo,
+                               PMOS_CONTEXT osContext,
+                               uint32_t execFlag,
+                               int32_t dr4);
+
+    //!
+    //! \brief    Set the flags of engin quering according to create options
+    //! \return   void
+    //!
+    void SetEngineQueryFlags(
+        PMOS_GPUCTX_CREATOPTIONS option,
+        __u64 &caps);
+
 private:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBuffer *> m_cmdBufPool;
@@ -215,6 +234,9 @@ private:
 
     //! \brief    internal back up for in-use command buffer
     PMOS_COMMAND_BUFFER m_commandBuffer = nullptr;
+
+    //! \brief    secondary command buffers for scalability
+    std::map<uint32_t, PMOS_COMMAND_BUFFER> m_secondaryCmdBufs;
 
     //! \brief    Allcoation List related struct
     ALLOCATION_LIST *m_allocationList = nullptr;

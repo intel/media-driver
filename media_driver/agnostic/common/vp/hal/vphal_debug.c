@@ -102,10 +102,11 @@ void VphalDumperTool::GetOsFilePath(
 
 MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
     PVPHAL_SURFACE                    pSurface,
-    VPHAL_DBG_SURF_DUMP_SURFACE_DEF  *pPlanes,
-    uint32_t                         *pdwNumPlanes,
-    uint32_t                         *pdwSize,
-    bool                              auxEnable)
+    VPHAL_DBG_SURF_DUMP_SURFACE_DEF   *pPlanes,
+    uint32_t                          *pdwNumPlanes,
+    uint32_t                          *pdwSize,
+    bool                              auxEnable,
+    bool                              isDeswizzled)
 {
     MOS_STATUS      eStatus;
     uint32_t        i;
@@ -399,6 +400,8 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
         goto finish;
     }
 
+    // For Deswizzled surfaces, Mos_Specific_LockResource() already do the de-padding between Y and UV surf. 
+    // so, don't use the info of U/V PlaneOffset, as the padding is already removed.
     for (i = 0; i < *pdwNumPlanes; i++)
     {
         switch (i)
@@ -411,13 +414,13 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
         case 1:
             if (pSurface->Format == Format_YV12)
             {
-                pPlanes[i].dwOffset = pSurface->VPlaneOffset.iSurfaceOffset +
+                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[0].dwPitch * pPlanes[0].dwHeight + pPlanes[0].dwOffset : pSurface->VPlaneOffset.iSurfaceOffset) +
                     (pSurface->VPlaneOffset.iYOffset * pSurface->dwPitch) +
                     pSurface->VPlaneOffset.iXOffset;
             }
             else
             {
-                pPlanes[i].dwOffset = pSurface->UPlaneOffset.iSurfaceOffset +
+                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[0].dwPitch * pPlanes[0].dwHeight + pPlanes[0].dwOffset : pSurface->UPlaneOffset.iSurfaceOffset) +
                     (pSurface->UPlaneOffset.iYOffset * pSurface->dwPitch) +
                     pSurface->UPlaneOffset.iXOffset;
             }
@@ -425,13 +428,13 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
         case 2:
             if (pSurface->Format == Format_YV12)
             {
-                pPlanes[i].dwOffset = pSurface->UPlaneOffset.iSurfaceOffset +
+                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[1].dwOffset + pPlanes[1].dwPitch * pPlanes[1].dwHeight : pSurface->UPlaneOffset.iSurfaceOffset) +
                     (pSurface->UPlaneOffset.iYOffset * pSurface->dwPitch) +
                     pSurface->UPlaneOffset.iXOffset;
             }
             else
             {
-                pPlanes[i].dwOffset = pSurface->VPlaneOffset.iSurfaceOffset +
+                pPlanes[i].dwOffset = (isDeswizzled ? pPlanes[1].dwOffset + pPlanes[1].dwPitch * pPlanes[1].dwHeight : pSurface->VPlaneOffset.iSurfaceOffset) +
                     (pSurface->VPlaneOffset.iYOffset * pSurface->dwPitch) +
                     pSurface->VPlaneOffset.iXOffset;
             }
@@ -442,7 +445,7 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
     }
 
     //compressed surface need 32 align on height
-    if (auxEnable)
+    if (auxEnable && !isDeswizzled)
     {
         for (i = 0; i < *pdwNumPlanes; i++)
         {
@@ -468,15 +471,31 @@ finish:
     return eStatus;
 }
 
+bool VphalSurfaceDumper::HasAuxSurf(
+    PMOS_RESOURCE    osResource)
+{
+    bool    hasAuxSurf = false;
+#if !EMUL
+    GMM_RESOURCE_FLAG                   gmmFlags;
+
+    MOS_ZeroMemory(&gmmFlags, sizeof(gmmFlags));
+    gmmFlags    = osResource->pGmmResInfo->GetResFlags();
+    hasAuxSurf  = (gmmFlags.Gpu.MMC && gmmFlags.Gpu.UnifiedAuxSurface) ||
+                  (gmmFlags.Gpu.CCS && gmmFlags.Gpu.UnifiedAuxSurface && gmmFlags.Info.MediaCompressed);
+#endif
+    return hasAuxSurf;
+}
+
 MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
     PMOS_INTERFACE          pOsInterface,
     PVPHAL_SURFACE          pSurface,
     const char              *psPathPrefix,
     uint64_t                iCounter,
-    bool                    bLockSurface)
+    bool                    bLockSurface,
+    bool                    bNoDecompWhenLock,
+    uint8_t*                pData)
 {
     MOS_STATUS                          eStatus;
-    uint8_t                             *pData = nullptr;
     bool                                isSurfaceLocked;
     char                                sPath[MAX_PATH], sOsPath[MAX_PATH];
     uint8_t                             *pDst, *pTmpSrc, *pTmpDst;
@@ -488,10 +507,6 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
     bool                                hasAuxSurf;
     bool                                enableAuxDump;
     bool                                enablePlaneDump = false;
-
-#if !EMUL
-    GMM_RESOURCE_FLAG                   gmmFlags;
-#endif
 
     VPHAL_DEBUG_ASSERT(pSurface);
     VPHAL_DEBUG_ASSERT(pOsInterface);
@@ -512,12 +527,7 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         pSurface->dwDepth = 1;
     }
 
-#if !EMUL
-    MOS_ZeroMemory(&gmmFlags, sizeof(gmmFlags));
-    gmmFlags   = pSurface->OsResource.pGmmResInfo->GetResFlags();
-    hasAuxSurf = (gmmFlags.Gpu.MMC && gmmFlags.Gpu.UnifiedAuxSurface ) ||
-                 (gmmFlags.Gpu.CCS && gmmFlags.Gpu.UnifiedAuxSurface && gmmFlags.Info.MediaCompressed);
-#endif
+    hasAuxSurf = HasAuxSurf(&pSurface->OsResource);
 
     // get plane definitions
     VPHAL_DEBUG_CHK_STATUS(GetPlaneDefs(
@@ -525,10 +535,14 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         planes,
         &dwNumPlanes,
         &dwSize,
-        (hasAuxSurf && enableAuxDump)));
+        hasAuxSurf, //(hasAuxSurf && enableAuxDump),
+        !enableAuxDump));// !(hasAuxSurf && enableAuxDump)));
 
     if (bLockSurface)
     {
+        // Caller should not give pData when it expect the function to lock surf
+        VPHAL_DEBUG_ASSERT(pData = nullptr);
+
         LockFlags.Value     = 0;
         LockFlags.ReadOnly  = 1;
 
@@ -536,6 +550,11 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
         if (hasAuxSurf && enableAuxDump)
         {
             LockFlags.TiledAsTiled = 1;
+            LockFlags.NoDecompress = 1;
+        }
+
+        if (bNoDecompWhenLock)
+        {
             LockFlags.NoDecompress = 1;
         }
 
@@ -2532,24 +2551,53 @@ VphalHwStateDumper::~VphalHwStateDumper()
     }
 }
 
+uint32_t VphalSurfaceDumper::m_frameNumInVp = 0xffffffff;
+char     VphalSurfaceDumper::m_dumpLocInVp[MAX_PATH];
+
 MOS_STATUS VphalSurfaceDumper::DumpSurface(
     PVPHAL_SURFACE                  pSurf,
     uint32_t                        uiFrameNumber,
     uint32_t                        uiCounter,
     uint32_t                        Location)
 {
-    // Called frequently, so avoid repeated stack resizing with static
-    static char pcDumpPrefix[MAX_PATH];
-    static char pcDumpLoc[MAX_PATH];
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
     int32_t VphalSurfDumpManualTrigger = VPHAL_DBG_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET;
 
-    MOS_STATUS  eStatus;
-    int32_t     i;
-    VPHAL_DBG_SURF_DUMP_SPEC        *pDumpSpec = &m_dumpSpec;
+    MOS_STATUS                 eStatus;
+    int32_t                    i;
+    VPHAL_DBG_SURF_DUMP_SPEC*  pDumpSpec = &m_dumpSpec;
+    bool                       isDumpFromDecomp;
+    bool                       orgDumpAuxEnable;
 
-    eStatus = MOS_STATUS_SUCCESS;
-    i       = 0;
+    eStatus             = MOS_STATUS_SUCCESS;
+    i                   = 0;
+    isDumpFromDecomp    = (Location == VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP || Location == VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP);
+
+    orgDumpAuxEnable    = m_dumpSpec.enableAuxDump;
+    if ((Location == VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP) ||
+        (Location == VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP && m_frameNumInVp != 0xffffffff))
+    {
+        // For PreMemDecomp, dump without aux is meaningless
+        // and, if we don't turn on aux dump, the surface will be deswizzled,
+        // while Mos_Specific_LockResource() will perform deswilling to temp buffer and then copy to locked buffer
+        // This will break the compressed surface.
+        // So, we cannot dump compressed surf with deswizzling under current implementation.
+        // And, for PostMemDecomp, although aux surf should be zero, we can dump it out for comparison.
+        // Besides, we don't need to deswizzle as the original dump from VP (preAll etc) will do the deswizzling
+        // For pre/post mem decomp from Codec/3D, doing deswizzling might help to check the result visually
+        m_dumpSpec.enableAuxDump = true; 
+    }
+
+    if (m_frameNumInVp != 0xffffffff && isDumpFromDecomp)
+    {
+        // override the uiFrameNumer as it is during Vphal dumping its surface and already in lock and decomp phase
+        uiFrameNumber = m_frameNumInVp;
+    }
+
+    if (!isDumpFromDecomp)
+    {
+        m_frameNumInVp      = uiFrameNumber;
+    }
 
     // Get if manual triggered build
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -2571,14 +2619,29 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
                     (pDumpSpec->pDumpLocations[i].SurfType == pSurf->SurfType ||  // should dump for this surface type OR
                         pDumpSpec->pDumpLocations[i].SurfType == SURF_NONE))      // should dump for any surface type
                 {
-                    VPHAL_DEBUG_CHK_STATUS(EnumToLocString(Location, pcDumpLoc));
-                    MOS_SecureStringPrint(pcDumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, pcDumpLoc, uiCounter);
+                    VPHAL_DEBUG_CHK_STATUS(EnumToLocString(Location, m_dumpLoc));
+                    if (!isDumpFromDecomp && pSurf->bIsCompressed)
+                    {
+                        EnumToLocString(Location, m_dumpLocInVp);
+                    }
+
+                    if (!isDumpFromDecomp || m_dumpLocInVp[0] == 0)
+                    {
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                    }
+                    else
+                    {
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, m_dumpLocInVp, m_dumpLoc, uiCounter);
+                    }
+
                     DumpSurfaceToFile(
                         m_osInterface,
                         pSurf,
-                        pcDumpPrefix,
+                        m_dumpPrefix,
                         uiFrameNumber,
-                        true);
+                        true,
+                        isDumpFromDecomp,
+                        nullptr);
                     break;
                 }
             }
@@ -2601,25 +2664,48 @@ MOS_STATUS VphalSurfaceDumper::DumpSurface(
                 (pDumpSpec->pDumpLocations[i].SurfType == pSurf->SurfType ||    // should dump for this surface type OR
                  pDumpSpec->pDumpLocations[i].SurfType == SURF_NONE))           // should dump for any surface type
             {
-                VPHAL_DEBUG_CHK_STATUS(EnumToLocString(Location, pcDumpLoc));
-                MOS_SecureStringPrint(pcDumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]",
-                    pDumpSpec->pcOutputPath, pcDumpLoc, uiCounter);
+                VPHAL_DEBUG_CHK_STATUS(EnumToLocString(Location, m_dumpLoc));
+                if (!isDumpFromDecomp && pSurf->bIsCompressed)
+                {
+                    EnumToLocString(Location, m_dumpLocInVp);
+                }
+
+                if (!isDumpFromDecomp || m_dumpLocInVp[0] == 0)
+                {
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]",
+                        pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                }
+                else
+                {
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]",
+                        pDumpSpec->pcOutputPath, m_dumpLocInVp, m_dumpLoc, uiCounter);
+                }
+
                 DumpSurfaceToFile(
                     m_osInterface,
                     pSurf,
-                    pcDumpPrefix,
+                    m_dumpPrefix,
                     uiFrameNumber,
-                    true);
+                    true,
+                    isDumpFromDecomp,
+                    nullptr);
                 break;
             }
         }
     }
     else
     {
-        VPHAL_DEBUG_VERBOSEMESSAGE("surface dumpped disabled, VphalSurfDumpManualTrigger: %d, uiStartFrame: %d,  uiEndFrame: %d\n", VphalSurfDumpManualTrigger, pDumpSpec->uiStartFrame, pDumpSpec->uiEndFrame);
+        VPHAL_DEBUG_VERBOSEMESSAGE("No surface dumpped, VphalSurfDumpManualTrigger: %d, uiStartFrame: %d,  uiEndFrame: %d\n", VphalSurfDumpManualTrigger, pDumpSpec->uiStartFrame, pDumpSpec->uiEndFrame);
     }
 
 finish:
+    if (!isDumpFromDecomp)
+    {
+        m_frameNumInVp      = 0xffffffff;
+        m_dumpLocInVp[0]    = 0;
+    }
+    m_dumpSpec.enableAuxDump = orgDumpAuxEnable;
+
     return eStatus;
 }
 
@@ -3163,18 +3249,18 @@ MOS_STATUS VphalParameterDumper::DumpSourceSurface(
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_DENOISE_PARAMS>\n"));
         if (pSrc->pDenoiseParams)
         {
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<ENABLE_LUMA>%d</ENABLE_LUMA>\n",         (pSrc->pDenoiseParams->bEnableLuma ? 1 : 0)));
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<ENABLE_CHROMA>%d</ENABLE_CHROMA>\n",     (pSrc->pDenoiseParams->bEnableChroma ? 1 : 0)));
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<AUTO_DETECT>%d</AUTO_DETECT>\n",         (pSrc->pDenoiseParams->bAutoDetect ? 1 : 0)));
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<DENOISE_FACTOR>%.3f</DENOISE_FACTOR>\n", (pSrc->pDenoiseParams->fDenoiseFactor)));
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<DENOISE_FACTOR>%s</DENOISE_FACTOR>\n",    GetDenoiseModeStr(pSrc->pDenoiseParams->NoiseLevel)));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<ENABLE_LUMA>%d</ENABLE_LUMA>\n",         (pSrc->pDenoiseParams->bEnableLuma ? 1 : 0)));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<ENABLE_CHROMA>%d</ENABLE_CHROMA>\n",     (pSrc->pDenoiseParams->bEnableChroma ? 1 : 0)));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<AUTO_DETECT>%d</AUTO_DETECT>\n",         (pSrc->pDenoiseParams->bAutoDetect ? 1 : 0)));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<DENOISE_FACTOR>%.3f</DENOISE_FACTOR>\n", (pSrc->pDenoiseParams->fDenoiseFactor)));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<NOISE_LEVEL>%s</NOISE_LEVEL>\n",    GetDenoiseModeStr(pSrc->pDenoiseParams->NoiseLevel)));
         }
         else
         {
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<ENABLE_LUMA></ENABLE_LUMA>\n"));
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<ENABLE_CHROMA></ENABLE_CHROMA>\n"));
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<AUTO_DETECT></AUTO_DETECT>\n"));
-            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<DENOISE_FACTOR></DENOISE_FACTOR>\n"));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<ENABLE_LUMA></ENABLE_LUMA>\n"));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<ENABLE_CHROMA></ENABLE_CHROMA>\n"));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<AUTO_DETECT></AUTO_DETECT>\n"));
+            VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<DENOISE_FACTOR></DENOISE_FACTOR>\n"));
         }
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t</VPHAL_DENOISE_PARAMS>\n"));
         //ColorPipe
@@ -3496,7 +3582,10 @@ const char * VphalDumperTool::GetFormatStr(MOS_FORMAT format)
         case Format_P016        : return _T("p016");
         case Format_R16F        : return _T("r16f");
         case Format_Y210        : return _T("y210");
+        case Format_Y216        : return _T("y216");
         case Format_Y410        : return _T("y410");
+        case Format_P210        : return _T("p210");
+        case Format_P216        : return _T("p216");
         default                 : return _T("Err");
     }
 
@@ -3549,6 +3638,10 @@ MOS_STATUS VphalDumperTool::GetSurfaceSize(
         case Format_V8U8:
         case Format_R10G10B10A2:
         case Format_B10G10R10A2:
+        case Format_Y210:
+        case Format_Y216:
+        case Format_Y410:
+        case Format_Y416:
             iWidthInBytes = pSurface->dwWidth * iBpp / 8;
             iHeightInRows = pSurface->dwHeight;
             break;
@@ -3825,6 +3918,11 @@ MOS_STATUS VphalDumperTool::GetSurfaceSize(
             iWidthInBytes = pSurface->dwWidth * 8;
             iHeightInRows = pSurface->dwHeight;
             break;
+
+        case Format_P210:
+        case Format_P216:
+            iWidthInBytes = pSurface->dwWidth * 2;
+            iHeightInRows = pSurface->dwHeight * 2;
 
         default:
             VPHAL_DEBUG_ASSERTMESSAGE("Format %d not supported.", pSurface->Format);
@@ -4124,8 +4222,11 @@ const char * VphalParameterDumper::GetWholeFormatStr(MOS_FORMAT format)
     case Format_P016:               return _T("Format_P016");
     case Format_P010:               return _T("Format_P010");
     case Format_Y210:               return _T("Format_Y210");
+    case Format_Y216:               return _T("Fomrat_Y216");
     case Format_Y410:               return _T("Format_Y410");
     case Format_YV12_Planar:        return _T("Format_YV12_Planar");
+    case Format_P210:               return _T("Format_P210");
+    case Format_P216:               return _T("Format_P216");
     case Format_Count:              return _T("Format_Count");
     default:                        return _T("Err");
     }

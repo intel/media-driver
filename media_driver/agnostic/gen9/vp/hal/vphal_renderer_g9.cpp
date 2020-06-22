@@ -162,6 +162,16 @@ MOS_STATUS VphalRendererG9::AllocateRenderComponents(
         return eStatus;
     }
 
+    if (MEDIA_IS_SKU(m_pRenderHal->pSkuTable, FtrHDR))
+    {
+        pHdrState = MOS_New(VPHAL_HDR_STATE);
+        if (pHdrState)
+        {
+            MOS_ZeroMemory(pHdrState, sizeof(VPHAL_HDR_STATE));
+            VpHal_HdrInitInterface(pHdrState, m_pRenderHal);
+        }
+    }
+
     return eStatus;
 }
 

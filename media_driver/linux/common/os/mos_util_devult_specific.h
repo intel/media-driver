@@ -29,13 +29,12 @@
 #define __MOS_UTIL_DEVULT_SPECIFIC_H__
 
 #include "mos_os_specific.h"
-
-extern uint8_t MosUltFlag;
+#include "mos_utilities.h"
 
 template<class _Fun, class... _Types>
 void MOS_DEVULT_FuncCall(_Fun fun, _Types&&... ags)
 {
-    if (MosUltFlag && fun)
+    if (MosUtilities::m_mosUltFlag && fun)
     {
         fun(std::forward<_Types>(ags)...);
     }

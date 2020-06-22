@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,42 +21,37 @@
 */
 //!
 //! \file     mhw_cp_interface.cpp
-//! \brief    Implement MHW interface for content protection 
+//! \brief    Implement MHW interface for content protection
 //! \details  Impelements the functionalities across all platforms for content protection
 //!
 
 #include "mhw_cp_interface.h"
-#include "cplib_utils.h"
+#include "cp_interfaces.h"
 
 MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface)
 {
     MhwCpInterface* pMhwCpInterface = nullptr;
-    using Create_MhwCpFuncType = MhwCpInterface* (*)(PMOS_INTERFACE osInterface);
-    CPLibUtils::InvokeCpFunc<Create_MhwCpFuncType>(
-        pMhwCpInterface, 
-        CPLibUtils::FUNC_CREATE_MHWCP, osInterface);
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (nullptr == cp_interface)
+    {
+        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_MHW, "NULL pointer parameters");
+        return nullptr;
+    }
 
-    if(nullptr == pMhwCpInterface) MhwStubMessage();
+    pMhwCpInterface = cp_interface->Create_MhwCpInterface(osInterface);
+    MOS_Delete(cp_interface);
 
-    return nullptr == pMhwCpInterface? MOS_New(MhwCpInterface) : pMhwCpInterface;
+    if (nullptr == pMhwCpInterface) MhwStubMessage();
+
+    return (nullptr == pMhwCpInterface) ? MOS_New(MhwCpInterface) : pMhwCpInterface;
 }
 
 void Delete_MhwCpInterface(MhwCpInterface* pMhwCpInterface)
 {
-    if(nullptr == pMhwCpInterface)
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (pMhwCpInterface != nullptr && cp_interface != nullptr)
     {
-        return;
+        cp_interface->Delete_MhwCpInterface(pMhwCpInterface);
     }
-
-    if(typeid(*pMhwCpInterface) == typeid(MhwCpInterface))
-    {
-        MOS_Delete(pMhwCpInterface);
-    }
-    else
-    {
-        using Delete_MhwCpFuncType = void (*)(MhwCpInterface*);
-        CPLibUtils::InvokeCpFunc<Delete_MhwCpFuncType>(
-            CPLibUtils::FUNC_DELETE_MHWCP, 
-            pMhwCpInterface);
-    }
+    MOS_Delete(cp_interface);
 }

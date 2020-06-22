@@ -97,10 +97,19 @@ void VPHAL_VEBOX_IECP_RENDERER::VeboxSetAlphaParams(
         switch (pRenderData->pAlphaParams->AlphaMode)
         {
         case VPHAL_ALPHA_FILL_MODE_NONE:
-            if (pOutSurface->Format == Format_A8R8G8B8)
+            if (pOutSurface->Format == Format_A8R8G8B8    ||
+                pOutSurface->Format == Format_A8B8G8R8    ||
+                pOutSurface->Format == Format_R10G10B10A2 ||
+                pOutSurface->Format == Format_B10G10R10A2 ||
+                pOutSurface->Format == Format_AYUV)
             {
                 pVphalVeboxIecpParams->wAlphaValue =
                     (uint8_t)(0xff * pRenderData->pAlphaParams->fAlpha);
+            }
+            else if (pOutSurface->Format == Format_Y416)
+            {
+                pVphalVeboxIecpParams->wAlphaValue =
+                    (uint16_t)(0xffff * pRenderData->pAlphaParams->fAlpha);
             }
             else
             {
@@ -110,14 +119,21 @@ void VPHAL_VEBOX_IECP_RENDERER::VeboxSetAlphaParams(
 
             // VEBOX does not support Background Color
         case VPHAL_ALPHA_FILL_MODE_BACKGROUND:
-
             // VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM case is hit when the
             // input does not have alpha
             // So we set Opaque alpha channel.
         case VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM:
         case VPHAL_ALPHA_FILL_MODE_OPAQUE:
         default:
-            pVphalVeboxIecpParams->wAlphaValue = 0xff;
+            if (pOutSurface->Format == Format_Y416)
+            {
+                pVphalVeboxIecpParams->wAlphaValue = 0xffff;
+            }
+            else
+            {
+                pVphalVeboxIecpParams->wAlphaValue = 0xff;
+            }
+
             break;
         }
     }

@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,12 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.cpp
 )
 
 set(TMP_HEADERS_
@@ -37,6 +39,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

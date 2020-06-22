@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,7 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
     return m_encoder->m_trackedBuf->AllocateSurfaceCsc();
 }
 
-MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format)
+MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -1106,7 +1106,7 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     // check raw surface's color/tile format
     if (m_cscEnableColor && !m_encoder->CheckSupportedFormat(&details))
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckRawColorFormat(details.Format));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckRawColorFormat(details.Format, details.TileType));
     }
 
     // check raw surface's MMC state
@@ -1228,6 +1228,13 @@ MOS_STATUS CodechalEncodeCscDs::KernelFunctions(
     // call 16x/32x DS
     if (m_scalingEnabled && m_16xMeSupported)
     {
+        //disable csc and reset colorFormat in 16x/32x stage since their inputs are 4x/16x DS results (only Y component)
+        if(m_cscFlag && m_encoder->m_vdencEnabled && CODECHAL_HEVC == m_standard)
+        {
+            m_colorRawSurface = cscColorNv12TileY;
+            m_cscFlag = false;
+        }
+
         // 4x downscaled images used as the input for 16x downscaling
         if (useDsConvInCombinedKernel)
         {
@@ -1363,6 +1370,14 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
     // setup kernel params
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetKernelParamsCsc(params));
 
+    if(m_encoder->m_vdencEnabled && CODECHAL_HEVC == m_standard)
+    {
+        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
+            m_surfaceParamsCsc.psInputSurface,
+            CodechalDbgAttr::attrEncodeRawInputSurface,
+            m_curbeParams.downscaleStage == dsStage4x ? "4xDS_Input" : (m_curbeParams.downscaleStage == dsStage16x ? "16xDS_Input" : "32xDS_Input"))));
+    }
+
     PerfTagSetting perfTag;
     perfTag.Value = 0;
     perfTag.Mode = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
@@ -1401,6 +1416,14 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
     // send CURBE
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetCurbeCsc());
 
+    if(m_encoder->m_vdencEnabled && CODECHAL_HEVC == m_standard)
+    {
+        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCurbe(
+                m_curbeParams.downscaleStage == dsStage4x ? CODECHAL_MEDIA_STATE_4X_SCALING :
+                        (m_curbeParams.downscaleStage == dsStage16x ? CODECHAL_MEDIA_STATE_16X_SCALING : CODECHAL_MEDIA_STATE_32X_SCALING),
+                m_cscKernelState)));
+    }
+
     CODECHAL_MEDIA_STATE_TYPE encFunctionType = CODECHAL_MEDIA_STATE_CSC_DS_COPY;
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCurbe(
@@ -1433,47 +1456,56 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
             m_cscKernelState));
     )
 
-    MHW_WALKER_PARAMS walkerParams;
-    MOS_ZeroMemory(&walkerParams, sizeof(walkerParams));
-    walkerParams.WalkerMode = m_walkerMode;
-    walkerParams.UseScoreboard = m_useHwScoreboard;
-    walkerParams.BlockResolution.x =
-    walkerParams.GlobalResolution.x =
-    walkerParams.GlobalOutlerLoopStride.x = m_walkerResolutionX;
-    walkerParams.BlockResolution.y =
-    walkerParams.GlobalResolution.y =
-    walkerParams.GlobalInnerLoopUnit.y = m_walkerResolutionY;
-    walkerParams.dwLocalLoopExecCount = 0xFFFF;  //MAX VALUE
-    walkerParams.dwGlobalLoopExecCount = 0xFFFF;  //MAX VALUE
+        // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external
+        // raw surface processing to complete, before start CSC. Once the marker in
+        // raw surface is overwritten by external operation, HW semaphore will be
+        // signalled and CSC will start. This is to reduce SW latency between
+        // external raw surface processing and CSC, in usages like remote gaming.
+        if (m_pollingSyncEnabled)
+        {
+            MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
+            MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
+            miSemaphoreWaitParams.presSemaphoreMem = &m_surfaceParamsCsc.psInputSurface->OsResource;
+            miSemaphoreWaitParams.dwResourceOffset = m_syncMarkerOffset;
+            miSemaphoreWaitParams.bPollingWaitMode = true;
+            miSemaphoreWaitParams.dwSemaphoreData = m_syncMarkerValue;
+            miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_NOT_EQUAL_SDD;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
+        }
 
-    // Raster scan walking pattern
-    walkerParams.LocalOutLoopStride.y = 1;
-    walkerParams.LocalInnerLoopUnit.x = 1;
-    walkerParams.LocalEnd.x = m_walkerResolutionX - 1;
-
-    if (m_groupIdSelectSupported)
+    if (!m_encoder->m_computeContextEnabled)
     {
-        walkerParams.GroupIdLoopSelect = m_groupId;
-    }
+        MHW_WALKER_PARAMS walkerParams;
+        MOS_ZeroMemory(&walkerParams, sizeof(walkerParams));
+        walkerParams.WalkerMode = m_walkerMode;
+        walkerParams.UseScoreboard = m_useHwScoreboard;
+        walkerParams.BlockResolution.x =
+            walkerParams.GlobalResolution.x =
+            walkerParams.GlobalOutlerLoopStride.x = m_walkerResolutionX;
+        walkerParams.BlockResolution.y =
+            walkerParams.GlobalResolution.y =
+            walkerParams.GlobalInnerLoopUnit.y = m_walkerResolutionY;
 
-    // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external 
-    // raw surface processing to complete, before start CSC. Once the marker in 
-    // raw surface is overwritten by external operation, HW semaphore will be 
-    // signalled and CSC will start. This is to reduce SW latency between 
-    // external raw surface processing and CSC, in usages like remote gaming.
-    if (m_pollingSyncEnabled)
+        //MAX VALUE
+        walkerParams.dwLocalLoopExecCount = 0xFFFF;
+        walkerParams.dwGlobalLoopExecCount = 0xFFFF;
+
+        // Raster scan walking pattern
+        walkerParams.LocalOutLoopStride.y = 1;
+        walkerParams.LocalInnerLoopUnit.x = 1;
+        walkerParams.LocalEnd.x = m_walkerResolutionX - 1;
+
+        if (m_groupIdSelectSupported)
+        {
+            walkerParams.GroupIdLoopSelect = m_groupId;
+        }
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaObjectWalkerCmd(&cmdBuffer, &walkerParams));
+    }
+    else
     {
-        MHW_MI_SEMAPHORE_WAIT_PARAMS miSemaphoreWaitParams;
-        MOS_ZeroMemory((&miSemaphoreWaitParams), sizeof(miSemaphoreWaitParams));
-        miSemaphoreWaitParams.presSemaphoreMem = &m_surfaceParamsCsc.psInputSurface->OsResource;
-        miSemaphoreWaitParams.dwResourceOffset = m_syncMarkerOffset;
-        miSemaphoreWaitParams.bPollingWaitMode = true;
-        miSemaphoreWaitParams.dwSemaphoreData  = m_syncMarkerValue;
-        miSemaphoreWaitParams.CompareOperation = MHW_MI_SAD_NOT_EQUAL_SDD;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetWalkerCmd(&cmdBuffer, m_cscKernelState));
     }
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaObjectWalkerCmd(&cmdBuffer, &walkerParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->EndStatusReport(&cmdBuffer, encFunctionType));
 
@@ -1507,12 +1539,12 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
-        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
 
-    if (dsDisabled == params->stageDsConversion)
+    if (dsDisabled == params->stageDsConversion && !(m_encoder->m_vdencEnabled && CODECHAL_HEVC == m_standard))
     {
         // send appropriate surface to Enc/Pak depending on different CSC operation type
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesToEncPak());
@@ -1777,12 +1809,24 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
-        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }
 
     return eStatus;
+}
+
+MOS_STATUS CodechalEncodeCscDs::SetHevcCscFlagAndRawColor()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if(m_rawSurfaceToEnc->Format != Format_NV12 && CheckRawColorFormat(m_rawSurfaceToEnc->Format, m_rawSurfaceToEnc->TileType) == MOS_STATUS_SUCCESS)
+    {
+        m_cscFlag = true;
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)

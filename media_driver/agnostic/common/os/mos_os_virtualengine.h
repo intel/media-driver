@@ -56,8 +56,11 @@ typedef struct _MOS_VIRTUALENGINE_SET_PARAMS
     MOS_RESOURCE       veBatchBuffer[MOS_MAX_ENGINE_INSTANCE_PER_CLASS];
 }MOS_VIRTUALENGINE_SET_PARAMS, *PMOS_VIRTUALENGINE_SET_PARAMS;
 
+class MosVeInterface;
 typedef struct _MOS_VIRTUALENGINE_INTERFACE
 {
+    MosVeInterface                 *veInterface;
+
     bool                            bScalabilitySupported;
     PMOS_INTERFACE                  pOsInterface;
 #if (_DEBUG || _RELEASE_INTERNAL)

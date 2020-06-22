@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3033,7 +3033,7 @@ public:
             uint32_t   CurrFrameType                               : MOS_BITFIELD_RANGE(  0, 7 );
             uint32_t   EnableROI                                   : MOS_BITFIELD_RANGE(  8,15 );
             uint32_t   ROIRatio                                    : MOS_BITFIELD_RANGE( 16,23 );
-            uint32_t   Reserved                                    : MOS_BITFIELD_RANGE( 24,31 );
+            uint32_t   CQP_QPValue                                 : MOS_BITFIELD_RANGE( 24,31 );
         };
         struct
         {
@@ -3045,7 +3045,8 @@ public:
     {
         struct
         {
-            uint32_t   Reserved;
+            uint32_t   EnableCQPMode                               : MOS_BITFIELD_RANGE(  0, 7 );
+            uint32_t   Reserved                                    : MOS_BITFIELD_RANGE(  8,31 );
         };
         struct
         {
@@ -4435,7 +4436,10 @@ MOS_STATUS CodechalEncodeAvcEncG11::MbEncKernel(bool mbEncIFrameDistInUse)
 
     if (m_mbStatsSupported)
     {
-        mbEncSurfaceParams.bMBVProcStatsEnabled            = (m_flatnessCheckEnabled || m_adaptiveTransformDecisionEnabled);
+        mbEncSurfaceParams.bMBVProcStatsEnabled = m_flatnessCheckEnabled ||
+                                                  m_adaptiveTransformDecisionEnabled ||
+                                                  bMbBrcEnabled ||
+                                                  bMbQpDataEnabled;
         mbEncSurfaceParams.presMBVProcStatsBuffer          = &m_resMbStatsBuffer;
         mbEncSurfaceParams.dwMBVProcStatsBottomFieldOffset = m_mbStatsBottomFieldOffset;
     }
@@ -4587,7 +4591,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::MbEncKernel(bool mbEncIFrameDistInUse)
 
         if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
         {
-            HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+            HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
             m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
             m_lastTaskInPhase = false;
         }
@@ -4904,7 +4908,8 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteSliceLevel()
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));
-        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
 
         CODECHAL_DEBUG_TOOL(
@@ -5020,7 +5025,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
     }
 
     // BRC init/reset needs to be called before HME since it will reset the Brc Distortion surface
-    if (bBrcEnabled && (bBrcInit || bBrcReset))
+    if ((bBrcEnabled || m_avcPicParam->bEnableQpAdjustment) && (bBrcInit || bBrcReset))
     {
         bool cscEnabled = m_cscDsState->RequireCsc() && m_firstField;
         m_lastTaskInPhase = !(cscEnabled || m_scalingEnabled || m_16xMeSupported || m_hmeEnabled || swScoreboardInitNeeded);
@@ -5137,6 +5142,19 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
         m_semaphoreObjCount = 0; //reset
     }
 
+    // Dump BrcDist 4X_ME buffer here because it will be overwritten in BrcFrameUpdateKernel
+    CODECHAL_DEBUG_TOOL(
+        if (m_hmeEnabled && bBrcDistortionBufferSupported)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &BrcBuffers.sMeBrcDistortionBuffer.OsResource,
+                CodechalDbgAttr::attrOutput,
+                "BrcDist",
+                BrcBuffers.sMeBrcDistortionBuffer.dwPitch * BrcBuffers.sMeBrcDistortionBuffer.dwHeight,
+                BrcBuffers.dwMeBrcDistortionBottomFieldOffset,
+                CODECHAL_MEDIA_STATE_4X_ME));
+        })
+
     // BRC and MbEnc are included in the same task phase
     m_lastEncPhase = true;
     m_firstTaskInPhase = true;
@@ -5161,6 +5179,13 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcMbUpdateKernel());
         }
+
+        // Reset buffer ID used for BRC kernel performance reports
+        m_osInterface->pfnResetPerfBufferID(m_osInterface);
+    }
+    else if (bMbBrcEnabled)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcMbUpdateKernel());
 
         // Reset buffer ID used for BRC kernel performance reports
         m_osInterface->pfnResetPerfBufferID(m_osInterface);
@@ -5279,8 +5304,6 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
 
             MOS_ZeroMemory(&MeOutputParams, sizeof(MeOutputParams));
             MeOutputParams.psMeMvBuffer = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer) : &m_4xMeMvDataBuffer;
-            MeOutputParams.psMeBrcDistortionBuffer =
-                bBrcDistortionBufferSupported ? &BrcBuffers.sMeBrcDistortionBuffer : nullptr;
             MeOutputParams.psMeDistortionBuffer =
                 m_4xMeDistortionBufferSupported ?
                 (m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xDistortionBuffer) : &m_4xMeDistortionBuffer) : nullptr;
@@ -5291,28 +5314,18 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                 CodechalDbgAttr::attrOutput,
                 "MvData",
                 MeOutputParams.psMeMvBuffer->dwHeight *MeOutputParams.psMeMvBuffer->dwPitch,
-                CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 32), 64) * (m_downscaledFrameFieldHeightInMb4x * 4) : 0,
+                m_hmeKernel ? m_hmeKernel->Get4xMeMvBottomFieldOffset() : (uint32_t)m_meMvBottomFieldOffset,
                 CODECHAL_MEDIA_STATE_4X_ME));
 
-            if (MeOutputParams.psMeBrcDistortionBuffer)
+            if (MeOutputParams.psMeDistortionBuffer)
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                    &MeOutputParams.psMeBrcDistortionBuffer->OsResource,
+                    &MeOutputParams.psMeDistortionBuffer->OsResource,
                     CodechalDbgAttr::attrOutput,
-                    "BrcDist",
-                    MeOutputParams.psMeBrcDistortionBuffer->dwHeight *MeOutputParams.psMeBrcDistortionBuffer->dwPitch,
-                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4), 8) : 0,
+                    "MeDist",
+                    MeOutputParams.psMeDistortionBuffer->dwHeight *MeOutputParams.psMeDistortionBuffer->dwPitch,
+                    m_hmeKernel ? m_hmeKernel->GetDistortionBottomFieldOffset() : (uint32_t)m_meDistortionBottomFieldOffset,
                     CODECHAL_MEDIA_STATE_4X_ME));
-                if (MeOutputParams.psMeDistortionBuffer)
-                {
-                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                        &MeOutputParams.psMeDistortionBuffer->OsResource,
-                        CodechalDbgAttr::attrOutput,
-                        "MeDist",
-                        MeOutputParams.psMeDistortionBuffer->dwHeight *MeOutputParams.psMeDistortionBuffer->dwPitch,
-                        CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb4x * 8), 64) * MOS_ALIGN_CEIL((m_downscaledFrameFieldHeightInMb4x * 4 * 10), 8) : 0,
-                        CODECHAL_MEDIA_STATE_4X_ME));
-                }
             }
 
             if (m_16xMeEnabled)
@@ -5328,7 +5341,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                         CodechalDbgAttr::attrOutput,
                         "MvData",
                         MeOutputParams.psMeMvBuffer->dwHeight *MeOutputParams.psMeMvBuffer->dwPitch,
-                        CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb16x * 32), 64) * (m_downscaledFrameFieldHeightInMb16x * 4) : 0,
+                        m_hmeKernel ? m_hmeKernel->Get16xMeMvBottomFieldOffset() : (uint32_t)m_meMv16xBottomFieldOffset,
                         CODECHAL_MEDIA_STATE_16X_ME));
 
                 if (m_32xMeEnabled)
@@ -5344,7 +5357,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                             CodechalDbgAttr::attrOutput,
                             "MvData",
                             MeOutputParams.psMeMvBuffer->dwHeight *MeOutputParams.psMeMvBuffer->dwPitch,
-                            CodecHal_PictureIsBottomField(m_currOriginalPic) ? MOS_ALIGN_CEIL((m_downscaledWidthInMb32x * 32), 64) * (m_downscaledFrameFieldHeightInMb32x * 4) : 0,
+                            m_hmeKernel ? m_hmeKernel->Get32xMeMvBottomFieldOffset() : (uint32_t)m_meMv32xBottomFieldOffset,
                             CODECHAL_MEDIA_STATE_32X_ME));
                 }
             }
@@ -5353,29 +5366,32 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
         if (bBrcEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &BrcBuffers.resBrcImageStatesReadBuffer[m_currRecycledBufIdx],
+                &BrcBuffers.resBrcImageStatesWriteBuffer,
                 CodechalDbgAttr::attrOutput,
                 "ImgStateWrite",
                 BRC_IMG_STATE_SIZE_PER_PASS * m_hwInterface->GetMfxInterface()->GetBrcNumPakPasses(),
                 0,
                 CODECHAL_MEDIA_STATE_BRC_UPDATE));
 
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &BrcBuffers.resBrcHistoryBuffer,
-                CodechalDbgAttr::attrOutput,
-                "HistoryWrite",
-                m_brcHistoryBufferSize,
-                0,
-                CODECHAL_MEDIA_STATE_BRC_UPDATE));
             if (!Mos_ResourceIsNull(&BrcBuffers.sBrcMbQpBuffer.OsResource))
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                     &BrcBuffers.sBrcMbQpBuffer.OsResource,
                     CodechalDbgAttr::attrOutput,
                     "MbQp",
-                    BrcBuffers.dwBrcMbQpBottomFieldOffset,
                     BrcBuffers.sBrcMbQpBuffer.dwPitch*BrcBuffers.sBrcMbQpBuffer.dwHeight,
-                    CODECHAL_MEDIA_STATE_BRC_UPDATE));
+                    BrcBuffers.dwBrcMbQpBottomFieldOffset,
+                    CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
+            }
+            if (bMbBrcEnabled)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                    &BrcBuffers.resBrcHistoryBuffer,
+                    CodechalDbgAttr::attrOutput,
+                    "HistoryWrite",
+                    m_brcHistoryBufferSize,
+                    0,
+                    CODECHAL_MEDIA_STATE_MB_BRC_UPDATE));
             }
             if (BrcBuffers.pMbEncKernelStateInUse)
             {
@@ -5400,8 +5416,8 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
                     &m_resMbStatsBuffer,
                     CodechalDbgAttr::attrOutput,
                     "MBStatsSurf",
-                    m_picWidthInMb * (((CodecHal_PictureIsField(m_currOriginalPic)) ? 2 : 4) * m_downscaledFrameFieldHeightInMb4x) * 16 * sizeof(uint32_t),
-                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? (m_picWidthInMb * 16 * sizeof(uint32_t) * (2 * m_downscaledFrameFieldHeightInMb4x)) : 0,
+                    m_picWidthInMb * m_frameFieldHeightInMb * 16 * sizeof(uint32_t),
+                    CodecHal_PictureIsBottomField(m_currOriginalPic) ? m_mbStatsBottomFieldOffset : 0,
                     CODECHAL_MEDIA_STATE_4X_SCALING));
             }
             else if (m_flatnessCheckEnabled) {
@@ -6146,6 +6162,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::SetCurbeAvcMbEnc(PCODECHAL_ENCODE_AVC_MBENC_
     auto slcParams = params->pSlcParams;
 
     MHW_VDBOX_AVC_SLICE_STATE sliceState;
+    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.pEncodeAvcSeqParams = seqParams;
     sliceState.pEncodeAvcPicParams = picParams;
     sliceState.pEncodeAvcSliceParams = slcParams;
@@ -6911,7 +6928,8 @@ MOS_STATUS CodechalEncodeAvcEncG11::SetCurbeAvcFrameBrcUpdate(PCODECHAL_ENCODE_A
     auto picParams = m_avcPicParam;
     auto slcParams = m_avcSliceParams;
 
-    MHW_VDBOX_AVC_SLICE_STATE                       sliceState;
+    MHW_VDBOX_AVC_SLICE_STATE sliceState;
+    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
     sliceState.pEncodeAvcSeqParams = seqParams;
     sliceState.pEncodeAvcPicParams = picParams;
     sliceState.pEncodeAvcSliceParams = slcParams;
@@ -7068,6 +7086,12 @@ MOS_STATUS CodechalEncodeAvcEncG11::SetCurbeAvcMbBrcUpdate(PCODECHAL_ENCODE_AVC_
     else
     {
         curbe.m_dw0.ROIRatio = 0;
+    }
+
+    if (m_avcPicParam->bEnableQpAdjustment)
+    {
+        curbe.m_dw0.CQP_QPValue = MOS_MIN(m_avcPicParam->QpY + m_avcSliceParams->slice_qp_delta, 51);
+        curbe.m_dw1.EnableCQPMode = 1;
     }
 
     curbe.m_dw8.HistorybufferIndex        = mbBrcUpdateHistory;
@@ -7564,7 +7588,9 @@ MOS_STATUS CodechalEncodeAvcEncG11::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
 
     if(params->bMBVProcStatsEnabled)
     {
-        size = (currFieldPicture ? 1 : 2) * params->dwFrameWidthInMb * params->dwFrameFieldHeightInMb * 16 * sizeof(uint32_t);
+        size = params->dwFrameWidthInMb *
+            (currFieldPicture ? params->dwFrameFieldHeightInMb : params->dwFrameHeightInMb) *
+            16 * sizeof(uint32_t);
 
         MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
         surfaceCodecParams.dwSize = size;
@@ -8064,8 +8090,8 @@ MOS_STATUS CodechalEncodeAvcEncG11::SetupROISurface()
         return eStatus;
     }
 
-    uint32_t bufferWidthInByte = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 4), 64);//(m_picWidthInMb * 4 + 63) & ~63;
-    uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);//(m_picHeightInMb + 7) & ~7;
+    uint32_t bufferWidthInByte  = BrcBuffers.sBrcRoiSurface.dwPitch;
+    uint32_t bufferHeightInByte = MOS_ALIGN_CEIL((m_downscaledHeightInMb4x << 2), 8);
     uint32_t numMBs = m_picWidthInMb * m_picHeightInMb;
     for (uint32_t uMB = 0; uMB <= numMBs; uMB++)
     {

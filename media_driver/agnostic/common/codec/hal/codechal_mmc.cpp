@@ -27,8 +27,6 @@
 #include "codechal_hw.h"
 #include "codechal_mmc.h"
 
-bool CodecHalMmcState::m_mmcEnabled  = false;
-
 CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
 {
     CODECHAL_HW_FUNCTION_ENTER;

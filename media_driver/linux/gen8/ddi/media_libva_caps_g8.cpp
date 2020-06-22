@@ -126,6 +126,7 @@ VAStatus MediaLibvaCapsG8::GetPlatformSpecificAttrib(
 {
     DDI_CHK_NULL(value, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     VAStatus status = VA_STATUS_SUCCESS;
+    *value = VA_ATTRIB_NOT_SUPPORTED;
     switch ((int32_t)type)
     {
         case VAConfigAttribEncMaxRefFrames:
@@ -189,6 +190,38 @@ VAStatus MediaLibvaCapsG8::GetPlatformSpecificAttrib(
         case VAConfigAttribEncMaxSlices:
         {
             *value = ENCODE_AVC_MAX_SLICES_SUPPORTED;
+            break;
+        }
+        case VAConfigAttribMaxPictureWidth:
+        {
+            if(profile == VAProfileJPEGBaseline)
+            {
+                *value = ENCODE_JPEG_MAX_PIC_WIDTH;
+            }
+            else if(IsAvcProfile(profile))
+            {
+                *value = CODEC_4K_MAX_PIC_WIDTH;
+            }
+            else
+            {
+                *value = CODEC_MAX_PIC_WIDTH;
+            }
+            break;
+        }
+        case VAConfigAttribMaxPictureHeight:
+        {
+            if(profile == VAProfileJPEGBaseline)
+            {
+                *value = ENCODE_JPEG_MAX_PIC_HEIGHT;
+            }
+            else if(IsAvcProfile(profile))
+            {
+                *value = CODEC_4K_MAX_PIC_HEIGHT;
+            }
+            else
+            {
+                *value = CODEC_MAX_PIC_HEIGHT;
+            }
             break;
         }
         default:

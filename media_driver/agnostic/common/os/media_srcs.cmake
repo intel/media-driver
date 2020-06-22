@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,9 +22,9 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os.c
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.cpp
@@ -45,6 +45,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_common.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h

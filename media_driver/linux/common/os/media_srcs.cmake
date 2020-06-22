@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018, Intel Corporation
+# Copyright (c) 2017-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,14 +26,14 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific.c
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.c
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.c
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_interface.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_ext.cpp
 )
 
 set(TMP_HEADERS_

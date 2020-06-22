@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2018, Intel Corporation
+* Copyright (c) 2016-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -238,7 +238,7 @@ typedef struct _VPHAL_RENDERING_DATA_COMPOSITE
     MEDIA_WALKER_KA2_STATIC_DATA        WalkerStatic;
     MEDIA_OBJECT_KA2_INLINE_DATA        Inline;
     PMHW_AVS_PARAMS                     pAvsParams;
-
+    MEDIA_DP_FC_STATIC_DATA             DPFCStatic;
     // Batch Buffer rendering arguments
     VPHAL_BB_COMP_ARGS                  BbArgs;
 
@@ -383,6 +383,33 @@ public:
         PVPHAL_BATCH_BUFFER_PARAMS    pInputBbParams,
         int32_t                       iBbSize,
         PMHW_BATCH_BUFFER             *ppBatchBuffer);
+
+    //!
+    //! \brief    Load Palette Data
+    //! \details  Load Palette Data according to color space and CSC matrix.
+    //! \param    [in] pInPalette
+    //!           Pointer to Input Palette structure
+    //! \param    [in] srcCspace
+    //!           Source color space
+    //! \param    [in] dstCspace
+    //!           Destination color space
+    //! \param    [in] piCscMatrix
+    //!           Pointer to CSC matrix to use in fixed point format
+    //! \param    [in] iNumEntries
+    //!           Number of Palette entries to be filled
+    //! \param    [in,out] pPaletteData
+    //!           Pointer to Output Palette Address
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS, otherwise MOS_STATUS_UNIMPLEMENTED if Destination Colorspace not supported,
+    //!            or MOS_STATUS_INVALID_PARAMETER/MOS_STATUS_NULL_POINTER
+    //!
+    MOS_STATUS LoadPaletteData(
+        PVPHAL_PALETTE          pInPalette,
+        VPHAL_CSPACE            srcCspace,
+        VPHAL_CSPACE            dstCspace,
+        int32_t*                piCscMatrix,
+        int32_t                 iNumEntries,
+        void*                   pPaletteData);
 
 protected:
     //!
@@ -626,7 +653,7 @@ protected:
     //!
     virtual void SetSurfaceCompressionParams(
         PVPHAL_SURFACE                  pSource,
-        bool                            isRenderTarget) {}
+        bool                            isRenderTarget);
 
     //!
     //! \brief    Check NV12 luma key sampler solution is needed or not
@@ -701,6 +728,22 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    //! \brief    Update Inline Data status
+    //! \param    [in] pSurface
+    //!           point to input Surface
+    //! \param    [in] pStatic
+    //!           Pointer to static data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise MOS_STATUS_UNKNOWN
+    //!
+    virtual MOS_STATUS UpdateInlineDataStatus(
+        PVPHAL_SURFACE                 pSurface,
+        MEDIA_OBJECT_KA2_STATIC_DATA   *pStatic)
+    {
+        // Just need the sub class to implement if it is needed;
+        return MOS_STATUS_SUCCESS;
+    }
+
     //!
     //! \brief    Prepare phases for composite and allocate intermediate buffer for rendering
     //! \param    [in] pcRenderParams
@@ -751,6 +794,47 @@ protected:
     bool AddCompTarget(
         PVPHAL_COMPOSITE_PARAMS     pComposite,
         PVPHAL_SURFACE              pTarget);
+
+    //!
+    //! \brief    set sclaing Ratio
+    //! \details  set sclaing Ratio for kernels which need to use different kernel to process scaling.
+    //!           parameters
+    //! \param    [in,out] Kdll_Scalingratio
+    //!           Pointer to scaling ratio
+    //! \return   void
+    virtual void SetFilterScalingRatio(
+        Kdll_Scalingratio*    ScalingRatio) {}
+
+    //!
+    //! \brief    Render Compute Walker Buffer
+    //! \details  Render Compute Walker Buffer, fill Walker static data fields and set walker
+    //!           cmd params
+    //! \param    [in] pBatchBuffer
+    //!           Pointer to BatchBuffer
+    //! \param    [in] pRenderingData
+    //!           Pointer to Rendering Data
+    //! \param    [in] pWalkerParams
+    //!           Pointer to Walker parameters
+    //! \return   bool
+    //!           Return true if successful, otherwise false
+    //!
+    virtual bool RenderBufferComputeWalker(
+        PMHW_BATCH_BUFFER               pBatchBuffer,
+        PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
+        PMHW_GPGPU_WALKER_PARAMS        pWalkerParams);
+
+    //!
+    //! \brief    Submit Composite states
+    //! \details  Submit Composite states, including load CSC matrix, set NLAS Inline data,
+    //!           set background color, load Palettes, set output format, load kernel, load
+    //!           curbe data, set sampler state, set VFE State params, and etc
+    //! \param    [in] pRenderingData
+    //!           Pointer to Composite state
+    //! \return   bool
+    //!           Return TURE if successful, otherwise false
+    //!
+    virtual bool SubmitStates(
+        PVPHAL_RENDERING_DATA_COMPOSITE     pRenderingData);
 
 private:
     //!
@@ -902,24 +986,6 @@ private:
         PMHW_WALKER_PARAMS              pWalkerParams);
 
     //!
-    //! \brief    Render Compute Walker Buffer
-    //! \details  Render Compute Walker Buffer, fill Walker static data fields and set walker
-    //!           cmd params
-    //! \param    [in] pBatchBuffer
-    //!           Pointer to BatchBuffer
-    //! \param    [in] pRenderingData
-    //!           Pointer to Rendering Data
-    //! \param    [in] pWalkerParams
-    //!           Pointer to Walker parameters
-    //! \return   bool
-    //!           Return true if successful, otherwise false
-    //!
-    bool RenderBufferComputeWalker(
-        PMHW_BATCH_BUFFER               pBatchBuffer,
-        PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData,
-        PMHW_GPGPU_WALKER_PARAMS        pWalkerParams);
-
-    //!
     //! \brief    Judge whether  media walker pattern  will be vertical or not
     //! \details  if input layer is one , and input is linear format and rotation 90
     //!           or 270 is needed then the media walker pattern should be vertical
@@ -930,19 +996,6 @@ private:
     //!
     bool MediaWalkerVertical(
         PVPHAL_RENDERING_DATA_COMPOSITE pRenderingData);
-
-    //!
-    //! \brief    Submit Composite states
-    //! \details  Submit Composite states, including load CSC matrix, set NLAS Inline data,
-    //!           set background color, load Palettes, set output format, load kernel, load
-    //!           curbe data, set sampler state, set VFE State params, and etc
-    //! \param    [in] pRenderingData
-    //!           Pointer to Composite state
-    //! \return   bool
-    //!           Return TURE if successful, otherwise false
-    //!
-    bool SubmitStates(
-        PVPHAL_RENDERING_DATA_COMPOSITE     pRenderingData);
 
     //!
     //! \brief    Set Surface Parameters
@@ -1038,15 +1091,6 @@ private:
     int32_t                         m_iProcampVersion;
     Kdll_Procamp                    m_Procamp[VPHAL_MAX_PROCAMP];
 
-    // Background Color fill parameters
-    struct
-    {
-        VPHAL_COLOR_SAMPLE_8        m_csSrc;
-        VPHAL_COLOR_SAMPLE_8        m_csDst;
-        VPHAL_CSPACE                m_CSpaceSrc;
-        VPHAL_CSPACE                m_CSpaceDst;
-    };
-
     // Cache attributes
     VPHAL_COMPOSITE_CACHE_CNTL      m_SurfMemObjCtl;
 
@@ -1054,11 +1098,8 @@ private:
 
     bool                            m_b8TapAdaptiveEnable;    //!< 8 tap adaptive filter enable flag, read from user feature key
 
-    // Compositing Kernel DLL/Search state
-    Kdll_State                      *m_pKernelDllState;
     Kdll_FilterDesc                 m_SearchFilter;
     Kdll_SearchState                m_KernelSearch;
-    RENDERHAL_KERNEL_PARAM          m_KernelParams;
     int32_t                         m_ThreadCountPrimary;
 
     // CMFC CSC Coefficient surface
@@ -1076,6 +1117,16 @@ private:
     bool                            m_bLastPhase;                 //!< Flag for indicating the last Comp render phase
 
 protected:
+
+     // Background Color fill parameters
+    struct
+    {
+        VPHAL_COLOR_SAMPLE_8        m_csSrc;
+        VPHAL_COLOR_SAMPLE_8        m_csDst;
+        VPHAL_CSPACE                m_CSpaceSrc;
+        VPHAL_CSPACE                m_CSpaceDst;
+    };
+
     // Feature flags
     float                           m_fSamplerLinearBiasX;        //!< Linear sampler bias X
     float                           m_fSamplerLinearBiasY;        //!< Linear sampler bias Y
@@ -1103,6 +1154,14 @@ protected:
     AvsCoeffsCache<AVS_CACHE_SIZE>  m_AvsCoeffsCache;             //!< AVS coefficients calculation is expensive, add cache to mitigate
     VPHAL_SURFACE                   m_Intermediate;               //!< Intermediate surface (multiple phase / constriction support)
     VPHAL_SURFACE                   m_Intermediate2;              //!< Rotation output intermediate surface
+
+    Kdll_State                      *m_pKernelDllState = nullptr; //!< Compositing Kernel DLL/Search state
+    RENDERHAL_KERNEL_PARAM          m_KernelParams = {0};
+
+    float                           m_fScaleX = 1.0f;
+    float                           m_fScaleY = 1.0f;
+
+    bool                            m_FusedEuDispatch = false;
 };
 
 typedef CompositeState * PCComposite;

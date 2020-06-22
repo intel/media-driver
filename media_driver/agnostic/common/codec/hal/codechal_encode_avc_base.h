@@ -90,6 +90,9 @@ struct EncodeAvcPar
     uint16_t                    FrameRateD;
     uint16_t                    CRFQualityFactor;
     uint32_t                    NumSlices;
+    uint32_t                    SliceHeight;
+    uint32_t                    NumSuperSlices;
+    uint32_t                    SuperSliceHeight[CODECHAL_ENCODE_AVC_MAX_SLICES_SUPPORTED];
     bool                        ConstrainedIntraPred;
     uint8_t                     SliceMode;
     int16_t                     hme0XOffset;
@@ -232,6 +235,8 @@ struct EncodeAvcPar
     uint8_t                     ForceIPCMMinQP;
     uint8_t                     IntraTr4x4Percent;
     bool                        MultiPassHmeEnable;
+    uint32_t                    IntraPredictionIFrame;
+    uint32_t                    IntraPrediction;
 
     // PAK Params
     uint8_t                     RoundingIntra;
@@ -279,6 +284,7 @@ typedef struct _CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS
     bool                        bDeblockerStreamOutEnable;
     bool                        bPostDeblockOutEnable;
     bool                        bPreDeblockOutEnable;
+    bool                        bPerMBStreamOutEnable;
 } CODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS, *PCODECHAL_ENCODE_AVC_GENERIC_PICTURE_LEVEL_PARAMS;
 
 typedef struct _CODECHAL_ENCODE_AVC_ME_CURBE
@@ -1719,6 +1725,8 @@ public:
     PCODEC_AVC_IQ_MATRIX_PARAMS              m_avcIQMatrixParams     = nullptr;  //!< Pointer to IQMaxtrix parameter
     PCODEC_AVC_ENCODE_IQ_WEIGTHSCALE_LISTS      m_avcIQWeightScaleLists = nullptr;  //!< Pointer to IQWidght ScaleLists
     CODEC_AVC_ENCODE_USER_FLAGS                 m_userFlags;                        //!< Encoder user flag settings
+    uint32_t                                    m_reconFrameSurfaceId[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];
+    CODECHAL_ENCODE_AVC_ENCODER_USAGE           m_encoderUsage = CODECHAL_ENCODE_AVC_SINGLE_PASS;
 
     CODEC_PIC_ID                                m_picIdx[CODEC_AVC_MAX_NUM_REF_FRAME];              //!< Picture index
     PCODEC_REF_LIST                             m_refList[CODEC_AVC_NUM_UNCOMPRESSED_SURFACE];   //!< Pointer to reference list

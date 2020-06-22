@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -330,6 +330,20 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
+    //!
+    //! \brief    Get PlaneDefinition for NV12
+    //! \param    [in,out] PlaneDefinition
+    //!           Pointer to PlaneDefinition
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetPlaneDefForFormatNV12(
+        RENDERHAL_PLANE_DEFINITION &PlaneDefinition)
+    {
+        PlaneDefinition = RENDERHAL_PLANES_NV12;
+        return MOS_STATUS_SUCCESS;
+    };
+
     //! \brief      Set L3 cache override config parameters
     //! \param      [in] pRenderHal
     //!             Pointer to RenderHal Interface Structure
@@ -416,6 +430,17 @@ public:
     //!           MOS_STATUS_UNIMPLEMENTED is returned in base class implementation.
     virtual MOS_STATUS FreeScratchSpaceBuffer(
         RENDERHAL_INTERFACE *renderHal) { return MOS_STATUS_UNIMPLEMENTED; }
+
+    //!
+    //! \brief      enable/disable the fusedEUDispatch flag in the VFE_PARAMS
+    //! \return     no return value
+    //!
+    virtual void SetFusedEUDispatch(bool enable)
+    {
+        MOS_UNUSED(enable);
+
+        return;
+    }
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__

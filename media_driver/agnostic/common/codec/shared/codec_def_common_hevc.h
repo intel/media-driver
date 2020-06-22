@@ -36,7 +36,7 @@
 
 /*! \brief Quantization matrix data, which is sent on a per-picture basis.
  *
- *  The quantization matrix buffer is sent only when scaling_list_enabled_flag takes value 1. If 0, driver should assume “flat” scaling lists are present and all the entries takes value 16.
+ *  The quantization matrix buffer is sent only when scaling_list_enabled_flag takes value 1. If 0, driver should assume "flat" scaling lists are present and all the entries takes value 16.
  */
 typedef struct _CODECHAL_HEVC_IQ_MATRIX_PARAMS
 {
@@ -76,5 +76,32 @@ typedef struct _CODECHAL_HEVC_IQ_MATRIX_PARAMS
     */
     uint8_t               ucScalingListDCCoefSizeID3[2];
 } CODECHAL_HEVC_IQ_MATRIX_PARAMS, *PCODECHAL_HEVC_IQ_MATRIX_PARAMS;
+
+typedef struct _CODEC_HEVC_SCC_PIC_PARAMS
+{
+    union
+    {
+        struct
+        {
+            uint32_t      pps_curr_pic_ref_enabled_flag : 1;
+            uint32_t      palette_mode_enabled_flag : 1;
+            uint32_t      motion_vector_resolution_control_idc : 2; //[0..2]
+            uint32_t      intra_boundary_filtering_disabled_flag : 1;
+            uint32_t      residual_adaptive_colour_transform_enabled_flag : 1;
+            uint32_t      pps_slice_act_qp_offsets_present_flag : 1;
+            uint32_t      ReservedBits6 : 25;
+        } fields;
+        uint32_t    dwScreenContentCodingPropertyFlags;
+    } PicSCCExtensionFlags;
+
+    uint8_t         palette_max_size;                   // [0..64]
+    uint8_t         delta_palette_max_predictor_size;   // [0..128]
+    uint8_t         PredictorPaletteSize;               // [0..127]
+    uint16_t        PredictorPaletteEntries[3][128];
+    char            pps_act_y_qp_offset_plus5;          // [-7..17]
+    char            pps_act_cb_qp_offset_plus5;         // [-7..17]
+    char            pps_act_cr_qp_offset_plus3;         // [-9..15]
+
+} CODEC_HEVC_SCC_PIC_PARAMS, *PCODEC_HEVC_SCC_PIC_PARAMS;
 
 #endif  // __CODEC_DEF_COMMON_HEVC_H__

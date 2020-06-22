@@ -2233,7 +2233,10 @@ int32_t RenderHal_DSH_LoadCurbeData(
     int32_t                  iOffset;
     int32_t                  iCurbeSize;
     PRENDERHAL_DYNAMIC_STATE pDynamicState;
-    iOffset    = -1;
+    uint8_t*                 pRemainingCurbe;
+
+    iOffset         = -1;
+    pRemainingCurbe =  nullptr;
 
     if (pRenderHal == nullptr || pMediaState == nullptr || pData == nullptr)
     {
@@ -2260,7 +2263,7 @@ int32_t RenderHal_DSH_LoadCurbeData(
             if (pData)
             {
                 MHW_RENDERHAL_CHK_STATUS(pDynamicState->memoryBlock.AddData(
-                    pData, 
+                    pData,
                     pDynamicState->Curbe.dwOffset + iOffset,
                     iSize));
 
@@ -2268,18 +2271,22 @@ int32_t RenderHal_DSH_LoadCurbeData(
                 iCurbeSize -= iSize;
                 if (iCurbeSize > 0)
                 {
-                    uint8_t* remainingCurbe = (uint8_t*)MOS_AllocAndZeroMemory(sizeof(uint8_t)*iCurbeSize);
+                    pRemainingCurbe = (uint8_t*)MOS_AllocAndZeroMemory(sizeof(uint8_t)*iCurbeSize);
                     MHW_RENDERHAL_CHK_STATUS(pDynamicState->memoryBlock.AddData(
-                        remainingCurbe,
+                        pRemainingCurbe,
                         pDynamicState->Curbe.dwOffset + iOffset + iSize,
                         iCurbeSize));
-                    MOS_SafeFreeMemory(remainingCurbe);
                 }
             }
         }
     }
 
 finish:
+    if(pRemainingCurbe)
+    {
+        MOS_SafeFreeMemory(pRemainingCurbe);
+    }
+
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         iOffset = -1;

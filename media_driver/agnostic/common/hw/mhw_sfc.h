@@ -41,6 +41,10 @@ static const int   MHW_SFC_VE_HEIGHT_ALIGN   = 4;
 static const int   MHW_SFC_VE_WIDTH_ALIGN    = 16;
 static const float MHW_SFC_MIN_SCALINGFACTOR = (1.0F / 8.0F);
 static const float MHW_SFC_MAX_SCALINGFACTOR = 8.0F;
+static const uint32_t MHW_SFC_SFD_BUFF_HEIGHT_BAR = 4160;
+
+#define NEED_SFD_LINE_BUFFER(_SURFACE_HEIGHT) ((_SURFACE_HEIGHT) > MHW_SFC_SFD_BUFF_HEIGHT_BAR)
+#define SFD_LINE_BUFFER_SIZE(_SURFACE_HEIGHT) (NEED_SFD_LINE_BUFFER(_SURFACE_HEIGHT) ? (uint32_t)ceil(((_SURFACE_HEIGHT) - MHW_SFC_SFD_BUFF_HEIGHT_BAR) / 10 * MHW_SFC_CACHELINE_SIZE) : 0)
 
 typedef class MhwSfcInterface MHW_SFC_INTERFACE, *PMHW_SFC_INTERFACE;
 
@@ -282,6 +286,8 @@ typedef struct _MHW_SFC_OUT_SURFACE_PARAMS
     uint32_t                    dwHeight;           //!<  Surface height
     uint32_t                    dwPitch;            //!<  Surface pitch
     MOS_TILE_TYPE               TileType;           //!<  Tile Type
+    MOS_TILE_MODE_GMM           TileModeGMM;        //!<  Tile Type from GMM Definition
+    bool                        bGMMTileEnabled;    //!<  GMM defined tile mode flag
     uint32_t                    dwStreamID;         //!<  Surface StreamID
     uint32_t                    dwSurfaceXOffset;   //!<  Surface X offset
     uint32_t                    dwSurfaceYOffset;   //!<  Surface Y offset
@@ -469,7 +475,22 @@ public:
         float                           fScaleX,
         float                           fScaleY,
         uint32_t                        dwChromaSiting,
-        bool                            bUse8x8Filter);
+        bool                            bUse8x8Filter,
+        float                           fHPStrength,
+        float                           fLanczosT);
+
+    //!
+    //! \brief      Sets AVS Scaling Mode. Will configure the different coefficients of 8-Tap polyphase filter according to scaling mode.
+    //! \param      [in] ScalingMode
+    //!             AVS scaling mode e.g. Nearest, 8-Tap polyphase etc.
+    //! \return     MOS_STATUS
+    //!
+    virtual MOS_STATUS SetSfcAVSScalingMode(
+        MHW_SCALING_MODE  ScalingMode)
+    {
+        m_scalingMode = ScalingMode;
+        return MOS_STATUS_SUCCESS;
+    }
 
 protected:
 
@@ -533,6 +554,8 @@ public:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_outputSurfCtrl;          // Output Frame caching control bits
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_avsLineBufferCtrl;       // AVS Line Buffer caching control bits
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_iefLineBufferCtrl;       // IEF Line Buffer caching control bits
+
+    MHW_SCALING_MODE                           m_scalingMode;
 };
 
 #endif // __MHW_SFC_H__

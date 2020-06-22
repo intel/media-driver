@@ -136,8 +136,8 @@ public:
     //!
     //! \brief    Submit command buffer
     //! \details  Submit the command buffer
-    //! \param    [in] osInterface
-    //!           Pointer to OS interface structure
+    //! \param    [in] streamState
+    //!           OS stream state
     //! \param    [in] cmdBuffer
     //!           Pointer to Command Buffer control structure
     //! \param    [in] nullRendering
@@ -146,7 +146,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SubmitCommandBuffer(
-        PMOS_INTERFACE      osInterface,
+        MOS_STREAM_HANDLE   streamState,
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool                nullRendering) = 0;
 
@@ -230,6 +230,15 @@ public:
     //!
     GraphicsResourceNext* GetStatusBufferResource() { return m_statusBufferResource; }
 
+    //!
+    //! \brief    Get VE attribute buffer for current gpu context
+    //! \return   MOS_CMD_BUF_ATTRI_VE*
+    //!
+    MOS_CMD_BUF_ATTRI_VE *GetAttributeVeBuffer()
+    {
+        return &m_bufAttriVe;
+    }
+
 protected:
     //! \brief    Hardware node for current gpu context
     MOS_GPU_NODE m_nodeOrdinal;
@@ -248,5 +257,8 @@ protected:
 
     //! \brief    Track the GPU Context Client Info
     MOS_GPU_CONTEXT m_gpuContext;
+
+    //! \brief    VE attribute buffer
+    MOS_CMD_BUF_ATTRI_VE m_bufAttriVe = {};
 };
 #endif  // #ifndef __MOS_GPU_CONTEXT_NEXT_H__

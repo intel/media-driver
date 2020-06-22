@@ -874,10 +874,7 @@ VAStatus DdiDecodeJPEG::CodecHalInit(
     m_codechalSettings->standard = CODECHAL_JPEG;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    if (m_decProcessingType == VA_DEC_PROCESSING)
-    {
-        m_codechalSettings->sfcEnablingHinted = true;
-    }
+    m_codechalSettings->sfcEnablingHinted = true;
 #endif
 
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = MOS_AllocAndZeroMemory(sizeof(CodecJpegQuantMatrix));

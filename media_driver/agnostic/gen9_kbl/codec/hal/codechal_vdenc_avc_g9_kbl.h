@@ -115,18 +115,18 @@ private:
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
     virtual MOS_STATUS PopulateBrcInitParam(
-        void *cmd);
+        void *cmd) override;
 
     virtual MOS_STATUS PopulateBrcUpdateParam(
-        void *cmd);
+        void *cmd) override;
 
     virtual MOS_STATUS PopulateEncParam(
         uint8_t meMethod,
-        void    *cmd);
+        void    *cmd) override;
 
     virtual MOS_STATUS PopulatePakParam(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        PMHW_BATCH_BUFFER   secondLevelBatchBuffer);
+        PMHW_BATCH_BUFFER   secondLevelBatchBuffer) override;
 #endif
 };
 

@@ -591,6 +591,7 @@ protected:
                                                                                 // Surfaces used by SFC
     VPHAL_SURFACE                   m_AVSLineBufferSurface = {};                //!< AVS Line Buffer Surface for SFC
     VPHAL_SURFACE                   m_IEFLineBufferSurface = {};                //!< IEF Line Buffer Surface for SFC
+    VPHAL_SURFACE                   m_SFDLineBufferSurface = {};                //!< SFD Line Buffer Surface for SFC
 
                                                                                 // Stereo state.
     uint32_t                        m_currentChannel = 0;                       //!< 0=StereoLeft or nonStereo, 1=StereoRight. N/A in nonStereo

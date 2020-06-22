@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -93,12 +93,12 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
 //!         level batch buffer.
 //! \param  [in/out] cmdBuffer
 //!         Command buffer for current BB. hOcaBuf in cmdBuffer will be updated.
-//! \param  [in] mosContext
-//!         Reference to MOS_CONTEXT.
+//! \param  [in] osInterface
+//!         Reference to MOS_INTERFACE.
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void HalOcaInterface::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
+void HalOcaInterface::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface)
 {
 }
 
@@ -200,8 +200,6 @@ void HalOcaInterface::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
 
 //!
 //! \brief  Add vphal parameters to oca log section.
-//! \param  [in] cmdBuffer
-//!         Command buffer for current BB.
 //! \param  [in] mosContext
 //!         Reference to MOS_CONTEXT.
 //! \param  [in] pVphalDumper
@@ -210,6 +208,10 @@ void HalOcaInterface::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
 //!         No return value. Handle all exception inside the function.
 //!
 void HalOcaInterface::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper)
+{
+}
+
+void HalOcaInterface::DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &hOcaBuf, void *pCpDumper)
 {
 }
 

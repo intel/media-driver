@@ -33,6 +33,11 @@ class CmSurfaceManager;
 class CmDevice_RT : public CmDevice
 {
 public:
+    static int32_t GetSupportedAdapters(uint32_t& count);
+    static int32_t CreateCmDeviceFromAdapter(CmDevice_RT*& pCmDev, int32_t adapterIndex, uint32_t createOption = 0);
+    static int32_t GetPlatformInfo(uint32_t adapterIndex);
+    static int32_t QueryAdapterInfo(uint32_t adapterIndex, AdapterInfoType infoName, void* info, uint32_t infoSize, uint32_t* outInfoSize);
+
     static int32_t Create( CmDevice_RT* &device, uint32_t createOption );
     static int32_t Destroy( CmDevice_RT* &device );
     static int32_t Create(VADisplay &vaDisplay, CmDevice_RT* &device,uint32_t createOption );
@@ -133,6 +138,15 @@ public:
                                             CmBufferStateless *&pBufferStateless);
     CM_RT_API int32_t DestroyBufferStateless(CmBufferStateless *&buffer);
 
+    CM_RT_API int32_t DispatchTask() { return CM_SUCCESS; }
+
+    CM_RT_API int32_t CreateSurface2DStateless(uint32_t width,
+                                               uint32_t height,
+                                               uint32_t &pitch,
+                                               CmSurface2DStateless *&pSurface);
+
+    CM_RT_API int32_t DestroySurface2DStateless(CmSurface2DStateless *&pSurface);
+
     int32_t CheckDdiVersionSupported(const uint32_t ddiVersion);
 
     int32_t OSALExtensionExecute(uint32_t functionId,
@@ -166,7 +180,7 @@ protected:
     void    *m_deviceInUmd;    //CmDevice pointer in UMD
     bool    m_cmCreated;
 
-    int32_t Initialize(bool isCmCreated);
+    int32_t Initialize(bool isCmCreated, uint32_t Index = 0);
     int32_t FreeResources();
 #if USE_EXTENSION_CODE
     int32_t EnableGtpin( void );
@@ -179,9 +193,10 @@ protected:
     int32_t FreeLibvaDrm();
     int32_t GetLibvaDisplayDrm(VADisplay & vaDisplay);
 #endif
-    int32_t InitializeLibvaDisplay( void );
-    
+
+    int32_t InitializeLibvaDisplay(uint32_t Index = 0);
     VADisplay m_vaDisplay;
+    uint32_t m_drmIndex;
     pvaCmExtSendReqMsg    m_fvaCmExtSendReqMsg;
 
 #if !defined(ANDROID)

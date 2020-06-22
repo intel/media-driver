@@ -172,13 +172,14 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
     } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
     return ret;
 }
-#if defined(__cplusplus)
-}
-#endif
-int drmIoctl(int fd, unsigned long request, void *arg)
+drm_export int
+drmIoctl(int fd, unsigned long request, void *arg)
 {
     return mosdrmIoctl(fd,request,arg);
 }
+#if defined(__cplusplus)
+}
+#endif
 
 static unsigned long drmGetKeyFromFd(int fd)
 {
@@ -580,37 +581,38 @@ static int drmOpenByBusid(const char *busid, int type)
 
     drmMsg("drmOpenByBusid: Searching for BusID %s\n", busid);
     for (i = base; i < base + DRM_MAX_MINOR; i++) {
-    fd = drmOpenMinor(i, 1, type);
-    drmMsg("drmOpenByBusid: drmOpenMinor returns %d\n", fd);
-    if (fd >= 0) {
-        /* We need to try for 1.4 first for proper PCI domain support
-         * and if that fails, we know the kernel is busted
-         */
-        sv.drm_di_major = 1;
-        sv.drm_di_minor = 4;
-        sv.drm_dd_major = -1;    /* Don't care */
-        sv.drm_dd_minor = -1;    /* Don't care */
-        if (drmSetInterfaceVersion(fd, &sv)) {
+        fd = drmOpenMinor(i, 1, type);
+        drmMsg("drmOpenByBusid: drmOpenMinor returns %d\n", fd);
+        if (fd >= 0) {
+            /* We need to try for 1.4 first for proper PCI domain support
+             * and if that fails, we know the kernel is busted
+             */
+            sv.drm_di_major = 1;
+            sv.drm_di_minor = 4;
+            sv.drm_dd_major = -1;    /* Don't care */
+            sv.drm_dd_minor = -1;    /* Don't care */
+            if (drmSetInterfaceVersion(fd, &sv)) {
 #ifndef __alpha__
-        pci_domain_ok = 0;
+                pci_domain_ok = 0;
 #endif
-        sv.drm_di_major = 1;
-        sv.drm_di_minor = 1;
-        sv.drm_dd_major = -1;       /* Don't care */
-        sv.drm_dd_minor = -1;       /* Don't care */
-        drmMsg("drmOpenByBusid: Interface 1.4 failed, trying 1.1\n");
-        drmSetInterfaceVersion(fd, &sv);
+                sv.drm_di_major = 1;
+                sv.drm_di_minor = 1;
+                sv.drm_dd_major = -1;       /* Don't care */
+                sv.drm_dd_minor = -1;       /* Don't care */
+                drmMsg("drmOpenByBusid: Interface 1.4 failed, trying 1.1\n");
+                drmSetInterfaceVersion(fd, &sv);
+            }
+            buf = drmGetBusid(fd);
+            if (buf) {
+                drmMsg("drmOpenByBusid: drmGetBusid reports %s\n", buf);
+                if (drmMatchBusID(buf, busid, pci_domain_ok)) {
+                    drmFreeBusid(buf);
+                    return fd;
+                }
+                drmFreeBusid(buf);
+            }
+            close(fd);
         }
-        buf = drmGetBusid(fd);
-        drmMsg("drmOpenByBusid: drmGetBusid reports %s\n", buf);
-        if (buf && drmMatchBusID(buf, busid, pci_domain_ok)) {
-        drmFreeBusid(buf);
-        return fd;
-        }
-        if (buf)
-        drmFreeBusid(buf);
-        close(fd);
-    }
     }
     return -1;
 }

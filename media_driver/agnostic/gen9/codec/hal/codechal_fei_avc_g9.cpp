@@ -2708,6 +2708,18 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelMe(SurfaceIndex** surfIndex,
     {
        pKernel = kernelRes->ppKernel[0];
     }
+
+    //identify field or frame from curbe
+    bool isField = (kernelRes->pCurbe[12] >> 7) & 1;
+    // config thread space
+    uint32_t           threadWidth   = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(width);
+    uint32_t           threadHeight  = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(height);
+    if (isField)
+    {
+        threadHeight = (height + 31) >> 5;
+    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetThreadCount(threadWidth * threadHeight));
+
     uint32_t kernelArg = 0;
     //curbe data
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetKernelArg(kernelArg++, m_meCurbeDataSizeFei, kernelRes->pCurbe));
@@ -2725,16 +2737,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelMe(SurfaceIndex** surfIndex,
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetKernelArg(kernelArg++, sizeof(SurfaceIndex), surfIndex[5]));
     //only difference between G9 & G8
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetKernelArg(kernelArg++, sizeof(SurfaceIndex), surfIndex[0]));
-    //identify field or frame from curbe
-    bool isField = (kernelRes->pCurbe[12] >> 7) & 1;
-    // config thread space
-    uint32_t           threadWidth   = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(width);
-    uint32_t           threadHeight  = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(height);
-    if (isField)
-    {
-        threadHeight = (height + 31) >> 5;
-    }
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(pKernel->SetThreadCount(threadWidth * threadHeight));
+
     if(kernelRes->pTS == nullptr)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateThreadSpace(threadWidth, threadHeight, kernelRes->pTS));
@@ -2935,6 +2938,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelScaling(uint32_t flatnessThr
     if (kernelType == 0)
     {
         kernel = kernelRes->ppKernel[m_dsIdx];
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadSpaceWidth * threadSpaceHeight));
+
         surfaceIndexSrcSurfTop = surfIdx[0];
         surfaceIndexDSSurfTop = surfIdx[1];
         surfaceIndexMBVProcStatsTop = surfIdx[4];
@@ -2946,6 +2951,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelScaling(uint32_t flatnessThr
     else
     {
         kernel = kernelRes->ppKernel[m_dsIdx + 3];
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadSpaceWidth * threadSpaceHeight));
+
         surfaceIndexSrcSurfTop = surfIdx[0];
         surfaceIndexDSSurfTop  = surfIdx[1];
         surfaceIndexSrcSurfBot = surfIdx[2];
@@ -2967,7 +2974,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelScaling(uint32_t flatnessThr
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(9, sizeof(SurfaceIndex), surfaceIndexMBVProcStatsTop));// DW8
 
     // Setup Dispatch Pattern ======================================================
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadSpaceWidth * threadSpaceHeight));
     bool            isEnqueue                  = false;
 
     if(kernelRes->pTS == nullptr)
@@ -3120,8 +3126,9 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelPreProc(
     // config thread space
     uint32_t threadswidth  = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(width);
     uint32_t threadsheight = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(height + 15);
-    uint32_t kernelArg = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadswidth * threadsheight));
 
+    uint32_t kernelArg = 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArg++, kernelRes->wCurbeSize, kernelRes->pCurbe));
     // Current Input Picture surface
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArg++, sizeof(SurfaceIndex), surfIndex[0]));
@@ -3141,8 +3148,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelPreProc(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArg++, sizeof(SurfaceIndex), surfIndex[7]));
     // Qp and FTQ LUT
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(kernelArg++, sizeof(SurfaceIndex), surfIndex[8]));
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadswidth * threadsheight));
 
     if(nullptr == kernelRes->pTS)
     {
@@ -6405,9 +6410,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelMbEnc(
 
     auto  kernel = dispatchParams->pKernelRes->ppKernel[0];
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(0, sizeof(SurfaceIndex) * m_vmeSurfaceSize, m_vmeSurface));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(1, sizeof(SurfaceIndex) * m_commonSurfaceSize, m_commonSurface));
-
     uint32_t   numMBRows  = (dispatchParams->dwNumMBs + 1) / dispatchParams->frameWidthInMBs;
     uint32_t   threadCount = (dispatchParams->frameWidthInMBs) * numMBRows;
 
@@ -6420,6 +6422,10 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::DispatchKernelMbEnc(
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetThreadCount(threadCount));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(0, sizeof(SurfaceIndex) * m_vmeSurfaceSize, m_vmeSurface));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(kernel->SetKernelArg(1, sizeof(SurfaceIndex) * m_commonSurfaceSize, m_commonSurface));
+
     //currently , it's always false.
     if (!dispatchParams->EnableWavefrontOptimization)
     {
@@ -6828,7 +6834,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
         {
             m_mfeEncodeSharedState->sliceHeight = m_sliceHeight;
         }
-        m_mfeEncodeSharedState->encoders.push_back(this);
     }
 
     auto kernelRes = m_resMbencKernel;
@@ -7096,11 +7101,6 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::EncodeMbEncKernelFunctions()
 
         kernelRes->e = CM_NO_EVENT;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AddKernelMdf(m_cmDev, m_cmQueue, kernelRes->ppKernel[0], m_cmTask, kernelRes->pTS, kernelRes->e, true));
-        if (IsMfeMbEncEnabled())
-        {
-            m_mfeEncodeSharedState->encoders.clear();
-            m_mfeEncodeSharedState->encoders.shrink_to_fit();
-        }
 
         m_cmDev->DestroyThreadSpace(kernelRes->pTS);
 

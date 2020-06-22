@@ -179,6 +179,8 @@ MOS_STATUS CodechalSfcState::SetVeboxSurfaceStateParams(
     veboxSurfParams->SurfInput.dwUYoffset             = m_inputSurface->UPlaneOffset.iYOffset;
     veboxSurfParams->SurfInput.dwPitch                = m_inputSurface->dwPitch;
     veboxSurfParams->SurfInput.TileType               = m_inputSurface->TileType;
+    veboxSurfParams->SurfInput.TileModeGMM            = m_inputSurface->TileModeGMM;
+    veboxSurfParams->SurfInput.bGMMTileEnabled        = m_inputSurface->bGMMTileEnabled;
     veboxSurfParams->SurfInput.pOsResource            = &m_inputSurface->OsResource;
     veboxSurfParams->SurfInput.rcMaxSrc.left          = 0;
     veboxSurfParams->SurfInput.rcMaxSrc.top           = 0;
@@ -331,6 +333,8 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     outSurfaceParams->TileType     = m_sfcOutputSurface->TileType;
     outSurfaceParams->ChromaSiting = m_chromaSiting;
     outSurfaceParams->dwUYoffset   = m_sfcOutputSurface->UPlaneOffset.iYOffset;
+    outSurfaceParams->TileModeGMM  = m_sfcOutputSurface->TileModeGMM;
+    outSurfaceParams->bGMMTileEnabled = m_sfcOutputSurface->bGMMTileEnabled;
 
     sfcStateParams->dwOutputFrameWidth    = MOS_ALIGN_CEIL(m_sfcOutputSurface->dwWidth, widthAlignUnit);
     sfcStateParams->dwOutputFrameHeight   = MOS_ALIGN_CEIL(m_sfcOutputSurface->dwHeight, heightAlignUnit);
@@ -402,7 +406,9 @@ MOS_STATUS CodechalSfcState::SetSfcAvsStateParams()
         m_scaleX,
         m_scaleY,
         m_chromaSiting,
-        (m_sfcPipeMode != MhwSfcInterface::SFC_PIPE_MODE_VDBOX) ? true : false));
+        (m_sfcPipeMode != MhwSfcInterface::SFC_PIPE_MODE_VDBOX) ? true : false,
+        0,
+        0));
 
     m_lumaTable.sfcPipeMode   = m_sfcPipeMode;
     m_chromaTable.sfcPipeMode = m_sfcPipeMode;
@@ -851,12 +857,15 @@ MOS_STATUS CodechalSfcState::InitializeSfcState(
     CODECHAL_DECODE_CHK_NULL_RETURN(hwInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(osInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(hwInterface->GetVeboxInterface());
+    CODECHAL_DECODE_CHK_NULL_RETURN(hwInterface->GetMiInterface());
 
     m_decoder        = inDecoder;
     m_osInterface    = osInterface;
     m_hwInterface    = hwInterface;
     m_veboxInterface = hwInterface->GetVeboxInterface();
     m_sfcInterface   = hwInterface->GetSfcInterface();  // No need to check null for pSfcInterface. It will be checked in IsSfcSupported().
+    m_miInterface    = hwInterface->GetMiInterface();
+    m_mmcEnabled     = m_decoder->IsDecoderMmcEnabled();
 
     return eStatus;
 }

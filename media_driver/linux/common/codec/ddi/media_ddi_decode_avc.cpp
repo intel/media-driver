@@ -692,8 +692,20 @@ VAStatus DdiDecodeAVC::InitResourceBuffer()
     bufMgr->pSliceData = nullptr;
 
     bufMgr->ui64BitstreamOrder = 0;
-    bufMgr->dwMaxBsSize        = m_width *
-                          m_height * 3 / 2;
+
+    if(m_width * m_height < CODEC_720P_MAX_PIC_WIDTH * CODEC_720P_MAX_PIC_HEIGHT)
+    {
+        bufMgr->dwMaxBsSize = m_width * m_height * 3 / 2;
+    }
+    else if(m_width * m_height < CODEC_4K_MAX_PIC_WIDTH * CODEC_4K_MAX_PIC_HEIGHT)
+    {
+        bufMgr->dwMaxBsSize = m_width * m_height * 3 / 8;
+    }
+    else
+    {
+        bufMgr->dwMaxBsSize = m_width * m_height * 3 / 16;
+    }
+
     // minimal 10k bytes for some special case. Will refractor this later
     if (bufMgr->dwMaxBsSize < DDI_CODEC_MIN_VALUE_OF_MAX_BS_SIZE)
     {

@@ -922,7 +922,7 @@ public:
         };
         enum C5
         {
-            C5_83265536                                                      = 33553600, ///<
+            C5_83265536                                                      = 2096320, ///<
         };
         enum C4
         {
@@ -934,7 +934,7 @@ public:
         };
         enum C6
         {
-            C6_19265536                                                      = 33554240, ///<
+            C6_19265536                                                      = 2096960, ///<
         };
         enum C8
         {
@@ -2377,7 +2377,7 @@ public:
         };
         enum C5
         {
-            C5_83265536                                                      = 33553600, ///<
+            C5_83265536                                                      = 2096320, ///<
         };
         enum C4
         {
@@ -2389,7 +2389,7 @@ public:
         };
         enum C6
         {
-            C6_19265536                                                      = 33554240, ///<
+            C6_19265536                                                      = 2096960, ///<
         };
         enum C8
         {
@@ -3018,7 +3018,7 @@ public:
         };
         enum S0L
         {
-            S0L_UNNAMED4091                                                  = 4091, ///<
+            S0L_UNNAMED2043                                                  = 2043, ///<
         };
         enum S1L
         {
@@ -3074,7 +3074,7 @@ public:
         };
         enum S2U
         {
-            S2U_UNNAMED3917                                                  = 3917, ///<
+            S2U_UNNAMED1869                                                  = 1896, ///<
         };
         enum S3U
         {
@@ -3170,7 +3170,7 @@ public:
         };
         enum SATP1_DARK
         {
-            SATP1_DARK_UNNAMED4085                                           = 4085, ///<
+            SATP1_DARK_UNNAMED123                                            = 123, ///<
         };
         enum SATP2_DARK
         {
@@ -3299,7 +3299,7 @@ public:
             DW8.Value = 0;
             DW8.B2L = B2L_UNNAMED130;
             DW8.B3L = B3L_UNNAMED130;
-            DW8.S0L = S0L_UNNAMED4091;
+            DW8.S0L = S0L_UNNAMED2043;
 
             DW9.Value = 0;
             DW9.S1L = S1L_UNNAMED0;
@@ -3323,7 +3323,7 @@ public:
 
             DW13.Value = 0;
             DW13.S1U = S1U_UNNAMED113;
-            DW13.S2U = S2U_UNNAMED3917;
+            DW13.S2U = S2U_UNNAMED1869;
 
             DW14.Value = 0;
             DW14.S3U = S3U_UNNAMED0;
@@ -3365,7 +3365,7 @@ public:
             DW21.Hues3 = HUES3_UNNAMED256;
 
             DW22.Value = 0;
-            DW22.Satp1Dark = SATP1_DARK_UNNAMED4085;
+            DW22.Satp1Dark = SATP1_DARK_UNNAMED123;
             DW22.Satp2Dark = SATP2_DARK_UNNAMED31;
             DW22.Satp3Dark = SATP3_DARK_UNNAMED31;
             DW22.Satb1Dark = SATB1_DARK_UNNAMED0;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, Intel Corporation
+* Copyright (c) 2016-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include "vphal_renderer.h"         // for VpHal_RenderAllocateBB
 #include "vphal_render_common.h"    // for VPHAL_RENDER_CACHE_CNTL
 #include "vphal_render_ief.h"
+#include "renderhal_platform_interface.h"
 
 // Compositing surface binding table index
 #define VPHAL_COMP_BTINDEX_LAYER0          0
@@ -802,7 +803,7 @@ static void SetInline16x16Mask(
 //!           MOS_STATUS_SUCCESS, otherwise MOS_STATUS_UNIMPLEMENTED if Destination Colorspace not supported,
 //!            or MOS_STATUS_INVALID_PARAMETER/MOS_STATUS_NULL_POINTER
 //!
-static MOS_STATUS LoadPaletteData(
+MOS_STATUS CompositeState::LoadPaletteData(
     PVPHAL_PALETTE          pInPalette,
     VPHAL_CSPACE            srcCspace,
     VPHAL_CSPACE            dstCspace,
@@ -1053,7 +1054,8 @@ static MOS_STATUS SamplerAvsCalcScalingTable(
                 SrcFormat,
                 fHPStrength,
                 true,
-                dwHwPhrase));
+                dwHwPhrase,
+                0));
 
             // If the 8-tap adaptive is enabled for all channel, then UV/RB use the same coefficient as Y/G
             // So, coefficient for UV/RB channels caculation can be passed
@@ -1068,7 +1070,8 @@ static MOS_STATUS SamplerAvsCalcScalingTable(
                         SrcFormat,
                         fHPStrength,
                         true,
-                        dwHwPhrase));
+                        dwHwPhrase,
+                        0));
                 }
                 else
                 {
@@ -2477,6 +2480,12 @@ void CompositeState::SetScalingMode(
         pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
     }
 
+    // Fix GPU Hang on EHL, since EHL has no AVS sampler
+    if (MEDIA_IS_SKU(m_pSkuTable, FtrDisableVEBoxFeatures))
+    {
+        pSource->ScalingMode = VPHAL_SCALING_BILINEAR;
+    }
+
     // WA for multilayer P010 AVS+3D one single pass corruption hw issue
     if (uSourceCount > 1 &&
         pSource->Format == Format_P010)
@@ -2591,7 +2600,7 @@ MOS_STATUS CompositeState::RenderInit(
     pRenderingData->Static                 = g_cInit_MEDIA_OBJECT_KA2_STATIC_DATA;
     pRenderingData->Inline                 = g_cInit_MEDIA_OBJECT_KA2_INLINE_DATA;
     pRenderingData->WalkerStatic           = g_cInit_MEDIA_WALKER_KA2_STATIC_DATA;
-
+    pRenderingData->DPFCStatic             = {0};
     // By default, alpha is calculated in PartBlend kernel
     pRenderingData->bAlphaCalculateEnable = false;
 
@@ -3009,7 +3018,7 @@ int32_t CompositeState::SetLayer(
     int32_t                             iLayer; // The index of pSource in pRenderingData->pLayers.
     MEDIA_OBJECT_KA2_STATIC_DATA        *pStatic;
     MEDIA_OBJECT_KA2_INLINE_DATA        *pInline;
-
+    MEDIA_DP_FC_STATIC_DATA             *pDPStatic;
     // Surface states
     int32_t                             iSurfaceEntries, i, iSurfaceEntries2;
     PRENDERHAL_SURFACE_STATE_ENTRY      pSurfaceEntries[MHW_MAX_SURFACE_PLANES];
@@ -3084,6 +3093,8 @@ int32_t CompositeState::SetLayer(
     {
         pStatic      = &pRenderingData->Static;
     }
+    pDPStatic = &pRenderingData->DPFCStatic;
+
     pInline      = &pRenderingData->Inline;
 
     // Set the default alpha value to 0 for Android platform
@@ -3150,7 +3161,6 @@ int32_t CompositeState::SetLayer(
     // Check whether sampler lumakey is needed. It will be used in SetSurfaceParams
     // when IsNV12SamplerLumakeyNeeded being called.
     pSource->bUseSamplerLumakey = IsSamplerLumakeySupported(pSource);
-
     //-------------------------------------------
     // Setup surface states
     //-------------------------------------------
@@ -3232,6 +3242,12 @@ int32_t CompositeState::SetLayer(
     {
         iResult = -1;
         goto finish;
+    }
+
+    if ((pDPStatic != nullptr) && (pSurfaceEntries[0] != nullptr))
+    {
+        pDPStatic->DW6.InputPictureWidth  = pSurfaceEntries[0]->dwWidth -1;
+        pDPStatic->DW6.InputPictureHeight = pSurfaceEntries[0]->dwHeight -1;
     }
 
     eStatus = VpHal_RndrCommonGetBackVpSurfaceParams(
@@ -3404,8 +3420,10 @@ int32_t CompositeState::SetLayer(
             }
             else
             {
-                //For Y210 with AVS(Y)+3D(U/V) sampler, the shift is not needed.
-                if (pSource->Format == Format_Y210 && pSurfaceEntries[0]->bAVS)
+                //For Y210/Y216 with AVS(Y)+3D(U/V) sampler, the shift is not needed.
+                if ((pSource->Format == Format_Y210 ||
+                    pSource->Format == Format_Y216)
+                    && pSurfaceEntries[0]->bAVS)
                 {
                     fShiftX = 0.0f;
                     fShiftY = 0.0f;
@@ -3782,6 +3800,9 @@ int32_t CompositeState::SetLayer(
     pStatic->DW08.DestinationRectangleWidth  = dwDestRectWidth;
     pStatic->DW08.DestinationRectangleHeight = dwDestRectHeight;
 
+    pDPStatic->DW7.DestinationRectangleWidth = dwDestRectWidth;
+    pDPStatic->DW7.DestinationRectangleHeight = dwDestRectHeight;
+
     switch (iLayer)
     {
         case 0:
@@ -3800,6 +3821,11 @@ int32_t CompositeState::SetLayer(
             pStatic->DW40.HorizontalFrameOriginLayer0       = fOriginX;
             pStatic->DW32.VerticalFrameOriginLayer0         = fOriginY;
             pInline->DW04.VideoXScalingStep                 = fStepX;
+
+            pDPStatic->DW9.HorizontalScalingStepRatioLayer0 = fStepX;
+            pDPStatic->DW10.VerticalScalingStepRatioLayer0 = fStepY;
+            pDPStatic->DW11.HorizontalFrameOriginLayer0 = fOriginX;
+            pDPStatic->DW12.VerticalFrameOriginLayer0 = fOriginY;
 
             // ChromasitingUOffset and ChromasitingVOffset are only for 3D Sampler use case
             if (m_need3DSampler)
@@ -4148,6 +4174,38 @@ finish:
 }
 
 //!
+//! \brief    Set Surface Compressed Parameters
+//! \details  Set Surface Compressed Parameters, and compression mode
+//! \param    [in,out] pSource
+//!           Pointer to Source Surface
+//! \param    [in] isRenderTarget
+//!           Render Target or not
+//! \return   void
+//!
+void CompositeState::SetSurfaceCompressionParams(
+    PVPHAL_SURFACE                  pSource,
+    bool                            isRenderTarget)
+{
+    if (!MEDIA_IS_SKU(GetSkuTable(), FtrCompsitionMemoryCompressedOut) &&
+        isRenderTarget)
+    {
+        if (pSource                                             &&
+            pSource->bCompressible                              &&
+            // For platforms support MC/RC, only enable Render engine MC write.
+            (pSource->CompressionMode == MOS_MMC_RC             ||
+            // For legacy platforms, no compression supported for composite RT.
+            pSource->CompressionMode == MOS_MMC_HORIZONTAL      ||
+            pSource->CompressionMode == MOS_MMC_VERTICAL))
+        {
+            VPHAL_RENDER_NORMALMESSAGE("MMC DISABLED for RT due to CompsitionMemoryCompressedOut no supported");
+            pSource->bIsCompressed   = false;
+            pSource->CompressionMode = MOS_MMC_DISABLED;
+            m_pOsInterface->pfnSetMemoryCompressionMode(m_pOsInterface, &pSource->OsResource, MOS_MEMCOMP_STATE(MOS_MEMCOMP_DISABLED));
+        }
+    }
+}
+
+//!
 //! \brief    Check whether parameters for composition valid or not.
 //! \param    [in] CompositeParams
 //!           Parameters for composition
@@ -4374,6 +4432,8 @@ bool CompositeState::SubmitStates(
 
     iInlineLength = CalculateInlineDataSize(pRenderingData, pStatic);
 
+    UpdateInlineDataStatus(pRenderingData->pLayers[0], pStatic);
+
     // Set Background color (use cspace of first layer)
     if (pRenderingData->pColorFill)
     {
@@ -4403,9 +4463,16 @@ bool CompositeState::SubmitStates(
                 goto finish;
             }
         }
-        else // use cspace of first layer
+        else // use selected cspace by kdll
         {
-            dst_cspace = pFilter->cspace;
+            if (GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform))
+            {
+                dst_cspace = pKernelDllState->colorfill_cspace;
+            }
+            else
+            {
+                dst_cspace = pFilter->cspace;
+            }
         }
 
         // Convert BG color only if not done so before. CSC is expensive!
@@ -5430,22 +5497,36 @@ bool CompositeState::RenderBufferMediaWalker(
 
     if (pRenderingData->pTarget[1] == nullptr)
     {
-        pWalkerStatic->DW69.DestHorizontalBlockOrigin                  =
-             (uint16_t)pRenderingData->pTarget[0]->rcDst.left;
-        pWalkerStatic->DW69.DestVerticalBlockOrigin                    =
-             (uint16_t)pRenderingData->pTarget[0]->rcDst.top;
-
+        if (pRenderingData->bCmFcEnable && pRenderingData->iLayers > 0)
+        {
+            pWalkerStatic->DW69.DestHorizontalBlockOrigin               = 0;
+            pWalkerStatic->DW69.DestVerticalBlockOrigin                 = 0;
+        }
+        else
+        {
+            pWalkerStatic->DW69.DestHorizontalBlockOrigin               =
+                 (uint16_t)pRenderingData->pTarget[0]->rcDst.left;
+            pWalkerStatic->DW69.DestVerticalBlockOrigin                 =
+                 (uint16_t)pRenderingData->pTarget[0]->rcDst.top;
+        }
         AlignedRect   = pRenderingData->pTarget[0]->rcDst;
     }
     else
     {
         // Horizontal and Vertical base on non-rotated in case of dual output
-        pWalkerStatic->DW69.DestHorizontalBlockOrigin                   =
-            (uint16_t)pRenderingData->pTarget[1]->rcDst.left;
-        pWalkerStatic->DW69.DestVerticalBlockOrigin                     =
-             (uint16_t)pRenderingData->pTarget[1]->rcDst.top;
-
-         AlignedRect   = pRenderingData->pTarget[1]->rcDst;
+        if (pRenderingData->bCmFcEnable && pRenderingData->iLayers > 0)
+        {
+            pWalkerStatic->DW69.DestHorizontalBlockOrigin               = 0;
+            pWalkerStatic->DW69.DestVerticalBlockOrigin                 = 0;
+        }
+        else
+        {
+            pWalkerStatic->DW69.DestHorizontalBlockOrigin               =
+                (uint16_t)pRenderingData->pTarget[1]->rcDst.left;
+            pWalkerStatic->DW69.DestVerticalBlockOrigin                 =
+                 (uint16_t)pRenderingData->pTarget[1]->rcDst.top;
+        }
+        AlignedRect   = pRenderingData->pTarget[1]->rcDst;
     }
 
     ModifyMediaWalkerStaticData(pRenderingData);
@@ -5737,6 +5818,7 @@ MOS_STATUS CompositeState::RenderPhase(
     PMHW_GPGPU_WALKER_PARAMS        pComputeWalkerParams    = nullptr;
     bool                            bKernelEntryUpdate      = false;
     bool                            bColorfill              = false;
+    bool                            bEUFusedDispatchFlag    = false;
 
     VPHAL_RENDER_ASSERT(pCompParams);
     VPHAL_RENDER_ASSERT(m_pOsInterface);
@@ -5809,7 +5891,7 @@ MOS_STATUS CompositeState::RenderPhase(
             else if (m_need3DSampler                                       &&
                      pSource->ScalingMode != VPHAL_SCALING_AVS             &&
                      pSource->SurfType == SURF_IN_PRIMARY                  &&
-                     (IS_PL2_FORMAT(pSource->Format)                       ||
+                     ((IS_PL2_FORMAT(pSource->Format) && iLayer == 0)      || // when 3D sampler been used, PL2 chromasitting kernel does not support sub-layer chromasitting
                      pSource->Format == Format_YUY2))
             {
                 m_bChromaUpSampling   = VpHal_IsChromaUpSamplingNeeded(
@@ -5850,6 +5932,16 @@ MOS_STATUS CompositeState::RenderPhase(
                 pOsInterface->CurrentGpuContextOrdinal))
         {
             pSource->SampleType         = SAMPLE_PROGRESSIVE;
+            pSource->bInterlacedScaling = false;
+        }
+
+        // If there is no scaling used for interlace surface on 10bit PA formats, force to progressive due to no supoort for kernel.
+        if (pSource->bInterlacedScaling &&
+            (pSource->rcSrc.right - pSource->rcSrc.left) == (pSource->rcDst.right - pSource->rcDst.left) &&
+            (pSource->rcSrc.bottom - pSource->rcSrc.top) == (pSource->rcDst.bottom - pSource->rcDst.top) &&
+            (pSource->Format == Format_Y210 || pSource->Format == Format_Y410))
+        {
+            pSource->SampleType = SAMPLE_PROGRESSIVE;
             pSource->bInterlacedScaling = false;
         }
 
@@ -5935,16 +6027,16 @@ MOS_STATUS CompositeState::RenderPhase(
     for (int32_t i = 0; i < iFilterSize; i++)
     {
         Kdll_FilterEntry *pTempFilter = (pFilter + i);
-        
+
         if (pTempFilter == nullptr)
             continue;
 
         VPHAL_RENDER_NORMALMESSAGE("Kernel Search Filter %d: layer %d, format %d, cspace %d, \
                                    bEnableDscale %d, bIsDitherNeeded %d, chromasiting %d, colorfill %d, dualout %d, \
-                                   lumakey %d, procamp %d, RenderMethod %d, sampler %d, samplerlumakey %d ", 
-                                   i, pTempFilter->layer, pTempFilter->format, pTempFilter->cspace, 
-                                   pTempFilter->bEnableDscale, pTempFilter->bIsDitherNeeded, 
-                                   pTempFilter->chromasiting, pTempFilter->colorfill,  pTempFilter->dualout, 
+                                   lumakey %d, procamp %d, RenderMethod %d, sampler %d, samplerlumakey %d ",
+                                   i, pTempFilter->layer, pTempFilter->format, pTempFilter->cspace,
+                                   pTempFilter->bEnableDscale, pTempFilter->bIsDitherNeeded,
+                                   pTempFilter->chromasiting, pTempFilter->colorfill,  pTempFilter->dualout,
                                    pTempFilter->lumakey, pTempFilter->procamp, pTempFilter->RenderMethod, pTempFilter->sampler, pTempFilter->samplerlumakey);
     }
 
@@ -5958,6 +6050,7 @@ MOS_STATUS CompositeState::RenderPhase(
     {
         pCscParams = pKernelEntry->pCscParams;
         pMatrix    = &pCscParams->Matrix[pCscParams->MatrixID[0]];
+        pKernelDllState->colorfill_cspace = pKernelEntry->colorfill_cspace;
 
         if ((pMatrix->iProcampID != DL_PROCAMP_DISABLED) &&
             (pMatrix->iProcampID < m_iMaxProcampEntries))
@@ -6080,6 +6173,13 @@ MOS_STATUS CompositeState::RenderPhase(
         }
     }
 
+    // Set Fused EU Dispatch
+    if (m_FusedEuDispatch && pRenderHal->pRenderHalPltInterface != nullptr)
+    {
+        pRenderHal->pRenderHalPltInterface->SetFusedEUDispatch(true);
+        bEUFusedDispatchFlag = true;
+    }
+
     if (m_bFtrMediaWalker && (!m_bFtrComputeWalker))
     {
         pBatchBuffer  = nullptr;
@@ -6197,6 +6297,11 @@ MOS_STATUS CompositeState::RenderPhase(
 
 finish:
     // clean rendering data
+    if (bEUFusedDispatchFlag)
+    {
+        // Reset Fused EU Dispatch
+        pRenderHal->pRenderHalPltInterface->SetFusedEUDispatch(false);
+    }
     CleanRenderingData(&RenderingData);
     pRenderHal->bCmfcCoeffUpdate  = false;
     pRenderHal->pCmfcCoeffSurface = nullptr;
@@ -6533,6 +6638,12 @@ bool CompositeState::BuildFilter(
         //--------------------------------
         pFilter->matrix = DL_CSC_DISABLED;
 
+        if (0 == pSrc->iLayerID)
+        {
+           //set first layer's scalingRatio
+           SetFilterScalingRatio(&(pFilter->ScalingRatio));
+        }
+
         // Update filter
         pFilter++;
         (*piFilterSize)++;
@@ -6558,6 +6669,9 @@ bool CompositeState::BuildFilter(
     pFilter->matrix   = DL_CSC_DISABLED;
     pFilter->bFillOutputAlphaWithConstant = true;
 
+    //set rendertarget's scalingRatio
+    SetFilterScalingRatio(&(pFilter->ScalingRatio));
+
     if(pCompParams->pSource[0] != nullptr &&
        pCompParams->pSource[0]->Format == Format_R5G6B5 &&
        pCompParams->Target[0].Format == Format_R5G6B5)
@@ -6572,7 +6686,8 @@ bool CompositeState::BuildFilter(
         pFilter->format == Format_A8B8G8R8    ||
         pFilter->format == Format_R10G10B10A2 ||
         pFilter->format == Format_B10G10R10A2 ||
-        pFilter->format == Format_AYUV)
+        pFilter->format == Format_AYUV        ||
+        pFilter->format == Format_Y416)
     {
         if (pCompParams->pCompAlpha != nullptr && pCompParams->pSource[0] != nullptr &&
             (pCompParams->pCompAlpha->AlphaMode == VPHAL_ALPHA_FILL_MODE_NONE ||
@@ -6592,6 +6707,8 @@ bool CompositeState::BuildFilter(
                 case Format_B10G10R10A2:
                 case Format_A8P8:
                 case Format_A8:
+                case Format_Y416:
+                case Format_Y410:
                     pFilter->bFillOutputAlphaWithConstant = false;
                     break;
 
@@ -6959,7 +7076,6 @@ CompositeState::CompositeState(
     m_iProcampVersion(0),
     m_bNullHwRenderComp(false),
     m_b8TapAdaptiveEnable(false),
-    m_pKernelDllState(nullptr),
     m_ThreadCountPrimary(0),
     m_iBatchBufferCount(0),
     m_iCallID(0),
@@ -7002,9 +7118,6 @@ CompositeState::CompositeState(
     MOS_ZeroMemory(&m_mhwSamplerAvsTableParam, sizeof(m_mhwSamplerAvsTableParam));
     MOS_ZeroMemory(&m_BatchBuffer, sizeof(m_BatchBuffer));
     MOS_ZeroMemory(&m_BufferParam, sizeof(m_BufferParam));
-
-    // Set Max number of procamp entries
-    m_iMaxProcampEntries        = VPHAL_MAX_PROCAMP;
 
     // Set Bilinear Sampler Bias
     m_fSamplerLinearBiasX       = VPHAL_SAMPLER_BIAS_GEN575;
@@ -7087,7 +7200,7 @@ bool CompositeState::IsMultipleStreamSupported()
 //!
 //! \brief    set Report data
 //! \details  set Report data for this render
-//! \param    [in] pSource 
+//! \param    [in] pSource
 //!           pointer to the surface
 //!
 void CompositeState::SetReporting(PVPHAL_SURFACE pSource)
@@ -7102,7 +7215,7 @@ void CompositeState::SetReporting(PVPHAL_SURFACE pSource)
 //!
 //! \brief    copy Report data
 //! \details  copy Report data from this render
-//! \param    [out] pReporting 
+//! \param    [out] pReporting
 //!           pointer to the Report data to copy data to
 //!
 void CompositeState::CopyReporting(VphalFeatureReport* pReporting)

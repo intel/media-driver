@@ -22,7 +22,7 @@
 #ifndef CMRTLIB_AGNOSTIC_HARDWARE_CM_QUEUE_H_
 #define CMRTLIB_AGNOSTIC_HARDWARE_CM_QUEUE_H_
 
-#include "cm_queue_base.h"
+#include "cm_queue_base_hw.h"
 #include "cm_def_os.h"
 
 class CmEvent;
@@ -125,18 +125,36 @@ public:
                      const CmThreadGroupSpace *threadGroupSpace = nullptr);
 
     CM_RT_API int32_t EnqueueCopyCPUToGPUFullStrideDup(CmSurface2D *surface,
-                                                const unsigned char *sysMem,
-                                                const uint32_t widthStride,
-                                                const uint32_t heightStride,
-                                                const uint32_t option,
-                                                CmEvent *&event);
+                                                       const unsigned char *sysMem,
+                                                       const uint32_t widthStride,
+                                                       const uint32_t heightStride,
+                                                       const uint32_t option,
+                                                       CmEvent *&event);
 
     CM_RT_API int32_t EnqueueCopyGPUToCPUFullStrideDup(CmSurface2D *surface,
-                                                unsigned char *sysMem,
-                                                const uint32_t widthStride,
-                                                const uint32_t heightStride,
-                                                const uint32_t option,
-                                                CmEvent *&event);
+                                                       unsigned char *sysMem,
+                                                       const uint32_t widthStride,
+                                                       const uint32_t heightStride,
+                                                       const uint32_t option,
+                                                       CmEvent *&event);
+
+    // enqueue CmBuffer read from GPU 1D surface to CPU system memory
+    CM_RT_API int32_t EnqueueReadBuffer(CmBuffer* buffer,
+                                        size_t offset,
+                                        const unsigned char* sysMem,
+                                        uint64_t sysMemSize,
+                                        CmEvent* wait_event,
+                                        CmEvent*& event,
+                                        unsigned option = 0);
+
+    // enqueue CmBuffer write from CPU system memory to GPU 1D surface
+    CM_RT_API int32_t EnqueueWriteBuffer(CmBuffer* buffer,
+                                         size_t offset,
+                                         const unsigned char* sysMem,
+                                         uint64_t sysMemSize,
+                                         CmEvent* wait_event,
+                                         CmEvent*& event,
+                                         unsigned option = 0);
 
     CM_RT_API int32_t EnqueueWithHints(CmTask *task,
                                    CmEvent *&event,
@@ -154,7 +172,10 @@ public:
                               CmEvent *&event,
                               const CmThreadGroupSpace *threadGroupSpace = nullptr);
 
+    CM_RT_API int32_t SetResidentGroupAndParallelThreadNum(uint32_t residentGroupNum, uint32_t parallelThreadNum);
+
     CM_QUEUE_CREATE_OPTION GetQueueOption();
+
 
 protected:
     CmQueue_RT(CmDevice_RT *device, CM_QUEUE_CREATE_OPTION queueCreateOption);

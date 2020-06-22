@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -97,10 +97,10 @@ public:
     //!
     //! \brief  Initialize the MOS Context
     //! \param  [in] pOsDriverContext
-    //!         ptr to MOS_CONTEXT created inside DDI 
+    //!         ptr to DDI_DEVICE_CONTEXT created inside DDI
     //! \return MOS_Success in pass case, MOS error status in fail cases
     //!
-    MOS_STATUS Init(PMOS_CONTEXT osDriverContext);
+    MOS_STATUS Init(DDI_DEVICE_CONTEXT osDriverContext);
 
     //!
     //! \brief  Destroy the os specific MOS context
@@ -117,7 +117,7 @@ public:
     //!
     void SetPerfInfo(const struct PerfInfo &performanceInfo)
     {
-        MosUtilities::MOS_SecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));
+        MosUtilities::MosSecureMemcpy(&m_performanceInfo, sizeof(struct PerfInfo), &performanceInfo, sizeof(struct PerfInfo));
     }
 
     //!
@@ -147,11 +147,6 @@ public:
     //!
     void *GetShmPtr() { return m_shm; }
 
-    //!
-    //! \brief  Return the function ptr for memory decompression function
-    //!
-    void *GetpfnMemoryDecompaddr() { return (void *)m_memoryDecompress; }
-
     MOS_LINUX_CONTEXT *GetDrmContext() { return m_intelContext; }
 
     AuxTableMgr* GetAuxTableMgr() { return m_auxTableMgr; }
@@ -167,6 +162,22 @@ public:
     //!
     void SetSliceCount(uint32_t *pSliceCount);
 
+    //!
+    //! \brief  create per stream's secure IPC
+    //! \param  [in,out] perStreamParamters
+    //!         Parameters of OS specific per stream
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS CreateIPC(OS_PER_STREAM_PARAMETERS perStreamParamters);
+
+    //!
+    //! \brief  destroy per stream's secure IPC
+    //! \param  [in,out] perStreamParamters
+    //!         Parameters of OS specific per stream
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS DestroyIPC(OS_PER_STREAM_PARAMETERS perStreamParamters);
+
 private:
     //!
     //! \brief  connect and create share memory for driver secure IPC
@@ -180,7 +191,7 @@ private:
     //!         ptr to ptr for share memory
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS ConnectCreateShm(long key, uint32_t size, int32_t * pShmid, void* *ppShm);
+    static MOS_STATUS ConnectCreateShm(long key, uint32_t size, int32_t * pShmid, void* *ppShm);
 
     //!
     //! \brief  destory the share memory
@@ -190,7 +201,7 @@ private:
     //!         ptr to ptr for share memory
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS DetachDestroyShm(int32_t shmid, void* pShm);
+    static MOS_STATUS DetachDestroyShm(int32_t shmid, void* pShm);
 
     //!
     //! \brief  connect and create semaphore for driver secure IPC
@@ -200,7 +211,31 @@ private:
     //!         ptr to sem id created
     //! \return MOS_SUCCESS in success case, MOS error status in fail cases
     //!
-    MOS_STATUS ConnectCreateSemaphore(long key, int32_t *pSemid);
+    static MOS_STATUS ConnectCreateSemaphore(long key, int32_t *pSemid);
+
+    //!
+    //! \brief  unlock the semaphore used in driver IPC
+    //! \param  [in] semid
+    //!         semaphore id to be unlocked
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS UnLockSemaphore(int32_t semid);
+
+    //!
+    //! \brief  lock the semaphore used in driver IPC
+    //! \param  [in] semid
+    //!         semaphore id to be locked
+    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
+    //!
+    static MOS_STATUS LockSemaphore(int32_t semid);
+
+    //!
+    //! \brief  attach to the share memory instance
+    //! \param   shmid
+    //!          [in] share memory id to be attached
+    //! \return  share memory attached
+    //!
+    static short ShmAttachedNumber(unsigned int shmid);
 
     //!
     //! \brief  create driver secure IPC
@@ -209,33 +244,9 @@ private:
     MOS_STATUS CreateIPC();
 
     //!
-    //! \brief  unlock the semaphore used in driver IPC
-    //! \param  [in] semid
-    //!         semaphore id to be unlocked
-    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
-    //!
-    MOS_STATUS UnLockSemaphore(int32_t semid);
-
-    //!
-    //! \brief  lock the semaphore used in driver IPC
-    //! \param  [in] semid
-    //!         semaphore id to be locked
-    //! \return MOS_SUCCESS in success case, MOS error status in fail cases
-    //!
-    MOS_STATUS LockSemaphore(int32_t semid);
-
-    //!
     //! \brief  destroy the IPC instance
     //!
     void DestroyIPC();
-
-    //!
-    //! \brief  attach to the share memory instance
-    //! \param   shmid
-    //!          [in] share memory id to be attached
-    //! \return  share memory attached
-    //!
-    short ShmAttachedNumber(unsigned int shmid);
 
     //!
     //! \brief  destroy the semaphore
@@ -259,11 +270,6 @@ private:
     //! \brief  Performance specific switch for debug purpose
     //!
     struct PerfInfo     m_performanceInfo = {};
-
-    //!
-    //! \brief  Performance specific information for debug purpose
-    //!
-    PERF_DATA           m_perfData = {};
 
     //!
     //! \brief  switch for 64bit KMD relocation
@@ -331,23 +337,6 @@ private:
     //! \brief  Flag to indicate if hybrid decoder is running
     //!
     bool                m_hybridDecoderRunningFlag = false;
-
-    //!
-    //! \brief  the function ptr for memory decompression function
-    //!
-    void (* m_memoryDecompress)(
-        PMOS_CONTEXT                pOsContext,
-        PMOS_RESOURCE               pOsResource) = nullptr;
-
-    //!
-    //! \brief  ptr to ptr of memory decompression state
-    //!
-    void*               *m_mediaMemDecompState = nullptr;
-
-    //!
-    //! \brief  ptr to mos context(kept for memory decompression function, to be cleaned up)
-    //!
-    PMOS_CONTEXT        m_mosContext = nullptr;
 
     //!
     //! \brief  the function ptr for memory decompression function

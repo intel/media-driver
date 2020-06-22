@@ -30,22 +30,30 @@
 
 #include "mos_os_virtualengine_next.h"
 
-class MosOsVeScalability
+class MosOsVeScalability : public MosVeInterface
 {
 public:
+    //!
+    //! \brief    Construct
+    //!
+    MosOsVeScalability() {}
+
+    //!
+    //! \brief    Deconstruct
+    //!
+    ~MosOsVeScalability() {}
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief    populate debug override parameters in scalability virtual engine
     //! \details  populate debug override parameters used in scalability virtual engine for debug override or Linux target submission
-    //! \param    [in]  pVEInterface
-    //!                virtual engine interface
-    //! \param    [in]  iForceEngine
-    //!                force engine value
+    //! \param    [in]  stream
+    //!           MOS stream state
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    static MOS_STATUS Mos_VirtualEngine_Scalability_PopulateDbgOvrdParams(
-        PMOS_VIRTUALENGINE_INTERFACE pVEInterface);
+    MOS_STATUS PopulateDbgOvrdParams(
+        MOS_STREAM_HANDLE stream);
 #endif
 };
 

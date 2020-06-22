@@ -109,6 +109,7 @@ typedef struct _CODECHAL_DECODE_SCALABILITY_INIT_PARAMS
     uint8_t          u8NumTileColumns;               //!< Number of tile columns for this picture
     uint8_t          u8NumTileRows;                  //!< Number of tile rows for this picture
     MOS_GPU_CONTEXT  gpuCtxInUse;                    //!< gpu context in use
+    bool             usingSecureDecode;
 }CODECHAL_DECODE_SCALABILITY_INIT_PARAMS, *PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS;
 
 typedef struct _CODECHAL_DECODE_SCALABILITY_STATE CODECHAL_DECODE_SCALABILITY_STATE, *PCODECHAL_DECODE_SCALABILITY_STATE;
@@ -126,6 +127,7 @@ struct _CODECHAL_DECODE_SCALABILITY_STATE
     bool                            bScalableDecodeMode;
 
     bool                            bFESeparateSubmission;
+    bool                            bFESeparateSubmissionVT;
     bool                            bShortFormatInUse;
     bool                            bUseSecdryCmdBuffer;
     bool                            bIsEvenSplit;

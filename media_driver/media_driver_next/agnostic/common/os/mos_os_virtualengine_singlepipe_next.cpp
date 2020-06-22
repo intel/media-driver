@@ -28,8 +28,7 @@
 #include "mos_util_debug_next.h"
 #include "mos_os_virtualengine_singlepipe_next.h"
 
-void MosOsVeSinglePipe::Mos_VirtualEngine_SinglePipe_Destroy(
-    PMOS_VIRTUALENGINE_INTERFACE    pVEInterface)
+void MosOsVeSinglePipe::Destroy()
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -37,41 +36,37 @@ void MosOsVeSinglePipe::Mos_VirtualEngine_SinglePipe_Destroy(
 }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-MOS_STATUS MosOsVeSinglePipe::Mos_VirtualEngine_SinglePipe_PopulateDbgOvrdParams(
-    PMOS_VIRTUALENGINE_INTERFACE pVEInterface)
+MOS_STATUS MosOsVeSinglePipe::PopulateDbgOvrdParams(MOS_STREAM_HANDLE stream)
 {
-    PMOS_INTERFACE          pOsInterface = nullptr;
-    int32_t                 iForceEngine = 0;
-    MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
-
     MOS_OS_FUNCTION_ENTER;
 
-    MOS_OS_CHK_NULL(pVEInterface);
-    MOS_OS_CHK_NULL(pVEInterface->pOsInterface);
+    MOS_STATUS     eStatus      = MOS_STATUS_UNKNOWN;
 
-    pOsInterface = pVEInterface->pOsInterface;
+    MOS_OS_CHK_NULL_RETURN(stream);
+
+    int32_t        iForceEngine = 0;
 
     iForceEngine = MOS_INVALID_FORCEENGINE_VALUE;
-    switch (pOsInterface->Component)
+    switch (stream->component)
     {
         case COMPONENT_Decode:
-            iForceEngine = pOsInterface->eForceVdbox;
+            iForceEngine = stream->eForceVdbox;
             break;
         case COMPONENT_VPCommon:
-            iForceEngine = pOsInterface->eForceVebox;
+            iForceEngine = stream->eForceVebox;
             break;
         case COMPONENT_Encode:
         default:
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MOS_OS_ASSERTMESSAGE("Not supported MOS Component.")
-            goto finish;
+            return eStatus;
     }
 
-    MOS_ZeroMemory(pVEInterface->EngineLogicId, sizeof(pVEInterface->EngineLogicId));
-    pVEInterface->ucEngineCount = 0;
+    MosUtilities::MosZeroMemory(EngineLogicId, sizeof(EngineLogicId));
+    ucEngineCount = 0;
     if (iForceEngine == 0)
     {
-        pVEInterface->EngineLogicId[0] = 0;
+        EngineLogicId[0] = 0;
     }
     else
     {
@@ -93,14 +88,14 @@ MOS_STATUS MosOsVeSinglePipe::Mos_VirtualEngine_SinglePipe_PopulateDbgOvrdParams
             default:
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 MOS_OS_ASSERTMESSAGE("Invalid force engine value.");
-                goto finish;
+                return eStatus;
         }
-        pVEInterface->EngineLogicId[0] = ui8EngineId;
+        EngineLogicId[0] = ui8EngineId;
     }
 
-    pVEInterface->ucEngineCount  = 1;
+    ucEngineCount  = 1;
     eStatus = MOS_STATUS_SUCCESS;
-finish:
+
     return eStatus;
 }
 #endif //(_DEBUG || _RELEASE_INTERNAL)

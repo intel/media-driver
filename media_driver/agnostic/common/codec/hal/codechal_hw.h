@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,7 @@
 
 #include "media_interfaces_mhw.h"
 
+#include "gfxmacro.h"
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_HW sub-comp
 //------------------------------------------------------------------------------
@@ -429,6 +430,8 @@ public:
     uint32_t                    m_mpeg2SSDResolutionThreshold = 0;              //!> Slice shutdown resolution threshold for MPEG2
 
     bool                        m_slicePowerGate = false;                       //!> Slice power gate
+
+    bool                        m_enableCodecMmc = false;                       //!> Flag to indicate if enable codec MMC by default or not
 
     //!
     //! \brief    Constructor
@@ -846,6 +849,83 @@ public:
         bool                            modeSpecific);
 
     //!
+    //! \brief    Calculates the maximum size for HCP picture level commands
+    //! \details  Client facing function to calculate the maximum size for HCP picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           Indicate the command size parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHcpStateCommandSize(
+        uint32_t                        mode,
+        uint32_t *                      commandsSize,
+        uint32_t *                      patchListSize,
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+
+    //!
+    //! \brief    Calculates maximum size for HCP slice/MB level commands
+    //! \details  Client facing function to calculate maximum size for HCP slice/MB level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!            The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] modeSpecific
+    //!           Indicate the long or short format
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHcpPrimitiveCommandSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      modeSpecific);
+
+    //!
+    //! \brief    Calculates the maximum size for Huc picture level commands
+    //! \details  Client facing function to calculate the maximum size for HUC picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           Indicate the command size parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHucStateCommandSize(
+        uint32_t mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+
+    //!
+    //! \brief    Calculates maximum size for Huc slice/MB level commands
+    //! \details  Client facing function to calculate maximum size for Huc slice/MB level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!            The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetHucPrimitiveCommandSize(
+        uint32_t mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize);
+
+    //!
     //! \brief    Calculates the maximum size for Vdenc state level commands
     //! \details  Client facing function to calculate the maximum size for Vdenc state level commands
     //! \param    [in] mode
@@ -863,6 +943,23 @@ public:
         uint32_t                   *patchListSize);
 
     //!
+    //! \brief    Calculates maximum size for all slice level VDEnc commands
+    //! \details  Client facing function to calculate the maximum size for Vdenc slice level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetVdencPrimitiveCommandsDataSize(
+        uint32_t                    mode,
+        uint32_t                   *commandsSize,
+        uint32_t                   *patchListSize);
+
+    //!
     //! \brief    Calculates the maximum size for Vdenc picture 2nd level commands
     //! \details  Client facing function to calculate the maximum size for Vdenc picture 2nd level commands
     //! \param    [in] mode
@@ -872,7 +969,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS GetVdencPictureSecondLevelCommandsSize(
+    virtual MOS_STATUS GetVdencPictureSecondLevelCommandsSize(
         uint32_t                    mode,
         uint32_t                   *commandsSize);
 
@@ -1433,6 +1530,8 @@ public:
     {
         return m_osInterface ? m_osInterface->bSimIsActive : false;
     }
+
+    virtual bool UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard);
 
     //! \brief    default disable vdbox balancing by UMD
     bool bEnableVdboxBalancingbyUMD = false;

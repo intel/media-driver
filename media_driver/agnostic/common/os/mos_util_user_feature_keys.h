@@ -264,6 +264,8 @@
 #define __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER    "MDF Interface Descriptor Dump Counter"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_DUMPPATH_USER                        "MDF Dump Path Specified by User"
 #define __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_EXECUTION_PATH                 "MDF Execution Path Forced by User"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_MAX_THREAD_NUM                       "CmMaxThreads"
+#define __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_COHERENT_STATELESSBTI          "ForceCoherentStatelessBTI"
 
 //User feature key for VP
 #define __MEDIA_USER_FEATURE_VALUE_VP_3P_DUMP_UFKEY_LOCATION                "Software\\Intel\\VPPDPI"

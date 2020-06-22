@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3436,6 +3436,9 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 else
                 {
                     PlaneDefinition = RENDERHAL_PLANES_NV12;
+                    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
+                    pRenderHal->pRenderHalPltInterface->GetPlaneDefForFormatNV12(
+                     PlaneDefinition);
                 }
                 break;
 
@@ -5215,7 +5218,10 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
     pOsInterface    = pRenderHal->pOsInterface;
     pMhwMiInterface = pRenderHal->pMhwMiInterface;
     dwOffset        = 0;
-    dwCount         = sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) / sizeof(uint64_t);
+    static_assert(
+        (sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) % sizeof(uint64_t)) == 0,
+        "Coeff array size must be multiple of 8");
+    dwCount         = sizeof(pKernelEntry->pCscParams->Matrix[0].Coeff) / (sizeof(uint64_t));
     MOS_ZeroMemory(&Surface, sizeof(Surface));
 
     // Register the buffer
@@ -5647,6 +5653,9 @@ MOS_STATUS RenderHal_SetSurfaceStateBuffer(
 
     Params.pSurfaceState = (uint8_t*)pSurfaceState;
     Params.dwCacheabilityControl = pParams->dwCacheabilityControl;
+
+    // Default tile mode of surface state buffer is linear
+    Params.bGMMTileEnabled       = true;
 
     // Setup Surface State Entry via MHW state heap interface
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwStateHeap->SetSurfaceStateEntry(&Params));
@@ -6816,8 +6825,6 @@ MOS_STATUS RenderHal_InitInterface(
     PMOS_INTERFACE       pOsInterface)
 {
     PMOS_USER_FEATURE_INTERFACE     pUserFeatureInterface = nullptr;
-    MOS_USER_FEATURE                UserFeature;
-    MOS_USER_FEATURE_VALUE          UserFeatureValue;
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     MHW_VFE_PARAMS                  *pVfeStateParams = nullptr;
 
@@ -6886,34 +6893,30 @@ MOS_STATUS RenderHal_InitInterface(
     }
 
     // Read VDI Walker Regkey once during initialization
-    MOS_ZeroMemory(&UserFeatureValue, sizeof(UserFeatureValue));
-    pUserFeatureInterface   = &pRenderHal->pOsInterface->UserFeatureInterface;
-    UserFeature             = *pUserFeatureInterface->pUserFeatureInit;
-    UserFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
-    UserFeature.pPath       = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    UserFeature.pValues     = &UserFeatureValue;
-    UserFeature.uiNumValues = 1;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
 
-    UserFeatureValue.u32Data = true;    // Init as default value
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    userFeatureValueData.u32Data = true;  // Init as default value
+    userFeatureValueData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &UserFeature,
-        __MEDIA_USER_FEATURE_VALUE_VDI_MODE,
-        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+        __MEDIA_USER_FEATURE_VALUE_VDI_MODE_ID,
+        &userFeatureValueData);
 #endif
-    pRenderHal->bVDIWalker = UserFeature.pValues[0].u32Data ? true : false;
+    pRenderHal->bVDIWalker = userFeatureValueData.u32Data ? true : false;
 
-    UserFeatureValue.u32Data = MHW_WALKER_MODE_NOT_SET;    // Init as default value
+    MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    userFeatureValueData.u32Data     = MHW_WALKER_MODE_NOT_SET;  // Init as default value
+    userFeatureValueData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Read Media Walker Mode from RegKey once in initialization
-    MOS_UserFeature_ReadValue(
+    MOS_UserFeature_ReadValue_ID(
         nullptr,
-        &UserFeature,
-        __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE,
-        MOS_USER_FEATURE_VALUE_TYPE_UINT32);
+        __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE_ID,
+        &userFeatureValueData);
 #endif
-    pRenderHal->MediaWalkerMode = (MHW_WALKER_MODE)UserFeature.pValues[0].u32Data;
+    pRenderHal->MediaWalkerMode = (MHW_WALKER_MODE)userFeatureValueData.u32Data;
 
     pRenderHal->pPlaneDefinitions             = g_cRenderHal_SurfacePlanes;
 

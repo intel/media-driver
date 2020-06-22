@@ -36,8 +36,13 @@ CodechalDecodeNV12ToP010G10::CodechalDecodeNV12ToP010G10(PMOS_INTERFACE osInterf
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    m_nv12ToP010KernelBinary = NULL;
+    m_nv12ToP010KernelSize = 0;
+
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_nv12ToP010KernelBinary = pNV12ToP010KernelBinaryGen10;
     m_nv12ToP010KernelSize = uiNV12ToP010KernelSizeGen10;
+#endif
 
     Init(osInterface);
 }

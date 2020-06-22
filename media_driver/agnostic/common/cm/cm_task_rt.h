@@ -52,6 +52,8 @@ public:
 
     CM_RT_API int32_t AddSync();
 
+    CM_RT_API int32_t AddSyncEx(const CM_KERNEL_SYNC_CONFIG *config) { return CM_SUCCESS; }
+
     CM_RT_API int32_t SetPowerOption(PCM_POWER_OPTION powerOption);
 
     CM_RT_API int32_t AddConditionalEnd(SurfaceIndex *conditionalSurfaceIndex,

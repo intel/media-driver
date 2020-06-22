@@ -166,33 +166,6 @@ CmProgramRT::~CmProgramRT( void )
     CmSafeDelete(m_isaFile);
 }
 
-#if (_RELEASE_INTERNAL)
-int32_t CmProgramRT::ReadUserFeatureValue(const char *pcMessageKey, uint32_t &value)
-{
-    MOS_USER_FEATURE        userFeature;
-    MOS_USER_FEATURE_VALUE  userFeatureValue = __NULL_USER_FEATURE_VALUE__;
-    CM_RETURN_CODE          hr = CM_SUCCESS;
-
-    // Set the component's message level and asserts:
-    userFeatureValue.u32Data    = __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE;
-    userFeature.Type            = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath           = __MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues         = &userFeatureValue;
-    userFeature.uiNumValues     = 1;
-
-    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(MOS_UserFeature_ReadValue(
-                                  nullptr,
-                                  &userFeature,
-                                  pcMessageKey,
-                                  MOS_USER_FEATURE_VALUE_TYPE_UINT32));
-
-    value = userFeature.pValues->u32Data;
-
-finish:
-    return hr;
-}
-#endif
-
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize Cm Program
 //| Returns:    Result of the operation.
@@ -313,8 +286,13 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
     {
     //reg control for svm IA/GT cache coherence
 #if (_RELEASE_INTERNAL)
-        uint32_t value = 0;
-        if (ReadUserFeatureValue(CM_RT_USER_FEATURE_FORCE_COHERENT_STATELESSBTI, value) == CM_SUCCESS && value == 1)
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_COHERENT_STATELESSBTI_ID,
+            &userFeatureData);
+        if (userFeatureData.i32Data == 1)
         {
             jitFlags[numJitFlags] = CM_RT_JITTER_NCSTATELESS_FLAG;
             numJitFlags++;

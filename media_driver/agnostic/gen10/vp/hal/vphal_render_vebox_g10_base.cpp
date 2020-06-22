@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -397,8 +397,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
     int32_t                i;
     bool                   bAllocated;
     bool                   bDIEnable;
-    bool                   bSurfCompressed;
-    bool                   bFFDNSurfCompressed;
+    bool                   bSurfCompressible;
+    bool                   bFFDNSurfCompressible;
     MOS_RESOURCE_MMC_MODE  SurfCompressionMode;
     MOS_RESOURCE_MMC_MODE  FFDNSurfCompressionMode;
     MHW_VEBOX_SURFACE_PARAMS      MhwVeboxSurfaceParam;
@@ -407,8 +407,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
     PVPHAL_VEBOX_RENDER_DATA      pRenderData = GetLastExecRenderData();
 
     bAllocated              = false;
-    bSurfCompressed         = false;
-    bFFDNSurfCompressed     = false;
+    bSurfCompressible       = false;
+    bFFDNSurfCompressible   = false;
     SurfCompressionMode     = MOS_MMC_DISABLED;
     FFDNSurfCompressionMode = MOS_MMC_DISABLED;
     pOsInterface            = pVeboxState->m_pOsInterface;
@@ -423,7 +423,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
     // or none of them compressed at all.This is HW limitation.
     if (IsDNOnly())
     {
-        bSurfCompressed     = pVeboxState->m_currentSurface->bCompressible;
+        bSurfCompressible   = pVeboxState->m_currentSurface->bCompressible;
         SurfCompressionMode = pVeboxState->m_currentSurface->bIsCompressed ? MOS_MMC_HORIZONTAL : MOS_MMC_DISABLED;
     }
     // Only Tiled Y surfaces support MMC
@@ -431,7 +431,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
              (TileType == MOS_TILE_Y) &&
              IsFormatMMCSupported(format))
     {
-        bSurfCompressed     = true;
+        bSurfCompressible   = true;
         SurfCompressionMode = MOS_MMC_HORIZONTAL;
     }
 
@@ -454,7 +454,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
                     TileType,
                     pVeboxState->m_currentSurface->dwWidth,
                     pVeboxState->m_currentSurface->dwHeight,
-                    bSurfCompressed,
+                    bSurfCompressible,
                     SurfCompressionMode,
                     &bAllocated));
 
@@ -475,7 +475,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
             if (bAllocated)
             {
                 // Report Compress Status
-                m_reporting->FFDICompressible = bSurfCompressed;
+                m_reporting->FFDICompressible = bSurfCompressible;
                 m_reporting->FFDICompressMode = (uint8_t)(SurfCompressionMode);
             }
         }
@@ -500,14 +500,14 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
     // when the second clip playback starting without media pipeline recreation,
     // the internal FFDNSurfaces are compressed, but VP input surface is uncompressed.
     if ((pVeboxState->bDIEnabled && !pVeboxState->bDNEnabled && pRenderData->bDenoise) ||
-        ((pVeboxState->m_currentSurface->bIsCompressed == false) && ((bSurfCompressed == true) || (pVeboxState->FFDNSurfaces[0]->bIsCompressed == true))))
+        ((pVeboxState->m_currentSurface->bIsCompressed == false) && ((bSurfCompressible == true) || (pVeboxState->FFDNSurfaces[0]->bIsCompressed == true))))
     {
-        bFFDNSurfCompressed     = pVeboxState->m_currentSurface->bCompressible;
+        bFFDNSurfCompressible   = pVeboxState->m_currentSurface->bCompressible;
         FFDNSurfCompressionMode = pVeboxState->m_currentSurface->bIsCompressed ? MOS_MMC_HORIZONTAL : MOS_MMC_DISABLED;
     }
     else
     {
-        bFFDNSurfCompressed     = bSurfCompressed;
+        bFFDNSurfCompressible   = bSurfCompressible;
         FFDNSurfCompressionMode = SurfCompressionMode;
     }
 
@@ -525,7 +525,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
                     pVeboxState->m_currentSurface->TileType,
                     pVeboxState->m_currentSurface->dwWidth,
                     pVeboxState->m_currentSurface->dwHeight,
-                    bFFDNSurfCompressed,
+                    bFFDNSurfCompressible,
                     FFDNSurfCompressionMode,
                     &bAllocated));
 
@@ -567,7 +567,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
             if (bAllocated)
             {
                 // Report Compress Status
-                m_reporting->FFDNCompressible = bFFDNSurfCompressed;
+                m_reporting->FFDNCompressible = bFFDNSurfCompressible;
                 m_reporting->FFDNCompressMode = (uint8_t)(FFDNSurfCompressionMode);
             }
         }
@@ -597,12 +597,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
     {
         if (pVeboxState->bEnableMMC)
         {
-            bSurfCompressed     = true;
+            bSurfCompressible     = true;
             SurfCompressionMode = MOS_MMC_HORIZONTAL;
         }
         else
         {
-            bSurfCompressed     = false;
+            bSurfCompressible     = false;
             SurfCompressionMode = MOS_MMC_DISABLED;
         }
 
@@ -617,7 +617,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
                 MOS_TILE_Y,
                 pVeboxState->m_currentSurface->dwWidth,
                 pVeboxState->m_currentSurface->dwHeight,
-                bSurfCompressed,
+                bSurfCompressible,
                 SurfCompressionMode,
                 &bAllocated));
 
@@ -626,7 +626,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
                 VPHAL_RENDER_CHK_STATUS(VeboxInitSTMMHistory(i));
 
                 // Report Compress Status
-                m_reporting->STMMCompressible = bSurfCompressed;
+                m_reporting->STMMCompressible = bSurfCompressible;
                 m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
             }
         }
@@ -640,6 +640,35 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
                 pOsInterface,
                 &pVeboxState->STMMSurfaces[i].OsResource);
         }
+    }
+
+    // Allocate BT2020 CSC temp surface----------------------------------------------
+    if (pRenderData->b2PassesCSC)
+    {
+        VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+            pOsInterface,
+            &pVeboxState->m_BT2020CSCTempSurface,
+            "VeboxBT2020CSCTempSurface_g10",
+            Format_A8B8G8R8,
+            MOS_GFXRES_2D,
+            MOS_TILE_Y,
+            pVeboxState->m_currentSurface->dwWidth,
+            pVeboxState->m_currentSurface->dwHeight,
+            false,
+            MOS_MMC_DISABLED,
+            &bAllocated));
+
+        // Copy rect sizes so that if input surface state needs to adjust,
+        // output surface can be adjustted also.
+        pVeboxState->m_BT2020CSCTempSurface.rcSrc = pVeboxState->m_currentSurface->rcSrc;
+        pVeboxState->m_BT2020CSCTempSurface.rcDst = pVeboxState->m_currentSurface->rcDst;
+        // Copy max src rect
+        pVeboxState->m_BT2020CSCTempSurface.rcMaxSrc = pVeboxState->m_currentSurface->rcMaxSrc;
+
+        // Copy Rotation, it's used in setting SFC state
+        pVeboxState->m_BT2020CSCTempSurface.Rotation   = pVeboxState->m_currentSurface->Rotation;
+        pVeboxState->m_BT2020CSCTempSurface.SampleType = pVeboxState->m_currentSurface->SampleType;
+        pVeboxState->m_BT2020CSCTempSurface.ColorSpace = CSpace_sRGB;
     }
 
     // Allocate Statistics State Surface----------------------------------------
@@ -793,6 +822,11 @@ void VPHAL_VEBOX_STATE_G10_BASE::FreeResources()
     pOsInterface->pfnFreeResource(
         pOsInterface,
         &pVeboxState->VeboxStatisticsSurface.OsResource);
+
+    // Free BT2020 CSC temp surface for VEBOX used by BT2020 CSC
+    pOsInterface->pfnFreeResource(
+        pOsInterface,
+        &pVeboxState->m_BT2020CSCTempSurface.OsResource);
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     // Free Spatial Attributes Configuration Surface for DN kernel
@@ -2015,6 +2049,12 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G10_BASE::GetOutputPipe(
         goto finish;
     }
 
+    if (VeboxIs2PassesCSCNeeded(pSrcSurface, pcRenderParams->pTarget[0]))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     pTarget    = pcRenderParams->pTarget[0];
     // Check if SFC can be the output pipe
     if (m_sfcPipeState)
@@ -2147,6 +2187,11 @@ bool VPHAL_VEBOX_STATE_G10_BASE::IsNeeded(
         VeboxSetRenderingFlags(
             pSrcSurface,
             pRenderTarget);
+
+        if (pRenderData->b2PassesCSC)
+        {
+            pRenderData->bVeboxBypass = false;
+        }
 
         // Vebox is needed if Vebox isn't bypassed
         bVeboxNeeded = !pRenderData->bVeboxBypass;

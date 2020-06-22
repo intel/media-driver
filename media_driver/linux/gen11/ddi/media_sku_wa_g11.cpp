@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -218,6 +218,7 @@ static bool InitIclMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaDummyReference, 1);
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
 
     return true;
 }
@@ -323,7 +324,6 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrEncodeVP9Vdenc10bit420, codecInfo->vp9Vdenc);
         MEDIA_WR_SKU(skuTable, FtrEncodeVP9Vdenc10bit444, codecInfo->vp9Vdenc);
 
-        MEDIA_WR_SKU(skuTable, WaVeboxInputHeight16Aligned, 1);
     }
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
@@ -358,6 +358,8 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrPPGTT, drvInfo->hasPpgtt);
     MEDIA_WR_SKU(skuTable, FtrEDram, devInfo->hasERAM);
 
+    MEDIA_WR_SKU(skuTable, FtrDisableVEBoxFeatures, 1);
+
     /* Virtual VDBOX ring is used on Gen11 */
     MEDIA_WR_SKU(skuTable, FtrVcs2,  0);
 
@@ -370,6 +372,7 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrHcpDecMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, Ftr10bitDecMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, FtrSFCPipe, 1);
+    MEDIA_WR_SKU(skuTable, FtrDisableVDBox2SFC, 1);
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
 
@@ -378,6 +381,10 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrVp16BitSupport, 0);
 
     MEDIA_WR_SKU(skuTable, FtrContextBasedScheduling, 0);
+
+    MEDIA_WR_SKU(skuTable, FtrTileY, 1);
+
+    MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
 
     return true;
 }
@@ -400,6 +407,12 @@ static bool InitEhlMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaSFC270DegreeRotation, 0);
 
     MEDIA_WR_WA(waTable, WaEnableYV12BugFixInHalfSliceChicken7, 1);
+
+    MEDIA_WR_WA(waTable, WaVeboxInputHeight16Aligned, 1);
+
+    MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
+
     return true;
 }
 

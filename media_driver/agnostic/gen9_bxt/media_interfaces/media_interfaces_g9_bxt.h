@@ -31,8 +31,8 @@
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_cmhal.h"
-#include "media_interfaces_vphal.h"
 #include "media_interfaces_mosutil.h"
+#include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
 #include "media_interfaces_decode_histogram.h"
@@ -220,7 +220,7 @@ protected:
 class MosUtilDeviceG9Bxt : public MosUtilDevice
 {
 public:
-    using MosUtil = MosUtilUserInterface;
+    using MosUtil = MediaUserSettingsMgr;
 
     MOS_STATUS Initialize();
 };

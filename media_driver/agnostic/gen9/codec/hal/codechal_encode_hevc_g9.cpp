@@ -6778,7 +6778,7 @@ MOS_STATUS CodechalEncHevcStateG9::EncodeBrcUpdateKernel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 &m_brcBuffers.resMbEncBrcBuffer,
                 CodechalDbgAttr::attrOutput,
-                "MbEncCurbeWrite",
+                "MbEncBRCWrite",
                 m_mbencBrcBufferSize,
                 0,
                 CODECHAL_MEDIA_STATE_BRC_UPDATE));

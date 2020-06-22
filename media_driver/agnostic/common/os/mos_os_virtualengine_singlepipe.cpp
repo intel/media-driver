@@ -27,12 +27,21 @@
 
 #include "mos_util_debug.h"
 #include "mos_os_virtualengine.h"
+#include "mos_os_virtualengine_next.h"
 
 //==<Functions>=======================================================
 void Mos_VirtualEngine_SinglePipe_Destroy(
     PMOS_VIRTUALENGINE_INTERFACE    pVEInterface)
 {
     MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pVEInterface);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pVEInterface->pOsInterface);
+    PMOS_INTERFACE pOsInterface = pVEInterface->pOsInterface;
+    if (pOsInterface->apoMosEnabled && pVEInterface->veInterface)
+    {
+        pVEInterface->veInterface->Destroy();
+        MOS_Delete(pVEInterface->veInterface);
+    }
 
     return;
 }

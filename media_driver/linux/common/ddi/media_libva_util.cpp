@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,12 +38,15 @@
 #include "media_libva_util.h"
 #include "mos_utilities.h"
 #include "mos_os.h"
+#include "mos_defs.h"
 #include "hwinfo_linux.h"
 #include "media_ddi_decode_base.h"
 #include "media_ddi_encode_base.h"
 #include "media_libva_decoder.h"
 #include "media_libva_encoder.h"
 #include "media_libva_caps.h"
+#include "memory_policy_manager.h"
+#include "drm_fourcc.h"
 
 // default protected surface tag
 #define PROTECTED_SURFACE_TAG   0x3000f
@@ -170,6 +173,9 @@ VAStatus DdiMediaUtil_AllocateSurface(
     int32_t alignedWidth  = width;
     int32_t alignedHeight = height;
     uint32_t tag          = 0;
+    int mem_type          = MOS_MEMPOOL_VIDEOMEMORY;
+    bool bMemCompEnable   = true;
+    bool bMemCompRC       = false;
 
     switch (format)
     {
@@ -181,29 +187,34 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_R8G8B8:
         case Media_Format_R10G10B10A2:
         case Media_Format_B10G10R10A2:
+        case Media_Format_R10G10B10X2:
+        case Media_Format_B10G10R10X2:
         case Media_Format_A16R16G16B16:
         case Media_Format_A16B16G16R16:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_YV12:
         case Media_Format_I420:
         case Media_Format_IYUV:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_RGBP:
         case Media_Format_BGRP:
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
-                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER))
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER) &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
             {
-                 tileformat = I915_TILING_NONE;
-                 break;
+                tileformat = I915_TILING_NONE;
+                break;
             }
         case Media_Format_NV12:
         case Media_Format_NV21:
@@ -214,6 +225,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_IMC3:
         case Media_Format_400P:
         case Media_Format_P010:
+        case Media_Format_P012:
         case Media_Format_P016:
         case Media_Format_YUY2:
         case Media_Format_Y210:
@@ -227,10 +239,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_VYUY:
         case Media_Format_YVYU:
         case Media_Format_UYVY:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint)
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
             {
 #if UFO_GRALLOC_NEW_FORMAT
-                 //Planar type surface align 64 to improve performance.
+                //Planar type surface align 64 to improve performance.
                 alignedHeight = MOS_ALIGN_CEIL(height, 64);
 #else
                 //Planar type surface align 32 to improve performance.
@@ -238,7 +251,29 @@ VAStatus DdiMediaUtil_AllocateSurface(
 #endif
             }
             alignedWidth = MOS_ALIGN_CEIL(width, 8);
-            tileformat  = I915_TILING_Y;
+            if (mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE)
+            {
+                if ((format == Media_Format_YV12) ||
+                    (format == Media_Format_I420))
+                {
+                    alignedWidth = MOS_ALIGN_CEIL(width, 128);
+                }
+
+                if ((format == Media_Format_NV12) ||
+                    (format == Media_Format_P010) ||
+                    (format == Media_Format_RGBP) ||
+                    (format == Media_Format_BGRP))
+                {
+#if UFO_GRALLOC_NEW_FORMAT
+                    //Planar type surface align 64 to improve performance.
+                    alignedHeight = MOS_ALIGN_CEIL(height, 64);
+#else
+                    //Planar type surface align 32 to improve performance.
+                    alignedHeight = MOS_ALIGN_CEIL(height, 32);
+#endif
+                }
+            }
+            tileformat = I915_TILING_Y;
             break;
         case Media_Format_Buffer:
             tileformat = I915_TILING_NONE;
@@ -256,9 +291,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
             tag = PROTECTED_SURFACE_TAG;
         }
         // DRM buffer allocated by Application, No need to re-allocate new DRM buffer
-         if( (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
-             || (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
-           )
+        if((mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM) ||
+           (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME))
         {
             if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM)
             {
@@ -277,6 +311,49 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
                 //Overwirte the tileformat matches with the right buffer
                 mos_bo_get_tiling(bo, &tileformat, &swizzle_mode);
+            }
+            else
+            {
+                DDI_ASSERTMESSAGE("Failed to create drm buffer object according to input buffer descriptor.");
+                return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            }
+        }
+        else if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2)
+        {
+            bo = mos_bo_gem_create_from_prime(mediaDrvCtx->pDrmBufMgr, mediaSurface->pSurfDesc->ulBuffer, mediaSurface->pSurfDesc->uiSize);
+            if( bo != nullptr )
+            {
+                pitch = mediaSurface->pSurfDesc->uiPitches[0];
+                switch (mediaSurface->pSurfDesc->modifier)
+                {
+                    case DRM_FORMAT_MOD_LINEAR:
+                        tileformat = I915_TILING_NONE;
+                        bMemCompEnable = false;
+                        break;
+                    case I915_FORMAT_MOD_X_TILED:
+                        tileformat = I915_TILING_X;
+                        bMemCompEnable = false;
+                        break;
+                    case I915_FORMAT_MOD_Y_TILED:
+                    case I915_FORMAT_MOD_Yf_TILED:
+                        tileformat = I915_TILING_Y;
+                        bMemCompEnable = false;
+                        break;
+                    case I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS:
+                        tileformat = I915_TILING_Y;
+                        bMemCompEnable = true;
+                        bMemCompRC = true;
+                        break;
+                    case I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS:
+                        tileformat = I915_TILING_Y;
+                        bMemCompEnable = true;
+                        bMemCompRC = false;
+                        break;
+                    default:
+                        DDI_ASSERTMESSAGE("Unsupported modifier.");
+                        hRes = VA_STATUS_ERROR_INVALID_PARAMETER;
+                        goto finish;
+                }
             }
             else
             {
@@ -354,6 +431,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 gmmParams.BaseHeight = mediaSurface->pSurfDesc->uiSize / mediaSurface->pSurfDesc->uiPitches[0];
             }
         }
+        if(mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+        {
+            gmmParams.ExistingSysMemSize = mediaSurface->pSurfDesc->uiBuffserSize;
+            gmmParams.pExistingSysMem    = mediaSurface->pSurfDesc->ulBuffer;
+            gmmParams.Flags.Info.ExistingSysMem = true;
+        }
     }
     else
     {
@@ -363,7 +446,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     gmmParams.ArraySize             = 1;
     gmmParams.Type                  = RESOURCE_2D;
-    //gmmParams.Format                = DdiMediaUtil_ConvertMediaFmtToGmmFmt(format);
     gmmParams.Format                = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
     gmmParams.CpTag                 = tag;
 
@@ -375,13 +457,28 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case I915_TILING_Y:
             // Disable MMC for application required surfaces, because some cases' output streams have corruption.
             gmmParams.Flags.Gpu.MMC    = false;
-            if ( mediaDrvCtx->m_auxTableMgr )
+            if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) &&
+                (!MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableVPMmc)    &&
+                !MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableCodecMmc)) &&
+                bMemCompEnable)
             {
-                gmmParams.Flags.Gpu.MMC = true;
-                gmmParams.Flags.Info.MediaCompressed = 1;
-                gmmParams.Flags.Gpu.CCS = 1;
+                gmmParams.Flags.Gpu.MMC               = true;
+                gmmParams.Flags.Info.MediaCompressed  = 1;
+                gmmParams.Flags.Info.RenderCompressed = 0;
+                gmmParams.Flags.Gpu.CCS               = 1;
+                gmmParams.Flags.Gpu.RenderTarget      = 1;
                 gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
-                gmmParams.Flags.Gpu.RenderTarget = 1;
+
+                if (bMemCompRC)
+                {
+                    gmmParams.Flags.Info.MediaCompressed  = 0;
+                    gmmParams.Flags.Info.RenderCompressed = 1;
+                }
+
+                if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
+                {
+                    gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
+                }
             }
             break;
         case I915_TILING_X:
@@ -405,6 +502,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t    gmmPitch;
     uint32_t    gmmSize;
     uint32_t    gmmHeight;
+
+    gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
+    if( DdiMediaUtil_IsExternalSurface(mediaSurface) && mediaSurface->pSurfDesc->uiPitches[0])
+    {
+        gmmResourceInfo->OverridePitch(mediaSurface->pSurfDesc->uiPitches[0]);
+    }
     gmmPitch    = (uint32_t)gmmResourceInfo->GetRenderPitch();
     gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
@@ -416,18 +519,36 @@ VAStatus DdiMediaUtil_AllocateSurface(
         goto finish;
     }
 
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaDrvCtx->SkuTable, mediaSurface->pGmmResourceInfo, "Media Surface");
+
     if (!DdiMediaUtil_IsExternalSurface(mediaSurface) ||
         mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
+        switch (gmmResourceInfo->GetTileType())
+        {
+            case GMM_TILED_Y:
+                tileformat = I915_TILING_Y;
+                break;
+            case GMM_TILED_X:
+                tileformat = I915_TILING_X;
+                break;
+            case GMM_NOT_TILED:
+                tileformat = I915_TILING_NONE;
+                break;
+            default:
+                tileformat = I915_TILING_Y;
+                break;
+        }
+
         unsigned long  ulPitch = 0;
         if ( tileformat == I915_TILING_NONE )
         {
-            bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096);
+            bo = mos_bo_alloc(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmSize, 4096, mem_type);
             pitch = gmmPitch;
         }
         else
         {
-            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, gmmSize/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0);
+            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, (MOS_ALIGN_CEIL(gmmSize, gmmPitch))/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0, mem_type);
             pitch = ulPitch;
         }
     }
@@ -437,12 +558,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
     }
     else
     {
-        // Check Pitch and Size
-#ifdef ANDROID
+        // Check Pitch
         if (gmmPitch > pitch)
-#else
-        if (gmmPitch > pitch || gmmSize > bo->size)
-#endif
         {
             DDI_ASSERTMESSAGE("External Surface doesn't meet the reqirements of Media driver.");
             DdiMediaUtil_FreeSurface(mediaSurface);
@@ -521,25 +638,7 @@ VAStatus DdiMediaUtil_AllocateBuffer(
        return VA_STATUS_ERROR_INVALID_PARAMETER;
 
     VAStatus     hRes = VA_STATUS_SUCCESS;
-    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096);
-
-    mediaBuffer->bMapped = false;
-    if (bo)
-    {
-        mediaBuffer->format     = format;
-        mediaBuffer->iSize      = size;
-        mediaBuffer->iRefCount  = 0;
-        mediaBuffer->bo         = bo;
-        mediaBuffer->pData      = (uint8_t*) bo->virt;
-
-        DDI_VERBOSEMESSAGE("Alloc %7d bytes resource.",size);
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("Fail to Alloc %7d bytes resource.",size);
-        hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        goto finish;
-    }
+    int32_t          mem_type = MOS_MEMPOOL_VIDEOMEMORY;
 
     // create fake GmmResourceInfo
     GMM_RESCREATE_PARAMS    gmmParams;
@@ -560,6 +659,28 @@ VAStatus DdiMediaUtil_AllocateBuffer(
     mediaBuffer->pGmmResourceInfo->OverrideSize(mediaBuffer->iSize);
     mediaBuffer->pGmmResourceInfo->OverrideBaseWidth(mediaBuffer->iSize);
     mediaBuffer->pGmmResourceInfo->OverridePitch(mediaBuffer->iSize);
+
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaBuffer->pMediaCtx->SkuTable, mediaBuffer->pGmmResourceInfo, "Media Buffer");
+    MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type);
+
+    mediaBuffer->bMapped = false;
+    if (bo)
+    {
+        mediaBuffer->format     = format;
+        mediaBuffer->iSize      = size;
+        mediaBuffer->iRefCount  = 0;
+        mediaBuffer->bo         = bo;
+        mediaBuffer->pData      = (uint8_t*) bo->virt;
+
+        DDI_VERBOSEMESSAGE("Alloc %8d bytes resource.",size);
+    }
+    else
+    {
+        DDI_ASSERTMESSAGE("Fail to Alloc %8d bytes resource.",size);
+        hRes = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        goto finish;
+    }
+
 finish:
     return hRes;
 }
@@ -592,6 +713,7 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     int32_t  size           = 0;
     uint32_t tileformat     = I915_TILING_NONE;
     VAStatus hRes           = VA_STATUS_SUCCESS;
+    int32_t  mem_type       = MOS_MEMPOOL_VIDEOMEMORY;
 
     // Create GmmResourceInfo
     GMM_RESCREATE_PARAMS        gmmParams;
@@ -626,8 +748,10 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaBuffer->pMediaCtx->SkuTable, mediaBuffer->pGmmResourceInfo, "Media 2D Buffer");
+
     MOS_LINUX_BO  *bo;
-    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096);
+    bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type);
 
     mediaBuffer->bMapped = false;
     if (bo)

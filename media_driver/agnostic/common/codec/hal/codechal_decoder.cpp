@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ MOS_STATUS CodechalDecode::AllocateSurface(
     uint32_t        height,
     const char      *name,
     MOS_FORMAT      format,
-    bool            isCompressed)
+    bool            isCompressible)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -139,7 +139,7 @@ MOS_STATUS CodechalDecode::AllocateSurface(
     allocParams.dwHeight    = height;
     allocParams.dwArraySize = 1;
     allocParams.pBufName    = name;
-    allocParams.bIsCompressed = isCompressed;
+    allocParams.bIsCompressible = isCompressible;
 
     CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
         m_osInterface,
@@ -307,7 +307,9 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
         CodecHalDecodeMapGpuNodeToGpuContex(MOS_GPU_NODE_VIDEO, m_videoContextForWa, true);
     }
 
-    MOS_GPUCTX_CREATOPTIONS createOption;
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED createOption;
+    createOption.UsingSFC = codecHalSettings->sfcInUseHinted && codecHalSettings->downsamplingHinted
+                          && (MEDIA_IS_SKU(m_skuTable, FtrSFCPipe)) && !(MEDIA_IS_SKU(m_skuTable, FtrDisableVDBox2SFC));
     eStatus = (MOS_STATUS)m_osInterface->pfnCreateGpuContext(
         m_osInterface,
         m_videoContextForWa,
@@ -520,13 +522,17 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
     if (!m_mmc)
     {
         m_mmc = MOS_New(CodecHalMmcState, m_hwInterface);
+        CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
     }
 
-    m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface); 
+    if (codecHalSettings->secureMode)
+    {
+        m_secureDecoder = Create_SecureDecodeInterface(codecHalSettings, m_hwInterface);
+    }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     m_downsamplingHinted = codecHalSettings->downsamplingHinted ? true : false;
-    if (CodecHalIsEnableFieldScaling(CODECHAL_FUNCTION_DECODE, m_standard, m_downsamplingHinted))
+    if (CodecHalIsEnableFieldScaling(codecHalSettings->codecFunction, m_standard, m_downsamplingHinted))
     {
         CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->InitializeKernelState(
@@ -588,7 +594,7 @@ MOS_STATUS CodechalDecode::AllocateRefSurfaces(
             allocHeight,
             "DownsamplingRefSurface",
             format,
-            CodecHalMmcState::IsMmcEnabled());
+            m_mmc->IsMmcEnabled());
 
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -624,8 +630,8 @@ MOS_STATUS CodechalDecode::RefSurfacesResize(
         height,
         "DownsamplingRefSurface",
         format,
-        CodecHalMmcState::IsMmcEnabled());
-  
+        m_mmc->IsMmcEnabled());
+
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Failed to allocate decode downsampling reference surface.");
@@ -686,34 +692,30 @@ MOS_STATUS CodechalDecode::SetDummyReference()
         if (Mos_ResourceIsNull(&m_dummyReference.OsResource))
         {
             // If MMC enabled
-            MOS_MEMCOMP_STATE mmcState = MOS_MEMCOMP_DISABLED;
-            if (m_mmc != nullptr && m_mmc->IsMmcEnabled())
+            if (m_mmc != nullptr && m_mmc->IsMmcEnabled() && 
+                !m_mmc->IsMmcExtensionEnabled() && 
+                m_decodeParams.m_destSurface->bIsCompressed)
             {
-                CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(
-                    m_osInterface,
-                    &m_decodeParams.m_destSurface->OsResource,
-                    &mmcState));
-            }
-
-            if (mmcState != MOS_MEMCOMP_DISABLED)
-            {
-                eStatus = AllocateSurface(
-                    &m_dummyReference,
-                    m_decodeParams.m_destSurface->dwWidth,
-                    m_decodeParams.m_destSurface->dwHeight,
-                    "dummy reference resource",
-                    m_decodeParams.m_destSurface->Format,
-                    true);
-
-                if (eStatus != MOS_STATUS_SUCCESS)
+                if (m_mode == CODECHAL_DECODE_MODE_HEVCVLD)
                 {
-                    CODECHAL_DECODE_ASSERTMESSAGE("Failed to create dummy reference!");
-                    return eStatus;
-                }
-                else
-                {
-                    m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_ALLOCATED;
-                    CODECHAL_DECODE_VERBOSEMESSAGE("Dummy reference is created!");
+                    eStatus = AllocateSurface(
+                        &m_dummyReference,
+                        m_decodeParams.m_destSurface->dwWidth,
+                        m_decodeParams.m_destSurface->dwHeight,
+                        "dummy reference resource",
+                        m_decodeParams.m_destSurface->Format,
+                        m_decodeParams.m_destSurface->bIsCompressed);
+
+                    if (eStatus != MOS_STATUS_SUCCESS)
+                    {
+                        CODECHAL_DECODE_ASSERTMESSAGE("Failed to create dummy reference!");
+                        return eStatus;
+                    }
+                    else
+                    {
+                        m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_ALLOCATED;
+                        CODECHAL_DECODE_VERBOSEMESSAGE("Dummy reference is created!");
+                    }
                 }
             }
             else    // Use decode output surface as dummy reference
@@ -870,15 +872,6 @@ MOS_STATUS CodechalDecode::VerifySpaceAvailable ()
     CODECHAL_DECODE_CHK_STATUS_RETURN(VerifyExtraSpace(requestedSize, additionalSizeNeeded));
 
     return eStatus;
-}
-
-MOS_STATUS CodechalDecode::BeginFrame ()
-{
-    CODECHAL_DECODE_FUNCTION_ENTER;
-
-    m_firstExecuteCall = true;
-
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalDecode::EndFrame ()
@@ -1112,6 +1105,8 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     CODECHAL_DECODE_CHK_STATUS_RETURN(Codechal::Execute(params));
 
     CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
+    m_executeCallIndex = decodeParams->m_executeCallIndex;
+
     // MSDK event handling
     Mos_Solo_SetGpuAppTaskEvent(m_osInterface, decodeParams->m_gpuAppTaskEvent);
 
@@ -1128,12 +1123,9 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(Mos_Solo_DisableAubcaptureOptimizations(
             m_osInterface,
-            m_firstExecuteCall));
+            IsFirstExecuteCall()));
     }
 
-    // For multiple execution call, this function will be entered by multple times,
-    // so clear bFirstExecuteCall flag when this function exit.
-    CodechalDecodeRestoreData<bool> FirstExecuteCallRestore(&(m_firstExecuteCall), false);
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (decodeParams->m_refFrameCnt != 0)
     {
@@ -1248,7 +1240,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
         if (decodeParams->m_dataBuffer &&
             (m_standard != CODECHAL_JPEG && m_cencBuf == nullptr) &&
             !(m_standard == CODECHAL_HEVC && m_isHybridDecoder) &&
-            !(m_standard == CODECHAL_HEVC && (m_incompletePicture || !m_firstExecuteCall)))
+            !(m_standard == CODECHAL_HEVC && (m_incompletePicture || !IsFirstExecuteCall())))
         {
             if (m_mode == CODECHAL_DECODE_MODE_MPEG2VLD ||
                 m_mode == CODECHAL_DECODE_MODE_VC1VLD   ||
@@ -1755,16 +1747,13 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
         cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = 0;
     }
 
-    if (m_mmc)
-    {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
-    }
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface                    = m_osInterface;
     genericPrologParams.pvMiInterface                   = m_miInterface;
-    genericPrologParams.bMmcEnabled                     = CodecHalMmcState::IsMmcEnabled();
+    genericPrologParams.bMmcEnabled                     = m_mmc->IsMmcEnabled();
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(
         cmdBuffer,

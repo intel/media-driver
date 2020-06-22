@@ -77,9 +77,9 @@ public:
         uint32_t m_height   = 1;
 
         //!
-        //! \brief   Resource is compressed or not.
+        //! \brief   Resource is compressible or not.
         //!
-        bool m_isCompressed = false;
+        bool m_isCompressible = false;
 
         //!
         //! \brief   Optional parameter. Used to indicate that resource
@@ -125,6 +125,12 @@ public:
         uint32_t m_width = 0;
 
         //!
+        //! \brief   allocation memory type
+        //!
+        uint32_t m_memType = MOS_MEMPOOL_VIDEOMEMORY;
+
+
+        //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
         //!
         CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams)
@@ -134,7 +140,7 @@ public:
             m_depth           = pParams->dwDepth;
             m_format          = pParams->Format;
             m_height          = pParams->dwHeight;
-            m_isCompressed    = (pParams->bIsCompressed == 1) ? true : false;
+            m_isCompressible  = (pParams->bIsCompressible == 1) ? true : false;
             m_isPersistent    = (pParams->bIsPersistent == 1) ? true : false;
             if (pParams->pBufName != nullptr)
             {
@@ -145,6 +151,7 @@ public:
             m_type            = pParams->Type;
             m_flags           = pParams->Flags;
             m_width           = pParams->dwWidth;
+            m_memType         = pParams->dwMemType;
         };
 
         CreateParams()
@@ -471,7 +478,17 @@ protected:
     //!
     //! \brief   Defines the layout of a physical page. Optimal choice depends on usage
     //!
-    MOS_TILE_TYPE m_tileType = MOS_TILE_INVALID;
+    MOS_TILE_TYPE       m_tileType = MOS_TILE_INVALID;
+
+    //!
+    //! \brief   Transparent GMM Tiletype specifying in hwcmd finally
+    //!
+    MOS_TILE_MODE_GMM   m_tileModeGMM = MOS_TILE_LINEAR_GMM;
+
+    //!
+    //! \brief   GMM defined Tile mode flag
+    //!
+    bool                m_isGMMTileEnabled = false;
 
     //!
     //! \brief   Basic resource geometry

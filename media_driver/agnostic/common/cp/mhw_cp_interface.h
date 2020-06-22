@@ -21,7 +21,7 @@
 */
 //!
 //! \file     mhw_cp_interface.h
-//! \brief    MHW interface for content protection 
+//! \brief    MHW interface for content protection
 //! \details  Impelements the functionalities across all platforms for content protection
 //!
 
@@ -61,6 +61,14 @@ typedef struct _MHW_CP_COPY_PARAMS
     bool          isEncodeInUse;
 } MHW_CP_COPY_PARAMS, *PMHW_CP_COPY_PARAMS;
 
+typedef struct _MHW_ADD_CP_COPY_PARAMS
+{
+    PMOS_RESOURCE presSrc;
+    PMOS_RESOURCE presDst;
+    uint32_t      size;
+    uint64_t      offset;
+} MHW_ADD_CP_COPY_PARAMS, *PMHW_ADD_CP_COPY_PARAMS;
+
 static void MhwStubMessage()
 {
     MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_MHW, "This function is stubbed as it is not implemented.");
@@ -79,6 +87,15 @@ public:
         MOS_UNUSED(cmdBuffer);
 
         MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS RefreshCounter(
+        PMOS_INTERFACE osInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        MOS_UNUSED(osInterface);
+        MOS_UNUSED(cmdBuffer);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -113,17 +130,6 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS AddConditionalBatchBufferEndForEarlyExit(
-        PMOS_INTERFACE      osInterface,
-        PMOS_COMMAND_BUFFER cmdBuffer)
-    {
-        MOS_UNUSED(osInterface);
-        MOS_UNUSED(cmdBuffer);
-
-        MhwStubMessage();
-        return MOS_STATUS_SUCCESS;
-    }
-
     virtual MOS_STATUS CheckStatusReportNum(
         void *              mfxRegisters,
         uint32_t            cencBufIndex,
@@ -143,6 +149,19 @@ public:
         PMOS_INTERFACE      osInterface,
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_CP_COPY_PARAMS params)
+    {
+        MOS_UNUSED(osInterface);
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(params);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS AddCpCopy(
+        PMOS_INTERFACE      osInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMHW_ADD_CP_COPY_PARAMS params)
     {
         MOS_UNUSED(osInterface);
         MOS_UNUSED(cmdBuffer);
@@ -289,7 +308,7 @@ public:
 };
 
 //!
-//! \brief    Create MhwCpInterface Object according CPLIB loading status
+//! \brief    Create MhwCpInterface Object
 //!           Must use Delete_MhwCpInterface to delete created Object to avoid ULT Memory Leak errors
 //!
 //! \return   Return CP Wrapper Object if CPLIB not loaded
@@ -297,9 +316,9 @@ public:
 MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface);
 
 //!
-//! \brief    Delete the MhwCpInterface Object according CPLIB loading status
+//! \brief    Delete the MhwCpInterface Object
 //!
-//! \param    [in] *pMhwCpInterface 
+//! \param    [in] *pMhwCpInterface
 //!           MhwCpInterface
 //!
 void Delete_MhwCpInterface(MhwCpInterface* pMhwCpInterface);

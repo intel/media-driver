@@ -88,6 +88,9 @@ static bool InitIclShadowWa(struct GfxDeviceInfo *devInfo,
     waTable->WaDisregardPlatformChecks          = 1;
     waTable->Wa4kAlignUVOffsetNV12LinearSurface = 1;
 
+    //source and recon surfaces need to be aligned to the LCU size
+    waTable->WaAlignYUVResourceToLCU = 1;
+
     return true;
 }
 
@@ -351,6 +354,9 @@ static bool icllpDevice8a52 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool icllpDevice8a53 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x8a53, &icllpGt2Info);
 
+static bool icllpDevice8a54 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x8a54, &icllpGt1Info);
+
 static bool icllpDevice8a56 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x8a56, &icllpGt1Info);
 
@@ -389,3 +395,12 @@ static bool ehlDevice4551 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool ehlDevice4541 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x4541, &ehlDevInfo);
+
+static bool ehlDevice4E51 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4E51, &ehlDevInfo);
+
+static bool ehlDevice4E61 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4E61, &ehlDevInfo);
+
+static bool ehlDevice4E71 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4E71, &ehlDevInfo);

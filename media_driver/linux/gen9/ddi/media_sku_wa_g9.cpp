@@ -217,6 +217,7 @@ static bool InitSklMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
     return true;
 }
 
@@ -253,7 +254,20 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
 
-    MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    if (devInfo->eGTType == GTTYPE_GT1)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+    else if (devInfo->eGTType == GTTYPE_GT1_5)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1_5, 1);
+    }
+    else
+    {
+        /* GT1 is by default */
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+
     MEDIA_WR_SKU(skuTable, FtrLCIA, 1);
     MEDIA_WR_SKU(skuTable, FtrVERing, drvInfo->hasVebox);
     MEDIA_WR_SKU(skuTable, FtrEDram, devInfo->hasERAM);
@@ -301,6 +315,7 @@ static bool InitBxtMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
     return true;
 }
 
@@ -356,14 +371,17 @@ static bool InitKblMediaSku(struct GfxDeviceInfo *devInfo,
     else if (devInfo->eGTType == GTTYPE_GT2)
     {
         MEDIA_WR_SKU(skuTable, FtrGT2, 1);
+        MEDIA_WR_SKU(skuTable, FtrHDR, 1);
     }
     else if (devInfo->eGTType == GTTYPE_GT3)
     {
         MEDIA_WR_SKU(skuTable, FtrGT3, 1);
+        MEDIA_WR_SKU(skuTable, FtrHDR, 1);
     }
     else if (devInfo->eGTType == GTTYPE_GT4)
     {
         MEDIA_WR_SKU(skuTable, FtrGT4, 1);
+        MEDIA_WR_SKU(skuTable, FtrHDR, 1);
     }
     else
     {
@@ -428,6 +446,7 @@ static bool InitKblMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
     return true;
 }
 
@@ -467,7 +486,20 @@ static bool InitGlkMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
 
-    MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    if (devInfo->eGTType == GTTYPE_GT1)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+    else if (devInfo->eGTType == GTTYPE_GT1_5)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT1_5, 1);
+    }
+    else
+    {
+        /* GT1 is by default */
+        MEDIA_WR_SKU(skuTable, FtrGT1, 1);
+    }
+
     MEDIA_WR_SKU(skuTable, FtrLCIA, 1);
     MEDIA_WR_SKU(skuTable, FtrVERing, drvInfo->hasVebox);
     MEDIA_WR_SKU(skuTable, FtrPPGTT, drvInfo->hasPpgtt);
@@ -481,6 +513,8 @@ static bool InitGlkMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
 
     MEDIA_WR_SKU(skuTable, FtrPerCtxtPreemptionGranularityControl, 1);
+
+    MEDIA_WR_SKU(skuTable, FtrHDR, 1);
 
     return true;
 }
@@ -515,6 +549,7 @@ static bool InitGlkMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaHucStreamoutOnlyDisable, 1);
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
     return true;
 }
 

@@ -133,6 +133,12 @@ static const char *bufHucDmem       = "HucDmem";
 static const char *bufEncodePar     = "EncodePar";
 };
 
+namespace CodechalDbgAttr
+{
+static const char *attrInitSWScoreboard = "InitSWScoreboard";
+static const char *attrSfcHistogram = "SfcHistogram";
+};
+
 enum CodechalHucRegionDumpType
 {
     hucRegionDumpDefault        = 0,
@@ -206,7 +212,9 @@ public:
         PMOS_SURFACE              surface,
         const char *              attrName,
         const char *              surfName,
-        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
+        CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
+        uint32_t                  width_in = 0,
+        uint32_t                  height_in = 0);
 
     MOS_STATUS DumpBuffer(
         PMOS_RESOURCE             resource,
@@ -253,8 +261,11 @@ public:
     std::string             m_ddiFileName;
     std::string             m_outputFileName;
 
+    MOS_SURFACE          m_temp2DSurfForCopy      = {};
     CodechalHwInterface *m_hwInterface            = nullptr;
     PMOS_INTERFACE       m_osInterface            = nullptr;
+    MhwCpInterface      *m_cpInterface            = nullptr;
+    MhwMiInterface      *m_miInterface            = nullptr;
     CODECHAL_FUNCTION    m_codecFunction          = CODECHAL_FUNCTION_INVALID;
     bool                 m_enableBinaryDebugDumps = false;
     bool                 m_enableEncodeDdiDump    = false;
@@ -269,6 +280,7 @@ public:
     bool                 m_hybridPakP1              = false;
     bool                 m_hybridVp8EncodeBrcEnable = false;
     bool                 m_hybridVp9EncodeEnable    = false;
+    bool                 m_vdboxContextCreated      = false;
     uint16_t             m_preIndex                 = 0;
     uint16_t             m_refIndex                 = 0;
     uint32_t             m_bufferDumpFrameNum       = 0;
@@ -281,15 +293,32 @@ public:
         uint32_t    size);
 
 protected:
+    MOS_STATUS ReAllocateSurface(
+        PMOS_SURFACE    pSurface,
+        PMOS_SURFACE    pSrcSurf,
+        PCCHAR          pSurfaceName,
+        MOS_GFXRES_TYPE DefaultResType);
+
+    MOS_STATUS CopySurfaceData_Vdbox(
+        uint32_t        dwDataSize,
+        PMOS_RESOURCE   presSourceSurface,
+        PMOS_RESOURCE   presCopiedSurface);
+
+    MOS_STATUS DumpNotSwizzled(
+        std::string  surfName,
+        MOS_SURFACE& surf,
+        uint8_t*     lockedAddr,
+        int32_t      size);
+
     MOS_STATUS DumpBufferInBinary(
-        uint8_t *   data,
-        uint32_t    size);
+        uint8_t *    data,
+        uint32_t     size);
 
     MOS_STATUS Dump2DBufferInBinary(
-        uint8_t *   data,
-        uint32_t    width,
-        uint32_t    height,
-        uint32_t    pitch);
+        uint8_t *    data,
+        uint32_t     width,
+        uint32_t     height,
+        uint32_t     pitch);
 
     CodechalDebugConfigMgr *m_configMgr = nullptr;
     std::string             m_outputFilePath;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 
 #include "mos_context_next.h"
 #include "mos_context_specific_next.h"
+#include "mediamemdecomp.h"
 #include "mos_util_debug_next.h"
 #include <new>
 
@@ -40,6 +41,11 @@ class OsContextNext* OsContextNext::GetOsContextObject()
 void OsContextNext::CleanUp()
 {
     MOS_OS_FUNCTION_ENTER;
+
+#ifdef _MMC_SUPPORTED
+    MOS_Delete(m_mosDecompression);
+#endif
+    MOS_Delete(m_mosMediaCopy);
 
     if (m_gpuContextMgr != nullptr)
     {

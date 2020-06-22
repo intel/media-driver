@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -99,6 +99,15 @@ public:
         PMOS_COMMAND_BUFFER                  cmdBuffer,
         PMHW_VDBOX_AVC_WEIGHTOFFSET_PARAMS   params);
 
+    //!
+    //! \brief  Explictly instantiate GetVdencPrimitiveCommandsDataSize of MhwVdboxVdencInterfaceG9
+    //!         for mhw_vdbox_vdenc_g9_kbl, because there is no VDENC_WEIGHTSOFFSETS_STATE_CMD for
+    //!         SKL and BXT
+    //!
+    MOS_STATUS GetVdencPrimitiveCommandsDataSize(
+        uint32_t                        mode,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize);
 };
 
 #endif

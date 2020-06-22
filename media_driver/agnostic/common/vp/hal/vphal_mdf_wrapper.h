@@ -37,6 +37,7 @@
 
 template <typename CmSurfType>
 class VpCmSurfaceHolder;
+class CmContext;
 
 class EventListener
 {
@@ -47,8 +48,9 @@ public:
 class EventManager : public EventListener
 {
 public:
-    explicit EventManager(const std::string &owner) :
-        mOwner(owner)
+    EventManager(const std::string &owner, CmContext *cmContext) :
+        mOwner(owner),
+        m_cmContext(cmContext)
     {
     }
     virtual ~EventManager()
@@ -69,6 +71,7 @@ private:
     int                   mEventCount = 0;
     CmEvent              *mLastEvent = nullptr;
     bool                  mReport = false;
+    CmContext            *m_cmContext = nullptr;
 };
 
 // This is not multi-threads safe. Is it a good idea to use singleton here?
@@ -78,27 +81,10 @@ public:
     // noncopyable
     CmContext(const CmContext&) = delete;
     CmContext& operator=(const CmContext&) = delete;
-
-    static CmContext& GetCmContext()
-    {
-        static CmContext ctx;
-        return ctx;
-    }
+    CmContext(PMOS_CONTEXT OsContext);
+    virtual ~CmContext();
 
     void Destroy();
-
-    void AddRefCount()
-    {
-        mRefCount++;
-    }
-
-    void DecRefCount()
-    {
-        if (--mRefCount == 0)
-        {
-            Destroy();
-        }
-    }
 
     CmDevice* GetCmDevice() const
     {
@@ -141,11 +127,7 @@ public:
         mConditionalBatchBuffer = nullptr;
     }
 
-    static PMOS_CONTEXT sOsContext;
-
 private:
-    CmContext();
-    ~CmContext();
 
     void EnqueueTask(CmTask *task, CmThreadSpace *threadSpace, const std::string &name, bool waitForFinish);
 
@@ -244,7 +226,7 @@ public:
         std::is_same<CmSurfType, CmSurface3D>::value,
         "CmSurfType need to be one of CmBuffer, CmSurface2D or CmSurface3D.");
 
-    explicit VpCmSurfaceHolder(PVPHAL_SURFACE vpSurf):
+    VpCmSurfaceHolder(PVPHAL_SURFACE vpSurf, CmContext *cmContext):
         mCmSurface(nullptr),
         mSurfaceIndex(nullptr),
         mSamplerSurfaceIndex(nullptr),
@@ -252,7 +234,8 @@ public:
         mWidth(vpSurf->dwWidth),
         mHeight(vpSurf->dwHeight),
         mDepth(vpSurf->dwDepth),
-        mFormat(ConvertMosFmtToGmmFmt(vpSurf->Format))
+        mFormat(ConvertMosFmtToGmmFmt(vpSurf->Format)),
+        m_cmContext(cmContext)
     {
         int result = CreateCmSurfaceSpecialized(vpSurf, mCmSurface);
         if ((result != CM_SUCCESS) || (!mCmSurface))
@@ -263,7 +246,7 @@ public:
         mCmSurface->GetIndex(mSurfaceIndex);
     }
 
-    VpCmSurfaceHolder(int width, int height, int depth, GMM_RESOURCE_FORMAT format):
+    VpCmSurfaceHolder(int width, int height, int depth, GMM_RESOURCE_FORMAT format, CmContext *cmContext) :
         mCmSurface(nullptr),
         mSurfaceIndex(nullptr),
         mSamplerSurfaceIndex(nullptr),
@@ -271,7 +254,8 @@ public:
         mWidth(width),
         mHeight(height),
         mDepth(depth),
-        mFormat(format)
+        mFormat(format),
+        m_cmContext(cmContext)
     {
         int result = CreateCmSurfaceSpecialized(width, height, depth, format, mCmSurface);
         if ((result != CM_SUCCESS) || (!mCmSurface))
@@ -284,7 +268,8 @@ public:
 
     virtual ~VpCmSurfaceHolder()
     {
-        CmDevice *dev = CmContext::GetCmContext().GetCmDevice();
+        VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(m_cmContext);
+        CmDevice *dev = m_cmContext->GetCmDevice();
 
         if (mSampler8x8SurfaceIndex)
         {
@@ -320,11 +305,16 @@ public:
     {
         if (!mSamplerSurfaceIndex)
         {
-            int result = CmContext::GetCmContext().GetCmDevice()->CreateSamplerSurface2D(mCmSurface, mSamplerSurfaceIndex);
+            if (!m_cmContext)
+            {
+                return mSamplerSurfaceIndex;
+            }
+            int result = m_cmContext->GetCmDevice()->CreateSamplerSurface2D(mCmSurface, mSamplerSurfaceIndex);
             if (result != CM_SUCCESS)
             {
                 VPHAL_RENDER_ASSERTMESSAGE("Failed in CreateSamplerSurface2D!\n");
             }
+
         }
         return mSamplerSurfaceIndex;
     }
@@ -333,7 +323,11 @@ public:
     {
         if (!mSampler8x8SurfaceIndex)
         {
-            int result = CmContext::GetCmContext().GetCmDevice()->CreateSampler8x8Surface(mCmSurface, mSampler8x8SurfaceIndex, CM_AVS_SURFACE, CM_SURFACE_CLAMP);
+            if (!m_cmContext)
+            {
+                return mSampler8x8SurfaceIndex;
+            }
+            int result = m_cmContext->GetCmDevice()->CreateSampler8x8Surface(mCmSurface, mSampler8x8SurfaceIndex, CM_AVS_SURFACE, CM_SURFACE_CLAMP);
             if (result != CM_SUCCESS)
             {
                 VPHAL_RENDER_ASSERTMESSAGE("Failed in CreateSampler8x8Surface!\n");
@@ -419,36 +413,57 @@ private:
     const int                   mHeight;
     const int                   mDepth;
     const GMM_RESOURCE_FORMAT   mFormat;
+    CmContext                  *m_cmContext = nullptr;
 };
 
 template <>
 inline int VpCmSurfaceHolder<CmBuffer>::CreateCmSurfaceSpecialized(PVPHAL_SURFACE vpSurf, CmBuffer* &surf)
 {
-    return CmContext::GetCmContext().GetCmDevice()->CreateBuffer(&vpSurf->OsResource, surf);
+    if (!m_cmContext)
+    {
+        return CM_NULL_POINTER;
+    }
+    return m_cmContext->GetCmDevice()->CreateBuffer(&vpSurf->OsResource, surf);
 }
 
 template <>
 inline int VpCmSurfaceHolder<CmSurface2D>::CreateCmSurfaceSpecialized(PVPHAL_SURFACE vpSurf, CmSurface2D* &surf)
 {
-    return CmContext::GetCmContext().GetCmDevice()->CreateSurface2D(&vpSurf->OsResource, surf);
+    if (!m_cmContext)
+    {
+        return CM_NULL_POINTER;
+    }
+    return m_cmContext->GetCmDevice()->CreateSurface2D(&vpSurf->OsResource, surf);
 }
 
 template <>
 inline int VpCmSurfaceHolder<CmBuffer>::CreateCmSurfaceSpecialized(int width, int height, int depth, GMM_RESOURCE_FORMAT format, CmBuffer* &surf)
 {
-    return CmContext::GetCmContext().GetCmDevice()->CreateBuffer(width, surf);
+    if (!m_cmContext)
+    {
+        return CM_NULL_POINTER;
+    }
+    return m_cmContext->GetCmDevice()->CreateBuffer(width, surf);
 }
 
 template <>
 inline int VpCmSurfaceHolder<CmSurface2D>::CreateCmSurfaceSpecialized(int width, int height, int depth, GMM_RESOURCE_FORMAT format, CmSurface2D* &surf)
 {
-    return CmContext::GetCmContext().GetCmDevice()->CreateSurface2D(width, height, ConvertGmmFmtToMosFmt(format), surf);
+    if (!m_cmContext)
+    {
+        return CM_NULL_POINTER;
+    }
+    return m_cmContext->GetCmDevice()->CreateSurface2D(width, height, ConvertGmmFmtToMosFmt(format), surf);
 }
 
 template <>
 inline int VpCmSurfaceHolder<CmSurface3D>::CreateCmSurfaceSpecialized(int width, int height, int depth, GMM_RESOURCE_FORMAT format, CmSurface3D* &surf)
 {
-    return CmContext::GetCmContext().GetCmDevice()->CreateSurface3D(width, height, depth, ConvertGmmFmtToMosFmt(format), surf);
+    if (!m_cmContext)
+    {
+        return CM_NULL_POINTER;
+    }
+    return m_cmContext->GetCmDevice()->CreateSurface3D(width, height, depth, ConvertGmmFmtToMosFmt(format), surf);
 }
 
 class VPRender
@@ -468,7 +483,7 @@ public:
 class VPCmRenderer: public VPRender
 {
 public:
-    explicit VPCmRenderer(const std::string &name);
+    VPCmRenderer(const std::string &name, CmContext *cmContext);
     virtual ~VPCmRenderer();
 
     void Render(void *payload) override;
@@ -493,6 +508,7 @@ protected:
     CmProgram* LoadProgram(const std::string& binaryFileName);
 
     const std::string  mName;
+    CmContext          *m_cmContext = nullptr;
 
 private:
     virtual void AttachPayload(void *) = 0;

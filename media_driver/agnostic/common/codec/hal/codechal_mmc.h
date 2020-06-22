@@ -57,7 +57,7 @@ public:
     //! \return   bool
     //!           true if mmc is enabled, else false
     //!
-    static bool IsMmcEnabled();
+    bool IsMmcEnabled();
 
     //!
     //! \brief    Disable MMC state 
@@ -157,15 +157,15 @@ public:
     //!           Pointer to MhwMiInterface
     //! \param    [in] cmdBuffer
     //!           Command buffer pointer
-    //! \param    [in] isRcs
-    //!           if the cmd buffer is for render pipe
+    //! \param    [in] gpuContext
+    //!           Current pipe of the cmd buffer
     //!
     //! \return   MOS_STATUS
     //!           Return status of sending register MMIOs
     virtual MOS_STATUS SendPrologCmd(
         MhwMiInterface      *miInterface,
         MOS_COMMAND_BUFFER  *cmdBuffer,
-        bool                isRcs = false)
+        MOS_GPU_CONTEXT     gpuContext)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -221,9 +221,20 @@ public:
     MOS_STATUS UpdateUserFeatureKey(PMOS_SURFACE surface);
 #endif
 
+    //!
+    //! \brief    Is extension MMC
+    //! \details  Report if is extension MMC
+    //!
+    //! \return   bool
+    //!
+    bool IsMmcExtensionEnabled()
+    {
+        return m_mmcExtensionEnabled;
+    }
+
 protected:
 
-    static bool             m_mmcEnabled;                           //!< Indicate if media memory compression is enabled
+    bool                    m_mmcEnabled = false;                   //!< Indicate if media memory compression is enabled
     PMOS_INTERFACE          m_osInterface = nullptr;                //!< Os Inteface
     CodechalHwInterface     *m_hwInterface = nullptr;               //!< Pointer to HW Interface
     bool                    m_hcpMmcEnabled = false;                //!< Inidate if hcp mmc is enabled
@@ -234,6 +245,7 @@ protected:
     uint32_t                m_compressibleId  = 0;
     uint32_t                m_compressModeId  = 0;
 #endif
+    bool                    m_mmcExtensionEnabled = false;          //!< Indicate if extension MMC
 };
 
 #endif  // __CODECHAL_MMC_H__

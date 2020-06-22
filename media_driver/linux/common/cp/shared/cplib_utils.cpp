@@ -27,6 +27,8 @@
 #include "mos_utilities.h"
 
 std::unordered_map<const char*, void*> CPLibUtils::m_symbols;
+std::mutex                             CPLibUtils::m_referenceMutex;
+int                                    CPLibUtils::m_referenceCount = 0;
 
 void *      CPLibUtils::m_phandle                    = nullptr;
 const char *CPLibUtils::CPLIB_PATH                   = "cplib.so";
@@ -43,81 +45,114 @@ const char *CPLibUtils::FUNC_CREATE_MEDIALIBVACAPSCP = "Create_MediaLibvaCapsCp"
 const char *CPLibUtils::FUNC_DELETE_MEDIALIBVACAPSCP = "Delete_MediaLibvaCapsCp";
 const char *CPLibUtils::FUNC_CREATE_SECUREDECODE     = "Create_SecureDecode";
 const char *CPLibUtils::FUNC_DELETE_SECUREDECODE     = "Delete_SecureDecode";
-const char *CPLibUtils::FUNC_SETUP_MOS_APO_SWITCH    = "Setup_MosApogeiosSwitch";
+const char *CPLibUtils::FUNC_CREATE_DECODECP         = "Create_DecodeCp";
+const char *CPLibUtils::FUNC_DELETE_DECODECP         = "Delete_DecodeCp";
+const char *CPLibUtils::FUNC_CREATE_CPSTREAMOUT      = "Create_CpStreamOut";
+const char *CPLibUtils::FUNC_DELETE_CPSTREAMOUT      = "Delete_CpStreamOut";
 
 bool CPLibUtils::LoadCPLib(VADriverContextP ctx)
 {
-    m_phandle = dlopen(CPLIB_PATH, RTLD_NOW | RTLD_LOCAL);
+    m_referenceMutex.lock();
 
+    m_phandle = dlopen(CPLIB_PATH, RTLD_NOW | RTLD_LOCAL);
     if(nullptr == m_phandle)
     {
-        CPLIB_NORMALMESSAGE("Failed to open %s %s", CPLIB_PATH, dlerror());
+        CPLIB_ASSERTMESSAGE("Failed to open %s %s", CPLIB_PATH, dlerror());
+        m_referenceMutex.unlock();
         return false;
     }
     else
     {
-        m_symbols.clear();
-
-        m_symbols[FUNC_GET_CPLIB_MAJOR_VERSION] = dlsym(m_phandle, FUNC_GET_CPLIB_MAJOR_VERSION);
-        m_symbols[FUNC_INIT_CPLIB]              = dlsym(m_phandle, FUNC_INIT_CPLIB);
-        m_symbols[FUNC_RELEASE_CPLIB]           = dlsym(m_phandle, FUNC_RELEASE_CPLIB);
-        m_symbols[FUNC_CREATE_DDICP]            = dlsym(m_phandle, FUNC_CREATE_DDICP);
-        m_symbols[FUNC_DELETE_DDICP]            = dlsym(m_phandle, FUNC_DELETE_DDICP);
-        m_symbols[FUNC_CREATE_MHWCP]            = dlsym(m_phandle, FUNC_CREATE_MHWCP);
-        m_symbols[FUNC_DELETE_MHWCP]            = dlsym(m_phandle, FUNC_DELETE_MHWCP);
-        m_symbols[FUNC_CREATE_MOSCP]            = dlsym(m_phandle, FUNC_CREATE_MOSCP);
-        m_symbols[FUNC_DELETE_MOSCP]            = dlsym(m_phandle, FUNC_DELETE_MOSCP);
-        m_symbols[FUNC_CREATE_MEDIALIBVACAPSCP] = dlsym(m_phandle, FUNC_CREATE_MEDIALIBVACAPSCP);
-        m_symbols[FUNC_DELETE_MEDIALIBVACAPSCP] = dlsym(m_phandle, FUNC_DELETE_MEDIALIBVACAPSCP);
-        m_symbols[FUNC_CREATE_SECUREDECODE]     = dlsym(m_phandle, FUNC_CREATE_SECUREDECODE);
-        m_symbols[FUNC_DELETE_SECUREDECODE]     = dlsym(m_phandle, FUNC_DELETE_SECUREDECODE);
-        m_symbols[FUNC_SETUP_MOS_APO_SWITCH]    = dlsym(m_phandle, FUNC_SETUP_MOS_APO_SWITCH);
-
-        // confirm if all symbols exported from CPLIB are exist
-        for(auto item : m_symbols)
+        ++m_referenceCount;
+        if(1 == m_referenceCount)
         {
-            if(nullptr == item.second)
+            m_symbols.clear();
+
+            m_symbols[FUNC_GET_CPLIB_MAJOR_VERSION] = dlsym(m_phandle, FUNC_GET_CPLIB_MAJOR_VERSION);
+            m_symbols[FUNC_INIT_CPLIB]              = dlsym(m_phandle, FUNC_INIT_CPLIB);
+            m_symbols[FUNC_RELEASE_CPLIB]           = dlsym(m_phandle, FUNC_RELEASE_CPLIB);
+            m_symbols[FUNC_CREATE_DDICP]            = dlsym(m_phandle, FUNC_CREATE_DDICP);
+            m_symbols[FUNC_DELETE_DDICP]            = dlsym(m_phandle, FUNC_DELETE_DDICP);
+            m_symbols[FUNC_CREATE_MHWCP]            = dlsym(m_phandle, FUNC_CREATE_MHWCP);
+            m_symbols[FUNC_DELETE_MHWCP]            = dlsym(m_phandle, FUNC_DELETE_MHWCP);
+            m_symbols[FUNC_CREATE_MOSCP]            = dlsym(m_phandle, FUNC_CREATE_MOSCP);
+            m_symbols[FUNC_DELETE_MOSCP]            = dlsym(m_phandle, FUNC_DELETE_MOSCP);
+            m_symbols[FUNC_CREATE_MEDIALIBVACAPSCP] = dlsym(m_phandle, FUNC_CREATE_MEDIALIBVACAPSCP);
+            m_symbols[FUNC_DELETE_MEDIALIBVACAPSCP] = dlsym(m_phandle, FUNC_DELETE_MEDIALIBVACAPSCP);
+            m_symbols[FUNC_CREATE_SECUREDECODE]     = dlsym(m_phandle, FUNC_CREATE_SECUREDECODE);
+            m_symbols[FUNC_DELETE_SECUREDECODE]     = dlsym(m_phandle, FUNC_DELETE_SECUREDECODE);
+            m_symbols[FUNC_CREATE_DECODECP]         = dlsym(m_phandle, FUNC_CREATE_DECODECP);
+            m_symbols[FUNC_DELETE_DECODECP]         = dlsym(m_phandle, FUNC_DELETE_DECODECP);
+            m_symbols[FUNC_CREATE_CPSTREAMOUT]      = dlsym(m_phandle, FUNC_CREATE_CPSTREAMOUT);
+            m_symbols[FUNC_DELETE_CPSTREAMOUT]      = dlsym(m_phandle, FUNC_DELETE_CPSTREAMOUT);
+
+            // confirm if all symbols exported from CPLIB are exist
+            for(auto item : m_symbols)
             {
-                CPLIB_NORMALMESSAGE("Symbol: %s not found in CPLIB", item.first);
+                if(nullptr == item.second)
+                {
+                    CPLIB_ASSERTMESSAGE("Symbol: %s not found in CPLIB", item.first);
+                    m_referenceMutex.unlock();
+                    UnloadCPLib(ctx);
+                    return false;
+                }
+            }
+
+            using FuncTypeGetVersion = uint32_t (*)();
+            FuncTypeGetVersion func = reinterpret_cast<FuncTypeGetVersion>(m_symbols[FUNC_GET_CPLIB_MAJOR_VERSION]);
+
+            if(REQUIRED_CPLIB_MAJOR_VERSION != func())
+            {
+                CPLIB_ASSERTMESSAGE("The CPLIB version does not meet the require");
+                m_referenceMutex.unlock();
                 UnloadCPLib(ctx);
                 return false;
             }
         }
 
-        using FuncType = uint32_t (*)();
-        FuncType func = reinterpret_cast<FuncType>(m_symbols[FUNC_GET_CPLIB_MAJOR_VERSION]);
-
-        if(REQUIRED_CPLIB_MAJOR_VERSION != func()) 
+        using FuncTypeInitCplib = bool (*)(VADriverContextP ctx);
+        bool initialized = false;
+        InvokeCpFunc<FuncTypeInitCplib>(initialized, FUNC_INIT_CPLIB, ctx);
+        if (!initialized)
         {
-            CPLIB_NORMALMESSAGE("The CPLIB version does not meet the require");
+            CPLIB_ASSERTMESSAGE("Failed to initialized CPLIB");
+            m_referenceMutex.unlock();
             UnloadCPLib(ctx);
             return false;
-        }
+         }
     }
 
-    using FuncType   = bool (*)(VADriverContextP ctx);
-    bool initialized = false;
-    InvokeCpFunc<FuncType>(initialized, FUNC_INIT_CPLIB, ctx);
-    if (!initialized)
-    {
-        CPLIB_NORMALMESSAGE("Failed to initialized CPLIB");
-        UnloadCPLib(ctx);
-        return false;
-    }
-
+    m_referenceMutex.unlock();
     CPLIB_NORMALMESSAGE("CPLIB Loaded Successfully");
     return true;
 }
 
 void CPLibUtils::UnloadCPLib(VADriverContextP ctx)
 {
+    m_referenceMutex.lock();
+    --m_referenceCount;
+
+    if(m_referenceCount < 0)
+    {
+        CPLIB_ASSERTMESSAGE("Invalid m_referenceCount");
+        m_referenceMutex.unlock();
+        return;
+    }
+    if(m_symbols.empty())
+    {
+        CPLIB_ASSERTMESSAGE("m_symbols is empty");
+        m_referenceMutex.unlock();
+        return;
+    }
+
     using FuncType = void (*)(VADriverContextP ctx);
     InvokeCpFunc<FuncType>(FUNC_RELEASE_CPLIB, ctx);
 
-    if(nullptr != m_phandle)
+    if((0 == m_referenceCount) && (nullptr != m_phandle))
     {
         m_symbols.clear();
         if(0 != dlclose(m_phandle)) // dlclose will return 0 if execution sucecceed
             CPLIB_ASSERTMESSAGE("Failed to close CPLIB %s", dlerror());
     }
+    m_referenceMutex.unlock();
 }

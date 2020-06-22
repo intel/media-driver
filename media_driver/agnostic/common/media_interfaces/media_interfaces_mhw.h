@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -130,7 +130,7 @@ public:
     //! \brief    Destroys all created MHW interfaces
     //! \details  If the HAL creation fails, this is used for cleanup
     //!
-    void Destroy();
+    virtual void Destroy();
 };
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;

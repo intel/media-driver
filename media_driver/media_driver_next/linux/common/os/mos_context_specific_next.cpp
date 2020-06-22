@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -45,6 +45,8 @@
 #include "mos_context_specific_next.h"
 #include "mos_gpucontextmgr_next.h"
 #include "mos_cmdbufmgr_next.h"
+#include "media_user_settings_mgr.h"
+#define BATCH_BUFFER_SIZE 0x80000
 
 OsContextSpecificNext::OsContextSpecificNext()
 {
@@ -102,7 +104,7 @@ MOS_STATUS OsContextSpecificNext::UnLockSemaphore(int32_t semid)
 int16_t OsContextSpecificNext::ShmAttachedNumber(unsigned int shmid)
 {
     struct shmid_ds buf;
-    MosUtilities::MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     if (shmctl(shmid, IPC_STAT, &buf) < 0)
     {
@@ -146,7 +148,7 @@ MOS_STATUS OsContextSpecificNext::ConnectCreateShm(long key, uint32_t size, int3
     int32_t         shmid = 0;
     key_t           key_value = (key_t)key;
     void            *shmptr = nullptr;
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     shmid = shmget(key_value, size, IPC_CREAT | 0666);
     if (shmid < 0)
@@ -180,7 +182,7 @@ MOS_STATUS OsContextSpecificNext::DetachDestroyShm(int32_t shmid, void  *pShm)
     MOS_OS_CHK_NULL_RETURN(pShm);
 
     struct shmid_ds buf;
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     if (shmid < 0)
     {
@@ -218,8 +220,8 @@ MOS_STATUS OsContextSpecificNext::ConnectCreateSemaphore(long key, int32_t *pSem
     key_t           key_value = (key_t)key;
     int32_t         val = 0;
 
-    MosUtilities::MOS_ZeroMemory(&sop, sizeof(sop));
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&sop, sizeof(sop));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
 
     semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
 
@@ -265,7 +267,7 @@ MOS_STATUS OsContextSpecificNext::CreateIPC()
     m_shm   = MOS_LINUX_SHM_INVALID;
 
     struct semid_ds buf;
-    MosUtilities::MOS_ZeroMemory(&buf, sizeof(buf));
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
     //wait and retry till to get a valid semphore
     for(int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i++)
     {
@@ -285,7 +287,7 @@ MOS_STATUS OsContextSpecificNext::CreateIPC()
             break;
         }
 
-        MOS_Sleep(1); //wait and retry
+        MosUtilities::MosSleep(1); //wait and retry
     }
 
     LockSemaphore(m_semId);
@@ -319,6 +321,80 @@ void OsContextSpecificNext::DestroyIPC()
             UnLockSemaphore(m_semId);
         }
     }
+}
+
+MOS_STATUS OsContextSpecificNext::CreateIPC(OS_PER_STREAM_PARAMETERS perStreamParamters)
+{
+    MOS_STATUS   eStatus = MOS_STATUS_SUCCESS;
+    PMOS_CONTEXT context = nullptr;
+
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(perStreamParamters);
+
+    context = (PMOS_CONTEXT)perStreamParamters;
+
+    context->semid = MOS_LINUX_IPC_INVALID_ID;
+    context->shmid = MOS_LINUX_IPC_INVALID_ID;
+    context->pShm  = MOS_LINUX_SHM_INVALID;
+
+    struct semid_ds buf;
+    MosUtilities::MosZeroMemory(&buf, sizeof(buf));
+
+    //wait and retry untill to get a valid semaphore
+    for (int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i++)
+    {
+        ConnectCreateSemaphore(m_dualVdboxKey, &context->semid);
+
+        //check whether the semid is initialized or not
+        if (semctl(context->semid, 0, IPC_STAT, &buf) == -1)
+        {
+            return MOS_STATUS_UNKNOWN;
+        }
+        if (buf.sem_otime != 0)
+        {
+            break;
+        }
+        MosUtilities::MosSleep(1);
+    }
+
+    LockSemaphore(context->semid);
+    eStatus = ConnectCreateShm(m_dualVdboxKey, sizeof(VDBOX_WORKLOAD), &context->shmid, &context->pShm);
+    UnLockSemaphore(context->semid);
+    MOS_OS_CHK_STATUS_RETURN(eStatus);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS OsContextSpecificNext::DestroyIPC(OS_PER_STREAM_PARAMETERS perStreamParamters)
+{
+    PMOS_CONTEXT context = nullptr;
+
+    MOS_OS_FUNCTION_ENTER;
+    MOS_OS_CHK_NULL_RETURN(perStreamParamters);
+    context = (PMOS_CONTEXT)perStreamParamters;
+
+    if (MOS_LINUX_IPC_INVALID_ID != context->semid)
+    {
+        int16_t iAttachedNum = 0;
+
+        if (MOS_LINUX_IPC_INVALID_ID != context->shmid)
+        {
+            LockSemaphore(context->semid);
+            iAttachedNum = ShmAttachedNumber(context->shmid);
+
+            DetachDestroyShm(context->shmid, context->pShm);
+            context->shmid = MOS_LINUX_IPC_INVALID_ID;
+            context->pShm  = MOS_LINUX_SHM_INVALID;
+
+            if (iAttachedNum)
+            {
+                --iAttachedNum;
+            }
+            UnLockSemaphore(context->semid);
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS OsContextSpecificNext::CreateSSEUIPC()
@@ -362,7 +438,7 @@ void OsContextSpecificNext::SetSliceCount(uint32_t *pSliceCount)
         MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
 }
 
-MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
+MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 {
     uint32_t      iDeviceId = 0;
     MOS_STATUS    eStatus;
@@ -372,78 +448,122 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
 
     eStatus = MOS_STATUS_SUCCESS;
 
+    PMOS_CONTEXT osDriverContext = (PMOS_CONTEXT)ddiDriverContext;
+
     if (GetOsContextValid() == false)
     {
-        if( nullptr == pOsDriverContext         ||
-            nullptr == pOsDriverContext->bufmgr ||
-            0 >= pOsDriverContext->fd )
+        if( nullptr == osDriverContext  ||
+            0 >= osDriverContext->fd )
         {
             MOS_OS_ASSERT(false);
             return MOS_STATUS_INVALID_HANDLE;
         }
-    
-        m_bufmgr        = pOsDriverContext->bufmgr;
-        m_fd            = pOsDriverContext->fd;
-        MosUtilities::MOS_SecureMemcpy(&m_perfData, sizeof(PERF_DATA), pOsDriverContext->pPerfData, sizeof(PERF_DATA));
-        mos_bufmgr_gem_enable_reuse(pOsDriverContext->bufmgr);
-        m_gmmClientContext = pOsDriverContext->pGmmClientContext;
-        m_auxTableMgr = pOsDriverContext->m_auxTableMgr;
-    
-        // DDI layer can pass over the DeviceID.
-        iDeviceId = pOsDriverContext->iDeviceId;
-        if (0 == iDeviceId)
+        m_fd = osDriverContext->fd;
+
+        m_bufmgr = mos_bufmgr_gem_init(m_fd, BATCH_BUFFER_SIZE);
+        if (nullptr == m_bufmgr)
         {
-            PLATFORM           platformInfo;
-            MEDIA_FEATURE_TABLE  skuTable;
-            MEDIA_WA_TABLE       waTable;
-            MEDIA_SYSTEM_INFO    gtSystemInfo;
-    
-            MosUtilities::MOS_ZeroMemory(&platformInfo, sizeof(platformInfo));
-            MosUtilities::MOS_ZeroMemory(&skuTable, sizeof(skuTable));
-            MosUtilities::MOS_ZeroMemory(&waTable, sizeof(waTable));
-            MosUtilities::MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
-            eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
-            if (eStatus != MOS_STATUS_SUCCESS)
-            {
-                MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
-                return eStatus;
-            }
-    
-            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &platformInfo, sizeof(PLATFORM));
-            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO));
-    
-            pOsDriverContext->iDeviceId      = platformInfo.usDeviceID;
-            m_skuTable = skuTable;
-            m_waTable  = waTable;
-    
-            pOsDriverContext->SkuTable       = skuTable;
-            pOsDriverContext->WaTable        = waTable;
-            pOsDriverContext->gtSystemInfo   = gtSystemInfo;
-            pOsDriverContext->platform       = platformInfo;
-    
-            MOS_OS_NORMALMESSAGE("DeviceID was created DeviceID = %d, platform product %d", iDeviceId, platformInfo.eProductFamily);
+            MOS_OS_ASSERTMESSAGE("Not able to allocate buffer manager, fd=0x%d", m_fd);
+            return MOS_STATUS_INVALID_PARAMETER;
         }
-        else
+        mos_bufmgr_gem_enable_reuse(m_bufmgr);
+
+        //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
+        iDeviceId   = mos_bufmgr_gem_get_devid(m_bufmgr);
+        m_isAtomSOC = IS_ATOMSOC(iDeviceId);
+
+        m_skuTable.reset();
+        m_waTable.reset();
+        MosUtilities::MosZeroMemory(&m_platformInfo, sizeof(m_platformInfo));
+        MosUtilities::MosZeroMemory(&m_gtSystemInfo, sizeof(m_gtSystemInfo));
+        eStatus = HWInfo_GetGfxInfo(m_fd, m_bufmgr, &m_platformInfo, &m_skuTable, &m_waTable, &m_gtSystemInfo);
+        if (eStatus != MOS_STATUS_SUCCESS)
         {
-            // pOsDriverContext's parameters were passed by CmCreateDevice.
-            // Get SkuTable/WaTable/systemInfo/platform from OSDriver directly.
-            MosUtilities::MOS_SecureMemcpy(&m_platformInfo, sizeof(PLATFORM), &(pOsDriverContext->platform), sizeof(PLATFORM));
-            MosUtilities::MOS_SecureMemcpy(&m_gtSystemInfo, sizeof(MEDIA_SYSTEM_INFO), &(pOsDriverContext->gtSystemInfo), sizeof(MEDIA_SYSTEM_INFO));
-    
-            m_skuTable = pOsDriverContext->SkuTable;
-            m_waTable  = pOsDriverContext->WaTable;
+            MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
+            return eStatus;
         }
-    
-        m_use64BitRelocs = true;
-        m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
+
+        if (MEDIA_IS_SKU(&m_skuTable, FtrEnableMediaKernels) == 0)
+        {
+            MEDIA_WR_WA(&m_waTable, WaHucStreamoutOnlyDisable, 0);
+        }
+
+        MediaUserSettingsMgr::MediaUserSettingsInit(m_platformInfo.eProductFamily);
+
+        MosUtilities::MosTraceSetupInfo(
+            (VA_MAJOR_VERSION << 16) | VA_MINOR_VERSION,
+            m_platformInfo.eProductFamily,
+            m_platformInfo.eRenderCoreFamily,
+            (m_platformInfo.usRevId << 16) | m_platformInfo.usDeviceID);
+
+        GMM_SKU_FEATURE_TABLE   gmmSkuTable = {};
+        GMM_WA_TABLE            gmmWaTable  = {};
+        GMM_GT_SYSTEM_INFO      gmmGtInfo   = {};
+        eStatus = HWInfo_GetGmmInfo(m_fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
+        if (MOS_STATUS_SUCCESS != eStatus)
+        {
+            MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Sku/Wa/GtSystemInfo initialization");
+            return eStatus;
+        }
+
+        GmmExportEntries gmmFuncs  = {};
+        GMM_STATUS       gmmStatus = OpenGmm(&gmmFuncs);
+        if (gmmStatus != GMM_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Fatal error - gmm init failed.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        // init GMM context
+        gmmStatus = gmmFuncs.pfnCreateSingletonContext(m_platformInfo,
+            &gmmSkuTable,
+            &gmmWaTable,
+            &gmmGtInfo);
+
+        if (gmmStatus != GMM_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Fatal error - gmm CreateSingletonContext failed.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        m_gmmClientContext = gmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+
+        m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(m_bufmgr, &m_skuTable);
+
+        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
+            &UserFeatureData);
+#endif
+        osDriverContext->bSimIsActive = (int32_t)UserFeatureData.i32Data;
+
+        m_useSwSwizzling = osDriverContext->bSimIsActive || MEDIA_IS_SKU(&m_skuTable, FtrUseSwSwizzling);
+
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
-    
+
+        m_use64BitRelocs = true;
+
+        osDriverContext->bufmgr                 = m_bufmgr;
+        osDriverContext->iDeviceId              = iDeviceId;
+        osDriverContext->SkuTable               = m_skuTable;
+        osDriverContext->WaTable                = m_waTable;
+        osDriverContext->gtSystemInfo           = m_gtSystemInfo;
+        osDriverContext->platform               = m_platformInfo;
+        osDriverContext->pGmmClientContext      = m_gmmClientContext;
+        osDriverContext->m_auxTableMgr          = m_auxTableMgr;
+        osDriverContext->bUseSwSwizzling        = m_useSwSwizzling;
+        osDriverContext->bTileYFlag             = m_tileYFlag;
+        osDriverContext->bIsAtomSOC             = m_isAtomSOC;
+        osDriverContext->m_osDeviceContext      = this;
+
         if (!Mos_Solo_IsEnabled() && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
-            m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
+            m_intelContext = mos_gem_context_create_ext(osDriverContext->bufmgr,0);
             if (m_intelContext)
             {
-                m_intelContext->vm = mos_gem_vm_create(pOsDriverContext->bufmgr);
+                m_intelContext->vm = mos_gem_vm_create(osDriverContext->bufmgr);
                 if (m_intelContext->vm == nullptr)
                 {
                     MOS_OS_ASSERTMESSAGE("Failed to create vm.\n");
@@ -453,7 +573,7 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
         }
         else //use legacy context create ioctl for pre-gen11 platforms
         {
-           m_intelContext = mos_gem_context_create(pOsDriverContext->bufmgr);
+           m_intelContext = mos_gem_context_create(osDriverContext->bufmgr);
            if (m_intelContext)
            {
                m_intelContext->vm = nullptr;
@@ -465,10 +585,7 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_OS_ASSERTMESSAGE("Failed to create drm intel context");
             return MOS_STATUS_UNKNOWN;
         }
-    
-        m_isAtomSOC = IS_ATOMSOC(iDeviceId);
-    
-    
+
         if ((m_gtSystemInfo.VDBoxInfo.IsValid) && (m_gtSystemInfo.VDBoxInfo.NumberOfVDBoxEnabled > 1))
         {
             m_kmdHasVCS2 = true;
@@ -497,12 +614,8 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
     
         m_transcryptedKernels       = nullptr;
         m_transcryptedKernelsSize   = 0;
-    
-        // For Media Memory compression
-        m_mediaMemDecompState       = pOsDriverContext->ppMediaMemDecompState;
-        m_memoryDecompress       = pOsDriverContext->pfnMemoryDecompress;
-        m_mosContext                = pOsDriverContext;
-    
+
+
         m_noParsingAssistanceInKmd  = true;
         m_numNalUnitBytesIncluded   = MOS_NAL_UNIT_LENGTH - MOS_NAL_UNIT_STARTCODE_LENGTH;
     
@@ -515,19 +628,38 @@ MOS_STATUS OsContextSpecificNext::Init(PMOS_CONTEXT pOsDriverContext)
     
         m_usesPatchList             = true;
         m_usesGfxAddress            = false;
-    
+
         m_inlineCodecStatusUpdate   = true;
 
         SetOsContextValid(true);
-        
         // Prepare the command buffer manager
         m_cmdBufMgr = CmdBufMgrNext::GetObject();
         MOS_OS_CHK_NULL_RETURN(m_cmdBufMgr);
-        MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, COMMAND_BUFFER_SIZE));
+        MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, COMMAND_BUFFER_SIZE/2));
 
         // Prepare the gpu Context manager
         m_gpuContextMgr = GpuContextMgrNext::GetObject(&m_gtSystemInfo, this);
         MOS_OS_CHK_NULL_RETURN(m_gpuContextMgr);
+
+        //It must be done with m_gpuContextMgr ready. Insides it will create gpu context.
+#ifdef _MMC_SUPPORTED
+        m_mosDecompression = MOS_New(MosDecompression, osDriverContext);
+        MOS_OS_CHK_NULL_RETURN(m_mosDecompression);
+        osDriverContext->ppMediaMemDecompState = m_mosDecompression->GetMediaMemDecompState();
+        MOS_OS_CHK_NULL_RETURN(osDriverContext->ppMediaMemDecompState);
+        if (*osDriverContext->ppMediaMemDecompState == nullptr)
+        {
+            MOS_OS_NORMALMESSAGE("Decomp state creation failed");
+        }
+#endif
+        m_mosMediaCopy = MOS_New(MosMediaCopy, osDriverContext);
+        MOS_OS_CHK_NULL_RETURN(m_mosMediaCopy);
+        osDriverContext->ppMediaCopyState = m_mosMediaCopy->GetMediaCopyState();
+        MOS_OS_CHK_NULL_RETURN(osDriverContext->ppMediaCopyState);
+        if (*osDriverContext->ppMediaCopyState == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("Media Copy state creation failed");
+        }
     }
     return eStatus;
 }
@@ -538,6 +670,11 @@ void OsContextSpecificNext::Destroy()
 
     if (GetOsContextValid() == true)
     {
+        if (m_auxTableMgr != nullptr)
+        {
+            MOS_Delete(m_auxTableMgr);
+            m_auxTableMgr = nullptr;
+        }
 
         if (m_kmdHasVCS2)
         {
@@ -555,6 +692,21 @@ void OsContextSpecificNext::Destroy()
         {
             mos_gem_context_destroy(m_intelContext);
         }
+        mos_bufmgr_destroy(m_bufmgr);
+
+        GmmExportEntries GmmFuncs;
+        GMM_STATUS       gmmStatus = OpenGmm(&GmmFuncs);
+        if (gmmStatus == GMM_SUCCESS)
+        {
+            GmmFuncs.pfnDeleteClientContext((GMM_CLIENT_CONTEXT *)m_gmmClientContext);
+            m_gmmClientContext = nullptr;
+            GmmFuncs.pfnDestroySingletonContext();
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("gmm init failed.");
+        }
+
         SetOsContextValid(false);
     }
 }

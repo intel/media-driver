@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,8 @@
 #include "mos_os_next.h"
 #include "mos_cmdbufmgr_next.h" 
 #include "mos_gpucontextmgr_next.h"
+#include "mos_decompression.h"
+#include "mos_mediacopy.h"
 
 class OsContextNext
 {
@@ -49,7 +51,7 @@ public:
     //! \brief  Initialzie the OS ContextNext Object
     //! \return MOS_STATUS_SUCCESS on success case, MOS error status on fail cases
     //!
-    virtual MOS_STATUS Init(MOS_CONTEXT* osDriverContextNext) = 0;
+    virtual MOS_STATUS Init(DDI_DEVICE_CONTEXT osDriverContextNext) = 0;
 
 private:
     //!
@@ -92,12 +94,6 @@ public:
     //! \return value of m_gtSystemInfo
     //!
     MEDIA_SYSTEM_INFO *GetGtSysInfo() { return &m_gtSystemInfo; };
-
-    //!
-    //! \brief  Get MemDecompState
-    //! \return pointer to m_mediaMemDecompState
-    //!
-    void*  GetMemDecompState() { return m_mediaMemDecompState; };
 
     //!
     //! \brief  Check the platform is Atom or not
@@ -144,12 +140,74 @@ public:
     //!
     GMM_CLIENT_CONTEXT *GetGmmClientContext() { return m_gmmClientContext; }
 
+    //!
+    //! \brief  Get MosDecompression
+    //! \return ptr to MosDecompression
+    //!
+    MosDecompression *GetMosDecompression()
+    {
+        return m_mosDecompression;
+    }
+
+    //!
+    //! \brief  Get MosMediaCopy
+    //! \return ptr to MosMediaCopy
+    //!
+    MosMediaCopy *GetMosMediaCopy()
+    {
+        return m_mosMediaCopy;
+    }
+
+    //! \brief  Get the DumpFrameNum
+    //! \return The current dumped frameNum
+    //!
+    uint32_t GetDumpFrameNum() { return m_dumpframeNum; }
+
+    //!
+    //! \brief  Set the DumpFrameNum
+    //! \return update the FrameNum and return success
+    //!
+    MOS_STATUS SetDumpFrameNum(uint32_t framNum)
+    {
+        m_dumpframeNum = framNum;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief  Reset the DumpFrameNum
+    //! \return init the FrameNum and return success
+    //!
+    MOS_STATUS ResetDumpFrameNum()
+    {
+        m_dumpframeNum = 0xffffffff;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief  Get the dumpLoc
+    //! \return The current dumped GetdumpLoc
+    //!
+    char *GetdumpLoc() { return m_dumpLoc; }
+
+    //!
+    //! \brief  Reset the dumpLoc
+    //! \return init the dumpLoc and return success
+    //!
+    MOS_STATUS ResetdumpLoc()
+    {
+        m_dumpLoc[0] = 0;
+        return MOS_STATUS_SUCCESS;
+    }
+
     static const uint32_t m_cmdBufAlignment = 16;   //!> Cmd buffer alignment
 
 protected:
-    GpuContextMgrNext              *m_gpuContextMgr = nullptr;   //!> GPU context manager of the device
-    CmdBufMgrNext                  *m_cmdBufMgr     = nullptr;   //!> Cmd buffer manager of the device
-    GMM_CLIENT_CONTEXT             *m_gmmClientContext = nullptr; //!> GMM client context of the device
+    GpuContextMgrNext              *m_gpuContextMgr     = nullptr; //!> GPU context manager of the device
+    CmdBufMgrNext                  *m_cmdBufMgr         = nullptr; //!> Cmd buffer manager of the device
+    GMM_CLIENT_CONTEXT             *m_gmmClientContext  = nullptr; //!> GMM client context of the device
+
+    uint32_t                        m_dumpframeNum = 0;             // For use when dump its compressed surface, override the frame number given from MediaVeboxDecompState
+    char                            m_dumpLoc[MAX_PATH] = {0};       // For use when dump its compressed surface, to distinguish each loc's pre/post decomp
 
     //! \brief  Platform string including product family, chipset family, etc
     PLATFORM                        m_platformInfo = {};
@@ -166,8 +224,6 @@ protected:
     //! \brief  Whether the processor is Atom
     bool                            m_isAtomSOC = false;
 
-    //! \brief  Internal media state for memory decompression
-    void*                           m_mediaMemDecompState = nullptr;
 
     //! \brief  Flag to mark whether the os context is valid
     bool                            m_osContextValid =  false;
@@ -211,7 +267,13 @@ protected:
     //! \brief   Component info
     MOS_COMPONENT                   m_component = COMPONENT_UNKNOWN;
 
-    //! \brief   Flag to indicate if HAS is enabled
-    bool                            m_simIsActive = false;
+    //! \brief   Flag to indicate if implicit Tile is needed
+    bool                            m_implicitTileNeeded = false;
+
+    //! \brief  the ptr to mos decompression module
+    MosDecompression *m_mosDecompression = nullptr;
+
+    //! \brief the ptr to mos media copy module
+    MosMediaCopy *m_mosMediaCopy = nullptr;
 };
 #endif // #ifndef __MOS_CONTEXTNext_NEXT_H__

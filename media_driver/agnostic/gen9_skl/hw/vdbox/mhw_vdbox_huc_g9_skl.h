@@ -59,12 +59,25 @@ public:
     //!
     virtual ~MhwVdboxHucInterfaceG9Skl() { MHW_FUNCTION_ENTER; }
 
+    //!
+    //! \brief    Get huc product family
+    //!
+    //! \return   uint32_t
+    //!           Huc product family.
+    //!
+    uint32_t GetHucProductFamily() override
+    {
+        return m_hucFamilySkylake;
+    }
+
+    static const uint32_t m_hucFamilySkylake = 2;
+
 protected:
     MOS_STATUS GetHucStateCommandSize(
         uint32_t                        mode,
         uint32_t                        *commandsSize,
         uint32_t                        *patchListSize,
-        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) override;
 
     void InitMmioRegisters();
 };

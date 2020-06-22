@@ -1658,7 +1658,7 @@ public:
     bool                                        m_adaptiveRepakSupported = false;
     bool                                        m_tsEnabled = false;
     bool                                        m_superFrameHucPass = false;
-    bool                                        m_storeSingleTaskPhaseSupported; //For dynamic scaling, need to save the original state
+    bool                                        m_storeSingleTaskPhaseSupported = false; //For dynamic scaling, need to save the original state
     uint8_t                                     m_refFrameFlags = 0;
     uint8_t                                     m_numRefFrames = 0;
     uint8_t                                     m_dysRefFrameFlags = 0;
@@ -1735,7 +1735,7 @@ public:
     bool                                        m_prevFrameSegEnabled = false;
     uint32_t                                    m_vdencPictureState2ndLevelBatchBufferSize = 0;
     uint16_t                                    m_sadQpLambda = 0;
-    uint16_t                                    m_rdQpLambda;
+    uint16_t                                    m_rdQpLambda = 0;
     uint16_t                                    m_hucPicStateOffset = 0;
     uint16_t                                    m_hucSlbbSize = 0;
     uint8_t                                     m_vdencMvCosts[12] = { 0 };
@@ -1768,9 +1768,9 @@ public:
 
     uint32_t                                    m_maxTileNumber = 1;
 
-    uint32_t                                    m_bitDepth;
-    uint8_t                                     m_chromaFormat;
-    uint32_t                                    m_sizeOfSseSrcPixelRowStoreBufferPerLcu;
+    uint32_t                                    m_bitDepth = 0;
+    uint8_t                                     m_chromaFormat = 0;
+    uint32_t                                    m_sizeOfSseSrcPixelRowStoreBufferPerLcu = 0;
     PCODECHAL_CMD_INITIALIZER                   m_hucCmdInitializer = nullptr;
 
 protected:
@@ -1839,13 +1839,6 @@ public:
 
     virtual MOS_STATUS SetupSegmentationStreamIn() = 0;
 
-    //!
-    //! \brief    Create PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS.
-    //!
-    //! \return   PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS
-    //!
-    virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams();
-
     virtual void SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams);
 
     virtual void SetHcpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS& indObjBaseAddrParams);
@@ -1895,6 +1888,8 @@ public:
     virtual MOS_STATUS SetSequenceStructs();
 
     virtual MOS_STATUS SetPictureStructs();
+
+    virtual MOS_STATUS SetRowstoreCachingOffsets();
 
     //!
     //! \brief      User feature key report

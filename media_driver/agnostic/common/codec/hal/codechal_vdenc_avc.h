@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -550,6 +550,20 @@ public:
     virtual MOS_STATUS SetupROIStreamIn(
         PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
         PMOS_RESOURCE                vdencStreamIn);
+    //!
+    //! \brief    Set VDENC ForceSkip StreamIn Surface state
+    //!
+    //! \param    [in] picParams
+    //!           Pointer to CODEC_AVC_ENCODE_PIC_PARAMS.
+    //! \param    [in] vdencStreamIn
+    //!           StreamIn Surface Resource.
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetupForceSkipStreamIn(
+                                      PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
+                                      PMOS_RESOURCE                vdencStreamIn);
 
     //!
     //! \brief    Sort and set distinct delta QPs
@@ -806,12 +820,12 @@ protected:
     virtual void SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param);
 
     //!
-    //! \brief    Calculate Vdenc Picture State CommandSize 
+    //! \brief    Calculate Vdenc Commands Size
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success
     //!
-    virtual MOS_STATUS CalculateVdencPictureStateCommandSize();
+    virtual MOS_STATUS CalculateVdencCommandsSize();
 
     //!
     //! \brief    Create MHW_VDBOX_STATE_CMDSIZE_PARAMS
@@ -819,13 +833,6 @@ protected:
     //! \return   PMHW_VDBOX_STATE_CMDSIZE_PARAMS
     //!
     virtual PMHW_VDBOX_STATE_CMDSIZE_PARAMS CreateMhwVdboxStateCmdsizeParams();
-
-    //!
-    //! \brief    Create PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS.
-    //!
-    //! \return   PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS
-    //!
-    virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams();
 
     //!
     //! \brief    Create PMHW_VDBOX_AVC_IMG_PARAMS.
@@ -850,7 +857,9 @@ protected:
 
     MOS_RESOURCE                                m_vdencIntraRowStoreScratchBuffer; //!< Handle of intra row store surface
     MOS_RESOURCE                                m_pakStatsBuffer;                  //!< Handle of PAK status buffer
+    MOS_RESOURCE                                m_pakStatsBufferFull;              //!< Handle of PAK status buffer include PerMB and frame level.
     MOS_RESOURCE                                m_vdencStatsBuffer;                //!< Handle of VDEnc status buffer
+    MOS_RESOURCE                                m_vdencColocatedMVBuffer;           //!< Handle of colocated MV buffer
     MOS_RESOURCE                                m_vdencTlbMmioBuffer;              //!< VDEnc TLB MMIO buffer
 
     uint32_t                                    m_mmioMfxLra0Override = 0;         //!< Override Register MFX_LRA_0
@@ -926,9 +935,11 @@ protected:
     bool                                m_forceToSkipEnable;                                            //!< Force to Skip Flag.
     uint32_t                            m_vdencBrcInitDmemBufferSize;                                   //!< Brc Init-Dmem Buffer Size.
     uint32_t                            m_vdencBrcUpdateDmemBufferSize;                                 //!< Brc Update-Dmem Buffer Size.
+    uint32_t                            m_vdencColocatedMVBufferSize;                                     //!< Colocated MV Read / Write Buffer Size.
     bool                                m_vdencStaticFrame;                                             //!< Static Frame Indicator.
     uint32_t                            m_vdencStaticRegionPct;                                         //!< Ratio of Static Region in One Frame.
     bool                                m_oneOnOneMapping = false;                                      //!< Indicate if one on one ref index mapping is enabled
+    bool                                m_perMBStreamOutEnable;
 
     static const uint32_t TrellisQuantizationRounding[NUM_VDENC_TARGET_USAGE_MODES];
     static const bool TrellisQuantizationEnable[NUM_TARGET_USAGE_MODES];

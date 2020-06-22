@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,8 +27,66 @@
 #include "mos_interface.h"
 #include "mos_context_specific_next.h"
 #include "mos_gpucontext_specific_next.h"
+#include "mos_os_specific_next.h"
 #include "media_libva_common.h"
 #include "mos_auxtable_mgr.h"
+#include "mos_os_virtualengine_singlepipe_specific_next.h"
+#include "mos_os_virtualengine_scalability_specific_next.h"
+#include "mos_graphicsresource_specific_next.h"
+
+MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
+{
+    MOS_UNUSED(ddiDeviceContext);
+    MosUtilities::MosUtilitiesInit();
+
+    // MOS_OS_FUNCTION_ENTER need mos utilities init
+    MOS_OS_FUNCTION_ENTER;
+
+    //Read user feature key here for Per Utility Tool Enabling
+#if _RELEASE_INTERNAL
+    if (!g_perfutility->bPerfUtilityKey)
+    {
+        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+        MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MosUtilities::MosUserFeatureReadValueID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
+            &UserFeatureData);
+        g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
+
+        char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
+        MOS_USER_FEATURE_VALUE_DATA perfFilePath;
+        MOS_STATUS                  eStatus_Perf = MOS_STATUS_SUCCESS;
+
+        MosUtilities::MosZeroMemory(&perfFilePath, sizeof(perfFilePath));
+        perfFilePath.StringData.pStringData = sFilePath;
+        eStatus_Perf                        = MosUtilities::MosUserFeatureReadValueID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
+            &perfFilePath);
+        if (eStatus_Perf == MOS_STATUS_SUCCESS)
+        {
+            g_perfutility->setupFilePath(sFilePath);
+        }
+        else
+        {
+            g_perfutility->setupFilePath();
+        }
+
+        g_perfutility->bPerfUtilityKey = true;
+    }
+#endif
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::CloseOsUtilities()
+{
+    MOS_OS_FUNCTION_ENTER;
+    // Close MOS utlities
+    MosUtilities::MosUtilitiesClose();
+
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS MosInterface::CreateOsDeviceContext(DDI_DEVICE_CONTEXT ddiDeviceContext, MOS_DEVICE_HANDLE *deviceContext)
 {
@@ -40,9 +98,9 @@ MOS_STATUS MosInterface::CreateOsDeviceContext(DDI_DEVICE_CONTEXT ddiDeviceConte
     *deviceContext = MOS_New(OsContextSpecificNext);
 
     MOS_OS_CHK_NULL_RETURN(*deviceContext);
-   
+
     MOS_OS_CHK_STATUS_RETURN((*deviceContext)->Init((PMOS_CONTEXT)ddiDeviceContext));
-    
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -53,7 +111,7 @@ MOS_STATUS MosInterface::DestroyOsDeviceContext(MOS_DEVICE_HANDLE deviceContext)
     if (deviceContext)
     {
         deviceContext->CleanUp();
-        MosUtilities::MOS_Delete(deviceContext);
+        MOS_Delete(deviceContext);
         deviceContext = nullptr;
     }
 
@@ -62,15 +120,120 @@ MOS_STATUS MosInterface::DestroyOsDeviceContext(MOS_DEVICE_HANDLE deviceContext)
 
 MOS_STATUS MosInterface::CreateOsStreamState(
     MOS_STREAM_HANDLE *streamState,
-    MOS_DEVICE_HANDLE  deviceContext)
+    MOS_DEVICE_HANDLE  deviceContext,
+    MOS_INTERFACE_HANDLE osInterface,
+    MOS_COMPONENT component)
 {
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
+
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(deviceContext);
 
-    *streamState = MosUtilities::MOS_New(MosStreamState);
-    (*streamState)->osDeviceContext = deviceContext;
+    *streamState = MOS_New(MosStreamState);
+    MOS_OS_CHK_NULL_RETURN(*streamState);
+
+    (*streamState)->osDeviceContext         = deviceContext;
+    (*streamState)->component               = component;
+    (*streamState)->currentGpuContextHandle = 0;
+
+    (*streamState)->simIsActive             = false;
+    (*streamState)->mediaReset              = false;
+
+    (*streamState)->usesPatchList           = true;
+    (*streamState)->usesGfxAddress          = !(*streamState)->usesPatchList;
+
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
+        &userFeatureData);
+    (*streamState)->simIsActive = (int32_t)userFeatureData.i32Data;
+
+    // Null HW Driver
+    // 0: Disabled
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
+        &userFeatureData);
+    (*streamState)->nullHwAccelerationEnable.Value = userFeatureData.u32Data;
+#endif
+
+    // SupportVirtualEngine flag is set by Hals
+    (*streamState)->supportVirtualEngine    = false;
+    (*streamState)->useHwSemaForResSyncInVe = false;
+    (*streamState)->virtualEngineInterface  = nullptr;
+    (*streamState)->veEnable                = false;
+    (*streamState)->phasedSubmission        = true;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // read the "Force VDBOX" user feature key
+    // 0: not force
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
+        &userFeatureData);
+    (*streamState)->eForceVdbox = userFeatureData.u32Data;
+
+    // read the "Force VEBOX" user feature key
+    // 0: not force
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
+        &userFeatureData);
+    (*streamState)->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
+
+    //Read Scalable/Legacy Decode mode on Gen11+
+    //1:by default for scalable decode mode
+    //0:for legacy decode mode
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
+        &userFeatureData);
+    (*streamState)->hcpDecScalabilityMode = userFeatureData.u32Data ? true : false;
+
+    (*streamState)->frameSplit = false;
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosUserFeatureReadValueID(
+        NULL,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
+        &userFeatureData);
+    (*streamState)->frameSplit = (uint32_t)userFeatureData.i32Data;
+
+    //KMD Virtual Engine DebugOverride
+    // 0: not Override
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
+        &userFeatureData);
+    (*streamState)->enableDbgOvrdInVirtualEngine = userFeatureData.u32Data ? true : false;
+
+    // UMD Vebox Virtual Engine Scalability Mode
+    // 0: disable. can set to 1 only when KMD VE is enabled.
+    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
+        &userFeatureData);
+    (*streamState)->veboxScalabilityMode = userFeatureData.u32Data ? true : false;
+
+#endif
+
+    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    // Report if pre-si environment is in use
+    userFeatureWriteData.Value.i32Data = (*streamState)->simIsActive;
+    userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID;
+    MosUtilities::MosUserFeatureWriteValuesID(
+        nullptr,
+        &userFeatureWriteData,
+        1);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -82,8 +245,145 @@ MOS_STATUS MosInterface::DestroyOsStreamState(
 
     MOS_OS_CHK_NULL_RETURN(streamState);
 
-    MosUtilities::MOS_Delete(streamState);
+    MOS_Delete(streamState);
     streamState = nullptr;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::InitStreamParameters(
+    MOS_STREAM_HANDLE         streamState,
+    DDI_DEVICE_CONTEXT        ddiDeviceContext)
+{
+    MOS_STATUS      eStatus         = MOS_STATUS_SUCCESS;
+    PMOS_CONTEXT    context         = nullptr;
+    PMOS_CONTEXT    osDriverContext = nullptr;
+    uint32_t        resetCount      = 0;
+    int32_t         ret             = 0;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
+
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(ddiDeviceContext);
+
+    osDriverContext = (PMOS_CONTEXT)ddiDeviceContext;
+
+    MOS_OS_CHK_NULL_RETURN(osDriverContext->bufmgr);
+
+    if (0 >= osDriverContext->fd)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid fd");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
+
+    context = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
+    MOS_OS_CHK_NULL_RETURN(context);
+
+    context->m_apoMosEnabled    = true;
+    context->m_osDeviceContext  = streamState->osDeviceContext;
+    context->bSimIsActive       = streamState->simIsActive;
+
+    if (GMM_SUCCESS != OpenGmm(&context->GmmFuncs))
+    {
+        MOS_FreeMemAndSetNull(context);
+
+        MOS_OS_ASSERTMESSAGE("Unable to open gmm");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    context->pGmmClientContext  = context->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+
+    context->bufmgr             = osDriverContext->bufmgr;
+    context->m_gpuContextMgr    = osDriverContext->m_gpuContextMgr;
+    context->m_cmdBufMgr        = osDriverContext->m_cmdBufMgr;
+    context->fd                 = osDriverContext->fd;
+    context->pPerfData          = osDriverContext->pPerfData;
+    context->m_auxTableMgr      = osDriverContext->m_auxTableMgr;
+
+    mos_bufmgr_gem_enable_reuse(osDriverContext->bufmgr);
+
+    context->SkuTable           = osDriverContext->SkuTable;
+    context->WaTable            = osDriverContext->WaTable;
+    context->gtSystemInfo       = osDriverContext->gtSystemInfo;
+    context->platform           = osDriverContext->platform;
+
+    context->bUse64BitRelocs    = true;
+    context->bUseSwSwizzling    = context->bSimIsActive || MEDIA_IS_SKU(&context->SkuTable, FtrUseSwSwizzling);
+    context->bTileYFlag         = MEDIA_IS_SKU(&context->SkuTable, FtrTileY);
+
+    if (MEDIA_IS_SKU(&context->SkuTable, FtrContextBasedScheduling))
+    {
+        context->intel_context = mos_gem_context_create_ext(context->bufmgr, 0);
+        MOS_OS_CHK_NULL_RETURN(context->intel_context);
+        context->intel_context->vm = mos_gem_vm_create(context->bufmgr);
+        MOS_OS_CHK_NULL_RETURN(context->intel_context->vm);
+    }
+    else  //use legacy context create ioctl for pre-gen11 platforms
+    {
+        context->intel_context = mos_gem_context_create(context->bufmgr);
+        MOS_OS_CHK_NULL_RETURN(context->intel_context);
+        context->intel_context->vm = nullptr;
+    }
+    context->intel_context->pOsContext = context;
+    ret                                = mos_get_reset_stats(context->intel_context, &resetCount, nullptr, nullptr);
+    if (ret)
+    {
+        MOS_OS_NORMALMESSAGE("mos_get_reset_stats return error(%d)\n", ret);
+        resetCount = 0;
+    }
+    streamState->gpuResetCount    = resetCount;
+    streamState->gpuActiveBatch   = 0;
+    streamState->gpuPendingBatch  = 0;
+
+    context->bIsAtomSOC = false;
+
+#ifndef ANDROID
+    {
+        drm_i915_getparam_t gp;
+        int32_t             ret   = -1;
+        int32_t             value = 0;
+
+        //KMD support VCS2?
+        gp.value = &value;
+        gp.param = I915_PARAM_HAS_BSD2;
+
+        ret = drmIoctl(context->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+        if (ret == 0 && value != 0)
+        {
+            context->bKMDHasVCS2 = true;
+        }
+        else
+        {
+            context->bKMDHasVCS2 = false;
+        }
+    }
+    if (context->bKMDHasVCS2)
+    {
+        eStatus = OsContextSpecificNext::CreateIPC(context);
+        MOS_OS_CHK_STATUS_RETURN(eStatus);
+    }
+#endif
+
+    context->pTranscryptedKernels       = nullptr;
+    context->uiTranscryptedKernelsSize = 0;
+
+    // For Media Memory compression
+    context->ppMediaMemDecompState  = osDriverContext->ppMediaMemDecompState;
+    context->pfnMemoryDecompress    = osDriverContext->pfnMemoryDecompress;
+    context->pfnMediaMemoryCopy     = osDriverContext->pfnMediaMemoryCopy;
+    context->pfnMediaMemoryCopy2D   = osDriverContext->pfnMediaMemoryCopy2D;
+
+    context->bFreeContext = true;
+
+    // read "Linux PerformanceTag Enable" user feature key
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
+        &userFeatureData);
+    context->uEnablePerfTag = userFeatureData.u32Data;
+
+    streamState->perStreamParameters = (OS_PER_STREAM_PARAMETERS)context;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -172,16 +472,17 @@ MOS_STATUS MosInterface::CreateGpuContext(
     auto cmdBufMgr = osDeviceContext->GetCmdBufferMgr();
     MOS_OS_CHK_NULL_RETURN(cmdBufMgr);
 
-    auto pOsInterface = streamState->osInterfaceLegacy;
-    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    MOS_OS_CHK_NULL_RETURN(osParameters);
+
     if (createOption.gpuNode == MOS_GPU_NODE_3D && createOption.SSEUValue != 0)
     {
         struct drm_i915_gem_context_param_sseu sseu;
-        MosUtilities::MOS_ZeroMemory(&sseu, sizeof(sseu));
+        MosUtilities::MosZeroMemory(&sseu, sizeof(sseu));
         sseu.engine.engine_class    = I915_ENGINE_CLASS_RENDER;
         sseu.engine.engine_instance = 0;
 
-        if (mos_get_context_param_sseu(pOsInterface->pOsContext->intel_context, &sseu))
+        if (mos_get_context_param_sseu(osParameters->intel_context, &sseu))
         {
             MOS_OS_ASSERTMESSAGE("Failed to get sseu configuration.");
             return MOS_STATUS_UNKNOWN;
@@ -193,7 +494,7 @@ MOS_STATUS MosInterface::CreateGpuContext(
                 mos_hweight8(sseu.subslice_mask) - createOption.packed.SubSliceCount);
         }
 
-        if (mos_set_context_param_sseu(pOsInterface->pOsContext->intel_context, sseu))
+        if (mos_set_context_param_sseu(osParameters->intel_context, sseu))
         {
             MOS_OS_ASSERTMESSAGE("Failed to set sseu configuration.");
             return MOS_STATUS_UNKNOWN;
@@ -209,7 +510,7 @@ MOS_STATUS MosInterface::CreateGpuContext(
     auto gpuContextSpecific = static_cast<GpuContextSpecificNext *>(gpuContext);
     MOS_OS_CHK_NULL_RETURN(gpuContextSpecific);
 
-    MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), pOsInterface, gpuNode, &createOption));
+    MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), streamState, &createOption));
 
     gpuContextHandle = gpuContextSpecific->GetGpuContextHandle();
 
@@ -258,8 +559,8 @@ MOS_STATUS MosInterface::SetGpuContext(
 
 MOS_STATUS MosInterface::AddCommand(
     COMMAND_BUFFER_HANDLE cmdBuffer,
-    const void *          cmd,
-    uint32_t              cmdSize)
+    const void *cmd,
+    uint32_t cmdSize)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -283,11 +584,17 @@ MOS_STATUS MosInterface::AddCommand(
     {
         cmdBuffer->iOffset -= cmdSizeDwAligned;
         cmdBuffer->iRemaining += cmdSizeDwAligned;
-        MOS_OS_ASSERTMESSAGE("Unable to add command (no space).");
+        MOS_OS_ASSERTMESSAGE("Unable to add command: remaining space = %d, command size = %d.",
+            cmdBuffer->iRemaining,
+            cmdSizeDwAligned);
         return MOS_STATUS_UNKNOWN;
     }
 
-    MOS_SecureMemcpy(cmdBuffer->pCmdPtr, cmdSize, cmd, cmdSize);
+    MOS_OS_VERBOSEMESSAGE("The command was successfully added: remaining space = %d, buffer size = %d.",
+        cmdBuffer->iRemaining,
+        cmdBuffer->iOffset + cmdBuffer->iRemaining);
+
+    MosUtilities::MosSecureMemcpy(cmdBuffer->pCmdPtr, cmdSize, cmd, cmdSize);
     cmdBuffer->pCmdPtr += (cmdSizeDwAligned / sizeof(uint32_t));
 
     return MOS_STATUS_SUCCESS;
@@ -308,12 +615,34 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     uint32_t dwBytesWritten   = 0;
     uint32_t dwNumberOfDwords = 0;
     uint32_t dwSizeToAllocate = 0;
-    char     sFileName[MOS_MAX_HLT_FILENAME_LEN];
+    char     sFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
     // Maximum length of engine name is 6
     char sEngName[6];
+    size_t nSizeFileNamePrefix   = 0;
 
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(cmdBuffer);
+
+    // Set the name of the engine that is going to be used.
+    auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
+    MOS_OS_CHK_NULL_RETURN(gpuContext);
+    MOS_GPU_NODE gpuNode = gpuContext->GetContextNode();
+    switch (gpuNode)
+    {
+    case MOS_GPU_NODE_VIDEO:
+    case MOS_GPU_NODE_VIDEO2:
+        MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
+        break;
+    case MOS_GPU_NODE_COMPUTE:
+        MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
+        break;
+    case MOS_GPU_NODE_VE:
+        MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VEBOX_ENGINE);
+        break;
+    default:
+        MOS_OS_ASSERTMESSAGE("Unsupported GPU context.");
+        return eStatus;
+    }
 
     dwNumberOfDwords = cmdBuffer->iOffset / sizeof(uint32_t);
 
@@ -325,7 +654,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     pOutputBuffer = (char *)MOS_AllocAndZeroMemory(dwSizeToAllocate);
     MOS_OS_CHK_NULL_RETURN(pOutputBuffer);
 
-    dwBytesWritten = MosUtilities::MOS_SecureStringPrint(
+    dwBytesWritten = MosUtilities::MosSecureStringPrint(
         pOutputBuffer,
         SIZE_OF_ONE_WORD * 3,
         SIZE_OF_ONE_WORD * 3,
@@ -334,20 +663,14 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
 
     if (streamState->dumpCommandBufferToFile)
     {
-        // Set the file name.
-        eStatus = MosUtilDebug::MOS_LogFileNamePrefix(sFileName);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
-            return eStatus;
-        }
+        MosUtilities::MosSecureMemcpy(sFileName, MOS_MAX_HLT_FILENAME_LEN, streamState->sDirName, MOS_MAX_HLT_FILENAME_LEN);
 
-        MosUtilities::MOS_SecureStringPrint(
-            sFileName,
-            sizeof(sFileName),
-            sizeof(sFileName),
-            "%s%c%s%c%s_%d.txt",
-            sFileName,
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
+        MosUtilities::MosSecureStringPrint(
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s%c%s_%d.txt",
             MOS_DIR_SEPERATOR,
             MOS_COMMAND_BUFFER_OUT_DIR,
             MOS_DIR_SEPERATOR,
@@ -355,7 +678,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
             dwCommandBufferNumber);
 
         // Write the output buffer to file.
-        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MOS_WriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosWriteFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
     }
 
     if (streamState->dumpCommandBufferAsMessages)
@@ -363,13 +686,13 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
         MOS_OS_NORMALMESSAGE(pOutputBuffer);
     }
 
-    MosUtilities::MOS_ZeroMemory(pOutputBuffer, dwBytesWritten);
+    MosUtilities::MosZeroMemory(pOutputBuffer, dwBytesWritten);
     dwBytesWritten = 0;
 
     // Fill in the output buffer with the command buffer dwords.
     for (uint32_t dwIndex = 0; dwIndex < dwNumberOfDwords; dwIndex++)
     {
-        dwBytesWritten += MOS_SecureStringPrint(
+        dwBytesWritten += MosUtilities::MosSecureStringPrint(
             pOutputBuffer + dwBytesWritten,
             SIZE_OF_ONE_WORD + 1,
             SIZE_OF_ONE_WORD + 1,
@@ -380,21 +703,21 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
         {
             if (streamState->dumpCommandBufferToFile)
             {
-                MOS_OS_CHK_STATUS_RETURN(MosUtilities::MOS_AppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+                MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
             }
             if (streamState->dumpCommandBufferAsMessages)
             {
                 MOS_OS_NORMALMESSAGE(pOutputBuffer);
             }
 
-            MosUtilities::MOS_ZeroMemory(pOutputBuffer, dwBytesWritten);
+            MosUtilities::MosZeroMemory(pOutputBuffer, dwBytesWritten);
             dwBytesWritten = 0;
         }
     }
 
     if (streamState->dumpCommandBufferToFile)
     {
-        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MOS_AppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
     }
 
     if (streamState->dumpCommandBufferAsMessages)
@@ -407,6 +730,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     eStatus = MOS_STATUS_SUCCESS;
 
     return eStatus;
+
 }
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
@@ -454,9 +778,7 @@ MOS_STATUS MosInterface::SubmitCommandBuffer(
     auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-    MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy)
-
-    return (gpuContext->SubmitCommandBuffer(streamState->osInterfaceLegacy, cmdBuffer, nullRendering));
+    return (gpuContext->SubmitCommandBuffer(streamState, cmdBuffer, nullRendering));
 }
 
 MOS_STATUS MosInterface::ResetCommandBuffer(
@@ -526,7 +848,7 @@ MOS_STATUS MosInterface::SetPatchEntry(
     auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-    MOS_OS_CHK_STATUS_RETURN(gpuContext->SetPatchEntry(streamState->osInterfaceLegacy, params));
+    MOS_OS_CHK_STATUS_RETURN(gpuContext->SetPatchEntry(streamState, params));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -565,163 +887,184 @@ MOS_STATUS MosInterface::SetupIndirectState(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MosInterface::SetupAttributeVeBuffer(
+    MOS_STREAM_HANDLE     streamState,
+    COMMAND_BUFFER_HANDLE cmdBuffer)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // no VE attribute buffer to setup
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_CMD_BUF_ATTRI_VE *MosInterface::GetAttributeVeBuffer(
+        COMMAND_BUFFER_HANDLE cmdBuffer)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // no VE attribute buffer to get
+    return nullptr;
+}
+
+static GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
+{
+    //
+    // CODEC USAGES
+    //
+    GMM_RESOURCE_USAGE_BEGIN_CODEC,
+    GMM_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC,
+    GMM_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC_PARTIALENCSURFACE,
+    GMM_RESOURCE_USAGE_POST_DEBLOCKING_CODEC,
+    GMM_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE,
+    GMM_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_DECODE,
+    GMM_RESOURCE_USAGE_STREAMOUT_DATA_CODEC,
+    GMM_RESOURCE_USAGE_INTRA_ROWSTORE_SCRATCH_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC,
+    GMM_RESOURCE_USAGE_MACROBLOCK_STATUS_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE,
+    GMM_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC,
+    GMM_RESOURCE_USAGE_MFD_INDIRECT_IT_COEF_OBJECT_DECODE,
+    GMM_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC,
+    GMM_RESOURCE_USAGE_BSDMPC_ROWSTORE_SCRATCH_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_MPR_ROWSTORE_SCRATCH_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_BITPLANE_READ_CODEC,
+    GMM_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_SURFACE_CURR_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_REF_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE_FF,
+    GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE_DST,
+    GMM_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE,
+    GMM_RESOURCE_USAGE_PAK_OBJECT_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_FLATNESS_CHECK_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_MBENC_CURBE_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_MAD_ENCODE,
+    GMM_RESOURCE_USAGE_VP8_BLOCK_MODE_COST_ENCODE,
+    GMM_RESOURCE_USAGE_VP8_MB_MODE_COST_ENCODE,
+    GMM_RESOURCE_USAGE_VP8_MBENC_OUTPUT_ENCODE,
+    GMM_RESOURCE_USAGE_VP8_HISTOGRAM_ENCODE,
+    GMM_RESOURCE_USAGE_VP8_L3_LLC_ENCODE,
+    GMM_RESOURCE_USAGE_MFX_STANDALONE_DEBLOCKING_CODEC,
+    GMM_RESOURCE_USAGE_HCP_MD_CODEC,
+    GMM_RESOURCE_USAGE_HCP_SAO_CODEC,
+    GMM_RESOURCE_USAGE_HCP_MV_CODEC,
+    GMM_RESOURCE_USAGE_HCP_STATUS_ERROR_CODEC,
+    GMM_RESOURCE_USAGE_HCP_LCU_ILDB_STREAMOUT_CODEC,
+    GMM_RESOURCE_USAGE_VP9_PROBABILITY_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_VP9_SEGMENT_ID_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_VP9_HVD_ROWSTORE_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_MBDISABLE_SKIPMAP_CODEC,
+    GMM_RESOURCE_USAGE_VDENC_ROW_STORE_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_VDENC_STREAMIN_CODEC,
+    GMM_RESOURCE_USAGE_SURFACE_MB_QP_CODEC,
+    GMM_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_SSE_SRC_PIXEL_ROW_STORE_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_SLICE_STATE_STREAM_OUT_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_CABAC_SYNTAX_STREAM_OUT_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_PRED_COL_STORE_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_SURFACE_PAK_IMAGESTATE_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_MBENC_BRC_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_MB_BRC_CONST_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_BRC_MB_QP_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_BRC_ROI_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_SLICE_MAP_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_WP_DOWNSAMPLED_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_VDENC_IMAGESTATE_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_UNCACHED,
+    GMM_RESOURCE_USAGE_SURFACE_ELLC_ONLY,
+    GMM_RESOURCE_USAGE_SURFACE_ELLC_LLC_ONLY,
+    GMM_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3,
+    GMM_RESOURCE_USAGE_SURFACE_BRC_HISTORY_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_SOFTWARE_SCOREBOARD_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ME_MV_DATA_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_MV_DISTORTION_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_4XME_DISTORTION_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_INTRA_DISTORTION_ENCODE,
+    GMM_RESOURCE_USAGE_MB_STATS_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_PAK_STATS_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_READ_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_WRITE_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_COMBINED_ENC_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_BRC_CONSTANT_DATA_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_INTERMEDIATE_CU_RECORD_SURFACE_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_SCRATCH_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_LCU_LEVEL_DATA_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_INPUT_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_OUTPUT_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_DEBUG_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_CONSTANT_TABLE_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_CU_RECORD_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_MV_TEMPORAL_BUFFER_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_CU_PACKET_FOR_PAK_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED1_ENCODE,
+    GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED2_ENCODE,
+    GMM_RESOURCE_USAGE_FRAME_STATS_STREAMOUT_DATA_CODEC,
+    GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_LINE_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_COLUMN_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_HCP_MD_TILE_LINE_CODEC,
+    GMM_RESOURCE_USAGE_HCP_MD_TILE_COLUMN_CODEC,
+    GMM_RESOURCE_USAGE_HCP_SAO_TILE_LINE_CODEC,
+    GMM_RESOURCE_USAGE_HCP_SAO_TILE_COLUMN_CODEC,
+    GMM_RESOURCE_USAGE_VP9_PROBABILITY_COUNTER_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_HUC_VIRTUAL_ADDR_REGION_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_SIZE_STREAMOUT_CODEC,
+    GMM_RESOURCE_USAGE_COMPRESSED_HEADER_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_PROBABILITY_DELTA_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_TILE_RECORD_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_TILE_SIZE_STAS_BUFFER_CODEC,
+    GMM_RESOURCE_USAGE_END_CODEC,
+
+    //
+    // CM USAGES
+    //
+    CM_RESOURCE_USAGE_SurfaceState,
+    CM_RESOURCE_USAGE_StateHeap,
+    CM_RESOURCE_USAGE_NO_L3_SurfaceState,
+    CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
+    CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
+    CM_RESOURCE_USAGE_NO_ELLC_SurfaceState,
+    CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
+    CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
+    CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
+    CM_RESOURCE_USAGE_L1_Enabled_SurfaceState,
+
+    //
+    // MP USAGES
+    //
+    MP_RESOURCE_USAGE_BEGIN,
+    MP_RESOURCE_USAGE_DEFAULT,
+    MP_RESOURCE_USAGE_DEFAULT_FF,
+    MP_RESOURCE_USAGE_DEFAULT_RCS,
+    MP_RESOURCE_USAGE_SurfaceState,
+    MP_RESOURCE_USAGE_SurfaceState_FF,
+    MP_RESOURCE_USAGE_SurfaceState_RCS,
+    MP_RESOURCE_USAGE_AGE3_SurfaceState,
+    MP_RESOURCE_USAGE_EDRAM_SurfaceState,
+    MP_RESOURCE_USAGE_EDRAM_AGE3_SurfaceState,
+    MP_RESOURCE_USAGE_No_L3_SurfaceState,
+    MP_RESOURCE_USAGE_No_LLC_L3_SurfaceState,
+    MP_RESOURCE_USAGE_No_LLC_L3_AGE_SurfaceState,
+    MP_RESOURCE_USAGE_No_LLC_eLLC_L3_AGE_SurfaceState,
+    MP_RESOURCE_USAGE_PartialEnc_No_LLC_L3_AGE_SurfaceState,
+    MP_RESOURCE_USAGE_END,
+
+    // MHW - SFC
+    MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,                    //!< SFC output surface
+    MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,  //!< SFC output surface for partial secure surfaces
+    MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                    //!< SFC AVS Line buffer Surface
+    MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                    //!< SFC IEF Line buffer Surface
+
+};
+
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetCachePolicyMemoryObject(
     MOS_STREAM_HANDLE   streamState,
     MOS_HW_RESOURCE_DEF mosUsage)
 {
     MOS_OS_FUNCTION_ENTER;
-
-    GMM_RESOURCE_USAGE_TYPE GmmResourceUsage[MOS_HW_RESOURCE_DEF_MAX] =
-    {
-        //
-        // CODEC USAGES
-        //
-        GMM_RESOURCE_USAGE_BEGIN_CODEC,
-        GMM_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC,
-        GMM_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC_PARTIALENCSURFACE,
-        GMM_RESOURCE_USAGE_POST_DEBLOCKING_CODEC,
-        GMM_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE,
-        GMM_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_DECODE,
-        GMM_RESOURCE_USAGE_STREAMOUT_DATA_CODEC,
-        GMM_RESOURCE_USAGE_INTRA_ROWSTORE_SCRATCH_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC,
-        GMM_RESOURCE_USAGE_MACROBLOCK_STATUS_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE,
-        GMM_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC,
-        GMM_RESOURCE_USAGE_MFD_INDIRECT_IT_COEF_OBJECT_DECODE,
-        GMM_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC,
-        GMM_RESOURCE_USAGE_BSDMPC_ROWSTORE_SCRATCH_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_MPR_ROWSTORE_SCRATCH_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_BITPLANE_READ_CODEC,
-        GMM_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_SURFACE_CURR_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_REF_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_MV_DATA_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_HME_DOWNSAMPLED_ENCODE_DST,
-        GMM_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_BRC_ME_DISTORTION_ENCODE,
-        GMM_RESOURCE_USAGE_PAK_OBJECT_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_FLATNESS_CHECK_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_MBENC_CURBE_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_MAD_ENCODE,
-        GMM_RESOURCE_USAGE_VP8_BLOCK_MODE_COST_ENCODE,
-        GMM_RESOURCE_USAGE_VP8_MB_MODE_COST_ENCODE,
-        GMM_RESOURCE_USAGE_VP8_MBENC_OUTPUT_ENCODE,
-        GMM_RESOURCE_USAGE_VP8_HISTOGRAM_ENCODE,
-        GMM_RESOURCE_USAGE_VP8_L3_LLC_ENCODE,
-        GMM_RESOURCE_USAGE_MFX_STANDALONE_DEBLOCKING_CODEC,
-        GMM_RESOURCE_USAGE_HCP_MD_CODEC,
-        GMM_RESOURCE_USAGE_HCP_SAO_CODEC,
-        GMM_RESOURCE_USAGE_HCP_MV_CODEC,
-        GMM_RESOURCE_USAGE_HCP_STATUS_ERROR_CODEC,
-        GMM_RESOURCE_USAGE_HCP_LCU_ILDB_STREAMOUT_CODEC,
-        GMM_RESOURCE_USAGE_VP9_PROBABILITY_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_VP9_SEGMENT_ID_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_VP9_HVD_ROWSTORE_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_MBDISABLE_SKIPMAP_CODEC,
-        GMM_RESOURCE_USAGE_VDENC_ROW_STORE_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_VDENC_STREAMIN_CODEC,
-        GMM_RESOURCE_USAGE_SURFACE_MB_QP_CODEC,
-        GMM_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_SSE_SRC_PIXEL_ROW_STORE_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_SLICE_STATE_STREAM_OUT_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_CABAC_SYNTAX_STREAM_OUT_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_PRED_COL_STORE_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_SURFACE_PAK_IMAGESTATE_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_MBENC_BRC_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_MB_BRC_CONST_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_BRC_MB_QP_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_BRC_ROI_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_SLICE_MAP_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_WP_DOWNSAMPLED_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_VDENC_IMAGESTATE_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_UNCACHED,
-        GMM_RESOURCE_USAGE_SURFACE_ELLC_ONLY,
-        GMM_RESOURCE_USAGE_SURFACE_ELLC_LLC_ONLY,
-        GMM_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3,
-        GMM_RESOURCE_USAGE_SURFACE_BRC_HISTORY_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_SOFTWARE_SCOREBOARD_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ME_MV_DATA_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_MV_DISTORTION_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_4XME_DISTORTION_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_INTRA_DISTORTION_ENCODE,
-        GMM_RESOURCE_USAGE_MB_STATS_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_PAK_STATS_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_READ_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_PIC_STATE_WRITE_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_COMBINED_ENC_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_BRC_CONSTANT_DATA_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_INTERMEDIATE_CU_RECORD_SURFACE_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_SCRATCH_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_LCU_LEVEL_DATA_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_INPUT_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_HISTORY_OUTPUT_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_DEBUG_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_CONSTANT_TABLE_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_CU_RECORD_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_MV_TEMPORAL_BUFFER_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_CU_PACKET_FOR_PAK_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED1_ENCODE,
-        GMM_RESOURCE_USAGE_SURFACE_ENC_BCOMBINED2_ENCODE,
-        GMM_RESOURCE_USAGE_FRAME_STATS_STREAMOUT_DATA_CODEC,
-        GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_LINE_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_TILE_COLUMN_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_HCP_MD_TILE_LINE_CODEC,
-        GMM_RESOURCE_USAGE_HCP_MD_TILE_COLUMN_CODEC,
-        GMM_RESOURCE_USAGE_HCP_SAO_TILE_LINE_CODEC,
-        GMM_RESOURCE_USAGE_HCP_SAO_TILE_COLUMN_CODEC,
-        GMM_RESOURCE_USAGE_VP9_PROBABILITY_COUNTER_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_HUC_VIRTUAL_ADDR_REGION_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_SIZE_STREAMOUT_CODEC,
-        GMM_RESOURCE_USAGE_COMPRESSED_HEADER_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_PROBABILITY_DELTA_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_TILE_RECORD_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_TILE_SIZE_STAS_BUFFER_CODEC,
-        GMM_RESOURCE_USAGE_END_CODEC,
-
-        //
-        // CM USAGES
-        //
-        CM_RESOURCE_USAGE_SurfaceState,
-        CM_RESOURCE_USAGE_StateHeap,
-        CM_RESOURCE_USAGE_NO_L3_SurfaceState,
-        CM_RESOURCE_USAGE_NO_LLC_ELLC_SurfaceState,
-        CM_RESOURCE_USAGE_NO_LLC_SurfaceState,
-        CM_RESOURCE_USAGE_NO_ELLC_SurfaceState,
-        CM_RESOURCE_USAGE_NO_LLC_L3_SurfaceState,
-        CM_RESOURCE_USAGE_NO_ELLC_L3_SurfaceState,
-        CM_RESOURCE_USAGE_NO_CACHE_SurfaceState,
-        CM_RESOURCE_USAGE_L1_Enabled_SurfaceState,
-
-        //
-        // MP USAGES
-        //
-        MP_RESOURCE_USAGE_BEGIN,
-        MP_RESOURCE_USAGE_DEFAULT,
-        MP_RESOURCE_USAGE_DEFAULT_FF,
-        MP_RESOURCE_USAGE_DEFAULT_RCS,
-        MP_RESOURCE_USAGE_SurfaceState,
-        MP_RESOURCE_USAGE_SurfaceState_FF,
-        MP_RESOURCE_USAGE_SurfaceState_RCS,
-        MP_RESOURCE_USAGE_AGE3_SurfaceState,
-        MP_RESOURCE_USAGE_EDRAM_SurfaceState,
-        MP_RESOURCE_USAGE_EDRAM_AGE3_SurfaceState,
-        MP_RESOURCE_USAGE_No_L3_SurfaceState,
-        MP_RESOURCE_USAGE_No_LLC_L3_SurfaceState,
-        MP_RESOURCE_USAGE_No_LLC_L3_AGE_SurfaceState,
-        MP_RESOURCE_USAGE_No_LLC_eLLC_L3_AGE_SurfaceState,
-        MP_RESOURCE_USAGE_PartialEnc_No_LLC_L3_AGE_SurfaceState,
-        MP_RESOURCE_USAGE_END,
-
-        // MHW - SFC
-        MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,                    //!< SFC output surface
-        MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,  //!< SFC output surface for partial secure surfaces
-        MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,                    //!< SFC AVS Line buffer Surface
-        MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,                    //!< SFC IEF Line buffer Surface
-
-    };
 
     //auto gmmClientContext = MosInterface::GetGmmClientContext(streamState);
     // Force convert to stream handle for wrapper
@@ -739,6 +1082,14 @@ MEMORY_OBJECT_CONTROL_STATE MosInterface::GetCachePolicyMemoryObject(
     }
 
     return {0};
+}
+
+uint8_t MosInterface::GetCachePolicyL1Config(
+    MOS_STREAM_HANDLE streamState,
+    MOS_HW_RESOURCE_DEF mosUsage)
+{
+    MOS_OS_FUNCTION_ENTER;
+    return 0;
 }
 
 MOS_STATUS MosInterface::ConvertResourceFromDdi(
@@ -792,6 +1143,12 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         case Media_Format_R8G8B8:
             resource->Format = Format_R8G8B8;
             break;
+        case Media_Format_RGBP:
+            resource->Format = Format_RGBP;
+            break;
+        case Media_Format_BGRP:
+            resource->Format = Format_BGRP;
+            break;
         case Media_Format_444P:
             resource->Format = Format_444P;
             break;
@@ -815,6 +1172,7 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         case Media_Format_P010:
             resource->Format = Format_P010;
             break;
+        case Media_Format_P012:
         case Media_Format_P016:
             resource->Format = Format_P016;
             break;
@@ -843,9 +1201,11 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
             resource->Format = Format_Y16U;
             break;
         case Media_Format_R10G10B10A2:
+        case Media_Format_R10G10B10X2:
             resource->Format = Format_R10G10B10A2;
             break;
         case Media_Format_B10G10R10A2:
+        case Media_Format_B10G10R10X2:
             resource->Format = Format_B10G10R10A2;
             break;
         case Media_Format_UYVY:
@@ -969,8 +1329,16 @@ MOS_STATUS MosInterface::DestroySpecificResourceInfo(OsSpecificRes resource)
 MOS_STATUS MosInterface::AllocateResource(
     MOS_STREAM_HANDLE        streamState,
     PMOS_ALLOC_GFXRES_PARAMS params,
-    MOS_RESOURCE_HANDLE     &resource)
+    MOS_RESOURCE_HANDLE      &resource
+#if MOS_MESSAGES_ENABLED
+    ,
+    const char              *functionName,
+    const char              *filename,
+    int32_t                 line
+#endif
+)
 {
+    MOS_STATUS estatus = MOS_STATUS_SUCCESS;
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(resource);
@@ -985,204 +1353,44 @@ MOS_STATUS MosInterface::AllocateResource(
 
         GraphicsResourceNext::CreateParams createParams(params);
         auto eStatus = resource->pGfxResourceNext->Allocate(streamState->osDeviceContext, createParams);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_ASSERTMESSAGE("Allocate graphic resource failed");
-            return MOS_STATUS_INVALID_HANDLE;
-        }
-        
+        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Allocate graphic resource failed");
+
         eStatus = resource->pGfxResourceNext->ConvertToMosResource(resource);
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            MOS_OS_ASSERTMESSAGE("Convert graphic resource failed");
-            return MOS_STATUS_INVALID_HANDLE;
-        }
-
-        return eStatus;
-    }
-
-    const char *bufname = params->pBufName;;
-    int32_t iSize = 0;
-    int32_t iPitch = 0;
-    unsigned long ulPitch = 0;
-    MOS_LINUX_BO *bo = nullptr;
-    MOS_TILE_TYPE tileformat = params->TileType;
-    uint32_t tileformat_linux = I915_TILING_NONE;
-    int32_t iHeight = params->dwHeight;
-    int32_t iAlignedHeight = 0;
-    GMM_RESCREATE_PARAMS gmmParams;
-    GMM_RESOURCE_INFO *gmmResourceInfo = nullptr;
-    GMM_RESOURCE_TYPE resourceType = RESOURCE_2D;
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    MosUtilities::MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-
-    MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy);
-    auto pOsInterface = streamState->osInterfaceLegacy;
-
-    if (nullptr == pOsInterface->pOsContext)
-    {
-        MOS_OS_ASSERTMESSAGE("input parameter pOsInterface->pOsContext is NULL.");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-    switch (params->Format)
-    {
-    case Format_Buffer:
-    case Format_RAW:
-        resourceType   = RESOURCE_BUFFER;
-        iAlignedHeight = 1;
-        //indicate buffer Restriction is Vertex.
-        gmmParams.Flags.Gpu.State = true;
-        break;
-    case Format_L8:
-    case Format_L16:
-    case Format_STMM:
-    case Format_AI44:
-    case Format_IA44:
-    case Format_R5G6B5:
-    case Format_R8G8B8:
-    case Format_X8R8G8B8:
-    case Format_A8R8G8B8:
-    case Format_X8B8G8R8:
-    case Format_A8B8G8R8:
-    case Format_R32S:
-    case Format_R32F:
-    case Format_V8U8:
-    case Format_YUY2:
-    case Format_UYVY:
-    case Format_P8:
-    case Format_A8:
-    case Format_AYUV:
-    case Format_NV12:
-    case Format_NV21:
-    case Format_YV12:
-    case Format_Buffer_2D:
-    case Format_R32U:
-    case Format_444P:
-    case Format_422H:
-    case Format_422V:
-    case Format_IMC3:
-    case Format_411P:
-    case Format_411R:
-    case Format_RGBP:
-    case Format_BGRP:
-    case Format_R16U:
-    case Format_R8U:
-    case Format_P010:
-    case Format_P016:
-    case Format_Y216:
-    case Format_Y416:
-    case Format_P208:
-    case Format_Y210:
-    case Format_Y410:
-        resourceType = RESOURCE_2D;
-        //indicate buffer Restriction is Planar surface restrictions.
-        gmmParams.Flags.Gpu.Video = true;
-        break;
-    default:
-        MOS_OS_ASSERTMESSAGE("Unsupported format");
-        eStatus = MOS_STATUS_UNIMPLEMENTED;
-        return eStatus;
-    }
-
-    // Create GmmResourceInfo
-    gmmParams.BaseWidth  = params->dwWidth;
-    gmmParams.BaseHeight = iAlignedHeight;
-    gmmParams.ArraySize  = 1;
-    gmmParams.Type       = resourceType;
-    gmmParams.Format     = MosOsSpecificNext::Mos_Specific_ConvertMosFmtToGmmFmt(params->Format);
-
-    MOS_OS_CHECK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID,
-        "Unsupported format",
-        MOS_STATUS_UNKNOWN);
-
-    switch (tileformat)
-    {
-    case MOS_TILE_Y:
-        gmmParams.Flags.Gpu.MMC = params->bIsCompressed;
-        tileformat_linux        = I915_TILING_Y;
-        break;
-    case MOS_TILE_X:
-        gmmParams.Flags.Info.TiledX = true;
-        tileformat_linux            = I915_TILING_X;
-        break;
-    default:
-        gmmParams.Flags.Info.Linear = true;
-        tileformat_linux            = I915_TILING_NONE;
-    }
-    gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrLocalMemory);
-
-    resource->pGmmResInfo = gmmResourceInfo = pOsInterface->pOsContext->pGmmClientContext->CreateResInfoObject(&gmmParams);
-
-    MOS_OS_CHK_NULL_RETURN(gmmResourceInfo);
-
-    switch (gmmResourceInfo->GetTileType())
-    {
-    case GMM_TILED_X:
-        tileformat       = MOS_TILE_X;
-        tileformat_linux = I915_TILING_X;
-        break;
-    case GMM_TILED_Y:
-        tileformat       = MOS_TILE_Y;
-        tileformat_linux = I915_TILING_Y;
-        break;
-    case GMM_NOT_TILED:
-        tileformat       = MOS_TILE_LINEAR;
-        tileformat_linux = I915_TILING_NONE;
-        break;
-    default:
-        tileformat       = MOS_TILE_Y;
-        tileformat_linux = I915_TILING_Y;
-        break;
-    }
-
-    if (params->TileType == MOS_TILE_Y)
-    {
-        gmmResourceInfo->SetMmcMode((GMM_RESOURCE_MMC_INFO)params->CompressionMode, 0);
-    }
-
-    iPitch  = GFX_ULONG_CAST(gmmResourceInfo->GetRenderPitch());
-    iSize   = GFX_ULONG_CAST(gmmResourceInfo->GetSizeSurface());
-    iHeight = gmmResourceInfo->GetBaseHeight();
-
-    // Only Linear and Y TILE supported
-    if (tileformat_linux == I915_TILING_NONE)
-    {
-        bo = mos_bo_alloc(pOsInterface->pOsContext->bufmgr, bufname, iSize, 4096);
+        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Convert graphic resource failed");
     }
     else
     {
-        bo     = mos_bo_alloc_tiled(pOsInterface->pOsContext->bufmgr, bufname, iPitch, iSize / iPitch, 1, &tileformat_linux, &ulPitch, 0);
-        iPitch = (int32_t)ulPitch;
+        estatus = GraphicsResourceSpecificNext::AllocateExternalResource(streamState, params, resource);
+        MOS_OS_CHK_STATUS_MESSAGE_RETURN(estatus, "Allocate external graphic resource failed");
     }
 
-    resource->bMapped = false;
-    if (bo)
-    {
-        resource->Format   = params->Format;
-        resource->iWidth   = params->dwWidth;
-        resource->iHeight  = iHeight;
-        resource->iPitch   = iPitch;
-        resource->iCount   = 0;
-        resource->bufname  = bufname;
-        resource->bo       = bo;
-        resource->TileType = tileformat;
-        resource->pData    = (uint8_t *)bo->virt;  //It is useful for batch buffer to fill commands
-        MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).", iSize, params->dwWidth, iHeight);
-    }
-    else
-    {
-        MOS_OS_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource).", iSize, params->dwWidth, params->dwHeight);
-        eStatus = MOS_STATUS_NO_SPACE;
-    }
+    MOS_OS_CHK_NULL_RETURN(resource->pGmmResInfo);
+    MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocCounterGfx);
 
-    return eStatus;
+    MOS_MEMNINJA_GFX_ALLOC_MESSAGE(
+        resource->pGmmResInfo,
+        params->pBufName,
+        streamState->component,
+        (uint32_t)resource->pGmmResInfo->GetSizeSurface(),
+        params->dwArraySize,
+        functionName,
+        filename,
+        line);
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MosInterface::FreeResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,
-    uint32_t            flag)
+    uint32_t            flag
+#if MOS_MESSAGES_ENABLED
+    ,
+    const char          *functionName,
+    const char          *filename,
+    int32_t             line
+#endif  // MOS_MESSAGES_ENABLED
+)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -1190,7 +1398,11 @@ MOS_STATUS MosInterface::FreeResource(
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
 
-    if (!resource->bConvertedFromDDIResource && resource->pGfxResourceNext)
+    bool osContextValid = streamState->osDeviceContext->GetOsContextValid();
+
+    bool byPassMod = !((!resource->bConvertedFromDDIResource) && (osContextValid == true) && (resource->pGfxResourceNext));
+
+    if (!byPassMod)
     {
         if (resource && resource->pGfxResourceNext)
         {
@@ -1203,54 +1415,31 @@ MOS_STATUS MosInterface::FreeResource(
         MOS_Delete(resource->pGfxResourceNext);
         resource->pGfxResourceNext = nullptr;
 
+        MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounterGfx);
+        MOS_MEMNINJA_GFX_FREE_MESSAGE(resource->pGmmResInfo, functionName, filename, line);
+        MosUtilities::MosZeroMemory(resource, sizeof(*resource));
+
         return MOS_STATUS_SUCCESS;
     }
 
-    if (resource && resource->bo)
+    MOS_STATUS status = GraphicsResourceSpecificNext::FreeExternalResource(streamState, resource, flag);
+
+    if (resource->pGmmResInfo != nullptr &&
+        streamState->perStreamParameters != nullptr)
     {
-        OsContextSpecificNext *osCtx = static_cast<OsContextSpecificNext *>(streamState->osDeviceContext);
-        if (osCtx == nullptr)
+        PMOS_CONTEXT perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+        if (perStreamParameters && perStreamParameters->pGmmClientContext)
         {
-            MOS_OS_ASSERTMESSAGE("osCtx is nullptr!");
-            return MOS_STATUS_NULL_POINTER;
+            MosUtilities::m_mosMemAllocCounterGfx--;
+            MOS_MEMNINJA_GFX_FREE_MESSAGE(resource->pGmmResInfo, functionName, filename, line);
+
+            perStreamParameters->pGmmClientContext->DestroyResInfoObject(resource->pGmmResInfo);
+
+            resource->pGmmResInfo = nullptr;
         }
-        else
-        {
-            AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
-
-            // Unmap Resource from Aux Table
-            if (auxTableMgr)
-            {
-                auxTableMgr->UnmapResource(resource->pGmmResInfo, resource->bo);
-            }
-        }
-
-        mos_bo_unreference((MOS_LINUX_BO *)(resource->bo));
-
-        MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy);
-        auto pOsInterface = streamState->osInterfaceLegacy;
-        if (pOsInterface->pOsContext != nullptr && pOsInterface->pOsContext->contextOffsetList.size())
-        {
-            MOS_CONTEXT *pOsCtx   = pOsInterface->pOsContext;
-            auto         item_ctx = pOsCtx->contextOffsetList.begin();
-
-            for (; item_ctx != pOsCtx->contextOffsetList.end();)
-            {
-                if (item_ctx->target_bo == resource->bo)
-                {
-                    item_ctx = pOsCtx->contextOffsetList.erase(item_ctx);
-                }
-                else
-                {
-                    item_ctx++;
-                }
-            }
-        }
-
-        resource->bo = nullptr;
     }
 
-    return MOS_STATUS_SUCCESS;
+    return status;
 }
 
 MOS_STATUS MosInterface::GetResourceInfo(
@@ -1276,7 +1465,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     gmmFlags = gmmResourceInfo->GetResFlags();
 
     // Get resource information
-    if (resource->bUsrPtrMode)
+    if (resource->b16UsrPtrMode)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         details.dwWidth         = resource->iWidth;
@@ -1305,6 +1494,8 @@ MOS_STATUS MosInterface::GetResourceInfo(
         return MOS_STATUS_INVALID_PARAMETER;
     }
     // check resource's tile type
+    details.TileModeGMM     = (MOS_TILE_MODE_GMM)gmmResourceInfo->GetTileModeSurfaceState();
+    details.bGMMTileEnabled = true;
     switch (gmmResourceInfo->GetTileType())
     {
     case GMM_TILED_Y:
@@ -1334,7 +1525,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     details.Format   = resource->Format;
 
     // Get planes
-    if (resource->bUsrPtrMode)
+    if (resource->b16UsrPtrMode || resource->bExternalSurface)
     {
         // if usrptr surface, do not query those values from gmm, app will configure them.
         details.RenderOffset.YUV.Y.BaseOffset = resource->YPlaneOffset.iSurfaceOffset;
@@ -1347,7 +1538,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     }
     else
     {
-        MosUtilities::MOS_ZeroMemory(reqInfo, sizeof(reqInfo));
+        MosUtilities::MosZeroMemory(reqInfo, sizeof(reqInfo));
         gmmChannel = GMM_DISPLAY_BASE;
         // Get the base offset of the surface (plane Y)
         reqInfo[2].ReqRender = true;
@@ -1428,81 +1619,7 @@ void *MosInterface::LockMosResource(
         return pData;
     }
 
-    if (streamState->osInterfaceLegacy == nullptr)
-    {
-        MOS_OS_ASSERTMESSAGE("osInterfaceLegacy is nullptr, skip lock");
-        return nullptr;
-    }
-    auto pOsInterface = streamState->osInterfaceLegacy;
-    auto pContext = pOsInterface->pOsContext;
-    if (resource && resource->bo && resource->pGmmResInfo)
-    {
-        MOS_LINUX_BO *bo = resource->bo;
-
-        // Do decompression for a compressed surface before lock
-        if (!flags->NoDecompress &&
-            resource->pGmmResInfo->IsMediaMemoryCompressed(0))
-        {
-            PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
-
-            MOS_OS_ASSERT(pOsContext);
-            MOS_OS_ASSERT(pOsContext->ppMediaMemDecompState);
-            MOS_OS_ASSERT(pOsContext->pfnMemoryDecompress);
-            pOsContext->pfnMemoryDecompress(pOsContext, resource);
-        }
-
-        if (false == resource->bMapped)
-        {
-            if (pContext->bIsAtomSOC)
-            {
-                mos_gem_bo_map_gtt(bo);
-            }
-            else
-            {
-                if (resource->TileType != MOS_TILE_LINEAR && !flags->TiledAsTiled)
-                {
-                    if (pContext->bUseSwSwizzling)
-                    {
-                        mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY & flags->WriteOnly));
-                        resource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
-                        if (resource->pSystemShadow == nullptr)
-                        {
-                            resource->pSystemShadow = (uint8_t *)MOS_AllocMemory(bo->size);
-                            MOS_OS_CHECK_CONDITION((resource->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
-                        }
-                        if (resource->pSystemShadow)
-                        {
-                            int32_t swizzleflags = pContext->bTileYFlag ? 0 : 1;
-                            MOS_OS_CHECK_CONDITION((resource->TileType != MOS_TILE_Y), "Unsupported tile type", nullptr);
-                            MOS_OS_CHECK_CONDITION((bo->size <= 0 || resource->iPitch <= 0), "Invalid BO size or pitch", nullptr);
-                            Mos_SwizzleData((uint8_t *)bo->virt, resource->pSystemShadow, MOS_TILE_Y, MOS_TILE_LINEAR, bo->size / resource->iPitch, resource->iPitch, swizzleflags);
-                        }
-                    }
-                    else
-                    {
-                        mos_gem_bo_map_gtt(bo);
-                        resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_GTT;
-                    }
-                }
-                else if (flags->Uncached)
-                {
-                    mos_gem_bo_map_wc(bo);
-                    resource->MmapOperation = MOS_MMAP_OPERATION_MMAP_WC;
-                }
-                else
-                {
-                    mos_bo_map(bo, (OSKM_LOCKFLAG_WRITEONLY & flags->WriteOnly));
-                    resource->MmapOperation = MOS_MMAP_OPERATION_MMAP;
-                }
-            }
-            resource->pData   = resource->pSystemShadow ? resource->pSystemShadow : (uint8_t *)bo->virt;
-            resource->bMapped = true;
-        }
-
-        pData = resource->pData;
-    }
-
-    MOS_OS_ASSERT(pData);
+    pData = GraphicsResourceSpecificNext::LockExternalResource(streamState, resource, flags);
     return pData;
 }
 
@@ -1531,49 +1648,7 @@ MOS_STATUS MosInterface::UnlockMosResource(
         return eStatus;
     }
 
-    MOS_OS_CHK_NULL_RETURN(streamState->osInterfaceLegacy);
-    auto pOsInterface = streamState->osInterfaceLegacy;
-    auto pContext = pOsInterface->pOsContext;
-
-    if (resource->bo)
-    {
-        if (true == resource->bMapped)
-        {
-            if (pContext->bIsAtomSOC)
-            {
-                mos_gem_bo_unmap_gtt(resource->bo);
-            }
-            else
-            {
-                if (resource->pSystemShadow)
-                {
-                    int32_t flags = pContext->bTileYFlag ? 0 : 1;
-                    Mos_SwizzleData(resource->pSystemShadow, (uint8_t *)resource->bo->virt, MOS_TILE_LINEAR, MOS_TILE_Y, resource->bo->size / resource->iPitch, resource->iPitch, flags);
-                    MOS_FreeMemory(resource->pSystemShadow);
-                    resource->pSystemShadow = nullptr;
-                }
-
-                switch (resource->MmapOperation)
-                {
-                case MOS_MMAP_OPERATION_MMAP_GTT:
-                    mos_gem_bo_unmap_gtt(resource->bo);
-                    break;
-                case MOS_MMAP_OPERATION_MMAP_WC:
-                    mos_gem_bo_unmap_wc(resource->bo);
-                    break;
-                case MOS_MMAP_OPERATION_MMAP:
-                    mos_bo_unmap(resource->bo);
-                    break;
-                default:
-                    MOS_OS_ASSERTMESSAGE("Invalid mmap operation type");
-                    break;
-                }
-            }
-            resource->bo->virt = nullptr;
-            resource->bMapped  = false;
-        }
-        resource->pData = nullptr;
-    }
+    eStatus = GraphicsResourceSpecificNext::UnlockExternalResource(streamState, resource);
 
     return eStatus;
 }
@@ -1581,9 +1656,7 @@ MOS_STATUS MosInterface::UnlockMosResource(
 MOS_STATUS MosInterface::RegisterResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,
-    bool                write,
-    uint32_t            streamIndex,
-    uint32_t            gpuContextOrdinal)
+    bool                write)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -1602,10 +1675,15 @@ uint64_t MosInterface::GetResourceGfxAddress(
     MOS_RESOURCE_HANDLE resource)
 {
     MOS_OS_FUNCTION_ENTER;
+    
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(resource);
 
-    // UMD cannot get gfx address of resource before patched
-
-    return 0;
+    if (!mos_gem_bo_is_softpin(resource->bo))
+    {
+        mos_bo_set_softpin(resource->bo);
+    }
+    return resource->bo->offset64;
 }
 
 uint32_t MosInterface::GetResourceAllocationIndex(
@@ -1627,8 +1705,21 @@ MOS_STATUS MosInterface::SkipResourceSync(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::ResourceSync(
+MOS_STATUS SyncOnResource(
+    MOS_STREAM_HANDLE streamState,
     MOS_RESOURCE_HANDLE resource,
+    bool writeOperation,
+    GPU_CONTEXT_HANDLE requsetorGpuContext)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // No need to do sync on resource
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::ResourceSyncCallback(
+    OsSpecificRes       resource,
     MOS_DEVICE_HANDLE   deviceContext,
     uint32_t            index,
     SYNC_HAZARD         hazardType,
@@ -1643,8 +1734,8 @@ MOS_STATUS MosInterface::ResourceSync(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::LockSync(
-    MOS_RESOURCE_HANDLE resource,
+MOS_STATUS MosInterface::LockSyncCallback(
+    OsSpecificRes       resource,
     MOS_DEVICE_HANDLE   deviceContext,
     uint32_t            index,
     SYNC_HAZARD         hazardType,
@@ -1659,6 +1750,7 @@ MOS_STATUS MosInterface::LockSync(
 }
 
 MOS_STATUS MosInterface::TrimResidency(
+    MOS_DEVICE_HANDLE device,
     bool      periodicTrim,
     bool      restartPeriodicTrim,
     uint64_t &numBytesToTrim,
@@ -1672,11 +1764,14 @@ MOS_STATUS MosInterface::TrimResidency(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::DecompResource(
-    MOS_STREAM_HANDLE   streamState,
-    MOS_RESOURCE_HANDLE resource)
+MOS_STATUS UpdateResidency(
+    MOS_DEVICE_HANDLE device,
+    OsSpecificRes     resInfo,
+    uint32_t          index)
 {
     MOS_OS_FUNCTION_ENTER;
+
+    // No residency to update
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1731,13 +1826,20 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
     MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
 
     MOS_OS_CHK_NULL_RETURN(resource);
-    MosUtilities::MOS_ZeroMemory(&flags, sizeof(GMM_RESOURCE_FLAG));
+    MosUtilities::MosZeroMemory(&flags, sizeof(GMM_RESOURCE_FLAG));
 
     // Get Gmm resource info
     gmmResourceInfo = (GMM_RESOURCE_INFO *)resource->pGmmResInfo;
     MOS_OS_CHK_NULL_RETURN(gmmResourceInfo);
 
     flags = resource->pGmmResInfo->GetResFlags();
+
+    if (!flags.Gpu.MMC || !flags.Gpu.CCS)
+    {
+        resMmcMode = MOS_MEMCOMP_DISABLED;
+        return MOS_STATUS_SUCCESS;
+    }
+
     if (flags.Info.MediaCompressed || flags.Info.RenderCompressed)
     {
         resMmcMode = flags.Info.RenderCompressed ? MOS_MEMCOMP_RC : MOS_MEMCOMP_MC;
@@ -1757,6 +1859,20 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
             resMmcMode = MOS_MEMCOMP_DISABLED;
             break;
         }
+    }
+
+    uint32_t          MmcFormat = 0;
+    GMM_RESOURCE_FORMAT gmmResFmt;
+    gmmResFmt = gmmResourceInfo->GetResourceFormat();
+    auto skuTable = GetSkuTable(streamState);
+    MOS_OS_CHK_NULL_RETURN(MosInterface::GetGmmClientContext(streamState));
+    MOS_OS_CHK_NULL_RETURN(skuTable);
+
+    if (resMmcMode == MOS_MEMCOMP_MC         &&
+       (!MEDIA_IS_SKU(skuTable, FtrFlatPhysCCS)))
+    {
+        MmcFormat = static_cast<uint32_t>(MosInterface::GetGmmClientContext(streamState)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+        resMmcMode = (MmcFormat != 0) ? resMmcMode : MOS_MEMCOMP_DISABLED;
     }
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -1793,10 +1909,167 @@ MOS_STATUS MosInterface::GetMemoryCompressionFormat(
     uint32_t *          resMmcFormat)
 {
     MOS_OS_FUNCTION_ENTER;
+    
+    MOS_STATUS         eStatus = MOS_STATUS_UNKNOWN;
+    PGMM_RESOURCE_INFO pGmmResourceInfo;
 
-    // No GMM GetResourceFormat() in Linux project
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(resource);
+    MOS_OS_CHK_NULL_RETURN(resMmcFormat);
+
+    pGmmResourceInfo = (GMM_RESOURCE_INFO *)resource->pGmmResInfo;
+    MOS_OS_CHK_NULL_RETURN(pGmmResourceInfo);
+    MOS_OS_CHK_NULL_RETURN(MosInterface::GetGmmClientContext(streamState));
+    // Get compression format from GMM RESOURCE FORMAT
+    GMM_RESOURCE_FORMAT gmmResFmt;
+    gmmResFmt = pGmmResourceInfo->GetResourceFormat();
+    MOS_MEMCOMP_STATE MmcMode   = MOS_MEMCOMP_DISABLED;
+    uint32_t          MmcFormat = 0;
+    MosInterface::GetMemoryCompressionMode(streamState, resource, MmcMode);
+    switch (MmcMode)
+    {
+    case MOS_MEMCOMP_MC:
+         MmcFormat = static_cast<uint32_t>(MosInterface::GetGmmClientContext(streamState)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+         break;
+    case MOS_MEMCOMP_RC:
+         MmcFormat = static_cast<uint32_t>(MosInterface::GetGmmClientContext(streamState)->GetSurfaceStateCompressionFormat(gmmResFmt));
+         break;
+    default:
+          MmcFormat = 0;
+    }
+
+    if (MmcFormat > 0x1F)
+    {
+        MOS_OS_ASSERTMESSAGE("Get a incorrect Compression format(%d) from GMM", MmcFormat); 
+    }
+    else
+    {
+        *resMmcFormat = MmcFormat;
+        MOS_OS_VERBOSEMESSAGE("GMM compression mode %d, compression format %d", MmcMode, MmcFormat);
+    }
+
+    eStatus = MOS_STATUS_SUCCESS;
+    
+    return eStatus;
+}
+
+MOS_STATUS MosInterface::DoubleBufferCopyResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE inputResource,
+    MOS_RESOURCE_HANDLE outputResource,
+    bool                outputCompressed)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(inputResource);
+    MOS_OS_CHK_NULL_RETURN(outputResource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
+        outputResource && outputResource->bo && outputResource->pGmmResInfo)
+    {
+        OsContextNext *osCtx = streamState->osDeviceContext;
+        MOS_OS_CHK_NULL_RETURN(osCtx);
+
+        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+
+        // Double Buffer Copy can support any tile status surface with/without compression
+        mosDecompression->MediaMemoryCopy(inputResource, outputResource, outputCompressed);
+    }
+
+    return status;
+}
+
+MOS_STATUS MosInterface::MediaCopyResource2D(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE inputResource,
+    MOS_RESOURCE_HANDLE outputResource,
+    uint32_t            copyWidth,
+    uint32_t            copyHeight,
+    uint32_t            copyInputOffset,
+    uint32_t            copyOutputOffset,
+    bool                outputCompressed)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    MOS_OS_CHK_NULL_RETURN(inputResource);
+    MOS_OS_CHK_NULL_RETURN(outputResource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
+        outputResource && outputResource->bo && outputResource->pGmmResInfo)
+    {
+        OsContextNext *osCtx = streamState->osDeviceContext;
+        MOS_OS_CHK_NULL_RETURN(osCtx);
+
+        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+
+        // Double Buffer Copy can support any tile status surface with/without compression
+        mosDecompression->MediaMemoryCopy2D(inputResource, outputResource,
+            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, outputCompressed);
+    }
+
+    return status;
+}
+
+MOS_STATUS MosInterface::DecompResource(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE resource)
+{
+    MOS_OS_FUNCTION_ENTER;
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(resource);
+    MOS_OS_CHK_NULL_RETURN(resource->bo);
+    MOS_OS_CHK_NULL_RETURN(resource->pGmmResInfo);
+
+    MOS_LINUX_BO *bo = resource->bo;
+    if (resource->pGmmResInfo->IsMediaMemoryCompressed(0))
+    {
+        OsContextNext *osCtx = streamState->osDeviceContext;
+        MOS_OS_CHK_NULL_RETURN(osCtx);
+
+        MosDecompression *mosDecompression = osCtx->GetMosDecompression();
+        MOS_OS_CHK_NULL_RETURN(mosDecompression);
+
+        mosDecompression->MemoryDecompress(resource);
+    }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::MediaCopy(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE inputResource,
+    MOS_RESOURCE_HANDLE outputResource,
+    uint32_t            preferMethod)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_STATUS status = MOS_STATUS_UNKNOWN;
+    MOS_OS_CHK_NULL_RETURN(inputResource);
+    MOS_OS_CHK_NULL_RETURN(outputResource);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    if (inputResource && inputResource->bo && inputResource->pGmmResInfo &&
+        outputResource && outputResource->bo && outputResource->pGmmResInfo)
+    {
+        OsContextNext *osCtx = streamState->osDeviceContext;
+        MOS_OS_CHK_NULL_RETURN(osCtx);
+
+        MosMediaCopy *mosMediaCopy = osCtx->GetMosMediaCopy();
+        MOS_OS_CHK_NULL_RETURN(mosMediaCopy);
+
+        // Double Buffer Copy can support any tile status surface with/without compression
+        MOS_OS_CHK_STATUS_RETURN(mosMediaCopy->MediaCopy(inputResource, outputResource, (MCPY_METHOD)preferMethod));
+    }
+
+    return status;
 }
 
 uint32_t MosInterface::GetGpuStatusTag(
@@ -1881,6 +2154,14 @@ GMM_CLIENT_CONTEXT *MosInterface::GetGmmClientContext(
     return nullptr;
 }
 
+uint64_t MosInterface::GetAuxTableBaseAddr(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return 0;
+}
+
 MosCpInterface *MosInterface::GetCpInterface(MOS_STREAM_HANDLE streamState)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -1893,6 +2174,155 @@ MosOcaInterface *MosInterface::GetOcaInterface(MOS_STREAM_HANDLE streamState)
     MOS_OS_FUNCTION_ENTER;
 
     return nullptr;
+}
+
+MOS_VE_HANDLE MosInterface::GetVirtualEngineState(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    return streamState ? streamState->virtualEngineInterface : nullptr;
+}
+
+MOS_STATUS MosInterface::SetVirtualEngineState(
+    MOS_STREAM_HANDLE streamState,
+    MOS_VE_HANDLE veState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(veState);
+
+    streamState->virtualEngineInterface = veState;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::CreateVirtualEngineState(
+    MOS_STREAM_HANDLE streamState,
+    PMOS_VIRTUALENGINE_INIT_PARAMS veInitParms,
+    MOS_VE_HANDLE& veState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    if (veInitParms->bScalabilitySupported)
+    {
+        streamState->virtualEngineInterface = MOS_New(MosOsVeScalabilitySpecific);
+    }
+    else
+    {
+        streamState->virtualEngineInterface = MOS_New(MosOsVeSinglePipeSpecific);
+    }
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+
+    MOS_OS_CHK_STATUS_RETURN(streamState->virtualEngineInterface->Initialize(streamState, veInitParms));
+
+    veState = streamState->virtualEngineInterface;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::DestroyVirtualEngineState(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    if (streamState->virtualEngineInterface)
+    {
+        streamState->virtualEngineInterface->Destroy();
+        MOS_Delete(streamState->virtualEngineInterface);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::SetVeHintParams(
+    MOS_STREAM_HANDLE             streamState,
+    PMOS_VIRTUALENGINE_SET_PARAMS veParams)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+
+    return streamState->virtualEngineInterface->SetHintParams(veParams);
+}
+
+MOS_STATUS MosInterface::GetVeHintParams(
+    MOS_STREAM_HANDLE               streamState,
+    bool                            scalableMode,
+    PMOS_VIRTUALENGINE_HINT_PARAMS* hintParams)
+{
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+    MOS_OS_CHK_NULL_RETURN(hintParams);
+
+    return streamState->virtualEngineInterface->GetHintParams(scalableMode, hintParams);
+}
+
+MOS_STATUS MosInterface::SetVeSubmissionType(
+    MOS_STREAM_HANDLE     streamState,
+    COMMAND_BUFFER_HANDLE cmdBuf,
+    MOS_SUBMISSION_TYPE   type)
+{
+    MOS_OS_CHK_NULL_RETURN(cmdBuf);
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+
+    return streamState->virtualEngineInterface->SetSubmissionType(cmdBuf, type);
+}
+
+#if _DEBUG || _RELEASE_INTERNAL
+
+uint8_t MosInterface::GetVeEngineCount(
+    MOS_STREAM_HANDLE streamState)
+{
+    return streamState && streamState->virtualEngineInterface ?
+        streamState->virtualEngineInterface->GetEngineCount() : 0;
+}
+
+uint8_t MosInterface::GetEngineLogicId(
+    MOS_STREAM_HANDLE streamState,
+    uint32_t instanceIdx)
+{
+    return streamState && streamState->virtualEngineInterface ?
+        streamState->virtualEngineInterface->GetEngineLogicId(instanceIdx) : 0;
+}
+
+#endif  // _DEBUG || _RELEASE_INTERNAL
+MOS_STATUS MosInterface::ComposeCommandBufferHeader(
+    MOS_STREAM_HANDLE     streamState,
+    COMMAND_BUFFER_HANDLE cmdBuffer)
+{
+    MOS_OS_FUNCTION_ENTER;
+    
+    // No Command buffer header to compose
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::MosLoadLibrary(
+    MOS_STREAM_HANDLE           streamState,
+    PCCHAR                      pFileName,
+    PHMODULE                    ppvModule)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_UNUSED(streamState);
+    MOS_OS_ASSERT(pFileName);
+    return MosUtilities::MosLoadLibrary(pFileName, ppvModule);
+}
+
+MOS_STATUS MosInterface::MosFreeLibrary(HMODULE hLibModule)
+{
+    MOS_OS_ASSERT(hLibModule);
+
+    uint32_t ret = MosUtilities::MosFreeLibrary(hLibModule);
+
+    return (ret == true) ? MOS_STATUS_SUCCESS : MOS_STATUS_UNKNOWN;
 }
 
 GpuContextSpecificNext *MosInterface::GetGpuContext(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE handle)
@@ -1915,3 +2345,274 @@ GpuContextSpecificNext *MosInterface::GetGpuContext(MOS_STREAM_HANDLE streamStat
     MOS_OS_ASSERTMESSAGE("GetGpuContext failed!");
     return nullptr;
 }
+
+void MosInterface::SetPerfTag(MOS_STREAM_HANDLE streamState, uint32_t perfTag)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    uint32_t     componentTag;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters   = (PMOS_CONTEXT)streamState->perStreamParameters;
+    PERF_DATA *perfData = osParameters->pPerfData;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(perfData);
+
+    switch (streamState->component)
+    {
+    case COMPONENT_VPreP:
+    case COMPONENT_VPCommon:
+        componentTag = PERFTAG_VPREP;
+        break;
+
+    case COMPONENT_LibVA:
+        componentTag = PERFTAG_LIBVA;
+        break;
+
+    case COMPONENT_CM:
+        componentTag = PERFTAG_CM;
+        break;
+
+    case COMPONENT_Decode:
+        componentTag = PERFTAG_DECODE;
+        break;
+
+    case COMPONENT_Encode:
+        componentTag = PERFTAG_ENCODE;
+        break;
+
+    default:
+        componentTag = 0xF000 & perfData->dmaBufID;
+        break;
+    }
+
+    perfData->dmaBufID = componentTag | (perfTag & 0x0fff);
+
+    return;
+}
+
+int32_t MosInterface::IsPerfTagSet(MOS_STREAM_HANDLE streamState)
+{
+    uint32_t                 componentTag   = 0;
+    int32_t                  ret            = false;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    if (streamState == nullptr ||
+        streamState->perStreamParameters == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("streamState or perStreamParameters invalid nullptr");
+        return false;
+    }
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    PERF_DATA *perfData     = osParameters->pPerfData;
+    if (perfData == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("perfData invalid nullptr");
+        return false;
+    }
+
+    componentTag = 0xF000 & perfData->dmaBufID;
+
+    switch (componentTag)
+    {
+    case PERFTAG_ENCODE:
+    case PERFTAG_DECODE:
+        ret = true;
+        break;
+
+    default:
+        ret = false;
+        break;
+    }
+
+    return ret;
+}
+
+void MosInterface::IncPerfFrameID(MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osParameters->pPerfData);
+
+    osParameters->pPerfData->frameID++;
+
+    return;
+}
+
+uint32_t MosInterface::GetPerfTag(MOS_STREAM_HANDLE streamState)
+{
+    uint32_t perfTag;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    if (streamState == nullptr ||
+        streamState->perStreamParameters == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("streamState or perStreamParameters invalid nullptr");
+        return 0;
+    }
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    perfTag = *(uint32_t *)(osParameters->pPerfData);
+    return perfTag;
+}
+
+void MosInterface::SetPerfHybridKernelID(
+    MOS_STREAM_HANDLE streamState,
+    uint32_t          kernelID)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+    PERF_DATA *perfData     = osParameters->pPerfData;
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(perfData);
+
+    perfData->dmaBufID = (perfData->dmaBufID & 0xF0FF) | ((kernelID << 8) & 0x0F00);
+
+    return;
+}
+
+void MosInterface::ResetPerfBufferID(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osParameters->pPerfData);
+
+    osParameters->pPerfData->bufferID = 0;
+
+    return;
+}
+
+void MosInterface::IncPerfBufferID(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(streamState->perStreamParameters);
+
+    auto osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osParameters->pPerfData);
+
+    osParameters->pPerfData->bufferID++;
+
+    return;
+}
+
+int32_t MosInterface::IsGPUHung(
+    MOS_STREAM_HANDLE streamState)
+{
+    uint32_t     resetCount   = 0;
+    uint32_t     activeBatch  = 0;
+    uint32_t     pendingBatch = 0;
+    int32_t      result       = false;
+    int32_t      ret          = 0;
+    PMOS_CONTEXT osParameters = nullptr;
+
+    MOS_OS_FUNCTION_ENTER;
+
+    if (!streamState || !streamState->perStreamParameters)
+    {
+        MOS_OS_ASSERTMESSAGE("invalid streamstate");
+        return false;
+    }
+
+    osParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
+
+    ret = mos_get_reset_stats(osParameters->intel_context, &resetCount, &activeBatch, &pendingBatch);
+    if (ret)
+    {
+        MOS_OS_NORMALMESSAGE("mos_get_reset_stats return error(%d)\n", ret);
+        return false;
+    }
+
+    if (resetCount      != streamState->gpuResetCount ||
+        activeBatch     != streamState->gpuActiveBatch ||
+        pendingBatch    != streamState->gpuPendingBatch)
+    {
+        streamState->gpuResetCount    = resetCount;
+        streamState->gpuActiveBatch   = activeBatch;
+        streamState->gpuPendingBatch  = pendingBatch;
+        result                        = true;
+    }
+    else
+    {
+        result = false;
+    }
+    return result;
+}
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+MOS_STATUS MosInterface::DumpCommandBufferInit(
+    MOS_STREAM_HANDLE streamState)
+{
+    char sFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
+    MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
+    char *psFileNameAfterPrefix = nullptr;
+    size_t nSizeFileNamePrefix = 0;
+
+    MOS_OS_CHK_NULL_RETURN(streamState);
+
+    // Check if command buffer dump was enabled in user feature.
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
+        &UserFeatureData);
+    streamState->dumpCommandBuffer            = (UserFeatureData.i32Data != 0);
+    streamState->dumpCommandBufferToFile      = ((UserFeatureData.i32Data & 1) != 0);
+    streamState->dumpCommandBufferAsMessages  = ((UserFeatureData.i32Data & 2) != 0);
+
+    if (streamState->dumpCommandBufferToFile)
+    {
+        // Create output directory.
+        eStatus = MosUtilDebug::MosLogFileNamePrefix(streamState->sDirName);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);
+            return eStatus;
+        }
+
+        memcpy(sFileName, streamState->sDirName, MOS_MAX_HLT_FILENAME_LEN);
+        nSizeFileNamePrefix = strnlen(sFileName, sizeof(sFileName));
+        MOS_SecureStringPrint(
+            sFileName + nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            sizeof(sFileName) - nSizeFileNamePrefix,
+            "%c%s",
+            MOS_DIR_SEPERATOR,
+            MOS_COMMAND_BUFFER_OUT_DIR);
+
+        eStatus = MosUtilities::MosCreateDirectory(sFileName);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
+            return eStatus;
+        }
+    }
+
+    eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED

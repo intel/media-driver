@@ -36,6 +36,9 @@ static const uint8_t sliceTypeI = 2;
 static const uint8_t numMaxRefFrame    = 15;
 static const uint8_t vdencRoiBlockSize = 32;
 
+const int8_t maxChromaOffset = 127;
+const int8_t minChromaOffset = -128;
+
 //!
 //! \class  DdiEncodeHevc
 //! \brief  DDi encode HEVC
@@ -262,5 +265,49 @@ private:
         bool                          picReference,
         bool                          sliceReference);
 
+    //!
+    //! \brief    Check whether swizzle needed
+    //!
+    //! \param    [in] rawSurface
+    //!           Pointer of Raw Surface
+    //! \param    [in] reconSurface
+    //!           Pointer of Recon Surface
+    //!
+    //! \return   bool, true if need, otherwise false
+    //!
+    inline bool NeedDisapayFormatSwizzle(
+        DDI_MEDIA_SURFACE *rawSurface,
+        DDI_MEDIA_SURFACE *reconSurface)
+    {
+        bool ret = false;
+
+        if (Media_Format_A8R8G8B8 == rawSurface->format ||
+           Media_Format_B10G10R10A2 == rawSurface->format)
+        {
+            ret = true;
+        }
+
+        if (ret && 
+            (Media_Format_A8R8G8B8 == reconSurface->format ||
+            Media_Format_B10G10R10A2 == reconSurface->format))
+        {
+            ret = false;
+        }
+
+        return ret;
+    }
+
+    //!
+    //! \brief    if it is hevc scc profile
+    //!
+    //! \return   true or false
+    //!
+    bool IsSccProfile();
+
+    //! \brief Number of Rectangle
+    uint32_t    m_numDirtyRects = 0;
+
+    //! \brief Pointer to dirty rectangle array with num_roi_rectangle elements
+    PCODEC_ROI  m_pDirtyRect = nullptr;
 };
 #endif  //__MEDIA_LIBVA_ENCODER_HEVC_H__

@@ -227,6 +227,7 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
     }
 
     // Force the values
+    CODECHAL_ENCODE_CHK_NULL_RETURN(surfaceParams.psSurface);
     surfaceParams.psSurface->dwWidth = MOS_ALIGN_CEIL(m_surfaceParam.downScaledWidthInMb * 32, 64);
     surfaceParams.psSurface->dwHeight = m_surfaceParam.downScaledHeightInMb * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER;
     surfaceParams.psSurface->dwPitch = surfaceParams.psSurface->dwWidth;
@@ -297,6 +298,7 @@ MOS_STATUS CodechalKernelHmeG9::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL
             surfaceParams.bIs2DSurface = true;
             surfaceParams.bMediaBlockRW = true;
             surfaceParams.psSurface = GetSurface(SurfaceId::me4xDistortionBuffer);
+            surfaceParams.psSurface->dwHeight = m_surfaceParam.downScaledHeightInMb * 4 * 10;
             surfaceParams.dwOffset = m_meDistortionBottomFieldOffset;
             surfaceParams.dwBindingTableOffset = BindingTableOffset::meDistortionSurface;
             surfaceParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ME_DISTORTION_ENCODE].Value;

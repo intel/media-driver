@@ -29,15 +29,91 @@
 #include "mos_defs.h"
 #include "mos_utilities_specific.h"
 
-typedef MosMutex MosMutexNext;
-
-class MosUtilUserInterfaceNext;
 class MosUtilitiesSpecificNext
 {
 public:
 
+/*----------------------------------------------------------------------------
+| Name      : MosUserFeatureSetValueExFile
+| Purpose   : Sets the data and type of a specified value under a user feature key.
+| Arguments : UFKey        [in] A handle to an open user feature key.
+|             lpValueName  [in] The name of the user feature value.
+|             Reserved      in] This parameter is reserved and must be NULL.
+|             dwType       [in] The type of data pointed to by the lpData
+|                               parameter.
+|             lpData       [in] The data to be stored.
+|             cbData       [in] The size of the information pointed to by the
+|                               lpData parameter, in bytes.
+| Returns   : If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+|             If the function fails, the return value is a error code defined
+|             in mos_utilities.h.
+| Comments  :
+\---------------------------------------------------------------------------*/
+static MOS_STATUS MosUserFeatureSetValueExFile(
+    void            *UFKey,
+    const char      *lpValueName,
+    uint32_t        Reserved,
+    uint32_t        dwType,
+    uint8_t         *lpData,
+    uint32_t        cbData);
+
+
+/*----------------------------------------------------------------------------
+| Name      : MosUserFeatureGetValueFile
+| Purpose   : Retrieves the type and data for the specified user feature value.
+| Arguments : UFKey     [in]  A handle to an open user feature key.
+|             lpSubKey  [in]  The name of the user feature key. This key must be a
+|                             subkey of the key specified by the UFKey parameter
+|             lpValue   [in]  The name of the user feature value.
+|             dwFlags   [in]  Reserved, could be any uint32_t type value
+|             pdwType   [out] A pointer to a variable that receives a code
+|                             indicating the type of data stored in the
+|                             specified value.
+|             pvData    [out] A pointer to a buffer that receives the value's
+|                             data.
+|             pcbData   [out] A pointer to a variable that specifies the size
+|                             of the buffer pointed to by the pvData parameter,
+|                             in bytes.
+| Returns   : If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+|             If the function fails, the return value is a error code defined
+|             in mos_utilities.h.
+| Comments  :
+\---------------------------------------------------------------------------*/
+static MOS_STATUS MosUserFeatureGetValueFile(
+    void       *UFKey,
+    const char *lpSubKey,
+    const char *lpValue,
+    uint32_t   dwFlags,
+    uint32_t   *pdwType,
+    void       *pvData,
+    uint32_t   *pcbData);
+
+/*----------------------------------------------------------------------------
+| Name      : MosUserFeatureOpenKeyFile
+| Purpose   : Opens the specified user feature key.
+| Arguments : ufKey        [in]  A handle to an open user feature key.
+|             lpSubKey     [in]  The name of the user feature subkey to be opened.
+|             ulOptions    [in]  This parameter is reserved and must be zero.
+|             samDesired   [in]  Reserved, could be any REGSAM type value
+|             phkResult    [out] A pointer to a variable that receives a handle
+|                                to the opened key.
+| Returns   : If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+|             If the function fails, the return value is a error code defined
+|             in mos_utilities.h.
+| Comments  :
+\---------------------------------------------------------------------------*/
+static MOS_STATUS MosUserFeatureOpenKeyFile(
+    void       *ufKey,
+    const char *lpSubKey,
+    uint32_t   ulOptions,  // reserved
+    uint32_t   samDesired,
+    void       **phkResult);
+
+
+private:
+
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_FindKey
+    | Name      : UserFeatureFindKey
     | Purpose   : This function finds a key in keys linked list according to key
     |             name.
     | Arguments : pKeyList   [in] Key Linked list.
@@ -45,10 +121,10 @@ public:
     | Returns   : Matched uf_key data. otherwise return NULL.
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_UF_KEY*_UserFeature_FindKey(MOS_PUF_KEYLIST pKeyList, char * const pcKeyName);
+    static MOS_UF_KEY*UserFeatureFindKey(MOS_PUF_KEYLIST pKeyList, char * const pcKeyName);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_FindValue
+    | Name      : UserFeatureFindValue
     | Purpose   : Find a value in values array of a key. Return position in values
     |             array
     | Arguments : UFKey        [in] Searched Key node.
@@ -57,10 +133,10 @@ public:
     |             NOT_FOUND(-1);
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static int32_t _UserFeature_FindValue(MOS_UF_KEY UFKey, char * const pcValueName);
+    static int32_t UserFeatureFindValue(MOS_UF_KEY UFKey, char * const pcValueName);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_Add
+    | Name      : UserFeatureAdd
     | Purpose   : Add new key to keys' linked list.
     | Arguments : pKeyList       [in] Key linked list.
     |             NewKey         [in] Added new key.
@@ -69,10 +145,10 @@ public:
     |             MOS_STATUS_NO_SPACE           no space left for allocate
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_Add(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY *NewKey);
+    static MOS_STATUS UserFeatureAdd(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY *NewKey);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_Set
+    | Name      : UserFeatureSet
     | Purpose   : This function set a key to the key list.
     | Arguments : pKeyList          [in] Key linked list.
     |             NewKey            [in] Set key content.
@@ -81,10 +157,10 @@ public:
     |             MOS_STATUS_NO_SPACE     no space left for allocate
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey);
+    static MOS_STATUS UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_Query
+    | Name      : UserFeatureQuery
     | Purpose   : This function query a key's value and return matched key node
     |             content just with matched value content.
     | Arguments : pKeyList      [in] Key linked list.
@@ -93,12 +169,12 @@ public:
     |             MOS_STATUS_UNKNOWN         Can't find key or value in User Feature File.
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_Query(MOS_PUF_KEYLIST pKeyList, MOS_UF_KEY *NewKey);
+    static MOS_STATUS UserFeatureQuery(MOS_PUF_KEYLIST pKeyList, MOS_UF_KEY *NewKey);
 
-    static MOS_STATUS _UserFeature_ReadNextTokenFromFile(FILE *pFile, const char *szFormat, char  *szToken);
+    static MOS_STATUS UserFeatureReadNextTokenFromFile(FILE *pFile, const char *szFormat, char  *szToken);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_DumpFile
+    | Name      : UserFeatureDumpFile
     | Purpose   : This function read the whole User Feature File and dump User Feature File
     |             data to key linked list.
     | Arguments : szFileName         [in]  User Feature File name.
@@ -110,10 +186,10 @@ public:
     |             MOS_STATUS_INVALID_PARAMETER unknown items found in User Feature File
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_KEYLIST* pKeyList);
+    static MOS_STATUS UserFeatureDumpFile(const char * const szFileName, MOS_PUF_KEYLIST* pKeyList);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_DumpDataToFile
+    | Name      : UserFeatureDumpDataToFile
     | Purpose   : This function dump key linked list data to File.
     | Arguments : szFileName             [in] A handle to the File.
     |             pKeyList               [in] Reserved, any LPDWORD type value.
@@ -121,19 +197,19 @@ public:
     |             MOS_STATUS_USER_FEATURE_KEY_WRITE_FAILED  File can't be written.
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_DumpDataToFile(const char *szFileName, MOS_PUF_KEYLIST pKeyList);
+    static MOS_STATUS UserFeatureDumpDataToFile(const char *szFileName, MOS_PUF_KEYLIST pKeyList);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_FreeKeyList
+    | Name      : UserFeatureFreeKeyList
     | Purpose   : Free key list
     | Arguments : pKeyList           [in] key list to be free.
     | Returns   : None
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static void _UserFeature_FreeKeyList(MOS_PUF_KEYLIST pKeyList);
+    static void UserFeatureFreeKeyList(MOS_PUF_KEYLIST pKeyList);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_SetValue
+    | Name      : UserFeatureSetValue
     | Purpose   : Modify or add a value of the specified user feature key.
     | Arguments : strKey         [in] Pointer to user feature key name.
     |             pcValueName    [in] Pointer to a string containing the name of
@@ -156,7 +232,7 @@ public:
     |             MOS_STATUS_USER_FEATURE_KEY_WRITE_FAILED  User Feature File can't be written.
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_SetValue(
+    static MOS_STATUS UserFeatureSetValue(
         char * const        strKey,
         const char * const  pcValueName,
         uint32_t            uiValueType,
@@ -164,7 +240,7 @@ public:
         int32_t             nDataSize);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_QueryValue
+    | Name      : UserFeatureQueryValue
     | Purpose   : The QueryValue function retrieves the type and data for a
     |             specified value name associated with a special user feature key.
     | Arguments : strKey         [in]  Pointer to user feature key name.
@@ -180,7 +256,7 @@ public:
     |             MOS_STATUS_UNKNOWN           Can't find key or value in User Feature File.
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_QueryValue(
+    static MOS_STATUS UserFeatureQueryValue(
         char * const        strKey,
         const char * const  pcValueName,
         uint32_t            *uiValueType,
@@ -188,7 +264,7 @@ public:
         int32_t             *nDataSize);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_GetKeyIdbyName
+    | Name      : UserFeatureGetKeyIdbyName
     | Purpose   : Get ID of the user feature key bu its name
     | Arguments : pcKeyName      [in]  Pointer to user feature key name.
     |             pUFKey         [out] A UFKEY pointer to store returned UFKey
@@ -197,10 +273,10 @@ public:
     |             in mos_utilities.h.
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_GetKeyIdbyName(const char  *pcKeyName, void **pUFKey);
+    static MOS_STATUS UserFeatureGetKeyIdbyName(const char  *pcKeyName, void **pUFKey);
 
     /*----------------------------------------------------------------------------
-    | Name      : _UserFeature_GetKeyNamebyId
+    | Name      : UserFeatureGetKeyNamebyId
     | Purpose   : Get name of the user feature key bu its ID
     | Arguments : UFKey      [in]  ID of the user feature key
     |             pcKeyName  [out] To store user feature key name.
@@ -209,88 +285,11 @@ public:
     |             in mos_utilities.h.
     | Comments  :
     \---------------------------------------------------------------------------*/
-    static MOS_STATUS _UserFeature_GetKeyNamebyId(void  *UFKey, char  *pcKeyName);
-    /*----------------------------------------------------------------------------
-    | Name      : MOS_UserFeatureOpenKey_File
-    | Purpose   : Opens the specified user feature key.
-    | Arguments : UFKey        [in]  A handle to an open user feature key.
-    |             lpSubKey     [in]  The name of the user feature subkey to be opened.
-    |             ulOptions    [in]  This parameter is reserved and must be zero.
-    |             samDesired   [in]  Reserved, could be any REGSAM type value
-    |             phkResult    [out] A pointer to a variable that receives a handle
-    |                                to the opened key.
-    | Returns   : If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-    |             If the function fails, the return value is a error code defined
-    |             in mos_utilities.h.
-    | Comments  :
-    \---------------------------------------------------------------------------*/
-    static MOS_STATUS MOS_UserFeatureOpenKey_File(
-        void       *UFKey,
-        const char *lpSubKey,
-        uint32_t   ulOptions,  // reserved
-        uint32_t   samDesired,
-        void       **phkResult);
-
-    /*----------------------------------------------------------------------------
-    | Name      : MOS_UserFeatureGetValue_File
-    | Purpose   : Retrieves the type and data for the specified user feature value.
-    | Arguments : UFKey     [in]  A handle to an open user feature key.
-    |             lpSubKey  [in]  The name of the user feature key. This key must be a
-    |                             subkey of the key specified by the UFKey parameter
-    |             lpValue   [in]  The name of the user feature value.
-    |             dwFlags   [in]  Reserved, could be any uint32_t type value
-    |             pdwType   [out] A pointer to a variable that receives a code
-    |                             indicating the type of data stored in the
-    |                             specified value.
-    |             pvData    [out] A pointer to a buffer that receives the value's
-    |                             data.
-    |             pcbData   [out] A pointer to a variable that specifies the size
-    |                             of the buffer pointed to by the pvData parameter,
-    |                             in bytes.
-    | Returns   : If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-    |             If the function fails, the return value is a error code defined
-    |             in mos_utilities.h.
-    | Comments  :
-    \---------------------------------------------------------------------------*/
-    static MOS_STATUS MOS_UserFeatureGetValue_File(
-        void       *UFKey,
-        const char *lpSubKey,
-        const char *lpValue,
-        uint32_t   dwFlags,
-        uint32_t   *pdwType,
-        void       *pvData,
-        uint32_t   *pcbData);
-
-    /*----------------------------------------------------------------------------
-    | Name      : MOS_UserFeatureSetValueEx_File
-    | Purpose   : Sets the data and type of a specified value under a user feature key.
-    | Arguments : UFKey        [in] A handle to an open user feature key.
-    |             lpValueName  [in] The name of the user feature value.
-    |             Reserved      in] This parameter is reserved and must be NULL.
-    |             dwType       [in] The type of data pointed to by the lpData
-    |                               parameter.
-    |             lpData       [in] The data to be stored.
-    |             cbData       [in] The size of the information pointed to by the
-    |                               lpData parameter, in bytes.
-    | Returns   : If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-    |             If the function fails, the return value is a error code defined
-    |             in mos_utilities.h.
-    | Comments  :
-    \---------------------------------------------------------------------------*/
-    static MOS_STATUS MOS_UserFeatureSetValueEx_File(
-        void            *UFKey,
-        const char      *lpValueName,
-        uint32_t        Reserved,
-        uint32_t        dwType,
-        uint8_t         *lpData,
-        uint32_t        cbData);
-    
+    static MOS_STATUS UserFeatureGetKeyNamebyId(void  *UFKey, char  *pcKeyName);
 
 public:
-    static const char* m_szUserFeatureFile;
-    static PUFKEYOPS   m_ufKeyOps;
-#if _MEDIA_RESERVED
-    static MosUtilUserInterfaceNext  *m_utilUserInterface;
-#endif
+    static const char*          m_szUserFeatureFile;
+    static int32_t              m_mosTraceFd;
+    static const char* const    m_mosTracePath;
 };
 #endif // __MOS_UTILITIES_SPECIFIC_NEXT_H__

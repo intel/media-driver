@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -165,6 +165,40 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::GetVdencStateCommandsDataSize(
             MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES +
             MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES +
             VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unsupported encode mode.");
+        *commandsSize  = 0;
+        *patchListSize = 0;
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    *commandsSize  = maxSize;
+    *patchListSize = patchListMaxSize;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MhwVdboxVdencInterfaceG10::GetVdencPrimitiveCommandsDataSize(
+        uint32_t                        mode,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize)
+{
+    MHW_FUNCTION_ENTER;
+
+    uint32_t            maxSize = 0;
+    uint32_t            patchListMaxSize = 0;
+    uint32_t            standard = CodecHal_GetStandardFromMode(mode);
+
+    if (standard == CODECHAL_AVC)
+    {
+        maxSize =
+            mhw_vdbox_vdenc_g10_X::VDENC_WEIGHTSOFFSETS_STATE_CMD::byteSize +
+            mhw_vdbox_vdenc_g10_X::VDENC_WALKER_STATE_CMD::byteSize +
+            mhw_vdbox_vdenc_g10_X::VD_PIPELINE_FLUSH_CMD::byteSize;
+
+        patchListMaxSize = VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
     }
     else
     {
@@ -1083,11 +1117,24 @@ MOS_STATUS MhwVdboxVdencInterfaceG10::AddVdencImgStateCmd(
     // Rolling-I settings
     if ((avcPicParams->CodingType != I_TYPE) && (avcPicParams->EnableRollingIntraRefresh != ROLLING_I_DISABLED))
     {
-        cmd.DW21.IntraRefreshEnableRollingIEnable = avcPicParams->EnableRollingIntraRefresh != ROLLING_I_DISABLED ? 1 : 0;        // 0->Row based ; 1->Column based
-        cmd.DW21.IntraRefreshMode                 = avcPicParams->EnableRollingIntraRefresh == ROLLING_I_ROW ? 0 : 1;
+        cmd.DW21.IntraRefreshEnableRollingIEnable = avcPicParams->EnableRollingIntraRefresh != ROLLING_I_DISABLED ? 1 : 0;
+        cmd.DW21.IntraRefreshMode                 = avcPicParams->EnableRollingIntraRefresh == ROLLING_I_ROW ? 0 : 1;        // 0->Row based ; 1->Column based
         cmd.DW21.IntraRefreshMBPos                = avcPicParams->IntraRefreshMBNum;
         cmd.DW21.IntraRefreshMBSizeMinusOne       = avcPicParams->IntraRefreshUnitinMB;
         cmd.DW21.QpAdjustmentForRollingI          = avcPicParams->IntraRefreshQPDelta;
+
+        auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+        MHW_MI_CHK_NULL(waTable);
+
+        // WA to prevent error propagation from top-right direction.
+        // Disable prediction modes 3, 7 for 4x4
+        // and modes 0, 2, 3, 4, 5, 7 for 8x8 (due to filtering)
+        if (avcPicParams->EnableRollingIntraRefresh == ROLLING_I_COLUMN &&
+            MEDIA_IS_WA(waTable, Wa_18011246551))
+        {
+            cmd.DW17.AvcIntra4X4ModeMask = 0x88;
+            cmd.DW17.AvcIntra8X8ModeMask = 0xBD;
+        }
     }
 
     // Setting MinMaxQP values if they are presented

@@ -330,6 +330,8 @@ typedef struct _CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS
     PCODEC_AVC_REF_PIC_SELECT_LIST              pWeightedPredOutputPicSelectList;
     bool                                        bUseWeightedSurfaceForL0;
     bool                                        bUseWeightedSurfaceForL1;
+    PMOS_RESOURCE                               presMbInlineData;
+    PMOS_RESOURCE                               presVMEOutSurface;
 } CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS, *PCODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS;
 
 typedef struct _CODECHAL_ENCODE_AVC_MFE_MBENC_CURBE_PARAMS
@@ -1654,14 +1656,14 @@ struct CodechalEncodeAvcEnc : public CodechalEncodeAvcBase
 
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
-    virtual MOS_STATUS DumpSeqParFile();
-    virtual MOS_STATUS DumpFrameParFile();
+    virtual MOS_STATUS DumpSeqParFile()  override;
+    virtual MOS_STATUS DumpFrameParFile() override;
 
     virtual MOS_STATUS PopulateHmeParam(
         bool    is16xMeEnabled,
         bool    is32xMeEnabled,
         uint8_t meMethod,
-        void    *cmd);
+        void    *cmd) override;
 #endif
 };
 #endif  // __CODECHAL_ENCODE_AVC_H__

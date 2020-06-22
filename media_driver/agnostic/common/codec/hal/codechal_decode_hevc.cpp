@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2018, Intel Corporation
+* Copyright (c) 2012-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -71,9 +71,9 @@ MOS_STATUS CodechalDecodeHevc::AllocateResourcesFixedSizes()
         m_osInterface,
         &m_resSyncObjectWaContextInUse));
 
-    CodecHalAllocateDataList(
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalAllocateDataList(
         m_hevcRefList,
-        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC);
+        CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC));
 
     MOS_ZeroMemory(&m_secondLevelBatchBuffer, CODEC_HEVC_NUM_SECOND_BB * sizeof(MHW_BATCH_BUFFER));
     if (m_shortFormatInUse)
@@ -832,7 +832,7 @@ MOS_STATUS CodechalDecodeHevc::SetHucDmemParams(
     auto hucHevcS2LBss = (PHUC_HEVC_S2L_BSS)DmemLock.Lock(CodechalResLock::writeOnly);
 
     CODECHAL_DECODE_CHK_NULL_RETURN(hucHevcS2LBss);
-    hucHevcS2LBss->ProductFamily = m_huCProductFamily;
+    hucHevcS2LBss->ProductFamily = m_hucInterface->GetHucProductFamily();
     hucHevcS2LBss->RevId = m_hwInterface->GetPlatform().usRevId;
     hucHevcS2LBss->DummyRefIdxState = 
         MEDIA_IS_WA(m_waTable, WaDummyReference) && !m_osInterface->bSimIsActive;
@@ -1030,7 +1030,7 @@ MOS_STATUS CodechalDecodeHevc::CheckAndCopyBitstream()
         return eStatus;
     }
 
-    if (m_firstExecuteCall)    // first exec to decide allocate a larger buf or not
+    if (IsFirstExecuteCall())    // first exec to decide allocate a larger buf or not
     {
         if (m_estiBytesInBitstream > MOS_ALIGN_CEIL(m_dataOffset + m_dataSize, 64))  // bitstream contains more bytes than current data.
         {
@@ -1115,7 +1115,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
 
     m_cencBuf = m_decodeParams.m_cencBuf;
     
-    if (m_firstExecuteCall)    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
+    if (IsFirstExecuteCall())    // For DRC Multiple Execution Call, no need to update every value in pHevcState except first execute
     {
         m_dataSize   = m_decodeParams.m_dataSize;
         m_dataOffset = m_decodeParams.m_dataOffset;
@@ -1266,7 +1266,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
         m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-    AllocateResourcesVariableSizes();
+    CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateResourcesVariableSizes());
 
     // Calculate Tile info
     if (m_hevcPicParams->tiles_enabled_flag)
@@ -1326,7 +1326,7 @@ MOS_STATUS CodechalDecodeHevc::SetFrameStates ()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize((CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams, m_hevcPicParams));
 #endif
     CODECHAL_DEBUG_TOOL(
-        if (!m_incompletePicture && !m_firstExecuteCall) {
+        if (!m_incompletePicture && !IsFirstExecuteCall()) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                 &m_resCopyDataBuffer,
                 CodechalDbgAttr::attrBitstream,
@@ -1764,11 +1764,7 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
             !Mos_ResourceIsNull(&m_dummyReference.OsResource))
         {
             m_picMhwParams.PipeBufAddrParams->presReferences[i] = &m_dummyReference.OsResource;
-
-            if (m_dummyReferenceStatus == CODECHAL_DUMMY_REFERENCE_DEST_SURFACE)
-            {
-                m_dummyReferenceSlot[i] = true;
-            }
+            m_dummyReferenceSlot[i] = true;
         }
     }
 
@@ -2415,7 +2411,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
         }
 #ifdef _DECODE_PROCESSING_SUPPORTED
         CODECHAL_DEBUG_TOOL(
-            if (m_downsampledSurfaces) {
+            if (m_downsampledSurfaces && m_sfcState && m_sfcState->m_sfcOutputSurface) {
                 m_downsampledSurfaces[m_hevcPicParams->CurrPic.FrameIdx].OsResource =
                     m_sfcState->m_sfcOutputSurface->OsResource;
                 decodeStatusReport.m_currSfcOutputPicRes =
@@ -2473,7 +2469,7 @@ MOS_STATUS CodechalDecodeHevc::DecodePrimitiveLevel()
         }
     );
 
-    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(
         m_osInterface,

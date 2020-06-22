@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,51 +25,58 @@
 //!
 
 #include "media_libva_caps_cp_interface.h"
-#include "cplib_utils.h"
+#include "cp_interfaces.h"
 #include <typeinfo>
 
 static void CapsStubMessage()
 {
     MOS_NORMALMESSAGE(
-        MOS_COMPONENT_CP, 
-        MOS_CP_SUBCOMP_CAPS, 
+        MOS_COMPONENT_CP,
+        MOS_CP_SUBCOMP_CAPS,
         "This function is stubbed as CP is not enabled.");
 }
 
-MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCpInterface()
+MediaLibvaCapsCpInterface::MediaLibvaCapsCpInterface(DDI_MEDIA_CONTEXT *mediaCtx, MediaLibvaCaps *mediaCaps)
 {
-    MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface = nullptr;
-    using Create_MediaLibvaCapsCpFuncType = MediaLibvaCapsCpInterface* (*)();
-    CPLibUtils::InvokeCpFunc<Create_MediaLibvaCapsCpFuncType>(
-        pMediaLibvaCapsCpInterface, 
-        CPLibUtils::FUNC_CREATE_MEDIALIBVACAPSCP);
+    m_mediaCtx = mediaCtx;
+    m_mediaCaps = mediaCaps;
+}
 
-    if(nullptr == pMediaLibvaCapsCpInterface)
+MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCpInterface(DDI_MEDIA_CONTEXT *mediaCtx, MediaLibvaCaps *mediaCaps)
+{
+    if (nullptr == mediaCtx || nullptr == mediaCaps)
+    {
+        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CAPS, "NULL pointer parameters");
+        return nullptr;
+    }
+
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (nullptr == cp_interface)
+    {
+        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CAPS, "NULL pointer prot");
+        return nullptr;
+    }
+
+    MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface = nullptr;
+    pMediaLibvaCapsCpInterface = cp_interface->Create_MediaLibvaCapsCpInterface(mediaCtx, mediaCaps);
+    MOS_Delete(cp_interface);
+
+    if (nullptr == pMediaLibvaCapsCpInterface)
     {
         CapsStubMessage();
     }
-    
-    return nullptr == pMediaLibvaCapsCpInterface ? MOS_New(MediaLibvaCapsCpInterface) : pMediaLibvaCapsCpInterface;
+
+    return nullptr == pMediaLibvaCapsCpInterface ? MOS_New(MediaLibvaCapsCpInterface, mediaCtx, mediaCaps) : pMediaLibvaCapsCpInterface;
 }
 
 void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface)
 {
-    if(nullptr == pMediaLibvaCapsCpInterface) 
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (pMediaLibvaCapsCpInterface != nullptr && cp_interface != nullptr)
     {
-        return;
+        cp_interface->Delete_MediaLibvaCapsCpInterface(pMediaLibvaCapsCpInterface);
     }
-
-    if(typeid(*pMediaLibvaCapsCpInterface) == typeid(MediaLibvaCapsCpInterface))
-    {
-        MOS_Delete(pMediaLibvaCapsCpInterface);
-    }
-    else
-    {
-        using Delete_MediaLibvaCapsCpFuncType = void (*)(MediaLibvaCapsCpInterface*);
-        CPLibUtils::InvokeCpFunc<Delete_MediaLibvaCapsCpFuncType>(
-            CPLibUtils::FUNC_DELETE_MEDIALIBVACAPSCP, 
-            pMediaLibvaCapsCpInterface);
-    }
+    MOS_Delete(cp_interface);
 }
 
 bool MediaLibvaCapsCpInterface::IsDecEncryptionSupported(DDI_MEDIA_CONTEXT* mediaCtx)
@@ -79,8 +86,8 @@ bool MediaLibvaCapsCpInterface::IsDecEncryptionSupported(DDI_MEDIA_CONTEXT* medi
 }
 
 int32_t MediaLibvaCapsCpInterface::GetEncryptionTypes(
-    VAProfile profile, 
-    uint32_t *encryptionType, 
+    VAProfile profile,
+    uint32_t *encryptionType,
     uint32_t arraySize)
 {
     CapsStubMessage();

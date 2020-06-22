@@ -40,7 +40,7 @@ public:
     //!
     //! \brief Constructor
     //!
-    DdiDecodeVP9(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr){};
+    DdiDecodeVP9(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr){m_withDpb = false;};
 
     //!
     //! \brief Destructor

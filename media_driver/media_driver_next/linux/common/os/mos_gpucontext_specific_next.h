@@ -53,14 +53,17 @@ public:
     //!
     //! \brief    Initialize gpu context
     //! \details  Linux specific initialize for gpu context
-    //! \param    [out] osContext
-    //!           Os context pointer
+    //! \param    [in] osContext
+    //!           MOS device context pointer
+    //! \param    [in] streamState
+    //!           Os stream state
+    //! \param    [in] createOption
+    //!           Create option of creating GPU context
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS Init(OsContextNext *osContext,
-                    PMOS_INTERFACE osInterface,
-                    MOS_GPU_NODE GpuNode,
+                    MOS_STREAM_HANDLE streamState,
                     PMOS_GPUCTX_CREATOPTIONS createOption);
 
     void Clear(void);
@@ -100,15 +103,15 @@ public:
     //!
     //! \brief    Set patch entry
     //! \details  Sets the patch entry in patch list
-    //! \param    [in] osInterface
-    //!           Pointer to OS interface structure
+    //! \param    [in] streamState
+    //!           OS steam state
     //! \param    [in] params
     //!           patch entry params
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS SetPatchEntry(
-        PMOS_INTERFACE          osInterface,
+        MOS_STREAM_HANDLE streamState,
         PMOS_PATCH_ENTRY_PARAMS params);
 
     void ReturnCommandBuffer(
@@ -136,7 +139,7 @@ public:
     }
 
     MOS_STATUS SubmitCommandBuffer(
-        PMOS_INTERFACE      osInterface,
+        MOS_STREAM_HANDLE   streamState,
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool                nullRendering);
 
@@ -188,9 +191,45 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS MapResourcesToAuxTable(mos_linux_bo *cmd_bo);
-    uint32_t GetVcsExecFlag(PMOS_INTERFACE osInterface,
+
+    MOS_VDBOX_NODE_IND GetVdboxNodeId(
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
+    uint32_t GetVcsExecFlag(
         PMOS_COMMAND_BUFFER cmdBuffer,
         MOS_GPU_NODE gpuNode);
+
+    //!
+    //! \brief    Submit command buffer for single pipe in scalability mode
+    //! \return   int32_t
+    //!           Return 0 if successful, otherwise error code
+    //!
+    int32_t SubmitPipeCommands(MOS_COMMAND_BUFFER *cmdBuffer,
+                               MOS_LINUX_BO *cmdBo,
+                               PMOS_CONTEXT osContext,
+                               uint32_t execFlag,
+                               int32_t dr4);
+
+    //!
+    //! \brief    Set the flags of engin quering according to create options
+    //! \return   void
+    //!
+    void SetEngineQueryFlags(
+        PMOS_GPUCTX_CREATOPTIONS option,
+        __u64 &caps);
+
+    MOS_STATUS ReportEngineInfo(
+        struct i915_engine_class_instance *engineMap,
+        int engineNum);
+
+    MOS_STATUS ReportMemoryInfo(
+        struct mos_bufmgr *bufmgr);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_LINUX_BO* GetNopCommandBuffer(
+        MOS_STREAM_HANDLE streamState);
+#endif // _DEBUG || _RELEASE_INTERNAL
+
 private:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBufferNext *> m_cmdBufPool;
@@ -210,6 +249,9 @@ private:
 
     //! \brief    internal back up for in-use command buffer
     PMOS_COMMAND_BUFFER m_commandBuffer = nullptr;
+
+    //! \brief    secondary command buffers for scalability
+    std::map<uint32_t, PMOS_COMMAND_BUFFER> m_secondaryCmdBufs;
 
     //! \brief    Allcoation List related struct
     ALLOCATION_LIST *m_allocationList = nullptr;

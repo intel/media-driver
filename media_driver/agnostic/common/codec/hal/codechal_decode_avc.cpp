@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -151,7 +151,7 @@ MOS_STATUS CodechalDecodeAvc::SendSlice(
     return eStatus;
 }
 
-MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
+MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture(PMOS_SURFACE surface)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -164,7 +164,15 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
     MOS_SURFACE dstSurface;
     MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
     dstSurface.Format = Format_NV12;
-    dstSurface.OsResource = m_decodeParams.m_destSurface->OsResource;
+    if(surface != nullptr && !Mos_ResourceIsNull(&surface->OsResource))
+    {
+       dstSurface.OsResource = surface->OsResource;
+    }
+    else
+    {
+       CODECHAL_DECODE_ASSERTMESSAGE("Surface pointer is NULL!");
+       return MOS_STATUS_INVALID_PARAMETER;
+    }
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &dstSurface));
 
     uint32_t height = dstSurface.dwHeight;
@@ -202,7 +210,7 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
 
         MOS_ZeroMemory(&hucStreamOutParams, sizeof(hucStreamOutParams));
         hucStreamOutParams.dataBuffer            = &m_resMonoPictureChromaBuffer;
-        hucStreamOutParams.streamOutObjectBuffer = &m_decodeParams.m_destSurface->OsResource;
+        hucStreamOutParams.streamOutObjectBuffer = &surface->OsResource;
     }
 
     uint32_t uvblockHeight = CODECHAL_MACROBLOCK_HEIGHT;
@@ -220,7 +228,7 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
             dataCopyParams.srcResource = &m_resMonoPictureChromaBuffer;
             dataCopyParams.srcSize     = uvrowSize;
             dataCopyParams.srcOffset   = 0;
-            dataCopyParams.dstResource = &m_decodeParams.m_destSurface->OsResource;
+            dataCopyParams.dstResource = &surface->OsResource;
             dataCopyParams.dstSize     = frameSize;
             dataCopyParams.dstOffset   = dstOffset;
 
@@ -231,7 +239,7 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
             CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
                 &cmdBuffer,                                 // pCmdBuffer
                 &m_resMonoPictureChromaBuffer,              // presSrc
-                &m_decodeParams.m_destSurface->OsResource,  // presDst
+                &surface->OsResource,                      // presDst
                 uvrowSize,                                  // u32CopyLength
                 0,                                          // u32CopyInputOffset
                 dstOffset));                                // u32CopyOutputOffset
@@ -248,7 +256,7 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
         dataCopyParams.srcResource     = &m_resMonoPictureChromaBuffer;
         dataCopyParams.srcSize         = uvsize;
         dataCopyParams.srcOffset       = 0;
-        dataCopyParams.dstResource     = &m_decodeParams.m_destSurface->OsResource;
+        dataCopyParams.dstResource     = &surface->OsResource;
         dataCopyParams.dstSize         = frameSize;
         dataCopyParams.dstOffset       = dstOffset;
 
@@ -259,7 +267,7 @@ MOS_STATUS CodechalDecodeAvc::FormatAvcMonoPicture()
         CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
             &cmdBuffer,                                 // pCmdBuffer
             &m_resMonoPictureChromaBuffer,              // presSrc
-            &m_decodeParams.m_destSurface->OsResource,  // presDst
+            &surface->OsResource,                      // presDst
             uvsize,                                     // u32CopyLength
             0,                                          // u32CopyInputOffset
             dstOffset));                                // u32CopyOutputOffset
@@ -400,15 +408,30 @@ MOS_STATUS CodechalDecodeAvc::InitMvcDummyDmvBuffer(
     uint32_t i, numMBs = size / 64;
     for (i = 0; i<numMBs; i++)
     {
-        CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(mbDmvBuffer, 64, mvcWaDummyDmvBuf, 64));
+        eStatus = (MOS_STATUS)MOS_SecureMemcpy(mbDmvBuffer, 64, mvcWaDummyDmvBuf, 64);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_SafeFreeMemory(dummyDmvBuffer);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
+        }
         mbDmvBuffer += 64;
     }
 
     CodechalResLock ResourceLock(m_osInterface, mvcDummyDmvBuffer);
     auto data = (uint8_t*)ResourceLock.Lock(CodechalResLock::writeOnly);
-    CODECHAL_DECODE_CHK_NULL_RETURN(data);
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(data, size, (void*)dummyDmvBuffer, size));
+    if (data  == nullptr)
+    {
+        MOS_FreeMemory(dummyDmvBuffer);
+        CODECHAL_DECODE_CHK_NULL_RETURN(nullptr);
+    }
+
+    eStatus = (MOS_STATUS)MOS_SecureMemcpy(data, size, (void*)dummyDmvBuffer, size);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_SafeFreeMemory(dummyDmvBuffer);
+        CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
+    }
 
     MOS_FreeMemAndSetNull(dummyDmvBuffer);
     return eStatus;
@@ -1203,7 +1226,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetPictureStructs());
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(FormatAvcMonoPicture());
+    CODECHAL_DECODE_CHK_STATUS_RETURN(FormatAvcMonoPicture(m_decodeParams.m_destSurface));
 
     if (m_avcPicParams->pic_fields.IntraPicFlag)
     {
@@ -1220,7 +1243,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
-        if (!decProcessingParams->bIsReferenceOnlyPattern)
+        if (!decProcessingParams->bIsReferenceOnlyPattern && m_downsamplingHinted)
         {
             CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
         }
@@ -1234,7 +1257,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
 
         if (!((!CodecHal_PictureIsFrame(m_avcPicParams->CurrPic) ||
              m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
-             m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams)) &&
+             (m_downsamplingHinted && m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams))) &&
              m_sfcState->m_sfcPipeOut == false &&
             !decProcessingParams->bIsReferenceOnlyPattern)
         {
@@ -1247,8 +1270,34 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
     }
 #endif
     m_crrPic = m_avcPicParams->CurrPic;
-    m_secondField =
-        CodecHal_PictureIsBottomField(m_avcPicParams->CurrPic);
+
+    if(m_fullFieldsFrame == (PICTURE_BOTTOM_FIELD | PICTURE_TOP_FIELD))
+    {
+        m_fullFieldsFrame = 0;
+    }
+
+    m_secondField = false;
+
+    if(CodecHal_PictureIsField(m_avcPicParams->CurrPic))
+    {
+       if(CodecHal_PictureIsTopField(m_avcPicParams->CurrPic))
+       {
+           m_fullFieldsFrame |= PICTURE_TOP_FIELD;
+       }
+       if (CodecHal_PictureIsBottomField(m_avcPicParams->CurrPic))
+       {
+           m_fullFieldsFrame |= PICTURE_BOTTOM_FIELD;
+       }
+    }
+    else
+    {
+        m_fullFieldsFrame = 0;
+    }
+
+    if(m_fullFieldsFrame == (PICTURE_BOTTOM_FIELD | PICTURE_TOP_FIELD))
+    {
+        m_secondField = true;
+    }
 
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic     = m_crrPic;
@@ -1812,7 +1861,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
                 }
             }
 
-            decodeStatusReport.m_secondField = CodecHal_PictureIsBottomField(m_avcPicParams->CurrPic);
+            decodeStatusReport.m_secondField = m_secondField;
             decodeStatusReport.m_frameType   = m_perfType;)
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(EndStatusReport(decodeStatusReport, &cmdBuffer));
@@ -1848,7 +1897,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
     //    m_debugInterface,
     //    &cmdBuffer));
     )
-    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
 

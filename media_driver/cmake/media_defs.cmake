@@ -18,7 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-bs_set_if_undefined(UFO_VERSION      "1.0.0")
 bs_set_if_undefined(PLATFORM         "linux")
 bs_set_if_undefined(ARCH             "64")
 bs_set_if_undefined(UFO_MARCH        "corei7")

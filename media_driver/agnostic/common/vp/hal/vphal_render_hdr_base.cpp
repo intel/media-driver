@@ -35,7 +35,10 @@
 #include "renderhal_platform_interface.h"
 #include "vphal_render_hdr_g9_base.h"
 
-static bool sForceSplitFrame = false;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+static bool sEnableKernelDump = false;
+#endif
 
 //!
 //! \brief    Initialize HDR state
@@ -89,19 +92,21 @@ MOS_STATUS VpHal_HdrInitialize(
     // no matter HW support preemption or not.
     // If it is not set, and HW doesn't support preemption, then the split portions
     // will be calculted based on resolution.
-    if (!sForceSplitFrame)
+    if (!pHdrState->bForceSplitFrame)
     {
         if (MEDIA_IS_SKU(pHdrState->pSkuTable, FtrMediaMidBatchPreempt) ||
             MEDIA_IS_SKU(pHdrState->pSkuTable, FtrMediaThreadGroupLevelPreempt) ||
             MEDIA_IS_SKU(pHdrState->pSkuTable, FtrMediaMidThreadLevelPreempt))
         {
             pHdrState->uiSplitFramePortions = 1;
-            sForceSplitFrame = true;
+            pHdrState->bForceSplitFrame     = true;
         }
     }
 
     pHdrState->bFtrComputeWalker = false;
     pHdrState->uiSplitFramePortions = 1;
+
+    pHdrState->bVeboxpreprocessed = false;
 
     VpHal_HdrInitInterface_g9(pHdrState);            // Total number of slices
     
@@ -419,8 +424,9 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             {
                 CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709;
             }
-            else if (pTarget->ColorSpace == CSpace_BT709_FullRange)
+            else if (pHdrState->bVeboxpreprocessed && pTarget->ColorSpace == CSpace_BT709_FullRange)
             {
+                // CSC for target BT709_FULLRANGE is only exposed to Vebox Preprocessed HDR cases.
                 CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709_FULLRANGE;
             }
             else if (pTarget->ColorSpace == CSpace_BT2020 ||
@@ -990,6 +996,8 @@ MOS_STATUS VpHal_HdrRender(
     MOS_GPU_CONTEXT                 RenderGpuContext        = MOS_GPU_CONTEXT_RENDER;
     bool                            bLastSummit             = true;
 
+    VPHAL_RENDER_FUNCTION_ENTER;
+
     VPHAL_RENDER_CHK_NULL(pHdrState);
     VPHAL_RENDER_CHK_NULL(pRenderParams);
     VPHAL_RENDER_CHK_NULL(pHdrState->pRenderHal);
@@ -1154,6 +1162,7 @@ MOS_STATUS VpHal_HdrRender(
     eStatus = MOS_STATUS_SUCCESS;
 
 finish:
+    VPHAL_RENDER_EXITMESSAGE("eStatus %d", eStatus);
     return eStatus;
 }
 
@@ -1216,9 +1225,19 @@ MOS_STATUS VpHal_RndrRenderHDR(
     PVPHAL_RENDER_PARAMS    pRenderParams,
     RenderpassData          *pRenderPassData)
 {
-    PRENDERHAL_INTERFACE    *pRenderHal = &pRenderer->pHdrState->pRenderHal;
+    PRENDERHAL_INTERFACE    *pRenderHal = nullptr;
     MOS_STATUS              eStatus     = MOS_STATUS_SUCCESS;
     bool                    bEnabled    = false;
+
+    VPHAL_RENDER_FUNCTION_ENTER;
+
+    VPHAL_RENDER_CHK_NULL(pRenderer);
+    VPHAL_RENDER_CHK_NULL(pRenderParams);
+    VPHAL_RENDER_CHK_NULL(pRenderPassData);
+    VPHAL_RENDER_CHK_NULL(pRenderer->pHdrState);
+
+    pRenderHal = &pRenderer->pHdrState->pRenderHal;
+    VPHAL_RENDER_CHK_NULL(pRenderHal);
 
     // Disable bEnableP010SinglePass for HDR path, to avoid AVS sampler and 1 planes 3D sampler path in kernel.
     // Kernel solution only support 2 planes rendering of 3D sampler.
@@ -1231,6 +1250,9 @@ MOS_STATUS VpHal_RndrRenderHDR(
 
     if (bEnabled)
        (*pRenderHal)->bEnableP010SinglePass = true;
+
+finish:
+    VPHAL_RENDER_EXITMESSAGE("eStatus %d", eStatus);
     return eStatus;
 }
 
@@ -1396,6 +1418,8 @@ MOS_STATUS VpHal_HdrPreprocess(
     MHW_KERNEL_PARAM              MhwKernelParam        = {};
     int32_t                       iKrnAllocation        = 0;
 
+    VPHAL_RENDER_FUNCTION_ENTER;
+
     VPHAL_RENDER_CHK_NULL(pHdrState);
     VPHAL_RENDER_CHK_NULL(pRenderParams);
     VPHAL_RENDER_CHK_NULL(pHdrState->pRenderHal);
@@ -1404,6 +1428,7 @@ MOS_STATUS VpHal_HdrPreprocess(
     // HDR PreProcess Kernel is needed only if HDR metada is changed.
     if (!pHdrState->dwUpdateMask)
     {
+        VPHAL_RENDER_EXITMESSAGE("pHdrState->dwUpdateMask is false, no need to update coefficients, exit with MOS_STATUS_SUCCESS!");
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1551,9 +1576,19 @@ MOS_STATUS VpHal_HdrPreprocess(
         nullptr,
         bLastSummit));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (sEnableKernelDump)
+    {
+        VphalSurfaceDumper surfaceDumper(pOsInterface);
+        std::string fileName("Preprocessed_HDRMandatory_coefficient_8x98");
+        surfaceDumper.DumpSurfaceToFile(pOsInterface, &pHdrState->CoeffSurface, fileName.c_str(), 0, true, false, nullptr);
+    }
+#endif
+
     eStatus = MOS_STATUS_SUCCESS;
 
 finish:
+    VPHAL_RENDER_EXITMESSAGE("eStatus %d", eStatus);
     return eStatus;
 }
 

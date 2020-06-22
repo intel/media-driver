@@ -156,6 +156,8 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_R5G6B5      ,
     Media_Format_R10G10B10A2 ,
     Media_Format_B10G10R10A2 ,
+    Media_Format_R10G10B10X2 ,
+    Media_Format_B10G10R10X2 ,
     Media_Format_CPU         ,
 
     Media_Format_YUY2        ,
@@ -189,15 +191,16 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_YVYU        ,
     Media_Format_A16R16G16B16,
     Media_Format_A16B16G16R16,
+    Media_Format_P012        ,
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
 
 typedef enum _DDI_MEDIA_STATUS_REPORT_QUERY_STATE
 {
-    DDI_MEDIA_STATUS_REPORT_QUREY_STATE_INIT,
-    DDI_MEDIA_STATUS_REPORT_QUREY_STATE_PENDING,
-    DDI_MEDIA_STATUS_REPORT_QUREY_STATE_COMPLETED,
-    DDI_MEDIA_STATUS_REPORT_QUREY_STATE_RELEASED
+    DDI_MEDIA_STATUS_REPORT_QUERY_STATE_INIT,
+    DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING,
+    DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED,
+    DDI_MEDIA_STATUS_REPORT_QUERY_STATE_RELEASED
 } DDI_MEDIA_STATUS_REPORT_QUERY_STATE;
 
 //!
@@ -217,6 +220,7 @@ typedef struct _DDI_MEDIA_SURFACE_DESCRIPTOR
     bool       bIsGralloc;                            // buffer allocated by Gralloc
     void      *pPrivateData;                          // brief reserved for passing private data
     GMM_RESCREATE_PARAMS GmmParam;                    // GMM Params for Gralloc buffer
+    uint64_t   modifier;                              // used for VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
 } DDI_MEDIA_SURFACE_DESCRIPTOR,*PDDI_MEDIA_SURFACE_DESCRIPTOR;
 
 //!
@@ -298,6 +302,8 @@ typedef struct _DDI_MEDIA_SURFACE
     uint8_t                 *pSystemShadow;           // Shadow surface in system memory
 
     uint32_t                uiMapFlag;
+
+    uint32_t                uiVariantFlag;
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
@@ -322,6 +328,7 @@ typedef struct _DDI_MEDIA_BUFFER
     uint32_t               uiMemtype;
     uint32_t               uiExportcount;
     uintptr_t              handle;
+    bool                   bPostponedBufFree;
 
     bool                   bCFlushReq; // No LLC between CPU & GPU, requries to call CPU Flush for CPU mapped buffer
     PDDI_MEDIA_SURFACE     pSurface;
@@ -422,6 +429,8 @@ struct DDI_MEDIA_CONTEXT
     PDDI_MEDIA_HEAP     pMfeCtxHeap;
     uint32_t            uiNumMfes;
 
+    bool                cpLibWasLoaded;
+
     // display info
     uint32_t            uiDisplayWidth;
     uint32_t            uiDisplayHeight;
@@ -459,6 +468,28 @@ struct DDI_MEDIA_CONTEXT
         PMOS_CONTEXT  pMosCtx,
         PMOS_RESOURCE pOsResource);
 
+    //!
+    //! \brief  the function ptr for surface copy function
+    //!
+    void  (* pfnMediaMemoryCopy )(
+        PMOS_CONTEXT       pMosCtx,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        bool               bOutputCompressed);
+
+    //!
+    //! \brief  the function ptr for Media Memory 2D copy function
+    //!
+    void (* pfnMediaMemoryCopy2D)(
+        PMOS_CONTEXT       pMosCtx,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        uint32_t           copyWidth,
+        uint32_t           copyHeight,
+        uint32_t           copyInputOffset,
+        uint32_t           copyOutputOffset,
+        bool               bOutputCompressed);
+
     PLATFORM            platform;
 
     MediaLibvaCaps     *m_caps;
@@ -483,6 +514,7 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T    PutSurfaceRenderMutex;
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
 #endif
+    bool m_apoMosEnabled;
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)
@@ -535,7 +567,6 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 //!
 DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID);
 
-
 //!
 //! \brief  replace the surface with given format
 //!
@@ -548,6 +579,17 @@ DDI_MEDIA_SURFACE* DdiMedia_GetSurfaceFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaC
 //!     Pointer to new ddi media surface
 //!
 PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat);
+
+//!
+//! \brief  replace the surface with correlation variant format
+//!
+//! \param  [in] surface
+//!     Pointer to the old surface
+//!
+//! \return DDI_MEDIA_SURFACE*
+//!     Pointer to new ddi media surface
+//!
+PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface, VAEntrypoint entrypoint);
 
 //!
 //! \brief  Get VA surface ID  from surface

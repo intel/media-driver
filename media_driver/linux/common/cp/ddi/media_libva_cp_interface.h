@@ -69,7 +69,7 @@ public:
 
     virtual VAStatus ParseCpParamsForEncode();
 
-    virtual void SetHdcp2Enabled(int32_t flag);
+    virtual void SetCpFlags(int32_t flag);
 
     virtual bool IsHdcp2Enabled();
 
@@ -84,20 +84,20 @@ public:
 };
 
 //!
-//! \brief    Create DdiCpInterface Object according CPLIB loading status
+//! \brief    Create DdiCpInterface Object
 //!           Must use Delete_DdiCpInterface to delete created Object to avoid ULT Memory Leak errors
 //!
 //! \param    [in] *pMosCtx
 //!           MOS_CONTEXT*
 //!
-//! \return   Return CP Wrapper Object if CPLIB not loaded
+//! \return   Return CP Wrapper Object
 //!
 DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx);
 
 //!
-//! \brief    Delete the MhwCpInterface Object according CPLIB loading status
+//! \brief    Delete the MhwCpInterface Object
 //!
-//! \param    [in] *pDdiCpInterface 
+//! \param    [in] *pDdiCpInterface
 //!           DdiCpInterface
 //!
 void Delete_DdiCpInterface(DdiCpInterface* pDdiCpInterface);

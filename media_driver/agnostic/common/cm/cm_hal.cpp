@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -8166,8 +8166,6 @@ MOS_STATUS HalCm_ExecuteTask(
         goto finish;
     }
 
-    state->osInterface->pfnSetGpuContext(state->osInterface, (MOS_GPU_CONTEXT)execParam->queueOption.GPUContext);
-
     // Reset states before execute
     // (clear allocations, get GSH allocation index + any additional housekeeping)
     state->osInterface->pfnResetOsStates(state->osInterface);
@@ -8477,8 +8475,6 @@ MOS_STATUS HalCm_ExecuteGroupTask(
     CM_ASSERT(execGroupParam);
     //-----------------------------------
 
-    state->osInterface->pfnSetGpuContext(state->osInterface, (MOS_GPU_CONTEXT)execGroupParam->queueOption.GPUContext);
-
     MOS_ZeroMemory(state->taskParam, sizeof(CM_HAL_TASK_PARAM));
     MOS_ZeroMemory(&indexParam, sizeof(CM_HAL_INDEX_PARAM));
 
@@ -8744,8 +8740,6 @@ MOS_STATUS HalCm_ExecuteHintsTask(
         CM_ASSERTMESSAGE("Number of Kernels per task exceeds maximum");
         goto finish;
     }
-
-    state->osInterface->pfnSetGpuContext(state->osInterface, (MOS_GPU_CONTEXT)execHintsParam->queueOption.GPUContext);
 
     bindingTableEntries = (int*)MOS_AllocAndZeroMemory(sizeof(int)*execHintsParam->numKernels);
     mediaIds = (int*)MOS_AllocAndZeroMemory(sizeof(int)* execHintsParam->numKernels);
@@ -9666,7 +9660,7 @@ MOS_STATUS HalCm_AllocateSurface2D(
         HalCm_OsResource_Reference(&entry->osResource);
     }
     // set default CM MOS usage
-    entry->memObjCtl = MOS_CM_RESOURCE_USAGE_SurfaceState << 8;
+    entry->memObjCtl = (state->cmHalInterface->GetDefaultMOCS()) << 8;
 
     if (state->advExecutor)
     {
@@ -10336,6 +10330,30 @@ CM_STATE_BUFFER_TYPE HalCm_GetStateBufferTypeForKernel(
     }
 }
 
+void LoadUserFeatures(MOS_GPUCTX_CREATOPTIONS *createOptions)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA  user_feature_data;
+    MOS_ZeroMemory(&user_feature_data, sizeof(user_feature_data));
+    MOS_STATUS result
+            = MOS_UserFeature_ReadValue_ID(
+                nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE,
+                &user_feature_data);
+    if (MOS_STATUS_SUCCESS == result && user_feature_data.i32Data == 1)
+    {
+        createOptions->RAMode = 1;
+    }
+
+    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    userFeatureWriteData.Value.i32Data = createOptions->RAMode;
+    userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE;
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+
+#endif
+    return;
+}
+
 MOS_STATUS HalCm_CreateGPUContext(
     PCM_HAL_STATE            state,
     MOS_GPU_CONTEXT          gpuContext,
@@ -10344,15 +10362,7 @@ MOS_STATUS HalCm_CreateGPUContext(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA  UserFeatureData;
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    eStatus = MOS_UserFeature_ReadValue_ID(nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE, &UserFeatureData);
-    if (eStatus == MOS_STATUS_SUCCESS && UserFeatureData.i32Data == 1)
-    {
-        pMosGpuContextCreateOption->RAMode = 1;
-    }
-#endif
+    LoadUserFeatures(pMosGpuContextCreateOption);
 
     // Create Compute Context on Compute Node
     CM_CHK_HRESULT_GOTOFINISH_MOSERROR(state->osInterface->pfnCreateGpuContext(
@@ -10368,6 +10378,65 @@ MOS_STATUS HalCm_CreateGPUContext(
 
 finish:
     return eStatus;
+}
+
+GPU_CONTEXT_HANDLE
+HalCm_CreateGpuComputeContext(CM_HAL_STATE *state,
+                              MOS_GPUCTX_CREATOPTIONS *createOptions)
+{
+    LoadUserFeatures(createOptions);
+
+    GPU_CONTEXT_HANDLE context_handle
+            = state->osInterface->pfnCreateGpuComputeContext(
+                state->osInterface, MOS_GPU_CONTEXT_CM_COMPUTE, createOptions);
+    if (MOS_GPU_CONTEXT_INVALID_HANDLE != context_handle)
+    {
+        state->osInterface->pfnRegisterBBCompleteNotifyEvent(
+            state->osInterface, MOS_GPU_CONTEXT_CM_COMPUTE);
+    }
+    return context_handle;
+}
+
+uint32_t HalCm_SetGpuContext(CM_HAL_STATE *halState,
+                             MOS_GPU_CONTEXT contextName,
+                             uint32_t streamIndex,
+                             GPU_CONTEXT_HANDLE contextHandle)
+{
+    uint32_t old_stream_idx = halState->osInterface->streamIndex;
+    halState->osInterface->streamIndex = streamIndex;
+    MOS_STATUS result = MOS_STATUS_SUCCESS;
+
+    if (MOS_GPU_CONTEXT_INVALID_HANDLE == contextHandle)
+    {
+        result = halState->osInterface->pfnSetGpuContext(halState->osInterface,
+                                                         contextName);
+    }
+    else
+    {
+        result = halState->osInterface->pfnSetGpuContextFromHandle(
+            halState->osInterface, contextName, contextHandle);
+    }
+
+    if (MOS_STATUS_SUCCESS != result)
+    {
+        halState->osInterface->streamIndex = old_stream_idx;
+        return INVALID_STREAM_INDEX;
+    }
+    return old_stream_idx;
+}
+
+MOS_STATUS HalCm_SelectSyncBuffer(CM_HAL_STATE *halState, uint32_t bufferIdx)
+{
+    if (bufferIdx >= halState->cmDeviceParam.maxBufferTableSize)
+    {
+        halState->syncBuffer = nullptr;
+        return MOS_STATUS_SUCCESS;
+    }
+    CM_HAL_BUFFER_ENTRY *entry = halState->bufferTable + bufferIdx;
+    halState->syncBuffer = &entry->osResource;
+    MOS_INTERFACE *os_interface = halState->osInterface;
+    return os_interface->pfnRegisterResource(os_interface, halState->syncBuffer,
+                                             true, true);
 }
 
 //*-----------------------------------------------------------------------------
@@ -10386,6 +10455,7 @@ MOS_STATUS HalCm_Create(
     uint32_t            numCmdBuffers = 0;
     MhwInterfaces       *mhwInterfaces = nullptr;
     MhwInterfaces::CreateParams params;
+    MOS_GPUCTX_CREATOPTIONS createOption;
 
     //-----------------------------------------
     CM_ASSERT(osDriverContext);
@@ -10415,18 +10485,13 @@ MOS_STATUS HalCm_Create(
     state->skuTable = state->osInterface->pfnGetSkuTable(state->osInterface);
     state->waTable  = state->osInterface->pfnGetWaTable (state->osInterface);
 
-    if (!param->disableVebox)
-    {
-        MOS_GPUCTX_CREATOPTIONS createOption;
-
-        // Create VEBOX Context
-        createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
-        CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_CreateGPUContext(
-            state,
-            MOS_GPU_CONTEXT_VEBOX,
-            MOS_GPU_NODE_VE,
-            &createOption));
-    }
+    // Create VEBOX Context
+    createOption.CmdBufferNumScale = MOS_GPU_CONTEXT_CREATE_DEFAULT;
+    CM_CHK_MOSSTATUS_GOTOFINISH(HalCm_CreateGPUContext(
+        state,
+        MOS_GPU_CONTEXT_VEBOX,
+        MOS_GPU_NODE_VE,
+        &createOption));
 
     // Allocate/Initialize CM Rendering Interface
     state->renderHal = (PRENDERHAL_INTERFACE)
@@ -10615,6 +10680,9 @@ MOS_STATUS HalCm_Create(
     state->pfnGetStateBufferSizeForKernel = HalCm_GetStateBufferSizeForKernel;
     state->pfnGetStateBufferTypeForKernel = HalCm_GetStateBufferTypeForKernel;
     state->pfnCreateGPUContext            = HalCm_CreateGPUContext;
+    state->pfnCreateGpuComputeContext     = HalCm_CreateGpuComputeContext;
+    state->pfnSetGpuContext               = HalCm_SetGpuContext;
+    state->pfnSelectSyncBuffer            = HalCm_SelectSyncBuffer;
     state->pfnDSHUnregisterKernel         = HalCm_DSH_UnregisterKernel;
 
     state->pfnUpdateBuffer                = HalCm_UpdateBuffer;
@@ -10868,32 +10936,25 @@ void HalCm_GetUserFeatureSettings(
 )
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
-    PMOS_INTERFACE                  osInterface;
-    PMOS_USER_FEATURE_INTERFACE     userFeatureInterface;
-    MOS_USER_FEATURE                userFeature;
-    MOS_USER_FEATURE_VALUE          userFeatureValue;
+    PMOS_INTERFACE osInterface = cmState->osInterface;
 
-    MOS_ZeroMemory(&userFeatureValue, sizeof(userFeatureValue));
-    osInterface            = cmState->osInterface;
-    userFeatureInterface   = &osInterface->UserFeatureInterface;
-    userFeature             = *userFeatureInterface->pUserFeatureInit;
-    userFeature.Type        = MOS_USER_FEATURE_TYPE_USER;
-    userFeature.pPath       = (char *)__MEDIA_USER_FEATURE_SUBKEY_INTERNAL;
-    userFeature.pValues     = &userFeatureValue;
-    userFeature.uiNumValues = 1;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
 
-    if (userFeatureInterface->pfnReadValue(
-          userFeatureInterface,
-          &userFeature,
-          (char *)VPHAL_CM_MAX_THREADS,
-          MOS_USER_FEATURE_VALUE_TYPE_UINT32) == MOS_STATUS_SUCCESS)
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_MDF_MAX_THREAD_NUM_ID,
+        &userFeatureData);
+
+    if (userFeatureData.i32Data != 0)
     {
-        uint32_t data = userFeature.pValues[0].u32Data;
+        uint32_t data = userFeatureData.i32Data;
         if ((data > 0) && (data <= cmState->renderHal->pHwCaps->dwMaxThreads))
         {
             cmState->maxHWThreadValues.userFeatureValue = data;
         }
     }
+
 #else
     UNUSED(cmState);
 #endif // _DEBUG || _RELEASE_INTERNAL
@@ -11904,6 +11965,8 @@ MOS_STATUS HalCm_Convert_RENDERHAL_SURFACE_To_MHW_VEBOX_SURFACE(
                                       + surface->UPlaneOffset.iYOffset;
     }
     mhwVeboxSurface->TileType      = surface->TileType;
+    mhwVeboxSurface->TileModeGMM   = surface->TileModeGMM;
+    mhwVeboxSurface->bGMMTileEnabled = surface->bGMMTileEnabled;
     mhwVeboxSurface->rcMaxSrc      = renderHalSurface->rcMaxSrc;
     mhwVeboxSurface->pOsResource   = &surface->OsResource;
 

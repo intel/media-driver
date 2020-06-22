@@ -32,6 +32,10 @@ if(GEN9_CML)
     media_include_subdirectory(gen9_cml)
 endif()
 
+if(GEN9_CMPV)
+    media_include_subdirectory(gen9_cmpv)
+endif()
+
 if(GEN9_BXT)
     media_include_subdirectory(gen9_bxt)
 endif()
@@ -62,6 +66,10 @@ endif()
 
 if(GEN11)
     media_include_subdirectory(gen11)
+endif()
+
+if(GEN12)
+    media_include_subdirectory(gen12)
 endif()
 
 include(${MEDIA_EXT}/linux/media_srcs_ext.cmake OPTIONAL)

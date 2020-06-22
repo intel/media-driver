@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -141,7 +141,7 @@ struct CodechalVdencAvcStateG11::BrcInitDmem
     uint8_t     INIT_AdaptiveCostEnable_U8;           // 0: disabled, 1: enabled
     uint8_t     INIT_AdaptiveHMEExtensionEnable_U8;   // 0: disabled, 1: enabled
     uint8_t     INIT_ICQReEncode_U8;                  // 0: disabled, 1: enabled
-    uint8_t     Reserved_u8;                          // must be zero
+    uint8_t     INIT_LookaheadDepth_U8;               // Lookahead depth in unit of frames [0, 127]
     uint8_t     INIT_SinglePassOnly;                  // 0: disabled, 1: enabled
     uint8_t     INIT_New_DeltaQP_Adaptation_U8;       // = 1 to enable new delta QP adaption
     uint8_t     RSVD2[55];                            // must be zero
@@ -218,7 +218,12 @@ struct CodechalVdencAvcStateG11::BrcUpdateDmem
     int8_t       HME1XOffset_I8;    // default = -32, Frame level X offset from the co-located (0, 0) location for HME1.
     int8_t       HME1YOffset_I8;    // default = -24, Frame level Y offset from the co-located (0, 0) location for HME1.
     uint8_t      MOTION_ADAPTIVE_G4;
-    uint8_t     RSVD2[27];
+    uint8_t      EnableLookAhead;
+    uint8_t      UPD_LA_Data_Offset_U8;
+    uint8_t      UPD_CQMEnabled_U8;  // 0 indicates CQM is disabled for current frame; otherwise CQM is enabled.
+    uint32_t     UPD_LA_TargetSize_U32;     // target frame size in lookahead BRC (if EnableLookAhead == 1) or TCBRC mode. If zero, lookahead BRC or TCBRC is disabled.
+    uint32_t     UPD_LA_TargetFulness_U32;  // target VBV buffer fulness in lookahead BRC mode (if EnableLookAhead == 1).
+    uint8_t      RSVD2[16];
 };
 
 // CURBE for Static Frame Detection kernel
@@ -1142,7 +1147,8 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
         }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetAndPopulateVEHintParams(&cmdBuffer));
-        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface->pOsContext);
+
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, renderingFlags));
 
         CODECHAL_DEBUG_TOOL(
@@ -1188,6 +1194,17 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
         }
     }
 
+    CODECHAL_DEBUG_TOOL(
+        // here add the dump buffer for PAK statistics.
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+            &m_pakStatsBufferFull,
+            CodechalDbgAttr::attrInput,
+            "MB and FrameLevel PAK staistics vdenc",
+            m_vdencBrcPakStatsBufferSize + m_picWidthInMb * m_picHeightInMb * 64,   //size
+            0, //offset
+            CODECHAL_MEDIA_STATE_16X_ME));
+    )
+
     if (m_vdencBrcEnabled)
     {
         CODECHAL_DEBUG_TOOL(DumpHucBrcUpdate(false));
@@ -1225,9 +1242,6 @@ MOS_STATUS CodechalVdencAvcStateG11::InitKernelStateSFD()
     auto renderEngineInterface = m_hwInterface->GetRenderInterface();
     auto stateHeapInterface = m_renderEngineInterface->m_stateHeapInterface;
     CODECHAL_ENCODE_CHK_NULL_RETURN(stateHeapInterface);
-
-    m_sfdKernelState = MOS_New(MHW_KERNEL_STATE);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_sfdKernelState);
 
     uint8_t* kernelBinary;
     uint32_t kernelSize;
@@ -1344,7 +1358,7 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcInitReset()
     SetDmemHuCBrcInitResetImpl<BrcInitDmem>(dmem);
 
     // fractional QP enable for extended rho domain
-    dmem->INIT_FracQPEnable_U8 = (uint8_t)m_vdencInterface->IsRhoDomainStatsEnabled();
+    dmem->INIT_FracQPEnable_U8 = m_lookaheadDepth > 0 ? 0 : (uint8_t)m_vdencInterface->IsRhoDomainStatsEnabled();
 
     dmem->INIT_SinglePassOnly = m_vdencSinglePassEnable;
 
@@ -1373,6 +1387,8 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcInitReset()
     {
         dmem->INIT_SinglePassOnly = true;
     }
+
+    dmem->INIT_LookaheadDepth_U8 = m_lookaheadDepth;
 
     //Override the DistQPDelta.
     if (m_mbBrcEnabled)
@@ -1436,6 +1452,14 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcUpdate()
     dmem->UPD_HeightInMB_U16 = m_picHeightInMb;
 
     dmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING);
+    dmem->UPD_CQMEnabled_U8  = m_avcSeqParam->seq_scaling_matrix_present_flag || m_avcPicParam->pic_scaling_matrix_present_flag;
+
+    if (m_lookaheadDepth > 0)
+    {
+        dmem->EnableLookAhead = 1;
+        dmem->UPD_LA_TargetSize_U32 = m_avcPicParam->TargetFrameSize << 3;
+        dmem->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
+    }
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(
@@ -1545,7 +1569,7 @@ MOS_STATUS CodechalVdencAvcStateG11::AddVdencWalkerStateCmd(
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencAvcStateG11::CalculateVdencPictureStateCommandSize()
+MOS_STATUS CodechalVdencAvcStateG11::CalculateVdencCommandsSize()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1553,6 +1577,7 @@ MOS_STATUS CodechalVdencAvcStateG11::CalculateVdencPictureStateCommandSize()
 
     MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11 stateCmdSizeParams;
     uint32_t vdencPictureStatesSize, vdencPicturePatchListSize;
+    uint32_t vdencSliceStatesSize, vdencSlicePatchListSize;
     m_hwInterface->GetHxxStateCommandSize(
         CODECHAL_ENCODE_MODE_AVC,
         (uint32_t*)&vdencPictureStatesSize,
@@ -1562,6 +1587,7 @@ MOS_STATUS CodechalVdencAvcStateG11::CalculateVdencPictureStateCommandSize()
     m_pictureStatesSize += vdencPictureStatesSize;
     m_picturePatchListSize += vdencPicturePatchListSize;
 
+    // Picture Level Commands
     m_hwInterface->GetVdencStateCommandsDataSize(
         CODECHAL_ENCODE_MODE_AVC,
         (uint32_t*)&vdencPictureStatesSize,
@@ -1569,6 +1595,16 @@ MOS_STATUS CodechalVdencAvcStateG11::CalculateVdencPictureStateCommandSize()
 
     m_pictureStatesSize += vdencPictureStatesSize;
     m_picturePatchListSize += vdencPicturePatchListSize;
+
+    // Slice Level Commands
+    m_hwInterface->GetVdencPrimitiveCommandsDataSize(
+        CODECHAL_ENCODE_MODE_AVC,
+        (uint32_t*)&vdencSliceStatesSize,
+        (uint32_t*)&vdencSlicePatchListSize
+    );
+
+    m_sliceStatesSize += vdencSliceStatesSize;
+    m_slicePatchListSize += vdencSlicePatchListSize;
 
     return eStatus;
 }
@@ -1594,13 +1630,6 @@ PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxStateCmd
     PMHW_VDBOX_STATE_CMDSIZE_PARAMS cmdSizeParams = MOS_New(MHW_VDBOX_STATE_CMDSIZE_PARAMS_G11);
 
     return cmdSizeParams;
-}
-
-PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxPipeModeSelectParams()
-{
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G11);
-
-    return pipeModeSelectParams;
 }
 
 PMHW_VDBOX_VDENC_WALKER_STATE_PARAMS CodechalVdencAvcStateG11::CreateMhwVdboxVdencWalkerStateParams()

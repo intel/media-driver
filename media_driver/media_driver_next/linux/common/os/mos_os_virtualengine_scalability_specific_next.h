@@ -29,21 +29,45 @@
 #define __MOS_OS_VIRTUALENGINE_SCALABILITY_SPECIFIC_NEXT_H__
 
 #include "mos_os_virtualengine_next.h"
-class MosOsVeScalabilitySpecific
+#include "mos_os_virtualengine_scalability_next.h"
+
+class MosOsVeScalabilitySpecific : public MosOsVeScalability
 {
 public:
-    //!
-    //! \brief    initialize VE parameters for scalability virtual engine
-    //! \param    [in]  pVEInterface
-    //!                virtual engine interface
-    //! \param    [in]  pVEInitParms
-    //!                pointer to ve init parameter structure
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS Mos_Specific_VirtualEngine_Scalability_Initialize(
-        PMOS_VIRTUALENGINE_INTERFACE      pVEInterface,
-        PMOS_VIRTUALENGINE_INIT_PARAMS    pVEInitParms);
+    MOS_STATUS Initialize(
+        MOS_STREAM_HANDLE stream,
+        PMOS_VIRTUALENGINE_INIT_PARAMS pVEInitParms);
+
+    // Secondary cmd buf are maintained in GPU context in multi-pipe mode
+    void ResetSecdryCmdBufStates() {}
+
+    bool VerifySecdryCmdBufSize(
+        uint32_t dwNewRequestSize) { return true; }
+
+    MOS_STATUS ResizeSecdryCmdBuf(
+        uint32_t dwNewRequestSize) { return MOS_STATUS_SUCCESS; }
+        
+    MOS_STATUS GetSecdryCmdBuf(
+        PMOS_COMMAND_BUFFER pScdryCmdBuf,
+        uint32_t dwBufIdxPlus1) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS ReturnSecdryCmdBuf(
+        PMOS_COMMAND_BUFFER pScdryCmdBuf,
+        uint32_t dwBufIdxPlus1) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS DoneSecdryCmdBuf() { return MOS_STATUS_SUCCESS; }
+
+    // No hint parameters to set
+    MOS_STATUS SetHintParams(
+        PMOS_VIRTUALENGINE_SET_PARAMS pVEParams) { return MOS_STATUS_SUCCESS; }
+
+    MOS_STATUS GetHintParams(
+        bool bScalableMode,
+        PMOS_VIRTUALENGINE_HINT_PARAMS *ppHintParams);
+
+    MOS_STATUS CheckHintParamsValidity() { return MOS_STATUS_SUCCESS; }
+
+    void Destroy() {}
 };
 
 #endif //__MOS_OS_VIRTUALENGINE_SCALABILITY_SPECIFIC_NEXT_H__

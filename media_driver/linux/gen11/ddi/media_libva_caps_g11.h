@@ -62,11 +62,11 @@ public:
         return LoadProfileEntrypoints();
     }
 
-    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats);
+    virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) override;
 
-    virtual uint32_t GetImageFormatsMaxNum();
+    virtual uint32_t GetImageFormatsMaxNum() override;
 
-    virtual bool IsImageSupported(uint32_t fourcc);
+    virtual bool IsImageSupported(uint32_t fourcc) override;
 
     //!
     //! \brief    Populate the color masks info
@@ -78,7 +78,7 @@ public:
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if succeed
     //!
-    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt);
+    virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt) override;
 
     //!
     //! \brief    Return internal encode mode for given profile and entrypoint 
@@ -162,6 +162,10 @@ protected:
         CODEC_8K_MAX_PIC_WIDTH; //!< maxinum width for VP9 encode
     static const uint32_t m_maxVp9EncHeight =
         CODEC_8K_MAX_PIC_HEIGHT; //!< maxinum height for VP9 encode
+    static const uint32_t m_minVp9EncWidth =
+        CODEC_128_MIN_PIC_WIDTH; //!< minimum width for VP9 encode
+    static const uint32_t m_minVp9EncHeight =
+        CODEC_96_MIN_PIC_HEIGHT; //!< minimum height for VP9 encode
     static const VAImageFormat m_G11ImageFormats[]; //!< Gen11 supported image formats
     static const VAConfigAttribValEncRateControlExt m_encVp9RateControlExt; //!< External enc rate control caps for VP9 encode
 
@@ -212,6 +216,6 @@ protected:
     //! \return VAStatus
     //!     if call succeeds
     //!
-    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP);
+    VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) override;
 };
 #endif

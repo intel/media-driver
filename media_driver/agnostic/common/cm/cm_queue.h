@@ -36,6 +36,14 @@ enum CM_FASTCOPY_OPTION
     CM_FASTCOPY_OPTION_DISABLE_TURBO_BOOST = 0x02
 };
 
+enum CM_GPUCOPY_DIRECTION
+{
+    CM_FASTCOPY_GPU2CPU = 0,
+    CM_FASTCOPY_CPU2GPU = 1,
+    CM_FASTCOPY_GPU2GPU = 2,
+    CM_FASTCOPY_CPU2CPU = 3
+};
+
 namespace CMRT_UMD
 {
 class CmTask;
@@ -44,6 +52,7 @@ class CmThreadSpace;
 class CmThreadGroupSpace;
 class CmVebox;
 class CmSurface2D;
+class CmBuffer;
 
 //!
 //! \brief      CmQueue class for task queue management.
@@ -322,7 +331,7 @@ public:
     //!           reference to pointer of event generated. If it is set as CM_NO_EVENT,
     //!           its value returned by runtime is NULL.
     //! \retval   CM_SUCCESS if the task is successfully enqueued
-    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surface’s width in bytes.
+    //! \retval   CM_GPUCOPY_INVALID_STRIDE if stride is not 16-Byte aligned or less than surface's width in bytes.
     //! \retval   CM_GPUCOPY_INVALID_SYSMEM if sysMem is not 16-Byte aligned.
     //! \retval   CM_GPUCOPY_INVALID_SIZE if surface's height is more than CM_MAX_GPUCOPY_SURFACE_HEIGHT
     //! \retval   CM_GPUCOPY_OUT_OF_RESOURCE if runtime runs out of resources

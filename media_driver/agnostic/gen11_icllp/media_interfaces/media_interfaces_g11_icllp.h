@@ -30,7 +30,9 @@
 #include "media_interfaces_mhw.h"
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
+
 #include "media_interfaces_cmhal.h"
+
 #include "media_interfaces_mosutil.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_renderhal.h"
@@ -114,6 +116,7 @@
 #endif
 
 #include "cm_hal_g11.h"
+
 #include "mos_util_user_interface.h"
 #include "vphal_g11_icllp.h"
 
@@ -231,6 +234,7 @@ public:
         PMOS_INTERFACE osInterface) override;
 };
 
+
 class CMHalInterfacesG11Icllp : public CMHalDevice
 {
 protected:
@@ -239,10 +243,11 @@ protected:
         CM_HAL_STATE *pCmState);
 };
 
+
 class MosUtilDeviceG11Icllp : public MosUtilDevice
 {
 public:
-    using MosUtil = MosUtilUserInterface;
+    using MosUtil = MediaUserSettingsMgr;
 
     MOS_STATUS Initialize();
 };

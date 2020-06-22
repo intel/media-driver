@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -576,7 +576,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
         }
     }
 
-    HalOcaInterface::On1stLevelBBEnd(CmdBuffer, *pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(CmdBuffer, *pOsInterface);
 
     if (pBatchBuffer)
     {
@@ -850,7 +850,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
         }
     }
 
-    HalOcaInterface::On1stLevelBBEnd(CmdBuffer, *pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(CmdBuffer, *pOsInterface);
 
     if (pBatchBuffer)
     {
@@ -961,6 +961,8 @@ MOS_STATUS VpHal_RndrCommonInitRenderHalSurface(
     pRenderHalSurface->OsSurface.dwPitch            = pVpSurface->dwPitch;
     pRenderHalSurface->OsSurface.Format             = pVpSurface->Format;
     pRenderHalSurface->OsSurface.TileType           = pVpSurface->TileType;
+    pRenderHalSurface->OsSurface.TileModeGMM        = pVpSurface->TileModeGMM;
+    pRenderHalSurface->OsSurface.bGMMTileEnabled    = pVpSurface->bGMMTileEnabled;
     pRenderHalSurface->OsSurface.dwOffset           = pVpSurface->dwOffset;
     pRenderHalSurface->OsSurface.bIsCompressed      = pVpSurface->bIsCompressed;
     pRenderHalSurface->OsSurface.bCompressible      = pVpSurface->bCompressible;
@@ -1683,6 +1685,17 @@ MOS_STATUS VpHal_RndrUpdateStatusTableAfterSubmit(
     pStatusEntry->dwTag             = dwLastTag;
     pStatusEntry->dwStatus          = (eLastStatus == MOS_STATUS_SUCCESS)? VPREP_NOTREADY : VPREP_ERROR;
     pStatusTable->uiCurrent         = (pStatusTable->uiCurrent + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+
+    // CM may use a different streamIndex, record it here
+    if (pStatusTableUpdateParams->bUpdateStreamIndex)
+    {
+        pStatusEntry->isStreamIndexSet = true;
+        pStatusEntry->streamIndex = (uint16_t)pOsInterface->streamIndex;
+    }
+    else
+    {
+        pStatusEntry->isStreamIndexSet = false;
+    }
 
 finish:
     return eStatus;

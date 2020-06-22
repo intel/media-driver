@@ -179,6 +179,17 @@ public:
     bool m_cqpEnabled                                        = false;  //!< CQP Rate Control
     bool m_sseSupported                                      = false;  //!< PAK SSE support flag
 
+    // Below values will be set if qp control params are sent by app
+    bool    m_minMaxQpControlEnabled = false;  //!< Flag to indicate if min/max QP feature is enabled or not.
+    int16_t m_minQpForI              = 0;      //!< I frame Minimum QP.
+    int16_t m_maxQpForI              = 0;      //!< I frame Maximum QP.
+    int16_t m_minQpForP              = 0;      //!< P frame Minimum QP.
+    int16_t m_maxQpForP              = 0;      //!< P frame Maximum QP.
+    int16_t m_minQpForB              = 0;      //!< B frame Minimum QP.
+    int16_t m_maxQpForB              = 0;      //!< B frame Maximum QP.
+    bool    m_minMaxQpControlForP    = false;  //!< Indicates min/max QP values for P-frames are set separately or not.
+    bool    m_minMaxQpControlForB    = false;  //!< Indicates min/max QP values for B-frames are set separately or not.
+
 protected:
     //!
     //! \brief    Constructor
@@ -383,14 +394,14 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS FreeEncStatsResources();
-    
+
     //!
-    //! \brief    Get Current Frame BRC Level 
+    //! \brief    Get Current Frame BRC Level
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS GetFrameBrcLevel();
+    virtual MOS_STATUS GetFrameBrcLevel();
 
     //! Inherited virtual functions
     virtual bool CheckSupportedFormat(PMOS_SURFACE surface);

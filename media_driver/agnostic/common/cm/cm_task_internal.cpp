@@ -1805,6 +1805,11 @@ int32_t CmTaskInternal::UpdateSurfaceStateOnTaskCreation()
     if (surfaceLock == nullptr)
     {
         CM_ASSERTMESSAGE("Error: Pointer to surface creation lock is null.");
+        if (curTaskSurfResArray)
+        {
+            MOS_FreeMemory(curTaskSurfResArray);
+            curTaskSurfResArray = nullptr;
+        }
         return CM_NULL_POINTER;
     }
 

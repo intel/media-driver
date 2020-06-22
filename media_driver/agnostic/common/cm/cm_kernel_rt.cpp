@@ -4739,9 +4739,17 @@ int32_t CmKernelRT::UpdateKernelData(
                     {
                         for(uint32_t kk=0;  kk< numSurfaces ; kk++)
                         {
-                            CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue != nullptr);
+                            CM_ASSERT(halKernelParam->argParams[argIndex + kk].firstValue
+                                      != nullptr);
                             CmSafeMemCopy(halKernelParam->argParams[argIndex + kk].firstValue,
-                            m_args[ orgArgIndex ].value + kk*sizeof(uint32_t), sizeof(uint32_t));
+                                          m_args[ orgArgIndex ].value + kk*sizeof(uint32_t),
+                                          sizeof(uint32_t));
+                            halKernelParam->argParams[argIndex + kk].aliasIndex
+                                    = m_args[orgArgIndex].aliasIndex;
+                            halKernelParam->argParams[argIndex + kk].aliasCreated
+                                    = m_args[orgArgIndex].aliasCreated;
+                            halKernelParam->argParams[argIndex + kk].isNull
+                                    = m_args[orgArgIndex].isNull;
 
                             if (!m_args[orgArgIndex].surfIndex[kk])
                             {
@@ -4760,8 +4768,11 @@ int32_t CmKernelRT::UpdateKernelData(
                     {
                         CM_ASSERT(halKernelParam->argParams[argIndex].firstValue != nullptr);
                         halKernelParam->argParams[argIndex].kind
-                                = (CM_HAL_KERNEL_ARG_KIND)
-                                m_args[orgArgIndex].unitKind;
+                                = (CM_HAL_KERNEL_ARG_KIND)m_args[orgArgIndex].unitKind;
+                        halKernelParam->argParams[argIndex].aliasIndex
+                                = m_args[orgArgIndex].aliasIndex;
+                        halKernelParam->argParams[argIndex].aliasCreated
+                                = m_args[orgArgIndex].aliasCreated;
                         halKernelParam->argParams[argIndex].isNull
                                 = m_args[orgArgIndex].isNull;
                         if (halKernelParam->argParams[argIndex].isNull)

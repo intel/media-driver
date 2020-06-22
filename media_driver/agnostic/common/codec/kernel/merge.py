@@ -64,7 +64,8 @@ for i in range(n_dats):
 
 # zero fill for the rest of the header, totally:
 #  64 bytes header - 4*number_of_kernels - 4 bytes for number of kernels
-output.write(chr(0)*(64 - 4 - (n_dats << 2)))
+zerofill = chr(0)*(64 - 4 - (n_dats << 2))
+output.write(zerofill.encode(encoding = "utf-8"))
 
 # write combined kernel, each child kernel is 64 bytes aligned
 for i in range(n_dats):
@@ -72,13 +73,15 @@ for i in range(n_dats):
     while 1:
         filebytes = fileobj.read()
         if not filebytes:
-            output.write(chr(0)*padding[i])
+            zerofill = chr(0)*padding[i]
+            output.write(zerofill.encode(encoding = "utf-8"))
             break
         output.write(filebytes)
     fileobj.close()
 
 # padding 128 bytes at the end of combined kernel which is required by HW
-output.write(chr(0)*128)
+zerofill = chr(0)*128
+output.write(zerofill.encode(encoding = "utf-8"))
 
 output.close()
 print ("Completed kernel merge")

@@ -38,6 +38,7 @@ MOS_STATUS CodechalJpegSfcState::CheckAndInitialize(
 
     // Check if SFC output is supported
     if (MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrSFCPipe) &&
+        !MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrDisableVDBox2SFC) &&
         destSurface->Format == Format_A8R8G8B8 &&  // Currently only support this SFC usage in JPEG
         (picParams->m_interleavedData ||           // SFC only support interleaved single scan (YUV400 is excluded for "interleaved" limitation)
             picParams->m_chromaType == jpegYUV400) &&

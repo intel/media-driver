@@ -96,6 +96,12 @@ public:
         return false;
     }
 
+    virtual bool IsTSEnabled()
+    {
+        OsStubMessage();
+        return false;
+    }
+
     virtual bool IsIDMEnabled()
     {
         OsStubMessage();
@@ -147,21 +153,21 @@ public:
         return false;
     }
 
-    virtual MOS_STATUS AllocateRTEPhysicalBuffer(
-        void        **ppRTEBuffer,
+    virtual MOS_STATUS AllocateTEEPhysicalBuffer(
+        void        **ppTEEBuffer,
         uint32_t    *pBufferSize)
     {
-        MOS_UNUSED(ppRTEBuffer);
+        MOS_UNUSED(ppTEEBuffer);
         MOS_UNUSED(pBufferSize);
 
         OsStubMessage();
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS DeAllocateRTEPhysicalBuffer(
-        void      *pRTEBuffer)
+    virtual MOS_STATUS DeAllocateTEEPhysicalBuffer(
+        void      *pTEEBuffer)
     {
-        MOS_UNUSED(pRTEBuffer);
+        MOS_UNUSED(pTEEBuffer);
 
         OsStubMessage();
         return MOS_STATUS_SUCCESS;
@@ -188,23 +194,35 @@ public:
         OsStubMessage();
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
+    void *GetOcaDumper()
+    {
+        OsStubMessage();
+        return nullptr;
+    }
+
+    MOS_STATUS CreateOcaDumper()
+    {
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
 };
 
 //!
-//! \brief    Create MosCpInterface Object according CPLIB loading status
+//! \brief    Create MosCpInterface Object
 //!           Must use Delete_MosCpInterface to delete created Object to avoid ULT Memory Leak errors
 //!
 //! \param    [in] pvOsInterface
 //!           void*
 //!
-//! \return   Return CP Wrapper Object if CPLIB not loaded
+//! \return   Return CP Wrapper Object
 //!
 MosCpInterface* Create_MosCpInterface(void* pvOsInterface);
 
 //!
-//! \brief    Delete the MosCpInterface Object according CPLIB loading status
+//! \brief    Delete the MosCpInterface Object
 //!
-//! \param    [in] pMosCpInterface 
+//! \param    [in] pMosCpInterface
 //!           MosCpInterface
 //!
 void Delete_MosCpInterface(MosCpInterface* pMosCpInterface);

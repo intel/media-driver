@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2019, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 */
 //!
 //! \file     mhw_vebox.h
-//! \brief    MHW interface for constructing commands for the VEBOX 
+//! \brief    MHW interface for constructing commands for the VEBOX
 //! \details  Impelements the functionalities common across all platforms for MHW_VEBOX
 //!
 
@@ -126,9 +126,10 @@ typedef enum _MHW_GAMUT_MODE
 {
     MHW_GAMUT_MODE_NONE,
     MHW_GAMUT_MODE_BASIC,
-    MHW_GAMUT_MODE_ADVANCED
+    MHW_GAMUT_MODE_ADVANCED,
+    MHW_GAMUT_MODE_CUSTOMIZED
 } MHW_GAMUT_MODE;
-C_ASSERT(MHW_GAMUT_MODE_ADVANCED == 2);
+C_ASSERT(MHW_GAMUT_MODE_CUSTOMIZED == 3);
 
 //!
 //! \brief Gamma Values configuration enum
@@ -288,6 +289,12 @@ typedef struct _MHW_VEBOX_DNDI_PARAMS
     uint32_t  dwLPFWtLUT5;
     uint32_t  dwLPFWtLUT6;
     uint32_t  dwLPFWtLUT7;
+
+    //for SlimIPUDenoise
+    void *    pSystemMem = nullptr;
+    uint32_t  MemSizeInBytes;
+    bool      bEnableSlimIPUDenoise;
+
 } MHW_VEBOX_DNDI_PARAMS, *PMHW_VEBOX_DNDI_PARAMS;
 
 //!
@@ -543,7 +550,7 @@ typedef struct _MHW_CAPPIPE_PARAMS
 } MHW_CAPPIPE_PARAMS, *PMHW_CAPPIPE_PARAMS;
 
 //!
-//! Structure MHW_3DLUT_PARAMS 
+//! Structure MHW_3DLUT_PARAMS
 //! \details No pre-si version for MHW_VEBOX_IECP_PARAMS, just leave it now and handle it later
 //!
 typedef struct _MHW_3DLUT_PARAMS
@@ -554,16 +561,16 @@ typedef struct _MHW_3DLUT_PARAMS
     uint8_t *pLUT;                       //!< Pointer to the LUT value
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
 
-//! 
+//!
 //! \brief  VEBOX HDR PARAMS
 //! \details For CCM settings, move 1DLut to here later
 typedef struct _MHW_1DLUT_PARAMS
 {
     uint32_t bActive;
-    uint32_t *p1DLUT;
-    uint32_t *LUTSize;
+    void     *p1DLUT;
+    uint32_t LUTSize;
     int32_t *pCCM;
-    uint32_t *CCMSize;
+    uint32_t CCMSize;
 } MHW_1DLUT_PARAMS, *PMHW_1DLUT_PARAMS;
 
 //!
@@ -648,6 +655,14 @@ typedef struct _MHW_VEBOX_GAMUT_PARAMS
 
     // GExp
     MHW_GAMUT_MODE                      GExpMode;
+    uint32_t                            *pFwdGammaBias;
+    uint32_t                            *pInvGammaBias;
+    float                               *pfCscCoeff;         // [3x3] CSC Coeff matrix
+    float                               *pfCscInOffset;      // [3x1] CSC Input Offset matrix
+    float                               *pfCscOutOffset;     // [3x1] CSC Output Offset matrix
+    float                               *pfFeCscCoeff;       // [3x3] Front-end CSC Coeff matrix
+    float                               *pfFeCscInOffset;    // [3x1] Front-end CSC Input Offset matrix
+    float                               *pfFeCscOutOffset;   // [3x1] Front-end CSC Output Offset matrix
     int32_t                             Matrix[3][3];
 
     // Gamma correction
@@ -717,7 +732,11 @@ typedef struct _MHW_VEBOX_SURFACE_PARAMS
     uint32_t                    dwYoffset;           //!<  Surface Yoffset in Vertical
     uint32_t                    dwUYoffset;          //!<  Surface Uoffset in Vertical
     MOS_TILE_TYPE               TileType;            //!<  Tile Type
+    MOS_TILE_MODE_GMM           TileModeGMM;         //!<  Tile Mode from GMM Definition
+    bool                        bGMMTileEnabled;     //!<  GMM defined tile mode flag
+    RECT                        rcSrc = {0, 0, 0, 0};  //!< Source rectangle
     RECT                        rcMaxSrc;            //!< Max source rectangle
+    bool                        bVEBOXCroppingUsed = false;  //!<Vebox crop case need use rcSrc as vebox input.
     PMOS_RESOURCE               pOsResource;         //!<  Surface resource
 } MHW_VEBOX_SURFACE_PARAMS, *PMHW_VEBOX_SURFACE_PARAMS;
 
@@ -1015,6 +1034,21 @@ public:
 protected:
     MhwVeboxInterface(PMOS_INTERFACE pOsInterface);
 
+    //!
+    //! \brief    Trace indirect state info by OCA
+    //! \details  Trace which resource being used to store indirect state by OCA.
+    //! \param    [in] cmdBuffer
+    //!           Command buffer of current vebox workload.
+    //! \param    [in] mosContext
+    //!           mos context
+    //! \param    [in] isCmBuffer
+    //!           true if CM buffer being used for indirect state, otherwise, vebox heap is used.
+    //! \param    [in] useVeboxHeapKernelResource
+    //!           true if kernel copy needed for indirect state.
+    //! \return   void
+    //!
+    void TraceIndirectStateInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, bool isCmBuffer, bool useVeboxHeapKernelResource);
+
 public:
     //!
     //! \brief    Adds a resource to the command buffer or indirect state (SSH)
@@ -1048,7 +1082,7 @@ public:
     //!
     //!      GPU (Driver Resource)      GPU (Kernel Resource)        VEBOX State (in Graphics Memory)
     //!      -------------------         -------------------        ---------------------
-    //!     | VEBOX State 0     |       | VEBOX State 0     |       | DNDI State         | 
+    //!     | VEBOX State 0     |       | VEBOX State 0     |       | DNDI State         |
     //!      -------------------         -------------------         --------------------
     //!     | VEBOX State 1     |       | VEBOX State 1     |       | IECP State         |
     //!      -------------------         -------------------         --------------------
@@ -1057,7 +1091,7 @@ public:
     //!     | VEBOX Sync Data   |       | VEBOX Sync Data   |       | Vertex State       |
     //!      -------------------                                     --------------------
     //!                                                             | CapturePipe State  |
-    //!                                                              -------------------- 
+    //!                                                              --------------------
     //!                                                             | Gamma Correction State |
     //!                                                              ------------------------
     //!                                                             | 3D LUT State           |

@@ -21,7 +21,7 @@
 */
 //!
 //! \file     media_libva_caps.h
-//! \brief    This file defines the base C++ class/interface for media capbilities. 
+//! \brief    This file defines the base C++ class/interface for media capbilities.
 //!
 
 #ifndef __MEDIA_LIBVA_CAPS_H__
@@ -60,20 +60,20 @@ public:
     //!           not supported for the given profile/entrypoint pair will have their
     //!           value set to VA_ATTRIB_NOT_SUPPORTED.
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VA profile
     //!
-    //! \param    [in] entrypoint 
+    //! \param    [in] entrypoint
     //!           VA entrypoint
     //!
-    //! \param    [in,out] attribList 
+    //! \param    [in,out] attribList
     //!           Pointer to VAConfigAttrib array. The attribute type is set by caller and
-    //!           attribute value is set by this function. 
+    //!           attribute value is set by this function.
     //!
-    //! \param    [in] numAttribs 
-    //!           Number of VAConfigAttrib in the array attribList 
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in the array attribList
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus GetConfigAttributes(
@@ -85,35 +85,35 @@ public:
     //!
     //! \brief    Check a profile valid or not
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VA profile
-    //! 
-    //! \return   VAStatus 
+    //!
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus CheckProfile(VAProfile profile);
     //!
     //!
-    //! \brief    Create a configuration for the encode/decode/vp pipeline 
+    //! \brief    Create a configuration for the encode/decode/vp pipeline
     //! \details  It passes in the attribute list that specifies the attributes it
-    //!           cares about, with the rest taking default values. 
+    //!           cares about, with the rest taking default values.
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VA profile
     //!
-    //! \param    [in] entrypoint 
+    //! \param    [in] entrypoint
     //!           VA entrypoint
     //!
-    //! \param    [in] attribList 
+    //! \param    [in] attribList
     //!           Pointer to VAConfigAttrib array that specifies the attributes
     //!
-    //! \param    [in] numAttribs 
-    //!           Number of VAConfigAttrib in the array attribList 
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in the array attribList
     //!
-    //! \param    [out] configId 
-    //!           Pointer to returned VAConfigID if success 
+    //! \param    [out] configId
+    //!           Pointer to returned VAConfigID if success
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus CreateConfig(
@@ -124,15 +124,15 @@ public:
             VAConfigID *configId);
 
     //!
-    //! \brief    Query supported profiles 
+    //! \brief    Query supported profiles
     //!
-    //! \param    [in] profileList 
+    //! \param    [in] profileList
     //!           Pointer to VAProfile array that can hold at least vaMaxNumProfile() entries
     //!
-    //! \param    [out] numProfiles 
-    //!           Pointer to int32_t. It returns the actual number of supported profiles. 
+    //! \param    [out] numProfiles
+    //!           Pointer to int32_t. It returns the actual number of supported profiles.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus QueryConfigProfiles(
@@ -140,18 +140,18 @@ public:
             int32_t *numProfiles);
 
     //!
-    //! \brief    Query supported entrypoints for a given profile 
+    //! \brief    Query supported entrypoints for a given profile
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VA profile
     //!
-    //! \param    [in] entrypointList 
+    //! \param    [in] entrypointList
     //!           Pointer to VAEntrypoint array that can hold at least vaMaxNumEntrypoints() entries
     //!
-    //! \param    [out] numEntryPoints 
-    //!           It returns the actual number of supported VAEntrypoints. 
+    //! \param    [out] numEntryPoints
+    //!           It returns the actual number of supported VAEntrypoints.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus QueryConfigEntrypoints(
@@ -160,25 +160,25 @@ public:
             int32_t *numEntryPoints);
 
     //!
-    //! \brief    Query all attributes for a given configuration 
+    //! \brief    Query all attributes for a given configuration
     //!
-    //! \param    [in] configId 
+    //! \param    [in] configId
     //!           VA configuration
     //!
-    //! \param    [in,out] profile 
+    //! \param    [in,out] profile
     //!           Pointer to VAProfile of the configuration
     //!
-    //! \param    [in,out] entrypoint 
+    //! \param    [in,out] entrypoint
     //!           Pointer to VAEntrypoint of the configuration
     //!
-    //! \param    [in,out] attribList 
+    //! \param    [in,out] attribList
     //!           Pointer to VAConfigAttrib array that can hold at least
-    //!           vaMaxNumConfigAttributes() entries. 
+    //!           vaMaxNumConfigAttributes() entries.
     //!
-    //! \param    [in,out] numAttribs 
-    //!           The actual number of VAConfigAttrib returned in the array attribList 
+    //! \param    [in,out] numAttribs
+    //!           The actual number of VAConfigAttrib returned in the array attribList
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus QueryConfigAttributes(
@@ -189,24 +189,24 @@ public:
             int32_t *numAttribs);
 
     //!
-    //! \brief    Get attributes for a given encode config ID 
+    //! \brief    Get attributes for a given encode config ID
     //!
-    //! \param    [in] configId 
+    //! \param    [in] configId
     //!           VA configuration
     //!
-    //! \param    [in,out] profile 
+    //! \param    [in,out] profile
     //!           Pointer to VAProfile of the configuration
     //!
-    //! \param    [in,out] entrypoint 
+    //! \param    [in,out] entrypoint
     //!           Pointer to VAEntrypoint of the configuration
     //!
-    //! \param    [in,out] rcMode 
-    //!           Return the rcMode for the config ID. 
+    //! \param    [in,out] rcMode
+    //!           Return the rcMode for the config ID.
     //!
     //! \param    [in,out] feiFunction
     //!           Return the fei function type for the config ID.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus GetEncConfigAttr(
@@ -217,27 +217,27 @@ public:
             uint32_t *feiFunction);
 
     //!
-    //! \brief    Get attributes for a given decode config ID 
+    //! \brief    Get attributes for a given decode config ID
     //!
-    //! \param    [in] configId 
+    //! \param    [in] configId
     //!           VA configuration
     //!
-    //! \param    [in,out] profile 
+    //! \param    [in,out] profile
     //!           Pointer to VAProfile of the configuration
     //!
-    //! \param    [in,out] entrypoint 
+    //! \param    [in,out] entrypoint
     //!           Pointer to VAEntrypoint of the configuration
     //!
-    //! \param    [in,out] slicemode 
-    //!           Return the slice mode for the config ID. 
+    //! \param    [in,out] slicemode
+    //!           Return the slice mode for the config ID.
     //!
-    //! \param    [in,out] encrypttype 
-    //!           Return the encryption type for the config ID. 
+    //! \param    [in,out] encrypttype
+    //!           Return the encryption type for the config ID.
     //!
     //! \param    [in,out] processmode
-    //!           Return the process mode for the config ID. 
+    //!           Return the process mode for the config ID.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus GetDecConfigAttr(
@@ -249,18 +249,18 @@ public:
             uint32_t *processmode);
 
     //!
-    //! \brief    Get attributes for a given Vp config ID 
+    //! \brief    Get attributes for a given Vp config ID
     //!
-    //! \param    [in] configId 
+    //! \param    [in] configId
     //!           VA configuration
     //!
-    //! \param    [in,out] profile 
+    //! \param    [in,out] profile
     //!           Pointer to VAProfile of the configuration
     //!
-    //! \param    [in,out] entrypoint 
+    //! \param    [in,out] entrypoint
     //!           Pointer to VAEntrypoint of the configuration
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus GetVpConfigAttr(
@@ -269,18 +269,18 @@ public:
             VAEntrypoint *entrypoint);
 
     //!
-    //! \brief    Get process rate for a given config ID 
+    //! \brief    Get process rate for a given config ID
     //!
-    //! \param    [in] config_id 
+    //! \param    [in] config_id
     //!           VA configuration
     //!
-    //! \param    [in,out] procBuf 
-    //!           Pointer to VAProcessingRateParameter 
+    //! \param    [in,out] procBuf
+    //!           Pointer to VAProcessingRateParameter
     //!
-    //! \param    [in,out] processingRate 
-    //!           Return the process rate 
+    //! \param    [in,out] processingRate
+    //!           Return the process rate
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus QueryProcessingRate(
@@ -289,20 +289,20 @@ public:
             uint32_t *processingRate);
 
     //!
-    //! \brief    Get surface attributes for a given config ID 
+    //! \brief    Get surface attributes for a given config ID
     //!
-    //! \param    [in] configId 
+    //! \param    [in] configId
     //!           VA configuration
     //!
-    //! \param    [in,out] attribList 
+    //! \param    [in,out] attribList
     //!           Pointer to VASurfaceAttrib array. It returns
-    //!           the supported  surface attributes 
+    //!           the supported  surface attributes
     //!
-    //! \param    [in,out] numAttribs 
+    //! \param    [in,out] numAttribs
     //!           The number of elements allocated on input
-    //!           Return the number of elements actually filled in output 
+    //!           Return the number of elements actually filled in output
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
     //!
@@ -312,23 +312,23 @@ public:
             uint32_t *numAttribs);
 
     //!
-    //! \brief    Check if the resolution is valid for a given decode codec mode 
+    //! \brief    Check if the resolution is valid for a given decode codec mode
     //!
-    //! \param    [in] codecMode 
-    //!           Specify the codec mode 
+    //! \param    [in] codecMode
+    //!           Specify the codec mode
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VA profile
     //!
-    //! \param    [in] width 
-    //!           Specify the width for checking 
+    //! \param    [in] width
+    //!           Specify the width for checking
     //!
-    //! \param    [in] height 
-    //!           Specify the height for checking 
+    //! \param    [in] height
+    //!           Specify the height for checking
     //!
-    //! \return   VAStatus 
-    //!           VA_STATUS_SUCCESS if the resolution is supported 
-    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid 
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if the resolution is supported
+    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid
     //!
     virtual VAStatus CheckDecodeResolution(
             int32_t codecMode,
@@ -337,20 +337,20 @@ public:
             uint32_t height);
 
     //!
-    //! \brief    Check if the resolution is valid for a encode profile 
+    //! \brief    Check if the resolution is valid for a encode profile
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
-    //! \param    [in] width 
-    //!           Specify the width for checking 
+    //! \param    [in] width
+    //!           Specify the width for checking
     //!
-    //! \param    [in] height 
-    //!           Specify the height for checking 
+    //! \param    [in] height
+    //!           Specify the height for checking
     //!
-    //! \return   VAStatus 
-    //!           VA_STATUS_SUCCESS if the resolution is supported 
-    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid 
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if the resolution is supported
+    //!           VA_STATUS_ERROR_RESOLUTION_NOT_SUPPORTED if the resolution isn't valid
     //!
     virtual VAStatus CheckEncodeResolution(
             VAProfile profile,
@@ -358,10 +358,10 @@ public:
             uint32_t height);
 
     //!
-    //! \brief    Check if the give profile is VC1 
+    //! \brief    Check if the give profile is VC1
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
     //! \return   True if the profile is a VC1 profile
     //!           False if the profile isn't a VC1 profile
@@ -369,10 +369,10 @@ public:
     static bool IsVc1Profile(VAProfile profile);
 
     //!
-    //! \brief    Check if the give profile is MPEG2 
+    //! \brief    Check if the give profile is MPEG2
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
     //! \return   True if the profile is a MPEG2 profile
     //!           False if the profile isn't a MPEG2 profile
@@ -380,10 +380,10 @@ public:
     static bool IsMpeg2Profile(VAProfile profile);
 
     //!
-    //! \brief    Check if the give profile is AVC 
+    //! \brief    Check if the give profile is AVC
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
     //! \return   True if the profile is a AVC profile
     //!           False if the profile isn't a AVC profile
@@ -391,10 +391,10 @@ public:
     static bool IsAvcProfile(VAProfile profile);
 
     //!
-    //! \brief    Check if the give profile is HEVC 
+    //! \brief    Check if the give profile is HEVC
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
     //! \return   True if the profile is a HEVC profile
     //!           False if the profile isn't a HEVC profile
@@ -402,10 +402,10 @@ public:
     virtual bool IsHevcProfile(VAProfile profile);
 
     //!
-    //! \brief    Check if the give profile is VP8 
+    //! \brief    Check if the give profile is VP8
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
     //! \return   true if the profile is a VP8 profile
     //!           false if the profile isn't a VP8 profile
@@ -413,10 +413,10 @@ public:
     static bool IsVp8Profile(VAProfile profile);
 
     //!
-    //! \brief    Check if the give profile is VP9 
+    //! \brief    Check if the give profile is VP9
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
     //! \return   True if the profile is a VP9 profile
     //!           False if the profile isn't a VP9 profile
@@ -424,10 +424,10 @@ public:
     static bool IsVp9Profile(VAProfile profile);
 
     //!
-    //! \brief    Check if the give profile is JPEG 
+    //! \brief    Check if the give profile is JPEG
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
     //! \return   True if the profile is a JPEG profile
     //!           False if the profile isn't a JPEG profile
@@ -437,8 +437,8 @@ public:
     //!
     //! \brief    Check if current FeiFuncton or give entrypoint is FEI
     //!
-    //! \param    [in] entrypoint 
-    //!           Specify the VAEntrypoint for checking 
+    //! \param    [in] entrypoint
+    //!           Specify the VAEntrypoint for checking
     //!
     //! \param    [in] feiFunction
     //!           Specify the VA_FEI_FUNCTION for checking
@@ -448,14 +448,14 @@ public:
     //!
     bool IsEncFei(VAEntrypoint entrypoint, uint32_t feiFunction);
 
-    //! 
-    //! \brief    Return the CODECHAL_FUNCTION type for give profile and entrypoint 
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \brief    Return the CODECHAL_FUNCTION type for give profile and entrypoint
     //!
-    //! \param    [in] entrypoint 
-    //!           Specify the VAEntrypoint 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
+    //!
+    //! \param    [in] entrypoint
+    //!           Specify the VAEntrypoint
     //!
     //! \param    [in] feiFunction
     //!           Specify the VA_FEI_FUNCTION
@@ -465,137 +465,137 @@ public:
     CODECHAL_FUNCTION GetEncodeCodecFunction(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction);
 
     //!
-    //! \brief    Return internal encode mode for given profile and entrypoint 
+    //! \brief    Return internal encode mode for given profile and entrypoint
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
-    //! \param    [in] entrypoint 
-    //!           Specify the VAEntrypoint 
+    //! \param    [in] entrypoint
+    //!           Specify the VAEntrypoint
     //!
-    //! \return   Codehal mode 
+    //! \return   Codehal mode
     //!
     virtual CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint);
 
     //!
-    //! \brief    Return internal decode mode for given profile 
+    //! \brief    Return internal decode mode for given profile
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
-    //! \return   Codehal mode: decode codec mode 
+    //! \return   Codehal mode: decode codec mode
     //!
     virtual CODECHAL_MODE GetDecodeCodecMode(VAProfile profile);
 
     //!
-    //! \brief    Return the decode codec key for given profile 
+    //! \brief    Return the decode codec key for given profile
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
-    //! \return   Std::string decode codec key 
+    //! \return   Std::string decode codec key
     //!
     virtual std::string GetDecodeCodecKey(VAProfile profile);
 
     //!
-    //! \brief    Return the encode codec key for given profile and entrypoint 
+    //! \brief    Return the encode codec key for given profile and entrypoint
     //!
-    //! \param    [in] profile 
-    //!           Specify the VAProfile 
+    //! \param    [in] profile
+    //!           Specify the VAProfile
     //!
-    //! \param    [in] entrypoint 
-    //!           Specify the entrypoint 
+    //! \param    [in] entrypoint
+    //!           Specify the entrypoint
     //!
-    //! \param    [in] feiFunction 
-    //!           Specify the feiFunction 
+    //! \param    [in] feiFunction
+    //!           Specify the feiFunction
     //!
-    //! \return   Std::string encode codec key 
+    //! \return   Std::string encode codec key
     //!
     virtual std::string GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction);
 
     //!
-    //! \brief    Query the suppported image formats 
+    //! \brief    Query the suppported image formats
     //!
     //! \param    [in,out] formatList
-    //!           Pointer to a VAImageFormat array. The array size shouldn't be less than vaMaxNumImageFormats 
+    //!           Pointer to a VAImageFormat array. The array size shouldn't be less than vaMaxNumImageFormats
     //!           It will return the supported image formats.
     //!
-    //! \param    [in,out] num_formats 
+    //! \param    [in,out] num_formats
     //!           Pointer to a integer that will return the real size of formatList.
     //!
-    //! \return   VAStatus 
-    //!           VA_STATUS_SUCCESS if succeed 
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
     //!
     virtual VAStatus QueryImageFormats(VAImageFormat *formatList, int32_t *num_formats) = 0;
 
     //!
-    //! \brief    Return the maxinum number of supported image formats 
+    //! \brief    Return the maxinum number of supported image formats
     //!
-    //! \return   The maxinum number of supported image formats 
+    //! \return   The maxinum number of supported image formats
     //!
     virtual uint32_t GetImageFormatsMaxNum() = 0;
 
     //!
-    //! \brief    Populate the color masks info 
+    //! \brief    Populate the color masks info
     //!
     //! \param    [in,out] Image format
     //!           Pointer to a VAImageFormat array. Color masks information will be populated to this
     //!           structure.
     //!
-    //! \return   VAStatus 
-    //!           VA_STATUS_SUCCESS if succeed 
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
     //!
     virtual VAStatus PopulateColorMaskInfo(VAImageFormat *vaImgFmt) = 0;
 
     virtual bool IsImageSupported(uint32_t fourcc) = 0;
 
     //!
-    //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP 
+    //! \brief    Query AVC ROI maxinum numbers and if support ROI in delta QP
     //!
-    //! \param    [in] rcMode 
-    //!           Specify the rate control mode to query 
+    //! \param    [in] rcMode
+    //!           Specify the rate control mode to query
     //!
     //! \param    [in] isVdenc
     //!           Specify whether it is vdenc or not
     //!
-    //! \param    [in,out] maxNum 
+    //! \param    [in,out] maxNum
     //!           Pointer to a integer that will return the maximum number of ROI.
     //!
-    //! \param    [in,out] isRoiInDeltaQP 
-    //!           Pointer to a bool that will return if ROI in delta QP is supported 
+    //! \param    [in,out] isRoiInDeltaQP
+    //!           Pointer to a bool that will return if ROI in delta QP is supported
     //!
-    //! \return   VAStatus 
-    //!           VA_STATUS_SUCCESS if succeed 
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
     //!
     virtual VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) = 0;
 
     //!
-    //! \brief    Check if the configID is a valid decode config 
+    //! \brief    Check if the configID is a valid decode config
     //!
-    //! \param    [in] configId 
-    //!           Specify the VAConfigID 
+    //! \param    [in] configId
+    //!           Specify the VAConfigID
     //!
-    //! \return   True if the configID is a valid decode config, otherwise false 
+    //! \return   True if the configID is a valid decode config, otherwise false
     //!
     bool IsDecConfigId(VAConfigID configId);
 
     //!
-    //! \brief    Check if the configID is a valid encode config 
+    //! \brief    Check if the configID is a valid encode config
     //!
-    //! \param    [in] configId 
-    //!           Specify the VAConfigID 
+    //! \param    [in] configId
+    //!           Specify the VAConfigID
     //!
-    //! \return   True if the configID is a valid encode config, otherwise false 
+    //! \return   True if the configID is a valid encode config, otherwise false
     //!
     bool IsEncConfigId(VAConfigID configId);
 
     //!
-    //! \brief    Check if the configID is a valid vp config 
+    //! \brief    Check if the configID is a valid vp config
     //!
-    //! \param    [in] configId 
-    //!           Specify the VAConfigID 
+    //! \param    [in] configId
+    //!           Specify the VAConfigID
     //!
-    //! \return   True if the configID is a valid vp config, otherwise false 
+    //! \return   True if the configID is a valid vp config, otherwise false
     //!
     bool IsVpConfigId(VAConfigID configId);
 
@@ -620,24 +620,24 @@ public:
     bool IsMfeSupportedProfile(VAProfile profile);
 
     //!
-    //! \brief    Destory the VAConfigID 
+    //! \brief    Destory the VAConfigID
     //!
-    //! \param    [in] configId 
-    //!           Specify the VAConfigID 
+    //! \param    [in] configId
+    //!           Specify the VAConfigID
     //!
     //! \return   VAStatus
-    //!       VA_STATUS_SUCCESS if succeed 
+    //!       VA_STATUS_SUCCESS if succeed
     //!           VA_STATUS_ERROR_INVALID_CONFIG if the conifgId is invalid
     //!
     VAStatus DestroyConfig(VAConfigID configId);
 
     //!
-    //! \brief    Create MediaLibvaCaps instance for current platform 
+    //! \brief    Create MediaLibvaCaps instance for current platform
     //!
-    //! \param    [in] mediaCtx 
+    //! \param    [in] mediaCtx
     //!           Pointer to DDI_MEDIA_CONTEXT
     //!
-    //! \return   MediaLibvaCaps * 
+    //! \return   MediaLibvaCaps *
     //!           Pointer to Gen specific MediaLibvaCaps if success, otherwise return nullptr
     //!
     static MediaLibvaCaps * CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCtx);
@@ -664,9 +664,18 @@ public:
     virtual GMM_RESOURCE_FORMAT ConvertFourccToGmmFmt(uint32_t fourcc);
 
     //!
-    //! \brief    Initialize the MediaLibvaCaps instance for current platform 
+    //! \brief    Check if MFE is supported on the platform
     //!
-    //! \return   VAStatus 
+    //! \param    [in] PLATFORM
+    //!
+    //! \return   true if supported, otherwise false
+    //!
+    virtual bool IsMfeSupportedOnPlatform(const PLATFORM &platform);
+
+    //!
+    //! \brief    Initialize the MediaLibvaCaps instance for current platform
+    //!
+    //! \return   VAStatus
     //!           return VA_STATUS_SUCCESS for success
     //!
     virtual VAStatus Init()
@@ -778,6 +787,8 @@ protected:
 
     static const uint32_t m_encMinWidth = 32; //!< Minimum width for encoding
     static const uint32_t m_encMinHeight = 32; //!< Minimum height for encoding
+    static const uint32_t m_hevcVDEncMinWidth = 128; //!< Minimum width for HEVC VDEnc
+    static const uint32_t m_hevcVDEncMinHeight = 128; //!< Minimum height for HEVC VDEnc
     static const uint32_t m_encMax4kWidth =
         CODEC_4K_MAX_PIC_WIDTH; //!< Minimum width for encoding
     static const uint32_t m_encMax4kHeight =
@@ -792,6 +803,8 @@ protected:
 
     MediaLibvaCapsCpInterface* m_CapsCp;
 
+    static constexpr uint32_t m_configAttribNone = 0x00000000; //!< Define for empty attrib
+
     //!
     //! \brief  Store all the supported encode format
     //!
@@ -799,13 +812,13 @@ protected:
     uint32_t m_encodeFormatCount = 0;
 
     //!
-    //! \brief  Store all the profile and entrypoint combinations 
+    //! \brief  Store all the profile and entrypoint combinations
     //!
     ProfileEntrypoint m_profileEntryTbl[m_maxProfileEntries];
     uint16_t m_profileEntryCount = 0; //!< Count valid entries in m_profileEntryTbl
 
     //!
-    //! \brief  Store attribute list pointers 
+    //! \brief  Store attribute list pointers
     //!
     std::vector<AttribMap *> m_attributeLists;
 
@@ -815,6 +828,8 @@ protected:
     std::vector<DecConfig> m_decConfigs; //!< Store supported decode configs
     std::vector<uint32_t> m_vpConfigs;   //!< Store supported vp configs
 
+    bool m_vdencActive = false;  //!< If vdenc is active on current platform
+
     //!
     //! \brief    Check entrypoint codec type
     //!
@@ -823,7 +838,7 @@ protected:
     //! \param    [in] codecType
     //!       Codec type
     //!
-    //! \return   True if entrypoint match the codecType 
+    //! \return   True if entrypoint match the codecType
     //!
     bool CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType codecType);
 
@@ -831,15 +846,15 @@ protected:
     //! \brief    Add one decode configuration
     //!
     //! \param    [in] slicemode
-    //!           VA_DEC_SLICE_MODE_xxx 
+    //!           VA_DEC_SLICE_MODE_xxx
     //!
-    //! \param    [in] encryptType 
-    //!           Encryption Type 
+    //! \param    [in] encryptType
+    //!           Encryption Type
     //!
-    //! \param    [in]  processType 
-    //!           VA_DEC_PROCESSINGxxx 
+    //! \param    [in]  processType
+    //!           VA_DEC_PROCESSINGxxx
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus AddDecConfig(uint32_t slicemode, uint32_t encryptType, uint32_t processType);
@@ -847,12 +862,12 @@ protected:
     //!
     //! \brief    Add one encode configuration
     //!
-    //! \param    [in] rcMode 
-    //!           VA_RC_XXX 
+    //! \param    [in] rcMode
+    //!           VA_RC_XXX
     //! \param    [in] feiFunction
     //!           VA_FEI_FUNCTION_XXX [optional parameter]
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus AddEncConfig(uint32_t rcMode, uint32_t feiFunction = 0);
@@ -861,29 +876,29 @@ protected:
     //! \brief    Add one vp configuration
     //!
     //! \param    [in] attrib
-    //!           VP attribute 
+    //!           VP attribute
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus AddVpConfig(uint32_t attrib);
 
     //!
-    //! \brief    Return profile and entrypoint for a give config ID 
+    //! \brief    Return profile and entrypoint for a give config ID
     //!
-    //! \param    [in] configId 
+    //! \param    [in] configId
     //!           VA configuration
     //!
-    //! \param    [in,out] profile 
+    //! \param    [in,out] profile
     //!           Pointer to VAProfile of the configuration
     //!
-    //! \param    [in,out] entrypoint 
+    //! \param    [in,out] entrypoint
     //!           Pointer to VAEntrypoint of the configuration
     //!
-    //! \param    [in,out] profileTableIdx 
+    //! \param    [in,out] profileTableIdx
     //!           The index in m_profileEntryTbl. Return -1 if config ID is invalid
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus GetProfileEntrypointFromConfigId(VAConfigID configId,
@@ -894,22 +909,22 @@ protected:
     //!
     //! \brief    Add one entry to profile & entrypoint table
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           Pointer to VAProfile of the configuration
     //!
-    //! \param    [in] entrypoint 
+    //! \param    [in] entrypoint
     //!           Pointer to VAEntrypoint of the configuration
     //!
     //! \param    [in] attributeList
     //!           Pointer to VAConfigAttrib vector that stores attributes
     //!
-    //! \param    [in] configIdxStart 
+    //! \param    [in] configIdxStart
     //!           Offset of config index in m_encConfigs, m_decConfigs or m_vpConfigs
     //!
-    //! \param    [in] configNum 
-    //!           The number of supported configs. 
+    //! \param    [in] configNum
+    //!           The number of supported configs.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus AddProfileEntry(VAProfile profile,
@@ -919,42 +934,42 @@ protected:
             int32_t configNum);
 
     //!
-    //! \brief    Return the index in m_profileEntryTble by given profile and entrypoint 
+    //! \brief    Return the index in m_profileEntryTble by given profile and entrypoint
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           Specify VAProfile
     //!
-    //! \param    [in] entrypoint 
-    //!           Specify VAEntrypoint 
+    //! \param    [in] entrypoint
+    //!           Specify VAEntrypoint
     //!
-    //! \return   int32_t 
+    //! \return   int32_t
     //!           Equal or bigger than zero if success, otherwise return -1
     //!
     int32_t GetProfileTableIdx(VAProfile profile, VAEntrypoint entrypoint);
 
     //!
-    //! \brief    Create attributes map 
+    //! \brief    Create attributes map
     //!
-    //! \param    [in,out] attributeList 
-    //!           Return the pointer to AttribMap 
+    //! \param    [in,out] attributeList
+    //!           Return the pointer to AttribMap
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus CreateAttributeList(AttribMap **attributeList);
 
     //!
-    //! \brief    Free attribuate lists 
+    //! \brief    Free attribuate lists
     //!
     VAStatus FreeAttributeList();
 
     //!
-    //! \brief    Initialize the attribute types of a VAConfigAttrib array 
+    //! \brief    Initialize the attribute types of a VAConfigAttrib array
     //!
-    //! \param    [in,out] attribList 
-    //!           Pointer to VAConfigAttrib vector 
+    //! \param    [in,out] attribList
+    //!           Pointer to VAConfigAttrib vector
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus InitAttributeTypes(std::vector<VAConfigAttrib> *attribList);
@@ -962,11 +977,11 @@ protected:
     //!
     //! \brief    Return index of given attribute type in a VAConfigAttrib vector
     //!
-    //! \param    [in] attribList 
-    //!           Pointer to VAConfigAttrib vector. 
+    //! \param    [in] attribList
+    //!           Pointer to VAConfigAttrib vector.
     //!
-    //! \param    [in] type 
-    //!           Specify the VAConfigAttribType to query 
+    //! \param    [in] type
+    //!           Specify the VAConfigAttribType to query
     //!
     //! \return   int32_t
     //!           Equal or bigger than zero if success, otherwise return -1
@@ -974,18 +989,18 @@ protected:
     int32_t GetAttributeIndex(std::vector<VAConfigAttrib> *attribList, VAConfigAttribType type);
 
     //!
-    //! \brief    Set the attribute in a VAConfigAttrib array 
+    //! \brief    Set the attribute in a VAConfigAttrib array
     //!
-    //! \param    [in,out] attributeList 
-    //!           Pointer to VAConfigAttrib vector 
+    //! \param    [in,out] attributeList
+    //!           Pointer to VAConfigAttrib vector
     //!
-    //! \param    [in] type 
-    //!           VAConfigAttribType 
+    //! \param    [in] type
+    //!           VAConfigAttribType
     //!
-    //! \param    [in] value 
+    //! \param    [in] value
     //!           Attribute value
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus SetAttribute(
@@ -1018,41 +1033,61 @@ protected:
             uint32_t value);
 
     //!
-    //! \brief    Create and intialize an attribute vector give encode profile and entrypoint 
+    //! \brief    Create and intialize an attribute vector give encode profile and entrypoint
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VA profile
     //!
-    //! \param    [in] entrypoint 
-    //!           VA entrypoint 
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
     //!
-    //! \param    [in,out] attributeList 
-    //!           Pointer to a pointer of AttribMap that will be created 
+    //! \param    [in,out] attributeList
+    //!           Pointer to a pointer of AttribMap that will be created
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
-    VAStatus CreateEncAttributes(
+    virtual VAStatus CreateEncAttributes(
             VAProfile profile,
             VAEntrypoint entrypoint,
             AttribMap **attributeList);
 
     //!
-    //! \brief    Create and intialize an attribute array give decode profile and entrypoint 
+    //! \brief    Create and intialize an attribute array give decode profile and entrypoint
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VA profile
     //!
-    //! \param    [in] entrypoint 
-    //!           VA entrypoint 
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
     //!
-    //! \param    [in,out] attributeList 
-    //!           Pointer to a pointer of AttribMap that will be created 
+    //! \param    [in,out] attributeList
+    //!           Pointer to a pointer of AttribMap that will be created
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     virtual VAStatus CreateDecAttributes(
+            VAProfile profile,
+            VAEntrypoint entrypoint,
+            AttribMap **attributeList);
+
+    //!
+    //! \brief    Create and intialize an attribute array give Vp profile and entrypoint
+    //!
+    //! \param    [in] profile
+    //!           VA profile
+    //!
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
+    //!
+    //! \param    [in,out] attributeList
+    //!           Pointer to a pointer of AttribMap that will be created
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    VAStatus CreateVpAttributes(
             VAProfile profile,
             VAEntrypoint entrypoint,
             AttribMap **attributeList);
@@ -1150,19 +1185,19 @@ protected:
     //!
     //! \brief    Create decode config by given attributes
     //!
-    //! \param    [in] profileTableIdx 
-    //!           The index in m_profileEntryTbl. 
+    //! \param    [in] profileTableIdx
+    //!           The index in m_profileEntryTbl.
     //!
-    //! \param    [in] attribList 
-    //!           Pointer to VAConfigAttrib array 
+    //! \param    [in] attribList
+    //!           Pointer to VAConfigAttrib array
     //!
-    //! \param    [in] numAttribs 
-    //!           Number of VAConfigAttrib in attribList 
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in attribList
     //!
-    //! \param    [in,out] configId 
-    //!           Pointer to VAConfigID. 
+    //! \param    [in,out] configId
+    //!           Pointer to VAConfigID.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus CreateDecConfig(
@@ -1174,19 +1209,19 @@ protected:
     //!
     //! \brief    Create encode config by given attributes
     //!
-    //! \param    [in] profileTableIdx 
-    //!           The index in m_profileEntryTbl. 
+    //! \param    [in] profileTableIdx
+    //!           The index in m_profileEntryTbl.
     //!
-    //! \param    [in] attribList 
-    //!           Pointer to VAConfigAttrib array 
+    //! \param    [in] attribList
+    //!           Pointer to VAConfigAttrib array
     //!
-    //! \param    [in] numAttribs 
-    //!           Number of VAConfigAttrib in attribList 
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in attribList
     //!
-    //! \param    [in,out] configId 
-    //!           Pointer to VAConfigID. 
+    //! \param    [in,out] configId
+    //!           Pointer to VAConfigID.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus CreateEncConfig(
@@ -1199,19 +1234,19 @@ protected:
     //!
     //! \brief    Create vp config by given attributes
     //!
-    //! \param    [in] profileTableIdx 
-    //!           The index in m_profileEntryTbl. 
+    //! \param    [in] profileTableIdx
+    //!           The index in m_profileEntryTbl.
     //!
-    //! \param    [in] attribList 
-    //!           Pointer to VAConfigAttrib array 
+    //! \param    [in] attribList
+    //!           Pointer to VAConfigAttrib array
     //!
-    //! \param    [in] numAttribs 
-    //!           Number of VAConfigAttrib in attribList 
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in attribList
     //!
-    //! \param    [in,out] configId 
-    //!           Pointer to VAConfigID. 
+    //! \param    [in,out] configId
+    //!           Pointer to VAConfigID.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus CreateVpConfig(
@@ -1223,19 +1258,19 @@ protected:
     //!
     //! \brief    Return the platform specific value by given attribute type
     //!
-    //! \param    [in] profile 
-    //!           VAProfile 
+    //! \param    [in] profile
+    //!           VAProfile
     //!
-    //! \param    [in] entrypoint 
-    //!           VAEntrypoint 
+    //! \param    [in] entrypoint
+    //!           VAEntrypoint
     //!
-    //! \param    [in] type 
-    //!           VAConfigAttribType 
+    //! \param    [in] type
+    //!           VAConfigAttribType
     //!
-    //! \param    [in,out] value 
+    //! \param    [in,out] value
     //!           Pointer to uint32_t that stores the returned value.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     virtual VAStatus GetPlatformSpecificAttrib(
@@ -1247,22 +1282,22 @@ protected:
     //!
     //! \brief    Return encode Mb processing rate on current platform
     //!
-    //! \param    [in] skuTable 
-    //!           Point to MEDIA_FEATURE_TABLE 
+    //! \param    [in] skuTable
+    //!           Point to MEDIA_FEATURE_TABLE
     //!
-    //! \param    [in] tuIdx 
-    //!           Specify the index of target usage 
+    //! \param    [in] tuIdx
+    //!           Specify the index of target usage
     //!
-    //! \param    [in] codecMode 
-    //!           Specify the codec mode 
+    //! \param    [in] codecMode
+    //!           Specify the codec mode
     //!
-    //! \param    [in] vdencActive 
-    //!           Specify if vdenc is used 
+    //! \param    [in] vdencActive
+    //!           Specify if vdenc is used
     //!
-    //! \param    [in,out] mbProcessingRatePerSec 
+    //! \param    [in,out] mbProcessingRatePerSec
     //!           Pointer to uint32_t that stores the returned value.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     virtual VAStatus GetMbProcessingRateEnc(
@@ -1273,15 +1308,15 @@ protected:
             uint32_t *mbProcessingRatePerSec);
 
     //!
-    //! \brief    Return decode Mb processing rate on current platform 
+    //! \brief    Return decode Mb processing rate on current platform
     //!
-    //! \param    [in] skuTable 
-    //!           Point to MEDIA_FEATURE_TABLE 
+    //! \param    [in] skuTable
+    //!           Point to MEDIA_FEATURE_TABLE
     //!
-    //! \param    [in,out] mbProcessingRatePerSec 
+    //! \param    [in,out] mbProcessingRatePerSec
     //!           Pointer to uint32_t that stores the returned value.
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     virtual VAStatus GetMbProcessingRateDec(
@@ -1291,21 +1326,44 @@ protected:
     //!
     //! \brief    Check the encode RT format according to platform and encode format
     //!
-    //! \param    [in] profile 
+    //! \param    [in] profile
     //!           VAProfile
     //!
-    //! \param    [in] entrypoint 
-    //!           VAEntrypoint 
+    //! \param    [in] entrypoint
+    //!           VAEntrypoint
     //!
     //! \param    [in,out] attrib
-    //!           Pointer to a pointer of VAConfigAttrib that will be created 
+    //!           Pointer to a pointer of VAConfigAttrib that will be created
     //!
-    //! \return   VAStatus 
+    //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus CheckEncRTFormat(
             VAProfile profile,
             VAEntrypoint entrypoint,
             VAConfigAttrib* attrib);
+    //!
+    //! \brief    Check the encode attribute list  according to profile and entrypoint
+    //!
+    //! \param    [in] profile
+    //!           VAProfile
+    //!
+    //! \param    [in] entrypoint
+    //!           VAEntrypoint
+    //!
+    //! \param    [in] attrib
+    //!           Pointer to a pointer of VAConfigAttrib
+    //!
+    //! \param    [in] numAttribs
+    //!           number of of VAConfigAttrib
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    VAStatus CheckAttribList(
+            VAProfile profile,
+            VAEntrypoint entrypoint,
+            VAConfigAttrib* attrib,
+            int32_t numAttribs);
 };
 #endif

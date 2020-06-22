@@ -51,6 +51,12 @@ struct CodechalDecodeParams
     PMOS_RESOURCE           m_bitplaneBuffer = nullptr;
     //! \brief [VP8 & VP9] resource containing coefficient probability data
     PMOS_RESOURCE           m_coefProbBuffer = nullptr;
+    //! \brief [VP8 & VP9] resource containing the last reference surface which was not registered.
+    PMOS_RESOURCE           m_presNoneRegLastRefFrame = nullptr;
+    //! \brief [VP8 & VP9] resource containing the golden reference surface which was not registered.
+    PMOS_RESOURCE           m_presNoneRegGoldenRefFrame = nullptr;
+    //! \brief [VP8 & VP9] resource containing the alt reference surface which was not registered.
+    PMOS_RESOURCE           m_presNoneRegAltRefFrame = nullptr;
     //! \brief [VC1 IT] Deblock data
     //!    For advanced profile P frames, this data should be formated as an array of 6 bytes for each MB:
     //!        Byte0: ILDBControlDataforY0
@@ -159,8 +165,17 @@ struct CodechalDecodeParams
     bool                    m_bFullFrameData = false;
     //! \brief MSDK event handling
     HANDLE                  m_gpuAppTaskEvent;
+    //! \brief execution call index in multiple execution call mode
+    uint32_t                m_executeCallIndex = 0;
 };
 
+typedef enum _CODECHAL_DUMMY_REFERENCE_STATUS
+{
+    CODECHAL_DUMMY_REFERENCE_INVALID,
+    CODECHAL_DUMMY_REFERENCE_DPB,
+    CODECHAL_DUMMY_REFERENCE_DEST_SURFACE,
+    CODECHAL_DUMMY_REFERENCE_ALLOCATED
+} CODECHAL_DUMMY_REFERENCE_STATUS;
 
 //!
 //! \class CodechalDecodeRestoreData

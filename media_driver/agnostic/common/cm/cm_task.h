@@ -187,6 +187,16 @@ public:
     //! \returns    CM_SUCCESS.
     //!
     CM_RT_API virtual int32_t GetProperty(CM_TASK_CONFIG &taskConfig) = 0;
+
+    //! \brief      Set a per-kernel based power option to current kernel with dataCacheFlush flag or etc.
+    //! \details    this function can be inserted after kernel added so that pipe_control will be inserted after the 
+    //!             walker with dataCacheFlush flag.
+    //! \param      [in] taskConfig
+    //!             A pointer to CM_KERNEL_SYNC_CONFIG object.
+    //! \retval     CM_SUCCESS if CM_KERNEL_SYNC_CONFIG info can be successfully stored in CM_TASK.
+    //! \retval     CM_FAILURE if the pointer is invalid.
+    //!
+    CM_RT_API virtual int32_t AddSyncEx(const CM_KERNEL_SYNC_CONFIG *config) = 0;
 };
 }; //namespace
 

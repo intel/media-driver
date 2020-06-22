@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -99,6 +99,11 @@ public:
         uint32_t                        *commandsSize,
         uint32_t                        *patchListSize);
 
+    MOS_STATUS GetVdencPrimitiveCommandsDataSize(
+        uint32_t                        mode,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize);
+
     //!
     //! \brief    Translate MOS type format to Mediastate VDEnc surface format
     //! \details  VDBOX protected function to translate mos format to media state format
@@ -163,6 +168,18 @@ public:
         PMHW_VDBOX_VDENC_CMD2_STATE params)
     {
         return MOS_STATUS_SUCCESS;
+    }
+
+    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams()
+    {
+        PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = MOS_New(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS);
+
+        return pipeModeSelectParams;
+    }
+
+    void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) 
+    {
+        MOS_Delete(pipeModeSelectParams);
     }
 };
 

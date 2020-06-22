@@ -59,17 +59,30 @@ public:
     //!
     virtual ~MhwVdboxHucInterfaceG9Bxt() { MHW_FUNCTION_ENTER; }
 
+    //!
+    //! \brief    Get huc product family
+    //!
+    //! \return   uint32_t
+    //!           Huc product family.
+    //!
+    uint32_t GetHucProductFamily() override
+    {
+        return m_hucFamilyBroxton;
+    }
+
+    static const uint32_t m_hucFamilyBroxton = 3;
+
 protected:
 
     MOS_STATUS AddHucPipeModeSelectCmd(
         MOS_COMMAND_BUFFER                  *cmdBuffer,
-        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   *params);
+        MHW_VDBOX_PIPE_MODE_SELECT_PARAMS   *params) override;
 
     MOS_STATUS GetHucStateCommandSize(
         uint32_t                        mode,
         uint32_t                        *commandsSize,
         uint32_t                        *patchListSize,
-        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) override;
 
     void InitMmioRegisters();
 };

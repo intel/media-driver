@@ -41,7 +41,7 @@ public:
     //!
     //! \brief Constructor
     //!
-    DdiDecodeVP8(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr) { };
+    DdiDecodeVP8(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr) {m_withDpb = false;};
 
     //!
     //! \brief Destructor
@@ -144,6 +144,10 @@ private:
     //! \brief   Free Resource buffer for VP8
     //!
     void FreeResourceBuffer();
+
+    MOS_RESOURCE m_resNoneRegLastRefFrame;
+    MOS_RESOURCE m_resNoneRegGoldenRefFrame;
+    MOS_RESOURCE m_resNoneRegAltRefFrame;
 };
 
 #endif /* _MEDIA_DDI_DECODE_VP8_H */

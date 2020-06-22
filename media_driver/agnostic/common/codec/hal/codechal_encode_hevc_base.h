@@ -71,6 +71,9 @@
 #define ENCODE_HEVC_8K_PIC_WIDTH     7680
 #define ENCODE_HEVC_8K_PIC_HEIGHT    4320
 
+#define ENCODE_HEVC_16K_PIC_WIDTH    16384
+#define ENCODE_HEVC_16K_PIC_HEIGHT   4096
+
 // Max supported resolution for HEVC encode is 4K X 2K
 #define ENCODE_HEVC_MAX_4K_PIC_WIDTH     4096
 #define ENCODE_HEVC_MAX_4K_PIC_HEIGHT    2176
@@ -132,6 +135,11 @@
 #define CODECHAL_VDENC_HEVC_BRC_HISTORY_BUF_SIZE             964
 #define CODECHAL_VDENC_HEVC_BRC_DEBUG_BUF_SIZE               0x1000 // 0x1000 = 4096
 #define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_REENCODE_MASK     (1<<31)
+#define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_ERROR_MASK        (1<<30)
+#define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_ARITHMETIC_OVERFLOW_ERROR_MASK   (1<<29)
+#define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_MEMORY_ACCESS_ERROR_MASK         (1<<28)
+#define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_HISTORY_BUFFER_ERROR_MASK        (1<<27)
+#define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_DMEM_ERROR_MASK                  (1<<26)
 
 #define CODECHAL_VDENC_HEVC_BRC_PAK_STATS_BUF_SIZE                  464     // 116 DWORDs HEVC Frame Statistics
 #define CODECHAL_HEVC_VDENC_STATS_SIZE                              1216    // VDEnc Statistic: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
@@ -1192,7 +1200,9 @@ enum HEVC_BRC_FRAME_TYPE
     HEVC_BRC_FRAME_TYPE_B = 1,
     HEVC_BRC_FRAME_TYPE_I = 2,
     HEVC_BRC_FRAME_TYPE_B1 = 3,
-    HEVC_BRC_FRAME_TYPE_B2 = 4
+    HEVC_BRC_FRAME_TYPE_B2 = 4,
+    HEVC_BRC_FRAME_TYPE_INVALID
+
 };
 
 //!
@@ -1434,6 +1444,7 @@ public:
     bool          m_isMaxLcu64                            = false;                        //!< Flag to specify if max LCU size is 64
     uint32_t      m_sizeOfMvTemporalBuffer                = 0;                            //!< MV temporal buffer size
     bool          m_encode4KSequence                      = false;                        //!< Flag to specify if input sequence is 4k size
+    bool          m_encode16KSequence                     = false;                        //!< Flag to specify if input sequence is 16k size
     bool          m_hevcRdoqEnabled                       = false;                        //!< RDOQ enable flag
     uint32_t      m_rdoqIntraTuThreshold                  = 0;                            //!< RDOQ intra threshold
     bool          m_hevcIFrameRdoqEnabled                 = true;                        //!< Control intra frame RDOQ enable/disable

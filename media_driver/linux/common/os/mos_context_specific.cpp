@@ -392,7 +392,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_OS_ASSERT(false);
             return MOS_STATUS_INVALID_HANDLE;
         }
-    
+        m_apoMosEnabled = pOsDriverContext->m_apoMosEnabled;
         m_bufmgr        = pOsDriverContext->bufmgr;
         m_gpuContextMgr = static_cast<GpuContextMgr *>(pOsDriverContext->m_gpuContextMgr);
         m_cmdBufMgr     = static_cast<CmdBufMgr *>(pOsDriverContext->m_cmdBufMgr);
@@ -415,7 +415,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
             MOS_ZeroMemory(&skuTable, sizeof(skuTable));
             MOS_ZeroMemory(&waTable, sizeof(waTable));
             MOS_ZeroMemory(&gtSystemInfo, sizeof(gtSystemInfo));
-            eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
+            eStatus = HWInfo_GetGfxInfo(pOsDriverContext->fd, pOsDriverContext->bufmgr, &platformInfo, &skuTable, &waTable, &gtSystemInfo);
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
@@ -448,7 +448,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         }
 
         m_use64BitRelocs = true;
-        m_useSwSwizzling = MEDIA_IS_SKU(&m_skuTable, FtrSimulationMode); 
+        m_useSwSwizzling = pOsDriverContext->bSimIsActive || MEDIA_IS_SKU(&m_skuTable, FtrUseSwSwizzling);
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
         if (!Mos_Solo_IsEnabled() && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
@@ -515,7 +515,9 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
     
         // For Media Memory compression
         m_mediaMemDecompState       = pOsDriverContext->ppMediaMemDecompState;
-        m_memoryDecompress       = pOsDriverContext->pfnMemoryDecompress;
+        m_memoryDecompress          = pOsDriverContext->pfnMemoryDecompress;
+        m_mediaMemCopy              = pOsDriverContext->pfnMediaMemoryCopy;
+        m_mediaMemCopy2D            = pOsDriverContext->pfnMediaMemoryCopy2D;
         m_mosContext                = pOsDriverContext;
     
         m_noParsingAssistanceInKmd  = true;
@@ -549,7 +551,7 @@ void OsContextSpecific::Destroy()
     if (GetOsContextValid() == true)
     {
         // APO MOS will destory each stream's GPU context at different place
-        if (!g_apoMosEnabled)
+        if (!m_apoMosEnabled)
         {
             for (auto i = 0; i < MOS_GPU_CONTEXT_MAX; i++)
             {
@@ -588,6 +590,7 @@ void OsContextSpecific::Destroy()
         {
             mos_gem_context_destroy(m_intelContext);
         }
+
         SetOsContextValid(false);
     }
 }

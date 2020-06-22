@@ -225,6 +225,31 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcState(
           pOsInterface,
           pCmdBuffer,
           &ResourceParams));
+
+        if (pOsInterface->bPitchAndUVPatchingNeeded)
+        {
+            cmd.DW29.OutputSurfacePitch                = 0;
+            ResourceParams.dwLocationInCmd             = 29;
+            ResourceParams.patchType                   = MOS_PATCH_TYPE_PITCH;
+            ResourceParams.shiftAmount                 = 3;
+            ResourceParams.shiftDirection              = 0;
+            ResourceParams.pdwCmd                      = &(cmd.DW29.Value);
+            MHW_CHK_STATUS_RETURN(pfnAddResourceToCmd(
+                                                      pOsInterface,
+                                                      pCmdBuffer,
+                                                      &ResourceParams));
+
+            cmd.DW30.OutputSurfaceYOffsetForU = 0;
+
+            ResourceParams.dwLocationInCmd             = 30;
+            ResourceParams.patchType                   = MOS_PATCH_TYPE_UV_Y_OFFSET;
+            ResourceParams.shiftAmount                 = 0;
+            ResourceParams.pdwCmd                      = &(cmd.DW30.Value);
+            MHW_CHK_STATUS_RETURN(pfnAddResourceToCmd(
+                                                      pOsInterface,
+                                                      pCmdBuffer,
+                                                      &ResourceParams));
+        }
     }
 
     if (pSfcStateParams->pOsResAVSLineBuffer)
@@ -284,16 +309,17 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcAvsState(
 }
 
 MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
-    PMHW_SFC_AVS_LUMA_TABLE      pLumaTable, 
-    PMHW_SFC_AVS_CHROMA_TABLE    pChromaTable, 
-    PMHW_AVS_PARAMS              pAvsParams, 
-    MOS_FORMAT                   SrcFormat, 
-    float                        fScaleX, 
-    float                        fScaleY, 
-    uint32_t                     dwChromaSiting, 
-    bool                         bUse8x8Filter)
+    PMHW_SFC_AVS_LUMA_TABLE      pLumaTable,
+    PMHW_SFC_AVS_CHROMA_TABLE    pChromaTable,
+    PMHW_AVS_PARAMS              pAvsParams,
+    MOS_FORMAT                   SrcFormat,
+    float                        fScaleX,
+    float                        fScaleY,
+    uint32_t                     dwChromaSiting,
+    bool                         bUse8x8Filter,
+    float                           fHPStrength,
+    float                           fLanczosT)
 {
-    float       fHPStrength;
     int32_t     *piYCoefsX, *piYCoefsY;
     int32_t     *piUVCoefsX, *piUVCoefsY;
     MHW_PLANE   Plane;
@@ -346,8 +372,7 @@ MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
 
         pAvsParams->fScaleX = fScaleX;
 
-        // For 1x scaling in horizontal direction and not force polyphase coefs, use special coefficients for filtering
-        if (fScaleX == 1.0F && !pAvsParams->bForcePolyPhaseCoefs)
+        if (m_scalingMode == MHW_SCALING_NEAREST)
         {
             MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
                 piYCoefsX,
@@ -361,35 +386,52 @@ MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
         }
         else
         {
-            // Clamp the Scaling Factor if > 1.0x
-            fScaleX = MOS_MIN(1.0F, fScaleX);
+            // For 1x scaling in horizontal direction and not force polyphase coefs, use special coefficients for filtering
+            if ((fScaleX == 1.0F && !pAvsParams->bForcePolyPhaseCoefs))
+            {
+                MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                    piYCoefsX,
+                    Plane,
+                    true));
 
-            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesY(
-                piYCoefsX,
-                fScaleX,
-                Plane,
-                SrcFormat,
-                fHPStrength,
-                bUse8x8Filter,
-                NUM_HW_POLYPHASE_TABLES));
-        }
+                MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                    piUVCoefsX,
+                    MHW_U_PLANE,
+                    true));
+            }
+            else
+            {
+                // Clamp the Scaling Factor if > 1.0x
+                fScaleX = MOS_MIN(1.0F, fScaleX);
 
-        // If Chroma Siting info is present
-        if (dwChromaSiting & MHW_CHROMA_SITING_HORZ_LEFT)
-        {
-            // No Chroma Siting
-            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
-                piUVCoefsX,
-                2.0F,
-                fScaleX));
-        }
-        else
-        {
-            // Chroma siting offset will be add in the HW cmd
-            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
-                piUVCoefsX,
-                3.0F,
-                fScaleX));
+                MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesY(
+                    piYCoefsX,
+                    fScaleX,
+                    Plane,
+                    SrcFormat,
+                    fHPStrength,
+                    bUse8x8Filter,
+                    NUM_HW_POLYPHASE_TABLES,
+                    0));
+            }
+
+            // If Chroma Siting info is present
+            if (dwChromaSiting & MHW_CHROMA_SITING_HORZ_LEFT)
+            {
+                // No Chroma Siting
+                MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                    piUVCoefsX,
+                    2.0F,
+                    fScaleX));
+            }
+            else
+            {
+                // Chroma siting offset will be add in the HW cmd
+                MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                    piUVCoefsX,
+                    3.0F,
+                    fScaleX));
+            }
         }
     }
 
@@ -405,8 +447,7 @@ MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
 
         pAvsParams->fScaleY = fScaleY;
 
-        // For 1x scaling in vertical direction and not force polyphase coefs, use special coefficients for filtering
-        if (fScaleY == 1.0F && !pAvsParams->bForcePolyPhaseCoefs)
+        if (m_scalingMode == MHW_SCALING_NEAREST)
         {
             MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
                 piYCoefsY,
@@ -420,35 +461,51 @@ MOS_STATUS MhwSfcInterfaceG11::SetSfcSamplerTable(
         }
         else
         {
-            // Clamp the Scaling Factor if > 1.0x
-            fScaleY = MOS_MIN(1.0F, fScaleY);
+            // For 1x scaling in vertical direction and not force polyphase coefs, use special coefficients for filtering
+            if ((fScaleY == 1.0F && !pAvsParams->bForcePolyPhaseCoefs))
+            {
+                MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                    piYCoefsY,
+                    Plane,
+                    true));
 
-            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesY(
-                piYCoefsY,
-                fScaleY,
-                Plane,
-                SrcFormat,
-                fHPStrength,
-                bUse8x8Filter,
-                NUM_HW_POLYPHASE_TABLES));
-        }
+                MHW_CHK_STATUS_RETURN(Mhw_SetNearestModeTable(
+                    piUVCoefsY,
+                    MHW_U_PLANE,
+                    true));
+            }
+            else
+            {
+                // Clamp the Scaling Factor if > 1.0x
+                fScaleY = MOS_MIN(1.0F, fScaleY);
 
-        // If Chroma Siting info is present
-        if (dwChromaSiting & MHW_CHROMA_SITING_VERT_TOP)
-        {
-            // No Chroma Siting
-            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
-                piUVCoefsY,
-                2.0F,
-                fScaleY));
-        }
-        else
-        {
-            // Chroma siting offset will be add in the HW cmd
-            MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
-                piUVCoefsY,
-                3.0F,
-                fScaleY));
+                MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesY(
+                    piYCoefsY,
+                    fScaleY,
+                    Plane,
+                    SrcFormat,
+                    fHPStrength,
+                    bUse8x8Filter,
+                    NUM_HW_POLYPHASE_TABLES, 0));
+            }
+
+            // If Chroma Siting info is present
+            if (dwChromaSiting & MHW_CHROMA_SITING_VERT_TOP)
+            {
+                // No Chroma Siting
+                MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                    piUVCoefsY,
+                    2.0F,
+                    fScaleY));
+            }
+            else
+            {
+                // Chroma siting offset will be add in the HW cmd
+                MHW_CHK_STATUS_RETURN(Mhw_CalcPolyphaseTablesUV(
+                    piUVCoefsY,
+                    3.0F,
+                    fScaleY));
+            }
         }
     }
 

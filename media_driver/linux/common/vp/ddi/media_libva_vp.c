@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -115,6 +115,139 @@ PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextI
     return (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, vaCtxID, &uiCtxType);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//! \purpose judge whether the pitch size match 16aligned usrptr path require or not
+//! \params
+//! [in]  pitch: surface pitch size.
+//! [in]  format : surface foramt
+//! \returns true if matched
+//! for YV12 format, if pitch aligned with 128, go legacy path; if aligned with 16/32/64, go 16usrptr path
+//! for other formats, legcy path for aligned with 64, 16usrpt path for aligned with 16/32
+////////////////////////////////////////////////////////////////////////////////
+bool VpIs16UsrPtrPitch(uint32_t pitch, DDI_MEDIA_FORMAT format)
+{
+    uint32_t PitchAligned = 64;
+    bool status = false;
+
+    if (Media_Format_YV12 == format)
+    {
+        PitchAligned = 128;
+    }
+
+    if (!(pitch % 16) && (pitch % PitchAligned))
+    {
+        status = true;
+    }
+    else
+    {
+        status = false;
+    }
+
+    VP_DDI_NORMALMESSAGE("[VP] 16Usrptr check, surface pitch is %d, go to %s path.", pitch, status?"16Usrptr":"legacy");
+
+    return status;
+}
+
+VAStatus VpGetExternalSurfaceInfo(
+    PDDI_MEDIA_SURFACE pMediaSurface,
+    PVPHAL_SURFACE pVphalSurface)
+{
+    if (pMediaSurface->pSurfDesc)
+    {
+        if (pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM ||
+            pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)
+        {
+            pVphalSurface->OsResource.bExternalSurface = true;
+
+            switch (pMediaSurface->pSurfDesc->uiPlanes)
+            {
+                case 1:
+                    pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                    break;
+                case 2:
+                    pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                    pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                    pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                    pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                    pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    break;
+                case 3:
+                    if (pMediaSurface->format == Media_Format_YV12)
+                    {
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    }
+                    else
+                    {
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                    }
+                    break;
+                default:
+                    DDI_ASSERTMESSAGE("Invalid plane number.");
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+        }
+        // add 16aligned UsrPtr mode support
+        else if (pMediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR)
+        {
+            pVphalSurface->b16UsrPtr = VpIs16UsrPtrPitch(pMediaSurface->iPitch, pMediaSurface->format);
+            if (pVphalSurface->b16UsrPtr)
+            {
+                pVphalSurface->dwPitch                   = pMediaSurface->iPitch;
+                pVphalSurface->OsResource.iPitch         = pMediaSurface->iPitch;
+                pVphalSurface->OsResource.iWidth         = pMediaSurface->iWidth;
+                pVphalSurface->OsResource.iHeight        = pMediaSurface->iHeight;
+                pVphalSurface->OsResource.b16UsrPtrMode  = true;
+                switch (pMediaSurface->format)
+                {
+                    case Media_Format_NV12:
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                        break;
+                    case Media_Format_YV12:
+                        pVphalSurface->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[0];
+                        pVphalSurface->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[1];
+                        pVphalSurface->OsResource.VPlaneOffset.iYOffset       = 0;
+                        pVphalSurface->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSurface->pSurfDesc->uiOffsets[2];
+                        pVphalSurface->OsResource.UPlaneOffset.iYOffset       = 0;
+                        break;
+                    case Media_Format_A8R8G8B8:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                pVphalSurface->OsResource.b16UsrPtrMode = false;
+            }
+        }
+        else
+        {
+            pVphalSurface->b16UsrPtr                   = false;
+            pVphalSurface->OsResource.b16UsrPtrMode    = false;
+            pVphalSurface->OsResource.bExternalSurface = false;
+        }
+    }
+    else
+    {
+        pVphalSurface->b16UsrPtr                   = false;
+        pVphalSurface->OsResource.b16UsrPtrMode    = false;
+        pVphalSurface->OsResource.bExternalSurface = false;
+    }
+    return VA_STATUS_SUCCESS;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 //! \purpose map from media format to vphal format
 //! \params
@@ -191,13 +324,16 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_P010:
         format = Format_P010;
         break;
+    case Media_Format_P012:
     case Media_Format_P016:
         format = Format_P016;
         break;
     case Media_Format_R10G10B10A2:
+    case Media_Format_R10G10B10X2:
         format = Format_R10G10B10A2;
         break;
     case Media_Format_B10G10R10A2:
+    case Media_Format_B10G10R10X2:
         format =Format_B10G10R10A2;
         break;
     case Media_Format_RGBP:
@@ -1126,6 +1262,12 @@ DdiVp_SetProcPipelineParams(
     //vaStatus = DdiVp_UpdateProcDeinterlaceParams(pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
     //DDI_CHK_RET(vaStatus, "Failed to update vphal advance deinterlace!");
 
+    // Use Render to do scaling for resolution larger than 8K
+    if(MEDIA_IS_WA(&pMediaCtx->WaTable, WaDisableVeboxFor8K))
+    {
+        pVpHalRenderParams->bDisableVeboxFor8K = true;
+    }
+
     // Scaling algorithm
     uScalingflags                    = pPipelineParam->filter_flags & VA_FILTER_SCALING_MASK;
     pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_SFC;    // default
@@ -1398,49 +1540,10 @@ DdiVp_SetProcPipelineParams(
         DDI_CHK_RET(vaStatus, "Failed to update vphal target surface color space!");
     }
 
-    // add UsrPtr mode support
-    if (pMediaSrcSurf->pSurfDesc)
-    {
-        pVpHalSrcSurf->bUsrPtr = (pMediaSrcSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalSrcSurf->bUsrPtr)
-        {
-            pVpHalSrcSurf->dwPitch                 = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iPitch       = pMediaSrcSurf->iPitch;
-            pVpHalSrcSurf->OsResource.iWidth       = pMediaSrcSurf->iWidth;
-            pVpHalSrcSurf->OsResource.iHeight      = pMediaSrcSurf->iHeight;
-            pVpHalSrcSurf->OsResource.bUsrPtrMode  = true;
-            switch (pMediaSrcSurf->format)
-            {
-                case Media_Format_NV12:
-                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
-                    break;
-                case Media_Format_YV12:
-                    pVpHalSrcSurf->OsResource.YPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[0];
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[1];
-                    pVpHalSrcSurf->OsResource.VPlaneOffset.iYOffset       = 0;
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iSurfaceOffset = pMediaSrcSurf->pSurfDesc->uiOffsets[2];
-                    pVpHalSrcSurf->OsResource.UPlaneOffset.iYOffset       = 0;
-                    break;
-                case Media_Format_A8R8G8B8:
-                    break;
-                default:
-                    break;
-            }
-        }
-        else
-        {
-            pVpHalSrcSurf->OsResource.bUsrPtrMode = false;
-        }
-    }
-    else
-    {
-        pVpHalSrcSurf->bUsrPtr                 = false;
-        pVpHalSrcSurf->OsResource.bUsrPtrMode  = false;
-    }
+    // Add external surface info
+    vaStatus = VpGetExternalSurfaceInfo(pMediaSrcSurf, pVpHalSrcSurf);
+    DDI_CHK_RET(vaStatus, "Failed to update external surface.");
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -1522,10 +1625,15 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     pVpCtx->MosDrvCtx.m_auxTableMgr   = pMediaCtx->m_auxTableMgr;
     pVpCtx->MosDrvCtx.pGmmClientContext = pMediaCtx->pGmmClientContext;
     pVpCtx->MosDrvCtx.ppMediaMemDecompState = &pMediaCtx->pMediaMemDecompState;
+    pVpCtx->MosDrvCtx.pfnMediaMemoryCopy    = pMediaCtx->pfnMediaMemoryCopy;
+    pVpCtx->MosDrvCtx.pfnMediaMemoryCopy2D  = pMediaCtx->pfnMediaMemoryCopy2D;
     pVpCtx->MosDrvCtx.pfnMemoryDecompress   = pMediaCtx->pfnMemoryDecompress;
+
     pVpCtx->MosDrvCtx.pPerfData             = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     pVpCtx->MosDrvCtx.m_osDeviceContext     = pMediaCtx->m_osDeviceContext;
-    if( nullptr == pVpCtx->MosDrvCtx.pPerfData)
+    pVpCtx->MosDrvCtx.m_apoMosEnabled       = pMediaCtx->m_apoMosEnabled;
+
+    if (nullptr == pVpCtx->MosDrvCtx.pPerfData)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
@@ -1914,38 +2022,16 @@ VAStatus DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType 
 /////////////////////////////////////////////////////////////////////////////////////////////
 VPHAL_CSPACE DdiVp_GetColorSpaceFromMediaFormat(DDI_MEDIA_FORMAT format)
 {
-    VPHAL_CSPACE ColorSpace = CSpace_None;
+    MOS_FORMAT mosFormat = VpGetFormatFromMediaFormat(format);
 
-    switch (format)
+    if (IS_RGB_FORMAT(mosFormat))
     {
-    case Media_Format_X8R8G8B8:
-    case Media_Format_CPU:
-    case Media_Format_R5G6B5:
-    case Media_Format_R8G8B8:
-    case Media_Format_A8R8G8B8:
-    case Media_Format_R10G10B10A2:
-    case Media_Format_B10G10R10A2:
-        ColorSpace = CSpace_sRGB;
-        break;
-    case Media_Format_YUY2:
-    case Media_Format_UYVY:
-    case Media_Format_YV12:
-    case Media_Format_IYUV:
-    case Media_Format_NV12:
-    case Media_Format_NV21:
-    case Media_Format_422H:
-    case Media_Format_422V:
-    case Media_Format_P010:
-    case Media_Format_IMC3:
-        ColorSpace = CSpace_BT601;
-        break;
-    default:
-        VP_DDI_ASSERTMESSAGE("Get ColorSpace from media format: unknown format.");
-        ColorSpace = CSpace_None;
-        break;
+        return CSpace_sRGB;
     }
-
-    return ColorSpace;
+    else
+    {
+        return CSpace_BT601;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2172,6 +2258,7 @@ DdiVp_SetProcFilterDinterlaceParams(
             DIMode = DI_MODE_BOB;
             break;
         case VAProcDeinterlacingMotionAdaptive:
+        case VAProcDeinterlacingMotionCompensated:
             DIMode = DI_MODE_ADI;
             break;
         case VAProcDeinterlacingWeave:
@@ -2179,7 +2266,6 @@ DdiVp_SetProcFilterDinterlaceParams(
             return VA_STATUS_SUCCESS;
         case VAProcDeinterlacingNone:
             return VA_STATUS_SUCCESS;
-        case VAProcDeinterlacingMotionCompensated:
         default:
             VP_DDI_ASSERTMESSAGE("Deinterlacing type is unsupported.");
             return VA_STATUS_ERROR_UNIMPLEMENTED;
@@ -3181,25 +3267,10 @@ VAStatus DdiVp_BeginPicture(
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
-    if (pMediaTgtSurf->pSurfDesc)
-    {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
-        {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
-        }
-        else
-        {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
-        }
-    }
-    else
-    {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
-    }
+
+    // Get external surface info
+    vaStatus = VpGetExternalSurfaceInfo(pMediaTgtSurf, pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]);
+
     // increase render target count
     pVpHalRenderParams->uDstCount++;
 
@@ -3284,24 +3355,23 @@ VAStatus DdiVp_BeginPictureInt(
 
     pVpHalRenderParams->bReportStatus    = true;
     pVpHalRenderParams->StatusFeedBackID = vaSurfID;
-    if (pMediaTgtSurf->pSurfDesc)
+    if (pMediaTgtSurf->pSurfDesc && (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr =
-                (pMediaTgtSurf->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR);
-        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr)
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = VpIs16UsrPtrPitch(pMediaTgtSurf->iPitch, pMediaTgtSurf->format);
+        if (pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr)
         {
             pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.iPitch = pMediaTgtSurf->iPitch;
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = true;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = true;
         }
         else
         {
-            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+            pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
         }
     }
     else
     {
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->bUsrPtr = false;
-        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.bUsrPtrMode = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->b16UsrPtr = false;
+        pVpHalRenderParams->pTarget[pVpHalRenderParams->uDstCount]->OsResource.b16UsrPtrMode = false;
     }
     // increase render target count
     pVpHalRenderParams->uDstCount++;
@@ -3478,9 +3548,7 @@ VAStatus DdiVp_EndPicture (
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpDumpProcPipelineParams(pVaDrvCtx, pVpCtx);
 
-#if ANDROID
     VpReportFeatureMode(pVpCtx);
-#endif
 
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
@@ -3586,6 +3654,10 @@ static bool hasAlphaInSurface(PVPHAL_SURFACE pSurface)
             case Format_A8B8G8R8:
             case Format_A8P8:
             case Format_AYUV:
+            case Format_Y410:
+            case Format_Y416:
+            case Format_R10G10B10A2:
+            case Format_B10G10R10A2:
                 return true;
             default:
                 return false;
@@ -3613,6 +3685,7 @@ DdiVp_SetProcPipelineBlendingParams(
 {
     PVPHAL_RENDER_PARAMS      pVpHalRenderParams;
     PVPHAL_SURFACE            pSrc;
+    PVPHAL_SURFACE            pTarget;
     bool                      bGlobalAlpha;
     bool                      bPreMultAlpha;
 
@@ -3643,8 +3716,21 @@ DdiVp_SetProcPipelineBlendingParams(
 
     // So far vaapi does not have alpha fill mode API.
     // And for blending support, we use VPHAL_ALPHA_FILL_MODE_NONE by default.
-    pVpHalRenderParams->pCompAlpha->fAlpha      = 1.0f;
-    pVpHalRenderParams->pCompAlpha->AlphaMode = VPHAL_ALPHA_FILL_MODE_NONE;
+    pTarget = pVpHalRenderParams->pTarget[0];
+    DDI_CHK_NULL(pTarget, "Null pTarget.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    //For surface with alpha, we need to bypass SFC that could change the output alpha.
+    if (hasAlphaInSurface(pSrc) &&
+        hasAlphaInSurface(pTarget))
+    {
+        pVpHalRenderParams->pCompAlpha->fAlpha      = 0.0f;
+        pVpHalRenderParams->pCompAlpha->AlphaMode = VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM;
+    }
+    else
+    {
+        pVpHalRenderParams->pCompAlpha->fAlpha      = 1.0f;
+        pVpHalRenderParams->pCompAlpha->AlphaMode = VPHAL_ALPHA_FILL_MODE_NONE;
+    }
 
     // First, no Blending
     if(!blend_state)
@@ -4043,21 +4129,21 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCap* baseCap     = (VAProcFilterCap*) filter_caps;
 
-                baseCap->range.min_value     = NOISEREDUCTION_MIN;
-                baseCap->range.max_value     = NOISEREDUCTION_MAX;
-                baseCap->range.default_value = NOISEREDUCTION_DEFAULT;
-                baseCap->range.step          = NOISEREDUCTION_STEP;
-
                 if (uQueryCapsNum < uExistCapsNum)
                 {
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
+
+                baseCap->range.min_value     = NOISEREDUCTION_MIN;
+                baseCap->range.max_value     = NOISEREDUCTION_MAX;
+                baseCap->range.default_value = NOISEREDUCTION_DEFAULT;
+                baseCap->range.step          = NOISEREDUCTION_STEP;
             }
             break;
 
         /* Deinterlacing filter */
         case VAProcFilterDeinterlacing:
-            uExistCapsNum  = 2;
+            uExistCapsNum = 3;
             /* set input filter caps number to the actual number of filters in vp module */
             *num_filter_caps = uExistCapsNum;
             /* set the actual filter caps attribute in vp module */
@@ -4065,13 +4151,14 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCapDeinterlacing* diCap = (VAProcFilterCapDeinterlacing*) filter_caps;
 
-                diCap[0].type                         = VAProcDeinterlacingBob;
-                diCap[1].type                         = VAProcDeinterlacingMotionAdaptive;
-
                 if (uQueryCapsNum < uExistCapsNum)
                 {
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
+
+                diCap[0].type = VAProcDeinterlacingBob;
+                diCap[1].type = VAProcDeinterlacingMotionAdaptive;
+                diCap[2].type = VAProcDeinterlacingMotionCompensated;
             }
             break;
 
@@ -4085,16 +4172,16 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCap* baseCap;
 
+                if (uQueryCapsNum < uExistCapsNum)
+                {
+                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                }
+
                 baseCap                      = (VAProcFilterCap*) filter_caps;
                 baseCap->range.min_value     = EDGEENHANCEMENT_MIN;
                 baseCap->range.max_value     = EDGEENHANCEMENT_MAX;
                 baseCap->range.default_value = EDGEENHANCEMENT_DEFAULT;
                 baseCap->range.step          = EDGEENHANCEMENT_STEP;
-
-                if (uQueryCapsNum < uExistCapsNum)
-                {
-                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
-                }
             }
             break;
 
@@ -4107,6 +4194,11 @@ DdiVp_QueryVideoProcFilterCaps (
             if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
             {
                 VAProcFilterCapColorBalance* ColorBalCap;
+
+                if (uQueryCapsNum < uExistCapsNum)
+                {
+                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                }
 
                 for (uCnt=0 ; uCnt<uQueryCapsNum ; uCnt++)
                 {
@@ -4123,18 +4215,19 @@ DdiVp_QueryVideoProcFilterCaps (
                     ColorBalCap->range.min_value        = VpColorBalCap[uCnt].range.min_value;
                     ColorBalCap->range.step             = VpColorBalCap[uCnt].range.step;
                 }
+            }
+            break;
+        case VAProcFilterSkinToneEnhancement:
+            uExistCapsNum  = 1;
+            *num_filter_caps = uExistCapsNum;
+            if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
+            {
+                VAProcFilterCap* baseCap     = (VAProcFilterCap *)filter_caps;
 
                 if (uQueryCapsNum < uExistCapsNum)
                 {
                     return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
                 }
-            }
-            break;
-        case VAProcFilterSkinToneEnhancement:
-            *num_filter_caps = 1;
-            if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
-            {
-                VAProcFilterCap* baseCap     = (VAProcFilterCap *)filter_caps;
 
                 baseCap->range.min_value     = STE_MIN;
                 baseCap->range.max_value     = STE_MAX;
@@ -4150,6 +4243,11 @@ DdiVp_QueryVideoProcFilterCaps (
             {
                 VAProcFilterCapTotalColorCorrection* TccCap;
 
+                if (uQueryCapsNum < uExistCapsNum)
+                {
+                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                }
+
                 for (uCnt = 0; uCnt < uQueryCapsNum; uCnt++)
                 {
                     if (uCnt >= uExistCapsNum)
@@ -4162,9 +4260,6 @@ DdiVp_QueryVideoProcFilterCaps (
                     TccCap->range.default_value = TCC_DEFAULT;
                     TccCap->range.step          = TCC_STEP;
                 }
-
-                if (uQueryCapsNum < uExistCapsNum)
-                    return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
             }
             break;
         case VAProcFilterHighDynamicRangeToneMapping:
@@ -4177,6 +4272,12 @@ DdiVp_QueryVideoProcFilterCaps (
                 if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
                 {
                     VAProcFilterCapHighDynamicRange *HdrTmCap = (VAProcFilterCapHighDynamicRange *)filter_caps;
+
+                    if (uQueryCapsNum < uExistCapsNum)
+                    {
+                        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                    }
+
                     if (HdrTmCap)
                     {
                         HdrTmCap->metadata_type = VAProcHighDynamicRangeMetadataHDR10;

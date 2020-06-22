@@ -430,7 +430,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     // Source Surface
     // Top Field
     CODECHAL_SURFACE_CODEC_PARAMS surfaceCodecParams;
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIs2DSurface               = true;
     surfaceCodecParams.bUseHalfHeight             = true;
     surfaceCodecParams.bUseUVPlane                = true;
@@ -473,7 +473,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         kernelState));
 
     // Destination Surface (NV12 & YUY2, RGB8 support is not yet implemented)
-    memset(&surfaceCodecParams, 0, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
+    MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIs2DSurface               = true;
     surfaceCodecParams.psSurface                  = procParams->pOutputSurface;
     surfaceCodecParams.bMediaBlockRW              = true;

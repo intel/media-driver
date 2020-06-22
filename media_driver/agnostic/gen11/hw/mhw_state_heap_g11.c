@@ -164,7 +164,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceStateEntry(
         PMHW_SURFACE_STATE_PARAMS   pParams)
 {
 
-    if (!pParams)
+    if (!pParams || !m_pOsInterface)
     {
         MHW_ASSERTMESSAGE("Invalid parameter\n");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -203,16 +203,22 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceStateEntry(
         pSurfaceStateAdv->DW4.YOffsetForVCr                  = pParams->dwYOffsetForV;
         pSurfaceStateAdv->DW5.VerticalLineStride             = pParams->bVerticalLineStride;
         pSurfaceStateAdv->DW5.VerticalLineStrideOffset       = pParams->bVerticalLineStrideOffset;
-        pSurfaceStateAdv->DW5.SurfaceMemoryObjectControlState     = pParams->dwCacheabilityControl; 
+        pSurfaceStateAdv->DW5.SurfaceMemoryObjectControlState     = pParams->dwCacheabilityControl;
 
         // Return offset and pointer for patching
         pParams->pdwCmd          = (uint32_t *)&(pSurfaceStateAdv->DW6.Value);
         pParams->dwLocationInCmd = 6;
+
+        if (m_pOsInterface->bPitchAndUVPatchingNeeded)
+        {
+            pSurfaceStateAdv->DW2.SurfacePitch  = 0;
+            pSurfaceStateAdv->DW3.YOffsetForUCb = 0;
+        }
     }
     else // not AVS
     {
         // Obtain the Pointer to the Surface state from SSH Buffer
-        mhw_state_heap_g11_X::RENDER_SURFACE_STATE_CMD* pSurfaceState = 
+        mhw_state_heap_g11_X::RENDER_SURFACE_STATE_CMD* pSurfaceState =
             (mhw_state_heap_g11_X::RENDER_SURFACE_STATE_CMD*) pParams->pSurfaceState;
         MHW_MI_CHK_NULL(pSurfaceState);
 
@@ -279,6 +285,15 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceStateEntry(
         // Return offset and pointer for patching
         pParams->pdwCmd          = (uint32_t *)&(pSurfaceState->DW8_9.SurfaceBaseAddress);
         pParams->dwLocationInCmd = 8;
+        if (m_pOsInterface->bPitchAndUVPatchingNeeded)
+        {
+            if (pParams->SurfaceType3D != GFX3DSTATE_SURFACETYPE_BUFFER)
+            {
+                pSurfaceState->DW3.SurfacePitch = 0;
+            }
+
+            pSurfaceState->DW6.Obj0.YOffsetForUOrUvPlane = 0;
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -350,10 +365,11 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceState(
                 pParams->psSurface->dwHeight - 1: pParams->dwHeightToUse[i] - 1;
             pCmd->DW1.CrVCbUPixelOffsetVDirection   = pParams->Direction;
 
-            pCmd->DW2.SurfacePitch              = pParams->psSurface->dwPitch - 1;
+            if(!(pOsInterface->bPitchAndUVPatchingNeeded))
+                pCmd->DW2.SurfacePitch              = pParams->psSurface->dwPitch - 1;
             pCmd->DW2.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
             pCmd->DW2.InterleaveChroma          = pParams->bInterleaveChroma;
-            
+
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
                 pCmd->DW2.TileMode = mhw_state_heap_g11_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEYMAJOR;
@@ -370,17 +386,40 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceState(
             if(pParams->psSurface->bCompressible)
             {
                 MHW_MI_CHK_STATUS(pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, &pParams->psSurface->OsResource, (PMOS_MEMCOMP_STATE) &pParams->psSurface->CompressionMode));
-                
+
                 pCmd->DW2.MemoryCompressionEnable       =
                     (pParams->psSurface->CompressionMode == MOS_MMC_DISABLED) ? 0 : 1;
                 pCmd->DW2.MemoryCompressionMode         =
                     (pParams->psSurface->CompressionMode == MOS_MMC_VERTICAL) ? 1 : 0;
             }
 
+            if(pOsInterface->bPitchAndUVPatchingNeeded)
+            {
+                MHW_RESOURCE_PARAMS ResourceParams;
+                MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+                ResourceParams.presResource        = &pParams->psSurface->OsResource;
+                ResourceParams.HwCommandType       = MOS_SURFACE_STATE_ADV;
+                ResourceParams.patchType           = MOS_PATCH_TYPE_PITCH;
+                ResourceParams.bIsWritable         = pParams->bIsWritable;
+                ResourceParams.shiftDirection      = 0;
+                ResourceParams.shiftAmount         = 3;
+                ResourceParams.pdwCmd              = &(pCmd->DW2.Value);
+                ResourceParams.dwLocationInCmd     = 2; //DW2
+                ResourceParams.dwOffsetInSSH       =
+                uiIndirectStateOffset               +
+                pKernelState->dwSshOffset           +
+                pKernelState->dwBindingTableSize    +
+                (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
+
+                MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(pOsInterface,
+                                                        pCmdBuffer,
+                                                        &ResourceParams));
+            }
+
             pCmd->DW5.SurfaceMemoryObjectControlState   = pParams->dwCacheabilityControl;
 
             pCmd->DW5.TiledResourceMode                 = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
-            
+
             if (i == MHW_U_PLANE)         // AVS U plane
             {
                 // Lockoffset is the offset from base address of Y plane to the origin of U/V plane.
@@ -390,7 +429,34 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceState(
 
                 pCmd->DW3.XOffsetforU = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset % pSurface->dwPitch);
                 pCmd->DW3.YOffsetforU = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset / pSurface->dwPitch);*/
-                
+
+                if((pOsInterface->bPitchAndUVPatchingNeeded))
+                {
+                   // Send UV offset token
+                    MHW_RESOURCE_PARAMS ResourceParams;
+
+                    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+                    ResourceParams.presResource        = &pParams->psSurface->OsResource;
+                    ResourceParams.HwCommandType       = MOS_SURFACE_STATE_ADV;
+                    ResourceParams.patchType           = MOS_PATCH_TYPE_UV_Y_OFFSET;
+                    ResourceParams.bIsWritable         = pParams->bIsWritable;
+                    ResourceParams.shiftDirection      = 0;
+                    ResourceParams.shiftAmount         = 0;
+                    ResourceParams.pdwCmd              = &(pCmd->DW3.Value);
+
+                    ResourceParams.dwLocationInCmd     = 3; //DW3
+                    ResourceParams.dwOffsetInSSH       =
+                    uiIndirectStateOffset               +
+                    pKernelState->dwSshOffset           +
+                    pKernelState->dwBindingTableSize    +
+                    (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
+
+
+                    MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(pOsInterface,
+                                                            pCmdBuffer,
+                                                            &ResourceParams));
+                }
+                else
                 pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
             }
             else if (i == MHW_V_PLANE)    // AVS V plane
@@ -408,8 +474,9 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceState(
                 pCmd->DW4.XOffsetForVCr = pParams->dwXOffset[MHW_V_PLANE];
                 pCmd->DW4.YOffsetForVCr = pParams->dwYOffset[MHW_V_PLANE];
             }
-            
-            pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
+
+            if (!pOsInterface->bPitchAndUVPatchingNeeded )
+                pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
 
             ResourceParams.presResource     = &pParams->psSurface->OsResource;
             ResourceParams.dwOffset         =
@@ -423,7 +490,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceState(
                 pKernelState->dwBindingTableSize    +
                 (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
             ResourceParams.HwCommandType    = MOS_SURFACE_STATE_ADV;
-        
+
             MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(
                 pOsInterface,
                 pCmdBuffer,
@@ -459,7 +526,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceState(
             pCmd->DW0.VerticalLineStrideOffset  = pParams->bVertLineStrideOffs;
             pCmd->DW0.MediaBoundaryPixelMode    = pParams->MediaBoundaryPixelMode;
             pCmd->DW0.SurfaceFormat             = pParams->ForceSurfaceFormat[i]; 
-            
+
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
                 pCmd->DW0.TileMode = mhw_state_heap_g11_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_YMAJOR;
@@ -512,22 +579,60 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSurfaceState(
                 pCmd->DW5.XOffset           = pParams->dwXOffset[i] >> 2;
                 pCmd->DW5.YOffset           = pParams->dwYOffset[i] >> 2;
                 pCmd->DW5.TiledResourceMode = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
+
+                if(pOsInterface->bPitchAndUVPatchingNeeded)
+                {
+                    pCmd->DW3.SurfacePitch = 0;
+                    if(dwSurfaceType != GFX3DSTATE_SURFACETYPE_BUFFER)
+                    {
+                        MHW_RESOURCE_PARAMS ResourceParams;
+                        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+                        ResourceParams.presResource        = &pParams->psSurface->OsResource;
+                        ResourceParams.HwCommandType       = MOS_SURFACE_STATE;
+                        ResourceParams.patchType           = MOS_PATCH_TYPE_PITCH;
+                        ResourceParams.bIsWritable         = pParams->bIsWritable;
+                        ResourceParams.shiftDirection      = 0;
+                        ResourceParams.shiftAmount         = 0;
+                        ResourceParams.pdwCmd              = &(pCmd->DW3.Value);
+                        ResourceParams.dwOffsetInSSH    = uiIndirectStateOffset               +
+                        pKernelState->dwSshOffset           +
+                        pKernelState->dwBindingTableSize    +
+                        (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
+                        ResourceParams.dwLocationInCmd  =  3 ; //DW3
+                        MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(pOsInterface,
+                                                                pCmdBuffer,
+                                                                &ResourceParams));
+                    }
+                }
             }
-            
+
             ResourceParams.presResource     = &pParams->psSurface->OsResource;
             ResourceParams.dwOffset         =
                 pParams->psSurface->dwOffset + pParams->dwBaseAddrOffset[i];
+
+            if(pOsInterface->bPitchAndUVPatchingNeeded)
+            {
+                if(i == MHW_Y_PLANE)
+                {
+                    ResourceParams.patchType           = MOS_PATCH_TYPE_BASE_ADDRESS; //Patch Y address
+                }
+                else
+                {
+                    ResourceParams.patchType          = MOS_PATCH_TYPE_UV_BASE_ADDRESS; //Patch UV Base address
+                    ResourceParams.dwOffset            = 0;
+                }
+            }
             ResourceParams.pdwCmd           = (pCmd->DW8_9.Value);
             ResourceParams.dwLocationInCmd  = 8;
             ResourceParams.bIsWritable      = pParams->bIsWritable;
-            
+
             ResourceParams.dwOffsetInSSH    =
                 uiIndirectStateOffset               +
                 pKernelState->dwSshOffset           +
                 pKernelState->dwBindingTableSize    +
                 (pParams->dwBindingTableOffset[i] * m_dwMaxSurfaceStateSize);
             ResourceParams.HwCommandType    = MOS_SURFACE_STATE;
-            
+
             MHW_MI_CHK_STATUS(m_pfnAddResourceToCmd(
                 pOsInterface,
                 pCmdBuffer,
@@ -719,6 +824,16 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::SetSamplerState(
                 pSamplerState8x8->DW2.RegularWeight            = pParam->Avs.RegularWght;
                 pSamplerState8x8->DW2.NonEdgeWeight            = pParam->Avs.NonEdgeWght;
                 pSamplerState8x8->DW3.Enable8TapFilter         = pParam->Avs.EightTapAFEnable;
+
+                // Set 8-Tap Adaptive Filter
+                if (pParam->Avs.b8TapAdaptiveEnable)
+                {
+                    pSamplerState8x8->DW3.Enable8TapFilter = MHW_SAMPLER_FILTER_8_TAP_ADATIVE;
+                }
+                else if (pParam->Avs.b8TapLumaForYUV444)
+                {
+                    pSamplerState8x8->DW3.Enable8TapFilter = MHW_SAMPLER_FILTER_8_4_TAP;
+                }
 
                 //pSamplerState8x8->DW3.IEFBypass = pParam->pAVSParam.BypassIEF; This should be done through Kernel Gen8+
                 pSamplerState8x8->DW0.R3XCoefficient    = pParam->Avs.wR3xCoefficient;
@@ -943,7 +1058,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::LoadSamplerAvsTable(
     pSampler8x8Avs->DW153.AdaptiveFilterForAllChannels  = pMhwSamplerAvsTableParam->bAdaptiveFilterAllChannels;
     pSampler8x8Avs->DW153.BypassYAdaptiveFiltering      = pMhwSamplerAvsTableParam->bBypassYAdaptiveFiltering;
     pSampler8x8Avs->DW153.BypassXAdaptiveFiltering      = pMhwSamplerAvsTableParam->bBypassXAdaptiveFiltering;
-    
+
     u32ConvolveTableNum =
         sizeof(pSampler8x8Avs->FilterCoefficient1731) / sizeof(pSampler8x8Avs->FilterCoefficient1731[0]);
     // DW160 ~ DW279 setting for extra table coefficients (DW0 ~ DW7) * 15 

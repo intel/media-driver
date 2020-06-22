@@ -215,6 +215,44 @@ MOS_STATUS CodechalEncHevcState::SetPictureStructs()
         return eStatus;
     }
 
+        // Set min/max QP values based on frame type if atleast one of them is non-zero
+    if (m_hevcPicParams->BRCMinQp || m_hevcPicParams->BRCMaxQp)
+    {
+        m_minMaxQpControlEnabled = true;
+        if (m_hevcPicParams->CodingType == I_TYPE)
+        {
+            m_maxQpForI = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMaxQp, 1), 51);           // Clamp to the max QP to [1, 51] . Zero is not used by our Kernel.
+            m_minQpForI = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMinQp, 1), m_maxQpForI);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+            if (!m_minMaxQpControlForP)
+            {
+                m_minQpForP = m_minQpForI;
+                m_maxQpForP = m_maxQpForI;
+            }
+            if (!m_minMaxQpControlForB)
+            {
+                m_minQpForB = m_minQpForI;
+                m_maxQpForB = m_maxQpForI;
+            }
+        }
+        else if (m_hevcPicParams->CodingType == P_TYPE)
+        {
+            m_minMaxQpControlForP = true;
+            m_maxQpForP           = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMaxQp, 1), 51);           // Clamp to the max QP to [1, 51]. Zero is not used by our Kernel.
+            m_minQpForP           = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMinQp, 1), m_maxQpForP);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+            if (!m_minMaxQpControlForB)
+            {
+                m_minQpForB = m_minQpForP;
+                m_maxQpForB = m_maxQpForP;
+            }
+        }
+        else if (m_hevcPicParams->CodingType == B_TYPE)
+        {
+            m_minMaxQpControlForB = true;
+            m_maxQpForB           = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMaxQp, 1), 51);           // Clamp to the max QP to [1, 51]. Zero is not used by our Kernel.
+            m_minQpForB           = MOS_MIN(MOS_MAX(m_hevcPicParams->BRCMinQp, 1), m_maxQpForB);  // Clamp the min QP to [1, maxQP] to make sure minQP <= maxQP
+        }
+    }
+
     // CQP with Fast Surveillance [Distortion Surface needs to be allocated]
     if (m_brcEnabled || m_hevcSeqParams->bVideoSurveillance || m_cqpEnabled)
     {
@@ -223,8 +261,8 @@ MOS_STATUS CodechalEncHevcState::SetPictureStructs()
 
     if (m_brcEnabled)
     {
-        // For ICQ mode, ignore BRCPrecision sent by the app and set the number of passes internally
-        if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ)
+        // For ICQ mode or when min/max QP used, ignore BRCPrecision sent by the app and set the number of passes internally
+        if ((m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ) || (m_minMaxQpControlEnabled))
         {
             m_numPasses = 0;  // no IPCM for HEVC
         }
@@ -1476,7 +1514,7 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
         // LDB
         if (m_pictureCodingType == I_TYPE)
         {
-            if (m_hevcPicParams->FrameLevel == 0)
+            if (m_hevcPicParams->HierarchLevelPlus1 == 0)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_I;
             }
@@ -1488,19 +1526,19 @@ MOS_STATUS CodechalEncHevcState::GetFrameBrcLevel()
         }
         else if ((m_pictureCodingType == P_TYPE) || (m_pictureCodingType == B_TYPE))
         {
-            if (m_hevcPicParams->FrameLevel == 0)
+            if (m_hevcPicParams->HierarchLevelPlus1 == 0)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_P_OR_LB;
             }
-            else if (m_hevcPicParams->FrameLevel == 1)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 1)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B;
             }
-            else if (m_hevcPicParams->FrameLevel == 2)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 2)
             {
                 m_currFrameBrcLevel = HEVC_BRC_FRAME_TYPE_B1;
             }
-            else if (m_hevcPicParams->FrameLevel == 3)
+            else if (m_hevcPicParams->HierarchLevelPlus1 == 3)
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("FrameLevel 3 is not supported for LDB\n");
                 return MOS_STATUS_INVALID_PARAMETER;

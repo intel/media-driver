@@ -363,12 +363,12 @@ public:
 
         //! \brief ADD_CS_MMIO_START_OFFSET
         //! \details
-        //!     This bit controls the functionality of the “Register Address” field in
+        //!     This bit controls the functionality of the "Register Address" field in
         //!     the command.
         enum ADD_CS_MMIO_START_OFFSET
         {
-            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< “Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< “Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset.Bits [22:2] of the “Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in a write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< "Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< "Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset.Bits [22:2] of the "Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in a write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         enum MI_COMMAND_OPCODE
@@ -459,22 +459,22 @@ public:
 
         //! \brief ADD_CS_MMIO_START_OFFSET_SOURCE
         //! \details
-        //!     <p>This bit controls the functionality of the “Register Address Source”
+        //!     <p>This bit controls the functionality of the "Register Address Source"
         //!     field in the command.</p>
         enum ADD_CS_MMIO_START_OFFSET_SOURCE
         {
-            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED0                         = 0, //!< “Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED1                         = 1, //!< “Source Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the “Source Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: false, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C _2130 instead of read from 0x1C_0130 and write to MMIO offset 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED0                         = 0, //!< "Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_SOURCE_UNNAMED1                         = 1, //!< "Source Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the "Source Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: false, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C _2130 instead of read from 0x1C_0130 and write to MMIO offset 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         //! \brief ADD_CS_MMIO_START_OFFSET_DESTINATION
         //! \details
-        //!     <p>This bit controls the functionality of the “Register Address
-        //!     Destination” field in the command.</p>
+        //!     <p>This bit controls the functionality of the "Register Address
+        //!     Destination" field in the command.</p>
         enum ADD_CS_MMIO_START_OFFSET_DESTINATION
         {
-            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED0                    = 0, //!< “Destination Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED1                    = 1, //!< “Destination Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the “Destination Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: true, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C_2130 (0x00_2000 + 0x1C_0130) and write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead of read from 0x1C_0130 and write to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED0                    = 0, //!< "Destination Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_DESTINATION_UNNAMED1                    = 1, //!< "Destination Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the "Destination Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_LOAD_REGISTER_REGISTER_REG, DEST_ADD_CS_MMIO_START_OFFSET: true, SRC_ADD_CS_MMIO_START_OFFSET:true, Source Register Address:0x1C_0130, Destination Register Address: 0x1C_0030The above command when executed on RenderCS will result in a MMIO read from 0x1C_2130 (0x00_2000 + 0x1C_0130) and write to MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead of read from 0x1C_0130 and write to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         enum MI_COMMAND_OPCODE
@@ -565,12 +565,12 @@ public:
 
         //! \brief ADD_CS_MMIO_START_OFFSET
         //! \details
-        //!     <p>This bit controls the functionality of the “Register Address” field
+        //!     <p>This bit controls the functionality of the "Register Address" field
         //!     in the command.</p>
         enum ADD_CS_MMIO_START_OFFSET
         {
-            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< “Register Address” field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
-            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< “Register Address” field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the “Register Address” are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_STORE_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in updating the memory address with the content of the MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED0                                = 0, //!< "Register Address" field in the command is absolute and not an offset from the executing command streamer MMIO start offset.
+            ADD_CS_MMIO_START_OFFSET_UNNAMED1                                = 1, //!< "Register Address" field in the command is treated as an offset from the executing Command Streamer’s MMIO start offset. Bits [22:2] of the "Register Address" are considered as dword offset to be added to the MMIO start offset of the corresponding command streamer.Example: MI_STORE_REGISTER_MEM, ADD_CS_MMIO_START_OFFSET: true, Memory Address:0xABCD, Register Address: 0x1C_0030The above command when executed on RenderCS will result in updating the memory address with the content of the MMIO offset 0x1C_2030 (0x00_2000 + 0x1C_0030) instead to 0x1C_0030. Note that RenderCS MMIO start offset is 0x2000.
         };
 
         enum MI_COMMAND_OPCODE
@@ -763,8 +763,8 @@ public:
             PREDICATE_ENABLE_NOOPONRESULT2SET                                = 2, //!< Following Commands will be NOOPED by RCS only if the MI_PREDICATE_RESULT_2 is set.
             PREDICATE_ENABLE_NOOPONRESULTCLEAR                               = 3, //!< Following Commands will be NOOPED by RCS only if the MI_PREDICATE_RESULT is clear.
             PREDICATE_ENABLE_NOOPONRESULTSET                                 = 4, //!< Following Commands will be NOOPED by RCS only if the MI_PREDICATE_RESULT is set.
-            PREDICATE_ENABLE_NOOPINRENDERCS                                  = 11, //!< When RenderCS parses MI_SET_PREDICATE command with “Predicate Enable” set to “NOOP in RenderCS”, RenderCS NOOP’s all the subsequent commands parsed unconditionally until the predication is disabled/modified using MI_SET_PREDICATE command. Other command streamers (non RenderCS) on parsing MI_SET_PREDICATE command with “Predicate Enable” set to “NOOP in RenderCS” don’t take any action and is equivalent to parsing MI_NOOP command.
-            PREDICATE_ENABLE_NOOPINPOSITIONCS                                = 12, //!< When PositionCS parses MI_SET_PREDICATE command with “Predicate Enable” set to “NOOP in PositionCS”, PositionCS NOOP’s all the subsequent commands parsed unconditionally until the predication is disabled/modified using MI_SET_PREDICATE command. Other command streamers (non PositionCS) on parsing MI_SET_PREDICATE command with “Predicate Enable” set to “NOOP in PositionCS” don’t take any action and is equivalent to parsing MI_NOOP command.
+            PREDICATE_ENABLE_NOOPINRENDERCS                                  = 11, //!< When RenderCS parses MI_SET_PREDICATE command with "Predicate Enable" set to "NOOP in RenderCS", RenderCS NOOP’s all the subsequent commands parsed unconditionally until the predication is disabled/modified using MI_SET_PREDICATE command. Other command streamers (non RenderCS) on parsing MI_SET_PREDICATE command with "Predicate Enable" set to "NOOP in RenderCS" don’t take any action and is equivalent to parsing MI_NOOP command.
+            PREDICATE_ENABLE_NOOPINPOSITIONCS                                = 12, //!< When PositionCS parses MI_SET_PREDICATE command with "Predicate Enable" set to "NOOP in PositionCS", PositionCS NOOP’s all the subsequent commands parsed unconditionally until the predication is disabled/modified using MI_SET_PREDICATE command. Other command streamers (non PositionCS) on parsing MI_SET_PREDICATE command with "Predicate Enable" set to "NOOP in PositionCS" don’t take any action and is equivalent to parsing MI_NOOP command.
             PREDICATE_ENABLE_NOOPALWAYS                                      = 15, //!< Following Commands will be NOOPED by RCS unconditionally.
         };
 
@@ -1104,20 +1104,20 @@ public:
     //!     MI_SEMAPHORE_WAIT command also supports register based Semaphore WAIT.
     //!     Command Streamer on parsing this command fetches data from the MMIO
     //!     offset mentioned in this command and compares it with the inline
-    //!     Semaphore Data Dword. This functionality is supported when “Register
-    //!     Poll” bit is set in the command header. In register poll mode of
-    //!     operation “Wait Mode” supported is always Poll mode and no Signal mode
+    //!     Semaphore Data Dword. This functionality is supported when "Register
+    //!     Poll" bit is set in the command header. In register poll mode of
+    //!     operation "Wait Mode" supported is always Poll mode and no Signal mode
     //!     is supported.
     //!     
     //!     If comparison passes, the command streamer moves to the next command.
     //!     
     //!     Unlike in Memory based semaphore, there is no context switch on an
-    //!     un-successful semaphore wait in “Register Poll” mode, however preemption
-    //!     is supported on unsuccessful semaphore wait in “Register Poll” mode.
+    //!     un-successful semaphore wait in "Register Poll" mode, however preemption
+    //!     is supported on unsuccessful semaphore wait in "Register Poll" mode.
     //!     Semaphore wait interrupt is not generated by default on wait
-    //!     un-successful in “Register Poll” mode. However interrupt generation can
-    //!     be enabled by setting debug mode bit “Semaphore Interrupt Enable in
-    //!     Register Poll Mode” in specified register.
+    //!     un-successful in "Register Poll" mode. However interrupt generation can
+    //!     be enabled by setting debug mode bit "Semaphore Interrupt Enable in
+    //!     Register Poll Mode" in specified register.
     //!     
     //!     Also unlike in Memory based semaphore, generation of an interrupt for a
     //!     semaphore wait in "Register Poll" mode is not dependent on the value of
@@ -1127,16 +1127,16 @@ public:
     //!     and will be supported from PPGTT batch buffers.
     //!     
     //!     HW will trigger Render DOP CG on semaphore wait unsuccessful by default
-    //!     and can be disabled if not desired by programming “Register
-    //!     Poll Mode Semaphore Wait Event IDLE message Disable” bit in “INSTPM”
+    //!     and can be disabled if not desired by programming "Register
+    //!     Poll Mode Semaphore Wait Event IDLE message Disable" bit in "INSTPM"
     //!     register. Note that Render DOP CG will not be triggered on register
     //!     semaphore wait un-successfull from INDIRECT_CTX pointer or
     //!     BB_PER_CTX_PTR buffers.
     //!
-    //!     MI_SEMAPHORE_WAIT command must be always programmed with “Wait Mode” set
-    //!     to “Polling Mode” Or MI_SEMAPHORE_WAIT command with “Wait Mode” set to
-    //!     “Polling Mode” can be programmed when “Semaphore Wait Event IDLE message
-    //!     Disable” bit in “RC_PSMI_CTRL” register is set to disable Idle messaging
+    //!     MI_SEMAPHORE_WAIT command must be always programmed with "Wait Mode" set
+    //!     to "Polling Mode" Or MI_SEMAPHORE_WAIT command with "Wait Mode" set to
+    //!     "Polling Mode" can be programmed when "Semaphore Wait Event IDLE message
+    //!     Disable" bit in "RC_PSMI_CTRL" register is set to disable Idle messaging
     //!     on unsuccessful MI_SEMPAHORE_WAIT.
     //!     
     struct MI_SEMAPHORE_WAIT_CMD
@@ -1211,7 +1211,7 @@ public:
         enum REGISTER_POLL_MODE
         {
             REGISTER_POLL_MODE_MEMORYPOLL                                    = 0, //!< In this mode HW will functional as in regular mode and checks for semaphore data in memory.
-            REGISTER_POLL_MODE_REGISTERPOLL                                  = 1, //!< In this mode HW periodically reads the semaphore data from MMIO register instead of memory for comparison until the condition is satisfied. Periodicity will be mentioned in a SEMA_WAIT_POLL register.When operating in register poll mode, DW2 “Semaphore Address” (bits 22:2) carries the register MMIO offset to be polled.In register poll mode “Memory Type” field of this command are ignored by HW. 
+            REGISTER_POLL_MODE_REGISTERPOLL                                  = 1, //!< In this mode HW periodically reads the semaphore data from MMIO register instead of memory for comparison until the condition is satisfied. Periodicity will be mentioned in a SEMA_WAIT_POLL register.When operating in register poll mode, DW2 "Semaphore Address" (bits 22:2) carries the register MMIO offset to be polled.In register poll mode "Memory Type" field of this command are ignored by HW. 
         };
 
         //! \brief MEMORY_TYPE
@@ -1715,17 +1715,17 @@ public:
     //!     Write cache flush bits must not be set (Render Target Cache Flush
     //!     Enable, DC Flush Enable, Depth Cache Flush Enable )
     //!     
-    //!     Post Sync Operations must not be set to “Write PS Depth Count”
+    //!     Post Sync Operations must not be set to "Write PS Depth Count"
     //!     
-    //!     “Stall at Pixel Scoreboard” must not be set
+    //!     "Stall at Pixel Scoreboard" must not be set
     //!     
-    //!     “Notify Enable” must not be set.
+    //!     "Notify Enable" must not be set.
     //!     
-    //!     “Depth Stall Enable” must not be set.
+    //!     "Depth Stall Enable" must not be set.
     //!     
-    //!     “Generic Media State Clear” must not be set.
+    //!     "Generic Media State Clear" must not be set.
     //!     
-    //!     “PSD Sync Enable” must not be set.
+    //!     "PSD Sync Enable" must not be set.
     //!     
     struct PIPE_CONTROL_CMD
     {

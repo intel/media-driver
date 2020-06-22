@@ -135,6 +135,7 @@
 #define CODECHAL_ENCODE_MAX_NUM_MAD_BUFFERS             CODEC_MAX_NUM_REF_FIELD
 #define CODECHAL_ENCODE_SLICESIZE_BUF_SIZE              (4960 * sizeof(uint16_t))
 #define CODECHAL_VDENC_BRC_NUM_OF_PASSES                2
+#define CODECHAL_VDENC_BRC_NUM_OF_PASSES_FOR_TILE_REPLAY 22
 #define CODECHAL_DP_MAX_NUM_BRC_PASSES                  4
 #define CODECHAL_VDENC_NUMIMEPREDICTORS                 0x8
 #define CODECHAL_CMDINITIALIZER_MAX_CMD_SIZE            CODECHAL_CACHELINE_SIZE * 4
@@ -363,19 +364,22 @@ struct MfeParams
 //!
 struct MfeSharedState
 {
-    CodechalHwInterface             *pHwInterface;
+    CodechalHwInterface             *pHwInterface = nullptr;
     PMOS_INTERFACE                  pOsInterface;
-    PMHW_KERNEL_STATE               pMfeMbEncKernelState;     //!< Set in the first stream, Used by the rest streams
-    uint32_t                        dwPicWidthInMB;           //!< Keep the maximum width
-    uint32_t                        dwPicHeightInMB;          //!< Keep the maximum height
-    uint16_t                        sliceHeight;              //!< Keep the maximum slice height
+    PMHW_KERNEL_STATE               pMfeMbEncKernelState;            //!< Set in the first stream, Used by the rest streams
+    uint32_t                        dwPicWidthInMB;                  //!< Keep the maximum width
+    uint32_t                        dwPicHeightInMB;                 //!< Keep the maximum height
+    uint16_t                        sliceHeight;                     //!< Keep the maximum slice height
+    uint32_t                        maxTheadWidth = 0;               //!< Keep the maximum width of the threadspace
+    uint32_t                        maxTheadHeight = 0;              //!< Keep the maximum Height of the threadspace
+    uint32_t                        *maxThreadWidthFrames = nullptr; //!< Keep the thread space width for all frames
 
-    CmDevice                                *pCmDev;          //!< Set in the first stream, Used by the rest streams
-    CmTask                                  *pCmTask;
-    CmQueue                                 *pCmQueue;
-    CodechalEncodeMdfKernelResource         *resMbencKernel;
-    SurfaceIndex                            *vmeSurface;
-    SurfaceIndex                            *commonSurface;
+    CmDevice                                *pCmDev = nullptr;       //!< Set in the first stream, Used by the rest streams
+    CmTask                                  *pCmTask = nullptr;
+    CmQueue                                 *pCmQueue = nullptr;
+    CodechalEncodeMdfKernelResource         *resMbencKernel = nullptr;
+    SurfaceIndex                            *vmeSurface = nullptr;
+    SurfaceIndex                            *commonSurface = nullptr;
     std::vector<CodechalEncoderState*>      encoders;
 };
 
@@ -761,6 +765,29 @@ struct BrcQpReport
 };
 
 //!
+//! \struct LookaheadStatus
+//! \brief  Struct of Query bit rate control and QP Status
+//!
+struct LookaheadReport
+{
+    uint32_t StatusReportNumber;
+    union
+    {
+        struct
+        {
+            uint32_t cqmHint    : 8;
+            uint32_t intraHint  : 1;
+            uint32_t reserved2  : 22;
+            uint32_t isValid    : 1;
+        };
+        uint32_t encodeHints;
+    };
+    uint32_t targetFrameSize;
+    uint32_t targetBufferFulness;
+    uint32_t reserved3[12];
+};
+
+//!
 //! \struct    EncodeBrcBuffers
 //! \brief     Encode brc buffers
 //!
@@ -886,15 +913,18 @@ struct EncodeStatusReport
     uint8_t                         UsedVdBoxNumber;        //!< Number of vdbox used.
     uint32_t                        SizeOfSliceSizesBuffer; //!< Store the size of slice size buffer
     uint16_t                        *pSliceSizes;           //!< Pointer to the slice size buffer
+    uint8_t                         cqmHint;                //!< CQM hint. 0x00 - flat matrix; 0x01 - enable CQM; 0xFF - invalid hint; other vlaues are reserved.
     uint32_t                        SizeOfTileInfoBuffer;   //!< Store the size of tile info buffer
     CodechalTileInfo*               pHEVCTileinfo;          //!< Pointer to the tile info buffer
     uint32_t                        NumTileReported;        //!< The number of tiles reported in status
 
     /*! \brief indicate whether it is single stream encoder or MFE.
     *
-    *    For single stream encoder (regular), this value should be set to default 0. For Multi-Frame-Encoder (MFE), this value is the StreamId that is set by application.  
+    *    For single stream encoder (regular), this value should be set to default 0. For Multi-Frame-Encoder (MFE), this value is the StreamId that is set by application.
     */
-    uint32_t                        StreamId;               
+    uint32_t                        StreamId;
+
+    LookaheadReport*                pLookaheadStatus;       //!< Pointer to the lookahead status buffer. Valid in lookahead pass only.
 };
 
 //!
@@ -925,14 +955,18 @@ struct EncodeStatus
     uint32_t                        dwStoredData;           //!< SW stored data
     uint32_t                        dwMFCBitstreamByteCountPerFrame;         //!< Media fixed function bitstream byte count per frame
     uint32_t                        dwMFCBitstreamSyntaxElementOnlyBitCount; //!< Media fixed function bitstream bit count for syntax element only
-    uint32_t                        dwPad2;                 //!< Pad 2
+    uint32_t                        reserved;
     uint32_t                        dwImageStatusMask;      //!< MUST ENSURE THAT THIS IS QWORD ALIGNED as it's used for the conditional BB end
     MHW_VDBOX_IMAGE_STATUS_CONTROL  ImageStatusCtrl;        //!< Used for storing the control flags for the image status
     uint32_t                        HuCStatusRegMask;       //!< MUST ENSURE THAT THIS IS QWORD ALIGNED as it's used for the conditional BB end
     uint32_t                        HuCStatusReg;           //!< Register value saving HuC Status
     MHW_VDBOX_PAK_NUM_OF_SLICES     NumSlices;              //!< Num of slices for encode
     uint32_t                        dwErrorFlags;           //!< The definition is different on SNB/IVB, hence DWORD
-    BrcQpReport                     BrcQPReport;            //!< Query bit rate control and QP Status
+    union
+    {
+        BrcQpReport                 BrcQPReport;            //!< Query bit rate control and QP Status
+        LookaheadReport             lookaheadStatus;        //!< Lookahead status. valid in lookahead pass only
+    };
     uint32_t                        dwNumberPasses;         //!< Number of passes
     uint32_t                        dwHeaderBytesInserted;  //!< The size including header, prevention bytes and dummy "0xff" inserted by SW driver
     CodechalQpStatusCount           QpStatusCount;          //!< This is used to obtain the cumulative QP
@@ -972,6 +1006,7 @@ struct EncodeStatusBuffer
     uint32_t                                dwSceneChangedOffset;           //!> The offset of the scene changed flag
     uint32_t                                dwSumSquareErrorOffset;         //!> The offset of list of sum square error
     uint32_t                                dwSliceReportOffset;            //!> The offset of slice size report structure
+    uint32_t                                dwLookaheadStatusOffset;        //!> The offset of lookahead status
     uint32_t                                dwSize;                         //!> Size of status buffer
     uint32_t                                dwReportSize;                   //!> Size of report
 };
@@ -1027,6 +1062,37 @@ struct CodechalEncodeIdOffsetParams
 struct VdencBrcPakMmio
 {
     uint32_t                dwReEncode[4];
+};
+
+//!
+//! \struct VdencHucErrorStatus
+//! \brief  Huc Error Flags
+//!
+struct VdencHucErrorStatus
+{
+    uint32_t                dwErrorFlag[4];
+};
+
+//!
+//! \struct    CodechalEncodeLaData
+//! \brief     Codechal encode lookahead analysis output data structure, used by BRC kernel
+//!
+struct CodechalEncodeLaData
+{
+    uint32_t reserved0[1];
+    uint32_t targetFrameSize;
+    uint32_t targetBufferFulness;
+    uint32_t reserved1[2];
+    union
+    {
+        struct
+        {
+            uint32_t cqmHint    : 8;  //!< Custom quantization matrix hint. 0x00 - flat matrix; 0x01 - CQM; 0xFF - invalid hint; other values are reserved.
+            uint32_t reserved2  : 24;
+        };
+        uint32_t report;
+    };
+    uint32_t reserved3[10];
 };
 
 //!
@@ -1323,7 +1389,7 @@ public:
     MEDIA_WA_TABLE                  *m_waTable = nullptr;                           //!< WA table
     CodecHalMmcState*               m_mmcState = nullptr;                           //!< Memory compression
     MEDIA_SYSTEM_INFO               *m_gtSystemInfo = nullptr;                      //!< GT system infomation
-    MOS_GPU_NODE                    m_videoGpuNode;                                 //!< GPU node of video
+    MOS_GPU_NODE                    m_videoGpuNode = MOS_GPU_NODE_MAX;              //!< GPU node of video
     MOS_GPU_CONTEXT                 m_videoContext = MOS_GPU_CONTEXT_INVALID_HANDLE;              //!< GPU context of video
     MOS_GPU_CONTEXT                 m_videoContextExt[4];                           //!< Extand GPU context
     MOS_GPU_CONTEXT                 m_renderContext = MOS_GPU_CONTEXT_INVALID_HANDLE;             //!< GPU context of render
@@ -1358,13 +1424,13 @@ public:
     // Per-frame Application Settings
     EncoderParams                   m_encodeParams = {};          //!< Encode parameters used in each frame
     uint32_t                        *m_dataHwCount = nullptr;     //!< HW count data
-    MOS_RESOURCE                     m_resHwCount;                //!< Resource of HW count
+    MOS_RESOURCE                     m_resHwCount = {};                //!< Resource of HW count
     MOS_SURFACE                     m_prevRawSurface = {};        //!< Pointer to MOS_SURFACE of previous raw surface
     MOS_SURFACE                     m_rawSurface = {};            //!< Pointer to MOS_SURFACE of raw surface
     MOS_SURFACE                     m_reconSurface = {};          //!< Pointer to MOS_SURFACE of reconstructed surface
-    MOS_RESOURCE                    m_resBitstreamBuffer;         //!< Pointer to MOS_SURFACE of bitstream surface
-    MOS_RESOURCE                    m_resMbCodeSurface;           //!< Pointer to MOS_SURFACE of MbCode surface
-    MOS_RESOURCE                    m_resMvDataSurface;           //!< Pointer to MOS_SURFACE of MvData surface
+    MOS_RESOURCE                    m_resBitstreamBuffer = {};         //!< Pointer to MOS_SURFACE of bitstream surface
+    MOS_RESOURCE                    m_resMbCodeSurface = {};           //!< Pointer to MOS_SURFACE of MbCode surface
+    MOS_RESOURCE                    m_resMvDataSurface = {};           //!< Pointer to MOS_SURFACE of MvData surface
     uint32_t                        m_mbDataBufferSize = 0;
     HwCounter                       m_regHwCount[CODECHAL_ENCODE_STATUS_NUM + 1];    //!< HW count register value
 
@@ -1392,8 +1458,6 @@ public:
     uint32_t                        m_frameFieldHeight = 0;       //!< Frame height in luma samples
     uint32_t                        m_oriFrameHeight = 0;         //!< Original frame height
     uint32_t                        m_oriFrameWidth = 0;          //!< Original frame width
-    uint32_t                        m_prevFrameWidth = 0;         //!< Previous frame width
-    uint32_t                        m_prevFrameHeight = 0;        //!< Previous frame height
     uint32_t                        m_createWidth = 0;            //!< Max Frame Width for resolution reset
     uint32_t                        m_createHeight = 0;           //!< Max Frame Height for resolution reset
     uint16_t                        m_picWidthInMb = 0;           //!< Picture Width in MB width count
@@ -1406,8 +1470,8 @@ public:
     bool                            m_feiEnable = false;          //!< FEI is enabled
 
     // Synchronization
-    MOS_RESOURCE                    m_resSyncObjectRenderContextInUse; //!< Resource of the sync object to indicate render context is in use
-    MOS_RESOURCE                    m_resSyncObjectVideoContextInUse;  //!< Resource of the sync object to indicate video context is in use
+    MOS_RESOURCE                    m_resSyncObjectRenderContextInUse = {}; //!< Resource of the sync object to indicate render context is in use
+    MOS_RESOURCE                    m_resSyncObjectVideoContextInUse = {};  //!< Resource of the sync object to indicate video context is in use
     bool                            m_waitForPak = false;              //!< Flag to indicate if waiting for PAK
     bool                            m_signalEnc = false;               //!< Flag used to signal ENC
     uint32_t                        m_semaphoreObjCount = 0;           //!< Count of semaphore objects
@@ -1484,7 +1548,7 @@ public:
     bool                            m_singlePassDys = false;              //!< sungle pass dynamic scaling supported flag
 
     // CmdGen HuC FW for HEVC/VP9 VDEnc
-    MOS_RESOURCE                    m_resVdencCmdInitializerDmemBuffer;   //!< Resource of vdenc command initializer DMEM buffer
+    MOS_RESOURCE                    m_resVdencCmdInitializerDmemBuffer = {};   //!< Resource of vdenc command initializer DMEM buffer
     MOS_RESOURCE                    m_resVdencCmdInitializerDataBuffer[2];   //!< Resource of vdenc command initializer data buffer
 
     // VDEnc params
@@ -1522,7 +1586,7 @@ public:
     uint32_t                        m_mbcodeBottomFieldOffset = 0;  //!< MB code offset frame/TopField - zero, BottomField - nonzero
     uint32_t                        m_mvDataSize = 0;               //!< MV data size
     uint32_t                        m_mvBottomFieldOffset = 0;      //!< MV data offset frame/TopField - zero, BottomField - nonzero
-    MOS_RESOURCE                    m_resDistortionBuffer;          //!< MBEnc Distortion Buffer
+    MOS_RESOURCE                    m_resDistortionBuffer = {};          //!< MBEnc Distortion Buffer
     MOS_RESOURCE                    m_resMadDataBuffer[CODECHAL_ENCODE_MAX_NUM_MAD_BUFFERS]; //!< Buffers to store Mean of Absolute Differences
     bool                            m_madEnabled = false;                                    //!< Mad enabled flag
 
@@ -1545,14 +1609,15 @@ public:
     uint32_t                        m_maxNumSlicesAllowed = 0;          //!< Max number of slices allowed
 
     //VDEnc HuC FW status
-    MOS_RESOURCE                    m_resPakMmioBuffer;                 //!< Resource of PAK MMIO buffer
-    MOS_RESOURCE                    m_resHucStatus2Buffer;              //!< Resource of HuC status 2 buffer
-    MOS_RESOURCE                    m_resHucFwBuffer;                   //!< Resource of HuC Fw buffer
+    MOS_RESOURCE                    m_resPakMmioBuffer = {};                 //!< Resource of PAK MMIO buffer
+    MOS_RESOURCE                    m_resHucErrorStatusBuffer = {};          //!< Resource of Huc Error Status buffer
+    MOS_RESOURCE                    m_resHucStatus2Buffer = {};              //!< Resource of HuC status 2 buffer
+    MOS_RESOURCE                    m_resHucFwBuffer = {};                   //!< Resource of HuC Fw buffer
     PMOS_RESOURCE                   m_resVdencBrcUpdateDmemBufferPtr[2] = {nullptr, nullptr}; //!< One for 1st pass of next frame, and the other for the next pass of current frame.
 
     // PAK Scratch Buffers
-    MOS_RESOURCE                    m_resDeblockingFilterRowStoreScratchBuffer;                 //!< Handle of deblock row store surface
-    MOS_RESOURCE                    m_resMPCRowStoreScratchBuffer;                              //!< Handle of mpc row store surface
+    MOS_RESOURCE                    m_resDeblockingFilterRowStoreScratchBuffer = {};                 //!< Handle of deblock row store surface
+    MOS_RESOURCE                    m_resMPCRowStoreScratchBuffer = {};                              //!< Handle of mpc row store surface
     MOS_RESOURCE                    m_resStreamOutBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Handle of streamout data surface
 
     // Scaling
@@ -1597,12 +1662,19 @@ public:
     uint32_t                        m_mbvProcStatsBottomFieldOffset    = 0;                                 //!< MB VProc statistics Bottom Field Offset
     CODECHAL_ENCODE_BUFFER          m_resMbStatisticsSurface;                                               //!< Resource of Mb statistics surface
     bool                            m_mbStatsSupported = false;                           //!< Mb statistics supported flag
-    MOS_RESOURCE                    m_resMbStatsBuffer;                                   //!< Resource of Mb statistics buffer
+    MOS_RESOURCE                    m_resMbStatsBuffer = {};                                   //!< Resource of Mb statistics buffer
     uint32_t                        m_mbStatsBottomFieldOffset = 0;                       //!< Mb statistics bottom field offset
 
     // ME
     MHW_KERNEL_STATE                m_meKernelStates[CODECHAL_ENCODE_ME_IDX_NUM];     //!< ME kernel states
     MeKernelBindingTable            m_meBindingTable = {};                            //!< ME binding table
+    bool                            bStreamOutEnable = false;
+    MOS_RESOURCE                    StreamOutBuffer = {};               // StreamOut buffer
+
+    //GVA paramters to change inter and intra rounding
+    bool                            bCoeffRoundTag = false;
+    uint32_t                        uiRoundIntra = 0;
+    uint32_t                        uiRoundInter = 0;
 
     // Ds+Copy kernel optimization
     uint8_t                         m_outputChromaFormat = (uint8_t)HCP_CHROMA_FORMAT_YUV420;     //!< 1: 420 2: 422 3: 444
@@ -1612,7 +1684,8 @@ public:
 
     // HME VDEnc
     GenericBindingTable             m_vdencMeKernelBindingTable = {};   //!< Vdenc ME kernel binding table
-    MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state
+    MHW_KERNEL_STATE                m_vdencMeKernelState;               //!< Vdenc ME kernel state for Low Delay B
+    MHW_KERNEL_STATE                m_vdencMeKernelStateRAB = {};       //!< Vdenc ME kernel state for Random Access B
 
     GenericBindingTable             m_vdencStreaminKernelBindingTable = {};  //!< Vdenc stream in kernel binding table
     MHW_KERNEL_STATE                m_vdencStreaminKernelState;         //!< Vdenc stream in kernel state for Low Delay B
@@ -1671,10 +1744,21 @@ public:
     // Lookahead
     uint8_t                         m_lookaheadDepth = 0;       //!< Number of frames to lookahead
     uint8_t                         m_currLaDataIdx = 0;        //!< Current lookahead data index
+    uint32_t                        m_averageFrameSize = 0;     //!< Average frame size based on targed bitrate and frame rate, in unit of bits
+    uint32_t                        m_prevTargetFrameSize = 0;  //!< Target frame size of previous frame.
+    uint32_t                        m_targetBufferFulness = 0;  //!< Target encode buffer fulness in bits, used by BRC and calculated from initial buffer fulness, target frame size (from DDI) and average frame size
 
-    MHW_VDBOX_NODE_IND              m_vdboxIndex;               //!< Index of vdbox
+    MHW_VDBOX_NODE_IND              m_vdboxIndex = MHW_VDBOX_NODE_MAX;               //!< Index of vdbox
     MediaPerfProfiler               *m_perfProfiler = nullptr;  //!< Performance data profiler
     PMOS_GPUCTX_CREATOPTIONS        m_gpuCtxCreatOpt = nullptr; //!< Used for creating GPU context
+    bool                            intraModeMaskControl = false;
+    uint32_t                        intraModeMask = 0;  // to disable intra mode
+    bool                            interMbTransformSizeControl = false;
+    bool                            interMbTransform8x8Enabled = false;
+
+    PMOS_RESOURCE                   presMbInlineData = nullptr;
+    PMOS_RESOURCE                   presMbConstSurface = nullptr;
+    PMOS_RESOURCE                   presVMEOutSurface = nullptr;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
@@ -2100,7 +2184,7 @@ public:
 
     //!
     //! \brief   Check Resolution Change and CSC
-    //! 
+    //!
     //! \details On resolution change, resize internal buffer
     //!          Check raw surface to set flag for CSC operation
     //!
@@ -2233,6 +2317,18 @@ public:
     virtual MOS_STATUS DestroyMDFResources();
 
     //!
+    //! \brief    Function to set MFE Shared State
+    //!
+    //! \details  Pointer on passed object will be saved in the local field,
+    //!           content of source object might be changed later
+    //!           (for example, CmDevice might be set or chagned)
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetMfeSharedState(MfeSharedState *pMfeSharedState);
+
+    //!
     //! \brief  Function to add MDF kernel
     //!
     //! \param  [in] device
@@ -2323,6 +2419,19 @@ public:
     //!         number of pak passes
     //!
     uint8_t GetNumBrcPakPasses(uint16_t usBRCPrecision);
+
+    //!
+    //! \brief  Setup Walker Context
+    //! \param  [in, out] cmdBuffer
+    //!         Input and output cmdbuffer
+    //! \param  [in] Pointer to kernel state
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetupWalkerContext(
+        MOS_COMMAND_BUFFER* cmdBuffer,
+        SendKernelCmdsParams* params);
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);

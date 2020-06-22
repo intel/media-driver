@@ -969,7 +969,7 @@ public:
     StatsInfo                                   m_statsSize = {};        // Sizes for the stats for HuC PAK Integration kernel input
     // Semaphore memory for synchronizing
     MOS_RESOURCE                                m_resPipeStartSync;
-    MOS_RESOURCE                                m_resFrameStartSync;
+    MOS_RESOURCE                                m_resFrameStartSync = {};
     CODECHAL_ENCODE_BUFFER                      m_stitchWaitSemaphoreMem[m_maxNumPipes];
     MOS_RESOURCE                                m_resDelayMinus;
     uint16_t                                    m_lastVdencPictureState2ndLevelBBIndex = 0;
@@ -1125,8 +1125,6 @@ public:
         HmeLevel         hmeLevel);
 
     MOS_STATUS SetupSegmentationStreamIn();
-
-    PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams();
 
     void SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS& pipeModeSelectParams);
 

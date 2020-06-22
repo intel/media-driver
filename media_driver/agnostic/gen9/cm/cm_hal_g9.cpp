@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -507,7 +507,7 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
     // The memory object control uint16_t is composed with cache type(8:15), memory type(4:7), ages(0:3)
     mosUsage = (MOS_HW_RESOURCE_DEF)((memObjCtl & CM_MEMOBJCTL_CACHE_MASK) >> 8);
     if (mosUsage >= MOS_HW_RESOURCE_DEF_MAX)
-        mosUsage = MOS_CM_RESOURCE_USAGE_SurfaceState;
+        mosUsage = GetDefaultMOCS();
 
     surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(mosUsage,
         renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
@@ -1115,7 +1115,7 @@ MOS_STATUS CM_HAL_G9_X::SubmitCommands(
         CM_CHK_MOSSTATUS_GOTOFINISH(mhwRender->AddMediaVfeCmd(&mosCmdBuffer, &vfeStateParams));
     }
 
-    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *pOsContext);
+    HalOcaInterface::On1stLevelBBEnd(mosCmdBuffer, *osInterface);
 
     //Couple to the BB_START , otherwise GPU Hang without it in KMD.
     CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddMiBatchBufferEnd(&mosCmdBuffer, nullptr));

@@ -70,7 +70,7 @@ MOS_STATUS CodechalDebugEncodePar::Destroy()
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
-    if (!m_commonPar)
+    if (m_commonPar)
     {
         MOS_Delete(m_commonPar);
         m_commonPar = nullptr;

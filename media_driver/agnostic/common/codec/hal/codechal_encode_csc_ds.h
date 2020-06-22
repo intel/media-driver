@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -262,6 +262,95 @@ public:
     };
     C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds4xKernelCurbeData)) == 12);
 
+    //!
+    //! \brief    2xDS kernel Curbe data
+    //!
+    struct Ds2xKernelCurbeData
+    {
+        Ds2xKernelCurbeData()
+        {
+            DW0 =
+            DW1_Reserved =
+            DW2_Reserved =
+            DW3_Reserved =
+            DW4_Reserved =
+            DW5_Reserved =
+            DW6_Reserved =
+            DW7_Reserved = 0;
+            DW8 = ds2xSrcYPlane;
+            DW9 = ds2xDstYPlane;
+            DW10_InputYBTIBottomField =
+            DW11_OutputYBTIBottomField = 0;
+        }
+
+        // uint32_t 0 - GRF R1.0
+        union
+        {
+            struct
+            {
+                uint32_t   DW0_InputPictureWidth : MOS_BITFIELD_RANGE(0, 15);
+                uint32_t   DW0_InputPictureHeight : MOS_BITFIELD_RANGE(16, 31);
+            };
+            uint32_t DW0;
+        };
+
+        // DW1
+        uint32_t DW1_Reserved;
+
+        // DW2
+        uint32_t DW2_Reserved;
+
+        // DW3
+        uint32_t DW3_Reserved;
+
+        // DW4
+        uint32_t DW4_Reserved;
+
+        // DW5
+        uint32_t DW5_Reserved;
+
+        // DW6
+        uint32_t DW6_Reserved;
+
+        // DW7
+        uint32_t DW7_Reserved;
+
+        // DW8
+        union
+        {
+            struct
+            {
+                uint32_t   DW8_InputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
+            };
+            struct
+            {
+                uint32_t   DW8_InputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
+            };
+            uint32_t DW8;
+        };
+
+        // DW9
+        union
+        {
+            struct
+            {
+                uint32_t   DW9_OutputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
+            };
+            struct
+            {
+                uint32_t   DW9_OutputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
+            };
+            uint32_t DW9;
+        };
+
+        // DW10
+        uint32_t DW10_InputYBTIBottomField;
+
+        // DW11
+        uint32_t DW11_OutputYBTIBottomField;
+    };
+    C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds2xKernelCurbeData)) == 12);
+
     uint8_t IsEnabled() const { return m_cscDsConvEnable; }
     uint32_t GetRawSurfWidth() const { return m_cscRawSurfWidth; }
     uint32_t GetRawSurfHeight() const { return m_cscRawSurfHeight; }
@@ -368,6 +457,8 @@ public:
     //!
     MOS_STATUS KernelFunctions(KernelParams* params);
 
+    MOS_STATUS SetHevcCscFlagAndRawColor();
+
     //!
     //! \brief    CSC using SFC
     //!
@@ -405,8 +496,12 @@ protected:
         cscColorY210 = 4,           // Y210
         cscColorARGB = 5,           // ARGB
         cscColorNv12Linear = 6,     // NV12 linear
-        cscColorABGR = 7,           // ABGR
-        cscColorEnumNumber = 8
+        cscColorAYUV = 7,           // AYUV
+        cscColorARGB10 = 8,         // ARGB10
+        cscColorY410 = 9,           // Y410
+        cscColorABGR = 10,          // ABGR
+        cscColorABGR10 = 11,        // ABGR10
+        cscColorEnumNumber = 12
     };
 
     //!
@@ -742,95 +837,6 @@ private:
     };
 
     //!
-    //! \brief    2xDS kernel Curbe data
-    //!
-    struct Ds2xKernelCurbeData
-    {
-        Ds2xKernelCurbeData()
-        {
-            DW0 =
-            DW1_Reserved =
-            DW2_Reserved =
-            DW3_Reserved =
-            DW4_Reserved =
-            DW5_Reserved =
-            DW6_Reserved =
-            DW7_Reserved = 0;
-            DW8 = ds2xSrcYPlane;
-            DW9 = ds2xDstYPlane;
-            DW10_InputYBTIBottomField =
-            DW11_OutputYBTIBottomField = 0;
-        }
-
-        // uint32_t 0 - GRF R1.0
-        union
-        {
-            struct
-            {
-                uint32_t   DW0_InputPictureWidth : MOS_BITFIELD_RANGE(0, 15);
-                uint32_t   DW0_InputPictureHeight : MOS_BITFIELD_RANGE(16, 31);
-            };
-            uint32_t DW0;
-        };
-
-        // DW1
-        uint32_t DW1_Reserved;
-
-        // DW2
-        uint32_t DW2_Reserved;
-
-        // DW3
-        uint32_t DW3_Reserved;
-
-        // DW4
-        uint32_t DW4_Reserved;
-
-        // DW5
-        uint32_t DW5_Reserved;
-
-        // DW6
-        uint32_t DW6_Reserved;
-
-        // DW7
-        uint32_t DW7_Reserved;
-
-        // DW8
-        union
-        {
-            struct
-            {
-                uint32_t   DW8_InputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
-            };
-            struct
-            {
-                uint32_t   DW8_InputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
-            };
-            uint32_t DW8;
-        };
-
-        // DW9
-        union
-        {
-            struct
-            {
-                uint32_t   DW9_OutputYBTIFrame : MOS_BITFIELD_RANGE(0, 31);
-            };
-            struct
-            {
-                uint32_t   DW9_OutputYBTITopField : MOS_BITFIELD_RANGE(0, 31);
-            };
-            uint32_t DW9;
-        };
-
-        // DW10
-        uint32_t DW10_InputYBTIBottomField;
-
-        // DW11
-        uint32_t DW11_OutputYBTIBottomField;
-    };
-    C_ASSERT(MOS_BYTES_TO_DWORDS(sizeof(Ds2xKernelCurbeData)) == 12);
-
-    //!
     //! \brief    DS kernel Curbe data
     struct DsKernelInlineData
     {
@@ -1030,7 +1036,7 @@ private:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format);
+    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType);
 
     //!
     //! \brief    Initialize SFC state
@@ -1095,6 +1101,19 @@ private:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendSurfaceDS(PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief    Set walker command
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetWalkerCmd(
+        MOS_COMMAND_BUFFER *cmdBuffer,
+        MHW_KERNEL_STATE *kernelState)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     union
     {

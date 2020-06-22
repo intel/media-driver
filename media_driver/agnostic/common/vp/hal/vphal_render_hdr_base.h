@@ -169,6 +169,7 @@ typedef struct _VPHAL_HDR_STATE
     bool                            bNullHwRenderHdr;               //!< Null rendering flag for HDR function
     bool                            bSplitFrame;                    //!< Split Frame flag for iTouch 5ms requirement
     uint32_t                        uiSplitFramePortions = 1;       //!< Split Frame flag
+    bool                            bForceSplitFrame     = false;
 
     uint32_t                        uSourceCount;                                               //!< Number of sources
     uint32_t                        uTargetCount;                                               //!< Number of targets
@@ -216,6 +217,7 @@ typedef struct _VPHAL_HDR_STATE
     STATUS_TABLE_UPDATE_PARAMS      StatusTableUpdateParams;                   //!< Status table, Video Pre-Processing Only
 
     bool                            bFtrComputeWalker;
+    bool                            bVeboxpreprocessed;                   //!< Marked as following VEBOX pre-render, with TCC/IEF preprocessed
 
     MOS_STATUS(*pfnInitialize) (
         PVPHAL_HDR_STATE            pHdrState,

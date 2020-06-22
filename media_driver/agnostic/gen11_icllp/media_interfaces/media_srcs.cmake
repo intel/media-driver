@@ -20,10 +20,12 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_g11_icllp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_g11_jsl_ehl.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_g11_icllp.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_g11_jsl_ehl.h
 )
 
 set(SOURCES_
@@ -33,6 +35,16 @@ set(SOURCES_
 
 set(HEADERS_
     ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 

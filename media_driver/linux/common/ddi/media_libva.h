@@ -63,7 +63,7 @@
 #define DDI_CODEC_GEN_MAX_ATTRIBS_TYPE             4    //VAConfigAttribRTFormat,    VAConfigAttribRateControl,    VAConfigAttribDecSliceMode,    VAConfigAttribEncPackedHeaders
 
 #define DDI_CODEC_GEN_MAX_SURFACE_ATTRIBUTES       22
-#define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver - " UFO_VERSION
+#define DDI_CODEC_GEN_STR_VENDOR                   "Intel iHD driver for Intel(R) Gen Graphics - " MEDIA_VERSION " (" MEDIA_VERSION_DETAILS ")"
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
 #define DDI_CODEC_GET_VTABLE_VPP(ctx)              (ctx->vtable_vpp)
@@ -73,9 +73,9 @@
 #define DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1          16
 
 /* Number of supported input color formats */
-#define DDI_VP_NUM_INPUT_COLOR_STD    5
+#define DDI_VP_NUM_INPUT_COLOR_STD    6
 /* Number of supported output color formats */
-#define DDI_VP_NUM_OUT_COLOR_STD      5
+#define DDI_VP_NUM_OUT_COLOR_STD      6
 /* Number of forward references */
 #define DDI_CODEC_NUM_FWD_REF         0
 /* Number of backward references */
@@ -92,6 +92,9 @@
 #define DDI_CODEC_MIN_VALUE_OF_MAX_BS_SIZE    10240
 #define DDI_CODEC_VDENC_MAX_L0_REF_FRAMES     3
 #define DDI_CODEC_VDENC_MAX_L1_REF_FRAMES     0
+
+#define DDI_CODEC_VDENC_MAX_L0_REF_FRAMES_LDB 3
+#define DDI_CODEC_VDENC_MAX_L1_REF_FRAMES_LDB 3
 
 #define DDI_CODEC_FEI_MAX_NUM_MVPREDICTOR     4
 #define DDI_CODEC_FEI_MAX_INTERFACE_REVISION  1000

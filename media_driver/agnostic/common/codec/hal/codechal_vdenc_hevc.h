@@ -41,6 +41,8 @@ struct CodechalVdencHevcPakInfo
     uint8_t   PAKPassNum;
 };
 
+using pCodechalVdencHevcPakInfo = CodechalVdencHevcPakInfo*;
+
 //!
 //! \struct    CodechalVdencHevcLaStats
 //! \brief     Codechal Vdenc HEVC lookahead info for BRC
@@ -54,7 +56,27 @@ struct CodechalVdencHevcLaStats
     uint32_t  reserved[4];
 };
 
-using pCodechalVdencHevcPakInfo = CodechalVdencHevcPakInfo*;
+//!
+//! \struct    CodechalVdencHevcLaData
+//! \brief     Codechal encode lookahead analysis output data structure
+//!
+struct CodechalVdencHevcLaData
+{
+    uint32_t reserved0[1];
+    uint32_t targetFrameSize;
+    uint32_t targetBufferFulness;
+    uint32_t reserved1[2];
+    union
+    {
+        struct
+        {
+            uint32_t cqmHint    : 8;  //!< Custom quantization matrix hint. 0x00 - flat matrix; 0x01 - CQM; 0xFF - invalid hint; other values are reserved.
+            uint32_t reserved2  : 24;
+        };
+        uint32_t encodeHints;
+    };
+    uint32_t reserved3[10];
+};
 
 //!
 //! \struct    DeltaQpForROI
@@ -81,11 +103,19 @@ struct CodechalVdencHevcLaDmem
     uint32_t vbvInitialFullness;  // in the units of frames
     uint32_t mbCount;             // normalized 16x16 block count
     uint32_t statsRecords;        // # of statistic records
+    uint32_t averageFrameSize;    // in the units of bytes
+    uint16_t minGop;
+    uint16_t maxGop;
+    uint16_t BGop;
+    uint16_t AGop;
+    uint16_t AGop_Threshold;
+    uint16_t PGop;
     // for Update, valid only when lookAheadFunc = 1
     uint32_t validStatsRecords;   // # of valid stats records
     uint32_t offset;              // offset in unit of entries
-
-    uint8_t RSVD[32];
+    uint8_t  cqmQpThreshold;    // QP threshold for CQM enable/disable. If estimated QP > CQM_QP_threshold, kernel set HUC_HEVC_LA_DATA.enableCQM to 1.
+    uint8_t  currentPass;
+    uint8_t  RSVD2[22];
 };
 
 using PCodechalVdencHevcLaDmem = CodechalVdencHevcLaDmem *;
@@ -115,13 +145,14 @@ public:
     static constexpr uint8_t                m_numMaxVdencL1Ref = 3;                   //!< Max number of reference frame list1
     static constexpr uint32_t               m_brcPakStatsBufSize = 512;               //!< Pak statistic buffer size
     static constexpr uint32_t               m_brcStatsBufSize = 1216;                 //!< BRC Statistic buf size: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
-    static constexpr uint32_t               m_brcHistoryBufSize = 1024;                //!< BRC history buffer size
+    static constexpr uint32_t               m_brcHistoryBufSize = 6080;              //!< BRC history buffer size
     static constexpr uint32_t               m_brcDebugBufSize = 0x1000;               //!< BRC debug buffer size
     static constexpr uint32_t               m_LaHistoryBufSize = 8192;                //!< Lookahead history buffer size
     static constexpr uint32_t               m_weightHistSize = 1024;                  //!< Weight Histogram (part of VDEnc Statistic): 256 DWs (16CLs) of Histogram Stats = 1024
     static constexpr uint32_t               m_roiStreamInBufferSize = 65536 * CODECHAL_CACHELINE_SIZE; //!< ROI Streamin buffer size (part of BRC Update)
     static constexpr uint32_t               m_deltaQpBufferSize = 65536;              //!< DeltaQp buffer size (part of BRC Update)
     static constexpr uint32_t               m_brcLooaheadStatsBufferSize = m_numLaDataEntry * sizeof(CodechalVdencHevcLaStats); //!< Lookahead statistics buffer size
+    static constexpr uint32_t               m_brcLooaheadDataBufferSize = m_numLaDataEntry * sizeof(CodechalVdencHevcLaData); //!< Lookahead data buffer size
     static constexpr uint32_t               m_vdboxHucHevcBrcInitKernelDescriptor = 8;//!< Huc HEVC Brc init kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcUpdateKernelDescriptor = 9;//!< Huc HEVC Brc update kernel descriptor
     static constexpr uint32_t               m_vdboxHucHevcBrcLowdelayKernelDescriptor = 10;//!< Huc HEVC Brc low delay kernel descriptor
@@ -149,6 +180,8 @@ public:
     static const uint16_t                   m_sadQpLambdaP[52];
     static const uint16_t                   m_rdQpLambdaI[52];
     static const uint16_t                   m_rdQpLambdaP[52];
+    static const uint8_t                    m_penaltyForIntraNonDC32x32PredMode[52];
+    static const uint8_t                    m_penaltyForIntraNonDC32x32PredMode_VQI[52];
     //! \endcond
 
     bool                                    m_hevcVdencAcqpEnabled = false;                    //!< ACQP enable flag
@@ -170,13 +203,14 @@ public:
     uint8_t                                 m_maxNumROI = CODECHAL_ENCODE_HEVC_MAX_NUM_ROI;    //!< VDEnc maximum number of ROI supported
     uint8_t                                 m_maxNumNativeROI = ENCODE_VDENC_HEVC_MAX_STREAMINROI_G10;  //!< Number of native ROI supported by VDEnc HW
     uint8_t                                 m_imgStateImePredictors = 8;                       //!< Number of predictors for IME
+    uint32_t                                m_currGopIFramePOC = -1;                           //!< PoC for I frame in current GoP
 
     // BRC
     HevcVdencBrcBuffers                     m_vdencBrcBuffers;                                 //!< VDEnc Brc buffers
     MOS_RESOURCE                            m_dataFromPicsBuffer;                              //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
     MOS_RESOURCE                            m_vdencDeltaQpBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                              //!< VDEnc delta QP buffer
     MOS_RESOURCE                            m_vdencOutputROIStreaminBuffer;                    //!< VDEnc Output ROI Streamin Buffer
-    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< VDEnc BrcUpdate DMEM buffer
+    MOS_RESOURCE                            m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES_FOR_TILE_REPLAY];  //!< VDEnc BrcUpdate DMEM buffer
     MOS_RESOURCE                            m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                          //!< VDEnc BrcInit DMEM buffer
     MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                         //!< VDEnc brc constant data buffer
     MOS_RESOURCE                            m_vdencBrcHistoryBuffer;                           //!< VDEnc brc history buffer
@@ -185,6 +219,7 @@ public:
     MOS_RESOURCE                            m_vdencBrcDbgBuffer;                               //!< VDEnc brc debug buffer
     uint32_t                                m_deltaQpRoiBufferSize = 0;                            //!< VDEnc DeltaQp for ROI buffer size
     uint32_t                                m_brcRoiBufferSize = 0;                                //!< BRC ROI input buffer size
+    MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS       m_virtualAddrParams = {};                              //!< BRC virtual address parameter
 
     // Batch Buffer for VDEnc
     MHW_BATCH_BUFFER                        m_vdenc2ndLevelBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< VDEnc 2nd level batch buffer
@@ -200,6 +235,7 @@ public:
     uint32_t                                m_vdencBrcInitDmemBufferSize = 0;                  //!< Offset of BRC init DMEM buffer
     uint32_t                                m_vdencBrcUpdateDmemBufferSize = 0;                //!< Offset of BRC update DMEM buffer
     uint32_t                                m_vdencBrcConstDataBufferSize = 0;                 //!< Offset of BRC const data buffer
+    unsigned char                           m_virtualEngineBbIndex = 0;                        //!< Virtual engine batch buffer index
 
     // Tile related
     uint32_t                                m_maxTileNumber = 1;                               //!< max tile number, equal to 1 for Gen10
@@ -211,15 +247,19 @@ public:
 
     // Lookahead
     MOS_RESOURCE                            m_vdencLaStatsBuffer;                              //!< VDEnc statistics buffer for lookahead
-    MOS_RESOURCE                            m_vdencLaInitDmemBuffer;                           //!< VDEnc Lookahead Init DMEM buffer
+    MOS_RESOURCE                            m_vdencLaDataBuffer;                               //!< lookahead data buffer, output of lookahead analysis
+    MOS_RESOURCE                            m_vdencLaInitDmemBuffer = {};                           //!< VDEnc Lookahead Init DMEM buffer
     MOS_RESOURCE                            m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                  //!< VDEnc Lookahead Update DMEM buffer
-    MOS_RESOURCE                            m_vdencLaHistoryBuffer;                            //!< VDEnc lookahead history buffer
+    MOS_RESOURCE                            m_vdencLaHistoryBuffer = {};                            //!< VDEnc lookahead history buffer
     bool                                    m_lookaheadPass = false;                           //!< Indicate if current pass is lookahead pass or encode pass
     bool                                    m_lookaheadInit = true;                            //!< Lookahead init flag
     bool                                    m_lookaheadUpdate = false;                         //!< Lookahead update flag
     uint32_t                                m_vdencLaInitDmemBufferSize = 0;                   //!< Offset of Lookahead init DMEM buffer
     uint32_t                                m_vdencLaUpdateDmemBufferSize = 0;                 //!< Offset of Lookahead update DMEM buffer
     uint32_t                                m_numValidLaRecords = 0;                           //!< Number of valid lookahead records
+    int32_t                                 m_bufferFulnessError = 0;                          //!< VBV buffer fulness error between unit of bits (used by driver) and unit of frame (used by LA analsis kernel)
+    uint8_t                                 m_cqmQpThreshold = 40;                             //!< QP threshold for CQM enable/disable. Used by lookahead analysis kernel.
+    HMODULE                                 m_swLaMode = nullptr;                              //!< Software lookahead analysis mode
 
 protected:
     //!
@@ -258,6 +298,16 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetupROIStreamIn(PMOS_RESOURCE streamIn);
+    //!
+    //! \brief    Setup mb Qp stream-in resource
+    //!
+    //! \param    [in,out] streamIn
+    //!           Pointer to mb Qp stream-in resource
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetupMbQpStreamIn(PMOS_RESOURCE streamIn);
 
     //!
     //! \brief    Setup dirty rectangle stream-in resource
@@ -690,6 +740,21 @@ public:
     MOS_STATUS StoreHuCStatus2Register(PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
+    //! \brief    Add store HUC_ERROR_STATUS register command in the command buffer
+    //!
+    //! \param    [in] mmioRegisters
+    //!           Pointer to mmio huc register
+    //! \param    [in] cmdBuffer
+    //!           Pointer to the command buffer
+    //! \param    [in] addToEnncodeStatus
+    //!           Flag to indicate whether huc error status will be stored in encode status buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StoreHucErrorStatus(MmioRegistersHuc* mmioRegisters, PMOS_COMMAND_BUFFER cmdBuffer, bool addToEnncodeStatus);
+
+    //!
     //! \brief    Put slice level commands in command buffer
     //!
     //! \param    [in] cmdBuffer
@@ -710,36 +775,36 @@ public:
     virtual void ProcessRoiDeltaQp();
 
     // Inherited virtual function
-    MOS_STATUS Initialize(CodechalSetting * settings);
-    MOS_STATUS AllocatePakResources();
-    MOS_STATUS FreePakResources();
-    MOS_STATUS AllocateEncResources();
-    MOS_STATUS FreeEncResources();
-    MOS_STATUS AllocateBrcResources();
-    MOS_STATUS FreeBrcResources();
-    MOS_STATUS InitializePicture(const EncoderParams& params);
-    MOS_STATUS SetSequenceStructs();
-    MOS_STATUS SetPictureStructs();
-    MOS_STATUS CalcScaledDimensions();
-    MOS_STATUS ValidateRefFrameData(PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams);
-    MOS_STATUS ExecutePictureLevel();
-    MOS_STATUS ExecuteSliceLevel();
-    MOS_STATUS ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer);
-    MOS_STATUS UserFeatureKeyReport();
+    MOS_STATUS Initialize(CodechalSetting * settings)  override;
+    MOS_STATUS AllocatePakResources() override;
+    MOS_STATUS FreePakResources() override;
+    MOS_STATUS AllocateEncResources() override;
+    MOS_STATUS FreeEncResources() override;
+    MOS_STATUS AllocateBrcResources() override;
+    MOS_STATUS FreeBrcResources() override;
+    MOS_STATUS InitializePicture(const EncoderParams& params) override;
+    MOS_STATUS SetSequenceStructs() override;
+    MOS_STATUS SetPictureStructs() override;
+    MOS_STATUS CalcScaledDimensions() override;
+    MOS_STATUS ValidateRefFrameData(PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams) override;
+    MOS_STATUS ExecutePictureLevel() override;
+    MOS_STATUS ExecuteSliceLevel() override;
+    MOS_STATUS ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer) override;
+    MOS_STATUS UserFeatureKeyReport() override;
     MOS_STATUS GetStatusReport(
         EncodeStatus *encodeStatus,
-        EncodeStatusReport *encodeStatusReport);
-    void SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_STATE& sliceStateParams);
+        EncodeStatusReport *encodeStatusReport) override;
+    void SetHcpSliceStateCommonParams(MHW_VDBOX_HEVC_SLICE_STATE& sliceStateParams) override;
     MOS_STATUS AddHcpPakInsertSliceHeader(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER batchBuffer,
-        PMHW_VDBOX_HEVC_SLICE_STATE params);
+        PMHW_VDBOX_HEVC_SLICE_STATE params) override;
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
     virtual MOS_STATUS DumpVdencOutputs();
-    virtual MOS_STATUS DumpSeqParFile();
+    virtual MOS_STATUS DumpSeqParFile() override;
     MOS_STATUS PopulateDdiParam(
         PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
         PCODEC_HEVC_ENCODE_PICTURE_PARAMS  hevcPicParams,

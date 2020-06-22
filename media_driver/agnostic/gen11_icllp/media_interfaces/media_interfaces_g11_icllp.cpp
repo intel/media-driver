@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,9 @@ extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
 extern template class MediaInterfacesFactory<MosUtilDevice>;
 extern template class MediaInterfacesFactory<CodechalDevice>;
+
 extern template class MediaInterfacesFactory<CMHalDevice>;
+
 extern template class MediaInterfacesFactory<VphalDevice>;
 extern template class MediaInterfacesFactory<RenderHalDevice>;
 extern template class MediaInterfacesFactory<Nv12ToP010Device>;
@@ -194,51 +196,7 @@ MOS_STATUS MhwInterfacesG11Icllp::Initialize(
 finish:
     if (status != MOS_STATUS_SUCCESS)
     {
-        if (m_cpInterface)
-        {
-            MOS_FreeMemory(m_cpInterface);
-            m_cpInterface = nullptr;
-        }
-        if (m_miInterface)
-        {
-            MOS_FreeMemory(m_miInterface);
-            m_miInterface = nullptr;
-        }
-        if (m_renderInterface)
-        {
-            MOS_FreeMemory(m_renderInterface);
-            m_renderInterface = nullptr;
-        }
-        if (m_stateHeapInterface)
-        {
-            MOS_FreeMemory(m_stateHeapInterface);
-            m_stateHeapInterface = nullptr;
-        }
-        if (m_sfcInterface)
-        {
-            MOS_FreeMemory(m_sfcInterface);
-            m_sfcInterface = nullptr;
-        }
-        if (m_veboxInterface)
-        {
-            MOS_FreeMemory(m_veboxInterface);
-            m_veboxInterface = nullptr;
-        }
-        if (m_mfxInterface)
-        {
-            MOS_FreeMemory(m_mfxInterface);
-            m_mfxInterface = nullptr;
-        }
-        if (m_hcpInterface)
-        {
-            MOS_FreeMemory(m_hcpInterface);
-            m_hcpInterface = nullptr;
-        }
-        if (m_hucInterface)
-        {
-            MOS_FreeMemory(m_hucInterface);
-            m_hucInterface = nullptr;
-        }
+        Destroy();
     }
     return status;
 }
@@ -439,13 +397,11 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_codechalDevice);
-        if (decoder == nullptr)
+        if (m_codechalDevice == nullptr)
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decoder device creation failed!");
             return MOS_STATUS_NO_SPACE;
         }
-        decoder->SetHuCProductFamily(HUC_ICELAKE);
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
@@ -608,6 +564,7 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
+#if !__BSD__
 static bool icllpRegisteredCMHal =
     MediaInterfacesFactory<CMHalDevice>::
     RegisterHal<CMHalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
@@ -635,6 +592,7 @@ MOS_STATUS CMHalInterfacesG11Icllp::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->SetDecompressFlag(true);
     return MOS_STATUS_SUCCESS;
 }
+#endif
 
 static bool icllpRegisteredMosUtil =
     MediaInterfacesFactory<MosUtilDevice>::
@@ -703,4 +661,3 @@ MOS_STATUS DecodeHistogramDeviceG11Icllp::Initialize(
 
     return MOS_STATUS_SUCCESS;
 }
-

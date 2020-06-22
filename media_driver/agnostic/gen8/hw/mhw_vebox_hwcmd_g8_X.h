@@ -5425,7 +5425,7 @@ public:
         //! \details
         //!     <p style="margin-left:3.0pt;">This field allows the selection of AGE
         //!     parameter for a given surface in LLC or eLLC. If a particular allocation
-        //!     is done at youngest age ((ì0,1,2îù) it tends to stay longer in the cache.
+        //!     is done at youngest age (("0,1,2") it tends to stay longer in the cache.
         //!     This option is given to GFX software to be able to decide which surfaces
         //!     are more likely to generate HITs, hence need to be replaced least often
         //!     in caches.</p>
@@ -5458,7 +5458,7 @@ public:
         //!     <p style="margin-left:3.0pt;"></p>
         //!     <p style="margin-left:3.0pt;">For all system that does NOT use SVM (i.e.
         //!     coherent L3$ surfaces), back snoops from LLC has to be disabled
-        //!     (<b>Dis_GtCvUpdtOnRd =  ì1îù</b>). Than target Cache settings can be
+        //!     (<b>Dis_GtCvUpdtOnRd =  "1"</b>). Than target Cache settings can be
         //!     programmed as POR requirements of L3/LLC/eDRAM caching.</p>
         //!     <p style="margin-left:3.0pt;"></p>
         //!     <p style="margin-left:3.0pt;">For all systems that does use SVM (i.e.

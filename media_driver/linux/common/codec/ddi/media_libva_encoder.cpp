@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -283,12 +283,15 @@ VAStatus DdiEncode_CreateContext(
 
     mosCtx.ppMediaMemDecompState = &mediaDrvCtx->pMediaMemDecompState;
     mosCtx.pfnMemoryDecompress   = mediaDrvCtx->pfnMemoryDecompress;
+    mosCtx.pfnMediaMemoryCopy    = mediaDrvCtx->pfnMediaMemoryCopy;
+    mosCtx.pfnMediaMemoryCopy2D  = mediaDrvCtx->pfnMediaMemoryCopy2D;
     mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
 
     mosCtx.m_osDeviceContext     = mediaDrvCtx->m_osDeviceContext;
+    mosCtx.m_apoMosEnabled       = mediaDrvCtx->m_apoMosEnabled;
 
     if (nullptr == mosCtx.pPerfData)
     {
@@ -359,7 +362,7 @@ VAStatus DdiEncode_CreateContext(
     // Attach PMEDIDA_DRIVER_CONTEXT
     encCtx->pMediaCtx = mediaDrvCtx;
 
-    encCtx->pCpDdiInterface->SetHdcp2Enabled(flag);
+    encCtx->pCpDdiInterface->SetCpFlags(flag);
     encCtx->pCpDdiInterface->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
 
     vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
@@ -374,7 +377,8 @@ VAStatus DdiEncode_CreateContext(
 
 #ifdef _MMC_SUPPORTED
     PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
-    if (osInterface != nullptr &&
+    if (osInterface != nullptr                                                       &&
+        !osInterface->apoMosEnabled                                                  &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
         !mediaDrvCtx->pMediaMemDecompState)
     {
@@ -663,6 +667,8 @@ VAStatus DdiEncode_MfeSubmit(
     encodeMfeContext->mfeEncodeSharedState->vmeSurface     = vmeSurface;
     encodeMfeContext->mfeEncodeSharedState->commonSurface  = commonSurface;
 
+    encodeMfeContext->mfeEncodeSharedState->encoders.clear();
+
     // Call Enc functions for all the sub contexts
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     for (int32_t i = 0; i < validContextNumber; i++)
@@ -678,6 +684,8 @@ VAStatus DdiEncode_MfeSubmit(
         }
 
         CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encodeContext->pCodecHal);
+
+        encodeMfeContext->mfeEncodeSharedState->encoders.push_back(encoder);
 
         status = encoder->Execute(&encodeContext->EncodeParams);
         if (MOS_STATUS_SUCCESS != status)

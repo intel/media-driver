@@ -27,7 +27,6 @@
 #ifndef __COMMAND_BUFFER_MANAGER_NEXT_H__
 #define __COMMAND_BUFFER_MANAGER_NEXT_H__
 
-#include "mos_os_next.h"
 #include "mos_commandbuffer_next.h"
 #include "mos_gpucontextmgr_next.h"
 
@@ -137,7 +136,7 @@ public:
         return m_initialized;
     }
 
-private:
+protected:
     //!
     //! \brief    Self define compare method as std:sort input 
     //! \detail   Command buffer size will be compared 

@@ -69,6 +69,17 @@ set(HEADERS_
     ${TMP_3_HEADERS_}
 )
 
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_3_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_3_HEADERS_}
+)
+
 source_group( CodecHal\\Encode FILES ${TMP_3_SOURCES_} ${TMP_3_HEADERS_} )
 
 
@@ -87,6 +98,16 @@ set(SOURCES_
 
 set(HEADERS_
     ${HEADERS_}
+    ${TMP_4_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_4_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_4_HEADERS_}
 )
 

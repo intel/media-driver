@@ -170,6 +170,16 @@ typedef enum _MHW_CHROMA_SITING
 } MHW_CHROMA_SITING;
 
 //!
+//! \brief Scaling mode enum
+//!
+typedef enum _MHW_SCALING_MODE
+{
+    MHW_SCALING_NEAREST = 0,
+    MHW_SCALING_BILINEAR,
+    MHW_SCALING_AVS
+} MHW_SCALING_MODE;
+
+//!
 //! \brief  AVS Params
 //!
 typedef struct _MHW_AVS_PARAMS
@@ -354,9 +364,12 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    dwXOffsetForV;
     uint32_t    dwYOffsetForV;
     uint32_t    dwCompressionFormat;    // Memory Compression Format
+    uint32_t    L1CacheConfig;
 
     uint32_t    *pdwCmd;                // [out] Pointer for patching
     uint32_t    dwLocationInCmd;       // [out] Offset in command for patching
+    MOS_TILE_MODE_GMM TileModeGMM;     // Tile Type from GMM Definition
+    bool        bGMMTileEnabled;       //!<  GMM defined tile mode flag
 } MHW_SURFACE_STATE_PARAMS, *PMHW_SURFACE_STATE_PARAMS;
 
 struct _MHW_STATE_HEAP
@@ -627,6 +640,7 @@ typedef struct _MHW_SAMPLER_STATE_AVS_PARAM
     uint8_t                      StrongEdgeWght;
     uint8_t                      RegularWght;
     uint8_t                      NonEdgeWght;
+    bool                         b8TapLumaForYUV444;
 
     // Additional overrides
     uint16_t AdditionalOverridesUsed;

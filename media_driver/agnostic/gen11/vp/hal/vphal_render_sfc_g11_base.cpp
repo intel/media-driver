@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2018, Intel Corporation
+* Copyright (c) 2012-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,16 @@
 bool VphalSfcStateG11::IsInputFormatSupported(
     PVPHAL_SURFACE              srcSurface)
 {
-    bool ret = true;
+    bool ret = false;
+    MEDIA_FEATURE_TABLE *pSkuTable = nullptr;
+
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(m_osInterface);
+
+    pSkuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSkuTable);
+
+    ret = true;
+
     // Check if Input Format is supported
     if ((srcSurface->Format    != Format_NV12)        &&
         (srcSurface->Format    != Format_AYUV)        &&
@@ -42,16 +51,19 @@ bool VphalSfcStateG11::IsInputFormatSupported(
         (srcSurface->Format    != Format_P016)        &&
         (srcSurface->Format    != Format_Y410)        &&
         (srcSurface->Format    != Format_Y210)        &&
-        (srcSurface->Format    != Format_A8B8G8R8)    &&
-        (srcSurface->Format    != Format_X8B8G8R8)    &&
-        (srcSurface->Format    != Format_A8R8G8B8)    &&
-        (srcSurface->Format    != Format_X8R8G8B8)    &&
+        // SFC can't support RGB input due to no VEBOX BeCSC
+        (((srcSurface->Format    != Format_A8B8G8R8)    &&
+          (srcSurface->Format    != Format_X8B8G8R8)    &&
+          (srcSurface->Format    != Format_A8R8G8B8)    &&
+          (srcSurface->Format    != Format_X8R8G8B8))   ||
+          MEDIA_IS_SKU(pSkuTable, FtrDisableVEBoxFeatures)) &&
         !IS_PA_FORMAT(srcSurface->Format))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for SFC.", srcSurface->Format);
         ret = false;
     }
 
+finish:
     return ret;
 }
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -889,18 +889,30 @@ typedef struct _VPHAL_HVSDENOISE_PARAMS
 } VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
 
 //!
+//! Structure VPHAL_SLIMIPU_DENOISE_PARAM
+//! \brief SLIMIPU Denoise Parameters
+//!
+typedef struct _VPHAL_SLIMIPU_DENOISE_PARAM
+{
+    uint32_t            MemSizeInBytes;
+    void *              pSystemMem;
+} VPHAL_SLIMIPU_DENOISE_PARAM, *PVPHAL_SLIMIPU_DENOISE_PARAM;
+
+//!
 //! Structure VPHAL_DENOISE_PARAMS
 //! \brief Denoise parameters
 //!
 typedef struct _VPHAL_DENOISE_PARAMS
 {
-    bool                            bEnableChroma;
-    bool                            bEnableLuma;
-    bool                            bAutoDetect;
-    float                           fDenoiseFactor;
-    VPHAL_NOISELEVEL                NoiseLevel;
-    bool                            bEnableHVSDenoise;
-    VPHAL_HVSDENOISE_PARAMS         HVSDenoise;
+    bool                                bEnableChroma;
+    bool                                bEnableLuma;
+    bool                                bAutoDetect;
+    float                               fDenoiseFactor;
+    VPHAL_NOISELEVEL                    NoiseLevel;
+    bool                                bEnableHVSDenoise;
+    VPHAL_HVSDENOISE_PARAMS             HVSDenoise;
+    bool                                bEnableSlimIPUDenoise;
+    VPHAL_SLIMIPU_DENOISE_PARAM         SlimIPUDenoise;
 } VPHAL_DENOISE_PARAMS, *PVPHAL_DENOISE_PARAMS;
 
 //!
@@ -950,95 +962,99 @@ typedef struct VPHAL_SURFACE           *PVPHAL_SURFACE;
 struct VPHAL_SURFACE
 {
     // Color Information
-    VPHAL_CSPACE                ColorSpace;         //!<Color Space
-    bool                        ExtendedGamut;      //!<Extended Gamut Flag
-    int32_t                     iPalette;           //!<Palette Allocation
-    VPHAL_PALETTE               Palette;            //!<Palette data
+    VPHAL_CSPACE                ColorSpace = CSpace_None;         //!<Color Space
+    bool                        ExtendedGamut = false;            //!<Extended Gamut Flag
+    int32_t                     iPalette = 0;                     //!<Palette Allocation
+    VPHAL_PALETTE               Palette = {};                     //!<Palette data
 
     // Rendering parameters
-    RECT                        rcSrc;              //!< Source rectangle
-    RECT                        rcDst;              //!< Destination rectangle
-    RECT                        rcMaxSrc;           //!< Max source rectangle
-    PVPHAL_BLENDING_PARAMS      pBlendingParams;    //!< Blending parameters
-    PVPHAL_LUMAKEY_PARAMS       pLumaKeyParams;     //!< Luma keying parameters
-    PVPHAL_PROCAMP_PARAMS       pProcampParams;     //!< Procamp parameters
-    PVPHAL_IEF_PARAMS           pIEFParams;         //!< IEF parameters
-    bool                        bCalculatingAlpha;  //!< Alpha calculation parameters
-    bool                        bQueryVariance;     //!< enable variance query
-    bool                        bDirectionalScalar; //!< Vebox Directional Scalar
-    bool                        bFastColorFill;     //!< enable fast color fill without copy surface
-    bool                        bMaxRectChanged;    //!< indicate rcMaxSrc been updated
-    bool                        bUsrPtr;            //!< is system linear memory.
+    RECT                        rcSrc = { 0, 0, 0, 0 };           //!< Source rectangle
+    RECT                        rcDst = { 0, 0, 0, 0 };           //!< Destination rectangle
+    RECT                        rcMaxSrc = { 0, 0, 0, 0 };        //!< Max source rectangle
+    PVPHAL_BLENDING_PARAMS      pBlendingParams = nullptr;        //!< Blending parameters
+    PVPHAL_LUMAKEY_PARAMS       pLumaKeyParams = nullptr;         //!< Luma keying parameters
+    PVPHAL_PROCAMP_PARAMS       pProcampParams  = nullptr;;       //!< Procamp parameters
+    PVPHAL_IEF_PARAMS           pIEFParams = nullptr;             //!< IEF parameters
+    bool                        bCalculatingAlpha = false;        //!< Alpha calculation parameters
+    bool                        bQueryVariance = false;           //!< enable variance query
+    bool                        bDirectionalScalar = false;       //!< Vebox Directional Scalar
+    bool                        bFastColorFill = false;           //!< enable fast color fill without copy surface
+    bool                        bMaxRectChanged = false;          //!< indicate rcMaxSrc been updated
+    bool                        b16UsrPtr = false;                //!< is 16 byte aligned system linear memory.
+    bool                        bVEBOXCroppingUsed = false;       //!< Vebox crop case need use rcSrc as vebox input.
 
     // Interlaced Scaling
-    bool                        bInterlacedScaling;    //!< Interlaced scaling
-    bool                        bFieldWeaving;         //!< Field Weaving
-    VPHAL_ISCALING_TYPE         InterlacedScalingType; //!< Interlaced scaling type for new interlaced scaling mode
+    bool                        bInterlacedScaling = false;            //!< Interlaced scaling
+    bool                        bFieldWeaving = false;                 //!< Field Weaving
+    VPHAL_ISCALING_TYPE         InterlacedScalingType = ISCALING_NONE; //!< Interlaced scaling type for new interlaced scaling mode
 
     // Advanced Processing
-    PVPHAL_DI_PARAMS            pDeinterlaceParams;
-    PVPHAL_DENOISE_PARAMS       pDenoiseParams;     //!< Denoise
-    PVPHAL_COLORPIPE_PARAMS     pColorPipeParams;   //!< ColorPipe
+    PVPHAL_DI_PARAMS            pDeinterlaceParams = nullptr;
+    PVPHAL_DENOISE_PARAMS       pDenoiseParams = nullptr;     //!< Denoise
+    PVPHAL_COLORPIPE_PARAMS     pColorPipeParams = nullptr;   //!< ColorPipe
 
     // Frame ID and reference samples -> for advanced processing
-    int32_t                     FrameID;
-    uint32_t                    uFwdRefCount;
-    uint32_t                    uBwdRefCount;
-    PVPHAL_SURFACE              pFwdRef;
-    PVPHAL_SURFACE              pBwdRef;
+    int32_t                     FrameID = 0;
+    uint32_t                    uFwdRefCount = 0;
+    uint32_t                    uBwdRefCount = 0;
+    PVPHAL_SURFACE              pFwdRef = nullptr;
+    PVPHAL_SURFACE              pBwdRef = nullptr;
 
     // VPHAL_SURFACE Linked list
-    PVPHAL_SURFACE              pNext;
+    PVPHAL_SURFACE              pNext = nullptr;
 
     //--------------------------------------
     // FIELDS TO BE SETUP BY VPHAL int32_tERNALLY
     //--------------------------------------
-    uint32_t                    dwWidth;            //!<  Surface width
-    uint32_t                    dwHeight;           //!<  Surface height
-    uint32_t                    dwPitch;            //!<  Surface pitch
-    MOS_TILE_TYPE               TileType;           //!<  Tile Type
-    bool                        bOverlay;           //!<  Overlay Surface
-    bool                        bFlipChain;         //!<  FlipChain Surface
-    VPHAL_PLANE_OFFSET          YPlaneOffset;       //!<  Y surface plane offset
-    VPHAL_PLANE_OFFSET          UPlaneOffset;       //!<  U surface plane offset
-    VPHAL_PLANE_OFFSET          VPlaneOffset;       //!<  V surface plane offset
-    int32_t                     iLayerID;           //!<  Layer index (0-based index)
-    VPHAL_SCALING_MODE          ScalingMode;        //!<  Scaling Mode
-    VPHAL_SCALING_PREFERENCE    ScalingPreference;  //!<  Scaling preference
-    bool                        bIEF;               //!<  IEF flag
-    uint32_t                    dwSlicePitch;       //!<  SlicePitch of a 3D surface(GT-PIN support)
+    uint32_t                    dwWidth = 0;                                  //!<  Surface width
+    uint32_t                    dwHeight = 0;                                 //!<  Surface height
+    uint32_t                    dwPitch = 0;                                  //!<  Surface pitch
+    MOS_TILE_TYPE               TileType = MOS_TILE_X;                        //!<  Tile Type
+    MOS_TILE_MODE_GMM           TileModeGMM = MOS_TILE_LINEAR_GMM;            //!<  Tile Mode from GMM Definition
+    bool                        bGMMTileEnabled = false;                      //!<  GMM Tile Mode Flag
+    bool                        bOverlay= false;                              //!<  Overlay Surface
+    bool                        bFlipChain = false;                           //!<  FlipChain Surface
+    VPHAL_PLANE_OFFSET          YPlaneOffset =  { 0, 0, 0, 0 };               //!<  Y surface plane offset
+    VPHAL_PLANE_OFFSET          UPlaneOffset =  { 0, 0, 0, 0 };               //!<  U surface plane offset
+    VPHAL_PLANE_OFFSET          VPlaneOffset =  { 0, 0, 0, 0 };               //!<  V surface plane offset
+    int32_t                     iLayerID = 0;                                 //!<  Layer index (0-based index)
+    VPHAL_SCALING_MODE          ScalingMode = VPHAL_SCALING_NEAREST;          //!<  Scaling Mode
+    VPHAL_SCALING_PREFERENCE    ScalingPreference = VPHAL_SCALING_PREFER_SFC; //!<  Scaling preference
+    bool                        bIEF = false;                                 //!<  IEF flag
+    uint32_t                    dwSlicePitch = 0;                             //!<  SlicePitch of a 3D surface(GT-PIN support)
 
     //--------------------------------------
     // FIELDS TO BE PROVIDED BY DDI
     //--------------------------------------
     // Sample information
-    MOS_FORMAT                  Format;             //!<  Surface format
-    VPHAL_SURFACE_TYPE          SurfType;           //!<  Surface type (context)
-    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type
-    uint32_t                    dwDepth;            //!<  Surface depth
-    MOS_S3D_CHANNEL             Channel;            //!<  Channel
-    uint32_t                    dwOffset;           //!<  Surface Offset (Y/Base)
-    MOS_RESOURCE                OsResource;         //!<  Surface resource
-    VPHAL_ROTATION              Rotation;           //!<  0: 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degreee
+    MOS_FORMAT                  Format = Format_None;               //!<  Surface format
+    VPHAL_SURFACE_TYPE          SurfType = SURF_NONE;               //!<  Surface type (context)
+    VPHAL_SAMPLE_TYPE           SampleType = SAMPLE_PROGRESSIVE;    //!<  Interlaced/Progressive sample type
+    uint32_t                    dwDepth = 0;                        //!<  Surface depth
+    MOS_S3D_CHANNEL             Channel = MOS_S3D_NONE;             //!<  Channel
+    uint32_t                    dwOffset = 0;                       //!<  Surface Offset (Y/Base)
+    MOS_RESOURCE                OsResource = {};                    //!<  Surface resource
+    VPHAL_ROTATION              Rotation = VPHAL_ROTATION_IDENTITY; //!<  0: 0 degree, 1: 90 degree, 2: 180 degree, 3: 270 degreee
 
     // Chroma siting
-    uint32_t                    ChromaSiting;
-    bool                        bChromaSiting;      //!<  Chromasiting flag
+    uint32_t                    ChromaSiting = CHROMA_SITING_NONE;
+    bool                        bChromaSiting = false;      //!<  Chromasiting flag
 
     // Surface compression mode, enable flags
-    bool                        bCompressible;      // The surface is compressible, means there are additional 128 bit for MMC no matter it is compressed or not
-                                                    // The bIsCompressed in surface allocation structure should use this flag to initialize to allocate a compressible surface
-    bool                        bIsCompressed;      // The surface is compressed, VEBox output can only support horizontal mode, but input can be horizontal / vertical
-    MOS_RESOURCE_MMC_MODE       CompressionMode;
-    uint32_t                    CompressionFormat;
+    bool                        bCompressible = false;      // The surface is compressible, means there are additional 128 bit for MMC no matter it is compressed or not
+    // The bIsCompressed in surface allocation structure should use this flag to initialize to allocate a compressible surface
+    bool                        bIsCompressed = false;      // The surface is compressed, VEBox output can only support horizontal mode, but input can be horizontal / vertical
+    MOS_RESOURCE_MMC_MODE       CompressionMode = MOS_MMC_DISABLED;
+    uint32_t                    CompressionFormat = 0;
 
-    bool                        bUseSampleUnorm;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
-    bool                        bUseSamplerLumakey; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
+    bool                        bUseSampleUnorm = false;    //!<  true: sample unorm is used, false: DScaler or AVS is used.
+    bool                        bUseSamplerLumakey = false; //!<  true: sampler lumakey is used, false: lumakey is disabled or EU computed lumakey is used.
     //------------------------------------------
     // HDR related parameters, provided by DDI
     //------------------------------------------
     PVPHAL_HDR_PARAMS           pHDRParams = nullptr;
-    VPHAL_GAMMA_TYPE            GammaType;          //!<Gamma Type
+    VPHAL_GAMMA_TYPE            GammaType = VPHAL_GAMMA_NONE;    //!<Gamma Type
+    bool                        bPreAPGWorkloadEnable = false;   //!< Previous Surface Execution Path
 };
 
 //!
@@ -1182,6 +1198,10 @@ struct VPHAL_RENDER_PARAMS
     void                                    *pExtensionData;            //!< Extension data
 
     bool                                    bPathKernel;                // HDR path config if use kernel
+    bool                                    bAPGWorkloadEnable = false;         //!< Identify Whether APG workload Enabled or not
+
+    bool                                    bDisableVeboxFor8K = false;
+    bool                                    bUseVEHdrSfc       = false;  // use SFC for to perform CSC/Scaling/RGBSwap of HDR streaming; if false, use composite render.
 
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
@@ -1204,7 +1224,8 @@ struct VPHAL_RENDER_PARAMS
 #endif
         bCalculatingAlpha(false),
         pExtensionData(nullptr),
-        bPathKernel(false)
+        bPathKernel(false),
+        bUseVEHdrSfc(false)
     {
     }
 
@@ -1334,8 +1355,8 @@ MOS_STATUS VpHal_GetSurfaceInfo(
 //!           Expected Surface Width
 //! \param    [in] dwHeight
 //!           Expected Surface Height
-//! \param    [in] bCompressed
-//!           Compressed surface or not
+//! \param    [in] bCompressible
+//!           Surface being compressible or not
 //! \param    [in] CompressionMode
 //!           Compression Mode
 //! \param    [out] pbAllocated
@@ -1352,7 +1373,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     MOS_TILE_TYPE           DefaultTileType,                                    // [in]    Default Resource Tile Type to use if resource has not be allocated yet
     uint32_t                dwWidth,                                            // [in]    Resource Width
     uint32_t                dwHeight,                                           // [in]    Resource Height
-    bool                    pbCompressed,                                       // [in]    Flag indaicated reource is compressed or not
+    bool                    bCompressible,                                      // [in]    Flag indaicated reource is compressible or not
     MOS_RESOURCE_MMC_MODE   CompressionMode,                                    // [in]    Compression mode
     bool*                   pbAllocated);                                       // [out]   Flag indicating new allocation
 

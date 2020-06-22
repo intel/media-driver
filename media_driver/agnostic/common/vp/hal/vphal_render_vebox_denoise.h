@@ -44,7 +44,7 @@ public:
         uint16_t                     Strength;
     };
 
-    HVSDenoise(const PRENDERHAL_INTERFACE vphalRenderer, void *kernelBinary, int32_t kerneBinarySize);
+    HVSDenoise(const PRENDERHAL_INTERFACE vphalRenderer, void *kernelBinary, int32_t kerneBinarySize, CmContext *cmContext);
     virtual ~HVSDenoise();
 
 private:
@@ -86,6 +86,7 @@ private:
     // Denoise Parameters in CPU memory
     uint8_t *                    m_hvsDenoiseParam         = nullptr;
     HVSDenoise *                 m_hvsDenoise              = nullptr;
+    CmContext *                  m_cmContext               = nullptr;
 
     uint16_t m_savedQP              = 0;
     uint16_t m_savedStrength        = 0;

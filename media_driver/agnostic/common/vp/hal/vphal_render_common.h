@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010-2017, Intel Corporation
+* Copyright (c) 2010-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -86,6 +86,204 @@
 //!
 #define VPHAL_CURBE_BLOCK_ALIGN_G7      32
 
+// Defined DP used FC kernel for computation.
+struct MEDIA_DP_FC_STATIC_DATA
+{
+     // DWORD 0 - GRF R1.0
+    union
+    {
+        // CSC
+        struct
+        {
+            uint32_t       CscConstantC0               : 16;
+            uint32_t       CscConstantC1               : 16;
+        };
+
+        uint32_t       Value;
+    } DW0;
+
+    // DWORD 1 - GRF R1.1
+    union
+    {
+        // CSC
+        struct
+        {
+            uint32_t       CscConstantC2               : 16;
+            uint32_t       CscConstantC3               : 16;
+        };
+
+        uint32_t       Value;
+    } DW1;
+
+    // DWORD 2 - GRF R1.2
+    union
+    {
+        // CSC
+        struct
+        {
+            uint32_t       CscConstantC4               : 16;
+            uint32_t       CscConstantC5               : 16;
+        };
+
+        uint32_t       Value;
+    } DW2;
+
+    // DWORD 3 - GRF R1.3
+    union
+    {
+        // CSC
+        struct
+        {
+            uint32_t       CscConstantC6               : 16;
+            uint32_t       CscConstantC7               : 16;
+        };
+
+        uint32_t       Value;
+    } DW3;
+
+    // DWORD 4 - GRF R1.4
+    union
+    {
+        // CSC
+        struct
+        {
+            uint32_t       CscConstantC8               : 16;
+            uint32_t       CscConstantC9               : 16;
+        };
+
+        uint32_t       Value;
+    } DW4;
+
+    // DWORD 5 - GRF R1.5
+    union
+    {
+        // CSC
+        struct
+        {
+            uint32_t       CscConstantC10              : 16;
+            uint32_t       CscConstantC11              : 16;
+        };
+
+        uint32_t       Value;
+    } DW5;
+
+    // DWORD 6 - GRF R1.6
+    union
+    {
+        // Dataport-based rotation
+        struct
+        {
+            uint32_t       InputPictureWidth           : 16;
+            uint32_t       InputPictureHeight          : 16;
+        };
+
+        uint32_t       Value;
+    } DW6;
+
+    // DWORD 7 - GRF R1.7 distWidth and distHeight
+    union
+    {
+        struct
+        {
+            uint32_t       DestinationRectangleWidth   : 16;
+            uint32_t       DestinationRectangleHeight  : 16;
+        };
+
+        uint32_t       Value;
+    } DW7;
+
+    // DWORD 8 - GRF R1.8
+    union
+    {
+        struct
+        {
+            uint32_t       RotationChromaSitingFlag;
+        };
+
+        uint32_t       Value;
+    } DW8;
+
+    // DWORD 9 - GRF R1.9  input DeltaX
+    union
+    {
+        struct
+        {
+            float       HorizontalScalingStepRatioLayer0;
+        };
+
+        uint32_t       Value;
+    } DW9;
+
+    // DWORD 10 - GRF R2.0  input DeltaY
+    union
+    {
+        struct
+        {
+            float       VerticalScalingStepRatioLayer0;
+        };
+
+        uint32_t       Value;
+    } DW10;
+
+    // DWORD 11 - GRF R2.1  input orignin x
+    union
+    {
+        struct
+        {
+            float       HorizontalFrameOriginLayer0;
+        };
+
+        uint32_t       Value;
+    } DW11;
+
+    // DWORD 12 - GRF R2.2  input orignin Y
+    union
+    {
+        struct
+        {
+            float       VerticalFrameOriginLayer0;
+        };
+
+        uint32_t       Value;
+    } DW12;
+
+    // DWORD13  - GRF R2.3  topleft[2]
+    union
+    {
+        struct
+        {
+            uint32_t       DestXTopLeftLayer0  : 16;
+            uint32_t       DestYTopLeftLayer0  : 16;
+        };
+
+        uint32_t       Value;
+    } DW13;
+
+    // DWORD14  - GRF R2.4  bottomRight
+    union
+    {
+        struct
+        {
+            uint32_t       DestXBottomRightLayer0  : 16;
+            uint32_t       DestYBottomRightLayer0  : 16;
+        };
+
+        uint32_t       Value;
+    } DW14;
+
+    // DWORD15  - GRF R2.4  waflag and dstpitch
+    union
+    {
+        struct
+        {
+            uint32_t       waFlag                 : 16;
+            uint32_t       StatisticsSurfacePitch : 16;
+        };
+
+        uint32_t       Value;
+    } DW15;
+
+};
 // Defined in Inline parameter computation
 struct MEDIA_WALKER_KA2_STATIC_DATA
 {
@@ -285,6 +483,14 @@ struct MEDIA_WALKER_KA2_STATIC_DATA
             uint32_t       ConstantBlendingAlphaLayer6 : 8;
             uint32_t       ConstantBlendingAlphaLayer7 : 8;
             uint32_t       PointerToInlineParameters   : 8;
+        };
+
+        struct
+        {
+            uint32_t       ConstantBlendingAlphaLayer51 : 8;
+            uint32_t       ConstantBlendingAlphaLayer61 : 8;
+            uint32_t       ConstantBlendingAlphaLayer71 : 8;
+            uint32_t       OutputDepth                  : 8;
         };
 
         // DNDI
@@ -1278,6 +1484,14 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
             uint32_t       PointerToInlineParameters   : 8;
         };
 
+        struct
+        {
+            uint32_t       ConstantBlendingAlphaLayer51 : 8;
+            uint32_t       ConstantBlendingAlphaLayer61 : 8;
+            uint32_t       ConstantBlendingAlphaLayer71 : 8;
+            uint32_t       OutputDepth                  : 8;
+        };
+
         // DNDI
         struct
         {
@@ -2114,6 +2328,7 @@ typedef enum _VEBOX_EXECUTION_MODE
     VEBOX_EXEC_MODE_2_TO_0 = 3                                                  //!< No future frame so switch back to non-parallel serial legacy mode.
 } VEBOX_EXECUTION_MODE;
 
+#define MAX_VEBOX_EXECUTION_MODE 4
 //!
 //! \brief Controls Vebox execution mode
 //!
@@ -2125,6 +2340,7 @@ typedef struct _VPHAL_VEBOX_EXEC_STATE
     bool                    bSpeculativeCopy;                                   //!< true, update VEBOX state for frame N+1 using frame N state
     bool                    bFrcActive;                                         //!< When FRC is active, stay in VEBOX_EXEC_MODE_0
     bool                    bPostponedFMDCalc;                                  //!< When in mode2, need to calc fmd variance after composition
+    uint32_t                ModeCount[MAX_VEBOX_EXECUTION_MODE] = {0};
 } VPHAL_VEBOX_EXEC_STATE, *PVPHAL_VEBOX_EXEC_STATE;
 
 #define RESET_VEBOX_SPECULATIVE_COPY(_a)              (_a->bSpeculativeCopy = false)

@@ -38,16 +38,6 @@ typedef struct MHW_KERNEL_STATE *PMHW_KERNEL_STATE;
 typedef struct _MHW_RCS_SURFACE_PARAMS MHW_RCS_SURFACE_PARAMS, *PMHW_RCS_SURFACE_PARAMS;
 typedef struct _CODECHAL_SURFACE_CODEC_PARAMS CODECHAL_SURFACE_CODEC_PARAMS, *PCODECHAL_SURFACE_CODEC_PARAMS;
 
-typedef enum _CODECHAL_HUC_PRODUCT_FAMILY
-{
-    HUC_UNKNOWN     = 0,
-    HUC_SKYLAKE     = 2,
-    HUC_BROXTON,
-    HUC_KABYLAKE,
-    HUC_CANNONLAKE,
-    HUC_ICELAKE,
-} CODECHAL_HUC_PRODUCT_FAMILY;
-
 typedef enum _CODECHAL_WALKER_DEGREE
 {
     CODECHAL_NO_DEGREE,
@@ -95,6 +85,7 @@ typedef struct _CODECHAL_SURFACE_CODEC_PARAMS
     bool                        bUse16UnormSurfaceFormat;   // Force surface format to R16_UNORM
     bool                        bUse32UnormSurfaceFormat;   // Force surface format to R32_UNORM
     bool                        bUseARGB8Format;            // Force surface format to ARGB8 for Ds+Copy kernel
+    bool                        bCheckCSC8Format;           // Force surface format Y410/ARGB10/AYUV to R8*4 for Ds+Copy kernel
     bool                        bUse32UINTSurfaceFormat;
     bool                        bRenderTarget;
     bool                        bIsWritable;

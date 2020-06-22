@@ -425,6 +425,76 @@ bool VpCmpDDIDumpParam(
     return bRet;
 }
 
+//!
+//! \brief   initialize configuration values for Android 
+//! \param   [in] pConfigValues
+//!          vp config values
+//!
+void VpConfigValuesInit(
+    PVP_CONFIG           pConfigValues)
+{
+    pConfigValues->dwVpPath                   = 0;
+    pConfigValues->dwVpComponent              = 0;
+    pConfigValues->dwReportedDeinterlaceMode  = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwReportedScalingMode      = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwReportedOutputPipeMode   = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwReportedVEFeatureInUse   = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwVPMMCInUseReported       = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwRTCompressibleReported   = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwRTCompressModeReported   = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwCapturePipeInUseReported = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwReportedCompositionMode  = LIBVA_VP_CONFIG_NOT_REPORTED;
+
+    pConfigValues->dwFFDICompressibleReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwFFDICompressModeReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwFFDNCompressibleReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwFFDNCompressModeReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwSTMMCompressibleReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwSTMMCompressModeReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwScalerCompressibleReported  = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwScalerCompressModeReported  = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwPrimaryCompressibleReported = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwPrimaryCompressModeReported = LIBVA_VP_CONFIG_NOT_REPORTED;
+}
+
+void VpFeatureReport(
+    PVP_CONFIG         pConfig)
+{
+    WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,         pConfig->dwCurrentOutputPipeMode);
+    WriteUserFeature(__VPHAL_VEBOX_FEATURE_INUSE_ID,           pConfig->dwCurrentVEFeatureInUse);
+    WriteUserFeature(__VPHAL_ENABLE_MMC_IN_USE_ID,             pConfig->dwVPMMCInUse);
+
+#ifdef _MMC_SUPPORTED
+    //VP MMC In Use
+    WriteUserFeature(__VPHAL_ENABLE_MMC_IN_USE_ID,             pConfig->dwVPMMCInUse);
+    //VP Primary Surface Compress Mode Report
+    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESS_MODE_ID, pConfig->dwPrimaryCompressMode);
+    //VP Primary Surface Compressible
+    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESSIBLE_ID,  pConfig->dwPrimaryCompressible);
+    //VP RT Compress Mode
+    WriteUserFeature(__VPHAL_RT_COMPRESS_MODE_ID,              pConfig->dwRTCompressMode);
+    //VP RT Compressible
+    WriteUserFeature(__VPHAL_RT_COMPRESSIBLE_ID,               pConfig->dwRTCompressible);
+#endif
+}
+
+VAStatus    VpReportFeatureMode(PDDI_VP_CONTEXT pVpCtx)
+{
+    VphalState            *pVpHal;
+    VP_CONFIG             ConfigValues;
+
+    DDI_CHK_NULL(pVpCtx,         "Null pVpCtx.",   VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(pVpCtx->pVpHal, "Null pVpHal.",   VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VpConfigValuesInit(&ConfigValues);
+
+    VpHal_DdiReportFeatureMode(pVpCtx->pVpHal, &ConfigValues);
+
+    VpFeatureReport(&ConfigValues);
+
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus VpDumpProcPipelineParams(
     VADriverContextP        pVaDrvCtx,
     PDDI_VP_CONTEXT         pVpCtx)
