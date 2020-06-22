@@ -1129,8 +1129,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribs[i].value.value.i = VA_FOURCC_Y410;
             i++;
-        }
-        else if (profile == VAProfileHEVCSccMain444_10)
+        } else if (profile == VAProfileHEVCSccMain444_10)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1174,12 +1173,12 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         else if(IsAvcProfile(profile))
         {
             maxWidth = m_decAvcMaxWidth;
-            maxHeight = m_decAvcMaxHeight;
+            maxHeight = m_decAvcMaxWidth;
         }
         else if(IsHevcProfile(profile))
         {
             maxWidth = m_decHevcMax16kWidth;
-            maxHeight = m_decHevcMax16kHeight;
+            maxHeight = m_decHevcMax16kWidth;
         }
         else if(IsVc1Profile(profile))
         {
