@@ -292,6 +292,8 @@ MOS_STATUS MosInterface::InitStreamParameters(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+    streamState->perStreamParameters = (OS_PER_STREAM_PARAMETERS)context;
+
     context->pGmmClientContext  = context->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
 
     context->bufmgr             = osDriverContext->bufmgr;
@@ -382,8 +384,6 @@ MOS_STATUS MosInterface::InitStreamParameters(
         __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
         &userFeatureData);
     context->uEnablePerfTag = userFeatureData.u32Data;
-
-    streamState->perStreamParameters = (OS_PER_STREAM_PARAMETERS)context;
 
     return MOS_STATUS_SUCCESS;
 }
