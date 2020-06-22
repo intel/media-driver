@@ -594,11 +594,19 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribMaxPictureWidth;
     GetPlatformSpecificAttrib(profile, entrypoint,
         VAConfigAttribMaxPictureWidth, &attrib.value);
+    if(IsMpeg2Profile(profile))
+    {
+        attrib.value = CODEC_2K_MAX_PIC_WIDTH;
+    }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribMaxPictureHeight;
     GetPlatformSpecificAttrib(profile, entrypoint,
-        VAConfigAttribMaxPictureWidth, &attrib.value);
+        VAConfigAttribMaxPictureHeight, &attrib.value);
+    if(IsMpeg2Profile(profile))
+    {
+        attrib.value = CODEC_2K_MAX_PIC_HEIGHT;
+    }
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncJPEG;
@@ -1070,7 +1078,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_WIDTH;
     }
-    if(IsVc1Profile(profile))
+    if(IsVc1Profile(profile) || IsMpeg2Profile(profile))
     {
         attrib.value = CODEC_2K_MAX_PIC_WIDTH;
     }
@@ -1094,7 +1102,7 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     {
         attrib.value = ENCODE_JPEG_MAX_PIC_HEIGHT;
     }
-    if(IsVc1Profile(profile))
+    if(IsVc1Profile(profile) || IsMpeg2Profile(profile))
     {
         attrib.value = CODEC_2K_MAX_PIC_HEIGHT;
     }
