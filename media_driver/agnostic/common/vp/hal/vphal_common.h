@@ -1202,6 +1202,7 @@ struct VPHAL_RENDER_PARAMS
 
     bool                                    bDisableVeboxFor8K = false;
     bool                                    bUseVEHdrSfc       = false;  // use SFC for to perform CSC/Scaling/RGBSwap of HDR streaming; if false, use composite render.
+    bool                                    bNonFirstFrame     = false;  // first frame or not: first frame false, otherwise true considering zeromemory parameters.
 
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
@@ -1225,7 +1226,8 @@ struct VPHAL_RENDER_PARAMS
         bCalculatingAlpha(false),
         pExtensionData(nullptr),
         bPathKernel(false),
-        bUseVEHdrSfc(false)
+        bUseVEHdrSfc(false),
+        bNonFirstFrame(false)
     {
     }
 

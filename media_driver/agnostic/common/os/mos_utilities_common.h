@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -462,6 +462,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
 #endif
 #if (_DEBUG || _RELEASE_INTERNAL)
     __VPHAL_ENABLE_COMPUTE_CONTEXT_ID,
+    __VPHAL_DISPLAY_COLORIMETRIC_CONTROL_ID,
 #endif
     __MOS_USER_FEATURE_KEY_VP_CAPS_FF_OVERRIDE_ID,
     __MOS_USER_FEATURE_KEY_XML_AUTOGEN_ID,
