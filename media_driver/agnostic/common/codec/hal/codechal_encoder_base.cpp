@@ -2584,7 +2584,10 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(params->pKernelState);
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetDefaultSSEuSetting(params->EncFunctionType, m_setRequestedEUSlices, m_setRequestedSubSlices, m_setRequestedEUs));
+    if(MEDIA_IS_SKU(m_skuTable, FtrSSEUPowerGating))
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetDefaultSSEuSetting(params->EncFunctionType, m_setRequestedEUSlices, m_setRequestedSubSlices, m_setRequestedEUs));
+    }
 
     if (!m_singleTaskPhaseSupported || m_firstTaskInPhase)
     {

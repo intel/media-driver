@@ -626,6 +626,22 @@ MOS_STATUS CodechalHwInterface::Initialize(
         }
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
+        &userFeatureData);
+    if (userFeatureData.i32Data != 0xDEADC0DE)
+    {
+        m_numRequestedEuSlicesOverride = userFeatureData.i32Data & 0xFF;              // Bits 0-7
+        m_numRequestedSubSlicesOverride = (userFeatureData.i32Data >> 8) & 0xFF;      // Bits 8-15
+        m_numRequestedEusOverride = (userFeatureData.i32Data >> 16) & 0xFFFF;         // Bits 16-31
+        m_numRequestedOverride = true;
+    }
+#endif
+
     m_enableCodecMmc = !MEDIA_IS_WA(GetWaTable(), WaDisableCodecMmc);
 
     return eStatus;
@@ -1108,6 +1124,16 @@ MOS_STATUS CodechalHwInterface::GetDefaultSSEuSetting(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_numRequestedOverride)
+    {
+        m_numRequestedEuSlices = m_numRequestedEuSlicesOverride;
+        m_numRequestedSubSlices = m_numRequestedSubSlicesOverride;
+        m_numRequestedEus = m_numRequestedEusOverride;
+        return eStatus;
+    }
+#endif
+
     CODECHAL_SSEU_SETTING const *ssEutable = m_ssEuTable + mediaStateType;
 
     if (m_numRequestedEuSlices != CODECHAL_SLICE_SHUTDOWN_DEFAULT)        // Num Slices will be set based on table only if it is not set to default (HALO)
@@ -1131,21 +1157,6 @@ MOS_STATUS CodechalHwInterface::GetDefaultSSEuSetting(
             m_numRequestedEus = ssEutable->ui8NumEUs;
         }
     }
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
-        &userFeatureData);
-    if (userFeatureData.i32Data != 0xDEADC0DE)
-    {
-        m_numRequestedEuSlices = userFeatureData.i32Data & 0xFF;              // Bits 0-7
-        m_numRequestedSubSlices = (userFeatureData.i32Data >> 8) & 0xFF;       // Bits 8-15
-        m_numRequestedEus = (userFeatureData.i32Data >> 16) & 0xFFFF;    // Bits 16-31
-    }
-#endif
 
     return eStatus;
 }

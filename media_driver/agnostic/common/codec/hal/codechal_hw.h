@@ -424,6 +424,12 @@ public:
     uint32_t                    m_numRequestedEuSlices = 0;                     //!> Number of requested Slices
     uint32_t                    m_numRequestedSubSlices = 0;                    //!> Number of requested Sub-slices
     uint32_t                    m_numRequestedEus = 0;                          //!> Number of requested EUs
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool                        m_numRequestedOverride = false;                 //!> Flag to indicate whether these params are set by Reg
+    uint32_t                    m_numRequestedEuSlicesOverride = 0;             //!> Number of requested Slices set by Reg
+    uint32_t                    m_numRequestedSubSlicesOverride = 0;            //!> Number of requested Sub-slices set by Reg
+    uint32_t                    m_numRequestedEusOverride = 0;                  //!> Number of requested EUs set by Reg
+#endif
 
     uint32_t                    m_ssdResolutionThreshold = 0;                   //!> Slice shutdown resolution threshold
     uint32_t                    m_ssdTargetUsageThreshold = 0;                  //!> Slice shutdown target usage threshold

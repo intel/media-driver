@@ -1316,21 +1316,24 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(VerifySliceSAOState());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    m_forceSinglePakPass = false;
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    //read user feature key for pak pass number forcing.
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
-        &userFeatureData);
-    if (userFeatureData.u32Data > 0 && userFeatureData.u32Data <= m_numPasses)
+    if (!m_vdencEnabled)
     {
-        m_numPasses = (uint8_t)userFeatureData.u32Data - 1;
-        if (m_numPasses == 0)
+        m_forceSinglePakPass = false;
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        //read user feature key for pak pass number forcing.
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
+            &userFeatureData);
+        if (userFeatureData.u32Data > 0 && userFeatureData.u32Data <= m_numPasses)
         {
-            m_forceSinglePakPass = true;
-            CODECHAL_ENCODE_VERBOSEMESSAGE("Force to single PAK pass\n");
+            m_numPasses = (uint8_t)userFeatureData.u32Data - 1;
+            if (m_numPasses == 0)
+            {
+                m_forceSinglePakPass = true;
+                CODECHAL_ENCODE_VERBOSEMESSAGE("Force to single PAK pass\n");
+            }
         }
     }
 #endif
