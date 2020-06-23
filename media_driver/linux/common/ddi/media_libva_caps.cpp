@@ -1216,10 +1216,10 @@ VAStatus MediaLibvaCaps::LoadAvcDecProfileEntrypoints()
                     AddDecConfig(m_decSliceMode[j], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                     if (m_isEntryptSupported)
                     {
-                        uint32_t encrytTypes[3];
+                        uint32_t encrytTypes[DDI_CP_ENCRYPT_TYPES_NUM];
 
                         int32_t numTypes = m_CapsCp->GetEncryptionTypes(profile[i],
-                                encrytTypes, 3);
+                                encrytTypes, DDI_CP_ENCRYPT_TYPES_NUM);
 
                         if (numTypes > 0)
                         {

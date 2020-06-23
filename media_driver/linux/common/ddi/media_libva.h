@@ -113,6 +113,7 @@
 #define DDI_VP_MAX_NUM_FILTERS  8
 
 #define DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE    2048 // VP config_id starts at this value
+#define DDI_CP_ENCRYPT_TYPES_NUM             5    // CP encryption types number
 
 // Enable unlimited output buffer, delete this build option (remove multiple output buffer) when it is verified
 #define ENABLE_ENC_UNLIMITED_OUTPUT
