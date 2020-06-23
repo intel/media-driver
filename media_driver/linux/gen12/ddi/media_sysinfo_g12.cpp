@@ -173,6 +173,21 @@ static bool InitTglShadowWa(struct GfxDeviceInfo *devInfo,
     return true;
 }
 
+#ifdef IGFX_GEN12_DG1_SUPPORTED
+static bool InitDG1ShadowSku(struct GfxDeviceInfo *devInfo,
+                             SHADOW_MEDIA_FEATURE_TABLE *skuTable,
+                             struct LinuxDriverInfo *drvInfo)
+{
+    if(!InitTglShadowSku(devInfo, skuTable, drvInfo))
+    {
+        return false;
+    }
+    skuTable->FtrLocalMemory = 1;
+
+    return true;
+}
+#endif
+
 static struct GfxDeviceInfo tgllpGt1Info = {
     .platformType  = PLATFORM_MOBILE,
     .productFamily = IGFX_TIGERLAKE_LP,
@@ -212,6 +227,36 @@ static struct GfxDeviceInfo tgllpGt2Info = {
     .InitShadowSku    = InitTglShadowSku,
     .InitShadowWa     = InitTglShadowWa,
 };
+
+#ifdef IGFX_GEN12_DG1_SUPPORTED
+static struct GfxDeviceInfo dg1Gt2Info = {
+    .platformType  = PLATFORM_MOBILE,
+    .productFamily = IGFX_DG1,
+    .displayFamily = IGFX_GEN12_CORE,
+    .renderFamily  = IGFX_GEN12_CORE,
+    .eGTType       = GTTYPE_GT2,
+    .L3CacheSizeInKb = 0,
+    .L3BankCount   = 0,
+    .EUCount       = 0,
+    .SliceCount    = 0,
+    .SubSliceCount = 0,
+    .MaxEuPerSubSlice = 0,
+    .isLCIA        = 0,
+    .hasLLC        = 0,
+    .hasERAM       = 0,
+    .InitMediaSysInfo = InitTglMediaSysInfo,
+    .InitShadowSku    = InitDG1ShadowSku,
+    .InitShadowWa     = InitTglShadowWa,
+};
+static bool dg1Gt2Device4905 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4905, &dg1Gt2Info);
+
+static bool dg1Gt2Device4906 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4906, &dg1Gt2Info);
+
+static bool dg1Gt2Device4908 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4908, &dg1Gt2Info);
+#endif
 
 static bool tgllpGt2Device9a40 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9A40, &tgllpGt2Info);

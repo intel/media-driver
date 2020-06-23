@@ -2316,3 +2316,8 @@ extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool tglLPRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
     RegisterCaps<MediaLibvaCapsG12>((uint32_t)IGFX_TIGERLAKE_LP);
+
+#ifdef IGFX_GEN12_DG1_SUPPORTED
+static bool dg1Registered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
+    RegisterCaps<MediaLibvaCapsG12>((uint32_t)IGFX_DG1);
+#endif

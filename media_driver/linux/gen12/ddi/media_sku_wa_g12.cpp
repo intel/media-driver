@@ -295,6 +295,80 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
     return true;
 }
 
+#ifdef IGFX_GEN12_DG1_SUPPORTED
+static bool InitDG1MediaSku(struct GfxDeviceInfo *devInfo,
+                             MediaFeatureTable *skuTable,
+                             struct LinuxDriverInfo *drvInfo)
+{
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    {
+        return false;
+    }
+    MEDIA_WR_SKU(skuTable, FtrLocalMemory, 1);
+
+    bool enableCodecMMC = false;
+    bool enableVPMMC    = false;
+
+    // Disable MMC for all components if set reg key
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_ENABLE_MMC_ID,
+        &userFeatureData);
+    if (userFeatureData.bData)
+    {
+        enableVPMMC = true;
+    }
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
+        &userFeatureData);
+    if (userFeatureData.bData)
+    {
+        enableCodecMMC = true;
+    }
+
+    if(!enableCodecMMC && !enableVPMMC)
+    {
+        MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
+    }
+
+    return true;
+}
+
+static bool InitDG1MediaWa(struct GfxDeviceInfo *devInfo,
+                             MediaWaTable *waTable,
+                             struct LinuxDriverInfo *drvInfo)
+{
+    if(!InitTglMediaWa(devInfo, waTable, drvInfo))
+    {
+        DEVINFO_ERROR("InitMediaWA failed\n");
+        return false;
+    }
+
+    /* Turn off MMC for codec, need to remove once turn it on */
+    MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
+
+    /* Turn off MMC for VPP, need to remove once turn it on */
+    MEDIA_WR_WA(waTable, WaDisableVPMmc, 1);
+    return true;
+}
+
+static struct LinuxDeviceInit dg1DeviceInit =
+{
+    .productFamily    = IGFX_DG1,
+    .InitMediaFeature = InitDG1MediaSku,
+    .InitMediaWa      = InitDG1MediaWa,
+};
+
+static bool dg1DeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
+     RegisterDevice(IGFX_DG1, &dg1DeviceInit);
+
+#endif
+
 static struct LinuxDeviceInit tgllpDeviceInit =
 {
     .productFamily    = IGFX_TIGERLAKE_LP,
