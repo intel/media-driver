@@ -2940,23 +2940,6 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::GetStatusReport(encodeStatus, encodeStatusReport));
 
-    if (m_vdencHucUsed)
-    {
-        // Num of VDEn BRC pass is stored at PakMmio DW0
-        MOS_LOCK_PARAMS lockFlags;
-        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-        lockFlags.WriteOnly = true;
-
-        MOS_RESOURCE *pakInfoBuffer = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, pakInfo);
-        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, pakInfoBuffer, &lockFlags);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        uint32_t* insertion = (uint32_t*)(data + sizeof(uint32_t));
-        *insertion = encodeStatus->ImageStatusCtrl.hcpTotalPass << 24;
-        m_osInterface->pfnUnlockResource(m_osInterface, pakInfoBuffer);
-        pakInfoBuffer = nullptr;
-    }
-
-
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.ReadOnly = 1;
