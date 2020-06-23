@@ -101,7 +101,7 @@
 //------------------------------------------------------------------------------
 #define VPHAL_PARAMETERS_DUMPPER_DUMP_XML(pRenderParams)                    \
     m_parameterDumper->DumpToXML(                                               \
-        uiFrameCounter,                                                         \
+        m_frameCounter,                                                         \
         m_surfaceDumper->m_dumpSpec.pcOutputPath,                               \
         pRenderParams);
 

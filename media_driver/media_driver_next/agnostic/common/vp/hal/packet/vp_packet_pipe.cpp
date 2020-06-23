@@ -139,6 +139,7 @@ PacketPipe::~PacketPipe()
 MOS_STATUS PacketPipe::Clean()
 {
     m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+    m_veboxFeatureInuse = false;
     for (std::vector<VpCmdPacket *>::iterator it = m_Pipe.begin(); it != m_Pipe.end(); ++it)
     {
         m_PacketFactory.ReturnPacket(*it);
@@ -160,6 +161,7 @@ MOS_STATUS PacketPipe::AddPacket(HwFilter &hwFilter)
     }
     m_Pipe.push_back(pPacket);
     VP_PUBLIC_CHK_STATUS_RETURN(SetOutputPipeMode(hwFilter.GetEngineType()));
+    m_veboxFeatureInuse |= hwFilter.IsVeboxFeatureInuse();
 
     return MOS_STATUS_SUCCESS;
 }

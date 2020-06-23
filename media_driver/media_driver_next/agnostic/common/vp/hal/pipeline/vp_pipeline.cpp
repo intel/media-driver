@@ -92,6 +92,7 @@ MOS_STATUS VpPipeline::UserFeatureReport()
     if (m_reporting)
     {
         m_reporting->OutputPipeMode = m_vpOutputPipe;
+        m_reporting->VEFeatureInUse = m_veboxFeatureInuse;
 
         if (m_mmc)
         {
@@ -204,10 +205,10 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         if (pRenderParams->pSrc[uiLayer])
         {
             VPHAL_SURFACE_DUMP(m_surfaceDumper,
-            pRenderParams->pSrc[uiLayer],
-            uiFrameCounter,
-            uiLayer,
-            VPHAL_DUMP_TYPE_PRE_ALL);
+                pRenderParams->pSrc[uiLayer],
+                m_frameCounter,
+                uiLayer,
+                VPHAL_DUMP_TYPE_PRE_ALL);
         }
     }
 
@@ -233,6 +234,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
     // Update output pipe mode.
     m_vpOutputPipe = pPacketPipe->GetOutputPipeMode();
+    m_veboxFeatureInuse = pPacketPipe->IsVeboxFeatureInuse();
 
     // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
     eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox);
@@ -243,13 +245,12 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
                                 pRenderParams->pTarget,
                                 VPHAL_MAX_TARGETS,
                                 pRenderParams->uDstCount,
-                                uiFrameCounter,
+                                m_frameCounter,
                                 VPHAL_DUMP_TYPE_POST_ALL);
 
 finish:
-
     m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
-    uiFrameCounter++;
+    m_frameCounter++;
     return eStatus;
 }
 
@@ -440,6 +441,7 @@ MOS_STATUS VpPipeline::PrepareVpExePipe()
 
     // Get Output Pipe for Features. It should be configured in ExecuteVpPipeline.
     m_vpOutputPipe = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+    m_veboxFeatureInuse = false;
 
     return MOS_STATUS_SUCCESS;
 }

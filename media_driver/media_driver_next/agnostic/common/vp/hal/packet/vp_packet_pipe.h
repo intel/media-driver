@@ -79,6 +79,11 @@ public:
         return m_outputPipeMode;
     }
 
+    bool IsVeboxFeatureInuse()
+    {
+        return m_veboxFeatureInuse;
+    }
+
 private:
     VpCmdPacket *CreatePacket(EngineType type);
     MOS_STATUS SetOutputPipeMode(EngineType engineType);
@@ -86,6 +91,7 @@ private:
     PacketFactory &m_PacketFactory;
     std::vector<VpCmdPacket *> m_Pipe;
     VPHAL_OUTPUT_PIPE_MODE m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+    bool m_veboxFeatureInuse = false;
 };
 
 class PacketPipeFactory

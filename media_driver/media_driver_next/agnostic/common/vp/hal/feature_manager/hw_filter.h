@@ -104,6 +104,11 @@ public:
         return m_Params.Type;
     }
 
+    bool IsVeboxFeatureInuse()
+    {
+        return IS_VEBOX_FEATURE_INUSE(m_vpExecuteCaps);
+    }
+
 protected:
     VpInterface         &m_vpInterface;
     PACKET_PARAMS       m_Params = {};

@@ -178,16 +178,19 @@ protected:
 protected:
     PVP_PIPELINE_PARAMS    m_pvpParams              = nullptr;  //!< vp Pipeline params
     PVP_MHWINTERFACE       m_pvpMhwInterface        = nullptr;  //!< vp Pipeline Mhw Interface
-    VP_EXECUTE_CAPS        m_vpPipelineCaps         = {};       //!< vp Pipeline Engine execute caps
-    VPHAL_OUTPUT_PIPE_MODE m_vpOutputPipe           = VPHAL_OUTPUT_PIPE_MODE_INVALID;
     uint8_t                m_numVebox               = 0;
     bool                   m_forceMultiplePipe      = false;
     VpAllocator           *m_allocator              = nullptr;  //!< vp Pipeline allocator
     VPMediaMemComp        *m_mmc                    = nullptr;  //!< vp Pipeline mmc
+
+    // For user feature report
     VphalFeatureReport    *m_reporting              = nullptr;  //!< vp Pipeline user feature report
+    VPHAL_OUTPUT_PIPE_MODE m_vpOutputPipe           = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+    bool                   m_veboxFeatureInuse      = false;
+
     VPStatusReport        *m_statusReport           = nullptr;  //!< vp Pipeline status report
     // Surface dumper fields (counter and specification)
-    uint32_t               uiFrameCounter           = 0;
+    uint32_t               m_frameCounter           = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpSurfaceDumper       *m_surfaceDumper          = nullptr;
     VpParameterDumper     *m_parameterDumper        = nullptr;

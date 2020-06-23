@@ -1212,14 +1212,6 @@ MOS_STATUS VphalRenderer::Render(
         VPHAL_RENDER_CHK_STATUS(RenderPass(&RenderParams));
     }
 
-#if defined(LINUX)
-    if (m_reporting)
-    {
-        WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID, m_reporting->OutputPipeMode);
-        WriteUserFeature(__VPHAL_VEBOX_FEATURE_INUSE_ID, m_reporting->VEFeatureInUse);
-    }
-#endif
-
 finish:
     uiFrameCounter++;
     return eStatus;

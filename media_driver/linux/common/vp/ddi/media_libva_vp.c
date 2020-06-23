@@ -39,12 +39,12 @@
 #include "hwinfo_linux.h"
 #include "mos_solo_generic.h"
 
-#if (_DEBUG || _RELEASE_INTERNAL)
 #include "media_libva_vp_tools.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
 #if ANDROID
 #include "media_libva_vp_tools_android.h"
 #endif
-#endif
+#endif // #if (_DEBUG || _RELEASE_INTERNAL)
 
 #define VP_SETTING_MAX_PHASES                           1
 #define VP_SETTING_MEDIA_STATES                         32
@@ -3547,10 +3547,9 @@ VAStatus DdiVp_EndPicture (
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpDumpProcPipelineParams(pVaDrvCtx, pVpCtx);
+#endif //(_DEBUG || _RELEASE_INTERNAL)
 
     VpReportFeatureMode(pVpCtx);
-
-#endif //(_DEBUG || _RELEASE_INTERNAL)
 
     // Reset primary surface count for next render call
     pVpCtx->iPriSurfs = 0;

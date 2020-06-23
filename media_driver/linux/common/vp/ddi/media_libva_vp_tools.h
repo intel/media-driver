@@ -32,6 +32,7 @@
 
 #define LIBVA_VP_CONFIG_NOT_REPORTED  0xffffffff
 
+#if (_DEBUG || _RELEASE_INTERNAL)
 //!
 //! \brief   allocate and initialize DDI Dump parameters
 //! \param   [in] pVpCtx
@@ -58,6 +59,8 @@ void        VpDestoryDumpConfig(PDDI_VP_CONTEXT pVpCtx);
 //!          return VA_STATUS_SUCCESS, if params is dumped to file.
 //!
 VAStatus    VpDumpProcPipelineParams(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx);
+
+#endif //#if (_DEBUG || _RELEASE_INTERNAL)
 
 //!
 //! \brief   dump feature mode parameters for Android 

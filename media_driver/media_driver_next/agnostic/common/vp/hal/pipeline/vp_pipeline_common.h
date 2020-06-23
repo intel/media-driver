@@ -94,6 +94,10 @@ struct _VP_MHWINTERFACE
     PVPHAL_STATUS_TABLE        m_statusTable;
 };
 
+#define IS_VEBOX_FEATURE_INUSE(caps)   (caps.bVebox &&                                      \
+        (!caps.bSFC || caps.bDN || caps.bDI || caps.bIECP                                   \
+        || caps.bBeCSC || caps.bQueryVariance || caps.bLACE || caps.bSTD))
+
 // To define the features enabling on different engines
 struct _VP_EXECUTE_CAPS
 {
