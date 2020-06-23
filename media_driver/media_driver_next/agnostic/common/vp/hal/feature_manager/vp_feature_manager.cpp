@@ -583,18 +583,27 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
        (params->pCompAlpha->AlphaMode == VPHAL_ALPHA_FILL_MODE_NONE         ||
         params->pCompAlpha->AlphaMode == VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM))
     {
-        if ((params->pTarget[0]->Format == Format_A8R8G8B8    ||
-            params->pTarget[0]->Format == Format_A8B8G8R8     ||
-            params->pTarget[0]->Format == Format_R10G10B10A2  ||
-            params->pTarget[0]->Format == Format_B10G10R10A2  ||
-            params->pTarget[0]->Format == Format_Y410         ||
-            params->pTarget[0]->Format == Format_Y416         ||
-            params->pTarget[0]->Format == Format_AYUV)        &&
-           (params->pSrc[0]->Format == Format_A8B8G8R8        ||
-            params->pSrc[0]->Format == Format_A8R8G8B8        ||
-            params->pSrc[0]->Format == Format_Y410            ||
-            params->pSrc[0]->Format == Format_Y416            ||
-            params->pSrc[0]->Format == Format_AYUV))
+        //No Alpha DDI for LIBVA, Always allow SFC to do detail feature on GEN12+ on linux
+        //No matter what the current alpha mode is.
+        if (params->pSrc[0]->bIEF == true)
+        {
+            params->pCompAlpha->AlphaMode = VPHAL_ALPHA_FILL_MODE_NONE;
+            params->pCompAlpha->fAlpha    = 1.0;
+            bRet                          = true;
+            return bRet;
+        }
+        else if ((params->pTarget[0]->Format == Format_A8R8G8B8    ||
+                 params->pTarget[0]->Format == Format_A8B8G8R8     ||
+                 params->pTarget[0]->Format == Format_R10G10B10A2  ||
+                 params->pTarget[0]->Format == Format_B10G10R10A2  ||
+                 params->pTarget[0]->Format == Format_Y410         ||
+                 params->pTarget[0]->Format == Format_Y416         ||
+                 params->pTarget[0]->Format == Format_AYUV)        &&
+                (params->pSrc[0]->Format == Format_A8B8G8R8        ||
+                 params->pSrc[0]->Format == Format_A8R8G8B8        ||
+                 params->pSrc[0]->Format == Format_Y410            ||
+                 params->pSrc[0]->Format == Format_Y416            ||
+                 params->pSrc[0]->Format == Format_AYUV))
         {
             bRet = false;
             return bRet;
