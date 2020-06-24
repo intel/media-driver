@@ -106,7 +106,7 @@ public:
 
     bool IsVeboxFeatureInuse()
     {
-        return IS_VEBOX_FEATURE_INUSE(m_vpExecuteCaps);
+        return ::IsVeboxFeatureInuse(m_vpExecuteCaps);
     }
 
 protected:

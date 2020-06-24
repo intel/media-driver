@@ -614,6 +614,10 @@ VAStatus VpDumpProcPipelineParams(
 void VpConfigValuesInit(
     PVP_CONFIG           pConfigValues)
 {
+    if (nullptr == pConfigValues)
+    {
+        return;
+    }
     pConfigValues->dwVpPath                   = 0;
     pConfigValues->dwVpComponent              = 0;
     pConfigValues->dwReportedDeinterlaceMode  = LIBVA_VP_CONFIG_NOT_REPORTED;
@@ -662,8 +666,7 @@ void VpFeatureReport(
 
 VAStatus    VpReportFeatureMode(PDDI_VP_CONTEXT pVpCtx)
 {
-    VphalState            *pVpHal;
-    VP_CONFIG             ConfigValues;
+    VP_CONFIG             ConfigValues = {};
 
     DDI_CHK_NULL(pVpCtx,         "Null pVpCtx.",   VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(pVpCtx->pVpHal, "Null pVpHal.",   VA_STATUS_ERROR_INVALID_PARAMETER);
