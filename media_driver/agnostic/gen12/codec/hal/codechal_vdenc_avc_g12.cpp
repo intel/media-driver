@@ -29,6 +29,7 @@
 #include "codechal_mmc_encode_avc_g12.h"
 #include "codechal_kernel_header_g12.h"
 #include "codechal_kernel_hme_g12.h"
+#include "mhw_mi_g12_X.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
 #include "mhw_render_g12_X.h"
@@ -939,6 +940,47 @@ MOS_STATUS CodechalVdencAvcStateG12::GetTrellisQuantization(PCODECHAL_ENCODE_AVC
     trellisQuantParams->dwTqRounding = trellisQuantParams->dwTqEnabled ? TrellisQuantizationRounding[params->ucTargetUsage] : 0;
 
     return eStatus;
+}
+
+MOS_STATUS CodechalVdencAvcStateG12::AddHucOutputRegistersHandling(
+    MmioRegistersHuc*   mmioRegisters,
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    bool                addToEncodeStatus)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, cmdBuffer, addToEncodeStatus));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateG12::InsertConditionalBBEndWithHucErrorStatus(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS  miEnhancedConditionalBatchBufferEndParams;
+
+    MOS_ZeroMemory(
+        &miEnhancedConditionalBatchBufferEndParams,
+        sizeof(MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
+
+    miEnhancedConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resHucErrorStatusBuffer;
+
+    miEnhancedConditionalBatchBufferEndParams.dwParamsType = MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS::ENHANCED_PARAMS;
+    miEnhancedConditionalBatchBufferEndParams.enableEndCurrentBatchBuffLevel = false;
+    miEnhancedConditionalBatchBufferEndParams.compareOperation = MAD_EQUAL_IDD;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+        cmdBuffer,
+        (PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS)(&miEnhancedConditionalBatchBufferEndParams)));
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcInitReset()

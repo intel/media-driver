@@ -3807,9 +3807,16 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                 m_statusReportDebugInterface->m_bufferDumpFrameNum = encodeStatus->dwStoredData;
             )
 
-            if (m_standard == CODECHAL_HEVC && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetHevcVdencHucErrorFlagMask()))
+            if ((m_standard == CODECHAL_HEVC && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetHevcVdencHucErrorFlagMask())) ||
+                (m_standard == CODECHAL_AVC  && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetAvcVdencHucErrorFlagMask())))
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("HuC status indicates error");
+                CODECHAL_DEBUG_TOOL(
+                    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpData(
+                        &encodeStatus->HuCStatusReg,
+                        sizeof(encodeStatus->HuCStatusReg),
+                        CodechalDbgAttr::attrStatusReport,
+                        "HuC_StatusRegister"));)
             }
 
             // Current command is executed

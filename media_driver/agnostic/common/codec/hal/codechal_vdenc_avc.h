@@ -34,10 +34,17 @@
 #define CODECHAL_VDENC_AVC_MMIO_MFX_LRA_2_VMC240    0x000002D3
 #define CODECHAL_ENCODE_AVC_BRC_MIN_QP                      1
 #define CODECHAL_VDENC_AVC_MB_SLICE_TRHESHOLD               12
-#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_REENCODE_MASK     (1<<31)
+
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_REENCODE_MASK                  (1 << 31)
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_SKIP_FRAME_MASK                (1 << 30)
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_SCENE_CHANGE_MASK              (1 << 29)
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_ERROR_MASK                     (1 << 28)
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_ARITHMETIC_OVERFLOW_ERROR_MASK (1 << 27)
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_MEMORY_ACCESS_ERROR_MASK       (1 << 26)
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_HISTORY_BUFFER_ERROR_MASK      (1 << 25)
+#define CODECHAL_VDENC_AVC_BRC_HUC_STATUS_DMEM_ERROR_MASK                (1 << 24)
 
 #define CODECHAL_VDENC_AVC_BRC_MIN_QP                       10
-
 #define CODECHAL_VDENC_AVC_CQP_NUM_OF_PASSES                1    // No standalone PAK IPCM pass for VDENC
 
 #define CODECHAL_VDENC_AVC_BRC_HISTORY_BUF_SIZE             0x1000
@@ -572,6 +579,31 @@ public:
     //!           true if native ROI, otherwise false
     //!
     bool ProcessRoiDeltaQp();
+
+    //!
+    //! \brief    Add store HUC_ERROR_STATUS register command in the command buffer
+    //!
+    //! \param    [in] mmioRegisters
+    //!           Pointer to mmio huc register
+    //! \param    [in] cmdBuffer
+    //!           Pointer to the command buffer
+    //! \param    [in] addToEncodeStatus
+    //!           Flag to indicate whether huc error status will be stored in encode status buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddHucOutputRegistersHandling(
+        MmioRegistersHuc*   mmioRegisters,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool                addToEncodeStatus)
+    {
+        // HUC store HUC_STATUS only starting with G11
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS StoreHucErrorStatus(MmioRegistersHuc* mmioRegisters, PMOS_COMMAND_BUFFER cmdBuffer, bool addToEncodeStatus);
+
 
     //!
     //! \brief    VDENC BRC InitReset HuC FW Cmd.

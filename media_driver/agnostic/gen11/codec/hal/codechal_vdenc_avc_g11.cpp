@@ -1339,6 +1339,19 @@ MOS_STATUS CodechalVdencAvcStateG11::GetTrellisQuantization(PCODECHAL_ENCODE_AVC
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencAvcStateG11::AddHucOutputRegistersHandling(
+    MmioRegistersHuc*   mmioRegisters,
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    bool                addToEncodeStatus)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    return StoreHucErrorStatus(mmioRegisters, cmdBuffer, addToEncodeStatus);
+}
+
 MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcInitReset()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;

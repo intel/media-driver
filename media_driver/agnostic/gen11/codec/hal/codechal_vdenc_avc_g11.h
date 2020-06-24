@@ -96,6 +96,11 @@ public:
         PCODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS params,
         PCODECHAL_ENCODE_AVC_TQ_PARAMS trellisQuantParams) override;
 
+    virtual MOS_STATUS AddHucOutputRegistersHandling(
+        MmioRegistersHuc*   mmioRegisters,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool                addToEncodeStatus) override;
+
     MOS_STATUS HuCBrcDummyStreamObject(PMOS_COMMAND_BUFFER cmdBuffer) override { return MOS_STATUS_SUCCESS; }
 
     MOS_STATUS SetDmemHuCBrcInitReset() override;
