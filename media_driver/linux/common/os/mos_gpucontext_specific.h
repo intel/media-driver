@@ -204,6 +204,7 @@ protected:
     int32_t SubmitPipeCommands(MOS_COMMAND_BUFFER *cmdBuffer,
                                MOS_LINUX_BO *cmdBo,
                                PMOS_CONTEXT osContext,
+                               const std::vector<MOS_LINUX_BO *> &skipSyncBoList,
                                uint32_t execFlag,
                                int32_t dr4);
 
