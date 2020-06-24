@@ -311,9 +311,9 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
     VP_PUBLIC_CHK_STATUS_RETURN(CreateResourceManager());
 
     m_featureManager = MOS_New(VpFeatureManagerNext, *m_allocator, m_resourceManager, m_pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
     VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());
 
-    VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }
 
