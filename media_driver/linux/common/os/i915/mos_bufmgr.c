@@ -2288,6 +2288,13 @@ mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo)
     bo_gem->exec_async = true;
 }
 
+static void
+mos_gem_bo_clear_exec_object_async(struct mos_linux_bo *bo)
+{
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
+    bo_gem->exec_async = false;
+}
+
 static int
 mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, uint32_t write_domain)
 {
@@ -3925,8 +3932,10 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 
     gp.param = I915_PARAM_HAS_EXEC_ASYNC;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-    if (ret == 0 && *gp.value > 0)
+    if (ret == 0 && *gp.value > 0) {
         bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
+        bufmgr_gem->bufmgr.clear_exec_object_async = mos_gem_bo_clear_exec_object_async;
+    }
 
     struct drm_i915_gem_context_param context_param;
     memset(&context_param, 0, sizeof(context_param));
@@ -4336,4 +4345,12 @@ drm_export bool mos_gem_bo_is_softpin(struct mos_linux_bo *bo)
     }
 
     return bo_gem->is_softpin;
+}
+
+drm_export bool
+mos_gem_bo_is_exec_object_async(struct mos_linux_bo *bo)
+{
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
+
+    return bo_gem->exec_async;
 }

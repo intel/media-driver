@@ -834,6 +834,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     }
 
     std::vector<PMOS_RESOURCE> mappedResList;
+    std::vector<MOS_LINUX_BO *> skipSyncBoList;
 
     // Now, the patching will be done, based on the patch list.
     for (uint32_t patchIndex = 0; patchIndex < m_currentNumPatchLocations; patchIndex++)
@@ -914,23 +915,25 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                     boOffset + currentPatch->AllocationOffset;
         }
 
-         if (scalaEnabled)
+        if (scalaEnabled)
         {
             it = m_secondaryCmdBufs.begin();
             while(it != m_secondaryCmdBufs.end())
             {
                 if (it->second->OsResource.bo == tempCmdBo &&
-                    it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+                    it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE &&
+                    !mos_gem_bo_is_exec_object_async(alloc_bo))
                 {
-                    mos_bo_set_exec_object_async(alloc_bo);
+                    skipSyncBoList.push_back(alloc_bo);
                     break;
                 }
                 it++;
             }
         }
-        else if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+        else if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE &&
+                !mos_gem_bo_is_exec_object_async(alloc_bo))
         {
-            mos_bo_set_exec_object_async(alloc_bo);
+            skipSyncBoList.push_back(alloc_bo);
         }
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
@@ -956,6 +959,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     {
         res->pGfxResource->Unlock(m_osContext);
     }
+    mappedResList.clear();
 
     //Add Batch buffer End Command
     uint32_t batchBufferEndCmd = MI_BATCHBUFFER_END;
@@ -1128,6 +1132,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                         ret = SubmitPipeCommands(it->second,
                                                  it->second->OsResource.bo,
                                                  osContext,
+                                                 skipSyncBoList,
                                                  execFlag,
                                                  DR4);
                         it++;
@@ -1138,6 +1143,7 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                     ret = SubmitPipeCommands(cmdBuffer,
                                              cmd_bo,
                                              osContext,
+                                             skipSyncBoList,
                                              execFlag,
                                              DR4);
                 }
@@ -1225,6 +1231,7 @@ if (osInterface->bDumpCommandBuffer)
         it++;
     }
     m_secondaryCmdBufs.clear();
+    skipSyncBoList.clear();
 
     // Reset resource allocation
     m_numAllocations = 0;
@@ -1242,6 +1249,7 @@ int32_t GpuContextSpecific::SubmitPipeCommands(
     MOS_COMMAND_BUFFER *cmdBuffer,
     MOS_LINUX_BO *cmdBo,
     PMOS_CONTEXT osContext,
+    const std::vector<MOS_LINUX_BO *> &skipSyncBoList,
     uint32_t execFlag,
     int32_t dr4)
 {
@@ -1281,6 +1289,11 @@ int32_t GpuContextSpecific::SubmitPipeCommands(
         {
             queue = m_i915Context[cmdBuffer->iVeboxNodeIndex + 1];
         }
+
+        for(auto bo: skipSyncBoList)
+        {
+            mos_bo_set_exec_object_async(bo);
+        }
     }
 
     //Keep FE and BE0 running on same engine for VT decode
@@ -1308,6 +1321,15 @@ int32_t GpuContextSpecific::SubmitPipeCommands(
     {
         osContext->submit_fence = fence;
     }
+
+    if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+    {
+        for(auto bo: skipSyncBoList)
+        {
+            mos_bo_clear_exec_object_async(bo);
+        }
+    }
+
     if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)
     {
         close(fence);

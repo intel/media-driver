@@ -338,6 +338,7 @@ struct mos_bufmgr {
     int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
 
     void (*set_exec_object_async) (struct mos_linux_bo *bo);
+    void (*clear_exec_object_async) (struct mos_linux_bo *bo);
 
     /**< Enables verbose debugging printouts */
     int debug;
