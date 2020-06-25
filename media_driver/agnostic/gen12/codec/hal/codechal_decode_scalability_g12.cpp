@@ -46,10 +46,22 @@ static MOS_STATUS CodecHalDecodeScalability_CalculateScdryCmdBufIndex_G12(
 
     CODECHAL_DECODE_CHK_NULL(pScalabilityStateBase);
     CODECHAL_DECODE_CHK_NULL(pdwBufIdxPlus1);
+    CODECHAL_DECODE_CHK_NULL(pScalabilityStateBase->pHwInterface);
+    CODECHAL_DECODE_CHK_NULL(pScalabilityStateBase->pHwInterface->GetOsInterface());
 
     if (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_REAL_TILE)
     {
         *pdwBufIdxPlus1 = pScalabilityState->u8RtCurPipe + 1;
+        if(pScalabilityStateBase->pHwInterface->GetOsInterface()->phasedSubmission)
+        {
+            /*  3 tiles 2 pipe for example:
+                cur phase               cur pip
+                0                       0, 1                2 cmd buffer needed
+                1                       0                   1 cmd buffer needed
+                all of 3 tiles cmd ready, submit 3 cmd togather
+             */
+            *pdwBufIdxPlus1 += (pScalabilityState->u8RtCurPhase * pScalabilityState->u8RtPhaseNum);
+        }
     }
     else
     {

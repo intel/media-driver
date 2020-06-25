@@ -1284,6 +1284,7 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
             m_scalabilityState,
             &scdryCmdBuffer,
             &cmdBufferInUse));
+        CodecHalDecodeScalability_DecPhaseToSubmissionType(m_scalabilityState,cmdBufferInUse);
     }
 
     // store CS ENGINE ID register
@@ -1637,7 +1638,7 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
     {
         HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface);
     }
-    if (submitCommand || m_osInterface->phasedSubmission)
+    if (submitCommand)
     {
         //command buffer to submit is the primary cmd buffer.
         if (MOS_VE_SUPPORTED(m_osInterface))
@@ -1649,7 +1650,6 @@ MOS_STATUS CodechalDecodeHevcG11::DecodePrimitiveLevel()
            && MOS_VE_SUPPORTED(m_osInterface)
            && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
         {
-            CodecHalDecodeScalability_DecPhaseToSubmissionType(m_scalabilityState,cmdBufferInUse);
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, cmdBufferInUse, renderingFlags));
         }
         else

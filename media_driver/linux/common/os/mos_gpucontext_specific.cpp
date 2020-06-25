@@ -961,15 +961,36 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
     }
     mappedResList.clear();
 
-    //Add Batch buffer End Command
-    uint32_t batchBufferEndCmd = MI_BATCHBUFFER_END;
-    if (MOS_FAILED(Mos_AddCommand(
-            cmdBuffer,
-            &batchBufferEndCmd,
-            sizeof(uint32_t))))
+    if (scalaEnabled)
     {
-        MOS_OS_ASSERTMESSAGE("Inserting BB_END failed!");
-        return MOS_STATUS_UNKNOWN;
+         it = m_secondaryCmdBufs.begin();
+         while(it != m_secondaryCmdBufs.end())
+         {
+             //Add Batch buffer End Command
+             uint32_t batchBufferEndCmd = MI_BATCHBUFFER_END;
+             if (MOS_FAILED(Mos_AddCommand(
+                     it->second,
+                     &batchBufferEndCmd,
+                     sizeof(uint32_t))))
+             {
+                 MOS_OS_ASSERTMESSAGE("Inserting BB_END failed!");
+                 return MOS_STATUS_UNKNOWN;
+             }
+             it++;
+         }
+    }
+    else
+    {
+        //Add Batch buffer End Command
+        uint32_t batchBufferEndCmd = MI_BATCHBUFFER_END;
+        if (MOS_FAILED(Mos_AddCommand(
+                cmdBuffer,
+                &batchBufferEndCmd,
+                sizeof(uint32_t))))
+        {
+            MOS_OS_ASSERTMESSAGE("Inserting BB_END failed!");
+            return MOS_STATUS_UNKNOWN;
+        }
     }
 
     // Now, we can unmap the video command buffer, since we don't need CPU access anymore.
@@ -1125,8 +1146,12 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                     {
                         if (it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
                         {
-                            it->second->iSubmissionType |= (secondaryIndex << SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT);
-                            secondaryIndex++;
+                            if(execFlag == MOS_GPU_NODE_VE)
+                            {
+                                // decode excluded since init in other place
+                                it->second->iSubmissionType |= (secondaryIndex << SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT);
+                                secondaryIndex++;
+                            }
                         }
 
                         ret = SubmitPipeCommands(it->second,
