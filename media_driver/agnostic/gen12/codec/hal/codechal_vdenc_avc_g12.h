@@ -136,7 +136,7 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetGpuCtxCreatOption() override;
+    virtual MOS_STATUS SetGpuCtxCreatOption() override;
     //!
     //! \brief    Set And Populate VE Hint parameters
     //! \details  Set Virtual Engine hint parameter and populate it to primary cmd buffer attributes
