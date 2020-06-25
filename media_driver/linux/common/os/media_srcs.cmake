@@ -19,7 +19,9 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(i915)
-
+if(ENABLE_PRODUCTION_KMD)
+media_include_subdirectory(i915_production)
+endif()
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.c

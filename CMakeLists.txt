@@ -50,6 +50,8 @@ cmake_dependent_option( BUILD_KERNELS
     "ENABLE_KERNELS;NOT ENABLE_NONFREE_KERNELS" OFF)
 option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
+option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
+
 include(GNUInstallDirs)
 
 if (BUILD_CMRTLIB)
@@ -137,3 +139,4 @@ endif()
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${DISTRO_INFO}-${PACKAGE_TYPE}")
 
 include(CPack)
+

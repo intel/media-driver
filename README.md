@@ -98,33 +98,34 @@ Media driver supports two build types as below
 
 ### Decoding/Encoding Features
 
-| CODEC | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL* |
-|---|---|---|---|---|---|---|----|---|
-| AVC | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i>|
-| MPEG-2 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> |<u>D/Es</u><br><i>D<i>|
-| VC-1 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> |<u>D</u><br><i>&nbsp;<i>|
-| JPEG | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E</u><br><i>D/E<i>|
-| VP8 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | |
-| HEVC 8bit | <u>Full Feature</u><br><i>Free Kernel</i> |  | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E/Es</u><br><i>D/E<i> |
-| HEVC 8bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> |<u>D/Es</u><br><i>D<i>|
-| HEVC 8bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
-| HEVC 10bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> |
-| HEVC 10bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i>| <u>D/Es</u><br><i>D<i> |
-| HEVC 10bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E</u><br><i>D/E<i> |
-| HEVC 12bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  |<u>D/Es</u><br><i>D<i> |
-| HEVC 12bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  |<u>D</u><br><i>D<i> |
-| HEVC 12bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  |<u>D</u><br><i>D<i> |
-| VP9 8bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E</u><br><i>D/E<i> |
-| VP9 8bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E</u><br><i>D/E<i> |
-| VP9 10bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E</u><br><i>D/E<i> |
-| VP9 10bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |<u>D/E</u><br><i>D/E<i> |
-| VP9 12bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  |<u>D</u><br><i>D<i> |
-| VP9 12bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  |<u>D</u><br><i>D<i> |
+|CODEC | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL* | DG1 |
+|---|---|---|---|---|---|---|---|---|---|
+| AVC | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> |
+| MPEG-2 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> |
+| VC-1 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> |
+| JPEG | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
+| VP8 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> |  |  |
+| HEVC 8bit | <u>Full Feature</u><br><i>Free Kernel</i> |  | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> |
+| HEVC 8bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> |
+| HEVC 8bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
+| HEVC 10bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> |
+| HEVC 10bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> |
+| HEVC 10bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
+| HEVC 12bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> |
+| HEVC 12bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
+| HEVC 12bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
+| VP9 8bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
+| VP9 8bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
+| VP9 10bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
+| VP9 10bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
+| VP9 12bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
+| VP9 12bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
+
 * D  - Hardware Decoding
 * E  - Hardware Encoding, Low Power Encoding(VDEnc/Huc)
 * Es - Hardware(PAK) + Shader(media kernel+VME) Encoding
 
-\* TGL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #4, #5](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
+\* TGL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #4](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 For more information, please refer to
 * [Media Features Summary](https://github.com/intel/media-driver/blob/master/docs/media_features.md#media-features-summary)
@@ -133,36 +134,47 @@ For more information, please refer to
 
 ### Video Processing Features
 
-| Features | Build Types | BDW | SKL | BXT/APL | KBLx | ICL |EHL/JSL |TGL |
-|---|---|---|---|---|----|---|---|---|
-| Blending | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| CSC<br>(Color Space Conversion) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| De-interlace | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i>  | <u>Yes</u><br><i>Yes</i> |<u>Yes*</u><br><i>Yes*</i> |<u>Yes</u><br><i>Yes</i> |
-| De-noise | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> |<u>No</u><br><i>&nbsp;</i> |<u>Yes</u><br><i>&nbsp;</i> |
-| Luma Key | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| Mirroring | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| ProcAmp<br>(brightness,contrast,hue,saturation) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| Rotation | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| Scaling | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| Sharpening | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>No</u><br><i>No</i> |<u>Yes</u><br><i>Yes</i> |
-| STD/E<br>(Skin Tone Detect & Enhancement) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> |<u>No</u><br><i>&nbsp;</i> |<u>Yes</u><br><i>&nbsp;</i> |
-| TCC<br>(Total Color Control) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> |<u>No</u><br><i>&nbsp;</i> |<u>Yes</u><br><i>&nbsp;</i> |
-| Color fill | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| Chroma Siting | <u>Full Feature</u><br><i>Free Kernel</i> | &nbsp;<br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |<u>Yes</u><br><i>Yes</i> |
-| HDR10 Tone Mapping | <u>Full Feature</u><br><i>Free Kernel</i> | &nbsp;<br><i>&nbsp;</i> | &nbsp;<br><i>&nbsp;</i> | &nbsp;<br><i>&nbsp;</i> | &nbsp;<br><i>&nbsp;</i>    | <u>Yes</u><br><i>&nbsp;</i> |<u>No</u><br><i>&nbsp;</i> |<u>Yes</u><br><i>&nbsp;</i> |
+| Features | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL | DG1 |
+|---|---|---|---|---|----|---|---|---|---|
+| Blending | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| CSC<br>(Color Space Conversion) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| De-interlace | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes*</u><br><i>Yes*</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| De-noise | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>No</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> |
+| Luma Key | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| Mirroring | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| ProcAmp<br>(brightness,contrast,hue,saturation) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| Rotation | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| Scaling | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| Sharpening | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>No</u><br><i>No</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| STD/E<br>(Skin Tone Detect & Enhancement) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>No</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> |
+| TCC<br>(Total Color Control) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>No</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> |
+| Color fill | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| Chroma Siting | <u>Full Feature</u><br><i>Free Kernel</i> | &nbsp;<br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
+| HDR10 Tone Mapping | <u>Full Feature</u><br><i>Free Kernel</i> | &nbsp;<br><i>&nbsp;</i> | &nbsp;<br><i>&nbsp;</i> | &nbsp;<br><i>&nbsp;</i> | &nbsp;<br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>No</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> |
+
+\* EHL/JSL only support BOB DI
 
 For more feature information, please refer to [Supported video processing csc/scaling format](https://github.com/intel/media-driver/blob/master/docs/media_features.md#supported-video-processing-cscscaling-format)
 
 
 ### Build Options
 
-You could follow below build options to enable these two builds.
+Media-driver supports few build types as described below. You could refer to
+the following settings to enable them.
 * **Full Feature Build**: ENABLE_KERNELS=ON(Default) ENABLE_NONFREE_KERNELS=ON(Default)
 * **Free Kernel Build**: ENABLE_KERNELS=ON ENABLE_NONFREE_KERNELS=OFF
     * If trying to use pre-built open source kernel binaries, please add BUILD_KERNELS=OFF(Default).
     * If trying to rebuild open source kernel from source code, please add BUILD_KERNELS=ON.
 
-\* EHL/JSL only support BOB DI
+Media-driver requires special i915 kernel mode driver (kmd) version to support the following
+new platforms since upstream version of i915 kmd does not fully support them
+(pending patches upstream):
+* DG1
+
+By default, media-driver builds against upstream i915 kmd and will miss
+support for the platforms listed above. To enable new platforms which
+require special i915 kmd specify `ENABLE_PRODUCTION_KMD=ON` (default: `OFF`)
+build configuration option.
 
 ## Known Issues and Limitations
 
@@ -171,14 +183,12 @@ or later, which officially supported C++11.
 
 2. SKL: Green or other incorrect color will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: [WaEnableYV12BugFixInHalfSliceChicken7](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
-3. HuC firmware is needed for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
+3. HuC firmware is necessary for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
    * APL/KBL: starting from kernel 4.11
    * CFL: starting from kernel 4.15
    * ICL: starting from kernel 5.2
    * EHL/JSL/TGL: [drm-tip](https://cgit.freedesktop.org/drm-tip), missed in <=5.4.3 kernels
 
-4. TGL: preliminary support and may not be fully functional. It requires Linux kernel 5.4+ loaded with i915.force_probe=* parameter to be tried. [drm-tip] (https://cgit.freedesktop.org/drm-tip) should work with more support and bug fixes.
-
-5. TGL VME encode has known issue [112377](https://bugs.freedesktop.org/show_bug.cgi?id=112377) with [drm-tip](https://cgit.freedesktop.org/drm-tip)
+4. TGL VME encoding has known issue [112377](https://bugs.freedesktop.org/show_bug.cgi?id=112377) with [drm-tip](https://cgit.freedesktop.org/drm-tip)
 
 ##### (*) Other names and brands may be claimed as property of others.

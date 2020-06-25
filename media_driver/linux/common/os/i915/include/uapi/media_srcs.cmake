@@ -25,14 +25,14 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/drm_fourcc.h
     ${CMAKE_CURRENT_LIST_DIR}/drm_mode.h
     ${CMAKE_CURRENT_LIST_DIR}/drm_sarea.h
-    ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
 )
 
-# no source in this folder
-#set(SOURCES_
-#    ${SOURCES_}
-#    ${TMP_SOURCES_}
-#)
+if(NOT ENABLE_PRODUCTION_KMD)
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
+)
+endif()
 
 set(HEADERS_
     ${HEADERS_}

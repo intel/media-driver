@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,20 +20,10 @@
 
 media_include_subdirectory(include)
 
-set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_api.c
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drm.c
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drmHash.c
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drmMode.c
-    ${CMAKE_CURRENT_LIST_DIR}/xf86drmRandom.c
-)
 
-if(NOT ENABLE_PRODUCTION_KMD)
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
 )
-endif()
 
 set(TMP_HEADERS_ "")
 
