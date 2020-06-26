@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1295,53 +1295,6 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
         mbQpBufferInUse |= m_avcFeiPicParams->bMBQp;
     }
 
-    // MFE MBEnc kernel handles several frames from different streams in one submission.
-    // All the streams use the same HW/OS/StateHeap interfaces during this submssion.
-    // All the streams use the kernel state from the first stream.
-    // The first stream allocates the DSH and SSH, send the binding table.
-    // The last stream sets mfe curbe, prepare and submit the command buffer.
-    // All the streams set their own curbe surfaces and surface states.
-    CODECHAL_ENCODE_AVC_BINDING_TABLE_MBENC origMbEncBindingTable;
-    if (IsMfeMbEncEnabled(mbEncIFrameDistInUse))
-    {
-        auto mfeEncodeSharedState = m_mfeEncodeSharedState;
-        if (m_mfeFirstStream)
-        {
-            mfeEncodeSharedState->pHwInterface = m_hwInterface;
-            mfeEncodeSharedState->pOsInterface = m_osInterface;
-            m_hwInterface->GetRenderInterface()->m_stateHeapInterface = m_stateHeapInterface;
-            m_osInterface->pfnResetOsStates(m_osInterface);
-        }
-        else
-        {
-            m_hwInterface           = mfeEncodeSharedState->pHwInterface;
-            m_osInterface           = mfeEncodeSharedState->pOsInterface;
-            m_stateHeapInterface    = m_hwInterface->GetRenderInterface()->m_stateHeapInterface;
-
-            m_osInterface = m_osInterface;
-        }
-        // Set maximum width/height, it is used for initializing media walker parameters
-        // during submitting the command buffer at the last stream.
-        if (m_picWidthInMb > mfeEncodeSharedState->dwPicWidthInMB)
-        {
-            mfeEncodeSharedState->dwPicWidthInMB = m_picWidthInMb;
-        }
-        if (m_frameFieldHeightInMb > mfeEncodeSharedState->dwPicHeightInMB)
-        {
-            mfeEncodeSharedState->dwPicHeightInMB = m_frameFieldHeightInMb;
-        }
-        if (m_sliceHeight > mfeEncodeSharedState->sliceHeight)
-        {
-            mfeEncodeSharedState->sliceHeight = m_sliceHeight;
-        }
-
-        m_osInterface->pfnSetGpuContext(m_osInterface, m_renderContext);
-        CODECHAL_DEBUG_TOOL(
-            m_debugInterface->m_osInterface = m_osInterface;)
-        // bookkeeping the original binding table
-        origMbEncBindingTable = MbEncBindingTable;
-    }
-
     PerfTagSetting perfTag;
     perfTag.Value             = 0;
     perfTag.Mode              = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
@@ -1378,10 +1331,6 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
     {
         kernelState = &BrcKernelStates[CODECHAL_ENCODE_BRC_IDX_IFRAMEDIST];
     }
-    else if (IsMfeMbEncEnabled(mbEncIFrameDistInUse))
-    {
-        kernelState = &mfeMbEncKernelState;
-    }
     else
     {
         CodechalEncodeIdOffsetParams idOffsetParams;
@@ -1399,22 +1348,8 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
         kernelState = &pMbEncKernelStates[krnStateIdx];
     }
 
-    // All the streams use the kernel state from the first stream.
-    if (IsMfeMbEncEnabled(mbEncIFrameDistInUse))
-    {
-        if (m_mfeFirstStream)
-        {
-            m_mfeEncodeSharedState->pMfeMbEncKernelState = kernelState;
-        }
-        else
-        {
-            kernelState = m_mfeEncodeSharedState->pMfeMbEncKernelState;
-        }
-    }
-
     // If Single Task Phase is not enabled, use BT count for the kernel state.
-    if (m_firstTaskInPhase == true || !m_singleTaskPhaseSupported ||
-        (IsMfeMbEncEnabled(mbEncIFrameDistInUse) && m_mfeFirstStream))
+    if (m_firstTaskInPhase == true || !m_singleTaskPhaseSupported)
     {
         uint32_t maxBtCount = m_singleTaskPhaseSupported ?
             m_maxBtCount : kernelState->KernelParams.iBTCount;
@@ -1426,8 +1361,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
     }
 
     // Allocate DSH and SSH for the first stream, which will be passed to other streams through the shared kernel state.
-    if ((IsMfeMbEncEnabled(mbEncIFrameDistInUse) && m_mfeFirstStream) ||
-        (!IsMfeMbEncEnabled(mbEncIFrameDistInUse) && !bMbEncCurbeSetInBrcUpdate))
+    if (!bMbEncCurbeSetInBrcUpdate)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
             m_stateHeapInterface,
@@ -1448,19 +1382,16 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
 
     if (bMbEncCurbeSetInBrcUpdate)
     {
-        if (!IsMfeMbEncEnabled(mbEncIFrameDistInUse))
-        {
-            // If BRC update was used to set up the DSH & SSH, SSH only needs to
-            // be obtained if single task phase is enabled because the same SSH
-            // could not be shared between BRC update and MbEnc
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
-                m_stateHeapInterface,
-                kernelState,
-                true,
-                0,
-                m_singleTaskPhaseSupported,
-                m_storeData));
-        }
+        // If BRC update was used to set up the DSH & SSH, SSH only needs to
+        // be obtained if single task phase is enabled because the same SSH
+        // could not be shared between BRC update and MbEnc
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AssignDshAndSshSpace(
+            m_stateHeapInterface,
+            kernelState,
+            true,
+            0,
+            m_singleTaskPhaseSupported,
+            m_storeData));
     }
     else
     {
@@ -1502,24 +1433,6 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
             &mbEncCurbeParams));
     }
 
-    if (IsMfeMbEncEnabled(mbEncIFrameDistInUse))
-    {
-        // Set MFE specific curbe in the last stream
-        // MFE MBEnc specific curbe is different from the normal MBEnc curbe which is passed
-        // to MFE MBEnc kernel as a surface.
-        if (m_mfeLastStream)
-        {
-            CODECHAL_ENCODE_AVC_MFE_MBENC_CURBE_PARAMS mfeMbEncCurbeParams;
-            MOS_ZeroMemory(&mfeMbEncCurbeParams, sizeof(mfeMbEncCurbeParams));
-            mfeMbEncCurbeParams.submitNumber  = m_mfeEncodeParams.submitNumber;
-            mfeMbEncCurbeParams.pKernelState  = kernelState;
-            mfeMbEncCurbeParams.pBindingTable = &MbEncBindingTable;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(SetCurbeAvcMfeMbEnc(&mfeMbEncCurbeParams));
-        }
-        // Change the binding table according to the index during this submission
-        UpdateMfeMbEncBindingTable(m_mfeEncodeParams.submitIndex);
-    }
-
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpKernelRegion(
             encFunctionType,
@@ -1551,17 +1464,12 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
     MOS_ZeroMemory(&cmdBuffer, sizeof(cmdBuffer));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
-    // For MFE, All the commands are sent in the last stream and can not be sent in different streams
-    // since CmdBuffer is zeroed for each stream and cmd buffer pointer is reset.
-    if (!IsMfeMbEncEnabled(mbEncIFrameDistInUse) || m_mfeLastStream)
-    {
-        SendKernelCmdsParams sendKernelCmdsParams = SendKernelCmdsParams();
-        sendKernelCmdsParams.EncFunctionType = encFunctionType;
-        sendKernelCmdsParams.ucDmvPredFlag   =
-            m_avcSliceParams->direct_spatial_mv_pred_flag;
-        sendKernelCmdsParams.pKernelState    = kernelState;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
-    }
+    SendKernelCmdsParams sendKernelCmdsParams = SendKernelCmdsParams();
+    sendKernelCmdsParams.EncFunctionType = encFunctionType;
+    sendKernelCmdsParams.ucDmvPredFlag   =
+        m_avcSliceParams->direct_spatial_mv_pred_flag;
+    sendKernelCmdsParams.pKernelState    = kernelState;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
 
     // Set up MB BRC Constant Data Buffer if there is QP change within a frame
     if (mbConstDataBufferInUse)
@@ -1602,14 +1510,9 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
     }
 
     // Add binding table
-    // For MFE first stream sends binding table since the function zeros the whole SSH.
-    // If last stream sends binding table it will clean the surface states from other streams.
-    if (!IsMfeMbEncEnabled(mbEncIFrameDistInUse) || m_mfeFirstStream)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSetBindingTable(
-            m_stateHeapInterface,
-            kernelState));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSetBindingTable(
+        m_stateHeapInterface,
+        kernelState));
 
     //Add surface states
     CODECHAL_ENCODE_AVC_MBENC_SURFACE_PARAMS mbEncSurfaceParams;
@@ -1666,7 +1569,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
         (mbEncIFrameDistInUse && bUseMbEncAdvKernel) ? nullptr : &BrcBuffers.resMbEncAdvancedDsh;
     mbEncSurfaceParams.presMbEncBRCBuffer       = &BrcBuffers.resMbEncBrcBuffer;
 
-    if (IsMfeMbEncEnabled(mbEncIFrameDistInUse) || bDecoupleMbEncCurbeFromBRC)
+    if (bDecoupleMbEncCurbeFromBRC)
     {
         mbEncSurfaceParams.dwMbEncBRCBufferSize = m_mbencBrcBufferSize;
     }
@@ -1755,101 +1658,75 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SendAvcMbEncSurfaces(&cmdBuffer, &mbEncSurfaceParams));
 
-    // For MFE, only one walker processes frame in parallel through color bits.
-    if (!IsMfeMbEncEnabled(mbEncIFrameDistInUse) || m_mfeLastStream)
-    {
-        uint32_t resolutionX = mbEncIFrameDistInUse ?
-            m_downscaledWidthInMb4x : (uint32_t)m_picWidthInMb;
-        uint32_t resolutionY = mbEncIFrameDistInUse ?
-            m_downscaledFrameFieldHeightInMb4x : (uint32_t)m_frameFieldHeightInMb;
 
-        CODECHAL_WALKER_CODEC_PARAMS walkerCodecParams;
-        MOS_ZeroMemory(&walkerCodecParams, sizeof(walkerCodecParams));
-        walkerCodecParams.WalkerMode               = m_walkerMode;
-        walkerCodecParams.bUseScoreboard           = m_useHwScoreboard;
-        walkerCodecParams.wPictureCodingType       = m_pictureCodingType;
-        walkerCodecParams.bMbEncIFrameDistInUse    = mbEncIFrameDistInUse;
-        walkerCodecParams.bMbaff = m_mbaffEnabled;
-        walkerCodecParams.bDirectSpatialMVPredFlag = m_avcSliceParams->direct_spatial_mv_pred_flag;
-        walkerCodecParams.bColorbitSupported       = (m_colorbitSupported && !m_arbitraryNumMbsInSlice) ? m_cmKernelEnable : false;
+    uint32_t resolutionX = mbEncIFrameDistInUse ?
+        m_downscaledWidthInMb4x : (uint32_t)m_picWidthInMb;
+    uint32_t resolutionY = mbEncIFrameDistInUse ?
+        m_downscaledFrameFieldHeightInMb4x : (uint32_t)m_frameFieldHeightInMb;
 
-        if (IsMfeMbEncEnabled(mbEncIFrameDistInUse))
-        {
-            walkerCodecParams.dwNumSlices   = m_mfeEncodeParams.submitNumber;  // MFE use color bit to handle frames in parallel
-            walkerCodecParams.WalkerDegree  = CODECHAL_26_DEGREE;                        // MFE use 26 degree dependency
-            walkerCodecParams.dwResolutionX = m_mfeEncodeSharedState->dwPicWidthInMB;
-            walkerCodecParams.dwResolutionY = m_mfeEncodeSharedState->dwPicHeightInMB;
-            walkerCodecParams.usSliceHeight = m_mfeEncodeSharedState->sliceHeight;
-        }
-        else
-        {
-            walkerCodecParams.dwResolutionX = resolutionX;
-            walkerCodecParams.dwResolutionY = resolutionY;
-            walkerCodecParams.dwNumSlices   = m_numSlices;
-            walkerCodecParams.usSliceHeight = m_sliceHeight;
-        }
-        walkerCodecParams.bGroupIdSelectSupported = m_groupIdSelectSupported;
-        walkerCodecParams.ucGroupId               = m_groupId;
+    CODECHAL_WALKER_CODEC_PARAMS walkerCodecParams;
+    MOS_ZeroMemory(&walkerCodecParams, sizeof(walkerCodecParams));
+    walkerCodecParams.WalkerMode               = m_walkerMode;
+    walkerCodecParams.bUseScoreboard           = m_useHwScoreboard;
+    walkerCodecParams.wPictureCodingType       = m_pictureCodingType;
+    walkerCodecParams.bMbEncIFrameDistInUse    = mbEncIFrameDistInUse;
+    walkerCodecParams.bMbaff                   = m_mbaffEnabled;
+    walkerCodecParams.bDirectSpatialMVPredFlag = m_avcSliceParams->direct_spatial_mv_pred_flag;
+    walkerCodecParams.bColorbitSupported       = (m_colorbitSupported && !m_arbitraryNumMbsInSlice) ? m_cmKernelEnable : false;
+    walkerCodecParams.dwResolutionX            = resolutionX;
+    walkerCodecParams.dwResolutionY            = resolutionY;
+    walkerCodecParams.dwNumSlices              = m_numSlices;
+    walkerCodecParams.usSliceHeight            = m_sliceHeight;
+    walkerCodecParams.bGroupIdSelectSupported  = m_groupIdSelectSupported;
+    walkerCodecParams.ucGroupId                = m_groupId;
 
-        MHW_WALKER_PARAMS walkerParams;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
-            m_hwInterface,
-            &walkerParams,
-            &walkerCodecParams));
+    MHW_WALKER_PARAMS walkerParams;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalInitMediaObjectWalkerParams(
+        m_hwInterface,
+        &walkerParams,
+        &walkerCodecParams));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
-            &cmdBuffer,
-            &walkerParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
+        &cmdBuffer,
+        &walkerParams));
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, encFunctionType));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, encFunctionType));
 
-        // Add dump for MBEnc surface state heap here
-        CODECHAL_DEBUG_TOOL(
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpKernelRegion(
-                encFunctionType,
-                MHW_SSH_TYPE,
-                kernelState));
-        )
-
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSubmitBlocks(
-                m_stateHeapInterface,
-                kernelState));
-        if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
-                m_stateHeapInterface));
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
-        }
-
-        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
-            &cmdBuffer,
+    // Add dump for MBEnc surface state heap here
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpKernelRegion(
             encFunctionType,
-            nullptr)));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->UpdateSSEuForCmdBuffer(&cmdBuffer, m_singleTaskPhaseSupported, m_lastTaskInPhase));
+            MHW_SSH_TYPE,
+            kernelState));
+    )
 
-        m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSubmitBlocks(
+        m_stateHeapInterface,
+        kernelState));
 
-        if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
-        {
-            m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
-            m_lastTaskInPhase = false;
-        }
+    if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
+            m_stateHeapInterface));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    }
+
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
+        &cmdBuffer,
+        encFunctionType,
+        nullptr)));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->UpdateSSEuForCmdBuffer(&cmdBuffer, m_singleTaskPhaseSupported, m_lastTaskInPhase));
+
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+
+    if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
+    {
+        m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
+        m_lastTaskInPhase = false;
     }
 
     currRefList->ucMADBufferIdx = m_currMadBufferIdx;
     currRefList->bMADEnabled    = m_madEnabled;
-
-    if (IsMfeMbEncEnabled(mbEncIFrameDistInUse))
-    {
-        m_stateHeapInterface    = m_origStateHeapInterface;
-        m_hwInterface           = m_origHwInterface;
-        m_osInterface           = m_origOsInterface;
-
-        MbEncBindingTable       = origMbEncBindingTable;
-
-        CODECHAL_DEBUG_TOOL(
-            m_debugInterface->m_osInterface = m_osInterface;)
-    }
 
     return eStatus;
 }
