@@ -2499,6 +2499,7 @@ MOS_STATUS CodechalVdencVp9StateG12::SetTileCommands(
         (m_lastPicInStream || m_lastPicInSeq) ? 0 : 1;
     vdPipelineFlushParams.Flags.bWaitDoneVDENC = 1;
     vdPipelineFlushParams.Flags.bFlushVDENC = 1;
+    vdPipelineFlushParams.Flags.bFlushHEVC = 1;
     vdPipelineFlushParams.Flags.bWaitDoneVDCmdMsgParser = 1;
 
     if (IsFirstPipe() && IsFirstPass())
@@ -2520,6 +2521,16 @@ MOS_STATUS CodechalVdencVp9StateG12::SetTileCommands(
                 {
                     continue;
                 }
+            }
+
+            if (m_scalableMode)
+            {
+                MHW_MI_VD_CONTROL_STATE_PARAMS vdCtrlParam;
+                //in scalability mode
+                MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
+                vdCtrlParam.scalableModePipeLock = true;
+                MhwMiInterfaceG12 *miInterfaceG12 = static_cast <MhwMiInterfaceG12 *>(m_miInterface);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(cmdBuffer, &vdCtrlParam));
             }
 
             // HCP_TILE_CODING commmand
@@ -2550,7 +2561,21 @@ MOS_STATUS CodechalVdencVp9StateG12::SetTileCommands(
             }
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencWalkerStateCmd(cmdBuffer, &vdencWalkerStateParams));
 
+            if (m_scalableMode)
+            {
+                MHW_MI_VD_CONTROL_STATE_PARAMS vdCtrlParam;
+                MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
+                vdCtrlParam.scalableModePipeUnlock = true;
+                MhwMiInterfaceG12 *miInterfaceG12 = static_cast <MhwMiInterfaceG12 *>(m_miInterface);
+                CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(cmdBuffer, &vdCtrlParam));
+            }
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdPipelineFlushCmd(cmdBuffer, &vdPipelineFlushParams));
+            // Send MI_FLUSH command
+            MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+            MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+            flushDwParams.bVideoPipelineCacheInvalidate = true;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
         }
     }
 
@@ -2597,20 +2622,11 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteTileLevel()
     // Setup Tile level PAK commands
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetTileCommands(&cmdBuffer));
 
-    if (m_numPipe > 1)
-    {
-        MHW_MI_VD_CONTROL_STATE_PARAMS vdCtrlParam;
-        MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
-        vdCtrlParam.scalableModePipeUnlock = true;
-        MhwMiInterfaceG12 *miInterfaceG12 = static_cast <MhwMiInterfaceG12 *>(m_miInterface);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(&cmdBuffer, &vdCtrlParam));
-    }
-
-    // Send MI_FLUSH command
-    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
-    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-    flushDwParams.bVideoPipelineCacheInvalidate = true;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+    MHW_MI_VD_CONTROL_STATE_PARAMS vdCtrlParam;
+    MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
+    vdCtrlParam.memoryImplicitFlush = true;
+    MhwMiInterfaceG12 *miInterfaceG12 = static_cast <MhwMiInterfaceG12 *>(m_miInterface);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(&cmdBuffer, &vdCtrlParam));
 
     // Send VD_PIPELINE_FLUSH command
     MHW_VDBOX_VD_PIPE_FLUSH_PARAMS              vdPipelineFlushParams;
@@ -2623,6 +2639,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteTileLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdPipelineFlushCmd(&cmdBuffer, &vdPipelineFlushParams));
 
     // Send MI_FLUSH command
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
@@ -3812,15 +3829,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
     vdCtrlParam.initialization = true;
     MhwMiInterfaceG12 *miInterfaceG12 = static_cast <MhwMiInterfaceG12 *>(m_miInterface);
-   CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(&cmdBuffer, &vdCtrlParam));
-
-   if (m_scalableMode)
-   {
-       //in scalability mode
-       MOS_ZeroMemory(&vdCtrlParam, sizeof(MHW_MI_VD_CONTROL_STATE_PARAMS));
-       vdCtrlParam.scalableModePipeLock = true;
-       CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(&cmdBuffer, &vdCtrlParam));
-   }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN((miInterfaceG12)->AddMiVdControlStateCmd(&cmdBuffer, &vdCtrlParam));
 
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;
