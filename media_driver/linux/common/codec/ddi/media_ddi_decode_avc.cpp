@@ -62,7 +62,7 @@ VAStatus DdiDecodeAVC::ParseSliceParams(
     uint32_t sliceBaseOffset;
     sliceBaseOffset = GetBsBufOffset(m_groupIndex);
 
-    uint32_t i, slcCount;
+    uint32_t i, slcCount, refCount;
     for (slcCount = 0; slcCount < numSlices; slcCount++)
     {
         if (m_ddiDecodeCtx->bShortFormatInUse)
@@ -113,7 +113,8 @@ VAStatus DdiDecodeAVC::ParseSliceParams(
             avcSliceParams->slice_alpha_c0_offset_div2    = slc->slice_alpha_c0_offset_div2;
             avcSliceParams->slice_beta_offset_div2        = slc->slice_beta_offset_div2;
             // reference list 0
-            for (i = 0; i < CODEC_MAX_NUM_REF_FIELD; i++)
+            refCount = std::min(avcSliceParams->num_ref_idx_l0_active_minus1 + 1, CODEC_MAX_NUM_REF_FIELD);
+            for (i = 0; i < refCount; i++)
             {
                 SetupCodecPicture(
                     mediaCtx,
@@ -127,7 +128,8 @@ VAStatus DdiDecodeAVC::ParseSliceParams(
                 GetSlcRefIdx(&(avcPicParams->RefFrameList[0]), &(avcSliceParams->RefPicList[0][i]));
             }
             // reference list 1
-            for (i = 0; i < CODEC_MAX_NUM_REF_FIELD; i++)
+            refCount = std::min(avcSliceParams->num_ref_idx_l1_active_minus1 + 1, CODEC_MAX_NUM_REF_FIELD);
+            for (i = 0; i < refCount; i++)
             {
                 SetupCodecPicture(
                     mediaCtx,
