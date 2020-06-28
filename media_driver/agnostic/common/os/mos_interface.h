@@ -1670,23 +1670,19 @@ public:
     static int32_t IsGPUHung(
         MOS_STREAM_HANDLE streamState);
 
+private:
     //!
     //! \brief    Init per stream parameters
     //! \details  Init per stream parameters
     //!
     //! \param    [in] streamState
     //!           Handle of Os Stream State
-    //! \param    [out] ddiDeviceContext
-    //!           Pointer of device context in DDI to init Os Device Context
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS InitStreamParameters(
-        MOS_STREAM_HANDLE  streamState,
-        DDI_DEVICE_CONTEXT ddiDeviceContext);
-
-private:
+        MOS_STREAM_HANDLE  streamState);
 
     //!
     //! \brief    Compose Cmd buffer header

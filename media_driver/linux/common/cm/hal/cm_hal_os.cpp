@@ -1578,11 +1578,8 @@ MOS_STATUS HalCm_DecompressSurface(
         GmmFlags = pOsResource->pGmmResInfo->GetResFlags();
         if (GmmFlags.Gpu.MMC || pOsResource->pGmmResInfo->IsMediaMemoryCompressed(0))
         {
-            PMOS_CONTEXT pOsContext = pOsInterface->pOsContext;
-            MOS_OS_ASSERT(pOsContext);
-            MOS_OS_ASSERT(pOsContext->ppMediaMemDecompState);
-            MOS_OS_ASSERT(pOsContext->pfnMemoryDecompress);
-            pOsContext->pfnMemoryDecompress(pOsContext, pOsResource);
+            MOS_OS_ASSERT(pOsInterface);
+            pOsInterface->pfnDecompResource(pOsInterface, pOsResource);
         }
     }
 

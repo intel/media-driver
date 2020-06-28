@@ -345,8 +345,11 @@ void DdiMediaDecode::DestroyContext(VADriverContextP ctx)
 
     if (codecHal != nullptr)
     {
-        MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
-        codecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
+        if (codecHal->GetOsInterface() && !codecHal->GetOsInterface()->apoMosEnabled)
+        {
+            MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
+            codecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
+        }
 
         // destroy codechal
         codecHal->Destroy();

@@ -1818,13 +1818,6 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
         perStreamParameters->WaTable.reset();
         Mos_Specific_ClearGpuContext(perStreamParameters);
 
-#ifndef ANDROID
-        if (perStreamParameters->bKMDHasVCS2)
-        {
-            OsContextSpecificNext::DestroyIPC(perStreamParameters);
-        }
-#endif
-
         if (perStreamParameters->contextOffsetList.size())
         {
             perStreamParameters->contextOffsetList.clear();
@@ -1851,6 +1844,7 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
         }
 
         perStreamParameters->GmmFuncs.pfnDeleteClientContext(perStreamParameters->pGmmClientContext);
+        MOS_FreeMemAndSetNull(perStreamParameters->pPerfData);
         MOS_FreeMemAndSetNull(perStreamParameters);
         streamState->perStreamParameters = nullptr;
     }
@@ -7099,10 +7093,6 @@ MOS_STATUS Mos_Specific_InitInterface(
             (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext,
             (MOS_INTERFACE_HANDLE)pOsInterface,
             pOsInterface->Component));
-
-        MOS_OS_CHK_STATUS(MosInterface::InitStreamParameters(
-            pOsInterface->osStreamState,
-            pOsDriverContext));
 
         // Set interface functions for legacy HAL
         pOsContext                          = (PMOS_OS_CONTEXT)pOsInterface->osStreamState->perStreamParameters;

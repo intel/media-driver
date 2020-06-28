@@ -285,7 +285,6 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.pfnMemoryDecompress   = mediaDrvCtx->pfnMemoryDecompress;
     mosCtx.pfnMediaMemoryCopy    = mediaDrvCtx->pfnMediaMemoryCopy;
     mosCtx.pfnMediaMemoryCopy2D  = mediaDrvCtx->pfnMediaMemoryCopy2D;
-    mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
     mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;
@@ -293,11 +292,15 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.m_osDeviceContext     = mediaDrvCtx->m_osDeviceContext;
     mosCtx.m_apoMosEnabled       = mediaDrvCtx->m_apoMosEnabled;
 
-    if (nullptr == mosCtx.pPerfData)
+    if (!mosCtx.m_apoMosEnabled)
     {
-        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-        DdiEncodeCleanUp(encCtx);
-        return vaStatus;
+        mosCtx.pPerfData = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+        if (nullptr == mosCtx.pPerfData)
+        {
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+            DdiEncodeCleanUp(encCtx);
+            return vaStatus;
+        }
     }
 
     encCtx->vaEntrypoint  = entrypoint;
@@ -469,8 +472,11 @@ VAStatus DdiEncode_DestroyContext(VADriverContextP ctx, VAContextID context)
         }
     }
 
-    MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
-    codecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
+    if (codecHal->GetOsInterface() && !codecHal->GetOsInterface()->apoMosEnabled)
+    {
+        MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
+        codecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
+    }
 
     // destroy codechal
     codecHal->Destroy();

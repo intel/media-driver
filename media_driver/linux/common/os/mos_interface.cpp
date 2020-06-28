@@ -235,6 +235,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
         &userFeatureWriteData,
         1);
 
+    MOS_OS_CHK_STATUS_RETURN(MosInterface::InitStreamParameters(*streamState));
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -252,30 +254,32 @@ MOS_STATUS MosInterface::DestroyOsStreamState(
 }
 
 MOS_STATUS MosInterface::InitStreamParameters(
-    MOS_STREAM_HANDLE         streamState,
-    DDI_DEVICE_CONTEXT        ddiDeviceContext)
+    MOS_STREAM_HANDLE         streamState)
 {
-    MOS_STATUS      eStatus         = MOS_STATUS_SUCCESS;
-    PMOS_CONTEXT    context         = nullptr;
-    PMOS_CONTEXT    osDriverContext = nullptr;
-    uint32_t        resetCount      = 0;
-    int32_t         ret             = 0;
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
+    MOS_STATUS                  eStatus             = MOS_STATUS_SUCCESS;
+    PMOS_CONTEXT                context             = nullptr;
+    uint32_t                    resetCount          = 0;
+    int32_t                     ret                 = 0;
+    MOS_BUFMGR                  *bufMgr             = nullptr;
+    int32_t                     fd                  = -1;
+    OsContextSpecificNext       *osDeviceContext    = nullptr;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
 
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(ddiDeviceContext);
+    MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
 
-    osDriverContext = (PMOS_CONTEXT)ddiDeviceContext;
-
-    MOS_OS_CHK_NULL_RETURN(osDriverContext->bufmgr);
-
-    if (0 >= osDriverContext->fd)
+    osDeviceContext = (OsContextSpecificNext *)streamState->osDeviceContext;
+    fd              = osDeviceContext->GetFd();
+    if (0 >= fd)
     {
         MOS_OS_ASSERTMESSAGE("Invalid fd");
         return MOS_STATUS_INVALID_HANDLE;
     }
+
+    bufMgr = osDeviceContext->GetBufMgr();
+    MOS_OS_CHK_NULL_RETURN(bufMgr);
 
     context = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
     MOS_OS_CHK_NULL_RETURN(context);
@@ -296,23 +300,32 @@ MOS_STATUS MosInterface::InitStreamParameters(
 
     context->pGmmClientContext  = context->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
 
-    context->bufmgr             = osDriverContext->bufmgr;
-    context->m_gpuContextMgr    = osDriverContext->m_gpuContextMgr;
-    context->m_cmdBufMgr        = osDriverContext->m_cmdBufMgr;
-    context->fd                 = osDriverContext->fd;
-    context->pPerfData          = osDriverContext->pPerfData;
-    context->m_auxTableMgr      = osDriverContext->m_auxTableMgr;
+    context->bufmgr             = bufMgr;
+    context->m_gpuContextMgr    = osDeviceContext->GetGpuContextMgr();
+    context->m_cmdBufMgr        = osDeviceContext->GetCmdBufferMgr();
+    context->fd                 = fd;
+    context->pPerfData          = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    if(!context->pPerfData)
+    {
+        MOS_FreeMemAndSetNull(context);
+        MOS_OS_ASSERTMESSAGE("Allocation failed.");
+        return MOS_STATUS_NO_SPACE;
+    }
 
-    mos_bufmgr_gem_enable_reuse(osDriverContext->bufmgr);
+    context->m_auxTableMgr      = osDeviceContext->GetAuxTableMgr();
 
-    context->SkuTable           = osDriverContext->SkuTable;
-    context->WaTable            = osDriverContext->WaTable;
-    context->gtSystemInfo       = osDriverContext->gtSystemInfo;
-    context->platform           = osDriverContext->platform;
+    mos_bufmgr_gem_enable_reuse(bufMgr);
+
+    context->SkuTable           = *osDeviceContext->GetSkuTable();
+    context->WaTable            = *osDeviceContext->GetWaTable();
+    context->gtSystemInfo       = *osDeviceContext->GetGtSysInfo();
+    context->platform           = *osDeviceContext->GetPlatformInfo();
 
     context->bUse64BitRelocs    = true;
     context->bUseSwSwizzling    = context->bSimIsActive || MEDIA_IS_SKU(&context->SkuTable, FtrUseSwSwizzling);
     context->bTileYFlag         = MEDIA_IS_SKU(&context->SkuTable, FtrTileY);
+
+    streamState->perStreamParameters = (OS_PER_STREAM_PARAMETERS)context;
 
     if (MEDIA_IS_SKU(&context->SkuTable, FtrContextBasedScheduling))
     {
@@ -323,9 +336,11 @@ MOS_STATUS MosInterface::InitStreamParameters(
     }
     else  //use legacy context create ioctl for pre-gen11 platforms
     {
-        context->intel_context = mos_gem_context_create(context->bufmgr);
-        MOS_OS_CHK_NULL_RETURN(context->intel_context);
-        context->intel_context->vm = nullptr;
+        MOS_OS_ASSERTMESSAGE("Do not support the legacy context creation.\n");
+        MOS_FreeMemAndSetNull(context->pPerfData);
+        MOS_FreeMemAndSetNull(context);
+        streamState->perStreamParameters = nullptr;
+        return MOS_STATUS_UNIMPLEMENTED;
     }
     context->intel_context->pOsContext = context;
     ret                                = mos_get_reset_stats(context->intel_context, &resetCount, nullptr, nullptr);
@@ -338,43 +353,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
     streamState->gpuActiveBatch   = 0;
     streamState->gpuPendingBatch  = 0;
 
-    context->bIsAtomSOC = false;
-
-#ifndef ANDROID
-    {
-        drm_i915_getparam_t gp;
-        int32_t             ret   = -1;
-        int32_t             value = 0;
-
-        //KMD support VCS2?
-        gp.value = &value;
-        gp.param = I915_PARAM_HAS_BSD2;
-
-        ret = drmIoctl(context->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-        if (ret == 0 && value != 0)
-        {
-            context->bKMDHasVCS2 = true;
-        }
-        else
-        {
-            context->bKMDHasVCS2 = false;
-        }
-    }
-    if (context->bKMDHasVCS2)
-    {
-        eStatus = OsContextSpecificNext::CreateIPC(context);
-        MOS_OS_CHK_STATUS_RETURN(eStatus);
-    }
-#endif
-
-    context->pTranscryptedKernels       = nullptr;
-    context->uiTranscryptedKernelsSize = 0;
-
-    // For Media Memory compression
-    context->ppMediaMemDecompState  = osDriverContext->ppMediaMemDecompState;
-    context->pfnMemoryDecompress    = osDriverContext->pfnMemoryDecompress;
-    context->pfnMediaMemoryCopy     = osDriverContext->pfnMediaMemoryCopy;
-    context->pfnMediaMemoryCopy2D   = osDriverContext->pfnMediaMemoryCopy2D;
+    context->bIsAtomSOC           = false;
 
     context->bFreeContext = true;
 
