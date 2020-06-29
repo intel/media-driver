@@ -33,6 +33,9 @@ CodechalMmcDecodeVc1G12Ext::CodechalMmcDecodeVc1G12Ext(
     m_mmcState(mmcState)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
+
+    CODECHAL_HW_ASSERT(m_hwInterface);
+    CODECHAL_HW_ASSERT(m_mmcState);
 }
 
 MOS_STATUS CodechalMmcDecodeVc1G12Ext::CopyAuxSurfForSkip(
@@ -40,7 +43,50 @@ MOS_STATUS CodechalMmcDecodeVc1G12Ext::CopyAuxSurfForSkip(
     PMOS_RESOURCE       srcResource,
     PMOS_RESOURCE       destResource)
 {
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
     CODECHAL_DECODE_FUNCTION_ENTER;
-    
-    return MOS_STATUS_SUCCESS;
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(cmdBuffer);
+    CODECHAL_DECODE_CHK_NULL_RETURN(srcResource);
+    CODECHAL_DECODE_CHK_NULL_RETURN(srcResource->pGmmResInfo);
+    CODECHAL_DECODE_CHK_NULL_RETURN(destResource);
+    CODECHAL_DECODE_CHK_NULL_RETURN(destResource->pGmmResInfo);
+
+    GMM_RESOURCE_FLAG srcFlags  = srcResource->pGmmResInfo->GetResFlags();
+    GMM_RESOURCE_FLAG destFlags = destResource->pGmmResInfo->GetResFlags();
+
+    if (m_mmcState->IsMmcEnabled() && srcFlags.Gpu.UnifiedAuxSurface && destFlags.Gpu.UnifiedAuxSurface)
+    {
+        CodechalHucStreamoutParams HucStreamOutParams;
+        MOS_ZeroMemory(&HucStreamOutParams, sizeof(HucStreamOutParams));
+
+        // params calculation for aux data
+        uint64_t srcGfxAddr     = m_hwInterface->GetOsInterface()->pfnGetResourceGfxAddress(m_hwInterface->GetOsInterface(), srcResource);
+        uint64_t srcAuxYOffset  = srcResource->pGmmResInfo->GetPlanarAuxOffset(0, GMM_AUX_Y_CCS);
+        uint32_t srcAuxSurfSize = (uint32_t)srcResource->pGmmResInfo->GetAuxQPitch();
+
+        uint64_t destGfxAddr     = m_hwInterface->GetOsInterface()->pfnGetResourceGfxAddress(m_hwInterface->GetOsInterface(), destResource);
+        uint64_t destAuxYOffset  = destResource->pGmmResInfo->GetPlanarAuxOffset(0, GMM_AUX_Y_CCS);
+        uint32_t destAuxSurfSize = (uint32_t)destResource->pGmmResInfo->GetAuxQPitch();
+
+        // Ind Obj Addr command
+        HucStreamOutParams.dataBuffer            = srcResource;
+        HucStreamOutParams.dataSize              = srcAuxSurfSize;
+        HucStreamOutParams.dataOffset            = MOS_ALIGN_FLOOR(srcAuxYOffset, MHW_PAGE_SIZE);
+        HucStreamOutParams.streamOutObjectBuffer = destResource;
+        HucStreamOutParams.streamOutObjectSize   = destAuxSurfSize;
+        HucStreamOutParams.streamOutObjectOffset = MOS_ALIGN_FLOOR(destAuxYOffset, MHW_PAGE_SIZE);
+
+        // Stream object params
+        HucStreamOutParams.indStreamInLength    = srcAuxSurfSize;
+        HucStreamOutParams.inputRelativeOffset  = 0;
+        HucStreamOutParams.outputRelativeOffset = 0;
+
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->PerformHucStreamOut(
+            &HucStreamOutParams,
+            cmdBuffer));
+    }
+
+    return eStatus;
 }
