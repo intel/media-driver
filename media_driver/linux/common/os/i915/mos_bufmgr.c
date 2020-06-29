@@ -1,7 +1,7 @@
 /**************************************************************************
  *
- * Copyright © 2007 Red Hat Inc.
- * Copyright © 2007-2018 Intel Corporation
+ * Copyright Â© 2007 Red Hat Inc.
+ * Copyright Â© 2007-2020 Intel Corporation
  * Copyright 2006 Tungsten Graphics, Inc., Bismarck, ND., USA
  * All Rights Reserved.
  *
@@ -28,7 +28,7 @@
  *
  **************************************************************************/
 /*
- * Authors: Thomas Hellström <thomas-at-tungstengraphics-dot-com>
+ * Authors: Thomas HellstrÃ¶m <thomas-at-tungstengraphics-dot-com>
  *          Keith Whitwell <keithw-at-tungstengraphics-dot-com>
  *        Eric Anholt <eric@anholt.net>
  *        Dave Airlie <airlied@linux.ie>
@@ -4230,7 +4230,8 @@ int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
     struct i915_context_engines_load_balance* balancer = nullptr;
     struct i915_context_param_engines* set_engines = nullptr;
 
-    assert(ci);
+    MOS_OS_CHECK_CONDITION(ci == nullptr, "Invalid (nullptr) Pointer.", EINVAL);
+    MOS_OS_CHECK_CONDITION(count == 0, "Invalid input parameter. Number of engines must be > 0.", EINVAL);
 
     /* I915_DEFINE_CONTEXT_ENGINES_LOAD_BALANCE */
     size = sizeof(struct i915_context_engines_load_balance) + count * sizeof(*ci);
