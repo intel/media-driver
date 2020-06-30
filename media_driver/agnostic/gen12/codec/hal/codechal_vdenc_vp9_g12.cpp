@@ -2699,7 +2699,8 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteTileLevel()
 
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
-    if (m_singleTaskPhaseSupported && m_hucEnabled && IsLastPass())
+
+    if (m_singleTaskPhaseSupported && m_hucEnabled && (IsLastPass() || (m_vdencBrcEnabled && (m_numPasses > 0) && !IsFirstPass() && !m_scalableMode)))
     {
         m_lastTaskInPhase = true; //HPU singletask phase mode only
     }
@@ -3708,6 +3709,8 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
         }
     }
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddBrcConditionalEnd());
+
     // run HuC_VP9Prob first pass (it runs in parallel with ENC)
     if (m_hucEnabled)
     {
@@ -4631,14 +4634,14 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
         //scalability initialize
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncodeScalability_InitializeState(m_scalabilityState, m_hwInterface));
     }
-
+    m_adaptiveRepakSupported = true;
     maxRows = MOS_ALIGN_CEIL(m_frameHeight, CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_HEIGHT) / CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_HEIGHT;
     //Max num of rows = 4 by VP9 Spec
     maxRows = MOS_MIN(maxRows, 4);
 
     //Max tile numbers = max of number tiles for single pipe or max muber of tiles for scalable pipes
     m_maxTileNumber = MOS_MAX((MOS_ALIGN_CEIL(m_frameWidth, CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH) / CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_WIDTH), m_numVdbox * maxRows);
-    
+
     m_numPipe = m_numVdbox;
 
     m_scalableMode = (m_numPipe > 1);
@@ -5890,6 +5893,20 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+    storeDataParams.pOsResource      = &m_resHucPakMmioBuffer;
+    storeDataParams.dwResourceOffset = sizeof(uint32_t);
+    storeDataParams.dwValue          = 1 << 31;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &storeDataParams));
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegParams;
+    MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+    storeRegParams.presStoreBuffer = &m_resHucPakMmioBuffer;
+    storeRegParams.dwOffset        = 0;
+    storeRegParams.dwRegister      = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1)->hucStatusRegOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
+
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
@@ -6066,4 +6083,31 @@ MOS_STATUS CodechalVdencVp9StateG12::ConfigStitchDataBuffer()
     m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucStitchDataBuffer[m_currRecycledBufIdx][currentPass]);
 
     return eStatus;
+}
+
+MOS_STATUS CodechalVdencVp9StateG12::AddBrcConditionalEnd()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    if (m_hucEnabled && (m_numPasses > 0) && m_vdencBrcEnabled && GetCurrentPass() == 1 && !m_scalableMode && !m_singlePassDys && !m_dysVdencMultiPassEnabled)
+    {
+        MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS miConditionalBatchBufferEndParams;
+        MOS_ZeroMemory(
+            &miConditionalBatchBufferEndParams,
+            sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
+
+        miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resHucPakMmioBuffer;
+        miConditionalBatchBufferEndParams.bDisableCompareMask = false;
+
+        MOS_COMMAND_BUFFER cmdBuffer;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+            &cmdBuffer,
+            &miConditionalBatchBufferEndParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
+        return eStatus;
+    }
+    else
+    {
+        return eStatus;
+    }
 }
