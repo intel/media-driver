@@ -6385,9 +6385,6 @@ MOS_STATUS RenderHal_SetupSurfaceState(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     //-----------------------------------------------
 
-    // Force surface type to Default (non-AVS)
-    pParams->Type = pRenderHal->SurfaceTypeDefault;
-
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SetupSurfaceState(
         pRenderHal, pRenderHalSurface, pParams, piNumEntries, ppSurfaceEntries, pOffsetOverride));
 finish:

@@ -364,12 +364,13 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(PMOS_SURFACE surface, PRENDERHAL
     if (!pSurfaceParams)
     {
         MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
-        surfaceParams.Type                  = m_renderHal->SurfaceTypeDefault;
-        surfaceParams.bWidthInDword_Y       = true;
-        surfaceParams.bWidthInDword_UV      = true;
-        surfaceParams.Boundary              = RENDERHAL_SS_BOUNDARY_ORIGINAL;
-        pSurfaceParams                      = &surfaceParams;
+        pSurfaceParams = &surfaceParams;
     }
+
+    pSurfaceParams->Type             = m_renderHal->SurfaceTypeDefault;
+    pSurfaceParams->bWidthInDword_Y  = true;
+    pSurfaceParams->bWidthInDword_UV = true;
+    pSurfaceParams->Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;
 
     RENDER_PACKET_CHK_STATUS_RETURN(InitRenderHalSurface(
         *surface,
