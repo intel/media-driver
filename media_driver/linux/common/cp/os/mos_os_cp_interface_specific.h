@@ -206,6 +206,12 @@ public:
         OsStubMessage();
         return MOS_STATUS_SUCCESS;
     }
+
+    bool CpRegisterAccessible()
+    {
+        OsStubMessage();
+        return false;
+    }
 };
 
 //!
