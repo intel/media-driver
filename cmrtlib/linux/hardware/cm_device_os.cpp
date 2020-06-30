@@ -58,51 +58,64 @@ volatile static char cmrtCurrentVersion[] = "cmrt_current_version: " \
 "6.0.0.9010\0";
 CSync gDeviceCreationCriticalSection;
 
-
-int32_t CmDevice_RT::GetSupportedAdapters(uint32_t& count)
+int32_t CmDevice_RT::GetSupportedAdapters(uint32_t &count)
 {
     INSERT_PROFILER_RECORD();
     int32_t result = CM_SUCCESS;
     uint32_t i = 0;
     uint32_t k = 0;
-    char* driver_name;
 
-    if (g_AdapterCount == 0)
+    if (!g_AdapterCount)
     {
-        int max_dev = 256;
-        drmDevicePtr devices[max_dev];
-        int nodes = drmGetDevices(devices, max_dev);
-        int i = 0;
-        for (int k = 0; k < nodes; k++)
+        int max_device = 256;
+        drmDevicePtr devices[max_device];
+        int node_count = drmGetDevices(devices, max_device);
+        int supported_adapter_count = 0;
+        for (int node_idx = 0; node_idx < node_count; ++node_idx)
         {
-            driver_name = strrchr(devices[k]->nodes[0], '/');
-            driver_name++;
-            int len = strlen(devices[k]->deviceinfo.pci->driverInfo);
+            char *card_name = strrchr(devices[node_idx]->nodes[0], '/');
+            ++card_name;
+            size_t len = strlen(devices[node_idx]->deviceinfo.pci->driverInfo);
             if (len > 0)
-                devices[k]->deviceinfo.pci->driverInfo[len - 1] = ' ';
-
-            snprintf(devices[k]->deviceinfo.pci->driverInfo + len, (sizeof devices[k]->deviceinfo.pci->driverInfo) - len, "  %s", driver_name);
-            driver_name = strrchr(devices[k]->nodes[2], '/');
-            driver_name++;
-            len = strlen(devices[k]->deviceinfo.pci->driverInfo);
-            snprintf(devices[k]->deviceinfo.pci->driverInfo + len, (sizeof devices[k]->deviceinfo.pci->driverInfo) - len, "  %s", driver_name);
-            if (devices[k]->deviceinfo.pci->vendor_id == INTEL_VENDOR_ID)
             {
-                g_AdapterList[i] = devices[k];
-                i++;
+                devices[node_idx]->deviceinfo.pci->driverInfo[len - 1] = ' ';
+            }
+            snprintf(devices[node_idx]->deviceinfo.pci->driverInfo + len,
+                     (sizeof devices[node_idx]->deviceinfo.pci->driverInfo) - len,
+                     "  %s", card_name);
+
+            size_t render_name_length = strlen(devices[node_idx]->nodes[2]);
+            if (!render_name_length)
+            {
+                continue;
+            }
+            char *render_name = strrchr(devices[node_idx]->nodes[2], '/');
+            if (!render_name)
+            {
+                continue;
+            }
+            ++render_name;
+            len = strlen(devices[node_idx]->deviceinfo.pci->driverInfo);
+            snprintf(devices[node_idx]->deviceinfo.pci->driverInfo + len,
+                     (sizeof devices[node_idx]->deviceinfo.pci->driverInfo) - len,
+                     "  %s", render_name);
+            if (INTEL_VENDOR_ID == devices[node_idx]->deviceinfo.pci->vendor_id)
+            {
+                g_AdapterList[supported_adapter_count] = devices[node_idx];
+                ++supported_adapter_count;
             }
         }
-        if (nodes == 0)
-            result = CM_NO_SUPPORTED_ADAPTER;
 
-        g_AdapterCount = k;
-        g_supportedAdapterCount = i;
+        if (!node_count)
+        {
+            result = CM_NO_SUPPORTED_ADAPTER;
+        }
+        g_AdapterCount = node_count;
+        g_supportedAdapterCount = supported_adapter_count;
     }
     count = g_supportedAdapterCount;
     return result;
 }
-
-
 
 int32_t CmDevice_RT::CreateCmDeviceFromAdapter(CmDevice_RT* &pCmDev, int32_t adapterIndex, uint32_t CreateOption)
 {
