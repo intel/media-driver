@@ -362,10 +362,6 @@ if(GEN9_SKL)
     media_include_subdirectory(gen9_skl)
 endif()
 
-if(GEN9_CFL)
-    media_include_subdirectory(gen9_cfl)
-endif()
-
 if(GEN9_GLK)
     media_include_subdirectory(gen9_glk)
 endif()
@@ -376,10 +372,6 @@ endif()
 
 if(GEN10)
     media_include_subdirectory(gen10)
-endif()
-
-if(GEN10_CNL)
-    media_include_subdirectory(gen10_cnl)
 endif()
 
 if(GEN11)

@@ -20,5 +20,4 @@
 
 media_include_subdirectory(codec)
 media_include_subdirectory(hw)
-media_include_subdirectory(media_interfaces)
 media_include_subdirectory(vp)

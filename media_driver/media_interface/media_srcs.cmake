@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018, Intel Corporation
+# Copyright (c) 2017, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,4 +18,47 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(media_interfaces)
+
+
+
+if(GEN8_BDW)
+    media_include_subdirectory(media_interfaces_m8_bdw)
+endif()
+
+if(GEN9_BXT)
+    media_include_subdirectory(media_interfaces_m9_bxt)
+endif()
+
+if(GEN9_SKL)
+    media_include_subdirectory(media_interfaces_m9_skl)
+endif()
+
+if(GEN9_CFL)
+    media_include_subdirectory(media_interfaces_m9_cfl)
+endif()
+
+if(GEN9_GLK)
+    media_include_subdirectory(media_interfaces_m9_glk)
+endif()
+
+if(GEN9_KBL)
+    media_include_subdirectory(media_interfaces_m9_kbl)
+endif()
+
+if(GEN10_CNL)
+    media_include_subdirectory(media_interfaces_m10_cnl)
+endif()
+
+if(GEN11_ICLLP)
+    media_include_subdirectory(media_interfaces_m11_icllp)
+endif()
+
+if(GEN12_TGLLP)
+    media_include_subdirectory(media_interfaces_m12_tgllp)
+endif()
+
+if(GEN12_DG1)
+    media_include_subdirectory(media_interfaces_m12_dg1)
+endif()
+
+include(${MEDIA_EXT}/media_interface/media_srcs.cmake OPTIONAL)
