@@ -100,10 +100,6 @@ const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL
     { 1,        0,        8,         0 },
     { 1,        0,        8,         0 },
     { 1,        0,        8,         0 },
-    { 2,        3,        8,         0 },
-    { 2,        3,        8,         0 },
-    { 2,        3,        8,         0 },
-    { 2,        3,        8,         0 },
 };
 
 CodechalHwInterfaceG12::CodechalHwInterfaceG12(

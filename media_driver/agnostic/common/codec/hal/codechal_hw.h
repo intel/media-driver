@@ -207,9 +207,9 @@ typedef enum _CODECHAL_MEDIA_STATE_TYPE
     CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION             = 58,
     CODECHAL_MEDIA_STATE_HEVC_ROI                           = 59,
     CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT                 = 60,
-    CODECHAL_NUM_MEDIA_STATES                               = 65
+    CODECHAL_NUM_MEDIA_STATES                               = 61
 } CODECHAL_MEDIA_STATE_TYPE;
-C_ASSERT(CODECHAL_NUM_MEDIA_STATES == 65);  //!< update this and add new entry in the default SSEU table for each platform()
+C_ASSERT(CODECHAL_NUM_MEDIA_STATES == CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT + 1);  //!< update this and add new entry in the default SSEU table for each platform()
 
 typedef enum _CODECHAL_SLICE_STATE
 {
