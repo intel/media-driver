@@ -242,6 +242,11 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     }
 
+    if (drvInfo->devRev == 0)
+    {
+        MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
+    }
+
     MEDIA_WR_SKU(skuTable, FtrLinearCCS, 1);
 
     MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
@@ -291,6 +296,15 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, Wa_18011246551, 1);
 
     MEDIA_WR_WA(waTable, WaDisableVeboxFor8K, 1);
+
+    if (drvInfo->devRev == 0)
+    {
+        /* Turn off MMC for codec, need to remove once turn it on */
+        MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
+
+        /* Turn off MMC for VPP, need to remove once turn it on */
+        MEDIA_WR_WA(waTable, WaDisableVPMmc, 1);
+    }
 
     return true;
 }
