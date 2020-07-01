@@ -1125,6 +1125,26 @@ MOS_STATUS CodechalVdencHevcStateG12::AllocatePakResources()
                 m_osInterface,
                 &m_resVdBoxSemaphoreMem[i].sResource));
         }
+
+        for (auto i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_resPipeStartSemaMem); i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                                                          m_osInterface,
+                                                          &allocParamsForBufferLinear,
+                                                          &m_resPipeStartSemaMem[i].sResource),
+                "Failed to create VDBOX HW Semaphore Memory.");
+
+            CODECHAL_ENCODE_CHK_NULL_RETURN(data = (uint32_t *)m_osInterface->pfnLockResource(
+                                                m_osInterface,
+                                                &m_resPipeStartSemaMem[i].sResource,
+                                                &lockFlagsWriteOnly));
+
+            *data = 0;
+
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(
+                m_osInterface,
+                &m_resPipeStartSemaMem[i].sResource));
+        }
     }
 
     uint32_t* data = nullptr;
@@ -1327,6 +1347,11 @@ MOS_STATUS CodechalVdencHevcStateG12::FreePakResources()
     for (uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_resVdBoxSemaphoreMem); i++)
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_resVdBoxSemaphoreMem[i].sResource);
+    }
+
+    for (uint32_t i = 0; i < CODECHAL_GET_ARRAY_LENGTH(m_resPipeStartSemaMem); i++)
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &m_resPipeStartSemaMem[i].sResource);
     }
 
    if (m_enableTileStitchByHW)
@@ -2530,6 +2555,34 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
     }
 
+    if (m_numPipe >= 2 && IsFirstPass())
+    {
+        MOS_COMMAND_BUFFER cmdBuffer;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+        //HW Semaphore cmd to make sure all pipes start encode at the same time
+        for (uint32_t i = 0; i < m_numPipe; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMIAtomicCmd(
+                &m_resPipeStartSemaMem[i].sResource,
+                1,
+                MHW_MI_ATOMIC_INC,
+                &cmdBuffer));
+        }
+        auto pipeNum = GetCurrentPipe();
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(
+            &m_resPipeStartSemaMem[pipeNum].sResource,
+            &cmdBuffer,
+            m_numPipe));
+
+        //clean HW semaphore memory
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(
+            &m_resPipeStartSemaMem[pipeNum].sResource,
+            &cmdBuffer,
+            0x0));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
+    }
+
     if (m_vdencHucUsed && IsFirstPipe())
     {
         // STF: HuC+VDEnc+PAK single BB, non-STF: HuC Init/HuC Update/(VDEnc+PAK) in separate BBs
@@ -2590,19 +2643,20 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     // Ensure the previous BRC Update is done, before executing PAK
     if (m_vdencHucUsed && (m_numPipe >= 2))
     {
+        int32_t currentPass = GetCurrentPass() + 1;
         if (IsFirstPipe())
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(
                 &m_resBrcPakSemaphoreMem.sResource,
                 &cmdBuffer,
-                m_numPipe));
+                currentPass));
         }
         else
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SendHWWaitCommand(
                 &m_resBrcPakSemaphoreMem.sResource,
                 &cmdBuffer,
-                m_numPipe));
+                currentPass));
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSemaphoreMem(
                 &m_resBrcPakSemaphoreMem.sResource,

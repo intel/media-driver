@@ -2209,7 +2209,7 @@ public:
     CODECHAL_ENCODE_BUFFER m_resBrcSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                       //!< BRC HW semaphore
     CODECHAL_ENCODE_BUFFER m_resVdBoxSemaphoreMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                     //!< VDBox HW semaphore
     CODECHAL_ENCODE_BUFFER m_resBrcPakSemaphoreMem;                                                                                                    //!< BRC PAK HW semaphore
-    MOS_RESOURCE           m_resPipeStartSemaMem;                                                                                                      //!< HW semaphore for scalability pipe start at the same time
+    CODECHAL_ENCODE_BUFFER m_resPipeStartSemaMem[CODECHAL_HEVC_MAX_NUM_HCP_PIPE];                                                                      //!< HW semaphore for scalability pipe start at the same time
 
     int32_t m_curPicSlot = -1;        //!< Slot selected to store current Picutre data
     uint32_t m_prevStoreData = 0;     //!< Previous stored data
