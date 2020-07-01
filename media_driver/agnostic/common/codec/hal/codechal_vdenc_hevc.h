@@ -101,21 +101,23 @@ struct CodechalVdencHevcLaDmem
     uint32_t lengthAhead;         // in the units of frames
     uint32_t vbvBufferSize;       // in the units of frames
     uint32_t vbvInitialFullness;  // in the units of frames
-    uint32_t mbCount;             // normalized 16x16 block count
+    uint32_t cuCount;             // normalized 8x8 CU count
     uint32_t statsRecords;        // # of statistic records
-    uint32_t averageFrameSize;    // in the units of bytes
+    uint32_t avgFrameSizeInByte;  // in the units of bytes
     uint16_t minGop;
     uint16_t maxGop;
     uint16_t BGop;
     uint16_t AGop;
     uint16_t AGop_Threshold;
     uint16_t PGop;
+    uint8_t  downscaleRatio;     // 0-no scale, 1-2x, 2-4x
+    uint8_t  RSVD1[23];
     // for Update, valid only when lookAheadFunc = 1
-    uint32_t validStatsRecords;   // # of valid stats records
-    uint32_t offset;              // offset in unit of entries
-    uint8_t  cqmQpThreshold;    // QP threshold for CQM enable/disable. If estimated QP > CQM_QP_threshold, kernel set HUC_HEVC_LA_DATA.enableCQM to 1.
+    uint32_t validStatsRecords;  // # of valid stats records
+    uint32_t offset;             // offset in unit of entries
+    uint8_t  cqmQpThreshold;     // QP threshold for CQM enable/disable. If estimated QP > CQM_QP_threshold, kernel set HUC_LOOKAHEAD_DATA.enableCQM to 1.
     uint8_t  currentPass;
-    uint8_t  RSVD2[22];
+    uint8_t  RSVD2[54];
 };
 
 using PCodechalVdencHevcLaDmem = CodechalVdencHevcLaDmem *;
@@ -253,7 +255,7 @@ public:
     MOS_RESOURCE                            m_vdencLaHistoryBuffer = {};                            //!< VDEnc lookahead history buffer
     bool                                    m_lookaheadPass = false;                           //!< Indicate if current pass is lookahead pass or encode pass
     bool                                    m_lookaheadInit = true;                            //!< Lookahead init flag
-    bool                                    m_lookaheadUpdate = false;                         //!< Lookahead update flag
+    bool                                    m_lookaheadReport = false;                         //!< Lookahead report valid flag
     uint32_t                                m_vdencLaInitDmemBufferSize = 0;                   //!< Offset of Lookahead init DMEM buffer
     uint32_t                                m_vdencLaUpdateDmemBufferSize = 0;                 //!< Offset of Lookahead update DMEM buffer
     uint32_t                                m_numValidLaRecords = 0;                           //!< Number of valid lookahead records

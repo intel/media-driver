@@ -1866,11 +1866,6 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
         m_currRefSync = nullptr;
     }
 
-    if (m_lookaheadPass && !m_lookaheadUpdate)
-    {
-        m_lookaheadUpdate = (m_currLaDataIdx >= m_lookaheadDepth - 1);
-    }
-
     m_firstTaskInPhase = m_singleTaskPhaseSupported? IsFirstPass(): false;
     m_lastTaskInPhase = m_singleTaskPhaseSupported? IsLastPass(): true;
 
@@ -1899,7 +1894,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
         m_lastTaskInPhase = true;
     }
 
-    if (m_lookaheadUpdate && (m_swLaMode == nullptr))
+    if (m_lookaheadPass && (m_swLaMode == nullptr))
     {
         m_lastTaskInPhase = false;
     }
@@ -2229,7 +2224,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
     }
 
-    if (IsFirstPipe() && (!m_lookaheadUpdate || m_swLaMode))
+    if (IsFirstPipe() && (!m_lookaheadPass || m_swLaMode))
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
     }
@@ -5825,7 +5820,8 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadInit()
     dmem->vbvBufferSize      = m_hevcSeqParams->VBVBufferSizeInBit / m_averageFrameSize;
     dmem->vbvInitialFullness = initVbvFullness / m_averageFrameSize;
     dmem->statsRecords       = m_numLaDataEntry;
-    dmem->averageFrameSize   = m_averageFrameSize >> 3;
+    dmem->avgFrameSizeInByte = m_averageFrameSize >> 3;
+    dmem->downscaleRatio     = 2;  // 4x downscaling
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaInitDmemBuffer);
 
@@ -6074,25 +6070,26 @@ MOS_STATUS CodechalVdencHevcStateG11::AnalyzeLookaheadStats()
 
     m_numValidLaRecords++;
 
-    if (m_lookaheadUpdate)
+    if (m_lookaheadInit)
     {
-        if (m_lookaheadInit)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadInit());
-            m_lookaheadInit = false;
-        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadInit());
+        m_lookaheadInit = false;
+    }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
+    if (m_numValidLaRecords >= m_lookaheadDepth)
+    {
         m_numValidLaRecords--;
+        m_lookaheadReport = true;
+    }
 
-        if (m_hevcPicParams->bLastPicInStream)
+    if (m_hevcPicParams->bLastPicInStream)
+    {
+        // Flush the last frames
+        while (m_numValidLaRecords > 0)
         {
-            // Flush the last frames
-            while (m_numValidLaRecords > 0)
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
-                m_numValidLaRecords--;
-            }
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
+            m_numValidLaRecords--;
         }
     }
 

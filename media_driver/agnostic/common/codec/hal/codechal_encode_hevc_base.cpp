@@ -3336,6 +3336,7 @@ MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     oss << "pcm_sample_bit_depth_chroma_minus1 = " << +seqParams->pcm_sample_bit_depth_chroma_minus1 << std::endl;
     oss << "Video Surveillance Mode = " << +seqParams->bVideoSurveillance << std::endl;
     oss << "Frame Size Tolerance = " << +seqParams->FrameSizeTolerance << std::endl;
+    oss << "Look Ahead Depth = " << +seqParams->LookaheadDepth << std::endl;
 
     const char *fileName = m_debugInterface->CreateFileName(
         "_DDIEnc",
@@ -3473,6 +3474,8 @@ MOS_STATUS CodechalEncodeHevcBase::DumpPicParams(
             oss << "pDirtyRect[" << +i << "].Right = " << +picParams->pDirtyRect[i].Right << std::endl;
         }
     }
+
+    oss << "TargetFrameSize = " << +picParams->TargetFrameSize << std::endl;
 
     const char *fileName = m_debugInterface->CreateFileName(
         "_DDIEnc",

@@ -2187,7 +2187,7 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &params));
     }
 
-    if (!m_lookaheadUpdate || m_swLaMode)
+    if (!m_lookaheadPass || m_swLaMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
     }
@@ -2476,7 +2476,7 @@ MOS_STATUS CodechalVdencHevcState::ExecuteSliceLevel()
     }
 #endif
 
-    if (!m_lookaheadUpdate || m_swLaMode)
+    if (!m_lookaheadPass || m_swLaMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
     }
@@ -2679,6 +2679,37 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
             m_bufferFulnessError = (int32_t)((int64_t)m_targetBufferFulness - (int64_t)encBufferFullness);
         }
     }
+    else if (m_lookaheadDepth > 0)
+    {
+        uint64_t targetBitRate = (uint64_t)m_hevcSeqParams->TargetBitRate;
+        uint64_t frameRate     = (m_hevcSeqParams->FrameRate.Denominator ? m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator : 30);
+        if ((frameRate < 1) || (targetBitRate < frameRate))
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid FrameRate or TargetBitRate in lookahead pass!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if (frameRate)
+        {
+            m_averageFrameSize = (uint32_t)(targetBitRate / frameRate);
+        }
+        else
+        {
+            m_averageFrameSize = (uint32_t)(targetBitRate / 30);
+        }
+
+        if (m_hevcSeqParams->VBVBufferSizeInBit < m_hevcSeqParams->InitVBVBufferFullnessInBit)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("VBVBufferSizeInBit is less than InitVBVBufferFullnessInBit\n");
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            return eStatus;
+        }
+
+        if (m_targetBufferFulness == 0)
+        {
+            m_targetBufferFulness = m_hevcSeqParams->VBVBufferSizeInBit - m_hevcSeqParams->InitVBVBufferFullnessInBit;
+        }
+    }
 
     return eStatus;
 }
@@ -2781,6 +2812,14 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
     {
         m_encodeParams.psLaDataBuffer = &m_vdencLaDataBuffer;
     }
+
+    if ((m_lookaheadDepth > 0) && (m_prevTargetFrameSize > 0) && !m_lookaheadPass)
+    {
+        int64_t targetBufferFulness = (int64_t)m_targetBufferFulness;
+        targetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
+        m_targetBufferFulness = targetBufferFulness < 0 ? 0 : (targetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)targetBufferFulness);
+    }
+    m_prevTargetFrameSize = m_hevcPicParams->TargetFrameSize;
 
     return eStatus;
 }
@@ -2972,7 +3011,7 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
     }
 
     encodeStatusReport->cqmHint = 0xFF;
-    if (m_lookaheadPass && m_lookaheadUpdate && (encodeStatus->lookaheadStatus.targetFrameSize > 0))
+    if (m_lookaheadPass && m_lookaheadReport && (encodeStatus->lookaheadStatus.targetFrameSize > 0))
     {
         encodeStatusReport->pLookaheadStatus = &encodeStatus->lookaheadStatus;
         encodeStatus->lookaheadStatus.isValid = 1;

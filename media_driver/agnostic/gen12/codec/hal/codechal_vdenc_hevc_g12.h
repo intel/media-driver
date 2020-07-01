@@ -104,7 +104,7 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_INIT_DMEM_G12
     uint32_t    SlidingWindow_Size_U32;                 // 30
 
     uint8_t     SLIDINGWINDOW_MaxRateRatio;
-    uint8_t     RSVD2;
+    uint8_t     LookaheadDepth_U8;
     int8_t      CbQPOffset;
     int8_t      CrQPOffset;
 
@@ -202,7 +202,9 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G12
     uint32_t    SliceHeaderSize;
     uint8_t     IsLongTermRef;
 
-    uint8_t     RSVD[3];                           // 64 bytes aligned
+    uint8_t    EnableMotionAdaptive;
+    uint8_t    EnableLookAhead;
+    uint8_t    UPD_CQMEnabled_U8; // 0 indicates CQM is disabled for current frame; otherwise CQM is enabled
 };
 C_ASSERT(192 == sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G12));
 
@@ -280,6 +282,9 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G12
         uint16_t    WeightTable_EndInBits;                  // number of bits from beginning of slice header for weight table last bit, 0xffff means not awailable
     } Slice[CODECHAL_VDENC_HEVC_MAX_SLICE_NUM];
     uint8_t     PenaltyForIntraNonDC32x32PredMode[52];
+    uint32_t   UPD_TR_TargetSize_U32; //TR_BRC
+    uint32_t   UPD_LA_TargetFulness_U32; //LOOK_AHEAD
+    uint8_t    UPD_deltaQP;
 };
 
 using PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G12 = CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G12*;

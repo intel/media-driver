@@ -2429,11 +2429,6 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         m_currRefSync = nullptr;
     }
 
-    if (m_lookaheadPass && !m_lookaheadUpdate)
-    {
-        m_lookaheadUpdate = (m_currLaDataIdx >= m_lookaheadDepth - 1);
-    }
-
     m_firstTaskInPhase = m_singleTaskPhaseSupported ? IsFirstPass() : false;
     m_lastTaskInPhase = m_singleTaskPhaseSupported ? IsLastPass() : true;
 
@@ -2459,7 +2454,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         m_lastTaskInPhase = true;
     }
 
-    if (m_lookaheadUpdate && (m_swLaMode == nullptr))
+    if (m_lookaheadPass && (m_swLaMode == nullptr))
     {
         m_lastTaskInPhase = false;
     }
@@ -2757,7 +2752,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
             }
         }
 
-        if (!m_lookaheadUpdate || m_swLaMode)
+        if (!m_lookaheadPass || m_swLaMode)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
         }
@@ -4498,6 +4493,8 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->LongTermRefMsdk_U8 = true;
     hucVdencBrcInitDmem->IsLowDelay_U8 = m_lowDelay;
 
+    hucVdencBrcInitDmem->LookaheadDepth_U8 = m_lookaheadDepth;
+
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
 
     return eStatus;
@@ -4651,6 +4648,13 @@ MOS_STATUS CodechalVdencHevcStateG12::SetConstDataHuCBrcUpdate()
 
         baseLocation += hucConstData->Slice[slcCount].SizeOfCMDs;
         currentLocation = baseLocation;
+    }
+
+    if (m_lookaheadDepth > 0)
+    {
+        hucConstData->UPD_TR_TargetSize_U32 = m_hevcPicParams->TargetFrameSize << 3;//bit to byte
+        hucConstData->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
+        hucConstData->UPD_deltaQP = 0;// For PPyramid
     }
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx]);
@@ -4943,7 +4947,12 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
 
     // Long term reference
     hucVdencBrcUpdateDmem->IsLongTermRef = CodecHal_PictureIsLongTermRef(m_currReconstructedPic);
+    hucVdencBrcUpdateDmem->UPD_CQMEnabled_U8 = m_hevcSeqParams->scaling_list_enable_flag || m_hevcPicParams->scaling_list_data_present_flag;
 
+    if (m_lookaheadDepth > 0)
+    {
+        hucVdencBrcUpdateDmem->EnableLookAhead = 1;
+    }
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][currentPass]);
 
     return eStatus;
@@ -7884,7 +7893,8 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     dmem->vbvBufferSize      = m_hevcSeqParams->VBVBufferSizeInBit / m_averageFrameSize;
     dmem->vbvInitialFullness = initVbvFullness / m_averageFrameSize;
     dmem->statsRecords       = m_numLaDataEntry;
-    dmem->averageFrameSize   = m_averageFrameSize >> 3;
+    dmem->avgFrameSizeInByte = m_averageFrameSize >> 3;
+    dmem->downscaleRatio     = 2; // 4x downscaling
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaInitDmemBuffer);
 
@@ -8130,49 +8140,50 @@ MOS_STATUS CodechalVdencHevcStateG12::AnalyzeLookaheadStats()
 
     m_numValidLaRecords++;
 
-    if (m_lookaheadUpdate)
+    if (m_lookaheadInit)
     {
-        if (m_lookaheadInit)
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadInit());
-            m_lookaheadInit = false;
-        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadInit());
+        m_lookaheadInit = false;
+    }
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
+    if (m_numValidLaRecords >= m_lookaheadDepth)
+    {
         m_numValidLaRecords--;
+        m_lookaheadReport = true;
+    }
 
-        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_vdencLaUpdateDmemBuffer[m_currRecycledBufIdx],
-            CodechalDbgAttr::attrVdencOutput,
-            "_LookaheadDmem",
-            sizeof(CodechalVdencHevcLaDmem),
-            0,
-            CODECHAL_NUM_MEDIA_STATES)));
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_vdencLaUpdateDmemBuffer[m_currRecycledBufIdx],
+        CodechalDbgAttr::attrVdencOutput,
+        "_LookaheadDmem",
+        sizeof(CodechalVdencHevcLaDmem),
+        0,
+        CODECHAL_NUM_MEDIA_STATES)));
 
-        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            m_encodeParams.psLaDataBuffer,
-            CodechalDbgAttr::attrVdencOutput,
-            "_LookaheadData",
-            m_brcLooaheadDataBufferSize,
-            0,
-            CODECHAL_NUM_MEDIA_STATES)));
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        m_encodeParams.psLaDataBuffer,
+        CodechalDbgAttr::attrVdencOutput,
+        "_LookaheadData",
+        m_brcLooaheadDataBufferSize,
+        0,
+        CODECHAL_NUM_MEDIA_STATES)));
 
-        CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-            &m_vdencLaHistoryBuffer,
-            CodechalDbgAttr::attrVdencOutput,
-            "_LookaheadHistory",
-            m_LaHistoryBufSize,
-            0,
-            CODECHAL_NUM_MEDIA_STATES)));
+    CODECHAL_DEBUG_TOOL(CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+        &m_vdencLaHistoryBuffer,
+        CodechalDbgAttr::attrVdencOutput,
+        "_LookaheadHistory",
+        m_LaHistoryBufSize,
+        0,
+        CODECHAL_NUM_MEDIA_STATES)));
 
-        if (m_hevcPicParams->bLastPicInStream)
+    if (m_hevcPicParams->bLastPicInStream)
+    {
+        // Flush the last frames
+        while (m_numValidLaRecords > 0)
         {
-            // Flush the last frames
-            while (m_numValidLaRecords > 0)
-            {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
-                m_numValidLaRecords--;
-            }
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCLookaheadUpdate());
+            m_numValidLaRecords--;
         }
     }
 
