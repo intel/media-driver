@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,7 +61,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~CodechalHwInterfaceG12(){};
+    virtual ~CodechalHwInterfaceG12();
 
     MOS_STATUS InitL3CacheSettings() override;
 
@@ -111,6 +111,18 @@ public:
         bool                       enableEndCurrentBatchBuffLevel,
         uint32_t                   compareOperation,
         PMOS_COMMAND_BUFFER        cmdBuffer);
-};
 
+    //!
+    //! \brief    Initialize the codechal hw interface
+    //! \details  Initialize the interface before using
+    //!
+    //! \param    [in] settings
+    //!           Settings for initialization
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS Initialize(
+        CodechalSetting *settings) override;
+};
 #endif // __CODECHAL_HW_G12_X_H__

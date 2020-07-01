@@ -21,12 +21,14 @@
 */
 //!
 //! \file      codechal_hw.h 
-//! \brief         This modules implements HW interface layer to be used on all platforms on     all operating systems/DDIs, across CODECHAL components. 
+//! \brief     This modules implements HW interface layer to be used on all platforms on all operating systems/DDIs, across CODECHAL components. 
 //!
+
 #ifndef __CODECHAL_HW_H__
 #define __CODECHAL_HW_H__
 
 #include "codechal.h"
+#include "renderhal.h"
 #include "mhw_mi.h"
 #include "mhw_render.h"
 #include "mhw_state_heap.h"
@@ -43,6 +45,7 @@
 #include "media_interfaces_mhw.h"
 
 #include "gfxmacro.h"
+
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_HW sub-comp
 //------------------------------------------------------------------------------
@@ -204,10 +207,9 @@ typedef enum _CODECHAL_MEDIA_STATE_TYPE
     CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION             = 58,
     CODECHAL_MEDIA_STATE_HEVC_ROI                           = 59,
     CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT                 = 60,
-    CODECHAL_NUM_MEDIA_STATES                               = 61
+    CODECHAL_NUM_MEDIA_STATES                               = 65
 } CODECHAL_MEDIA_STATE_TYPE;
-
-C_ASSERT(CODECHAL_NUM_MEDIA_STATES == (CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT + 1)); //!< update this and add new entry in the default SSEU table for each platform()
+C_ASSERT(CODECHAL_NUM_MEDIA_STATES == 65);  //!< update this and add new entry in the default SSEU table for each platform()
 
 typedef enum _CODECHAL_SLICE_STATE
 {
@@ -367,6 +369,8 @@ protected:
     MhwMiInterface                  *m_miInterface = nullptr;         //!< Pointer to Mhw mi interface
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface
     MhwRenderInterface              *m_renderInterface = nullptr;     //!< Pointer to Mhw render interface
+    RENDERHAL_INTERFACE             *m_renderHal = nullptr;           //!< RenderHal interface
+    MhwCpInterface                  *m_renderHalCpInterface = nullptr;//!< Pointer to RenderHal cp interface
     MhwVeboxInterface               *m_veboxInterface = nullptr;      //!< Pointer to Mhw vebox interface
     MhwSfcInterface                 *m_sfcInterface = nullptr;        //!< Pointer to Mhw sfc interface
     MhwVdboxMfxInterface            *m_mfxInterface = nullptr;        //!< Pointer to Mhw mfx interface
@@ -588,6 +592,18 @@ public:
     inline MhwRenderInterface *GetRenderInterface()
     {
         return m_renderInterface;
+    }
+
+    //!
+    //! \brief    Get renderHal interface
+    //! \details  Get renderHal interface in codechal hw interface
+    //!
+    //! \return   [out] RENDERHAL_INTERFACE*
+    //!           Interface got.
+    //!
+    inline RENDERHAL_INTERFACE *GetRenderHalInterface()
+    {
+        return m_renderHal;
     }
 
     //!
@@ -1003,8 +1019,8 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Initialize(
-        CodechalSetting * settings);
+    virtual MOS_STATUS Initialize(
+        CodechalSetting *settings);
 
     //!
     //! \brief    Get meida object buffer size

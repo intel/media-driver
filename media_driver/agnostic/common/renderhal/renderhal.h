@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -470,11 +470,12 @@ typedef enum _RENDERHAL_COMPONENT
     RENDERHAL_COMPONENT_DNDI,
     RENDERHAL_COMPONENT_VEBOX,
     RENDERHAL_COMPONENT_CM,
+    RENDERHAL_COMPONENT_PACKET,
     RENDERHAL_COMPONENT_16ALIGN,
     RENDERHAL_COMPONENT_FAST1TON,
     RENDERHAL_COMPONENT_HDR,
     RENDERHAL_COMPONENT_COUNT_BASE,
-    RENDERHAL_COMPONENT_RESERVED_NUM = 15,
+    RENDERHAL_COMPONENT_RESERVED_NUM = 16,
     RENDERHAL_COMPONENT_COUNT
 } RENDERHAL_COMPONENT;
 
@@ -575,6 +576,9 @@ typedef struct _RENDERHAL_SURFACE
     void                        *pDeinterlaceParams; //!< Pointer to Deinterlacing parameters
     RENDERHAL_SAMPLE_TYPE       SampleType;         //!< Interlaced/Progressive sample type
     int32_t                     iPaletteID;         //!<Palette ID
+
+    uint32_t                    dwWidthInUse;       //!< the actual width in use
+    uint32_t                    dwHeightInUse;      //!< the actual height in use
 } RENDERHAL_SURFACE , *PRENDERHAL_SURFACE;
 
 //!
@@ -1021,6 +1025,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        bWidth16Align             : 1;              // When VDI Walker is enabled, input surface width must be 16 aligned
     uint32_t                        b2PlaneNV12NeededByKernel : 1;              // Kernel needs surface state for both Y and UV
     uint32_t                        bForceNV12                : 1;              // Forces format to be treated as NV12. Only used in FRC.
+    uint32_t                        bUseSinglePlane           : 1;              // 1 indicates using one plane only
     uint32_t                        b32MWColorFillKern        : 1;              // Flag for 32x32 Media walker + ColorFill kernel case
     uint32_t                        bVASurface                : 1;              // Value is 1 if VA surface, 0 if AVS surface
     uint32_t                        AddressControl            : 2;              // 0 clamp, 1 mirror, 2, 3 reserved
@@ -1029,7 +1034,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        bForce3DLUTR16G16         : 1;              // Flag for 3D LUT source and targetsurface
     uint32_t                        bChromasiting             : 1;              // Flag for chromasiting use
     uint32_t                        bVmeUse                   : 1;              // Flag for VME use
-    uint32_t                                                  : 5;
+    uint32_t                                                  : 4;
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
 } RENDERHAL_SURFACE_STATE_PARAMS, *PRENDERHAL_SURFACE_STATE_PARAMS;
 

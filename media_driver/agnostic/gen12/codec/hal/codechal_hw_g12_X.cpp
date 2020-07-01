@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -96,7 +96,14 @@ const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL
     { 1,        0,        8,         0 },    // CODECHAL_MEDIA_STATE_HEVC_LCU64_B_MBENC
     { 1,        0,        8,         0 },    // CODECHAL_MEDIA_STATE_MB_BRC_UPDATE
     { 1,        0,        8,         0 },    // CODECHAL_MEDIA_STATE_STATIC_FRAME_DETECTION
-    { 1,        0,        8,         0 }     // CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT
+    { 1,        0,        8,         0 },
+    { 1,        0,        8,         0 },
+    { 1,        0,        8,         0 },
+    { 1,        0,        8,         0 },
+    { 2,        3,        8,         0 },
+    { 2,        3,        8,         0 },
+    { 2,        3,        8,         0 },
+    { 2,        3,        8,         0 },
 };
 
 CodechalHwInterfaceG12::CodechalHwInterfaceG12(
@@ -290,4 +297,52 @@ MOS_STATUS CodechalHwInterfaceG12::SendCondBbEndCmd(
     eStatus = m_miInterface->AddMiConditionalBatchBufferEndCmd(cmdBuffer, &conditionalBatchBufferEndParams);
 
     return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceG12::Initialize(
+    CodechalSetting *settings)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_STATUS_RETURN(CodechalHwInterface::Initialize(settings));
+
+    //Initialize renderHal
+    m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE));
+    CODECHAL_HW_CHK_NULL_RETURN(m_renderHal);
+    CODECHAL_HW_CHK_STATUS_RETURN(RenderHal_InitInterface(
+        m_renderHal,
+        &m_renderHalCpInterface,
+        m_osInterface));
+
+    RENDERHAL_SETTINGS RenderHalSettings;
+    RenderHalSettings.iMediaStates = 32;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
+
+    //set SSEU table
+    m_renderHal->sseuTable = m_ssEuTable;
+
+    return eStatus;
+}
+
+CodechalHwInterfaceG12::~CodechalHwInterfaceG12()
+{
+    if (m_renderHal != nullptr && m_renderHal->pfnDestroy != nullptr)
+    {
+        MOS_STATUS eStatus = m_renderHal->pfnDestroy(m_renderHal);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MHW_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+        }
+
+        if (m_renderHalCpInterface)
+        {
+            MOS_Delete(m_renderHalCpInterface);
+            m_renderHalCpInterface = nullptr;
+        }
+
+        MOS_FreeMemory(m_renderHal);
+        m_renderHal = nullptr;
+    }
 }

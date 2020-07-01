@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2019, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -513,6 +513,15 @@ public:
     //! \return The decode mode \see m_mode
     //!
     uint32_t GetMode() { return m_mode; }
+
+    //!
+    //! \brief  Get the perf profiler pointer
+    //! \return The perf profiler \see m_perfProfiler
+    //!
+    MediaPerfProfiler *GetPerfProfiler()
+    {
+        return m_perfProfiler;
+    }
 
     //!
     //! \brief  Gets the decode standard
