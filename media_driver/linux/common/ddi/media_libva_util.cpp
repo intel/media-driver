@@ -548,7 +548,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         }
         else
         {
-            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, (MOS_ALIGN_CEIL(gmmSize, gmmPitch))/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0, mem_type);
+            bo = mos_bo_alloc_tiled(mediaDrvCtx->pDrmBufMgr, "MEDIA", gmmPitch, (gmmSize + gmmPitch -1)/gmmPitch, 1, &tileformat, (unsigned long *)&ulPitch, 0, mem_type);
             pitch = ulPitch;
         }
     }
