@@ -1174,6 +1174,7 @@ void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE input
 //!
 VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_SURFACE *mediaSurface)
 {
+    DDI_CHK_NULL(mediaCtx, "Null mediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(mediaSurface->pGmmResourceInfo, "nullptr mediaSurface->pGmmResourceInfo", VA_STATUS_ERROR_INVALID_PARAMETER);
 
@@ -1195,8 +1196,6 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         
         MOS_ZeroMemory(&mosCtx, sizeof(mosCtx));
         MOS_ZeroMemory(&surface, sizeof(surface));
-
-        DDI_CHK_NULL(mediaCtx, "Null mediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
         mosCtx.bufmgr          = mediaCtx->pDrmBufMgr;
         mosCtx.m_gpuContextMgr = mediaCtx->m_gpuContextMgr;
@@ -1226,8 +1225,12 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
 
+        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+
         DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
         DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
+
+        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
 
         if (pCpDdiInterface)
         {
