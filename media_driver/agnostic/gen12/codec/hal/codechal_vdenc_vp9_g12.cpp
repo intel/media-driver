@@ -3429,11 +3429,6 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     perfTag.PictureCodingType = m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
-    if (!m_singlePassDys && !m_dysVdencMultiPassEnabled)
-    {
-        m_vdencPakonlyMultipassEnabled = (IsLastPass()) ? true : false;
-    }
-
     // Scalable Mode header
     if (m_scalableMode)
     {
@@ -3534,7 +3529,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     }
     else
     {
-        if (!IsLastPass())
+        if (IsFirstPass() && m_vdencBrcEnabled)
         {
             m_vdencPakObjCmdStreamOutEnabled = true;
             m_resVdencPakObjCmdStreamOutBuffer = &m_resMbCodeSurface;

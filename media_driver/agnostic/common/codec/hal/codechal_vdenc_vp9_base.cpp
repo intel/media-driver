@@ -975,9 +975,9 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     dmem->PrevFrameInfo = m_prevFrameInfo;
     // For DyS CQP or BRC case there is no Repak on last pass. So disable the Repak flag here
     // We also disable repak pass in TU7 speed mode usage for performance reasons.
-    if (m_dysVdencMultiPassEnabled || m_singlePassDys)
+    if (m_dysVdencMultiPassEnabled)
     {
-        dmem->RePak = (m_numPasses > 0 && IsLastPass() && !(m_dysCqp || m_dysBrc) && (m_vp9SeqParams->TargetUsage != TU_PERFORMANCE) && !(m_singlePassDys || m_dysVdencMultiPassEnabled));
+        dmem->RePak = (m_numPasses > 0 && IsLastPass() && !(m_dysCqp || m_dysBrc) && (m_vp9SeqParams->TargetUsage != TU_PERFORMANCE));
     }
     else
     {
@@ -996,7 +996,6 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     dmem->PicStateOffset = m_hucPicStateOffset;
     dmem->SLBBSize = m_hucSlbbSize;
     dmem->IVFHeaderSize = (m_frameNum == 0) ? 44 : 12;
-    dmem->VDEncImgStateOffset = m_slbbImgStateOffset;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[currPass]));
 

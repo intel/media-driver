@@ -447,7 +447,7 @@ public:
         uint8_t                                     FrameToShow;
         uint8_t                                     LoadKeyFrameDefaultProbs;
         uint32_t                                    FrameSize;
-        uint32_t                                    VDEncImgStateOffset;
+        uint32_t                                    Reserved1;
         uint32_t                                    RePak;
         uint16_t                                    LFLevelBitOffset;
         uint16_t                                    QIndexBitOffset;
