@@ -988,7 +988,7 @@ MOS_STATUS CodechalVdencHevcStateG12::AllocatePakResources()
         &m_vdencModeTimerBuffer),
         "Failed to create VDEncMode Timer Buffer");
 
-    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
     {
         uint32_t maxTileRow = MOS_ROUNDUP_DIVIDE(m_frameHeight, CODECHAL_HEVC_MIN_TILE_SIZE);
         uint32_t maxTileColumn = MOS_ROUNDUP_DIVIDE(m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE);
@@ -1269,7 +1269,7 @@ MOS_STATUS CodechalVdencHevcStateG12::FreePakResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_resHcpScalabilitySyncBuffer.sResource);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencSAORowStoreBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_resPakcuLevelStreamoutData.sResource);
-    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_resHwCountTileReplay);
     }
@@ -1891,7 +1891,7 @@ MOS_STATUS CodechalVdencHevcStateG12::GetStatusReport(
             return eStatus;
         }
         //update tile info with HW counter
-        if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+        if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
         {
             MOS_LOCK_PARAMS LockFlagsNoOverWrite;
             MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
@@ -2997,7 +2997,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->AddProlog(m_osInterface, &cmdBuffer));
 
-                if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+                if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
                 {
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
 
@@ -3469,7 +3469,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
 
                 // counter should be read after conditional batch buffer
                 // in case second pass is not executed then counter should not be read
-                if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+                if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
                 {
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
 
@@ -3623,7 +3623,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
             }
 
             //turn on protection again in case conditionalbatchbufferexit turns off the protection
-            if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+            if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->AddProlog(m_osInterface, &cmdBuffer));
             }
@@ -3649,7 +3649,7 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
             }
 
             //turn on protection again in case conditionalbatchbufferexit turns off the protection
-            if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_enableTileReplay)
+            if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
             {
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->AddProlog(m_osInterface, &cmdBuffer));
             }

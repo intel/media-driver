@@ -1343,7 +1343,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
         m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
+    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
     {
         // eStatus query reporting
         m_encodeStatusBuf.dwReportSize           = MOS_ALIGN_CEIL(sizeof(EncodeStatus), MHW_CACHELINE_SIZE);
@@ -2114,7 +2114,7 @@ void CodechalEncoderState::FreeResources()
     }
 
     // Release HW Counter buffer
-    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
+    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
     {
         if (!Mos_ResourceIsNull(&m_resHwCount))
         {
@@ -3034,7 +3034,7 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
             cmdBuffer,
             &storeDataParams));
 
-        if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface) && m_skipFrameBasedHWCounterRead == false )
+        if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_skipFrameBasedHWCounterRead == false )
         {
             uint32_t writeOffset = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM;
 
@@ -3652,7 +3652,7 @@ MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusRe
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport);
     uint64_t *address2Counter = nullptr;
 
-    if (m_hwInterface->GetCpInterface()->IsHWCounterAutoIncrementEnforced(m_osInterface))
+    if (m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface))
     {
         if(MEDIA_IS_WA(m_waTable, WaReadCtrNounceRegister))
         {

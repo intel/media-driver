@@ -99,7 +99,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual bool IsHWCounterAutoIncrementEnforced(
+    virtual bool IsHwCounterIncrement(
         PMOS_INTERFACE osInterface)
     {
         MOS_UNUSED(osInterface);
