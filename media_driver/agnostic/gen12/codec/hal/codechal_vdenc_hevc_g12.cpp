@@ -2554,6 +2554,9 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     {
         MOS_COMMAND_BUFFER cmdBuffer;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStopCmd(&cmdBuffer));
+
         //HW Semaphore cmd to make sure all pipes start encode at the same time
         for (uint32_t i = 0; i < m_numPipe; i++)
         {
@@ -2574,6 +2577,9 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
             &m_resPipeStartSemaMem[pipeNum].sResource,
             &cmdBuffer,
             0x0));
+
+        //Start Watchdog Timer
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddWatchdogTimerStartCmd(&cmdBuffer));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
     }
