@@ -6831,7 +6831,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HucPakIntegrate(
         &storeRegParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, cmdBuffer, false));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(cmdBuffer));
 
     return eStatus;
 }
@@ -6927,7 +6926,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HucPakIntegrateStitch(
         &storeRegParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, cmdBuffer, false));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(cmdBuffer));
 
     return eStatus;
 }
@@ -8285,7 +8283,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcInitReset()
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
     auto mmioRegisters = m_hucInterface->GetMmioRegisters(m_vdboxIndex);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, true));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && (m_numPipe == 1))
     {
@@ -8485,7 +8482,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, true));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
 
     // DW0 & DW1 will considered together for conditional batch buffer end cmd later
     if ((!m_singleTaskPhaseSupported) && (m_osInterface->bNoParsingAssistanceInKmd) && (m_numPipe == 1))
@@ -8610,7 +8606,6 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcTileRowUpdate(PMOS_COMMAND_BUFFER cm
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&tileRowBRCBatchBuf, &storeRegParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &tileRowBRCBatchBuf, true));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&tileRowBRCBatchBuf));
 
     // Set the tile row BRC update sync semaphore 
     MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
