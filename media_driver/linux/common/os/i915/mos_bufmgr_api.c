@@ -36,7 +36,6 @@
 #include <errno.h>
 #include <drm.h>
 #include <i915_drm.h>
-#include <pciaccess.h>
 #include "libdrm_macros.h"
 #include "mos_bufmgr.h"
 #include "mos_bufmgr_priv.h"
@@ -371,49 +370,3 @@ mos_get_pipe_from_crtc_id(struct mos_bufmgr *bufmgr, int crtc_id)
     return -1;
 }
 
-static size_t
-mos_probe_agp_aperture_size(int fd)
-{
-    struct pci_device *pci_dev;
-    size_t size = 0;
-    int ret;
-
-    ret = pci_system_init();
-    if (ret)
-        goto err;
-
-    /* XXX handle multiple adaptors? */
-    pci_dev = pci_device_find_by_slot(0, 0, 2, 0);
-    if (pci_dev == nullptr)
-        goto err;
-
-    ret = pci_device_probe(pci_dev);
-    if (ret)
-        goto err;
-
-    size = pci_dev->regions[2].size;
-err:
-    pci_system_cleanup ();
-    return size;
-}
-
-int
-mos_get_aperture_sizes(int fd, size_t *mappable, size_t *total)
-{
-
-    struct drm_i915_gem_get_aperture aperture;
-    int ret;
-
-    ret = drmIoctl(fd, DRM_IOCTL_I915_GEM_GET_APERTURE, &aperture);
-    if (ret)
-        return ret;
-
-    *mappable = 0;
-    /* XXX add a query for the kernel value? */
-    if (*mappable == 0)
-        *mappable = mos_probe_agp_aperture_size(fd);
-    if (*mappable == 0)
-        *mappable = 64 * 1024 * 1024; /* minimum possible value */
-    *total = aperture.aper_size;
-    return 0;
-}

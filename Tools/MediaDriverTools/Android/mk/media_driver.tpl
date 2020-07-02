@@ -33,7 +33,6 @@ LOCAL_SHARED_LIBRARIES := \
     libdrm \
     libva \
     liblog \
-    libpciaccess \
 
 
 LOCAL_STATIC_LIBRARIES = \

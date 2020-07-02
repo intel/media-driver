@@ -36,5 +36,4 @@ endif ()
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE "CXX")
 add_library(drm_mock SHARED ${SOURCES})
 
-target_link_libraries(drm_mock pciaccess)
 set_target_properties(drm_mock PROPERTIES VERSION 2.4.0 SOVERSION 2)
