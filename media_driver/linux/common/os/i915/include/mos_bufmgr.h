@@ -231,7 +231,6 @@ mos_bufmgr_gem_set_aub_annotations(struct mos_linux_bo *bo,
 
 int mos_get_pipe_from_crtc_id(struct mos_bufmgr *bufmgr, int crtc_id);
 
-int mos_get_aperture_sizes(int fd, size_t *mappable, size_t *total);
 int mos_bufmgr_gem_get_devid(struct mos_bufmgr *bufmgr);
 
 struct mos_linux_context *mos_gem_context_create(struct mos_bufmgr *bufmgr);
