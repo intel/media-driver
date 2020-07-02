@@ -3893,6 +3893,75 @@ static VAStatus DdiMedia_SyncSurface2 (
 }
 
 /*
+ * This function blocks until all pending operations on the buffer have been
+ * completed or exceed timeout.  Upon return it is safe to use the render target for a
+ * different picture.
+ */
+static VAStatus DdiMedia_SyncBuffer (
+    VADriverContextP    ctx,
+    VABufferID          buf_id,
+    uint64_t            timeout_ns
+)
+{
+    PERF_UTILITY_AUTO(__FUNCTION__, "ENCODE", "DDI");
+
+    DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(ctx,    "nullptr ctx",    VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,               "nullptr mediaCtx",               VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->pBufferHeap,  "nullptr mediaCtx->pBufferHeap",  VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    DDI_CHK_LESS((uint32_t)buf_id, mediaCtx->pBufferHeap->uiAllocatedHeapElements, "Invalid buffer", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    DDI_MEDIA_BUFFER  *buffer = DdiMedia_GetBufferFromVABufferID(mediaCtx, buf_id);
+    DDI_CHK_NULL(buffer,    "nullptr buffer",      VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if (timeout_ns == VA_TIMEOUT_INFINITE)
+    {
+        // zero is a expected return value when not hit timeout
+        auto ret = mos_gem_bo_wait(buffer->bo, DDI_BO_INFINITE_TIMEOUT);
+        if (0 != ret)
+        {
+            DDI_NORMALMESSAGE("vaSyncBuffer: buffer is still used by HW\n\r");
+            return VA_STATUS_ERROR_TIMEDOUT;
+        }
+    }
+    else
+    {
+        int64_t timeoutBoWait1 = 0;
+        int64_t timeoutBoWait2 = 0;
+        if (timeout_ns >= DDI_BO_MAX_TIMEOUT)
+        {
+            timeoutBoWait1 = DDI_BO_MAX_TIMEOUT - 1;
+            timeoutBoWait2 = timeout_ns - DDI_BO_MAX_TIMEOUT + 1;
+        }
+        else
+        {
+            timeoutBoWait1 = (int64_t)timeout_ns;
+        }
+
+        // zero is a expected return value when not hit timeout
+        auto ret = mos_gem_bo_wait(buffer->bo, timeoutBoWait1);
+        if (0 != ret)
+        {
+            if (timeoutBoWait2)
+            {
+                ret = mos_gem_bo_wait(buffer->bo, timeoutBoWait2);
+            }
+            if (0 != ret)
+            {
+                DDI_NORMALMESSAGE("vaSyncBuffer: buffer is still used by HW\n\r");
+                return VA_STATUS_ERROR_TIMEDOUT;
+            }
+        }
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
+/*
  * Find out any pending ops on the render target
  */
 static VAStatus DdiMedia_QuerySurfaceStatus (
@@ -6697,6 +6766,7 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTable->vaEndPicture                    = DdiMedia_EndPicture;
     pVTable->vaSyncSurface                   = DdiMedia_SyncSurface;
     pVTable->vaSyncSurface2                  = DdiMedia_SyncSurface2;
+    pVTable->vaSyncBuffer                    = DdiMedia_SyncBuffer;
     pVTable->vaQuerySurfaceStatus            = DdiMedia_QuerySurfaceStatus;
     pVTable->vaQuerySurfaceError             = DdiMedia_QuerySurfaceError;
     pVTable->vaQuerySurfaceAttributes        = DdiMedia_QuerySurfaceAttributes;
