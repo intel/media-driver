@@ -4222,7 +4222,9 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
     if(m_avcPicParam->ForceSkip.Enable && (m_pictureCodingType != I_TYPE))
     {
         m_avcPicParam->ForceSkip.Enable  = 1;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN( SetupForceSkipStreamIn(m_avcPicParam,                                                                                                                                                  &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])) );
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupForceSkipStreamIn(
+            m_avcPicParam,
+            &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
     }
     else
         m_avcPicParam->ForceSkip.Enable  = 0;
