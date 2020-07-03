@@ -252,10 +252,11 @@ private:
 
 struct FeatureParamDenoise : public FeatureParam
 {
-    VPHAL_SAMPLE_TYPE       inputSampleType;
-    VPHAL_DENOISE_PARAMS    denoiseParams;
-    uint32_t                srcWidthAlignUnit;
-    uint32_t                srcHeightAlignUnit;
+    VPHAL_SAMPLE_TYPE    sampleTypeInput;
+    VPHAL_DENOISE_PARAMS denoiseParams;
+    uint32_t             widthAlignUnitInput;
+    uint32_t             heightAlignUnitInput;
+    uint32_t             heightInput;
 };
 
 class SwFilterDenoise : public SwFilter

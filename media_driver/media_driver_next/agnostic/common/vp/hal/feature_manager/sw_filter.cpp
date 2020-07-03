@@ -359,6 +359,7 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
     m_Params.denoiseParams = *surfInput->pDenoiseParams;
     m_Params.formatInput   = surfInput->Format;
     m_Params.formatOutput  = surfInput->Format;// Denoise didn't change the original format;
+    m_Params.heightInput   = surfInput->dwHeight;
 
     m_Params.denoiseParams.bEnableChroma =
         m_Params.denoiseParams.bEnableChroma && m_Params.denoiseParams.bEnableLuma;

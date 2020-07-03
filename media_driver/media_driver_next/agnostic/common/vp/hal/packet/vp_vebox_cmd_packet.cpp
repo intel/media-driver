@@ -1279,6 +1279,7 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
     VP_RENDER_CHK_NULL_RETURN(inputSurface);
     VP_RENDER_CHK_NULL_RETURN(outputSurface);
+    VP_RENDER_CHK_STATUS_RETURN(pRenderData->Init());
 
     m_PacketCaps      = packetCaps;
 

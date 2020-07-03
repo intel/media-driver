@@ -103,7 +103,7 @@ MOS_STATUS VpDnFilter::CalculateEngineParams()
         m_veboxDnParams->NoiseLevel         = m_dnParams.denoiseParams.NoiseLevel;
         m_veboxDnParams->bEnableHVSDenoise  = m_dnParams.denoiseParams.bEnableHVSDenoise;
         m_veboxDnParams->HVSDenoise         = m_dnParams.denoiseParams.HVSDenoise;
-        m_veboxDnParams->bProgressive       = SAMPLE_PROGRESSIVE == m_dnParams.inputSampleType;
+        m_veboxDnParams->bProgressive       = SAMPLE_PROGRESSIVE == m_dnParams.sampleTypeInput;
     }
     else
     {

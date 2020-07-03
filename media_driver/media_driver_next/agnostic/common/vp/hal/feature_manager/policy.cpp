@@ -536,12 +536,6 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
 
     if (m_veboxHwEntry[inputformat].denoiseSupported)
     {
-        denoiseEngine->bEnabled = 1;
-        denoiseEngine->VeboxNeeded = 1;
-    }
-
-    if (m_veboxHwEntry[inputformat].denoiseSupported)
-    {
         widthAlignUint = MOS_ALIGN_CEIL(m_veboxHwEntry[inputformat].horizontalAlignUnit, 2);
 
         if (inputformat == Format_NV12 ||
@@ -554,10 +548,20 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
         {
             heightAlignUnit = MOS_ALIGN_CEIL(m_veboxHwEntry[inputformat].verticalAlignUnit, 2);
         }
+
+        if (MOS_IS_ALIGNED(denoiseParams->heightInput, heightAlignUnit))
+        {
+            denoiseEngine->bEnabled    = 1;
+            denoiseEngine->VeboxNeeded = 1;
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("Denoise Feature is disabled since heightInput (%d) not being %d aligned.", denoiseParams->heightInput, heightAlignUnit);
+        }
     }
 
-    denoiseParams->srcWidthAlignUnit  = widthAlignUint;
-    denoiseParams->srcHeightAlignUnit = heightAlignUnit;
+    denoiseParams->widthAlignUnitInput = widthAlignUint;
+    denoiseParams->heightAlignUnitInput = heightAlignUnit;
 
     return MOS_STATUS_SUCCESS;
 }

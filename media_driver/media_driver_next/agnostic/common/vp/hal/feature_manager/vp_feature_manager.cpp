@@ -171,8 +171,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
     // Disable chroma DN in APO path.
     // Disable HVS Denoise in APO path.
     if (pvpParams->pSrc[0]->pDenoiseParams                       &&
-       (pvpParams->pSrc[0]->pDenoiseParams->bEnableChroma        ||
-        pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise))
+        pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise)
     {
         return MOS_STATUS_SUCCESS;
     }
