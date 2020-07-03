@@ -33,8 +33,8 @@ using namespace vp;
 /*                                      VpFeatureManagerNext                                        */
 /****************************************************************************************************/
 
-VpFeatureManagerNext::VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager *resourceManager, PVP_MHWINTERFACE pHwInterface) :
-    m_vpInterface(pHwInterface, allocator, resourceManager), m_Policy(m_vpInterface)
+VpFeatureManagerNext::VpFeatureManagerNext(VpInterface &vpInterface) :
+    m_vpInterface(vpInterface), m_Policy(m_vpInterface)
 {
 }
 
@@ -47,19 +47,12 @@ MOS_STATUS VpFeatureManagerNext::Initialize()
     return m_Policy.Initialize();
 }
 
-MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(VP_PIPELINE_PARAMS &params, HwFilterPipe *&pHwFilterPipe)
+MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(SwFilterPipe &swFilterPipe, HwFilterPipe *&pHwFilterPipe)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     pHwFilterPipe = nullptr;
 
-    SwFilterPipe * pSwFilterPipe = nullptr;
-    status = m_vpInterface.GetSwFilterPipeFactory().Create(params, pSwFilterPipe);
-
-    VP_PUBLIC_CHK_STATUS_RETURN(status);
-    VP_PUBLIC_CHK_NULL_RETURN(pSwFilterPipe);
-
-    status = m_vpInterface.GetHwFilterPipeFactory().Create(*pSwFilterPipe, m_Policy, pHwFilterPipe);
-    m_vpInterface.GetSwFilterPipeFactory().Destory(pSwFilterPipe);
+    status = m_vpInterface.GetHwFilterPipeFactory().Create(swFilterPipe, m_Policy, pHwFilterPipe);
 
     VP_PUBLIC_CHK_STATUS_RETURN(status);
     VP_PUBLIC_CHK_NULL_RETURN(pHwFilterPipe);
@@ -67,12 +60,12 @@ MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(VP_PIPELINE_PARAMS &params, 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpFeatureManagerNext::InitPacketPipe(VP_PIPELINE_PARAMS &params,
+MOS_STATUS VpFeatureManagerNext::InitPacketPipe(SwFilterPipe &swFilterPipe,
                 PacketPipe &packetPipe)
 {
     HwFilterPipe *pHwFilterPipe = nullptr;
 
-    MOS_STATUS status = CreateHwFilterPipe(params, pHwFilterPipe);
+    MOS_STATUS status = CreateHwFilterPipe(swFilterPipe, pHwFilterPipe);
 
     VP_PUBLIC_CHK_STATUS_RETURN(status);
     VP_PUBLIC_CHK_NULL_RETURN(pHwFilterPipe);

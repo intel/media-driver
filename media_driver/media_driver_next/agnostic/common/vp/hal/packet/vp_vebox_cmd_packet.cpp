@@ -30,6 +30,7 @@
 #include "mos_resource_defs.h"
 #include "hal_oca_interface.h"
 #include "vp_render_sfc_m12.h"
+#include "vp_render_ief.h"
 
 namespace vp {
 
@@ -133,26 +134,6 @@ MOS_STATUS VpVeboxCmdPacket::InitCmdBufferWithVeParams(
         (PRENDERHAL_GENERIC_PROLOG_PARAMS)&genericPrologParamsG12));
 
     return eStatus;
-}
-
-MOS_STATUS VpVeboxCmdPacket::InitSfcStateParams()
-{
-    if (!m_sfcRenderData.sfcStateParams)
-    {
-        m_sfcRenderData.sfcStateParams = (MHW_SFC_STATE_PARAMS_G12*)MOS_AllocAndZeroMemory(sizeof(MHW_SFC_STATE_PARAMS_G12));
-    }
-    else
-    {
-        MOS_ZeroMemory(m_sfcRenderData.sfcStateParams, sizeof(MHW_SFC_STATE_PARAMS_G12));
-    }
-
-    if (!m_sfcRenderData.sfcStateParams)
-    {
-        VP_RENDER_ASSERTMESSAGE("No Space for params allocation");
-        return MOS_STATUS_NO_SPACE;
-    }
-
-    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -271,23 +252,25 @@ bool VpVeboxCmdPacket::IsFormatMMCSupported(MOS_FORMAT Format)
 MOS_STATUS VpVeboxCmdPacket::SetSfcMmcParams()
 {
     VP_FUNC_CALL();
-
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
     VP_PUBLIC_CHK_NULL_RETURN(m_renderTarget);
-    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRenderData.sfcStateParams);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderTarget->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
 
-    if (m_renderTarget->osSurface->CompressionMode               &&
-        IsFormatMMCSupported(m_renderTarget->osSurface->Format)  &&
-        m_renderTarget->osSurface->TileType == MOS_TILE_Y        &&
-        m_mmc->IsMmcEnabled())
-    {
-        m_sfcRenderData.sfcStateParams->bMMCEnable = true;
-        m_sfcRenderData.sfcStateParams->MMCMode    = m_renderTarget->osSurface->CompressionMode;
-    }
-    else
-    {
-        m_sfcRenderData.sfcStateParams->bMMCEnable = false;
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->SetMmcParams(m_renderTarget->osSurface,
+                                                        IsFormatMMCSupported(m_renderTarget->osSurface->Format),
+                                                        m_mmc->IsMmcEnabled()));
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::CreateIefObj()
+{
+    if (nullptr == m_iefObj)
+    {
+        m_iefObj = MOS_New(VpIef);
+        VP_PUBLIC_CHK_NULL_RETURN(m_iefObj);
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -305,53 +288,13 @@ VP_SURFACE *VpVeboxCmdPacket::GetSurface(SurfaceType type)
 
 MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
 {
-    VP_RENDER_CHK_NULL_RETURN(scalingParams);
+    VP_PUBLIC_CHK_NULL_RETURN(scalingParams);
     // Scaing only can be apply to SFC path
     if (m_PacketCaps.bSFC)
     {
-        // Adjust output width/height according to rotation.
-        if (VPHAL_ROTATION_90                   == m_sfcRenderData.SfcRotation ||
-            VPHAL_ROTATION_270                  == m_sfcRenderData.SfcRotation ||
-            VPHAL_ROTATE_90_MIRROR_VERTICAL     == m_sfcRenderData.SfcRotation ||
-            VPHAL_ROTATE_90_MIRROR_HORIZONTAL   == m_sfcRenderData.SfcRotation)
-        {
-            m_sfcRenderData.sfcStateParams->dwOutputFrameWidth         = scalingParams->dwOutputFrameHeight;
-            m_sfcRenderData.sfcStateParams->dwOutputFrameHeight        = scalingParams->dwOutputFrameWidth;
-        }
-        else
-        {
-            m_sfcRenderData.sfcStateParams->dwOutputFrameWidth         = scalingParams->dwOutputFrameWidth;
-            m_sfcRenderData.sfcStateParams->dwOutputFrameHeight        = scalingParams->dwOutputFrameHeight;
-        }
-        m_sfcRenderData.sfcStateParams->dwInputFrameHeight             = scalingParams->dwInputFrameHeight;
-        m_sfcRenderData.sfcStateParams->dwInputFrameWidth              = scalingParams->dwInputFrameWidth;
+        VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->SetScalingParams(scalingParams));
 
-        m_sfcRenderData.sfcStateParams->dwAVSFilterMode                = scalingParams->dwAVSFilterMode;
-        m_sfcRenderData.sfcStateParams->dwSourceRegionHeight           = scalingParams->dwSourceRegionHeight;
-        m_sfcRenderData.sfcStateParams->dwSourceRegionWidth            = scalingParams->dwSourceRegionWidth;
-        m_sfcRenderData.sfcStateParams->dwSourceRegionVerticalOffset   = scalingParams->dwSourceRegionVerticalOffset;
-        m_sfcRenderData.sfcStateParams->dwSourceRegionHorizontalOffset = scalingParams->dwSourceRegionHorizontalOffset;
-        m_sfcRenderData.sfcStateParams->dwScaledRegionHeight           = scalingParams->dwScaledRegionHeight;
-        m_sfcRenderData.sfcStateParams->dwScaledRegionWidth            = scalingParams->dwScaledRegionWidth;
-        m_sfcRenderData.sfcStateParams->dwScaledRegionVerticalOffset   = scalingParams->dwScaledRegionVerticalOffset;
-        m_sfcRenderData.sfcStateParams->dwScaledRegionHorizontalOffset = scalingParams->dwScaledRegionHorizontalOffset;
-        m_sfcRenderData.sfcStateParams->fAVSXScalingRatio              = scalingParams->fAVSXScalingRatio;
-        m_sfcRenderData.sfcStateParams->fAVSYScalingRatio              = scalingParams->fAVSYScalingRatio;
-
-        m_sfcRenderData.bScaling = ((scalingParams->fAVSXScalingRatio == 1.0F) && (scalingParams->fAVSYScalingRatio == 1.0F)) ?
-            false : true;
-
-        m_sfcRenderData.fScaleX = scalingParams->fAVSXScalingRatio;
-        m_sfcRenderData.fScaleY = scalingParams->fAVSYScalingRatio;
-        m_sfcRenderData.SfcScalingMode = scalingParams->sfcScalingMode;
-
-        // ColorFill/Alpha settings
-        m_sfcRenderData.pColorFillParams            = &(scalingParams->sfcColorfillParams);
-        m_sfcRenderData.sfcStateParams->fAlphaPixel = scalingParams->sfcColorfillParams.fAlphaPixel;
-        m_sfcRenderData.sfcStateParams->fColorFillAPixel  = scalingParams->sfcColorfillParams.fColorFillAPixel;
-        m_sfcRenderData.sfcStateParams->fColorFillUGPixel = scalingParams->sfcColorfillParams.fColorFillUGPixel;
-        m_sfcRenderData.sfcStateParams->fColorFillVBPixel = scalingParams->sfcColorfillParams.fColorFillVBPixel;
-        m_sfcRenderData.sfcStateParams->fColorFillYRPixel = scalingParams->sfcColorfillParams.fColorFillYRPixel;
         //---------------------------------
         // Set SFC State:  mmc
         //---------------------------------
@@ -364,58 +307,23 @@ MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
         VP_RENDER_NORMALMESSAGE("Scaling is enabled in SFC, pls recheck the features enabling in SFC");
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetSfcCSCParams(PSFC_CSC_PARAMS cscParams)
 {
-    VP_RENDER_CHK_NULL_RETURN(cscParams);
+    VP_PUBLIC_CHK_NULL_RETURN(cscParams);
 
     if (m_PacketCaps.bSFC)
     {
-        m_sfcRenderData.bIEF           = cscParams->bIEFEnable;
-        m_sfcRenderData.bCSC           = cscParams->bCSCEnabled;
-        m_sfcRenderData.pIefParams     = cscParams->iefParams;
-        m_sfcRenderData.SfcInputCspace = cscParams->inputColorSpcase;
-        m_sfcRenderData.SfcInputFormat = cscParams->inputFormat;
-
-        // ARGB8,ABGR10,A16B16G16R16,VYUY and YVYU output format need to enable swap
-        if (cscParams->outputFormat == Format_X8R8G8B8 ||
-            cscParams->outputFormat == Format_A8R8G8B8 ||
-            cscParams->outputFormat == Format_R10G10B10A2 ||
-            cscParams->outputFormat == Format_A16B16G16R16 ||
-            cscParams->outputFormat == Format_VYUY ||
-            cscParams->outputFormat == Format_YVYU)
-        {
-            m_sfcRenderData.sfcStateParams->bRGBASwapEnable = true;
-        }
-        else
-        {
-            m_sfcRenderData.sfcStateParams->bRGBASwapEnable = false;
-        }
-        m_sfcRenderData.sfcStateParams->bInputColorSpace = cscParams->bInputColorSpace;
-
-        // Chromasitting config
-        // config SFC chroma up sampling
-        m_sfcRenderData.bForcePolyPhaseCoefs   = cscParams->bChromaUpSamplingEnable;
-        m_sfcRenderData.SfcSrcChromaSiting     = cscParams->sfcSrcChromaSiting;
-        m_sfcRenderData.inputChromaSubSampling = cscParams->inputChromaSubSampling;
-
-        // 8-Tap chroma filter enabled or not
-        m_sfcRenderData.sfcStateParams->b8tapChromafiltering = cscParams->b8tapChromafiltering;
-
-        // config SFC chroma down sampling
-        m_sfcRenderData.chromaDownSamplingHorizontalCoef = cscParams->chromaDownSamplingHorizontalCoef;
-        m_sfcRenderData.chromaDownSamplingVerticalCoef   = cscParams->chromaDownSamplingVerticalCoef;
-
+        VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->SetCSCParams(cscParams));
+        return MOS_STATUS_SUCCESS;
     }
     else
     {
         VP_RENDER_NORMALMESSAGE("CSC/IEF for Output is enabled in SFC, pls recheck the features enabling in SFC");
         return MOS_STATUS_INVALID_PARAMETER;
     }
-
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
@@ -538,24 +446,13 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxChromasitingParams(PVEBOX_CSC_PARAMS cscPar
 
 MOS_STATUS VpVeboxCmdPacket::SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams)
 {
-    VP_RENDER_CHK_NULL_RETURN(rotMirParams);
+    VP_PUBLIC_CHK_NULL_RETURN(rotMirParams);
 
     if (m_PacketCaps.bSFC)
     {
-        m_sfcRenderData.SfcRotation   = rotMirParams->rotationMode;
-        m_sfcRenderData.bMirrorEnable = rotMirParams->bMirrorEnable;
-        m_sfcRenderData.mirrorType  = rotMirParams->mirrorType;
-
-        // Adjust output width/height according to rotation.
-        if (VPHAL_ROTATION_90                   == m_sfcRenderData.SfcRotation ||
-            VPHAL_ROTATION_270                  == m_sfcRenderData.SfcRotation ||
-            VPHAL_ROTATE_90_MIRROR_VERTICAL     == m_sfcRenderData.SfcRotation ||
-            VPHAL_ROTATE_90_MIRROR_HORIZONTAL   == m_sfcRenderData.SfcRotation)
-        {
-            uint32_t width = m_sfcRenderData.sfcStateParams->dwOutputFrameWidth;
-            m_sfcRenderData.sfcStateParams->dwOutputFrameWidth  = m_sfcRenderData.sfcStateParams->dwOutputFrameHeight;
-            m_sfcRenderData.sfcStateParams->dwOutputFrameHeight = width;
-        }
+        VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->SetRotMirParams(rotMirParams));
+        return MOS_STATUS_SUCCESS;
     }
     else
     {
@@ -563,7 +460,6 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -1145,9 +1041,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
         VP_RENDER_CHK_NULL_RETURN(m_sfcRender);
 
-        VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetupSfcState(
-            &m_sfcRenderData,
-            m_renderTarget));
+        VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetupSfcState(m_renderTarget));
 
         VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SendSfcCmd(
                                 pRenderData,
@@ -1317,23 +1211,23 @@ bool VpVeboxCmdPacket::RndrCommonIsMiBBEndNeeded(
     return needed;
 }
 
+MOS_STATUS VpVeboxCmdPacket::InitSfcRender()
+{
+    VP_RENDER_CHK_STATUS_RETURN(CreateSfcRender());
+    VP_RENDER_CHK_NULL_RETURN(m_sfcRender);
+    VP_RENDER_CHK_STATUS_RETURN(CreateIefObj());
+    VP_RENDER_CHK_NULL_RETURN(m_iefObj);
+    VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetIefObj(m_iefObj));
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacket::Init()
 {
     MOS_STATUS    eStatus = MOS_STATUS_SUCCESS;
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_skuTable);
 
-    if (m_sfcRender == nullptr)
-    {
-        m_sfcRender = MOS_New(SfcRenderM12,
-            m_hwInterface->m_osInterface,
-            m_hwInterface->m_sfcInterface,
-            m_allocator);
-        VP_CHK_SPACE_NULL_RETURN(m_sfcRender);
-
-    }
-
-    VP_RENDER_CHK_STATUS_RETURN(InitSfcStateParams());
+    VP_RENDER_CHK_STATUS_RETURN(InitSfcRender());
 
     if (nullptr == m_currentSurface)
     {
@@ -1477,19 +1371,15 @@ VpVeboxCmdPacket::VpVeboxCmdPacket(
     PVP_MHWINTERFACE hwInterface,
     PVpAllocator &allocator,
     VPMediaMemComp *mmc):
-    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_FF)
+    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX)
 {
 
 }
 
 VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
 {
-    if (m_sfcRenderData.sfcStateParams)
-    {
-        MOS_FreeMemAndSetNull(m_sfcRenderData.sfcStateParams);
-    }
-
     MOS_Delete(m_sfcRender);
+    MOS_Delete(m_iefObj);
     MOS_Delete(m_lastExecRenderData);
     MOS_Delete(m_surfMemCacheCtl);
 

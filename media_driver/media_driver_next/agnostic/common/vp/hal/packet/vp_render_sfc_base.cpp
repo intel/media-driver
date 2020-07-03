@@ -51,58 +51,57 @@ SfcRenderBase::SfcRenderBase(
       &m_AvsParameters,
       k_YCoefficientTableSize,
       k_UVCoefficientTableSize);
-
-    //m_renderData = (VPHAL_SFC_RENDER_DATA*)MOS_AllocAndZeroMemory(sizeof(VPHAL_SFC_RENDER_DATA));
-    //m_renderData->sfcStateParams = (MHW_SFC_STATE_PARAMS_G12*)MOS_AllocAndZeroMemory(sizeof(MHW_SFC_STATE_PARAMS_G12));
 }
 
 SfcRenderBase::~SfcRenderBase()
 {
     DestroyAVSParams(&m_AvsParameters);
 
-    /*if (m_renderData->sfcStateParams)
+    if (m_sfcStateParams)
     {
-        MOS_FreeMemory(m_renderData->sfcStateParams);
-        m_renderData->sfcStateParams = nullptr;
-    }*/
+        MOS_FreeMemAndSetNull(m_sfcStateParams);
+    }
 
     FreeResources();
+}
+
+MOS_STATUS SfcRenderBase::Init()
+{
+    MOS_ZeroMemory(&m_renderData, sizeof(m_renderData));
+    return InitSfcStateParams();
 }
 
 void SfcRenderBase::SetRotationAndMirrowParams(PMHW_SFC_STATE_PARAMS psfcStateParams)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(psfcStateParams);
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData);
 
-    psfcStateParams->RotationMode  = (MHW_ROTATION)m_renderData->SfcRotation;
-    psfcStateParams->bMirrorEnable = m_renderData->bMirrorEnable;
-    psfcStateParams->dwMirrorType  = m_renderData->mirrorType;
+    psfcStateParams->RotationMode  = (MHW_ROTATION)m_renderData.SfcRotation;
+    psfcStateParams->bMirrorEnable = m_renderData.bMirrorEnable;
+    psfcStateParams->dwMirrorType  = m_renderData.mirrorType;
 }
 
 void SfcRenderBase::SetChromasitingParams(PMHW_SFC_STATE_PARAMS psfcStateParams)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(psfcStateParams);
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData);
 
-    psfcStateParams->dwInputChromaSubSampling           = m_renderData->inputChromaSubSampling;
-    psfcStateParams->dwChromaDownSamplingHorizontalCoef = m_renderData->chromaDownSamplingHorizontalCoef;
-    psfcStateParams->dwChromaDownSamplingVerticalCoef   = m_renderData->chromaDownSamplingVerticalCoef;
+    psfcStateParams->dwInputChromaSubSampling           = m_renderData.inputChromaSubSampling;
+    psfcStateParams->dwChromaDownSamplingHorizontalCoef = m_renderData.chromaDownSamplingHorizontalCoef;
+    psfcStateParams->dwChromaDownSamplingVerticalCoef   = m_renderData.chromaDownSamplingVerticalCoef;
 }
 
 void SfcRenderBase::SetColorFillParams(
     PMHW_SFC_STATE_PARAMS       psfcStateParams)
 {
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData);
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData->pColorFillParams);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData.pColorFillParams);
 
-    psfcStateParams->bColorFillEnable = m_renderData->pColorFillParams->bColorfillEnable;
+    psfcStateParams->bColorFillEnable = m_renderData.pColorFillParams->bColorfillEnable;
 
     if (psfcStateParams->bColorFillEnable)
     {
-        psfcStateParams->fColorFillYRPixel = m_renderData->pColorFillParams->fColorFillYRPixel;
-        psfcStateParams->fColorFillUGPixel = m_renderData->pColorFillParams->fColorFillUGPixel;
-        psfcStateParams->fColorFillVBPixel = m_renderData->pColorFillParams->fColorFillVBPixel;
-        psfcStateParams->fColorFillAPixel  = m_renderData->pColorFillParams->fColorFillAPixel;
+        psfcStateParams->fColorFillYRPixel = m_renderData.pColorFillParams->fColorFillYRPixel;
+        psfcStateParams->fColorFillUGPixel = m_renderData.pColorFillParams->fColorFillUGPixel;
+        psfcStateParams->fColorFillVBPixel = m_renderData.pColorFillParams->fColorFillVBPixel;
+        psfcStateParams->fColorFillAPixel  = m_renderData.pColorFillParams->fColorFillAPixel;
     }
 }
 
@@ -110,13 +109,12 @@ void SfcRenderBase::SetXYAdaptiveFilter(
     PMHW_SFC_STATE_PARAMS       psfcStateParams)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(psfcStateParams);
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData);
 
     // Enable Adaptive Filtering for YUV input only, if it is being upscaled
     // in either direction. We must check for this before clamping the SF.
-    if (IS_YUV_FORMAT(m_renderData->SfcInputFormat) &&
-      (m_renderData->fScaleX > 1.0F                 ||
-       m_renderData->fScaleY > 1.0F))
+    if (IS_YUV_FORMAT(m_renderData.SfcInputFormat) &&
+      (m_renderData.fScaleX > 1.0F                 ||
+       m_renderData.fScaleY > 1.0F))
     {
       psfcStateParams->bBypassXAdaptiveFilter = false;
       psfcStateParams->bBypassYAdaptiveFilter = false;
@@ -132,9 +130,8 @@ void SfcRenderBase::SetRGBAdaptive(
     PMHW_SFC_STATE_PARAMS       psfcStateParams)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(psfcStateParams);
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData);
 
-    if (IS_RGB_FORMAT(m_renderData->SfcInputFormat) &&
+    if (IS_RGB_FORMAT(m_renderData.SfcInputFormat) &&
         psfcStateParams->b8tapChromafiltering == true)
     {
         psfcStateParams->bRGBAdaptive = true;
@@ -153,25 +150,24 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
 
     VP_RENDER_CHK_NULL_RETURN(psfcStateParams);
     VP_RENDER_CHK_NULL_RETURN(pIEFStateParams);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData);
 
-    if (m_renderData->bCSC)
+    if (m_renderData.bCSC)
     {
         psfcStateParams->bCSCEnable = true;
         pIEFStateParams->bCSCEnable = true;
 
-        if ((m_cscInputCspace != m_renderData->SfcInputCspace) ||
-            (m_renderData->pSfcPipeOutSurface && m_cscRTCspace != m_renderData->pSfcPipeOutSurface->ColorSpace))
+        if ((m_cscInputCspace != m_renderData.SfcInputCspace) ||
+            (m_renderData.pSfcPipeOutSurface && m_cscRTCspace != m_renderData.pSfcPipeOutSurface->ColorSpace))
         {
             VpHal_GetCscMatrix(
-                m_renderData->SfcInputCspace,
-                m_renderData->pSfcPipeOutSurface->ColorSpace,
+                m_renderData.SfcInputCspace,
+                m_renderData.pSfcPipeOutSurface->ColorSpace,
                 m_cscCoeff,
                 m_cscInOffset,
                 m_cscOutOffset);
 
-            m_cscInputCspace = m_renderData->SfcInputCspace;
-            m_cscRTCspace    = m_renderData->pSfcPipeOutSurface->ColorSpace;
+            m_cscInputCspace = m_renderData.SfcInputCspace;
+            m_cscRTCspace    = m_renderData.pSfcPipeOutSurface->ColorSpace;
         }
         pIEFStateParams->pfCscCoeff     = m_cscCoeff;
         pIEFStateParams->pfCscInOffset  = m_cscInOffset;
@@ -187,17 +183,16 @@ MOS_STATUS SfcRenderBase::SetIefStateParams(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     VP_RENDER_CHK_NULL_RETURN(psfcStateParams);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData);
 
     pIefStateParams = &m_IefStateParams;
     MOS_ZeroMemory(pIefStateParams, sizeof(*pIefStateParams));
 
     // Setup IEF and STE params
-    if (m_renderData->bIEF && m_renderData->pIefParams)
+    if (m_renderData.bIEF && m_renderData.pIefParams)
     {
-        Ief ief(m_renderData->pIefParams, m_renderData->SfcInputFormat);
-
-        ief.SetHwState(psfcStateParams, pIefStateParams);
+        VP_RENDER_CHK_NULL_RETURN(m_iefObj);
+        m_iefObj->Init(m_renderData.pIefParams, m_renderData.SfcInputFormat, m_renderData.fScaleX, m_renderData.fScaleY);
+        m_iefObj->SetHwState(psfcStateParams, pIefStateParams);
     } // end of setup IEF and STE params
 
     // Setup CSC params
@@ -215,33 +210,36 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
     MHW_SCALING_MODE            scalingMode        = MHW_SCALING_AVS;
 
     VP_RENDER_CHK_NULL_RETURN(m_sfcInterface);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData);
 
     pMhwAvsState = &m_avsState.AvsStateParams;
     MOS_ZeroMemory(pMhwAvsState, sizeof(MHW_SFC_AVS_STATE));
 
-    if (m_renderData->bScaling ||
-        m_renderData->bForcePolyPhaseCoefs)
+    if (m_renderData.bScaling ||
+        m_renderData.bForcePolyPhaseCoefs)
     {
-        pMhwAvsState->dwInputHorizontalSiting = (m_renderData->SfcSrcChromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 : ((m_renderData->SfcSrcChromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 : SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
+        pMhwAvsState->dwInputHorizontalSiting = (m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_HORZ_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 :
+                                                ((m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_HORZ_RIGHT) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 :
+                                                SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
 
-        pMhwAvsState->dwInputVerticalSitting = (m_renderData->SfcSrcChromaSiting & MHW_CHROMA_SITING_VERT_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 : ((m_renderData->SfcSrcChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 : SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
+        pMhwAvsState->dwInputVerticalSitting = (m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_VERT_CENTER) ? SFC_AVS_INPUT_SITING_COEF_4_OVER_8 :
+                                                ((m_renderData.SfcSrcChromaSiting & MHW_CHROMA_SITING_VERT_BOTTOM) ? SFC_AVS_INPUT_SITING_COEF_8_OVER_8 :
+                                                SFC_AVS_INPUT_SITING_COEF_0_OVER_8);
 
-        if (m_renderData->SfcSrcChromaSiting == MHW_CHROMA_SITING_NONE)
+        if (m_renderData.SfcSrcChromaSiting == MHW_CHROMA_SITING_NONE)
         {
-            m_renderData->SfcSrcChromaSiting = MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_TOP;
+            m_renderData.SfcSrcChromaSiting = MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_TOP;
 
-            if (VpHal_GetSurfaceColorPack(m_renderData->SfcInputFormat) == VPHAL_COLORPACK_420)  // For 420, default is Left & Center, else default is Left & Top
+            if (VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat) == VPHAL_COLORPACK_420)  // For 420, default is Left & Center, else default is Left & Top
             {
                 pMhwAvsState->dwInputVerticalSitting = SFC_AVS_INPUT_SITING_COEF_4_OVER_8;
             }
         }
 
-        if (m_renderData->SfcScalingMode == VPHAL_SCALING_NEAREST)
+        if (m_renderData.SfcScalingMode == VPHAL_SCALING_NEAREST)
         {
             scalingMode = MHW_SCALING_NEAREST;
         }
-        else if (m_renderData->SfcScalingMode == VPHAL_SCALING_BILINEAR)
+        else if (m_renderData.SfcScalingMode == VPHAL_SCALING_BILINEAR)
         {
             scalingMode = MHW_SCALING_BILINEAR;
         }
@@ -254,97 +252,229 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
         VP_RENDER_CHK_STATUS_RETURN(m_sfcInterface->SetSfcSamplerTable(
             &m_avsState.LumaCoeffs,
             &m_avsState.ChromaCoeffs,
-            m_renderData->pAvsParams,
-            m_renderData->SfcInputFormat,
-            m_renderData->fScaleX,
-            m_renderData->fScaleY,
-            m_renderData->SfcSrcChromaSiting,
+            m_renderData.pAvsParams,
+            m_renderData.SfcInputFormat,
+            m_renderData.fScaleX,
+            m_renderData.fScaleY,
+            m_renderData.SfcSrcChromaSiting,
             true,
             0,
             0));
     }
 
     return eStatus;
-  }
+}
 
-MOS_STATUS SfcRenderBase::SetupSfcState(
-    PVPHAL_SFC_RENDER_DATA          sfcRenderData,
-    PVP_SURFACE                     targetSurface)
+MOS_STATUS SfcRenderBase::SetupSfcState(PVP_SURFACE targetSurface)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
-    VP_RENDER_CHK_NULL_RETURN(sfcRenderData);
     VP_RENDER_CHK_NULL_RETURN(targetSurface);
     VP_RENDER_CHK_NULL_RETURN(targetSurface->osSurface);
-
-    m_renderData = sfcRenderData;
 
     //---------------------------------
     // Set SFC State:  common properties
     //---------------------------------
-    m_renderData->sfcStateParams->sfcPipeMode = MEDIASTATE_SFC_PIPE_VE_TO_SFC;
+    m_renderData.sfcStateParams->sfcPipeMode = MEDIASTATE_SFC_PIPE_VE_TO_SFC;
 
-    m_renderData->sfcStateParams->OutputFrameFormat = targetSurface->osSurface->Format;
-    m_renderData->sfcStateParams->dwOutputSurfaceOffset = targetSurface->osSurface->YPlaneOffset.iSurfaceOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceUXOffset = (uint16_t) targetSurface->osSurface->UPlaneOffset.iXOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceUYOffset = (uint16_t) targetSurface->osSurface->UPlaneOffset.iYOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceVXOffset = (uint16_t) targetSurface->osSurface->VPlaneOffset.iXOffset;
-    m_renderData->sfcStateParams->wOutputSurfaceVYOffset = (uint16_t) targetSurface->osSurface->VPlaneOffset.iYOffset;
+    m_renderData.sfcStateParams->OutputFrameFormat = targetSurface->osSurface->Format;
+    m_renderData.sfcStateParams->dwOutputSurfaceOffset = targetSurface->osSurface->YPlaneOffset.iSurfaceOffset;
+    m_renderData.sfcStateParams->wOutputSurfaceUXOffset = (uint16_t) targetSurface->osSurface->UPlaneOffset.iXOffset;
+    m_renderData.sfcStateParams->wOutputSurfaceUYOffset = (uint16_t) targetSurface->osSurface->UPlaneOffset.iYOffset;
+    m_renderData.sfcStateParams->wOutputSurfaceVXOffset = (uint16_t) targetSurface->osSurface->VPlaneOffset.iXOffset;
+    m_renderData.sfcStateParams->wOutputSurfaceVYOffset = (uint16_t) targetSurface->osSurface->VPlaneOffset.iYOffset;
 
-    m_renderData->pSfcPipeOutSurface = targetSurface;
-    m_renderData->pAvsParams         = &m_AvsParameters;
+    m_renderData.pSfcPipeOutSurface = targetSurface;
+    m_renderData.pAvsParams         = &m_AvsParameters;
 
     //---------------------------------
     // Set SFC State:  Scaling
     //---------------------------------
-    m_AvsParameters.bForcePolyPhaseCoefs = m_renderData->bForcePolyPhaseCoefs;
+    m_AvsParameters.bForcePolyPhaseCoefs = m_renderData.bForcePolyPhaseCoefs;
     VP_RENDER_CHK_STATUS_RETURN(SetAvsStateParams());
-
-    m_renderData->sfcStateParams->bAVSChromaUpsamplingEnable = m_renderData->bScaling ||
-                                                               m_renderData->bForcePolyPhaseCoefs;
+    m_renderData.sfcStateParams->bAVSChromaUpsamplingEnable = m_renderData.bScaling ||
+                                                               m_renderData.bForcePolyPhaseCoefs;
 
     //---------------------------------
     // Set SFC State:  CSC/IEF
     //---------------------------------
-    if (m_renderData->bIEF ||
-        m_renderData->bCSC)
+    if (m_renderData.bIEF ||
+        m_renderData.bCSC)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetIefStateParams(
-            m_renderData->sfcStateParams));
+            m_renderData.sfcStateParams));
     }
 
     //---------------------------------
     // Set SFC State: Rotation/Mirror
     //---------------------------------
-    SetRotationAndMirrowParams(m_renderData->sfcStateParams);
+    SetRotationAndMirrowParams(m_renderData.sfcStateParams);
 
     //---------------------------------
     // Set SFC State:  Chromasiting
     //---------------------------------
-    SetChromasitingParams(m_renderData->sfcStateParams);
+    SetChromasitingParams(m_renderData.sfcStateParams);
 
     //---------------------------------
     // Set SFC State:  XY Adaptive Filter
     //---------------------------------
-    SetXYAdaptiveFilter(m_renderData->sfcStateParams);
+    SetXYAdaptiveFilter(m_renderData.sfcStateParams);
 
     //---------------------------------
     // Set SFC State:  RGB Adaptive Filter
     //---------------------------------
-    SetRGBAdaptive(m_renderData->sfcStateParams);
+    SetRGBAdaptive(m_renderData.sfcStateParams);
 
     //---------------------------------
     // Set SFC State:  Colorfill
     //---------------------------------
-    SetColorFillParams(m_renderData->sfcStateParams);
+    SetColorFillParams(m_renderData.sfcStateParams);
 
     VP_RENDER_CHK_STATUS_RETURN(AllocateResources());
 
-    m_renderData->sfcStateParams->pOsResOutputSurface = &targetSurface->osSurface->OsResource;
-    m_renderData->sfcStateParams->pOsResIEFLineBuffer = &m_IEFLineBufferSurface.OsResource;
-    m_renderData->sfcStateParams->pOsResAVSLineBuffer = &m_AVSLineBufferSurface.OsResource;
+    m_renderData.sfcStateParams->pOsResOutputSurface = &targetSurface->osSurface->OsResource;
+    m_renderData.sfcStateParams->pOsResIEFLineBuffer = &m_IEFLineBufferSurface.OsResource;
+    m_renderData.sfcStateParams->pOsResAVSLineBuffer = &m_AVSLineBufferSurface.OsResource;
 
     return eStatus;
+}
+
+MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(scalingParams);
+
+    // Adjust output width/height according to rotation.
+    if (VPHAL_ROTATION_90                   == m_renderData.SfcRotation ||
+        VPHAL_ROTATION_270                  == m_renderData.SfcRotation ||
+        VPHAL_ROTATE_90_MIRROR_VERTICAL     == m_renderData.SfcRotation ||
+        VPHAL_ROTATE_90_MIRROR_HORIZONTAL   == m_renderData.SfcRotation)
+    {
+        m_renderData.sfcStateParams->dwOutputFrameWidth         = scalingParams->dwOutputFrameHeight;
+        m_renderData.sfcStateParams->dwOutputFrameHeight        = scalingParams->dwOutputFrameWidth;
+    }
+    else
+    {
+        m_renderData.sfcStateParams->dwOutputFrameWidth         = scalingParams->dwOutputFrameWidth;
+        m_renderData.sfcStateParams->dwOutputFrameHeight        = scalingParams->dwOutputFrameHeight;
+    }
+    m_renderData.sfcStateParams->dwInputFrameHeight             = scalingParams->dwInputFrameHeight;
+    m_renderData.sfcStateParams->dwInputFrameWidth              = scalingParams->dwInputFrameWidth;
+
+    m_renderData.sfcStateParams->dwAVSFilterMode                = scalingParams->dwAVSFilterMode;
+    m_renderData.sfcStateParams->dwSourceRegionHeight           = scalingParams->dwSourceRegionHeight;
+    m_renderData.sfcStateParams->dwSourceRegionWidth            = scalingParams->dwSourceRegionWidth;
+    m_renderData.sfcStateParams->dwSourceRegionVerticalOffset   = scalingParams->dwSourceRegionVerticalOffset;
+    m_renderData.sfcStateParams->dwSourceRegionHorizontalOffset = scalingParams->dwSourceRegionHorizontalOffset;
+    m_renderData.sfcStateParams->dwScaledRegionHeight           = scalingParams->dwScaledRegionHeight;
+    m_renderData.sfcStateParams->dwScaledRegionWidth            = scalingParams->dwScaledRegionWidth;
+    m_renderData.sfcStateParams->dwScaledRegionVerticalOffset   = scalingParams->dwScaledRegionVerticalOffset;
+    m_renderData.sfcStateParams->dwScaledRegionHorizontalOffset = scalingParams->dwScaledRegionHorizontalOffset;
+    m_renderData.sfcStateParams->fAVSXScalingRatio              = scalingParams->fAVSXScalingRatio;
+    m_renderData.sfcStateParams->fAVSYScalingRatio              = scalingParams->fAVSYScalingRatio;
+
+    m_renderData.bScaling = ((scalingParams->fAVSXScalingRatio == 1.0F) && (scalingParams->fAVSYScalingRatio == 1.0F)) ?
+        false : true;
+
+    m_renderData.fScaleX = scalingParams->fAVSXScalingRatio;
+    m_renderData.fScaleY = scalingParams->fAVSYScalingRatio;
+    m_renderData.SfcScalingMode = scalingParams->sfcScalingMode;
+
+    // ColorFill/Alpha settings
+    m_renderData.pColorFillParams            = &(scalingParams->sfcColorfillParams);
+    m_renderData.sfcStateParams->fAlphaPixel = scalingParams->sfcColorfillParams.fAlphaPixel;
+    m_renderData.sfcStateParams->fColorFillAPixel  = scalingParams->sfcColorfillParams.fColorFillAPixel;
+    m_renderData.sfcStateParams->fColorFillUGPixel = scalingParams->sfcColorfillParams.fColorFillUGPixel;
+    m_renderData.sfcStateParams->fColorFillVBPixel = scalingParams->sfcColorfillParams.fColorFillVBPixel;
+    m_renderData.sfcStateParams->fColorFillYRPixel = scalingParams->sfcColorfillParams.fColorFillYRPixel;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(cscParams);
+
+    m_renderData.bIEF           = cscParams->bIEFEnable;
+    m_renderData.bCSC           = cscParams->bCSCEnabled;
+    m_renderData.pIefParams     = cscParams->iefParams;
+    m_renderData.SfcInputCspace = cscParams->inputColorSpcase;
+    m_renderData.SfcInputFormat = cscParams->inputFormat;
+
+    // ARGB8,ABGR10,A16B16G16R16,VYUY and YVYU output format need to enable swap
+    if (cscParams->outputFormat == Format_X8R8G8B8 ||
+        cscParams->outputFormat == Format_A8R8G8B8 ||
+        cscParams->outputFormat == Format_R10G10B10A2 ||
+        cscParams->outputFormat == Format_A16B16G16R16 ||
+        cscParams->outputFormat == Format_VYUY ||
+        cscParams->outputFormat == Format_YVYU)
+    {
+        m_renderData.sfcStateParams->bRGBASwapEnable = true;
+    }
+    else
+    {
+        m_renderData.sfcStateParams->bRGBASwapEnable = false;
+    }
+    m_renderData.sfcStateParams->bInputColorSpace = cscParams->bInputColorSpace;
+
+    // Chromasitting config
+    // config SFC chroma up sampling
+    m_renderData.bForcePolyPhaseCoefs   = cscParams->bChromaUpSamplingEnable;
+    m_renderData.SfcSrcChromaSiting     = cscParams->sfcSrcChromaSiting;
+    m_renderData.inputChromaSubSampling = cscParams->inputChromaSubSampling;
+
+    // 8-Tap chroma filter enabled or not
+    m_renderData.sfcStateParams->b8tapChromafiltering = cscParams->b8tapChromafiltering;
+
+    // config SFC chroma down sampling
+    m_renderData.chromaDownSamplingHorizontalCoef = cscParams->chromaDownSamplingHorizontalCoef;
+    m_renderData.chromaDownSamplingVerticalCoef   = cscParams->chromaDownSamplingVerticalCoef;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderBase::SetRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(rotMirParams);
+
+    m_renderData.SfcRotation   = rotMirParams->rotationMode;
+    m_renderData.bMirrorEnable = rotMirParams->bMirrorEnable;
+    m_renderData.mirrorType  = rotMirParams->mirrorType;
+
+    // Adjust output width/height according to rotation.
+    if (VPHAL_ROTATION_90                   == m_renderData.SfcRotation ||
+        VPHAL_ROTATION_270                  == m_renderData.SfcRotation ||
+        VPHAL_ROTATE_90_MIRROR_VERTICAL     == m_renderData.SfcRotation ||
+        VPHAL_ROTATE_90_MIRROR_HORIZONTAL   == m_renderData.SfcRotation)
+    {
+        uint32_t width = m_renderData.sfcStateParams->dwOutputFrameWidth;
+        m_renderData.sfcStateParams->dwOutputFrameWidth  = m_renderData.sfcStateParams->dwOutputFrameHeight;
+        m_renderData.sfcStateParams->dwOutputFrameHeight = width;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderBase::SetMmcParams(PMOS_SURFACE renderTarget, bool isFormalMmcSupported, bool isMmcEnabled)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(renderTarget);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderData.sfcStateParams);
+
+    if (renderTarget->CompressionMode               &&
+        isFormalMmcSupported                        &&
+        renderTarget->TileType == MOS_TILE_Y        &&
+        isMmcEnabled)
+    {
+        m_renderData.sfcStateParams->bMMCEnable = true;
+        m_renderData.sfcStateParams->MMCMode    = renderTarget->CompressionMode;
+    }
+    else
+    {
+        m_renderData.sfcStateParams->bMMCEnable = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 void SfcRenderBase::SetSfcStateInputOrderingMode(
@@ -401,7 +531,6 @@ MOS_STATUS SfcRenderBase::SendSfcCmd(
     MHW_SFC_OUT_SURFACE_PARAMS      OutSurfaceParam;
 
     VP_RENDER_CHK_NULL_RETURN(m_sfcInterface);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData);
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
     VP_RENDER_CHK_NULL_RETURN(pCmdBuffer);
 
@@ -418,13 +547,13 @@ MOS_STATUS SfcRenderBase::SendSfcCmd(
         &SfcLockParams));
 
     VP_RENDER_CHK_STATUS_RETURN(InitMhwOutSurfParams(
-        m_renderData->pSfcPipeOutSurface,
+        m_renderData.pSfcPipeOutSurface,
         &OutSurfaceParam));
 
     // Send SFC_STATE command
     VP_RENDER_CHK_STATUS_RETURN(pSfcInterface->AddSfcState(
         pCmdBuffer,
-        m_renderData->sfcStateParams,
+        m_renderData.sfcStateParams,
         &OutSurfaceParam));
 
     // Send SFC_AVS_STATE command
@@ -432,8 +561,8 @@ MOS_STATUS SfcRenderBase::SendSfcCmd(
         pCmdBuffer,
         &m_avsState.AvsStateParams));
 
-    if (m_renderData->bScaling ||
-        m_renderData->bForcePolyPhaseCoefs)
+    if (m_renderData.bScaling ||
+        m_renderData.bForcePolyPhaseCoefs)
     {
         // Send SFC_AVS_LUMA_TABLE command
         VP_RENDER_CHK_STATUS_RETURN(pSfcInterface->AddSfcAvsLumaTable(
@@ -447,7 +576,7 @@ MOS_STATUS SfcRenderBase::SendSfcCmd(
     }
 
     // Send SFC_IEF_STATE command
-    if (m_renderData->bIEF || m_renderData->bCSC)
+    if (m_renderData.bIEF || m_renderData.bCSC)
     {
         // Will modified when enable IEF/CSC
       VP_RENDER_CHK_STATUS_RETURN(pSfcInterface->AddSfcIefState(
@@ -520,11 +649,10 @@ MOS_STATUS SfcRenderBase::AllocateResources()
     PMHW_SFC_STATE_PARAMS   sfcStateParams;
 
     VP_RENDER_CHK_NULL_RETURN(m_allocator);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData->sfcStateParams);
+    VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
 
     allocated = false;
-    sfcStateParams = m_renderData->sfcStateParams;
+    sfcStateParams = m_renderData.sfcStateParams;
 
     // Allocate AVS Line Buffer surface----------------------------------------------
     width = 1;

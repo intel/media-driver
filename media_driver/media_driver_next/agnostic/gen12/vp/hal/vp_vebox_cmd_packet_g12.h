@@ -120,6 +120,8 @@ public:
         VEBOX_STAT_QUERY_TYPE QueryType,
         uint32_t*             pQuery) override;
 
+protected:
+    virtual MOS_STATUS CreateSfcRender() override;
 };
 
 }

@@ -384,8 +384,6 @@ public:
         MOS_COMMAND_BUFFER                      &CmdBuffer,
         PRENDERHAL_GENERIC_PROLOG_PARAMS        pGenericPrologParams);
 
-    virtual MOS_STATUS InitSfcStateParams();
-
     //!
     //! \brief    Setup Scaling Params for Vebox/SFC
     //! \details  Setup surface Scaling Params for Vebox/SFC
@@ -922,8 +920,12 @@ private:
     //! \return   bool  success if succeeded, otherwise failure
     //!
     virtual MOS_STATUS SetSfcMmcParams();
+    MOS_STATUS InitSfcRender();
 
 protected:
+
+    virtual MOS_STATUS CreateSfcRender() = 0;
+    virtual MOS_STATUS CreateIefObj();
 
     // Execution state
     VpVeboxRenderData           *m_lastExecRenderData     = nullptr;                             //!< Cache last render operation info
@@ -934,7 +936,7 @@ protected:
     float                       m_fCscInOffset[3];                                 //!< [3x1] Input Offset matrix for CSC
     float                       m_fCscOutOffset[3];                                //!< [3x1] Output Offset matrix for CSC
     SfcRenderBase               *m_sfcRender             = nullptr;
-    VPHAL_SFC_RENDER_DATA       m_sfcRenderData          = {};
+    VpIef                       *m_iefObj                = nullptr;
     bool                        m_IsSfcUsed              = false;
     std::map<SurfaceType, VP_SURFACE*> m_surfacesGroup;
 

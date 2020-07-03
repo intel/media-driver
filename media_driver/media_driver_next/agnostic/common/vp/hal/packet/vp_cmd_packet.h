@@ -32,8 +32,9 @@ namespace vp {
 
 enum _PacketType
 {
-    VP_PIPELINE_PACKET_FF = 0,
-    VP_PIPELINE_PACKET_COMP
+    VP_PIPELINE_PACKET_UNINITIALIZED  = 0,
+    VP_PIPELINE_PACKET_VEBOX,
+    VP_PIPELINE_PACKET_RENDER
 };
 using PacketType           = _PacketType;
 
@@ -81,7 +82,7 @@ public:
     VPMediaMemComp      *m_mmc = nullptr;
 
 protected:
-    PacketType          m_PacketId = VP_PIPELINE_PACKET_FF;
+    PacketType          m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
 };
 }

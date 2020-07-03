@@ -94,12 +94,9 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Execute(void *params);
+    virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params);
 
     virtual void Destroy();
-
-    virtual MOS_STATUS Prepare(
-        PCVPHAL_RENDER_PARAMS   pcRenderParams);
 
 protected:
     //!
@@ -117,11 +114,9 @@ protected:
 
     std::shared_ptr<vp::VpPipeline>    m_vpPipeline = {};
 
-    VP_MHWINTERFACE                    m_vpMhwinterface = {};   //!< vp Mhw Interface
     VP_PIPELINE_PARAMS                 m_vpPipelineParams = {};   //!< vp Pipeline params
-    VphalFeatureReport                *m_reporting = nullptr;
     bool                               m_bApgEnabled = false;    //!< VP APG path enabled
-    vp::VpPlatformInterface           &m_vpPlatformInterface; //!< vp platform interface. Should be destroyed during deconstruction.
+    vp::VpPlatformInterface            &m_vpPlatformInterface; //!< vp platform interface. Should be destroyed during deconstruction.
 
 };
 #endif // !__VP_PIPELINE_ADAPTER_H__

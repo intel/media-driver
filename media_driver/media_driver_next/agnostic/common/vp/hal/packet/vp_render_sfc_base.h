@@ -36,12 +36,20 @@
 
 namespace vp {
 
+class VpIef;
+
 class SfcRenderBase
 {
 
 public:
     SfcRenderBase(PMOS_INTERFACE osInterface, PMHW_SFC_INTERFACE sfcInterface, PVpAllocator &allocator);
-    virtual     ~SfcRenderBase();
+    virtual ~SfcRenderBase();
+
+    //!
+    //! \brief    Initialize the object
+    //! \return   MOS_STATUS
+    //!
+    virtual MOS_STATUS Init();
 
     //!
     //! \brief    Setup CSC parameters of the SFC State
@@ -91,18 +99,54 @@ public:
     //! \brief    Setup SFC states and parameters
     //! \details  Setup SFC states and parameters including SFC State, AVS
     //!           and IEF parameters
-    //! \param    [in] sfcRenderData
-    //!           Pointer to SFC Render Data
     //! \param    [in] targetSurface
     //!           Pointer to Output Surface
     //! \return   Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetupSfcState(
-        PVPHAL_SFC_RENDER_DATA          sfcRenderData,
-        PVP_SURFACE                     targetSurface);
+    virtual MOS_STATUS SetupSfcState(PVP_SURFACE targetSurface);
 
-    bool IsCSC() { return m_renderData->bCSC; };
-    bool IsScaling() { return m_renderData->bScaling; };
+    //!
+    //! \brief    Set scaling parameters
+    //! \details  Set scaling parameters
+    //! \param    [in] scalingParams
+    //!           Scaling parameters
+    //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams);
+
+    //!
+    //! \brief    Set csc parameters
+    //! \details  Set csc parameters
+    //! \param    [in] cscParams
+    //!           Csc parameters
+    //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetCSCParams(PSFC_CSC_PARAMS cscParams);
+
+    //!
+    //! \brief    Set rotation and mirror parameters
+    //! \details  Set rotation and mirror parameters
+    //! \param    [in] rotMirParams
+    //!           rotation and mirror parameters
+    //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams);
+
+    //!
+    //! \brief    Set mmc parameters
+    //! \details  Set mmc parameters
+    //! \param    [in] renderTarget
+    //!           render target surface
+    //! \param    [in] isFormalMmcSupported
+    //!           Is format supported by mmc
+    //! \param    [in] isMmcEnabled
+    //!           Is mmc enabled
+    //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled);
+
+    bool IsCSC() { return m_renderData.bCSC; }
+    bool IsScaling() { return m_renderData.bScaling; }
 
     //!
     //! \brief    Get Sfc's input format
@@ -110,10 +154,28 @@ public:
     //!
     MOS_FORMAT GetInputFormat()
     {
-        return m_renderData->SfcInputFormat;
+        return m_renderData.SfcInputFormat;
+    }
+
+    MOS_STATUS SetIefObj(VpIef *iefObj)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(iefObj);
+        m_iefObj = iefObj;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    PVPHAL_IEF_PARAMS GetIefParams()
+    {
+        return m_renderData.pIefParams;
     }
 
 protected:
+    //!
+    //! \brief    Initialize SfcState parameters
+    //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS InitSfcStateParams() = 0;
+
     //!
     //! \brief    Determine SFC input ordering mode
     //! \details  Determine SFC input ordering mode according to
@@ -245,7 +307,8 @@ protected:
     static const uint32_t           k_YCoefficientTableSize = 256 * sizeof(int32_t);
     static const uint32_t           k_UVCoefficientTableSize = 128 * sizeof(int32_t);
 
-    PVPHAL_SFC_RENDER_DATA          m_renderData = nullptr;                   //!< Transient Render data populated for every BLT call
+    PMHW_SFC_STATE_PARAMS           m_sfcStateParams = nullptr;               //!< Pointer to sfc state parameters
+    VP_SFC_RENDER_DATA              m_renderData = {};                        //!< Transient Render data populated for every BLT call
 
     VPHAL_CSPACE                    m_cscRTCspace = {};                       //!< Cspace of Render Target
     VPHAL_CSPACE                    m_cscInputCspace = {};                    //!< Cspace of input frame
@@ -262,6 +325,7 @@ protected:
 
     // Allocator interface
     PVpAllocator                    &m_allocator;                               //!< vp pipeline allocator
+    VpIef                           *m_iefObj;
 };
 
 }

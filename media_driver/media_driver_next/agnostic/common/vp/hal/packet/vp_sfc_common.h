@@ -78,7 +78,7 @@ typedef struct _VPHAL_SFC_RENDER_DATA
   PVP_SURFACE                         pSfcPipeOutSurface;                     //!< SFC Pipe output surface
 
   bool                                bForcePolyPhaseCoefs;                   //!< SFC AVS force polyphase coef
-} VPHAL_SFC_RENDER_DATA, *PVPHAL_SFC_RENDER_DATA;
+} VP_SFC_RENDER_DATA, *PVP_SFC_RENDER_DATA;
 
 //!
 //! \brief  Structure to hold AVS Coeff tables

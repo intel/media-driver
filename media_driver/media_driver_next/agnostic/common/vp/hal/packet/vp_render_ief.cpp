@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2017, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 
 namespace vp{
 
-const uint32_t   Ief::g_R5x[k_IefMaxItem] = {
+const uint32_t   VpIef::s_r5x[s_iefMaxItem] = {
     0,   0,   0,   0,   1,   1,   1,   1,   1,   1,   2,   2,   2,   2,   2,   2,
     3,   3,   3,   3,   3,   3,   4,   4,   4,   4,   4,   4,   4,   5,   5,   5,
     5,   5,   5,   6,   6,   6,   6,   6,   6,   7,   7,   7,   7,   8,  10,  11,
@@ -41,7 +41,7 @@ const uint32_t   Ief::g_R5x[k_IefMaxItem] = {
 //!
 //! \brief  Const IEF R5CX coefficient array
 //!
-const uint32_t   Ief::g_R5cx[k_IefMaxItem] = {
+const uint32_t   VpIef::s_r5cx[s_iefMaxItem] = {
     0,   0,   0,   0,   1,   1,   1,   1,   1,   1,   2,   2,   2,   2,   2,   2,
     3,   3,   3,   3,   3,   3,   4,   4,   4,   4,   4,   4,   4,   5,   5,   5,
     5,   5,   5,   6,   6,   6,   6,   6,   6,   7,   7,   7,   7,   8,  10,  11,
@@ -51,7 +51,7 @@ const uint32_t   Ief::g_R5cx[k_IefMaxItem] = {
 //!
 //! \brief  Const IEF R5C coefficient array
 //!
-const uint32_t   Ief::g_R5c[k_IefMaxItem] = {
+const uint32_t   VpIef::s_r5c[s_iefMaxItem] = {
     0,   0,   0,   0,   1,   1,   1,   1,   1,   1,   2,   2,   2,   2,   2,   2,
     3,   3,   3,   3,   3,   3,   4,   4,   4,   4,   4,   4,   4,   5,   5,   5,
     5,   5,   5,   6,   6,   6,   6,   6,   6,   7,   7,   7,   7,   8,  10,  11,
@@ -61,7 +61,7 @@ const uint32_t   Ief::g_R5c[k_IefMaxItem] = {
 //!
 //! \brief  Const IEF R3X coefficient array
 //!
-const uint32_t   Ief::g_R3x[k_IefMaxItem] = {
+const uint32_t   VpIef::s_r3x[s_iefMaxItem] = {
     0,   0,   0,   0,   0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   2,   2,
     2,   2,   2,   2,   2,   2,   3,   3,   3,   3,   3,   3,   3,   3,   3,   4,
     4,   4,   4,   4,   4,   4,   4,   4,   5,   5,   5,   5,   5,   6,   6,   7,
@@ -71,14 +71,14 @@ const uint32_t   Ief::g_R3x[k_IefMaxItem] = {
 //!
 //! \brief  Const IEF R3C coefficient array
 //!
-const uint32_t   Ief::g_R3c[k_IefMaxItem] = {
+const uint32_t   VpIef::s_r3c[s_iefMaxItem] = {
     0,   0,   0,   0,   0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   2,   2,
     2,   2,   2,   2,   2,   2,   3,   3,   3,   3,   3,   3,   3,   3,   3,   4,
     4,   4,   4,   4,   4,   4,   4,   4,   5,   5,   5,   5,   5,   6,   6,   7,
     7,   8,   8,   9,  10,  10,  11,  11,  12,  13,  13,  14,  14,  15,  15,  16
 };
 
-MOS_STATUS Ief::CalculateIefParams()
+MOS_STATUS VpIef::CalculateIefParams()
 {
     PVPHAL_IEF_PARAMS   pIEFParams;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
@@ -91,34 +91,31 @@ MOS_STATUS Ief::CalculateIefParams()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    m_wIEFFactor = (uint16_t)pIEFParams->fIEFFactor;
+    m_iefFactor = (uint16_t)pIEFParams->fIEFFactor;
 
     // HW supports 0 - 63, but driver reports 0 - 64. so we clamp to 63 here.
-    if (m_wIEFFactor >= k_IefMaxItem)
+    if (m_iefFactor >= s_iefMaxItem)
     {
-        m_wIEFFactor = k_IefMaxItem - 1;
+        m_iefFactor = s_iefMaxItem - 1;
     }
 
-    m_dwR5xCoefficient  = g_R5x[m_wIEFFactor];
-    m_dwR5cxCoefficient = g_R5cx[m_wIEFFactor];
-    m_dwR5cCoefficient  = g_R5c[m_wIEFFactor];
-    m_dwR3xCoefficient  = g_R3x[m_wIEFFactor];
-    m_dwR3cCoefficient  = g_R3c[m_wIEFFactor];
+    m_r5xCoefficient  = s_r5x[m_iefFactor];
+    m_r5cxCoefficient = s_r5cx[m_iefFactor];
+    m_r5cCoefficient  = s_r5c[m_iefFactor];
+    m_r3xCoefficient  = s_r3x[m_iefFactor];
+    m_r3cCoefficient  = s_r3c[m_iefFactor];
 
     return eStatus;
 }
 
-MOS_STATUS Ief::SetHwState(
+MOS_STATUS VpIef::SetHwState(
     PMHW_SAMPLER_STATE_PARAM        pSamplerStateParams)
 {
     // Init default parameters
     // Set IEF params
-    PVPHAL_IEF_PARAMS   pIEFParams  = nullptr;
+    PVPHAL_IEF_PARAMS   pIEFParams  = m_iefParams;
     MOS_STATUS          eStatus     = MOS_STATUS_SUCCESS;
 
-    VP_RENDER_CHK_NULL_RETURN(m_iefParams);
-
-    pIEFParams = m_iefParams;
     VP_RENDER_CHK_NULL_RETURN(pIEFParams);
 
     // calculate IEF parameter
@@ -145,19 +142,19 @@ MOS_STATUS Ief::SetHwState(
     pSamplerStateParams->Avs.StrongEdgeThr  = (uint8_t)pIEFParams->StrongEdgeThreshold;
 
     pSamplerStateParams->Avs.bEnableIEF = true;
-    pSamplerStateParams->Avs.wIEFFactor = m_wIEFFactor;
-    pSamplerStateParams->Avs.GainFactor = m_wIEFFactor;
+    pSamplerStateParams->Avs.wIEFFactor = m_iefFactor;
+    pSamplerStateParams->Avs.GainFactor = m_iefFactor;
 
-    pSamplerStateParams->Avs.wR5xCoefficient        = (uint16_t)m_dwR5xCoefficient;
-    pSamplerStateParams->Avs.wR5cxCoefficient       = (uint16_t)m_dwR5cxCoefficient;
-    pSamplerStateParams->Avs.wR5cCoefficient        = (uint16_t)m_dwR5cCoefficient;
-    pSamplerStateParams->Avs.wR3xCoefficient        = (uint16_t)m_dwR3xCoefficient;
-    pSamplerStateParams->Avs.wR3cCoefficient        = (uint16_t)m_dwR3cCoefficient;
+    pSamplerStateParams->Avs.wR5xCoefficient        = (uint16_t)m_r5xCoefficient;
+    pSamplerStateParams->Avs.wR5cxCoefficient       = (uint16_t)m_r5cxCoefficient;
+    pSamplerStateParams->Avs.wR5cCoefficient        = (uint16_t)m_r5cCoefficient;
+    pSamplerStateParams->Avs.wR3xCoefficient        = (uint16_t)m_r3xCoefficient;
+    pSamplerStateParams->Avs.wR3cCoefficient        = (uint16_t)m_r3cCoefficient;
 
     return eStatus;
 }
 
-MOS_STATUS Ief::SetHwState(
+MOS_STATUS VpIef::SetHwState(
     PMHW_SFC_STATE_PARAMS           pSfcStateParams,
     PMHW_SFC_IEF_STATE_PARAMS       pSfcIefStateParams)
 {
@@ -179,8 +176,8 @@ MOS_STATUS Ief::SetHwState(
     // Set IEF params
     pSfcStateParams->bIEFEnable               = true;
     pSfcIefStateParams->bIEFEnable            = true;
-    pSfcIefStateParams->StrongEdgeWeight      = k_DetailStrongEdgeWeight;
-    pSfcIefStateParams->RegularWeight         = k_DetailRegularEdgeWeight;
+    pSfcIefStateParams->StrongEdgeWeight      = s_detailStrongEdgeWeight;
+    pSfcIefStateParams->RegularWeight         = s_detailRegularEdgeWeight;
     pSfcIefStateParams->StrongEdgeThreshold   = IEF_STRONG_EDGE_THRESHOLD;
 
     // Set STE params
@@ -196,46 +193,42 @@ MOS_STATUS Ief::SetHwState(
     pSfcIefStateParams->bSkinDetailFactor     = pIEFParams->bEmphasizeSkinDetail;
 
     // Set IEF params
-    if (m_wIEFFactor > 0)
+    if (m_iefFactor > 0)
     {
-        pSfcIefStateParams->dwGainFactor        = m_wIEFFactor;
-        pSfcIefStateParams->dwR5xCoefficient    = m_dwR5xCoefficient;
-        pSfcIefStateParams->dwR5cxCoefficient   = m_dwR5cxCoefficient;
-        pSfcIefStateParams->dwR5cCoefficient    = m_dwR5cCoefficient;
-        pSfcIefStateParams->dwR3xCoefficient    = m_dwR3xCoefficient;
-        pSfcIefStateParams->dwR3cCoefficient    = m_dwR3cCoefficient;
+        pSfcIefStateParams->dwGainFactor        = m_iefFactor;
+        pSfcIefStateParams->dwR5xCoefficient    = m_r5xCoefficient;
+        pSfcIefStateParams->dwR5cxCoefficient   = m_r5cxCoefficient;
+        pSfcIefStateParams->dwR5cCoefficient    = m_r5cCoefficient;
+        pSfcIefStateParams->dwR3xCoefficient    = m_r3xCoefficient;
+        pSfcIefStateParams->dwR3cCoefficient    = m_r3cCoefficient;
     }
 
     return eStatus;
 }
 
-Ief::Ief(
-    PVPHAL_SURFACE                  pSource) :
-    m_wIEFFactor(0),
-    m_dwR5xCoefficient(0),
-    m_dwR5cxCoefficient(0),
-    m_dwR5cCoefficient(0),
-    m_dwR3xCoefficient(0),
-    m_dwR3cCoefficient(0)
+VpIef::VpIef()
 {
-    m_format    = pSource->Format;
-    m_iefParams = pSource->pIEFParams;
 }
 
-Ief::Ief(PVPHAL_IEF_PARAMS IefParams, MOS_FORMAT format) :
-    m_iefParams(IefParams),
-    m_format(format),
-    m_wIEFFactor(0),
-    m_dwR5xCoefficient(0),
-    m_dwR5cxCoefficient(0),
-    m_dwR5cCoefficient(0),
-    m_dwR3xCoefficient(0),
-    m_dwR3cCoefficient(0)
+void VpIef::Init(
+    PVPHAL_IEF_PARAMS               iefParams,
+    MOS_FORMAT                      format,
+    float                           scaleX,
+    float                           scaleY)
 {
-
+    m_iefParams             = iefParams;
+    m_format                = format;
+    m_scaleX                = scaleX;
+    m_scaleY                = scaleY;
+    m_iefFactor             = 0;
+    m_r5xCoefficient        = 0;
+    m_r5cxCoefficient       = 0;
+    m_r5cCoefficient        = 0;
+    m_r3xCoefficient        = 0;
+    m_r3cCoefficient        = 0;
 }
 
-Ief::~Ief()
+VpIef::~VpIef()
 {
 }
 

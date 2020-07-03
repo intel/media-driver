@@ -36,7 +36,6 @@ namespace vp {
 
 class SfcRenderM12 : public SfcRenderBase
 {
-
 public:
     SfcRenderM12(PMOS_INTERFACE osInterface, PMHW_SFC_INTERFACE sfcInterface, PVpAllocator &allocator);
     virtual     ~SfcRenderM12();
@@ -44,16 +43,21 @@ public:
     //!
     //! \brief    Setup SFC states and parameters
     //! \details  Setup SFC states and parameters including M12 SFC State
-    //! \param    [in] sfcRenderData
-    //!           Pointer to SFC Render Data
     //! \param    [in] targetSurface
     //!           Pointer to Output Surface
     //! \return   Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SetupSfcState(
-        PVPHAL_SFC_RENDER_DATA          sfcRenderData,
         PVP_SURFACE                     targetSurface);
+
+protected:
+    //!
+    //! \brief    Initiazlize SFC State Parameters
+    //! \details  Initiazlize SFC State Parameters
+    //! \return   Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS InitSfcStateParams();
 };
 
 }
-#endif // !__VP_RENDER_SFC_BASE_H__
+#endif // !__VP_RENDER_SFC_M12_H__

@@ -65,7 +65,7 @@ VpCmdPacket *PacketFactory::CreatePacket(EngineType type)
     switch(type)
     {
     case EngineTypeVebox:
-    case EngineTypeSfc:
+    case EngineTypeVeboxSfc:
         if (!m_VeboxPacketPool.empty())
         {
             VpCmdPacket *p = m_VeboxPacketPool.back();
@@ -95,10 +95,10 @@ void PacketFactory::ReturnPacket(VpCmdPacket *&pPacket)
     PacketType type = pPacket->GetPacketId();
     switch (type)
     {
-    case VP_PIPELINE_PACKET_FF:
+    case VP_PIPELINE_PACKET_VEBOX:
         m_VeboxPacketPool.push_back(pPacket);
         break;
-    case VP_PIPELINE_PACKET_COMP:
+    case VP_PIPELINE_PACKET_RENDER:
         m_RenderPacketPool.push_back(pPacket);
         break;
     default:
@@ -173,7 +173,7 @@ MOS_STATUS PacketPipe::SetOutputPipeMode(EngineType engineType)
     case EngineTypeVebox:
         m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_VEBOX;
         break;
-    case EngineTypeSfc:
+    case EngineTypeVeboxSfc:
         m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_SFC;
         break;
     case EngineTypeRender:
@@ -193,7 +193,7 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
     ScalabilityPars scalPars = {};
     switch (type)
     {
-    case VP_PIPELINE_PACKET_FF:
+    case VP_PIPELINE_PACKET_VEBOX:
         {
             VP_PUBLIC_NORMALMESSAGE("Switch to Vebox Context");
 
@@ -204,7 +204,7 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
             VP_PUBLIC_CHK_NULL_RETURN(scalability);
             break;
         }
-    case VP_PIPELINE_PACKET_COMP:
+    case VP_PIPELINE_PACKET_RENDER:
         {
             VP_PUBLIC_NORMALMESSAGE("Switch to Render Context");
             VP_PUBLIC_CHK_STATUS_RETURN(mediaContext->SwitchContext(RenderGenericFunc, &scalPars, &scalability));

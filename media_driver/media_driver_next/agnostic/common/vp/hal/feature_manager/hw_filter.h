@@ -53,7 +53,7 @@ enum EngineType
 {
     EngineTypeInvalid = 0,
     EngineTypeVebox,
-    EngineTypeSfc,
+    EngineTypeVeboxSfc,
     EngineTypeRender,
     // ...
     NumOfEngineType
@@ -148,11 +148,11 @@ protected:
     HwFilterVebox(VpInterface &vpInterface, EngineType type);
 };
 
-class HwFilterSfc: public HwFilterVebox  // VEBOX+SFC
+class HwFilterVeboxSfc: public HwFilterVebox  // VEBOX+SFC
 {
 public:
-    HwFilterSfc(VpInterface &vpInterface);
-    virtual ~HwFilterSfc();
+    HwFilterVeboxSfc(VpInterface &vpInterface);
+    virtual ~HwFilterVeboxSfc();
     virtual MOS_STATUS Clean()
     {
         HwFilter::Clean();

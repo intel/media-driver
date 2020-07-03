@@ -62,7 +62,7 @@ MOS_STATUS HwFilterPipeFactory::Destory(HwFilterPipe *&pHwfilterPipe)
 /*                                      HwFilterFactory                                             */
 /****************************************************************************************************/
 
-HwFilterFactory::HwFilterFactory(VpInterface &vpInterface) : m_allocatorVebox(vpInterface), m_allocatorSfc(vpInterface), m_allocatorRender(vpInterface)
+HwFilterFactory::HwFilterFactory(VpInterface &vpInterface) : m_allocatorVebox(vpInterface), m_allocatorVeboxSfc(vpInterface), m_allocatorRender(vpInterface)
 {
 }
 
@@ -78,8 +78,8 @@ HwFilter *HwFilterFactory::Create(HW_FILTER_PARAMS &param)
     case EngineTypeVebox:
         p = m_allocatorVebox.Create();
         break;
-    case EngineTypeSfc:
-        p = m_allocatorSfc.Create();
+    case EngineTypeVeboxSfc:
+        p = m_allocatorVeboxSfc.Create();
         break;
     case EngineTypeRender:
         p = m_allocatorRender.Create();
@@ -120,12 +120,12 @@ void HwFilterFactory::Destory(HwFilter *&pHwFilter)
             }
             break;
         }
-        case EngineTypeSfc:
+        case EngineTypeVeboxSfc:
         {
-            HwFilterSfc *p = dynamic_cast<HwFilterSfc*>(pHwFilter);
+            HwFilterVeboxSfc *p = dynamic_cast<HwFilterVeboxSfc*>(pHwFilter);
             if (p)
             {
-                m_allocatorSfc.Destory(p);
+                m_allocatorVeboxSfc.Destory(p);
                 pHwFilter = nullptr;
             }
             else
@@ -170,13 +170,14 @@ SwFilterPipeFactory::~SwFilterPipeFactory()
 {
 }
 
-MOS_STATUS SwFilterPipeFactory::Create(VP_PIPELINE_PARAMS &params, SwFilterPipe *&swFilterPipe)
+MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, SwFilterPipe *&swFilterPipe)
 {
+    VP_PUBLIC_CHK_NULL_RETURN(params);
     swFilterPipe = m_allocator.Create();
     VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
 
     FeatureRule featureRule;
-    MOS_STATUS status = swFilterPipe->Initialize(params, featureRule);
+    MOS_STATUS status = swFilterPipe->Initialize(*params, featureRule);
 
     if (MOS_FAILED(status))
     {

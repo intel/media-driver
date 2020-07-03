@@ -154,18 +154,18 @@ protected:
 class VpFeatureManagerNext : public MediaFeatureManager
 {
 public:
-    VpFeatureManagerNext(VpAllocator &allocator, VpResourceManager *resourceManager, PVP_MHWINTERFACE pHwInterface);
+    VpFeatureManagerNext(VpInterface &vpInterface);
     virtual ~VpFeatureManagerNext();
 
     virtual MOS_STATUS Initialize();
-    virtual MOS_STATUS InitPacketPipe(VP_PIPELINE_PARAMS &params,
+    virtual MOS_STATUS InitPacketPipe(SwFilterPipe &swFilterPipe,
                     PacketPipe &packetPipe);
 
 protected:
-    MOS_STATUS CreateHwFilterPipe(VP_PIPELINE_PARAMS &params, HwFilterPipe *&pHwFilterPipe);
+    MOS_STATUS CreateHwFilterPipe(SwFilterPipe &swFilterPipe, HwFilterPipe *&pHwFilterPipe);
     MOS_STATUS UpdateResources(HwFilterPipe &hwFilterPipe);
 
-    VpInterface         m_vpInterface;
+    VpInterface         &m_vpInterface;
     Policy              m_Policy;
 
 private:

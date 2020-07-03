@@ -31,7 +31,7 @@
 #include "mhw_sfc_g12_X.h"
 #include "mos_defs.h"
 
-namespace vp {
+using namespace vp;
 
 SfcRenderM12::SfcRenderM12(
     PMOS_INTERFACE osInterface,
@@ -46,22 +46,36 @@ SfcRenderM12::~SfcRenderM12()
 }
 
 MOS_STATUS SfcRenderM12::SetupSfcState(
-    PVPHAL_SFC_RENDER_DATA          sfcRenderData,
     PVP_SURFACE                     targetSurface)
 {
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
     PMHW_SFC_STATE_PARAMS_G12 sfcStateParamsM12 = nullptr;
 
-    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBase::SetupSfcState(sfcRenderData, targetSurface));
+    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBase::SetupSfcState(targetSurface));
 
     //Set SFD Line Buffer
-    VP_RENDER_CHK_NULL_RETURN(m_renderData);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData->sfcStateParams);
-    sfcStateParamsM12 = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData->sfcStateParams);
+    VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
+    sfcStateParamsM12 = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.sfcStateParams);
     VP_RENDER_CHK_NULL_RETURN(sfcStateParamsM12);
     sfcStateParamsM12->resSfdLineBuffer = Mos_ResourceIsNull(&m_SFDLineBufferSurface.OsResource) ? nullptr : &m_SFDLineBufferSurface.OsResource;
 
     return eStatus;
 }
 
+MOS_STATUS SfcRenderM12::InitSfcStateParams()
+{
+    if (nullptr == m_sfcStateParams)
+    {
+        m_sfcStateParams = (MHW_SFC_STATE_PARAMS_G12*)MOS_AllocAndZeroMemory(sizeof(MHW_SFC_STATE_PARAMS_G12));
+    }
+    else
+    {
+        MOS_ZeroMemory(m_sfcStateParams, sizeof(MHW_SFC_STATE_PARAMS_G12));
+    }
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcStateParams);
+
+    m_renderData.sfcStateParams = m_sfcStateParams;
+
+    return MOS_STATUS_SUCCESS;
 }

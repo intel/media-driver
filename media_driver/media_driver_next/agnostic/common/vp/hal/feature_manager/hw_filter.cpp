@@ -139,16 +139,16 @@ MOS_STATUS HwFilterVebox::ConfigDnParam(HW_FILTER_DN_PARAM &param)
 }
 
 /****************************************************************************************************/
-/*                                      HwFilterSfc                                                 */
+/*                                      HwFilterVeboxSfc                                                 */
 /****************************************************************************************************/
 
-HwFilterSfc::HwFilterSfc(VpInterface &vpInterface) : HwFilterVebox(vpInterface, EngineTypeSfc)
+HwFilterVeboxSfc::HwFilterVeboxSfc(VpInterface &vpInterface) : HwFilterVebox(vpInterface, EngineTypeVeboxSfc)
 {}
 
-HwFilterSfc::~HwFilterSfc()
+HwFilterVeboxSfc::~HwFilterVeboxSfc()
 {}
 
-MOS_STATUS HwFilterSfc::SetPacketParams(VpCmdPacket &packet)
+MOS_STATUS HwFilterVeboxSfc::SetPacketParams(VpCmdPacket &packet)
 {
     return HwFilterVebox::SetPacketParams(packet);
 }

@@ -35,15 +35,13 @@ VpPipelineAdapter::VpPipelineAdapter(
 }
 
 //!
-//! \brief    VpPipelineG12Adapter Destuctor
-//! \details  Destroys VpPipelineG12Adapter and all internal states and objects
+//! \brief    VpPipelineAdapter Destuctor
+//! \details  Destroys VpPipelineAdapter and all internal states and objects
 //! \return   void
 //!
 VpPipelineAdapter::~VpPipelineAdapter()
 {
     Destroy();
-    vp::VpPlatformInterface *pIntf = &m_vpPlatformInterface;
-    MOS_Delete(pIntf);
 };
 
 MOS_STATUS VpPipelineAdapter::Init(
@@ -51,31 +49,25 @@ MOS_STATUS VpPipelineAdapter::Init(
 {
     VP_FUNC_CALL();
 
-    if (m_reporting == nullptr)
-    {
-        m_reporting = MOS_New(VphalFeatureReport);
-    }
-    VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
-
-    m_vpPipeline = std::make_shared<vp::VpPipeline>(vphalState.GetOsInterface(), m_reporting);
+    m_vpPipeline = std::make_shared<vp::VpPipeline>(vphalState.GetOsInterface());
     VP_PUBLIC_CHK_NULL_RETURN(m_vpPipeline);
     VP_PUBLIC_CHK_NULL_RETURN(vphalState.GetRenderHal());
 
-    MOS_ZeroMemory(&m_vpMhwinterface, sizeof(VP_MHWINTERFACE));
+    VP_MHWINTERFACE vpMhwinterface = {};   //!< vp Mhw Interface
 
-    m_vpMhwinterface.m_platform = vphalState.GetPlatform();
-    m_vpMhwinterface.m_waTable  = vphalState.GetWaTable();
-    m_vpMhwinterface.m_skuTable = vphalState.GetSkuTable();
+    vpMhwinterface.m_platform = vphalState.GetPlatform();
+    vpMhwinterface.m_waTable  = vphalState.GetWaTable();
+    vpMhwinterface.m_skuTable = vphalState.GetSkuTable();
 
-    m_vpMhwinterface.m_osInterface      = vphalState.GetOsInterface();
-    m_vpMhwinterface.m_renderHal        = vphalState.GetRenderHal();
-    m_vpMhwinterface.m_veboxInterface   = vphalState.GetVeboxInterface();
-    m_vpMhwinterface.m_sfcInterface     = vphalState.GetSfcInterface();
-    m_vpMhwinterface.m_renderer         = vphalState.GetRenderer();
-    m_vpMhwinterface.m_cpInterface      = vphalState.GetCpInterface();
-    m_vpMhwinterface.m_mhwMiInterface   = vphalState.GetRenderHal()->pMhwMiInterface;
-    m_vpMhwinterface.m_statusTable      = &vphalState.GetStatusTable();
-    m_vpMhwinterface.m_vpPlatformInterface = &m_vpPlatformInterface;
+    vpMhwinterface.m_osInterface      = vphalState.GetOsInterface();
+    vpMhwinterface.m_renderHal        = vphalState.GetRenderHal();
+    vpMhwinterface.m_veboxInterface   = vphalState.GetVeboxInterface();
+    vpMhwinterface.m_sfcInterface     = vphalState.GetSfcInterface();
+    vpMhwinterface.m_renderer         = vphalState.GetRenderer();
+    vpMhwinterface.m_cpInterface      = vphalState.GetCpInterface();
+    vpMhwinterface.m_mhwMiInterface   = vphalState.GetRenderHal()->pMhwMiInterface;
+    vpMhwinterface.m_statusTable      = &vphalState.GetStatusTable();
+    vpMhwinterface.m_vpPlatformInterface = &m_vpPlatformInterface;
 
     if (vphalState.GetVeboxInterface() &&
         vphalState.GetVeboxInterface()->m_veboxSettings.uiNumInstances > 0 &&
@@ -85,19 +77,20 @@ MOS_STATUS VpPipelineAdapter::Init(
         VP_PUBLIC_CHK_STATUS_RETURN(vphalState.GetVeboxInterface()->CreateHeap());
     }
 
-    // Set VP pipeline mhw interfaces
-    m_vpPipeline->SetVpPipelineMhwInterfce(&m_vpMhwinterface);
-
-    return m_vpPipeline->Init((void*)pVpHalSettings);
+    return m_vpPipeline->Init(&vpMhwinterface);
 }
 
-MOS_STATUS VpPipelineAdapter::Execute(void * params)
+MOS_STATUS VpPipelineAdapter::Execute(PVP_PIPELINE_PARAMS params)
 {
     MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
+    vp::VP_PARAMS vpParams = {};
 
     VP_FUNC_CALL();
 
-    eStatus = m_vpPipeline->Prepare(params);
+    vpParams.type = vp::PIPELINE_PARAM_TYPE_LEGACY;
+    vpParams.renderParams = params;
+
+    eStatus = m_vpPipeline->Prepare(&vpParams);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         if (eStatus == MOS_STATUS_UNIMPLEMENTED)
@@ -122,27 +115,24 @@ void VpPipelineAdapter::Destroy()
         m_vpPipeline->Destroy();
         m_vpPipeline = nullptr;
     }
-    MOS_Delete(m_reporting);
+
+    vp::VpPlatformInterface *pIntf = &m_vpPlatformInterface;
+    MOS_Delete(pIntf);
 }
 
 MOS_STATUS VpPipelineAdapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    VP_PIPELINE_PARAMS params = {};
 
-    if ((m_vpMhwinterface.m_osInterface != nullptr) && (pcRenderParams != nullptr))
-    {
-        // Set the component info
-        m_vpMhwinterface.m_osInterface->Component = pcRenderParams->Component;
+    VP_PUBLIC_CHK_NULL_RETURN(pcRenderParams);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpPipeline);
 
-        // Init component(DDI entry point) info for perf measurement
-        m_vpMhwinterface.m_osInterface->pfnSetPerfTag(m_vpMhwinterface.m_osInterface, VPHAL_NONE);
-    }
+    params = *(PVP_PIPELINE_PARAMS)pcRenderParams;
+    // default render of video
+    params.bIsDefaultStream = true;
 
-    VP_PUBLIC_CHK_STATUS_RETURN(Prepare(pcRenderParams));
-
-    void *params = (void *)&m_vpPipelineParams;
-
-    eStatus = Execute(params);
+    eStatus = Execute(&params);
 
     if (eStatus == MOS_STATUS_SUCCESS)
     {
@@ -155,19 +145,4 @@ MOS_STATUS VpPipelineAdapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
         m_bApgEnabled = false;
         return eStatus;
     }
-}
-
-MOS_STATUS VpPipelineAdapter::Prepare(PCVPHAL_RENDER_PARAMS pcRenderParams)
-{
-    VP_PUBLIC_CHK_NULL_RETURN(pcRenderParams);
-
-    if (m_vpPipeline)
-    {
-        m_vpPipelineParams = *(PVP_PIPELINE_PARAMS)pcRenderParams;
-
-        // default render of video
-        m_vpPipelineParams.bIsDefaultStream = true;
-    }
-
-    return MOS_STATUS_SUCCESS;
 }

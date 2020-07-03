@@ -118,7 +118,7 @@ public:
 
 private:
     VpObjAllocator<HwFilterVebox> m_allocatorVebox;
-    VpObjAllocator<HwFilterSfc> m_allocatorSfc;
+    VpObjAllocator<HwFilterVeboxSfc> m_allocatorVeboxSfc;
     VpObjAllocator<HwFilterRender> m_allocatorRender;
 };
 
@@ -128,7 +128,8 @@ public:
     SwFilterPipeFactory(VpInterface &vpInterface);
     virtual ~SwFilterPipeFactory();
 
-    MOS_STATUS Create(VP_PIPELINE_PARAMS &params, SwFilterPipe *&swFilterPipe);
+    MOS_STATUS Create(PVP_PIPELINE_PARAMS params, SwFilterPipe *&swFilterPipe);
+
     // Create empty swFilter
     MOS_STATUS Create(SwFilterPipe *&swFilterPipe);
     void Destory(SwFilterPipe *&swfilterPipe);

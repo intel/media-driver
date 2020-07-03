@@ -696,7 +696,7 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
 
     if (caps.bVebox || caps.bSFC)
     {
-        params.Type = caps.bSFC ? EngineTypeSfc : EngineTypeVebox;
+        params.Type = caps.bSFC ? EngineTypeVeboxSfc : EngineTypeVebox;
         params.vpExecuteCaps = caps;
         auto it = m_VeboxSfcFeatureHandlers.begin();
         for (; it != m_VeboxSfcFeatureHandlers.end(); ++it)
@@ -772,7 +772,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                     }
                     /* Place Holder: need to add FurtherProcessNeeded conditions in next step*/
                     // Choose SFC as execution engine
-                    UpdateExeCaps(feature, caps, engineCaps->SfcNeeded ? EngineTypeSfc : EngineTypeVebox);
+                    UpdateExeCaps(feature, caps, engineCaps->SfcNeeded ? EngineTypeVeboxSfc : EngineTypeVebox);
                     featurePipe.RemoveSwFilter(feature);
                     params.executedFilters->AddSwFilterUnordered(feature, true, 0);
                 }
@@ -842,7 +842,7 @@ MOS_STATUS vp::Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE
 
     if (caps.bSFC)
     {
-        // Create Vebox Resources
+        // Create Sfc Resources
         VP_PUBLIC_CHK_STATUS_RETURN(AllocateSfcExecuteResource(caps, params));
     }
 
@@ -858,7 +858,7 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
 
     FeatureType featureType = feature->GetFeatureType();
 
-    if (Type == EngineTypeSfc)
+    if (Type == EngineTypeVeboxSfc)
     {
         switch (featureType)
         {
@@ -985,7 +985,7 @@ MOS_STATUS Policy::ReleaseHwFilterParam(HW_FILTER_PARAMS &params)
     }
 
     std::map<FeatureType, PolicyFeatureHandler*> &featureHandler = 
-            (EngineTypeVebox == params.Type || EngineTypeSfc == params.Type) ? m_VeboxSfcFeatureHandlers : m_RenderFeatureHandlers;
+            (EngineTypeVebox == params.Type || EngineTypeVeboxSfc == params.Type) ? m_VeboxSfcFeatureHandlers : m_RenderFeatureHandlers;
 
     params.Type = EngineTypeInvalid;
     while (!params.Params.empty())

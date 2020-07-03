@@ -82,7 +82,7 @@ VphalFeatureReport* VpPipelineG12Adapter::GetRenderFeatureReport()
 {
     if (m_bApgEnabled)
     {
-        return m_reporting;
+        return m_vpPipeline == nullptr ? nullptr : m_vpPipeline->GetFeatureReport();
     }
     else
     {

@@ -33,11 +33,11 @@
 #include "vp_feature_manager.h"
 #include "vp_packet_pipe.h"
 #include "vp_platform_interface.h"
+#include "vp_utils.h"
 using namespace vp;
 
-VpPipeline::VpPipeline(PMOS_INTERFACE osInterface, VphalFeatureReport *reporting) :
-    MediaPipeline(osInterface),
-    m_reporting(reporting)
+VpPipeline::VpPipeline(PMOS_INTERFACE osInterface) :
+    MediaPipeline(osInterface)
 {
 }
 
@@ -52,12 +52,15 @@ VpPipeline::~VpPipeline()
     // Delete m_featureManager before m_resourceManager, since
     // m_resourceManager is referenced by m_featureManager.
     MOS_Delete(m_featureManager);
+    MOS_Delete(m_vpInterface);
     MOS_Delete(m_resourceManager);
     MOS_Delete(m_paramChecker);
     MOS_Delete(m_mmc);
     MOS_Delete(m_allocator);
     MOS_Delete(m_statusReport);
     MOS_Delete(m_packetSharedContext);
+    MOS_Delete(m_reporting);
+
     if (m_mediaContext)
     {
         MOS_Delete(m_mediaContext);
@@ -99,16 +102,21 @@ MOS_STATUS VpPipeline::UserFeatureReport()
             m_reporting->VPMMCInUse = m_mmc->IsMmcEnabled();
         }
 
-        if (m_pvpParams->pSrc[0] && m_pvpParams->pSrc[0]->bCompressible)
+        if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
         {
-            m_reporting->PrimaryCompressible = true;
-            m_reporting->PrimaryCompressMode = (uint8_t)(m_pvpParams->pSrc[0]->CompressionMode);
-        }
+            PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
+            VP_PUBLIC_CHK_NULL_RETURN(params);
+            if (params->pSrc[0] && params->pSrc[0]->bCompressible)
+            {
+                m_reporting->PrimaryCompressible = true;
+                m_reporting->PrimaryCompressMode = (uint8_t)(params->pSrc[0]->CompressionMode);
+            }
 
-        if (m_pvpParams->pTarget[0]->bCompressible)
-        {
-            m_reporting->RTCompressible = true;
-            m_reporting->RTCompressMode = (uint8_t)(m_pvpParams->pTarget[0]->CompressionMode);
+            if (params->pTarget[0]->bCompressible)
+            {
+                m_reporting->RTCompressible = true;
+                m_reporting->RTCompressMode = (uint8_t)(params->pTarget[0]->CompressionMode);
+            }
         }
     }
 
@@ -134,18 +142,22 @@ MOS_STATUS VpPipeline::CreatePacketSharedContext()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpPipeline::Init(void *settings)
+MOS_STATUS VpPipeline::Init(void *mhwInterface)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(mhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(((PVP_MHWINTERFACE)mhwInterface)->m_vpPlatformInterface);
+
+    m_vpMhwInterface = *(PVP_MHWINTERFACE)mhwInterface;
 
     VP_PUBLIC_CHK_STATUS_RETURN(MediaPipeline::InitPlatform());
 
-    m_mediaContext = MOS_New(MediaContext, scalabilityVp, m_pvpMhwInterface, m_osInterface);
+    VP_PUBLIC_CHK_STATUS_RETURN(CreateFeatureReport());
+
+    m_mediaContext = MOS_New(MediaContext, scalabilityVp, &m_vpMhwInterface, m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_mediaContext);
 
-    m_mmc = MOS_New(VPMediaMemComp, m_osInterface, m_pvpMhwInterface);
+    m_mmc = MOS_New(VPMediaMemComp, m_osInterface, &m_vpMhwInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
 
     m_allocator = MOS_New(VpAllocator, m_osInterface, m_mmc);
@@ -169,14 +181,14 @@ MOS_STATUS VpPipeline::Init(void *settings)
 
 #endif
 
-    m_pPacketFactory = MOS_New(PacketFactory, m_pvpMhwInterface->m_vpPlatformInterface);
+    m_pPacketFactory = MOS_New(PacketFactory, m_vpMhwInterface.m_vpPlatformInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketFactory);
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreatePacketSharedContext());
     // Create active tasks
     MediaTask *pTask = GetTask(MediaTask::TaskType::cmdTask);
     VP_PUBLIC_CHK_NULL_RETURN(pTask);
-    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, m_pvpMhwInterface, m_allocator, m_mmc, m_packetSharedContext));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, &m_vpMhwInterface, m_allocator, m_mmc, m_packetSharedContext));
 
     m_pPacketPipeFactory = MOS_New(PacketPipeFactory, *m_pPacketFactory);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
@@ -190,47 +202,41 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 {
     VP_FUNC_CALL();
 
-    MOS_STATUS      eStatus   = MOS_STATUS_SUCCESS;
-    PVPHAL_RENDER_PARAMS pRenderParams = (PVPHAL_RENDER_PARAMS) m_pvpParams;
-    PacketPipe *pPacketPipe = nullptr;
-    VpFeatureManagerNext *featureManagerNext = nullptr;
+    MOS_STATUS              eStatus   = MOS_STATUS_SUCCESS;
+    PacketPipe              *pPacketPipe = nullptr;
+    SwFilterPipe            *swFilterPipe = nullptr;
+    VpFeatureManagerNext    *featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
 
-    // Set Pipeline status Table
-    m_statusReport->SetPipeStatusReportParams(m_pvpParams, m_pvpMhwInterface->m_statusTable);
+    VP_PUBLIC_CHK_NULL_RETURN(featureManagerNext);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
 
-    VPHAL_PARAMETERS_DUMPPER_DUMP_XML(pRenderParams);
-
-    for (uint32_t uiLayer = 0; uiLayer < pRenderParams->uSrcCount && uiLayer < VPHAL_MAX_SOURCES; uiLayer++)
+    if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
-        if (pRenderParams->pSrc[uiLayer])
+        PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
+        VP_PUBLIC_CHK_NULL(params);
+        // Set Pipeline status Table
+        m_statusReport->SetPipeStatusReportParams(params, m_vpMhwInterface.m_statusTable);
+
+        VPHAL_PARAMETERS_DUMPPER_DUMP_XML(params);
+
+        for (uint32_t uiLayer = 0; uiLayer < params->uSrcCount && uiLayer < VPHAL_MAX_SOURCES; uiLayer++)
         {
             VPHAL_SURFACE_DUMP(m_surfaceDumper,
-                pRenderParams->pSrc[uiLayer],
+                params->pSrc[uiLayer],
                 m_frameCounter,
                 uiLayer,
                 VPHAL_DUMP_TYPE_PRE_ALL);
         }
     }
 
-    VP_PUBLIC_CHK_NULL(m_pPacketPipeFactory);
+    VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipe));
+
     pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
     VP_PUBLIC_CHK_NULL(pPacketPipe);
 
-    featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
-
-    if (nullptr == featureManagerNext)
-    {
-        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
-        VP_PUBLIC_CHK_STATUS(MOS_STATUS_NULL_POINTER);
-    }
-
-    eStatus = featureManagerNext->InitPacketPipe(*m_pvpParams, *pPacketPipe);
-
-    if (MOS_FAILED(eStatus))
-    {
-        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
-        VP_PUBLIC_CHK_STATUS(eStatus);
-    }
+    eStatus = featureManagerNext->InitPacketPipe(*swFilterPipe, *pPacketPipe);
+    m_vpInterface->GetSwFilterPipeFactory().Destory(swFilterPipe);
+    VP_PUBLIC_CHK_STATUS(eStatus);
 
     // Update output pipe mode.
     m_vpOutputPipe = pPacketPipe->GetOutputPipeMode();
@@ -241,17 +247,43 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
     m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
 
-    VPHAL_SURFACE_PTRS_DUMP(m_surfaceDumper,
-                                pRenderParams->pTarget,
-                                VPHAL_MAX_TARGETS,
-                                pRenderParams->uDstCount,
-                                m_frameCounter,
-                                VPHAL_DUMP_TYPE_POST_ALL);
+    if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
+    {
+        PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
+        VP_PUBLIC_CHK_NULL(params);
+        VPHAL_SURFACE_PTRS_DUMP(m_surfaceDumper,
+                            params->pTarget,
+                            VPHAL_MAX_TARGETS,
+                            params->uDstCount,
+                            m_frameCounter,
+                            VPHAL_DUMP_TYPE_POST_ALL);
+    }
 
 finish:
+    m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+    m_vpInterface->GetSwFilterPipeFactory().Destory(swFilterPipe);
     m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
     m_frameCounter++;
     return eStatus;
+}
+
+MOS_STATUS VpPipeline::CreateSwFilterPipe(VP_PARAMS &params, SwFilterPipe *&swFilterPipe)
+{
+    swFilterPipe = nullptr;
+
+    switch (m_pvpParams.type)
+    {
+    case PIPELINE_PARAM_TYPE_LEGACY:
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->GetSwFilterPipeFactory().Create(m_pvpParams.renderParams, swFilterPipe));
+        break;
+    default:
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        break;
+    }
+
+    VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpPipeline::GetSystemVeboxNumber()
@@ -301,17 +333,20 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpMhwInterface.m_vpPlatformInterface);
 
     // Add CheckFeatures api later in FeatureManagerNext.
-    m_paramChecker = m_pvpMhwInterface->m_vpPlatformInterface->CreateFeatureChecker(m_pvpMhwInterface);
+    m_paramChecker = m_vpMhwInterface.m_vpPlatformInterface->CreateFeatureChecker(&m_vpMhwInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_paramChecker);
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateResourceManager());
 
-    m_featureManager = MOS_New(VpFeatureManagerNext, *m_allocator, m_resourceManager, m_pvpMhwInterface);
+    m_vpInterface = MOS_New(VpInterface, &m_vpMhwInterface, *m_allocator, m_resourceManager);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface);
+
+    m_featureManager = MOS_New(VpFeatureManagerNext, *m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
+
     VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());
 
     return MOS_STATUS_SUCCESS;
@@ -338,34 +373,51 @@ MOS_STATUS VpPipeline::CheckFeatures(void *params, bool &bapgFuncSupported)
     return m_paramChecker->CheckFeatures(params, bapgFuncSupported);
 }
 
-MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
+MOS_STATUS VpPipeline::CreateFeatureReport()
+{
+    if (m_reporting == nullptr)
+    {
+       m_reporting = MOS_New(VphalFeatureReport);
+    }
+    VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(params);
 
-    m_pvpParams = (PVP_PIPELINE_PARAMS)params;
+    if ((m_vpMhwInterface.m_osInterface != nullptr))
+    {
+        // Set the component info
+        m_vpMhwInterface.m_osInterface->Component = params->Component;
+
+        // Init component(DDI entry point) info for perf measurement
+        m_vpMhwInterface.m_osInterface->pfnSetPerfTag(m_vpMhwInterface.m_osInterface, VPHAL_NONE);
+    }
 
     PMOS_RESOURCE ppSource[VPHAL_MAX_SOURCES] = {nullptr};
     PMOS_RESOURCE ppTarget[VPHAL_MAX_TARGETS] = {nullptr};
 
-    if (!m_pvpParams->pSrc[0])
+    if (!params->pSrc[0])
     {
         VP_PUBLIC_NORMALMESSAGE("Not support no source case in APG now \n");
 
         if (m_currentFrameAPGEnabled)
         {
-            m_pvpParams->bAPGWorkloadEnable = true;
+            params->bAPGWorkloadEnable = true;
             m_currentFrameAPGEnabled = false;
         }
         else
         {
-            m_pvpParams->bAPGWorkloadEnable = false;
+            params->bAPGWorkloadEnable = false;
         }
 
         return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams->pTarget[0]);
+    VP_PUBLIC_CHK_NULL_RETURN(params->pTarget[0]);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
 
@@ -374,18 +426,18 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
     MOS_ZeroMemory(&info, sizeof(VPHAL_GET_SURFACE_INFO));
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(
-        m_pvpParams->pSrc[0],
+        params->pSrc[0],
         info));
 
     MOS_ZeroMemory(&info, sizeof(VPHAL_GET_SURFACE_INFO));
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(
-        m_pvpParams->pTarget[0],
+        params->pTarget[0],
         info));
 
-    if (!RECT1_CONTAINS_RECT2(m_pvpParams->pSrc[0]->rcMaxSrc, m_pvpParams->pSrc[0]->rcSrc))
+    if (!RECT1_CONTAINS_RECT2(params->pSrc[0]->rcMaxSrc, params->pSrc[0]->rcSrc))
     {
-       m_pvpParams->pSrc[0]->rcMaxSrc = m_pvpParams->pSrc[0]->rcSrc;
+        params->pSrc[0]->rcMaxSrc = params->pSrc[0]->rcSrc;
     }
 
     bool bApgFuncSupported = false;
@@ -397,12 +449,12 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
 
         if (m_currentFrameAPGEnabled)
         {
-            m_pvpParams->bAPGWorkloadEnable = true;
+            params->bAPGWorkloadEnable = true;
             m_currentFrameAPGEnabled        = false;
         }
         else
         {
-            m_pvpParams->bAPGWorkloadEnable = false;
+            params->bAPGWorkloadEnable = false;
         }
 
         return MOS_STATUS_UNIMPLEMENTED;
@@ -410,49 +462,26 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(void *params)
     else
     {
         m_currentFrameAPGEnabled        = true;
-        m_pvpParams->bAPGWorkloadEnable = false;
+        params->bAPGWorkloadEnable = false;
         VP_PUBLIC_NORMALMESSAGE("Features can be enabled on APG");
     }
 
     // Init Resource Max Rect for primary video
 
-    if ((nullptr != m_pvpMhwInterface) &&
-        (nullptr != m_pvpMhwInterface->m_osInterface) &&
-        (nullptr != m_pvpMhwInterface->m_osInterface->osCpInterface))
+    if ((nullptr != m_vpMhwInterface.m_osInterface) &&
+        (nullptr != m_vpMhwInterface.m_osInterface->osCpInterface))
     {
-        for (uint32_t uiIndex = 0; uiIndex < m_pvpParams->uSrcCount; uiIndex++)
+        for (uint32_t uiIndex = 0; uiIndex < params->uSrcCount; uiIndex++)
         {
-            ppSource[uiIndex] = &(m_pvpParams->pSrc[uiIndex]->OsResource);
+            ppSource[uiIndex] = &(params->pSrc[uiIndex]->OsResource);
         }
-        for (uint32_t uiIndex = 0; uiIndex < m_pvpParams->uDstCount; uiIndex++)
+        for (uint32_t uiIndex = 0; uiIndex < params->uDstCount; uiIndex++)
         {
-            ppTarget[uiIndex] = &(m_pvpParams->pTarget[uiIndex]->OsResource);
+            ppTarget[uiIndex] = &(params->pTarget[uiIndex]->OsResource);
         }
-        m_pvpMhwInterface->m_osInterface->osCpInterface->PrepareResources(
-            (void **)ppSource, m_pvpParams->uSrcCount, (void **)ppTarget, m_pvpParams->uDstCount);
+        m_vpMhwInterface.m_osInterface->osCpInterface->PrepareResources(
+            (void **)ppSource, params->uSrcCount, (void **)ppTarget, params->uDstCount);
     }
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpPipeline::PrepareVpExePipe()
-{
-    VP_FUNC_CALL();
-    VP_PUBLIC_CHK_NULL_RETURN(m_pvpParams);
-
-    // Get Output Pipe for Features. It should be configured in ExecuteVpPipeline.
-    m_vpOutputPipe = VPHAL_OUTPUT_PIPE_MODE_INVALID;
-    m_veboxFeatureInuse = false;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpPipeline::SetVpPipelineMhwInterfce(void *mhwInterface)
-{
-    VP_FUNC_CALL();
-    VP_PUBLIC_CHK_NULL_RETURN(mhwInterface);
-
-    m_pvpMhwInterface = (PVP_MHWINTERFACE)mhwInterface;
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -462,22 +491,30 @@ MOS_STATUS VpPipeline::Prepare(void * params)
 
     VP_FUNC_CALL();
 
-    // VP Execution Params Prepare
-    eStatus = PrepareVpPipelineParams(params);
-    if (eStatus != MOS_STATUS_SUCCESS)
+    VP_PUBLIC_CHK_NULL_RETURN(params);
+
+    m_pvpParams = *(VP_PARAMS *)params;
+    // Get Output Pipe for Features. It should be configured in ExecuteVpPipeline.
+    m_vpOutputPipe = VPHAL_OUTPUT_PIPE_MODE_INVALID;
+    m_veboxFeatureInuse = false;
+
+    if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
-        if (eStatus == MOS_STATUS_UNIMPLEMENTED)
+        // VP Execution Params Prepare
+        eStatus = PrepareVpPipelineParams(m_pvpParams.renderParams);
+        if (eStatus != MOS_STATUS_SUCCESS)
         {
-            VP_PUBLIC_NORMALMESSAGE("Features are UNIMPLEMENTED on APG now \n");
-            return eStatus;
-        }
-        else
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(eStatus);
+            if (eStatus == MOS_STATUS_UNIMPLEMENTED)
+            {
+                VP_PUBLIC_NORMALMESSAGE("Features are UNIMPLEMENTED on APG now \n");
+                return eStatus;
+            }
+            else
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(eStatus);
+            }
         }
     }
-
-    VP_PUBLIC_CHK_STATUS_RETURN(PrepareVpExePipe());
 
     return MOS_STATUS_SUCCESS;
 }
