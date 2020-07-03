@@ -1119,7 +1119,7 @@ MOS_STATUS CodechalHwInterface::GetDefaultSSEuSetting(
         return eStatus;
     }
 
-    if (mediaStateType >= CODECHAL_NUM_MEDIA_STATES)
+    if (mediaStateType >= m_numMediaStates)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }

@@ -36,8 +36,8 @@
 #include "media_interfaces_g12_tgllp.h"
 
 // Currently initialized with dummy values, just as an example. Will be updated later.
-const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL_NUM_MEDIA_STATES] =
-{
+const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL_NUM_MEDIA_STATES_G12] =
+    {
     // Slice    Sub-Slice   EU      Rsvd(freq)
     { 1,        0,        8,         0 },    // CODECHAL_MEDIA_STATE_OLP
     { 1,        0,        8,         0 },    // CODECHAL_MEDIA_STATE_ENC_NORMAL
@@ -100,6 +100,10 @@ const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL
     { 1,        0,        8,         0 },
     { 1,        0,        8,         0 },
     { 1,        0,        8,         0 },
+    { 2,        3,        8,         0 },
+    { 2,        3,        8,         0 },
+    { 2,        3,        8,         0 },
+    { 2,        3,        8,         0 },
 };
 
 CodechalHwInterfaceG12::CodechalHwInterfaceG12(
@@ -118,6 +122,7 @@ CodechalHwInterfaceG12::CodechalHwInterfaceG12(
     m_isVdencSuperSliceEnabled = true;
 
     m_ssEuTable = m_defaultSsEuLutG12;
+    m_numMediaStates = CODECHAL_NUM_MEDIA_STATES_G12;
 
     // Set platform dependent parameters
     m_sizeOfCmdBatchBufferEnd = mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;

@@ -1034,7 +1034,8 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        bForce3DLUTR16G16         : 1;              // Flag for 3D LUT source and targetsurface
     uint32_t                        bChromasiting             : 1;              // Flag for chromasiting use
     uint32_t                        bVmeUse                   : 1;              // Flag for VME use
-    uint32_t                                                  : 4;
+    uint32_t                        bBufferUse                : 1;              // Flags for 1D buffer use
+    uint32_t                                                  : 3;
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
 } RENDERHAL_SURFACE_STATE_PARAMS, *PRENDERHAL_SURFACE_STATE_PARAMS;
 

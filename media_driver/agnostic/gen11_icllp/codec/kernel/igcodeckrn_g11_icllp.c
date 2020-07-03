@@ -1,5 +1,5 @@
 /*                                                                                     
- * Copyright (c) 2017, Intel Corporation                                               
+ * Copyright (c) 2020, Intel Corporation                                               
  *                                                                                     
  * Permission is hereby granted, free of charge, to any person obtaining a             
  * copy of this software and associated documentation files (the                       
@@ -27,12 +27,12 @@
 ////////////////////////////////////////////////////////////////////////////////       
 
 #ifdef IGFX_GEN11_ICLLP_SUPPORTED
-extern const unsigned int IGCODECKRN_G11_ICLLP_SIZE = 561368;
+extern const unsigned int IGCODECKRN_G11_ICLLP_SIZE = 561372;
 extern const unsigned int IGCODECKRN_G11_ICLLP[] =
 {
     0x00000000, 0x00000180, 0x00000380, 0x00004810, 0x000075b0, 0x000682e0, 0x000682e0, 0x000682e0, 
     0x0007dc60, 0x00089090, 0x00089090, 0x00089090, 0x00089090, 0x00089090, 0x00089090, 0x00089090, 
-    0x00089090, 0x00089090, 0x00000008, 0x4024024c, 0x16000004, 0x000c000c, 0x00000005, 0x2026124c, 
+    0x00089090, 0x00089090, 0x00089090, 0x00000008, 0x4024024c, 0x16000004, 0x000c000c, 0x00000005, 0x2026124c, 
     0x16000024, 0x0fff0fff, 0x00000005, 0x4028024c, 0x16000004, 0x0fff0fff, 0x00000009, 0x20301228, 
     0x1e000026, 0x00040004, 0x20004d01, 0x00001207, 0x00000040, 0x22000204, 0x06000020, 0x02890000, 
     0x00000009, 0x22401228, 0x1e000028, 0x00050005, 0x00000001, 0x2248060c, 0x00000000, 0x0007001f, 

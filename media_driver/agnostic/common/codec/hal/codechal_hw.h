@@ -379,6 +379,7 @@ protected:
     MhwVdboxVdencInterface          *m_vdencInterface = nullptr;      //!< Pointer to Mhw vdenc interface
 
     CODECHAL_SSEU_SETTING const         *m_ssEuTable = nullptr;       //!< Pointer to the default SSEU settings table
+    uint16_t                            m_numMediaStates = CODECHAL_NUM_MEDIA_STATES;  //!< number of media states
 
     MHW_MEMORY_OBJECT_CONTROL_PARAMS    m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC];  //!< Cacheability Settings list
 

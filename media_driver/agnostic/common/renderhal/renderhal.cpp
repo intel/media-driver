@@ -941,8 +941,8 @@ void RenderHal_AdjustBoundary(
 
         case RENDERHAL_SS_BOUNDARY_ORIGINAL:
         default:
-            *pdwSurfaceHeight = MOS_ALIGN_CEIL(pSurface->dwHeight, wHeightAlignUnit);
-            *pdwSurfaceWidth  = MOS_ALIGN_CEIL(pSurface->dwWidth,  wWidthAlignUnit);
+            *pdwSurfaceHeight = (pRenderHalSurface->dwHeightInUse == 0) ? MOS_ALIGN_CEIL(pSurface->dwHeight, wHeightAlignUnit) : pRenderHalSurface->dwHeightInUse;
+            *pdwSurfaceWidth  = (pRenderHalSurface->dwWidthInUse == 0) ? MOS_ALIGN_CEIL(pSurface->dwWidth, wWidthAlignUnit) : pRenderHalSurface->dwWidthInUse;
             break;
     }
 }
@@ -3365,7 +3365,11 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
 
             case Format_P010:
             case Format_P016:
-                if (pRenderHal->bEnableP010SinglePass &&
+                if (pParams->bUseSinglePlane == true)
+                {
+                    PlaneDefinition = RENDERHAL_PLANES_R16_UNORM;
+                }
+                else if (pRenderHal->bEnableP010SinglePass &&
                     (pRenderHalSurface->SurfType != RENDERHAL_SURF_OUT_RENDERTARGET))
                 {
                     PlaneDefinition = RENDERHAL_PLANES_P010_1PLANE;
@@ -3423,13 +3427,17 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 // to enable 2 plane NV12 when the width or Height is not a multiple of 4.
                 // For G10+, enable 2 plane NV12 when width is not multiple of 2 or height
                 // is not multiple of 4.
-                if ( pRenderHalSurface->SurfType == RENDERHAL_SURF_OUT_RENDERTARGET   ||
-                     (pParams->bWidthInDword_Y && pParams->bWidthInDword_UV)          ||
-                     pParams->b2PlaneNV12NeededByKernel                               ||
-                     bIsChromaSitEnabled ||
-                     pRenderHal->pfnIs2PlaneNV12Needed(pRenderHal,
-                                                       pRenderHalSurface,
-                                                       pParams->Boundary))
+                if (pParams->bUseSinglePlane == true)
+                {
+                    PlaneDefinition = RENDERHAL_PLANES_R8;
+                }
+                else if (pRenderHalSurface->SurfType == RENDERHAL_SURF_OUT_RENDERTARGET ||
+                    (pParams->bWidthInDword_Y && pParams->bWidthInDword_UV) ||
+                    pParams->b2PlaneNV12NeededByKernel ||
+                    bIsChromaSitEnabled ||
+                    pRenderHal->pfnIs2PlaneNV12Needed(pRenderHal,
+                        pRenderHalSurface,
+                        pParams->Boundary))
                 {
                     PlaneDefinition = RENDERHAL_PLANES_NV12_2PLANES;
                 }
@@ -5539,6 +5547,7 @@ MOS_STATUS RenderHal_SetupBufferSurfaceState(
 
     // Force surface type to Default (non-AVS)
     pParams->Type = pRenderHal->SurfaceTypeDefault;
+    pParams->bBufferUse = true;
 
     // Assign Surface State
     // Assign a New Surface State Entry
@@ -5876,6 +5885,11 @@ MOS_STATUS RenderHal_SetupSurfaceStatesOs(
             additional_plane_offset *= pSurface->dwPitch;
             TokenParams.dwSurfaceOffset
                     = pSurface->dwOffset + additional_plane_offset;
+            //force it to 0 for 1D buffer
+            if (pParams->bBufferUse)
+            {
+                TokenParams.dwSurfaceOffset = 0;
+            }
             break;
     }
 

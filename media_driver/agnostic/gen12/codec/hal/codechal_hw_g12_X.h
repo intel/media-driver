@@ -30,6 +30,8 @@
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mhw_render_hwcmd_g12_X.h"
 
+#define CODECHAL_NUM_MEDIA_STATES_G12 (CODECHAL_NUM_MEDIA_STATES + 4)
+
 //!  Codechal hw interface Gen12
 /*!
 This class defines the interfaces for hardware dependent settings and functions used in Codechal for Gen12 platforms
@@ -37,7 +39,7 @@ This class defines the interfaces for hardware dependent settings and functions 
 class CodechalHwInterfaceG12 : public CodechalHwInterface
 {
 protected:
-    static const CODECHAL_SSEU_SETTING m_defaultSsEuLutG12[CODECHAL_NUM_MEDIA_STATES];
+    static const CODECHAL_SSEU_SETTING m_defaultSsEuLutG12[CODECHAL_NUM_MEDIA_STATES_G12];
 
 public:
     //!
