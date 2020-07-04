@@ -5547,7 +5547,6 @@ MOS_STATUS RenderHal_SetupBufferSurfaceState(
 
     // Force surface type to Default (non-AVS)
     pParams->Type = pRenderHal->SurfaceTypeDefault;
-    pParams->bBufferUse = true;
 
     // Assign Surface State
     // Assign a New Surface State Entry
