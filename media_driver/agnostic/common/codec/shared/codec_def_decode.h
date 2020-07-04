@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,16 @@
 #include "codec_def_decode_jpeg.h"
 
 struct CencDecodeShareBuf;
+
+//!
+//! \struct CodecProcessingParams
+//! \brief Define the codec processing parameters
+//!
+struct CodecProcessingParams
+{
+    PMOS_SURFACE m_inputSurface;
+    PMOS_SURFACE m_outputSurface;
+};
 
 //!
 //! \struct CodechalDecodeParams
@@ -120,6 +130,10 @@ struct CodechalDecodeParams
     //! \brief Parameters used for processing the decode render target, if invalid, decode render target processing will not be used.
     void                    *m_procParams = nullptr;
 #endif
+    
+    //! \brief Parameters used for codec frame processing
+    CodecProcessingParams m_codecProcParams;
+
     //! \brief [Predication] Resource for predication
     PMOS_RESOURCE           m_presPredication = nullptr;
     //! \brief [Predication] Offset for Predication resource
