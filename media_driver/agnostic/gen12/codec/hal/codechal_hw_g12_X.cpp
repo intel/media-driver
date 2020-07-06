@@ -114,8 +114,7 @@ CodechalHwInterfaceG12::CodechalHwInterfaceG12(
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
-    PLATFORM platform;
-    osInterface->pfnGetPlatform(osInterface, &platform);
+    m_avpInterface = static_cast<MhwInterfacesG12Tgllp*>(mhwInterfaces)->m_avpInterface;
 
     InitCacheabilityControlSettings(codecFunction);
 
@@ -256,9 +255,108 @@ MOS_STATUS CodechalHwInterfaceG12::SetCacheabilitySettings(
     {
         CODECHAL_HW_CHK_STATUS_RETURN(m_vdencInterface->SetCacheabilitySettings(cacheabilitySettings));
     }
+    if (m_avpInterface)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_avpInterface->SetCacheabilitySettings(cacheabilitySettings));
+    }
 
     return eStatus;
 }
+
+MOS_STATUS CodechalHwInterfaceG12::SetRowstoreCachingOffsets(
+    PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_STATUS_RETURN(CodechalHwInterface::SetRowstoreCachingOffsets(rowstoreParams));
+
+    if (m_avpInterface)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_avpInterface->GetRowstoreCachingAddrs(rowstoreParams));
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceG12::GetAvpStateCommandSize(
+    uint32_t                        mode,
+    uint32_t                        *commandsSize,
+    uint32_t                        *patchListSize,
+    PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    //calculate AVP related commands size
+    uint32_t    avpCommandsSize = 0;
+    uint32_t    avpPatchListSize = 0;
+
+    if (m_avpInterface)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_avpInterface->GetAvpStateCommandSize(
+            (uint32_t *)&avpCommandsSize,
+            (uint32_t *)&avpPatchListSize,
+            params));
+    }
+
+    //calculate HUC related command size
+    uint32_t    hucCommandsSize = 0;
+    uint32_t    hucPatchListSize = 0;
+
+    if (m_hucInterface)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucStateCommandSize(
+            mode,
+            (uint32_t*)&hucCommandsSize,
+            (uint32_t*)&hucPatchListSize,
+            params));
+    }
+
+    //Calc final command size
+    *commandsSize = avpCommandsSize + hucCommandsSize * 4;
+    *patchListSize = avpPatchListSize + hucPatchListSize * 4;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalHwInterfaceG12::GetAvpPrimitiveCommandSize(
+    uint32_t                        mode,
+    uint32_t                        *commandsSize,
+    uint32_t                        *patchListSize)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    //calculate AVP related commands size
+    uint32_t avpCommandsSize = 0;
+    uint32_t avpPatchListSize = 0;
+
+    if (m_avpInterface)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_avpInterface->GetAvpPrimitiveCommandSize(
+            (uint32_t*)&avpCommandsSize,
+            (uint32_t*)&avpPatchListSize));
+    }
+
+    //calculate HUC related command size
+    uint32_t hucCommandsSize = 0;
+    uint32_t hucPatchListSize = 0;
+
+    if (m_hucInterface)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucPrimitiveCommandSize(
+            mode,
+            (uint32_t*)&hucCommandsSize,
+            (uint32_t*)&hucPatchListSize));
+    }
+
+    //Calc final command size
+    *commandsSize = avpCommandsSize + hucCommandsSize;
+    *patchListSize = avpPatchListSize + hucPatchListSize;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 
 MOS_STATUS CodechalHwInterfaceG12::SendCondBbEndCmd(
     PMOS_RESOURCE              resource,
@@ -345,5 +443,11 @@ CodechalHwInterfaceG12::~CodechalHwInterfaceG12()
 
         MOS_FreeMemory(m_renderHal);
         m_renderHal = nullptr;
+    }
+
+    if (m_avpInterface)
+    {
+        MOS_Delete(m_avpInterface);
+        m_avpInterface = nullptr;
     }
 }

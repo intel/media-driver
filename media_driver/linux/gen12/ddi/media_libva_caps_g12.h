@@ -171,6 +171,10 @@ protected:
         CODEC_16K_MAX_PIC_WIDTH; //!< Maximum width for VP9 decode
     static const uint32_t m_decVp9Max16kHeight =
         CODEC_16K_MAX_PIC_HEIGHT; //!< Maximum height for VP9 decode
+    static const uint32_t m_decAv1Max16kWidth =
+        CODEC_16K_MAX_PIC_WIDTH; //!< Maximum width for AV1 decode
+    static const uint32_t m_decAv1Max16kHeight =
+        CODEC_16K_MAX_PIC_HEIGHT; //!< Maximum height for AV1 decode
     static const uint32_t m_maxVp9EncWidth =
         CODEC_8K_MAX_PIC_WIDTH; //!< maximum width for VP9 encode
     static const uint32_t m_maxVp9EncHeight =
@@ -218,6 +222,22 @@ protected:
     //!     if call succeeds
     //!
     VAStatus LoadHevcEncLpProfileEntrypoints();
+
+    //!
+    //! \brief    Check if the give profile is AV1
+    //!
+    //! \param    [in] profile
+    //!           Specify the VAProfile
+    //!
+    //! \return   True if the profile is a AV1 profile
+    //!           False if the profile isn't a AV1 profile
+    //!
+    static bool IsAV1Profile(VAProfile profile);
+
+    //!
+    //! \brief    Initialize AV1 decode profiles, entrypoints and attributes
+    //!
+    VAStatus LoadAv1DecProfileEntrypoints();
 
     //!
     //! \brief      Query AVC ROI maximum number

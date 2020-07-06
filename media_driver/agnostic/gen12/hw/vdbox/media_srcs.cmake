@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019, Intel Corporation
+# Copyright (c) 2017-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,9 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_g12_X.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_hwcmd_g12_X.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_hwcmd_g12_X.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_g12_X.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_hwcmd_g12_X.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_interface.cpp
 )
 
 set(TMP_HEADERS_
@@ -38,6 +41,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_hwcmd_g12_X.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_g12_X.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_hwcmd_g12_X.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_g12_X.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_generic.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_hwcmd_g12_X.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_interface.h
 )
 
 set(SOURCES_

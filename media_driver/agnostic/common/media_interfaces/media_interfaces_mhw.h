@@ -77,7 +77,8 @@ public:
                 uint32_t m_huc : 1;
                 uint32_t m_vdenc : 1;
                 uint32_t m_blt : 1;
-                uint32_t m_reserved : 22;
+                uint32_t m_avp : 1;
+                uint32_t m_reserved : 21;
             };
             uint32_t m_value;
         } Flags;

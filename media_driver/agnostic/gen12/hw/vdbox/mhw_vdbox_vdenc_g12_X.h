@@ -97,7 +97,9 @@ struct MHW_VDBOX_VD_PIPE_FLUSH_PARAMS_G12
             uint16_t       bFlushVDENC              : 1;
             uint16_t       bFlushMFL                : 1;
             uint16_t       bFlushMFX                : 1;
-            uint16_t                                : 7;
+            uint16_t       bWaitDoneAV1             : 1;
+            uint16_t       bFlushAV1                : 1;
+            uint16_t                                : 5;
         };
         struct
         {
@@ -347,6 +349,8 @@ protected:
         cmd.DW1.VdencPipelineCommandFlush  = params->Flags.bFlushVDENC;
         cmd.DW1.MflPipelineCommandFlush    = params->Flags.bFlushMFL;
         cmd.DW1.MfxPipelineCommandFlush    = params->Flags.bFlushMFX;
+        cmd.DW1.AvpPipelineDone            = paramsG12->Flags.bWaitDoneAV1;
+        cmd.DW1.AvpPipelineCommandFlush    = paramsG12->Flags.bFlushAV1;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 

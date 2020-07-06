@@ -57,6 +57,8 @@ static struct LinuxCodecInfo tglCodecInfo =
     .vp8Encoding        = 0,
     .hevcVdenc          = 1,
     .vp9Vdenc           = 1,
+    .adv0Decoding       = 1,
+    .adv1Decoding       = 1,
 };
 
 static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
@@ -94,6 +96,8 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile0Decoding8bit420, codecInfo->vp9Decoding);
         MEDIA_WR_SKU(skuTable, FtrVP9VLD10bProfile2Decoding, codecInfo->vp9b10Decoding);
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding, codecInfo->vp9b10Decoding);
+        MEDIA_WR_SKU(skuTable, FtrIntelAV1VLDDecoding8bit420, codecInfo->adv0Decoding);
+        MEDIA_WR_SKU(skuTable, FtrIntelAV1VLDDecoding10bit420, codecInfo->adv1Decoding);
 
         /* VP8 enc */
         MEDIA_WR_SKU(skuTable, FtrEncodeVP8, codecInfo->vp8Encoding);
@@ -305,6 +309,9 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
         /* Turn off MMC for VPP, need to remove once turn it on */
         MEDIA_WR_WA(waTable, WaDisableVPMmc, 1);
     }
+
+    /*software wa to use frame based decoding for AV1 decode*/
+    MEDIA_WR_WA(waTable, Wa_1409820462, 1);
 
     return true;
 }

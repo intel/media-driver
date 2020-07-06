@@ -3697,7 +3697,6 @@ static VAStatus DdiMedia_StatusCheck (
         DDI_CHK_NULL(codecHal, "nullptr decCtx->pCodecHal", VA_STATUS_SUCCESS);
 
         //return success just avoid vaDestroyContext is ahead of vaSyncSurface
-#ifdef _APOGEIOS_SUPPORTED
         if (codecHal->IsApogeiosEnabled())
         {
             DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(codecHal);
@@ -3705,7 +3704,6 @@ static VAStatus DdiMedia_StatusCheck (
             return DdiDecode_StatusReport(mediaCtx, decoder, surface);
         }
         else
-#endif
         {
             CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
             DDI_CHK_NULL(decoder, "nullptr (CodechalDecode *decoder)", VA_STATUS_SUCCESS);

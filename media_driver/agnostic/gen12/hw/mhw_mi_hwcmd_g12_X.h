@@ -2736,10 +2736,12 @@ public:
         //! \details
         //!     <p>Codec/Engine Name = HCP = 7h;</p>
         //!     <p>Codec/Engine Name = VDNEC = 1h;</p>
+        //!     <p>Codec/Engine Name = AVP = 3h;</p>
         enum MEDIA_INSTRUCTION_OPCODE
         {
             MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEFORVDENC                 = 1, //!< No additional details
             MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEFORHCP                   = 7, //!< No additional details
+            MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEFORAVP   = 3,  //!< No additional details
         };
 
         enum PIPELINE_TYPE

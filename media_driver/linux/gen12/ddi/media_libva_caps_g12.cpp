@@ -36,6 +36,10 @@
 #include "media_ddi_encode_const.h"
 #include "media_ddi_decode_const_g12.h"
 
+#ifndef VA_CENC_TYPE_NONE
+#define VA_CENC_TYPE_NONE 0x00000000
+#endif
+
 #ifndef VA_ENCRYPTION_TYPE_NONE
 #define VA_ENCRYPTION_TYPE_NONE 0x00000000
 #endif
@@ -228,6 +232,9 @@ CODECHAL_MODE MediaLibvaCapsG12::GetDecodeCodecMode(VAProfile profile)
         case VAProfileVC1Main:
         case VAProfileVC1Advanced:
             return CODECHAL_DECODE_MODE_VC1VLD;
+        case VAProfileAV1Profile0:
+        case VAProfileAV1Profile1:
+            return CODECHAL_DECODE_RESERVED_0; // AV1 Decode
         default:
             DDI_ASSERTMESSAGE("Invalid Decode Mode");
             return CODECHAL_UNSUPPORTED_MODE;
@@ -272,6 +279,9 @@ std::string MediaLibvaCapsG12::GetDecodeCodecKey(VAProfile profile)
         case VAProfileVC1Main:
         case VAProfileVC1Advanced:
             return DECODE_ID_VC1;
+        case VAProfileAV1Profile0:
+        case VAProfileAV1Profile1:
+            return DECODE_ID_AV1;
         default:
             DDI_ASSERTMESSAGE("Invalid Decode Mode");
             return DECODE_ID_NONE;
@@ -324,6 +334,12 @@ std::string MediaLibvaCapsG12::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
         default:
             return ENCODE_ID_NONE;
     }
+}
+
+bool MediaLibvaCapsG12::IsAV1Profile(VAProfile profile)
+{
+    return (profile == (VAProfile)VAProfileAV1Profile0 ||
+            profile == (VAProfile)VAProfileAV1Profile1);
 }
 
 VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
@@ -767,6 +783,8 @@ VAStatus MediaLibvaCapsG12::LoadProfileEntrypoints()
     DDI_CHK_RET(status, "Failed to initialize Caps!");
     status = LoadVp9EncProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
+    status = LoadAv1DecProfileEntrypoints();
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
 
@@ -1002,7 +1020,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
     }
     else if (entrypoint == VAEntrypointVLD)    /* vld */
     {
-        if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2)
+        if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2 || profile == VAProfileAV1Profile1)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1194,6 +1212,11 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         {
             maxWidth = m_decVp9Max16kWidth;
             maxHeight = m_decVp9Max16kHeight;
+        }
+        else if(IsAV1Profile(profile))
+        {
+            maxWidth = m_decAv1Max16kWidth;
+            maxHeight = m_decAv1Max16kHeight;
         }
 
         attribs[i].type = VASurfaceAttribMaxWidth;
@@ -1690,9 +1713,9 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     if (m_isEntryptSupported)
     {
         attrib.value = 0;
-        uint32_t encryptTypes[3] = {0};
+        uint32_t encryptTypes[5] = {0};
         int32_t  numTypes =  m_CapsCp->GetEncryptionTypes(profile,
-                 encryptTypes, 3);
+                 encryptTypes, 5);
         if (numTypes > 0)
         {
             for (int32_t j = 0; j < numTypes; j++)
@@ -2012,6 +2035,19 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
             attrib.value = VA_ATTRIB_NOT_SUPPORTED;
         }
     }
+    else if (profile == VAProfileAV1Profile0 ||
+            profile == VAProfileAV1Profile1)
+    {
+        attrib.value = 0;
+        if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelAV1VLDDecoding8bit420))
+        {
+            attrib.value |= VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE;
+        }
+        else
+        {
+            attrib.value = VA_ATTRIB_NOT_SUPPORTED;
+        }
+    }
     else
     {
         attrib.value = VA_DEC_SLICE_MODE_NORMAL;
@@ -2042,7 +2078,7 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
     {
         attrib.value = CODEC_8K_MAX_PIC_WIDTH;
     }
-    if(IsHevcProfile(profile) || IsVp9Profile(profile))
+    if(IsHevcProfile(profile) || IsVp9Profile(profile) || IsAV1Profile(profile))
     {
         attrib.value = CODEC_16K_MAX_PIC_WIDTH;
     }
@@ -2066,7 +2102,7 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
     {
         attrib.value = CODEC_8K_MAX_PIC_HEIGHT;
     }
-    if(IsHevcProfile(profile) || IsVp9Profile(profile))
+    if(IsHevcProfile(profile) || IsVp9Profile(profile) || IsAV1Profile(profile))
     {
         attrib.value = CODEC_16K_MAX_PIC_HEIGHT;
     }
@@ -2142,6 +2178,45 @@ VAStatus MediaLibvaCapsG12::LoadJpegDecProfileEntrypoints()
     }
 #endif
 
+    return status;
+}
+
+VAStatus MediaLibvaCapsG12::LoadAv1DecProfileEntrypoints()
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+#if _AV1_DECODE_SUPPORTED
+    AttribMap *attributeList = nullptr;
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelAV1VLDDecoding8bit420))
+    {
+        status = CreateDecAttributes((VAProfile) VAProfileAV1Profile0, VAEntrypointVLD, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+        uint32_t configStartIdx = m_decConfigs.size();
+        for (int32_t i = 0; i < 2; i++)
+        {
+            AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+        }
+
+        AddProfileEntry((VAProfile) VAProfileAV1Profile0, VAEntrypointVLD, attributeList,
+                configStartIdx, m_decConfigs.size() - configStartIdx);
+    }
+
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelAV1VLDDecoding10bit420))
+    {
+        status = CreateDecAttributes((VAProfile) VAProfileAV1Profile1, VAEntrypointVLD, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+        uint32_t configStartIdx = m_decConfigs.size();
+        for (int32_t i = 0; i < 2; i++)
+        {
+            AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+        }
+
+        AddProfileEntry((VAProfile) VAProfileAV1Profile1, VAEntrypointVLD, attributeList,
+                configStartIdx, m_decConfigs.size() - configStartIdx);
+    }
+#endif
     return status;
 }
 

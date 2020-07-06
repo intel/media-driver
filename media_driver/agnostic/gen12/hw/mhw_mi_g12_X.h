@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2019, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,7 @@
 typedef struct _MHW_MI_VD_CONTROL_STATE_PARAMS
 {
     bool    vdencEnabled;
+    bool    avpEnabled;
     bool    initialization;
     bool    vdencInitialization;
     bool    scalableModePipeLock;

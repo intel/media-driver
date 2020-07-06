@@ -29,6 +29,7 @@
 #include "media_scalability_singlepipe.h"
 #include "media_scalability_mdf.h"
 #include "vp_scalability_singlepipe.h"
+#include "decode_scalability_singlepipe.h"
 
 MediaScalability *MediaScalabilityFactory::CreateScalability(uint8_t componentType, ScalabilityPars *params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {
@@ -74,7 +75,42 @@ MediaScalability *MediaScalabilityFactory::CreateEncodeScalability(ScalabilityPa
 
 MediaScalability *MediaScalabilityFactory::CreateDecodeScalability(ScalabilityPars *params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {
-    return nullptr;
+    if (params == nullptr && hwInterface == nullptr)
+    {
+        return nullptr;
+    }
+
+    MediaScalability *scalabilityHandle = nullptr;
+    decode::DecodeScalabilityOption decScalabilityOption;
+
+    decScalabilityOption.SetScalabilityOption(params);
+
+    //Create scalability handle refer to scalability option.
+    if (decScalabilityOption.GetNumPipe() == 1)
+    {
+        scalabilityHandle = MOS_New(decode::DecodeScalabilitySinglePipe, hwInterface, mediaContext, scalabilityDecoder);
+    }
+    else
+    {
+        SCALABILITY_ASSERTMESSAGE("Scalability Initialize Failed!");
+    }
+
+    if (scalabilityHandle == nullptr)
+    {
+        return nullptr;
+    }
+
+    if (MOS_STATUS_SUCCESS != scalabilityHandle->Initialize(decScalabilityOption))
+    {
+        SCALABILITY_ASSERTMESSAGE("Scalability Initialize failed!");
+        MOS_Delete(scalabilityHandle);
+        return nullptr;
+    }
+    if (gpuCtxCreateOption)
+    {
+        scalabilityHandle->GetGpuCtxCreationOption(gpuCtxCreateOption);
+    }
+    return scalabilityHandle;
 }
 MediaScalability *MediaScalabilityFactory::CreateVpScalability(ScalabilityPars *params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {

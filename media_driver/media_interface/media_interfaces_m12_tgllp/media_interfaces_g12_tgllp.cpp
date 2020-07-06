@@ -176,6 +176,11 @@ MOS_STATUS MhwInterfacesG12Tgllp::Initialize(
         m_hcpInterface =
             MOS_New(Hcp, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
     }
+    if (params.Flags.m_vdboxAll || params.Flags.m_avp)
+    {
+        m_avpInterface =
+            MOS_New(Avp, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
+    }
     if (params.Flags.m_vdboxAll || params.Flags.m_huc)
     {
         m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
@@ -489,6 +494,13 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_VP9VLD)
         {
             m_codechalDevice = MOS_New(Decode::Vp9, hwInterface, debugInterface, info);
+        }
+        else
+    #endif
+    #ifdef _AV1_DECODE_SUPPORTED
+        if (info->Mode == codechalDecodeModeAv1Vld)
+        {
+            m_codechalDevice = MOS_New(Decode::Av1, hwInterface, debugInterface);
         }
         else
     #endif

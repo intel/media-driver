@@ -103,7 +103,6 @@ VAStatus DdiDecode_StatusReport(
     CodechalDecode *decoder,
     DDI_MEDIA_SURFACE *surface);
 
-#if _APOGEIOS_SUPPORTED
 //!
 //! \brief  Status report
 //!
@@ -117,7 +116,6 @@ VAStatus DdiDecode_StatusReport(
     PDDI_MEDIA_CONTEXT mediaCtx,
     DecodePipelineAdapter *decoder,
     DDI_MEDIA_SURFACE *surface);
-#endif
 
 //!
 //! \brief  Create buffer

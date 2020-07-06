@@ -49,6 +49,7 @@
 #include "mhw_vdbox_huc_g12_X.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_blt.h"
+#include "mhw_vdbox_avp_g12_X.h"
 
 #ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
 #include "mhw_vdbox_vdenc_g12_X_ext.h"
@@ -89,6 +90,10 @@
 
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg_g12.h"
+#endif
+
+#ifdef _AV1_DECODE_SUPPORTED
+#include "decode_av1_pipeline_adapter_g12.h"
 #endif
 
 #include "codechal_encode_csc_ds_g12.h"
@@ -139,6 +144,7 @@
 class MhwInterfacesG12Tgllp : public MhwInterfaces
 {
 public:
+    MhwVdboxAvpInterface *m_avpInterface = nullptr;
 
     using Mi = MhwMiInterfaceG12;
     using Cp = MhwCpInterface;
@@ -148,6 +154,7 @@ public:
     using Mfx = MhwVdboxMfxInterfaceG12;
     using Hcp = MhwVdboxHcpInterfaceG12;
     using Huc = MhwVdboxHucInterfaceG12;
+    using Avp = MhwVdboxAvpInterfaceG12;
 #ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
     using Vdenc = MhwVdboxVdencInterfaceG12ExtX;
 #else
@@ -218,6 +225,9 @@ public:
 #endif
 #ifdef _VP9_DECODE_SUPPORTED
     using Vp9 = CodechalDecodeVp9G12;
+#endif
+#ifdef _AV1_DECODE_SUPPORTED
+    using Av1 = DecodeAv1PipelineAdapterG12;
 #endif
 #ifdef _DECODE_PROCESSING_SUPPORTED
     using FieldScaling = FieldScalingInterfaceG12;

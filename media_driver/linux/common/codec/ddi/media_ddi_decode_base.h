@@ -30,9 +30,7 @@
 #include <stdint.h>
 #include <va/va.h>
 #include "media_ddi_base.h"
-#ifdef _APOGEIOS_SUPPORTED
 #include "decode_pipeline_adapter.h"
-#endif
 
 struct DDI_DECODE_CONTEXT;
 struct DDI_MEDIA_CONTEXT;
@@ -429,7 +427,6 @@ protected:
     //!           VA_STATUS_SUCCESS if success, else fail reason
     VAStatus InitDummyReference(CodechalDecode& decoder);
 
-#ifdef _APOGEIOS_SUPPORTED
     //! \brief    Init dummy reference
     //! \details  Init dummy reference for decode
     //!
@@ -439,7 +436,6 @@ protected:
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     VAStatus InitDummyReference(DecodePipelineAdapter& decoder);
-#endif
 
     //! \brief  the type of decode base class
     MOS_SURFACE                 m_destSurface;          //!<Destination Surface structure

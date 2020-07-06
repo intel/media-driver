@@ -130,9 +130,9 @@ struct CodechalDecodeParams
     //! \brief Parameters used for processing the decode render target, if invalid, decode render target processing will not be used.
     void                    *m_procParams = nullptr;
 #endif
-    
+
     //! \brief Parameters used for codec frame processing
-    CodecProcessingParams m_codecProcParams;
+    CodecProcessingParams   m_codecProcParams;
 
     //! \brief [Predication] Resource for predication
     PMOS_RESOURCE           m_presPredication = nullptr;

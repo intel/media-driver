@@ -459,9 +459,16 @@ MOS_STATUS MhwMiInterfaceG12::AddMiVdControlStateCmd(
     {
         cmd.DW0.MediaInstructionCommand =
             mhw_mi_g12_X::VD_CONTROL_STATE_CMD::MEDIA_INSTRUCTION_COMMAND_VDCONTROLSTATEFORHCP;
-
-        cmd.DW0.MediaInstructionOpcode =
-            mhw_mi_g12_X::VD_CONTROL_STATE_CMD::MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEFORHCP;
+        if (params->avpEnabled)
+        {
+            cmd.DW0.MediaInstructionOpcode =
+                mhw_mi_g12_X::VD_CONTROL_STATE_CMD::MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEFORAVP;
+        }
+        else
+        {
+            cmd.DW0.MediaInstructionOpcode =
+                mhw_mi_g12_X::VD_CONTROL_STATE_CMD::MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEFORHCP;
+        }
 
         cmd.DW1.PipelineInitialization  = params->initialization;
         cmd.DW2.MemoryImplicitFlush     = params->memoryImplicitFlush;

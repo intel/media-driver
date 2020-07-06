@@ -21,7 +21,7 @@
 */
 //!
 //! \file      codechal_hw_g12_X.h
-//! \brief         This modules implements HW interface layer to be used on Gen12 platforms on all operating systems/DDIs, across CODECHAL components.
+//! \brief     This modules implements HW interface layer to be used on Gen12 platforms on all operating systems/DDIs, across CODECHAL components.
 //!
 #ifndef __CODECHAL_HW_G12_X_H__
 #define __CODECHAL_HW_G12_X_H__
@@ -29,6 +29,18 @@
 #include "codechal_hw.h"
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mhw_render_hwcmd_g12_X.h"
+#include "mhw_vdbox_avp_interface.h"
+
+//!
+//! \enum MediaStatesAv1FilmGrain
+//!
+enum
+{
+    CODECHAl_MEDIA_STATE_AV1_FILM_GRAIN_GRV = CODECHAL_MEDIA_STATE_SW_SCOREBOARD_INIT + 1,
+    CODECHAl_MEDIA_STATE_AV1_FILM_GRAIN_RP1,
+    CODECHAl_MEDIA_STATE_AV1_FILM_GRAIN_RP2,
+    CODECHAl_MEDIA_STATE_AV1_FILM_GRAIN_AN,
+};  //Please merge to CODECHAL_MEDIA_STATE_TYPE
 
 #define CODECHAL_NUM_MEDIA_STATES_G12 (CODECHAL_NUM_MEDIA_STATES + 4)
 
@@ -40,6 +52,8 @@ class CodechalHwInterfaceG12 : public CodechalHwInterface
 {
 protected:
     static const CODECHAL_SSEU_SETTING m_defaultSsEuLutG12[CODECHAL_NUM_MEDIA_STATES_G12];
+
+    MhwVdboxAvpInterface   *m_avpInterface = nullptr;        //!< Pointer to Mhw avp interface
 
 public:
     //!
@@ -82,6 +96,68 @@ public:
     //!
     MOS_STATUS SetCacheabilitySettings(
         MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) override;
+
+    //!
+    //! \brief    Get avp interface
+    //! \details  Get avp interface in codechal hw interface
+    //!
+    //! \return   [out] MhwVdboxAvpInterface*
+    //!           Interface got.
+    //!
+    inline MhwVdboxAvpInterface* GetAvpInterface()
+    {
+        return m_avpInterface;
+    }
+
+    //!
+    //! \brief    Calculates the maximum size for AVP picture level commands
+    //! \details  Client facing function to calculate the maximum size for AVP picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           Indicate the command size parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetAvpStateCommandSize(
+        uint32_t                        mode,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize,
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+
+    //!
+    //! \brief    Calculates maximum size for AVP tile level commands
+    //! \details  Client facing function to calculate maximum size for AVP tile level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!            The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetAvpPrimitiveCommandSize(
+        uint32_t                        mode,
+        uint32_t                        *commandsSize,
+        uint32_t                        *patchListSize);
+
+    //!
+    //! \brief    Set Rowstore Cache offsets for Gen12 specific interfaces
+    //! \details  Set Rowstore Cache offsets in sub interfaces in codechal hw G12 interface
+    //!
+    //! \param    [in] rowstoreParams
+    //!           parameters to set rowstore cache offsets
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetRowstoreCachingOffsets(
+        PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) override;
 
     //!
     //! \brief    Send conditional batch buffer end cmd

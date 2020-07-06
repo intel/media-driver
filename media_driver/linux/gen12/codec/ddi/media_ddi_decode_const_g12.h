@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2019, Intel Corporation
+* Copyright (c) 2016-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,5 +33,6 @@
 #define _MEDIA_LIBVA_DECODE_CONST_G12_H_
 
 #define DECODE_ID_HEVC_G12      "VIDEO_DEC_HEVC_G12"
+#define DECODE_ID_AV1           "VIDEO_DEC_AV1"
 
 #endif /*  _MEDIA_LIBVA_DECODE_CONST_G12_H_ */

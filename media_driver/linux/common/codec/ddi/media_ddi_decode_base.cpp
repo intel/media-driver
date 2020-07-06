@@ -678,13 +678,11 @@ VAStatus DdiMediaDecode::ExtraDownScaling(
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(m_ddiDecodeCtx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
-#ifdef _APOGEIOS_SUPPORTED
     if (m_ddiDecodeCtx->pCodecHal->IsApogeiosEnabled())
     {
         return MOS_STATUS_SUCCESS; //Add APO logic here.
     }
     else
-#endif
     {
         CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
         DDI_CHK_NULL(decoder, "nullptr decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -782,7 +780,6 @@ VAStatus DdiMediaDecode::InitDummyReference(CodechalDecode& decoder)
     return VA_STATUS_SUCCESS;
 }
 
-#ifdef _APOGEIOS_SUPPORTED
 VAStatus DdiMediaDecode::InitDummyReference(DecodePipelineAdapter& decoder)
 {
     PMOS_SURFACE dummyReference = decoder.GetDummyReference();
@@ -837,7 +834,6 @@ VAStatus DdiMediaDecode::InitDummyReference(DecodePipelineAdapter& decoder)
 
     return VA_STATUS_SUCCESS;
 }
-#endif
 
 VAStatus DdiMediaDecode::EndPicture(
     VADriverContextP ctx,
@@ -867,7 +863,6 @@ VAStatus DdiMediaDecode::EndPicture(
             &m_ddiDecodeCtx->DecodeParams.m_destSurface->OsResource,
             m_ddiDecodeCtx->DecodeParams.m_destSurface);
 
-    #ifdef _APOGEIOS_SUPPORTED
         if(m_ddiDecodeCtx->pCodecHal->IsApogeiosEnabled())
         {
             DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(m_ddiDecodeCtx->pCodecHal);
@@ -875,7 +870,6 @@ VAStatus DdiMediaDecode::EndPicture(
             DDI_CHK_RET(InitDummyReference(*decoder), "InitDummyReference failed!");
         }
         else
-    #endif
         {
             CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_ddiDecodeCtx->pCodecHal);
             DDI_CHK_NULL(decoder, "Null decoder", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -1136,7 +1130,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         return vaStatus;
     }
 
-#ifdef _APOGEIOS_SUPPORTED
     if (codecHal->IsApogeiosEnabled())
     {
         DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(codecHal);
@@ -1148,7 +1141,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         }
     }
     else
-#endif
     {
         CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(codecHal);
         if (nullptr == decoder)
@@ -1247,7 +1239,6 @@ void DdiMediaDecode::GetDummyReferenceFromDPB(
 
     if (i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT)
     {
-    #ifdef _APOGEIOS_SUPPORTED
         if (decodeCtx->pCodecHal->IsApogeiosEnabled())
         {
             DecodePipelineAdapter *decoder = dynamic_cast<DecodePipelineAdapter *>(decodeCtx->pCodecHal);
@@ -1259,7 +1250,6 @@ void DdiMediaDecode::GetDummyReferenceFromDPB(
             decoder->GetDummyReference()->OsResource = dummyReference.OsResource;
         }
         else
-    #endif
         {
             CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decodeCtx->pCodecHal);
             if (decoder == nullptr)

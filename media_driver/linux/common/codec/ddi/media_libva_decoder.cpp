@@ -40,9 +40,7 @@
 #include "media_ddi_decode_base.h"
 #include "media_interfaces.h"
 #include "media_ddi_decode_const.h"
-#if _APOGEIOS_SUPPORTED
 #include "decode_status_report.h"
-#endif
 
 #if !defined(ANDROID) && defined(X11_FOUND)
 #include <X11/Xutil.h>
@@ -316,7 +314,6 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
     return VA_STATUS_SUCCESS;
 }
 
-#if _APOGEIOS_SUPPORTED
 VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapter *decoder, DDI_MEDIA_SURFACE *surface)
 {
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING)
@@ -388,7 +385,6 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
     }
     return VA_STATUS_SUCCESS;
 }
-#endif
 
 /*
  *  vpgDecodeCreateContext - Create a decode context

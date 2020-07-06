@@ -1547,12 +1547,14 @@ public:
                 uint32_t                 MflPipelineDone                                  : __CODEGEN_BITFIELD( 2,  2)    ; //!< MFL pipeline Done
                 uint32_t                 MfxPipelineDone                                  : __CODEGEN_BITFIELD( 3,  3)    ; //!< MFX pipeline Done
                 uint32_t                 VdCommandMessageParserDone                       : __CODEGEN_BITFIELD( 4,  4)    ; //!< VD command/message parser Done
-                uint32_t                 Reserved37                                       : __CODEGEN_BITFIELD( 5, 15)    ; //!< Reserved
+                uint32_t                 AvpPipelineDone                                  : __CODEGEN_BITFIELD( 5,  5)    ; //!< AVP Pipeline Done
+                uint32_t                 Reserved37                                       : __CODEGEN_BITFIELD( 6, 15)    ; //!< Reserved
                 uint32_t                 HevcPipelineCommandFlush                         : __CODEGEN_BITFIELD(16, 16)    ; //!< HEVC pipeline command flush
                 uint32_t                 VdencPipelineCommandFlush                        : __CODEGEN_BITFIELD(17, 17)    ; //!< VD-ENC pipeline command flush
                 uint32_t                 MflPipelineCommandFlush                          : __CODEGEN_BITFIELD(18, 18)    ; //!< MFL pipeline command flush
                 uint32_t                 MfxPipelineCommandFlush                          : __CODEGEN_BITFIELD(19, 19)    ; //!< MFX pipeline command flush
-                uint32_t                 Reserved52                                       : __CODEGEN_BITFIELD(20, 31)    ; //!< Reserved
+                uint32_t                 AvpPipelineCommandFlush                          : __CODEGEN_BITFIELD(20, 20)    ; //!< AVP Pipeline Command Flush
+                uint32_t                 Reserved52                                       : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
         } DW1;

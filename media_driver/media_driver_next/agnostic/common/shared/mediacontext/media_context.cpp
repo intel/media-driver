@@ -32,6 +32,7 @@
 #include "mos_interface.h"
 #include "mos_os_virtualengine_next.h"
 #include "codechal_hw.h"
+#include "decode_scalability_defs.h"
 
 MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface)
 {
@@ -324,7 +325,20 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, ScalabilityPars *req
 
 MOS_STATUS MediaContext::FunctionToNodeDecode(ScalabilityPars *requirement, MOS_GPU_NODE& node)
 {
-    return MOS_STATUS_INVALID_PARAMETER;
+    CodechalHwInterface *hwInterface = static_cast<CodechalHwInterface *>(m_hwInterface);
+    MhwVdboxMfxInterface *mfxInterface = hwInterface->GetMfxInterface();
+    MOS_OS_CHK_NULL_RETURN(mfxInterface);
+
+    decode::DecodeScalabilityPars *decodeRequirement = static_cast<decode::DecodeScalabilityPars *>(requirement);
+
+    MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
+    gpuNodeLimit.bHuCInUse = false;
+    gpuNodeLimit.bHcpInUse = decodeRequirement->usingHcp;
+    gpuNodeLimit.bSfcInUse = decodeRequirement->usingSfc;
+    MOS_OS_CHK_STATUS_RETURN(mfxInterface->FindGpuNodeToUse(&gpuNodeLimit));
+    node = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx)
