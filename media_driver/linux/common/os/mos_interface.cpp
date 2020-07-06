@@ -1464,12 +1464,14 @@ MOS_STATUS MosInterface::GetResourceInfo(
         details.dwWidth         = resource->iWidth;
         details.dwHeight        = resource->iHeight;
         details.dwPitch         = resource->iPitch;
+        details.dwSize          = resource->iSize;
     }
     else
     {
         details.dwWidth         = GFX_ULONG_CAST(gmmResourceInfo->GetBaseWidth());
         details.dwHeight        = gmmResourceInfo->GetBaseHeight();
         details.dwPitch         = GFX_ULONG_CAST(gmmResourceInfo->GetRenderPitch());
+        details.dwSize          = GFX_ULONG_CAST(gmmResourceInfo->GetSizeSurface());
     }
     details.dwDepth         = MOS_MAX(1, gmmResourceInfo->GetBaseDepth());
     details.dwLockPitch     = GFX_ULONG_CAST(gmmResourceInfo->GetRenderPitch());

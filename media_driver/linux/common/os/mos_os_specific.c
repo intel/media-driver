@@ -2576,12 +2576,14 @@ MOS_STATUS Mos_Specific_GetResourceInfo(
         pResDetails->dwWidth         = pOsResource->iWidth;
         pResDetails->dwHeight        = pOsResource->iHeight;
         pResDetails->dwPitch         = pOsResource->iPitch;
+        pResDetails->dwSize          = pOsResource->iSize;
     }
     else
     {
         pResDetails->dwWidth         = GFX_ULONG_CAST(pGmmResourceInfo->GetBaseWidth());
         pResDetails->dwHeight        = pGmmResourceInfo->GetBaseHeight();
         pResDetails->dwPitch         = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
+        pResDetails->dwSize          = GFX_ULONG_CAST(pGmmResourceInfo->GetSizeSurface());
     }
     pResDetails->dwDepth         = MOS_MAX(1, pGmmResourceInfo->GetBaseDepth());
     pResDetails->dwLockPitch     = GFX_ULONG_CAST(pGmmResourceInfo->GetRenderPitch());
