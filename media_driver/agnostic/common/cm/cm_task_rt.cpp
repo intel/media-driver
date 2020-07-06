@@ -202,6 +202,13 @@ CM_RT_API int32_t CmTaskRT::Reset( void )
     CmSafeMemSet(&m_conditionalEndInfo, 0, sizeof(m_conditionalEndInfo));
     CmSafeMemSet(&m_taskConfig, 0, sizeof(m_taskConfig));
     m_taskConfig.turboBoostFlag = CM_TURBO_BOOST_DEFAULT;
+    CM_CHK_NULL_RETURN_CMERROR(m_device);
+    CM_CHK_NULL_RETURN_CMERROR(m_device->GetAccelData());
+    PCM_HAL_STATE cmHalState = ((PCM_CONTEXT_DATA)m_device->GetAccelData())->cmHalState;
+    CM_CHK_NULL_RETURN_CMERROR(cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmHalState->cmHalInterface);
+    cmHalState->cmHalInterface->InitTaskProperty(m_taskConfig);
+
     if(m_kernelArray)
     {
         CmSafeMemSet( m_kernelArray, 0, sizeof(CmKernelRT*) * m_maxKernelCount );
