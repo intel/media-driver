@@ -34,6 +34,7 @@
 using MEDIA_FEATURE_TABLE = MediaFeatureTable;
 using MEDIA_WA_TABLE      = MediaWaTable;
 using MEDIA_SYSTEM_INFO   = MEDIA_GT_SYSTEM_INFO;
+using MEDIA_ENGINE_INFO   = MEDIA_GT_SYSTEM_INFO;
 
 /* the below is for GMM */
 using GMM_SKU_FEATURE_TABLE   = SHADOW_MEDIA_FEATURE_TABLE;

@@ -2057,6 +2057,31 @@ MEDIA_SYSTEM_INFO *Mos_Specific_GetGtSystemInfo(
     return &pOsInterface->pOsContext->gtSystemInfo;
 }
 
+MOS_STATUS Mos_Specific_GetMediaEngineInfo(
+    PMOS_INTERFACE pOsInterface, MEDIA_ENGINE_INFO &info)
+{
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid pointer!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        // apo wrapper
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetMediaEngineInfo(pOsInterface->osStreamState, info));
+        return MOS_STATUS_SUCCESS;
+    }
+
+    auto systemInfo = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(systemInfo);
+    MosUtilities::MosZeroMemory(&info, sizeof(info));
+    info.VDBoxInfo = systemInfo->VDBoxInfo;
+    info.VEBoxInfo = systemInfo->VEBoxInfo;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 //!
 //! \brief    Resets OS States
 //! \details  Resets OS States for linux
@@ -7213,6 +7238,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetSkuTable                            = Mos_Specific_GetSkuTable;
     pOsInterface->pfnGetWaTable                             = Mos_Specific_GetWaTable;
     pOsInterface->pfnGetGtSystemInfo                        = Mos_Specific_GetGtSystemInfo;
+    pOsInterface->pfnGetMediaEngineInfo                     = Mos_Specific_GetMediaEngineInfo;
     pOsInterface->pfnResetOsStates                          = Mos_Specific_ResetOsStates;
     pOsInterface->pfnAllocateResource                       = Mos_Specific_AllocateResource;
     pOsInterface->pfnGetResourceInfo                        = Mos_Specific_GetResourceInfo;

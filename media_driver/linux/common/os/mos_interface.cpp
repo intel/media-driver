@@ -424,6 +424,20 @@ MEDIA_SYSTEM_INFO *MosInterface::GetGtSystemInfo(MOS_STREAM_HANDLE streamState)
     return nullptr;
 }
 
+MOS_STATUS MosInterface::GetMediaEngineInfo(MOS_STREAM_HANDLE streamState, MEDIA_ENGINE_INFO &info)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    auto systemInfo = MosInterface::GetGtSystemInfo(streamState);
+    MOS_OS_CHK_NULL_RETURN(systemInfo);
+
+    MosUtilities::MosZeroMemory(&info, sizeof(info));
+    info.VDBoxInfo = systemInfo->VDBoxInfo;
+    info.VEBoxInfo = systemInfo->VEBoxInfo;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 ADAPTER_INFO *MosInterface::GetAdapterInfo(MOS_STREAM_HANDLE streamState)
 {
     MOS_OS_FUNCTION_ENTER;

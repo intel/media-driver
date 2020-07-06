@@ -310,13 +310,18 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
         return MOS_STATUS_SUCCESS;
     }
 
-    // Get vebox number from gt system info.
-    MEDIA_SYSTEM_INFO *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-
-    if (gtSystemInfo != nullptr)
+    // Get vebox number from meida sys info.
+    MEDIA_ENGINE_INFO mediaSysInfo = {};
+    MOS_STATUS        eStatus      = m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaSysInfo);
+    if (MOS_SUCCEEDED(eStatus))
     {
         // Both VE mode and media solo mode should be able to get the VDBOX number via the same interface
-        m_numVebox = (uint8_t)(gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled);
+        m_numVebox = (uint8_t)(mediaSysInfo.VEBoxInfo.NumberOfVEBoxEnabled);
+        if (m_numVebox == 0)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Fail to get the m_numVebox with value 0");
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
     }
     else
     {

@@ -242,7 +242,23 @@ public:
     //!           Read-only GT system info got, nullptr if failed to get
     //!
     static MEDIA_SYSTEM_INFO *GetGtSystemInfo(MOS_STREAM_HANDLE streamState);
-    
+
+    //!
+    //! \brief    Get Media Engine Info
+    //! \details  [System info Interface] Get Media Engine Info
+    //! \details  Caller: HAL & MHW
+    //! \details  This func is called to differentiate the behavior according to Media Engine Info.
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] info
+    //!           MEDIA_SYS_INFO
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS GetMediaEngineInfo(MOS_STREAM_HANDLE streamState, MEDIA_ENGINE_INFO &info);
+
     //!
     //! \brief    Get Adapter Info
     //! \details  [System info Interface] Get Adapter Info

@@ -879,6 +879,9 @@ typedef struct _MOS_INTERFACE
     MEDIA_SYSTEM_INFO *(* pfnGetGtSystemInfo)(
         PMOS_INTERFACE     pOsInterface);
 
+    MOS_STATUS (*pfnGetMediaEngineInfo)(
+        PMOS_INTERFACE     pOsInterface, MEDIA_ENGINE_INFO &info);
+
     void (* pfnResetOsStates) (
         PMOS_INTERFACE              pOsInterface);
 
