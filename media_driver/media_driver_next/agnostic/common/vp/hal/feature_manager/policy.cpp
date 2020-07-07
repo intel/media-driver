@@ -735,12 +735,10 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
     SwFilter* feature = nullptr;
     VP_SURFACE* surfInput = nullptr;
     VP_SURFACE* surfOutput = nullptr;
-    VP_EngineEntry *engineCaps;
+    VP_EngineEntry *engineCaps = nullptr;
 
     // only process Primary surface
     VP_PUBLIC_CHK_NULL_RETURN(inputPipe);
-
-    MOS_ZeroMemory(&engineCaps, sizeof(VP_EngineEntry));
 
     if (caps.value)
     {
