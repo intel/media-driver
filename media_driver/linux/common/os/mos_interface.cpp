@@ -235,6 +235,10 @@ MOS_STATUS MosInterface::CreateOsStreamState(
         &userFeatureWriteData,
         1);
 
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    DumpCommandBufferInit(*streamState);
+#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
     MOS_OS_CHK_STATUS_RETURN(MosInterface::InitStreamParameters(*streamState));
 
     return MOS_STATUS_SUCCESS;
