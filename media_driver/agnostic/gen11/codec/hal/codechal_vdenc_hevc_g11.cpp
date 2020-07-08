@@ -1764,6 +1764,12 @@ MOS_STATUS CodechalVdencHevcStateG11::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffe
         return eStatus;
     }
 
+    // Report slice size to app only when dynamic scaling is enabled
+    if (!m_hevcSeqParams->SliceSizeControl)
+    {
+        return eStatus;
+    }
+
     // In multi-tile multi-pipe mode, use PAK integration kernel output
     // PAK integration kernel accumulates frame statistics across tiles, which should be used to setup slice size report
     MOS_LOCK_PARAMS lockFlags;
@@ -1771,20 +1777,6 @@ MOS_STATUS CodechalVdencHevcStateG11::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffe
     lockFlags.WriteOnly = true;
 
     uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize + sizeof(uint32_t) * 2);  // encodeStatus is offset by 2 DWs in the resource
-
-    // Report slice size to app only when dynamic scaling is enabled
-    if (!m_hevcSeqParams->SliceSizeControl)
-    {
-        // Clear slice size report structure in EncodeStatus
-        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer, &lockFlags);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
-        MOS_ZeroMemory(&(dataStatus->sliceReport), sizeof(EncodeStatusSliceReport));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
-
-        return eStatus;
-    }
-
     uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(m_numLcu * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
 
     if (IsFirstPipe())
@@ -1815,11 +1807,16 @@ MOS_STATUS CodechalVdencHevcStateG11::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffe
             m_osInterface->pfnUnlockResource(m_osInterface, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex]);
 
             // Set slice size pointer in slice size structure
-            data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, (&m_encodeStatusBuf.resStatusBuffer), &lockFlags);
-            CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-            EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
-            (dataStatus)->sliceReport.pSliceSize = &m_resSliceReport[m_encodeStatusBuf.wCurrIndex];
-            m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
+            MHW_MI_FLUSH_DW_PARAMS  miFlushDwParams;
+            MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
+            miFlushDwParams.pOsResource      = &m_encodeStatusBuf.resStatusBuffer;
+            miFlushDwParams.dwResourceOffset = CODECHAL_OFFSETOF(EncodeStatusSliceReport, pSliceSize) + baseOffset + m_encodeStatusBuf.dwSliceReportOffset;
+            miFlushDwParams.dwDataDW1        = (uint32_t)((uint64_t)&m_resSliceReport[m_encodeStatusBuf.wCurrIndex] & 0xFFFFFFFF);
+            miFlushDwParams.dwDataDW2        = (uint32_t)(((uint64_t)&m_resSliceReport[m_encodeStatusBuf.wCurrIndex] & 0xFFFFFFFF00000000) >> 32);
+            miFlushDwParams.bQWordEnable     = 1;
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+                cmdBuffer,
+                &miFlushDwParams));
         }
 
         // Copy Slice size data buffer from PAK to be sent back to App

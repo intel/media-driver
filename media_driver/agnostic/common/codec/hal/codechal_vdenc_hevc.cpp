@@ -1845,25 +1845,17 @@ MOS_STATUS CodechalVdencHevcState::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffer)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    // Report slice size to app only when dynamic slice is enabled
+    if (!m_hevcSeqParams->SliceSizeControl)
+    {
+        return eStatus;
+    }
+
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.WriteOnly = true;
 
     uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize + sizeof(uint32_t) * 2);  // encodeStatus is offset by 2 DWs in the resource
-
-    // Report slice size to app only when dynamic slice is enabled
-    if (!m_hevcSeqParams->SliceSizeControl)
-    {
-        // Clear slice size report in EncodeStatus buffer
-        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer, &lockFlags);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
-        MOS_ZeroMemory(&(dataStatus->sliceReport), sizeof(EncodeStatusSliceReport));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
-
-        return eStatus;
-    }
-
     uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
 
     if (IsFirstPass())
@@ -1892,11 +1884,16 @@ MOS_STATUS CodechalVdencHevcState::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffer)
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resSliceReport[m_encodeStatusBuf.wCurrIndex]);
 
         // Set slice size pointer in slice size structure
-        data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface,(&m_encodeStatusBuf.resStatusBuffer), &lockFlags);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        EncodeStatus* dataStatus = (EncodeStatus*)(data + baseOffset);
-        (dataStatus)->sliceReport.pSliceSize             = &m_resSliceReport[m_encodeStatusBuf.wCurrIndex];
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_encodeStatusBuf.resStatusBuffer);
+        MHW_MI_FLUSH_DW_PARAMS  miFlushDwParams;
+        MOS_ZeroMemory(&miFlushDwParams, sizeof(miFlushDwParams));
+        miFlushDwParams.pOsResource      = &m_encodeStatusBuf.resStatusBuffer;
+        miFlushDwParams.dwResourceOffset = CODECHAL_OFFSETOF(EncodeStatusSliceReport, pSliceSize) + baseOffset + m_encodeStatusBuf.dwSliceReportOffset;
+        miFlushDwParams.dwDataDW1        = (uint32_t)((uint64_t)&m_resSliceReport[m_encodeStatusBuf.wCurrIndex] & 0xFFFFFFFF);
+        miFlushDwParams.dwDataDW2        = (uint32_t)(((uint64_t)&m_resSliceReport[m_encodeStatusBuf.wCurrIndex] & 0xFFFFFFFF00000000) >> 32);
+        miFlushDwParams.bQWordEnable     = 1;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &miFlushDwParams));
     }
 
     // Copy Slize size data buffer from PAK to be sent back to App
