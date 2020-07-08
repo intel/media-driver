@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -295,7 +295,9 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::SetupSurfacesCSC(SurfaceParamsCscMdf& Surf
                           &SurfaceParamsCsc.psInputSurface));
 
     // Change input surface interpretation from NV12 to A8
-    if (GMM_FORMAT_NV12_TYPE == m_surfaceParamsCsc.psInputSurface->OsResource.pGmmResInfo->GetResourceFormat())
+    if (CODECHAL_AVC    == m_mode &&
+        Format_NV12     == m_surfaceParamsCsc.psInputSurface->Format &&
+        MOS_TILE_LINEAR == m_surfaceParamsCsc.psInputSurface->TileType)
     {
         uint32_t   width = 0, height = 0;
         MOS_FORMAT format = Format_Invalid;
