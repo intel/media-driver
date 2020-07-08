@@ -2571,6 +2571,11 @@ void CmSurfaceManagerBase::RemoveFromDelayDestroyList(CmSurface *surface)
     m_delayDestoryListSync.Release();
 }
 
+#if MDF_SURFACE_CONTENT_DUMP
+CM_HAL_STATE* CmSurfaceManagerBase::GetHalState() { return m_device->GetHalState(); }
+#endif  // #if MDF_SURFACE_CONTENT_DUMP
+
+
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create surface 2d
 //| Arguments :

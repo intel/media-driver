@@ -95,7 +95,7 @@ protected:
     {
         MHW_FUNCTION_ENTER;
 
-        InitRowstoreUserFeatureSettings();
+        InitRowstoreUserFeatureSettings(osInterface->pOsContext);
         InitMmioRegisters();
     }
 
@@ -175,7 +175,7 @@ protected:
         mmioRegisters->mfxLra2RegOffset                           = MFX_LRA2_REG_OFFSET_NODE_2_INIT_G9;
     }
 
-    void InitRowstoreUserFeatureSettings()
+    void InitRowstoreUserFeatureSettings(MOS_CONTEXT_HANDLE mosCtx)
     {
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -187,7 +187,8 @@ protected:
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
         this->m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
 
@@ -198,7 +199,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_INTRAROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_intraRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -207,7 +209,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_DEBLOCKINGFILTERROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_deblockingFilterRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -216,7 +219,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_BSDMPCROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_bsdMpcRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -225,7 +229,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_MPRROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_mprRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
         }

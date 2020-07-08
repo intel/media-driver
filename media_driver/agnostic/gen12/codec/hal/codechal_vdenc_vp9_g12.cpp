@@ -59,10 +59,10 @@ MOS_STATUS CodechalVdencVp9StateG12::UserFeatureKeyReport()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencVp9State::UserFeatureKeyReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_VDBOX_NUM_ID, m_numPipe);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_VE_ID, m_useVirtualEngine);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_HW_STITCH, m_enableTileStitchByHW);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_SINGLE_PASS_DYS_ENABLE_ID, m_singlePassDys);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_VDBOX_NUM_ID, m_numPipe, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_VE_ID, m_useVirtualEngine, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_HW_STITCH, m_enableTileStitchByHW, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_SINGLE_PASS_DYS_ENABLE_ID, m_singlePassDys, m_osInterface->pOsContext);
 #endif
 
     return eStatus;
@@ -955,7 +955,8 @@ MOS_STATUS CodechalVdencVp9StateG12::GetSystemPipeNumberCommon()
     statusKey = MOS_UserFeature_ReadValue_ID(
         NULL,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DISABLE_SCALABILITY,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
 
     bool disableScalability = false;
     if (statusKey == MOS_STATUS_SUCCESS)
@@ -4646,7 +4647,8 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     MOS_STATUS eStatusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_HW_STITCH,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_enableTileStitchByHW = userFeatureData.i32Data ? true : false;
 
     if (m_scalableMode && !m_brcEnabled && m_osInterface->phasedSubmission)
@@ -4659,7 +4661,8 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_HUC_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_hucEnabled = (userFeatureData.i32Data) ? true : false;
 
     //Enable single pass dynamic scaling by default
@@ -4669,7 +4672,8 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_SINGLE_PASS_DYS_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_dysVdencMultiPassEnabled = (userFeatureData.i32Data) ? false : true;
     m_singlePassDys = !m_dysVdencMultiPassEnabled;
 
@@ -4679,7 +4683,8 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
     m_singleTaskPhaseSupportedInPak = m_singleTaskPhaseSupported;
     // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored
@@ -4691,7 +4696,8 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_MULTIPASS_BRC_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_multipassBrcSupported = (userFeatureData.i32Data) ? true : false;
 
     m_vdencBrcStatsBufferSize = m_brcStatsBufSize;
@@ -4702,14 +4708,16 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         NULL,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ME_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_hmeSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         NULL,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_16xME_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_16xMeSupported = (userFeatureData.i32Data) ? true : false;
 
     // disable superHME when HME is disabled

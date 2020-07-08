@@ -75,7 +75,8 @@ protected:
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            this->m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         this->m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
 
@@ -86,7 +87,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_VDENCROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                this->m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_vdencRowStoreCache.bSupported = userFeatureData.i32Data ? false : true;
         }

@@ -48,8 +48,10 @@ public:
     //! \brief  VPFeatureManager constructor
     //! \param  [in] hwInterface
     //!         Pointer to VP_MHWINTERFACE
+    //! \param  [in] pOsInterface
+    //!         Pointer to MOS INTERFACE
     //!
-     VPFeatureManager(PVP_MHWINTERFACE hwInterface);
+    VPFeatureManager(PVP_MHWINTERFACE hwInterface);
 
     //!
     //! \brief  VPFeatureManager deconstructor
@@ -147,6 +149,7 @@ protected:
 
 protected:
     PVP_MHWINTERFACE        m_hwInterface       = nullptr;
+    PMOS_INTERFACE          m_pOsInterface      = nullptr;
 };
 
 

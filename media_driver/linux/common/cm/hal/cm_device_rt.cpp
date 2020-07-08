@@ -106,7 +106,7 @@ int32_t CmDeviceRT::Create(MOS_CONTEXT *umdContext,
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRT::Destroy(CmDeviceRT* &device)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(device->GetHalState());
 
     int32_t result = CM_SUCCESS;
 
@@ -212,7 +212,7 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2D(VASurfaceID vaSurface,
                                               VADriverContext *vaDriverCtx,
                                               CmSurface2D* & surface)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     MOS_RESOURCE mosResource;
     int32_t hr = CmFillMosResource( vaSurface, vaDriverCtx, &mosResource);
@@ -596,7 +596,7 @@ int32_t CmDeviceRT::ReadVtuneProfilingFlag()
 CM_RT_API int32_t CmDeviceRT::CreateSurface2D(PMOS_RESOURCE mosResource,
                                               CmSurface2D* & surface)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (mosResource == nullptr)
     {
@@ -624,7 +624,7 @@ CM_RT_API int32_t CmDeviceRT::CreateSurface2D(uint32_t width,
                                               CM_SURFACE_FORMAT format,
                                               CmSurface2D* & surface)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     CLock locker(m_criticalSectionSurface);
 
@@ -642,7 +642,7 @@ int32_t CmDeviceRT::CreateSurface2D(PMOS_RESOURCE mosResource,
                                     bool isCmCreated,
                                     CmSurface2D* & surface)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (mosResource == nullptr)
     {

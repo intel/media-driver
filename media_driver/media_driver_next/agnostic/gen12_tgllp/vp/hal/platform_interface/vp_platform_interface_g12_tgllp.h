@@ -36,7 +36,8 @@ class VpPlatformInterfaceG12Tgllp : public VpPlatformInterface
 {
 public:
 
-    VpPlatformInterfaceG12Tgllp()
+    VpPlatformInterfaceG12Tgllp(PMOS_INTERFACE pOsInterface)
+        : VpPlatformInterface(pOsInterface)
     {
     }
 

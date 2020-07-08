@@ -1309,10 +1309,10 @@ MOS_STATUS MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MosOsUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo)
+MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
-    MOS_UNUSED(userFeatureKeyPathInfo);
+    MOS_UNUSED(mosCtx);
 
     // lock mutex to avoid multi init in multi-threading env
     m_mutexLock.Lock();
@@ -1349,10 +1349,10 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO user
         m_vpUserFeatureExt    = new VphalUserSettingsMgr();
 #endif
 
-        eStatus = MosGenerateUserFeatureKeyXML();
+        eStatus = MosGenerateUserFeatureKeyXML(mosCtx);
 #if MOS_MESSAGES_ENABLED
         // Initialize MOS message params structure and HLT
-        MosUtilDebug::MosMessageInit();
+        MosUtilDebug::MosMessageInit(nullptr);
 #endif // MOS_MESSAGES_ENABLED
         m_mosMemAllocCounter     = 0;
         m_mosMemAllocFakeCounter = 0;
@@ -1365,7 +1365,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO user
     return eStatus;
 }
 
-MOS_STATUS MosUtilities::MosOsUtilitiesClose()
+MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
 {
     int32_t                             MemoryCounter = 0;
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
@@ -1385,7 +1385,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose()
 
         UserFeatureWriteData.Value.i32Data    =   MemoryCounter;
         UserFeatureWriteData.ValueID          = __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER_ID;
-        MosUserFeatureWriteValuesID(NULL, &UserFeatureWriteData, 1);
+        MosUserFeatureWriteValuesID(NULL, &UserFeatureWriteData, 1, mosCtx);
 
         eStatus = MosDestroyUserFeatureKeysForAllDescFields();
 #if _MEDIA_RESERVED
@@ -1415,8 +1415,11 @@ MOS_STATUS MosUtilities::MosUserFeatureOpenKey(
     const char *lpSubKey,
     uint32_t   ulOptions,
     uint32_t   samDesired,
-    void       **phkResult)
+    void       **phkResult,
+    MOS_USER_FEATURE_KEY_PATH_INFO  *ufInfo)
 {
+    MOS_UNUSED(ufInfo);
+
     return MosUtilitiesSpecificNext::MosUserFeatureOpenKeyFile(ufKey, lpSubKey, ulOptions, samDesired, phkResult);
 }
 
@@ -1621,7 +1624,8 @@ MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureVa
         MOS_USER_FEATURE_TYPE_USER,
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
         KEY_READ,
-        &UFKey);
+        &UFKey,
+        nullptr);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {

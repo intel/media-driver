@@ -833,6 +833,8 @@ std::string CmEventRT::Log(const char *callerFuncName)
 
     return oss.str();
 }
-#endif
 
-}
+CM_HAL_STATE* CmEventRT::GetHalState() { return m_device->GetHalState(); }
+
+#endif  // #if CM_LOG_ON
+}  // namespace

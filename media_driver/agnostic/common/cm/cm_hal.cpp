@@ -10330,7 +10330,8 @@ CM_STATE_BUFFER_TYPE HalCm_GetStateBufferTypeForKernel(
     }
 }
 
-void LoadUserFeatures(MOS_GPUCTX_CREATOPTIONS *createOptions)
+static void LoadUserFeatures(CM_HAL_STATE *halState,
+                             MOS_GPUCTX_CREATOPTIONS *createOptions)
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA  user_feature_data;
@@ -10338,7 +10339,7 @@ void LoadUserFeatures(MOS_GPUCTX_CREATOPTIONS *createOptions)
     MOS_STATUS result
             = MOS_UserFeature_ReadValue_ID(
                 nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE,
-                &user_feature_data);
+                &user_feature_data, halState->osInterface->pOsContext);
     if (MOS_STATUS_SUCCESS == result && user_feature_data.i32Data == 1)
     {
         createOptions->RAMode = 1;
@@ -10348,7 +10349,7 @@ void LoadUserFeatures(MOS_GPUCTX_CREATOPTIONS *createOptions)
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = createOptions->RAMode;
     userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_RAMODE;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, halState->osInterface->pOsContext);
 
 #endif
     return;
@@ -10362,7 +10363,7 @@ MOS_STATUS HalCm_CreateGPUContext(
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    LoadUserFeatures(pMosGpuContextCreateOption);
+    LoadUserFeatures(state, pMosGpuContextCreateOption);
 
     // Create Compute Context on Compute Node
     CM_CHK_HRESULT_GOTOFINISH_MOSERROR(state->osInterface->pfnCreateGpuContext(
@@ -10384,7 +10385,7 @@ GPU_CONTEXT_HANDLE
 HalCm_CreateGpuComputeContext(CM_HAL_STATE *state,
                               MOS_GPUCTX_CREATOPTIONS *createOptions)
 {
-    LoadUserFeatures(createOptions);
+    LoadUserFeatures(state, createOptions);
 
     GPU_CONTEXT_HANDLE context_handle
             = state->osInterface->pfnCreateGpuComputeContext(
@@ -10745,7 +10746,8 @@ MOS_STATUS HalCm_Create(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_EXECUTION_PATH_ID,
-            &userFeatureData);
+            &userFeatureData,
+            state->osInterface->pOsContext);
 
         if (userFeatureData.i32Data == 1)
         {
@@ -10944,7 +10946,8 @@ void HalCm_GetUserFeatureSettings(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MDF_MAX_THREAD_NUM_ID,
-        &userFeatureData);
+        &userFeatureData,
+        cmState->osInterface->pOsContext);
 
     if (userFeatureData.i32Data != 0)
     {

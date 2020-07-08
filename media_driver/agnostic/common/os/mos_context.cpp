@@ -45,7 +45,7 @@ void OsContext::CleanUp()
 }
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-MOS_STATUS OsContext::CommandBufferDumpInit()
+MOS_STATUS OsContext::CommandBufferDumpInit(PMOS_CONTEXT mosCtx)
 {
     MOS_OS_FUNCTION_ENTER;
     char                                sFileName[MOS_MAX_HLT_FILENAME_LEN];
@@ -56,7 +56,8 @@ MOS_STATUS OsContext::CommandBufferDumpInit()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
     m_dumpCommandBuffer           = (UserFeatureData.i32Data != 0);
     m_dumpCommandBufferToFile     = ((UserFeatureData.i32Data & 1) != 0);
     m_dumpCommandBufferAsMessages = ((UserFeatureData.i32Data & 2) != 0);

@@ -109,8 +109,10 @@ void CmMediaState::Dump()
 
         ++fileCount;
 
-        GetLogFileLocation(curbeFilename.str().c_str(), curbeFileNamePrefix);
-        GetLogFileLocation(idFilename.str().c_str(), idFileNamePrefix);
+        GetLogFileLocation(curbeFilename.str().c_str(), curbeFileNamePrefix,
+                           m_cmhal->osInterface->pOsContext);
+        GetLogFileLocation(idFilename.str().c_str(), idFileNamePrefix,
+                           m_cmhal->osInterface->pOsContext);
 
         m_memoryBlock.Dump(curbeFileNamePrefix, m_curbeOffsetInternal, m_totalCurbeSize);
         m_memoryBlock.Dump(idFilename.str(), m_mediaIDOffsetInternal, m_totalMediaIDSize);

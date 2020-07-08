@@ -92,29 +92,29 @@
     MOS_CHK_COND_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE,_expr,_message, ##__VA_ARGS__)
 
 // User Feature Report Writeout
-#define CodecHalEncode_WriteKey64(key, value)\
+#define CodecHalEncode_WriteKey64(key, value, mosCtx)\
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.i64Data  = (value);\
     UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);\
 }
 
-#define CodecHalEncode_WriteKey(key, value)\
+#define CodecHalEncode_WriteKey(key, value, mosCtx)\
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.i32Data  = (value);\
     UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);\
 }
 
-#define CodecHalEncode_WriteStringKey(key, value, len)\
+#define CodecHalEncode_WriteStringKey(key, value, len, mosCtx)\
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.StringData.pStringData = (value);\
     UserFeatureWriteData.Value.StringData.uSize = (len);\
     UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);\
 }
 
 //!
@@ -280,29 +280,29 @@ enum MbBrcSetting
 };
 
 // User Feature Key Report Writeout
-#define CodecHalEncodeWriteKey64(key, value)\
+#define CodecHalEncodeWriteKey64(key, value, mosCtx)\
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.i64Data  = (value);\
     UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);\
 }
 
-#define CodecHalEncodeWriteKey(key, value)\
+#define CodecHalEncodeWriteKey(key, value, mosCtx)\
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.i32Data  = (value);\
     UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);\
 }
 
-#define CodecHalEncodeWriteStringKey(key, value, len)\
+#define CodecHalEncodeWriteStringKey(key, value, len, mosCtx)\
 {\
     MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
     UserFeatureWriteData.Value.StringData.pStringData = (value);\
     UserFeatureWriteData.Value.StringData.uSize = (len);\
     UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);\
 }
 
 // ---------------------------

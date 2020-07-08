@@ -260,13 +260,13 @@ extern "C" {
 //!
 //! \brief    Init Function for MOS OS specific utilities
 //! \details  Initial MOS OS specific utilities related structures, and only execute once for multiple entries
-//! \param    [in] userFeatureKeyPathInfo
-//!           user feature key path info
+//! \param    [in] mosCtx
+//!           os device ctx handle
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-MOS_STATUS MOS_OS_Utilities_Init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo = NULL);
+MOS_STATUS MOS_OS_Utilities_Init(MOS_CONTEXT_HANDLE mosCtx);
 
 //!
 //! \brief    Close Function for MOS OS utilities
@@ -275,7 +275,7 @@ MOS_STATUS MOS_OS_Utilities_Init(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyP
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-MOS_STATUS MOS_OS_Utilities_Close();
+MOS_STATUS MOS_OS_Utilities_Close(MOS_CONTEXT_HANDLE mosCtx);
 
 //------------------------------------------------------------------------------
 //  Allocate, free and set a memory region
@@ -761,11 +761,13 @@ MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia();
 //!
 //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
 //! \details  Generate a User Feature Keys XML files according to MOSUserFeatureDescFields
+//! \param    [in] mosCtx
+//!           os device ctx handle
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-MOS_STATUS MOS_GenerateUserFeatureKeyXML();
+MOS_STATUS MOS_GenerateUserFeatureKeyXML(MOS_CONTEXT_HANDLE mosCtx);
 
 //!
 //! \brief    Get the User Feature Value from Table
@@ -913,14 +915,6 @@ MOS_STATUS MOS_DestroyUserFeatureData(
     PMOS_USER_FEATURE_VALUE_DATA pData,
     MOS_USER_FEATURE_VALUE_TYPE  ValueType);
 
-#ifdef  __MOS_USER_FEATURE_WA_
-MOS_STATUS MOS_UserFeature_ReadValue(
-    PMOS_USER_FEATURE_INTERFACE       pOsUserFeatureInterface,
-    PMOS_USER_FEATURE                 pUserFeature,
-    const char                        *pValueName,
-    MOS_USER_FEATURE_VALUE_TYPE       ValueType);
-#endif
-
 //!
 //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE
 //! \details  This is a unified funtion to read user feature key for all components.
@@ -966,6 +960,8 @@ MOS_STATUS MOS_UserFeature_ReadValue(
 //!           value of enum type in MOS_USER_FEATURE_VALUE_TYPE. declares the user feature key to be readed
 //! \param    [in,out] pValueData
 //!           Pointer to User Feature Data
+//! \param    [in] mosCtx
+//!           Pointer to ddi device ctx
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
@@ -978,14 +974,11 @@ MOS_STATUS MOS_UserFeature_ReadValue(
 //!                                          No default value or User Feature Key value return
 //! 
 //!
-#ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue_ID(
-#else
-MOS_STATUS MOS_UserFeature_ReadValue(
-#endif
     PMOS_USER_FEATURE_INTERFACE  pOsUserFeatureInterface,
     uint32_t                     ValueID,
-    PMOS_USER_FEATURE_VALUE_DATA pValueData);
+    PMOS_USER_FEATURE_VALUE_DATA pValueData,
+    MOS_CONTEXT_HANDLE           mosCtx);
 
 //!
 //! \brief    Write Values to User Feature with specified ID
@@ -998,44 +991,42 @@ MOS_STATUS MOS_UserFeature_ReadValue(
 //!           Pointer to User Feature Data, and related User Feature Key ID (enum type in MOS_USER_FEATURE_VALUE_TYPE)
 //! \param    [in] uiNumOfValues
 //!           number of user feature keys to be written.
+//! \param    [in] mosCtx
+//!           Pointer to ddi device ctx
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-#ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_WriteValues_ID(
-#else
-MOS_STATUS MOS_UserFeature_WriteValues(
-#endif
     PMOS_USER_FEATURE_INTERFACE              pOsUserFeatureInterface,
     PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
-    uint32_t                                 uiNumOfValues);
-
+    uint32_t                                 uiNumOfValues,
+    MOS_CONTEXT_HANDLE                       mosCtx);
 
 // User Feature Report Writeout
-#define WriteUserFeature64(key, value)\
-{\
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
-    UserFeatureWriteData.Value.i64Data  = (value);\
-    UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+#define WriteUserFeature64(key, value, mosCtx)                                                       \
+{                                                                                                    \
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
+    UserFeatureWriteData.Value.i64Data                     = (value);                                \
+    UserFeatureWriteData.ValueID                           = (key);                                  \
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);                       \
 }
 
-#define WriteUserFeature(key, value)\
-{\
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
-    UserFeatureWriteData.Value.i32Data  = (value);\
-    UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+#define WriteUserFeature(key, value, mosCtx)                                                         \
+{                                                                                                    \
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
+    UserFeatureWriteData.Value.i32Data                     = (value);                                \
+    UserFeatureWriteData.ValueID                           = (key);                                  \
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);                       \
 }
 
-#define WriteUserFeatureString(key, value, len)\
-{\
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;\
-    UserFeatureWriteData.Value.StringData.pStringData = (value);\
-    UserFeatureWriteData.Value.StringData.uSize = (len+1);\
-    UserFeatureWriteData.ValueID        = (key);\
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);\
+#define WriteUserFeatureString(key, value, len, mosCtx)                                              \
+{                                                                                                    \
+    MOS_USER_FEATURE_VALUE_WRITE_DATA UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__; \
+    UserFeatureWriteData.Value.StringData.pStringData      = (value);                                \
+    UserFeatureWriteData.Value.StringData.uSize            = (len + 1);                              \
+    UserFeatureWriteData.ValueID                           = (key);                                  \
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);                       \
 }
 
 //!
@@ -1079,13 +1070,16 @@ const char* MOS_UserFeature_LookupWritePath(
 //!           Pointer to OS User Interface structure
 //! \param    [in/out] pNotification
 //!           Pointer to User Feature Notification Data
+//! \param    [in] mosCtx
+//!           Pointer to DDI device handle
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
 MOS_STATUS MOS_UserFeature_EnableNotification(
     PMOS_USER_FEATURE_INTERFACE               pOsUserFeatureInterface,
-    PMOS_USER_FEATURE_NOTIFY_DATA             pNotification);
+    PMOS_USER_FEATURE_NOTIFY_DATA             pNotification,
+    MOS_CONTEXT_HANDLE                        mosCtx);
 
 //!
 //! \brief    Disable user feature change notification
@@ -1398,7 +1392,8 @@ MOS_STATUS MOS_UserFeatureOpenKey(
     const char        *lpSubKey,
     uint32_t          ulOptions,
     uint32_t          samDesired,
-    void              **phkResult);
+    void              **phkResult,
+    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = nullptr);
 
 //!
 //! \brief    Closes a handle to the specified user feature key

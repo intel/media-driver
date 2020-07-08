@@ -6015,21 +6015,24 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_enable26WalkingPattern = (userFeatureData.i32Data) ? false : true;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
 
     if (eStatus == MOS_STATUS_SUCCESS)
     {
@@ -6046,21 +6049,24 @@ MOS_STATUS CodechalFeiHevcStateG9Skl::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_NUM_8x8_INTRA_KERNEL_SPLIT,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_numMb8x8IntraKernelSplit = (userFeatureData.i32Data < 0) ? 0 : userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_NUM_B_KERNEL_SPLIT,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_numMbBKernelSplit = (userFeatureData.i32Data < 0) ? 0 : userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_POWER_SAVING,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_powerSavingEnabled = (userFeatureData.i32Data) ? true : false;
 
     if (MEDIA_IS_SKU(m_skuTable, FtrEncodeHEVC10bit))

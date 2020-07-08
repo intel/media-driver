@@ -34,7 +34,7 @@
 #include "cm_array.h"
 #include "cm_csync.h"
 #include "cm_hal.h"
-
+#include "cm_log.h"
 
 namespace CMRT_UMD
 {
@@ -406,12 +406,17 @@ private:
     //--------------------------------------------------------------------------------
     MOS_STATUS ReleaseSyncBuffer(CM_HAL_STATE *halState);
 
+#if CM_LOG_ON
+    CM_HAL_STATE* GetHalState();
+#endif  // #if CM_LOG_ON
+
     uint32_t m_streamIndex;
 
     GPU_CONTEXT_HANDLE m_gpuContextHandle;
 
     // Handle of buffer resource for synchronizing tasks in this queue.
     uint32_t m_syncBufferHandle;
+
 
     CmQueueRT(const CmQueueRT& other);
     CmQueueRT& operator=(const CmQueueRT& other);

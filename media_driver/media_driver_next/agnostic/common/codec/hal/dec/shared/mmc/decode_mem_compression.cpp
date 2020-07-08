@@ -74,12 +74,12 @@ MOS_STATUS DecodeMemComp::UpdateUserFeatureKey(PMOS_SURFACE surface)
     userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = surface->bCompressible;
     userFeatureWriteData.ValueID       = (MOS_USER_FEATURE_VALUE_ID)m_compressibleId;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
     userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = surface->MmcState;
     userFeatureWriteData.ValueID       = (MOS_USER_FEATURE_VALUE_ID)m_compressModeId;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -99,7 +99,8 @@ void DecodeMemComp::InitDecodeMmc(CodechalHwInterface *hwInterface)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         decodeMmcEnabled = (userFeatureData.i32Data) ? true : false;
 
         m_mmcEnabledForDecode = m_mmcEnabled && decodeMmcEnabled;
@@ -108,7 +109,7 @@ void DecodeMemComp::InitDecodeMmc(CodechalHwInterface *hwInterface)
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabledForDecode;
         userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

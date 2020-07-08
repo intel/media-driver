@@ -960,7 +960,7 @@ MOS_STATUS CodechalEncHevcState::UserFeatureKeyReport()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::UserFeatureKeyReport());
 
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID, m_numRegionsInSlice);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID, m_numRegionsInSlice, m_osInterface->pOsContext);
 
     return eStatus;
 }

@@ -82,7 +82,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
-        InitRowstoreUserFeatureSettings();
+        InitRowstoreUserFeatureSettings(osInterface->pOsContext);
     }
 
     //!

@@ -307,7 +307,8 @@ MOS_STATUS CodechalEncodeVp8::Initialize(CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_HW_SCOREBOARD_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_osInterface->pOsContext);
         m_useHwScoreboard = (UserFeatureData.i32Data) ? true : false;
 
         // HME enabled by default for VP8
@@ -315,7 +316,8 @@ MOS_STATUS CodechalEncodeVp8::Initialize(CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ME_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_osInterface->pOsContext);
 
         m_hmeSupported = (UserFeatureData.i32Data) ? true : false;
 
@@ -323,7 +325,8 @@ MOS_STATUS CodechalEncodeVp8::Initialize(CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_16xME_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_osInterface->pOsContext);
 
         m_16xMeSupported = (UserFeatureData.i32Data) ? true : false;
 
@@ -338,7 +341,8 @@ MOS_STATUS CodechalEncodeVp8::Initialize(CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_REPAK_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_osInterface->pOsContext);
         m_repakSupported = (UserFeatureData.i32Data) ? true : false;
 
         // Adaptive RePAK enabled by default
@@ -348,7 +352,8 @@ MOS_STATUS CodechalEncodeVp8::Initialize(CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_osInterface->pOsContext);
         m_adaptiveRepakSupported = (UserFeatureData.i32Data) ? true : false;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -356,7 +361,8 @@ MOS_STATUS CodechalEncodeVp8::Initialize(CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP8_ENCODE_MULTIPASS_BRC_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_osInterface->pOsContext);
         m_multipassBrcSupported = (UserFeatureData.i32Data) ? true : false;
     }
 
@@ -3942,7 +3948,7 @@ MOS_STATUS CodechalEncodeVp8::ExecuteSliceLevel()
 
     CODECHAL_DEBUG_TOOL(
         if (!m_mmcUserFeatureUpdated) {
-            CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(m_reconSurface);
+            CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(m_reconSurface, m_osInterface);
             m_mmcUserFeatureUpdated = true;
         })
 

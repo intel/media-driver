@@ -380,4 +380,12 @@ std::string CmSurface::GetFormatString(CM_SURFACE_FORMAT format)
         default:                                   return "Invalid";
     }
 }
+
+#if MDF_SURFACE_CONTENT_DUMP
+MOS_CONTEXT* CmSurface::GetMosContext()
+{
+    return m_surfaceMgr->GetHalState()->osInterface->pOsContext;
 }
+#endif  // #if MDF_SURFACE_CONTENT_DUMP
+
+}  // namespace

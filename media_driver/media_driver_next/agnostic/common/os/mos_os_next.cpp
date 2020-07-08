@@ -31,23 +31,24 @@
 
 std::shared_ptr<GpuCmdResInfoDumpNext> GpuCmdResInfoDumpNext::m_instance = nullptr;
 
-const GpuCmdResInfoDumpNext *GpuCmdResInfoDumpNext::GetInstance()
+const GpuCmdResInfoDumpNext *GpuCmdResInfoDumpNext::GetInstance(PMOS_CONTEXT mosCtx)
 {
     if (m_instance == nullptr)
     {
-        m_instance = std::make_shared<GpuCmdResInfoDumpNext>();
+        m_instance = std::make_shared<GpuCmdResInfoDumpNext>(mosCtx);
     }
     return m_instance.get();
 }
 
-GpuCmdResInfoDumpNext::GpuCmdResInfoDumpNext()
+GpuCmdResInfoDumpNext::GpuCmdResInfoDumpNext(PMOS_CONTEXT mosCtx)
 {
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        mosCtx);
     m_dumpEnabled = userFeatureData.bData;
 
     if (!m_dumpEnabled)
@@ -62,7 +63,8 @@ GpuCmdResInfoDumpNext::GpuCmdResInfoDumpNext()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_INFO_PATH_ID,
-        &userFeatureData);
+        &userFeatureData,
+        mosCtx);
     if (userFeatureData.StringData.uSize > MOS_MAX_PATH_LENGTH)
     {
         userFeatureData.StringData.uSize = 0;

@@ -48,14 +48,15 @@ CodechalMmcDecodeHevc::CodechalMmcDecodeHevc(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
 
         MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

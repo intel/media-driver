@@ -645,21 +645,21 @@ void VpConfigValuesInit(
 void VpFeatureReport(
     PVP_CONFIG         pConfig)
 {
-    WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,         pConfig->dwCurrentOutputPipeMode);
-    WriteUserFeature(__VPHAL_VEBOX_FEATURE_INUSE_ID,           pConfig->dwCurrentVEFeatureInUse);
+    WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,         pConfig->dwCurrentOutputPipeMode, nullptr);
+    WriteUserFeature(__VPHAL_VEBOX_FEATURE_INUSE_ID,           pConfig->dwCurrentVEFeatureInUse, nullptr);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #ifdef _MMC_SUPPORTED
     //VP MMC In Use
-    WriteUserFeature(__VPHAL_ENABLE_MMC_IN_USE_ID,             pConfig->dwVPMMCInUse);
+    WriteUserFeature(__VPHAL_ENABLE_MMC_IN_USE_ID,             pConfig->dwVPMMCInUse, nullptr);
     //VP Primary Surface Compress Mode Report
-    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESS_MODE_ID, pConfig->dwPrimaryCompressMode);
+    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESS_MODE_ID, pConfig->dwPrimaryCompressMode, nullptr);
     //VP Primary Surface Compressible
-    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESSIBLE_ID,  pConfig->dwPrimaryCompressible);
+    WriteUserFeature(__VPHAL_PRIMARY_SURFACE_COMPRESSIBLE_ID,  pConfig->dwPrimaryCompressible, nullptr);
     //VP RT Compress Mode
-    WriteUserFeature(__VPHAL_RT_COMPRESS_MODE_ID,              pConfig->dwRTCompressMode);
+    WriteUserFeature(__VPHAL_RT_COMPRESS_MODE_ID,              pConfig->dwRTCompressMode, nullptr);
     //VP RT Compressible
-    WriteUserFeature(__VPHAL_RT_COMPRESSIBLE_ID,               pConfig->dwRTCompressible);
+    WriteUserFeature(__VPHAL_RT_COMPRESSIBLE_ID,               pConfig->dwRTCompressible, nullptr);
 #endif
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 }

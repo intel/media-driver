@@ -284,21 +284,20 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
 
     if( m_isJitterEnabled )
     {
-    //reg control for svm IA/GT cache coherence
-#if (_RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //reg control for svm IA/GT cache coherence
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        CM_HAL_STATE *hal_state = m_device->GetHalState();
         MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_COHERENT_STATELESSBTI_ID,
-            &userFeatureData);
+            nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_FORCE_COHERENT_STATELESSBTI_ID,
+            &userFeatureData, hal_state->osInterface->pOsContext);
         if (userFeatureData.i32Data == 1)
         {
             jitFlags[numJitFlags] = CM_RT_JITTER_NCSTATELESS_FLAG;
             numJitFlags++;
         }
-
-#endif // (_RELEASE_INTERNAL)
+#endif // (_DEBUG || _RELEASE_INTERNAL)
 
         //Load jitter library and add function pointers to program
         // Get hmodule from CmDevice_RT or CmDevice_Sim, which is casted from CmDevice

@@ -75,6 +75,8 @@ typedef void**                  PPVOID;                     //!< Pointer to PVOI
 typedef const char*             PCCHAR;                     //!< Pointer to 8 bit signed const value
 typedef char**                  PPCHAR;                     //!< Pointer to a PCHAR
 
+using MOS_CONTEXT_HANDLE = void *;
+
 //------------------------------------------------------------------------------
 // SECTION: Macros
 //

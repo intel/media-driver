@@ -97,7 +97,7 @@ CM_RT_API int32_t CmSurface3DRT::WriteSurface( const unsigned char* sysMem,
                                                 CmEvent* event,
                                                 uint64_t sysMemSize )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     CM_RETURN_CODE  hr              = CM_SUCCESS;
     uint64_t        uSizeInBytes    = 0;
     uint32_t        uWidthInBytes   = 0;
@@ -228,7 +228,7 @@ finish:
 
 CM_RT_API int32_t CmSurface3DRT::ReadSurface( unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     CM_RETURN_CODE  hr              = CM_SUCCESS;
     uint64_t        uSizeInBytes    = 0;
     uint32_t        uWidthInBytes   = 0;
@@ -391,7 +391,7 @@ int32_t CmSurface3DRT::SetProperties( uint32_t width,  uint32_t height, uint32_t
 
 CM_RT_API int32_t CmSurface3DRT::InitSurface(const uint32_t initValue, CmEvent* event)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint32_t        uSizeInBytes = 0;
     uint32_t        uWidthInBytes = 0;
@@ -575,8 +575,8 @@ void CmSurface3DRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t
         << "_f_" << GetFormatString(m_format)
         << "_" << surface3DDumpNumber;
 
-    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);   
-
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix,
+                       GetMosContext());   
     // Open file
     outputFileStream.open(fileNamePrefix, std::ios::app | std::ios::binary);
     CM_ASSERT(outputFileStream);

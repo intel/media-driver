@@ -48,8 +48,8 @@ class GpuCmdResInfoDumpNext
 {
 public:
 
-    static const GpuCmdResInfoDumpNext *GetInstance();
-    GpuCmdResInfoDumpNext();
+    static const GpuCmdResInfoDumpNext *GetInstance(PMOS_CONTEXT mosCtx);
+    GpuCmdResInfoDumpNext(PMOS_CONTEXT mosCtx);
 
     void Dump(PMOS_INTERFACE pOstInterface) const;
 

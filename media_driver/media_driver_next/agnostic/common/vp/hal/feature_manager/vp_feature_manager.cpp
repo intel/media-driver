@@ -331,7 +331,8 @@ bool VPFeatureManager::IsVeboxOutFeasible(
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_BYPASS_COMPOSITION_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_hwInterface->m_osInterface->pOsContext));
     dwCompBypassMode = UserFeatureData.u32Data;
 
     if (dwCompBypassMode  != VP_COMP_BYPASS_DISABLED                           &&
@@ -452,7 +453,8 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
             nullptr,
             __VPHAL_VEBOX_DISABLE_SFC_ID,
-            &UserFeatureData));
+            &UserFeatureData,
+            m_hwInterface->m_osInterface->pOsContext));
 
         disableSFC = UserFeatureData.bData ? true : false;
 

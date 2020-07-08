@@ -27,46 +27,55 @@
 #include  <sstream>
 #include "cm_debug.h"
 
-
 static int32_t commandBufferCounter = 0;
 static int32_t surfaceStateCounter = 0;
 static int32_t IDDCounter = 0;
 
-uint32_t GetLogFileLocation(const char *filename, char fileNamePrefix[])
+uint32_t GetLogFileLocation(const char *filename,
+                            char fileNamePrefix[],
+                            MOS_CONTEXT *mosContext)
 {
     //Get driver persistent location
     MOS_SecureStrcpy(fileNamePrefix, 260, filename);
     return 0;
 }
 
-int32_t GetCommandBufferDumpCounter(uint32_t valueID)
+int32_t GetCommandBufferDumpCounter(uint32_t valueID,
+                                    MOS_CONTEXT *mosContext)
 {
     return commandBufferCounter;
 }
 
-int32_t RecordCommandBufferDumpCounter(int32_t count, uint32_t ValueID)
+int32_t RecordCommandBufferDumpCounter(int32_t count,
+                                       uint32_t ValueID,
+                                       MOS_CONTEXT *mosContext)
 {
     commandBufferCounter = count;
     return 0;
 }
 
-int32_t GetSurfaceStateDumpCounter(uint32_t valueID)
+int32_t GetSurfaceStateDumpCounter(uint32_t valueID, MOS_CONTEXT *mosContext)
 {
     return surfaceStateCounter;
 }
 
-int32_t RecordSurfaceStateDumpCounter(int32_t count, uint32_t ValueID)
+int32_t RecordSurfaceStateDumpCounter(int32_t count,
+                                      uint32_t ValueID,
+                                      MOS_CONTEXT *mosContext)
 {
     surfaceStateCounter = count;
     return 0;
 }
 
-int32_t GetInterfaceDescriptorDataDumpCounter(uint32_t valueID)
+int32_t GetInterfaceDescriptorDataDumpCounter(uint32_t valueID,
+                                              MOS_CONTEXT *mosContext)
 {
     return IDDCounter;
 }
 
-int32_t RecordInterfaceDescriptorDataDumpCounter(int32_t count, uint32_t ValueID)
+int32_t RecordInterfaceDescriptorDataDumpCounter(int32_t count,
+                                                 uint32_t ValueID,
+                                                 MOS_CONTEXT *mosContext)
 {
     IDDCounter = count;
     return 0;

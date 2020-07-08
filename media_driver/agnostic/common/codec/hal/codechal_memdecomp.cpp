@@ -944,14 +944,16 @@ MOS_STATUS MediaMemDecompState::Initialize(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     nullHWAccelerationEnable.Value = userFeatureData.u32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DECODE_LOCK_DISABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_disableDecodeSyncLock = userFeatureData.u32Data ? true : false;
 #endif  // _DEBUG || _RELEASE_INTERNAL
 

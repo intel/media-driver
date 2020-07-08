@@ -211,11 +211,11 @@ void HalOcaInterface::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT 
 {
 }
 
-void HalOcaInterface::DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &hOcaBuf, void *pCpDumper)
+void HalOcaInterface::DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &hOcaBuf, PMOS_CONTEXT mosCtx, void *pCpDumper)
 {
 }
 
-void HalOcaInterface::OnOcaError(MOS_STATUS status, const char *functionName, uint32_t lineNumber)
+void HalOcaInterface::OnOcaError(PMOS_CONTEXT mosContext, MOS_STATUS status, const char *functionName, uint32_t lineNumber)
 {
 }
 

@@ -45,9 +45,11 @@ public:
     //! \brief    Initialize the MOS message params structure and HLT.
     //! \details  Initialize the MOS message params structure and HLT,
     //!           to be called during device creation
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   void
     //!
-    static void MosMessageInit();
+    static void MosMessageInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Frees the MOS message buffer and MOS message parameters structure
@@ -65,11 +67,13 @@ public:
     //!           depending on OS version
     //! \param    PCHAR fileNamePrefix
     //!           [out] Pointer to the string where the prefix is returned
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosLogFileNamePrefix(char  *fileNamePrefix);
+    static MOS_STATUS MosLogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Enable or disable asserts of a particular component, it is used by ULT also
@@ -201,29 +205,35 @@ private:
     //!              This includes registering all sub-components.
     //! \param    MOS_COMPONENT_ID compID
     //!           [in] Indicates which component
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   void
     //!
-    static void MosMessageInitComponent(MOS_COMPONENT_ID compID);
+    static void MosMessageInitComponent(MOS_COMPONENT_ID compID, MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Initialize or refresh the Hybrid Log and Trace facility
     //! \details  Initialize or refresh the Hybrid Log and Trace facility
     //!           Called during MOS init
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosHLTInit();
+    static MOS_STATUS MosHLTInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Initialize or refresh the DDI Dump facility
     //! \details  Initialize or refresh the DDI Dump facility
     //!           Called during MOS init
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosDDIDumpInit();
+    static MOS_STATUS MosDDIDumpInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Close file handles and frees resources

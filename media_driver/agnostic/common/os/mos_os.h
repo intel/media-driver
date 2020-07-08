@@ -512,8 +512,8 @@ class GpuCmdResInfoDump
 {
 public:
 
-    static const GpuCmdResInfoDump *GetInstance();
-    GpuCmdResInfoDump();
+    static const GpuCmdResInfoDump *GetInstance(PMOS_CONTEXT mosCtx);
+    GpuCmdResInfoDump(PMOS_CONTEXT mosCtx);
 
     void Dump(PMOS_INTERFACE pOsInterface) const;
 
@@ -1383,6 +1383,17 @@ MOS_STATUS Mos_AddCommand(
     PMOS_COMMAND_BUFFER pCmdBuffer,
     const void          *pCmd,
     uint32_t            dwCmdSize);
+
+//! \brief    Unified OS get uf path info
+//! \details  return a pointer to the user feature key path info
+//! \param    PMOS_CONTEXT mosContext
+//!           [in/out] Pointer to mosContext
+//! \return   MOS_USER_FEATURE_KEY_PATH_INFO*
+//!           Return a poniter to user feature path info
+//!
+MOS_USER_FEATURE_KEY_PATH_INFO *Mos_GetDeviceUfPathInfo(
+    PMOS_CONTEXT mosContext);
+
 
 #if !EMUL
 //!

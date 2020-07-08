@@ -451,7 +451,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_useSwSwizzling = pOsDriverContext->bSimIsActive || MEDIA_IS_SKU(&m_skuTable, FtrUseSwSwizzling);
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
     
-        if (!Mos_Solo_IsEnabled() && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
+        if (!Mos_Solo_IsEnabled(nullptr) && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
             m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
             if (m_intelContext)
@@ -536,7 +536,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_inlineCodecStatusUpdate   = true;
     
     #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-        CommandBufferDumpInit();
+        CommandBufferDumpInit(pOsDriverContext);
     #endif
     
         SetOsContextValid(true);

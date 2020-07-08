@@ -313,7 +313,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::Initialize(
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_BYPASS_COMPOSITION_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_pOsInterface->pOsContext));
     pVeboxState->dwCompBypassMode = UserFeatureData.u32Data;
 
     if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrSFCPipe) &&
@@ -324,7 +325,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::Initialize(
         MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
             nullptr,
             __VPHAL_VEBOX_DISABLE_SFC_ID,
-            &UserFeatureData));
+            &UserFeatureData,
+            m_pOsInterface->pOsContext));
         m_sfcPipeState->SetDisable(UserFeatureData.bData ? true : false);
     }
 

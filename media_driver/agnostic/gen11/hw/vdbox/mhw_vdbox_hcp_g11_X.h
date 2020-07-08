@@ -293,7 +293,8 @@ public:
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_PERF_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            this->m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_hevcRDOQPerfDisabled = userFeatureData.i32Data ? true : false;
 
@@ -304,7 +305,8 @@ public:
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_WATCHDOG_TIMER_THRESHOLD,
-            &userFeatureData);
+            &userFeatureData,
+            this->m_osInterface->pOsContext);
         if (userFeatureData.u32Data != 0)
         {
             m_watchDogTimerThreshold = userFeatureData.u32Data;

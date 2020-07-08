@@ -125,11 +125,11 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_currentFrameAPGEnabled)
     {
-        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE_ID, 1);
+        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE_ID, 1, m_osInterface->pOsContext);
     }
     else
     {
-        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE_ID, 0);
+        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VPP_APOGEIOS_ENABLE_ID, 0, m_osInterface->pOsContext);
     }
 #endif
     return MOS_STATUS_SUCCESS;
@@ -296,7 +296,8 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
     statusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
 
     bool disableScalability = false;
     if (statusKey == MOS_STATUS_SUCCESS)

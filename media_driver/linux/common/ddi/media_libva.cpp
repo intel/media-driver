@@ -1574,7 +1574,7 @@ VAStatus DdiMedia__Initialize (
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
         // prepare m_osContext
-        MosUtilities::MosUtilitiesInit();
+        MosUtilities::MosUtilitiesInit(nullptr);
         //Read user feature key here for Per Utility Tool Enabling
 #if _RELEASE_INTERNAL
         if (!g_perfutility->bPerfUtilityKey)
@@ -1584,7 +1584,8 @@ VAStatus DdiMedia__Initialize (
             MOS_UserFeature_ReadValue_ID(
                 NULL,
                 __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
-                &UserFeatureData);
+                &UserFeatureData,
+                nullptr);
             g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
 
             char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
@@ -1596,7 +1597,8 @@ VAStatus DdiMedia__Initialize (
             eStatus_Perf                        = MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
-                &perfFilePath);
+                &perfFilePath,
+                nullptr);
             if (eStatus_Perf == MOS_STATUS_SUCCESS)
             {
                 g_perfutility->setupFilePath(sFilePath);
@@ -1726,7 +1728,8 @@ VAStatus DdiMedia__Initialize (
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            nullptr);
 #endif
 
         mediaCtx->m_useSwSwizzling = UserFeatureData.i32Data || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
@@ -1898,7 +1901,7 @@ static VAStatus DdiMedia_Terminate (
         MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
         mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
         MOS_FreeMemory(mediaCtx->pGtSystemInfo);
-        MosInterface::CloseOsUtilities();
+        MosInterface::CloseOsUtilities(nullptr);
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
@@ -1934,7 +1937,7 @@ static VAStatus DdiMedia_Terminate (
         // Free GMM memory.
         mediaCtx->GmmFuncs.pfnDeleteClientContext(mediaCtx->pGmmClientContext);
         mediaCtx->GmmFuncs.pfnDestroySingletonContext();
-        MosUtilities::MosUtilitiesClose();
+        MosUtilities::MosUtilitiesClose(nullptr);
     }
 
     if (mediaCtx->uiRef > 1)

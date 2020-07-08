@@ -92,7 +92,7 @@ MOS_STATUS Av1Pipeline::UserFeatureReport()
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(DecodePipeline::UserFeatureReport());
 #if (_DEBUG || _RELEASE_INTERNAL)
-    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_AV1D_ENABLE_ID_G12, 1);
+    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_AV1D_ENABLE_ID_G12, 1, m_osInterface->pOsContext);
 #endif
     return MOS_STATUS_SUCCESS;
 }

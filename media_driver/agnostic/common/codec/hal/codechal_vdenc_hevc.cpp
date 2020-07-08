@@ -2958,8 +2958,8 @@ MOS_STATUS CodechalVdencHevcState::UserFeatureKeyReport()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeHevcBase::UserFeatureKeyReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_VDENC_IN_USE_ID, m_vdencEnabled);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID, m_hevcVdencAcqpEnabled);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_VDENC_IN_USE_ID, m_vdencEnabled, m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID, m_hevcVdencAcqpEnabled, m_osInterface->pOsContext);
 #endif
 
     return eStatus;
@@ -3527,14 +3527,16 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_hevcRdoqEnabled = userFeatureData.i32Data ? true : false;
 
     // Multi-Pass BRC
@@ -3542,7 +3544,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MULTIPASS_BRC_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_multipassBrcSupported = (userFeatureData.i32Data) ? true : false;
 
     if (m_codecFunction != CODECHAL_FUNCTION_PAK)
@@ -3553,7 +3556,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ME_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_hmeSupported = (userFeatureData.i32Data) ? true : false;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -3562,7 +3566,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_16xME_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_16xMeSupported = (userFeatureData.i32Data) ? true : false;
     }
 
@@ -3572,28 +3577,32 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ACQP_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_hevcVdencAcqpEnabled = userFeatureData.i32Data ? true : false;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_VQI_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_hevcVisualQualityImprovement = userFeatureData.i32Data ? true : false;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_ROUNDING_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_hevcVdencRoundingEnabled = userFeatureData.i32Data ? true : false;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_PAKOBJCMD_STREAMOUT_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_vdencPakObjCmdStreamOutEnabled = userFeatureData.i32Data ? true : false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -3601,7 +3610,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_CQM_QP_THRESHOLD_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_cqmQpThreshold = (uint8_t)userFeatureData.u32Data;
 #endif
     }
@@ -3633,7 +3643,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_16xME_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_16xMeSupported = (userFeatureData.i32Data) ? true : false;
     }
 
@@ -3643,7 +3654,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_32xME_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_32xMeSupported = (userFeatureData.i32Data) ? true : false;
     }
 
@@ -3651,7 +3663,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_LA_SOFTWARE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
 
     if (userFeatureData.i32Data)
     {
@@ -3664,7 +3677,8 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
         statusKey = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_LA_SOFTWARE_PATH_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 
         if (statusKey == MOS_STATUS_SUCCESS && userFeatureData.StringData.uSize > 0)
         {
@@ -3673,7 +3687,7 @@ MOS_STATUS CodechalVdencHevcState::Initialize(CodechalSetting * settings)
     }
 
     // SW LA DLL Reporting
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_LA_SOFTWARE_IN_USE_ID, (m_swLaMode == nullptr) ? false : true);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_LA_SOFTWARE_IN_USE_ID, (m_swLaMode == nullptr) ? false : true, m_osInterface->pOsContext);
 
     return eStatus;
 }

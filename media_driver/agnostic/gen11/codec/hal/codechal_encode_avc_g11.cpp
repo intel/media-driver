@@ -4914,7 +4914,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteSliceLevel()
 
         CODECHAL_DEBUG_TOOL(
             if (!m_mmcUserFeatureUpdated) {
-                CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(m_reconSurface);
+                CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(m_reconSurface, m_osInterface->pOsContext);
                 m_mmcUserFeatureUpdated = true;
             })
 
@@ -5264,12 +5264,12 @@ MOS_STATUS CodechalEncodeAvcEncG11::ExecuteKernelFunctions()
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = bUseWeightedSurfaceForL0;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_WEIGHTED_PREDICTION_L0_IN_USE_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     // Weighted prediction for L1 Reporting
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = bUseWeightedSurfaceForL1;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_WEIGHTED_PREDICTION_L1_IN_USE_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
 
     m_lastTaskInPhase = true;
@@ -7141,7 +7141,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::UserFeatureKeyReport()
 #if (_DEBUG || _RELEASE_INTERNAL)
 
     // VE2.0 Reporting
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID, MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface));
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID, MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface), m_osInterface->pOsContext);
 
 #endif // _DEBUG || _RELEASE_INTERNAL
     return eStatus;

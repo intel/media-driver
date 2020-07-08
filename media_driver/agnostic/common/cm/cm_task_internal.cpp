@@ -1992,7 +1992,10 @@ std::string CmTaskInternal::Log()
 
     return oss.str();
 }
-#endif
+
+CM_HAL_STATE* CmTaskInternal::GetHalState() { return m_cmDevice->GetHalState(); }
+
+#endif  // #if CM_LOG_ON
 
 void CmTaskInternal::SurfaceDump(int32_t taskId)
 {
@@ -2026,4 +2029,4 @@ void  *CMRT_UMD::CmTaskInternal::GetMediaStatePtr()
 {
     return m_mediaStatePtr;
 }
-}
+}  // namespace

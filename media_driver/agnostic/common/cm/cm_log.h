@@ -32,17 +32,19 @@
 #include <string>
 #include <sstream>
 
+#include "cm_hal.h"
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define CM_LOG_ON                   1
 #endif
 
 #if !(CM_LOG_ON)
-#define INSERT_API_CALL_LOG()
+#define INSERT_API_CALL_LOG(halState)
 #define TASK_LOG(_pTask)
 #define DEVICE_LOG(_pDev)
 #define EVENT_LOG(_pEvt)
 
-#else
+#else  // #if !(CM_LOG_ON)
 
 #include "cm_perf.h"  // definition of CmTimer
 
@@ -54,25 +56,38 @@ typedef enum _CM_LOG_LEVEL{
     CM_LOG_LEVEL_INFO    = 4
 }CM_LOG_LEVEL;
 
-#define _CM_LOG(priority, msg) { \
+#define _CM_LOG(priority, msg, halState) {        \
     std::ostringstream __debug_stream__; \
     __debug_stream__ << msg; \
-    CmLogger::GetInstance().Print(priority, __FILE__, __LINE__, \
-            __debug_stream__.str()); \
+    CmLogger::GetInstance(halState).Print(priority, __FILE__, __LINE__, \
+                                          __debug_stream__.str()); \
     }
 
-#define CM_ERROR(msg)     _CM_LOG(CM_LOG_LEVEL_ERROR, msg)
-#define CM_WARN(msg)      _CM_LOG(CM_LOG_LEVEL_WARN,  msg)
-#define CM_DEBUG(msg)     _CM_LOG(CM_LOG_LEVEL_DEBUG, msg)
-#define CM_INFO(msg)      _CM_LOG(CM_LOG_LEVEL_INFO, msg)
-
-#define INSERT_API_CALL_LOG() CmLogTimer _LogTimer(__FUNCTION__)
-#define TASK_LOG(_pTask)      CM_DEBUG(_pTask->Log());
-#define DEVICE_LOG(_pDev)     CM_DEBUG(_pDev->Log());
-#define EVENT_LOG(_pEvt)      CM_DEBUG(_pEvt->Log(__FUNCTION__));
+#define CM_DEBUG(msg, halState)  _CM_LOG(CM_LOG_LEVEL_DEBUG, msg, halState)
+#define INSERT_API_CALL_LOG(halState) CmLogTimer _LogTimer(__FUNCTION__, halState)
+#define TASK_LOG(_pTask)    CM_DEBUG(_pTask->Log(), _pTask->GetHalState());
+#define DEVICE_LOG(_pDev)   CM_DEBUG(_pDev->Log(), _pDev->GetHalState());
+#define EVENT_LOG(_pEvt)    CM_DEBUG(_pEvt->Log(__FUNCTION__), _pEvt->GetHalState());
 
 class CmLogger
 {
+public:
+    static CmLogger& GetInstance(CM_HAL_STATE *halState)
+    {
+        static CmLogger m_globalCmLogger(halState);
+        return m_globalCmLogger;
+    }
+
+    static void LogDataArrayHex(std::ostringstream &oss,
+                                unsigned char *data,
+                                unsigned int size);
+
+    void Print(const unsigned int verbosityLevel,
+               const std::string &sourceFile,
+               const int codeLine,
+               const std::string &message);
+
+private:
     /**
      * \brief Initial part of the name of the file used for Logging.
      * Date and time are automatically appended.
@@ -89,7 +104,8 @@ class CmLogger
      */
     unsigned int  m_verbosityLevel;
 
-    CmLogger();
+    CmLogger(CM_HAL_STATE *halState);
+
     ~CmLogger();
 
     /**
@@ -105,39 +121,30 @@ class CmLogger
     /**
      * \brief Method to get verbosity level from register key
      */
-    void GetVerbosityLevel();
-
-public:
-
-    static CmLogger& GetInstance()
-    {
-        static CmLogger m_globalCmLogger;
-        return m_globalCmLogger;
-    }
-
-    static void LogDataArrayHex(std::ostringstream &oss, unsigned char * data, unsigned int size );
-
-    void Print(const unsigned int        verbosityLevel,
-                const std::string&        sourceFile,
-                const int                 codeLine,
-                const std::string&        message);
-
+    void GetVerbosityLevel(CM_HAL_STATE *halState);
 };
 
-class  CmLogTimer
+class CmLogTimer
 {
 
 public:
-    CmLogTimer(std::string str);
+    CmLogTimer(const std::string &str, CM_HAL_STATE *halState)
+            : m_string(str),
+              m_timer(str),
+              m_halState(halState) {}
+
     ~CmLogTimer();
 
     void Stop();
 
 private:
     std::string m_string;
-    CmTimer     m_timer;
+
+    CmTimer m_timer;
+
+    CM_HAL_STATE *m_halState;
 };
 
-#endif
+#endif  // #if !(CM_LOG_ON)
 
 #endif  // #ifndef MEDIADRIVER_AGNOSTIC_COMMON_CM_CMLOG_H_

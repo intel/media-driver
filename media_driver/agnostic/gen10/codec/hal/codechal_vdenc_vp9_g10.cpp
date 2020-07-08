@@ -605,7 +605,8 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_HUC_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_hucEnabled = (userFeatureData.i32Data) ? true : false;
     */
 
@@ -619,7 +620,8 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
     // For dynamic scaling, the SingleTaskPhaseSupported is set to true and it does not get restored
     // to the original value after encoding of the frame. So need to restore to the original state
@@ -630,14 +632,16 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ME_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_hmeSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_16xME_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_16xMeSupported = (userFeatureData.i32Data) ? true : false;
 
     // disable superHME when HME is disabled
@@ -651,7 +655,8 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_MULTIPASS_BRC_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_multipassBrcSupported = (userFeatureData.i32Data) ? true : false;
 
     // Adaptive Repak: currently disabled by default
@@ -659,7 +664,8 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_adaptiveRepakSupported = (userFeatureData.i32Data) ? true : false;
 
     // Initialize kernel State
@@ -673,7 +679,8 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_BRC_DLL,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
 
     if (userFeatureData.i32Data)
     {
@@ -681,7 +688,8 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_BRC_DLL_CUSTOMPATH,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 
         if (!userFeatureData.i32Data)
         {
@@ -696,7 +704,8 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_BRC_DLL_PATH,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnLoadLibrary(m_osInterface, path_buffer, &m_swBrcMode)); // Mos_Specific_LoadLibrary / LoadLibraryEx (use on NOT RS1 or custom path)
         }
     }

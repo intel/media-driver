@@ -3019,7 +3019,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::Initialize(
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_ENABLE_MMC_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_pOsInterface->pOsContext));
 
     // Set Vebox MMC enable
     pVeboxState->bEnableMMC = UserFeatureData.bData && MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrE2ECompression);

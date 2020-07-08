@@ -164,6 +164,8 @@ public:
     void  *GetMediaStatePtr();
 #if CM_LOG_ON
     std::string Log();
+
+    CM_HAL_STATE *GetHalState();
 #endif
 
     void SurfaceDump(int32_t taskId);

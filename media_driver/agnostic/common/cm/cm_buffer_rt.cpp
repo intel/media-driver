@@ -112,7 +112,7 @@ int32_t CmBuffer_RT::GetHandle( uint32_t& handle)
 //*-----------------------------------------------------------------------------
 int32_t CmBuffer_RT::WriteBuffer( const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize, size_t offset)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr      = CM_SUCCESS;
     uint8_t *dst    = nullptr;
@@ -184,7 +184,7 @@ finish:
 //*-----------------------------------------------------------------------------
 int32_t CmBuffer_RT::ReadBuffer( unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize, size_t offset)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr          = CM_SUCCESS;
     uint8_t* surf = nullptr;
@@ -261,7 +261,7 @@ CM_RT_API int32_t CmBuffer_RT::GetIndex( SurfaceIndex*& index )
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmBuffer_RT::WriteSurface(const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint8_t* dst = nullptr;
@@ -333,7 +333,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmBuffer_RT::ReadSurface(unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr = CM_SUCCESS;
 
@@ -395,7 +395,7 @@ finish:
 
 CM_RT_API int32_t CmBuffer_RT::InitSurface(const uint32_t initValue, CmEvent* event)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr          = CM_SUCCESS;
 
@@ -466,14 +466,14 @@ finish:
 
 CM_RT_API int32_t CmBuffer_RT::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     ++ m_propertyIndex;
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
 }
 
 CMRT_UMD_API int32_t CmBuffer_RT::SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     int32_t  hr = CM_SUCCESS;
     uint16_t mocs = 0;
     hr = CmSurface::SetResourceUsage(mosUsage);
@@ -658,8 +658,8 @@ void CmBuffer_RT::DumpContent(uint32_t kernelNumber, char *kernelName, int32_t t
         <<"_w_"<< m_size
         <<"_"<< bufferDumpNumber;
 
-    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
-
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix,
+                       GetMosContext());
     // Open file
     outputFileStream.open(fileNamePrefix, std::ios::app | std::ios::binary);
     CM_ASSERT(outputFileStream);

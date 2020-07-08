@@ -86,7 +86,8 @@ void MhwVdboxMfxInterfaceG11::InitRowstoreUserFeatureSettings()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
     m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
 
@@ -97,7 +98,8 @@ void MhwVdboxMfxInterfaceG11::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_INTRAROWSTORECACHE_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_intraRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -106,7 +108,8 @@ void MhwVdboxMfxInterfaceG11::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DEBLOCKINGFILTERROWSTORECACHE_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_deblockingFilterRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -115,7 +118,8 @@ void MhwVdboxMfxInterfaceG11::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_BSDMPCROWSTORECACHE_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_bsdMpcRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -124,7 +128,8 @@ void MhwVdboxMfxInterfaceG11::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_MPRROWSTORECACHE_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_mprRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
     }
@@ -830,7 +835,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG11::AddMfxPipeBufAddrCmd(
     {
         UserFeatureWriteData.Value.i32Data = 1;
     }
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osInterface->pOsContext);
 #endif
 
     // Encoding uses both surfaces regardless of deblocking status

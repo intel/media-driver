@@ -30,7 +30,7 @@
 
 void MhwVdboxHcpInterfaceG9Bxt::InitRowstoreUserFeatureSettings()
 {
-    MhwVdboxHcpInterfaceG9::InitRowstoreUserFeatureSettings();
+    MhwVdboxHcpInterfaceG9::InitRowstoreUserFeatureSettings(m_osInterface->pOsContext);
 
     if (m_rowstoreCachingSupported && m_decodeInUse)
     {
@@ -46,7 +46,8 @@ void MhwVdboxHcpInterfaceG9Bxt::InitRowstoreUserFeatureSettings()
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_VP9_HVDROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
             m_vp9HvdRowStoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -55,7 +56,8 @@ void MhwVdboxHcpInterfaceG9Bxt::InitRowstoreUserFeatureSettings()
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_VP9_DFROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
             m_vp9DfRowStoreCache.bSupported = userFeatureData.i32Data ? false : true;
         }

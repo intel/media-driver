@@ -37,7 +37,7 @@
 MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 {
     MOS_UNUSED(ddiDeviceContext);
-    MosUtilities::MosUtilitiesInit();
+    MosUtilities::MosUtilitiesInit(nullptr);
 
     // MOS_OS_FUNCTION_ENTER need mos utilities init
     MOS_OS_FUNCTION_ENTER;
@@ -51,7 +51,8 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
         MosUtilities::MosUserFeatureReadValueID(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            (MOS_CONTEXT_HANDLE) nullptr);
         g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
 
         char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
@@ -63,7 +64,8 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
         eStatus_Perf                        = MosUtilities::MosUserFeatureReadValueID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
-            &perfFilePath);
+            &perfFilePath,
+            (MOS_CONTEXT_HANDLE) nullptr);
         if (eStatus_Perf == MOS_STATUS_SUCCESS)
         {
             g_perfutility->setupFilePath(sFilePath);
@@ -79,11 +81,11 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosInterface::CloseOsUtilities()
+MOS_STATUS MosInterface::CloseOsUtilities(PMOS_CONTEXT mosCtx)
 {
     MOS_OS_FUNCTION_ENTER;
     // Close MOS utlities
-    MosUtilities::MosUtilitiesClose();
+    MosUtilities::MosUtilitiesClose(nullptr);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -149,7 +151,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->simIsActive = (int32_t)userFeatureData.i32Data;
 
     // Null HW Driver
@@ -158,7 +161,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->nullHwAccelerationEnable.Value = userFeatureData.u32Data;
 #endif
 
@@ -176,7 +180,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->eForceVdbox = userFeatureData.u32Data;
 
     // read the "Force VEBOX" user feature key
@@ -185,7 +190,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
 
     //Read Scalable/Legacy Decode mode on Gen11+
@@ -195,7 +201,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->hcpDecScalabilityMode = userFeatureData.u32Data ? true : false;
 
     (*streamState)->frameSplit = false;
@@ -203,7 +210,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         NULL,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->frameSplit = (uint32_t)userFeatureData.i32Data;
 
     //KMD Virtual Engine DebugOverride
@@ -212,7 +220,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->enableDbgOvrdInVirtualEngine = userFeatureData.u32Data ? true : false;
 
     // UMD Vebox Virtual Engine Scalability Mode
@@ -221,7 +230,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->veboxScalabilityMode = userFeatureData.u32Data ? true : false;
 
 #endif
@@ -233,7 +243,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     MosUtilities::MosUserFeatureWriteValuesID(
         nullptr,
         &userFeatureWriteData,
-        1);
+        1,
+        (MOS_CONTEXT_HANDLE)nullptr);
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     DumpCommandBufferInit(*streamState);
@@ -365,7 +376,8 @@ MOS_STATUS MosInterface::InitStreamParameters(
     MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE)nullptr);
     context->uEnablePerfTag = userFeatureData.u32Data;
 
     return MOS_STATUS_SUCCESS;
@@ -2577,7 +2589,8 @@ MOS_STATUS MosInterface::DumpCommandBufferInit(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DUMP_COMMAND_BUFFER_ENABLE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        nullptr);
     streamState->dumpCommandBuffer            = (UserFeatureData.i32Data != 0);
     streamState->dumpCommandBufferToFile      = ((UserFeatureData.i32Data & 1) != 0);
     streamState->dumpCommandBufferAsMessages  = ((UserFeatureData.i32Data & 2) != 0);
@@ -2585,7 +2598,7 @@ MOS_STATUS MosInterface::DumpCommandBufferInit(
     if (streamState->dumpCommandBufferToFile)
     {
         // Create output directory.
-        eStatus = MosUtilDebug::MosLogFileNamePrefix(streamState->sDirName);
+        eStatus = MosUtilDebug::MosLogFileNamePrefix(streamState->sDirName, nullptr);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);

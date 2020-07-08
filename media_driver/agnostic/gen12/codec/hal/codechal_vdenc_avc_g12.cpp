@@ -790,7 +790,7 @@ MOS_STATUS CodechalVdencAvcStateG12::UserFeatureKeyReport()
 #if (_DEBUG || _RELEASE_INTERNAL)
 
     // VE2.0 Reporting
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID, MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface));
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENABLE_ENCODE_VE_CTXSCHEDULING_ID, MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface), m_osInterface->pOsContext);
 
 #endif // _DEBUG || _RELEASE_INTERNAL
     return eStatus;
@@ -873,7 +873,8 @@ MOS_STATUS CodechalVdencAvcStateG12::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VDENC_ULTRA_MODE_ENABLE_ID_G12,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_vdencUltraModeEnable = userFeatureData.bData == 1;
 
     return eStatus;

@@ -94,10 +94,13 @@ public:
     //! \details  Must be last called MOS interface after DestroyOsDeviceContext
     //! \details  Caller: DDI only.
     //!
+    //! \param    [in] mosCtx
+    //!           Pointer of device context in DDI for reg ops
+    //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS CloseOsUtilities();
+    static MOS_STATUS CloseOsUtilities(PMOS_CONTEXT mosCtx);
 
     //!
     //! \brief    Create Os Device Context

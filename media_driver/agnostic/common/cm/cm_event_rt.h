@@ -127,7 +127,9 @@ public:
 
 #if CM_LOG_ON
     std::string Log(const char *callerFuncName);
-#endif
+
+    CM_HAL_STATE* GetHalState();
+#endif  // #if CM_LOG_ON
 
 protected:
     CmEventRT(uint32_t index,

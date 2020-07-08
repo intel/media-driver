@@ -1772,7 +1772,8 @@ VphalRenderer::VphalRenderer(
     eStatus = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __VPHAL_RNDR_SSD_CONTROL_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_pOsInterface->pOsContext);
     if (eStatus == MOS_STATUS_SUCCESS)
     {
         uiSsdControl = UserFeatureData.u32Data;

@@ -6915,7 +6915,8 @@ MOS_STATUS RenderHal_InitInterface(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VDI_MODE_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        pOsInterface->pOsContext);
 #endif
     pRenderHal->bVDIWalker = userFeatureValueData.u32Data ? true : false;
 
@@ -6927,7 +6928,8 @@ MOS_STATUS RenderHal_InitInterface(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MEDIA_WALKER_MODE_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        pOsInterface->pOsContext);
 #endif
     pRenderHal->MediaWalkerMode = (MHW_WALKER_MODE)userFeatureValueData.u32Data;
 

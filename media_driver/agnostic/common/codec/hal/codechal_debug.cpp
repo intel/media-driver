@@ -90,7 +90,8 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         MOS_UserFeature_ReadValue_ID(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 
         if (userFeatureData.StringData.uSize == MOS_MAX_PATH_LENGTH + 1)
         {
@@ -122,7 +123,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
                 userFeatureWriteData.Value.StringData.pStringData = const_cast<char *>(m_outputFilePath.c_str());
                 userFeatureWriteData.Value.StringData.uSize       = m_outputFilePath.size();
                 userFeatureWriteData.ValueID                      = __MEDIA_USER_FEATURE_VALUE_CODECHAL_DUMP_OUTPUT_DIRECTORY_ID;
-                MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1);
+                MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1, m_osInterface->pOsContext);
             }
             else
             {
@@ -135,7 +136,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_codecFunction = codecFunction;
     m_configMgr = MOS_New(CodechalDebugConfigMgr, this, codecFunction, m_outputFilePath);
     CODECHAL_DEBUG_CHK_NULL(m_configMgr);
-    CODECHAL_DEBUG_CHK_STATUS(m_configMgr->ParseConfig());
+    CODECHAL_DEBUG_CHK_STATUS(m_configMgr->ParseConfig(m_osInterface->pOsContext));
 
     // Create thread specified sub folder as dump folder.
     if (m_configMgr->AttrIsEnabled(CodechalDbgAttr::attrDumpToThreadFolder))

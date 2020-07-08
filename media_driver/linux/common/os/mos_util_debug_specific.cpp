@@ -69,7 +69,7 @@ static MOS_MUTEX gMosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix)
+MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx)
 {
     int32_t                             iRet = 0;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
@@ -97,7 +97,8 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix)
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
 
     // If the user feature key was not found, create it with the default value.
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -115,7 +116,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix)
             UserFeatureWriteData.Value.StringData.uSize = strlen(fileNamePrefix) + 1;
             UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID;
 
-            eStatus = MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+            eStatus = MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
         }
         else
         {

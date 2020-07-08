@@ -285,7 +285,7 @@ MOS_STATUS CodechalDecode::CreateGpuContexts(
 
     m_videoGpuNode = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
 
-    CODECHAL_UPDATE_VDBOX_USER_FEATURE(m_videoGpuNode);
+    CODECHAL_UPDATE_VDBOX_USER_FEATURE(m_videoGpuNode, m_osInterface->pOsContext);
     CodecHalDecodeMapGpuNodeToGpuContex(m_videoGpuNode, m_videoContext, false);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetGpuCtxCreatOption(codecHalSettings));
@@ -362,7 +362,8 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_STATUS_REPORTING_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_statusQueryReportingEnabled = (userFeatureData.u32Data) ? true : false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -372,7 +373,8 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_STREAM_OUT_ENABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
             m_streamOutEnabled = (userFeatureData.u32Data) ? true : false;
 
         }
@@ -381,7 +383,8 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_FE_BE_TIMING,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_perfFEBETimingEnabled = userFeatureData.bData;
 
 #endif // _DEBUG || _RELEASE_INTERNAL
@@ -960,7 +963,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_DECOMPRESS_DECODE_OUTPUT_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
             if (userFeatureData.u32Data)
             {
                 CODECHAL_DECODE_VERBOSEMESSAGE("force ve decompress decode output");
@@ -1019,7 +1023,8 @@ MOS_STATUS CodechalDecode::EndFrame ()
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_DECOMPRESS_DECODE_SFC_OUTPUT_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
             if (userFeatureData.u32Data)
             {
                 CODECHAL_DECODE_VERBOSEMESSAGE("force ve decompress sfc output");
@@ -1063,7 +1068,7 @@ MOS_STATUS CodechalDecode::EndFrame ()
                     {
                         CODECHAL_DECODE_ASSERT(csEngineIdValue.fields.ClassId == CODECHAL_CLASS_ID_VIDEO_ENGINE);
                         CODECHAL_DECODE_ASSERT(csEngineIdValue.fields.InstanceId < CODECHAL_CS_INSTANCE_ID_MAX);
-                        CODECHAL_UPDATE_USED_VDBOX_ID_USER_FEATURE(csEngineIdValue.fields.InstanceId);
+                        CODECHAL_UPDATE_USED_VDBOX_ID_USER_FEATURE(csEngineIdValue.fields.InstanceId, m_osInterface->pOsContext);
                     }
                 }
                 preIndex = index + 1;

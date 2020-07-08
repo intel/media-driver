@@ -131,7 +131,8 @@ MOS_STATUS Codechal::Allocate(CodechalSetting * codecHalSettings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     nullHWAccelerationEnable.Value = userFeatureData.u32Data;
 
     m_useNullHw[MOS_GPU_CONTEXT_VIDEO]         =

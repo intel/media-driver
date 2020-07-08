@@ -159,50 +159,36 @@ public:
     //!
     //! \brief    Init Function for MOS utilitiesNext
     //! \details  Initial MOS utilitiesNext related structures, and only execute once for multiple entries
-    //! \param    [in] userFeatureKeyPathInfo
-    //!           user feature key path info
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo = NULL);
+    static MOS_STATUS MosUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Close Function for MOS utilitiesNext
     //! \details  close/remove MOS utilitiesNext related structures, and only execute once for multiple entries
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosUtilitiesClose();
-
-    //!
-    //! \brief    Init user feature key path for MOS OS specific utilitiesNext
-    //! \details  Init user feature key path from the parameter
-    //! \param    [in] userFeatureKeyPathInfo
-    //!           user feature key path info
-    //! \return   void
-    //!
-    static void MosInitUserFeatureKeyPathInfo(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo);
-
-    //!
-    //! \brief    Deinit user feature key path for MOS OS specific utilitiesNext
-    //! \details  release the user feature key path memory and set null
-    //! \return   void
-    //!
-    static void MosDeinitUserFeatureKeyPathInfo();
+    static MOS_STATUS MosUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
 
 private:
     //!
     //! \brief    Init Function for MOS OS specific utilitiesNext
     //! \details  Initial MOS OS specific utilitiesNext related structures, and only execute once for multiple entries
-    //! \param    [in] userFeatureKeyPathInfo
-    //!           user feature key path info
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosOsUtilitiesInit(PMOS_USER_FEATURE_KEY_PATH_INFO userFeatureKeyPathInfo = NULL);
+    static MOS_STATUS MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Close Function for MOS OS utilitiesNext
@@ -211,16 +197,18 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosOsUtilitiesClose();
+    static MOS_STATUS MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief    Init simulate random memory allocation fail flag
     //! \details  init MosSimulateRandomAllocMemoryFailFlag according user feature value:
     //!           __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   void
     //!
-    static void MosInitAllocMemoryFailSimulateFlag();
+    static void MosInitAllocMemoryFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx);
 
     static bool MosSimulateAllocMemoryFail(
         size_t      size,
@@ -613,11 +601,13 @@ public:
     //!
     //! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
     //! \details  Generate a User Feature Keys XML files according to m_mosUserFeatureDescFields
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosGenerateUserFeatureKeyXML();
+    static MOS_STATUS MosGenerateUserFeatureKeyXML(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Link user feature key description table items to specified UserFeatureKeyTable
@@ -724,6 +714,8 @@ public:
     //!           value of enum type in MOS_USER_FEATURE_VALUE_TYPE. declares the user feature key to be readed
     //! \param    [in,out] pValueData
     //!           Pointer to User Feature Data
+    //! \param    [in] mosCtx
+    //!           Pointer to DDI device context
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
@@ -739,7 +731,27 @@ public:
     static MOS_STATUS MosUserFeatureReadValueID(
         PMOS_USER_FEATURE_INTERFACE  pOsUserFeatureInterface,
         uint32_t                     ValueID,
-        PMOS_USER_FEATURE_VALUE_DATA pValueData);
+        PMOS_USER_FEATURE_VALUE_DATA pValueData,
+        MOS_CONTEXT_HANDLE           mosCtx);
+
+    //! \param    [in] pOsUserFeatureInterface
+    //!           Pointer to OS User Interface structure
+    //! \param    [in] ValueID
+    //!           value of enum type in MOS_USER_FEATURE_VALUE_TYPE. declares the user feature key to be readed
+    //! \param    [in/out] pUserData
+    //!           Pointer to User Feature Data
+    //! \param    [in] pUserData
+    //!           Pointer to User Feature Data
+    //! \param    [in] ufInfo
+    //!           Pointer to MOS_USER_FEATURE_KEY_PATH_INFO
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    static MOS_STATUS MosUserFeatureReadValueID(
+        PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface,
+        uint32_t                        ValueID,
+        PMOS_USER_FEATURE_VALUE_DATA    pValueData,
+        MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo);
 
     //!
     //! \brief    Write Values to User Feature with specified ID
@@ -752,6 +764,8 @@ public:
     //!           Pointer to User Feature Data, and related User Feature Key ID (enum type in MOS_USER_FEATURE_VALUE_TYPE)
     //! \param    [in] uiNumOfValues
     //!           number of user feature keys to be written.
+    //! \param    [in] mosCtx
+    //!           Pointer to DDI device context
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
@@ -759,7 +773,31 @@ public:
     static MOS_STATUS MosUserFeatureWriteValuesID(
         PMOS_USER_FEATURE_INTERFACE              pOsUserFeatureInterface,
         PMOS_USER_FEATURE_VALUE_WRITE_DATA       pWriteValues,
-        uint32_t                                 uiNumOfValues);
+        uint32_t                                 uiNumOfValues,
+        MOS_CONTEXT_HANDLE                       mosCtx);
+
+    //!
+    //! \brief    Write Values to User Feature with specified ID
+    //! \details  Write Values to User Feature with specified ID
+    //!           The caller is responsible to allocate values / names
+    //!           and free them later if necessary
+    //! \param    [in] pOsUserFeatureInterface
+    //!           Pointer to OS User Interface structure
+    //! \param    [in] pWriteValues
+    //!           Pointer to User Feature Data, and related User Feature Key ID (enum type in MOS_USER_FEATURE_VALUE_TYPE)
+    //! \param    [in] uiNumOfValues
+    //!           number of user feature keys to be written.
+    //! \param    [in] ufInfo
+    //!           Pointer to MOS_USER_FEATURE_KEY_PATH_INFO
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosUserFeatureWriteValuesID(
+        PMOS_USER_FEATURE_INTERFACE        pOsUserFeatureInterface,
+        PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues,
+        uint32_t                           uiNumOfValues,
+        MOS_USER_FEATURE_KEY_PATH_INFO     *ufInfo);
 
     //!
     //! \brief    Lookup the user feature value name associated with the ID
@@ -795,13 +833,16 @@ public:
     //!           Pointer to OS User Interface structure
     //! \param    [in/out] pNotification
     //!           Pointer to User Feature Notification Data
+    //! \param    [in] mosCtx
+    //!           Pointer to DDI device handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosUserFeatureEnableNotification(
         PMOS_USER_FEATURE_INTERFACE               pOsUserFeatureInterface,
-        PMOS_USER_FEATURE_NOTIFY_DATA             pNotification);
+        PMOS_USER_FEATURE_NOTIFY_DATA             pNotification,
+        MOS_CONTEXT_HANDLE                        mosCtx);
 
     //!
     //! \brief    Disable user feature change notification
@@ -1136,6 +1177,8 @@ public:
     //!           Reserved, could be any REGSAM type value
     //! \param    [out] phkResult
     //!           A pointer to a variable that receives a handle to the opened key.
+    //! \param    [in] ufInfo
+    //!           Poniter to MOS_USER_FEATURE_KEY_PATH_INFO
     //! \return   MOS_STATUS
     //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
     //!           If the function fails, the return value is a error code defined
@@ -1146,7 +1189,8 @@ public:
         const char        *lpSubKey,
         uint32_t          ulOptions,
         uint32_t          samDesired,
-        void              **phkResult);
+        void              **phkResult,
+        MOS_USER_FEATURE_KEY_PATH_INFO  *ufInfo);
 
     //!
     //! \brief    Closes a handle to the specified user feature key
@@ -2007,12 +2051,12 @@ private:
     //!           MOS_UserFeature_ReadValue() if you are not familiar with the details of this function.
     //!           If a new key is added, please make sure to declare a definition in corresponding
     //!           user feature key Desc Fields table by MOS_DECLARE_UF_KEY
-    //! \param    [in] pOsUserFeatureInterface
-    //!           Pointer to OS User Interface structure
     //! \param    [in] ValueID
     //!           value of enum type in MOS_USER_FEATURE_VALUE_TYPE. declares the user feature key to be readed
-    //! \param    [in,out] pUserData
-    //!           Pointer to User Feature Data
+    //! \param    [in,out] pValueData
+    //!           Pointer to User Feature value Data
+    //! \param    [in] ufInfo
+    //!           user feature path suffix
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
@@ -2027,7 +2071,8 @@ private:
     //!
     static MOS_STATUS MosUserFeatureReadValueFromMapID(
         uint32_t                        ValueID,
-        PMOS_USER_FEATURE_VALUE_DATA    pValueData);
+        PMOS_USER_FEATURE_VALUE_DATA    pValueData,
+        MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = nullptr);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
@@ -2076,6 +2121,8 @@ private:
     //!           [out] Pointer to the variable that accepts the handle to
     //!                 the user feature key opened
     //!           [in]  in ConfigFS implementation, use pUFKey to pass the pUserFeature as a handler
+    //! \param    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo,
+    //!           [in] user feature key path info
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
@@ -2084,7 +2131,8 @@ private:
         MOS_USER_FEATURE_TYPE KeyType,
         const char            *pSubKey,
         uint32_t              dwAccess,
-        void                  **pUFKey);
+        void                  **pUFKey,
+        MOS_USER_FEATURE_KEY_PATH_INFO  *ufInfo);
 
     //!
     //! \brief    Write Values to User Feature with specified Table and ID
@@ -2103,7 +2151,8 @@ private:
     //!
     static MOS_STATUS MosUserFeatureWriteValuesTblID(
         PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
-        uint32_t                                uiNumOfValues);
+        uint32_t                                uiNumOfValues,
+        MOS_USER_FEATURE_KEY_PATH_INFO          *ufInfo = nullptr);
 
     //!
     //! \brief    Wrapper for user feature value string free(). Performs error checking.

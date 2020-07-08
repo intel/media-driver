@@ -106,7 +106,8 @@ string MhwCmdReader::GetOverrideDataPath()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
-        &userFeatureData);
+        &userFeatureData,
+        nullptr);
 
     return path;
 }

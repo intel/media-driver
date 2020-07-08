@@ -104,10 +104,12 @@ public:
     //!         level batch buffer.
     //! \param  [in] hOcaBuf
     //!         Oca buffer handle.
+    //! \param  [in] mosCtx
+    //!         DDI device context.
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS On1stLevelBBEnd(MOS_OCA_BUFFER_HANDLE hOcaBuf)
+    virtual MOS_STATUS On1stLevelBBEnd(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT mosCtx)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
@@ -166,10 +168,12 @@ public:
     //!         no matter return value being MOS_STATUS_SUCCESS or not.
     //! \param  [in] hOcaBuf
     //!         Oca buffer handle.
+    //! \param  [in] mosCtx
+    //!         DDI device context.
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS OnDispatch(uint32_t &offsetInIndirectStateHeap, MOS_OCA_BUFFER_HANDLE hOcaBuf)
+    virtual MOS_STATUS OnDispatch(uint32_t &offsetInIndirectStateHeap, MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT mosCtx)
     {
         offsetInIndirectStateHeap = OCA_HEAP_INVALID_OFFSET;
         return MOS_STATUS_UNIMPLEMENTED;
@@ -179,6 +183,8 @@ public:
     //! \brief  Add string to oca log section
     //! \param  [in] hOcaBuf
     //!         Oca buffer handle.
+    //! \param  [in] mosCtx
+    //!         DDI device context.
     //! \param  [in] str
     //!         string to be added.
     //! \param  [in] maxCount
@@ -186,7 +192,7 @@ public:
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS TraceMessage(MOS_OCA_BUFFER_HANDLE hOcaBuf, const char *str, uint32_t maxCount)
+    virtual MOS_STATUS TraceMessage(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT mosCtx, const char *str, uint32_t maxCount)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
@@ -195,6 +201,8 @@ public:
     //! \brief  Add data block to oca log section.
     //! \param  [in] hOcaBuf
     //!         Oca buffer handle.
+    //! \param  [in] mosCtx
+    //!         DDI device context.
     //! \param  [in] pHeader
     //!         Log header. It can be extended by user. The acutal size of header is pHeader->m_HeaderSize.
     //! \param  [in] pData
@@ -202,7 +210,7 @@ public:
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS DumpDataBlock(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_OCA_LOG_HEADER pHeader, void *pData)
+    virtual MOS_STATUS DumpDataBlock(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT mosCtx, PMOS_OCA_LOG_HEADER pHeader, void *pData)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }

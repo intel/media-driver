@@ -1180,7 +1180,8 @@ DdiVp_SetProcPipelineParams(
             0,  // No DDI setting on Linux. Set it when Linux DDI supports it
             0,  // No DDI setting on Linux. Set it when Linux DDI supports it
             &pVpHalRenderParams->pSplitScreenDemoModeParams,
-            &pVpHalRenderParams->bDisableDemoMode);
+            &pVpHalRenderParams->bDisableDemoMode,
+            pOsInterface);
         if (MOS_STATUS_SUCCESS != eStatus)
         {
             VP_DDI_ASSERTMESSAGE("Failed to setup Split-Screen Demo Mode.");

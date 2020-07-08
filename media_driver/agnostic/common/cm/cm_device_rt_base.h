@@ -395,6 +395,8 @@ public:
 
 #if CM_LOG_ON
     std::string Log();
+
+    CM_HAL_STATE* GetHalState();
 #endif
 
     int32_t DestroyVmeSurface(SurfaceIndex *& pVmeIndex);

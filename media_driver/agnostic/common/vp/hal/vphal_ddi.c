@@ -243,6 +243,8 @@ void VpHal_DdiReportFeatureMode(
 //!           Pointer to struct for split-screen demo mode parameters
 //! \param    [in,out] disableDemoMode
 //!           Return whether demo mode will be disable or not
+//! \param    [in] disableDemoMode
+//!           Pointer to MOS INTERFACE for OS interaction
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
@@ -250,7 +252,8 @@ MOS_STATUS VpHal_DdiSetupSplitScreenDemoMode(
     uint32_t                                splitDemoPosDdi,
     uint32_t                                splitDemoParaDdi,
     PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS    *splitScreenDemoModeParams,
-    bool                                    *disableDemoMode)
+    bool                                    *disableDemoMode,
+    PMOS_INTERFACE                           pOsInterface)
 {
     MOS_STATUS                  eStatus;
     uint32_t                    splitScreenDemoPosition;
@@ -280,14 +283,16 @@ MOS_STATUS VpHal_DdiSetupSplitScreenDemoMode(
         MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION_ID,
-            &UserFeatureData));
+            &UserFeatureData,
+            pOsInterface ? pOsInterface->pOsContext : nullptr));
         splitScreenDemoPosition = UserFeatureData.u32Data;
 
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
         MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_PARAMETERS_ID,
-            &UserFeatureData));
+            &UserFeatureData,
+            pOsInterface ? pOsInterface->pOsContext : nullptr));
         splitScreenDemoParameters = UserFeatureData.u32Data;
     }
 #endif

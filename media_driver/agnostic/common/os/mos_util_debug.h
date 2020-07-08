@@ -32,7 +32,6 @@
 //!
 #ifndef __MOS_UTIL_DEBUG_H__
 #define __MOS_UTIL_DEBUG_H__
-
 #include "mos_defs.h"
 #include "mos_util_debug_specific.h"
 
@@ -226,7 +225,7 @@ typedef struct _MOS_MESSAGE_PARAMS
 //!           to be called during device creation
 //! \return   void
 //!
-void MOS_MessageInit();
+void MOS_MessageInit(MOS_CONTEXT_HANDLE mosCtx);
 
 //!
 //! \brief    Frees the MOS message buffer and MOS message parameters structure
@@ -251,11 +250,13 @@ void MOS_HltpPreface(
 //! \brief    Form a string that will prefix MOS's log file name
 //! \param    char  *fileNamePrefix
 //!           [out] Pointer to the string where the prefix is returned
+//! \param    [in] mosCtx
+//!           os device ctx handle
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-MOS_STATUS MOS_LogFileNamePrefix(char  *fileNamePrefix);
+MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx);
 
 //!
 //! \def MOS_FUNCTION_ENTER(_compID, _subCompID)

@@ -32,6 +32,8 @@
 #include <sstream>
 #include <chrono>
 #endif
+#include "mos_os.h"
+
 #include <fcntl.h>     //open
 
 #include <malloc.h>    // For memalign
@@ -3878,9 +3880,11 @@ uint32_t MosAllocMemoryFailSimulateAllocCounter;
 //! \brief    Init simulate random memory allocation fail flag
 //! \details  init MosSimulateRandomAllocMemoryFailFlag according user feature value:
 //!           __MEDIA_USER_FEATURE_VALUE_SIMULATE_RANDOM_ALLOC_MEMORY_FAIL
+//! \param    [in] mosCtx
+//!           os device ctx handle
 //! \return   void
 //!
-void MOS_InitAllocMemoryFailSimulateFlag()
+void MOS_InitAllocMemoryFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx)
 {
     MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
     MOS_STATUS             eStatus = MOS_STATUS_SUCCESS;
@@ -3896,7 +3900,8 @@ void MOS_InitAllocMemoryFailSimulateFlag()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        mosCtx);
 
     if ((userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_DEFAULT) ||
         (userFeatureValueData.u32Data == MEMORY_ALLOC_FAIL_SIMULATE_MODE_RANDOM) ||
@@ -3916,7 +3921,8 @@ void MOS_InitAllocMemoryFailSimulateFlag()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        mosCtx);
 
     if ((userFeatureValueData.u32Data >= MIN_MEMORY_ALLOC_FAIL_FREQ) &&
         (userFeatureValueData.u32Data <= MAX_MEMORY_ALLOC_FAIL_FREQ))
@@ -3940,7 +3946,8 @@ void MOS_InitAllocMemoryFailSimulateFlag()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        mosCtx);
 
     if (userFeatureValueData.u32Data <= MosAllocMemoryFailSimulateFreq)
     {
@@ -4451,7 +4458,7 @@ MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia()
 
     // Init MOS User Feature Key from mos desc table
     MOS_OS_CHK_STATUS(MOS_DeclareUserFeatureKeysForAllDescFields());
-    MOS_OS_CHK_STATUS(MOS_GenerateUserFeatureKeyXML());
+    MOS_OS_CHK_STATUS(MOS_GenerateUserFeatureKeyXML(nullptr));
 finish:
     return    eStatus;
 }
@@ -4629,25 +4636,9 @@ MOS_STATUS MOS_WriteOneUserFeatureGroupToXML(MOS_USER_FEATURE_VALUE   UserFeatur
     return eStatus;
 }
 
-//!
-//! \brief    Generate a User Feature Keys XML file according to user feature keys table in MOS
-//! \details  Generate a User Feature Keys XML files according to MOSUserFeatureDescFields
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_GenerateUserFeatureKeyXML()
+MOS_STATUS MOS_GenerateUserFeatureKeyXML(MOS_CONTEXT_HANDLE mosCtx)
 {
-    char                                sOutBuf[MAX_USER_FEATURE_FIELD_LENGTH];
-    uint32_t                            uiIndex=0;
-    MOS_USER_FEATURE_VALUE              UserFeatureFilter = __NULL_USER_FEATURE_VALUE__;
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
-    const char * const                  FilterGroups[] = { "Codec", "Decode", "Encode", "CP", "General", "MOS",
-                                                           "Report", "VP", "Media", "Secure HEVC Encode", "MDF"};
-    uint32_t                            FilterGroupsCount = sizeof(FilterGroups) / sizeof(FilterGroups[0]);
-    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
-
-    return MosUtilities::MosGenerateUserFeatureKeyXML();
+    return MosUtilities::MosGenerateUserFeatureKeyXML(mosCtx);
 }
 
 //!
@@ -5423,7 +5414,8 @@ static MOS_STATUS MOS_UserFeature_Open(
     MOS_USER_FEATURE_TYPE KeyType,
     const char            *pSubKey,
     uint32_t              dwAccess,
-    void                  **pUFKey)
+    void                  **pUFKey,
+    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = nullptr)
 {
     MOS_STATUS  eStatus;
     void        *RootKey = 0;
@@ -5450,7 +5442,8 @@ static MOS_STATUS MOS_UserFeature_Open(
                              pSubKey,
                              0,
                              dwAccess,
-                             pUFKey)) !=  MOS_STATUS_SUCCESS)
+                             pUFKey,
+                             ufInfo)) !=  MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to open user feature key %s.", pSubKey);
     }
@@ -6028,6 +6021,8 @@ static MOS_STATUS MOS_UserFeature_WriteValuePrimitive(
 //!           value of enum type in MOS_USER_FEATURE_VALUE_TYPE. declares the user feature key to be readed
 //! \param    [in/out] pUserData
 //!           Pointer to User Feature Data
+//! \param    [in] mosCtx
+//!           Pointer to ddi device ctx
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
@@ -6040,21 +6035,19 @@ static MOS_STATUS MOS_UserFeature_WriteValuePrimitive(
 //!                                          No default value or User Feature Key value return
 //! 
 //!
-#ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_ReadValue_ID(
-#else
-MOS_STATUS MOS_UserFeature_ReadValue(
-#endif
     PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface,
     uint32_t                        ValueID,
-    PMOS_USER_FEATURE_VALUE_DATA    pValueData)
+    PMOS_USER_FEATURE_VALUE_DATA    pValueData,
+    MOS_CONTEXT_HANDLE              mosCtx)
 {
     return MosUtilities::MosUserFeatureReadValueID(
         pOsUserFeatureInterface,
         ValueID,
-        pValueData);
-
+        pValueData,
+        mosCtx);
 }
+
 //!
 //! \brief    Lookup the user feature value name associated with the ID
 //! \param    [in] ValueId
@@ -6106,19 +6099,17 @@ const char* MOS_UserFeature_LookupWritePath(
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-#ifdef  __MOS_USER_FEATURE_WA_
 MOS_STATUS MOS_UserFeature_WriteValues_ID(
-#else
-MOS_STATUS MOS_UserFeature_WriteValues(
-#endif
     PMOS_USER_FEATURE_INTERFACE             pOsUserFeatureInterface,
     PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
-    uint32_t                                uiNumOfValues)
+    uint32_t                                uiNumOfValues,
+    MOS_CONTEXT_HANDLE                      mosCtx)
 {
     return MosUtilities::MosUserFeatureWriteValuesID(
         pOsUserFeatureInterface,
         pWriteValues,
-        uiNumOfValues);
+        uiNumOfValues,
+        mosCtx);
 }
 
 //!
@@ -6135,7 +6126,8 @@ MOS_STATUS MOS_UserFeature_WriteValues(
 //!
 MOS_STATUS MOS_UserFeature_EnableNotification(
     PMOS_USER_FEATURE_INTERFACE            pOsUserFeatureInterface,
-    PMOS_USER_FEATURE_NOTIFY_DATA          pNotification)
+    PMOS_USER_FEATURE_NOTIFY_DATA          pNotification,
+    MOS_CONTEXT_HANDLE                     mosCtx)
 {
     PMOS_USER_FEATURE_NOTIFY_DATA_COMMON    pNotifyCommon;
     int32_t                                 bResult;
@@ -6163,6 +6155,8 @@ MOS_STATUS MOS_UserFeature_EnableNotification(
     }
     pNotifyCommon = (PMOS_USER_FEATURE_NOTIFY_DATA_COMMON)pNotification->pHandle;
 
+    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = Mos_GetDeviceUfPathInfo((PMOS_CONTEXT)mosCtx);
+
     // Open User Feature for Reading
     if (pNotifyCommon->UFKey == 0)
     {
@@ -6170,7 +6164,8 @@ MOS_STATUS MOS_UserFeature_EnableNotification(
                           pNotification->Type,
                           pNotification->pPath,
                           KEY_READ,
-                          &pNotifyCommon->UFKey)) != MOS_STATUS_SUCCESS)
+                          &pNotifyCommon->UFKey,
+                          ufInfo)) != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE("Failed to open user feature for reading.");
             return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;

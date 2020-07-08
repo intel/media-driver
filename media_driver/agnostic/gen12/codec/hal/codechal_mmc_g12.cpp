@@ -52,14 +52,15 @@ CodecHalMmcStateG12::CodecHalMmcStateG12(CodechalHwInterface  *hwInterface) :
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
 
         MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabled;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
 }
 
@@ -77,7 +78,8 @@ void CodecHalMmcStateG12::InitDecodeMmcEnable(CodechalHwInterface    *hwInterfac
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         decodeMmcEnabled = (userFeatureData.i32Data) ? true : false;
 
         m_mmcEnabledForComponent = m_mmcEnabled && decodeMmcEnabled;
@@ -86,7 +88,7 @@ void CodecHalMmcStateG12::InitDecodeMmcEnable(CodechalHwInterface    *hwInterfac
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabledForComponent;
         userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_DECODE_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -109,7 +111,8 @@ void CodecHalMmcStateG12::InitEncodeMmcEnable(CodechalHwInterface    *hwInterfac
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         encodeMmcEnabled = (userFeatureData.i32Data) ? true : false;
 
         m_mmcEnabledForComponent = m_mmcEnabled && encodeMmcEnabled;
@@ -118,7 +121,7 @@ void CodecHalMmcStateG12::InitEncodeMmcEnable(CodechalHwInterface    *hwInterfac
         MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
         userFeatureWriteData.Value.i32Data = m_mmcEnabledForComponent;
         userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_ENCODE_MMC_IN_USE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

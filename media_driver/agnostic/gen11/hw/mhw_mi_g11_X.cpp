@@ -284,7 +284,8 @@ MOS_STATUS MhwMiInterfaceG11::SetWatchdogTimerThreshold(uint32_t frameWidth, uin
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     if (userFeatureData.u32Data != 0)
     {
         MediaResetParam.watchdogCountThreshold = userFeatureData.u32Data;

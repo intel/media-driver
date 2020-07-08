@@ -632,7 +632,8 @@ MOS_STATUS CodechalHwInterface::Initialize(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     if (userFeatureData.i32Data != 0xDEADC0DE)
     {
         m_numRequestedEuSlicesOverride = userFeatureData.i32Data & 0xFF;              // Bits 0-7
@@ -1224,7 +1225,8 @@ MOS_STATUS CodechalHwInterface::InitL3ControlUserFeatureSettings(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_CNTLREG_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     l3Overrides->dwCntlReg = (uint32_t)userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -1233,7 +1235,8 @@ MOS_STATUS CodechalHwInterface::InitL3ControlUserFeatureSettings(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_CNTLREG2_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     l3Overrides->dwCntlReg2 = (uint32_t)userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -1242,7 +1245,8 @@ MOS_STATUS CodechalHwInterface::InitL3ControlUserFeatureSettings(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_CNTLREG3_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     l3Overrides->dwCntlReg3 = (uint32_t)userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -1251,7 +1255,8 @@ MOS_STATUS CodechalHwInterface::InitL3ControlUserFeatureSettings(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_SQCREG1_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     l3Overrides->dwSqcReg1 = (uint32_t)userFeatureData.i32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -1260,7 +1265,8 @@ MOS_STATUS CodechalHwInterface::InitL3ControlUserFeatureSettings(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_CACHE_SQCREG4_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     l3Overrides->dwSqcReg4 = (uint32_t)userFeatureData.i32Data;
 
     if (l3CacheConfig->bL3LRA1Reset)
@@ -1271,7 +1277,8 @@ MOS_STATUS CodechalHwInterface::InitL3ControlUserFeatureSettings(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_L3_LRA_1_REG1_OVERRIDE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         l3Overrides->dwLra1Reg = (uint32_t)userFeatureData.i32Data;
     }
 

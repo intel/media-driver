@@ -265,7 +265,7 @@ int32_t CmQueueRT::Initialize()
                 MOS_UserFeature_ReadValue_ID(
                     nullptr,
                     __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
-                    &UserFeatureData);
+                    &UserFeatureData, cmHalState->osInterface->pOsContext);
 
                 // +---------------+----------------+----------------+----------------+
                 // |   EUCountMax  |   EUCountMin   |     SSCount    |   SliceCount   |
@@ -302,8 +302,9 @@ int32_t CmQueueRT::Initialize()
             bool bVeUsedInCm = false; //need change to true once feature is done in future.
 #if (_DEBUG || _RELEASE_INTERNAL)
             MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
-            MOS_UserFeature_ReadValue_ID(nullptr,
-                __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_INTERFACE, &UserFeatureData);
+            MOS_UserFeature_ReadValue_ID(
+                nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_CCS_USE_VE_INTERFACE,
+                &UserFeatureData, cmHalState->osInterface->pOsContext);
             bVeUsedInCm = (UserFeatureData.u32Data == 0x1)? true: false;
 #endif
             Mos_SetVirtualEngineSupported(cmHalState->osInterface, bVeUsedInCm);
@@ -374,7 +375,7 @@ CM_RT_API int32_t CmQueueRT::Enqueue(
            CmEvent* & event,
            const CmThreadSpace* threadSpace)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (kernelArray == nullptr)
     {
@@ -851,7 +852,7 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* kernelArray[],
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmQueueRT::EnqueueWithGroup( CmTask* task, CmEvent* & event, const CmThreadGroupSpace* threadGroupSpace)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     int32_t result;
 
@@ -959,7 +960,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueWithHints(
                                         CmEvent* & event,
                                         uint32_t hints)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     int32_t            hr                = CM_FAILURE;
     uint32_t           count             = 0;
@@ -1082,7 +1083,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPU( CmSurface2D* surface, const unsigned char* sysMem, CmEvent* & event )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (!m_device->HasGpuCopyKernel())
     {
@@ -1114,7 +1115,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPU( CmSurface2D* surface, const un
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToCPU( CmSurface2D* surface, unsigned char* sysMem, CmEvent* & event )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (!m_device->HasGpuCopyKernel())
     {
@@ -1953,7 +1954,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, CmSurface2D* inputSurface, uint32_t option, CmEvent* & event )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (!m_device->HasGpuCopyKernel())
     {
@@ -2099,7 +2100,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToCPU( unsigned char* dstSysMem, unsigned char* srcSysMem, uint32_t size, uint32_t option, CmEvent* & event )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (!m_device->HasGpuCopyKernel())
     {
@@ -2310,7 +2311,7 @@ void BufferCopyThread(void* threadData)
 
 int32_t CmQueueRT::EnqueueBufferCopy(CmBuffer* buffer, size_t offset, const unsigned char* sysMem, uint64_t sysMemSize, CM_GPUCOPY_DIRECTION dir, CmEvent* wait_event, CmEvent*& event, unsigned option)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
     int hr = CM_SUCCESS;
     bool bCPUcopy = option>0 ? true:false;
     if ((offset) || (sysMemSize > 1069551616))
@@ -2710,7 +2711,7 @@ int32_t CmQueueRT::GetTaskCount( uint32_t& numTasks )
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmQueueRT::EnqueueInitSurface2D( CmSurface2D* surf2D, const uint32_t initValue, CmEvent* &event)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (!m_device->HasGpuInitKernel())
     {
@@ -3437,7 +3438,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmQueueRT::EnqueueVebox(CmVebox * vebox, CmEvent* & event)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     int32_t hr                  = CM_SUCCESS;
     CmTaskInternal* task   = nullptr;
@@ -3550,7 +3551,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyCPUToGPUFullStride( CmSurface2D* surface
                                                      const uint32_t option,
                                                      CmEvent* & event )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (!m_device->HasGpuCopyKernel())
     {
@@ -3587,7 +3588,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToCPUFullStride( CmSurface2D* surface
                                                      const uint32_t option,
                                                      CmEvent* & event )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (!m_device->HasGpuCopyKernel())
     {
@@ -4107,4 +4108,8 @@ MOS_STATUS CmQueueRT::ExecuteGeneralTask(CM_HAL_STATE *halState,
     halState->osInterface->streamIndex = old_stream_idx;
     return result;
 }
+
+#if CM_LOG_ON
+CM_HAL_STATE* CmQueueRT::GetHalState() { return m_device->GetHalState(); }
+#endif  // #if CM_LOG_ON
 }  // namespace

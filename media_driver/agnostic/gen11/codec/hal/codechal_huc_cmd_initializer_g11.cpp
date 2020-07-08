@@ -571,7 +571,8 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerAllocateResources(CodechalHw
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_VQI_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_hevcVisualQualityImprovement = userFeatureData.i32Data ? true : false;
 
     return eStatus;

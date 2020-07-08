@@ -124,28 +124,32 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_IFRAME_RDOQ_ENABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_hevcIFrameRdoqEnabled = userFeatureData.i32Data ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_OVERRIDE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_rdoqIntraTuOverride = (uint32_t)userFeatureData.u32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_DISABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_rdoqIntraTuDisableOverride = (uint32_t)userFeatureData.u32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_CODECHAL_RDOQ_INTRA_TU_THRESHOLD_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_rdoqIntraTuThresholdOverride = (uint32_t)userFeatureData.u32Data;
 #endif
     return eStatus;
@@ -1325,7 +1329,8 @@ MOS_STATUS CodechalEncodeHevcBase::SetSliceStructs()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_FORCE_PAK_PASS_NUM_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         if (userFeatureData.u32Data > 0 && userFeatureData.u32Data <= m_numPasses)
         {
             m_numPasses = (uint8_t)userFeatureData.u32Data - 1;
@@ -2152,16 +2157,16 @@ MOS_STATUS CodechalEncodeHevcBase::UserFeatureKeyReport()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::UserFeatureKeyReport())
 
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MODE_ID, m_codecFunction);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ME_ENABLE_ID, m_hmeSupported);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_16xME_ENABLE_ID, m_16xMeSupported);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_32xME_ENABLE_ID, m_32xMeSupported);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID, (!m_enable26WalkingPattern));
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_RATECONTROL_METHOD_ID, m_hevcSeqParams->RateControlMethod);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MODE_ID, m_codecFunction, m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_ME_ENABLE_ID, m_hmeSupported, m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_16xME_ENABLE_ID, m_16xMeSupported, m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_32xME_ENABLE_ID, m_32xMeSupported, m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_26Z_ENABLE_ID, (!m_enable26WalkingPattern), m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_RATECONTROL_METHOD_ID, m_hevcSeqParams->RateControlMethod, m_osInterface->pOsContext);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID, m_osInterface->bSimIsActive);
-    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_ENABLE_ID, m_hevcRdoqEnabled);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_SIM_IN_USE_ID, m_osInterface->bSimIsActive, m_osInterface->pOsContext);
+    CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_RDOQ_ENABLE_ID, m_hevcRdoqEnabled, m_osInterface->pOsContext);
 #endif
 
     return eStatus;

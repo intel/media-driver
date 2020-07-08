@@ -300,6 +300,8 @@ public:
 
 #if CM_LOG_ON
     std::string Log();
+
+    CM_HAL_STATE* GetHalState();
 #endif
 
     void SurfaceDump(uint32_t kernelNumber, int32_t taskId);

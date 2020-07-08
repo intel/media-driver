@@ -131,7 +131,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
 #endif
 
     LinuxDriverInfo drvInfo = {18, 3, 0, 23172, 3, 1, 0, 1, 0, 0, 1, 0};
-    if (!Mos_Solo_IsEnabled() && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    if (!Mos_Solo_IsEnabled(nullptr) && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;
@@ -265,7 +265,8 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        nullptr);
     //Disable plarform checks to support pre-si features (e.g., MMCD) on MediaSolo
     MEDIA_WR_WA(waTable, WaDisregardPlatformChecks, (UserFeatureData.i32Data) ? true : false);
 #endif
@@ -410,7 +411,7 @@ MOS_STATUS HWInfo_GetGmmInfo(int32_t                 fd,
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
 #endif
 
-    if (!Mos_Solo_IsEnabled() && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
+    if (!Mos_Solo_IsEnabled(nullptr) && HWInfoGetLinuxDrvInfo(fd, &drvInfo) != MOS_STATUS_SUCCESS)
     {
         MOS_OS_ASSERTMESSAGE("Failed to get the chipset id\n");
         return MOS_STATUS_INVALID_HANDLE;

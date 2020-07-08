@@ -4751,7 +4751,8 @@ MOS_STATUS CodechalDecodeVc1::AllocateStandard(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DECODE_ENABLE_COMPUTE_CONTEXT_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     isComputeContextEnabled = (userFeatureData.u32Data) ? true : false;
 #endif
 

@@ -155,7 +155,8 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            osDriverContext);
 #endif
         osDriverContext->bSimIsActive = (int32_t)UserFeatureData.i32Data;
 

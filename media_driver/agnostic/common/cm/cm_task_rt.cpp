@@ -173,7 +173,7 @@ int32_t CmTaskRT::AddKernelInternal( CmKernel *kernel, const CM_EXECUTION_CONFIG
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
     return AddKernelInternal(kernel, nullptr);
 }
 
@@ -184,7 +184,7 @@ CM_RT_API int32_t CmTaskRT::AddKernel( CmKernel *kernel )
 CM_RT_API int32_t CmTaskRT::AddKernelWithConfig( CmKernel *kernel,
     const CM_EXECUTION_CONFIG *config )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
     return AddKernelInternal(kernel, config);
 }
 
@@ -192,9 +192,9 @@ CM_RT_API int32_t CmTaskRT::AddKernelWithConfig( CmKernel *kernel,
 //| Purpose:    Reset task and clear all the kernel
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmTaskRT::Reset( void )
+CM_RT_API int32_t CmTaskRT::Reset()
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     m_kernelCount = 0;
     m_syncBitmap = 0;
@@ -371,9 +371,9 @@ finish:
 //| Purpose:    Insert synchronization point before next kernel
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CM_RT_API int32_t CmTaskRT::AddSync( void )
+CM_RT_API int32_t CmTaskRT::AddSync()
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     if (m_kernelCount > 0)
     {
@@ -470,7 +470,10 @@ std::string CmTaskRT::Log()
     }
     return oss.str();
 }
-#endif
+
+CM_HAL_STATE* CmTaskRT::GetHalState() { return m_device->GetHalState(); }
+
+#endif  // #if CM_LOG_ON
 
 CM_RT_API int32_t CmTaskRT::SetProperty(const CM_TASK_CONFIG &taskConfig)
 {
@@ -484,12 +487,12 @@ CM_RT_API int32_t CmTaskRT::GetProperty(CM_TASK_CONFIG &taskConfig)
     return CM_SUCCESS;
 }
 
-CM_RT_API int32_t CmTaskRT::AddConditionalEnd(
-                                SurfaceIndex* conditionalSurfaceIndex,
-                                uint32_t offset,
-                                CM_CONDITIONAL_END_PARAM *conditionalParam)
+CM_RT_API int32_t
+CmTaskRT::AddConditionalEnd(SurfaceIndex* conditionalSurfaceIndex,
+                            uint32_t offset,
+                            CM_CONDITIONAL_END_PARAM *conditionalParam)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     int32_t hr = CM_SUCCESS;
 
@@ -499,4 +502,4 @@ CM_RT_API int32_t CmTaskRT::AddConditionalEnd(
 
     return hr;
 }
-}
+}  // namespace CMRT_UMD

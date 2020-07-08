@@ -938,14 +938,16 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD1_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface->pOsContext);
     pScalabilityState->dwHcpDecModeSwtichTh1Width = UserFeatureData.u32Data;
 
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD2_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface->pOsContext);
     pScalabilityState->dwHcpDecModeSwtichTh2Width = UserFeatureData.u32Data;
 
     // Reg key to control hevc real tile decoding
@@ -953,7 +955,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DISABLE_HEVC_REALTILE_DECODE_ID_G12,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface->pOsContext);
     pScalabilityState->bDisableRtMode = (UserFeatureData.u32Data != 0);
 
     // Reg key to control hevc real tile multi-phase decoding
@@ -961,21 +964,24 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_REALTILE_MULTI_PHASE_DECODE_ID_G12,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface->pOsContext);
     pScalabilityState->bEnableRtMultiPhase = (UserFeatureData.u32Data != 0);
 
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SCALABILITY_OVERRIDE_SPLIT_WIDTH_IN_MINCB,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface->pOsContext);
     pScalabilityState->dbgOvrdWidthInMinCb = UserFeatureData.u32Data;
 
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_USER_PIPE_NUM_ID_G12,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface->pOsContext);
     pScalabilityState->dbgOverUserPipeNum = (uint8_t)UserFeatureData.u32Data;
 #endif
 
@@ -1056,7 +1062,8 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_ALWAYS_FRAME_SPLIT_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface->pOsContext);
     pScalabilityState->bAlwaysFrameSplit = UserFeatureData.u32Data ? true : false;
 #endif
 

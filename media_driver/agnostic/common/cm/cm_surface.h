@@ -80,6 +80,10 @@ protected:
     int32_t FlushDeviceQueue( CmEventRT* event );
     bool MemoryObjectCtrlPolicyCheck(MEMORY_OBJECT_CONTROL memCtrl);
 
+#if MDF_SURFACE_CONTENT_DUMP
+    MOS_CONTEXT* GetMosContext();
+#endif  // #if MDF_SURFACE_CONTENT_DUMP
+
     SurfaceIndex* m_index;
 
     CmSurfaceManager* m_surfaceMgr;

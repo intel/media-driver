@@ -3591,7 +3591,8 @@ MOS_STATUS CodechalEncodeAvcEncG8::InitializeState()
      regReadStatus = MOS_UserFeature_ReadValue_ID(
       nullptr,
       __MEDIA_USER_FEATURE_VALUE_AVC_ENCODE_INTRA_REFRESH_QP_THRESHOLD_ID,
-      &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     dwIntraRefreshQpThreshold = (MOS_STATUS_SUCCESS == regReadStatus) ? userFeatureData.i32Data : (CODEC_AVC_NUM_QP - 1);
 
     bWeightedPredictionSupported = false;

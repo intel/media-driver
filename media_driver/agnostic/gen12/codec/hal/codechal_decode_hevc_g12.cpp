@@ -271,15 +271,15 @@ CodechalDecodeHevcG12::~CodechalDecodeHevcG12 ()
 
     userFeatureWriteData.Value.i32Data = m_rtFrameCount;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_RT_FRAME_COUNT_ID_G12;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
     userFeatureWriteData.Value.i32Data = m_vtFrameCount;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_VT_FRAME_COUNT_ID_G12;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
     userFeatureWriteData.Value.i32Data = m_spFrameCount;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_DECODE_SP_FRAME_COUNT_ID_G12;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
 #endif
 
@@ -2233,7 +2233,8 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateStandard (
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_enableSf2DmaSubmits = userFeatureData.u32Data ? true : false;
     }
 
@@ -2334,7 +2335,8 @@ CodechalDecodeHevcG12::CodechalDecodeHevcG12(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_HEVC_DECODE_HISTOGRAM_DEBUG_ID_G12,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_histogramDebug = userFeatureData.u32Data ? true : false;
 #endif
 }

@@ -240,7 +240,8 @@ void CmSurface2DUPRT::DumpContent(uint32_t kernelNumber, char *kernelName, int32
         << "_f_" << GetFormatString(m_format)
         << "_" << surface2DUPDumpNumber;
 
-    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix,
+                       GetMosContext());
 
     std::ofstream outputFileStream;
     outputFileStream.open(fileNamePrefix, std::ofstream::binary);

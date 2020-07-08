@@ -55,7 +55,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG9Kbl::AddMfxPipeBufAddrCmd(
         {
             UserFeatureWriteData.Value.i32Data = 1;
         }
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osInterface->pOsContext);
 #endif
 
     // Encoding uses both surfaces regardless of deblocking status

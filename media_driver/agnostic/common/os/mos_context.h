@@ -90,7 +90,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS CommandBufferDumpInit();
+    MOS_STATUS CommandBufferDumpInit(PMOS_CONTEXT mosCtx);
 #endif
 
     //!

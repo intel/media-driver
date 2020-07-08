@@ -172,7 +172,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
 
         if (m_videoNodeAssociationCreated)
         {
-            CODECHAL_UPDATE_VDBOX_USER_FEATURE(videoGpuNode);
+            CODECHAL_UPDATE_VDBOX_USER_FEATURE(videoGpuNode, m_osInterface->pOsContext);
         }
 
         m_videoContext = gpuContext;
@@ -650,7 +650,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_encodeVfeMaxThreads = (uint32_t)userFeatureData.u32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -660,7 +661,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_VFE_MAX_THREADS_SCALING_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_encodeVfeMaxThreadsScaling = (uint32_t)userFeatureData.i32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -669,7 +671,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
 
             m_hwWalker = (userFeatureData.i32Data) ? true : false;
 
@@ -681,7 +684,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
                 MOS_UserFeature_ReadValue_ID(
                     nullptr,
                     __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_MODE_ID,
-                    &userFeatureData);
+                    &userFeatureData,
+                    m_osInterface->pOsContext);
                 m_walkerMode = (MHW_WALKER_MODE)userFeatureData.u32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -694,7 +698,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_DEFAULT_STATE_ID,
-                        &userFeatureData);
+                        &userFeatureData,
+                        m_osInterface->pOsContext);
                     m_sliceShutdownDefaultState = (uint32_t)userFeatureData.u32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -705,7 +710,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_REQUEST_STATE_ID,
-                        &userFeatureData);
+                        &userFeatureData,
+                        m_osInterface->pOsContext);
                     m_sliceShutdownRequestState = (uint32_t)userFeatureData.u32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -716,7 +722,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_RESOLUTION_THRESHOLD_ID,
-                        &userFeatureData);
+                        &userFeatureData,
+                        m_osInterface->pOsContext);
                     m_ssdResolutionThreshold = (uint32_t)userFeatureData.i32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -727,7 +734,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
                     MOS_UserFeature_ReadValue_ID(
                         nullptr,
                         __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_TARGET_USAGE_THRESHOLD_ID,
-                        &userFeatureData);
+                        &userFeatureData,
+                        m_osInterface->pOsContext);
                     m_ssdTargetUsageThreshold = (uint32_t)userFeatureData.i32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
 
@@ -766,7 +774,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 
         if (userFeatureData.i32Data)
         {
@@ -778,7 +787,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
             statusKey = MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_PATH_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
 
             if (statusKey == MOS_STATUS_SUCCESS && userFeatureData.StringData.uSize > 0)
             {
@@ -786,7 +796,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
             }
         }
         // SW BRC DLL Reporting
-        CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_IN_USE_ID, (m_swBrcMode == nullptr) ? false : true);
+        CodecHalEncode_WriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_SOFTWARE_IN_USE_ID, ((m_swBrcMode == nullptr) ? false : true), m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
 
         if (MEDIA_IS_SKU(m_skuTable, FtrSliceShutdown))
@@ -795,7 +805,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_ENABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                m_osInterface->pOsContext);
             m_sliceShutdownEnable = (userFeatureData.i32Data) ? true : false;
         }
 
@@ -805,7 +816,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_TARGET_USAGE_OVERRIDE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_targetUsageOverride = (uint8_t)userFeatureData.u32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
     }
@@ -817,7 +829,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_RC_PANIC_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_panicEnable = (userFeatureData.i32Data) ? true : false;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -826,7 +839,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENCODE_SUPPRESS_RECON_PIC_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_suppressReconPicSupported = (userFeatureData.u32Data) ? true : false;
     }
 
@@ -835,7 +849,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
     statusKey = MOS_UserFeature_ReadValue_ID(
                     NULL,
                     __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID,
-                    &userFeatureData);
+                    &userFeatureData,
+                    m_osInterface->pOsContext);
 
     if (statusKey == MOS_STATUS_SUCCESS)
     {
@@ -849,21 +864,24 @@ MOS_STATUS CodechalEncoderState::Initialize(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_FAKE_HEADER_SIZE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_enableFakeHrdSize = (uint32_t)userFeatureData.u32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_IFRAME_HEADER_SIZE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_fakeIFrameHrdSize = (uint32_t)userFeatureData.u32Data;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_CODECHAL_FAKE_PBFRAME_HEADER_SIZE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_fakePBFrameHrdSize = (uint32_t)userFeatureData.u32Data;
 #endif
 
@@ -923,7 +941,8 @@ MOS_STATUS CodechalEncoderState::Initialize(
     statusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_FRAME_TRACKING_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     if (statusKey == MOS_STATUS_SUCCESS)
     {
         m_frameTrackingEnabled = userFeatureData.i32Data ? true : false;
@@ -4136,7 +4155,7 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = m_hwWalker;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
     if (m_hwWalker)
     {
@@ -4145,7 +4164,7 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = m_walkerMode;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_HW_WALKER_MODE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
     }
 
@@ -4155,7 +4174,7 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = m_sliceShutdownEnable;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_SLICE_SHUTDOWN_ENABLE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -4165,30 +4184,30 @@ MOS_STATUS CodechalEncoderState::UserFeatureKeyReport()
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.i32Data = m_cscDsState->CscMethod();
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_CSC_METHOD_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.u32Data = (uint32_t)m_rawSurface.TileType;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_TILE_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
         userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
         userFeatureWriteData.Value.u32Data = (uint32_t)m_rawSurface.Format;
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_RAW_FORMAT_ID;
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
 
     // Encode compute context Reporting
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = m_computeContextEnabled;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_ENCODE_ENABLE_COMPUTE_CONTEXT_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
     // Single Task Phase support reporting
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     userFeatureWriteData.Value.i32Data = m_singleTaskPhaseSupported;
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 #endif
 
     return eStatus;

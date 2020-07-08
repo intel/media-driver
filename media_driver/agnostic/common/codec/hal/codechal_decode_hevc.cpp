@@ -2621,7 +2621,8 @@ MOS_STATUS CodechalDecodeHevc::AllocateStandard (
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_SF_2_DMA_SUBMITS_ENABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
         m_enableSf2DmaSubmits = userFeatureData.u32Data ? true : false;
     }
 

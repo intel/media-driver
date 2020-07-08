@@ -49,7 +49,7 @@ CodechalDebugConfigMgr::~CodechalDebugConfigMgr()
     }
 }
 
-MOS_STATUS CodechalDebugConfigMgr::ParseConfig()
+MOS_STATUS CodechalDebugConfigMgr::ParseConfig(MOS_CONTEXT_HANDLE mosCtx)
 {
     std::string   configFilePath = m_outputFolderPath + "CodecDbgSetting.cfg";
     std::ifstream configStream(configFilePath);
@@ -62,7 +62,8 @@ MOS_STATUS CodechalDebugConfigMgr::ParseConfig()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_CFG_GENERATION_ID,
-            &userFeatureData);
+            &userFeatureData,
+            mosCtx);
         if (userFeatureData.i32Data)
         {
             GenerateDefaultConfig();

@@ -44,7 +44,8 @@ VphalSfcStateG12::VphalSfcStateG12(
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_CENTERING_DISABLE_ID_G12,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_osInterface->pOsContext));
 
     // Setup disable render flag controlled by a user feature key for validation purpose
     // Enable output centering by default on Gen12+

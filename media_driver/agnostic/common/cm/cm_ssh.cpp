@@ -546,7 +546,8 @@ void CmSSH::DumpSSH()
         static int fileCount = 0;
         stringstream filename;
         filename << "HALCM_Surface_State_Dumps" << PLATFORM_DIR_SEPERATOR << "ssh_" << fileCount++ << ".fast.log";
-        GetLogFileLocation(filename.str().c_str(), fileNamePrefix);
+        GetLogFileLocation(filename.str().c_str(), fileNamePrefix,
+                           m_cmhal->osInterface->pOsContext);
 
         fstream sshFile;
         sshFile.open(fileNamePrefix, ios_base::out);

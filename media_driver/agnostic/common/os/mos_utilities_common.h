@@ -744,7 +744,8 @@ typedef struct _MOS_USER_FEATURE_INTERFACE
     MOS_STATUS (*pfnEnableNotification)
     (
         PMOS_USER_FEATURE_INTERFACE   pOsUserFeatureInterface,
-        PMOS_USER_FEATURE_NOTIFY_DATA pNotification);
+        PMOS_USER_FEATURE_NOTIFY_DATA pNotification,
+        MOS_CONTEXT_HANDLE            mosCtx);
 
     MOS_STATUS (*pfnDisableNotification)
     (

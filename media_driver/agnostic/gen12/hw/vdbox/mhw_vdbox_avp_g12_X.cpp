@@ -47,7 +47,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
     m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
 
@@ -58,7 +59,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AV1BTDLROWSTORECACHE_DISABLE_ID_G12,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_btdlRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -67,7 +69,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AV1SMVLROWSTORECACHE_DISABLE_ID_G12,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_smvlRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -76,7 +79,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AV1IPDLROWSTORECACHE_DISABLE_ID_G12,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_ipdlRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -84,7 +88,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AV1DFLYROWSTORECACHE_DISABLE_ID_G12,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_dflyRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -93,7 +98,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AV1DFLUROWSTORECACHE_DISABLE_ID_G12,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_dfluRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -102,7 +108,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AV1DFLVROWSTORECACHE_DISABLE_ID_G12,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_dflvRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -111,7 +118,8 @@ void MhwVdboxAvpInterfaceG12::InitRowstoreUserFeatureSettings()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AV1CDEFROWSTORECACHE_DISABLE_ID_G12,
-            &userFeatureData);
+            &userFeatureData,
+            m_osInterface->pOsContext);
 #endif // _DEBUG || _RELEASE_INTERNAL
         m_cdefRowstoreCache.bSupported = userFeatureData.i32Data ? false : true;
     }
@@ -608,7 +616,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     {
         UserFeatureWriteData.Value.i32Data = 1;
     }
-    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, m_osInterface->pOsContext);
 #endif
 
     MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));

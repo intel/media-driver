@@ -200,6 +200,8 @@ public:
 private:
     //!
     //! \brief  Error handle function.
+    //! \param  [in] mosCtx
+    //!         the ddi device context.
     //! \param  [in] status
     //!         The MOS_STATUS for current error.
     //! \param  [in] funcName
@@ -209,7 +211,7 @@ private:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    static void OnOcaError(MOS_STATUS status, const char *functionName, uint32_t lineNumber);
+    static void OnOcaError(PMOS_CONTEXT mosContext, MOS_STATUS status, const char *functionName, uint32_t lineNumber);
 
     //!
     //! \brief  Get OCA buffer handle from pool.
@@ -239,12 +241,14 @@ private:
     //!         Reference to MosOcaInterface.
     //! \param  [in] hOcaBuf
     //!         Reference to MOS_OCA_BUFFER_HANDLE.
+    //! \param  [in] mosCtx
+    //!         DDI device context.
     //! \param  [in] pCpDumper
     //!         Pointer to cp dumper object.
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    static void DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &hOcaBuf, void *pCpDumper);
+    static void DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &hOcaBuf, PMOS_CONTEXT mosCtx, void *pCpDumper);
 
     // Private functions to ensure class singleton.
     HalOcaInterface();

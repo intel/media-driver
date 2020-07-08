@@ -873,7 +873,7 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmKernelRT::SetThreadCount(uint32_t count )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
     // Check per kernel, per task check will be at enqueue time
     if ((int)count <= 0)
         return CM_INVALID_ARG_VALUE;
@@ -2151,7 +2151,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmKernelRT::SetKernelArg(uint32_t index, size_t size, const void * value )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
     //It should be mutual exclusive with Indirect Data
     if(m_kernelPayloadData)
     {
@@ -2189,7 +2189,7 @@ CM_RT_API int32_t CmKernelRT::SetKernelArg(uint32_t index, size_t size, const vo
 
 CM_RT_API int32_t CmKernelRT::SetKernelArgPointer(uint32_t index, size_t size, const void *value)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     //It should be mutual exclusive with Indirect Data
     if (m_kernelPayloadData)
@@ -2272,7 +2272,7 @@ CM_RT_API int32_t CmKernelRT::SetKernelArgPointer(uint32_t index, size_t size, c
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * value )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
     if(index >= CM_GLOBAL_SURFACE_NUMBER)
     {
         CM_ASSERTMESSAGE("Error: Surface Index exceeds max global surface number.");
@@ -2349,7 +2349,7 @@ CM_RT_API int32_t CmKernelRT::SetStaticBuffer(uint32_t index, const void * value
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmKernelRT::SetThreadArg(uint32_t threadId, uint32_t index, size_t size, const void * value )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(GetHalState());
 
     //It should be mutual exclusive with Indirect Data
     if(m_kernelPayloadData)
@@ -5853,7 +5853,10 @@ void CmKernelRT::ArgLog(std::ostringstream &oss, uint32_t index, CM_ARG arg)
         }
     }
 }
-#endif
+
+CM_HAL_STATE* CmKernelRT::GetHalState() { return m_device->GetHalState(); }
+
+#endif  // #if CM_LOG_ON
 
 void CmKernelRT::SurfaceDump(uint32_t kernelNumber, int32_t taskId)
 {

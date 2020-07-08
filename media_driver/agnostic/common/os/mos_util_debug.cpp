@@ -273,9 +273,11 @@ void MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
 //!              This includes registering all sub-components.
 //! \param    MOS_COMPONENT_ID compID
 //!           [in] Indicates which component
+//! \param    [in] mosCtx
+//!           os device ctx handle
 //! \return   void
 //!
-void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
+void MOS_MessageInitComponent(MOS_COMPONENT_ID compID, MOS_CONTEXT_HANDLE mosCtx)
 {
     uint32_t                                    uiCompUserFeatureSetting = 0;
     uint64_t                                    uiSubCompUserFeatureSetting = 0;
@@ -301,7 +303,8 @@ void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
     eStatus = MOS_UserFeature_ReadValue_ID(
                   nullptr,
                   MessageKey,
-                  &UserFeatureData);
+                  &UserFeatureData,
+                  mosCtx);
 
     // If the user feature key was not found, create it with the default value.
     if (eStatus  != MOS_STATUS_SUCCESS)
@@ -309,7 +312,7 @@ void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
         MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = MessageKey;
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData,1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
     }
 
     uiCompUserFeatureSetting = UserFeatureData.u32Data;
@@ -323,14 +326,15 @@ void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         BySubComponentsKey,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
     // If the user feature key was not found, create it with default (0) value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = BySubComponentsKey;
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData,1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
     }
 
     g_MosMsgParams.components[compID].bBySubComponent = UserFeatureData.u32Data;
@@ -342,14 +346,15 @@ void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
         eStatus = MOS_UserFeature_ReadValue_ID(
             nullptr,
             SubComponentsKey,
-            &UserFeatureData);
+            &UserFeatureData,
+            mosCtx);
         // If the user feature key was not found, create it with default (0) value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
             UserFeatureWriteData.Value.u64Data = UserFeatureData.u64Data;
             UserFeatureWriteData.ValueID = SubComponentsKey;
-            MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
         }
 
         uiSubCompUserFeatureSetting = UserFeatureData.u64Data;
@@ -370,11 +375,13 @@ void MOS_MessageInitComponent(MOS_COMPONENT_ID compID)
 //! \brief    Initialize or refresh the DDI Dump facility
 //! \details  Initialize or refresh the DDI Dump facility
 //!           Called during MOS init
+//! \param    [in] mosCtx
+//!           os device ctx handle
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-MOS_STATUS MOS_DDIDumpInit()
+MOS_STATUS MOS_DDIDumpInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
@@ -390,7 +397,8 @@ MOS_STATUS MOS_DDIDumpInit()
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DDI_DUMP_ENABLE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
 
     if (UserFeatureData.i32Data == 1)
     {
@@ -399,7 +407,8 @@ MOS_STATUS MOS_DDIDumpInit()
         eStatus = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DDI_DUMP_DIRECTORY_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            mosCtx);
 
         // set-up DDI dump file name
         MOS_SecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, DDILogPathTemplate,
@@ -420,18 +429,15 @@ MOS_STATUS MOS_DDIDumpInit()
 //! \brief    Initialize the MOS message params structure and HLT.
 //! \details  Initialize the MOS message params structure and HLT,
 //!           to be called during device creation
+//! \param    [in] mosCtx
+//!           os device ctx handle
 //! \return   MOS_STATUS
 //!           Returns one of the MOS_STATUS error codes if failed,
 //!           else MOS_STATUS_SUCCESS
 //!
-void MOS_MessageInit()
+void MOS_MessageInit(MOS_CONTEXT_HANDLE mosCtx)
 {
-    uint8_t                                     i = 0;
-    MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
-    MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
-
-    return MosUtilDebug::MosMessageInit();
+    return MosUtilDebug::MosMessageInit(mosCtx);
 }
 
 //!

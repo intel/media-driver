@@ -39,9 +39,9 @@
 
 #define Mos_Solo_DecodeMapGpuNodeToGpuContex(a, b, c, d)
 
-#define Mos_Solo_IsEnabled()     false
+#define Mos_Solo_IsEnabled(a)     false
 #define Mos_Solo_IsInUse(a)      false
-#define Mos_Solo_ReplaceSkuWaTable(a, b, c, d, e, f)
+#define Mos_Solo_ReplaceSkuWaTable(a, b, c, d)
 #define Mos_Solo_ForceDumps(a, b)            MOS_STATUS_SUCCESS
 #define Mos_Solo_PreProcessDecode(a, b)      MOS_STATUS_SUCCESS
 #define Mos_Solo_PostProcessDecode(a, b)     MOS_STATUS_SUCCESS

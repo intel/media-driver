@@ -177,7 +177,8 @@ MOS_STATUS MediaVeboxDecompStateG12::IsVeboxDecompressionEnabled()
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_ENABLE_VEBOX_MMC_DECOMPRESS_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_osInterface->pOsContext));
 
     m_veboxMMCResolveEnabled = UserFeatureData.bData ? true: false;
 

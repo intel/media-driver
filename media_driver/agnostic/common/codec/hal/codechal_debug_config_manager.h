@@ -268,7 +268,7 @@ public:
         CODECHAL_FUNCTION       CodecFunction,
         std::string             outputFolderPath);
     ~CodechalDebugConfigMgr();
-    MOS_STATUS ParseConfig();
+    MOS_STATUS ParseConfig(MOS_CONTEXT_HANDLE mosCtx);
     MOS_STATUS DeleteCfgNode(uint32_t frameIdx);
 
     std::string GetMediaStateStr(CODECHAL_MEDIA_STATE_TYPE mediaState);

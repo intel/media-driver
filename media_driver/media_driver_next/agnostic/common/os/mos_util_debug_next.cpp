@@ -137,7 +137,7 @@ void MosUtilDebug::MosCompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t b
     m_mosMsgParams.components[compID].component.bAssertEnabled = bEnable;
 }
 
-void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID)
+void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MOS_CONTEXT_HANDLE mosCtx)
 {
     uint32_t                                    uiCompUserFeatureSetting = 0;
     uint64_t                                    uiSubCompUserFeatureSetting = 0;
@@ -163,7 +163,8 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID)
     eStatus = MosUtilities::MosUserFeatureReadValueID(
                   nullptr,
                   MessageKey,
-                  &UserFeatureData);
+                  &UserFeatureData,
+                  mosCtx);
 
     // If the user feature key was not found, create it with the default value.
     if (eStatus  != MOS_STATUS_SUCCESS)
@@ -171,7 +172,7 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID)
         MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = MessageKey;
-        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData,1);
+        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);
     }
 
     uiCompUserFeatureSetting = UserFeatureData.u32Data;
@@ -185,14 +186,15 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID)
     eStatus = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         BySubComponentsKey,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
     // If the user feature key was not found, create it with default (0) value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = BySubComponentsKey;
-        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData,1);
+        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);
     }
 
     m_mosMsgParams.components[compID].bBySubComponent = UserFeatureData.u32Data;
@@ -204,14 +206,15 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID)
         eStatus = MosUtilities::MosUserFeatureReadValueID(
             nullptr,
             SubComponentsKey,
-            &UserFeatureData);
+            &UserFeatureData,
+            mosCtx);
         // If the user feature key was not found, create it with default (0) value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
             UserFeatureWriteData.Value.u64Data = UserFeatureData.u64Data;
             UserFeatureWriteData.ValueID = SubComponentsKey;
-            MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1);
+            MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);
         }
 
         uiSubCompUserFeatureSetting = UserFeatureData.u64Data;
@@ -228,7 +231,7 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID)
     }
 }
 
-MOS_STATUS MosUtilDebug::MosHLTInit()
+MOS_STATUS MosUtilDebug::MosHLTInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     uint32_t                                    nPID = 0;
     char                                        hltFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
@@ -254,14 +257,15 @@ MOS_STATUS MosUtilDebug::MosHLTInit()
     eStatus = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
     // If the user feature key was not found, create it with the default value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
         UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
         UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED_ID;
-        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1);
+        MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);
     }
 
     bUseHybridLogTrace = MosUtilities::m_mosUltFlag ? 1 : UserFeatureData.u32Data;
@@ -279,7 +283,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit()
     nPID = MosUtilities::m_mosUltFlag ? 0 : MosUtilities::MosGetPid();
 
     // Get logfile directory.
-    MosLogFileNamePrefix(fileNamePrefix);
+    MosLogFileNamePrefix(fileNamePrefix, mosCtx);
     MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "log");
 
 #if defined(LINUX) || defined(ANDROID)
@@ -323,7 +327,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosUtilDebug::MosDDIDumpInit()
+MOS_STATUS MosUtilDebug::MosDDIDumpInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
@@ -339,7 +343,8 @@ MOS_STATUS MosUtilDebug::MosDDIDumpInit()
     eStatus = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENCODE_DDI_DUMP_ENABLE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
 
     if (UserFeatureData.i32Data == 1)
     {
@@ -348,7 +353,8 @@ MOS_STATUS MosUtilDebug::MosDDIDumpInit()
         eStatus = MosUtilities::MosUserFeatureReadValueID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DDI_DUMP_DIRECTORY_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            mosCtx);
 
         // set-up DDI dump file name
         MosUtilities::MosSecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_DdiLogPathTemplate,
@@ -365,7 +371,7 @@ MOS_STATUS MosUtilDebug::MosDDIDumpInit()
     return MOS_STATUS_SUCCESS;
 }
 
-void MosUtilDebug::MosMessageInit()
+void MosUtilDebug::MosMessageInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     uint8_t                                     i = 0;
     MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
@@ -380,7 +386,7 @@ void MosUtilDebug::MosMessageInit()
         // Set print level and asserts for each component
         for(i = 0; i < MOS_COMPONENT_COUNT; i++)
         {
-            MosMessageInitComponent((MOS_COMPONENT_ID)i);
+            MosMessageInitComponent((MOS_COMPONENT_ID)i, mosCtx);
         }
 
         // Check if MOS messages are enabled
@@ -388,14 +394,15 @@ void MosUtilDebug::MosMessageInit()
         eStatus = MosUtilities::MosUserFeatureReadValueID(
             nullptr,
             __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            mosCtx);
         // If the user feature key was not found, create it with default value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
             UserFeatureWriteData.Value.i32Data = UserFeatureData.i32Data;
             UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED_ID;
-            MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1);
+            MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);
         }
 
         m_mosMsgParams.bUseOutputDebugString = UserFeatureData.i32Data;
@@ -409,8 +416,8 @@ void MosUtilDebug::MosMessageInit()
             MosCompAssertEnableDisable(MOS_COMPONENT_CM, 0);
         }
 
-        MosHLTInit();
-        MosDDIDumpInit();
+        MosHLTInit(mosCtx);
+        MosDDIDumpInit(mosCtx);
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
         MosUtilities::m_mosMemAllocCounter     = 0;

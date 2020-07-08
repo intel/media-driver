@@ -7010,15 +7010,15 @@ MOS_STATUS CodechalVdencVp9State::UserFeatureKeyReport()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::UserFeatureKeyReport())
 
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_IN_USE_ID, m_brcEnabled);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_MULTIPASS_BRC_IN_USE_ID, m_multipassBrcSupported);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_IN_USE_ID, m_adaptiveRepakSupported);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ME_ENABLE_ID, m_hmeSupported);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_16xME_ENABLE_ID, m_16xMeSupported);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_HUC_ENABLE_ID, m_hucEnabled);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_BRC_IN_USE_ID, m_brcEnabled, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_MULTIPASS_BRC_IN_USE_ID, m_multipassBrcSupported, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ADAPTIVE_REPAK_IN_USE_ID, m_adaptiveRepakSupported, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ME_ENABLE_ID, m_hmeSupported, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_16xME_ENABLE_ID, m_16xMeSupported, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_HUC_ENABLE_ID, m_hucEnabled, m_osInterface->pOsContext);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VDENC_IN_USE_ID, m_vdencEnabled);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VDENC_IN_USE_ID, m_vdencEnabled, m_osInterface->pOsContext);
 #endif
 
     return eStatus;

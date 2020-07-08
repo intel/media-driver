@@ -64,11 +64,12 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface ? osInterface->pOsContext : nullptr);
     bApogeiosEnable = UserFeatureData.bData ? true : false;
     if (bApogeiosEnable)
     {
-        vp::VpPlatformInterface *vpPlatformInterface = MOS_New(vp::VpPlatformInterfaceG12Tgllp);
+        vp::VpPlatformInterface *vpPlatformInterface = MOS_New(vp::VpPlatformInterfaceG12Tgllp, osInterface);
         if (nullptr == vpPlatformInterface)
         {
             *eStatus = MOS_STATUS_NULL_POINTER;
@@ -120,7 +121,8 @@ MOS_STATUS MhwInterfacesG12Tgllp::Initialize(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MHW_BASE_VDENC_INTERFACE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        osInterface ? osInterface->pOsContext : nullptr);
     useBaseVdencInterface = (UserFeatureData.i32Data == 1) ? true : false;
 #endif
 #endif
@@ -475,7 +477,8 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_APOGEIOS_HEVCD_ENABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                hwInterface->GetOsInterface()->pOsContext);
             apogeiosEnable = userFeatureData.bData ? true : false;
 
             if (apogeiosEnable)
@@ -525,7 +528,8 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_MDF_DISABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            hwInterface->GetOsInterface()->pOsContext);
         mdfSupported = (UserFeatureData.i32Data == 1) ? false : true;
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 #if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
@@ -566,7 +570,8 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                hwInterface->GetOsInterface()->pOsContext);
             apogeiosEnable = userFeatureData.bData ? true : false;
 
             if (apogeiosEnable)
@@ -645,7 +650,8 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
                 MOS_UserFeature_ReadValue_ID(
                     nullptr,
                     __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-                    &userFeatureData);
+                    &userFeatureData,
+                    hwInterface->GetOsInterface()->pOsContext);
                 apogeiosEnable = userFeatureData.bData ? true : false;
 
                 if (apogeiosEnable)

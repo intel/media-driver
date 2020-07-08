@@ -64,7 +64,8 @@ bool MediaMemComp::IsMmcFeatureEnabled()
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         m_mmcFeatureId,
-        &userFeatureData);
+        &userFeatureData,
+        m_osInterface->pOsContext);
     m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
 
     return m_mmcEnabled;
@@ -78,7 +79,7 @@ MOS_STATUS MediaMemComp::UpdateMmcInUseFeature()
     userFeatureWriteData.Value.i32Data = m_mmcEnabled;
     userFeatureWriteData.ValueID = m_mmcInuseFeatureId;
 
-    return MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    return MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 }
 
 bool MediaMemComp::IsMmcEnabled()

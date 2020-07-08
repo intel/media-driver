@@ -74,10 +74,14 @@ static uint32_t HalCm_CopyHexDwordLine(char  *destBuf, size_t buflen, uint32_t *
 //!           pointer output file prefix
 //! \return   number of bytes written
 //!
-int32_t GetFileNameAndCounter(char fileNamePrefix[], bool timeStampFlag, int32_t counter,
-                              const char *outputDir,const char *outputFile)
+int32_t GetFileNameAndCounter(char fileNamePrefix[],
+                              bool timeStampFlag,
+                              int32_t counter,
+                              const char *outputDir,
+                              const char *outputFile,
+                              CM_HAL_STATE *halState)
 {
-    GetLogFileLocation(outputDir, fileNamePrefix);
+    GetLogFileLocation(outputDir, fileNamePrefix, halState->osInterface->pOsContext);
     PlatformSNPrintf(fileNamePrefix + strlen(fileNamePrefix), 
                      MOS_MAX_HLT_FILENAME_LEN - strlen(fileNamePrefix), PLATFORM_DIR_SEPERATOR);
 
@@ -95,15 +99,21 @@ int32_t GetFileNameAndCounter(char fileNamePrefix[], bool timeStampFlag, int32_t
         //check if command buffer or surface state counter, and get it
         if (!strcmp(outputFile,"Command_Buffer"))
         {
-            counter = GetCommandBufferDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID);
+            counter = GetCommandBufferDumpCounter(
+                __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID,
+                halState->osInterface->pOsContext);
         }
         else if (!strcmp(outputFile,"Surface_State_Dump"))
         {
-            counter = GetSurfaceStateDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID);
+            counter = GetSurfaceStateDumpCounter(
+                __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID,
+                halState->osInterface->pOsContext);
         }
         else if (!strcmp(outputFile, "Interface_Descriptor_Data_Dump"))
         {
-            counter = GetInterfaceDescriptorDataDumpCounter(__MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID);
+            counter = GetInterfaceDescriptorDataDumpCounter(
+                __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID,
+                halState->osInterface->pOsContext);
         }
 
         PlatformSNPrintf(fileNamePrefix + strlen(fileNamePrefix), 
@@ -138,12 +148,14 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
     MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if command buffer dump was enabled in user feature settings.
-    GetLogFileLocation(HALCM_COMMAND_BUFFER_OUTPUT_DIR, fileName);
+    GetLogFileLocation(HALCM_COMMAND_BUFFER_OUTPUT_DIR, fileName,
+                       state->osInterface->pOsContext);
 
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_ENABLE_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        state->osInterface->pOsContext);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read command buffer user feature key. Status = %d", eStatus);
@@ -208,9 +220,9 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
 
    //Check if use timestamp in cmd buffer dump file
     commandBufferNumber = GetFileNameAndCounter(fileName, state->enableCMDDumpTimeStamp,
-                          commandBufferNumber,
-                          HALCM_COMMAND_BUFFER_OUTPUT_DIR,
-                          HALCM_COMMAND_BUFFER_OUTPUT_FILE);
+                                                commandBufferNumber,
+                                                HALCM_COMMAND_BUFFER_OUTPUT_DIR,
+                                                HALCM_COMMAND_BUFFER_OUTPUT_FILE, state);
 
     //get the command buffer header size
     offset = GetCommandBufferHeaderDWords(osInterface);
@@ -237,7 +249,8 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     if (!state->enableCMDDumpTimeStamp)
     {        
         RecordCommandBufferDumpCounter(commandBufferNumber,
-                                       __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID);
+                                       __MEDIA_USER_FEATURE_VALUE_MDF_CMD_DUMP_COUNTER_ID,
+                                       state->osInterface->pOsContext);
     }  
     hr = CM_SUCCESS;
 finish:
@@ -277,7 +290,8 @@ int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MDF_CURBE_DUMP_ENABLE_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        state->osInterface->pOsContext);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read curbe data dump user feature key. Status = %d", eStatus);
@@ -285,7 +299,8 @@ int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
     }
     if (userFeatureValueData.bData)
     {
-        GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName);
+        GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName,
+                           state->osInterface->pOsContext);
         eStatus = MOS_CreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -324,7 +339,8 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
     MOS_OS_ASSERT(state);
 
     // Set the file name.
-    GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName);
+    GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName,
+                       state->osInterface->pOsContext);
 
     PlatformSNPrintf(fileName + strlen(fileName), MOS_MAX_HLT_FILENAME_LEN - strlen(fileName),
                      PLATFORM_DIR_SEPERATOR);
@@ -404,7 +420,8 @@ int32_t HalCm_InitSurfaceDump(PCM_HAL_STATE state)
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_DUMP_ENABLE_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        state->osInterface->pOsContext);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read surface content dump user feature key. Status = %d", eStatus);
@@ -439,12 +456,14 @@ int32_t HalCm_InitDumpSurfaceState(PCM_HAL_STATE state)
     MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if command buffer dump was enabled in user feature settings.
-    GetLogFileLocation(HALCM_SURFACE_STATE_OUTPUT_DIR, fileName);
+    GetLogFileLocation(HALCM_SURFACE_STATE_OUTPUT_DIR, fileName,
+                       state->osInterface->pOsContext);
 
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_ENABLE_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        state->osInterface->pOsContext);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read surface state user feature key. Status = %d", eStatus);
@@ -501,10 +520,12 @@ int32_t HalCm_DumpSurfaceState(PCM_HAL_STATE state,  int offsetSurfaceState, siz
     uint32_t        surfacesizeToAllocate = 0;
    
    //Check if use timestamp in cmd buffer dump file
-    surfacestatedumpNumber = GetFileNameAndCounter(filename, state->enableSurfaceStateDumpTimeStamp,
-        surfacestatedumpNumber,
-        HALCM_SURFACE_STATE_OUTPUT_DIR,
-        HALCM_SURFACE_STATE_OUTPUT_FILE);
+    surfacestatedumpNumber = GetFileNameAndCounter(filename,
+                                                   state->enableSurfaceStateDumpTimeStamp,
+                                                   surfacestatedumpNumber,
+                                                   HALCM_SURFACE_STATE_OUTPUT_DIR,
+                                                   HALCM_SURFACE_STATE_OUTPUT_FILE,
+                                                   state);
     
     //calculate surface state dump allocation size
     surfacesizeToAllocate = stateHeap->iCurrentSurfaceState *
@@ -536,8 +557,10 @@ int32_t HalCm_DumpSurfaceState(PCM_HAL_STATE state,  int offsetSurfaceState, siz
 
     if (!state->enableSurfaceStateDumpTimeStamp)
     {
-        RecordSurfaceStateDumpCounter(surfacestatedumpNumber, 
-                                      __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID);
+        RecordSurfaceStateDumpCounter(
+            surfacestatedumpNumber, 
+            __MEDIA_USER_FEATURE_VALUE_MDF_SURFACE_STATE_DUMP_COUNTER_ID,
+            state->osInterface->pOsContext);
     }
 
     hr = CM_SUCCESS;
@@ -570,12 +593,14 @@ int32_t HalCm_InitDumpInterfaceDescriporData(PCM_HAL_STATE state)
     MOS_ZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
 
     // Check if command buffer dump was enabled in user feature settings.
-    GetLogFileLocation(HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR, fileName);
+    GetLogFileLocation(HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR, fileName,
+                       state->osInterface->pOsContext);
 
     eStatus = MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_DUMP_ID,
-        &userFeatureValueData);
+        &userFeatureValueData,
+        state->osInterface->pOsContext);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("Unable to read interface descriptor data dump user feature key. Status = %d", eStatus);
@@ -630,13 +655,14 @@ int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state)
     MOS_OS_ASSERT(state);
 
     // Set the file name.
-    GetLogFileLocation(HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR, fileName);
+    GetLogFileLocation(HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR, fileName,
+                       state->osInterface->pOsContext);
 
     //Check if use timestamp in cmd buffer dump file
     IDDNumber = GetFileNameAndCounter(fileName, state->enableIDDumpTimeStamp,
-        IDDNumber,
-        HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR,
-        HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_FILE);
+                                      IDDNumber, HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_DIR,
+                                      HALCM_INTERFACE_DESCRIPTOR_DATA_OUTPUT_FILE,
+                                      state);
 
     // write interface descriptor data dwords.
     if (state->dshEnabled)
@@ -670,8 +696,10 @@ int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state)
     IDDNumber++;
     if (!state->enableIDDumpTimeStamp)
     {
-        RecordInterfaceDescriptorDataDumpCounter(IDDNumber,
-            __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID);
+        RecordInterfaceDescriptorDataDumpCounter(
+            IDDNumber,
+            __MEDIA_USER_FEATURE_VALUE_MDF_INTERFACE_DESCRIPTOR_DATA_COUNTER_ID,
+            state->osInterface->pOsContext);
     }
 
     hr = CM_SUCCESS;

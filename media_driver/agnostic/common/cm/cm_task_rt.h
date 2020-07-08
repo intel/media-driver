@@ -91,7 +91,9 @@ public:
 
 #if CM_LOG_ON
     std::string Log();
-#endif
+
+    CM_HAL_STATE* GetHalState();
+#endif  // #if CM_LOG_ON
 
 protected:
     CmTaskRT(CmDeviceRT *device,

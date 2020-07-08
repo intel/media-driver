@@ -127,7 +127,8 @@ static bool InitTglShadowSku(struct GfxDeviceInfo *devInfo,
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DISABLE_MMC_ID,
-        &userFeatureData);
+        &userFeatureData,
+        nullptr);
     if (userFeatureData.bData)
     {
         disableMMC = true;

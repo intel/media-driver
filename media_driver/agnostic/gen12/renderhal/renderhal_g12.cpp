@@ -864,7 +864,8 @@ MOS_STATUS XRenderHal_Interface_g12::IsRenderHalMMCEnabled(
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        pRenderHal->pOsInterface->pOsContext));
 
     m_renderHalMMCEnabled = UserFeatureData.bData && MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrE2ECompression);
     pRenderHal->isMMCEnabled = m_renderHalMMCEnabled;

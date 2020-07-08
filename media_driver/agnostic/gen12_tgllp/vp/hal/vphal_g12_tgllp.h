@@ -79,7 +79,8 @@ public:
         eRegKeyReadStatus = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __VPHAL_ENABLE_COMPUTE_CONTEXT_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            pOsDriverContext);
         if (eRegKeyReadStatus == MOS_STATUS_SUCCESS)
         {
             bComputeContextEnabled = UserFeatureData.bData ? true : false;

@@ -318,7 +318,8 @@ MOS_STATUS RenderCmdPacket::SetPowerMode(uint32_t KernelID)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SSEU_SETTING_OVERRIDE_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        m_osInterface->pOsContext);
 
     if (UserFeatureData.u32Data != 0xDEADC0DE)
     {

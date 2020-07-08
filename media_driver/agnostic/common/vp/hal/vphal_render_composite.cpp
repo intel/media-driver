@@ -6956,7 +6956,8 @@ MOS_STATUS CompositeState::Initialize(
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_COMP_8TAP_ADAPTIVE_ENABLE_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_pOsInterface->pOsContext));
     m_b8TapAdaptiveEnable = UserFeatureData.bData ? true : false;
 #endif
 
@@ -7153,7 +7154,8 @@ CompositeState::CompositeState(
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_CSC_COEFF_PATCH_MODE_DISABLE_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_pOsInterface->pOsContext));
     m_bFtrCSCCoeffPatchMode = UserFeatureData.bData ? false : true;
 
 finish:

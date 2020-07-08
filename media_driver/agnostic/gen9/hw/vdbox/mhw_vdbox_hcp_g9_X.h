@@ -160,7 +160,7 @@ protected:
 
     }
 
-    void InitRowstoreUserFeatureSettings()
+    void InitRowstoreUserFeatureSettings(MOS_CONTEXT_HANDLE mosCtx)
     {
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -172,7 +172,8 @@ protected:
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
-            &userFeatureData);
+            &userFeatureData,
+            mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
         this->m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
 
@@ -183,7 +184,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_HEVCDATROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_hevcDatRowStoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -192,7 +194,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_HEVCDFROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_hevcDfRowStoreCache.bSupported = userFeatureData.i32Data ? false : true;
 
@@ -201,7 +204,8 @@ protected:
             MOS_UserFeature_ReadValue_ID(
                 nullptr,
                 __MEDIA_USER_FEATURE_VALUE_HEVCSAOROWSTORECACHE_DISABLE_ID,
-                &userFeatureData);
+                &userFeatureData,
+                mosCtx);
 #endif // _DEBUG || _RELEASE_INTERNAL
             this->m_hevcSaoRowStoreCache.bSupported = userFeatureData.i32Data ? false : true;
         }
@@ -709,7 +713,7 @@ protected:
         {
             UserFeatureWriteData.Value.i32Data = 1;
         }
-        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1);
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, this->m_osInterface->pOsContext);
 #endif
 
         MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));

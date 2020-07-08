@@ -2174,14 +2174,16 @@ MOS_STATUS MOS_UserFeatureOpenKey(
     const char *lpSubKey,
     uint32_t   ulOptions,
     uint32_t   samDesired,
-    void       **phkResult)
+    void       **phkResult,
+    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo)
 {
     return MosUtilities::MosUserFeatureOpenKey(
         ufKey,
         lpSubKey,
         ulOptions,
         samDesired,
-        phkResult);
+        phkResult,
+        ufInfo);
 }
 
 MOS_STATUS MOS_UserFeatureCloseKey(void  *UFKey)

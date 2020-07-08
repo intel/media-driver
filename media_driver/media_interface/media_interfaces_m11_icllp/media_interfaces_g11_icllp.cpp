@@ -406,6 +406,7 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
     else if (CodecHalIsEncode(CodecFunction))
     {
         CodechalEncoderState *encoder = nullptr;
+
 #if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {

@@ -159,6 +159,10 @@ public:
     void RemoveFromDelayDestroyList(CmSurface *surface);
     std::set<CmSurface *> & GetStatelessSurfaceArray() { return m_statelessSurfaceArray; }
 
+#if MDF_SURFACE_CONTENT_DUMP
+    CM_HAL_STATE* GetHalState();
+#endif  // #if MDF_SURFACE_CONTENT_DUMP
+
 protected:
     CmSurfaceManagerBase( CmDeviceRT* pCmDevice );
     CmSurfaceManagerBase();

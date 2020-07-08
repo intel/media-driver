@@ -461,7 +461,7 @@ MOS_STATUS CodechalDecodeHistogramVebox::RenderHistogram(
     MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
     userFeatureWriteData.Value.i32Data = 1;
     userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_FROM_VEBOX_ID;
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
 
     return eStatus;
 }

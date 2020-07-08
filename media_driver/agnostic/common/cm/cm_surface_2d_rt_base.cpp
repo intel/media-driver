@@ -396,7 +396,7 @@ CM_RT_API int32_t CmSurface2DRTBase::GetIndex(SurfaceIndex*& index)
 
 CM_RT_API int32_t CmSurface2DRTBase::SetCompressionMode(MEMCOMP_STATE mmcMode)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr = CM_SUCCESS;
     CM_HAL_SURFACE2D_COMPRESSIOM_PARAM mmcModeParam;
@@ -435,7 +435,7 @@ CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceFullStride(
     const unsigned char* sysMem, CmEvent* event, const uint32_t horizontalStride,
     const uint32_t verticalStride, uint64_t sysMemSize)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint8_t         *dst = nullptr;
@@ -612,7 +612,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceStride(const unsigned char* sysMem, CmEvent* event, const uint32_t stride, uint64_t sysMemSize)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     return WriteSurfaceFullStride(sysMem, event, stride, m_height, sysMemSize);
 }
@@ -630,7 +630,7 @@ CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceStride(const unsigned char* sys
 
 CM_RT_API int32_t CmSurface2DRTBase::WriteSurface(const unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     uint32_t        sizePerPixel = 0;
     uint32_t        UVHeight = 0;
     uint32_t        UVpitch = 0;
@@ -660,7 +660,7 @@ CM_RT_API int32_t CmSurface2DRTBase::WriteSurface(const unsigned char* sysMem, C
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmSurface2DRTBase::WriteSurfaceHybridStrides( const unsigned char* sysMem, CmEvent* event, const uint32_t horizontalStride, const uint32_t verticalStride, uint64_t sysMemSize, uint32_t option )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     int32_t     hr                  = CM_SUCCESS;
     uint32_t    sizePerPixel        = 0;
@@ -733,7 +733,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceStride( unsigned char* sysMem, CmEvent* event, const uint32_t stride, uint64_t sysMemSize )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     return ReadSurfaceFullStride(sysMem, event, stride, m_height, sysMemSize);
 }
@@ -755,7 +755,7 @@ CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceStride( unsigned char* sysMem, C
 CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceFullStride( unsigned char* sysMem, CmEvent* event,
                     const uint32_t horizontalStride, const uint32_t verticalStride, uint64_t sysMemSize )
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE  hr = CM_SUCCESS;
     uint8_t         *dst = nullptr;
@@ -931,7 +931,7 @@ finish:
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmSurface2DRTBase::ReadSurface(unsigned char* sysMem, CmEvent* event, uint64_t sysMemSize)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     uint32_t        sizePerPixel = 0;
     uint32_t        UVHeight = 0;
     uint32_t        UVpitch = 0;
@@ -960,7 +960,7 @@ CM_RT_API int32_t CmSurface2DRTBase::ReadSurface(unsigned char* sysMem, CmEvent*
 //*-----------------------------------------------------------------------------
 CM_RT_API int32_t CmSurface2DRTBase::ReadSurfaceHybridStrides(unsigned char* sysMem, CmEvent* event, const uint32_t horizontalStride, const uint32_t verticalStride, uint64_t sysMemSize, uint32_t option)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     int32_t     hr = CM_SUCCESS;
     uint32_t    sizePerPixel = 0;
@@ -1113,7 +1113,7 @@ CM_RT_API int32_t CmSurface2DRTBase::GetSurfaceDesc(uint32_t &width, uint32_t &h
 
 CM_RT_API int32_t CmSurface2DRTBase::InitSurface(const unsigned int initValue, CmEvent* event)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE                      hr          = CM_SUCCESS;
     CmDeviceRT*                         cmDevice   = nullptr;
@@ -1212,14 +1212,14 @@ finish:
 
 CM_RT_API int32_t CmSurface2DRTBase::SelectMemoryObjectControlSetting(MEMORY_OBJECT_CONTROL memCtrl)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     ++ m_propertyIndex;
     return SetMemoryObjectControl(memCtrl, CM_USE_PTE, 0);
 }
 
 CMRT_UMD_API int32_t CmSurface2DRTBase::SetResourceUsage(const MOS_HW_RESOURCE_DEF mosUsage)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
     int32_t  hr = CM_SUCCESS;
     uint16_t mocs = 0;
     hr = CmSurface::SetResourceUsage(mosUsage);
@@ -1240,7 +1240,7 @@ finish:
 
 int32_t CmSurface2DRTBase::Create2DAlias(SurfaceIndex* & aliasIndex)
 {
-    INSERT_API_CALL_LOG();
+    INSERT_API_CALL_LOG(nullptr);
 
     uint32_t surfArraySize = 0;
 
@@ -1390,7 +1390,8 @@ void CmSurface2DRTBase::DumpContentToFile(const char *filename)
         << "_f_" << GetFormatString(m_format)
         << "_" << surface2DDumpNumber;
 
-    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix);
+    GetLogFileLocation(outputFileName.str().c_str(), fileNamePrefix,
+                       GetMosContext());
     std::ofstream outputFileStream;
     // Open file
     outputFileStream.open(fileNamePrefix, std::ios::app | std::ios::binary);

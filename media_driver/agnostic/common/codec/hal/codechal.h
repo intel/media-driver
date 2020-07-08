@@ -50,23 +50,23 @@ class USERMODE_DEVICE_CONTEXT;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 
-#define CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(surface)                                                           \
+#define CODECHAL_UPDATE_ENCODE_MMC_USER_FEATURE(surface, mosCtx)                                                \
 {                                                                                                               \
     MOS_USER_FEATURE_VALUE_WRITE_DATA       userFeatureWriteData;                                               \
     \
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;                                              \
     userFeatureWriteData.Value.i32Data = surface.bCompressible;                                                \
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSIBLE_ID;                        \
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, mosCtx);                                      \
     \
     userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;                                              \
     userFeatureWriteData.Value.i32Data = surface.MmcState;                                                     \
     userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_MMC_ENC_RECON_COMPRESSMODE_ID;                        \
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, mosCtx);                                       \
 }
 #endif
 
-#define CODECHAL_UPDATE_VDBOX_USER_FEATURE(videoGpuNode)                                                        \
+#define CODECHAL_UPDATE_VDBOX_USER_FEATURE(videoGpuNode, mosCtx)                                                \
 do                                                                                                              \
 {                                                                                                               \
     MOS_USER_FEATURE_VALUE_ID               valueID;                                                            \
@@ -78,22 +78,23 @@ do                                                                              
         __MEDIA_USER_FEATURE_VALUE_NUMBER_OF_CODEC_DEVICES_ON_VDBOX1_ID);                                           \
                                                                                                                 \
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));                                                  \
-    MOS_UserFeature_ReadValue_ID(                                                                             \
-        nullptr,                                                                                                   \
+    MOS_UserFeature_ReadValue_ID(                                                                               \
+        nullptr,                                                                                                \
         valueID,                                                                                                \
-        &userFeatureData);                                                                                      \
+        &userFeatureData,                                                                                       \
+        mosCtx);                                                                                                \
                                                                                                                 \
     userFeatureData.i32Data++;                                                                                  \
-    MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));                                              \
+    MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));                                        \
     userFeatureWriteData.ValueID = valueID;                                                                     \
     MOS_CopyUserFeatureValueData(                                                                               \
             &userFeatureData,                                                                                   \
             &userFeatureWriteData.Value,                                                                        \
             MOS_USER_FEATURE_VALUE_TYPE_INT32);                                                                 \
-    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                               \
+    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, mosCtx);                                  \
 } while (0)
 
-#define CODECHAL_UPDATE_USED_VDBOX_ID_USER_FEATURE(instanceId)                                                  \
+#define CODECHAL_UPDATE_USED_VDBOX_ID_USER_FEATURE(instanceId, mosCtx)                                          \
 do                                                                                                              \
 {                                                                                                               \
     MOS_USER_FEATURE_VALUE_ID               valueID;                                                            \
@@ -105,7 +106,8 @@ do                                                                              
     MOS_UserFeature_ReadValue_ID(                                                                               \
         nullptr,                                                                                                \
         valueID,                                                                                                \
-        &userFeatureData);                                                                                      \
+        &userFeatureData,                                                                                       \
+        mosCtx);                                                                                                \
                                                                                                                 \
     if(!(userFeatureData.i32DataFlag & (1 << ((instanceId) << 2))))                                             \
     {                                                                                                           \
@@ -116,7 +118,7 @@ do                                                                              
             &userFeatureData,                                                                                   \
             &userFeatureWriteData.Value,                                                                        \
             MOS_USER_FEATURE_VALUE_TYPE_INT32);                                                                 \
-        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);                                      \
+        MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, mosCtx);                              \
     }                                                                                                           \
 } while (0)
 

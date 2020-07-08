@@ -1824,7 +1824,8 @@ MOS_STATUS CodechalEncodeAvcEncG9Skl::InitMfe()
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_MFE_MBENC_ENABLE_ID,
-            &UserFeatureData);
+            &UserFeatureData,
+            m_osInterface->pOsContext);
         m_mfeMbEncEanbled = (UserFeatureData.i32Data) ? true : false;
 
         m_mfeInitialized = true;

@@ -146,6 +146,8 @@ void VpHal_DdiReportFeatureMode(
 //!           Pointer to struct for split-screen demo mode parameters
 //! \param    [in,out] disableDemoMode
 //!           Return whether demo mode will be disable or not
+//! \param    [in] disableDemoMode
+//!           Pointer to MOS INTERFACE for OS interaction
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
@@ -153,7 +155,8 @@ MOS_STATUS VpHal_DdiSetupSplitScreenDemoMode(
     uint32_t                                splitDemoPosDdi,
     uint32_t                                splitDemoParaDdi,
     PVPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS    *splitScreenDemoModeParams,
-    bool                                    *disableDemoMode);
+    bool                                    *disableDemoMode,
+    PMOS_INTERFACE                          pOsInterface);
 
 //!
 //! \brief    Init IEF Params to their default value

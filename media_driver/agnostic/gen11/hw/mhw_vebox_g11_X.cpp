@@ -228,7 +228,8 @@ MhwVeboxInterfaceG11::MhwVeboxInterfaceG11(
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        m_osInterface->pOsContext);
     m_veboxSplitRatio = UserFeatureData.u32Data;
 #endif
 }

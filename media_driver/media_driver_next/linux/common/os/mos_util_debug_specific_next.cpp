@@ -124,7 +124,7 @@ void MosUtilDebug::MosHltpPreface(PFILE pFile)
     fflush(pFile);
 }
 
-MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char  *fileNamePrefix)
+MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx)
 {
     int32_t                             iRet = 0;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
@@ -152,7 +152,8 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char  *fileNamePrefix)
     eStatus = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID,
-        &UserFeatureData);
+        &UserFeatureData,
+        mosCtx);
 
     // If the user feature key was not found, create it with the default value.
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -170,7 +171,7 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char  *fileNamePrefix)
             UserFeatureWriteData.Value.StringData.uSize = strlen(fileNamePrefix) + 1;
             UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID;
 
-            eStatus = MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1);
+            eStatus = MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);
         }
         else
         {

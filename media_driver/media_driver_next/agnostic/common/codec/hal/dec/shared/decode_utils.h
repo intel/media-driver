@@ -189,14 +189,15 @@ MOS_STATUS FreeDataList(type **dataList, uint32_t length)
     return MOS_STATUS_SUCCESS;
 }
 
-inline MOS_USER_FEATURE_VALUE_DATA ReadUserFeature(MOS_USER_FEATURE_VALUE_ID id)
+inline MOS_USER_FEATURE_VALUE_DATA ReadUserFeature(MOS_USER_FEATURE_VALUE_ID id, MOS_CONTEXT_HANDLE mosCtx)
 {
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         id,
-        &userFeatureData);
+        &userFeatureData,
+        mosCtx);
     return userFeatureData;
 }
 

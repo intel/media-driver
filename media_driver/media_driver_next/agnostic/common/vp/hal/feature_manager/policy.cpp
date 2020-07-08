@@ -49,7 +49,8 @@ Policy::Policy(VpInterface &vpInterface) : m_vpInterface(vpInterface)
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_BYPASS_COMPOSITION_ID,
-        &UserFeatureData));
+        &UserFeatureData,
+        m_vpInterface.GetHwInterface() && m_vpInterface.GetHwInterface()->m_osInterface ? m_vpInterface.GetHwInterface()->m_osInterface->pOsContext : nullptr));
     m_bypassCompMode = UserFeatureData.u32Data;
 }
 

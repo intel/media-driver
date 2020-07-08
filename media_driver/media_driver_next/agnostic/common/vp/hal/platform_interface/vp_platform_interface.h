@@ -34,8 +34,9 @@ class VpPlatformInterface
 {
 public:
 
-    VpPlatformInterface()
+    VpPlatformInterface(PMOS_INTERFACE pOsInterface)
     {
+        m_pOsInterface = pOsInterface;
     }
 
     virtual ~VpPlatformInterface()
@@ -62,6 +63,9 @@ public:
     {
         return nullptr;
     }
+
+protected:
+    PMOS_INTERFACE m_pOsInterface = nullptr;
 };
 
 }

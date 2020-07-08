@@ -188,6 +188,8 @@ public:
 
 #if CM_LOG_ON
     std::string Log();
+
+    CM_HAL_STATE* GetHalState();
 #endif
 
     CmThreadGroupSpace *GetThreadGroupSpace() const;

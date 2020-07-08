@@ -1273,32 +1273,32 @@ void DdiMediaDecode::ReportDecodeMode(
         case CODECHAL_DECODE_MODE_MPEG2IDCT:
         case CODECHAL_DECODE_MODE_MPEG2VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MPEG2_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
         case CODECHAL_DECODE_MODE_VC1IT:
         case CODECHAL_DECODE_MODE_VC1VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VC1_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
         case CODECHAL_DECODE_MODE_AVCVLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_AVC_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
         case CODECHAL_DECODE_MODE_JPEG:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_JPEG_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
         case CODECHAL_DECODE_MODE_VP8VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VP8_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
         case CODECHAL_DECODE_MODE_HEVCVLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_HEVC_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
         case CODECHAL_DECODE_MODE_VP9VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VP9_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
         default:
             break;
