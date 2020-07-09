@@ -2805,11 +2805,6 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(PrepareVDEncStreamInData());
 
-    if (m_encodeParams.bLaDataEnabled == false)
-    {
-        m_encodeParams.psLaDataBuffer = &m_vdencLaDataBuffer;
-    }
-
     if ((m_lookaheadDepth > 0) && (m_prevTargetFrameSize > 0) && !m_lookaheadPass)
     {
         int64_t targetBufferFulness = (int64_t)m_targetBufferFulness;
@@ -3007,7 +3002,6 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
         m_osInterface->pfnUnlockResource(m_osInterface, encodeStatus->sliceReport.pSliceSize);
     }
 
-    encodeStatusReport->cqmHint = 0xFF;
     if (m_lookaheadPass && m_lookaheadReport && (encodeStatus->lookaheadStatus.targetFrameSize > 0))
     {
         encodeStatusReport->pLookaheadStatus = &encodeStatus->lookaheadStatus;
@@ -3038,11 +3032,9 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
             m_prevTargetFrameSize = encodeStatus->lookaheadStatus.targetFrameSize;
         }
 
-        encodeStatusReport->cqmHint = encodeStatus->lookaheadStatus.cqmHint;
         if (encodeStatus->lookaheadStatus.cqmHint > 1)
         {
             // Currently only 0x00 and 0x01 are valid. Report invalid (0xFF) for other values.
-            encodeStatusReport->cqmHint = 0xFF;
             encodeStatus->lookaheadStatus.cqmHint = 0xFF;
         }
     }

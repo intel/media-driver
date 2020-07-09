@@ -5941,7 +5941,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[0].presRegion = &m_vdencLaHistoryBuffer; 
     virtualAddrParams.regionParams[0].isWritable = true; 
     virtualAddrParams.regionParams[1].presRegion = &m_vdencLaStatsBuffer; 
-    virtualAddrParams.regionParams[2].presRegion = m_encodeParams.psLaDataBuffer;
+    virtualAddrParams.regionParams[2].presRegion = &m_vdencLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true; 
 
 #if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
@@ -5961,16 +5961,15 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.ReadOnly = true;
 
-        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, m_encodeParams.psLaDataBuffer, &lockFlags);
+        CodechalVdencHevcLaData *data = (CodechalVdencHevcLaData *)m_osInterface->pfnLockResource(m_osInterface, &m_vdencLaDataBuffer, &lockFlags);
         CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
-        MOS_SecureMemcpy(
-            encodeStatusBuf.pEncodeStatus + baseOffset + encodeStatusBuf.dwLookaheadStatusOffset,
-            sizeof(uint32_t),
-            data + dmem->offset * sizeof(CodechalEncodeLaData) + CODECHAL_OFFSETOF(CodechalEncodeLaData, report),
-            sizeof(uint32_t));
+        LookaheadReport *lookaheadStatus = (LookaheadReport *)(encodeStatusBuf.pEncodeStatus + baseOffset + encodeStatusBuf.dwLookaheadStatusOffset);
+        lookaheadStatus->targetFrameSize = data[dmem->offset].targetFrameSize;
+        lookaheadStatus->targetBufferFulness = data[dmem->offset].targetBufferFulness;
+        lookaheadStatus->encodeHints = data[dmem->offset].encodeHints;
 
-        m_osInterface->pfnUnlockResource(m_osInterface, m_encodeParams.psLaDataBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaDataBuffer);
 
         return eStatus;
     }
@@ -6031,7 +6030,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
     uint32_t baseOffset =
         (encodeStatusBuf.wCurrIndex * encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // pEncodeStatus is offset by 2 DWs in the resource
     MOS_ZeroMemory(&miCpyMemMemParams, sizeof(MHW_MI_COPY_MEM_MEM_PARAMS));
-    miCpyMemMemParams.presSrc = m_encodeParams.psLaDataBuffer;
+    miCpyMemMemParams.presSrc = &m_vdencLaDataBuffer;
     miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, encodeHints);
     miCpyMemMemParams.presDst = &encodeStatusBuf.resStatusBuffer;
     miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, encodeHints);

@@ -913,7 +913,6 @@ struct EncodeStatusReport
     uint8_t                         UsedVdBoxNumber;        //!< Number of vdbox used.
     uint32_t                        SizeOfSliceSizesBuffer; //!< Store the size of slice size buffer
     uint16_t                        *pSliceSizes;           //!< Pointer to the slice size buffer
-    uint8_t                         cqmHint;                //!< CQM hint. 0x00 - flat matrix; 0x01 - enable CQM; 0xFF - invalid hint; other vlaues are reserved.
     uint32_t                        SizeOfTileInfoBuffer;   //!< Store the size of tile info buffer
     CodechalTileInfo*               pHEVCTileinfo;          //!< Pointer to the tile info buffer
     uint32_t                        NumTileReported;        //!< The number of tiles reported in status
@@ -1071,28 +1070,6 @@ struct VdencBrcPakMmio
 struct VdencHucErrorStatus
 {
     uint32_t                dwErrorFlag[4];
-};
-
-//!
-//! \struct    CodechalEncodeLaData
-//! \brief     Codechal encode lookahead analysis output data structure, used by BRC kernel
-//!
-struct CodechalEncodeLaData
-{
-    uint32_t reserved0[1];
-    uint32_t targetFrameSize;
-    uint32_t targetBufferFulness;
-    uint32_t reserved1[2];
-    union
-    {
-        struct
-        {
-            uint32_t cqmHint    : 8;  //!< Custom quantization matrix hint. 0x00 - flat matrix; 0x01 - CQM; 0xFF - invalid hint; other values are reserved.
-            uint32_t reserved2  : 24;
-        };
-        uint32_t report;
-    };
-    uint32_t reserved3[10];
 };
 
 //!
