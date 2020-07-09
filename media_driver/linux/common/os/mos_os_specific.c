@@ -1842,7 +1842,16 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
             }
             Linux_ReleaseGPUStatus(perStreamParameters);
         }
-
+        if (perStreamParameters->intel_context)
+        {
+            if (perStreamParameters->intel_context->vm)
+            {
+                mos_gem_vm_destroy(perStreamParameters->intel_context->bufmgr, perStreamParameters->intel_context->vm);
+                perStreamParameters->intel_context->vm = nullptr;
+            }
+            mos_gem_context_destroy(perStreamParameters->intel_context);
+            perStreamParameters->intel_context = nullptr;
+        }
         perStreamParameters->GmmFuncs.pfnDeleteClientContext(perStreamParameters->pGmmClientContext);
         MOS_FreeMemAndSetNull(perStreamParameters->pPerfData);
         MOS_FreeMemAndSetNull(perStreamParameters);
@@ -1886,8 +1895,6 @@ void Mos_Specific_Destroy(
         }
         return;
     }
-
-
 
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(nullptr))
     {
