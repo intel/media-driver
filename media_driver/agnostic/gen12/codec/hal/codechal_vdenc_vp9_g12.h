@@ -1262,5 +1262,7 @@ public:
     MOS_STATUS AddCommandsVp9(
         uint32_t commandType,
         PMOS_COMMAND_BUFFER cmdBuffer);
+    MOS_STATUS AddBrcConditionalEnd();
+    MOS_STATUS InsertConditionalBBEndWithHucErrorStatus(PMOS_COMMAND_BUFFER cmdBuffer);
 };
 #endif  // __CODECHAL_VDENC_VP9_G12_H__

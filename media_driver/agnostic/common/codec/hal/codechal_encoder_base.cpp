@@ -3827,7 +3827,8 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             )
 
             if ((m_standard == CODECHAL_HEVC && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetHevcVdencHucErrorFlagMask())) ||
-                (m_standard == CODECHAL_AVC  && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetAvcVdencHucErrorFlagMask())))
+                (m_standard == CODECHAL_AVC  && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetAvcVdencHucErrorFlagMask())) ||
+                (m_standard == CODECHAL_VP9 && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetVp9VdencHucErrorFlagMask())) )
             {
                 CODECHAL_ENCODE_ASSERTMESSAGE("HuC status indicates error");
                 CODECHAL_DEBUG_TOOL(

@@ -5041,6 +5041,10 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9PakInt(
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
+    auto mmioRegisters = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(cmdBuffer));
+
     CODECHAL_DEBUG_TOOL(
     // Dump input Pak Integration buffers before running HuC
     m_debugInterface->DumpHucRegion(
@@ -5384,6 +5388,10 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
     storeRegParams.dwRegister = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1)->hucStatusRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
 
+    auto mmioRegisters = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
+
     // In case of other pipes running other tiles, signal the vdenc/pak hw commands there to proceed because huc done
     if (m_scalableMode && m_isTilingSupported)
     {
@@ -5618,6 +5626,10 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcInitReset()
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+
+    auto mmioRegisters = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
@@ -5893,6 +5905,24 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
 
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+    storeDataParams.pOsResource      = &m_resHucPakMmioBuffer;
+    storeDataParams.dwResourceOffset = sizeof(uint32_t);
+    storeDataParams.dwValue          = 1 << 31;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(&cmdBuffer, &storeDataParams));
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegParams;
+    MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+    storeRegParams.presStoreBuffer = &m_resHucPakMmioBuffer;
+    storeRegParams.dwOffset        = 0;
+    storeRegParams.dwRegister      = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1)->hucStatusRegOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
+
+    auto mmioRegisters = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, false));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
+
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
@@ -6067,6 +6097,58 @@ MOS_STATUS CodechalVdencVp9StateG12::ConfigStitchDataBuffer()
     MOS_SecureMemcpy(hucStitchDataBuf->InputCOM[0].data, sizeof(HucInputCmdG12), &hucInputCmd, sizeof(HucInputCmdG12));
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucStitchDataBuffer[m_currRecycledBufIdx][currentPass]);
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencVp9StateG12::AddBrcConditionalEnd()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    if (m_hucEnabled && (m_numPasses > 0) && m_vdencBrcEnabled && GetCurrentPass() == 1 && !m_scalableMode && !m_singlePassDys && !m_dysVdencMultiPassEnabled)
+    {
+        MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS miConditionalBatchBufferEndParams;
+        MOS_ZeroMemory(
+            &miConditionalBatchBufferEndParams,
+            sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
+
+        miConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resHucPakMmioBuffer;
+        miConditionalBatchBufferEndParams.bDisableCompareMask = false;
+
+        MOS_COMMAND_BUFFER cmdBuffer;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+            &cmdBuffer,
+            &miConditionalBatchBufferEndParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ReturnCommandBuffer(&cmdBuffer));
+        return eStatus;
+    }
+    else
+    {
+        return eStatus;
+    }
+}
+
+MOS_STATUS CodechalVdencVp9StateG12::InsertConditionalBBEndWithHucErrorStatus(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS miEnhancedConditionalBatchBufferEndParams;
+
+    MOS_ZeroMemory(
+        &miEnhancedConditionalBatchBufferEndParams,
+        sizeof(MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS));
+
+    miEnhancedConditionalBatchBufferEndParams.presSemaphoreBuffer = &m_resHucErrorStatusBuffer;
+
+    miEnhancedConditionalBatchBufferEndParams.dwParamsType                   = MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS::ENHANCED_PARAMS;
+    miEnhancedConditionalBatchBufferEndParams.enableEndCurrentBatchBuffLevel = false;
+    miEnhancedConditionalBatchBufferEndParams.compareOperation               = MAD_EQUAL_IDD;
+    miEnhancedConditionalBatchBufferEndParams.bDisableCompareMask            = false;
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+        cmdBuffer,
+        (PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS)(&miEnhancedConditionalBatchBufferEndParams)));
 
     return eStatus;
 }
