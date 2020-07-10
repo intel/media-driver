@@ -120,6 +120,7 @@ Media driver supports two build types as below
 | VP9 10bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
 | VP9 12bit | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
 | VP9 12bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
+AV1 hardware decoding is supported from Gen12+ platformes.
 
 * D  - Hardware Decoding
 * E  - Hardware Encoding, Low Power Encoding(VDEnc/Huc)
