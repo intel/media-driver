@@ -160,7 +160,7 @@ MOS_STATUS CmdTask::DumpCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, CodechalDebugIn
 
         // Put pipe index to file name
         std::stringstream pipeIdxStrStream;
-        pipeIdxStrStream << "_" << pipeIdx;
+        pipeIdxStrStream << "_" << uint32_t(pipeIdx);
         packetName += pipeIdxStrStream.str();
 
         MEDIA_CHK_STATUS_RETURN(debugInterface->DumpCmdBuffer(
@@ -185,7 +185,7 @@ MOS_STATUS CmdTask::DumpCmdBufferAllPipes(PMOS_COMMAND_BUFFER cmdBuffer, Codecha
         {
             scalability->SetCurrentPipeIndex(pipeIdx);
             MEDIA_CHK_STATUS_RETURN(scalability->GetCmdBuffer(cmdBuffer));
-            MEDIA_CHK_STATUS_RETURN(DumpCmdBuffer(cmdBuffer, debugInterface));
+            MEDIA_CHK_STATUS_RETURN(DumpCmdBuffer(cmdBuffer, debugInterface, pipeIdx));
             MEDIA_CHK_STATUS_RETURN(scalability->ReturnCmdBuffer(cmdBuffer));
         }
 
