@@ -94,12 +94,60 @@ struct FeatureIDs
     }                                                                                               \
 }
 
+//!
+//! \def LOOP_FEATURE_INTERFACE_RETURN(_interfaceClass, _interface, ...)
+//!  Run _featureInterface for all features
+//!
+#define LOOP_FEATURE_INTERFACE_RETURN(_interfaceClass, _interface, ...)  \
+    {                                                                    \
+        if (m_featureManager)                                            \
+        {                                                                \
+            for (auto feature : *m_featureManager)                       \
+            {                                                            \
+                auto itf = dynamic_cast<_interfaceClass *>(feature);     \
+                if (itf)                                                 \
+                {                                                        \
+                    MHW_CHK_STATUS_RETURN(itf->_interface(__VA_ARGS__)); \
+                }                                                        \
+            }                                                            \
+        }                                                                \
+    }
+
+//!
+//! \def LOOP_FEATURE_INTERFACE_NO_RETURN(_interfaceClass, _interface, ...)
+//!  Run _featureInterface for all features
+//!
+#define LOOP_FEATURE_INTERFACE_NO_RETURN(_interfaceClass, _interface, ...) \
+    {                                                                      \
+        if (m_featureManager)                                              \
+        {                                                                  \
+            for (auto feature : *m_featureManager)                         \
+            {                                                              \
+                auto itf = dynamic_cast<_interfaceClass *>(feature);       \
+                if (itf)                                                   \
+                {                                                          \
+                    itf->_interface(__VA_ARGS__);                          \
+                }                                                          \
+            }                                                              \
+        }                                                                  \
+    }
 
 class MediaFeature;
 
 class MediaFeatureManager
 {
+protected:
+    using container_t = std::map<int, MediaFeature *>;
+
 public:
+    class iterator : public container_t::iterator
+    {
+    public:
+        explicit iterator(container_t::iterator it) : container_t::iterator(it) {}
+
+        container_t::mapped_type operator*() { return (*this)->second; }
+    };
+
     //!
     //! \brief  MediaFeatureManager constructor
     //!
@@ -109,6 +157,10 @@ public:
     //! \brief  MediaFeatureManager deconstructor
     //!
     virtual ~MediaFeatureManager() { Destroy(); }
+
+    iterator begin() { return iterator(m_features.begin()); }
+
+    iterator end() { return iterator(m_features.end()); }
 
     //!
     //! \brief  Initialize all features
@@ -203,7 +255,7 @@ protected:
     //!
     uint8_t GetTargetUsage(){return m_targetUsage;}
 
-    std::map<int, MediaFeature *> m_features;
+    container_t m_features;
     MediaFeatureConstSettings *m_featureConstSettings = nullptr;
     uint8_t m_targetUsage = 0;
     uint8_t m_passNum = 1;
