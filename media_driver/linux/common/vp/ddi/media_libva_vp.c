@@ -1189,14 +1189,11 @@ DdiVp_SetProcPipelineParams(
         }
     }
 
+    pVpHalSrcSurf->uFwdRefCount = 0;
+    pVpHalSrcSurf->uBwdRefCount = 0;
     // Update fwd and bkward ref frames: Required for Advanced processing - will be supported in the future
-
-    pVpHalSrcSurf->uFwdRefCount  = pPipelineParam->num_forward_references;
-
     vaStatus = DdiVp_UpdateProcPipelineForwardReferenceFrames(pVpCtx, pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
     DDI_CHK_RET(vaStatus, "Failed to update forward reference frames!");
-
-    pVpHalSrcSurf->uBwdRefCount  = pPipelineParam->num_backward_references;
 
     vaStatus = DdiVp_UpdateProcPipelineBackwardReferenceFrames(pVpCtx, pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
     DDI_CHK_RET(vaStatus, "Failed to update backward reference frames!");
@@ -3913,43 +3910,43 @@ DdiVp_UpdateProcPipelineForwardReferenceFrames(
         for (i = 0;i < pPipelineParam->num_forward_references; i++)
         {
             PDDI_MEDIA_SURFACE pRefSurfBuffObj = nullptr;
-            if(pSurface->pFwdRef == nullptr)
+            if(pSurface->pBwdRef == nullptr)
             {
-                pSurface->pFwdRef = (PVPHAL_SURFACE) MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
-                DDI_CHK_NULL(pSurface->pFwdRef, "Null pSurface->pFwdRef!", VA_STATUS_ERROR_ALLOCATION_FAILED);
+                pSurface->pBwdRef = (PVPHAL_SURFACE) MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+                DDI_CHK_NULL(pSurface->pBwdRef, "Null pSurface->pBwdRef!", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-                pSurface->pFwdRef->Format        = pVpHalSrcSurf->Format;
-                pSurface->pFwdRef->SurfType      = pVpHalSrcSurf->SurfType;
-                pSurface->pFwdRef->rcSrc         = pVpHalSrcSurf->rcSrc;
-                pSurface->pFwdRef->rcDst         = pVpHalSrcSurf->rcDst;
-                pSurface->pFwdRef->ColorSpace    = pVpHalSrcSurf->ColorSpace;
-                pSurface->pFwdRef->ExtendedGamut = pVpHalSrcSurf->ExtendedGamut;
-                pSurface->pFwdRef->SampleType    = pVpHalSrcSurf->SampleType;
-                pSurface->pFwdRef->ScalingMode   = pVpHalSrcSurf->ScalingMode;
-                pSurface->pFwdRef->OsResource    = pVpHalSrcSurf->OsResource;
-                pSurface->pFwdRef->dwWidth       = pVpHalSrcSurf->dwWidth;
-                pSurface->pFwdRef->dwHeight      = pVpHalSrcSurf->dwHeight;
-                pSurface->pFwdRef->dwPitch       = pVpHalSrcSurf->dwPitch;
-                pSurface->uFwdRefCount           = pPipelineParam->num_forward_references - i;
+                pSurface->pBwdRef->Format        = pVpHalSrcSurf->Format;
+                pSurface->pBwdRef->SurfType      = pVpHalSrcSurf->SurfType;
+                pSurface->pBwdRef->rcSrc         = pVpHalSrcSurf->rcSrc;
+                pSurface->pBwdRef->rcDst         = pVpHalSrcSurf->rcDst;
+                pSurface->pBwdRef->ColorSpace    = pVpHalSrcSurf->ColorSpace;
+                pSurface->pBwdRef->ExtendedGamut = pVpHalSrcSurf->ExtendedGamut;
+                pSurface->pBwdRef->SampleType    = pVpHalSrcSurf->SampleType;
+                pSurface->pBwdRef->ScalingMode   = pVpHalSrcSurf->ScalingMode;
+                pSurface->pBwdRef->OsResource    = pVpHalSrcSurf->OsResource;
+                pSurface->pBwdRef->dwWidth       = pVpHalSrcSurf->dwWidth;
+                pSurface->pBwdRef->dwHeight      = pVpHalSrcSurf->dwHeight;
+                pSurface->pBwdRef->dwPitch       = pVpHalSrcSurf->dwPitch;
+                pSurface->uBwdRefCount           = pPipelineParam->num_forward_references - i;
             }
             pRefSurfBuffObj = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, pPipelineParam->forward_references[i]);
             DDI_CHK_NULL(pRefSurfBuffObj,
                             "Null pRefSurfBuffObj!",
                              VA_STATUS_ERROR_INVALID_SURFACE);
 
-            pSurface->pFwdRef->OsResource.bo          = pRefSurfBuffObj->bo;
-            pSurface->pFwdRef->OsResource.Format      = VpGetFormatFromMediaFormat(pRefSurfBuffObj->format);
-            pSurface->pFwdRef->OsResource.iWidth      = pRefSurfBuffObj->iWidth;
-            pSurface->pFwdRef->OsResource.iHeight     = pRefSurfBuffObj->iHeight;
-            pSurface->pFwdRef->OsResource.iPitch      = pRefSurfBuffObj->iPitch;
-            pSurface->pFwdRef->OsResource.TileType    = VpGetTileTypeFromMediaTileType(pRefSurfBuffObj->TileType);
-            pSurface->pFwdRef->OsResource.pGmmResInfo = pRefSurfBuffObj->pGmmResourceInfo;
+            pSurface->pBwdRef->OsResource.bo          = pRefSurfBuffObj->bo;
+            pSurface->pBwdRef->OsResource.Format      = VpGetFormatFromMediaFormat(pRefSurfBuffObj->format);
+            pSurface->pBwdRef->OsResource.iWidth      = pRefSurfBuffObj->iWidth;
+            pSurface->pBwdRef->OsResource.iHeight     = pRefSurfBuffObj->iHeight;
+            pSurface->pBwdRef->OsResource.iPitch      = pRefSurfBuffObj->iPitch;
+            pSurface->pBwdRef->OsResource.TileType    = VpGetTileTypeFromMediaTileType(pRefSurfBuffObj->TileType);
+            pSurface->pBwdRef->OsResource.pGmmResInfo = pRefSurfBuffObj->pGmmResourceInfo;
 
             Mos_Solo_SetOsResource(pRefSurfBuffObj->pGmmResourceInfo, &pSurface->OsResource);
 
-            pSurface->pFwdRef->FrameID                = pRefSurfBuffObj->frame_idx;
+            pSurface->pBwdRef->FrameID                = pRefSurfBuffObj->frame_idx;
 
-            pSurface = pSurface->pFwdRef;
+            pSurface = pSurface->pBwdRef;
         }
      }
 
