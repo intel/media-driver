@@ -325,7 +325,7 @@ protected:
 
     // Allocator interface
     PVpAllocator                    &m_allocator;                               //!< vp pipeline allocator
-    VpIef                           *m_iefObj;
+    VpIef                           *m_iefObj = nullptr;
 };
 
 }
