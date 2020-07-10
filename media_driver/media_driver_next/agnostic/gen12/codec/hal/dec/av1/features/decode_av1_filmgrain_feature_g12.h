@@ -304,7 +304,7 @@ public:
     uint32_t                        m_kernelSize[kernelNum];                                            //!< Kernel size
     MHW_KERNEL_STATE                m_kernelStates[kernelNum];                                          //!< Kernel state
     uint32_t                        m_dshSize[kernelNum];                                               //!< DSH size
-    MOS_RESOURCE                    m_syncObject;                                                       //!< Sync Object
+    MOS_RESOURCE                    m_syncObject = {};                                                  //!< Sync Object
 
     //!
     //! \brief    Initialize state heap settings and kernel params
