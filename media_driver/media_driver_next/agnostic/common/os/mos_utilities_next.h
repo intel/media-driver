@@ -1953,6 +1953,13 @@ public:
         uint8_t  num_of_triples,
         va_list  args);
 
+    //!
+    //! \brief    MosIsProfilerDumpEnabled
+    //! \details  Function: if to enable UMD profiler dump
+    //! \return   bool
+    //!
+    static bool MosIsProfilerDumpEnabled();
+
 private:
 
     //!

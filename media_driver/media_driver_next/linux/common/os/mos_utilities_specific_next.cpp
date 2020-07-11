@@ -2162,6 +2162,11 @@ void MosUtilities::MosGfxInfoInternal(
     // not implemented
 }
 
+bool MosUtilities::MosIsProfilerDumpEnabled()
+{
+    return true;
+}
+
 void MosUtilities::MosGfxInfo(
     uint8_t         ver,
     uint16_t        compId,

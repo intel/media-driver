@@ -175,12 +175,15 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
     {
         if (profiler->m_initialized == true)
         {
-            profiler->SavePerfData(osInterface);
-    
+            if(profiler->m_enableProfilerDump)
+            {
+                profiler->SavePerfData(osInterface);
+            }
+
             osInterface->pfnFreeResource(
                 osInterface,
                 &profiler->m_perfStoreBuffer);
-    
+
             profiler->m_initialized = false;
         }
 
@@ -224,6 +227,8 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         MOS_UnlockMutex(m_mutex);
         return status;
     }
+
+    m_enableProfilerDump = MosUtilities::MosIsProfilerDumpEnabled();
 
     // Read output file name
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

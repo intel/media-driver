@@ -254,6 +254,7 @@ protected:
 
     bool                       m_initialized = false;   //!< Indicate whether profiler was initialized
     char                       m_outputFileName[MOS_MAX_PATH_LENGTH + 1];  //!< Name of output file
+    bool                       m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
 };
 
 #endif // __MEDIA_PERF_PROFILER_H__
