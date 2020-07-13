@@ -30,6 +30,7 @@
 #include "media_interfaces_mhw.h"
 #include "mhw_blt.h"
 #include "mhw_mi.h"
+#include "mhw_cp_interface.h"
 #include "mos_os.h"
 
 #define BLT_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_BLT, MOS_BLT_SUBCOMP_SELF, _stmt)
@@ -44,16 +45,9 @@
 typedef struct _BLT_STATE_PARAM
 {
     bool             bCopyMainSurface;
-    PMOS_SURFACE     pSrcSurface;
-    PMOS_SURFACE     pDstSurface;
-}BLT_STATE_PARAM, *PBLT_STATE_PARAM;
-
-typedef struct _BLT_STATE_PARAM2
-{
-    bool             bCopyMainSurface;
     PMOS_RESOURCE    pSrcSurface;
     PMOS_RESOURCE    pDstSurface;
-}BLT_STATE_PARAM2, *PBLT_STATE_PARAM2;
+}BLT_STATE_PARAM, *PBLT_STATE_PARAM;
 
 
 class BltState
@@ -66,6 +60,7 @@ public:
     //!           [in] Pointer to MOS_INTERFACE.
     //!
     BltState(PMOS_INTERFACE     osInterface);
+    BltState(PMOS_INTERFACE    osInterface, MhwInterfaces* mhwInterfaces);
 
     virtual ~BltState();
 
@@ -106,10 +101,6 @@ public:
         PMOS_RESOURCE dst);
 
 protected:
-    virtual MOS_STATUS SetupFastCopyBltParam(
-        PMHW_FAST_COPY_BLT_PARAM mhwParams,
-        PMOS_SURFACE             inputSurface,
-        PMOS_SURFACE             outputSurface);
 
     //!
     //! \brief    Submit command
@@ -128,24 +119,13 @@ protected:
         PMOS_RESOURCE            inputSurface,
         PMOS_RESOURCE            outputSurface);
 
-    //!
-    //! \brief    Submit command
-    //! \details  Submit BLT command
-    //! \param    pBltStateParam
-    //!           [in] Pointer to BLT_STATE_PARAM
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS SubmitCMD(
-        PBLT_STATE_PARAM2 pBltStateParam);
-
-
 public:
-    PMOS_INTERFACE m_osInterface;
-    MhwInterfaces *mhwInterfaces;
+    PMOS_INTERFACE m_osInterface      = nullptr;
+    MhwInterfaces *m_mhwInterfaces    = nullptr;
+    MhwMiInterface *m_miInterface     = nullptr;
+    PMHW_BLT_INTERFACE m_bltInterface = nullptr;
+    MhwCpInterface *m_cpInterface     = nullptr;
     MhwInterfaces::CreateParams params;
-    MhwMiInterface *m_miInterface;
-    PMHW_BLT_INTERFACE m_bltInterface;
 };
 
 #endif // __VPHAL_BLT_H__

@@ -44,14 +44,8 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
     m_mhwInterfaces = mhwInterfaces;
 
     // blt init
-    m_bltState = MOS_New(BltState, m_osInterface);
-    if (m_bltState && !m_bltState->mhwInterfaces)
-    {
-        MCPY_ASSERTMESSAGE("allocate bltstate failed!");
-        MOS_Delete(m_bltState);
-        m_bltState = nullptr;
-        return MOS_STATUS_NULL_POINTER;
-    }
+    m_bltState = MOS_New(BltState, m_osInterface, m_mhwInterfaces);
+    MCPY_CHK_NULL_RETURN(m_bltState);
 
     // vebox init
 
@@ -116,6 +110,6 @@ MOS_STATUS MediaCopyStateM12_0::MediaRenderCopy(PMOS_RESOURCE src, PMOS_RESOURCE
 {
     // implementation
     // currently, still using mdf kernel.
-    return MOS_STATUS_INVALID_PARAMETER;
+    return MOS_STATUS_UNIMPLEMENTED;
 }
 

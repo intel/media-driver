@@ -26,7 +26,7 @@
 //!
 
 #include "media_blt.h"
-#include "mhw_cp_interface.h"
+
 //!
 //! \brief    BltState constructor
 //! \details  Initialize the BltState members.
@@ -35,26 +35,47 @@
 //!
 BltState::BltState(PMOS_INTERFACE    osInterface) :
     m_osInterface(osInterface),
-    mhwInterfaces(nullptr),
+    m_mhwInterfaces(nullptr),
     m_miInterface(nullptr),
-    m_bltInterface(nullptr)
+    m_bltInterface(nullptr),
+    m_cpInterface(nullptr)
 {
     MOS_ZeroMemory(&params, sizeof(params));
     params.Flags.m_blt = 1;
-    mhwInterfaces = MhwInterfaces::CreateFactory(params, osInterface);
-    if (mhwInterfaces != nullptr)
+    m_mhwInterfaces = MhwInterfaces::CreateFactory(params, osInterface);
+    if (m_mhwInterfaces != nullptr)
     {
-        m_bltInterface = mhwInterfaces->m_bltInterface;
-        m_miInterface  = mhwInterfaces->m_miInterface;
+        m_bltInterface = m_mhwInterfaces->m_bltInterface;
+        m_miInterface  = m_mhwInterfaces->m_miInterface;
     }
 }
 
+//!
+//! \brief    BltState constructor
+//! \details  Initialize the BltState members.
+//! \param    osInterface
+//!           [in] Pointer to MOS_INTERFACE.
+//!
+BltState::BltState(PMOS_INTERFACE    osInterface, MhwInterfaces* mhwInterfaces) :
+    m_osInterface(osInterface),
+    m_mhwInterfaces(nullptr),
+    m_miInterface(nullptr),
+    m_bltInterface(nullptr),
+    m_cpInterface(nullptr)
+{
+    m_bltInterface = mhwInterfaces->m_bltInterface;
+    m_miInterface  = mhwInterfaces->m_miInterface;
+    m_cpInterface  = mhwInterfaces->m_cpInterface;
+}
+
+
 BltState::~BltState()
 {
-    if (mhwInterfaces)
+    // component interface will be relesed in media copy.
+    if (m_mhwInterfaces)
     {
-        mhwInterfaces->Destroy();
-        MOS_Delete(mhwInterfaces);
+        m_mhwInterfaces->Destroy();
+        MOS_Delete(m_mhwInterfaces);
     }
 }
 
@@ -105,112 +126,7 @@ MOS_STATUS BltState::CopyMainSurface(
     PMOS_SURFACE src,
     PMOS_SURFACE dst)
 {
-    BLT_STATE_PARAM bltStateParam;
-
-    BLT_CHK_NULL_RETURN(src);
-    BLT_CHK_NULL_RETURN(dst);
-    BLT_CHK_NULL_RETURN(&src->OsResource);
-    BLT_CHK_NULL_RETURN(&dst->OsResource);
-    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
-
-    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
-    bltStateParam.bCopyMainSurface = true;
-    bltStateParam.pSrcSurface      = src;
-    bltStateParam.pDstSurface      = dst;
-
-    BLT_CHK_STATUS_RETURN(SubmitCMD(&bltStateParam));
-
-    // sync
-    MOS_LOCK_PARAMS flag;
-    flag.Value     = 0;
-    flag.WriteOnly = 1;
-    BLT_CHK_STATUS_RETURN(m_osInterface->pfnLockSyncRequest(m_osInterface, &dst->OsResource, &flag));
-    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
-    return MOS_STATUS_SUCCESS;
-}
-
-//!
-//! \brief    Setup fast copy parameters
-//! \details  Setup fast copy parameters for BLT Engine
-//! \param    mhwParams
-//!           [in/out] Pointer to MHW_FAST_COPY_BLT_PARAM
-//! \param    inputSurface
-//!           [in] Pointer to input surface
-//! \param    outputSurface
-//!           [in] Pointer to output surface
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS BltState::SetupFastCopyBltParam(
-    PMHW_FAST_COPY_BLT_PARAM pMhwBltParams,
-    PMOS_SURFACE             inputSurface,
-    PMOS_SURFACE             outputSurface)
-{
-    BLT_CHK_NULL_RETURN(pMhwBltParams);
-    BLT_CHK_NULL_RETURN(inputSurface);
-    BLT_CHK_NULL_RETURN(outputSurface);
-
-    pMhwBltParams->dwSrcPitch  = inputSurface->dwPitch;
-    pMhwBltParams->dwSrcTop    = 0;
-    pMhwBltParams->dwSrcLeft   = 0;
-    pMhwBltParams->dwDstPitch  = outputSurface->dwPitch;
-    pMhwBltParams->dwDstTop    = 0;
-    pMhwBltParams->dwDstLeft   = 0;
-    pMhwBltParams->dwDstBottom = outputSurface->dwHeight;
-    pMhwBltParams->dwDstRight  = outputSurface->dwPitch;
-
-    pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit
-
-    pMhwBltParams->pSrcOsResource = &inputSurface->OsResource;
-    pMhwBltParams->pDstOsResource = &outputSurface->OsResource;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-//!
-//! \brief    Submit command
-//! \details  Submit BLT command
-//! \param    pBltStateParam
-//!           [in] Pointer to BLT_STATE_PARAM
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS BltState::SubmitCMD(
-    PBLT_STATE_PARAM pBltStateParam)
-{
-    MOS_STATUS                   eStatus;
-    MOS_COMMAND_BUFFER           cmdBuffer;
-    MHW_FAST_COPY_BLT_PARAM      fastCopyBltParam;
-
-    // Set GPU context
-    m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_BLT);
-
-    // Initialize the command buffer struct
-    MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
-    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
-
-    if (pBltStateParam->bCopyMainSurface)
-    {
-        BLT_CHK_STATUS_RETURN(SetupFastCopyBltParam(
-            &fastCopyBltParam,
-            pBltStateParam->pSrcSurface,
-            pBltStateParam->pDstSurface));
-        BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
-            &cmdBuffer,
-            &fastCopyBltParam));
-    }
-
-    // Add flush DW
-    MHW_MI_FLUSH_DW_PARAMS FlushDwParams;
-    MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
-    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &FlushDwParams));
-
-    // Add Batch Buffer end
-    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
-
-    // Flush the command buffer
-    BLT_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
-
+    BLT_CHK_STATUS_RETURN(CopyMainSurface(&src->OsResource, &dst->OsResource));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -228,13 +144,13 @@ MOS_STATUS BltState::CopyMainSurface(
     PMOS_RESOURCE src,
     PMOS_RESOURCE dst)
 {
-    BLT_STATE_PARAM2 bltStateParam;
+    BLT_STATE_PARAM bltStateParam;
 
     BLT_CHK_NULL_RETURN(src);
     BLT_CHK_NULL_RETURN(dst);
     MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
-    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM2));
+    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
     bltStateParam.bCopyMainSurface = true;
     bltStateParam.pSrcSurface      = src;
     bltStateParam.pDstSurface      = dst;
@@ -305,7 +221,7 @@ MOS_STATUS BltState::SetupFastCopyBltParam(
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS BltState::SubmitCMD(
-    PBLT_STATE_PARAM2 pBltStateParam)
+    PBLT_STATE_PARAM pBltStateParam)
 {
     MOS_STATUS                   eStatus;
     MOS_COMMAND_BUFFER           cmdBuffer;
