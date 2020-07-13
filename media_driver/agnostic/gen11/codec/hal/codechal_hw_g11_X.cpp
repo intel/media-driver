@@ -130,8 +130,8 @@ CodechalHwInterfaceG11::CodechalHwInterfaceG11(
     m_vdencGroup3BatchBufferSize =
         + ENCODE_HEVC_VDENC_NUM_MAX_SLICES
         * (2 * mhw_vdbox_hcp_g11_X::HCP_WEIGHTOFFSET_STATE_CMD::byteSize
-            + mhw_vdbox_hcp_g11_X::HCP_SLICE_STATE_CMD::byteSize
-            + 3 * mhw_vdbox_hcp_g11_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize
+            + mhw_vdbox_hcp_g11_X::HCP_SLICE_STATE_CMD::byteSize 
+            + (HEVC_MAX_NAL_UNIT_TYPE + 2) * mhw_vdbox_hcp_g11_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize
             + mhw_vdbox_vdenc_g11_X::VDENC_WEIGHTSOFFSETS_STATE_CMD::byteSize
             + mhw_mi_g11_X::MI_BATCH_BUFFER_END_CMD::byteSize
             + 4 * ENCODE_VDENC_HEVC_PADDING_DW_SIZE);
