@@ -6594,6 +6594,11 @@ VAStatus DdiMedia_ExportSurfaceHandle(
         }
     }
 
+    uint32_t pitch, height, chromaPitch, chromaHeight = 0;
+    pitch = mediaSurface->iPitch;
+    height = mediaSurface->iRealHeight;
+    DdiMedia_GetChromaPitchHeight(desc->fourcc, pitch, height, &chromaPitch, &chromaHeight);
+
     // Get offset from GMM
     GMM_REQ_OFFSET_INFO reqInfo = {0};
     reqInfo.Plane = GMM_PLANE_Y;
@@ -6604,7 +6609,12 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     reqInfo.Plane = GMM_PLANE_U;
     reqInfo.ReqRender = 1;
     mediaSurface->pGmmResourceInfo->GetOffset(reqInfo);
-    uint32_t offsetUV = reqInfo.Render.Offset;
+    uint32_t offsetU = reqInfo.Render.Offset;
+    MOS_ZeroMemory(&reqInfo, sizeof(GMM_REQ_OFFSET_INFO));
+    reqInfo.Plane = GMM_PLANE_V;
+    reqInfo.ReqRender = 1;
+    mediaSurface->pGmmResourceInfo->GetOffset(reqInfo);
+    uint32_t offsetV = reqInfo.Render.Offset;
     uint32_t auxOffsetY = (uint32_t)mediaSurface->pGmmResourceInfo->GetPlanarAuxOffset(0, GMM_AUX_Y_CCS);
     uint32_t auxOffsetUV = (uint32_t)mediaSurface->pGmmResourceInfo->GetPlanarAuxOffset(0, GMM_AUX_UV_CCS);
 
@@ -6632,7 +6642,7 @@ VAStatus DdiMedia_ExportSurfaceHandle(
                 else
                 {
                     // UV plane
-                    desc->layers[0].offset[i] = offsetUV;
+                    desc->layers[0].offset[i] = offsetU;
                     desc->layers[0].pitch[i]  = mediaSurface->iPitch;
                     // UV aux plane
                     desc->layers[0].offset[i + num_planes/2] = auxOffsetUV;
@@ -6644,15 +6654,36 @@ VAStatus DdiMedia_ExportSurfaceHandle(
             for (int i = 0; i < num_planes; i++)
             {
                 desc->layers[0].object_index[i] = 0;
-                if (i == 0)
+                switch(i)
                 {
+                case 0:
                     desc->layers[0].offset[i] = offsetY;
-                    desc->layers[0].pitch[i]  = mediaSurface->iPitch;
-                }
-                else
-                {
-                    desc->layers[0].offset[i] = offsetUV;
-                    desc->layers[0].pitch[i]  = mediaSurface->iPitch;
+                    desc->layers[0].pitch[i]  = pitch;
+                    break;
+                case 1:
+                    if (desc->fourcc == VA_FOURCC_YV12)
+                    {
+                        desc->layers[0].offset[i] = offsetV;
+                    }
+                    else
+                    {
+                        desc->layers[0].offset[i] = offsetU;
+                    }
+                    desc->layers[0].pitch[i]  = chromaPitch;
+                    break;
+                case 2:
+                    if (desc->fourcc == VA_FOURCC_YV12)
+                    {
+                        desc->layers[0].offset[i] = offsetU;
+                    }
+                    else
+                    {
+                        desc->layers[0].offset[i] = offsetV;
+                    }
+                    desc->layers[0].pitch[i]  = chromaPitch;
+                    break;
+                default:
+                    DDI_ASSERTMESSAGE("vaExportSurfaceHandle: invalid plan numbers");
                 }
             }
         }
@@ -6679,7 +6710,7 @@ VAStatus DdiMedia_ExportSurfaceHandle(
                 }
                 else
                 {
-                    desc->layers[i].offset[0] = offsetUV;
+                    desc->layers[i].offset[0] = offsetU;
                     desc->layers[i].offset[1] = auxOffsetUV;
                     desc->layers[i].pitch[0]  = mediaSurface->iPitch;
                     desc->layers[i].pitch[1]  = mediaSurface->iPitch/8;
@@ -6696,15 +6727,36 @@ VAStatus DdiMedia_ExportSurfaceHandle(
 
                 desc->layers[i].object_index[0] = 0;
 
-                if (i == 0)
+                switch(i)
                 {
+                case 0:
                     desc->layers[i].offset[0] = offsetY;
-                    desc->layers[i].pitch[0]  = mediaSurface->iPitch;
-                }
-                else
-                {
-                    desc->layers[i].offset[0] = offsetUV;
-                    desc->layers[i].pitch[0]  = mediaSurface->iPitch;
+                    desc->layers[i].pitch[0]  = pitch;
+                    break;
+                case 1:
+                    if (desc->fourcc == VA_FOURCC_YV12)
+                    {
+                        desc->layers[i].offset[0] = offsetV;
+                    }
+                    else
+                    {
+                        desc->layers[i].offset[0] = offsetU;
+                    }                    
+                    desc->layers[i].pitch[0]  = chromaPitch;
+                    break;
+                case 2:
+                    if (desc->fourcc == VA_FOURCC_YV12)
+                    {
+                        desc->layers[i].offset[0] = offsetU;
+                    }
+                    else
+                    {
+                        desc->layers[i].offset[0] = offsetV;
+                    }
+                    desc->layers[i].pitch[0]  = chromaPitch;
+                    break;
+                default:
+                    DDI_ASSERTMESSAGE("vaExportSurfaceHandle: invalid plan numbers");
                 }
             }
         }
