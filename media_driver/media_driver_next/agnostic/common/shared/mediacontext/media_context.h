@@ -49,6 +49,7 @@ enum MediaFunction
 };
 // Be compatible to legacy MOS and re-define the name
 #define INVALID_MEDIA_FUNCTION MediaFuncMax
+#define IS_RENDER_ENGINE_FUNCTION(func) ( func == RenderGenericFunc || func == ComputeMdfFunc || func == ComputeVppFunc )
 
 struct GpuContextAttribute
 {

@@ -158,6 +158,19 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
 
     MediaScalability * veStateProvided = nullptr;
 
+    if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrRAMode) && IS_RENDER_ENGINE_FUNCTION(func))
+    {
+        auto scalPars = (ScalabilityPars *)requirement;
+        MOS_OS_CHK_NULL_RETURN(scalPars);
+        MOS_OS_CHK_NULL_RETURN(m_osInterface->osCpInterface);
+        scalPars->raMode = m_osInterface->osCpInterface->IsHMEnabled() ? 1 : 0;
+        if (scalPars->raMode)
+        {
+            MOS_OS_NORMALMESSAGE("request RA mode context for protected render workload");
+            WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_RA_MODE_ENABLE_ID, 1, m_osInterface->pOsContext);
+        }
+    }
+
     uint32_t index = m_invalidContextAttribute;
     MOS_OS_CHK_STATUS_RETURN(SearchContextAttributeTable(func, (ScalabilityPars*)requirement, index));
     if (index == m_invalidContextAttribute || index >= m_gpuContextAttributeTable.size())
