@@ -6053,8 +6053,8 @@ DdiMedia_QueryVideoProcPipelineCaps(
     pipeline_caps->rotation_flags             = (1 << VA_ROTATION_NONE) | (1 << VA_ROTATION_90) | (1 << VA_ROTATION_180) | (1 << VA_ROTATION_270);
     pipeline_caps->mirror_flags               = VA_MIRROR_HORIZONTAL  | VA_MIRROR_VERTICAL;
     pipeline_caps->blend_flags                = VA_BLEND_GLOBAL_ALPHA | VA_BLEND_PREMULTIPLIED_ALPHA | VA_BLEND_LUMA_KEY;
-    pipeline_caps->num_forward_references     = 0;
-    pipeline_caps->num_backward_references    = 0;
+    pipeline_caps->num_forward_references     = DDI_CODEC_NUM_FWD_REF;
+    pipeline_caps->num_backward_references    = DDI_CODEC_NUM_BK_REF;
     pipeline_caps->input_color_standards      = vp_input_color_std;
     pipeline_caps->num_input_color_standards  = DDI_VP_NUM_INPUT_COLOR_STD;
     pipeline_caps->output_color_standards     = vp_output_color_std;
@@ -6106,23 +6106,6 @@ DdiMedia_QueryVideoProcPipelineCaps(
         pipeline_caps->min_output_width           = VP_MIN_PIC_WIDTH;
         pipeline_caps->min_output_height          = VP_MIN_PIC_WIDTH;
     }
-
-    for (int i = 0; i < num_filters; i++) {
-        void *pData;
-        DdiMedia_MapBuffer(ctx, filters[i], &pData);
-        DDI_CHK_NULL(pData, "nullptr pData", VA_STATUS_ERROR_INVALID_PARAMETER);
-        VAProcFilterParameterBufferBase* base_param = (VAProcFilterParameterBufferBase*) pData;
-        if (base_param->type == VAProcFilterDeinterlacing)
-        {
-            VAProcFilterParameterBufferDeinterlacing *di_param = (VAProcFilterParameterBufferDeinterlacing *)base_param;
-            if (di_param->algorithm == VAProcDeinterlacingMotionAdaptive ||
-                di_param->algorithm == VAProcDeinterlacingMotionCompensated)
-            {
-                pipeline_caps->num_forward_references = 1;
-            }
-        }
-    }
-
     return VA_STATUS_SUCCESS;
 }
 
