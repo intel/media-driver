@@ -601,7 +601,11 @@ MOS_FORMAT DdiDecodeVP9::GetFormat()
                 Format = Format_Y410;
 
                 //10bit decode in 12bit
+#if VA_CHECK_VERSION(1, 9, 0)
+                if(rtTbl->pCurrentRT->format == Media_Format_Y416 || rtTbl->pCurrentRT->format == Media_Format_Y412)
+#else
                 if(rtTbl->pCurrentRT->format == Media_Format_Y416)
+#endif
                 {
                     Format = Format_Y416;
                 }

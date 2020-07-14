@@ -1269,6 +1269,9 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         case Media_Format_Y210:
             resource->Format = Format_Y210;
             break;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y212:
+#endif
         case Media_Format_Y216:
             resource->Format = Format_Y216;
             break;
@@ -1278,6 +1281,9 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         case Media_Format_Y410:
             resource->Format = Format_Y410;
             break;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y412:
+#endif
         case Media_Format_Y416:
             resource->Format = Format_Y416;
             break;

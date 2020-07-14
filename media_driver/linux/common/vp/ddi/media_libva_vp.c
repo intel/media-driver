@@ -345,12 +345,18 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_Y210:
         format = Format_Y210;
         break;
+#if VA_CHECK_VERSION(1, 9, 0)
+    case Media_Format_Y212:
+#endif
     case Media_Format_Y216:
         format = Format_Y216;
         break;
     case Media_Format_Y410:
         format = Format_Y410;
         break;
+#if VA_CHECK_VERSION(1, 9, 0)
+    case Media_Format_Y412:
+#endif
     case Media_Format_Y416:
         format = Format_Y416;
         break;
