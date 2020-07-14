@@ -268,6 +268,7 @@ MOS_STATUS Mos_OsGetBitsPerPixel(
     case Format_Buffer:
     case Format_RAW:
     case Format_R8U:
+    case Format_R8UN:
        *piBpp = 8;
         break;
 
