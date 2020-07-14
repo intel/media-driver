@@ -2699,6 +2699,14 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         else if(profile == VAProfileHEVCMain422_12)
         {
             //hevc  rext: Y216 12/16bit 422
+#if VA_CHECK_VERSION(1, 9, 0)
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y212;
+            i++;
+#endif
+
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
@@ -2723,6 +2731,14 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
 
             if(profile == VAProfileVP9Profile3)
             {
+#if VA_CHECK_VERSION(1, 9, 0)
+                attribs[i].type = VASurfaceAttribPixelFormat;
+                attribs[i].value.type = VAGenericValueTypeInteger;
+                attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+                attribs[i].value.value.i = VA_FOURCC_Y412;
+                i++;
+#endif
+
                 attribs[i].type = VASurfaceAttribPixelFormat;
                 attribs[i].value.type = VAGenericValueTypeInteger;
                 attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
@@ -2732,6 +2748,14 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         }
         else if(profile == VAProfileHEVCMain444_12)
         {
+#if VA_CHECK_VERSION(1, 9, 0)
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y412;
+            i++;
+#endif
+
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
@@ -2848,6 +2872,14 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         else if(profile == VAProfileHEVCMain422_12)
         {
             //hevc  rext: Y216 12/16bit 422
+#if VA_CHECK_VERSION(1, 9, 0)
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_Y212;
+            i++;
+#endif
+
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
@@ -3319,6 +3351,14 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
         case Media_Format_P012       : return GMM_FORMAT_P016_TYPE;
         case Media_Format_P016       : return GMM_FORMAT_P016_TYPE;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y212       : return GMM_FORMAT_Y212_TYPE;
+#endif
+        case Media_Format_Y216       : return GMM_FORMAT_Y216_TYPE;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y412       : return GMM_FORMAT_Y412_TYPE;
+#endif
+        case Media_Format_Y416       : return GMM_FORMAT_Y416_TYPE;
         case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
         case Media_Format_R10G10B10X2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
@@ -3362,6 +3402,14 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
         case VA_FOURCC_P016   : return GMM_FORMAT_P016_TYPE;
         case VA_FOURCC_Y210   : return GMM_FORMAT_Y210_TYPE;
         case VA_FOURCC_Y410   : return GMM_FORMAT_Y410_TYPE;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y212   : return GMM_FORMAT_Y212_TYPE;
+#endif
+        case VA_FOURCC_Y216   : return GMM_FORMAT_Y216_TYPE;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y412   : return GMM_FORMAT_Y412_TYPE;
+#endif
+        case VA_FOURCC_Y416   : return GMM_FORMAT_Y416_TYPE;
         case VA_FOURCC_Y800   : return GMM_FORMAT_GENERIC_8BIT;
         case VA_FOURCC_A2R10G10B10   : return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case VA_FOURCC_A2B10G10R10   : return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;

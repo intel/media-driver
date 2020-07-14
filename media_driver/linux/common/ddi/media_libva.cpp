@@ -464,12 +464,20 @@ int32_t DdiMedia_MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_P016;
         case Media_Format_Y210:
             return VA_FOURCC_Y210;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y212:
+            return VA_FOURCC_Y212;
+#endif
         case Media_Format_Y216:
             return VA_FOURCC_Y216;
         case Media_Format_AYUV:
             return VA_FOURCC_AYUV;
         case Media_Format_Y410:
             return VA_FOURCC_Y410;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y412:
+            return VA_FOURCC_Y412;
+#endif
         case Media_Format_Y416:
             return VA_FOURCC_Y416;
         case Media_Format_Y8:
@@ -591,12 +599,20 @@ DDI_MEDIA_FORMAT DdiMedia_OsFormatToMediaFormat(int32_t fourcc, int32_t rtformat
             return Media_Format_P016;
         case VA_FOURCC_Y210:
             return Media_Format_Y210;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y212:
+            return Media_Format_Y212;
+#endif
         case VA_FOURCC_Y216:
             return Media_Format_Y216;
         case VA_FOURCC_AYUV:
             return Media_Format_AYUV;
         case VA_FOURCC_Y410:
             return Media_Format_Y410;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y412:
+            return Media_Format_Y412;
+#endif
         case VA_FOURCC_Y416:
             return Media_Format_Y416;
         case VA_FOURCC_Y8:
@@ -2399,7 +2415,11 @@ DdiMedia_CreateSurfaces2(
             expected_fourcc = VA_FOURCC_Y210;
             break;
         case VA_RT_FORMAT_YUV422_12:
+#if VA_CHECK_VERSION(1, 9, 0)
+            expected_fourcc = VA_FOURCC_Y212;
+#else
             expected_fourcc = VA_FOURCC_Y216;
+#endif
             break;
         case VA_RT_FORMAT_YUV444:
             expected_fourcc = VA_FOURCC_444P;
@@ -2408,7 +2428,11 @@ DdiMedia_CreateSurfaces2(
             expected_fourcc = VA_FOURCC_Y410;
             break;
         case VA_RT_FORMAT_YUV444_12:
+#if VA_CHECK_VERSION(1, 9, 0)
+            expected_fourcc = VA_FOURCC_Y412;
+#else
             expected_fourcc = VA_FOURCC_Y416;
+#endif
             break;
         case VA_RT_FORMAT_YUV411:
             expected_fourcc = VA_FOURCC_411P;
@@ -2485,6 +2509,11 @@ DdiMedia_CreateSurfaces2(
         case VA_FOURCC_Y210:
             expected_fourcc = VA_FOURCC_Y210;
             break;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y212:
+            expected_fourcc = VA_FOURCC_Y212;
+            break;
+#endif
         case VA_FOURCC_Y216:
             expected_fourcc = VA_FOURCC_Y216;
             break;
@@ -2494,6 +2523,11 @@ DdiMedia_CreateSurfaces2(
         case VA_FOURCC_Y410:
             expected_fourcc = VA_FOURCC_Y410;
             break;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y412:
+            expected_fourcc = VA_FOURCC_Y412;
+            break;
+#endif
         case VA_FOURCC_Y416:
             expected_fourcc = VA_FOURCC_Y416;
             break;
@@ -4475,8 +4509,14 @@ VAStatus DdiMedia_CreateImage(
         case VA_FOURCC_YVYU:
         case VA_FOURCC_AYUV:
         case VA_FOURCC_Y210:
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y212:
+#endif
         case VA_FOURCC_Y216:
         case VA_FOURCC_Y410:
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y412:
+#endif
         case VA_FOURCC_Y416:
         case VA_FOURCC_Y800:
             vaimg->num_planes = 1;
@@ -4804,12 +4844,19 @@ VAStatus DdiMedia_DeriveImage (
     case Media_Format_Y410:
     case Media_Format_AYUV:
     case Media_Format_Y210:
+#if VA_CHECK_VERSION(1, 9, 0)
+    case Media_Format_Y212:
+#endif
+    case Media_Format_Y216:
         vaimg->format.bits_per_pixel    = 32;
         vaimg->data_size                = mediaSurface->iPitch * mediaSurface->iHeight;
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
         vaimg->offsets[0]               = 0;
         break;
+#if VA_CHECK_VERSION(1, 9, 0)
+    case Media_Format_Y412:
+#endif
     case Media_Format_Y416:
         vaimg->format.bits_per_pixel    = 64; // packed format [alpha, Y, U, V], 16 bits per channel
         vaimg->num_planes               = 1;
@@ -6573,8 +6620,14 @@ static uint32_t DdiMedia_GetPlaneNum(PDDI_MEDIA_SURFACE mediaSurface, bool hasAu
         case VA_FOURCC_VYUY:
         case VA_FOURCC_Y800:
         case VA_FOURCC_Y210:
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y212:
+#endif
         case VA_FOURCC_Y216:
         case VA_FOURCC_Y410:
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y412:
+#endif
         case VA_FOURCC_Y416:
         case VA_FOURCC_AYUV:
         case VA_FOURCC_RGBA:
@@ -6695,10 +6748,18 @@ static uint32_t DdiMedia_GetDrmFormatOfCompositeObject(uint32_t fourcc)
         return DRM_FORMAT_UYVY;
     case VA_FOURCC_Y210:
         return DRM_FORMAT_Y210;
+#if VA_CHECK_VERSION(1, 9, 0)
+    case VA_FOURCC_Y212:
+        return DRM_FORMAT_Y216;
+#endif
     case VA_FOURCC_Y216:
         return DRM_FORMAT_Y216;
     case VA_FOURCC_Y410:
         return DRM_FORMAT_Y410;
+#if VA_CHECK_VERSION(1, 9, 0)
+    case VA_FOURCC_Y412:
+        return DRM_FORMAT_Y416;
+#endif
     case VA_FOURCC_Y416:
         return DRM_FORMAT_Y416;
     case VA_FOURCC_Y800:

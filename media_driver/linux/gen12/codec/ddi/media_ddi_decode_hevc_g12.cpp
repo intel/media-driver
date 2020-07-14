@@ -495,7 +495,11 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
                 {
                     Format = Format_Y210;
                 }
+#if VA_CHECK_VERSION(1, 9, 0)
+                else if(rtTbl->pCurrentRT->format == Media_Format_Y216 || rtTbl->pCurrentRT->format == Media_Format_Y212)
+#else
                 else if(rtTbl->pCurrentRT->format == Media_Format_Y216)
+#endif
                 {
                     Format = Format_Y216;
                 }
@@ -507,7 +511,11 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
                 {
                     Format = Format_Y410;
                 }
+#if VA_CHECK_VERSION(1, 9, 0)
+                else if(rtTbl->pCurrentRT->format == Media_Format_Y416 || rtTbl->pCurrentRT->format == Media_Format_Y412)
+#else
                 else if(rtTbl->pCurrentRT->format == Media_Format_Y416)
+#endif
                 {
                     Format = Format_Y416;
                 }
@@ -529,7 +537,11 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
             else if (picParams->chroma_format_idc == 2)           //422
             {
                 Format = Format_Y210;
+#if VA_CHECK_VERSION(1, 9, 0)
+                if(rtTbl->pCurrentRT->format == Media_Format_Y216 || rtTbl->pCurrentRT->format == Media_Format_Y212)
+#else
                 if(rtTbl->pCurrentRT->format == Media_Format_Y216)
+#endif
                 {
                     Format = Format_Y216;
                 }
@@ -537,7 +549,11 @@ MOS_FORMAT DdiDecodeHEVCG12::GetFormat()
             else                                                  //444
             {
                 Format = Format_Y410;
+#if VA_CHECK_VERSION(1, 9, 0)
+                if(rtTbl->pCurrentRT->format == Media_Format_Y416 || rtTbl->pCurrentRT->format == Media_Format_Y412)
+#else
                 if(rtTbl->pCurrentRT->format == Media_Format_Y416)
+#endif
                 {
                     Format = Format_Y416;
                 }

@@ -254,6 +254,9 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface
             aligned_height = MOS_ALIGN_CEIL(surface->iHeight * 3 / 2, 64);
             break;
         case Media_Format_Y216:
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y212:
+#endif
         case Media_Format_Y210:
             aligned_width = (surface->iWidth + 1) >> 1;
             aligned_height = surface->iHeight * 2;

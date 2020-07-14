@@ -192,6 +192,10 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_A16R16G16B16,
     Media_Format_A16B16G16R16,
     Media_Format_P012        ,
+#if VA_CHECK_VERSION(1, 9, 0)
+    Media_Format_Y212        ,
+    Media_Format_Y412        ,
+#endif
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
 
