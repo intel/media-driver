@@ -936,6 +936,7 @@ struct EncodeStatusSliceReport
     uint8_t                         NumberSlices;
     uint32_t                        SizeOfSliceSizesBuffer;
     PMOS_RESOURCE                   pSliceSize;
+    uint32_t                        reserved;
 };
 
 //!
