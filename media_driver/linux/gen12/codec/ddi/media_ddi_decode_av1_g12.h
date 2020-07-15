@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -161,6 +161,8 @@ private:
 
     //! \brief   the flag of slice data. It indicates whether slc data is passed
     bool slcFlag = false;
+    //! \brief   film grain output surface
+    PDDI_MEDIA_SURFACE filmGrainOutSurface = nullptr;
 };
 
 #endif /* _MEDIA_DDI_DECODE_AV1_H */

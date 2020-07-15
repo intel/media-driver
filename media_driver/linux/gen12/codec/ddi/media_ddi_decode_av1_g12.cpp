@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -382,6 +382,10 @@ VAStatus DdiDecodeAV1::ParsePicParams(
     ***************************************************************************/
     MOS_SecureMemcpy(&picAV1Params->m_filmGrainParams, sizeof(CodecAv1FilmGrainParams),
                      &picParam->film_grain_info,       sizeof(VAFilmGrainStructAV1));
+    if(picAV1Params->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain)
+    {
+        filmGrainOutSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->current_display_picture);
+    }
 
     picAV1Params->m_statusReportFeedbackNumber = 0;
 
@@ -424,9 +428,9 @@ VAStatus DdiDecodeAV1::SetDecodeParams()
     bool bFilmGrainEnabled = Av1PicParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain;
     if (bFilmGrainEnabled)
     {
-     MOS_ZeroMemory(&m_ddiDecodeCtx->DecodeParams.m_codecProcParams, sizeof(CodecProcessingParams));
-     m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_inputSurface  = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
-     m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_outputSurface = nullptr;
+        MOS_ZeroMemory(&m_ddiDecodeCtx->DecodeParams.m_codecProcParams, sizeof(CodecProcessingParams));
+        m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_inputSurface  = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
+        DdiMedia_MediaSurfaceToMosResource(filmGrainOutSurface, &m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_outputSurface->OsResource);
     }
 
     return VA_STATUS_SUCCESS;
