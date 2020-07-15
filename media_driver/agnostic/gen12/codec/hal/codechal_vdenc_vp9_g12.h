@@ -914,6 +914,51 @@ public:
     };
 
     //!
+    //! \struct    HucProbDmem
+    //! \brief     HUC prob dmem
+    //!
+    struct HucProbDmem
+    {
+        uint32_t         HuCPassNum;
+        uint32_t         FrameWidth;
+        uint32_t         FrameHeight;
+        uint32_t         Rsvd32[6];
+        char             SegmentRef[CODEC_VP9_MAX_SEGMENTS];
+        uint8_t          SegmentSkip[CODEC_VP9_MAX_SEGMENTS];
+        uint8_t          SegCodeAbs;
+        uint8_t          SegTemporalUpdate;
+        uint8_t          LastRefIndex;
+        uint8_t          GoldenRefIndex;
+        uint8_t          AltRefIndex;
+        uint8_t          RefreshFrameFlags;
+        uint8_t          RefFrameFlags;
+        uint8_t          ContextFrameTypes;
+        HucFrameCtrl     FrameCtrl;
+        HucPrevFrameInfo PrevFrameInfo;
+        uint8_t          Rsvd[2];
+        uint8_t          FrameToShow;
+        uint8_t          LoadKeyFrameDefaultProbs;
+        uint32_t         FrameSize;
+        uint32_t         VDEncImgStateOffset;
+        uint32_t         RePak;
+        uint16_t         LFLevelBitOffset;
+        uint16_t         QIndexBitOffset;
+        uint16_t         SegBitOffset;
+        uint16_t         SegLengthInBits;
+        uint16_t         UnCompHdrTotalLengthInBits;
+        uint16_t         SegUpdateDisable;
+        int32_t          RePakThreshold[256];
+        uint16_t         PicStateOffset;
+        uint16_t         SLBBSize;
+        uint8_t          StreamInEnable;
+        uint8_t          StreamInSegEnable;
+        uint8_t          DisableDMA;
+        uint8_t          IVFHeaderSize;
+        uint8_t          Reserved[44];
+    };
+
+
+    //!
     //! \struct HucInputCmdG12
     //! \brief  The struct of Huc input command
     //!
@@ -1262,7 +1307,7 @@ public:
     MOS_STATUS AddCommandsVp9(
         uint32_t commandType,
         PMOS_COMMAND_BUFFER cmdBuffer);
-    MOS_STATUS AddBrcConditionalEnd();
+    MOS_STATUS SetDmemHuCVp9Prob() override;
     MOS_STATUS InsertConditionalBBEndWithHucErrorStatus(PMOS_COMMAND_BUFFER cmdBuffer);
 };
 #endif  // __CODECHAL_VDENC_VP9_G12_H__
