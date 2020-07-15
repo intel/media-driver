@@ -702,7 +702,7 @@ uint32_t Mhw_ConvertToTRMode(
 //*-----------------------------------------------------------------------------
 static __inline MOS_STATUS Mhw_AddCommandBB(
     PMHW_BATCH_BUFFER           pBatchBuffer,   // [in] Pointer to Batch Buffer
-    void                        *pCmd,           // [in] Command Pointer
+    const void                  *pCmd,          // [in] Command Pointer
     uint32_t                    dwCmdSize)      // [in] Size of command in bytes
 {
     uint8_t     *pbBatchPtr;
@@ -748,16 +748,21 @@ finish:
 static __inline MOS_STATUS Mhw_AddCommandCmdOrBB(
     void       *pCmdBuffer,     // [in] Pointer to Command Buffer
     void       *pBatchBuffer,   // [in] Pointer to Batch Buffer
-    void       *pCmd,           // [in] Command Pointer
-    uint32_t   dwCmdSize)      // [in] Size of command in bytes
+    const void *pCmd,           // [in] Command Pointer
+    uint32_t   dwCmdSize)       // [in] Size of command in bytes
 {
     if (pCmdBuffer)
     {
         return ((MOS_STATUS)Mos_AddCommand((PMOS_COMMAND_BUFFER)pCmdBuffer, pCmd, dwCmdSize));
     }
-    else
+    else if (pBatchBuffer)
     {
         return (Mhw_AddCommandBB((PMHW_BATCH_BUFFER)pBatchBuffer, pCmd, dwCmdSize));
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("There is no valid command buffer or batch buffer.");
+        return MOS_STATUS_NULL_POINTER;
     }
 }
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,9 +18,37 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(shared)
-media_include_subdirectory(os)
-media_include_subdirectory(vp)
-media_include_subdirectory(cp)
-media_include_subdirectory(codec)
-media_include_subdirectory(hw)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_itf.h
+)
+
+set(SOURCES_
+    ${SOURCES_}
+    ${TMP_SOURCES_}
+ )
+
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "MHW\\Vdbox" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+media_add_curr_to_include_path()
