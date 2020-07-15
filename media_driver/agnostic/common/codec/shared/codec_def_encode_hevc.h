@@ -560,6 +560,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     *    \n For B1 and B2 explanation refer to NumOfBInGop[]
     */
     uint8_t                 CodingType;
+    uint8_t                 ppsCodingType;  //save exactly what was programmed by the DDI (to retain pyramid level information)
     uint8_t                 HierarchLevelPlus1;
     uint16_t                NumSlices;
 

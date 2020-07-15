@@ -580,6 +580,9 @@ VAStatus DdiEncodeHevc::ParsePicParams(
     /* picParams->coding_type; App is always setting this to 0 */
     hevcPicParams->CodingType = picParams->pic_fields.bits.coding_type;
 
+    /* CodingType may be updated in slice processing. Do below to save pyramid level info */
+    hevcPicParams->ppsCodingType = picParams->pic_fields.bits.coding_type;
+
     hevcPicParams->HierarchLevelPlus1 = picParams->hierarchical_level_plus1;
 
     /* Reset it to zero now */
