@@ -428,6 +428,10 @@ CodechalVdencAvcStateG10::CodechalVdencAvcStateG10(
     m_vdencBrcUpdateDmemBufferSize = sizeof(BrcUpdateDmem);
     m_vdencBrcNumOfSliceOffset = CODECHAL_OFFSETOF(BrcUpdateDmem, NumOfSlice);
 
+    m_hmeSupported   = true;
+    m_16xMeSupported = true;
+    m_32xMeSupported = true;
+
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_encodeParState = MOS_New(CodechalDebugEncodeParG10, this));
         CreateAvcPar();

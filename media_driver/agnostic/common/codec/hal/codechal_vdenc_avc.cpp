@@ -3186,6 +3186,7 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
 MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting *settings)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -3223,29 +3224,26 @@ MOS_STATUS CodechalVdencAvcState::Initialize(CodechalSetting *settings)
     if (m_codecFunction != CODECHAL_FUNCTION_PAK)
     {
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
+        statusKey = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AVC_ENCODE_ME_ENABLE_ID,
             &userFeatureData,
             m_osInterface->pOsContext);
-        m_hmeSupported = (userFeatureData.u32Data) ? true : false;
+        if (statusKey == MOS_STATUS_SUCCESS)
+        {
+            m_hmeSupported = (userFeatureData.u32Data) ? true : false;
+        }
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
+        statusKey = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AVC_ENCODE_16xME_ENABLE_ID,
             &userFeatureData,
             m_osInterface->pOsContext);
 
-        if (userFeatureData.i32Data == 0 || userFeatureData.i32Data == 1)
+        if (statusKey == MOS_STATUS_SUCCESS)
         {
-            m_16xMeUserfeatureControl = true;
-            m_16xMeSupported          = (userFeatureData.i32Data) ? true : false;
-        }
-        else
-        {
-            m_16xMeUserfeatureControl = false;
-            m_16xMeSupported          = true;
+            m_16xMeSupported = (userFeatureData.i32Data) ? true : false;
         }
 
 #ifndef _FULL_OPEN_SOURCE
@@ -3548,6 +3546,7 @@ void CodechalVdencAvcState::InitializeDataMember()
 MOS_STATUS CodechalVdencAvcState::InitializeState()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
@@ -3591,21 +3590,15 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
         }
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
+        statusKey = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_AVC_ENCODE_32xME_ENABLE_ID,
             &userFeatureData,
             m_osInterface->pOsContext);
 
-        if (userFeatureData.i32Data == 0 || userFeatureData.i32Data == 1)
+        if (statusKey == MOS_STATUS_SUCCESS)
         {
-            m_32xMeUserfeatureControl = true;
-            m_32xMeSupported          = (userFeatureData.i32Data) ? true : false;
-        }
-        else
-        {
-            m_32xMeUserfeatureControl = false;
-            m_32xMeSupported          = true;
+            m_32xMeSupported = (userFeatureData.i32Data) ? true : false;
         }
     }
 
@@ -3981,13 +3974,13 @@ MOS_STATUS CodechalVdencAvcState::SetSequenceStructs()
         (!m_osInterface->osCpInterface->IsCpEnabled());
 
     // If 16xMe is supported then check if it is supported in the TU settings
-    if (!m_16xMeUserfeatureControl && m_16xMeSupported)
+    if (m_16xMeSupported)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(GetHmeSupportedBasedOnTU(HME_LEVEL_16x, &m_16xMeSupported));
     }
 
     // If 32xMe is supported then check if it is supported in the TU settings
-    if (!m_32xMeUserfeatureControl && m_32xMeSupported)
+    if (m_32xMeSupported)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(GetHmeSupportedBasedOnTU(HME_LEVEL_32x, &m_32xMeSupported));
     }

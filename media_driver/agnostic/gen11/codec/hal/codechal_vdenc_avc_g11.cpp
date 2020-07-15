@@ -701,6 +701,10 @@ CodechalVdencAvcStateG11::CodechalVdencAvcStateG11(
 
     m_vdboxOneDefaultUsed = true;
 
+    m_hmeSupported   = true;
+    m_16xMeSupported = true;
+    m_32xMeSupported = true;
+
     Mos_CheckVirtualEngineSupported(m_osInterface, false, true);
 
     CODECHAL_DEBUG_TOOL(
