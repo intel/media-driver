@@ -136,7 +136,7 @@ private:
     //!
     //! \brief    Save data to the buffer which store the performance data 
     //!
-    //! \param    [in] miInterface 
+    //! \param    [in] miInterface
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
@@ -155,8 +155,10 @@ private:
 
     //!
     //! \brief    Save register value to the buffer which store the performance data 
+    //! \param    [in] osInterface
+    //!           Pointer of MOS_INTERFACE
     //!
-    //! \param    [in] miInterface 
+    //! \param    [in] miInterface
     //!           Pointer of MI interface
     //! \param    [in] cmdBuffer
     //!           Pointer of OS command buffer
@@ -168,10 +170,12 @@ private:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS StoreRegister(MhwMiInterface *miInterface, 
-                         PMOS_COMMAND_BUFFER cmdBuffer,
-                         uint32_t offset,
-                         uint32_t reg);
+    MOS_STATUS StoreRegister(
+                        MOS_INTERFACE *osInterface,
+                        MhwMiInterface *miInterface,
+                        PMOS_COMMAND_BUFFER cmdBuffer,
+                        uint32_t offset,
+                        uint32_t reg);
     
     //!
     //! \brief    Save timestamp to the buffer by Pipe control command 

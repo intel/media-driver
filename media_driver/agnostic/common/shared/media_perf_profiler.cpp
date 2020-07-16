@@ -367,6 +367,7 @@ MOS_STATUS MediaPerfProfiler::StoreData(
 }
 
 MOS_STATUS MediaPerfProfiler::StoreRegister(
+    MOS_INTERFACE *osInterface,
     MhwMiInterface *miInterface, 
     PMOS_COMMAND_BUFFER cmdBuffer,
     uint32_t offset,
@@ -378,6 +379,13 @@ MOS_STATUS MediaPerfProfiler::StoreRegister(
     storeRegMemParams.presStoreBuffer = &m_perfStoreBuffer;
     storeRegMemParams.dwOffset        = offset;
     storeRegMemParams.dwRegister      = reg;
+
+    MEDIA_FEATURE_TABLE* skuTable = osInterface->pfnGetSkuTable(osInterface);
+    if(skuTable && MEDIA_IS_SKU(skuTable, FtrMemoryRemapSupport))
+    {
+        storeRegMemParams.dwOption = CCS_HW_FRONT_END_MMIO_REMAP;
+    }
+
     return miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegMemParams);
 }
 
@@ -491,6 +499,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
         if (m_registers[regIndex] != 0)
         {
             CHK_STATUS_RETURN(StoreRegister(
+                osInterface,
                 miInterface,
                 cmdBuffer, 
                 BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginRegisterValue[regIndex]),
@@ -564,6 +573,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
         if (m_registers[regIndex] != 0)
         {
             CHK_STATUS_RETURN(StoreRegister(
+                osInterface,
                 miInterface,
                 cmdBuffer, 
                 BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, endRegisterValue[regIndex]),

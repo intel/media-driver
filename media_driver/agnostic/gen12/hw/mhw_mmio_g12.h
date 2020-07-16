@@ -176,6 +176,15 @@
 #define M_MMIO_CCS0_AUX_TABLE_BASE_LOW                                                   0x42C0
 #define M_MMIO_CCS0_AUX_TABLE_BASE_HIGH                                                  0x42C4
 #define M_MMIO_CCS0_AUX_TABLE_INVALIDATE                                                 0x42C8
+#define M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN                                              0x1A000
+#define M_MMIO_CCS0_HW_FRONT_END_BASE_END                                                0x1A7FF
+#define M_MMIO_CCS1_HW_FRONT_END_BASE_BEGIN                                              0x1C000
+#define M_MMIO_CCS1_HW_FRONT_END_BASE_END                                                0x1C7FF
+#define M_MMIO_CCS2_HW_FRONT_END_BASE_BEGIN                                              0x1E000
+#define M_MMIO_CCS2_HW_FRONT_END_BASE_END                                                0x1E7FF
+#define M_MMIO_CCS3_HW_FRONT_END_BASE_BEGIN                                              0x26000
+#define M_MMIO_CCS3_HW_FRONT_END_BASE_END                                                0x267FF
+
 
 //L3 cache configure
 #define M_MMIO_RCS_L3ALLOCREG                                                            0xB134
@@ -186,5 +195,7 @@
 // HAL
 #define REG_GPR_BASE_G12                                                                 CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G12
 #define REG_TIMESTAMP_BASE_G12                                                           0x2358
+
+#define M_CCS_HW_FRONT_END_MMIO_MASK                                                     0x7FF
 
 #endif   //__MHW_MMIO_G12_H__

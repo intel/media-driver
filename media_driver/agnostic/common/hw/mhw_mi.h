@@ -151,6 +151,12 @@ typedef enum _MHW_FLUSH_OPERATION
     MHW_FLUSH_CUSTOM                 // Flush with custom parameters
 } MHW_FLUSH_OPERATION;
 
+typedef enum _MMIO_REMAP_OPERATION
+{
+    MMIO_REMAP_OPERATION_NONE = 0,   // default operation
+    CCS_HW_FRONT_END_MMIO_REMAP      // Remap CCS mmio base offset
+}MMIO_REMAP_OPERATION;
+
 typedef struct _MHW_PIPE_CONTROL_PARAMS
 {
     PMOS_RESOURCE           presDest;
@@ -184,6 +190,7 @@ typedef struct _MHW_MI_STORE_REGISTER_MEM_PARAMS
     PMOS_RESOURCE               presStoreBuffer;
     uint32_t                    dwOffset;
     uint32_t                    dwRegister;
+    uint32_t                    dwOption;
 } MHW_MI_STORE_REGISTER_MEM_PARAMS, *PMHW_MI_STORE_REGISTER_MEM_PARAMS;
 
 typedef MHW_MI_STORE_REGISTER_MEM_PARAMS MHW_MI_LOAD_REGISTER_MEM_PARAMS, *PMHW_MI_LOAD_REGISTER_MEM_PARAMS;

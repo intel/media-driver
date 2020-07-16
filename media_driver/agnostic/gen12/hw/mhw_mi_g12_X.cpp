@@ -317,6 +317,17 @@ MOS_STATUS MhwMiInterfaceG12::AddMiStoreRegisterMemCmd(
         cmd->DW1.RegisterAddress = params->dwRegister >> 2;
     }
 
+    if (params->dwOption == CCS_HW_FRONT_END_MMIO_REMAP)
+    {
+        MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
+        if (MOS_RCS_ENGINE_USED(gpuContext))
+        {
+            params->dwRegister &= M_CCS_HW_FRONT_END_MMIO_MASK;
+            params->dwRegister += M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN;
+        }
+    }
+
     cmd->DW0.MmioRemapEnable = IsRemappingMMIO(params->dwRegister);
 
     return MOS_STATUS_SUCCESS;
