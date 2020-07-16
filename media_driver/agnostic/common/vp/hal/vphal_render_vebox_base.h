@@ -1361,9 +1361,8 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS VeboxIsCmdParamsValid(
-        const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
-        const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
-        const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams);
+        const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
+        const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams);
 
     //!
     //! \brief    Render the Vebox Cmd buffer for VeboxSendVeboxCmd
@@ -1883,13 +1882,6 @@ protected:
     //!
     bool IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVeboxState, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface);
 
-    //!
-    //! \brief    Check for DN only case
-    //! \details  Check for DN only case
-    //! \return   bool
-    //!           Return true if DN only case, otherwise not
-    //!
-    virtual bool            IsDNOnly() = 0;
 };
 
 //!

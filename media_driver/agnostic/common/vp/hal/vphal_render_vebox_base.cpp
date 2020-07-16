@@ -34,7 +34,6 @@
 #include "vphal_render_common.h"
 #include "renderhal_platform_interface.h"
 #include "hal_oca_interface.h"
-#include <string>
 
 extern const Kdll_Layer g_cSurfaceType_Layer[];
 
@@ -1829,9 +1828,8 @@ finish:
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VPHAL_VEBOX_STATE::VeboxIsCmdParamsValid(
-    const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
-    const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
-    const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams)
+    const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
+    const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams)
 {
     const MHW_VEBOX_MODE    &veboxMode          = VeboxStateCmdParams.VeboxMode;
 
@@ -1844,17 +1842,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxIsCmdParamsValid(
         }
         if (nullptr == VeboxDiIecpCmdParams.pOsResCurrOutput &&
             (MEDIA_VEBOX_DI_OUTPUT_CURRENT == veboxMode.DIOutputFrames || MEDIA_VEBOX_DI_OUTPUT_BOTH == veboxMode.DIOutputFrames))
-        {
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-    }
-
-    if (IsDNOnly())
-    {
-        VPHAL_RENDER_CHK_NULL_RETURN(VeboxSurfaceStateCmdParams.pSurfInput);
-        VPHAL_RENDER_CHK_NULL_RETURN(VeboxSurfaceStateCmdParams.pSurfDNOutput);
-        if (VeboxSurfaceStateCmdParams.pSurfInput->dwPitch != VeboxSurfaceStateCmdParams.pSurfDNOutput->dwPitch ||
-            (VeboxSurfaceStateCmdParams.pSurfOutput && (VeboxSurfaceStateCmdParams.pSurfInput->dwPitch != VeboxSurfaceStateCmdParams.pSurfOutput->dwPitch))) // For Vebox+SFC case, pSurfOutput could be null
         {
             return MOS_STATUS_INVALID_PARAMETER;
         }
@@ -1942,14 +1929,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
         bDiVarianceEnable,
         &VeboxSurfaceStateCmdParams);
 
-    // Add compressible info of input/output surface to log
-    if( this->m_currentSurface && VeboxSurfaceStateCmdParams.pSurfOutput)
-    {
-        std::string info = "in_comps = " + std::to_string(int(this->m_currentSurface->bCompressible)) + ", out_comps = " + std::to_string(int(VeboxSurfaceStateCmdParams.pSurfOutput->bCompressible));
-        const char* ocaLog = info.c_str();
-        HalOcaInterface::TraceMessage(CmdBuffer, *pOsContext, ocaLog, info.size());
-    }
-
     VPHAL_RENDER_CHK_STATUS(pVeboxState->SetupVeboxState(
         bDiVarianceEnable,
         &VeboxStateCmdParams));
@@ -1970,8 +1949,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
 
     VPHAL_RENDER_CHK_STATUS(pVeboxState->VeboxIsCmdParamsValid(
         VeboxStateCmdParams,
-        VeboxDiIecpCmdParams,
-        VeboxSurfaceStateCmdParams));
+        VeboxDiIecpCmdParams));
 
     // Ensure output is ready to be written
     if (VeboxDiIecpCmdParams.pOsResCurrOutput)

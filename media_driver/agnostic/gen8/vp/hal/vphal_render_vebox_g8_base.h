@@ -261,8 +261,6 @@ protected:
         PVPHAL_DNUV_PARAMS              pChromaParams);
 
     virtual VphalSfcState* CreateSfcState() { return nullptr; }
-
-    virtual bool IsDNOnly();
 };
 
 #endif // __VPHAL_RENDER_VEBOX_G8_BASE_H__
