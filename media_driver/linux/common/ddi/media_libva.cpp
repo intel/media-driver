@@ -5311,8 +5311,8 @@ VAStatus DdiMedia_PutImage(
             return vaStatus;
         }
 
-        DdiMedia_DestroySurfaces(ctx, &tempSurface, 1);
         vaStatus = DdiMedia_SyncSurface(ctx, tempSurface);
+        DdiMedia_DestroySurfaces(ctx, &tempSurface, 1);
         vaStatus = DdiVp_DestroyContext(ctx, context);
     }
     else
