@@ -717,53 +717,36 @@ MOS_STATUS HalCm_AllocateTables(
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
     PCM_HAL_DEVICE_PARAM    deviceParam;
     uint8_t                 *pb;
-    uint32_t                lookUpTableSize;
-    uint32_t                samplerTableSize;
-    uint32_t                vmeTableSize;
-    uint32_t                sampler8x8TableSize;
-    uint32_t                taskStatusTableSize;
-    uint32_t                bt2DIndexTableSize;
-    uint32_t                bt2DUPIndexTableSize;
-    uint32_t                bt3DIndexTableSize;
-    uint32_t                btbufferIndexTableSize;
-    uint32_t                samplerIndexTableSize;
-    uint32_t                vmeIndexTableSize;
-    uint32_t                sampler8x8IndexTableSize;
-    uint32_t                bufferTableSize;
-    uint32_t                i2DSURFUPTableSize;
-    uint32_t                i3DSurfTableSize;
-    uint32_t                size;
-    uint32_t                i2DSURFTableSize;
 
     deviceParam  = &state->cmDeviceParam;
 
-    lookUpTableSize        = deviceParam->max2DSurfaceTableSize    *
+    uint32_t lookUpTableSize = deviceParam->max2DSurfaceTableSize    *
                               sizeof(CMLOOKUP_ENTRY);
-    i2DSURFTableSize        = deviceParam->max2DSurfaceTableSize    *
+    uint32_t i2DSURFTableSize = deviceParam->max2DSurfaceTableSize    *
                             sizeof(CM_HAL_SURFACE2D_ENTRY);
-    bufferTableSize        = deviceParam->maxBufferTableSize       *
+    uint32_t bufferTableSize = deviceParam->maxBufferTableSize       *
                               sizeof(CM_HAL_BUFFER_ENTRY);
-    i2DSURFUPTableSize      = deviceParam->max2DSurfaceUPTableSize  *
+    uint32_t i2DSURFUPTableSize = deviceParam->max2DSurfaceUPTableSize  *
                               sizeof(CM_HAL_SURFACE2D_UP_ENTRY);
-    i3DSurfTableSize        = deviceParam->max3DSurfaceTableSize    *
+    uint32_t i3DSurfTableSize = deviceParam->max3DSurfaceTableSize    *
                               sizeof(CM_HAL_3DRESOURCE_ENTRY);
-    samplerTableSize       = deviceParam->maxSamplerTableSize      *
+    uint32_t samplerTableSize = deviceParam->maxSamplerTableSize      *
                               sizeof(MHW_SAMPLER_STATE_PARAM);
-    sampler8x8TableSize    = deviceParam->maxSampler8x8TableSize      *
+    uint32_t sampler8x8TableSize = deviceParam->maxSampler8x8TableSize      *
                               sizeof(CM_HAL_SAMPLER_8X8_ENTRY);
-    taskStatusTableSize    = deviceParam->maxTasks                 * sizeof(char);
-    bt2DIndexTableSize     = deviceParam->max2DSurfaceTableSize    * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
-    bt2DUPIndexTableSize   = deviceParam->max2DSurfaceUPTableSize  * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
-    bt3DIndexTableSize     = deviceParam->max3DSurfaceTableSize    * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
-    btbufferIndexTableSize = deviceParam->maxBufferTableSize       * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
-    samplerIndexTableSize  = deviceParam->maxSamplerTableSize      * sizeof(char);
-    sampler8x8IndexTableSize = deviceParam->maxSampler8x8TableSize      * sizeof(char);
+    uint32_t taskStatusTableSize = deviceParam->maxTasks                 * sizeof(char);
+    uint32_t bt2DIndexTableSize = deviceParam->max2DSurfaceTableSize    * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
+    uint32_t bt2DUPIndexTableSize = deviceParam->max2DSurfaceUPTableSize  * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
+    uint32_t bt3DIndexTableSize = deviceParam->max3DSurfaceTableSize    * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
+    uint32_t btbufferIndexTableSize = deviceParam->maxBufferTableSize       * sizeof(CM_HAL_MULTI_USE_BTI_ENTRY);
+    uint32_t samplerIndexTableSize = deviceParam->maxSamplerTableSize      * sizeof(char);
+    uint32_t sampler8x8IndexTableSize = deviceParam->maxSampler8x8TableSize      * sizeof(char);
 
-    size                   = lookUpTableSize          +
-                              i2DSURFTableSize          +
+    uint32_t size           = lookUpTableSize          +
+                              i2DSURFTableSize         +
                               bufferTableSize          +
-                              i2DSURFUPTableSize        +
-                              i3DSurfTableSize          +
+                              i2DSURFUPTableSize       +
+                              i3DSurfTableSize         +
                               samplerTableSize         +
                               sampler8x8TableSize      +
                               taskStatusTableSize      +
@@ -9484,19 +9467,17 @@ MOS_STATUS HalCm_Set2DSurfaceStateParam(
      uint32_t                                 aliasIndex,
      uint32_t                                 handle)
 {
-    MOS_STATUS eStatus;
-    uint32_t width;
-    uint32_t height;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CM_CHK_NULL_GOTOFINISH_MOSERROR(state);
     CM_CHK_NULL_GOTOFINISH_MOSERROR(param);
 
-    eStatus     = MOS_STATUS_SUCCESS;
     if (aliasIndex < state->surfaceArraySize)
     {
         state->umdSurf2DTable[handle].surfStateSet = true;
     }
-    state->umdSurf2DTable[handle].surfaceStateParam[aliasIndex / state->surfaceArraySize] = *param;
+    state->umdSurf2DTable[handle].surfaceStateParam[
+        aliasIndex / state->surfaceArraySize] = *param;
 
 finish:
     return eStatus;
