@@ -484,6 +484,17 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             }
             break;
         }
+        case VAConfigAttribNumScalablePipesMinus1:
+        {
+            if (entrypoint == VAEntrypointEncSliceLP && IsVp9Profile(profile))
+            {
+                *value = 1;
+            }
+            else
+            {
+                status = VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+        }
         default:
             status = VA_STATUS_ERROR_INVALID_PARAMETER;
             break;
@@ -697,6 +708,7 @@ VAStatus MediaLibvaCapsG12::LoadVp9EncProfileEntrypoints()
         (*attributeList)[VAConfigAttribEncDynamicScaling] = 1;
         (*attributeList)[VAConfigAttribEncTileSupport] = 1;
         (*attributeList)[VAConfigAttribEncRateControlExt] = m_encVp9RateControlExt.value;
+        (*attributeList)[VAConfigAttribSegmentFeatureSupport] = SegFeatureQIndexDelta | SegFeatureLFDelta;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
@@ -1733,7 +1745,7 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncROI;
-    if (entrypoint == VAEntrypointEncSliceLP)
+    if (entrypoint == VAEntrypointEncSliceLP && (!IsVp9Profile(profile)))
     {
         VAConfigAttribValEncROI roi_attrib = {0};
         if (IsAvcProfile(profile))
@@ -1762,9 +1774,9 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = (VAConfigAttribType)VAConfigAttribEncDirtyRect;
-    if((entrypoint == VAEntrypointEncSliceLP) && IsHevcProfile(profile))
+    if (entrypoint == VAEntrypointEncSliceLP && (IsHevcProfile(profile) || IsVp9Profile(profile)))
     {
-        attrib.value = CODECHAL_ENCODE_HEVC_MAX_NUM_DIRTYRECT;
+        attrib.value = IsHevcProfile(profile) ? CODECHAL_ENCODE_HEVC_MAX_NUM_DIRTYRECT : 0;
     }
     else
     {

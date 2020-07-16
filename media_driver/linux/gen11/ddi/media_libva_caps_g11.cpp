@@ -397,6 +397,17 @@ VAStatus MediaLibvaCapsG11::GetPlatformSpecificAttrib(VAProfile profile,
             }
             break;
         }
+        case VAConfigAttribNumScalablePipesMinus1:
+        {
+            if (entrypoint == VAEntrypointEncSliceLP && IsVp9Profile(profile))
+            {
+                *value = 0;
+            }
+            else
+            {
+                status = VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+        }
         default:
             status = VA_STATUS_ERROR_INVALID_PARAMETER;
             break;
@@ -548,6 +559,7 @@ VAStatus MediaLibvaCapsG11::LoadVp9EncProfileEntrypoints()
         (*attributeList)[VAConfigAttribEncDynamicScaling] = 1;
         (*attributeList)[VAConfigAttribEncTileSupport] = 1;
         (*attributeList)[VAConfigAttribEncRateControlExt] = m_encVp9RateControlExt.value;
+        (*attributeList)[VAConfigAttribSegmentFeatureSupport] = SegFeatureQIndexDelta | SegFeatureLFDelta;
     }
 
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9Vdenc) &&
@@ -1131,7 +1143,7 @@ VAStatus MediaLibvaCapsG11::QuerySurfaceAttributes(
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
-            attribs[i].value.value.i = VA_FOURCC('Y', '4', '1', '6');
+            attribs[i].value.value.i = VA_FOURCC_Y410;
             i++;
 
             attribs[i].type = VASurfaceAttribPixelFormat;
