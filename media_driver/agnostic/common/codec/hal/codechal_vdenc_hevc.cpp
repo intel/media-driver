@@ -2652,48 +2652,18 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
     m_lookaheadDepth = m_hevcSeqParams->LookaheadDepth;
     m_lookaheadPass  = (m_lookaheadDepth > 0) && (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP);
 
-    if (m_lookaheadPass)
+
+    if (m_lookaheadDepth > 0)
     {
-        double frameRate = 0;
-        if (m_hevcSeqParams->FrameRate.Denominator != 0)
-        {
-            frameRate = (double)m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator;
-        }
         uint64_t targetBitRate = (uint64_t)m_hevcSeqParams->TargetBitRate * CODECHAL_ENCODE_BRC_KBPS;
+        double frameRate     = (m_hevcSeqParams->FrameRate.Denominator ? (double)m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator : 30);
         if ((frameRate < 1) || (targetBitRate < frameRate) || (targetBitRate > 0xFFFFFFFF))
         {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid FrameRate or TargetBitRate in lookahead pass!");
+            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid FrameRate or TargetBitRate in LPLA!");
             return MOS_STATUS_INVALID_PARAMETER;
         }
+
         m_averageFrameSize = (uint32_t)(targetBitRate / frameRate);
-
-        if (m_targetBufferFulness == 0)
-        {
-            m_targetBufferFulness = m_hevcSeqParams->VBVBufferSizeInBit - m_hevcSeqParams->InitVBVBufferFullnessInBit;
-            uint32_t initVbvFullnessInFrames = MOS_MIN(m_hevcSeqParams->InitVBVBufferFullnessInBit, m_hevcSeqParams->VBVBufferSizeInBit) / m_averageFrameSize;
-            uint32_t vbvBufferSizeInFrames = m_hevcSeqParams->VBVBufferSizeInBit / m_averageFrameSize;
-            uint32_t encBufferFullness = (vbvBufferSizeInFrames - initVbvFullnessInFrames) * m_averageFrameSize;
-            m_bufferFulnessError = (int32_t)((int64_t)m_targetBufferFulness - (int64_t)encBufferFullness);
-        }
-    }
-    else if (m_lookaheadDepth > 0)
-    {
-        uint64_t targetBitRate = (uint64_t)m_hevcSeqParams->TargetBitRate;
-        uint64_t frameRate     = (m_hevcSeqParams->FrameRate.Denominator ? m_hevcSeqParams->FrameRate.Numerator / m_hevcSeqParams->FrameRate.Denominator : 30);
-        if ((frameRate < 1) || (targetBitRate < frameRate))
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid FrameRate or TargetBitRate in lookahead pass!");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-
-        if (frameRate)
-        {
-            m_averageFrameSize = (uint32_t)(targetBitRate / frameRate);
-        }
-        else
-        {
-            m_averageFrameSize = (uint32_t)(targetBitRate / 30);
-        }
 
         if (m_hevcSeqParams->VBVBufferSizeInBit < m_hevcSeqParams->InitVBVBufferFullnessInBit)
         {
@@ -2705,6 +2675,13 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
         if (m_targetBufferFulness == 0)
         {
             m_targetBufferFulness = m_hevcSeqParams->VBVBufferSizeInBit - m_hevcSeqParams->InitVBVBufferFullnessInBit;
+            if (m_lookaheadPass)
+            {
+                uint32_t initVbvFullnessInFrames = MOS_MIN(m_hevcSeqParams->InitVBVBufferFullnessInBit, m_hevcSeqParams->VBVBufferSizeInBit) / m_averageFrameSize;
+                uint32_t vbvBufferSizeInFrames = m_hevcSeqParams->VBVBufferSizeInBit / m_averageFrameSize;
+                uint32_t encBufferFullness = (vbvBufferSizeInFrames - initVbvFullnessInFrames) * m_averageFrameSize;
+                m_bufferFulnessError = (int32_t)((int64_t)m_targetBufferFulness - (int64_t)encBufferFullness);
+            }
         }
     }
 
@@ -2805,13 +2782,17 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(PrepareVDEncStreamInData());
 
-    if ((m_lookaheadDepth > 0) && (m_prevTargetFrameSize > 0) && !m_lookaheadPass)
+    if (!m_lookaheadPass)
     {
-        int64_t targetBufferFulness = (int64_t)m_targetBufferFulness;
-        targetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
-        m_targetBufferFulness = targetBufferFulness < 0 ? 0 : (targetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)targetBufferFulness);
+        if ((m_lookaheadDepth > 0) && (m_prevTargetFrameSize > 0))
+        {
+            int64_t targetBufferFulness = (int64_t)m_targetBufferFulness;
+            targetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
+            m_targetBufferFulness = targetBufferFulness < 0 ? 0 : (targetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)targetBufferFulness);
+        }
+
+        m_prevTargetFrameSize = m_hevcPicParams->TargetFrameSize;
     }
-    m_prevTargetFrameSize = m_hevcPicParams->TargetFrameSize;
 
     return eStatus;
 }
