@@ -39,7 +39,11 @@
         device_id == IBXT_PRO_3x6_DEVICE_ID || \
         device_id == IBXT_P_3x6_DEVICE_ID   || \
         device_id == IBXT_P_12EU_3x6_DEVICE_ID )
-#define IS_ATOMSOC(device_id)       ( IS_BROXTON(device_id) )
+
+#define IS_GEMINILAKE(device_id) ( device_id == IGLK_GT2_ULT_18EU_DEVICE_F0_ID || \
+        device_id == IGLK_GT2_ULT_12EU_DEVICE_F0_ID)
+
+#define IS_ATOMSOC(device_id)       ( IS_BROXTON(device_id) || IS_GEMINILAKE(device_id))
 
 extern MOS_STATUS HWInfo_GetGfxProductFamily(int32_t fd, PRODUCT_FAMILY &eProductFamily);
 
