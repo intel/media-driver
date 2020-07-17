@@ -312,6 +312,109 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     return eStatus;
 }
 
+MOS_STATUS MediaVeboxDecompState::MediaMemoryTileConvert(
+        PMOS_RESOURCE inputResource,
+        PMOS_RESOURCE outputResource,
+        uint32_t      copyWidth,
+        uint32_t      copyHeight,
+        uint32_t      copyInputOffset,
+        uint32_t      copyOutputOffset,
+        bool          isTileToLinear,
+        bool          outputCompressed)
+{
+    MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_FUNCTION_ENTER;
+
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputResource);
+    VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(outputResource);
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
+
+    MOS_SURFACE             sourceSurface;
+    MOS_SURFACE             targetSurface;
+
+    MOS_ZeroMemory(&targetSurface, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(&sourceSurface, sizeof(MOS_SURFACE));
+
+    targetSurface.Format = Format_Invalid;
+    targetSurface.OsResource = *outputResource;
+
+#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+    // for Double Buffer copy, clear the allocationInfo temply
+    MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
+#endif
+
+    sourceSurface.Format = Format_Invalid;
+    sourceSurface.OsResource = *inputResource;
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&targetSurface));
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&sourceSurface));
+
+    if (targetSurface.TileType == MOS_TILE_LINEAR &&
+        sourceSurface.TileType == MOS_TILE_LINEAR)
+    {
+        VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupport linear to linear convert, return unsupport feature");
+        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+    }
+
+    MOS_FORMAT format = Format_Any;
+    if (isTileToLinear)
+    {
+        if (!IsFormatSupported(&sourceSurface))
+        {
+            VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupport processing format, return unsupport feature");
+            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+        }
+
+        format = sourceSurface.Format;
+        copyHeight = sourceSurface.dwHeight;
+    }
+    else
+    {
+        if (!IsFormatSupported(&targetSurface))
+        {
+            VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupport processing format, return unsupport feature");
+            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+        }
+
+        format = targetSurface.Format;
+        copyHeight = targetSurface.dwHeight;
+    }
+
+    if (!outputCompressed && targetSurface.CompressionMode != MOS_MMC_DISABLED)
+    {
+        targetSurface.CompressionMode = MOS_MMC_RC;
+    }
+
+    //Get context before proceeding
+    auto gpuContext = m_osInterface->CurrentGpuContextOrdinal;
+
+    targetSurface.Format = format;
+    sourceSurface.Format = format;
+
+    sourceSurface.dwOffset = copyInputOffset;
+    targetSurface.dwOffset = copyOutputOffset;
+
+    sourceSurface.dwWidth = copyWidth;
+    sourceSurface.dwHeight = copyHeight;
+    targetSurface.dwWidth = copyWidth;
+    targetSurface.dwHeight = copyHeight;
+
+    // Sync for Vebox write
+    m_osInterface->pfnSyncOnResource(
+        m_osInterface,
+        &targetSurface.OsResource,
+        MOS_GPU_CONTEXT_VEBOX,
+        false);
+
+    DumpSurfaceMemDecomp(sourceSurface, m_surfaceDumpCounter, 1, VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP);
+
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(RenderDoubleBufferDecompCMD(&sourceSurface, &targetSurface));
+
+    DumpSurfaceMemDecomp(targetSurface, m_surfaceDumpCounter++, 1, VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP);
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+    return eStatus;
+}
+
 MOS_STATUS MediaVeboxDecompState::Initialize(
     PMOS_INTERFACE               osInterface,
     MhwCpInterface              *cpInterface,
@@ -456,6 +559,11 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
     PMOS_SURFACE                        outputSurface)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+    bool  inputIsLinearBuffer = false;
+    bool  outputIsLinearBuffer = false;
+    uint32_t bpp = 1;
+    uint32_t inputWidth = 0;
+    uint32_t outputWidth = 0;
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputSurface);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(mhwVeboxSurfaceStateCmdParams);
@@ -468,17 +576,69 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
     mhwVeboxSurfaceStateCmdParams->SurfInput.dwWidth    = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwWidth    = inputSurface->dwWidth;
     mhwVeboxSurfaceStateCmdParams->SurfInput.Format     = mhwVeboxSurfaceStateCmdParams->SurfOutput.Format     = inputSurface->Format;
 
+    MOS_SURFACE inputDetails, outputDetails;
+    MOS_ZeroMemory(&inputDetails, sizeof(inputDetails));
+    MOS_ZeroMemory(&outputDetails, sizeof(outputDetails));
+    inputDetails.Format = Format_Invalid;
+    outputDetails.Format = Format_Invalid;
+
+    if (inputSurface)
+    {
+        VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+            m_osInterface,
+            &inputSurface->OsResource,
+            &inputDetails));
+    }
+
+    if (outputSurface)
+    {
+        VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+            m_osInterface,
+            &outputSurface->OsResource,
+            &outputDetails));
+
+        // Following settings are enabled only when outputSurface is availble
+        inputIsLinearBuffer  = (inputDetails.dwHeight == 1) ? true : false;
+        outputIsLinearBuffer = (outputDetails.dwHeight == 1) ? true : false;
+
+        inputWidth = inputSurface->dwWidth;
+        outputWidth = outputSurface->dwWidth;
+
+        if (inputIsLinearBuffer)
+        {
+            bpp = outputDetails.dwPitch / outputDetails.dwWidth;
+            if (outputDetails.dwPitch % outputDetails.dwWidth != 0)
+            {
+                inputWidth = outputDetails.dwPitch / bpp;
+            }
+        }
+        else if (outputIsLinearBuffer)
+        {
+            bpp = inputDetails.dwPitch / inputDetails.dwWidth;
+            if (inputDetails.dwPitch % inputDetails.dwWidth != 0)
+            {
+                outputWidth = inputDetails.dwPitch / bpp;
+            }
+        }
+        else
+        {
+            VPHAL_MEMORY_DECOMP_NORMALMESSAGE("2D to 2D, no need for bpp setting.");
+        }
+    }
+
 
     if (inputSurface->dwPitch > 0            &&
        (inputSurface->Format == Format_P010  ||
         inputSurface->Format == Format_P016  ||
         inputSurface->Format == Format_NV12))
     {
-        mhwVeboxSurfaceStateCmdParams->SurfInput.dwUYoffset = SURFACE_DW_UY_OFFSET(inputSurface);
+        mhwVeboxSurfaceStateCmdParams->SurfInput.dwUYoffset = (!inputIsLinearBuffer) ? SURFACE_DW_UY_OFFSET(inputSurface) :
+                                                              inputSurface->dwHeight;
 
         if (outputSurface)
         {
-            mhwVeboxSurfaceStateCmdParams->SurfOutput.dwUYoffset = SURFACE_DW_UY_OFFSET(outputSurface);
+            mhwVeboxSurfaceStateCmdParams->SurfOutput.dwUYoffset = (!outputIsLinearBuffer) ? SURFACE_DW_UY_OFFSET(outputSurface) :
+                                                                   outputSurface->dwHeight;
         }
         else
         {
@@ -516,10 +676,10 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
         mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled     = outputSurface->bGMMTileEnabled;
 
         // When surface is 1D but processed as 2D, fake a min(pitch, width) is needed as the pitch API passed may less surface width in 1D surface
-        mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch              = (inputSurface->TileType == MOS_TILE_LINEAR) ? 
-                                                                         MOS_MIN(inputSurface->dwWidth, inputSurface->dwPitch) : inputSurface->dwPitch;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch             = (outputSurface->TileType == MOS_TILE_LINEAR) ? 
-                                                                         MOS_MIN(outputSurface->dwPitch, outputSurface->dwWidth) : outputSurface->dwPitch;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch              = (inputIsLinearBuffer) ?
+                                                                         MOS_MIN(inputWidth * bpp, inputSurface->dwPitch) : inputSurface->dwPitch;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch             = (outputIsLinearBuffer) ?
+                                                                         MOS_MIN(outputWidth * bpp, outputSurface->dwPitch) : outputSurface->dwPitch;
         mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource          = &(inputSurface->OsResource);
         mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource         = &(outputSurface->OsResource);
         mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset            = inputSurface->YPlaneOffset.iYOffset;
@@ -598,15 +758,17 @@ MOS_STATUS MediaVeboxDecompState::InitCommandBuffer(
     return eStatus;
 }
 
-bool MediaVeboxDecompState::IsDecompressionFormatSupported(PMOS_SURFACE surface)
+bool MediaVeboxDecompState::IsFormatSupported(PMOS_SURFACE surface)
 {
     bool    bRet = false;
 
     if (surface->Format == Format_R10G10B10A2 ||
-        surface->Format == Format_B10G10R10A2)
+        surface->Format == Format_B10G10R10A2 ||
+        surface->Format == Format_Y410 ||
+        surface->Format == Format_Y210)
     {
-        //For Vebox comsume RGB10, Re-map RGB10 as Y410
-        surface->Format = Format_Y410;
+        // Re-map RGB10/RGB10/Y410/Y210 as AYUV
+        surface->Format = Format_AYUV;
     }
 
     if (surface->Format == Format_A8 ||

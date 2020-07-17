@@ -263,6 +263,7 @@ typedef union _DDI_MEDIA_SURFACE_STATUS_REPORT
     } vpp;
 } DDI_MEDIA_SURFACE_STATUS_REPORT, *PDDI_MEDIA_SURFACE_STATUS_REPORT;
 
+struct _DDI_MEDIA_BUFFER;
 typedef struct _DDI_MEDIA_SURFACE
 {
     // for hwcomposer, remove this after we have a solution
@@ -300,6 +301,7 @@ typedef struct _DDI_MEDIA_SURFACE
     PMEDIA_SEM_T            pReferenceFrameSemaphore; // to sync reference frame surface. when this semaphore is posted, the surface is not used as reference frame, and safe to be destroied
 
     uint8_t                 *pSystemShadow;           // Shadow surface in system memory
+    _DDI_MEDIA_BUFFER       *pShadowBuffer;
 
     uint32_t                uiMapFlag;
 
@@ -331,6 +333,7 @@ typedef struct _DDI_MEDIA_BUFFER
     bool                   bPostponedBufFree;
 
     bool                   bCFlushReq; // No LLC between CPU & GPU, requries to call CPU Flush for CPU mapped buffer
+    bool                   bUseSysGfxMem;
     PDDI_MEDIA_SURFACE     pSurface;
     GMM_RESOURCE_INFO     *pGmmResourceInfo; // GMM resource descriptor
     PDDI_MEDIA_CONTEXT     pMediaCtx; // Media driver Context
@@ -489,6 +492,20 @@ struct DDI_MEDIA_CONTEXT
         uint32_t           copyInputOffset,
         uint32_t           copyOutputOffset,
         bool               bOutputCompressed);
+
+    //!
+    //! \brief  the function ptr for Media Tile Convert function
+    //!
+    VAStatus (* pfnMediaMemoryTileConvert)(
+        PMOS_CONTEXT       pMosCtx,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        uint32_t           copyWidth,
+        uint32_t           copyHeight,
+        uint32_t           copyInputOffset,
+        uint32_t           copyOutputOffset,
+        bool               isTileToLinear,
+        bool               outputCompressed);
 
     PLATFORM            platform;
 

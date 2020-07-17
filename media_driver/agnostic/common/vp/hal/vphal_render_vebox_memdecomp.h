@@ -195,6 +195,38 @@ public:
         bool          bOutputCompressed);
 
     //!
+    //! \brief    Media memory tile convert
+    //! \details  Convert media between Tile/Linear with decompression
+    //! \param    [in] inputSurface
+    //!            The source surface resource
+    //! \param    [out] outputSurface
+    //!            The target surface resource will be copied to
+    //! \param    [in] copyWidth
+    //!            The 2D surface Width
+    //! \param    [in] copyHeight
+    //!            The 2D surface height
+    //! \param    [in] copyInputOffset
+    //!            The offset of copied surface from
+    //! \param    [in] copyOutputOffset
+    //!            The offset of copied to
+    //! \param    [in] isTileToLinear
+    //!            Convertion direction, true: tile->linear, false: linear->tile
+    //! \param    [in] outputCompressed
+    //!            true means apply compression on output surface, else output uncompressed surface
+    //!
+    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
+    //!
+    virtual MOS_STATUS MediaMemoryTileConvert(
+        PMOS_RESOURCE inputResource,
+        PMOS_RESOURCE outputResource,
+        uint32_t      copyWidth,
+        uint32_t      copyHeight,
+        uint32_t      copyInputOffset,
+        uint32_t      copyOutputOffset,
+        bool          isTileToLinear,
+        bool          outputCompressed);
+
+    //!
     //! \brief    Initialize memory decompress state
     //! \param    [in] osInterface
     //!           Os interface
@@ -268,12 +300,12 @@ protected:
         uint32_t            streamID) = 0;
 
     //!
-    //! Is Vebox Decompression Format supported
+    //! Is Vebox Tile Convert/Decompression Format supported
     //! \param    [in/out]     surface
     //!           Pointer to Output Surface parameters
     //! \return   true if supported, else false.
     //!
-    bool IsDecompressionFormatSupported(PMOS_SURFACE surface);
+    bool IsFormatSupported(PMOS_SURFACE surface);
 
     enum MEDIA_TILE_TYPE
     {

@@ -1159,6 +1159,78 @@ void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE input
     }
 }
 
+//!
+//! \brief  Tile/Linear format conversion for media surface/buffer
+//!
+//! \param  [in] mosCtx
+//!         Pointer to mos context
+//! \param  [in] inputOsResource
+//!         Pointer input mos resource
+//! \param  [in] outputOsResource
+//!         Pointer output mos resource
+//! \param  [in] copyWidth
+//!         The 2D surface Width
+//! \param  [in] copyHeight
+//!         The 2D surface height
+//! \param  [in] copyInputOffset
+//!         The offset of copied surface from
+//! \param  [in] copyOutputOffset
+//!         The offset of copied to
+//! \param  [in] isTileToLinear
+//!         Convertion direction, true: tile->linear, false: linear->tile
+//! \param  [in] outputCompressed
+//!         output can be compressed or not
+//!
+VAStatus DdiMedia_MediaMemoryTileConvertInternal(
+    PMOS_CONTEXT mosCtx,
+    PMOS_RESOURCE inputOsResource,
+    PMOS_RESOURCE outputOsResource,
+    uint32_t copyWidth,
+    uint32_t copyHeight,
+    uint32_t copyInputOffset,
+    uint32_t copyOutputOffset,
+    bool isTileToLinear,
+    bool outputCompressed)
+{
+    DDI_CHK_NULL(mosCtx, "nullptr mosCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(inputOsResource, "nullptr input osResource", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(outputOsResource, "nullptr output osResource", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_ASSERT(inputOsResource);
+    DDI_ASSERT(outputOsResource);
+
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+
+    MediaMemDecompBaseState *mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(*mosCtx->ppMediaMemDecompState);
+
+    if (mosCtx->m_apoMosEnabled && !mediaMemDecompState)
+    {
+        DDI_CHK_NULL(mediaMemDecompState, "nullptr mediaMemDecompState", VA_STATUS_ERROR_INVALID_PARAMETER);
+    }
+
+    if (!mediaMemDecompState)
+    {
+        mediaMemDecompState = static_cast<MediaMemDecompBaseState*>(MmdDevice::CreateFactory(mosCtx));
+        *mosCtx->ppMediaMemDecompState = mediaMemDecompState;
+    }
+
+    DDI_CHK_NULL(mediaMemDecompState, "Invalid memory decompression state", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    MOS_STATUS mosStatus = mediaMemDecompState->MediaMemoryTileConvert(
+            inputOsResource,
+            outputOsResource,
+            copyWidth,
+            copyHeight,
+            copyInputOffset,
+            copyOutputOffset,
+            isTileToLinear,
+            outputCompressed);
+    if (mosStatus != MOS_STATUS_SUCCESS)
+    {
+        vaStatus = VA_STATUS_ERROR_UNKNOWN;
+    }
+
+    return vaStatus;
+}
 #endif
 
 //!
@@ -1526,6 +1598,7 @@ VAStatus DdiMedia__Initialize (
     mediaCtx->pfnMemoryDecompress  = DdiMedia_MediaMemoryDecompressInternal;
     mediaCtx->pfnMediaMemoryCopy   = DdiMedia_MediaMemoryCopyInternal;
     mediaCtx->pfnMediaMemoryCopy2D = DdiMedia_MediaMemoryCopy2DInternal;
+    mediaCtx->pfnMediaMemoryTileConvert = DdiMedia_MediaMemoryTileConvertInternal;
 #endif
     mediaCtx->modularizedGpuCtxEnabled = true;
 

@@ -61,7 +61,7 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
         return eStatus;
     }
 
-    if (!IsDecompressionFormatSupported(surface))
+    if (!IsFormatSupported(surface))
     {
         VPHAL_MEMORY_DECOMP_NORMALMESSAGE("Input surface is not supported by Vebox, In_Place resolve can't be done");
         return eStatus;
@@ -231,12 +231,6 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDoubleBufferDecompCMD(
 
     // Prepare Vebox_Surface_State, surface input/and output are the same but the compressed status.
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(SetupVeboxSurfaceState(&mhwVeboxSurfaceStateCmdParams, inputSurface, outputSurface));
-
-    //---------------------------------
-    // Send Pvt MMCD CMD
-    //---------------------------------
-    MediaVeboxDecompStateG12 *pVeboxInterfaceExt12;
-    pVeboxInterfaceExt12 = (MediaVeboxDecompStateG12 *)veboxInterface;
 
     //---------------------------------
     // Send CMD: Vebox_Surface_State
