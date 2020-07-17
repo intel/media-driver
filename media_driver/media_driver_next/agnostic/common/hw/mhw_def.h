@@ -79,7 +79,6 @@
 #define __MHW_CMD_BYTE_SIZE_GET_DEF(cmd)                \
     __MHW_CMD_BYTE_SIZE_GET_DECL(cmd) override          \
     {                                                   \
-        MHW_FUNCTION_ENTER;                             \
         return sizeof(typename cmd_t::_MHW_CMD_T(cmd)); \
     }
 
@@ -87,10 +86,10 @@
     __MHW_CMD_ADD_DECL(cmd) override                                                                      \
     {                                                                                                     \
         MHW_FUNCTION_ENTER;                                                                               \
-        auto cmdData      = __MHW_CMD_CREATE_F(cmd)();                                                    \
-        m_currentCmdBuf   = cmdBuf;                                                                       \
-        m_currentBatchBuf = batchBuf;                                                                     \
-        MHW_CHK_STATUS_RETURN(__MHW_CMD_SET_F(cmd)(cmdData->data()));                                     \
+        this->m_currentCmdBuf   = cmdBuf;                                                                 \
+        this->m_currentBatchBuf = batchBuf;                                                               \
+        auto cmdData            = this->__MHW_CMD_CREATE_F(cmd)();                                        \
+        MHW_CHK_STATUS_RETURN(this->__MHW_CMD_SET_F(cmd)(cmdData->data()));                               \
         MHW_CHK_STATUS_RETURN(Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, cmdData->data(), cmdData->size())); \
         if (extraData && extraDataSize > 0)                                                               \
         {                                                                                                 \
@@ -102,7 +101,6 @@
 #define __MHW_CMD_CREATE_DEF(cmd)                                              \
     __MHW_CMD_CREATE_DECL(cmd) override                                        \
     {                                                                          \
-        MHW_FUNCTION_ENTER;                                                    \
         typename cmd_t::_MHW_CMD_T(cmd) cmdData;                               \
         auto p = reinterpret_cast<const uint8_t *>(&cmdData);                  \
         return mhw::MakePointer<std::vector<uint8_t>>(p, p + sizeof(cmdData)); \
