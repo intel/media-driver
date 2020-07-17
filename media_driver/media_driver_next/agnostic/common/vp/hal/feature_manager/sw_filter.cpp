@@ -102,6 +102,29 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE pSurfInput, VP_EXECUTE_CAPS caps)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(pSurfInput);
+    VP_PUBLIC_CHK_NULL_RETURN(pSurfInput->osSurface);
+
+    if (caps.bSFC)
+    {
+        m_Params.colorSpaceInput = pSurfInput->ColorSpace;
+        m_Params.colorSpaceOutput = pSurfInput->ColorSpace;
+
+        m_Params.formatInput = pSurfInput->osSurface->Format;
+        m_Params.formatOutput = Format_AYUV;   // To get colorPack as 4:4:4
+        m_Params.chromaSitingInput = pSurfInput->ChromaSiting;
+        m_Params.chromaSitingOutput = pSurfInput->ChromaSiting;
+
+        m_Params.pAlphaParams = nullptr;
+        m_Params.pIEFParams = nullptr;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+
 FeatureParamCsc &SwFilterCsc::GetSwFilterParams()
 {
     return m_Params;
@@ -408,6 +431,81 @@ MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* output
     return MOS_STATUS_SUCCESS;
 }
 
+/****************************************************************************************************/
+/*                                      SwFilterAce                                             */
+/****************************************************************************************************/
+
+SwFilterAce::SwFilterAce(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeAce)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterAce::~SwFilterAce()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterAce::Clean()
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterAce::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
+
+    m_Params.formatInput   = surfInput->Format;
+    m_Params.formatOutput  = surfInput->Format;// Ace didn't change the original format;
+
+    m_Params.bEnableACE = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->bEnableACE : false;
+    m_Params.dwAceLevel = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->dwAceLevel : 0;
+    m_Params.dwAceStrength = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->dwAceStrength : 0;
+    m_Params.bAceLevelChanged = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->bAceLevelChanged : false;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamAce& SwFilterAce::GetSwFilterParams()
+{
+    return m_Params;
+}
+
+SwFilter * SwFilterAce::Clone()
+{
+    SwFilter *p = m_vpInterface.GetSwFilterFactory().Create(m_type);
+    if (nullptr == p)
+    {
+        return nullptr;
+    }
+
+    SwFilterAce *swFilter = dynamic_cast<SwFilterAce *>(p);
+    if (nullptr == swFilter)
+    {
+        m_vpInterface.GetSwFilterFactory().Destory(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterAce::operator==(SwFilter& swFilter)
+{
+    SwFilterAce* p = dynamic_cast<SwFilterAce*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamAce));
+}
+
+MOS_STATUS vp::SwFilterAce::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
 
 /****************************************************************************************************/
 /*                                      SwFilterSet                                                 */

@@ -138,6 +138,17 @@ MOS_STATUS HwFilterVebox::ConfigDnParam(HW_FILTER_DN_PARAM &param)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HwFilterVebox::ConfigAceParam(HW_FILTER_ACE_PARAM &param)
+{
+    if (FeatureTypeAceOnVebox == param.type)
+    {
+        VpPacketParameter *p = VpVeboxAceParameter::Create(param);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_Params.Params.push_back(p);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 /****************************************************************************************************/
 /*                                      HwFilterVeboxSfc                                                 */
 /****************************************************************************************************/

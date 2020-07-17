@@ -168,6 +168,14 @@ struct _VEBOX_DN_PARAMS
     bool                            bProgressive;
 };
 
+struct _VEBOX_ACE_PARAMS
+{
+    bool                            bEnableACE;                                 // ACE Enabled
+    bool                            bAceLevelChanged;
+    uint32_t                        dwAceLevel;
+    uint32_t                        dwAceStrength;
+};
+
 struct _VEBOX_CSC_PARAMS
 {
     bool                            bCSCEnabled;                                 // CSC Enabled
@@ -192,6 +200,8 @@ using SFC_ROT_MIR_PARAMS    = _SFC_ROT_MIR_PARAMS;
 using PSFC_ROT_MIR_PARAMS   = SFC_ROT_MIR_PARAMS * ;
 using VEBOX_DN_PARAMS       = _VEBOX_DN_PARAMS;
 using PVEBOX_DN_PARAMS      = VEBOX_DN_PARAMS *;
+using VEBOX_ACE_PARAMS      = _VEBOX_ACE_PARAMS;
+using PVEBOX_ACE_PARAMS     = VEBOX_ACE_PARAMS *;
 using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;
 using PVEBOX_CSC_PARAMS     = VEBOX_CSC_PARAMS *;
 

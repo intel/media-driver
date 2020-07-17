@@ -284,6 +284,32 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInpu
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterAceHandler                                      */
+/****************************************************************************************************/
+
+SwFilterAceHandler::SwFilterAceHandler(VpInterface &vpInterface) : SwFilterFeatureHandler(vpInterface, FeatureTypeAce)
+{}
+SwFilterAceHandler::~SwFilterAceHandler()
+{}
+
+bool SwFilterAceHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (vphalSurf && vphalSurf->pColorPipeParams &&
+        vphalSurf->pColorPipeParams->bEnableACE)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+/****************************************************************************************************/
 /*                                      SwFilterPipe                                                */
 /****************************************************************************************************/
 
@@ -471,6 +497,10 @@ MOS_STATUS SwFilterPipe::RegisterFeatures()
     p = MOS_New(SwFilterDnHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeDn, p));
+
+    p = MOS_New(SwFilterAceHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeAce, p));
 
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;

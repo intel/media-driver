@@ -207,7 +207,8 @@ SwFilterFactory::SwFilterFactory(VpInterface &vpInterface) :
     m_allocatorCsc(vpInterface),
     m_allocatorRotMir(vpInterface),
     m_allocatorScaling(vpInterface),
-    m_allocatorDn(vpInterface)
+    m_allocatorDn(vpInterface),
+    m_allocatorAce(vpInterface)
 {
 }
 
@@ -231,6 +232,9 @@ SwFilter *SwFilterFactory::Create(FeatureType type)
         break;
     case FeatureTypeDn:
         swFilter = m_allocatorDn.Create();
+        break;
+    case FeatureTypeAce:
+        swFilter = m_allocatorAce.Create();
         break;
     default:
         break;
@@ -279,6 +283,12 @@ void SwFilterFactory::Destory(SwFilter *&swFilter)
     {
         SwFilterDenoise *filter = dynamic_cast<SwFilterDenoise *>(swFilter);
         m_allocatorDn.Destory(filter);
+        break;
+    }
+    case FeatureTypeAce:
+    {
+        SwFilterAce *filter = dynamic_cast<SwFilterAce *>(swFilter);
+        m_allocatorAce.Destory(filter);
         break;
     }
     default:

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -230,6 +230,10 @@ class VpVeboxRenderData
 public:
     virtual ~VpVeboxRenderData()
     {
+        if (pAceCacheData)
+        {
+            MOS_FreeMemAndSetNull(pAceCacheData);
+        }
     }
     virtual MOS_STATUS Init()
     {
@@ -330,6 +334,8 @@ public:
 
     // Perf
     VPHAL_PERFTAG                       PerfTag = VPHAL_NONE;
+
+    uint32_t *pAceCacheData  = nullptr;
 
 protected:
     MHW_VEBOX_DNDI_PARAMS   m_veboxDNDIParams = {};

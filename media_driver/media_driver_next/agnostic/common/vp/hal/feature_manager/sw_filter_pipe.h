@@ -145,6 +145,14 @@ public:
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
 };
 
+class SwFilterAceHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterAceHandler(VpInterface &vpInterface);
+    virtual ~SwFilterAceHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+};
+
 class SwFilterPipe
 {
 public:

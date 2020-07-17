@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_rot_mir_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_scaling_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_dn_filter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ace_filter.cpp
 )
 
 set(TMP_HEADERS_
@@ -32,6 +33,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_rot_mir_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_scaling_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_dn_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ace_filter.h
 )
 
 set(SOURCES_NEW

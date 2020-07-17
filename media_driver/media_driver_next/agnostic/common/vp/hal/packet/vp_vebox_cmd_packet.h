@@ -455,6 +455,19 @@ public:
     virtual MOS_STATUS SetDnParams(PVEBOX_DN_PARAMS dnParams);
 
     //!
+    //! \brief    Setup ACE Params for Vebox
+    //! \details  Setup surface ACE Params for Vebox
+    //! \param    [in] aceParams
+    //!           ACE Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetAceParams(PVEBOX_ACE_PARAMS aceParams)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
+    //!
     //! \brief    Get DN luma parameters
     //! \details  Get DN luma parameters
     //! \param    [in] bDnEnabled
@@ -899,7 +912,7 @@ protected:
     //! \return   VP_SURFACE*
     //!           Pointer to surface of specified type
     //!
-    virtual VP_SURFACE *GetSurface(SurfaceType type);
+    virtual VP_SURFACE* GetSurface(SurfaceType type);
 
     virtual MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
 

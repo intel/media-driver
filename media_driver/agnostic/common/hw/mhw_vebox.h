@@ -347,6 +347,7 @@ typedef struct _MHW_COLORPIPE_PARAMS
     bool                bEnableTCC;
     bool                bAceLevelChanged;
     uint32_t            dwAceLevel;
+    uint32_t            dwAceStrength;
     bool                bEnableLACE;
     MHW_STE_PARAMS      SteParams;
     MHW_TCC_PARAMS      TccParams;

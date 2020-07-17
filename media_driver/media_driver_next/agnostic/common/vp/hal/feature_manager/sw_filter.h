@@ -53,6 +53,8 @@ enum FeatureType
     FeatureTypeDn               = 0x400,
     FeatureTypeDnOnVebox,
     FeatureTypeDi               = 0x500,
+    FeatureTypeAce              = 0x600,
+    FeatureTypeAceOnVebox,
     // ...
     NumOfFeatureType
 };
@@ -129,6 +131,10 @@ public:
         return m_type;
     }
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS &params, bool bInputSurf, int surfIndex) = 0;
+    virtual MOS_STATUS Configure(PVP_SURFACE surfInput, VP_EXECUTE_CAPS caps)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
     virtual SwFilter *Clone() = 0;
     virtual bool operator == (class SwFilter&) = 0;
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf) = 0;
@@ -182,6 +188,7 @@ public:
     virtual ~SwFilterCsc();
     virtual MOS_STATUS Clean();
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
+    virtual MOS_STATUS Configure(PVP_SURFACE surfInput, VP_EXECUTE_CAPS caps);
     virtual FeatureParamCsc &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
@@ -273,6 +280,30 @@ public:
 
 private:
     FeatureParamDenoise m_Params = {};
+};
+
+struct FeatureParamAce : public FeatureParam
+{
+    bool                bEnableACE;
+    bool                bAceLevelChanged;
+    uint32_t            dwAceLevel;
+    uint32_t            dwAceStrength;
+};
+
+class SwFilterAce : public SwFilter
+{
+public:
+    SwFilterAce(VpInterface& vpInterface);
+    virtual ~SwFilterAce();
+    virtual MOS_STATUS Clean();
+    virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamAce& GetSwFilterParams();
+    virtual SwFilter* Clone();
+    virtual bool operator == (SwFilter& swFilter);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+
+private:
+    FeatureParamAce m_Params = {};
 };
 
 class SwFilterSet

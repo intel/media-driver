@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,8 @@
 #define IS_VP_VEBOX_DN_ONLY(_a) (_a.bDN &&          \
                                !(_a.bDI) &&   \
                                !(_a.bQueryVariance) && \
-                               !(_a.bIECP))
+                               !(_a.bIECP) && \
+                               !(_a.bAce))
 
 namespace vp {
     struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION

@@ -68,6 +68,7 @@ protected:
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
     MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetAceExecutionCaps(SwFilter* feature);
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
 
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
@@ -76,6 +77,11 @@ protected:
     MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
+    MOS_STATUS AddNewFilterOnVebox(
+        SwFilterPipe& featurePipe,
+        VP_EXECUTE_CAPS& caps,
+        HW_FILTER_PARAMS& params,
+        FeatureType featureType);
 
     MOS_STATUS AllocateVeboxExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS AllocateSfcExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
