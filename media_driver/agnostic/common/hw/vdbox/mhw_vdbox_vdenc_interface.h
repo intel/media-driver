@@ -31,6 +31,7 @@
 #include "mhw_vdbox.h"
 #include "mhw_mi.h"
 #include "codec_def_encode_hevc.h"
+#include "mhw_vdbox_vdenc_itf.h"
 
 typedef struct _MHW_VDBOX_VD_PIPE_FLUSH_PARAMS
 {
@@ -237,6 +238,14 @@ public:
     //! \brief    Destructor
     //!
     virtual ~MhwVdboxVdencInterface() {}
+
+    //!
+    //! \brief    Get new VDENC interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new VDENC interface
+    //!
+    virtual mhw::Pointer<mhw::vdbox::vdenc::Itf> GetNewVdencInterface() { return nullptr; }
 
     //!
     //! \brief    Judge if row store caching supported

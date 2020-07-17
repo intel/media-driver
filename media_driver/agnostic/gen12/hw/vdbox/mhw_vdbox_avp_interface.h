@@ -425,6 +425,14 @@ public:
     virtual ~MhwVdboxAvpInterface() {}
 
     //!
+    //! \brief    Get new AVP interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new AVP interface
+    //!
+    virtual std::shared_ptr<void> GetNewAvpInterface() { return nullptr; }
+
+    //!
     //! \brief    Judge if row store caching supported
     //!
     //! \return   bool
