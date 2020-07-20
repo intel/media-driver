@@ -207,7 +207,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    bool CpRegisterAccessible()
+    virtual bool CpRegisterAccessible()
     {
         OsStubMessage();
         return false;
