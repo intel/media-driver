@@ -2191,7 +2191,11 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsFormatSupported(
         pSrcSurface->Format != Format_Y8   &&
         pSrcSurface->Format != Format_Y16U &&
         pSrcSurface->Format != Format_Y16S &&
-        !IS_PA_FORMAT(pSrcSurface->Format))
+        (!IS_PA_FORMAT(pSrcSurface->Format) ||
+         pSrcSurface->Format == Format_Y410 ||    // Gen9 can't support Y410/Y416/Y210/Y216 Format
+         pSrcSurface->Format == Format_Y416 ||
+         pSrcSurface->Format == Format_Y210 ||
+         pSrcSurface->Format == Format_Y216))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
         goto finish;
