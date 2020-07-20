@@ -851,7 +851,7 @@ static VAStatus CreateShadowResource(DDI_MEDIA_SURFACE *surface)
         return VA_STATUS_ERROR_INVALID_SURFACE;
     }
 
-    if (surface->iWidth <= 512 || surface->iRealHeight <= 512)
+    if (surface->iWidth <= 512 || surface->iRealHeight <= 512 || surface->format == Media_Format_P016)
     {
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
