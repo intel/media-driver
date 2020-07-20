@@ -708,8 +708,9 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS IsCmdParamsValid(
-        const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
-        const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams);
+        const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
+        const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
+        const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams);
 
     //!
     //! \brief    Copy Vebox state heap

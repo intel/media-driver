@@ -408,6 +408,23 @@ finish:
     return eStatus;
 }
 
+//!
+//! \brief    Check for DN only case
+//! \details  Check for DN only case
+//! \return   bool
+//!           Return true if DN only case, otherwise not
+//!
+bool VPHAL_VEBOX_STATE_G8_BASE::IsDNOnly()
+{
+    PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
+
+    return pRenderData->bDenoise &&
+        (!pRenderData->bDeinterlace) &&
+        (!IsQueryVarianceEnabled()) &&
+        (!IsIECPEnabled());
+}
+
+
 MOS_STATUS VPHAL_VEBOX_STATE_G8_BASE::GetFFDISurfParams(
     MOS_FORMAT          &Format,
     MOS_TILE_TYPE       &TileType,
@@ -1215,12 +1232,16 @@ void VPHAL_VEBOX_STATE_G8_BASE::SetupSurfaceStates(
     {
         pVeboxSurfaceStateCmdParams->pSurfOutput =
             pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut];
+        pVeboxSurfaceStateCmdParams->pSurfDNOutput =
+            pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut];
     }
     else
     {
         VPHAL_RENDER_ASSERTMESSAGE("Unable to determine Vebox Output Surface.");
     }
 
+    pVeboxSurfaceStateCmdParams->pSurfDNOutput =
+        pVeboxState->FFDNSurfaces[pRenderData->iCurDNOut];
     pVeboxSurfaceStateCmdParams->bDIEnable = bDiVarianceEnable;
 }
 
