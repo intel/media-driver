@@ -88,7 +88,6 @@ void Av1DecodePkt::SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType)
 
     uint16_t perfTag = ((mode << 4) & 0xF0) | (picCodingType & 0xF);
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag);
-    m_osInterface->pfnResetPerfBufferID(m_osInterface);
 }
 
 bool Av1DecodePkt::IsPrologRequired()
@@ -231,6 +230,11 @@ MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
 
     MediaPacket::StartStatusReport(srType, cmdBuffer);
 
+    MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+    DECODE_CHK_NULL(perfProfiler);
+    DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(
+        (void*)m_av1Pipeline, m_osInterface, m_miInterface, cmdBuffer));
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -243,6 +247,11 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     DECODE_CHK_STATUS(ReadAvpStatus( m_statusReport, *cmdBuffer));
 
     DECODE_CHK_STATUS(MediaPacket::EndStatusReport(srType, cmdBuffer));
+
+    MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
+    DECODE_CHK_NULL(perfProfiler);
+    DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd(
+        (void*)m_av1Pipeline, m_osInterface, m_miInterface, cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 

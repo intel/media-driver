@@ -45,6 +45,18 @@ enum FilmGrainKernelStateIdx
     kernelNum             //!< Total kernel number for one Film Grain execution
 };
 
+//!
+//! \enum PerfTagCallType
+//!
+enum
+{
+    PERFTAG_CALL_FILM_GRAIN_KERNEL = 1,
+    PERFTAG_CALL_FILM_GRAIN_GRV_KERNEL,
+    PERFTAG_CALL_FILM_GRAIN_RP1_KERNEL,
+    PERFTAG_CALL_FILM_GRAIN_RP2_KERNEL,
+    PERFTAG_CALL_FILM_GRAIN_AN_KERNEL
+};
+
 struct CodecKernelHeader
 {
     union

@@ -165,7 +165,7 @@ namespace decode{
             MOS_ZeroMemory(&rowstoreParams, sizeof(rowstoreParams));
             rowstoreParams.dwPicWidth       = m_av1BasicFeature->m_frameWidthAlignedMinBlk;
             rowstoreParams.bMbaff           = false;
-            rowstoreParams.Mode             = (CODECHAL_MODE)codechalDecodeModeAv1Vld;
+            rowstoreParams.Mode             = CODECHAL_DECODE_MODE_AV1VLD;
             rowstoreParams.ucBitDepthMinus8 = m_av1PicParams->m_bitDepthIdx << 1;
             rowstoreParams.ucChromaFormat   = m_av1BasicFeature->m_chromaFormat;
             DECODE_CHK_STATUS(static_cast<CodechalHwInterfaceG12*>(m_hwInterface)->SetRowstoreCachingOffsets(&rowstoreParams));
@@ -872,7 +872,7 @@ namespace decode{
         DECODE_FUNC_CALL();
 
         MOS_ZeroMemory(&dstSurfaceParams, sizeof(dstSurfaceParams));
-        dstSurfaceParams.Mode                       = (CODECHAL_MODE)codechalDecodeModeAv1Vld;
+        dstSurfaceParams.Mode                       = CODECHAL_DECODE_MODE_AV1VLD;
         dstSurfaceParams.psSurface                  = &m_av1BasicFeature->m_destSurface;
         dstSurfaceParams.ucSurfaceStateId           = reconPic;
         dstSurfaceParams.ChromaType                 = (uint8_t)chromaSamplingFormat;
@@ -919,7 +919,7 @@ namespace decode{
             for (auto i = 0; i < av1TotalRefsPerFrame; i++)
             {
                 DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&refSurface[i]));
-                refSurfaceParams[i].Mode                       = (CODECHAL_MODE)codechalDecodeModeAv1Vld;
+                refSurfaceParams[i].Mode                       = CODECHAL_DECODE_MODE_AV1VLD;
                 refSurfaceParams[i].ChromaType                 = (uint8_t)chromaSamplingFormat;
                 refSurfaceParams[i].ucBitDepthLumaMinus8       = m_av1PicParams->m_bitDepthIdx << 1;
                 refSurfaceParams[i].ucBitDepthChromaMinus8     = m_av1PicParams->m_bitDepthIdx << 1;
@@ -942,7 +942,7 @@ namespace decode{
 
         MOS_ZeroMemory(&intraBCSurfaceParams, sizeof(intraBCSurfaceParams));
         DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(m_intrabcDecodedOutputFrameBuffer));
-        intraBCSurfaceParams.Mode                       = (CODECHAL_MODE)codechalDecodeModeAv1Vld;
+        intraBCSurfaceParams.Mode                       = CODECHAL_DECODE_MODE_AV1VLD;
         intraBCSurfaceParams.psSurface                  = m_intrabcDecodedOutputFrameBuffer;
         intraBCSurfaceParams.ucSurfaceStateId           = intrabcDecodedFrame;
         intraBCSurfaceParams.ChromaType                 = (uint8_t)chromaSamplingFormat;
@@ -1022,7 +1022,7 @@ namespace decode{
     {
         DECODE_FUNC_CALL();
 
-        pipeBufAddrParams.m_mode = (CODECHAL_MODE)codechalDecodeModeAv1Vld;
+        pipeBufAddrParams.m_mode = CODECHAL_DECODE_MODE_AV1VLD;
 
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc)
         {
@@ -1184,7 +1184,7 @@ namespace decode{
         DECODE_FUNC_CALL();
 
         MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
-        indObjBaseAddrParams.Mode            = (CODECHAL_MODE)codechalDecodeModeAv1Vld;
+        indObjBaseAddrParams.Mode            = CODECHAL_DECODE_MODE_AV1VLD;
         indObjBaseAddrParams.dwDataSize      = m_av1BasicFeature->m_dataSize;
         indObjBaseAddrParams.dwDataOffset    = m_av1BasicFeature->m_dataOffset;
         indObjBaseAddrParams.presDataBuffer  = &(m_av1BasicFeature->m_resDataBuffer.OsResource);

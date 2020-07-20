@@ -746,7 +746,7 @@ VAStatus DdiDecodeAV1::CodecHalInit(
 
     m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
-    m_codechalSettings->mode = CODECHAL_DECODE_RESERVED_0; // codechal decode mode AV1 VLD;
+    m_codechalSettings->mode = CODECHAL_DECODE_MODE_AV1VLD;
     m_codechalSettings->standard = codecStandardAv1;
     m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV420;
 
@@ -872,7 +872,7 @@ void DdiDecodeAV1::ContextInit(
     // call the function in base class to initialize it.
     DdiMediaDecode::ContextInit(picWidth, picHeight);
 
-    m_ddiDecodeCtx->wMode = CODECHAL_DECODE_RESERVED_0; // codechal decode mode AV1 VLD;
+    m_ddiDecodeCtx->wMode = CODECHAL_DECODE_MODE_AV1VLD;
 }
 
 extern template class MediaDdiFactory<DdiMediaDecode, DDI_DECODE_CONFIG_ATTR>;

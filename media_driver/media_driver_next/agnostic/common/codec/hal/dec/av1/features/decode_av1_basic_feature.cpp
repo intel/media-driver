@@ -83,6 +83,8 @@ namespace decode
         m_av1PicParams  = static_cast<CodecAv1PicParams*>(decodeParams->m_picParams);
         DECODE_CHK_NULL(m_av1PicParams);
 
+        m_pictureCodingType = m_av1PicParams->m_picInfoFlags.m_fields.m_frameType ? P_TYPE : I_TYPE;
+
         m_av1TileParams = static_cast<CodecAv1TileParams*>(decodeParams->m_sliceParams);
         DECODE_CHK_NULL(m_av1TileParams);
 

@@ -501,7 +501,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         else
     #endif
     #ifdef _AV1_DECODE_SUPPORTED
-        if (info->Mode == codechalDecodeModeAv1Vld)
+        if (info->Mode == CODECHAL_DECODE_MODE_AV1VLD)
         {
             m_codechalDevice = MOS_New(Decode::Av1, hwInterface, debugInterface);
         }

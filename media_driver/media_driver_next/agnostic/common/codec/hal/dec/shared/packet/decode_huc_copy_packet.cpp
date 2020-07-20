@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -212,7 +212,6 @@ void HucCopyPkt::SetPerfTag()
 
     uint16_t perfTag = ((m_basicFeature->m_mode << 4) & 0xF0) | COPY_TYPE;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag);
-    m_osInterface->pfnResetPerfBufferID(m_osInterface);
 }
 
 MOS_STATUS HucCopyPkt::CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize)

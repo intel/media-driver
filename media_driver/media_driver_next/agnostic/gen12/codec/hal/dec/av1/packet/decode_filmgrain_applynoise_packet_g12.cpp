@@ -150,6 +150,11 @@ MOS_STATUS FilmGrainAppNoisePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8
 
     RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(CODECHAl_MEDIA_STATE_AV1_FILM_GRAIN_AN));
 
+    if (pOsInterface)
+    {
+        pOsInterface->pfnSetPerfTag(pOsInterface, ((PERFTAG_CALL_FILM_GRAIN_AN_KERNEL << 8) | CODECHAL_DECODE_MODE_AV1VLD << 4 | m_av1BasicFeature->m_pictureCodingType));
+    }
+
     // Initialize command buffer and insert prolog
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));
     RENDER_PACKET_CHK_STATUS_RETURN(StartStatusReport(statusReportRcs, commandBuffer));
@@ -253,6 +258,12 @@ MOS_STATUS FilmGrainAppNoisePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8
             pBatchBuffer->bBusy     = true;
             pBatchBuffer->dwSyncTag = dwSyncTag;
         }
+    }
+
+    if (m_av1BasicFeature->frameCompletedFlag && m_av1BasicFeature->m_filmGrainEnabled)
+    {
+        m_osInterface->pfnIncPerfFrameID(m_osInterface);
+        m_osInterface->pfnResetPerfBufferID(m_osInterface);
     }
 
     return MOS_STATUS_SUCCESS;

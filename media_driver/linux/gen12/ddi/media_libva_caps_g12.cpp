@@ -234,7 +234,7 @@ CODECHAL_MODE MediaLibvaCapsG12::GetDecodeCodecMode(VAProfile profile)
             return CODECHAL_DECODE_MODE_VC1VLD;
         case VAProfileAV1Profile0:
         case VAProfileAV1Profile1:
-            return CODECHAL_DECODE_RESERVED_0; // AV1 Decode
+            return CODECHAL_DECODE_MODE_AV1VLD;
         default:
             DDI_ASSERTMESSAGE("Invalid Decode Mode");
             return CODECHAL_UNSUPPORTED_MODE;
@@ -891,7 +891,7 @@ VAStatus MediaLibvaCapsG12::CheckDecodeResolution(
             maxHeight = m_decHevcMax16kHeight;
             break;
         case CODECHAL_DECODE_MODE_VP9VLD:
-        case CODECHAL_DECODE_RESERVED_0:
+        case CODECHAL_DECODE_MODE_AV1VLD:
             maxWidth = m_decVp9Max16kWidth;
             maxHeight = m_decVp9Max16kHeight;
             break;

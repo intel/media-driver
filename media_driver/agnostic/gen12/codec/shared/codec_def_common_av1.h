@@ -127,8 +127,6 @@ static const uint32_t av1RsScaleExtraOff    = 128;                              
 static const uint32_t av1MfmvStackSize      = 3;                                        // MFMV_STACK_SIZE
 static const uint32_t av1RestorationTilesizeMax = 256;                                  // RESTORATION_TILESIZE_MAX
 
-static const uint32_t codechalDecodeModeAv1Vld = CODECHAL_DECODE_RESERVED_0;           // codechal decode mode AV1 VLD
-
 /* Shift down with rounding for use when n >= 0, value >= 0 */
 #define ROUND_POWER_OF_TWO(value, n) (((value) + (((1 << (n)) >> 1))) >> (n))
 
