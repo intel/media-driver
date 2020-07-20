@@ -244,6 +244,9 @@ protected:
     //! \brief   Flag to indicate if implicit Tile is needed
     bool                            m_implicitTileNeeded = false;
 
+    //! \brief   Flag to indicate if NoGfxMemory is needed
+    bool                            m_noGfxMemoryNeeded = false;
+
     //! \brief  the ptr to mos decompression module
     MosDecompression                *m_mosDecompression = nullptr;
 

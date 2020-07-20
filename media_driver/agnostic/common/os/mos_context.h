@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -152,6 +152,9 @@ public:
 
     //! \brief   Flag to indicate if implicit tile setting is needed
     bool m_implicitTileNeeded = false;
+
+    //! \brief   Flag to indicate if NoGfxMemory needed
+    bool m_noGfxMemoryNeeded  = false;
 
 protected:
     //! \brief  Platform string including product family, chipset family, etc
