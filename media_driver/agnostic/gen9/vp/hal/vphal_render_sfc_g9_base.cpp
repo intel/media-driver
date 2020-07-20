@@ -44,7 +44,11 @@ bool VphalSfcStateG9::IsInputFormatSupported(
         (srcSurface->Format != Format_X8B8G8R8) &&
         (srcSurface->Format != Format_A8R8G8B8) &&
         (srcSurface->Format != Format_X8R8G8B8) &&
-        !IS_PA_FORMAT(srcSurface->Format))
+        (!IS_PA_FORMAT(srcSurface->Format)      ||
+         (srcSurface->Format == Format_Y410)    ||    // Gen9 can't support Y410/Y416/Y210/Y216 Format
+         (srcSurface->Format == Format_Y416)    ||
+         (srcSurface->Format == Format_Y210)    ||
+         (srcSurface->Format == Format_Y216)))
     {
         VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for SFC.", srcSurface->Format);
         ret = false;
