@@ -369,8 +369,28 @@ MOS_STATUS MosInterface::InitStreamParameters(
     streamState->gpuPendingBatch  = 0;
 
     context->bIsAtomSOC           = false;
+    context->bFreeContext         = true;
+#ifndef ANDROID
+    {
+        drm_i915_getparam_t gp;
+        int32_t             ret   = -1;
+        int32_t             value = 0;
 
-    context->bFreeContext = true;
+        //KMD support VCS2?
+        gp.value = &value;
+        gp.param = I915_PARAM_HAS_BSD2;
+
+        ret = drmIoctl(context->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+        if (ret == 0 && value != 0)
+        {
+            context->bKMDHasVCS2 = true;
+        }
+        else
+        {
+            context->bKMDHasVCS2 = false;
+        }
+    }
+#endif
 
     // read "Linux PerformanceTag Enable" user feature key
     MosUtilities::MosUserFeatureReadValueID(

@@ -1047,6 +1047,10 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
                 MOS_OS_ASSERTMESSAGE("Invalid gpuNode.");
             }
         }
+        else
+        {
+            execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
+        }
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

@@ -4198,9 +4198,8 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
     MOS_OS_CHK_NULL(pOsContext);
 
     GpuContext = pOsInterface->CurrentGpuContextOrdinal;
-
-    GpuNode = OSKMGetGpuNode(GpuContext);
-    ExecFlag = GpuNode;
+    GpuNode    = OSKMGetGpuNode(GpuContext);
+    ExecFlag   = GpuNode;
 
     MOS_OS_CHK_NULL(pOsContext->OsGpuContext);
     pOsGpuContext = &pOsContext->OsGpuContext[GpuContext];
@@ -4327,6 +4326,10 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
             {
                 ExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
+        }
+        else
+        {
+            ExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING1;
         }
     }
 
