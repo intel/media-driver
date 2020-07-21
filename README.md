@@ -185,7 +185,7 @@ or later, which officially supported C++11.
 
 2. SKL: Green or other incorrect color will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: [WaEnableYV12BugFixInHalfSliceChicken7](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
-3. HuC firmware is necessary for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. Please, refer to i915 kernel mode driver documentation to learn how to enable it. Mind that HuC firmware support presents in the following kernels for the specified platforms:
+3. HuC firmware is necessary for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. kernel command line option "i915.enable_guc=2" for HuC loading can be set e.g. by doing echo "options i915 enable_guc=2" > /etc/modprobe.d/i915.conf (as root). Mind that HuC firmware support presents in the following kernels for the specified platforms:
    * APL/KBL: starting from kernel 4.11
    * CFL: starting from kernel 4.15
    * ICL: starting from kernel 5.2
