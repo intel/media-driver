@@ -136,7 +136,7 @@ namespace decode
             m_filmGrainProcParams = (CodecProcessingParams *)&decodeParams->m_codecProcParams;
             if (m_filmGrainProcParams->m_inputSurface == nullptr)
             {
-                DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(m_av1PicParams->m_currPic.FrameIdx, decodeParams->m_destSurface));
+                DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(m_av1PicParams->m_currPic.FrameIdx, &m_destSurface));
                 m_filmGrainProcParams->m_inputSurface = m_internalTarget.GetCurSurf();
             }
 
