@@ -201,7 +201,7 @@ MOS_STATUS BltState::SetupFastCopyBltParam(
     pMhwBltParams->dwDstPitch  = ResDetails.dwPitch;
     pMhwBltParams->dwDstTop    = 0;
     pMhwBltParams->dwDstLeft   = 0;
-    pMhwBltParams->dwDstBottom = ResDetails.dwHeight;
+    pMhwBltParams->dwDstBottom = (uint32_t)outputSurface->pGmmResInfo->GetSizeMainSurface() / ResDetails.dwPitch;
     pMhwBltParams->dwDstRight  = ResDetails.dwPitch;
 
     pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit

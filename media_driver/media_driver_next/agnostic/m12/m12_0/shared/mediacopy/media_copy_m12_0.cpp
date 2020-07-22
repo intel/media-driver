@@ -46,6 +46,7 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
     // blt init
     m_bltState = MOS_New(BltState, m_osInterface, m_mhwInterfaces);
     MCPY_CHK_NULL_RETURN(m_bltState);
+    m_bltState->Initialize();
 
     // vebox init
 
