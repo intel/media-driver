@@ -146,46 +146,107 @@ MOS_STATUS MhwInterfacesG12Tgllp::Initialize(
     }
 
     // MHW_CP and MHW_MI must always be created
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
     m_cpInterface = Create_MhwCpInterface(osInterface);
+    if(m_cpInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("new osInterface failed");
+        status = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
+    if (m_miInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("new MI interface failed");
+        status = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
 
     if (params.Flags.m_render)
     {
         m_renderInterface =
             MOS_New(Render, m_miInterface, osInterface, gtSystemInfo, params.m_heapMode);
+        if (m_renderInterface == nullptr  || m_renderInterface->m_stateHeapInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_renderInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
     if (params.Flags.m_stateHeap)
     {
         m_stateHeapInterface =
             MOS_New(StateHeap, osInterface, params.m_heapMode);
+        if (m_stateHeapInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_stateHeapInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
     if (params.Flags.m_sfc)
     {
         m_sfcInterface = MOS_New(Sfc, osInterface);
+        if (m_sfcInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_sfcInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
     if (params.Flags.m_vebox)
     {
         m_veboxInterface = MOS_New(Vebox, osInterface);
+        if (m_veboxInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_veboxInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
 
     if (params.Flags.m_vdboxAll || params.Flags.m_mfx)
     {
         m_mfxInterface =
             MOS_New(Mfx, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
+        if (m_mfxInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_mfxInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_hcp)
     {
         m_hcpInterface =
             MOS_New(Hcp, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
+        if (m_hcpInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_hcpInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_avp)
     {
         m_avpInterface =
             MOS_New(Avp, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
+        if (m_avpInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_avpInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_huc)
     {
         m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
+        if (m_hucInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_hucInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
@@ -194,18 +255,41 @@ MOS_STATUS MhwInterfacesG12Tgllp::Initialize(
         if(useBaseVdencInterface)
         {
             m_vdencInterface = MOS_New(MhwVdboxVdencInterfaceG12X, osInterface);
-            return MOS_STATUS_SUCCESS;
+            if (m_vdencInterface == nullptr)
+            {
+                MOS_OS_ASSERTMESSAGE("new m_vdencInterface failed");
+                status = MOS_STATUS_NULL_POINTER;
+                goto finish;
+            }
+            goto finish;
         }
 #endif
 #endif
         m_vdencInterface = MOS_New(Vdenc, osInterface);
-    }
-    if (params.Flags.m_blt)
-    {
-        m_bltInterface = MOS_New(Blt, osInterface);
+        if (m_vdencInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_vdencInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
     }
 
-    return MOS_STATUS_SUCCESS;
+    if (params.Flags.m_blt)
+     {
+        m_bltInterface = MOS_New(Blt, osInterface);
+        if (m_bltInterface == nullptr)
+        {
+            MOS_OS_ASSERTMESSAGE("new m_bltInterface failed");
+            status = MOS_STATUS_NULL_POINTER;
+            goto finish;
+        }
+ }
+finish:
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        Destroy();
+    }
+    return status;
 }
 #ifdef _MMC_SUPPORTED
 static bool tgllpRegisteredMmd =
