@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018 - 2019, Intel Corporation
+* Copyright (c) 2018 - 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -49,6 +49,8 @@ enum SubComponentIDs
     FEATURE_SUBCOMPONENT_COMMON = 0,
     FEATURE_SUBCOMPONENT_HEVC,
     FEATURE_SUBCOMPONENT_VP9,
+    FEATURE_SUBCOMPONENT_AVC,
+
     reserve0,
 };
 
