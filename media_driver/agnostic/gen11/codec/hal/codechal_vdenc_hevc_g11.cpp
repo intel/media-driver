@@ -471,6 +471,12 @@ MOS_STATUS CodechalVdencHevcStateG11::PlatformCapabilityCheck()
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "Frame resolution greater than 8k not supported");
     }
 
+    if (m_hevcSeqParams->SliceSizeControl && m_frameWidth * m_frameHeight < ENCODE_HEVC_MIN_DSS_PIC_WIDTH * ENCODE_HEVC_MIN_DSS_PIC_HEIGHT)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "DSS is not supported when frame resolution less than 320p");
+    }
+
     if (m_vdencEnabled && m_chromaFormat == HCP_CHROMA_FORMAT_YUV444 && m_hevcSeqParams->TargetUsage == 7)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Speed mode is not supported in VDENC 444, resetting TargetUsage to Normal mode\n");
