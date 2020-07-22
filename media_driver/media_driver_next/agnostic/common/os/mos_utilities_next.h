@@ -651,6 +651,30 @@ public:
         uint32_t                   maxId);
 
     //!
+    //! \brief    Unlink the user feature key Desc Fields table items to key value map
+    //! \details  Unlink the user feature key Desc Fields table items to key value map
+    //!           according to ID sequence and do some post processing by calling MOS_DestroyUserFeatureData
+    //! \param    [in] pUserFeatureKey
+    //!           Pointer to the User Feature Value needed to be destroyed
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosDestroyUserFeatureKey(PMOS_USER_FEATURE_VALUE pUserFeatureKey);
+
+    //!
+    //! \brief    Link the user feature key Desc Fields table items to key value map
+    //! \details  Link the user feature key Desc Fields table items to key value map
+    //!           according to ID sequence and do some post processing by calling MosAssignUserFeatureValueData
+    //! \param    [in] pUserFeatureKey
+    //!           Pointer to the User Feature Value needed to be declared
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosDeclareUserFeatureKey(PMOS_USER_FEATURE_VALUE pUserFeatureKey);
+
+    //!
     //! \brief    Copy the VALUE_DATA from source to destination pointer
     //! \details  Copy the VALUE_DATA from source to destination pointer
     //! \param    [in] pSrcData
@@ -897,7 +921,6 @@ public:
     MOS_STATUS MosUserFeatureSetDefaultValues(
         PMOS_USER_FEATURE_VALUE_WRITE_DATA pWriteValues,
         uint32_t                           uiNumOfValues);
-
 
     //!
     //! \brief    Read the User Feature Value of ApoMosEnabled
@@ -2008,18 +2031,6 @@ private:
     static MOS_STATUS MosDeclareUserFeatureKeysForAllDescFields();
 
     //!
-    //! \brief    Link the user feature key Desc Fields table items to key value map
-    //! \details  Link the user feature key Desc Fields table items to key value map
-    //!           according to ID sequence and do some post processing by calling MosAssignUserFeatureValueData
-    //! \param    [in] pUserFeatureKey
-    //!           Pointer to the User Feature Value needed to be declared
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MosDeclareUserFeatureKey(PMOS_USER_FEATURE_VALUE pUserFeatureKey);
-
-    //!
     //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE with specified map table
     //! \details  This is a unified funtion to read user feature key for all components.
     //!           (Codec/VP/CP/CM)
@@ -2182,18 +2193,6 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosDestroyUserFeatureData(PMOS_USER_FEATURE_VALUE_DATA pData, MOS_USER_FEATURE_VALUE_TYPE ValueType);
-
-    //!
-    //! \brief    Unlink the user feature key Desc Fields table items to key value map
-    //! \details  Unlink the user feature key Desc Fields table items to key value map
-    //!           according to ID sequence and do some post processing by calling MOS_DestroyUserFeatureData
-    //! \param    [in] pUserFeatureKey
-    //!           Pointer to the User Feature Value needed to be destroyed
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS MosDestroyUserFeatureKey(PMOS_USER_FEATURE_VALUE pUserFeatureKey);
 
     //!
     //! \brief    Assign the value as a string type to destination Value Data pointer
