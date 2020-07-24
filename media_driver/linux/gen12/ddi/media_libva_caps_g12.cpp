@@ -354,13 +354,14 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
     {
         case VAConfigAttribEncMaxRefFrames:
         {
-            if (entrypoint == VAEntrypointEncSliceLP || !IsHevcProfile(profile))
+            // just VAConfigAttribEncMaxRefFrames of HEVC VME is different with platforms
+            if (entrypoint == VAEntrypointEncSlice && IsHevcProfile(profile))
             {
-                status = VA_STATUS_ERROR_INVALID_PARAMETER;
+                *value = ENCODE_DP_HEVC_NUM_MAX_VME_L0_REF_G12 | (ENCODE_DP_HEVC_NUM_MAX_VME_L1_REF_G12 << 16);
             }
             else
             {
-                *value = ENCODE_DP_HEVC_NUM_MAX_VME_L0_REF_G12 | (ENCODE_DP_HEVC_NUM_MAX_VME_L1_REF_G12 << 16);;
+                status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
             break;
         }
@@ -482,6 +483,11 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             {
                 status = VA_STATUS_ERROR_INVALID_PARAMETER;
             }
+            break;
+        }
+        case VAConfigAttribPredictionDirection:
+        {
+            *value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
             break;
         }
         default:
