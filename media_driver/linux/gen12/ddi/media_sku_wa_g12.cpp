@@ -75,6 +75,12 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
     {
         LinuxCodecInfo *codecInfo = &tglCodecInfo;
 
+        if (devInfo->productFamily == IGFX_TIGERLAKE_LP &&
+            drvInfo->devRev == 0) {
+            codecInfo->adv0Decoding = 0;
+            codecInfo->adv1Decoding = 0;
+        }
+
         MEDIA_WR_SKU(skuTable, FtrAVCVLDLongDecoding, codecInfo->avcDecoding);
         MEDIA_WR_SKU(skuTable, FtrMPEG2VLDDecoding, codecInfo->mpeg2Decoding);
         MEDIA_WR_SKU(skuTable, FtrIntelVP8VLDDecoding, codecInfo->vp8Decoding);
