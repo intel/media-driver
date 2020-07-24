@@ -720,7 +720,13 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribEncMaxRefFrames;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
+        //VDEnc Low delay P
         attrib.value = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
+        if(IsHevcProfile(profile))
+        {
+            //VDEnc Low Delay B, for B frame, it should be 3, 1 instead of this value, but libva could distinguish it with different frame type now
+            attrib.value = DDI_CODEC_VDENC_MAX_L0_REF_FRAMES_LDB | (DDI_CODEC_VDENC_MAX_L1_REF_FRAMES_LDB << DDI_CODEC_LEFT_SHIFT_FOR_REFLIST1);
+        }
     }
     else
     {
@@ -940,10 +946,11 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         (*attribList)[attrib.type] = attrib.value;
     }
 
-    if (IsHevcProfile(profile) && (entrypoint == VAEntrypointEncSliceLP))
+    if (IsHevcProfile(profile))
     {
         attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+        GetPlatformSpecificAttrib(profile, entrypoint,
+                                      VAConfigAttribPredictionDirection, &attrib.value);
         (*attribList)[attrib.type] = attrib.value;
     }
     return status;
