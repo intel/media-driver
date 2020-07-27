@@ -1719,9 +1719,9 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     if (m_isEntryptSupported)
     {
         attrib.value = 0;
-        uint32_t encryptTypes[5] = {0};
+        uint32_t encryptTypes[DDI_CP_ENCRYPT_TYPES_NUM] = {0};
         int32_t  numTypes =  m_CapsCp->GetEncryptionTypes(profile,
-                 encryptTypes, 5);
+                 encryptTypes, DDI_CP_ENCRYPT_TYPES_NUM);
         if (numTypes > 0)
         {
             for (int32_t j = 0; j < numTypes; j++)
@@ -2119,9 +2119,9 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
     attrib.value = VA_ATTRIB_NOT_SUPPORTED;
     if (m_isEntryptSupported)
     {
-        uint32_t encryptTypes[3] = {0};
+        uint32_t encryptTypes[DDI_CP_ENCRYPT_TYPES_NUM] = {0};
         int32_t numTypes =  m_CapsCp->GetEncryptionTypes(profile,
-                encryptTypes, 3);
+                encryptTypes, DDI_CP_ENCRYPT_TYPES_NUM);
         if (numTypes > 0)
         {
             for (int32_t j = 0; j < numTypes; j++)

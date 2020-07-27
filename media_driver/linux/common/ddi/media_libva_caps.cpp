@@ -821,9 +821,9 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     if (m_isEntryptSupported)
     {
         attrib.value = 0;
-        uint32_t encryptTypes[3] = {0};
+        uint32_t encryptTypes[DDI_CP_ENCRYPT_TYPES_NUM] = {0};
         int32_t  numTypes =  m_CapsCp->GetEncryptionTypes(profile,
-                 encryptTypes, 3);
+                 encryptTypes, DDI_CP_ENCRYPT_TYPES_NUM);
         if (numTypes > 0)
         {
             for (int32_t j = 0; j < numTypes; j++)
@@ -1127,9 +1127,9 @@ VAStatus MediaLibvaCaps::CreateDecAttributes(
     if (m_isEntryptSupported)
     {
         attrib.value = 0;
-        uint32_t encryptTypes[3] = {0};
+        uint32_t encryptTypes[DDI_CP_ENCRYPT_TYPES_NUM] = {0};
         int32_t numTypes =  m_CapsCp->GetEncryptionTypes(profile,
-                encryptTypes, 3);
+                encryptTypes, DDI_CP_ENCRYPT_TYPES_NUM);
         if (numTypes > 0)
         {
             for (int32_t j = 0; j < numTypes; j++)
@@ -1530,10 +1530,10 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                 AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                 if (m_isEntryptSupported)
                 {
-                    uint32_t encrytTypes[3];
+                    uint32_t encrytTypes[DDI_CP_ENCRYPT_TYPES_NUM];
 
                     int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile0,
-                            encrytTypes, 3);
+                            encrytTypes, DDI_CP_ENCRYPT_TYPES_NUM);
 
                     if (numTypes > 0)
                     {
@@ -1566,10 +1566,10 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                     if (m_isEntryptSupported)
                     {
 
-                        uint32_t encrytTypes[3];
+                        uint32_t encrytTypes[DDI_CP_ENCRYPT_TYPES_NUM];
 
                         int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile2,
-                                encrytTypes, 3);
+                                encrytTypes, DDI_CP_ENCRYPT_TYPES_NUM);
 
                         if (numTypes > 0)
                         {
@@ -1599,10 +1599,10 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                     AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                     if (m_isEntryptSupported)
                     {
-                        uint32_t encrytTypes[3];
+                        uint32_t encrytTypes[DDI_CP_ENCRYPT_TYPES_NUM];
 
                         int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile1,
-                                encrytTypes, 3);
+                                encrytTypes, DDI_CP_ENCRYPT_TYPES_NUM);
 
                         if (numTypes > 0)
                         {
@@ -1633,10 +1633,10 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
                     AddDecConfig(m_decSliceMode[i], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
                     if (m_isEntryptSupported)
                     {
-                        uint32_t encrytTypes[3];
+                        uint32_t encrytTypes[DDI_CP_ENCRYPT_TYPES_NUM];
 
                         int32_t numTypes = m_CapsCp->GetEncryptionTypes(VAProfileVP9Profile3,
-                                encrytTypes, 3);
+                                encrytTypes, DDI_CP_ENCRYPT_TYPES_NUM);
 
                         if (numTypes > 0)
                         {
@@ -1728,10 +1728,10 @@ VAStatus MediaLibvaCaps::LoadDecProfileEntrypoints(VAProfile profile)
             AddDecConfig(m_decSliceMode[j], VA_ENCRYPTION_TYPE_NONE, m_decProcessMode[k]);
             if (m_isEntryptSupported)
             {
-                uint32_t encrytTypes[3];
+                uint32_t encrytTypes[DDI_CP_ENCRYPT_TYPES_NUM];
 
                 int32_t numTypes = m_CapsCp->GetEncryptionTypes(profile,
-                        encrytTypes, 3);
+                        encrytTypes, DDI_CP_ENCRYPT_TYPES_NUM);
 
                 if (numTypes > 0)
                 {
