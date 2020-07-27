@@ -2891,9 +2891,12 @@ void CodechalVdencVp9StateG12::SetHcpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE
         indObjBaseAddrParams.dwProbabilityCounterSize = m_statsSize.counterBuffer;
     }
 
-    indObjBaseAddrParams.presPakTileSizeStasBuffer = useTileRecordBuffer? &tileRecordBuffer->sResource : nullptr;
+    // Need to use presPakTileSizeStasBuffer instead of presTileRecordBuffer, so setting to null
+    indObjBaseAddrParams.presTileRecordBuffer        = nullptr;
+    indObjBaseAddrParams.dwTileRecordSize            = 0;
+    indObjBaseAddrParams.presPakTileSizeStasBuffer   = useTileRecordBuffer? &tileRecordBuffer->sResource : nullptr;
     indObjBaseAddrParams.dwPakTileSizeStasBufferSize = useTileRecordBuffer? ((m_statsSize.tileSizeRecord) * GetNumTilesInFrame()) : 0;
-    indObjBaseAddrParams.dwPakTileSizeRecordOffset = useTileRecordBuffer? m_tileStatsOffset.tileSizeRecord: 0;
+    indObjBaseAddrParams.dwPakTileSizeRecordOffset   = useTileRecordBuffer? m_tileStatsOffset.tileSizeRecord: 0;
 }
 
 MOS_STATUS CodechalVdencVp9StateG12::VerifyCommandBufferSize()
@@ -3572,7 +3575,6 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
                 &allocParamsForBufferLinear,
                 &m_tileRecordBuffer[m_virtualEngineBBIndex].sResource));
             m_tileRecordBuffer[m_virtualEngineBBIndex].dwSize = size;
-
             auto tileRecordData = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_tileRecordBuffer[m_virtualEngineBBIndex].sResource, &lockFlagsWriteOnly);
 
             MOS_ZeroMemory(tileRecordData, allocParamsForBufferLinear.dwBytes);
@@ -4659,11 +4661,6 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
         &userFeatureData,
         m_osInterface->pOsContext);
     m_enableTileStitchByHW = userFeatureData.i32Data ? true : false;
-
-    if (m_scalableMode && !m_brcEnabled && m_osInterface->phasedSubmission)
-    {
-        m_enableTileStitchByHW = false;
-    }
 
     userFeatureData.i32Data = 1;
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;

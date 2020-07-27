@@ -2495,6 +2495,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
                 &resourceParams));
         }
 
+        //Following 2 blocks try to program "cmd.DW23_24.Value"
+        //So only one of presTileRecordBuffer and presPakTileSizeStasBuffer has to be used!
         if (params->presTileRecordBuffer)
         {
             cmd.HcpVp9PakTileRecordStreamoutMemoryAddressAttributes.DW0.Value |=
@@ -2513,8 +2515,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
                 &resourceParams));
 
         }
-
-        if (params->presPakTileSizeStasBuffer)
+        else if (params->presPakTileSizeStasBuffer)
         {
             cmd.HcpVp9PakTileRecordStreamoutMemoryAddressAttributes.DW0.Value |=
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_TILE_SIZE_STAS_BUFFER_CODEC].Value;
