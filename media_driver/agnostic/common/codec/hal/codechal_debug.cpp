@@ -993,6 +993,9 @@ MOS_STATUS CodechalDebugInterface::DumpHucDmem(
     case hucRegionDumpHpu:
         funcName = funcName + dmemName + "_HpuPass" + passName;
         break;
+    case hucRegionDumpHpuSuperFrame:
+        funcName = funcName + dmemName + "_HpuPass" + passName + "_SuperFramePass";
+        break;
     case hucRegionDumpBackAnnotation:
         funcName = funcName + dmemName + "_BackAnnotationPass" + passName;
         break;

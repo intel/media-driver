@@ -148,7 +148,8 @@ enum CodechalHucRegionDumpType
     hucRegionDumpCmdInitializer = 4,
     hucRegionDumpPakIntegrate   = 5,
     hucRegionDumpHpu            = 6,
-    hucRegionDumpBackAnnotation = 7
+    hucRegionDumpBackAnnotation = 7,
+    hucRegionDumpHpuSuperFrame  = 8
 };
 
 struct _CODECHAL_DEBUG_INTERFACE;

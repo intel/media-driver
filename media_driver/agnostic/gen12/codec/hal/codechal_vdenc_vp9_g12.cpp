@@ -5477,11 +5477,22 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, renderFlags));
 
         CODECHAL_DEBUG_TOOL(
+        if(m_superFrameHucPass)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
+                &m_resHucProbDmemBuffer[currPass],
+                sizeof(HucProbDmem),
+                currPass,
+                CodechalHucRegionDumpType::hucRegionDumpHpuSuperFrame));
+        }
+        else
+        {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
                 &m_resHucProbDmemBuffer[currPass],
                 sizeof(HucProbDmem),
                 currPass,
                 CodechalHucRegionDumpType::hucRegionDumpHpu));
+        }
 
         for (auto i = 0; i < 16; i++)
         {
@@ -5501,8 +5512,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
                     currPass,
                     CodechalHucRegionDumpType::hucRegionDumpHpu);
             }
-        }
-        )
+        })
     }
 
     return eStatus;
