@@ -61,22 +61,22 @@ public:
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
-    virtual MOS_STATUS InitializePicture(const EncoderParams& params)
+    virtual MOS_STATUS InitializePicture(const EncoderParams& params) override
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     };
 
-    virtual MOS_STATUS ExecuteKernelFunctions()
+    virtual MOS_STATUS ExecuteKernelFunctions() override
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     };
 
-    virtual MOS_STATUS ExecutePictureLevel()
+    virtual MOS_STATUS ExecutePictureLevel() override
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     };
 
-    virtual MOS_STATUS ExecuteSliceLevel()
+    virtual MOS_STATUS ExecuteSliceLevel() override
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     };
@@ -86,7 +86,7 @@ public:
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
-    virtual MOS_STATUS GetStatusReport(EncodeStatus* encodeStatus, EncodeStatusReport* encodeStatusReport)
+    virtual MOS_STATUS GetStatusReport(EncodeStatus* encodeStatus, EncodeStatusReport* encodeStatusReport) override
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     };
