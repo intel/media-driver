@@ -1000,6 +1000,14 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         bDiVarianceEnable,
         &VeboxSurfaceStateCmdParams);
 
+    // Add compressible info of input/output surface to log
+    if (this->m_currentSurface && VeboxSurfaceStateCmdParams.pSurfOutput)
+    {
+        std::string info = "in_comps = " + std::to_string(int(this->m_currentSurface->osSurface->bCompressible)) + ", out_comps = " + std::to_string(int(VeboxSurfaceStateCmdParams.pSurfOutput->osSurface->bCompressible));
+        const char* ocaLog = info.c_str();
+        HalOcaInterface::TraceMessage(*CmdBuffer, *pOsContext, ocaLog, info.size());
+    }
+
     SetupVeboxState(
         bDiVarianceEnable,
         &VeboxStateCmdParams);
@@ -1010,7 +1018,8 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
     VP_RENDER_CHK_STATUS_RETURN(IsCmdParamsValid(
         VeboxStateCmdParams,
-        VeboxDiIecpCmdParams));
+        VeboxDiIecpCmdParams,
+        VeboxSurfaceStateCmdParams));
 
     //---------------------------------
     // Initialize Vebox Surface State Params
@@ -1611,8 +1620,9 @@ void VpVeboxCmdPacket::VeboxGetBeCSCMatrix(
 }
 
 MOS_STATUS VpVeboxCmdPacket::IsCmdParamsValid(
-    const MHW_VEBOX_STATE_CMD_PARAMS        &VeboxStateCmdParams,
-    const MHW_VEBOX_DI_IECP_CMD_PARAMS      &VeboxDiIecpCmdParams)
+    const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
+    const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
+    const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams)
 {
     const MHW_VEBOX_MODE    &veboxMode          = VeboxStateCmdParams.VeboxMode;
 
@@ -1630,6 +1640,13 @@ MOS_STATUS VpVeboxCmdPacket::IsCmdParamsValid(
         }
     }
 
+    if (m_PacketCaps.bDN && !m_PacketCaps.bDI && !m_PacketCaps.bQueryVariance && !m_PacketCaps.bIECP)
+    {
+        if (VeboxSurfaceStateCmdParams.pSurfInput->osSurface->dwPitch != VeboxSurfaceStateCmdParams.pSurfDNOutput->osSurface->dwPitch)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
     return MOS_STATUS_SUCCESS;
 }
 
