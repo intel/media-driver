@@ -4266,6 +4266,7 @@ MOS_STATUS VpHal_RndrRenderVebox(
     PVPHAL_SURFACE           pInSurface     = nullptr;
     RECT                     rcTempOut      = {};
     RECT                     rcTemp         = {};
+    RECT                     rcTempIn       = {};
     PVPHAL_VEBOX_STATE       pVeboxState    = nullptr;
     PVPHAL_VEBOX_RENDER_DATA pRenderData    = nullptr;
 
@@ -4340,6 +4341,7 @@ MOS_STATUS VpHal_RndrRenderVebox(
         }
 
         rcTemp = pcRenderParams->pTarget[0]->rcDst;
+        rcTempIn = pcRenderParams->pSrc[0]->rcDst;
         if (pVeboxState->m_sfcPipeState && pVeboxState->m_sfcPipeState->m_bSFC2Pass)
         { //SFC 2 pass, there is the first pass's surface;
             float                    TempfScaleX = 1.0;
@@ -4416,7 +4418,7 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pVeboxState->m_sfcPipeState->m_bSFC2Pass = false;
             pInSurface = &pVeboxState->SfcTempSurface;
             pInSurface->rcMaxSrc = pInSurface->rcSrc;
-            pInSurface->rcDst    = rcTemp;
+            pInSurface->rcDst    = rcTempIn;
 
             // recover the orignal rcDst for the second loop
             pcRenderParams->pTarget[0]->rcDst    = rcTemp;
