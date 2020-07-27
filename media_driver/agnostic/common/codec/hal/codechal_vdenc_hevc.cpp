@@ -3018,6 +3018,7 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
             // Currently only 0x00 and 0x01 are valid. Report invalid (0xFF) for other values.
             encodeStatus->lookaheadStatus.cqmHint = 0xFF;
         }
+        encodeStatus->lookaheadStatus.miniGopSize = encodeStatus->lookaheadStatus.pyramidDeltaQP == 0 ? 1 : 4;
     }
     else
     {

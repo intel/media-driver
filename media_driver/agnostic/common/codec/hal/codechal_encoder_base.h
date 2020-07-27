@@ -784,7 +784,10 @@ struct LookaheadReport
     };
     uint32_t targetFrameSize;
     uint32_t targetBufferFulness;
-    uint32_t reserved3[12];
+    uint32_t pyramidDeltaQP;
+    uint8_t  miniGopSize;
+    uint8_t  reserved1[3];
+    uint32_t reserved3[10];
 };
 
 //!

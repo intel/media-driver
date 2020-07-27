@@ -348,7 +348,22 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             */
             uint32_t        HierarchicalFlag         : 1;
 
-            uint32_t        ReservedBits             : 3;
+            /*! \brief Indicates if TCBRC is enabled.
+            *
+            *        \n - 0 : no TCBRC.
+            *        \n - 1 : enable TCBRC if TCBRCSupport in CAP is 1.
+            */
+            uint32_t        TCBRCEnable              : 1;
+
+            /*! \brief Indicates if current encodin gis lookahead pass.
+            *
+            *        \n - 0 : the current encoding is in the actual encoding pass, and one of the BRC modes (CBR, VBR, etc.) should be selected.
+            *        \n - 1 : the current encoding is in the lookahead pass.
+            *    \n Valid only when LookAheadAnalysisSupport in CAP is on and LookAheadDepth > 0.
+            */
+            uint32_t        bLookAheadPhase          : 1;
+
+            uint32_t        ReservedBits             : 1;
         };
         uint32_t    SeqFlags;
     };
@@ -841,6 +856,22 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     char                    pps_act_y_qp_offset_plus5;
     char                    pps_act_cb_qp_offset_plus5;
     char                    pps_act_cr_qp_offset_plus3;
+
+    /*! \brief Source down scaling ratio for look ahead pass.
+    *
+    *    when bLookAheadPhase == 1, this parameter indicates the source down scaling ratio for look ahead pass. Otherwise, the parameter should be ignored.
+    *    (X16Minus1_X + 1) is the numerator of the horizontal downscaling ratio over 16. 
+    *    (X16Minus1_Y + 1) is the numerator of the vertical downscaling ratio over 16. 
+    */
+    union
+    {
+        struct
+        {
+            uint8_t X16Minus1_X : 4;
+            uint8_t X16Minus1_Y : 4;
+        } fields;
+        uint8_t value;
+    } DownScaleRatio;
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.

@@ -5830,6 +5830,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadInit()
     dmem->statsRecords       = m_numLaDataEntry;
     dmem->avgFrameSizeInByte = m_averageFrameSize >> 3;
     dmem->downscaleRatio     = 2;  // 4x downscaling
+    dmem->PGop               = 4;
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaInitDmemBuffer);
 
@@ -5974,6 +5975,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
         lookaheadStatus->targetFrameSize = data[dmem->offset].targetFrameSize;
         lookaheadStatus->targetBufferFulness = data[dmem->offset].targetBufferFulness;
         lookaheadStatus->encodeHints = data[dmem->offset].encodeHints;
+        lookaheadStatus->pyramidDeltaQP = data[dmem->offset].pyramidDeltaQP;
 
         m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaDataBuffer);
 
@@ -6046,6 +6048,9 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
     miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, targetBufferFulness);
     miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, targetBufferFulness);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
+    miCpyMemMemParams.dwSrcOffset = dmem->offset * sizeof(CodechalVdencHevcLaData) + CODECHAL_OFFSETOF(CodechalVdencHevcLaData, pyramidDeltaQP);
+    miCpyMemMemParams.dwDstOffset = baseOffset + encodeStatusBuf.dwLookaheadStatusOffset + CODECHAL_OFFSETOF(LookaheadReport, pyramidDeltaQP);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer, &miCpyMemMemParams));
 
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
