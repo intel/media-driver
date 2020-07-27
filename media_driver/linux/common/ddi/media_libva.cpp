@@ -47,6 +47,7 @@
 #include "media_libva_putsurface_linux.h"
 #endif
 #include "media_libva_vp.h"
+#include "media_ddi_prot.h"
 #include "mos_os.h"
 
 #include "hwinfo_linux.h"
@@ -156,7 +157,6 @@ static bool DdiMedia_ReleaseSliceControlBuffer(
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
         {
             PDDI_DECODE_CONTEXT  decCtx;
 
@@ -883,6 +883,12 @@ static void DdiMedia_FreeContextHeapElements(VADriverContextP    ctx)
     if (nullptr != vpContextHeap)
         DdiMedia_FreeContextHeap(ctx,vpContextHeap,DDI_MEDIA_VACONTEXTID_OFFSET_VP,vpctxNums);
 
+    //Free ProtContext
+    PDDI_MEDIA_HEAP protContextHeap      = mediaCtx->pProtCtxHeap;
+    int32_t protCtxNums         = mediaCtx->uiNumProts;
+    if (nullptr != protContextHeap)
+        DdiMedia_FreeProtectedSessionHeap(ctx,protContextHeap,DDI_MEDIA_VACONTEXTID_OFFSET_PROT,protCtxNums);
+
     //Free MfeContext
     PDDI_MEDIA_HEAP mfeContextHeap     = mediaCtx->pMfeCtxHeap;
     int32_t mfeCtxNums        = mediaCtx->uiNumMfes;
@@ -1366,6 +1372,10 @@ static VAStatus DdiMedia_HeapInitialize(
     DDI_CHK_NULL(mediaCtx->pVpCtxHeap, "nullptr VpCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
     mediaCtx->pVpCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
 
+    mediaCtx->pProtCtxHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
+    DDI_CHK_NULL(mediaCtx->pProtCtxHeap, "nullptr pProtCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    mediaCtx->pProtCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
+
     mediaCtx->pCmCtxHeap = (DDI_MEDIA_HEAP *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_HEAP));
     DDI_CHK_NULL(mediaCtx->pCmCtxHeap, "nullptr CmCtxHeap", VA_STATUS_ERROR_ALLOCATION_FAILED);
     mediaCtx->pCmCtxHeap->uiHeapElementSize = sizeof(DDI_MEDIA_VACONTEXT_HEAP_ELEMENT);
@@ -1381,6 +1391,7 @@ static VAStatus DdiMedia_HeapInitialize(
     DdiMediaUtil_InitMutex(&mediaCtx->DecoderMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->EncoderMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->VpMutex);
+    DdiMediaUtil_InitMutex(&mediaCtx->ProtMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->MfeMutex);
 
@@ -1419,6 +1430,9 @@ static VAStatus DdiMedia_HeapDestroy(
     MOS_FreeMemory(mediaCtx->pVpCtxHeap->pHeapBase);
     MOS_FreeMemory(mediaCtx->pVpCtxHeap);
 
+    MOS_FreeMemory(mediaCtx->pProtCtxHeap->pHeapBase);
+    MOS_FreeMemory(mediaCtx->pProtCtxHeap);
+
     MOS_FreeMemory(mediaCtx->pCmCtxHeap->pHeapBase);
     MOS_FreeMemory(mediaCtx->pCmCtxHeap);
 
@@ -1431,6 +1445,7 @@ static VAStatus DdiMedia_HeapDestroy(
     DdiMediaUtil_DestroyMutex(&mediaCtx->DecoderMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->EncoderMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->VpMutex);
+    DdiMediaUtil_DestroyMutex(&mediaCtx->ProtMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
 
@@ -1459,6 +1474,10 @@ static VAStatus DdiMedia_HeapDestroy(
     {
         DDI_ASSERTMESSAGE("APP does not destroy all the VPs.");
     }
+    if (mediaCtx->uiNumProts != 0)
+    {
+        DDI_ASSERTMESSAGE("APP does not destroy all the Prots.");
+    }
     if (mediaCtx->uiNumCMs != 0)
     {
         DDI_ASSERTMESSAGE("APP does not destroy all the CMs.");
@@ -1486,6 +1505,7 @@ void FreeForMediaContext(PDDI_MEDIA_CONTEXT mediaCtx)
         MOS_FreeMemory(mediaCtx->pDecoderCtxHeap);
         MOS_FreeMemory(mediaCtx->pEncoderCtxHeap);
         MOS_FreeMemory(mediaCtx->pVpCtxHeap);
+        MOS_FreeMemory(mediaCtx->pProtCtxHeap);
         MOS_FreeMemory(mediaCtx->pMfeCtxHeap);
         MOS_FreeMemory(mediaCtx);
     }
@@ -1971,6 +1991,7 @@ static VAStatus DdiMedia_Terminate (
     DdiMedia_FreeContextCMElements(ctx);
 
     DdiMedia_HeapDestroy(mediaCtx);
+    DdiMediaProtected::FreeInstances();
 
     if (mediaCtx->m_apoMosEnabled)
     {
@@ -2934,7 +2955,6 @@ static VAStatus DdiMedia_DestroyContext (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             return DdiDecode_DestroyContext(ctx, context);
         case DDI_MEDIA_CONTEXT_TYPE_ENCODER:
             return DdiEncode_DestroyContext(ctx, context);
@@ -2978,7 +2998,6 @@ static VAStatus DdiMedia_CreateBuffer (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             va = DdiDecode_CreateBuffer(ctx, DdiDecode_GetDecContextFromPVOID(ctxPtr), type, size, num_elements, data, bufId);
             break;
         case DDI_MEDIA_CONTEXT_TYPE_ENCODER:
@@ -3091,7 +3110,6 @@ VAStatus DdiMedia_MapBufferInternal (
         case DDI_MEDIA_CONTEXT_TYPE_VP:
             break;
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             ctxPtr = DdiMedia_GetCtxFromVABufferID(mediaCtx, buf_id);
             DDI_CHK_NULL(ctxPtr, "nullptr ctxPtr", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -3368,7 +3386,6 @@ VAStatus DdiMedia_UnmapBuffer (
         case DDI_MEDIA_CONTEXT_TYPE_VP:
             break;
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             ctxPtr = DdiMedia_GetCtxFromVABufferID(mediaCtx, buf_id);
             DDI_CHK_NULL(ctxPtr, "nullptr ctxPtr", VA_STATUS_ERROR_INVALID_CONTEXT);
 
@@ -3465,7 +3482,6 @@ VAStatus DdiMedia_DestroyBuffer (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             DDI_CHK_NULL(ctxPtr, "nullptr ctxPtr", VA_STATUS_ERROR_INVALID_CONTEXT);
             decCtx = DdiDecode_GetDecContextFromPVOID(ctxPtr);
             bufMgr = &(decCtx->BufMgr);
@@ -3662,7 +3678,6 @@ static VAStatus DdiMedia_BeginPicture (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             return DdiDecode_BeginPicture(ctx, context, render_target);
         case DDI_MEDIA_CONTEXT_TYPE_ENCODER:
             return DdiEncode_BeginPicture(ctx, context, render_target);
@@ -3707,7 +3722,6 @@ static VAStatus DdiMedia_RenderPicture (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             return DdiDecode_RenderPicture(ctx, context, buffers, num_buffers);
         case DDI_MEDIA_CONTEXT_TYPE_ENCODER:
             return DdiEncode_RenderPicture(ctx, context, buffers, num_buffers);
@@ -3741,7 +3755,6 @@ static VAStatus DdiMedia_EndPicture (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
-        case DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER:
             vaStatus = DdiDecode_EndPicture(ctx, context);
             break;
         case DDI_MEDIA_CONTEXT_TYPE_ENCODER:

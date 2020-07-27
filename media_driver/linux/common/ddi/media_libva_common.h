@@ -93,7 +93,7 @@ static int32_t atrace_switch            = 0;
 
 #define DDI_MEDIA_VACONTEXTID_OFFSET_DECODER       0x10000000
 #define DDI_MEDIA_VACONTEXTID_OFFSET_ENCODER       0x20000000
-#define DDI_MEDIA_VACONTEXTID_OFFSET_CENC          0x30000000
+#define DDI_MEDIA_VACONTEXTID_OFFSET_PROT          0x30000000
 #define DDI_MEDIA_VACONTEXTID_OFFSET_VP            0x40000000
 #define DDI_MEDIA_VACONTEXTID_OFFSET_MFE           0x70000000
 #define DDI_MEDIA_VACONTEXTID_OFFSET_CM            0x80000000
@@ -105,7 +105,7 @@ static int32_t atrace_switch            = 0;
 #define DDI_MEDIA_CONTEXT_TYPE_VP                  3
 #define DDI_MEDIA_CONTEXT_TYPE_MEDIA               4
 #define DDI_MEDIA_CONTEXT_TYPE_CM                  5
-#define DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER        6
+#define DDI_MEDIA_CONTEXT_TYPE_PROTECTED           6
 #define DDI_MEDIA_CONTEXT_TYPE_MFE                 7
 #define DDI_MEDIA_CONTEXT_TYPE_NONE                0
 
@@ -426,6 +426,9 @@ struct DDI_MEDIA_CONTEXT
     PDDI_MEDIA_HEAP     pVpCtxHeap;
     uint32_t            uiNumVPs;
 
+    PDDI_MEDIA_HEAP     pProtCtxHeap;
+    uint32_t            uiNumProts;
+
     PDDI_MEDIA_HEAP     pCmCtxHeap;
     uint32_t            uiNumCMs;
 
@@ -457,6 +460,7 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T       DecoderMutex;
     MEDIA_MUTEX_T       EncoderMutex;
     MEDIA_MUTEX_T       VpMutex;
+    MEDIA_MUTEX_T       ProtMutex;
     MEDIA_MUTEX_T       CmMutex;
     MEDIA_MUTEX_T       MfeMutex;
 

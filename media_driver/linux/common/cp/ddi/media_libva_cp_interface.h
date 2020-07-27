@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,8 @@
 
 #ifndef  __MEDIA_LIBVA_CP_INTERFACE_H__
 #define  __MEDIA_LIBVA_CP_INTERFACE_H__
+
+#include <map>
 #include "media_libva.h"
 #include "codechal_encoder_base.h"
 #include "mos_os.h"
@@ -34,6 +36,23 @@
 typedef struct _DDI_ENCODE_STATUS_REPORT_INFO *PDDI_ENCODE_STATUS_REPORT_INFO;
 class CodechalSetting;
 struct CodechalDecodeParams;
+
+class DdiCpInterface;
+
+//core structure for CP DDI
+typedef struct DDI_CP_CONTEXT
+{
+    PDDI_MEDIA_CONTEXT                  pMediaCtx;
+    DdiCpInterface                      *pCpDdiInterface;
+    std::shared_ptr<void>               pDrvPrivate;
+    std::multimap<uint32_t, void *>     mapAttaching;
+
+} DDI_CP_CONTEXT, *PDDI_CP_CONTEXT;
+
+static __inline PDDI_CP_CONTEXT DdiCp_GetCpContextFromPVOID(void *cpCtx)
+{
+    return (PDDI_CP_CONTEXT)cpCtx;
+}
 
 class DdiCpInterface
 {
@@ -81,6 +100,14 @@ public:
         CodechalSetting *           settings);
 
     virtual VAStatus SetDecodeParams(CodechalDecodeParams    *decodeParams);
+
+    virtual bool IsCencProcessing();
+
+    virtual VAStatus EndPicture(
+        VADriverContextP    ctx,
+        VAContextID         context
+    );
+
 };
 
 //!
@@ -102,4 +129,3 @@ DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx);
 //!
 void Delete_DdiCpInterface(DdiCpInterface* pDdiCpInterface);
 #endif
-

@@ -26,6 +26,7 @@
 
 #include "media_libva_caps_cp_interface.h"
 #include "cp_interfaces.h"
+#include "media_libva_util.h"
 #include <typeinfo>
 
 static void CapsStubMessage()
@@ -92,4 +93,78 @@ int32_t MediaLibvaCapsCpInterface::GetEncryptionTypes(
 {
     CapsStubMessage();
     return -1;
+}
+
+VAStatus MediaLibvaCapsCpInterface::LoadCpProfileEntrypoints()
+{
+    CapsStubMessage();
+    return VA_STATUS_SUCCESS;
+}
+
+bool MediaLibvaCapsCpInterface::IsCpConfigId(VAConfigID configId)
+{
+    CapsStubMessage();
+    return false;
+}
+
+VAStatus MediaLibvaCapsCpInterface::CreateCpConfig(
+        int32_t profileTableIdx,
+        VAEntrypoint entrypoint,
+        VAConfigAttrib *attribList,
+        int32_t numAttribs,
+        VAConfigID *configId)
+{
+    CapsStubMessage();
+    return VA_STATUS_SUCCESS;
+}
+
+MediaLibvaCaps::ProfileEntrypoint* MediaLibvaCapsCpInterface::GetProfileEntrypoint(int32_t profileTableIdx)
+{
+    DDI_CHK_NULL(m_mediaCaps,   "nullptr m_mediaCaps",  nullptr);
+
+    if (profileTableIdx >= MediaLibvaCaps::m_maxProfileEntries)
+    {
+        DDI_ASSERTMESSAGE("profileTableIdx %d out of bounds", profileTableIdx);
+        return nullptr;
+    }
+
+    return &(m_mediaCaps->m_profileEntryTbl[profileTableIdx]);
+}
+
+uint16_t MediaLibvaCapsCpInterface::GetProfileEntryCount()
+{
+    DDI_CHK_NULL(m_mediaCaps,   "nullptr m_mediaCaps",  0);
+
+    return m_mediaCaps->m_profileEntryCount;
+}
+
+VAStatus MediaLibvaCapsCpInterface::GetProfileEntrypointFromConfigId(
+    VAConfigID configId,
+    VAProfile *profile,
+    VAEntrypoint *entrypoint,
+    int32_t *profileTableIdx)
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+    DDI_CHK_NULL(m_mediaCaps,   "nullptr m_mediaCaps",  VA_STATUS_ERROR_OPERATION_FAILED);
+
+    status = m_mediaCaps->GetProfileEntrypointFromConfigId(configId, profile, entrypoint, profileTableIdx);
+
+    return status;
+}
+
+VAStatus MediaLibvaCapsCpInterface::AddProfileEntry(
+    VAProfile profile,
+    VAEntrypoint entrypoint,
+    AttribMap *attributeList,
+    int32_t configIdxStart,
+    int32_t configNum)
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+
+    DDI_CHK_NULL(m_mediaCaps,       "nullptr m_mediaCaps",      VA_STATUS_ERROR_OPERATION_FAILED);
+
+    status = m_mediaCaps->AddProfileEntry(profile, entrypoint, attributeList, configIdxStart, configNum);
+
+    return status;
 }

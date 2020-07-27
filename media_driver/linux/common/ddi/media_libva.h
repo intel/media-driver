@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -113,6 +113,7 @@
 #define DDI_VP_MAX_NUM_FILTERS  8
 
 #define DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE    2048 // VP config_id starts at this value
+#define DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE    4092 // CP config_id starts at this value
 #define DDI_CP_ENCRYPT_TYPES_NUM             5    // CP encryption types number
 
 // Enable unlimited output buffer, delete this build option (remove multiple output buffer) when it is verified

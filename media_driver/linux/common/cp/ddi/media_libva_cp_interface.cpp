@@ -158,3 +158,18 @@ VAStatus DdiCpInterface::SetDecodeParams(
     DdiStubMessage();
     return VA_STATUS_SUCCESS;
 }
+
+bool DdiCpInterface::IsCencProcessing()
+{
+    DdiStubMessage();
+    return false;
+}
+
+VAStatus DdiCpInterface::EndPicture(
+    VADriverContextP    ctx,
+    VAContextID         context
+)
+{
+    DdiStubMessage();
+    return VA_STATUS_SUCCESS;
+}

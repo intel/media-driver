@@ -3235,6 +3235,12 @@ bool MediaLibvaCaps::IsVpConfigId(VAConfigID configId)
             (configId < (DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE + m_vpConfigs.size())));
 }
 
+
+MediaLibvaCapsCpInterface* MediaLibvaCaps::GetCpCaps()
+{
+    return m_CapsCp;
+}
+
 bool MediaLibvaCaps::IsMfeSupportedEntrypoint(VAEntrypoint entrypoint)
 {
     if (entrypoint != VAEntrypointEncSlice &&           //MFE only support Encode slice

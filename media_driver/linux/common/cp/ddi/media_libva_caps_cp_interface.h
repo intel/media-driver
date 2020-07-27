@@ -42,9 +42,36 @@ public:
         uint32_t *encrytionType,
         uint32_t arraySize);
 
+    virtual VAStatus LoadCpProfileEntrypoints();
+
+    virtual bool IsCpConfigId(VAConfigID configId);
+
+    virtual VAStatus CreateCpConfig(
+        int32_t profileTableIdx,
+        VAEntrypoint entrypoint,
+        VAConfigAttrib *attribList,
+        int32_t numAttribs,
+        VAConfigID *configId);
+
 protected:
     DDI_MEDIA_CONTEXT *m_mediaCtx; //!< Pointer to media context
     MediaLibvaCaps *m_mediaCaps;
+
+    MediaLibvaCaps::ProfileEntrypoint* GetProfileEntrypoint(int32_t profileTableIdx);
+
+    uint16_t GetProfileEntryCount();
+
+    VAStatus GetProfileEntrypointFromConfigId(VAConfigID configId,
+            VAProfile *profile,
+            VAEntrypoint *entrypoint,
+            int32_t *profileTableIdx);
+
+    VAStatus AddProfileEntry(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap *attributeList,
+        int32_t configIdxStart,
+        int32_t configNum);
 
 };
 

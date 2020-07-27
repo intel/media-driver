@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2019, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -86,13 +86,7 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 
     if (index >= DDI_MEDIA_MAX_INSTANCE_NUMBER)
         return nullptr;
-    if ((vaCtxID&DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_CENC)
-    {
-        DDI_VERBOSEMESSAGE("Cenc context detected: 0x%x", vaCtxID);
-        *ctxType = DDI_MEDIA_CONTEXT_TYPE_CENC_DECODER;
-        return DdiMedia_GetVaContextFromHeap(mediaCtx->pDecoderCtxHeap, index, &mediaCtx->DecoderMutex);
-    }
-    else if ((vaCtxID&DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_DECODER)
+    if ((vaCtxID&DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_DECODER)
     {
         DDI_VERBOSEMESSAGE("Decode context detected: 0x%x", vaCtxID);
         *ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;
@@ -347,7 +341,8 @@ void* DdiMedia_GetContextFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID
     DDI_CHK_LESS(i, mediaCtx->pBufferHeap->uiAllocatedHeapElements, "invalid buffer id", nullptr);
     DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
     bufHeapElement  = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)mediaCtx->pBufferHeap->pHeapBase;
-    ctx            = bufHeapElement->pCtx; 
+    bufHeapElement += bufferID;
+    ctx            = bufHeapElement->pCtx;
     DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
 
     return ctx;
