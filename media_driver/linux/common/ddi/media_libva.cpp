@@ -1294,23 +1294,26 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
 
         if (nullptr == pCpDdiInterface)
         {
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-
-        DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
-
-        DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
-        DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
-
-        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-
-        if (pCpDdiInterface)
+        else
         {
-            Delete_DdiCpInterface(pCpDdiInterface);
-            pCpDdiInterface = NULL;
+            DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+
+            DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
+            DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
+
+            DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+
+            if (pCpDdiInterface)
+            {
+                Delete_DdiCpInterface(pCpDdiInterface);
+                pCpDdiInterface = NULL;
+            }
         }
 #else
         vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
+        DDI_ASSERTMESSAGE("MMC unsupported! [%d].", vaStatus);
 #endif
     }
 
@@ -2808,6 +2811,7 @@ static VAStatus DdiMedia_AddContextInternal(
 
         encoder->m_mfeEnabled = false;
 
+        DdiMediaUtil_UnLockMutex(&encodeMfeContext->encodeMfeMutex);
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
 
@@ -3076,11 +3080,12 @@ VAStatus DdiMedia_MapBufferInternal (
     // The context is nullptr when the buffer is created from DdiMedia_DeriveImage
     // So doesn't need to check the context for all cases
     // Only check the context in dec/enc mode
+    VAStatus                 vaStatus  = VA_STATUS_SUCCESS;
     uint32_t                 ctxType = DdiMedia_GetCtxTypeFromVABufferID(mediaCtx, buf_id);
     void                     *ctxPtr = nullptr;
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = nullptr;
-    PDDI_ENCODE_CONTEXT      encCtx = nullptr;
-    PDDI_DECODE_CONTEXT      decCtx = nullptr;
+    PDDI_ENCODE_CONTEXT      encCtx  = nullptr;
+    PDDI_DECODE_CONTEXT      decCtx  = nullptr;
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_VP:
@@ -3287,22 +3292,26 @@ VAStatus DdiMedia_MapBufferInternal (
             if((buf->format != Media_Format_CPU) && (DdiMedia_MediaFormatToOsFormat(buf->format) != VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT))
             {
                 DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
+                // A critical section starts.
+                // Make sure not to bailout with a return until the section ends.
 
-                if ((nullptr != buf->pSurface) && (Media_Format_CPU != buf->format))
+                if (nullptr != buf->pSurface && Media_Format_CPU != buf->format)
                 {
-                    DDI_CHK_RET(DdiMedia_MediaMemoryDecompress(mediaCtx, buf->pSurface),"MMD unsupported!");
+                    vaStatus = DdiMedia_MediaMemoryDecompress(mediaCtx, buf->pSurface);
                 }
 
-                *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
+                if (VA_STATUS_SUCCESS == vaStatus)
+                {
+                    *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
+
+                    if (nullptr == *pbuf)
+                    {
+                        vaStatus = VA_STATUS_ERROR_OPERATION_FAILED;
+                    }
+                }
+
+                // The critical section ends.
                 DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
-                if (nullptr == (*pbuf))
-                {
-                    return VA_STATUS_ERROR_OPERATION_FAILED;
-                }
-                else
-                {
-                    return VA_STATUS_SUCCESS;
-                }
             }
             else
             {
@@ -3311,7 +3320,7 @@ VAStatus DdiMedia_MapBufferInternal (
             break;
     }
 
-    return VA_STATUS_SUCCESS;
+    return vaStatus;
 }
 
 VAStatus DdiMedia_MapBuffer (
@@ -4127,24 +4136,11 @@ VAStatus DdiMedia_QuerySurfaceError(
     VASurfaceDecodeMBErrors *surfaceErrors   = decCtx->vaSurfDecErrOutput;
     DDI_CHK_NULL(surfaceErrors , "nullptr surfaceErrors", VA_STATUS_ERROR_INVALID_CONTEXT );
 
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+
     DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
     if (surface->curStatusReportQueryState == DDI_MEDIA_STATUS_REPORT_QUERY_STATE_COMPLETED)
     {
-        if (error_status == -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
-            //&& surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL)  // get the crc value whatever the status is
-        {
-            CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decCtx->pCodecHal);
-            DDI_CHK_NULL(decoder, "nullptr codechal decoder", VA_STATUS_ERROR_INVALID_CONTEXT);
-            if (decoder->GetStandard() != CODECHAL_AVC)
-            {
-                DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-                return VA_STATUS_ERROR_UNIMPLEMENTED;
-            }
-            *error_info = (void *)&surface->curStatusReport.decode.crcValue;
-            DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-            return VA_STATUS_SUCCESS;
-        }
-
         if (error_status != -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER &&
             surface->curStatusReport.decode.status == CODECHAL_STATUS_ERROR)
         {
@@ -4157,6 +4153,32 @@ VAStatus DdiMedia_QuerySurfaceError(
             *error_info = surfaceErrors;
             DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
             return VA_STATUS_SUCCESS;
+        }
+
+        if (error_status == -1 && surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_DECODER)
+            //&& surface->curStatusReport.decode.status == CODECHAL_STATUS_SUCCESSFUL)  // get the crc value whatever the status is
+        {
+            CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(decCtx->pCodecHal);
+
+            if (nullptr == decoder)
+            {
+                DDI_ASSERTMESSAGE("nullptr codechal decoder");
+                vaStatus = VA_STATUS_ERROR_INVALID_CONTEXT;
+            }
+            else
+            {
+                if (decoder->GetStandard() != CODECHAL_AVC)
+                {
+                    vaStatus = VA_STATUS_ERROR_UNIMPLEMENTED;
+                }
+                else
+                {
+                    *error_info = (void *)&surface->curStatusReport.decode.crcValue;
+                }
+            }
+
+            DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+            return vaStatus;
         }
 
         if (surface->curCtxType == DDI_MEDIA_CONTEXT_TYPE_VP &&
