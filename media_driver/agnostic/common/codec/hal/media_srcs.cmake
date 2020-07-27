@@ -310,6 +310,7 @@ if(${Common_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_kernel_intra_dist.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_wp.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_base.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_encoder_unsupported.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_tracked_buffer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_huc_cmd_initializer.h
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_allocator.h
