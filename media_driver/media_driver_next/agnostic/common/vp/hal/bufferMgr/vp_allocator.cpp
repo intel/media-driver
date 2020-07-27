@@ -559,7 +559,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     uint32_t                height,
     bool                    compressible,
     MOS_RESOURCE_MMC_MODE   compressionMode,
-    bool                    &allocated)
+    bool                    &allocated,
+    GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
     VPHAL_GET_SURFACE_INFO  info;
@@ -596,6 +597,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.CompressionMode = compressionMode;
     allocParams.pBufName        = surfaceName;
     allocParams.dwArraySize     = 1;
+    allocParams.gmmResUsageType = gmmResUsageType;
 
     // Delete resource if already allocated
     FreeResource(&surface->OsResource);
@@ -625,7 +627,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         bool                    compressible,
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
-        bool                    zeroOnAllocate)
+        bool                    zeroOnAllocate,
+        GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
     MOS_ALLOC_GFXRES_PARAMS allocParams = {};
@@ -669,6 +672,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.CompressionMode = compressionMode;
     allocParams.pBufName        = surfaceName;
     allocParams.dwArraySize     = 1;
+    allocParams.gmmResUsageType = gmmResUsageType;
 
     surface = AllocateVpSurface(allocParams, zeroOnAllocate);
     VP_PUBLIC_CHK_NULL_RETURN(surface);

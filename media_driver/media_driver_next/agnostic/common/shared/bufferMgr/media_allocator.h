@@ -219,6 +219,20 @@ public:
         PMOS_RESOURCE         osResource,
         bool                  bWriteOperation);
 
+    //!
+    //! \brief    Update the GMM usage type of resource for cache policy
+    //! \details  Update the GMM usage type of resource for cache policy
+    //! \param    PMOS_RESOURCE OsResource
+    //!           [in] OS resource sturcture
+    //! \param    GMM_RESOURCE_USAGE_TYPE gmmResUsageType
+    //!           [in] GMM_RESOURCE_USAGE_TYPE to be set
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS UpdateResourceGmmUsageType(
+        PMOS_RESOURCE           osResource,
+        GMM_RESOURCE_USAGE_TYPE gmmResUsageType);
+
 protected:
 
     //!

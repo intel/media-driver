@@ -382,3 +382,15 @@ MOS_STATUS Allocator::SyncOnResource(
     m_osInterface->pfnSyncOnResource(m_osInterface, osResource, requestorGPUCtx, bWriteOperation);
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS Allocator::UpdateResourceGmmUsageType(
+    PMOS_RESOURCE           osResource,
+    GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
+{
+    if (nullptr == osResource)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return m_osInterface->pfnUpdateResourceGmmUsageType(osResource, gmmResUsageType);
+}

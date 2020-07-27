@@ -1684,6 +1684,22 @@ MOS_STATUS MosInterface::UnlockMosResource(
     return eStatus;
 }
 
+MOS_STATUS MosInterface::UpdateResourceGmmUsageType(
+    PMOS_RESOURCE           pOsResource,
+    GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    //---------------------------------
+    MOS_OS_CHK_NULL_RETURN(pOsResource);
+    MOS_OS_CHK_NULL_RETURN(pOsResource->pGmmResInfo);
+    //---------------------------------
+
+    pOsResource->pGmmResInfo->OverrideCachePolicyUsage(gmmResUsageType);
+
+    return eStatus;
+}
+
 MOS_STATUS MosInterface::RegisterResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,

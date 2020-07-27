@@ -906,6 +906,20 @@ public:
         MOS_RESOURCE_HANDLE resource);
 
     //!
+    //! \brief    Update Resource GMM usage type
+    //! \details  update the resource usage for cache policy
+    //! \param    PMOS_RESOURCE pOsResource
+    //!           [in/out] Pointer to OS Resource
+    //! \param    MM_RESOURCE_USAGE_TYPE gmmResUsageType
+    //!           [in] gmm resosuce usage type
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS UpdateResourceGmmUsageType(
+        PMOS_RESOURCE           pOsResource,
+        GMM_RESOURCE_USAGE_TYPE gmmResUsageType);
+
+    //!
     //! \brief    Register Resource
     //! \details  [Resource Interface] Register the resource to current streamState.
     //! \details  Caller: MHW only

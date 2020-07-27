@@ -322,6 +322,8 @@ public:
     //!           Compression Mode
     //! \param    [out] allocated
     //!           true if allocated, false for not
+    //! \param    [in] gmmResUsageType
+    //!           gmm resource usage type for cache policy
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success. Error code otherwise
     //!
@@ -335,7 +337,8 @@ public:
         uint32_t                height,
         bool                    compressible,
         MOS_RESOURCE_MMC_MODE   compressionMode,
-        bool                    &allocated);
+        bool                    &allocated,
+        GMM_RESOURCE_USAGE_TYPE gmmResUsageType = GMM_RESOURCE_USAGE_UNKNOWN);
 
     //!
     //! \brief    Reallocates the VP Surface
@@ -364,6 +367,8 @@ public:
     //!           true if allocated, false for not
     //! \param    [in] zeroOnAllocate
     //!           zero when surface allocated
+    //! \param    [in] gmmResUsageType
+    //!           gmm resource usage type for cache policy
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success. Error code otherwise
     //!
@@ -378,7 +383,8 @@ public:
         bool                    compressible,
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
-        bool                    zeroOnAllocate = 0);
+        bool                    zeroOnAllocate = 0,
+        GMM_RESOURCE_USAGE_TYPE gmmResUsageType = GMM_RESOURCE_USAGE_UNKNOWN);
 
     //!
     //! \brief    Unified OS fill Resource

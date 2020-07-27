@@ -132,6 +132,11 @@ public:
         uint32_t m_memType = MOS_MEMPOOL_VIDEOMEMORY;
 
         //!
+        //! \brief   gmm resource usage type
+        //!
+        GMM_RESOURCE_USAGE_TYPE m_gmmResUsageType = GMM_RESOURCE_USAGE_UNKNOWN;
+
+        //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
         //!
         CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams)
@@ -153,6 +158,7 @@ public:
             m_flags           = pParams->Flags;
             m_width           = pParams->dwWidth;
             m_memType         = pParams->dwMemType;
+            m_gmmResUsageType = pParams->gmmResUsageType;
         };
 
         CreateParams()
