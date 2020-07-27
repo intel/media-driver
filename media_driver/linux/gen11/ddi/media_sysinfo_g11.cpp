@@ -338,6 +338,25 @@ static struct GfxDeviceInfo ehlDevInfo = {
     .InitShadowSku    = InitEhlShadowSku,
     .InitShadowWa     = InitEhlShadowWa,
 };
+static struct GfxDeviceInfo ehlDevInfo16EU = {
+    .platformType  = PLATFORM_MOBILE,
+    .productFamily = IGFX_ELKHARTLAKE,
+    .displayFamily = IGFX_GEN11_CORE,
+    .renderFamily  = IGFX_GEN11_CORE,
+    .eGTType       = GTTYPE_GT1,
+    .L3CacheSizeInKb = 1280,
+    .L3BankCount   = 4,
+    .EUCount       = 16,
+    .SliceCount    = 1,
+    .SubSliceCount = 2,
+    .MaxEuPerSubSlice = 8,
+    .isLCIA        = 0,
+    .hasLLC        = 1,
+    .hasERAM       = 0,
+    .InitMediaSysInfo = InitEhlMediaSysInfo,
+    .InitShadowSku    = InitEhlShadowSku,
+    .InitShadowWa     = InitEhlShadowWa,
+};
 
 static bool icllpDeviceff05 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xff05, &icllpGt1Info);
@@ -404,3 +423,9 @@ static bool ehlDevice4E61 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool ehlDevice4E71 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x4E71, &ehlDevInfo);
+
+static bool ehlDevice4E55 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4E55, &ehlDevInfo16EU);
+
+static bool ehlDevice4555 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4555, &ehlDevInfo16EU);
