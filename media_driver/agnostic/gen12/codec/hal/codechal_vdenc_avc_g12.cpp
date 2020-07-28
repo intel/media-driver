@@ -1372,8 +1372,8 @@ MOS_STATUS CodechalVdencAvcStateG12::ExecuteMeKernel()
         curbeParam.qpPrimeY = m_avcPicParam->pic_init_qp_minus26 + 26 + m_avcSliceParams->slice_qp_delta;
         curbeParam.targetUsage = m_avcSeqParam->TargetUsage;
         curbeParam.maxMvLen = CodecHalAvcEncode_GetMaxMvLen(m_avcSeqParam->Level);
-        curbeParam.numRefIdxL0Minus1 = m_avcSliceParams->num_ref_idx_l0_active_minus1;
-        curbeParam.numRefIdxL1Minus1 = m_avcSliceParams->num_ref_idx_l1_active_minus1;
+
+        AdjustNumRefIdx(curbeParam.numRefIdxL0Minus1, curbeParam.numRefIdxL1Minus1);
 
         auto slcParams = m_avcSliceParams;
         curbeParam.list0RefID0FieldParity = CodecHalAvcEncode_GetFieldParity(slcParams, LIST_0, CODECHAL_ENCODE_REF_ID_0);

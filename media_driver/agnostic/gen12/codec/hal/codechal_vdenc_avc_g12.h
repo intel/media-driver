@@ -50,6 +50,11 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     virtual ~CodechalVdencAvcStateG12();
 
     bool CheckSupportedFormat(PMOS_SURFACE surface) override;
+    virtual void AdjustNumRefIdx(uint32_t &numRefIdxL0Minus1, uint32_t &numRefIdxL1Minus1)
+    {
+        numRefIdxL0Minus1 = m_avcSliceParams->num_ref_idx_l0_active_minus1;
+        numRefIdxL1Minus1 = m_avcSliceParams->num_ref_idx_l1_active_minus1;
+    }
 
     MOS_STATUS InitializeState() override;
 
