@@ -302,11 +302,16 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
     CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterface);
     if (debugInterface == nullptr)
     {
+        MOS_Delete(hwInterface);
+        mhwInterfaces->SetDestroyState(true);
         CODECHAL_PUBLIC_ASSERTMESSAGE("debugInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
     if (debugInterface->Initialize(hwInterface, CodecFunction) != MOS_STATUS_SUCCESS)
     {
+        MOS_Delete(hwInterface);
+        mhwInterfaces->SetDestroyState(true);
+        MOS_Delete(debugInterface);
         CODECHAL_PUBLIC_ASSERTMESSAGE("Debug interface creation failed!");
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -399,6 +404,11 @@ MOS_STATUS CodechalInterfacesG11Icllp::Initialize(
 
         if (m_codechalDevice == nullptr)
         {
+            MOS_Delete(hwInterface);
+            mhwInterfaces->SetDestroyState(true);
+#if USE_CODECHAL_DEBUG_TOOL
+            MOS_Delete(debugInterface);
+#endif
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decoder device creation failed!");
             return MOS_STATUS_NO_SPACE;
         }

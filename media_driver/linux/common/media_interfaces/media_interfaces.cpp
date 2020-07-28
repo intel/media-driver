@@ -191,6 +191,11 @@ MhwInterfaces* MhwInterfaces::CreateFactory(
 
 void MhwInterfaces::Destroy()
 {
+    if(m_isDestroyed)
+    {
+        return;
+    }
+
     Delete_MhwCpInterface(m_cpInterface);
     m_cpInterface = nullptr;
     MOS_Delete(m_miInterface);
@@ -211,42 +216,40 @@ Codechal* CodechalDevice::CreateFactory(
     void            *standardInfo,
     void            *settings)
 {
-#define FAIL_CHK_STATUS(stmt)                   \
-{                                               \
-    if ((stmt) != MOS_STATUS_SUCCESS)           \
-    {                                           \
-        CODECHAL_PUBLIC_ASSERTMESSAGE("Status check failed, CodecHal creation failed!"); \
-        if (osInterface != nullptr && osInterface->bDeallocateOnExit) \
-        {                                       \
-            if (osInterface->pfnDestroy != nullptr) \
-            {                                   \
-                osInterface->pfnDestroy(osInterface, false); \
-            }                                   \
-            MOS_FreeMemory(osInterface);        \
-        }                                       \
-        MOS_Delete(mhwInterfaces);              \
-        MOS_Delete(device);                     \
-        return nullptr;                         \
-    }                                           \
+#define FAIL_DESTROY(msg)                   \
+{                                           \
+    CODECHAL_PUBLIC_ASSERTMESSAGE((msg));   \
+    if (mhwInterfaces != nullptr)           \
+    {                                       \
+        mhwInterfaces->Destroy();           \
+    }                                       \
+    if (osInterface != nullptr && osInterface->bDeallocateOnExit) \
+    {                                       \
+        if (osInterface->pfnDestroy != nullptr) \
+        {                                   \
+             osInterface->pfnDestroy(osInterface, false); \
+        }                                   \
+        MOS_FreeMemory(osInterface);        \
+    }                                       \
+    MOS_Delete(mhwInterfaces);              \
+    MOS_Delete(device);                     \
+    return nullptr;                         \
 }
 
-#define FAIL_CHK_NULL(ptr)                      \
-{                                               \
-    if ((ptr) == nullptr)                       \
-    {                                           \
-        CODECHAL_PUBLIC_ASSERTMESSAGE("nullptr check failed, CodecHal creation failed!"); \
-        if (osInterface != nullptr && osInterface->bDeallocateOnExit) \
-        {                                       \
-            if (osInterface->pfnDestroy != nullptr) \
-            {                                   \
-                osInterface->pfnDestroy(osInterface, false); \
-            }                                   \
-            MOS_FreeMemory(osInterface);        \
-        }                                       \
-        MOS_Delete(mhwInterfaces);              \
-        MOS_Delete(device);                     \
-        return nullptr;                         \
-    }                                           \
+#define FAIL_CHK_STATUS(stmt)               \
+{                                           \
+    if ((stmt) != MOS_STATUS_SUCCESS)       \
+    {                                       \
+        FAIL_DESTROY("Status check failed, CodecHal creation failed!"); \
+    }                                       \
+}
+
+#define FAIL_CHK_NULL(ptr)                  \
+{                                           \
+    if ((ptr) == nullptr)                   \
+    {                                       \
+        FAIL_DESTROY("nullptr check failed, CodecHal creation failed!"); \
+    }                                       \
 }
 
     if (osDriverContext == nullptr ||
@@ -297,7 +300,7 @@ Codechal* CodechalDevice::CreateFactory(
         device = CodechalFactory::CreateHal(platform.eProductFamily);
     }
     FAIL_CHK_NULL(device);
-    device->Initialize(standardInfo, settings, mhwInterfaces, osInterface);
+    FAIL_CHK_STATUS(device->Initialize(standardInfo, settings, mhwInterfaces, osInterface));
     FAIL_CHK_NULL(device->m_codechalDevice);
 
     Codechal *codechalDevice = device->m_codechalDevice;

@@ -132,6 +132,15 @@ public:
     //! \details  If the HAL creation fails, this is used for cleanup
     //!
     virtual void Destroy();
+
+    //!
+    //! \brief    Set Interfaces Destroy State
+    //! \details  If the interfaces has destroyed, set this state value on
+    //!
+    void SetDestroyState(bool destorystate) { m_isDestroyed = destorystate; };
+
+private:
+    bool m_isDestroyed = false;
 };
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
