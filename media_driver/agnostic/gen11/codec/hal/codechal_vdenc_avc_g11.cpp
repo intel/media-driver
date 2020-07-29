@@ -1472,10 +1472,11 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcUpdate()
     dmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING);
     dmem->UPD_CQMEnabled_U8  = m_avcSeqParam->seq_scaling_matrix_present_flag || m_avcPicParam->pic_scaling_matrix_present_flag;
 
+    dmem->UPD_LA_TargetSize_U32 = m_avcPicParam->TargetFrameSize << 3;
+
     if (m_lookaheadDepth > 0)
     {
         dmem->EnableLookAhead = 1;
-        dmem->UPD_LA_TargetSize_U32 = m_avcPicParam->TargetFrameSize << 3;
         dmem->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
         dmem->UPD_Delta_U8 = m_avcPicParam->QpModulationStrength;
     }
