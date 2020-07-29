@@ -862,7 +862,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
         for (auto i = 0; i < 3; i++)
         {
             dmem = (HucProbDmem *)m_osInterface->pfnLockResource(
-                m_osInterface, &m_resHucProbDmemBuffer[i], &lockFlagsWriteOnly);
+                m_osInterface, &m_resHucProbDmemBuffer[i][m_currRecycledBufIdx], &lockFlagsWriteOnly);
             CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
 
             if (i == 0)
@@ -875,7 +875,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
 
             if (i != 0)
             {
-                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[i]));
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[i][m_currRecycledBufIdx]));
                 dmem = dmemTemp;
             }
         }
@@ -883,7 +883,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     else
     {
         dmem = (HucProbDmem *)m_osInterface->pfnLockResource(
-            m_osInterface, &m_resHucProbDmemBuffer[currPass], &lockFlagsWriteOnly);
+            m_osInterface, &m_resHucProbDmemBuffer[currPass][m_currRecycledBufIdx], &lockFlagsWriteOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
     }
 
@@ -892,7 +892,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     {
         dmem->HuCPassNum = CODECHAL_ENCODE_VP9_HUC_SUPERFRAME_PASS;
     }
-    else 
+    else
     {
         if (m_dysBrc)
         {
@@ -934,7 +934,6 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
                 &m_resProbBuffer[i]));
         }
     }
-
 
     // in multipasses, only delta seg qp (SegCodeAbs = 0) is supported, confirmed by the arch team
     dmem->SegCodeAbs                     = 0;
@@ -997,7 +996,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCVp9Prob()
     dmem->SLBBSize = m_hucSlbbSize;
     dmem->IVFHeaderSize = (m_frameNum == 0) ? 44 : 12;
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[currPass]));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[currPass][m_currRecycledBufIdx]));
 
     return eStatus;
 }
@@ -1140,7 +1139,7 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
     int currPass = GetCurrentPass();
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[m_currPass];
+    dmemParams.presHucDataSource = &m_resHucProbDmemBuffer[m_currPass][m_currRecycledBufIdx];
     dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucProbDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
@@ -1153,7 +1152,7 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
     virtualAddrParams.regionParams[0].isWritable = true;        // Region 0 is both read and write for HuC. Has input probabilities before running HuC and updated probabilities after running HuC, which will then be input to next pass
     virtualAddrParams.regionParams[1].presRegion = &m_resProbabilityCounterBuffer;
     virtualAddrParams.regionParams[7].presRegion = m_vdencBrcEnabled ? &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex] : &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex];
-    virtualAddrParams.regionParams[8].presRegion = &m_resHucPakInsertUncompressedHeaderReadBuffer;
+    virtualAddrParams.regionParams[8].presRegion = &m_resHucPakInsertUncompressedHeaderReadBuffer[m_currRecycledBufIdx];
     virtualAddrParams.regionParams[9].presRegion = &m_resHucDefaultProbBuffer;
 
     // Output regions
@@ -1266,7 +1265,7 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resHucProbDmemBuffer[m_currPass],
+                &m_resHucProbDmemBuffer[m_currPass][m_currRecycledBufIdx],
                 sizeof(HucProbDmem),
                 currPass,
                 CodechalHucRegionDumpType::hucRegionDumpDefault));
@@ -3841,7 +3840,7 @@ MOS_STATUS CodechalVdencVp9State::ExecutePictureLevel()
 
     if (m_currPass == 0)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPakInsertObjBatchBuf(&m_resHucPakInsertUncompressedHeaderReadBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPakInsertObjBatchBuf(&m_resHucPakInsertUncompressedHeaderReadBuffer[m_currRecycledBufIdx]));
     }
 
     // For VDENC dynamic scaling, here are the steps we need to process
@@ -4678,7 +4677,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteSliceLevel()
     secondLevelBatchBuffer.bSecondLevel = true;
     if (!m_hucEnabled)
     {
-        secondLevelBatchBuffer.OsResource = m_resHucPakInsertUncompressedHeaderReadBuffer;
+        secondLevelBatchBuffer.OsResource = m_resHucPakInsertUncompressedHeaderReadBuffer[m_currRecycledBufIdx];
     }
     else
     {
@@ -4913,7 +4912,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
     // We only need to update Huc PAK insert object and picture state for the first pass
     if (m_currPass == 0)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPakInsertObjBatchBuf(&m_resHucPakInsertUncompressedHeaderReadBuffer));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructPakInsertObjBatchBuf(&m_resHucPakInsertUncompressedHeaderReadBuffer[m_currRecycledBufIdx]));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PakConstructPicStateBatchBuf(
             &m_brcBuffers.resPicStateBrcWriteHucReadBuffer));
 
@@ -5244,7 +5243,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysSliceLevel()
     secondLevelBatchBuffer.bSecondLevel = true;
     // This function is called only for Reference frame scaling for Dynamic Scaling feature
     // Huc is disabled for ref frame scaling so we use on the ReadBuffer
-    secondLevelBatchBuffer.OsResource = m_resHucPakInsertUncompressedHeaderReadBuffer;
+    secondLevelBatchBuffer.OsResource = m_resHucPakInsertUncompressedHeaderReadBuffer[m_currRecycledBufIdx];
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferStartCmd(
         &cmdBuffer,
@@ -6366,14 +6365,16 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
         // HUC Prob DMEM buffer
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(MOS_MAX(sizeof(HucProbDmem), sizeof(HucProbDmem)), CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "HucProbDmemBuffer";
-        for (auto i = 0; i < 3; i++)
+        for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++j)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
-                m_osInterface,
-                &allocParamsForBufferLinear,
-                &m_resHucProbDmemBuffer[i]));
+            for (auto i = 0; i < 3; i++)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+                                                      m_osInterface,
+                                                      &allocParamsForBufferLinear,
+                                                      &m_resHucProbDmemBuffer[i][j]));
+            }
         }
-
         // Huc default prob buffer
         allocParamsForBufferLinear.dwBytes = sizeof(Keyframe_Default_Probs)+sizeof(Inter_Default_Probs);
         allocParamsForBufferLinear.pBufName = "HucDefaultProbBuffer";
@@ -6409,11 +6410,13 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
         allocParamsForBufferLinear.dwBytes = CODECHAL_ENCODE_VP9_PAK_INSERT_UNCOMPRESSED_HEADER;
         allocParamsForBufferLinear.pBufName = "HucPakInsertUncompressedHeaderReadBuffer";
 
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_resHucPakInsertUncompressedHeaderReadBuffer));
-
+        for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+                                                  m_osInterface,
+                                                  &allocParamsForBufferLinear,
+                                                  &m_resHucPakInsertUncompressedHeaderReadBuffer[i]));
+        }
         allocParamsForBufferLinear.dwBytes = CODECHAL_ENCODE_VP9_PAK_INSERT_UNCOMPRESSED_HEADER;
         allocParamsForBufferLinear.pBufName = "HucPakInsertUncompressedHeaderWriteBuffer";
 
@@ -6832,13 +6835,15 @@ void CodechalVdencVp9State::FreeResources()
         m_osInterface,
         &m_resCuStatsStrmOutBuffer);
 
-    for (auto i = 0; i < 3; i++)
+    for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++j)
     {
-        m_osInterface->pfnFreeResource(
-            m_osInterface,
-            &m_resHucProbDmemBuffer[i]);
+        for (auto i = 0; i < 3; i++)
+        {
+            m_osInterface->pfnFreeResource(
+                m_osInterface,
+                &m_resHucProbDmemBuffer[i][j]);
+        }
     }
-
     m_osInterface->pfnFreeResource(
         m_osInterface,
         &m_resHucPakMmioBuffer);
@@ -6850,11 +6855,12 @@ void CodechalVdencVp9State::FreeResources()
     m_osInterface->pfnFreeResource(
         m_osInterface,
         &m_resHucProbOutputBuffer);
-
-    m_osInterface->pfnFreeResource(
-        m_osInterface,
-        &m_resHucPakInsertUncompressedHeaderReadBuffer);
-
+    for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++i)
+    {
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_resHucPakInsertUncompressedHeaderReadBuffer[i]);
+    }
     m_osInterface->pfnFreeResource(
         m_osInterface,
         &m_resHucPakInsertUncompressedHeaderWriteBuffer);
@@ -7114,7 +7120,7 @@ MOS_STATUS CodechalVdencVp9State::ReadHcpStatus(
     copyMemMemParams.presSrc = &encodeStatusBuf->resStatusBuffer;
     copyMemMemParams.dwSrcOffset = baseOffset + encodeStatusBuf->dwBSByteCountOffset;
     // For BRC cases, do not overwrite the HPU probability in huc Dmen buffer in the last pass
-    copyMemMemParams.presDst = &m_resHucProbDmemBuffer[m_vdencBrcEnabled ? 2 : 1];
+    copyMemMemParams.presDst = &m_resHucProbDmemBuffer[m_vdencBrcEnabled ? 2 : 1][m_currRecycledBufIdx];
     copyMemMemParams.dwDstOffset = CODECHAL_OFFSETOF(HucProbDmem, FrameSize);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(
@@ -7176,13 +7182,19 @@ CodechalVdencVp9State::CodechalVdencVp9State(
 
     MOS_ZeroMemory(&m_prevFrameInfo, sizeof(m_prevFrameInfo));
 
-    for (auto i = 0; i < 3; i++)
+    for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; ++j)
     {
-        MOS_ZeroMemory(&m_resHucProbDmemBuffer[i], sizeof(m_resHucProbDmemBuffer[i]));
+        for (auto i = 0; i < 3; i++)
+        {
+            MOS_ZeroMemory(&m_resHucProbDmemBuffer[i][j], sizeof(m_resHucProbDmemBuffer[i][j]));
+        }
     }
     MOS_ZeroMemory(&m_resHucDefaultProbBuffer, sizeof(m_resHucDefaultProbBuffer));
     MOS_ZeroMemory(&m_resHucProbOutputBuffer, sizeof(m_resHucProbOutputBuffer));
-    MOS_ZeroMemory(&m_resHucPakInsertUncompressedHeaderReadBuffer, sizeof(m_resHucPakInsertUncompressedHeaderReadBuffer));
+    for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+    {
+        MOS_ZeroMemory(&m_resHucPakInsertUncompressedHeaderReadBuffer[i], sizeof(m_resHucPakInsertUncompressedHeaderReadBuffer[i]));
+    }
     MOS_ZeroMemory(&m_resHucPakInsertUncompressedHeaderWriteBuffer, sizeof(m_resHucPakInsertUncompressedHeaderWriteBuffer));
     MOS_ZeroMemory(&m_resHucPakMmioBuffer, sizeof(m_resHucPakMmioBuffer));
     MOS_ZeroMemory(&m_resHucDebugOutputBuffer, sizeof(m_resHucDebugOutputBuffer));

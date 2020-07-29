@@ -1700,10 +1700,10 @@ public:
 
     bool                                        m_hucEnabled = false;
     bool                                        m_segmentMapAllocated = false;
-    MOS_RESOURCE                                m_resHucProbDmemBuffer[3];
+    MOS_RESOURCE                                m_resHucProbDmemBuffer[3][CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
     MOS_RESOURCE                                m_resHucDefaultProbBuffer;
     MOS_RESOURCE                                m_resHucProbOutputBuffer;
-    MOS_RESOURCE                                m_resHucPakInsertUncompressedHeaderReadBuffer;
+    MOS_RESOURCE                                m_resHucPakInsertUncompressedHeaderReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];
     MOS_RESOURCE                                m_resHucPakInsertUncompressedHeaderWriteBuffer;
     MOS_RESOURCE                                m_resHucPakMmioBuffer;
     MOS_RESOURCE                                m_resHucDebugOutputBuffer;
