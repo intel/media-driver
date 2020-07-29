@@ -1990,20 +1990,20 @@ public:
                 //StreamIn data is 4 CLs per LCU
                 cmd.DW6.TileStreaminOffset = (tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs) * (4);
 
-                // If Tile Column, compute PAK Object StreamOut Offsets
-                uint32_t tileLCUStreamOutOffsetInBytes = 0;
+                //Compute PAK Object StreamOut Offsets
+                uint32_t tileLCUStreamOutOffsetInCachelines = 0;
                 if (cmd.DW4.TileStartCtbY != 0 || cmd.DW4.TileStartCtbX != 0)
                 {
                     //Aligned Tile width & frame height
                     uint32_t numOfSBs = tileStartYInSBs * frameWidthInSBs + tileStartXInSBs * tileHeightInSBs;
                     //max LCU size is 64, min Cu size is 8
-                    uint32_t maxNumOfCUInSB = (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT) *
-                        (CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH);
-                    tileLCUStreamOutOffsetInBytes = 2 * BYTES_PER_DWORD * numOfSBs * (NUM_PAK_DWS_PER_LCU + maxNumOfCUInSB * NUM_DWS_PER_CU);
+                    uint32_t maxNumOfCUInSB = (CODEC_VP9_SUPER_BLOCK_HEIGHT / CODEC_VP9_MIN_BLOCK_HEIGHT) * (CODEC_VP9_SUPER_BLOCK_WIDTH / CODEC_VP9_MIN_BLOCK_WIDTH);
+                    //(num of SBs in a tile) *  (num of cachelines needed per SB)
+                    tileLCUStreamOutOffsetInCachelines = numOfSBs * (MOS_ROUNDUP_DIVIDE((2 * BYTES_PER_DWORD * (NUM_PAK_DWS_PER_LCU + maxNumOfCUInSB * NUM_DWS_PER_CU)), MHW_CACHELINE_SIZE));
                 }
 
                 cmd.DW9.LcuStreamOutOffsetEnable = 1;
-                cmd.DW9.TileLcuStreamOutOffset = MOS_ROUNDUP_DIVIDE(tileLCUStreamOutOffsetInBytes, MHW_CACHELINE_SIZE);
+                cmd.DW9.TileLcuStreamOutOffset = tileLCUStreamOutOffsetInCachelines;
 
                 if (cmd.DW4.TileStartCtbY == 0)
                 {
