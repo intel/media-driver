@@ -135,6 +135,15 @@ namespace decode
 
         if (isLastTileInFrm || !m_av1Pipeline->FrameBasedDecodingInUse())
         {
+            if (MEDIA_IS_WA(m_av1Pipeline->GetWaTable(), WaRSDisableMediaPGForAV1CodecWL))
+            {
+                cmdBuffer.Attributes.bDisablePowerGating = true;
+            }
+            else
+            {
+                cmdBuffer.Attributes.bDisablePowerGating = false;
+            }
+
             DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
         }
 
