@@ -87,12 +87,8 @@ protected:
     PSFC_ROT_MIR_PARAMS     m_sfcRotMirParams = nullptr;
 };
 
-struct HW_FILTER_ROT_MIR_PARAM
+struct HW_FILTER_ROT_MIR_PARAM : public HW_FILTER_PARAM
 {
-    FeatureType             type;
-    PVP_MHWINTERFACE        pHwInterface;
-    VP_EXECUTE_CAPS         vpExecuteCaps;
-    PacketParamFactoryBase *pPacketParamFactory;
     FeatureParamRotMir      rotMirParams;
 };
 
@@ -131,6 +127,18 @@ public:
     virtual ~PolicySfcRotMirHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        if (param.type != FeatureTypeRotMirOnSfc)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter for SFC Rotation-Mirror!");
+            return nullptr;
+        }
+
+        HW_FILTER_ROT_MIR_PARAM* rotationParam = (HW_FILTER_ROT_MIR_PARAM*)(&param);
+        return VpSfcRotMirParameter::Create(*rotationParam);
+    }
 private:
     PacketParamFactory<VpSfcRotMirParameter> m_PacketParamFactory;
 };

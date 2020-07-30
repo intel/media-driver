@@ -280,7 +280,7 @@ MOS_STATUS VpCscFilter::SetChromaParams(
     {
         VP_RENDER_CHK_STATUS_RETURN(SetSubSampling());
     }
-    
+
     m_sfcCSCParams->chromaDownSamplingVerticalCoef = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_VERT_CENTER) ?
         MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8;
     m_sfcCSCParams->chromaDownSamplingHorizontalCoef = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_HORZ_CENTER) ?
@@ -653,7 +653,7 @@ HwFilterCscParameter::~HwFilterCscParameter()
 
 MOS_STATUS HwFilterCscParameter::ConfigParams(HwFilter &hwFilter)
 {
-    return hwFilter.ConfigCscParam(m_Params);
+    return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterCscParameter::Initialize(HW_FILTER_CSC_PARAM &param)
@@ -756,6 +756,7 @@ HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpEx
         paramCsc.vpExecuteCaps = vpExecuteCaps;
         paramCsc.pPacketParamFactory = &m_PacketParamFactory;
         paramCsc.cscParams = param;
+        paramCsc.pfnCreatePacketParam = PolicySfcCscHandler::CreatePacketParam;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 
@@ -862,6 +863,7 @@ HwFilterParameter* PolicyVeboxCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
         paramCsc.vpExecuteCaps = vpExecuteCaps;
         paramCsc.pPacketParamFactory = &m_PacketParamFactory;
         paramCsc.cscParams = param;
+        paramCsc.pfnCreatePacketParam = PolicyVeboxCscHandler::CreatePacketParam;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 

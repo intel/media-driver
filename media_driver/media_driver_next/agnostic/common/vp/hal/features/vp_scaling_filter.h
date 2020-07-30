@@ -139,12 +139,8 @@ protected:
 
 };
 
-struct HW_FILTER_SCALING_PARAM
+struct HW_FILTER_SCALING_PARAM : public HW_FILTER_PARAM
 {
-    FeatureType             type;
-    PVP_MHWINTERFACE        pHwInterface;
-    VP_EXECUTE_CAPS         vpExecuteCaps;
-    PacketParamFactoryBase *pPacketParamFactory;
     FeatureParamScaling     scalingParams;
 };
 
@@ -184,6 +180,17 @@ public:
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
 
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        if (param.type != FeatureTypeScalingOnSfc)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter for SFC Scaling!");
+            return nullptr;
+        }
+
+        HW_FILTER_SCALING_PARAM* scalingParam = (HW_FILTER_SCALING_PARAM*)(&param);
+        return VpSfcScalingParameter::Create(*scalingParam);
+    }
 private:
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;
 };

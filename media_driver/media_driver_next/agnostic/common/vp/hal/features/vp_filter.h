@@ -311,6 +311,15 @@ public:
         }
     }
 };
+
+struct HW_FILTER_PARAM
+{
+    FeatureType             type;
+    PVP_MHWINTERFACE        pHwInterface;
+    VP_EXECUTE_CAPS         vpExecuteCaps;
+    PacketParamFactoryBase *pPacketParamFactory                     = nullptr;
+    VpPacketParameter*    (*pfnCreatePacketParam)(HW_FILTER_PARAM&) = nullptr;
+};
 }
 
 

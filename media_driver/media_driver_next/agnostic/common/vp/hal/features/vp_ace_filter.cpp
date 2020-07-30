@@ -137,7 +137,7 @@ HwFilterAceParameter::~HwFilterAceParameter()
 
 MOS_STATUS HwFilterAceParameter::ConfigParams(HwFilter &hwFilter)
 {
-    return hwFilter.ConfigAceParam(m_Params);
+    return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterAceParameter::Initialize(HW_FILTER_ACE_PARAM &param)
@@ -240,6 +240,7 @@ HwFilterParameter* PolicyVeboxAceHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
         paramAce.vpExecuteCaps = vpExecuteCaps;
         paramAce.pPacketParamFactory = &m_PacketParamFactory;
         paramAce.aceParams = param;
+        paramAce.pfnCreatePacketParam = PolicyVeboxAceHandler::CreatePacketParam;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 

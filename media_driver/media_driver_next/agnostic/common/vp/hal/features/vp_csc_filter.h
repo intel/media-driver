@@ -122,12 +122,8 @@ protected:
 };
 
 
-struct HW_FILTER_CSC_PARAM
+struct HW_FILTER_CSC_PARAM : public HW_FILTER_PARAM
 {
-    FeatureType             type;
-    PVP_MHWINTERFACE        pHwInterface;
-    VP_EXECUTE_CAPS         vpExecuteCaps;
-    PacketParamFactoryBase *pPacketParamFactory;
     FeatureParamCsc         cscParams;
 };
 
@@ -168,6 +164,18 @@ public:
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
 
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        if (param.type != FeatureTypeCscOnSfc)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid Parameter for SFC CSC!");
+            return nullptr;
+        }
+
+        HW_FILTER_CSC_PARAM* cscParam = (HW_FILTER_CSC_PARAM*)(&param);
+        return VpSfcCscParameter::Create(*cscParam);
+    }
+
 private:
     PacketParamFactory<VpSfcCscParameter> m_PacketParamFactory;
 };
@@ -194,6 +202,18 @@ public:
     virtual ~PolicyVeboxCscHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter* CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        if (param.type != FeatureTypeCscOnVebox)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid Parameter for Vebox CSC!");
+            return nullptr;
+        }
+
+        HW_FILTER_CSC_PARAM* cscParam = (HW_FILTER_CSC_PARAM*)(&param);
+        return VpVeboxCscParameter::Create(*cscParam);
+    }
 
 private:
     PacketParamFactory<VpVeboxCscParameter> m_PacketParamFactory;

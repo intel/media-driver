@@ -63,13 +63,8 @@ protected:
     PVEBOX_ACE_PARAMS       m_pVeboxAceParams = nullptr;
 };
 
-
-struct HW_FILTER_ACE_PARAM
+struct HW_FILTER_ACE_PARAM : public HW_FILTER_PARAM
 {
-    FeatureType             type;
-    PVP_MHWINTERFACE        pHwInterface;
-    VP_EXECUTE_CAPS         vpExecuteCaps;
-    PacketParamFactoryBase *pPacketParamFactory;
     FeatureParamAce         aceParams;
 };
 
@@ -109,6 +104,18 @@ public:
     virtual ~PolicyVeboxAceHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        if (param.type != FeatureTypeAceOnVebox)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter for Vebox ACE!");
+            return nullptr;
+        }
+
+        HW_FILTER_ACE_PARAM* aceParam = (HW_FILTER_ACE_PARAM*)(&param);
+        return VpVeboxAceParameter::Create(*aceParam);
+    }
 
 private:
     PacketParamFactory<VpVeboxAceParameter> m_PacketParamFactory;

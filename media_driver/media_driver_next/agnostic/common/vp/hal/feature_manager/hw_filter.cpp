@@ -67,6 +67,20 @@ MOS_STATUS HwFilter::Initialize(HW_FILTER_PARAMS &param)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HwFilter::ConfigParam(HW_FILTER_PARAM& param)
+{
+    if (!param.pfnCreatePacketParam)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Create packet params function is Null, return invalid params");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    VpPacketParameter* p = param.pfnCreatePacketParam(param);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_Params.Params.push_back(p);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS HwFilter::Clean()
 {
     std::vector<VpPacketParameter *>::iterator it = m_Params.Params.begin();
@@ -125,28 +139,6 @@ MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
         }
     }
     return bRet ? MOS_STATUS_SUCCESS : MOS_STATUS_UNKNOWN;
-}
-
-MOS_STATUS HwFilterVebox::ConfigDnParam(HW_FILTER_DN_PARAM &param)
-{
-    if (FeatureTypeDnOnVebox == param.type)
-    {
-        VpPacketParameter *p = VpVeboxDnParameter::Create(param);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_Params.Params.push_back(p);
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS HwFilterVebox::ConfigAceParam(HW_FILTER_ACE_PARAM &param)
-{
-    if (FeatureTypeAceOnVebox == param.type)
-    {
-        VpPacketParameter *p = VpVeboxAceParameter::Create(param);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_Params.Params.push_back(p);
-    }
-    return MOS_STATUS_SUCCESS;
 }
 
 /****************************************************************************************************/

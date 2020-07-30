@@ -460,7 +460,7 @@ HwFilterScalingParameter::~HwFilterScalingParameter()
 
 MOS_STATUS HwFilterScalingParameter::ConfigParams(HwFilter &hwFilter)
 {
-    return hwFilter.ConfigScalingParam(m_Params);
+    return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterScalingParameter::Initialize(HW_FILTER_SCALING_PARAM &param)
@@ -565,6 +565,7 @@ HwFilterParameter *PolicySfcScalingHandler::CreateHwFilterParam(VP_EXECUTE_CAPS 
         paramScaling.vpExecuteCaps = vpExecuteCaps;
         paramScaling.pPacketParamFactory = &m_PacketParamFactory;
         paramScaling.scalingParams = param;
+        paramScaling.pfnCreatePacketParam = PolicySfcScalingHandler::CreatePacketParam;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 

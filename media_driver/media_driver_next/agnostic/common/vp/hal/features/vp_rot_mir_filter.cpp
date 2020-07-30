@@ -197,7 +197,7 @@ HwFilterRotMirParameter::~HwFilterRotMirParameter()
 
 MOS_STATUS HwFilterRotMirParameter::ConfigParams(HwFilter &hwFilter)
 {
-    return hwFilter.ConfigRotMirParam(m_Params);
+    return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterRotMirParameter::Initialize(HW_FILTER_ROT_MIR_PARAM &param)
@@ -300,6 +300,7 @@ HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
         paramRotMir.vpExecuteCaps = vpExecuteCaps;
         paramRotMir.pPacketParamFactory = &m_PacketParamFactory;
         paramRotMir.rotMirParams = param;
+        paramRotMir.pfnCreatePacketParam = PolicySfcRotMirHandler::CreatePacketParam;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 

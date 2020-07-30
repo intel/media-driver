@@ -63,14 +63,9 @@ protected:
     PVEBOX_DN_PARAMS        m_veboxDnParams = nullptr;
 };
 
-
-struct HW_FILTER_DN_PARAM
+struct HW_FILTER_DN_PARAM : public HW_FILTER_PARAM
 {
-    FeatureType             type;
-    PVP_MHWINTERFACE        pHwInterface;
-    VP_EXECUTE_CAPS         vpExecuteCaps;
-    PacketParamFactoryBase *pPacketParamFactory;
-    FeatureParamDenoise     dnParams;
+    FeatureParamDenoise         dnParams;
 };
 
 class HwFilterDnParameter : public HwFilterParameter
@@ -109,6 +104,18 @@ public:
     virtual ~PolicyVeboxDnHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        if (param.type != FeatureTypeDnOnVebox)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter for Vebox De-Noise!");
+            return nullptr;
+        }
+
+        HW_FILTER_DN_PARAM* dnParam = (HW_FILTER_DN_PARAM*)(&param);
+        return VpVeboxDnParameter::Create(*dnParam);
+    }
 
 private:
     PacketParamFactory<VpVeboxDnParameter> m_PacketParamFactory;
