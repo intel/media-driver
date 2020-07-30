@@ -3438,7 +3438,8 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 
     if (m_dysRefFrameFlags == DYS_REF_NONE)
     {
-        m_vdencPakonlyMultipassEnabled = (IsLastPass()) ? true : false;
+        //This flag enables pak-only mode in RePak pass. In single-pass mode, this flag should be disabled.
+        m_vdencPakonlyMultipassEnabled = ((m_numPasses > 0) && (IsLastPass())) ? true : false;
     }
 
     // Scalable Mode header
