@@ -552,31 +552,19 @@ VAStatus DdiEncodeAvc::ParseMiscParamQualityLevel(void *data)
 
     m_encodeCtx->targetUsage = (uint8_t)vaEncMiscParamQualityLevel->quality_level;
     uint8_t qualityUpperBoundary = TARGETUSAGE_BEST_SPEED;
-#ifdef _FULL_OPEN_SOURCE
-    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP))
-        qualityUpperBoundary = 5;
-#endif
+
     // check if TU setting is valid, otherwise change to default
     if ((m_encodeCtx->targetUsage > qualityUpperBoundary) || (0 == m_encodeCtx->targetUsage))
     {
         m_encodeCtx->targetUsage = TARGETUSAGE_RT_SPEED;
         DDI_ASSERTMESSAGE("Quality Level setting from application is not correct, should be in (0,%d].", qualityUpperBoundary);
-        return VA_STATUS_SUCCESS;
     }
 
 #ifdef _FULL_OPEN_SOURCE
-    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP))
+    if (!GFX_IS_PRODUCT(m_encodeCtx->pMediaCtx->platform, IGFX_ICELAKE_LP) && m_encodeCtx->targetUsage <= 2)
     {
-        if (m_encodeCtx->targetUsage >= 1 && m_encodeCtx->targetUsage <= 2)
-        {
-            m_encodeCtx->targetUsage = 4;
-        }
-        else if (m_encodeCtx->targetUsage >= 3 &&m_encodeCtx->targetUsage <= 5)
-        {
-            m_encodeCtx->targetUsage = 7;
-        }
+        m_encodeCtx->targetUsage = 4;
     }
-
 #endif
 
     return VA_STATUS_SUCCESS;
