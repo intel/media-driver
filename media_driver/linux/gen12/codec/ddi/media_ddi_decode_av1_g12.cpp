@@ -63,11 +63,15 @@ VAStatus DdiDecodeAV1::ParseTileParams(
 
     pTileCtrl = slcParam;
     tileParams = (CodecAv1TileParams*)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
+    tileParams += m_ddiDecodeCtx->DecodeParams.m_numSlices;
 
     MOS_ZeroMemory(tileParams, (numTiles * sizeof(CodecAv1TileParams)));
 
+    uint32_t sliceBaseOffset;
+    sliceBaseOffset = GetBsBufOffset(m_groupIndex);
+
     for (auto idx = 0; idx < numTiles; idx++) {
-        tileParams->m_bsTileDataLocation        = pTileCtrl->slice_data_offset;
+        tileParams->m_bsTileDataLocation        = sliceBaseOffset + pTileCtrl->slice_data_offset;
         tileParams->m_bsTileBytesInBuffer       = pTileCtrl->slice_data_size;
 
         tileParams->m_badBSBufferChopping       = 0;                             // app doesn't have this
@@ -499,13 +503,6 @@ VAStatus DdiDecodeAV1::RenderPicture(
         {
         case VASliceDataBufferType:
         {
-            if (slcFlag)
-            {
-                // AV1 assumes only one slice_data. If it is passed, another slice_data
-                // buffer will be ignored.
-                DDI_NORMALMESSAGE("Slice data is already rendered\n");
-                break;
-            }
             int32_t index = GetBitstreamBufIndexFromBuffer(&m_ddiDecodeCtx->BufMgr, buf);
             if (index == DDI_CODEC_INVALID_BUFFER_INDEX)
             {
@@ -515,19 +512,10 @@ VAStatus DdiDecodeAV1::RenderPicture(
             DdiMedia_MediaBufferToMosResource(m_ddiDecodeCtx->BufMgr.pBitStreamBuffObject[index],
                                               &m_ddiDecodeCtx->BufMgr.resBitstreamBuffer);
             m_ddiDecodeCtx->DecodeParams.m_dataSize += dataSize;
-            /* If want to use "slcFlag" here, then need to set false at vaBginPicuture or vaEndPicture call */
-            // slcFlag = true;
             break;
         }
         case VASliceParameterBufferType:
         {
-            if (m_ddiDecodeCtx->DecodeParams.m_numSlices)
-            {
-                // AV1 assumes only one slice. If it is passed, another slice_param
-                // buffer will be ignored.
-                DDI_NORMALMESSAGE("SliceParamBufferAV1 is already rendered\n");
-                break;
-            }
             if (buf->uiNumElements == 0)
             {
                 return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -536,7 +524,7 @@ VAStatus DdiDecodeAV1::RenderPicture(
             VASliceParameterBufferAV1 *slcInfoAV1 = (VASliceParameterBufferAV1 *)data;
 
             DDI_CHK_RET(ParseTileParams(mediaCtx, slcInfoAV1, buf->uiNumElements), "ParseTileParams failed!");
-            m_ddiDecodeCtx->DecodeParams.m_numSlices = buf->uiNumElements;
+            m_ddiDecodeCtx->DecodeParams.m_numSlices += buf->uiNumElements;
             m_groupIndex++;
             break;
         }
@@ -604,9 +592,8 @@ VAStatus DdiDecodeAV1::InitResourceBuffer()
         bufMgr->pBitStreamBase[i] = nullptr;
     }
 
-    // AV1 assumes only one SliceDataBuffer. In such case only one is enough, 2 is allocated for the safety.
-    bufMgr->m_maxNumSliceData = 2;
-    bufMgr->pSliceData = (DDI_CODEC_BITSTREAM_BUFFER_INFO *)MOS_AllocAndZeroMemory(sizeof(bufMgr->pSliceData[0]) * 2);
+    bufMgr->m_maxNumSliceData = av1MaxTileNum;
+    bufMgr->pSliceData = (DDI_CODEC_BITSTREAM_BUFFER_INFO *)MOS_AllocAndZeroMemory(sizeof(bufMgr->pSliceData[0]) * bufMgr->m_maxNumSliceData);
 
     if (bufMgr->pSliceData == nullptr)
     {

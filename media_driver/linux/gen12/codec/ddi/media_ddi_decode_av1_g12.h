@@ -162,8 +162,6 @@ private:
     //!
     void FreeResourceBuffer();
 
-    //! \brief   the flag of slice data. It indicates whether slc data is passed
-    bool slcFlag = false;
     //! \brief   film grain output surface
     PDDI_MEDIA_SURFACE filmGrainOutSurface = nullptr;
     //! \brief   film grain output surface structure
