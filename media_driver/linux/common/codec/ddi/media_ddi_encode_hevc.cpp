@@ -340,7 +340,10 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     }
 
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams = (PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS)((uint8_t *)m_encodeCtx->pSeqParams);
-    hevcSeqParams->TargetUsage = m_encodeCtx->targetUsage;
+    if (m_encodeCtx->bNewSeq)
+    {
+        hevcSeqParams->TargetUsage = m_encodeCtx->targetUsage;
+    }
     encodeParams.pSeqParams   = m_encodeCtx->pSeqParams;
     encodeParams.pVuiParams   = m_encodeCtx->pVuiParams;
     encodeParams.pPicParams   = m_encodeCtx->pPicParams;
