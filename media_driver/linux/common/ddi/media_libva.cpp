@@ -3915,6 +3915,7 @@ static VAStatus DdiMedia_SyncSurface (
     return DdiMedia_StatusCheck(mediaCtx, surface, render_target);
 }
 
+#if VA_CHECK_VERSION(1, 9, 0)
 /*
  * This function blocks until all pending operations on the surface have been 
  * completed or exceed timeout.  Upon return it is safe to use the render target for a
@@ -4056,7 +4057,7 @@ static VAStatus DdiMedia_SyncBuffer (
 
     return VA_STATUS_SUCCESS;
 }
-
+#endif
 /*
  * Find out any pending ops on the render target
  */
@@ -6936,8 +6937,10 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTable->vaRenderPicture                 = DdiMedia_RenderPicture;
     pVTable->vaEndPicture                    = DdiMedia_EndPicture;
     pVTable->vaSyncSurface                   = DdiMedia_SyncSurface;
+#if VA_CHECK_VERSION(1, 9, 0)
     pVTable->vaSyncSurface2                  = DdiMedia_SyncSurface2;
     pVTable->vaSyncBuffer                    = DdiMedia_SyncBuffer;
+#endif
     pVTable->vaQuerySurfaceStatus            = DdiMedia_QuerySurfaceStatus;
     pVTable->vaQuerySurfaceError             = DdiMedia_QuerySurfaceError;
     pVTable->vaQuerySurfaceAttributes        = DdiMedia_QuerySurfaceAttributes;
