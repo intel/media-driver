@@ -616,7 +616,7 @@ CodechalVdencAvcStateG12::CodechalVdencAvcStateG12(
 
     m_vdencBrcInitDmemBufferSize   = sizeof(BrcInitDmem);
     m_vdencBrcUpdateDmemBufferSize = sizeof(BrcUpdateDmem);
-    m_vdencBrcNumOfSliceOffset = CODECHAL_OFFSETOF(BrcUpdateDmem, NumOfSlice);
+    m_vdencBrcNumOfSliceOffset = MEDIA_IS_WA(m_waTable, Wa_22010554215) ? 0 : CODECHAL_OFFSETOF(BrcUpdateDmem, NumOfSlice);
 
     // One Gen12, avc vdenc ref index need to be one on one mapping
     m_oneOnOneMapping = true;
@@ -656,7 +656,7 @@ MOS_STATUS CodechalVdencAvcStateG12::InitializeState()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcState::InitializeState());
 
-    m_sliceSizeStreamoutSupported      = true;
+    m_sliceSizeStreamoutSupported = MEDIA_IS_WA(m_waTable, Wa_22010554215) ? false : true;
     m_useHwScoreboard        = false;
     m_useCommonKernel        = true;
 
@@ -1294,23 +1294,10 @@ MOS_STATUS CodechalVdencAvcStateG12::InitMmcState()
 
 void CodechalVdencAvcStateG12::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param)
 {
+    CodechalVdencAvcState::SetMfxAvcImgStateParams(param);
+
     PMHW_VDBOX_AVC_IMG_PARAMS_G12 paramsG12 = static_cast<PMHW_VDBOX_AVC_IMG_PARAMS_G12>(&param);
 
-    CodechalEncodeAvcBase::SetMfxAvcImgStateParams(param);
-    if (m_avcSeqParam->EnableSliceLevelRateCtrl)
-    {
-        param.dwMbSlcThresholdValue = m_mbSlcThresholdValue;
-        param.dwSliceThresholdTable = m_sliceThresholdTable;
-        param.dwVdencSliceMinusBytes = (m_pictureCodingType == I_TYPE) ?
-            m_vdencSliceMinusI : m_vdencSliceMinusP;
-    }
-
-    param.bVdencEnabled = true;
-    param.pVDEncModeCost = m_vdencModeCostTbl;
-    param.pVDEncHmeMvCost = m_vdencHmeMvCostTbl;
-    param.pVDEncMvCost = m_vdencMvCostTbl;
-    param.bVDEncPerfModeEnabled =
-        m_vdencInterface->IsPerfModeSupported() && m_perfModeEnabled[m_avcSeqParam->TargetUsage];
     paramsG12->bVDEncUltraModeEnabled = m_vdencUltraModeEnable;
     param.bPerMBStreamOut = m_perMBStreamOutEnable;
     if (((m_avcSeqParam->TargetUsage & 0x07) == TARGETUSAGE_BEST_SPEED) &&

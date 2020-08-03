@@ -1538,24 +1538,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG10::AddMfxEncodeAvcImgCmd(
 
     if (avcSeqParams->EnableSliceLevelRateCtrl)
     {
-        uint8_t qpY = avcPicParams->QpY;
-        if (params->dwSliceThresholdTable == NO_SLICE_THRESHOLD_TABLE) // Do not use any Slice Threshold Table
-        {
-            cmd.DW19.ThresholdSizeInBytes = (avcPicParams->SliceSizeInBytes > params->dwVdencSliceMinusBytes) ?
-                (avcPicParams->SliceSizeInBytes - params->dwVdencSliceMinusBytes) : 0;
-        }
-        else if (params->dwSliceThresholdTable == USE_SLICE_THRESHOLD_TABLE_100_PERCENT) // Use 100 Percent Slice Threshold Table
-        {
-            cmd.DW19.ThresholdSizeInBytes = avcPicParams->SliceSizeInBytes -
-                MOS_MIN(avcPicParams->SliceSizeInBytes,
-                ((avcPicParams->CodingType == I_TYPE) ? m_vdEncFrameDelta100PercentTab[qpY].IFrameDelta : m_vdEncFrameDelta100PercentTab[qpY].PFrameDelta));
-        }
-        else if (params->dwSliceThresholdTable == USE_SLICE_THRESHOLD_TABLE_90_PERCENT) // Use 90 Percent Slice Threshold Table
-        {
-            cmd.DW19.ThresholdSizeInBytes = avcPicParams->SliceSizeInBytes -
-                MOS_MIN(avcPicParams->SliceSizeInBytes,
-                ((avcPicParams->CodingType == I_TYPE) ? m_vdEncFrameDelta90PercentTab[qpY].IFrameDelta : m_vdEncFrameDelta90PercentTab[qpY].PFrameDelta));
-        }
+        cmd.DW19.ThresholdSizeInBytes = avcPicParams->SliceSizeInBytes - MOS_MIN(avcPicParams->SliceSizeInBytes, params->dwVdencSliceMinusBytes);
         cmd.DW20.TargetSliceSizeInBytes = avcPicParams->SliceSizeInBytes;
     }
 

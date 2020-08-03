@@ -204,17 +204,6 @@ enum ROWSTORE_SCRATCH_BUFFER_CACHE
     BUFFER_TO_INTERNALMEDIASTORAGE = 0x1
 };
 
-//!
-//! \enum     SLICE_THRESHOLD_TABLE_MODE
-//! \brief    Slice thershold table mode, dynamic slice tuning params
-//!
-enum SLICE_THRESHOLD_TABLE_MODE
-{
-    NO_SLICE_THRESHOLD_TABLE = 0,
-    USE_SLICE_THRESHOLD_TABLE_100_PERCENT = 1,
-    USE_SLICE_THRESHOLD_TABLE_90_PERCENT = 2
-};
-
 struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS
 {
     uint32_t                    Mode = 0;
@@ -428,7 +417,6 @@ struct MHW_VDBOX_AVC_IMG_PARAMS
     bool                                    bRollingIRestrictFracCand = false;
 
     uint32_t                                dwMbSlcThresholdValue = 0;  // For VDENC dynamic slice size control
-    uint32_t                                dwSliceThresholdTable = 0;
     uint32_t                                dwVdencSliceMinusBytes = 0;
     uint8_t                                *pVDEncModeCost = nullptr;
     uint8_t                                *pVDEncMvCost = nullptr;

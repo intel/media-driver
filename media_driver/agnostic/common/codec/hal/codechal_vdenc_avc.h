@@ -902,6 +902,9 @@ protected:
     uint8_t                                     *m_vdencMvCostTbl = nullptr;       //!< Pointer to VDEnc MV Cost Table
     uint8_t                                     *m_vdencHmeMvCostTbl = nullptr;    //!< Pointer to VDEnc HME MV Cost Table
 
+    const uint16_t                              *m_vdencSSCThrsTblI = nullptr;     //!< Pointer to VDEnc Slice size thresholds table for I picture
+    const uint16_t                              *m_vdencSSCThrsTblP = nullptr;     //!< Pointer to VDEnc Slice size thresholds table for P picture
+
     // SEI
     CodechalEncodeSeiData m_seiData;         //!< Encode SEI data parameter.
     uint32_t              m_seiDataOffset;   //!< Encode SEI data offset.
@@ -1006,8 +1009,6 @@ protected:
     static const uint8_t  BRC_UPD_slwin_global_rate_ratio_threshold[7];                    //!< Slide Window Global Rate Ratio Threshold
     static const uint8_t  BRC_UPD_start_global_adjust_mult[5];                             //!< Start Global Adjust Multiply
     static const uint8_t  BRC_UPD_start_global_adjust_div[5];                              //!< Start Global Adjust Division
-    static const uint16_t BRC_UPD_SLCSZ_UPD_THRDELTAP_100Percent_U16[42];                  //!< Slice Size Threshold Delta for P frame.
-    static const uint16_t BRC_UPD_SLCSZ_UPD_THRDELTAI_100Percent_U16[42];                  //!< Slice Size Threshold Delta for I frame.
     static const int8_t   BRC_UPD_global_rate_ratio_threshold_qp[8];                       //!< Global Rate Ratio QP Threshold
     static const uint32_t AVC_Mode_Cost[2][12][CODEC_AVC_NUM_QP];                          //!< Mode Cost Table.
     static const int8_t   BRC_UPD_GlobalRateQPAdjTabI_U8[64];                              //!< I Picture Global Rate QP Adjustment Table.
@@ -1062,6 +1063,9 @@ protected:
     static const uint32_t InterRoundingB[NUM_TARGET_USAGE_MODES];                          //!< B Picture InterRounding Table.
     static const uint32_t InterRoundingBRef[NUM_TARGET_USAGE_MODES];                       //!< B Ref Picture InterRounding Table.
     static const uint8_t  AdaptiveInterRoundingB[CODEC_AVC_NUM_QP];                        //!< B Picture Adaptive InterRounding Table.
+
+    static const uint16_t SliceSizeThrsholdsI[CODEC_AVC_NUM_QP];                           //!< I picture slice size conformance thresholds table.
+    static const uint16_t SliceSizeThrsholdsP[CODEC_AVC_NUM_QP];                           //!< P picture slice size conformance thresholds table.
 
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
@@ -1323,10 +1327,8 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
 
         for (uint8_t k = 0; k < 42; k++)
         {
-            hucVDEncBrcDmem->UPD_SLCSZ_UPD_THRDELTAI_U16[k] =
-                MOS_MIN(avcPicParams->SliceSizeInBytes - 150, BRC_UPD_SLCSZ_UPD_THRDELTAI_100Percent_U16[k]);
-            hucVDEncBrcDmem->UPD_SLCSZ_UPD_THRDELTAP_U16[k] =
-                MOS_MIN(avcPicParams->SliceSizeInBytes - 150, BRC_UPD_SLCSZ_UPD_THRDELTAP_100Percent_U16[k]);
+            hucVDEncBrcDmem->UPD_SLCSZ_UPD_THRDELTAI_U16[k] = MOS_MIN(avcPicParams->SliceSizeInBytes - 150, m_vdencSSCThrsTblI[k+10]);
+            hucVDEncBrcDmem->UPD_SLCSZ_UPD_THRDELTAP_U16[k] = MOS_MIN(avcPicParams->SliceSizeInBytes - 150, m_vdencSSCThrsTblP[k+10]);
         }
     }
     else

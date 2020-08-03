@@ -1544,11 +1544,7 @@ public:
     bool                            m_vdencBrcImgStatAllocated = false;   //!< Vdenc bitrate control image state allocated flag
 
     // VDEnc dynamic slice control params
-    uint32_t                       m_mbSlcThresholdValue = 0;    //!< MB slice threshold value
-    uint32_t                       m_sliceThresholdTable = 0;    //!< Slice threshold table
     uint32_t                       m_vdencFlushDelayCount = 0;   //!< Vdenc flush delay count
-    uint32_t                       m_vdencSliceMinusI = 0;       //!< Vdenc slice minus I
-    uint32_t                       m_vdencSliceMinusP = 0;       //!< Vdenc slice minus P
 
     HMODULE                        m_swBrcMode = nullptr;        //!< Software bitrate control mode
 

@@ -2821,78 +2821,24 @@ const uint8_t CodechalVdencAvcState::BRC_UPD_start_global_adjust_div[5] =
     {
         40, 5, 5, 3, 1};
 
-const uint16_t CodechalVdencAvcState::BRC_UPD_SLCSZ_UPD_THRDELTAP_100Percent_U16[42] =  // slice size threshold delta for P frame targeted for 99% compliance
+const uint16_t CodechalVdencAvcState::SliceSizeThrsholdsP[52] =  // slice size threshold delta for P frame targeted for 99% compliance
     {
-        1400, 1400, 1400, 1400, 1400, 1400, 1400, 1250, 1100, 950,  //[10-19]
-        850,
-        750,
-        650,
-        600,
-        550,
-        525,
-        500,
-        450,
-        400,
-        390,  //[20-29]
-        380,
-        300,
-        300,
-        300,
-        250,
-        200,
-        175,
-        150,
-        150,
-        150,  //[30-39]
-        150,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,  //[40-49]
-        100,
-        100  //[50-51]
+        1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400,  //[ 0- 9]
+        1400, 1400, 1400, 1400, 1400, 1400, 1400, 1250, 1100,  950,  //[10-19]
+        850,   750,  650,  600,  550,  525,  500,  450,  400,  390,  //[20-29]
+        380,   300,  300,  300,  250,  200,  175,  150,  150,  150,  //[30-39]
+        150,   100,  100,  100,  100,  100,  100,  100,  100,  100,  //[40-49]
+        100,   100  //[50-51]
 };
 
-const uint16_t CodechalVdencAvcState::BRC_UPD_SLCSZ_UPD_THRDELTAI_100Percent_U16[42] =  // slice size threshold delta for I frame targeted for 99% compliance
+const uint16_t CodechalVdencAvcState::SliceSizeThrsholdsI[52] =  // slice size threshold delta for I frame targeted for 99% compliance
     {
+        1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400,  //[ 0- 9]
         1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400, 1400, 1350,  //[10-19]
-        1300,
-        1300,
-        1200,
-        1155,
-        1120,
-        1075,
-        1000,
-        975,
-        950,
-        800,  //[20-29]
-        750,
-        650,
-        600,
-        550,
-        500,
-        450,
-        400,
-        350,
-        300,
-        300,  //[30-39]
-        300,
-        250,
-        200,
-        200,
-        200,
-        200,
-        200,
-        200,
-        200,
-        200,  //[40-49]
-        200,
-        200  //[50-51]
+        1300, 1300, 1200, 1155, 1120, 1075, 1000,  975,  950,  800,  //[20-29]
+        750,   650,  600,  550,  500,  450,  400,  350,  300,  300,  //[30-39]
+        300,   250,  200,  200,  200,  200,  200,  200,  200,  200,  //[40-49]
+        200,   200  //[50-51]
 };
 
 const int8_t CodechalVdencAvcState::BRC_UPD_global_rate_ratio_threshold_qp[8] =
@@ -3541,6 +3487,9 @@ void CodechalVdencAvcState::InitializeDataMember()
     m_vdencStaticFrame             = false;
     m_vdencStaticRegionPct         = false;
     m_perMBStreamOutEnable         = false;
+
+    m_vdencSSCThrsTblI             = SliceSizeThrsholdsI;
+    m_vdencSSCThrsTblP             = SliceSizeThrsholdsP;
 }
 
 MOS_STATUS CodechalVdencAvcState::InitializeState()
@@ -3639,26 +3588,6 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
     m_skipBiasAdjustmentSupported = (userFeatureData.i32Data) ? true : false;
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = CODECHAL_VDENC_AVC_MB_SLICE_TRHESHOLD;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_VDENC_MB_SLICE_THRESHOLD_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_mbSlcThresholdValue = (userFeatureData.i32Data);
-
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = USE_SLICE_THRESHOLD_TABLE_100_PERCENT;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_VDENC_SLICE_THRESHOLD_TABLE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_sliceThresholdTable = (userFeatureData.i32Data);
-
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.i32Data     = MHW_VDBOX_VDENC_DYNAMIC_SLICE_WA_COUNT;
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     MOS_UserFeature_ReadValue_ID(
@@ -3667,25 +3596,6 @@ MOS_STATUS CodechalVdencAvcState::InitializeState()
         &userFeatureData,
         m_osInterface->pOsContext);
     m_vdencFlushDelayCount = (userFeatureData.i32Data);
-
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data     = AVC_I_SLICE_SIZE_MINUS;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_VDENC_THRESHOLD_I_SLICE_SIZE_MINUS_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_vdencSliceMinusI = (userFeatureData.i32Data);
-
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    userFeatureData.i32Data = AVC_P_SLICE_SIZE_MINUS;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_VDENC_THRESHOLD_P_SLICE_SIZE_MINUS_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_vdencSliceMinusP = (userFeatureData.i32Data);
 
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -4496,7 +4406,9 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
 
         if (m_avcSeqParam->EnableSliceLevelRateCtrl)
         {
-            imageStateParams->dwMbSlcThresholdValue = m_mbSlcThresholdValue;
+            uint8_t qpY = m_avcPicParam->QpY;
+            imageStateParams->dwMbSlcThresholdValue = CODECHAL_VDENC_AVC_MB_SLICE_TRHESHOLD;
+            imageStateParams->dwVdencSliceMinusBytes = (m_pictureCodingType == I_TYPE) ? m_vdencSSCThrsTblI[qpY] : m_vdencSSCThrsTblP[qpY];
         }
 
         imageStateParams->pVDEncModeCost  = m_vdencModeCostTbl;
@@ -5012,9 +4924,9 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
 
     if (avcSeqParams->EnableSliceLevelRateCtrl)
     {
-        imageStateParams->dwMbSlcThresholdValue  = m_mbSlcThresholdValue;
-        imageStateParams->dwSliceThresholdTable  = m_sliceThresholdTable;
-        imageStateParams->dwVdencSliceMinusBytes = (m_pictureCodingType == I_TYPE) ? m_vdencSliceMinusI : m_vdencSliceMinusP;
+        uint8_t qpY = m_avcPicParam->QpY;
+        imageStateParams->dwMbSlcThresholdValue  = CODECHAL_VDENC_AVC_MB_SLICE_TRHESHOLD;
+        imageStateParams->dwVdencSliceMinusBytes = (m_pictureCodingType == I_TYPE) ? m_vdencSSCThrsTblI[qpY] : m_vdencSSCThrsTblP[qpY];
     }
 
     if (m_minMaxQpControlEnabled)
@@ -7545,9 +7457,9 @@ void CodechalVdencAvcState::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS &pa
     CodechalEncodeAvcBase::SetMfxAvcImgStateParams(param);
     if (m_avcSeqParam->EnableSliceLevelRateCtrl)
     {
-        param.dwMbSlcThresholdValue  = m_mbSlcThresholdValue;
-        param.dwSliceThresholdTable  = m_sliceThresholdTable;
-        param.dwVdencSliceMinusBytes = (m_pictureCodingType == I_TYPE) ? m_vdencSliceMinusI : m_vdencSliceMinusP;
+        uint8_t qpY = m_avcPicParam->QpY;
+        param.dwMbSlcThresholdValue = CODECHAL_VDENC_AVC_MB_SLICE_TRHESHOLD;
+        param.dwVdencSliceMinusBytes = (m_pictureCodingType == I_TYPE) ? m_vdencSSCThrsTblI[qpY] : m_vdencSSCThrsTblP[qpY];
     }
 
     if (MEDIA_IS_WA(m_waTable, WaEnableOnlyASteppingFeatures))
@@ -8044,8 +7956,6 @@ MOS_STATUS CodechalVdencAvcState::DumpFrameParFile()
         if (m_avcPar->SliceMode == 2)
         {
             oss << "SliceSizeWA = " << std::dec << +m_avcPar->SliceSizeWA << std::endl;
-            oss << "INumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
-            oss << "PNumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
         }
 
         // BRC frame update Params
@@ -8264,8 +8174,6 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
     if (m_avcPar->SliceMode == 2)
     {
         oss << "SliceSizeWA = " << std::dec << +m_avcPar->SliceSizeWA << std::endl;
-        oss << "INumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
-        oss << "PNumMbsLag = " << std::dec << +m_mbSlcThresholdValue << std::endl;
     }
 
     // BRC frame update Params
