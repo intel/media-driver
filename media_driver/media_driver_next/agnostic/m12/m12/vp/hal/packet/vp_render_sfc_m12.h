@@ -50,6 +50,9 @@ public:
     virtual MOS_STATUS SetupSfcState(
         PVP_SURFACE                     targetSurface);
 
+    virtual MOS_STATUS AddSfcLock(
+        PMOS_COMMAND_BUFFER            pCmdBuffer,
+        PMHW_SFC_LOCK_PARAMS           pSfcLockParams);
 protected:
     //!
     //! \brief    Initiazlize SFC State Parameters
@@ -57,6 +60,11 @@ protected:
     //! \return   Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS InitSfcStateParams();
+
+    virtual MOS_STATUS SetSfcStateInputOrderingModeHcp(
+        PMHW_SFC_STATE_PARAMS       sfcStateParams);
+
+    virtual MOS_STATUS SetCodecPipeMode(CODECHAL_STANDARD codecStandard);
 };
 
 }

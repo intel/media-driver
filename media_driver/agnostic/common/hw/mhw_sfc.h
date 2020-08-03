@@ -31,6 +31,8 @@
 #include "mhw_state_heap.h"
 #include "mhw_utilities.h"
 #include "mos_os.h"
+#include "codec_def_common.h"
+#include "codec_def_decode_jpeg.h"
 
 static const int   MHW_SFC_CACHELINE_SIZE    = 64;
 static const int   MHW_SFC_MIN_HEIGHT        = 128;
@@ -491,6 +493,9 @@ public:
         m_scalingMode = ScalingMode;
         return MOS_STATUS_SUCCESS;
     }
+
+    virtual MOS_STATUS GetInputFrameWidthHeightAlignUnit(uint32_t &widthAlignUnit, uint32_t &heightAlignUnit,
+        bool bVdbox, CODECHAL_STANDARD codecStandard, CodecDecodeJpegChromaType jpegChromaType);
 
 protected:
 

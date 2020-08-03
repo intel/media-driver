@@ -191,7 +191,19 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     }
 
     m_sfcCSCParams->inputColorSpcase = m_cscParams.colorSpaceInput;
-    m_sfcCSCParams->inputFormat = m_executeCaps.bDI ? Format_YUY2 : m_cscParams.formatInput;
+
+    if (m_executeCaps.bIECP)
+    {
+        // Upsampling to yuv444 for IECP input/output.
+        m_cscParams.formatInput = Format_AYUV;
+    }
+    else if (m_executeCaps.bDI && VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_420)
+    {
+        // If the input is 4:2:0, then chroma data is doubled vertically to 4:2:2
+        m_cscParams.formatInput = Format_YUY2;
+    }
+
+    m_sfcCSCParams->inputFormat = m_cscParams.formatInput;
     m_sfcCSCParams->outputFormat = m_cscParams.formatOutput;
 
     if (m_sfcCSCParams->inputColorSpcase != m_cscParams.colorSpaceOutput)
@@ -209,7 +221,7 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     }
 
     // Set Chromasting Params
-    VP_RENDER_CHK_STATUS_RETURN(SetChromaParams(m_executeCaps));
+    VP_RENDER_CHK_STATUS_RETURN(SetSfcChromaParams(m_executeCaps));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -253,38 +265,35 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpCscFilter::SetChromaParams(
+MOS_STATUS VpCscFilter::SetSfcChromaParams(
     VP_EXECUTE_CAPS         vpExecuteCaps)
 {
     VP_FUNC_CALL();
 
     VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
 
+    // Update chroma sitting according to updated input format.
+    VP_RENDER_CHK_STATUS_RETURN(UpdateSfcChromaSiting());
+
     // Setup General params
     // Set chroma subsampling type according to the Vebox output, but
     // when Vebox is bypassed, set it according to the source surface format.
-    m_sfcCSCParams->inputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_400;
-    m_sfcCSCParams->b8tapChromafiltering   = false;
 
-    if (vpExecuteCaps.bIECP)
+    if (VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
     {
-        m_sfcCSCParams->inputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_444;
-        m_sfcCSCParams->sfcSrcChromaSiting     = MHW_CHROMA_SITING_HORZ_LEFT | MHW_CHROMA_SITING_VERT_TOP;
         m_sfcCSCParams->b8tapChromafiltering = true;
-    }
-    else if (vpExecuteCaps.bDI)
-    {
-        m_sfcCSCParams->inputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_422H;
     }
     else
     {
-        VP_RENDER_CHK_STATUS_RETURN(SetSubSampling());
+        m_sfcCSCParams->b8tapChromafiltering = false;
     }
 
-    m_sfcCSCParams->chromaDownSamplingVerticalCoef = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_VERT_CENTER) ?
-        MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8;
-    m_sfcCSCParams->chromaDownSamplingHorizontalCoef = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_HORZ_CENTER) ?
-        MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 : MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8;
+    m_sfcCSCParams->chromaDownSamplingHorizontalCoef    = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_HORZ_CENTER) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 :
+                                                        ((m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_HORZ_RIGHT) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_8_OVER_8 :
+                                                        MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8);
+    m_sfcCSCParams->chromaDownSamplingVerticalCoef      = (m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_VERT_CENTER) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_4_OVER_8 :
+                                                        ((m_cscParams.chromaSitingOutput & MHW_CHROMA_SITING_VERT_BOTTOM) ? MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_8_OVER_8 :
+                                                        MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8);
 
     m_sfcCSCParams->bChromaUpSamplingEnable = IsChromaUpSamplingNeeded();
 
@@ -547,52 +556,30 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpCscFilter::SetSubSampling()
+MOS_STATUS VpCscFilter::UpdateSfcChromaSiting()
 {
     VP_FUNC_CALL();
 
     VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
 
-    if (m_sfcCSCParams->inputFormat  == Format_NV12 ||
-        (m_sfcCSCParams->inputFormat == Format_P010) ||
-        (m_sfcCSCParams->inputFormat == Format_P016))
+    switch (VpHal_GetSurfaceColorPack(m_cscParams.formatInput))
     {
-        m_sfcCSCParams->inputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_420;
-    }
-    else if (VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_422)
-    {
-        m_sfcCSCParams->inputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_422H;
-    }
-    else if (VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
-    {
-        m_sfcCSCParams->inputChromaSubSampling = MEDIASTATE_SFC_CHROMA_SUBSAMPLING_444;
-        m_sfcCSCParams->b8tapChromafiltering = true;
+    case VPHAL_COLORPACK_422:
+        m_cscParams.chromaSitingInput = (m_cscParams.chromaSitingInput & 0x7) | CHROMA_SITING_VERT_TOP;
+        break;
+    case VPHAL_COLORPACK_444:
+        m_cscParams.chromaSitingInput = CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_TOP;
+        break;
+    default:
+        if (MHW_CHROMA_SITING_NONE == m_cscParams.chromaSitingInput)
+        {
+            m_cscParams.chromaSitingInput = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
+        }
+        break;
     }
 
     m_sfcCSCParams->sfcSrcChromaSiting = m_cscParams.chromaSitingInput;
 
-    if (m_sfcCSCParams->sfcSrcChromaSiting == MHW_CHROMA_SITING_NONE)
-    {
-        m_sfcCSCParams->sfcSrcChromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
-    }
-
-    switch (VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat))
-    {
-    case VPHAL_COLORPACK_422:
-        m_sfcCSCParams->sfcSrcChromaSiting = (m_sfcCSCParams->sfcSrcChromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
-        break;
-    case VPHAL_COLORPACK_444:
-        m_sfcCSCParams->sfcSrcChromaSiting = CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_TOP;
-        break;
-    default:
-        break;
-    }
-
-    // Prevent invalid input for output surface and format
-    if (m_cscParams.chromaSitingOutput == MHW_CHROMA_SITING_NONE)
-    {
-        m_cscParams.chromaSitingOutput = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
-    }
     switch (VpHal_GetSurfaceColorPack(m_cscParams.formatOutput))
     {
     case VPHAL_COLORPACK_422:
@@ -602,6 +589,11 @@ MOS_STATUS VpCscFilter::SetSubSampling()
         m_cscParams.chromaSitingOutput = CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_TOP;
         break;
     default:
+        // Prevent invalid input for output surface and format
+        if (MHW_CHROMA_SITING_NONE == m_cscParams.chromaSitingOutput)
+        {
+            m_cscParams.chromaSitingOutput = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
+        }
         break;
     }
 

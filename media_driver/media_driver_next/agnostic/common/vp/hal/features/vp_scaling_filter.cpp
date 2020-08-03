@@ -42,7 +42,17 @@ VpScalingFilter::VpScalingFilter(
 MOS_STATUS VpScalingFilter::Init()
 {
     VP_FUNC_CALL();
+    m_bVdbox = false;
+    return MOS_STATUS_SUCCESS;
+}
 
+MOS_STATUS VpScalingFilter::Init(
+    CODECHAL_STANDARD           codecStandard,
+    CodecDecodeJpegChromaType   jpegChromaType)
+{
+    m_bVdbox            = true;
+    m_codecStandard     = codecStandard;
+    m_jpegChromaType    = jpegChromaType;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -52,22 +62,20 @@ MOS_STATUS VpScalingFilter::SfcAdjustBoundary(
 {
     VP_FUNC_CALL();
 
-    uint32_t   dwVeboxHeight;
-    uint32_t   dwVeboxWidth;
-    uint32_t   dwVeboxBottom;
-    uint32_t   dwVeboxRight;
-
     VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_sfcInterface);
     VP_PUBLIC_CHK_NULL_RETURN(pdwSurfaceWidth);
     VP_PUBLIC_CHK_NULL_RETURN(pdwSurfaceHeight);
 
-    // For the VEBOX output to SFC, the width is multiple of 16 and height
-    // is multiple of 4
-    dwVeboxHeight = m_scalingParams.dwHeightInput;
-    dwVeboxWidth  = m_scalingParams.dwWidthInput;
-    dwVeboxBottom = (uint32_t)m_scalingParams.rcMaxSrcInput.bottom;
-    dwVeboxRight  = (uint32_t)m_scalingParams.rcMaxSrcInput.right;
+    uint32_t widthAlignUnit     = m_pvpMhwInterface->m_sfcInterface->m_veWidthAlignment;
+    uint32_t heightAlignUnit    = m_pvpMhwInterface->m_sfcInterface->m_veHeightAlignment;
+    VP_PUBLIC_CHK_STATUS_RETURN(m_pvpMhwInterface->m_sfcInterface->GetInputFrameWidthHeightAlignUnit(widthAlignUnit, heightAlignUnit,
+        m_bVdbox, m_codecStandard, m_jpegChromaType));
+
+    uint32_t dwVeboxHeight = m_scalingParams.dwHeightInput;
+    uint32_t dwVeboxWidth  = m_scalingParams.dwWidthInput;
+    uint32_t dwVeboxBottom = (uint32_t)m_scalingParams.rcMaxSrcInput.bottom;
+    uint32_t dwVeboxRight  = (uint32_t)m_scalingParams.rcMaxSrcInput.right;
 
     if (m_scalingParams.bDirectionalScalar)
     {
@@ -79,10 +87,10 @@ MOS_STATUS VpScalingFilter::SfcAdjustBoundary(
 
     *pdwSurfaceHeight = MOS_ALIGN_CEIL(
         MOS_MIN(dwVeboxHeight, MOS_MAX(dwVeboxBottom, MHW_VEBOX_MIN_HEIGHT)),
-        m_pvpMhwInterface->m_sfcInterface->m_veHeightAlignment);
+        heightAlignUnit);
     *pdwSurfaceWidth = MOS_ALIGN_CEIL(
         MOS_MIN(dwVeboxWidth, MOS_MAX(dwVeboxRight, MHW_VEBOX_MIN_WIDTH)),
-        m_pvpMhwInterface->m_sfcInterface->m_veWidthAlignment);
+        widthAlignUnit);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -110,7 +118,7 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
 }
 
 MOS_STATUS VpScalingFilter::IsColorfillEnable()
-{      
+{
     m_bColorfillEnable = (m_scalingParams.pColorFillParams &&
         (!RECT1_CONTAINS_RECT2(m_scalingParams.rcDstInput, m_scalingParams.rcDstOutput))) ?
         true : false;
@@ -307,8 +315,6 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         uint16_t                    wOutputHeightAlignUnit = 1;
         uint16_t                    wInputWidthAlignUnit = 1;
         uint16_t                    wInputHeightAlignUnit = 1;
-        uint32_t                    wOutputScaledwidth = 0;
-        uint32_t                    wOutputscaleHeight = 0;
         uint32_t                    wOutputRegionWidth = 0;
         uint32_t                    wOutputRegionHeight = 0;
         float                       fScaleX = 0.0f;
@@ -330,9 +336,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         }
 
         // Set Scaling Mode
-        m_sfcScalingParams->dwAVSFilterMode = (m_scalingParams.scalingMode == VPHAL_SCALING_BILINEAR) ?
-            MEDIASTATE_SFC_AVS_FILTER_BILINEAR :
-            MEDIASTATE_SFC_AVS_FILTER_8x8;
+        m_sfcScalingParams->bBilinearScaling = (VPHAL_SCALING_BILINEAR == m_scalingParams.scalingMode);
+
         //Set input/Output boundary
         VP_RENDER_CHK_STATUS_RETURN(SfcAdjustBoundary(
             &dwSurfaceWidth,
@@ -373,13 +378,6 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         wOutputRegionWidth = MOS_ALIGN_CEIL(
             MOS_MIN((uint32_t)(m_scalingParams.rcDstInput.right - m_scalingParams.rcDstInput.left), m_scalingParams.dwWidthOutput),
             wInputWidthAlignUnit);
-
-        wOutputScaledwidth = MOS_ALIGN_FLOOR(
-            MOS_MIN((uint32_t)(m_scalingParams.rcSrcOutput.right - m_scalingParams.rcSrcOutput.left), m_scalingParams.dwWidthOutput),
-            wOutputWidthAlignUnit);
-        wOutputscaleHeight = MOS_ALIGN_FLOOR(
-            MOS_MIN((uint32_t)(m_scalingParams.rcSrcOutput.bottom - m_scalingParams.rcSrcOutput.top), m_scalingParams.dwHeightOutput),
-            wOutputHeightAlignUnit);
 
         fScaleX = (float)wOutputRegionWidth / (float)m_sfcScalingParams->dwSourceRegionWidth;
         fScaleY = (float)wOutputRegionHeight / (float)m_sfcScalingParams->dwSourceRegionHeight;
