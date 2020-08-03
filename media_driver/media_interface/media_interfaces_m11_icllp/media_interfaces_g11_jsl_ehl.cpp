@@ -49,6 +49,7 @@ RegisterHal<VphalInterfacesG11JslEhl>((uint32_t)IGFX_JASPERLAKE);
 MOS_STATUS VphalInterfacesG11JslEhl::Initialize(
     PMOS_INTERFACE  osInterface,
     PMOS_CONTEXT    osDriverContext,
+    bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
     m_vphalState = MOS_New(

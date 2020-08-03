@@ -49,6 +49,7 @@ RegisterHal<VphalInterfacesG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
 MOS_STATUS VphalInterfacesG11Icllp::Initialize(
     PMOS_INTERFACE  osInterface,
     PMOS_CONTEXT    osDriverContext,
+    bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
     m_vphalState = MOS_New(

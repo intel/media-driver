@@ -30,6 +30,12 @@
 #include "media_interfaces.h"
 #include "vphal.h"
 
+namespace vp
+{
+class VpPipeline;
+class VpPlatformInterface;
+};
+
 //!
 //! \class    VphalDevice
 //! \brief    Vphal device
@@ -39,7 +45,9 @@ class VphalDevice
 public:
     virtual ~VphalDevice() {}
 
-    VphalState* m_vphalState = nullptr; //!< VpHal State created for specific gen.
+    VphalState              *m_vphalState           = nullptr;  //!< VpHal State created for specific gen.
+    vp::VpPipeline          *m_vpPipeline           = nullptr;  //!< vp pipeline created for specific gen, which is used for sfc service.
+    vp::VpPlatformInterface *m_vpPlatformInterface  = nullptr;  //!< platform interface created for specific gen, which is used for sfc service.
 
     //!
     //! \brief    Creates the VpHal device.
@@ -64,6 +72,8 @@ public:
     //!           If an OS interface already exists, it may be passed in here for use by the VpHal device, if not, one is created.
     //! \param    [in] osDriverContext
     //!           OS context used by to initialize the MOS_INTERFACE, includes information necessary for resource management and interfacing with KMD in general
+    //! \param    [in] bInitVphalState
+    //!           true if initialize m_vphalState, otherwise, initialize m_vpPipeline and m_vpPlatformInterface.
     //! \param    [out] eStatus
     //!           MOS status, return MOS_STATUS_SUCCESS if successful, otherwise failed.
     //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
@@ -71,17 +81,14 @@ public:
     virtual MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
         PMOS_CONTEXT    osDriverContext,
+        bool            bInitVphalState,
         MOS_STATUS      *eStatus) = 0;
 
     //!
     //! \brief    Destroys all created VpHal interfaces
     //! \details  If the HAL creation fails, this is used for cleanup
     //!
-    void Destroy()
-    {
-        MOS_Delete(m_vphalState);
-        m_vphalState = nullptr;
-    }
+    void Destroy();
 };
 
 extern template class MediaInterfacesFactory<VphalDevice>;

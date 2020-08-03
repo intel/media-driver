@@ -46,6 +46,7 @@ static bool kblRegisteredVphal =
 MOS_STATUS VphalInterfacesG9Kbl::Initialize(
     PMOS_INTERFACE  osInterface,
     PMOS_CONTEXT    osDriverContext,
+    bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
     m_vphalState = MOS_New(

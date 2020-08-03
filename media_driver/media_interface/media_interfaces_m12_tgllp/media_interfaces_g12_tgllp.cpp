@@ -50,6 +50,7 @@ RegisterHal<VphalInterfacesG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
 MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     PMOS_INTERFACE  osInterface,
     PMOS_CONTEXT    osDriverContext,
+    bool            bInitVphalState,
     MOS_STATUS      *eStatus)
 {
     MOS_OS_CHK_NULL_RETURN(eStatus);
@@ -73,6 +74,19 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
         if (nullptr == vpPlatformInterface)
         {
             *eStatus = MOS_STATUS_NULL_POINTER;
+            return *eStatus;
+        }
+
+        if (!bInitVphalState)
+        {
+            m_vpPipeline = MOS_New(vp::VpPipeline, osInterface);
+            if (nullptr == m_vpPipeline)
+            {
+                MOS_Delete(vpPlatformInterface);
+                MOS_OS_CHK_NULL_RETURN(m_vpPipeline);
+            }
+            m_vpPlatformInterface = vpPlatformInterface;
+            *eStatus = MOS_STATUS_SUCCESS;
             return *eStatus;
         }
 

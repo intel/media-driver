@@ -130,7 +130,7 @@ VphalState* VphalDevice::CreateFactory(
         return nullptr;
     }
 
-    if (vphalDevice->Initialize(osInterface, osDriverContext, eStatus) != MOS_STATUS_SUCCESS)
+    if (vphalDevice->Initialize(osInterface, osDriverContext, true, eStatus) != MOS_STATUS_SUCCESS)
     {
         VPHAL_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
 
@@ -154,6 +154,13 @@ VphalState* VphalDevice::CreateFactory(
     MOS_Delete(vphalDevice);
 
     return vphalState;
+}
+
+void VphalDevice::Destroy()
+{
+    MOS_Delete(m_vphalState);
+    MOS_Delete(m_vpPipeline);
+    MOS_Delete(m_vpPlatformInterface);
 }
 
 MhwInterfaces* MhwInterfaces::CreateFactory(

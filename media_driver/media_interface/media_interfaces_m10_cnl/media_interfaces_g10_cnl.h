@@ -259,6 +259,7 @@ public:
     MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
         PMOS_CONTEXT    osDriverContext,
+        bool            bInitVphalState,
         MOS_STATUS      *eStatus);
 };
 
