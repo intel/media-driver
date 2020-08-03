@@ -36,6 +36,8 @@
 #include "mhw_vdbox_vdenc_hwcmd_g10_X.h"
 #endif
 
+namespace {
+
 struct KernelHeader {
     int m_kernelCount;
     // Quality mode for Frame/Field
@@ -218,6 +220,8 @@ struct BrcUpdateDmem
     uint8_t     RSVD2[36];
 };
 using PBrcUpdateDmem = struct BrcUpdateDmem*;
+
+} // End anonymous namespace
 
 const uint32_t CodechalVdencAvcStateG10::m_mvCostSkipBiasQPel[3][8] =
 {

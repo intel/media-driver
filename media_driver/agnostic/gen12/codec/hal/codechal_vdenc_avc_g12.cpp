@@ -45,6 +45,8 @@
 #endif
 #include "hal_oca_interface.h"
 
+namespace {
+
 enum SfdBindingTableOffset
 {
     sfdVdencInputImageState = 0,
@@ -54,6 +56,8 @@ enum SfdBindingTableOffset
     sfdVdencOutputImageState = 4,
     sfdNumSurfaces = 5
 };
+
+}
 
 // clang-format off
 // CURBE for Static Frame Detection kernel
@@ -307,6 +311,8 @@ class CodechalVdencAvcStateG12::SfdCurbe
 };
 // clang-format on
 
+namespace {
+
 struct BrcInitDmem
 {
     uint8_t     BRCFunc_U8;                           // 0: Init; 2: Reset
@@ -454,6 +460,8 @@ struct BrcUpdateDmem
     uint8_t      RSVD2[15];
 };
 using PBrcUpdateDmem = struct BrcUpdateDmem*;
+
+} // End anonymous namespace
 
 // clang-format off
 const uint32_t CodechalVdencAvcStateG12::m_mvCostSkipBiasQPel[3][8] =

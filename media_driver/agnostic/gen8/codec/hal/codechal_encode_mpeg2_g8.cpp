@@ -27,6 +27,8 @@
 #include "codechal_encode_mpeg2_g8.h"
 #include "igcodeckrn_g8.h"
 
+namespace {
+
 struct KernelHeader
 {
     uint32_t m_kernelCount;
@@ -50,6 +52,8 @@ struct KernelHeader
     // BRCBlockCopy
     CODECHAL_KERNEL_HEADER m_mpeg2BrcBlockCopy;
 };
+
+} // End anonymous namespace
 
 enum BindingTableOffsetMeG8
 {

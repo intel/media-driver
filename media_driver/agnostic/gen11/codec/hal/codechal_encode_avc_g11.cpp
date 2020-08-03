@@ -40,33 +40,35 @@
 #include "mos_util_user_interface.h"
 #endif
 
-static const uint32_t sfdOutputBufferSizeCommon = 128;
-static const uint32_t sfdCostTableBufferSizeCommon = 52;
-static const uint32_t seiBufferSIZE = 10240; // 10K is just = estimation;
-static const uint32_t refThreshold = 400;
-static const uint32_t brcConstantsurfaceEarlySkipTableSize = 128;
-static const uint32_t brcConstantsurfaceModeMvCostSize = 1664;
-static const uint32_t brcConstantsurfaceRefcostSize = 128;
-static const uint32_t brcConstantsurfaceQpList0 = 32;
-static const uint32_t brcConstantsurfaceQpList0Reserved = 32;
-static const uint32_t brcConstantsurfaceQpList1 = 32;
-static const uint32_t brcConstantsurfaceQpList1Reserved = 160;
-static const uint32_t brcConstantsurfaceIntracostScalingFactor = 64;
-static const uint32_t brcHistoryBufferSize = 880;
-static const uint32_t brcConstantsurfaceWidth = 64;
-static const uint32_t brcConstantsurfaceHeight = 53;
-static const uint32_t brcConstantsurfaceLambdaSize = 512;;
-static const uint32_t brcConstantsurfaceFtq25Size = 64;
-static const uint32_t defaultTrellisQuantIntraRounding = 5;
-static const uint32_t maxLambda = 0xEFFF;
-static const uint32_t mbencCurbeSizeInDword = 89;
-static const uint32_t mbencNumTargetUsages = 3;
-static const uint32_t mbencBrcBufferSize = 128;
-static const uint32_t mbTextureThreshold = 1024;
-static const uint32_t adaptiveTxDecisionThreshold = 128;
-static const uint32_t brcHistoryBufferOffsetSceneChanged = 0x2FC;
+namespace {
 
-static const uint32_t trellisQuantizationRounding[NUM_TARGET_USAGE_MODES] =
+const uint32_t sfdOutputBufferSizeCommon = 128;
+const uint32_t sfdCostTableBufferSizeCommon = 52;
+const uint32_t seiBufferSIZE = 10240; // 10K is just = estimation;
+const uint32_t refThreshold = 400;
+const uint32_t brcConstantsurfaceEarlySkipTableSize = 128;
+const uint32_t brcConstantsurfaceModeMvCostSize = 1664;
+const uint32_t brcConstantsurfaceRefcostSize = 128;
+const uint32_t brcConstantsurfaceQpList0 = 32;
+const uint32_t brcConstantsurfaceQpList0Reserved = 32;
+const uint32_t brcConstantsurfaceQpList1 = 32;
+const uint32_t brcConstantsurfaceQpList1Reserved = 160;
+const uint32_t brcConstantsurfaceIntracostScalingFactor = 64;
+const uint32_t brcHistoryBufferSize = 880;
+const uint32_t brcConstantsurfaceWidth = 64;
+const uint32_t brcConstantsurfaceHeight = 53;
+const uint32_t brcConstantsurfaceLambdaSize = 512;;
+const uint32_t brcConstantsurfaceFtq25Size = 64;
+const uint32_t defaultTrellisQuantIntraRounding = 5;
+const uint32_t maxLambda = 0xEFFF;
+const uint32_t mbencCurbeSizeInDword = 89;
+const uint32_t mbencNumTargetUsages = 3;
+const uint32_t mbencBrcBufferSize = 128;
+const uint32_t mbTextureThreshold = 1024;
+const uint32_t adaptiveTxDecisionThreshold = 128;
+const uint32_t brcHistoryBufferOffsetSceneChanged = 0x2FC;
+
+const uint32_t trellisQuantizationRounding[NUM_TARGET_USAGE_MODES] =
 {
     0, 3, 0, 0, 0, 0, 0, 0
 };
@@ -3741,6 +3743,8 @@ public:
     // SW scoreboard initialization kernel
     CODECHAL_KERNEL_HEADER m_avcInitSwScoreboard;
 };
+
+} // End anonymous namespace
 
 // QP is from 0 - 51, pad it to 64 since BRC needs array size to be 64 bytes
 const uint8_t CodechalEncodeAvcEncG11::m_QPAdjustmentDistThresholdMaxFrameThresholdIPB[576] =

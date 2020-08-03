@@ -34,6 +34,8 @@
 #include "mos_util_user_interface.h"
 #include "codeckrnheader.h"
 
+namespace {
+
 struct KernelHeader
 {
     uint32_t m_kernelCount;
@@ -47,6 +49,8 @@ struct KernelHeader
     CODECHAL_KERNEL_HEADER m_mpeg2FrameEncUpdate;
     CODECHAL_KERNEL_HEADER m_mpeg2BrcResetFrame;
 };
+
+} // End anonymous namespace
 
 enum BindingTableOffsetMbEncG11
 {
