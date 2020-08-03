@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010-2019, Intel Corporation
+* Copyright (c) 2010-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -913,10 +913,11 @@ MOS_STATUS Vphal_HdrSetupComputeWalker(
     VPHAL_RENDER_CHK_NULL(pHdrState->pTargetSurf[0]);
     VPHAL_RENDER_CHK_NULL(pHdrState->pSrcSurf[0]);
     VPHAL_RENDER_CHK_NULL(pRenderData);
-    VPHAL_RENDER_CHK_NULL(pRenderHal);
     VPHAL_RENDER_CHK_NULL(pWalkerParams);
 
     pRenderHal              = pHdrState->pRenderHal;
+    VPHAL_RENDER_CHK_NULL(pRenderHal);
+
     bVerticalPattern        = false;
     AlignedRect             = pHdrState->pTargetSurf[0]->rcDst;
 

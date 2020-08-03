@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010-2019, Intel Corporation
+* Copyright (c) 2010-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -218,6 +218,7 @@ typedef struct _VPHAL_HDR_STATE
 
     bool                            bFtrComputeWalker;
     bool                            bVeboxpreprocessed;                   //!< Marked as following VEBOX pre-render, with TCC/IEF preprocessed
+    bool                            bNeed3DSampler;                       //!< indicate whether 3D should neede by force considering AVS removal etc.
 
     MOS_STATUS(*pfnInitialize) (
         PVPHAL_HDR_STATE            pHdrState,

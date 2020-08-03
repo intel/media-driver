@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010-2019, Intel Corporation
+* Copyright (c) 2010-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2405,7 +2405,7 @@ MOS_STATUS VpHal_HdrSetSamplerStates_g9 (
             break;
         case VPHAL_HDR_SAMPLER_STATE_AVS_NEAREST_INDEX_G9:
         case VPHAL_HDR_SAMPLER_STATE_AVS_POLYPHASE_INDEX_G9:
-            pSamplerStateParams->bInUse        = true;
+            pSamplerStateParams->bInUse        = pHdrState->bNeed3DSampler? false: true;
             pSamplerStateParams->SamplerType   = MHW_SAMPLER_TYPE_AVS;
             pSamplerStateParams->Avs.bHdcDwEnable  = true;
             pSamplerStateParams->Avs.b8TapAdaptiveEnable = false;
