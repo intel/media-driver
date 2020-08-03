@@ -306,7 +306,6 @@ typedef struct _DDI_MEDIA_SURFACE
     uint32_t                uiMapFlag;
 
     uint32_t                uiVariantFlag;
-    int                     memType;
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
