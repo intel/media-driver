@@ -2740,8 +2740,8 @@ public:
             MHW_MI_CHK_NULL(params->pVp9EncSeqParams);
             auto vp9SeqParams = params->pVp9EncSeqParams;
 
-            cmd.DW1.FrameWidthInPixelsMinusOne = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
-            cmd.DW1.FrameHeightInPixelsMinusOne = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+            cmd.DW1.FrameWidthInPixelsMinusOne = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+            cmd.DW1.FrameHeightInPixelsMinusOne = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
 
             cmd.DW2.Value = (cmd.DW2.Value & 0x8ff00000) | 0x5aff3;
             cmd.DW5.Value = (cmd.DW5.Value & 0xf000300) | 0x80ac00;

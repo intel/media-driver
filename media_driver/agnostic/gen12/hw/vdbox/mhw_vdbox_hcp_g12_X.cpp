@@ -3702,8 +3702,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateEncCmd(
     auto vp9RefList = params->ppVp9RefList;
     auto vp9SeqParams = params->pVp9SeqParams;
 
-    cmd.DW1.FrameWidthInPixelsMinus1    = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
-    cmd.DW1.FrameHeightInPixelsMinus1   = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameWidthInPixelsMinus1    = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameHeightInPixelsMinus1   = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
 
     cmd.DW2.FrameType                   = vp9PicParams->PicFlags.fields.frame_type;
     cmd.DW2.AdaptProbabilitiesFlag      = !vp9PicParams->PicFlags.fields.error_resilient_mode && !vp9PicParams->PicFlags.fields.frame_parallel_decoding_mode;
@@ -3711,8 +3711,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateEncCmd(
     cmd.DW2.AllowHiPrecisionMv          = vp9PicParams->PicFlags.fields.allow_high_precision_mv;
     cmd.DW2.McompFilterType             = vp9PicParams->PicFlags.fields.mcomp_filter_type;
 
-    cmd.DW2.RefFrameSignBias02          = vp9PicParams->RefFlags.fields.LastRefSignBias | 
-                                          (vp9PicParams->RefFlags.fields.GoldenRefSignBias << 1) | 
+    cmd.DW2.RefFrameSignBias02          = vp9PicParams->RefFlags.fields.LastRefSignBias |
+                                          (vp9PicParams->RefFlags.fields.GoldenRefSignBias << 1) |
                                           (vp9PicParams->RefFlags.fields.AltRefSignBias << 2);
 
     cmd.DW2.HybridPredictionMode        = vp9PicParams->PicFlags.fields.comp_prediction_mode == 2;

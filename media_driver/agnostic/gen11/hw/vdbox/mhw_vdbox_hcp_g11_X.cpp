@@ -3280,8 +3280,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpVp9PicStateEncCmd(
     auto vp9RefList = params->ppVp9RefList;
     auto vp9SeqParams = params->pVp9SeqParams;
 
-    cmd.DW1.FrameWidthInPixelsMinus1    = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
-    cmd.DW1.FrameHeightInPixelsMinus1   = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameWidthInPixelsMinus1    = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameHeightInPixelsMinus1   = MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
 
     cmd.DW2.FrameType                   = vp9PicParams->PicFlags.fields.frame_type;
     cmd.DW2.AdaptProbabilitiesFlag      = !vp9PicParams->PicFlags.fields.error_resilient_mode && !vp9PicParams->PicFlags.fields.frame_parallel_decoding_mode;

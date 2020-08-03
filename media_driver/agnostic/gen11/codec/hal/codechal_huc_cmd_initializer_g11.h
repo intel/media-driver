@@ -88,8 +88,8 @@ struct HucInputCmd1G11
     uint32_t Intra32X32ModeMask;
 
     // VP9
-    uint16_t SrcFrameWidthMinus1;
-    uint16_t SrcFrameHeightMinus1;
+    uint16_t SrcFrameWidth;
+    uint16_t SrcFrameHeight;
 
     uint8_t  SegmentationEnabled;
     uint8_t  PrevFrameSegEnabled;
