@@ -36,15 +36,20 @@
 namespace vp {
 
 SfcRenderBase::SfcRenderBase(
-    PMOS_INTERFACE osInterface,
-    PMHW_SFC_INTERFACE sfcInterface,
+    VP_MHWINTERFACE &vpMhwinterface,
     PVpAllocator &allocator):
     m_allocator(allocator)
 {
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(osInterface);
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(sfcInterface);
-    m_osInterface = osInterface;
-    m_sfcInterface = sfcInterface;
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_osInterface);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_sfcInterface);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_mhwMiInterface);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_skuTable);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_waTable);
+    m_osInterface   = vpMhwinterface.m_osInterface;
+    m_sfcInterface  = vpMhwinterface.m_sfcInterface;
+    m_miInterface   = vpMhwinterface.m_mhwMiInterface;
+    m_skuTable      = vpMhwinterface.m_skuTable;
+    m_waTable       = vpMhwinterface.m_waTable;
 
     // Allocate AVS state
     InitAVSParams(
@@ -63,6 +68,11 @@ SfcRenderBase::~SfcRenderBase()
     }
 
     FreeResources();
+
+    if (m_iefObj)
+    {
+        MOS_Delete(m_iefObj);
+    }
 }
 
 MOS_STATUS SfcRenderBase::Init()

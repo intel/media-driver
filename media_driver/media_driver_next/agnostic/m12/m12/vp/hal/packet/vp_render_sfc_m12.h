@@ -37,7 +37,7 @@ namespace vp {
 class SfcRenderM12 : public SfcRenderBase
 {
 public:
-    SfcRenderM12(PMOS_INTERFACE osInterface, PMHW_SFC_INTERFACE sfcInterface, PVpAllocator &allocator);
+    SfcRenderM12(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator);
     virtual     ~SfcRenderM12();
 
     //!

@@ -27,6 +27,8 @@
 #include "vp_feature_manager_m12_0.h"
 #include "vp_platform_interface_g12_tgllp.h"
 #include "vp_vebox_cmd_packet_g12.h"
+#include "vp_render_sfc_m12.h"
+#include "vp_render_ief.h"
 
 using namespace vp;
 
@@ -62,4 +64,31 @@ VpCmdPacket *VpPlatformInterfaceG12Tgllp::CreateVeboxPacket(MediaTask * task, _V
 VpCmdPacket *VpPlatformInterfaceG12Tgllp::CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc)
 {
     return nullptr;
+}
+
+MOS_STATUS VpPlatformInterfaceG12Tgllp::CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(allocator);
+
+    sfcRender = MOS_New(SfcRenderM12,
+            vpMhwinterface,
+            allocator);
+    VP_PUBLIC_CHK_NULL_RETURN(sfcRender);
+
+    VpIef *iefObj = MOS_New(VpIef);
+
+    if (nullptr == iefObj)
+    {
+        MOS_Delete(sfcRender);
+        VP_PUBLIC_CHK_NULL_RETURN(iefObj);
+    }
+
+    MOS_STATUS status = sfcRender->SetIefObj(iefObj);
+    if (MOS_FAILED(status))
+    {
+        MOS_Delete(sfcRender);
+        VP_PUBLIC_CHK_STATUS_RETURN(status);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }

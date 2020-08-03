@@ -34,10 +34,9 @@
 using namespace vp;
 
 SfcRenderM12::SfcRenderM12(
-    PMOS_INTERFACE osInterface,
-    PMHW_SFC_INTERFACE sfcInterface,
+    VP_MHWINTERFACE &vpMhwinterface,
     PVpAllocator &allocator):
-    SfcRenderBase(osInterface, sfcInterface, allocator)
+    SfcRenderBase(vpMhwinterface, allocator)
 {
 }
 

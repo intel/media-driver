@@ -42,7 +42,7 @@ class SfcRenderBase
 {
 
 public:
-    SfcRenderBase(PMOS_INTERFACE osInterface, PMHW_SFC_INTERFACE sfcInterface, PVpAllocator &allocator);
+    SfcRenderBase(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator);
     virtual ~SfcRenderBase();
 
     //!
@@ -300,6 +300,9 @@ protected:
     // HW intface to access MHW
     PMOS_INTERFACE                  m_osInterface  = nullptr;
     PMHW_SFC_INTERFACE              m_sfcInterface = nullptr;
+    PMHW_MI_INTERFACE               m_miInterface = nullptr;
+    MEDIA_FEATURE_TABLE             *m_skuTable = nullptr;
+    MEDIA_WA_TABLE                  *m_waTable = nullptr;
 
     // AVS related params
     MHW_AVS_PARAMS                  m_AvsParameters = {};                     //!< AVS parameters
@@ -324,7 +327,7 @@ protected:
     VPHAL_SURFACE                   m_SFDLineBufferSurface = {};                //!< SFD Line Buffer Surface for SFC
 
     // Allocator interface
-    PVpAllocator                    &m_allocator;                               //!< vp pipeline allocator
+    PVpAllocator                    m_allocator = nullptr;                                //!< vp pipeline allocator
     VpIef                           *m_iefObj = nullptr;
 };
 

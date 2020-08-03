@@ -31,6 +31,8 @@
 #include "hal_oca_interface.h"
 #include "vp_render_sfc_m12.h"
 #include "vp_render_ief.h"
+#include "vp_feature_caps.h"
+#include "vp_platform_interface.h"
 
 namespace vp {
 
@@ -261,16 +263,6 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcMmcParams()
                                                         IsFormatMMCSupported(m_renderTarget->osSurface->Format),
                                                         m_mmc->IsMmcEnabled()));
 
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpVeboxCmdPacket::CreateIefObj()
-{
-    if (nullptr == m_iefObj)
-    {
-        m_iefObj = MOS_New(VpIef);
-        VP_PUBLIC_CHK_NULL_RETURN(m_iefObj);
-    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -949,7 +941,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     bool                                    bDiVarianceEnable;
     const MHW_VEBOX_HEAP                    *pVeboxHeap = nullptr;
     VpVeboxRenderData                       *pRenderData = GetLastExecRenderData();
-    MediaPerfProfiler                       *pPerfProfiler;
+    MediaPerfProfiler                       *pPerfProfiler = nullptr;
     MOS_CONTEXT                             *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS                   pMmioRegisters = nullptr;
 
@@ -959,6 +951,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_veboxInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_osInterface->pOsContext);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface->GetMmioRegisters());
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     pRenderHal              = m_hwInterface->m_renderHal;
     pMhwMiInterface         = m_hwInterface->m_mhwMiInterface;
@@ -1222,11 +1215,17 @@ bool VpVeboxCmdPacket::RndrCommonIsMiBBEndNeeded(
 
 MOS_STATUS VpVeboxCmdPacket::InitSfcRender()
 {
-    VP_RENDER_CHK_STATUS_RETURN(CreateSfcRender());
-    VP_RENDER_CHK_NULL_RETURN(m_sfcRender);
-    VP_RENDER_CHK_STATUS_RETURN(CreateIefObj());
-    VP_RENDER_CHK_NULL_RETURN(m_iefObj);
-    VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetIefObj(m_iefObj));
+    if (nullptr == m_sfcRender)
+    {
+        VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+        VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_vpPlatformInterface);
+        VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_vpPlatformInterface->CreateSfcRender(
+            m_sfcRender,
+            *m_hwInterface,
+            m_allocator));
+        VP_RENDER_CHK_NULL_RETURN(m_sfcRender);
+    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->Init());
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1389,7 +1388,6 @@ VpVeboxCmdPacket::VpVeboxCmdPacket(
 VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
 {
     MOS_Delete(m_sfcRender);
-    MOS_Delete(m_iefObj);
     MOS_Delete(m_lastExecRenderData);
     MOS_Delete(m_surfMemCacheCtl);
 

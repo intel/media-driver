@@ -552,18 +552,4 @@ MOS_STATUS VpVeboxCmdPacketG12::QueryStatLayout(
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacketG12::CreateSfcRender()
-{
-    if (m_sfcRender == nullptr)
-    {
-        m_sfcRender = MOS_New(SfcRenderM12,
-            m_hwInterface->m_osInterface,
-            m_hwInterface->m_sfcInterface,
-            m_allocator);
-        VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
-    }
-    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->Init());
-
-    return MOS_STATUS_SUCCESS;
-}
 }

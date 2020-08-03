@@ -29,6 +29,8 @@
 
 namespace vp
 {
+class VPFeatureManager;
+class SfcRenderBase;
 
 class VpPlatformInterface
 {
@@ -63,7 +65,10 @@ public:
     {
         return nullptr;
     }
-
+    virtual MOS_STATUS CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
 };
