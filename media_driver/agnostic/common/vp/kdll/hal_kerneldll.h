@@ -87,7 +87,7 @@ extern "C" {
 #endif // __cplusplus
 
 typedef enum _MOS_FORMAT            Kdll_Format;
-typedef enum _VPHAL_CSPACE          Kdll_CSpace;
+typedef enum _MEDIA_CSPACE          Kdll_CSpace;
 
 // Layer definition
 typedef enum _KDLL_LAYER

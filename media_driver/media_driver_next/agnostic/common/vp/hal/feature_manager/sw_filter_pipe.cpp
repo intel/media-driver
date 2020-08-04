@@ -163,6 +163,11 @@ bool SwFilterFeatureHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool i
     return true;
 }
 
+bool SwFilterFeatureHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS &params)
+{
+    return false;
+}
+
 MOS_STATUS SwFilterFeatureHandler::CreateSwFilter(SwFilter *&swFilter, VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     swFilter = nullptr;
@@ -174,6 +179,25 @@ MOS_STATUS SwFilterFeatureHandler::CreateSwFilter(SwFilter *&swFilter, VP_PIPELI
     swFilter = m_vpInterface.GetSwFilterFactory().Create(m_type);
     VP_PUBLIC_CHK_NULL_RETURN(swFilter);
     MOS_STATUS status = swFilter->Configure(params, isInputSurf, surfIndex);
+    if (MOS_FAILED(status))
+    {
+        m_vpInterface.GetSwFilterFactory().Destory(swFilter);
+        VP_PUBLIC_CHK_STATUS_RETURN(status);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterFeatureHandler::CreateSwFilter(SwFilter *&swFilter, VEBOX_SFC_PARAMS &params)
+{
+    swFilter = nullptr;
+    if (!IsFeatureEnabled(params))
+    {
+        // nullptr == swFilter means no such feature in params, which is also the valid case.
+        return MOS_STATUS_SUCCESS;
+    }
+    swFilter = m_vpInterface.GetSwFilterFactory().Create(m_type);
+    VP_PUBLIC_CHK_NULL_RETURN(swFilter);
+    MOS_STATUS status = swFilter->Configure(params);
     if (MOS_FAILED(status))
     {
         m_vpInterface.GetSwFilterFactory().Destory(swFilter);
@@ -209,6 +233,11 @@ bool SwFilterCscHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
     return false;
 }
 
+bool SwFilterCscHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS &params)
+{
+    return true;
+}
+
 /****************************************************************************************************/
 /*                                      SwFilterRotMirHandler                                       */
 /****************************************************************************************************/
@@ -233,6 +262,11 @@ bool SwFilterRotMirHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool is
     return false;
 }
 
+bool SwFilterRotMirHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS &params)
+{
+    return true;
+}
+
 /****************************************************************************************************/
 /*                                      SwFilterScalingHandler                                      */
 /****************************************************************************************************/
@@ -255,6 +289,11 @@ bool SwFilterScalingHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool i
         return true;
     }
     return false;
+}
+
+bool SwFilterScalingHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS &params)
+{
+    return true;
 }
 
 /****************************************************************************************************/
@@ -385,6 +424,82 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
     UpdateSwFilterPipeType();
 
     MOS_STATUS status = ConfigFeatures(params, featureRule);
+    if (MOS_FAILED(status))
+    {
+        Clean();
+        return status;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterPipe::Initialize(VEBOX_SFC_PARAMS &params)
+{
+    RegisterFeatures();
+
+    Clean();
+
+    // Initialize input surface.
+    {
+        if (nullptr == params.input.surface)
+        {
+            Clean();
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        VP_SURFACE *input = m_vpInterface.GetAllocator().AllocateVpSurface(*params.input.surface, params.input.colorSpace,
+                                                                        params.input.chromaSiting, params.input.rcSrc,
+                                                                        params.output.rcDst, SURF_IN_PRIMARY);
+        if (nullptr == input)
+        {
+            Clean();
+            return MOS_STATUS_NULL_POINTER;
+        }
+        m_InputSurfaces.push_back(input);
+        // Keep m_PreviousSurface same size as m_InputSurfaces.
+        m_PreviousSurface.push_back(nullptr);
+
+        // Initialize m_InputPipes.
+        SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
+        if (nullptr == pipe)
+        {
+            Clean();
+            return MOS_STATUS_NULL_POINTER;
+        }
+        m_InputPipes.push_back(pipe);
+    }
+
+    // Initialize output surface.
+    {
+        if (nullptr == params.output.surface)
+        {
+            Clean();
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        RECT recOutput = {0, 0, (int32_t)params.output.surface->dwWidth, (int32_t)params.output.surface->dwHeight};
+        VP_SURFACE *output = m_vpInterface.GetAllocator().AllocateVpSurface(*params.output.surface, params.output.colorSpace,
+                                                                        params.output.chromaSiting, recOutput,
+                                                                        recOutput, SURF_OUT_RENDERTARGET);
+        if (nullptr == output)
+        {
+            Clean();
+            return MOS_STATUS_NULL_POINTER;
+        }
+        m_OutputSurfaces.push_back(output);
+
+        // Initialize m_OutputPipes.
+        SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
+        if (nullptr == pipe)
+        {
+            Clean();
+            return MOS_STATUS_NULL_POINTER;
+        }
+        m_OutputPipes.push_back(pipe);
+    }
+
+    UpdateSwFilterPipeType();
+
+    MOS_STATUS status = ConfigFeatures(params);
     if (MOS_FAILED(status))
     {
         Clean();
@@ -577,6 +692,28 @@ MOS_STATUS SwFilterPipe::ConfigFeatures(VP_PIPELINE_PARAMS &params, FeatureRule 
 
     // Return the status for the failure one.
     return MOS_STATUS_SUCCESS == status1 ? status2 : status1;
+}
+
+MOS_STATUS SwFilterPipe::ConfigFeatures(VEBOX_SFC_PARAMS &params)
+{
+    std::vector<SwFilterSubPipe *>  &pipes = m_InputPipes;
+
+    SwFilter *swFilter = nullptr;
+    // Loop all input surfaces.
+    for (uint32_t pipeIndex = 0; pipeIndex < pipes.size(); ++pipeIndex)
+    {
+        // Process remaining unordered features
+        for (auto &handler : m_featureHandler)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(handler.second->CreateSwFilter(swFilter, params));
+            if (swFilter)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(AddSwFilterUnordered(swFilter, true, 0));
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterPipe::UpdateFeatures(bool isInputPipe, uint32_t pipeIndex)

@@ -273,6 +273,46 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VP_SURFACE &vpSurfSrc)
     return surf;
 }
 
+// Allocate vp surface from osSurf. Reuse the resource in osSurf.
+VP_SURFACE *VpAllocator::AllocateVpSurface(MOS_SURFACE &osSurf,
+    VPHAL_CSPACE colorSpace, uint32_t chromaSiting, RECT rcSrc, RECT rcDst, VPHAL_SURFACE_TYPE SurfType)
+{
+    if (Mos_ResourceIsNull(&osSurf.OsResource))
+    {
+        return nullptr;
+    }
+
+    VP_SURFACE *surf = MOS_New(VP_SURFACE);
+
+    if (nullptr == surf)
+    {
+        return nullptr;
+    }
+
+    MOS_SURFACE *osSurface = MOS_New(MOS_SURFACE);
+
+    if (nullptr == osSurface)
+    {
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    *osSurface = osSurf;
+
+    MOS_ZeroMemory(surf, sizeof(VP_SURFACE));
+    surf->osSurface         = osSurface;
+    surf->isResourceOwner   = false;
+    surf->ColorSpace        = colorSpace;               //!< Color Space
+    surf->ChromaSiting      = chromaSiting;             //!< ChromaSiting
+    surf->rcSrc             = rcSrc;                    //!< Source rectangle
+    surf->rcDst             = rcDst;                    //!< Destination rectangle
+    surf->rcMaxSrc          = rcSrc;                    //!< Max source rectangle
+    surf->SurfType          = SurfType;                 //!< Surface type (context). Not in use for internal surface
+    surf->SampleType        = SAMPLE_PROGRESSIVE;       //!<  Interlaced/Progressive sample type.
+
+    return surf;
+}
+
 // Allocate empty vp surface.
 VP_SURFACE *VpAllocator::AllocateVpSurface()
 {

@@ -124,6 +124,18 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE pSurfInput, VP_EXECUTE_CAPS caps)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)
+{
+    m_Params.colorSpaceInput    = params.input.colorSpace;
+    m_Params.colorSpaceOutput   = params.output.colorSpace;
+    m_Params.pIEFParams         = nullptr;
+    m_Params.formatInput        = params.input.surface->Format;
+    m_Params.formatOutput       = params.output.surface->Format;
+    m_Params.chromaSitingInput  = params.input.chromaSiting;
+    m_Params.chromaSitingOutput = params.output.chromaSiting;
+    m_Params.pAlphaParams       = nullptr;
+    return MOS_STATUS_SUCCESS;
+}
 
 FeatureParamCsc &SwFilterCsc::GetSwFilterParams()
 {
@@ -239,6 +251,50 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
+{
+    m_Params.scalingMode            = VPHAL_SCALING_AVS;
+    m_Params.scalingPreference      = VPHAL_SCALING_PREFER_SFC;
+    m_Params.bDirectionalScalar     = false;
+    m_Params.formatInput            = params.input.surface->Format;
+    m_Params.rcSrcInput             = params.input.rcSrc;
+    m_Params.rcMaxSrcInput          = params.input.rcSrc;
+    m_Params.dwWidthInput           = params.input.surface->dwWidth;
+    m_Params.dwHeightInput          = params.input.surface->dwHeight;
+    m_Params.formatOutput           = params.output.surface->Format;
+    m_Params.colorSpaceOutput       = params.output.colorSpace;
+    m_Params.pColorFillParams       = nullptr;
+    m_Params.pCompAlpha             = nullptr;
+
+    RECT recOutput = {0, 0, (int32_t)params.output.surface->dwWidth, (int32_t)params.output.surface->dwHeight};
+
+    if (params.input.rotation == (MEDIA_ROTATION)VPHAL_ROTATION_IDENTITY    ||
+        params.input.rotation == (MEDIA_ROTATION)VPHAL_ROTATION_180         ||
+        params.input.rotation == (MEDIA_ROTATION)VPHAL_MIRROR_HORIZONTAL    ||
+        params.input.rotation == (MEDIA_ROTATION)VPHAL_MIRROR_VERTICAL)
+    {
+        m_Params.dwWidthOutput  = params.output.surface->dwWidth;
+        m_Params.dwHeightOutput = params.output.surface->dwHeight;
+
+        m_Params.rcDstInput     = params.output.rcDst;
+        m_Params.rcSrcOutput    = recOutput;
+        m_Params.rcDstOutput    = recOutput;
+        m_Params.rcMaxSrcOutput = recOutput;
+    }
+    else
+    {
+        m_Params.dwWidthOutput      = params.output.surface->dwHeight;
+        m_Params.dwHeightOutput     = params.output.surface->dwWidth;
+
+        RECT_ROTATE(m_Params.rcDstInput, params.output.rcDst);
+        RECT_ROTATE(m_Params.rcSrcOutput, recOutput);
+        RECT_ROTATE(m_Params.rcDstOutput, recOutput);
+        RECT_ROTATE(m_Params.rcMaxSrcOutput, recOutput);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 FeatureParamScaling &SwFilterScaling::GetSwFilterParams()
 {
     return m_Params;
@@ -310,6 +366,16 @@ MOS_STATUS SwFilterRotMir::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
     m_Params.tileOutput   = surfOutput->TileType;
     m_Params.formatInput  = surfInput->Format;
     m_Params.formatOutput = surfOutput->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterRotMir::Configure(VEBOX_SFC_PARAMS &params)
+{
+    // Parameter checking should be done in SwFilterRotMirHandler::IsFeatureEnabled.
+    m_Params.rotation     = (VPHAL_ROTATION)params.input.rotation;
+    m_Params.tileOutput   = params.output.surface->TileType;
+    m_Params.formatInput  = params.input.surface->Format;
+    m_Params.formatOutput = params.output.surface->Format;
     return MOS_STATUS_SUCCESS;
 }
 

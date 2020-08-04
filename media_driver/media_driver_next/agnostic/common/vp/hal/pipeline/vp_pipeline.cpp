@@ -276,6 +276,9 @@ MOS_STATUS VpPipeline::CreateSwFilterPipe(VP_PARAMS &params, SwFilterPipe *&swFi
     case PIPELINE_PARAM_TYPE_LEGACY:
         VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->GetSwFilterPipeFactory().Create(m_pvpParams.renderParams, swFilterPipe));
         break;
+    case PIPELINE_PARAM_TYPE_MEDIA_SFC_INTERFACE:
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->GetSwFilterPipeFactory().Create(m_pvpParams.sfcParams, swFilterPipe));
+        break;
     default:
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         break;

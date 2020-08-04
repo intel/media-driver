@@ -1304,14 +1304,6 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
         m_IsSfcUsed = true;
     }
 
-    // To be removed after vphal surface being cleaned.
-    // Ensure the input is ready to be read
-    // Currently, mos RegisterResourcere cannot sync the 3d resource.
-    // Temporaly, call sync resource to do the sync explicitly.
-    m_allocator->SyncOnResource(
-        &inputSurface->osSurface->OsResource,
-        false);
-
     // Set current src = current primary input
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_currentSurface ,*inputSurface));
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_renderTarget ,*outputSurface));
@@ -1353,6 +1345,17 @@ MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t p
     MOS_STATUS    eStatus = MOS_STATUS_SUCCESS;
     VpVeboxRenderData   *pRenderData = GetLastExecRenderData();
     VP_FUNC_CALL();
+
+    if (m_currentSurface && m_currentSurface->osSurface)
+    {
+        // Ensure the input is ready to be read
+        // Currently, mos RegisterResourcere cannot sync the 3d resource.
+        // Temporaly, call sync resource to do the sync explicitly.
+        // Sync need be done after switching context.
+        m_allocator->SyncOnResource(
+            &m_currentSurface->osSurface->OsResource,
+            false);
+    }
 
     // Setup, Copy and Update VEBOX State
     VP_RENDER_CHK_STATUS_RETURN(CopyAndUpdateVeboxState());

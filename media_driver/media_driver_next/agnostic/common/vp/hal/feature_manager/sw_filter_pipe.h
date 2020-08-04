@@ -108,6 +108,8 @@ public:
     virtual ~SwFilterFeatureHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
     virtual MOS_STATUS CreateSwFilter(SwFilter *&swFilter, VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS &params);
+    virtual MOS_STATUS CreateSwFilter(SwFilter *&swFilter, VEBOX_SFC_PARAMS &params);
 protected:
     VpInterface     &m_vpInterface;
     FeatureType     m_type;
@@ -119,6 +121,7 @@ public:
     SwFilterCscHandler(VpInterface &vpInterface);
     virtual ~SwFilterCscHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS &params);
 };
 
 class SwFilterRotMirHandler : public SwFilterFeatureHandler
@@ -127,6 +130,7 @@ public:
     SwFilterRotMirHandler(VpInterface &vpInterface);
     virtual ~SwFilterRotMirHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS &params);
 };
 
 class SwFilterScalingHandler : public SwFilterFeatureHandler
@@ -135,6 +139,7 @@ public:
     SwFilterScalingHandler(VpInterface &vpInterface);
     virtual ~SwFilterScalingHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS &params);
 };
 
 class SwFilterDnHandler : public SwFilterFeatureHandler
@@ -159,6 +164,7 @@ public:
     SwFilterPipe(VpInterface &vpInterface);
     virtual ~SwFilterPipe();
     MOS_STATUS Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule);
+    MOS_STATUS Initialize(VEBOX_SFC_PARAMS &params);
     void UpdateSwFilterPipeType();
     MOS_STATUS Clean();
 
@@ -170,6 +176,7 @@ public:
 
     MOS_STATUS ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule, bool isInputPipe);
     MOS_STATUS ConfigFeatures(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule);
+    MOS_STATUS ConfigFeatures(VEBOX_SFC_PARAMS &params);
     MOS_STATUS UpdateFeatures(bool isInputPipe, uint32_t pipeIndex);
 
     SwFilterPipeType GetSwFilterPipeType()
