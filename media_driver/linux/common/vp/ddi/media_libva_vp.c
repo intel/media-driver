@@ -1013,6 +1013,38 @@ VpSetRenderTargetParams(
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+//! \purpose Set Interpolation Method according to the flag
+//! \params
+//! [in]  PVPHAL_SURFACE : VA Surface
+//! [in]  uInterpolationflags : Interpolation Flag
+//! [out] None
+//! \returns VA_STATUS_SUCCESS if call succeeds
+/////////////////////////////////////////////////////////////////////////////////////////////
+VAStatus
+VpSetInterpolationParams(
+    PVPHAL_SURFACE                  pSurface,
+    uint32_t                        uInterpolationflags)
+{
+    DDI_CHK_NULL(pSurface, "Null pSurface.", VA_STATUS_ERROR_INVALID_SURFACE);
+    switch (uInterpolationflags)
+    {
+    case VA_FILTER_INTERPOLATION_NEAREST_NEIGHBOR:
+        pSurface->ScalingMode       = VPHAL_SCALING_NEAREST;
+        break;
+    case VA_FILTER_INTERPOLATION_BILINEAR:
+        pSurface->ScalingMode       = VPHAL_SCALING_BILINEAR;
+        break;
+    case VA_FILTER_INTERPOLATION_ADVANCED:
+    case VA_FILTER_INTERPOLATION_DEFAULT:
+    default:
+        pSurface->ScalingMode       = VPHAL_SCALING_AVS;
+        break;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 //! \purpose Extract VAProcPipelineParameterBuffer params and set the appropriate VPHAL params
 //! \params
 //! [in]  pVaDrvCtx : VA Driver context
@@ -1037,6 +1069,7 @@ DdiVp_SetProcPipelineParams(
     PVPHAL_SURFACE              pVpHalTgtSurf;
     uint32_t                    uSurfIndex;
     uint32_t                    uScalingflags;
+    uint32_t                    uInterpolationflags;
     uint32_t                    uChromaSitingFlags;
     VAStatus                    vaStatus;
     MOS_STATUS                  eStatus;
@@ -1056,6 +1089,7 @@ DdiVp_SetProcPipelineParams(
     pData               = nullptr;
     uSurfIndex          = 0;
     pOsInterface        = pVpCtx->pVpHal->GetOsInterface();
+    uInterpolationflags = 0;
 
     memset(&vpStateFlags, 0, sizeof(vpStateFlags));
 
@@ -1307,12 +1341,14 @@ DdiVp_SetProcPipelineParams(
     // Scaling algorithm
     uScalingflags                    = pPipelineParam->filter_flags & VA_FILTER_SCALING_MASK;
     pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_SFC;    // default
+    // Interpolation method
+    uInterpolationflags              = pPipelineParam->filter_flags & VA_FILTER_INTERPOLATION_MASK;
     switch (uScalingflags)
     {
     case VA_FILTER_SCALING_FAST:
         if (pVpHalSrcSurf->SurfType == SURF_IN_PRIMARY)
         {
-            pVpHalSrcSurf->ScalingMode       = VPHAL_SCALING_AVS;
+            VpSetInterpolationParams(pVpHalSrcSurf, uInterpolationflags);
             pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_SFC_FOR_VEBOX;
         }
         else
@@ -1323,7 +1359,7 @@ DdiVp_SetProcPipelineParams(
     case VA_FILTER_SCALING_HQ:
         if (pVpHalSrcSurf->SurfType == SURF_IN_PRIMARY)
         {
-            pVpHalSrcSurf->ScalingMode       = VPHAL_SCALING_AVS;
+            VpSetInterpolationParams(pVpHalSrcSurf, uInterpolationflags);
             pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_COMP;
         }
         else
@@ -1336,7 +1372,7 @@ DdiVp_SetProcPipelineParams(
     default:
         if (pVpHalSrcSurf->SurfType == SURF_IN_PRIMARY)
         {
-            pVpHalSrcSurf->ScalingMode       = VPHAL_SCALING_AVS;
+            VpSetInterpolationParams(pVpHalSrcSurf, uInterpolationflags);
             pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_SFC;
         }
         else
