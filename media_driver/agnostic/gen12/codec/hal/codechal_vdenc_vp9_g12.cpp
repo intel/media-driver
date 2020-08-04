@@ -3436,9 +3436,9 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     perfTag.PictureCodingType = m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
-    if (m_dysRefFrameFlags == DYS_REF_NONE)
+    if ((m_dysRefFrameFlags == DYS_REF_NONE) && m_pakOnlyModeEnabledForLastPass)
     {
-        //This flag enables pak-only mode in RePak pass. In single-pass mode, this flag should be disabled.
+        //This flag sets pak-only mode in slbb for RePak pass. In single-pass mode, this flag should be disabled.
         m_vdencPakonlyMultipassEnabled = ((m_numPasses > 0) && (IsLastPass())) ? true : false;
     }
 
@@ -4639,7 +4639,11 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
         //scalability initialize
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncodeScalability_InitializeState(m_scalabilityState, m_hwInterface));
     }
+
     m_adaptiveRepakSupported = true;
+    //This flag enables pak-only mode for RePak pass
+    m_pakOnlyModeEnabledForLastPass = true;
+
     maxRows = MOS_ALIGN_CEIL(m_frameHeight, CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_HEIGHT) / CODECHAL_ENCODE_VP9_MIN_TILE_SIZE_HEIGHT;
     //Max num of rows = 4 by VP9 Spec
     maxRows = MOS_MIN(maxRows, 4);
@@ -6264,6 +6268,7 @@ MOS_STATUS CodechalVdencVp9StateG12::SetDmemHuCVp9Prob()
     dmem->SLBBSize                   = m_hucSlbbSize;
     dmem->IVFHeaderSize              = (m_frameNum == 0) ? 44 : 12;
     dmem->VDEncImgStateOffset        = m_slbbImgStateOffset;
+    dmem->PakOnlyEnable              = ((dmem->RePak) && m_vdencPakonlyMultipassEnabled) ? 1 : 0;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnUnlockResource(m_osInterface, &m_resHucProbDmemBuffer[currPass][m_currRecycledBufIdx]));
 
