@@ -1827,6 +1827,26 @@ public:
         const void       *pArg2,
         uint32_t         dwSize2);
 
+#if MOS_MESSAGES_ENABLED
+    //!
+    //! \brief    Checks whether Event messages should be traced.
+    //! \details  Determines by the print level, component and sub-component IDs
+    //!           whether the debug message should be printed.
+   //! \param    [in] level
+    //!           Indicates msg level
+    //! \param    [in] compID
+    //!           Indicates compID
+    //! \param    [in] message
+    //!           event msg
+    //! \return   bool
+    //!
+    static bool MosShouldTraceEventMsg(
+        uint8_t              level,
+        uint8_t              compID,
+        uint8_t              subCompID,
+        const char* const    message);
+#endif
+
     //!
     //! \brief    MOS log trace event Msg
     //! \details  log trace event msg w/ level/compID/functionname/lineNum arguments
