@@ -27,6 +27,7 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 #include "vp_feature_manager.h"
+#include "sw_filter_handle.h"
 using namespace vp;
 
 /****************************************************************************************************/
@@ -36,14 +37,17 @@ using namespace vp;
 VpFeatureManagerNext::VpFeatureManagerNext(VpInterface &vpInterface) :
     m_vpInterface(vpInterface), m_Policy(m_vpInterface)
 {
+    m_vpInterface.SetSwFilterHandlers(m_featureHandler);
 }
 
 VpFeatureManagerNext::~VpFeatureManagerNext()
 {
+    UnregisterFeatures();
 }
 
 MOS_STATUS VpFeatureManagerNext::Initialize()
 {
+    VP_PUBLIC_CHK_STATUS_RETURN(RegisterFeatures());
     return m_Policy.Initialize();
 }
 
@@ -88,6 +92,54 @@ MOS_STATUS VpFeatureManagerNext::InitPacketPipe(SwFilterPipe &swFilterPipe,
 MOS_STATUS VpFeatureManagerNext::UpdateResources(HwFilterPipe &hwFilterPipe)
 {
     return hwFilterPipe.UpdateResources();
+}
+
+MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
+{
+    if (m_isFeatureRegistered)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Clear m_featureHandler to avoid any garbage data.
+    UnregisterFeatures();
+
+    // Vebox/Sfc features.
+    SwFilterFeatureHandler *p = MOS_New(SwFilterCscHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeCsc, p));
+
+    p = MOS_New(SwFilterRotMirHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeRotMir, p));
+
+    p = MOS_New(SwFilterScalingHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeScaling, p));
+
+    p = MOS_New(SwFilterDnHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeDn, p));
+
+    p = MOS_New(SwFilterAceHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeAce, p));
+
+    m_isFeatureRegistered = true;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::VpFeatureManagerNext::UnregisterFeatures()
+{
+    while (!m_featureHandler.empty())
+    {
+        auto it = m_featureHandler.begin();
+        SwFilterFeatureHandler* p = it->second;
+        m_featureHandler.erase(it);
+        MOS_Delete(p);
+    }
+    m_isFeatureRegistered = false;
+    return MOS_STATUS_SUCCESS;
 }
 
 /****************************************************************************************************/

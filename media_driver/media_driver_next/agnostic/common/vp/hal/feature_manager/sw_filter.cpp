@@ -28,6 +28,7 @@
 //!
 #include "sw_filter.h"
 #include "vp_obj_factories.h"
+#include "sw_filter_handle.h"
 using namespace vp;
 
 /****************************************************************************************************/
@@ -41,16 +42,6 @@ SwFilter::SwFilter(VpInterface &vpInterface, FeatureType type) : m_vpInterface(v
 SwFilter::~SwFilter()
 {
     Clean();
-    RemoveFromPipe();
-}
-
-MOS_STATUS SwFilter::RemoveFromPipe()
-{
-    if (m_location)
-    {
-        m_location->RemoveSwFilter(this);
-    }
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilter::SetFeatureType(FeatureType type)
@@ -62,6 +53,42 @@ MOS_STATUS SwFilter::SetFeatureType(FeatureType type)
     m_type = type;
 
     return MOS_STATUS_SUCCESS;
+}
+
+SwFilter* SwFilter::CreateSwFilter(FeatureType type)
+{
+    auto handle = m_vpInterface.GetSwFilterHandler(m_type);
+    SwFilter* p = nullptr;
+    if (handle)
+    {
+        p = handle->CreateSwFilter();
+        if (nullptr == p)
+        {
+            return nullptr;
+        }
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("SwFilter Handler didn't Init, return Fail");
+        return nullptr;
+    }
+
+    return p;
+}
+
+void SwFilter::DestroySwFilter(SwFilter* p)
+{
+    auto handle = m_vpInterface.GetSwFilterHandler(m_type);
+
+    if (handle)
+    {
+        handle->Destory(p);
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("SwFilter Handler didn't Init, return Fail");
+        return;
+    }
 }
 
 /****************************************************************************************************/
@@ -144,16 +171,12 @@ FeatureParamCsc &SwFilterCsc::GetSwFilterParams()
 
 SwFilter *SwFilterCsc::Clone()
 {
-    SwFilter *p = m_vpInterface.GetSwFilterFactory().Create(m_type);
-    if (nullptr == p)
-    {
-        return nullptr;
-    }
+    SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterCsc *swFilter = dynamic_cast<SwFilterCsc *>(p);
     if (nullptr == swFilter)
     {
-        m_vpInterface.GetSwFilterFactory().Destory(p);
+        DestroySwFilter(p);
         return nullptr;
     }
 
@@ -302,16 +325,12 @@ FeatureParamScaling &SwFilterScaling::GetSwFilterParams()
 
 SwFilter *SwFilterScaling::Clone()
 {
-    SwFilter *p = m_vpInterface.GetSwFilterFactory().Create(m_type);
-    if (nullptr == p)
-    {
-        return nullptr;
-    }
+    SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterScaling *swFilter = dynamic_cast<SwFilterScaling *>(p);
     if (nullptr == swFilter)
     {
-        m_vpInterface.GetSwFilterFactory().Destory(p);
+        DestroySwFilter(p);
         return nullptr;
     }
 
@@ -386,16 +405,12 @@ FeatureParamRotMir &SwFilterRotMir::GetSwFilterParams()
 
 SwFilter *SwFilterRotMir::Clone()
 {
-    SwFilter *p = m_vpInterface.GetSwFilterFactory().Create(m_type);
-    if (nullptr == p)
-    {
-        return nullptr;
-    }
+    SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterRotMir *swFilter = dynamic_cast<SwFilterRotMir *>(p);
     if (nullptr == swFilter)
     {
-        m_vpInterface.GetSwFilterFactory().Destory(p);
+        DestroySwFilter(p);
         return nullptr;
     }
 
@@ -463,16 +478,12 @@ FeatureParamDenoise& SwFilterDenoise::GetSwFilterParams()
 
 SwFilter *SwFilterDenoise::Clone()
 {
-    SwFilter *p = m_vpInterface.GetSwFilterFactory().Create(m_type);
-    if (nullptr == p)
-    {
-        return nullptr;
-    }
+    SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterDenoise *swFilter = dynamic_cast<SwFilterDenoise *>(p);
     if (nullptr == swFilter)
     {
-        m_vpInterface.GetSwFilterFactory().Destory(p);
+        DestroySwFilter(p);
         return nullptr;
     }
 
@@ -539,16 +550,12 @@ FeatureParamAce& SwFilterAce::GetSwFilterParams()
 
 SwFilter * SwFilterAce::Clone()
 {
-    SwFilter *p = m_vpInterface.GetSwFilterFactory().Create(m_type);
-    if (nullptr == p)
-    {
-        return nullptr;
-    }
+    SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterAce *swFilter = dynamic_cast<SwFilterAce *>(p);
     if (nullptr == swFilter)
     {
-        m_vpInterface.GetSwFilterFactory().Destory(p);
+        DestroySwFilter(p);
         return nullptr;
     }
 
@@ -628,7 +635,7 @@ MOS_STATUS SwFilterSet::Clean()
         if (swFilter)
         {
             VpInterface &vpIntf = swFilter->GetVpInterface();
-            vpIntf.GetSwFilterFactory().Destory(swFilter);
+            vpIntf.GetSwFilterHandler(swFilter->GetFeatureType())->Destory(swFilter);
         }
     }
     return MOS_STATUS_SUCCESS;

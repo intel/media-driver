@@ -46,6 +46,7 @@ namespace vp
 class PacketFactory;
 class PacketPipeFactory;
 class VpResourceManager;
+class SwFilterFeatureHandler;
 
 enum PIPELINE_PARAM_TYPE
 {
@@ -236,6 +237,94 @@ struct _VP_SFC_PACKET_PARAMS
 };
 
 using VP_SFC_PACKET_PARAMS = _VP_SFC_PACKET_PARAMS;
+
+class VpInterface
+{
+public:
+    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator& allocator, VpResourceManager* resourceManager) :
+        m_swFilterPipeFactory(*this),
+        m_hwFilterPipeFactory(*this),
+        m_hwFilterFactory(*this),
+        m_hwInterface(pHwInterface),
+        m_allocator(allocator),
+        m_resourceManager(resourceManager),
+        m_swFilterHandler(nullptr) // setting when create feature manager
+    {
+    }
+
+    virtual ~VpInterface()
+    {
+    }
+
+    SwFilterPipeFactory& GetSwFilterPipeFactory()
+    {
+        return m_swFilterPipeFactory;
+    }
+
+    void SetSwFilterHandlers(std::map<FeatureType, SwFilterFeatureHandler*>& swFilterHandler)
+    {
+        m_swFilterHandler = &swFilterHandler;
+    }
+
+    SwFilterFeatureHandler* GetSwFilterHandler(FeatureType type)
+    {
+         if (!m_swFilterHandler)
+         {
+             return nullptr;
+         }
+
+        auto handler = m_swFilterHandler->find(type);
+
+        if (handler != m_swFilterHandler->end())
+        {
+            return handler->second;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    std::map<FeatureType, SwFilterFeatureHandler*>* GetSwFilterHandlerMap()
+    {
+        return m_swFilterHandler;
+    }
+
+    HwFilterPipeFactory& GetHwFilterPipeFactory()
+    {
+        return m_hwFilterPipeFactory;
+    }
+
+    HwFilterFactory& GetHwFilterFactory()
+    {
+        return m_hwFilterFactory;
+    }
+
+    VpAllocator& GetAllocator()
+    {
+        return m_allocator;
+    }
+
+    VpResourceManager* GetResourceManager()
+    {
+        return m_resourceManager;
+    }
+
+    PVP_MHWINTERFACE GetHwInterface()
+    {
+        return m_hwInterface;
+    }
+
+private:
+    SwFilterPipeFactory m_swFilterPipeFactory;
+    HwFilterPipeFactory m_hwFilterPipeFactory;
+    HwFilterFactory     m_hwFilterFactory;
+
+    PVP_MHWINTERFACE    m_hwInterface;
+    VpAllocator& m_allocator;
+    VpResourceManager* m_resourceManager;
+    std::map<FeatureType, SwFilterFeatureHandler*>* m_swFilterHandler = nullptr;
+};
 }  // namespace vp
 
 #endif

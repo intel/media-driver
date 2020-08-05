@@ -144,6 +144,8 @@ public:
     virtual bool operator == (class SwFilter&) = 0;
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf) = 0;
     MOS_STATUS SetFeatureType(FeatureType type);
+    SwFilter* CreateSwFilter(FeatureType type);
+    void DestroySwFilter(SwFilter* p);
 
     void SetLocation(SwFilterSet *swFilterSet)
     {
@@ -166,8 +168,6 @@ public:
     }
 
 protected:
-    MOS_STATUS RemoveFromPipe();
-
     VpInterface &m_vpInterface;
     FeatureType m_type = FeatureTypeInvalid;
     // SwFilterSet current swFilter belongs to.

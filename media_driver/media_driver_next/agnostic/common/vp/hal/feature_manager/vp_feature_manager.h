@@ -33,12 +33,11 @@
 #include "vp_utils.h"
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
-
 #include "vp_obj_factories.h"
 
 namespace vp
 {
-
+class SwFilterFeatureHandler;
 class VpResourceManager;
 
 class VPFeatureManager : public MediaFeatureManager
@@ -152,28 +151,30 @@ protected:
     PMOS_INTERFACE          m_pOsInterface      = nullptr;
 };
 
-
-
 class VpFeatureManagerNext : public MediaFeatureManager
 {
 public:
-    VpFeatureManagerNext(VpInterface &vpInterface);
+    VpFeatureManagerNext(VpInterface& vpInterface);
     virtual ~VpFeatureManagerNext();
 
     virtual MOS_STATUS Initialize();
-    virtual MOS_STATUS InitPacketPipe(SwFilterPipe &swFilterPipe,
-                    PacketPipe &packetPipe);
+    virtual MOS_STATUS InitPacketPipe(SwFilterPipe& swFilterPipe,
+        PacketPipe& packetPipe);
 
 protected:
-    MOS_STATUS CreateHwFilterPipe(SwFilterPipe &swFilterPipe, HwFilterPipe *&pHwFilterPipe);
-    MOS_STATUS UpdateResources(HwFilterPipe &hwFilterPipe);
+    MOS_STATUS CreateHwFilterPipe(SwFilterPipe& swFilterPipe, HwFilterPipe*& pHwFilterPipe);
+    MOS_STATUS UpdateResources(HwFilterPipe& hwFilterPipe);
 
-    VpInterface         &m_vpInterface;
+    virtual MOS_STATUS RegisterFeatures();
+    MOS_STATUS UnregisterFeatures();
+
+    VpInterface& m_vpInterface;
     Policy              m_Policy;
+    std::map<FeatureType, SwFilterFeatureHandler*> m_featureHandler;
+    uint32_t           m_isFeatureRegistered = false;
 
 private:
-    MOS_STATUS Init(void *settings) { return MOS_STATUS_UNIMPLEMENTED; }
+    MOS_STATUS Init(void* settings) { return MOS_STATUS_UNIMPLEMENTED; }
 };
-
 }
 #endif // !__VP_FEATURE_MANAGER_H__

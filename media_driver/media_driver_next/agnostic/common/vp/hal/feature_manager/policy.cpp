@@ -30,6 +30,7 @@
 #include "vp_obj_factories.h"
 #include "vp_feature_manager.h"
 #include "vp_platform_interface.h"
+#include "sw_filter_handle.h"
 using namespace vp;
 
 /****************************************************************************************************/
@@ -851,9 +852,16 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                 }
                 else
                 {
+                    auto handler = m_vpInterface.GetSwFilterHandler(feature->GetFeatureType());
+
+                    if (!handler)
+                    {
+                        VP_PUBLIC_ASSERTMESSAGE("no Feature Handle, Return Pipe Init Error");
+                        return MOS_STATUS_INVALID_HANDLE;
+                    }
                     // For feature which is force enabled on Sfc, just drop it if sfc not being used.
                     featurePipe.RemoveSwFilter(feature);
-                    m_vpInterface.GetSwFilterFactory().Destory(feature);
+                    handler->Destory(feature);
                     VP_PUBLIC_NORMALMESSAGE("filter missed packets generation");
                 }
             }
@@ -1085,13 +1093,21 @@ MOS_STATUS Policy::AddNewFilterOnVebox(
     PVP_SURFACE pSurfInput = featurePipe.GetSurface(true, 0);
     VP_PUBLIC_CHK_NULL_RETURN(pSurfInput);
 
-    SwFilter* pSwfilter = m_vpInterface.GetSwFilterFactory().Create(featureType);
+    auto handler = m_vpInterface.GetSwFilterHandler(featureType);
+
+    if (!handler)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("no Feature Handle, Return Pipe Init Error");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
+
+    SwFilter* pSwfilter = handler->CreateSwFilter();
     VP_PUBLIC_CHK_NULL_RETURN(pSwfilter);
 
     MOS_STATUS status = pSwfilter->Configure(pSurfInput, caps);
     if (MOS_FAILED(status))
     {
-        m_vpInterface.GetSwFilterFactory().Destory(pSwfilter);
+        handler->Destory(pSwfilter);
         VP_PUBLIC_CHK_STATUS_RETURN(status);
     }
 

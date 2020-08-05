@@ -139,85 +139,38 @@ private:
     VpObjAllocator<SwFilterPipe> m_allocator;
 };
 
+template <class _T>
 class SwFilterFactory
 {
 public:
-    SwFilterFactory(VpInterface &vpInterface);
-    virtual ~SwFilterFactory();
-    SwFilter *Create(FeatureType type);
-    void Destory(SwFilter *&swFilter);
-
-private:
-    VpObjAllocator<SwFilterCsc> m_allocatorCsc;
-    VpObjAllocator<SwFilterRotMir> m_allocatorRotMir;
-    VpObjAllocator<SwFilterScaling> m_allocatorScaling;
-    VpObjAllocator<SwFilterDenoise> m_allocatorDn;
-    VpObjAllocator<SwFilterAce> m_allocatorAce;
-};
-
-class VpInterface
-{
-public:
-    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator &allocator, VpResourceManager *resourceManager) :
-        m_swFilterPipeFactory(*this),
-        m_swFilterFactory(*this),
-        m_hwFilterPipeFactory(*this),
-        m_hwFilterFactory(*this),
-        m_hwInterface(pHwInterface),
-        m_allocator(allocator),
-        m_resourceManager(resourceManager)
+    SwFilterFactory(VpInterface& vpInterface) : m_allocator(vpInterface)
     {
     }
-
-    virtual ~VpInterface()
+    virtual ~SwFilterFactory()
     {
     }
-
-    SwFilterPipeFactory &GetSwFilterPipeFactory()
+    SwFilter* Create()
     {
-        return m_swFilterPipeFactory;
+        SwFilter* swFilter = nullptr;
+        swFilter = m_allocator.Create();
+
+        if (swFilter)
+        {
+            return swFilter;
+        }
+        else
+        {
+            return nullptr;
+        }
     }
-
-    SwFilterFactory &GetSwFilterFactory()
+    void Destory(_T*& swFilter)
     {
-        return m_swFilterFactory;
-    }
-
-    HwFilterPipeFactory &GetHwFilterPipeFactory()
-    {
-        return m_hwFilterPipeFactory;
-    }
-
-    HwFilterFactory &GetHwFilterFactory()
-    {
-        return m_hwFilterFactory;
-    }
-
-    VpAllocator &GetAllocator()
-    {
-        return m_allocator;
-    }
-
-    VpResourceManager *GetResourceManager()
-    {
-        return m_resourceManager;
-    }
-
-    PVP_MHWINTERFACE GetHwInterface()
-    {
-        return m_hwInterface;
+        m_allocator.Destory(swFilter);
+        return;
     }
 
 private:
-    SwFilterPipeFactory m_swFilterPipeFactory;
-    SwFilterFactory     m_swFilterFactory;
-    HwFilterPipeFactory m_hwFilterPipeFactory;
-    HwFilterFactory     m_hwFilterFactory;
-
-    PVP_MHWINTERFACE    m_hwInterface;
-    VpAllocator         &m_allocator;
-    VpResourceManager   *m_resourceManager;
+    VpObjAllocator<_T> m_allocator;
 };
-
 }
 #endif // !__VP_OBJ_FACTORIES_H__

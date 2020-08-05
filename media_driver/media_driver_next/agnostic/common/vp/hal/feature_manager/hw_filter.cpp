@@ -29,6 +29,7 @@
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
 #include "vp_obj_factories.h"
+#include "vp_pipeline.h"
 
 using namespace vp;
 
