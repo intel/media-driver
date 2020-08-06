@@ -379,7 +379,7 @@ MOS_STATUS MhwSfcInterface::SetSfcSamplerTable(
         pLumaTable->LumaTable,
         piYCoefsX,
         piYCoefsY,
-        bUse8x8Filter);
+        false);
 
     SetSfcAVSChromaTable(
         pChromaTable->ChromaTable,
@@ -387,37 +387,4 @@ MOS_STATUS MhwSfcInterface::SetSfcSamplerTable(
         piUVCoefsY);
 
     return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MhwSfcInterface::GetInputFrameWidthHeightAlignUnit(uint32_t &widthAlignUnit, uint32_t &heightAlignUnit,
-    bool bVdbox, CODECHAL_STANDARD codecStandard, CodecDecodeJpegChromaType jpegChromaType)
-{
-    if (bVdbox)
-    {
-        if (CODECHAL_JPEG == codecStandard &&( jpegYUV400 == jpegChromaType ||
-            jpegYUV444 == jpegChromaType || jpegYUV422H2Y == jpegChromaType))
-        {
-            widthAlignUnit = 8;
-            heightAlignUnit = 8;
-            return MOS_STATUS_SUCCESS;
-        }
-        else if (CODECHAL_HEVC == codecStandard || CODECHAL_VP9 == codecStandard)
-        {
-            widthAlignUnit = 8;
-            heightAlignUnit = 8;
-            return MOS_STATUS_SUCCESS;
-        }
-        else
-        {
-            widthAlignUnit = 16;
-            heightAlignUnit = 16;
-            return MOS_STATUS_SUCCESS;
-        }
-    }
-    else
-    {
-        widthAlignUnit = m_veWidthAlignment;
-        heightAlignUnit = m_veHeightAlignment;
-        return MOS_STATUS_SUCCESS;
-    }
 }

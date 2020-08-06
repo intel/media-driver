@@ -31,13 +31,9 @@ namespace vp
 //!
 //! \brief Constants used to derive Line Buffer sizes
 //!
-#define SFC_CACHELINE_SIZE_IN_BYTES                         (512 / 8)
-#define SFC_AVS_LINEBUFFER_SIZE_PER_PIXEL_4_TAP_12BIT       (5 * SFC_CACHELINE_SIZE_IN_BYTES / 8)
-#define SFC_AVS_LINEBUFFER_SIZE_PER_PIXEL_8_TAP_12BIT       (6 * SFC_CACHELINE_SIZE_IN_BYTES / 8)
-#define SFC_AVS_LINEBUFFER_SIZE_PER_PIXEL_4_TAP_8BIT        (3 * SFC_CACHELINE_SIZE_IN_BYTES / 8)
-#define SFC_AVS_LINEBUFFER_SIZE_PER_PIXEL_8_TAP_8BIT        (5 * SFC_CACHELINE_SIZE_IN_BYTES / 8)
-#define SFC_IEF_LINEBUFFER_SIZE_PER_VERTICAL_PIXEL          (1 * SFC_CACHELINE_SIZE_IN_BYTES / 4)
-#define SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL                   (1 * SFC_CACHELINE_SIZE_IN_BYTES / 10)
+#define SFC_CACHELINE_SIZE_IN_BYTES                     (512 / 8)
+#define SFC_AVS_LINEBUFFER_SIZE_PER_VERTICAL_PIXEL      (5 * SFC_CACHELINE_SIZE_IN_BYTES / 8)
+#define SFC_IEF_LINEBUFFER_SIZE_PER_VERTICAL_PIXEL      (1 * SFC_CACHELINE_SIZE_IN_BYTES / 4)
 
 typedef struct _SFC_COLORFILL_PARAMS
 {
@@ -75,6 +71,9 @@ typedef struct _VPHAL_SFC_RENDER_DATA
   VPHAL_SCALING_MODE                  SfcScalingMode;                         //!< SFC Scaling Mode
 
   uint32_t                            SfcSrcChromaSiting;                     //!< SFC Source Surface Chroma Siting
+  uint32_t                            inputChromaSubSampling;                 //!< Chroma Subsampling at SFC input
+  uint32_t                            chromaDownSamplingVerticalCoef;         //!< Chroma DownSampling Vertical Coeff
+  uint32_t                            chromaDownSamplingHorizontalCoef;       //!< Chroma DownSampling Horizontal Coeff
 
   PVP_SURFACE                         pSfcPipeOutSurface;                     //!< SFC Pipe output surface
 

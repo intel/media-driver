@@ -78,7 +78,7 @@ protected:
     //!           Pointer to Vebox Render Execution Caps
     //! \return   MOS_STATUS
     //!
-    MOS_STATUS SetSfcChromaParams(
+    MOS_STATUS SetChromaParams(
         VP_EXECUTE_CAPS         vpExecuteCaps);
 
     //!
@@ -106,7 +106,7 @@ protected:
     //! \details  Setup Chroma sitting parameters
     //! \return   MOS_STATUS
     //!
-    MOS_STATUS UpdateSfcChromaSiting();
+    MOS_STATUS SetSubSampling();
 
     //!
     //! \brief    Check whether Chroma Up Sampling Needed

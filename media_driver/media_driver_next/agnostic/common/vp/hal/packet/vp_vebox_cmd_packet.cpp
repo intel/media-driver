@@ -1046,7 +1046,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetupSfcState(m_renderTarget));
 
         VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SendSfcCmd(
-                                (pRenderData->DI.bDeinterlace || pRenderData->DN.bDnEnabled),
+                                pRenderData,
                                 CmdBuffer));
     }
 

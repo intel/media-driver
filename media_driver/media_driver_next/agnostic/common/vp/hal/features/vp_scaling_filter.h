@@ -45,10 +45,6 @@ public:
 
     virtual MOS_STATUS Init() override;
 
-    virtual MOS_STATUS Init(
-        CODECHAL_STANDARD           codecStandard,
-        CodecDecodeJpegChromaType   jpegChromaType);
-
     virtual MOS_STATUS Prepare() override;
 
     virtual MOS_STATUS Destroy() override;
@@ -141,9 +137,6 @@ protected:
     VPHAL_CSPACE                 m_colorFillSrcCspace = {};                //!< Cspace of the source ColorFill Color
     VPHAL_CSPACE                 m_colorFillRTCspace = {};                 //!< Cspace of the Render Target
 
-    bool                         m_bVdbox            = false;
-    CODECHAL_STANDARD            m_codecStandard     = CODECHAL_STANDARD_MAX;
-    CodecDecodeJpegChromaType    m_jpegChromaType    = jpegYUV400;
 };
 
 struct HW_FILTER_SCALING_PARAM : public HW_FILTER_PARAM

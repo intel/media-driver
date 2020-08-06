@@ -33,7 +33,6 @@
 #include "vp_vebox_common.h"
 #include "mhw_sfc_g12_X.h"
 #include "vp_allocator.h"
-#include "codec_def_decode_jpeg.h"
 
 namespace vp {
 
@@ -51,8 +50,6 @@ public:
     //! \return   MOS_STATUS
     //!
     virtual MOS_STATUS Init();
-
-    virtual MOS_STATUS Init(CODECHAL_STANDARD codecStandard, CodecDecodeJpegChromaType jpegChromaType, bool deblockingEnabled, uint32_t lcuSize);
 
     //!
     //! \brief    Setup CSC parameters of the SFC State
@@ -95,7 +92,7 @@ public:
     //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SendSfcCmd(
-        bool                            bOutputToMemory,
+        VpVeboxRenderData               *pRenderData,
         PMOS_COMMAND_BUFFER             pCmdBuffer);
 
     //!
@@ -180,40 +177,19 @@ protected:
     virtual MOS_STATUS InitSfcStateParams() = 0;
 
     //!
-    //! \brief    Set SFC input chroma subsampling
-    //! \details  Set SFC input chroma subsampling according to
-    //!           pipe mode
+    //! \brief    Determine SFC input ordering mode
+    //! \details  Determine SFC input ordering mode according to
+    //!           vebox flags
+    //! \param    [in] veboxRenderData
+    //!           Pointer to vebox Render Data
     //! \param    [out] sfcStateParams
     //!           Pointer to SFC state params
-    //! \return   MOS_STATUS
+    //! \return   void
     //!
-    virtual MOS_STATUS SetSfcStateInputChromaSubSampling(
+    virtual void SetSfcStateInputOrderingMode(
+        VpVeboxRenderData           *veboxRenderData,
         PMHW_SFC_STATE_PARAMS       sfcStateParams);
 
-    //!
-    //! \brief    Set SFC input ordering mode
-    //! \details  SFC input ordering mode according to
-    //!           pipe mode
-    //! \param    [out] sfcStateParams
-    //!           Pointer to SFC state params
-    //! \return   MOS_STATUS
-    //!
-    virtual MOS_STATUS SetSfcStateInputOrderingMode(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams);
-    virtual MOS_STATUS SetSfcStateInputOrderingModeJpeg(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams);
-    virtual MOS_STATUS SetSfcStateInputOrderingModeVdbox(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams);
-    virtual MOS_STATUS SetSfcStateInputOrderingModeHcp(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams) = 0;
-
-    //!
-    //! \brief    Set codec pipe mode
-    //! \details  Set codec pipe mode
-    //! \param    [in] codecStandard
-    //!           codec standard
-    //! \return   MOS_STATUS
-    virtual MOS_STATUS SetCodecPipeMode(CODECHAL_STANDARD codecStandard);
     //!
     //! \brief    Setup ColorFill parameters
     //! \details  Setup ColorFill parameters
@@ -305,41 +281,6 @@ protected:
         PMHW_AVS_PARAMS   pAVS_Params);
 
     //!
-    //! \brief    Get Avs line buffer size
-    //! \details  Get Avs line buffer size according to height of input surface
-    //! \param    [in] b8tapChromafiltering
-    //!           ture if 8-tap UV, otherwise, 4-tap UV.
-    //! \param    [in] width
-    //!           The width of input surface
-    //! \param    [in] height
-    //!           The height of input surface
-    //! \return   uint32_t
-    //!
-    uint32_t GetAvsLineBufferSize(bool b8tapChromafiltering, uint32_t width, uint32_t height);
-
-    //!
-    //! \brief    Get Ief line buffer size
-    //! \details  Get Ief line buffer size according to height of scaled surface
-    //! \param    [in] heightOutput
-    //!           The height of output surface
-    //! \return   uint32_t
-    //!
-    uint32_t GetIefLineBufferSize(uint32_t heightOutput);
-
-    //!
-    //! \brief    Get Sfd line buffer size
-    //! \details  Get Sfd line buffer size according to height of scaled surface
-    //! \param    [in] formatOutput
-    //!           format of output surface.
-    //! \param    [in] widthOutput
-    //!           The width of input surface
-    //! \param    [in] heightOutput
-    //!           The height of input surface
-    //! \return   uint32_t
-    //!
-    uint32_t GetSfdLineBufferSize(MOS_FORMAT formatOutput, uint32_t widthOutput, uint32_t heightOutput);
-
-    //!
     //! \brief    Allocate Resources for SFC Pipe
     //! \details  Allocate the AVS and IEF line buffer surfaces for SFC
     //! \return   Return MOS_STATUS_SUCCESS if successful, otherwise failed
@@ -353,10 +294,6 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS FreeResources();
-
-    virtual MOS_STATUS AddSfcLock(
-        PMOS_COMMAND_BUFFER     pCmdBuffer,
-        PMHW_SFC_LOCK_PARAMS    pSfcLockParams);
 
 protected:
 
@@ -385,23 +322,13 @@ protected:
     float                           m_cscOutOffset[3] = {};                   //!< [3x1] Output Offset matrix
     uint32_t                        m_currentChannel = 0;                     //!< 0=StereoLeft or nonStereo, 1=StereoRight. N/A in nonStereo
 
-    VP_SURFACE                      *m_AVSLineBufferSurface = nullptr;        //!< AVS Line Buffer Surface for SFC
-    VP_SURFACE                      *m_IEFLineBufferSurface = nullptr;        //!< IEF Line Buffer Surface for SFC
-    VP_SURFACE                      *m_SFDLineBufferSurface = nullptr;        //!< SFD Line Buffer Surface for SFC
+    VPHAL_SURFACE                   m_AVSLineBufferSurface = {};                //!< AVS Line Buffer Surface for SFC
+    VPHAL_SURFACE                   m_IEFLineBufferSurface = {};                //!< IEF Line Buffer Surface for SFC
+    VPHAL_SURFACE                   m_SFDLineBufferSurface = {};                //!< SFD Line Buffer Surface for SFC
 
     // Allocator interface
     PVpAllocator                    m_allocator = nullptr;                                //!< vp pipeline allocator
     VpIef                           *m_iefObj = nullptr;
-    uint8_t                         m_pipeMode = MhwSfcInterface::SFC_PIPE_MODE_VEBOX; //!< which FE engine pipe used
-
-    bool                            m_bVdboxToSfc = false;
-    struct
-    {
-        CODECHAL_STANDARD           codecStandard;
-        CodecDecodeJpegChromaType   jpegChromaType;
-        uint32_t                    lcuSize;
-        bool                        deblockingEnabled;
-    } m_videoConfig;
 };
 
 }
