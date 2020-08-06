@@ -303,8 +303,7 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
             m_renderData.fScaleX,
             m_renderData.fScaleY,
             m_renderData.SfcSrcChromaSiting,
-            (MEDIASTATE_SFC_AVS_FILTER_8x8 == m_renderData.sfcStateParams->dwAVSFilterMode ||
-             MEDIASTATE_SFC_AVS_FILTER_BILINEAR == m_renderData.sfcStateParams->dwAVSFilterMode), // Need remove bilinear later with reference updated.
+            MEDIASTATE_SFC_AVS_FILTER_8x8 == m_renderData.sfcStateParams->dwAVSFilterMode,
             0,
             0));
     }
