@@ -286,6 +286,11 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     if(!params.m_pSystemMemory)
     {
         mem_type = MemoryPolicyManager::UpdateMemoryPolicy(pOsContextSpecific->GetSkuTable(), gmmResourceInfoPtr, params.m_name.c_str(), params.m_memType);
+
+        if(MEDIA_IS_WA(pOsContextSpecific->GetWaTable(), WaForceAllocateLM))
+        {
+            mem_type = MOS_MEMPOOL_DEVICEMEMORY;
+        }
     }
 
     if (nullptr != params.m_pSystemMemory)

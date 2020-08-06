@@ -269,6 +269,11 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     if(!params.m_pSystemMemory)
     {
         mem_type = MemoryPolicyManager::UpdateMemoryPolicy(pOsContextSpecific->GetSkuTable(), gmmResourceInfoPtr, params.m_name.c_str(), params.m_memType);
+
+        if(MEDIA_IS_WA(pOsContextSpecific->GetWaTable(), WaForceAllocateLM))
+        {
+            mem_type = MOS_MEMPOOL_DEVICEMEMORY;
+        }
     }
 
     uint32_t bufPitch        = GFX_ULONG_CAST(gmmResourceInfoPtr->GetRenderPitch());

@@ -2495,6 +2495,11 @@ MOS_STATUS Mos_Specific_AllocateResource(
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&pOsInterface->pOsContext->SkuTable, pGmmResourceInfo, pParams->pBufName, pParams->dwMemType);
 
+    if (MEDIA_IS_WA(&pOsInterface->pOsContext->WaTable, WaForceAllocateLM))
+    {
+        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
+    }
+
     // Only Linear and Y TILE supported
     if( tileformat_linux == I915_TILING_NONE )
     {

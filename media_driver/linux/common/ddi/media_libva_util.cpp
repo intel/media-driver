@@ -525,6 +525,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaDrvCtx->SkuTable, mediaSurface->pGmmResourceInfo, "Media Surface");
 
+    if(MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaForceAllocateLM))
+    {
+        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
+    }
+
     if (!DdiMediaUtil_IsExternalSurface(mediaSurface) ||
         mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
     {
@@ -669,6 +674,17 @@ VAStatus DdiMediaUtil_AllocateBuffer(
                     mediaBuffer->pGmmResourceInfo,
                     "Media Buffer",
                     mediaBuffer->bUseSysGfxMem ? MOS_MEMPOOL_SYSTEMMEMORY : 0);
+
+    if(MEDIA_IS_WA(&mediaBuffer->pMediaCtx->WaTable, WaForceAllocateLM))
+    {
+        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
+
+        if(mediaBuffer->uiType == VAEncCodedBufferType)
+        {
+            mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
+        }
+    }
+
     MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type);
 
     mediaBuffer->bMapped = false;
@@ -757,6 +773,11 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaBuffer->pMediaCtx->SkuTable, mediaBuffer->pGmmResourceInfo, "Media 2D Buffer");
+
+    if(MEDIA_IS_WA(&mediaBuffer->pMediaCtx->WaTable, WaForceAllocateLM))
+    {
+        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
+    }
 
     MOS_LINUX_BO  *bo;
     bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type);
