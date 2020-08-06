@@ -127,6 +127,13 @@ MOS_STATUS CodechalEncodeCscDsG11::CheckRawColorFormat(MOS_FORMAT format, MOS_TI
             m_cscRequireConvTo8bPlanar = 1;
         }
         break;
+    case Format_AYUV:
+        if (m_encoder->m_vdencEnabled)
+        {
+            m_colorRawSurface = cscColorAYUV;
+            m_cscRequireColor = 1;
+            break;
+        }
     case Format_P210:
         // not supported yet so fall-thru to default
         m_colorRawSurface = cscColorP210;
@@ -462,6 +469,11 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         */
         surfaceParams.bUse16UnormSurfaceFormat = !(cscColorNv12TileY == m_colorRawSurface ||
                                                    cscColorNv12Linear == m_colorRawSurface);
+    }
+
+    if (m_encoder->m_vdencEnabled && (CODECHAL_HEVC == m_standard || CODECHAL_AVC == m_standard))
+    {
+        surfaceParams.bCheckCSC8Format= true;
     }
 
     // when input surface is NV12 tiled and not aligned by 4 bytes, need kernel to do the

@@ -135,25 +135,26 @@ MOS_STATUS CodechalEncodeCscDsG12::CheckRawColorFormat(MOS_FORMAT format, MOS_TI
         m_cscRequireConvTo8bPlanar = 1;
         break;
     case Format_AYUV:
-        if(m_encoder->m_vdencEnabled)
+        if (m_encoder->m_vdencEnabled)
         {
             m_colorRawSurface = cscColorAYUV;
+            m_cscRequireColor = 1;
             break;
         }
     case Format_R10G10B10A2:
-        if(m_encoder->m_vdencEnabled)
+        if (m_encoder->m_vdencEnabled)
         {
             m_colorRawSurface = cscColorARGB10;
             break;
         }
     case Format_B10G10R10A2:
-        if(m_encoder->m_vdencEnabled)
+        if (m_encoder->m_vdencEnabled)
         {
             m_colorRawSurface = cscColorABGR10;
             break;
         }
     case Format_Y410:
-        if(m_encoder->m_vdencEnabled)
+        if (m_encoder->m_vdencEnabled)
         {
             m_colorRawSurface = cscColorY410;
             break;
@@ -513,7 +514,7 @@ MOS_STATUS CodechalEncodeCscDsG12::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
                                                    cscColorNv12Linear == m_colorRawSurface);
     }
 
-    if(m_encoder->m_vdencEnabled && CODECHAL_HEVC == m_standard)
+    if (m_encoder->m_vdencEnabled && (CODECHAL_HEVC == m_standard || CODECHAL_AVC == m_standard))
     {
         surfaceParams.bCheckCSC8Format= true;
     }
