@@ -294,10 +294,7 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::SetupSurfacesCSC(SurfaceParamsCscMdf& Surf
                           &m_surfaceParamsCsc.psInputSurface->OsResource,
                           &SurfaceParamsCsc.psInputSurface));
 
-    // Change input surface interpretation from NV12 to A8
-    if (CODECHAL_AVC    == m_mode &&
-        Format_NV12     == m_surfaceParamsCsc.psInputSurface->Format &&
-        MOS_TILE_LINEAR == m_surfaceParamsCsc.psInputSurface->TileType)
+    if (Format_NV12 == m_surfaceParamsCsc.psInputSurface->Format)
     {
         uint32_t   width = 0, height = 0;
         MOS_FORMAT format = Format_Invalid;
@@ -306,8 +303,8 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::SetupSurfacesCSC(SurfaceParamsCscMdf& Surf
         CM_SURFACE2D_STATE_PARAM param;
         MOS_ZeroMemory(&param, sizeof(param));
         param.width  = width;
-        param.height = (height * 3) / 2;
-        param.format = CM_SURFACE_FORMAT_A8;
+        param.height = MOS_TILE_LINEAR == m_surfaceParamsCsc.psInputSurface->TileType ? (height * 3) / 2 : height;
+        param.format = format;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SurfaceParamsCsc.psInputSurface->SetSurfaceStateParam(nullptr, &param));
     }
 
