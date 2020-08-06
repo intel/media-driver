@@ -621,6 +621,7 @@ MOS_STATUS CodecHalDecodeScalability_DbgDumpCmdBuffer_G12(
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     MOS_COMMAND_BUFFER              ScdryCmdBuffer;
     PMOS_COMMAND_BUFFER             pCmdBufferInUse;
+    std::string                     cmdName = "DEC";
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
@@ -642,6 +643,10 @@ MOS_STATUS CodecHalDecodeScalability_DbgDumpCmdBuffer_G12(
     }
     else
     {
+        //calculate bufidx for getting secondary cmd buffer.
+        uint32_t dwBufIdxPlus1 = 0;
+        CODECHAL_DECODE_CHK_STATUS(CodecHalDecodeScalability_CalculateScdryCmdBufIndex_G12(pScalabilityState, &dwBufIdxPlus1));
+        cmdName = cmdName + "_secondary_" + std::to_string(dwBufIdxPlus1);
         CODECHAL_DECODE_CHK_STATUS(CodecHalDecodeScalability_GetVESecondaryCmdBuffer_G12(pScalabilityState, &ScdryCmdBuffer));
         pCmdBufferInUse = &ScdryCmdBuffer;
     }
@@ -649,7 +654,7 @@ MOS_STATUS CodecHalDecodeScalability_DbgDumpCmdBuffer_G12(
     CODECHAL_DECODE_CHK_STATUS_RETURN(debugInterface->DumpCmdBuffer(
         pCmdBufferInUse,
         CODECHAL_NUM_MEDIA_STATES,
-        "DEC"));
+        cmdName.c_str()));
 
 finish:
     return eStatus;
