@@ -129,7 +129,6 @@ public:
     virtual ~SwFilterPipeFactory();
 
     MOS_STATUS Create(PVP_PIPELINE_PARAMS params, SwFilterPipe *&swFilterPipe);
-    MOS_STATUS Create(VEBOX_SFC_PARAMS *params, SwFilterPipe *&swFilterPipe);
 
     // Create empty swFilter
     MOS_STATUS Create(SwFilterPipe *&swFilterPipe);

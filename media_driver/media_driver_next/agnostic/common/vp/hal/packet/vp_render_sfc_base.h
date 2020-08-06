@@ -148,11 +148,6 @@ public:
     //!
     virtual MOS_STATUS SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled);
 
-    virtual bool IsVdboxSfcFormatSupported(
-        CODECHAL_STANDARD           codecStandard,
-        MOS_FORMAT                  inputFormat,
-        MOS_FORMAT                  outputFormat);
-
     bool IsCSC() { return m_renderData.bCSC; }
     bool IsScaling() { return m_renderData.bScaling; }
 

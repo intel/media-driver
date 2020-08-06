@@ -36,7 +36,6 @@
 
 #include "mos_os.h"
 #include "vphal_common_hdr.h"
-#include "media_common_defs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -303,14 +302,14 @@ typedef struct _VPHAL_RENDER_CACHE_CNTL
 //!
 typedef enum _VPHAL_ROTATION
 {
-    VPHAL_ROTATION_IDENTITY             = ROTATION_IDENTITY             ,   //!< Rotation 0 degrees
-    VPHAL_ROTATION_90                   = ROTATION_90                   ,   //!< Rotation 90 degrees
-    VPHAL_ROTATION_180                  = ROTATION_180                  ,   //!< Rotation 180 degrees
-    VPHAL_ROTATION_270                  = ROTATION_270                  ,   //!< Rotation 270 degrees
-    VPHAL_MIRROR_HORIZONTAL             = ROTATION_MIRROR_HORIZONTAL    ,   //!< Horizontal Mirror
-    VPHAL_MIRROR_VERTICAL               = ROTATION_MIRROR_VERTICAL      ,   //!< Vertical Mirror
-    VPHAL_ROTATE_90_MIRROR_VERTICAL     = ROTATION_90_MIRROR_VERTICAL   ,   //!< 90 + V Mirror
-    VPHAL_ROTATE_90_MIRROR_HORIZONTAL   = ROTATION_90_MIRROR_HORIZONTAL     //!< 90 + H Mirror
+    VPHAL_ROTATION_IDENTITY               = 0,   //!< Rotation 0 degrees
+    VPHAL_ROTATION_90                        ,   //!< Rotation 90 degrees
+    VPHAL_ROTATION_180                       ,   //!< Rotation 180 degrees
+    VPHAL_ROTATION_270                       ,   //!< Rotation 270 degrees
+    VPHAL_MIRROR_HORIZONTAL                  ,   //!< Horizontal Mirror
+    VPHAL_MIRROR_VERTICAL                    ,   //!< Vertical Mirror
+    VPHAL_ROTATE_90_MIRROR_VERTICAL          ,   //!< 90 + V Mirror
+    VPHAL_ROTATE_90_MIRROR_HORIZONTAL            //!< 90 + H Mirror
 } VPHAL_ROTATION;
 
 //!
@@ -388,7 +387,35 @@ C_ASSERT(SURF_TYPE_COUNT == 6);     //!< When adding, update assert & vphal_solo
 //!
 //! \brief Color Spaces enum
 //!
-typedef MEDIA_CSPACE VPHAL_CSPACE;
+typedef enum _VPHAL_CSPACE
+{
+    CSpace_None     = -5        ,   //!< Unidentified
+    CSpace_Source   = -4        ,   //!< Current source Color Space
+
+    // Groups of Color Spaces
+    CSpace_RGB      = -3        ,   //!< sRGB
+    CSpace_YUV      = -2        ,   //!< YUV BT601 or BT709 - non xvYCC
+    CSpace_Gray     = -1        ,   //!< Gray scale image with only Y component
+    CSpace_Any      =  0        ,   //!< Any
+
+    // Specific Color Spaces
+    CSpace_sRGB                 ,   //!< RGB - sRGB       -   RGB[0,255]
+    CSpace_stRGB                ,   //!< RGB - stRGB      -   RGB[16,235]
+    CSpace_BT601                ,   //!< YUV BT.601 Y[16,235] UV[16,240]
+    CSpace_BT601_FullRange      ,   //!< YUV BT.601 Y[0,255]  UV[-128,+127]
+    CSpace_BT709                ,   //!< YUV BT.709 Y[16,235] UV[16,240]
+    CSpace_BT709_FullRange      ,   //!< YUV BT.709 Y[0,255]  UV[-128,+127]
+    CSpace_xvYCC601             ,   //!< xvYCC 601 Y[16,235]  UV[16,240]
+    CSpace_xvYCC709             ,   //!< xvYCC 709 Y[16,235]  UV[16,240]
+    CSpace_BT601Gray            ,   //!< BT.601 Y[16,235]
+    CSpace_BT601Gray_FullRange  ,   //!< BT.601 Y[0,255]
+    CSpace_BT2020               ,   //!< BT.2020 YUV Limited Range 10bit Y[64, 940] UV[64, 960]
+    CSpace_BT2020_FullRange     ,   //!< BT.2020 YUV Full Range 10bit [0, 1023]
+    CSpace_BT2020_RGB           ,   //!< BT.2020 RGB Full Range 10bit [0, 1023]
+    CSpace_BT2020_stRGB         ,   //!< BT.2020 RGB Studio Range 10bit [64, 940]
+    CSpace_Count                    //!< Keep this at the end
+} VPHAL_CSPACE;
+C_ASSERT(CSpace_Count == 15);       //!< When adding, update assert & vphal_solo_scenario.cpp
 
 //!
 //! Structure VPHAL_GAMMA_TYPE

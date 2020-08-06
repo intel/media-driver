@@ -32,12 +32,6 @@
 #include "sw_filter_pipe.h"
 
 using namespace vp;
-
-namespace vp
-{
-MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat);
-};
-
 VpScalingFilter::VpScalingFilter(
     PVP_MHWINTERFACE vpMhwInterface) :
     VpFilter(vpMhwInterface)
@@ -349,10 +343,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
             &dwSurfaceWidth,
             &dwSurfaceHeight));
 
-        m_scalingParams.formatInput             = GetSfcInputFormat(m_executeCaps, m_scalingParams.formatInput);
-        m_sfcScalingParams->inputFrameFormat    = m_scalingParams.formatInput;
-        m_sfcScalingParams->dwInputFrameHeight  = dwSurfaceHeight;
-        m_sfcScalingParams->dwInputFrameWidth   = dwSurfaceWidth;
+        m_sfcScalingParams->dwInputFrameHeight = dwSurfaceHeight;
+        m_sfcScalingParams->dwInputFrameWidth  = dwSurfaceWidth;
 
         // Apply alignment restriction to the Region of the output frame.
         GetFormatWidthHeightAlignUnit(
@@ -362,7 +354,7 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
 
         // Apply alignment restriction to Region of the input frame.
         GetFormatWidthHeightAlignUnit(
-            m_sfcScalingParams->inputFrameFormat,
+            m_executeCaps.bDI ? Format_YUY2 : m_scalingParams.formatInput,
             wInputWidthAlignUnit,
             wInputHeightAlignUnit);
 

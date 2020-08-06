@@ -41,7 +41,7 @@
 #include "media_perf_profiler.h"
 
 #include "frame_tracker.h"
-#include "media_common_defs.h"
+
 
 class XRenderHal_Platform_Interface;
 
@@ -290,6 +290,14 @@ enum MEDIASTATE_AVS_SHARPNESS_LEVEL
 {
     MEDIASTATE_AVS_SHARPNESS_LEVEL_SMOOTH = 0,
     MEDIASTATE_AVS_SHARPNESS_LEVEL_SHARP  = 255
+};
+
+enum ROTATION_MODE
+{
+    ROTATION_IDENTITY               = 0,
+    ROTATION_90                     = 1,
+    ROTATION_180                    = 2,
+    ROTATION_270                    = 3,
 };
 
 // Render chroma siting vertical value

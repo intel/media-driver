@@ -109,11 +109,11 @@ protected:
 struct _SFC_SCALING_PARAMS
 {
     // Scaling parameters
+
     uint32_t                        dwOutputFrameHeight;                        // Output Frame Height
     uint32_t                        dwOutputFrameWidth;                         // Output Frame Width
     uint32_t                        dwInputFrameHeight;                         // Input Frame Height
     uint32_t                        dwInputFrameWidth;                          // Input Frame Width
-    MOS_FORMAT                      inputFrameFormat;                           // Input Frame Format
 
     bool                            bBilinearScaling;                           // true if bilinear scaling, otherwise avs scaling.
     uint32_t                        dwSourceRegionHeight;                       // Source/Crop region height

@@ -140,31 +140,6 @@ public:
     VP_SURFACE* AllocateVpSurface(VP_SURFACE &vphalSurf);
 
     //!
-    //! \brief  Allocate vp surface
-    //! \param  [in] osSurf
-    //!         The surface that vp surface created from. The resource will be reused in vp surface.
-    //! \param  [in] colorSpace
-    //!         colorSpace of vp surface.
-    //! \param  [in] chromaSiting
-    //!         chromaSiting of vp surface.
-    //! \param  [in] rcSrc
-    //!         rcSrc of vp surface.
-    //! \param  [in] rcDst
-    //!         rcDst of vp surface.
-    //! \param  [in] SurfType
-    //!         SurfType of vp surface.
-    //! \return VP_SURFACE*
-    //!         return the pointer to VP_SURFACE
-    //!
-    VP_SURFACE *AllocateVpSurface(
-        MOS_SURFACE &osSurf,
-        VPHAL_CSPACE colorSpace,
-        uint32_t chromaSiting,
-        RECT rcSrc,
-        RECT rcDst,
-        VPHAL_SURFACE_TYPE SurfType);
-
-    //!
     //! \brief  Allocate vp surface without resource
     //! \return VP_SURFACE*
     //!         return the pointer to VP_SURFACE

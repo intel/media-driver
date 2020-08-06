@@ -186,21 +186,6 @@ MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, SwFilterPipe 
     return status;
 }
 
-MOS_STATUS SwFilterPipeFactory::Create(VEBOX_SFC_PARAMS *params, SwFilterPipe *&swFilterPipe)
-{
-    VP_PUBLIC_CHK_NULL_RETURN(params);
-    swFilterPipe = m_allocator.Create();
-    VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
-
-    MOS_STATUS status = swFilterPipe->Initialize(*params);
-
-    if (MOS_FAILED(status))
-    {
-        m_allocator.Destory(swFilterPipe);
-    }
-    return status;
-}
-
 MOS_STATUS SwFilterPipeFactory::Create(SwFilterPipe *&swFilterPipe)
 {
     swFilterPipe = m_allocator.Create();
