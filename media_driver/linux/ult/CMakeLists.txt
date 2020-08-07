@@ -43,7 +43,7 @@ elseif (DEFINED ENV{LIBVA_INSTALL_PATH} AND NOT "$ENV{LIBVA_INSTALL_PATH}" STREQ
     include_directories(BEFORE $ENV{LIBVA_INSTALL_PATH})
 else ()
     include(FindPkgConfig)
-    pkg_check_modules(LIBVA REQUIRED libva>=1.0.0)
+    pkg_check_modules(LIBVA REQUIRED libva>=1.8.0)
     if (LIBVA_FOUND)
         include_directories(BEFORE ${LIBVA_INCLUDE_DIRS})
     endif ()
