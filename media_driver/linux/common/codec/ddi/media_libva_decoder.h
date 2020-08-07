@@ -48,6 +48,7 @@ struct DDI_DECODE_CONFIG_ATTR
     uint32_t            uiDecSliceMode;
     uint32_t            uiEncryptionType;
     uint32_t            uiDecProcessingType;
+    int32_t             uiPriority;
 };
 
 typedef struct DDI_DECODE_CONFIG_ATTR *PDDI_DECODE_CONFIG_ATTR;

@@ -47,6 +47,9 @@ typedef MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT> CapsFactory;
 #define VA_ENCRYPTION_TYPE_NONE 0x00000000
 #endif
 
+#ifndef CONTEXT_PRIORITY_MAX
+#define CONTEXT_PRIORITY_MAX 1024
+#endif
 
 const uint32_t MediaLibvaCaps::m_decSliceMode[2] =
 {
@@ -162,19 +165,19 @@ bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType
 
 VAStatus MediaLibvaCaps::AddDecConfig(uint32_t slicemode, uint32_t encryptType, uint32_t processType)
 {
-    m_decConfigs.emplace_back(slicemode, encryptType, processType);
+    m_decConfigs.emplace_back(slicemode, encryptType, processType, CONTEXT_PRIORITY_MAX/2);
     return VA_STATUS_SUCCESS;
 }
 
 VAStatus MediaLibvaCaps::AddEncConfig(uint32_t rcMode, uint32_t feiFunction)
 {
-    m_encConfigs.emplace_back(rcMode, feiFunction);
+    m_encConfigs.emplace_back(rcMode, feiFunction, CONTEXT_PRIORITY_MAX/2);
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus MediaLibvaCaps::AddVpConfig(uint32_t attrib)
+VAStatus MediaLibvaCaps::AddVpConfig()
 {
-    m_vpConfigs.emplace_back(attrib);
+    m_vpConfigs.emplace_back(CONTEXT_PRIORITY_MAX/2);
     return VA_STATUS_SUCCESS;
 }
 
@@ -449,6 +452,13 @@ VAStatus MediaLibvaCaps::CheckAttribList(
                 continue;
             }
         }
+#if VA_CHECK_VERSION(1, 9, 0)
+        if (attrib[j].type == VAConfigAttribContextPriority)
+        {
+            isValidAttrib = true;
+            continue;
+        }
+#endif
 
         if (m_profileEntryTbl[idx].m_attributes->find(attrib[j].type) !=
             m_profileEntryTbl[idx].m_attributes->end())
@@ -572,6 +582,24 @@ VAStatus MediaLibvaCaps::CheckAttribList(
         }
     }
     return VA_STATUS_SUCCESS;
+}
+
+VAStatus MediaLibvaCaps::GetGeneralConfigAttrib(VAConfigAttrib* attrib)
+{
+    DDI_CHK_NULL(attrib, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAStatus status = VA_STATUS_SUCCESS;
+#if VA_CHECK_VERSION(1, 9, 0)
+    if (attrib->type == VAConfigAttribContextPriority)
+    {
+        attrib->value = CONTEXT_PRIORITY_MAX;
+    }
+    else
+    {
+        status = VA_ATTRIB_NOT_SUPPORTED;
+    }
+#endif
+    return status;
 }
 
 VAStatus MediaLibvaCaps::CreateEncAttributes(
@@ -1878,7 +1906,7 @@ VAStatus MediaLibvaCaps::LoadNoneProfileEntrypoints()
     DDI_CHK_RET(status, "Failed to initialize Caps!");
 
     uint32_t configStartIdx = m_vpConfigs.size();
-    AddVpConfig(0);
+    AddVpConfig();
     AddProfileEntry(VAProfileNone, VAEntrypointVideoProc, attributeList, configStartIdx, 1);
 
     configStartIdx = m_encConfigs.size();
@@ -1916,8 +1944,11 @@ VAStatus MediaLibvaCaps::GetConfigAttributes(VAProfile profile,
         }
         else
         {
-            //For unknown attribute, set to VA_ATTRIB_NOT_SUPPORTED
-            attribList[j].value = VA_ATTRIB_NOT_SUPPORTED;
+            if (GetGeneralConfigAttrib(&attribList[j]) != VA_STATUS_SUCCESS)
+            {
+                //For unknown attribute, set to VA_ATTRIB_NOT_SUPPORTED
+                attribList[j].value = VA_ATTRIB_NOT_SUPPORTED;
+            }
         }
     }
 
@@ -1937,7 +1968,7 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
         DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     }
 
-    VAConfigAttrib decAttributes[3];
+    VAConfigAttrib decAttributes[4];
 
     decAttributes[0].type = VAConfigAttribDecSliceMode;
     decAttributes[0].value = VA_DEC_SLICE_MODE_NORMAL;
@@ -1945,11 +1976,15 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
     decAttributes[1].value = VA_ENCRYPTION_TYPE_NONE;
     decAttributes[2].type = VAConfigAttribDecProcessing;
     decAttributes[2].value = VA_DEC_PROCESSING_NONE;
+#if VA_CHECK_VERSION(1, 9, 0)
+    decAttributes[3].type = VAConfigAttribContextPriority;
+    decAttributes[3].value = CONTEXT_PRIORITY_MAX/2;
+#endif
 
     int32_t i,j;
     for (j = 0; j < numAttribs; j++)
     {
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < 4; i++)
         {
             if (attribList[j].type == decAttributes[i].type)
             {
@@ -1967,6 +2002,16 @@ VAStatus MediaLibvaCaps::CreateDecConfig(
                 && decAttributes[1].value == m_decConfigs[i].m_encryptType
                 && decAttributes[2].value == m_decConfigs[i].m_processType)
         {
+#if VA_CHECK_VERSION(1, 9, 0)
+            if ((decAttributes[3].value >=0) && (decAttributes[3].value <= CONTEXT_PRIORITY_MAX))
+            {
+                m_decConfigs[i].m_priority = decAttributes[3].value - CONTEXT_PRIORITY_MAX/2;
+            }
+            else
+            {
+                m_decConfigs[i].m_priority = 0;
+            }
+#endif
             break;
         }
     }
@@ -2023,6 +2068,7 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
     }
 
     uint32_t feiFunction = 0;
+    int32_t  priority = 0;
 
     int32_t j;
     for (j = 0; j < numAttribs; j++)
@@ -2053,6 +2099,19 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
                 return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
             }
         }
+#if VA_CHECK_VERSION(1, 9, 0)
+        if(VAConfigAttribContextPriority == attribList[j].type)
+        {
+            if ((attribList[j].value >= 0) && (attribList[j].value <= CONTEXT_PRIORITY_MAX))
+            {
+                priority = attribList[j].value - CONTEXT_PRIORITY_MAX/2;
+            }
+            else
+            {
+                priority = 0;
+            }
+        }
+#endif
     }
 
     // If VAEntrypointFEI but FEI type (ENC/PAK/ENCPAK) wasn't provided via VAConfigAttribFEIFunctionType
@@ -2067,6 +2126,7 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
         if (m_encConfigs[j].m_rcMode == rcMode &&
             m_encConfigs[j].m_FeiFunction == feiFunction)
         {
+            m_encConfigs[j].m_priority = priority;
             break;
         }
     }
@@ -2094,6 +2154,27 @@ VAStatus MediaLibvaCaps::CreateVpConfig(
     DDI_UNUSED(numAttribs);
 
     DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    int32_t i;
+    int32_t priority = 0;
+    for (i = 0; i < numAttribs; i++)
+    {
+#if VA_CHECK_VERSION(1, 9, 0)
+        if(VAConfigAttribContextPriority == attribList[i].type)
+        {
+            if ((attribList[i].value >= 0) && ( attribList[i].value <= CONTEXT_PRIORITY_MAX))
+            {
+                priority = attribList[i].value - CONTEXT_PRIORITY_MAX/2;
+            }
+            else
+            {
+                priority = 0;
+            }
+        }
+#endif
+    }
+
+    m_vpConfigs[m_profileEntryTbl[profileTableIdx].m_configStartIdx].m_priority = priority;
 
     *configId = m_profileEntryTbl[profileTableIdx].m_configStartIdx
         + DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE;
@@ -2347,7 +2428,8 @@ VAStatus MediaLibvaCaps::GetEncConfigAttr(
         VAProfile *profile,
         VAEntrypoint *entrypoint,
         uint32_t *rcMode,
-        uint32_t *feiFunction)
+        uint32_t *feiFunction,
+        int32_t  *priority)
 {
     DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -2371,6 +2453,8 @@ VAStatus MediaLibvaCaps::GetEncConfigAttr(
     }
     *rcMode = m_encConfigs[configOffset].m_rcMode;
     *feiFunction = m_encConfigs[configOffset].m_FeiFunction;
+    *priority = m_encConfigs[configOffset].m_priority;
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -2380,7 +2464,8 @@ VAStatus MediaLibvaCaps::GetDecConfigAttr(
         VAEntrypoint *entrypoint,
         uint32_t *sliceMode,
         uint32_t *encryptType,
-        uint32_t *processMode)
+        uint32_t *processMode,
+        int32_t  *priority)
 {
     DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -2420,18 +2505,24 @@ VAStatus MediaLibvaCaps::GetDecConfigAttr(
     {
         *processMode =  m_decConfigs[configOffset].m_processType;
     }
+
+    if (priority)
+    {
+        *priority = m_decConfigs[configOffset].m_priority;
+    }
     return VA_STATUS_SUCCESS;
 }
 
 VAStatus MediaLibvaCaps::GetVpConfigAttr(
         VAConfigID configId,
         VAProfile *profile,
-        VAEntrypoint *entrypoint)
+        VAEntrypoint *entrypoint,
+        int32_t *priority)
 {
     DDI_CHK_NULL(profile, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(entrypoint, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     int32_t profileTableIdx = -1;
-    int32_t configOffset = configId - DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE;
+    int32_t configOffset = configId;
     VAStatus status = GetProfileEntrypointFromConfigId(configId, profile, entrypoint, &profileTableIdx);
     DDI_CHK_RET(status, "Invalide config_id!");
     if (profileTableIdx < 0 || profileTableIdx >= m_profileEntryCount)
@@ -2446,6 +2537,11 @@ VAStatus MediaLibvaCaps::GetVpConfigAttr(
     if (configOffset < configStart || configOffset > configEnd)
     {
         return VA_STATUS_ERROR_INVALID_CONFIG;
+    }
+
+    if (priority)
+    {
+        *priority = m_vpConfigs[configOffset].m_priority;
     }
 
     return VA_STATUS_SUCCESS;
