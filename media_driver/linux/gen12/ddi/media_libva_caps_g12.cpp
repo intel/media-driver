@@ -1837,20 +1837,11 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
         (*attribList)[attrib.type] = attrib.value;
     }
 
-    if(entrypoint == VAEntrypointEncSliceLP)
+    if (IsHevcProfile(profile))
     {
-        if (IsAvcProfile(profile))
-        {
-            attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS;
-            (*attribList)[attrib.type] = attrib.value;
-        }
-        else if (IsHevcProfile(profile))
-        {
-            attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
-            attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
-            (*attribList)[attrib.type] = attrib.value;
-        }
+        attrib.type = (VAConfigAttribType) VAConfigAttribPredictionDirection;
+        attrib.value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+        (*attribList)[attrib.type] = attrib.value;
     }
 
     return status;
