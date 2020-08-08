@@ -321,9 +321,9 @@ VAStatus MediaLibvaCapsG10::LoadVp9EncProfileEntrypoints()
     }
 #endif
 #ifdef _VP9_ENCODE_VME_SUPPORTED
-    AttribMap *attributeList;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9))
     {
+        AttribMap *attributeList;
         status = CreateEncAttributes(VAProfileVP9Profile0, VAEntrypointEncSlice, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
 
