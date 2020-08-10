@@ -635,7 +635,9 @@ MOS_STATUS SwFilterSet::Clean()
         if (swFilter)
         {
             VpInterface &vpIntf = swFilter->GetVpInterface();
-            vpIntf.GetSwFilterHandler(swFilter->GetFeatureType())->Destory(swFilter);
+            SwFilterFeatureHandler *swFilterHandler = vpIntf.GetSwFilterHandler(swFilter->GetFeatureType());
+            VP_PUBLIC_CHK_NULL_RETURN(swFilterHandler);
+            swFilterHandler->Destory(swFilter);
         }
     }
     return MOS_STATUS_SUCCESS;
