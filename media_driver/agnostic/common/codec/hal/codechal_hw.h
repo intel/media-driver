@@ -401,6 +401,8 @@ protected:
 
     bool                        m_noSeparateL3LlcCacheabilitySettings = false;   // No separate L3 LLC cacheability settings
 
+    bool                        m_disableScalability                  = false;   //!> Flag to indicate if disable scalability by default
+
 public:
     // Hardware dependent parameters
     bool                        m_turboMode = false;                            //!> Turbo mode info to pass in cmdBuf
@@ -450,7 +452,8 @@ public:
     CodechalHwInterface(
         PMOS_INTERFACE    osInterface,
         CODECHAL_FUNCTION codecFunction,
-        MhwInterfaces     *mhwInterfaces);
+        MhwInterfaces     *mhwInterfaces,
+        bool              disableScalability = false);
 
     //!
     //! \brief    Copy constructor
@@ -1552,6 +1555,16 @@ public:
     bool IsSimActive()
     {
         return m_osInterface ? m_osInterface->bSimIsActive : false;
+    }
+
+    //!
+    //! \brief    Check if disable scalability by default
+    //! \return   bool
+    //!           True if it is to disable scalability by default, else it is not.
+    //!
+    bool IsDisableScalability()
+    {
+        return m_disableScalability;
     }
 
     virtual bool UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard);

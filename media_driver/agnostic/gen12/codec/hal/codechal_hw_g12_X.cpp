@@ -109,8 +109,9 @@ const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL
 CodechalHwInterfaceG12::CodechalHwInterfaceG12(
     PMOS_INTERFACE    osInterface,
     CODECHAL_FUNCTION codecFunction,
-    MhwInterfaces     *mhwInterfaces)
-    : CodechalHwInterface(osInterface, codecFunction, mhwInterfaces)
+    MhwInterfaces     *mhwInterfaces,
+    bool              disableScalability)
+    : CodechalHwInterface(osInterface, codecFunction, mhwInterfaces, disableScalability)
 {
     CODECHAL_HW_FUNCTION_ENTER;
 

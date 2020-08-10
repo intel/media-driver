@@ -198,12 +198,18 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     //1:by default for scalable decode mode
     //0:for legacy decode mode
     MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MosUtilities::MosUserFeatureReadValueID(
+    MOS_STATUS eStatusUserFeature = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
         &userFeatureData,
         (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->hcpDecScalabilityMode = userFeatureData.u32Data ? true : false;
+    (*streamState)->hcpDecScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+    if((*streamState)->hcpDecScalabilityMode
+        && (eStatusUserFeature == MOS_STATUS_SUCCESS))
+    {
+        //user's value to enable scalability
+        (*streamState)->hcpDecScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
+    }
 
     (*streamState)->frameSplit = false;
     MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -227,12 +233,18 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     // UMD Vebox Virtual Engine Scalability Mode
     // 0: disable. can set to 1 only when KMD VE is enabled.
     MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MosUtilities::MosUserFeatureReadValueID(
+    eStatusUserFeature = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
         &userFeatureData,
         (MOS_CONTEXT_HANDLE) nullptr);
-    (*streamState)->veboxScalabilityMode = userFeatureData.u32Data ? true : false;
+    (*streamState)->veboxScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+    if((*streamState)->veboxScalabilityMode
+        && (eStatusUserFeature == MOS_STATUS_SUCCESS))
+    {
+        //user's value to enable scalability
+        (*streamState)->veboxScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
+    }
 
 #endif
 

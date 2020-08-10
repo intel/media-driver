@@ -470,7 +470,19 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     PCODECHAL_STANDARD_INFO info = ((PCODECHAL_STANDARD_INFO)standardInfo);
     CODECHAL_FUNCTION CodecFunction = info->CodecFunction;
 
-    CodechalHwInterface *hwInterface = MOS_New(Hw, osInterface, CodecFunction, mhwInterfaces);
+    bool disableScalability = false;
+    if(MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrLocalMemory))
+    {
+        PLATFORM platform = {};
+        osInterface->pfnGetPlatform(osInterface, &platform);
+        if((platform.usDeviceID != 0x4905)
+            && (platform.usDeviceID != 0x4906)
+            && (platform.usDeviceID != 0x4908))
+        {
+            disableScalability = true;
+        }
+    }
+    CodechalHwInterface *hwInterface = MOS_New(Hw, osInterface, CodecFunction, mhwInterfaces, disableScalability);
 
     if (hwInterface == nullptr)
     {

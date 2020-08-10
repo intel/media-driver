@@ -7062,12 +7062,18 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         //1:by default for scalable decode mode
         //0:for legacy decode mode
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        auto eStatusUserFeature = MOS_UserFeature_ReadValue_ID(
+        MOS_STATUS eStatusUserFeature = MOS_UserFeature_ReadValue_ID(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
             &userFeatureData,
             nullptr);
-        osInterface->bHcpDecScalabilityMode = userFeatureData.u32Data ? true : false;
+        osInterface->bHcpDecScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+        if(osInterface->bHcpDecScalabilityMode
+            && (eStatusUserFeature == MOS_STATUS_SUCCESS))
+        {
+            //user's value to enable scalability
+            osInterface->bHcpDecScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
+        }
 
         osInterface->frameSplit                  = false;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -7101,12 +7107,18 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         // UMD Vebox Virtual Engine Scalability Mode
         // 0: disable. can set to 1 only when KMD VE is enabled.
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
+        eStatusUserFeature = MOS_UserFeature_ReadValue_ID(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
             &userFeatureData,
             nullptr);
-        osInterface->bVeboxScalabilityMode = userFeatureData.u32Data ? true : false;
+        osInterface->bVeboxScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+        if(osInterface->bVeboxScalabilityMode
+            && (eStatusUserFeature == MOS_STATUS_SUCCESS))
+        {
+            //user's value to enable scalability
+            osInterface->bVeboxScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
+        }
 #endif
     }
 

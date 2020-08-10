@@ -289,6 +289,13 @@ typedef enum _MOS_FORCE_VEBOX
     MOS_FORCE_VEBOX_1_2_3_4 = 0x1234
 } MOS_FORCE_VEBOX;
 
+typedef enum _MOS_SCALABILITY_ENABLE_MODE
+{
+    MOS_SCALABILITY_ENABLE_MODE_FALSE      = 0,
+    MOS_SCALABILITY_ENABLE_MODE_DEFAULT    = 0x0001,
+    MOS_SCALABILITY_ENABLE_MODE_USER_FORCE = 0x0010
+} MOS_SCALABILITY_ENABLE_MODE;
+
 #define MOS_FORCEVEBOX_VEBOXID_BITSNUM              4 //each VEBOX ID occupies 4 bits see defintion MOS_FORCE_VEBOX
 #define MOS_FORCEVEBOX_MASK                         0xf
 
@@ -563,8 +570,8 @@ struct MosStreamState
     bool veEnable = false;                //!< Flag to indicate virtual engine enabled (Can enable VE without using virtual engine interface)
     bool phasedSubmission = false;        //!< Flag to indicate if secondary command buffers are submitted together or separately due to different OS
     bool frameSplit = true;               //!< Flag to indicate if frame split is enabled (only active when phasedSubmission is true)
-    bool hcpDecScalabilityMode = false;   //!< Hcp scalability mode
-    bool veboxScalabilityMode = false;    //!< Vebox scalability mode
+    int32_t hcpDecScalabilityMode = 0;   //!< Hcp scalability mode
+    int32_t veboxScalabilityMode  = 0;    //!< Vebox scalability mode
 
     bool ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
     bool multiNodeScaling = false;    //!< Flag to indicate if multi-node scaling is enabled for virtual engine (only active when ctxBasedScheduling is true)
@@ -1336,7 +1343,7 @@ typedef struct _MOS_INTERFACE
     bool                            VEEnable;
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_FORCE_VEBOX                 eForceVebox;                                  //!< Force select Vebox
-    int32_t                         bHcpDecScalabilityMode;                       //!< enable scalability decode
+    int32_t                         bHcpDecScalabilityMode;                       //!< enable scalability decode {mode: default, user force, false}
     int32_t                         bEnableDbgOvrdInVE;                           //!< It is for all scalable engines: used together with KMD VE for UMD to specify an engine directly
     int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
     int32_t                         bSoftReset;                                   //!< trigger soft reset

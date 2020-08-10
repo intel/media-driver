@@ -62,7 +62,8 @@ public:
     CodechalHwInterfaceG12(
         PMOS_INTERFACE    osInterface,
         CODECHAL_FUNCTION codecFunction,
-        MhwInterfaces     *mhwInterfaces);
+        MhwInterfaces     *mhwInterfaces,
+        bool              disableScalability = false);
 
     //!
     //! \brief    Copy constructor

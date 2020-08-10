@@ -45,7 +45,8 @@ const MOS_SYNC_PARAMS     g_cInitSyncParams =
 CodechalHwInterface::CodechalHwInterface(
     PMOS_INTERFACE    osInterface,
     CODECHAL_FUNCTION codecFunction,
-    MhwInterfaces     *mhwInterfaces)
+    MhwInterfaces     *mhwInterfaces,
+    bool              disableScalability)
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
@@ -72,6 +73,7 @@ CodechalHwInterface::CodechalHwInterface(
     m_renderInterface = mhwInterfaces->m_renderInterface;
 
     m_stateHeapSettings = MHW_STATE_HEAP_SETTINGS();
+    m_disableScalability = disableScalability;
 
     MOS_ZeroMemory(&m_hucDmemDummy, sizeof(m_hucDmemDummy));
     MOS_ZeroMemory(&m_dummyStreamIn, sizeof(m_dummyStreamIn));
