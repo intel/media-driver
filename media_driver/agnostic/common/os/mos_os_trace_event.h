@@ -108,7 +108,8 @@ typedef enum _MEDIA_EVENT
     EVENT_HECI_OBJ,                 //! event for heci duplicate handle
     EVENT_PLAT_INFO,                //! event for static platform info
     EVENT_DATA_DICTIONARY,          //! event for data dictionary (name:value pair)
-    EVENT_MEDIA_COPY                //! event for media decompresss/copy/blt
+    EVENT_MEDIA_COPY,               //! event for media decompresss/copy/blt
+    EVENT_MOS_BATCH_SUBMIT,         //! event for batch buffer submission
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

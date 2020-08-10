@@ -803,6 +803,8 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
 {
     MOS_OS_FUNCTION_ENTER;
 
+    MOS_TraceEventExt(EVENT_MOS_BATCH_SUBMIT, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
+
     MOS_OS_CHK_NULL_RETURN(osInterface);
     PMOS_CONTEXT osContext = osInterface->pOsContext;
     MOS_OS_CHK_NULL_RETURN(osContext);
@@ -935,6 +937,12 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
         {
             skipSyncBoList.push_back(alloc_bo);
         }
+
+        MOS_TraceEventExt(EVENT_MOS_BATCH_SUBMIT, EVENT_TYPE_INFO,
+                            &alloc_bo->handle,
+                            sizeof(alloc_bo->handle),
+                            &currentPatch->uiWriteOperation,
+                            sizeof(currentPatch->uiWriteOperation));
 
         // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
         ret = mos_bo_emit_reloc2(
@@ -1271,6 +1279,7 @@ if (osInterface->bDumpCommandBuffer)
 
     MOS_ZeroMemory(m_writeModeList, sizeof(bool) * m_maxNumAllocations);
 finish:
+    MOS_TraceEventExt(EVENT_MOS_BATCH_SUBMIT, EVENT_TYPE_END, &eStatus, sizeof(eStatus), nullptr, 0);
     return eStatus;
 }
 
