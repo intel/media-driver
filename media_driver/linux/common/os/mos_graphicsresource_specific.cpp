@@ -293,6 +293,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         }
     }
 
+    MOS_TraceEventExt(EVENT_RESOURCE_ALLOCATE, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
     if (nullptr != params.m_pSystemMemory)
     {
         boPtr = mos_bo_alloc_userptr(pOsContextSpecific->m_bufmgr,
@@ -352,12 +353,41 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_compressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfoPtr->GetMmcMode(0);
 
         MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).",bufSize, params.m_width, bufHeight);
+
+        struct {
+            uint32_t m_handle;
+            uint32_t m_resFormat;
+            uint32_t m_baseWidth;
+            uint32_t m_baseHeight;
+            uint32_t m_pitch;
+            uint32_t m_size;
+            uint32_t m_resTileType;
+            GMM_RESOURCE_FLAG m_resFlag;
+            uint32_t          m_reserve;
+        } eventData;
+
+        eventData.m_handle       = boPtr->handle;
+        eventData.m_baseWidth    = m_width;
+        eventData.m_baseHeight   = m_height;
+        eventData.m_pitch        = m_pitch;
+        eventData.m_size         = m_size;
+        eventData.m_resFormat    = m_format;
+        eventData.m_resTileType  = m_tileType;
+        eventData.m_resFlag      = gmmResourceInfoPtr->GetResFlags();
+        eventData.m_reserve      = 0;
+        MOS_TraceEventExt(EVENT_RESOURCE_ALLOCATE,
+            EVENT_TYPE_INFO,
+            &eventData,
+            sizeof(eventData),
+            params.m_name.c_str(),
+            params.m_name.size() + 1);
     }
     else
     {
         MOS_OS_ASSERTMESSAGE("Fail to Alloc %7d bytes (%d x %d resource).",bufSize, params.m_width, params.m_height);
         status = MOS_STATUS_NO_SPACE;
     }
+    MOS_TraceEventExt(EVENT_RESOURCE_ALLOCATE, EVENT_TYPE_END, &status, sizeof(status), nullptr, 0);
 
     m_memAllocCounterGfx++;
     return  status;
