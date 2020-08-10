@@ -115,7 +115,7 @@ struct _SFC_SCALING_PARAMS
     uint32_t                        dwInputFrameHeight;                         // Input Frame Height
     uint32_t                        dwInputFrameWidth;                          // Input Frame Width
 
-    uint32_t                        dwAVSFilterMode;                            // Bilinear filter only, 5x5 + bilinear (adaptive) or 8x8 + bilinear (adaptive) which are exactly equal to SFC_STATE cmd.DW4.AvsFilterMode
+    bool                            bBilinearScaling;                           // true if bilinear scaling, otherwise avs scaling.
     uint32_t                        dwSourceRegionHeight;                       // Source/Crop region height
     uint32_t                        dwSourceRegionWidth;                        // Source/Crop region width
     uint32_t                        dwSourceRegionVerticalOffset;               // Source/Crop region vertical offset
@@ -143,7 +143,6 @@ struct _SFC_CSC_PARAMS
     MOS_FORMAT                      inputFormat;                                 // SFC Input Format
     MOS_FORMAT                      outputFormat;                                // SFC Output Format
     PVPHAL_IEF_PARAMS               iefParams;                                   // Vphal Params
-    uint32_t                        inputChromaSubSampling;                      // Chroma subsampling at SFC input
     uint32_t                        sfcSrcChromaSiting;                          // SFC Source Chroma Siting location
     uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
