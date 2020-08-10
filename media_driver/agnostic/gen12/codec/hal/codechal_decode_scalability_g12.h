@@ -182,7 +182,7 @@ do                                                                              
         if(((m_hcpDecPhase - CODECHAL_HCP_DECODE_PHASE_FE) <= m_scalabilityState->ucScalablePipeNum) &&                 \
            (m_hcpDecPhase > CODECHAL_HCP_DECODE_PHASE_BE0))                                                             \
         {                                                                                                               \
-            CODECHAL_DECODE_ASSERT(m_scalabilityState->ucScalablePipeNum > 2);                                          \
+            CODECHAL_DECODE_ASSERT(m_scalabilityState->ucScalablePipeNum >= 2);                                          \
             EngineMode    = (m_scalabilityState->ucScalablePipeNum == (m_hcpDecPhase - CODECHAL_HCP_DECODE_PHASE_FE)) ? \
                               MHW_VDBOX_HCP_MULTI_ENGINE_MODE_RIGHT : MHW_VDBOX_HCP_MULTI_ENGINE_MODE_MIDDLE;           \
             PipeWorkMode  = MHW_VDBOX_HCP_PIPE_WORK_MODE_CODEC_BE;                                                      \

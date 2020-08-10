@@ -1116,6 +1116,7 @@ MOS_STATUS CodecHalDecodeScalability_AdvanceRealTilePass(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityStateBase);
     CODECHAL_DECODE_ASSERT(pScalabilityState->bIsRtMode);
+    CODECHAL_DECODE_ASSERT(pScalabilityState->u8RtCurPhase < pScalabilityState->u8RtPhaseNum);
 
     pScalabilityState->u8RtCurPipe++;
     if (pScalabilityState->u8RtCurPipe >= pScalabilityState->ucScalablePipeNum)
@@ -1123,8 +1124,6 @@ MOS_STATUS CodecHalDecodeScalability_AdvanceRealTilePass(
         pScalabilityState->u8RtCurPipe = 0;
         pScalabilityState->u8RtCurPhase++;
     }
-
-    CODECHAL_DECODE_ASSERT(pScalabilityState->u8RtCurPhase < pScalabilityState->u8RtPhaseNum);
 
     return eStatus;
 }

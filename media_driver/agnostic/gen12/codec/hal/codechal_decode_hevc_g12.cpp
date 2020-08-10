@@ -667,7 +667,7 @@ MOS_STATUS CodechalDecodeHevcG12 ::InitializeDecodeMode()
         {
             m_vtFrameCount++;
         }
-        else
+        else if (m_isSeparateTileDecoding)
         {
             m_spFrameCount++;
         }
@@ -2456,8 +2456,8 @@ MOS_STATUS CodechalDecodeHevcG12::DumpPicParams(
     //Dump RefFrameList[15]
     for (uint8_t i = 0; i < 15; ++i)
     {
-        oss << "RefFrameList[" << +i << "] FrameIdx:" << +picParams->RefFrameList[i].FrameIdx << std::endl;
-        oss << "RefFrameList[" << +i << "] PicFlags:" << +picParams->RefFrameList[i].PicFlags << std::endl;
+        oss << "RefFrameList[" << +i << "].FrameIdx:" << +picParams->RefFrameList[i].FrameIdx << std::endl;
+        oss << "RefFrameList[" << +i << "].PicFlags:" << +picParams->RefFrameList[i].PicFlags << std::endl;
     }
 
     //Dump POC List
@@ -2469,37 +2469,37 @@ MOS_STATUS CodechalDecodeHevcG12::DumpPicParams(
     //Dump Ref RefPicSetStCurrBefore List
     oss << "RefPicSetStCurrBefore[8]:";
     for (uint8_t i = 0; i < 8; i++)
-        oss << picParams->RefPicSetStCurrBefore[i] << " ";
+        oss << +picParams->RefPicSetStCurrBefore[i] << " ";
     oss << std::endl;
 
     //Dump Ref RefPicSetStCurrAfter List
     oss << "RefPicSetStCurrAfter[16]:";
     for (uint8_t i = 0; i < 8; i++)
-        oss << picParams->RefPicSetStCurrAfter[i] << " ";
+        oss << +picParams->RefPicSetStCurrAfter[i] << " ";
     oss << std::endl;
 
     //Dump Ref PicSetStCurr List
     oss << "RefPicSetLtCurr[16]:";
     for (uint8_t i = 0; i < 8; i++)
-        oss << picParams->RefPicSetLtCurr[i] << " ";
+        oss << +picParams->RefPicSetLtCurr[i] << " ";
     oss << std::endl;
 
     //Dump Ref RefPicSetStCurrBefore List with POC
-    oss << "RefPicSetStCurrBefore[8] (POC): ";
+    oss << "POC of RefPicSetStCurrBefore[8]: ";
     for (uint8_t i = 0; i < 8; i++)
-        oss << picParams->PicOrderCntValList[picParams->RefPicSetStCurrBefore[i]] << " ";
+        oss << +picParams->PicOrderCntValList[picParams->RefPicSetStCurrBefore[i]%15] << " ";
     oss << std::endl;
 
     //Dump Ref RefPicSetStCurrAfter List with POC
-    oss << "RefPicSetStCurrAfter[16] (POC):";
+    oss << "POC of RefPicSetStCurrAfter[16]:";
     for (uint8_t i = 0; i < 8; i++)
-        oss << picParams->PicOrderCntValList[picParams->RefPicSetStCurrAfter[i]] << " ";
+        oss << +picParams->PicOrderCntValList[picParams->RefPicSetStCurrAfter[i]%15] << " ";
     oss << std::endl;
 
     //Dump Ref PicSetStCurr List with POC
-    oss << "RefPicSetLtCurr[16] (POC): ";
+    oss << "POC of RefPicSetLtCurr[16]: ";
     for (uint8_t i = 0; i < 8; i++)
-        oss << picParams->PicOrderCntValList[picParams->RefPicSetLtCurr[i]] << " ";
+        oss << +picParams->PicOrderCntValList[picParams->RefPicSetLtCurr[i]%15] << " ";
     oss << std::endl;
 
     oss << "RefFieldPicFlag: " << +picParams->RefFieldPicFlag << std::endl;
@@ -2531,13 +2531,13 @@ MOS_STATUS CodechalDecodeHevcG12::DumpPicParams(
         //Dump cb_qp_offset_list[6]
         oss << "cb_qp_offset_list[6]: ";
         for (uint8_t i = 0; i < 6; i++)
-            oss << extPicParams->cb_qp_offset_list[i] << " ";
+            oss << +extPicParams->cb_qp_offset_list[i] << " ";
         oss << std::endl;
 
         //Dump cr_qp_offset_list[6]
         oss << "cr_qp_offset_list[6]: ";
         for (uint8_t i = 0; i < 6; i++)
-            oss << extPicParams->cr_qp_offset_list[i] << " ";
+            oss << +extPicParams->cr_qp_offset_list[i] << " ";
         oss << std::endl;
 
         //Dump scc pic parameters
@@ -2621,16 +2621,16 @@ MOS_STATUS CodechalDecodeHevcG12::DumpSliceParams(
             for (uint8_t i = 0; i < 15; ++i)
             {
                 oss << "RefPicList[0][" << +i << "]";
-                oss << "FrameIdx: " << +hevcSliceControl->RefPicList[0][i].FrameIdx;
-                oss << ", PicFlags: " << +hevcSliceControl->RefPicList[0][i].PicFlags;
-                oss << std::endl;
+                oss << ".FrameIdx: " << +hevcSliceControl->RefPicList[0][i].FrameIdx << std::endl;
+                oss << "RefPicList[0][" << +i << "]";
+                oss << ".PicFlags: " << +hevcSliceControl->RefPicList[0][i].PicFlags << std::endl;
             }
             for (uint8_t i = 0; i < 15; ++i)
             {
                 oss << "RefPicList[1][" << +i << "]";
-                oss << "FrameIdx: " << +hevcSliceControl->RefPicList[1][i].FrameIdx;
-                oss << ", PicFlags: " << +hevcSliceControl->RefPicList[1][i].PicFlags;
-                oss << std::endl;
+                oss << ".FrameIdx: " << +hevcSliceControl->RefPicList[1][i].FrameIdx << std::endl;
+                oss << "RefPicList[1][" << +i << "]";
+                oss << ".PicFlags: " << +hevcSliceControl->RefPicList[1][i].PicFlags << std::endl;
             }
 
             oss << "last_slice_of_pic: " << +hevcSliceControl->LongSliceFlags.fields.LastSliceOfPic << std::endl;
@@ -2667,7 +2667,7 @@ MOS_STATUS CodechalDecodeHevcG12::DumpSliceParams(
             for (uint8_t i = 0; i < 15; i++)
             {
                 oss << "delta_luma_weight_l0[" << +i << "]: " << +hevcSliceControl->delta_luma_weight_l0[i] << std::endl;
-                oss << "delta_luma_weight_l1[" << +i << "]: " << +hevcSliceControl->delta_luma_weight_l0[i] << std::endl;
+                oss << "delta_luma_weight_l1[" << +i << "]: " << +hevcSliceControl->delta_luma_weight_l1[i] << std::endl;
             }
             //Dump chroma_offset[2][15][2]
             for (uint8_t i = 0; i < 15; i++)
@@ -2704,24 +2704,18 @@ MOS_STATUS CodechalDecodeHevcG12::DumpSliceParams(
                 oss << "use_integer_mv_flag: " << +hevcExtSliceControl->use_integer_mv_flag << std::endl;
             }
         }
-
-        const char *fileName = m_debugInterface->CreateFileName(
-            "_DEC",
-            CodechalDbgBufferType::bufSlcParams,
-            CodechalDbgExtType::txt);
-
-        std::ofstream ofs;
-        if (j == 0)
-        {
-            ofs.open(fileName, std::ios::out);
-        }
-        else
-        {
-            ofs.open(fileName, std::ios::app);
-        }
-        ofs << oss.str();
-        ofs.close();
     }
+
+    const char *fileName = m_debugInterface->CreateFileName(
+        "_DEC",
+        CodechalDbgBufferType::bufSlcParams,
+        CodechalDbgExtType::txt);
+    CODECHAL_DEBUG_CHK_NULL(fileName);
+    std::ofstream ofs;
+    ofs.open(fileName, std::ios::out);
+    ofs << oss.str();
+    ofs.close();
+
     return MOS_STATUS_SUCCESS;
 }
 

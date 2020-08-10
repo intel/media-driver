@@ -3066,7 +3066,7 @@ MOS_STATUS CodechalDecodeHevc::DumpIQParams(
     {
         oss << "ucScalingLists1[" << std::dec << +idx2 << "]:" << std::endl;
 
-        for (idx = 0; idx < 56; idx += 8)
+        for (idx = 0; idx < 64; idx += 8)
         {
             oss << "ucScalingLists1[" << std::dec << +idx / 8 << "]:" << std::endl;
             for (uint8_t i = 0; i < 8; i++)
@@ -3080,7 +3080,7 @@ MOS_STATUS CodechalDecodeHevc::DumpIQParams(
     {
         oss << "ucScalingLists2[" << std::dec << +idx2 << "]:" << std::endl;
 
-        for (idx = 0; idx < 56; idx += 8)
+        for (idx = 0; idx < 64; idx += 8)
         {
             oss << "ucScalingLists2[" << std::dec << +idx / 8 << "]:" << std::endl;
             for (uint8_t i = 0; i < 8; i++)
@@ -3093,7 +3093,7 @@ MOS_STATUS CodechalDecodeHevc::DumpIQParams(
     {
         oss << "ucScalingLists3[" << std::dec << +idx2 << "]:" << std::endl;
 
-        for (idx = 0; idx < 56; idx += 8)
+        for (idx = 0; idx < 64; idx += 8)
         {
             oss << "ucScalingLists3[" << std::dec << +idx / 8 << "]:" << std::endl;
             for (uint8_t i = 0; i < 8; i++)
