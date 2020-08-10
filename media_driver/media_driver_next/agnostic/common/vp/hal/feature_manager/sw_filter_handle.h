@@ -38,6 +38,8 @@ public:
     virtual ~SwFilterFeatureHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
     virtual MOS_STATUS CreateSwFilter(SwFilter*& swFilter, VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS& params);
+    virtual MOS_STATUS CreateSwFilter(SwFilter*& swFilter, VEBOX_SFC_PARAMS& params);
     virtual SwFilter* CreateSwFilter()
     {
         return nullptr;
@@ -59,6 +61,7 @@ public:
     virtual ~SwFilterCscHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
     virtual SwFilter* CreateSwFilter();
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS& params);
 protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
@@ -72,6 +75,7 @@ public:
     virtual ~SwFilterRotMirHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
     virtual SwFilter* CreateSwFilter();
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS& params);
 protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
@@ -85,6 +89,7 @@ public:
     virtual ~SwFilterScalingHandler();
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
     virtual SwFilter* CreateSwFilter();
+    virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS& params);
 protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:

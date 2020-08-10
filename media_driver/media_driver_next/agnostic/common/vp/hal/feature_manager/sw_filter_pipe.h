@@ -107,6 +107,7 @@ public:
     SwFilterPipe(VpInterface &vpInterface);
     virtual ~SwFilterPipe();
     MOS_STATUS Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule);
+    MOS_STATUS Initialize(VEBOX_SFC_PARAMS &params);
     void UpdateSwFilterPipeType();
     MOS_STATUS Clean();
 
@@ -115,6 +116,7 @@ public:
 
     MOS_STATUS ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule, bool isInputPipe);
     MOS_STATUS ConfigFeatures(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule);
+    MOS_STATUS ConfigFeatures(VEBOX_SFC_PARAMS &params);
     MOS_STATUS UpdateFeatures(bool isInputPipe, uint32_t pipeIndex);
 
     SwFilterPipeType GetSwFilterPipeType()

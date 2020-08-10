@@ -33,6 +33,7 @@
 #include "vp_utils.h"
 #include "vp_pipeline_common.h"
 #include <vector>
+#include "media_sfc_interface.h"
 
 namespace vp
 {
@@ -135,6 +136,10 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+    virtual MOS_STATUS Configure(VEBOX_SFC_PARAMS &params)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
     virtual SwFilter *Clone() = 0;
     virtual bool operator == (class SwFilter&) = 0;
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf) = 0;
@@ -189,6 +194,7 @@ public:
     virtual MOS_STATUS Clean();
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
     virtual MOS_STATUS Configure(PVP_SURFACE surfInput, VP_EXECUTE_CAPS caps);
+    virtual MOS_STATUS Configure(VEBOX_SFC_PARAMS &params);
     virtual FeatureParamCsc &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
@@ -226,6 +232,7 @@ public:
     virtual ~SwFilterScaling();
     virtual MOS_STATUS Clean();
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
+    virtual MOS_STATUS Configure(VEBOX_SFC_PARAMS &params);
     virtual FeatureParamScaling &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
@@ -248,6 +255,7 @@ public:
     virtual ~SwFilterRotMir();
     virtual MOS_STATUS Clean();
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
+    virtual MOS_STATUS Configure(VEBOX_SFC_PARAMS &params);
     virtual FeatureParamRotMir &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);

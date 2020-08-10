@@ -69,6 +69,30 @@ MOS_STATUS SwFilterFeatureHandler::CreateSwFilter(SwFilter*& swFilter, VP_PIPELI
     return MOS_STATUS_SUCCESS;
 }
 
+bool SwFilterFeatureHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS& params)
+{
+    return false;
+}
+
+MOS_STATUS SwFilterFeatureHandler::CreateSwFilter(SwFilter*& swFilter, VEBOX_SFC_PARAMS& params)
+{
+    swFilter = nullptr;
+    if (!IsFeatureEnabled(params))
+    {
+        // nullptr == swFilter means no such feature in params, which is also the valid case.
+        return MOS_STATUS_SUCCESS;
+    }
+    swFilter = CreateSwFilter();;
+    VP_PUBLIC_CHK_NULL_RETURN(swFilter);
+    MOS_STATUS status = swFilter->Configure(params);
+    if (MOS_FAILED(status))
+    {
+        Destory(swFilter);
+        VP_PUBLIC_CHK_STATUS_RETURN(status);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 /****************************************************************************************************/
 /*                                      SwFilterCscHandler                                          */
 /****************************************************************************************************/
@@ -113,6 +137,11 @@ SwFilter* SwFilterCscHandler::CreateSwFilter()
         return swFilter;
     }
     return nullptr;
+}
+
+bool SwFilterCscHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS& params)
+{
+    return true;
 }
 
 void SwFilterCscHandler::Destory(SwFilter*& swFilter)
@@ -162,6 +191,11 @@ SwFilter* SwFilterRotMirHandler::CreateSwFilter()
     return swFilter;
 }
 
+bool SwFilterRotMirHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS& params)
+{
+    return true;
+}
+
 void SwFilterRotMirHandler::Destory(SwFilter*& swFilter)
 {
     SwFilterRotMir* filter = nullptr;
@@ -207,6 +241,11 @@ SwFilter* SwFilterScalingHandler::CreateSwFilter()
     }
 
     return swFilter;
+}
+
+bool SwFilterScalingHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS& params)
+{
+    return true;
 }
 
 void SwFilterScalingHandler::Destory(SwFilter*& swFilter)

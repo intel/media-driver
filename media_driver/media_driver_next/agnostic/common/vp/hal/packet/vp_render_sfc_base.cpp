@@ -431,6 +431,7 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
         m_renderData.sfcStateParams->dwOutputFrameWidth         = scalingParams->dwOutputFrameWidth;
         m_renderData.sfcStateParams->dwOutputFrameHeight        = scalingParams->dwOutputFrameHeight;
     }
+
     m_renderData.sfcStateParams->dwInputFrameHeight             = scalingParams->dwInputFrameHeight;
     m_renderData.sfcStateParams->dwInputFrameWidth              = scalingParams->dwInputFrameWidth;
     m_renderData.sfcStateParams->dwAVSFilterMode                = scalingParams->bBilinearScaling ?
@@ -463,7 +464,84 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     m_renderData.sfcStateParams->fColorFillVBPixel = scalingParams->sfcColorfillParams.fColorFillVBPixel;
     m_renderData.sfcStateParams->fColorFillYRPixel = scalingParams->sfcColorfillParams.fColorFillYRPixel;
 
+    // SfcInputFormat should be initialized during SetCscParams if SfcInputFormat not being Format_Any.
+    if (Format_Any == m_renderData.SfcInputFormat)
+    {
+        m_renderData.SfcInputFormat = scalingParams->inputFrameFormat;
+    }
+    else if (m_renderData.SfcInputFormat != scalingParams->inputFrameFormat)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Input formats configured during SetCscParams and SetScalingParams are not same!");
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
     return MOS_STATUS_SUCCESS;
+}
+
+bool SfcRenderBase::IsVdboxSfcFormatSupported(
+    CODECHAL_STANDARD           codecStandard,
+    MOS_FORMAT                  inputFormat,
+    MOS_FORMAT                  outputFormat)
+{
+    if (CODECHAL_AVC == codecStandard || CODECHAL_HEVC == codecStandard || CODECHAL_VP9 == codecStandard)
+    {
+        if ((inputFormat != Format_NV12) &&
+            (inputFormat != Format_400P) &&
+            (inputFormat != Format_IMC3) &&
+            (inputFormat != Format_422H) &&
+            (inputFormat != Format_444P) &&
+            (inputFormat != Format_P010) &&
+            (inputFormat != Format_YUY2) &&
+            (inputFormat != Format_AYUV) &&
+            (inputFormat != Format_Y210) &&
+            (inputFormat != Format_Y410) &&
+            (inputFormat != Format_P016) &&
+            (inputFormat != Format_Y216) &&
+            (inputFormat != Format_Y416))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Unsupported Output Format '0x%08x' for SFC.", inputFormat);
+            return false;
+        }
+
+        if ((outputFormat != Format_A8R8G8B8) &&
+            (outputFormat != Format_NV12) &&
+            (outputFormat != Format_P010) &&
+            (outputFormat != Format_YUY2) &&
+            (outputFormat != Format_AYUV) &&
+            (outputFormat != Format_P016) &&
+            (outputFormat != Format_Y210) &&
+            (outputFormat != Format_Y216) &&
+            (outputFormat != Format_Y410) &&
+            (outputFormat != Format_Y416))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Unsupported Output Format '0x%08x' for SFC.", outputFormat);
+            return false;
+        }
+    }
+    else
+    {
+        if ((inputFormat != Format_NV12) &&
+            (inputFormat != Format_400P) &&
+            (inputFormat != Format_IMC3) &&
+            (inputFormat != Format_422H) &&
+            (inputFormat != Format_444P) &&
+            (inputFormat != Format_P010))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Unsupported Input Format '0x%08x' for SFC.", inputFormat);
+            return false;
+        }
+
+        if (outputFormat != Format_A8R8G8B8 &&
+            outputFormat != Format_NV12     &&
+            outputFormat != Format_P010     &&
+            outputFormat != Format_YUY2)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Unsupported Output Format '0x%08x' for SFC.", outputFormat);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)

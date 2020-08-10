@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2020, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,46 +18,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
-media_include_subdirectory(pipeline)
-media_include_subdirectory(packet)
-media_include_subdirectory(features)
-media_include_subdirectory(task)
-media_include_subdirectory(scalability)
-media_include_subdirectory(mediacontext)
-media_include_subdirectory(statusreport)
-media_include_subdirectory(mmc)
-media_include_subdirectory(bufferMgr)
-media_include_subdirectory(mediacopy)
-media_include_subdirectory(media_sfc_interface)
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_interface.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_vdbox_sfc_render.cpp
+)
 
 set(TMP_HEADERS_
-   ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_utils.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_common_defs.h
-)
-
-set(SOURCES_NEW
-    ${SOURCES_NEW}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_NEW
-    ${HEADERS_NEW}
     ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_sfc_render.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_vdbox_sfc_render.h
 )
-
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group(SharedNext\\shared FILES ${TMP_HEADERS_} ${TMP_SOURCES_})
 
 media_add_curr_to_include_path()

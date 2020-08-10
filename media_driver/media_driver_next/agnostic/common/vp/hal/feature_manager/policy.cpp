@@ -696,6 +696,22 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
     // Update the Engine Caps after engine setting up
     if (engineCaps.value !=0 && inputPipe)
     {
+        bool sfcNeeded = false;
+        // check whether sfc being must have.
+        for (auto filterID : m_featurePool)
+        {
+            feature = inputPipe->GetSwFilter(FeatureType(filterID));
+
+            if (feature)
+            {
+                if (feature->GetFilterEngineCaps().VeboxNeeded  == 0 &&
+                    feature->GetFilterEngineCaps().SfcNeeded    != 0)
+                {
+                    sfcNeeded = true;
+                    break;
+                }
+            }
+        }
         // check the feature pool, generate a workable engine Pipe
         for (auto filterID : m_featurePool)
         {
@@ -706,8 +722,16 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
                 if (feature->GetFilterEngineCaps().VeboxNeeded != 0 &&
                     caps.bVebox)
                 {
-                    feature->GetFilterEngineCaps().SfcNeeded       = 0;
-                    feature->GetFilterEngineCaps().RenderNeeded    = 0;
+                    if (sfcNeeded && feature->GetFilterEngineCaps().SfcNeeded)
+                    {
+                        feature->GetFilterEngineCaps().VeboxNeeded  = 0;
+                        feature->GetFilterEngineCaps().RenderNeeded = 0;
+                    }
+                    else
+                    {
+                        feature->GetFilterEngineCaps().SfcNeeded    = 0;
+                        feature->GetFilterEngineCaps().RenderNeeded = 0;
+                    }
                 }
             }
         }

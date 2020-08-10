@@ -134,11 +134,11 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
 {
     VP_FUNC_CALL();
 
-    if (m_executeCaps.bSFC)
+    if (m_executeCaps.bSfcCsc)
     {
         VP_RENDER_CHK_STATUS_RETURN(CalculateSfcEngineParams());
     }
-    else if (m_executeCaps.bVebox)
+    else if (m_executeCaps.bBeCSC)
     {
         VP_RENDER_CHK_STATUS_RETURN(CalculateVeboxEngineParams());
     }
@@ -154,6 +154,22 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat)
+{
+    if (executeCaps.bIECP)
+    {
+        // Upsampling to yuv444 for IECP input/output.
+        return Format_AYUV;
+    }
+    else if (executeCaps.bDI && VpHal_GetSurfaceColorPack(inputFormat) == VPHAL_COLORPACK_420)
+    {
+        // If the input is 4:2:0, then chroma data is doubled vertically to 4:2:2
+        return Format_YUY2;
+    }
+
+    return inputFormat;
 }
 
 MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
@@ -192,19 +208,9 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
 
     m_sfcCSCParams->inputColorSpcase = m_cscParams.colorSpaceInput;
 
-    if (m_executeCaps.bIECP)
-    {
-        // Upsampling to yuv444 for IECP input/output.
-        m_cscParams.formatInput = Format_AYUV;
-    }
-    else if (m_executeCaps.bDI && VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_420)
-    {
-        // If the input is 4:2:0, then chroma data is doubled vertically to 4:2:2
-        m_cscParams.formatInput = Format_YUY2;
-    }
-
-    m_sfcCSCParams->inputFormat = m_cscParams.formatInput;
-    m_sfcCSCParams->outputFormat = m_cscParams.formatOutput;
+    m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput);
+    m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
+    m_sfcCSCParams->outputFormat    = m_cscParams.formatOutput;
 
     if (m_sfcCSCParams->inputColorSpcase != m_cscParams.colorSpaceOutput)
     {

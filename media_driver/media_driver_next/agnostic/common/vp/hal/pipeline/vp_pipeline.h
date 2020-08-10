@@ -51,6 +51,7 @@ class SwFilterFeatureHandler;
 enum PIPELINE_PARAM_TYPE
 {
     PIPELINE_PARAM_TYPE_LEGACY = 1,
+    PIPELINE_PARAM_TYPE_MEDIA_SFC_INTERFACE,
 };
 
 struct VP_PARAMS
@@ -59,6 +60,7 @@ struct VP_PARAMS
     union
     {
         PVP_PIPELINE_PARAMS renderParams;
+        VEBOX_SFC_PARAMS    *sfcParams;
     };
 };
 
