@@ -359,37 +359,52 @@ sysfs_uevent_get(const char *path, const char *fmt, ...)
     return value;
 }
 
-static int drmParseHost1xDeviceInfo(int maj, int min,
-    drmHost1xDeviceInfoPtr info)
+static int drmParseHost1xDeviceInfo(int maj,
+                                    int min,
+                                    drmHost1xDeviceInfoPtr info)
 {
-    char path[PATH_MAX + 1], *value;
-    unsigned int count, i;
-    int err;
+    char path[PATH_MAX + 1];
+    int err = 0;
 
     snprintf(path, sizeof(path), "/sys/dev/char/%d:%d/device", maj, min);
-    value = sysfs_uevent_get(path, "OF_COMPATIBLE_N");
 
+    char *value = sysfs_uevent_get(path, "OF_COMPATIBLE_N");
     if (!value)
+    {
         return -ENOENT;
-
-    sscanf(value, "%u", &count);
+    }
+    unsigned int count = 0;
+    int scanned_value_count = sscanf(value, "%u", &count);
     free(value);
+    if (scanned_value_count <= 0 || 0 == count)
+    {
+        return -ENOENT;
+    }
+
     info->compatible = (char**)calloc(count + 1, sizeof(*info->compatible));
     if (!info->compatible)
+    {
         return -ENOMEM;
+    }
 
-    for (i = 0; i < count; i++) {
+    unsigned int i = 0;
+    for (; i < count; i++)
+    {
         value = sysfs_uevent_get(path, "OF_COMPATIBLE_%u", i);
-        if (!value) {
+        if (!value)
+        {
             err = -ENOENT;
             goto free;
         }
         info->compatible[i] = value;
     }
     return 0;
+
 free:
     while (i--)
+    {
         free(info->compatible[i]);
+    }
     free(info->compatible);
     return err;
 }
