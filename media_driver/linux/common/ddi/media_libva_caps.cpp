@@ -364,7 +364,7 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
     {
         attrib->value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32;
     }
-    else if(profile == VAProfileHEVCMain10)
+    else if(profile == VAProfileHEVCMain10 || profile == VAProfileHEVCSccMain10)
     {
         attrib->value = VA_RT_FORMAT_YUV420_10;
     }
@@ -380,11 +380,11 @@ VAStatus MediaLibvaCaps::CheckEncRTFormat(
     {
         attrib->value = VA_RT_FORMAT_YUV422_12;
     }
-    else if(profile == VAProfileHEVCMain444)
+    else if(profile == VAProfileHEVCMain444 || profile == VAProfileHEVCSccMain444)
     {
         attrib->value = VA_RT_FORMAT_YUV444;
     }
-    else if(profile == VAProfileHEVCMain444_10)
+    else if(profile == VAProfileHEVCMain444_10 || profile == VAProfileHEVCSccMain444_10)
     {
         attrib->value = VA_RT_FORMAT_YUV444_10;
     }

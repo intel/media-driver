@@ -1245,7 +1245,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
     }
     else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
     {
-        if (profile == VAProfileHEVCMain10 || profile == VAProfileVP9Profile2)
+        if (profile == VAProfileHEVCMain10 || profile == VAProfileHEVCSccMain10 || profile == VAProfileVP9Profile2)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1282,7 +1282,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC_P016;
             i++;
         }
-        else if (profile == VAProfileHEVCMain444)
+        else if (profile == VAProfileHEVCMain444 || profile == VAProfileHEVCSccMain444)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -1290,7 +1290,7 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC_AYUV;
             i++;
         }
-        else if (profile == VAProfileHEVCMain444_10)
+        else if (profile == VAProfileHEVCMain444_10 || profile == VAProfileHEVCSccMain444_10)
         {
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
