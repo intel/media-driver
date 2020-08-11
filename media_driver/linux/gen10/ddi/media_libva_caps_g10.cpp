@@ -218,7 +218,7 @@ VAStatus MediaLibvaCapsG10::GetPlatformSpecificAttrib(VAProfile profile,
             {
                 *value = ENCODE_JPEG_MAX_PIC_WIDTH;
             }
-            else if(IsHevcProfile(profile) || IsAvcProfile(profile) || IsVp8Profile(profile))
+            else if(IsHevcProfile(profile) || IsAvcProfile(profile) || IsVp8Profile(profile) || IsVp9Profile(profile))
             {
                 *value = CODEC_4K_MAX_PIC_WIDTH;
             }
@@ -234,7 +234,7 @@ VAStatus MediaLibvaCapsG10::GetPlatformSpecificAttrib(VAProfile profile,
             {
                 *value = ENCODE_JPEG_MAX_PIC_HEIGHT;
             }
-            else if(IsHevcProfile(profile) || IsAvcProfile(profile) || IsVp8Profile(profile))
+            else if(IsHevcProfile(profile) || IsAvcProfile(profile) || IsVp8Profile(profile) || IsVp9Profile(profile))
             {
                 *value = CODEC_4K_MAX_PIC_HEIGHT;
             }
@@ -320,6 +320,23 @@ VAStatus MediaLibvaCapsG10::LoadVp9EncProfileEntrypoints()
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 #endif
+#ifdef _VP9_ENCODE_VME_SUPPORTED
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9))
+    {
+        AttribMap *attributeList;
+        status = CreateEncAttributes(VAProfileVP9Profile0, VAEntrypointEncSlice, &attributeList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+        uint32_t configStartIdx = m_encConfigs.size();
+        for (int32_t j = 0; j < 3; j++)
+        {
+            AddEncConfig(m_encRcMode[j]);
+        }
+        AddProfileEntry(VAProfileVP9Profile0, VAEntrypointEncSlice, attributeList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+#endif
+
     return status;
 }
 

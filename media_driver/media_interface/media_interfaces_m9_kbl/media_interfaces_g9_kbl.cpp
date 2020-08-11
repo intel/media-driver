@@ -450,6 +450,23 @@ MOS_STATUS CodechalInterfacesG9Kbl::Initialize(
         }
         else
 #endif
+#ifdef _VP9_ENCODE_VME_SUPPORTED
+        if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
+        {
+            // Setup encode interface functions
+            encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
+            if (encoder == nullptr)
+            {
+                CODECHAL_PUBLIC_ASSERTMESSAGE("VP9 Encode allocation failed!");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                m_codechalDevice = encoder;
+            }
+        }
+        else
+#endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;

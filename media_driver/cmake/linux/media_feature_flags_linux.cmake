@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# global flag for encode AVC_VME/HEVC_VME/MPEG2/VP8
+# global flag for encode AVC_VME/HEVC_VME/MPEG2/VP8/VP9_VME
 bs_set_if_undefined(Encode_VME_Supported "yes")
 # global flag for encode AVC_VDENC/HEVC_VDENC/VP9_VDENC/JPEG
 bs_set_if_undefined(Encode_VDEnc_Supported "yes")
@@ -40,6 +40,7 @@ if(NOT ENABLE_KERNELS OR NOT ENABLE_NONFREE_KERNELS)
     bs_set_if_undefined(Decode_Processing_Supported "no")
     bs_set_if_undefined(Kernel_Auto_Denoise_Supported "no")
     bs_set_if_undefined(VP8_Encode_Supported "no")
+    bs_set_if_undefined(VP9_Encode_VME_Supported "no")
 else()
     # full-feature
     bs_set_if_undefined(AVC_Encode_VME_Supported "${Encode_VME_Supported}")
@@ -51,6 +52,7 @@ else()
     bs_set_if_undefined(Decode_Processing_Supported "yes")
     bs_set_if_undefined(Kernel_Auto_Denoise_Supported "yes")
     bs_set_if_undefined(VP8_Encode_Supported "${Encode_VME_Supported}")
+    bs_set_if_undefined(VP9_Encode_VME_Supported "${Encode_VME_Supported}")
 endif()
 
 # features are always able to open
@@ -129,6 +131,10 @@ endif()
 
 if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
     add_definitions(-D_VP9_ENCODE_VDENC_SUPPORTED)
+endif()
+
+if(${VP9_Encode_VME_Supported} STREQUAL "yes")
+    add_definitions(-D_VP9_ENCODE_VME_SUPPORTED)
 endif()
 
 if(${VP9_Decode_Supported} STREQUAL "yes")

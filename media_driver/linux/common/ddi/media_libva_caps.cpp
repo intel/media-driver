@@ -602,15 +602,6 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     }
     (*attribList)[attrib.type] = attrib.value;
 
-    attrib.type = VAConfigAttribMaxPictureHeight;
-    GetPlatformSpecificAttrib(profile, entrypoint,
-        VAConfigAttribMaxPictureHeight, &attrib.value);
-    if(IsMpeg2Profile(profile))
-    {
-        attrib.value = CODEC_2K_MAX_PIC_HEIGHT;
-    }
-    (*attribList)[attrib.type] = attrib.value;
-
     attrib.type = VAConfigAttribEncJPEG;
     VAConfigAttribValEncJPEG jpegAttribVal;
     jpegAttribVal.bits.arithmatic_coding_mode = 0;
@@ -744,6 +735,10 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         {
             GetPlatformSpecificAttrib(profile, entrypoint,
                     VAConfigAttribEncMaxRefFrames, &attrib.value);
+        }
+        if(IsVp9Profile(profile))
+        {
+            attrib.value = CODEC_VP9_NUM_REF_FRAMES;
         }
     }
     (*attribList)[attrib.type] = attrib.value;
@@ -1666,6 +1661,23 @@ VAStatus MediaLibvaCaps::LoadVp9DecProfileEntrypoints()
 VAStatus MediaLibvaCaps::LoadVp9EncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
+
+#ifdef _VP9_ENCODE_VME_SUPPORTED
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeVP9))
+    {
+        AttribMap *attrList;
+        status = CreateEncAttributes(VAProfileVP9Profile0, VAEntrypointEncSlice, &attrList);
+        DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+        uint32_t configStartIdx = m_encConfigs.size();
+        for (int32_t j = 0; j < 3; j++)
+        {
+            AddEncConfig(m_encRcMode[j]);
+        }
+        AddProfileEntry(VAProfileVP9Profile0, VAEntrypointEncSlice, attrList,
+                configStartIdx, m_encConfigs.size() - configStartIdx);
+    }
+#endif
 
     return status;
 }
@@ -2875,7 +2887,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_WIDTH;
         }
-        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile))
+        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile)||(IsVp9Profile(profile)))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_WIDTH;
         }
@@ -2889,7 +2901,7 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
         {
             attribs[i].value.value.i = ENCODE_JPEG_MAX_PIC_HEIGHT;
         }
-        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile))
+        if(IsAvcProfile(profile)||IsHevcProfile(profile)||IsVp8Profile(profile)||IsVp9Profile(profile))
         {
             attribs[i].value.value.i = CODEC_4K_MAX_PIC_HEIGHT;
         }

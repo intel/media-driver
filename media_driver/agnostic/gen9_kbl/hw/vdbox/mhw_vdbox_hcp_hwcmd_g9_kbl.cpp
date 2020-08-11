@@ -115,7 +115,7 @@ mhw_vdbox_hcp_g9_kbl::HCP_PIPE_BUF_ADDR_STATE_CMD::HCP_PIPE_BUF_ADDR_STATE_CMD()
 
 mhw_vdbox_hcp_g9_kbl::HCP_IND_OBJ_BASE_ADDR_STATE_CMD::HCP_IND_OBJ_BASE_ADDR_STATE_CMD()
 {
-    DW0.Value                                        = 0x7383000c;
+    DW0.Value                                        = 0x7383001b;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HCPINDOBJBASEADDRSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
@@ -126,6 +126,15 @@ mhw_vdbox_hcp_g9_kbl::HCP_IND_OBJ_BASE_ADDR_STATE_CMD::HCP_IND_OBJ_BASE_ADDR_STA
 
     DW9_10.Value[0] = DW9_10.Value[1]                = 0x00000000;
 
+    DW14_15.Value[0] = DW14_15.Value[1]              = 0x00000000;
+
+    DW17_18.Value[0] = DW17_18.Value[1]              = 0x00000000;
+
+    DW20_21.Value[0] = DW20_21.Value[1]              = 0x00000000;
+
+    DW23_24.Value[0] = DW23_24.Value[1]              = 0x00000000;
+
+    DW26_27.Value[0] = DW26_27.Value[1]              = 0x00000000;
 }
 
 mhw_vdbox_hcp_g9_kbl::HCP_QM_STATE_CMD::HCP_QM_STATE_CMD()
@@ -345,7 +354,7 @@ mhw_vdbox_hcp_g9_kbl::HCP_BSD_OBJECT_CMD::HCP_BSD_OBJECT_CMD()
 
 mhw_vdbox_hcp_g9_kbl::HCP_VP9_SEGMENT_STATE_CMD::HCP_VP9_SEGMENT_STATE_CMD()
 {
-    DW0.Value                                        = 0x73b20005;
+    DW0.Value                                        = 0x73b20006;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HCPVP9SEGMENTSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
@@ -363,6 +372,8 @@ mhw_vdbox_hcp_g9_kbl::HCP_VP9_SEGMENT_STATE_CMD::HCP_VP9_SEGMENT_STATE_CMD()
     DW5.Value                                        = 0x00000000;
 
     DW6.Value                                        = 0x00000000;
+    
+    DW7.Value                                        = 0x00000000;
 
 }
 
@@ -401,7 +412,7 @@ mhw_vdbox_hcp_g9_kbl::HCP_PAK_INSERT_OBJECT_CMD::HCP_PAK_INSERT_OBJECT_CMD()
 
 mhw_vdbox_hcp_g9_kbl::HCP_VP9_PIC_STATE_CMD::HCP_VP9_PIC_STATE_CMD()
 {
-    DW0.Value                                        = 0x73b00011;
+    DW0.Value                                        = 0x73b0001F;
     //DW0.DwordLength                                  = GetOpLength(dwSize);
     //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_HCPVP9PICSTATE;
     //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
@@ -466,6 +477,34 @@ mhw_vdbox_hcp_g9_kbl::HCP_VP9_PIC_STATE_CMD::HCP_VP9_PIC_STATE_CMD()
 
     DW18.Value                                       = 0x00000000;
 
+    DW19.Value                                       = 0x00000000;
+    //DW19.Nonfirstpassflag                            = NONFIRSTPASSFLAG_DISABLE;
+    //DW19.FrameszoverstatusenFramebitratemaxreportmask = FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK_DISABLE;
+    //DW19.FrameszunderstatusenFramebitrateminreportmask = FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK_DISABLE;
+
+    DW20.Value                                       = 0x00000000;
+    //DW20.Framebitratemaxunit                         = FRAMEBITRATEMAXUNIT_BYTE;
+
+    DW21.Value                                       = 0x00000000;
+    //DW21.Framebitrateminunit                         = FRAMEBITRATEMINUNIT_BYTE;
+
+    DW22_23.Value[0] = DW22_23.Value[1]              = 0x00000000;
+
+    DW24.Value                                       = 0x00000000;
+
+    DW25_26.Value[0] = DW25_26.Value[1]              = 0x00000000;
+
+    DW27.Value                                       = 0x00000000;
+    DW28_29.Value[0] = DW28_29.Value[1]              = 0x00000000;
+
+    DW30.Value                                       = 0x00000000;
+
+    DW31.Value                                       = 0x00000000;
+    //DW31.Minframesizeunits                           = MINFRAMESIZEUNITS_4KB;
+
+    DW32.Value                                       = 0x00000000;
+
+    DW33.Value                                       = 0x00000000;
 }
 
 mhw_vdbox_hcp_g9_kbl::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD::HEVC_VP9_RDOQ_LAMBDA_FIELDS_CMD()

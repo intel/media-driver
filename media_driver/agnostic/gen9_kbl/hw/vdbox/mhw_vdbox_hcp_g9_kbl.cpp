@@ -965,6 +965,79 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpIndObjBaseAddrCmd(
                 cmdBuffer,
                 &resourceParams));
         }
+
+        resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
+        if (params->presCompressedHeaderBuffer)
+        {
+            cmd.HcpVp9PakCompressedHeaderSyntaxStreaminMemoryAddressAttributes.DW0.Value |=
+                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_COMPRESSED_HEADER_BUFFER_CODEC].Value;
+
+            resourceParams.presResource = params->presCompressedHeaderBuffer;
+            resourceParams.dwOffset = 0;
+            resourceParams.pdwCmd = cmd.DW14_15.Value;
+            resourceParams.dwLocationInCmd = 14;
+            resourceParams.dwSize = params->dwCompressedHeaderSize;
+            resourceParams.bIsWritable = true;
+
+            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
+                m_osInterface,
+                cmdBuffer,
+                &resourceParams));
+        }
+
+        if (params->presProbabilityCounterBuffer)
+        {
+            cmd.HcpVp9PakProbabilityCounterStreamoutMemoryAddressAttributes.DW0.Value |=
+                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VP9_PROBABILITY_COUNTER_BUFFER_CODEC].Value;
+
+            resourceParams.presResource = params->presProbabilityCounterBuffer;
+            resourceParams.dwOffset = 0;
+            resourceParams.pdwCmd = cmd.DW17_18.Value;
+            resourceParams.dwLocationInCmd = 17;
+            resourceParams.dwSize = params->dwProbabilityCounterSize;
+            resourceParams.bIsWritable = true;
+
+            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
+                m_osInterface,
+                cmdBuffer,
+                &resourceParams));
+        }
+
+        if (params->presProbabilityDeltaBuffer)
+        {
+            cmd.HcpVp9PakProbabilityDeltasStreaminMemoryAddressAttributes.DW0.Value |=
+                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PROBABILITY_DELTA_BUFFER_CODEC].Value;
+
+            resourceParams.presResource = params->presProbabilityDeltaBuffer;
+            resourceParams.dwOffset = 0;
+            resourceParams.pdwCmd = cmd.DW20_21.Value;
+            resourceParams.dwLocationInCmd = 20;
+            resourceParams.dwSize = params->dwProbabilityDeltaSize;
+            resourceParams.bIsWritable = false;
+
+            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
+                m_osInterface,
+                cmdBuffer,
+                &resourceParams));
+        }
+
+        if (params->presTileRecordBuffer)
+        {
+            cmd.HcpVp9PakTileRecordStreamoutMemoryAddressAttributes.DW0.Value |=
+                m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SIZE_STREAMOUT_CODEC].Value;
+
+            resourceParams.presResource = params->presTileRecordBuffer;
+            resourceParams.dwOffset = 0;
+            resourceParams.pdwCmd = cmd.DW23_24.Value;
+            resourceParams.dwLocationInCmd = 23;
+            resourceParams.dwSize = params->dwTileRecordSize;
+            resourceParams.bIsWritable = true;
+
+            MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
+                m_osInterface,
+                cmdBuffer,
+                &resourceParams));
+        }
     }
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
@@ -1386,8 +1459,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
     auto vp9PicParams = params->pVp9PicParams;
     auto vp9RefList = params->ppVp9RefList;
 
-    cmd.DW1.FrameWidthInPixelsMinus1    = vp9PicParams->SrcFrameWidthMinus1;
-    cmd.DW1.FrameHeightInPixelsMinus1   = vp9PicParams->SrcFrameHeightMinus1;
+    cmd.DW1.FrameWidthInPixelsMinus1    =  MOS_ALIGN_CEIL(vp9PicParams->SrcFrameWidthMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
+    cmd.DW1.FrameHeightInPixelsMinus1   =  MOS_ALIGN_CEIL(vp9PicParams->SrcFrameHeightMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH) - 1;
 
     cmd.DW2.FrameType                   = vp9PicParams->PicFlags.fields.frame_type;
     cmd.DW2.AdaptProbabilitiesFlag      = !vp9PicParams->PicFlags.fields.error_resilient_mode && !vp9PicParams->PicFlags.fields.frame_parallel_decoding_mode;
@@ -1477,6 +1550,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
     }
 
     cmd.DW13.BaseQIndexSameAsLumaAc = vp9PicParams->LumaACQIndex;
+    cmd.DW13.HeaderInsertionEnable  = 1;
 
     cmd.DW14.ChromaacQindexdelta    = Convert2SignMagnitude(vp9PicParams->ChromaACQIndexDelta, 5);
     cmd.DW14.ChromadcQindexdelta    = Convert2SignMagnitude(vp9PicParams->ChromaDCQIndexDelta, 5);
@@ -1495,6 +1569,27 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9PicStateEncCmd(
 
     cmd.DW18.Bitoffsetforlflevel        = vp9PicParams->BitOffsetForLFLevel;
     cmd.DW18.Bitoffsetforqindex         = vp9PicParams->BitOffsetForQIndex;
+
+    cmd.DW19.FrameszunderstatusenFramebitrateminreportmask   =  true;
+    cmd.DW19.FrameszoverstatusenFramebitratemaxreportmask    =  true;
+    cmd.DW19.Nonfirstpassflag       =  params->bNonFirstPassFlag;
+
+    cmd.DW20.Value = (1 << 31) | (256);
+
+    cmd.DW21.Value = (0 << 31) | 1;
+
+    //DW31 is for restricting the compressed frames minimum size
+    //and we don't impose any.
+
+    if (params->uiMaxBitRate || params->uiMinBitRate)
+    {
+        // br stored in 4KB chunks when unit==1
+        cmd.DW20.Framebitratemax                        = params->uiMaxBitRate >> 12;
+        cmd.DW20.Framebitratemaxunit                    = cmd.DW21.Framebitrateminunit = 1;
+        cmd.DW21.Framebitratemin                        = params->uiMinBitRate >> 12;
+    }
+
+    cmd.DW32.Bitoffsetforfirstpartitionsize = vp9PicParams->BitOffsetForFirstPartitionSize;
 
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
@@ -1530,6 +1625,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG9Kbl::AddHcpVp9SegmentStateCmd(
             cmd.DW2.SegmentSkipped = vp9SegData.SegmentFlags.fields.SegmentSkipped;
             cmd.DW2.SegmentReference = vp9SegData.SegmentFlags.fields.SegmentReference;
             cmd.DW2.SegmentReferenceEnabled = vp9SegData.SegmentFlags.fields.SegmentReferenceEnabled;
+            cmd.DW7.SegmentLfLevelDeltaEncodeModeOnly   = Convert2SignMagnitude(vp9SegData.SegmentLFLevelDelta, 7);
+            cmd.DW7.SegmentQindexDeltaEncodeModeOnly    = Convert2SignMagnitude(vp9SegData.SegmentQIndexDelta, 9);
 
             segData = &cmd;
         }

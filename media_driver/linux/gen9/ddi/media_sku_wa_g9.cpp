@@ -84,6 +84,11 @@ static struct LinuxCodecInfo kblCodecInfo =
     .hevc10Encoding     = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .hevc12Encoding     = 0,
     .vp8Encoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .hevcVdenc          = 0,
+    .vp9Vdenc           = 0,
+    .adv0Decoding       = 0,
+    .adv1Decoding       = 0,
+    .vp9Encoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static struct LinuxCodecInfo glkCodecInfo =
@@ -356,6 +361,8 @@ static bool InitKblMediaSku(struct GfxDeviceInfo *devInfo,
         /* VP8 enc */
         MEDIA_WR_SKU(skuTable, FtrEncodeVP8, codecInfo->vp8Encoding);
 
+        /* VP9 enc */
+        MEDIA_WR_SKU(skuTable, FtrEncodeVP9, codecInfo->vp9Encoding);
     }
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
