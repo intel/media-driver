@@ -386,6 +386,9 @@ static bool InitDG1MediaWa(struct GfxDeviceInfo *devInfo,
 
     /* Turn off MMC for VPP, need to remove once turn it on */
     MEDIA_WR_WA(waTable, WaDisableVPMmc, 1);
+
+    /* Enable VPP copy */
+    MEDIA_WR_WA(waTable, WaEnableVPPCopy, 1);
     return true;
 }
 

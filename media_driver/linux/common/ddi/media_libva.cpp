@@ -298,7 +298,8 @@ static uint32_t DdiMedia_CreateRenderTarget(
     uint32_t                      width,
     uint32_t                      height,
     DDI_MEDIA_SURFACE_DESCRIPTOR *surfDesc,
-    uint32_t                      surfaceUsageHint
+    uint32_t                      surfaceUsageHint,
+    int                           memType
 )
 {
     DdiMediaUtil_LockMutex(&mediaDrvCtx->SurfaceMutex);
@@ -326,6 +327,7 @@ static uint32_t DdiMedia_CreateRenderTarget(
     surfaceElement->pSurface->uiLockedBufID   = VA_INVALID_ID;
     surfaceElement->pSurface->uiLockedImageID = VA_INVALID_ID;
     surfaceElement->pSurface->surfaceUsageHint= surfaceUsageHint;
+    surfaceElement->pSurface->memType         = memType;
 
     if(DdiMediaUtil_CreateSurface(surfaceElement->pSurface, mediaDrvCtx)!= VA_STATUS_SUCCESS)
     {
@@ -2257,7 +2259,7 @@ static VAStatus DdiMedia_CreateSurfaces (
     height = MOS_ALIGN_CEIL(height, 16);
     for(int32_t i = 0; i < num_surfaces; i++)
     {
-        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaDrvCtx, mediaFmt, width, height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC);
+        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaDrvCtx, mediaFmt, width, height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC, MOS_MEMPOOL_VIDEOMEMORY);
         if (VA_INVALID_ID != vaSurfaceID)
             surfaces[i] = vaSurfaceID;
         else
@@ -2661,7 +2663,7 @@ DdiMedia_CreateSurfaces2(
                 }
             }
         }
-        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, width, height, surfDesc, surfaceUsageHint);
+        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, width, height, surfDesc, surfaceUsageHint, MOS_MEMPOOL_VIDEOMEMORY);
         if (VA_INVALID_ID != vaSurfaceID)
         {
             surfaces[i] = vaSurfaceID;
@@ -5120,7 +5122,11 @@ VAStatus DdiMedia_GetImage(
     VASurfaceID output_surface = surface;
 
     if (inputSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
-        width != vaimg->width || height != vaimg->height)
+        width != vaimg->width || height != vaimg->height ||
+        (MEDIA_IS_WA(&mediaCtx->WaTable, WaEnableVPPCopy) &&
+        vaimg->format.fourcc != VA_FOURCC_444P &&
+        vaimg->format.fourcc != VA_FOURCC_422V &&
+        vaimg->format.fourcc != VA_FOURCC_422H))
     {
         VAContextID context = VA_INVALID_ID;
         //Create VP Context.
@@ -5142,11 +5148,17 @@ VAStatus DdiMedia_GetImage(
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
         surfDesc->uiVaMemType = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
-        target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, surfDesc, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC);
-        if (VA_STATUS_SUCCESS != vaStatus) {
+        int memType = MOS_MEMPOOL_VIDEOMEMORY;
+        if (MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrLocalMemory))
+        {
+            memType = MOS_MEMPOOL_SYSTEMMEMORY;
+        }
+        target_surface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, surfDesc, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC, memType);
+        if (VA_INVALID_SURFACE == target_surface)
+        {
             DDI_ASSERTMESSAGE("Create temp surface failed.");
             DdiVp_DestroyContext(ctx, context);
-            return vaStatus;
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
 
         VARectangle srcRect, dstRect;
@@ -5300,7 +5312,12 @@ VAStatus DdiMedia_PutImage(
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
         }
 
-        VASurfaceID tempSurface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_VPP_READ);
+        int memType = MOS_MEMPOOL_VIDEOMEMORY;
+        if (MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrLocalMemory))
+        {
+            memType = MOS_MEMPOOL_SYSTEMMEMORY;
+        }
+        VASurfaceID tempSurface = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, vaimg->width, vaimg->height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_VPP_READ, memType);
         if (tempSurface == VA_INVALID_ID)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;

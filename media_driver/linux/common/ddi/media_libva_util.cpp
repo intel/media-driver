@@ -173,7 +173,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     int32_t alignedWidth  = width;
     int32_t alignedHeight = height;
     uint32_t tag          = 0;
-    int mem_type          = MOS_MEMPOOL_VIDEOMEMORY;
+    int mem_type          = mediaSurface->memType;
 #ifdef _MMC_SUPPORTED
     bool bMemCompEnable   = true;
 #else
@@ -523,7 +523,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         goto finish;
     }
 
-    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaDrvCtx->SkuTable, mediaSurface->pGmmResourceInfo, "Media Surface");
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaDrvCtx->SkuTable, mediaSurface->pGmmResourceInfo, "Media Surface", mem_type);
 
     if(MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaForceAllocateLM))
     {
