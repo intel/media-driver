@@ -52,7 +52,10 @@ public:
     //!
     //! \brief Constructor
     //!
-    DdiDecodeAV1(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr) {};
+    DdiDecodeAV1(DDI_DECODE_CONFIG_ATTR *ddiDecodeAttr) : DdiMediaDecode(ddiDecodeAttr)
+    {
+        MOS_ZeroMemory(&outputSurface, sizeof(outputSurface));
+    };
 
     //!
     //! \brief Destructor
@@ -163,6 +166,8 @@ private:
     bool slcFlag = false;
     //! \brief   film grain output surface
     PDDI_MEDIA_SURFACE filmGrainOutSurface = nullptr;
+    //! \brief   film grain output surface structure
+    MOS_SURFACE outputSurface;
 };
 
 #endif /* _MEDIA_DDI_DECODE_AV1_H */
