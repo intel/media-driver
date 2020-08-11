@@ -117,8 +117,8 @@ public:
 
     MOS_STATUS InitCurbeDataBrcInit();
     MOS_STATUS SetupSurfacesBrcInit();
-    MOS_STATUS BrcInitResetCurbe(CODECHAL_HEVC_BRC_KRNIDX  brcKrnIdx);
-    MOS_STATUS BrcUpdateCurbe(CODECHAL_HEVC_BRC_KRNIDX  brcKrnIdx);
+    MOS_STATUS BrcInitResetCurbe();
+    MOS_STATUS BrcUpdateCurbe();
     MOS_STATUS SetupSurfacesBrcUpdate();
     MOS_STATUS SetupSurfacesBrcLcuQp();
     //!
@@ -126,7 +126,7 @@ public:
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!    
+    //!
     MOS_STATUS SetupKernelArgsBrcInit();
     MOS_STATUS SetupKernelArgsBrcUpdate();
     MOS_STATUS SetupKernelArgsBrcLcuQp();

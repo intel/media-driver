@@ -267,7 +267,6 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcInitResetKernel()
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     // Setup curbe for BrcInitReset kernel
-    CODECHAL_HEVC_BRC_KRNIDX brcKrnIdx = encoderBrc->m_brcInit ? CODECHAL_HEVC_BRC_INIT : CODECHAL_HEVC_BRC_RESET;
     if (encoderBrc->m_brcInit)
     {
         m_cmKrnBrc = m_cmKrnBrcInit;
@@ -279,8 +278,7 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcInitResetKernel()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrc, m_threadSpaceBrcInit));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcInitResetCurbe(
-        brcKrnIdx));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcInitResetCurbe());
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesBrcInit());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupKernelArgsBrcInit());
@@ -306,7 +304,7 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcInitResetKernel()
     return eStatus;
 }
 
-MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe(CODECHAL_HEVC_BRC_KRNIDX  brcKrnIdx)
+MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe()
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
@@ -551,8 +549,7 @@ MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe(CODECHAL_HEVC_BRC_KRNIDX  brcKr
     return eStatus;
 }
 
-MOS_STATUS CodecHalHevcBrcG12::BrcUpdateCurbe(
-    CODECHAL_HEVC_BRC_KRNIDX    brcKrnIdx)
+MOS_STATUS CodecHalHevcBrcG12::BrcUpdateCurbe()
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
@@ -670,8 +667,7 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcFrameUpdateKernel()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrcUpdate, m_threadSpaceBrcUpdate));
 
-    CODECHAL_HEVC_BRC_KRNIDX brcKrnIdx = CODECHAL_HEVC_BRC_FRAME_UPDATE;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcUpdateCurbe(brcKrnIdx));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcUpdateCurbe());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesBrcUpdate());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupKernelArgsBrcUpdate());
     CODECHAL_DEBUG_TOOL(
@@ -811,8 +807,7 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcLcuUpdateKernel()
     encoderBrc->GetOsInterface()->pfnSetPerfTag(encoderBrc->GetOsInterface(), perfTag.Value);
     encoderBrc->GetOsInterface()->pfnIncPerfBufferID(encoderBrc->GetOsInterface());
 
-    CODECHAL_HEVC_BRC_KRNIDX brcKrnIdx = CODECHAL_HEVC_BRC_LCU_UPDATE;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcUpdateCurbe(brcKrnIdx));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcUpdateCurbe());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesBrcLcuQp());
 
     if (encoderBrc->m_hevcPicParams->NumROI)
