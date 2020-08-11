@@ -430,7 +430,10 @@ VAStatus DdiDecodeAV1::SetDecodeParams()
     {
         MOS_ZeroMemory(&m_ddiDecodeCtx->DecodeParams.m_codecProcParams, sizeof(CodecProcessingParams));
         m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_inputSurface  = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
-        DdiMedia_MediaSurfaceToMosResource(filmGrainOutSurface, &m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_outputSurface->OsResource);
+        MOS_FORMAT expectedFormat = GetFormat();
+        outputSurface.Format   = expectedFormat;
+        DdiMedia_MediaSurfaceToMosResource(filmGrainOutSurface, &(outputSurface.OsResource));
+        m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_outputSurface = &outputSurface;
     }
 
     return VA_STATUS_SUCCESS;
@@ -810,6 +813,8 @@ VAStatus DdiDecodeAV1::InitDecodeParams(
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
     bufMgr->dwNumSliceData = 0;
     bufMgr->dwNumSliceControl = 0;
+    memset(&outputSurface, 0, sizeof(MOS_SURFACE));
+    outputSurface.dwOffset = 0;
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
 
