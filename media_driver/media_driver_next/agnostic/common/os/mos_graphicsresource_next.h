@@ -31,7 +31,7 @@
 #include "mos_resource_defs.h"
 #include <string>
 #include "mos_context_next.h"
-
+#include "mos_interface.h"
 
 
 class GraphicsResourceNext
@@ -158,7 +158,7 @@ public:
             m_flags           = pParams->Flags;
             m_width           = pParams->dwWidth;
             m_memType         = pParams->dwMemType;
-            m_gmmResUsageType = pParams->gmmResUsageType;
+            m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(pParams->ResUsageType);
         };
 
         CreateParams()

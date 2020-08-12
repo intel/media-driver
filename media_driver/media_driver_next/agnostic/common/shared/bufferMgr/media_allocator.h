@@ -220,18 +220,18 @@ public:
         bool                  bWriteOperation);
 
     //!
-    //! \brief    Update the GMM usage type of resource for cache policy
-    //! \details  Update the GMM usage type of resource for cache policy
+    //! \brief    Update the usage type of resource for cache policy
+    //! \details  Update the usage type of resource for cache policy
     //! \param    PMOS_RESOURCE OsResource
     //!           [in] OS resource sturcture
-    //! \param    GMM_RESOURCE_USAGE_TYPE gmmResUsageType
-    //!           [in] GMM_RESOURCE_USAGE_TYPE to be set
+    //! \param    MOS_HW_RESOURCE_DEF resUsageType
+    //!           [in] MOS_HW_RESOURCE_DEF to be set
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS UpdateResourceGmmUsageType(
+    MOS_STATUS UpdateResourceUsageType(
         PMOS_RESOURCE           osResource,
-        GMM_RESOURCE_USAGE_TYPE gmmResUsageType);
+        MOS_HW_RESOURCE_DEF     resUsageType);
 
 protected:
 

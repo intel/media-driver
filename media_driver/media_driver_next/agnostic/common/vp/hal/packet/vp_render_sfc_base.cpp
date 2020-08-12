@@ -1036,7 +1036,9 @@ MOS_STATUS SfcRenderBase::AllocateResources()
                                       1,
                                       false,
                                       MOS_MMC_DISABLED,
-                                      allocated));
+                                      allocated,
+                                      false,
+                                      MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
     }
     else if (m_AVSLineBufferSurface)
     {
@@ -1058,7 +1060,9 @@ MOS_STATUS SfcRenderBase::AllocateResources()
                                       1,
                                       false,
                                       MOS_MMC_DISABLED,
-                                      allocated));
+                                      allocated,
+                                      false,
+                                      MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
     }
     else if (m_IEFLineBufferSurface)
     {
@@ -1080,7 +1084,9 @@ MOS_STATUS SfcRenderBase::AllocateResources()
             1,
             false,
             MOS_MMC_DISABLED,
-            allocated));
+            allocated,
+            false,
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
     }
     else if (m_SFDLineBufferSurface)
     {

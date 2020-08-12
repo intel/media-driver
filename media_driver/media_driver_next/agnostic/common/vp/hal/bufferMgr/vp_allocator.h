@@ -347,8 +347,8 @@ public:
     //!           Compression Mode
     //! \param    [out] allocated
     //!           true if allocated, false for not
-    //! \param    [in] gmmResUsageType
-    //!           gmm resource usage type for cache policy
+    //! \param    [in] resUsageType
+    //!           resource usage type for cache policy
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success. Error code otherwise
     //!
@@ -363,7 +363,7 @@ public:
         bool                    compressible,
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
-        GMM_RESOURCE_USAGE_TYPE gmmResUsageType = GMM_RESOURCE_USAGE_UNKNOWN);
+        MOS_HW_RESOURCE_DEF     resUsageType = MOS_HW_RESOURCE_DEF_MAX);
 
     //!
     //! \brief    Reallocates the VP Surface
@@ -392,8 +392,8 @@ public:
     //!           true if allocated, false for not
     //! \param    [in] zeroOnAllocate
     //!           zero when surface allocated
-    //! \param    [in] gmmResUsageType
-    //!           gmm resource usage type for cache policy
+    //! \param    [in] resUsageType
+    //!           resource usage type for cache policy
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success. Error code otherwise
     //!
@@ -409,7 +409,7 @@ public:
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
         bool                    zeroOnAllocate = 0,
-        GMM_RESOURCE_USAGE_TYPE gmmResUsageType = GMM_RESOURCE_USAGE_UNKNOWN);
+        MOS_HW_RESOURCE_DEF     resUsageType   = MOS_HW_RESOURCE_DEF_MAX);
 
     //!
     //! \brief    Unified OS fill Resource
@@ -520,6 +520,19 @@ public:
     MOS_STATUS SyncOnResource(
         PMOS_RESOURCE         osResource,
         bool                  bWriteOperation);
+
+    //!
+    //! \brief    Update the usage type of resource for cache policy
+    //! \details  Update the usage type of resource for cache policy
+    //! \param    PMOS_RESOURCE OsResource
+    //!           [in] OS resource sturcture
+    //! \param    MOS_HW_RESOURCE_DEF resUsageType
+    //!           [in] MOS_HW_RESOURCE_DEF to be set
+    //! \return   VOID
+    //!
+    MOS_STATUS UpdateResourceUsageType(
+        PMOS_RESOURCE           osResource,
+        MOS_HW_RESOURCE_DEF     resUsageType);
 
 protected:
     //!

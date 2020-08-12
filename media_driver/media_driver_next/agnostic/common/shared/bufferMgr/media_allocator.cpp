@@ -383,14 +383,14 @@ MOS_STATUS Allocator::SyncOnResource(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Allocator::UpdateResourceGmmUsageType(
+MOS_STATUS Allocator::UpdateResourceUsageType(
     PMOS_RESOURCE           osResource,
-    GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
+    MOS_HW_RESOURCE_DEF     resUsageType)
 {
     if (nullptr == osResource)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    return m_osInterface->pfnUpdateResourceGmmUsageType(osResource, gmmResUsageType);
+    return m_osInterface->pfnUpdateResourceUsageType(osResource, resUsageType);
 }

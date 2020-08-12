@@ -600,7 +600,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     bool                    compressible,
     MOS_RESOURCE_MMC_MODE   compressionMode,
     bool                    &allocated,
-    GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
+    MOS_HW_RESOURCE_DEF     resUsageType)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
     VPHAL_GET_SURFACE_INFO  info;
@@ -637,7 +637,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.CompressionMode = compressionMode;
     allocParams.pBufName        = surfaceName;
     allocParams.dwArraySize     = 1;
-    allocParams.gmmResUsageType = gmmResUsageType;
+    allocParams.ResUsageType    = resUsageType;
 
     // Delete resource if already allocated
     FreeResource(&surface->OsResource);
@@ -668,7 +668,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
         bool                    zeroOnAllocate,
-        GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
+        MOS_HW_RESOURCE_DEF     resUsageType)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
     MOS_ALLOC_GFXRES_PARAMS allocParams = {};
@@ -712,7 +712,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.CompressionMode = compressionMode;
     allocParams.pBufName        = surfaceName;
     allocParams.dwArraySize     = 1;
-    allocParams.gmmResUsageType = gmmResUsageType;
+    allocParams.ResUsageType    = resUsageType;
 
     surface = AllocateVpSurface(allocParams, zeroOnAllocate);
     VP_PUBLIC_CHK_NULL_RETURN(surface);
@@ -935,6 +935,15 @@ MOS_STATUS VpAllocator::SyncOnResource(
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
 
     return (m_allocator->SyncOnResource(osResource, bWriteOperation));
+}
+
+MOS_STATUS VpAllocator::UpdateResourceUsageType(
+    PMOS_RESOURCE           osResource,
+    MOS_HW_RESOURCE_DEF     resUsageType)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
+
+    return (m_allocator->UpdateResourceUsageType(osResource, resUsageType));
 }
 
 bool VP_SURFACE::IsEmpty()

@@ -680,7 +680,22 @@ public:
     //!
     static MOS_CMD_BUF_ATTRI_VE *GetAttributeVeBuffer(
         COMMAND_BUFFER_HANDLE cmdBuffer);
-        
+
+    //!
+    //! \brief    Get Cache Policy Memory Object
+    //! \details  [Resource Interface] Get Cache Policy Memory Object in GMM corresponding to the resource usage
+    //!           Caller: HAL & MHW
+    //!
+    //! \param    [in] mosUsage
+    //!           Resource usage as index to the memory object table
+    //!           If prociding unknown usage, default state will be returned
+    //!
+    //! \return   MEMORY_OBJECT_CONTROL_STATE
+    //!           The cache policy memory object got from MOS interface
+    //!
+    static GMM_RESOURCE_USAGE_TYPE GetGmmResourceUsageType(
+        MOS_HW_RESOURCE_DEF mosUsage);
+
     //!
     //! \brief    Get Cache Policy Memory Object
     //! \details  [Resource Interface] Get Cache Policy Memory Object in GMM corresponding to the resource usage
@@ -906,18 +921,18 @@ public:
         MOS_RESOURCE_HANDLE resource);
 
     //!
-    //! \brief    Update Resource GMM usage type
+    //! \brief    Update resource usage type
     //! \details  update the resource usage for cache policy
     //! \param    PMOS_RESOURCE pOsResource
     //!           [in/out] Pointer to OS Resource
-    //! \param    MM_RESOURCE_USAGE_TYPE gmmResUsageType
-    //!           [in] gmm resosuce usage type
+    //! \param    MOS_HW_RESOURCE_DEF resUsageType
+    //!           [in] MOS resosuce usage type
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS UpdateResourceGmmUsageType(
+    static MOS_STATUS UpdateResourceUsageType(
         PMOS_RESOURCE           pOsResource,
-        GMM_RESOURCE_USAGE_TYPE gmmResUsageType);
+        MOS_HW_RESOURCE_DEF     resUsageType);
 
     //!
     //! \brief    Register Resource

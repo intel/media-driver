@@ -238,7 +238,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                     inputSurface->osSurface->dwHeight,
                     bSurfCompressible,
                     surfCompressionMode,
-                    bAllocated));
+                    bAllocated,
+                    false,
+                    MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF));
 
                 m_veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
                 m_veboxOutput[i]->rcDst      = inputSurface->rcDst;
@@ -282,7 +284,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                     inputSurface->osSurface->dwHeight,
                     bSurfCompressible,
                     surfCompressionMode,
-                    bAllocated));
+                    bAllocated,
+                    false,
+                    MOS_HW_RESOURCE_USAGE_VP_INPUT_REFERENCE_FF));
 
                 // if allocated, pVeboxState->PreviousSurface is not valid for DN reference.
                 if (bAllocated)
@@ -349,7 +353,8 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                 bSurfCompressible,
                 surfCompressionMode,
                 bAllocated,
-                true));
+                true,
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
 
             if (bAllocated)
             {
@@ -385,7 +390,8 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         false,
         MOS_MMC_DISABLED,
         bAllocated,
-        true));
+        true,
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
 #endif
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
@@ -402,7 +408,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         1,
         false,
         MOS_MMC_DISABLED,
-        bAllocated));
+        bAllocated,
+        false,
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
 
     if (bAllocated)
     {
@@ -430,7 +438,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         1,
         false,
         MOS_MMC_DISABLED,
-        bAllocated));
+        bAllocated,
+        false,
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
 
     // Allocate Statistics State Surface----------------------------------------
     // Width to be a aligned on 64 bytes and height is 1/4 the height
@@ -453,7 +463,8 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         false,
         MOS_MMC_DISABLED,
         bAllocated,
-        true));
+        true,
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
 
     if (bAllocated)
     {

@@ -3433,20 +3433,20 @@ MOS_STATUS Mos_Specific_SetPatchEntry(
 }
 
 //!
-//! \brief    Update Resource GMM usage type
+//! \brief    Update resource usage type
 //! \details  update the resource usage for cache policy
 //! \param    PMOS_RESOURCE pOsResource
 //!           [in/out] Pointer to OS Resource
-//! \param    MM_RESOURCE_USAGE_TYPE gmmResUsageType
-//!           [in] gmm resosuce usage type
+//! \param    MOS_HW_RESOURCE_DEF resUsageType
+//!           [in] resosuce usage type
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS Mos_Specific_UpdateResourceGmmUsageType(
+MOS_STATUS Mos_Specific_UpdateResourceUsageType(
     PMOS_RESOURCE           pOsResource,
-    GMM_RESOURCE_USAGE_TYPE gmmResUsageType)
+    MOS_HW_RESOURCE_DEF     resUsageType)
 {
-    return MosInterface::UpdateResourceGmmUsageType(pOsResource, gmmResUsageType);
+    return MosInterface::UpdateResourceUsageType(pOsResource, resUsageType);
 }
 
 //!
@@ -7305,7 +7305,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnDoubleBufferCopyResource               = Mos_Specific_DoubleBufferCopyResource;
     pOsInterface->pfnMediaCopyResource2D                    = Mos_Specific_MediaCopyResource2D;
     pOsInterface->pfnMediaCopy                              = Mos_Specific_MediaCopy;
-    pOsInterface->pfnUpdateResourceGmmUsageType             = Mos_Specific_UpdateResourceGmmUsageType;
+    pOsInterface->pfnUpdateResourceUsageType                = Mos_Specific_UpdateResourceUsageType;
     pOsInterface->pfnRegisterResource                       = Mos_Specific_RegisterResource;
     pOsInterface->pfnResetResourceAllocationIndex           = Mos_Specific_ResetResourceAllocationIndex;
     pOsInterface->pfnGetResourceAllocationIndex             = Mos_Specific_GetResourceAllocationIndex;

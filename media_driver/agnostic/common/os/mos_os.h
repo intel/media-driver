@@ -445,7 +445,7 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
     int32_t             bIsPersistent;                                          //!< [in] Optional parameter. Used to indicate that resource can not be evicted
     int32_t             bBypassMODImpl;
     int32_t             dwMemType;                                              //!< [in] Optional paramerter. Prefer memory type
-    GMM_RESOURCE_USAGE_TYPE gmmResUsageType;                                    //!< [in] the resource usage type to determine the cache policy
+    MOS_HW_RESOURCE_DEF ResUsageType;                                           //!< [in] the resource usage type to determine the cache policy
 } MOS_ALLOC_GFXRES_PARAMS, *PMOS_ALLOC_GFXRES_PARAMS;
 
 //!
@@ -1027,9 +1027,9 @@ typedef struct _MOS_INTERFACE
         uint32_t                    dwSize,
         uint8_t                     iValue);
 
-    MOS_STATUS (*pfnUpdateResourceGmmUsageType) (
+    MOS_STATUS (*pfnUpdateResourceUsageType) (
         PMOS_RESOURCE           pOsResource,
-        GMM_RESOURCE_USAGE_TYPE gmmResUsageType);
+        MOS_HW_RESOURCE_DEF     resUsageType);
 
     MOS_STATUS (* pfnRegisterResource) (
         PMOS_INTERFACE              pOsInterface,
