@@ -136,6 +136,18 @@ public:
         return m_reporting;
     }
 
+    //!
+    //! \brief    Check whether VEBOX-SFC Format Supported
+    //! \details  Check whether VEBOX-SFC Format Supported.
+    //! \param    inputFormat
+    //!           [in] Format of Input Frame
+    //! \param    outputFormat
+    //!           [in] Format of Output Frame
+    //! \return   bool
+    //!           Return true if supported, otherwise failed
+    //!
+    bool IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
+
 protected:
 
     //!

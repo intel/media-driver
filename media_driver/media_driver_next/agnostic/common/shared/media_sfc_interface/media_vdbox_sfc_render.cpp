@@ -160,11 +160,6 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
     VP_PUBLIC_CHK_NULL_RETURN(sfcParam.output.surface);
     VP_PUBLIC_CHK_NULL_RETURN(cmdBuffer);
 
-    if (!m_sfcRender->IsVdboxSfcFormatSupported(sfcParam.codecStandard, sfcParam.input.format, sfcParam.output.surface->Format))
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-    }
-
     VP_EXECUTE_CAPS vpExecuteCaps   = {};
     vpExecuteCaps.bSFC              = 1;
     vpExecuteCaps.bSfcCsc           = 1;
@@ -196,4 +191,16 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
     m_allocator->DestroyVpSurface(renderTarget);
 
     return MOS_STATUS_SUCCESS;
+}
+
+bool MediaVdboxSfcRender::IsVdboxSfcFormatSupported(
+    CODECHAL_STANDARD           codecStandard,
+    MOS_FORMAT                  inputFormat,
+    MOS_FORMAT                  outputFormat)
+{
+    if (nullptr == m_sfcRender)
+    {
+        return false;
+    }
+    return m_sfcRender->IsVdboxSfcFormatSupported(codecStandard, inputFormat, outputFormat);
 }

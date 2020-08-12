@@ -56,6 +56,17 @@ public:
     virtual ~Policy();
     MOS_STATUS CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFilter);
     MOS_STATUS Initialize();
+    //!
+    //! \brief    Check whether VEBOX-SFC Format Supported
+    //! \details  Check whether VEBOX-SFC Format Supported.
+    //! \param    inputFormat
+    //!           [in] Format of Input Frame
+    //! \param    outputFormat
+    //!           [in] Format of Output Frame
+    //! \return   bool
+    //!           Return true if supported, otherwise failed
+    //!
+    bool IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
 
 protected:
     MOS_STATUS GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
@@ -93,8 +104,8 @@ protected:
     VpInterface         &m_vpInterface;
     VP_SFC_ENTRY_REC    m_sfcHwEntry[Format_Count] = {};
     VP_VEBOX_ENTRY_REC  m_veboxHwEntry[Format_Count] = {};
-
-    uint32_t m_bypassCompMode = 0;
+    uint32_t            m_bypassCompMode = 0;
+    bool                m_initialized = false;
 };
 
 }

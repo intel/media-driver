@@ -83,6 +83,16 @@ struct VDBOX_SFC_PARAMS
     bool                            deblockingEnabled;
 };
 
+union MEDIA_SFC_INTERFACE_MODE
+{
+    struct
+    {
+        uint32_t veboxSfcEnabled : 1;
+        uint32_t vdboxSfcEnabled : 1;
+    };
+    uint32_t value = 3;
+};
+
 class MediaSfcInterface
 {
 public:
@@ -98,15 +108,57 @@ public:
 
     virtual void Destroy();
 
-    MOS_STATUS Render(VEBOX_SFC_PARAMS &param);
-    MOS_STATUS Render(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PARAMS &param);
     //!
-    //! \brief    BltState initialize
-    //! \details  Initialize the BltState, create BLT context.
+    //! \brief    Check whether the Parameter for VDBOX-SFC supported
+    //! \details  Only valid when MEDIA_SFC_INTERFACE_MODE::vdboxSfcEnabled being 1.
+    //! \param    param
+    //!           [in] Pointer to VDBOX_SFC_PARAMS.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
+    //!
+    MOS_STATUS IsParameterSupported(VDBOX_SFC_PARAMS &param);
+
+    //!
+    //! \brief    Check whether the Parameter for VEBOX-SFC supported
+    //! \details  Only valid when MEDIA_SFC_INTERFACE_MODE::veboxSfcEnabled being 1.
+    //! \param    param
+    //!           [in] Pointer to VEBOX_SFC_PARAMS.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
+    //!
+    MOS_STATUS IsParameterSupported(VEBOX_SFC_PARAMS &param);
+
+    //!
+    //! \brief    Render Vdbox-SFC States
+    //! \details  Only valid when MEDIA_SFC_INTERFACE_MODE::vdboxSfcEnabled being 1.
+    //! \param    cmdBuffer
+    //!           [in/out] Command Buffer to be Filled.
+    //! \param    param
+    //!           [in] Pointer to VDBOX_SFC_PARAMS.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
+    //!
+    MOS_STATUS Render(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PARAMS &param);
+
+    //!
+    //! \brief    Render Vebox-SFC States
+    //! \details  Only valid when MEDIA_SFC_INTERFACE_MODE::veboxSfcEnabled being 1.
+    //! \param    param
+    //!           [in] Pointer to VEBOX_SFC_PARAMS.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if supported, otherwise failed
+    //!
+    MOS_STATUS Render(VEBOX_SFC_PARAMS &param);
+
+    //!
+    //! \brief    MediaSfcInterface initialize
+    //! \details  Initialize the MediaSfcInterface.
+    //! \param    mode
+    //!           [in] 1: VEBOX-SFC only, 2: VDBOX-SFC only, 3: Both VEBOX-SFC and VDBOX-SFC.
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS Initialize();
+    virtual MOS_STATUS Initialize(MEDIA_SFC_INTERFACE_MODE mode);
 
 protected:
     PMOS_INTERFACE m_osInterface    = nullptr;

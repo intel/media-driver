@@ -51,6 +51,11 @@ MOS_STATUS VpFeatureManagerNext::Initialize()
     return m_Policy.Initialize();
 }
 
+bool VpFeatureManagerNext::IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
+{
+    return m_Policy.IsVeboxSfcFormatSupported(formatInput, formatOutput);
+}
+
 MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(SwFilterPipe &swFilterPipe, HwFilterPipe *&pHwFilterPipe)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;

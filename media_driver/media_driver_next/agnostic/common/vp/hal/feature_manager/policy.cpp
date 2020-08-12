@@ -80,7 +80,26 @@ MOS_STATUS Policy::Initialize()
     VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpVeboxSfcHwCaps(m_veboxHwEntry, Format_Count, m_sfcHwEntry, Format_Count));
     // Place hold for render hw caps.
     // VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpRenderHwCaps());
-    return RegisterFeatures();
+    VP_PUBLIC_CHK_STATUS_RETURN(RegisterFeatures());
+    m_initialized = true;
+    return MOS_STATUS_SUCCESS;
+}
+
+bool Policy::IsVeboxSfcFormatSupported(MOS_FORMAT  formatInput, MOS_FORMAT formatOutput)
+{
+    if (!m_initialized)
+    {
+        return false;
+    }
+    if (m_sfcHwEntry[formatInput].inputSupported   &&
+        m_sfcHwEntry[formatOutput].outputSupported)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 MOS_STATUS Policy::RegisterFeatures()

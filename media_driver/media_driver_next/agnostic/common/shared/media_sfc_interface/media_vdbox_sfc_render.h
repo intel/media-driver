@@ -77,6 +77,22 @@ public:
     //!
     MOS_STATUS AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PARAMS &sfcParam);
 
+    //!
+    //! \brief    Check whether VDBOX-SFC Format Supported
+    //! \details  Check whether VDBOX-SFC Format Supported.
+    //! \param    codecStandard
+    //!           [in] Codec Standard.
+    //! \param    inputFormat
+    //!           [in] Format of Input Frame
+    //! \param    outputFormat
+    //!           [in] Format of Output Frame
+    //! \return   bool
+    //!           Return true if supported, otherwise failed
+    //!
+    bool IsVdboxSfcFormatSupported(
+        CODECHAL_STANDARD           codecStandard,
+        MOS_FORMAT                  inputFormat,
+        MOS_FORMAT                  outputFormat);
 
 protected:
     MOS_STATUS SetCSCParams(VDBOX_SFC_PARAMS &sfcParam, VP_EXECUTE_CAPS &vpExecuteCaps);

@@ -42,6 +42,20 @@ void MediaSfcInterface::Destroy()
     MOS_Delete(m_sfcRender);
 }
 
+MOS_STATUS MediaSfcInterface::IsParameterSupported(
+    VDBOX_SFC_PARAMS                    &sfcParam)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
+    return m_sfcRender->IsParameterSupported(sfcParam);
+}
+
+MOS_STATUS MediaSfcInterface::IsParameterSupported(
+    VEBOX_SFC_PARAMS                    &sfcParam)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
+    return m_sfcRender->IsParameterSupported(sfcParam);
+}
+
 MOS_STATUS MediaSfcInterface::Render(VEBOX_SFC_PARAMS &param)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
@@ -61,10 +75,14 @@ MOS_STATUS MediaSfcInterface::Render(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PA
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS MediaSfcInterface::Initialize()
+MOS_STATUS MediaSfcInterface::Initialize(MEDIA_SFC_INTERFACE_MODE mode)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
-    m_sfcRender = MOS_New(MediaSfcRender, m_osInterface);
+    if (m_sfcRender)
+    {
+        Destroy();
+    }
+    m_sfcRender = MOS_New(MediaSfcRender, m_osInterface, mode);
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
     VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->Initialize());
     return MOS_STATUS_SUCCESS;

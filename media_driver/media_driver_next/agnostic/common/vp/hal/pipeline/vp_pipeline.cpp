@@ -198,6 +198,17 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     return MOS_STATUS_SUCCESS;
 }
 
+bool VpPipeline::IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
+{
+    VpFeatureManagerNext *featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
+    if (nullptr == featureManagerNext)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("m_featureManager equals to nullptr!");
+        return false;
+    }
+    return featureManagerNext->IsVeboxSfcFormatSupported(formatInput, formatOutput);
+}
+
 MOS_STATUS VpPipeline::ExecuteVpPipeline()
 {
     VP_FUNC_CALL();
