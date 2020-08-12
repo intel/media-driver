@@ -2870,7 +2870,7 @@ MOS_STATUS CodechalEncHevcStateG11::GetSystemPipeNumberCommon()
         &userFeatureData,
         m_osInterface->pOsContext);
 
-    bool disableScalability = true;
+    bool disableScalability = true; // m_hwInterface->IsDisableScalability() default false
     if (statusKey == MOS_STATUS_SUCCESS)
     {
         disableScalability = userFeatureData.i32Data ? true : false;
