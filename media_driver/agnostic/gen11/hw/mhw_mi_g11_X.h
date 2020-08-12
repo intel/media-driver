@@ -85,6 +85,18 @@ struct MhwMiInterfaceG11 : public MhwMiInterfaceGeneric<mhw_mi_g11_X>
     MOS_STATUS AddWatchdogTimerStopCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer);
 
+    MOS_STATUS AddMediaStateFlush(
+        PMOS_COMMAND_BUFFER          cmdBuffer,
+        PMHW_BATCH_BUFFER            batchBuffer,
+        PMHW_MEDIA_STATE_FLUSH_PARAM params = nullptr);
+
+    MOS_STATUS SkipMiBatchBufferEndBb(
+        PMHW_BATCH_BUFFER batchBuffer);
+
+    MOS_STATUS AddMiFlushDwCmd(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_MI_FLUSH_DW_PARAMS         params);
+
     void InitMmioRegisters();
 
 private:
@@ -93,7 +105,7 @@ private:
     //
     static const uint32_t m_mmioMaxRelativeOffset   = 0x3FFF;               //!< Max reg relative offset in an engine
     static const uint32_t m_mmioMediaLowOffset      = 0x1C0000;             //!< Low bound of VDBox and VEBox MMIO offset
-    static const uint32_t m_mmioMediaHighOffset     = 0x200000;             //!< High bound of VDBox and VEBox MMIO offset 
+    static const uint32_t m_mmioMediaHighOffset     = 0x200000;             //!< High bound of VDBox and VEBox MMIO offset
 
     //!
     //! \brief    Check and convert meida registers to relative offset

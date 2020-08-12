@@ -70,6 +70,18 @@ struct MhwMiInterfaceG10 : public MhwMiInterfaceGeneric<mhw_mi_g10_X>
 
     MOS_STATUS AddWatchdogTimerStopCmd(
         PMOS_COMMAND_BUFFER cmdBuffer);
+
+    MOS_STATUS AddMediaStateFlush(
+        PMOS_COMMAND_BUFFER          cmdBuffer,
+        PMHW_BATCH_BUFFER            batchBuffer,
+        PMHW_MEDIA_STATE_FLUSH_PARAM params = nullptr);
+
+    MOS_STATUS SkipMiBatchBufferEndBb(
+        PMHW_BATCH_BUFFER batchBuffer);
+
+    MOS_STATUS AddMiFlushDwCmd(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_MI_FLUSH_DW_PARAMS         params);
 };
 
 #endif

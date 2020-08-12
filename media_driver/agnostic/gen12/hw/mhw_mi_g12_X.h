@@ -110,6 +110,18 @@ struct MhwMiInterfaceG12 : public MhwMiInterfaceGeneric<mhw_mi_g12_X>
         PMHW_BATCH_BUFFER                   batchBuffer,
         PMHW_PIPE_CONTROL_PARAMS            params);
 
+    MOS_STATUS AddMediaStateFlush(
+        PMOS_COMMAND_BUFFER          cmdBuffer,
+        PMHW_BATCH_BUFFER            batchBuffer,
+        PMHW_MEDIA_STATE_FLUSH_PARAM params = nullptr);
+
+    MOS_STATUS SkipMiBatchBufferEndBb(
+        PMHW_BATCH_BUFFER batchBuffer);
+
+    MOS_STATUS AddMiFlushDwCmd(
+        PMOS_COMMAND_BUFFER     cmdBuffer,
+        PMHW_MI_FLUSH_DW_PARAMS params);
+
     //!
     //! \brief    Adds Mi Vd control state cmd in command buffer
     //!

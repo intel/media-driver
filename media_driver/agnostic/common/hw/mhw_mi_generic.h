@@ -342,52 +342,6 @@ public:
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
 
-        typename TMiCmds::MI_FLUSH_DW_CMD cmd;
-
-        // set the protection bit based on CP status
-        MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForMiFlushDw(m_osInterface, &cmd));
-
-        cmd.DW0.VideoPipelineCacheInvalidate    = params->bVideoPipelineCacheInvalidate;
-        cmd.DW0.PostSyncOperation               = cmd.POST_SYNC_OPERATION_NOWRITE;
-        cmd.DW3_4.Value[0]                      = params->dwDataDW1;
-
-        if (params->pOsResource)
-        {
-            cmd.DW0.PostSyncOperation           = cmd.POST_SYNC_OPERATION_WRITEIMMEDIATEDATA;
-            cmd.DW1_2.DestinationAddressType    = UseGlobalGtt.m_vcs;
-
-            MHW_RESOURCE_PARAMS resourceParams;
-            MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
-            resourceParams.presResource     = params->pOsResource;
-            resourceParams.dwOffset         = params->dwResourceOffset;
-            resourceParams.pdwCmd           = cmd.DW1_2.Value;
-            resourceParams.dwLocationInCmd  = 1;
-            resourceParams.dwLsbNum         = MHW_COMMON_MI_FLUSH_DW_SHIFT;
-            resourceParams.HwCommandType    = MOS_MI_FLUSH_DW;
-            resourceParams.bIsWritable      = true;
-
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                m_osInterface,
-                cmdBuffer,
-                &resourceParams));
-        }
-
-        if (params->postSyncOperation)
-        {
-            cmd.DW0.PostSyncOperation = params->postSyncOperation;
-        }
-
-        if (params->dwDataDW2 || params->bQWordEnable)
-        {
-            cmd.DW3_4.Value[1] = params->dwDataDW2;
-        }
-        else
-        {
-            cmd.DW0.DwordLength--;
-        }
-
-        MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
-
         return MOS_STATUS_SUCCESS;
     }
 
@@ -868,28 +822,11 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
-        if (cmdBuffer == nullptr && batchBuffer == nullptr)
+       if (cmdBuffer == nullptr && batchBuffer == nullptr)
         {
             MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
             return MOS_STATUS_NULL_POINTER;
         }
-
-        typename TMiCmds::MEDIA_STATE_FLUSH_CMD cmd;
-
-        if (params != nullptr)
-        {
-            cmd.DW1.FlushToGo = params->bFlushToGo;
-            cmd.DW1.InterfaceDescriptorOffset = params->ui8InterfaceDescriptorOffset;
-        }
-
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (batchBuffer)
-        {
-            batchBuffer->iLastCurrent = batchBuffer->iCurrent;
-        }
-#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -900,29 +837,6 @@ public:
         MHW_FUNCTION_ENTER;
 
         MHW_MI_CHK_NULL(batchBuffer);
-
-        auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-        MHW_MI_CHK_NULL(waTable);
-
-        // This WA does not apply for video or other engines, render requirement only
-        bool isRender =
-            MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface));
-
-        if (isRender && (MEDIA_IS_WA(waTable, WaMSFWithNoWatermarkTSGHang) ||
-            MEDIA_IS_WA(waTable, WaAddMediaStateFlushCmd)))
-        {
-            typename TMiCmds::MEDIA_STATE_FLUSH_CMD FlushCmd;
-            MHW_MI_CHK_STATUS(Mhw_AddCommandBB(
-                batchBuffer,
-                nullptr,
-                FlushCmd.byteSize));
-        }
-
-        typename TMiCmds::MI_BATCH_BUFFER_END_CMD cmd;
-        MHW_MI_CHK_STATUS(Mhw_AddCommandBB(
-            batchBuffer,
-            nullptr,
-            cmd.byteSize));
 
         return MOS_STATUS_SUCCESS;
     }
