@@ -110,6 +110,22 @@ typedef enum _MEDIA_EVENT
     EVENT_DATA_DICTIONARY,          //! event for data dictionary (name:value pair)
     EVENT_MEDIA_COPY,               //! event for media decompresss/copy/blt
     EVENT_MOS_BATCH_SUBMIT,         //! event for batch buffer submission
+    EVENT_VA_PICTURE,               //! event for VA begin/render/end picture
+    EVENT_VA_SYNC,                  //! event for VA sync surface/buffer
+    EVENT_VA_GET,                   //! event for VA get image
+    EVENT_VA_CONFIG,                //! event for VA query config
+    EVENT_VA_SURFACE,               //! event for VA create surface
+    EVENT_VA_FREE_SURFACE,          //! event for VA destroy surface
+    EVENT_VA_DERIVE,                //! event for VA derive surface to image
+    EVENT_VA_MAP,                   //! event for VA map buffer
+    EVENT_VA_UNMAP,                 //! event for VA unmap buffer
+    EVENT_VA_LOCK,                  //! event for VA lock surface
+    EVENT_VA_UNLOCK,                //! event for VA unlock surface
+    EVENT_VA_BUFFER,                //! event for VA create buffer
+    EVENT_VA_FREE_BUFFER,           //! event for VA destroy buffer
+    EVENT_VA_IMAGE,                 //! event for VA create image
+    EVENT_VA_FREE_IMAGE,            //! event for VA destroy image
+    EVENT_VA_PUT,                   //! event for VA put image
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

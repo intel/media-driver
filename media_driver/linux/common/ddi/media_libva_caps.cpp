@@ -2338,6 +2338,9 @@ VAStatus MediaLibvaCaps::QueryConfigAttributes(
     }
 
     *numAttribs = j;
+    // tracing profile/entry/config, compiler will optimize if trace is disabled
+    uint32_t data[] = {*profile, *entrypoint, j};
+    MOS_TraceEventExt(EVENT_VA_CONFIG, EVENT_TYPE_INFO, data, sizeof(data), attribList, j*sizeof(VAConfigAttrib));
 
     return VA_STATUS_SUCCESS;
 }

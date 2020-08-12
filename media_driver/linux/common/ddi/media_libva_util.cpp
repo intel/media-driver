@@ -607,6 +607,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
         mediaSurface->isTiled     = (tileformat != I915_TILING_NONE) ? 1 : 0;
         mediaSurface->pData       = (uint8_t*) bo->virt;
         DDI_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).",gmmSize, width, height);
+        uint32_t event[] = {bo->handle, format, width, height, pitch, bo->size, tileformat, tag};
+        MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_INFO, event, sizeof(event), &gmmResourceInfo->GetResFlags(), sizeof(GMM_RESOURCE_FLAG));
     }
     else
     {
@@ -697,6 +699,8 @@ VAStatus DdiMediaUtil_AllocateBuffer(
         mediaBuffer->pData      = (uint8_t*) bo->virt;
 
         DDI_VERBOSEMESSAGE("Alloc %8d bytes resource.",size);
+        uint32_t event[] = {bo->handle, format, size, 1, size, bo->size, 0, 0};
+        MOS_TraceEventExt(EVENT_VA_BUFFER, EVENT_TYPE_INFO, event, sizeof(event), &mediaBuffer->pGmmResourceInfo->GetResFlags(), sizeof(GMM_RESOURCE_FLAG));
     }
     else
     {
@@ -795,6 +799,8 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
         mediaBuffer->TileType   = tileformat;
         mediaBuffer->pData      = (uint8_t*) bo->virt;
         DDI_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource)\n",size, width, height);
+        uint32_t event[] = {bo->handle, mediaBuffer->format, width, height, gmmPitch, bo->size, tileformat, 0};
+        MOS_TraceEventExt(EVENT_VA_BUFFER, EVENT_TYPE_INFO, event, sizeof(event), &gmmResourceInfo->GetResFlags(), sizeof(GMM_RESOURCE_FLAG));
     }
     else
     {
