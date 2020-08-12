@@ -260,7 +260,7 @@ MOS_STATUS FilmGrainAppNoisePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8
         }
     }
 
-    if (m_av1BasicFeature->frameCompletedFlag && m_av1BasicFeature->m_filmGrainEnabled)
+    if (m_av1BasicFeature->m_frameCompletedFlag && m_av1BasicFeature->m_filmGrainEnabled)
     {
         m_osInterface->pfnIncPerfFrameID(m_osInterface);
         m_osInterface->pfnResetPerfBufferID(m_osInterface);

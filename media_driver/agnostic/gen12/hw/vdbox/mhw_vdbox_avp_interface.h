@@ -732,7 +732,6 @@ public:
         PMOS_COMMAND_BUFFER                  cmdBuffer,
         PMHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS  params) = 0;
 
-
     //!
     //! \brief    Adds AVP picture State command for decode in command buffer
     //!

@@ -61,11 +61,11 @@ namespace decode
         DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_av1BasicFeature->m_resDataBuffer, false));
 
         //Set ReadyToExecute to true for the last tile of the frame
-        Mos_Solo_SetReadyToExecute(m_osInterface, m_av1BasicFeature->frameCompletedFlag);
+        Mos_Solo_SetReadyToExecute(m_osInterface, m_av1BasicFeature->m_frameCompletedFlag);
 
         DECODE_CHK_STATUS(Mos_Solo_PostProcessDecode(m_osInterface, &m_av1BasicFeature->m_destSurface));
 
-        if(m_av1BasicFeature->frameCompletedFlag && !m_av1BasicFeature->m_filmGrainEnabled)
+        if(m_av1BasicFeature->m_frameCompletedFlag && !m_av1BasicFeature->m_filmGrainEnabled)
         {
             m_osInterface->pfnIncPerfFrameID(m_osInterface);
             m_osInterface->pfnResetPerfBufferID(m_osInterface);
@@ -99,7 +99,66 @@ namespace decode
         }
 
         DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
+
+        if (m_av1BasicFeature->m_usingDummyWl == true && (!m_av1Pipeline->FrameBasedDecodingInUse())
+            ||(m_av1BasicFeature->m_tileCoding.m_curTile == 0
+              && m_av1Pipeline->FrameBasedDecodingInUse()))
+        {
+            DECODE_CHK_STATUS(InitDummyWL(cmdBuffer));
+        }
+
         DECODE_CHK_STATUS(m_picturePkt->Execute(cmdBuffer));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1DecodePktG12::InitDummyWL(MOS_COMMAND_BUFFER &cmdBuffer)
+    {
+        DECODE_FUNC_CALL();
+
+        const uint32_t section1[]=
+        {
+            0x718a0001, 0x00000001, 0x00000000, 0x68000100,
+            0x71800004, 0x00000040, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x68000100, 0x71810003,
+            0x0000007f, 0x20000020, 0x00000000, 0x00000000
+        };
+
+        const uint32_t section2[]=
+        {
+            0x71b00031, 0x000f000f, 0x00391601, 0x70080053,
+            0x00950000, 0x00000000, 0x00000000, 0x00000004,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x76543210, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x7192000d,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x00000000, 0x71b20002, 0x00000000,
+            0xfff00000, 0x00000000, 0x71b3000d, 0x022f4cae,
+            0x00000001, 0x7f7f007f, 0x00000000, 0xd0000c02,
+            0x00000000, 0x000000b0, 0x00000000, 0x0008000f,
+            0x00000110, 0x00000000, 0x00000000, 0x00000000,
+            0x00000000, 0x71950004, 0x00000000, 0x00000000,
+            0x00000000, 0xbe000000, 0x00000001, 0x71a00001,
+            0x00000050, 0x0000003d, 0x718a0001, 0x00000000,
+            0x00000004, 0x77800000, 0x00100030
+        };
+
+        Mos_AddCommand(&cmdBuffer, section1, sizeof(section1));
+
+        DECODE_CHK_STATUS(m_picturePkt->UpdatePipeBufAddrForDummyWL(cmdBuffer));
+        DECODE_CHK_STATUS(m_picturePkt->UpdateIndObjAddrForDummyWL(cmdBuffer));
+
+        Mos_AddCommand(&cmdBuffer, section2, sizeof(section2));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -117,6 +176,7 @@ namespace decode
 
         DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
         DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
+
         DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
         DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
 
@@ -135,15 +195,7 @@ namespace decode
 
         if (isLastTileInFrm || !m_av1Pipeline->FrameBasedDecodingInUse())
         {
-            if (MEDIA_IS_WA(m_av1Pipeline->GetWaTable(), WaRSDisableMediaPGForAV1CodecWL))
-            {
-                cmdBuffer.Attributes.bDisablePowerGating = true;
-            }
-            else
-            {
-                cmdBuffer.Attributes.bDisablePowerGating = false;
-            }
-
+            cmdBuffer.Attributes.bDisablePowerGating = false;
             DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
         }
 

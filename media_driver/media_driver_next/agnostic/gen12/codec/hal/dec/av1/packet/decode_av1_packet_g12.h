@@ -62,7 +62,9 @@ protected:
     MOS_STATUS PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS PackTileLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS VdMemoryFlush(MOS_COMMAND_BUFFER &cmdBuffer);
+    MOS_STATUS InitDummyWL(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
+
     MhwVdboxVdencInterface          *m_vdencInterface   = nullptr;
     MhwVdboxAvpInterface            *m_avpInterface     = nullptr;
     CodechalHwInterfaceG12          *m_hwInterface      = nullptr;

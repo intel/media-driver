@@ -51,6 +51,7 @@ namespace decode
             if (hwInterface != nullptr)
             {
                 m_avpInterface = static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetAvpInterface();
+                m_osInterface  = hwInterface->GetOsInterface();
             }
         };
 
@@ -133,8 +134,10 @@ namespace decode
         RefrenceAssociatedBuffer<Av1RefAssociatedBufs, Av1TempBufferOpInf, Av1BasicFeature> m_tempBuffers; //!< Reference associated buffers
         InternalTargets                 m_internalTarget; //!< Internal decode out surface
         CodecProcessingParams           *m_filmGrainProcParams      = nullptr;     //!< Film grain processing params
-        bool                            frameCompletedFlag         = false;
-        bool                            m_filmGrainEnabled         = false;        //!< Per-frame film grain enable flag
+        bool                            m_frameCompletedFlag        = false;
+        bool                            m_filmGrainEnabled          = false;        //!< Per-frame film grain enable flag
+        bool                            m_usingDummyWl              = false;        //!< Indicate using dummy workload flag
+        PMOS_SURFACE                    m_destSurfaceForDummyWL      = nullptr;      //!< Internal Dummy dest surface
 
     protected:
         virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;
@@ -150,6 +153,7 @@ namespace decode
         MOS_STATUS CalculateGlobalMotionParams();
 
         MhwVdboxAvpInterface *m_avpInterface = nullptr;
+        PMOS_INTERFACE        m_osInterface  = nullptr;
     };
 
 }  // namespace decode

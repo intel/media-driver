@@ -94,7 +94,7 @@ namespace decode
         tileCodingParams.m_numOfTileColumnsInFrame          = m_av1PicParams->m_tileCols;
         tileCodingParams.m_numOfTileRowsInFrame             = m_av1PicParams->m_tileRows;
 
-        m_av1BasicFeature->frameCompletedFlag = tileCodingParams.m_isLastTileOfFrame;
+        m_av1BasicFeature->m_frameCompletedFlag = tileCodingParams.m_isLastTileOfFrame;
 
         return MOS_STATUS_SUCCESS;
     }

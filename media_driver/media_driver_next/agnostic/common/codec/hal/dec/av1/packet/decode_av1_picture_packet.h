@@ -89,6 +89,10 @@ namespace decode
             uint32_t &commandBufferSize,
             uint32_t &requestedPatchListSize) override;
 
+        MOS_STATUS UpdatePipeBufAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer);
+
+        MOS_STATUS UpdateIndObjAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer);
+
     protected:
 
         virtual MOS_STATUS AllocateFixedResources();
@@ -105,6 +109,8 @@ namespace decode
         MOS_STATUS         FixAvpPipeBufAddrParams(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
         virtual MOS_STATUS SetAvpPipeBufAddrParams(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
         virtual MOS_STATUS AddAvpPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer) = 0;
+
+        MOS_STATUS SetAvpPipeBufAddrParamsForDummyWL(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams);
 
         virtual MOS_STATUS AddAvpIndObjBaseAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer);
         virtual void       SetAvpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS &indObjBaseAddrParams);
@@ -146,6 +152,8 @@ namespace decode
 
         CodecAv1PicParams          *m_av1PicParams    = nullptr; //!< Pointer to picture parameter
         MOS_SURFACE                 refSurface[av1TotalRefsPerFrame];
+
+        MOS_BUFFER                  m_resDataBufferForDummyWL;
 
         //!
         //! \brief    Setup SkipModeFrame[0] and SkipModeFrame[1] per av1_setup_skip_mode_allowed of ref decoder
@@ -209,6 +217,11 @@ namespace decode
         PMOS_BUFFER                 m_resSaoLineBuffer                                       = nullptr;    //!< Handle of SAO Line data buffer
         PMOS_BUFFER                 m_resSaoTileLineBuffer                                   = nullptr;    //!< Handle of SAO Tile Line data buffer
         PMOS_BUFFER                 m_resSaoTileColumnBuffer                                 = nullptr;    //!< Handle of SAO Tile Column data buffer
+
+        //buffers for dummy workload
+        PMOS_BUFFER                 m_curMuBufferForDummyWL                                   = nullptr;
+        PMOS_BUFFER                 m_bwdAdaptCdfBufForDummyWL                                = nullptr;
+        bool                        m_isBsBufferWritten                                      = false;
 
         uint32_t m_prevFrmWidth         = 0;    //!< Frame width of the previous frame
         uint32_t m_prevFrmHeight        = 0;    //!< Frame height of the previous frame

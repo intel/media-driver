@@ -46,6 +46,10 @@ namespace decode
             }
 
         }
+        if (m_usingDummyWl == true)
+        {
+            m_allocator->Destroy(m_destSurfaceForDummyWL);
+        }
     }
 
     MOS_STATUS Av1BasicFeature::Init(void *setting)
@@ -55,6 +59,8 @@ namespace decode
 
         DECODE_CHK_STATUS(DecodeBasicFeature::Init(setting));
         CodechalSetting *codecSettings = (CodechalSetting*)setting;
+
+        m_usingDummyWl = true;
 
         if (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)
             m_av1DepthIndicator = 0;
@@ -94,6 +100,17 @@ namespace decode
         m_tileCoding.m_numTiles = decodeParams->m_numSlices;
 
         m_filmGrainEnabled = m_av1PicParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain;
+
+        if (m_usingDummyWl == true)
+        {
+            //Allocate a dest surface for dummy WL
+            m_destSurfaceForDummyWL = m_allocator->AllocateSurface(
+                16,
+                16,
+                "Dummy Decode Output Frame Buffer",
+                Format_NV12);
+            DECODE_CHK_NULL(m_destSurfaceForDummyWL);
+        }
 
         DECODE_CHK_STATUS(SetPictureStructs(decodeParams));
         DECODE_CHK_STATUS(SetTileStructs());

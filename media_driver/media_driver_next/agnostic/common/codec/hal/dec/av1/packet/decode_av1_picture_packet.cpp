@@ -49,7 +49,7 @@ namespace decode{
             {
                 m_allocator->Destroy(m_intraPredictionLineRowstoreReadWriteBuffer);
             }
-            m_allocator->Destroy(m_intraPredictionTileLineRowstoreReadWriteBuffer);\
+            m_allocator->Destroy(m_intraPredictionTileLineRowstoreReadWriteBuffer);
             if (!m_avpInterface->IsSmvlRowstoreCacheEnabled())
             {
                 m_allocator->Destroy(m_spatialMotionVectorLineReadWriteBuffer);
@@ -94,7 +94,8 @@ namespace decode{
             m_allocator->Destroy(m_loopRestorationFilterTileColumnReadWriteVBuffer);
             m_allocator->Destroy(m_decodedFrameStatusErrorBuffer);
             m_allocator->Destroy(m_decodedBlockDataStreamoutBuffer);
-
+            m_allocator->Destroy(m_curMuBufferForDummyWL);
+            m_allocator->Destroy(m_bwdAdaptCdfBufForDummyWL);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -116,8 +117,6 @@ namespace decode{
 
         m_allocator = m_pipeline ->GetDecodeAllocator();
         DECODE_CHK_NULL(m_allocator);
-
-        // DECODE_CHK_STATUS(m_statusReport->RegistObserver(this));
 
         DECODE_CHK_STATUS(AllocateFixedResources());
 
@@ -177,6 +176,32 @@ namespace decode{
     MOS_STATUS Av1DecodePicPkt::AllocateFixedResources()
     {
         DECODE_FUNC_CALL();
+        if (m_av1BasicFeature->m_usingDummyWl == true)
+        {
+            MhwVdboxAvpBufferSizeParams avpBufSizeParam;
+            MOS_ZeroMemory(&avpBufSizeParam, sizeof(avpBufSizeParam));
+
+            avpBufSizeParam.m_bitDepthIdc       = 0;
+            avpBufSizeParam.m_picWidth          = 1;
+            avpBufSizeParam.m_picHeight         = 1;
+            avpBufSizeParam.m_tileWidth         = 16;
+            avpBufSizeParam.m_isSb128x128       = false;
+            avpBufSizeParam.m_curFrameTileNum   = 1;
+            avpBufSizeParam.m_numTileCol        = 1;
+
+            if (m_avpInterface->GetAv1BufferSize(mvTemporalBuf,
+                                                &avpBufSizeParam) != MOS_STATUS_SUCCESS)
+            {
+                DECODE_ASSERTMESSAGE( "Failed to get MvTemporalBuffer size.");
+            }
+            m_curMuBufferForDummyWL =
+                m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "MvBuffer");
+            DECODE_CHK_NULL(m_curMuBufferForDummyWL);
+
+            m_bwdAdaptCdfBufForDummyWL = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_av1BasicFeature->m_cdfMaxNumBytes,
+                CODECHAL_PAGE_SIZE), "CdfTableBuffer");
+            DECODE_CHK_NULL(m_bwdAdaptCdfBufForDummyWL);
+        }
         return MOS_STATUS_SUCCESS;
     }
 
@@ -255,19 +280,19 @@ namespace decode{
         DECODE_CHK_STATUS(m_avpInterface->GetAv1BufferSize(
             bsdTileLineBuf,
             &avpBufSizeParam));
-            if (m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer == nullptr)
-            {
-                m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer = m_allocator->AllocateBuffer(
-                    avpBufSizeParam.m_bufferSize,
-                    "BitstreamDecodeTileLineBuffer");
-                DECODE_CHK_NULL(m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer);
-            }
-            else
-            {
-                DECODE_CHK_STATUS(m_allocator->Resize(
-                    m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer,
-                    avpBufSizeParam.m_bufferSize));
-            }
+        if (m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer == nullptr)
+        {
+            m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer = m_allocator->AllocateBuffer(
+                avpBufSizeParam.m_bufferSize,
+                "BitstreamDecodeTileLineBuffer");
+            DECODE_CHK_NULL(m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer);
+        }
+        else
+        {
+            DECODE_CHK_STATUS(m_allocator->Resize(
+                m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer,
+                avpBufSizeParam.m_bufferSize));
+        }
 
         //Intra Prediction Line Rowstore Read/Write Buffer
         if (!m_avpInterface->IsIpdlRowstoreCacheEnabled())
@@ -1196,6 +1221,108 @@ namespace decode{
 
         MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
         SetAvpIndObjBaseAddrParams(indObjBaseAddrParams);
+        DECODE_CHK_STATUS(m_avpInterface->AddAvpIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1DecodePicPkt::SetAvpPipeBufAddrParamsForDummyWL(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
+    {
+        DECODE_FUNC_CALL();
+
+        pipeBufAddrParams.m_mode = CODECHAL_DECODE_MODE_AV1VLD;
+
+        pipeBufAddrParams.m_decodedPic                                             = m_av1BasicFeature->m_destSurfaceForDummyWL;
+
+        pipeBufAddrParams.m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer     = &m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer = &m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_intraPredictionLineRowstoreReadWriteBuffer             = &m_intraPredictionLineRowstoreReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_intraPredictionTileLineRowstoreReadWriteBuffer         = &m_intraPredictionTileLineRowstoreReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_spatialMotionVectorLineReadWriteBuffer                 = &m_spatialMotionVectorLineReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_spatialMotionVectorCodingTileLineReadWriteBuffer       = &m_spatialMotionVectorCodingTileLineReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_loopRestorationMetaTileColumnReadWriteBuffer           = &m_loopRestorationMetaTileColumnReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_loopRestorationFilterTileReadWriteLineYBuffer          = &m_loopRestorationFilterTileReadWriteLineYBuffer->OsResource;
+        pipeBufAddrParams.m_loopRestorationFilterTileReadWriteLineUBuffer          = &m_loopRestorationFilterTileReadWriteLineUBuffer->OsResource;
+        pipeBufAddrParams.m_loopRestorationFilterTileReadWriteLineVBuffer          = &m_loopRestorationFilterTileReadWriteLineVBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterLineReadWriteYBuffer                    = &m_deblockerFilterLineReadWriteYBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterLineReadWriteUBuffer                    = &m_deblockerFilterLineReadWriteUBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterLineReadWriteVBuffer                    = &m_deblockerFilterLineReadWriteVBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterTileLineReadWriteYBuffer                = &m_deblockerFilterTileLineReadWriteYBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterTileLineReadWriteVBuffer                = &m_deblockerFilterTileLineReadWriteVBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterTileLineReadWriteUBuffer                = &m_deblockerFilterTileLineReadWriteUBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterTileColumnReadWriteYBuffer              = &m_deblockerFilterTileColumnReadWriteYBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterTileColumnReadWriteUBuffer              = &m_deblockerFilterTileColumnReadWriteUBuffer->OsResource;
+        pipeBufAddrParams.m_deblockerFilterTileColumnReadWriteVBuffer              = &m_deblockerFilterTileColumnReadWriteVBuffer->OsResource;
+        pipeBufAddrParams.m_cdefFilterLineReadWriteBuffer                          = &m_cdefFilterLineReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_cdefFilterTileLineReadWriteBuffer                      = &m_cdefFilterTileLineReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_cdefFilterTileColumnReadWriteBuffer                    = &m_cdefFilterTileColumnReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_cdefFilterMetaTileLineReadWriteBuffer                  = &m_cdefFilterMetaTileLineReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_cdefFilterMetaTileColumnReadWriteBuffer                = &m_cdefFilterMetaTileColumnReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_cdefFilterTopLeftCornerReadWriteBuffer                 = &m_cdefFilterTopLeftCornerReadWriteBuffer->OsResource;
+        pipeBufAddrParams.m_superResTileColumnReadWriteYBuffer                     = &m_superResTileColumnReadWriteYBuffer->OsResource;
+        pipeBufAddrParams.m_superResTileColumnReadWriteUBuffer                     = &m_superResTileColumnReadWriteUBuffer->OsResource;
+        pipeBufAddrParams.m_superResTileColumnReadWriteVBuffer                     = &m_superResTileColumnReadWriteVBuffer->OsResource;
+        pipeBufAddrParams.m_loopRestorationFilterTileColumnReadWriteYBuffer        = &m_loopRestorationFilterTileColumnReadWriteYBuffer->OsResource;
+        pipeBufAddrParams.m_loopRestorationFilterTileColumnReadWriteUBuffer        = &m_loopRestorationFilterTileColumnReadWriteUBuffer->OsResource;
+        pipeBufAddrParams.m_loopRestorationFilterTileColumnReadWriteVBuffer        = &m_loopRestorationFilterTileColumnReadWriteVBuffer->OsResource;
+        pipeBufAddrParams.m_decodedFrameStatusErrorBuffer                          = &m_decodedFrameStatusErrorBuffer->OsResource;
+        pipeBufAddrParams.m_decodedBlockDataStreamoutBuffer                        = &m_decodedBlockDataStreamoutBuffer->OsResource;
+
+        pipeBufAddrParams.m_curMvTemporalBuffer          = &m_curMuBufferForDummyWL->OsResource;
+        pipeBufAddrParams.m_cdfTableInitializationBuffer = &m_av1BasicFeature->m_defaultCdfBuffers[3]->OsResource;
+        pipeBufAddrParams.m_cdfTableBwdAdaptationBuffer  = &m_bwdAdaptCdfBufForDummyWL->OsResource;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1DecodePicPkt::UpdatePipeBufAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer)
+    {
+        DECODE_FUNC_CALL();
+
+        MhwVdboxAvpPipeBufAddrParams pipeBufAddrParams = {};
+        DECODE_CHK_STATUS(SetAvpPipeBufAddrParamsForDummyWL(pipeBufAddrParams));
+#ifdef _MMC_SUPPORTED
+        pipeBufAddrParams.m_preDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+#endif
+        DECODE_CHK_STATUS(m_avpInterface->AddAvpPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1DecodePicPkt::UpdateIndObjAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer)
+    {
+        DECODE_FUNC_CALL();
+
+        if (!m_isBsBufferWritten)
+        {
+            m_resDataBufferForDummyWL= *m_allocator->AllocateBuffer(140, "BsBuffer for inserted Dummy WL"); //140 Bytes
+            auto data = (uint8_t *)m_allocator->LockResouceForWrite(&m_resDataBufferForDummyWL.OsResource);
+            DECODE_CHK_NULL(data);
+
+            uint32_t bsBuffer[] =
+            {
+                0x3004260a, 0x1d95985a, 0x8311a32e, 0x4957f9a8,
+                0x16000832, 0x00000100, 0x00900000, 0x88040000,
+                0x797797f7, 0x346907ae, 0x00106332, 0x00010000,
+                0x01c02a07, 0x9a165a76, 0x13041816, 0x92fd0c00,
+                0x02fc1aad, 0xf94923f3, 0x88ce7a1b, 0xc440d4fb,
+                0xcf5940bb, 0xe3a4fcff, 0x6c13cd19, 0x8e7b22b1,
+                0x83f20193, 0x41c12b17, 0x7a266ac8, 0x9b0b871e,
+                0x956345f8, 0x538c1c25, 0x2302b41f, 0x1e0587a8,
+                0x182a0ec1, 0x3672822a, 0x5003db7b
+            };
+
+            MOS_SecureMemcpy(data, sizeof(bsBuffer), bsBuffer, sizeof(bsBuffer));
+            m_isBsBufferWritten = true;
+        }
+        MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
+
+        MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
+        indObjBaseAddrParams.Mode            = CODECHAL_DECODE_MODE_AV1VLD;
+        indObjBaseAddrParams.dwDataSize      = 140;
+        indObjBaseAddrParams.dwDataOffset    = 0;
+        indObjBaseAddrParams.presDataBuffer  = &(m_resDataBufferForDummyWL.OsResource);
+
         DECODE_CHK_STATUS(m_avpInterface->AddAvpIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams));
 
         return MOS_STATUS_SUCCESS;
