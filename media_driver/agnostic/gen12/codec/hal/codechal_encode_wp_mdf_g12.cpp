@@ -138,14 +138,17 @@ MOS_STATUS CodechalEncodeWPMdfG12::Execute(KernelParams *params)
     uint32_t threadCount = ResolutionX * ResolutionY;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKrn->SetThreadCount(threadCount));
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
-        ResolutionX,
-        ResolutionY,
-        m_threadSpace));
-
-    if (m_groupIdSelectSupported)
+    if (m_threadSpace == nullptr)
     {
-        m_threadSpace->SetMediaWalkerGroupSelect((CM_MW_GROUP_SELECT)m_groupId);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
+                                              ResolutionX,
+                                              ResolutionY,
+                                              m_threadSpace));
+
+        if (m_groupIdSelectSupported)
+        {
+            m_threadSpace->SetMediaWalkerGroupSelect((CM_MW_GROUP_SELECT)m_groupId);
+        }
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKrn->AssociateThreadSpace(m_threadSpace));
@@ -256,6 +259,12 @@ MOS_STATUS CodechalEncodeWPMdfG12::ReleaseResources()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroySurface(m_wpOutputSurface[i]));
             m_wpOutputSurface[i] = nullptr;
         }
+    }
+
+    if (m_threadSpace)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyThreadSpace(m_threadSpace));
+        m_threadSpace = nullptr;
     }
 
     return MOS_STATUS_SUCCESS;

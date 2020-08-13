@@ -358,6 +358,12 @@ MOS_STATUS CodecHalHevcMbencG12::FreeEncResources()
         MOS_Delete(m_hevcBrcG12);
     }
 
+    if (m_threadSpace)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->DestroyThreadSpace(m_threadSpace));
+        m_threadSpace = nullptr;
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcStateG12::FreeEncResources());
 
     return eStatus;
@@ -460,7 +466,7 @@ MOS_STATUS CodecHalHevcMbencG12::DestroyMDFResources()
         DestroyCmDevice(m_cmDev);
         m_cmDev = nullptr;
     }
-    else 
+    else
     {
         if (m_mfeLastStream)
         {
@@ -986,12 +992,14 @@ MOS_STATUS CodecHalHevcMbencG12::EncodeMbEncKernel(
         return eStatus;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateThreadSpace(
-        maxthreadWidth,
-        maxthreadHeight,
-        m_threadSpace));
-
-    m_threadSpace->SetThreadSpaceColorCount(totalColor);
+    if (m_threadSpace == nullptr)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateThreadSpace(
+                                              maxthreadWidth,
+                                              maxthreadHeight,
+                                              m_threadSpace));
+        m_threadSpace->SetThreadSpaceColorCount(totalColor);
+    }
 
     switch (m_swScoreboardState->GetDependencyPattern())
     {
@@ -1237,15 +1245,15 @@ MOS_STATUS CodecHalHevcMbencG12::InitCurbeDataB()
     curbe.NumRefIdxL1           = m_hevcSliceParams->num_ref_idx_l1_active_minus1 + 1;
     if (m_hevcSeqParams->TargetUsage == 1)
     {
-        // MaxNumMergeCand C Model uses 4 for TU1, 
+        // MaxNumMergeCand C Model uses 4 for TU1,
         // for quality consideration, make sure not larger than the value from App as it will be used in PAK
-        curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 4);        
+        curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 4);
     }
     else
     {
-        // MaxNumMergeCand C Model uses 2 for TU4,7 
+        // MaxNumMergeCand C Model uses 2 for TU4,7
         // for quality consideration, make sure not larger than the value from App as it will be used in PAK
-       curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 2);        
+       curbe.MaxNumMergeCand   = MOS_MIN(m_hevcSliceParams->MaxNumMergeCand, 2);
     }
 
     int32_t tbRefListL0[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L0_REF_G10] = { 0 }, tbRefListL1[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L1_REF_G10] = { 0 };
@@ -1263,7 +1271,7 @@ MOS_STATUS CodecHalHevcMbencG12::InitCurbeDataB()
     curbe.RefFrameWinWidth = m_frameWidth;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetRoundingIntraInterToUse());
-    
+
     curbe.RoundingInter      = (m_roundingInterInUse + 1) << 4;  // Should be an input from par in the cmodel (slice state)
     curbe.RoundingIntra      = (m_roundingIntraInUse + 1) << 4;  // Should be an input from par in the cmodel (slice state)
     curbe.RDEQuantRoundValue = (m_roundingInterInUse + 1) << 4;
@@ -1610,8 +1618,8 @@ MOS_STATUS CodecHalHevcMbencG12::SetupSurfacesB()
         MAX_VME_BWD_REF,
         m_curVme));
 
-    /* WA for 16k resolution tests with P010 format. Recon surface is NV12 format with width=2*original_width 
-       32k width is not supported by MEDIA_SURFACE_STATE_CMD. 
+    /* WA for 16k resolution tests with P010 format. Recon surface is NV12 format with width=2*original_width
+       32k width is not supported by MEDIA_SURFACE_STATE_CMD.
        We can therefore change the recon dimensions to 16k width and 32k pitch,
        this will cover the portion of the surface that VME uses */
     if (MEDIA_IS_WA(m_waTable, Wa16kWidth32kPitchNV12ReconForP010Input) && m_curVme && m_encode16KSequence && (uint8_t)HCP_CHROMA_FORMAT_YUV420 == m_chromaFormat && inputSurface->Format == Format_P010)

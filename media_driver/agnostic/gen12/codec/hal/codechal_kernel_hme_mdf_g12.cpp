@@ -220,28 +220,37 @@ MOS_STATUS CodechalKernelHmeMdfG12::Execute(CurbeParam &curbeParam, SurfaceParam
 
     if (m_16xMeInUse)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-            xResolution,
-            yResolution,
-            m_threadSpace16x));
+        if (m_threadSpace16x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
+                                                  xResolution,
+                                                  yResolution,
+                                                  m_threadSpace16x));
+        }
         threadSpace = m_threadSpace16x;
         cmKrn = m_cmKrnME16x;
     }
     else if (m_32xMeInUse)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-            xResolution,
-            yResolution,
-            m_threadSpace32x));
+        if (m_threadSpace32x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
+                                                  xResolution,
+                                                  yResolution,
+                                                  m_threadSpace32x));
+        }
         threadSpace = m_threadSpace32x;
         cmKrn = m_cmKrnME32x;
     }
     else
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-            xResolution,
-            yResolution,
-            m_threadSpace4x));
+        if (m_threadSpace4x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
+                                                  xResolution,
+                                                  yResolution,
+                                                  m_threadSpace4x));
+        }
         threadSpace = m_threadSpace4x;
         cmKrn = m_cmKrnME4x;
     }
@@ -386,7 +395,7 @@ MOS_STATUS CodechalKernelHmeMdfG12::InitKernelState(void *kernelIsa, uint32_t ke
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateKernel(m_cmProgramME, "HME_VDENC_STREAMIN_HEVC", m_cmKrnME4xB));
             }
         }
-        else 
+        else
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateKernel(m_cmProgramME, "HME_P", m_cmKrnME4xP));
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateKernel(m_cmProgramME, "HME_B", m_cmKrnME4xB));
@@ -552,7 +561,7 @@ MOS_STATUS CodechalKernelHmeMdfG12::SetupSurfaces()
 
     HmeYUVInfo *YuvInfo = nullptr;
     PMOS_SURFACE psurface = nullptr;
-   
+
     if (m_32xMeInUse)
     {
         currScaledSurface = m_encoder->m_trackedBuf->Get32xDsSurface(CODEC_CURR_TRACKED_BUFFER);

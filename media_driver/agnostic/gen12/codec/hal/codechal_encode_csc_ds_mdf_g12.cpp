@@ -264,6 +264,7 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::ReleaseResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyProgram(m_cmProgramCSCDS));
         m_cmProgramCSCDS = nullptr;
     }
+
     if (m_threadSpace4x)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace4x));
@@ -489,22 +490,28 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::CscKernel(
         // MDf surface states
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesCSC(m_cmSurfParamsCscDs16x));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrnCSCDS16x->SetThreadCount(threadCount));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
-            m_walkerResolutionX,
-            m_walkerResolutionY,
-            m_threadSpace16x));
-         threadSpace = m_threadSpace16x;
-         cmKrnCSCDS = m_cmKrnCSCDS16x;
-         surfaceparams = &m_cmSurfParamsCscDs16x;
+        if(m_threadSpace16x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
+                                                  m_walkerResolutionX,
+                                                  m_walkerResolutionY,
+                                                  m_threadSpace16x));
+        }
+        threadSpace = m_threadSpace16x;
+        cmKrnCSCDS = m_cmKrnCSCDS16x;
+        surfaceparams = &m_cmSurfParamsCscDs16x;
     }
     else if(pParams->stageDsConversion == dsStage32x)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesCSC(m_cmSurfParamsCscDs32x));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrnCSCDS32x->SetThreadCount(threadCount));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
-            m_walkerResolutionX,
-            m_walkerResolutionY,
-            m_threadSpace32x));
+        if(m_threadSpace32x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
+                                                  m_walkerResolutionX,
+                                                  m_walkerResolutionY,
+                                                  m_threadSpace32x));
+        }
         threadSpace = m_threadSpace32x;
         cmKrnCSCDS = m_cmKrnCSCDS32x;
         surfaceparams = &m_cmSurfParamsCscDs32x;
@@ -513,13 +520,16 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::CscKernel(
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesCSC(m_cmSurfParamsCscDs4x));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrnCSCDS4x->SetThreadCount(threadCount));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
-            m_walkerResolutionX,
-            m_walkerResolutionY,
-            m_threadSpace4x));
-           threadSpace = m_threadSpace4x;
-           cmKrnCSCDS = m_cmKrnCSCDS4x;
-           surfaceparams = &m_cmSurfParamsCscDs4x;
+        if(m_threadSpace4x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
+                                                  m_walkerResolutionX,
+                                                  m_walkerResolutionY,
+                                                  m_threadSpace4x));
+        }
+        threadSpace = m_threadSpace4x;
+        cmKrnCSCDS = m_cmKrnCSCDS4x;
+        surfaceparams = &m_cmSurfParamsCscDs4x;
     }
 
     if (m_groupIdSelectSupported)
