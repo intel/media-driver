@@ -296,6 +296,8 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, WaDummyReference, 1);
 
+    MEDIA_WR_WA(waTable, WaDummyWorkload, 1);
+
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
 
     /*software wa to disable calculate the UV offset by gmmlib

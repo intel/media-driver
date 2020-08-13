@@ -60,7 +60,11 @@ namespace decode
         DECODE_CHK_STATUS(DecodeBasicFeature::Init(setting));
         CodechalSetting *codecSettings = (CodechalSetting*)setting;
 
-        m_usingDummyWl = true;
+        if (m_osInterface != nullptr)
+        {
+            MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+            m_usingDummyWl = (waTable != nullptr) ? MEDIA_IS_WA(waTable, WaDummyWorkload) : false;
+        }
 
         if (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)
             m_av1DepthIndicator = 0;
