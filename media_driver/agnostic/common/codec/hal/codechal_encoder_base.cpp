@@ -589,6 +589,10 @@ MOS_STATUS CodechalEncoderState::Execute(void *params)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_START,
+            &m_codecFunction, sizeof(m_codecFunction),
+            nullptr, 0);
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Codechal::Execute(params));
 
     EncoderParams *encodeParams = (EncoderParams *)params;
@@ -605,6 +609,8 @@ MOS_STATUS CodechalEncoderState::Execute(void *params)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(ExecuteEnc(encodeParams));
     }
+
+    MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -4348,6 +4354,9 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
     if (m_mfeEnabled == false || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_ENC
         || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_FEI_ENC)
     {
+        MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_START,
+            &encodeParams->ExecCodecFunction, sizeof(encodeParams->ExecCodecFunction),
+            nullptr, 0);
         // No need to wait if the driver is executing on a simulator
         EncodeStatusBuffer* pencodeStatusBuf = CodecHalUsesOnlyRenderEngine(m_codecFunction) ? &m_encodeStatusBufRcs : &m_encodeStatusBuf;
         if (!m_osInterface->bSimIsActive &&
@@ -4549,11 +4558,15 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
             CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ExecuteKernelFunctions(),
                 "ENC failed.");
         }
+        MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     }
 
     if (m_mfeEnabled == false || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_PAK
         || encodeParams->ExecCodecFunction == CODECHAL_FUNCTION_FEI_PAK)
     {
+        MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_START,
+            &encodeParams->ExecCodecFunction, sizeof(encodeParams->ExecCodecFunction),
+            nullptr, 0);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_Solo_PreProcessEncode(m_osInterface, &m_resBitstreamBuffer, &m_reconSurface));
 
         if (CodecHalUsesVideoEngine(m_codecFunction))
@@ -4613,6 +4626,7 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
         m_firstFrame = false;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_resBitstreamBuffer, &m_reconSurface));
+        MOS_TraceEventExt(EVENT_CODECHAL_EXECUTE, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     }
     return eStatus;
 }
