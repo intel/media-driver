@@ -164,6 +164,13 @@ typedef enum _MULTI_ENGINE_MODE
     MHW_VDBOX_HCP_MULTI_ENGINE_MODE_MIDDLE        = 3,
 }MHW_VDBOX_HCP_MULTI_ENGINE_MODE;
 
+typedef enum
+{
+    MHW_VDBOX_HCP_RT_FIRST_PHASE    = 0, //!< First phase
+    MHW_VDBOX_HCP_RT_MIDDLE_PHASE   = 1, //!< Middle phase
+    MHW_VDBOX_HCP_RT_LAST_PHASE     = 2  //!< Last phase
+} MHW_HCP_RT_PHASE_INDICATOR;
+
 typedef enum _VDENC_PIPE_NUM_OF_PIPE
 {
     VDENC_PIPE_SINGLE_PIPE          = 0,

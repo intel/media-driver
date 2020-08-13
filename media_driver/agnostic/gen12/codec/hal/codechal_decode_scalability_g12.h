@@ -50,17 +50,6 @@ inline static uint8_t CodecHalDecodeMaxNumPipesInUseG12(uint8_t vdboxNum)
     return maxNumPipesInUs;
 }
 
-//!
-//! \enum   HCP_RT_PHASE_INDICATOR
-//! \brief  Phase indicator for HEVC multiple phase
-//!
-typedef enum
-{
-    HCP_RT_FIRST_PHASE = 0,                                //!< First phase
-    HCP_RT_MIDDLE_PHASE = 1,                                //!< Middle phase
-    HCP_RT_LAST_PHASE = 2                                 //!< Last phase
-} HCP_RT_PHASE_INDICATOR;
-
 typedef struct _CODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12 : public _CODECHAL_DECODE_SCALABILITY_INIT_PARAMS
 {
     bool             bIsTileEnabled;                 //!< The picture can be partitioned into tiles
@@ -100,15 +89,15 @@ typedef struct _CODECHAL_DECODE_SCALABILITY_STATE_G12 : public _CODECHAL_DECODE_
 {                                                                                                                      \
     if (m_scalabilityState->u8RtCurPhase == 0)                                                                         \
     {                                                                                                                  \
-        PhaseIndicator = HCP_RT_FIRST_PHASE;                                                                           \
+        PhaseIndicator = MHW_VDBOX_HCP_RT_FIRST_PHASE;                                                                 \
     }                                                                                                                  \
     else if (m_scalabilityState->u8RtCurPhase == m_scalabilityState->u8RtPhaseNum - 1)                                 \
     {                                                                                                                  \
-        PhaseIndicator = HCP_RT_LAST_PHASE;                                                                            \
+        PhaseIndicator = MHW_VDBOX_HCP_RT_LAST_PHASE;                                                                  \
     }                                                                                                                  \
     else                                                                                                               \
     {                                                                                                                  \
-        PhaseIndicator = HCP_RT_MIDDLE_PHASE;                                                                          \
+        PhaseIndicator = MHW_VDBOX_HCP_RT_MIDDLE_PHASE;                                                                \
     }                                                                                                                  \
 }while (0)
 
