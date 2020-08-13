@@ -1566,16 +1566,19 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pVEInterface);
     CODECHAL_DECODE_CHK_NULL_RETURN(pInitParams);
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface->GetOsInterface());
 
     pVEInterface                                                     = pScalState->pVEInterface;
     pScalState->ucScalablePipeNum                                    = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
     PCODECHAL_DECODE_SCALABILITY_STATE_G12       pScalStateG12        = static_cast<PCODECHAL_DECODE_SCALABILITY_STATE_G12>(pScalState);
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12 pInitParamsG12       = static_cast<PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12>(pInitParams);
+
     uint8_t                                      u8MaxTileColumn      = HEVC_NUM_MAX_TILE_COLUMN;
     bool                                         bCanEnableRealTile   = true;
     bool                                         bCanEnableScalability = !pScalState->pHwInterface->IsDisableScalability();
+    PMOS_INTERFACE pOsInterface                                      = pScalState->pHwInterface->GetOsInterface();
+
 #if (_DEBUG || _RELEASE_INTERNAL)
-    PMOS_INTERFACE pOsInterface = pScalState->pHwInterface->GetOsInterface();
     bCanEnableRealTile = !(static_cast<PCODECHAL_DECODE_SCALABILITY_STATE_G12>(pScalState))->bDisableRtMode;
     if (!pScalStateG12->bEnableRtMultiPhase)
         u8MaxTileColumn = 2;
@@ -1633,7 +1636,7 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
                                     && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
                                 || (CodechalDecodeNonRextFormat(pInitParams->format)
                                     && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
-                                || (bCanEnableRealTile && !pInitParams->usingSecureDecode))
+                                || (bCanEnableRealTile && !pOsInterface->osCpInterface->IsCpEnabled()))
                 {
                     pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                 }
