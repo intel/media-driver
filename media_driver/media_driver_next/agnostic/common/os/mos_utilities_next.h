@@ -935,6 +935,19 @@ public:
     //!
     static MOS_STATUS MosReadApoMosEnabledUserFeature(uint32_t &userfeatureValue, char *path = nullptr);
 
+    //!
+    //! \brief    Read the User Feature Value of ApoDdiEnabled
+    //! \details  Read the User Feature Value of ApoDdiEnabled
+    //! \param    uint32_t& userfeatureValue
+    //!           [in] reference to a userfeatureValue
+    //! \param    char *path
+    //!           [in] stated uf key path
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosReadApoDdiEnabledUserFeature(uint32_t& userfeatureValue, char* path = nullptr);
+
     //------------------------------------------------------------------------------
     // String Functions
     //------------------------------------------------------------------------------
