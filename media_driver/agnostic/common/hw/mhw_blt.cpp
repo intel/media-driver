@@ -81,11 +81,11 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
     eStatus = MOS_STATUS_SUCCESS;
 
     mhw_blt_state::XY_FAST_COPY_BLT_CMD cmd;
-
-    cmd.DW0.SourceTilingMethod            = GetTileType(pFastCopyBltParam->pSrcOsResource);
-    cmd.DW0.DestinationTilingMethod       = GetTileType(pFastCopyBltParam->pDstOsResource);
-    cmd.DW1.TileYTypeForSource            = pFastCopyBltParam->pSrcOsResource->TileType == MOS_TILE_YF ? 1 : 0;
-    cmd.DW1.TileYTypeForDestination       = pFastCopyBltParam->pDstOsResource->TileType == MOS_TILE_YF ? 1 : 0;
+    // regard as linear to linear copy
+    cmd.DW0.SourceTilingMethod            = 0;
+    cmd.DW0.DestinationTilingMethod       = 0;
+    cmd.DW1.TileYTypeForSource            = 0;
+    cmd.DW1.TileYTypeForDestination       = 0;
     cmd.DW1.ColorDepth                    = pFastCopyBltParam->dwColorDepth;
     cmd.DW1.DestinationPitch              = pFastCopyBltParam->dwDstPitch;
     cmd.DW2.DestinationX1CoordinateLeft   = pFastCopyBltParam->dwDstLeft;
@@ -126,33 +126,4 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
 
 finish:
     return eStatus;
-}
-
-uint32_t MhwBltInterface::GetTileType(
-    PMOS_RESOURCE pOsResource)
-{
-    uint32_t tileType = 0;
-    switch (pOsResource->TileType)
-    {
-        case MOS_TILE_LINEAR:
-            tileType = 0;
-            break;
-        case MOS_TILE_X:
-            tileType = 1;
-            break;
-        case MOS_TILE_Y:
-            tileType = 2;
-            break;
-        case MOS_TILE_YF:
-            tileType = 2;
-            break;
-        case MOS_TILE_YS:
-            tileType = 3;
-            break;
-        default:
-            tileType = 0;
-            break;
-    }
-
-    return tileType;
 }

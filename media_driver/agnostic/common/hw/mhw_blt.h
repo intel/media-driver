@@ -266,10 +266,6 @@ public:
         PMOS_COMMAND_BUFFER     pCmdBuffer,
         PMHW_RESOURCE_PARAMS    pParams);
 
-private:
-    uint32_t GetTileType(
-        PMOS_RESOURCE    pOsResource);
-
 public:
     PMOS_INTERFACE m_osInterface = nullptr;
 };

@@ -190,6 +190,7 @@ MOS_STATUS BltState::SetupFastCopyBltParam(
 
     MOS_SURFACE       ResDetails;
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(pMhwBltParams, sizeof(MHW_FAST_COPY_BLT_PARAM));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, inputSurface, &ResDetails));
 
     pMhwBltParams->dwSrcPitch  = ResDetails.dwPitch;
@@ -202,7 +203,7 @@ MOS_STATUS BltState::SetupFastCopyBltParam(
     pMhwBltParams->dwDstTop    = 0;
     pMhwBltParams->dwDstLeft   = 0;
     pMhwBltParams->dwDstBottom = (uint32_t)outputSurface->pGmmResInfo->GetSizeMainSurface() / ResDetails.dwPitch;
-    pMhwBltParams->dwDstRight  = ResDetails.dwPitch;
+    pMhwBltParams->dwDstRight  = ResDetails.dwPitch / 4;    // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
 
     pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit
 
