@@ -125,7 +125,7 @@ public:
         typename TCmds::BINDING_TABLE_STATE_CMD *pBtDst =
             (typename TCmds::BINDING_TABLE_STATE_CMD *)pParams->pBindingTableTarget;
         MHW_MI_CHK_NULL(pBtDst);
-        
+
         uint32_t CmdByteSize = TCmds::BINDING_TABLE_STATE_CMD::byteSize;
 
         // Setup and increment BT pointers
@@ -158,42 +158,6 @@ public:
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         MHW_FUNCTION_ENTER;
-
-        MHW_MI_CHK_NULL(pParams);
-
-        for (uint32_t dwCurrId = 0; dwCurrId < dwNumIdsToSet; dwCurrId++)
-        {
-            PMHW_KERNEL_STATE pKernelState = pParams[dwCurrId].pKernelState;
-            MHW_MI_CHK_NULL(pKernelState);
-
-            typename TCmds::INTERFACE_DESCRIPTOR_DATA_CMD cmd;
-
-            cmd.DW0.KernelStartPointer =
-                (pKernelState->m_ishRegion.GetOffset() +
-                pKernelState->dwKernelBinaryOffset +
-                pParams[dwCurrId].dwKernelStartOffset) >> MHW_KERNEL_OFFSET_SHIFT;
-            cmd.DW3.SamplerStatePointer =
-                (pKernelState->m_dshRegion.GetOffset() +
-                pKernelState->dwSamplerOffset +
-                pParams[dwCurrId].dwSamplerOffset) >> MHW_SAMPLER_SHIFT;
-            cmd.DW3.SamplerCount = (pKernelState->KernelParams.iSamplerCount - 1) / 4 + 1;
-            cmd.DW4.BindingTablePointer = MOS_ROUNDUP_SHIFT(
-                (pKernelState->dwSshOffset +
-                pParams[dwCurrId].dwBtOffset),
-                MHW_BINDING_TABLE_ID_SHIFT);
-            cmd.DW5.ConstantIndirectUrbEntryReadLength = MOS_ROUNDUP_SHIFT(
-                pParams->pKernelState->KernelParams.iCurbeLength,
-                MHW_CURBE_SHIFT);
-            cmd.DW6.NumberOfThreadsInGpgpuThreadGroup = 1;
-
-            uint32_t idOffsetInIdSpace =
-                pKernelState->dwIdOffset +
-                (pParams[dwCurrId].dwIdIdx * m_wSizeOfCmdInterfaceDescriptorData);
-            MHW_MI_CHK_STATUS(pKernelState->m_dshRegion.AddData(
-                &cmd,
-                idOffsetInIdSpace,
-                cmd.byteSize));
-        }
 
         return eStatus;
     }

@@ -968,3 +968,51 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::LoadSamplerAvsTable(
 
     return eStatus;
 }
+
+MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetInterfaceDescriptor(
+    uint32_t                         dwNumIdsToSet,
+    PMHW_INTERFACE_DESCRIPTOR_PARAMS pParams)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_FUNCTION_ENTER;
+    MHW_MI_CHK_NULL(pParams);
+
+    for (uint32_t dwCurrId = 0; dwCurrId < dwNumIdsToSet; dwCurrId++)
+    {
+        PMHW_KERNEL_STATE pKernelState = pParams[dwCurrId].pKernelState;
+
+        MHW_MI_CHK_NULL(pKernelState);
+
+        mhw_state_heap_g12_X::INTERFACE_DESCRIPTOR_DATA_CMD cmd;
+
+        cmd.DW0.KernelStartPointer =
+            (pKernelState->m_ishRegion.GetOffset() +
+                pKernelState->dwKernelBinaryOffset +
+                pParams[dwCurrId].dwKernelStartOffset) >>
+            MHW_KERNEL_OFFSET_SHIFT;
+        cmd.DW3.SamplerStatePointer =
+            (pKernelState->m_dshRegion.GetOffset() +
+                pKernelState->dwSamplerOffset +
+                pParams[dwCurrId].dwSamplerOffset) >>
+            MHW_SAMPLER_SHIFT;
+        cmd.DW3.SamplerCount        = (pKernelState->KernelParams.iSamplerCount - 1) / 4 + 1;
+        cmd.DW4.BindingTablePointer = MOS_ROUNDUP_SHIFT(
+            (pKernelState->dwSshOffset +
+                pParams[dwCurrId].dwBtOffset),
+            MHW_BINDING_TABLE_ID_SHIFT);
+        cmd.DW5.ConstantIndirectUrbEntryReadLength = MOS_ROUNDUP_SHIFT(
+            pParams->pKernelState->KernelParams.iCurbeLength,
+            MHW_CURBE_SHIFT);
+        cmd.DW6.NumberOfThreadsInGpgpuThreadGroup = 1;
+
+        uint32_t idOffsetInIdSpace =
+            pKernelState->dwIdOffset +
+            (pParams[dwCurrId].dwIdIdx * m_wSizeOfCmdInterfaceDescriptorData);
+        MHW_MI_CHK_STATUS(pKernelState->m_dshRegion.AddData(
+            &cmd,
+            idOffsetInIdSpace,
+            cmd.byteSize));
+    }
+    return eStatus;
+}
