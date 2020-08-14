@@ -531,6 +531,7 @@ MOS_STATUS CodechalEncodeCscDsMdfG12::CscKernel(
         cmKrnCSCDS = m_cmKrnCSCDS4x;
         surfaceparams = &m_cmSurfParamsCscDs4x;
     }
+    CODECHAL_ENCODE_CHK_NULL_RETURN(threadSpace);
 
     if (m_groupIdSelectSupported)
     {
