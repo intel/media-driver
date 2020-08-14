@@ -310,7 +310,6 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D;
     PMOS_SURFACE allocSurface = nullptr;
     CmDevice* &cmDev = m_encoder->m_cmDev;
-    CmEvent *event = nullptr;
 
     if (m_4xMeSupported)
     {
@@ -321,7 +320,6 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
                 (m_downscaledHeightInMb4x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
                 CM_SURFACE_FORMAT_A8,
                 m_HME4xMVSurface));
-            m_HME4xMVSurface->InitSurface(0, event);
         }
 
         if (m_4xMeDistortionBufferSupported)
@@ -337,7 +335,6 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
                     (2 * MOS_ALIGN_CEIL((downscaledFieldHeightInMB4x * 4 * 10), 8)),
                     CM_SURFACE_FORMAT_A8,
                     m_HME4xDistortionSurface));
-                m_HME4xDistortionSurface->InitSurface(0, event);
             }
         }
     }
@@ -351,7 +348,6 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
                 (m_downscaledHeightInMb16x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
                 CM_SURFACE_FORMAT_A8,
                 m_HME16xMVSurface));
-            m_HME16xMVSurface->InitSurface(0, event);
         }
     }
 
@@ -364,7 +360,6 @@ MOS_STATUS CodechalKernelHmeMdfG12::AllocateResources()
                 (m_downscaledHeightInMb32x * 2 * 4 * CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER),
                 CM_SURFACE_FORMAT_A8,
                 m_HME32xMVSurface));
-            m_HME32xMVSurface->InitSurface(0, event);
         }
     }
     return MOS_STATUS_SUCCESS;
