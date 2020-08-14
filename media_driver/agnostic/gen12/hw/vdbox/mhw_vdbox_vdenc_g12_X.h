@@ -2588,17 +2588,18 @@ public:
 
             if (params->bUseDefaultQpDeltas)
             {
+                cmd.DW13.Value = (cmd.DW13.Value & 0xffff) | 0xf0120000;
                 if (hevcPicParams->CodingType == I_TYPE)
                 {
                     cmd.DW14.Value = (cmd.DW14.Value & 0xffff0000) | 0x21db;
-                    cmd.DW16.Value = (cmd.DW16.Value & 0xf00ffff) | 0x1f0000;
+                    cmd.DW16.Value = (cmd.DW16.Value & 0xf00ffff) | 0x10000;
                     cmd.DW18.Value = 0x600000;
                     cmd.DW19.Value = (cmd.DW19.Value & 0xffff0000) | 0xc0;
                 }
                 else // LDB frames
                 {
                     cmd.DW14.Value = (cmd.DW14.Value & 0xffff0000) | 0x21ed;
-                    cmd.DW16.Value = (cmd.DW16.Value & 0xf00ffff) | 0xd01f0000;
+                    cmd.DW16.Value = (cmd.DW16.Value & 0xf00ffff) | 0xd0010000;
                     cmd.DW18.Value = 0x60010f;
                     cmd.DW19.Value = (cmd.DW19.Value & 0xffff0000) | 0xc0;
                 }
