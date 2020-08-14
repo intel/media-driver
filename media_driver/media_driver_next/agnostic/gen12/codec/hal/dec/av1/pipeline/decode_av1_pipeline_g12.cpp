@@ -126,6 +126,7 @@ namespace decode
                 inputParameters.currOriginalPic            = basicFeature->m_curRenderPic;
                 inputParameters.currDecodedPicRes          = basicFeature->m_destSurface.OsResource;
                 inputParameters.numUsedVdbox               = m_numVdbox;
+                m_allocator->UpdateResoreceUsageType(&inputParameters.currDecodedPicRes, resourceOutputPicture);
                 m_statusReport->Init(&inputParameters);
             }
         }

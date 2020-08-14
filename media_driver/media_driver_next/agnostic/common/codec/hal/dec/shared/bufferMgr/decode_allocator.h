@@ -41,6 +41,20 @@ using BufferArray       = ResourceArray<MOS_BUFFER>;
 using SurfaceArray      = ResourceArray<MOS_SURFACE>;
 using BatchBufferArray  = ResourceArray<MHW_BATCH_BUFFER>;
 
+enum ResourceUsage
+{
+    resourceOutputPicture            = MOS_HW_RESOURCE_USAGE_DECODE_OUTPUT_PICTURE,
+    resourceInputBitstream           = MOS_HW_RESOURCE_USAGE_DECODE_INPUT_BITSTREAM,
+    resourceInputReference           = MOS_HW_RESOURCE_USAGE_DECODE_INPUT_REFERENCE,
+    resourceInternalRead             = MOS_HW_RESOURCE_USAGE_DECODE_INTERNAL_READ,
+    resourceInternalWrite            = MOS_HW_RESOURCE_USAGE_DECODE_INTERNAL_WRITE,
+    resourceInternalReadWriteCache   = MOS_HW_RESOURCE_USAGE_DECODE_INTERNAL_READ_WRITE_CACHE,
+    resourceInternalReadWriteNoCache = MOS_HW_RESOURCE_USAGE_DECODE_INTERNAL_READ_WRITE_NOCACHE,
+    resourceStatisticsWrite          = MOS_HW_RESOURCE_USAGE_DECODE_OUTPUT_STATISTICS_WRITE,
+    resourceStatisticsReadWrite      = MOS_HW_RESOURCE_USAGE_DECODE_OUTPUT_STATISTICS_READ_WRITE,
+    resourceDefault                  = MOS_HW_RESOURCE_DEF_MAX
+};
+
 class DecodeAllocator
 {
 public:
@@ -62,6 +76,8 @@ public:
     //!         Buffer size
     //! \param  [in] nameOfBuffer
     //!         Buffer name
+    //! \param  [in] resUsageType
+    //!         ResourceUsage to be set
     //! \param  [in] initOnAllocate
     //!         Indicate if this buffer need to be initialized when allocate, by default is false
     //! \param  [in] initValue
@@ -72,7 +88,7 @@ public:
     //!         return the pointer to MOS_BUFFER
     //!
     MOS_BUFFER* AllocateBuffer(const uint32_t sizeOfBuffer, const char* nameOfBuffer,
-        bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
+        ResourceUsage resUsageType = resourceDefault, bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
 
     //!
     //! \brief  Allocate buffer array
@@ -82,6 +98,8 @@ public:
     //!         Buffer name
     //! \param  [in] numberOfBuffer
     //!         number of buffer array
+    //! \param  [in] resUsageType
+    //!         ResourceUsage to be set
     //! \param  [in] initOnAllocate
     //!         Indicate if this buffer need to be initialized when allocate, by default is false
     //! \param  [in] initValue
@@ -91,7 +109,7 @@ public:
     //!
     BufferArray * AllocateBufferArray(
         const uint32_t sizeOfBuffer, const char* nameOfBuffer, const uint32_t numberOfBuffer,
-        bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
+        ResourceUsage resUsageType = resourceDefault, bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
 
     //!
     //! \brief  Allocate Surface
@@ -105,12 +123,14 @@ public:
     //!         Surface format, by default is NV12
     //! \param  [in] isCompressible
     //!         Compressible flag, by default is false
+    //! \param  [in] resUsageType
+    //!         ResourceUsage to be set
     //! \return MOS_SURFACE*
     //!         return the pointer to MOS_SURFACE
     //!
     MOS_SURFACE* AllocateSurface(
-        const uint32_t width, const uint32_t height, const char* nameOfSurface,
-        MOS_FORMAT format = Format_NV12, bool isCompressible = false);
+        const uint32_t width, const uint32_t height, const char* nameOfSurface, MOS_FORMAT format = Format_NV12,
+        bool isCompressible = false, ResourceUsage resUsageType = resourceDefault);
 
     //!
     //! \brief  Allocate surface array
@@ -126,12 +146,14 @@ public:
     //!         Surface format, by default is NV12
     //! \param  [in] isCompressed
     //!         Compress flag, by default is false
+    //! \param  [in] resUsageType
+    //!         ResourceUsage to be set
     //! \return SurfaceArray*
     //!         return the pointer to SurfaceArray
     //!
     SurfaceArray * AllocateSurfaceArray(
-        const uint32_t width, const uint32_t height, const char* nameOfSurface, const uint32_t numberOfSurface,
-        MOS_FORMAT format = Format_NV12, bool isCompressed = false);
+        const uint32_t width, const uint32_t height, const char* nameOfSurface,
+        const uint32_t numberOfSurface, MOS_FORMAT format = Format_NV12, bool isCompressed = false, ResourceUsage resUsageType = resourceDefault);
 
     //!
     //! \brief  Allocate batch buffer
@@ -403,6 +425,28 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GetSurfaceInfo(PMOS_SURFACE surface);
+
+    //!
+    //! \brief    Update the GMM usage type of resource for cache policy
+    //! \details  Update the GMM usage type of resource for cache policy
+    //! \param    PMOS_RESOURCE OsResource
+    //!           [in] OS resource sturcture
+    //! \param    [in] resUsageType
+    //!           ResourceUsage to be set
+    //! \return   VOID
+    //!
+    MOS_STATUS UpdateResoreceUsageType(
+        PMOS_RESOURCE osResource,
+        ResourceUsage resUsageType);
+
+    //!
+    //! \brief    Convert from GMM usage type of resource to MOS_HW_RESOURCE_DEF
+    //! \details  Convert from GMM usage type of resource to MOS_HW_RESOURCE_DEF
+    //! \param    GMM_RESOURCE_USAGE_TYPE gmmResUsage
+    //!           [in] GMM usage type of resource
+    //! \return   ResourceUsage
+    //!
+    ResourceUsage ConvertGmmResourceUsage(const GMM_RESOURCE_USAGE_TYPE gmmResUsage);
 
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;  //!< PMOS_INTERFACE

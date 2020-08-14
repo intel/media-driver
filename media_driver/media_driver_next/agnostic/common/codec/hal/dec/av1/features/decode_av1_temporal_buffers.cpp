@@ -64,18 +64,17 @@ namespace decode
         {
             DECODE_ASSERTMESSAGE( "Failed to get MvTemporalBuffer size.");
         }
-        bufs->mvBuf = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "MvTemporalBuffer");
+        bufs->mvBuf = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "MvTemporalBuffer", resourceInternalReadWriteCache);
 
         if (m_avpInterface->GetAv1BufferSize(segmentIdBuf,
                                             &avpBufSizeParam) != MOS_STATUS_SUCCESS)
         {
             DECODE_ASSERTMESSAGE( "Failed to get SegmentIdBuffer size.");
         }
-        bufs->segIdWriteBuf = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "SegmentIdWriteBuffer");
+        bufs->segIdWriteBuf = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "SegmentIdWriteBuffer", resourceInternalReadWriteCache);
 
         bufs->bwdAdaptCdfBuf = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_basicFeature->m_cdfMaxNumBytes,
-            CODECHAL_PAGE_SIZE), "CdfTableBuffer");
-
+            CODECHAL_PAGE_SIZE), "CdfTableBuffer", resourceInternalReadWriteCache);
         return bufs;
     }
 

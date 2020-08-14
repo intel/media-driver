@@ -157,7 +157,7 @@ namespace decode
             m_filmGrainProcParams = (CodecProcessingParams *)&decodeParams->m_codecProcParams;
             if (m_filmGrainProcParams->m_inputSurface == nullptr)
             {
-                DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(m_av1PicParams->m_currPic.FrameIdx, &m_destSurface));
+                DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(m_av1PicParams->m_currPic.FrameIdx, &m_destSurface, resourceOutputPicture));
                 m_filmGrainProcParams->m_inputSurface = m_internalTarget.GetCurSurf();
             }
 
@@ -466,7 +466,7 @@ namespace decode
         {
             for (uint8_t index = 0; index < av1DefaultCdfTableNum; index++)
             {
-                m_tmpCdfBuffers[index] = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "TempCdfTableBuffer");
+                m_tmpCdfBuffers[index] = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "TempCdfTableBuffer", resourceInternalRead);
                 DECODE_CHK_NULL(m_tmpCdfBuffers[index]);
 
                 auto data = (uint16_t *)m_allocator->LockResouceForWrite(&m_tmpCdfBuffers[index]->OsResource);
@@ -474,7 +474,7 @@ namespace decode
 
                 // reset all CDF tables to default values
                 DECODE_CHK_STATUS(InitDefaultFrameContextBuffer(data, index));
-                m_defaultCdfBuffers[index] = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "m_defaultCdfBuffers");
+                m_defaultCdfBuffers[index] = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "m_defaultCdfBuffers", resourceInternalRead);
                 DECODE_CHK_NULL(m_defaultCdfBuffers[index]);
             }
 

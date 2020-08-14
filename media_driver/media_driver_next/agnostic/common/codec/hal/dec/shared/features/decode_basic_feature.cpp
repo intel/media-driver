@@ -102,6 +102,7 @@ MOS_STATUS DecodeBasicFeature::Update(void *params)
 
     DECODE_CHK_NULL(decodeParams->m_dataBuffer);
     m_resDataBuffer.OsResource = *(decodeParams->m_dataBuffer);
+    m_allocator->UpdateResoreceUsageType(&m_resDataBuffer.OsResource, resourceInputBitstream);
 
     if (m_useDummyReference)
     {

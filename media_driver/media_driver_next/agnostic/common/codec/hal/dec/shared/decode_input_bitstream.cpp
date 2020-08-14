@@ -99,7 +99,7 @@ MOS_STATUS DecodeInputBitstream::AllocateCatenatedBuffer()
 
     if (m_catenatedBuffer == nullptr)
     {
-        m_catenatedBuffer = m_allocator->AllocateBuffer(allocSize, "bitstream");
+        m_catenatedBuffer = m_allocator->AllocateBuffer(allocSize, "bitstream", resourceInputBitstream);
         DECODE_CHK_NULL(m_catenatedBuffer);
         return MOS_STATUS_SUCCESS;
     }

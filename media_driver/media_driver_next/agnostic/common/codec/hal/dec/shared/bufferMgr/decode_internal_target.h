@@ -88,7 +88,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ActiveCurSurf(uint32_t curFrameIdx, PMOS_SURFACE dstSurface)
+    MOS_STATUS ActiveCurSurf(uint32_t curFrameIdx, PMOS_SURFACE dstSurface, ResourceUsage resUsageType = resourceDefault)
     {
         DECODE_FUNC_CALL();
 
@@ -98,7 +98,9 @@ public:
                                             dstSurface->dwWidth,
                                             MOS_ALIGN_CEIL(dstSurface->dwHeight, 8),
                                             "Internal target surface",
-                                            dstSurface->Format);
+                                            dstSurface->Format,
+                                            false,
+                                            resUsageType);
         }
         else
         {

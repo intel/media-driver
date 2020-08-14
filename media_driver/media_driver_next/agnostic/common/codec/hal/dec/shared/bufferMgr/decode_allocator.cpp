@@ -44,7 +44,7 @@ DecodeAllocator::~DecodeAllocator()
 }
 
 MOS_BUFFER* DecodeAllocator::AllocateBuffer(
-    const uint32_t sizeOfBuffer, const char* nameOfBuffer,
+    const uint32_t sizeOfBuffer, const char* nameOfBuffer, ResourceUsage resUsageType,
     bool initOnAllocate, uint8_t initValue, bool bPersistent)
 {
     if (!m_allocator)
@@ -58,6 +58,7 @@ MOS_BUFFER* DecodeAllocator::AllocateBuffer(
     allocParams.dwBytes         = sizeOfBuffer;
     allocParams.pBufName        = nameOfBuffer;
     allocParams.bIsPersistent   = bPersistent;
+    allocParams.ResUsageType    = static_cast<MOS_HW_RESOURCE_DEF>(resUsageType);
 
     MOS_BUFFER* buffer = m_allocator->AllocateBuffer(allocParams, false, COMPONENT_Decode);
     if (buffer == nullptr)
@@ -85,7 +86,7 @@ MOS_BUFFER* DecodeAllocator::AllocateBuffer(
 
 BufferArray * DecodeAllocator::AllocateBufferArray(
     const uint32_t sizeOfBuffer, const char* nameOfBuffer, const uint32_t numberOfBuffer,
-    bool initOnAllocate, uint8_t initValue, bool bPersistent)
+    ResourceUsage resUsageType, bool initOnAllocate, uint8_t initValue, bool bPersistent)
 {
     if (!m_allocator)
         return nullptr;
@@ -98,7 +99,7 @@ BufferArray * DecodeAllocator::AllocateBufferArray(
 
     for (uint32_t i = 0; i < numberOfBuffer; i++)
     {
-        MOS_BUFFER *buf = AllocateBuffer(sizeOfBuffer, nameOfBuffer, initOnAllocate, initValue, bPersistent);
+        MOS_BUFFER *buf = AllocateBuffer(sizeOfBuffer, nameOfBuffer, resUsageType, initOnAllocate, initValue, bPersistent);
         bufferArray->Push(buf);
     }
 
@@ -107,7 +108,7 @@ BufferArray * DecodeAllocator::AllocateBufferArray(
 
 MOS_SURFACE* DecodeAllocator::AllocateSurface(
     const uint32_t width, const uint32_t height, const char* nameOfSurface,
-    MOS_FORMAT format, bool isCompressible)
+    MOS_FORMAT format, bool isCompressible, ResourceUsage resUsageType)
 {
     if (!m_allocator)
         return nullptr;
@@ -122,6 +123,7 @@ MOS_SURFACE* DecodeAllocator::AllocateSurface(
     allocParams.dwArraySize = 1;
     allocParams.pBufName    = nameOfSurface;
     allocParams.bIsCompressible = isCompressible;
+    allocParams.ResUsageType = static_cast<MOS_HW_RESOURCE_DEF>(resUsageType);
 
     MOS_SURFACE* surface = m_allocator->AllocateSurface(allocParams, false, COMPONENT_Decode);
     if (surface == nullptr)
@@ -137,8 +139,8 @@ MOS_SURFACE* DecodeAllocator::AllocateSurface(
 }
 
 SurfaceArray * DecodeAllocator::AllocateSurfaceArray(
-    const uint32_t width, const uint32_t height, const char* nameOfSurface, const uint32_t numberOfSurface,
-    MOS_FORMAT format, bool isCompressed)
+    const uint32_t width, const uint32_t height, const char* nameOfSurface,
+    const uint32_t numberOfSurface, MOS_FORMAT format, bool isCompressed, ResourceUsage resUsageType)
 {
     if (!m_allocator)
         return nullptr;
@@ -151,7 +153,7 @@ SurfaceArray * DecodeAllocator::AllocateSurfaceArray(
 
     for (uint32_t i = 0; i < numberOfSurface; i++)
     {
-        MOS_SURFACE *surface = AllocateSurface(width, height, nameOfSurface, format, isCompressed);
+        MOS_SURFACE *surface = AllocateSurface(width, height, nameOfSurface, format, isCompressed, resUsageType);
         surfaceArray->Push(surface);
     }
 
@@ -290,7 +292,8 @@ MOS_STATUS DecodeAllocator::Resize(MOS_BUFFER* &buffer, const uint32_t sizeNew, 
 
     if (force || (sizeNew > buffer->size))
     {
-        MOS_BUFFER* bufferNew = AllocateBuffer(sizeNew, buffer->name,
+        MOS_BUFFER* bufferNew = AllocateBuffer(
+            sizeNew, buffer->name, ConvertGmmResourceUsage(buffer->OsResource.pGmmResInfo->GetCachePolicyUsage()),
             buffer->initOnAllocate, buffer->initValue, buffer->bPersistent);
         DECODE_CHK_NULL(bufferNew);
 
@@ -314,7 +317,7 @@ MOS_STATUS DecodeAllocator::Resize(MOS_SURFACE* &surface, const uint32_t widthNe
     if (force || (widthNew > surface->dwWidth) || (heightNew > surface->dwHeight))
     {
         MOS_SURFACE* surfaceNew = AllocateSurface(widthNew, heightNew, nullptr,
-            surface->Format, surface->bIsCompressed);
+            surface->Format, surface->bIsCompressed, ConvertGmmResourceUsage(surface->OsResource.pGmmResInfo->GetCachePolicyUsage()));
         DECODE_CHK_NULL(surfaceNew);
 
         Destroy(surface);
@@ -324,7 +327,7 @@ MOS_STATUS DecodeAllocator::Resize(MOS_SURFACE* &surface, const uint32_t widthNe
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeAllocator::Resize(PMHW_BATCH_BUFFER &batchBuffer, 
+MOS_STATUS DecodeAllocator::Resize(PMHW_BATCH_BUFFER &batchBuffer,
                                    const uint32_t sizeOfBufferNew, const uint32_t numOfBufferNew)
 {
     DECODE_CHK_NULL(batchBuffer);
@@ -524,6 +527,53 @@ MOS_STATUS DecodeAllocator::GetSurfaceInfo(PMOS_SURFACE surface)
     surface->bIsCompressed = details.bIsCompressed;
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodeAllocator::UpdateResoreceUsageType(
+    PMOS_RESOURCE osResource,
+    ResourceUsage resUsageType)
+{
+    DECODE_CHK_NULL(m_allocator);
+
+    return (m_allocator->UpdateResourceUsageType(osResource, static_cast<MOS_HW_RESOURCE_DEF>(resUsageType)));
+}
+
+ResourceUsage DecodeAllocator::ConvertGmmResourceUsage(const GMM_RESOURCE_USAGE_TYPE gmmResUsage)
+{
+    ResourceUsage resUsageType;
+    switch (gmmResUsage)
+    {
+    case GMM_RESOURCE_USAGE_DECODE_INPUT_BITSTREAM:
+        resUsageType = resourceInputBitstream;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_INPUT_REFERENCE:
+        resUsageType = resourceInputReference;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_READ:
+        resUsageType = resourceInternalRead;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_WRITE:
+        resUsageType = resourceInternalWrite;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_READ_WRITE_CACHE:
+        resUsageType = resourceInternalReadWriteCache;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_INTERNAL_READ_WRITE_NOCACHE:
+        resUsageType = resourceInternalReadWriteNoCache;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_OUTPUT_PICTURE:
+        resUsageType = resourceOutputPicture;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_OUTPUT_STATISTICS_WRITE:
+        resUsageType = resourceStatisticsWrite;
+        break;
+    case GMM_RESOURCE_USAGE_DECODE_OUTPUT_STATISTICS_READ_WRITE:
+        resUsageType = resourceStatisticsReadWrite;
+        break;
+    default:
+        resUsageType = resourceDefault;
+    }
+    return resUsageType;
 }
 
 }

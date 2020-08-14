@@ -240,7 +240,9 @@ namespace decode{
                     m_destSurface.dwWidth,
                     MOS_ALIGN_CEIL(m_destSurface.dwHeight, 8),
                     "Intrabc Decoded Output Frame Buffer",
-                    m_destSurface.Format);
+                    m_destSurface.Format,
+                    m_destSurface.bCompressible,
+                    resourceInternalReadWriteNoCache);
 
                 m_intrabcDecodedOutputFrameBuffer = surface;
                 DECODE_CHK_NULL(m_intrabcDecodedOutputFrameBuffer);
@@ -264,7 +266,8 @@ namespace decode{
             {
                 m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer = m_allocator->AllocateBuffer(
                     avpBufSizeParam.m_bufferSize,
-                    "BitstreamDecodeLineBuffer");
+                    "BitstreamDecodeLineBuffer",
+                    resourceInternalReadWriteCache);
                 DECODE_CHK_NULL(m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer);
             }
             else
@@ -284,7 +287,8 @@ namespace decode{
         {
             m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "BitstreamDecodeTileLineBuffer");
+                "BitstreamDecodeTileLineBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer);
         }
         else
@@ -304,7 +308,8 @@ namespace decode{
             {
                 m_intraPredictionLineRowstoreReadWriteBuffer = m_allocator->AllocateBuffer(
                     avpBufSizeParam.m_bufferSize,
-                    "intraPredictionLineRowstoreBuffer");
+                    "intraPredictionLineRowstoreBuffer",
+                    resourceInternalReadWriteCache);
                 DECODE_CHK_NULL(m_intraPredictionLineRowstoreReadWriteBuffer);
             }
             else
@@ -323,7 +328,8 @@ namespace decode{
         {
             m_intraPredictionTileLineRowstoreReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "intraPredictionTileLineRowstoreBuffer");
+                "intraPredictionTileLineRowstoreBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_intraPredictionTileLineRowstoreReadWriteBuffer);
         }
         else
@@ -343,7 +349,8 @@ namespace decode{
             {
                 m_spatialMotionVectorLineReadWriteBuffer = m_allocator->AllocateBuffer(
                     avpBufSizeParam.m_bufferSize,
-                    "SpatialMotionVectorLineRowstoreBuffer");
+                    "SpatialMotionVectorLineRowstoreBuffer",
+                    resourceInternalReadWriteCache);
                 DECODE_CHK_NULL(m_spatialMotionVectorLineReadWriteBuffer);
             }
             else
@@ -363,7 +370,8 @@ namespace decode{
         {
             m_spatialMotionVectorCodingTileLineReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "SpatialMotionVectorTileLineBuffer");
+                "SpatialMotionVectorTileLineBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_spatialMotionVectorCodingTileLineReadWriteBuffer);
         }
         else
@@ -381,7 +389,8 @@ namespace decode{
         {
             m_loopRestorationMetaTileColumnReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "LoopRestorationMetaTileColumnReadWriteBuffer");
+                "LoopRestorationMetaTileColumnReadWriteBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_loopRestorationMetaTileColumnReadWriteBuffer);
         }
         else
@@ -399,7 +408,8 @@ namespace decode{
         {
             m_loopRestorationFilterTileReadWriteLineYBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "LoopRestorationFilterTileReadWriteLineYBuffer");
+                "LoopRestorationFilterTileReadWriteLineYBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_loopRestorationFilterTileReadWriteLineYBuffer);
         }
         else
@@ -417,7 +427,8 @@ namespace decode{
         {
             m_loopRestorationFilterTileReadWriteLineUBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "LoopRestorationFilterTileReadWriteLineUBuffer");
+                "LoopRestorationFilterTileReadWriteLineUBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_loopRestorationFilterTileReadWriteLineUBuffer);
         }
         else
@@ -435,7 +446,8 @@ namespace decode{
         {
             m_loopRestorationFilterTileReadWriteLineVBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "LoopRestorationFilterTileReadWriteLineVBuffer");
+                "LoopRestorationFilterTileReadWriteLineVBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_loopRestorationFilterTileReadWriteLineVBuffer);
         }
         else
@@ -455,7 +467,8 @@ namespace decode{
             {
                 m_deblockerFilterLineReadWriteYBuffer = m_allocator->AllocateBuffer(
                     avpBufSizeParam.m_bufferSize,
-                    "DeblockerFilterLineReadWriteYBuffer");
+                    "DeblockerFilterLineReadWriteYBuffer",
+                    resourceInternalReadWriteCache);
                 DECODE_CHK_NULL(m_deblockerFilterLineReadWriteYBuffer);
             }
             else
@@ -475,7 +488,8 @@ namespace decode{
             {
                 m_deblockerFilterLineReadWriteUBuffer = m_allocator->AllocateBuffer(
                     avpBufSizeParam.m_bufferSize,
-                    "DeblockerFilterLineReadWriteUBuffer");
+                    "DeblockerFilterLineReadWriteUBuffer",
+                    resourceInternalReadWriteCache);
                 DECODE_CHK_NULL(m_deblockerFilterLineReadWriteUBuffer);
             }
             else
@@ -495,7 +509,8 @@ namespace decode{
             {
                 m_deblockerFilterLineReadWriteVBuffer = m_allocator->AllocateBuffer(
                     avpBufSizeParam.m_bufferSize,
-                    "DeblockerFilterLineReadWriteVBuffer");
+                    "DeblockerFilterLineReadWriteVBuffer",
+                    resourceInternalReadWriteCache);
                 DECODE_CHK_NULL(m_deblockerFilterLineReadWriteVBuffer);
             }
             else
@@ -515,7 +530,8 @@ namespace decode{
         {
             m_deblockerFilterTileLineReadWriteYBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DeblockerFilterTileLineReadWriteYBuffer");
+                "DeblockerFilterTileLineReadWriteYBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_deblockerFilterTileLineReadWriteYBuffer);
         }
         else
@@ -534,7 +550,8 @@ namespace decode{
         {
             m_deblockerFilterTileLineReadWriteVBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DeblockerFilterTileLineReadWriteVBuffer");
+                "DeblockerFilterTileLineReadWriteVBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_deblockerFilterTileLineReadWriteVBuffer);
         }
         else
@@ -553,7 +570,8 @@ namespace decode{
         {
             m_deblockerFilterTileLineReadWriteUBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DeblockerFilterTileLineReadWriteUBuffer");
+                "DeblockerFilterTileLineReadWriteUBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_deblockerFilterTileLineReadWriteUBuffer);
         }
         else
@@ -572,7 +590,8 @@ namespace decode{
         {
             m_deblockerFilterTileColumnReadWriteYBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DeblockerFilterTileColumnReadWriteYBuffer");
+                "DeblockerFilterTileColumnReadWriteYBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_deblockerFilterTileColumnReadWriteYBuffer);
         }
         else
@@ -591,7 +610,8 @@ namespace decode{
         {
             m_deblockerFilterTileColumnReadWriteUBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DeblockerFilterTileColumnReadWriteUBuffer");
+                "DeblockerFilterTileColumnReadWriteUBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_deblockerFilterTileColumnReadWriteUBuffer);
         }
         else
@@ -610,7 +630,8 @@ namespace decode{
         {
             m_deblockerFilterTileColumnReadWriteVBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DeblockerFilterTileColumnReadWriteVBuffer");
+                "DeblockerFilterTileColumnReadWriteVBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_deblockerFilterTileColumnReadWriteVBuffer);
         }
         else
@@ -630,7 +651,8 @@ namespace decode{
             {
                 m_cdefFilterLineReadWriteBuffer = m_allocator->AllocateBuffer(
                     avpBufSizeParam.m_bufferSize,
-                    "CdefFilterLineReadWriteBuffer");
+                    "CdefFilterLineReadWriteBuffer",
+                    resourceInternalReadWriteCache);
                 DECODE_CHK_NULL(m_cdefFilterLineReadWriteBuffer);
             }
             else
@@ -649,7 +671,8 @@ namespace decode{
         {
             m_cdefFilterTileLineReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "CdefFilterTileLineReadWriteBuffer");
+                "CdefFilterTileLineReadWriteBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_cdefFilterTileLineReadWriteBuffer);
         }
         else
@@ -667,7 +690,8 @@ namespace decode{
         {
             m_cdefFilterTileColumnReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "CdefFilterTileColumnReadWriteBuffer");
+                "CdefFilterTileColumnReadWriteBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_cdefFilterTileColumnReadWriteBuffer);
         }
         else
@@ -685,7 +709,8 @@ namespace decode{
         {
             m_cdefFilterMetaTileLineReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "CdefFilterMetaTileLineReadWriteBuffer");
+                "CdefFilterMetaTileLineReadWriteBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_cdefFilterMetaTileLineReadWriteBuffer);
         }
         else
@@ -703,7 +728,8 @@ namespace decode{
         {
             m_cdefFilterMetaTileColumnReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "CdefFilterMetaTileColumnReadWriteBuffer");
+                "CdefFilterMetaTileColumnReadWriteBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_cdefFilterMetaTileColumnReadWriteBuffer);
         }
         else
@@ -722,7 +748,8 @@ namespace decode{
         {
             m_cdefFilterTopLeftCornerReadWriteBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "CdefFilterTopLeftCornerReadWriteBuffer");
+                "CdefFilterTopLeftCornerReadWriteBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_cdefFilterTopLeftCornerReadWriteBuffer);
         }
         else
@@ -740,7 +767,8 @@ namespace decode{
         {
             m_superResTileColumnReadWriteYBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "SuperResTileColumnReadWriteYBuffer");
+                "SuperResTileColumnReadWriteYBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_superResTileColumnReadWriteYBuffer);
         }
         else
@@ -759,7 +787,8 @@ namespace decode{
         {
             m_superResTileColumnReadWriteUBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "SuperResTileColumnReadWriteUBuffer");
+                "SuperResTileColumnReadWriteUBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_superResTileColumnReadWriteUBuffer);
         }
         else
@@ -778,7 +807,8 @@ namespace decode{
         {
             m_superResTileColumnReadWriteVBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "SuperResTileColumnReadWriteVBuffer");
+                "SuperResTileColumnReadWriteVBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_superResTileColumnReadWriteVBuffer);
         }
         else
@@ -797,7 +827,8 @@ namespace decode{
         {
             m_loopRestorationFilterTileColumnReadWriteYBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "LoopRestorationFilterTileColumnReadWriteYBuffer");
+                "LoopRestorationFilterTileColumnReadWriteYBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_loopRestorationFilterTileColumnReadWriteYBuffer);
         }
         else
@@ -816,7 +847,8 @@ namespace decode{
         {
             m_loopRestorationFilterTileColumnReadWriteUBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "LoopRestorationFilterTileColumnReadWriteUBuffer");
+                "LoopRestorationFilterTileColumnReadWriteUBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_loopRestorationFilterTileColumnReadWriteUBuffer);
         }
         else
@@ -835,7 +867,8 @@ namespace decode{
         {
             m_loopRestorationFilterTileColumnReadWriteVBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "LoopRestorationFilterTileColumnReadWriteVBuffer");
+                "LoopRestorationFilterTileColumnReadWriteVBuffer",
+                resourceInternalReadWriteCache);
             DECODE_CHK_NULL(m_loopRestorationFilterTileColumnReadWriteVBuffer);
         }
         else
@@ -854,7 +887,8 @@ namespace decode{
         {
             m_decodedFrameStatusErrorBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DecodedFrameStatusErrorBuffer");
+                "DecodedFrameStatusErrorBuffer",
+                resourceInternalWrite);
             DECODE_CHK_NULL(m_decodedFrameStatusErrorBuffer);
         }
         else
@@ -873,7 +907,8 @@ namespace decode{
         {
             m_decodedBlockDataStreamoutBuffer = m_allocator->AllocateBuffer(
                 avpBufSizeParam.m_bufferSize,
-                "DecodedBlockDataStreamoutBuffer");
+                "DecodedBlockDataStreamoutBuffer",
+                resourceInternalReadWriteNoCache);
             DECODE_CHK_NULL(m_decodedBlockDataStreamoutBuffer);
         }
         else
