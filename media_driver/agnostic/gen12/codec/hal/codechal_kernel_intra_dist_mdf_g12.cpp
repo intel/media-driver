@@ -58,12 +58,6 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::ReleaseResources()
         m_src4xSurface = nullptr;
     }
 
-    if (m_threadSpace)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyThreadSpace(m_threadSpace));
-        m_threadSpace = nullptr;
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -211,20 +205,18 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::Execute( CurbeParam &curbeParam, Surfa
 
     AddPerfTag();
 
-    if (m_threadSpace == nullptr)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-                                              m_curbeParam.downScaledWidthInMb4x,
-                                              m_curbeParam.downScaledHeightInMb4x,
-                                              m_threadSpace));
-        if (m_groupIdSelectSupported)
-        {
-            m_threadSpace->SetMediaWalkerGroupSelect((CM_MW_GROUP_SELECT)m_groupId);
-        }
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
+        m_curbeParam.downScaledWidthInMb4x,
+        m_curbeParam.downScaledHeightInMb4x,
+        m_threadSpace));
 
     uint32_t threadCount = m_curbeParam.downScaledWidthInMb4x * m_curbeParam.downScaledHeightInMb4x;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn->SetThreadCount(threadCount));
+
+    if (m_groupIdSelectSupported)
+    {
+        m_threadSpace->SetMediaWalkerGroupSelect((CM_MW_GROUP_SELECT)m_groupId);
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn->AssociateThreadSpace(m_threadSpace));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupKernelArgs());

@@ -108,17 +108,14 @@ MOS_STATUS CodechalEncodeSwScoreboardMdfG12::Execute(KernelParams *params)
     uint32_t threadCount = dwResolutionX * dwResolutionY;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn->SetThreadCount(threadCount));
 
-    if (m_threadSpace == nullptr)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
-                                              dwResolutionX,
-                                              dwResolutionY,
-                                              m_threadSpace));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
+        dwResolutionX,
+        dwResolutionY,
+        m_threadSpace));
 
-        if (m_groupIdSelectSupported)
-        {
-            m_threadSpace->SetMediaWalkerGroupSelect((CM_MW_GROUP_SELECT)m_groupId);
-        }
+    if (m_groupIdSelectSupported)
+    {
+        m_threadSpace->SetMediaWalkerGroupSelect((CM_MW_GROUP_SELECT)m_groupId);
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmKrn->AssociateThreadSpace(m_threadSpace));

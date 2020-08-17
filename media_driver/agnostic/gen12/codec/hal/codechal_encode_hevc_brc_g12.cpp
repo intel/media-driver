@@ -148,21 +148,6 @@ MOS_STATUS CodecHalHevcBrcG12::FreeBrcResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyProgram(m_cmProgramBrcLCUQP));
         m_cmProgramBrcLCUQP = nullptr;
     }
-    if (m_threadSpaceBrcInit)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcInit));
-        m_threadSpaceBrcInit = nullptr;
-    }
-    if (m_threadSpaceBrcUpdate)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcUpdate));
-        m_threadSpaceBrcUpdate = nullptr;
-    }
-    if (m_threadSpaceBrcLCUQP)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcLCUQP));
-        m_threadSpaceBrcLCUQP = nullptr;
-    }
 
     return eStatus;
 }
@@ -238,10 +223,7 @@ MOS_STATUS CodecHalHevcBrcG12::SetupThreadSpace(CmKernel *cmKernel, CmThreadSpac
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->SetThreadCount(1));
-    if (threadSpace == nullptr)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(1, 1, threadSpace));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(1, 1, threadSpace));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->AssociateThreadSpace(threadSpace));
     return eStatus;
@@ -254,10 +236,7 @@ MOS_STATUS CodecHalHevcBrcG12::SetupBrcLcuqpThreadSpace(CmKernel *cmKernel, CmTh
     uint32_t yThread = (encoderBrc->m_downscaledHeightInMb4x * SCALE_FACTOR_4x + 7) >> 3;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->SetThreadCount(xThread * yThread));
-    if (threadSpace == nullptr)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(xThread, yThread, threadSpace));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(xThread, yThread, threadSpace));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->AssociateThreadSpace(threadSpace));
 
@@ -443,7 +422,7 @@ MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe()
 
     encoderBrc->m_HierchGopBRCEnabled = false;
     if(encoderBrc->m_hevcSeqParams->HierarchicalFlag && GopRefDist > 1 && GopRefDist <= 8 )
-    {
+    {      
         uint32_t numB[9]      = {0, 0, 1, 1, 1, 1, 1, 1, 1};
         uint32_t numB1[9]     = {0, 0, 0, 1, 2, 2, 2, 2, 2};
         uint32_t numB2[9]     = {0, 0, 0, 0, 0, 1, 2, 3, 4};
@@ -457,7 +436,7 @@ MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe()
         encoderBrc->curbe.DW14_BRCGopB2 = numOfPyramid * numB2[GopRefDist] + numB2[remOfPyramid];
 
         encoderBrc->m_HierchGopBRCEnabled = true;
-
+     
         // B1 Level GOP
         if (GopRefDist <= 4 || encoderBrc->curbe.DW14_BRCGopB2 == 0)
         {
@@ -467,7 +446,7 @@ MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe()
         else
         {
             encoderBrc->curbe.DW14_MaxBRCLevel = 4;
-        }
+        }       
     }
     // For Regular GOP - No BPyramid
     else
