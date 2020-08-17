@@ -220,28 +220,52 @@ MOS_STATUS CodechalKernelHmeMdfG12::Execute(CurbeParam &curbeParam, SurfaceParam
 
     if (m_16xMeInUse)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-            xResolution,
-            yResolution,
-            m_threadSpace16x));
+        if(m_encoder->m_resolutionChanged && m_threadSpace16x != nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace16x));
+            m_threadSpace16x = nullptr;
+        }
+        if (m_threadSpace16x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
+                                                  xResolution,
+                                                  yResolution,
+                                                  m_threadSpace16x));
+        }
         threadSpace = m_threadSpace16x;
         cmKrn = m_cmKrnME16x;
     }
     else if (m_32xMeInUse)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-            xResolution,
-            yResolution,
-            m_threadSpace32x));
+        if(m_encoder->m_resolutionChanged && m_threadSpace32x != nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace32x));
+            m_threadSpace32x = nullptr;
+        }
+        if (m_threadSpace32x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
+                                                  xResolution,
+                                                  yResolution,
+                                                  m_threadSpace32x));
+        }
         threadSpace = m_threadSpace32x;
         cmKrn = m_cmKrnME32x;
     }
     else
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-            xResolution,
-            yResolution,
-            m_threadSpace4x));
+        if(m_encoder->m_resolutionChanged && m_threadSpace4x != nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace4x));
+            m_threadSpace4x = nullptr;
+        }
+        if (m_threadSpace4x == nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
+                                                  xResolution,
+                                                  yResolution,
+                                                  m_threadSpace4x));
+        }
         threadSpace = m_threadSpace4x;
         cmKrn = m_cmKrnME4x;
     }

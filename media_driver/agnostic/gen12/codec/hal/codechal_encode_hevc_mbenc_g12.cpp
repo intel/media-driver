@@ -360,6 +360,12 @@ MOS_STATUS CodecHalHevcMbencG12::FreeEncResources()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncHevcStateG12::FreeEncResources());
 
+    if (m_threadSpace)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->DestroyThreadSpace(m_threadSpace));
+        m_threadSpace = nullptr;
+    }
+
     return eStatus;
 }
 
@@ -986,13 +992,22 @@ MOS_STATUS CodecHalHevcMbencG12::EncodeMbEncKernel(
         return eStatus;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateThreadSpace(
-        maxthreadWidth,
-        maxthreadHeight,
-        m_threadSpace));
+    if (m_threadSpace != nullptr && m_resolutionChanged)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->DestroyThreadSpace(m_threadSpace));
+        m_threadSpace = nullptr;
+    }
 
-    m_threadSpace->SetThreadSpaceColorCount(totalColor);
+    if (m_threadSpace == nullptr)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->CreateThreadSpace(
+                                              maxthreadWidth,
+                                              maxthreadHeight,
+                                              m_threadSpace));
 
+        m_threadSpace->SetThreadSpaceColorCount(totalColor);
+    }
+    
     switch (m_swScoreboardState->GetDependencyPattern())
     {
     case dependencyWavefront26Degree:

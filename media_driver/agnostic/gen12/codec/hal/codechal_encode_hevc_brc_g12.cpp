@@ -148,7 +148,21 @@ MOS_STATUS CodecHalHevcBrcG12::FreeBrcResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyProgram(m_cmProgramBrcLCUQP));
         m_cmProgramBrcLCUQP = nullptr;
     }
-
+    if (m_threadSpaceBrcInit)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcInit));
+        m_threadSpaceBrcInit = nullptr;
+    }
+    if (m_threadSpaceBrcUpdate)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcUpdate));
+        m_threadSpaceBrcUpdate = nullptr;
+    }
+    if (m_threadSpaceBrcLCUQP)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcLCUQP));
+        m_threadSpaceBrcLCUQP = nullptr;
+    }
     return eStatus;
 }
 
@@ -223,8 +237,11 @@ MOS_STATUS CodecHalHevcBrcG12::SetupThreadSpace(CmKernel *cmKernel, CmThreadSpac
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->SetThreadCount(1));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(1, 1, threadSpace));
 
+    if (threadSpace == nullptr)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(1, 1, threadSpace));
+    }
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->AssociateThreadSpace(threadSpace));
     return eStatus;
 }
@@ -236,7 +253,16 @@ MOS_STATUS CodecHalHevcBrcG12::SetupBrcLcuqpThreadSpace(CmKernel *cmKernel, CmTh
     uint32_t yThread = (encoderBrc->m_downscaledHeightInMb4x * SCALE_FACTOR_4x + 7) >> 3;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->SetThreadCount(xThread * yThread));
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(xThread, yThread, threadSpace));
+
+    if (encoderBrc->m_resolutionChanged && threadSpace != nullptr)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(threadSpace));
+        threadSpace = nullptr;
+    }
+    if (threadSpace == nullptr)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(xThread, yThread, threadSpace));
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->AssociateThreadSpace(threadSpace));
 
