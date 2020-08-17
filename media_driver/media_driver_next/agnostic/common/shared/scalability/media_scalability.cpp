@@ -107,8 +107,7 @@ MOS_STATUS MediaScalability::VerifySpaceAvailable(uint32_t requestedSize, uint32
             return eStatus;
         }
 
-        requestedSize          = (statusCmdBuf != MOS_STATUS_SUCCESS) ? requestedSize + COMMAND_BUFFER_RESERVED_SPACE : 0;
-        requestedPatchListSize = (statusPatchList != MOS_STATUS_SUCCESS) ? requestedPatchListSize : 0;
+        requestedSize          = requestedSize + COMMAND_BUFFER_RESERVED_SPACE;
 
         SCALABILITY_CHK_STATUS_RETURN(ResizeCommandBufferAndPatchList(requestedSize, requestedPatchListSize));
 

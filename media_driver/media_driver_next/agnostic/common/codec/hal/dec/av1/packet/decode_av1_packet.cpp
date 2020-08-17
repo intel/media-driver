@@ -193,10 +193,16 @@ uint32_t Av1DecodePkt::CalculateCommandBufferSize()
 {
     uint32_t commandBufferSize = 0;
 
-    commandBufferSize = m_pictureStatesSize +
-                        m_tileStatesSize * (m_av1BasicFeature->m_tileCoding.m_numTiles + 1);
+    commandBufferSize = m_pictureStatesSize + m_tileStatesSize;
 
-    return (commandBufferSize + COMMAND_BUFFER_RESERVED_SPACE);
+    if (m_av1BasicFeature->m_usingDummyWl == true)
+    {
+        return (commandBufferSize * 2 + COMMAND_BUFFER_RESERVED_SPACE);
+    }
+    else
+    {
+        return (commandBufferSize + COMMAND_BUFFER_RESERVED_SPACE);
+    }
 }
 
 uint32_t Av1DecodePkt::CalculatePatchListSize()
@@ -208,10 +214,16 @@ uint32_t Av1DecodePkt::CalculatePatchListSize()
 
     uint32_t requestedPatchListSize = 0;
 
-    requestedPatchListSize = m_picturePatchListSize +
-                                (m_tilePatchListSize * (m_av1BasicFeature->m_tileCoding.m_numTiles + 1));
+    requestedPatchListSize = m_picturePatchListSize + m_tilePatchListSize;
 
-    return requestedPatchListSize;
+    if (m_av1BasicFeature->m_usingDummyWl == true)
+    {
+        return requestedPatchListSize * 2;
+    }
+    else
+    {
+        return requestedPatchListSize;
+    }
 }
 
 MOS_STATUS Av1DecodePkt::ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMMAND_BUFFER& cmdBuffer)

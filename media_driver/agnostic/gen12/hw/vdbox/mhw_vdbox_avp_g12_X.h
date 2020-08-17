@@ -57,7 +57,7 @@ protected:
 
         AVP_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES               =  0,  //  0 DW for    address fields
         AVP_SURFACE_STATE_CMD_NUMBER_OF_ADDRESSES                  =  0,  //  0 DW for    address fields
-        AVP_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES            =  37, //           37 address fields
+        AVP_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES            =  56, //           56 address fields
         AVP_IND_OBJ_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES        =  2,  //            2 address fields
         AVP_PIC_STATE_CMD_NUMBER_OF_ADDRESSES                      =  0,  //  0 DW for    address fields
         AVP_REF_IDX_STATE_CMD_NUMBER_OF_ADDRESSES                  =  0,  //  0 DW for    address fields

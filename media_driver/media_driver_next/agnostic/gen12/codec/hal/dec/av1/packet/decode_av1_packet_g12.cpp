@@ -100,9 +100,9 @@ namespace decode
 
         DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
 
-        if (m_av1BasicFeature->m_usingDummyWl == true && (!m_av1Pipeline->FrameBasedDecodingInUse())
+        if (m_av1BasicFeature->m_usingDummyWl == true && (!m_av1Pipeline->FrameBasedDecodingInUse()
             ||(m_av1BasicFeature->m_tileCoding.m_curTile == 0
-              && m_av1Pipeline->FrameBasedDecodingInUse()))
+              && m_av1Pipeline->FrameBasedDecodingInUse())))
         {
             DECODE_CHK_STATUS(InitDummyWL(cmdBuffer));
         }
