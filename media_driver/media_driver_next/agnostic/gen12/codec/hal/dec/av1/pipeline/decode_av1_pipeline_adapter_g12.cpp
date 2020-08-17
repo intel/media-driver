@@ -116,3 +116,11 @@ void DecodeAv1PipelineAdapterG12::Destroy()
     m_decoder->Destroy();
 }
 
+
+MOS_GPU_CONTEXT DecodeAv1PipelineAdapterG12::GetDecodeContext()
+{
+    DECODE_FUNC_CALL();
+
+    return m_decoder->GetDecodeContext();
+}
+

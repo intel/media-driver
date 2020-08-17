@@ -108,7 +108,8 @@ public:
             m_currentSurface = *iter;
             m_aviableSurfaces.erase(iter);
             m_allocator->Resize(m_currentSurface, dstSurface->dwWidth,
-                                MOS_ALIGN_CEIL(dstSurface->dwHeight, 8));
+                                MOS_ALIGN_CEIL(dstSurface->dwHeight, 8), false,
+                                "Internal target surface");
         }
 
         DECODE_CHK_NULL(m_currentSurface);

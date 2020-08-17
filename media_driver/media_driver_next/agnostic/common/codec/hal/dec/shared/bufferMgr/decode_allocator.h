@@ -202,11 +202,13 @@ public:
     //!         New height
     //! \param  [in] force
     //!         Flag indicates whether resize surface by force when size changed
+    //! \param  [in] nameOfSurface
+    //!         Name of the surface
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS Resize(MOS_SURFACE* &surface, const uint32_t widthNew, const uint32_t heightNew,
-                      bool force = false);
+                      bool force = false, const char* nameOfSurface = "");
 
     //!
     //! \brief  Resize batch buffer

@@ -86,6 +86,8 @@ namespace decode
         m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability);
         DECODE_CHK_NULL(m_scalability);
 
+        m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+
         m_passNum = basicFeature->m_tileCoding.CalcNumPass(*basicFeature->m_av1PicParams, basicFeature->m_av1TileParams);
         m_scalability->SetPassNumber(m_passNum);
 

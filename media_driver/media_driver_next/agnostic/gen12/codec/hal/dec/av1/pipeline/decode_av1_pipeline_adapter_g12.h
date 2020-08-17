@@ -67,6 +67,8 @@ public:
 
     virtual void Destroy() override;
 
+    virtual MOS_GPU_CONTEXT GetDecodeContext() override;
+
 protected:
     std::shared_ptr<decode::Av1PipelineG12> m_decoder;
 };

@@ -236,6 +236,12 @@ public:
     DeclareDecodePacketId(predicationSubPacketId);
     DeclareDecodePacketId(markerSubPacketId);
 
+    //!
+    //! \brief  Get decode context
+    //! \return decode context
+    //!
+    MOS_GPU_CONTEXT GetDecodeContext() { return m_decodeContext; }
+
 protected:
     //!
     //! \brief  Initialize the decode pipeline
@@ -356,6 +362,8 @@ protected:
     uint8_t                 m_numVdbox  = 0;            //!< Number of Vdbox
 
     bool                    m_singleTaskPhaseSupported = true; //!< Indicates whether sumbit packets in single phase
+
+    MOS_GPU_CONTEXT         m_decodeContext = MOS_GPU_CONTEXT_INVALID_HANDLE;    //!< decode context inuse
 };
 
 }//decode
