@@ -80,10 +80,6 @@ public:
 
     MOS_STATUS InitHwSizes();
 
-    MOS_STATUS SetInterfaceDescriptor(
-        uint32_t                         dwNumIdsToSet,
-        PMHW_INTERFACE_DESCRIPTOR_PARAMS pParams);
-
 };
 
 #endif
