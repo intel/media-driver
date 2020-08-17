@@ -310,8 +310,7 @@ C_ASSERT(Format_Count == 103); //!< When adding, update assert & vphal_solo_scen
           ( IS_PL2_FORMAT(format)       || \
             IS_PL3_FORMAT(format)       || \
             IS_PA_FORMAT(format)        || \
-            (format == Format_400P)     || \
-            (format == Format_AYUV))
+            (format == Format_400P))
 
 #define CASE_YUV_FORMAT  \
     CASE_PL2_FORMAT:     \
