@@ -104,16 +104,20 @@ static const uint32_t av1MaxTileColumn      = 64;                               
 static const uint32_t av1MaxTileRow         = 64;                                       // Max tile rows in a frame
 static const uint32_t av1PrimaryRefNone     = 7;                                        // PRIMARY_REF_NONE
 // CDF table related definitions
-static const uint32_t av1TxSizes            = 4;                                        // TX_SIZES. Does NOT include rectangular transforms
-static const uint32_t av1TxbSkipContexts    = 13;                                       // TXB_SKIP_CONTEXTS
-static const uint32_t av1PlaneTypes         = 2;                                        // PLANE_TYPES
-static const uint32_t av1DcSignContexts     = 3;                                        // DC_SIGN_CONTEXTS
-static const uint32_t av1SigCoefContextsEob = 4;                                        // SIG_COEF_CONTEXTS_EOB
-static const uint32_t av1SigCoefContexts    = 46;                                       // SIG_COEF_CONTEXTS
-static const uint32_t av1CoeffBaseContexts  = 46;                                       // COEFF_BASE_CONTEXTS
-static const uint32_t av1EobCoefContexts    = 22;                                       // EOB_COEF_CONTEXTS
-static const uint32_t av1LevelContexts      = 48;                                       // LEVEL_CONTEXTS
-static const uint32_t av1ScaleNumerator     = 8;                                        // SCALE_NUMERATOR
+static const uint32_t av1TxSizes              = 4;                                        // TX_SIZES. Does NOT include rectangular transforms
+static const uint32_t av1TxbSkipContexts      = 13;                                       // TXB_SKIP_CONTEXTS
+static const uint32_t av1PlaneTypes           = 2;                                        // PLANE_TYPES
+static const uint32_t av1DcSignContexts       = 3;                                        // DC_SIGN_CONTEXTS
+static const uint32_t av1SigCoefContextsEob   = 4;                                        // SIG_COEF_CONTEXTS_EOB
+static const uint32_t av1SigCoefContexts      = 46;                                       // SIG_COEF_CONTEXTS
+static const uint32_t av1CoeffBaseContexts    = 46;                                       // COEFF_BASE_CONTEXTS
+static const uint32_t av1EobCoefContexts      = 22;                                       // EOB_COEF_CONTEXTS
+static const uint32_t av1LevelContexts        = 48;                                       // LEVEL_CONTEXTS
+static const uint32_t av1ScaleNumerator       = 8;                                        // SCALE_NUMERATOR
+static const uint32_t av1MaxCDEFStrengths     = 63;                                       // Max of CDEF strengths value
+static const uint32_t av1MaxCDEFDampingMinus3 = 3;                                        // Max of CDEF damping
+static const uint32_t av1MaxCDEFBits          = 3;                                        // Max of CDEF bits
+static const uint32_t av1MaxCDEFEntries       = 8;                                        // Max of CDEF strengths entries
 
 // Bits of precision used for the model
 static const uint32_t av1WarpedModelPrecBits    = 16;                                   //WARPEDMODEL_PREC_BITS
