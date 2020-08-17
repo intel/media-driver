@@ -462,7 +462,6 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 
     bool bApgFuncSupported = false;
     VP_PUBLIC_CHK_STATUS_RETURN(CheckFeatures(params, bApgFuncSupported));
-
     if (!bApgFuncSupported)
     {
         VP_PUBLIC_NORMALMESSAGE("Features are not supported on APG now \n");

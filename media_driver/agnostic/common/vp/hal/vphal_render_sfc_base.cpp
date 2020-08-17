@@ -1258,16 +1258,16 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
             }
             break;
 
-            case VPHAL_ALPHA_FILL_MODE_BACKGROUND:
-                pSfcStateParams->fAlphaPixel = m_renderData.bColorFill ?
-                    pSfcStateParams->fColorFillAPixel : 1.0F;
-                break;
+        case VPHAL_ALPHA_FILL_MODE_BACKGROUND:
+            pSfcStateParams->fAlphaPixel = m_renderData.bColorFill ?
+                pSfcStateParams->fColorFillAPixel : 1.0F;
+            break;
 
-            case VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM:
-            case VPHAL_ALPHA_FILL_MODE_OPAQUE:
-            default:
-                pSfcStateParams->fAlphaPixel      = 1.0F;
-                pSfcStateParams->fColorFillAPixel = 1.0F;
+        case VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM:
+        case VPHAL_ALPHA_FILL_MODE_OPAQUE:
+        default:
+            pSfcStateParams->fAlphaPixel      = 1.0F;
+            pSfcStateParams->fColorFillAPixel = 1.0F;
         }
     }
     else
