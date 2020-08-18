@@ -62,6 +62,7 @@ CodecHalMmcStateG12::CodecHalMmcStateG12(CodechalHwInterface  *hwInterface) :
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
         MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
+    MOS_ZeroMemory(&auxBufForClear, sizeof(MOS_RESOURCE));
 }
 
 void CodecHalMmcStateG12::InitDecodeMmcEnable(CodechalHwInterface    *hwInterface)
@@ -240,4 +241,109 @@ MOS_STATUS CodecHalMmcStateG12::SendPrologCmd(
         }
     }
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodecHalMmcStateG12::ClearAuxSurf(
+    CodechalDecode*                                 m_decoder,
+    MhwMiInterface *                                miInterface,
+    MOS_RESOURCE *                                  res,
+    PCODECHAL_DECODE_SINGLEPIPE_VIRTUALENGINE_STATE m_veState)
+{
+    CODECHAL_HW_CHK_NULL_RETURN(miInterface);
+    CODECHAL_HW_CHK_NULL_RETURN(res);
+    CODECHAL_HW_CHK_NULL_RETURN(res->pGmmResInfo);
+    CODECHAL_HW_CHK_NULL_RETURN(m_veState);
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    MOS_STATUS             eStatus       = MOS_STATUS_SUCCESS;
+    bool                   hasAuxSurf    = false;
+    uint32_t               resArrayIndex = 0;
+    uint32_t               auxSurfSize   = 0;
+    uint32_t               auxSurfOffset = 0;
+    MOS_COMMAND_BUFFER     cmdBuffer;
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    GMM_RESOURCE_FLAG      gmmFlags;
+
+    gmmFlags   = res->pGmmResInfo->GetResFlags();
+    hasAuxSurf = (gmmFlags.Gpu.MMC || gmmFlags.Info.MediaCompressed) && gmmFlags.Gpu.UnifiedAuxSurface;
+    if (!hasAuxSurf)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    resArrayIndex = ((res->pGmmResInfo->GetArraySize()) > 1) ? m_osInterface->pfnGetResourceIndex(res):0;
+    auxSurfSize   = (uint32_t)res->pGmmResInfo->GetAuxQPitch();
+    auxSurfOffset = (uint32_t)res->pGmmResInfo->GetPlanarAuxOffset(resArrayIndex, GMM_AUX_Y_CCS);
+    if (Mos_ResourceIsNull(&auxBufForClear))
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_decoder->AllocateBuffer(
+            &auxBufForClear,
+            auxSurfSize,
+            "auxClearBuffer",
+            true,
+            0));
+    }
+    else if (auxBufForClear.pGmmResInfo->GetSizeSurface() < auxSurfSize)
+    {
+        if (!Mos_ResourceIsNull(&auxBufForClear))
+        {
+            m_osInterface->pfnFreeResource(
+                m_osInterface,
+                &auxBufForClear);
+        }
+        CODECHAL_HW_CHK_STATUS_RETURN(m_decoder->AllocateBuffer(
+            &auxBufForClear,
+            auxSurfSize,
+            "auxClearBuffer",
+            true,
+            0));
+    }
+
+    CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    // Send command buffer header at the beginning (OS dependent)
+    CODECHAL_HW_CHK_STATUS_RETURN(m_decoder->SendPrologWithFrameTracking(&cmdBuffer, false));
+
+    CODECHAL_HW_CHK_STATUS_RETURN(m_decoder->HucCopy(
+        &cmdBuffer,       // pCmdBuffer
+        &auxBufForClear,  // presSrc
+        res,              // presDst
+        auxSurfSize,      // u32CopyLength
+        0,                // u32CopyInputOffset
+        auxSurfOffset));  // u32CopyOutputOffset
+
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(miInterface->AddMiFlushDwCmd(
+        &cmdBuffer,
+        &flushDwParams));
+
+    CODECHAL_HW_CHK_STATUS_RETURN(miInterface->AddMiBatchBufferEnd(
+        &cmdBuffer,
+        nullptr));
+
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+
+    if (MOS_VE_SUPPORTED(m_osInterface))
+    {
+        CodecHalDecodeSinglePipeVE_PopulateHintParams(m_veState, &cmdBuffer, false);
+    }
+
+    CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
+
+    CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_decoder->GetVideoContext()));
+
+    return eStatus;
+}
+
+CodecHalMmcStateG12::~CodecHalMmcStateG12()
+{
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    if (!Mos_ResourceIsNull(&auxBufForClear))
+    {
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &auxBufForClear);
+    }
 }

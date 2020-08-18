@@ -27,6 +27,7 @@
 #define __CODECHAL_MMC_G12_H__
 
 #include "codechal_mmc.h"
+#include "codechal_decode_singlepipe_virtualengine.h"
 
 //! \class CodecHalMmcStateG12
 //! \brief Gen12 common media memory compression state. This class defines the member fields
@@ -45,7 +46,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    ~CodecHalMmcStateG12() {};
+    ~CodecHalMmcStateG12();
 
     MOS_STATUS SetSurfaceParams(
         PCODECHAL_SURFACE_CODEC_PARAMS surfaceParams);
@@ -59,6 +60,12 @@ public:
         MOS_COMMAND_BUFFER  *cmdBuffer,
         MOS_GPU_CONTEXT     gpuContext);
 
+    MOS_STATUS ClearAuxSurf(
+        CodechalDecode *                                m_decodec,
+        MhwMiInterface *                                miInterface,
+        MOS_RESOURCE *                                  res,
+        PCODECHAL_DECODE_SINGLEPIPE_VIRTUALENGINE_STATE m_veState);
+
 
 protected:
 
@@ -69,6 +76,8 @@ protected:
         CodechalHwInterface    *hwInterface);
 
     bool m_mmcEnabledForComponent = false;   //!< Indicate if mmc is enabled for g12, maybe different for encode/decode instance.
+
+    MOS_RESOURCE    auxBufForClear;          //!< Allocate buffer for clear aux table
 };
 
 #endif  // __CODECHAL_MMC_G12_H__
