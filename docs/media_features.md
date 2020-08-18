@@ -4,7 +4,7 @@
 
 (2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384)
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL | DG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Output | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
 |  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -33,7 +33,7 @@
 
 (4k=4096x4096, 16k=16384x16384)
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL | DG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Input |  | NV12 | NV12 | More* | More* | More* | More* |
 |  | Max Res. |  | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -49,14 +49,14 @@
 |  | Max Res. |  |  |  |  | 8k | 8k | 8k |
 
 * \* KBL/CFL/ICL/TGL AVC encoding supported input formats: NV12/YUY2/YUYV/YVYU/UYVY/AYUV/ARGB
-* \** JPEG encoding supports input format NV12/YUY2/UYVY/AYUV/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24. 
+* \** JPEG encoding supports input format NV12/YUY2/UYVY/AYUV/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24.
 
 
 ### Hardware(PAK) + Shader(media kernel+VME) Encoding
 
 (2k=2048x2048, 4k=4096x4096, 8k=8192x8192)
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL* | DG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Input | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
 |  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -83,7 +83,7 @@
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |      |      |      |
 |      JSL/EHL          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |      |      |      |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |      |      |      |
-|      TGL              | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
+|      TGL/RKL          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |      DG1              | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
