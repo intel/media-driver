@@ -160,6 +160,11 @@ namespace decode
                 DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(m_av1PicParams->m_currPic.FrameIdx, &m_destSurface, resourceOutputPicture));
                 m_filmGrainProcParams->m_inputSurface = m_internalTarget.GetCurSurf();
             }
+            else
+            {
+                DECODE_CHK_NULL(m_filmGrainProcParams->m_inputSurface);
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(m_filmGrainProcParams->m_inputSurface));
+            }
 
             m_destSurface = *m_filmGrainProcParams->m_inputSurface;
         }
