@@ -52,6 +52,7 @@ MOS_STATUS  CommandBufferSpecificNext::Allocate(OsContextNext *osContext, uint32
     params.m_depth     = 1;
     params.m_arraySize = 1;
     params.m_name      = "MOS CmdBuf";
+    params.m_memType   = MEDIA_IS_WA(osContext->GetWaTable(), WaForceAllocateLM) ? MOS_MEMPOOL_DEVICEMEMORY : MOS_MEMPOOL_SYSTEMMEMORY;
 
     m_graphicsResource = GraphicsResourceNext::CreateGraphicResource(GraphicsResourceNext::osSpecificResource);
     MOS_OS_CHK_NULL_RETURN(m_graphicsResource);
