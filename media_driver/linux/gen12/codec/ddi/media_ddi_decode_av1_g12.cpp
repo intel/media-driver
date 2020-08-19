@@ -132,7 +132,7 @@ VAStatus DdiDecodeAV1::ParsePicParams(
 
     picAV1Params->m_superResUpscaledWidthMinus1                      = picParam->frame_width_minus1;
     picAV1Params->m_superResUpscaledHeightMinus1                     = picParam->frame_height_minus1;
-
+    picAV1Params->m_matrixCoefficients                               = picParam->matrix_coefficients;
 
     /***************************************************************************
      Sequence Info
