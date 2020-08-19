@@ -4375,12 +4375,11 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
 
     //QP modulation settings
     bool bAllowedPyramid = m_hevcSeqParams->GopRefDist != 3;
+    uint16_t intraPeriod = m_hevcSeqParams->GopPicSize > 4001 ? 4000 : m_hevcSeqParams->GopPicSize - 1;
+    intraPeriod = ((intraPeriod + m_hevcSeqParams->GopRefDist - 1) / m_hevcSeqParams->GopRefDist) * m_hevcSeqParams->GopRefDist;
 
     if (m_hevcSeqParams->HierarchicalFlag && bAllowedPyramid)
     {
-        uint16_t intraPeriod = m_hevcSeqParams->GopPicSize > 4001 ? 4000 : m_hevcSeqParams->GopPicSize - 1;
-        intraPeriod = ((intraPeriod + m_hevcSeqParams->GopRefDist - 1) / m_hevcSeqParams->GopRefDist) * m_hevcSeqParams->GopRefDist;
-
         hucVdencBrcInitDmem->GopP_U16 = intraPeriod/m_hevcSeqParams->GopRefDist;
         hucVdencBrcInitDmem->GopB_U16 = hucVdencBrcInitDmem->GopP_U16;
         hucVdencBrcInitDmem->GopB1_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16) == intraPeriod) ? 0 : hucVdencBrcInitDmem->GopB_U16 * 2;
@@ -4391,8 +4390,9 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
     }
     else //FlatB or LDB
     {
-        hucVdencBrcInitDmem->GopP_U16 = m_hevcSeqParams->GopPicSize - 1;
-        hucVdencBrcInitDmem->MaxBRCLevel_U8 = HEVC_BRC_FRAME_TYPE_B;
+        hucVdencBrcInitDmem->GopP_U16 = intraPeriod/m_hevcSeqParams->GopRefDist;
+        hucVdencBrcInitDmem->GopB_U16 = intraPeriod - hucVdencBrcInitDmem->GopP_U16;
+        hucVdencBrcInitDmem->MaxBRCLevel_U8 = hucVdencBrcInitDmem->GopB_U16 == 0? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
     }
 
     hucVdencBrcInitDmem->LumaBitDepth_U8   = m_hevcSeqParams->bit_depth_luma_minus8 + 8;
@@ -4833,7 +4833,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
     }
     else // FlatB or LDB
     {
-        hucVdencBrcUpdateDmem->CurrentFrameType_U8 = HEVC_BRC_FRAME_TYPE_P_OR_LB;
+        hucVdencBrcUpdateDmem->CurrentFrameType_U8 = m_lowDelay ? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
     }
 
     // Num_Ref_L1 should be always same as Num_Ref_L0
