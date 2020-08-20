@@ -237,6 +237,7 @@ public:
     uint32_t GetNumBte() {return m_numBte; }
     int isAVS() {return 1; }
     int isAVS(int surfIdx) {return 1; }
+    bool IsRenderTarget() {return false; }
 
 protected:
     int GetCmHalSurfaceIndex(uint32_t index);
