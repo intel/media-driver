@@ -1028,6 +1028,7 @@ VpSetInterpolationParams(
     DDI_CHK_NULL(pSurface, "Null pSurface.", VA_STATUS_ERROR_INVALID_SURFACE);
     switch (uInterpolationflags)
     {
+#if VA_CHECK_VERSION(1, 9, 0)
     case VA_FILTER_INTERPOLATION_NEAREST_NEIGHBOR:
         pSurface->ScalingMode       = VPHAL_SCALING_NEAREST;
         break;
@@ -1036,6 +1037,7 @@ VpSetInterpolationParams(
         break;
     case VA_FILTER_INTERPOLATION_ADVANCED:
     case VA_FILTER_INTERPOLATION_DEFAULT:
+#endif
     default:
         pSurface->ScalingMode       = VPHAL_SCALING_AVS;
         break;
@@ -1342,7 +1344,9 @@ DdiVp_SetProcPipelineParams(
     uScalingflags                    = pPipelineParam->filter_flags & VA_FILTER_SCALING_MASK;
     pVpHalSrcSurf->ScalingPreference = VPHAL_SCALING_PREFER_SFC;    // default
     // Interpolation method
+#if VA_CHECK_VERSION(1, 9, 0)
     uInterpolationflags              = pPipelineParam->filter_flags & VA_FILTER_INTERPOLATION_MASK;
+#endif
     switch (uScalingflags)
     {
     case VA_FILTER_SCALING_FAST:
