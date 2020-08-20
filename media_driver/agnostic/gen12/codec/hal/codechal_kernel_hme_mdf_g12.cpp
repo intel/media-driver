@@ -46,11 +46,14 @@ CodechalKernelHmeMdfG12::CodechalKernelHmeMdfG12(
 
 CodechalKernelHmeMdfG12::~CodechalKernelHmeMdfG12()
 {
+    ReleaseResources();
 }
 
 MOS_STATUS CodechalKernelHmeMdfG12::ReleaseResources()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_encoder->m_cmDev);
 
     DestroyYUVSurfaces(m_HME4xYUVInfo);
     DestroyYUVSurfaces(m_HME16xYUVInfo);

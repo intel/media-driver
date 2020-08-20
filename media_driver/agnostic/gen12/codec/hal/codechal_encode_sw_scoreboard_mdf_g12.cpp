@@ -196,6 +196,9 @@ MOS_STATUS CodechalEncodeSwScoreboardMdfG12::SetupSurfaces()
 MOS_STATUS CodechalEncodeSwScoreboardMdfG12::ReleaseResources()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_encoder->m_cmDev);
+
     if (m_scoreboardSurface)
     {
         m_scoreboardSurface->NotifyUmdResourceChanged(nullptr);

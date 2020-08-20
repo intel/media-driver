@@ -86,7 +86,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~CodecHalHevcBrcG12() {};
+    virtual ~CodecHalHevcBrcG12() { FreeBrcResources(); };
 
 public:
     //!

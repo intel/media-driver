@@ -1065,7 +1065,11 @@ CodechalEncHevcState::CodechalEncHevcState(
 
 CodechalEncHevcState::~CodechalEncHevcState()
 {
-    MOS_Delete(m_hmeKernel);
+    if (m_hmeKernel)
+    {
+        MOS_Delete(m_hmeKernel);
+        m_hmeKernel = nullptr;
+    }
 }
 
 MOS_STATUS CodechalEncHevcState::AllocateBrcResources()

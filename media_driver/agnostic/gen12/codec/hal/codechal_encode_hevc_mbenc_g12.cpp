@@ -77,6 +77,18 @@ CodecHalHevcMbencG12::~CodecHalHevcMbencG12() {
         m_intraDistKernel = nullptr;
     }
 
+    if (m_hmeKernel)
+    {
+        MOS_Delete(m_hmeKernel);
+        m_hmeKernel = nullptr;
+    }
+
+    if (m_swScoreboardState)
+    {
+        MOS_Delete(m_swScoreboardState);
+        m_swScoreboardState = nullptr;
+    }
+
     DestroyMDFResources();
 }
 

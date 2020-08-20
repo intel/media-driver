@@ -53,14 +53,14 @@ public:
 
     //!
     //! \brief    Constructor
-    //!            
+    //!
     CodechalEncodeSwScoreboardMdfG12(CodechalEncoderState* encoder) :
         CodechalEncodeSwScoreboardG12(encoder) {}
 
     //!
     //! \brief    Destructor
     //!
-    ~CodechalEncodeSwScoreboardMdfG12() {};
+    virtual ~CodechalEncodeSwScoreboardMdfG12() { ReleaseResources(); };
 
 protected:
     //!
