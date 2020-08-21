@@ -197,6 +197,7 @@ typedef struct _MHW_SFC_AVS_STATE
     uint8_t                         sfcPipeMode;                        //!< SFC Pipe Mode
     uint32_t                        dwInputHorizontalSiting;
     uint32_t                        dwInputVerticalSitting;
+    uint32_t                        dwAVSFilterMode;                   // Bilinear, 5x5 or 8x8
 } MHW_SFC_AVS_STATE, *PMHW_SFC_AVS_STATE;
 
 //!

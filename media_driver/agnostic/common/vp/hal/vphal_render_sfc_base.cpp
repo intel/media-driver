@@ -1413,6 +1413,15 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
         scalingMode = VpHal_GetMhwScalingModeParam(m_renderData.SfcScalingMode);
         VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcAVSScalingMode(scalingMode));
 
+        if (m_renderData.SfcStateParams)
+        {
+            pMhwAvsState->dwAVSFilterMode = m_renderData.SfcStateParams->dwAVSFilterMode;
+        }
+        else
+        {
+            pMhwAvsState->dwAVSFilterMode = MEDIASTATE_SFC_AVS_FILTER_8x8;
+        }
+
         VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcSamplerTable(
             &m_avsState.LumaCoeffs,
             &m_avsState.ChromaCoeffs,
@@ -1421,7 +1430,7 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
             m_renderData.fScaleX,
             m_renderData.fScaleY,
             m_renderData.SfcSrcChromaSiting,
-            true,
+            MEDIASTATE_SFC_AVS_FILTER_8x8 == m_renderData.SfcStateParams->dwAVSFilterMode,
             0,
             0));
     }

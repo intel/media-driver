@@ -452,7 +452,14 @@ public:
        // Inilizatialied the SFC_AVS_STATE_CMD
        cmd.DW1.TransitionAreaWith8Pixels = 5;
        cmd.DW1.TransitionAreaWith4Pixels = 4;
-       cmd.DW1.SharpnessLevel            = 255;
+       if (pSfcAvsState->dwAVSFilterMode == MEDIASTATE_SFC_AVS_FILTER_BILINEAR)
+       {
+           cmd.DW1.SharpnessLevel = 0;
+       }
+       else
+       {
+           cmd.DW1.SharpnessLevel = 255;
+       }
 
        cmd.DW2.MaxDerivativePoint8       = 20;
        cmd.DW2.MaxDerivative4Pixels      = 7;
