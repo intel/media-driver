@@ -177,6 +177,7 @@ typedef enum tagKdll_Processing
     Process_Source      = -1,     // Current source processing
     Process_Any         =  0,
     Process_Composite   ,         // Composite 2 layers
+    Process_XORComposite,         // XOR mono composite.
     Process_PBlend      ,         // Partial Blend 2 layers  - 8-bits alpha
     Process_CBlend      ,         // Constant Blend 2 layers - 8-bits alpha
     Process_SBlend      ,         // Source Blend 2 layers   - 8-bits alpha

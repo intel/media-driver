@@ -455,6 +455,7 @@ const char    *KernelDll_GetProcessString(Kdll_Processing process)
         case Process_Source      : return _T("Current layer");
         case Process_Any         : return _T("Any processing");
         case Process_Composite   : return _T("Composite");
+        case Process_XORComposite: return _T("XOR Mono Composite");
         case Process_CBlend      : return _T("Const Blend");
         case Process_SBlend      : return _T("Source Blend");
         case Process_SBlend_4bits: return _T("Source Blend 4-bits");

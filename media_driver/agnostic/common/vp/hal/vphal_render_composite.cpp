@@ -3120,6 +3120,26 @@ int32_t CompositeState::SetLayer(
         dwDestRectHeight = pRenderingData->pTarget[1]->dwHeight;
     }
 
+    if (pSource->bXORComp)
+    {
+        // re-define the layer format, scaling mode.
+        // for RGBP format, plane order is UVY, offset should be modified to match it.
+        // only support cursor layer width == 4.
+        if (pSource->dwWidth != 4)
+        {
+            VPHAL_RENDER_ASSERTMESSAGE("XOR layer invalid width size.");
+            iResult = -1;
+            goto finish;
+        }
+
+        pSource->Format = Format_RGBP;
+        pSource->TileType = MOS_TILE_LINEAR;
+        pSource->ScalingMode = VPHAL_SCALING_NEAREST;
+        pSource->UPlaneOffset.iSurfaceOffset = 0;
+        pSource->VPlaneOffset.iSurfaceOffset = pSource->dwWidth*pSource->dwHeight;
+        pSource->dwPitch = pSource->dwPitch/(4*8);
+    }
+
     // Source rectangle is pre-rotated, destination rectangle is post-rotated.
     if (pSource->Rotation == VPHAL_ROTATION_IDENTITY    ||
         pSource->Rotation == VPHAL_ROTATION_180         ||
@@ -3802,6 +3822,14 @@ int32_t CompositeState::SetLayer(
 
     pDPStatic->DW7.DestinationRectangleWidth = dwDestRectWidth;
     pDPStatic->DW7.DestinationRectangleHeight = dwDestRectHeight;
+
+    if (pSource->bXORComp)
+    {
+        // set mono-chroma XOR composite specific curbe data. re-calculate fStep due to 1 bit = 1 pixel.
+        pStatic->DW10.ObjKa2Gen9.MonoXORCompositeMask = pSource->rcDst.left & 0x7;
+        fStepX /= 8;
+        fOriginX /= 8;
+    }
 
     switch (iLayer)
     {
@@ -5480,6 +5508,13 @@ bool CompositeState::RenderBufferMediaWalker(
          iLayers < pBbArgs->iLayers;
          iLayers++, pdwDestXYBottomRight++, pdwDestXYTopLeft++)
     {
+        if (pRenderingData->pLayers[iLayers]->bXORComp)
+        {
+            // for cursor layer, every bit indicate 1 pixel. should extend the width as real output pixel.
+            pBbArgs->rcDst[iLayers].right =
+                pBbArgs->rcDst[iLayers].left + (pBbArgs->rcDst[iLayers].right - pBbArgs->rcDst[iLayers].left)*8;
+        }
+
         *pdwDestXYTopLeft     = (pBbArgs->rcDst[iLayers].top    << 16 ) |
                                  pBbArgs->rcDst[iLayers].left;
         *pdwDestXYBottomRight = ((pBbArgs->rcDst[iLayers].bottom - 1) << 16 ) |
@@ -6580,6 +6615,10 @@ bool CompositeState::BuildFilter(
                     pFilter->process = Process_CPBlend;
                     break;
 
+                case BLEND_XOR_MONO:
+                    pFilter->process = Process_XORComposite;
+                    break;
+
                 case BLEND_NONE:
                 default:
                     pFilter->process = Process_Composite;
@@ -6841,6 +6880,7 @@ bool CompositeState::IsUsingSampleUnorm(
                     ((pSrc->rcDst.right  - pSrc->rcDst.left) > 0 ?
                     (pSrc->rcDst.right  - pSrc->rcDst.left) : 1);
     }
+
     if (IsBobDiEnabled(pSrc) &&
         pSrc->ScalingMode != VPHAL_SCALING_AVS)
     {

@@ -1578,7 +1578,8 @@ struct MEDIA_OBJECT_KA2_STATIC_DATA
             uint32_t       RotationAngleofLayer6       : 3;
             uint32_t       RotationAngleofLayer7       : 3;
             uint32_t       ChromaSitingLocation        : 3;
-            uint32_t                                   : 5;
+            uint32_t       MonoXORCompositeMask        : 3;
+            uint32_t                                   : 2;
         } ObjKa2Gen9;
 
         uint32_t       Value;

@@ -517,7 +517,8 @@ typedef enum _VPHAL_BLEND_TYPE
     BLEND_PARTIAL,
     BLEND_CONSTANT,
     BLEND_CONSTANT_SOURCE,
-    BLEND_CONSTANT_PARTIAL
+    BLEND_CONSTANT_PARTIAL,
+    BLEND_XOR_MONO
 } VPHAL_BLEND_TYPE;
 C_ASSERT(BLEND_CONSTANT == 3);      //!< When adding, update assert & vphal_solo_scenario.cpp
 
@@ -955,6 +956,7 @@ struct VPHAL_SURFACE
     bool                        bMaxRectChanged = false;          //!< indicate rcMaxSrc been updated
     bool                        b16UsrPtr = false;                //!< is 16 byte aligned system linear memory.
     bool                        bVEBOXCroppingUsed = false;       //!< Vebox crop case need use rcSrc as vebox input.
+    bool                        bXORComp = false;                 //!< is mono-chroma composite mode.
 
     // Interlaced Scaling
     bool                        bInterlacedScaling = false;            //!< Interlaced scaling

@@ -3179,6 +3179,16 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g12lp[] =
     { RID_SetKernel        , IDR_VP_Call_Composite              , Kdll_None },
     { RID_SetParserState   , Parser_ProcessLayerDone            , Kdll_None },
 
+    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
+    { RID_IsParserState    , Parser_ProcessLayer                 , Kdll_None },
+    { RID_IsQuadrant       , 0                                   , Kdll_None },
+    { RID_IsSrc1Processing , Process_XORComposite                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Set_Buf0_Buf4                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_XOR_Mono_Composite      , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Set_Buf1_Buf5                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_XOR_Mono_Composite      , Kdll_None },
+    { RID_SetParserState   , Parser_ProcessLayerDone             , Kdll_None },
+
     // Compositing quadrants 2,3
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
     { RID_IsParserState    , Parser_ProcessLayer                , Kdll_None },
@@ -3189,6 +3199,16 @@ extern const Kdll_RuleEntry g_KdllRuleTable_g12lp[] =
     { RID_SetKernel        , IDR_VP_Set_Buf3_Buf5               , Kdll_None },
     { RID_SetKernel        , IDR_VP_Call_Composite              , Kdll_None },
     { RID_SetParserState   , Parser_ProcessLayerDone            , Kdll_None },
+
+    { RID_Op_NewEntry      , RULE_DEFAULT                        , Kdll_None },
+    { RID_IsParserState    , Parser_ProcessLayer                 , Kdll_None },
+    { RID_IsQuadrant       , 2                                   , Kdll_None },
+    { RID_IsSrc1Processing , Process_XORComposite                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Set_Buf2_Buf4                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_XOR_Mono_Composite      , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Set_Buf3_Buf5                , Kdll_None },
+    { RID_SetKernel        , IDR_VP_Call_XOR_Mono_Composite      , Kdll_None },
+    { RID_SetParserState   , Parser_ProcessLayerDone             , Kdll_None },
 
     // Constant Blending quadrants 0,1
     { RID_Op_NewEntry      , RULE_DEFAULT                       , Kdll_None },
