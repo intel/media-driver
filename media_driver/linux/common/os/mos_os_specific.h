@@ -613,6 +613,15 @@ struct _MOS_OS_CONTEXT
         uint32_t           copyOutputOffset,
         bool               bOutputCompressed);
 
+    //!
+    //! \brief  the function ptr for Media copy function
+    //!
+    MOS_STATUS(*pfnMediaCopy) (
+        PMOS_CONTEXT          pOsContext,
+        PMOS_RESOURCE         pInputOsResource,
+        PMOS_RESOURCE         pOutputOsResource,
+        uint32_t              copyMode);
+
     // Os Context interface functions
     void (* pfnDestroy)(
         struct _MOS_OS_CONTEXT      *pOsContext,

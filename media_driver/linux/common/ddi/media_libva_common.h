@@ -471,6 +471,9 @@ struct DDI_MEDIA_CONTEXT
     // Media memory decompression data structure
     void               *pMediaMemDecompState;
 
+    // Media copy data structure
+    void               *pMediaCopyState;
+
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT  pMosCtx,
@@ -497,6 +500,15 @@ struct DDI_MEDIA_CONTEXT
         uint32_t           copyInputOffset,
         uint32_t           copyOutputOffset,
         bool               bOutputCompressed);
+
+    //!
+    //! \brief  the function ptr for Media copy function
+    //!
+    MOS_STATUS (* pfnMediaCopy)(
+        PMOS_CONTEXT       pMosCtx,
+        PMOS_RESOURCE      pInputResource,
+        PMOS_RESOURCE      pOutputResource,
+        uint32_t           copyMode);
 
     //!
     //! \brief  the function ptr for Media Tile Convert function

@@ -55,6 +55,7 @@
 #include "mos_solo_generic.h"
 #include "media_libva_caps.h"
 #include "media_interfaces_mmd.h"
+#include "media_interfaces_mcpy.h"
 #include "media_user_settings_mgr.h"
 #include "cplib_utils.h"
 #include "media_interfaces.h"
@@ -5892,6 +5893,54 @@ DdiMedia_QueryProcessingRate(
 
     return mediaCtx->m_caps->QueryProcessingRate(config_id,
             proc_buf, processing_rate);
+}
+
+//!
+//! \brief  media copy internal
+//! 
+//! \param  [in] mosCtx
+//!         Pointer to mos context
+//! \param  [in] src
+//!         VA copy mos resource src.
+//! \param  [in] dst
+//!         VA copy mos resrouce dst.
+//! \param  [in] option
+//!         VA copy option, copy mode.
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus
+DdiMedia_CopyInternal(
+    PMOS_CONTEXT            mosCtx,
+    PMOS_RESOURCE           src,
+    PMOS_RESOURCE           dst,
+    uint32_t                copy_mode
+)
+{
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
+    MOS_STATUS mosStatus = MOS_STATUS_UNINITIALIZED;
+    DDI_CHK_NULL(mosCtx, "nullptr mosCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(src, "nullptr input osResource", VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(dst, "nullptr output osResource", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    MediaCopyBaseState *mediaCopyState = static_cast<MediaCopyBaseState*>(*mosCtx->ppMediaCopyState);
+
+    if (!mediaCopyState)
+    {
+        mediaCopyState = static_cast<MediaCopyBaseState*>(McpyDevice::CreateFactory(mosCtx));
+        *mosCtx->ppMediaCopyState = mediaCopyState;
+    }
+
+    DDI_CHK_NULL(mediaCopyState, "Invalid mediaCopy State", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    mosStatus = mediaCopyState->SurfaceCopy(src, dst, (MCPY_METHOD)copy_mode);
+    if (mosStatus != MOS_STATUS_SUCCESS)
+    {
+        vaStatus = VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    return vaStatus;
 }
 
 //!
