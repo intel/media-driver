@@ -1558,8 +1558,6 @@ public:
         cmd.DW22.Largembsizeinword                   = 0xff;
         cmd.DW27.MaxHmvR                             = 0x2000;
         cmd.DW27.MaxVmvR                             = 0x200;
-        cmd.DW33.MaxQp                               = 0x33;
-        cmd.DW33.MinQp                               = 0x0a;
         cmd.DW33.Maxdeltaqp                          = 0x0f;
 
         // initialize for P frame
@@ -1703,6 +1701,19 @@ public:
                 cmd.DW17.AvcIntra4X4ModeMask = 0x88;
                 cmd.DW17.AvcIntra8X8ModeMask = 0xBD;
             }
+        }
+
+        // Setting MinMaxQP values if they are presented
+        if (avcPicParams->ucMaximumQP && avcPicParams->ucMinimumQP)
+        {
+            cmd.DW33.MaxQp = avcPicParams->ucMaximumQP;
+            cmd.DW33.MinQp = avcPicParams->ucMinimumQP;
+        }
+        else
+        {
+            // Set default values
+            cmd.DW33.MaxQp = 0x33;
+            cmd.DW33.MinQp = 0x0a;
         }
 
         // VDEnc CQP case ROI settings, BRC ROI will be handled in HuC FW
