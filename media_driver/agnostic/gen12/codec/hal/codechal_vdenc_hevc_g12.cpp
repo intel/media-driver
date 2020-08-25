@@ -7908,13 +7908,19 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
     MOS_ZeroMemory(dmem, sizeof(dmem));
 
+    uint8_t downscaleRatioIndicator = 2; // 4x downscaling
+    if (m_hevcPicParams->DownScaleRatio.fields.X16Minus1_X == 15 && m_hevcPicParams->DownScaleRatio.fields.X16Minus1_Y == 15)
+    {
+        downscaleRatioIndicator = 0; // no downscaling
+    }
+
     dmem->lookAheadFunc      = 0;
     dmem->lengthAhead        = m_lookaheadDepth;
     dmem->vbvBufferSize      = m_hevcSeqParams->VBVBufferSizeInBit / m_averageFrameSize;
     dmem->vbvInitialFullness = initVbvFullness / m_averageFrameSize;
     dmem->statsRecords       = m_numLaDataEntry;
     dmem->avgFrameSizeInByte = m_averageFrameSize >> 3;
-    dmem->downscaleRatio     = 2; // 4x downscaling
+    dmem->downscaleRatio     = downscaleRatioIndicator;
     dmem->PGop               = 4;
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaInitDmemBuffer);
