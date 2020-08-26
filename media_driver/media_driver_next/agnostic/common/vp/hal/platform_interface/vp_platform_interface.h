@@ -27,10 +27,46 @@
 #ifndef __VP_PLATFORM_INTERFACE_H__
 #define __VP_PLATFORM_INTERFACE_H__
 
+#include "hal_kerneldll.h"
+#include "vp_feature_manager.h"
+
 namespace vp
 {
 class VPFeatureManager;
 class SfcRenderBase;
+
+class VpRenderKernel
+{
+public:
+    VpRenderKernel() {};
+    virtual ~VpRenderKernel() {};
+
+    MOS_STATUS InitVPKernel(
+        const Kdll_RuleEntry* kernelRules,
+        const uint32_t*       kernelBin,
+        uint32_t              kernelSize,
+        const uint32_t*       patchKernelBin,
+        uint32_t              patchKernelSize,
+        void(*ModifyFunctionPointers)(PKdll_State));
+
+    Kdll_State* GetKdllState()
+    {
+        return m_kernelDllState;
+    }
+
+protected:
+    // Compositing Kernel DLL/Search state
+    const Kdll_RuleEntry        *m_kernelDllRules;
+    Kdll_State                  *m_kernelDllState;
+
+    // Compositing Kernel buffer and size
+    const void                  *m_kernelBin;
+    uint32_t                     m_kernelBinSize;
+
+    // CM Compositing Kernel patch file buffer and size
+    const void                  *m_fcPatchBin;
+    uint32_t                    m_fcPatchBinSize;
+};
 
 class VpPlatformInterface
 {
@@ -65,12 +101,33 @@ public:
     {
         return nullptr;
     }
+
     virtual MOS_STATUS CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
+    VpRenderKernel* GetKernel()
+    {
+        return &m_kernel;
+    }
+
+    virtual MOS_STATUS VeboxQueryStatLayout(
+        VEBOX_STAT_QUERY_TYPE QueryType,
+        uint32_t* pQuery)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual uint32_t VeboxQueryStaticSurfaceSize()
+    {
+        return 32 * 8;
+    }
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
+    VpRenderKernel m_kernel;
+    void (*m_modifyKdllFunctionPointers)(PKdll_State) = nullptr;
 };
 
 }

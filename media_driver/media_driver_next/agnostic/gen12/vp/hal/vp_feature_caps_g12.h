@@ -114,7 +114,7 @@ VP_FF_SFC_FORMAT(Format_IRW7,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_S
 
 #define MHW_VEBOX_MIN_RESOLUTION_G12 16;
 #define MHW_VEBOX_MAX_RESOLUTION_G12 (16 * 1024);
-// Guangyao:: not Finished
+// not Finished
 //#define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported,
 //                           _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported)
 /* Vebox HSB Mode Suppored -------------------------------------------------------------------------------------------------------------------------------o

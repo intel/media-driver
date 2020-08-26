@@ -80,6 +80,8 @@ enum SurfaceType
     SurfaceType3dLut,
     SurfaceType1dLut,
     SurfaceTypeAlphaOrVignette,
+    SurfaceTypeVeboxStateHeap_Drv,
+    SurfaceTypeVeboxStateHeap_Knr,
     NumberOfSurfaceType
 };
 

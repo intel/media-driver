@@ -630,6 +630,12 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
     AllocParamsInitType(allocParams, surface, defaultResType, defaultTileType);
 
+    if (format == Format_Buffer && height != 1)
+    {
+        width = width * height;
+        height = 1;
+    }
+
     allocParams.dwWidth         = width;
     allocParams.dwHeight        = height;
     allocParams.Format          = format;
@@ -699,6 +705,12 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         // VP_SURFACE should always be allocated by interface in VpAllocator,
         // which will ensure nullptr != surface->osSurface.
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    if (format == Format_Buffer && height != 1)
+    {
+        width  = width * height;
+        height = 1;
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));
