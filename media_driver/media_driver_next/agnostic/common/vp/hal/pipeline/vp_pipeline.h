@@ -221,6 +221,16 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureReport();
 
+    //!
+    //! \brief  set Predication Params
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetPredicationParams(PVP_PIPELINE_PARAMS params)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     VP_PARAMS              m_pvpParams              = {};   //!< vp Pipeline params
     VP_MHWINTERFACE        m_vpMhwInterface         = {};   //!< vp Pipeline Mhw Interface

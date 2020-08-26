@@ -240,6 +240,9 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
                 uiLayer,
                 VPHAL_DUMP_TYPE_PRE_ALL);
         }
+        // Predication
+        SetPredicationParams(params);
+
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipe));
