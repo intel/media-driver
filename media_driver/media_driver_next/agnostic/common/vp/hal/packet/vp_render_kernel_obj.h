@@ -293,7 +293,11 @@ typedef struct _KERNEL_SURFACE2D_STATE_PARAM
     uint32_t   surface_y_offset;   // Vertical offset to the origin of the surface, in rows of pixels.
     uint32_t   surface_offset;     // Offset to the origin of the surface, in bytes.
     MOS_TILE_TYPE tileType;
-    uint32_t   reserved[3]; // for future usage
+    bool       surfaceUpdated;      // false if using origianl config.
+    bool       renderTarget;        // true for render target
+    bool       updatedsurfaceParams; // true if using included surface params
+    RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // defaule can be skip. for future usages, if surface configed by kernel, use it directlly
+    uint32_t   reserved[2]; // for future usage
 } KERNEL_SURFACE2D_STATE_PARAM;
 
 class VpRenderKernelObj
@@ -309,13 +313,29 @@ public:
 
     virtual MOS_STATUS SetupSurfaceState() = 0;
 
-    virtual MOS_STATUS GetCurbeState(void * curbe, uint32_t& curbeLength) = 0;
+    virtual MOS_STATUS GetCurbeState(void*& curbe, uint32_t& curbeLength) = 0;
 
     virtual MOS_STATUS GetMediaWalkerSettings() = 0;
 
     virtual MOS_STATUS GetInlineState(void** inlineData, uint32_t& inlineLength) = 0;
 
     virtual MOS_STATUS GetKernelID(int32_t& kuid) = 0;
+
+    virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)
+    {
+        MOS_ZeroMemory(&settsings, sizeof(RENDERHAL_KERNEL_PARAM));
+
+        if (m_hwInterface && m_hwInterface->m_vpPlatformInterface)
+        {
+            settsings = m_hwInterface->m_vpPlatformInterface->GetVeboxKernelSettings(m_kernelID);
+            return MOS_STATUS_SUCCESS;
+        }
+        else
+        {
+            return MOS_STATUS_INVALID_HANDLE;
+        }
+        return MOS_STATUS_SUCCESS;
+    }
 
     MOS_STATUS SetProcessSurface(std::map<SurfaceType, VP_SURFACE*>& surface)
     {
@@ -328,13 +348,45 @@ public:
         return m_kernelID;
     }
 
+    std::vector<SurfaceType>& GetProcessingSurfaces()
+    {
+        return m_surfaces;
+    }
+
+    std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>& GetKernelSurfaceConfig()
+    {
+        return m_surfacePool;
+    }
+
+    MOS_STATUS UpdateCurbeBindingIndex(SurfaceType type, uint32_t index)
+    {
+        // Surface Type is sepsrated during one submission
+        m_surfaceIndex.insert(std::make_pair(type, index));
+        return MOS_STATUS_SUCCESS;
+    }
+
+    uint32_t GetSurfaceIndex(SurfaceType type)
+    {
+        auto it = m_surfaceIndex.find(type);
+
+        if (it != m_surfaceIndex.end())
+        {
+            return it->second;
+        }
+        else
+        {
+            VP_RENDER_ASSERTMESSAGE("No surface index created for current surface");
+            return 0;
+        }
+    }
+
 protected:
     RENDER_KERNEL_PARAMS                                *m_kernelParams = nullptr;   // kernel input for processing params include kernel ID and process surface group
     std::map<SurfaceType, VP_SURFACE*>                  *m_surfaceGroup = nullptr;   // input surface process surface groups
     PVP_MHWINTERFACE                                     m_hwInterface = nullptr;
     std::vector<SurfaceType>                             m_surfaces;                 // vector for processed surfaces, the order should match with Curbe surface order
     std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>  m_surfacePool;              // surfaces processed pool where the surface state will generated here
-    std::map<SurfaceType, uint32_t*>                     m_surfaceIndex;             // store the binding index for processed surface
+    std::map<SurfaceType, uint32_t>                      m_surfaceIndex;             // store the binding index for processed surface
     uint32_t                                             m_kernelID = 0;
 };
 }

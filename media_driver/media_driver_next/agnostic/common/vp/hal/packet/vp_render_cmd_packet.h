@@ -25,6 +25,7 @@
 #include "vp_allocator.h"
 #include "vp_cmd_packet.h"
 #include "vp_kernelset.h"
+#include "vp_render_kernel_obj.h"
 
 namespace vp
 {
@@ -79,15 +80,9 @@ public:
 protected:
     MOS_STATUS KernelStateSetup();
 
-    virtual MOS_STATUS SetUpSurfaceState()
-    {
-        return MOS_STATUS_SUCCESS;
-    }
+    virtual MOS_STATUS SetupSurfaceState();
 
-    virtual MOS_STATUS SetUpCurbeState()
-    {
-        return MOS_STATUS_SUCCESS;
-    }
+    virtual MOS_STATUS SetupCurbeState();
 
     virtual VP_SURFACE* GetSurface(SurfaceType type);
 
@@ -98,13 +93,16 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS UpdateRenderSurface(RENDERHAL_SURFACE_NEXT &renderSurface, KERNEL_SURFACE2D_STATE_PARAM& kernelParams, VP_SURFACE& surface);
+
 protected:
     int32_t                            m_kernelIndex = 0;
     Kdll_FilterEntry                  *m_filter = nullptr;                                       // Kernel Filter (points to base of filter array)
     bool                               m_firstFrame = true;
     std::map<SurfaceType, uint32_t>    m_surfacesIndex; // map <surfaceType, surfaceIndex>
     std::vector<KernelId>              m_kernelId;
-    VpKernelSet                       *m_kernelSet = nullptr;;
+    VpKernelSet                       *m_kernelSet = nullptr;
+    VpRenderKernelObj                 *m_kernel = nullptr; // processing kernel pointer
 };
 }
 

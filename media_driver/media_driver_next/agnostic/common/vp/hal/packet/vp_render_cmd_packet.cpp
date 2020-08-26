@@ -29,13 +29,38 @@
 #include "vp_pipeline_common.h"
 #include "vp_render_kernel_obj.h"
 namespace vp {
-    VpRenderCmdPacket::VpRenderCmdPacket(MediaTask* task, PVP_MHWINTERFACE hwInterface, PVpAllocator& allocator, VPMediaMemComp* mmc, VpKernelSet* kernelSet) :
-        CmdPacket(task),
-        RenderCmdPacket(task, hwInterface->m_osInterface, hwInterface->m_renderHal),
-        VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_RENDER),
-        m_filter(nullptr),
-        m_firstFrame(true),
-        m_kernelSet(kernelSet)
+
+static inline RENDERHAL_SURFACE_TYPE InitRenderHalSurfType(VPHAL_SURFACE_TYPE vpSurfType)
+{
+    switch (vpSurfType)
+    {
+    case SURF_IN_BACKGROUND:
+        return RENDERHAL_SURF_IN_BACKGROUND;
+
+    case SURF_IN_PRIMARY:
+        return RENDERHAL_SURF_IN_PRIMARY;
+
+    case SURF_IN_SUBSTREAM:
+        return RENDERHAL_SURF_IN_SUBSTREAM;
+
+    case SURF_IN_REFERENCE:
+        return RENDERHAL_SURF_IN_REFERENCE;
+
+    case SURF_OUT_RENDERTARGET:
+        return RENDERHAL_SURF_OUT_RENDERTARGET;
+
+    case SURF_NONE:
+    default:
+        return RENDERHAL_SURF_NONE;
+    }
+}
+VpRenderCmdPacket::VpRenderCmdPacket(MediaTask* task, PVP_MHWINTERFACE hwInterface, PVpAllocator& allocator, VPMediaMemComp* mmc, VpKernelSet* kernelSet) :
+    CmdPacket(task),
+    RenderCmdPacket(task, hwInterface->m_osInterface, hwInterface->m_renderHal),
+    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_RENDER),
+    m_filter(nullptr),
+    m_firstFrame(true),
+    m_kernelSet(kernelSet)
 {
 }
 MOS_STATUS VpRenderCmdPacket::Prepare()
@@ -44,17 +69,29 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_vpPlatformInterface);
 
     m_PacketId = VP_PIPELINE_PACKET_RENDER;
-    VP_RENDER_CHK_STATUS_RETURN(RenderEngineSetup());
 
-    VP_RENDER_CHK_STATUS_RETURN(KernelStateSetup());
+    // for multi-kernel submit together
+    for (auto it = m_kernelSet->GetKernelObjs()->begin(); it != m_kernelSet->GetKernelObjs()->end(); it++)
+    {
+        m_kernel = it->second;
 
-    VP_RENDER_CHK_STATUS_RETURN(SetUpSurfaceState());
+        VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    VP_RENDER_CHK_STATUS_RETURN(SetUpCurbeState());
+        // reset render Data for current kernel
+        MOS_ZeroMemory(&m_renderData, sizeof(m_renderData));
 
-    VP_RENDER_CHK_STATUS_RETURN(LoadKernel());
+        VP_RENDER_CHK_STATUS_RETURN(RenderEngineSetup());
 
-    VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
+        VP_RENDER_CHK_STATUS_RETURN(KernelStateSetup());
+
+        VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState()); // once Surface setup done, surface index should be created here
+
+        VP_RENDER_CHK_STATUS_RETURN(SetupCurbeState());  // Set Curbe with updated surface index
+
+        VP_RENDER_CHK_STATUS_RETURN(LoadKernel());
+
+        VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -89,6 +126,7 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
     }
 
     VP_RENDER_CHK_NULL_RETURN(m_kernelSet);
+    VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
     //m_kernelCount = IDR_VP_TOTAL_NUM_KERNELS;
     RENDER_KERNEL_PARAMS kernelParams;
@@ -104,38 +142,110 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
         VP_RENDER_ASSERTMESSAGE("No VP Kernel Creation Fail");
     }
 
-    // So Far only 1 Kernel executed. if adding two+ kernels, m_renderdata need to update
-    for (auto it = m_kernelSet->GetKernelObjs()->begin(); it != m_kernelSet->GetKernelObjs()->end(); it ++)
+    // Processing kernel State setup
+    int32_t iKUID = 0;                                         // Kernel Unique ID (DNDI uses combined kernels)
+    int32_t kernelSize = 0;
+    void* kernelBinary = nullptr;
+
+    // // Initialize States
+    MOS_ZeroMemory(m_filter, sizeof(m_filter));
+    MOS_ZeroMemory(&m_renderData.KernelEntry, sizeof(Kdll_CacheEntry));
+
+    // Store pointer to Kernel Parameter
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelSettings(m_renderData.KernelParam));
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelID(iKUID));
+    VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->GetKernelInfo(iKUID, kernelSize, kernelBinary));
+
+    // Set Parameters for Kernel Entry
+    m_renderData.KernelEntry.iKUID       = iKUID;
+    m_renderData.KernelEntry.iKCID       = -1;
+    m_renderData.KernelEntry.iFilterSize = 2;
+    m_renderData.KernelEntry.pFilter     = m_filter;
+    m_renderData.KernelEntry.iSize       = kernelSize;
+    m_renderData.KernelEntry.pBinary     = (uint8_t*)kernelBinary;
+
+    // set the Inline Data length
+    void* InlineData = nullptr;
+    uint32_t iInlineLength = 0;
+    m_kernel->GetInlineState(&InlineData, iInlineLength);
+    m_renderData.iInlineLength = iInlineLength;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
+{
+    VP_RENDER_CHK_NULL_RETURN(m_kernel);
+
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->SetupSurfaceState());
+
+    for (auto it : m_kernel->GetProcessingSurfaces())
     {
-        int32_t iKUID = 0;                                         // Kernel Unique ID (DNDI uses combined kernels)
-        int32_t kernelSize = 0;
-        void* kernelBinary = nullptr;
+        auto surface = m_kernel->GetKernelSurfaceConfig().find(it);
 
-        VpRenderKernelObj* kernel = it->second;
+        if (surface != m_kernel->GetKernelSurfaceConfig().end())
+        {
+            KERNEL_SURFACE2D_STATE_PARAM surfaceParams = surface->second;
 
-        // // Initialize States
-        MOS_ZeroMemory(m_filter, sizeof(m_filter));
-        MOS_ZeroMemory(&m_renderData.KernelEntry, sizeof(Kdll_CacheEntry));
+            RENDERHAL_SURFACE_NEXT renderHalSurface;
+            MOS_ZeroMemory(&renderHalSurface, sizeof(RENDERHAL_SURFACE_NEXT));
 
-        // Store pointer to Kernel Parameter
-        m_renderData.KernelParam = m_hwInterface->m_vpPlatformInterface->GetVeboxKernelSettings(kernel->GetKernelID());
-        VP_RENDER_CHK_STATUS_RETURN(kernel->GetKernelID(iKUID));
-        VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->GetKernelInfo(iKUID, kernelSize, kernelBinary));
+            RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;
+            MOS_ZeroMemory(&renderSurfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
+            if (surfaceParams.updatedsurfaceParams)
+            {
+                renderSurfaceParams = surfaceParams.renderSurfaceParams;
+            }
+            else
+            {
+                renderSurfaceParams.bRenderTarget    = (surfaceParams.renderTarget == true) ? 1 : 0;
+                renderSurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL; // Add conditional in future for Surfaces out of range
+                renderSurfaceParams.bWidth16Align    = false;
+                renderSurfaceParams.bWidthInDword_Y  = true;
+                renderSurfaceParams.bWidthInDword_UV = true;
+            }
 
-        // Set Parameters for Kernel Entry
-        m_renderData.KernelEntry.iKUID       = iKUID;
-        m_renderData.KernelEntry.iKCID       = -1;
-        m_renderData.KernelEntry.iFilterSize = 2;
-        m_renderData.KernelEntry.pFilter     = m_filter;
-        m_renderData.KernelEntry.iSize       = kernelSize;
-        m_renderData.KernelEntry.pBinary     = (uint8_t*)kernelBinary;
+            VP_SURFACE* vpSurface = m_surfacesGroup.find(it)->second;
 
-        // set the Inline Data length
-        void* InlineData = nullptr;
-        uint32_t iInlineLength = 0;
-        kernel->GetInlineState(&InlineData, iInlineLength);
-        m_renderData.iInlineLength = iInlineLength;
+            VP_RENDER_CHK_NULL_RETURN(vpSurface);
+
+            if (surfaceParams.surfaceUpdated)
+            {
+                UpdateRenderSurface(renderHalSurface, surfaceParams, *vpSurface);
+            }
+
+            uint32_t index = SetSurfaceForHwAccess(
+                vpSurface->osSurface,
+                &renderHalSurface,
+                &renderSurfaceParams,
+                renderSurfaceParams.bRenderTarget);
+
+            VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(it, index));
+        }
+        else
+        {
+            VP_RENDER_ASSERTMESSAGE("Kernel Obj Issue: Didn't find correct kernel surface here, return error");
+            return MOS_STATUS_UNIMPLEMENTED;
+        }
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
+{
+    VP_RENDER_CHK_NULL_RETURN(m_kernel);
+
+    // set the Curbe Data length
+    void* curbeData = nullptr;
+    uint32_t curbeLength = 0;
+    m_kernel->GetCurbeState(curbeData, curbeLength);
+    m_renderData.iCurbeLength = curbeLength;
+
+    VP_RENDER_CHK_STATUS_RETURN(SetupCurbe(
+        curbeData,
+        curbeLength,
+        m_renderData.KernelParam.Thread_Count));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -153,5 +263,28 @@ uint32_t VpRenderCmdPacket::GetSurfaceIndex(SurfaceType type)
     uint32_t index = (m_surfacesIndex.end() != it) ? it->second : 0;
 
     return index;
+}
+MOS_STATUS VpRenderCmdPacket::UpdateRenderSurface(RENDERHAL_SURFACE_NEXT& renderSurface, KERNEL_SURFACE2D_STATE_PARAM& kernelParams, VP_SURFACE &surface)
+{
+    renderSurface.dwWidthInUse  = (kernelParams.width != 0)   ? kernelParams.width : 0;
+    renderSurface.dwHeightInUse = (kernelParams.height != 0) ? kernelParams.height : 0;
+
+    renderSurface.OsSurface = *surface.osSurface;
+
+    if (renderSurface.dwWidthInUse || renderSurface.dwHeightInUse)
+    {
+        renderSurface.OsSurface.dwWidth  = renderSurface.dwWidthInUse;
+        renderSurface.OsSurface.dwHeight = renderSurface.dwHeightInUse;
+        renderSurface.OsSurface.dwPitch  = renderSurface.dwWidthInUse;
+        renderSurface.OsSurface.Format   = (kernelParams.format != 0) ? kernelParams.format : renderSurface.OsSurface.Format;
+    }
+
+    renderSurface.rcSrc = surface.rcSrc;
+    renderSurface.rcDst = surface.rcDst;
+    renderSurface.rcMaxSrc = surface.rcMaxSrc;
+    renderSurface.SurfType =
+        InitRenderHalSurfType(surface.SurfType);
+
+    return MOS_STATUS_SUCCESS;
 }
 }

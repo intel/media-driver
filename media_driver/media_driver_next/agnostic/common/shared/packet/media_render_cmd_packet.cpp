@@ -196,8 +196,6 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
 
     NullRenderingFlags =
         pOsInterface->pfnGetNullHWRenderFlags(pOsInterface);
-    // Submit command buffer
-    RENDER_PACKET_CHK_STATUS_RETURN(pOsInterface->pfnSubmitCommandBuffer(pOsInterface, commandBuffer, NullRenderingFlags.VPLgca || NullRenderingFlags.VPGobal));
 
     if ((NullRenderingFlags.VPLgca ||
         NullRenderingFlags.VPGobal) == false)
@@ -360,9 +358,6 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(PMOS_SURFACE surface, PRENDERHAL
     }
 
     pSurfaceParams->Type             = m_renderHal->SurfaceTypeDefault;
-    pSurfaceParams->bWidthInDword_Y  = true;
-    pSurfaceParams->bWidthInDword_UV = true;
-    pSurfaceParams->Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;
 
     RENDER_PACKET_CHK_STATUS_RETURN(InitRenderHalSurface(
         *surface,
@@ -471,7 +466,7 @@ MOS_STATUS RenderCmdPacket::SetupCurbe(void* pData, uint32_t curbeLength, uint32
         return MOS_STATUS_UNKNOWN;
     }
 
-    m_renderData.iCurbeLength += curbeLength;
+    m_renderData.iCurbeLength = curbeLength;
 
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSetVfeStateParams(
         m_renderHal,
@@ -531,15 +526,18 @@ MOS_STATUS RenderCmdPacket::LoadKernel()
 MOS_STATUS RenderCmdPacket::InitRenderHalSurface(MOS_SURFACE surface, PRENDERHAL_SURFACE pRenderSurface)
 {
     RENDER_PACKET_CHK_NULL_RETURN(pRenderSurface);
-    pRenderSurface->OsSurface = surface;
 
     RENDERHAL_GET_SURFACE_INFO info;
     MOS_ZeroMemory(&info, sizeof(info));
     RENDER_PACKET_CHK_STATUS_RETURN(RenderHal_GetSurfaceInfo(
         m_renderHal->pOsInterface,
         &info,
-        &pRenderSurface->OsSurface));
+        &surface));
 
+    if (Mos_ResourceIsNull(&pRenderSurface->OsSurface.OsResource))
+    {
+        pRenderSurface->OsSurface = surface;
+    }
     return MOS_STATUS_SUCCESS;
 }
 
