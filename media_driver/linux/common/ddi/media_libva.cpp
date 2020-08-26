@@ -3207,7 +3207,9 @@ VAStatus DdiMedia_MapBufferInternal (
 
             if( DdiEncode_CodedBufferExistInStatusReport( encCtx, buf ) )
             {
-                return DdiEncode_StatusReport(encCtx, buf, pbuf);
+                vaStatus = DdiEncode_StatusReport(encCtx, buf, pbuf);
+                MOS_TraceEventExt(EVENT_VA_MAP, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+                return vaStatus;
             }
             // so far a coded buffer that has NOT been added into status report is skipped frame in non-CP case
             // but this can change in future if new usage models come up
@@ -3227,7 +3229,9 @@ VAStatus DdiMedia_MapBufferInternal (
                                                                                                           : PRE_ENC_BUFFER_TYPE_STATS_BOT);
                 if((encCtx->codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC) && DdiEncode_PreEncBufferExistInStatusReport( encCtx, buf, idx))
                 {
-                    return  DdiEncode_PreEncStatusReport(encCtx, buf, pbuf);
+                    vaStatus = DdiEncode_PreEncStatusReport(encCtx, buf, pbuf);
+                    MOS_TraceEventExt(EVENT_VA_MAP, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+                    return vaStatus;
                 }
                 if(buf->bo)
                 {
@@ -3271,7 +3275,9 @@ VAStatus DdiMedia_MapBufferInternal (
                                                                                         FEI_ENC_BUFFER_TYPE_DISTORTION);
                     if((feiPicParams != nullptr) && (encCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC) && DdiEncode_EncBufferExistInStatusReport( encCtx, buf, idx))
                     {
-                        return  DdiEncode_EncStatusReport(encCtx, buf, pbuf);
+                        vaStatus = DdiEncode_EncStatusReport(encCtx, buf, pbuf);
+                        MOS_TraceEventExt(EVENT_VA_MAP, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+                        return vaStatus;
                     }
                 }
                 else if(encCtx->wModeType == CODECHAL_ENCODE_MODE_HEVC)
@@ -3283,7 +3289,9 @@ VAStatus DdiMedia_MapBufferInternal (
                                                                                                       FEI_ENC_BUFFER_TYPE_DISTORTION);
                     if((feiPicParams != nullptr) && (encCtx->codecFunction == CODECHAL_FUNCTION_FEI_ENC) && DdiEncode_EncBufferExistInStatusReport( encCtx, buf, idx))
                     {
-                        return  DdiEncode_EncStatusReport(encCtx, buf, pbuf);
+                        vaStatus = DdiEncode_EncStatusReport(encCtx, buf, pbuf);
+                        MOS_TraceEventExt(EVENT_VA_MAP, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+                        return vaStatus;
                     }
                 }
                 if(buf->bo)
@@ -3299,6 +3307,7 @@ VAStatus DdiMedia_MapBufferInternal (
             DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
             *pbuf = DdiMediaUtil_LockBuffer(buf, flag);
             DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+            MOS_TraceEventExt(EVENT_VA_MAP, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
             if (nullptr == (*pbuf))
             {
                 return VA_STATUS_ERROR_OPERATION_FAILED;
@@ -3547,6 +3556,7 @@ VAStatus DdiMedia_DestroyBuffer (
 
                 if (buf->uiExportcount) {
                     buf->bPostponedBufFree = true;
+                    MOS_TraceEventExt(EVENT_VA_FREE_BUFFER, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
                     return VA_STATUS_SUCCESS;
                 }
             }
