@@ -25,6 +25,7 @@
 #include <mutex>
 #include "mos_util_debug.h"
 
+#define VP_UNUSED(param) (void)(param)
 //------------------------------------------------------------------------------
 // Macros specific to MOS_VP_SUBCOMP_ENCODE sub-comp
 //------------------------------------------------------------------------------

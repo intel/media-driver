@@ -34,6 +34,7 @@ namespace decode
 {
 
 FilmGrainAppNoisePkt::FilmGrainAppNoisePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface):
+    CmdPacket(task),
     RenderCmdPacket(task, hwInterface->GetOsInterface(), hwInterface->GetRenderHalInterface())
 {
         if (pipeline != nullptr)

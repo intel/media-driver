@@ -34,3 +34,20 @@ VpKernelSet::VpKernelSet(PVP_MHWINTERFACE hwInterface) :
 {
     m_kernel = hwInterface->m_vpPlatformInterface->GetKernel();
 }
+
+MOS_STATUS VpKernelSet::GetKernelInfo(int32_t kuid, int32_t& size, void*& kernel)
+{
+    Kdll_State* kernelState = m_kernel->GetKdllState();
+
+    if (kernelState)
+    {
+        size   = kernelState->ComponentKernelCache.pCacheEntries[kuid].iSize;
+        kernel = kernelState->ComponentKernelCache.pCacheEntries[kuid].pBinary;
+        return MOS_STATUS_SUCCESS;
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Kernel State not inplenmented, return error");
+        return MOS_STATUS_UNINITIALIZED;
+    }
+}

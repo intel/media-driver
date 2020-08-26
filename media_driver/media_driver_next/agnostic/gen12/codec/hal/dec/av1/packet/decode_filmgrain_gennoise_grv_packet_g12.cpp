@@ -33,6 +33,7 @@ namespace decode
 {
 
 FilmGrainGrvPacket::FilmGrainGrvPacket(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface):
+    CmdPacket(task),
     RenderCmdPacket(task, hwInterface->GetOsInterface(), hwInterface->GetRenderHalInterface())
 {
     DECODE_FUNC_CALL();

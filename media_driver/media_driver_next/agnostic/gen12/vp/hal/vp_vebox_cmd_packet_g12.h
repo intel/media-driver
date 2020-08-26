@@ -23,6 +23,7 @@
 #define __VP_VEBOX_CMD_PACKET_G12_H__
 
 #include "vp_vebox_cmd_packet.h"
+#include "vp_platform_interface_g12_tgllp.h"
 
 //!
 //! \brief Denoise Definitions
@@ -54,15 +55,6 @@
 #define NOISE_SUMABSTEMPORALDIFF_THRESHOLD_LOW_G12               (128 << 4)
 #define NOISE_SUMABSTEMPORALDIFF_THRESHOLD_DEFAULT_G12           (128 << 4)
 #define NOISE_SUMABSTEMPORALDIFF_THRESHOLD_HIGH_G12              (144 << 4)
-
-//!
-//! \brief Vebox Statistics Surface definition for TGL
-//!
-#define VPHAL_VEBOX_STATISTICS_SIZE_G12                          (32 * 8)
-#define VPHAL_VEBOX_STATISTICS_PER_FRAME_SIZE_G12                (32 * sizeof(uint32_t))
-#define VPHAL_VEBOX_STATISTICS_SURFACE_FMD_OFFSET_G12            0
-#define VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G12            0x2C
-#define VPHAL_VEBOX_STATISTICS_SURFACE_STD_OFFSET_G12            0x44
 
 namespace vp {
 

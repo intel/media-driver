@@ -25,6 +25,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_cmd_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_kernel_obj.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_cmd_packet.cpp
 )
 
 set(TMP_HEADERS_
@@ -37,6 +38,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_common.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_packet_shared_context.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_kernel_obj.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_cmd_packet.h
 )
 
 set(SOURCES_NEW

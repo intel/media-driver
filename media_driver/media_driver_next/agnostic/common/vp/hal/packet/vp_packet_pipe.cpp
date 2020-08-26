@@ -49,13 +49,14 @@ void PacketFactory::ClearPacketPool(std::vector<VpCmdPacket *> &pool)
     }
 }
 
-MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext)
+MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet* vpKernels)
 {
     m_pTask = pTask;
     m_pHwInterface = pHwInterface;
     m_pAllocator = pAllocator;
     m_pMmc = pMmc;
     m_packetSharedContext = packetSharedContext;
+    m_kernelSet = vpKernels;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -119,7 +120,7 @@ VpCmdPacket *PacketFactory::CreateVeboxPacket()
 
 VpCmdPacket *PacketFactory::CreateRenderPacket()
 {
-    VpCmdPacket *p = m_vpPlatformInterface ? m_vpPlatformInterface->CreateRenderPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc) : nullptr;
+    VpCmdPacket *p = m_vpPlatformInterface ? m_vpPlatformInterface->CreateRenderPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc, m_kernelSet) : nullptr;
     if (p)
     {
         p->SetPacketSharedContext(m_packetSharedContext);

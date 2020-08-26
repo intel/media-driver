@@ -68,11 +68,6 @@ MOS_STATUS RenderCmdPacket::Destroy()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    if (m_kernelEntry)
-    {
-        MOS_FreeMemory(m_kernelEntry);
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -256,10 +251,6 @@ MOS_STATUS RenderCmdPacket::InitKernelEntry()
         return MOS_STATUS_LOAD_LIBRARY_FAILED;
     }
 
-    if (!m_kernelEntry)
-    {
-        m_kernelEntry = (Kdll_CacheEntry*)MOS_AllocAndZeroMemory(sizeof(Kdll_CacheEntry) * m_kernelCount);
-    }
     return MOS_STATUS_SUCCESS;
 }
 

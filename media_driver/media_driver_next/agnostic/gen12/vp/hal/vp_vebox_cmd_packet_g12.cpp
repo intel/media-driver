@@ -198,8 +198,9 @@ const uint32_t   dwSTADThresholdUV[NOISEFACTOR_MAX + 1] = {
     144 };
 
 namespace vp {
-VpVeboxCmdPacketG12::VpVeboxCmdPacketG12(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc)
-    :VpVeboxCmdPacket(task, hwInterface, allocator, mmc)
+VpVeboxCmdPacketG12::VpVeboxCmdPacketG12(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc) :
+    CmdPacket(task),
+    VpVeboxCmdPacket(task, hwInterface, allocator, mmc)
 {
 
 }
@@ -521,35 +522,9 @@ MOS_STATUS VpVeboxCmdPacketG12::QueryStatLayout(
     VEBOX_STAT_QUERY_TYPE QueryType,
     uint32_t*             pQuery)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     VP_RENDER_ASSERT(pQuery);
 
-    switch (QueryType)
-    {
-        case VEBOX_STAT_QUERY_GNE_OFFEST:
-            *pQuery = VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G12;
-            break;
-
-        case VEBOX_STAT_QUERY_PER_FRAME_SIZE:
-            *pQuery = VPHAL_VEBOX_STATISTICS_PER_FRAME_SIZE_G12;
-            break;
-
-        case VEBOX_STAT_QUERY_FMD_OFFEST:
-            *pQuery = VPHAL_VEBOX_STATISTICS_SURFACE_FMD_OFFSET_G12;
-            break;
-
-        case VEBOX_STAT_QUERY_STD_OFFEST:
-            *pQuery = VPHAL_VEBOX_STATISTICS_SURFACE_STD_OFFSET_G12;
-            break;
-
-        default:
-            VP_RENDER_ASSERTMESSAGE("Vebox Statistics Layout Query, type ('%d') is not implemented.", QueryType);
-            eStatus = MOS_STATUS_UNKNOWN;
-            break;
-    }
-
-    return eStatus;
+    return m_hwInterface->m_vpPlatformInterface->VeboxQueryStatLayout(QueryType, pQuery);
 }
 
 }

@@ -31,6 +31,7 @@
 #include "hw_filter.h"
 
 #include "vp_packet_shared_context.h"
+//#include "vp_kernelset.h"
 
 class MediaScalability;
 class MediaContext;
@@ -38,13 +39,14 @@ class MediaContext;
 namespace vp {
 
 class VpPlatformInterface;
+class VpKernelSet;
 
 class PacketFactory
 {
 public:
     PacketFactory(VpPlatformInterface *vpPlatformInterface);
     virtual ~PacketFactory();
-    MOS_STATUS Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext);
+    MOS_STATUS Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet* vpKernels);
     VpCmdPacket *CreatePacket(EngineType type);
     void ReturnPacket(VpCmdPacket *&pPacket);
 
@@ -62,6 +64,7 @@ protected:
     PVpAllocator        m_pAllocator = nullptr;
     VPMediaMemComp      *m_pMmc = nullptr;
     VpPlatformInterface *m_vpPlatformInterface = nullptr;
+    VpKernelSet* m_kernelSet = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
 };
 

@@ -35,6 +35,10 @@ namespace vp
 class VPFeatureManager;
 class SfcRenderBase;
 
+#define VP_USE_MEDIA_THREADS_MAX         0
+
+class VpKernelSet;
+
 class VpRenderKernel
 {
 public:
@@ -49,6 +53,8 @@ public:
         uint32_t              patchKernelSize,
         void(*ModifyFunctionPointers)(PKdll_State));
 
+    MOS_STATUS Destroy();
+
     Kdll_State* GetKdllState()
     {
         return m_kernelDllState;
@@ -56,16 +62,16 @@ public:
 
 protected:
     // Compositing Kernel DLL/Search state
-    const Kdll_RuleEntry        *m_kernelDllRules;
-    Kdll_State                  *m_kernelDllState;
+    const Kdll_RuleEntry        *m_kernelDllRules = nullptr;
+    Kdll_State                  *m_kernelDllState = nullptr;
 
     // Compositing Kernel buffer and size
-    const void                  *m_kernelBin;
-    uint32_t                     m_kernelBinSize;
+    const void                  *m_kernelBin = nullptr;
+    uint32_t                     m_kernelBinSize = 0;
 
     // CM Compositing Kernel patch file buffer and size
-    const void                  *m_fcPatchBin;
-    uint32_t                    m_fcPatchBinSize;
+    const void                  *m_fcPatchBin = nullptr;
+    uint32_t                    m_fcPatchBinSize = 0;
 };
 
 class VpPlatformInterface
@@ -79,6 +85,7 @@ public:
 
     virtual ~VpPlatformInterface()
     {
+        m_kernel.Destroy();
     }
 
     virtual MOS_STATUS InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount, VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount)
@@ -97,7 +104,7 @@ public:
     {
         return nullptr;
     }
-    virtual VpCmdPacket *CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc)
+    virtual VpCmdPacket *CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpKernelSet* kernel)
     {
         return nullptr;
     }
@@ -122,6 +129,14 @@ public:
     virtual uint32_t VeboxQueryStaticSurfaceSize()
     {
         return 32 * 8;
+    }
+
+    virtual RENDERHAL_KERNEL_PARAM GetVeboxKernelSettings(uint32_t iKDTIndex)
+    {
+        RENDERHAL_KERNEL_PARAM kernelParam;
+        MOS_ZeroMemory(&kernelParam, sizeof(RENDERHAL_KERNEL_PARAM));
+
+        return kernelParam;
     }
 
 protected:

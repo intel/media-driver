@@ -31,6 +31,15 @@
 
 namespace vp
 {
+#define VEBOX_KERNEL_BASE_MAX_G12 2
+//!
+//! \brief Vebox Statistics Surface definition for TGL
+//!
+#define VP_VEBOX_STATISTICS_SIZE_G12                          (32 * 8)
+#define VP_VEBOX_STATISTICS_PER_FRAME_SIZE_G12                (32 * sizeof(uint32_t))
+#define VP_VEBOX_STATISTICS_SURFACE_FMD_OFFSET_G12            0
+#define VP_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G12            0x2C
+#define VP_VEBOX_STATISTICS_SURFACE_STD_OFFSET_G12            0x44
 
 class VpPlatformInterfaceG12Tgllp : public VpPlatformInterface
 {
@@ -48,8 +57,18 @@ public:
     virtual MOS_STATUS InitVpRenderHwCaps();
     virtual VPFeatureManager *CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface);
     virtual VpCmdPacket *CreateVeboxPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc);
-    virtual VpCmdPacket *CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc);
     virtual MOS_STATUS CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator);
+    virtual VpCmdPacket *CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpKernelSet* kernel);
+    virtual RENDERHAL_KERNEL_PARAM GetVeboxKernelSettings(uint32_t iKDTIndex);
+
+    virtual MOS_STATUS VeboxQueryStatLayout(
+        VEBOX_STAT_QUERY_TYPE QueryType,
+        uint32_t* pQuery);
+
+    virtual uint32_t VeboxQueryStaticSurfaceSize()
+    {
+        return VP_VEBOX_STATISTICS_SIZE_G12;
+    }
 };
 
 }

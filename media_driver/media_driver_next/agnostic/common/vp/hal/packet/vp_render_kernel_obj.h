@@ -309,11 +309,11 @@ public:
 
     virtual MOS_STATUS SetupSurfaceState() = 0;
 
-    virtual MOS_STATUS GetCurbeState(void * curbe, uint32_t curbeLength) = 0;
+    virtual MOS_STATUS GetCurbeState(void * curbe, uint32_t& curbeLength) = 0;
 
     virtual MOS_STATUS GetMediaWalkerSettings() = 0;
 
-    virtual MOS_STATUS GetInlineState(void* inlineData, uint32_t inlineLength) = 0;
+    virtual MOS_STATUS GetInlineState(void** inlineData, uint32_t& inlineLength) = 0;
 
     virtual MOS_STATUS GetKernelID(int32_t& kuid) = 0;
 
@@ -323,6 +323,11 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    uint32_t GetKernelID()
+    {
+        return m_kernelID;
+    }
+
 protected:
     RENDER_KERNEL_PARAMS                                *m_kernelParams = nullptr;   // kernel input for processing params include kernel ID and process surface group
     std::map<SurfaceType, VP_SURFACE*>                  *m_surfaceGroup = nullptr;   // input surface process surface groups
@@ -330,6 +335,7 @@ protected:
     std::vector<SurfaceType>                             m_surfaces;                 // vector for processed surfaces, the order should match with Curbe surface order
     std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>  m_surfacePool;              // surfaces processed pool where the surface state will generated here
     std::map<SurfaceType, uint32_t*>                     m_surfaceIndex;             // store the binding index for processed surface
+    uint32_t                                             m_kernelID = 0;
 };
 }
 #endif // __VP_RENDER_KERNEL_OBJ_H__

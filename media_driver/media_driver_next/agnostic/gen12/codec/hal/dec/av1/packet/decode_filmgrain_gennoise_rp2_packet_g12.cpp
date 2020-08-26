@@ -34,6 +34,7 @@ namespace decode
 {
 
 FilmGrainRp2Packet::FilmGrainRp2Packet(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface):
+    CmdPacket(task),
     RenderCmdPacket(task, hwInterface->GetOsInterface(), hwInterface->GetRenderHalInterface())
 {
         if (pipeline != nullptr)

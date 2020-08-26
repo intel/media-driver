@@ -38,7 +38,7 @@ enum _PacketType
 };
 using PacketType           = _PacketType;
 
-class VpCmdPacket : public CmdPacket
+class VpCmdPacket : virtual public CmdPacket
 {
 public:
     VpCmdPacket(MediaTask *task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, PacketType packetId);
@@ -82,8 +82,9 @@ public:
     VPMediaMemComp      *m_mmc = nullptr;
 
 protected:
-    PacketType          m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
-    VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
+    PacketType                           m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
+    VP_PACKET_SHARED_CONTEXT* m_packetSharedContext = nullptr;
+    std::map<SurfaceType, VP_SURFACE*>   m_surfacesGroup;
 };
 }
 #endif // !__VP_CMD_PACKET_H__

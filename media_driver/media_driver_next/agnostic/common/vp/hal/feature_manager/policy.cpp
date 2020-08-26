@@ -79,7 +79,7 @@ MOS_STATUS Policy::Initialize()
     VP_PUBLIC_CHK_NULL_RETURN(vpPlatformInterface);
     VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpVeboxSfcHwCaps(m_veboxHwEntry, Format_Count, m_sfcHwEntry, Format_Count));
     // Place hold for render hw caps.
-    // VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpRenderHwCaps());
+    VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpRenderHwCaps());
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterFeatures());
     m_initialized = true;
     return MOS_STATUS_SUCCESS;

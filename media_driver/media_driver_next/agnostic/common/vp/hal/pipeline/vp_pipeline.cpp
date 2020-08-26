@@ -54,6 +54,7 @@ VpPipeline::~VpPipeline()
     MOS_Delete(m_featureManager);
     MOS_Delete(m_vpInterface);
     MOS_Delete(m_resourceManager);
+    MOS_Delete(m_kernelSet);
     MOS_Delete(m_paramChecker);
     MOS_Delete(m_mmc);
     MOS_Delete(m_allocator);
@@ -185,10 +186,11 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketFactory);
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreatePacketSharedContext());
+    VP_PUBLIC_CHK_STATUS_RETURN(CreateVpKernelSets());
     // Create active tasks
     MediaTask *pTask = GetTask(MediaTask::TaskType::cmdTask);
     VP_PUBLIC_CHK_NULL_RETURN(pTask);
-    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, &m_vpMhwInterface, m_allocator, m_mmc, m_packetSharedContext));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, &m_vpMhwInterface, m_allocator, m_mmc, m_packetSharedContext, m_kernelSet));
 
     m_pPacketPipeFactory = MOS_New(PacketPipeFactory, *m_pPacketFactory);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
@@ -369,6 +371,17 @@ MOS_STATUS VpPipeline::CreateFeatureManager()
 
     VP_PUBLIC_CHK_STATUS_RETURN(((VpFeatureManagerNext *)m_featureManager)->Initialize());
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPipeline::CreateVpKernelSets()
+{
+    VP_FUNC_CALL();
+    if (nullptr == m_kernelSet)
+    {
+        m_kernelSet = MOS_New(VpKernelSet, &m_vpMhwInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(m_kernelSet);
+    }
     return MOS_STATUS_SUCCESS;
 }
 

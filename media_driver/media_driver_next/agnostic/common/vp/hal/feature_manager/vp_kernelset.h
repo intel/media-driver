@@ -41,6 +41,16 @@ enum KernelId
     Kernel_Max
 };
 
+//!
+//! \brief Vebox Kernel IDs
+//!
+enum VP_VEBOX_KERNELID
+{
+    KERNEL_RESERVED = 0,
+    KERNEL_UPDATEDNSTATE,
+    KERNEL_VEBOX_BASE_MAX,
+};
+
 struct RENDER_KERNEL_PARAMS
 {
     std::map<SurfaceType, VP_SURFACE*> *surfacesGroup;
@@ -68,11 +78,25 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-protected:
-
     virtual MOS_STATUS CreateKernelObjects(RENDER_KERNEL_PARAMS& kernelParams)
     {
         return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS GetKernelInfo(int32_t kuid, int32_t& size, void*& kernel);
+
+private:
+
+    Kdll_State* GetKernelEntries()
+    {
+        if (m_kernel)
+        {
+            return m_kernel->GetKdllState();
+        }
+        else
+        {
+            return nullptr;
+        }
     }
 
 protected:

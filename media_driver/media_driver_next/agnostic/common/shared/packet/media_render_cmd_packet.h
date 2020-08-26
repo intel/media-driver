@@ -142,15 +142,15 @@ typedef struct _RENDERHAL_SURFACE_NEXT : public _RENDERHAL_SURFACE
     uint32_t Index;
 }RENDERHAL_SURFACE_NEXT, *PRENDERHAL_SURFACE_NEXT;
 
-class RenderCmdPacket : public CmdPacket
+class RenderCmdPacket : virtual public CmdPacket
 {
 public:
     RenderCmdPacket(MediaTask *task, PMOS_INTERFACE pOsinterface, RENDERHAL_INTERFACE *m_renderHal);
 
     virtual ~RenderCmdPacket();
-    virtual MOS_STATUS Init() override;
-    virtual MOS_STATUS Destroy() override;
-    virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
+    virtual MOS_STATUS Init();
+    virtual MOS_STATUS Destroy();
+    virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
 
     // Currently only support HDC read/write, for sampler enabling will be in next step
@@ -234,7 +234,6 @@ protected:
     VPHAL_PERFTAG               PerfTag; // need to check the perf setting in codec
 
     // Kernel Render Data
-    Kdll_CacheEntry             *m_kernelEntry = nullptr;
     uint32_t                     m_kernelCount = 0;
 
     // Kernel Render Data

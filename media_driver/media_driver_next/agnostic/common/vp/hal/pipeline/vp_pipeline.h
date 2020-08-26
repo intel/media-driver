@@ -39,6 +39,7 @@
 #include "vp_dumper.h"
 #include "vp_feature_manager.h"
 #include "vp_packet_shared_context.h"
+#include "vp_kernelset.h"
 
 namespace vp
 {
@@ -191,6 +192,13 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureManager() override;
 
+//!
+//! \brief  create media kernel sets
+//! \return MOS_STATUS
+//!         MOS_STATUS_SUCCESS if success, else fail reason
+//!
+    virtual MOS_STATUS CreateVpKernelSets();
+
     //!
     //! \brief  create reource manager
     //! \return MOS_STATUS
@@ -238,6 +246,7 @@ protected:
     PacketFactory         *m_pPacketFactory         = nullptr;
     PacketPipeFactory     *m_pPacketPipeFactory     = nullptr;
     VpResourceManager     *m_resourceManager        = nullptr;
+    VpKernelSet           *m_kernelSet              = nullptr;
     VPFeatureManager      *m_paramChecker           = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
     VpInterface           *m_vpInterface            = nullptr;
