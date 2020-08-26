@@ -970,7 +970,7 @@ protected:
     bool                                m_forceToSkipEnable;                                            //!< Force to Skip Flag.
     uint32_t                            m_vdencBrcInitDmemBufferSize;                                   //!< Brc Init-Dmem Buffer Size.
     uint32_t                            m_vdencBrcUpdateDmemBufferSize;                                 //!< Brc Update-Dmem Buffer Size.
-    uint32_t                            m_vdencColocatedMVBufferSize;                                     //!< Colocated MV Read / Write Buffer Size.
+    uint32_t                            m_vdencColocatedMVBufferSize;                                   //!< Colocated MV Read / Write Buffer Size.
     bool                                m_vdencStaticFrame;                                             //!< Static Frame Indicator.
     uint32_t                            m_vdencStaticRegionPct;                                         //!< Ratio of Static Region in One Frame.
     bool                                m_oneOnOneMapping = false;                                      //!< Indicate if one on one ref index mapping is enabled
@@ -986,9 +986,6 @@ protected:
     static constexpr uint8_t m_maxNumNativeRoi = 3;   //!< Number of native ROI supported by VDEnc HW
 
 protected:
-
-    static const uint32_t AVC_I_SLICE_SIZE_MINUS = 500;                                    //!< VDENC I SLICE threshold
-    static const uint32_t AVC_P_SLICE_SIZE_MINUS = 500;                                    //!< VDENC P SLICE threshold
     static const uint32_t SFD_OUTPUT_BUFFER_SIZE = 128;                                    //!< SFD_OUTPUT_BUFFER_SIZE
     static const uint32_t AVC_BRC_STATS_BUF_SIZE = 80;                                     //!< VDENC BRC statistics buffer size
     static const uint32_t AVC_BRC_PAK_STATS_BUF_SIZE = 204;                                //!< VDENC BRC PAK statistics buffer size

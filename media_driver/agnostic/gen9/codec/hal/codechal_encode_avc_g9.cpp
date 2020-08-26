@@ -34,9 +34,6 @@
 #define CODECHAL_ENCODE_AVC_NUM_MBENC_CURBE_SIZE_G9                         88
 #define CODECHAL_ENCODE_AVC_SFD_OUTPUT_BUFFER_SIZE_G9                       128
 
-#define CODECHAL_VDENC_AVC_I_SLICE_SIZE_MINUS_G9                            500
-#define CODECHAL_VDENC_AVC_P_SLICE_SIZE_MINUS_G9                            500
-
 #define CODECHAL_ENCODE_AVC_SEI_BUFFER_SIZE                                 10240   // 10K is just estimation
 #define CODECHAL_ENCODE_AVC_BRC_HISTORY_BUFFER_OFFSET_SCENE_CHANGED         0x2F8   // (368 + 12)*2 = 760
 
