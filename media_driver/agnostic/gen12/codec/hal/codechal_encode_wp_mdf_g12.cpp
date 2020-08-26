@@ -52,7 +52,7 @@ MOS_STATUS CodechalEncodeWPMdfG12::InitKernelStateIsa(void *kernelIsa, uint32_t 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalEncodeWPMdfG12::SetCurbe(CurbeData& curbe)
+MOS_STATUS CodechalEncodeWPMdfG12::SetCurbe(CurbeData &curbe)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
     MOS_ZeroMemory(&curbe, sizeof(CurbeData));
@@ -103,12 +103,12 @@ MOS_STATUS CodechalEncodeWPMdfG12::Execute(KernelParams *params)
     if (params->useRefPicList1)
     {
         *(params->useWeightedSurfaceForL1) = true;
-        m_surfaceParams.wpOutListIdx = CODEC_WP_OUTPUT_L1_START + params->wpIndex;
+        m_surfaceParams.wpOutListIdx       = CODEC_WP_OUTPUT_L1_START + params->wpIndex;
     }
     else
     {
         *(params->useWeightedSurfaceForL0) = true;
-        m_surfaceParams.wpOutListIdx = CODEC_WP_OUTPUT_L0_START + params->wpIndex;
+        m_surfaceParams.wpOutListIdx       = CODEC_WP_OUTPUT_L0_START + params->wpIndex;
     }
     if (m_surfaceParams.wpOutListIdx >= CODEC_NUM_WP_FRAME)
     {
@@ -116,16 +116,16 @@ MOS_STATUS CodechalEncodeWPMdfG12::Execute(KernelParams *params)
         CODECHAL_ENCODE_ASSERTMESSAGE("index exceeds maximum value of array weightedPredOutputPicList.");
         return eStatus;
     }
-    uint8_t wpKrnIdx = m_surfaceParams.wpOutListIdx;
-    CmKernel* cmKrn = m_cmKrn[wpKrnIdx];
+    uint8_t   wpKrnIdx = m_surfaceParams.wpOutListIdx;
+    CmKernel *cmKrn    = m_cmKrn[wpKrnIdx];
 
     // Setup Curbe
     m_curbeParams.refPicListIdx = (params->useRefPicList1) ? LIST_1 : LIST_0;
-    m_curbeParams.wpIdx = params->wpIndex;
-    m_curbeParams.slcParams = params->slcWPParams;
+    m_curbeParams.wpIdx         = params->wpIndex;
+    m_curbeParams.slcParams     = params->slcWPParams;
 
     //Set Surface States
-    m_surfaceParams.refFrameInput = params->refFrameInput;
+    m_surfaceParams.refFrameInput    = params->refFrameInput;
     m_surfaceParams.refIsBottomField = params->refIsBottomField;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateResources());
@@ -138,7 +138,7 @@ MOS_STATUS CodechalEncodeWPMdfG12::Execute(KernelParams *params)
     uint32_t threadCount = ResolutionX * ResolutionY;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKrn->SetThreadCount(threadCount));
 
-    if(m_encoder->m_resolutionChanged && m_threadSpace != nullptr)
+    if (m_encoder->m_resolutionChanged && m_threadSpace != nullptr)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyThreadSpace(m_threadSpace));
         m_threadSpace = nullptr;
@@ -147,9 +147,9 @@ MOS_STATUS CodechalEncodeWPMdfG12::Execute(KernelParams *params)
     if (m_threadSpace == nullptr)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->CreateThreadSpace(
-                                              ResolutionX,
-                                              ResolutionY,
-                                              m_threadSpace));
+            ResolutionX,
+            ResolutionY,
+            m_threadSpace));
 
         if (m_groupIdSelectSupported)
         {
@@ -165,7 +165,7 @@ MOS_STATUS CodechalEncodeWPMdfG12::Execute(KernelParams *params)
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
-        CmEvent * event = CM_NO_EVENT;
+        CmEvent *event = CM_NO_EVENT;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmQueue->EnqueueFast(m_encoder->m_cmTask, event));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmTask->Reset());
         m_lastTaskInPhase = false;
@@ -211,9 +211,9 @@ MOS_STATUS CodechalEncodeWPMdfG12::Execute(KernelParams *params)
 MOS_STATUS CodechalEncodeWPMdfG12::SetupKernelArgs(uint8_t wpKrnIdx)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    int idx = 0;
-    CurbeData curbe;
-    SurfaceIndex * pSurfIndex = nullptr;
+    int           idx = 0;
+    CurbeData     curbe;
+    SurfaceIndex *pSurfIndex = nullptr;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetCurbe(curbe));
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_wpInputSurface[wpKrnIdx]);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_wpOutputSurface[wpKrnIdx]);
@@ -252,6 +252,12 @@ MOS_STATUS CodechalEncodeWPMdfG12::SetupSurfaces(uint8_t wpKrnIdx)
 MOS_STATUS CodechalEncodeWPMdfG12::ReleaseResources()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+    if (m_threadSpace)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyThreadSpace(m_threadSpace));
+        m_threadSpace = nullptr;
+    }
+
     for (uint8_t i = 0; i < CODEC_NUM_WP_FRAME; i++)
     {
         if (m_wpInputSurface[i])
@@ -265,12 +271,18 @@ MOS_STATUS CodechalEncodeWPMdfG12::ReleaseResources()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroySurface(m_wpOutputSurface[i]));
             m_wpOutputSurface[i] = nullptr;
         }
+
+        if (m_cmKrn[i])
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyKernel(m_cmKrn[i]));
+            m_cmKrn[i] = nullptr;
+        }
     }
 
-    if (m_threadSpace)
+    if (m_cmProgram)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyThreadSpace(m_threadSpace));
-        m_threadSpace = nullptr;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyProgram(m_cmProgram));
+        m_cmProgram = nullptr;
     }
 
     return MOS_STATUS_SUCCESS;

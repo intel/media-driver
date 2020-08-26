@@ -26,8 +26,7 @@
 //!
 #include "codechal_kernel_intra_dist_mdf_g12.h"
 
-CodechalKernelIntraDistMdfG12::CodechalKernelIntraDistMdfG12(CodechalEncoderState *encoder) :
-    CodechalKernelBase(encoder)
+CodechalKernelIntraDistMdfG12::CodechalKernelIntraDistMdfG12(CodechalEncoderState *encoder) : CodechalKernelBase(encoder)
 {
 }
 
@@ -63,6 +62,19 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::ReleaseResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyThreadSpace(m_threadSpace));
         m_threadSpace = nullptr;
     }
+
+    if (m_cmKrn)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyKernel(m_cmKrn));
+        m_cmKrn = nullptr;
+    }
+
+    if (m_cmProgram)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmDev->DestroyProgram(m_cmProgram));
+        m_cmProgram = nullptr;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -126,9 +138,9 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::InitWalkerCodecParams(CODECHAL_WALKER_
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalKernelIntraDistMdfG12::SetIntraDistCurbe(Curbe&  curbe)
+MOS_STATUS CodechalKernelIntraDistMdfG12::SetIntraDistCurbe(Curbe &curbe)
 {
-    curbe.m_data.DW0.picWidthInLumaSamples = m_curbeParam.downScaledWidthInMb4x << 4;
+    curbe.m_data.DW0.picWidthInLumaSamples  = m_curbeParam.downScaledWidthInMb4x << 4;
     curbe.m_data.DW0.picHeightInLumaSamples = m_curbeParam.downScaledHeightInMb4x << 4;
 
     return MOS_STATUS_SUCCESS;
@@ -141,7 +153,7 @@ CODECHAL_MEDIA_STATE_TYPE CodechalKernelIntraDistMdfG12::GetMediaStateType()
 
 MOS_STATUS CodechalKernelIntraDistMdfG12::SetupSurfaces()
 {
-    CmDevice* &cmDev = m_encoder->m_cmDev;
+    CmDevice *&cmDev            = m_encoder->m_cmDev;
     bool       currFieldPicture = CodecHal_PictureIsField(m_encoder->m_currOriginalPic);
     bool       currBottomField  = CodecHal_PictureIsBottomField(m_encoder->m_currOriginalPic) ? true : false;
 
@@ -173,9 +185,9 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::SetupSurfaces()
 MOS_STATUS CodechalKernelIntraDistMdfG12::SetupKernelArgs()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    int idx = 0;
-    Curbe curbe;
-    SurfaceIndex * pSurfIndex = nullptr;
+    int           idx = 0;
+    Curbe         curbe;
+    SurfaceIndex *pSurfIndex = nullptr;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetIntraDistCurbe(curbe));
     m_cmKrn->SetKernelArg(idx++, sizeof(curbe), &curbe);
@@ -197,20 +209,20 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::SetupKernelArgs()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalKernelIntraDistMdfG12::Execute( CurbeParam &curbeParam, SurfaceParams &surfaceParam )
+MOS_STATUS CodechalKernelIntraDistMdfG12::Execute(CurbeParam &curbeParam, SurfaceParams &surfaceParam)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     MOS_SecureMemcpy(&m_curbeParam, sizeof(m_curbeParam), &curbeParam, sizeof(m_curbeParam));
     MOS_SecureMemcpy(&m_surfaceParam, sizeof(m_surfaceParam), &surfaceParam, sizeof(m_surfaceParam));
 
-    CmDevice* &cmDev = m_encoder->m_cmDev;
+    CmDevice *&cmDev = m_encoder->m_cmDev;
 
     SetupSurfaces();
 
     AddPerfTag();
 
-    if(m_encoder->m_resolutionChanged && m_threadSpace != nullptr)
+    if (m_encoder->m_resolutionChanged && m_threadSpace != nullptr)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace));
         m_threadSpace = nullptr;
@@ -219,9 +231,9 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::Execute( CurbeParam &curbeParam, Surfa
     if (m_threadSpace == nullptr)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateThreadSpace(
-                                              m_curbeParam.downScaledWidthInMb4x,
-                                              m_curbeParam.downScaledHeightInMb4x,
-                                              m_threadSpace));
+            m_curbeParam.downScaledWidthInMb4x,
+            m_curbeParam.downScaledHeightInMb4x,
+            m_threadSpace));
         if (m_groupIdSelectSupported)
         {
             m_threadSpace->SetMediaWalkerGroupSelect((CM_MW_GROUP_SELECT)m_groupId);
@@ -237,7 +249,7 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::Execute( CurbeParam &curbeParam, Surfa
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
-        CmEvent * event = CM_NO_EVENT;
+        CmEvent *event = CM_NO_EVENT;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmQueue->EnqueueFast(m_encoder->m_cmTask, event));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_cmTask->Reset());
         m_lastTaskInPhase = false;
