@@ -290,6 +290,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
 
     if( DdiMediaUtil_IsExternalSurface(mediaSurface) )
     {
+        // Default set as compression not supported, surface compression import only support from Memory Type VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+        bMemCompEnable   = false;
+        bMemCompRC       = false;
+
         if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
         {
             tag = PROTECTED_SURFACE_TAG;
