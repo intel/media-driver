@@ -127,6 +127,20 @@ VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool 
         return nullptr;
     }
     MOS_ZeroMemory(surface, sizeof(VP_SURFACE));
+
+    // Only used for Buffer surface
+    uint32_t bufferWidth  = 0;
+    uint32_t bufferHeight = 0;
+
+
+    if (param.Format == Format_Buffer)
+    {
+        bufferWidth   = param.dwWidth;
+        bufferHeight  = param.dwHeight;
+        param.dwWidth = param.dwWidth * param.dwHeight;
+        param.dwHeight = 1;
+    }
+
     surface->osSurface = AllocateSurface(param, zeroOnAllocate);
 
     if (nullptr == surface->osSurface)
@@ -145,6 +159,13 @@ VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool 
     surface->rcSrc.bottom   = surface->osSurface->dwHeight;
     surface->rcDst          = surface->rcSrc;
     surface->rcMaxSrc       = surface->rcSrc;
+
+
+    if (param.Format == Format_Buffer)
+    {
+        surface->bufferWidth = bufferWidth;
+        surface->bufferHeight = bufferHeight;
+    }
 
     return surface;
 }
@@ -630,12 +651,6 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
     AllocParamsInitType(allocParams, surface, defaultResType, defaultTileType);
 
-    if (format == Format_Buffer && height != 1)
-    {
-        width = width * height;
-        height = 1;
-    }
-
     allocParams.dwWidth         = width;
     allocParams.dwHeight        = height;
     allocParams.Format          = format;
@@ -705,12 +720,6 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         // VP_SURFACE should always be allocated by interface in VpAllocator,
         // which will ensure nullptr != surface->osSurface.
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-    }
-
-    if (format == Format_Buffer && height != 1)
-    {
-        width  = width * height;
-        height = 1;
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));

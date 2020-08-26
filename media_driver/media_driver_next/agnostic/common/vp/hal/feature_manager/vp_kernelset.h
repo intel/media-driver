@@ -30,25 +30,15 @@
 
 #include "vp_platform_interface.h"
 #include "vp_pipeline_common.h"
+#include "vp_render_kernel_obj.h"
 #include <map>
 
 namespace vp {
-class VpRenderKernelObj;
 enum KernelId
 {
     Kernel_Invalidate = 0,
     Kernel_FastComposition,
     Kernel_Max
-};
-
-//!
-//! \brief Vebox Kernel IDs
-//!
-enum VP_VEBOX_KERNELID
-{
-    KERNEL_RESERVED = 0,
-    KERNEL_UPDATEDNSTATE,
-    KERNEL_VEBOX_BASE_MAX,
 };
 
 struct RENDER_KERNEL_PARAMS
@@ -57,16 +47,13 @@ struct RENDER_KERNEL_PARAMS
     std::vector<KernelId>* kernelId;
 };
 
+typedef std::map<KernelId, VpRenderKernelObj*> KERNEL_OBJECTS;
+
 class VpKernelSet
 {
 public:
     VpKernelSet(PVP_MHWINTERFACE hwInterface);
     virtual ~VpKernelSet() {};
-
-    virtual std::map<KernelId, VpRenderKernelObj*>* GetKernelObjs()
-    {
-        return &m_kernelPool;
-    }
 
     virtual MOS_STATUS Clean()
     {
@@ -78,20 +65,34 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS CreateKernelObjects(RENDER_KERNEL_PARAMS& kernelParams)
+    virtual MOS_STATUS CreateKernelObjects(RENDER_KERNEL_PARAMS& kernelParams, KERNEL_OBJECTS& kernelObjs)
     {
-        return MOS_STATUS_SUCCESS;
+        // once add kernels here, then it should return success, kernelObjs shoule not be empty
+        return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    MOS_STATUS GetKernelInfo(int32_t kuid, int32_t& size, void*& kernel);
+    virtual MOS_STATUS DestroyKernelObjects(KERNEL_OBJECTS& kernelObjs)
+    {
+        while (!kernelObjs.empty())
+        {
+            auto it = kernelObjs.begin();
+            MOS_Delete(it->second);
+            kernelObjs.erase(it);
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+protected:
+
+    MOS_STATUS GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kernel);
 
 private:
 
     Kdll_State* GetKernelEntries()
     {
-        if (m_kernel)
+        if (m_kernelPool)
         {
-            return m_kernel->GetKdllState();
+            return m_kernelPool->GetKdllState();
         }
         else
         {
@@ -101,8 +102,7 @@ private:
 
 protected:
 
-    VpRenderKernel       *m_kernel = nullptr;
-    std::map<KernelId, VpRenderKernelObj*> m_kernelPool;
+    VpRenderKernel       *m_kernelPool = nullptr;
     PVP_MHWINTERFACE      m_hwInterface = nullptr;
 };
 }

@@ -208,7 +208,7 @@ MOS_STATUS FilmGrainAppNoisePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8
     if (MEDIA_IS_WA(m_renderHal->pWaTable, WaMSFWithNoWatermarkTSGHang))
     {
         FlushParam.bFlushToGo = true;
-        if (m_bMediaWalker)
+        if (m_walkerType == WALKER_TYPE_MEDIA)
         {
             FlushParam.ui8InterfaceDescriptorOffset = m_mediaWalkerParams.InterfaceDescriptorOffset;
         }
@@ -275,6 +275,9 @@ MOS_STATUS FilmGrainAppNoisePkt::SetupMediaWalker()
     DECODE_FUNC_CALL();
 
     DECODE_CHK_NULL(m_hwInterface);
+
+    // Current only add Media Walker Support in film Grain
+    m_walkerType = WALKER_TYPE_MEDIA;
 
     uint32_t resolutionX = MOS_ROUNDUP_DIVIDE(m_picParams->m_superResUpscaledWidthMinus1 + 1, 32);
     uint32_t resolutionY = MOS_ROUNDUP_DIVIDE(m_picParams->m_superResUpscaledHeightMinus1 + 1, 8);

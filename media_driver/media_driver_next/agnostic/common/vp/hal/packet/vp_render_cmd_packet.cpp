@@ -70,8 +70,16 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
 
     m_PacketId = VP_PIPELINE_PACKET_RENDER;
 
-    // for multi-kernel submit together
-    for (auto it = m_kernelSet->GetKernelObjs()->begin(); it != m_kernelSet->GetKernelObjs()->end(); it++)
+    //m_kernelCount = IDR_VP_TOTAL_NUM_KERNELS;
+    RENDER_KERNEL_PARAMS kernelParams;
+    MOS_ZeroMemory(&kernelParams, sizeof(RENDER_KERNEL_PARAMS));
+    kernelParams.kernelId      = &m_kernelId;
+    kernelParams.surfacesGroup = &m_surfacesGroup;
+
+    VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->CreateKernelObjects(kernelParams, m_kernelObjs));
+
+    // for multi-kernel prepare together
+    for (auto it = m_kernelObjs.begin(); it != m_kernelObjs.end(); it++)
     {
         m_kernel = it->second;
 
@@ -90,8 +98,27 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
 
         VP_RENDER_CHK_STATUS_RETURN(LoadKernel());
 
-        VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase)
+{
+    if (m_kernelObjs.empty())
+    {
+        VP_RENDER_ASSERTMESSAGE("No Kernel Object Creation");
+        return MOS_STATUS_NULL_POINTER;
+    }
+    // for multi-kernel submit in one BB for prepared kernels
+    for (auto it = m_kernelObjs.begin(); it != m_kernelObjs.end(); it++)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
+
+        VP_RENDER_CHK_STATUS_RETURN(RenderCmdPacket::Submit(commandBuffer, packetPhase));
+    }
+
+    VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->DestroyKernelObjects(m_kernelObjs));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -125,22 +152,8 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
         VP_RENDER_ASSERTMESSAGE("No VP Kernel Processing needed");
     }
 
-    VP_RENDER_CHK_NULL_RETURN(m_kernelSet);
+    //VP_RENDER_CHK_NULL_RETURN(m_kernelSet);
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
-
-    //m_kernelCount = IDR_VP_TOTAL_NUM_KERNELS;
-    RENDER_KERNEL_PARAMS kernelParams;
-    MOS_ZeroMemory(&kernelParams, sizeof(RENDER_KERNEL_PARAMS));
-    kernelParams.kernelId      = &m_kernelId;
-    kernelParams.surfacesGroup = &m_surfacesGroup;
-
-    m_kernelSet->CreateKernelObjects(kernelParams);
-
-    if (m_kernelSet->GetKernelObjs()       &&
-        m_kernelSet->GetKernelObjs()->empty())
-    {
-        VP_RENDER_ASSERTMESSAGE("No VP Kernel Creation Fail");
-    }
 
     // Processing kernel State setup
     int32_t iKUID = 0;                                         // Kernel Unique ID (DNDI uses combined kernels)
@@ -154,7 +167,9 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
     // Store pointer to Kernel Parameter
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelSettings(m_renderData.KernelParam));
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelID(iKUID));
-    VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->GetKernelInfo(iKUID, kernelSize, kernelBinary));
+    kernelSize   = m_kernel->GetKernelSize();
+    kernelBinary = m_kernel->GetKernelBinary();
+    VP_RENDER_CHK_NULL_RETURN(kernelBinary);
 
     // Set Parameters for Kernel Entry
     m_renderData.KernelEntry.iKUID       = iKUID;
@@ -177,28 +192,26 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 {
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    VP_RENDER_CHK_STATUS_RETURN(m_kernel->SetupSurfaceState());
-
     for (auto it : m_kernel->GetProcessingSurfaces())
     {
         auto surface = m_kernel->GetKernelSurfaceConfig().find(it);
 
         if (surface != m_kernel->GetKernelSurfaceConfig().end())
         {
-            KERNEL_SURFACE2D_STATE_PARAM surfaceParams = surface->second;
+            KERNEL_SURFACE2D_STATE_PARAM kernelSurfaceParam = surface->second;
 
             RENDERHAL_SURFACE_NEXT renderHalSurface;
             MOS_ZeroMemory(&renderHalSurface, sizeof(RENDERHAL_SURFACE_NEXT));
 
             RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;
             MOS_ZeroMemory(&renderSurfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
-            if (surfaceParams.updatedsurfaceParams)
+            if (kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams)
             {
-                renderSurfaceParams = surfaceParams.renderSurfaceParams;
+                renderSurfaceParams = kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams;
             }
             else
             {
-                renderSurfaceParams.bRenderTarget    = (surfaceParams.renderTarget == true) ? 1 : 0;
+                renderSurfaceParams.bRenderTarget    = (kernelSurfaceParam.renderTarget == true) ? 1 : 0;
                 renderSurfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL; // Add conditional in future for Surfaces out of range
                 renderSurfaceParams.bWidth16Align    = false;
                 renderSurfaceParams.bWidthInDword_Y  = true;
@@ -209,10 +222,9 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 
             VP_RENDER_CHK_NULL_RETURN(vpSurface);
 
-            if (surfaceParams.surfaceUpdated)
-            {
-                UpdateRenderSurface(renderHalSurface, surfaceParams, *vpSurface);
-            }
+            VP_RENDER_CHK_STATUS_RETURN(InitRenderHalSurface(*vpSurface, renderHalSurface));
+
+            VP_RENDER_CHK_STATUS_RETURN(UpdateRenderSurface(renderHalSurface, kernelSurfaceParam));
 
             uint32_t index = SetSurfaceForHwAccess(
                 vpSurface->osSurface,
@@ -257,33 +269,67 @@ VP_SURFACE* VpRenderCmdPacket::GetSurface(SurfaceType type)
 
     return surf;
 }
-uint32_t VpRenderCmdPacket::GetSurfaceIndex(SurfaceType type)
+
+MOS_STATUS VpRenderCmdPacket::SetupMediaWalker()
 {
-    auto it = m_surfacesIndex.find(type);
-    uint32_t index = (m_surfacesIndex.end() != it) ? it->second : 0;
+    VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    return index;
-}
-MOS_STATUS VpRenderCmdPacket::UpdateRenderSurface(RENDERHAL_SURFACE_NEXT& renderSurface, KERNEL_SURFACE2D_STATE_PARAM& kernelParams, VP_SURFACE &surface)
-{
-    renderSurface.dwWidthInUse  = (kernelParams.width != 0)   ? kernelParams.width : 0;
-    renderSurface.dwHeightInUse = (kernelParams.height != 0) ? kernelParams.height : 0;
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetWalkerSetting(m_renderData.walkerParam));
 
-    renderSurface.OsSurface = *surface.osSurface;
-
-    if (renderSurface.dwWidthInUse || renderSurface.dwHeightInUse)
+    switch (m_walkerType)
     {
-        renderSurface.OsSurface.dwWidth  = renderSurface.dwWidthInUse;
-        renderSurface.OsSurface.dwHeight = renderSurface.dwHeightInUse;
-        renderSurface.OsSurface.dwPitch  = renderSurface.dwWidthInUse;
-        renderSurface.OsSurface.Format   = (kernelParams.format != 0) ? kernelParams.format : renderSurface.OsSurface.Format;
+    case WALKER_TYPE_MEDIA:
+        MOS_ZeroMemory(&m_mediaWalkerParams, sizeof(MHW_WALKER_PARAMS));
+        // Prepare Media Walker Params
+        VP_RENDER_CHK_STATUS_RETURN(PrepareMediaWalkerParams(m_renderData.walkerParam, m_mediaWalkerParams));
+        break;
+    case WALKER_TYPE_COMPUTE:
+        // Parepare Compute Walker Param
+        MOS_ZeroMemory(&m_gpgpuWalkerParams, sizeof(MHW_GPGPU_WALKER_PARAMS));
+        VP_RENDER_CHK_STATUS_RETURN(PrepareComputeWalkerParams(m_renderData.walkerParam, m_gpgpuWalkerParams));
+        break;
+    case WALKER_TYPE_DISABLED:
+    default:
+        // using BB for walker setting
+        return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    renderSurface.rcSrc = surface.rcSrc;
-    renderSurface.rcDst = surface.rcDst;
+    return MOS_STATUS_SUCCESS;
+}
+MOS_STATUS VpRenderCmdPacket::InitRenderHalSurface(VP_SURFACE& surface, RENDERHAL_SURFACE& renderSurface)
+{
+    VP_RENDER_CHK_NULL_RETURN(surface.osSurface);
+    VP_RENDER_CHK_STATUS_RETURN(RenderCmdPacket::InitRenderHalSurface(*surface.osSurface, &renderSurface));
+
+    renderSurface.rcSrc    = surface.rcSrc;
+    renderSurface.rcDst    = surface.rcDst;
     renderSurface.rcMaxSrc = surface.rcMaxSrc;
     renderSurface.SurfType =
         InitRenderHalSurfType(surface.SurfType);
+
+    return MOS_STATUS_SUCCESS;
+}
+MOS_STATUS VpRenderCmdPacket::UpdateRenderSurface(RENDERHAL_SURFACE_NEXT& renderSurface, KERNEL_SURFACE2D_STATE_PARAM& kernelParams)
+{
+    auto& overwriteParam = kernelParams.surfaceOverwriteParams;
+    if (overwriteParam.updatedSurfaceParams)
+    {
+        if (overwriteParam.width && overwriteParam.height)
+        {
+            renderSurface.OsSurface.dwWidth = overwriteParam.width;
+            renderSurface.OsSurface.dwHeight = overwriteParam.height;
+        }
+
+        renderSurface.OsSurface.dwPitch = overwriteParam.pitch != 0 ? overwriteParam.pitch : renderSurface.OsSurface.dwPitch;
+
+        if (renderSurface.OsSurface.dwPitch < renderSurface.OsSurface.dwWidth)
+        {
+            VP_RENDER_ASSERTMESSAGE("Invalid Surface where Pitch < Width, return invalid Overwrite Params");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        renderSurface.OsSurface.Format = (overwriteParam.format != 0) ? overwriteParam.format : renderSurface.OsSurface.Format;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

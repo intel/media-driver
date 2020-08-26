@@ -84,6 +84,19 @@
         (KernelParam).blocks_y             = (_KernelParam)->blocks_y;                         \
     } while(0)
 
+typedef struct _KERNEL_WALKER_PARAMS
+{
+    bool                                walkerNeeded;
+    int32_t                             iBlocksX;
+    int32_t                             iBlocksY;
+    int32_t                             iBindingTable;
+    int32_t                             iMediaID;
+    int32_t                             iCurbeOffset;
+    int32_t                             iCurbeLength;
+    RECT                                alignedRect;
+    bool                                rotationNeeded;
+}KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
+
 typedef struct _KERNEL_PACKET_RENDER_DATA
 {
     // Kernel Information
@@ -100,10 +113,19 @@ typedef struct _KERNEL_PACKET_RENDER_DATA
     // Media render state
     PRENDERHAL_MEDIA_STATE              mediaState;
 
+    KERNEL_WALKER_PARAMS                walkerParam;
+
     // Debug parameters
     // Kernel Used for current rendering
     char*                               pKernelName;
 } KERNEL_PACKET_RENDER_DATA, * PKERNEL_PACKET_RENDER_DATA;
+
+typedef enum _WALKER_TYPE
+{
+    WALKER_TYPE_DISABLED = 0,
+    WALKER_TYPE_MEDIA,
+    WALKER_TYPE_COMPUTE
+}WALKER_TYPE;
 
 //!
 //! \brief VPHAL SS/EU setting
@@ -187,6 +209,10 @@ public:
     // Step6: different kernel have different media walker settings
     virtual MOS_STATUS SetupMediaWalker() = 0;
 
+    MOS_STATUS PrepareMediaWalkerParams(KERNEL_WALKER_PARAMS params, MHW_WALKER_PARAMS& mediaWalker);
+
+    MOS_STATUS PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS params, MHW_GPGPU_WALKER_PARAMS& gpgpuWalker);
+
 protected:
 
     // Step5: Load Kernel
@@ -240,12 +266,12 @@ protected:
     KERNEL_PACKET_RENDER_DATA   m_renderData;
 
     // object walker: media walker/compute walker
-    bool m_bMediaWalker = true; // current using media walker first
-    bool m_bComputeWalker = false;
+    WALKER_TYPE                 m_walkerType = WALKER_TYPE_DISABLED;
 
     MHW_WALKER_PARAMS m_mediaWalkerParams = {};
 
+    MHW_GPGPU_WALKER_PARAMS m_gpgpuWalkerParams = {};
+
     PMHW_BATCH_BUFFER            pBatchBuffer = nullptr;
 };
-
 #endif // __MEDIA_RENDER_CMD_PACKET_H__

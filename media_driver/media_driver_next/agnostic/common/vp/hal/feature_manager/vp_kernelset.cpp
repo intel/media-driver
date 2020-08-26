@@ -32,12 +32,12 @@ using namespace vp;
 VpKernelSet::VpKernelSet(PVP_MHWINTERFACE hwInterface) :
     m_hwInterface(hwInterface)
 {
-    m_kernel = hwInterface->m_vpPlatformInterface->GetKernel();
+    m_kernelPool = hwInterface->m_vpPlatformInterface->GetKernel();
 }
 
-MOS_STATUS VpKernelSet::GetKernelInfo(int32_t kuid, int32_t& size, void*& kernel)
+MOS_STATUS VpKernelSet::GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kernel)
 {
-    Kdll_State* kernelState = m_kernel->GetKdllState();
+    Kdll_State* kernelState = m_kernelPool->GetKdllState();
 
     if (kernelState)
     {

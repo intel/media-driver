@@ -465,12 +465,6 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         true,
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
 
-    if (bAllocated)
-    {
-        m_veboxStatisticsSurface->bufferWidth  = dwWidth;
-        m_veboxStatisticsSurface->bufferHeight = dwHeight;
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 

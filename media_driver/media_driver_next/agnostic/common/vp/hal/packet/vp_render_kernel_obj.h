@@ -24,12 +24,16 @@
 
 #include "vp_pipeline_common.h"
 #include "sw_filter.h"
-#include "vp_kernelset.h"
+#include "media_render_cmd_packet.h"
+#include "vp_platform_interface.h"
 #include <vector>
 #include <map>
 
 class RenderCmdPacket;
+
 namespace vp {
+
+struct RENDER_KERNEL_PARAMS;
 
 //!
 //! \brief Secure Block Copy kernel inline data size
@@ -283,20 +287,21 @@ extern const MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_VP_OBJECT_KA2_INLINE_DAT
 
 typedef struct _KERNEL_SURFACE2D_STATE_PARAM
 {
-    MOS_FORMAT format; //[IN] MOS_FORMAT
-    uint32_t   width;
-    uint32_t   height;
-    uint32_t   depth;
-    uint32_t   pitch;
-    uint16_t   memory_object_control;
-    uint32_t   surface_x_offset;   // Horizontal offset to the origin of the surface, in columns of pixels.
-    uint32_t   surface_y_offset;   // Vertical offset to the origin of the surface, in rows of pixels.
-    uint32_t   surface_offset;     // Offset to the origin of the surface, in bytes.
-    MOS_TILE_TYPE tileType;
-    bool       surfaceUpdated;      // false if using origianl config.
+    struct {
+        bool       updatedSurfaceParams; // true if using included surface params
+        MOS_FORMAT format; //[IN] MOS_FORMAT
+        uint32_t   width;
+        uint32_t   height;
+        //uint32_t   depth;
+        uint32_t   pitch;
+        //uint16_t   memory_object_control;
+        //uint32_t   surface_x_offset;   // Horizontal offset to the origin of the surface, in columns of pixels.
+        //uint32_t   surface_y_offset;   // Vertical offset to the origin of the surface, in rows of pixels.
+        uint32_t   surface_offset;     // Offset to the origin of the surface, in bytes.
+        MOS_TILE_TYPE tileType;
+        RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // defaule can be skip. for future usages, if surface configed by kernel, use it directlly
+    } surfaceOverwriteParams;
     bool       renderTarget;        // true for render target
-    bool       updatedsurfaceParams; // true if using included surface params
-    RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // defaule can be skip. for future usages, if surface configed by kernel, use it directlly
     uint32_t   reserved[2]; // for future usage
 } KERNEL_SURFACE2D_STATE_PARAM;
 
@@ -311,8 +316,8 @@ public:
         m_kernelParams = &kernelParams;
     }
 
-    virtual MOS_STATUS SetupSurfaceState() = 0;
-
+    // Kernel Specific, which will inplenment be each kernel
+    // GetCurbeState should be called after UpdateCurbeBindingIndex for all processed surfaces being called
     virtual MOS_STATUS GetCurbeState(void*& curbe, uint32_t& curbeLength) = 0;
 
     virtual MOS_STATUS GetMediaWalkerSettings() = 0;
@@ -321,6 +326,9 @@ public:
 
     virtual MOS_STATUS GetKernelID(int32_t& kuid) = 0;
 
+    virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam) = 0;
+
+    // Kernel Common configs
     virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)
     {
         MOS_ZeroMemory(&settsings, sizeof(RENDERHAL_KERNEL_PARAM));
@@ -340,12 +348,22 @@ public:
     MOS_STATUS SetProcessSurface(std::map<SurfaceType, VP_SURFACE*>& surface)
     {
         m_surfaceGroup = &surface;
+        VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
         return MOS_STATUS_SUCCESS;
     }
 
     uint32_t GetKernelID()
     {
         return m_kernelID;
+    }
+    void* GetKernelBinary()
+    {
+        return m_kernelBinary;
+    }
+
+    uint32_t GetKernelSize()
+    {
+        return m_kernelSize;
     }
 
     std::vector<SurfaceType>& GetProcessingSurfaces()
@@ -355,21 +373,21 @@ public:
 
     std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>& GetKernelSurfaceConfig()
     {
-        return m_surfacePool;
+        return m_surfaceState;
     }
 
     MOS_STATUS UpdateCurbeBindingIndex(SurfaceType type, uint32_t index)
     {
         // Surface Type is sepsrated during one submission
-        m_surfaceIndex.insert(std::make_pair(type, index));
+        m_surfaceBindingIndex.insert(std::make_pair(type, index));
         return MOS_STATUS_SUCCESS;
     }
 
     uint32_t GetSurfaceIndex(SurfaceType type)
     {
-        auto it = m_surfaceIndex.find(type);
+        auto it = m_surfaceBindingIndex.find(type);
 
-        if (it != m_surfaceIndex.end())
+        if (it != m_surfaceBindingIndex.end())
         {
             return it->second;
         }
@@ -380,14 +398,30 @@ public:
         }
     }
 
+    MOS_STATUS InitKernel(void* binary, uint32_t size)
+    {
+        VP_RENDER_CHK_NULL_RETURN(binary);
+        m_kernelBinary = binary;
+        m_kernelSize = size;
+        return MOS_STATUS_SUCCESS;
+    }
+protected:
+
+    virtual MOS_STATUS SetupSurfaceState() = 0;
+
 protected:
     RENDER_KERNEL_PARAMS                                *m_kernelParams = nullptr;   // kernel input for processing params include kernel ID and process surface group
     std::map<SurfaceType, VP_SURFACE*>                  *m_surfaceGroup = nullptr;   // input surface process surface groups
     PVP_MHWINTERFACE                                     m_hwInterface = nullptr;
     std::vector<SurfaceType>                             m_surfaces;                 // vector for processed surfaces, the order should match with Curbe surface order
-    std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>  m_surfacePool;              // surfaces processed pool where the surface state will generated here
-    std::map<SurfaceType, uint32_t>                      m_surfaceIndex;             // store the binding index for processed surface
+    std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>  m_surfaceState;             // surfaces processed pool where the surface state will generated here, if KERNEL_SURFACE2D_STATE_PARAM 
+    std::map<SurfaceType, uint32_t>                      m_surfaceBindingIndex;             // store the binding index for processed surface
     uint32_t                                             m_kernelID = 0;
+
+    // kernel attribute 
+    void *                                               m_kernelBinary = nullptr;
+    uint32_t                                             m_kernelSize = 0;
+    //KERNEL_WALKER_PARAMS                                 m_kernelWalkerParams = {};   // Kernel Walker Params
 };
 }
 #endif // __VP_RENDER_KERNEL_OBJ_H__

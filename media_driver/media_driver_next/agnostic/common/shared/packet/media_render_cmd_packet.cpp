@@ -27,6 +27,11 @@
 
 #include "media_render_cmd_packet.h"
 #include "mos_oca_interface.h"
+#include "renderhal_platform_interface.h"
+
+#define COMPUTE_WALKER_THREAD_SPACE_WIDTH 1
+#define COMPUTE_WALKER_THREAD_SPACE_HEIGHT 1
+#define COMPUTE_WALKER_THREAD_SPACE_DEPTH 1
 
 RenderCmdPacket::RenderCmdPacket(MediaTask* task, PMOS_INTERFACE pOsinterface, RENDERHAL_INTERFACE *renderHal) : CmdPacket(task),
 m_renderHal(renderHal),
@@ -55,6 +60,24 @@ MOS_STATUS RenderCmdPacket::Init()
         RENDERHAL_SETTINGS          RenderHalSettings;
         RenderHalSettings.iMediaStates = 32; // Init MEdia state values
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
+
+        bool mediaWalkerUsed   = false;
+        bool computeWalkerUsed = false;
+        mediaWalkerUsed   = m_renderHal->pfnGetMediaWalkerStatus(m_renderHal) ? true : false;
+        computeWalkerUsed = m_renderHal->pRenderHalPltInterface->IsComputeContextInUse(m_renderHal);
+
+        if (mediaWalkerUsed && !computeWalkerUsed)
+        {
+            m_walkerType = WALKER_TYPE_MEDIA;
+        }
+        else if (computeWalkerUsed)
+        {
+            m_walkerType = WALKER_TYPE_COMPUTE;
+        }
+        else
+        {
+            m_walkerType = WALKER_TYPE_DISABLED;
+        }
     }
     else
     {
@@ -100,7 +123,6 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
     pMhwRender = m_renderHal->pMhwRenderInterface;
     iRemaining = 0;
     FlushParam = g_cRenderHal_InitMediaStateFlushParams;
-    MOS_ZeroMemory(commandBuffer, sizeof(MOS_COMMAND_BUFFER));
     pPerfProfiler = m_renderHal->pPerfProfiler;
     pOsContext = pOsInterface->pOsContext;
     pMmioRegisters = pMhwRender->GetMmioRegisters();
@@ -126,7 +148,7 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
         m_renderHal,
         commandBuffer,
         &m_mediaWalkerParams,
-        nullptr));
+        &m_gpgpuWalkerParams));
 
     // Write back GPU Status tag
     if (!pOsInterface->bEnableKmdMediaFrameTracking)
@@ -159,7 +181,7 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
     if (MEDIA_IS_WA(m_renderHal->pWaTable, WaMSFWithNoWatermarkTSGHang))
     {
         FlushParam.bFlushToGo = true;
-        if (m_bMediaWalker)
+        if (m_walkerType == WALKER_TYPE_MEDIA)
         {
             FlushParam.ui8InterfaceDescriptorOffset = m_mediaWalkerParams.InterfaceDescriptorOffset;
         }
@@ -218,8 +240,6 @@ MOS_STATUS RenderCmdPacket::RenderEngineSetup()
 {
     // pls make sure the context already switched to render/compute engine before submit
     RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
-
-    m_bMediaWalker = m_renderHal->pfnGetMediaWalkerStatus(m_renderHal) ? true : false;
 
     // Register the resource of GSH
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnReset(m_renderHal));
@@ -475,6 +495,135 @@ MOS_STATUS RenderCmdPacket::SetupCurbe(void* pData, uint32_t curbeLength, uint32
         m_renderData.iCurbeLength,
         m_renderData.iInlineLength,
         nullptr));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS RenderCmdPacket::PrepareMediaWalkerParams(KERNEL_WALKER_PARAMS params, MHW_WALKER_PARAMS& mediaWalker)
+{
+    uint32_t uiMediaWalkerBlockSize;
+    RECT     alignedRect = {};
+    bool     bVerticalPattern = false;
+
+    uiMediaWalkerBlockSize = m_renderHal->pHwSizes->dwSizeMediaWalkerBlock;
+    alignedRect            = params.alignedRect;
+    bVerticalPattern       = params.rotationNeeded;
+
+    // Calculate aligned output area in order to determine the total # blocks
+    // to process in case of non-16x16 aligned target.
+    alignedRect.right  += uiMediaWalkerBlockSize - 1;
+    alignedRect.bottom += uiMediaWalkerBlockSize - 1;
+    alignedRect.left   -= alignedRect.left % uiMediaWalkerBlockSize;
+    alignedRect.top    -= alignedRect.top % uiMediaWalkerBlockSize;
+    alignedRect.right  -= alignedRect.right % uiMediaWalkerBlockSize;
+    alignedRect.bottom -= alignedRect.bottom % uiMediaWalkerBlockSize;
+
+    // Set walker cmd params - Rasterscan
+    mediaWalker.InterfaceDescriptorOffset = params.iMediaID;
+
+    mediaWalker.dwGlobalLoopExecCount = 1;
+
+    if (uiMediaWalkerBlockSize == 32)
+    {
+        mediaWalker.ColorCountMinusOne = 3;
+    }
+    else
+    {
+        mediaWalker.ColorCountMinusOne = 0;
+    }
+
+    if (alignedRect.left != 0 || alignedRect.top != 0)
+    {
+        // if the rect starts from any other macro  block other than the first
+        // then the global resolution should be the whole frame and the global
+        // start should be the rect start.
+        mediaWalker.GlobalResolution.x =
+            (alignedRect.right / uiMediaWalkerBlockSize);
+        mediaWalker.GlobalResolution.y =
+            (alignedRect.bottom / uiMediaWalkerBlockSize);
+    }
+    else
+    {
+        mediaWalker.GlobalResolution.x = params.iBlocksX;
+        mediaWalker.GlobalResolution.y = params.iBlocksY;
+    }
+
+    mediaWalker.GlobalStart.x =
+        (alignedRect.left / uiMediaWalkerBlockSize);
+    mediaWalker.GlobalStart.y =
+        (alignedRect.top / uiMediaWalkerBlockSize);
+
+    mediaWalker.GlobalOutlerLoopStride.x = params.iBlocksX;
+    mediaWalker.GlobalOutlerLoopStride.y = 0;
+
+    mediaWalker.GlobalInnerLoopUnit.x = 0;
+    mediaWalker.GlobalInnerLoopUnit.y = params.iBlocksY;
+
+    mediaWalker.BlockResolution.x = params.iBlocksX;
+    mediaWalker.BlockResolution.y = params.iBlocksY;
+
+    mediaWalker.LocalStart.x = 0;
+    mediaWalker.LocalStart.y = 0;
+
+    if (bVerticalPattern)
+    {
+        mediaWalker.LocalOutLoopStride.x = 1;
+        mediaWalker.LocalOutLoopStride.y = 0;
+
+        mediaWalker.LocalInnerLoopUnit.x = 0;
+        mediaWalker.LocalInnerLoopUnit.y = 1;
+
+        mediaWalker.dwLocalLoopExecCount = params.iBlocksX - 1;
+        mediaWalker.LocalEnd.x = 0;
+        mediaWalker.LocalEnd.y = params.iBlocksY - 1;
+    }
+    else
+    {
+        mediaWalker.LocalOutLoopStride.x = 0;
+        mediaWalker.LocalOutLoopStride.y = 1;
+
+        mediaWalker.LocalInnerLoopUnit.x = 1;
+        mediaWalker.LocalInnerLoopUnit.y = 0;
+
+        mediaWalker.dwLocalLoopExecCount = params.iBlocksY - 1;
+        mediaWalker.LocalEnd.x = params.iBlocksX - 1;
+        mediaWalker.LocalEnd.y = 0;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS params, MHW_GPGPU_WALKER_PARAMS& gpgpuWalker)
+{
+    uint32_t uiMediaWalkerBlockSize;
+    RECT     alignedRect = {};
+    // Get media walker kernel block size
+    uiMediaWalkerBlockSize = m_renderHal->pHwSizes->dwSizeMediaWalkerBlock;
+    alignedRect            = params.alignedRect;
+
+    // Calculate aligned output area in order to determine the total # blocks
+    // to process in case of non-16x16 aligned target.
+    alignedRect.right  += uiMediaWalkerBlockSize  - 1;
+    alignedRect.bottom += uiMediaWalkerBlockSize - 1;
+    alignedRect.left   -= alignedRect.left   % uiMediaWalkerBlockSize;
+    alignedRect.top    -= alignedRect.top    % uiMediaWalkerBlockSize;
+    alignedRect.right  -= alignedRect.right  % uiMediaWalkerBlockSize;
+    alignedRect.bottom -= alignedRect.bottom % uiMediaWalkerBlockSize;
+
+    // Set walker cmd params - Rasterscan
+    gpgpuWalker.InterfaceDescriptorOffset    = params.iMediaID;
+
+    gpgpuWalker.GroupStartingX = (alignedRect.left / uiMediaWalkerBlockSize);
+    gpgpuWalker.GroupStartingY = (alignedRect.top / uiMediaWalkerBlockSize);
+    gpgpuWalker.GroupWidth     = params.iBlocksX;
+    gpgpuWalker.GroupHeight    = params.iBlocksY;
+
+    gpgpuWalker.ThreadWidth  = COMPUTE_WALKER_THREAD_SPACE_WIDTH;
+    gpgpuWalker.ThreadHeight = COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
+    gpgpuWalker.ThreadDepth  = COMPUTE_WALKER_THREAD_SPACE_DEPTH;
+    gpgpuWalker.IndirectDataStartAddress = params.iCurbeOffset;
+    // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
+    gpgpuWalker.IndirectDataLength       = MOS_ALIGN_CEIL(params.iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);
+    gpgpuWalker.BindingTableID           = params.iBindingTable;
 
     return MOS_STATUS_SUCCESS;
 }

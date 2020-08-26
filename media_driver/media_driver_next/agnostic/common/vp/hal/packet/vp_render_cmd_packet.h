@@ -63,10 +63,7 @@ public:
         return RenderCmdPacket::Destroy();
     }
 
-    virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override
-    {
-        return RenderCmdPacket::Submit(commandBuffer, packetPhase);
-    }
+    virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
     MOS_STATUS SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params);
 
@@ -86,23 +83,25 @@ protected:
 
     virtual VP_SURFACE* GetSurface(SurfaceType type);
 
-    virtual uint32_t GetSurfaceIndex(SurfaceType type);
+    virtual MOS_STATUS SetupMediaWalker() override;
 
-    virtual MOS_STATUS SetupMediaWalker() override
-    {
-        return MOS_STATUS_SUCCESS;
-    }
+    MOS_STATUS InitRenderHalSurface(
+        VP_SURFACE         &surface,
+        RENDERHAL_SURFACE  &renderSurface);
 
-    MOS_STATUS UpdateRenderSurface(RENDERHAL_SURFACE_NEXT &renderSurface, KERNEL_SURFACE2D_STATE_PARAM& kernelParams, VP_SURFACE& surface);
+    // comments here: Hight overwite params if needed
+    MOS_STATUS UpdateRenderSurface(RENDERHAL_SURFACE_NEXT &renderSurface, KERNEL_SURFACE2D_STATE_PARAM& kernelParams);
 
 protected:
+
+    KERNEL_OBJECTS                     m_kernelObjs;
+
     int32_t                            m_kernelIndex = 0;
     Kdll_FilterEntry                  *m_filter = nullptr;                                       // Kernel Filter (points to base of filter array)
     bool                               m_firstFrame = true;
-    std::map<SurfaceType, uint32_t>    m_surfacesIndex; // map <surfaceType, surfaceIndex>
     std::vector<KernelId>              m_kernelId;
     VpKernelSet                       *m_kernelSet = nullptr;
-    VpRenderKernelObj                 *m_kernel = nullptr; // processing kernel pointer
+    VpRenderKernelObj                 *m_kernel    = nullptr; // processing kernel pointer
 };
 }
 
