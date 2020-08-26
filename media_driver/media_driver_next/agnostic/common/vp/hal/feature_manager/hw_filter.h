@@ -46,8 +46,6 @@
 
 namespace vp
 {
-
-class HwFilter;
 class VpInterface;
 
 enum EngineType

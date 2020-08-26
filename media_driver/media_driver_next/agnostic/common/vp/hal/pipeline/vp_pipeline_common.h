@@ -116,6 +116,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bRefValid      : 1;   // Vebox Ref is Valid
             uint32_t bSTD           : 1;   // Vebox LACE STD Needed;
             uint32_t bDnKernelUpdate: 1;
+            uint32_t bVeboxSecureCopy : 1;
 
             // SFC features
             uint32_t bSfcCsc        : 1;   // Sfc Csc enabled
@@ -127,7 +128,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bComposite : 1;
             uint32_t bBobDI     : 1;
             uint32_t bIScaling  : 1;
-            uint32_t reserved   : 12;  // Reserved
+            uint32_t reserved   : 11;  // Reserved
         };
     };
 };

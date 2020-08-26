@@ -59,6 +59,11 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderCmdPacket::SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderCmdPacket::PacketInit(
     VP_SURFACE* inputSurface, 
     VP_SURFACE* outputSurface, 

@@ -695,7 +695,19 @@ MOS_STATUS Policy::BuildFilters(SwFilterPipe& featurePipe, HW_FILTER_PARAMS& par
         caps.bComposite = (engineCaps.CompositionNeeded != 0);
     }
 
+    if (IsVeboxSecurePathEnabled(featurePipe, caps))
+    {
+        // Process Vebox Secure workload
+        VP_PUBLIC_CHK_STATUS_RETURN(BuildVeboxSecureFilters(featurePipe, caps, params));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupFilterResource(featurePipe, caps, params));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(BuildExecuteHwFilter(featurePipe, caps, params));
+        return MOS_STATUS_SUCCESS;
+    }
+
     VP_PUBLIC_CHK_STATUS_RETURN(BuildExecuteFilter(featurePipe, caps, params));
+    VP_PUBLIC_CHK_STATUS_RETURN(featurePipe.ResetSecureFlag());
 
     /* Place Holder for Resource Manager to manage intermedia surface or HW needed surface in policy*/
 
@@ -790,6 +802,15 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
     VP_PUBLIC_CHK_STATUS_RETURN(featurePipe.Update());
     VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->Update());
 
+    VP_PUBLIC_CHK_STATUS_RETURN(BuildExecuteHwFilter(featurePipe, caps, params));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::BuildExecuteHwFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+{
+    VP_FUNC_CALL();
+
     if (caps.bVebox || caps.bSFC)
     {
         params.Type = caps.bSFC ? EngineTypeVeboxSfc : EngineTypeVebox;
@@ -811,6 +832,17 @@ MOS_STATUS Policy::BuildExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                     return MOS_STATUS_NO_SPACE;
                 }
             }
+        }
+    }
+    else if (caps.bRender)
+    {
+        params.Type = EngineTypeRender;
+        params.vpExecuteCaps = caps;
+
+        auto it = m_RenderFeatureHandlers.begin();
+        for (; it != m_RenderFeatureHandlers.end(); ++it)
+        {
+
         }
     }
 
@@ -920,7 +952,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
 {
     VP_FUNC_CALL();
 
@@ -1033,7 +1065,7 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::Policy::AllocateVeboxExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+MOS_STATUS Policy::AllocateVeboxExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
 {
     VP_FUNC_CALL();
 
@@ -1076,15 +1108,52 @@ MOS_STATUS vp::Policy::AllocateVeboxExecuteResource(VP_EXECUTE_CAPS& caps, HW_FI
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::Policy::AllocateSfcExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+MOS_STATUS Policy::AllocateSfcExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
 {
     VP_FUNC_CALL();
 
     return MOS_STATUS_SUCCESS;
 }
 
+bool Policy::IsVeboxSecurePathEnabled(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps)
+{
+    VP_FUNC_CALL();
+
+
+    if (m_vpInterface.GetHwInterface())
+    {
+        VP_PUBLIC_ASSERTMESSAGE("No VP Interface Available");
+        return false;
+    }
+
+    if (m_vpInterface.GetHwInterface()->m_osInterface &&
+        m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("No CP Interface Available");
+        return false;
+    }
+
+    MosCpInterface* cpInterface = (m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface);
+
+    // Place holder: DDI can also have conditions for Kernel resource using
+    if (!featurePipe.GetSecureProcessFlag() && caps.bVebox && cpInterface->IsHMEnabled())
+    {
+        featurePipe.SetSecureProcessFlag(true);
+        return true;
+    }
+
+    return false;
+}
+
+MOS_STATUS Policy::BuildVeboxSecureFilters(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::ReleaseHwFilterParam(HW_FILTER_PARAMS &params)
 {
+    VP_FUNC_CALL();
+
     if (EngineTypeInvalid == params.Type || params.Params.empty())
     {
         params.Type = EngineTypeInvalid;

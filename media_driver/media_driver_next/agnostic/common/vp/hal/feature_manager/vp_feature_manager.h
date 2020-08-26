@@ -180,8 +180,8 @@ protected:
     virtual MOS_STATUS RegisterFeatures();
     MOS_STATUS UnregisterFeatures();
 
-    VpInterface& m_vpInterface;
-    Policy              m_Policy;
+    VpInterface         & m_vpInterface;
+    Policy              * m_policy = nullptr;
     std::map<FeatureType, SwFilterFeatureHandler*> m_featureHandler;
     uint32_t           m_isFeatureRegistered = false;
 

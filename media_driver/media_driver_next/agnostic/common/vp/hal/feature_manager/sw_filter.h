@@ -21,7 +21,7 @@
 */
 
 //!
-//! \file     vp_feature_manager.h
+//! \file     sw_filter.h
 //! \brief    Defines the common interface for vp features manager
 //! \details  The vp manager is further sub-divided by vp type
 //!           this file is for the base interface which is shared by all components.
@@ -56,6 +56,7 @@ enum FeatureType
     FeatureTypeDi               = 0x500,
     FeatureTypeAce              = 0x600,
     FeatureTypeAceOnVebox,
+    FeatureTypeSecureVeboxUpdate = 0x700,
     // ...
     NumOfFeatureType
 };
@@ -138,7 +139,13 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
     virtual MOS_STATUS Configure(VEBOX_SFC_PARAMS &params)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
+    virtual MOS_STATUS Configure(SwFilter* swFilter, VP_EXECUTE_CAPS caps)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }

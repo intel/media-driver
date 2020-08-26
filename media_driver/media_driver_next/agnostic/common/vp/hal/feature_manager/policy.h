@@ -85,6 +85,7 @@ protected:
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS UpdateFilterCaps(SwFilterPipe& subSwFilterPipe, VP_EngineEntry& engineCaps, VP_EXECUTE_CAPS &caps);
     MOS_STATUS BuildExecuteFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS BuildExecuteHwFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
@@ -96,6 +97,9 @@ protected:
 
     MOS_STATUS AllocateVeboxExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS AllocateSfcExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+
+    bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps);
+    virtual MOS_STATUS BuildVeboxSecureFilters(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
     std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;

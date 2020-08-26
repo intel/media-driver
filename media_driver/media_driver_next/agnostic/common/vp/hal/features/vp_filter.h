@@ -191,6 +191,15 @@ struct _VEBOX_CSC_PARAMS
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
 };
 
+
+struct _VEBOX_UPDATE_PARAMS
+{
+    bool                            bSecureCopyVeboxState;
+    bool                            bDnEnabled;
+    bool                            bAutoDetect;
+    VPHAL_NOISELEVEL                NoiseLevel;
+};
+
 using SFC_SCALING_PARAMS    = _SFC_SCALING_PARAMS;
 using PSFC_SCALING_PARAMS   = SFC_SCALING_PARAMS * ;
 using SFC_CSC_PARAMS        = _SFC_CSC_PARAMS;
@@ -203,6 +212,8 @@ using VEBOX_ACE_PARAMS      = _VEBOX_ACE_PARAMS;
 using PVEBOX_ACE_PARAMS     = VEBOX_ACE_PARAMS *;
 using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;
 using PVEBOX_CSC_PARAMS     = VEBOX_CSC_PARAMS *;
+using VEBOX_UPDATE_PARAMS      = _VEBOX_UPDATE_PARAMS;
+using PVEBOX_UPDATE_PARAMS     = VEBOX_UPDATE_PARAMS *;
 
 class SwFilterPipe;
 class HwFilter;

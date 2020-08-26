@@ -143,6 +143,23 @@ public:
         return m_surfacesGroup;
     }
 
+    MOS_STATUS SetSecureProcessFlag(bool secureProcessed)
+    {
+        m_processedSecurePrepared = secureProcessed;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool GetSecureProcessFlag()
+    {
+        return m_processedSecurePrepared;
+    }
+
+    MOS_STATUS ResetSecureFlag()
+    {
+        m_processedSecurePrepared = false;
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe, uint32_t index);
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe);
@@ -164,6 +181,7 @@ protected:
 
     bool                                m_isFeatureRegistered = false;
     SwFilterPipeType                    m_swFilterPipeType = SwFilterPipeTypeInvalid;
+    bool                                m_processedSecurePrepared = false;
 };
 
 

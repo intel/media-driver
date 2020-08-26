@@ -35,25 +35,38 @@ using namespace vp;
 /****************************************************************************************************/
 
 VpFeatureManagerNext::VpFeatureManagerNext(VpInterface &vpInterface) :
-    m_vpInterface(vpInterface), m_Policy(m_vpInterface)
+    m_vpInterface(vpInterface)
 {
     m_vpInterface.SetSwFilterHandlers(m_featureHandler);
+
+    if (!m_policy)
+    {
+        m_policy = MOS_New(Policy, vpInterface);
+    }
 }
 
 VpFeatureManagerNext::~VpFeatureManagerNext()
 {
     UnregisterFeatures();
+    MOS_Delete(m_policy);
 }
 
 MOS_STATUS VpFeatureManagerNext::Initialize()
 {
+    VP_PUBLIC_CHK_NULL_RETURN(m_policy);
+
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterFeatures());
-    return m_Policy.Initialize();
+    return m_policy->Initialize();
 }
 
 bool VpFeatureManagerNext::IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
 {
-    return m_Policy.IsVeboxSfcFormatSupported(formatInput, formatOutput);
+    if (m_policy)
+    {
+        return m_policy->IsVeboxSfcFormatSupported(formatInput, formatOutput);
+    }
+
+    return false;
 }
 
 MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(SwFilterPipe &swFilterPipe, HwFilterPipe *&pHwFilterPipe)
@@ -61,7 +74,7 @@ MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(SwFilterPipe &swFilterPipe, 
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     pHwFilterPipe = nullptr;
 
-    status = m_vpInterface.GetHwFilterPipeFactory().Create(swFilterPipe, m_Policy, pHwFilterPipe);
+    status = m_vpInterface.GetHwFilterPipeFactory().Create(swFilterPipe, *m_policy, pHwFilterPipe);
 
     VP_PUBLIC_CHK_STATUS_RETURN(status);
     VP_PUBLIC_CHK_NULL_RETURN(pHwFilterPipe);
