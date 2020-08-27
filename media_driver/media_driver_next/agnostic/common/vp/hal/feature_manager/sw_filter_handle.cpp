@@ -306,6 +306,55 @@ void SwFilterDnHandler::Destory(SwFilter*& swFilter)
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterSteHandler                                      */
+/****************************************************************************************************/
+
+SwFilterSteHandler::SwFilterSteHandler(VpInterface& vpInterface) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeSte),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterSteHandler::~SwFilterSteHandler()
+{}
+
+bool SwFilterSteHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (vphalSurf && vphalSurf->pColorPipeParams &&
+        vphalSurf->pColorPipeParams->bEnableSTE)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterSteHandler::CreateSwFilter()
+{
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(FeatureTypeSte);
+    }
+
+    return swFilter;
+}
+
+void SwFilterSteHandler::Destory(SwFilter*& swFilter)
+{
+    SwFilterSte* filter = nullptr;
+    filter = dynamic_cast<SwFilterSte*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}
+
+/****************************************************************************************************/
 /*                                      SwFilterAceHandler                                      */
 /****************************************************************************************************/
 
@@ -350,6 +399,104 @@ void SwFilterAceHandler::Destory(SwFilter*& swFilter)
 {
     SwFilterAce* filter = nullptr;
     filter = dynamic_cast<SwFilterAce*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterTccHandler                                      */
+/****************************************************************************************************/
+
+SwFilterTccHandler::SwFilterTccHandler(VpInterface& vpInterface) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeTcc),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterTccHandler::~SwFilterTccHandler()
+{}
+
+bool SwFilterTccHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (vphalSurf && vphalSurf->pColorPipeParams &&
+        vphalSurf->pColorPipeParams->bEnableTCC)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterTccHandler::CreateSwFilter()
+{
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(FeatureTypeTcc);
+    }
+
+    return swFilter;
+}
+
+void SwFilterTccHandler::Destory(SwFilter*& swFilter)
+{
+    SwFilterTcc* filter = nullptr;
+    filter = dynamic_cast<SwFilterTcc*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterProcampHandler                                      */
+/****************************************************************************************************/
+
+SwFilterProcampHandler::SwFilterProcampHandler(VpInterface& vpInterface) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeProcamp),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterProcampHandler::~SwFilterProcampHandler()
+{}
+
+bool SwFilterProcampHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (vphalSurf && vphalSurf->pProcampParams &&
+        vphalSurf->pProcampParams->bEnabled)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterProcampHandler::CreateSwFilter()
+{
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(FeatureTypeProcamp);
+    }
+
+    return swFilter;
+}
+
+void SwFilterProcampHandler::Destory(SwFilter*& swFilter)
+{
+    SwFilterProcamp* filter = nullptr;
+    filter = dynamic_cast<SwFilterProcamp*>(swFilter);
     m_swFilterFactory.Destory(filter);
     return;
 }

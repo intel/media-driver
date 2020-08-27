@@ -509,6 +509,84 @@ MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* output
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterSte                                             */
+/****************************************************************************************************/
+
+SwFilterSte::SwFilterSte(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeSte)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterSte::~SwFilterSte()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterSte::Clean()
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterSte::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
+
+    m_Params.formatInput   = surfInput->Format;
+    m_Params.formatOutput  = surfInput->Format; // STE didn't change the original format;
+
+    if (surfInput->pColorPipeParams)
+    {
+        m_Params.bEnableSTE =  surfInput->pColorPipeParams->bEnableSTE;
+        m_Params.dwSTEFactor = surfInput->pColorPipeParams->SteParams.dwSTEFactor;
+    }
+    else
+    {
+        m_Params.bEnableSTE = false;
+        m_Params.dwSTEFactor = 0;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamSte& SwFilterSte::GetSwFilterParams()
+{
+    return m_Params;
+}
+
+SwFilter * SwFilterSte::Clone()
+{
+    SwFilter* p = CreateSwFilter(m_type);
+
+    SwFilterSte *swFilter = dynamic_cast<SwFilterSte *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterSte::operator==(SwFilter& swFilter)
+{
+    SwFilterSte* p = dynamic_cast<SwFilterSte*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamSte));
+}
+
+MOS_STATUS vp::SwFilterSte::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
 /*                                      SwFilterAce                                             */
 /****************************************************************************************************/
 
@@ -535,10 +613,20 @@ MOS_STATUS SwFilterAce::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, 
     m_Params.formatInput   = surfInput->Format;
     m_Params.formatOutput  = surfInput->Format;// Ace didn't change the original format;
 
-    m_Params.bEnableACE = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->bEnableACE : false;
-    m_Params.dwAceLevel = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->dwAceLevel : 0;
-    m_Params.dwAceStrength = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->dwAceStrength : 0;
-    m_Params.bAceLevelChanged = surfInput->pColorPipeParams ? surfInput->pColorPipeParams->bAceLevelChanged : false;
+    if (surfInput->pColorPipeParams)
+    {
+        m_Params.bEnableACE = surfInput->pColorPipeParams->bEnableACE;
+        m_Params.dwAceLevel = surfInput->pColorPipeParams->dwAceLevel;
+        m_Params.dwAceStrength = surfInput->pColorPipeParams->dwAceStrength;
+        m_Params.bAceLevelChanged = surfInput->pColorPipeParams->bAceLevelChanged;
+    }
+    else
+    {
+        m_Params.bEnableACE = false;
+        m_Params.dwAceLevel = 0;
+        m_Params.dwAceStrength = 0;
+        m_Params.bAceLevelChanged = false;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -570,6 +658,178 @@ bool vp::SwFilterAce::operator==(SwFilter& swFilter)
 }
 
 MOS_STATUS vp::SwFilterAce::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterTcc                                             */
+/****************************************************************************************************/
+
+SwFilterTcc::SwFilterTcc(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeTcc)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterTcc::~SwFilterTcc()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterTcc::Clean()
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterTcc::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
+
+    m_Params.formatInput   = surfInput->Format;
+    m_Params.formatOutput  = surfInput->Format;// TCC didn't change the original format;
+
+    if (surfInput->pColorPipeParams)
+    {
+        m_Params.bEnableTCC = surfInput->pColorPipeParams->bEnableTCC;
+        m_Params.Red = surfInput->pColorPipeParams->TccParams.Red;
+        m_Params.Green = surfInput->pColorPipeParams->TccParams.Green;
+        m_Params.Blue = surfInput->pColorPipeParams->TccParams.Blue;
+        m_Params.Cyan = surfInput->pColorPipeParams->TccParams.Cyan;
+        m_Params.Magenta = surfInput->pColorPipeParams->TccParams.Magenta;
+        m_Params.Yellow = surfInput->pColorPipeParams->TccParams.Yellow;
+    }
+    else
+    {
+        m_Params.bEnableTCC = false;
+        m_Params.Red = 0;
+        m_Params.Green = 0;
+        m_Params.Blue = 0;
+        m_Params.Cyan = 0;
+        m_Params.Magenta = 0;
+        m_Params.Yellow = 0;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamTcc& SwFilterTcc::GetSwFilterParams()
+{
+    return m_Params;
+}
+
+SwFilter * SwFilterTcc::Clone()
+{
+    SwFilter* p = CreateSwFilter(m_type);
+
+    SwFilterTcc *swFilter = dynamic_cast<SwFilterTcc *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterTcc::operator==(SwFilter& swFilter)
+{
+    SwFilterTcc* p = dynamic_cast<SwFilterTcc*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamTcc));
+}
+
+MOS_STATUS vp::SwFilterTcc::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterProcamp                                             */
+/****************************************************************************************************/
+
+SwFilterProcamp::SwFilterProcamp(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeProcamp)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterProcamp::~SwFilterProcamp()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterProcamp::Clean()
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterProcamp::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
+
+    m_Params.formatInput   = surfInput->Format;
+    m_Params.formatOutput  = surfInput->Format;// Procamp didn't change the original format;
+
+    if (surfInput->pProcampParams)
+    {
+        m_Params.bEnableProcamp = surfInput->pProcampParams->bEnabled;
+        m_Params.fBrightness = surfInput->pProcampParams->fBrightness;
+        m_Params.fContrast = surfInput->pProcampParams->fContrast;
+        m_Params.fHue = surfInput->pProcampParams->fHue;
+        m_Params.fSaturation = surfInput->pProcampParams->fSaturation;
+    }
+    else
+    {
+        m_Params.bEnableProcamp = false;
+        m_Params.fBrightness = 0;
+        m_Params.fContrast = 0;
+        m_Params.fHue = 0;
+        m_Params.fSaturation = 0;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamProcamp& SwFilterProcamp::GetSwFilterParams()
+{
+    return m_Params;
+}
+
+SwFilter * SwFilterProcamp::Clone()
+{
+    SwFilter* p = CreateSwFilter(m_type);
+
+    SwFilterProcamp *swFilter = dynamic_cast<SwFilterProcamp *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterProcamp::operator==(SwFilter& swFilter)
+{
+    SwFilterProcamp* p = dynamic_cast<SwFilterProcamp*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamProcamp));
+}
+
+MOS_STATUS vp::SwFilterProcamp::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);

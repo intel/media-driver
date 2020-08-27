@@ -20,89 +20,87 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vp_ace_filter.cpp
-//! \brief    Defines the common interface for Adaptive Contrast Enhancement
-//!           this file is for the base interface which is shared by all Ace in driver.
+//! \file     vp_ste_filter.cpp
+//! \brief    Defines the common interface for Skin Tone Enhancement
+//!           this file is for the base interface which is shared by all STE in driver.
 //!
-#include "vp_ace_filter.h"
+#include "vp_ste_filter.h"
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
 
 namespace vp {
-VpAceFilter::VpAceFilter(PVP_MHWINTERFACE vpMhwInterface) :
+VpSteFilter::VpSteFilter(PVP_MHWINTERFACE vpMhwInterface) :
     VpFilter(vpMhwInterface)
 {
 
 }
 
-MOS_STATUS VpAceFilter::Init()
+MOS_STATUS VpSteFilter::Init()
 {
     VP_FUNC_CALL();
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpAceFilter::Prepare()
+MOS_STATUS VpSteFilter::Prepare()
 {
     VP_FUNC_CALL();
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpAceFilter::Destroy()
+MOS_STATUS VpSteFilter::Destroy()
 {
     VP_FUNC_CALL();
 
-    if (m_pVeboxAceParams)
+    if (m_pVeboxSteParams)
     {
-        MOS_FreeMemAndSetNull(m_pVeboxAceParams);
+        MOS_FreeMemAndSetNull(m_pVeboxSteParams);
     }
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpAceFilter::SetExecuteEngineCaps(
-    FeatureParamAce &aceParams,
+MOS_STATUS VpSteFilter::SetExecuteEngineCaps(
+    FeatureParamSte &steParams,
     VP_EXECUTE_CAPS vpExecuteCaps)
 {
     VP_FUNC_CALL();
 
-    m_aceParams = aceParams;
+    m_steParams = steParams;
     m_executeCaps   = vpExecuteCaps;
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpAceFilter::CalculateEngineParams()
+MOS_STATUS VpSteFilter::CalculateEngineParams()
 {
     VP_FUNC_CALL();
     if (m_executeCaps.bVebox)
     {
         // create a filter Param buffer
-        if (!m_pVeboxAceParams)
+        if (!m_pVeboxSteParams)
         {
-            m_pVeboxAceParams = (PVEBOX_ACE_PARAMS)MOS_AllocAndZeroMemory(sizeof(VEBOX_ACE_PARAMS));
+            m_pVeboxSteParams = (PVEBOX_STE_PARAMS)MOS_AllocAndZeroMemory(sizeof(VEBOX_STE_PARAMS));
 
-            if (m_pVeboxAceParams == nullptr)
+            if (m_pVeboxSteParams == nullptr)
             {
-                VP_PUBLIC_ASSERTMESSAGE("Vebox Ace Pamas buffer allocate failed, return nullpointer");
+                VP_PUBLIC_ASSERTMESSAGE("Vebox Ste Pamas buffer allocate failed, return nullpointer");
                 return MOS_STATUS_NO_SPACE;
             }
         }
         else
         {
-            MOS_ZeroMemory(m_pVeboxAceParams, sizeof(VEBOX_ACE_PARAMS));
+            MOS_ZeroMemory(m_pVeboxSteParams, sizeof(VEBOX_STE_PARAMS));
         }
 
-        m_pVeboxAceParams->bEnableACE = m_aceParams.bEnableACE;
-        m_pVeboxAceParams->dwAceLevel = m_aceParams.dwAceLevel;
-        m_pVeboxAceParams->dwAceStrength = m_aceParams.dwAceStrength;
-        m_pVeboxAceParams->bAceLevelChanged = m_aceParams.bAceLevelChanged;
+        m_pVeboxSteParams->bEnableSTE = m_steParams.bEnableSTE;
+        m_pVeboxSteParams->dwSTEFactor = m_steParams.dwSTEFactor;
     }
     else
     {
-        VP_PUBLIC_ASSERTMESSAGE("Wrong engine caps! Vebox should be used for Ace");
+        VP_PUBLIC_ASSERTMESSAGE("Wrong engine caps! Vebox should be used for STE");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -111,11 +109,11 @@ MOS_STATUS VpAceFilter::CalculateEngineParams()
 
 
 /****************************************************************************************************/
-/*                                   HwFilter Ace Parameter                                         */
+/*                                   HwFilter Ste Parameter                                         */
 /****************************************************************************************************/
-HwFilterParameter *HwFilterAceParameter::Create(HW_FILTER_ACE_PARAM &param, FeatureType featureType)
+HwFilterParameter *HwFilterSteParameter::Create(HW_FILTER_STE_PARAM &param, FeatureType featureType)
 {
-    HwFilterAceParameter *p = MOS_New(HwFilterAceParameter, featureType);
+    HwFilterSteParameter *p = MOS_New(HwFilterSteParameter, featureType);
     if (p)
     {
         if (MOS_FAILED(p->Initialize(param)))
@@ -127,35 +125,35 @@ HwFilterParameter *HwFilterAceParameter::Create(HW_FILTER_ACE_PARAM &param, Feat
     return p;
 }
 
-HwFilterAceParameter::HwFilterAceParameter(FeatureType featureType) : HwFilterParameter(featureType)
+HwFilterSteParameter::HwFilterSteParameter(FeatureType featureType) : HwFilterParameter(featureType)
 {
 }
 
-HwFilterAceParameter::~HwFilterAceParameter()
+HwFilterSteParameter::~HwFilterSteParameter()
 {
 }
 
-MOS_STATUS HwFilterAceParameter::ConfigParams(HwFilter &hwFilter)
+MOS_STATUS HwFilterSteParameter::ConfigParams(HwFilter &hwFilter)
 {
     return hwFilter.ConfigParam(m_Params);
 }
 
-MOS_STATUS HwFilterAceParameter::Initialize(HW_FILTER_ACE_PARAM &param)
+MOS_STATUS HwFilterSteParameter::Initialize(HW_FILTER_STE_PARAM &param)
 {
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
 
 /****************************************************************************************************/
-/*                                   Packet Vebox Ace Parameter                                       */
+/*                                   Packet Vebox Ste Parameter                                       */
 /****************************************************************************************************/
-VpPacketParameter *VpVeboxAceParameter::Create(HW_FILTER_ACE_PARAM &param)
+VpPacketParameter *VpVeboxSteParameter::Create(HW_FILTER_STE_PARAM &param)
 {
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
     }
-    VpVeboxAceParameter *p = dynamic_cast<VpVeboxAceParameter *>(param.pPacketParamFactory->GetPacketParameter(param.pHwInterface));
+    VpVeboxSteParameter *p = dynamic_cast<VpVeboxSteParameter *>(param.pPacketParamFactory->GetPacketParameter(param.pHwInterface));
     if (p)
     {
         if (MOS_FAILED(p->Initialize(param)))
@@ -168,13 +166,13 @@ VpPacketParameter *VpVeboxAceParameter::Create(HW_FILTER_ACE_PARAM &param)
     return p;
 }
 
-VpVeboxAceParameter::VpVeboxAceParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase *packetParamFactory) :
-    VpPacketParameter(packetParamFactory), m_aceFilter(pHwInterface)
+VpVeboxSteParameter::VpVeboxSteParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase *packetParamFactory) :
+    VpPacketParameter(packetParamFactory), m_steFilter(pHwInterface)
 {
 }
-VpVeboxAceParameter::~VpVeboxAceParameter() {}
+VpVeboxSteParameter::~VpVeboxSteParameter() {}
 
-bool VpVeboxAceParameter::SetPacketParam(VpCmdPacket *pPacket)
+bool VpVeboxSteParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
     if (nullptr == pVeboxPacket)
@@ -182,39 +180,39 @@ bool VpVeboxAceParameter::SetPacketParam(VpCmdPacket *pPacket)
         return false;
     }
 
-    VEBOX_ACE_PARAMS *pParams = m_aceFilter.GetVeboxParams();
+    VEBOX_STE_PARAMS *pParams = m_steFilter.GetVeboxParams();
     if (nullptr == pParams)
     {
         return false;
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetAceParams(pParams));
+    return MOS_SUCCEEDED(pVeboxPacket->SetSteParams(pParams));
 }
 
-MOS_STATUS VpVeboxAceParameter::Initialize(HW_FILTER_ACE_PARAM &params)
+MOS_STATUS VpVeboxSteParameter::Initialize(HW_FILTER_STE_PARAM &params)
 {
-    VP_PUBLIC_CHK_STATUS_RETURN(m_aceFilter.Init());
-    VP_PUBLIC_CHK_STATUS_RETURN(m_aceFilter.SetExecuteEngineCaps(params.aceParams, params.vpExecuteCaps));
-    VP_PUBLIC_CHK_STATUS_RETURN(m_aceFilter.CalculateEngineParams());
+    VP_PUBLIC_CHK_STATUS_RETURN(m_steFilter.Init());
+    VP_PUBLIC_CHK_STATUS_RETURN(m_steFilter.SetExecuteEngineCaps(params.steParams, params.vpExecuteCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_steFilter.CalculateEngineParams());
     return MOS_STATUS_SUCCESS;
 }
 
 /****************************************************************************************************/
-/*                                   Policy Vebox Ace Handler                                         */
+/*                                   Policy Vebox Ste Handler                                         */
 /****************************************************************************************************/
-PolicyVeboxAceHandler::PolicyVeboxAceHandler()
+PolicyVeboxSteHandler::PolicyVeboxSteHandler()
 {
-    m_Type = FeatureTypeAceOnVebox;
+    m_Type = FeatureTypeSteOnVebox;
 }
-PolicyVeboxAceHandler::~PolicyVeboxAceHandler()
+PolicyVeboxSteHandler::~PolicyVeboxSteHandler()
 {
-}
-
-bool PolicyVeboxAceHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
-{
-    return vpExecuteCaps.bACE;
 }
 
-HwFilterParameter* PolicyVeboxAceHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
+bool PolicyVeboxSteHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
+{
+    return vpExecuteCaps.bSTE;
+}
+
+HwFilterParameter* PolicyVeboxSteHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
     if (IsFeatureEnabled(vpExecuteCaps))
     {
@@ -224,7 +222,7 @@ HwFilterParameter* PolicyVeboxAceHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
             return nullptr;
         }
 
-        SwFilterAce *swFilter = dynamic_cast<SwFilterAce *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeAceOnVebox));
+        SwFilterSte *swFilter = dynamic_cast<SwFilterSte *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeSteOnVebox));
 
         if (nullptr == swFilter)
         {
@@ -232,28 +230,28 @@ HwFilterParameter* PolicyVeboxAceHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
             return nullptr;
         }
 
-        FeatureParamAce &param = swFilter->GetSwFilterParams();
+        FeatureParamSte &param = swFilter->GetSwFilterParams();
 
-        HW_FILTER_ACE_PARAM paramAce = {};
-        paramAce.type = m_Type;
-        paramAce.pHwInterface = pHwInterface;
-        paramAce.vpExecuteCaps = vpExecuteCaps;
-        paramAce.pPacketParamFactory = &m_PacketParamFactory;
-        paramAce.aceParams = param;
-        paramAce.pfnCreatePacketParam = PolicyVeboxAceHandler::CreatePacketParam;
+        HW_FILTER_STE_PARAM paramSte = {};
+        paramSte.type = m_Type;
+        paramSte.pHwInterface = pHwInterface;
+        paramSte.vpExecuteCaps = vpExecuteCaps;
+        paramSte.pPacketParamFactory = &m_PacketParamFactory;
+        paramSte.steParams = param;
+        paramSte.pfnCreatePacketParam = PolicyVeboxSteHandler::CreatePacketParam;
 
         HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
 
         if (pHwFilterParam)
         {
-            if (MOS_FAILED(((HwFilterAceParameter*)pHwFilterParam)->Initialize(paramAce)))
+            if (MOS_FAILED(((HwFilterSteParameter*)pHwFilterParam)->Initialize(paramSte)))
             {
                 ReleaseHwFeatureParameter(pHwFilterParam);
             }
         }
         else
         {
-            pHwFilterParam = HwFilterAceParameter::Create(paramAce, m_Type);
+            pHwFilterParam = HwFilterSteParameter::Create(paramSte, m_Type);
         }
 
         return pHwFilterParam;

@@ -243,7 +243,10 @@ public:
 
         DN.value                = 0;
         DI.value                = 0;
+        IECP.STE.value          = 0;
         IECP.ACE.value          = 0;
+        IECP.TCC.value          = 0;
+        IECP.PROCAMP.value      = 0;
         IECP.LACE.value         = 0;
 
         MOS_ZeroMemory(&m_veboxDNDIParams, sizeof(m_veboxDNDIParams));
@@ -297,6 +300,33 @@ public:
         {
             struct
             {
+                uint32_t bProcampEnabled : 1;              // STE enabled;
+            };
+            uint32_t value = 0;
+        } PROCAMP;
+
+        union
+        {
+            struct
+            {
+                uint32_t bSteEnabled : 1;              // STE enabled;
+            };
+            uint32_t value = 0;
+        } STE;
+
+        union
+        {
+            struct
+            {
+                uint32_t bTccEnabled : 1;              // TCC enabled;
+            };
+            uint32_t value = 0;
+        } TCC;
+
+        union
+        {
+            struct
+            {
                 uint32_t bAceEnabled            : 1;    // ACE enabled;
                 uint32_t bQueryAceHistogram     : 1;    // Chroma Dn Enabled
             };
@@ -323,11 +353,11 @@ public:
 
         bool IsIecpEnabled()
         {
-            return ACE.bAceEnabled || LACE.bLaceEnabled || BeCSC.bBeCSCEnabled;
+            return ACE.bAceEnabled || LACE.bLaceEnabled ||
+                    BeCSC.bBeCSCEnabled || TCC.bTccEnabled ||
+                    STE.bSteEnabled || PROCAMP.bProcampEnabled;
         }
     } IECP;
-
-
 
     bool bUseKernelUpdate = false;
     bool bVeboxStateCopyNeeded = false;

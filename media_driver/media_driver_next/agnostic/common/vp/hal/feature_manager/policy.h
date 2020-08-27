@@ -79,7 +79,10 @@ protected:
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
     MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetSteExecutionCaps(SwFilter* feature);
     MOS_STATUS GetAceExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetTccExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetProcampExecutionCaps(SwFilter* feature);
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
 
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);

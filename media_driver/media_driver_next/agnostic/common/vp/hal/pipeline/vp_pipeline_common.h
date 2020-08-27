@@ -109,7 +109,10 @@ struct _VP_EXECUTE_CAPS
             uint32_t bDN            : 1;   // Vebox DN needed;
             uint32_t bDI            : 1;   // Vebox DNDI enabled
             uint32_t bIECP          : 1;   // Vebox IECP needed;
-            uint32_t bAce           : 1;   // Vebox Ace needed;
+            uint32_t bSTE           : 1;   // Vebox STE needed;
+            uint32_t bACE           : 1;   // Vebox ACE needed;
+            uint32_t bTCC           : 1;   // Vebox TCC needed;
+            uint32_t bProcamp       : 1;   // Vebox Procamp needed;
             uint32_t bBeCSC         : 1;   // Vebox back end CSC needed;
             uint32_t bLACE          : 1;   // Vebox LACE Needed;
             uint32_t bQueryVariance : 1;
@@ -128,7 +131,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bComposite : 1;
             uint32_t bBobDI     : 1;
             uint32_t bIScaling  : 1;
-            uint32_t reserved   : 11;  // Reserved
+            uint32_t reserved   : 8;  // Reserved
         };
     };
 };
@@ -176,8 +179,8 @@ using PVP_SURFACE      = VP_SURFACE*;
 
 inline bool IsVeboxFeatureInuse(VP_EXECUTE_CAPS &caps)
 {
-    return (caps.bVebox && (!caps.bSFC || caps.bDN || caps.bDI || caps.bIECP ||
-            caps.bAce || caps.bBeCSC || caps.bQueryVariance || caps.bLACE || caps.bSTD));
+    return (caps.bVebox && (!caps.bSFC || caps.bDN || caps.bDI || caps.bIECP || caps.bSTE ||
+            caps.bACE || caps.bTCC || caps.bBeCSC || caps.bQueryVariance || caps.bLACE || caps.bSTD));
 }
 
 #endif

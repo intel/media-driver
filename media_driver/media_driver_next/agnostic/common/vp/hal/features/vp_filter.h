@@ -167,12 +167,38 @@ struct _VEBOX_DN_PARAMS
     bool                            bProgressive;
 };
 
+struct _VEBOX_STE_PARAMS
+{
+    bool                            bEnableSTE;                                 // STE Enabled
+    uint32_t                        dwSTEFactor;
+};
+
 struct _VEBOX_ACE_PARAMS
 {
     bool                            bEnableACE;                                 // ACE Enabled
     bool                            bAceLevelChanged;
     uint32_t                        dwAceLevel;
     uint32_t                        dwAceStrength;
+};
+
+struct _VEBOX_TCC_PARAMS
+{
+    bool                            bEnableTCC;                                 // TCC Enabled
+    uint8_t                         Red;
+    uint8_t                         Green;
+    uint8_t                         Blue;
+    uint8_t                         Cyan;
+    uint8_t                         Magenta;
+    uint8_t                         Yellow;
+};
+
+struct _VEBOX_PROCAMP_PARAMS
+{
+    bool                            bEnableProcamp;                            // Procamp Enabled
+    float                           fBrightness;
+    float                           fContrast;
+    float                           fHue;
+    float                           fSaturation;
 };
 
 struct _VEBOX_CSC_PARAMS
@@ -208,8 +234,14 @@ using SFC_ROT_MIR_PARAMS    = _SFC_ROT_MIR_PARAMS;
 using PSFC_ROT_MIR_PARAMS   = SFC_ROT_MIR_PARAMS * ;
 using VEBOX_DN_PARAMS       = _VEBOX_DN_PARAMS;
 using PVEBOX_DN_PARAMS      = VEBOX_DN_PARAMS *;
+using VEBOX_STE_PARAMS      = _VEBOX_STE_PARAMS;
+using PVEBOX_STE_PARAMS     = VEBOX_STE_PARAMS *;
 using VEBOX_ACE_PARAMS      = _VEBOX_ACE_PARAMS;
 using PVEBOX_ACE_PARAMS     = VEBOX_ACE_PARAMS *;
+using VEBOX_TCC_PARAMS      = _VEBOX_TCC_PARAMS;
+using PVEBOX_TCC_PARAMS     = VEBOX_TCC_PARAMS *;
+using VEBOX_PROCAMP_PARAMS  = _VEBOX_PROCAMP_PARAMS;
+using PVEBOX_PROCAMP_PARAMS = VEBOX_PROCAMP_PARAMS *;
 using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;
 using PVEBOX_CSC_PARAMS     = VEBOX_CSC_PARAMS *;
 using VEBOX_UPDATE_PARAMS      = _VEBOX_UPDATE_PARAMS;

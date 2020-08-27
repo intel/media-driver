@@ -38,6 +38,15 @@ namespace vp {
 
 #define INTERP(x0, x1, x, y0, y1)   ((uint32_t) floor(y0+(x-x0)*(y1-y0)/(double)(x1-x0)))
 
+const uint32_t  VpVeboxCmdPacket::m_satP1Table[MHW_STE_FACTOR_MAX + 1] = {
+    0x00000000, 0xfffffffe, 0xfffffffc, 0xfffffffa, 0xfffffff6, 0xfffffff4, 0xfffffff2, 0xfffffff0, 0xffffffee, 0xffffffec };
+
+const uint32_t   VpVeboxCmdPacket::m_satS0Table[MHW_STE_FACTOR_MAX + 1] = {
+    0x000000ef, 0x00000100, 0x00000113, 0x00000129, 0x0000017a, 0x000001a2, 0x000001d3, 0x00000211, 0x00000262, 0x000002d1 };
+
+const uint32_t   VpVeboxCmdPacket::m_satS1Table[MHW_STE_FACTOR_MAX + 1] = {
+    0x000000ab, 0x00000080, 0x00000066, 0x00000055, 0x000000c2, 0x000000b9, 0x000000b0, 0x000000a9, 0x000000a2, 0x0000009c };
+
 void VpVeboxCmdPacket::SetupSurfaceStates(
     bool                                    bDiVarianceEnable,
     PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
@@ -577,6 +586,108 @@ MOS_STATUS VpVeboxCmdPacket::SetDnParams(
     // bDNDITopFirst in DNDI parameters need be configured during SetDIParams.
 
     return eStatus;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetSteParams(
+    PVEBOX_STE_PARAMS                    pSteParams)
+{
+    VpVeboxRenderData               *pRenderData = GetLastExecRenderData();
+    MHW_VEBOX_IECP_PARAMS&           mhwVeboxIecpParams = pRenderData->GetIECPParams();
+
+    VP_RENDER_ASSERT(pSteParams);
+    VP_RENDER_ASSERT(pRenderData);
+
+    if (pSteParams->bEnableSTE)
+    {
+        pRenderData->IECP.STE.bSteEnabled = true;
+        mhwVeboxIecpParams.ColorPipeParams.bActive = true;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableSTE = true;
+
+        if (pSteParams->dwSTEFactor > MHW_STE_FACTOR_MAX)
+        {
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.dwSTEFactor = MHW_STE_FACTOR_MAX;
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satP1 = m_satP1Table[MHW_STE_FACTOR_MAX];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS0 = m_satS0Table[MHW_STE_FACTOR_MAX];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS1 = m_satS1Table[MHW_STE_FACTOR_MAX];
+        }
+        else
+        {
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.dwSTEFactor = pSteParams->dwSTEFactor;
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satP1 = m_satP1Table[pSteParams->dwSTEFactor];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS0 = m_satS0Table[pSteParams->dwSTEFactor];
+            mhwVeboxIecpParams.ColorPipeParams.SteParams.satS1 = m_satS1Table[pSteParams->dwSTEFactor];
+        }
+    }
+    else
+    {
+        pRenderData->IECP.STE.bSteEnabled = false;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableSTE = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetTccParams(
+    PVEBOX_TCC_PARAMS                    pTccParams)
+{
+    VpVeboxRenderData               *pRenderData = GetLastExecRenderData();
+    MHW_VEBOX_IECP_PARAMS&           mhwVeboxIecpParams = pRenderData->GetIECPParams();
+
+    VP_RENDER_ASSERT(pTccParams);
+    VP_RENDER_ASSERT(pRenderData);
+
+    if (pTccParams->bEnableTCC)
+    {
+        pRenderData->IECP.TCC.bTccEnabled = true;
+        mhwVeboxIecpParams.ColorPipeParams.bActive = true;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableTCC = true;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Magenta = pTccParams->Magenta;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Red = pTccParams->Red;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Yellow = pTccParams->Yellow;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Green = pTccParams->Green;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Cyan = pTccParams->Cyan;
+        mhwVeboxIecpParams.ColorPipeParams.TccParams.Blue = pTccParams->Blue;
+    }
+    else
+    {
+        pRenderData->IECP.TCC.bTccEnabled = false;
+        mhwVeboxIecpParams.ColorPipeParams.bEnableTCC = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetProcampParams(
+    PVEBOX_PROCAMP_PARAMS                    pProcampParams)
+{
+    VpVeboxRenderData               *pRenderData = GetLastExecRenderData();
+    MHW_VEBOX_IECP_PARAMS&           mhwVeboxIecpParams = pRenderData->GetIECPParams();
+
+    VP_RENDER_ASSERT(pProcampParams);
+    VP_RENDER_ASSERT(pRenderData);
+
+    if (pProcampParams->bEnableProcamp)
+    {
+        pRenderData->IECP.PROCAMP.bProcampEnabled = true;
+        mhwVeboxIecpParams.ProcAmpParams.bActive = true;
+        mhwVeboxIecpParams.ProcAmpParams.bEnabled = true;
+        mhwVeboxIecpParams.ProcAmpParams.brightness = (uint32_t)MOS_F_ROUND(pProcampParams->fBrightness * 16.0F);  // S7.4
+        mhwVeboxIecpParams.ProcAmpParams.contrast   = (uint32_t)MOS_UF_ROUND(pProcampParams->fContrast * 128.0F);  // U4.7
+        mhwVeboxIecpParams.ProcAmpParams.sinCS      = (uint32_t)MOS_F_ROUND(sin(MHW_DEGREE_TO_RADIAN(pProcampParams->fHue)) *
+                                                         pProcampParams->fContrast *
+                                                         pProcampParams->fSaturation * 256.0F);  // S7.8
+        mhwVeboxIecpParams.ProcAmpParams.cosCS      = (uint32_t)MOS_F_ROUND(cos(MHW_DEGREE_TO_RADIAN(pProcampParams->fHue)) *
+                                                         pProcampParams->fContrast *
+                                                         pProcampParams->fSaturation * 256.0F);  // S7.8
+    }
+    else
+    {
+        pRenderData->IECP.PROCAMP.bProcampEnabled = false;
+        mhwVeboxIecpParams.ProcAmpParams.bActive = false;
+        mhwVeboxIecpParams.ProcAmpParams.bEnabled = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(

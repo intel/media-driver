@@ -54,8 +54,7 @@
 #define IS_VP_VEBOX_DN_ONLY(_a) (_a.bDN &&          \
                                !(_a.bDI) &&   \
                                !(_a.bQueryVariance) && \
-                               !(_a.bIECP) && \
-                               !(_a.bAce))
+                               !(_a.bIECP))
 
 namespace vp {
     struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION

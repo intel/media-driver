@@ -109,6 +109,19 @@ protected:
     SwFilterFactory<SwFilterDenoise> m_swFilterFactory;
 };
 
+class SwFilterSteHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterSteHandler(VpInterface& vpInterface);
+    virtual ~SwFilterSteHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter* CreateSwFilter();
+protected:
+    virtual void Destory(SwFilter*& swFilter);
+protected:
+    SwFilterFactory<SwFilterSte> m_swFilterFactory;
+};
+
 class SwFilterAceHandler : public SwFilterFeatureHandler
 {
 public:
@@ -121,6 +134,33 @@ protected:
 protected:
     SwFilterFactory<SwFilterAce> m_swFilterFactory;
 };
+
+class SwFilterTccHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterTccHandler(VpInterface& vpInterface);
+    virtual ~SwFilterTccHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter* CreateSwFilter();
+protected:
+    virtual void Destory(SwFilter*& swFilter);
+protected:
+    SwFilterFactory<SwFilterTcc> m_swFilterFactory;
+};
+
+class SwFilterProcampHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterProcampHandler(VpInterface& vpInterface);
+    virtual ~SwFilterProcampHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter* CreateSwFilter();
+protected:
+    virtual void Destory(SwFilter*& swFilter);
+protected:
+    SwFilterFactory<SwFilterProcamp> m_swFilterFactory;
+};
+
 }
 
 #endif //__SW_FILTER_HANDLE_H__

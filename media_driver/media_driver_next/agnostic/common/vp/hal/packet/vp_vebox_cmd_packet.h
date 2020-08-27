@@ -213,6 +213,11 @@
 #define VPHAL_VEBOX_DI_LPFWTLUT7_SD_NATUAL                          255
 #define VPHAL_VEBOX_DI_LPFWTLUT7_HD_NATUAL                          255
 
+//!
+//! \brief STE factor
+//!
+
+#define MHW_STE_FACTOR_MAX                      9  // STE factor is 0 ~ 9
 
 //!
 //! \brief  Chroma Denoise params
@@ -455,6 +460,16 @@ public:
     virtual MOS_STATUS SetDnParams(PVEBOX_DN_PARAMS dnParams);
 
     //!
+    //! \brief    Setup STE Params for Vebox
+    //! \details  Setup surface STE Params for Vebox
+    //! \param    [in] steParams
+    //!           STE Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetSteParams(PVEBOX_STE_PARAMS steParams);
+
+    //!
     //! \brief    Setup ACE Params for Vebox
     //! \details  Setup surface ACE Params for Vebox
     //! \param    [in] aceParams
@@ -466,6 +481,26 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
+    //!
+    //! \brief    Setup TCC Params for Vebox
+    //! \details  Setup surface TCC Params for Vebox
+    //! \param    [in] tccParams
+    //!           TCC Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetTccParams(PVEBOX_TCC_PARAMS tccParams);
+
+    //!
+    //! \brief    Setup Procamp Params for Vebox
+    //! \details  Setup surface Procamp Params for Vebox
+    //! \param    [in] procampParams
+    //!           Procamp Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetProcampParams(PVEBOX_PROCAMP_PARAMS procampParams);
 
     //!
     //! \brief    Get DN luma parameters
@@ -965,6 +1000,11 @@ protected:
     // Statistics
     uint32_t                    m_dwVeboxPerBlockStatisticsWidth = 0;             //!< Per block statistics width
     uint32_t                    m_dwVeboxPerBlockStatisticsHeight = 0;            //!< Per block statistics height
+
+    // STE factor LUT
+    static const uint32_t       m_satP1Table[MHW_STE_FACTOR_MAX + 1];
+    static const uint32_t       m_satS0Table[MHW_STE_FACTOR_MAX + 1];
+    static const uint32_t       m_satS1Table[MHW_STE_FACTOR_MAX + 1];
 };
 
 }

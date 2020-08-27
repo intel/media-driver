@@ -54,9 +54,16 @@ enum FeatureType
     FeatureTypeDn               = 0x400,
     FeatureTypeDnOnVebox,
     FeatureTypeDi               = 0x500,
-    FeatureTypeAce              = 0x600,
+    FeatureTypeSte              = 0x600,
+    FeatureTypeSteOnVebox,
+    FeatureTypeAce              = 0x800,
     FeatureTypeAceOnVebox,
-    FeatureTypeSecureVeboxUpdate = 0x700,
+    FeatureTypeSecureVeboxUpdate = 0x900,
+    FeatureTypeTcc              = 0xA00,
+    FeatureTypeTccOnVebox,
+    FeatureTypeProcamp          = 0xB00,
+    FeatureTypeProcampOnVebox,
+    FeatureTypeProcampOnRender,
     // ...
     NumOfFeatureType
 };
@@ -299,6 +306,28 @@ private:
     FeatureParamDenoise m_Params = {};
 };
 
+struct FeatureParamSte : public FeatureParam
+{
+    bool                bEnableSTE;
+    uint32_t            dwSTEFactor;
+};
+
+class SwFilterSte : public SwFilter
+{
+public:
+    SwFilterSte(VpInterface& vpInterface);
+    virtual ~SwFilterSte();
+    virtual MOS_STATUS Clean();
+    virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamSte& GetSwFilterParams();
+    virtual SwFilter* Clone();
+    virtual bool operator == (SwFilter& swFilter);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+
+private:
+    FeatureParamSte m_Params = {};
+};
+
 struct FeatureParamAce : public FeatureParam
 {
     bool                bEnableACE;
@@ -321,6 +350,58 @@ public:
 
 private:
     FeatureParamAce m_Params = {};
+};
+
+struct FeatureParamTcc : public FeatureParam
+{
+    bool                bEnableTCC;
+    uint8_t             Red;
+    uint8_t             Green;
+    uint8_t             Blue;
+    uint8_t             Cyan;
+    uint8_t             Magenta;
+    uint8_t             Yellow;
+};
+
+class SwFilterTcc : public SwFilter
+{
+public:
+    SwFilterTcc(VpInterface& vpInterface);
+    virtual ~SwFilterTcc();
+    virtual MOS_STATUS Clean();
+    virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamTcc& GetSwFilterParams();
+    virtual SwFilter* Clone();
+    virtual bool operator == (SwFilter& swFilter);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+
+private:
+    FeatureParamTcc m_Params = {};
+};
+
+struct FeatureParamProcamp : public FeatureParam
+{
+    bool                bEnableProcamp;
+    float               fBrightness;
+    float               fContrast;
+    float               fHue;
+    float               fSaturation;
+};
+
+class SwFilterProcamp : public SwFilter
+{
+public:
+    SwFilterProcamp(VpInterface& vpInterface);
+    virtual ~SwFilterProcamp();
+    virtual MOS_STATUS Clean();
+    virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamProcamp& GetSwFilterParams();
+    virtual SwFilter* Clone();
+    virtual bool operator == (SwFilter& swFilter);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+
+private:
+    FeatureParamProcamp m_Params = {};
 };
 
 class SwFilterSet

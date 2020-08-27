@@ -24,7 +24,10 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_rot_mir_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_scaling_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_dn_filter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ste_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_ace_filter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_tcc_filter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_procamp_filter.cpp
 )
 
 set(TMP_HEADERS_
@@ -33,7 +36,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_rot_mir_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_scaling_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_dn_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ste_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_ace_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_tcc_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_procamp_filter.h
 )
 
 set(SOURCES_NEW

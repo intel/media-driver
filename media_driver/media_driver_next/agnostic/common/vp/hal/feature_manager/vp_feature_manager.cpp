@@ -139,9 +139,21 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeDn, p));
 
+    p = MOS_New(SwFilterSteHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeSte, p));
+
     p = MOS_New(SwFilterAceHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeAce, p));
+
+    p = MOS_New(SwFilterTccHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeTcc, p));
+
+    p = MOS_New(SwFilterProcampHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeProcamp, p));
 
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;
