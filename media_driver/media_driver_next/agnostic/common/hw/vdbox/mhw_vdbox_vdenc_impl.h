@@ -229,6 +229,7 @@ protected:
         cmd->DW5.CaptureMode                       = params->captureMode;
         cmd->DW5.ParallelCaptureAndEncodeSessionId = params->wirelessSessionId;
         cmd->DW5.TailPointerReadFrequency          = params->tailPointerReadFrequency;
+        cmd->DW5.QuantizationPrecisionOptimization = params->quantizationPrecision;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -861,9 +862,12 @@ protected:
         uint32_t width  = params->tileWidth >= 256 ? MOS_ALIGN_CEIL(params->tileWidth, 8) : params->tileWidth;
         uint32_t height = params->tileHeight >= 128 ? MOS_ALIGN_CEIL(params->tileHeight, 8) : params->tileHeight;
 
-        cmd->DW3.NumParEngine       = params->numPipe;
-        cmd->DW3.TileNumber         = params->tileId;
-        cmd->DW3.TileRowStoreSelect = params->tileRowStoreSelect;
+        cmd->DW3.NumParEngine               = params->numPipe;
+        cmd->DW3.TileNumber                 = params->tileId;
+        cmd->DW3.TileRowStoreSelect         = params->tileRowStoreSelect;
+        cmd->DW3.Log2WeightDenomLuma        = params->log2WeightDenomLuma;
+        cmd->DW3.HevcVp9Log2WeightDenomLuma = params->hevcVp9Log2WeightDenomLuma;
+        cmd->DW3.Log2WeightDenomChroma      = params->log2WeightDenomChroma;
 
         cmd->DW4.TileStartCtbX = params->tileStartLCUX * params->ctbSize;
         cmd->DW4.TileStartCtbY = params->tileStartLCUY * params->ctbSize;

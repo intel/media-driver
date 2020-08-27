@@ -109,6 +109,7 @@ struct _MHW_CMD_PAR_T(VDENC_PIPE_MODE_SELECT)
     uint8_t wirelessSessionId        = 0;
     uint8_t tailPointerReadFrequency = 0;
     uint8_t streamingBufferConfig    = 0;
+    uint8_t quantizationPrecision    = 0;
 };
 
 struct _MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)
@@ -199,18 +200,21 @@ struct _MHW_CMD_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
 {
     virtual ~_MHW_CMD_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)() = default;
 
-    bool     tileEnable             = false;
-    bool     tileRowStoreSelect     = false;
-    uint32_t tileWidth              = 0;
-    uint32_t tileHeight             = 0;
-    uint32_t numPipe                = 0;
-    uint32_t tileId                 = 0;
-    uint32_t tileStartLCUX          = 0;
-    uint32_t tileStartLCUY          = 0;
-    uint32_t ctbSize                = 0;
-    uint32_t tileStreamInOffset     = 0;
-    uint32_t tileLCUStreamOutOffset = 0;
-    uint32_t cumulativeCUTileOffset = 0;
+    bool     tileEnable                 = false;
+    bool     tileRowStoreSelect         = false;
+    uint32_t tileWidth                  = 0;
+    uint32_t tileHeight                 = 0;
+    uint32_t numPipe                    = 0;
+    uint32_t tileId                     = 0;
+    uint32_t tileStartLCUX              = 0;
+    uint32_t tileStartLCUY              = 0;
+    uint32_t ctbSize                    = 0;
+    uint32_t tileStreamInOffset         = 0;
+    uint32_t tileLCUStreamOutOffset     = 0;
+    uint32_t cumulativeCUTileOffset     = 0;
+    uint32_t log2WeightDenomLuma        = 0;
+    uint32_t log2WeightDenomChroma      = 0;
+    uint32_t hevcVp9Log2WeightDenomLuma = 0;
 };
 
 struct _MHW_CMD_PAR_T(VDENC_WALKER_STATE)
