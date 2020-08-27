@@ -162,8 +162,7 @@ MOS_STATUS CodechalDecodeJpegG12::DecodeStateLevel()
             break;
         case jpegYUV422V2Y:
         case jpegYUV422V4Y:
-            if (GFX_IS_GEN_8_OR_LATER(m_hwInterface->GetPlatform()) &&
-                jpegPicState.dwOutputFormat == Format_NV12)
+            if (jpegPicState.dwOutputFormat == Format_NV12)
             {
                 break;
             }

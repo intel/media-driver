@@ -1513,18 +1513,12 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
 
     // Add PipeControl to invalidate ISP and MediaState to avoid PageFault issue
     // This code is temporal and it will be moved to batch buffer end in short
-    if (GFX_IS_GEN_9_OR_LATER(m_hwInterface->GetPlatform()))
-    {
-        MHW_PIPE_CONTROL_PARAMS pipeControlParams;
-
-        MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
-        pipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
-        pipeControlParams.bGenericMediaStateClear = true;
-        pipeControlParams.bIndirectStatePointersDisable = true;
-        pipeControlParams.bDisableCSStall = false;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
-
-    }
+    MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+    pipeControlParams.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
+    pipeControlParams.bGenericMediaStateClear = true;
+    pipeControlParams.bIndirectStatePointersDisable = true;
+    pipeControlParams.bDisableCSStall = false;
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(&cmdBuffer, nullptr, &pipeControlParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
 

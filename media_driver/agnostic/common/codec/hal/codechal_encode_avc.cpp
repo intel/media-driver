@@ -9070,10 +9070,6 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecutePreEnc(EncoderParams* encodeParams)
     CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
         "ResetStatusReprot failed.");
 #else
-    // if(GFX_IS_RENDERCORE(m_hwInterface->GetPlatform(), IGFX_GEN8_CORE)) //WA for G8
-    // {
-    //     eStatus = pEncoder->pfnResetStatusReport(pEncoder);
-    // }
     CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
         "ResetStatusReprot failed.");
 #endif
