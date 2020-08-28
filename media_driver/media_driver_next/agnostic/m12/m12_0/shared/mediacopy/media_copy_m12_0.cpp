@@ -49,6 +49,9 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
     m_bltState->Initialize();
 
     // vebox init
+    m_veboxCopyState = MOS_New(VeboxCopyState, m_osInterface, m_mhwInterfaces);
+    MCPY_CHK_NULL_RETURN(m_veboxCopyState);
+    m_veboxCopyState->Initialize();
 
     return eStatus;
 }
@@ -56,15 +59,6 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
 MediaCopyStateM12_0::~MediaCopyStateM12_0()
 {
     MOS_Delete(m_bltState);
-}
-
-bool MediaCopyStateM12_0::VeboxFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)
-{
-    bool eStatus = false;
-    //eStatus = checkinpuforamt(src);
-    //eStatus = checkoutputformat(dst);
-
-    return eStatus;
 }
 
 bool MediaCopyStateM12_0::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)
@@ -96,7 +90,8 @@ MOS_STATUS MediaCopyStateM12_0::FeatureSupport(PMOS_RESOURCE src, PMOS_RESOURCE 
 MOS_STATUS MediaCopyStateM12_0::MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst)
 {
     // implementation
-    return MOS_STATUS_SUCCESS;
+    MCPY_CHK_NULL_RETURN(m_veboxCopyState);
+    return m_veboxCopyState->CopyMainSurface(src, dst);
 }
 
 MOS_STATUS MediaCopyStateM12_0::MediaBltCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst)

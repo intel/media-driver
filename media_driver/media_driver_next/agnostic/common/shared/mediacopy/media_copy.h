@@ -34,6 +34,7 @@
 #include "mhw_blt.h"
 #include "mhw_vebox.h"
 #include "mhw_render.h"
+#include "media_vebox_copy.h"
 
 #define MCPY_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_BLT, MOS_BLT_SUBCOMP_SELF, _stmt)
 #define MCPY_CHK_STATUS_RETURN(_stmt)        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_BLT, MOS_BLT_SUBCOMP_SELF, _stmt)
@@ -175,11 +176,10 @@ protected:
     //!           [in] Pointer to source surface
     //! \param    dst
     //!           [in] Pointer to destination surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
     //!
-    virtual bool VeboxFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)
-    {return MOS_STATUS_SUCCESS;}
+    virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
     //!
     //! \brief    render format support.
@@ -188,11 +188,11 @@ protected:
     //!           [in] Pointer to source surface
     //! \param    dst
     //!           [in] Pointer to destination surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
     //!
     virtual bool RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)
-    {return MOS_STATUS_SUCCESS;}
+    {return false;}
 
     //!
     //! \brief    feature support check on specific check.
@@ -269,5 +269,7 @@ public:
     MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, MCPY_VIDEO_MEMORY, false}; // source surface.
     MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, MCPY_VIDEO_MEMORY, false}; // destination surface.
 
+protected:
+    VeboxCopyState     * m_veboxCopyState = nullptr;
 };
 #endif

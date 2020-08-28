@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -138,6 +138,25 @@ public:
 
     finish:
         return eStatus;
+    }
+
+        //!
+    //! \brief    Add Vebox Tiling Convert Control Bits
+    //! \details  Add Vebox Tiling Convert Control Bits
+    //! \param    [in] cmdBuffer
+    //!           Pointers to the HW Cmd buffer
+    //! \param    [in] inSurParams
+    //!           Pointer to input vebox surface params
+    //! \param    [in] outSurParams
+    //!           Pointer to output vebox surface params
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS AddVeboxTilingConvert(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMHW_VEBOX_SURFACE_PARAMS        inSurParams,
+        PMHW_VEBOX_SURFACE_PARAMS        outSurParams)
+    {
+        return MOS_STATUS_SUCCESS;
     }
 
 protected:

@@ -724,6 +724,7 @@ typedef struct _MHW_VEBOX_SURFACE_PARAMS
     uint32_t                    bActive;
     bool                        bIsCompressed;
     MOS_FORMAT                  Format;              //!<  Surface format
+    MOS_RESOURCE_MMC_MODE       CompressionMode;     //!<  Surface Compression Mode
     uint32_t                    dwCompressionFormat; //!<  Surface Compression Format
     uint32_t                    dwWidth;             //!<  Surface width
     uint32_t                    dwHeight;            //!<  Surface height
@@ -732,6 +733,7 @@ typedef struct _MHW_VEBOX_SURFACE_PARAMS
     uint32_t                    dwStreamID;          //!<  Surface StreamID
     uint32_t                    dwYoffset;           //!<  Surface Yoffset in Vertical
     uint32_t                    dwUYoffset;          //!<  Surface Uoffset in Vertical
+    uint32_t                    dwOffset;            //!<  Surface Offset from Start Point
     MOS_TILE_TYPE               TileType;            //!<  Tile Type
     MOS_TILE_MODE_GMM           TileModeGMM;         //!<  Tile Mode from GMM Definition
     bool                        bGMMTileEnabled;     //!<  GMM defined tile mode flag
@@ -977,6 +979,22 @@ public:
     virtual MOS_STATUS AddVeboxSurfaceControlBits(
         PMHW_VEBOX_SURFACE_CNTL_PARAMS          pVeboxSurfCntlParams,
         uint32_t                                *pSurfCtrlBits) = 0;
+
+    //!
+    //! \brief    Add Vebox Tiling Convert Control Bits
+    //! \details  Add Vebox Tiling Convert Control Bits
+    //! \param    [in] cmdBuffer
+    //!           Pointers to the HW Cmd buffer
+    //! \param    [in] inSurParams
+    //!           Pointer to input vebox surface params
+    //! \param    [in] outSurParams
+    //!           Pointer to output vebox surface params
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS AddVeboxTilingConvert(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMHW_VEBOX_SURFACE_PARAMS        inSurParams,
+        PMHW_VEBOX_SURFACE_PARAMS        outSurParams) = 0;
 
     //!
     //! \brief    Decide Which GPU Node to use for Vebox

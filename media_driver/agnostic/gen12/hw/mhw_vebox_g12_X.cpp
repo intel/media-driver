@@ -2729,41 +2729,24 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
     MHW_CHK_NULL(inputSurface);
     MHW_CHK_NULL(outputSurface);
 
-    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
-    ResourceParams.presResource = inputSurface;
-    ResourceParams.HwCommandType = MOS_VEBOX_TILING_CONVERT;
-    ResourceParams.dwLsbNum = 12; // input/output surfaces must be 4Kbyte-aligned for VEBOX_TILING_CONVERT
-
-                                  // set up DW[2:1], input graphics address
-    ResourceParams.dwLocationInCmd = 1;
-    ResourceParams.pdwCmd = &(cmd.DW1_2.Value[0]);
-    ResourceParams.bIsWritable = false;
-    MHW_CHK_STATUS(pfnAddResourceToCmd(
-        m_osInterface, 
-        cmdBuffer, 
-        &ResourceParams));
-
-    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
-    ResourceParams.presResource = outputSurface;
-
-    ResourceParams.HwCommandType = MOS_VEBOX_TILING_CONVERT;
-    ResourceParams.dwLsbNum = 12; // input/output surfaces must be 4Kbyte-aligned for VEBOX_TILING_CONVERT
-
-                                  // set up DW[4:3], output graphics address
-    ResourceParams.dwLocationInCmd = 3;
-    ResourceParams.pdwCmd = &(cmd.DW3_4.Value[0]);
-    ResourceParams.bIsWritable = true;
-    MHW_CHK_STATUS(pfnAddResourceToCmd(
-        m_osInterface, 
-        cmdBuffer, 
-        &ResourceParams));
-
     // Set up VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS
     MOS_ZeroMemory(&veboxInputSurfCtrlBits, sizeof(veboxInputSurfCtrlBits));
     MOS_ZeroMemory(&veboxOutputSurfCtrlBits, sizeof(veboxOutputSurfCtrlBits));
 
     // Set Input surface compression status
-    veboxInputSurfCtrlBits.DW0.MemoryCompressionEnable = false;
+    if (inSurParams->CompressionMode != MOS_MMC_DISABLED)
+    {
+        veboxInputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
+
+        if (inSurParams->CompressionMode == MOS_MMC_RC)
+        {
+            veboxInputSurfCtrlBits.DW0.CompressionType = 1;
+        }
+        else
+        {
+            veboxInputSurfCtrlBits.DW0.CompressionType = 0;
+        }
+    }
 
     switch (inputSurface->TileType)
     {
@@ -2778,27 +2761,86 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
         break;
     }
 
-    surface = outputSurface;
-    veboxOutputSurfCtrlBits.DW0.MemoryCompressionEnable = false;
-    veboxOutputSurfCtrlBits.DW0.CompressionType = 0;
-    if (surface)
+    // Set Output surface compression status
+    if (outputSurface)
     {
-        switch (surface->TileType)
+        // Double Buffer copy
+        surface = outputSurface;
+
+        if (outSurParams->CompressionMode != MOS_MMC_DISABLED)
         {
-        case MOS_TILE_YF:
-            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
-            break;
-        case MOS_TILE_YS:
-            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
-            break;
-        default:
-            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
-            break;
+            veboxInputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
+
+            if (outSurParams->CompressionMode == MOS_MMC_RC)
+            {
+                veboxInputSurfCtrlBits.DW0.CompressionType = 1;
+            }
+            else
+            {
+                veboxInputSurfCtrlBits.DW0.CompressionType = 0;
+            }
+        }
+
+        if (surface)
+        {
+            switch (surface->TileType)
+            {
+            case MOS_TILE_YF:
+                veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
+                break;
+            case MOS_TILE_YS:
+                veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
+                break;
+            default:
+                veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
+                break;
+            }
+        }
+
+    }
+    else
+    {
+        // In-Place Resolve
+        surface = inputSurface;
+
+        if (inSurParams->CompressionMode == MOS_MMC_MC)
+        {
+            veboxOutputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
+            veboxOutputSurfCtrlBits.DW0.CompressionType = 1;
         }
     }
 
-    cmd.DW1_2.InputSurfaceControlBits = (uint64_t)veboxInputSurfCtrlBits.DW0.Value;
-    cmd.DW3_4.OutputSurfaceControlBits = (uint64_t)veboxOutputSurfCtrlBits.DW0.Value;
+    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+    ResourceParams.presResource = inputSurface;
+    ResourceParams.HwCommandType = MOS_VEBOX_TILING_CONVERT;
+
+    // set up DW[2:1], input graphics address
+    ResourceParams.dwLocationInCmd = 1;
+    ResourceParams.pdwCmd = &(cmd.DW1_2.Value[0]);
+    ResourceParams.bIsWritable = false;
+    ResourceParams.dwOffset = inSurParams->dwOffset + veboxInputSurfCtrlBits.DW0.Value;
+    MHW_CHK_STATUS(pfnAddResourceToCmd(m_osInterface, cmdBuffer, &ResourceParams));
+
+    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+
+    if (outputSurface)
+    {
+        ResourceParams.presResource = outputSurface;
+    }
+    else
+    {
+        ResourceParams.presResource = inputSurface;
+    }
+
+    ResourceParams.HwCommandType = MOS_VEBOX_TILING_CONVERT;
+
+    // set up DW[4:3], output graphics address
+    ResourceParams.dwLocationInCmd = 3;
+    ResourceParams.pdwCmd = &(cmd.DW3_4.Value[0]);
+    ResourceParams.bIsWritable = true;
+    ResourceParams.dwOffset =
+        (outputSurface != nullptr ? outSurParams->dwOffset : inSurParams->dwOffset) + veboxOutputSurfCtrlBits.DW0.Value;
+    MHW_CHK_STATUS(pfnAddResourceToCmd(m_osInterface, cmdBuffer, &ResourceParams));
 
     Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize);
 

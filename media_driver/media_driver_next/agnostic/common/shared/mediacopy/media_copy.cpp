@@ -37,6 +37,11 @@ MediaCopyBaseState::~MediaCopyBaseState()
 {
     MOS_STATUS              eStatus;
 
+    if (m_veboxCopyState)
+    {
+        MOS_Delete(m_veboxCopyState);
+    }
+
     if (m_mhwInterfaces)
     {
         if (m_mhwInterfaces->m_cpInterface)
@@ -83,7 +88,7 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
     }
 
     // vebox cap check.
-    if (!VeboxFormatSupportCheck(m_mcpySrc.OsRes, m_mcpyDst.OsRes) || // format check, implemented on Gen derivate class.
+    if (!IsVeboxCopySupported(m_mcpySrc.OsRes, m_mcpyDst.OsRes) || // format check, implemented on Gen derivate class.
         (m_mcpyDst.CompressionMode == MOS_MMC_RC) || // compression check
         m_mcpySrc.bAuxSuface)
     {
@@ -221,6 +226,30 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
     }
 
     return eStatus;
+}
+
+bool MediaCopyBaseState::IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst)
+{
+    bool supported = false;
+
+    if (m_osInterface &&
+        !MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVERing))
+    {
+        return false;
+    }
+
+    if (m_veboxCopyState)
+    {
+        supported = m_veboxCopyState->IsFormatSupported(src) && m_veboxCopyState->IsFormatSupported(dst);
+    }
+
+    if (src->TileType == MOS_TILE_LINEAR &&
+        dst->TileType == MOS_TILE_LINEAR)
+    {
+        supported = false;
+    }
+
+    return supported;
 }
 
 //!

@@ -48,26 +48,14 @@ public:
     virtual MOS_STATUS Initialize(  PMOS_INTERFACE  osInterface, MhwInterfaces *mhwInterfaces);
 
     //!
-    //! \brief    vebox format support.
-    //! \details  surface format support.
-    //! \param    src
-    //!           [in] Pointer to source surface
-    //! \param    dst
-    //!           [in] Pointer to destination surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
-    //!
-    virtual bool VeboxFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst);
-
-    //!
     //! \brief    render format support.
     //! \details  surface format support.
     //! \param    src
     //!           [in] Pointer to source surface
     //! \param    dst
     //!           [in] Pointer to destination surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
     //!
     virtual bool RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
@@ -80,8 +68,8 @@ public:
     //!           [in] Pointer to destination surface
     //! \param    caps
     //!           [in] reference of featue supported engine
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
     //!
     virtual MOS_STATUS FeatureSupport(PMOS_RESOURCE src, PMOS_RESOURCE dst,
             MCPY_STATE_PARAMS& mcpy_src, MCPY_STATE_PARAMS& mcpy_dst, MCPY_ENGINE_CAPS& caps);
@@ -124,7 +112,6 @@ protected:
     //!
     virtual MOS_STATUS MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
-    BltState* m_bltState    = nullptr;
-
+    BltState        * m_bltState       = nullptr;
 };
 #endif // __MEDIA_COPY_M12_0_H__
