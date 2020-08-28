@@ -1764,6 +1764,23 @@ bool VPHAL_VEBOX_STATE_G9_BASE::IsNeeded(
             pSrcSurface,
             &pRenderPassData->bCompNeeded));
 
+    //If using Vebox to Crop, setting the bVEBOXCroppingUsed = true. We use the rcSrc to set Vebox width/height instead of using rcMaxsrc in VeboxAdjustBoundary().
+    if (IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) &&
+        ((uint32_t)pSrcSurface->rcSrc.bottom < pSrcSurface->dwHeight ||
+            (uint32_t)pSrcSurface->rcSrc.right < pSrcSurface->dwWidth))
+    {
+        pSrcSurface->bVEBOXCroppingUsed = true;
+        VPHAL_RENDER_NORMALMESSAGE("bVEBOXCroppingUsed = true, pSrcSurface->rcSrc.bottom: %d, pSrcSurface->rcSrc.right: %d; pSrcSurface->dwHeight: %d, pSrcSurface->dwHeight: %d;",
+            (uint32_t)pSrcSurface->rcSrc.bottom,
+            (uint32_t)pSrcSurface->rcSrc.right,
+            pSrcSurface->dwHeight,
+            pSrcSurface->dwWidth);
+    }
+    else
+    {
+        pSrcSurface->bVEBOXCroppingUsed = false;
+    }
+
     // Set MMC State
     SET_VPHAL_MMC_STATE(pRenderData, pVeboxState->bEnableMMC);
 
