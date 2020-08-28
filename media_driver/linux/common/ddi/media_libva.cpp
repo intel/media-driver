@@ -1669,6 +1669,7 @@ VAStatus DdiMedia__Initialize (
         }
         mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
 #endif
+        mediaCtx->pMediaCopyState           = *mosCtx.ppMediaCopyState;
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
@@ -1855,6 +1856,8 @@ VAStatus DdiMedia__Initialize (
         mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
         mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
         mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
+        mosCtx.ppMediaCopyState      = &mediaCtx->pMediaCopyState;
+        mosCtx.pfnMediaCopy          = mediaCtx->pfnMediaCopy;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
