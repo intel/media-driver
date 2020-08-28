@@ -1385,6 +1385,7 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
     PMHW_SFC_AVS_STATE          pMhwAvsState = nullptr;
 
     MHW_SCALING_MODE            scalingMode  = MHW_SCALING_AVS;
+    bool                        bUse8x8Filter = false;
 
     VPHAL_RENDER_CHK_NULL(m_sfcInterface);
 
@@ -1422,6 +1423,11 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
             pMhwAvsState->dwAVSFilterMode = MEDIASTATE_SFC_AVS_FILTER_8x8;
         }
 
+        if (pMhwAvsState->dwAVSFilterMode == MEDIASTATE_SFC_AVS_FILTER_8x8)
+        {
+            bUse8x8Filter = true;
+        }
+
         VPHAL_RENDER_CHK_STATUS(m_sfcInterface->SetSfcSamplerTable(
             &m_avsState.LumaCoeffs,
             &m_avsState.ChromaCoeffs,
@@ -1430,7 +1436,7 @@ MOS_STATUS VphalSfcState::SetAvsStateParams()
             m_renderData.fScaleX,
             m_renderData.fScaleY,
             m_renderData.SfcSrcChromaSiting,
-            MEDIASTATE_SFC_AVS_FILTER_8x8 == m_renderData.SfcStateParams->dwAVSFilterMode,
+            bUse8x8Filter,
             0,
             0));
     }
