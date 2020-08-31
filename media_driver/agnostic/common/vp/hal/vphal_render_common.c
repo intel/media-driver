@@ -428,7 +428,7 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam = {};
     bool                                bEnableSLM = false;
     RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
-    MOS_RESOURCE                        GpuStatusBuffer = {};
+    PMOS_RESOURCE                       gpuStatusBuffer = nullptr;
     MediaPerfProfiler                   *pPerfProfiler = nullptr;
     MOS_CONTEXT                         *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
@@ -465,13 +465,13 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     if (bLastSubmission && pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
-        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
-
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer));
+        VPHAL_RENDER_CHK_NULL(gpuStatusBuffer);
         // Register the buffer
-        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, &GpuStatusBuffer, true, true));
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, gpuStatusBuffer, true, true));
 
         GenericPrologParams.bEnableMediaFrameTracking = true;
-        GenericPrologParams.presMediaFrameTrackingSurface = &GpuStatusBuffer;
+        GenericPrologParams.presMediaFrameTrackingSurface  = gpuStatusBuffer;
         GenericPrologParams.dwMediaFrameTrackingTag = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
         GenericPrologParams.dwMediaFrameTrackingAddrOffset = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
 
@@ -693,7 +693,7 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     MHW_MEDIA_STATE_FLUSH_PARAM         FlushParam = {};
     bool                                bEnableSLM = false;
     RENDERHAL_GENERIC_PROLOG_PARAMS     GenericPrologParams = {};
-    MOS_RESOURCE                        GpuStatusBuffer = {};
+    PMOS_RESOURCE                       gpuStatusBuffer = nullptr;
     MediaPerfProfiler                   *pPerfProfiler = nullptr;
     MOS_CONTEXT                         *pOsContext = nullptr;
     PMHW_MI_MMIOREGISTERS               pMmioRegisters = nullptr;
@@ -730,13 +730,14 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     if (bLastSubmission && pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
-        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer));
+        VPHAL_RENDER_CHK_NULL(gpuStatusBuffer);
 
         // Register the buffer
-        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, &GpuStatusBuffer, true, true));
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, gpuStatusBuffer, true, true));
 
         GenericPrologParams.bEnableMediaFrameTracking = true;
-        GenericPrologParams.presMediaFrameTrackingSurface = &GpuStatusBuffer;
+        GenericPrologParams.presMediaFrameTrackingSurface = gpuStatusBuffer;
         GenericPrologParams.dwMediaFrameTrackingTag = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
         GenericPrologParams.dwMediaFrameTrackingAddrOffset = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
 

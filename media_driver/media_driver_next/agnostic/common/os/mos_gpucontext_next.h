@@ -226,9 +226,12 @@ public:
 
     //!
     //! \brief    Get status buffer resource for current gpu context
-    //! \return   GraphicsResource*
+    //! \return   MOS_RESOURCE_HANDLE
     //!
-    GraphicsResourceNext* GetStatusBufferResource() { return m_statusBufferResource; }
+    MOS_RESOURCE_HANDLE GetStatusBufferResource()
+    {
+        return m_statusBufferResource;
+    }
 
     //!
     //! \brief    Get VE attribute buffer for current gpu context
@@ -253,7 +256,7 @@ protected:
     GPU_CONTEXT_HANDLE m_gpuContextHandle = 0;
 
     //! \brief    Gpu status report buffer
-    GraphicsResourceNext *m_statusBufferResource = nullptr;
+    MOS_RESOURCE_HANDLE m_statusBufferResource = nullptr;
 
     //! \brief    Track the GPU Context Client Info
     MOS_GPU_CONTEXT m_gpuContext;

@@ -1405,7 +1405,7 @@ public:
 
     static MOS_STATUS GetGpuStatusBufferResource(
         MOS_STREAM_HANDLE streamState,
-        MOS_RESOURCE_HANDLE resource,
+        MOS_RESOURCE_HANDLE &resource,
         GPU_CONTEXT_HANDLE gpuContext);
     
     //!

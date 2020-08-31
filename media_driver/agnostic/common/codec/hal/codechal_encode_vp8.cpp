@@ -3435,15 +3435,16 @@ MOS_STATUS CodechalEncodeVp8::ExecutePictureLevel()
         // of the BB and keep the current frame's tag at the end of the BB. There will be a delay for tag update but it should be fine
         // as long as Dec/VP/Enc won't depend on this PAK so soon.
         MHW_MI_STORE_DATA_PARAMS                        Params;
-        MOS_RESOURCE                                    resGlobalGpuContextSyncTagBuffer;
-        uint32_t                                           dwValue;
+        PMOS_RESOURCE                                   resGlobalGpuContextSyncTagBuffer = nullptr;
+        uint32_t                                        dwValue;
 
         CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetGpuStatusBufferResource(
             m_osInterface,
-            &resGlobalGpuContextSyncTagBuffer));
+            resGlobalGpuContextSyncTagBuffer));
+        CODECHAL_HW_CHK_NULL_RETURN(resGlobalGpuContextSyncTagBuffer);
 
         dwValue = m_osInterface->pfnGetGpuStatusTag(m_osInterface, m_osInterface->CurrentGpuContextOrdinal);
-        Params.pOsResource = &resGlobalGpuContextSyncTagBuffer;
+        Params.pOsResource = resGlobalGpuContextSyncTagBuffer;
         Params.dwResourceOffset = m_osInterface->pfnGetGpuStatusTagOffset(m_osInterface, m_osInterface->CurrentGpuContextOrdinal);
         Params.dwValue = (dwValue > 0) ? (dwValue - 1) : 0;
         CODECHAL_HW_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiStoreDataImmCmd(&cmdBuffer, &Params));

@@ -159,7 +159,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVecsStatusTag(
     PMOS_INTERFACE                      pOsInterface,
     PMOS_COMMAND_BUFFER                 pCmdBuffer)
 {
-    MOS_RESOURCE                        GpuStatusBuffer;
+    PMOS_RESOURCE                       gpuStatusBuffer = nullptr;
     MHW_MI_FLUSH_DW_PARAMS              FlushDwParams;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
@@ -177,17 +177,17 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVecsStatusTag(
     // Get GPU Status buffer
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(
         pOsInterface, 
-        &GpuStatusBuffer));
-
+        gpuStatusBuffer));
+    VPHAL_RENDER_CHK_NULL(gpuStatusBuffer);
     // Register the buffer
     VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
-        &GpuStatusBuffer,
+        gpuStatusBuffer,
         true,
         true));
 
     MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
-    FlushDwParams.pOsResource       = &GpuStatusBuffer;
+    FlushDwParams.pOsResource       = gpuStatusBuffer;
     FlushDwParams.dwResourceOffset  = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
     FlushDwParams.dwDataDW1         = pOsInterface->pfnGetGpuStatusTag(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
     VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiFlushDwCmd(
@@ -1747,8 +1747,6 @@ finish:
 //!           reference to Cmd buffer control struct
 //! \param    [out] GenericPrologParams
 //!           Generic prolog params struct to be set
-//! \param    [out] GpuStatusBuffer
-//!           GpuStatusBuffer resource to be set
 //! \param    [out] iRemaining
 //!           integer showing initial cmd buffer usage
 //! \return   MOS_STATUS
@@ -1757,7 +1755,6 @@ finish:
 MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
     MOS_COMMAND_BUFFER&                      CmdBuffer,
     RENDERHAL_GENERIC_PROLOG_PARAMS&         GenericPrologParams,
-    MOS_RESOURCE&                            GpuStatusBuffer,
     int32_t&                                 iRemaining)
 {
     MOS_STATUS                              eStatus      = MOS_STATUS_SUCCESS;
@@ -1799,14 +1796,15 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
         (pVeboxState->m_sfcPipeState != nullptr && !pVeboxState->m_sfcPipeState->m_bSFC2Pass) &&
         pOsInterface->bEnableKmdMediaFrameTracking)
     {
+        PMOS_RESOURCE gpuStatusBuffer = nullptr;
         // Get GPU Status buffer
-        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
-
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer));
+        VPHAL_RENDER_CHK_NULL(gpuStatusBuffer);
         // Register the buffer
-        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, &GpuStatusBuffer, true, true));
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, gpuStatusBuffer, true, true));
 
         GenericPrologParams.bEnableMediaFrameTracking       = true;
-        GenericPrologParams.presMediaFrameTrackingSurface   = &GpuStatusBuffer;
+        GenericPrologParams.presMediaFrameTrackingSurface   = gpuStatusBuffer;
         GenericPrologParams.dwMediaFrameTrackingTag         = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
         GenericPrologParams.dwMediaFrameTrackingAddrOffset  = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
 
@@ -2143,7 +2141,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
     MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams                   = {};
     PMHW_VEBOX_INTERFACE                    pVeboxInterface                 = {};
     RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams             = {};
-    MOS_RESOURCE                            GpuStatusBuffer                 = {};
     PVPHAL_VEBOX_STATE                      pVeboxState                     = this;
     PVPHAL_VEBOX_RENDER_DATA                pRenderData                     = GetLastExecRenderData();
 
@@ -2166,7 +2163,6 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd()
     VPHAL_RENDER_CHK_STATUS(VeboxSendVeboxCmd_Prepare(
         CmdBuffer,
         GenericPrologParams,
-        GpuStatusBuffer,
         iRemaining));
 
     VPHAL_RENDER_CHK_STATUS(VeboxRenderVeboxCmd(

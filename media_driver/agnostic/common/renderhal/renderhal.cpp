@@ -4926,7 +4926,7 @@ MOS_STATUS RenderHal_InitCommandBuffer(
             pCmdBuffer->Attributes.bEnableMediaFrameTracking = pGenericPrologParams->bEnableMediaFrameTracking;
             pCmdBuffer->Attributes.dwMediaFrameTrackingTag = pGenericPrologParams->dwMediaFrameTrackingTag;
             pCmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = pGenericPrologParams->dwMediaFrameTrackingAddrOffset;
-            pCmdBuffer->Attributes.resMediaFrameTrackingSurface = *(pGenericPrologParams->presMediaFrameTrackingSurface);
+            pCmdBuffer->Attributes.resMediaFrameTrackingSurface   = pGenericPrologParams->presMediaFrameTrackingSurface;
         }
         else
         {
@@ -5147,7 +5147,7 @@ MOS_STATUS RenderHal_SendRcsStatusTag(
     PMOS_INTERFACE               pOsInterface;
     PMHW_MI_INTERFACE            pMhwMiInterface;
     MHW_PIPE_CONTROL_PARAMS      PipeCtl;
-    MOS_RESOURCE                 OsResource;
+    PMOS_RESOURCE                osResource = nullptr;
 
     //------------------------------------
     MHW_RENDERHAL_CHK_NULL(pRenderHal);
@@ -5160,14 +5160,15 @@ MOS_STATUS RenderHal_SendRcsStatusTag(
     pMhwMiInterface = pRenderHal->pMhwMiInterface;
 
     // Get the Os Resource
-    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &OsResource));
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, osResource));
+    MHW_RENDERHAL_CHK_NULL(osResource);
 
     // Register the buffer
-    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, &OsResource, true, true));
+    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnRegisterResource(pOsInterface, osResource, true, true));
 
     // Issue pipe control to write GPU Status Tag
     PipeCtl                   = g_cRenderHal_InitPipeControlParams;
-    PipeCtl.presDest          = &OsResource;
+    PipeCtl.presDest          = osResource;
     PipeCtl.dwResourceOffset  = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal); //MOS_GPU_CONTEXT_RENDER or MOS_GPU_CONTEXT_RENDER3
     PipeCtl.dwDataDW1         = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
     PipeCtl.dwPostSyncOp      = MHW_FLUSH_WRITE_IMMEDIATE_DATA;

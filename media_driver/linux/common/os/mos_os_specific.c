@@ -1041,10 +1041,10 @@ uint32_t Linux_GetGPUTag(
         
         if (pOsInterface->apoMosEnabled)
         {
-            MOS_RESOURCE gpuStatusResource;
-            MOS_ZeroMemory(&gpuStatusResource, sizeof(MOS_RESOURCE));
-            MOS_OS_CHK_STATUS_RETURN(MosInterface::GetGpuStatusBufferResource(pOsInterface->osStreamState, &gpuStatusResource, handle));
-            auto gpuStatusData = (MOS_GPU_STATUS_DATA *)gpuStatusResource.pData;
+            PMOS_RESOURCE gpuStatusResource = nullptr;
+            MOS_OS_CHK_STATUS_RETURN(MosInterface::GetGpuStatusBufferResource(pOsInterface->osStreamState, gpuStatusResource, handle));
+            MOS_OS_CHK_NULL_RETURN(gpuStatusResource);
+            auto gpuStatusData = (MOS_GPU_STATUS_DATA *)gpuStatusResource->pData;
             if (gpuStatusData == nullptr)
             {
                 MOS_OS_ASSERTMESSAGE("cannot find ");
@@ -5476,12 +5476,11 @@ int32_t Mos_Specific_IsNullHWEnabled(
 //!
 MOS_STATUS Mos_Specific_GetGpuStatusBufferResource(
     PMOS_INTERFACE         pOsInterface,
-    PMOS_RESOURCE          pOsResource)
+    PMOS_RESOURCE          &pOsResource)
 {
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
-    MOS_OS_CHK_NULL_RETURN(pOsResource);
 
     if (pOsInterface->apoMosEnabled)
     {
@@ -5496,7 +5495,12 @@ MOS_STATUS Mos_Specific_GetGpuStatusBufferResource(
         auto resource = gpuContext->GetStatusBufferResource();
         MOS_OS_CHK_NULL_RETURN(resource);
 
+        pOsResource = gpuContext->GetStatusBufferMosResource();
+        MOS_OS_CHK_NULL_RETURN(pOsResource);
+        MOS_ZeroMemory(pOsResource, sizeof(MOS_RESOURCE));
+
         MOS_OS_CHK_STATUS_RETURN(resource->ConvertToMosResource(pOsResource));
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -5507,9 +5511,7 @@ MOS_STATUS Mos_Specific_GetGpuStatusBufferResource(
 
     pOsContext = pOsInterface->pOsContext;
 
-    MOS_ZeroMemory(pOsResource, sizeof(*pOsResource));
-
-    *pOsResource = *(pOsContext->pGPUStatusBuffer);
+    pOsResource = pOsContext->pGPUStatusBuffer;
     return MOS_STATUS_SUCCESS;
 }
 

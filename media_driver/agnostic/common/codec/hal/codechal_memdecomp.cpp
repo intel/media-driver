@@ -766,10 +766,11 @@ MOS_STATUS MediaMemDecompState::WriteSyncTagToResourceCmd(
 
     MHW_FUNCTION_ENTER;
 
-    MOS_RESOURCE globalGpuContextSyncTagBuffer;
+    PMOS_RESOURCE globalGpuContextSyncTagBuffer = nullptr;
     MHW_CHK_STATUS_RETURN(m_osInterface->pfnGetGpuStatusBufferResource(
         m_osInterface,
-        &globalGpuContextSyncTagBuffer));
+        globalGpuContextSyncTagBuffer));
+    MHW_CHK_NULL_RETURN(globalGpuContextSyncTagBuffer);
 
     uint32_t offset = m_osInterface->pfnGetGpuStatusTagOffset(
         m_osInterface,
@@ -779,7 +780,7 @@ MOS_STATUS MediaMemDecompState::WriteSyncTagToResourceCmd(
         m_osInterface->CurrentGpuContextOrdinal);
 
     MHW_MI_STORE_DATA_PARAMS params;
-    params.pOsResource      = &globalGpuContextSyncTagBuffer;
+    params.pOsResource      = globalGpuContextSyncTagBuffer;
     params.dwResourceOffset = offset;
     params.dwValue          = value;
 

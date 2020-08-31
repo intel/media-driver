@@ -345,15 +345,16 @@ void GpuContextSpecificNext::Clear()
     MOS_OS_FUNCTION_ENTER;
 
     // hanlde the status buf bundled w/ the specified gpucontext
-    if (m_statusBufferResource)
+    if (m_statusBufferResource && m_statusBufferResource->pGfxResourceNext)
     {
-        if (m_statusBufferResource->Unlock(m_osContext) != MOS_STATUS_SUCCESS)
+        if (m_statusBufferResource->pGfxResourceNext->Unlock(m_osContext) != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE("failed to unlock the status buf bundled w/ the specified gpucontext");
         }
-        m_statusBufferResource->Free(m_osContext, 0);
-        MOS_Delete(m_statusBufferResource);
+        m_statusBufferResource->pGfxResourceNext->Free(m_osContext, 0);
+        MOS_Delete(m_statusBufferResource->pGfxResourceNext);
     }
+    MOS_FreeMemAndSetNull(m_statusBufferResource);
 
     MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
 
@@ -1412,6 +1413,9 @@ MOS_STATUS GpuContextSpecificNext::AllocateGPUStatusBuf()
 {
     MOS_OS_FUNCTION_ENTER;
 
+    m_statusBufferResource = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
+    MOS_OS_CHK_NULL_RETURN(m_statusBufferResource);
+
     GraphicsResourceNext::CreateParams params;
     params.m_tileType  = MOS_TILE_LINEAR;
     params.m_type      = MOS_GFXRES_BUFFER;
@@ -1438,6 +1442,8 @@ MOS_STATUS GpuContextSpecificNext::AllocateGPUStatusBuf()
         return MOS_STATUS_UNKNOWN;
     }
 
-    m_statusBufferResource = graphicsResource;
+    MOS_STATUS eStatus = graphicsResource->ConvertToMosResource(m_statusBufferResource);
+    MOS_OS_CHK_STATUS_RETURN(eStatus);
+
     return MOS_STATUS_SUCCESS;
 }

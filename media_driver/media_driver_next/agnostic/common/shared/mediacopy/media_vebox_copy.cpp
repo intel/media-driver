@@ -457,7 +457,7 @@ MOS_STATUS VeboxCopyState::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
     MEDIA_SYSTEM_INFO* pGtSystemInfo;
     uint32_t                    iRemaining;
     RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams = {};
-    MOS_RESOURCE                            GpuStatusBuffer;
+    PMOS_RESOURCE                           gpuStatusBuffer = nullptr;
 
     //---------------------------------------------
     VEBOX_COPY_CHK_NULL_RETURN(cmdBuffer);
@@ -475,13 +475,13 @@ MOS_STATUS VeboxCopyState::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
     if (pOsInterface->bEnableKmdMediaFrameTracking)
     {
         // Get GPU Status buffer
-        VEBOX_COPY_CHK_STATUS_RETURN(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
-
+        VEBOX_COPY_CHK_STATUS_RETURN(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer));
+        VEBOX_COPY_CHK_NULL_RETURN(gpuStatusBuffer);
         // Register the buffer
-        VEBOX_COPY_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(pOsInterface, &GpuStatusBuffer, true, true));
+        VEBOX_COPY_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(pOsInterface, gpuStatusBuffer, true, true));
 
         GenericPrologParams.bEnableMediaFrameTracking = true;
-        GenericPrologParams.presMediaFrameTrackingSurface = &GpuStatusBuffer;
+        GenericPrologParams.presMediaFrameTrackingSurface = gpuStatusBuffer;
         GenericPrologParams.dwMediaFrameTrackingTag = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
         GenericPrologParams.dwMediaFrameTrackingAddrOffset = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
 
@@ -496,7 +496,7 @@ MOS_STATUS VeboxCopyState::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
         cmdBuffer->Attributes.bEnableMediaFrameTracking = GenericPrologParams.bEnableMediaFrameTracking;
         cmdBuffer->Attributes.dwMediaFrameTrackingTag = GenericPrologParams.dwMediaFrameTrackingTag;
         cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = GenericPrologParams.dwMediaFrameTrackingAddrOffset;
-        cmdBuffer->Attributes.resMediaFrameTrackingSurface = *(GenericPrologParams.presMediaFrameTrackingSurface);
+        cmdBuffer->Attributes.resMediaFrameTrackingSurface = GenericPrologParams.presMediaFrameTrackingSurface;
     }
 
     // initialize command buffer attributes

@@ -4311,7 +4311,7 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     {
         cmdBuffer->Attributes.bEnableMediaFrameTracking        = true;
         cmdBuffer->Attributes.resMediaFrameTrackingSurface     =
-            m_encodeStatusBuf.resStatusBuffer;
+            &m_encodeStatusBuf.resStatusBuffer;
         cmdBuffer->Attributes.dwMediaFrameTrackingTag          = m_storeData;
         // Set media frame tracking address offset(the offset from the encoder status buffer page)
         cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset   = 0;

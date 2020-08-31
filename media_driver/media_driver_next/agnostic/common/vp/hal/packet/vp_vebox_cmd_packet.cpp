@@ -927,7 +927,6 @@ MOS_STATUS VpVeboxCmdPacket::SendVeboxCmd(MOS_COMMAND_BUFFER* commandBuffer)
     MHW_MI_FLUSH_DW_PARAMS                  FlushDwParams;
     PMHW_VEBOX_INTERFACE                    pVeboxInterface;
     RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams;
-    MOS_RESOURCE                            GpuStatusBuffer;
 
     eStatus                 = MOS_STATUS_SUCCESS;
     pVeboxInterface         = m_hwInterface->m_veboxInterface;
@@ -938,7 +937,6 @@ MOS_STATUS VpVeboxCmdPacket::SendVeboxCmd(MOS_COMMAND_BUFFER* commandBuffer)
     eStatus = PrepareVeboxCmd(
                   commandBuffer,
                   GenericPrologParams,
-                  GpuStatusBuffer,
                   iRemaining);
 
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -988,12 +986,12 @@ void VpVeboxCmdPacket::CmdErrorHanlde(
 MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
     MOS_COMMAND_BUFFER*                      CmdBuffer,
     RENDERHAL_GENERIC_PROLOG_PARAMS&         GenericPrologParams,
-    MOS_RESOURCE&                            GpuStatusBuffer,
     int32_t&                                 iRemaining)
 {
     MOS_STATUS                              eStatus      = MOS_STATUS_SUCCESS;
     PMOS_INTERFACE                          pOsInterface = m_hwInterface->m_osInterface;
     VpVeboxRenderData                       *pRenderData  = GetLastExecRenderData();
+    PMOS_RESOURCE                           gpuStatusBuffer = nullptr;
 
     VP_RENDER_CHK_NULL_RETURN(CmdBuffer);
     VP_RENDER_CHK_NULL_RETURN(pOsInterface);
@@ -1017,13 +1015,13 @@ MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
      if(pOsInterface->bEnableKmdMediaFrameTracking)
      {
          // Get GPU Status buffer
-         VP_RENDER_CHK_STATUS_RETURN(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer));
-
+         VP_RENDER_CHK_STATUS_RETURN(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer));
+         VP_RENDER_CHK_NULL_RETURN(gpuStatusBuffer);
          // Register the buffer
-         VP_RENDER_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(pOsInterface, &GpuStatusBuffer, true, true));
+         VP_RENDER_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(pOsInterface, gpuStatusBuffer, true, true));
 
          GenericPrologParams.bEnableMediaFrameTracking = true;
-         GenericPrologParams.presMediaFrameTrackingSurface = &GpuStatusBuffer;
+         GenericPrologParams.presMediaFrameTrackingSurface = gpuStatusBuffer;
          GenericPrologParams.dwMediaFrameTrackingTag = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
          GenericPrologParams.dwMediaFrameTrackingAddrOffset = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
 
@@ -1280,7 +1278,7 @@ MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
     PMOS_INTERFACE                      pOsInterface,
     PMOS_COMMAND_BUFFER                 pCmdBuffer)
 {
-    MOS_RESOURCE                        GpuStatusBuffer;
+    PMOS_RESOURCE                       gpuStatusBuffer = nullptr;
     MHW_MI_FLUSH_DW_PARAMS              FlushDwParams;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
@@ -1290,17 +1288,18 @@ MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
     VP_RENDER_CHK_NULL_RETURN(pCmdBuffer);
 
     // Get GPU Status buffer
-    pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, &GpuStatusBuffer);
+    pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer);
+    VP_RENDER_CHK_NULL_RETURN(gpuStatusBuffer);
 
     // Register the buffer
     VP_RENDER_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(
                                   pOsInterface,
-                                  &GpuStatusBuffer,
+                                  gpuStatusBuffer,
                                   true,
                                   true));
 
     MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
-    FlushDwParams.pOsResource       = &GpuStatusBuffer;
+    FlushDwParams.pOsResource       = gpuStatusBuffer;
     FlushDwParams.dwResourceOffset  = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
     FlushDwParams.dwDataDW1         = pOsInterface->pfnGetGpuStatusTag(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
     VP_RENDER_CHK_STATUS_RETURN(pMhwMiInterface->AddMiFlushDwCmd(

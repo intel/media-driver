@@ -840,18 +840,19 @@ MOS_STATUS CodechalHwInterface::WriteSyncTagToResource(
     MOS_UNUSED(syncParams);
 
     MHW_MI_STORE_DATA_PARAMS        params;
-    MOS_RESOURCE                    globalGpuContextSyncTagBuffer;
+    PMOS_RESOURCE                   globalGpuContextSyncTagBuffer = nullptr;
     uint32_t                        offset = 0;
     uint32_t                        value = 0;
 
     CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetGpuStatusBufferResource(
         m_osInterface,
-        &globalGpuContextSyncTagBuffer));
+        globalGpuContextSyncTagBuffer));
+    CODECHAL_HW_CHK_NULL_RETURN(globalGpuContextSyncTagBuffer);
 
     offset = m_osInterface->pfnGetGpuStatusTagOffset(m_osInterface, m_osInterface->CurrentGpuContextOrdinal);
     value = m_osInterface->pfnGetGpuStatusTag(m_osInterface, m_osInterface->CurrentGpuContextOrdinal);
 
-    params.pOsResource = &globalGpuContextSyncTagBuffer;
+    params.pOsResource = globalGpuContextSyncTagBuffer;
     params.dwResourceOffset = offset;
     params.dwValue = value;
 

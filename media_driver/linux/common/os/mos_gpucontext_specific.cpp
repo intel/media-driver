@@ -344,6 +344,7 @@ void GpuContextSpecific::Clear()
         m_statusBufferResource->Free(m_osContext, 0);
         MOS_Delete(m_statusBufferResource);
     }
+    MOS_FreeMemAndSetNull(m_statusBufferMosResource);
 
     MOS_LockMutex(m_cmdBufPoolMutex);
 
@@ -1406,6 +1407,9 @@ void GpuContextSpecific::ResetGpuContextStatus()
 MOS_STATUS GpuContextSpecific::AllocateGPUStatusBuf()
 {
     MOS_OS_FUNCTION_ENTER;
+
+    m_statusBufferMosResource = (MOS_RESOURCE_HANDLE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
+    MOS_OS_CHK_NULL_RETURN(m_statusBufferMosResource);
 
     GraphicsResource::CreateParams params;
     params.m_tileType  = MOS_TILE_LINEAR;

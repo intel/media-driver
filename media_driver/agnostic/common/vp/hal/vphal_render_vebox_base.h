@@ -1338,8 +1338,6 @@ protected:
     //!           reference to Cmd buffer control struct
     //! \param    [out] GenericPrologParams
     //!           Generic prolog params struct to be set
-    //! \param    [out] GpuStatusBuffer
-    //!           GpuStatusBuffer resource to be set
     //! \param    [out] iRemaining
     //!           integer showing initial cmd buffer usage
     //! \return   MOS_STATUS
@@ -1348,7 +1346,6 @@ protected:
     virtual MOS_STATUS VeboxSendVeboxCmd_Prepare(
         MOS_COMMAND_BUFFER                      &CmdBuffer,
         RENDERHAL_GENERIC_PROLOG_PARAMS         &GenericPrologParams,
-        MOS_RESOURCE                            &GpuStatusBuffer,
         int32_t                                 &iRemaining);
 
     //!

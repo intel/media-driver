@@ -324,7 +324,7 @@ typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
     int32_t                     bEnableMediaFrameTracking;
     uint32_t                    dwMediaFrameTrackingTag;
     uint32_t                    dwMediaFrameTrackingAddrOffset;
-    MOS_RESOURCE                resMediaFrameTrackingSurface;
+    PMOS_RESOURCE               resMediaFrameTrackingSurface;
     int32_t                     bUmdSSEUEnable;
     int32_t                     bFrequencyBoost;
     int32_t                     bDisablePowerGating;
@@ -1187,7 +1187,7 @@ typedef struct _MOS_INTERFACE
 
     MOS_STATUS (*pfnGetGpuStatusBufferResource) (
         PMOS_INTERFACE              pOsInterface,
-        PMOS_RESOURCE               pOsResource);
+        PMOS_RESOURCE               &pOsResource);
 
     MOS_STATUS (* pfnVerifyPatchListSize) (
         PMOS_INTERFACE              pOsInterface,

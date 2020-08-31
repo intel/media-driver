@@ -1746,7 +1746,7 @@ MOS_STATUS CodechalDecode::SendPrologWithFrameTracking(
         cmdBuffer->Attributes.bMediaPreemptionEnabled = MOS_RCS_ENGINE_USED(gpuContext) ?
             m_hwInterface->GetRenderInterface()->IsPreemptionEnabled() : 0;
         cmdBuffer->Attributes.bEnableMediaFrameTracking = true;
-        cmdBuffer->Attributes.resMediaFrameTrackingSurface = m_decodeStatusBuf.m_statusBuffer;
+        cmdBuffer->Attributes.resMediaFrameTrackingSurface = &m_decodeStatusBuf.m_statusBuffer;
         cmdBuffer->Attributes.dwMediaFrameTrackingTag = m_decodeStatusBuf.m_swStoreData;
         // Set media frame tracking address offset(the offset from the decoder status buffer page, refer to CodecHalDecode_Initialize)
         cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = 0;

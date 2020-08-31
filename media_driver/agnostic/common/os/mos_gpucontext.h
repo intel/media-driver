@@ -228,6 +228,12 @@ public:
     //!
     GraphicsResource* GetStatusBufferResource() { return m_statusBufferResource; }
 
+    //!
+    //! \brief    Get status buffer mos resource for current gpu context
+    //! \return   GraphicsResource*
+    //!
+    MOS_RESOURCE_HANDLE GetStatusBufferMosResource() { return m_statusBufferMosResource; }
+
 protected:
     //! \brief    Hardware node for current gpu context
     MOS_GPU_NODE m_nodeOrdinal;
@@ -243,6 +249,8 @@ protected:
 
     //! \brief    Gpu status report buffer
     GraphicsResource *m_statusBufferResource = nullptr;
+    //! \brief    GPU status mos resource
+    MOS_RESOURCE_HANDLE m_statusBufferMosResource = nullptr;
 
     //! \brief    Track the GPU Context Client Info
     MOS_GPU_CONTEXT m_gpuContext;

@@ -2230,21 +2230,17 @@ uint64_t MosInterface::GetGpuStatusSyncTag(
 
 MOS_STATUS MosInterface::GetGpuStatusBufferResource(
     MOS_STREAM_HANDLE   streamState,
-    MOS_RESOURCE_HANDLE resource,
+    MOS_RESOURCE_HANDLE &resource,
     GPU_CONTEXT_HANDLE  gpuContext)
 {
     MOS_OS_FUNCTION_ENTER;
 
     MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(resource);
 
     auto gpuContextIns = MosInterface::GetGpuContext(streamState, gpuContext);
     MOS_OS_CHK_NULL_RETURN(gpuContextIns);
 
-    auto gfxResource = gpuContextIns->GetStatusBufferResource();
-    MOS_OS_CHK_NULL_RETURN(gfxResource);
-
-    MOS_OS_CHK_STATUS_RETURN(gfxResource->ConvertToMosResource(resource));
+    resource = gpuContextIns->GetStatusBufferResource();
 
     return MOS_STATUS_SUCCESS;
 }
