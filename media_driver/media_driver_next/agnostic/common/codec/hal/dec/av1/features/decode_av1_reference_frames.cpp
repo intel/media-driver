@@ -84,6 +84,10 @@ namespace decode
         {
             PCODEC_PICTURE refFrameList = &(picParams.m_refFrameMap[0]);
             uint8_t refPicIndex = picParams.m_refFrameIdx[i];
+            if (refPicIndex >= av1TotalRefsPerFrame)
+            {
+                continue;
+            }
             m_activeReferenceList.push_back(refFrameList[refPicIndex].FrameIdx);
         }
 
