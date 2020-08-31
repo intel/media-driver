@@ -422,7 +422,8 @@ MOS_STATUS VpHal_ReAllocateSurface(
     uint32_t                dwHeight,
     bool                    bCompressible,
     MOS_RESOURCE_MMC_MODE   CompressionMode,
-    bool*                   pbAllocated)
+    bool*                   pbAllocated,
+    MOS_HW_RESOURCE_DEF     resUsageType)
 {
     MOS_STATUS              eStatus;
     VPHAL_GET_SURFACE_INFO  Info;
@@ -460,6 +461,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     AllocParams.CompressionMode = CompressionMode;
     AllocParams.pBufName        = pSurfaceName;
     AllocParams.dwArraySize     = 1;
+    AllocParams.ResUsageType    = resUsageType;
 
     // Delete resource if already allocated
     pOsInterface->pfnFreeResource(pOsInterface, &(pSurface->OsResource));

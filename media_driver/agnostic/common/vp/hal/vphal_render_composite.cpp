@@ -1486,6 +1486,7 @@ bool CompositeState::PreparePhases(
             AllocParams.dwWidth  = dwTempWidth;
             AllocParams.dwHeight = dwTempHeight;
             AllocParams.Format   = Format_A8R8G8B8;
+            AllocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
 
             pOsInterface->pfnAllocateResource(
                 pOsInterface,
@@ -1549,6 +1550,7 @@ bool CompositeState::PreparePhases(
             AllocParams.dwWidth  = dwTempWidth;
             AllocParams.dwHeight = dwTempHeight;
             AllocParams.Format   = Format_A8R8G8B8;
+            AllocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
 
             pOsInterface->pfnAllocateResource(
                 pOsInterface,
@@ -2221,6 +2223,9 @@ MOS_STATUS CompositeState::Render(
 
         VPHAL_RENDER_ASSERT(!Mos_ResourceIsNull(&pSrc->OsResource));
 
+        //update resource usage type
+        pOsInterface->pfnUpdateResourceUsageType(&pSrc->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_RENDER);
+
         // Get resource information
         MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
@@ -2239,6 +2244,9 @@ MOS_STATUS CompositeState::Render(
         // Field Weaving needs ref sample
         if (pSrc->bFieldWeaving && pSrc->pBwdRef)
         {
+            //update resource usage type
+            pOsInterface->pfnUpdateResourceUsageType(&pSrc->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_REFERENCE_RENDER);
+
             MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
             VPHAL_RENDER_CHK_STATUS(VpHal_GetSurfaceInfo(
@@ -2285,6 +2293,9 @@ MOS_STATUS CompositeState::Render(
     index = 0;
     do
     {
+        //update resource usage type
+        pOsInterface->pfnUpdateResourceUsageType(&pcRenderParams->pTarget[index]->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_RENDER);
+
         pOsInterface->pfnSyncOnResource(
             pOsInterface,
             &pcRenderParams->pTarget[index]->OsResource,
@@ -7029,7 +7040,8 @@ MOS_STATUS CompositeState::Initialize(
             VPHAL_COMP_CMFC_COEFF_HEIGHT,
             false,
             MOS_MMC_DISABLED,
-            &bAllocated));
+            &bAllocated,
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
     }
 
     // Setup Procamp Parameters

@@ -290,6 +290,7 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
     AllocParams.Format   = Format_Buffer;
     AllocParams.dwBytes  = uiSize;
     AllocParams.pBufName = "VphalVeboxHeap";
+    AllocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF;
 
     MHW_CHK_STATUS(m_osInterface->pfnAllocateResource(
         m_osInterface,

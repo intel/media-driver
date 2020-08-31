@@ -910,6 +910,7 @@ MOS_STATUS Mhw_AllocateBb(
     AllocParams.Format   = Format_Buffer;
     AllocParams.dwBytes  = allocSize;
     AllocParams.pBufName = "BatchBuffer";
+    AllocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS;
 
     MHW_CHK_STATUS(pOsInterface->pfnAllocateResource(
         pOsInterface,

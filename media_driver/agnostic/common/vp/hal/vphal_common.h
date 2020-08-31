@@ -1352,7 +1352,8 @@ MOS_STATUS VpHal_ReAllocateSurface(
     uint32_t                dwHeight,                                           // [in]    Resource Height
     bool                    bCompressible,                                      // [in]    Flag indaicated reource is compressible or not
     MOS_RESOURCE_MMC_MODE   CompressionMode,                                    // [in]    Compression mode
-    bool*                   pbAllocated);                                       // [out]   Flag indicating new allocation
+    bool*                   pbAllocated,                                        // [out]   Flag indicating new allocation
+    MOS_HW_RESOURCE_DEF     resUsageType = MOS_HW_RESOURCE_DEF_MAX);            // [in]    resource usage type
 
 //!
 //! \brief    Reads the Surface contents and copy to the Dst Buffer

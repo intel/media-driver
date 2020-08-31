@@ -1603,6 +1603,7 @@ MOS_STATUS RenderHal_AllocateBB(
     AllocParams.Format   = Format_Buffer;
     AllocParams.dwBytes  = iSize;
     AllocParams.pBufName = "RenderHalBB";
+    AllocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS;
 
     MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnAllocateResource(
         pOsInterface,
