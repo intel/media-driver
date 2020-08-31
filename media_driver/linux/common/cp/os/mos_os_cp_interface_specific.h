@@ -79,6 +79,12 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS PermeateBBPatchForHM()
+    {
+        OsStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual bool IsCpEnabled()
     {
         OsStubMessage();
