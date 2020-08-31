@@ -239,8 +239,10 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
 
     if (pvpParams->pSrc[0]->pDeinterlaceParams              ||
         pvpParams->pSrc[0]->pBlendingParams                 ||
+        pvpParams->pSrc[0]->pColorPipeParams                ||
         pvpParams->pSrc[0]->pHDRParams                      ||
         pvpParams->pSrc[0]->pLumaKeyParams                  ||
+        pvpParams->pSrc[0]->pProcampParams                  ||
         pvpParams->pSrc[0]->bInterlacedScaling              ||
         pvpParams->pConstriction)
     {
