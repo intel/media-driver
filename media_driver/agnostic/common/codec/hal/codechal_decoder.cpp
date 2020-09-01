@@ -649,7 +649,7 @@ void CodechalDecode::DeallocateSpecificRefSurfaces(uint32_t frameIdx)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    if (m_refSurfaces != nullptr && frameIdx != 0)
+    if (m_refSurfaces != nullptr)
     {
         if (!Mos_ResourceIsNull(&m_refSurfaces[frameIdx].OsResource))
         {
