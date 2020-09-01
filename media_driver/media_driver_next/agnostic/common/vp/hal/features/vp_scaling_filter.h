@@ -80,8 +80,12 @@ protected:
 
     //!
     //! \brief    Get width and height align unit of input format
-    //! \param    [in] inputFormat
-    //!           input format
+    //! \param    [in] format
+    //!           format
+    //! \param    [in] bOutput
+    //!           is Output or not
+    //! \param    [in] bRotateNeeded
+    //!           is rotated or not
     //! \param    [out] widthAlignUnit
     //!           width align unit
     //! \param    [out] heightAlignUnit
@@ -89,7 +93,9 @@ protected:
     //! \return   void
     //!
     virtual void GetFormatWidthHeightAlignUnit(
-        MOS_FORMAT              inputFormat,
+        MOS_FORMAT              format,
+        bool                    bOutput,
+        bool                    bRotateNeeded,
         uint16_t                &widthAlignUnit,
         uint16_t                &heightAlignUnit);
 
@@ -126,7 +132,7 @@ protected:
     //! \return   MOS_STATUS
     //!  MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetRectSurfaceAlignment(MOS_FORMAT format, bool isOutputSurf, uint32_t &width, uint32_t &height, RECT &rcSrc, RECT &rcDst);
+    MOS_STATUS SetRectSurfaceAlignment(bool isOutputSurf, uint32_t &width, uint32_t &height, RECT &rcSrc, RECT &rcDst);
 
 protected:
     FeatureParamScaling          m_scalingParams;

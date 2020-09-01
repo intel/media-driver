@@ -101,15 +101,25 @@ MOS_STATUS VpScalingFilter::SfcAdjustBoundary(
     return MOS_STATUS_SUCCESS;
 }
 
+template <typename T>
+inline void swap(T &a, T &b)
+{
+    T tmp = b;
+    b     = a;
+    a     = tmp;
+}
+
 void VpScalingFilter::GetFormatWidthHeightAlignUnit(
-    MOS_FORMAT inputFormat,
+    MOS_FORMAT format,
+    bool bOutput,
+    bool bRotateNeeded,
     uint16_t & widthAlignUnit,
     uint16_t & heightAlignUnit)
 {
     widthAlignUnit = 1;
     heightAlignUnit = 1;
 
-    switch (VpHal_GetSurfaceColorPack(inputFormat))
+    switch (VpHal_GetSurfaceColorPack(format))
     {
     case VPHAL_COLORPACK_420:
         widthAlignUnit = 2;
@@ -120,6 +130,11 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
         break;
     default:
         break;
+    }
+    if (bRotateNeeded && bOutput)
+    {
+        // Output rect has been rotated in SwFilterScaling::Configure. Need to swap the alignUnit accordingly.
+        swap(widthAlignUnit, heightAlignUnit);
     }
 }
 
@@ -153,8 +168,11 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
             (m_colorFillSrcCspace != src_cspace)         ||
             (m_colorFillRTCspace  != dst_cspace))
         {
-            VpHal_CSC_8(&m_colorFillColorDst, &Src, src_cspace, dst_cspace);
-
+            // Clean history Dst BG Color if hit unsupported format
+            if (!VpHal_CSC_8(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
+            {
+                MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
+            }
             // store the values for next iteration
             m_colorFillColorSrc  = Src;
             m_colorFillSrcCspace = src_cspace;
@@ -165,10 +183,7 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
         m_sfcScalingParams->sfcColorfillParams.fColorFillAPixel = (float)Src.A / 255.0F;
     }
 
-    if (m_scalingParams.pCompAlpha &&
-        ((m_scalingParams.formatOutput == Format_A8R8G8B8) ||
-        (m_scalingParams.formatOutput  == Format_A8B8G8R8) ||
-        (m_scalingParams.formatOutput  == Format_AYUV)))
+    if (m_scalingParams.pCompAlpha)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetAlphaPixelParams());
     }
@@ -218,8 +233,21 @@ MOS_STATUS VpScalingFilter::SetAlphaPixelParams()
     switch (m_scalingParams.pCompAlpha->AlphaMode)
     {
     case VPHAL_ALPHA_FILL_MODE_NONE:
-        m_sfcScalingParams->sfcColorfillParams.fAlphaPixel      = m_scalingParams.pCompAlpha->fAlpha;
-        m_sfcScalingParams->sfcColorfillParams.fColorFillAPixel = m_scalingParams.pCompAlpha->fAlpha;
+        if (m_scalingParams.formatOutput == Format_A8R8G8B8 ||
+            m_scalingParams.formatOutput == Format_A8B8G8R8 ||
+            m_scalingParams.formatOutput == Format_R10G10B10A2 ||
+            m_scalingParams.formatOutput == Format_B10G10R10A2 ||
+            m_scalingParams.formatOutput == Format_AYUV ||
+            m_scalingParams.formatOutput == Format_Y410 ||
+            m_scalingParams.formatOutput == Format_Y416)
+        {
+            m_sfcScalingParams->sfcColorfillParams.fAlphaPixel      = m_scalingParams.pCompAlpha->fAlpha;
+            m_sfcScalingParams->sfcColorfillParams.fColorFillAPixel = m_scalingParams.pCompAlpha->fAlpha;
+        }
+        else
+        {
+            m_sfcScalingParams->sfcColorfillParams.fAlphaPixel = 1.0F;
+        }
         break;
 
     case VPHAL_ALPHA_FILL_MODE_BACKGROUND:
@@ -236,13 +264,18 @@ MOS_STATUS VpScalingFilter::SetAlphaPixelParams()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(MOS_FORMAT format, bool isOutputSurf, uint32_t &width, uint32_t &height, RECT &rcSrc, RECT &rcDst)
+
+MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(bool isOutputSurf, uint32_t &width, uint32_t &height, RECT &rcSrc, RECT &rcDst)
 {
-    uint16_t   wWidthAlignUnit = 0;
-    uint16_t   wHeightAlignUnit = 0;
+    uint16_t   wWidthAlignUnit            = 0;
+    uint16_t   wHeightAlignUnit           = 0;
+    uint16_t   wWidthAlignUnitForDstRect  = 0;
+    uint16_t   wHeightAlignUnitForDstRect = 0;
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    GetFormatWidthHeightAlignUnit(format, wWidthAlignUnit, wHeightAlignUnit);
+    GetFormatWidthHeightAlignUnit(isOutputSurf ? m_scalingParams.formatOutput : m_scalingParams.formatInput,
+        isOutputSurf, m_scalingParams.bRotateNeeded, wWidthAlignUnit, wHeightAlignUnit);
+    GetFormatWidthHeightAlignUnit(m_scalingParams.formatOutput, true, m_scalingParams.bRotateNeeded, wWidthAlignUnitForDstRect, wHeightAlignUnitForDstRect);
 
     // The source rectangle is floored to the aligned unit to
     // get rid of invalid data(ex: an odd numbered src rectangle with NV12 format
@@ -257,11 +290,11 @@ MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(MOS_FORMAT format, bool isOu
     // data which was present in the source rectangle
     // Current output alignment is based on input format.
     // Better output alignmentg solution should be based on output format.
-    rcDst.bottom = MOS_ALIGN_CEIL((uint32_t)rcDst.bottom, wHeightAlignUnit);
-    rcDst.right  = MOS_ALIGN_CEIL((uint32_t)rcDst.right, wWidthAlignUnit);
+    rcDst.bottom = MOS_ALIGN_CEIL((uint32_t)rcDst.bottom, wHeightAlignUnitForDstRect);
+    rcDst.right  = MOS_ALIGN_CEIL((uint32_t)rcDst.right, wWidthAlignUnitForDstRect);
 
-    rcDst.top    = MOS_ALIGN_FLOOR((uint32_t)rcDst.top, wHeightAlignUnit);
-    rcDst.left   = MOS_ALIGN_FLOOR((uint32_t)rcDst.left, wWidthAlignUnit);
+    rcDst.top    = MOS_ALIGN_FLOOR((uint32_t)rcDst.top, wHeightAlignUnitForDstRect);
+    rcDst.left   = MOS_ALIGN_FLOOR((uint32_t)rcDst.left, wWidthAlignUnitForDstRect);
 
     if (isOutputSurf)
     {
@@ -301,9 +334,9 @@ MOS_STATUS VpScalingFilter::SetExecuteEngineCaps(
     m_scalingParams.rcMaxSrcInput = m_scalingParams.rcSrcInput;
 
     // Set Src/Dst Surface Rect
-    VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(m_scalingParams.formatInput, false, m_scalingParams.dwWidthInput,
+    VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(false, m_scalingParams.dwWidthInput,
         m_scalingParams.dwHeightInput, m_scalingParams.rcSrcInput, m_scalingParams.rcDstInput));
-    VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(m_scalingParams.formatOutput, true, m_scalingParams.dwWidthOutput,
+    VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(true, m_scalingParams.dwWidthOutput,
         m_scalingParams.dwHeightOutput, m_scalingParams.rcSrcOutput, m_scalingParams.rcDstOutput));
 
     return MOS_STATUS_SUCCESS;
@@ -357,12 +390,16 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         // Apply alignment restriction to the Region of the output frame.
         GetFormatWidthHeightAlignUnit(
             m_scalingParams.formatOutput,
+            true,
+            m_scalingParams.bRotateNeeded,
             wOutputWidthAlignUnit,
             wOutputHeightAlignUnit);
 
         // Apply alignment restriction to Region of the input frame.
         GetFormatWidthHeightAlignUnit(
             m_sfcScalingParams->inputFrameFormat,
+            false,
+            m_scalingParams.bRotateNeeded,
             wInputWidthAlignUnit,
             wInputHeightAlignUnit);
 
@@ -397,8 +434,19 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         m_sfcScalingParams->dwScaledRegionHeight = MOS_MIN(m_sfcScalingParams->dwScaledRegionHeight, m_sfcScalingParams->dwOutputFrameHeight);
         m_sfcScalingParams->dwScaledRegionWidth  = MOS_MIN(m_sfcScalingParams->dwScaledRegionWidth, m_sfcScalingParams->dwOutputFrameWidth);
 
-        m_sfcScalingParams->dwScaledRegionHorizontalOffset = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.rcDstInput.left, wOutputWidthAlignUnit);
-        m_sfcScalingParams->dwScaledRegionVerticalOffset   = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.rcDstInput.top, wOutputHeightAlignUnit);
+        uint32_t dstInputLeftAligned = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.rcDstInput.left, wOutputWidthAlignUnit);
+        uint32_t dstInputTopAligned = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.rcDstInput.top, wOutputHeightAlignUnit);
+
+        if (m_scalingParams.bRotateNeeded)
+        {
+            m_sfcScalingParams->dwScaledRegionHorizontalOffset = dstInputTopAligned;
+            m_sfcScalingParams->dwScaledRegionVerticalOffset   = dstInputLeftAligned;
+        }
+        else
+        {
+            m_sfcScalingParams->dwScaledRegionHorizontalOffset = dstInputLeftAligned;
+            m_sfcScalingParams->dwScaledRegionVerticalOffset   = dstInputTopAligned;
+        }
 
         // Refine the Scaling ratios in the X and Y direction. SFC output Scaled size may be changed based on the restriction of SFC alignment.
         // The scaling ratio could be changed and not equal to the fScaleX/Y.

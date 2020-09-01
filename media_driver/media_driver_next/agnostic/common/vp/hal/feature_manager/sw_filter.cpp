@@ -252,6 +252,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         surfInput->Rotation == VPHAL_MIRROR_HORIZONTAL ||
         surfInput->Rotation == VPHAL_MIRROR_VERTICAL)
     {
+        m_Params.bRotateNeeded  = false;
         m_Params.dwWidthOutput  = surfOutput->dwWidth;
         m_Params.dwHeightOutput = surfOutput->dwHeight;
 
@@ -262,6 +263,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     }
     else
     {
+        m_Params.bRotateNeeded      = true;
         m_Params.dwWidthOutput      = surfOutput->dwHeight;
         m_Params.dwHeightOutput     = surfOutput->dwWidth;
 

@@ -226,7 +226,8 @@ struct FeatureParamScaling : public FeatureParam
     VPHAL_SCALING_PREFERENCE    scalingPreference;              //!< DDI indicate Scaling preference
     bool                        bDirectionalScalar = false;     //!< Vebox Directional Scalar
     RECT                        rcSrcInput;
-    RECT                        rcDstInput;
+    RECT                        rcDstInput;                     //!< Input dst rect without rotate being applied.
+    bool                        bRotateNeeded;                  //!< Whether rotate SwFilter exists on SwFilterPipe.
     RECT                        rcMaxSrcInput;
     uint32_t                    dwWidthInput;
     uint32_t                    dwHeightInput;
