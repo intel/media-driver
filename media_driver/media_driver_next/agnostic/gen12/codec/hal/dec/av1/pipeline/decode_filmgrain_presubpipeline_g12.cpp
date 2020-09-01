@@ -147,7 +147,7 @@ MediaFunction FilmGrainPreSubPipeline::GetMediaFunction()
 void FilmGrainPreSubPipeline::InitScalabilityPars(PMOS_INTERFACE osInterface)
 {
     MOS_ZeroMemory(&m_decodeScalabilityPars, sizeof(ScalabilityPars));
-    m_decodeScalabilityPars.disableVirtualTile = true;
+    m_decodeScalabilityPars.disableScalability = true;
     m_decodeScalabilityPars.disableRealTile = true;
     m_decodeScalabilityPars.enableVE = MOS_VE_SUPPORTED(osInterface);
     m_decodeScalabilityPars.numVdbox = m_numVdbox;

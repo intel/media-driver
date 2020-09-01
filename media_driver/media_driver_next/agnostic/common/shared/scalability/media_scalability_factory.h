@@ -21,7 +21,7 @@
 */
 
 //!
-//! \file     media_scalability.h
+//! \file     media_scalability_factory.h
 //! \brief    Defines the common interface for media scalability
 //! \details  The media scalability interface is further sub-divided by component,
 //!           this file is for the base interface which is shared by all components.
@@ -33,7 +33,7 @@
 #include "media_scalability_defs.h"
 #include "media_scalability.h"
 
-//class MediaScalability;
+template <class T>
 class MediaScalabilityFactory
 {
 public:
@@ -43,7 +43,7 @@ public:
     //! \param  [in] componentType
     //!         component type for create related scalability
     //! \param  [in] params
-    //!         Pointer to the input parameters for scalability mode decision
+    //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
     //! \param  [in] hwInterface
     //!         Pointer to HwInterface
     //! \param  [in] mediaContext
@@ -54,7 +54,7 @@ public:
     //!
     MediaScalability* CreateScalability(
         uint8_t componentType,
-        ScalabilityPars *params,
+        T params,
         void *hwInterface,
         MediaContext *mediaContext,
         MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
@@ -63,7 +63,7 @@ protected:
     //!
     //! \brief  Create encode scalability, it should be invoked when new scalability mode needed
     //! \param  [in] params
-    //!         Pointer to the input parameters for scalability mode decision
+    //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
     //! \param  [in] hwInterface
     //!         Pointer to HwInterface
     //! \param  [in] mediaContext
@@ -72,12 +72,12 @@ protected:
     //!         Pointer to the option for GPU ctx create.
     //! \return pointer of media scalability
     //!
-    MediaScalability *CreateEncodeScalability(ScalabilityPars *params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
+    MediaScalability *CreateEncodeScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
 
     //!
     //! \brief  Create decode scalability, it should be invoked when new scalability mode needed
     //! \param  [in] params
-    //!         Pointer to the input parameters for scalability mode decision
+    //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
     //! \param  [in] hwInterface
     //!         Pointer to HwInterface
     //! \param  [in] mediaContext
@@ -86,11 +86,11 @@ protected:
     //!         Pointer to the option for GPU ctx create.
     //! \return pointer of media scalability
     //!
-    MediaScalability *CreateDecodeScalability(ScalabilityPars *params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
+    MediaScalability *CreateDecodeScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
 
     //!
     //! \param  [in] params
-    //!         Pointer to the input parameters for scalability mode decision
+    //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
     //! \param  [in] hwInterface
     //!         Pointer to HwInterface
     //! \param  [in] mediaContext
@@ -99,23 +99,23 @@ protected:
     //!         Pointer to the option for GPU ctx create.
     //! \return pointer of media scalability
     //!
-    MediaScalability *CreateVpScalability(ScalabilityPars *params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
+    MediaScalability *CreateVpScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);
 
     //!
     //! \brief  Create scalability with Mdf interfaces, it should be invoked when new scalability mode needed
     //!
     //! \param  [in] params
-    //!         Pointer to the input parameters for scalability mode decision
+    //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
     //! \return pointer of media scalability
     //!
-    MediaScalability *CreateScalabilityMdf(ScalabilityPars *params);
+    MediaScalability *CreateScalabilityMdf(T params);
 
     //!
     //! \brief  Create scalability with CMD Buf interfaces, it should be invoked when new scalability mode needed
     //! \param  [in] componentType
     //!         component type for create related scalability
     //! \param  [in] params
-    //!         Pointer to the input parameters for scalability mode decision
+    //!         Pointer to the input parameters which is ScalabilityPars or ScalabilityOption
     //! \param  [in] hwInterface
     //!         Pointer to HwInterface
     //! \param  [in] mediaContext
@@ -126,7 +126,7 @@ protected:
     //!
     MediaScalability *CreateScalabilityCmdBuf(
         uint8_t componentType,
-        ScalabilityPars *params,
+        T params,
         void *hwInterface,
         MediaContext *mediaContext,
         MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption);

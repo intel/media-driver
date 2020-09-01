@@ -103,6 +103,10 @@ protected:
 
 #define SCALABILITY_FUNCTION_ENTER ScalabilityTrace _trace(__FUNCTION__);
 
+struct ComponentState
+{
+};
+
 class MediaStatusReport;
 struct StateParams
 {
@@ -113,6 +117,7 @@ struct StateParams
     uint8_t            pipeIndexForSubmit = 0;
     bool               singleTaskPhaseSupported = false;
     MediaStatusReport *statusReport = nullptr;
+    ComponentState    *componentState = nullptr;
 };
 
 #endif  // !__MEDIA_SCALABILITY_H__

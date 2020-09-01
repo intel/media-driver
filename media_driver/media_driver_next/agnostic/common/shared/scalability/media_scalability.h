@@ -76,6 +76,16 @@ public:
     bool IsScalabilityModeMatched(ScalabilityPars *params);
 
     //!
+    //! \brief  Check if the scalability mode matched with current
+    //! \param  [in] scalabOption
+    //!         Scalability option to match with current
+    //! \return bool
+    //!         true if mode matched with current mode,
+    //!         false if not matched.
+    //!
+    bool IsScalabilityModeMatched(MediaScalabilityOption &scalabOption);
+
+    //!
     //! \brief  Check if the Gpu ctx create option matched
     //! \param  [in] gpuCtxCreateOption1
     //!         Pointer to the input gpu ctx create option for compare
@@ -253,6 +263,12 @@ public:
     uint8_t GetCurrentSubPass() { return m_currentSubPass; };
 
     //!
+    //! \brief  Get component state
+    //! \return point to component state
+    //!
+    ComponentState *GetComponentState() { return m_componentState; };
+
+    //!
     //! \brief  Send Cmd buffer Attributes with frame tracking info
     //!
     //! \param  [in] cmdBuffer
@@ -314,6 +330,8 @@ protected:
 
     uint8_t m_currentRow     = 0;  //!< Current row index when tile replay is enabled
     uint8_t m_currentSubPass = 0;  //!< Current tile row pass index when tile replay is enabled
+
+    ComponentState *m_componentState = nullptr; //!< Component state
 
     uint8_t                  m_componentType        = 0;
     PMOS_INTERFACE           m_osInterface          = nullptr;  //!< OS interface

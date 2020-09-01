@@ -60,22 +60,6 @@ public:
     //!
     virtual MOS_STATUS Update(void *params);
 
-    //!
-    //! \brief  Update encode basic format
-    //! \param  [in] params
-    //!         Pointer to EncoderParams
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-//    virtual MOS_STATUS UpdateFormat(void *params);
-
-    //!
-    //! \brief  Reset decode basic feature.
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-//    virtual MOS_STATUS Reset(CODEC_REF_LIST *refList);
-
     uint32_t            m_width = 0;                                    //!< Frame width in luma samples
     uint32_t            m_height = 0;                                   //!< Frame height in luma samples
     uint16_t            m_picWidthInMb = 0;                             //!< Picture Width in MB width count

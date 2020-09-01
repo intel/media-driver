@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,10 @@
 */
 
 //!
-//! \file     media_scalability_singlepipe.h
-//! \brief    Defines the common interface for media scalability singlepipe mode.
-//! \details  The media scalability singlepipe interface is further sub-divided by component,
-//!           this file is for the base interface which is shared by all components.
+//! \file     decode_scalability_singlepipe.h
+//! \brief    Defines the common interface for decode scalability singlepipe mode.
+//! \details  The decode scalability singlepipe interface is further sub-divided by codecs,
+//!           this file is for the base interface which is shared by all codecs.
 //!
 
 #ifndef __DECODE_SCALABILITY_SINGLEPIPE_H__
@@ -40,12 +40,13 @@ namespace decode
 
 class DecodeScalabilitySinglePipe: public MediaScalabilitySinglePipe
 {
-
 public:
     //!
     //! \brief  decode scalability singlepipe constructor
     //! \param  [in] hwInterface
     //!         Pointer to HwInterface
+    //! \param  [in] mediaContext
+    //!         Pointer to MediaContext
     //! \param  [in] componentType
     //!         Component type
     //!
@@ -54,7 +55,7 @@ public:
     //!
     //! \brief  decode scalability singlepipe destructor
     //!
-    virtual ~DecodeScalabilitySinglePipe(){};
+    virtual ~DecodeScalabilitySinglePipe() {};
 
     //!
     //! \brief    Copy constructor
@@ -129,7 +130,7 @@ protected:
     virtual MOS_STATUS SendAttrWithFrameTracking(MOS_COMMAND_BUFFER &cmdBuffer, bool frameTrackingRequested) override;
 
 private:
-    CodechalHwInterface *m_hwInterface             = nullptr;
+    CodechalHwInterface *m_hwInterface   = nullptr;
 };
 
 }

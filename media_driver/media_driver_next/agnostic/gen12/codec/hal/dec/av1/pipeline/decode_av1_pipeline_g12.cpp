@@ -71,7 +71,7 @@ namespace decode
 
         DecodeScalabilityPars scalPars;
         MOS_ZeroMemory(&scalPars, sizeof(ScalabilityPars));
-        scalPars.disableRealTile = true;
+        scalPars.disableScalability = true;
         scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
         if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
         {

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,9 +32,16 @@
 
 namespace decode
 {
+enum ScalabilityMode
+{
+    scalabilitySingleMode,       //!< Legacy decode mode with single pipe
+    scalabilityVirtualTileMode,  //!< virtual tile decode mode with multiple pipes
+    scalabilityRealTileMode,     //!< Real tile decode mode with multiple pipes
+};
+
 struct DecodeScalabilityPars : public ScalabilityPars
 {
-    bool    disableVirtualTile;
+    bool    disableScalability;
     bool    disableRealTile;
 
     bool    usingSfc;
@@ -42,6 +49,15 @@ struct DecodeScalabilityPars : public ScalabilityPars
     bool    usingSlimVdbox;
 
     MOS_FORMAT surfaceFormat = Format_NV12;
+
+    uint8_t maxTileColumn;
+    uint8_t maxTileRow;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t modeSwithThreshold1;
+    uint32_t modeSwithThreshold2;
+    uint8_t  userPipeNum;
+#endif
 };
 }
 #endif  // !__DECODE_SCALABILITY_DEFS_H__

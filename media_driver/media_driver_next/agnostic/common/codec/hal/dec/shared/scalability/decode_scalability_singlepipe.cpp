@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -87,27 +87,21 @@ MOS_STATUS DecodeScalabilitySinglePipe::VerifyCmdBuffer(uint32_t requestedSize, 
 
 MOS_STATUS DecodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak)
 {
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    SCALABILITY_FUNCTION_ENTER;
 
-    SCALABILITY_FUNCTION_ENTER;;
-
-    bool bothPatchListAndCmdBufChkSuccess = false;
-    uint8_t looptimes = m_singleTaskPhaseSupported ? 2 : 1;
-
+    uint8_t looptimes = 3;
     for(auto i = 0 ; i < looptimes ; i++)
     {
+        bool bothPatchListAndCmdBufChkSuccess = false;
         SCALABILITY_CHK_STATUS_RETURN(MediaScalability::VerifySpaceAvailable(
             requestedSize, requestedPatchListSize, bothPatchListAndCmdBufChkSuccess));
-        
-        if (bothPatchListAndCmdBufChkSuccess == true)
+
+        if (bothPatchListAndCmdBufChkSuccess)
         {
-            singleTaskPhaseSupportedInPak = m_singleTaskPhaseSupported;
-            return eStatus;
+            return MOS_STATUS_SUCCESS;
         }
-        
+
         MOS_STATUS statusPatchList = MOS_STATUS_SUCCESS;
-        MOS_STATUS statusCmdBuf    = MOS_STATUS_SUCCESS;
-        
         if (requestedPatchListSize > 0)
         {
             statusPatchList = (MOS_STATUS)m_osInterface->pfnVerifyPatchListSize(
@@ -115,22 +109,19 @@ MOS_STATUS DecodeScalabilitySinglePipe::VerifySpaceAvailable(uint32_t requestedS
                 requestedPatchListSize);
         }
 
-        statusCmdBuf = (MOS_STATUS)m_osInterface->pfnVerifyCommandBufferSize(
+        MOS_STATUS statusCmdBuf = (MOS_STATUS)m_osInterface->pfnVerifyCommandBufferSize(
             m_osInterface,
             requestedSize,
             0);
 
-        if ((statusCmdBuf == MOS_STATUS_SUCCESS) && (statusPatchList == MOS_STATUS_SUCCESS))
+        if (statusCmdBuf == MOS_STATUS_SUCCESS && statusPatchList == MOS_STATUS_SUCCESS)
         {
-            singleTaskPhaseSupportedInPak = m_singleTaskPhaseSupported;
-            return eStatus;
+            return MOS_STATUS_SUCCESS;
         }
     }
 
-    eStatus = MOS_STATUS_NO_SPACE;
     SCALABILITY_ASSERTMESSAGE("Resize Command buffer failed with no space!");
-    return eStatus;
-
+    return MOS_STATUS_NO_SPACE;
 }
 
 MOS_STATUS DecodeScalabilitySinglePipe::UpdateState(void *statePars)
@@ -144,6 +135,7 @@ MOS_STATUS DecodeScalabilitySinglePipe::UpdateState(void *statePars)
     m_singleTaskPhaseSupported   = stateParams->singleTaskPhaseSupported;
     m_statusReport               = stateParams->statusReport;
     m_currentPass                = stateParams->currentPass;
+    m_componentState             = stateParams->componentState;
     SCALABILITY_CHK_NULL_RETURN(m_statusReport);
 
     return MOS_STATUS_SUCCESS;

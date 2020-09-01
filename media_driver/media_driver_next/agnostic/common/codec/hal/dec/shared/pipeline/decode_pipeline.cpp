@@ -268,6 +268,7 @@ MOS_STATUS DecodePipeline::ExecuteActivePackets()
         if (prop.immediateSubmit)
         {
             DECODE_CHK_STATUS(task->Submit(true, m_scalability, m_debugInterface));
+            DECODE_CHK_STATUS(task->Clear());
         }
     }
 

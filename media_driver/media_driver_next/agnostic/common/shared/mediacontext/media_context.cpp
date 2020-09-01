@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -172,7 +172,11 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
     }
 
     uint32_t index = m_invalidContextAttribute;
-    MOS_OS_CHK_STATUS_RETURN(SearchContextAttributeTable(func, (ScalabilityPars*)requirement, index));
+    MOS_OS_CHK_STATUS_RETURN(SearchContext<ScalabilityPars*>(func, (ScalabilityPars*)requirement, index));
+    if (index == m_invalidContextAttribute)
+    {
+        MOS_OS_CHK_STATUS_RETURN(CreateContext<ScalabilityPars*>(func, (ScalabilityPars*)requirement, index));
+    }
     if (index == m_invalidContextAttribute || index >= m_gpuContextAttributeTable.size())
     {
         MOS_OS_ASSERTMESSAGE("Incorrect index get from Context attribute table");
@@ -199,14 +203,12 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
     return status;
 }
 
-MOS_STATUS MediaContext::SearchContextAttributeTable(MediaFunction func, ScalabilityPars *requirement, uint32_t& indexFound)
+template<typename T>
+MOS_STATUS MediaContext::SearchContext(MediaFunction func, T params, uint32_t& indexFound)
 {
     MOS_OS_FUNCTION_ENTER;
-    MOS_STATUS status = MOS_STATUS_SUCCESS;
 
     MOS_OS_CHK_NULL_RETURN(m_osInterface);
-    MOS_OS_CHK_NULL_RETURN(m_osInterface->pOsContext);
-    MOS_OS_CHK_NULL_RETURN(requirement);
 
     indexFound = m_invalidContextAttribute;
     uint32_t index = 0;
@@ -217,7 +219,7 @@ MOS_STATUS MediaContext::SearchContextAttributeTable(MediaFunction func, Scalabi
         {
             MOS_OS_CHK_NULL_RETURN(curAttribute.scalabilityState);
 
-            if (curAttribute.scalabilityState->IsScalabilityModeMatched(requirement))
+            if (curAttribute.scalabilityState->IsScalabilityModeMatched(params))
             {
                 // Found the matching GPU context and scalability state
                 indexFound = index;
@@ -239,62 +241,68 @@ MOS_STATUS MediaContext::SearchContextAttributeTable(MediaFunction func, Scalabi
         index++;
     }
 
-    // Not found matching entry, create new entry of GpuContext attr
-    if (indexFound == m_invalidContextAttribute)
-    {
-        // Reach the max number of Gpu Context attr entries in current Media Context
-        if (m_gpuContextAttributeTable.size() == m_maxContextAttribute)
-        {
-            MOS_OS_ASSERTMESSAGE("Reached max num of entries of gpuContextAttributeTable: 4096. Cannot create more Gpu Contexts");
-            return MOS_STATUS_NOT_ENOUGH_BUFFER;
-        }
-    
-        GpuContextAttribute newAttr;
-
-        // Setup func
-        newAttr.func = func;
-        if (newAttr.func >= INVALID_MEDIA_FUNCTION)
-        {
-            MOS_OS_ASSERTMESSAGE("Func required is invalid");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-
-        // Create scalabilityState
-        MOS_GPUCTX_CREATOPTIONS_ENHANCED option;
-        MediaScalabilityFactory scalabilityFactory;
-        newAttr.scalabilityState = scalabilityFactory.CreateScalability(
-            m_componentType, requirement, m_hwInterface, this, &option);
-        if (newAttr.scalabilityState == nullptr)
-        {
-            MOS_OS_ASSERTMESSAGE("Failed to create scalability state");
-            return MOS_STATUS_NO_SPACE;
-        }
-
-        // request to create or reuse gpuContext
-        MOS_GPU_NODE node = MOS_GPU_NODE_MAX;
-        MOS_OS_CHK_STATUS_RETURN(FunctionToNode(func, requirement, node));
-
-        // WA for legacy MOS
-        MOS_OS_CHK_STATUS_RETURN(FunctionToGpuContext(func, option, node, newAttr.ctxForLegacyMos));
-
-        if(m_osInterface->bSetHandleInvalid)
-        {
-            MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContextHandle(m_osInterface, MOS_GPU_CONTEXT_INVALID_HANDLE, newAttr.ctxForLegacyMos));
-        }
-
-        MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(m_osInterface, newAttr.ctxForLegacyMos, node, &option));
-        m_osInterface->pfnSetGpuContext(m_osInterface, newAttr.ctxForLegacyMos);
-        newAttr.gpuContext = m_osInterface->CurrentGpuContextHandle;
-
-        // Add entry to the table
-        indexFound = m_gpuContextAttributeTable.size();
-        m_gpuContextAttributeTable.push_back(newAttr);
-    }
-
-    return status;
+    return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, ScalabilityPars *requirement, MOS_GPU_NODE& node)
+template<typename T>
+MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& indexReturn)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(m_osInterface);
+
+    // Reach the max number of Gpu Context attr entries in current Media Context
+    if (m_gpuContextAttributeTable.size() == m_maxContextAttribute)
+    {
+        MOS_OS_ASSERTMESSAGE("Reached max num of entries of gpuContextAttributeTable: 4096. Cannot create more Gpu Contexts");
+        return MOS_STATUS_NOT_ENOUGH_BUFFER;
+    }
+
+    GpuContextAttribute newAttr;
+
+    // Setup func
+    newAttr.func = func;
+    if (newAttr.func >= INVALID_MEDIA_FUNCTION)
+    {
+        MOS_OS_ASSERTMESSAGE("Func required is invalid");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // Create scalabilityState
+    MOS_GPUCTX_CREATOPTIONS_ENHANCED option;
+    MediaScalabilityFactory<T> scalabilityFactory;
+    newAttr.scalabilityState = scalabilityFactory.CreateScalability(
+        m_componentType, params, m_hwInterface, this, &option);
+    if (newAttr.scalabilityState == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to create scalability state");
+        return MOS_STATUS_NO_SPACE;
+    }
+
+    // request to create or reuse gpuContext
+    MOS_GPU_NODE node = MOS_GPU_NODE_MAX;
+    MOS_OS_CHK_STATUS_RETURN(FunctionToNode(func, node));
+
+    // WA for legacy MOS
+    MOS_OS_CHK_STATUS_RETURN(FunctionToGpuContext(func, option, node, newAttr.ctxForLegacyMos));
+
+    if(m_osInterface->bSetHandleInvalid)
+    {
+        MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContextHandle(m_osInterface, MOS_GPU_CONTEXT_INVALID_HANDLE, newAttr.ctxForLegacyMos));
+    }
+
+    MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(m_osInterface, newAttr.ctxForLegacyMos, node, &option));
+    m_osInterface->pfnSetGpuContext(m_osInterface, newAttr.ctxForLegacyMos);
+    newAttr.gpuContext = m_osInterface->CurrentGpuContextHandle;
+
+    // Add entry to the table
+    indexReturn = m_gpuContextAttributeTable.size();
+    m_gpuContextAttributeTable.push_back(newAttr);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, MOS_GPU_NODE& node)
 {
     MOS_OS_FUNCTION_ENTER;
     MOS_STATUS status = MOS_STATUS_SUCCESS;
@@ -311,7 +319,7 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, ScalabilityPars *req
         node = MOS_GPU_NODE_3D;
         break;
     case VdboxDecodeFunc:
-        MOS_OS_CHK_STATUS_RETURN(FunctionToNodeDecode(requirement, node));
+        MOS_OS_CHK_STATUS_RETURN(FunctionToNodeDecode(node));
         break;
     case VdboxDecodeWaFunc:
     case VdboxDecrpytFunc:
@@ -336,18 +344,13 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, ScalabilityPars *req
     return status;
 }
 
-MOS_STATUS MediaContext::FunctionToNodeDecode(ScalabilityPars *requirement, MOS_GPU_NODE& node)
+MOS_STATUS MediaContext::FunctionToNodeDecode(MOS_GPU_NODE& node)
 {
     CodechalHwInterface *hwInterface = static_cast<CodechalHwInterface *>(m_hwInterface);
     MhwVdboxMfxInterface *mfxInterface = hwInterface->GetMfxInterface();
     MOS_OS_CHK_NULL_RETURN(mfxInterface);
 
-    decode::DecodeScalabilityPars *decodeRequirement = static_cast<decode::DecodeScalabilityPars *>(requirement);
-
-    MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit;
-    gpuNodeLimit.bHuCInUse = false;
-    gpuNodeLimit.bHcpInUse = decodeRequirement->usingHcp;
-    gpuNodeLimit.bSfcInUse = decodeRequirement->usingSfc;
+    MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = { 0 };
     MOS_OS_CHK_STATUS_RETURN(mfxInterface->FindGpuNodeToUse(&gpuNodeLimit));
     node = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
 

@@ -143,6 +143,24 @@ MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit, StateParams &stateProperty)
+{
+    auto iter = m_packetList.find(packetId);
+    if (iter == m_packetList.end())
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    PacketProperty prop;
+    prop.packetId        = iter->first;
+    prop.packet          = iter->second;
+    prop.immediateSubmit = immediateSubmit;
+    prop.stateProperty   = stateProperty;
+
+    m_activePacketList.push_back(prop);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MediaPipeline::ExecuteActivePackets()
 {
     for (auto prop : m_activePacketList)

@@ -49,6 +49,12 @@ public:
     {}
 
     //!
+    //! \brief  Constructor
+    //!
+    ResourceArray()
+    {}
+
+    //!
     //! \brief  Destructor
     //!
     virtual ~ResourceArray() { Destroy(); }
@@ -145,13 +151,13 @@ private:
     //!
     MOS_STATUS Destroy()
     {
-        for (uint32_t i = 0; i < m_resourceQueue.size(); i++)
+        for (auto &resource : m_resourceQueue)
         {
-            if (m_resourceQueue[i] == nullptr)
+            if (resource == nullptr)
             {
                 continue;
             }
-            DECODE_CHK_STATUS(m_allocator->Destroy(m_resourceQueue[i]));
+            DECODE_CHK_STATUS(m_allocator->Destroy(resource));
         }
 
         m_resourceQueue.clear();
@@ -160,7 +166,7 @@ private:
     }
 
 private:
-    DecodeAllocator *m_allocator;
+    DecodeAllocator *m_allocator = nullptr;
 
     std::vector<T *> m_resourceQueue; //!< resource queue
     uint32_t m_nextIndex  = 0;

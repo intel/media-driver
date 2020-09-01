@@ -26,13 +26,18 @@
 //!
 
 #include "decode_scalability_option.h"
+#include "decode_utils.h"
 
 namespace decode
 {
-DecodeScalabilityOption::DecodeScalabilityOption(const DecodeScalabilityOption &pOption)
+DecodeScalabilityOption::DecodeScalabilityOption(const DecodeScalabilityOption &option)
 {
-    m_numPipe = pOption.m_numPipe;
-    m_usingSlimVdbox = pOption.m_usingSlimVdbox;
+    m_numPipe               = option.m_numPipe;
+    m_mode                  = option.m_mode;
+    m_usingSFC              = option.m_usingSFC;
+    m_usingSlimVdbox        = option.m_usingSlimVdbox;
+    m_FESeparateSubmission  = option.m_FESeparateSubmission;
+    m_raMode                = option.m_raMode;
 }
 
 MOS_STATUS DecodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params)
@@ -41,51 +46,63 @@ MOS_STATUS DecodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params
 
     DecodeScalabilityPars *decPars = (DecodeScalabilityPars *)params;
 
-    if (!decPars->enableVE)
-    {
-        m_numPipe = 1;
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (decPars->disableVirtualTile && decPars->disableRealTile)
-    {
-        m_numPipe = 1;
-        m_usingSlimVdbox = decPars->usingSlimVdbox;
-        return MOS_STATUS_SUCCESS;
-    }
-
-    m_numPipe = decPars->numVdbox;
-    if (decPars->numTileColumns != m_numPipe)
-    {
-        m_numPipe = 1;// switch back to the single VDBOX mode if invalid tile column test cases.
-        //only set it when tile colums number less than vdbox number.
-        if (decPars->numTileColumns < decPars->numVdbox && decPars->numTileColumns >= 1 && decPars->numTileColumns <= 4)
-        {
-            m_numPipe = static_cast<uint8_t>(decPars->numTileColumns);
-        }
-    }
-
-    if (!decPars->forceMultiPipe)  // && !m_enableTileReplay)
-    {
-        uint32_t frameWidthTh  = m_4KFrameWdithTh;
-        uint32_t frameHeightTh = m_4KFrameHeightTh;
-        if (!IsRextFormat(decPars->surfaceFormat))
-        {
-            frameWidthTh = m_5KFrameWdithTh;
-            frameHeightTh = m_5KFrameWdithTh;
-        }
-        if (decPars->frameWidth < frameWidthTh && decPars->frameHeight <frameHeightTh)
-        {
-            m_numPipe = 1;
-        }
-    }
-
-    m_usingSFC = decPars->usingSfc;
+    m_numPipe        = 1;
+    m_mode           = scalabilitySingleMode;
+    m_usingSFC       = decPars->usingSfc;
     m_usingSlimVdbox = decPars->usingSlimVdbox;
-    m_raMode = params->raMode;
+    m_raMode         = decPars->raMode;
 
-    SCALABILITY_VERBOSEMESSAGE("Tile Column = %d, System VDBOX Num = %d, Decided Pipe Num = %d, Using SFC = %d, Using Slim Vdbox = %d.",
-        decPars->numTileColumns, decPars->numVdbox, m_numPipe, m_usingSFC, m_usingSlimVdbox);
+    if (IsSinglePipeDecode(*decPars))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool isRealTileDecode   = IsRealTileDecode(*decPars);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (decPars->forceMultiPipe)
+    {
+        m_numPipe = GetUserPipeNum(decPars->numVdbox, decPars->userPipeNum);
+    }
+    else if (decPars->modeSwithThreshold2 > 0 && decPars->frameWidth >= decPars->modeSwithThreshold2)
+    {
+        m_numPipe = (decPars->numVdbox >= m_maxNumMultiPipe) ? m_maxNumMultiPipe : m_typicalNumMultiPipe;
+    }
+    else if (decPars->modeSwithThreshold1 > 0 && decPars->frameWidth >= decPars->modeSwithThreshold1)
+    {
+        m_numPipe = m_typicalNumMultiPipe;
+    }
+    else
+#endif
+    if (IsResolutionMatchMultiPipeThreshold2(decPars->frameWidth, decPars->frameHeight))
+    {
+        m_numPipe = (decPars->numVdbox >= m_maxNumMultiPipe) ? m_maxNumMultiPipe : m_typicalNumMultiPipe;
+    }
+    else if (isRealTileDecode ||
+             IsResolutionMatchMultiPipeThreshold1(decPars->frameWidth, decPars->frameHeight, decPars->surfaceFormat))
+    {
+        m_numPipe = m_typicalNumMultiPipe;
+    }
+
+    if (m_numPipe >= m_typicalNumMultiPipe)
+    {
+        m_mode = isRealTileDecode ? scalabilityRealTileMode : scalabilityVirtualTileMode;
+    }
+
+    if (m_mode == scalabilityVirtualTileMode && decPars->numVdbox >= m_maxNumMultiPipe)
+    {
+        m_FESeparateSubmission = true;
+    }
+    else
+    {
+        m_FESeparateSubmission = false;
+    }
+
+    SCALABILITY_VERBOSEMESSAGE(
+        "Tile Column = %d, System VDBOX Num = %d, Decided Pipe Num = %d, "
+        "Using SFC = %d, Using Slim Vdbox = %d, Scalability Mode = %d, FE separate submission = %d.",
+        decPars->numTileColumns, decPars->numVdbox, m_numPipe,
+        m_usingSFC, m_usingSlimVdbox, m_mode, m_FESeparateSubmission);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -107,10 +124,12 @@ bool DecodeScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params
     DecodeScalabilityOption newOption;
     newOption.SetScalabilityOption(params);
 
-    if (m_numPipe  != newOption.GetNumPipe() ||
-        m_usingSFC != newOption.IsUsingSFC() ||
-        m_usingSlimVdbox != newOption.IsUsingSlimVdbox() ||
-        m_raMode != newOption.GetRAMode())
+    if (m_numPipe              != newOption.GetNumPipe()             ||
+        m_usingSFC             != newOption.IsUsingSFC()             ||
+        m_usingSlimVdbox       != newOption.IsUsingSlimVdbox()       ||
+        m_mode                 != newOption.GetMode()                ||
+        m_FESeparateSubmission != newOption.IsFESeparateSubmission() ||
+        m_raMode               != newOption.GetRAMode())
     {
         matched = false;
     }
@@ -120,4 +139,129 @@ bool DecodeScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params
     }
     return matched;
 }
+
+bool DecodeScalabilityOption::IsScalabilityOptionMatched(MediaScalabilityOption &scalabOption)
+{
+    auto decodeOption = dynamic_cast<DecodeScalabilityOption *>(&scalabOption);
+    if (decodeOption == nullptr)
+    {
+        return false;
+    }
+
+    if (m_numPipe              != decodeOption->GetNumPipe()             ||
+        m_usingSFC             != decodeOption->IsUsingSFC()             ||
+        m_usingSlimVdbox       != decodeOption->IsUsingSlimVdbox()       ||
+        m_mode                 != decodeOption->GetMode()                ||
+        m_FESeparateSubmission != decodeOption->IsFESeparateSubmission() ||
+        m_raMode               != decodeOption->GetRAMode())
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool DecodeScalabilityOption::IsSinglePipeDecode(DecodeScalabilityPars &params)
+{
+    // multipipe depends on VE
+    if (!params.enableVE)
+    {
+        return true;
+    }
+
+    if (params.disableScalability)
+    {
+        return true;
+    }
+
+    if (params.numVdbox <= 1)
+    {
+        return true;
+    }
+
+    // SFC can only works with single pipe mode
+    if (params.usingSfc)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool DecodeScalabilityOption::IsRealTileDecode(DecodeScalabilityPars &params)
+{
+    if (params.disableRealTile)
+    {
+        return false;
+    }
+
+    if (params.numTileColumns <= 1)
+    {
+        return false;
+    }
+
+    return (params.numTileColumns <= params.maxTileColumn &&
+            params.numTileRows <= params.maxTileRow);
+}
+
+bool DecodeScalabilityOption::IsResolutionMatchMultiPipeThreshold1(
+    uint32_t frameWidth, uint32_t frameHeight, MOS_FORMAT surfaceFormat)
+{
+    uint32_t frameWidthTh  = m_4KFrameWdithTh;
+    uint32_t frameHeightTh = m_4KFrameHeightTh;
+    if (!IsRextFormat(surfaceFormat))
+    {
+        frameWidthTh = m_5KFrameWdithTh;
+        frameHeightTh = m_5KFrameWdithTh;
+    }
+
+    return (frameWidth >= frameWidthTh && frameHeight >= frameHeightTh) ||
+           (frameWidth * frameHeight >= frameWidthTh * frameHeightTh);
+}
+
+bool DecodeScalabilityOption::IsResolutionMatchMultiPipeThreshold2(
+    uint32_t frameWidth, uint32_t frameHeight)
+{
+    return ((frameWidth * frameHeight) >= (m_8KFrameWdithTh * m_8KFrameHeightTh));
+}
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+uint8_t DecodeScalabilityOption::GetUserPipeNum(uint8_t numVdbox, uint8_t userPipeNum)
+{
+    if (numVdbox >= m_maxNumMultiPipe)
+    {
+        if (userPipeNum >= m_typicalNumMultiPipe && userPipeNum <= numVdbox)
+        {
+            return userPipeNum;
+        }
+    }
+    return m_typicalNumMultiPipe;
+}
+#endif
+
+uint32_t DecodeScalabilityOption::GetLRCACount()
+{
+    // on GT2 or debug override enabled, FE separate submission = false, FE run on the same engine of BEs;
+    // on GT3, FE separate submission = true, scalability submission includes only BEs.
+    if (m_numPipe == m_typicalNumMultiPipe)
+    {
+        return m_numPipe;
+    }
+    else if (m_numPipe >= m_maxNumMultiPipe)
+    {
+        // in release driver bFESeparateSubmission is always false since this is on GT3 or GT4.
+        // bFESeparateSubmission could be false if debug override enabled.
+        if (m_FESeparateSubmission || m_mode == scalabilityRealTileMode)
+        {
+            return m_numPipe;
+        }
+        else
+        {
+            return m_numPipe + 1;
+        }
+    }
+
+    return m_numPipe;
+}
+
 }

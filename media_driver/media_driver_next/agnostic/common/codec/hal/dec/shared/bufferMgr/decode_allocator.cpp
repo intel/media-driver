@@ -317,9 +317,8 @@ MOS_STATUS DecodeAllocator::Resize(MOS_SURFACE* &surface, const uint32_t widthNe
     if (force || (widthNew > surface->dwWidth) || (heightNew > surface->dwHeight))
     {
         MOS_SURFACE* surfaceNew = AllocateSurface(widthNew, heightNew, nameOfSurface,
-            surface->Format, surface->bIsCompressed,
+            surface->Format, surface->bCompressible,
             ConvertGmmResourceUsage(surface->OsResource.pGmmResInfo->GetCachePolicyUsage()));
-
         DECODE_CHK_NULL(surfaceNew);
 
         Destroy(surface);

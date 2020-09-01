@@ -178,6 +178,19 @@ protected:
     MOS_STATUS ActivatePacket(uint32_t packetId, bool immediateSubmit, uint8_t pass, uint8_t pipe, uint8_t pipeNum = 1, uint8_t subPass = 0, uint8_t rowNum = 0);
 
     //!
+    //! \brief  Activate packet and add it to active packet list
+    //! \param  [in] packetId
+    //!         Packet Id
+    //! \param  [in] immediateSubmit
+    //!         Indicate if this packet to activate is needed to submit immediately after been added to task
+    //! \param  [in] stateProperty
+    //!         State property of packet
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ActivatePacket(uint32_t packetId, bool immediateSubmit, StateParams &stateProperty);
+
+    //!
     //! \brief  Finish the active packets execution
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason

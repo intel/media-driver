@@ -202,6 +202,26 @@ public:
     }
 
     //!
+    //! \brief    Help function to get component state
+    //!
+    //! \return   Point to component state
+    //!
+    virtual ComponentState *GetComponentState()
+    {
+        return m_scalability->GetComponentState();
+    }
+
+    //!
+    //! \brief    Help function to check if phased submission mode
+    //!
+    //! \return   True if phased submission mode, otherwise return false
+    //!
+    virtual bool IsPhasedSubmission()
+    {
+        return m_osInterface->phasedSubmission;
+    }
+
+    //!
     //! \brief  Get dummy reference surface
     //! \return Pointer of reference surface
     //!

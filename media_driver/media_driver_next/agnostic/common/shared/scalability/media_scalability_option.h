@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,10 +51,21 @@ public:
     //! \brief  check if scalability option matched with current option
     //! \param  [in] params
     //!         Pointer to the input parameters for compare
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //! \return bool
+    //!         Ture if matched, else false
     //!
     virtual bool IsScalabilityOptionMatched(ScalabilityPars *params) = 0;
+    //!
+    //! \brief  check if scalability option matched with current option
+    //! \param  [in] scalabOption
+    //!         Input scalability option for compare
+    //! \return bool
+    //!         Ture if matched, else false
+    //!
+    virtual bool IsScalabilityOptionMatched(MediaScalabilityOption &scalabOption)
+    {
+        return false;
+    };
     //!
     //! \brief  check if scalability option matched with current option
     //! \return uint8_t
@@ -69,5 +80,7 @@ protected:
     static constexpr uint32_t m_4KFrameHeightTh = 2160;
     static constexpr uint32_t m_5KFrameWdithTh  = 5120;
     static constexpr uint32_t m_5KFrameHeightTh = 2880;
+    static constexpr uint32_t m_8KFrameWdithTh  = 7680;
+    static constexpr uint32_t m_8KFrameHeightTh = 4320;
 };
 #endif // !__MEDIA_SCALABILITY_OPTION_H__

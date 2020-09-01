@@ -62,6 +62,25 @@ bool MediaScalability::IsScalabilityModeMatched(ScalabilityPars *params)
 
     return isMatched;
 }
+
+bool MediaScalability::IsScalabilityModeMatched(MediaScalabilityOption &scalabOption)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface == nullptr)
+    {
+        return false;
+    }
+    if (m_osInterface->bEnableDbgOvrdInVE)
+    {
+        return true;
+    }
+    else
+#endif
+    {
+        return m_scalabilityOption->IsScalabilityOptionMatched(scalabOption);
+    }
+}
+
 bool MediaScalability::IsGpuCtxCreateOptionMatched(PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption1, PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption2)
 {
     bool isMatched = false;

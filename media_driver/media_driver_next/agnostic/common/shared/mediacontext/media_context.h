@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -88,6 +88,25 @@ public:
     MOS_STATUS SwitchContext(MediaFunction func, ContextRequirement *requirement, MediaScalability **scalabilityState);
 
     //!
+    //! \brief  Interface to pipeline to switch media context and get corresponding scalabilityState for programming
+    //! \param  [in] func
+    //!         Indicate the media function of the context to switch
+    //! \param  [in] scalabilityOption
+    //!         The intialzed scalability option  
+    //! \param  [out] scalabilityState
+    //!         Pointer to the pointer of output scalability state.
+    //!         Pipeline can only use this scalabilityState until next time calling SwitchContext
+    //! \param  [in] isEnc
+    //!         Indicate if this is Enc stage
+    //! \param  [in] isPak
+    //!         Indicate if this is Pak stage
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SwitchContext(MediaFunction func, MediaScalabilityOption &scalabilityOption, MediaScalability **scalabilityState,
+                             bool isEnc = false, bool isPak = false);
+
+    //!
     //! \brief  Check if in current media context render engine is used
     //! \return bool
     //!         True if render engine used, else false.
@@ -115,29 +134,42 @@ protected:
     //! \brief  Search the ContextAttributeTable to reuse or create gpu Context and scalabilty state meeting the requirements
     //! \param  [in] func
     //!         Indicate the media function of the context
-    //! \param  [in] requirement
-    //!         Pointer to the context requirement 
+    //! \param  [in] params
+    //!         The params for context searching
     //! \param  [out] indexFound
     //!         The index of the ContextAttributeTable which is found to match the requirements
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SearchContextAttributeTable(MediaFunction func, ScalabilityPars *requirement, uint32_t& indexFound);
+    template<typename T>
+    MOS_STATUS SearchContext(MediaFunction func, T params, uint32_t& indexFound);
+
+    //!
+    //! \brief  Creat the context for new requirement
+    //! \param  [in] func
+    //!         Indicate the media function of the context
+    //! \param  [in] params
+    //!         Pointer to the context requirement 
+    //! \param  [out] indexReturn
+    //!         Return index for new ContextAttributeTable
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    template<typename T>
+    MOS_STATUS CreateContext(MediaFunction func, T params, uint32_t& indexReturn);
 
     //!
     //! \brief  Get the GPU node of the Media Function
     //! \detail Usually there is a corresponding GPU node to implement the specific media function
     //! \param  [in] func
     //!         Media function to get GPU node
-    //! \param  [in] requirement
-    //!         Requirement for the context
     //! \param  [out] node
     //!         GPU node of the media function
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS FunctionToNode(MediaFunction func, ScalabilityPars *requirement, MOS_GPU_NODE& node);
-    MOS_STATUS FunctionToNodeDecode(ScalabilityPars *requirement, MOS_GPU_NODE& node);
+    MOS_STATUS FunctionToNode(MediaFunction func, MOS_GPU_NODE& node);
+    MOS_STATUS FunctionToNodeDecode(MOS_GPU_NODE& node);
 
     // Be compatible to Legacy MOS
     MOS_STATUS FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
