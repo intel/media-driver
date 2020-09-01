@@ -246,8 +246,6 @@ public:
                 cmdBuffer, MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface))));
         }
 
-        MHW_MI_CHK_STATUS(m_osInterface->osCpInterface->PermeateBBPatchForHM());
-
         return MOS_STATUS_SUCCESS;
     }
 
