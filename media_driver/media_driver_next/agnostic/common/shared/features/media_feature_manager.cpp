@@ -45,7 +45,11 @@ MOS_STATUS MediaFeatureManager::Init(void *settings)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaFeatureManager::RegisterFeatures(int featureID, MediaFeature *feature)
+MOS_STATUS MediaFeatureManager::RegisterFeatures(
+    int                featureID,
+    MediaFeature *     feature,
+    std::vector<int> &&packetIds,
+    LIST_TYPE          packetIdListType)
 {
     MEDIA_FUNC_CALL();
     MEDIA_CHK_NULL_RETURN(feature);
@@ -64,7 +68,49 @@ MOS_STATUS MediaFeatureManager::RegisterFeatures(int featureID, MediaFeature *fe
         };
         iter->second = feature;
     }
+    m_packetIdList[featureID]      = std::move(packetIds);
+    m_packetIdListTypes[featureID] = packetIdListType;
+
     return MOS_STATUS_SUCCESS;
+}
+
+std::shared_ptr<MediaFeatureManager::ManagerLite> MediaFeatureManager::GetPacketLevelFeatureManager(int packetId)
+{
+    MEDIA_FUNC_CALL();
+
+    auto manager = std::make_shared<ManagerLite>();
+
+    for (const auto &e : m_features)
+    {
+        const auto &packetIds = m_packetIdList.at(e.first);
+        bool        blockList = m_packetIdListTypes.at(e.first) == LIST_TYPE::BLOCK_LIST;
+
+        // Default value if packetId is not in feature's packet ID vector.
+        // For block list, feature is by default allowed if it's not in the list.
+        // For allow list, feature is by default blocked if it's not in the list.
+        bool blocked = !blockList;
+
+        for (auto id : packetIds)
+        {
+            if (blockList && id == packetId)
+            {
+                blocked = true;
+                break;
+            }
+            else if (!blockList && id == packetId)
+            {
+                blocked = false;
+                break;
+            }
+        }
+
+        if (!blocked)
+        {
+            manager->m_features[e.first] = e.second;
+        }
+    }
+
+    return manager;
 }
 
 MOS_STATUS MediaFeatureManager::Update(void *params)

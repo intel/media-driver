@@ -117,6 +117,9 @@ public:
 
     MediaContext *GetMediaContext() { return m_mediaContext; }
     virtual MediaFeatureManager *GetFeatureManager() { return m_featureManager; };
+
+    std::shared_ptr<MediaFeatureManager::ManagerLite> GetPacketLevelFeatureManager(int packetId) { return m_featureManager->GetPacketLevelFeatureManager(packetId); }
+
     MediaScalability* &GetMediaScalability() { return m_scalability; }
     //!
     //! \brief  Get if frame tracking is enabled from scalability

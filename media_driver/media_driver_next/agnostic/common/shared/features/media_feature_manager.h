@@ -136,10 +136,50 @@ struct FeatureIDs
 
 class MediaFeature;
 
-class MediaFeatureManager
+enum class LIST_TYPE
+{
+    BLOCK_LIST,
+    ALLOW_LIST,
+};
+
+class MediaFeatureManager  // for pipe line use
 {
 protected:
     using container_t = std::map<int, MediaFeature *>;
+
+public:
+    class ManagerLite final  // for packet use
+    {
+        friend class MediaFeatureManager;
+
+    public:
+        class iterator : public container_t::iterator
+        {
+        public:
+            explicit iterator(container_t::iterator it) : container_t::iterator(it) {}
+
+            container_t::mapped_type operator*() { return (*this)->second; }
+        };
+
+        ManagerLite() = default;
+
+        iterator begin() { return iterator(m_features.begin()); }
+
+        iterator end() { return iterator(m_features.end()); }
+
+        MediaFeature *GetFeature(int featureID)
+        {
+            auto iter = m_features.find(featureID);
+            if (iter == m_features.end())
+            {
+                return nullptr;
+            }
+            return iter->second;
+        }
+
+    private:
+        container_t m_features;
+    };
 
 public:
     class iterator : public container_t::iterator
@@ -174,15 +214,38 @@ public:
     MOS_STATUS Init(void *settings);
 
     //!
-    //! \brief  Register features
+    //! \brief  Register features, if last two parameters use
+    //!         default values, feature to be registered will
+    //!         not be blocked by any packet
     //! \param  [in] featureID
     //!         ID of the feature to be reigstered
     //! \param  [in] feature
     //!         Pointer to the feature to be registered
+    //! \param  [in] packetIds
+    //!         Packet ID list, if it is an allow list, feature will
+    //!         be only added to packets in the list, otherwise feature
+    //!         will be added to packets not in the list, by default it
+    //!         is an empty list
+    //! \param  [in] packetIdListType
+    //!         Indicate whether packet ID list is a block list
+    //!         or an allow list, by default it is a block list.
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RegisterFeatures(int featureID, MediaFeature *feature);
+    MOS_STATUS RegisterFeatures(
+        int                featureID,
+        MediaFeature *     feature,
+        std::vector<int> &&packetIds        = {},
+        LIST_TYPE          packetIdListType = LIST_TYPE::BLOCK_LIST);
+
+    //!
+    //! \brief  Get packet level feature manager
+    //! \param  [in] packetId
+    //!         ID of packet
+    //! \return std::shared_ptr<ManagerLite>
+    //!         A pointer to packet level feature manager
+    //!
+    std::shared_ptr<ManagerLite> GetPacketLevelFeatureManager(int packetId);
 
     //!
     //! \brief  Update all features
@@ -258,6 +321,8 @@ protected:
     uint8_t GetTargetUsage(){return m_targetUsage;}
 
     container_t m_features;
+    std::map<int, std::vector<int>> m_packetIdList;  // map feature ID to a vector of packet ID
+    std::map<int, LIST_TYPE> m_packetIdListTypes;  // map feature ID to a flag, indicates whether packet ID vector is a block list or an allow list
     MediaFeatureConstSettings *m_featureConstSettings = nullptr;
     uint8_t m_targetUsage = 0;
     uint8_t m_passNum = 1;
