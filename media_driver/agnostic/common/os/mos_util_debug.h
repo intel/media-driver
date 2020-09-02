@@ -175,13 +175,17 @@ typedef enum
 } MOS_MMC_SUBCOMP_ID;
 
 //!
-//! \brief Define BLT Sub-Component IDs
+//! \brief Define media copy Sub-Component IDs
 //!
 typedef enum
 {
-    MOS_BLT_SUBCOMP_SELF   = 0,
-    MOS_BLT_SUBCOMP_COUNT
-} MOS_BLT_SUBCOMP_ID;
+    MOS_MCPY_SUBCOMP_SELF   = 0,
+    MOS_MCPY_SUBCOMP_BLT,
+    MOS_MCPY_SUBCOMP_VEBOX,
+    MOS_MCPY_SUBCOMP_RENDER,
+    MOS_MCPY_SUBCOMP_COUNT
+} MOS_MCPY_SUBCOMP_ID;
+
 
 //!
 //! \brief MOS debug params structure, includes debug level and asserts enabled.
