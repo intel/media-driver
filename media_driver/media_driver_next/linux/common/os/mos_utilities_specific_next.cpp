@@ -2067,7 +2067,12 @@ void MosUtilities::MosTraceEvent(
     if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0 &&
         TRACE_EVENT_MAX_SIZE > dwSize1 + dwSize2 + TRACE_EVENT_HEADER_SIZE)
     {
-        uint8_t  *pTraceBuf = (uint8_t *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
+        uint8_t traceBuf[256];
+        uint8_t *pTraceBuf = traceBuf;
+        if (dwSize1 + dwSize2 + TRACE_EVENT_HEADER_SIZE > sizeof(traceBuf))
+        {
+            pTraceBuf = (uint8_t *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
+        }
 
         if (pTraceBuf)
         {
@@ -2090,7 +2095,10 @@ void MosUtilities::MosTraceEvent(
                 nLen += dwSize2;
             }
             size_t writeSize = write(MosUtilitiesSpecificNext::m_mosTraceFd, pTraceBuf, nLen);
-            MOS_FreeMemory(pTraceBuf);
+            if (traceBuf != pTraceBuf)
+            {
+                MOS_FreeMemory(pTraceBuf);
+            }
         }
     }
     return;
