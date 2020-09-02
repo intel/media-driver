@@ -225,7 +225,12 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
             break;
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    char *CopyEngine = (char *)(m_mcpyEngine?(m_mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox");
+    WriteUserFeatureString(__MEDIA_USER_FEATURE_MCPY_MODE_ID, CopyEngine, strlen(CopyEngine), nullptr);
+#endif
     MCPY_NORMALMESSAGE("Media Copy works on %s Engine", m_mcpyEngine?(m_mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox");
+
     return eStatus;
 }
 
