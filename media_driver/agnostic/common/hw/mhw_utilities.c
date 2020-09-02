@@ -78,6 +78,8 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     pParams->dwOffset = MOS_ALIGN_CEIL(pParams->dwOffset, dwAlign);
     ui64GfxAddress =
         pOsInterface->pfnGetResourceGfxAddress(pOsInterface, pParams->presResource) + pParams->dwOffset;
+    MHW_CHK_COND(ui64GfxAddress == 0, "Driver can't add resource with ui64GfxAddress == 0. DW location in cmd == %d.", pParams->dwLocationInCmd);
+
     dwGfxAddrBottom = (uint32_t)(ui64GfxAddress & 0x00000000FFFFFFFF);
     dwGfxAddrTop = (uint32_t)((ui64GfxAddress & 0xFFFFFFFF00000000) >> 32);
 
