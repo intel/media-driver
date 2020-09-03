@@ -929,6 +929,36 @@ protected:
 
         return eStatus;
     }
+
+    MOS_STATUS AddHcpDecodeProtectStateCmd(
+        PMOS_COMMAND_BUFFER              cmdBuffer,
+        PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState)
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        MHW_FUNCTION_ENTER;
+
+        MHW_MI_CHK_NULL(hevcSliceState);
+
+        MHW_CP_SLICE_INFO_PARAMS sliceInfoParam;
+        sliceInfoParam.presDataBuffer = hevcSliceState->presDataBuffer;
+        sliceInfoParam.dwSliceIndex = hevcSliceState->dwSliceIndex;
+        sliceInfoParam.dwTotalBytesConsumed = 0;
+        sliceInfoParam.bLastPass = hevcSliceState->bLastSlice;
+        sliceInfoParam.dwDataStartOffset[0] = hevcSliceState->pHevcSliceParams->slice_data_offset + hevcSliceState->dwOffset;
+        sliceInfoParam.dwDataStartOffset[1] = hevcSliceState->pHevcSliceParams->slice_data_offset + hevcSliceState->dwOffset;
+        sliceInfoParam.dwDataLength[0] = hevcSliceState->pHevcSliceParams->slice_data_size;
+        sliceInfoParam.dwDataLength[1] = hevcSliceState->pHevcSliceParams->slice_data_size;
+
+        m_cpInterface->SetHcpProtectionState(
+            true,
+            cmdBuffer,
+            nullptr,
+            &sliceInfoParam
+        );
+
+        return eStatus;
+    }
 };
 
 #endif

@@ -842,6 +842,22 @@ public:
         PMHW_VDBOX_HEVC_PIC_STATE        params);
 
     //!
+    //! \brief    Adds HCP Protect State command in command buffer
+    //! \details  Client facing function to add HCP picture State command for encode in command buffer
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Command buffer to which HW command is added
+    //! \param    [in] hevcSliceState
+    //!           Params structure used to populate the HW command
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AddHcpProtectStateCmd(
+        PMOS_COMMAND_BUFFER              cmdBuffer,
+        PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState);
+
+    //!
     //! \brief    Programs base address of rowstore scratch buffers
     //! \details  Internal function to get base address of rowstore scratch buffers
     //!
@@ -1066,6 +1082,21 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddHcpEncodeSliceStateCmd(
+        PMOS_COMMAND_BUFFER              cmdBuffer,
+        PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState) = 0;
+
+    //!
+    //! \brief    Adds HCP Protect state command for decode in command buffer
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Command buffer to which HW command is added
+    //! \param    [in] hevcSliceState
+    //!           Params structure used to populate the HW command
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddHcpDecodeProtectStateCmd(
         PMOS_COMMAND_BUFFER              cmdBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState) = 0;
 

@@ -2047,6 +2047,10 @@ MOS_STATUS CodechalDecodeHevc::SendSliceLongFormat(
         cmdBuffer,
         hevcSliceState));
 
+    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpProtectStateCmd(
+        cmdBuffer,
+        hevcSliceState));
+
     if (! m_hcpInterface->IsHevcISlice(slc->LongSliceFlags.fields.slice_type))
     {
         MHW_VDBOX_HEVC_REF_IDX_PARAMS refIdxParams;

@@ -124,6 +124,19 @@ MOS_STATUS MhwVdboxHcpInterface::AddHcpSliceStateCmd(
     return eStatus;
 }
 
+MOS_STATUS MhwVdboxHcpInterface::AddHcpProtectStateCmd(
+    PMOS_COMMAND_BUFFER              cmdBuffer,
+    PMHW_VDBOX_HEVC_SLICE_STATE      hevcSliceState)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_FUNCTION_ENTER;
+
+    MHW_MI_CHK_STATUS(AddHcpDecodeProtectStateCmd(cmdBuffer, hevcSliceState));
+
+    return eStatus;
+}
+
 uint16_t MhwVdboxHcpInterface::Convert2SignMagnitude(
     int32_t val,
     uint32_t signBitPos)
