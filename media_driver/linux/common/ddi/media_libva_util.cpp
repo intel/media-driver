@@ -235,8 +235,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_Y210:
         case Media_Format_Y216:
         case Media_Format_AYUV:
+        case Media_Format_XYUV:
         case Media_Format_Y410:
+        case Media_Format_XV30:
         case Media_Format_Y416:
+        case Media_Format_XV48:
         case Media_Format_Y8:
         case Media_Format_Y16S:
         case Media_Format_Y16U:
