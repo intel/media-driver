@@ -844,7 +844,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
     // Get row store cache params: as all the needed information is got here
     if (m_hcpInterface->IsRowStoreCachingSupported())
     {
-        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams;
+        MHW_VDBOX_ROWSTORE_PARAMS rowstoreParams = {};
         rowstoreParams.Mode = m_mode;
         rowstoreParams.dwPicWidth = m_frameWidth;
                 rowstoreParams.ucChromaFormat   = m_chromaFormat;
@@ -2822,6 +2822,7 @@ CodechalEncodeHevcBase::CodechalEncodeHevcBase(
     MOS_ZeroMemory(&m_s32XMeMvDataBuffer, sizeof(m_s32XMeMvDataBuffer));
     MOS_ZeroMemory(&m_s4XMeDistortionBuffer, sizeof(m_s4XMeDistortionBuffer));
     MOS_ZeroMemory(&m_mbQpDataSurface, sizeof(m_mbQpDataSurface));
+    MOS_ZeroMemory(&m_resPakcuLevelStreamoutData, sizeof(m_resPakcuLevelStreamoutData));
 
     m_fieldScalingOutputInterleaved = false;
     m_interlacedFieldDisabled = true;
