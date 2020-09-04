@@ -1427,6 +1427,9 @@ CodechalEncodeAvcEnc::CodechalEncodeAvcEnc(
     {
         m_useCmScalingKernel = 1;
     }
+    CODECHAL_DEBUG_TOOL(
+        m_mmcUserFeatureUpdated = false;
+    )
 }
 
 CodechalEncodeAvcEnc::~CodechalEncodeAvcEnc()
