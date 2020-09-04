@@ -2493,12 +2493,16 @@ MOS_STATUS Mos_Specific_AllocateResource(
     iSize       = GFX_ULONG_CAST(pGmmResourceInfo->GetSizeSurface());
     iHeight     = pGmmResourceInfo->GetBaseHeight();
 
-    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&pOsInterface->pOsContext->SkuTable, pGmmResourceInfo, pParams->pBufName, pParams->dwMemType);
+    MemoryPolicyParameter memPolicyPar;
+    MOS_ZeroMemory(&memPolicyPar, sizeof(MemoryPolicyParameter));
 
-    if (MEDIA_IS_WA(&pOsInterface->pOsContext->WaTable, WaForceAllocateLM))
-    {
-        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
-    }
+    memPolicyPar.skuTable         = &pOsInterface->pOsContext->SkuTable;
+    memPolicyPar.waTable          = &pOsInterface->pOsContext->WaTable;
+    memPolicyPar.resInfo          = pGmmResourceInfo;
+    memPolicyPar.resName          = pParams->pBufName;
+    memPolicyPar.preferredMemType = pParams->dwMemType;
+
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
     // Only Linear and Y TILE supported
     if( tileformat_linux == I915_TILING_NONE )

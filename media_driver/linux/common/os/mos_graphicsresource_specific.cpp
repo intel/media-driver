@@ -285,12 +285,16 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
 
     if(!params.m_pSystemMemory)
     {
-        mem_type = MemoryPolicyManager::UpdateMemoryPolicy(pOsContextSpecific->GetSkuTable(), gmmResourceInfoPtr, params.m_name.c_str(), params.m_memType);
+        MemoryPolicyParameter memPolicyPar;
+        MOS_ZeroMemory(&memPolicyPar, sizeof(MemoryPolicyParameter));
 
-        if(MEDIA_IS_WA(pOsContextSpecific->GetWaTable(), WaForceAllocateLM))
-        {
-            mem_type = MOS_MEMPOOL_DEVICEMEMORY;
-        }
+        memPolicyPar.skuTable = pOsContextSpecific->GetSkuTable();
+        memPolicyPar.waTable  = pOsContextSpecific->GetWaTable();
+        memPolicyPar.resInfo  = gmmResourceInfoPtr;
+        memPolicyPar.resName  = params.m_name.c_str();
+        memPolicyPar.preferredMemType = params.m_memType;
+
+        mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
     }
 
     MOS_TraceEventExt(EVENT_RESOURCE_ALLOCATE, EVENT_TYPE_START, nullptr, 0, nullptr, 0);

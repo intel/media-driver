@@ -3846,6 +3846,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_UINT32,
         "0",
         "Inter frame ninja counter"),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_LOCAL_MEMORY_LEVEL_SWITCH_ID,
+        "EnableLocalMemoryLevelSwitch",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "MOS",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+        "2",
+        "Enable local memory level switch.")
 };
 
 PMOS_USER_FEATURE_VALUE const MosUtilities::m_mosUserFeatureDescFields = MOSUserFeatureDescFields;

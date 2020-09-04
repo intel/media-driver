@@ -29,25 +29,55 @@
 
 #include "mos_os.h"
 
+//! \param   [in] skuTable
+//!          The pointer to MEDIA_FEATURE_TABLE
+//! \param   [in] waTable
+//!          The pointer to MEDIA_WA_TABLE
+//! \param   [in, out] resInfo
+//!          The pointer to GMM_RESOURCE_INFO, resource description which gets updated
+//! \param   [in] resName
+//!          The pointer to resource name
+//! \param   [in] uiType
+//!          The pointer to resource type
+//! \param   [in] preferredMemType
+//!          Prefer which type of memory is allocated (device memory, system memory or default setting).
+struct MemoryPolicyParameter
+{
+    MEDIA_FEATURE_TABLE *skuTable;
+    MEDIA_WA_TABLE *waTable;
+    GMM_RESOURCE_INFO *resInfo;
+    const char* resName;
+    uint32_t uiType;
+    int preferredMemType;
+};
+
 class MemoryPolicyManager
 {
+
 public:
 
     //! \brief   Updates resource memory policy
     //!
     //! \details Update memory policy to decide which type of memory is allocated (device memory, system memory or default setting).
-    //!
-    //! \param   [in] skuTable
-    //!          The pointer to MEDIA_FEATURE_TABLE
-    //! \param   [in, out] resInfo
-    //!          The pointer to GMM_RESOURCE_INFO, resource description which gets updated
-    //! \param   [in] resName
-    //!          The pointer to resource name
-    //! \param   [in] preferredMemType
-    //!          Prefer which type of memory is allocated (device memory, system memory or default setting).
+    //! \param   [in] memPolicyPar
+    //!          The pointer to MemoryPolicyParameter
     //!
     //! \return  new memory policy
-    static int UpdateMemoryPolicy(MEDIA_FEATURE_TABLE *skuTable, GMM_RESOURCE_INFO *resInfo, const char* resName, int preferredMemType = MOS_MEMPOOL_VIDEOMEMORY);
+    static int UpdateMemoryPolicy(MemoryPolicyParameter* memPolicyPar);
+
+private:
+
+    //! \brief   Updates resource memory policy with WA
+    //!
+    //! \details Update memory policy to decide which type of memory is allocated (device memory, system memory or default setting).
+    //! \param   [in] memPolicyPar
+    //!          The pointer to MemoryPolicyParameter
+    //!
+    //! \param   [in/out] mem_type
+    //!          The pointer to mem_type
+
+    //! \return  new memory policy
+    static int UpdateMemoryPolicyWithWA(MemoryPolicyParameter* memPolicyPar, int& mem_type);
 };
 
 

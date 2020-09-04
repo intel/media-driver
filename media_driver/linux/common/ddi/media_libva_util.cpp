@@ -533,12 +533,16 @@ VAStatus DdiMediaUtil_AllocateSurface(
         goto finish;
     }
 
-    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaDrvCtx->SkuTable, mediaSurface->pGmmResourceInfo, "Media Surface", mem_type);
+    MemoryPolicyParameter memPolicyPar;
+    MOS_ZeroMemory(&memPolicyPar, sizeof(MemoryPolicyParameter));
 
-    if(MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaForceAllocateLM))
-    {
-        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
-    }
+    memPolicyPar.skuTable = &mediaDrvCtx->SkuTable;
+    memPolicyPar.waTable = &mediaDrvCtx->WaTable;
+    memPolicyPar.resInfo = mediaSurface->pGmmResourceInfo;
+    memPolicyPar.resName = "Media Surface";
+    memPolicyPar.preferredMemType = mem_type;
+
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
     if (!DdiMediaUtil_IsExternalSurface(mediaSurface) ||
         mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
@@ -681,21 +685,17 @@ VAStatus DdiMediaUtil_AllocateBuffer(
     mediaBuffer->pGmmResourceInfo->OverrideBaseWidth(mediaBuffer->iSize);
     mediaBuffer->pGmmResourceInfo->OverridePitch(mediaBuffer->iSize);
 
-    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(
-                    &mediaBuffer->pMediaCtx->SkuTable,
-                    mediaBuffer->pGmmResourceInfo,
-                    "Media Buffer",
-                    mediaBuffer->bUseSysGfxMem ? MOS_MEMPOOL_SYSTEMMEMORY : 0);
+    MemoryPolicyParameter memPolicyPar;
+    MOS_ZeroMemory(&memPolicyPar, sizeof(MemoryPolicyParameter));
 
-    if(MEDIA_IS_WA(&mediaBuffer->pMediaCtx->WaTable, WaForceAllocateLM))
-    {
-        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
+    memPolicyPar.skuTable = &mediaBuffer->pMediaCtx->SkuTable;
+    memPolicyPar.waTable = &mediaBuffer->pMediaCtx->WaTable;
+    memPolicyPar.resInfo = mediaBuffer->pGmmResourceInfo;
+    memPolicyPar.resName = "Media Buffer";
+    memPolicyPar.uiType = mediaBuffer->uiType;
+    memPolicyPar.preferredMemType = mediaBuffer->bUseSysGfxMem ? MOS_MEMPOOL_SYSTEMMEMORY : 0;
 
-        if(mediaBuffer->uiType == VAEncCodedBufferType)
-        {
-            mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-        }
-    }
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
     MOS_LINUX_BO *bo  = mos_bo_alloc(bufmgr, "Media Buffer", size, 4096, mem_type);
 
@@ -786,12 +786,15 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     gmmSize     = (uint32_t)gmmResourceInfo->GetSizeSurface();
     gmmHeight   = gmmResourceInfo->GetBaseHeight();
 
-    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&mediaBuffer->pMediaCtx->SkuTable, mediaBuffer->pGmmResourceInfo, "Media 2D Buffer");
+    MemoryPolicyParameter memPolicyPar;
+    MOS_ZeroMemory(&memPolicyPar, sizeof(MemoryPolicyParameter));
 
-    if(MEDIA_IS_WA(&mediaBuffer->pMediaCtx->WaTable, WaForceAllocateLM))
-    {
-        mem_type = MOS_MEMPOOL_DEVICEMEMORY;
-    }
+    memPolicyPar.skuTable = &mediaBuffer->pMediaCtx->SkuTable;
+    memPolicyPar.waTable = &mediaBuffer->pMediaCtx->WaTable;
+    memPolicyPar.resInfo = mediaBuffer->pGmmResourceInfo;
+    memPolicyPar.resName = "Media 2D Buffer";
+
+    mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
     MOS_LINUX_BO  *bo;
     bo = mos_bo_alloc(bufmgr, "Media 2D Buffer", gmmSize, 4096, mem_type);

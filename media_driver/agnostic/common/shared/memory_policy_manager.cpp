@@ -26,34 +26,31 @@
 #include "memory_policy_manager.h"
 
 int MemoryPolicyManager::UpdateMemoryPolicy(
-    MEDIA_FEATURE_TABLE* skuTable,
-    GMM_RESOURCE_INFO* resInfo,
-    const char* resName,
-    int preferredMemType)
+    MemoryPolicyParameter* memPolicyPar)
 {
     int mem_type = MOS_MEMPOOL_VIDEOMEMORY;
 
-    if(!skuTable || !resInfo)
+    if(!memPolicyPar || !memPolicyPar->skuTable || !memPolicyPar->resInfo)
     {
         MOS_OS_ASSERTMESSAGE("Null pointer");
         return mem_type;
     }
 
-    if(!MEDIA_IS_SKU(skuTable, FtrLocalMemory))
+    if(!MEDIA_IS_SKU(memPolicyPar->skuTable, FtrLocalMemory))
     {
         MOS_OS_VERBOSEMESSAGE("No FtrLocalMemory");
         return mem_type;
     }
 
-    GMM_TILE_TYPE tile_type = resInfo->GetTileType();
-    GMM_RESOURCE_FLAG& resFlag = resInfo->GetResFlags();
-    GMM_RESOURCE_TYPE res_type = resInfo->GetResourceType();
+    GMM_TILE_TYPE tile_type = memPolicyPar->resInfo->GetTileType();
+    GMM_RESOURCE_FLAG& resFlag = memPolicyPar->resInfo->GetResFlags();
+    GMM_RESOURCE_TYPE res_type = memPolicyPar->resInfo->GetResourceType();
 
-    if (preferredMemType != MOS_MEMPOOL_VIDEOMEMORY &&
-        preferredMemType != MOS_MEMPOOL_DEVICEMEMORY &&
-        preferredMemType != MOS_MEMPOOL_SYSTEMMEMORY)
+    if (memPolicyPar->preferredMemType != MOS_MEMPOOL_VIDEOMEMORY &&
+        memPolicyPar->preferredMemType != MOS_MEMPOOL_DEVICEMEMORY &&
+        memPolicyPar->preferredMemType != MOS_MEMPOOL_SYSTEMMEMORY)
     {
-        MOS_OS_ASSERTMESSAGE("Wrong preferredMemType %d", preferredMemType);
+        MOS_OS_ASSERTMESSAGE("Wrong preferredMemType %d", memPolicyPar->preferredMemType);
         return mem_type;
     }
 
@@ -72,23 +69,25 @@ int MemoryPolicyManager::UpdateMemoryPolicy(
     }
 
     // Override setting, depending on preferredMemType
-    if ((preferredMemType & MOS_MEMPOOL_DEVICEMEMORY) && !(mem_type & MOS_MEMPOOL_DEVICEMEMORY))
+    if ((memPolicyPar->preferredMemType & MOS_MEMPOOL_DEVICEMEMORY) && !(mem_type & MOS_MEMPOOL_DEVICEMEMORY))
     {
         mem_type                  = MOS_MEMPOOL_DEVICEMEMORY;
         resFlag.Info.LocalOnly    = 1;
         resFlag.Info.NonLocalOnly = 0;
     }
 
-    if ((preferredMemType & MOS_MEMPOOL_SYSTEMMEMORY) && !(mem_type & MOS_MEMPOOL_SYSTEMMEMORY))
+    if ((memPolicyPar->preferredMemType & MOS_MEMPOOL_SYSTEMMEMORY) && !(mem_type & MOS_MEMPOOL_SYSTEMMEMORY))
     {
         mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
         resFlag.Info.LocalOnly    = 0;
         resFlag.Info.NonLocalOnly = 1;
     }
 
-    uint32_t surfSize = (uint32_t)resInfo->GetSizeSurface();
+    UpdateMemoryPolicyWithWA(memPolicyPar, mem_type);
 
-    MOS_OS_NORMALMESSAGE("\"%s\" preferredMemType %d, mem_type %d, res_type %d, size %d", (resName ? resName : "Resource"), preferredMemType, mem_type, res_type, surfSize);
+    uint32_t surfSize = (uint32_t)memPolicyPar->resInfo->GetSizeSurface();
+
+    MOS_OS_NORMALMESSAGE("\"%s\" preferredMemType %d, mem_type %d, res_type %d, size %d", (memPolicyPar->resName ? memPolicyPar->resName : "Resource"), memPolicyPar->preferredMemType, mem_type, res_type, surfSize);
 
     return mem_type;
 }
