@@ -1,9 +1,0 @@
-prefix=@CMAKE_INSTALL_PREFIX@
-execprefix=${prefix}
-libdir=@CMAKE_INSTALL_FULL_LIBDIR@
-driverdir=@LIBVA_DRIVERS_PATH@
-
-Name: iHD_drv_video
-Version: 20.3
-Description: Libva Drivers Path
-Libs: -L${libdir} 

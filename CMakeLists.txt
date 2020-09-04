@@ -94,12 +94,6 @@ if (INSTALL_DRIVER_SYSCONF)
     install (FILES ${CMAKE_CURRENT_BINARY_DIR}/media_driver/cmake/linux/intel-media.sh
         DESTINATION ${CMAKE_INSTALL_FULL_SYSCONFDIR}/profile.d/ COMPONENT media)
 endif()
-configure_file (
-    ${CMAKE_CURRENT_SOURCE_DIR}/iHD_drv_video.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/iHD_drv_video.pc @ONLY)
-
-install (FILES ${CMAKE_CURRENT_BINARY_DIR}/iHD_drv_video.pc
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig COMPONENT media)
 
 include(${CMAKE_CURRENT_LIST_DIR}/pack_ext.cmake OPTIONAL)
 
