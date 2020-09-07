@@ -1692,7 +1692,7 @@ VAStatus DdiMedia__Initialize (
         // prepare m_osContext
         MosUtilities::MosUtilitiesInit(nullptr);
         //Read user feature key here for Per Utility Tool Enabling
-#if _RELEASE_INTERNAL
+
         if (!g_perfutility->bPerfUtilityKey)
         {
             MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
@@ -1726,7 +1726,6 @@ VAStatus DdiMedia__Initialize (
 
             g_perfutility->bPerfUtilityKey = true;
         }
-#endif
 
         mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE);
         if (nullptr == mediaCtx->pDrmBufMgr)

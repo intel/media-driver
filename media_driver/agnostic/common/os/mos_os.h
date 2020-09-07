@@ -75,7 +75,6 @@ extern PerfUtility *g_perfutility;
      ((sCOMP == "MOS" && sLEVEL == "DDI") && (g_perfutility->dwPerfUtilityIsEnabled & MOS_DDI)) ||        \
      ((sCOMP == "MOS" && sLEVEL == "HAL") && (g_perfutility->dwPerfUtilityIsEnabled & MOS_HAL)))
 
-#if _RELEASE_INTERNAL
 #define PERF_UTILITY_START(TAG,COMP,LEVEL)                                 \
     do                                                                     \
     {                                                                      \
@@ -124,20 +123,11 @@ static int perf_count_stop = 0;
 #define PERF_UTILITY_PRINT                         \
     do                                             \
     {                                              \
-        if (g_perfutility->dwPerfUtilityIsEnabled) \
+        if (g_perfutility->dwPerfUtilityIsEnabled && MosUtilities::MosIsProfilerDumpEnabled()) \
         {                                          \
             g_perfutility->savePerfData();         \
         }                                          \
     } while(0)
-
-#else
-#define PERF_UTILITY_START(TAG, COMP,LEVEL) do {} while(0)
-#define PERF_UTILITY_STOP(TAG, COMP,LEVEL) do {} while(0)
-#define PERF_UTILITY_START_ONCE(TAG, COMP,LEVEL) do {} while(0)
-#define PERF_UTILITY_STOP_ONCE(TAG, COMP,LEVEL) do {} while(0)
-#define PERF_UTILITY_AUTO(TAG,COMP,LEVEL) do {} while(0)
-#define PERF_UTILITY_PRINT do {} while(0)
-#endif
 
 class AutoPerfUtility
 {
