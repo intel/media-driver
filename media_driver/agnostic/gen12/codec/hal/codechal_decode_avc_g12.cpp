@@ -412,6 +412,17 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
     auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
+#ifdef _MMC_SUPPORTED
+        // To Clear invalid aux data of output surface when MMC on
+        if (m_mmc && m_mmc->IsMmcEnabled() &&
+            !Mos_ResourceIsNull(&decProcessingParams->pOutputSurface->OsResource) &&
+            decProcessingParams->pOutputSurface->OsResource.bConvertedFromDDIResource)
+        {
+            CODECHAL_DECODE_VERBOSEMESSAGE("Clear invalid aux data of output surface before frame %d submission", m_frameNum);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
+                this, m_miInterface, &decProcessingParams->pOutputSurface->OsResource, m_veState));
+        }
+#endif
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(
             decProcessingParams,
             m_renderContext,
