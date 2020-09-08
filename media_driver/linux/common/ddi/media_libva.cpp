@@ -6858,12 +6858,14 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     desc->num_objects     = 1;
     desc->objects[0].fd   = mediaSurface->name;
     desc->objects[0].size = mediaSurface->pGmmResourceInfo->GetSizeSurface();
+
+    bool bMmcEnabled = (MOS_RESOURCE_MMC_MODE)mediaSurface->pGmmResourceInfo->GetMmcMode(0) != MOS_MMC_DISABLED;
     switch (mediaSurface->TileType) {
     case I915_TILING_X:
         desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_X_TILED;
         break;
     case I915_TILING_Y:
-        if (mediaCtx->m_auxTableMgr)
+        if (mediaCtx->m_auxTableMgr && bMmcEnabled)
         {
             desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS;
         }else
