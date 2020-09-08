@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -47,23 +47,16 @@ namespace decode
         DECODE_FUNC_CALL();
 
         int32_t mibSizeLog2 = av1MinMibSizeLog2;
-        int32_t miCols = MOS_ALIGN_CEIL(m_basicFeature->m_width, 8) >> av1MiSizeLog2;
-        int32_t miRows = MOS_ALIGN_CEIL(m_basicFeature->m_height, 8) >> av1MiSizeLog2;
-        miCols = MOS_ALIGN_CEIL(miCols, 1 << mibSizeLog2);
-        miRows = MOS_ALIGN_CEIL(miRows, 1 << mibSizeLog2);
-        widthInSb = miCols >> mibSizeLog2;
-        heightInSb = miRows >> mibSizeLog2;
-
-        Av1RefAssociatedBufs *      bufs = MOS_New(Av1RefAssociatedBufs);
         MhwVdboxAvpBufferSizeParams avpBufSizeParam;
-        MOS_ZeroMemory(&avpBufSizeParam, sizeof(avpBufSizeParam));
-        avpBufSizeParam.m_picWidth  = widthInSb;
-        avpBufSizeParam.m_picHeight = heightInSb;
+        SetAvpBufSizeParam(avpBufSizeParam, mibSizeLog2);
+
         if (m_avpInterface->GetAv1BufferSize(mvTemporalBuf,
                                             &avpBufSizeParam) != MOS_STATUS_SUCCESS)
         {
             DECODE_ASSERTMESSAGE( "Failed to get MvTemporalBuffer size.");
         }
+
+        Av1RefAssociatedBufs *bufs = MOS_New(Av1RefAssociatedBufs);
         bufs->mvBuf = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "MvTemporalBuffer", resourceInternalReadWriteCache);
 
         if (m_avpInterface->GetAv1BufferSize(segmentIdBuf,
@@ -88,10 +81,10 @@ namespace decode
             return MOS_STATUS_SUCCESS;
         }
 
+        int32_t mibSizeLog2 = m_basicFeature->m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? av1MaxMibSizeLog2 : av1MinMibSizeLog2;
         MhwVdboxAvpBufferSizeParams avpBufSizeParam;
-        MOS_ZeroMemory(&avpBufSizeParam, sizeof(avpBufSizeParam));
-        avpBufSizeParam.m_picWidth  = widthInSb;
-        avpBufSizeParam.m_picHeight = heightInSb;
+        SetAvpBufSizeParam(avpBufSizeParam, mibSizeLog2);
+
         DECODE_CHK_STATUS(m_avpInterface->GetAv1BufferSize(
             mvTemporalBuf,
             &avpBufSizeParam));
@@ -106,6 +99,25 @@ namespace decode
         RecordCdfTableBufInfo(buffer);
 
         return MOS_STATUS_SUCCESS;
+    }
+
+    void Av1TempBufferOpInf::SetAvpBufSizeParam(MhwVdboxAvpBufferSizeParams& params, int32_t mibSizeLog2)
+    {
+        int32_t miCols = MOS_ALIGN_CEIL(m_basicFeature->m_width, 8) >> av1MiSizeLog2;
+        int32_t miRows = MOS_ALIGN_CEIL(m_basicFeature->m_height, 8) >> av1MiSizeLog2;
+        miCols         = MOS_ALIGN_CEIL(miCols, 1 << mibSizeLog2);
+        miRows         = MOS_ALIGN_CEIL(miRows, 1 << mibSizeLog2);
+        widthInSb      = miCols >> mibSizeLog2;
+        heightInSb     = miRows >> mibSizeLog2;
+
+        MOS_ZeroMemory(&params, sizeof(params));
+        params.m_picWidth    = widthInSb;
+        params.m_picHeight   = heightInSb;
+        params.m_isSb128x128 = false;
+        if (m_basicFeature->m_av1PicParams != nullptr)
+        {
+            params.m_isSb128x128 = m_basicFeature->m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? true : false;
+        }
     }
 
     void Av1TempBufferOpInf::RecordSegIdBufInfo(Av1RefAssociatedBufs *buffer)

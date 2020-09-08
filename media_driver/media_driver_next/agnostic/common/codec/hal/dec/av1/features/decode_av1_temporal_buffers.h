@@ -55,6 +55,7 @@ namespace decode
         virtual MOS_STATUS Resize(Av1RefAssociatedBufs* &buffer);
         virtual void Destroy(Av1RefAssociatedBufs* &buffer);
     protected:
+        void                  SetAvpBufSizeParam(MhwVdboxAvpBufferSizeParams& params, int32_t mibSizeLog2);
         void                  RecordSegIdBufInfo(Av1RefAssociatedBufs *buffer);
         void                  RecordCdfTableBufInfo(Av1RefAssociatedBufs *buffer);
         MhwVdboxAvpInterface *m_avpInterface = nullptr;  //!< Avp interface;
