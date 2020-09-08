@@ -156,10 +156,12 @@ void SfcRenderBase::SetXYAdaptiveFilter(
 
     // Enable Adaptive Filtering for YUV input only, if it is being upscaled
     // in either direction. We must check for this before clamping the SF.
-    if (IS_YUV_FORMAT(m_renderData.SfcInputFormat) &&
-      (m_renderData.fScaleX > 1.0F                 ||
-       m_renderData.fScaleY > 1.0F)                &&
-       (psfcStateParams->dwAVSFilterMode != MEDIASTATE_SFC_AVS_FILTER_BILINEAR))
+    if ((IS_YUV_FORMAT(m_renderData.SfcInputFormat)      ||
+         m_renderData.SfcInputFormat == Format_AYUV)     &&
+        (m_renderData.fScaleX > 1.0F                     ||
+         m_renderData.fScaleY > 1.0F)                    &&
+        //For AVS, we need set psfcStateParams->bBypassXAdaptiveFilter and bBypassYAdaptiveFilter as false;
+        (psfcStateParams->dwAVSFilterMode != MEDIASTATE_SFC_AVS_FILTER_BILINEAR))
     {
       psfcStateParams->bBypassXAdaptiveFilter = false;
       psfcStateParams->bBypassYAdaptiveFilter = false;
