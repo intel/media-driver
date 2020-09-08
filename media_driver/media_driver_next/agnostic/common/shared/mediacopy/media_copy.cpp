@@ -103,14 +103,13 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
         m_mcpyEngineCaps.engineRender = false;
     }
 
-    // blt check, blt support all format, but only support RC/UnComp -> RC/UnComp conversion.
-    if ((m_mcpySrc.CompressionMode == MOS_MMC_MC && m_mcpyDst.CompressionMode != MOS_MMC_MC) ||
-        (m_mcpySrc.CompressionMode != MOS_MMC_MC && m_mcpyDst.CompressionMode == MOS_MMC_MC))
+    // blt check.
+    if ((m_mcpySrc.CompressionMode != MOS_MMC_DISABLED) ||
+        (m_mcpyDst.CompressionMode != MOS_MMC_DISABLED) ||
+        (m_mcpySrc.TileMode != m_mcpyDst.TileMode))
     {
         m_mcpyEngineCaps.engineBlt = false;
     }
-
-    // add more common policy check, such as tile check. memory location check etc if needed.
 
     // derivate class specific check. include HW engine avaliable check.
     FeatureSupport(m_mcpySrc.OsRes, m_mcpyDst.OsRes, m_mcpySrc, m_mcpyDst, m_mcpyEngineCaps);

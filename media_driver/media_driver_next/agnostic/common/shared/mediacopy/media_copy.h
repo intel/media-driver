@@ -58,12 +58,6 @@ enum MCPY_ENGINE
     MCPY_ENGINE_RENDER,
 };
 
-enum MCPY_MEMMODE
-{
-    MCPY_VIDEO_MEMORY = 0,
-    MCPY_SYSTEM_MEMORY,
-};
-
 enum MCPY_CPMODE
 {
     MCPY_CPMODE_CP = 0,
@@ -72,8 +66,8 @@ enum MCPY_CPMODE
 
 enum MCPY_METHOD
 {
-    MCPY_METHOD_PERFORMANCE = 0, // use EU to get the best perf.
-    MCPY_METHOD_BALANCE,         // use vebox engine.
+    MCPY_METHOD_BALANCE  = 0,    // use vebox engine.
+    MCPY_METHOD_PERFORMANCE,     // use EU to get the best perf.
     MCPY_METHOD_POWERSAVING,     // use BCS engine
 };
 
@@ -83,7 +77,6 @@ typedef struct _MCPY_STATE_PARAMS
     MOS_RESOURCE_MMC_MODE CompressionMode;    // MC, RC, uncompressed
     MOS_TILE_TYPE         TileMode;           // linear, TILEY, TILE4
     MCPY_CPMODE           CpMode;             // CP content.
-    MCPY_MEMMODE          MemoryMode;         // video, system
     bool                  bAuxSuface;
 }MCPY_STATE_PARAMS;
 
@@ -267,8 +260,8 @@ public:
     MhwInterfaces      *m_mhwInterfaces  = nullptr;
     MCPY_ENGINE_CAPS    m_mcpyEngineCaps = {1,1,1,1};
     MCPY_ENGINE         m_mcpyEngine     = MCPY_ENGINE_RENDER;
-    MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, MCPY_VIDEO_MEMORY, false}; // source surface.
-    MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, MCPY_VIDEO_MEMORY, false}; // destination surface.
+    MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
+    MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
 
 protected:
     VeboxCopyState     * m_veboxCopyState = nullptr;

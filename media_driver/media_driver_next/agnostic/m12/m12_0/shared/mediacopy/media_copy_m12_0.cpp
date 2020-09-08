@@ -77,7 +77,8 @@ MOS_STATUS MediaCopyStateM12_0::FeatureSupport(PMOS_RESOURCE src, PMOS_RESOURCE 
     // check CP COPYIN case. ??
     if (mcpy_src.CompressionMode == MOS_MMC_DISABLED &&
         mcpy_dst.CompressionMode == MOS_MMC_RC       &&
-        mcpy_dst.CpMode          == MCPY_CPMODE_CP)
+        mcpy_dst.CpMode          == MCPY_CPMODE_CP   ||
+        mcpy_src.bAuxSuface)
     {
         caps.engineBlt = false;
     }
