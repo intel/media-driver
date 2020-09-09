@@ -195,6 +195,9 @@ private:
     ((GpuContext) == MOS_GPU_CONTEXT_VEBOX))
 #endif
 
+#define MOS_GCS_ENGINE_USED(GpuContext) (             \
+    ((GpuContext) == MOS_GPU_CONTEXT_TEE))
+
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 #define MOS_COMMAND_BUFFER_OUT_FILE        "Command_buffer_output"
 #define MOS_COMMAND_BUFFER_OUT_DIR         "Command_buffer_dumps"
