@@ -52,7 +52,7 @@ public:
     //!
     virtual MOS_STATUS Init();
 
-    virtual MOS_STATUS Init(CODECHAL_STANDARD codecStandard, CodecDecodeJpegChromaType jpegChromaType, bool deblockingEnabled, uint32_t lcuSize);
+    virtual MOS_STATUS Init(VIDEO_PARAMS &videoParams);
 
     //!
     //! \brief    Setup CSC parameters of the SFC State
@@ -412,13 +412,7 @@ protected:
     uint8_t                         m_pipeMode = MhwSfcInterface::SFC_PIPE_MODE_VEBOX; //!< which FE engine pipe used
 
     bool                            m_bVdboxToSfc = false;
-    struct
-    {
-        CODECHAL_STANDARD           codecStandard       = CODECHAL_STANDARD_MAX;
-        CodecDecodeJpegChromaType   jpegChromaType      = jpegYUV400;
-        uint32_t                    lcuSize             = 0;
-        bool                        deblockingEnabled   = false;
-    } m_videoConfig;
+    VIDEO_PARAMS                    m_videoConfig = {};
 };
 
 }

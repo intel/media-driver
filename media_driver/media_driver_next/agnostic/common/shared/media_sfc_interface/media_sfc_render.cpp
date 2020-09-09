@@ -364,7 +364,7 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
     vpExecuteCaps.bSfcScaling       = 1;
     vpExecuteCaps.bSfcRotMir        = 1;
 
-    VP_PUBLIC_CHK_STATUS_RETURN(scalingFilter.Init(sfcParam.codecStandard, sfcParam.jpegChromaType));
+    VP_PUBLIC_CHK_STATUS_RETURN(scalingFilter.Init(sfcParam.videoParams.codecStandard, sfcParam.videoParams.jpeg.jpegChromaType));
     VP_PUBLIC_CHK_STATUS_RETURN(scalingFilter.SetExecuteEngineCaps(scalingParams, vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(scalingFilter.CalculateEngineParams());
 
@@ -407,7 +407,7 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
     }
 
     // Check input and output format (limited only to current decode processing usage)
-    if (!m_vdboxSfcRender->IsVdboxSfcFormatSupported(sfcParam.codecStandard, sfcParam.input.format, sfcParam.output.surface->Format))
+    if (!m_vdboxSfcRender->IsVdboxSfcFormatSupported(sfcParam.videoParams.codecStandard, sfcParam.input.format, sfcParam.output.surface->Format))
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }

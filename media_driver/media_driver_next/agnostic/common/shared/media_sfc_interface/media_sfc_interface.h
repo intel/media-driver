@@ -55,6 +55,34 @@ struct VEBOX_SFC_PARAMS
     } output;
 };
 
+struct VIDEO_PARAMS
+{
+    CODECHAL_STANDARD   codecStandard;
+    union
+    {
+        struct
+        {
+            CodecDecodeJpegChromaType       jpegChromaType;
+        } jpeg;
+        struct
+        {
+            bool                            deblockingEnabled;
+        } avc, vp8;
+        struct
+        {
+            uint32_t                        lcuSize;
+        } hevc;
+        struct
+        {
+            uint32_t                        lcuSize;
+            bool                            lossless;
+            bool                            superResInuse;
+            uint32_t                        tileCols;
+            uint32_t                        tileRows;
+        } av1;
+    };
+};
+
 struct VDBOX_SFC_PARAMS
 {
     // Input
@@ -77,10 +105,7 @@ struct VDBOX_SFC_PARAMS
         RECT                        rcDst;              //!< rectangle on output surface after scaling.
     } output;
 
-    CODECHAL_STANDARD               codecStandard;
-    CodecDecodeJpegChromaType       jpegChromaType;
-    uint32_t                        lcuSize;
-    bool                            deblockingEnabled;
+    VIDEO_PARAMS                    videoParams;        //!< standard related params.
 };
 
 union MEDIA_SFC_INTERFACE_MODE

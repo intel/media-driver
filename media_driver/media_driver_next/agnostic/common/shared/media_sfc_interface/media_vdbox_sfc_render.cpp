@@ -129,7 +129,7 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     scalingParams.pCompAlpha                = nullptr;
     scalingParams.colorSpaceOutput          = sfcParam.output.colorSpace;
 
-    m_scalingFilter->Init(sfcParam.codecStandard, sfcParam.jpegChromaType);
+    m_scalingFilter->Init(sfcParam.videoParams.codecStandard, sfcParam.videoParams.jpeg.jpegChromaType);
     m_scalingFilter->SetExecuteEngineCaps(scalingParams, vpExecuteCaps);
     m_scalingFilter->CalculateEngineParams();
 
@@ -166,7 +166,7 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
     vpExecuteCaps.bSfcScaling       = 1;
     vpExecuteCaps.bSfcRotMir        = 1;
 
-    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->Init(sfcParam.codecStandard, sfcParam.jpegChromaType, sfcParam.deblockingEnabled, sfcParam.lcuSize));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_sfcRender->Init(sfcParam.videoParams));
     VP_PUBLIC_CHK_STATUS_RETURN(SetCSCParams(sfcParam, vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(SetScalingParams(sfcParam, vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(SetRotMirParams(sfcParam, vpExecuteCaps));
@@ -185,7 +185,7 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
 
     VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetupSfcState(renderTarget));
     VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SendSfcCmd(
-                            CODECHAL_JPEG != sfcParam.codecStandard,
+                            CODECHAL_JPEG != sfcParam.videoParams.codecStandard,
                             cmdBuffer));
 
     m_allocator->DestroyVpSurface(renderTarget);

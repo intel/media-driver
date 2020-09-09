@@ -110,8 +110,8 @@ MOS_STATUS SfcRenderM12::SetSfcStateInputOrderingModeHcp(
     }
     if (CODECHAL_HEVC == m_videoConfig.codecStandard)
     {
-        sfcStateParams->dwVDVEInputOrderingMode = (16 == m_videoConfig.lcuSize) ? MhwSfcInterfaceG12::LCU_16_16_HEVC :
-            (32 == m_videoConfig.lcuSize) ? MhwSfcInterfaceG12::LCU_32_32_HEVC : MhwSfcInterfaceG12::LCU_64_64_HEVC;
+        sfcStateParams->dwVDVEInputOrderingMode = (16 == m_videoConfig.hevc.lcuSize) ? MhwSfcInterfaceG12::LCU_16_16_HEVC :
+            (32 == m_videoConfig.hevc.lcuSize) ? MhwSfcInterfaceG12::LCU_32_32_HEVC : MhwSfcInterfaceG12::LCU_64_64_HEVC;
     }
     else if (CODECHAL_VP9 == m_videoConfig.codecStandard)
     {

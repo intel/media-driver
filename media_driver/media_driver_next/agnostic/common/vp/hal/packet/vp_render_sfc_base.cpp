@@ -101,18 +101,15 @@ MOS_STATUS SfcRenderBase::SetCodecPipeMode(CODECHAL_STANDARD codecStandard)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SfcRenderBase::Init(CODECHAL_STANDARD codecStandard, CodecDecodeJpegChromaType jpegChromaType, bool deblockingEnabled, uint32_t lcuSize)
+MOS_STATUS SfcRenderBase::Init(VIDEO_PARAMS &videoParams)
 {
     MOS_ZeroMemory(&m_renderData, sizeof(m_renderData));
 
     m_bVdboxToSfc = true;
 
-    m_videoConfig.codecStandard = codecStandard;
-    m_videoConfig.jpegChromaType = jpegChromaType;
-    m_videoConfig.deblockingEnabled = deblockingEnabled;
-    m_videoConfig.lcuSize = lcuSize;
+    m_videoConfig = videoParams;
 
-    VP_PUBLIC_CHK_STATUS_RETURN(SetCodecPipeMode(codecStandard));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetCodecPipeMode(m_videoConfig.codecStandard));
 
     return InitSfcStateParams();
 }
@@ -233,6 +230,7 @@ MOS_STATUS SfcRenderBase::SetIefStateParams(
 
     pIefStateParams = &m_IefStateParams;
     MOS_ZeroMemory(pIefStateParams, sizeof(*pIefStateParams));
+    pIefStateParams->sfcPipeMode = m_pipeMode;
 
     // Setup IEF and STE params
     if (m_renderData.bIEF && m_renderData.pIefParams)
@@ -261,6 +259,7 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
 
     pMhwAvsState = &m_avsState.AvsStateParams;
     MOS_ZeroMemory(pMhwAvsState, sizeof(MHW_SFC_AVS_STATE));
+    pMhwAvsState->sfcPipeMode = m_pipeMode;
 
     if (m_renderData.bScaling ||
         m_renderData.bForcePolyPhaseCoefs)
@@ -312,6 +311,9 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
         {
             bUse8x8Filter = true;
         }
+
+        m_avsState.LumaCoeffs.sfcPipeMode   = m_pipeMode;
+        m_avsState.ChromaCoeffs.sfcPipeMode = m_pipeMode;
 
         VP_RENDER_CHK_STATUS_RETURN(m_sfcInterface->SetSfcSamplerTable(
             &m_avsState.LumaCoeffs,
@@ -535,7 +537,7 @@ bool SfcRenderBase::IsVdboxSfcFormatSupported(
             return false;
         }
     }
-    else
+    else if (codecStandard < CODECHAL_HCP_BASE) // For other legacy standard.
     {
         if ((inputFormat != Format_NV12) &&
             (inputFormat != Format_400P) &&
@@ -556,6 +558,11 @@ bool SfcRenderBase::IsVdboxSfcFormatSupported(
             VP_PUBLIC_ASSERTMESSAGE("Unsupported Output Format '0x%08x' for SFC.", outputFormat);
             return false;
         }
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Unsupported standard '0x%08x' for SFC.", codecStandard);
+        return false;
     }
 
     return true;
@@ -734,11 +741,11 @@ MOS_STATUS SfcRenderBase::SetSfcStateInputOrderingModeVdbox(
         sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_NOSHIFT;
         break;
     case CODECHAL_AVC:
-        sfcStateParams->dwVDVEInputOrderingMode = m_videoConfig.deblockingEnabled ? MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_SHIFT :
+        sfcStateParams->dwVDVEInputOrderingMode = m_videoConfig.avc.deblockingEnabled ? MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_SHIFT :
             MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_NOSHIFT;
         break;
     case CODECHAL_VP8:
-        sfcStateParams->dwVDVEInputOrderingMode = m_videoConfig.deblockingEnabled ? MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_SHIFT :
+        sfcStateParams->dwVDVEInputOrderingMode = m_videoConfig.vp8.deblockingEnabled ? MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_SHIFT :
             MEDIASTATE_SFC_INPUT_ORDERING_VD_16x16_VP8;
         break;
     case CODECHAL_JPEG:
@@ -761,7 +768,7 @@ MOS_STATUS SfcRenderBase::SetSfcStateInputOrderingModeJpeg(
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    switch (m_videoConfig.jpegChromaType)
+    switch (m_videoConfig.jpeg.jpegChromaType)
     {
     case jpegYUV400:
         sfcStateParams->dwVDVEInputOrderingMode = MEDIASTATE_SFC_INPUT_ORDERING_VD_8x8_JPEG;
