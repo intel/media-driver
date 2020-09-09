@@ -317,7 +317,6 @@ typedef struct _MOS_COMMAND_BUFFER_ATTRIBUTES
     PMOS_RESOURCE               resMediaFrameTrackingSurface;
     int32_t                     bUmdSSEUEnable;
     int32_t                     bFrequencyBoost;
-    int32_t                     bDisablePowerGating;
     void*                       pAttriVe;
 } MOS_COMMAND_BUFFER_ATTRIBUTES, *PMOS_COMMAND_BUFFER_ATTRIBUTES;
 

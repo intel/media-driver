@@ -195,7 +195,6 @@ namespace decode
 
         if (isLastTileInFrm || !m_av1Pipeline->FrameBasedDecodingInUse())
         {
-            cmdBuffer.Attributes.bDisablePowerGating = false;
             DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
         }
 
