@@ -96,7 +96,6 @@ static const uint32_t av1MaxModeLfDeltas    = 2;                                
 static const uint32_t av1MaxProb            = 255;                                      // max prob value
 static const uint32_t av1IntraModes         = 11;                                       // Intra predition mode number
 static const uint32_t av1NumQmLevels        = 16;                                       // NUM_QM_LEVELS
-static const uint32_t codecStandardAv1      = 66;                                       // Codec Standard AV1
 static const uint32_t av1MaxMibSizeLog2     = 5;                                        // MAX_MIB_SIZE_LOG2, MI-units per max superblock (MI Block - MIB)
 static const uint32_t av1MinMibSizeLog2     = 4;                                        // MIN_MIB_SIZE_LOG2, MI-units per min superblock
 static const uint32_t av1MiSizeLog2         = 2;                                        // Pixels per Mode Info (MI) unit, so far it is 4x4

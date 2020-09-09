@@ -737,7 +737,7 @@ VAStatus DdiDecodeAV1::CodecHalInit(
     m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
     m_codechalSettings->mode = CODECHAL_DECODE_MODE_AV1VLD;
-    m_codechalSettings->standard = codecStandardAv1;
+    m_codechalSettings->standard = CODECHAL_AV1;
     m_codechalSettings->chromaFormat = HCP_CHROMA_FORMAT_YUV420;
 
     m_ddiDecodeCtx->DecodeParams.m_picParams = MOS_AllocAndZeroMemory(sizeof(CodecAv1PicParams));
