@@ -232,6 +232,13 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDoubleBufferDecompCMD(
     // Prepare Vebox_Surface_State, surface input/and output are the same but the compressed status.
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(SetupVeboxSurfaceState(&mhwVeboxSurfaceStateCmdParams, inputSurface, outputSurface));
 
+    MhwVeboxInterfaceG12 *pVeboxInterfaceExt12;
+    pVeboxInterfaceExt12 = (MhwVeboxInterfaceG12 *)veboxInterface;
+
+    VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(pVeboxInterfaceExt12->setVeboxPrologCmd(
+        m_mhwMiInterface,
+        &cmdBuffer));
+
     //---------------------------------
     // Send CMD: Vebox_Surface_State
     //---------------------------------
