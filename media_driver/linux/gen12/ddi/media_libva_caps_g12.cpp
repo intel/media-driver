@@ -2009,6 +2009,10 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
             | VA_RT_FORMAT_YUV422_12
             | VA_RT_FORMAT_YUV444_12;
     }
+    else if (profile == VAProfileAV1Profile0 || profile == VAProfileAV1Profile1)
+    {
+        attrib.value = VA_RT_FORMAT_YUV420;
+    }
     else
     {
         attrib.value = VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32;
