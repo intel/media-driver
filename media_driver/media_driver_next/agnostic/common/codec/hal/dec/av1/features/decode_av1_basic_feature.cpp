@@ -63,7 +63,7 @@ namespace decode
         if (m_osInterface != nullptr)
         {
             MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-            m_usingDummyWl = (waTable != nullptr) ? MEDIA_IS_WA(waTable, WaDummyWorkload) : false;
+            m_usingDummyWl = (waTable != nullptr) ? MEDIA_IS_WA(waTable, Wa_1508208842) : false;
         }
 
         if (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)
@@ -112,7 +112,9 @@ namespace decode
                 16,
                 16,
                 "Dummy Decode Output Frame Buffer",
-                Format_NV12);
+                Format_NV12,
+                false,
+                resourceOutputPicture);
             DECODE_CHK_NULL(m_destSurfaceForDummyWL);
         }
 

@@ -296,7 +296,9 @@ static bool InitTglMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, WaDummyReference, 1);
 
-    MEDIA_WR_WA(waTable, WaDummyWorkload, 1);
+    /*software wa to add a dummy workload in front of
+      normal workload per batch buffer*/
+    MEDIA_WR_WA(waTable, Wa_1508208842, 1);
 
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
 

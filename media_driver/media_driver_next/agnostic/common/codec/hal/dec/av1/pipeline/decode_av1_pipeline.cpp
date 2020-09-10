@@ -144,7 +144,8 @@ bool Av1Pipeline::FrameBasedDecodingInUse()
         isframeBasedDecodingUsed = ((basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_yframeRestorationType > 0) &
                                    ((basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_cbframeRestorationType |
                                     basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_crframeRestorationType) > 0) &&
-                                    basicFeature->m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres) || userFeatureData.i32Data;
+                                    basicFeature->m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres && MEDIA_IS_WA(GetWaTable(), Wa_1409820462)
+                                    || userFeatureData.i32Data);
     }
     return isframeBasedDecodingUsed;
 }
