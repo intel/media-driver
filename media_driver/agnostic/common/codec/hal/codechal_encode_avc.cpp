@@ -6406,7 +6406,7 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecuteKernelFunctions()
         if (((sliceType == SLICE_B)) &&
             (m_avcPicParam->weighted_bipred_idc == EXPLICIT_WEIGHTED_INTER_PRED_MODE))
         {
-            for (i=0; i<(m_avcPicParam->num_ref_idx_l1_active_minus1+1); i++)
+            for (i=0; i<(slcParams->num_ref_idx_l1_active_minus1+1); i++)
             {
                 // Weighted Pred to be applied for L1
                 if((slcParams->luma_weight_flag[LIST_1] & 1 << i) && (i < CODEC_AVC_MAX_BACKWARD_WP_FRAME))

@@ -1970,7 +1970,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::ExecuteKernelFunctions()
     {
         uint8_t idx;
         // Weighted Prediction to be applied for L0
-        for (idx = 0; idx < (m_avcPicParam->num_ref_idx_l0_active_minus1 + 1); idx++)
+        for (idx = 0; idx < (slcParams->num_ref_idx_l0_active_minus1 + 1); idx++)
         {
             if ((slcParams->luma_weight_flag[LIST_0] & (1 << idx)) && (idx < CODEC_AVC_MAX_FORWARD_WP_FRAME))
             {
@@ -1982,7 +1982,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::ExecuteKernelFunctions()
         if (((slcType == SLICE_B)) &&
             (m_avcPicParam->weighted_bipred_idc == EXPLICIT_WEIGHTED_INTER_PRED_MODE))
         {
-            for (idx = 0; idx < (m_avcPicParam->num_ref_idx_l1_active_minus1 + 1); idx++)
+            for (idx = 0; idx < (slcParams->num_ref_idx_l1_active_minus1 + 1); idx++)
             {
                 // Weighted Pred to be applied for L1
                 if ((slcParams->luma_weight_flag[LIST_1] & 1 << idx) && (idx < CODEC_AVC_MAX_BACKWARD_WP_FRAME))

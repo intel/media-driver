@@ -6404,7 +6404,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
                 if (avcSlcParams->slice_type == SLICE_P || avcSlcParams->slice_type == SLICE_SP
                     || avcSlcParams->slice_type == SLICE_B)
                 {
-                    for (int i = 0; i < (avcPicParams->num_ref_idx_l0_active_minus1 + 1); i++)
+                    for (int i = 0; i < (avcSlcParams->num_ref_idx_l0_active_minus1 + 1); i++)
                     {
                         std::string refSurfName = "4XScaling_RefL0[" + std::to_string(static_cast<uint32_t>(i)) + "]";
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(

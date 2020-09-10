@@ -3287,8 +3287,8 @@ MOS_STATUS CodechalEncodeAvcBase::SetMfxPipeBufAddrStateParams(
         param.presReferences[i] = nullptr;
 
     uint8_t firstValidFrameId = CODEC_AVC_MAX_NUM_REF_FRAME;
-    uint8_t numrefL0          = m_avcPicParam->num_ref_idx_l0_active_minus1 + 1;
-    uint8_t numrefL1          = m_avcPicParam->num_ref_idx_l1_active_minus1 + 1;
+    uint8_t numrefL0          = m_avcSliceParams->num_ref_idx_l0_active_minus1 + 1;
+    uint8_t numrefL1          = m_avcSliceParams->num_ref_idx_l1_active_minus1 + 1;
 
     for (uint8_t i = 0; i < CODEC_AVC_MAX_NUM_REF_FRAME; i++)
     {
