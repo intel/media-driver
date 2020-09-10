@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2019, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -52,6 +52,7 @@ struct MHW_SFC_STATE_PARAMS_G12: public MHW_SFC_STATE_PARAMS
     // Row Store and Column Store Scratch buffer
     PMOS_RESOURCE                   resSfdLineBuffer;                        // SFD Row Store buffer used by SFC
     PMOS_RESOURCE                   resAvsLineTileBuffer;                    // AVS Column Store buffer used by SFC
+    PMOS_RESOURCE                   resIefLineTileBuffer;                    // IEF Column Store buffer used by SFC
     PMOS_RESOURCE                   resSfdLineTileBuffer;                    // SFD Column Store buffer used by SFC
 };
 using PMHW_SFC_STATE_PARAMS_G12 = MHW_SFC_STATE_PARAMS_G12*;

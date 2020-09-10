@@ -56,14 +56,11 @@ MOS_STATUS SfcRenderM12::SetupSfcState(
     VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
     sfcStateParamsM12 = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.sfcStateParams);
     VP_RENDER_CHK_NULL_RETURN(sfcStateParamsM12);
-    if (m_SFDLineBufferSurface && m_SFDLineBufferSurface->osSurface && !Mos_ResourceIsNull(&m_SFDLineBufferSurface->osSurface->OsResource))
-    {
-        sfcStateParamsM12->resSfdLineBuffer = &m_SFDLineBufferSurface->osSurface->OsResource;
-    }
-    else
-    {
-        sfcStateParamsM12->resSfdLineBuffer = nullptr;
-    }
+
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resSfdLineBuffer, m_SFDLineBufferSurface));
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resAvsLineTileBuffer, m_AVSLineTileBufferSurface));
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resIefLineTileBuffer, m_IEFLineTileBufferSurface));
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resSfdLineTileBuffer, m_SFDLineTileBufferSurface));
 
     return eStatus;
 }

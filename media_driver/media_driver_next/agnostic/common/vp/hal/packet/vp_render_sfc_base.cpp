@@ -331,6 +331,23 @@ MOS_STATUS SfcRenderBase::SetAvsStateParams()
     return eStatus;
 }
 
+MOS_STATUS SfcRenderBase::SetLineBuffer(PMOS_RESOURCE &osResLineBuffer, VP_SURFACE *lineBuffer)
+{
+    if (lineBuffer)
+    {
+        if (nullptr == lineBuffer->osSurface || Mos_ResourceIsNull(&lineBuffer->osSurface->OsResource))
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+        }
+        osResLineBuffer = &lineBuffer->osSurface->OsResource;
+    }
+    else
+    {
+        osResLineBuffer = nullptr;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS SfcRenderBase::SetupSfcState(PVP_SURFACE targetSurface)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
@@ -400,25 +417,9 @@ MOS_STATUS SfcRenderBase::SetupSfcState(PVP_SURFACE targetSurface)
 
     m_renderData.sfcStateParams->pOsResOutputSurface = &targetSurface->osSurface->OsResource;
 
-    if (m_AVSLineBufferSurface)
-    {
-        VP_PUBLIC_CHK_NULL_RETURN(m_AVSLineBufferSurface->osSurface);
-        m_renderData.sfcStateParams->pOsResAVSLineBuffer = &m_AVSLineBufferSurface->osSurface->OsResource;
-    }
-    else
-    {
-        m_renderData.sfcStateParams->pOsResAVSLineBuffer = nullptr;
-    }
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->pOsResAVSLineBuffer, m_AVSLineBufferSurface));
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->pOsResIEFLineBuffer, m_IEFLineBufferSurface));
 
-    if (m_IEFLineBufferSurface)
-    {
-        VP_PUBLIC_CHK_NULL_RETURN(m_IEFLineBufferSurface->osSurface);
-        m_renderData.sfcStateParams->pOsResIEFLineBuffer = &m_IEFLineBufferSurface->osSurface->OsResource;
-    }
-    else
-    {
-        m_renderData.sfcStateParams->pOsResIEFLineBuffer = nullptr;
-    }
     return eStatus;
 }
 
@@ -963,7 +964,7 @@ void SfcRenderBase::DestroyAVSParams(
     pAVS_Params->piYCoefsX = nullptr;
 }
 
-uint32_t SfcRenderBase::GetAvsLineBufferSize(bool b8tapChromafiltering, uint32_t width, uint32_t height)
+uint32_t SfcRenderBase::GetAvsLineBufferSize(bool lineTiledBuffer, bool b8tapChromafiltering, uint32_t width, uint32_t height)
 {
     uint32_t size = 0;
     uint32_t linebufferSizePerPixel = 0;
@@ -1001,121 +1002,125 @@ uint32_t SfcRenderBase::GetAvsLineBufferSize(bool b8tapChromafiltering, uint32_t
     {
         size = width * linebufferSizePerPixel;
     }
+
+    // For tile column storage, based on above calcuation, an extra 1K CL need to be added as a buffer.
+    // size == 0 means line buffer not needed.
+    if (lineTiledBuffer && size > 0)
+    {
+        size += 1024 * MHW_SFC_CACHELINE_SIZE;
+    }
+
     return size;
 }
 
-uint32_t SfcRenderBase::GetIefLineBufferSize(uint32_t heightOutput)
+uint32_t SfcRenderBase::GetIefLineBufferSize(bool lineTiledBuffer, uint32_t heightOutput)
 {
+    uint32_t size = 0;
+
     // For VE+SFC mode, height needs be used.
     if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
-        return heightOutput * SFC_IEF_LINEBUFFER_SIZE_PER_VERTICAL_PIXEL;
+        size = heightOutput * SFC_IEF_LINEBUFFER_SIZE_PER_VERTICAL_PIXEL;
     }
     else
     {
         return 0;
     }
+
+    // For tile column storage, based on above calcuation, an extra 1K CL need to be added as a buffer.
+    // size == 0 means line buffer not needed.
+    if (lineTiledBuffer && size > 0)
+    {
+        size += 1024 * MHW_SFC_CACHELINE_SIZE;
+    }
+
+    return size;
 }
 
-uint32_t SfcRenderBase::GetSfdLineBufferSize(MOS_FORMAT formatOutput, uint32_t widthOutput, uint32_t heightOutput)
+uint32_t SfcRenderBase::GetSfdLineBufferSize(bool lineTiledBuffer, MOS_FORMAT formatOutput, uint32_t widthOutput, uint32_t heightOutput)
 {
     int size = 0;
 
     // For VD+SFC mode, width needs be used. For VE+SFC mode, height needs be used.
     if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
     {
-        return (VPHAL_COLORPACK_444 == VpHal_GetSurfaceColorPack(formatOutput)) ? 0 : (heightOutput * SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL);
+        size = (VPHAL_COLORPACK_444 == VpHal_GetSurfaceColorPack(formatOutput)) ? 0 : (heightOutput * SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL);
     }
     else
     {
-        return (VPHAL_COLORPACK_444 == VpHal_GetSurfaceColorPack(formatOutput) || VPHAL_COLORPACK_422 == VpHal_GetSurfaceColorPack(formatOutput)) ?
+        size = (VPHAL_COLORPACK_444 == VpHal_GetSurfaceColorPack(formatOutput) || VPHAL_COLORPACK_422 == VpHal_GetSurfaceColorPack(formatOutput)) ?
             0 : (widthOutput * SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL);
     }
+
+    // For tile column storage, based on above calcuation, an extra 1K CL need to be added as a buffer.
+    // size == 0 means line buffer not needed.
+    if (lineTiledBuffer && size > 0)
+    {
+        size += 1024 * MHW_SFC_CACHELINE_SIZE;
+    }
+
+    return size;
+}
+
+MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t size, const char *bufName)
+{
+    bool allocated = false;
+    if (size)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
+                                      lineBuffer,
+                                      bufName,
+                                      Format_Buffer,
+                                      MOS_GFXRES_BUFFER,
+                                      MOS_TILE_LINEAR,
+                                      size,
+                                      1,
+                                      false,
+                                      MOS_MMC_DISABLED,
+                                      allocated,
+                                      false,
+                                      MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
+    }
+    else if (lineBuffer)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(m_allocator->DestroyVpSurface(lineBuffer));
+    }
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SfcRenderBase::AllocateResources()
 {
     uint32_t                size;
-    bool                    allocated;
     PMHW_SFC_STATE_PARAMS   sfcStateParams;
 
     VP_RENDER_CHK_NULL_RETURN(m_allocator);
     VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
 
-    allocated = false;
     sfcStateParams = m_renderData.sfcStateParams;
 
     // Allocate AVS Line Buffer surface----------------------------------------------
-    size = GetAvsLineBufferSize(sfcStateParams->b8tapChromafiltering, sfcStateParams->dwInputFrameWidth, sfcStateParams->dwInputFrameHeight);
-
-    if (size)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
-                                      m_AVSLineBufferSurface,
-                                      "SfcAVSLineBufferSurface",
-                                      Format_Buffer,
-                                      MOS_GFXRES_BUFFER,
-                                      MOS_TILE_LINEAR,
-                                      size,
-                                      1,
-                                      false,
-                                      MOS_MMC_DISABLED,
-                                      allocated,
-                                      false,
-                                      MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
-    }
-    else if (m_AVSLineBufferSurface)
-    {
-        m_allocator->DestroyVpSurface(m_AVSLineBufferSurface);
-    }
+    size = GetAvsLineBufferSize(false, sfcStateParams->b8tapChromafiltering, sfcStateParams->dwInputFrameWidth, sfcStateParams->dwInputFrameHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_AVSLineBufferSurface, size, "SfcAVSLineBufferSurface"));
 
     // Allocate IEF Line Buffer surface----------------------------------------------
-    size = GetIefLineBufferSize(sfcStateParams->dwScaledRegionHeight);
-
-    if (size)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
-                                      m_IEFLineBufferSurface,
-                                      "SfcIEFLineBufferSurface",
-                                      Format_Buffer,
-                                      MOS_GFXRES_BUFFER,
-                                      MOS_TILE_LINEAR,
-                                      size,
-                                      1,
-                                      false,
-                                      MOS_MMC_DISABLED,
-                                      allocated,
-                                      false,
-                                      MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
-    }
-    else if (m_IEFLineBufferSurface)
-    {
-        m_allocator->DestroyVpSurface(m_IEFLineBufferSurface);
-    }
+    size = GetIefLineBufferSize(false, sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_IEFLineBufferSurface, size, "SfcIEFLineBufferSurface"));
 
     // Allocate SFD Line Buffer surface
-    size = GetSfdLineBufferSize(sfcStateParams->OutputFrameFormat, sfcStateParams->dwScaledRegionWidth, sfcStateParams->dwScaledRegionHeight);
+    size = GetSfdLineBufferSize(false, sfcStateParams->OutputFrameFormat, sfcStateParams->dwScaledRegionWidth, sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_SFDLineBufferSurface, size, "SfcSFDLineBufferSurface"));
 
-    if (size)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
-            m_SFDLineBufferSurface,
-            "SfcSFDLineBufferSurface",
-            Format_Buffer,
-            MOS_GFXRES_BUFFER,
-            MOS_TILE_LINEAR,
-            size,
-            1,
-            false,
-            MOS_MMC_DISABLED,
-            allocated,
-            false,
-            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
-    }
-    else if (m_SFDLineBufferSurface)
-    {
-        m_allocator->DestroyVpSurface(m_SFDLineBufferSurface);
-    }
+    // Allocate AVS Line Tile Buffer surface----------------------------------------------
+    size = GetAvsLineBufferSize(true, sfcStateParams->b8tapChromafiltering, sfcStateParams->dwInputFrameWidth, sfcStateParams->dwInputFrameHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_AVSLineTileBufferSurface, size, "SfcAVSLineTileBufferSurface"));
+
+    // Allocate IEF Line Tile Buffer surface----------------------------------------------
+    size = GetIefLineBufferSize(true, sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_IEFLineTileBufferSurface, size, "SfcIEFLineTileBufferSurface"));
+
+    // Allocate SFD Line Tile Buffer surface
+    size = GetSfdLineBufferSize(true, sfcStateParams->OutputFrameFormat, sfcStateParams->dwScaledRegionWidth, sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_SFDLineTileBufferSurface, size, "SfcSFDLineTileBufferSurface"));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1131,6 +1136,15 @@ MOS_STATUS SfcRenderBase::FreeResources()
 
     // Free SFD Line Buffer surface for SFC
     m_allocator->DestroyVpSurface(m_SFDLineBufferSurface);
+
+    // Free AVS Line Tile Buffer surface for SFC
+    m_allocator->DestroyVpSurface(m_AVSLineTileBufferSurface);
+
+    // Free IEF Line Tile Buffer surface for SFC
+    m_allocator->DestroyVpSurface(m_IEFLineTileBufferSurface);
+
+    // Free SFD Line Tile Buffer surface for SFC
+    m_allocator->DestroyVpSurface(m_SFDLineTileBufferSurface);
 
     return MOS_STATUS_SUCCESS;
 }

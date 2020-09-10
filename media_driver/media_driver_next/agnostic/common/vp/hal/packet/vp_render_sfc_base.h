@@ -324,6 +324,8 @@ protected:
     //!
     //! \brief    Get Avs line buffer size
     //! \details  Get Avs line buffer size according to height of input surface
+    //! \param    [in] lineTiledBuffer
+    //!           ture if avs line tile buffer, otherwise, avs line buffer.
     //! \param    [in] b8tapChromafiltering
     //!           ture if 8-tap UV, otherwise, 4-tap UV.
     //! \param    [in] width
@@ -332,20 +334,24 @@ protected:
     //!           The height of input surface
     //! \return   uint32_t
     //!
-    uint32_t GetAvsLineBufferSize(bool b8tapChromafiltering, uint32_t width, uint32_t height);
+    uint32_t GetAvsLineBufferSize(bool lineTiledBuffer, bool b8tapChromafiltering, uint32_t width, uint32_t height);
 
     //!
     //! \brief    Get Ief line buffer size
     //! \details  Get Ief line buffer size according to height of scaled surface
+    //! \param    [in] lineTiledBuffer
+    //!           ture if ief line tile buffer, otherwise, ief line buffer.
     //! \param    [in] heightOutput
     //!           The height of output surface
     //! \return   uint32_t
     //!
-    uint32_t GetIefLineBufferSize(uint32_t heightOutput);
+    uint32_t GetIefLineBufferSize(bool lineTiledBuffer, uint32_t heightOutput);
 
     //!
     //! \brief    Get Sfd line buffer size
     //! \details  Get Sfd line buffer size according to height of scaled surface
+    //! \param    [in] lineTiledBuffer
+    //!           ture if sdf line tile buffer, otherwise, sdf line buffer.
     //! \param    [in] formatOutput
     //!           format of output surface.
     //! \param    [in] widthOutput
@@ -354,7 +360,21 @@ protected:
     //!           The height of input surface
     //! \return   uint32_t
     //!
-    uint32_t GetSfdLineBufferSize(MOS_FORMAT formatOutput, uint32_t widthOutput, uint32_t heightOutput);
+    uint32_t GetSfdLineBufferSize(bool lineTiledBuffer, MOS_FORMAT formatOutput, uint32_t widthOutput, uint32_t heightOutput);
+
+    //!
+    //! \brief    Allocate line buffer
+    //! \details  Allocate line buffer
+    //! \param    [in/out] lineBuffer
+    //!           pointer to line buffer.
+    //! \param    [in] size
+    //!           size of line buffer.
+    //! \param    [in] bufName
+    //!           name of line buffer.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t size, const char *bufName);
 
     //!
     //! \brief    Allocate Resources for SFC Pipe
@@ -375,6 +395,17 @@ protected:
         PMOS_COMMAND_BUFFER     pCmdBuffer,
         PMHW_SFC_LOCK_PARAMS    pSfcLockParams);
 
+    //!
+    //! \brief    Set resource of line buffer
+    //! \details  Set resource of line buffer
+    //! \param    [out] osResLineBuffer
+    //!           resource to be set
+    //! \param    [in] lineBuffer
+    //!           pointer to line buffer
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS SetLineBuffer(PMOS_RESOURCE &osResLineBuffer, VP_SURFACE *lineBuffer);
 protected:
 
     // HW intface to access MHW
@@ -405,6 +436,10 @@ protected:
     VP_SURFACE                      *m_AVSLineBufferSurface = nullptr;        //!< AVS Line Buffer Surface for SFC
     VP_SURFACE                      *m_IEFLineBufferSurface = nullptr;        //!< IEF Line Buffer Surface for SFC
     VP_SURFACE                      *m_SFDLineBufferSurface = nullptr;        //!< SFD Line Buffer Surface for SFC
+
+    VP_SURFACE                      *m_AVSLineTileBufferSurface = nullptr;    //!< AVS Line Tile Buffer Surface for SFC
+    VP_SURFACE                      *m_IEFLineTileBufferSurface = nullptr;    //!< IEF Line Tile Buffer Surface for SFC
+    VP_SURFACE                      *m_SFDLineTileBufferSurface = nullptr;    //!< SFD Line Tile Buffer Surface for SFC
 
     // Allocator interface
     PVpAllocator                    m_allocator = nullptr;                                //!< vp pipeline allocator

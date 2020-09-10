@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2019, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -359,6 +359,21 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
         ResourceParams.presResource = pSfcStateParamsG12->resAvsLineTileBuffer;
         ResourceParams.pdwCmd = &(cmd.DW38.Value);
         ResourceParams.dwLocationInCmd = 38;
+        ResourceParams.HwCommandType = MOS_SFC_STATE;
+        ResourceParams.bIsWritable = true;
+
+        MHW_CHK_STATUS_RETURN(pfnAddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &ResourceParams));
+    }
+
+    if (pSfcStateParamsG12->resIefLineTileBuffer && !Mos_ResourceIsNull(pSfcStateParamsG12->resIefLineTileBuffer))
+    {
+        MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        ResourceParams.presResource = pSfcStateParamsG12->resIefLineTileBuffer;
+        ResourceParams.pdwCmd = &(cmd.DW41.Value);
+        ResourceParams.dwLocationInCmd = 41;
         ResourceParams.HwCommandType = MOS_SFC_STATE;
         ResourceParams.bIsWritable = true;
 
