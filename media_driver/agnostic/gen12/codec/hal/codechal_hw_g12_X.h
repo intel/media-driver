@@ -203,5 +203,22 @@ public:
     //!
     MOS_STATUS Initialize(
         CodechalSetting *settings) override;
+
+    //!
+    //! \brief    Get film grain kernel info
+    //! \details  Get kernel base and size
+    //!
+    //! \param    [out] kernelBase
+    //!           base addr of film grain kernels
+    //!
+    //! \param    [out] kernelSize
+    //!           size of film grain kernels
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetFilmGrainKernelInfo(
+                uint8_t*    &kernelBase,
+                uint32_t    &kernelSize) override;
 };
 #endif // __CODECHAL_HW_G12_X_H__

@@ -60,28 +60,28 @@ MOS_STATUS RenderCmdPacket::Init()
         RENDERHAL_SETTINGS          RenderHalSettings;
         RenderHalSettings.iMediaStates = 32; // Init MEdia state values
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
-
-        bool mediaWalkerUsed   = false;
-        bool computeWalkerUsed = false;
-        mediaWalkerUsed   = m_renderHal->pfnGetMediaWalkerStatus(m_renderHal) ? true : false;
-        computeWalkerUsed = m_renderHal->pRenderHalPltInterface->IsComputeContextInUse(m_renderHal);
-
-        if (mediaWalkerUsed && !computeWalkerUsed)
-        {
-            m_walkerType = WALKER_TYPE_MEDIA;
-        }
-        else if (computeWalkerUsed)
-        {
-            m_walkerType = WALKER_TYPE_COMPUTE;
-        }
-        else
-        {
-            m_walkerType = WALKER_TYPE_DISABLED;
-        }
     }
     else
     {
         RENDER_PACKET_NORMALMESSAGE("RenderHal Already been created");
+    }
+
+    bool mediaWalkerUsed   = false;
+    bool computeWalkerUsed = false;
+    mediaWalkerUsed   = m_renderHal->pfnGetMediaWalkerStatus(m_renderHal) ? true : false;
+    computeWalkerUsed = m_renderHal->pRenderHalPltInterface->IsComputeContextInUse(m_renderHal);
+
+    if (mediaWalkerUsed && !computeWalkerUsed)
+    {
+        m_walkerType = WALKER_TYPE_MEDIA;
+    }
+    else if (computeWalkerUsed)
+    {
+        m_walkerType = WALKER_TYPE_COMPUTE;
+    }
+    else
+    {
+        m_walkerType = WALKER_TYPE_DISABLED;
     }
 
     return MOS_STATUS_SUCCESS;

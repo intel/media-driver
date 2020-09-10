@@ -107,7 +107,30 @@ MOS_STATUS FilmGrainRp1Packet::Prepare()
     DECODE_CHK_STATUS(SetUpSurfaceState());
     DECODE_CHK_STATUS(SetCurbeRegressPhase1());
     DECODE_CHK_STATUS(LoadKernel());
-    DECODE_CHK_STATUS(SetupMediaWalker());
+
+    if (m_walkerType == WALKER_TYPE_MEDIA)
+    {
+        DECODE_CHK_STATUS(SetupMediaWalker());
+    }
+    else if (m_walkerType == WALKER_TYPE_COMPUTE)
+    {
+        m_renderData.walkerParam.alignedRect.left   = 0;
+        m_renderData.walkerParam.alignedRect.top    = 0;
+        m_renderData.walkerParam.alignedRect.right  = m_av1BasicFeature->m_filmGrainProcParams->m_outputSurface->dwWidth;
+        m_renderData.walkerParam.alignedRect.bottom = m_av1BasicFeature->m_filmGrainProcParams->m_outputSurface->dwHeight;
+        m_renderData.walkerParam.iCurbeLength       = m_renderData.iCurbeLength;
+        m_renderData.walkerParam.iCurbeOffset       = m_curbeOffset;
+        m_renderData.walkerParam.iBindingTable      = m_bindingTable;
+        m_renderData.walkerParam.iMediaID           = m_mediaID;
+        m_renderData.walkerParam.iBlocksX           = m_renderData.KernelParam.blocks_x;
+        m_renderData.walkerParam.iBlocksY           = m_renderData.KernelParam.blocks_y;
+        DECODE_CHK_STATUS(PrepareComputeWalkerParams(m_renderData.walkerParam, m_gpgpuWalkerParams));
+    }
+    else
+    {
+        DECODE_ASSERTMESSAGE("Walker is disabled!");
+        return MOS_STATUS_UNKNOWN;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -169,8 +192,8 @@ MOS_STATUS FilmGrainRp1Packet::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendMediaStates(
         m_renderHal,
         commandBuffer,
-        &m_mediaWalkerParams,
-        nullptr));
+        m_walkerType == WALKER_TYPE_MEDIA ? &m_mediaWalkerParams : nullptr,
+        m_walkerType == WALKER_TYPE_MEDIA ? nullptr : &m_gpgpuWalkerParams));
 
     // Write back GPU Status tag
     if (!pOsInterface->bEnableKmdMediaFrameTracking)

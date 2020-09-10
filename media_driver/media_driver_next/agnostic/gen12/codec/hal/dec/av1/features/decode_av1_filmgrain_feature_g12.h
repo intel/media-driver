@@ -273,8 +273,6 @@ public:
     MhwRenderInterface              *m_renderInterface          = nullptr;                              //!< Pointer to Render Interface
     MHW_STATE_HEAP_INTERFACE        *m_stateHeapInterface       = nullptr;                              //!< Pointer to State Heap Interface
     MhwMiInterface                  *m_miInterface              = nullptr;                              //!< Pointer to MI interface.
-    uint8_t                         *m_kernelBase               = nullptr;                              //!< Pointer to kernel base address
-    uint32_t                        m_kuidCommon                = 0;                                    //!< Combined kernel UID
     uint8_t                         *m_kernelBaseCommon         = nullptr;                              //!< combined kernel base address
     uint32_t                        m_combinedKernelSize        = 0;                                    //!< Combined kernel size
     uint8_t                         m_bitDepthIndicator         = 0;                                    //!< Flag to indicate bit depth, 0-8b, 1-10b

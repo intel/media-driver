@@ -1904,3 +1904,13 @@ bool CodechalHwInterface::UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint
 
      return false;
 }
+
+MOS_STATUS CodechalHwInterface::GetFilmGrainKernelInfo(
+    uint8_t*& kernelBase,
+    uint32_t& kernelSize)
+{
+    kernelBase = nullptr;
+    kernelSize = 0;
+
+    return MOS_STATUS_SUCCESS;
+}

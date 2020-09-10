@@ -29,10 +29,6 @@
 #include "decode_av1_feature_manager_g12.h"
 #include "codechal_utilities.h"
 #include "decode_av1_feature_defs_g12.h"
-#include "codeckrnheader.h"
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-#include "igcodeckrn_g12.h"
-#endif
 #include "mhw_render_g12_X.h"
 
 namespace decode
@@ -908,12 +904,6 @@ MOS_STATUS Av1DecodeFilmGrainG12::Init(void *settings)
         m_kernelStates[i] = MHW_KERNEL_STATE();
     }
 
-    m_kuidCommon        = IDR_CODEC_VID_ApplyNoise_Combined;
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-    m_kernelBase = (uint8_t*)IGCODECKRN_G12;
-#else
-    m_kernelBase = NULL;
-#endif
     m_bitDepthIndicator = m_basicFeature->m_av1DepthIndicator;
 
     DECODE_CHK_STATUS(InitializeKernelState());
@@ -952,14 +942,14 @@ MOS_STATUS Av1DecodeFilmGrainG12::Update(void *params)
 
 MOS_STATUS Av1DecodeFilmGrainG12::InitInterfaceStateHeapSetting()
 {
-    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     DECODE_FUNC_CALL();
 
-    MOS_STATUS status = CodecHalGetKernelBinaryAndSize(m_kernelBase, m_kuidCommon,
-        &m_kernelBaseCommon,
-        &m_combinedKernelSize);
-    DECODE_CHK_STATUS(status);
+    DECODE_CHK_STATUS(m_hwInterface->GetFilmGrainKernelInfo(
+        m_kernelBaseCommon,
+        m_combinedKernelSize));
+    DECODE_CHK_NULL(m_kernelBaseCommon);
 
     return eStatus;
 }

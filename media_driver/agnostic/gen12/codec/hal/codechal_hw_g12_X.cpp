@@ -34,6 +34,11 @@
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "media_interfaces_g12_tgllp.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#include "igcodeckrn_g12.h"
+#endif
+#include "codechal_utilities.h"
+#include "codeckrnheader.h"
 
 // Currently initialized with dummy values, just as an example. Will be updated later.
 const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL_NUM_MEDIA_STATES_G12] =
@@ -451,4 +456,26 @@ CodechalHwInterfaceG12::~CodechalHwInterfaceG12()
         MOS_Delete(m_avpInterface);
         m_avpInterface = nullptr;
     }
+}
+
+MOS_STATUS CodechalHwInterfaceG12::GetFilmGrainKernelInfo(
+    uint8_t*& kernelBase,
+    uint32_t& kernelSize)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    uint8_t* kernelArrayBase = nullptr;
+
+    auto kuidCommon        = IDR_CODEC_VID_ApplyNoise_Combined;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    kernelArrayBase = (uint8_t*)IGCODECKRN_G12;
+    CODECHAL_HW_CHK_STATUS_RETURN(CodecHalGetKernelBinaryAndSize(kernelArrayBase,
+        kuidCommon,
+        &kernelBase,
+        &kernelSize));
+#else
+    kernelBase = nullptr;
+    kernelSize = 0;
+#endif
+
+    return eStatus;
 }
