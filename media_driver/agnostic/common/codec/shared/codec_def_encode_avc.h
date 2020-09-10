@@ -40,8 +40,9 @@
 #define CODEC_AVC_WP_OUTPUT_L0_START        0
 #define CODEC_AVC_WP_OUTPUT_L1_START        6
 
-#define ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9            3        // Max 4 regions including non-ROI - used from DDI
+#define ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9            3        // Max 4  regions including non-ROI - used from DDI
 #define ENCODE_VDENC_AVC_MAX_ROI_NUMBER_ADV          16        // Max 16 regions including non-ROI - used from DDI
+#define ENCODE_VDENC_AVC_MAX_BRC_ROI_NUMBER_ADV       7        // Max 8  regions including non-ROI - used from DDI
 #define ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9         -8        // Min delta QP for VDEnc ROI
 #define ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9          7        // Max delta QP for VDEnc ROI
 
