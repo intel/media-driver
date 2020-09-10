@@ -1205,6 +1205,12 @@ DdiVp_SetProcPipelineParams(
         pVpHalSrcSurf->rcDst.bottom = pVpHalTgtSurf->rcDst.bottom;
     }
 
+    if ((pVpHalTgtSurf->rcSrc.right < pVpHalSrcSurf->rcDst.right) ||
+        (pVpHalTgtSurf->rcSrc.bottom < pVpHalSrcSurf->rcDst.bottom))
+    {
+        DDI_CHK_CONDITION(true, "Invalid color fill parameter!", VA_STATUS_ERROR_INVALID_PARAMETER);
+    }
+
     //set the frame_id
     pVpHalSrcSurf->FrameID = pMediaSrcSurf->frame_idx;
 
