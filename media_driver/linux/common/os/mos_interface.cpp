@@ -680,6 +680,9 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     case MOS_GPU_NODE_VE:
         MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VEBOX_ENGINE);
         break;
+    case MOS_GPU_NODE_3D:
+        MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
+        break;
     default:
         MOS_OS_ASSERTMESSAGE("Unsupported GPU context.");
         return eStatus;
