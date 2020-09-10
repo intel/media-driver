@@ -2200,7 +2200,6 @@ public:
     HEVC_TILE_STATS_INFO                        m_hevcFrameStatsOffset = {};                    //!< Page aligned offsets used to program HuC PAK Integration kernel output, HuC BRC kernel input
     HEVC_TILE_STATS_INFO                        m_hevcStatsSize = {};                           //!< HEVC Statistics size
     bool                                        m_enableTestMediaReset = 0;                     //!< enable media reset test. driver will send cmd to make hang happens
-    bool                                        m_forceScalability = false;                     //!< force scalability for resolution < 4K/5K if other checking for scalability passed
 
     // HuC PAK stitch kernel
     MOS_RESOURCE     m_resHucStitchDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_HEVC_MAX_NUM_BRC_PASSES];  // data buffer for huc input cmd generation
