@@ -42,7 +42,6 @@
 #include "vp_rot_mir_filter.h"
 #include "vp_csc_filter.h"
 #include "vp_dn_filter.h"
-#include "vp_ace_filter.h"
 #include "vp_tcc_filter.h"
 #include "vp_ste_filter.h"
 #include "vp_procamp_filter.h"

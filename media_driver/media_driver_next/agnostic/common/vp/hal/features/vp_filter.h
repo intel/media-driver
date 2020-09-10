@@ -192,6 +192,18 @@ struct _VEBOX_TCC_PARAMS
     uint8_t                         Yellow;
 };
 
+struct _VEBOX_CGC_PARAMS
+{
+    bool                                bEnableCGC;                                 // CGC Enabled
+    VPHAL_CSPACE                        colorSpace;
+    bool                                bExtendedSrcGamut;
+    bool                                bExtendedDstGamut;
+    VPHAL_GAMUT_MODE                    GCompMode;
+    uint32_t                            dwAttenuation;
+    float                               displayRGBW_x[4];
+    float                               displayRGBW_y[4];
+};
+
 struct _VEBOX_PROCAMP_PARAMS
 {
     bool                            bEnableProcamp;                            // Procamp Enabled
@@ -240,6 +252,8 @@ using VEBOX_ACE_PARAMS      = _VEBOX_ACE_PARAMS;
 using PVEBOX_ACE_PARAMS     = VEBOX_ACE_PARAMS *;
 using VEBOX_TCC_PARAMS      = _VEBOX_TCC_PARAMS;
 using PVEBOX_TCC_PARAMS     = VEBOX_TCC_PARAMS *;
+using VEBOX_CGC_PARAMS      = _VEBOX_CGC_PARAMS;
+using PVEBOX_CGC_PARAMS     = VEBOX_CGC_PARAMS *;
 using VEBOX_PROCAMP_PARAMS  = _VEBOX_PROCAMP_PARAMS;
 using PVEBOX_PROCAMP_PARAMS = VEBOX_PROCAMP_PARAMS *;
 using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;

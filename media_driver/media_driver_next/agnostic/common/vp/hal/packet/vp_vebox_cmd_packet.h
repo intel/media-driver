@@ -470,19 +470,6 @@ public:
     virtual MOS_STATUS SetSteParams(PVEBOX_STE_PARAMS steParams);
 
     //!
-    //! \brief    Setup ACE Params for Vebox
-    //! \details  Setup surface ACE Params for Vebox
-    //! \param    [in] aceParams
-    //!           ACE Params
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS SetAceParams(PVEBOX_ACE_PARAMS aceParams)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
-
-    //!
     //! \brief    Setup TCC Params for Vebox
     //! \details  Setup surface TCC Params for Vebox
     //! \param    [in] tccParams
@@ -915,6 +902,15 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS AddVeboxIECPState();
+
+    //!
+    //! \brief    Add vebox Gamut state
+    //! \details  Add vebox Gamut state
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS AddVeboxGamutState(){return MOS_STATUS_SUCCESS;}
+
     //!
     //! \brief    Vebox set up vebox state heap
     //! \details  Setup Vebox indirect states: DNDI and etc
@@ -948,6 +944,8 @@ protected:
     virtual VP_SURFACE* GetSurface(SurfaceType type);
 
     virtual MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
+
+    virtual MHW_CSPACE VpHalCspace2MhwCspace(VPHAL_CSPACE cspace);
 
 private:
 

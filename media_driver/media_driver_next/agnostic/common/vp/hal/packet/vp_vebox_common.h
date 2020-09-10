@@ -237,19 +237,31 @@ public:
     }
     virtual MOS_STATUS Init()
     {
-        bUseKernelUpdate        = false;
-        bVeboxStateCopyNeeded   = false;
-        PerfTag                 = VPHAL_NONE;
+        MHW_ACE_PARAMS aceParams = {};
+        bUseKernelUpdate         = false;
+        bVeboxStateCopyNeeded    = false;
+        PerfTag                  = VPHAL_NONE;
 
-        DN.value                = 0;
-        DI.value                = 0;
-        IECP.STE.value          = 0;
-        IECP.ACE.value          = 0;
-        IECP.TCC.value          = 0;
-        IECP.PROCAMP.value      = 0;
-        IECP.LACE.value         = 0;
+        DN.value                 = 0;
+        DI.value                 = 0;
+        IECP.STE.value           = 0;
+        IECP.ACE.value           = 0;
+        IECP.TCC.value           = 0;
+        IECP.PROCAMP.value       = 0;
+        IECP.LACE.value          = 0;
 
-        MOS_ZeroMemory(&m_veboxDNDIParams, sizeof(m_veboxDNDIParams));
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(&aceParams,
+                sizeof(MHW_ACE_PARAMS),
+                &m_veboxIecpParams.AceParams,
+                sizeof(MHW_ACE_PARAMS)));
+
+        MOS_ZeroMemory(&m_veboxDNDIParams, sizeof(MHW_VEBOX_DNDI_PARAMS));
+        MOS_ZeroMemory(&m_veboxIecpParams, sizeof(MHW_VEBOX_IECP_PARAMS));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(&m_veboxIecpParams.AceParams,
+                sizeof(MHW_ACE_PARAMS),
+                &aceParams,
+                sizeof(MHW_ACE_PARAMS)));
 
         return MOS_STATUS_SUCCESS;
     }

@@ -93,6 +93,8 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     pVeboxMode->DisableEncoderStatistics = true;
     pVeboxMode->DisableTemporalDenoiseFilter = false;
 
+    pVeboxMode->ColorGamutCompressionEnable = m_PacketCaps.bCGC;
+
     pVeboxStateCmdParams->bUseVeboxHeapKernelResource = UseKernelResource();
 
     //Set up Chroma Sampling
@@ -1697,6 +1699,9 @@ MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
     // Set DNDI State
     VP_RENDER_CHK_STATUS_RETURN(AddVeboxDndiState());
 
+    // Set GAMUT State
+    VP_RENDER_CHK_STATUS_RETURN(AddVeboxGamutState());
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2172,6 +2177,73 @@ MOS_STATUS VpVeboxCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MHW_CSPACE VpVeboxCmdPacket::VpHalCspace2MhwCspace(VPHAL_CSPACE cspace)
+{
+    switch (cspace)
+    {
+        case CSpace_Source:
+            return MHW_CSpace_Source;
+
+        case CSpace_RGB:
+            return MHW_CSpace_RGB;
+
+        case CSpace_YUV:
+            return MHW_CSpace_YUV;
+
+        case CSpace_Gray:
+            return MHW_CSpace_Gray;
+
+        case CSpace_Any:
+            return MHW_CSpace_Any;
+
+        case CSpace_sRGB:
+            return MHW_CSpace_sRGB;
+
+        case CSpace_stRGB:
+            return MHW_CSpace_stRGB;
+
+        case CSpace_BT601:
+            return MHW_CSpace_BT601;
+
+        case CSpace_BT601_FullRange:
+            return MHW_CSpace_BT601_FullRange;
+
+        case CSpace_BT709:
+            return MHW_CSpace_BT709;
+
+        case CSpace_BT709_FullRange:
+            return MHW_CSpace_BT709_FullRange;
+
+        case CSpace_xvYCC601:
+            return MHW_CSpace_xvYCC601;
+
+        case CSpace_xvYCC709:
+            return MHW_CSpace_xvYCC709;
+
+        case CSpace_BT601Gray:
+            return MHW_CSpace_BT601Gray;
+
+        case CSpace_BT601Gray_FullRange:
+            return MHW_CSpace_BT601Gray_FullRange;
+
+        case CSpace_BT2020:
+            return MHW_CSpace_BT2020;
+
+        case CSpace_BT2020_RGB:
+            return MHW_CSpace_BT2020_RGB;
+
+        case CSpace_BT2020_FullRange:
+            return MHW_CSpace_BT2020_FullRange;
+
+        case CSpace_BT2020_stRGB:
+            return MHW_CSpace_BT2020_stRGB;
+
+        case CSpace_None:
+        default:
+            return MHW_CSpace_None;
+    }
 }
 
 }

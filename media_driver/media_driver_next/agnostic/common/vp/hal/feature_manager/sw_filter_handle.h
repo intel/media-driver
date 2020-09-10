@@ -122,19 +122,6 @@ protected:
     SwFilterFactory<SwFilterSte> m_swFilterFactory;
 };
 
-class SwFilterAceHandler : public SwFilterFeatureHandler
-{
-public:
-    SwFilterAceHandler(VpInterface& vpInterface);
-    virtual ~SwFilterAceHandler();
-    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
-    virtual SwFilter* CreateSwFilter();
-protected:
-    virtual void Destory(SwFilter*& swFilter);
-protected:
-    SwFilterFactory<SwFilterAce> m_swFilterFactory;
-};
-
 class SwFilterTccHandler : public SwFilterFeatureHandler
 {
 public:

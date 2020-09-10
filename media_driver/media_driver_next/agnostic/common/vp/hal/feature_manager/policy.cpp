@@ -126,10 +126,6 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnVebox, p));
 
-    p = MOS_New(PolicyVeboxAceHandler);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeAceOnVebox, p));
-
     p = MOS_New(PolicyVeboxSteHandler);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeSteOnVebox, p));
@@ -149,7 +145,6 @@ MOS_STATUS Policy::RegisterFeatures()
     m_featurePool.push_back(FeatureTypeRotMir);
     m_featurePool.push_back(FeatureTypeDn);
     m_featurePool.push_back(FeatureTypeSte);
-    m_featurePool.push_back(FeatureTypeAce);
     m_featurePool.push_back(FeatureTypeTcc);
     m_featurePool.push_back(FeatureTypeProcamp);
 
@@ -283,16 +278,13 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterSubPipe& SwFilterPipe)
             GetDenoiseExecutionCaps(feature);
             break;
         case FeatureTypeSte:
-            GetTccExecutionCaps(feature);
-            break;
-        case FeatureTypeAce:
-            GetAceExecutionCaps(feature);
+            GetSteExecutionCaps(feature);
             break;
         case FeatureTypeTcc:
             GetTccExecutionCaps(feature);
             break;
         case FeatureTypeProcamp:
-            GetTccExecutionCaps(feature);
+            GetProcampExecutionCaps(feature);
             break;
         default:
             GetExecutionCaps(feature);
@@ -303,6 +295,7 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterSubPipe& SwFilterPipe)
         if (feature->GetFilterEngineCaps().value == 0)
         {
             VP_PUBLIC_ASSERTMESSAGE("ERROR");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
     }
     return MOS_STATUS_SUCCESS;
@@ -649,41 +642,6 @@ MOS_STATUS Policy::GetSteExecutionCaps(SwFilter* feature)
         steEngine.bEnabled = 1;
         steEngine.VeboxNeeded = 1;
         steEngine.VeboxIECPNeeded = 1;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS Policy::GetAceExecutionCaps(SwFilter* feature)
-{
-    VP_FUNC_CALL();
-    VP_PUBLIC_CHK_NULL_RETURN(feature);
-
-    SwFilterAce* aceFilter = dynamic_cast<SwFilterAce*>(feature);
-    VP_PUBLIC_CHK_NULL_RETURN(aceFilter);
-
-    FeatureParamAce& aceParams = aceFilter->GetSwFilterParams();
-    VP_EngineEntry& aceEngine = aceFilter->GetFilterEngineCaps();
-    MOS_FORMAT inputformat = aceParams.formatInput;
-
-    // MOS_FORMAT is [-14,103], cannot use -14~-1 as index for m_veboxHwEntry
-    if (inputformat < 0)
-    {
-        inputformat = Format_Any;
-    }
-
-    if (aceEngine.value != 0)
-    {
-        VP_PUBLIC_NORMALMESSAGE("ACE Feature Already been processed, Skip further process");
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (m_veboxHwEntry[inputformat].inputSupported &&
-        m_veboxHwEntry[inputformat].iecp)
-    {
-        aceEngine.bEnabled = 1;
-        aceEngine.VeboxNeeded = 1;
-        aceEngine.VeboxIECPNeeded = 1;
     }
 
     return MOS_STATUS_SUCCESS;

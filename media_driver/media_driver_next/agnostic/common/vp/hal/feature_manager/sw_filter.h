@@ -56,14 +56,16 @@ enum FeatureType
     FeatureTypeDi               = 0x500,
     FeatureTypeSte              = 0x600,
     FeatureTypeSteOnVebox,
-    FeatureTypeAce              = 0x800,
+    FeatureTypeAce              = 0x700,
     FeatureTypeAceOnVebox,
-    FeatureTypeSecureVeboxUpdate = 0x900,
-    FeatureTypeTcc              = 0xA00,
+    FeatureTypeSecureVeboxUpdate = 0x800,
+    FeatureTypeTcc              = 0x900,
     FeatureTypeTccOnVebox,
-    FeatureTypeProcamp          = 0xB00,
+    FeatureTypeProcamp          = 0xA00,
     FeatureTypeProcampOnVebox,
     FeatureTypeProcampOnRender,
+    FeatureTypeCgc              = 0xB00,
+    FeatureTypeCgcOnVebox,
     // ...
     NumOfFeatureType
 };
@@ -327,30 +329,6 @@ public:
 
 private:
     FeatureParamSte m_Params = {};
-};
-
-struct FeatureParamAce : public FeatureParam
-{
-    bool                bEnableACE;
-    bool                bAceLevelChanged;
-    uint32_t            dwAceLevel;
-    uint32_t            dwAceStrength;
-};
-
-class SwFilterAce : public SwFilter
-{
-public:
-    SwFilterAce(VpInterface& vpInterface);
-    virtual ~SwFilterAce();
-    virtual MOS_STATUS Clean();
-    virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex);
-    virtual FeatureParamAce& GetSwFilterParams();
-    virtual SwFilter* Clone();
-    virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
-
-private:
-    FeatureParamAce m_Params = {};
 };
 
 struct FeatureParamTcc : public FeatureParam

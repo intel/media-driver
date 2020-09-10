@@ -38,11 +38,6 @@ VpFeatureManagerNext::VpFeatureManagerNext(VpInterface &vpInterface) :
     m_vpInterface(vpInterface)
 {
     m_vpInterface.SetSwFilterHandlers(m_featureHandler);
-
-    if (!m_policy)
-    {
-        m_policy = MOS_New(Policy, vpInterface);
-    }
 }
 
 VpFeatureManagerNext::~VpFeatureManagerNext()
@@ -53,6 +48,10 @@ VpFeatureManagerNext::~VpFeatureManagerNext()
 
 MOS_STATUS VpFeatureManagerNext::Initialize()
 {
+    if (!m_policy)
+    {
+        m_policy = MOS_New(Policy, m_vpInterface);
+    }
     VP_PUBLIC_CHK_NULL_RETURN(m_policy);
 
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterFeatures());
@@ -142,10 +141,6 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     p = MOS_New(SwFilterSteHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeSte, p));
-
-    p = MOS_New(SwFilterAceHandler, m_vpInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeAce, p));
 
     p = MOS_New(SwFilterTccHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
@@ -239,10 +234,8 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
 
     if (pvpParams->pSrc[0]->pDeinterlaceParams              ||
         pvpParams->pSrc[0]->pBlendingParams                 ||
-        pvpParams->pSrc[0]->pColorPipeParams                ||
         pvpParams->pSrc[0]->pHDRParams                      ||
         pvpParams->pSrc[0]->pLumaKeyParams                  ||
-        pvpParams->pSrc[0]->pProcampParams                  ||
         pvpParams->pSrc[0]->bInterlacedScaling              ||
         pvpParams->pConstriction)
     {

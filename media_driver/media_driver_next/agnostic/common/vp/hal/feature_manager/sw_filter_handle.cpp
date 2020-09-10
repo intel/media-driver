@@ -355,55 +355,6 @@ void SwFilterSteHandler::Destory(SwFilter*& swFilter)
 }
 
 /****************************************************************************************************/
-/*                                      SwFilterAceHandler                                      */
-/****************************************************************************************************/
-
-SwFilterAceHandler::SwFilterAceHandler(VpInterface& vpInterface) :
-    SwFilterFeatureHandler(vpInterface, FeatureTypeAce),
-    m_swFilterFactory(vpInterface)
-{}
-SwFilterAceHandler::~SwFilterAceHandler()
-{}
-
-bool SwFilterAceHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
-{
-    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
-    {
-        return false;
-    }
-
-    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
-    if (vphalSurf && vphalSurf->pColorPipeParams &&
-        vphalSurf->pColorPipeParams->bEnableACE)
-    {
-        return true;
-    }
-
-    return false;
-}
-
-SwFilter* SwFilterAceHandler::CreateSwFilter()
-{
-    SwFilter* swFilter = nullptr;
-    swFilter = m_swFilterFactory.Create();
-
-    if (swFilter)
-    {
-        swFilter->SetFeatureType(FeatureTypeAce);
-    }
-
-    return swFilter;
-}
-
-void SwFilterAceHandler::Destory(SwFilter*& swFilter)
-{
-    SwFilterAce* filter = nullptr;
-    filter = dynamic_cast<SwFilterAce*>(swFilter);
-    m_swFilterFactory.Destory(filter);
-    return;
-}
-
-/****************************************************************************************************/
 /*                                      SwFilterTccHandler                                      */
 /****************************************************************************************************/
 
