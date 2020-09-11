@@ -206,10 +206,8 @@ typedef struct _CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL
     uint8_t     HmeDistAvailable_U8; // 0: disabled, 1: enabled
 
     uint16_t    AdditionalFrameSize_U16; // for slice size control improvement
-    uint8_t     RSVD2;
-    uint8_t     UPD_RoiQpViaForceQp_U8;
 
-    uint8_t     RSVD3[59];
+    uint8_t     RSVD2[61];
 } CODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL, *PCODECHAL_VDENC_AVC_BRC_UPDATE_DMEM_G9_SKL;
 
 const uint32_t CodechalVdencAvcStateG9Skl::MV_Cost_SkipBias_QPel[8] =

@@ -701,7 +701,6 @@ CodechalVdencAvcStateG11::CodechalVdencAvcStateG11(
     Mos_SetVirtualEngineSupported(m_osInterface, true);
 
     m_vdboxOneDefaultUsed = true;
-    m_nonNativeBrcRoiSupported = true;
 
     m_hmeSupported   = true;
     m_16xMeSupported = true;

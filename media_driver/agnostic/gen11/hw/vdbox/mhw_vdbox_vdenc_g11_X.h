@@ -1422,17 +1422,9 @@ public:
             cmd.DW31.BestdistortionQpAdjustmentForZone3 = 3;
         }
 
-        if (avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED && params->bVdencStreamInEnabled &&
-            (avcPicParams->NumDirtyROI && params->bVdencBRCEnabled || avcPicParams->NumROI && avcPicParams->bNativeROI))
+        if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI && params->bVdencStreamInEnabled)
         {
             cmd.DW34.RoiEnable = true;
-        }
-
-        // ROI in ForceQP mode (VDEnc StreamIn filled by HuC in BRC mode and by UMD driver in CQP)
-        if (avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED && params->bVdencStreamInEnabled &&
-            avcPicParams->NumROI && !avcPicParams->bNativeROI)
-        {
-            cmd.DW34.MbLevelQpEnable = true;
         }
 
         if (params->bVdencStreamInEnabled)
