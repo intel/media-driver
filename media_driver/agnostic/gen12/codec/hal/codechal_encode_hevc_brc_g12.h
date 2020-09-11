@@ -106,8 +106,8 @@ public:
     virtual MOS_STATUS FreeBrcResources();
 
 
-    MOS_STATUS SetupThreadSpace(CmKernel *cmKernel, CmThreadSpace *threadSpace);
-    MOS_STATUS SetupBrcLcuqpThreadSpace(CmKernel *cmKernel, CmThreadSpace *threadSpace);
+    MOS_STATUS SetupThreadSpace(CmKernel *cmKernel, CmThreadSpace *& threadSpace);
+    MOS_STATUS SetupBrcLcuqpThreadSpace(CmKernel *cmKernel, CmThreadSpace *& threadSpace);
 
     virtual MOS_STATUS InitBrcKernelState();
     virtual MOS_STATUS EncodeBrcInitResetKernel();

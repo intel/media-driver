@@ -232,21 +232,18 @@ MOS_STATUS CodecHalHevcBrcG12::SetupKernelArgsBrcInit()
     return eStatus;
 }
 
-MOS_STATUS CodecHalHevcBrcG12::SetupThreadSpace(CmKernel *cmKernel, CmThreadSpace * threadSpace)
+MOS_STATUS CodecHalHevcBrcG12::SetupThreadSpace(CmKernel *cmKernel, CmThreadSpace *& threadSpace)
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->SetThreadCount(1));
 
-    if (threadSpace == nullptr)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(1, 1, threadSpace));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(1, 1, threadSpace));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->AssociateThreadSpace(threadSpace));
     return eStatus;
 }
 
-MOS_STATUS CodecHalHevcBrcG12::SetupBrcLcuqpThreadSpace(CmKernel *cmKernel, CmThreadSpace * threadSpace)
+MOS_STATUS CodecHalHevcBrcG12::SetupBrcLcuqpThreadSpace(CmKernel *cmKernel, CmThreadSpace *& threadSpace)
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
     uint32_t xThread = (encoderBrc->m_downscaledWidthInMb4x * SCALE_FACTOR_4x + 15) >> 4;
@@ -254,16 +251,7 @@ MOS_STATUS CodecHalHevcBrcG12::SetupBrcLcuqpThreadSpace(CmKernel *cmKernel, CmTh
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->SetThreadCount(xThread * yThread));
 
-    if (encoderBrc->m_resolutionChanged && threadSpace != nullptr)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(threadSpace));
-        threadSpace = nullptr;
-    }
-    if (threadSpace == nullptr)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(xThread, yThread, threadSpace));
-    }
-
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->CreateThreadSpace(xThread, yThread, threadSpace));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKernel->AssociateThreadSpace(threadSpace));
 
     return eStatus;
@@ -302,7 +290,10 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcInitResetKernel()
         m_cmKrnBrc = m_cmKrnBrcReset;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrc, m_threadSpaceBrcInit));
+    if (!m_threadSpaceBrcInit)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrc, m_threadSpaceBrcInit));
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcInitResetCurbe());
 
@@ -691,7 +682,10 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcFrameUpdateKernel()
     encoderBrc->GetOsInterface()->pfnSetPerfTag(encoderBrc->GetOsInterface(), perfTag.Value);
     encoderBrc->GetOsInterface()->pfnIncPerfBufferID(encoderBrc->GetOsInterface());
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrcUpdate, m_threadSpaceBrcUpdate));
+    if (!m_threadSpaceBrcUpdate)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrcUpdate, m_threadSpaceBrcUpdate));
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcUpdateCurbe());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupSurfacesBrcUpdate());
@@ -843,7 +837,16 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcLcuUpdateKernel()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupKernelArgsBrcLcuQp());
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupBrcLcuqpThreadSpace(m_cmKrnBrcLCUQP, m_threadSpaceBrcLCUQP));
+    if (encoderBrc->m_resolutionChanged && m_threadSpaceBrcLCUQP)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcLCUQP));
+        m_threadSpaceBrcLCUQP = nullptr;
+    }
+
+    if (!m_threadSpaceBrcLCUQP)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupBrcLcuqpThreadSpace(m_cmKrnBrcLCUQP, m_threadSpaceBrcLCUQP));
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmTask->AddKernel(m_cmKrnBrcLCUQP));
 
