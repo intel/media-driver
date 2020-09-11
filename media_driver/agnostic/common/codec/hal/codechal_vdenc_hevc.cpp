@@ -3014,7 +3014,7 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
             m_prevTargetFrameSize = encodeStatus->lookaheadStatus.targetFrameSize;
         }
 
-        if (encodeStatus->lookaheadStatus.cqmHint > 1)
+        if (encodeStatus->lookaheadStatus.cqmHint > 4)
         {
             // Currently only 0x00 and 0x01 are valid. Report invalid (0xFF) for other values.
             encodeStatus->lookaheadStatus.cqmHint = 0xFF;
