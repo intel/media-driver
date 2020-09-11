@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,44 @@ MOS_STATUS VpAllocator::FreeResource(MOS_RESOURCE *resource)
     return m_allocator->FreeResource(resource);
 }
 
+void VpAllocator::UpdateSurfacePlaneOffset(MOS_SURFACE &surf)
+{
+    // dwOffset/YPlaneOffset/UPlaneOffset/VPlaneOffset will not be initialized during GetSurfaceInfo.
+    // Initialize them with RenderOffset when needed.
+    if (IS_RGB32_FORMAT(surf.Format) ||
+        IS_RGB16_FORMAT(surf.Format) ||
+        IS_RGB64_FORMAT(surf.Format) ||
+        surf.Format == Format_RGB    ||
+        surf.Format == Format_Y410)
+    {
+        surf.dwOffset                        = surf.RenderOffset.RGB.BaseOffset;
+        surf.YPlaneOffset.iSurfaceOffset     = surf.RenderOffset.RGB.BaseOffset;
+        surf.YPlaneOffset.iXOffset           = surf.RenderOffset.RGB.XOffset;
+        surf.YPlaneOffset.iYOffset           = surf.RenderOffset.RGB.YOffset;
+    }
+    else // YUV or PL3_RGB
+    {
+        // Get Y plane information (plane offset, X/Y offset)
+        surf.dwOffset                        = surf.RenderOffset.YUV.Y.BaseOffset;
+        surf.YPlaneOffset.iSurfaceOffset     = surf.RenderOffset.YUV.Y.BaseOffset;
+        surf.YPlaneOffset.iXOffset           = surf.RenderOffset.YUV.Y.XOffset;
+        surf.YPlaneOffset.iYOffset           = surf.RenderOffset.YUV.Y.YOffset;
+        surf.YPlaneOffset.iLockSurfaceOffset = surf.LockOffset.YUV.Y;
+
+        // Get U/UV plane information (plane offset, X/Y offset)
+        surf.UPlaneOffset.iSurfaceOffset     = surf.RenderOffset.YUV.U.BaseOffset;
+        surf.UPlaneOffset.iXOffset           = surf.RenderOffset.YUV.U.XOffset;
+        surf.UPlaneOffset.iYOffset           = surf.RenderOffset.YUV.U.YOffset;
+        surf.UPlaneOffset.iLockSurfaceOffset = surf.LockOffset.YUV.U;
+
+        // Get V plane information (plane offset, X/Y offset)
+        surf.VPlaneOffset.iSurfaceOffset     = surf.RenderOffset.YUV.V.BaseOffset;
+        surf.VPlaneOffset.iXOffset           = surf.RenderOffset.YUV.V.XOffset;
+        surf.VPlaneOffset.iYOffset           = surf.RenderOffset.YUV.V.YOffset;
+        surf.VPlaneOffset.iLockSurfaceOffset = surf.LockOffset.YUV.V;
+    }
+}
+
 //Paried with AllocateSurface
 MOS_SURFACE* VpAllocator::AllocateSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroOnAllocate)
 {
@@ -107,6 +145,8 @@ MOS_SURFACE* VpAllocator::AllocateSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool z
             m_allocator->DestroySurface(surf);
             return nullptr;
         }
+
+        UpdateSurfacePlaneOffset(*surf);
     }
 
     return surf;
@@ -296,7 +336,7 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VP_SURFACE &vpSurfSrc)
 
 // Allocate vp surface from osSurf. Reuse the resource in osSurf.
 VP_SURFACE *VpAllocator::AllocateVpSurface(MOS_SURFACE &osSurf,
-    VPHAL_CSPACE colorSpace, uint32_t chromaSiting, RECT rcSrc, RECT rcDst, VPHAL_SURFACE_TYPE SurfType)
+    VPHAL_CSPACE colorSpace, uint32_t chromaSiting, RECT rcSrc, RECT rcDst, VPHAL_SURFACE_TYPE SurfType, bool updatePlaneOffset)
 {
     if (Mos_ResourceIsNull(&osSurf.OsResource))
     {
@@ -319,6 +359,10 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(MOS_SURFACE &osSurf,
     }
 
     *osSurface = osSurf;
+    if (updatePlaneOffset)
+    {
+        UpdateSurfacePlaneOffset(*osSurface);
+    }
 
     MOS_ZeroMemory(surf, sizeof(VP_SURFACE));
     surf->osSurface         = osSurface;

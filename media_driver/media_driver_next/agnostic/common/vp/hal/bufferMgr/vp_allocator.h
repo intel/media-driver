@@ -153,6 +153,8 @@ public:
     //!         rcDst of vp surface.
     //! \param  [in] SurfType
     //!         SurfType of vp surface.
+    //! \param  [in] updatePlaneOffset
+    //!         true, update plane offset of vp surface, otherwise, use the one in osSurf.
     //! \return VP_SURFACE*
     //!         return the pointer to VP_SURFACE
     //!
@@ -162,7 +164,8 @@ public:
         uint32_t chromaSiting,
         RECT rcSrc,
         RECT rcDst,
-        VPHAL_SURFACE_TYPE SurfType);
+        VPHAL_SURFACE_TYPE SurfType,
+        bool updatePlaneOffset = false);
 
     //!
     //! \brief  Allocate vp surface without resource
@@ -543,6 +546,14 @@ protected:
     //! \return   MOS_STATUS
     //!
     MOS_STATUS SetMmcFlags(MOS_SURFACE &osSurface);
+    //!
+    //! \brief    Update surface plane offset
+    //! \details  Update surface plane offset with render offset
+    //! \param    surf
+    //!           [in, out] surface to be updated.
+    //! \return   VOID
+    //!
+    void UpdateSurfacePlaneOffset(MOS_SURFACE &surf);
 
     PMOS_INTERFACE  m_osInterface   = nullptr;
     Allocator       *m_allocator    = nullptr;

@@ -172,12 +172,15 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
     VP_PUBLIC_CHK_STATUS_RETURN(SetRotMirParams(sfcParam, vpExecuteCaps));
 
     RECT        rcOutput        = {0, 0, (int32_t)sfcParam.output.surface->dwWidth, (int32_t)sfcParam.output.surface->dwHeight};
+    // The value of plane offset are different between vp and codec. updatePlaneOffset need be set to true when create vp surface
+    // with mos surface from codec hal.
     VP_SURFACE  *renderTarget   = m_allocator->AllocateVpSurface(*sfcParam.output.surface,
                                                             sfcParam.output.colorSpace,
                                                             sfcParam.output.chromaSiting,
                                                             rcOutput,
                                                             rcOutput,
-                                                            SURF_OUT_RENDERTARGET);
+                                                            SURF_OUT_RENDERTARGET,
+                                                            true);
 
     //---------------------------------
     // Send CMD: SFC pipe commands

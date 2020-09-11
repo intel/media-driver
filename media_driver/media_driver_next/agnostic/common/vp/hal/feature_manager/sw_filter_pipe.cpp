@@ -236,9 +236,11 @@ MOS_STATUS SwFilterPipe::Initialize(VEBOX_SFC_PARAMS &params)
             Clean();
             return MOS_STATUS_INVALID_PARAMETER;
         }
+        // The value of plane offset are different between vp and codec. updatePlaneOffset need be set to true when create vp surface
+        // with mos surface from codec hal.
         VP_SURFACE *input = m_vpInterface.GetAllocator().AllocateVpSurface(*params.input.surface, params.input.colorSpace,
                                                                         params.input.chromaSiting, params.input.rcSrc,
-                                                                        params.output.rcDst, SURF_IN_PRIMARY);
+                                                                        params.output.rcDst, SURF_IN_PRIMARY, true);
         if (nullptr == input)
         {
             Clean();
@@ -267,9 +269,11 @@ MOS_STATUS SwFilterPipe::Initialize(VEBOX_SFC_PARAMS &params)
         }
 
         RECT recOutput = {0, 0, (int32_t)params.output.surface->dwWidth, (int32_t)params.output.surface->dwHeight};
+        // The value of plane offset are different between vp and codec. updatePlaneOffset need be set to true when create vp surface
+        // with mos surface from codec hal.
         VP_SURFACE *output = m_vpInterface.GetAllocator().AllocateVpSurface(*params.output.surface, params.output.colorSpace,
                                                                         params.output.chromaSiting, recOutput,
-                                                                        recOutput, SURF_OUT_RENDERTARGET);
+                                                                        recOutput, SURF_OUT_RENDERTARGET, true);
         if (nullptr == output)
         {
             Clean();
