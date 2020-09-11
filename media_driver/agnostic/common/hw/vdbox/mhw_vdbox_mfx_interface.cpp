@@ -142,11 +142,12 @@ MhwVdboxMfxInterface::MhwVdboxMfxInterface(
         AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
     }
 
-    auto gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-
-    if (gtSystemInfo != nullptr && (!MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox) || m_decodeInUse))
+    MEDIA_ENGINE_INFO mediaSysInfo;
+    MOS_ZeroMemory(&mediaSysInfo, sizeof(MEDIA_ENGINE_INFO));
+    MOS_STATUS     eStatus      = osInterface->pfnGetMediaEngineInfo(osInterface, mediaSysInfo);
+    if (eStatus == MOS_STATUS_SUCCESS && (!MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox) || m_decodeInUse))
     {
-        m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+        m_numVdbox = (uint8_t)(mediaSysInfo.VDBoxInfo.NumberOfVDBoxEnabled);
     }
     else
     {
