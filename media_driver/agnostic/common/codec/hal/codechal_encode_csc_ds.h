@@ -669,6 +669,17 @@ protected:
     //!
     MOS_STATUS SetSurfacesToEncPak();
 
+    //!
+    //! \brief    Check alignment copy
+    //!
+    //! \param    surface
+    //!           Pointer to MOS_SURFACE
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CheckRawSurfaceAlignment(MOS_SURFACE surface);
+
 
     CodechalEncoderState*                   m_encoder = nullptr;                            //!< Pointer to ENCODER base class
     MOS_INTERFACE*                          m_osInterface = nullptr;                        //!< OS interface
@@ -777,7 +788,6 @@ protected:
     MOS_SURFACE*&               m_rawSurfaceToEnc;
     MOS_SURFACE*&               m_rawSurfaceToPak;
 
-private:
     //!
     //! \brief    CSC kernel binding table
     //!

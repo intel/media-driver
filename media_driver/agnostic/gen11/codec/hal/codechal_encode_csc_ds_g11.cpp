@@ -346,12 +346,6 @@ MOS_STATUS CodechalEncodeCscDsG11::SetCurbeCsc()
     curbe.DW2_OriginalPicWidthInSamples = m_curbeParams.dwInputPictureWidth;
     curbe.DW2_OriginalPicHeightInSamples = m_curbeParams.dwInputPictureHeight;
 
-    // when the input surface is NV12 tiled format and not aligned with 4 bytes,
-    // need kernel to do the padding copy with force to linear format, it's
-    // transparent to kernel and hw can handle it
-    if (m_colorRawSurface == cscColorNv12TileY && m_cscFlag == 1)
-        curbe.DW1_PictureFormat = cscColorNv12Linear;
-
     // RGB->YUV CSC coefficients
     if (m_curbeParams.inputColorSpace == ECOLORSPACE_P709)
     {
@@ -476,12 +470,8 @@ MOS_STATUS CodechalEncodeCscDsG11::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         surfaceParams.bCheckCSC8Format= true;
     }
 
-    // when input surface is NV12 tiled and not aligned by 4 bytes, need kernel to do the
-    // padding copy by forcing to linear format and set the HeightInUse as Linear format
-    // kernel will use this info to calucate UV offset
     surfaceParams.psSurface = m_surfaceParamsCsc.psInputSurface;
-    if (cscColorNv12Linear == m_colorRawSurface ||
-        (cscColorNv12TileY == m_colorRawSurface && m_cscFlag == 1))
+    if (cscColorNv12Linear == m_colorRawSurface)
     {
         surfaceParams.dwHeightInUse = (surfaceParams.psSurface->dwHeight * 3) / 2;
     }
@@ -804,6 +794,16 @@ MOS_STATUS CodechalEncodeCscDsG11::InitSfcState()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->Initialize(m_hwInterface, m_osInterface));
 
         m_sfcState->SetInputColorSpace(MHW_CSpace_sRGB);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeCscDsG11::CheckRawSurfaceAlignment(MOS_SURFACE surface)
+{
+    if (m_cscEnableCopy && (surface.dwWidth % m_rawSurfAlignment || surface.dwHeight % m_rawSurfAlignment) &&
+        m_colorRawSurface != cscColorNv12TileY)
+    {
+        m_cscRequireCopy = 1;
     }
     return MOS_STATUS_SUCCESS;
 }

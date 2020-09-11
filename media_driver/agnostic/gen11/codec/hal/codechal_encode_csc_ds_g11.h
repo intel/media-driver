@@ -366,6 +366,7 @@ private:
     virtual MOS_STATUS SetCurbeCsc() override;
     virtual MOS_STATUS SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer) override;
     virtual MOS_STATUS InitSfcState() override;
+    virtual MOS_STATUS CheckRawSurfaceAlignment(MOS_SURFACE surface) override;
 };
 
 #endif  // __CodechalEncodeCscDsG11__

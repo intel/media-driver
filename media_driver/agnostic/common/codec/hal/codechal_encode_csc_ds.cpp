@@ -1098,10 +1098,7 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     m_threadTraverseSizeY = 2;    // for NV12, thread space is 32x4
 
     // check raw surface's alignment
-    if (m_cscEnableCopy && (details.dwWidth % m_rawSurfAlignment || details.dwHeight % m_rawSurfAlignment))
-    {
-        m_cscRequireCopy = 1;
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckRawSurfaceAlignment(details));
 
     // check raw surface's color/tile format
     if (m_cscEnableColor && !m_encoder->CheckSupportedFormat(&details))
@@ -1130,6 +1127,15 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
         details.dwWidth, details.dwHeight, details.TileType, m_colorRawSurface, m_cscFlag);
 
     return eStatus;
+}
+
+MOS_STATUS CodechalEncodeCscDs::CheckRawSurfaceAlignment(MOS_SURFACE surface)
+{
+    if (m_cscEnableCopy && (surface.dwWidth % m_rawSurfAlignment || surface.dwHeight % m_rawSurfAlignment))
+    {
+        m_cscRequireCopy = 1;
+    }
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeCscDs::CheckReconSurfaceAlignment(PMOS_SURFACE surface)
