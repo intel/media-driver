@@ -57,6 +57,7 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
     uint32_t completedCount   = *m_completedCount;
     uint32_t reportedCount    = m_reportedCount;
     uint32_t reportedCountOrigin = m_reportedCount;
+    uint32_t availableCount = m_submittedCount - reportedCount;
     uint32_t generatedReportCount   = 0;
     uint32_t reportIndex      = 0;
     bool reverseOrder = (requireNum > 1);
@@ -77,7 +78,9 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
     {
         for (auto i = generatedReportCount; i < requireNum; i++)
         {
-            eStatus = SetStatus(((uint8_t *)status + m_sizeOfReport * i), CounterToIndex(reportedCount));
+            eStatus = SetStatus(((uint8_t *)status + m_sizeOfReport * i),
+                                CounterToIndex(reportedCount),
+                                i >= availableCount);
         }
     }
 

@@ -126,7 +126,7 @@ namespace decode {
         //!
         virtual MOS_STATUS ParseStatus(void *report, uint32_t index) override;
 
-        virtual MOS_STATUS SetStatus(void *report, uint32_t index) override;
+        virtual MOS_STATUS SetStatus(void *report, uint32_t index, bool outOfRange = false) override;
 
         //!
         //! \brief  Set offsets for Mfx status buffer.

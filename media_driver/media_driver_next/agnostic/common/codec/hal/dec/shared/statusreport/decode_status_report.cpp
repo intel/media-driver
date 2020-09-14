@@ -185,13 +185,13 @@ namespace decode {
         return eStatus;
     }
 
-    MOS_STATUS DecodeStatusReport::SetStatus(void* report, uint32_t index)
+    MOS_STATUS DecodeStatusReport::SetStatus(void *report, uint32_t index, bool outOfRange)
     {
         DECODE_FUNC_CALL();
 
         DecodeStatusReportData* statusReportData = &m_statusReportData[index];
 
-        statusReportData->codecStatus = CODECHAL_STATUS_INCOMPLETE;
+        statusReportData->codecStatus = outOfRange ? CODECHAL_STATUS_UNAVAILABLE : CODECHAL_STATUS_INCOMPLETE;
 
         *((DecodeStatusReportData*)report) = *statusReportData;
         return MOS_STATUS_SUCCESS;

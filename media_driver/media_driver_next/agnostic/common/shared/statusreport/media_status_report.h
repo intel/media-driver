@@ -169,7 +169,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS SetStatus(void *report, uint32_t index) = 0;
+    virtual MOS_STATUS SetStatus(void *report, uint32_t index, bool outOfRange = false) = 0;
     //!
     //! \brief  Notify observers that the frame has been completed.
     //! \param  [in] statusBuffer
