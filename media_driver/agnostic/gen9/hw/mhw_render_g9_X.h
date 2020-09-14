@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 
 #include "mhw_render_generic.h"
 #include "mhw_render_hwcmd_g9_X.h"
+#include "mhw_state_heap_g9.h"
 
 class MhwRenderInterfaceG9 : public MhwRenderInterfaceGeneric<mhw_render_g9_X>
 {
@@ -103,6 +104,38 @@ public:
     virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters()
     {
         return &m_mmioRegisters;
+    }
+
+    //!
+    //! \brief    Get AVS sampler state Inc unit
+    //! \details  Get AVS sampler state Inc unit
+    //! \return   [out] uint32_t
+    //!           AVS sampler unit.
+    virtual uint32_t GetSamplerStateAVSIncUnit() { return MHW_SAMPLER_STATE_AVS_INC_G9; }
+
+    //!
+    //! \brief    Get Conv sampler state Inc unit
+    //! \details  Get Conv sampler state Inc unit
+    //! \return   [out] uint32_t
+    //!           Conv sampler unit.
+    virtual uint32_t GetSamplerStateConvIncUnit() { return MHW_SAMPLER_STATE_CONV_INC_G9; }
+
+    //!
+    //! \brief    Get the sampler height and width align unit
+    //! \details  NV12 format needs the width and height to be a multiple of some unit
+    //! \param    [in] bool
+    //!           true if AVS sampler, false otherwise
+    //! \param    [in, out] uint32_t
+    //!           weight align unit
+    //! \param    [in, out] uint32_t
+    //!           height align unit
+    virtual void GetSamplerResolutionAlignUnit(bool isAVSSampler, uint32_t &widthAlignUnit, uint32_t &heightAlignUnit)
+    {
+        // NV12 format width need to be a multiple of 2, while height need be
+        // a multiple of 4. Since already post PV, just keep the old logic to
+        // enable 2 plane NV12 when the width or Height is not a multiple of 4.
+        widthAlignUnit  = MHW_SAMPLER_WIDTH_ALIGN_UNIT_G9;
+        heightAlignUnit = MHW_SAMPLER_HEIGHT_ALIGN_UNIT_G9;
     }
 
 private:

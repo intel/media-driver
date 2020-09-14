@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2017, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1943,7 +1943,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         if (pParams->iMaxSamplerIndexAVS > 0)
         {
             uint32_t dwAlign = GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform) ? MHW_SAMPLER_STATE_AVS_ALIGN_G9 : MHW_SAMPLER_STATE_AVS_ALIGN;
-            uint32_t dwInc   = GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform) ? MHW_SAMPLER_STATE_AVS_INC_G9   : MHW_SAMPLER_STATE_AVS_INC_G8;
+            uint32_t dwInc   = pRenderHal->pMhwRenderInterface->GetSamplerStateAVSIncUnit();
 
             dwSamplerStateAlign = MOS_MAX(dwMediaStateAlign, dwAlign);
             pDynamicState->SamplerAVS.iCount = pParams->iMaxSamplerIndexAVS;
@@ -1954,7 +1954,7 @@ PRENDERHAL_MEDIA_STATE RenderHal_DSH_AssignDynamicState(
         if (pParams->iMaxSamplerIndexConv > 0)
         {
             uint32_t dwAlign = GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform) ? MHW_SAMPLER_STATE_AVS_ALIGN_G9 : MHW_SAMPLER_STATE_AVS_ALIGN;
-            uint32_t dwInc   = GFX_IS_GEN_9_OR_LATER(pRenderHal->Platform) ? MHW_SAMPLER_STATE_CONV_INC_G9  : MHW_SAMPLER_STATE_CONV_INC_G8;
+            uint32_t dwInc   = pRenderHal->pMhwRenderInterface->GetSamplerStateConvIncUnit();
 
             dwSamplerStateAlign = MOS_MAX(dwMediaStateAlign, dwAlign);
             pDynamicState->SamplerConv.iCount = pParams->iMaxSamplerIndexConv;

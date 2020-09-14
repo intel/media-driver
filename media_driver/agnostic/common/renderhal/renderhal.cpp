@@ -6191,6 +6191,8 @@ bool RenderHal_Is2PlaneNV12Needed(
     uint16_t wHeightAlignUnit;
     uint32_t dwSurfaceHeight;
     uint32_t dwSurfaceWidth;
+    uint32_t widthAlignUnit;
+    uint32_t heightAlignUnit;
     bool bRet = false;
 
     //---------------------------------------------
@@ -6224,30 +6226,10 @@ bool RenderHal_Is2PlaneNV12Needed(
             break;
     }
 
-    // On G8, NV12 format needs the width and Height to be a multiple
-    // of 4 for both 3D sampler and 8x8 sampler; G75 needs the width
-    // of NV12 input surface to be a multiple of 4 for 3D sampler.
-    // On G9+, width need to be a multiple of 2, while height still need
-    // be a multiple of 4. Since G9 already post PV, just keep the old logic
-    // to enable 2 plane NV12 when the width or Height is not a multiple of 4.
-    // For G10+, enable 2 plane NV12 when width is not multiple of 2 or height
-    // is not multiple of 4.
-    if (!GFX_IS_GEN_10_OR_LATER(pRenderHal->Platform))
-    {
-        bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 4));
-    }
-    else
-    {
-        // For AVS sampler, no limitation for 4 alignment.
-        if (RENDERHAL_SCALING_AVS == pRenderHalSurface->ScalingMode)
-        {
-            bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, 2) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
-        }
-        else
-        {
-            bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, 4) || !MOS_IS_ALIGNED(dwSurfaceWidth, 2));
-        }
-    }
+    // NV12 format needs the width and height to be a multiple for both 3D sampler and 8x8 sampler.
+    // For AVS sampler, no limitation for 4 alignment.
+    pRenderHal->pMhwRenderInterface->GetSamplerResolutionAlignUnit(RENDERHAL_SCALING_AVS == pRenderHalSurface->ScalingMode, widthAlignUnit, heightAlignUnit);
+    bRet = (!MOS_IS_ALIGNED(dwSurfaceHeight, heightAlignUnit) || !MOS_IS_ALIGNED(dwSurfaceWidth, widthAlignUnit));
 
     // Note: Always using 2 plane NV12 as WA for the corruption of NV12 input
     // of which the height is greater than 16352

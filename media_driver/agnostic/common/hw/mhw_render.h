@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -588,6 +588,31 @@ public:
     //!           mmio registers got.
     //!
     virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters() = 0;
+
+    //!
+    //! \brief    Get AVS sampler state Inc unit
+    //! \details  Get AVS sampler state Inc unit
+    //! \return   [out] uint32_t
+    //!           AVS sampler unit.
+    virtual uint32_t GetSamplerStateAVSIncUnit() = 0;
+
+    //!
+    //! \brief    Get Conv sampler state Inc unit
+    //! \details  Get Conv sampler state Inc unit
+    //! \return   [out] uint32_t
+    //!           Conv sampler unit.
+    virtual uint32_t GetSamplerStateConvIncUnit() = 0;
+
+    //!
+    //! \brief    Get the sampler height and width align unit
+    //! \details  NV12 format needs the width and height to be a multiple of some unit
+    //! \param    [in] bool
+    //!           true if AVS sampler, false otherwise
+    //! \param    [in, out] uint32_t
+    //!           weight align unit
+    //! \param    [in, out] uint32_t
+    //!           height align unit
+    virtual void GetSamplerResolutionAlignUnit(bool isAVSSampler, uint32_t &widthAlignUnit, uint32_t &heightAlignUnit) = 0;
 
 protected:
     //!

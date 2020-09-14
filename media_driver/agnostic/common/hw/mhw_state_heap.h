@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -58,11 +58,11 @@ typedef struct MHW_BLOCK_MANAGER *PMHW_BLOCK_MANAGER;
 
 // Each increment in sampler index represents this increment in offset
 #define MHW_SAMPLER_STATE_VA_INC            32
-#define MHW_SAMPLER_STATE_AVS_INC_G8        512
-#define MHW_SAMPLER_STATE_AVS_INC_G9        2048
-#define MHW_SAMPLER_STATE_CONV_INC_G8       512
-#define MHW_SAMPLER_STATE_CONV_INC_G9       2048
-#define MHW_SAMPLER_STATE_CONV_1D_INC_G9    128
+#define MHW_SAMPLER_STATE_CONV_1D_INC       128
+#define MHW_AVS_SAMPLER_WIDTH_ALIGN_UNIT    2
+#define MHW_SAMPLER_STATE_AVS_INC_LEGACY    512
+#define MHW_AVS_SAMPLER_HEIGHT_ALIGN_UNIT   2
+#define MHW_SAMPLER_STATE_CONV_INC_LEGACY   512
 
 #define MHW_INVALID_BINDING_TABLE_IDX 0xFFFFFFFF
 

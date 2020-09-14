@@ -651,7 +651,7 @@ MOS_STATUS XRenderHal_Interface_g12::GetSamplerOffsetAndPtr_DSH(
         case MHW_SAMPLER_TYPE_AVS:
             MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->SamplerAVS.iCount);
             dwOffset += pDynamicState->SamplerAVS.dwOffset +                    // Go to AVS sampler area
-                        iSamplerID * MHW_SAMPLER_STATE_AVS_INC_G9;              // 16: size of one element, 128 elements for SKL
+                        iSamplerID * MHW_SAMPLER_STATE_AVS_INC_G12;              // 16: size of one element, 128 elements for SKL
             break;
 
         case MHW_SAMPLER_TYPE_CONV:
@@ -659,15 +659,15 @@ MOS_STATUS XRenderHal_Interface_g12::GetSamplerOffsetAndPtr_DSH(
             dwOffset = pDynamicState->SamplerConv.dwOffset;                     // Goto Conv sampler base
             if ( pSamplerParams->Convolve.ui8ConvolveType == 0 && pSamplerParams->Convolve.skl_mode )
             {   // 2D convolve
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G9;         // 16: size of one element, 128 elements for SKL
+                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G12;         // 16: size of one element, 128 elements for SKL
             }
             else if ( pSamplerParams->Convolve.ui8ConvolveType == 1 )
             {   // 1D convolve
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_1D_INC_G9;      // 16: size of one element, 8 elements for SKL
+                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_1D_INC;      // 16: size of one element, 8 elements for SKL
             }
             else
             {   // 1P convolve (same as gen8) and 2D convolve BDW mode
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G8;         // 16: size of one element, 32: 32 entry
+                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_LEGACY;  // 16: size of one element, 32: 32 entry
             }
             break;
 

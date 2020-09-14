@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2018, Intel Corporation
+* Copyright (c) 2012-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include "mos_os.h"
 #include "renderhal.h"
 #include "renderhal_g10.h"
+#include "mhw_state_heap_g10.h"
 
 #define RENDERHAL_NS_PER_TICK_RENDER_G10        (83.333)                                  // Assume it same as SKL, 83.333 nano seconds per tick in render engine
 
@@ -574,7 +575,7 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
         case MHW_SAMPLER_TYPE_AVS:
             MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->SamplerAVS.iCount);
             dwOffset += pDynamicState->SamplerAVS.dwOffset +                    // Go to AVS sampler area
-                        iSamplerID * MHW_SAMPLER_STATE_AVS_INC_G9;              // 16: size of one element, 128 elements for SKL
+                        iSamplerID * MHW_SAMPLER_STATE_AVS_INC_G10;              // 16: size of one element, 128 elements for SKL
             break;
 
         case MHW_SAMPLER_TYPE_CONV:
@@ -582,15 +583,15 @@ MOS_STATUS XRenderHal_Interface_g10::GetSamplerOffsetAndPtr_DSH(
             dwOffset = pDynamicState->SamplerConv.dwOffset;                     // Goto Conv sampler base
             if ( pSamplerParams->Convolve.ui8ConvolveType == 0 && pSamplerParams->Convolve.skl_mode )
             {   // 2D convolve
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G9;         // 16: size of one element, 128 elements for SKL
+                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G10;         // 16: size of one element, 128 elements for SKL
             }
             else if ( pSamplerParams->Convolve.ui8ConvolveType == 1 )
             {   // 1D convolve
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_1D_INC_G9;      // 16: size of one element, 8 elements for SKL
+                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_1D_INC;      // 16: size of one element, 8 elements for SKL
             }
             else
             {   // 1P convolve (same as gen8) and 2D convolve BDW mode
-                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G8;         // 16: size of one element, 32: 32 entry
+                dwOffset += iSamplerID * MHW_SAMPLER_STATE_CONV_INC_LEGACY;  // 16: size of one element, 32: 32 entry
             }
             break;
 

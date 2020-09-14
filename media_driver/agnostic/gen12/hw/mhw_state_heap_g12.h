@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2019, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,12 @@
 #include "mhw_state_heap_generic.h"
 #include "mhw_state_heap_hwcmd_g11_X.h"  // Still use Gen11 state heap cmd before fixing Gen12 state heap
 #include "mhw_state_heap_hwcmd_g12_X.h"
+
+// Each increment in sampler index represents this increment in offset
+#define MHW_SAMPLER_STATE_AVS_INC_G12       2048
+#define MHW_SAMPLER_STATE_CONV_INC_G12      2048
+#define MHW_SAMPLER_WIDTH_ALIGN_UNIT_G12    2
+#define MHW_SAMPLER_HEIGHT_ALIGN_UNIT_G12   4
 
 struct MHW_STATE_HEAP_INTERFACE_G12_X : public MHW_STATE_HEAP_INTERFACE_GENERIC<mhw_state_heap_g11_X>
 {

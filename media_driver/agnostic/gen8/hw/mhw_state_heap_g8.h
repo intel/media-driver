@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,10 @@
 
 #include "mhw_state_heap_generic.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
+
+// Each increment in sampler index represents this increment in offset
+#define MHW_SAMPLER_WIDTH_ALIGN_UNIT_G8  4
+#define MHW_SAMPLER_HEIGHT_ALIGN_UNIT_G8 4
 
 struct MHW_STATE_HEAP_INTERFACE_G8_X : public MHW_STATE_HEAP_INTERFACE_GENERIC<mhw_state_heap_g8_X>
 {

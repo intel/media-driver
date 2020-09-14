@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -522,13 +522,13 @@ MOS_STATUS XRenderHal_Interface_g8::GetSamplerOffsetAndPtr_DSH(
         case MHW_SAMPLER_TYPE_AVS:
             MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->SamplerAVS.iCount);
             dwOffset += pDynamicState->SamplerAVS.dwOffset        +             // Go to AVS sampler area
-                        iSamplerID * MHW_SAMPLER_STATE_AVS_INC_G8;              // 16: size of one element, 32: 32 entries
+                        iSamplerID * MHW_SAMPLER_STATE_AVS_INC_LEGACY;  // 16: size of one element, 32: 32 entries
             break;
 
         case MHW_SAMPLER_TYPE_CONV:
             MHW_RENDERHAL_ASSERT(iSamplerID < pDynamicState->SamplerConv.iCount);
             dwOffset += pDynamicState->SamplerConv.dwOffset        +             // Goto Conv sampler base
-                        iSamplerID * MHW_SAMPLER_STATE_CONV_INC_G8;              // 16: size of one element, 32: 32 entries
+                        iSamplerID * MHW_SAMPLER_STATE_CONV_INC_LEGACY;  // 16: size of one element, 32: 32 entries
             break;
 
         case MHW_SAMPLER_TYPE_MISC:
