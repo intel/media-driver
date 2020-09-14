@@ -4,7 +4,7 @@
 
 (2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384)
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Output | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
 |  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -33,7 +33,7 @@
 
 (4k=4096x4096, 16k=16384x16384)
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Input |  | NV12 | NV12 | More* | More* | More* | More* |
 |  | Max Res. |  | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -56,7 +56,7 @@
 
 (2k=2048x2048, 4k=4096x4096, 8k=8192x8192)
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Input | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
 |  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -85,7 +85,7 @@
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |      |      |      |
 |      TGL/RKL          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
-|      DG1              | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
+|      DG1/SG1          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 
 * \* For SFC path, there are NOT real 16bit, SFC precision is 12bit; For kernel path, we support real 16bit.

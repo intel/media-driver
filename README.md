@@ -82,6 +82,7 @@ export LIBVA_DRIVER_NAME=iHD
 * ICL (Ice Lake)
 * JSL (Jasper Lake)/EHL (Elkhart Lake)
 * TGL (Tiger Lake)
+* DG1/SG1
 
 
 ## Components and Features
@@ -98,7 +99,7 @@ Media driver supports two build types as below
 
 ### Decoding/Encoding Features
 
-|CODEC | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL/RKL | DG1 |
+|CODEC | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL/RKL | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|---|
 | AVC | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> |
 | MPEG-2 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> |
@@ -136,7 +137,7 @@ For more information, please refer to
 
 ### Video Processing Features
 
-| Features | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL/RKL | DG1 |
+| Features | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL/RKL | DG1/SG1 |
 |---|---|---|---|---|----|---|---|---|---|
 | Blending | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
 | CSC<br>(Color Space Conversion) | <u>Full Feature</u><br><i>Free Kernel</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>&nbsp;</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> | <u>Yes</u><br><i>Yes</i> |
@@ -172,6 +173,7 @@ Media-driver requires special i915 kernel mode driver (kmd) version to support t
 new platforms since upstream version of i915 kmd does not fully support them
 (pending patches upstream):
 * DG1
+* SG1
 
 By default, media-driver builds against upstream i915 kmd and will miss
 support for the platforms listed above. To enable new platforms which
