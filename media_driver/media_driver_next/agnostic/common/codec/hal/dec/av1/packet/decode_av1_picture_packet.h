@@ -219,9 +219,9 @@ namespace decode
         PMOS_BUFFER                 m_resSaoTileColumnBuffer                                 = nullptr;    //!< Handle of SAO Tile Column data buffer
 
         //buffers for dummy workload
-        PMOS_BUFFER                 m_curMuBufferForDummyWL                                   = nullptr;
+        PMOS_BUFFER                 m_curMvBufferForDummyWL                                   = nullptr;
         PMOS_BUFFER                 m_bwdAdaptCdfBufForDummyWL                                = nullptr;
-        bool                        m_isBsBufferWritten                                      = false;
+        bool                        m_isBsBufferWritten                                       = false;
 
         uint32_t m_prevFrmWidth         = 0;    //!< Frame width of the previous frame
         uint32_t m_prevFrmHeight        = 0;    //!< Frame height of the previous frame

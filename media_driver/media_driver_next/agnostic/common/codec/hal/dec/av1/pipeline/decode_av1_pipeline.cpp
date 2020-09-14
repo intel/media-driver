@@ -52,6 +52,19 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
     auto *codecSettings = (CodechalSetting*)settings;
     DECODE_CHK_NULL(codecSettings);
 
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_AV1_FRAME_BASED_DECODE_ID,
+        &userFeatureData,
+        m_osInterface ? m_osInterface->pOsContext : nullptr);
+#endif
+
+    m_forceFrameBasedDecoding = userFeatureData.i32Data;
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -128,24 +141,13 @@ bool Av1Pipeline::FrameBasedDecodingInUse()
 
     bool isframeBasedDecodingUsed = false;
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_FORCE_AV1_FRAME_BASED_DECODE_ID,
-        &userFeatureData,
-        m_osInterface ? m_osInterface->pOsContext : nullptr);
-#endif
-
     if (basicFeature != nullptr)
     {
         isframeBasedDecodingUsed = ((basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_yframeRestorationType > 0) &
                                    ((basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_cbframeRestorationType |
                                     basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_crframeRestorationType) > 0) &&
                                     basicFeature->m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres && MEDIA_IS_WA(GetWaTable(), Wa_1409820462)
-                                    || userFeatureData.i32Data);
+                                    || m_forceFrameBasedDecoding);
     }
     return isframeBasedDecodingUsed;
 }

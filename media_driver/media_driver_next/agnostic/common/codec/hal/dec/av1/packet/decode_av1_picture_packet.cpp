@@ -94,7 +94,7 @@ namespace decode{
             m_allocator->Destroy(m_loopRestorationFilterTileColumnReadWriteVBuffer);
             m_allocator->Destroy(m_decodedFrameStatusErrorBuffer);
             m_allocator->Destroy(m_decodedBlockDataStreamoutBuffer);
-            m_allocator->Destroy(m_curMuBufferForDummyWL);
+            m_allocator->Destroy(m_curMvBufferForDummyWL);
             m_allocator->Destroy(m_bwdAdaptCdfBufForDummyWL);
         }
 
@@ -194,9 +194,9 @@ namespace decode{
             {
                 DECODE_ASSERTMESSAGE( "Failed to get MvTemporalBuffer size.");
             }
-            m_curMuBufferForDummyWL =
+            m_curMvBufferForDummyWL =
                 m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "MvBuffer");
-            DECODE_CHK_NULL(m_curMuBufferForDummyWL);
+            DECODE_CHK_NULL(m_curMvBufferForDummyWL);
 
             m_bwdAdaptCdfBufForDummyWL = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_av1BasicFeature->m_cdfMaxNumBytes,
                 CODECHAL_PAGE_SIZE), "CdfTableBuffer");
@@ -1303,7 +1303,7 @@ namespace decode{
         pipeBufAddrParams.m_decodedFrameStatusErrorBuffer                          = &m_decodedFrameStatusErrorBuffer->OsResource;
         pipeBufAddrParams.m_decodedBlockDataStreamoutBuffer                        = &m_decodedBlockDataStreamoutBuffer->OsResource;
 
-        pipeBufAddrParams.m_curMvTemporalBuffer          = &m_curMuBufferForDummyWL->OsResource;
+        pipeBufAddrParams.m_curMvTemporalBuffer          = &m_curMvBufferForDummyWL->OsResource;
         pipeBufAddrParams.m_cdfTableInitializationBuffer = &m_av1BasicFeature->m_defaultCdfBuffers[3]->OsResource;
         pipeBufAddrParams.m_cdfTableBwdAdaptationBuffer  = &m_bwdAdaptCdfBufForDummyWL->OsResource;
 

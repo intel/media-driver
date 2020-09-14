@@ -63,7 +63,21 @@ namespace decode
         if (m_osInterface != nullptr)
         {
             MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-            m_usingDummyWl = (waTable != nullptr) ? MEDIA_IS_WA(waTable, Wa_1508208842) : false;
+
+            m_usingDummyWl = ((waTable != nullptr) ? MEDIA_IS_WA(waTable, Wa_1508208842) : false)
+                && !m_osInterface->bSimIsActive;
+            if (m_usingDummyWl == true)
+            {
+                //Allocate a dest surface for dummy WL
+                m_destSurfaceForDummyWL = m_allocator->AllocateSurface(
+                    16,
+                    16,
+                    "Dummy Decode Output Frame Buffer",
+                    Format_NV12,
+                    false,
+                    resourceOutputPicture);
+                DECODE_CHK_NULL(m_destSurfaceForDummyWL);
+            }
         }
 
         if (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)
@@ -104,19 +118,6 @@ namespace decode
         m_tileCoding.m_numTiles = decodeParams->m_numSlices;
 
         m_filmGrainEnabled = m_av1PicParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain;
-
-        if (m_usingDummyWl == true)
-        {
-            //Allocate a dest surface for dummy WL
-            m_destSurfaceForDummyWL = m_allocator->AllocateSurface(
-                16,
-                16,
-                "Dummy Decode Output Frame Buffer",
-                Format_NV12,
-                false,
-                resourceOutputPicture);
-            DECODE_CHK_NULL(m_destSurfaceForDummyWL);
-        }
 
         DECODE_CHK_STATUS(SetPictureStructs(decodeParams));
         DECODE_CHK_STATUS(SetTileStructs());
