@@ -302,7 +302,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreateConstSettigs() { return MOS_STATUS_SUCCESS; };
+    virtual MOS_STATUS CreateConstSettings() { return MOS_STATUS_SUCCESS; };
 
     //!
     //! \brief  Create features

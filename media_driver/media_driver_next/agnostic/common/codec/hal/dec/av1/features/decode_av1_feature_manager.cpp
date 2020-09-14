@@ -33,7 +33,7 @@
 
 namespace decode
 {
-    MOS_STATUS DecodeAv1FeatureManager::CreateConstSettigs()
+    MOS_STATUS DecodeAv1FeatureManager::CreateConstSettings()
     {
         DECODE_FUNC_CALL();
         m_featureConstSettings = MOS_New(MediaFeatureConstSettings);

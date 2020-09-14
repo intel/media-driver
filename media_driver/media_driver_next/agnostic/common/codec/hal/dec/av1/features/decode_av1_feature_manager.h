@@ -67,7 +67,7 @@ namespace decode
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        virtual MOS_STATUS CreateConstSettigs();
+        virtual MOS_STATUS CreateConstSettings();
 
         //!
         //! \brief  Create features

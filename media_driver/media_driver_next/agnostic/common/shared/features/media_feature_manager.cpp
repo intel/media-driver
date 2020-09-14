@@ -33,7 +33,7 @@ MOS_STATUS MediaFeatureManager::Init(void *settings)
 {
     MEDIA_FUNC_CALL();
 
-    MEDIA_CHK_STATUS_RETURN(CreateConstSettigs());
+    MEDIA_CHK_STATUS_RETURN(CreateConstSettings());
     MEDIA_CHK_NULL_RETURN(m_featureConstSettings);
     MEDIA_CHK_STATUS_RETURN(m_featureConstSettings->PrepareConstSettings());
 
