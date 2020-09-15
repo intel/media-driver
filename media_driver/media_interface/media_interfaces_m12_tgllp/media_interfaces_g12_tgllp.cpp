@@ -598,7 +598,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
 
             if (apogeiosEnable)
             {
-                m_codechalDevice = MOS_New(DecodeHevcPipelineAdapterG12, hwInterface, debugInterface);
+                m_codechalDevice = MOS_New(DecodeHevcPipelineAdapterM12, hwInterface, debugInterface);
             }
             else
             #endif
