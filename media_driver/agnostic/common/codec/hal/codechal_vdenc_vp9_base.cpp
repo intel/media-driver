@@ -4844,10 +4844,6 @@ MOS_STATUS CodechalVdencVp9State::PakConstructPicStateBatchBuf(
     uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, picStateBuffer, &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
-    // AddMiBatchBufferEnd also adds MediaStateFlush commands in render context, but picState is used later by PAK. Switching context to video before adding BB end so thse DWs are not added
-    MOS_GPU_CONTEXT curGpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
-    m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VIDEO);
-
     // HCP_VP9_PIC_STATE
     MHW_VDBOX_VP9_ENCODE_PIC_STATE picState;
     MOS_ZeroMemory(&picState, sizeof(picState));
@@ -4879,9 +4875,6 @@ MOS_STATUS CodechalVdencVp9State::PakConstructPicStateBatchBuf(
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&constructedCmdBuf, nullptr));
     }
-
-    // Switch back to current context
-    m_osInterface->pfnSetGpuContext(m_osInterface, curGpuContext);
 
     if (data)
     {
