@@ -6271,6 +6271,14 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
         &userFeatureData,
         m_osInterface->pOsContext);
     m_kmdVeOveride.Value = (uint64_t)userFeatureData.i64Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_FORCE_SCALABILITY_ID_G12,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_forceScalability = userFeatureData.i32Data ? true : false;
 #endif
 
     return eStatus;
