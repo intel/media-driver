@@ -75,27 +75,28 @@ namespace decode
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        if (picParams.m_tileCols >= av1MaxTileColumn || picParams.m_tileRows >= av1MaxTileRow)
+        if (picParams.m_tileCols > av1MaxTileColumn || picParams.m_tileRows > av1MaxTileRow)
         {
             DECODE_NORMALMESSAGE("Invalid tile row/col.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
+        uint16_t tileNumLimit = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? av1MaxTileNum : (picParams.m_tileCols * picParams.m_tileRows);
         if (nullptr != m_tileDesc &&
-            (m_prevFrmTileNum < picParams.m_tileCols * picParams.m_tileRows))
+            (m_prevFrmTileNum < tileNumLimit))
         {
             delete m_tileDesc;
             m_tileDesc = nullptr;
         }
         if (nullptr == m_tileDesc)
         {
-            m_tileDesc = (TileDesc*)malloc(sizeof(TileDesc)*picParams.m_tileCols * picParams.m_tileRows);
-            if(nullptr != m_tileDesc)
+            m_tileDesc = (TileDesc *)malloc(sizeof(TileDesc) * tileNumLimit);
+            if (nullptr != m_tileDesc)
             {
-                memset(m_tileDesc, 0, (sizeof(TileDesc)*picParams.m_tileCols * picParams.m_tileRows));
+                memset(m_tileDesc, 0, (sizeof(TileDesc) * tileNumLimit));
             }
         }
-        m_prevFrmTileNum = picParams.m_tileCols * picParams.m_tileRows;
+        m_prevFrmTileNum = tileNumLimit;
 
         //Calculate tile info for max tile
         DECODE_CHK_STATUS(CalcTileInfoMaxTile(picParams));
@@ -110,38 +111,55 @@ namespace decode
         DECODE_CHK_NULL(m_tileDesc);
 
         //Assume the whole frame's tiles are received
-        uint16_t totalTileCnt = picParams.m_tileRows * picParams.m_tileCols;
+        uint16_t totalTileCnt = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? (picParams.m_tileCountMinus1 + 1) : picParams.m_tileRows * picParams.m_tileCols;
         DECODE_ASSERT(m_numTiles == totalTileCnt);
 
-        int16_t tileId = 0;
-        int16_t tileGroupId = -1;
+        int16_t tileId           = 0;
+        int16_t tileGroupId      = -1;
         int16_t lastStartTileIdx = -1;
         for (uint32_t i = 0; i < m_numTiles; i++)
         {
             DECODE_ASSERT(tileParams[i].m_badBSBufferChopping == 0);//this is to assume the whole tile is in one single bitstream buffer
             DECODE_ASSERT(tileParams[i].m_bsTileBytesInBuffer == tileParams[i].m_bsTilePayloadSizeInBytes);//this is to assume the whole tile is in one single bitstream buffer
 
-            //record info
-            if (tileParams[i].m_startTileIdx != lastStartTileIdx)
+            if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
             {
-                tileGroupId++;
-            }
-            lastStartTileIdx = tileParams[i].m_startTileIdx;
-            tileId = tileParams[i].m_tileColumn + tileParams[i].m_tileRow * picParams.m_tileCols;
-            if (tileParams[i].m_badBSBufferChopping == 0 || tileParams[i].m_badBSBufferChopping == 2)//if all tile data received
-            {
-                m_lastTileId = tileId;//record the last tile ID whose bitstream is available for HW to decode
+                //record info
+                if (tileParams[i].m_startTileIdx != lastStartTileIdx)
+                {
+                    tileGroupId++;
+                }
+                lastStartTileIdx = tileParams[i].m_startTileIdx;
+                tileId = tileParams[i].m_tileColumn + tileParams[i].m_tileRow * picParams.m_tileCols;
+                if (tileParams[i].m_badBSBufferChopping == 0 || tileParams[i].m_badBSBufferChopping == 2)//if all tile data received
+                {
+                    m_lastTileId = tileId;//record the last tile ID whose bitstream is available for HW to decode
+                }
             }
 
-            auto index = tileId;
+            auto index                     = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? i : tileId;
             m_tileDesc[index].m_offset     = tileParams[i].m_bsTileDataLocation;
             m_tileDesc[index].m_size       = tileParams[i].m_bsTileBytesInBuffer;
             m_tileDesc[index].m_tileRow    = tileParams[i].m_tileRow;
             m_tileDesc[index].m_tileColumn = tileParams[i].m_tileColumn;
 
-            m_tileDesc[index].m_tileGroupId = (uint16_t)tileGroupId;
-            m_tileDesc[index].m_lastInGroup = (tileId == tileParams[i].m_endTileIdx) ? true : false;
-            m_tileDesc[index].m_tileNum     = tileId - tileParams[i].m_startTileIdx;
+            if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
+            {
+                m_tileDesc[index].m_tileGroupId = (uint16_t)tileGroupId;
+                m_tileDesc[index].m_lastInGroup = (tileId == tileParams[i].m_endTileIdx) ? true : false;
+                m_tileDesc[index].m_tileNum     = tileId - tileParams[i].m_startTileIdx;
+            }
+            else
+            {
+                //No TG for ext-tile, set TG related params to 0
+                m_tileDesc[index].m_tileGroupId = 0;
+                m_tileDesc[index].m_lastInGroup = 0;
+                m_tileDesc[index].m_tileNum     = 0;
+
+                //ext-tile specific params
+                m_tileDesc[index].m_tileIndex      = tileParams[i].m_tileIndex;
+                m_tileDesc[index].m_anchorFrameIdx = tileParams[i].m_anchorFrameIdx.FrameIdx;
+            }
         }
 
         return MOS_STATUS_SUCCESS;
@@ -213,8 +231,17 @@ namespace decode
         uint16_t startTile = m_lastTileId + 1;//record before parsing new bitstream portion
 
         DECODE_CHK_STATUS(ParseTileInfo(picParams, tileParams));
-        m_passNum = m_lastTileId - startTile + 1;
-        m_curTile = startTile;
+
+        if (picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
+        {
+            m_passNum = picParams.m_tileCountMinus1 + 1;
+            m_curTile = 0;
+        }
+        else
+        {
+            m_passNum = m_lastTileId - startTile + 1;
+            m_curTile = startTile;
+        }
 
         return m_passNum;
     }

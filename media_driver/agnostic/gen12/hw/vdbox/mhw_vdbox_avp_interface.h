@@ -782,6 +782,22 @@ public:
         MhwVdboxAvpTileCodingParams     *params) = 0;
 
     //!
+    //! \brief    Adds AVP tile coding command in command buffer when Large Scale Tile decoding is supported
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Command buffer to which HW command is added
+    //! \param    [in] params
+    //!           Params structure used to populate the HW command
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddAvpDecodeTileCodingCmdLst(
+        PMOS_COMMAND_BUFFER          cmdBuffer,
+        PMHW_BATCH_BUFFER            batchBuffer,
+        MhwVdboxAvpTileCodingParams *params) = 0;
+
+    //!
     //! \brief    Adds AVP tile coding command in command buffer
     //!
     //! \param    [in] cmdBuffer

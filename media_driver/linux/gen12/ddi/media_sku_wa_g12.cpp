@@ -344,6 +344,11 @@ static bool InitDG1MediaSku(struct GfxDeviceInfo *devInfo,
     }
     MEDIA_WR_SKU(skuTable, FtrLocalMemory, 1);
 
+    if (drvInfo->devRev > 0)
+    {
+        MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
+    }
+
     bool enableCodecMMC = false;
     bool enableVPMMC    = false;
 

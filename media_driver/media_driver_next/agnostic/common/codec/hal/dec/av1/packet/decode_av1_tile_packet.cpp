@@ -75,24 +75,61 @@ namespace decode
         uint16_t curRow = m_tileDesc[tileIdx].m_tileRow;
         uint16_t srcTileId = curCol + curRow * m_av1PicParams->m_tileCols;
 
-        tileCodingParams.m_tileId                           =  tileIdx;
-        tileCodingParams.m_tileNum                          = m_tileDesc[tileIdx].m_tileNum;
-        tileCodingParams.m_tileGroupId                      = m_tileDesc[tileIdx].m_tileGroupId;
-        tileCodingParams.m_tileColPositionInSb              = m_av1BasicFeature->m_tileCoding.m_tileColStartSb[curCol];
-        tileCodingParams.m_tileRowPositionInSb              = m_av1BasicFeature->m_tileCoding.m_tileRowStartSb[curRow];
-        tileCodingParams.m_tileWidthInSbMinus1              = m_av1PicParams->m_widthInSbsMinus1[curCol];
-        tileCodingParams.m_tileHeightInSbMinus1             = m_av1PicParams->m_heightInSbsMinus1[curRow];
-        tileCodingParams.m_tileRowIndependentFlag           = true;
-        tileCodingParams.m_isLastTileOfColumn               = (curRow == m_av1PicParams->m_tileRows - 1) ? true : false;
-        tileCodingParams.m_isLastTileOfRow                  = (curCol == m_av1PicParams->m_tileCols - 1) ? true : false;
-        tileCodingParams.m_isFirstTileOfTileGroup           = (m_tileDesc[tileIdx].m_tileNum == 0) ? true : false;
-        tileCodingParams.m_isLastTileOfTileGroup            = m_tileDesc[tileIdx].m_lastInGroup;
-        tileCodingParams.m_isLastTileOfFrame                = (curCol == m_av1PicParams->m_tileCols - 1) && (curRow == m_av1PicParams->m_tileRows - 1);
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile)
+        {
+            DECODE_ASSERT(tileIdx == m_tileDesc[tileIdx].m_tileIndex);
+        }
+
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile)
+        {
+            tileCodingParams.m_tileId                 = srcTileId;
+            tileCodingParams.m_tileNum                = srcTileId;
+            tileCodingParams.m_tileGroupId            = 0;
+            tileCodingParams.m_tileColPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileColStartSb[curCol];
+            tileCodingParams.m_tileRowPositionInSb    = m_av1BasicFeature->m_tileCoding.m_tileRowStartSb[curRow];
+            tileCodingParams.m_tileWidthInSbMinus1    = m_av1PicParams->m_widthInSbsMinus1[curCol];
+            tileCodingParams.m_tileHeightInSbMinus1   = m_av1PicParams->m_heightInSbsMinus1[curRow];
+            tileCodingParams.m_tileRowIndependentFlag = true;
+            tileCodingParams.m_isLastTileOfColumn     = (curRow == m_av1PicParams->m_tileRows - 1) ? true : false;
+            tileCodingParams.m_isLastTileOfRow        = (curCol == m_av1PicParams->m_tileCols - 1) ? true : false;
+            tileCodingParams.m_isFirstTileOfTileGroup = (srcTileId == 0) ? true : false;
+            tileCodingParams.m_isLastTileOfTileGroup  = (curCol == m_av1PicParams->m_tileCols - 1) && (curRow == m_av1PicParams->m_tileRows - 1);
+            tileCodingParams.m_isLastTileOfFrame      = (curCol == m_av1PicParams->m_tileCols - 1) && (curRow == m_av1PicParams->m_tileRows - 1);
+        }
+        else
+        {
+            tileCodingParams.m_tileId                           = tileIdx;
+            tileCodingParams.m_tileNum                          = m_tileDesc[tileIdx].m_tileNum;
+            tileCodingParams.m_tileGroupId                      = m_tileDesc[tileIdx].m_tileGroupId;
+            tileCodingParams.m_tileColPositionInSb              = m_av1BasicFeature->m_tileCoding.m_tileColStartSb[curCol];
+            tileCodingParams.m_tileRowPositionInSb              = m_av1BasicFeature->m_tileCoding.m_tileRowStartSb[curRow];
+            tileCodingParams.m_tileWidthInSbMinus1              = m_av1PicParams->m_widthInSbsMinus1[curCol];
+            tileCodingParams.m_tileHeightInSbMinus1             = m_av1PicParams->m_heightInSbsMinus1[curRow];
+            tileCodingParams.m_tileRowIndependentFlag           = true;
+            tileCodingParams.m_isLastTileOfColumn               = (curRow == m_av1PicParams->m_tileRows - 1) ? true : false;
+            tileCodingParams.m_isLastTileOfRow                  = (curCol == m_av1PicParams->m_tileCols - 1) ? true : false;
+            tileCodingParams.m_isFirstTileOfTileGroup           = (m_tileDesc[tileIdx].m_tileNum == 0) ? true : false;
+            tileCodingParams.m_isLastTileOfTileGroup            = m_tileDesc[tileIdx].m_lastInGroup;
+            tileCodingParams.m_isLastTileOfFrame                = (curCol == m_av1PicParams->m_tileCols - 1) && (curRow == m_av1PicParams->m_tileRows - 1);
+        }
+
         tileCodingParams.m_disableCdfUpdateFlag             = m_av1PicParams->m_picInfoFlags.m_fields.m_disableCdfUpdate;
         tileCodingParams.m_disableFrameContextUpdateFlag    = m_av1PicParams->m_picInfoFlags.m_fields.m_disableFrameEndUpdateCdf || (tileIdx != m_av1PicParams->m_contextUpdateTileId);
         tileCodingParams.m_numOfActiveBePipes               = 1;
-        tileCodingParams.m_numOfTileColumnsInFrame          = m_av1PicParams->m_tileCols;
-        tileCodingParams.m_numOfTileRowsInFrame             = m_av1PicParams->m_tileRows;
+
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile)
+        {
+            tileCodingParams.m_numOfTileColumnsInFrame = m_av1PicParams->m_outputFrameWidthInTilesMinus1 + 1;
+            tileCodingParams.m_numOfTileRowsInFrame    = m_av1PicParams->m_outputFrameHeightInTilesMinus1 + 1;
+
+            tileCodingParams.m_outputDecodedTileColumnPositionInSBUnit = (m_tileDesc[tileIdx].m_tileIndex % (m_av1PicParams->m_outputFrameWidthInTilesMinus1 + 1)) * (m_av1PicParams->m_widthInSbsMinus1[0] + 1);  //AV1 Conformance: tile width is identical for all tiles
+            tileCodingParams.m_outputDecodedTileRowPositionInSBUnit    = (m_tileDesc[tileIdx].m_tileIndex / (m_av1PicParams->m_outputFrameWidthInTilesMinus1 + 1));                                                //tile height is exactly one SB
+        }
+        else
+        {
+            tileCodingParams.m_numOfTileColumnsInFrame = m_av1PicParams->m_tileCols;
+            tileCodingParams.m_numOfTileRowsInFrame = m_av1PicParams->m_tileRows;
+        }
 
         m_av1BasicFeature->m_frameCompletedFlag = tileCodingParams.m_isLastTileOfFrame;
 

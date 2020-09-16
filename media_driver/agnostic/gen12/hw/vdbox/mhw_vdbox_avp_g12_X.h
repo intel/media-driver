@@ -63,6 +63,7 @@ protected:
         AVP_REF_IDX_STATE_CMD_NUMBER_OF_ADDRESSES                  =  0,  //  0 DW for    address fields
         AVP_SEGMENT_STATE_CMD_NUMBER_OF_ADDRESSES                  =  0,  //  0 DW for    address fields
         AVP_TILE_CODING_CMD_NUMBER_OF_ADDRESSES                    =  0,  //  0 DW for    address fields
+        AVP_TILE_CODING_CMD_LST_NUMBER_OF_ADDRESSES                =  0,  //  0 DW for    address fields
         AVP_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES                     =  0,  //  0 DW for    address fields
         AVP_INLOOP_FILTER_STATE_CMD_NUMBER_OF_ADDRESSES            =  0,  //  0 DW for    address fields
         AVP_INTER_PRED_STATE_CMD_NUMBER_OF_ADDRESSES               =  0,  //  0 DW for    address fields
@@ -311,6 +312,25 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS AddAvpDecodeTileCodingCmd(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_BATCH_BUFFER               batchBuffer,
+        MhwVdboxAvpTileCodingParams     *params);
+
+    //!
+    //! \brief    Adds AVP tile coding command for Large Scale Tile decoding
+    //! \details  function to add AVP tile coding command in command buffer or Batch buffer
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Command buffer to which HW command is added
+    //! \param    [in] batchBuffer
+    //!           Batch buffer to which HW command is added
+    //! \param    [in] params
+    //!           Params structure used to populate the HW command
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AddAvpDecodeTileCodingCmdLst(
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_BATCH_BUFFER               batchBuffer,
         MhwVdboxAvpTileCodingParams     *params);

@@ -1317,6 +1317,127 @@ public:
     };
 
     //!
+    //! \brief AVP_TILE_CODING_CMD for LST
+    //! \details
+    //!     This command is used when Large Scale Tile decoding is supported
+    //!
+    struct AVP_TILE_CODING_CMD_LST
+    {
+        union
+        {
+            struct
+            {
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< DWORD_LENGTH
+                uint32_t                 Reserved12                                       : __CODEGEN_BITFIELD(12, 15)    ; //!< Reserved
+                uint32_t                 MediaInstructionCommand                          : __CODEGEN_BITFIELD(16, 22)    ; //!< MEDIA_INSTRUCTION_COMMAND
+                uint32_t                 MediaInstructionOpcode                           : __CODEGEN_BITFIELD(23, 26)    ; //!< MEDIA_INSTRUCTION_OPCODE
+                uint32_t                 PipelineType                                     : __CODEGEN_BITFIELD(27, 28)    ; //!< PIPELINE_TYPE
+                uint32_t                 CommandType                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< COMMAND_TYPE
+            };
+            uint32_t                     Value;
+        } DW0;
+        union
+        {
+            struct
+            {
+                uint32_t                 FrameTileId                                      : __CODEGEN_BITFIELD( 0, 11)    ; //!< Frame Tile ID
+                uint32_t                 TgTileNum                                        : __CODEGEN_BITFIELD(12, 23)    ; //!< TG Tile Num
+                uint32_t                 TileGroupId                                      : __CODEGEN_BITFIELD(24, 31)    ; //!< Tile Group ID
+            };
+            uint32_t                     Value;
+        } DW1;
+        union
+        {
+            struct
+            {
+                uint32_t                 TileColumnPositionInSbUnit                       : __CODEGEN_BITFIELD( 0,  9)    ; //!< Tile Column Position in SB Unit
+                uint32_t                 Reserved74                                       : __CODEGEN_BITFIELD(10, 15)    ; //!< Reserved
+                uint32_t                 TileRowPositionInSbUnit                          : __CODEGEN_BITFIELD(16, 25)    ; //!< Tile Row Position in SB Unit
+                uint32_t                 Reserved90                                       : __CODEGEN_BITFIELD(26, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW2;
+        union
+        {
+            struct
+            {
+                uint32_t                 TileWidthInSuperblockUnitMinus1                  : __CODEGEN_BITFIELD( 0,  5)    ; //!< Tile Width in SuperBlock Unit Minus1
+                uint32_t                 Reserved102                                      : __CODEGEN_BITFIELD( 6, 15)    ; //!< Reserved
+                uint32_t                 TileHeightInSuperblockUnitMinus1                 : __CODEGEN_BITFIELD(16, 25)    ; //!< Tile Height in SuperBlock Unit Minus1
+                uint32_t                 Reserved122                                      : __CODEGEN_BITFIELD(26, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW3;
+        union
+        {
+            struct
+            {
+                uint32_t                 Reserved128                                      : __CODEGEN_BITFIELD( 0, 24)    ; //!< Reserved
+                uint32_t                 IslasttileofcolumnFlag                           : __CODEGEN_BITFIELD(25, 25)    ; //!< IsLastTileOfColumn Flag
+                uint32_t                 IslasttileofrowFlag                              : __CODEGEN_BITFIELD(26, 26)    ; //!< IsLastTileOfRow Flag
+                uint32_t                 IsstarttileoftilegroupFlag                       : __CODEGEN_BITFIELD(27, 27)    ; //!< IsStartTileOfTileGroup Flag
+                uint32_t                 IsendtileoftilegroupFlag                         : __CODEGEN_BITFIELD(28, 28)    ; //!< IsEndTileOfTileGroup Flag
+                uint32_t                 IslasttileofframeFlag                            : __CODEGEN_BITFIELD(29, 29)    ; //!< IsLastTileOfFrame Flag
+                uint32_t                 DisableCdfUpdateFlag                             : __CODEGEN_BITFIELD(30, 30)    ; //!< Disable CDF Update Flag
+                uint32_t                 DisableFrameContextUpdateFlag                    : __CODEGEN_BITFIELD(31, 31)    ; //!< Disable Frame Context Update Flag
+            };
+            uint32_t                     Value;
+        } DW4;
+        union
+        {
+            struct
+            {
+                uint32_t                 NumberOfActiveBePipes                            : __CODEGEN_BITFIELD( 0,  7)    ; //!< Number of Active BE Pipes
+                uint32_t                 Reserved168                                      : __CODEGEN_BITFIELD( 8, 11)    ; //!< Reserved MBZ
+                uint32_t                 NumOfTileColumnsMinus1InAFrame                   : __CODEGEN_BITFIELD(12, 21)    ; //!< Num of Tile Columns Minus1 in a Frame
+                uint32_t                 NumOfTileRowsMinus1InAFrame                      : __CODEGEN_BITFIELD(22, 31)    ; //!< Num of Tile Rows Minus1 in a Frame
+            };
+            uint32_t                     Value;
+        } DW5;
+        union
+        {
+            struct
+            {
+                uint32_t                 OutputDecodedTileColumnPositionInSbUnit          : __CODEGEN_BITFIELD( 0,  9)    ; //!< Output Decoded Tile Column Position in SB Unit
+                uint32_t                 Reserved202                                      : __CODEGEN_BITFIELD(10, 15)    ; //!< Reserved
+                uint32_t                 OutputDecodedTileRowPositionInSbUnit             : __CODEGEN_BITFIELD(16, 25)    ; //!< Output Decoded Tile Row Position in SB Unit
+                uint32_t                 Reserved218                                      : __CODEGEN_BITFIELD(26, 31)    ; //!< Reserved
+            };
+            uint32_t                     Value;
+        } DW6;
+
+        //! \name Local enumerations
+
+        enum MEDIA_INSTRUCTION_COMMAND
+        {
+            MEDIA_INSTRUCTION_COMMAND_AVPTILECODING                          = 21, //!< No additional details
+        };
+
+        enum MEDIA_INSTRUCTION_OPCODE
+        {
+            MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME                         = 3, //!< No additional details
+        };
+
+        enum PIPELINE_TYPE
+        {
+            PIPELINE_TYPE_UNNAMED2                                           = 2, //!< No additional details
+        };
+
+        enum COMMAND_TYPE
+        {
+            COMMAND_TYPE_PARALLELVIDEOPIPE                                   = 3, //!< No additional details
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        AVP_TILE_CODING_CMD_LST();
+
+        static const size_t dwSize = 7;
+        static const size_t byteSize = 28;
+    };
+
+    //!
     //! \brief AVP_SURFACE_STATE
     //! \details
     //!     The AVP Pipeline is selected with the Media Instruction Opcode "8h" for

@@ -69,10 +69,12 @@ public:
     //! \brief  Get active reference list for current frame
     //! \param  [in] picParams
     //!         Picture parameters
+    //! \param  [in] tileParams
+    //!         Tile parameters
     //! \return  std::vector<uint8_t> &
     //!         Active reference list indices for current frame
     //!
-    const std::vector<uint8_t> & GetActiveReferenceList(CodecAv1PicParams & picParams);
+    const std::vector<uint8_t> &GetActiveReferenceList(CodecAv1PicParams &picParams, CodecAv1TileParams &tileParams);
 
     //!
     //! \brief  Get active reference list for current frame
@@ -139,8 +141,8 @@ public:
     //!
     uint8_t GetPrimaryRefIdx() {return m_prevFrameIdx;};
 
-    PCODEC_REF_LIST_AV1    m_refList[CODECHAL_MAX_DPB_NUM_AV1]; //!< Pointer to reference list, actually the DPB
-    PCODEC_REF_LIST_AV1    m_currRefList = nullptr;             //!< Current frame reference list
+    PCODEC_REF_LIST_AV1    m_refList[CODECHAL_MAX_DPB_NUM_LST_AV1]; //!< Pointer to reference list, actually the DPB
+    PCODEC_REF_LIST_AV1    m_currRefList = nullptr;                 //!< Current frame reference list
 
 protected:
     //!

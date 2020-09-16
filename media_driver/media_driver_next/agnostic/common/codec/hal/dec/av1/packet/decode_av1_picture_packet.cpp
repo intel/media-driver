@@ -968,7 +968,7 @@ namespace decode{
             refSurface[0] = m_av1BasicFeature->m_destSurface;
 
             Av1ReferenceFrames &refFrames = m_av1BasicFeature->m_refFrames;
-            const std::vector<uint8_t> & activeRefList = refFrames.GetActiveReferenceList(*m_av1PicParams);
+            const std::vector<uint8_t> &activeRefList = refFrames.GetActiveReferenceList(*m_av1PicParams, m_av1BasicFeature->m_av1TileParams[m_av1BasicFeature->m_tileCoding.m_curTile]);
             for (uint8_t i = 0; i < activeRefList.size(); i++)
             {
                 PMOS_RESOURCE refResource[av1NumInterRefFrames];
@@ -1134,7 +1134,8 @@ namespace decode{
 
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame)
         {
-            const std::vector<uint8_t> &activeRefList = refFrames.GetActiveReferenceList(*m_av1PicParams);
+            const std::vector<uint8_t> &activeRefList = refFrames.GetActiveReferenceList(*m_av1PicParams, m_av1BasicFeature->m_av1TileParams[m_av1BasicFeature->m_tileCoding.m_curTile]);
+            
             //set for INTRA_FRAME
             pipeBufAddrParams.m_references[0] = &m_av1BasicFeature->m_destSurface.OsResource;
             pipeBufAddrParams.m_colMvTemporalBuffer[0] = &(curMvBuffer->OsResource);

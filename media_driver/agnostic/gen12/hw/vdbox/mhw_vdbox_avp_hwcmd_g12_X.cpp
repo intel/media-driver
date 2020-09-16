@@ -207,6 +207,30 @@ mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD::AVP_TILE_CODING_CMD()
     DW5.Value                                        = 0x00000000;
 }
 
+mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD_LST::AVP_TILE_CODING_CMD_LST()
+{
+    DW0.Value                                        = 0x71950005;
+
+    //DW0.DwordLength                                  = GetOpLength(dwSize);
+    //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_AVPTILECODING;
+    //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAME;
+    //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
+    //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
+
+    DW1.Value                                        = 0x00000000;
+
+    DW2.Value                                        = 0x00000000;
+
+    DW3.Value                                        = 0x00000000;
+
+    DW4.Value                                        = 0x00000000;
+    //DW4.FilmGrainSampleTemplateWriteReadControl      = FILM_GRAIN_SAMPLE_TEMPLATE_WRITEREAD_CONTROL_READ;
+
+    DW5.Value                                        = 0x00000000;
+
+    DW6.Value                                        = 0x00000000;
+}
+
 mhw_vdbox_avp_g12_X::AVP_SURFACE_STATE_CMD::AVP_SURFACE_STATE_CMD()
 {
     DW0.Value                                        = 0x71810003;

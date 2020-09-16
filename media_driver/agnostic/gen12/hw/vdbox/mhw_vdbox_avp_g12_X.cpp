@@ -257,14 +257,28 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::GetAvpPrimitiveCommandSize(
 
     if(m_decodeInUse)
     {
-        maxSize =
-            mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD::byteSize     +
-            mhw_vdbox_avp_g12_X::AVP_BSD_OBJECT_CMD::byteSize      +
-            mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
+        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding))
+        {
+            maxSize =
+                mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD_LST::byteSize +
+                mhw_vdbox_avp_g12_X::AVP_BSD_OBJECT_CMD::byteSize +
+                mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
-        patchListMaxSize =
-            PATCH_LIST_COMMAND(AVP_TILE_CODING_CMD)                +
-            PATCH_LIST_COMMAND(AVP_BSD_OBJECT_CMD);
+            patchListMaxSize =
+                PATCH_LIST_COMMAND(AVP_TILE_CODING_CMD_LST)                +
+                PATCH_LIST_COMMAND(AVP_BSD_OBJECT_CMD);
+        }
+        else
+        {
+            maxSize =
+                mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD::byteSize +
+                mhw_vdbox_avp_g12_X::AVP_BSD_OBJECT_CMD::byteSize +
+                mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
+
+            patchListMaxSize =
+                PATCH_LIST_COMMAND(AVP_TILE_CODING_CMD) +
+                PATCH_LIST_COMMAND(AVP_BSD_OBJECT_CMD);
+        }
     }
 
     *commandsSize = maxSize;
@@ -1779,6 +1793,50 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodeTileCodingCmd(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodeTileCodingCmdLst(
+    PMOS_COMMAND_BUFFER             cmdBuffer,
+    PMHW_BATCH_BUFFER               batchBuffer,
+    MhwVdboxAvpTileCodingParams     *params)
+{
+    MHW_FUNCTION_ENTER;
+
+    MHW_MI_CHK_NULL(params);
+
+    mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD_LST cmd;
+    MHW_RESOURCE_PARAMS     resourceParams;
+    MEDIA_SYSTEM_INFO       *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+    uint8_t                 numVdbox = (uint8_t)gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled;
+
+    cmd.DW1.FrameTileId = params->m_tileId;
+    cmd.DW1.TgTileNum   = params->m_tileNum;
+    cmd.DW1.TileGroupId = params->m_tileGroupId;
+
+    cmd.DW2.TileColumnPositionInSbUnit  = params->m_tileColPositionInSb;
+    cmd.DW2.TileRowPositionInSbUnit     = params->m_tileRowPositionInSb;
+
+    cmd.DW3.TileWidthInSuperblockUnitMinus1     = params->m_tileWidthInSbMinus1;
+    cmd.DW3.TileHeightInSuperblockUnitMinus1    = params->m_tileHeightInSbMinus1;
+
+    cmd.DW4.IslasttileofcolumnFlag          = params->m_isLastTileOfColumn;
+    cmd.DW4.IslasttileofrowFlag             = params->m_isLastTileOfRow;
+    cmd.DW4.IsstarttileoftilegroupFlag      = params->m_isFirstTileOfTileGroup;
+    cmd.DW4.IsendtileoftilegroupFlag        = params->m_isLastTileOfTileGroup;
+    cmd.DW4.IslasttileofframeFlag           = params->m_isLastTileOfFrame;
+    cmd.DW4.DisableCdfUpdateFlag            = params->m_disableCdfUpdateFlag;
+    cmd.DW4.DisableFrameContextUpdateFlag   = params->m_disableFrameContextUpdateFlag;
+
+    cmd.DW5.NumberOfActiveBePipes           = params->m_numOfActiveBePipes;
+    cmd.DW5.NumOfTileColumnsMinus1InAFrame  = params->m_numOfTileColumnsInFrame - 1;
+    cmd.DW5.NumOfTileRowsMinus1InAFrame     = params->m_numOfTileRowsInFrame - 1;
+
+    cmd.DW6.OutputDecodedTileColumnPositionInSbUnit = params->m_outputDecodedTileColumnPositionInSBUnit;
+    cmd.DW6.OutputDecodedTileRowPositionInSbUnit    = params->m_outputDecodedTileRowPositionInSBUnit;
+
+    MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpTileCodingCmd(
     PMOS_COMMAND_BUFFER                   cmdBuffer,
     PMHW_BATCH_BUFFER                     batchBuffer,
@@ -1790,7 +1848,14 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpTileCodingCmd(
 
     if (m_decodeInUse)
     {
-        MHW_MI_CHK_STATUS(AddAvpDecodeTileCodingCmd(cmdBuffer, batchBuffer, params));
+        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding))
+        {
+            MHW_MI_CHK_STATUS(AddAvpDecodeTileCodingCmdLst(cmdBuffer, batchBuffer, params));
+        }
+        else
+        {
+            MHW_MI_CHK_STATUS(AddAvpDecodeTileCodingCmd(cmdBuffer, batchBuffer, params));
+        }
     }
     else
     {
@@ -1917,6 +1982,23 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpInloopFilterStateCmd(
     cmd.DW12.LumaPlaneX0Qn      = params->m_lumaPlaneX0Qn;
     cmd.DW13.ChromaPlaneXStepQn = params->m_chromaPlaneXStepQn;
     cmd.DW14.ChromaPlaneX0Qn    = params->m_chromaPlaneX0Qn;
+
+    if (params->m_picParams->m_picInfoFlags.m_fields.m_largeScaleTile)
+    {
+        //set to 0 to disable
+        cmd.DW1.ChromaUDeblockerFilterLevel = 0;
+        cmd.DW1.ChromaVDeblockerFilterLevel = 0;
+
+        //ref_deltas[0..7]
+        cmd.DW2.DeblockerFilterRefDeltas0 = 1;
+        cmd.DW2.DeblockerFilterRefDeltas1 = 0;
+        cmd.DW2.DeblockerFilterRefDeltas2 = 0;
+        cmd.DW2.DeblockerFilterRefDeltas3 = 0;
+        cmd.DW3.DeblockerFilterRefDeltas4 = 0;
+        cmd.DW3.DeblockerFilterRefDeltas5 = -1;
+        cmd.DW3.DeblockerFilterRefDeltas6 = -1;
+        cmd.DW3.DeblockerFilterRefDeltas7 = -1;
+    }
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 

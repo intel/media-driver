@@ -46,7 +46,7 @@ namespace decode
         m_allocator = &allocator;
         DECODE_CHK_NULL(m_allocator);
         DECODE_CHK_STATUS(
-            CodecHalAllocateDataList((CODEC_REF_LIST_AV1 **)m_refList, CODECHAL_MAX_DPB_NUM_AV1));
+            CodecHalAllocateDataList((CODEC_REF_LIST_AV1 **)m_refList, CODECHAL_MAX_DPB_NUM_LST_AV1));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -55,7 +55,7 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        CodecHalFreeDataList(m_refList, CODECHAL_MAX_DPB_NUM_AV1);
+        CodecHalFreeDataList(m_refList, CODECHAL_MAX_DPB_NUM_LST_AV1);
         m_activeReferenceList.clear();
     }
 
@@ -75,20 +75,33 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    const std::vector<uint8_t> & Av1ReferenceFrames::GetActiveReferenceList(CodecAv1PicParams & picParams)
+    const std::vector<uint8_t> & Av1ReferenceFrames::GetActiveReferenceList(CodecAv1PicParams & picParams, CodecAv1TileParams & tileParams)
     {
         DECODE_FUNC_CALL();
 
         m_activeReferenceList.clear();
         for (auto i = 0; i < av1NumInterRefFrames; i++)
         {
-            PCODEC_PICTURE refFrameList = &(picParams.m_refFrameMap[0]);
-            uint8_t refPicIndex = picParams.m_refFrameIdx[i];
-            if (refPicIndex >= av1TotalRefsPerFrame)
+            if (picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
             {
-                continue;
+                DECODE_ASSERT(m_basicFeature->m_tileCoding.m_curTile < (int32_t)m_basicFeature->m_tileCoding.m_numTiles);
+                uint8_t frameIdx = tileParams.m_anchorFrameIdx.FrameIdx;
+                if (frameIdx >= CODECHAL_MAX_DPB_NUM_LST_AV1)
+                {
+                    continue;
+                }
+                m_activeReferenceList.push_back(frameIdx);
             }
-            m_activeReferenceList.push_back(refFrameList[refPicIndex].FrameIdx);
+            else
+            {
+                PCODEC_PICTURE refFrameList = &(picParams.m_refFrameMap[0]);
+                uint8_t refPicIndex = picParams.m_refFrameIdx[i];
+                if (refPicIndex >= av1TotalRefsPerFrame)
+                {
+                    continue;
+                }
+                m_activeReferenceList.push_back(refFrameList[refPicIndex].FrameIdx);
+            }
         }
 
         return m_activeReferenceList;
@@ -146,15 +159,19 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        DECODE_CHK_COND(picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_AV1,
+        DECODE_CHK_COND(((!picParams.m_picInfoFlags.m_fields.m_largeScaleTile && (picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_AV1)) ||
+                            picParams.m_picInfoFlags.m_fields.m_largeScaleTile && (picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_LST_AV1)),
                         "Invalid frame index of current frame");
         m_currRefList = m_refList[picParams.m_currPic.FrameIdx];
         MOS_ZeroMemory(m_currRefList, sizeof(m_currRefList));
 
         // Overwrite the actual surface height with the coded height and width of the frame
         // for AV1 since it's possible for a AV1 frame to change size during playback
-        m_basicFeature->m_destSurface.dwWidth    = picParams.m_superResUpscaledWidthMinus1 + 1;//DPB buffer size may be larger than the YUV data size to put in it, so override it
-        m_basicFeature->m_destSurface.dwHeight   = picParams.m_superResUpscaledHeightMinus1 + 1;
+        if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
+        {
+            m_basicFeature->m_destSurface.dwWidth = picParams.m_superResUpscaledWidthMinus1 + 1;//DPB buffer size may be larger than the YUV data size to put in it, so override it
+            m_basicFeature->m_destSurface.dwHeight = picParams.m_superResUpscaledHeightMinus1 + 1;
+        }
 
         m_currRefList->resRefPic        = m_basicFeature->m_destSurface.OsResource;
         m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1; //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
