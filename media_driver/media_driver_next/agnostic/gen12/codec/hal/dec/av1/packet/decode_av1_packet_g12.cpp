@@ -100,9 +100,9 @@ namespace decode
 
         DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
 
-        if (m_av1BasicFeature->m_usingDummyWl == true && (!m_av1Pipeline->FrameBasedDecodingInUse()
-            ||(m_av1BasicFeature->m_tileCoding.m_curTile == 0
-              && m_av1Pipeline->FrameBasedDecodingInUse())))
+        if (m_av1BasicFeature->m_usingDummyWl && (m_av1Pipeline->TileBasedDecodingInuse() ||
+            (m_av1BasicFeature->m_tileCoding.m_curTile == (m_av1BasicFeature->m_tileCoding.m_lastTileId
+            - m_av1BasicFeature->m_tileCoding.m_numTiles + 1))))
         {
             DECODE_CHK_STATUS(InitDummyWL(cmdBuffer));
         }
@@ -169,7 +169,7 @@ namespace decode
 
         int16_t tileIdx = m_av1BasicFeature->m_tileCoding.m_curTile;
 
-        if ( tileIdx < int16_t(m_av1BasicFeature->m_tileCoding.m_numTiles))
+        if (tileIdx < int16_t(m_av1BasicFeature->m_tileCoding.m_totalTileNum))
         {
             DECODE_CHK_STATUS(m_tilePkt->Execute(cmdBuffer, tileIdx));
         }
@@ -180,10 +180,11 @@ namespace decode
         DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
         DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
 
-        bool isLastTileInFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_numTiles) - 1) ? 1 : 0;
+        bool isLastTileInFullFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_totalTileNum) - 1) ? 1 : 0;
+        bool isLastTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId)) ? 1 : 0;
 
         // For film grain frame, apply noise packet should update report global count
-        if (isLastTileInFrm && !m_av1BasicFeature->m_filmGrainEnabled)
+        if (isLastTileInFullFrm && !m_av1BasicFeature->m_filmGrainEnabled)
         {
             DECODE_CHK_STATUS(UpdateStatusReport(statusReportGlobalCount, &cmdBuffer));
         }
@@ -193,7 +194,7 @@ namespace decode
                 m_mmcState->UpdateUserFeatureKey(&(m_av1BasicFeature->m_destSurface));
             })
 
-        if (isLastTileInFrm || !m_av1Pipeline->FrameBasedDecodingInUse())
+        if (isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
         {
             DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
         }

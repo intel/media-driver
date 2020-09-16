@@ -67,6 +67,7 @@ namespace decode
         uint32_t        m_tileStartOffset        = 0;            //!< record the tile or tile group header start address offset against the first byte of the bitstream buffer
         bool            m_newFrameStart          = true;         //!< flag to indicate a new frame is coming, which means m_lastTileId should be reset to -1.
         uint32_t        m_numTiles               = 0;            //!< Num of tiles
+        uint32_t        m_totalTileNum           = 0;            //!< Total tile number in the frame.
 
         //Used to calc tile width/height
         uint16_t        m_miCols                 = 0;            //!< frame width in MI units (4x4)

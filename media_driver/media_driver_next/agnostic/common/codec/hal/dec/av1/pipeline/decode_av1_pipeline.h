@@ -55,7 +55,9 @@ public:
 
     Av1DecodeMode GetDecodeMode();
 
-    bool FrameBasedDecodingInUse();
+    bool    FrameBasedDecodingInUse();
+
+    bool    TileBasedDecodingInuse() {return m_forceTileBasedDecoding;}
 
     DeclareDecodePacketId(av1DecodePacketId);
     DeclareDecodePacketId(av1PictureSubPacketId);
@@ -127,7 +129,7 @@ protected:
     Av1DecodeMode  m_decodeMode       = baseDecodeMode;   //!< Decode mode
     uint8_t        m_passNum          = 1;                //!< Decode pass number
     bool           m_isFirstTileInFrm = true;             //!< First tile in the first frame
-    bool           m_forceFrameBasedDecoding = false;     //!< Force frame based submission
+    bool           m_forceTileBasedDecoding = false;      //!< Force tile based decoding
 };
 
 }

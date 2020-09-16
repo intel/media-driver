@@ -109,10 +109,8 @@ namespace decode
         DECODE_FUNC_CALL();
 
         DECODE_CHK_NULL(m_tileDesc);
-
-        //Assume the whole frame's tiles are received
-        uint16_t totalTileCnt = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? (picParams.m_tileCountMinus1 + 1) : picParams.m_tileRows * picParams.m_tileCols;
-        DECODE_ASSERT(m_numTiles == totalTileCnt);
+        m_totalTileNum      = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ?
+            (picParams.m_tileCountMinus1 + 1) : picParams.m_tileRows * picParams.m_tileCols;
 
         int16_t tileId           = 0;
         int16_t tileGroupId      = -1;
@@ -160,6 +158,15 @@ namespace decode
                 m_tileDesc[index].m_tileIndex      = tileParams[i].m_tileIndex;
                 m_tileDesc[index].m_anchorFrameIdx = tileParams[i].m_anchorFrameIdx.FrameIdx;
             }
+        }
+
+        if ((m_lastTileId + 1) == m_totalTileNum)
+        {
+            m_newFrameStart = true;
+        }
+        else
+        {
+            m_newFrameStart = false;
         }
 
         return MOS_STATUS_SUCCESS;

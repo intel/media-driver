@@ -58,12 +58,12 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_FORCE_AV1_FRAME_BASED_DECODE_ID,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_AV1_TILE_BASED_DECODE_ID,
         &userFeatureData,
         m_osInterface ? m_osInterface->pOsContext : nullptr);
 #endif
 
-    m_forceFrameBasedDecoding = userFeatureData.i32Data;
+    m_forceTileBasedDecoding = userFeatureData.i32Data;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -114,7 +114,7 @@ MOS_STATUS Av1Pipeline::ActivateDecodePackets()
 {
     DECODE_FUNC_CALL();
 
-    bool immediateSubmit = true; //Set to true when tile based decoding in use.
+    bool immediateSubmit = false;
 
     if (m_isFirstTileInFrm)
     {
@@ -122,9 +122,9 @@ MOS_STATUS Av1Pipeline::ActivateDecodePackets()
         m_isFirstTileInFrm = false;
     }
 
-    if (FrameBasedDecodingInUse())
+    if (m_forceTileBasedDecoding)
     {
-        immediateSubmit = false;
+        immediateSubmit = true;
     }
 
     for (uint8_t curPass = 0; curPass < GetPassNum(); curPass++)
@@ -147,7 +147,7 @@ bool Av1Pipeline::FrameBasedDecodingInUse()
                                    ((basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_cbframeRestorationType |
                                     basicFeature->m_av1PicParams->m_loopRestorationFlags.m_fields.m_crframeRestorationType) > 0) &&
                                     basicFeature->m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres && MEDIA_IS_WA(GetWaTable(), Wa_1409820462)
-                                    || m_forceFrameBasedDecoding);
+                                    || !m_forceTileBasedDecoding);
     }
     return isframeBasedDecodingUsed;
 }

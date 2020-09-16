@@ -104,7 +104,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    virtual ~MhwVdboxAvpInterfaceG12() { MHW_FUNCTION_ENTER; }
+    virtual ~MhwVdboxAvpInterfaceG12();
 
     void InitRowstoreUserFeatureSettings();
 
