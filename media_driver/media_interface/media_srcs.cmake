@@ -51,6 +51,10 @@ if(GEN11_ICLLP)
     media_include_subdirectory(media_interfaces_m11_icllp)
 endif()
 
+if(GEN11_JSL)
+    media_include_subdirectory(media_interfaces_m11_jsl_ehl)
+endif()
+
 if(GEN12_TGLLP)
     media_include_subdirectory(media_interfaces_m12_tgllp)
 endif()

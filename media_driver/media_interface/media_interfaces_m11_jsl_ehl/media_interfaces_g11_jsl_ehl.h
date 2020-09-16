@@ -97,8 +97,8 @@
 
 #include "cm_hal_g11.h"
 #include "mos_util_user_interface.h"
-#include "vphal_g11_icllp.h"
-#include "renderhal_g11.h"
+#include "vphal_g11_jsl_ehl.h"
+#include "renderhal_g11_jsl_ehl.h"
 
 
 class MhwInterfacesG11JslEhl : public MhwInterfaces
@@ -207,7 +207,7 @@ public:
 class VphalInterfacesG11JslEhl : public VphalDevice
 {
 public:
-    using VphalState = VphalStateG11Icllp;
+    using VphalState = VphalStateG11JslEhl;
 
     MOS_STATUS Initialize(
         PMOS_INTERFACE  osInterface,
@@ -219,7 +219,7 @@ public:
 class RenderHalInterfacesG11JslEhl : public RenderHalDevice
 {
 protected:
-    using XRenderHal = XRenderHal_Interface_g11;
+    using XRenderHal = XRenderHal_Interface_g11_JslEhl;
     MOS_STATUS Initialize();
 };
 

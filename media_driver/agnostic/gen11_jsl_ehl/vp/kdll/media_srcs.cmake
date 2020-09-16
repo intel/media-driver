@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,31 +19,29 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_g11_icllp.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/hal_kernelrules_g11jsl_ehl.c
 )
 
-set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_g11_icllp.h
-)
+set(TMP_HEADERS_ "")
+
 
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
+ )
 
 set(COMMON_SOURCES_
     ${COMMON_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
+# no header for now
+#set(HEADERS_
+#    ${HEADERS_}
+#    ${TMP_HEADERS_}
+#)
 
-media_add_curr_to_include_path()
+source_group( "VpHal\\Kernel DLL" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+
+#media_add_curr_to_include_path()

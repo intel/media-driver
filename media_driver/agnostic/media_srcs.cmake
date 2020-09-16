@@ -382,6 +382,10 @@ if(GEN11_ICLLP)
     media_include_subdirectory(gen11_icllp)
 endif()
 
+if(GEN11_JSL)
+    media_include_subdirectory(gen11_jsl_ehl)
+endif()
+
 if(GEN12)
     media_include_subdirectory(gen12)
     media_include_subdirectory(../media_driver_next/agnostic/gen12)

@@ -56,6 +56,10 @@ cmake_dependent_option(GEN11_ICLLP
     "Enabled ICLLP support (Gen11)" ON
     "GEN11" OFF)
 
+cmake_dependent_option(GEN11_JSL
+    "Enabled JSL support (Gen11)" ON
+    "GEN11" OFF)
+
 option(GEN12 "Enable Gen12 support" ON)
 cmake_dependent_option(GEN12_TGLLP
     "Enabled TGLLP support (Gen12)" ON
@@ -123,6 +127,10 @@ endif()
 
 if(GEN11_ICLLP)
     add_definitions(-DIGFX_GEN11_ICLLP_SUPPORTED)
+endif()
+
+if(GEN11_JSL)
+    add_definitions(-DIGFX_GEN11_JSL_SUPPORTED)
 endif()
 
 if(GEN12)
