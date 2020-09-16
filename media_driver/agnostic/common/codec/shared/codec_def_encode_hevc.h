@@ -879,6 +879,8 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
         } fields;
         uint8_t value;
     } DownScaleRatio;
+
+    uint8_t QpModulationStrength;
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.

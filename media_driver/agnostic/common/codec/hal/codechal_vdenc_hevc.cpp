@@ -2993,26 +2993,23 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
         uint64_t targetBufferFulness = (uint64_t)encodeStatus->lookaheadStatus.targetBufferFulness * m_averageFrameSize;
         encodeStatus->lookaheadStatus.targetBufferFulness = (uint32_t)((targetBufferFulness + 32) / 64); // 64 is normalized average frame size used in lookahead analysis kernel
         // Apply rounding error to targetFrameSize to align target buffer fullness between lookahead pass and encode pass
-        if (encodeStatus->lookaheadStatus.targetFrameSize > 0)
+        if (m_prevTargetFrameSize > 0)
         {
-            if (m_prevTargetFrameSize > 0)
+            int64_t encTargetBufferFulness = (int64_t)m_targetBufferFulness;
+            encTargetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
+            m_targetBufferFulness = encTargetBufferFulness < 0 ?
+                0 : (encTargetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)encTargetBufferFulness);
+            int32_t deltaBits = (int32_t)((int64_t)(encodeStatus->lookaheadStatus.targetBufferFulness) + m_bufferFulnessError - (int64_t)(m_targetBufferFulness));
+            if (deltaBits > 8)
             {
-                int64_t encTargetBufferFulness = (int64_t)m_targetBufferFulness;
-                encTargetBufferFulness += (int64_t)(m_prevTargetFrameSize << 3) - (int64_t)m_averageFrameSize;
-                m_targetBufferFulness = encTargetBufferFulness < 0 ?
-                    0 : (encTargetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)encTargetBufferFulness);
-                int32_t deltaBits = (int32_t)((int64_t)(encodeStatus->lookaheadStatus.targetBufferFulness) + m_bufferFulnessError - (int64_t)(m_targetBufferFulness));
-                if (deltaBits > 8)
-                {
-                    encodeStatus->lookaheadStatus.targetFrameSize += (uint32_t)(deltaBits >> 3);
-                }
-                else if (deltaBits < -8)
-                {
-                    encodeStatus->lookaheadStatus.targetFrameSize -= (uint32_t)((-deltaBits) >> 3);
-                }
+                encodeStatus->lookaheadStatus.targetFrameSize += (uint32_t)(deltaBits >> 3);
             }
-            m_prevTargetFrameSize = encodeStatus->lookaheadStatus.targetFrameSize;
+            else if (deltaBits < -8)
+            {
+                encodeStatus->lookaheadStatus.targetFrameSize -= (uint32_t)((-deltaBits) >> 3);
+            }
         }
+        m_prevTargetFrameSize = encodeStatus->lookaheadStatus.targetFrameSize;
 
         if (encodeStatus->lookaheadStatus.cqmHint > 4)
         {

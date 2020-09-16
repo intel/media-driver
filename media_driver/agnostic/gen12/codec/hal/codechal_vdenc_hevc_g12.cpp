@@ -2457,9 +2457,10 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         m_lastTaskInPhase = true;
     }
 
-    if (m_lookaheadPass && (m_swLaMode == nullptr))
+    if (m_lookaheadPass && (m_swLaMode == nullptr) 
+        || (!m_lookaheadPass && m_swBrcMode))
     {
-        m_lastTaskInPhase = false;
+        m_lastTaskInPhase = !IsFirstPass();
     }
 
     // PAK pass type for each pass: VDEnc+PAK vs. PAK-only
@@ -4662,9 +4663,9 @@ MOS_STATUS CodechalVdencHevcStateG12::SetConstDataHuCBrcUpdate()
 
     if (m_lookaheadDepth > 0)
     {
-        hucConstData->UPD_TR_TargetSize_U32 = m_hevcPicParams->TargetFrameSize << 3;//bit to byte
+        hucConstData->UPD_TR_TargetSize_U32 = m_hevcPicParams->TargetFrameSize << 3;//byte to bit
         hucConstData->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
-        hucConstData->UPD_deltaQP = 0;// For PPyramid
+        hucConstData->UPD_deltaQP = m_hevcPicParams->QpModulationStrength;  // For P/B Pyramid
     }
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx]);
@@ -7922,7 +7923,20 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     dmem->statsRecords       = m_numLaDataEntry;
     dmem->avgFrameSizeInByte = m_averageFrameSize >> 3;
     dmem->downscaleRatio     = downscaleRatioIndicator;
-    dmem->PGop               = 4;
+
+    if (m_hevcSeqParams->bLookAheadPhase)
+    {
+        if (m_hevcSeqParams->GopRefDist == 1)
+        {
+            dmem->PGop = 4;
+        }
+        else
+        {
+            dmem->BGop   = m_hevcSeqParams->GopRefDist;
+            dmem->maxGop = m_hevcSeqParams->GopPicSize;
+        }
+    }
+
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencLaInitDmemBuffer);
 
