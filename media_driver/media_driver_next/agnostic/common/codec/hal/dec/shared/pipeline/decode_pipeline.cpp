@@ -254,6 +254,7 @@ MOS_STATUS DecodePipeline::Prepare(void *params)
 MOS_STATUS DecodePipeline::ExecuteActivePackets()
 {
     DECODE_FUNC_CALL();
+    MOS_TraceEventExt(EVENT_PIPE_EXE, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
     // Last element in m_activePacketList must be immediately submitted
     m_activePacketList.back().immediateSubmit = true;
@@ -262,6 +263,7 @@ MOS_STATUS DecodePipeline::ExecuteActivePackets()
     {
         prop.stateProperty.singleTaskPhaseSupported = m_singleTaskPhaseSupported;
         prop.stateProperty.statusReport = m_statusReport;
+        MOS_TraceEventExt(EVENT_PIPE_EXE, EVENT_TYPE_INFO, &prop.packetId, sizeof(uint32_t), nullptr, 0);
 
         MediaTask *task = prop.packet->GetActiveTask();
         DECODE_CHK_STATUS(task->AddPacket(&prop));
@@ -273,7 +275,7 @@ MOS_STATUS DecodePipeline::ExecuteActivePackets()
     }
 
     m_activePacketList.clear();
-
+    MOS_TraceEventExt(EVENT_PIPE_EXE, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return MOS_STATUS_SUCCESS;
 }
 

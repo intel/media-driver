@@ -138,6 +138,7 @@ MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit
     prop.stateProperty.pipeIndexForSubmit = pipeNum;
     prop.stateProperty.currentSubPass     = subPass;
     prop.stateProperty.currentRow         = rowNum;
+    MOS_TraceEventExt(EVENT_PIPE_PACKET, EVENT_TYPE_INFO, &packetId, sizeof(packetId), &prop.stateProperty, sizeof(StateParams));
 
     m_activePacketList.push_back(prop);
     return MOS_STATUS_SUCCESS;
@@ -156,6 +157,7 @@ MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit
     prop.packet          = iter->second;
     prop.immediateSubmit = immediateSubmit;
     prop.stateProperty   = stateProperty;
+    MOS_TraceEventExt(EVENT_PIPE_PACKET, EVENT_TYPE_INFO, &packetId, sizeof(packetId), &stateProperty, sizeof(StateParams));
 
     m_activePacketList.push_back(prop);
     return MOS_STATUS_SUCCESS;
@@ -163,9 +165,11 @@ MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit
 
 MOS_STATUS MediaPipeline::ExecuteActivePackets()
 {
+    MOS_TraceEventExt(EVENT_PIPE_EXE, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
     for (auto prop : m_activePacketList)
     {
         prop.stateProperty.statusReport = m_statusReport;
+        MOS_TraceEventExt(EVENT_PIPE_EXE, EVENT_TYPE_INFO, &prop.packetId, sizeof(uint32_t), nullptr, 0);
 
         MediaTask *task = prop.packet->GetActiveTask();
 
@@ -181,6 +185,7 @@ MOS_STATUS MediaPipeline::ExecuteActivePackets()
 
     m_activePacketList.clear();
 
+    MOS_TraceEventExt(EVENT_PIPE_EXE, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return MOS_STATUS_SUCCESS;
 }
 

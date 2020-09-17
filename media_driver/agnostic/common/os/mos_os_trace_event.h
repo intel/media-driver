@@ -126,6 +126,8 @@ typedef enum _MEDIA_EVENT
     EVENT_VA_IMAGE,                 //! event for VA create image
     EVENT_VA_FREE_IMAGE,            //! event for VA destroy image
     EVENT_VA_PUT,                   //! event for VA put image
+    EVENT_PIPE_EXE,                 //! event for pipeline execute
+    EVENT_PIPE_PACKET,              //! event for pipeline ActivatePacket
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
