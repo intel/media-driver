@@ -552,11 +552,29 @@ MOS_STATUS CodechalDecodeVp9G12::AddPicStateMhwCmds(
     if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
         !m_vp9PicParams->PicFlags.fields.intra_only)
     {
+#ifdef _MMC_SUPPORTED
+        //Get each reference surface state and be recorded by skipMask if current surface state is mmc disabled
+        uint8_t skipMask = 0xf8;
         for (uint8_t i = 1; i < 4; i++)
         {
-#ifdef _MMC_SUPPORTED
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(m_picMhwParams.SurfaceParams[i]));
+            if (m_picMhwParams.SurfaceParams[i]->mmcState == MOS_MEMCOMP_DISABLED)
+            {
+                skipMask |= (1 << (i - 1));
+            }
+        }
+        CODECHAL_DECODE_NORMALMESSAGE("MMC skip masK is %d\n", skipMask);
+        for (uint8_t i = 1; i < 4; i++)
+        {
+            //Set each ref surface state as MOS_MEMCOMP_MC to satisfy MmcEnable in AddHcpSurfaceCmd
+            //Because each ref surface state should be programmed as the same
+            //The actual mmc state is recorded by skipMask and set each ref surface too
+            m_picMhwParams.SurfaceParams[i]->mmcState    = MOS_MEMCOMP_MC;
+            m_picMhwParams.SurfaceParams[i]->mmcSkipMask = skipMask;
+        }
 #endif
+        for (uint8_t i = 1; i < 4; i++)
+        {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(
                 cmdBuffer,
                 m_picMhwParams.SurfaceParams[i]));
