@@ -27,7 +27,9 @@
 #include "vphal_renderer_g11_jsl_ehl.h"
 #include "vphal_render_vebox_g11_base.h"
 #include "vphal_render_composite_g11_jsl_ehl.h"
+#if defined(ENABLE_KERNELS)
 #include "igvpkrn_g11_icllp.h"
+#endif
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_g11[];
 
@@ -36,9 +38,11 @@ MOS_STATUS VphalRendererG11JslEhl::InitKdllParam()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     m_pRenderHal->bEnableP010SinglePass = true;
     // Set KDLL parameters (Platform dependent)
+#if defined(ENABLE_KERNELS)
     pKernelDllRules = g_KdllRuleTable_g11;
     pcKernelBin = (const void*)IGVPKRN_G11_ICLLP;
     dwKernelBinSize = IGVPKRN_G11_ICLLP_SIZE;
+#endif
 
     return eStatus;
 }
