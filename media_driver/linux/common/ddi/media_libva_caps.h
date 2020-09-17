@@ -32,6 +32,10 @@
 #include <vector>
 #include <map>
 
+#ifndef CONTEXT_PRIORITY_MAX
+#define CONTEXT_PRIORITY_MAX 1024
+#endif
+
 struct DDI_MEDIA_CONTEXT;
 class MediaLibvaCapsCpInterface;
 
@@ -1373,5 +1377,15 @@ protected:
             VAEntrypoint entrypoint,
             VAConfigAttrib* attrib,
             int32_t numAttribs);
+
+    //! \brief Get the general attribute
+    //!
+    //! \param    [in,out] attrib
+    //!           Pointer to the CAConfigAttrib
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    VAStatus GetGeneralConfigAttrib(VAConfigAttrib* attrib);
 };
 #endif

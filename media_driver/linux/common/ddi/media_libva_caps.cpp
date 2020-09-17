@@ -574,6 +574,22 @@ VAStatus MediaLibvaCaps::CheckAttribList(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus MediaLibvaCaps::GetGeneralConfigAttrib(VAConfigAttrib* attrib)
+{
+    DDI_CHK_NULL(attrib, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAStatus status = VA_STATUS_SUCCESS;
+    if (attrib->type == VAConfigAttribContextPriority)
+    {
+        attrib->value = CONTEXT_PRIORITY_MAX;
+    }
+    else
+    {
+        status = VA_ATTRIB_NOT_SUPPORTED;
+    }
+    return status;
+}
+
 VAStatus MediaLibvaCaps::CreateEncAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,
@@ -1920,8 +1936,11 @@ VAStatus MediaLibvaCaps::GetConfigAttributes(VAProfile profile,
         }
         else
         {
-            //For unknown attribute, set to VA_ATTRIB_NOT_SUPPORTED
-            attribList[j].value = VA_ATTRIB_NOT_SUPPORTED;
+            if (GetGeneralConfigAttrib(&attribList[j]) != VA_STATUS_SUCCESS)
+            {
+                //For unknown attribute, set to VA_ATTRIB_NOT_SUPPORTED
+                attribList[j].value = VA_ATTRIB_NOT_SUPPORTED;
+            }
         }
     }
 

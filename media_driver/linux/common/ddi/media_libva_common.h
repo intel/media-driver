@@ -679,4 +679,34 @@ void* DdiMedia_GetContextFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID
 //!
 bool DdiMedia_DestroyBufFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
 
+//!
+//! \brief  Get gpu priority
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] buffers
+//!     VA buffer ID
+//! \param  [in] numBuffers
+//!     Number of buffers
+//! \param  [out] updatePriority
+//!     Update priority
+//! \param  [out] priority
+//!     Priority value
+//! \return     int32_t
+//!
+int32_t DdiMedia_GetGpuPriority (VADriverContextP ctx, VABufferID *buffers, int32_t numBuffers, bool *updatePriority, int32_t *priority);
+
+//!
+//! \brief  Move a bufferID to the end of buffers
+//!
+//! \param  [in,out] buffers
+//!     VA buffer ID
+//! \param  [in] priorityIndexInBuf
+//!     Location of priority buffer
+//! \param  [in] numBuffers
+//!     Number of buffers
+//! \return     void
+//!
+void MovePriorityBufferIdToEnd (VABufferID *buffers, int32_t priorityIndexInBuf, int32_t numBuffers);
+
 #endif

@@ -198,5 +198,9 @@ PVPHAL_RENDER_PARAMS VpGetRenderParams(PDDI_VP_CONTEXT pVpCtx);
 
 PDDI_VP_CONTEXT DdiVp_GetVpContextFromContextID(VADriverContextP ctx, VAContextID vaCtxID);
 
+VAStatus DdiVp_SetGpuPriority(
+    PDDI_VP_CONTEXT     pVpCtx,
+    int32_t             priority
+);
 #endif //_MEDIA_LIBVA_VP_H_
 

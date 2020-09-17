@@ -293,6 +293,29 @@ public:
         MOS_STREAM_HANDLE streamState);
 
     //!
+    //! \brief    Get current Gpu context priority
+    //! \details  Get current Gpu context priority
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //!
+    //!           [out]
+    //!           Current Gpu context priority
+    //!
+    static void GetGpuPriority(MOS_STREAM_HANDLE streamState, int32_t* priority);
+
+    //!
+    //! \brief    Set current Gpu context priority
+    //! \details  Set current Gpu context priority
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //!           [in] priority
+    //!           priority to set for gpu context
+    //!
+    static void SetGpuPriority(MOS_STREAM_HANDLE streamState, int32_t priority);
+
+    //!
     //! \brief    Get AuxTable base address
     //!
     //! \param    [in] streamState

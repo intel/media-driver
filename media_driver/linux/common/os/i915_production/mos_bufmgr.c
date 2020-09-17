@@ -2848,7 +2848,6 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
     case I915_EXEC_DEFAULT:
         break;
     }
-
     pthread_mutex_lock(&bufmgr_gem->lock);
     /* Update indices and set up the validate list. */
     mos_gem_bo_process_reloc2(bo);
