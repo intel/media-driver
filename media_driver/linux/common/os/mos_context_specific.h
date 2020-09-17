@@ -202,6 +202,19 @@ public:
     void SetSliceCount(uint32_t *pSliceCount);
 
 #endif
+    //!
+    //! \brief  Get the context priority from KMD
+    //! \param  [in, out] pPriority
+    //!         Pointer to the priority of current gpu context.
+    //!
+    void GetGpuPriority(int32_t *pPriority);
+
+    //!
+    //! \brief  Get the context priority from KMD
+    //! \param  [in] priority
+    //!         the priority set to  current gpu context.
+    //!
+    void SetGpuPriority(int32_t priority); 
 
 private:
 #ifndef ANDROID

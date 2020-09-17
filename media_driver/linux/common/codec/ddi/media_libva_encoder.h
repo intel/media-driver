@@ -541,4 +541,18 @@ VAStatus DdiEncode_MfeSubmit(
     VAContextID        *contexts,
     int32_t             num_contexts
 );
+
+//!
+//! \brief  Set Encode Gpu Priority
+//!
+//! \param  [in] encode context
+//!     Pointer to encode context
+//! \param  [in] priority
+//!     priority
+//! \return VAStatus
+//!
+VAStatus DdiEncode_SetGpuPriority(
+    PDDI_ENCODE_CONTEXT encCtx,
+    int32_t             priority
+);
 #endif

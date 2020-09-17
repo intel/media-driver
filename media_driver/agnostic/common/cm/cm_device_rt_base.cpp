@@ -3441,12 +3441,12 @@ std::string CmDeviceRTBase::Log()
 
     return oss.str();
 }
+#endif  // #if CM_LOG_ON
 
 CM_HAL_STATE* CmDeviceRTBase::GetHalState()
 {
     return (static_cast<CM_CONTEXT_DATA*>(m_accelData))->cmHalState;
 }
-#endif  // #if CM_LOG_ON
 
 #if !(USE_EXTENSION_CODE)
 bool CmDeviceRTBase::CheckGTPinEnabled( )

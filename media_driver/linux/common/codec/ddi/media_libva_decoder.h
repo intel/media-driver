@@ -255,4 +255,20 @@ VAStatus DdiDecode_DestroyContext (
     VAContextID         context
 );
 
+//!
+//! \brief  Set Decode Gpu priority
+//!
+//! \param  [in] ctx
+//!     Pointer to VA driver context
+//! \param  [in] decode context
+//!     Pointer to decode context
+//! \param  [in] priority
+//!     priority
+//! \return VAStatus
+//!
+VAStatus DdiDecode_SetGpuPriority(
+    VADriverContextP     ctx,
+    PDDI_DECODE_CONTEXT  decCtx,
+    int32_t              priority
+);
 #endif

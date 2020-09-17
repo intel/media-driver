@@ -41,6 +41,7 @@
 #include "media_interfaces.h"
 #include "media_ddi_decode_const.h"
 #include "decode_status_report.h"
+#include "vphal_render_vebox_memdecomp.h"
 
 #if !defined(ANDROID) && defined(X11_FOUND)
 #include <X11/Xutil.h>
@@ -171,6 +172,12 @@ VAStatus DdiDecode_RenderPicture (
     int32_t             numBuffers
 )
 {
+    VAStatus        va                      = VA_STATUS_SUCCESS;
+    int32_t         numOfBuffers            = numBuffers;
+    int32_t         priority                = 0;
+    int32_t         priorityIndexInBuffers  = -1;
+    bool            updatePriority          = false;
+
     DDI_FUNCTION_ENTER();
 
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_DDI);
@@ -181,9 +188,24 @@ VAStatus DdiDecode_RenderPicture (
     PDDI_DECODE_CONTEXT decCtx  = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    priorityIndexInBuffers = DdiMedia_GetGpuPriority(ctx, buffers, numOfBuffers, &updatePriority, &priority);
+    if (priorityIndexInBuffers != -1)
+    {
+        if(updatePriority)
+        {
+            va = DdiDecode_SetGpuPriority(ctx, decCtx, priority);
+            if(va != VA_STATUS_SUCCESS)
+                return va;
+        }
+        MovePriorityBufferIdToEnd(buffers, priorityIndexInBuffers, numOfBuffers);
+        numOfBuffers--;
+    }
+    if (numOfBuffers == 0)
+        return va;
+
     if (decCtx->m_ddiDecode)
     {
-        VAStatus va = decCtx->m_ddiDecode->RenderPicture(ctx, context, buffers, numBuffers);
+        va = decCtx->m_ddiDecode->RenderPicture(ctx, context, buffers, numOfBuffers);
         DDI_FUNCTION_EXIT(va);
         return va;
     }
@@ -603,3 +625,33 @@ VAStatus DdiDecode_DestroyContext (
 
     return VA_STATUS_SUCCESS;
 }
+
+VAStatus DdiDecode_SetGpuPriority(
+    VADriverContextP     ctx,
+    PDDI_DECODE_CONTEXT  decCtx,
+    int32_t              priority
+)
+{
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,           "nullptr mediaCtx",                             VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(decCtx,             "nullptr decCtx",                               VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    //Set the priority for Gpu
+    if(decCtx->pCodecHal != nullptr)
+    {
+        PMOS_INTERFACE osInterface = decCtx->pCodecHal->GetOsInterface();
+        DDI_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+        osInterface->pfnSetGpuPriority(osInterface, priority);
+    }
+#ifdef _MMC_SUPPORTED
+    //set the priority for decomp interface
+    if(mediaCtx->pMediaMemDecompState)
+    {
+        MediaVeboxDecompState *mediaVeboxDecompState = static_cast<MediaVeboxDecompState*>(mediaCtx->pMediaMemDecompState);
+        if(mediaVeboxDecompState->m_osInterface)
+            mediaVeboxDecompState->m_osInterface->pfnSetGpuPriority(mediaVeboxDecompState->m_osInterface, priority);
+    }
+#endif
+    return VA_STATUS_SUCCESS;
+}
+

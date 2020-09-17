@@ -1391,6 +1391,28 @@ void GpuContextSpecificNext::IncrementGpuStatusTag()
     }
 }
 
+void GpuContextSpecificNext::UpdatePriority(int32_t priority)
+{
+    if(m_currCtxPriority == priority)
+    {
+        return;
+    }
+
+    for (int32_t i=0; i<MAX_ENGINE_INSTANCE_NUM+1; i++)
+    {
+        if (m_i915Context[i] != nullptr)
+        {
+            int32_t ret = mos_set_context_param(m_i915Context[i], 0, I915_CONTEXT_PARAM_PRIORITY,(uint64_t)priority);
+            if (ret != 0)
+            {
+                MOS_OS_ASSERTMESSAGE("failed to set the gpu priority, errno is %d", ret);
+                break;
+            }
+        }
+    }
+    m_currCtxPriority = priority;
+}
+
 void GpuContextSpecificNext::ResetGpuContextStatus()
 {
     MosUtilities::MosZeroMemory(m_allocationList, sizeof(ALLOCATION_LIST) * ALLOCATIONLIST_SIZE);

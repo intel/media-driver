@@ -27,6 +27,7 @@
 #include "media_libva_util.h"
 #include "mos_solo_generic.h"
 #include "mos_interface.h"
+#include "media_libva_caps.h"
 
 static void* DdiMedia_GetVaContextFromHeap(PDDI_MEDIA_HEAP  mediaHeap, uint32_t index, PMEDIA_MUTEX_T mutex)
 {
@@ -352,3 +353,76 @@ void* DdiMedia_GetContextFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID
 
     return ctx;
 }
+
+int32_t DdiMedia_GetGpuPriority (VADriverContextP ctx, VABufferID *buffers, int32_t numBuffers, bool *updatePriority, int32_t *priority)
+{
+    void *        data;
+    uint32_t      updateSessionPriority  = 0;
+    uint32_t      priorityValue          = 0;
+    int32_t       priorityIndexInBuf     = -1;
+
+    DDI_CHK_NULL(ctx, "nullptr context in DdiMedia_GetGpuPriority!", -1);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", -1);
+#if VA_CHECK_VERSION(1, 10, 0)
+    for (int32_t i = 0; i < numBuffers; i++)
+    {
+        DDI_MEDIA_BUFFER *buf = DdiMedia_GetBufferFromVABufferID(mediaCtx, buffers[i]);
+        DDI_CHK_NULL(buf, "Invalid buffer.", -1);
+
+        if((int32_t)buf->uiType == VAContextParameterUpdateBufferType)
+        {
+            //Read the priority from the VAContextParameterUpdateBuffer
+            DdiMedia_MapBuffer(ctx, buffers[i], &data);
+            DDI_CHK_NULL(data, "nullptr data.", -1);
+
+            VAContextParameterUpdateBuffer *ContextParamBuf = (VAContextParameterUpdateBuffer *)data;
+            DDI_CHK_NULL(ContextParamBuf, "nullptr ContextParamBuf.", -1);
+
+            updateSessionPriority   = ContextParamBuf->flags.bits.context_priority_update;
+            priorityValue           = ContextParamBuf->context_priority.bits.priority;
+
+            if (updateSessionPriority)
+            {
+                *updatePriority = true;
+                if(priorityValue >= 0 && priorityValue <= CONTEXT_PRIORITY_MAX)
+                {
+                    *priority = priorityValue - CONTEXT_PRIORITY_MAX/2;
+                }
+                else
+                {
+                    *priority = 0;
+                }
+            }
+            else
+            {
+                *updatePriority = false;
+                *priority = 0;
+            }
+
+            DdiMedia_UnmapBuffer(ctx, buffers[i]);
+            priorityIndexInBuf = i;
+            break;
+        }
+    }
+#endif
+    return priorityIndexInBuf;
+}
+
+//Move the priority bufferID to the end of buffers 
+void MovePriorityBufferIdToEnd (VABufferID *buffers, int32_t priorityIndexInBuf, int32_t numBuffers)
+{
+    VABufferID    vaBufferID = 0;
+    if( (numBuffers > 1) && (priorityIndexInBuf < numBuffers -1) )
+    {
+        vaBufferID = buffers[priorityIndexInBuf];
+        while(priorityIndexInBuf < (numBuffers - 1) )
+        {
+            buffers[priorityIndexInBuf] = buffers[priorityIndexInBuf+1];
+            priorityIndexInBuf++;
+        }
+        buffers[numBuffers -1] = vaBufferID;
+    }
+}
+

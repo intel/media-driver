@@ -2952,7 +2952,11 @@ VAStatus DdiVp_CreateBuffer(
 
     // only for VAProcFilterParameterBufferType and VAProcPipelineParameterBufferType
     if (vaBufType != VAProcFilterParameterBufferType
-        && vaBufType != VAProcPipelineParameterBufferType)
+        && vaBufType != VAProcPipelineParameterBufferType
+#if VA_CHECK_VERSION(1, 10, 0)
+        && vaBufType != VAContextParameterUpdateBufferType
+#endif
+       )
     {
         VP_DDI_ASSERTMESSAGE("Unsupported Va Buffer Type.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
@@ -3550,6 +3554,10 @@ VAStatus DdiVp_RenderPicture (
     void                      *pData;
     uint32_t                  ctxType;
     VAStatus                  vaStatus;
+    int32_t                   numOfBuffers              = num_buffers;
+    int32_t                   priority                  = 0;
+    int32_t                   priorityIndexInBuffers    = -1;
+    bool                      updatePriority            = false;
 
     VP_DDI_FUNCTION_ENTER;
     DDI_CHK_NULL(pVaDrvCtx,
@@ -3565,11 +3573,26 @@ VAStatus DdiVp_RenderPicture (
     DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     //num_buffers check
-    DDI_CHK_CONDITION(((num_buffers > VPHAL_MAX_SOURCES) || (num_buffers <= 0)),
-                         "num_buffers is Invalid.",
+    DDI_CHK_CONDITION(((numOfBuffers > VPHAL_MAX_SOURCES) || (numOfBuffers <= 0)),
+                         "numOfBuffers is Invalid.",
                          VA_STATUS_ERROR_INVALID_PARAMETER);
+    
+    priorityIndexInBuffers = DdiMedia_GetGpuPriority(pVaDrvCtx, buffers, numOfBuffers, &updatePriority, &priority);
+    if (priorityIndexInBuffers != -1)
+    {
+        if(updatePriority)
+        {
+            vaStatus = DdiVp_SetGpuPriority(pVpCtx, priority);
+            if(vaStatus != VA_STATUS_SUCCESS)
+                return vaStatus;
+        }
+        MovePriorityBufferIdToEnd(buffers, priorityIndexInBuffers, numOfBuffers);
+        numOfBuffers--;
+    }
+    if (numOfBuffers == 0)
+        return vaStatus;
 
-    for (i = 0; i < num_buffers; i++)
+    for (i = 0; i < numOfBuffers; i++)
     {
         pBuf = DdiMedia_GetBufferFromVABufferID(pMediaCtx, buffers[i]);
         DDI_CHK_NULL(pBuf, "Null pBuf.", VA_STATUS_ERROR_INVALID_BUFFER);
@@ -4410,3 +4433,22 @@ DdiVp_QueryVideoProcFilterCaps (
 
     return VA_STATUS_SUCCESS;
 }// DdiVp_QueryVideoProcFilterCaps()
+
+VAStatus DdiVp_SetGpuPriority(
+    PDDI_VP_CONTEXT     pVpCtx,
+    int32_t             priority
+)
+{
+    DDI_CHK_NULL(pVpCtx, "nullptr pVpCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    //Set the priority for Gpu
+    if(pVpCtx->pVpHal != nullptr)
+    {
+        PMOS_INTERFACE osInterface = pVpCtx->pVpHal->GetOsInterface();
+        DDI_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+        osInterface->pfnSetGpuPriority(osInterface, priority);
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+

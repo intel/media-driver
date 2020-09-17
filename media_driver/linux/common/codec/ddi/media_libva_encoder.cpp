@@ -34,6 +34,7 @@
 #include "codechal_memdecomp.h"
 #include "media_interfaces_codechal.h"
 #include "media_interfaces_mmd.h"
+#include "cm_device_rt.h"
 
 typedef MediaDdiFactoryNoArg<DdiEncodeBase> DdiEncodeFactory;
 
@@ -576,6 +577,12 @@ VAStatus DdiEncode_RenderPicture(
     VABufferID      *buffers,
     int32_t          num_buffers)
 {
+    VAStatus        vaStatus                  = VA_STATUS_SUCCESS;
+    int32_t         numOfBuffers              = num_buffers;
+    int32_t         priority                  = 0;
+    int32_t         priorityIndexInBuffers    = -1;
+    bool            updatePriority            = false;
+
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_DDI);
 
     DDI_FUNCTION_ENTER();
@@ -587,7 +594,22 @@ VAStatus DdiEncode_RenderPicture(
     DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(encCtx->m_encode, "nullptr encCtx->m_encode", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    VAStatus vaStatus = encCtx->m_encode->RenderPicture(ctx, context, buffers, num_buffers);
+    priorityIndexInBuffers = DdiMedia_GetGpuPriority(ctx, buffers, numOfBuffers, &updatePriority, &priority);
+    if (priorityIndexInBuffers != -1)
+    {
+        if(updatePriority)
+        {
+            vaStatus = DdiEncode_SetGpuPriority(encCtx, priority);
+            if(vaStatus != VA_STATUS_SUCCESS)
+                return vaStatus;
+        }
+        MovePriorityBufferIdToEnd(buffers, priorityIndexInBuffers, numOfBuffers);
+        numOfBuffers--;
+    }
+    if (numOfBuffers == 0)
+        return vaStatus;
+
+    vaStatus = encCtx->m_encode->RenderPicture(ctx, context, buffers, numOfBuffers);
     DDI_FUNCTION_EXIT(vaStatus);
     return vaStatus;
 }
@@ -719,6 +741,38 @@ VAStatus DdiEncode_MfeSubmit(
         {
             DDI_ASSERTMESSAGE("DDI:Failed in Execute Pak!");
             return VA_STATUS_ERROR_ENCODING_ERROR;
+        }
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncode_SetGpuPriority(
+    PDDI_ENCODE_CONTEXT encCtx,
+    int32_t             priority
+)
+{
+    DDI_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if(encCtx->pCodecHal != nullptr)
+    {
+        PMOS_INTERFACE osInterface = encCtx->pCodecHal->GetOsInterface();
+        DDI_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+
+        //Set Gpu priority for encoder
+        osInterface->pfnSetGpuPriority(osInterface, priority);
+
+        //Get the CMRT osInterface of encode
+        CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(encCtx->pCodecHal);
+        DDI_CHK_NULL(encoder, "nullptr encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+        if(encoder->m_cmDev != nullptr)
+        {
+            //Set Gpu priority for CMRT OsInterface
+            CmDeviceRTBase *cm_device = dynamic_cast<CmDeviceRTBase *>(encoder->m_cmDev);
+            PCM_HAL_STATE cm_hal_state = cm_device->GetHalState();
+            if(cm_hal_state->osInterface != nullptr)
+                cm_hal_state->osInterface->pfnSetGpuPriority(cm_hal_state->osInterface, priority);
         }
     }
 

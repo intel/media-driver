@@ -570,6 +570,7 @@ struct MosStreamState
     bool ctxBasedScheduling = false;  //!< Indicate if context based scheduling is enabled in this stream
     bool multiNodeScaling = false;    //!< Flag to indicate if multi-node scaling is enabled for virtual engine (only active when ctxBasedScheduling is true)
 
+    int32_t ctxPriority = 0;
     bool softReset = false;  //!< trigger soft reset
 
     MosCpInterface *osCpInterface = nullptr; //!< CP interface
@@ -1264,6 +1265,29 @@ typedef struct _MOS_INTERFACE
     //!
     uint64_t(*pfnGetAuxTableBaseAddr)(
         PMOS_INTERFACE              pOsInterface);
+
+    //!
+    //! \brief    Get Gpu Priority
+    //! \param    [in] pOsInterface
+    //!           pointer to the current gpu context.
+    //! \param    [out] pPriority
+    //!           pointer to the priority get from gpu context.
+    //!
+    void (*pfnGetGpuPriority)(
+        PMOS_INTERFACE              pOsInterface,
+        int32_t                     *pPriority);
+
+    //!
+    //! \brief    Set Gpu Priority
+    //!
+    //! \param    [in] pOsInterface
+    //!           pointer to the current gpu context
+    //! \param    [in] priority
+    //!           pointer to the priority set to gpu context
+    //!
+    void (*pfnSetGpuPriority)(
+        PMOS_INTERFACE              pOsInterface,
+        int32_t                     priority);
 
     //!
     //! \brief  Set slice count to shared memory and KMD
