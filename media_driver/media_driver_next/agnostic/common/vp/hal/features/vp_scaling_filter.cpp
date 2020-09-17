@@ -421,10 +421,10 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         // Size of the Output Region over the Render Target
         wOutputRegionHeight = MOS_ALIGN_CEIL(
             MOS_MIN((uint32_t)(m_scalingParams.rcDstInput.bottom - m_scalingParams.rcDstInput.top), m_scalingParams.dwHeightOutput),
-            wInputHeightAlignUnit);
+            wOutputHeightAlignUnit);
         wOutputRegionWidth = MOS_ALIGN_CEIL(
             MOS_MIN((uint32_t)(m_scalingParams.rcDstInput.right - m_scalingParams.rcDstInput.left), m_scalingParams.dwWidthOutput),
-            wInputWidthAlignUnit);
+            wOutputWidthAlignUnit);
 
         fScaleX = (float)wOutputRegionWidth / (float)m_sfcScalingParams->dwSourceRegionWidth;
         fScaleY = (float)wOutputRegionHeight / (float)m_sfcScalingParams->dwSourceRegionHeight;
