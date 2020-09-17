@@ -66,6 +66,8 @@ enum FeatureType
     FeatureTypeProcampOnRender,
     FeatureTypeCgc              = 0xB00,
     FeatureTypeCgcOnVebox,
+    FeatureTypeHdr              = 0xC00,
+    FeatureTypeHdrOnVebox,
     // ...
     NumOfFeatureType
 };
@@ -88,7 +90,7 @@ enum SurfaceType
     SurfaceTypeStatistics,
     SurfaceTypeSkinScore,
     SurfaceType3dLut,
-    SurfaceType1dLut,
+    SurfaceType1dLutHDR,
     SurfaceTypeAlphaOrVignette,
     SurfaceTypeVeboxStateHeap_Drv,
     SurfaceTypeVeboxStateHeap_Knr,
@@ -381,6 +383,31 @@ public:
 
 private:
     FeatureParamProcamp m_Params = {};
+};
+
+struct FeatureParamHdr : public FeatureParam
+{
+    uint32_t        uiMaxDisplayLum;       //!< Maximum Display Luminance
+    uint32_t        uiMaxContentLevelLum;  //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE  hdrMode;
+    VPHAL_CSPACE    srcColorSpace;
+    VPHAL_CSPACE    dstColorSpace;
+};
+
+class SwFilterHdr : public SwFilter
+{
+public:
+    SwFilterHdr(VpInterface &vpInterface);
+    virtual ~SwFilterHdr();
+    virtual MOS_STATUS       Clean();
+    virtual MOS_STATUS       Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamHdr &GetSwFilterParams();
+    virtual SwFilter *       Clone();
+    virtual bool             operator==(SwFilter &swFilter);
+    virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf);
+
+private:
+    FeatureParamHdr m_Params = {};
 };
 
 class SwFilterSet

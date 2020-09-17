@@ -138,6 +138,10 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnVebox, p));
 
+    p = MOS_New(PolicyVeboxHdrHandler);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeHdrOnVebox, p));
+
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.clear();
     m_featurePool.push_back(FeatureTypeCsc);
@@ -147,6 +151,7 @@ MOS_STATUS Policy::RegisterFeatures()
     m_featurePool.push_back(FeatureTypeSte);
     m_featurePool.push_back(FeatureTypeTcc);
     m_featurePool.push_back(FeatureTypeProcamp);
+    m_featurePool.push_back(FeatureTypeHdr);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -286,6 +291,9 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterSubPipe& SwFilterPipe)
         case FeatureTypeProcamp:
             GetProcampExecutionCaps(feature);
             break;
+        case FeatureTypeHdr:
+            GetHdrExecutionCaps(feature);
+            break;
         default:
             GetExecutionCaps(feature);
             VP_PUBLIC_NORMALMESSAGE("Feature didn't have supported in driver, default to use Render");
@@ -301,11 +309,58 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterSubPipe& SwFilterPipe)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
+{
+    SwFilterHdr     *hdr       = nullptr;
+    SwFilterCsc     *csc       = nullptr;
+    FeatureParamHdr *hdrParams = nullptr;
+    FeatureParamCsc *cscParams = nullptr;
+    VP_EngineEntry  *cscEngine = nullptr;
+
+    VP_PUBLIC_CHK_NULL_RETURN(HDR);
+    VP_PUBLIC_CHK_NULL_RETURN(CSC);
+    hdr = (SwFilterHdr *)HDR;
+    csc = (SwFilterCsc *)CSC;
+
+    hdrParams = &hdr->GetSwFilterParams();
+    cscParams = &csc->GetSwFilterParams();
+    cscEngine = &csc->GetFilterEngineCaps();
+    //HDR CSC processing
+    if (!hdrParams || hdrParams->hdrMode == VPHAL_HDR_MODE_NONE)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("HDR Mode is NONE");
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    MOS_FORMAT   hdrFormat = Format_Any;
+    VPHAL_CSPACE hdrCSpace = CSpace_Any;
+
+    if (m_sfcHwEntry[cscParams->formatInput].inputSupported &&
+        m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
+        m_sfcHwEntry[cscParams->formatInput].cscSupported)
+    {
+        hdrCSpace = IS_COLOR_SPACE_BT2020(cscParams->colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
+        hdrFormat = IS_COLOR_SPACE_BT2020(cscParams->colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8R8G8B8;
+        if (m_sfcHwEntry[hdrFormat].inputSupported &&
+            m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
+            m_sfcHwEntry[hdrFormat].cscSupported)
+        {
+            cscEngine->bEnabled = 1;
+            cscEngine->SfcNeeded |= 1;
+        }
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Post CSC for HDR not supported by SFC");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
 {
     VP_FUNC_CALL();
-
-    // need to add HDR into consideration in next step
     VP_PUBLIC_CHK_NULL_RETURN(feature);
 
     SwFilterCsc* csc = (SwFilterCsc*)feature;
@@ -712,6 +767,50 @@ MOS_STATUS Policy::GetProcampExecutionCaps(SwFilter* feature)
         procampEngine.bEnabled = 1;
         procampEngine.VeboxNeeded = 1;
         procampEngine.VeboxIECPNeeded = 1;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(feature);
+
+    SwFilterHdr *hdrFilter = dynamic_cast<SwFilterHdr *>(feature);
+
+    FeatureParamHdr *hdrParams = &hdrFilter->GetSwFilterParams();
+
+    VP_EngineEntry *pHDREngine  = &hdrFilter->GetFilterEngineCaps();
+    MOS_FORMAT      inputformat = hdrParams->formatInput;
+
+    // MOS_FORMAT is [-14,103], cannot use -14~-1 as index for m_veboxHwEntry
+    if (inputformat < 0)
+    {
+        inputformat = Format_Any;
+    }
+
+    if (pHDREngine->value != 0)
+    {
+        VP_PUBLIC_NORMALMESSAGE("HDR Feature Already been processed, Skip further process");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_veboxHwEntry[hdrParams->formatInput].inputSupported &&
+        m_veboxHwEntry[hdrParams->formatOutput].outputSupported &&
+        m_veboxHwEntry[hdrParams->formatInput].iecp)
+    {
+        pHDREngine->bEnabled        = 1;
+        pHDREngine->VeboxNeeded     = 1;
+        pHDREngine->VeboxIECPNeeded = 1;
+        if (hdrParams->formatOutput == Format_A8B8G8R8 || hdrParams->formatOutput == Format_A8R8G8B8)
+        {
+            pHDREngine->VeboxARGBOut = 1;
+        }
+        else if (hdrParams->formatOutput == Format_B10G10R10A2 || hdrParams->formatOutput == Format_R10G10B10A2)
+        {
+            pHDREngine->VeboxARGB10bitOutput = 1;
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1136,6 +1235,11 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeCsc:
             caps.bBeCSC = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Csc, Vebox)));
+            break;
+        case FeatureTypeHdr:
+            caps.bHDR3DLUT = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Hdr, Vebox)));
+            break;
         default:
             break;
         }
@@ -1341,6 +1445,9 @@ MOS_STATUS Policy::AddNewFilterOnVebox(
         break;
     case FeatureTypeCsc:
         featureOnVebox = FEATURE_TYPE_EXECUTE(Csc, Vebox);
+        break;
+    case FeatureTypeHdr:
+        featureOnVebox = FEATURE_TYPE_EXECUTE(Hdr, Vebox);
         break;
     default:
         featureOnVebox = FeatureTypeInvalid;
