@@ -453,6 +453,7 @@ VAStatus DdiDecodeVP8::InitResourceBuffer(DDI_MEDIA_CONTEXT *mediaCtx)
     bufMgr->Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject->format    = Media_Format_Buffer;
     bufMgr->Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject->uiOffset  = 0;
     bufMgr->Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject->pMediaCtx = mediaCtx;
+    bufMgr->Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject->bUseSysGfxMem = false;
 
     // Create a buffer of size iSize
     vaStatus = DdiMediaUtil_CreateBuffer(bufMgr->Codec_Param.Codec_Param_VP8.pVP8ProbabilityDataBuffObject, mediaCtx->pDrmBufMgr);
