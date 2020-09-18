@@ -240,8 +240,12 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         pvpParams->pSrc[0]->pBlendingParams                 ||
         pvpParams->pSrc[0]->pHDRParams                      ||
         pvpParams->pSrc[0]->pLumaKeyParams                  ||
-        pvpParams->pSrc[0]->bInterlacedScaling              ||
         pvpParams->pConstriction)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (pvpParams->pSrc[0]->bInterlacedScaling && !IsSfcInterlacedScalingSupported())
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -511,6 +515,7 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     uint32_t                    dwSfcMaxHeight = 0;
     uint32_t                    dwSfcMinWidth = 0;
     uint32_t                    dwSfcMinHeight = 0;
+    uint32_t                    dwDstMinHeight = 0;
     uint16_t                    wWidthAlignUnit = 0;
     uint16_t                    wHeightAlignUnit = 0;
     uint32_t                    dwSourceRegionWidth = 0;
@@ -567,6 +572,18 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     wWidthAlignUnit     = 1;
     wHeightAlignUnit    = 1;
 
+    switch (params->pSrc[0]->InterlacedScalingType)
+    {
+    case ISCALING_INTERLEAVED_TO_FIELD:
+        dwDstMinHeight = dwSfcMinHeight / 2;
+        break;
+    case ISCALING_FIELD_TO_INTERLEAVED:
+        dwDstMinHeight = dwSfcMinHeight * 2;
+        break;
+    default:
+        dwDstMinHeight = dwSfcMinHeight;
+    }
+
     // Apply alignment restriction to the source and scaled regions.
     switch (params->pTarget[0]->Format)
     {
@@ -603,9 +620,9 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         OUT_OF_BOUNDS(dwSourceRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)         ||
         OUT_OF_BOUNDS(dwSourceRegionHeight, dwSfcMinHeight, dwSfcMaxHeight)      ||
         OUT_OF_BOUNDS(dwOutputRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)         ||
-        OUT_OF_BOUNDS(dwOutputRegionHeight, dwSfcMinHeight, dwSfcMaxHeight)      ||
+        OUT_OF_BOUNDS(dwOutputRegionHeight, dwDstMinHeight, dwSfcMaxHeight)      ||
         OUT_OF_BOUNDS(params->pTarget[0]->dwWidth, dwSfcMinWidth, dwSfcMaxWidth) ||
-        OUT_OF_BOUNDS(params->pTarget[0]->dwHeight, dwSfcMinHeight, dwSfcMaxHeight))
+        OUT_OF_BOUNDS(params->pTarget[0]->dwHeight, dwDstMinHeight, dwSfcMaxHeight))
     {
         VPHAL_RENDER_NORMALMESSAGE("Surface dimensions not supported by SFC Pipe.");
         bRet = false;

@@ -458,6 +458,10 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
 
         m_sfcScalingParams->sfcScalingMode = m_scalingParams.scalingMode;
 
+        m_sfcScalingParams->interlacedScalingType = m_scalingParams.interlacedScalingType;
+        m_sfcScalingParams->srcSampleType         = m_scalingParams.srcSampleType;
+        m_sfcScalingParams->dstSampleType         = m_scalingParams.dstSampleType;
+
         VP_RENDER_CHK_STATUS_RETURN(SetColorFillParams());
     }
     // Need add support for Render engine

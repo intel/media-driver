@@ -451,6 +451,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     uint32_t dwOutputSurfaceWidth, dwOutputSurfaceHeight;
     uint32_t dwSfcMinWidth, dwSfcMaxWidth;
     uint32_t dwSfcMinHeight, dwSfcMaxHeight;
+    uint32_t dwDstMinHeight;
     float    fScaleMin, fScaleMax;
     float    fScaleX, fScaleY;
 
@@ -474,6 +475,18 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     dwSfcMaxHeight = m_sfcHwEntry[scalingParams->formatInput].maxResolution;
     fScaleMin      = m_sfcHwEntry[scalingParams->formatInput].minScalingRatio;
     fScaleMax      = m_sfcHwEntry[scalingParams->formatInput].maxScalingRatio;
+
+    switch (scalingParams->interlacedScalingType)
+    {
+    case ISCALING_INTERLEAVED_TO_FIELD:
+        dwDstMinHeight = dwSfcMinHeight / 2;
+        break;
+    case ISCALING_FIELD_TO_INTERLEAVED:
+        dwDstMinHeight = dwSfcMinHeight * 2;
+        break;
+    default:
+        dwDstMinHeight = dwSfcMinHeight;
+    }
 
     dwSurfaceWidth  = scalingParams->dwWidthInput;
     dwSurfaceHeight = scalingParams->dwHeightInput;
@@ -523,9 +536,9 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
               OUT_OF_BOUNDS(dwSourceRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
               OUT_OF_BOUNDS(dwSourceRegionHeight, dwSfcMinHeight, dwSfcMaxHeight) ||
               OUT_OF_BOUNDS(dwOutputRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
-              OUT_OF_BOUNDS(dwOutputRegionHeight, dwSfcMinHeight, dwSfcMaxHeight) ||
+              OUT_OF_BOUNDS(dwOutputRegionHeight, dwDstMinHeight, dwSfcMaxHeight) ||
               OUT_OF_BOUNDS(dwOutputSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)   ||
-              OUT_OF_BOUNDS(dwOutputSurfaceHeight, dwSfcMinHeight, dwSfcMaxHeight)))
+              OUT_OF_BOUNDS(dwOutputSurfaceHeight, dwDstMinHeight, dwSfcMaxHeight)))
         {
             if (OUT_OF_BOUNDS(fScaleX, fScaleMin, fScaleMax) ||
                 OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax) ||

@@ -146,6 +146,11 @@ protected:
         PVPHAL_SURFACE       pSurface,
         MOS_FORMAT           formatForDstRect);
 
+    virtual bool IsSfcInterlacedScalingSupported()
+    {
+        return false;
+    }
+
 protected:
     PVP_MHWINTERFACE        m_hwInterface       = nullptr;
     PMOS_INTERFACE          m_pOsInterface      = nullptr;

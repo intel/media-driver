@@ -273,6 +273,10 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         RECT_ROTATE(m_Params.rcMaxSrcOutput, surfOutput->rcMaxSrc);
     }
 
+    m_Params.interlacedScalingType = surfInput->InterlacedScalingType;
+    m_Params.srcSampleType         = surfInput->SampleType;
+    m_Params.dstSampleType         = surfOutput->SampleType;
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -354,6 +358,8 @@ MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
 
     m_Params.colorSpaceOutput   = outputSurf->ColorSpace;
+    // update source sample type for field to interleaved mode.
+    m_Params.srcSampleType      = inputSurf->SampleType;
 
     return MOS_STATUS_SUCCESS;
 }

@@ -381,7 +381,7 @@ protected:
     //! \details  Allocate the AVS and IEF line buffer surfaces for SFC
     //! \return   Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS AllocateResources();
+    virtual MOS_STATUS AllocateResources();
 
     //!
     //! \brief    SFC free resources
@@ -389,7 +389,7 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS FreeResources();
+    virtual MOS_STATUS FreeResources();
 
     virtual MOS_STATUS AddSfcLock(
         PMOS_COMMAND_BUFFER     pCmdBuffer,

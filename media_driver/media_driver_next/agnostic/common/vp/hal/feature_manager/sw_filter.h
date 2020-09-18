@@ -243,6 +243,9 @@ struct FeatureParamScaling : public FeatureParam
     PVPHAL_COLORFILL_PARAMS     pColorFillParams;               //!< ColorFill - BG only
     PVPHAL_ALPHA_PARAMS         pCompAlpha;                     //!< Alpha for composited surfaces
     VPHAL_CSPACE                colorSpaceOutput;
+    VPHAL_ISCALING_TYPE         interlacedScalingType;
+    VPHAL_SAMPLE_TYPE           srcSampleType;
+    VPHAL_SAMPLE_TYPE           dstSampleType;
     FeatureParamScaling        *next;                           //!< pointe to new/next generated scaling params
 };
 

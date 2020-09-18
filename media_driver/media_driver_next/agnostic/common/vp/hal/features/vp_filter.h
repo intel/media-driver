@@ -130,6 +130,10 @@ struct _SFC_SCALING_PARAMS
     SFC_COLORFILL_PARAMS            sfcColorfillParams;                         // Colorfill Params
 
     VPHAL_SCALING_MODE              sfcScalingMode;                             // Bilinear, Nearest, AVS and future extension (configured by AVS coefficients)
+    //Interlaced scaling parameters
+    uint32_t                        interlacedScalingType;
+    VPHAL_SAMPLE_TYPE               srcSampleType;
+    VPHAL_SAMPLE_TYPE               dstSampleType;
 };
 
 struct _SFC_CSC_PARAMS
