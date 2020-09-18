@@ -54,8 +54,7 @@
 #define IS_VP_VEBOX_DN_ONLY(_a) (_a.bDN &&          \
                                !(_a.bDI) &&   \
                                !(_a.bQueryVariance) && \
-                               !(_a.bIECP) && \
-                               !(_a.bHDR3DLUT))
+                               !(_a.bIECP))
 
 namespace vp {
     struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
@@ -326,7 +325,7 @@ public:
         return m_veboxDNSpatialConfigSurface;
     }
 
-    VP_SURFACE *GetVebox3DLookUpTables()
+    VP_SURFACE* GetVebox3DLookUpTables()
     {
         return m_vebox3DLookUpTables;
     }
@@ -349,7 +348,7 @@ protected:
     VP_SURFACE *m_veboxRgbHistogram                      = nullptr;       //!< RGB Histogram surface for Vebox
     VP_SURFACE *m_veboxDNTempSurface                     = nullptr;       //!< Vebox DN Update kernels temp surface
     VP_SURFACE *m_veboxDNSpatialConfigSurface            = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel
-    VP_SURFACE *m_vebox3DLookUpTables                    = nullptr;
+    VP_SURFACE *m_vebox3DLookUpTables                    = nullptr;       //!< VEBOX 3D LUT surface for Vebox Gen12
     uint32_t    m_currentDnOutput                        = 0;
     uint32_t    m_currentStmmIndex                       = 0;
     uint32_t    m_veboxOutputCount                       = 2;             //!< PE on: 4 used. PE off: 2 used

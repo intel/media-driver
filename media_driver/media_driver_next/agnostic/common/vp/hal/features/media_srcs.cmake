@@ -27,7 +27,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_ste_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_tcc_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_procamp_filter.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_hdr_filter.cpp
 )
 
 set(TMP_HEADERS_
@@ -39,7 +38,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_ste_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_tcc_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_procamp_filter.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_hdr_filter.h
 )
 
 set(SOURCES_NEW

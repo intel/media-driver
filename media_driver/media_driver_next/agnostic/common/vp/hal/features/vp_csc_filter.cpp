@@ -156,23 +156,10 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
     return MOS_STATUS_SUCCESS;
 }
 
-VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE inputColorSpace, VPHAL_CSPACE colorSpaceOutput)
-{
-    if (executeCaps.bHDR3DLUT)
-    {
-        return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
-    }
-    return inputColorSpace;
-}
-
-MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput)
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat)
 {
     if (executeCaps.bIECP)
     {
-        if (executeCaps.bHDR3DLUT)
-        {
-            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
-        }
         // Upsampling to yuv444 for IECP input/output.
         return Format_AYUV;
     }
@@ -219,10 +206,9 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
         m_sfcCSCParams->iefParams = m_cscParams.pIEFParams;
     }
 
-    m_cscParams.colorSpaceInput      = GetSfcInputColorSpace(m_executeCaps, m_cscParams.colorSpaceInput, m_cscParams.colorSpaceOutput);
     m_sfcCSCParams->inputColorSpcase = m_cscParams.colorSpaceInput;
 
-    m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput, m_cscParams.colorSpaceOutput);
+    m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput);
     m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
     m_sfcCSCParams->outputFormat    = m_cscParams.formatOutput;
 

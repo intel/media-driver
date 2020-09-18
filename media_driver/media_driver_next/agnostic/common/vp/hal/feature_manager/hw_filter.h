@@ -45,7 +45,6 @@
 #include "vp_tcc_filter.h"
 #include "vp_ste_filter.h"
 #include "vp_procamp_filter.h"
-#include "vp_hdr_filter.h"
 
 namespace vp
 {

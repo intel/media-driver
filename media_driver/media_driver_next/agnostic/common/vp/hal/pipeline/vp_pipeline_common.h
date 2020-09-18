@@ -121,7 +121,6 @@ struct _VP_EXECUTE_CAPS
             uint32_t bSTD           : 1;   // Vebox LACE STD Needed;
             uint32_t bDnKernelUpdate: 1;
             uint32_t bVeboxSecureCopy : 1;
-            uint32_t bHDR3DLUT      : 1;  // Vebox 3DLUT needed;
 
             // SFC features
             uint32_t bSfcCsc        : 1;   // Sfc Csc enabled
@@ -133,7 +132,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bComposite : 1;
             uint32_t bBobDI     : 1;
             uint32_t bIScaling  : 1;
-            uint32_t reserved   : 6;  // Reserved
+            uint32_t reserved   : 7;  // Reserved
         };
     };
 };
@@ -182,7 +181,7 @@ using PVP_SURFACE      = VP_SURFACE*;
 inline bool IsVeboxFeatureInuse(VP_EXECUTE_CAPS &caps)
 {
     return (caps.bVebox && (!caps.bSFC || caps.bDN || caps.bDI || caps.bIECP || caps.bSTE ||
-            caps.bACE || caps.bTCC || caps.bBeCSC || caps.bQueryVariance || caps.bLACE || caps.bSTD || caps.bHDR3DLUT));
+            caps.bACE || caps.bTCC || caps.bBeCSC || caps.bQueryVariance || caps.bLACE || caps.bSTD));
 }
 
 #endif

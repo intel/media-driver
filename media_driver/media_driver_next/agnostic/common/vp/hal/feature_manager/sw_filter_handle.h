@@ -148,21 +148,6 @@ protected:
     SwFilterFactory<SwFilterProcamp> m_swFilterFactory;
 };
 
-class SwFilterHdrHandler : public SwFilterFeatureHandler
-{
-public:
-    SwFilterHdrHandler(VpInterface &vpInterface);
-    virtual ~SwFilterHdrHandler();
-    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
-    virtual SwFilter *CreateSwFilter();
-
-protected:
-    virtual void Destory(SwFilter *&swFilter);
-
-protected:
-    SwFilterFactory<SwFilterHdr> m_swFilterFactory;
-};
-
 }
 
 #endif //__SW_FILTER_HANDLE_H__

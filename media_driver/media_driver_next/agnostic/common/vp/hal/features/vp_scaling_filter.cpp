@@ -35,7 +35,7 @@ using namespace vp;
 
 namespace vp
 {
-MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput);
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat);
 };
 
 VpScalingFilter::VpScalingFilter(
@@ -382,9 +382,7 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
             &dwSurfaceWidth,
             &dwSurfaceHeight));
 
-        m_scalingParams.formatInput             = GetSfcInputFormat(m_executeCaps,
-                                                                    m_scalingParams.formatInput, 
-                                                                    m_scalingParams.colorSpaceOutput);
+        m_scalingParams.formatInput             = GetSfcInputFormat(m_executeCaps, m_scalingParams.formatInput);
         m_sfcScalingParams->inputFrameFormat    = m_scalingParams.formatInput;
         m_sfcScalingParams->dwInputFrameHeight  = dwSurfaceHeight;
         m_sfcScalingParams->dwInputFrameWidth   = dwSurfaceWidth;

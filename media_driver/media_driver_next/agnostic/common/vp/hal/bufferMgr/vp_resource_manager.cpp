@@ -465,24 +465,6 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         true,
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
 
-    if (caps.bHDR3DLUT)
-    {
-        // HDR
-        dwSize = VP_VEBOX_HDR_3DLUT65;
-        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-            m_vebox3DLookUpTables,
-            "Vebox3DLutTableSurface",
-            Format_Buffer,
-            MOS_GFXRES_BUFFER,
-            MOS_TILE_LINEAR,
-            dwSize,
-            1,
-            false,
-            MOS_MMC_DISABLED,
-            bAllocated));
-    }
-    // cappipe
-
     return MOS_STATUS_SUCCESS;
 }
 

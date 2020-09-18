@@ -219,15 +219,6 @@
 
 #define MHW_STE_FACTOR_MAX                      9  // STE factor is 0 ~ 9
 
-// \brief   VEBOX 3DLUT HDR
-#define LUT65_SEG_SIZE                                              65
-#define LUT65_MUL_SIZE                                              128
-#define LUT33_SEG_SIZE                                              33
-#define LUT33_MUL_SIZE                                              64
-#define VP_VEBOX_HDR_3DLUT65                                        LUT65_SEG_SIZE *\
-                                                                    LUT65_SEG_SIZE *\
-                                                                    LUT65_MUL_SIZE * sizeof(int64_t)
-
 //!
 //! \brief  Chroma Denoise params
 //!
@@ -477,19 +468,6 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SetSteParams(PVEBOX_STE_PARAMS steParams);
-
-    //!
-    //! \brief    Setup HDR Params for Vebox
-    //! \details  Setup surface HDR Params for Vebox
-    //! \param    [in] HDRParams
-    //!           HDR Params
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
 
     //!
     //! \brief    Setup TCC Params for Vebox
