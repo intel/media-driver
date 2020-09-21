@@ -59,6 +59,7 @@ static MediaUserSettingsMgr *vpUserFeatureExt    = nullptr;
 
 void PerfUtility::startTick(std::string tag)
 {
+    std::lock_guard<std::mutex> lock(perfMutex);
     Tick newTick = {};
     struct timespec ts = {};
 
@@ -83,6 +84,7 @@ void PerfUtility::startTick(std::string tag)
 
 void PerfUtility::stopTick(std::string tag)
 {
+    std::lock_guard<std::mutex> lock(perfMutex);
     struct timespec ts = {};
     std::map<std::string, std::vector<Tick>*>::iterator it;
     it = records.find(tag);

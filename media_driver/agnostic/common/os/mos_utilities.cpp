@@ -54,6 +54,7 @@
 #ifdef __cplusplus
 
 std::shared_ptr<PerfUtility> PerfUtility::instance = nullptr;
+std::mutex PerfUtility::perfMutex;
 
 PerfUtility *PerfUtility::getInstance()
 {

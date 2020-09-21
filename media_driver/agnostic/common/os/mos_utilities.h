@@ -42,6 +42,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <mutex>
 
 #define MOS_MAX_PERF_FILENAME_LEN 260
 
@@ -89,6 +90,7 @@ private:
 
 private:
     static std::shared_ptr<PerfUtility> instance;
+    static std::mutex perfMutex;
     std::map<std::string, std::vector<Tick>*> records;
 };
 
