@@ -172,8 +172,6 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeVp9 :: AllocateResourcesVariableSizes());
-
 #ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
     if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) &&
@@ -227,6 +225,8 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
 
         m_frameSizeMaxAlloced = frameSizeMax;
     }
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeVp9 ::AllocateResourcesVariableSizes());
 
     return eStatus;
 }
