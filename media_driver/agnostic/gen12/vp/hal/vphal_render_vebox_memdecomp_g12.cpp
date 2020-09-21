@@ -186,7 +186,7 @@ MOS_STATUS MediaVeboxDecompStateG12::IsVeboxDecompressionEnabled()
 }
 
 MOS_STATUS MediaVeboxDecompStateG12::RenderDoubleBufferDecompCMD(
-    PMOS_SURFACE inputSurface, 
+    PMOS_SURFACE inputSurface,
     PMOS_SURFACE outputSurface)
 {
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
@@ -200,6 +200,12 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDoubleBufferDecompCMD(
 
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(inputSurface);
     VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(outputSurface);
+
+    if (!IsFormatSupported(inputSurface) || !IsFormatSupported(outputSurface))
+    {
+        VPHAL_MEMORY_DECOMP_NORMALMESSAGE("Input surface is not supported by Vebox, In_Place resolve can't be done");
+        return eStatus;
+    }
 
     veboxInterface = m_veboxInterface;
 
