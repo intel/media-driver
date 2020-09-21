@@ -171,13 +171,13 @@ VAStatus DdiDecodeVP8::ParsePicParams(
         goldenRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->golden_ref_frame);
         if(goldenRefSurface)
         {
-            DdiMedia_MediaSurfaceToMosResource(lastRefSurface, &m_resNoneRegGoldenRefFrame);
+            DdiMedia_MediaSurfaceToMosResource(goldenRefSurface, &m_resNoneRegGoldenRefFrame);
             m_ddiDecodeCtx->DecodeParams.m_presNoneRegGoldenRefFrame = &m_resNoneRegGoldenRefFrame;
         }
         altRefSurface    = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->alt_ref_frame);
         if(altRefSurface)
         {
-            DdiMedia_MediaSurfaceToMosResource(lastRefSurface, &m_resNoneRegAltRefFrame);
+            DdiMedia_MediaSurfaceToMosResource(altRefSurface, &m_resNoneRegAltRefFrame);
             m_ddiDecodeCtx->DecodeParams.m_presNoneRegAltRefFrame = &m_resNoneRegAltRefFrame;
         }
     }
