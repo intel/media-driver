@@ -267,6 +267,7 @@ typedef union _DDI_MEDIA_SURFACE_STATUS_REPORT
     } vpp;
 } DDI_MEDIA_SURFACE_STATUS_REPORT, *PDDI_MEDIA_SURFACE_STATUS_REPORT;
 
+#pragma pack(push, 2)
 struct _DDI_MEDIA_BUFFER;
 typedef struct _DDI_MEDIA_SURFACE
 {
@@ -343,6 +344,7 @@ typedef struct _DDI_MEDIA_BUFFER
     GMM_RESOURCE_INFO     *pGmmResourceInfo; // GMM resource descriptor
     PDDI_MEDIA_CONTEXT     pMediaCtx; // Media driver Context
 } DDI_MEDIA_BUFFER, *PDDI_MEDIA_BUFFER;
+#pragma pack(pop)
 
 typedef struct _DDI_MEDIA_SURFACE_HEAP_ELEMENT
 {
