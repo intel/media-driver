@@ -102,32 +102,48 @@ typedef enum _MEDIA_EVENT
     EVENT_DDE_CB_REPORT_ENCRYPTION_STATUS,
     EVENT_DDE_CB_REPORT_LINK_STATUS,
     EVENT_DDE_CB_SEND_DATA,
-    EVENT_DDE_MESSAGE,              //! event for debug message
-    EVENT_OCA_ERROR,                //! event for OCA error.
-    EVENT_DATA_DUMP,                //! event for debug data dump
-    EVENT_HECI_OBJ,                 //! event for heci duplicate handle
-    EVENT_PLAT_INFO,                //! event for static platform info
-    EVENT_DATA_DICTIONARY,          //! event for data dictionary (name:value pair)
-    EVENT_MEDIA_COPY,               //! event for media decompresss/copy/blt
-    EVENT_MOS_BATCH_SUBMIT,         //! event for batch buffer submission
-    EVENT_VA_PICTURE,               //! event for VA begin/render/end picture
-    EVENT_VA_SYNC,                  //! event for VA sync surface/buffer
-    EVENT_VA_GET,                   //! event for VA get image
-    EVENT_VA_CONFIG,                //! event for VA query config
-    EVENT_VA_SURFACE,               //! event for VA create surface
-    EVENT_VA_FREE_SURFACE,          //! event for VA destroy surface
-    EVENT_VA_DERIVE,                //! event for VA derive surface to image
-    EVENT_VA_MAP,                   //! event for VA map buffer
-    EVENT_VA_UNMAP,                 //! event for VA unmap buffer
-    EVENT_VA_LOCK,                  //! event for VA lock surface
-    EVENT_VA_UNLOCK,                //! event for VA unlock surface
-    EVENT_VA_BUFFER,                //! event for VA create buffer
-    EVENT_VA_FREE_BUFFER,           //! event for VA destroy buffer
-    EVENT_VA_IMAGE,                 //! event for VA create image
-    EVENT_VA_FREE_IMAGE,            //! event for VA destroy image
-    EVENT_VA_PUT,                   //! event for VA put image
-    EVENT_PIPE_EXE,                 //! event for pipeline execute
-    EVENT_PIPE_PACKET,              //! event for pipeline ActivatePacket
+    EVENT_DDE_MESSAGE,                             //! event for debug message
+    EVENT_OCA_ERROR,                               //! event for OCA error.
+    EVENT_DATA_DUMP,                               //! event for debug data dump
+    EVENT_HECI_OBJ,                                //! event for heci duplicate handle
+    EVENT_PLAT_INFO,                               //! event for static platform info
+    EVENT_DATA_DICTIONARY,                         //! event for data dictionary (name:value pair)
+    EVENT_MEDIA_COPY,                              //! event for media decompresss/copy/blt
+    EVENT_MOS_BATCH_SUBMIT,                        //! event for batch buffer submission
+    EVENT_VA_PICTURE,                              //! event for VA begin/render/end picture
+    EVENT_VA_SYNC,                                 //! event for VA sync surface/buffer
+    EVENT_VA_GET,                                  //! event for VA get image
+    EVENT_VA_CONFIG,                               //! event for VA query config
+    EVENT_VA_SURFACE,                              //! event for VA create surface
+    EVENT_VA_FREE_SURFACE,                         //! event for VA destroy surface
+    EVENT_VA_DERIVE,                               //! event for VA derive surface to image
+    EVENT_VA_MAP,                                  //! event for VA map buffer
+    EVENT_VA_UNMAP,                                //! event for VA unmap buffer
+    EVENT_VA_LOCK,                                 //! event for VA lock surface
+    EVENT_VA_UNLOCK,                               //! event for VA unlock surface
+    EVENT_VA_BUFFER,                               //! event for VA create buffer
+    EVENT_VA_FREE_BUFFER,                          //! event for VA destroy buffer
+    EVENT_VA_IMAGE,                                //! event for VA create image
+    EVENT_VA_FREE_IMAGE,                           //! event for VA destroy image
+    EVENT_VA_PUT,                                  //! event for VA put image
+    EVENT_PIPE_EXE,                                //! event for pipeline execute
+    EVENT_PIPE_PACKET,                             //! event for pipeline ActivatePacket
+    EVENT_DDI_CREATE_DEVICE,                       //! event for Refactor DDI Create Device
+    EVENT_DDI_DESTROY_DEVICE,                      //! event for Refactor DDI Destroy Device
+    EVENT_DDI_DESTROY_RESOURCE_INFO,               //! event for Refactor DDI Destroy Resource Info
+    EVENT_DDI_SYNC_CALLBACK,                       //! event for Refactor DDI Sync Callback
+    EVENT_DDI_LOCK_SYNC_CALLBACK,                  //! event for Refactor DDI Lock Sync
+    EVENT_DDI_TRIM_RESIDENCY_MEDIA,                //! event for Refactor DDI Trim Residency Media
+    EVENT_DDI_TRIM_RESIDENCY_MEDIA_INTERNAL,       //! event for Refactor DDI Trim Residency Media Internal
+    EVENT_DDI_UPDATE_MEDIA_RESIDENCY_LIST,         //! event for Refactor DDI Update Media Residency List
+    EVENT_DDI_IS_PROTECTION_ENABLED,               //! event for Refactor DDI Is Protection Enable
+    EVENT_DDI_PROTECTION_TRIGGERED,                //! event for Refactor DDI Protection Triggered
+    EVENT_DDI_INIT_ARBITRATOR_SESSION_RES,         //! event for Refactor DDI Init Arbitrator Session Res
+    EVENT_DDI_IS_OVERLAY_OR_FULLSCREEN_REQUIRED,   //! event for Refactor DDI Is Overlay Or Fullscreen Required
+    EVENT_DDI_MEDIA_MEM_DECOMP_CALLBACK,           //! event for Refactor DDI Media Mem Decomp Callback
+    EVENT_DDI_MEDIA_MEM_COPY_CALLBACK,             //! event for Refactor DDI Media Mem Copy Callback
+    EVENT_DDI_GET_TRANSCRYPTED_SHADER,             //! event for Refactor DDI Get Transcrypted Shader
+    EVENT_DDI_CLEAR_VIDEO_VIEW,                    //! event for Refactor DDI Clear Video View
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
