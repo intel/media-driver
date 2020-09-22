@@ -145,7 +145,7 @@ namespace decode {
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS UpdateCodecStatus(
+        virtual MOS_STATUS UpdateCodecStatus(
             DecodeStatusReportData* statusReportData,
             DecodeStatusMfx* decodeStatus,
             bool completed);

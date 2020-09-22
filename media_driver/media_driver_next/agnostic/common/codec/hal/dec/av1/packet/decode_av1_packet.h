@@ -144,7 +144,7 @@ protected:
 
     MOS_STATUS AddForceWakeup(MOS_COMMAND_BUFFER &cmdBuffer);
 
-    MOS_STATUS ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMMAND_BUFFER& cmdBuffer);
+    virtual MOS_STATUS ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMMAND_BUFFER& cmdBuffer);
 
     virtual MOS_STATUS StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
     virtual MOS_STATUS EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;

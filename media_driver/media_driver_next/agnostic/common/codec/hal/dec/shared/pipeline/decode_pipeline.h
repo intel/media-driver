@@ -298,7 +298,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS CreateStatusReport();
+    virtual MOS_STATUS CreateStatusReport();
 
     //!
     //! \brief  Finish the active packets execution

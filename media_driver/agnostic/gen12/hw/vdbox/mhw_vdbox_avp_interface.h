@@ -361,6 +361,7 @@ struct MmioRegistersAvp
     uint32_t                   avpAv1ImageStatusMaskRegOffset                = 0;
     uint32_t                   avpAv1ImageStatusControlRegOffset             = 0;
     uint32_t                   avpAv1QpStatusCountRegOffset                  = 0;
+    uint32_t                   avpAv1DecErrorStatusAddrRegOffset             = 0;
 };
 
 //!  MHW Vdbox Avp interface
