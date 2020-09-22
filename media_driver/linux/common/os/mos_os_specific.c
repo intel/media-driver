@@ -1853,7 +1853,6 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
             perStreamParameters->intel_context = nullptr;
         }
         perStreamParameters->GmmFuncs.pfnDeleteClientContext(perStreamParameters->pGmmClientContext);
-        MOS_FreeMemAndSetNull(perStreamParameters->pPerfData);
         MOS_FreeMemAndSetNull(perStreamParameters);
         streamState->perStreamParameters = nullptr;
     }
@@ -7176,7 +7175,8 @@ MOS_STATUS Mos_Specific_InitInterface(
             &pOsInterface->osStreamState,
             (MOS_DEVICE_HANDLE)pOsDriverContext->m_osDeviceContext,
             (MOS_INTERFACE_HANDLE)pOsInterface,
-            pOsInterface->Component));
+            pOsInterface->Component,
+            pOsDriverContext));
 
         // Set interface functions for legacy HAL
         pOsContext                          = (PMOS_OS_CONTEXT)pOsInterface->osStreamState->perStreamParameters;

@@ -93,7 +93,7 @@ MOS_STATUS MosInterface::CloseOsUtilities(PMOS_CONTEXT mosCtx)
 MOS_STATUS MosInterface::CreateOsDeviceContext(DDI_DEVICE_CONTEXT ddiDeviceContext, MOS_DEVICE_HANDLE *deviceContext)
 {
     MOS_OS_FUNCTION_ENTER;
-    
+
     MOS_OS_CHK_NULL_RETURN(deviceContext);
     MOS_OS_CHK_NULL_RETURN(ddiDeviceContext);
 
@@ -121,15 +121,15 @@ MOS_STATUS MosInterface::DestroyOsDeviceContext(MOS_DEVICE_HANDLE deviceContext)
 }
 
 MOS_STATUS MosInterface::CreateOsStreamState(
-    MOS_STREAM_HANDLE *streamState,
-    MOS_DEVICE_HANDLE  deviceContext,
+    MOS_STREAM_HANDLE    *streamState,
+    MOS_DEVICE_HANDLE    deviceContext,
     MOS_INTERFACE_HANDLE osInterface,
-    MOS_COMPONENT component)
+    MOS_COMPONENT        component,
+    EXTRA_PARAMS         extraParams)
 {
     MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
 
     MOS_OS_FUNCTION_ENTER;
-
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(deviceContext);
 
@@ -262,7 +262,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     DumpCommandBufferInit(*streamState);
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
-    MOS_OS_CHK_STATUS_RETURN(MosInterface::InitStreamParameters(*streamState));
+    MOS_OS_CHK_STATUS_RETURN(MosInterface::InitStreamParameters(*streamState, extraParams));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -281,7 +281,8 @@ MOS_STATUS MosInterface::DestroyOsStreamState(
 }
 
 MOS_STATUS MosInterface::InitStreamParameters(
-    MOS_STREAM_HANDLE         streamState)
+    MOS_STREAM_HANDLE   streamState,
+    EXTRA_PARAMS        extraParams)
 {
     MOS_STATUS                  eStatus             = MOS_STATUS_SUCCESS;
     PMOS_CONTEXT                context             = nullptr;
@@ -296,6 +297,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
 
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
+    MOS_OS_CHK_NULL_RETURN(extraParams);
 
     osDeviceContext = (OsContextSpecificNext *)streamState->osDeviceContext;
     fd              = osDeviceContext->GetFd();
@@ -331,13 +333,7 @@ MOS_STATUS MosInterface::InitStreamParameters(
     context->m_gpuContextMgr    = osDeviceContext->GetGpuContextMgr();
     context->m_cmdBufMgr        = osDeviceContext->GetCmdBufferMgr();
     context->fd                 = fd;
-    context->pPerfData          = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
-    if(!context->pPerfData)
-    {
-        MOS_FreeMemAndSetNull(context);
-        MOS_OS_ASSERTMESSAGE("Allocation failed.");
-        return MOS_STATUS_NO_SPACE;
-    }
+    context->pPerfData          = ((PMOS_CONTEXT)extraParams)->pPerfData;
 
     context->m_auxTableMgr      = osDeviceContext->GetAuxTableMgr();
 
@@ -351,8 +347,6 @@ MOS_STATUS MosInterface::InitStreamParameters(
     context->bUse64BitRelocs    = true;
     context->bUseSwSwizzling    = context->bSimIsActive || MEDIA_IS_SKU(&context->SkuTable, FtrUseSwSwizzling);
     context->bTileYFlag         = MEDIA_IS_SKU(&context->SkuTable, FtrTileY);
-
-    streamState->perStreamParameters = (OS_PER_STREAM_PARAMETERS)context;
 
     if (MEDIA_IS_SKU(&context->SkuTable, FtrContextBasedScheduling))
     {
@@ -1792,7 +1786,7 @@ uint64_t MosInterface::GetResourceGfxAddress(
     MOS_RESOURCE_HANDLE resource)
 {
     MOS_OS_FUNCTION_ENTER;
-    
+
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(resource);
 
@@ -1817,7 +1811,7 @@ MOS_STATUS MosInterface::SkipResourceSync(
 {
     MOS_OS_FUNCTION_ENTER;
 
-    // No resource sync to skip 
+    // No resource sync to skip
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2026,7 +2020,7 @@ MOS_STATUS MosInterface::GetMemoryCompressionFormat(
     uint32_t *          resMmcFormat)
 {
     MOS_OS_FUNCTION_ENTER;
-    
+
     MOS_STATUS         eStatus = MOS_STATUS_UNKNOWN;
     PGMM_RESOURCE_INFO pGmmResourceInfo;
 
@@ -2057,7 +2051,7 @@ MOS_STATUS MosInterface::GetMemoryCompressionFormat(
 
     if (MmcFormat > 0x1F)
     {
-        MOS_OS_ASSERTMESSAGE("Get a incorrect Compression format(%d) from GMM", MmcFormat); 
+        MOS_OS_ASSERTMESSAGE("Get a incorrect Compression format(%d) from GMM", MmcFormat);
     }
     else
     {
@@ -2066,7 +2060,7 @@ MOS_STATUS MosInterface::GetMemoryCompressionFormat(
     }
 
     eStatus = MOS_STATUS_SUCCESS;
-    
+
     return eStatus;
 }
 
@@ -2207,7 +2201,7 @@ uint32_t MosInterface::GetGpuStatusTag(
         return gpuContextIns->GetGpuStatusTag();
     }
     MOS_OS_ASSERTMESSAGE("Get GPU Status Tag failed.");
-    
+
     return 0;
 }
 
@@ -2222,7 +2216,7 @@ MOS_STATUS MosInterface::IncrementGpuStatusTag(
     MOS_OS_CHK_NULL_RETURN(gpuContextIns);
 
     gpuContextIns->IncrementGpuStatusTag();
-    
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2411,7 +2405,7 @@ MOS_STATUS MosInterface::ComposeCommandBufferHeader(
     COMMAND_BUFFER_HANDLE cmdBuffer)
 {
     MOS_OS_FUNCTION_ENTER;
-    
+
     // No Command buffer header to compose
 
     return MOS_STATUS_SUCCESS;

@@ -1735,13 +1735,10 @@ VAStatus DdiVp_InitCtx(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx)
     pVpCtx->MosDrvCtx.m_osDeviceContext     = pMediaCtx->m_osDeviceContext;
     pVpCtx->MosDrvCtx.m_apoMosEnabled       = pMediaCtx->m_apoMosEnabled;
 
-    if (!pMediaCtx->m_apoMosEnabled)
+    pVpCtx->MosDrvCtx.pPerfData = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+    if (nullptr == pVpCtx->MosDrvCtx.pPerfData)
     {
-        pVpCtx->MosDrvCtx.pPerfData = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
-        if (nullptr == pVpCtx->MosDrvCtx.pPerfData)
-        {
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        }
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
     // initialize DDI level cp interface
@@ -3259,11 +3256,8 @@ VAStatus DdiVp_DestroyContext (
     pVpCtx    = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(pVaDrvCtx, vaCtxID, &ctxType);
     DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (!pVpCtx->MosDrvCtx.m_apoMosEnabled)
-    {
-        MOS_FreeMemory(pVpCtx->MosDrvCtx.pPerfData);
-        pVpCtx->MosDrvCtx.pPerfData = nullptr;
-    }
+    MOS_FreeMemory(pVpCtx->MosDrvCtx.pPerfData);
+    pVpCtx->MosDrvCtx.pPerfData = nullptr;
 
     if (pVpCtx->pCpDdiInterface)
     {

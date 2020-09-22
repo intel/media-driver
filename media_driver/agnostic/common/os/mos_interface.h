@@ -151,16 +151,19 @@ public:
     //!           Os interface to store streamState
     //! \param    [in] component
     //!           Indicate which component the stream state to create belongs to
+    //! \param    [in] extraParams
+    //!           Additional parameters needed to init streamstate
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS CreateOsStreamState(
-        MOS_STREAM_HANDLE *streamState,
-        MOS_DEVICE_HANDLE deviceContext,
-        MOS_INTERFACE_HANDLE osInterface,
-        MOS_COMPONENT component);
-     
+        MOS_STREAM_HANDLE       *streamState,
+        MOS_DEVICE_HANDLE       deviceContext,
+        MOS_INTERFACE_HANDLE    osInterface,
+        MOS_COMPONENT           component,
+        EXTRA_PARAMS            extraParams = nullptr);
+
     //!
     //! \brief    Destroy Os Stream State
     //! \details  Destroy the Os Stream State in stream level
@@ -1725,12 +1728,15 @@ private:
     //!
     //! \param    [in] streamState
     //!           Handle of Os Stream State
+    //! \param    [in] extraParams
+    //!           Additional parameters needed to init streamstate
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS InitStreamParameters(
-        MOS_STREAM_HANDLE  streamState);
+        MOS_STREAM_HANDLE   streamState,
+        EXTRA_PARAMS        extraParams = nullptr);
 
     //!
     //! \brief    Compose Cmd buffer header

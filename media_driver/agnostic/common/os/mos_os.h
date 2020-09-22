@@ -544,7 +544,8 @@ private:
 #endif // MOS_COMMAND_RESINFO_DUMP_SUPPORTED
 
 class OsContextNext;
-typedef void *     OS_PER_STREAM_PARAMETERS;
+typedef void *      OS_PER_STREAM_PARAMETERS;
+typedef void *      EXTRA_PARAMS;
 typedef OsContextNext OsDeviceContext;
 typedef _MOS_GPUCTX_CREATOPTIONS GpuContextCreateOption;
 struct _MOS_INTERFACE;

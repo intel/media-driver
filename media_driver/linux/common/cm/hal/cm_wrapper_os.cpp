@@ -85,17 +85,13 @@ int32_t CreateCmDeviceFromVA(VADriverContextP vaDriverCtx,
     cmCtx->mosCtx.m_osDeviceContext = mediaCtx->m_osDeviceContext;
     cmCtx->mosCtx.m_apoMosEnabled   = mediaCtx->m_apoMosEnabled;
     cmCtx->mosCtx.m_auxTableMgr     = mediaCtx->m_auxTableMgr;
+    cmCtx->mosCtx.pPerfData         = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
 
-    //APO MOS would allocate it in MosInterface::InitStreamParameters
-    if (!mediaCtx->m_apoMosEnabled)
+    if (cmCtx->mosCtx.pPerfData == nullptr)
     {
-        cmCtx->mosCtx.pPerfData = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
-        if (cmCtx->mosCtx.pPerfData == nullptr)
-        {
-            MOS_FreeMemAndSetNull(cmCtx);  // free cm ctx
-            CM_ASSERTMESSAGE("Failed to allocate perfData in mos context \n");
-            return CM_OUT_OF_HOST_MEMORY;
-        }
+        MOS_FreeMemAndSetNull(cmCtx);  // free cm ctx
+        CM_ASSERTMESSAGE("Failed to allocate perfData in mos context \n");
+        return CM_OUT_OF_HOST_MEMORY;
     }
 
     // Create Cm Device
@@ -181,10 +177,8 @@ int32_t DestroyCmDeviceFromVA(VADriverContextP vaDriverCtx, CmDevice *device)
     mediaCtx = DdiMedia_GetMediaContext(vaDriverCtx);
     DdiMediaUtil_LockMutex(&mediaCtx->CmMutex);
 
-    if (!cmCtx->mosCtx.m_apoMosEnabled)
-    {
-        MOS_FreeMemAndSetNull(cmCtx->mosCtx.pPerfData);
-    }
+    MOS_FreeMemAndSetNull(cmCtx->mosCtx.pPerfData);
+
     // destroy Cm context
     MOS_FreeMemAndSetNull(cmCtx);
 

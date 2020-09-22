@@ -502,16 +502,13 @@ VAStatus DdiDecode_CreateContext (
     mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
     mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
     mosCtx.m_apoMosEnabled       = mediaCtx->m_apoMosEnabled;
+    mosCtx.pPerfData             = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
 
-    if (!mediaCtx->m_apoMosEnabled)
+    if (nullptr == mosCtx.pPerfData)
     {
-        mosCtx.pPerfData = (PERF_DATA *)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
-        if (nullptr == mosCtx.pPerfData)
-        {
-            va = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            DdiDecodeCleanUp(ctx, decCtx);
-            return va;
-        }
+        va = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        DdiDecodeCleanUp(ctx, decCtx);
+        return va;
     }
 
     ddiDecBase->ContextInit(pictureWidth, pictureHeight);
