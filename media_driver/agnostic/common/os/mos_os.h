@@ -1334,6 +1334,7 @@ typedef struct _MOS_INTERFACE
     int32_t                         bSupportMediaSoloVirtualEngine;               //!< Flag to indicate if MediaSolo uses VE solution in cmdbuffer submission.
 #endif // MOS_MEDIASOLO_SUPPORTED
     bool                            VEEnable;
+    bool                            bCanEnableSecureRt;
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_FORCE_VEBOX                 eForceVebox;                                  //!< Force select Vebox
     int32_t                         bHcpDecScalabilityMode;                       //!< enable scalability decode {mode: default, user force, false}

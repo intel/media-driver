@@ -1636,7 +1636,7 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
                                     && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
                                 || (CodechalDecodeNonRextFormat(pInitParams->format)
                                     && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
-                                || (bCanEnableRealTile && !pOsInterface->osCpInterface->IsCpEnabled()))
+                                || (bCanEnableRealTile && (!pOsInterface->osCpInterface->IsCpEnabled() || pOsInterface->bCanEnableSecureRt)))
                 {
                     pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                 }
