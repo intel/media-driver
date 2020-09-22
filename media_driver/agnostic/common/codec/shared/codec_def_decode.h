@@ -34,13 +34,53 @@
 struct CencDecodeShareBuf;
 
 //!
-//! \struct CodecProcessingParams
-//! \brief Define the codec processing parameters
+//! \struct FilmGrainProcParams
+//! \brief Define the film grain processing parameters
 //!
-struct CodecProcessingParams
+struct FilmGrainProcParams
 {
     PMOS_SURFACE m_inputSurface;
     PMOS_SURFACE m_outputSurface;
+};
+
+//!
+//! \struct CodecRectangle
+//! \brief Parameters to describe a surface region
+//!
+struct CodecRectangle
+{
+    uint32_t m_x;
+    uint32_t m_y;
+    uint32_t m_width;
+    uint32_t m_height;
+};
+
+//!
+//! \struct DecodeProcessingParams
+//! \brief Parameters needed for the processing of the decode render target.
+//!
+struct DecodeProcessingParams
+{
+    // Input
+    PMOS_SURFACE   m_inputSurface;
+    CodecRectangle m_inputSurfaceRegion;
+    uint32_t       m_inputColorStandard;
+    uint32_t       m_inputColorRange;
+    uint32_t       m_chromaSitingType;
+
+    // Output
+    PMOS_SURFACE   m_outputSurface;
+    CodecRectangle m_outputSurfaceRegion;
+    uint32_t       m_outputColorStandard;
+
+    PMOS_SURFACE   m_histogramSurface;
+
+    // Processing state
+    uint32_t       m_rotationState;
+    uint32_t       m_blendState;
+    uint32_t       m_mirrorState;
+    bool           m_isSourceSurfAllocated;
+    bool           m_isReferenceOnlyPattern;
 };
 
 //!
@@ -131,8 +171,8 @@ struct CodechalDecodeParams
     void                    *m_procParams = nullptr;
 #endif
 
-    //! \brief Parameters used for codec frame processing
-    CodecProcessingParams   m_codecProcParams;
+    //! \brief Parameters used for film grain process
+    FilmGrainProcParams     m_filmGrainProcParams;
 
     //! \brief [Predication] Resource for predication
     PMOS_RESOURCE           m_presPredication = nullptr;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -82,14 +82,14 @@ MOS_STATUS CodechalJpegSfcState::CheckAndInitialize(
 
         if (m_sfcPipeOut)
         {
-            CODECHAL_DECODE_PROCESSING_PARAMS   procParams;
-            MOS_ZeroMemory(&procParams, sizeof(CODECHAL_DECODE_PROCESSING_PARAMS));
-            procParams.pInputSurface                = &m_sfcInSurface;
-            procParams.pOutputSurface = destSurface;
-            procParams.rcInputSurfaceRegion.Width   = m_sfcInSurface.dwWidth;
-            procParams.rcInputSurfaceRegion.Height  = m_sfcInSurface.dwHeight;
-            procParams.rcOutputSurfaceRegion.Width = destSurface->dwWidth;
-            procParams.rcOutputSurfaceRegion.Height = destSurface->dwHeight;
+            DecodeProcessingParams procParams;
+            MOS_ZeroMemory(&procParams, sizeof(DecodeProcessingParams));
+            procParams.m_inputSurface                 = &m_sfcInSurface;
+            procParams.m_outputSurface                = destSurface;
+            procParams.m_inputSurfaceRegion.m_width   = m_sfcInSurface.dwWidth;
+            procParams.m_inputSurfaceRegion.m_height  = m_sfcInSurface.dwHeight;
+            procParams.m_outputSurfaceRegion.m_width  = destSurface->dwWidth;
+            procParams.m_outputSurfaceRegion.m_height = destSurface->dwHeight;
 
             if (IsSfcOutputSupported(&procParams, MhwSfcInterface::SFC_PIPE_MODE_VDBOX))
             {

@@ -1134,35 +1134,35 @@ MOS_STATUS CodechalDecode::Execute(void *params)
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (decodeParams->m_refFrameCnt != 0)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS  procParams;
-        uint32_t                            allocWidth;
-        uint32_t                            allocHeight;
-        MOS_FORMAT                          format;
-        uint8_t                             frameIdx;
+        DecodeProcessingParams *procParams;
+        uint32_t                allocWidth;
+        uint32_t                allocHeight;
+        MOS_FORMAT              format;
+        uint8_t                 frameIdx;
 
         CODECHAL_DECODE_CHK_NULL_RETURN(decodeParams->m_picParams);
         CODECHAL_DECODE_CHK_NULL_RETURN(decodeParams->m_procParams);
 
-        procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)decodeParams->m_procParams;
+        procParams = (DecodeProcessingParams *)decodeParams->m_procParams;
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
             m_osInterface,
-            procParams->pOutputSurface));
+            procParams->m_outputSurface));
 
-        if (procParams->bIsSourceSurfAllocated)
+        if (procParams->m_isSourceSurfAllocated)
         {
-            procParams->rcOutputSurfaceRegion.Width = procParams->pOutputSurface->dwWidth;
-            procParams->rcOutputSurfaceRegion.Height = procParams->pOutputSurface->dwHeight;
+            procParams->m_outputSurfaceRegion.m_width = procParams->m_outputSurface->dwWidth;
+            procParams->m_outputSurfaceRegion.m_height = procParams->m_outputSurface->dwHeight;
             frameIdx = 0;
 
-            m_refSurfaces = procParams->pInputSurface;
+            m_refSurfaces = procParams->m_inputSurface;
             CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                 m_osInterface,
                 m_refSurfaces));
 
-            procParams->rcInputSurfaceRegion.X      = 0;
-            procParams->rcInputSurfaceRegion.Y      = 0;
-            procParams->rcInputSurfaceRegion.Width  = m_refSurfaces->dwWidth;
-            procParams->rcInputSurfaceRegion.Height = m_refSurfaces->dwHeight;
+            procParams->m_inputSurfaceRegion.m_x      = 0;
+            procParams->m_inputSurfaceRegion.m_y      = 0;
+            procParams->m_inputSurfaceRegion.m_width  = m_refSurfaces->dwWidth;
+            procParams->m_inputSurfaceRegion.m_height = m_refSurfaces->dwHeight;
         }
         else
         {
@@ -1189,12 +1189,12 @@ MOS_STATUS CodechalDecode::Execute(void *params)
                 }
             }
 
-            procParams->rcInputSurfaceRegion.X = 0;
-            procParams->rcInputSurfaceRegion.Y = 0;
-            procParams->rcInputSurfaceRegion.Width = allocWidth;
-            procParams->rcInputSurfaceRegion.Height = allocHeight;
-          
-            procParams->pInputSurface = &m_refSurfaces[frameIdx];
+            procParams->m_inputSurfaceRegion.m_x = 0;
+            procParams->m_inputSurfaceRegion.m_y = 0;
+            procParams->m_inputSurfaceRegion.m_width = allocWidth;
+            procParams->m_inputSurfaceRegion.m_height = allocHeight;
+
+            procParams->m_inputSurface = &m_refSurfaces[frameIdx];
         }
         decodeParams->m_destSurface = &m_refSurfaces[frameIdx];
     }
@@ -1280,7 +1280,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
         if (decodeParams->m_procParams)
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(DumpProcessingParams(
-                (PCODECHAL_DECODE_PROCESSING_PARAMS)decodeParams->m_procParams));
+                (DecodeProcessingParams *)decodeParams->m_procParams));
         }
     )
 #endif
@@ -1968,7 +1968,7 @@ MOS_STATUS CodechalDecode::SetCencBatchBuffer(
 
 #if USE_CODECHAL_DEBUG_TOOL
 #ifdef _DECODE_PROCESSING_SUPPORTED
-MOS_STATUS CodechalDecode::DumpProcessingParams(PCODECHAL_DECODE_PROCESSING_PARAMS decProcParams)
+MOS_STATUS CodechalDecode::DumpProcessingParams(DecodeProcessingParams *decProcParams)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -1978,28 +1978,28 @@ MOS_STATUS CodechalDecode::DumpProcessingParams(PCODECHAL_DECODE_PROCESSING_PARA
     }
 
     CODECHAL_DEBUG_CHK_NULL(decProcParams);
-    CODECHAL_DEBUG_CHK_NULL(decProcParams->pInputSurface);
-    CODECHAL_DEBUG_CHK_NULL(decProcParams->pOutputSurface);
+    CODECHAL_DEBUG_CHK_NULL(decProcParams->m_inputSurface);
+    CODECHAL_DEBUG_CHK_NULL(decProcParams->m_outputSurface);
 
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);
 
     oss << "Input Surface Resolution: "
-        << +decProcParams->pInputSurface->dwWidth << " x " << +decProcParams->pInputSurface->dwHeight << std::endl;
+        << +decProcParams->m_inputSurface->dwWidth << " x " << +decProcParams->m_inputSurface->dwHeight << std::endl;
     oss << "Input Region Resolution: "
-        << +decProcParams->rcInputSurfaceRegion.Width << " x " << +decProcParams->rcInputSurfaceRegion.Height << std::endl;
+        << +decProcParams->m_inputSurfaceRegion.m_width << " x " << +decProcParams->m_inputSurfaceRegion.m_height << std::endl;
     oss << "Input Region Offset: ("
-        << +decProcParams->rcInputSurfaceRegion.X << "," << +decProcParams->rcInputSurfaceRegion.Y << ")" << std::endl;
+        << +decProcParams->m_inputSurfaceRegion.m_x << "," << +decProcParams->m_inputSurfaceRegion.m_y << ")" << std::endl;
     oss << "Input Surface Format: "
-        << (decProcParams->pInputSurface->Format == Format_NV12 ? "NV12" : "P010" )<< std::endl;
+        << (decProcParams->m_inputSurface->Format == Format_NV12 ? "NV12" : "P010" )<< std::endl;
     oss << "Output Surface Resolution: "
-        << +decProcParams->pOutputSurface->dwWidth << " x " << +decProcParams->pOutputSurface->dwHeight << std::endl;
+        << +decProcParams->m_outputSurface->dwWidth << " x " << +decProcParams->m_outputSurface->dwHeight << std::endl;
     oss << "Output Region Resolution: "
-        << +decProcParams->rcOutputSurfaceRegion.Width << " x " << +decProcParams->rcOutputSurfaceRegion.Height << std::endl;
+        << +decProcParams->m_outputSurfaceRegion.m_width << " x " << +decProcParams->m_outputSurfaceRegion.m_height << std::endl;
     oss << "Output Region Offset: ("
-        << +decProcParams->rcOutputSurfaceRegion.X << ", " << +decProcParams->rcOutputSurfaceRegion.Y << ")" << std::endl;
+        << +decProcParams->m_outputSurfaceRegion.m_x << ", " << +decProcParams->m_outputSurfaceRegion.m_y << ")" << std::endl;
     oss << "Output Surface Format: "
-        << (decProcParams->pOutputSurface->Format == Format_NV12 ? "NV12" : "YUY2" )<< std::endl;
+        << (decProcParams->m_outputSurface->Format == Format_NV12 ? "NV12" : "YUY2" )<< std::endl;
 
     const char* filePath = m_debugInterface->CreateFileName(
         "_DEC",

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2019, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -343,14 +343,14 @@ MOS_STATUS CodechalSfcState::SetSfcStateParams(
     sfcStateParams->pOsResOutputSurface   = &m_sfcOutputSurface->OsResource;
     sfcStateParams->pOsResAVSLineBuffer   = &m_resAvsLineBuffer;
 
-    sfcStateParams->dwSourceRegionHeight           = MOS_ALIGN_FLOOR(m_inputSurfaceRegion.Height, heightAlignUnit);
-    sfcStateParams->dwSourceRegionWidth            = MOS_ALIGN_FLOOR(m_inputSurfaceRegion.Width, widthAlignUnit);
-    sfcStateParams->dwSourceRegionVerticalOffset   = MOS_ALIGN_CEIL(m_inputSurfaceRegion.Y, heightAlignUnit);
-    sfcStateParams->dwSourceRegionHorizontalOffset = MOS_ALIGN_CEIL(m_inputSurfaceRegion.X, widthAlignUnit);
-    sfcStateParams->dwScaledRegionHeight           = MOS_ALIGN_CEIL(m_outputSurfaceRegion.Height, heightAlignUnit);
-    sfcStateParams->dwScaledRegionWidth            = MOS_ALIGN_CEIL(m_outputSurfaceRegion.Width, widthAlignUnit);
-    sfcStateParams->dwScaledRegionVerticalOffset   = MOS_ALIGN_FLOOR(m_outputSurfaceRegion.Y, heightAlignUnit);
-    sfcStateParams->dwScaledRegionHorizontalOffset = MOS_ALIGN_FLOOR(m_outputSurfaceRegion.X, widthAlignUnit);
+    sfcStateParams->dwSourceRegionHeight           = MOS_ALIGN_FLOOR(m_inputSurfaceRegion.m_height, heightAlignUnit);
+    sfcStateParams->dwSourceRegionWidth            = MOS_ALIGN_FLOOR(m_inputSurfaceRegion.m_width, widthAlignUnit);
+    sfcStateParams->dwSourceRegionVerticalOffset   = MOS_ALIGN_CEIL(m_inputSurfaceRegion.m_y, heightAlignUnit);
+    sfcStateParams->dwSourceRegionHorizontalOffset = MOS_ALIGN_CEIL(m_inputSurfaceRegion.m_x, widthAlignUnit);
+    sfcStateParams->dwScaledRegionHeight           = MOS_ALIGN_CEIL(m_outputSurfaceRegion.m_height, heightAlignUnit);
+    sfcStateParams->dwScaledRegionWidth            = MOS_ALIGN_CEIL(m_outputSurfaceRegion.m_width, widthAlignUnit);
+    sfcStateParams->dwScaledRegionVerticalOffset   = MOS_ALIGN_FLOOR(m_outputSurfaceRegion.m_y, heightAlignUnit);
+    sfcStateParams->dwScaledRegionHorizontalOffset = MOS_ALIGN_FLOOR(m_outputSurfaceRegion.m_x, widthAlignUnit);
     sfcStateParams->fAVSXScalingRatio              = m_scaleX;
     sfcStateParams->fAVSYScalingRatio              = m_scaleY;
 
@@ -437,8 +437,8 @@ MOS_STATUS CodechalSfcState::SetSfcIefStateParams(
 }
 
 MOS_STATUS CodechalSfcState::Initialize(
-    PCODECHAL_DECODE_PROCESSING_PARAMS  decodeProcParams,
-    uint8_t                             sfcPipeMode)
+    DecodeProcessingParams *decodeProcParams,
+    uint8_t                 sfcPipeMode)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -447,15 +447,15 @@ MOS_STATUS CodechalSfcState::Initialize(
     CODECHAL_HW_CHK_NULL_RETURN(m_decoder);
 
     CODECHAL_HW_CHK_NULL_RETURN(decodeProcParams);
-    CODECHAL_HW_CHK_NULL_RETURN(decodeProcParams->pInputSurface);
-    CODECHAL_HW_CHK_NULL_RETURN(decodeProcParams->pOutputSurface);
+    CODECHAL_HW_CHK_NULL_RETURN(decodeProcParams->m_inputSurface);
+    CODECHAL_HW_CHK_NULL_RETURN(decodeProcParams->m_outputSurface);
 
     m_sfcPipeMode        = sfcPipeMode;
 
-    m_inputSurface = decodeProcParams->pInputSurface;
+    m_inputSurface = decodeProcParams->m_inputSurface;
     // Vebox o/p should not be written to memory for SFC, VeboxOutputSurface should be nullptr
     m_veboxOutputSurface = nullptr;
-    m_sfcOutputSurface   = decodeProcParams->pOutputSurface;
+    m_sfcOutputSurface   = decodeProcParams->m_outputSurface;
 
     uint16_t widthAlignUnit  = 1;
     uint16_t heightAlignUnit = 1;
@@ -475,10 +475,10 @@ MOS_STATUS CodechalSfcState::Initialize(
     }
 
     // Calculate bScaling
-    uint32_t sourceRegionWidth  = MOS_ALIGN_FLOOR(decodeProcParams->rcInputSurfaceRegion.Width, widthAlignUnit);
-    uint32_t sourceRegionHeight = MOS_ALIGN_FLOOR(decodeProcParams->rcInputSurfaceRegion.Height, heightAlignUnit);
-    uint32_t outputRegionWidth  = MOS_ALIGN_CEIL(decodeProcParams->rcOutputSurfaceRegion.Width, widthAlignUnit);
-    uint32_t outputRegionHeight = MOS_ALIGN_CEIL(decodeProcParams->rcOutputSurfaceRegion.Height, heightAlignUnit);
+    uint32_t sourceRegionWidth  = MOS_ALIGN_FLOOR(decodeProcParams->m_inputSurfaceRegion.m_width, widthAlignUnit);
+    uint32_t sourceRegionHeight = MOS_ALIGN_FLOOR(decodeProcParams->m_inputSurfaceRegion.m_height, heightAlignUnit);
+    uint32_t outputRegionWidth  = MOS_ALIGN_CEIL(decodeProcParams->m_outputSurfaceRegion.m_width, widthAlignUnit);
+    uint32_t outputRegionHeight = MOS_ALIGN_CEIL(decodeProcParams->m_outputSurfaceRegion.m_height, heightAlignUnit);
 
     m_scaleX = (float)outputRegionWidth / (float)sourceRegionWidth;
     m_scaleY = (float)outputRegionHeight / (float)sourceRegionHeight;
@@ -486,7 +486,7 @@ MOS_STATUS CodechalSfcState::Initialize(
     m_scaling   = ((m_scaleX == 1.0F) && (m_scaleY == 1.0F)) ? false : true;
     m_colorFill = false;
 
-    if (decodeProcParams->pOutputSurface->Format == Format_A8R8G8B8)
+    if (decodeProcParams->m_outputSurface->Format == Format_A8R8G8B8)
     {
         m_csc = true;
     }
@@ -551,18 +551,18 @@ MOS_STATUS CodechalSfcState::Initialize(
         m_cscOutOffset[2] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
     }
 
-    m_chromaSiting = decodeProcParams->uiChromaSitingType;
-    m_rotationMode = decodeProcParams->uiRotationState;
+    m_chromaSiting = decodeProcParams->m_chromaSitingType;
+    m_rotationMode = decodeProcParams->m_rotationState;
 
     eStatus = MOS_SecureMemcpy(&m_inputSurfaceRegion,
         sizeof(m_inputSurfaceRegion),
-        &decodeProcParams->rcInputSurfaceRegion,
-        sizeof(decodeProcParams->rcInputSurfaceRegion));
+        &decodeProcParams->m_inputSurfaceRegion,
+        sizeof(decodeProcParams->m_inputSurfaceRegion));
 
     eStatus = MOS_SecureMemcpy(&m_outputSurfaceRegion,
         sizeof(m_outputSurfaceRegion),
-        &decodeProcParams->rcOutputSurfaceRegion,
-        sizeof(decodeProcParams->rcOutputSurfaceRegion));
+        &decodeProcParams->m_outputSurfaceRegion,
+        sizeof(decodeProcParams->m_outputSurfaceRegion));
 
     CODECHAL_HW_CHK_STATUS_RETURN(AllocateResources());
 
@@ -732,19 +732,19 @@ bool CodechalSfcState::IsSfcFormatSupported(
 }
 
 bool CodechalSfcState::IsSfcOutputSupported(
-    PCODECHAL_DECODE_PROCESSING_PARAMS  decodeProcParams,
-    uint8_t                             sfcPipeMode)
+    DecodeProcessingParams *decodeProcParams,
+    uint8_t                 sfcPipeMode)
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
-    if (!m_sfcInterface || !decodeProcParams || !decodeProcParams->pInputSurface || !decodeProcParams->pOutputSurface)
+    if (!m_sfcInterface || !decodeProcParams || !decodeProcParams->m_inputSurface || !decodeProcParams->m_outputSurface)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Invalid Parameters");
         return false;
     }
 
-    PMOS_SURFACE srcSurface = decodeProcParams->pInputSurface;
-    PMOS_SURFACE destSurface = decodeProcParams->pOutputSurface;
+    PMOS_SURFACE srcSurface = decodeProcParams->m_inputSurface;
+    PMOS_SURFACE destSurface = decodeProcParams->m_outputSurface;
 
     uint32_t srcSurfWidth, srcSurfHeight;
     if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == sfcPipeMode)
@@ -804,8 +804,8 @@ bool CodechalSfcState::IsSfcOutputSupported(
     }
 
     // Check input region rectangles
-    uint32_t sourceRegionWidth = MOS_ALIGN_FLOOR(decodeProcParams->rcInputSurfaceRegion.Width, widthAlignUnit);
-    uint32_t sourceRegionHeight = MOS_ALIGN_FLOOR(decodeProcParams->rcInputSurfaceRegion.Height, heightAlignUnit);
+    uint32_t sourceRegionWidth = MOS_ALIGN_FLOOR(decodeProcParams->m_inputSurfaceRegion.m_width, widthAlignUnit);
+    uint32_t sourceRegionHeight = MOS_ALIGN_FLOOR(decodeProcParams->m_inputSurfaceRegion.m_height, heightAlignUnit);
 
     if ((sourceRegionWidth > srcSurface->dwWidth) ||
         (sourceRegionHeight > srcSurface->dwHeight))
@@ -821,8 +821,8 @@ bool CodechalSfcState::IsSfcOutputSupported(
     }
 
     // Check output region rectangles
-    uint32_t outputRegionWidth = MOS_ALIGN_CEIL(decodeProcParams->rcOutputSurfaceRegion.Width, widthAlignUnit);
-    uint32_t outputRegionHeight = MOS_ALIGN_CEIL(decodeProcParams->rcOutputSurfaceRegion.Height, heightAlignUnit);
+    uint32_t outputRegionWidth = MOS_ALIGN_CEIL(decodeProcParams->m_outputSurfaceRegion.m_width, widthAlignUnit);
+    uint32_t outputRegionHeight = MOS_ALIGN_CEIL(decodeProcParams->m_outputSurfaceRegion.m_height, heightAlignUnit);
 
     if ((outputRegionWidth > destSurface->dwWidth) ||
         (outputRegionHeight > destSurface->dwHeight))

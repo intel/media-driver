@@ -237,7 +237,7 @@ MOS_STATUS CodechalDecodeVp9G12::InitSfcState()
 #ifdef _DECODE_PROCESSING_SUPPORTED
     // Check if SFC can be supported
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->CheckAndInitialize(
-        (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams, 
+        (DecodeProcessingParams *)m_decodeParams.m_procParams, 
         m_vp9PicParams, 
         m_scalabilityState));
 #endif
@@ -643,7 +643,7 @@ MOS_STATUS CodechalDecodeVp9G12::SetFrameStates()
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateHistogramSurface());
 
-        ((CODECHAL_DECODE_PROCESSING_PARAMS*)m_decodeParams.m_procParams)->pHistogramSurface = m_histogramSurface;
+        ((DecodeProcessingParams *)m_decodeParams.m_procParams)->m_histogramSurface = m_histogramSurface;
 
         if(m_decodeHistogram)
             m_decodeHistogram->SetSrcHistogramSurface(m_histogramSurface);

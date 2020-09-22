@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include "mhw_state_heap.h"
 #include "codechal_mmc.h"
 
-using CODECHAL_DECODE_PROCESSING_PARAMS = struct _CODECHAL_DECODE_PROCESSING_PARAMS;
+struct DecodeProcessingParams;
 
 //!
 //! \class MediaWalkerFieldScalingStaticData
@@ -415,8 +415,7 @@ public:
     //! \return   bool
     //!           true if support, else false
     //!
-    bool IsFieldScalingSupported(
-        CODECHAL_DECODE_PROCESSING_PARAMS   *procParams);
+    bool IsFieldScalingSupported(DecodeProcessingParams *procParams);
 
     //!
     //! \brief    Initialize Field Scaling Kernel State
@@ -472,10 +471,10 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS DoFieldScaling(
-        CODECHAL_DECODE_PROCESSING_PARAMS   *procParams,
-        MOS_GPU_CONTEXT                     renderContext,
-        bool                                disableDecodeSyncLock,
-        bool                                disableLockForTranscode);
+        DecodeProcessingParams *procParams,
+        MOS_GPU_CONTEXT         renderContext,
+        bool                    disableDecodeSyncLock,
+        bool                    disableLockForTranscode);
 
 protected:
     //!
@@ -555,7 +554,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SetCurbeFieldScaling(
-        MHW_KERNEL_STATE                    *kernelState,
-        CODECHAL_DECODE_PROCESSING_PARAMS   *procParams);
+        MHW_KERNEL_STATE       *kernelState,
+        DecodeProcessingParams *procParams);
 };
 #endif // __CODECHAL_DECODER_DOWNSAMPLING_H__

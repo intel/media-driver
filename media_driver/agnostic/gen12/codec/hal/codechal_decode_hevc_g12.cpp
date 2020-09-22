@@ -966,7 +966,7 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
         CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateHistogramSurface());
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(sfcStateG12->CheckAndInitialize(
-            (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams,
+            (DecodeProcessingParams *)m_decodeParams.m_procParams,
             m_hevcPicParams,
             m_scalabilityState,
             m_histogramSurface));

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -113,8 +113,8 @@ MOS_STATUS FieldScalingInterface::InitInterfaceStateHeapSetting(
 }
 
 MOS_STATUS FieldScalingInterface::SetCurbeFieldScaling(
-    MHW_KERNEL_STATE                    *kernelState,
-    CODECHAL_DECODE_PROCESSING_PARAMS   *procParams)
+    MHW_KERNEL_STATE       *kernelState,
+    DecodeProcessingParams *procParams)
 {
     MOS_STATUS                                 eStatus = MOS_STATUS_SUCCESS;
 
@@ -122,21 +122,21 @@ MOS_STATUS FieldScalingInterface::SetCurbeFieldScaling(
 
     CODECHAL_DECODE_CHK_NULL_RETURN(kernelState);
     CODECHAL_DECODE_CHK_NULL_RETURN(procParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->pInputSurface);
-    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->pOutputSurface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->m_inputSurface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->m_outputSurface);
 
-    MOS_SURFACE *inputSurface = procParams->pInputSurface;
-    MOS_SURFACE *outputSurface = procParams->pOutputSurface;
+    MOS_SURFACE *inputSurface = procParams->m_inputSurface;
+    MOS_SURFACE *outputSurface = procParams->m_outputSurface;
 
-    float stepX = (float)procParams->rcInputSurfaceRegion.Width /
-        (float)(procParams->rcOutputSurfaceRegion.Width * inputSurface->dwWidth);
-    float stepY = (float)procParams->rcInputSurfaceRegion.Height /
-        (float)(procParams->rcOutputSurfaceRegion.Height * inputSurface->dwHeight);
+    float stepX = (float)procParams->m_inputSurfaceRegion.m_width /
+        (float)(procParams->m_outputSurfaceRegion.m_width * inputSurface->dwWidth);
+    float stepY = (float)procParams->m_inputSurfaceRegion.m_height /
+        (float)(procParams->m_outputSurfaceRegion.m_height * inputSurface->dwHeight);
 
     MediaWalkerFieldScalingStaticData cmd;
     cmd.m_mediaWalkerData.m_dword07.m_pointerToInlineParameters         = 0xB;
-    cmd.m_mediaWalkerData.m_dword08.m_destinationRectangleWidth         = procParams->rcOutputSurfaceRegion.Width;
-    cmd.m_mediaWalkerData.m_dword08.m_destinationRectangleHeight        = procParams->rcOutputSurfaceRegion.Height;
+    cmd.m_mediaWalkerData.m_dword08.m_destinationRectangleWidth         = procParams->m_outputSurfaceRegion.m_width;
+    cmd.m_mediaWalkerData.m_dword08.m_destinationRectangleHeight        = procParams->m_outputSurfaceRegion.m_height;
 
     if (outputSurface->Format == Format_NV12)
     {
@@ -151,8 +151,8 @@ MOS_STATUS FieldScalingInterface::SetCurbeFieldScaling(
     cmd.m_mediaWalkerData.m_dword24.m_verticalScalingStepRatioLayer0    = stepY;
     cmd.m_mediaWalkerData.m_dword48.m_destXTopLeftLayer0                = 0;
     cmd.m_mediaWalkerData.m_dword48.m_destYTopLeftLayer0                = 0;
-    cmd.m_mediaWalkerData.m_dword56.m_destXBottomRightLayer0            = procParams->rcOutputSurfaceRegion.Width - 1;
-    cmd.m_mediaWalkerData.m_dword56.m_destYBottomRightLayer0            = procParams->rcOutputSurfaceRegion.Height - 1;
+    cmd.m_mediaWalkerData.m_dword56.m_destXBottomRightLayer0            = procParams->m_outputSurfaceRegion.m_width - 1;
+    cmd.m_mediaWalkerData.m_dword56.m_destYBottomRightLayer0            = procParams->m_outputSurfaceRegion.m_height - 1;
     cmd.m_mediaWalkerData.m_dword64.m_mainVideoXScalingStepLeft         = 1.0F;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(kernelState->m_dshRegion.AddData(
@@ -163,19 +163,18 @@ MOS_STATUS FieldScalingInterface::SetCurbeFieldScaling(
     return eStatus;
 }
 
-bool FieldScalingInterface::IsFieldScalingSupported(
-    CODECHAL_DECODE_PROCESSING_PARAMS  *params)
+bool FieldScalingInterface::IsFieldScalingSupported(DecodeProcessingParams *params)
 {
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    if (!params || !params->pInputSurface || !params->pOutputSurface)
+    if (!params || !params->m_inputSurface || !params->m_outputSurface)
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Invalid Parameters");
         return false;
     }
 
-    MOS_SURFACE *srcSurface  = params->pInputSurface;
-    MOS_SURFACE *destSurface = params->pOutputSurface;
+    MOS_SURFACE *srcSurface  = params->m_inputSurface;
+    MOS_SURFACE *destSurface = params->m_outputSurface;
 
     // Check input size
     if (!MOS_WITHIN_RANGE(srcSurface->dwWidth, m_minInputWidth, m_maxInputWidth)     ||
@@ -193,8 +192,8 @@ bool FieldScalingInterface::IsFieldScalingSupported(
     }
 
     // Check input region rectangles
-    if ((params->rcInputSurfaceRegion.Width > srcSurface->dwWidth) ||
-        (params->rcInputSurfaceRegion.Height > srcSurface->dwHeight))
+    if ((params->m_inputSurfaceRegion.m_width > srcSurface->dwWidth) ||
+        (params->m_inputSurfaceRegion.m_height > srcSurface->dwHeight))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Input region is out of bound for field scaling.");
         return false;
@@ -216,8 +215,8 @@ bool FieldScalingInterface::IsFieldScalingSupported(
     }
 
     // Check output region rectangles
-    if ((params->rcOutputSurfaceRegion.Width > destSurface->dwWidth) ||
-        (params->rcOutputSurfaceRegion.Height > destSurface->dwHeight))
+    if ((params->m_outputSurfaceRegion.m_width > destSurface->dwWidth) ||
+        (params->m_outputSurfaceRegion.m_height > destSurface->dwHeight))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("Output region is out of bound for field scaling.");
         return false;
@@ -225,8 +224,8 @@ bool FieldScalingInterface::IsFieldScalingSupported(
 
     // Check scaling ratio
     // Scaling range is [0.125, 1] for both X and Y direction.
-    float scaleX = (float)params->rcOutputSurfaceRegion.Width / (float)params->rcInputSurfaceRegion.Width;
-    float scaleY = (float)params->rcOutputSurfaceRegion.Height / (float)params->rcInputSurfaceRegion.Height;
+    float scaleX = (float)params->m_outputSurfaceRegion.m_width / (float)params->m_inputSurfaceRegion.m_width;
+    float scaleY = (float)params->m_outputSurfaceRegion.m_height / (float)params->m_inputSurfaceRegion.m_height;
 
     if (!MOS_WITHIN_RANGE(scaleX, m_minScaleRatio, m_maxScaleRatio) ||
         !MOS_WITHIN_RANGE(scaleY, m_minScaleRatio, m_maxScaleRatio))
@@ -316,18 +315,18 @@ MOS_STATUS FieldScalingInterface::SetupMediaVfe(
 }
 
 MOS_STATUS FieldScalingInterface::DoFieldScaling(
-    CODECHAL_DECODE_PROCESSING_PARAMS   *procParams,
-    MOS_GPU_CONTEXT                     renderContext,
-    bool                                disableDecodeSyncLock,
-    bool                                disableLockForTranscode)
+    DecodeProcessingParams *procParams,
+    MOS_GPU_CONTEXT         renderContext,
+    bool                    disableDecodeSyncLock,
+    bool                    disableLockForTranscode)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
     CODECHAL_DECODE_CHK_NULL_RETURN(procParams);
-    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->pInputSurface);
-    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->pOutputSurface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->m_inputSurface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(procParams->m_outputSurface);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_hwInterface->GetMiInterface());
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
@@ -346,11 +345,11 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnEngineWait(m_osInterface, &syncParams));
 
     FieldScalingKernelStateIdx  kernelStateIdx;
-    if (procParams->pOutputSurface->Format == Format_NV12)
+    if (procParams->m_outputSurface->Format == Format_NV12)
     {
         kernelStateIdx = stateNv12;
     }
-    else if (procParams->pOutputSurface->Format == Format_YUY2)
+    else if (procParams->m_outputSurface->Format == Format_YUY2)
     {
         kernelStateIdx = stateYuy2;
     }
@@ -434,7 +433,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     surfaceCodecParams.bIs2DSurface               = true;
     surfaceCodecParams.bUseHalfHeight             = true;
     surfaceCodecParams.bUseUVPlane                = true;
-    surfaceCodecParams.psSurface                  = procParams->pInputSurface;
+    surfaceCodecParams.psSurface                  = procParams->m_inputSurface;
     surfaceCodecParams.dwCacheabilityControl      = surfaceCacheabilityControlBitsFromGtt;
 
     surfaceCodecParams.dwBindingTableOffset       = fieldTopSrcY;
@@ -475,14 +474,14 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     // Destination Surface (NV12 & YUY2, RGB8 support is not yet implemented)
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));
     surfaceCodecParams.bIs2DSurface               = true;
-    surfaceCodecParams.psSurface                  = procParams->pOutputSurface;
+    surfaceCodecParams.psSurface                  = procParams->m_outputSurface;
     surfaceCodecParams.bMediaBlockRW              = true;
     surfaceCodecParams.bIsWritable                = true;
     surfaceCodecParams.dwBindingTableOffset       = dstY;
     surfaceCodecParams.dwUVBindingTableOffset     = dstUV;
     surfaceCodecParams.dwCacheabilityControl      = surfaceCacheabilityControlBitsFromGtt;
 
-    if (procParams->pOutputSurface->Format == Format_NV12)
+    if (procParams->m_outputSurface->Format == Format_NV12)
     {
         surfaceCodecParams.bUseUVPlane              = true;
         surfaceCodecParams.bForceChromaFormat       = true;
@@ -527,8 +526,8 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     idLoadParams.dwNumKernelsLoaded = 1;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaIDLoadCmd(&cmdBuffer, &idLoadParams));
 
-    uint32_t resolutionX = MOS_ROUNDUP_DIVIDE(procParams->rcOutputSurfaceRegion.Width, 16);
-    uint32_t resolutionY = MOS_ROUNDUP_DIVIDE(procParams->rcOutputSurfaceRegion.Height, 16);
+    uint32_t resolutionX = MOS_ROUNDUP_DIVIDE(procParams->m_outputSurfaceRegion.m_width, 16);
+    uint32_t resolutionY = MOS_ROUNDUP_DIVIDE(procParams->m_outputSurfaceRegion.m_height, 16);
 
     CODECHAL_WALKER_CODEC_PARAMS            walkerCodecParams;
     memset(&walkerCodecParams, 0, sizeof(walkerCodecParams));
@@ -548,7 +547,7 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     // Check if destination surface needs to be synchronized, before command buffer submission
     syncParams                          = g_cInitSyncParams;
     syncParams.GpuContext               = renderContext;
-    syncParams.presSyncResource         = &procParams->pOutputSurface->OsResource;
+    syncParams.presSyncResource         = &procParams->m_outputSurface->OsResource;
     syncParams.bReadOnly                = false;
     syncParams.bDisableDecodeSyncLock   = disableDecodeSyncLock;
     syncParams.bDisableLockForTranscode = disableLockForTranscode;

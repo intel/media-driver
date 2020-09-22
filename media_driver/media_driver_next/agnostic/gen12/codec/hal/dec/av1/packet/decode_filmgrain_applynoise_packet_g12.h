@@ -338,7 +338,7 @@ public:
     MOS_STATUS CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize) override;
 
     MOS_STATUS SetCurbeApplyNoise(
-        CodecProcessingParams *procParams);
+        FilmGrainProcParams *procParams);
 
     //!
     //! \brief  Destroy the media packet and release the resources specific to it
@@ -378,7 +378,7 @@ protected:
     const CodecAv1PicParams *m_picParams        = nullptr;                  //!< Pointer to picture parameter
 
     // Surfaces for ApplyNoise
-    CodecProcessingParams   *m_filmGrainProcParams = nullptr;
+    FilmGrainProcParams     *m_filmGrainProcParams = nullptr;
 
     MOS_SURFACE             *m_yDitheringSurface = nullptr;                 //!< Y Dithering surface, size = 8 bit: 4 * 64 * 64 * sizeof(char), 10 bit:  4 * 64 * 64 * sizeof(short)
     MOS_SURFACE             *m_uDitheringSurface = nullptr;                 //!< U Dithering surface, size = 8 bit:   4 * 32 * 32 * sizeof(char), 10 bit:  4 * 32 * 32 * sizeof(short)

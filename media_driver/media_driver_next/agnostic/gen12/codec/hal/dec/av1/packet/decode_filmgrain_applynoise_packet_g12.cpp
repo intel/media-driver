@@ -530,7 +530,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 }
 
 MOS_STATUS FilmGrainAppNoisePkt::SetCurbeApplyNoise(
-    CodecProcessingParams *procParams)
+    FilmGrainProcParams *procParams)
 {
     DECODE_FUNC_CALL();
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,11 @@
 #include "codechal_decode_sfc_avc.h"
 
 MOS_STATUS CodechalAvcSfcState::CheckAndInitialize(
-    PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
-    PCODEC_AVC_PIC_PARAMS               picParams,
-    uint32_t                            width,
-    uint32_t                            height,
-    bool                                deblockingEnabled)
+    DecodeProcessingParams *decProcessingParams,
+    PCODEC_AVC_PIC_PARAMS   picParams,
+    uint32_t                width,
+    uint32_t                height,
+    bool                    deblockingEnabled)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -55,7 +55,7 @@ MOS_STATUS CodechalAvcSfcState::CheckAndInitialize(
         m_sfcPipeOut = true;
     }
 
-    if (decProcessingParams->bIsReferenceOnlyPattern)
+    if (decProcessingParams->m_isReferenceOnlyPattern)
     {
         m_sfcPipeOut = false;
     }

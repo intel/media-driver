@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -139,11 +139,11 @@ bool CodechalAvcSfcStateG12::IsSfcFormatSupported(
 }
 
 MOS_STATUS CodechalAvcSfcStateG12::CheckAndInitialize(
-    PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
-    PCODEC_AVC_PIC_PARAMS               picParams,
-    uint32_t                            width,
-    uint32_t                            height,
-    bool                                deblockingEnabled)
+    DecodeProcessingParams *decProcessingParams,
+    PCODEC_AVC_PIC_PARAMS   picParams,
+    uint32_t                width,
+    uint32_t                height,
+    bool                    deblockingEnabled)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
@@ -151,7 +151,7 @@ MOS_STATUS CodechalAvcSfcStateG12::CheckAndInitialize(
 
     if(m_sfcPipeOut)
     {
-        m_histogramSurface = decProcessingParams->pHistogramSurface;
+        m_histogramSurface = decProcessingParams->m_histogramSurface;
     }
 
     return status;

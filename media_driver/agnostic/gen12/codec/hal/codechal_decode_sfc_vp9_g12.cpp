@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ MOS_STATUS CodechalVp9SfcStateG12::AllocateResources()
             allocParams.Type = MOS_GFXRES_BUFFER;
             allocParams.TileType = MOS_TILE_LINEAR;
             allocParams.Format = Format_Buffer;
-            allocParams.dwBytes = MOS_ROUNDUP_DIVIDE(m_outputSurfaceRegion.Width, 10) * MHW_SFC_CACHELINE_SIZE;
+            allocParams.dwBytes = MOS_ROUNDUP_DIVIDE(m_outputSurfaceRegion.m_width, 10) * MHW_SFC_CACHELINE_SIZE;
             allocParams.pBufName = "SfcSfdLineBuffer";
 
             for (int i = 0; i < m_numPipe; i++)
@@ -161,7 +161,7 @@ MOS_STATUS CodechalVp9SfcStateG12::AllocateResources()
         allocParams.Type = MOS_GFXRES_BUFFER;
         allocParams.TileType = MOS_TILE_LINEAR;
         allocParams.Format = Format_Buffer;
-        allocParams.dwBytes = MOS_ROUNDUP_DIVIDE(m_outputSurfaceRegion.Width, 10) * MHW_SFC_CACHELINE_SIZE * 2; //double for safe
+        allocParams.dwBytes = MOS_ROUNDUP_DIVIDE(m_outputSurfaceRegion.m_width, 10) * MHW_SFC_CACHELINE_SIZE * 2; //double for safe
         allocParams.pBufName = "SfcSfdLineTileBuffer";
 
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
@@ -202,7 +202,7 @@ MOS_STATUS CodechalVp9SfcStateG12::AllocateResources()
 }
 
 MOS_STATUS CodechalVp9SfcStateG12::CheckAndInitialize(
-    PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
+    DecodeProcessingParams             *decProcessingParams,
     PCODEC_VP9_PIC_PARAMS               vp9PicParams,
     PCODECHAL_DECODE_SCALABILITY_STATE  scalabilityState)
 {
@@ -219,15 +219,15 @@ MOS_STATUS CodechalVp9SfcStateG12::CheckAndInitialize(
             m_scalabilityState  = static_cast<PCODECHAL_DECODE_SCALABILITY_STATE_G12>(scalabilityState);
             m_numPipe           = m_scalabilityState ? m_scalabilityState->ucScalablePipeNum : 1;
 
-            m_histogramSurface = decProcessingParams->pHistogramSurface;
+            m_histogramSurface = decProcessingParams->m_histogramSurface;
 
             // Set the input region as the HCP output frame region
             m_inputFrameWidth                                = MOS_ALIGN_CEIL(m_vp9PicParams->FrameWidthMinus1 + 1, CODEC_VP9_MIN_BLOCK_WIDTH);
             m_inputFrameHeight                               = MOS_ALIGN_CEIL(m_vp9PicParams->FrameHeightMinus1 + 1, CODEC_VP9_MIN_BLOCK_HEIGHT);
-            decProcessingParams->rcInputSurfaceRegion.X = 0;
-            decProcessingParams->rcInputSurfaceRegion.Y = 0;
-            decProcessingParams->rcInputSurfaceRegion.Width  = m_inputFrameWidth;
-            decProcessingParams->rcInputSurfaceRegion.Height = m_inputFrameHeight;
+            decProcessingParams->m_inputSurfaceRegion.m_x = 0;
+            decProcessingParams->m_inputSurfaceRegion.m_y = 0;
+            decProcessingParams->m_inputSurfaceRegion.m_width  = m_inputFrameWidth;
+            decProcessingParams->m_inputSurfaceRegion.m_height = m_inputFrameHeight;
 
             CODECHAL_HW_CHK_STATUS_RETURN(Initialize(decProcessingParams, MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP));
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -864,11 +864,11 @@ VAStatus DdiDecodeHEVCG11::CodecHalInit(
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
-        PCODECHAL_DECODE_PROCESSING_PARAMS procParams = nullptr;
+        DecodeProcessingParams *procParams = nullptr;
         
         m_codechalSettings->downsamplingHinted = true;
         
-        procParams = (PCODECHAL_DECODE_PROCESSING_PARAMS)MOS_AllocAndZeroMemory(sizeof(CODECHAL_DECODE_PROCESSING_PARAMS));
+        procParams = (DecodeProcessingParams *)MOS_AllocAndZeroMemory(sizeof(DecodeProcessingParams));
         if (procParams == nullptr)
         {
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -876,8 +876,8 @@ VAStatus DdiDecodeHEVCG11::CodecHalInit(
         }
         
         m_ddiDecodeCtx->DecodeParams.m_procParams = procParams;
-        procParams->pOutputSurface = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
-        if (procParams->pOutputSurface == nullptr)
+        procParams->m_outputSurface = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+        if (procParams->m_outputSurface == nullptr)
         {
             vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
             goto CleanUpandReturn;
@@ -925,8 +925,8 @@ CleanUpandReturn:
     if (m_ddiDecodeCtx->DecodeParams.m_procParams)
     {
         auto procParams =
-            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
-        MOS_FreeMemory(procParams->pOutputSurface);
+            (DecodeProcessingParams *)m_ddiDecodeCtx->DecodeParams.m_procParams;
+        MOS_FreeMemory(procParams->m_outputSurface);
         
         MOS_FreeMemory(m_ddiDecodeCtx->DecodeParams.m_procParams);
         m_ddiDecodeCtx->DecodeParams.m_procParams = nullptr;

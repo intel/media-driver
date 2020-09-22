@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2017, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 #include "codechal.h"
 #include "codechal_hw.h"
 #include "mhw_mi.h"
+#include "codec_def_decode.h"
 
 #define CODECHAL_SFC_ALIGNMENT_16        16
 #define CODECHAL_SFC_ALIGNMENT_8         8
@@ -46,46 +47,6 @@
 #define CODECHAL_SFC_VEBOX_RGB_HISTOGRAM_SIZE                     (CODECHAL_SFC_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
                                                                    CODECHAL_SFC_NUM_RGB_CHANNEL                    * \
                                                                    CODECHAL_SFC_VEBOX_MAX_SLICES)
-
-//!
-//! \struct CODECHAL_RECTANGLE
-//! \brief Parameters to describe a surface region
-//!
-typedef struct _CODECHAL_RECTANGLE
-{
-    uint32_t           X;
-    uint32_t           Y;
-    uint32_t           Width;
-    uint32_t           Height;
-} CODECHAL_RECTANGLE, *PCODECHAL_RECTANGLE;
-
-//!
-//! \struct CODECHAL_DECODE_PROCESSING_PARAMS
-//! \brief Parameters needed for the processing of the decode render target.
-//!
-typedef struct _CODECHAL_DECODE_PROCESSING_PARAMS
-{
-    // Input
-    PMOS_SURFACE                 pInputSurface;
-    CODECHAL_RECTANGLE           rcInputSurfaceRegion;
-    uint32_t                     uiInputColorStandard;
-    uint32_t                     uiInputColorRange;
-    uint32_t                     uiChromaSitingType;
-
-    // Output
-    PMOS_SURFACE                 pOutputSurface;
-    CODECHAL_RECTANGLE           rcOutputSurfaceRegion;
-    uint32_t                     uiOutputColorStandard;
-
-    PMOS_SURFACE                 pHistogramSurface;
-
-    // Processing state
-    uint32_t                     uiRotationState;
-    uint32_t                     uiBlendState;
-    uint32_t                     uiMirrorState;
-    bool                         bIsSourceSurfAllocated;
-    bool                         bIsReferenceOnlyPattern;
-}CODECHAL_DECODE_PROCESSING_PARAMS, *PCODECHAL_DECODE_PROCESSING_PARAMS;
 
 //!
 //! \class CodechalSfcState
@@ -132,8 +93,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS Initialize(
-        PCODECHAL_DECODE_PROCESSING_PARAMS  decodeProcParams,
-        uint8_t                             sfcPipeMode);
+        DecodeProcessingParams *decodeProcParams,
+        uint8_t                 sfcPipeMode);
 
     //!
     //! \brief    Send Vebox and SFC Cmd
@@ -179,8 +140,8 @@ public:
     //!           true if supported, else false
     //!
     bool IsSfcOutputSupported(
-        PCODECHAL_DECODE_PROCESSING_PARAMS  decodeProcParams,
-        uint8_t                             sfcPipeMode);
+        DecodeProcessingParams *decodeProcParams,
+        uint8_t                 sfcPipeMode);
 
     CodechalDecode *     m_decoder        = nullptr;  //!< Decoder
     PMOS_INTERFACE       m_osInterface    = nullptr;  //!< OS Interface
@@ -219,8 +180,8 @@ protected:
     uint32_t     m_rotationMode = 0;  //!< Rotation Mode
     uint32_t     m_chromaSiting = 0;  //!< Chroma Siting Type
 
-    CODECHAL_RECTANGLE m_inputSurfaceRegion  = {0};  //!< Input Region Resolution and Offset
-    CODECHAL_RECTANGLE m_outputSurfaceRegion = {0};  //!< Output Region Resolution and Offset
+    CodecRectangle m_inputSurfaceRegion  = {0};  //!< Input Region Resolution and Offset
+    CodecRectangle m_outputSurfaceRegion = {0};  //!< Output Region Resolution and Offset
 
     float              m_cscCoeff[9]     = {0};  //!< Csc Coefficient
     float              m_cscInOffset[3]  = {0};  //!< Csc In Offset

@@ -169,7 +169,7 @@ namespace decode
 
         if (m_filmGrainEnabled)
         {
-            m_filmGrainProcParams = (CodecProcessingParams *)&decodeParams->m_codecProcParams;
+            m_filmGrainProcParams = (FilmGrainProcParams *)&decodeParams->m_filmGrainProcParams;
             if (m_filmGrainProcParams->m_inputSurface == nullptr)
             {
                 DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(m_av1PicParams->m_currPic.FrameIdx, &m_destSurface, resourceOutputPicture));

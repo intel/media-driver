@@ -174,7 +174,7 @@ MOS_STATUS CodechalDecodeAvcG12::SetFrameStates()
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(AllocateHistogramSurface());
 
-        ((CODECHAL_DECODE_PROCESSING_PARAMS*)m_decodeParams.m_procParams)->pHistogramSurface = m_histogramSurface;
+        ((DecodeProcessingParams*)m_decodeParams.m_procParams)->m_histogramSurface = m_histogramSurface;
 
         if (m_decodeHistogram)
             m_decodeHistogram->SetSrcHistogramSurface(m_histogramSurface);
@@ -409,18 +409,18 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
     CODECHAL_DEBUG_TOOL(
         m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
+    auto decProcessingParams = (DecodeProcessingParams *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
 #ifdef _MMC_SUPPORTED
         // To Clear invalid aux data of output surface when MMC on
         if (m_mmc && m_mmc->IsMmcEnabled() &&
-            !Mos_ResourceIsNull(&decProcessingParams->pOutputSurface->OsResource) &&
-            decProcessingParams->pOutputSurface->OsResource.bConvertedFromDDIResource)
+            !Mos_ResourceIsNull(&decProcessingParams->m_outputSurface->OsResource) &&
+            decProcessingParams->m_outputSurface->OsResource.bConvertedFromDDIResource)
         {
             CODECHAL_DECODE_VERBOSEMESSAGE("Clear invalid aux data of output surface before frame %d submission", m_frameNum);
             CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
-                this, m_miInterface, &decProcessingParams->pOutputSurface->OsResource, m_veState));
+                this, m_miInterface, &decProcessingParams->m_outputSurface->OsResource, m_veState));
         }
 #endif
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(
@@ -455,7 +455,7 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
         {
             syncParams = g_cInitSyncParams;
             syncParams.GpuContext = m_renderContext;
-            syncParams.presSyncResource = &decProcessingParams->pOutputSurface->OsResource;
+            syncParams.presSyncResource = &decProcessingParams->m_outputSurface->OsResource;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceSignal(m_osInterface, &syncParams));
         }
@@ -464,12 +464,12 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CODECHAL_DEBUG_TOOL(
         // Dump out downsampling result
-        if (decProcessingParams && decProcessingParams->pOutputSurface)
+        if (decProcessingParams && decProcessingParams->m_outputSurface)
         {
             MOS_SURFACE dstSurface;
             MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
             dstSurface.Format = Format_NV12;
-            dstSurface.OsResource = decProcessingParams->pOutputSurface->OsResource;
+            dstSurface.OsResource = decProcessingParams->m_outputSurface->OsResource;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                 m_osInterface,

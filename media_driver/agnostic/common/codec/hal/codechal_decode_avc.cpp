@@ -1241,10 +1241,10 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         m_perfType = MIXED_TYPE;
     }
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
+    auto decProcessingParams = (DecodeProcessingParams *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr)
     {
-        if (!decProcessingParams->bIsReferenceOnlyPattern && m_downsamplingHinted)
+        if (!decProcessingParams->m_isReferenceOnlyPattern && m_downsamplingHinted)
         {
             CODECHAL_DECODE_CHK_NULL_RETURN(m_fieldScalingInterface);
         }
@@ -1260,7 +1260,7 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
              m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag) &&
              (m_downsamplingHinted && m_fieldScalingInterface->IsFieldScalingSupported(decProcessingParams))) &&
              m_sfcState->m_sfcPipeOut == false &&
-            !decProcessingParams->bIsReferenceOnlyPattern)
+            !decProcessingParams->m_isReferenceOnlyPattern)
         {
             m_vdSfcSupported = false;
         }
@@ -1906,7 +1906,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
         m_mmc->UpdateUserFeatureKey(&m_destSurface);)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-    auto decProcessingParams = (CODECHAL_DECODE_PROCESSING_PARAMS *)m_decodeParams.m_procParams;
+    auto decProcessingParams = (DecodeProcessingParams *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(
@@ -1941,7 +1941,7 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
         {
             syncParams = g_cInitSyncParams;
             syncParams.GpuContext = m_renderContext;
-            syncParams.presSyncResource = &decProcessingParams->pOutputSurface->OsResource;
+            syncParams.presSyncResource = &decProcessingParams->m_outputSurface->OsResource;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceSignal(m_osInterface, &syncParams));
         }
@@ -1950,12 +1950,12 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CODECHAL_DEBUG_TOOL(
         // Dump out downsampling result
-        if (decProcessingParams && decProcessingParams->pOutputSurface)
+        if (decProcessingParams && decProcessingParams->m_outputSurface)
         {
             MOS_SURFACE dstSurface;
             MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
             dstSurface.Format = Format_NV12;
-            dstSurface.OsResource = decProcessingParams->pOutputSurface->OsResource;
+            dstSurface.OsResource = decProcessingParams->m_outputSurface->OsResource;
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(
                 m_osInterface,

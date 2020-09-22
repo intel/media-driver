@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CheckAndInitialize(
-        PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
+        DecodeProcessingParams             *decProcessingParams,
         PCODEC_VP9_PIC_PARAMS               vp9PicParams,
         PCODECHAL_DECODE_SCALABILITY_STATE  scalabilityState);
 

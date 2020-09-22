@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,8 +57,8 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS CheckAndInitialize(
-        PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
-        PCODEC_HEVC_PIC_PARAMS              hevcPicParams);
+        DecodeProcessingParams *decProcessingParams,
+        PCODEC_HEVC_PIC_PARAMS  hevcPicParams);
 
     //!
     //! \brief    Update Input Info for SfcStateParams

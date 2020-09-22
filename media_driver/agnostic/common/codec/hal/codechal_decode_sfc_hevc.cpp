@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,8 +29,8 @@
 #include "codechal_decode_sfc_hevc.h"
 
 MOS_STATUS CodechalHevcSfcState::CheckAndInitialize(
-    PCODECHAL_DECODE_PROCESSING_PARAMS  decProcessingParams,
-    PCODEC_HEVC_PIC_PARAMS              hevcPicParams)
+    DecodeProcessingParams *decProcessingParams,
+    PCODEC_HEVC_PIC_PARAMS  hevcPicParams)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -43,12 +43,12 @@ MOS_STATUS CodechalHevcSfcState::CheckAndInitialize(
             m_sfcPipeOut = true;
 
             // Set the input region as the HCP output frame region
-            m_inputFrameWidth                                = hevcPicParams->PicWidthInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
-            m_inputFrameHeight                               = hevcPicParams->PicHeightInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
-            decProcessingParams->rcInputSurfaceRegion.X = 0;
-            decProcessingParams->rcInputSurfaceRegion.Y = 0;
-            decProcessingParams->rcInputSurfaceRegion.Width  = m_inputFrameWidth;
-            decProcessingParams->rcInputSurfaceRegion.Height = m_inputFrameHeight;
+            m_inputFrameWidth  = hevcPicParams->PicWidthInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
+            m_inputFrameHeight = hevcPicParams->PicHeightInMinCbsY << (hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
+            decProcessingParams->m_inputSurfaceRegion.m_x      = 0;
+            decProcessingParams->m_inputSurfaceRegion.m_y      = 0;
+            decProcessingParams->m_inputSurfaceRegion.m_width  = m_inputFrameWidth;
+            decProcessingParams->m_inputSurfaceRegion.m_height = m_inputFrameHeight;
 
             // SFC Initialization.
             // Initialize once for most of the resources

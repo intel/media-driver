@@ -419,25 +419,26 @@ VAStatus DdiDecodeAV1::SetDecodeParams()
     if (m_decProcessingType == VA_DEC_PROCESSING)
     {
         auto procParams =
-            (PCODECHAL_DECODE_PROCESSING_PARAMS)m_ddiDecodeCtx->DecodeParams.m_procParams;
-        procParams->pInputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
+            (DecodeProcessingParams *)m_ddiDecodeCtx->DecodeParams.m_procParams;
+        procParams->m_inputSurface = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
         // codechal_decode_sfc.c expects Input Width/Height information.
-        procParams->pInputSurface->dwWidth    = procParams->pInputSurface->OsResource.iWidth;
-        procParams->pInputSurface->dwHeight = procParams->pInputSurface->OsResource.iHeight;
-        procParams->pInputSurface->dwPitch    = procParams->pInputSurface->OsResource.iPitch;
-        procParams->pInputSurface->Format    = procParams->pInputSurface->OsResource.Format;
+        procParams->m_inputSurface->dwWidth  = procParams->m_inputSurface->OsResource.iWidth;
+        procParams->m_inputSurface->dwHeight = procParams->m_inputSurface->OsResource.iHeight;
+        procParams->m_inputSurface->dwPitch  = procParams->m_inputSurface->OsResource.iPitch;
+        procParams->m_inputSurface->Format   = procParams->m_inputSurface->OsResource.Format;
     }
 #endif
     CodecAv1PicParams *Av1PicParams = static_cast<CodecAv1PicParams *>(m_ddiDecodeCtx->DecodeParams.m_picParams);
     bool bFilmGrainEnabled = Av1PicParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_applyGrain;
     if (bFilmGrainEnabled)
     {
-        MOS_ZeroMemory(&m_ddiDecodeCtx->DecodeParams.m_codecProcParams, sizeof(CodecProcessingParams));
-        m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_inputSurface  = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
+        FilmGrainProcParams &filmGrainProcParams = m_ddiDecodeCtx->DecodeParams.m_filmGrainProcParams;
+        MOS_ZeroMemory(&filmGrainProcParams, sizeof(FilmGrainProcParams));
+        filmGrainProcParams.m_inputSurface  = (&m_ddiDecodeCtx->DecodeParams)->m_destSurface;
         MOS_FORMAT expectedFormat = GetFormat();
         outputSurface.Format   = expectedFormat;
         DdiMedia_MediaSurfaceToMosResource(filmGrainOutSurface, &(outputSurface.OsResource));
-        m_ddiDecodeCtx->DecodeParams.m_codecProcParams.m_outputSurface = &outputSurface;
+        filmGrainProcParams.m_outputSurface = &outputSurface;
     }
 
     return VA_STATUS_SUCCESS;

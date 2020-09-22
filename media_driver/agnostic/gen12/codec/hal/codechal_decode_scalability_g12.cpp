@@ -1,17 +1,23 @@
 /*
-// Copyright (C) 2017-2019, Intel Corporation
-//
-// Licensed under the Apache License,Version 2.0(the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing,software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+* Copyright (c) 2017-2020, Intel Corporation
+*
+* Permission is hereby granted, free of charge, to any person obtaining a
+* copy of this software and associated documentation files (the "Software"),
+* to deal in the Software without restriction, including without limitation
+* the rights to use, copy, modify, merge, publish, distribute, sublicense,
+* and/or sell copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+* OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+* ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
 //! \file     codechal_decode_scalability_g12.cpp
@@ -1145,8 +1151,8 @@ MOS_STATUS CodecHalDecodeScalability_GetCurrentRealTileColumnId(
 MOS_STATUS CodecHalDecodeScalability_SetSfcState(
     PCODECHAL_DECODE_SCALABILITY_STATE          scalabilityStateBase,
     void                                       *picParams,
-    CODECHAL_RECTANGLE                         *srcRegion,
-    CODECHAL_RECTANGLE                         *dstRegion,
+    CodecRectangle                             *srcRegion,
+    CodecRectangle                             *dstRegion,
     PCODECHAL_DECODE_SFC_SCALABILITY_PARAMS     sfcScalabilityParams)
 {
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
@@ -1235,7 +1241,7 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
             }
             if (col == hevcPicParams->num_tile_columns_minus1)
             {
-                srcEndX = srcRegion->X + srcRegion->Width - 1;
+                srcEndX = srcRegion->m_x + srcRegion->m_width - 1;
             }
             else
             {
@@ -1268,7 +1274,7 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
         srcStartX *= maxCbSize;
         if (pipeIndex == scalabilityState->ucScalablePipeNum - 1)
         {
-            srcEndX = srcRegion->X + srcRegion->Width - 1;
+            srcEndX = srcRegion->m_x + srcRegion->m_width - 1;
         }
         else
         {
@@ -1281,7 +1287,7 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
             if (pipeIndex == 1)
             {
                 srcStartX = scalabilityState->dbgOvrdWidthInMinCb * minCbSize;
-                srcEndX = srcRegion->X + srcRegion->Width - 1;
+                srcEndX = srcRegion->m_x + srcRegion->m_width - 1;
             }
             else
             {
@@ -1300,14 +1306,14 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
         engMode = 0;
         tileType = 0;
         srcStartX = 0;
-        srcEndX = srcRegion->X + srcRegion->Width - 1;
+        srcEndX = srcRegion->m_x + srcRegion->m_width - 1;
     }
 
     // Clamp srcStartX, srcEndX into source region
-    if (srcStartX < srcRegion->X)
-        srcStartX = srcRegion->X;
-    if (srcEndX > srcRegion->X + srcRegion->Width - 1)
-        srcEndX = srcRegion->X + srcRegion->Width - 1;
+    if (srcStartX < srcRegion->m_x)
+        srcStartX = srcRegion->m_x;
+    if (srcEndX > srcRegion->m_x + srcRegion->m_width - 1)
+        srcEndX = srcRegion->m_x + srcRegion->m_width - 1;
 
     if (tileColumnIndex == 0)
     {
@@ -1317,16 +1323,16 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
     }
 
     ildbXOffset = (scalabilityState->Standard == CODECHAL_HEVC) ? 5 : 8;  // 1 : HEVC; 0 : VP9
-    oneBySf = (uint64_t)((double)((uint64_t)(srcRegion->Width) * 524288 / (dstRegion->Width)));
+    oneBySf = (uint64_t)((double)((uint64_t)(srcRegion->m_width) * 524288 / (dstRegion->m_width)));
 
     //------------------ start ildb offset correction -----------------------------//
     srcEndXTemp = srcEndX - ildbXOffset;
 
     //---------------------- destination startX determination logic ---------------//
-    if ((srcRegion->X + srcRegion->Width - 1) <= srcEndXTemp)
+    if ((srcRegion->m_x + srcRegion->m_width - 1) <= srcEndXTemp)
     {
         xOffset = 0;
-        tileEndX = (srcRegion->X + srcRegion->Width);
+        tileEndX = (srcRegion->m_x + srcRegion->m_width);
     }
     else
     {
@@ -1336,7 +1342,7 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
 
     while (true)
     {
-        if (srcEndXTemp - srcRegion->X < (xOffset + 1))
+        if (srcEndXTemp - srcRegion->m_x < (xOffset + 1))
         {
             dstEndX = 0;
             break;
@@ -1351,14 +1357,14 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
         {
             const uint32_t one_by_sf_fraction_precision = 19;
             const uint32_t beta_precision = 5;
-            uint32_t xPhaseShift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)srcRegion->Width / dstRegion->Width - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
+            uint32_t xPhaseShift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)srcRegion->m_width / dstRegion->m_width - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
 
             double tempDestCntx = (((double)scalabilityState->dstXLandingCount * (double)oneBySf) + xPhaseShift);
             if (tempDestCntx < 0)
             {
                 tempDestCntx = 0;
             }
-            xLandingPoint = (double)(((tempDestCntx + ((double)(1 << (one_by_sf_fraction_precision - beta_precision - 1)))) / 524288) + srcRegion->X);
+            xLandingPoint = (double)(((tempDestCntx + ((double)(1 << (one_by_sf_fraction_precision - beta_precision - 1)))) / 524288) + srcRegion->m_x);
         }
 
         if (xLandingPoint >= (double)(tileEndX - xOffset))
@@ -1380,7 +1386,7 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
     // Last column end at destination region right border.
     if (tileColumnIndex == scalabilityState->lastValidTileIndex)
     {
-        dstEndX = dstRegion->X + dstRegion->Width - 1;
+        dstEndX = dstRegion->m_x + dstRegion->m_width - 1;
     }
 
     if (tileColumnIndex <= scalabilityState->fistValidTileIndex)

@@ -133,8 +133,7 @@ namespace decode
         std::vector<uint32_t>           m_refFrameIndexList;                       //!< Reference frame index list
         RefrenceAssociatedBuffer<Av1RefAssociatedBufs, Av1TempBufferOpInf, Av1BasicFeature> m_tempBuffers; //!< Reference associated buffers
         InternalTargets                 m_internalTarget; //!< Internal decode out surface
-        CodecProcessingParams           *m_filmGrainProcParams      = nullptr;     //!< Film grain processing params
-
+        FilmGrainProcParams            *m_filmGrainProcParams       = nullptr;     //!< Film grain processing params
         bool                            m_frameCompletedFlag        = false;
         bool                            m_filmGrainEnabled          = false;        //!< Per-frame film grain enable flag
         bool                            m_usingDummyWl              = false;        //!< Indicate using dummy workload flag

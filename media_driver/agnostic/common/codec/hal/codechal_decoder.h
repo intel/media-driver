@@ -810,7 +810,7 @@ protected:
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpProcessingParams(
-        PCODECHAL_DECODE_PROCESSING_PARAMS decProcParams);
+        DecodeProcessingParams *decProcParams);
 
 #endif
 
