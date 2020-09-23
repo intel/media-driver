@@ -73,11 +73,9 @@ enum FeatureType
 enum SurfaceType
 {
     SurfaceTypeInvalid = 0,
-    SurfaceTypeVeboxInput,
-    SurfaceTypeVeboxPreviousInput,
+    SurfaceTypeDNRef,
     SurfaceTypeDNOutput,
-    SurfaceTypeVeboxCurrentOutput,
-    SurfaceTypeVeboxPreviousOutput,
+    SurfaceTypeVeboxoutput,
     SurfaceTypeScalar,
     SurfaceTypeSTMMIn,
     SurfaceTypeSTMMOut,
@@ -96,8 +94,6 @@ enum SurfaceType
     SurfaceTypeVeboxStateHeap_Knr,
     NumberOfSurfaceType
 };
-
-typedef std::map<SurfaceType, VP_SURFACE*> VP_SURFACE_GROUP;
 
 #define FEATURE_TYPE_MASK   0xffffff00
 

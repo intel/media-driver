@@ -258,49 +258,82 @@ namespace vp {
         uint32_t dwPad[7];
     };
 
-struct VP_FRAME_IDS
-{
-    bool        valid;
-    bool        diEnabled;
-    int32_t     currentFrameId;
-    bool        pastFrameAvailable;
-    bool        futureFrameAvailable;
-    int32_t     pastFrameId;
-    int32_t     futureFrameId;
-};
-
 class VpResourceManager
 {
 public:
     VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting);
     virtual ~VpResourceManager();
-    MOS_STATUS StartProcessNewFrame(SwFilterPipe &pipe);
-    MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE_GROUP &surfGroup);
-    virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE_GROUP &surfGroup);
-    bool IsSameSamples()
+
+    virtual MOS_STATUS AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface);
+
+    VP_SURFACE* GetVeboxDNOutputSurface()
     {
-        return m_sameSamples;
+        VP_SURFACE* surface = m_veboxDenoiseOutput[m_currentDnOutput];
+
+        if (surface)
+        {
+            m_currentDnOutput  = (m_currentDnOutput +1) & 1;
+        }
+
+        return surface;
     }
 
-    bool IsRefValid()
+    VP_SURFACE* GetVeboxDNReferenceSurface()
     {
-        return m_currentFrameIds.pastFrameAvailable || m_currentFrameIds.futureFrameAvailable;
+        VP_SURFACE* surface = m_veboxDenoiseOutput[m_currentDnOutput];
+
+        return surface;
+    }
+
+    VP_SURFACE* GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps);
+
+    VP_SURFACE* GetVeboxSTMMSurfaceIn()
+    {
+        VP_SURFACE* surface = m_veboxSTMMSurface[m_currentStmmIndex];
+
+        return surface;
+    }
+
+    VP_SURFACE* GetVeboxSTMMSurfaceOut()
+    {
+        if (m_veboxSTMMSurface[0])
+        {
+            m_currentStmmIndex = (m_currentStmmIndex + 1) & 1;
+        }
+
+        VP_SURFACE* surface = m_veboxSTMMSurface[m_currentStmmIndex];
+        return surface;
+    }
+
+    VP_SURFACE* GetVeboxStatisticsSurface()
+    {
+        return m_veboxStatisticsSurface;
+    }
+
+    virtual VP_SURFACE* GetVeboxRgbHistogram()
+    {
+        return m_veboxRgbHistogram;
+    }
+
+    VP_SURFACE* GetVeboxDNTempSurface()
+    {
+        return m_veboxDNTempSurface;
+    }
+
+    VP_SURFACE* GetVeboxDNSpatialConfigSurface()
+    {
+        return m_veboxDNSpatialConfigSurface;
+    }
+
+    VP_SURFACE* GetVebox3DLookUpTables()
+    {
+        return m_vebox3DLookUpTables;
     }
 
 protected:
-    VP_SURFACE* GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *outputSurface);
     MOS_STATUS InitVeboxSpatialAttributesConfiguration();
-    MOS_STATUS AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface);
+
     bool VeboxOutputNeeded(VP_EXECUTE_CAPS& caps);
-    bool VeboxDenoiseOutputNeeded(VP_EXECUTE_CAPS& caps);
-    bool VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps);
-    virtual uint32_t GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight);
-    MOS_STATUS ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, bool &allocated);
-    MOS_STATUS ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated);
-    MOS_STATUS ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated);
-    void DestoryVeboxOutputSurface();
-    void DestoryVeboxDenoiseOutputSurface();
-    void DestoryVeboxSTMMSurface();
 
 protected:
     MOS_INTERFACE                &m_osInterface;
@@ -309,7 +342,7 @@ protected:
 
     // Vebox Resource
     VP_SURFACE* m_veboxDenoiseOutput[VP_NUM_DN_SURFACES] = {};            //!< Vebox Denoise output surface
-    VP_SURFACE* m_veboxOutput[VP_MAX_NUM_VEBOX_SURFACES] = {};            //!< Vebox output surface, can be reuse for DI usages
+    VP_SURFACE* m_veboxOutput[VP_MAX_NUM_VEBOX_SURFACES] = {};            //!< Vebox output surface, can be reuse be DI usages
     VP_SURFACE* m_veboxSTMMSurface[VP_NUM_STMM_SURFACES] = {};            //!< Vebox STMM input/output surface
     VP_SURFACE *m_veboxStatisticsSurface                 = nullptr;       //!< Statistics Surface for VEBOX
     VP_SURFACE *m_veboxRgbHistogram                      = nullptr;       //!< RGB Histogram surface for Vebox
@@ -319,13 +352,6 @@ protected:
     uint32_t    m_currentDnOutput                        = 0;
     uint32_t    m_currentStmmIndex                       = 0;
     uint32_t    m_veboxOutputCount                       = 2;             //!< PE on: 4 used. PE off: 2 used
-
-    VP_FRAME_IDS m_currentFrameIds                       = {};
-    VP_FRAME_IDS m_pastFrameIds                      = {};
-    bool         m_firstFrame                            = true;
-    bool         m_sameSamples                           = false;
-    bool         m_outOfBound                            = false;
-    RECT         m_maxSrcRect                            = {};
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__

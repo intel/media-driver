@@ -304,8 +304,6 @@ public:
              return nullptr;
          }
 
-        type = (FeatureType)(type & FEATURE_TYPE_MASK);
-
         auto handler = m_swFilterHandler->find(type);
 
         if (handler != m_swFilterHandler->end())

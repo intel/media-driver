@@ -125,7 +125,7 @@ MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
     VP_SURFACE *inputSurf = m_swFilterPipe->GetSurface(true, 0);
     VP_SURFACE *outputSurf = m_swFilterPipe->GetSurface(false, 0);
     // previousSurf can be nullptr;
-    VP_SURFACE *previousSurf = m_swFilterPipe->GetPastSurface(0);
+    VP_SURFACE *previousSurf = m_swFilterPipe->GetPreviousSurface(0);
     auto &internalSurfaces = m_swFilterPipe->GetSurfacesGroup();
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);

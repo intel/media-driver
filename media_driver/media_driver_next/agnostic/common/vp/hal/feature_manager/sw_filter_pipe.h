@@ -133,13 +133,12 @@ public:
     MOS_STATUS AddSwFilterUnordered(SwFilter *swFilter, bool isInputPipe, int index);
     MOS_STATUS RemoveSwFilter(SwFilter *swFilter);
     VP_SURFACE *GetSurface(bool isInputSurface, uint32_t index);
-    VP_SURFACE *GetPastSurface(uint32_t index);
-    VP_SURFACE *GetFutureSurface(uint32_t index);
+    VP_SURFACE *GetPreviousSurface(uint32_t index);
     VP_SURFACE *RemoveSurface(bool isInputSurface, uint32_t index);
     MOS_STATUS AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint32_t index);
     MOS_STATUS Update();
     uint32_t GetSurfaceCount(bool isInputSurface);
-    VP_SURFACE_GROUP &GetSurfacesGroup()
+    std::map<SurfaceType, VP_SURFACE*> &GetSurfacesGroup()
     {
         return m_surfacesGroup;
     }
@@ -172,11 +171,11 @@ protected:
 
     std::vector<VP_SURFACE *>           m_InputSurfaces;
     std::vector<VP_SURFACE *>           m_OutputSurfaces;
-    std::vector<VP_SURFACE *>           m_pastSurface;
-    std::vector<VP_SURFACE *>           m_futureSurface;
+    std::vector<VP_SURFACE *>           m_PreviousSurface;
+    std::vector<VP_SURFACE *>           m_NextSurface;
     // Only be used for executedFilters in HW_FILTER_PARAMS. It contains the internal surfaces, including the
     // statistic buffer and histogram, for one submission, which are managed by resource manager.
-    VP_SURFACE_GROUP                    m_surfacesGroup;
+    std::map<SurfaceType, VP_SURFACE*>  m_surfacesGroup;
 
     VpInterface                         &m_vpInterface;
 

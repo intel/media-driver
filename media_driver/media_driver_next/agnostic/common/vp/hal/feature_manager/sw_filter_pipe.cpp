@@ -175,9 +175,8 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
             return MOS_STATUS_NULL_POINTER;
         }
         m_InputSurfaces.push_back(surf);
-        // Keep m_pastSurface same size as m_InputSurfaces.
-        m_pastSurface.push_back(nullptr);
-        m_futureSurface.push_back(nullptr);
+        // Keep m_PreviousSurface same size as m_InputSurfaces.
+        m_PreviousSurface.push_back(nullptr);
 
         // Initialize m_InputPipes.
         SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
@@ -248,9 +247,8 @@ MOS_STATUS SwFilterPipe::Initialize(VEBOX_SFC_PARAMS &params)
             return MOS_STATUS_NULL_POINTER;
         }
         m_InputSurfaces.push_back(input);
-        // Keep m_PastSurface same size as m_InputSurfaces.
-        m_pastSurface.push_back(nullptr);
-        m_futureSurface.push_back(nullptr);
+        // Keep m_PreviousSurface same size as m_InputSurfaces.
+        m_PreviousSurface.push_back(nullptr);
 
         // Initialize m_InputPipes.
         SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
@@ -345,7 +343,7 @@ MOS_STATUS SwFilterPipe::Clean()
         }
     }
 
-    std::vector<VP_SURFACE *> *surfacesArray[] = {&m_InputSurfaces, &m_OutputSurfaces, &m_pastSurface, &m_futureSurface};
+    std::vector<VP_SURFACE *> *surfacesArray[] = {&m_InputSurfaces, &m_OutputSurfaces, &m_PreviousSurface, &m_NextSurface};
     for (auto surfaces : surfacesArray)
     {
         while (!surfaces->empty())
@@ -656,14 +654,9 @@ VP_SURFACE *SwFilterPipe::GetSurface(bool isInputSurface, uint32_t index)
     }
 }
 
-VP_SURFACE *SwFilterPipe::GetPastSurface(uint32_t index)
+VP_SURFACE *SwFilterPipe::GetPreviousSurface(uint32_t index)
 {
-    return index < m_pastSurface.size() ? m_pastSurface[index] : nullptr;
-}
-
-VP_SURFACE *SwFilterPipe::GetFutureSurface(uint32_t index)
-{
-    return index < m_futureSurface.size() ? m_futureSurface[index] : nullptr;
+    return index < m_PreviousSurface.size() ? m_PreviousSurface[index] : nullptr;
 }
 
 VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
@@ -677,9 +670,8 @@ VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
 
         if (isInputSurface)
         {
-            // Keep m_pastSurface and m_futureSurface same status as m_InputSurfaces.
-            m_pastSurface[index] = nullptr;
-            m_futureSurface[index] = nullptr;
+            // Keep m_PreviousSurface same status as m_InputSurfaces.
+            m_PreviousSurface[index] = nullptr;
         }
 
         return surf;
@@ -697,9 +689,8 @@ MOS_STATUS SwFilterPipe::AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint
         surfaces.push_back(nullptr);
         if (isInputSurface)
         {
-            // Keep m_PastSurface same size as m_InputSurfaces.
-            m_pastSurface.push_back(nullptr);
-            m_futureSurface.push_back(nullptr);
+            // Keep m_PreviousSurface same size as m_InputSurfaces.
+            m_PreviousSurface.push_back(nullptr);
         }
     }
 
@@ -769,24 +760,13 @@ MOS_STATUS SwFilterPipe::RemoveUnusedLayers(bool bUpdateInput)
 
         if (bUpdateInput)
         {
-            // Keep m_pastSurface same size as m_InputSurfaces.
-            itSurf = m_pastSurface.begin();
-            for (i = 0; itSurf != m_pastSurface.end(); ++itSurf, ++i)
+            // Keep m_PreviousSurface same size as m_InputSurfaces.
+            itSurf = m_PreviousSurface.begin();
+            for (i = 0; itSurf != m_PreviousSurface.end(); ++itSurf, ++i)
             {
                 if (i == index)
                 {
-                    m_pastSurface.erase(itSurf);
-                    break;
-                }
-            }
-
-            // Keep m_futureSurface same size as m_InputSurfaces.
-            itSurf = m_futureSurface.begin();
-            for (i = 0; itSurf != m_futureSurface.end(); ++itSurf, ++i)
-            {
-                if (i == index)
-                {
-                    m_futureSurface.erase(itSurf);
+                    m_PreviousSurface.erase(itSurf);
                     break;
                 }
             }
