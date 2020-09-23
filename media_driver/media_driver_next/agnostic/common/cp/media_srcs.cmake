@@ -21,13 +21,8 @@
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decodecp_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/cp_streamout_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_cp_bitstream.h
 )
 
-set(SOURCES_NEW
-    ${SOURCES_NEW}
-    ${TMP_SOURCES_}
-)
 set(HEADERS_NEW
     ${HEADERS_NEW}
     ${TMP_HEADERS_}

@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,11 @@ endmacro()
 
 # add current path to include path
 macro(media_add_curr_to_include_path)
-    include_directories(${CMAKE_CURRENT_LIST_DIR})
+    if(${PLATFORM} STREQUAL "linux")
+        include_directories(${CMAKE_CURRENT_LIST_DIR})
+    else()
+        media_add_curr_to_include_path_ext(${CMAKE_CURRENT_LIST_DIR})
+    endif()
 endmacro()
 
 # MediaSetLinkerFlags: apply linker flags for given configuration

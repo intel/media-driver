@@ -20,4 +20,3 @@
 
 media_include_subdirectory(dec)
 
-media_add_curr_to_include_path()

@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,18 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decodecp_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cp_streamout_interface.cpp
 )
-
-set(SOURCES_
-    ${SOURCES_}
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/cp_interfaces_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_cp_bitstream.h
+)
+set(SOURCES_NEW
+    ${SOURCES_NEW}
     ${TMP_SOURCES_}
+ )
+
+set(HEADERS_NEW
+    ${HEADERS_NEW}
+    ${TMP_HEADERS_}
  )
 
 media_add_curr_to_include_path()
