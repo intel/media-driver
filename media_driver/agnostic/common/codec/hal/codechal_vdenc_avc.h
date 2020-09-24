@@ -604,7 +604,6 @@ public:
 
     virtual MOS_STATUS StoreHucErrorStatus(MmioRegistersHuc* mmioRegisters, PMOS_COMMAND_BUFFER cmdBuffer, bool addToEncodeStatus);
 
-
     //!
     //! \brief    VDENC BRC InitReset HuC FW Cmd.
     //!
@@ -891,7 +890,6 @@ protected:
     MOS_RESOURCE                                m_pakStatsBuffer;                  //!< Handle of PAK status buffer
     MOS_RESOURCE                                m_pakStatsBufferFull;              //!< Handle of PAK status buffer include PerMB and frame level.
     MOS_RESOURCE                                m_vdencStatsBuffer;                //!< Handle of VDEnc status buffer
-    MOS_RESOURCE                                m_vdencColocatedMVBuffer;           //!< Handle of colocated MV buffer
     MOS_RESOURCE                                m_vdencTlbMmioBuffer;              //!< VDEnc TLB MMIO buffer
 
     uint32_t                                    m_mmioMfxLra0Override = 0;         //!< Override Register MFX_LRA_0
@@ -970,7 +968,6 @@ protected:
     bool                                m_forceToSkipEnable;                                            //!< Force to Skip Flag.
     uint32_t                            m_vdencBrcInitDmemBufferSize;                                   //!< Brc Init-Dmem Buffer Size.
     uint32_t                            m_vdencBrcUpdateDmemBufferSize;                                 //!< Brc Update-Dmem Buffer Size.
-    uint32_t                            m_vdencColocatedMVBufferSize;                                   //!< Colocated MV Read / Write Buffer Size.
     bool                                m_vdencStaticFrame;                                             //!< Static Frame Indicator.
     uint32_t                            m_vdencStaticRegionPct;                                         //!< Ratio of Static Region in One Frame.
     bool                                m_oneOnOneMapping = false;                                      //!< Indicate if one on one ref index mapping is enabled

@@ -310,8 +310,8 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     PMOS_RESOURCE               presVdenc4xDsSurface[CODEC_MAX_NUM_REF_FRAME] = {};
     PMOS_RESOURCE               presVdenc8xDsSurface[CODEC_MAX_NUM_REF_FRAME] = {};
 
-    PMOS_RESOURCE               presVdencColocatedMVWriteBuffer = nullptr;                      // For AVC only
-    PMOS_RESOURCE               presVdencColocatedMVReadBuffer    = nullptr;                      // For AVC only
+    PMOS_RESOURCE               presVdencColocatedMVWriteBuffer = nullptr;                 // For AVC only
+    PMOS_RESOURCE               presVdencColocatedMVReadBuffer    = nullptr;               // For AVC only
     PMOS_RESOURCE               presDeblockingFilterTileRowStoreScratchBuffer = nullptr;   // For HEVC, VP9
     PMOS_RESOURCE               presDeblockingFilterColumnRowStoreScratchBuffer = nullptr; // For HEVC, VP9
     PMOS_RESOURCE               presMetadataLineBuffer = nullptr;                          // For HEVC, VP9

@@ -1309,10 +1309,6 @@ void CodechalVdencAvcStateG12::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS&
     }
     paramsG12->oneOnOneMapping = m_oneOnOneMapping;
     paramsG12->bStreamInMbQpEnabled = m_encodeParams.bMbQpDataEnabled;
-
-    if (!MEDIA_IS_WA(m_waTable, WaEnableOnlyASteppingFeatures)) {
-        paramsG12->tuSettingsRevision = 1;
-    }
 }
 
 PMHW_VDBOX_STATE_CMDSIZE_PARAMS CodechalVdencAvcStateG12::CreateMhwVdboxStateCmdsizeParams()
