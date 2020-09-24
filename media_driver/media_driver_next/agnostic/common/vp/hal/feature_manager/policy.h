@@ -73,8 +73,9 @@ protected:
     virtual MOS_STATUS RegisterFeatures();
     MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
     MOS_STATUS GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
-    virtual MOS_STATUS BuildExecutionEngines(SwFilterSubPipe& SwFilterPipe);
+    virtual MOS_STATUS BuildExecutionEngines(SwFilterSubPipe &SwFilterPipe);
 
+    MOS_STATUS GetCSCExecutionCapsHdr(SwFilter *hdr, SwFilter *csc);
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
@@ -82,6 +83,7 @@ protected:
     MOS_STATUS GetSteExecutionCaps(SwFilter* feature);
     MOS_STATUS GetTccExecutionCaps(SwFilter* feature);
     MOS_STATUS GetProcampExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetHdrExecutionCaps(SwFilter *feature);
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
 
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);

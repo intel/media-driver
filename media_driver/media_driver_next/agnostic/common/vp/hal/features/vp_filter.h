@@ -233,13 +233,22 @@ struct _VEBOX_CSC_PARAMS
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
 };
 
-
 struct _VEBOX_UPDATE_PARAMS
 {
     bool                            bSecureCopyVeboxState;
     bool                            bDnEnabled;
     bool                            bAutoDetect;
     VPHAL_NOISELEVEL                NoiseLevel;
+};
+
+struct _VEBOX_HDR_PARAMS
+{
+    uint32_t                        uiMaxDisplayLum;       //!< Maximum Display Luminance
+    uint32_t                        uiMaxContentLevelLum;  //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE                  hdrMode;
+    VPHAL_CSPACE                    srcColorSpace;
+    VPHAL_CSPACE                    dstColorSpace;
+    MOS_FORMAT                      dstFormat;
 };
 
 using SFC_SCALING_PARAMS    = _SFC_SCALING_PARAMS;
@@ -264,6 +273,8 @@ using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;
 using PVEBOX_CSC_PARAMS     = VEBOX_CSC_PARAMS *;
 using VEBOX_UPDATE_PARAMS      = _VEBOX_UPDATE_PARAMS;
 using PVEBOX_UPDATE_PARAMS     = VEBOX_UPDATE_PARAMS *;
+using VEBOX_HDR_PARAMS      = _VEBOX_HDR_PARAMS;
+using PVEBOX_HDR_PARAMS     = VEBOX_HDR_PARAMS *;
 
 class SwFilterPipe;
 class HwFilter;
