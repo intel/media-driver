@@ -215,6 +215,63 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
         targetSurface.CompressionMode = MOS_MMC_RC;
     }
 
+    //if surface is linear buffer, use mos copy
+    if (sourceSurface.TileType == MOS_TILE_LINEAR          &&
+        targetSurface.TileType == MOS_TILE_LINEAR          &&
+        sourceSurface.Type     == MOS_GFXRES_BUFFER        &&
+        targetSurface.Type     == MOS_GFXRES_BUFFER )
+    {
+        DumpSurfaceMemDecomp(sourceSurface, m_surfaceDumpCounter, 1, VPHAL_DBG_DUMP_TYPE_PRE_MEMDECOMP);
+        do
+        {
+            MOS_LOCK_PARAMS lockSourceFlags;
+            MOS_ZeroMemory(&lockSourceFlags, sizeof(MOS_LOCK_PARAMS));
+            lockSourceFlags.ReadOnly     = 1;
+            lockSourceFlags.WriteOnly    = 0;
+
+            MOS_LOCK_PARAMS lockTargetFlags;
+            MOS_ZeroMemory(&lockTargetFlags, sizeof(MOS_LOCK_PARAMS));
+            lockTargetFlags.ReadOnly     = 0;
+            lockTargetFlags.WriteOnly    = 1;
+
+            uint8_t *lockedSrcAddr       = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &sourceSurface.OsResource, &lockSourceFlags);
+
+            if (lockedSrcAddr == nullptr)
+            {
+                //non lockable resource enabled, we can't lock source surface
+                eStatus = MOS_STATUS_NULL_POINTER;
+                VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("Failed to lock non-lockable input resource, buffer copy failed, eStatus:%d.\n", eStatus);
+                break;
+            }
+
+            uint8_t *lockedTarAddr       = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &targetSurface.OsResource, &lockTargetFlags);
+
+            if (lockedTarAddr == nullptr)
+            {
+                eStatus = MOS_STATUS_NULL_POINTER;
+                m_osInterface->pfnUnlockResource(m_osInterface, &sourceSurface.OsResource);
+                VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("Failed to lock non-lockable output resource, buffer copy failed, eStatus:%d.\n", eStatus);
+                break;
+            }
+            // This resource is a series of bytes. Is not 2 dimensional.
+            uint32_t sizeSrcMain    = sourceSurface.dwWidth;
+            uint32_t sizeTargetMain = targetSurface.dwWidth;
+            eStatus                 = MOS_SecureMemcpy(lockedTarAddr, sizeTargetMain, lockedSrcAddr, sizeSrcMain);
+            m_osInterface->pfnUnlockResource(m_osInterface, &sourceSurface.OsResource);
+            m_osInterface->pfnUnlockResource(m_osInterface, &targetSurface.OsResource);
+
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("Failed to copy linear buffer from source to target, eStatus:%d.\n", eStatus);
+                break;
+            }
+        } while (false);
+
+        DumpSurfaceMemDecomp(targetSurface, m_surfaceDumpCounter++, 1, VPHAL_DBG_DUMP_TYPE_POST_MEMDECOMP);
+        MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+        return eStatus;
+    }
+
     //Get context before proceeding
     auto gpuContext = m_osInterface->CurrentGpuContextOrdinal;
 
