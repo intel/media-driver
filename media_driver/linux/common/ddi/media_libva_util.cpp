@@ -540,7 +540,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     memPolicyPar.waTable = &mediaDrvCtx->WaTable;
     memPolicyPar.resInfo = mediaSurface->pGmmResourceInfo;
     memPolicyPar.resName = "Media Surface";
-    memPolicyPar.preferredMemType = mem_type;
+    memPolicyPar.preferredMemType = (MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaForceAllocateLML4)) ? MOS_MEMPOOL_DEVICEMEMORY : mem_type;
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 
