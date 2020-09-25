@@ -1339,10 +1339,11 @@ typedef struct _MOS_INTERFACE
     MOS_FORCE_VEBOX                 eForceVebox;                                  //!< Force select Vebox
     int32_t                         bHcpDecScalabilityMode;                       //!< enable scalability decode {mode: default, user force, false}
     int32_t                         bEnableDbgOvrdInVE;                           //!< It is for all scalable engines: used together with KMD VE for UMD to specify an engine directly
-    int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
     int32_t                         bSoftReset;                                   //!< trigger soft reset
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     bool streamStateIniter = false;
+
+    int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
 
     //!< os interface extension
     void                            *pOsExt;
