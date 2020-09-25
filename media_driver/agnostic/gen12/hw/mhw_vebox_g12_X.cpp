@@ -201,6 +201,26 @@ MhwVeboxInterfaceG12::MhwVeboxInterfaceG12(
     MEDIA_SYSTEM_INFO *pGtSystemInfo;
 
     m_veboxSettings             = g_Vebox_Settings_g12;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // On G12, HDR state will be used if 1K 1DLUT mapping needed. Only for debug purpose.
+    {
+        MOS_STATUS                          eRegStatus = MOS_STATUS_SUCCESS;
+        MOS_USER_FEATURE_VALUE_DATA         UserFeatureData = {};
+        bool                                b1K1DLutEnabled = false;
+        eRegStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __VPHAL_ENABLE_1K_1DLUT_ID,
+            &UserFeatureData,
+            m_osInterface->pOsContext);
+        if (eRegStatus == MOS_STATUS_SUCCESS)
+        {
+            b1K1DLutEnabled = (UserFeatureData.u32Data > 0) ? true : false;
+        }
+        m_veboxSettings.uiHdrStateSize = b1K1DLutEnabled ? MHW_PAGE_SIZE * 18 : m_veboxSettings.uiHdrStateSize;
+    }
+#endif
+
     m_vebox0InUse               = false;
     m_vebox1InUse               = false;
     m_veboxScalabilitySupported = false;
@@ -806,11 +826,21 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
 
         HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiIecpStateSize);
 
-        if (pVeboxStateCmdParams->pVebox1DLookUpTables)
+        // Gamut Expansion, HDR and Forward Gamma Correction are mutually exclusive.
+        if (pVeboxMode && pVeboxMode->Hdr1DLutEnable)
         {
+            // If HDR is enabled, this points to a buffer containing the HDR state.
             MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            ResourceParams.presResource         = pVeboxStateCmdParams->pVebox1DLookUpTables;
-            ResourceParams.dwOffset             = 0;
+            if (bCmBuffer)
+            {
+                ResourceParams.presResource     = pVeboxParamResource;
+                ResourceParams.dwOffset         = pVeboxHeap->uiHdrStateOffset;
+            }
+            else
+            {
+                ResourceParams.presResource     = pVeboxHeapResource;
+                ResourceParams.dwOffset         = pVeboxHeap->uiHdrStateOffset + uiInstanceBaseAddr;
+            }
             ResourceParams.pdwCmd               = &(cmd.DW6.Value);
             ResourceParams.dwLocationInCmd      = 6;
             ResourceParams.HwCommandType        = MOS_VEBOX_STATE;
@@ -820,9 +850,12 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
                 pOsInterface,
                 pCmdBuffer,
                 &ResourceParams));
+
+            HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiHdrStateSize);
         }
         else
         {
+            // If Gamut Expansion is enabled, this points to a buffer containing the Gamut Expansion Gamma Correction state.
             MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
             if (bCmBuffer)
             {
@@ -1726,6 +1759,85 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
         MHW_ASSERTMESSAGE("Unknown branch!");
     }
 
+finish:
+    return eStatus;
+}
+
+MOS_STATUS MhwVeboxInterfaceG12::AddVeboxHdrState(
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+{
+    MOS_STATUS                              eStatus        = MOS_STATUS_SUCCESS;
+    mhw_vebox_g12_X::VEBOX_HDR_STATE_CMD   *pVeboxHdrState = nullptr;
+    mhw_vebox_g12_X::VEBOX_IECP_STATE_CMD  *pIecpState     = nullptr;
+    PMHW_VEBOX_HEAP                         pVeboxHeap     = nullptr;
+    uint32_t                                uiOffset       = 0;
+
+    MHW_CHK_NULL(pVeboxIecpParams);
+    MHW_CHK_NULL(m_veboxHeap);
+
+    pVeboxHeap = m_veboxHeap;
+    uiOffset   = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
+
+    pVeboxHdrState =
+        (mhw_vebox_g12_X::VEBOX_HDR_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
+                                                 pVeboxHeap->uiHdrStateOffset +
+                                                 uiOffset);
+
+    pIecpState =
+        (mhw_vebox_g12_X::VEBOX_IECP_STATE_CMD*)(pVeboxHeap->pLockedDriverResourceMem +
+                                                 pVeboxHeap->uiIecpStateOffset +
+                                                 uiOffset);
+
+    MHW_CHK_NULL(pVeboxHdrState);
+    MHW_CHK_NULL(pIecpState);
+
+    // Program 1DLUT in Inverse Gamma with 1024 entries / 16bit precision from API level
+    if (pVeboxIecpParams->s1DLutParams.bActive && (pVeboxIecpParams->s1DLutParams.LUTSize == 1024))
+    {
+        // HW provides 4K 1DLUT inverse gamma
+        mhw_vebox_g12_X::VEBOX_HDR_INV_GAMMA_CORRECTION_STATE_CMD* pInverseGamma = pVeboxHdrState->PRGBCorrectedValue;
+        uint16_t* p1DLut = (uint16_t*)pVeboxIecpParams->s1DLutParams.p1DLUT;
+        for (uint32_t i = 0; i < pVeboxIecpParams->s1DLutParams.LUTSize; i++)
+        {
+            pInverseGamma[i * 4].DW0.Value = 0;
+            pInverseGamma[i * 4].DW1.InverseRChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 1] << 16);  // 32 bit precision
+            pInverseGamma[i * 4].DW2.InverseGChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 2] << 16);  // 32 bit precision
+            pInverseGamma[i * 4].DW3.InverseBChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 3] << 16);  // 32 bit precision
+
+            pInverseGamma[i * 4 + 1] = pInverseGamma[i * 4];
+            pInverseGamma[i * 4 + 2] = pInverseGamma[i * 4];
+            pInverseGamma[i * 4 + 3] = pInverseGamma[i * 4];
+        }
+
+        pVeboxHdrState->DW17440.ToneMappingEnable = false;
+
+        // Program Forward Gamma as identity matrix
+        mhw_vebox_g12_X::VEBOX_HDR_FWD_GAMMA_CORRECTION_STATE_CMD* pForwardGamma = pVeboxHdrState->ForwardGammaLUTvalue;
+        for (uint32_t i = 0; i < 256; i++)
+        {
+            pForwardGamma[i].DW0.PointValueForForwardGammaLut = (uint32_t)((uint64_t)pow(2, 32) - 1) / 255 * i;  // 32 bit precision
+            pForwardGamma[i].DW1.ForwardRChannelGammaCorrectionValue = 257 * i;                 // 16 bit precision
+            pForwardGamma[i].DW2.ForwardGChannelGammaCorrectionValue = 257 * i;                 // 16 bit precision
+            pForwardGamma[i].DW3.ForwardBChannelGammaCorrectionValue = 257 * i;                 // 16 bit precision
+        }
+        // Program CCM as identity matrix
+        pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = true;
+        pIecpState->CcmState.DW1.C0 = 65536;
+        pIecpState->CcmState.DW0.C1 = 0;
+        pIecpState->CcmState.DW3.C2 = 0;
+        pIecpState->CcmState.DW2.C3 = 0;
+        pIecpState->CcmState.DW5.C4 = 65536;
+        pIecpState->CcmState.DW4.C5 = 0;
+        pIecpState->CcmState.DW7.C6 = 0;
+        pIecpState->CcmState.DW6.C7 = 0;
+        pIecpState->CcmState.DW8.C8 = 65536;
+        pIecpState->CcmState.DW9.OffsetInR = 0;
+        pIecpState->CcmState.DW10.OffsetInG = 0;
+        pIecpState->CcmState.DW11.OffsetInB = 0;
+        pIecpState->CcmState.DW12.OffsetOutR = 0;
+        pIecpState->CcmState.DW13.OffsetOutG = 0;
+        pIecpState->CcmState.DW14.OffsetOutB = 0;
+    }
 finish:
     return eStatus;
 }

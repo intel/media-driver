@@ -58,7 +58,7 @@ const MHW_VEBOX_SETTINGS g_Vebox_Settings_g11 =
     MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
     MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
     MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
-    0                                                                         //!< ui3DLUTSize
+    0                                                                         //!< uiHdrStateSize
 };
 
 class MhwVeboxInterfaceG11 : public MhwVeboxInterfaceGeneric<mhw_vebox_g11_X>

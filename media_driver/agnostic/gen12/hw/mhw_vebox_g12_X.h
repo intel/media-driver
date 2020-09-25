@@ -78,8 +78,7 @@ const MHW_VEBOX_SETTINGS g_Vebox_Settings_g12 =
     MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
     MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
     MHW_PAGE_SIZE * 2,                                                        //!< uiGammaCorrectionStateSize
-    0,                                                                        //!< ui3DLUTSize
-    0                                                                         //!< uiHdrStateSize
+    0,                                                                        //!< uiHdrStateSize
 };
 
 class MhwVeboxInterfaceG12 : public MhwVeboxInterfaceGeneric<mhw_vebox_g12_X>
@@ -127,6 +126,9 @@ public:
     MOS_STATUS AddVeboxGamutState(
         PMHW_VEBOX_IECP_PARAMS  pVeboxIecpParams,
         PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams);
+
+    MOS_STATUS AddVeboxHdrState(
+        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams);
 
     MOS_STATUS FindVeboxGpuNodeToUse(
         PMHW_VEBOX_GPUNODE_LIMIT pGpuNodeLimit);

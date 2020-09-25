@@ -44,7 +44,7 @@ const MHW_VEBOX_SETTINGS g_Vebox_Settings_g8 =
     MHW_PAGE_SIZE,                                                            //!< uiVertexTableSize
     MHW_PAGE_SIZE,                                                            //!< uiCapturePipeStateSize
     0,                                                                        //!< uiGammaCorrectionStateSize
-    0                                                                         //!< ui3DLUTSize
+    0                                                                         //!< uiHdrStateSize
 };
 
 class MhwVeboxInterfaceG8 : public MhwVeboxInterfaceGeneric<mhw_vebox_g8_X>

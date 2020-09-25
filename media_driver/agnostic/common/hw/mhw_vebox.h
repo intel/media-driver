@@ -791,8 +791,7 @@ typedef struct _MHW_VEBOX_HEAP
     uint32_t                uiVertexTableOffset;                                // Vertex Table offset
     uint32_t                uiCapturePipeStateOffset;                           // Capture Pipe state offset
     uint32_t                uiGammaCorrectionStateOffset;                       // Gamma Correction state offset
-    uint32_t                ui3DLUTStateOffset;                                 // 3D LUT state offset
-    uint32_t                ui1DLUTStateOffset;                                 // Hdr State offset
+    uint32_t                uiHdrStateOffset;                                   // Hdr State offset
     uint32_t                uiInstanceSize;                                     // Size of single instance of VEBOX states
     uint32_t                uiStateHeapSize;                                    // Total size of VEBOX States heap
     PMHW_VEBOX_HEAP_STATE   pStates;                                            // Array of VEBOX Heap States
@@ -819,8 +818,7 @@ typedef struct
     uint32_t            uiVertexTableSize;                                      // Vertex Table Size
     uint32_t            uiCapturePipeStateSize;                                 // Capture Pipe State Size (Gen8+)
     uint32_t            uiGammaCorrectionStateSize;                             // Gamma Correction State Size (Gen9+)
-    uint32_t            ui3DLUTStateSize;                                       // 3D LUT State Size (Gen10+)
-    uint32_t            ui1DLUTStateSize;                                       // VEBOX Hdr 1DLUT State Size
+    uint32_t            uiHdrStateSize;                                         // HDR State Size
 } MHW_VEBOX_SETTINGS, *PMHW_VEBOX_SETTINGS;
 typedef const MHW_VEBOX_SETTINGS CMHW_VEBOX_SETTINGS, *PCMHW_VEBOX_SETTINGS;
 
@@ -1119,7 +1117,7 @@ public:
     //!                                                              --------------------
     //!                                                             | Gamma Correction State |
     //!                                                              ------------------------
-    //!                                                             | 3D LUT State           |
+    //!                                                             | HDR State              |
     //!                                                              ------------------------
     //! \return   MOS_STATUS
     //!

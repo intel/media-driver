@@ -260,11 +260,8 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
     m_veboxHeap->uiGammaCorrectionStateOffset = uiOffset;
     uiOffset += m_veboxSettings.uiGammaCorrectionStateSize;
 
-    m_veboxHeap->ui3DLUTStateOffset = uiOffset;
-    uiOffset += m_veboxSettings.ui3DLUTStateSize;
-
-    m_veboxHeap->ui1DLUTStateOffset = uiOffset;
-    uiOffset += m_veboxSettings.ui1DLUTStateSize;
+    m_veboxHeap->uiHdrStateOffset = uiOffset;
+    uiOffset += m_veboxSettings.uiHdrStateSize;
 
     m_veboxHeap->uiInstanceSize = uiOffset;
 
