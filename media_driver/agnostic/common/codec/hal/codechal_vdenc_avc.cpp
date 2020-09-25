@@ -3044,6 +3044,7 @@ CodechalVdencAvcState::CodechalVdencAvcState(
     }
 
     MOS_ZeroMemory(&m_vdencIntraRowStoreScratchBuffer, sizeof(MOS_RESOURCE));
+    MOS_ZeroMemory(&m_vdencColocatedMVBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_pakStatsBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_vdencStatsBuffer, sizeof(MOS_RESOURCE));
     MOS_ZeroMemory(&m_pakStatsBufferFull, sizeof(MOS_RESOURCE));
@@ -3055,6 +3056,7 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencIntraRowStoreScratchBuffer);
+    m_osInterface->pfnFreeResource(m_osInterface, &m_vdencColocatedMVBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencStatsBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBufferFull);
@@ -5830,6 +5832,15 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         pipeBufAddrParams.presVdenc4xDsSurface[1]   = pipeBufAddrParams.presVdenc4xDsSurface[0];
     }
 
+    if (m_pictureCodingType == P_TYPE)
+    {
+        pipeBufAddrParams.presVdencColocatedMVWriteBuffer = &m_vdencColocatedMVBuffer;
+    }
+    else if (m_pictureCodingType == B_TYPE)
+    {
+        pipeBufAddrParams.presVdencColocatedMVReadBuffer = &m_vdencColocatedMVBuffer;
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
 
     MHW_VDBOX_VDENC_CQPT_STATE_PARAMS vdencCQPTStateParams;
@@ -6714,6 +6725,21 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDENC Intra Row Store Scratch Buffer.");
+        return eStatus;
+    }
+
+    //VDEnc colocated MV buffer
+    m_vdencColocatedMVBufferSize = (m_picWidthInMb * m_picHeightInMb) * (CODECHAL_CACHELINE_SIZE / 2);
+    allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_vdencColocatedMVBufferSize, CODECHAL_CACHELINE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDENC Colocated MV buffer";
+
+    eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_vdencColocatedMVBuffer);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate VDENC Colocated MV buffer.");
         return eStatus;
     }
 

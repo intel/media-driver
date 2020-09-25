@@ -472,7 +472,7 @@ private:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS AllocateMvTemporalBuffer();
+    virtual MOS_STATUS AllocateMvTemporalBuffer() { return MOS_STATUS_SUCCESS; }
 
     //!
     //! \brief  Allocate Ds Recon Surfaces Vdenc
