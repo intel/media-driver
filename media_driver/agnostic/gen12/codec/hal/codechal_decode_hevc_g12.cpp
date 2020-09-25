@@ -2292,6 +2292,14 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateStandard (
     m_picMhwParams.HevcPicState         = MOS_New(MHW_VDBOX_HEVC_PIC_STATE_G12);
     m_picMhwParams.HevcTileState        = MOS_New(MHW_VDBOX_HEVC_TILE_STATE);
 
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_picMhwParams.PipeModeSelectParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_picMhwParams.SurfaceParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_picMhwParams.PipeBufAddrParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_picMhwParams.IndObjBaseAddrParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_picMhwParams.QmParams);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_picMhwParams.HevcPicState);
+    CODECHAL_DECODE_CHK_NULL_RETURN(m_picMhwParams.HevcTileState);
+
     MOS_ZeroMemory(m_picMhwParams.SurfaceParams, sizeof(MHW_VDBOX_SURFACE_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.IndObjBaseAddrParams, sizeof(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.QmParams, sizeof(MHW_VDBOX_QM_PARAMS));
