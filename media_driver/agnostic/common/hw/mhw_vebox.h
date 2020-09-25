@@ -31,7 +31,7 @@
 #include "mos_os.h"
 #include "mhw_utilities.h"
 #include "mhw_cp_interface.h"
-
+#include "mhw_mi.h"
 #include <math.h>
 
 #define MHW_FORWARD_GAMMA_SEGMENT_COUNT       1024    //!< Forward Gamma Correction MAX Control Points
@@ -85,6 +85,8 @@
 #define MHW_VEBOX_WATCHDOG_ENABLE_COUNTER                 0x0
 #define MHW_VEBOX_WATCHDOG_DISABLE_COUNTER                0xFFFFFFFF
 #define MHW_VEBOX_TIMEOUT_MS                              60
+
+typedef MhwMiInterface *PMHW_MI_INTERFACE;
 
 //!
 //! \brief Color Spaces enum
@@ -1049,6 +1051,10 @@ public:
     finish:
         return eStatus;
     }
+
+    virtual MOS_STATUS setVeboxPrologCmd(
+        PMHW_MI_INTERFACE   mhwMiInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer) = 0;
 
 protected:
     MhwVeboxInterface(PMOS_INTERFACE pOsInterface);

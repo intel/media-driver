@@ -1078,10 +1078,8 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
 #ifdef _MMC_SUPPORTED
 
-    MhwVeboxInterfaceG12 *pVeboxInterfaceExt;
-    pVeboxInterfaceExt = (MhwVeboxInterfaceG12 *)pVeboxInterface;
+    VP_RENDER_CHK_STATUS_RETURN(pVeboxInterface->setVeboxPrologCmd(pMhwMiInterface, CmdBuffer));
 
-    VP_RENDER_CHK_STATUS_RETURN(pVeboxInterfaceExt->setVeboxPrologCmd(pMhwMiInterface, CmdBuffer));
 #endif
 
     HalOcaInterface::On1stLevelBBStart(*CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,

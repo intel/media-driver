@@ -159,6 +159,13 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS setVeboxPrologCmd(
+        PMHW_MI_INTERFACE   mhwMiInterface,
+        PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     //!
     //! \brief      Set Vebox Iecp  STDSTE State
