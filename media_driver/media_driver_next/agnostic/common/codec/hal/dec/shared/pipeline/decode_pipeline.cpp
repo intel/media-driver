@@ -32,6 +32,7 @@
 #include "media_packet.h"
 #include "decode_predication_packet.h"
 #include "decode_marker_packet.h"
+#include "decode_downsampling_packet.h"
 #include "codechal_setting.h"
 #include "decode_basic_feature.h"
 #include "mos_solo_generic.h"
@@ -100,7 +101,7 @@ MOS_STATUS DecodePipeline::CreateSubPipeLineManager(CodechalSetting* codecSettin
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodePipeline::CreateSubPackets(DecodeSubPacketManager& subPacketManager)
+MOS_STATUS DecodePipeline::CreateSubPackets(DecodeSubPacketManager& subPacketManager, CodechalSetting &codecSettings)
 {
     DecodePredicationPkt *predicationPkt = MOS_New(DecodePredicationPkt, this, m_hwInterface);
     DECODE_CHK_NULL(predicationPkt);
@@ -121,9 +122,10 @@ DecodeSubPacket* DecodePipeline::GetSubPacket(uint32_t subPacketId)
 
 MOS_STATUS DecodePipeline::CreateSubPacketManager(CodechalSetting* codecSettings)
 {
+    DECODE_CHK_NULL(codecSettings);
     m_subPacketManager = MOS_New(DecodeSubPacketManager);
     DECODE_CHK_NULL(m_subPacketManager);
-    DECODE_CHK_STATUS(CreateSubPackets(*m_subPacketManager));
+    DECODE_CHK_STATUS(CreateSubPackets(*m_subPacketManager, *codecSettings));
     DECODE_CHK_STATUS(m_subPacketManager->Init());
     return MOS_STATUS_SUCCESS;
 }
@@ -284,6 +286,22 @@ bool DecodePipeline::IsCompleteBitstream()
     return (m_bitstream == nullptr) ? false : m_bitstream->IsComplete();
 }
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+bool DecodePipeline::IsDownSamplingSupported()
+{
+    DECODE_ASSERT(m_subPacketManager != nullptr);
+
+    DecodeDownSamplingPkt *downSamplingPkt = dynamic_cast<DecodeDownSamplingPkt *>(
+        GetSubPacket(DecodePacketId(this, downSamplingSubPacketId)));
+    if (downSamplingPkt == nullptr)
+    {
+        return false;
+    }
+
+    return downSamplingPkt->IsSupported();
+}
+#endif
+
 MOS_SURFACE* DecodePipeline::GetDummyReference()
 {
     auto* feature = dynamic_cast<DecodeBasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
@@ -304,5 +322,55 @@ void DecodePipeline::SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_STATUS sta
         feature->m_dummyReferenceStatus = status;
     }
 }
+
+#if USE_CODECHAL_DEBUG_TOOL
+#ifdef _DECODE_PROCESSING_SUPPORTED
+MOS_STATUS DecodePipeline::DumpDownSamplingParams(DecodeDownSamplingFeature &downSamplingParams)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeProcParams))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if(downSamplingParams.m_inputSurface == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::ostringstream oss;
+    oss.setf(std::ios::showbase | std::ios::uppercase);
+
+    oss << "Input Surface Resolution: "
+        << +downSamplingParams.m_inputSurface->dwWidth << " x " << +downSamplingParams.m_inputSurface->dwHeight << std::endl;
+    oss << "Input Region Resolution: "
+        << +downSamplingParams.m_inputSurfaceRegion.m_width << " x " << +downSamplingParams.m_inputSurfaceRegion.m_height << std::endl;
+    oss << "Input Region Offset: ("
+        << +downSamplingParams.m_inputSurfaceRegion.m_x << "," << +downSamplingParams.m_inputSurfaceRegion.m_y << ")" << std::endl;
+    oss << "Input Surface Format: "
+        << (downSamplingParams.m_inputSurface->Format == Format_NV12 ? "NV12" : "P010" )<< std::endl;
+    oss << "Output Surface Resolution: "
+        << +downSamplingParams.m_outputSurface.dwWidth << " x " << +downSamplingParams.m_outputSurface.dwHeight << std::endl;
+    oss << "Output Region Resolution: "
+        << +downSamplingParams.m_outputSurfaceRegion.m_width << " x " << +downSamplingParams.m_outputSurfaceRegion.m_height << std::endl;
+    oss << "Output Region Offset: ("
+        << +downSamplingParams.m_outputSurfaceRegion.m_x << ", " << +downSamplingParams.m_outputSurfaceRegion.m_y << ")" << std::endl;
+    oss << "Output Surface Format: "
+        << (downSamplingParams.m_outputSurface.Format == Format_NV12 ? "NV12" : "YUY2" )<< std::endl;
+
+    const char* filePath = m_debugInterface->CreateFileName(
+        "_DEC",
+        CodechalDbgBufferType::bufDecProcParams,
+        CodechalDbgExtType::txt);
+
+    std::ofstream ofs(filePath, std::ios::out);
+    ofs << oss.str();
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+#endif
+#endif
 
 }

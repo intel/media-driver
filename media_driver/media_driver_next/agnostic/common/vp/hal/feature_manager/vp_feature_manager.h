@@ -162,7 +162,7 @@ public:
     VpFeatureManagerNext(VpInterface& vpInterface);
     virtual ~VpFeatureManagerNext();
 
-    virtual MOS_STATUS Initialize();
+    virtual MOS_STATUS Init(void* settings) override;
     virtual MOS_STATUS InitPacketPipe(SwFilterPipe& swFilterPipe,
         PacketPipe& packetPipe);
 
@@ -189,9 +189,6 @@ protected:
     Policy              * m_policy = nullptr;
     std::map<FeatureType, SwFilterFeatureHandler*> m_featureHandler;
     uint32_t           m_isFeatureRegistered = false;
-
-private:
-    MOS_STATUS Init(void* settings) { return MOS_STATUS_UNIMPLEMENTED; }
 };
 }
 #endif // !__VP_FEATURE_MANAGER_H__

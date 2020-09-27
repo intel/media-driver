@@ -874,9 +874,7 @@ const float Av1DecodeFilmGrainG12::m_minScaleRatio = 0.125f;
 Av1DecodeFilmGrainG12::Av1DecodeFilmGrainG12(
     MediaFeatureManager *featureManager,
     DecodeAllocator     *allocator,
-    CodechalHwInterface *hwInterface,
-    void                *constSettings) : 
-    MediaFeature(constSettings),
+    CodechalHwInterface *hwInterface) : 
     m_allocator(allocator)
 {
     m_featureManager = featureManager;

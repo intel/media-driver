@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #define __DECODE_FEATURE_MANAGER_H__
 #include <vector>
 #include "decode_allocator.h"
-#include "media_feature_manager.h"
+#include "decode_common_feature_defs.h"
 #include "codechal_hw.h"
 
 namespace decode
@@ -60,16 +60,25 @@ public:
     //!
     virtual ~DecodeFeatureManager() {}
 
+    //!
+    //! \brief  Initialize all features
+    //! \param  [in] settings
+    //!         Pointer to the initialize settings
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Init(void *settings) override;
+
 protected:
 
     //!
     //! \brief  Create features
-    //! \param  [in] constsettings
-    //!         feature const settings
+    //! \param  [in] codecSettings
+    //!         Codec settings
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreateFeatures(void *constSettings);
+    virtual MOS_STATUS CreateFeatures(void *codecSettings) override;
 
     DecodeAllocator *       m_allocator   = nullptr;
     CodechalHwInterface *   m_hwInterface = nullptr;

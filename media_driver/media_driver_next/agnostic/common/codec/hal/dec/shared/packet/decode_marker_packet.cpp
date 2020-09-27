@@ -24,6 +24,7 @@
 //! \brief    Defines the interface for decode marker sub packet
 //!
 #include "decode_marker_packet.h"
+#include "decode_common_feature_defs.h"
 
 namespace decode
 {
@@ -44,7 +45,7 @@ MOS_STATUS DecodeMarkerPkt::Init()
     DECODE_CHK_NULL(featureManager);
 
     m_marker = dynamic_cast<DecodeMarker*>(
-                    featureManager->GetFeature(FeatureIDs::decodeMarker));
+                    featureManager->GetFeature(DecodeFeatureIDs::decodeMarker));
     DECODE_CHK_NULL(m_marker);
 
     return MOS_STATUS_SUCCESS;

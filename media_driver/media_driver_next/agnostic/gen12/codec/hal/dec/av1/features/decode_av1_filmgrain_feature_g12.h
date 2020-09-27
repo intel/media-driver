@@ -76,7 +76,7 @@ struct CodecKernelHeader
 class Av1DecodeFilmGrainG12 : public MediaFeature
 {
 public:
-    Av1DecodeFilmGrainG12(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface, void *constSettings);
+    Av1DecodeFilmGrainG12(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
 
     ~Av1DecodeFilmGrainG12() {}
 

@@ -29,22 +29,6 @@
 
 #include "media_feature_manager.h"
 
-MOS_STATUS MediaFeatureManager::Init(void *settings)
-{
-    MEDIA_FUNC_CALL();
-
-    MEDIA_CHK_STATUS_RETURN(CreateConstSettings());
-    MEDIA_CHK_NULL_RETURN(m_featureConstSettings);
-    MEDIA_CHK_STATUS_RETURN(m_featureConstSettings->PrepareConstSettings());
-
-    MEDIA_CHK_STATUS_RETURN(CreateFeatures(m_featureConstSettings->GetConstSettings()));
-    for (auto feature=m_features.begin(); feature!=m_features.end(); feature++)
-    {
-        MEDIA_CHK_STATUS_RETURN(feature->second->Init(settings));
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MediaFeatureManager::RegisterFeatures(
     int                featureID,
     MediaFeature *     feature,

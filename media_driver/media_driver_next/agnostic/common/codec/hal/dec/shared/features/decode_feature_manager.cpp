@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,15 +36,28 @@
 namespace decode
 {
 
-MOS_STATUS DecodeFeatureManager::CreateFeatures(void *constSettings)
+MOS_STATUS DecodeFeatureManager::Init(void *settings)
+{
+    MEDIA_FUNC_CALL();
+
+    MEDIA_CHK_STATUS_RETURN(CreateFeatures(settings));
+    for (auto feature=m_features.begin(); feature!=m_features.end(); feature++)
+    {
+        MEDIA_CHK_STATUS_RETURN(feature->second->Init(settings));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodeFeatureManager::CreateFeatures(void *codecSettings)
 {
     DECODE_FUNC_CALL();
 
     DecodePredication* predication = MOS_New(DecodePredication, *m_allocator);
-    DECODE_CHK_STATUS(RegisterFeatures(FeatureIDs::decodePredication, predication));
+    DECODE_CHK_STATUS(RegisterFeatures(DecodeFeatureIDs::decodePredication, predication));
 
     DecodeMarker* marker = MOS_New(DecodeMarker, *m_allocator);
-    DECODE_CHK_STATUS(RegisterFeatures(FeatureIDs::decodeMarker, marker));
+    DECODE_CHK_STATUS(RegisterFeatures(DecodeFeatureIDs::decodeMarker, marker));
 
     return MOS_STATUS_SUCCESS;
 }

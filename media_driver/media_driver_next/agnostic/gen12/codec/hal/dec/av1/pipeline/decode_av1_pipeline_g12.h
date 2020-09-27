@@ -95,11 +95,11 @@ namespace decode
         //!
         //! \brief  Create sub packets
         //! \param  [in] codecSettings
-        //!         Point to codechal settings
+        //!         Codechal settings
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager& subPacketManager) override;
+        virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager& subPacketManager, CodechalSetting &codecSettings) override;
 
         //!
         //! \brief  Initialize media context for decode pipeline

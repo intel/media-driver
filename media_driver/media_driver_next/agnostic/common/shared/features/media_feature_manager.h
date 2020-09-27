@@ -50,8 +50,7 @@ enum SubComponentIDs
     FEATURE_SUBCOMPONENT_HEVC,
     FEATURE_SUBCOMPONENT_VP9,
     FEATURE_SUBCOMPONENT_AVC,
-
-    reserve0,
+    FEATURE_SUBCOMPONENT_AV1,
 };
 
 struct FeatureIDs
@@ -60,10 +59,6 @@ struct FeatureIDs
     {
         basicFeature = CONSTRUCTFEATUREID(FEATURE_COMPONENT_COMMON, FEATURE_SUBCOMPONENT_COMMON, 0),
         encodeTile,
-
-        // Decode specific feature
-        decodePredication,
-        decodeMarker,
     };
 };
 //!
@@ -211,7 +206,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Init(void *settings);
+    virtual MOS_STATUS Init(void *settings) { return MOS_STATUS_UNIMPLEMENTED; }
 
     //!
     //! \brief  Register features, if last two parameters use

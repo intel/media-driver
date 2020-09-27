@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_predication.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_feature_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_marker.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_downsampling_feature.cpp
 )
 
 set(TMP_HEADERS_
@@ -32,6 +33,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_predication.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_feature_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_marker.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_common_feature_defs.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_downsampling_feature.h
 )
 
 media_add_curr_to_include_path()

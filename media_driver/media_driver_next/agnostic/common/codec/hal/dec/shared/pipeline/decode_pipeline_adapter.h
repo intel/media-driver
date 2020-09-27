@@ -51,6 +51,14 @@ public:
     virtual bool IsIncompletePicture() = 0;
     virtual bool IsIncompleteJpegScan() = 0;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    //!
+    //! \brief  Indicates whether down sampling is supported
+    //! \return If down sampling is supported by decode
+    //!
+    virtual bool IsDownSamplingSupported() { return false; }
+#endif
+
     virtual MOS_SURFACE* GetDummyReference() = 0;
     virtual CODECHAL_DUMMY_REFERENCE_STATUS GetDummyReferenceStatus() = 0;
     virtual void SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_STATUS status) = 0;

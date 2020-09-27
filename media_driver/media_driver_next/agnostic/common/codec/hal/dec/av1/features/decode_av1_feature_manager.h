@@ -63,20 +63,13 @@ namespace decode
     protected:
 
         //!
-        //! \brief  Create feature const settings
-        //! \return MOS_STATUS
-        //!         MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        virtual MOS_STATUS CreateConstSettings();
-
-        //!
         //! \brief  Create features
-        //! \param  [in] constsettings
-        //!         feature const settings
+        //! \param  [in] codecSettings
+        //!         codec settings
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        virtual MOS_STATUS CreateFeatures(void *constSettings);
+        virtual MOS_STATUS CreateFeatures(void *codecSettings);
     };
 
 }

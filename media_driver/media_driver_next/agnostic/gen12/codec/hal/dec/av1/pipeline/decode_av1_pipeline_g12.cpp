@@ -261,9 +261,9 @@ namespace decode
         return Av1Pipeline::UserFeatureReport();
     }
 
-    MOS_STATUS Av1PipelineG12::CreateSubPackets(DecodeSubPacketManager &subPacketManager)
+    MOS_STATUS Av1PipelineG12::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
     {
-        DECODE_CHK_STATUS(DecodePipeline::CreateSubPackets(subPacketManager));
+        DECODE_CHK_STATUS(DecodePipeline::CreateSubPackets(subPacketManager, codecSettings));
 
         Av1DecodePicPktG12 *pictureDecodePkt = MOS_New(Av1DecodePicPktG12, this, m_hwInterface);
         DECODE_CHK_NULL(pictureDecodePkt);

@@ -24,6 +24,7 @@
 //! \brief    Defines the interface for decode predication sub packet
 //!
 #include "decode_predication_packet.h"
+#include "decode_common_feature_defs.h"
 
 namespace decode
 {
@@ -44,7 +45,7 @@ MOS_STATUS DecodePredicationPkt::Init()
     DECODE_CHK_NULL(featureManager);
 
     m_predication = dynamic_cast<DecodePredication*>(
-                    featureManager->GetFeature(FeatureIDs::decodePredication));
+                    featureManager->GetFeature(DecodeFeatureIDs::decodePredication));
     DECODE_CHK_NULL(m_predication);
 
     return MOS_STATUS_SUCCESS;

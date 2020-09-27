@@ -22,7 +22,7 @@
 
 //!
 //! \file     decode_features.cpp
-//! \brief    Defines the common interface for decode decode_features
+//! \brief    Defines the common interface for decode basic features
 //! \details  The decode pipeline interface is further sub-divided by codec standard,
 //!           this file is for the base interface which is shared by all codecs.
 //!
@@ -85,6 +85,19 @@ MOS_STATUS DecodeBasicFeature::Init(void *setting)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS DecodeBasicFeature::UpdateDestSurface(MOS_SURFACE &destSurface)
+{
+    m_destSurface = destSurface;
+
+    if (m_useDummyReference)
+    {
+        m_dummyReference.OsResource = m_destSurface.OsResource;
+        m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_DEST_SURFACE;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS DecodeBasicFeature::Update(void *params)
 {
     DECODE_FUNC_CALL();
@@ -96,18 +109,21 @@ MOS_STATUS DecodeBasicFeature::Update(void *params)
     m_dataOffset            = decodeParams->m_dataOffset;
     m_numSlices             = decodeParams->m_numSlices;
 
-    DECODE_CHK_NULL(decodeParams->m_destSurface);
-    m_destSurface           = *(decodeParams->m_destSurface);
-    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&m_destSurface));
-
     DECODE_CHK_NULL(decodeParams->m_dataBuffer);
     m_resDataBuffer.OsResource = *(decodeParams->m_dataBuffer);
     m_allocator->UpdateResoreceUsageType(&m_resDataBuffer.OsResource, resourceInputBitstream);
 
-    if (m_useDummyReference)
+    if (decodeParams->m_destSurface != nullptr)
     {
-        m_dummyReference.OsResource = decodeParams->m_destSurface->OsResource;
-        m_dummyReferenceStatus = CODECHAL_DUMMY_REFERENCE_DEST_SURFACE;
+        DECODE_CHK_STATUS(UpdateDestSurface(*decodeParams->m_destSurface));
+        DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&m_destSurface));
+    }
+    else
+    {
+        m_destSurface.dwPitch  = 0;
+        m_destSurface.dwWidth  = 0;
+        m_destSurface.dwHeight = 0;
+        m_destSurface.dwSize   = 0;
     }
 
     return MOS_STATUS_SUCCESS;

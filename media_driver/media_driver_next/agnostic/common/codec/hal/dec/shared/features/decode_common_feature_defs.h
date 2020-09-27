@@ -21,22 +21,26 @@
 */
 
 //!
-//! \file     decode_av1_feature_defs_g12.h
-//! \brief    Defines for av1 decoding features
+//! \file     decode_common_feature_defs.h
+//! \brief    Defines for decode common features
 //!
-#ifndef __DECODE_AV1_FEATURE_DEFS_G12_H__
-#define __DECODE_AV1_FEATURE_DEFS_G12_H__
+#ifndef __DECODE_COMMON_FEATURE_DEFS_H__
+#define __DECODE_COMMON_FEATURE_DEFS_H__
 
 #include "media_feature_manager.h"
 
 namespace decode
 {
-struct Av1FeatureIDs : public FeatureIDs
+struct DecodeFeatureIDs : public FeatureIDs
 {
-    enum av1FeatureIDs
+    enum decodeFeatureIDs
     {
-        av1SwFilmGrain = CONSTRUCTFEATUREID(FEATURE_COMPONENT_DECODE, FEATURE_SUBCOMPONENT_AV1, 0),
+        decodePredication = CONSTRUCTFEATUREID(FEATURE_COMPONENT_DECODE, FEATURE_SUBCOMPONENT_COMMON, 0),
+        decodeMarker,
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        decodeDownSampling,
+#endif
     };
 };
 }
-#endif // !__DECODE_AV1_FEATURE_DEFS_G12_H__
+#endif // !__DECODE_COMMON_FEATURE_DEFS_H__

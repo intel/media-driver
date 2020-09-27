@@ -46,7 +46,7 @@ VpFeatureManagerNext::~VpFeatureManagerNext()
     MOS_Delete(m_policy);
 }
 
-MOS_STATUS VpFeatureManagerNext::Initialize()
+MOS_STATUS VpFeatureManagerNext::Init(void* settings)
 {
     if (!m_policy)
     {

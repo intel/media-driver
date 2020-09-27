@@ -33,18 +33,11 @@
 
 namespace decode
 {
-    MOS_STATUS DecodeAv1FeatureManager::CreateConstSettings()
-    {
-        DECODE_FUNC_CALL();
-        m_featureConstSettings = MOS_New(MediaFeatureConstSettings);
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS DecodeAv1FeatureManager::CreateFeatures(void *constSettings)
+    MOS_STATUS DecodeAv1FeatureManager::CreateFeatures(void *codecSettings)
     {
         DECODE_FUNC_CALL();
 
-        DECODE_CHK_STATUS(DecodeFeatureManager::CreateFeatures(constSettings));
+        DECODE_CHK_STATUS(DecodeFeatureManager::CreateFeatures(codecSettings));
 
         Av1BasicFeature *decBasic = MOS_New(Av1BasicFeature, m_allocator, m_hwInterface);
         DECODE_CHK_STATUS(RegisterFeatures(FeatureIDs::basicFeature, decBasic));

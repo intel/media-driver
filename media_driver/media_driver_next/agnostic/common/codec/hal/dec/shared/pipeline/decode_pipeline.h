@@ -40,6 +40,7 @@
 #include "decodecp_interface.h"
 #include "decode_cp_bitstream.h"
 #include "decode_mem_compression.h"
+#include "decode_downsampling_feature.h"
 
 namespace decode {
 
@@ -221,6 +222,14 @@ public:
         return m_osInterface->phasedSubmission;
     }
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    //!
+    //! \brief  Check if down sampling supported for current frame
+    //! \return Return if down sampling supported for current frame
+    //!
+    bool IsDownSamplingSupported();
+#endif
+
     //!
     //! \brief  Get dummy reference surface
     //! \return Pointer of reference surface
@@ -255,6 +264,7 @@ public:
     DeclareDecodePacketId(hucCpStreamOutPacketId);
     DeclareDecodePacketId(predicationSubPacketId);
     DeclareDecodePacketId(markerSubPacketId);
+    DeclareDecodePacketId(downSamplingSubPacketId);
 
     //!
     //! \brief  Get decode context
@@ -327,12 +337,14 @@ protected:
 
     //!
     //! \brief  Create sub packets
+    //! \param  [in] subPacketManager
+    //!         Sub packet manager
     //! \param  [in] codecSettings
-    //!         Point to codechal settings
+    //!         Codechal settings
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager& subPacketManager);
+    virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager& subPacketManager, CodechalSetting &codecSettings);
 
     //!
     //! \brief  Indicates whether current process pipe is first process pipe of current frame
@@ -340,6 +352,12 @@ protected:
     //!         true for first process pipe, false for other process pipe
     //!
     bool IsFirstProcessPipe(const DecodePipelineParams& pipelineParams);
+
+#if USE_CODECHAL_DEBUG_TOOL
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    MOS_STATUS DumpDownSamplingParams(DecodeDownSamplingFeature &downSamplingParams);
+#endif
+#endif
 
 private:
     //!

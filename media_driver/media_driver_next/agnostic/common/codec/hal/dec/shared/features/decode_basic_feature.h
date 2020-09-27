@@ -60,6 +60,15 @@ public:
     //!
     virtual MOS_STATUS Update(void *params);
 
+    //!
+    //! \brief  Update decode dest surface
+    //! \param  [in] destSurface
+    //!         Decode render target from DDI
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS UpdateDestSurface(MOS_SURFACE &destSurface);
+
     uint32_t            m_width = 0;                                    //!< Frame width in luma samples
     uint32_t            m_height = 0;                                   //!< Frame height in luma samples
     uint16_t            m_picWidthInMb = 0;                             //!< Picture Width in MB width count

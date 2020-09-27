@@ -34,14 +34,14 @@
 
 namespace decode
 {
-    MOS_STATUS DecodeAv1FeatureManagerG12::CreateFeatures(void *constSettings)
+    MOS_STATUS DecodeAv1FeatureManagerG12::CreateFeatures(void *codecSettings)
     {
         DECODE_FUNC_CALL();
 
-        DECODE_CHK_STATUS(DecodeAv1FeatureManager::CreateFeatures(constSettings));
+        DECODE_CHK_STATUS(DecodeAv1FeatureManager::CreateFeatures(codecSettings));
 
         // SW Film Grain Feature
-        Av1DecodeFilmGrainG12 *swFilmGrain = MOS_New(Av1DecodeFilmGrainG12, this, m_allocator, m_hwInterface, constSettings);
+        Av1DecodeFilmGrainG12 *swFilmGrain = MOS_New(Av1DecodeFilmGrainG12, this, m_allocator, m_hwInterface);
         DECODE_CHK_STATUS(RegisterFeatures(Av1FeatureIDs::av1SwFilmGrain, swFilmGrain));
 
         return MOS_STATUS_SUCCESS;
