@@ -305,6 +305,13 @@ finish:
     }
     return status;
 }
+
+void MhwInterfacesG12Tgllp::Destroy()
+{
+    MhwInterfaces::Destroy();
+    MOS_Delete(m_avpInterface);
+}
+
 #ifdef _MMC_SUPPORTED
 static bool tgllpRegisteredMmd =
     MediaInterfacesFactory<MmdDevice>::

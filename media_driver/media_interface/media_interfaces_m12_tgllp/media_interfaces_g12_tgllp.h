@@ -166,6 +166,12 @@ public:
     MOS_STATUS Initialize(
         CreateParams params,
         PMOS_INTERFACE osInterface);
+
+    //!
+    //! \brief    Destroys all created MHW interfaces
+    //! \details  If the HAL creation fails, this is used for cleanup
+    //!
+    virtual void Destroy();
 };
 
 class MmdDeviceG12Tgllp : public MmdDevice
