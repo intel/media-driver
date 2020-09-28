@@ -446,7 +446,10 @@ CodechalHwInterfaceG12::~CodechalHwInterfaceG12()
             MOS_Delete(m_renderHalCpInterface);
             m_renderHalCpInterface = nullptr;
         }
+    }
 
+    if (m_renderHal != nullptr)
+    {
         MOS_FreeMemory(m_renderHal);
         m_renderHal = nullptr;
     }

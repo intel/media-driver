@@ -4201,7 +4201,11 @@ MOS_STATUS RenderHal_Destroy(PRENDERHAL_INTERFACE pRenderHal)
     eStatus      = MOS_STATUS_UNKNOWN;
 
     // Free State Heaps
-    MHW_CHK_STATUS(pRenderHal->pfnFreeStateHeaps(pRenderHal));
+    eStatus = (MOS_STATUS)(pRenderHal->pfnFreeStateHeaps(pRenderHal));
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("Failed to free state heeps, eStatus:%d.\n", eStatus);
+    }
 
     // Destroy MHW Render Interface
     if (pRenderHal->pMhwRenderInterface)
