@@ -555,6 +555,18 @@ MOS_STATUS CodechalVdencHevcStateG12::PlatformCapabilityCheck()
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "DSS is not supported when frame resolution less than 320p");
     }
 
+    if (m_hevcSeqParams->ParallelBRC)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "Parallel BRC is not supported on VDENC");
+    }
+
+    if (m_hevcSeqParams->bit_depth_luma_minus8 >= 4 || m_hevcSeqParams->bit_depth_chroma_minus8 >= 4)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "12bit encoding is not supported on VDENC");
+    }
+
     // TU configuration for RDOQ
     if (m_hevcRdoqEnabled)
     {
@@ -2420,7 +2432,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRoundingValues());
     }
 
-    if (m_hevcPicParams->bUsedAsRef || (m_brcEnabled && !m_hevcSeqParams->ParallelBRC))
+    if (m_hevcPicParams->bUsedAsRef || m_brcEnabled)
     {
         if (m_currRefSync == nullptr)
         {
@@ -3348,12 +3360,6 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
 
         m_currPakSliceIdx = (m_currPakSliceIdx + 1) % CODECHAL_HEVC_NUM_PAK_SLICE_BATCH_BUFFERS;
 
-        if (m_hevcSeqParams->ParallelBRC)
-        {
-            m_vdencBrcBuffers.uiCurrBrcPakStasIdxForWrite =
-                (m_vdencBrcBuffers.uiCurrBrcPakStasIdxForWrite + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
-        }
-
         m_newPpsHeader = 0;
         m_newSeqHeader = 0;
         m_frameNum++;
@@ -3844,12 +3850,6 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
         }
 
         m_currPakSliceIdx = (m_currPakSliceIdx + 1) % CODECHAL_HEVC_NUM_PAK_SLICE_BATCH_BUFFERS;
-
-        if (m_hevcSeqParams->ParallelBRC)
-        {
-            m_vdencBrcBuffers.uiCurrBrcPakStasIdxForWrite =
-                (m_vdencBrcBuffers.uiCurrBrcPakStasIdxForWrite + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
-        }
 
         m_newPpsHeader = 0;
         m_newSeqHeader = 0;

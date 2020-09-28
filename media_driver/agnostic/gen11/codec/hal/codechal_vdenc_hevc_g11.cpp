@@ -477,6 +477,18 @@ MOS_STATUS CodechalVdencHevcStateG11::PlatformCapabilityCheck()
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "DSS is not supported when frame resolution less than 320p");
     }
 
+    if (m_hevcSeqParams->ParallelBRC)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "Parallel BRC is not supported on VDENC");
+    }
+
+    if (m_hevcSeqParams->bit_depth_luma_minus8 >= 4 || m_hevcSeqParams->bit_depth_chroma_minus8 >= 4)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "12bit encoding is not supported on VDENC");
+    }
+
     if (m_vdencEnabled && m_chromaFormat == HCP_CHROMA_FORMAT_YUV444 && m_hevcSeqParams->TargetUsage == 7)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Speed mode is not supported in VDENC 444, resetting TargetUsage to Normal mode\n");
