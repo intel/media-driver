@@ -236,6 +236,7 @@ VAStatus DdiDecodeJPEG::ParseHuffmanTbl(
     VAHuffmanTableBufferJPEGBaseline *huffmanTbl)
 {
     PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE jpegHuffTbl = (PCODECHAL_DECODE_JPEG_HUFFMAN_TABLE)(m_ddiDecodeCtx->DecodeParams.m_huffmanTable);
+    int32_t sumBITS = 0;
 
     if ((jpegHuffTbl == nullptr) ||
         (huffmanTbl == nullptr))
@@ -250,6 +251,18 @@ VAStatus DdiDecodeJPEG::ParseHuffmanTbl(
     {
         if (huffmanTbl->load_huffman_table[i] == BUFFER_LOADED)
         {
+            sumBITS = 0;
+            for (int32_t j = 0; j < JPEG_NUM_HUFF_TABLE_DC_BITS; j++)
+            {
+                sumBITS += huffmanTbl->huffman_table[i].num_dc_codes[j];
+            }
+
+            if (sumBITS > JPEG_NUM_HUFF_TABLE_DC_HUFFVAL)
+            {
+                DDI_ASSERTMESSAGE("Huffman table DC entries number is out of HW limitation.");
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+
             //the size of jpegHuffTbl->HuffTable[i].DC_BITS is 12 (defined in driver)
             //the size of huffmanTbl->huffman_table[i].num_dc_codes is 16 (defined in libva)
             //it is using the size of "DC_BITS" for solve the overflow
