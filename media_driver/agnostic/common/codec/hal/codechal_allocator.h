@@ -81,7 +81,7 @@ protected:
     //! \return   pointer to 1D buffer
     //!
     void* Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
-        bool zeroOnAllocation = false, const char *bufName = nullptr);
+         const char *bufName, bool zeroOnAllocation = false);
 
     //!
     //! \brief    Allocate 2D buffer
@@ -90,7 +90,7 @@ protected:
     //!
     void* Allocate2DBuffer(
         uint64_t resourceTag, uint32_t width, uint32_t height, MOS_FORMAT format,
-        MOS_TILE_TYPE tile, bool zeroOnAllocation = false, const char *bufName = nullptr);
+        MOS_TILE_TYPE tile, const char *bufName, bool zeroOnAllocation = false);
 
     //!
     //! \brief    Allocate batch buffer

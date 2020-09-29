@@ -55,7 +55,7 @@ void* CodechalAllocator::GetResourcePointer(uint16_t resourceID, Match level)
 }
 
 void* CodechalAllocator::Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
-    bool zeroOnAllocation, const char *bufName)
+    const char* bufName, bool zeroOnAllocation)
 {
     MOS_RESOURCE* resource = MOS_New(MOS_RESOURCE);
     MOS_ZeroMemory(resource, sizeof(MOS_RESOURCE));
@@ -90,7 +90,7 @@ void* CodechalAllocator::Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
 
 void* CodechalAllocator::Allocate2DBuffer(
     uint64_t resourceTag, uint32_t width, uint32_t height, MOS_FORMAT format,
-    MOS_TILE_TYPE tile, bool zeroOnAllocation, const char *bufName)
+    MOS_TILE_TYPE tile, const char* bufName, bool zeroOnAllocation)
 {
     MOS_SURFACE* surface = MOS_New(MOS_SURFACE);
     MOS_ZeroMemory(surface, sizeof(MOS_SURFACE));

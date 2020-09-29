@@ -176,7 +176,7 @@ void* CodechalEncodeAllocator::AllocateResource(
     {
         resTag.size = width;
         resTag.type = allocator1D;
-        buffer = Allocate1DBuffer(resTag.tag, width, zeroOnAllocation);
+        buffer = Allocate1DBuffer(resTag.tag, width, bufName, zeroOnAllocation);
     }
     else if (allocatorBatchBuffer == resTag.format)
     {
@@ -189,7 +189,7 @@ void* CodechalEncodeAllocator::AllocateResource(
         resTag.width = (uint16_t)width;
         resTag.height = (uint16_t)height;
         resTag.type = allocator2D;
-        buffer = Allocate2DBuffer(resTag.tag, width, height, format, tile, zeroOnAllocation);
+        buffer = Allocate2DBuffer(resTag.tag, width, height, format, tile, bufName, zeroOnAllocation);
     }
     else
     {
