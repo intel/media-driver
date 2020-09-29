@@ -1499,8 +1499,9 @@ MOS_STATUS Mos_CheckVirtualEngineSupported(
 
 struct ContextRequirement
 {
-    bool IsEnc = false;
-    bool IsPak = false;
+    bool IsEnc               = false;
+    bool IsPak               = false;
+    bool IsContextSwitchBack = false;
 };
 
 #endif  // __MOS_OS_H__
