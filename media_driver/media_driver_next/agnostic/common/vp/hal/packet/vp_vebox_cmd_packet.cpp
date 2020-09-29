@@ -1466,9 +1466,14 @@ MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t p
         // Currently, mos RegisterResourcere cannot sync the 3d resource.
         // Temporaly, call sync resource to do the sync explicitly.
         // Sync need be done after switching context.
-        m_allocator->SyncOnResource(
-            &m_currentSurface->osSurface->OsResource,
-            false);
+#if MOS_MEDIASOLO_SUPPORTED
+        if (!m_hwInterface->m_osInterface->bSoloInUse)
+#endif
+        {
+            m_allocator->SyncOnResource(
+                &m_currentSurface->osSurface->OsResource,
+                false);
+        }
     }
 
     // Setup, Copy and Update VEBOX State

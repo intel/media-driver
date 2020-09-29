@@ -978,7 +978,14 @@ MOS_STATUS VpAllocator::Write1DSurface(VP_SURFACE* vpsurface, const uint8_t* src
     VP_PUBLIC_CHK_VALUE_RETURN(srcSize > 0, true);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     VP_PUBLIC_CHK_VALUE_RETURN(vpsurface->osSurface->dwSize > 0, true);
-    VP_PUBLIC_CHK_VALUE_RETURN(vpsurface->osSurface->Type, MOS_GFXRES_BUFFER);
+
+#if MOS_MEDIASOLO_SUPPORTED
+    if (!m_osInterface->bSoloInUse)
+#endif
+    {
+        VP_PUBLIC_CHK_VALUE_RETURN(vpsurface->osSurface->Type, MOS_GFXRES_BUFFER);
+    }
+
     VP_PUBLIC_ASSERT(!Mos_ResourceIsNull(&vpsurface->osSurface->OsResource));
 
     MOS_SURFACE* surface = vpsurface->osSurface;
