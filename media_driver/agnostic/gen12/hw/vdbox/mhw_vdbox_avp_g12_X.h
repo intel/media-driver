@@ -162,7 +162,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS GetAv1BufferSize(
+    virtual MOS_STATUS GetAv1BufferSize(
         MhwVdboxAvpInternalBufferType       bufferType,
         MhwVdboxAvpBufferSizeParams         *avpBufSizeParam);
 
