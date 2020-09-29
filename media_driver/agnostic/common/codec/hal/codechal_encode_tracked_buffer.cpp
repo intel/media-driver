@@ -108,6 +108,8 @@ void CodechalEncodeTrackedBuffer::Resize()
             ReleaseDsRecon(i);
             if (m_encoder->m_cscDsState)
                 ReleaseSurfaceDS(i);
+            if (m_encoder->m_vdencEnabled)
+                m_allocator->ReleaseResource(m_standard, mvTemporalBuffer, i);
 
             // this slot can now be re-used
             m_tracker[i].ucSurfIndex7bits = PICTURE_MAX_7BITS;
@@ -309,6 +311,9 @@ void CodechalEncodeTrackedBuffer::DeferredDeallocateOnResChange()
         {
             ReleaseSurfaceDS(m_trackedBufAnteIdx);
         }
+        if (m_encoder->m_vdencEnabled)
+            m_allocator->ReleaseResource(m_standard, mvTemporalBuffer, m_trackedBufAnteIdx);
+
         m_tracker[m_trackedBufAnteIdx].ucSurfIndex7bits = PICTURE_MAX_7BITS;
         CODECHAL_ENCODE_NORMALMESSAGE("Tracked buffer = %d re-allocated", m_trackedBufAnteIdx);
     }
@@ -747,6 +752,24 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMvTemporalBuffer()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (m_encoder->m_vdencEnabled && m_encoder->m_vdencMvTemporalBufferSize && m_encoder->m_currRefList->bUsedAsRef)
+    {
+        if ((m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_trackedBufCurrIdx)))
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->AllocateResource(
+            m_standard, m_encoder->m_vdencMvTemporalBufferSize, 1, mvTemporalBuffer, "mvTemporalBuffer", m_trackedBufCurrIdx, false));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 void CodechalEncodeTrackedBuffer::ReleaseMbCode(uint8_t bufIndex)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -763,6 +786,8 @@ void CodechalEncodeTrackedBuffer::ReleaseMvData(uint8_t bufIndex)
 
 void CodechalEncodeTrackedBuffer::ReleaseSurfaceCsc(uint8_t bufIndex)
 {
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
     m_allocator->ReleaseResource(m_standard, cscSurface, bufIndex);
 }
 
