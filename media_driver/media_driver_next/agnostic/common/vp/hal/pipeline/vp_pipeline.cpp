@@ -246,6 +246,9 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipe));
+    VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_resourceManager->StartProcessNewFrame(*swFilterPipe));
 
     pPacketPipe = m_pPacketPipeFactory->CreatePacketPipe();
     VP_PUBLIC_CHK_NULL(pPacketPipe);

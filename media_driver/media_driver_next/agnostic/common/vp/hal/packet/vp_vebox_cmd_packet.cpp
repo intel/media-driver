@@ -281,7 +281,7 @@ VP_SURFACE *VpVeboxCmdPacket::GetSurface(SurfaceType type)
 {
     auto it = m_surfacesGroup.find(type);
     VP_SURFACE *surf = (m_surfacesGroup.end() != it) ? it->second : nullptr;
-    if (SurfaceTypeVeboxoutput == type && nullptr == surf && !m_IsSfcUsed)
+    if (SurfaceTypeVeboxCurrentOutput == type && nullptr == surf && !m_IsSfcUsed)
     {
         // Vebox output case.
         surf = m_renderTarget;
@@ -751,7 +751,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
         pVeboxDiIecpCmdParams->dwPrevInputSurfOffset    = m_veboxPacketSurface.pPrevInput->osSurface->dwOffset;
         pVeboxDiIecpCmdParams->PrevInputSurfCtrl.Value  = m_surfMemCacheCtl->DnDi.PreviousInputSurfMemObjCtl;
 
-        // Update control bits for PreviousSurface surface
+        // Update control bits for PastSurface surface
         if (m_mmc->IsMmcEnabled())
         {
             pSurface = m_veboxPacketSurface.pPrevInput;
@@ -1431,19 +1431,12 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     m_surfacesGroup = internalSurfaces;
     m_veboxPacketSurface.pCurrInput                 = m_currentSurface;
     m_veboxPacketSurface.pStatisticsOutput          = GetSurface(SurfaceTypeStatistics);
-    m_veboxPacketSurface.pCurrOutput                = GetSurface(SurfaceTypeVeboxoutput);
-    if (packetCaps.bDN)
-    {
-        m_veboxPacketSurface.pPrevInput             = m_PacketCaps.bRefValid ? GetSurface(SurfaceTypeDNRef) : nullptr;
-    }
-    else
-    {
-        m_veboxPacketSurface.pPrevInput             = previousSurface ? m_previousSurface : nullptr;
-    }
+    m_veboxPacketSurface.pCurrOutput                = GetSurface(SurfaceTypeVeboxCurrentOutput);
+    m_veboxPacketSurface.pPrevInput                 = GetSurface(SurfaceTypeVeboxPreviousInput);
     m_veboxPacketSurface.pSTMMInput                 = GetSurface(SurfaceTypeSTMMIn);
     m_veboxPacketSurface.pSTMMOutput                = GetSurface(SurfaceTypeSTMMOut);
     m_veboxPacketSurface.pDenoisedCurrOutput        = GetSurface(SurfaceTypeDNOutput);
-    m_veboxPacketSurface.pPrevOutput                = nullptr;
+    m_veboxPacketSurface.pPrevOutput                = GetSurface(SurfaceTypeVeboxPreviousOutput);
     m_veboxPacketSurface.pAlphaOrVignette           = GetSurface(SurfaceTypeAlphaOrVignette);
     m_veboxPacketSurface.pLaceOrAceOrRgbHistogram   = GetSurface(SurfaceTypeLaceAceRGBHistogram);
     m_veboxPacketSurface.pSurfSkinScoreOutput       = GetSurface(SurfaceTypeSkinScore);
