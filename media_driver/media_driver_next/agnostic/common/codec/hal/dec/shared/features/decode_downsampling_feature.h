@@ -66,18 +66,18 @@ public:
     // Downsampling input
     PMOS_SURFACE   m_inputSurface = nullptr;
     CodecRectangle m_inputSurfaceRegion = {};
-    uint32_t       m_chromaSitingType;
+    uint32_t       m_chromaSitingType = 0;
 
     // Downsampling output
     MOS_SURFACE    m_outputSurface;
     CodecRectangle m_outputSurfaceRegion = {};
 
     // Downsampling parameters
-    uint32_t       m_rotationState;
-    uint32_t       m_blendState;
-    uint32_t       m_mirrorState;
-    bool           m_isInputSurfAllocated;
-    bool           m_isReferenceOnlyPattern;
+    uint32_t       m_rotationState = 0;
+    uint32_t       m_blendState = 0;
+    uint32_t       m_mirrorState = 0;
+    bool           m_isInputSurfAllocated = false;
+    bool           m_isReferenceOnlyPattern = false;
 
 protected:
     MOS_STATUS UpdateInternalTargets(DecodeBasicFeature &basicFeature);
