@@ -399,6 +399,8 @@ protected:
     MHW_VDBOX_ROWSTORE_CACHE    m_dflvRowstoreCache = {};         //! Deblocker Filter Line V Buffe (DFLV)
     MHW_VDBOX_ROWSTORE_CACHE    m_cdefRowstoreCache = {};         //! CDEF Filter Line Buffer (CDEF)
 
+    std::shared_ptr<void> m_avpItfNew = nullptr;
+
     //!
     //! \brief    Constructor
     //!
