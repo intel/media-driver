@@ -507,6 +507,7 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
     bool                                hasAuxSurf;
     bool                                enableAuxDump;
     bool                                enablePlaneDump = false;
+    PMOS_RESOURCE                       pLockedResource = nullptr;
 
     VPHAL_DEBUG_ASSERT(pSurface);
     VPHAL_DEBUG_ASSERT(pOsInterface);
@@ -558,10 +559,49 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
             LockFlags.NoDecompress = 1;
         }
 
-        pData = (uint8_t*)pOsInterface->pfnLockResource(
-            pOsInterface,
-            &pSurface->OsResource,
-            &LockFlags);
+        bool isPlanar = false;
+
+        isPlanar = (pSurface->OsResource.Format == Format_NV12) || (pSurface->OsResource.Format == Format_P010) || (pSurface->OsResource.Format == Format_P016);
+
+        if (isPlanar && pSurface->TileType != MOS_TILE_LINEAR)
+        {
+            bool bAllocated;
+
+            PVPHAL_SURFACE m_temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+
+            VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+                pOsInterface,
+                m_temp2DSurfForCopy,
+                "Temp2DSurfForSurfDumper",
+                pSurface->Format,
+                MOS_GFXRES_2D,
+                MOS_TILE_LINEAR,
+                pSurface->dwWidth,
+                pSurface->dwHeight,
+                false,
+                MOS_MMC_DISABLED,
+                &bAllocated));
+
+            m_osInterface->pfnDoubleBufferCopyResource(
+                m_osInterface,
+                &pSurface->OsResource,
+                &m_temp2DSurfForCopy->OsResource,
+                false);
+
+            pData = (uint8_t *)pOsInterface->pfnLockResource(
+                pOsInterface,
+                &m_temp2DSurfForCopy->OsResource,
+                &LockFlags);
+            pLockedResource = &m_temp2DSurfForCopy->OsResource;
+        }
+        else
+        {
+            pData = (uint8_t *)pOsInterface->pfnLockResource(
+                pOsInterface,
+                &pSurface->OsResource,
+                &LockFlags);
+            pLockedResource = &pSurface->OsResource;
+        }
         VPHAL_DEBUG_CHK_NULL(pData);
 
         // Write error to user feauture key
@@ -761,9 +801,9 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
 finish:
     MOS_SafeFreeMemory(pDst);
 
-    if (isSurfaceLocked)
+    if (isSurfaceLocked && pLockedResource != nullptr)
     {
-        eStatus = (MOS_STATUS)pOsInterface->pfnUnlockResource(pOsInterface, &pSurface->OsResource);
+        eStatus = (MOS_STATUS)pOsInterface->pfnUnlockResource(pOsInterface, pLockedResource);
         VPHAL_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
     }
 
