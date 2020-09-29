@@ -56,6 +56,12 @@ public:
     //!
     virtual MOS_STATUS Update(void *params);
 
+    //! \brief  Check whether the feather is enabled
+    //! \return bool
+    //!         true if enabled, otherwise false
+    //!
+    bool IsEnabled() const { return m_enabled; }
+
 protected:
 
     //! \brief  Allocate feature related resources
@@ -69,12 +75,6 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetConstSettings(){ return MOS_STATUS_SUCCESS; };
-
-    //! \brief  Check whether the feather is enabled
-    //! \return bool
-    //!         true if enabled, otherwise false
-    //!
-    bool IsEnabled() const { return m_enabled; }
 
     bool               m_enabled = false;
 
