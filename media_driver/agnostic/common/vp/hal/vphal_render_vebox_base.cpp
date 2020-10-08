@@ -2071,7 +2071,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     //---------------------------------
     // Write GPU Status Tag for Tag based synchronization
     //---------------------------------
-    if (!pOsInterface->bEnableKmdMediaFrameTracking)
+    if (pOsInterface->bEnableKmdMediaFrameTracking)
     {
         VPHAL_RENDER_CHK_STATUS(VeboxSendVecsStatusTag(
             pMhwMiInterface,
