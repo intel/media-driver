@@ -441,6 +441,11 @@ VAStatus DdiDecodeAV1::SetDecodeParams()
         filmGrainProcParams.m_outputSurface = &outputSurface;
     }
 
+    if (Av1PicParams->m_bitDepthIdx == 1)
+    {
+        m_codechalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -730,10 +735,6 @@ VAStatus DdiDecodeAV1::CodecHalInit(
     m_codechalSettings->intelEntrypointInUse = false;
 
     m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
-    if (m_ddiDecodeAttr->profile == (VAProfile)VAProfileAV1Profile1)
-    {
-        m_codechalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
-    }
 
     m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
