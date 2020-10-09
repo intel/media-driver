@@ -3667,6 +3667,7 @@ MOS_STATUS CodechalEncodeAvcBase::DumpPicParams(
     oss.setf(std::ios::showbase | std::ios::uppercase);
 
     oss << "# DDI Parameters:" << std::endl;
+    oss << "TargetFrameSize = " << +picParams->TargetFrameSize << std::endl;
     oss << "CurrOriginalPic = " << +picParams->CurrOriginalPic.PicEntry << std::endl;
     oss << "CurrReconstructedPic = " << +picParams->CurrReconstructedPic.PicEntry << std::endl;
     oss << "CodingType = " << +picParams->CodingType << std::endl;
