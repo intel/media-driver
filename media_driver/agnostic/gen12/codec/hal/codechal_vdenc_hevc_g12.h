@@ -2112,6 +2112,8 @@ public:
     static const uint32_t       m_brcConstantSurfaceHeight = 35;       //!< BRC constant surface height
     static const uint32_t       m_brcHistoryBufSize = 2304;            //!< BRC history buffer size
     static const uint32_t       m_bframeMeBidirectionalWeight = 32;    //!< B frame bidirection weight
+    uint32_t                    m_prevQpModulationStrength = 0;
+    bool                        m_initDeltaQP = true;
 
     // HuC tables.
     // These Values are diff for each Gen

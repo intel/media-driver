@@ -4664,7 +4664,23 @@ MOS_STATUS CodechalVdencHevcStateG12::SetConstDataHuCBrcUpdate()
     if (m_lookaheadDepth > 0)
     {
         hucConstData->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
-        hucConstData->UPD_deltaQP = m_hevcPicParams->QpModulationStrength;  // For P/B Pyramid
+
+        uint8_t QpStrength = (uint8_t)(m_hevcPicParams->QpModulationStrength + (m_hevcPicParams->QpModulationStrength >> 1));
+        if (!m_initDeltaQP)
+        {
+            hucConstData->UPD_deltaQP = (m_prevQpModulationStrength + QpStrength + 1) >> 1;
+        }
+        else
+        {
+            hucConstData->UPD_deltaQP = QpStrength;
+
+            if (IsLastPass())
+            {
+                m_initDeltaQP = false;
+            }
+        }
+
+        m_prevQpModulationStrength = hucConstData->UPD_deltaQP;
     }
 
     hucConstData->UPD_TR_TargetSize_U32 = m_hevcPicParams->TargetFrameSize << 3;// byte to bit
