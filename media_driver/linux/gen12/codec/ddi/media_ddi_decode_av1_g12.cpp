@@ -396,6 +396,9 @@ VAStatus DdiDecodeAV1::ParsePicParams(
     // calculate down scaled width
     if (picAV1Params->m_picInfoFlags.m_fields.m_useSuperres &&
         (picAV1Params->m_superresScaleDenominator != av1ScaleNumerator)) {
+        if (picAV1Params->m_superresScaleDenominator == 0) {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
         uint32_t dsWidth = ((picParam->frame_width_minus1 + 1 ) *
                             av1ScaleNumerator + picAV1Params->m_superresScaleDenominator / 2) /
             picAV1Params->m_superresScaleDenominator;
