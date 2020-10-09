@@ -1134,7 +1134,7 @@ public:
     uint32_t m_maxWavefrontsforTU1 = 2;
     uint32_t m_maxWavefrontsforTU4 = 2;
     static const uint32_t m_loadBalanceSize = (256 * 16);               //!< Load balance size used for load balance array.
-    uint32_t m_alignReconFactor = 1;
+    double m_alignReconFactor = 1.0;
     uint32_t m_threadMapSize = (256 * 16);                              //!< Thread map surface size will be updated depending on various gen
 
     static const uint8_t m_meMethod[NUM_TARGET_USAGE_MODES];             //!< ME method

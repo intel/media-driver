@@ -854,10 +854,11 @@ MOS_STATUS CodechalEncHevcStateG12::AllocateEncResources()
             height = m_heightAlignedMaxLcu;
         }
 
+        uint32_t aligned_height = (uint32_t) (height * m_alignReconFactor);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface(
             &m_currPicWithReconBoundaryPix,
             width,
-            height * m_alignReconFactor,
+            aligned_height,
             "Current Picture Y with Reconstructed Boundary Pixels surface"));
     }
 
