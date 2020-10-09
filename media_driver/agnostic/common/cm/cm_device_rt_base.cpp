@@ -45,6 +45,7 @@
 #include "cm_vebox_rt.h"
 #include "cm_printf_host.h"
 #include "cm_execution_adv.h"
+#include "cm_log.h"
 
 struct CM_SET_CAPS
 {
@@ -98,6 +99,7 @@ int32_t CmDeviceRTBase::Release()
 //| Returns:    None.
 //*-----------------------------------------------------------------------------
 CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
+    m_memObjectCount({ 0 }),
     m_mosContext (nullptr),
     m_accelData (nullptr),
     m_accelSize  (0),
@@ -330,7 +332,7 @@ void CmDeviceRTBase::DestructCommon()
     {
         m_notifierGroup->NotifyDeviceDestroyed(this);
     }
-    
+
     //Free the notifiers
     if (m_notifierGroup != nullptr)
     {
@@ -343,6 +345,7 @@ void CmDeviceRTBase::DestructCommon()
         MOS_FreeLibrary(m_hJITDll);
     }
 }
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Create Aux Device and Initialize it
@@ -1465,7 +1468,7 @@ CM_RT_API int32_t CmDeviceRTBase::LoadProgram(void* commonISACode,
     if( result == CM_SUCCESS )
     {
         m_programArray.SetElement( firstfreeslot, programRT );
-        m_programCount ++;
+        m_programCount++;
     }
     program = programRT;
 
@@ -1697,9 +1700,19 @@ CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
     }
     m_queue.push_back(queueRT);
     queue = queueRT;
-
     return result;
 }
+
+
+int32_t CmDeviceRTBase::DestroyQueue(CmQueueRT*& queue)
+{
+    if (queue == nullptr)
+    {
+        return CM_NULL_POINTER;
+    }
+    return CmQueueRT::Destroy(queue);
+}
+
 
 CM_RT_API int32_t CmDeviceRTBase::CreateTask(CmTask *& task)
 {
@@ -1721,15 +1734,6 @@ CM_RT_API int32_t CmDeviceRTBase::CreateTask(CmTask *& task)
     return result;
 }
 
-int32_t CmDeviceRTBase::DestroyQueue(CmQueueRT* & queue)
-{
-    if(queue == nullptr )
-    {
-        return CM_NULL_POINTER;
-    }
-
-    return CmQueueRT::Destroy(queue);
-}
 
 CM_RT_API int32_t CmDeviceRTBase::DestroyTask(CmTask*& task)
 {
@@ -3125,6 +3129,7 @@ CM_RT_API int32_t CmDeviceRTBase::CreateVebox(CmVebox* & vebox) //HSW
     {
         m_veboxArray.SetElement(firstfreeslot, veboxRT);
         m_veboxCount++;
+        m_memObjectCount.veboxCount++;
     }
     vebox = veboxRT;
     return result;
@@ -3148,8 +3153,10 @@ CM_RT_API int32_t CmDeviceRTBase::DestroyVebox(CmVebox* & vebox) //HSW
     if (veboxRT == m_veboxArray.GetElement(index))
     {
         int32_t status = CmVeboxRT::Destroy(veboxRT);
+
         if (status == CM_SUCCESS)
         {
+            m_memObjectCount.veboxCount--;
             m_veboxArray.SetElement(index, nullptr);
             vebox = nullptr;
             return CM_SUCCESS;
@@ -3841,4 +3848,116 @@ CM_RT_API int32_t CmDeviceRTBase::DestroyBufferStateless(CmBufferStateless *&buf
         return CM_FAILURE;
     }
 }
+
+
+//check CmDevice remaining memory objects count and return 4bit encoded non zero value in debug & release internal build
+int32_t CmDeviceRTBase::CheckObjectCount()
+{
+    int32_t result = CM_SUCCESS;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    PCM_CONTEXT_DATA            cmData;
+    PCM_HAL_STATE               cmHalState;
+    cmData = (PCM_CONTEXT_DATA)GetAccelData();
+    cmHalState = cmData->cmHalState;
+
+    // Read VerbosityLevel from RegisterKey
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData = { 0 };
+    // User feature key reads
+    int retStatus = MOS_UserFeature_ReadValue_ID(nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_LOG_LEVEL_ID,
+                                                 &userFeatureValueData, cmHalState->osInterface->pOsContext);
+
+    if (userFeatureValueData.u32Data >= CM_LOG_LEVEL_WARN)
+    {
+        char msg[1024];
+
+        snprintf(msg, 1020,
+                 "\n [CM] check undestroyed objects count   kernel %d  program %d  task %d  threadSpace %d  threadGroupSpace %d  vebox %d  event %d \n",
+                    m_memObjectCount.kernelCount, m_memObjectCount.programCount, m_memObjectCount.taskCount,
+                    m_memObjectCount.threadSpaceCount, m_memObjectCount.threadGroupSpaceCount,
+                    m_memObjectCount.veboxCount, m_memObjectCount.eventCount);
+
+        // msg send to HLT log file or debug output
+        CM_ASSERTMESSAGE(msg);
+        // msg write to CM_LOG file
+        //CM_WARN(msg);  was removed from cm_log.h
+        _CM_LOG(CM_LOG_LEVEL_WARN, msg, GetHalState());
+        // console output
+        if (userFeatureValueData.u32Data >= CM_LOG_LEVEL_DEBUG)
+        {
+            printf(" %s \n", msg);
+        }
+
+        if ((m_memObjectCount.kernelCount >> 2) > 0xF)
+        {
+            result |= 0xF;
+        }
+        else
+        {
+            result |= (m_memObjectCount.kernelCount >> 2) & 0xF;
+        }
+
+        if ((m_memObjectCount.programCount >> 2) > 0xF)
+        {
+            result |= 0xF << 4;
+        }
+        else
+        {
+            result |= ((m_memObjectCount.programCount >> 2) & 0xF) << 4;
+        }
+
+        if ((m_memObjectCount.taskCount >>2) > 0xF)
+        {
+            result |= 0xF << 8;
+        }
+        else
+        {
+            result |= ((m_memObjectCount.taskCount >> 2) & 0xF) << 8;
+        }
+
+        if ((m_memObjectCount.threadSpaceCount >> 2) > 0xF)
+        {
+            result |= 0xF << 12;
+        }
+        else
+        {
+            result |= ((m_memObjectCount.threadSpaceCount >> 2) & 0xF) << 12;
+        }
+
+        if ((m_memObjectCount.threadGroupSpaceCount >> 2)> 0xF)
+        {
+            result |= 0xF << 16;
+        }
+        else
+        {
+            result |= ((m_memObjectCount.threadGroupSpaceCount >> 2) & 0xF) << 16;
+        }
+
+        if ((m_memObjectCount.veboxCount >> 2) > 0xF)
+        {
+            result |= 0xF << 20;
+        }
+        else
+        {
+            result |= ((m_memObjectCount.veboxCount >> 2) & 0xF) << 20;
+        }
+
+        if ((m_memObjectCount.eventCount >> 2) > 0xF)
+        {
+            result |= 0xF << 24;
+        }
+        else
+        {
+            result |= ((m_memObjectCount.eventCount >> 2) & 0xF) << 24;
+        }
+
+        // add signature to MSB 4-bit
+        if (result)
+            result |= 0xF << 28;
+    }
+#endif
+
+    return result;
+}
+
 }  // namespace

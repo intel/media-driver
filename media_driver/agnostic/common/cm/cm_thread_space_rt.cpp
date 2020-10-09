@@ -114,6 +114,8 @@ int32_t CmThreadSpaceRT::Create( CmDeviceRT* device, uint32_t indexTsArray, uint
     threadSpace = new (std::nothrow) CmThreadSpaceRT( device, indexTsArray, width, height );
     if( threadSpace )
     {
+        device->m_memObjectCount.threadSpaceCount++;
+
         result = threadSpace->Initialize( );
         if( result != CM_SUCCESS )
         {
@@ -136,6 +138,7 @@ int32_t CmThreadSpaceRT::Destroy( CmThreadSpaceRT* &threadSpace )
 {
     if( threadSpace )
     {
+        threadSpace->m_device->m_memObjectCount.threadSpaceCount--;
         delete threadSpace;
         threadSpace = nullptr;
     }

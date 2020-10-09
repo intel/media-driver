@@ -66,6 +66,19 @@ class CmSurface3D;
 class CmSampler8x8;
 class CmSampler8x8State_RT;
 
+//! \brief    CmDevice memory object count
+struct CM_OBJECT_COUNT
+{
+    int32_t kernelCount;
+    int32_t programCount;
+    int32_t taskCount;
+    int32_t threadSpaceCount;
+    int32_t threadGroupSpaceCount;
+    int32_t veboxCount;
+    int32_t eventCount;
+};
+
+
 //! \brief    Class CmDeviceRTBase definitions
 class CmDeviceRTBase: public CmDevice
 {
@@ -426,8 +439,13 @@ public:
 
     virtual HANDLE QueryRegHandleInternal(PCM_HAL_STATE pCmHalState) = 0;
 
+    CM_OBJECT_COUNT m_memObjectCount;
+
+    int32_t CheckObjectCount();
+
 protected:
     int32_t Initialize(MOS_CONTEXT *pUmdContext);
+
     int32_t DestroyQueue(CmQueueRT* & pQueue);
 
     int32_t RegisterSamplerState(const CM_SAMPLER_STATE& sampleState,

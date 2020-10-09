@@ -197,6 +197,10 @@ int32_t CmKernelRT::Create(CmDeviceRT *device,
     
     if( kernel )
     {
+        if (device)
+        {
+            device->m_memObjectCount.kernelCount++;
+        }
         kernel->Acquire();
         result = kernel->Initialize( kernelName, options );
         if( result != CM_SUCCESS )
@@ -268,6 +272,7 @@ int32_t CmKernelRT::SafeRelease( void)
     --m_refcount;
     if (m_refcount == 0)
     {
+        m_device->m_memObjectCount.kernelCount--;
         PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)m_device->GetAccelData();
         PCM_HAL_STATE state = cmData->cmHalState;
         if (state->dshEnabled)

@@ -51,6 +51,8 @@ int32_t CmThreadGroupSpace::Create(CmDeviceRT* device, uint32_t index, uint32_t 
     threadGroupSpace = new (std::nothrow) CmThreadGroupSpace(device, index, threadSpaceWidth, threadSpaceHeight, threadSpaceDepth, groupSpaceWidth, groupSpaceHeight, groupSpaceDepth);
     if( threadGroupSpace )
     {
+        device->m_memObjectCount.threadGroupSpaceCount++;
+
         result = threadGroupSpace->Initialize( );
         if( result != CM_SUCCESS )
         {
@@ -67,6 +69,10 @@ int32_t CmThreadGroupSpace::Create(CmDeviceRT* device, uint32_t index, uint32_t 
 
 int32_t CmThreadGroupSpace::Destroy( CmThreadGroupSpace* &threadGroupSpace )
 {
+    if (threadGroupSpace)
+    {
+        threadGroupSpace->m_device->m_memObjectCount.threadGroupSpaceCount--;
+    }
     CmSafeDelete( threadGroupSpace );
     threadGroupSpace = nullptr;
     return CM_SUCCESS;

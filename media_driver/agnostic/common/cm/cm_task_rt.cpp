@@ -48,6 +48,7 @@ int32_t CmTaskRT::Create(CmDeviceRT *device,
     kernelArray = new (std::nothrow) CmTaskRT( device, index, maxKernelCount );
     if( kernelArray )
     {
+        device->m_memObjectCount.taskCount++;
         result = kernelArray->Initialize();
         if( result != CM_SUCCESS )
         {
@@ -70,6 +71,7 @@ int32_t CmTaskRT::Destroy( CmTaskRT* &kernelArray )
 {
     if( kernelArray )
     {
+        kernelArray->m_device->m_memObjectCount.taskCount--;
         delete kernelArray;
         kernelArray = nullptr;
     }

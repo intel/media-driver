@@ -66,8 +66,10 @@ int32_t CmProgramRT::Create( CmDeviceRT* device, void* cisaCode, const uint32_t 
     pProgram = new (std::nothrow) CmProgramRT( device, programId );
     if( pProgram )
     {
+
         pProgram->Acquire();
         result = pProgram->Initialize( cisaCode, cisaCodeSize, options );
+        device->m_memObjectCount.programCount++;
         if( result != CM_SUCCESS )
         {
             CmProgramRT::Destroy( pProgram);
@@ -114,6 +116,7 @@ int32_t CmProgramRT::SafeRelease( void )
     --m_refCount;
     if( m_refCount == 0 )
     {
+        m_device->m_memObjectCount.programCount--;
         delete this;
         return 0;
     }

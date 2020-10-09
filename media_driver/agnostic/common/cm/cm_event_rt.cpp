@@ -48,6 +48,7 @@ int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task
     event = new (std::nothrow) CmEventRT( index, queue, task, taskDriverId, device, isVisible );
     if( event )
     {
+        event->m_device->m_memObjectCount.eventCount++;
         if(isVisible)
         {   // Increase the refcount when the Event is visiable
             event->Acquire();
@@ -72,14 +73,16 @@ int32_t CmEventRT::Create(uint32_t index, CmQueueRT *queue, CmTaskInternal *task
 //*-----------------------------------------------------------------------------
 int32_t CmEventRT::Destroy( CmEventRT* &event )
 {
+    CM_OBJECT_COUNT* memObjectCount = &event->m_device->m_memObjectCount;
     long refCount = event->SafeRelease();
-    if( refCount == 0 )
+    if (refCount == 0)
     {
+        memObjectCount->eventCount--;
         event = nullptr;
     }
-
     return CM_SUCCESS;
 }
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Constructor of Cm Event

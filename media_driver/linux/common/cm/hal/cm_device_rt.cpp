@@ -53,8 +53,6 @@ CmDeviceRT::~CmDeviceRT()
     m_mosContext->SkuTable.reset();
     m_mosContext->WaTable.reset();
 
-    DestructCommon();
-
     DestroyAuxDevice();
 };
 
@@ -104,21 +102,28 @@ int32_t CmDeviceRT::Create(MOS_CONTEXT *umdContext,
 //! OUTPUT :
 //!     CM_SUCCESS if CmDevice_RT is successfully destroyed.
 //*-----------------------------------------------------------------------------
-int32_t CmDeviceRT::Destroy(CmDeviceRT* &device)
+int32_t CmDeviceRT::Destroy(CmDeviceRT*& device)
 {
     INSERT_API_CALL_LOG(device->GetHalState());
 
     int32_t result = CM_SUCCESS;
-
     int32_t refCount = device->Release();
 
     if (refCount == 0)
     {
+        //check CmDevice remaining memory objects count and return 4bit encoded value
+        result = device->CheckObjectCount();
+        //destory remaining CM objects
+        device->DestructCommon();
+
         CmSafeDelete(device);
     }
 
+    //if return value is non-zero, return memory object counters 4 bit encoded value
     return result;
 }
+
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Initialize the OS-Specific part in the Initialize() function
