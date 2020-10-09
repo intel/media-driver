@@ -239,6 +239,16 @@ public:
     //! \brief   Free singleton objects created in GetInstance()
     static void FreeInstances();
 
+    //! \brief    Get protected surface tag
+    //!
+    //! \param   [in] ctx
+    //!          Media context
+    //!
+    //! \return  uint64_t
+    //!          Protected surface tag based on cp session created.
+    //!
+    virtual uint64_t GetProtectedSurfaceTag(PDDI_MEDIA_CONTEXT media_ctx);
+
 protected:
     virtual VAStatus CreateProtectedSession(
         VADriverContextP        ctx,

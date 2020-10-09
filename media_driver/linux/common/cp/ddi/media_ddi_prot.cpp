@@ -353,6 +353,11 @@ VAStatus DdiMediaProtected::ProtectedSessionCreateBuffer(
     return VA_STATUS_ERROR_UNIMPLEMENTED;
 }
 
+uint64_t DdiMediaProtected::GetProtectedSurfaceTag(PDDI_MEDIA_CONTEXT media_ctx)
+{
+    return 0;
+}
+
 void DdiMedia_FreeProtectedSessionHeap(
     VADriverContextP ctx,
     PDDI_MEDIA_HEAP contextHeap,
