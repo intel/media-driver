@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -195,7 +195,8 @@ protected:
     virtual MOS_STATUS InitKernelStateDS() override;
     virtual MOS_STATUS SetCurbeDS4x() override;
     virtual MOS_STATUS SetKernelParamsCsc(KernelParams* params) override;
-    virtual MOS_STATUS InitKernelStateCsc() override;   
+    virtual MOS_STATUS InitKernelStateCsc() override;
+    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType) override;
 
 private:
     //!
@@ -362,7 +363,6 @@ private:
         ds4xNumSurfaces = 6
     };
 
-    virtual MOS_STATUS CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType) override;
     virtual MOS_STATUS SetCurbeCsc() override;
     virtual MOS_STATUS SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer) override;
     virtual MOS_STATUS InitSfcState() override;
