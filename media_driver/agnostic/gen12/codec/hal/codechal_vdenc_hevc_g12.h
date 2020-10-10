@@ -2133,7 +2133,6 @@ public:
     static constexpr int32_t     m_negMultPB = -50;
     static constexpr int32_t     m_posMultVBR = 100;
     static constexpr int32_t     m_negMultVBR = -50;
-    static constexpr uint32_t    m_vdboxHucHevcLaAnalysisKernelDescriptor = 17;  //!< Huc lookahead analysis kernel descriptor
 
     static const double          m_devThreshIFPNEG[m_numDevThreshlds / 2];
     static const double          m_devThreshIFPPOS[m_numDevThreshlds / 2];
