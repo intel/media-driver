@@ -87,6 +87,7 @@
 
 #define CODECHAL_CACHELINE_SIZE                 64
 #define CODECHAL_PAGE_SIZE                      0x1000
+#define CODECHAL_PAK_OBJ_EACH_CU                66
 
 #define CODECHAL_SURFACE_PITCH_ALIGNMENT        128
 
