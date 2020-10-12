@@ -29,6 +29,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_ext.cpp
 )
 
 set(TMP_HEADERS_
@@ -52,6 +54,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.h
 )
 
 set(SOURCES_

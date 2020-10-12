@@ -1384,6 +1384,7 @@ MOS_STATUS CodechalDecode::StartStatusReport(
         &params));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, cmdBuffer));
+    CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBuffer));
 
     return eStatus;
 }
@@ -1400,6 +1401,8 @@ MOS_STATUS CodechalDecode::EndStatusReport(
         "ERROR - vdbox index exceed the maximum");
     auto mmioRegistersMfx = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
     auto mmioRegistersHcp = m_hcpInterface ? m_hcpInterface->GetMmioRegisters(m_vdboxIndex) : nullptr;
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBuffer));
 
     uint32_t currIndex = m_decodeStatusBuf.m_currIndex;
     //Error Status report

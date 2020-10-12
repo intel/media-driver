@@ -23,6 +23,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/null_hardware.cpp
 )
 
 set(TMP_HEADERS_
@@ -30,6 +31,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
     ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.h
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/null_hardware.h
 )
 
 set(SOURCES_

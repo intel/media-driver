@@ -68,6 +68,11 @@ bool MediaMemComp::IsMmcFeatureEnabled()
         m_osInterface->pOsContext);
     m_mmcEnabled = (userFeatureData.i32Data) ? true : false;
 
+    if (NullHW::IsEnabled())
+    {
+        m_mmcEnabled = false;
+    }
+
     return m_mmcEnabled;
 }
 

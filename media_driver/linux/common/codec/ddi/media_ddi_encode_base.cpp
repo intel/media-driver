@@ -250,8 +250,7 @@ VAStatus DdiEncodeBase::StatusReport(
         {
             bool inlineEncodeStatusUpdate;
             CodechalEncoderState *encoder = dynamic_cast<CodechalEncoderState *>(m_encodeCtx->pCodecHal);
-            DDI_CHK_NULL(encoder, "Null codechal encoder", VA_STATUS_ERROR_INVALID_CONTEXT);
-            inlineEncodeStatusUpdate = encoder->m_inlineEncodeStatusUpdate;
+            inlineEncodeStatusUpdate = encoder == nullptr ? false : encoder->m_inlineEncodeStatusUpdate;
 
             if (inlineEncodeStatusUpdate)
             {

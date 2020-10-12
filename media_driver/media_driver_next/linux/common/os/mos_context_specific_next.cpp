@@ -87,6 +87,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             return MOS_STATUS_INVALID_PARAMETER;
         }
         mos_bufmgr_gem_enable_reuse(m_bufmgr);
+        osDriverContext->bufmgr                 = m_bufmgr;
 
         //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
         iDeviceId   = mos_bufmgr_gem_get_devid(m_bufmgr);
@@ -96,7 +97,21 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         m_waTable.reset();
         MosUtilities::MosZeroMemory(&m_platformInfo, sizeof(m_platformInfo));
         MosUtilities::MosZeroMemory(&m_gtSystemInfo, sizeof(m_gtSystemInfo));
-        eStatus = HWInfo_GetGfxInfo(m_fd, m_bufmgr, &m_platformInfo, &m_skuTable, &m_waTable, &m_gtSystemInfo);
+
+        eStatus = NullHW::Init(osDriverContext);
+        if (!NullHW::IsEnabled())
+        {
+            eStatus = HWInfo_GetGfxInfo(m_fd, m_bufmgr, &m_platformInfo, &m_skuTable, &m_waTable, &m_gtSystemInfo);
+        }
+        else
+        {
+            m_platformInfo = osDriverContext->platform;
+            m_skuTable = osDriverContext->SkuTable;
+            m_waTable = osDriverContext->WaTable;
+            m_gtSystemInfo = osDriverContext->gtSystemInfo;
+            iDeviceId = osDriverContext->iDeviceId;
+        }
+
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
@@ -166,12 +181,14 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         m_use64BitRelocs = true;
 
-        osDriverContext->bufmgr                 = m_bufmgr;
-        osDriverContext->iDeviceId              = iDeviceId;
-        osDriverContext->SkuTable               = m_skuTable;
-        osDriverContext->WaTable                = m_waTable;
-        osDriverContext->gtSystemInfo           = m_gtSystemInfo;
-        osDriverContext->platform               = m_platformInfo;
+        if (!NullHW::IsEnabled())
+        {
+            osDriverContext->iDeviceId              = iDeviceId;
+            osDriverContext->SkuTable               = m_skuTable;
+            osDriverContext->WaTable                = m_waTable;
+            osDriverContext->gtSystemInfo           = m_gtSystemInfo;
+            osDriverContext->platform               = m_platformInfo;
+        }
         osDriverContext->pGmmClientContext      = m_gmmClientContext;
         osDriverContext->m_auxTableMgr          = m_auxTableMgr;
         osDriverContext->bUseSwSwizzling        = m_useSwSwizzling;

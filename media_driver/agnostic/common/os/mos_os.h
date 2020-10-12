@@ -41,6 +41,7 @@
 #endif
 #endif
 
+#include "null_hardware.h"
 extern PerfUtility *g_perfutility;
 
 #define PERF_DECODE "DECODE"
