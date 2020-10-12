@@ -1006,22 +1006,6 @@ MOS_STATUS CodechalVdencHevcStateG12::AllocatePakResources()
         &m_vdencModeTimerBuffer),
         "Failed to create VDEncMode Timer Buffer");
 
-    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
-    {
-        uint32_t maxTileRow = MOS_ROUNDUP_DIVIDE(m_frameHeight, CODECHAL_HEVC_MIN_TILE_SIZE);
-        uint32_t maxTileColumn = MOS_ROUNDUP_DIVIDE(m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE);
-
-        allocParamsForBufferLinear.dwBytes = maxTileRow*maxTileColumn*(sizeof(HwCounter));
-        allocParamsForBufferLinear.pBufName = "HWCounter";
-        allocParamsForBufferLinear.bIsPersistent = true;
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_resHwCountTileReplay),
-            "Failed to create tile base HW counter buffer");
-        allocParamsForBufferLinear.bIsPersistent = false;
-    }
-
     uint32_t frameWidthInCus = CODECHAL_GET_WIDTH_IN_BLOCKS(m_frameWidth, CODECHAL_HEVC_MIN_CU_SIZE);
     uint32_t frameHeightInCus = CODECHAL_GET_WIDTH_IN_BLOCKS(m_frameHeight, CODECHAL_HEVC_MIN_CU_SIZE);
     uint32_t frameWidthInLcus = CODECHAL_GET_WIDTH_IN_BLOCKS(m_frameWidth, CODECHAL_HEVC_MAX_LCU_SIZE_G10);
@@ -1287,7 +1271,7 @@ MOS_STATUS CodechalVdencHevcStateG12::FreePakResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_resHcpScalabilitySyncBuffer.sResource);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencSAORowStoreBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_resPakcuLevelStreamoutData.sResource);
-    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
+    if (!Mos_ResourceIsNull(&m_resHwCountTileReplay))
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_resHwCountTileReplay);
     }
@@ -1911,6 +1895,12 @@ MOS_STATUS CodechalVdencHevcStateG12::GetStatusReport(
         //update tile info with HW counter
         if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
         {
+            if (Mos_ResourceIsNull(&m_resHwCountTileReplay))
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("m_resHwCountTileReplay is not allocated");
+                return MOS_STATUS_NULL_POINTER;
+            }
+
             MOS_LOCK_PARAMS LockFlagsNoOverWrite;
             MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
             LockFlagsNoOverWrite.WriteOnly = 1;
@@ -3018,6 +3008,29 @@ MOS_STATUS CodechalVdencHevcStateG12::EncTileLevel()
                 {
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
 
+                    // Lazy allocation
+                    if (Mos_ResourceIsNull(&m_resHwCountTileReplay))
+                    {
+                        MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+                        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+                        allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+                        allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+                        allocParamsForBufferLinear.Format = Format_Buffer;
+
+                        uint32_t maxTileRow = MOS_ROUNDUP_DIVIDE(m_frameHeight, CODECHAL_HEVC_MIN_TILE_SIZE);
+                        uint32_t maxTileColumn = MOS_ROUNDUP_DIVIDE(m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE);
+
+                        allocParamsForBufferLinear.dwBytes = maxTileRow*maxTileColumn*(sizeof(HwCounter));
+                        allocParamsForBufferLinear.pBufName = "HWCounter";
+                        allocParamsForBufferLinear.bIsPersistent = true;
+                        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                            m_osInterface,
+                            &allocParamsForBufferLinear,
+                            &m_resHwCountTileReplay),
+                            "Failed to create tile base HW counter buffer");
+                        allocParamsForBufferLinear.bIsPersistent = false;
+                    }
+
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->ReadEncodeCounterFromHW(
                         m_osInterface,
                         &tileBatchBuf,
@@ -3483,6 +3496,29 @@ MOS_STATUS CodechalVdencHevcStateG12::EncWithTileRowLevelBRC()
                 if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_enableTileReplay)
                 {
                     CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
+
+                    // Lazy allocation
+                    if (Mos_ResourceIsNull(&m_resHwCountTileReplay))
+                    {
+                        MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+                        MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+                        allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+                        allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+                        allocParamsForBufferLinear.Format = Format_Buffer;
+
+                        uint32_t maxTileRow = MOS_ROUNDUP_DIVIDE(m_frameHeight, CODECHAL_HEVC_MIN_TILE_SIZE);
+                        uint32_t maxTileColumn = MOS_ROUNDUP_DIVIDE(m_frameWidth, CODECHAL_HEVC_MIN_TILE_SIZE);
+
+                        allocParamsForBufferLinear.dwBytes = maxTileRow*maxTileColumn*(sizeof(HwCounter));
+                        allocParamsForBufferLinear.pBufName = "HWCounter";
+                        allocParamsForBufferLinear.bIsPersistent = true;
+                        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                            m_osInterface,
+                            &allocParamsForBufferLinear,
+                            &m_resHwCountTileReplay),
+                            "Failed to create tile base HW counter buffer");
+                        allocParamsForBufferLinear.bIsPersistent = false;
+                    }
 
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->ReadEncodeCounterFromHW(
                         m_osInterface,

@@ -1368,45 +1368,6 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
         m_hwInterface->SetRowstoreCachingOffsets(&rowstoreParams);
     }
 
-    if (m_osInterface->osCpInterface->IsCpEnabled() && m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface) && m_skipFrameBasedHWCounterRead == false)
-    {
-        // eStatus query reporting
-        m_encodeStatusBuf.dwReportSize           = MOS_ALIGN_CEIL(sizeof(EncodeStatus), MHW_CACHELINE_SIZE);
-        uint32_t size                            = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM + sizeof(HwCounter);
-        allocParamsForBufferLinear.dwBytes       = size;
-        allocParamsForBufferLinear.pBufName      = "HWCounterQueryBuffer";
-        allocParamsForBufferLinear.bIsPersistent = true;                    // keeping status buffer persistent since its used in all command buffers
-
-        eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_resHwCount);
-
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate Encode eStatus Buffer.");
-            return eStatus;
-        }
-
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            m_osInterface->pfnSkipResourceSync(
-                &m_resHwCount));
-
-        uint8_t *dataHwCount = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &(m_resHwCount),
-            &lockFlagsNoOverWrite);
-
-        if (!dataHwCount)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Local Resource for MbEnc Adv Count Query Buffer.");
-            return eStatus;
-        }
-
-        MOS_ZeroMemory(dataHwCount, size);
-        m_dataHwCount = (uint32_t*)dataHwCount;
-    }
-
     // eStatus query reporting
     // HW requires the MI_CONDITIONAL_BATCH_BUFFER_END compare address aligned with cache line since TGL,
     // this change will guarantee the multi pak pass BRC works correctly
@@ -3065,6 +3026,57 @@ MOS_STATUS CodechalEncoderState::StartStatusReport(
 
             CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface->GetCpInterface());
 
+            // Lazy allocation
+            if (Mos_ResourceIsNull(&m_resHwCount))
+            {
+                MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+                MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+                allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
+                allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+                allocParamsForBufferLinear.Format   = Format_Buffer;
+
+                MOS_LOCK_PARAMS lockFlagsNoOverWrite;;
+                MOS_ZeroMemory(&lockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
+                lockFlagsNoOverWrite.WriteOnly = 1;
+                lockFlagsNoOverWrite.NoOverWrite = 1;
+
+                // eStatus query reporting
+                m_encodeStatusBuf.dwReportSize           = MOS_ALIGN_CEIL(sizeof(EncodeStatus), MHW_CACHELINE_SIZE);
+                uint32_t size                            = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM + sizeof(HwCounter);
+                allocParamsForBufferLinear.dwBytes       = size;
+                allocParamsForBufferLinear.pBufName      = "HWCounterQueryBuffer";
+                allocParamsForBufferLinear.bIsPersistent = true;                    // keeping status buffer persistent since its used in all command buffers
+
+                eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+                    m_osInterface,
+                    &allocParamsForBufferLinear,
+                    &m_resHwCount);
+
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("Failed to allocate Encode eStatus Buffer.");
+                    return eStatus;
+                }
+
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(
+                    m_osInterface->pfnSkipResourceSync(
+                        &m_resHwCount));
+
+                uint8_t *dataHwCount = (uint8_t *)m_osInterface->pfnLockResource(
+                    m_osInterface,
+                    &(m_resHwCount),
+                    &lockFlagsNoOverWrite);
+
+                if (!dataHwCount)
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Local Resource for MbEnc Adv Count Query Buffer.");
+                    return eStatus;
+                }
+
+                MOS_ZeroMemory(dataHwCount, size);
+                m_dataHwCount = (uint32_t*)dataHwCount;
+            }
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetCpInterface()->ReadEncodeCounterFromHW(
                 m_osInterface,
                 cmdBuffer,
@@ -3697,6 +3709,12 @@ MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusRe
         }
         else
         {
+            if (Mos_ResourceIsNull(&m_resHwCount))
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("m_resHwCount is not allocated");
+                return MOS_STATUS_NULL_POINTER;
+            }
+
             //Report HW counter by command output resource
             address2Counter = (uint64_t *)(((char *)(m_dataHwCount)) + (index * sizeof(HwCounter)));
         }
