@@ -7749,7 +7749,7 @@ MOS_STATUS CodechalVdencAvcState::DumpEncodeImgStats(
         return MOS_STATUS_SUCCESS;
     }
 
-    uint32_t size = m_mfxInterface->GetAvcImgStateSize() + m_vdencInterface->GetVdencAvcImgStateSize();
+    uint32_t size = m_mfxInterface->GetAvcImgStateSize() + m_vdencInterface->GetVdencAvcCostStateSize() + m_vdencInterface->GetVdencAvcImgStateSize();
 
     std::string SurfName = "Pak_VDEnc_Pass[" + std::to_string(static_cast<uint32_t>(m_currPass)) + "]";
 
