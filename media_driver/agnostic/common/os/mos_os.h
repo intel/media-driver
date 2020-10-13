@@ -377,7 +377,7 @@ typedef struct _MOS_COMMAND_BUFFER
     MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
     MOS_VEBOX_NODE_IND  iVeboxNodeIndex;            //!< Which VEBOX buffer is binded to
     int32_t             iSubmissionType;
-
+    bool                is1stLvlBB;                    //!< indicate it's a first level BB or not
     MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
 } MOS_COMMAND_BUFFER;
 

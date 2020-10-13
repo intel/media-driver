@@ -236,7 +236,7 @@ int32_t Linux_GetCommandBuffer(
     pCmdBuffer->iCmdIndex   = -1;
     pCmdBuffer->iVdboxNodeIndex = MOS_VDBOX_NODE_INVALID;
     pCmdBuffer->iVeboxNodeIndex = MOS_VEBOX_NODE_INVALID;
-
+    pCmdBuffer->is1stLvlBB = true;
     MOS_ZeroMemory(pCmdBuffer->pCmdBase, cmd_bo->size);
     pCmdBuffer->iSubmissionType = SUBMISSION_TYPE_SINGLE_PIPE;
     MOS_ZeroMemory(&pCmdBuffer->Attributes, sizeof(pCmdBuffer->Attributes));
@@ -293,6 +293,7 @@ void Linux_ReturnCommandBuffer(
     pOsGpuContext->pCB->pCmdPtr    = pCmdBuffer->pCmdPtr;
     pOsGpuContext->pCB->iVdboxNodeIndex = pCmdBuffer->iVdboxNodeIndex;
     pOsGpuContext->pCB->iVeboxNodeIndex = pCmdBuffer->iVeboxNodeIndex;
+    pOsGpuContext->pCB->is1stLvlBB = pCmdBuffer->is1stLvlBB;
 
 finish:
     return;
