@@ -254,7 +254,7 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     }
 
-    if (drvInfo->devRev == 0)
+    if (drvInfo->devRev <= 2)
     {
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     }
