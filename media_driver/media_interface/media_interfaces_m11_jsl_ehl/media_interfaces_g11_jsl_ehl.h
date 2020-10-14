@@ -95,6 +95,10 @@
 #include "codechal_vdenc_vp9_g11_jsl_ehl.h"
 #endif
 
+#ifdef _JPEG_ENCODE_SUPPORTED
+#include "codechal_encode_jpeg_g11_jsl_ehl.h"
+#endif
+
 #include "cm_hal_g11.h"
 #include "mos_util_user_interface.h"
 #include "vphal_g11_jsl_ehl.h"
@@ -168,7 +172,7 @@ public:
     using Vp9 = CodechalVdencVp9StateG11JslEhl;
 #endif
 #ifdef _JPEG_ENCODE_SUPPORTED
-    using Jpeg = CodechalEncodeJpegState;
+    using Jpeg = CodechalEncodeJpegStateG11JslEhl;
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
     using HevcVdenc = CodechalVdencHevcStateG11JslEhl;
