@@ -488,7 +488,6 @@ protected:
     CmProgram *        m_cmProgramB   = nullptr;
     CmKernel *         m_cmKrnB64     = nullptr;
     CmProgram *        m_cmProgramB64 = nullptr;
-    MbencBcurbeDataG12 m_curbeDataB = {};
 
     typedef SurfaceIndex MBencSurfaceIndex[m_maxMfeSurfaces][m_maxMultiFrames];
     MBencSurfaceIndex * m_surfIndexArray = nullptr;
@@ -515,7 +514,7 @@ protected:
     CmBuffer *              m_cuSplitSurf               = nullptr;                     //!< CU split data surface
     CmBuffer *              m_loadBalance               = nullptr;                     //!< Enc constant table for B LCU32
     CmBuffer *              m_dbgSurface                = nullptr;                     //!< Debug surface
-    
+
     CodechalKernelIntraDistMdfG12 *m_intraDistKernel = nullptr;
 
     //External surfaces

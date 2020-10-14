@@ -1693,66 +1693,6 @@ public:
     MOS_STATUS GenerateLcuLevelData(MOS_SURFACE &lcuLevelInputDataSurfaceParam);
 
     //!
-    //! \brief    Convert from Y210 to Y210V format
-    //!
-    //! \param    [in]  source
-    //!           Source surface
-    //! \param    [out]  target
-    //!           Destination surface
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS ConvertY210ToY210V(
-        PMOS_SURFACE    source,
-        PMOS_SURFACE    target);
-
-    //!
-    //! \brief    Convert from P010 to P010V format
-    //!
-    //! \param    [in]  source
-    //!           Source surface
-    //! \param    [out]  target
-    //!           Destination surface
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS ConvertP010ToP010V(
-        PMOS_SURFACE    source,
-        PMOS_SURFACE    target);
-
-    //!
-    //! \brief    Convert from YUY2 to YUY2V format
-    //!
-    //! \param    [in]  source
-    //!           Source surface
-    //! \param    [out]  target
-    //!           Destination surface
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS ConvertYUY2ToYUY2V(
-        PMOS_SURFACE    source,
-        PMOS_SURFACE    target);
-
-    //!
-    //! \brief    Downscale input by 2X
-    //!
-    //! \param    [in]  source
-    //!           Source surface
-    //! \param    [out]  target
-    //!           Destination surface
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS DownScaling2X(
-        PMOS_SURFACE    source,
-        PMOS_SURFACE    target);
-
-    //!
     //! \brief    Load cost table
     //!
     //! \param    [in]  sliceType

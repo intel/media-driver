@@ -573,7 +573,6 @@ MOS_STATUS CodechalKernelHmeMdfG12::SetupSurfaces()
     uint8_t      currVDirection = (!currFieldPicture) ? CODECHAL_VDIRECTION_FRAME : ((currBottomField) ? CODECHAL_VDIRECTION_BOT_FIELD : CODECHAL_VDIRECTION_TOP_FIELD);
 
     HmeYUVInfo *YuvInfo = nullptr;
-    PMOS_SURFACE psurface = nullptr;
    
     if (m_32xMeInUse)
     {

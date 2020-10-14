@@ -864,9 +864,6 @@ MOS_STATUS CodecHalHevcMbencG12::EncodeMbEncKernel(
     CODECHAL_ENCODE_FUNCTION_ENTER;
     MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
 
-    CODECHAL_WALKER_CODEC_PARAMS    walkerCodecParams;
-    CODECHAL_WALKER_DEGREE          walkerDegree;
-    MHW_WALKER_PARAMS               walkerParams;
     uint32_t                        walkerResolutionX, walkerResolutionY, maxthreadWidth, maxthreadHeight;
 
     PerfTagSetting perfTag;
