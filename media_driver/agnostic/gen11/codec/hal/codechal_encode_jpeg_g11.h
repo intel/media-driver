@@ -48,7 +48,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    ~CodechalEncodeJpegStateG11();
+    virtual ~CodechalEncodeJpegStateG11();
 
     //derived from base class
     MOS_STATUS Initialize(CodechalSetting *settings) override;

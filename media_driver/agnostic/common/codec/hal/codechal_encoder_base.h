@@ -1792,6 +1792,19 @@ public:
     MOS_STATUS GetStatusReport(void *status, uint16_t numStatus) override;
 
     //!
+    //! \brief  Get Status Report for the common codec part
+    //! \param  [out] encodeStatus
+    //!         Encoder status
+    //! \param  [out] encodeStatusReport
+    //!         Encoder status report
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS GetStatusReportCommon(
+        EncodeStatus* encodeStatus,
+        EncodeStatusReport* encodeStatusReport);
+
+    //!
     //! \brief  Read counter value for encode.
     //! \param  [in] index
     //!         The index of status report number

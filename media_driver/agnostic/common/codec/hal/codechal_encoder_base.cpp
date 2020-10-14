@@ -3842,8 +3842,6 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             index * encodeStatusBuf->dwReportSize);
         EncodeStatusReport* encodeStatusReport = &encodeStatus->encodeStatusReport;
         PCODEC_REF_LIST refList = encodeStatusReport->pCurrRefList;
-        PMHW_VDBOX_IMAGE_STATUS_CONTROL imgStatusCtrl = &encodeStatus->ImageStatusCtrl;
-        PMHW_VDBOX_PAK_NUM_OF_SLICES numSlices = &encodeStatus->NumSlices;
         uint32_t localCount = encodeStatus->dwStoredData - globalHWStoredData;
 
         if (localCount == 0 || localCount > globalCount)
@@ -3929,71 +3927,30 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                      encodeStatusReport->bitstreamSize = CODECHAL_VP9_MB_CODE_SIZE * sizeof(uint32_t) * size;
                 }
             }
-            // The huffman tables sent by application were incorrect (used only for JPEG encoding)
-            else if(m_standard == CODECHAL_JPEG && imgStatusCtrl->MissingHuffmanCode == 1)
-            {
-                CODECHAL_ENCODE_ASSERTMESSAGE("Error: JPEG standard encoding: missing huffman code");
-                encodeStatusReport->CodecStatus = CODECHAL_STATUS_ERROR;
-            }
             else
             {
                 if (m_codecGetStatusReportDefined)
                 {
                     // Call corresponding CODEC's status report function if existing
                     eStatus = GetStatusReport(encodeStatus, encodeStatusReport);
+                }
+                else
+                {
+                    eStatus = GetStatusReportCommon(encodeStatus, encodeStatusReport);
+                }
+
+                if (MOS_STATUS_SUCCESS != eStatus)
+                {
+                    return eStatus;
+                }
+
+                if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
+                {
+                    eStatus = ReadCounterValue(index, encodeStatusReport);
                     if (MOS_STATUS_SUCCESS != eStatus)
                     {
                         return eStatus;
                     }
-
-                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
-                    {
-                        eStatus = ReadCounterValue(index, encodeStatusReport);
-                        if (MOS_STATUS_SUCCESS != eStatus)
-                        {
-                            return eStatus;
-                        }
-                    }
-                }
-                else
-                {
-                    encodeStatusReport->CodecStatus = CODECHAL_STATUS_SUCCESSFUL;
-                    encodeStatusReport->bitstreamSize =
-                        encodeStatus->dwMFCBitstreamByteCountPerFrame + encodeStatus->dwHeaderBytesInserted;
-
-                    // dwHeaderBytesInserted is for WAAVCSWHeaderInsertion
-                    // and is 0 otherwise
-                    encodeStatusReport->QpY = encodeStatus->BrcQPReport.DW0.QPPrimeY;
-                    encodeStatusReport->SuggestedQpYDelta =
-                        encodeStatus->ImageStatusCtrl.CumulativeSliceDeltaQP;
-                    encodeStatusReport->NumberPasses = (uint8_t)(encodeStatus->ImageStatusCtrl.TotalNumPass + 1);
-                    encodeStatusReport->SceneChangeDetected =
-                        (encodeStatus->dwSceneChangedFlag & CODECHAL_ENCODE_SCENE_CHANGE_DETECTED_MASK) ? 1 : 0;
-
-                    CODECHAL_ENCODE_CHK_NULL_RETURN(m_skuTable);
-
-                    if (m_osInterface->osCpInterface->IsCpEnabled() && m_skipFrameBasedHWCounterRead == false)
-                    {
-                        eStatus = ReadCounterValue(index, encodeStatusReport);
-                        if (MOS_STATUS_SUCCESS != eStatus)
-                        {
-                            return eStatus;
-                        }
-                    }
-
-                    if (m_picWidthInMb != 0 && m_frameFieldHeightInMb != 0)
-                    {
-                        encodeStatusReport->AverageQp = (unsigned char)(((uint32_t)encodeStatus->QpStatusCount.cumulativeQP)
-                            / (m_picWidthInMb * m_frameFieldHeightInMb));
-                    }
-                    encodeStatusReport->PanicMode = encodeStatus->ImageStatusCtrl.Panic;
-
-                    // If Num slices is greater than spec limit set NumSlicesNonCompliant to 1 and report error
-                    if (numSlices->NumberOfSlices > m_maxNumSlicesAllowed)
-                    {
-                        encodeStatusReport->NumSlicesNonCompliant = 1;
-                    }
-                    encodeStatusReport->NumberSlices = numSlices->NumberOfSlices;
                 }
 
                 if (encodeStatusReport->bitstreamSize > m_bitstreamUpperBound)
@@ -4165,6 +4122,45 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
     encodeStatusBuf->wFirstIndex =
         (encodeStatusBuf->wFirstIndex + reportsGenerated) % CODECHAL_ENCODE_STATUS_NUM;
     CODECHAL_ENCODE_VERBOSEMESSAGE("wFirstIndex now becomes %d.", encodeStatusBuf->wFirstIndex);
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncoderState::GetStatusReportCommon(
+    EncodeStatus* encodeStatus,
+    EncodeStatusReport* encodeStatusReport)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    encodeStatusReport->CodecStatus = CODECHAL_STATUS_SUCCESSFUL;
+    encodeStatusReport->bitstreamSize =
+        encodeStatus->dwMFCBitstreamByteCountPerFrame + encodeStatus->dwHeaderBytesInserted;
+
+    // dwHeaderBytesInserted is for WAAVCSWHeaderInsertion
+    // and is 0 otherwise
+    encodeStatusReport->QpY = encodeStatus->BrcQPReport.DW0.QPPrimeY;
+    encodeStatusReport->SuggestedQpYDelta =
+        encodeStatus->ImageStatusCtrl.CumulativeSliceDeltaQP;
+    encodeStatusReport->NumberPasses = (uint8_t)(encodeStatus->ImageStatusCtrl.TotalNumPass + 1);
+    encodeStatusReport->SceneChangeDetected =
+        (encodeStatus->dwSceneChangedFlag & CODECHAL_ENCODE_SCENE_CHANGE_DETECTED_MASK) ? 1 : 0;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_skuTable);
+
+    if (m_picWidthInMb != 0 && m_frameFieldHeightInMb != 0)
+    {
+        encodeStatusReport->AverageQp = (unsigned char)(((uint32_t)encodeStatus->QpStatusCount.cumulativeQP)
+            / (m_picWidthInMb * m_frameFieldHeightInMb));
+    }
+    encodeStatusReport->PanicMode = encodeStatus->ImageStatusCtrl.Panic;
+
+    // If Num slices is greater than spec limit set NumSlicesNonCompliant to 1 and report error
+    PMHW_VDBOX_PAK_NUM_OF_SLICES numSlices = &encodeStatus->NumSlices;
+    if (numSlices->NumberOfSlices > m_maxNumSlicesAllowed)
+    {
+        encodeStatusReport->NumSlicesNonCompliant = 1;
+    }
+    encodeStatusReport->NumberSlices = numSlices->NumberOfSlices;
 
     return eStatus;
 }

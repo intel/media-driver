@@ -1326,6 +1326,27 @@ uint32_t CodechalEncodeJpegState::CalculateCommandBufferSize()
     return commandBufferSize;
 }
 
+MOS_STATUS CodechalEncodeJpegState::GetStatusReport(
+    EncodeStatus* encodeStatus,
+    EncodeStatusReport* encodeStatusReport)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    PMHW_VDBOX_IMAGE_STATUS_CONTROL imgStatusCtrl = &encodeStatus->ImageStatusCtrl;
+
+    // The huffman tables sent by application were incorrect (used only for JPEG encoding)
+    if (imgStatusCtrl->MissingHuffmanCode == 1)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Error: JPEG standard encoding: missing huffman code");
+        encodeStatusReport->CodecStatus = CODECHAL_STATUS_ERROR;
+        return eStatus;
+    }
+
+    eStatus = GetStatusReportCommon(encodeStatus, encodeStatusReport);
+
+    return eStatus;
+}
+
 CodechalEncodeJpegState::CodechalEncodeJpegState(
         CodechalHwInterface* hwInterface,
         CodechalDebugInterface* debugInterface,
@@ -1335,6 +1356,8 @@ CodechalEncodeJpegState::CodechalEncodeJpegState(
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     memset(m_refList, 0, sizeof(m_refList));
+
+    m_codecGetStatusReportDefined = true;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

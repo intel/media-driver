@@ -168,9 +168,9 @@ public:
 
     uint32_t CalculateCommandBufferSize() override;
 
-    MOS_STATUS GetStatusReport(
-            EncodeStatus*       encodeStatus,
-            EncodeStatusReport* encodeStatusReport) override { return MOS_STATUS_SUCCESS;};
+    virtual MOS_STATUS GetStatusReport(
+        EncodeStatus* encodeStatus,
+        EncodeStatusReport* encodeStatusReport) override;
 
     MOS_STATUS ExecuteKernelFunctions() override { return MOS_STATUS_SUCCESS;};
 
