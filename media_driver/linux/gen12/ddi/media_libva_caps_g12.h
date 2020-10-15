@@ -128,6 +128,31 @@ public:
 
     virtual CODECHAL_MODE GetDecodeCodecMode(VAProfile profile)                  override;
 
+
+    //!
+    //! \brief    Add surface attributes for Encoding
+    //!
+    //! \param    [in] profile
+    //!           VAProfile of the configuration
+    //!
+    //! \param    [in] entrypoint
+    //!           VAEntrypoint of the configuration
+    //!
+    //! \param    [in,out] attribList
+    //!           Pointer to VASurfaceAttrib array. It returns
+    //!           the supported  surface attributes
+    //!
+    //! \param    [in,out] numAttribs
+    //!           The number of elements allocated on input
+    //!           Return the number of elements actually filled in output
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    virtual VAStatus AddEncSurfaceAttributes(VAProfile profile,
+                                             VAEntrypoint entrypoint,
+                                             VASurfaceAttrib  *attribList,
+                                             uint32_t &numAttribs);
     //!
     //! \brief    Get surface attributes for a given config ID
     //!
@@ -221,7 +246,7 @@ protected:
     //! \return VAStatus
     //!     if call succeeds
     //!
-    VAStatus LoadHevcEncLpProfileEntrypoints();
+    virtual VAStatus LoadHevcEncLpProfileEntrypoints();
 
     //!
     //! \brief    Check if the give profile is AV1
