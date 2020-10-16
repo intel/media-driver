@@ -567,6 +567,12 @@ MOS_STATUS CodechalVdencHevcStateG12::PlatformCapabilityCheck()
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "12bit encoding is not supported on VDENC");
     }
 
+    if (m_hevcSeqParams->chroma_format_idc == 2)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "422 recon format encoding is not supported on HEVC VDENC");
+    }
+
     // TU configuration for RDOQ
     if (m_hevcRdoqEnabled)
     {

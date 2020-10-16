@@ -489,6 +489,12 @@ MOS_STATUS CodechalVdencHevcStateG11::PlatformCapabilityCheck()
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "12bit encoding is not supported on VDENC");
     }
 
+    if (m_hevcSeqParams->chroma_format_idc == 2)
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "422 recon format encoding is not supported on HEVC VDENC");
+    }
+
     if (m_vdencEnabled && m_chromaFormat == HCP_CHROMA_FORMAT_YUV444 && m_hevcSeqParams->TargetUsage == 7)
     {
         CODECHAL_ENCODE_ASSERTMESSAGE("Speed mode is not supported in VDENC 444, resetting TargetUsage to Normal mode\n");
