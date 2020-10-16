@@ -1413,6 +1413,10 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     {
         m_IsSfcUsed = true;
     }
+    else
+    {
+        m_IsSfcUsed = false;
+    }
 
     //update VEBOX resource GMM resource usage type
     m_allocator->UpdateResourceUsageType(&inputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_FF);
