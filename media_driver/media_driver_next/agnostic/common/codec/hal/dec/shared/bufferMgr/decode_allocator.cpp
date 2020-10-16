@@ -489,45 +489,15 @@ MOS_STATUS DecodeAllocator::GetSurfaceInfo(PMOS_SURFACE surface)
     DECODE_CHK_NULL(m_allocator);
     DECODE_CHK_NULL(surface);
 
-    MOS_SURFACE details;
-    MOS_ZeroMemory(&details, sizeof(details));
-    details.Format = Format_Invalid;
-
-    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&surface->OsResource, &details));
-
-    surface->Format = details.Format;
-    surface->dwWidth = details.dwWidth;
-    surface->dwHeight = details.dwHeight;
-    surface->dwPitch = details.dwPitch;
-    surface->dwDepth = details.dwDepth;
-    surface->dwQPitch = details.dwQPitch;
-    surface->bArraySpacing = details.bArraySpacing;
-    surface->TileType = details.TileType;
-    surface->TileModeGMM = details.TileModeGMM;
-    surface->bGMMTileEnabled = details.bGMMTileEnabled;
-    surface->dwOffset = details.RenderOffset.YUV.Y.BaseOffset;
-    surface->YPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.Y.BaseOffset;
-    surface->YPlaneOffset.iXOffset = details.RenderOffset.YUV.Y.XOffset;
-    surface->YPlaneOffset.iYOffset =
-        (surface->YPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +
-        details.RenderOffset.YUV.Y.YOffset;
-    surface->UPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.U.BaseOffset;
-    surface->UPlaneOffset.iXOffset = details.RenderOffset.YUV.U.XOffset;
-    surface->UPlaneOffset.iYOffset =
-        (surface->UPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +
-        details.RenderOffset.YUV.U.YOffset;
-    surface->UPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.U;
-    surface->VPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.V.BaseOffset;
-    surface->VPlaneOffset.iXOffset = details.RenderOffset.YUV.V.XOffset;
-    surface->VPlaneOffset.iYOffset =
-        (surface->VPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +
-        details.RenderOffset.YUV.V.YOffset;
-    surface->VPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.V;
-    surface->bCompressible = details.bCompressible;
-    surface->CompressionMode = details.CompressionMode;
-    surface->bIsCompressed = details.bIsCompressed;
-
+    surface->Format = Format_Invalid;
+    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&surface->OsResource, surface));
+    // Refine the surface's Yoffset as offset from Y plane, refer YOffsetForUCbInPixel, YOffsetForVCbInPixel.
+    surface->UPlaneOffset.iYOffset = (surface->UPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +
+                                      surface->UPlaneOffset.iYOffset;
+    surface->VPlaneOffset.iYOffset = (surface->VPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +
+                                      surface->VPlaneOffset.iYOffset;
     return MOS_STATUS_SUCCESS;
+
 }
 
 MOS_STATUS DecodeAllocator::UpdateResoreceUsageType(
