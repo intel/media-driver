@@ -50,17 +50,11 @@ MOS_STATUS MhwVdboxHucInterfaceG12::GetHucStateCommandSize(
     MHW_MI_CHK_NULL(commandsSize);
     MHW_MI_CHK_NULL(patchListSize);
 
-    uint32_t    maxSize = *commandsSize;
-    uint32_t    patchListMaxSize = *patchListSize;
-
     MHW_MI_CHK_STATUS((MhwVdboxHucInterfaceGeneric<mhw_vdbox_huc_g12_X, mhw_mi_g12_X>::
         GetHucStateCommandSize(mode, commandsSize, patchListSize, params)));
 
-    maxSize += mhw_vdbox_vdenc_g12_X::VD_PIPELINE_FLUSH_CMD::byteSize;
-    patchListMaxSize += PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD);
-
-    *commandsSize  = maxSize;
-    *patchListSize = patchListMaxSize;
+    *commandsSize  += mhw_vdbox_vdenc_g12_X::VD_PIPELINE_FLUSH_CMD::byteSize;
+    *patchListSize += PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD);
 
     return MOS_STATUS_SUCCESS;
 }
