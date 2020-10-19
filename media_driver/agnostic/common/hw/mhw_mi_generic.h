@@ -220,7 +220,7 @@ public:
         // However, since the 2nd level BB always returens to the 1st level BB and
         // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
         // Therefre, here only the 1st level BB case needs an Epilog inserted.
-        if (cmdBuffer && cmdBuffer->is1stLvlBB)
+        if (cmdBuffer)
         {
             MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(m_osInterface, cmdBuffer));
         }
@@ -240,7 +240,7 @@ public:
         }
 
         // Send End Marker command
-        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface) && cmdBuffer && cmdBuffer->is1stLvlBB)
+        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface))
         {
             MHW_MI_CHK_STATUS(SendMarkerCommand(
                 cmdBuffer, MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface))));
@@ -268,7 +268,7 @@ public:
         // However, since the 2nd level BB always returens to the 1st level BB and
         // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
         // Therefre, here only the 1st level BB case needs an Epilog inserted.
-        if (cmdBuffer && cmdBuffer->is1stLvlBB)
+        if (cmdBuffer)
         {
             MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(m_osInterface, cmdBuffer));
         }
@@ -288,7 +288,7 @@ public:
         }
 
         // Send End Marker command
-        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface) && cmdBuffer && cmdBuffer->is1stLvlBB)
+        if (m_osInterface->pfnIsSetMarkerEnabled(m_osInterface))
         {
             MHW_MI_CHK_STATUS(SendMarkerCommand(
                 cmdBuffer, MOS_RCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface))));
