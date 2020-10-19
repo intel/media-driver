@@ -4038,6 +4038,9 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                             CodechalDbgAttr::attrStatusReport,
                             "EncodeStatusReport_Buffer"));
 
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpEncodeStatusReport(
+                            (uint8_t*)encodeStatusReport));
+
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpFrameStatsBuffer(m_statusReportDebugInterface));
 
                         if (m_vdencEnabled)

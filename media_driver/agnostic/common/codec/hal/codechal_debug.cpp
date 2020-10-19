@@ -838,6 +838,79 @@ MOS_STATUS CodechalDebugInterface::DumpBuffer(
     return status;
 }
 
+#define FIELD_TO_OFS(type, name)   ofs << #name << ": " << (int64_t)*((type*)report) << std::endl; report += sizeof(type) / sizeof(uint8_t);
+#define POINTER_TO_OFS(type, name) ofs << #name << ": " << (void*)report << std::endl; report += sizeof(void*) / sizeof(uint8_t);
+MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(uint8_t* report)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_DEBUG_CHK_NULL(report);
+
+    const char* bufferName = "EncodeStatusReport_Parsed";
+    const char* attrName = CodechalDbgAttr::attrStatusReport;
+    if (!m_configMgr->AttrIsEnabled(attrName))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char* filePath = CreateFileName(bufferName, attrName, CodechalDbgExtType::txt);
+    std::ofstream ofs(filePath);
+
+    if (ofs.fail())
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    FIELD_TO_OFS(CODECHAL_STATUS,    CodecStatus);
+    FIELD_TO_OFS(uint32_t,           StatusReportNumber);
+    FIELD_TO_OFS(uint32_t,           CurrOriginalPic.FrameIdx);
+    FIELD_TO_OFS(CODEC_PICTURE_FLAG, CurrOriginalPic.PicFlags);
+    FIELD_TO_OFS(uint32_t,           CurrOriginalPic.PicEntry);
+    FIELD_TO_OFS(uint32_t,           Func);
+    POINTER_TO_OFS(PCODEC_REF_LIST,  pCurrRefList);
+    ofs << std::endl;
+
+    FIELD_TO_OFS(bool,        bSequential);
+    FIELD_TO_OFS(uint32_t,    bitstreamSize);
+    FIELD_TO_OFS(int8_t,      QpY);
+    FIELD_TO_OFS(int8_t,      SuggestedQpYDelta);
+    FIELD_TO_OFS(uint8_t,     NumberPasses);
+    FIELD_TO_OFS(uint8_t,     AverageQp);
+    FIELD_TO_OFS(uint64_t,    HWCounterValue.IV);
+    FIELD_TO_OFS(uint64_t,    HWCounterValue.Count);
+    POINTER_TO_OFS(uint64_t*, hwctr);
+    FIELD_TO_OFS(uint32_t,    QueryStatusFlags);
+    ofs << std::endl;
+
+    FIELD_TO_OFS(uint32_t, MAD);
+    FIELD_TO_OFS(uint32_t, loopFilterLevel);
+    FIELD_TO_OFS(int8_t,   LongTermIndication);
+    FIELD_TO_OFS(uint16_t, NextFrameWidthMinus1);
+    FIELD_TO_OFS(uint16_t, NextFrameHeightMinus1);
+    FIELD_TO_OFS(uint8_t,  NumberSlices);
+
+    FIELD_TO_OFS(uint16_t, PSNRx100[0]);
+    FIELD_TO_OFS(uint16_t, PSNRx100[1]);
+    FIELD_TO_OFS(uint16_t, PSNRx100[2]);
+
+    FIELD_TO_OFS(uint32_t,    NumberTilesInFrame);
+    FIELD_TO_OFS(uint8_t,     UsedVdBoxNumber);
+    FIELD_TO_OFS(uint32_t,    SizeOfSliceSizesBuffer);
+    POINTER_TO_OFS(uint16_t*, pSliceSizes);
+    FIELD_TO_OFS(uint32_t,    SizeOfTileInfoBuffer);
+    POINTER_TO_OFS(void*,     pHEVCTileinfo);
+    FIELD_TO_OFS(uint32_t,    NumTileReported);
+    ofs << std::endl;
+
+    FIELD_TO_OFS(uint32_t, StreamId);
+    POINTER_TO_OFS(void*,  pLookaheadStatus);
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+#undef FIELD_TO_OFS
+#undef POINTER_TO_OFS
+
 MOS_STATUS CodechalDebugInterface::DumpSurface(
     PMOS_SURFACE              surface,
     const char *              attrName,

@@ -225,6 +225,9 @@ public:
         uint32_t                  offset     = 0,
         CODECHAL_MEDIA_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES);
 
+    MOS_STATUS DumpEncodeStatusReport(
+        uint8_t *                 report);
+
     MOS_STATUS DumpSurface(
         PMOS_SURFACE              surface,
         const char *              attrName,
