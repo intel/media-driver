@@ -7051,19 +7051,22 @@ MOS_STATUS CodechalEncHevcStateG11::LoadPakCommandAndCuRecordFromFile()
     return eStatus;
 }
 
+void CodechalEncHevcStateG11::ResizeOnResChange()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CodechalEncoderState::ResizeOnResChange();
+
+    // need to re-allocate surfaces according to resolution
+    m_swScoreboardState->ReleaseResources();
+}
+
 void CodechalEncHevcStateG11::ResizeBufferOffset()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    //Re-calculate aligned frame width/height + aligned Max LCU width/height when resolution reset occurs
-    uint32_t frameWidth    = m_picWidthInMb * CODECHAL_MACROBLOCK_WIDTH;
-    uint32_t frameHeight   = m_picHeightInMb * CODECHAL_MACROBLOCK_HEIGHT;
-
-    uint32_t widthAlignedMaxLcu  = MOS_ALIGN_CEIL(frameWidth, MAX_LCU_SIZE);
-    uint32_t heightAlignedMaxLcu = MOS_ALIGN_CEIL(frameHeight, MAX_LCU_SIZE);
-
     uint32_t size = 0;
-    const uint32_t numLcu64 = widthAlignedMaxLcu * heightAlignedMaxLcu / 64 / 64;
+    uint32_t numLcu64 = m_widthAlignedMaxLcu * m_heightAlignedMaxLcu / 64 / 64;
     MBENC_COMBINED_BUFFER2 fixedBuf;
 
     //Re-Calculate m_encBCombinedBuffer2 Size and Offsets

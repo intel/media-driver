@@ -841,6 +841,12 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
     m_picWidthInMb = (uint16_t)CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_oriFrameWidth);
     m_picHeightInMb = (uint16_t)CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_oriFrameHeight);
 
+    if (m_resolutionChanged)
+    {
+        m_widthAlignedMaxLcu  = MOS_ALIGN_CEIL(m_frameWidth, MAX_LCU_SIZE);
+        m_heightAlignedMaxLcu = MOS_ALIGN_CEIL(m_frameHeight, MAX_LCU_SIZE);
+    }
+
     // Get row store cache params: as all the needed information is got here
     if (m_hcpInterface->IsRowStoreCachingSupported())
     {

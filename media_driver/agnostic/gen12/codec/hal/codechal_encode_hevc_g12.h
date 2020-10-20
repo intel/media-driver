@@ -2027,12 +2027,20 @@ public:
     MOS_STATUS HucPakIntegrate(
         PMOS_COMMAND_BUFFER cmdBuffer);
 
+    //!
+    //! \brief    Resize buffers due to resoluton change.
+    //! \details  Resize buffers due to resoluton change.
+    //!
+    //! \return   void
+    //!
+    virtual void ResizeOnResChange() override;
+
     MOS_STATUS InitMmcState() override;
 
     MOS_STATUS UpdateCmdBufAttribute(
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool                renderEngineInUse) override;
-        
+
     //!
     //! \brief    Configue stitch data buffer as Huc Pak Integration input
     //!
@@ -2043,8 +2051,8 @@ public:
 
     MOS_STATUS AddMediaVfeCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
-        SendKernelCmdsParams *params) override;    
-    
+        SendKernelCmdsParams *params) override;
+
     //!
     //! \brief    allocate resources with sizes varying from frame to frame
     //! \return   MOS_STATUS

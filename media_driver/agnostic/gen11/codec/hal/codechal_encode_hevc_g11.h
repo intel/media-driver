@@ -1736,6 +1736,14 @@ public:
     MOS_STATUS LoadPakCommandAndCuRecordFromFile();
 
     //!
+    //! \brief    Resize buffers due to resoluton change.
+    //! \details  Resize buffers due to resoluton change.
+    //!
+    //! \return   void
+    //!
+    virtual void ResizeOnResChange();
+
+    //!
     //! \brief   Re-calculate buffer size and offets during resolution reset
     //!
     //! \return   void
