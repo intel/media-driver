@@ -363,8 +363,6 @@ struct MOS_SURFACE
     // Tile Switch
     MOS_TILE_MODE_GMM   TileModeGMM;                                            //!< [out] Transparent GMM Tiletype specifying in hwcmd finally
     bool                bGMMTileEnabled;                                        //!< [out] GMM defined tile mode flag
-    uint32_t            YoffsetForUplane;                                       //!< [out] Y offset from U plane to Y plane.
-    uint32_t            YoffsetForVplane;                                       //!< [out] Y offset from V plane to Y plane.
 };
 typedef MOS_SURFACE *PMOS_SURFACE;
 
