@@ -155,6 +155,7 @@ MOS_STATUS CmdTask::DumpCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, CodechalDebugIn
             if (prop.stateProperty.currentPipe == 0)
             {
                 packetName += prop.packet->GetPacketName();
+                break;
             }
         }
 

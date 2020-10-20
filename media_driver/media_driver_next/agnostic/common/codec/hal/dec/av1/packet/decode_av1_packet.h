@@ -112,7 +112,7 @@ public:
     //!
     virtual std::string GetPacketName() override
     {
-        return "AV1_DECODE_PASS" + std::to_string(static_cast<uint32_t>(m_av1Pipeline->GetCurrentPass()));
+        return "AV1_DECODE";
     }
 
 protected:

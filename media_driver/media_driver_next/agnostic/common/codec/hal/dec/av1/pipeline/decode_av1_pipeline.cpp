@@ -114,7 +114,7 @@ MOS_STATUS Av1Pipeline::ActivateDecodePackets()
 {
     DECODE_FUNC_CALL();
 
-    bool immediateSubmit = false;
+    bool immediateSubmit = true;
 
     if (m_isFirstTileInFrm)
     {
@@ -122,9 +122,9 @@ MOS_STATUS Av1Pipeline::ActivateDecodePackets()
         m_isFirstTileInFrm = false;
     }
 
-    if (m_forceTileBasedDecoding)
+    if (!m_forceTileBasedDecoding)
     {
-        immediateSubmit = true;
+        immediateSubmit = false;
     }
 
     for (uint8_t curPass = 0; curPass < GetPassNum(); curPass++)

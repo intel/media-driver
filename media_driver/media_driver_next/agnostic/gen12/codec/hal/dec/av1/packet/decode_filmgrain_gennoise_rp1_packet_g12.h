@@ -109,6 +109,11 @@ public:
     
     virtual MOS_STATUS Init() override;
     virtual MOS_STATUS AllocateResources();
+
+    virtual std::string GetPacketName() override
+    {
+        return "AV1_DECODE_FilmGrainRp1";
+    }
     
     //!
     //! \brief  Calculate Command Size

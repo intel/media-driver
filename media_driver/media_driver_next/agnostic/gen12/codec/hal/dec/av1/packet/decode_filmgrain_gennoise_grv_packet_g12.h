@@ -180,6 +180,11 @@ public:
     virtual MOS_STATUS AllocateFixedSizeSurfaces();
     virtual MOS_STATUS AllocateVariableSizeSurfaces();
 
+    virtual std::string GetPacketName() override
+    {
+        return "AV1_DECODE_FilmGrainGrv";
+    }
+
     //!
     //! \brief  Calculate Command Size
     //!
