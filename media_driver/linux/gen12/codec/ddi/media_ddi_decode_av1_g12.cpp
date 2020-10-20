@@ -77,8 +77,6 @@ VAStatus DdiDecodeAV1::ParseTileParams(
         tileParams->m_badBSBufferChopping       = 0;                             // app doesn't have this
         tileParams->m_tileRow                   = pTileCtrl->tile_row;
         tileParams->m_tileColumn                = pTileCtrl->tile_column;
-        tileParams->m_startTileIdx              = pTileCtrl->tg_start;
-        tileParams->m_endTileIdx                = pTileCtrl->tg_end;
 
         tileParams->m_anchorFrameIdx.FrameIdx   = pTileCtrl->anchor_frame_idx;
         tileParams->m_tile_idx_in_tile_list     = pTileCtrl->tile_idx_in_tile_list;
@@ -165,7 +163,6 @@ VAStatus DdiDecodeAV1::ParsePicParams(
     picAV1Params->m_seqInfoFlags.m_fields.m_colorRange               = picParam->seq_info_fields.fields.color_range;
     picAV1Params->m_seqInfoFlags.m_fields.m_subsamplingX             = picParam->seq_info_fields.fields.subsampling_x;
     picAV1Params->m_seqInfoFlags.m_fields.m_subsamplingY             = picParam->seq_info_fields.fields.subsampling_y;
-    picAV1Params->m_seqInfoFlags.m_fields.m_chromaSamplePosition     = picParam->seq_info_fields.fields.chroma_sample_position;
     picAV1Params->m_seqInfoFlags.m_fields.m_filmGrainParamsPresent   = picParam->seq_info_fields.fields.film_grain_params_present;
     picAV1Params->m_seqInfoFlags.m_fields.m_reservedSeqInfoBits      = 0;
 
