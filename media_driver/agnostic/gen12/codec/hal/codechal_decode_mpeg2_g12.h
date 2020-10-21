@@ -66,7 +66,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    ~CodechalDecodeMpeg2G12 ();
+    virtual ~CodechalDecodeMpeg2G12 ();
 
     MOS_STATUS  AllocateStandard(
         CodechalSetting *          settings) override;
