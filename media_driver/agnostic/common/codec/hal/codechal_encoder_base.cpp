@@ -960,7 +960,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
 
     if (m_standard == CODECHAL_AVC)
     {
-        if (CodecHalUsesVideoEngine(m_codecFunction))
+        if (CodecHalUsesVideoEngine(m_codecFunction) && !(MEDIA_IS_WA(m_waTable, WaForceAllocateLML3)))
         {
             m_inlineEncodeStatusUpdate = m_osInterface->bInlineCodecStatusUpdate ? true: false;
         }
