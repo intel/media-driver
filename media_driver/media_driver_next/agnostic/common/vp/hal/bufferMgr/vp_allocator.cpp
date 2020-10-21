@@ -749,12 +749,16 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     if (surface                                                       &&
         surface->osSurface                                            &&
         !Mos_ResourceIsNull(&surface->osSurface->OsResource)          &&
-        (surface->osSurface->dwWidth              == width)           &&
-        (surface->osSurface->dwHeight             == height)          &&
         (surface->osSurface->Format               == format)          &&
         ((surface->osSurface->bCompressible != 0) == compressible)    &&
         (surface->osSurface->CompressionMode      == compressionMode) &&
-        (surface->osSurface->TileType             == defaultTileType))
+        (surface->osSurface->TileType             == defaultTileType) &&
+        ((Format_Buffer                           == format           &&
+          surface->bufferWidth                    == width            &&
+          surface->bufferHeight                   == height)          ||
+         (Format_Buffer                           != format           &&
+          surface->osSurface->dwWidth             == width            &&
+          surface->osSurface->dwHeight            == height))         )
     {
         return eStatus;
     }
