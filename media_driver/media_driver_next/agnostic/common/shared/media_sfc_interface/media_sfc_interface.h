@@ -81,6 +81,8 @@ struct VIDEO_PARAMS
             uint32_t                        tileRows;
         } av1;
     };
+    uint32_t            numPipe = 1;
+    uint32_t            curPipe = 0;
 };
 
 struct VDBOX_SFC_PARAMS

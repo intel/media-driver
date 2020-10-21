@@ -377,6 +377,36 @@ protected:
     MOS_STATUS AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t size, const char *bufName);
 
     //!
+    //! \brief    Allocate line buffer array
+    //! \details  Allocate line buffer
+    //! \param    [in/out] lineBufferArray
+    //!           pointer to line buffer.
+    //! \param    [in] size
+    //!           size of line buffer.
+    //! \param    [in] bufName
+    //!           name of line buffer.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS AllocateLineBufferArray(VP_SURFACE **&lineBufferArray, uint32_t size, const char *bufName);
+
+    //!
+    //! \brief    Destroy line buffer array
+    //! \details  Allocate line buffer
+    //! \param    [in/out] lineBufferArray
+    //!           pointer to line buffer.
+    //! \param    [in] numPipe
+    //!           size of pipe.
+    //! \param    [in] size
+    //!           size of line buffer.
+    //! \param    [in] bufName
+    //!           name of line buffer.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS DestroyLineBufferArray(VP_SURFACE **&lineBufferArray);
+
+    //!
     //! \brief    Allocate Resources for SFC Pipe
     //! \details  Allocate the AVS and IEF line buffer surfaces for SFC
     //! \return   Return MOS_STATUS_SUCCESS if successful, otherwise failed
@@ -433,9 +463,9 @@ protected:
     float                           m_cscOutOffset[3] = {};                   //!< [3x1] Output Offset matrix
     uint32_t                        m_currentChannel = 0;                     //!< 0=StereoLeft or nonStereo, 1=StereoRight. N/A in nonStereo
 
-    VP_SURFACE                      *m_AVSLineBufferSurface = nullptr;        //!< AVS Line Buffer Surface for SFC
+    VP_SURFACE                      **m_AVSLineBufferSurfaceArray = nullptr;  //!< AVS Line Buffer Surface for SFC
+    VP_SURFACE                      **m_SFDLineBufferSurfaceArray = nullptr;  //!< SFD Line Buffer Surface for SFC
     VP_SURFACE                      *m_IEFLineBufferSurface = nullptr;        //!< IEF Line Buffer Surface for SFC
-    VP_SURFACE                      *m_SFDLineBufferSurface = nullptr;        //!< SFD Line Buffer Surface for SFC
 
     VP_SURFACE                      *m_AVSLineTileBufferSurface = nullptr;    //!< AVS Line Tile Buffer Surface for SFC
     VP_SURFACE                      *m_IEFLineTileBufferSurface = nullptr;    //!< IEF Line Tile Buffer Surface for SFC
@@ -448,6 +478,10 @@ protected:
 
     bool                            m_bVdboxToSfc = false;
     VIDEO_PARAMS                    m_videoConfig = {};
+
+    int                             m_lineBufferAllocatedInArray    = 1;        //!< Line buffer allocated in array
+    int                             m_numPipe                       = 1;        //!< Number of pipes for scalability
+    int                             m_curPipe                       = 0;        //!< Current pipe index
 };
 
 }
