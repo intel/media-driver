@@ -135,8 +135,6 @@ struct mos_bufmgr_gem {
     drmMMListHead managers;
 
     drmMMListHead named;
-    drmMMListHead vma_cache;
-    int vma_count, vma_open, vma_max;
 
     uint64_t gtt_size;
     int available_fences;
@@ -223,7 +221,6 @@ struct mos_bo_gem {
      */
     void *user_virtual;
     int map_count;
-    drmMMListHead vma_list;
 
     /** BO cache list */
     drmMMListHead head;
@@ -852,7 +849,6 @@ retry:
         /* drm_intel_gem_bo_free calls DRMLISTDEL() for an uninitialized
            list (vma_list), so better set the list head here */
         DRMINITLISTHEAD(&bo_gem->name_list);
-        DRMINITLISTHEAD(&bo_gem->vma_list);
         if (mos_gem_bo_set_tiling_internal(&bo_gem->bo,
                              tiling_mode,
                              stride)) {
@@ -1011,7 +1007,6 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
     bo_gem->stride       = 0;
 
     DRMINITLISTHEAD(&bo_gem->name_list);
-    DRMINITLISTHEAD(&bo_gem->vma_list);
 
     bo_gem->name = name;
     atomic_set(&bo_gem->refcount, 1);
@@ -1197,7 +1192,6 @@ mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
     /* XXX stride is unknown */
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, 0);
 
-    DRMINITLISTHEAD(&bo_gem->vma_list);
     DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
     pthread_mutex_unlock(&bufmgr_gem->lock);
     MOS_DBG("bo_create_from_handle: %d (%s)\n", handle, bo_gem->name);
@@ -1219,20 +1213,16 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
         return;
     }
 
-    DRMLISTDEL(&bo_gem->vma_list);
     if (bo_gem->mem_virtual) {
         VG(VALGRIND_FREELIKE_BLOCK(bo_gem->mem_virtual, 0));
         drm_munmap(bo_gem->mem_virtual, bo_gem->bo.size);
-        bufmgr_gem->vma_count--;
     }
     if (bo_gem->gtt_virtual) {
         drm_munmap(bo_gem->gtt_virtual, bo_gem->bo.size);
-        bufmgr_gem->vma_count--;
     }
     if (bo_gem->mem_wc_virtual) {
         VG(VALGRIND_FREELIKE_BLOCK(bo_gem->mem_wc_virtual, 0));
         drm_munmap(bo_gem->mem_wc_virtual, bo_gem->bo.size);
-        bufmgr_gem->vma_count--;
     }
 
     /* Close this object */
@@ -1293,78 +1283,6 @@ mos_gem_cleanup_bo_cache(struct mos_bufmgr_gem *bufmgr_gem, time_t time)
     bufmgr_gem->time = time;
 }
 
-static void mos_gem_bo_purge_vma_cache(struct mos_bufmgr_gem *bufmgr_gem)
-{
-    int limit;
-
-    MOS_DBG("%s: cached=%d, open=%d, limit=%d\n", __FUNCTION__,
-        bufmgr_gem->vma_count, bufmgr_gem->vma_open, bufmgr_gem->vma_max);
-
-    if (bufmgr_gem->vma_max < 0)
-        return;
-
-    /* We may need to evict a few entries in order to create new mmaps */
-    limit = bufmgr_gem->vma_max - 2*bufmgr_gem->vma_open;
-    if (bufmgr_gem->has_ext_mmap)
-        limit -= bufmgr_gem->vma_open;
-    if (limit < 0)
-        limit = 0;
-
-    while (bufmgr_gem->vma_count > limit) {
-        struct mos_bo_gem *bo_gem;
-
-        bo_gem = DRMLISTENTRY(struct mos_bo_gem,
-                      bufmgr_gem->vma_cache.next,
-                      vma_list);
-        assert(bo_gem->map_count == 0);
-        DRMLISTDELINIT(&bo_gem->vma_list);
-
-        if (bo_gem->mem_virtual) {
-            drm_munmap(bo_gem->mem_virtual, bo_gem->bo.size);
-            bo_gem->mem_virtual = nullptr;
-            bufmgr_gem->vma_count--;
-        }
-        if (bo_gem->gtt_virtual) {
-            drm_munmap(bo_gem->gtt_virtual, bo_gem->bo.size);
-            bo_gem->gtt_virtual = nullptr;
-            bufmgr_gem->vma_count--;
-        }
-        if (bo_gem->mem_wc_virtual) {
-            drm_munmap(bo_gem->mem_wc_virtual, bo_gem->bo.size);
-            bo_gem->mem_wc_virtual = nullptr;
-            bufmgr_gem->vma_count--;
-        }
-    }
-}
-
-static void mos_gem_bo_close_vma(struct mos_bufmgr_gem *bufmgr_gem,
-                     struct mos_bo_gem *bo_gem)
-{
-    bufmgr_gem->vma_open--;
-    DRMLISTADDTAIL(&bo_gem->vma_list, &bufmgr_gem->vma_cache);
-    if (bo_gem->mem_virtual)
-        bufmgr_gem->vma_count++;
-    if (bo_gem->gtt_virtual)
-        bufmgr_gem->vma_count++;
-    if (bo_gem->mem_wc_virtual)
-        bufmgr_gem->vma_count++;
-    mos_gem_bo_purge_vma_cache(bufmgr_gem);
-}
-
-static void mos_gem_bo_open_vma(struct mos_bufmgr_gem *bufmgr_gem,
-                      struct mos_bo_gem *bo_gem)
-{
-    bufmgr_gem->vma_open++;
-    DRMLISTDEL(&bo_gem->vma_list);
-    if (bo_gem->mem_virtual)
-        bufmgr_gem->vma_count--;
-    if (bo_gem->gtt_virtual)
-        bufmgr_gem->vma_count--;
-    if (bo_gem->mem_wc_virtual)
-        bufmgr_gem->vma_count--;
-    mos_gem_bo_purge_vma_cache(bufmgr_gem);
-}
-
 drm_export void
 mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time)
 {
@@ -1416,7 +1334,6 @@ mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time)
     if (bo_gem->map_count) {
         MOS_DBG("bo freed with non-zero map-count %d\n", bo_gem->map_count);
         bo_gem->map_count = 0;
-        mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
         mos_gem_bo_mark_mmaps_incoherent(bo);
     }
 
@@ -1485,9 +1402,6 @@ map_wc(struct mos_linux_bo *bo)
     if (!bufmgr_gem->has_ext_mmap)
         return -EINVAL;
 
-    if (bo_gem->map_count++ == 0)
-        mos_gem_bo_open_vma(bufmgr_gem, bo_gem);
-
     /* Get a mapping of the buffer if we haven't before. */
     if (bo_gem->mem_wc_virtual == nullptr) {
         struct drm_i915_gem_mmap mmap_arg;
@@ -1508,8 +1422,6 @@ map_wc(struct mos_linux_bo *bo)
             MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
                 __FILE__, __LINE__, bo_gem->gem_handle,
                 bo_gem->name, strerror(errno));
-            if (--bo_gem->map_count == 0)
-                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
             return ret;
         }
         VG(VALGRIND_MALLOCLIKE_BLOCK(mmap_arg.addr_ptr, mmap_arg.size, 0, 1));
@@ -1630,9 +1542,6 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 
     pthread_mutex_lock(&bufmgr_gem->lock);
 
-    if (bo_gem->map_count++ == 0)
-        mos_gem_bo_open_vma(bufmgr_gem, bo_gem);
-
     if (!bo_gem->mem_virtual) {
         struct drm_i915_gem_mmap mmap_arg;
 
@@ -1650,8 +1559,6 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
             MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
                 __FILE__, __LINE__, bo_gem->gem_handle,
                 bo_gem->name, strerror(errno));
-            if (--bo_gem->map_count == 0)
-                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
             pthread_mutex_unlock(&bufmgr_gem->lock);
             return ret;
         }
@@ -1712,9 +1619,6 @@ map_gtt(struct mos_linux_bo *bo)
     if (bo_gem->is_userptr)
         return -EINVAL;
 
-    if (bo_gem->map_count++ == 0)
-        mos_gem_bo_open_vma(bufmgr_gem, bo_gem);
-
     /* Get a mapping of the buffer if we haven't before. */
     if (bo_gem->gtt_virtual == nullptr) {
         struct drm_i915_gem_mmap_gtt mmap_arg;
@@ -1735,8 +1639,6 @@ map_gtt(struct mos_linux_bo *bo)
                 __FILE__, __LINE__,
                 bo_gem->gem_handle, bo_gem->name,
                 strerror(errno));
-            if (--bo_gem->map_count == 0)
-                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
             return ret;
         }
 
@@ -1751,8 +1653,6 @@ map_gtt(struct mos_linux_bo *bo)
                 __FILE__, __LINE__,
                 bo_gem->gem_handle, bo_gem->name,
                 strerror(errno));
-            if (--bo_gem->map_count == 0)
-                mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
             return ret;
         }
     }
@@ -1912,7 +1812,6 @@ drm_export int mos_gem_bo_unmap(struct mos_linux_bo *bo)
      * limits and cause later failures.
      */
     if (--bo_gem->map_count == 0) {
-        mos_gem_bo_close_vma(bufmgr_gem, bo_gem);
         mos_gem_bo_mark_mmaps_incoherent(bo);
 #ifdef __cplusplus
         bo->virt = nullptr;
@@ -3074,7 +2973,6 @@ mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
     bo_gem->reusable = false;
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
-    DRMINITLISTHEAD(&bo_gem->vma_list);
     DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
     pthread_mutex_unlock(&bufmgr_gem->lock);
 
@@ -3447,16 +3345,6 @@ init_cache_buckets(struct mos_bufmgr_gem *bufmgr_gem)
         add_bucket(bufmgr_gem, size + size * 2 / 4);
         add_bucket(bufmgr_gem, size + size * 3 / 4);
     }
-}
-
-void
-mos_bufmgr_gem_set_vma_cache_size(struct mos_bufmgr *bufmgr, int limit)
-{
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
-
-    bufmgr_gem->vma_max = limit;
-
-    mos_gem_bo_purge_vma_cache(bufmgr_gem);
 }
 
 /**
@@ -4051,9 +3939,6 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 
     DRMINITLISTHEAD(&bufmgr_gem->named);
     init_cache_buckets(bufmgr_gem);
-
-    DRMINITLISTHEAD(&bufmgr_gem->vma_cache);
-    bufmgr_gem->vma_max = -1; /* unlimited by default */
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);
 
