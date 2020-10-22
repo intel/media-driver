@@ -429,6 +429,14 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         fScaleX = (float)wOutputRegionWidth / (float)m_sfcScalingParams->dwSourceRegionWidth;
         fScaleY = (float)wOutputRegionHeight / (float)m_sfcScalingParams->dwSourceRegionHeight;
 
+        if (m_bVdbox)
+        {
+            // In VD-to-SFC modes, source region must be programmed to same value as Input Frame Resolution.
+            // SourceRegion should be updated after fScale being calculated, or scaling ratio may be incorrect.
+            m_sfcScalingParams->dwSourceRegionHeight    = m_sfcScalingParams->dwInputFrameHeight;
+            m_sfcScalingParams->dwSourceRegionWidth     = m_sfcScalingParams->dwInputFrameWidth;
+        }
+
         // Size of the Scaled Region over the Render Target
         m_sfcScalingParams->dwScaledRegionHeight           = MOS_ALIGN_CEIL(MOS_UF_ROUND(fScaleY * m_sfcScalingParams->dwSourceRegionHeight), wOutputHeightAlignUnit);
         m_sfcScalingParams->dwScaledRegionWidth            = MOS_ALIGN_CEIL(MOS_UF_ROUND(fScaleX * m_sfcScalingParams->dwSourceRegionWidth), wOutputWidthAlignUnit);

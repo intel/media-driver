@@ -90,9 +90,11 @@ struct VDBOX_SFC_PARAMS
     // Input
     struct
     {
-        uint32_t                    width;
-        uint32_t                    height;
-        MOS_FORMAT                  format;
+        uint32_t                    width;              //!< Effective width of SFC input, which may
+                                                        //!< be smaller than frame width.
+        uint32_t                    height;             //!< Effective height of SFC input, which may
+                                                        //!< be smaller than frame height.
+        MOS_FORMAT                  format;             //!< Format of SFC input
         MEDIA_CSPACE                colorSpace;         //!< Color Space
         uint32_t                    chromaSiting;       //!< ChromaSiting
         bool                        mirrorEnabled;      //!< Is mirror needed.
