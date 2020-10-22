@@ -1961,6 +1961,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
 
     if(IsFirstPipe())
     {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_hucCmdInitializer);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucCmdInitializer->CmdInitializerSetConstData(
             m_osInterface,
             m_miInterface,
