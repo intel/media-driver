@@ -413,21 +413,23 @@ MOS_STATUS CodechalHwInterfaceG12::Initialize(
 
     CODECHAL_HW_CHK_STATUS_RETURN(CodechalHwInterface::Initialize(settings));
 
-    //Initialize renderHal
-    m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE));
-    CODECHAL_HW_CHK_NULL_RETURN(m_renderHal);
-    CODECHAL_HW_CHK_STATUS_RETURN(RenderHal_InitInterface(
-        m_renderHal,
-        &m_renderHalCpInterface,
-        m_osInterface));
+    if (settings-> codecFunction == CODECHAL_FUNCTION_DECODE && settings-> standard == CODECHAL_AV1)
+    {
+        //Initialize renderHal
+        m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE));
+        CODECHAL_HW_CHK_NULL_RETURN(m_renderHal);
+        CODECHAL_HW_CHK_STATUS_RETURN(RenderHal_InitInterface(
+            m_renderHal,
+            &m_renderHalCpInterface,
+            m_osInterface));
 
-    RENDERHAL_SETTINGS RenderHalSettings;
-    RenderHalSettings.iMediaStates = 32;
-    CODECHAL_HW_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
+        RENDERHAL_SETTINGS RenderHalSettings;
+        RenderHalSettings.iMediaStates = 32;
+        CODECHAL_HW_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
 
-    //set SSEU table
-    m_renderHal->sseuTable = m_ssEuTable;
-
+        //set SSEU table
+        m_renderHal->sseuTable = m_ssEuTable;
+    }
     return eStatus;
 }
 
