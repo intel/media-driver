@@ -237,6 +237,13 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
 
     bool disableMMC = false;
     MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
+
+    if (drvInfo->devRev <= 2)
+    {
+        // turn off Compression as HW known issue
+        MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
+    }
+
     // Disable MMC for all components if set reg key
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -254,9 +261,17 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     }
 
-    if (drvInfo->devRev == 0)
+    // Force MMC Turn on for all components if set reg key
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_MMC_ON_ID,
+        &userFeatureData,
+        nullptr);
+
+    if (userFeatureData.bData)
     {
-        MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
+        MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
     }
 
     MEDIA_WR_SKU(skuTable, FtrLinearCCS, 1);
