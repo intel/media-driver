@@ -34,6 +34,11 @@
 #include "mos_os_virtualengine_scalability_specific_next.h"
 #include "mos_graphicsresource_specific_next.h"
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include <stdlib.h>   //for simulate random OS API failure
+#include <time.h>     //for simulate random OS API failure
+#endif
+
 MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 {
     MOS_UNUSED(ddiDeviceContext);
@@ -41,6 +46,11 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 
     // MOS_OS_FUNCTION_ENTER need mos utilities init
     MOS_OS_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //Init MOS OS API fail simulate flags
+    MosInitOsApiFailSimulateFlag(ddiDeviceContext);
+#endif
 
     //Read user feature key here for Per Utility Tool Enabling
 #if _RELEASE_INTERNAL
@@ -86,6 +96,11 @@ MOS_STATUS MosInterface::CloseOsUtilities(PMOS_CONTEXT mosCtx)
     MOS_OS_FUNCTION_ENTER;
     // Close MOS utlities
     MosUtilities::MosUtilitiesClose(nullptr);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //reset MOS init OS API simulate flags
+    MosDeinitOsApiFailSimulateFlag();
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1441,6 +1456,13 @@ MOS_STATUS MosInterface::AllocateResource(
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MosSimulateOsApiFail(OS_FAIL_ALLOC_GFX_RES, __FUNCTION__, __FILE__, __LINE__))
+    {
+        return MOS_STATUS_NO_SPACE;
+    }
+#endif
+
     resource->bConvertedFromDDIResource = false;
     if (!params->bBypassMODImpl)
     {
@@ -1806,6 +1828,13 @@ MOS_STATUS MosInterface::RegisterResource(
     MOS_OS_CHK_NULL_RETURN(streamState);
     MOS_OS_CHK_NULL_RETURN(resource);
     MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MosSimulateOsApiFail(OS_FAIL_REGISTER_GFX_RES, __FUNCTION__, __FILE__, __LINE__))
+    {
+        return MOS_STATUS_NO_SPACE;
+    }
+#endif
 
     auto gpuContext = MosInterface::GetGpuContext(streamState, streamState->currentGpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
@@ -2807,3 +2836,171 @@ MOS_STATUS MosInterface::DumpCommandBufferInit(
     return eStatus;
 }
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+
+uint32_t MosInterface::m_mosOsApiFailSimulateType         = 0;
+uint32_t MosInterface::m_mosOsApiFailSimulateMode         = 0;
+uint32_t MosInterface::m_mosOsApiFailSimulateFreq         = 0;
+uint32_t MosInterface::m_mosOsApiFailSimulateHint         = 0;
+uint32_t MosInterface::m_mosOsApiFailSimulateCounter      = 0;
+
+void MosInterface::MosInitOsApiFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx)
+{
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+
+    //default off for simulate random fail
+    m_mosOsApiFailSimulateType         = OS_API_FAIL_TYPE_NONE;
+    m_mosOsApiFailSimulateMode         = OS_API_FAIL_SIMULATE_MODE_DEFAULT;
+    m_mosOsApiFailSimulateFreq         = 0;
+    m_mosOsApiFailSimulateHint         = 0;
+    m_mosOsApiFailSimulateCounter      = 0;
+
+    // Read Config : memory allocation failure simulate mode
+    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_TYPE_ID,
+        &userFeatureValueData,
+        mosCtx);
+
+    if (userFeatureValueData.u32Data & OS_API_FAIL_TYPE_MAX)
+    {
+        m_mosOsApiFailSimulateType = userFeatureValueData.u32Data;
+        MOS_OS_NORMALMESSAGE("Init MosSimulateOsApiFailSimulateType as %d \n ", m_mosOsApiFailSimulateType);
+    }
+    else
+    {
+        m_mosOsApiFailSimulateType = OS_API_FAIL_TYPE_NONE;
+        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Type from config: %d \n ", userFeatureValueData.u32Data);
+    }
+
+    // Read Config : memory allocation failure simulate mode
+    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_MODE_ID,
+        &userFeatureValueData,
+        mosCtx);
+
+    if ((userFeatureValueData.u32Data == OS_API_FAIL_SIMULATE_MODE_DEFAULT) ||
+        (userFeatureValueData.u32Data == OS_API_FAIL_SIMULATE_MODE_RANDOM) ||
+        (userFeatureValueData.u32Data == OS_API_FAIL_SIMULATE_MODE_TRAVERSE))
+    {
+        m_mosOsApiFailSimulateMode = userFeatureValueData.u32Data;
+        MOS_OS_NORMALMESSAGE("Init MosSimulateOsApiFailSimulateMode as %d \n ", m_mosOsApiFailSimulateMode);
+    }
+    else
+    {
+        m_mosOsApiFailSimulateMode = OS_API_FAIL_SIMULATE_MODE_DEFAULT;
+        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Mode from config: %d \n ", userFeatureValueData.u32Data);
+    }
+
+    // Read Config : memory allocation failure simulate frequence
+    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_FREQ_ID,
+        &userFeatureValueData,
+        mosCtx);
+
+    if ((userFeatureValueData.u32Data >= MIN_OS_API_FAIL_FREQ) &&
+        (userFeatureValueData.u32Data <= MAX_OS_API_FAIL_FREQ))
+    {
+        m_mosOsApiFailSimulateFreq = userFeatureValueData.u32Data;
+        MOS_OS_NORMALMESSAGE("Init m_MosSimulateRandomOsApiFailFreq as %d \n ", m_mosOsApiFailSimulateFreq);
+
+        if (m_mosOsApiFailSimulateMode == OS_API_FAIL_SIMULATE_MODE_RANDOM)
+        {
+            srand((unsigned int)time(nullptr));
+        }
+    }
+    else
+    {
+        m_mosOsApiFailSimulateFreq = 0;
+        MOS_OS_NORMALMESSAGE("Invalid OS API Fail Simulate Freq from config: %d \n ", userFeatureValueData.u32Data);
+    }
+
+    // Read Config : memory allocation failure simulate counter
+    MosUtilities::MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
+    MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_HINT_ID,
+        &userFeatureValueData,
+        mosCtx);
+
+    if (userFeatureValueData.u32Data <= m_mosOsApiFailSimulateFreq)
+    {
+        m_mosOsApiFailSimulateHint = userFeatureValueData.u32Data;
+        MOS_OS_NORMALMESSAGE("Init m_MosOsApiFailSimulateHint as %d \n ", m_mosOsApiFailSimulateHint);
+    }
+    else
+    {
+        m_mosOsApiFailSimulateHint = m_mosOsApiFailSimulateFreq;
+        MOS_OS_NORMALMESSAGE("Set m_mosOsApiFailSimulateHint as %d since INVALID CONFIG %d \n ", m_mosOsApiFailSimulateHint, userFeatureValueData.u32Data);
+    }
+}
+
+void MosInterface::MosDeinitOsApiFailSimulateFlag()
+{
+    //default off for simulate fail
+    m_mosOsApiFailSimulateType    = OS_API_FAIL_TYPE_NONE;
+    m_mosOsApiFailSimulateMode    = OS_API_FAIL_SIMULATE_MODE_DEFAULT;
+    m_mosOsApiFailSimulateFreq    = 0;
+    m_mosOsApiFailSimulateHint    = 0;
+    m_mosOsApiFailSimulateCounter = 0;
+}
+
+bool MosInterface::MosSimulateOsApiFail(
+    OS_API_FAIL_TYPE type,
+    const char *functionName,
+    const char *filename,
+    int32_t     line)
+{
+    bool bSimulateOsApiFail = false;
+
+    if (!MosOsApiFailSimulationEnabled(type))
+    {
+        return false;
+    }
+
+    if (m_mosOsApiFailSimulateMode == OS_API_FAIL_SIMULATE_MODE_RANDOM)
+    {
+        int32_t Rn = rand();
+        m_mosOsApiFailSimulateCounter++;
+        if (Rn % m_mosOsApiFailSimulateFreq == 1)
+        {
+            bSimulateOsApiFail = true;
+            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF,
+                "Simulated OS API(Type %d) Fail (Rn=%d, SimulateAllocCounter=%d) for: functionName: %s, filename: %s, line: %d\n",
+                m_mosOsApiFailSimulateType, Rn, m_mosOsApiFailSimulateCounter, functionName, filename, line);
+        }
+        else
+        {
+            bSimulateOsApiFail = false;
+        }
+    }
+    else if (m_mosOsApiFailSimulateMode == OS_API_FAIL_SIMULATE_MODE_TRAVERSE)
+    {
+        if (m_mosOsApiFailSimulateCounter++ == m_mosOsApiFailSimulateHint)
+        {
+            MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_CRITICAL, MOS_COMPONENT_OS, MOS_SUBCOMP_SELF,
+                "Simulated OS API(Type %d) Fail (hint=%d) for: functionName: %s, filename: %s, line: %d\n",
+                m_mosOsApiFailSimulateType, m_mosOsApiFailSimulateHint, functionName, filename, line);
+            bSimulateOsApiFail = true;
+        }
+        else
+        {
+            bSimulateOsApiFail = false;
+        }
+    }
+    else
+    {
+        //MOS_OS_NORMALMESSAGE("Invalid m_mosOsApiFailSimulateMode: %d \n ", m_mosOsApiFailSimulateMode);
+        bSimulateOsApiFail = false;
+    }
+
+    return bSimulateOsApiFail;
+}
+#endif  // #if (_DEBUG || _RELEASE_INTERNAL)

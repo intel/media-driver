@@ -1802,6 +1802,61 @@ private:
     static MOS_STATUS DumpCommandBufferInit(
         MOS_STREAM_HANDLE streamState);
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+
+    enum OS_API_FAIL_TYPE
+    {
+        OS_API_FAIL_TYPE_NONE    = 0,
+        OS_FAIL_ALLOC_GFX_RES    = 1,
+        OS_FAIL_REGISTER_GFX_RES = 1 << 1,
+        OS_API_FAIL_TYPE_MAX     = OS_FAIL_ALLOC_GFX_RES | OS_FAIL_REGISTER_GFX_RES,
+    };
+
+    enum OS_API_FAIL_SIMULATE_MODE
+    {
+        OS_API_FAIL_SIMULATE_MODE_DEFAULT  = 0,
+        OS_API_FAIL_SIMULATE_MODE_RANDOM   = 1,
+        OS_API_FAIL_SIMULATE_MODE_TRAVERSE = 1 << 1,
+        OS_API_FAIL_SIMULATE_MODE_MAX      = OS_API_FAIL_SIMULATE_MODE_RANDOM | OS_API_FAIL_SIMULATE_MODE_TRAVERSE,
+    };
+
+    #define MIN_OS_API_FAIL_FREQ (1)      //max memory allcation fail rate 100%
+    #define MAX_OS_API_FAIL_FREQ (10000)  //min memory allcation fail rate 1/10000
+
+    #define MosOsApiFailSimulationEnabled(OsApiType)                  \
+        (m_mosOsApiFailSimulateType == OsApiType &&                   \
+         m_mosOsApiFailSimulateMode &  OS_API_FAIL_SIMULATE_MODE_MAX)
+
+    //!
+    //! \brief    Init OS API fail simulate flags
+    //! \details  Init OS API fail simulate flags according user feature value
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
+    //! \return   void
+    //!
+    static void MosInitOsApiFailSimulateFlag(MOS_CONTEXT_HANDLE mosCtx);
+
+    //!
+    //! \brief    Deinit OS API fail simulate flags
+    //! \details  Reset OS API fail simulate flags
+    //! \param    none
+    //! \return   void
+    //!
+    static void MosDeinitOsApiFailSimulateFlag();
+
+    static bool MosSimulateOsApiFail(
+        OS_API_FAIL_TYPE type,
+        const char *functionName,
+        const char *filename,
+        int32_t     line);
+
+    static uint32_t m_mosOsApiFailSimulateType;
+    static uint32_t m_mosOsApiFailSimulateMode;
+    static uint32_t m_mosOsApiFailSimulateFreq;
+    static uint32_t m_mosOsApiFailSimulateHint;
+    static uint32_t m_mosOsApiFailSimulateCounter;
+#endif
 };
 
 #endif  // __MOS_INTERFACE_H__

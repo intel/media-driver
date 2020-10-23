@@ -279,6 +279,10 @@
 #define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_MODE    "Alloc Memory Fail Simulate Mode"
 #define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_FREQ    "Alloc Memory Fail Simulate Freq"
 #define __MEDIA_USER_FEATURE_VALUE_ALLOC_MEMORY_FAIL_SIMULATE_HINT    "Alloc Memory Fail Simulate Hint"
+#define __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_TYPE          "OS API Fail Simulate Type"
+#define __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_MODE          "OS API Fail Simulate Mode"
+#define __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_FREQ          "OS API Fail Simulate Freq"
+#define __MEDIA_USER_FEATURE_VALUE_OS_API_FAIL_SIMULATE_HINT          "OS API Fail Simulate Hint"
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
 //User feature key for UMD_OCA
