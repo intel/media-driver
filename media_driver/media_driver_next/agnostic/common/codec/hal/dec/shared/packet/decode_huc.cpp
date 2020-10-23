@@ -226,11 +226,22 @@ MOS_STATUS DecodeHucBasic::SendPrologCmds(MOS_COMMAND_BUFFER& cmdBuffer)
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
+#ifdef _MMC_SUPPORTED
+    DecodeMemComp *mmcState = m_pipeline->GetMmcState();
+    bool isMmcEnabled = (mmcState != nullptr && mmcState->IsMmcEnabled());
+    if (isMmcEnabled)
+    {
+        DECODE_CHK_STATUS(mmcState->SendPrologCmd(&cmdBuffer, false));
+    }
+#endif
+
     MHW_GENERIC_PROLOG_PARAMS  genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
     genericPrologParams.pvMiInterface = m_miInterface;
-    genericPrologParams.bMmcEnabled = false;
+#ifdef _MMC_SUPPORTED
+    genericPrologParams.bMmcEnabled = isMmcEnabled;
+#endif
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmd(&cmdBuffer, &genericPrologParams));
 
     subPacket = m_pipeline->GetSubPacket(DecodePacketId(m_pipeline, predicationSubPacketId));

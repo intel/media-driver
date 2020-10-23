@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 #ifndef __MEDIA_CODEC_MEM_COMPRESSION_G12_H__
 #define __MEDIA_CODEC_MEM_COMPRESSION_G12_H__
 
-# include "media_context.h"
+#include "media_context.h"
 
 class CodecMmcAuxTableG12
 {

@@ -61,12 +61,10 @@ public:
         m_aviableSurfaces.clear();
     }
 
-        //!
+    //!
     //! \brief  Initialize surfaces
     //! \param  [in] allocator
     //!         Reference to decode allocator
-    //! \param  [in] initialAllocNum
-    //!         The number of surfaces allocated when initialize
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -74,7 +72,7 @@ public:
     {
         DECODE_FUNC_CALL();
 
-        m_allocator = &allocator;
+        m_allocator    = &allocator;
         DECODE_ASSERT(m_aviableSurfaces.empty());
         DECODE_ASSERT(m_activeSurfaces.empty());
 
@@ -88,7 +86,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ActiveCurSurf(uint32_t curFrameIdx, PMOS_SURFACE dstSurface, ResourceUsage resUsageType = resourceDefault)
+    MOS_STATUS ActiveCurSurf(uint32_t curFrameIdx, PMOS_SURFACE dstSurface, bool isMmcEnabled, ResourceUsage resUsageType = resourceDefault)
     {
         DECODE_FUNC_CALL();
 
@@ -99,7 +97,7 @@ public:
                                             MOS_ALIGN_CEIL(dstSurface->dwHeight, 8),
                                             "Internal target surface",
                                             dstSurface->Format,
-                                            false,
+                                            isMmcEnabled,
                                             resUsageType);
         }
         else

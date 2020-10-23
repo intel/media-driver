@@ -69,6 +69,35 @@ public:
     //!
     MOS_STATUS UpdateDestSurface(MOS_SURFACE &destSurface);
 
+#ifdef _MMC_SUPPORTED
+    //!
+    //! \brief  Set MMC state
+    //! \param  [in] isMmcEnabled
+    //!         Flag to indicate if the MMC is enabled
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetMmcState(bool isMmcEnabled)
+    {
+        m_isMmcEnabled = isMmcEnabled;
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
+    //!
+    //! \brief  Get MMC state
+    //! \return bool
+    //!         Return true if MMC enabled
+    //!
+    bool IsMmcEnabled()
+    {
+#ifdef _MMC_SUPPORTED
+        return m_isMmcEnabled;
+#else
+        return false;
+#endif
+    }
+
     uint32_t            m_width = 0;                                    //!< Frame width in luma samples
     uint32_t            m_height = 0;                                   //!< Frame height in luma samples
     uint16_t            m_picWidthInMb = 0;                             //!< Picture Width in MB width count
@@ -122,6 +151,10 @@ protected:
 
     CodechalHwInterface *  m_hwInterface = nullptr;
     DecodeAllocator *      m_allocator   = nullptr;
+
+#ifdef _MMC_SUPPORTED
+    bool                   m_isMmcEnabled = false;   //!< Indicate MMC enabled for current picture
+#endif
 };
 
 }//decode

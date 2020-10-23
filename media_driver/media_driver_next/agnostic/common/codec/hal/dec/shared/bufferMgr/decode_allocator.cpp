@@ -489,7 +489,10 @@ MOS_STATUS DecodeAllocator::GetSurfaceInfo(PMOS_SURFACE surface)
     DECODE_CHK_NULL(m_allocator);
     DECODE_CHK_NULL(surface);
 
-    surface->Format = Format_Invalid;
+    surface->Format       = Format_Invalid;
+    surface->dwArraySlice = 0;
+    surface->dwMipSlice   = 0;
+    surface->S3dChannel   = MOS_S3D_NONE;
     DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&surface->OsResource, surface));
     // Refine the surface's Yoffset as offset from Y plane, refer YOffsetForUCbInPixel, YOffsetForVCbInPixel.
     surface->UPlaneOffset.iYOffset = (surface->UPlaneOffset.iSurfaceOffset - surface->dwOffset) / surface->dwPitch +

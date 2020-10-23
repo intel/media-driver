@@ -284,6 +284,10 @@ namespace decode
         DECODE_CHK_NULL(m_hwInterface);
         m_mmcState = MOS_New(DecodeMemCompG12, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
+
+        Av1BasicFeature *basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        DECODE_CHK_NULL(basicFeature);
+        DECODE_CHK_STATUS(basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     #endif
         return MOS_STATUS_SUCCESS;
     }

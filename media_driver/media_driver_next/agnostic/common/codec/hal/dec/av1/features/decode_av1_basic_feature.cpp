@@ -172,7 +172,8 @@ namespace decode
             m_filmGrainProcParams = (FilmGrainProcParams *)&decodeParams->m_filmGrainProcParams;
             if (m_filmGrainProcParams->m_inputSurface == nullptr)
             {
-                DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(m_av1PicParams->m_currPic.FrameIdx, &m_destSurface, resourceOutputPicture));
+                DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(
+                    m_av1PicParams->m_currPic.FrameIdx, &m_destSurface, IsMmcEnabled(), resourceOutputPicture));
                 m_filmGrainProcParams->m_inputSurface = m_internalTarget.GetCurSurf();
             }
             else
