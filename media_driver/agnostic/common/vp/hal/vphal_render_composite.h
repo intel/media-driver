@@ -649,11 +649,23 @@ protected:
     //!           Pointer to Source Surface
     //! \param    [in] isRenderTarget
     //!           Render Target or not
-    //! \return   void
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual void SetSurfaceCompressionParams(
+    virtual MOS_STATUS SetSurfaceCompressionParams(
         PVPHAL_SURFACE                  pSource,
         bool                            isRenderTarget);
+
+    //!
+    //! \brief    Clear AuxData of Compressed Surface
+    //! \details  Clear AuxData of Compressed Surface through vebox decompression
+    //! \param    [in,out] pSource
+    //!           Pointer to Source Surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS ClearAuxDataOfCompressedSurface(
+        PVPHAL_SURFACE                  pSource);
 
     //!
     //! \brief    Check NV12 luma key sampler solution is needed or not
@@ -1154,6 +1166,7 @@ protected:
     AvsCoeffsCache<AVS_CACHE_SIZE>  m_AvsCoeffsCache;             //!< AVS coefficients calculation is expensive, add cache to mitigate
     VPHAL_SURFACE                   m_Intermediate;               //!< Intermediate surface (multiple phase / constriction support)
     VPHAL_SURFACE                   m_Intermediate2;              //!< Rotation output intermediate surface
+    VPHAL_SURFACE                   m_TempSyncSurface;            //!< Temporary surface for internal sync on different engines
 
     Kdll_State                      *m_pKernelDllState = nullptr; //!< Compositing Kernel DLL/Search state
     RENDERHAL_KERNEL_PARAM          m_KernelParams = {0};
