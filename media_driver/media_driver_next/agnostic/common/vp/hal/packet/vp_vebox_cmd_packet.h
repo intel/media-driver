@@ -379,7 +379,6 @@ public:
     //! \return   void
     //!
     virtual void SetupSurfaceStates(
-        bool                        bDiVarianceEnable,
         PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  pVeboxSurfaceStateCmdParams);
 
     //!
@@ -510,6 +509,16 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SetProcampParams(PVEBOX_PROCAMP_PARAMS procampParams);
+
+    //!
+    //! \brief    Setup DI Params for Vebox
+    //! \details  Setup surface DN Params for Vebox
+    //! \param    [in] diParams
+    //!           DI Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetDiParams(PVEBOX_DI_PARAMS diParams);
 
     //!
     //! \brief    Get DN luma parameters
@@ -683,15 +692,12 @@ public:
 
     //!
     //! \brief    Setup Vebox_State Command parameter
-    //! \param    [in] bDiVarianceEnable
-    //!           Is DI/Variances report enabled
     //! \param    [in,out] pVeboxStateCmdParams
     //!           Pointer to VEBOX_STATE command parameters
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SetupVeboxState(
-        bool                        bDiVarianceEnable,
         PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
 
     //!
@@ -955,6 +961,13 @@ protected:
         PVPHAL_SURFACE pSrcSurface,
         PVPHAL_SURFACE pOutSurface);
 
+    virtual MOS_STATUS SetDiParams(
+        bool                    bDiEnabled,
+        bool                    bSCDEnabled,
+        bool                    bHDContent,
+        VPHAL_SAMPLE_TYPE       sampleTypeInput,
+        MHW_VEBOX_DNDI_PARAMS   &param);
+
     //!
     //! \brief    Get surface by type
     //! \details  Get surface by type
@@ -1012,6 +1025,7 @@ protected:
     uint32_t                    m_dwGlobalNoiseLevelV = 0;                        //!< Global Noise Level for V
     uint32_t                    m_dwGlobalNoiseLevel = 0;                         //!< Global Noise Level
     PVP_VEBOX_CACHE_CNTL        m_surfMemCacheCtl = nullptr;                      //!< Surface memory cache control
+    uint32_t                    m_DNDIFirstFrame = 0;
     uint32_t                    m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_CURRENT; //!< default value is 2 for non-DI case.
 
     // Statistics

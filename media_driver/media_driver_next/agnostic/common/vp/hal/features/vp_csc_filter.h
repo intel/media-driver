@@ -106,7 +106,7 @@ protected:
     //! \details  Setup Chroma sitting parameters
     //! \return   MOS_STATUS
     //!
-    MOS_STATUS UpdateSfcChromaSiting();
+    MOS_STATUS UpdateChromaSiting();
 
     //!
     //! \brief    Check whether Chroma Up Sampling Needed

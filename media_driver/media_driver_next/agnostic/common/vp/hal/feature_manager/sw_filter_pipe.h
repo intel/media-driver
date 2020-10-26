@@ -135,7 +135,11 @@ public:
     VP_SURFACE *GetSurface(bool isInputSurface, uint32_t index);
     VP_SURFACE *GetPastSurface(uint32_t index);
     VP_SURFACE *GetFutureSurface(uint32_t index);
+    MOS_STATUS SetPastSurface(uint32_t index, VP_SURFACE *surf);
+    MOS_STATUS SetFutureSurface(uint32_t index, VP_SURFACE *surf);
     VP_SURFACE *RemoveSurface(bool isInputSurface, uint32_t index);
+    VP_SURFACE *RemovePastSurface(uint32_t index);
+    VP_SURFACE *RemoveFutureSurface(uint32_t index);
     MOS_STATUS AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint32_t index);
     MOS_STATUS Update();
     uint32_t GetSurfaceCount(bool isInputSurface);

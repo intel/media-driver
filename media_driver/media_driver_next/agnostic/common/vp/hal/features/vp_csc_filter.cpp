@@ -80,6 +80,8 @@ namespace vp {
 #define VP_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE2_VERT_OFFSET           0
 #define VP_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_VERT_OFFSET           0
 
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput);
+
 VpCscFilter::VpCscFilter(PVP_MHWINTERFACE vpMhwInterface) :
     VpFilter(vpMhwInterface)
 {
@@ -134,18 +136,19 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
 {
     VP_FUNC_CALL();
 
-    if (m_executeCaps.bSfcCsc)
+    if (FeatureTypeCscOnSfc == m_cscParams.type)
     {
         VP_RENDER_CHK_STATUS_RETURN(CalculateSfcEngineParams());
     }
-    else if (m_executeCaps.bBeCSC)
+    else if (FeatureTypeCscOnVebox == m_cscParams.type)
     {
         VP_RENDER_CHK_STATUS_RETURN(CalculateVeboxEngineParams());
     }
-    else if (m_executeCaps.bRender)
+    else if (FeatureTypeCscOnRender == m_cscParams.type)
     {
         // place hold for Render solution
         VP_PUBLIC_ASSERTMESSAGE("No function support CSC in Render path now");
+        return MOS_STATUS_UNIMPLEMENTED;
     }
     else
     {
@@ -163,26 +166,6 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
         return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
     }
     return inputColorSpace;
-}
-
-MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput)
-{
-    if (executeCaps.bIECP)
-    {
-        if (executeCaps.bHDR3DLUT)
-        {
-            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
-        }
-        // Upsampling to yuv444 for IECP input/output.
-        return Format_AYUV;
-    }
-    else if (executeCaps.bDI && VpHal_GetSurfaceColorPack(inputFormat) == VPHAL_COLORPACK_420)
-    {
-        // If the input is 4:2:0, then chroma data is doubled vertically to 4:2:2
-        return Format_YUY2;
-    }
-
-    return inputFormat;
 }
 
 MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
@@ -279,6 +262,8 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
     m_veboxCSCParams->bCSCEnabled = (m_cscParams.colorSpaceInput != m_cscParams.colorSpaceOutput);
     m_veboxCSCParams->alphaParams = m_cscParams.pAlphaParams;
 
+    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting());
+
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxCUSChromaParams(m_executeCaps));
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxCDSChromaParams(m_executeCaps));
 
@@ -293,7 +278,9 @@ MOS_STATUS VpCscFilter::SetSfcChromaParams(
     VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
 
     // Update chroma sitting according to updated input format.
-    VP_RENDER_CHK_STATUS_RETURN(UpdateSfcChromaSiting());
+    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting());
+
+    m_sfcCSCParams->sfcSrcChromaSiting = m_cscParams.chromaSitingInput;
 
     // Setup General params
     // Set chroma subsampling type according to the Vebox output, but
@@ -473,10 +460,12 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
 
     bool bNeedDownSampling = false;
 
+    VPHAL_COLORPACK dstColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatOutput);
+
     // Only VEBOX output, we use VEO to do downsampling.
     // Else, we use SFC/FC path to do downscaling.
     // if VEBOX intermediate buffer format is non_YUY2 on DI case, enable downsampling as center-left
-    if (vpExecuteCaps.bDI && (m_cscParams.formatOutput != Format_YUY2))
+    if (vpExecuteCaps.bDI && (m_cscParams.formatOutput != Format_YUY2 || vpExecuteCaps.bIECP))
     {
         bNeedDownSampling = true;
     }
@@ -484,10 +473,6 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         bNeedDownSampling = vpExecuteCaps.bVebox && !vpExecuteCaps.bSFC;
     }
-
-
-    VPHAL_COLORPACK dstColorPack;
-    dstColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatOutput);
 
     // Init as CDS disabled
     m_veboxCSCParams->bypassCDS = true;
@@ -576,11 +561,9 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpCscFilter::UpdateSfcChromaSiting()
+MOS_STATUS VpCscFilter::UpdateChromaSiting()
 {
     VP_FUNC_CALL();
-
-    VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
 
     if (MHW_CHROMA_SITING_NONE == m_cscParams.chromaSitingInput)
     {
@@ -597,8 +580,6 @@ MOS_STATUS VpCscFilter::UpdateSfcChromaSiting()
     default:
         break;
     }
-
-    m_sfcCSCParams->sfcSrcChromaSiting = m_cscParams.chromaSitingInput;
 
     if (MHW_CHROMA_SITING_NONE == m_cscParams.chromaSitingOutput)
     {

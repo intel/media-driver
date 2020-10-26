@@ -373,7 +373,7 @@ public:
             struct
             {
                 uint32_t bAceEnabled            : 1;    // ACE enabled;
-                uint32_t bQueryAceHistogram     : 1;    // Chroma Dn Enabled
+                uint32_t bAceHistogramEnabled   : 1;    // ACE histogram enabled, should be set to 1 when bAceEnabled == 1;
             };
             uint32_t value = 0;
         } ACE;

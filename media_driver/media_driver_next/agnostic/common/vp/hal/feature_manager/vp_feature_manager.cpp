@@ -154,6 +154,10 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeHdr, p));
 
+    p = MOS_New(SwFilterDiHandler, m_vpInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeDi, p));
+
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;
 }
@@ -865,4 +869,24 @@ MOS_STATUS VPFeatureManager::RectSurfaceAlignment(
     }
 
     return eStatus;
+}
+
+bool VPFeatureManager::IsDiFormatSupported(MOS_FORMAT format)
+{
+    if (format != Format_AYUV         &&
+        format != Format_Y416         &&
+        format != Format_Y410         &&
+        format != Format_A8B8G8R8     &&
+        format != Format_A8R8G8B8     &&
+        format != Format_B10G10R10A2  &&
+        format != Format_R10G10B10A2  &&
+        format != Format_A16B16G16R16 &&
+        format != Format_A16R16G16B16)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }

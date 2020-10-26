@@ -175,9 +175,20 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
             return MOS_STATUS_NULL_POINTER;
         }
         m_InputSurfaces.push_back(surf);
-        // Keep m_pastSurface same size as m_InputSurfaces.
-        m_pastSurface.push_back(nullptr);
-        m_futureSurface.push_back(nullptr);
+
+        // Keep m_pastSurface/m_futureSurface same size as m_InputSurfaces.
+        VP_SURFACE *pastSurface = nullptr;
+        if (params.pSrc[i]->pBwdRef)
+        {
+            pastSurface = m_vpInterface.GetAllocator().AllocateVpSurface(*params.pSrc[i]->pBwdRef);
+        }
+        VP_SURFACE *futureSurface = nullptr;
+        if (params.pSrc[i]->pFwdRef)
+        {
+            futureSurface = m_vpInterface.GetAllocator().AllocateVpSurface(*params.pSrc[i]->pFwdRef);
+        }
+        m_pastSurface.push_back(pastSurface);
+        m_futureSurface.push_back(futureSurface);
 
         // Initialize m_InputPipes.
         SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
@@ -666,6 +677,48 @@ VP_SURFACE *SwFilterPipe::GetFutureSurface(uint32_t index)
     return index < m_futureSurface.size() ? m_futureSurface[index] : nullptr;
 }
 
+MOS_STATUS SwFilterPipe::SetPastSurface(uint32_t index, VP_SURFACE *surf)
+{
+    if (index >= m_pastSurface.size())
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    m_pastSurface[index] = surf;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterPipe::SetFutureSurface(uint32_t index, VP_SURFACE *surf)
+{
+    if (index >= m_futureSurface.size())
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    m_futureSurface[index] = surf;
+    return MOS_STATUS_SUCCESS;
+}
+
+VP_SURFACE *SwFilterPipe::RemovePastSurface(uint32_t index)
+{
+    if (index >= m_pastSurface.size())
+    {
+        return nullptr;
+    }
+    VP_SURFACE *surf = m_pastSurface[index];
+    m_pastSurface[index] = nullptr;
+    return surf;
+}
+
+VP_SURFACE *SwFilterPipe::RemoveFutureSurface(uint32_t index)
+{
+    if (index >= m_futureSurface.size())
+    {
+        return nullptr;
+    }
+    VP_SURFACE *surf = m_futureSurface[index];
+    m_futureSurface[index] = nullptr;
+    return surf;
+}
+
 VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
 {
     auto &surfaces = isInputSurface ? m_InputSurfaces : m_OutputSurfaces;
@@ -678,8 +731,14 @@ VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
         if (isInputSurface)
         {
             // Keep m_pastSurface and m_futureSurface same status as m_InputSurfaces.
-            m_pastSurface[index] = nullptr;
-            m_futureSurface[index] = nullptr;
+            if (m_pastSurface[index])
+            {
+                m_vpInterface.GetAllocator().DestroyVpSurface(m_pastSurface[index]);
+            }
+            if (m_futureSurface[index])
+            {
+                m_vpInterface.GetAllocator().DestroyVpSurface(m_futureSurface[index]);
+            }
         }
 
         return surf;

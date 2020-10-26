@@ -48,12 +48,10 @@ const uint32_t   VpVeboxCmdPacket::m_satS1Table[MHW_STE_FACTOR_MAX + 1] = {
     0x000000ab, 0x00000080, 0x00000066, 0x00000055, 0x000000c2, 0x000000b9, 0x000000b0, 0x000000a9, 0x000000a2, 0x0000009c };
 
 void VpVeboxCmdPacket::SetupSurfaceStates(
-    bool                                    bDiVarianceEnable,
     PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(pVeboxSurfaceStateCmdParams);
     MOS_ZeroMemory(pVeboxSurfaceStateCmdParams, sizeof(VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS));
-    MOS_UNUSED(bDiVarianceEnable);
     pVeboxSurfaceStateCmdParams->pSurfInput    = m_veboxPacketSurface.pCurrInput;
     pVeboxSurfaceStateCmdParams->pSurfOutput   = m_veboxPacketSurface.pCurrOutput;
     pVeboxSurfaceStateCmdParams->pSurfSTMM     = m_veboxPacketSurface.pSTMMInput;
@@ -62,7 +60,6 @@ void VpVeboxCmdPacket::SetupSurfaceStates(
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
-    bool                        bDiVarianceEnable,
     PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams)
 {
     PMHW_VEBOX_MODE         pVeboxMode   = nullptr;
@@ -83,12 +80,12 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     // For next step, need to enable it only when necessary.
     pVeboxMode->GlobalIECPEnable = true;
 
-    pVeboxMode->DIEnable = bDiVarianceEnable;
+    pVeboxMode->DIEnable = m_PacketCaps.bDI;
 
     pVeboxMode->SFCParallelWriteEnable = m_IsSfcUsed &&
-                                            (m_PacketCaps.bDN || bDiVarianceEnable);
+                                            (m_PacketCaps.bDN || m_PacketCaps.bDI);
     pVeboxMode->DNEnable = m_PacketCaps.bDN;
-    pVeboxMode->DNDIFirstFrame = (!m_PacketCaps.bRefValid && (pVeboxMode->DNEnable || pVeboxMode->DIEnable));
+    pVeboxMode->DNDIFirstFrame = m_DNDIFirstFrame;
     pVeboxMode->DIOutputFrames = m_DIOutputFrames;
     pVeboxMode->DisableEncoderStatistics = true;
     pVeboxMode->DisableTemporalDenoiseFilter = false;
@@ -285,6 +282,27 @@ VP_SURFACE *VpVeboxCmdPacket::GetSurface(SurfaceType type)
     {
         // Vebox output case.
         surf = m_renderTarget;
+    }
+    else if (SurfaceTypeVeboxInput == type && surf)
+    {
+        // The vp surface object for external surface will be destroyed by hw filter before packet submit.
+        // Store the vp surface object inside packet.
+        if (MOS_FAILED(m_allocator->CopyVpSurface(*m_currentSurface ,*surf)))
+        {
+            return nullptr;
+        }
+        m_currentSurface->rcMaxSrc = m_currentSurface->rcSrc;
+        surf = m_currentSurface;
+    }
+    else if (SurfaceTypeVeboxPreviousInput == type && surf)
+    {
+        // The vp surface object for external surface will be destroyed by hw filter before packet submit.
+        // Store the vp surface object inside packet.
+        if (MOS_FAILED(m_allocator->CopyVpSurface(*m_previousSurface ,*surf)))
+        {
+            return nullptr;
+        }
+        surf = m_previousSurface;
     }
     return surf;
 }
@@ -687,6 +705,114 @@ MOS_STATUS VpVeboxCmdPacket::SetProcampParams(
         pRenderData->IECP.PROCAMP.bProcampEnabled = false;
         mhwVeboxIecpParams.ProcAmpParams.bActive = false;
         mhwVeboxIecpParams.ProcAmpParams.bEnabled = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetDiParams(PVEBOX_DI_PARAMS diParams)
+{
+    MOS_STATUS                      eStatus         = MOS_STATUS_SUCCESS;
+    VpVeboxRenderData               *renderData     = GetLastExecRenderData();
+    VP_SAMPLER_STATE_DN_PARAM       lumaParams      = {};
+    VPHAL_DNUV_PARAMS               chromaParams    = {};
+
+    VP_PUBLIC_CHK_NULL_RETURN(diParams);
+    VP_PUBLIC_CHK_NULL_RETURN(renderData);
+
+    renderData->DI.value            = 0;
+    renderData->DI.bDeinterlace     = diParams->bDiEnabled;
+    renderData->DI.bQueryVariance   = false;
+
+    // for 30i->30fps + SFC
+    if (m_PacketCaps.bSFC && !diParams->b60fpsDi)
+    {
+        // Set BLT1's Current DI Output as BLT2's input, it is always under Mode0
+        // BLT1 output 1st field of current frame for the following cases:
+        if (m_DNDIFirstFrame                                                            ||
+            (diParams->sampleTypeInput == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD) ||
+            (diParams->sampleTypeInput == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)   ||
+            (diParams->sampleTypeInput == SAMPLE_SINGLE_TOP_FIELD)                   ||
+            (diParams->sampleTypeInput == SAMPLE_PROGRESSIVE))
+        {
+            m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_CURRENT;
+        }
+        else
+        {
+            // First sample output - 2nd field of the previous frame
+            m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_PREVIOUS;
+        }
+    }
+    // for 30i->60fps or other 30i->30fps cases
+    else
+    {
+            m_DIOutputFrames = m_DNDIFirstFrame ?
+                MEDIA_VEBOX_DI_OUTPUT_CURRENT :
+                MEDIA_VEBOX_DI_OUTPUT_BOTH;
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(SetDiParams(diParams->bDiEnabled, diParams->bSCDEnabled, diParams->bHDContent, diParams->sampleTypeInput, renderData->GetDNDIParams()));
+
+    return eStatus;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetDiParams(bool bDiEnabled, bool bSCDEnabled, bool bHDContent, VPHAL_SAMPLE_TYPE sampleTypeInput, MHW_VEBOX_DNDI_PARAMS &param)
+{
+    if (!bDiEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    param.bDNDITopFirst = (sampleTypeInput == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD) ||
+                        (sampleTypeInput == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD);
+    param.dwLumaTDMWeight            = VPHAL_VEBOX_DI_LUMA_TDM_WEIGHT_NATUAL;
+    param.dwChromaTDMWeight          = VPHAL_VEBOX_DI_CHROMA_TDM_WEIGHT_NATUAL;
+    param.dwSHCMDelta                = VPHAL_VEBOX_DI_SHCM_DELTA_NATUAL;
+    param.dwSHCMThreshold            = VPHAL_VEBOX_DI_SHCM_THRESHOLD_NATUAL;
+    param.dwSVCMDelta                = VPHAL_VEBOX_DI_SVCM_DELTA_NATUAL;
+    param.dwSVCMThreshold            = VPHAL_VEBOX_DI_SVCM_THRESHOLD_NATUAL;
+    param.bFasterConvergence         = false;
+    param.bTDMLumaSmallerWindow      = false;
+    param.bTDMChromaSmallerWindow    = false;
+    param.dwLumaTDMCoringThreshold   = VPHAL_VEBOX_DI_LUMA_TDM_CORING_THRESHOLD_NATUAL;
+    param.dwChromaTDMCoringThreshold = VPHAL_VEBOX_DI_CHROMA_TDM_CORING_THRESHOLD_NATUAL;
+    param.bBypassDeflickerFilter     = true;
+    param.bUseSyntheticContentMedian = false;
+    param.bLocalCheck                = true;
+    param.bSyntheticContentCheck     = false;
+    param.dwDirectionCheckThreshold  = VPHAL_VEBOX_DI_DIRECTION_CHECK_THRESHOLD_NATUAL;
+    param.dwTearingLowThreshold      = VPHAL_VEBOX_DI_TEARING_LOW_THRESHOLD_NATUAL;
+    param.dwTearingHighThreshold     = VPHAL_VEBOX_DI_TEARING_HIGH_THRESHOLD_NATUAL;
+    param.dwDiffCheckSlackThreshold  = VPHAL_VEBOX_DI_DIFF_CHECK_SLACK_THRESHOLD_NATUAL;
+    param.dwSADWT0                   = VPHAL_VEBOX_DI_SAD_WT0_NATUAL;
+    param.dwSADWT1                   = VPHAL_VEBOX_DI_SAD_WT1_NATUAL;
+    param.dwSADWT2                   = VPHAL_VEBOX_DI_SAD_WT2_NATUAL;
+    param.dwSADWT3                   = VPHAL_VEBOX_DI_SAD_WT3_NATUAL;
+    param.dwSADWT4                   = VPHAL_VEBOX_DI_SAD_WT4_NATUAL;
+    param.dwSADWT6                   = VPHAL_VEBOX_DI_SAD_WT6_NATUAL;
+    param.bSCDEnable                 = bSCDEnabled;
+
+    if (bHDContent)
+    {
+        param.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_HD_NATUAL;
+        param.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_HD_NATUAL;
+        param.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_HD_NATUAL;
+        param.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_HD_NATUAL;
+        param.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_HD_NATUAL;
+        param.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_HD_NATUAL;
+        param.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_HD_NATUAL;
+        param.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_HD_NATUAL;
+    }
+    else
+    {
+        param.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_SD_NATUAL;
+        param.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_SD_NATUAL;
+        param.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_SD_NATUAL;
+        param.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_SD_NATUAL;
+        param.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_SD_NATUAL;
+        param.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_SD_NATUAL;
+        param.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_SD_NATUAL;
+        param.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_SD_NATUAL;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1099,7 +1225,6 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     bDiVarianceEnable = m_PacketCaps.bDI;
 
     SetupSurfaceStates(
-        bDiVarianceEnable,
         &VeboxSurfaceStateCmdParams);
 
     // Add compressible info of input/output surface to log
@@ -1111,7 +1236,6 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     }
 
     SetupVeboxState(
-        bDiVarianceEnable,
         &VeboxStateCmdParams);
 
     VP_RENDER_CHK_STATUS_RETURN(SetupDiIecpState(
@@ -1409,31 +1533,18 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
 
     VP_RENDER_CHK_STATUS_RETURN(InitSurfMemCacheControl(packetCaps));
 
-    if (packetCaps.bSFC)
-    {
-        m_IsSfcUsed = true;
-    }
-    else
-    {
-        m_IsSfcUsed = false;
-    }
+    m_IsSfcUsed = packetCaps.bSFC;
 
     //update VEBOX resource GMM resource usage type
     m_allocator->UpdateResourceUsageType(&inputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_FF);
     m_allocator->UpdateResourceUsageType(&outputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF);
 
     // Set current src = current primary input
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_currentSurface ,*inputSurface));
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_renderTarget ,*outputSurface));
-    if (previousSurface)
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_previousSurface ,*previousSurface));
-    }
-    m_currentSurface->rcMaxSrc = m_currentSurface->rcSrc;
 
     // Init packet surface params.
     m_surfacesGroup = internalSurfaces;
-    m_veboxPacketSurface.pCurrInput                 = m_currentSurface;
+    m_veboxPacketSurface.pCurrInput                 = GetSurface(SurfaceTypeVeboxInput);
     m_veboxPacketSurface.pStatisticsOutput          = GetSurface(SurfaceTypeStatistics);
     m_veboxPacketSurface.pCurrOutput                = GetSurface(SurfaceTypeVeboxCurrentOutput);
     m_veboxPacketSurface.pPrevInput                 = GetSurface(SurfaceTypeVeboxPreviousInput);
@@ -1447,6 +1558,9 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
 
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pLaceOrAceOrRgbHistogram);
+
+    m_DNDIFirstFrame = (!m_PacketCaps.bRefValid && (m_PacketCaps.bDN || m_PacketCaps.bDI));
+    m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_CURRENT;
 
     return MOS_STATUS_SUCCESS;
 }

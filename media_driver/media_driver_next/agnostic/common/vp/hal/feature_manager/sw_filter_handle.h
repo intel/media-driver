@@ -109,6 +109,19 @@ protected:
     SwFilterFactory<SwFilterDenoise> m_swFilterFactory;
 };
 
+class SwFilterDiHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterDiHandler(VpInterface& vpInterface);
+    virtual ~SwFilterDiHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter* CreateSwFilter();
+protected:
+    virtual void Destory(SwFilter*& swFilter);
+protected:
+    SwFilterFactory<SwFilterDeinterlace> m_swFilterFactory;
+};
+
 class SwFilterSteHandler : public SwFilterFeatureHandler
 {
 public:

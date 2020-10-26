@@ -79,6 +79,7 @@ protected:
     MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
     MOS_STATUS GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS GetCSCExecutionCapsHdr(SwFilter *hdr, SwFilter *csc);
+    MOS_STATUS GetCSCExecutionCapsDi(SwFilter* feature);
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
@@ -88,17 +89,23 @@ protected:
     MOS_STATUS GetProcampExecutionCaps(SwFilter* feature);
     MOS_STATUS GetHdrExecutionCaps(SwFilter *feature);
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetDeinterlaceExecutionCaps(SwFilter* feature);
 
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS UpdateFilterCaps(SwFilterPipe& subSwFilterPipe, VP_EngineEntry& engineCaps, VP_EXECUTE_CAPS &caps);
     MOS_STATUS BuildExecuteFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS BuildExecuteHwFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS GetResourceHint(SwFilterPipe& featurePipe, RESOURCE_ASSIGNMENT_HINT &hint);
     MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    virtual MOS_STATUS AddFiltersBasedOnCaps(
+        SwFilterPipe& featurePipe,
+        VP_EXECUTE_CAPS& caps,
+        SwFilterPipe& executedFilters);
     MOS_STATUS AddNewFilterOnVebox(
         SwFilterPipe& featurePipe,
         VP_EXECUTE_CAPS& caps,
-        HW_FILTER_PARAMS& params,
+        SwFilterPipe& executedFilters,
         FeatureType featureType);
 
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);

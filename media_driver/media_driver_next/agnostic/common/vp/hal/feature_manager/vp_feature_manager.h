@@ -151,6 +151,8 @@ protected:
         return false;
     }
 
+    virtual bool IsDiFormatSupported(MOS_FORMAT format);
+
 protected:
     PVP_MHWINTERFACE        m_hwInterface       = nullptr;
     PMOS_INTERFACE          m_pOsInterface      = nullptr;

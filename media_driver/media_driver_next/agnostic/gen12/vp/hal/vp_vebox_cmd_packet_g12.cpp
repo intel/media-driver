@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -367,84 +367,6 @@ MOS_STATUS VpVeboxCmdPacketG12::ConfigLumaPixRange(bool bDnEnabled, bool bAutoDe
 MOS_STATUS VpVeboxCmdPacketG12::ConfigChromaPixRange(bool bChromaDenoise, bool bAutoDetect, float fDnFactor)
 {
     // Place hold: Add config for chroma pix range.
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS VpVeboxCmdPacketG12::SetDIParams(
-    PVPHAL_SURFACE pSrcSurface)
-{
-    // Place Hold: Add it back when enabling DI.
-    //PVPHAL_VEBOX_RENDER_DATA pRenderData = GetLastExecRenderData();
-    //VP_RENDER_CHK_NULL_RETURN(pRenderData);
-
-    //if (!m_PacketCaps.bDI)
-    //{
-    //    VP_RENDER_NORMALMESSAGE("DI for Output is enabled in Vebox, pls recheck the features enabling in Vebox");
-    //    return MOS_STATUS_INVALID_PARAMETER;
-    //}
-
-    //// Set DI params
-    //if (pRenderData->bDeinterlace)
-    //{
-    //    pRenderData->VeboxDNDIParams.dwLumaTDMWeight            = VPHAL_VEBOX_DI_LUMA_TDM_WEIGHT_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwChromaTDMWeight          = VPHAL_VEBOX_DI_CHROMA_TDM_WEIGHT_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSHCMDelta                = VPHAL_VEBOX_DI_SHCM_DELTA_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSHCMThreshold            = VPHAL_VEBOX_DI_SHCM_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSVCMDelta                = VPHAL_VEBOX_DI_SVCM_DELTA_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSVCMThreshold            = VPHAL_VEBOX_DI_SVCM_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.bFasterConvergence         = false;
-    //    pRenderData->VeboxDNDIParams.bTDMLumaSmallerWindow      = false;
-    //    pRenderData->VeboxDNDIParams.bTDMChromaSmallerWindow    = false;
-    //    pRenderData->VeboxDNDIParams.dwLumaTDMCoringThreshold   = VPHAL_VEBOX_DI_LUMA_TDM_CORING_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwChromaTDMCoringThreshold = VPHAL_VEBOX_DI_CHROMA_TDM_CORING_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.bBypassDeflickerFilter     = true;
-    //    pRenderData->VeboxDNDIParams.bUseSyntheticContentMedian = false;
-    //    pRenderData->VeboxDNDIParams.bLocalCheck                = true;
-    //    pRenderData->VeboxDNDIParams.bSyntheticContentCheck     = false;
-    //    pRenderData->VeboxDNDIParams.dwDirectionCheckThreshold  = VPHAL_VEBOX_DI_DIRECTION_CHECK_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwTearingLowThreshold      = VPHAL_VEBOX_DI_TEARING_LOW_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwTearingHighThreshold     = VPHAL_VEBOX_DI_TEARING_HIGH_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwDiffCheckSlackThreshold  = VPHAL_VEBOX_DI_DIFF_CHECK_SLACK_THRESHOLD_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSADWT0                   = VPHAL_VEBOX_DI_SAD_WT0_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSADWT1                   = VPHAL_VEBOX_DI_SAD_WT1_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSADWT2                   = VPHAL_VEBOX_DI_SAD_WT2_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSADWT3                   = VPHAL_VEBOX_DI_SAD_WT3_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSADWT4                   = VPHAL_VEBOX_DI_SAD_WT4_NATUAL;
-    //    pRenderData->VeboxDNDIParams.dwSADWT6                   = VPHAL_VEBOX_DI_SAD_WT6_NATUAL;
-    //    if (pSrcSurface && pSrcSurface->pDeinterlaceParams)
-    //    {
-    //        pRenderData->VeboxDNDIParams.bSCDEnable             = pSrcSurface->pDeinterlaceParams->bSCDEnable;
-    //    }
-    //    else
-    //    {
-    //        pRenderData->VeboxDNDIParams.bSCDEnable             = false;
-    //    }
-
-    //    VP_RENDER_CHK_NULL_RETURN(pSrcSurface);
-    //    if (MEDIA_IS_HDCONTENT(pSrcSurface->dwWidth, pSrcSurface->dwHeight))
-    //    {
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_HD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_HD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_HD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_HD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_HD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_HD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_HD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_HD_NATUAL;
-    //    }
-    //    else
-    //    {
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT0 = VPHAL_VEBOX_DI_LPFWTLUT0_SD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT1 = VPHAL_VEBOX_DI_LPFWTLUT1_SD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT2 = VPHAL_VEBOX_DI_LPFWTLUT2_SD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT3 = VPHAL_VEBOX_DI_LPFWTLUT3_SD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT4 = VPHAL_VEBOX_DI_LPFWTLUT4_SD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT5 = VPHAL_VEBOX_DI_LPFWTLUT5_SD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT6 = VPHAL_VEBOX_DI_LPFWTLUT6_SD_NATUAL;
-    //        pRenderData->VeboxDNDIParams.dwLPFWtLUT7 = VPHAL_VEBOX_DI_LPFWTLUT7_SD_NATUAL;
-    //    }
-    //}
 
     return MOS_STATUS_SUCCESS;
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -90,9 +90,6 @@ public:
         bool                        bChromaDenoise,
         bool                        bAutoDetect,
         float                       fDnFactor) override;
-
-    virtual MOS_STATUS SetDIParams(
-            PVPHAL_SURFACE          pSrcSurface);
 
     //!
     //! \brief    Setup Vebox_DI_IECP Command params

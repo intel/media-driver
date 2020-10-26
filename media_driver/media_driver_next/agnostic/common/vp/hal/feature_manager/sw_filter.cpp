@@ -129,30 +129,51 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE pSurfInput, VP_EXECUTE_CAPS caps)
+namespace vp
 {
-    VP_PUBLIC_CHK_NULL_RETURN(pSurfInput);
-    VP_PUBLIC_CHK_NULL_RETURN(pSurfInput->osSurface);
+MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat,
+                                MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType);
+}
+
+MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS caps)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(surfInput);
+    VP_PUBLIC_CHK_NULL_RETURN(surfInput->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
+    VP_PUBLIC_CHK_NULL_RETURN(surfOutput->osSurface);
 
     if (caps.bSFC)
     {
-        m_Params.colorSpaceInput = pSurfInput->ColorSpace;
-        m_Params.colorSpaceOutput = pSurfInput->ColorSpace;
+        MOS_FORMAT      veboxOutputFormat   = surfInput->osSurface->Format;
+        MOS_TILE_TYPE   veboxOutputTileType = surfInput->osSurface->TileType;
 
-        m_Params.formatInput = pSurfInput->osSurface->Format;
-        m_Params.formatOutput = Format_AYUV;   // To get colorPack as 4:4:4
-        m_Params.chromaSitingInput = pSurfInput->ChromaSiting;
-        m_Params.chromaSitingOutput = pSurfInput->ChromaSiting;
+        GetVeboxOutputParams(caps, surfInput->osSurface->Format, surfInput->osSurface->TileType,
+                            surfOutput->osSurface->Format, veboxOutputFormat, veboxOutputTileType);
+        m_Params.colorSpaceInput = surfInput->ColorSpace;
+        m_Params.colorSpaceOutput = surfInput->ColorSpace;
+
+        m_Params.formatInput = surfInput->osSurface->Format;
+        m_Params.formatOutput = veboxOutputFormat;
+        m_Params.chromaSitingInput = surfInput->ChromaSiting;
+        m_Params.chromaSitingOutput = surfOutput->ChromaSiting;
 
         m_Params.pAlphaParams = nullptr;
         m_Params.pIEFParams = nullptr;
+
+        m_noNeedUpdate = true;
+
+        return MOS_STATUS_SUCCESS;
     }
 
-    return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_UNIMPLEMENTED;
 }
 
 MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)
 {
+    if (m_noNeedUpdate)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
     m_Params.colorSpaceInput    = params.input.colorSpace;
     m_Params.colorSpaceOutput   = params.output.colorSpace;
     m_Params.pIEFParams         = nullptr;
@@ -192,6 +213,12 @@ bool SwFilterCsc::operator == (SwFilter& swFilter)
 
 MOS_STATUS SwFilterCsc::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
 {
+    if (FeatureTypeCscOnVebox == m_type)
+    {
+        // BeCSC may be added for IECP/DI. No need update.
+        return MOS_STATUS_SUCCESS;
+    }
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -204,6 +231,13 @@ MOS_STATUS SwFilterCsc::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
     m_Params.chromaSitingInput  = inputSurf->ChromaSiting;
     m_Params.chromaSitingOutput = outputSurf->ChromaSiting;
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterCsc::SetFeatureType(FeatureType type)
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::SetFeatureType(type));
+    m_Params.type = m_type;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -468,6 +502,7 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
 {
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
 
+    m_Params.sampleTypeInput = surfInput->SampleType;
     m_Params.denoiseParams = *surfInput->pDenoiseParams;
     m_Params.formatInput   = surfInput->Format;
     m_Params.formatOutput  = surfInput->Format;// Denoise didn't change the original format;
@@ -517,7 +552,82 @@ MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* output
 }
 
 /****************************************************************************************************/
-/*                                      SwFilterSte                                             */
+/*                                      SwFilterDeinterlace                                         */
+/****************************************************************************************************/
+
+SwFilterDeinterlace::SwFilterDeinterlace(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeDi)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterDeinterlace::~SwFilterDeinterlace()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterDeinterlace::Clean()
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterDeinterlace::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
+    VP_PUBLIC_CHK_NULL_RETURN(surfInput);
+    VP_PUBLIC_CHK_NULL_RETURN(surfInput->pDeinterlaceParams);
+
+    m_Params.formatInput        = surfInput->Format;
+    m_Params.formatOutput       = surfInput->Format;
+    m_Params.sampleTypeInput    = surfInput->SampleType;
+    m_Params.DIMode             = surfInput->pDeinterlaceParams->DIMode;            //!< DeInterlacing mode
+    m_Params.bEnableFMD         = surfInput->pDeinterlaceParams->bEnableFMD;        //!< FMD
+    m_Params.b60fpsDi           = !surfInput->pDeinterlaceParams->bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
+    m_Params.bSCDEnable         = surfInput->pDeinterlaceParams->bSCDEnable;        //!< Scene change detection
+    m_Params.bHDContent         = MEDIA_IS_HDCONTENT(surfInput->dwWidth, surfInput->dwHeight);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamDeinterlace& SwFilterDeinterlace::GetSwFilterParams()
+{
+    return m_Params;
+}
+
+SwFilter *SwFilterDeinterlace::Clone()
+{
+    SwFilter* p = CreateSwFilter(m_type);
+
+    SwFilterDeinterlace *swFilter = dynamic_cast<SwFilterDeinterlace *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterDeinterlace::operator==(SwFilter& swFilter)
+{
+    SwFilterDeinterlace* p = dynamic_cast<SwFilterDeinterlace*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamDeinterlace));
+}
+
+MOS_STATUS vp::SwFilterDeinterlace::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterSte                                                 */
 /****************************************************************************************************/
 
 SwFilterSte::SwFilterSte(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeSte)

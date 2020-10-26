@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,13 @@ namespace vp
 {
 
 #define VP_SAME_SAMPLE_THRESHOLD 0
+
+inline bool IsInterleaveFirstField(VPHAL_SAMPLE_TYPE sampleType)
+{
+    return ((sampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD)   ||
+            (sampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)     ||
+            (sampleType == SAMPLE_SINGLE_TOP_FIELD));
+}
 
 extern const VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION g_cInit_VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATIONS =
 {
@@ -141,6 +148,7 @@ extern const VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION g_cInit_VEBOX_SPATIAL_ATTRIB
 VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting)
     : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting)
 {
+    InitSurfaceConfigMap();
 }
 
 VpResourceManager::~VpResourceManager()
@@ -201,8 +209,6 @@ MOS_STATUS VpResourceManager::StartProcessNewFrame(SwFilterPipe &pipe)
     int32_t pastFrameId = pastSurface ? pastSurface->FrameID : 0;
     int32_t futureFrameId = futureSurface ? futureSurface->FrameID : 0;
 
-    m_pastFrameIds = m_currentFrameIds;
-
     m_currentFrameIds.valid                     = true;
     m_currentFrameIds.diEnabled                 = nullptr != diFilter;
     m_currentFrameIds.currentFrameId            = currentFrameId;
@@ -210,7 +216,6 @@ MOS_STATUS VpResourceManager::StartProcessNewFrame(SwFilterPipe &pipe)
     m_currentFrameIds.futureFrameId             = futureFrameId;
     m_currentFrameIds.pastFrameAvailable        = pastSurface ? true : false;
     m_currentFrameIds.futureFrameAvailable      = futureSurface ? true : false;
-
 
     // Only set sameSamples flag DI enabled frames.
     if (m_pastFrameIds.valid && m_currentFrameIds.pastFrameAvailable &&
@@ -226,11 +231,18 @@ MOS_STATUS VpResourceManager::StartProcessNewFrame(SwFilterPipe &pipe)
                       -VP_SAME_SAMPLE_THRESHOLD,
                       VP_SAME_SAMPLE_THRESHOLD);
 
-        m_outOfBound    =
-               OUT_OF_BOUNDS(
-                      m_currentFrameIds.pastFrameId - m_pastFrameIds.currentFrameId,
-                      -VP_SAME_SAMPLE_THRESHOLD,
-                      VP_SAME_SAMPLE_THRESHOLD);
+        if (m_sameSamples)
+        {
+            m_outOfBound = false;
+        }
+        else
+        {
+            m_outOfBound =
+                OUT_OF_BOUNDS(
+                        m_currentFrameIds.pastFrameId - m_pastFrameIds.currentFrameId,
+                        -VP_SAME_SAMPLE_THRESHOLD,
+                        VP_SAME_SAMPLE_THRESHOLD);
+        }
     }
     // bSameSamples flag also needs to be set for no reference case
     else if (m_pastFrameIds.valid && !m_currentFrameIds.pastFrameAvailable &&
@@ -256,10 +268,37 @@ MOS_STATUS VpResourceManager::StartProcessNewFrame(SwFilterPipe &pipe)
     }
 
     // Swap buffers for next iteration
-    m_currentDnOutput   = (m_currentDnOutput + 1) & 1;
-    m_currentStmmIndex  = (m_currentStmmIndex + 1) & 1;
+    if (!m_sameSamples)
+    {
+        m_currentDnOutput   = (m_currentDnOutput + 1) & 1;
+        m_currentStmmIndex  = (m_currentStmmIndex + 1) & 1;
+    }
+
+    m_pastFrameIds = m_currentFrameIds;
 
     return MOS_STATUS_SUCCESS;
+}
+
+void VpResourceManager::InitSurfaceConfigMap()
+{
+    ///*             _b64DI
+    //               |      _sfcEnable
+    //               |      |      _sameSample
+    //               |      |      |      _outOfBound
+    //               |      |      |      |      _pastRefAvailable
+    //               |      |      |      |      |      _futureRefAvailable
+    //               |      |      |      |      |      |      _firstDiField
+    //               |      |      |      |      |      |      |      _currentInputSurface
+    //               |      |      |      |      |      |      |      |                     _pastInputSurface
+    //               |      |      |      |      |      |      |      |                     |                      _currentOutputSurface
+    //               |      |      |      |      |      |      |      |                     |                      |                     _pastOutputSurface*/
+    //               |      |      |      |      |      |      |      |                     |                      |                     |                     */
+    AddSurfaceConfig(true,  true,  false, false, true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
+    AddSurfaceConfig(true,  true,  true,  false, true,  false, false, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL,    VEBOX_SURFACE_NULL,   VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  false, false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  false, false, false, false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  true,  false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  true,  false, false, false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
 }
 
 uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight)
@@ -275,32 +314,76 @@ uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint3
     return dwSize;
 }
 
-MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE_GROUP &surfGroup)
+MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface,
+    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_GROUP &surfGroup)
 {
     surfGroup.clear();
 
     if (caps.bVebox)
     {
         // Create Vebox Resources
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurface, outputSurface, surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurface, outputSurface, pastSurface, futureSurface, resHint, surfGroup));
     }
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_FORMAT GetVeboxOutputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_FORMAT outputFormat)
+MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat,
+                                MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType)
 {
+    // Vebox Chroma Co-Sited downsampleing is part of VEO. It only affects format of vebox output surface, but not
+    // affect sfc input format, that's why different logic between GetSfcInputFormat and GetVeboxOutputParams.
+    // Check DI first and downsampling to NV12 if possible to save bandwidth no matter IECP enabled or not.
+    if (executeCaps.bDI || executeCaps.bDiProcess2ndField)
+    {
+        // NV12 will be used if target output is not YUV2 to save bandwidth.
+        if (outputFormat == Format_YUY2)
+        {
+            veboxOutputFormat = Format_YUY2;
+        }
+        else
+        {
+            veboxOutputFormat = Format_NV12;
+        }
+        veboxOutputTileType = MOS_TILE_Y;
+    }
+    else if (executeCaps.bIECP)
+    {
+        // Upsampling to yuv444 for IECP input/output.
+        // To align with legacy path, need to check whether inputFormat can also be used for IECP case,
+        // in which case IECP down sampling will be applied.
+        veboxOutputFormat = Format_AYUV;
+        veboxOutputTileType = inputTileType;
+    }
+    else
+    {
+        veboxOutputFormat = inputFormat;
+        veboxOutputTileType = inputTileType;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput)
+{
+    // Vebox Chroma Co-Sited downsampling is part of VEO. It only affects format of vebox output surface, but not
+    // affect sfc input format, that's why different logic between GetSfcInputFormat and GetVeboxOutputParams.
+    // Check IECP first here, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
     if (executeCaps.bIECP)
     {
+        if (executeCaps.bHDR3DLUT)
+        {
+            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+        }
         // Upsampling to yuv444 for IECP input/output.
         // To align with legacy path, need to check whether inputFormat can also be used for IECP case,
         // in which case IECP down sampling will be applied.
         return Format_AYUV;
     }
-    else if (executeCaps.bDI && VpHal_GetSurfaceColorPack(inputFormat) == VPHAL_COLORPACK_420)
+    else if (executeCaps.bDI)
     {
         // If the input is 4:2:0, then chroma data is doubled vertically to 4:2:2
-        // In legacy path, NV12 will be used if target output is not YUV2 to save bandwidth.
-        // Need to check whether it can applied here.
+        // For executeCaps.bDiProcess2ndField, no DI enabled in vebox, so no need
+        // set to YUY2 here.
         return Format_YUY2;
     }
 
@@ -318,7 +401,11 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
     VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
 
-    MOS_FORMAT format = GetVeboxOutputFormat(caps, inputSurface->osSurface->Format, outputSurface->osSurface->Format);
+    MOS_FORMAT      veboxOutputFormat                   = inputSurface->osSurface->Format;
+    MOS_TILE_TYPE   veboxOutputTileType                 = inputSurface->osSurface->TileType;
+
+    VP_PUBLIC_CHK_STATUS_RETURN(GetVeboxOutputParams(caps, inputSurface->osSurface->Format, inputSurface->osSurface->TileType,
+                                            outputSurface->osSurface->Format, veboxOutputFormat, veboxOutputTileType));
 
     allocated = false;
     if (IS_VP_VEBOX_DN_ONLY(caps))
@@ -343,9 +430,9 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
             m_veboxOutput[i],
             "VeboxSurfaceOutput",
-            format,
+            veboxOutputFormat,
             MOS_GFXRES_2D,
-            inputSurface->osSurface->TileType,
+            veboxOutputTileType,
             inputSurface->osSurface->dwWidth,
             inputSurface->osSurface->dwHeight,
             bSurfCompressible,
@@ -359,19 +446,14 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
         m_veboxOutput[i]->rcSrc      = inputSurface->rcSrc;
         m_veboxOutput[i]->rcMaxSrc   = inputSurface->rcMaxSrc;
 
-        // When IECP is enabled and Bob or interlaced scaling is selected for interlaced input,
-        // output surface's SampleType should be same to input's. Bob is being
-        // done in Composition part
-        if ((caps.bIECP &&
-            (caps.bDI && caps.bBobDI)) ||
-            (caps.bIScaling))
-        {
-            m_veboxOutput[i]->SampleType = inputSurface->SampleType;
-        }
-        else
-        {
-            m_veboxOutput[i]->SampleType = SAMPLE_PROGRESSIVE;
-        }
+        m_veboxOutput[i]->SampleType = SAMPLE_PROGRESSIVE;
+    }
+
+    if (allocated)
+    {
+        // Report Compress Status
+        m_reporting.FFDICompressible = bSurfCompressible;
+        m_reporting.FFDICompressMode = (uint8_t)(surfCompressionMode);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -449,6 +531,75 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief    Vebox initialize STMM History
+//! \details  Initialize STMM History surface
+//! Description:
+//!   This function is used by VEBox for initializing
+//!   the STMM surface.  The STMM / Denoise history is a custom surface used 
+//!   for both input and output. Each cache line contains data for 4 4x4s. 
+//!   The STMM for each 4x4 is 8 bytes, while the denoise history is 1 byte 
+//!   and the chroma denoise history is 1 byte for each U and V.
+//!   Byte    Data\n
+//!   0       STMM for 2 luma values at luma Y=0, X=0 to 1\n
+//!   1       STMM for 2 luma values at luma Y=0, X=2 to 3\n
+//!   2       Luma Denoise History for 4x4 at 0,0\n
+//!   3       Not Used\n
+//!   4-5     STMM for luma from X=4 to 7\n
+//!   6       Luma Denoise History for 4x4 at 0,4\n
+//!   7       Not Used\n
+//!   8-15    Repeat for 4x4s at 0,8 and 0,12\n
+//!   16      STMM for 2 luma values at luma Y=1,X=0 to 1\n
+//!   17      STMM for 2 luma values at luma Y=1, X=2 to 3\n
+//!   18      U Chroma Denoise History\n
+//!   19      Not Used\n
+//!   20-31   Repeat for 3 4x4s at 1,4, 1,8 and 1,12\n
+//!   32      STMM for 2 luma values at luma Y=2,X=0 to 1\n
+//!   33      STMM for 2 luma values at luma Y=2, X=2 to 3\n
+//!   34      V Chroma Denoise History\n
+//!   35      Not Used\n
+//!   36-47   Repeat for 3 4x4s at 2,4, 2,8 and 2,12\n
+//!   48      STMM for 2 luma values at luma Y=3,X=0 to 1\n
+//!   49      STMM for 2 luma values at luma Y=3, X=2 to 3\n
+//!   50-51   Not Used\n
+//!   36-47   Repeat for 3 4x4s at 3,4, 3,8 and 3,12\n
+//! \param    [in] iSurfaceIndex
+//!           Index of STMM surface array
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VpResourceManager::VeboxInitSTMMHistory(MOS_SURFACE *stmmSurface)
+{
+    uint32_t            dwSize = 0;
+    int32_t             x = 0, y = 0;
+    uint8_t*            pByte = nullptr;
+
+    VP_PUBLIC_CHK_NULL_RETURN(stmmSurface);
+
+    // Lock the surface for writing
+    pByte = (uint8_t*)m_allocator.LockResouceForWrite(&stmmSurface->OsResource);
+    VP_PUBLIC_CHK_NULL_RETURN(pByte);
+
+    dwSize = stmmSurface->dwWidth >> 2;
+
+    // Fill STMM surface with DN history init values.
+    for (y = 0; y < (int32_t)stmmSurface->dwHeight; y++)
+    {
+        for (x = 0; x < (int32_t)dwSize; x++)
+        {
+            MOS_FillMemory(pByte, 2, DNDI_HISTORY_INITVALUE);
+            // skip denosie history init.
+            pByte += 4;
+        }
+
+        pByte += stmmSurface->dwPitch - stmmSurface->dwWidth;
+    }
+
+    // Unlock the surface
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.UnLock(&stmmSurface->OsResource));
+    return MOS_STATUS_SUCCESS;
+}
+
 // Allocate STMM (Spatial-Temporal Motion Measure) Surfaces
 MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated)
 {
@@ -478,6 +629,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
 
         if (allocated)
         {
+            VP_PUBLIC_CHK_NULL_RETURN(m_veboxSTMMSurface[i]);
+            VP_PUBLIC_CHK_STATUS_RETURN(VeboxInitSTMMHistory(m_veboxSTMMSurface[i]->osSurface));
             // Report Compress Status
             m_reporting.STMMCompressible = bSurfCompressible;
             m_reporting.STMMCompressMode = (uint8_t)surfCompressionMode;
@@ -568,7 +721,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         DestoryVeboxDenoiseOutputSurface();
     }
 
-    if (VeboxSTMMNeeded(caps))
+    if (VeboxSTMMNeeded(caps, false))
     {
         VP_PUBLIC_CHK_STATUS_RETURN(ReAllocateVeboxSTMMSurface(caps, inputSurface, bAllocated));
         if (bAllocated)
@@ -683,7 +836,42 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE_GROUP &surfGroup)
+MOS_STATUS VpResourceManager::AssignSurface(VEBOX_SURFACE_ID &surfaceId, SurfaceType surfaceType, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, VP_SURFACE_GROUP &surfGroup)
+{
+    switch (surfaceId)
+    {
+    case VEBOX_SURFACE_INPUT:
+        surfGroup.insert(std::make_pair(surfaceType, inputSurface));
+        break;
+    case VEBOX_SURFACE_OUTPUT:
+        surfGroup.insert(std::make_pair(surfaceType, outputSurface));
+        break;
+    case VEBOX_SURFACE_PAST_REF:
+        surfGroup.insert(std::make_pair(surfaceType, pastSurface));
+        break;
+    case VEBOX_SURFACE_FUTURE_REF:
+        surfGroup.insert(std::make_pair(surfaceType, futureSurface));
+        break;
+    case VEBOX_SURFACE_FRAME0:
+        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 0) % m_veboxOutputCount]));
+        break;
+    case VEBOX_SURFACE_FRAME1:
+        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 1) % m_veboxOutputCount]));
+        break;
+    case VEBOX_SURFACE_FRAME2:
+        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 2) % m_veboxOutputCount]));
+        break;
+    case VEBOX_SURFACE_FRAME3:
+        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 3) % m_veboxOutputCount]));
+        break;
+    default:
+        break;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface,
+    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_GROUP &surfGroup)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
@@ -700,24 +888,54 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
 
     VP_PUBLIC_CHK_STATUS_RETURN(AllocateVeboxResource(caps, inputSurface, outputSurface));
 
-    surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, inputSurface));
-    surfGroup.insert(std::make_pair(SurfaceTypeVeboxCurrentOutput, GetVeboxOutputSurface(caps, outputSurface)));
-
-    if (caps.bDN)
+    if (caps.bDI || caps.bDiProcess2ndField)
     {
-        // Insert DN output surface
-        surfGroup.insert(std::make_pair(SurfaceTypeDNOutput, m_veboxDenoiseOutput[m_currentDnOutput]));
-        // Insert DN Reference surface
-        if (caps.bRefValid)
+        bool b60fpsDi = resHint.b60fpsDi || caps.bDiProcess2ndField;
+        VEBOX_SURFACES_CONFIG cfg(b60fpsDi, caps.bSFC, m_sameSamples, m_outOfBound, m_currentFrameIds.pastFrameAvailable,
+            m_currentFrameIds.futureFrameAvailable, IsInterleaveFirstField(inputSurface->SampleType));
+        auto it = m_veboxSurfaceConfigMap.find(cfg.value);
+        if (m_veboxSurfaceConfigMap.end() == it)
         {
-            surfGroup.insert(std::make_pair(SurfaceTypeVeboxPreviousInput, m_veboxDenoiseOutput[(m_currentDnOutput + 1) & 1]));
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        auto surfaces = it->second;
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(surfaces.currentInputSurface, SurfaceTypeVeboxInput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(surfaces.pastInputSurface, SurfaceTypeVeboxPreviousInput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(surfaces.currentOutputSurface, SurfaceTypeVeboxCurrentOutput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(surfaces.pastOutputSurface, SurfaceTypeVeboxPreviousOutput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
+
+        if (caps.bDN)
+        {
+            // Insert DN output surface
+            surfGroup.insert(std::make_pair(SurfaceTypeDNOutput, m_veboxDenoiseOutput[m_currentDnOutput]));
+        }
+
+        caps.bRefValid = surfGroup.find(SurfaceTypeVeboxPreviousInput) != surfGroup.end();
+    }
+    else
+    {
+        surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, inputSurface));
+        surfGroup.insert(std::make_pair(SurfaceTypeVeboxCurrentOutput, GetVeboxOutputSurface(caps, outputSurface)));
+
+        if (caps.bDN)
+        {
+            // Insert DN output surface
+            surfGroup.insert(std::make_pair(SurfaceTypeDNOutput, m_veboxDenoiseOutput[m_currentDnOutput]));
+            // Insert DN Reference surface
+            if (caps.bRefValid)
+            {
+                surfGroup.insert(std::make_pair(SurfaceTypeVeboxPreviousInput, m_veboxDenoiseOutput[(m_currentDnOutput + 1) & 1]));
+            }
         }
     }
 
-    // Insert STMM input surface
-    surfGroup.insert(std::make_pair(SurfaceTypeSTMMIn, m_veboxSTMMSurface[m_currentStmmIndex]));
-    // Insert STMM output surface
-    surfGroup.insert(std::make_pair(SurfaceTypeSTMMOut, m_veboxSTMMSurface[(m_currentStmmIndex + 1) & 1]));
+    if (VeboxSTMMNeeded(caps, true))
+    {
+        // Insert STMM input surface
+        surfGroup.insert(std::make_pair(SurfaceTypeSTMMIn, m_veboxSTMMSurface[m_currentStmmIndex]));
+        // Insert STMM output surface
+        surfGroup.insert(std::make_pair(SurfaceTypeSTMMOut, m_veboxSTMMSurface[(m_currentStmmIndex + 1) & 1]));
+    }
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     // Insert Vebox auto DN noise level surface
@@ -788,9 +1006,10 @@ bool VpResourceManager::VeboxOutputNeeded(VP_EXECUTE_CAPS& caps)
     // If DN and/or Hotpixel are the only functions enabled then the only output is the Denoised Output
     // and no need vebox output.
     // For any other vebox features being enabled, vebox output surface is needed.
-    if (caps.bDI            ||
-        caps.bQueryVariance ||
-        caps.bIECP          ||
+    if (caps.bDI                ||
+        caps.bQueryVariance     ||
+        caps.bDiProcess2ndField ||
+        caps.bIECP              ||
         (caps.bDN && caps.bSFC))  // DN + SFC needs IECP implicitly and outputs to DI surface
     {
         return true;
@@ -806,9 +1025,20 @@ bool VpResourceManager::VeboxDenoiseOutputNeeded(VP_EXECUTE_CAPS& caps)
     return caps.bDN;
 }
 
-bool VpResourceManager::VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps)
+// In some case, STMM should not be destroyed even when not being used by current workload to maintain data,
+// e.g. DI second field case.
+// If queryAssignment == true, query whether STMM needed by current workload.
+// If queryAssignment == false, query whether STMM needed to be allocated.
+bool VpResourceManager::VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps, bool queryAssignment)
 {
-    return caps.bDI || caps.bDN;
+    if (queryAssignment)
+    {
+        return caps.bDI || caps.bDN;
+    }
+    else
+    {
+        return caps.bDI || caps.bDiProcess2ndField || caps.bDN;
+    }
 }
 
 };

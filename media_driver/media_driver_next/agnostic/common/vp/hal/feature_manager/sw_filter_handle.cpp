@@ -306,6 +306,54 @@ void SwFilterDnHandler::Destory(SwFilter*& swFilter)
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterDiHandler                                           */
+/****************************************************************************************************/
+
+SwFilterDiHandler::SwFilterDiHandler(VpInterface& vpInterface) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeDi),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterDiHandler::~SwFilterDiHandler()
+{}
+
+bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (vphalSurf && vphalSurf->pDeinterlaceParams && vphalSurf->SampleType != SAMPLE_PROGRESSIVE)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterDiHandler::CreateSwFilter()
+{
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(FeatureTypeDi);
+    }
+
+    return swFilter;
+}
+
+void SwFilterDiHandler::Destory(SwFilter*& swFilter)
+{
+    SwFilterDeinterlace* filter = nullptr;
+    filter = dynamic_cast<SwFilterDeinterlace*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}
+
+/****************************************************************************************************/
 /*                                      SwFilterSteHandler                                      */
 /****************************************************************************************************/
 

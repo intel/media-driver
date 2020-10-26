@@ -177,12 +177,24 @@ struct _VEBOX_STE_PARAMS
     uint32_t                        dwSTEFactor;
 };
 
+struct _VEBOX_DI_PARAMS
+{
+    bool                            bDiEnabled;                                 // DI Enabled
+    VPHAL_SAMPLE_TYPE               sampleTypeInput;
+    bool                            b60fpsDi;
+    VPHAL_DI_MODE                   diMode;                                     //!< DeInterlacing mode
+    bool                            enableFMD;                                  //!< FMD
+    bool                            bSCDEnabled;                                //!< Scene change detection
+    bool                            bHDContent;
+};
+
 struct _VEBOX_ACE_PARAMS
 {
     bool                            bEnableACE;                                 // ACE Enabled
     bool                            bAceLevelChanged;
     uint32_t                        dwAceLevel;
     uint32_t                        dwAceStrength;
+    bool                            bAceHistogramEnabled;
 };
 
 struct _VEBOX_TCC_PARAMS
@@ -261,6 +273,8 @@ using VEBOX_DN_PARAMS       = _VEBOX_DN_PARAMS;
 using PVEBOX_DN_PARAMS      = VEBOX_DN_PARAMS *;
 using VEBOX_STE_PARAMS      = _VEBOX_STE_PARAMS;
 using PVEBOX_STE_PARAMS     = VEBOX_STE_PARAMS *;
+using VEBOX_DI_PARAMS       = _VEBOX_DI_PARAMS;
+using PVEBOX_DI_PARAMS      = VEBOX_DI_PARAMS *;
 using VEBOX_ACE_PARAMS      = _VEBOX_ACE_PARAMS;
 using PVEBOX_ACE_PARAMS     = VEBOX_ACE_PARAMS *;
 using VEBOX_TCC_PARAMS      = _VEBOX_TCC_PARAMS;
