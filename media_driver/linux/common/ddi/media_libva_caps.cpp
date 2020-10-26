@@ -579,11 +579,13 @@ VAStatus MediaLibvaCaps::GetGeneralConfigAttrib(VAConfigAttrib* attrib)
     DDI_CHK_NULL(attrib, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAStatus status = VA_STATUS_SUCCESS;
+#if VA_CHECK_VERSION(1, 10, 0)
     if (attrib->type == VAConfigAttribContextPriority)
     {
         attrib->value = CONTEXT_PRIORITY_MAX;
     }
     else
+#endif
     {
         status = VA_ATTRIB_NOT_SUPPORTED;
     }
