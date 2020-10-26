@@ -191,7 +191,14 @@ namespace decode
 
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState) {
-                m_mmcState->UpdateUserFeatureKey(&(m_av1BasicFeature->m_destSurface));
+                if (m_av1BasicFeature->m_filmGrainEnabled)
+                {
+                    m_mmcState->UpdateUserFeatureKey(m_av1BasicFeature->m_filmGrainProcParams->m_outputSurface);
+                }
+                else
+                {
+                    m_mmcState->UpdateUserFeatureKey(&(m_av1BasicFeature->m_destSurface));
+                }
             })
 
         if (isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())

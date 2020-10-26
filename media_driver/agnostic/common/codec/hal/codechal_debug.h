@@ -137,6 +137,7 @@ namespace CodechalDbgAttr
 {
 static const char *attrInitSWScoreboard = "InitSWScoreboard";
 static const char *attrSfcHistogram = "SfcHistogram";
+static const char* attrFilmGrain = "FilmGrain";
 };
 
 enum CodechalHucRegionDumpType

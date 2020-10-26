@@ -32,6 +32,7 @@
 #include "decode_av1_tile_coding.h"
 #include "decode_av1_feature_manager_g12.h"
 #include "decode_mem_compression_g12.h"
+#include "decode_av1_feature_defs_g12.h"
 
 namespace decode
 {
@@ -163,6 +164,21 @@ namespace decode
                     &feature->m_destSurface,
                     CodechalDbgAttr::attrDecodeOutputSurface,
                     "DstSurf"));)
+
+            auto filmGrainFeature = dynamic_cast<Av1DecodeFilmGrainG12*>(m_featureManager->GetFeature(
+                Av1FeatureIDs::av1SwFilmGrain));
+            if (filmGrainFeature != nullptr && filmGrainFeature->m_filmGrainEnabled)
+            {
+                auto av1Feature = dynamic_cast<Av1BasicFeature*>(feature);
+                DECODE_CHK_NULL(av1Feature->m_filmGrainProcParams);
+                CODECHAL_DEBUG_TOOL(
+                    m_debugInterface->m_bufferDumpFrameNum = feature->m_frameNum;
+                    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(av1Feature->m_filmGrainProcParams->m_outputSurface));
+                    DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
+                        av1Feature->m_filmGrainProcParams->m_outputSurface,
+                        CodechalDbgAttr::attrFilmGrain,
+                        "FilmGrain"));)
+            }
 
             // Only update user features for the first frame.
             if (feature->m_frameNum == 0)
