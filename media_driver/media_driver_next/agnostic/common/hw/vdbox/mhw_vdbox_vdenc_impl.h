@@ -238,22 +238,20 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_SRC_SURFACE_STATE);
 
-        MHW_MI_CHK_NULL(params->surface);
-
-        cmd->Dwords25.DW0.Width                       = params->alignedWidth - 1;
-        cmd->Dwords25.DW0.Height                      = params->alignedHeight - 1;
+        cmd->Dwords25.DW0.Width                       = params->width - 1;
+        cmd->Dwords25.DW0.Height                      = params->height - 1;
         cmd->Dwords25.DW0.ColorSpaceSelection         = params->colorSpaceSelection;
         cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirection;
         cmd->Dwords25.DW0.SurfaceFormatByteSwizzle    = params->displayFormatSwizzle;
 
-        uint32_t tileMode               = GetHwTileType(params->surface->TileType, params->surface->TileModeGMM, params->surface->bGMMTileEnabled);
+        uint32_t tileMode               = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);
         cmd->Dwords25.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
         cmd->Dwords25.DW1.TileWalk      = tileMode & 0x1;
-        cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceRawFormat(params->surface->Format));
-        cmd->Dwords25.DW1.SurfacePitch  = params->surface->dwPitch - 1;
+        cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceRawFormat(params->format));
+        cmd->Dwords25.DW1.SurfacePitch  = params->pitch - 1;
 
-        cmd->Dwords25.DW2.YOffsetForUCb = cmd->Dwords25.DW3.YOffsetForVCr =
-            MOS_ALIGN_CEIL(params->surface->UPlaneOffset.iYOffset, RAW_UV_PLANE_ALIGNMENT);
+        cmd->Dwords25.DW2.YOffsetForUCb = params->uOffset;
+        cmd->Dwords25.DW3.YOffsetForVCr = params->vOffset;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -262,44 +260,18 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_REF_SURFACE_STATE);
 
-        MHW_MI_CHK_NULL(params->surface);
-
-        cmd->Dwords25.DW0.Width                       = params->alignedWidth - 1;
-        cmd->Dwords25.DW0.Height                      = params->alignedHeight - 1;
+        cmd->Dwords25.DW0.Width                       = params->width - 1;
+        cmd->Dwords25.DW0.Height                      = params->height - 1;
         cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirection;
 
-        uint32_t tileMode               = GetHwTileType(params->surface->TileType, params->surface->TileModeGMM, params->surface->bGMMTileEnabled);
+        uint32_t tileMode               = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);
         cmd->Dwords25.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
         cmd->Dwords25.DW1.TileWalk      = tileMode & 0x1;
-        cmd->Dwords25.DW1.SurfacePitch  = params->surface->dwPitch - 1;
-        cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceReconFormat(params->surface->Format));
+        cmd->Dwords25.DW1.SurfacePitch  = params->pitch - 1;
+        cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceReconFormat(params->format));
 
-        if (cmd->Dwords25.DW1.SurfaceFormat == cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_P010)
-        {
-            cmd->Dwords25.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_P010_VARIANT;
-        }
-
-        cmd->Dwords25.DW2.YOffsetForUCb = cmd->Dwords25.DW3.YOffsetForVCr = params->surface->UPlaneOffset.iYOffset;
-
-        if (cmd->Dwords25.DW1.SurfaceFormat == static_cast<uint32_t>(SurfaceFormat::y416Variant) ||
-            cmd->Dwords25.DW1.SurfaceFormat == static_cast<uint32_t>(SurfaceFormat::ayuvVariant))
-        {
-            if (cmd->Dwords25.DW1.SurfaceFormat == static_cast<uint32_t>(SurfaceFormat::y416Variant))
-            {
-                cmd->Dwords25.DW1.SurfacePitch = params->surface->dwPitch / 2 - 1;
-            }
-            if (cmd->Dwords25.DW1.SurfaceFormat == static_cast<uint32_t>(SurfaceFormat::ayuvVariant))
-            {
-                cmd->Dwords25.DW1.SurfacePitch = params->surface->dwPitch / 4 - 1;
-            }
-            cmd->Dwords25.DW2.YOffsetForUCb = params->reconSurfHeight;
-            cmd->Dwords25.DW3.YOffsetForVCr = params->reconSurfHeight << 1;
-        }
-        else if (cmd->Dwords25.DW1.SurfaceFormat == static_cast<uint32_t>(SurfaceFormat::y216Variant) ||
-                 cmd->Dwords25.DW1.SurfaceFormat == static_cast<uint32_t>(SurfaceFormat::yuyvVariant))
-        {
-            cmd->Dwords25.DW2.YOffsetForUCb = cmd->Dwords25.DW3.YOffsetForVCr = params->reconSurfHeight;
-        }
+        cmd->Dwords25.DW2.YOffsetForUCb = params->uOffset;
+        cmd->Dwords25.DW3.YOffsetForVCr = params->vOffset;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -308,34 +280,31 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_DS_REF_SURFACE_STATE);
 
-        MHW_MI_CHK_NULL(params->surfaceStage1);
-
-        cmd->Dwords25.DW0.Width                       = params->alignedWidthStage1 - 1;
-        cmd->Dwords25.DW0.Height                      = params->alignedHeightStage1 - 1;
+        cmd->Dwords25.DW0.Width                       = params->widthStage1 - 1;
+        cmd->Dwords25.DW0.Height                      = params->heightStage1 - 1;
         cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage1;
 
-        uint32_t tileMode               = GetHwTileType(params->surfaceStage1->TileType, params->surfaceStage1->TileModeGMM, params->surfaceStage1->bGMMTileEnabled);
+        uint32_t tileMode               = GetHwTileType(params->tileTypeStage1, params->tileModeGmmStage1, params->gmmTileEnStage1);
         cmd->Dwords25.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
         cmd->Dwords25.DW1.TileWalk      = tileMode & 0x1;
         cmd->Dwords25.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
-        cmd->Dwords25.DW1.SurfacePitch  = params->surfaceStage1->dwPitch - 1;
+        cmd->Dwords25.DW1.SurfacePitch  = params->pitchStage1 - 1;
 
-        cmd->Dwords25.DW2.YOffsetForUCb = cmd->Dwords25.DW3.YOffsetForVCr = params->surfaceStage1->UPlaneOffset.iYOffset;
+        cmd->Dwords25.DW2.YOffsetForUCb = params->uOffsetStage1;
+        cmd->Dwords25.DW3.YOffsetForVCr = params->vOffsetStage1;
 
-        if (params->surfaceStage2)
-        {
-            cmd->Dwords69.DW0.Width                       = params->alignedWidthStage2 - 1;
-            cmd->Dwords69.DW0.Height                      = params->alignedHeightStage2 - 1;
-            cmd->Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage2;
+        cmd->Dwords69.DW0.Width                       = params->widthStage2 - 1;
+        cmd->Dwords69.DW0.Height                      = params->heightStage2 - 1;
+        cmd->Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage2;
 
-            tileMode                        = GetHwTileType(params->surfaceStage2->TileType, params->surfaceStage2->TileModeGMM, params->surfaceStage2->bGMMTileEnabled);
-            cmd->Dwords69.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
-            cmd->Dwords69.DW1.TileWalk      = tileMode & 0x1;
-            cmd->Dwords69.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
-            cmd->Dwords69.DW1.SurfacePitch  = params->surfaceStage2->dwPitch - 1;
+        tileMode                        = GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2);
+        cmd->Dwords69.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
+        cmd->Dwords69.DW1.TileWalk      = tileMode & 0x1;
+        cmd->Dwords69.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
+        cmd->Dwords69.DW1.SurfacePitch  = params->pitchStage2 - 1;
 
-            cmd->Dwords69.DW2.YOffsetForUCb = cmd->Dwords69.DW3.YOffsetForVCr = params->surfaceStage2->UPlaneOffset.iYOffset;
-        }
+        cmd->Dwords69.DW2.YOffsetForUCb = params->uOffsetStage2;
+        cmd->Dwords69.DW3.YOffsetForVCr = params->vOffsetStage2;
 
         return MOS_STATUS_SUCCESS;
     }

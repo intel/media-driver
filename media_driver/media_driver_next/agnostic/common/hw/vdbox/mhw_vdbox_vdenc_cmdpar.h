@@ -116,37 +116,58 @@ struct _MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)
 {
     virtual ~_MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)() = default;
 
-    uint32_t     alignedWidth         = 0;
-    uint32_t     alignedHeight        = 0;
-    bool         colorSpaceSelection  = false;
-    bool         displayFormatSwizzle = false;
-    uint8_t      vDirection           = 0;
-    PMOS_SURFACE surface              = nullptr;
+    uint32_t          width                = 0;
+    uint32_t          height               = 0;
+    uint32_t          pitch                = 0;
+    uint32_t          uOffset              = 0;
+    uint32_t          vOffset              = 0;
+    MOS_TILE_TYPE     tileType             = MOS_TILE_X;
+    MOS_TILE_MODE_GMM tileModeGmm          = MOS_TILE_LINEAR_GMM;
+    MOS_FORMAT        format               = Format_Any;
+    bool              gmmTileEn            = false;
+    bool              colorSpaceSelection  = false;
+    bool              displayFormatSwizzle = false;
+    uint8_t           vDirection           = 0;
 };
 
 struct _MHW_CMD_PAR_T(VDENC_REF_SURFACE_STATE)
 {
     virtual ~_MHW_CMD_PAR_T(VDENC_REF_SURFACE_STATE)() = default;
 
-    uint32_t     alignedWidth    = 0;
-    uint32_t     alignedHeight   = 0;
-    uint32_t     reconSurfHeight = 0;
-    uint8_t      vDirection      = 0;
-    PMOS_SURFACE surface         = nullptr;
+    uint32_t          width       = 0;
+    uint32_t          height      = 0;
+    uint32_t          pitch       = 0;
+    uint32_t          uOffset     = 0;
+    uint32_t          vOffset     = 0;
+    MOS_TILE_TYPE     tileType    = MOS_TILE_X;
+    MOS_TILE_MODE_GMM tileModeGmm = MOS_TILE_LINEAR_GMM;
+    MOS_FORMAT        format      = Format_Any;
+    bool              gmmTileEn   = false;
+    uint8_t           vDirection  = 0;
 };
 
 struct _MHW_CMD_PAR_T(VDENC_DS_REF_SURFACE_STATE)
 {
     virtual ~_MHW_CMD_PAR_T(VDENC_DS_REF_SURFACE_STATE)() = default;
 
-    PMOS_SURFACE surfaceStage1       = nullptr;
-    PMOS_SURFACE surfaceStage2       = nullptr;
-    uint8_t      vDirectionStage1    = 0;
-    uint8_t      vDirectionStage2    = 0;
-    uint32_t     alignedWidthStage1  = 0;
-    uint32_t     alignedWidthStage2  = 0;
-    uint32_t     alignedHeightStage1 = 0;
-    uint32_t     alignedHeightStage2 = 0;
+    uint8_t           vDirectionStage1  = 0;
+    uint8_t           vDirectionStage2  = 0;
+    uint32_t          widthStage1       = 0;
+    uint32_t          widthStage2       = 0;
+    uint32_t          heightStage1      = 0;
+    uint32_t          heightStage2      = 0;
+    uint32_t          pitchStage1       = 0;
+    uint32_t          pitchStage2       = 0;
+    uint32_t          uOffsetStage1     = 0;
+    uint32_t          uOffsetStage2     = 0;
+    uint32_t          vOffsetStage1     = 0;
+    uint32_t          vOffsetStage2     = 0;
+    MOS_TILE_TYPE     tileTypeStage1    = MOS_TILE_X;
+    MOS_TILE_TYPE     tileTypeStage2    = MOS_TILE_X;
+    MOS_TILE_MODE_GMM tileModeGmmStage1 = MOS_TILE_LINEAR_GMM;
+    MOS_TILE_MODE_GMM tileModeGmmStage2 = MOS_TILE_LINEAR_GMM;
+    bool              gmmTileEnStage1   = false;
+    bool              gmmTileEnStage2   = false;
 };
 
 struct _MHW_CMD_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
