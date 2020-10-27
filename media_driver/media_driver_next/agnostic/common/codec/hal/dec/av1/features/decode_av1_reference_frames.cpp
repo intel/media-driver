@@ -154,7 +154,23 @@ namespace decode
 
         return &(m_basicFeature->m_destSurface.OsResource);
     }
+    MOS_STATUS Av1ReferenceFrames::UpdateCurResource(const PCODEC_REF_LIST_AV1 pCurRefList)
+    {
+        DECODE_FUNC_CALL();
+        DECODE_CHK_NULL(pCurRefList);
+        DECODE_CHK_NULL(m_basicFeature->m_av1PicParams);
+        auto m_picParams = m_basicFeature->m_av1PicParams;
+        // Overwrite the actual surface height with the coded height and width of the frame
+        // for AV1 since it's possible for a AV1 frame to change size during playback
+        if (!m_picParams->m_picInfoFlags.m_fields.m_largeScaleTile)
+        {
+            m_basicFeature->m_destSurface.dwWidth  = m_picParams->m_superResUpscaledWidthMinus1 + 1;  //DPB buffer size may be larger than the YUV data size to put in it, so override it
+            m_basicFeature->m_destSurface.dwHeight = m_picParams->m_superResUpscaledHeightMinus1 + 1;
+        }
 
+        pCurRefList->resRefPic = m_basicFeature->m_destSurface.OsResource;
+        return MOS_STATUS_SUCCESS;
+    }
     MOS_STATUS Av1ReferenceFrames::UpdateCurFrame(const CodecAv1PicParams & picParams)
     {
         DECODE_FUNC_CALL();
@@ -165,16 +181,8 @@ namespace decode
         m_currRefList = m_refList[picParams.m_currPic.FrameIdx];
         MOS_ZeroMemory(m_currRefList, sizeof(m_currRefList));
 
-        // Overwrite the actual surface height with the coded height and width of the frame
-        // for AV1 since it's possible for a AV1 frame to change size during playback
-        if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
-        {
-            m_basicFeature->m_destSurface.dwWidth = picParams.m_superResUpscaledWidthMinus1 + 1;//DPB buffer size may be larger than the YUV data size to put in it, so override it
-            m_basicFeature->m_destSurface.dwHeight = picParams.m_superResUpscaledHeightMinus1 + 1;
-        }
-
-        m_currRefList->resRefPic        = m_basicFeature->m_destSurface.OsResource;
-        m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1; //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
+        DECODE_CHK_STATUS(UpdateCurResource(m_currRefList));
+        m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1;  //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
         m_currRefList->m_frameHeight    = picParams.m_superResUpscaledHeightMinus1 + 1;
         m_currRefList->m_miCols         = MOS_ALIGN_CEIL(picParams.m_frameWidthMinus1 + 1, 8) >> av1MiSizeLog2;
         m_currRefList->m_miRows         = MOS_ALIGN_CEIL(picParams.m_frameHeightMinus1 + 1, 8) >> av1MiSizeLog2;

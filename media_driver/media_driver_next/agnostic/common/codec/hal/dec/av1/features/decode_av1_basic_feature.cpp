@@ -149,7 +149,7 @@ namespace decode
     MOS_STATUS Av1BasicFeature::SetPictureStructs(CodechalDecodeParams *decodeParams)
     {
         DECODE_FUNC_CALL();
-
+        m_curRenderPic                  = m_av1PicParams->m_currPic;
         m_width                         = MOS_MAX(m_width, (uint32_t)m_av1PicParams->m_frameWidthMinus1 + 1);
         m_height                        = MOS_MAX(m_height, (uint32_t)m_av1PicParams->m_frameHeightMinus1 + 1);
         m_frameWidthAlignedMinBlk       = MOS_ALIGN_CEIL(m_av1PicParams->m_frameWidthMinus1 + 1, av1MinBlockWidth);

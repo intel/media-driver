@@ -515,7 +515,8 @@ bool SfcRenderBase::IsVdboxSfcFormatSupported(
     MOS_FORMAT                  inputFormat,
     MOS_FORMAT                  outputFormat)
 {
-    if (CODECHAL_AVC == codecStandard || CODECHAL_HEVC == codecStandard || CODECHAL_VP9 == codecStandard)
+    if (CODECHAL_AVC == codecStandard || CODECHAL_HEVC == codecStandard ||
+        CODECHAL_VP9 == codecStandard || CODECHAL_AV1 == codecStandard)
     {
         if ((inputFormat != Format_NV12) &&
             (inputFormat != Format_400P) &&

@@ -141,10 +141,6 @@ public:
     //!
     uint8_t GetPrimaryRefIdx() {return m_prevFrameIdx;};
 
-    PCODEC_REF_LIST_AV1    m_refList[CODECHAL_MAX_DPB_NUM_LST_AV1]; //!< Pointer to reference list, actually the DPB
-    PCODEC_REF_LIST_AV1    m_currRefList = nullptr;                 //!< Current frame reference list
-
-protected:
     //!
     //! \brief  Update the current frame entry on m_refList
     //! \param  [in] picParams
@@ -152,7 +148,19 @@ protected:
     //! \return  MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS UpdateCurFrame(const CodecAv1PicParams & picParams);
+    MOS_STATUS             UpdateCurFrame(const CodecAv1PicParams &picParams);
+    //!
+    //! \brief  Update the current resource for currnet ref list
+    //! \param  [in] pCurRefList
+    //!         pointer of current ref list
+    //! \return  MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS             UpdateCurResource(const PCODEC_REF_LIST_AV1 pCurRefList);
+    PCODEC_REF_LIST_AV1    m_refList[CODECHAL_MAX_DPB_NUM_LST_AV1]; //!< Pointer to reference list, actually the DPB
+    PCODEC_REF_LIST_AV1    m_currRefList = nullptr;                 //!< Current frame reference list
+
+protected:
 
     uint8_t m_prevFrameIdx = 0;                 //!< primary reference frame index
     Av1BasicFeature *m_basicFeature = nullptr;  //!< AV1 basic feature
