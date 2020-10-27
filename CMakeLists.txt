@@ -130,12 +130,6 @@ endif()
 # Format Package Version and Build Type Strings for CPACK_PACKAGE_FILE_NAME
 string(TOLOWER "${BUILD_TYPE}.${CPACK_RPM_PACKAGE_ARCHITECTURE}" PACKAGE_TYPE)
 
-if (DEFINED CP_INCLUDED)
-if (${CP_INCLUDED} STREQUAL "1")
-set(CPACK_PACKAGE_NAME "intel-cp-media")
-endif()
-endif()
-
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${DISTRO_INFO}-${PACKAGE_TYPE}")
 
 include(CPack)
