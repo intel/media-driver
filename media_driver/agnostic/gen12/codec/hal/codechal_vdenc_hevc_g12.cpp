@@ -7429,6 +7429,7 @@ MOS_STATUS CodechalVdencHevcStateG12::VerifyCommandBufferSize()
         pCmdBuffer->pCmdPtr = pCmdBuffer->pCmdBase = (uint32_t *)m_osInterface->pfnLockResource(m_osInterface, &pCmdBuffer->OsResource, &lockParams);
         pCmdBuffer->iRemaining                     = m_sizeOfVeBatchBuffer;
         pCmdBuffer->iOffset = 0;
+        pCmdBuffer->is1stLvlBB = true;
 
         if (pCmdBuffer->pCmdBase == nullptr)
         {
