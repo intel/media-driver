@@ -750,7 +750,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxSurfaceCmd(
     }
 
     cmd.DW4.YOffsetForUCb = cmd.DW5.YOffsetForVCr =
-        MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, uvPlaneAlignment);
+        MOS_ALIGN_CEIL((params->psSurface->UPlaneOffset.iSurfaceOffset -params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
 
     if (IsVPlanePresent(params->psSurface->Format))
     {

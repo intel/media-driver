@@ -1368,7 +1368,7 @@ public:
         cmd.Dwords25.DW0.SurfaceFormatByteSwizzle = params->bDisplayFormatSwizzle;
         cmd.Dwords25.DW1.SurfacePitch             = params->psSurface->dwPitch - 1;
         cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr =
-            MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9);
+            MOS_ALIGN_CEIL((params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset, MHW_VDBOX_MFX_RAW_UV_PLANE_ALIGNMENT_GEN9);
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
@@ -1428,7 +1428,8 @@ public:
         }
 
         cmd.Dwords25.DW1.SurfacePitch = params->psSurface->dwPitch - 1;
-        cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
+        cmd.Dwords25.DW2.YOffsetForUCb = cmd.Dwords25.DW3.YOffsetForVCr = 
+            (params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset;
 
         if (cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatY416Variant ||
             cmd.Dwords25.DW1.SurfaceFormat == vdencSurfaceFormatAyuvVariant)
@@ -1486,7 +1487,8 @@ public:
 
         cmd.Dwords25.DW1.SurfaceFormat    = TVdencCmds::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
         cmd.Dwords25.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
-        cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
+        cmd.Dwords25.DW2.YOffsetForUCb    = cmd.Dwords25.DW3.YOffsetForVCr = 
+            (params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset;
 
         // 2nd surface
         if (numSurfaces > 1)
@@ -1513,7 +1515,8 @@ public:
 
             cmd.Dwords69.DW1.SurfaceFormat    = TVdencCmds::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
             cmd.Dwords69.DW1.SurfacePitch     = params->psSurface->dwPitch - 1;
-            cmd.Dwords69.DW2.YOffsetForUCb    = cmd.Dwords69.DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
+            cmd.Dwords69.DW2.YOffsetForUCb    = cmd.Dwords69.DW3.YOffsetForVCr = 
+                (params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset;
         }
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));

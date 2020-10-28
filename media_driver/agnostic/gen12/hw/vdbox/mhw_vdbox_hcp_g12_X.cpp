@@ -1642,7 +1642,8 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpEncodeSurfaceStateCmd(
         }
     }
 
-    cmd->DW2.YOffsetForUCbInPixel  = cmd->DW3.YOffsetForVCr = params->psSurface->UPlaneOffset.iYOffset;
+    cmd->DW2.YOffsetForUCbInPixel  = cmd->DW3.YOffsetForVCr = 
+        (params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset)/params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset;
 
     //Set U/V offsets for Variant surfaces 
     if (cmd->DW2.SurfaceFormat == cmd->SURFACE_FORMAT_Y416VARIANT ||
