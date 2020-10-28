@@ -1262,14 +1262,16 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateVariableSizeSurfaces()
         m_coordinatesRandomValuesSurface = m_allocator->AllocateBuffer(
             allocSize,
             "FilmGrainGRVCoordinateSurface",
-            resourceInternalReadWriteCache);
+            resourceInternalReadWriteCache,
+            true,
+            0);
         DECODE_CHK_NULL(m_coordinatesRandomValuesSurface);
     }
     else
     {
         DECODE_CHK_STATUS(m_allocator->Resize(
             m_coordinatesRandomValuesSurface,
-            allocSize/*avpBufSizeParam.m_bufferSize*/));
+            allocSize/*avpBufSizeParam.m_bufferSize*/, false, true));
     }
     m_coordinateSurfaceSize = allocSize;
 

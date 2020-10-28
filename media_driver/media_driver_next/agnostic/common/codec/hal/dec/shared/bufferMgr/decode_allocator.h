@@ -189,10 +189,12 @@ public:
     //!         New size for linear buffer
     //! \param  [in] force
     //!         Flag indicates whether resize buffer by force when size changed
+    //! \param  [in] clearData
+    //!         Flag indicates whether clear cached buffer data when size changed
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Resize(MOS_BUFFER* &buffer, const uint32_t sizeNew, bool force = false);
+    MOS_STATUS Resize(MOS_BUFFER* &buffer, const uint32_t sizeNew, bool force = false, bool clearData = false);
 
     //!
     //! \brief  Resize surface

@@ -281,17 +281,29 @@ MOS_STATUS DecodeAllocator::UnLock(PMHW_BATCH_BUFFER batchBuffer, bool resetBuff
     return Mhw_UnlockBb(m_osInterface, batchBuffer, resetBuffer);
 }
 
-MOS_STATUS DecodeAllocator::Resize(MOS_BUFFER* &buffer, const uint32_t sizeNew, bool force)
+MOS_STATUS DecodeAllocator::Resize(MOS_BUFFER* &buffer, const uint32_t sizeNew, bool force, bool clearData)
 {
     DECODE_CHK_NULL(buffer);
 
     if (sizeNew == buffer->size)
     {
+        if (clearData)
+        {
+            if(m_allocator->OsFillResource(&buffer->OsResource, buffer->size, 0) != MOS_STATUS_SUCCESS)
+            {
+                DECODE_ASSERTMESSAGE("Failed to clear buffer data");
+            }
+        }
         return MOS_STATUS_SUCCESS;
     }
 
     if (force || (sizeNew > buffer->size))
     {
+        if(clearData)
+        {
+            buffer->initOnAllocate = true;
+            buffer->initValue      = 0;
+        }
         MOS_BUFFER* bufferNew = AllocateBuffer(
             sizeNew, buffer->name, ConvertGmmResourceUsage(buffer->OsResource.pGmmResInfo->GetCachePolicyUsage()),
             buffer->initOnAllocate, buffer->initValue, buffer->bPersistent);
