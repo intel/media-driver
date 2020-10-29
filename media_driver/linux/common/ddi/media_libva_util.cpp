@@ -208,8 +208,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
             {
                 tileformat = I915_TILING_NONE;
-                alignedWidth = MOS_ALIGN_CEIL(width, 2);
-                alignedHeight = MOS_ALIGN_CEIL(width, 2);
                 break;
             }
         case Media_Format_RGBP:
@@ -422,6 +420,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         else if (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_VA)
         {
             tileformat = I915_TILING_NONE;
+            alignedHeight = height;
         } else {
             DDI_ASSERTMESSAGE("Input buffer descriptor (%d) is not supported by current driver.", mediaSurface->pSurfDesc->uiFlags);
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
