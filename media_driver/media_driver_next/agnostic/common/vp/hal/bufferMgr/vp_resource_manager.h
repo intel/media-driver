@@ -348,7 +348,7 @@ protected:
     VP_SURFACE* GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *outputSurface);
     MOS_STATUS InitVeboxSpatialAttributesConfiguration();
     MOS_STATUS AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface);
-    MOS_STATUS AssignSurface(VEBOX_SURFACE_ID &surfaceId, SurfaceType surfaceType, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastRefSurface, VP_SURFACE *futureRefSurface, VP_SURFACE_GROUP &surfGroup);
+    MOS_STATUS AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_ID &surfaceId, SurfaceType surfaceType, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastRefSurface, VP_SURFACE *futureRefSurface, VP_SURFACE_GROUP &surfGroup);
     bool VeboxOutputNeeded(VP_EXECUTE_CAPS& caps);
     bool VeboxDenoiseOutputNeeded(VP_EXECUTE_CAPS& caps);
     // In some case, STMM should not be destroyed but not be used by current workload to maintain data,
@@ -428,6 +428,7 @@ protected:
     uint32_t    m_currentDnOutput                        = 0;
     uint32_t    m_currentStmmIndex                       = 0;
     uint32_t    m_veboxOutputCount                       = 2;             //!< PE on: 4 used. PE off: 2 used
+    bool        m_pastDnOutputValid                      = false;         //!< true if vebox DN output of previous frame valid.
     VP_FRAME_IDS m_currentFrameIds                       = {};
     VP_FRAME_IDS m_pastFrameIds                          = {};
     bool         m_firstFrame                            = true;

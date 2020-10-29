@@ -890,3 +890,8 @@ bool VPFeatureManager::IsDiFormatSupported(MOS_FORMAT format)
         return false;
     }
 }
+
+bool VPFeatureManager::IsVeboxSurfaceHeightAligned(VPHAL_SURFACE &surf)
+{
+    return MOS_IS_ALIGNED(MOS_MIN((uint32_t)surf.dwHeight, (uint32_t)surf.rcSrc.bottom), 4);
+}

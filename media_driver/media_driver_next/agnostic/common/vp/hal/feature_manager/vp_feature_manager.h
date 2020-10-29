@@ -152,6 +152,7 @@ protected:
     }
 
     virtual bool IsDiFormatSupported(MOS_FORMAT format);
+    virtual bool IsVeboxSurfaceHeightAligned(VPHAL_SURFACE &surf);
 
 protected:
     PVP_MHWINTERFACE        m_hwInterface       = nullptr;
