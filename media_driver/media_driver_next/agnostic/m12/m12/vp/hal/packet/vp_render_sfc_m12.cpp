@@ -57,7 +57,7 @@ MOS_STATUS SfcRenderM12::SetupSfcState(
     sfcStateParamsM12 = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.sfcStateParams);
     VP_RENDER_CHK_NULL_RETURN(sfcStateParamsM12);
 
-    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resSfdLineBuffer, m_SFDLineBufferSurfaceArray[m_curPipe]));
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resSfdLineBuffer, m_SFDLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resAvsLineTileBuffer, m_AVSLineTileBufferSurface));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resIefLineTileBuffer, m_IEFLineTileBufferSurface));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resSfdLineTileBuffer, m_SFDLineTileBufferSurface));
@@ -150,5 +150,56 @@ MOS_STATUS SfcRenderM12::AddSfcLock(
             VP_RENDER_CHK_STATUS_RETURN(static_cast<MhwMiInterfaceG12 *>(m_miInterface)->AddMiVdControlStateCmd(pCmdBuffer, &vdCtrlParam));
         }
     }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderM12::SetupScalabilityParams()
+{
+    VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
+    PMHW_SFC_STATE_PARAMS_G12 sfcStateParams = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.sfcStateParams);
+
+    if (MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP != m_pipeMode &&
+        MhwSfcInterface::SFC_PIPE_MODE_VEBOX!= m_pipeMode)
+    {
+        VP_RENDER_NORMALMESSAGE("No scalability params need be applied for pipeMode(%d)", m_pipeMode);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (1 == m_scalabilityParams.numPipe)
+    {
+        VP_RENDER_NORMALMESSAGE("Scalability is disabled.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Check whether engine mode being valid.
+    uint32_t engineMode = (0 == m_scalabilityParams.curPipe) ? 1 :
+                        (m_scalabilityParams.numPipe - 1 == m_scalabilityParams.curPipe) ? 2 : 3;
+    if (engineMode != m_scalabilityParams.engineMode)
+    {
+        VP_RENDER_ASSERTMESSAGE("engineMode (%d) may not be expected according to curPipe(%d) and numPipe(%d).",
+            m_scalabilityParams.engineMode, m_scalabilityParams.curPipe, m_scalabilityParams.numPipe);
+    }
+
+    sfcStateParams->engineMode = m_scalabilityParams.engineMode;
+
+    if (MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP == m_pipeMode)
+    {
+        VPHAL_COLORPACK colorPack = VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat);
+        if ((VPHAL_COLORPACK_420 == colorPack || VPHAL_COLORPACK_422 == colorPack) &&
+            (!MOS_IS_ALIGNED(m_scalabilityParams.srcStartX, 2) || !MOS_IS_ALIGNED(m_scalabilityParams.srcEndX, 2)))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("srcStartX(%d) or srcEndX(%d) is not 2 aligned with input format(%d).",
+                 m_scalabilityParams.srcStartX, m_scalabilityParams.srcEndX, m_renderData.SfcInputFormat);
+
+            m_scalabilityParams.srcStartX   = MOS_ALIGN_CEIL(m_scalabilityParams.srcStartX, 2);
+            m_scalabilityParams.srcEndX     = MOS_ALIGN_CEIL(m_scalabilityParams.srcEndX, 2);
+        }
+        sfcStateParams->tileType     = m_scalabilityParams.tileType;
+        sfcStateParams->srcStartX    = m_scalabilityParams.srcStartX;
+        sfcStateParams->srcEndX      = m_scalabilityParams.srcEndX;
+        sfcStateParams->dstStartX    = m_scalabilityParams.dstStartX;
+        sfcStateParams->dstEndX      = m_scalabilityParams.dstEndX;
+    }
+
     return MOS_STATUS_SUCCESS;
 }

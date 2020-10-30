@@ -65,6 +65,8 @@ protected:
         PMHW_SFC_STATE_PARAMS       sfcStateParams);
 
     virtual MOS_STATUS SetCodecPipeMode(CODECHAL_STANDARD codecStandard);
+
+    virtual MOS_STATUS SetupScalabilityParams();
 };
 
 }

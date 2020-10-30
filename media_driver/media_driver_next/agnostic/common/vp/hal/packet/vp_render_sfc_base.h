@@ -436,6 +436,9 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS SetLineBuffer(PMOS_RESOURCE &osResLineBuffer, VP_SURFACE *lineBuffer);
+
+    virtual MOS_STATUS SetupScalabilityParams() = 0;
+
 protected:
 
     // HW intface to access MHW
@@ -480,8 +483,8 @@ protected:
     VIDEO_PARAMS                    m_videoConfig = {};
 
     int                             m_lineBufferAllocatedInArray    = 1;        //!< Line buffer allocated in array
-    int                             m_numPipe                       = 1;        //!< Number of pipes for scalability
-    int                             m_curPipe                       = 0;        //!< Current pipe index
+
+    SCALABILITY_PARAMS              m_scalabilityParams             = {};
 };
 
 }
