@@ -2114,6 +2114,9 @@ public:
     static const uint32_t       m_bframeMeBidirectionalWeight = 32;    //!< B frame bidirection weight
     uint32_t                    m_prevQpModulationStrength = 0;
     bool                        m_initDeltaQP = true;
+    uint32_t                    m_prevVdencReadBatchBufferSize = 0;
+    uint32_t                    m_numNAL = 0;
+    uint32_t                    m_overallNALPayload = 0;
 
     // HuC tables.
     // These Values are diff for each Gen
@@ -2360,6 +2363,7 @@ public:
     MOS_STATUS InitializePicture(const EncoderParams& params) override;
     MOS_STATUS ValidateRefFrameData(PCODEC_HEVC_ENCODE_SLICE_PARAMS slcParams) override;
     MOS_STATUS SetPictureStructs() override;
+    MOS_STATUS SetSequenceStructs() override;
     MOS_STATUS GetStatusReport(EncodeStatus* encodeStatus, EncodeStatusReport* encodeStatusReport) override;
     MOS_STATUS UserFeatureKeyReport() override;
     MOS_STATUS EncodeKernelFunctions() override;

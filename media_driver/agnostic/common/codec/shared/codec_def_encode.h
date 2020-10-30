@@ -145,6 +145,7 @@ struct EncoderParams
     PMOS_RESOURCE                   presVMEOutSurface;
     uint32_t                        uiMVoffset; // App provides PAK objects and MV data in the same surface. This is offset to MV Data.
     bool                            fullHeaderInAppData;         //!< [JPEG]
+    uint32_t                        uiOverallNALPayload;
 };
 
 #endif // !__CODEC_DEF_ENCODE_H__

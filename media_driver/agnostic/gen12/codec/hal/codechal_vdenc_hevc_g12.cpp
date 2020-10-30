@@ -1767,8 +1767,62 @@ MOS_STATUS CodechalVdencHevcStateG12::InitializePicture(const EncoderParams& par
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    m_numNAL = params.uiNumNalUnits;
+    m_overallNALPayload = params.uiOverallNALPayload;
+
     // common initilization
     return CodechalVdencHevcState::InitializePicture(params);
+}
+
+MOS_STATUS CodechalVdencHevcStateG12::SetSequenceStructs()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+    MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+    allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+    allocParamsForBufferLinear.Format = Format_Buffer;
+    allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_hwInterface->m_vdencReadBatchBufferSize, CODECHAL_PAGE_SIZE);
+    allocParamsForBufferLinear.pBufName = "VDENC Read Batch Buffer";
+
+    uint32_t batchBufferSize = m_hwInterface->m_vdencReadBatchBufferSize +
+                               ENCODE_HEVC_VDENC_NUM_MAX_SLICES * (m_numNAL * mhw_vdbox_hcp_g12_X::HCP_PAK_INSERT_OBJECT_CMD::byteSize + m_overallNALPayload);
+
+    if (batchBufferSize > allocParamsForBufferLinear.dwBytes && allocParamsForBufferLinear.dwBytes != m_prevVdencReadBatchBufferSize)
+    {
+        m_hwInterface->m_vdencReadBatchBufferSize = batchBufferSize;
+        m_hwInterface->m_vdenc2ndLevelBatchBufferSize = batchBufferSize;
+        m_tileLevelBatchSize = batchBufferSize;
+        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_hwInterface->m_vdencReadBatchBufferSize, CODECHAL_PAGE_SIZE);
+        m_prevVdencReadBatchBufferSize = allocParamsForBufferLinear.dwBytes;
+
+        for (auto k = 0; k < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; k++)
+        {
+            for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES; i++)
+            {
+                if (!Mos_ResourceIsNull(&m_vdencReadBatchBuffer[k][i]))
+                {
+                    m_osInterface->pfnFreeResource(m_osInterface, &m_vdencReadBatchBuffer[k][i]);
+                }
+            }
+
+            for (auto i = 0; i < CODECHAL_VDENC_BRC_NUM_OF_PASSES; i++)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                                                              m_osInterface,
+                                                              &allocParamsForBufferLinear,
+                                                              &m_vdencReadBatchBuffer[k][i]),
+                    "Failed to allocate VDENC Read Batch Buffer");
+            }
+        }
+    }
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::SetSequenceStructs());
+
+    return eStatus;
 }
 
 MOS_STATUS CodechalVdencHevcStateG12::SetPictureStructs()
