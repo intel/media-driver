@@ -1328,7 +1328,20 @@ VAStatus DdiEncodeBase::CreateBuffer(
 
     DdiMediaUtil_LockBuffer(buf, MOS_LOCKFLAG_WRITEONLY | MOS_LOCKFLAG_READONLY);
 
-    MOS_STATUS eStatus = MOS_SecureMemcpy((void*)(buf->pData + buf->uiOffset), bufSize, (void*)data, bufSize);
+    // HW may use bigger than 64 pitch alignment for 2D. In such a case linear copying spoils the data
+    // and has to be executed line by line. 'size' is in fact input data pitch.
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    if (elementsNum > 1 && buf->format == Media_Format_2DBuffer && size < buf->uiPitch)
+    {
+        uint8_t *pDst = buf->pData + buf->uiOffset;
+        uint8_t *pSrc = (uint8_t *) data;
+        for (int32_t i = 0; i < elementsNum && eStatus == MOS_STATUS_SUCCESS; i++)
+            eStatus = MOS_SecureMemcpy(pDst + i*buf->uiPitch, size, pSrc + i*size, size);
+    }
+    else
+    {
+        eStatus = MOS_SecureMemcpy((void*)(buf->pData + buf->uiOffset), bufSize, (void*)data, bufSize);
+    }
 
     DdiMediaUtil_UnlockBuffer(buf);
 
