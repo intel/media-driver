@@ -3250,6 +3250,110 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
     uint32_t operand2Offset    = baseOffset + m_atomicScratchBuf.dwOperand2Offset;
     uint32_t operand3Offset    = baseOffset + m_atomicScratchBuf.dwOperand3Offset;
 
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams , sizeof(flushDwParams));
+    flushDwParams.bVideoPipelineCacheInvalidate = true;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
+
+    MHW_MI_LOAD_REGISTER_MEM_PARAMS miLoadRegMemParams;
+    miLoadRegMemParams.presStoreBuffer = &m_encodeStatusBuf.resStatusBuffer;
+    miLoadRegMemParams.dwOffset = 0;
+    miLoadRegMemParams.dwRegister = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+
+    MHW_MI_LOAD_REGISTER_IMM_PARAMS miLoadRegImmParams;
+    miLoadRegImmParams.dwData = 0;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister0HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+    miLoadRegImmParams.dwData = 0xFFFFFFFF;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    miLoadRegImmParams.dwData = 0;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
+
+    MHW_MI_ALU_PARAMS aluParams[20];
+    int aluCount = 0;
+
+    aluCount = 0;
+
+    //load1 srca, reg1
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[aluCount].Operand1 = MHW_MI_ALU_SRCA;
+    aluParams[aluCount].Operand2 = MHW_MI_ALU_GPREG0;
+    ++aluCount;
+    //load srcb, reg2
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[aluCount].Operand1 = MHW_MI_ALU_SRCB;
+    aluParams[aluCount].Operand2 = MHW_MI_ALU_GPREG4;
+    ++aluCount;
+    //add
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_SUB;
+    aluParams[aluCount].Operand1 = MHW_MI_ALU_SRCB;
+    aluParams[aluCount].Operand2 = MHW_MI_ALU_GPREG4;
+    ++aluCount;
+    //store reg1, accu
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+    aluParams[aluCount].Operand1 = MHW_MI_ALU_GPREG0;
+    aluParams[aluCount].Operand2 = MHW_MI_ALU_ZF;
+    ++aluCount;
+
+    MHW_MI_MATH_PARAMS miMathParams;
+    miMathParams.dwNumAluParams = aluCount;
+    miMathParams.pAluPayload = aluParams;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiMathCmd(cmdBuffer, &miMathParams));
+
+    miLoadRegImmParams.dwData = 1;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    miLoadRegImmParams.dwData = 0;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    aluCount = 0;
+
+    //load1 srca, reg1
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[aluCount].Operand1 = MHW_MI_ALU_SRCA;
+    aluParams[aluCount].Operand2 = MHW_MI_ALU_GPREG0;
+    ++aluCount;
+    //load srcb, reg2
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+    aluParams[aluCount].Operand1 = MHW_MI_ALU_SRCB;
+    aluParams[aluCount].Operand2 = MHW_MI_ALU_GPREG4;
+    ++aluCount;
+    //add
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_AND;
+    ++aluCount;
+    //store reg1, accu
+    aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+    aluParams[aluCount].Operand1 = MHW_MI_ALU_GPREG0;
+    aluParams[aluCount].Operand2 = MHW_MI_ALU_ACCU;
+    ++aluCount;
+
+    miMathParams.dwNumAluParams = aluCount;
+    miMathParams.pAluPayload = aluParams;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiMathCmd(cmdBuffer, &miMathParams));
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = &m_atomicScratchBuf.resAtomicScratchBuffer;
+    miStoreRegMemParams.dwOffset = operand1Offset;
+    miStoreRegMemParams.dwRegister = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    // Make Flush DW call to make sure all previous work is done
+    MOS_ZeroMemory(&flushDwParams , sizeof(flushDwParams));
+    flushDwParams.bVideoPipelineCacheInvalidate = true;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
+
     // Forcely ADD m_storeData, always happened in last pass.
     if(forceOperation)
     {
@@ -3300,6 +3404,27 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
             cmdBuffer,
             &flushDwParams));
+
+        MOS_ZeroMemory(&registerMemParams, sizeof(registerMemParams));
+        registerMemParams.presStoreBuffer = &(m_atomicScratchBuf.resAtomicScratchBuffer);
+        registerMemParams.dwOffset = operand1Offset;
+        registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
+            cmdBuffer,
+            &registerMemParams));
+
+        MOS_ZeroMemory(&atomicParams, sizeof(atomicParams));
+        atomicParams.pOsResource =&m_encodeStatusBuf.resStatusBuffer;
+        atomicParams.dwResourceOffset =  0;
+        atomicParams.dwDataSize = sizeof(uint32_t);
+        atomicParams.Operation = MHW_MI_ATOMIC_ADD;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(
+            cmdBuffer,
+            &atomicParams));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
         return MOS_STATUS_SUCCESS;
     }
     else
@@ -3310,16 +3435,6 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
             cmdBuffer,
             &flushDwParams));
-
-        // n1_lo = 0x00
-        MHW_MI_STORE_DATA_PARAMS storeDataParams;
-        MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
-        storeDataParams.pOsResource = &(m_atomicScratchBuf.resAtomicScratchBuffer);
-        storeDataParams.dwResourceOffset = operand1Offset;
-        storeDataParams.dwValue          = 0x00;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
-            cmdBuffer,
-            &storeDataParams));
 
         // n2_lo = dwImageStatusMask
         MHW_MI_COPY_MEM_MEM_PARAMS copyMemMemParams;
@@ -3388,6 +3503,7 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
             &atomicParams));
 
         // n3_lo = 0
+        MHW_MI_STORE_DATA_PARAMS storeDataParams;
         MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
         storeDataParams.pOsResource = &(m_atomicScratchBuf.resAtomicScratchBuffer);
         storeDataParams.dwResourceOffset = operand3Offset;
@@ -3401,10 +3517,19 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
             cmdBuffer,
             &flushDwParams));
 
+        MOS_ZeroMemory(&copyMemMemParams , sizeof(copyMemMemParams));
+        copyMemMemParams.presSrc     = &m_atomicScratchBuf.resAtomicScratchBuffer;
+        copyMemMemParams.dwSrcOffset = operand2Offset;
+        copyMemMemParams.presDst     = &m_atomicScratchBuf.resAtomicScratchBuffer;
+        copyMemMemParams.dwDstOffset = operand1Offset + sizeof(uint32_t);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(
+            cmdBuffer,
+            &copyMemMemParams));
+
         // GPR0_lo = n1_lo = 0
         MOS_ZeroMemory(&registerMemParams, sizeof(registerMemParams));
         registerMemParams.presStoreBuffer = &(m_atomicScratchBuf.resAtomicScratchBuffer);
-        registerMemParams.dwOffset        = operand1Offset;
+        registerMemParams.dwOffset        = zeroValueOffset;
         registerMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset; // VCS_GPR0
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
             cmdBuffer,
@@ -3561,6 +3686,48 @@ MOS_STATUS CodechalEncoderState::UpdateEncodeStatus(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
             cmdBuffer,
             &flushDwParams));
+
+        MOS_ZeroMemory(&registerMemParams, sizeof(registerMemParams));
+        registerMemParams.presStoreBuffer = &(m_atomicScratchBuf.resAtomicScratchBuffer);
+        registerMemParams.dwOffset = operand1Offset + sizeof(uint32_t);
+        registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
+            cmdBuffer,
+            &registerMemParams));
+
+        MOS_ZeroMemory(&atomicParams, sizeof(atomicParams));
+        atomicParams.pOsResource = &m_atomicScratchBuf.resAtomicScratchBuffer;
+        atomicParams.dwResourceOffset = operand1Offset;
+        atomicParams.dwDataSize = sizeof(uint32_t);
+        atomicParams.Operation = MHW_MI_ATOMIC_AND;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(
+            cmdBuffer,
+            &atomicParams));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
+
+        MOS_ZeroMemory(&registerMemParams, sizeof(registerMemParams));
+        registerMemParams.presStoreBuffer = &(m_atomicScratchBuf.resAtomicScratchBuffer);
+        registerMemParams.dwOffset = operand1Offset;
+        registerMemParams.dwRegister = mmioRegisters->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
+            cmdBuffer,
+            &registerMemParams));
+
+        MOS_ZeroMemory(&atomicParams, sizeof(atomicParams));
+        atomicParams.pOsResource =&m_encodeStatusBuf.resStatusBuffer;
+        atomicParams.dwResourceOffset = 0;
+        atomicParams.dwDataSize = sizeof(uint32_t);
+        atomicParams.Operation = MHW_MI_ATOMIC_ADD;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiAtomicCmd(
+            cmdBuffer,
+            &atomicParams));
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
     }
 
     return eStatus;
@@ -3662,7 +3829,7 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
 
     if (!m_disableStatusReport)
     {
-        m_storeData++;
+        m_storeData = m_storeData + 1 ? m_storeData + 1 : 1;
         encodeStatusBuf->wCurrIndex    = (encodeStatusBuf->wCurrIndex + 1) % CODECHAL_ENCODE_STATUS_NUM;
         encodeStatusBufRcs->wCurrIndex = (encodeStatusBufRcs->wCurrIndex + 1) % CODECHAL_ENCODE_STATUS_NUM;
     }
