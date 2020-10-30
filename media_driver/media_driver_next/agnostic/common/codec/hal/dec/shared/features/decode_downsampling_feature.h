@@ -63,6 +63,8 @@ public:
     //!
     virtual MOS_STATUS Update(void *params);
 
+    virtual MOS_STATUS DumpSfcOutputs(CodechalDebugInterface* debugInterface);
+
     // Downsampling input
     PMOS_SURFACE   m_inputSurface = nullptr;
     CodecRectangle m_inputSurfaceRegion = {};
@@ -78,6 +80,12 @@ public:
     uint32_t       m_mirrorState = 0;
     bool           m_isInputSurfAllocated = false;
     bool           m_isReferenceOnlyPattern = false;
+
+    // Histogram
+    PMOS_BUFFER         m_histogramBuffer = nullptr;    // SFC histogram internal  buffer
+    PMOS_SURFACE        m_histogramDestSurf = nullptr;  // SFC histogram dest surface
+    bool                m_histogramDebug = false;
+    const uint32_t      m_histogramBinWidth = 4;
 
 protected:
     MOS_STATUS UpdateInternalTargets(DecodeBasicFeature &basicFeature);

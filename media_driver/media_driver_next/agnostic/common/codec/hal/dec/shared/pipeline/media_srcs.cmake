@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_pipeline.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_sub_pipeline.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_sub_pipeline_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_sfc_histogram_postsubpipeline.cpp
 )
 
 set(TMP_HEADERS_
@@ -31,6 +32,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_pipeline_adapter.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_sub_pipeline.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_sub_pipeline_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_sfc_histogram_postsubpipeline.h
 )
 
 media_add_curr_to_include_path()

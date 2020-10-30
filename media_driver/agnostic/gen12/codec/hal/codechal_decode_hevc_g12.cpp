@@ -2340,7 +2340,7 @@ CodechalDecodeHevcG12::CodechalDecodeHevcG12(
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_DECODE_HISTOGRAM_DEBUG_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_DEBUG_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     m_histogramDebug = userFeatureData.u32Data ? true : false;

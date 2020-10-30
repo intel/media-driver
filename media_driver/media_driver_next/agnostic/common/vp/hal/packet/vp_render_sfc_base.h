@@ -189,6 +189,8 @@ public:
         return m_renderData.pIefParams;
     }
 
+    MOS_STATUS SetHistogramBuf(PMOS_BUFFER histogramBuf);
+
 protected:
     //!
     //! \brief    Initialize SfcState parameters
@@ -485,6 +487,8 @@ protected:
     int                             m_lineBufferAllocatedInArray    = 1;        //!< Line buffer allocated in array
 
     SCALABILITY_PARAMS              m_scalabilityParams             = {};
+
+    MOS_SURFACE                     m_histogramSurf = {};   //!< Histogram buffer
 };
 
 }

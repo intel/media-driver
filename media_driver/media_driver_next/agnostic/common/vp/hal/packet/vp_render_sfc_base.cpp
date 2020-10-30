@@ -85,6 +85,8 @@ MOS_STATUS SfcRenderBase::Init()
     m_scalabilityParams.numPipe = 1;
     m_scalabilityParams.curPipe = 0;
 
+    MOS_ZeroMemory(&m_histogramSurf, sizeof(m_histogramSurf));
+
     return InitSfcStateParams();
 }
 
@@ -121,6 +123,8 @@ MOS_STATUS SfcRenderBase::Init(VIDEO_PARAMS &videoParams)
     m_scalabilityParams = m_videoConfig.scalabilityParams;
 
     VP_PUBLIC_CHK_STATUS_RETURN(SetCodecPipeMode(m_videoConfig.codecStandard));
+
+    MOS_ZeroMemory(&m_histogramSurf, sizeof(m_histogramSurf));
 
     return InitSfcStateParams();
 }
@@ -1202,6 +1206,16 @@ MOS_STATUS SfcRenderBase::FreeResources()
 
     // Free SFD Line Tile Buffer surface for SFC
     m_allocator->DestroyVpSurface(m_SFDLineTileBufferSurface);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SfcRenderBase::SetHistogramBuf(PMOS_BUFFER histogramBuf)
+{
+    if (histogramBuf != nullptr)
+    {
+        m_histogramSurf.OsResource = histogramBuf->OsResource;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

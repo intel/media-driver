@@ -124,6 +124,12 @@ MOS_STATUS DecodeDownSamplingPkt::InitSfcParams(VDBOX_SFC_PARAMS &sfcParams)
 
     sfcParams.videoParams.codecStandard = m_basicFeature->m_standard;
 
+    // If histogram is enabled
+    if (m_downSampling->m_histogramDestSurf || m_downSampling->m_histogramDebug)
+    {
+        sfcParams.output.histogramBuf = m_downSampling->m_histogramBuffer;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

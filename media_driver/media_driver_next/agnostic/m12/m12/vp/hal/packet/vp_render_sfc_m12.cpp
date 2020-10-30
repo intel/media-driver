@@ -62,6 +62,8 @@ MOS_STATUS SfcRenderM12::SetupSfcState(
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resIefLineTileBuffer, m_IEFLineTileBufferSurface));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resSfdLineTileBuffer, m_SFDLineTileBufferSurface));
 
+    sfcStateParamsM12->histogramSurface = &m_histogramSurf;
+
     return eStatus;
 }
 

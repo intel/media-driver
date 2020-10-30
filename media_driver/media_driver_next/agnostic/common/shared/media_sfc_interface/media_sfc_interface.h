@@ -118,6 +118,7 @@ struct VDBOX_SFC_PARAMS
     struct
     {
         PMOS_SURFACE                surface;
+        PMOS_BUFFER                 histogramBuf;       //!< Histogram output buffer
         MEDIA_CSPACE                colorSpace;         //!< Color Space
         uint32_t                    chromaSiting;       //!< ChromaSiting
         RECT                        rcDst;              //!< rectangle on output surface after scaling.

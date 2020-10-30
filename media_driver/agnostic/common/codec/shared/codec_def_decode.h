@@ -31,6 +31,8 @@
 #include "mos_os.h"
 #include "codec_def_decode_jpeg.h"
 
+#define HISTOGRAM_BINCOUNT 256
+
 struct CencDecodeShareBuf;
 
 //!
@@ -221,6 +223,8 @@ struct CodechalDecodeParams
     HANDLE                  m_gpuAppTaskEvent;
     //! \brief execution call index in multiple execution call mode
     uint32_t                m_executeCallIndex = 0;
+    //! \brief [Decode Histogram] Input buffer to hold decode histogram
+    MOS_SURFACE             m_histogramSurface = { 0 };
 };
 
 typedef enum _CODECHAL_DUMMY_REFERENCE_STATUS

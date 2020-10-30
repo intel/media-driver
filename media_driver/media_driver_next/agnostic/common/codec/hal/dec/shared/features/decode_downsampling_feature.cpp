@@ -28,6 +28,7 @@
 //!
 #include "decode_downsampling_feature.h"
 #include "decode_utils.h"
+#include "codechal_debug.h"
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
 
@@ -42,6 +43,15 @@ DecodeDownSamplingFeature::DecodeDownSamplingFeature(
 
 DecodeDownSamplingFeature::~DecodeDownSamplingFeature()
 {
+    if (m_histogramBuffer != nullptr &&
+        !m_allocator->ResourceIsNull(&m_histogramBuffer->OsResource))
+    {
+        MOS_STATUS eStatus = m_allocator->Destroy(m_histogramBuffer);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            DECODE_ASSERTMESSAGE("Failed to free histogram internal buffer!");
+        }
+    }
 }
 
 MOS_STATUS DecodeDownSamplingFeature::Init(void *setting)
@@ -56,6 +66,31 @@ MOS_STATUS DecodeDownSamplingFeature::Init(void *setting)
     DECODE_CHK_NULL(m_basicFeature);
 
     MOS_ZeroMemory(&m_outputSurface, sizeof(m_outputSurface));
+
+    m_histogramBuffer = m_allocator->AllocateBuffer(HISTOGRAM_BINCOUNT * m_histogramBinWidth,
+        "Histogram internal buffer",
+        resourceInternalReadWriteCache,
+        true,
+        0,
+        false);
+    DECODE_CHK_NULL(m_histogramBuffer);
+    if (m_allocator->ResourceIsNull(&m_histogramBuffer->OsResource))
+    {
+        DECODE_ASSERTMESSAGE("Failed to allocate hsitogram internal buffer!");
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    PMOS_INTERFACE pOsInterface = m_hwInterface->GetOsInterface();
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_DEBUG_ID,
+        &userFeatureData,
+        pOsInterface ? pOsInterface->pOsContext : nullptr);
+    m_histogramDebug = userFeatureData.u32Data ? true : false;
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -123,6 +158,16 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
         m_inputSurfaceRegion.m_height = m_basicFeature->m_height;
     }
 
+    // Histogram
+    if (m_allocator->ResourceIsNull(&decodeParams->m_histogramSurface.OsResource) && !m_histogramDebug)
+    {
+        m_histogramDestSurf = nullptr;
+    }
+    else
+    {
+        m_histogramDestSurf = &decodeParams->m_histogramSurface;
+    }
+
     // Update decode output in basic feature
     DECODE_CHK_STATUS(UpdateDecodeTarget(*m_inputSurface));
 
@@ -131,6 +176,8 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
 
 MOS_STATUS DecodeDownSamplingFeature::UpdateInternalTargets(DecodeBasicFeature &basicFeature)
 {
+    DECODE_FUNC_CALL();
+
     uint32_t curFrameIdx = basicFeature.m_curRenderPic.FrameIdx;
 
     std::vector<uint32_t> refFrameList;
@@ -148,6 +195,40 @@ MOS_STATUS DecodeDownSamplingFeature::UpdateInternalTargets(DecodeBasicFeature &
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS DecodeDownSamplingFeature::DumpSfcOutputs(CodechalDebugInterface* debugInterface)
+{
+    DECODE_FUNC_CALL();
+    DECODE_CHK_NULL(debugInterface);
+    DECODE_CHK_NULL(m_basicFeature);
+
+    // Dump histogram
+    if ((m_histogramDestSurf != nullptr || m_histogramDebug) &&
+        m_histogramBuffer != nullptr &&
+        !m_allocator->ResourceIsNull(&m_histogramBuffer->OsResource))
+    {
+        CODECHAL_DEBUG_TOOL(
+            debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum;
+            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                &m_histogramBuffer->OsResource,
+                CodechalDbgAttr::attrSfcHistogram,
+                "_DEC",
+                HISTOGRAM_BINCOUNT * m_histogramBinWidth));)
+    }
+
+    // Dump SFC
+    if (!m_allocator->ResourceIsNull(&m_outputSurface.OsResource) &&
+        m_inputSurface != nullptr)
+    {
+        CODECHAL_DEBUG_TOOL(
+            debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum;
+            DECODE_CHK_STATUS(debugInterface->DumpYUVSurface(
+                &m_outputSurface,
+                CodechalDbgAttr::attrSfcOutputSurface,
+                "_SFCSurf"));)
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
 }
 
 #endif

@@ -154,6 +154,11 @@ MOS_STATUS MediaVdboxSfcRender::SetRotMirParams(VDBOX_SFC_PARAMS &sfcParam, VP_E
     return m_sfcRender->SetRotMirParams(m_rotMirFilter->GetSfcParams());
 }
 
+MOS_STATUS MediaVdboxSfcRender::SetHistogramParams(VDBOX_SFC_PARAMS& sfcParam)
+{
+    return m_sfcRender->SetHistogramBuf(sfcParam.output.histogramBuf);
+}
+
 MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBOX_SFC_PARAMS &sfcParam)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
@@ -170,6 +175,7 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
     VP_PUBLIC_CHK_STATUS_RETURN(SetCSCParams(sfcParam, vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(SetScalingParams(sfcParam, vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(SetRotMirParams(sfcParam, vpExecuteCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetHistogramParams(sfcParam));
 
     RECT        rcOutput        = {0, 0, (int32_t)sfcParam.output.surface->dwWidth, (int32_t)sfcParam.output.surface->dwHeight};
     // The value of plane offset are different between vp and codec. updatePlaneOffset need be set to true when create vp surface
