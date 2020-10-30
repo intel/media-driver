@@ -658,6 +658,8 @@ MOS_STATUS CodechalDecodeHevcG12 ::InitializeDecodeMode()
             m_isSeparateTileDecoding = false;
         }
 
+        m_isVirtualTile = CodecHalDecodeScalabilityIsVirtualTileMode(m_scalabilityState);
+
 #if (_DEBUG || _RELEASE_INTERNAL)
         if (m_isRealTile)
         {
@@ -1139,31 +1141,15 @@ void CodechalDecodeHevcG12::CalcRequestedSpace(
         }
         else
         {
-            requestedSize = m_commandBufferSizeNeeded +
-                            (m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + 1 + m_hevcPicParams->num_tile_rows_minus1));
+            //Since G12, HCP primitive level buffers are in separate allocated 2nd level batch buffer. So only have state level size here
+            requestedSize = m_commandBufferSizeNeeded;
+            //Patch list is still submit with primitive level buffers, so requestedPatchListSize still need to contain the primitive level size.
             requestedPatchListSize = m_commandPatchListSizeNeeded +
                                      (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1 + m_hevcPicParams->num_tile_rows_minus1));
             additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
         }
         requestedSize *= m_scalabilityState->u8RtPhaseNum;
         requestedPatchListSize *= m_scalabilityState->u8RtPhaseNum;
-    }
-    else if (CodecHalDecodeNeedsTileDecoding(m_hevcPicParams, m_hevcSccPicParams))
-    {
-        if (m_cencBuf)
-        {
-            requestedSize = m_commandBufferSizeNeeded;
-            requestedPatchListSize = m_commandPatchListSizeNeeded;
-            additionalSizeNeeded = 0;
-        }
-        else
-        {
-            requestedSize = m_commandBufferSizeNeeded +
-                            m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + (1 + m_hevcPicParams->num_tile_rows_minus1) * (1 + m_hevcPicParams->num_tile_columns_minus1));
-            requestedPatchListSize = m_commandPatchListSizeNeeded +
-                                     m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + (1 + m_hevcPicParams->num_tile_rows_minus1) * (1 + m_hevcPicParams->num_tile_columns_minus1));
-            additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
-        }
     }
     else
     {
@@ -1175,11 +1161,23 @@ void CodechalDecodeHevcG12::CalcRequestedSpace(
         }
         else
         {
-            requestedSize = m_commandBufferSizeNeeded +
-                (m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + 1));
-            requestedPatchListSize = m_commandPatchListSizeNeeded +
-                (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
-            additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
+            if (m_isVirtualTile)
+            {
+                //For virtual tile, FrontEnd and BackEnd B0 shares one cmd buffer, cmd buffer size need to double.
+                requestedSize = 2 * m_commandBufferSizeNeeded;
+                requestedPatchListSize = 2 * m_commandPatchListSizeNeeded +
+                    (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
+                additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
+            }
+            else
+            {
+                //Since G12, HCP primitive level buffers are in separate allocated 2nd level batch buffer. So only have state level size here.
+                requestedSize = m_commandBufferSizeNeeded;
+                //Patch list is still submit with primitive level buffers, so requestedPatchListSize still need to contain the primitive level size.
+                requestedPatchListSize = m_commandPatchListSizeNeeded +
+                    (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
+                additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
+            }
         }
     }
 }

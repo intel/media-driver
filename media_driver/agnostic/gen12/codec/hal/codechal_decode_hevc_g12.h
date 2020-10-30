@@ -434,6 +434,7 @@ private:
 
 protected:
     bool               m_isRealTile = false;                                //!< If real tile decode mode enabled
+    bool               m_isVirtualTile = false;                             //!< If virtual tile decode mode enabled
     uint16_t           m_ctbSize = 0;                                       //!< Max coding tree block size
     uint32_t           m_frameSizeMaxAlloced = 0;                           //!< Max Frame size used for buffer allocation in past frames
 
