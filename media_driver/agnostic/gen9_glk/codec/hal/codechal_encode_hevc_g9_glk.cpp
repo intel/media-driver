@@ -53,6 +53,8 @@ struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_GLK
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_PB_Adv;                              //!< P/B frame Adv kernel
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_BRC_Blockcopy;                       //!< BRC blockcopy kerenel
     CODECHAL_KERNEL_HEADER Hevc_LCUEnc_DS_Combined;                         //!< Down scale and format conversion kernel
+    CODECHAL_KERNEL_HEADER HEVC_LCUEnc_P_MB;                                //!< P frame MbEnc kernel
+    CODECHAL_KERNEL_HEADER Hevc_LCUEnc_P_Adv;                               //!< P frame Adv kernel
 };
 
 //! \brief  typedef of struct CODECHAL_ENC_HEVC_KERNEL_HEADER_G9_GLK
@@ -168,6 +170,14 @@ MOS_STATUS CodechalEncHevcStateG9Glk::GetKernelHeaderAndSize(
 
         case CODECHAL_HEVC_MBENC_DS_COMBINED:
             currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_DS_Combined;
+            break;
+        
+        case CODECHAL_HEVC_MBENC_PENC:
+            currKrnHeader = &kernelHeaderTable->HEVC_LCUEnc_P_MB;
+            break;
+
+        case CODECHAL_HEVC_MBENC_ADV_P:
+            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_P_Adv;
             break;
 
         default:
