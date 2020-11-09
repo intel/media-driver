@@ -76,12 +76,28 @@ include(${MEDIA_DRIVER_CMAKE}/media_compile_flags.cmake)
 bs_set_defines()
 
 set_source_files_properties(${SOURCES_} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOURCES_SSE2} PROPERTIES LANGUAGE "CXX")
+set_source_files_properties(${SOURCES_SSE4} PROPERTIES LANGUAGE "CXX")
+
+add_library(${LIB_NAME}_SSE2 OBJECT ${SOURCES_SSE2})
+target_compile_options(${LIB_NAME}_SSE2 PRIVATE -msse2)
+
+add_library(${LIB_NAME}_SSE4 OBJECT ${SOURCES_SSE4})
+target_compile_options(${LIB_NAME}_SSE4 PRIVATE -msse4.1)
 
 add_library(${LIB_NAME_OBJ} OBJECT ${SOURCES_})
 set_property(TARGET ${LIB_NAME_OBJ} PROPERTY POSITION_INDEPENDENT_CODE 1)
 
-add_library(${LIB_NAME}        SHARED $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
-add_library(${LIB_NAME_STATIC} STATIC $<TARGET_OBJECTS:${LIB_NAME_OBJ}>)
+add_library(${LIB_NAME} SHARED 
+    $<TARGET_OBJECTS:${LIB_NAME_OBJ}> 
+    $<TARGET_OBJECTS:${LIB_NAME}_SSE2> 
+    $<TARGET_OBJECTS:${LIB_NAME}_SSE4>)
+
+add_library(${LIB_NAME_STATIC} STATIC 
+    $<TARGET_OBJECTS:${LIB_NAME_OBJ}> 
+    $<TARGET_OBJECTS:${LIB_NAME}_SSE2> 
+    $<TARGET_OBJECTS:${LIB_NAME}_SSE4>)
+
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 
 option(MEDIA_BUILD_FATAL_WARNINGS "Turn compiler warnings into fatal errors" ON)

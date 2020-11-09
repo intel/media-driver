@@ -23,6 +23,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/cm_event_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_queue_rt_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_ftrace.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_c_impl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_hal_os.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_manager.cpp
@@ -44,6 +46,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cm_device_rt.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_ftrace.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_innerdef_os.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_c_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_sse4_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d.h
     ${CMAKE_CURRENT_LIST_DIR}/cm_surface_2d_rt.h
@@ -62,5 +66,8 @@ set(HEADERS_
     ${HEADERS_}
     ${TMP_HEADERS_}
 )
+
+set(SOURCES_SSE4
+    ${CMAKE_CURRENT_LIST_DIR}/cm_mem_os_sse4_impl.cpp)
 
 media_add_curr_to_include_path()
