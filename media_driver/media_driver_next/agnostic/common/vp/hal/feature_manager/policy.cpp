@@ -1413,7 +1413,7 @@ MOS_STATUS Policy::AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS
     RESOURCE_ASSIGNMENT_HINT    resHint         = {};
     VP_PUBLIC_CHK_STATUS_RETURN(GetResourceHint(*params.executedFilters, resHint));
     VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetResourceManager()->AssignExecuteResource(caps, inputSurface, outputSurface,
-        pastSurface, futureSurface, resHint, params.executedFilters->GetSurfacesGroup()));
+        pastSurface, futureSurface, resHint, params.executedFilters->GetSurfacesSetting()));
     return MOS_STATUS_SUCCESS;
 }
 

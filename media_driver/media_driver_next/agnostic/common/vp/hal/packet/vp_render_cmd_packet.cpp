@@ -74,7 +74,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     RENDER_KERNEL_PARAMS kernelParams;
     MOS_ZeroMemory(&kernelParams, sizeof(RENDER_KERNEL_PARAMS));
     kernelParams.kernelId      = &m_kernelId;
-    kernelParams.surfacesGroup = &m_surfacesGroup;
+    kernelParams.surfacesGroup = &m_surfSetting.surfGroup;
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->CreateKernelObjects(kernelParams, m_kernelObjs));
 
@@ -132,7 +132,7 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     VP_SURFACE* inputSurface, 
     VP_SURFACE* outputSurface, 
     VP_SURFACE* previousSurface, 
-    std::map<SurfaceType, VP_SURFACE*>& internalSurfaces, 
+    VP_SURFACE_SETTING& surfSetting, 
     VP_EXECUTE_CAPS packetCaps)
 {
     // will remodify when normal render path enabled
@@ -141,7 +141,7 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     VP_UNUSED(previousSurface);
 
     m_PacketCaps    = packetCaps;
-    m_surfacesGroup = internalSurfaces;
+    m_surfSetting   = surfSetting;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -218,7 +218,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 renderSurfaceParams.bWidthInDword_UV = true;
             }
 
-            VP_SURFACE* vpSurface = m_surfacesGroup.find(it)->second;
+            VP_SURFACE* vpSurface = m_surfSetting.surfGroup.find(it)->second;
 
             VP_RENDER_CHK_NULL_RETURN(vpSurface);
 
@@ -264,8 +264,8 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
 
 VP_SURFACE* VpRenderCmdPacket::GetSurface(SurfaceType type)
 {
-    auto it = m_surfacesGroup.find(type);
-    VP_SURFACE* surf = (m_surfacesGroup.end() != it) ? it->second : nullptr;
+    auto it = m_surfSetting.surfGroup.find(type);
+    VP_SURFACE* surf = (m_surfSetting.surfGroup.end() != it) ? it->second : nullptr;
 
     return surf;
 }

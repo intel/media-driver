@@ -276,8 +276,8 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcMmcParams()
 
 VP_SURFACE *VpVeboxCmdPacket::GetSurface(SurfaceType type)
 {
-    auto it = m_surfacesGroup.find(type);
-    VP_SURFACE *surf = (m_surfacesGroup.end() != it) ? it->second : nullptr;
+    auto it = m_surfSetting.surfGroup.find(type);
+    VP_SURFACE *surf = (m_surfSetting.surfGroup.end() != it) ? it->second : nullptr;
     if (SurfaceTypeVeboxCurrentOutput == type && nullptr == surf && !m_IsSfcUsed)
     {
         // Vebox output case.
@@ -1502,7 +1502,7 @@ MOS_STATUS VpVeboxCmdPacket::Init()
     }
 
     MOS_ZeroMemory(&m_veboxPacketSurface, sizeof(VEBOX_PACKET_SURFACE_PARAMS));
-    m_surfacesGroup.clear();
+    m_surfSetting.Clean();
 
     return eStatus;
 }
@@ -1511,7 +1511,7 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_SURFACE                          *inputSurface,
     VP_SURFACE                          *outputSurface,
     VP_SURFACE                          *previousSurface,
-    std::map<SurfaceType, VP_SURFACE*>  &internalSurfaces,
+    VP_SURFACE_SETTING                  &surfSetting,
     VP_EXECUTE_CAPS                     packetCaps)
 {
     VP_FUNC_CALL();
@@ -1543,7 +1543,7 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_renderTarget ,*outputSurface));
 
     // Init packet surface params.
-    m_surfacesGroup = internalSurfaces;
+    m_surfSetting                                   = surfSetting;
     m_veboxPacketSurface.pCurrInput                 = GetSurface(SurfaceTypeVeboxInput);
     m_veboxPacketSurface.pStatisticsOutput          = GetSurface(SurfaceTypeStatistics);
     m_veboxPacketSurface.pCurrOutput                = GetSurface(SurfaceTypeVeboxCurrentOutput);

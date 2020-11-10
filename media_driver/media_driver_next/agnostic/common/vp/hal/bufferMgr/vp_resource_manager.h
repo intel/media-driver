@@ -331,9 +331,9 @@ public:
     virtual ~VpResourceManager();
     MOS_STATUS StartProcessNewFrame(SwFilterPipe &pipe);
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
-        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_GROUP &surfGroup);
+        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
-        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_GROUP &surfGroup);
+        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     bool IsSameSamples()
     {
         return m_sameSamples;
@@ -342,6 +342,17 @@ public:
     bool IsRefValid()
     {
         return m_currentFrameIds.pastFrameAvailable || m_currentFrameIds.futureFrameAvailable;
+    }
+
+    bool IsPastHistogramValid()
+    {
+        return m_isPastHistogramValid;
+    }
+
+    void GetImageResolutionOfPastHistogram(uint32_t &width, uint32_t &height)
+    {
+        width = m_imageWidthOfPastHistogram;
+        height = m_imageHeightOfPastHistogram;
     }
 
 protected:
@@ -436,6 +447,13 @@ protected:
     bool         m_outOfBound                            = false;
     RECT         m_maxSrcRect                            = {};
     VEBOX_SURFACE_CONFIG_MAP m_veboxSurfaceConfigMap;
+    bool        m_isHistogramReallocated                 = false;
+    bool        m_isCurrentHistogramInuse                = false;
+    bool        m_isPastHistogramValid                   = false;
+    uint32_t    m_imageWidthOfPastHistogram              = 0;
+    uint32_t    m_imageHeightOfPastHistogram             = 0;
+    uint32_t    m_imageWidthOfCurrentHistogram           = 0;
+    uint32_t    m_imageHeightOfCurrentHistogram          = 0;
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__

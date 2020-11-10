@@ -143,9 +143,9 @@ public:
     MOS_STATUS AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint32_t index);
     MOS_STATUS Update();
     uint32_t GetSurfaceCount(bool isInputSurface);
-    VP_SURFACE_GROUP &GetSurfacesGroup()
+    VP_SURFACE_SETTING &GetSurfacesSetting()
     {
-        return m_surfacesGroup;
+        return m_surfacesSetting;
     }
 
     MOS_STATUS SetSecureProcessFlag(bool secureProcessed)
@@ -180,7 +180,7 @@ protected:
     std::vector<VP_SURFACE *>           m_futureSurface;
     // Only be used for executedFilters in HW_FILTER_PARAMS. It contains the internal surfaces, including the
     // statistic buffer and histogram, for one submission, which are managed by resource manager.
-    VP_SURFACE_GROUP                    m_surfacesGroup;
+    VP_SURFACE_SETTING                  m_surfacesSetting;
 
     VpInterface                         &m_vpInterface;
 

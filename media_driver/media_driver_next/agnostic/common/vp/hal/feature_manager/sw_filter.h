@@ -102,6 +102,22 @@ enum SurfaceType
 
 typedef std::map<SurfaceType, VP_SURFACE*> VP_SURFACE_GROUP;
 
+struct VP_SURFACE_SETTING
+{
+    VP_SURFACE_GROUP    surfGroup;
+    bool                isPastHistogramValid;
+    uint32_t            imageWidthOfPastHistogram;
+    uint32_t            imageHeightOfPastHistogram;
+
+    void Clean()
+    {
+        surfGroup.clear();
+        isPastHistogramValid        = false;
+        imageWidthOfPastHistogram   = 0;
+        imageHeightOfPastHistogram  = 0;
+    }
+};
+
 #define FEATURE_TYPE_MASK   0xffffff00
 
 inline bool operator==(FeatureType a, FeatureType b)

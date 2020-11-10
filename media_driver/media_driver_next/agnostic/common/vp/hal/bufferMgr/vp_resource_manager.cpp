@@ -315,14 +315,14 @@ uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint3
 }
 
 MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface,
-    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_GROUP &surfGroup)
+    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
 {
-    surfGroup.clear();
+    surfSetting.Clean();
 
     if (caps.bVebox)
     {
         // Create Vebox Resources
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurface, outputSurface, pastSurface, futureSurface, resHint, surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurface, outputSurface, pastSurface, futureSurface, resHint, surfSetting));
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -794,6 +794,8 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         false,
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
 
+    m_isHistogramReallocated = bAllocated;
+
     // Allocate Statistics State Surface----------------------------------------
     // Width to be a aligned on 64 bytes and height is 1/4 the height
     // Per frame information written twice per frame for 2 slices
@@ -880,7 +882,7 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
 }
 
 MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface,
-    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_GROUP &surfGroup)
+    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
@@ -894,6 +896,7 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     uint32_t                        dwHeight;
     uint32_t                        dwSize;
     uint32_t                        i;
+    auto&                           surfGroup = surfSetting.surfGroup;
 
     VP_PUBLIC_CHK_STATUS_RETURN(AllocateVeboxResource(caps, inputSurface, outputSurface));
 
@@ -908,10 +911,10 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
         auto surfaces = it->second;
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.currentInputSurface, SurfaceTypeVeboxInput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.pastInputSurface, SurfaceTypeVeboxPreviousInput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.currentOutputSurface, SurfaceTypeVeboxCurrentOutput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.pastOutputSurface, SurfaceTypeVeboxPreviousOutput, inputSurface, outputSurface, pastSurface, futureSurface, surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.currentInputSurface, SurfaceTypeVeboxInput, inputSurface, outputSurface, pastSurface, futureSurface, surfSetting.surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.pastInputSurface, SurfaceTypeVeboxPreviousInput, inputSurface, outputSurface, pastSurface, futureSurface, surfSetting.surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.currentOutputSurface, SurfaceTypeVeboxCurrentOutput, inputSurface, outputSurface, pastSurface, futureSurface, surfSetting.surfGroup));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignSurface(caps, surfaces.pastOutputSurface, SurfaceTypeVeboxPreviousOutput, inputSurface, outputSurface, pastSurface, futureSurface, surfSetting.surfGroup));
 
         if (caps.bDN)
         {

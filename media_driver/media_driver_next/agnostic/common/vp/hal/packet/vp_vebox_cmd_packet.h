@@ -737,7 +737,7 @@ public:
         VP_SURFACE                          *inputSurface,
         VP_SURFACE                          *outputSurface,
         VP_SURFACE                          *previousSurface,
-        std::map<SurfaceType, VP_SURFACE*>  &internalSurfaces,
+        VP_SURFACE_SETTING                  &surfSetting,
         VP_EXECUTE_CAPS                     packetCaps) override;
 
     //!
@@ -1013,7 +1013,6 @@ protected:
     float                       m_fCscOutOffset[3];                                //!< [3x1] Output Offset matrix for CSC
     SfcRenderBase               *m_sfcRender             = nullptr;
     bool                        m_IsSfcUsed              = false;
-    std::map<SurfaceType, VP_SURFACE*> m_surfacesGroup;
 
     VEBOX_PACKET_SURFACE_PARAMS m_veboxPacketSurface = {};
 

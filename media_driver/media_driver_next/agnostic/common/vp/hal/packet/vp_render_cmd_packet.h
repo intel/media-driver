@@ -71,8 +71,8 @@ public:
         VP_SURFACE* inputSurface,
         VP_SURFACE* outputSurface,
         VP_SURFACE* previousSurface,
-        std::map<SurfaceType, VP_SURFACE*>& internalSurfaces,
-        VP_EXECUTE_CAPS                     packetCaps) override;
+        VP_SURFACE_SETTING& surfSetting,
+        VP_EXECUTE_CAPS packetCaps) override;
 
 protected:
     MOS_STATUS KernelStateSetup();

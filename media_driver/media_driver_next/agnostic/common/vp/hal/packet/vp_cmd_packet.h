@@ -54,7 +54,7 @@ public:
         VP_SURFACE                          *inputSurface,
         VP_SURFACE                          *outputSurface,
         VP_SURFACE                          *previousSurface,
-        std::map<SurfaceType, VP_SURFACE*>  &internalSurfaces,
+        VP_SURFACE_SETTING                  &surfSetting,
         VP_EXECUTE_CAPS                     packetCaps) = 0;
 
     virtual MOS_STATUS Prepare()
@@ -82,9 +82,9 @@ public:
     VPMediaMemComp      *m_mmc = nullptr;
 
 protected:
-    PacketType                           m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
-    VP_PACKET_SHARED_CONTEXT* m_packetSharedContext = nullptr;
-    std::map<SurfaceType, VP_SURFACE*>   m_surfacesGroup;
+    PacketType                  m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
+    VP_PACKET_SHARED_CONTEXT*   m_packetSharedContext = nullptr;
+    VP_SURFACE_SETTING          m_surfSetting;
 };
 }
 #endif // !__VP_CMD_PACKET_H__
