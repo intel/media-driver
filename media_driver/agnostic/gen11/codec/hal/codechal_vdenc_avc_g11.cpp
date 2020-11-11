@@ -224,7 +224,10 @@ struct CodechalVdencAvcStateG11::BrcUpdateDmem
     uint32_t     UPD_LA_TargetSize_U32;     // target frame size in lookahead BRC (if EnableLookAhead == 1) or TCBRC mode. If zero, lookahead BRC or TCBRC is disabled.
     uint32_t     UPD_LA_TargetFulness_U32;  // target VBV buffer fulness in lookahead BRC mode (if EnableLookAhead == 1).
     uint8_t      UPD_Delta_U8;              // delta QP of pyramid
-    uint8_t      RSVD2[16];
+    uint8_t      UPD_ROM_CURRENT_U8;        // ROM average of current frame
+    uint8_t      UPD_ROM_ZERO_U8;           // ROM zero percentage (255 is 100%)
+    uint8_t      UPD_TCBRC_SCENARIO_U8;
+    uint8_t      RSVD2[12];
 };
 
 // CURBE for Static Frame Detection kernel
@@ -1480,6 +1483,8 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcUpdate()
         dmem->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
         dmem->UPD_Delta_U8 = m_avcPicParam->QpModulationStrength;
     }
+
+    dmem->UPD_TCBRC_SCENARIO_U8 = m_avcSeqParam->bAutoMaxPBFrameSizeForSceneChange;
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(
