@@ -571,9 +571,6 @@ public:
     //!
     MOS_STATUS AllocateMeResources();
 
-
-   
-
 protected:
     //!
     //! \brief    Allocate resources used by MBEnc
@@ -585,7 +582,6 @@ protected:
 
     MOS_STATUS AllocateBrcResources()override;
 
-
     //!
     //! \brief    Free resources
     //!
@@ -595,7 +591,7 @@ protected:
     virtual MOS_STATUS FreeEncResources()override;
 
     virtual MOS_STATUS FreeBrcResources()override;
-    
+
     //!
     //! \brief    Free resources
     //!
@@ -603,7 +599,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS FreeMeResources();
-    
+
     //!
     //! \brief    Top level function for invoking MBenc kernel
     //! \details  I, B or LCU64_B MBEnc kernel, based on EncFunctionType

@@ -148,10 +148,10 @@ MOS_STATUS CodecHalHevcBrcG12::FreeBrcResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyProgram(m_cmProgramBrcLCUQP));
         m_cmProgramBrcLCUQP = nullptr;
     }
-    if (m_threadSpaceBrcInit)
+    if (m_threadSpaceBrcInitReset)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcInit));
-        m_threadSpaceBrcInit = nullptr;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcInitReset));
+        m_threadSpaceBrcInitReset = nullptr;
     }
     if (m_threadSpaceBrcUpdate)
     {
@@ -290,9 +290,17 @@ MOS_STATUS CodecHalHevcBrcG12::EncodeBrcInitResetKernel()
         m_cmKrnBrc = m_cmKrnBrcReset;
     }
 
-    if (!m_threadSpaceBrcInit)
+    /* Only one CM kernel is used to switch between brcInit and brcReset, same rule for threadSpace.
+       Destroy old one and create a new threadSpace when only brcReset is triggered. */
+    if (encoderBrc->m_brcReset && m_threadSpaceBrcInitReset)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrc, m_threadSpaceBrcInit));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(encoderBrc->m_cmDev->DestroyThreadSpace(m_threadSpaceBrcInitReset));
+        m_threadSpaceBrcInitReset = nullptr;
+    }
+
+    if (!m_threadSpaceBrcInitReset)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupThreadSpace(m_cmKrnBrc, m_threadSpaceBrcInitReset));
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(BrcInitResetCurbe());

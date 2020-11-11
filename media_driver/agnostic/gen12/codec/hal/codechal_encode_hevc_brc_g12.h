@@ -52,7 +52,7 @@ class CodecHalHevcBrcG12
 {
 
 protected:
-    CmThreadSpace *    m_threadSpaceBrcInit = nullptr;
+    CmThreadSpace *    m_threadSpaceBrcInitReset = nullptr;  //!< shared by brcInit and brcReset kernel.
     CmThreadSpace *    m_threadSpaceBrcUpdate = nullptr;
     CmThreadSpace *    m_threadSpaceBrcLCUQP = nullptr;
     CmKernel           *m_cmKrnBrc = nullptr;
@@ -75,6 +75,7 @@ protected:
     CmSurface2D         *m_ConstDataBufferBRC = nullptr;                      //!< distortion buffer input to BRC.
     CmSurface2D         *m_BrcMbQp = nullptr;                      //!< distortion buffer input to BRC.
     CmSurface2D         *m_BrcROISurf = nullptr;                      //!< ROI table buffer input to BRC.
+
 public:
     //!
     //! \brief    Constructor
