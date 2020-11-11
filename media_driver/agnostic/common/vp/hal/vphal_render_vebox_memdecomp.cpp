@@ -210,6 +210,22 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&targetSurface));
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&sourceSurface));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    {
+        // Read user feature key to force outputCompressed
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED_ID,
+            &userFeatureData,
+            m_osInterface ? m_osInterface->pOsContext : nullptr));
+
+        outputCompressed = userFeatureData.bData ? true : false;
+
+    }
+#endif
+
     if (!outputCompressed && targetSurface.CompressionMode != MOS_MMC_DISABLED)
     {
         targetSurface.CompressionMode = MOS_MMC_RC;
@@ -333,6 +349,21 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     sourceSurface.OsResource = *inputResource;
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&targetSurface));
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(GetResourceInfo(&sourceSurface));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    {
+        // Read user feature key to Force outputCompressed
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED_ID,
+            &userFeatureData,
+            m_osInterface ? m_osInterface->pOsContext : nullptr));
+
+        outputCompressed = userFeatureData.bData ? true : false;
+    }
+#endif
 
     if (!outputCompressed && targetSurface.CompressionMode != MOS_MMC_DISABLED)
     {
