@@ -1247,6 +1247,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnInitCommandBuffer(pRenderHal, &CmdBuffer, nullptr));
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
 
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendSyncTag(pRenderHal, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(pMhwRender->EnablePreemption(&CmdBuffer));
@@ -1349,6 +1351,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxFlushUpdateStateCmdBuffer()
             VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMediaStateFlush(&CmdBuffer, nullptr, &FlushParam));
         }
     }
+
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
 
@@ -1935,6 +1939,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
 
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+
     bDiVarianceEnable = pRenderData->bDeinterlace || IsQueryVarianceEnabled();
 
     pVeboxState->SetupSurfaceStates(
@@ -2095,6 +2101,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
             &CmdBuffer,
             &FlushDwParams));
     }
+
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, &CmdBuffer));
 

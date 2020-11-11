@@ -134,6 +134,8 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
 
     RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void*)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
 
+    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StartPredicate(pMhwMiInterface, commandBuffer));
+
     // Write timing data for 3P budget
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendTimingData(m_renderHal, commandBuffer, true));
 
@@ -155,6 +157,8 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
     {
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendRcsStatusTag(m_renderHal, commandBuffer));
     }
+
+    RENDER_PACKET_CHK_STATUS_RETURN(NullHW::StopPredicate(pMhwMiInterface, commandBuffer));
 
     RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void*)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
 

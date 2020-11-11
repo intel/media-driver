@@ -1222,6 +1222,8 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
     VP_RENDER_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, CmdBuffer));
 
+    VP_RENDER_CHK_STATUS_RETURN(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, CmdBuffer));
+
     bDiVarianceEnable = m_PacketCaps.bDI;
 
     SetupSurfaceStates(
@@ -1318,6 +1320,8 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
                                       CmdBuffer,
                                       &FlushDwParams));
     }
+
+    VP_RENDER_CHK_STATUS_RETURN(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, CmdBuffer));
 
     VP_RENDER_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pRenderHal->pMhwMiInterface, CmdBuffer));
 

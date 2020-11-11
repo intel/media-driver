@@ -495,6 +495,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+
     bEnableSLM = (pGpGpuWalkerParams && pGpGpuWalkerParams->SLMSize > 0)? true : false;
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSetCacheOverrideParams(
         pRenderHal,
@@ -530,6 +532,8 @@ MOS_STATUS VpHal_RndrCommonSubmitCommands(
     {
         VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendRcsStatusTag(pRenderHal, &CmdBuffer));
     }
+
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
@@ -759,6 +763,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectStartCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
+    VPHAL_RENDER_CHK_STATUS(NullHW::StartPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
+
     // Write timing data for 3P budget
     VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendTimingData(pRenderHal, &CmdBuffer, true));
 
@@ -805,6 +811,8 @@ MOS_STATUS VpHal_RndrSubmitCommands(
     {
         VPHAL_RENDER_CHK_STATUS(pRenderHal->pfnSendRcsStatusTag(pRenderHal, &CmdBuffer));
     }
+
+    VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 
     VPHAL_RENDER_CHK_STATUS(pPerfProfiler->AddPerfCollectEndCmd((void*)pRenderHal, pOsInterface, pMhwMiInterface, &CmdBuffer));
 
