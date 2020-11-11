@@ -1852,7 +1852,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxIsCmdParamsValid(
         VPHAL_RENDER_CHK_NULL_RETURN(VeboxSurfaceStateCmdParams.pSurfInput);
         VPHAL_RENDER_CHK_NULL_RETURN(VeboxSurfaceStateCmdParams.pSurfDNOutput);
 
-        if (VeboxSurfaceStateCmdParams.pSurfInput->dwPitch != VeboxSurfaceStateCmdParams.pSurfDNOutput->dwPitch)
+        if ((VeboxSurfaceStateCmdParams.pSurfInput->TileModeGMM == VeboxSurfaceStateCmdParams.pSurfDNOutput->TileModeGMM) &&
+            (VeboxSurfaceStateCmdParams.pSurfInput->dwPitch != VeboxSurfaceStateCmdParams.pSurfDNOutput->dwPitch))
         {
             return MOS_STATUS_INVALID_PARAMETER;
         }
