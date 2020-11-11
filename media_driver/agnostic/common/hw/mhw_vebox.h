@@ -171,7 +171,8 @@ typedef struct _MHW_VEBOX_MODE
     uint32_t    ForwardGammaCorrectionEnable        : 1;  // Gen9+
     uint32_t    Hdr1DLutEnable                      : 1;
     uint32_t    Fp16ModeEnable                      : 1;
-    uint32_t                                        : 8; // Reserved
+    uint32_t    Hdr1K1DLut                          : 1;
+    uint32_t                                        : 7; // Reserved
 } MHW_VEBOX_MODE, *PMHW_VEBOX_MODE;
 
 typedef enum _MHW_VEBOX_ADDRESS_SHIFT
@@ -685,6 +686,8 @@ typedef struct _MHW_VEBOX_DI_IECP_CMD_PARAMS
 {
     uint32_t                            dwEndingX;
     uint32_t                            dwStartingX;
+    uint32_t                            dwEndingY;
+    uint32_t                            dwStartingY;
     uint32_t                            dwCurrInputSurfOffset;
     uint32_t                            dwPrevInputSurfOffset;
     uint32_t                            dwCurrOutputSurfOffset;
