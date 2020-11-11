@@ -1538,7 +1538,6 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
     PMOS_COMMAND_BUFFER cmdBufferInUse = &primCmdBuffer;
     MOS_COMMAND_BUFFER  scdryCmdBuffer;
     auto                mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
-    HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
 
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState) && MOS_VE_SUPPORTED(m_osInterface))
     {
@@ -1565,6 +1564,12 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
             //send prolog at the start of a secondary cmd buffer
             CODECHAL_DECODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(cmdBufferInUse, false));
         }
+
+        HalOcaInterface::On1stLevelBBStart(scdryCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+    }
+    else
+    {
+        HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicLongFormatMhwParams());
@@ -2094,9 +2099,12 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
     if (MOS_VE_SUPPORTED(m_osInterface) && CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
     {
         submitCommand = CodecHalDecodeScalabilityIsToSubmitCmdBuffer_G12(m_scalabilityState);
+        HalOcaInterface::On1stLevelBBEnd(scdryCmdBuffer, *m_osInterface);
     }
-
-    HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface);
+    else
+    {
+        HalOcaInterface::On1stLevelBBEnd(primCmdBuffer, *m_osInterface);
+    }
 
     if (submitCommand)
     {
