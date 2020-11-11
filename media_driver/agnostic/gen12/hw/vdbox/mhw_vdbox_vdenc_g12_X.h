@@ -2517,7 +2517,7 @@ public:
 
             if (!extParams->bIsLowDelayB)
             {
-                cmd.DW7.Value &= 0xfff7ffff;
+                cmd.DW7.Value &= 0xfff7feff;
             }
 
             cmd.DW7.VdencStreamInEnable = vdencStreamInEnabled;

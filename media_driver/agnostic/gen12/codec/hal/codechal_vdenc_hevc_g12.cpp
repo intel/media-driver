@@ -543,12 +543,6 @@ MOS_STATUS CodechalVdencHevcStateG12::PlatformCapabilityCheck()
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "Frame resolution greater than 16k not supported");
     }
 
-    if (m_hevcSeqParams->LowDelayMode == 0 && m_hevcSeqParams->GopRefDist > 1 && m_hevcSeqParams->TargetUsage == 7)
-    {
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(eStatus, "Random Access B in TU7 not supported");
-    }
-
     if (m_hevcSeqParams->SliceSizeControl && m_frameWidth * m_frameHeight < ENCODE_HEVC_MIN_DSS_PIC_WIDTH * ENCODE_HEVC_MIN_DSS_PIC_HEIGHT)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
