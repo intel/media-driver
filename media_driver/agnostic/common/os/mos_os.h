@@ -1010,12 +1010,6 @@ typedef struct _MOS_INTERFACE
         uint32_t              copyOutputOffset,
         bool                  bOutputCompressed);
 
-    MOS_STATUS(*pfnMediaCopy) (
-        PMOS_INTERFACE        pOsInterface,
-        PMOS_RESOURCE         pInputOsResource,
-        PMOS_RESOURCE         pOutputOsResource,
-        uint32_t              preferMethod);
-
     MOS_STATUS (* pfnFillResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource,

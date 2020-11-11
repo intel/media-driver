@@ -287,7 +287,6 @@ VAStatus DdiEncode_CreateContext(
     mosCtx.pfnMediaMemoryCopy    = mediaDrvCtx->pfnMediaMemoryCopy;
     mosCtx.pfnMediaMemoryCopy2D  = mediaDrvCtx->pfnMediaMemoryCopy2D;
     mosCtx.ppMediaCopyState      = &mediaDrvCtx->pMediaCopyState;
-    mosCtx.pfnMediaCopy          = mediaDrvCtx->pfnMediaCopy;
     mosCtx.gtSystemInfo          = *mediaDrvCtx->pGtSystemInfo;
     mosCtx.m_auxTableMgr         = mediaDrvCtx->m_auxTableMgr;
     mosCtx.pGmmClientContext     = mediaDrvCtx->pGmmClientContext;

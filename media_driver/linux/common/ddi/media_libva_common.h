@@ -506,15 +506,6 @@ struct DDI_MEDIA_CONTEXT
         bool               bOutputCompressed);
 
     //!
-    //! \brief  the function ptr for Media copy function
-    //!
-    MOS_STATUS (* pfnMediaCopy)(
-        PMOS_CONTEXT       pMosCtx,
-        PMOS_RESOURCE      pInputResource,
-        PMOS_RESOURCE      pOutputResource,
-        uint32_t           copyMode);
-
-    //!
     //! \brief  the function ptr for Media Tile Convert function
     //!
     VAStatus (* pfnMediaMemoryTileConvert)(

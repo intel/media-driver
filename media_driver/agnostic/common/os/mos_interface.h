@@ -1391,27 +1391,7 @@ public:
         uint32_t            copyOutputOffset,
         bool                outputCompressed);
 
-    //!
-    //! \brief    copy resource
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] inputResource
-    //!           Input resource to copy.
-    //! \param    [out] outputResource
-    //!           Output resource.
-    //! \param    [in] preferMethod
-    //!           Insdicate which copy mode is perfered.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    static MOS_STATUS MediaCopy(
-        MOS_STREAM_HANDLE   streamState,
-        MOS_RESOURCE_HANDLE inputResource,
-        MOS_RESOURCE_HANDLE outputResource,
-        uint32_t            preferMethod);
     // GPU Status interfaces
-
     //!
     //! \brief   Get Gpu Status Tag
     //!
