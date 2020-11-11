@@ -128,6 +128,7 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     scalingParams.pColorFillParams          = nullptr;
     scalingParams.pCompAlpha                = nullptr;
     scalingParams.colorSpaceOutput          = sfcParam.output.colorSpace;
+    scalingParams.interlacedScalingType     = sfcParam.videoParams.isFieldToInterlaved ? ISCALING_FIELD_TO_INTERLEAVED : ISCALING_NONE;
 
     m_scalingFilter->Init(sfcParam.videoParams.codecStandard, sfcParam.videoParams.jpeg.jpegChromaType);
     m_scalingFilter->SetExecuteEngineCaps(scalingParams, vpExecuteCaps);

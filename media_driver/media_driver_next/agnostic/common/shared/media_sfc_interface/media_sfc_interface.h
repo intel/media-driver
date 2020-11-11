@@ -95,6 +95,8 @@ struct VIDEO_PARAMS
         } av1;
     };
 
+    bool isFieldToInterlaved = false;
+
     // scalability parameters
     SCALABILITY_PARAMS scalabilityParams = {};
 };
