@@ -275,10 +275,19 @@ mos_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
 }
 
 int
-mos_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset)
+mos_bo_set_softpin(struct mos_linux_bo *bo)
 {
-    if (bo->bufmgr->bo_set_softpin_offset)
-        return bo->bufmgr->bo_set_softpin_offset(bo, offset);
+    if (bo->bufmgr->bo_set_softpin)
+        return bo->bufmgr->bo_set_softpin(bo);
+
+    return -ENODEV;
+}
+
+int
+mos_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag)
+{
+    if (bo->bufmgr->bo_add_softpin_target)
+        return bo->bufmgr->bo_add_softpin_target(bo, target_bo, write_flag);
 
     return -ENODEV;
 }
@@ -327,10 +336,17 @@ mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable)
 }
 
 void
-mos_bo_set_exec_object_async(struct mos_linux_bo *bo)
+mos_bo_set_object_async(struct mos_linux_bo *bo)
+{
+    if( bo->bufmgr->set_object_async)
+        bo->bufmgr->set_object_async(bo);
+}
+
+void
+mos_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)
 {
     if( bo->bufmgr->set_exec_object_async)
-        bo->bufmgr->set_exec_object_async(bo);
+        bo->bufmgr->set_exec_object_async(bo, target_bo);
 }
 
 int
