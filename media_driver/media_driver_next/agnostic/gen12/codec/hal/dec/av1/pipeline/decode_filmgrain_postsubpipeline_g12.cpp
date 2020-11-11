@@ -104,7 +104,12 @@ MOS_STATUS FilmGrainPostSubPipeline::DoFilmGrainApplyNoise(const CodechalDecodeP
 
 MediaFunction FilmGrainPostSubPipeline::GetMediaFunction()
 {
-    return RenderGenericFunc;
+    if(!MEDIA_IS_SKU(m_pipeline->GetSkuTable(), FtrCCSNode))
+    {
+        return RenderGenericFunc;
+    }
+
+    return ComputeVppFunc;
 }
 
 void FilmGrainPostSubPipeline::InitScalabilityPars(PMOS_INTERFACE osInterface)

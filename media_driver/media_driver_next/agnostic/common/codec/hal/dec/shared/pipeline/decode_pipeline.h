@@ -260,6 +260,12 @@ public:
     //!
     MEDIA_WA_TABLE *GetWaTable() { return m_waTable; }
 
+    //!
+    //! \brief Get Sku table
+    //! \return Pointer of SKU table
+    //!
+    MEDIA_FEATURE_TABLE *GetSkuTable() { return m_skuTable; }
+
     DeclareDecodePacketId(hucCopyPacketId);
     DeclareDecodePacketId(hucCpStreamOutPacketId);
     DeclareDecodePacketId(predicationSubPacketId);
