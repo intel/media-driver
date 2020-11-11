@@ -63,6 +63,26 @@ MediaCopyBaseState::~MediaCopyBaseState()
         MOS_FreeMemory(m_osInterface);
         m_osInterface = nullptr;
     }
+
+    if (m_inUseGPUMutex)
+    {
+        MosUtilities::MosDestroyMutex(m_inUseGPUMutex);
+        m_inUseGPUMutex = nullptr;
+    }
+}
+
+//!
+//! \brief    init Media copy
+//! \details  init func.
+//! \param    none
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if success, otherwise return failed.
+//!
+MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface, MhwInterfaces *mhwInterfaces)
+{
+    m_inUseGPUMutex     = MosUtilities::MosCreateMutex();
+    MCPY_CHK_NULL_RETURN(m_inUseGPUMutex);
+    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -209,6 +229,7 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
 MOS_STATUS MediaCopyBaseState::TaskDispatch()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MosUtilities::MosLockMutex(m_inUseGPUMutex);
     switch(m_mcpyEngine)
     {
         case MCPY_ENGINE_VEBOX:
@@ -223,6 +244,7 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
         default:
             break;
     }
+    MosUtilities::MosUnlockMutex(m_inUseGPUMutex);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     char *CopyEngine = (char *)(m_mcpyEngine?(m_mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox");

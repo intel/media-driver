@@ -93,6 +93,15 @@ public:
     virtual ~MediaCopyBaseState();
 
     //!
+    //! \brief    init Media copy
+    //! \details  init func.
+    //! \param    none
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if success, otherwise return failed.
+    //!
+    virtual MOS_STATUS Initialize(PMOS_INTERFACE osInterface, MhwInterfaces *mhwInterfaces);
+
+    //!
     //! \brief    check copy capability.
     //! \details  to determine surface copy is supported or not.
     //! \param    none
@@ -265,5 +274,6 @@ public:
 
 protected:
     VeboxCopyState     * m_veboxCopyState = nullptr;
+    PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context
 };
 #endif

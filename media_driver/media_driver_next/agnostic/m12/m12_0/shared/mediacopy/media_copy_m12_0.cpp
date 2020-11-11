@@ -43,6 +43,8 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
     m_osInterface   = osInterface;
     m_mhwInterfaces = mhwInterfaces;
 
+    MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface, mhwInterfaces));
+
     // blt init
     m_bltState = MOS_New(BltState, m_osInterface, m_mhwInterfaces);
     MCPY_CHK_NULL_RETURN(m_bltState);
