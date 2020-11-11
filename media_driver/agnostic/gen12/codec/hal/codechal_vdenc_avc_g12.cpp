@@ -625,6 +625,7 @@ CodechalVdencAvcStateG12::CodechalVdencAvcStateG12(
     m_oneOnOneMapping = true;
 
     m_vdboxOneDefaultUsed = true;
+    m_nonNativeBrcRoiSupported = true;
 
     m_hmeSupported   = true;
     m_16xMeSupported = true;

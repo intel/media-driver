@@ -557,6 +557,22 @@ public:
     virtual MOS_STATUS SetupROIStreamIn(
         PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
         PMOS_RESOURCE                vdencStreamIn);
+
+    //!
+    //! \brief    Set VDENC BRC ROI buffer
+    //!
+    //! \param    [in] picParams
+    //!           Pointer to CODEC_AVC_ENCODE_PIC_PARAMS.
+    //! \param    [in] brcRoiBuffer
+    //!           BRC ROI Resource.
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetupBrcROIBuffer(
+        PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
+        PMOS_RESOURCE                brcRoiBuffer);
+
     //!
     //! \brief    Set VDENC ForceSkip StreamIn Surface state
     //!
@@ -911,6 +927,7 @@ protected:
     bool     m_brcInit;                       //!< BRC init enable flag.
     bool     m_brcReset;                      //!< BRC reset enable flag.
     bool     m_mbBrcEnabled;                  //!< MBBrc enable flag.
+    bool     m_nonNativeBrcRoiSupported;      //!< Non native ROI in BRC mode enable flag.
     bool     m_mbBrcUserFeatureKeyControl;    //!< MBBRC user feature control enable flag.
     double   m_dBrcTargetSize;                //!< BRC target size.
     uint32_t m_trellis;                       //!< Trellis Number.
@@ -938,6 +955,7 @@ protected:
     MOS_RESOURCE m_resVdencBrcImageStatesReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                               //!< Read-only VDENC+PAK IMG STATE buffer.
     MOS_RESOURCE m_resVdencBrcConstDataBuffer;                                                                          //!< BRC Const Data Buffer.
     MOS_RESOURCE m_resVdencBrcHistoryBuffer;                                                                            //!< BRC History Buffer.
+    MOS_RESOURCE m_resVdencBrcRoiBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                                           //!< BRC ROI Buffer.
     MOS_RESOURCE m_resVdencBrcDbgBuffer;                                                                                //!< BRC Debug Buffer.
 
     // Static frame detection
@@ -979,7 +997,8 @@ protected:
     static const uint32_t m_vdboxHucVdencBrcInitKernelDescriptor = 4;                                     //!< Huc Vdenc Brc init kernel descriptor
     static const uint32_t m_vdboxHucVdencBrcUpdateKernelDescriptor = 5;                                   //!< Huc Vdenc Brc update kernel descriptor
 
-    static constexpr uint8_t m_maxNumRoi       = 16;  //!< VDEnc maximum number of ROI supported
+    static constexpr uint8_t m_maxNumRoi       = 16;  //!< VDEnc maximum number of ROI supported (including non-ROI zone0)
+    static constexpr uint8_t m_maxNumBrcRoi    = 8;   //!< VDEnc maximum number of BRC ROI supported (including non-ROI zone0)
     static constexpr uint8_t m_maxNumNativeRoi = 3;   //!< Number of native ROI supported by VDEnc HW
 
 protected:
@@ -1419,8 +1438,16 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
 
     // HMECost enabled by default in CModel V11738+
     hucVDEncBrcDmem->UPD_HMECostEnable_U8 = 1;
-
-    if (avcPicParams->NumDirtyROI)
+    if (avcPicParams->NumROI)
+    {
+        hucVDEncBrcDmem->UPD_RoiQpViaForceQp_U8 = avcPicParams->bNativeROI ? 0 : 1;
+        for (uint8_t i = 0; i < m_avcPicParam->NumROI; i++)
+        {
+            hucVDEncBrcDmem->UPD_ROIQpDelta_I8[i + 1] = (int8_t)CodecHal_Clip3(
+                ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, m_avcPicParam->ROIDistinctDeltaQp[i]);
+        }
+    }
+    else if (avcPicParams->NumDirtyROI)
     {
         hucVDEncBrcDmem->UPD_StaticRegionPct_U16 = (uint16_t)m_vdencStaticRegionPct;
         if (m_mbBrcEnabled)

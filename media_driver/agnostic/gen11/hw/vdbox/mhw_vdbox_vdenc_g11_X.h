@@ -1395,9 +1395,9 @@ public:
 
             for (uint8_t i = 0; i < avcPicParams->NumROI; i++)
             {
-                int8_t dQpRoi = avcPicParams->ROI[i].PriorityLevelOrDQp;
+                int8_t dQpRoi = avcPicParams->ROIDistinctDeltaQp[i];
 
-                // clip delta qp roi to VDEnc supported range 
+                // clip delta qp roi to VDEnc supported range
                 priorityLevelOrDQp[i] = (char)CodecHal_Clip3(
                     ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, dQpRoi);
             }
@@ -1422,9 +1422,17 @@ public:
             cmd.DW31.BestdistortionQpAdjustmentForZone3 = 3;
         }
 
-        if (params->bVdencBRCEnabled && avcPicParams->NumDirtyROI && params->bVdencStreamInEnabled)
+        if (avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED && params->bVdencStreamInEnabled &&
+            (avcPicParams->NumDirtyROI && params->bVdencBRCEnabled || avcPicParams->NumROI && avcPicParams->bNativeROI))
         {
             cmd.DW34.RoiEnable = true;
+        }
+
+        // non-native ROI in ForceQP mode (VDEnc StreamIn filled by HuC in BRC mode and by UMD driver in CQP) or MBQP
+        if (avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED && params->bVdencStreamInEnabled &&
+            avcPicParams->NumROI && !avcPicParams->bNativeROI)
+        {
+            cmd.DW34.MbLevelQpEnable = true;
         }
 
         if (params->bVdencStreamInEnabled)
