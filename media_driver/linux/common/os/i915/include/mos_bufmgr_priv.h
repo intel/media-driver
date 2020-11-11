@@ -1,5 +1,5 @@
 /*
- * Copyright © 2008 Intel Corporation
+ * Copyright © 2008-2020 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -342,6 +342,7 @@ struct mos_bufmgr {
 
     /**< Enables verbose debugging printouts */
     int debug;
+    uint32_t *get_reserved = nullptr;
 };
 
 #define ALIGN(value, alignment)    ((value + alignment - 1) & ~(alignment - 1))

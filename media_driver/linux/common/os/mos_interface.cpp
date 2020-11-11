@@ -33,6 +33,7 @@
 #include "mos_os_virtualengine_singlepipe_specific_next.h"
 #include "mos_os_virtualengine_scalability_specific_next.h"
 #include "mos_graphicsresource_specific_next.h"
+#include "mos_bufmgr_priv.h"
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include <stdlib.h>   //for simulate random OS API failure
@@ -1195,6 +1196,32 @@ uint8_t MosInterface::GetCachePolicyL1Config(
 {
     MOS_OS_FUNCTION_ENTER;
     return 0;
+}
+
+MOS_STATUS MosInterface::GetReservedFromResouce(MOS_RESOURCE_HANDLE resource, uint32_t &val)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
+MOS_STATUS MosInterface::GetReservedFromStream(MOS_STREAM_HANDLE stream, uint32_t &val)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
+MOS_STATUS MosInterface::GetReservedFromDevice(MOS_DEVICE_HANDLE device, uint32_t &val)
+{
+    MOS_OS_CHK_NULL_RETURN(device);
+    OsContextSpecificNext *osDevice = dynamic_cast<OsContextSpecificNext*>(device);
+    MOS_OS_CHK_NULL_RETURN(osDevice);
+    if (osDevice->GetBufMgr()->get_reserved)
+    {
+        val = *(osDevice->GetBufMgr()->get_reserved);
+        return MOS_STATUS_SUCCESS;
+    }
+    else
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
 }
 
 MOS_STATUS MosInterface::ConvertResourceFromDdi(

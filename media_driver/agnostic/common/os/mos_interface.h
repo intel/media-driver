@@ -759,6 +759,48 @@ public:
         MOS_HW_RESOURCE_DEF mosUsage);
 
     //!
+    //! \brief    Get Reserved info from resource
+    //! \details
+    //!
+    //! \param    [in] resource
+    //!           Handle of resource
+    //! \param    [out] val
+    //!           result of info.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS GetReservedFromResouce(MOS_RESOURCE_HANDLE resource, uint32_t &val);
+
+    //!
+    //! \brief    Get Reserved info from Stream
+    //! \details
+    //!
+    //! \param    [in] stream
+    //!           Handle of stream
+    //! \param    [out] val
+    //!           result of info.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS GetReservedFromStream(MOS_STREAM_HANDLE stream, uint32_t &val);
+
+    //!
+    //! \brief    Get Reserved info from Device
+    //! \details
+    //!
+    //! \param    [in] osDeivceContext
+    //!           Handle of device
+    //! \param    [out] val
+    //!           result of info.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS GetReservedFromDevice(MOS_DEVICE_HANDLE device, uint32_t &val);
+
+    //!
     //! \brief    Convert Resource From Ddi
     //! \details  [Resource Interface] Convert Resource structure From OS/API specific to MOS reource.
     //! \details  Caller: DDI only
