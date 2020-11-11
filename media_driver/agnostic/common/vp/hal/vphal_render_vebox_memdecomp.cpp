@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -629,8 +629,10 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
 
     mhwVeboxSurfaceStateCmdParams->SurfInput.bActive    = mhwVeboxSurfaceStateCmdParams->SurfOutput.bActive    = true;
     mhwVeboxSurfaceStateCmdParams->SurfInput.dwBitDepth = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwBitDepth = inputSurface->dwDepth;
-    mhwVeboxSurfaceStateCmdParams->SurfInput.dwHeight   = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwHeight   = inputSurface->dwHeight;
-    mhwVeboxSurfaceStateCmdParams->SurfInput.dwWidth    = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwWidth    = inputSurface->dwWidth;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwHeight   = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwHeight   =
+        MOS_MIN(inputSurface->dwHeight, ((outputSurface!= nullptr) ? outputSurface->dwHeight : inputSurface->dwHeight));
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwWidth    = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwWidth    =
+        MOS_MIN(inputSurface->dwWidth, ((outputSurface != nullptr) ? outputSurface->dwWidth : inputSurface->dwWidth));
     mhwVeboxSurfaceStateCmdParams->SurfInput.Format     = mhwVeboxSurfaceStateCmdParams->SurfOutput.Format     = inputSurface->Format;
 
     MOS_SURFACE inputDetails, outputDetails;
@@ -704,20 +706,20 @@ MOS_STATUS MediaVeboxDecompState::SetupVeboxSurfaceState(
     }
 
     mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.left   = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.left   = 0;
-    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.right  = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.right  = (long)inputSurface->dwWidth;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.right  = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.right  = (long)(mhwVeboxSurfaceStateCmdParams->SurfInput.dwWidth);
     mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.top    = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.top    = 0;
-    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.bottom = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.bottom = (long)inputSurface->dwHeight;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.bottom = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.bottom = (long)(mhwVeboxSurfaceStateCmdParams->SurfInput.dwHeight);
     mhwVeboxSurfaceStateCmdParams->bOutputValid = true;
 
     // if output surface is null, then Inplace resolve happens
     if (!outputSurface)
     {
-        mhwVeboxSurfaceStateCmdParams->SurfInput.TileType    = mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType    = inputSurface->TileType;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.TileModeGMM = mhwVeboxSurfaceStateCmdParams->SurfOutput.TileModeGMM = inputSurface->TileModeGMM;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.bGMMTileEnabled = mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled = inputSurface->bGMMTileEnabled;
-        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch    = mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch      = inputSurface->dwPitch;
-        mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource = mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource = &(inputSurface->OsResource);
-        mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset   = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset   = inputSurface->YPlaneOffset.iYOffset;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.TileType        = mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType            = inputSurface->TileType;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.TileModeGMM     = mhwVeboxSurfaceStateCmdParams->SurfOutput.TileModeGMM         = inputSurface->TileModeGMM;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.bGMMTileEnabled = mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled     = inputSurface->bGMMTileEnabled;
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch        = mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch              = inputSurface->dwPitch;
+        mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource     = mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource         = &(inputSurface->OsResource);
+        mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset       = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset           = inputSurface->YPlaneOffset.iYOffset;
 
         mhwVeboxSurfaceStateCmdParams->SurfInput.dwCompressionFormat = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwCompressionFormat =
             inputSurface->CompressionFormat;
