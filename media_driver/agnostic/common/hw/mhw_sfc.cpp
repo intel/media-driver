@@ -407,6 +407,12 @@ MOS_STATUS MhwSfcInterface::GetInputFrameWidthHeightAlignUnit(uint32_t &widthAli
             heightAlignUnit = 8;
             return MOS_STATUS_SUCCESS;
         }
+        else if (CODECHAL_AV1 == codecStandard)
+        {
+            widthAlignUnit  = 1;
+            heightAlignUnit = 1;
+            return MOS_STATUS_SUCCESS;
+        }
         else
         {
             widthAlignUnit = 16;
