@@ -4058,7 +4058,7 @@ int32_t CompositeState::SetLayerRT(
     uTargetIndex = 0;
     do
     {
-        VPHAL_RENDER_CHK_STATUS(SetSurfaceCompressionParams(pRenderingData->pTarget[uTargetIndex], true));
+        SetSurfaceCompressionParams(pRenderingData->pTarget[uTargetIndex], true);
         // Get surface state allocation parameters for RT (scaling mode, stride)
         SetSurfaceParams(
             pRenderingData->pTarget[uTargetIndex],
@@ -4219,84 +4219,29 @@ finish:
 //!           Pointer to Source Surface
 //! \param    [in] isRenderTarget
 //!           Render Target or not
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//! \return   void
 //!
-MOS_STATUS CompositeState::SetSurfaceCompressionParams(
+void CompositeState::SetSurfaceCompressionParams(
     PVPHAL_SURFACE                  pSource,
     bool                            isRenderTarget)
 {
-    VPHAL_RENDER_CHK_NULL_RETURN(pSource);
-    VPHAL_RENDER_CHK_NULL_RETURN(m_pOsInterface);
-
     if (!MEDIA_IS_SKU(GetSkuTable(), FtrCompsitionMemoryCompressedOut) &&
         isRenderTarget)
     {
-        if (pSource->bCompressible                              &&
+        if (pSource                                             &&
+            pSource->bCompressible                              &&
             // For platforms support MC/RC, only enable Render engine MC write.
             (pSource->CompressionMode == MOS_MMC_RC             ||
             // For legacy platforms, no compression supported for composite RT.
             pSource->CompressionMode == MOS_MMC_HORIZONTAL      ||
             pSource->CompressionMode == MOS_MMC_VERTICAL))
         {
-            // clear Aux before disable RC write in case any garbage left
-            VPHAL_RENDER_CHK_STATUS_RETURN(ClearAuxDataOfCompressedSurface(pSource));
-
             VPHAL_RENDER_NORMALMESSAGE("MMC DISABLED for RT due to CompsitionMemoryCompressedOut no supported");
-            pSource->bIsCompressed = false;
+            pSource->bIsCompressed   = false;
             pSource->CompressionMode = MOS_MMC_DISABLED;
-
-            VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnSetMemoryCompressionMode(m_pOsInterface, &pSource->OsResource, MOS_MEMCOMP_STATE(MOS_MEMCOMP_DISABLED)));
+            m_pOsInterface->pfnSetMemoryCompressionMode(m_pOsInterface, &pSource->OsResource, MOS_MEMCOMP_STATE(MOS_MEMCOMP_DISABLED));
         }
     }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-//!
-//! \brief    Clear AuxData of Compressed Surface
-//! \details  Clear AuxData of Compressed Surface through vebox decompression
-//! \param    [in,out] pSource
-//!           Pointer to Source Surface
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS CompositeState::ClearAuxDataOfCompressedSurface(
-        PVPHAL_SURFACE                  pSource)
-{
-    VPHAL_RENDER_CHK_NULL_RETURN(pSource);
-    VPHAL_RENDER_CHK_NULL_RETURN(m_pOsInterface);
-
-    bool bAllocated = false;
-
-    VPHAL_RENDER_NORMALMESSAGE("Clear AuxData through DecompResource due to RC output is not supported");
-
-    VPHAL_RENDER_CHK_STATUS_RETURN(VpHal_ReAllocateSurface(
-        m_pOsInterface,
-        &m_TempSyncSurface,
-        "TempSyncSurface",
-        Format_Buffer,
-        MOS_GFXRES_BUFFER,
-        MOS_TILE_LINEAR,
-        32,
-        1,
-        false,
-        MOS_MMC_DISABLED,
-        &bAllocated));
-
-    auto gpucontext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
-
-    VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnSetGpuContext(m_pOsInterface, MOS_GPU_CONTEXT_VEBOX));
-
-    VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnRegisterResource(m_pOsInterface, &m_TempSyncSurface.OsResource, true, true));
-
-    VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnDecompResource(m_pOsInterface, &pSource->OsResource));
-
-    VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnSetGpuContext(m_pOsInterface, gpucontext));
-
-    VPHAL_RENDER_CHK_STATUS_RETURN(m_pOsInterface->pfnRegisterResource(m_pOsInterface, &m_TempSyncSurface.OsResource, true, true));
-
-    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -7159,10 +7104,6 @@ void CompositeState::Destroy()
 
     pOsInterface->pfnFreeResource(
         pOsInterface,
-        &m_TempSyncSurface.OsResource);
-
-    pOsInterface->pfnFreeResource(
-        pOsInterface,
         &m_CmfcCoeff.OsResource);
 
     // Destroy sampler 8x8 state table parameters
@@ -7228,7 +7169,6 @@ CompositeState::CompositeState(
     MOS_ZeroMemory(&m_KernelParams, sizeof(m_KernelParams));
     MOS_ZeroMemory(&m_Intermediate, sizeof(m_Intermediate));
     MOS_ZeroMemory(&m_Intermediate2, sizeof(m_Intermediate2));
-    MOS_ZeroMemory(&m_TempSyncSurface, sizeof(m_TempSyncSurface));
     MOS_ZeroMemory(&m_CmfcCoeff, sizeof(m_CmfcCoeff));
     MOS_ZeroMemory(&m_RenderHalCmfcCoeff, sizeof(m_RenderHalCmfcCoeff));
     MOS_ZeroMemory(&m_AvsParameters, sizeof(m_AvsParameters));
