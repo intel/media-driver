@@ -242,7 +242,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
 
     if (pvpParams->pSrc[0]->pDeinterlaceParams              ||
         pvpParams->pSrc[0]->pBlendingParams                 ||
-        pvpParams->pSrc[0]->pHDRParams                      ||
         pvpParams->pSrc[0]->pLumaKeyParams                  ||
         pvpParams->pConstriction)
     {
@@ -275,20 +274,33 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    bool bVeboxNeeded = false;
-    bool bSFCNeeded   = IsSfcOutputFeasible(pvpParams);
-
-    if (IsVeboxOutFeasible(pvpParams) ||
-        !bSFCNeeded)
+    // Ensure only enable DN/ACE/STE/TCC for vebox only case. For other features supported on vebox, such as csc,
+    // just fallback to legacy path.
+    if (IsVeboxOutFeasible(pvpParams) && !IsVeboxSupported(pvpParams))
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    if ((!bVeboxNeeded &&
-        pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX) ||
-        pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
+    if (!IsVeboxOutFeasible(pvpParams) &&
+        !IsSfcOutputFeasible(pvpParams))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool bVeboxNeeded = IsVeboxSupported(pvpParams);
+    // If ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX, use SFC only when VEBOX is required
+    // For GEN12+, IEF has been removed from AVS sampler. Do not change the path if IEF is enabled.
+    if ((pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX) &&
+        (pvpParams->pSrc[0]->pIEFParams == nullptr || (pvpParams->pSrc[0]->pIEFParams && pvpParams->pSrc[0]->pIEFParams->bEnabled == false)) &&
+        (bVeboxNeeded == false))
     {
         VP_PUBLIC_NORMALMESSAGE("DDI choose to use SFC only for VEBOX, and since VEBOX is not required, change to Composition.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
+    {
+        VP_PUBLIC_NORMALMESSAGE("DDI choose to use Composition, change to Composition.");
         return MOS_STATUS_SUCCESS;
     }
 
@@ -513,6 +525,26 @@ bool VPFeatureManager::IsVeboxRTFormatSupport(
 
     return bRet;
 }
+
+bool VPFeatureManager::IsVeboxSupported(PVP_PIPELINE_PARAMS params)
+{
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(params);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(params->pSrc[0]);
+
+    if ((nullptr != params->pSrc[0]->pDenoiseParams && true == params->pSrc[0]->pDenoiseParams->bEnableLuma) ||
+        (nullptr != params->pSrc[0]->pProcampParams && true == params->pSrc[0]->pProcampParams->bEnabled) ||
+        (nullptr != params->pSrc[0]->pColorPipeParams &&
+        (true == params->pSrc[0]->pColorPipeParams->bEnableACE ||
+         true == params->pSrc[0]->pColorPipeParams->bEnableSTE ||
+         true == params->pSrc[0]->pColorPipeParams->bEnableTCC)))
+    {
+        return true;
+    }
+
+finish:
+    return false;
+}
+
 bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
 {
     uint32_t                    dwSfcMaxWidth = 0;

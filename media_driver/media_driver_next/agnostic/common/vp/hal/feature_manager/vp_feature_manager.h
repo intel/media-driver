@@ -110,6 +110,8 @@ protected:
         PVPHAL_SURFACE pSrcSurface,
         PVPHAL_SURFACE pRTSurface);
 
+    virtual bool IsVeboxSupported(PVP_PIPELINE_PARAMS params);
+
     virtual bool IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params);
 
     virtual bool IsOutputFormatSupported(
