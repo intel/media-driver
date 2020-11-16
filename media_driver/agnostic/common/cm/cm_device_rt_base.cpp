@@ -1614,23 +1614,13 @@ CM_RT_API int32_t CmDeviceRTBase::DestroyKernel(CmKernel*& kernel)
     return CM_SUCCESS;
 }
 
+
+#define PLATFORM_INTEL_TGL 14
 CM_RT_API int32_t CmDeviceRTBase::CreateQueue(CmQueue* &queue)
 {
     INSERT_API_CALL_LOG(GetHalState());
 
     CM_QUEUE_CREATE_OPTION queueCreateOption = CM_DEFAULT_QUEUE_CREATE_OPTION;
-    m_criticalSectionQueue.Acquire();
-    for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
-    {
-        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-        if (queueType == CM_QUEUE_TYPE_RENDER)
-        {
-            queue = (*iter);
-            m_criticalSectionQueue.Release();
-            return CM_SUCCESS;
-        }
-    }
-    m_criticalSectionQueue.Release();
 
     // Check queue type redirect is needed.
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
@@ -1645,6 +1635,29 @@ CM_RT_API int32_t CmDeviceRTBase::CreateQueue(CmQueue* &queue)
     {
         queueCreateOption.QueueType = CM_QUEUE_TYPE_RENDER;
     }
+
+    // override TGL queue type to CM_QUEUE_TYPE_COMPUTE
+    uint32_t platform = PLATFORM_INTEL_UNKNOWN;
+    cmData->cmHalState->cmHalInterface->GetGenPlatformInfo(&platform, nullptr, nullptr);
+    if (PLATFORM_INTEL_TGL == platform)
+    {
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
+    }
+
+    printf("++++++1647----- CmDeviceRTBase::CreateQueue  platform %d, queueCreateOption.QueueType %d \n", platform, queueCreateOption.QueueType);
+    m_criticalSectionQueue.Acquire();
+    for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+    {
+        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+        printf("++++++1652 check queue----- CmDeviceRTBase::CreateQueue  platform %d, queueCreateOption.QueueType %d \n", platform, queueCreateOption.QueueType);
+        if (queueType == queueCreateOption.QueueType)
+        {
+            queue = (*iter);
+            m_criticalSectionQueue.Release();
+            return CM_SUCCESS;
+        }
+    }
+    m_criticalSectionQueue.Release();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Check queue type override for debugging is needed.
@@ -1663,7 +1676,7 @@ CM_RT_API int32_t CmDeviceRTBase::CreateQueue(CmQueue* &queue)
         }
     }
 #endif
-
+    printf("+++++++++CmDeviceRTBase::CreateQueue  platform %d, queueCreateOption.QueueType %d \n", platform, queueCreateOption.QueueType);
     return CreateQueueEx(queue, queueCreateOption);
 }
 
@@ -1673,23 +1686,43 @@ CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
 {
     INSERT_API_CALL_LOG(GetHalState());
     CLock locker(m_criticalSectionQueue);
+    printf("++++++-1609---CmDeviceRTBase::CreateQueueEx , queueCreateOption.QueueType %d \n", queueCreateOption.QueueType);
 
-    CmQueueRT *queueRT = nullptr;
-    if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
+
+    // Check queue type redirect is needed.
+    PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
+    CM_CHK_NULL_RETURN_CMERROR(cmData);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
+    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState->cmHalInterface);
+    if (cmData->cmHalState->cmHalInterface->IsRedirectRcsToCcs())
     {
-        for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
+    }
+    else
+    {
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_RENDER;
+    }
+
+    // override TGL queue type to CM_QUEUE_TYPE_COMPUTE
+    uint32_t platform = PLATFORM_INTEL_UNKNOWN;
+    cmData->cmHalState->cmHalInterface->GetGenPlatformInfo(&platform, nullptr, nullptr);
+    if (PLATFORM_INTEL_TGL == platform)
+    {
+        queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
+    }
+
+    for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+    {
+        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+        unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
+        if (queueType == queueCreateOption.QueueType)
         {
-            CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-            unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
-            if (queueType == CM_QUEUE_TYPE_RENDER
-                && gpuContext == queueCreateOption.GPUContext)
-            {
-                queue = (*iter);
-                return CM_SUCCESS;
-            }
+            queue = (*iter);
+            return CM_SUCCESS;
         }
     }
 
+    CmQueueRT *queueRT = nullptr;
     CmDeviceRT *cmDevice = static_cast<CmDeviceRT*>(this);
     CM_CHK_NULL_RETURN_CMERROR(cmDevice);
     int32_t result = CmQueueRT::Create(cmDevice, queueRT, queueCreateOption);
@@ -1699,7 +1732,8 @@ CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
         return result;
     }
     m_queue.push_back(queueRT);
-    queue = queueRT;
+    queue = queueRT; 
+
     return result;
 }
 
