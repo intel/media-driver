@@ -7187,22 +7187,6 @@ MOS_STATUS CodechalEncHevcStateG12::EncodeKernelFunctions()
         }
     }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-
-    MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
-    // Weighted prediction for L0 Reporting
-    userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    userFeatureWriteData.Value.i32Data = m_useWeightedSurfaceForL0;
-    userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_WEIGHTED_PREDICTION_L0_IN_USE_ID;
-    MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1, m_osInterface->pOsContext);
-    // Weighted prediction for L1 Reporting
-    userFeatureWriteData               = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
-    userFeatureWriteData.Value.i32Data = m_useWeightedSurfaceForL1;
-    userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_WEIGHTED_PREDICTION_L1_IN_USE_ID;
-    MOS_UserFeature_WriteValues_ID(NULL, &userFeatureWriteData, 1, m_osInterface->pOsContext);
-
-#endif  // _DEBUG || _RELEASE_INTERNAL
-
     // Reset to use a different performance tag ID
     m_osInterface->pfnResetPerfBufferID(m_osInterface);
 
