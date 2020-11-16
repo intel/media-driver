@@ -1362,7 +1362,7 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
     {
         VAEncMiscParameterMaxSliceSize *vaEncMiscParamMaxSliceSize = (VAEncMiscParameterMaxSliceSize *)miscParamBuf->data;
         m_encodeCtx->EnableSliceLevelRateCtrl                      = true;
-        seqParams->SliceSizeControl                                = true;
+        seqParams->SliceSizeControl                                = (vaEncMiscParamMaxSliceSize->max_slice_size > 0) ? true : false;;
         picParams->MaxSliceSizeInBytes                             = vaEncMiscParamMaxSliceSize->max_slice_size;
         break;
     }
