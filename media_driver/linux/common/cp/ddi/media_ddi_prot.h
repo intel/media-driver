@@ -173,7 +173,7 @@ public:
     //! \return  VAStatus
     //!          VA_STATUS_SUCCESS if success, else fail reason
     //!
-    static VAStatus DdiMedia_ProtectedSessionTeeExec(
+    static VAStatus DdiMedia_ProtectedSessionExecute(
         VADriverContextP        ctx,
         VAProtectedSessionID    protected_session,
         VABufferID              data);
@@ -268,7 +268,7 @@ protected:
         VADriverContextP        ctx,
         VAContextID             context);
 
-    virtual VAStatus ProtectedSessionTeeExec(
+    virtual VAStatus ProtectedSessionExecute(
         VADriverContextP        ctx,
         VAProtectedSessionID    protected_session,
         VABufferID              data);

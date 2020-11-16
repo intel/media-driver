@@ -201,7 +201,7 @@ VAStatus DdiMediaProtected::DdiMedia_DetachProtectedSession(
     return vaStatus;
 }
 
-VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionTeeExec(
+VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionExecute(
     VADriverContextP        ctx,
     VAProtectedSessionID    protected_session,
     VABufferID              data)
@@ -220,7 +220,7 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionTeeExec(
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
 
         DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
-        vaStatus = prot->ProtectedSessionTeeExec(ctx, protected_session, data);
+        vaStatus = prot->ProtectedSessionExecute(ctx, protected_session, data);
     }
     else
     {
@@ -325,7 +325,7 @@ VAStatus DdiMediaProtected::DetachProtectedSession(
     return VA_STATUS_ERROR_UNIMPLEMENTED;
 }
 
-VAStatus DdiMediaProtected::ProtectedSessionTeeExec(
+VAStatus DdiMediaProtected::ProtectedSessionExecute(
     VADriverContextP        ctx,
     VAProtectedSessionID    protected_session,
     VABufferID              data)
