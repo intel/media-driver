@@ -1006,25 +1006,16 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
                             sizeof(alloc_bo->handle),
                             &currentPatch->uiWriteOperation,
                             sizeof(currentPatch->uiWriteOperation));
-        if(mos_gem_bo_is_softpin(alloc_bo))
-        {
-            if (alloc_bo != tempCmdBo)
-            {
-                ret = mos_bo_add_softpin_target(tempCmdBo, alloc_bo, currentPatch->uiWriteOperation);
-            }
-        }
-        else
-        {
-            // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
-            ret = mos_bo_emit_reloc2(
-                tempCmdBo,                                                         // Command buffer
-                currentPatch->PatchOffset,                                         // Offset in the command buffer
-                alloc_bo,                                                          // Allocation object for which the patch will be made.
-                currentPatch->AllocationOffset,                                    // Offset to the indirect state
-                I915_GEM_DOMAIN_RENDER,                                            // Read domain
-                (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
-                boOffset);
-        }
+
+        // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
+        ret = mos_bo_emit_reloc2(
+            tempCmdBo,                                                         // Command buffer
+            currentPatch->PatchOffset,                                         // Offset in the command buffer
+            alloc_bo,                                                          // Allocation object for which the patch will be made.
+            currentPatch->AllocationOffset,                                    // Offset to the indirect state
+            I915_GEM_DOMAIN_RENDER,                                            // Read domain
+            (currentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
+            boOffset);
 
         if (ret != 0)
         {
@@ -1346,7 +1337,7 @@ int32_t GpuContextSpecificNext::SubmitPipeCommands(
 
         for(auto bo: skipSyncBoList)
         {
-            mos_bo_set_exec_object_async(cmdBo, bo);
+            mos_bo_set_exec_object_async(bo);
         }
     }
 
@@ -1374,6 +1365,14 @@ int32_t GpuContextSpecificNext::SubmitPipeCommands(
     if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
     {
         osContext->submit_fence = fence;
+    }
+
+    if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE)
+    {
+        for(auto bo: skipSyncBoList)
+        {
+            mos_bo_clear_exec_object_async(bo);
+        }
     }
 
     if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)

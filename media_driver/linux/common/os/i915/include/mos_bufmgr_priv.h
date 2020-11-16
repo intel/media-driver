@@ -263,18 +263,17 @@ struct mos_bufmgr {
                   uint32_t * swizzle_mode);
 
     /**
+     * Set the offset at which this buffer will be softpinned
+     * \param bo Buffer to set the softpin offset for
+     * \param offset Softpin offset
+     */
+    int (*bo_set_softpin_offset) (struct mos_linux_bo *bo, uint64_t offset);
+
+    /**
      * Softpin the buffer object 
      * \param bo Buffer to set the softpin
      */
     int (*bo_set_softpin) (struct mos_linux_bo *bo);
-
-    /**
-     * Add softpin object to softpin target list of the command buffer 
-     * \param bo Command buffer which store the softpin target list
-     * \param target_bo  Softpin target to be added
-     * \param write_flag  Whether write flag is needed
-     */
-    int (*bo_add_softpin_target) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag);
 
     /**
      * Create a visible name for a buffer which can be used by other apps
@@ -338,20 +337,8 @@ struct mos_bufmgr {
     /** Returns true if target_bo is in the relocation tree rooted at bo. */
     int (*bo_references) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
 
-    /**
-     * Set async flag for a buffer object.
-     *
-     * \param bo Buffer to set async
-     */
-    void (*set_object_async) (struct mos_linux_bo *bo);
-
-    /**
-     * Set execution async flag for a buffer object.
-     *
-     * \param bo Command buffer
-     * \param target_bo Buffer to set async
-     */
-    void (*set_exec_object_async) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
+    void (*set_exec_object_async) (struct mos_linux_bo *bo);
+    void (*clear_exec_object_async) (struct mos_linux_bo *bo);
 
     /**< Enables verbose debugging printouts */
     int debug;

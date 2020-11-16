@@ -4252,25 +4252,15 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
                     boOffset + pCurrentPatch->AllocationOffset;
         }
 
-        if(mos_gem_bo_is_softpin(alloc_bo))
-        {
-            if (alloc_bo != cmd_bo)
-            {
-                ret = mos_bo_add_softpin_target(cmd_bo, alloc_bo, pCurrentPatch->uiWriteOperation);
-            }
-        }
-        else
-        {
-            // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
-            ret = mos_bo_emit_reloc2(
-                        cmd_bo,                                                              // Command buffer
-                        pCurrentPatch->PatchOffset,                                          // Offset in the command buffer
-                        alloc_bo,                                                            // Allocation object for which the patch will be made.
-                        pCurrentPatch->AllocationOffset,                                     // Offset to the indirect state
-                        I915_GEM_DOMAIN_RENDER,                                              // Read domain
-                        (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
-                        boOffset);
-        }
+        // This call will patch the command buffer with the offsets of the indirect state region of the command buffer
+        ret = mos_bo_emit_reloc2(
+                          cmd_bo,                                                              // Command buffer
+                          pCurrentPatch->PatchOffset,                                          // Offset in the command buffer
+                          alloc_bo,                                                            // Allocation object for which the patch will be made.
+                          pCurrentPatch->AllocationOffset,                                     // Offset to the indirect state
+                          I915_GEM_DOMAIN_RENDER,                                              // Read domain
+                          (pCurrentPatch->uiWriteOperation) ? I915_GEM_DOMAIN_RENDER : 0x0,   // Write domain
+                          boOffset);
 
         if (ret != 0)
         {
@@ -6073,7 +6063,7 @@ MOS_STATUS Mos_Specific_SkipResourceSync(
     MOS_OS_CHK_NULL(pOsResource);
     //---------------------------------------
 
-    mos_bo_set_object_async(pOsResource->bo);
+    mos_bo_set_exec_object_async(pOsResource->bo);
 
 finish:
     return eStatus;

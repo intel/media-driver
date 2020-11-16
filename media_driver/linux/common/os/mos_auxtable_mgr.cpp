@@ -254,7 +254,13 @@ MOS_STATUS  AuxTableMgr::EmitAuxTableBOList(MOS_LINUX_BO *cmd_bo)
     ((GMM_PAGETABLE_MGR*)m_gmmPageTableMgr)->GetPageTableBOList(AUXTT, boList);
     for (int i=0; i<boCnt; i++)
     {
-        int ret = mos_bo_add_softpin_target(cmd_bo, boList[i], false);
+        int ret = mos_bo_emit_reloc(
+            cmd_bo,                     // Command buffer
+            0,                          // Offset in the command buffer, not used for softpin
+            boList[i],                  // Allocation object for which the patch will be made.
+            0,                          // Offset to the indirect state
+            I915_GEM_DOMAIN_RENDER,     // Read domain
+            I915_GEM_DOMAIN_CPU);       // Write domain
         if (ret != 0)
         {
             MOS_OS_ASSERTMESSAGE("Error patching alloc_bo = 0x%x, cmd_bo = 0x%x.",
