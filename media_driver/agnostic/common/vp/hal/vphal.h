@@ -269,6 +269,9 @@ enum VpKernelID
     kernelHdrMandatory,
     kernelHdrPreprocess,
 
+    // mediacopy-render copy
+    kernelRenderCopy,
+
     baseKernelMaxNumID
 };
 
