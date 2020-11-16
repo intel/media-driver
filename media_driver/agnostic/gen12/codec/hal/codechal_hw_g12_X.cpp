@@ -306,22 +306,9 @@ MOS_STATUS CodechalHwInterfaceG12::GetAvpStateCommandSize(
             params));
     }
 
-    //calculate HUC related command size
-    uint32_t    hucCommandsSize = 0;
-    uint32_t    hucPatchListSize = 0;
-
-    if (m_hucInterface)
-    {
-        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucStateCommandSize(
-            mode,
-            (uint32_t*)&hucCommandsSize,
-            (uint32_t*)&hucPatchListSize,
-            params));
-    }
-
     //Calc final command size
-    *commandsSize = avpCommandsSize + hucCommandsSize * 4;
-    *patchListSize = avpPatchListSize + hucPatchListSize * 4;
+    *commandsSize = avpCommandsSize;
+    *patchListSize = avpPatchListSize;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -344,21 +331,9 @@ MOS_STATUS CodechalHwInterfaceG12::GetAvpPrimitiveCommandSize(
             (uint32_t*)&avpPatchListSize));
     }
 
-    //calculate HUC related command size
-    uint32_t hucCommandsSize = 0;
-    uint32_t hucPatchListSize = 0;
-
-    if (m_hucInterface)
-    {
-        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->GetHucPrimitiveCommandSize(
-            mode,
-            (uint32_t*)&hucCommandsSize,
-            (uint32_t*)&hucPatchListSize));
-    }
-
     //Calc final command size
-    *commandsSize = avpCommandsSize + hucCommandsSize;
-    *patchListSize = avpPatchListSize + hucPatchListSize;
+    *commandsSize = avpCommandsSize;
+    *patchListSize = avpPatchListSize;
 
     return MOS_STATUS_SUCCESS;
 }
