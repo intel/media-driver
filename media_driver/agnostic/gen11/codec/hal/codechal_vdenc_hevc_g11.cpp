@@ -3802,7 +3802,11 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcUpdate()
     hucVDEncBrcUpdateDmem->SceneChgPrevIntraPctThreshold_U8 = 96;
     hucVDEncBrcUpdateDmem->SceneChgCurIntraPctThreshold_U8  = 192;
 
-    hucVDEncBrcUpdateDmem->EnableMotionAdaptive = m_enableMotionAdaptive;
+    hucVDEncBrcUpdateDmem->EnableMotionAdaptive             = m_enableMotionAdaptive;
+    hucVDEncBrcUpdateDmem->FrameSizeBoostForSceneChange     = 1;
+    hucVDEncBrcUpdateDmem->ROMCurrent                       = 0;
+    hucVDEncBrcUpdateDmem->ROMZero                          = 0;
+    hucVDEncBrcUpdateDmem->TargetFrameSize                  = m_hevcPicParams->TargetFrameSize << 3;// byte to bit
 
     // reset skip frame statistics
     m_numSkipFrames = 0;

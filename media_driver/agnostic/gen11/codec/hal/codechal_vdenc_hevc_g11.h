@@ -172,7 +172,11 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11
     uint32_t    SkipFrameSize;
     uint32_t    SliceHeaderSize;
     int8_t      EnableMotionAdaptive;
-    uint8_t     RSVD[15];  // 64-byte alignment
+    uint8_t     FrameSizeBoostForSceneChange;// UPD_TCBRC_SCENARIO_U8
+    uint8_t     ROMCurrent;                  // ROM average of current frame
+    uint8_t     ROMZero;                     // ROM zero percentage
+    uint32_t    TargetFrameSize;             // TR_BRC
+    uint8_t     RSVD[8];                     // 64-byte alignment
 };
 C_ASSERT(192 == sizeof(CODECHAL_VDENC_HEVC_HUC_BRC_UPDATE_DMEM_G11));
 
