@@ -1252,13 +1252,13 @@ MOS_STATUS CodecHalHevcMbencG12::InitCurbeDataB()
         curbe.LastFrameIsIntra = false;
     }
 
-    curbe.SliceType             = (m_hevcPicParams->CodingType == P_TYPE) ? PicCodingTypeToSliceType(B_TYPE) : PicCodingTypeToSliceType(m_hevcPicParams->CodingType);
+    curbe.SliceType             = PicCodingTypeToSliceType(m_hevcPicParams->CodingType);
     curbe.TemporalMvpEnableFlag = m_hevcSliceParams->slice_temporal_mvp_enable_flag;
     curbe.CollocatedFromL0Flag  = m_hevcSliceParams->collocated_from_l0_flag;
     curbe.theSameRefList        = m_sameRefList;
     curbe.IsLowDelay            = m_lowDelay;
     curbe.NumRefIdxL0           = m_hevcSliceParams->num_ref_idx_l0_active_minus1 + 1;
-    curbe.NumRefIdxL1           = m_hevcSliceParams->num_ref_idx_l1_active_minus1 + 1;
+    curbe.NumRefIdxL1           = (curbe.SliceType == CODECHAL_ENCODE_HEVC_P_SLICE) ? 0 : (m_hevcSliceParams->num_ref_idx_l1_active_minus1 + 1);
     if (m_hevcSeqParams->TargetUsage == 1)
     {
         // MaxNumMergeCand C Model uses 4 for TU1, 
@@ -1274,14 +1274,14 @@ MOS_STATUS CodecHalHevcMbencG12::InitCurbeDataB()
 
     int32_t tbRefListL0[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L0_REF_G10] = { 0 }, tbRefListL1[CODECHAL_ENCODE_HEVC_NUM_MAX_VME_L1_REF_G10] = { 0 };
     curbe.FwdPocNumber_L0_mTb_0 = tbRefListL0[0] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][0]);
-    curbe.BwdPocNumber_L1_mTb_0 = tbRefListL1[0] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][0]);
+    curbe.BwdPocNumber_L1_mTb_0 = tbRefListL1[0] = (curbe.SliceType == CODECHAL_ENCODE_HEVC_P_SLICE) ? ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][0]) : ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][0]);
     curbe.FwdPocNumber_L0_mTb_1 = tbRefListL0[1] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][1]);
-    curbe.BwdPocNumber_L1_mTb_1 = tbRefListL1[1] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][1]);
+    curbe.BwdPocNumber_L1_mTb_1 = tbRefListL1[1] = (curbe.SliceType == CODECHAL_ENCODE_HEVC_P_SLICE) ? ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][1]) : ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][1]);
 
     curbe.FwdPocNumber_L0_mTb_2 = tbRefListL0[2] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][2]);
-    curbe.BwdPocNumber_L1_mTb_2 = tbRefListL1[2] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][2]);
+    curbe.BwdPocNumber_L1_mTb_2 = tbRefListL1[2] = (curbe.SliceType == CODECHAL_ENCODE_HEVC_P_SLICE) ? ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][2]) : ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][2]);
     curbe.FwdPocNumber_L0_mTb_3 = tbRefListL0[3] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][3]);
-    curbe.BwdPocNumber_L1_mTb_3 = tbRefListL1[3] = ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][3]);
+    curbe.BwdPocNumber_L1_mTb_3 = tbRefListL1[3] = (curbe.SliceType == CODECHAL_ENCODE_HEVC_P_SLICE) ? ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[0][3]) : ComputeTemporalDifferent(m_hevcSliceParams->RefPicList[1][3]);
 
     curbe.RefFrameWinHeight = m_frameHeight;
     curbe.RefFrameWinWidth = m_frameWidth;
