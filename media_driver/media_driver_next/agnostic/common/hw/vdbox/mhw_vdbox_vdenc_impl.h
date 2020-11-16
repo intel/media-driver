@@ -329,6 +329,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->OriginalUncompressedPicture.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(OriginalUncompressedPicture.LowerAddress);
             resourceParams.bIsWritable     = false;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
@@ -351,6 +352,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->RowStoreScratchBuffer.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(RowStoreScratchBuffer.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
@@ -368,6 +370,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->VdencStatisticsStreamout.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(VdencStatisticsStreamout.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
@@ -385,6 +388,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->StreaminDataPicture.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(StreaminDataPicture.LowerAddress);
             resourceParams.bIsWritable     = false;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
@@ -421,6 +425,7 @@ protected:
                 resourceParams.dwLocationInCmd = fwdRefsDwLoaction[refIdx];
                 resourceParams.bIsWritable     = false;
                 resourceParams.pdwCmd          = (uint32_t *)&fwdRefs[refIdx]->LowerAddress;
+                resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
                 auto mmcMode = (params->mmcStatePostDeblock != MOS_MEMCOMP_DISABLED) ? params->mmcStatePostDeblock : params->mmcStatePreDeblock;
 
@@ -447,6 +452,7 @@ protected:
                 resourceParams.dwLocationInCmd = fwdRefsDsStage1DwLoaction[refIdx];
                 resourceParams.bIsWritable     = false;
                 resourceParams.pdwCmd          = (uint32_t *)&(fwdRefsDsStage1[refIdx]->LowerAddress);
+                resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
                 auto mmcMode = params->mmcStateDsStage1;
 
@@ -472,6 +478,7 @@ protected:
                 resourceParams.dwLocationInCmd = fwdRefsDsStage2DwLoaction[refIdx];
                 resourceParams.bIsWritable     = false;
                 resourceParams.pdwCmd          = (uint32_t *)&(fwdRefsDsStage2[refIdx]->LowerAddress);
+                resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
                 auto mmcMode = params->mmcStateDsStage2;
 
@@ -489,6 +496,7 @@ protected:
                 {
                     resourceParams.dwLocationInCmd = fwdRefsDsStage2DwLoaction[refIdx + 1];
                     resourceParams.pdwCmd          = (uint32_t *)&(fwdRefsDsStage2[refIdx + 1]->LowerAddress);
+                    resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
                     fwdRefsDsStage2[refIdx + 1]->PictureFields.DW0.MemoryCompressionEnable = MmcEnabled(mmcMode);
                     fwdRefsDsStage2[refIdx + 1]->PictureFields.DW0.CompressionType         = MmcRcEnabled(mmcMode);
@@ -516,6 +524,7 @@ protected:
                 resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(BwdRef0);
                 resourceParams.bIsWritable     = false;
                 resourceParams.pdwCmd          = (uint32_t *)&(cmd->BwdRef0.LowerAddress);
+                resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
                 auto mmcMode = (params->mmcStatePostDeblock != MOS_MEMCOMP_DISABLED) ? params->mmcStatePostDeblock : params->mmcStatePreDeblock;
 
@@ -542,6 +551,7 @@ protected:
                 resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(DsBwdRef0);
                 resourceParams.bIsWritable     = false;
                 resourceParams.pdwCmd          = (uint32_t *)&(cmd->DsBwdRef0.LowerAddress);
+                resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
                 auto mmcMode = params->mmcStateDsStage1;
 
@@ -567,6 +577,7 @@ protected:
                 resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(DsBwdRef04X);
                 resourceParams.bIsWritable     = false;
                 resourceParams.pdwCmd          = (uint32_t *)&(cmd->DsBwdRef04X.LowerAddress);
+                resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
                 auto mmcMode = params->mmcStateDsStage2;
 
@@ -589,6 +600,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->ColocatedMv.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(ColocatedMv.LowerAddress);
             resourceParams.bIsWritable     = false;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             cmd->ColocatedMv.PictureFields.DW0.MemoryCompressionEnable = 0;
             cmd->ColocatedMv.PictureFields.DW0.CompressionType         = 0;
@@ -608,6 +620,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->ColocatedMv.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(ColocatedMv.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             cmd->ColocatedMv.PictureFields.DW0.MemoryCompressionEnable = 0;
             cmd->ColocatedMv.PictureFields.DW0.CompressionType         = 0;
@@ -627,6 +640,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->ScaledReferenceSurfaceStage1.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(ScaledReferenceSurfaceStage1.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             auto mmcMode = params->mmcStateDsStage1;
 
@@ -648,6 +662,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->ScaledReferenceSurfaceStage2.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(ScaledReferenceSurfaceStage2.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             auto mmcMode = params->mmcStateDsStage2;
 
@@ -669,6 +684,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->VdencLcuPakObjCmdBuffer.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(VdencLcuPakObjCmdBuffer.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             cmd->VdencLcuPakObjCmdBuffer.PictureFields.DW0.MemoryCompressionEnable = 0;
             cmd->VdencLcuPakObjCmdBuffer.PictureFields.DW0.CompressionType         = 0;
@@ -688,6 +704,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->Vp9SegmentationMapStreaminBuffer.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(Vp9SegmentationMapStreaminBuffer.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
@@ -702,6 +719,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->Vp9SegmentationMapStreamoutBuffer.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(Vp9SegmentationMapStreamoutBuffer.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
@@ -718,6 +736,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->VdencTileRowStoreBuffer.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(VdencTileRowStoreBuffer.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             cmd->VdencTileRowStoreBuffer.BufferPictureFields.DW0.MemoryObjectControlState =
                 this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_VDENC_ROW_STORE_BUFFER_CODEC].Value;
@@ -740,6 +759,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->IntraPredictionRowstoreBaseAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(IntraPredictionRowstoreBaseAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             cmd->IntraPredictionRowstoreBaseAddress.BufferPictureFields.DW0.MemoryObjectControlState =
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_INTRA_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
@@ -758,6 +778,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->VdencCumulativeCuCountStreamoutSurface.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(VdencCumulativeCuCountStreamoutSurface.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
@@ -772,6 +793,7 @@ protected:
             resourceParams.pdwCmd          = (uint32_t *)&(cmd->ColocatedMvAvcWriteBuffer.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(ColocatedMvAvcWriteBuffer.LowerAddress);
             resourceParams.bIsWritable     = true;
+            resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
             cmd->ColocatedMvAvcWriteBuffer.PictureFields.DW0.MemoryCompressionEnable = 0;
             cmd->ColocatedMvAvcWriteBuffer.PictureFields.DW0.CompressionType         = 0;
