@@ -189,7 +189,7 @@ void* CodechalEncodeAllocator::AllocateResource(
         resTag.width = (uint16_t)width;
         resTag.height = (uint16_t)height;
         resTag.type = allocator2D;
-        buffer = Allocate2DBuffer(resTag.tag, width, height, format, tile, bufName, zeroOnAllocation);
+        buffer = Allocate2DBuffer(resTag.tag, width, height, format, tile, bufName, zeroOnAllocation, dwMemType);
     }
     else
     {

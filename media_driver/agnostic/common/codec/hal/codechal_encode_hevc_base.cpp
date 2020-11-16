@@ -460,7 +460,8 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateResources()
 MOS_STATUS CodechalEncodeHevcBase::AllocateBuffer(
     PCODECHAL_ENCODE_BUFFER buffer,
     uint32_t size,
-    const char* name)
+    const char* name,
+    int32_t dwMemType)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -475,6 +476,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateBuffer(
     allocParams.Format = Format_Buffer;
     allocParams.dwBytes = size;
     allocParams.pBufName = name;
+    allocParams.dwMemType = dwMemType;
     buffer->dwSize = size;
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
@@ -512,7 +514,8 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateBuffer2D(
     uint32_t width,
     uint32_t height,
     const char* name,
-    MOS_TILE_TYPE tileType)
+    MOS_TILE_TYPE tileType,
+    int32_t dwMemType)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -537,6 +540,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateBuffer2D(
     allocParamsForBuffer2D.dwWidth = surface->dwWidth;
     allocParamsForBuffer2D.dwHeight = surface->dwHeight;
     allocParamsForBuffer2D.pBufName = name;
+    allocParamsForBuffer2D.dwMemType = dwMemType;
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
         m_osInterface,
@@ -580,7 +584,8 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateSurface(
     PMOS_SURFACE surface,
     uint32_t width,
     uint32_t height,
-    const char* name)
+    const char* name,
+    int32_t dwMemType)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -596,6 +601,7 @@ MOS_STATUS CodechalEncodeHevcBase::AllocateSurface(
     allocParams.dwWidth = width;
     allocParams.dwHeight = height;
     allocParams.pBufName = name;
+    allocParams.dwMemType = dwMemType;
 
     eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
         m_osInterface,

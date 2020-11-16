@@ -47,6 +47,15 @@ MOS_STATUS CodechalEncodeSwScoreboard::AllocateResources()
         allocParamsForBuffer2D.dwWidth  = m_surfaceParams.swScoreboardSurfaceWidth;
         allocParamsForBuffer2D.dwHeight = m_surfaceParams.swScoreboardSurfaceHeight;
         allocParamsForBuffer2D.pBufName = "SW scoreboard init Buffer";
+
+        MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+        if (MEDIA_IS_WA(waTable, WaForceAllocateLML4))
+        {
+            // If L4-PCIe WA is enabled, allocate in device memory
+            // And do not let CPU write to device memory later below
+            allocParamsForBuffer2D.dwMemType = MOS_MEMPOOL_DEVICEMEMORY;
+        }
+
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
             m_osInterface,
             &allocParamsForBuffer2D,
@@ -56,29 +65,32 @@ MOS_STATUS CodechalEncodeSwScoreboard::AllocateResources()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface,
             &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex]));
 
-        MOS_LOCK_PARAMS lockFlagsWriteOnly;
-        MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
-        lockFlagsWriteOnly.WriteOnly = 1;
-
-        uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
-            m_osInterface,
-            &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].OsResource,
-            &lockFlagsWriteOnly);
-
-        if (pData == nullptr)
+        if (!MEDIA_IS_WA(waTable, WaForceAllocateLML4))
         {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock SW scoreboard init Buffer");
-            eStatus = MOS_STATUS_UNKNOWN;
-            return eStatus;
+            MOS_LOCK_PARAMS lockFlagsWriteOnly;
+            MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
+            lockFlagsWriteOnly.WriteOnly = 1;
+
+            uint8_t* pData = (uint8_t*)m_osInterface->pfnLockResource(
+                m_osInterface,
+                &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].OsResource,
+                &lockFlagsWriteOnly);
+
+            if (pData == nullptr)
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("Failed to Lock SW scoreboard init Buffer");
+                eStatus = MOS_STATUS_UNKNOWN;
+                return eStatus;
+            }
+
+            uint32_t size =
+                m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].dwPitch *
+                m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].dwHeight;
+            MOS_ZeroMemory(pData, size);
+
+            m_osInterface->pfnUnlockResource(
+                m_osInterface, &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].OsResource);
         }
-
-        uint32_t size =
-            m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].dwPitch *
-            m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].dwHeight;
-        MOS_ZeroMemory(pData, size);
-
-        m_osInterface->pfnUnlockResource(
-            m_osInterface, &m_surfaceParams.swScoreboardSurface[m_surfaceParams.surfaceIndex].OsResource);
     }
 
     return eStatus;

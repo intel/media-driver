@@ -521,6 +521,9 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    uint32_t memType = (MEDIA_IS_WA(waTable, WaForceAllocateLML4)) ? MOS_MEMPOOL_DEVICEMEMORY : 0;
+
     // early exit if already allocated
     if ((m_trackedBufCurrDs4x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds4xSurface, m_trackedBufCurrIdx)))
     {
@@ -568,7 +571,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
 
     // allocating 4x DS surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs4x = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xSurface, "ds4xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+                                        m_standard, downscaledSurfaceWidth4x, downscaledSurfaceHeight4x, ds4xSurface, "ds4xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y, memType));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs4x));
 
@@ -576,7 +579,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
     if (m_encoder->m_16xMeSupported)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs16x = (MOS_SURFACE*)m_allocator->AllocateResource(
-            m_standard, downscaledSurfaceWidth16x, downscaledSurfaceHeight16x, ds16xSurface, "ds16xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+                                            m_standard, downscaledSurfaceWidth16x, downscaledSurfaceHeight16x, ds16xSurface, "ds16xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y, memType));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs16x));
     }
@@ -585,7 +588,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceDS()
     if (m_encoder->m_32xMeSupported)
     {
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs32x = (MOS_SURFACE*)m_allocator->AllocateResource(
-            m_standard, downscaledSurfaceWidth32x, downscaledSurfaceHeight32x, ds32xSurface, "ds32xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y));
+                                            m_standard, downscaledSurfaceWidth32x, downscaledSurfaceHeight32x, ds32xSurface, "ds32xSurface", m_trackedBufCurrIdx, false, Format_NV12, MOS_TILE_Y, memType));
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs32x));
     }
@@ -627,6 +630,9 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurface2xDS()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    uint32_t memType = (MEDIA_IS_WA(waTable, WaForceAllocateLML4)) ? MOS_MEMPOOL_DEVICEMEMORY : 0;
+
     // early exit if already allocated
     if ((m_trackedBufCurrDs2x = (MOS_SURFACE*)m_allocator->GetResource(m_standard, ds2xSurface, m_trackedBufCurrIdx)))
     {
@@ -655,7 +661,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurface2xDS()
 
     // allocate 2x DS surface
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrDs2x = (MOS_SURFACE*)m_allocator->AllocateResource(
-        m_standard, surfaceWidth, surfaceHeight, ds2xSurface, "ds2xSurface", m_trackedBufCurrIdx, false, format, MOS_TILE_Y));
+                                        m_standard, surfaceWidth, surfaceHeight, ds2xSurface, "ds2xSurface", m_trackedBufCurrIdx, false, format, MOS_TILE_Y, memType));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, m_trackedBufCurrDs2x));
 

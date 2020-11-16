@@ -53,6 +53,10 @@ CodechalKernelHme::~CodechalKernelHme()
 MOS_STATUS CodechalKernelHme::AllocateResources()
 {
     MOS_ALLOC_GFXRES_PARAMS allocParamsForBuffer2D;
+
+    MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    uint32_t memType = (MEDIA_IS_WA(waTable, WaForceAllocateLML4)) ? MOS_MEMPOOL_DEVICEMEMORY : 0;
+
     PMOS_SURFACE allocSurface = nullptr;
     if (m_4xMeSupported)
     {
@@ -74,6 +78,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
         allocParamsForBuffer2D.dwWidth  = allocSurface->dwWidth;
         allocParamsForBuffer2D.dwHeight = allocSurface->dwHeight;
         allocParamsForBuffer2D.pBufName = "4xME MV Data Buffer";
+        allocParamsForBuffer2D.dwMemType = memType;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface(&allocParamsForBuffer2D, allocSurface, SurfaceId::me4xMvDataBuffer));
 
@@ -96,6 +101,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
             allocParamsForBuffer2D.dwWidth  = allocSurface->dwWidth;
             allocParamsForBuffer2D.dwHeight = allocSurface->dwHeight;
             allocParamsForBuffer2D.pBufName = "4xME Distortion Buffer";
+            allocParamsForBuffer2D.dwMemType = memType;
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface(&allocParamsForBuffer2D, allocSurface, SurfaceId::me4xDistortionBuffer));
         }
@@ -117,6 +123,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
         allocParamsForBuffer2D.dwWidth  = allocSurface->dwWidth;
         allocParamsForBuffer2D.dwHeight = allocSurface->dwHeight;
         allocParamsForBuffer2D.pBufName = "16xME MV Data Buffer";
+        allocParamsForBuffer2D.dwMemType = memType;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface(&allocParamsForBuffer2D, allocSurface, SurfaceId::me16xMvDataBuffer));
     }
@@ -137,6 +144,7 @@ MOS_STATUS CodechalKernelHme::AllocateResources()
         allocParamsForBuffer2D.dwWidth  = allocSurface->dwWidth;
         allocParamsForBuffer2D.dwHeight = allocSurface->dwHeight;
         allocParamsForBuffer2D.pBufName = "32xME MV Data Buffer";
+        allocParamsForBuffer2D.dwMemType = memType;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurface(&allocParamsForBuffer2D, allocSurface, SurfaceId::me32xMvDataBuffer));
 
@@ -384,7 +392,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
             bool    refBottomField = (CodecHal_PictureIsBottomField(refPic)) ? 1 : 0;
             uint8_t refPicIdx      = m_surfaceParam.picIdx[refPic.FrameIdx].ucPicIdx;
             uint8_t scaledIdx      = m_surfaceParam.refList[refPicIdx]->ucScalingIdx;
-            
+
             if (m_32xMeInUse)
             {
                 MOS_SURFACE* p32xSurface = m_encoder->m_trackedBuf->Get32xDsSurface(scaledIdx);

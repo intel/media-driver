@@ -49,6 +49,9 @@ MOS_STATUS CodechalEncodeCscDsG12::AllocateSurfaceCsc()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncodeCscDs::AllocateSurfaceCsc());
 
+    MEDIA_WA_TABLE* waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+    uint32_t memType = (MEDIA_IS_WA(waTable, WaForceAllocateLML4)) ? MOS_MEMPOOL_DEVICEMEMORY : 0;
+
     // allocate the MbStats surface
     if (Mos_ResourceIsNull(&m_resMbStatsBuffer))
     {
@@ -62,6 +65,7 @@ MOS_STATUS CodechalEncodeCscDsG12::AllocateSurfaceCsc()
         allocParamsForBufferLinear.dwBytes = m_hwInterface->m_avcMbStatBufferSize =
             MOS_ALIGN_CEIL((alignedWidth * alignedHeight << 6) , 1024);
         allocParamsForBufferLinear.pBufName = "MB Statistics Buffer";
+        allocParamsForBufferLinear.dwMemType = memType;
 
         CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
             m_osInterface,
@@ -291,7 +295,7 @@ MOS_STATUS CodechalEncodeCscDsG12::SetKernelParamsCsc(KernelParams* params)
     }
     else
     {
-        // do 16x/32x downscaling      
+        // do 16x/32x downscaling
         m_curbeParams.bConvertFlag = false;
         mbStatsSurface = nullptr;
 
@@ -302,7 +306,7 @@ MOS_STATUS CodechalEncodeCscDsG12::SetKernelParamsCsc(KernelParams* params)
             m_curbeParams.downscaleStage = dsStage16x;
             inputFrameWidth = m_encoder->m_downscaledWidth4x << 2;
             inputFrameHeight = m_encoder->m_downscaledHeight4x << 2;
-            
+
             inputSurface = m_encoder->m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output4xDsSurface = m_encoder->m_trackedBuf->Get16xDsSurface(CODEC_CURR_TRACKED_BUFFER);
             output2xDsSurface = nullptr;
