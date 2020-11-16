@@ -128,7 +128,38 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     scalingParams.pColorFillParams          = nullptr;
     scalingParams.pCompAlpha                = nullptr;
     scalingParams.colorSpaceOutput          = sfcParam.output.colorSpace;
-    scalingParams.interlacedScalingType     = sfcParam.videoParams.isFieldToInterlaved ? ISCALING_FIELD_TO_INTERLEAVED : ISCALING_NONE;
+    scalingParams.interlacedScalingType     = sfcParam.videoParams.fieldParams.isFieldToInterlaved ? ISCALING_FIELD_TO_INTERLEAVED : ISCALING_NONE;
+    if (sfcParam.videoParams.fieldParams.isFieldToInterlaved)
+    {
+        scalingParams.srcSampleType             = sfcParam.videoParams.fieldParams.isBottomField ? SAMPLE_SINGLE_BOTTOM_FIELD : SAMPLE_SINGLE_TOP_FIELD;
+        if (sfcParam.videoParams.fieldParams.isBottomField)
+        {
+            if (sfcParam.videoParams.fieldParams.isBottomFirst)
+            {
+                scalingParams.dstSampleType = SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD;
+            }
+            else
+            {
+                scalingParams.dstSampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD;
+            }
+        }
+        else
+        {
+            if (sfcParam.videoParams.fieldParams.isBottomFirst)
+            {
+                scalingParams.dstSampleType = SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD;
+            }
+            else
+            {
+                scalingParams.dstSampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
+            }
+        }
+    }
+    else
+    {
+        scalingParams.srcSampleType = SAMPLE_PROGRESSIVE;
+        scalingParams.dstSampleType = SAMPLE_PROGRESSIVE;
+    }
 
     m_scalingFilter->Init(sfcParam.videoParams.codecStandard, sfcParam.videoParams.jpeg.jpegChromaType);
     m_scalingFilter->SetExecuteEngineCaps(scalingParams, vpExecuteCaps);

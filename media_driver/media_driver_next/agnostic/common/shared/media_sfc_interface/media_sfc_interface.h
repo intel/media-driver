@@ -68,6 +68,14 @@ struct SCALABILITY_PARAMS
     uint32_t            dstEndX     = 0;                //!< Output surface column horizontal end position in pixel
 };
 
+struct FIELD_PARAMS
+{
+    bool isFieldToInterlaved    = false;                //!< true if input being field frame and output being interlaved frame.
+    bool isBottomField          = false;                //!< true if input frame being bottom field. Valid only when true == isFieldToInterlaved.
+    bool isBottomFirst          = false;                //!< true if output frame being interlaved frame with bottom first.
+                                                        //!< Valid only when true == isFieldToInterlaved.
+};
+
 struct VIDEO_PARAMS
 {
     CODECHAL_STANDARD   codecStandard;
@@ -95,7 +103,7 @@ struct VIDEO_PARAMS
         } av1;
     };
 
-    bool isFieldToInterlaved = false;
+    FIELD_PARAMS fieldParams = {};
 
     // scalability parameters
     SCALABILITY_PARAMS scalabilityParams = {};
