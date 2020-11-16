@@ -2309,7 +2309,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::GenericEncodePictureLevel(PCODECHAL_ENCODE_A
     {
         //Set MFX_AVC_IMG_STATE command
         MHW_VDBOX_AVC_IMG_PARAMS imageStateParams;
-        imageStateParams.ucCurrPass = m_currPass;
+        imageStateParams.currPass = m_currPass;
         imageStateParams.pEncodeAvcPicParams = m_avcPicParam;
         imageStateParams.pEncodeAvcSeqParams = m_avcSeqParam;
         imageStateParams.pEncodeAvcSliceParams = m_avcSliceParams;

@@ -173,14 +173,14 @@ public:
     //!
     //! \return   Pass number
     //!
-    virtual uint8_t GetPassNum() { return m_scalability->GetPassNumber(); }
+    virtual uint16_t GetPassNum() { return m_scalability->GetPassNumber(); }
 
     //!
     //! \brief    Help function to get current pass
     //!
     //! \return   Pass index
     //!
-    virtual uint8_t GetCurrentPass() { return m_scalability->GetCurrentPass(); }
+    virtual uint16_t GetCurrentPass() { return m_scalability->GetCurrentPass(); }
 
     //!
     //! \brief    Help function to check if current PAK pass is first pass

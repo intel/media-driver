@@ -120,7 +120,7 @@ MOS_STATUS MediaPipeline::RegisterPacket(uint32_t packetId, MediaPacket *packet)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit, uint8_t pass, uint8_t pipe, uint8_t pipeNum, uint8_t subPass, uint8_t rowNum)
+MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit, uint16_t pass, uint8_t pipe, uint8_t pipeNum, uint8_t subPass, uint8_t rowNum)
 {
     auto iter = m_packetList.find(packetId);
     if (iter == m_packetList.end())

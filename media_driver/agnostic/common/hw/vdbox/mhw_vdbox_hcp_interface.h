@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -60,7 +60,7 @@ struct MHW_VDBOX_HEVC_PIC_STATE
     bool                                    bTransformSkipEnable = false;
 
     //FEI multiple passes PAK ---max frame size
-    uint8_t                                 currPass = 0;
+    uint16_t                                currPass = 0;
     uint8_t                                *deltaQp = nullptr;
     uint32_t                                maxFrameSize = 0;
     virtual ~MHW_VDBOX_HEVC_PIC_STATE(){}

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -121,7 +121,7 @@ namespace decode
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        uint8_t CalcNumPass(const CodecAv1PicParams &picParams, CodecAv1TileParams *tileParams);
+        uint16_t CalcNumPass(const CodecAv1PicParams& picParams, CodecAv1TileParams* tileParams);
 
         //!
         //! \brief    Calculate upscaled Convolve Step and offset

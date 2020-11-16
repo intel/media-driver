@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -522,6 +522,17 @@ MOS_STATUS DecodeAllocator::UpdateResoreceUsageType(
     DECODE_CHK_NULL(m_allocator);
 
     return (m_allocator->UpdateResourceUsageType(osResource, static_cast<MOS_HW_RESOURCE_DEF>(resUsageType)));
+}
+
+MOS_STATUS DecodeAllocator::RegisterResource(PMOS_RESOURCE osResource)
+{
+    DECODE_CHK_NULL(osResource);
+
+    return(m_osInterface->pfnRegisterResource(
+            m_osInterface,
+            osResource,
+            false,
+            false));
 }
 
 ResourceUsage DecodeAllocator::ConvertGmmResourceUsage(const GMM_RESOURCE_USAGE_TYPE gmmResUsage)

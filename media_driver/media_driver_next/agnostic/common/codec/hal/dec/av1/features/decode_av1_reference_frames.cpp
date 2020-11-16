@@ -111,7 +111,7 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        if (frameIndex >= CODECHAL_MAX_DPB_NUM_AV1)
+        if (frameIndex > CODECHAL_MAX_DPB_NUM_AV1)
         {
             DECODE_ASSERTMESSAGE("Invalid reference frame index");
             return nullptr;
@@ -154,6 +154,27 @@ namespace decode
 
         return &(m_basicFeature->m_destSurface.OsResource);
     }
+
+    MOS_STATUS Av1ReferenceFrames::InsertAnchorFrame(CodecAv1PicParams & picParams)
+    {
+        DECODE_FUNC_CALL();
+
+        DECODE_CHK_COND(((!picParams.m_picInfoFlags.m_fields.m_largeScaleTile && (picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_AV1)) ||
+                            picParams.m_picInfoFlags.m_fields.m_largeScaleTile && (picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_LST_AV1)),
+            "Invalid frame index of current frame");
+        m_currRefList = m_refList[picParams.m_currPic.FrameIdx];
+
+        DECODE_CHK_STATUS(m_allocator->RegisterResource(&m_basicFeature->m_destSurface.OsResource));
+
+        m_currRefList->resRefPic        = m_basicFeature->m_destSurface.OsResource;
+        m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1;  //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
+        m_currRefList->m_frameHeight    = picParams.m_superResUpscaledHeightMinus1 + 1;
+        m_currRefList->m_miCols         = MOS_ALIGN_CEIL(picParams.m_frameWidthMinus1 + 1, 8) >> av1MiSizeLog2;
+        m_currRefList->m_miRows         = MOS_ALIGN_CEIL(picParams.m_frameHeightMinus1 + 1, 8) >> av1MiSizeLog2;          
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1ReferenceFrames::UpdateCurResource(const PCODEC_REF_LIST_AV1 pCurRefList)
     {
         DECODE_FUNC_CALL();

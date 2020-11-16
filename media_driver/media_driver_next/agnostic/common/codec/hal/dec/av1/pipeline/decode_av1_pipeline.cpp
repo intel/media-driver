@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -127,7 +127,7 @@ MOS_STATUS Av1Pipeline::ActivateDecodePackets()
         immediateSubmit = false;
     }
 
-    for (uint8_t curPass = 0; curPass < GetPassNum(); curPass++)
+    for (uint16_t curPass = 0; curPass < GetPassNum(); curPass++)
     {
         DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(this, av1DecodePacketId), immediateSubmit, curPass, 0));
     }

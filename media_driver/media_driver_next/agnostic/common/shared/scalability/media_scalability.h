@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -226,19 +226,19 @@ public:
     //! \brief  Get pass number
     //! \return Pass number
     //!
-    uint8_t GetPassNumber() { return m_passNum; };
+    uint16_t GetPassNumber() { return m_passNum; };
 
     //!
     //! \brief  Get current pass
     //! \return Current pass index
     //!
-    uint8_t GetCurrentPass() { return m_currentPass; };
+    uint16_t GetCurrentPass() { return m_currentPass; };
 
     //!
     //! \brief  Set pass number
     //! \return void
     //!
-    void SetPassNumber(uint8_t num) { m_passNum = num; };
+    void SetPassNumber(uint16_t num) { m_passNum = num; };
 
     //!
     //! \brief  Set pass index
@@ -321,10 +321,10 @@ protected:
     virtual MOS_STATUS VerifySpaceAvailable(uint32_t requestedSize, uint32_t requestedPatchListSize, bool &singleTaskPhaseSupportedInPak);
 
     uint8_t m_currentPipe = 0;  //!< Current pipe index
-    uint8_t m_currentPass = 0;  //!< Current pass index
+    uint16_t m_currentPass = 0;  //!< Current pass index
 
     uint8_t m_pipeNum                  = 1;     //!< Pipe number
-    uint8_t m_passNum                  = 1;     //!< Pass number
+    uint16_t m_passNum                 = 1;     //!< Pass number
     bool    m_singleTaskPhaseSupported = true;  //!< Indicate if single task phase is supported
     uint8_t m_pipeIndexForSubmit       = 0;     //!< Pipe index to submit cmdbuffer
 

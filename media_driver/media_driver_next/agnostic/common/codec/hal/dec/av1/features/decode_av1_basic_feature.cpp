@@ -118,6 +118,12 @@ namespace decode
                                                                 >> (m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? 7 : 6)) - 1;
         }
 
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile && m_av1PicParams->m_anchorFrameInsertion)
+        {
+            DECODE_CHK_STATUS(m_refFrames.InsertAnchorFrame(*m_av1PicParams));
+            return MOS_STATUS_SUCCESS;
+        }
+
         m_av1TileParams = static_cast<CodecAv1TileParams*>(decodeParams->m_sliceParams);
         DECODE_CHK_NULL(m_av1TileParams);
 

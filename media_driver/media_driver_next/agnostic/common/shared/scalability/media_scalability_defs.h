@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -111,7 +111,7 @@ class MediaStatusReport;
 struct StateParams
 {
     uint8_t            currentPipe = 0;
-    uint8_t            currentPass = 0;
+    uint16_t           currentPass = 0;
     uint8_t            currentRow = 0;
     uint8_t            currentSubPass = 0;
     uint8_t            pipeIndexForSubmit = 0;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -442,6 +442,19 @@ public:
     MOS_STATUS UpdateResoreceUsageType(
         PMOS_RESOURCE osResource,
         ResourceUsage resUsageType);
+
+    //!
+    //! \brief    Registers Resource
+    //! \details  Get the Allocation Index from UMD Context and set into OS
+    //!           resource structure
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] Pointer to OS Interface
+    //! \param    PMOS_RESOURCE pOsResource
+    //!           [in/out] Pointer to OS Resource
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS RegisterResource(PMOS_RESOURCE osResource);
 
     //!
     //! \brief    Convert from GMM usage type of resource to MOS_HW_RESOURCE_DEF

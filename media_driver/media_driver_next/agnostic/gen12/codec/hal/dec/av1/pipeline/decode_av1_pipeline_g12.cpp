@@ -141,6 +141,18 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
+        if (m_pipeMode == decodePipeModeBegin)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        DECODE_CHK_NULL(basicFeature);
+        if (basicFeature->m_av1PicParams->m_anchorFrameInsertion)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
         if (m_pipeMode == decodePipeModeProcess)
         {
             DECODE_CHK_STATUS(m_preSubPipeline->Execute());

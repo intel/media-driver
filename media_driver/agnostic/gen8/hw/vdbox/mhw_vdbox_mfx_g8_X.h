@@ -931,7 +931,7 @@ protected:
 
         cmd.DW4.Loadslicepointerflag = 0;
         cmd.DW4.Mbstatenabled = 0; // Disable for the first pass
-        if (params->dwMaxFrameSize > 0 && params->pDeltaQp && params->ucCurrPass)
+        if (params->dwMaxFrameSize > 0 && params->pDeltaQp && params->currPass)
         {
             cmd.DW4.Mbstatenabled = 1;
         }
@@ -946,7 +946,7 @@ protected:
         cmd.DW5.Nonfirstpassflag = 0;
         cmd.DW5.TrellisQuantizationChromaDisableTqchromadisable = true;
 
-        if (params->dwMaxFrameSize && params->ucCurrPass)
+        if (params->dwMaxFrameSize && params->currPass)
         {
             cmd.DW5.Nonfirstpassflag = 1;
         }
@@ -997,7 +997,7 @@ protected:
             cmd.DW8.Slicedeltaqppmax0 =
                 cmd.DW8.Slicedeltaqpmax1 =
                 cmd.DW8.Slicedeltaqpmax2 =
-                cmd.DW8.Slicedeltaqpmax3 = params->pDeltaQp[params->ucCurrPass];
+                cmd.DW8.Slicedeltaqpmax3 = params->pDeltaQp[params->currPass];
             cmd.DW10.Framebitratemaxunit = 0;
             cmd.DW10.Framebitratemaxunitmode = 0;
             //when FrameBitrateMaxUnit & FrameBitrateMaxUnitMode both are 0, the frame size unit is 128bytes.

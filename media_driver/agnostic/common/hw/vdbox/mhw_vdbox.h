@@ -408,7 +408,7 @@ struct MHW_VDBOX_AVC_IMG_PARAMS
     uint8_t                                 ucKernelMode = 0;     // normal, performance, quality.
 
     //FEI multiple passes PAK ---max frame size
-    uint8_t                                 ucCurrPass = 0;
+    uint16_t                                currPass = 0;
     uint8_t                                *pDeltaQp = nullptr;
     uint32_t                                dwMaxFrameSize = 0;
 

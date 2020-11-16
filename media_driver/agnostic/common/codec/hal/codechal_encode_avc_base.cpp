@@ -3404,7 +3404,7 @@ void CodechalEncodeAvcBase::SetMfxQmStateParams(MHW_VDBOX_QM_PARAMS &qmParams, M
 void CodechalEncodeAvcBase::SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS &param)
 {
     param                            = {};
-    param.ucCurrPass                 = m_currPass;
+    param.currPass                   = m_currPass;
     param.pEncodeAvcPicParams        = m_avcPicParam;
     param.pEncodeAvcSeqParams        = m_avcSeqParam;
     param.pEncodeAvcSliceParams      = m_avcSliceParams;

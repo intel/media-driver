@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -230,11 +230,11 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    uint8_t Av1DecodeTile::CalcNumPass(const CodecAv1PicParams &picParams, CodecAv1TileParams *tileParams)
+    uint16_t Av1DecodeTile::CalcNumPass(const CodecAv1PicParams &picParams, CodecAv1TileParams *tileParams)
     {
         DECODE_FUNC_CALL();
 
-        uint8_t m_passNum;
+        uint16_t m_passNum;
         uint16_t startTile = m_lastTileId + 1;//record before parsing new bitstream portion
 
         DECODE_CHK_STATUS(ParseTileInfo(picParams, tileParams));

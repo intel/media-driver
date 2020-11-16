@@ -178,7 +178,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS ActivatePacket(uint32_t packetId, bool immediateSubmit, uint8_t pass, uint8_t pipe, uint8_t pipeNum = 1, uint8_t subPass = 0, uint8_t rowNum = 0);
+    MOS_STATUS ActivatePacket(uint32_t packetId, bool immediateSubmit, uint16_t pass, uint8_t pipe, uint8_t pipeNum = 1, uint8_t subPass = 0, uint8_t rowNum = 0);
 
     //!
     //! \brief  Activate packet and add it to active packet list
