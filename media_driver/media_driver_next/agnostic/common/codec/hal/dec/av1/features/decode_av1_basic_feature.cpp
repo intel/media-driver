@@ -80,13 +80,6 @@ namespace decode
             }
         }
 
-        if (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)
-            m_av1DepthIndicator = 0;
-        if (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS)
-            m_av1DepthIndicator = 1;
-        if (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS)
-            m_av1DepthIndicator = 2;
-
         DECODE_CHK_STATUS(m_refFrames.Init(this, *m_allocator));
         DECODE_CHK_STATUS(m_tempBuffers.Init(*m_hwInterface, *m_allocator, *this, CODEC_NUM_REF_AV1_TEMP_BUFFERS));
         DECODE_CHK_STATUS(m_tileCoding.Init(this, codecSettings));
@@ -108,6 +101,10 @@ namespace decode
         DECODE_CHK_NULL(m_av1PicParams);
 
         m_pictureCodingType = m_av1PicParams->m_picInfoFlags.m_fields.m_frameType ? P_TYPE : I_TYPE;
+
+        if (m_av1PicParams->m_bitDepthIdx == 0) m_av1DepthIndicator = 0;
+        if (m_av1PicParams->m_bitDepthIdx == 1) m_av1DepthIndicator = 1;
+        if (m_av1PicParams->m_bitDepthIdx == 2) m_av1DepthIndicator = 2;
 
         // Derive Large Scale Tile output frame width/height
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile &&
