@@ -50,6 +50,14 @@ typedef struct mos_linux_context MOS_LINUX_CONTEXT;
 typedef struct mos_bufmgr MOS_BUFMGR;
 
 #include "mos_os_specific.h"
+
+#define MEMZONE_SYS_START     (1ull << 16)
+#define MEMZONE_DEVICE_START  (1ull << 40)
+#define MEMZONE_TOTAL         (1ull << 48)
+#define PAGE_SIZE_64K         (1ull << 16)
+#define PAGE_SIZE_4G          (1ull << 32)
+#define ARRAY_INIT_SIZE       5
+
 struct mos_linux_context {
     unsigned int ctx_id;
     struct mos_bufmgr *bufmgr;
@@ -186,10 +194,10 @@ int mos_bo_flink(struct mos_linux_bo *bo, uint32_t * name);
 int mos_bo_busy(struct mos_linux_bo *bo);
 int mos_bo_madvise(struct mos_linux_bo *bo, int madv);
 int mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable);
-void mos_bo_set_exec_object_async(struct mos_linux_bo *bo);
-void mos_bo_clear_exec_object_async(struct mos_linux_bo *bo);
-int mos_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset);
+void mos_bo_set_object_async(struct mos_linux_bo *bo);
+void mos_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
 int mos_bo_set_softpin(struct mos_linux_bo *bo);
+int mos_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag);
 
 int mos_bo_disable_reuse(struct mos_linux_bo *bo);
 int mos_bo_is_reusable(struct mos_linux_bo *bo);
@@ -203,6 +211,7 @@ struct mos_linux_bo *mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
                         unsigned int handle);
 void mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_enable_fenced_relocs(struct mos_bufmgr *bufmgr);
+void mos_bufmgr_gem_enable_softpin(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_gem_set_vma_cache_size(struct mos_bufmgr *bufmgr,
                          int limit);
 int mos_bufmgr_gem_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length);

@@ -155,11 +155,19 @@ struct mos_bufmgr_gem {
         uint32_t handle;
     } userptr_active;
 
+    // manage address for softpin buffer object
+    uint64_t head_offset;
+    bool use_softpin;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
 
 struct mos_reloc_target {
+    struct mos_linux_bo *bo;
+    int flags;
+};
+
+struct mos_softpin_target {
     struct mos_linux_bo *bo;
     int flags;
 };
@@ -203,7 +211,7 @@ struct mos_bo_gem {
     /** Number of entries in relocs */
     int reloc_count;
     /** Array of BOs that are referenced by this buffer and will be softpinned */
-    struct mos_linux_bo **softpin_target;
+    struct mos_softpin_target *softpin_target;
     /** Number softpinned BOs that are referenced by this buffer */
     int softpin_target_count;
     /** Maximum amount of softpinned BOs that are referenced by this buffer */
@@ -441,7 +449,7 @@ mos_gem_dump_validation_list(struct mos_bufmgr_gem *bufmgr_gem)
         }
 
         for (j = 0; j < bo_gem->softpin_target_count; j++) {
-            struct mos_linux_bo *target_bo = bo_gem->softpin_target[j];
+            struct mos_linux_bo *target_bo = bo_gem->softpin_target[j].bo;
             struct mos_bo_gem *target_gem =
                 (struct mos_bo_gem *) target_bo;
             MOS_DBG("%2d: %d %s(%s) -> "
@@ -584,6 +592,112 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
     bufmgr_gem->exec2_objects[index].rsvd1 = 0;
     bufmgr_gem->exec2_objects[index].pad_to_size = bo_gem->pad_to_size;
     bufmgr_gem->exec2_objects[index].rsvd2 = 0;
+    bufmgr_gem->exec_count++;
+}
+
+static void
+mos_add_reloc_objects(struct mos_reloc_target reloc_target)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)reloc_target.bo->bufmgr;
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)reloc_target.bo;
+    int index;
+    struct drm_i915_gem_exec_object2 *exec2_objects;
+    struct mos_linux_bo **exec_bos;
+
+    if (bo_gem->validate_index != -1) {
+        bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= reloc_target.flags;
+        return;
+    }
+
+    /* Extend the array of validation entries as necessary. */
+    if (bufmgr_gem->exec_count == bufmgr_gem->exec_size) {
+        int new_size = bufmgr_gem->exec_size * 2;
+
+        if (new_size == 0)
+            new_size = 5;
+        exec2_objects = (struct drm_i915_gem_exec_object2 *)
+                realloc(bufmgr_gem->exec2_objects,
+                    sizeof(*bufmgr_gem->exec2_objects) * new_size);
+        if (!exec2_objects)
+            return;
+
+        bufmgr_gem->exec2_objects = exec2_objects;
+
+        exec_bos = (struct mos_linux_bo **)realloc(bufmgr_gem->exec_bos,
+                sizeof(*bufmgr_gem->exec_bos) * new_size);
+        if (!exec_bos)
+            return;
+
+        bufmgr_gem->exec_bos = exec_bos;
+        bufmgr_gem->exec_size = new_size;
+    }
+
+    index = bufmgr_gem->exec_count;
+    bo_gem->validate_index = index;
+    /* Fill in array entry */
+    bufmgr_gem->exec2_objects[index].handle           = bo_gem->gem_handle;
+    bufmgr_gem->exec2_objects[index].relocation_count = bo_gem->reloc_count;
+    bufmgr_gem->exec2_objects[index].relocs_ptr       = (uintptr_t)bo_gem->relocs;
+    bufmgr_gem->exec2_objects[index].alignment        = reloc_target.bo->align;
+    bufmgr_gem->exec2_objects[index].offset           = 0;
+    bufmgr_gem->exec_bos[index]                       = reloc_target.bo;
+    bufmgr_gem->exec2_objects[index].flags            = reloc_target.flags;
+    bufmgr_gem->exec2_objects[index].rsvd1            = 0;
+    bufmgr_gem->exec2_objects[index].pad_to_size      = bo_gem->pad_to_size;
+    bufmgr_gem->exec2_objects[index].rsvd2            = 0;
+    bufmgr_gem->exec_count++;
+}
+
+static void
+mos_add_softpin_objects(struct mos_softpin_target softpin_target)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)softpin_target.bo->bufmgr;
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)softpin_target.bo;
+    int index;
+    struct drm_i915_gem_exec_object2 *exec2_objects;
+    struct mos_linux_bo **exec_bos;
+
+    if (bo_gem->validate_index != -1) {
+        bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= softpin_target.flags;
+        return;
+    }
+
+    /* Extend the array of validation entries as necessary. */
+    if (bufmgr_gem->exec_count == bufmgr_gem->exec_size) {
+        int new_size = bufmgr_gem->exec_size * 2;
+
+        if (new_size == 0)
+            new_size = 5;
+        exec2_objects = (struct drm_i915_gem_exec_object2 *)
+                realloc(bufmgr_gem->exec2_objects,
+                    sizeof(*bufmgr_gem->exec2_objects) * new_size);
+        if (!exec2_objects)
+            return;
+
+        bufmgr_gem->exec2_objects = exec2_objects;
+
+        exec_bos = (struct mos_linux_bo **)realloc(bufmgr_gem->exec_bos,
+                sizeof(*bufmgr_gem->exec_bos) * new_size);
+        if (!exec_bos)
+            return;
+
+        bufmgr_gem->exec_bos = exec_bos;
+        bufmgr_gem->exec_size = new_size;
+    }
+
+    index = bufmgr_gem->exec_count;
+    bo_gem->validate_index = index;
+    /* Fill in array entry */
+    bufmgr_gem->exec2_objects[index].handle           = bo_gem->gem_handle;
+    bufmgr_gem->exec2_objects[index].relocation_count = bo_gem->reloc_count;
+    bufmgr_gem->exec2_objects[index].relocs_ptr       = (uintptr_t)bo_gem->relocs;
+    bufmgr_gem->exec2_objects[index].alignment        = softpin_target.bo->align;
+    bufmgr_gem->exec2_objects[index].offset           = softpin_target.bo->offset64;
+    bufmgr_gem->exec2_objects[index].flags            = softpin_target.flags;
+    bufmgr_gem->exec2_objects[index].pad_to_size      = bo_gem->pad_to_size;
+    bufmgr_gem->exec2_objects[index].rsvd1            = 0;
+    bufmgr_gem->exec2_objects[index].rsvd2            = 0;
+    bufmgr_gem->exec_bos[index]                       = softpin_target.bo;
     bufmgr_gem->exec_count++;
 }
 
@@ -867,6 +981,11 @@ retry:
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, alignment);
+
+    if (bufmgr_gem->use_softpin)
+    {
+        mos_bo_set_softpin(&bo_gem->bo);
+    }
 
     MOS_DBG("bo_create: buf %d (%s) %ldb\n",
         bo_gem->gem_handle, bo_gem->name, size);
@@ -1300,7 +1419,7 @@ mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time)
         }
     }
     for (i = 0; i < bo_gem->softpin_target_count; i++)
-        mos_gem_bo_unreference_locked_timed(bo_gem->softpin_target[i],
+        mos_gem_bo_unreference_locked_timed(bo_gem->softpin_target[i].bo,
                                   time);
     bo_gem->reloc_count = 0;
     bo_gem->used_as_reloc_target = false;
@@ -2184,7 +2303,6 @@ do_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     struct mos_bo_gem *target_bo_gem = (struct mos_bo_gem *) target_bo;
-    bool fenced_command;
 
     if (bo_gem->has_error)
         return -ENOMEM;
@@ -2193,11 +2311,6 @@ do_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
         bo_gem->has_error = true;
         return -ENOMEM;
     }
-
-    /* We never use HW fences for rendering on 965+ */
-    need_fence = false;
-
-    fenced_command = need_fence;
 
     /* Create a new relocation list if needed */
     if (bo_gem->relocs == nullptr && mos_setup_reloc_list(bo))
@@ -2228,15 +2341,19 @@ do_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
         bo_gem->reloc_tree_fences += target_bo_gem->reloc_tree_fences;
     }
 
-    bo_gem->reloc_target_info[bo_gem->reloc_count].bo = target_bo;
+    int flags = 0;
+    if (target_bo_gem->pad_to_size)
+        flags |= EXEC_OBJECT_PAD_TO_SIZE;
+    if (target_bo_gem->use_48b_address_range)
+        flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
+    if (target_bo_gem->exec_async)
+        flags |= EXEC_OBJECT_ASYNC;
+
     if (target_bo != bo)
         mos_gem_bo_reference(target_bo);
-    if (fenced_command)
-        bo_gem->reloc_target_info[bo_gem->reloc_count].flags =
-            DRM_INTEL_RELOC_FENCE;
-    else
-        bo_gem->reloc_target_info[bo_gem->reloc_count].flags = 0;
 
+    bo_gem->reloc_target_info[bo_gem->reloc_count].bo = target_bo;
+    bo_gem->reloc_target_info[bo_gem->reloc_count].flags = flags;
     bo_gem->relocs[bo_gem->reloc_count].offset = offset;
     bo_gem->relocs[bo_gem->reloc_count].delta = target_offset;
     bo_gem->relocs[bo_gem->reloc_count].target_handle =
@@ -2257,14 +2374,31 @@ mos_gem_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable)
 }
 
 static void
-mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo)
+mos_gem_bo_set_object_async(struct mos_linux_bo *bo)
 {
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
     bo_gem->exec_async = true;
 }
 
+static void
+mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)
+{
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
+    struct mos_bo_gem *target_bo_gem = (struct mos_bo_gem *) target_bo;
+    int i;
+    for (i = 0; i < bo_gem->softpin_target_count; i++)
+    {
+        if (bo_gem->softpin_target[i].bo == target_bo)
+        {
+            bo_gem->softpin_target[i].flags |= EXEC_OBJECT_ASYNC;
+            break;
+        }
+    }
+}
+
 static int
-mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)
+mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
@@ -2287,14 +2421,26 @@ mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *targ
         if (new_size == 0)
             new_size = bufmgr_gem->max_relocs;
 
-        bo_gem->softpin_target = (struct mos_linux_bo **)realloc(bo_gem->softpin_target, new_size *
-                sizeof(struct mos_linux_bo *));
+        bo_gem->softpin_target = (struct mos_softpin_target *)realloc(bo_gem->softpin_target, new_size *
+                sizeof(struct mos_softpin_target));
         if (!bo_gem->softpin_target)
             return -ENOMEM;
 
         bo_gem->softpin_target_size = new_size;
     }
-    bo_gem->softpin_target[bo_gem->softpin_target_count] = target_bo;
+
+    int flags = EXEC_OBJECT_PINNED;
+    if (target_bo_gem->pad_to_size)
+        flags |= EXEC_OBJECT_PAD_TO_SIZE;
+    if (target_bo_gem->use_48b_address_range)
+        flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
+    if (target_bo_gem->exec_async)
+        flags |= EXEC_OBJECT_ASYNC;
+    if (write_flag)
+        flags |= EXEC_OBJECT_WRITE;
+
+    bo_gem->softpin_target[bo_gem->softpin_target_count].bo = target_bo;
+    bo_gem->softpin_target[bo_gem->softpin_target_count].flags = flags;
     mos_gem_bo_reference(target_bo);
     bo_gem->softpin_target_count++;
 
@@ -2319,14 +2465,10 @@ mos_gem_bo_emit_reloc(struct mos_linux_bo *bo, uint32_t offset,
                 uint32_t read_domains, uint32_t write_domain)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bo->bufmgr;
-    struct mos_bo_gem *target_bo_gem = (struct mos_bo_gem *)target_bo;
 
-    if (target_bo_gem->is_softpin)
-        return mos_gem_bo_add_softpin_target(bo, target_bo);
-    else
-        return do_bo_emit_reloc(bo, offset, target_bo, target_offset,
-                    read_domains, write_domain,
-                    !bufmgr_gem->fenced_relocs);
+    return do_bo_emit_reloc(bo, offset, target_bo, target_offset,
+                read_domains, write_domain,
+                !bufmgr_gem->fenced_relocs);
 }
 
 static int
@@ -2339,7 +2481,7 @@ mos_gem_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
 
     return do_bo_emit_reloc2(bo, offset, target_bo, target_offset,
                     read_domains, write_domain,
-                    !bufmgr_gem->fenced_relocs,
+                    false,
                     presumed_offset);
 }
 
@@ -2404,7 +2546,7 @@ mos_gem_bo_clear_relocs(struct mos_linux_bo *bo, int start)
     bo_gem->reloc_count = start;
 
     for (i = 0; i < bo_gem->softpin_target_count; i++) {
-        struct mos_bo_gem *target_bo_gem = (struct mos_bo_gem *) bo_gem->softpin_target[i];
+        struct mos_bo_gem *target_bo_gem = (struct mos_bo_gem *) bo_gem->softpin_target[i].bo;
         mos_gem_bo_unreference_locked_timed(&target_bo_gem->bo, time.tv_sec);
     }
     bo_gem->softpin_target_count = 0;
@@ -2472,7 +2614,7 @@ mos_gem_bo_process_reloc2(struct mos_linux_bo *bo)
     }
 
     for (i = 0; i < bo_gem->softpin_target_count; i++) {
-        struct mos_linux_bo *target_bo = bo_gem->softpin_target[i];
+        struct mos_linux_bo *target_bo = bo_gem->softpin_target[i].bo;
 
         if (target_bo == bo)
             continue;
@@ -2908,6 +3050,37 @@ mos_gem_bo_set_softpin_offset(struct mos_linux_bo *bo, uint64_t offset)
     return 0;
 }
 
+static int
+mos_gem_bo_set_softpin(MOS_LINUX_BO *bo)
+{
+    int ret = 0;
+    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
+    uint64_t offset = bufmgr_gem->head_offset;
+
+    // if offset is over 48b address range, return error
+    if (offset > 0xFFFFFFFFFFFF)
+    {
+        MOS_DBG("softpin failed: address over 48b range");
+        return -EINVAL;
+    }
+
+    if (!mos_gem_bo_is_softpin(bo))
+    {
+        // update the head_offset, need to be 64K aligned
+        bufmgr_gem->head_offset += MOS_ALIGN_CEIL(bo->size, 64*1024);
+
+        // softpin the BO to the given offset
+        ret = mos_gem_bo_set_softpin_offset(bo, offset);
+        if (ret == 0)
+        {
+            ret = mos_bo_use_48b_address_range(bo, 1);
+        }
+        return ret;
+    }
+
+    return ret;
+}
+
 struct mos_linux_bo *
 mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
 {
@@ -3286,9 +3459,9 @@ _mos_gem_bo_references(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo)
     }
 
     for (i = 0; i< bo_gem->softpin_target_count; i++) {
-        if (bo_gem->softpin_target[i] == target_bo)
+        if (bo_gem->softpin_target[i].bo == target_bo)
             return 1;
-        if (_mos_gem_bo_references(bo_gem->softpin_target[i], target_bo))
+        if (_mos_gem_bo_references(bo_gem->softpin_target[i].bo, target_bo))
             return 1;
     }
 
@@ -3878,12 +4051,17 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     gp.param = I915_PARAM_HAS_EXEC_SOFTPIN;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     if (ret == 0 && *gp.value > 0)
-        bufmgr_gem->bufmgr.bo_set_softpin_offset = mos_gem_bo_set_softpin_offset;
+    {
+        bufmgr_gem->bufmgr.bo_set_softpin        = mos_gem_bo_set_softpin;
+        bufmgr_gem->bufmgr.bo_add_softpin_target = mos_gem_bo_add_softpin_target;
+    }
 
     gp.param = I915_PARAM_HAS_EXEC_ASYNC;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-    if (ret == 0 && *gp.value > 0)
+    if (ret == 0 && *gp.value > 0){
+        bufmgr_gem->bufmgr.set_object_async = mos_gem_bo_set_object_async;
         bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
+    }
 
     gp.param = I915_PARAM_HAS_ALIASING_PPGTT;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
