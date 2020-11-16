@@ -25,7 +25,7 @@
 //! \details  Common interface used in Blitter Engine which are platform independent
 //!
 
-#include "media_blt.h"
+#include "media_blt_copy.h"
 
 //!
 //! \brief    BltState constructor

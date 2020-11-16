@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_blt.cpp
+//! \file     media_vebox_copy.cpp
 //! \brief    Common Copy interface and structure used in Vebox Engine
 //! \details  Common Copy interface and structure used in Vebox Engine
 #include "media_vebox_copy.h"

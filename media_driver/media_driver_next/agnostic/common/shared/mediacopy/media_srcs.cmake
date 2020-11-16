@@ -21,14 +21,14 @@
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_copy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_blt.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_copy.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_blt.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy.h
     ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy.h
 )
 

@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_blt.h
+//! \file     media_blt_copy.h
 //! \brief    Common interface and structure used in Blitter Engine
 //! \details  Common interface and structure used in Blitter Engine which are platform independent
 //!
-#ifndef __MEDIA_BLT_H__
-#define __MEDIA_BLT_H__
+#ifndef __MEDIA_BLT_COPY_H__
+#define __MEDIA_BLT_COPY_H__
 
 #include "media_interfaces_mhw.h"
 #include "mhw_blt.h"
@@ -128,4 +128,4 @@ public:
     MhwInterfaces::CreateParams params;
 };
 
-#endif // __VPHAL_BLT_H__
+#endif // __MEDIA_BLT_COPY_H__

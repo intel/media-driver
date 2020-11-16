@@ -29,7 +29,7 @@
 #define __MEDIA_COPY_M12_0_H__
 
 #include "media_copy.h"
-#include "media_blt.h"
+#include "media_blt_copy.h"
 
 class MediaCopyStateM12_0: public MediaCopyBaseState
 {
