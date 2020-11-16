@@ -52,6 +52,26 @@ GpuContextSpecificNext::GpuContextSpecificNext(
     {
         MOS_OS_NORMALMESSAGE("gpucontex reusing not enabled on Linux.");
     }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // get user engine instance setting from environment variable
+    char *engineInstances = getenv("INTEL_ENGINE_INSTANCE");
+    if (engineInstances != nullptr)
+    {
+        errno             = 0;
+        long int instance = strtol(engineInstances, nullptr, 16);
+        /* Check for various possible errors. */
+        if ((errno == ERANGE && instance == LONG_MAX) || (instance < 0))
+        {
+            MOS_OS_NORMALMESSAGE("Invalid INTEL_ENGINE_INSTANCE setting.(%s)\n", engineInstances);
+            m_engineInstanceSelect = 0x0;
+        }
+        else
+        {
+            m_engineInstanceSelect = (uint32_t)instance;
+        }
+    }
+#endif
 }
 
 GpuContextSpecificNext::~GpuContextSpecificNext()
@@ -140,7 +160,8 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
     if (streamState->ctxBasedScheduling)
     {
-        unsigned int nengine = 0;
+        bool         isEngineSelectEnable = false;
+        unsigned int nengine              = 0;
         struct i915_engine_class_instance *engine_map = nullptr;
 
         m_i915Context[0] = mos_gem_context_create_shared(osParameters->bufmgr,
@@ -222,6 +243,9 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                 return MOS_STATUS_UNKNOWN;
             }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+            isEngineSelectEnable = SelectEngineInstanceByUser(engine_map, &nengine, m_engineInstanceSelect, gpuNode);
+#endif
             if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
@@ -244,6 +268,9 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                 return MOS_STATUS_UNKNOWN;
             }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+            isEngineSelectEnable = SelectEngineInstanceByUser(engine_map, &nengine, m_engineInstanceSelect, gpuNode);
+#endif
             if (mos_set_context_param_load_balance(m_i915Context[0], engine_map, nengine))
             {
                 MOS_OS_ASSERTMESSAGE("Failed to set balancer extension.\n");
@@ -331,7 +358,7 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
             return MOS_STATUS_UNKNOWN;
         }
 
-        MOS_OS_CHK_STATUS_RETURN(ReportEngineInfo(engine_map, nengine));
+        MOS_OS_CHK_STATUS_RETURN(ReportEngineInfo(engine_map, nengine, isEngineSelectEnable));
         MOS_SafeFreeMemory(engine_map);
     }
 
@@ -1471,3 +1498,59 @@ MOS_STATUS GpuContextSpecificNext::AllocateGPUStatusBuf()
 
     return MOS_STATUS_SUCCESS;
 }
+
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+bool GpuContextSpecificNext::SelectEngineInstanceByUser(struct i915_engine_class_instance *engineMap,
+        uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode)
+{
+    uint32_t engineInstance     = 0x0;
+
+    if(gpuNode == MOS_GPU_NODE_COMPUTE)
+    {
+        engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_COMPUTE_INSTANCE_SHIFT)
+            & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
+    }
+    else if(gpuNode == MOS_GPU_NODE_VE)
+    {
+        engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_VEBOX_INSTANCE_SHIFT)
+            & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
+    }
+    else if(gpuNode == MOS_GPU_NODE_VIDEO || gpuNode == MOS_GPU_NODE_VIDEO2)
+    {
+        engineInstance  = (userEngineInstance >> ENGINE_INSTANCE_SELECT_VDBOX_INSTANCE_SHIFT)
+            & (ENGINE_INSTANCE_SELECT_ENABLE_MASK >> (MAX_ENGINE_INSTANCE_NUM - *engineNum));
+    }
+    else
+    {
+        MOS_OS_NORMALMESSAGE("Invalid gpu node in use.");
+    }
+
+    if(engineInstance)
+    {
+        auto unSelectIndex = 0;
+        for(auto bit = 0; bit < *engineNum; bit++)
+        {
+            if(((engineInstance >> bit) & 0x1) && (bit > unSelectIndex))
+            {
+                engineMap[unSelectIndex].engine_class = engineMap[bit].engine_class;
+                engineMap[unSelectIndex].engine_instance = engineMap[bit].engine_instance;
+                engineMap[bit].engine_class = 0;
+                engineMap[bit].engine_instance = 0;
+                unSelectIndex++;
+            }
+            else if(((engineInstance >> bit) & 0x1) && (bit == unSelectIndex))
+            {
+                unSelectIndex++;
+            }
+            else if(!((engineInstance >> bit) & 0x1))
+            {
+                engineMap[bit].engine_class = 0;
+                engineMap[bit].engine_instance = 0;
+            }
+        }
+        *engineNum = unSelectIndex;
+    }
+    return engineInstance;
+}
+#endif

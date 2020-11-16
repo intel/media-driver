@@ -30,6 +30,11 @@
 #include "mos_gpucontext.h"
 #include "mos_graphicsresource_specific.h"
 
+#define ENGINE_INSTANCE_SELECT_ENABLE_MASK                   0xFF
+#define ENGINE_INSTANCE_SELECT_COMPUTE_INSTANCE_SHIFT        16
+#define ENGINE_INSTANCE_SELECT_VEBOX_INSTANCE_SHIFT          8
+#define ENGINE_INSTANCE_SELECT_VDBOX_INSTANCE_SHIFT          0
+
 //!
 //! \class  GpuContextSpecific
 //! \brief  Linux/Android specific gpu context 
@@ -216,6 +221,11 @@ protected:
         PMOS_GPUCTX_CREATOPTIONS option,
         __u64 &caps);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool SelectEngineInstanceByUser(struct i915_engine_class_instance *engineMap,
+        uint32_t *engineNum, uint32_t userEngineInstance, MOS_GPU_NODE gpuNode);
+#endif
+
 private:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBuffer *> m_cmdBufPool;
@@ -263,6 +273,12 @@ private:
     MOS_GPUCTX_CREATOPTIONS_ENHANCED *m_createOptionEnhanced = nullptr;
     MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];
     uint32_t     m_i915ExecFlag = 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    /*!\brief bits(23...16), (15...8), (7...0) are for Compute, VEbox and VDbox ;
+    single or multi engine instance can be selected at same time(0x10103 to select Compute1, VE1, VD1&VD2 for example)*/
+    uint32_t m_engineInstanceSelect = 0x0;
+#endif
 
 #if MOS_COMMAND_RESINFO_DUMP_SUPPORTED
     std::vector<const void *> m_cmdResPtrs; //!< Command OS resource pointers registered by pfnRegisterResource

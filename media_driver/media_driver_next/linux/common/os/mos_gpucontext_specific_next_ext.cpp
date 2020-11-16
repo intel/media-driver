@@ -51,8 +51,8 @@ MOS_STATUS GpuContextSpecificNext::ReportMemoryInfo(struct mos_bufmgr *bufmgr)
 }
 
 MOS_STATUS GpuContextSpecificNext::ReportEngineInfo(
-    struct i915_engine_class_instance *engineMap,
-    int engineNum)
+    struct i915_engine_class_instance *engineMap, int engineNum,
+        bool engineSelectEnable)
 {
     return MOS_STATUS_SUCCESS;
 }
