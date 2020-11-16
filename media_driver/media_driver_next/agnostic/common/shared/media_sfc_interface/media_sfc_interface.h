@@ -70,10 +70,10 @@ struct SCALABILITY_PARAMS
 
 struct FIELD_PARAMS
 {
-    bool isFieldToInterlaved    = false;                //!< true if input being field frame and output being interlaved frame.
-    bool isBottomField          = false;                //!< true if input frame being bottom field. Valid only when true == isFieldToInterlaved.
+    bool isFieldToInterleaved   = false;                //!< true if input being field frame and output being interlaved frame.
+    bool isBottomField          = false;                //!< true if input frame being bottom field. Valid only when true == isFieldToInterleaved.
     bool isBottomFirst          = false;                //!< true if output frame being interlaved frame with bottom first.
-                                                        //!< Valid only when true == isFieldToInterlaved.
+                                                        //!< Valid only when true == isFieldToInterleaved.
 };
 
 struct VIDEO_PARAMS
