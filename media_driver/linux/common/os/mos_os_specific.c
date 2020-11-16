@@ -7184,6 +7184,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     uint32_t                        dwResetCount = 0;
     int32_t                         ret = 0;
     bool                            modularizedGpuCtxEnabled = false;
+    char *pMediaWatchdog = nullptr;
+    long int watchdog = 0;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -7459,6 +7461,17 @@ MOS_STATUS Mos_Specific_InitInterface(
     // disable it on Linux
     pOsInterface->bMediaReset         = false;
     pOsInterface->umdMediaResetEnable = false;
+
+    pMediaWatchdog = getenv("INTEL_MEDIA_RESET_WATCHDOG");
+    if (pMediaWatchdog != nullptr)
+    {
+        watchdog = strtol(pMediaWatchdog, nullptr, 0);
+        if (watchdog == 1)
+        {
+            pOsInterface->bMediaReset         = true;
+            pOsInterface->umdMediaResetEnable = true;
+        }
+    }
 
     // initialize MOS_CP interface
     pOsInterface->osCpInterface = Create_MosCpInterface(pOsInterface);
