@@ -41,7 +41,7 @@ struct PacketProperty
     MediaPacket       *packet = nullptr;
     uint32_t           packetId = 0;
     bool               immediateSubmit = false;
-
+    bool               frameTrackingRequested = true;
     StateParams        stateProperty;
 };
 

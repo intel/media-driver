@@ -117,7 +117,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer) {return MOS_STATUS_UNKNOWN;};
+    virtual MOS_STATUS GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, bool frameTrackingRequested = true) {return MOS_STATUS_UNKNOWN;};
 
     //!
     //! \brief  Return command buffer

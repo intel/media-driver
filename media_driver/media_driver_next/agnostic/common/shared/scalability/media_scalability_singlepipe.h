@@ -108,8 +108,8 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS VerifyCmdBuffer(uint32_t requestedSize, 
-                uint32_t requestedPatchListSize, 
+    virtual MOS_STATUS VerifyCmdBuffer(uint32_t requestedSize,
+                uint32_t requestedPatchListSize,
                 bool &singleTaskPhaseSupportedInPak)  override;
 
     //!
@@ -119,7 +119,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer) override;
+    virtual MOS_STATUS GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, bool frameTrackingRequested = true) override;
 
     //!
     //! \brief  Return command buffer

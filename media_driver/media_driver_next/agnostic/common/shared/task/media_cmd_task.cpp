@@ -103,7 +103,7 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
 
         MEDIA_CHK_STATUS_RETURN(packet->Prepare());
 
-        MEDIA_CHK_STATUS_RETURN(scalability->GetCmdBuffer(&cmdBuffer));
+        MEDIA_CHK_STATUS_RETURN(scalability->GetCmdBuffer(&cmdBuffer, prop.frameTrackingRequested));
         //Set first packet for each pipe in the first pass, used for prolog & forcewakeup insertion
         if (scalability->GetCurrentPass() == 0 && curPipe < scalability->GetCurrentPipe())
         {

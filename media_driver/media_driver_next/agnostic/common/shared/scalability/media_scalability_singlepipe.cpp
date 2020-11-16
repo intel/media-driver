@@ -148,7 +148,7 @@ MOS_STATUS MediaScalabilitySinglePipe::VerifyCmdBuffer(uint32_t requestedSize, u
     return VerifySpaceAvailable(requestedSize, requestedPatchListSize, singleTaskPhaseSupportedInPak);
 }
 
-MOS_STATUS MediaScalabilitySinglePipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
+MOS_STATUS MediaScalabilitySinglePipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffer, bool frameTrackingRequested)
 {
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
@@ -156,7 +156,7 @@ MOS_STATUS MediaScalabilitySinglePipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffe
 
     if (!m_attrReady)
     {
-        SCALABILITY_CHK_STATUS_RETURN(SendAttrWithFrameTracking(*cmdBuffer, true));
+        SCALABILITY_CHK_STATUS_RETURN(SendAttrWithFrameTracking(*cmdBuffer, frameTrackingRequested));
         m_attrReady = true;
     }
 
