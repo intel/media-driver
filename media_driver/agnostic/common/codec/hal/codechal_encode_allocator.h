@@ -116,7 +116,7 @@ public:
     //!
     void* AllocateResource(
         uint32_t codec, uint32_t width, uint32_t height, ResourceName name, const char *bufName, uint8_t index = 0,
-        bool zeroOnAllocation = false, MOS_FORMAT format = Format_Buffer, MOS_TILE_TYPE tile = MOS_TILE_LINEAR);
+        bool zeroOnAllocation = false, MOS_FORMAT format = Format_Buffer, MOS_TILE_TYPE tile = MOS_TILE_LINEAR, uint32_t dwMemType = 0);
 
     //!
     //! \brief    Return address/pointer of a resource already allocated

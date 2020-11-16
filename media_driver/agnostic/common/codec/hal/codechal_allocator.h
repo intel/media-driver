@@ -81,7 +81,7 @@ protected:
     //! \return   pointer to 1D buffer
     //!
     void* Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
-         const char *bufName, bool zeroOnAllocation = false);
+                           const char *bufName, bool zeroOnAllocation = false, uint32_t dwMemType = 0);
 
     //!
     //! \brief    Allocate 2D buffer

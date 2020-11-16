@@ -55,7 +55,7 @@ void* CodechalAllocator::GetResourcePointer(uint16_t resourceID, Match level)
 }
 
 void* CodechalAllocator::Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
-    const char* bufName, bool zeroOnAllocation)
+                                          const char* bufName, bool zeroOnAllocation, uint32_t dwMemType)
 {
     MOS_RESOURCE* resource = MOS_New(MOS_RESOURCE);
     MOS_ZeroMemory(resource, sizeof(MOS_RESOURCE));
@@ -67,6 +67,7 @@ void* CodechalAllocator::Allocate1DBuffer(uint64_t resourceTag, uint32_t size,
     allocParams.TileType = MOS_TILE_LINEAR;
     allocParams.dwBytes = size;
     allocParams.pBufName = bufName;
+    allocParams.dwMemType = dwMemType;
 
     if (MOS_STATUS_SUCCESS != m_osInterface->pfnAllocateResource(
         m_osInterface, &allocParams, resource))
