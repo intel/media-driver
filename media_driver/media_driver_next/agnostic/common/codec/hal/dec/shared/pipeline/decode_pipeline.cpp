@@ -340,10 +340,12 @@ MOS_STATUS DecodePipeline::DumpDownSamplingParams(DecodeDownSamplingFeature &dow
         return MOS_STATUS_SUCCESS;
     }
 
-    if(downSamplingParams.m_inputSurface == nullptr)
+    if(!downSamplingParams.IsEnabled())
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    DECODE_CHK_NULL(downSamplingParams.m_inputSurface);
 
     std::ostringstream oss;
     oss.setf(std::ios::showbase | std::ios::uppercase);

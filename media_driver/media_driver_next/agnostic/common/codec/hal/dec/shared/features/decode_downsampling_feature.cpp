@@ -101,13 +101,17 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
 
     CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
 
-    if (decodeParams->m_refFrameCnt == 0)
+    if (decodeParams->m_procParams == nullptr)
     {
         m_inputSurface  = nullptr;
+        m_enabled       = false;
         return MOS_STATUS_SUCCESS;
     }
+    else
+    {
+        m_enabled = true;
+    }
 
-    DECODE_CHK_NULL(decodeParams->m_procParams);
     DecodeProcessingParams *procParams = (DecodeProcessingParams *)decodeParams->m_procParams;
 
     m_chromaSitingType             = procParams->m_chromaSitingType;
@@ -125,19 +129,17 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
     m_outputSurfaceRegion.m_width  = procParams->m_outputSurfaceRegion.m_width;
     m_outputSurfaceRegion.m_height = procParams->m_outputSurfaceRegion.m_height;
 
-    if (procParams->m_isSourceSurfAllocated)
+    if (procParams->m_inputSurface != nullptr)
     {
-        m_outputSurfaceRegion.m_width  = m_outputSurface.dwWidth;
-        m_outputSurfaceRegion.m_height = m_outputSurface.dwHeight;
-
-        DECODE_CHK_NULL(procParams->m_inputSurface);
         m_inputSurface = procParams->m_inputSurface;
         DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(m_inputSurface));
 
-        m_inputSurfaceRegion.m_x      = 0;
-        m_inputSurfaceRegion.m_y      = 0;
-        m_inputSurfaceRegion.m_width  = m_inputSurface->dwWidth;
-        m_inputSurfaceRegion.m_height = m_inputSurface->dwHeight;
+        m_inputSurfaceRegion.m_x      = procParams->m_inputSurfaceRegion.m_x;
+        m_inputSurfaceRegion.m_y      = procParams->m_inputSurfaceRegion.m_y;
+        m_inputSurfaceRegion.m_width  = (procParams->m_inputSurfaceRegion.m_width == 0) ?
+            m_inputSurface->dwWidth : procParams->m_inputSurfaceRegion.m_width;
+        m_inputSurfaceRegion.m_height = (procParams->m_inputSurfaceRegion.m_height == 0) ?
+            m_inputSurface->dwHeight : procParams->m_inputSurfaceRegion.m_height;
     }
     else
     {

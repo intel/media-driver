@@ -69,6 +69,20 @@ MOS_STATUS DecodeDownSamplingPkt::Init()
 
 MOS_STATUS DecodeDownSamplingPkt::Prepare()
 {
+    DECODE_FUNC_CALL();
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodeDownSamplingPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
+{
+    DECODE_FUNC_CALL();
+
+    if (!m_downSampling->IsEnabled())
+    {
+        m_isSupported = false;
+        return MOS_STATUS_SUCCESS;
+    }
+
     DECODE_CHK_STATUS(InitSfcParams(m_SfcParams));
     if (m_sfcInterface->IsParameterSupported(m_SfcParams) == MOS_STATUS_SUCCESS)
     {
@@ -78,17 +92,12 @@ MOS_STATUS DecodeDownSamplingPkt::Prepare()
     {
         m_isSupported = false;
     }
-    return MOS_STATUS_SUCCESS;
-}
 
-MOS_STATUS DecodeDownSamplingPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
-{
-    if (!m_isSupported)
+    if (m_isSupported)
     {
-        return MOS_STATUS_SUCCESS;
+        DECODE_CHK_STATUS(m_sfcInterface->Render(&cmdBuffer, m_SfcParams));
     }
 
-    DECODE_CHK_STATUS(m_sfcInterface->Render(&cmdBuffer, m_SfcParams));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -103,6 +112,8 @@ MOS_STATUS DecodeDownSamplingPkt::CalculateCommandSize(uint32_t &commandBufferSi
 
 MOS_STATUS DecodeDownSamplingPkt::InitSfcParams(VDBOX_SFC_PARAMS &sfcParams)
 {
+    DECODE_FUNC_CALL();
+
     DECODE_CHK_NULL(m_downSampling->m_inputSurface);
 
     sfcParams.input.width         = m_downSampling->m_inputSurface->dwWidth;

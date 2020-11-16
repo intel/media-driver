@@ -89,6 +89,10 @@ namespace decode {
             m_statusBufAddr[i].offset = i * sizeof(uint32_t);
         }
 
+        m_statusBufAddr[statusReportRcs].osResource = &m_statusBufRcs->OsResource;
+        m_statusBufAddr[statusReportRcs].offset = 0;
+        m_statusBufAddr[statusReportRcs].bufSize = m_statusBufSizeRcs;
+
         SetOffsetsForStatusBuf();
 
         return MOS_STATUS_SUCCESS;

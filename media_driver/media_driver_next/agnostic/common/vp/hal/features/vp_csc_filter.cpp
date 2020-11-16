@@ -285,10 +285,18 @@ MOS_STATUS VpCscFilter::SetSfcChromaParams(
     // Setup General params
     // Set chroma subsampling type according to the Vebox output, but
     // when Vebox is bypassed, set it according to the source surface format.
+    // VDBOX SFC doesn't use 8 tap chroma filtering for all input format.
 
-    if (VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
+    if (vpExecuteCaps.bVebox)
     {
-        m_sfcCSCParams->b8tapChromafiltering = true;
+        if (VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
+        {
+            m_sfcCSCParams->b8tapChromafiltering = true;
+        }
+        else
+        {
+            m_sfcCSCParams->b8tapChromafiltering = false;
+        }
     }
     else
     {
