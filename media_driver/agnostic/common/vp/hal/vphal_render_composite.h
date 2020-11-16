@@ -57,6 +57,14 @@
 #define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT   1
 #define VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_DEPTH    1
 
+enum FUSED_EU_DISPATCH_STATE
+{
+    VPHAL_FUSED_EU_DISPATCH_UNCONFIGED = -1,
+    VPHAL_FUSED_EU_DISPATCH_OFF        = 0,
+    VPHAL_FUSED_EU_DISPATCH_ON         = 1
+};
+
+
 // GRF 8 for unified kernel inline data (NLAS is enabled)
 struct MEDIA_OBJECT_NLAS_INLINE_DATA
 {
@@ -190,6 +198,8 @@ typedef struct _VPHAL_COMPOSITE_PARAMS
     int32_t                 nLumaKeys;
     int32_t                 nSampler;
     VPHAL_ROTATION          Rotation;           //!< Layer 0 rotation info
+
+    bool                    enableFusedEuDispatch;
 } VPHAL_COMPOSITE_PARAMS, *PVPHAL_COMPOSITE_PARAMS;
 
 //!
@@ -1161,7 +1171,7 @@ protected:
     float                           m_fScaleX = 1.0f;
     float                           m_fScaleY = 1.0f;
 
-    bool                            m_FusedEuDispatch = false;
+    int32_t                         m_FusedEuDispatch = VPHAL_FUSED_EU_DISPATCH_UNCONFIGED;
 };
 
 typedef CompositeState * PCComposite;

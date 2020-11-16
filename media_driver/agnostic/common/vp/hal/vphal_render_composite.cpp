@@ -1871,6 +1871,14 @@ MOS_STATUS CompositeState::RenderMultiPhase(
 
 //        VPHAL_DBG_STATE_DUMPPER_SET_CURRENT_PHASE(phase);
 
+        //For perf, enable EU fused dispatch by default for 8K processing, and reg key can disable it
+        //DO NOT enable FusedEuDispatch for multiple layer composition
+        if (pcRenderParams->bDisableVeboxFor8K && (m_FusedEuDispatch != VPHAL_FUSED_EU_DISPATCH_OFF) && (iSources < 2))
+        {
+            CompositeParams.enableFusedEuDispatch = true;
+            VPHAL_RENDER_NORMALMESSAGE("FusedEuDispatch enabled for 8K processing, init config: %d", m_FusedEuDispatch);
+        }
+
         //Set the alpha for composited surface
         CompositeParams.pCompAlpha = pcRenderParams->pCompAlpha;
 
@@ -2025,6 +2033,14 @@ MOS_STATUS CompositeState::RenderMultiPhase(
 
                 // Prepare compositing structure
                 ResetCompParams(&CompositeParams);
+
+                //For perf, enable EU fused dispatch by default for 8K processing, and reg key can disable it
+                //DO NOT enable FusedEuDispatch for multiple layer composition
+                if (pcRenderParams->bDisableVeboxFor8K && (m_FusedEuDispatch != VPHAL_FUSED_EU_DISPATCH_OFF) && (iSources < 2))
+                {
+                    CompositeParams.enableFusedEuDispatch = true;
+                    VPHAL_RENDER_NORMALMESSAGE("FusedEuDispatch enabled for 8K processing, init config: %d", m_FusedEuDispatch);
+                }
 
                 // Optimization for 2 layers composition (with sub-layer rotation) usage case, This is the first phase
                 if ((iSources != 2) || (ppSources[1]->Rotation == VPHAL_ROTATION_IDENTITY))
@@ -2360,6 +2376,14 @@ MOS_STATUS CompositeState::Render(
 
         // Prepare compositing structure
         ResetCompParams(&CompositeParams);
+
+        //For perf, enable EU fused dispatch by default for 8K processing, and reg key can disable it
+        //DO NOT enable FusedEuDispatch for multiple layer composition
+        if (pcRenderParams->bDisableVeboxFor8K && (m_FusedEuDispatch != VPHAL_FUSED_EU_DISPATCH_OFF) && (iSources < 2))
+        {
+            CompositeParams.enableFusedEuDispatch = true;
+            VPHAL_RENDER_NORMALMESSAGE("FusedEuDispatch enabled for 8K processing, init config: %d", m_FusedEuDispatch);
+        }
 
         // set additional render target
         if (pcRenderParams->uDstCount == 2)
@@ -6224,7 +6248,8 @@ MOS_STATUS CompositeState::RenderPhase(
     }
 
     // Set Fused EU Dispatch
-    if (m_FusedEuDispatch && pRenderHal->pRenderHalPltInterface != nullptr)
+    if ((pRenderHal->pRenderHalPltInterface != nullptr) &&
+        ((m_FusedEuDispatch == VPHAL_FUSED_EU_DISPATCH_ON) || pCompParams->enableFusedEuDispatch))
     {
         pRenderHal->pRenderHalPltInterface->SetFusedEUDispatch(true);
         bEUFusedDispatchFlag = true;
@@ -6351,6 +6376,7 @@ finish:
     {
         // Reset Fused EU Dispatch
         pRenderHal->pRenderHalPltInterface->SetFusedEUDispatch(false);
+        bEUFusedDispatchFlag = false;
     }
     CleanRenderingData(&RenderingData);
     pRenderHal->bCmfcCoeffUpdate  = false;
