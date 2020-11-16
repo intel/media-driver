@@ -3775,11 +3775,11 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcUpdate()
 
     if ((m_hevcVdencAcqpEnabled && m_hevcSeqParams->QpAdjustment) || (m_brcEnabled && (m_hevcSeqParams->MBBRC != 2)))
     {
-        hucVDEncBrcUpdateDmem->DeltaQPForSadZone0_S8 = -5;
-        hucVDEncBrcUpdateDmem->DeltaQPForSadZone1_S8 = -2;
-        hucVDEncBrcUpdateDmem->DeltaQPForSadZone2_S8 = 2;
-        hucVDEncBrcUpdateDmem->DeltaQPForSadZone3_S8 = 5;
-        hucVDEncBrcUpdateDmem->DeltaQPForMvZero_S8   = -4;
+        hucVDEncBrcUpdateDmem->DeltaQPForSadZone0_S8 = -1;
+        hucVDEncBrcUpdateDmem->DeltaQPForSadZone1_S8 = 0;
+        hucVDEncBrcUpdateDmem->DeltaQPForSadZone2_S8 = 1;
+        hucVDEncBrcUpdateDmem->DeltaQPForSadZone3_S8 = 2;
+        hucVDEncBrcUpdateDmem->DeltaQPForMvZero_S8   = 3;
         hucVDEncBrcUpdateDmem->DeltaQPForMvZone0_S8  = -2;
         hucVDEncBrcUpdateDmem->DeltaQPForMvZone1_S8  = 0;
         hucVDEncBrcUpdateDmem->DeltaQPForMvZone2_S8  = 2;
