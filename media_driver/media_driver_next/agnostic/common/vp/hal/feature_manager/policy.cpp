@@ -897,8 +897,7 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     }
 
     if (m_veboxHwEntry[hdrParams->formatInput].inputSupported &&
-        m_veboxHwEntry[hdrParams->formatOutput].outputSupported &&
-        m_veboxHwEntry[hdrParams->formatInput].iecp)
+        m_veboxHwEntry[hdrParams->formatInput].hdrSupported)
     {
         pHDREngine->bEnabled        = 1;
         pHDREngine->VeboxNeeded     = 1;

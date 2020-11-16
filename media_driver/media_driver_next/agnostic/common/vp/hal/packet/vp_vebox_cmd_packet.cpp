@@ -2161,6 +2161,12 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagPaFormat()
                     case Format_RGB32:
                         *pPerfTag = VPHAL_PA_DN_RGB32CP;
                         break;
+                    case Format_A8R8G8B8:
+                    case Format_A8B8G8R8:
+                    case Format_R10G10B10A2:
+                    case Format_B10G10R10A2:
+                        *pPerfTag = VPHAL_PA_RGB32CP;
+                        break;
                     case Format_P010:
                     case Format_P016:
                     case Format_Y410:
