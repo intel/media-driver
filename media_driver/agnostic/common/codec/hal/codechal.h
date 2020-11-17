@@ -311,6 +311,18 @@ public:
     virtual void Destroy();
 
     //!
+    //! \brief    Resolve MetaData.
+    //! \details  Resolve MetaData from Input to Output.
+    //! \param    [out] pOutput
+    //!           Resolved Metadata resource. 
+    //! \param    [in] pInput
+    //!           Metadata resource to be resolve.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success else fail reason
+    //!
+    virtual MOS_STATUS ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput);
+
+    //!
     //! \brief    Gets hardware interface.
     //! \return   CodechalHwInterface
     //!           return hardware interface

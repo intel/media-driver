@@ -1410,6 +1410,8 @@ public:
     MOS_SURFACE                     m_rawSurface = {};            //!< Pointer to MOS_SURFACE of raw surface
     MOS_SURFACE                     m_reconSurface = {};          //!< Pointer to MOS_SURFACE of reconstructed surface
     MOS_RESOURCE                    m_resBitstreamBuffer = {};         //!< Pointer to MOS_SURFACE of bitstream surface
+    PMOS_RESOURCE                   m_presMetadataBuffer = {};         //!< Pointer to metadata buffer
+    MetaDataOffset                  m_metaDataOffset = {};             //!< meta data offset
     MOS_RESOURCE                    m_resMbCodeSurface = {};           //!< Pointer to MOS_SURFACE of MbCode surface
     MOS_RESOURCE                    m_resMvDataSurface = {};           //!< Pointer to MOS_SURFACE of MvData surface
     uint32_t                        m_mbDataBufferSize = 0;
@@ -2423,6 +2425,18 @@ public:
     virtual MOS_STATUS SetupWalkerContext(
         MOS_COMMAND_BUFFER* cmdBuffer,
         SendKernelCmdsParams* params);
+
+    MOS_STATUS ResolveMetaData(
+        PMOS_RESOURCE pHwLayoutMetaData,
+        PMOS_RESOURCE pResolvedLayoutMetadata) override;
+
+    virtual MOS_STATUS PrepareHWMetaData(
+        PMOS_RESOURCE           presMetadataBuffer,
+        PMOS_RESOURCE           presLcuBaseAddressBuffer,
+        PMOS_COMMAND_BUFFER     cmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);

@@ -1845,6 +1845,8 @@ MOS_STATUS CodechalVdencHevcState::ReadSliceSize(PMOS_COMMAND_BUFFER cmdBuffer)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(m_presMetadataBuffer, &m_resLcuBaseAddressBuffer, cmdBuffer));
+
     // Report slice size to app only when dynamic slice is enabled
     if (!m_hevcSeqParams->SliceSizeControl)
     {
@@ -3747,6 +3749,71 @@ MOS_STATUS CodechalVdencHevcState::StoreHucErrorStatus(MmioRegistersHuc* mmioReg
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencHevcState::PrepareHWMetaData(
+    PMOS_RESOURCE           presMetadataBuffer,
+    PMOS_RESOURCE           presLcuBaseAddressBuffer,
+    PMOS_COMMAND_BUFFER     cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    if(!presMetadataBuffer)
+    {
+        return eStatus;
+    }
+
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+    storeDataParams.pOsResource         = presMetadataBuffer;
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeErrorFlags;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwReferencePicturesMotionResultsBitMask;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwReconstructedPictureWrittenBytesCount;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwWrittenSubregionsCount;
+    storeDataParams.dwValue             = m_numSlices;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
+    MOS_ZeroMemory(&miCpyMemMemParams, sizeof(miCpyMemMemParams));
+    for (uint16_t slcCount = 0; slcCount < m_numSlices; slcCount++)
+    {
+        uint32_t subRegionSartOffset = m_metaDataOffset.dwMetaDataSize + slcCount*m_metaDataOffset.dwMetaDataSubRegionSize;
+
+        storeDataParams.dwResourceOffset    = subRegionSartOffset + m_metaDataOffset.dwbStartOffset;
+        storeDataParams.dwValue             = m_slcData[slcCount].SliceOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+        storeDataParams.dwResourceOffset    = subRegionSartOffset + m_metaDataOffset.dwbHeaderSize;
+        storeDataParams.dwValue             = m_slcData[slcCount].BitSize;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+        miCpyMemMemParams.presSrc           = presLcuBaseAddressBuffer;
+        miCpyMemMemParams.presDst           = presMetadataBuffer;
+        miCpyMemMemParams.dwSrcOffset       = slcCount*2;
+        miCpyMemMemParams.dwDstOffset       = subRegionSartOffset + m_metaDataOffset.dwbSize;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(cmdBuffer,&miCpyMemMemParams));
+    }
+
+    auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = presMetadataBuffer;
+    miStoreRegMemParams.dwOffset = m_metaDataOffset.dwEncodedBitstreamWrittenBytesCount;
+    miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    return eStatus;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

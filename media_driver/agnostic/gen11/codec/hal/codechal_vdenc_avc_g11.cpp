@@ -1113,6 +1113,12 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
     }
 #endif
 
+    // Prepare MetaData
+    if ((m_presMetadataBuffer != nullptr) && (m_currPass == m_numPasses))
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(m_presMetadataBuffer, &m_pakSliceSizeStreamoutBuffer, &cmdBuffer));
+    }
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ReadMfcStatus(&cmdBuffer));
 
     if (m_vdencBrcEnabled)

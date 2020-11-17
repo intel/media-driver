@@ -200,3 +200,8 @@ void Codechal::Destroy()
 {
     CODECHAL_PUBLIC_FUNCTION_ENTER;
 }
+
+MOS_STATUS Codechal::ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput)
+{
+    return MOS_STATUS_SUCCESS;
+}

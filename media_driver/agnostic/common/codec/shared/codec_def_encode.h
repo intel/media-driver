@@ -41,6 +41,22 @@ struct CodechalEncodeSeiData
     uint8_t*   pSEIBuffer;
 };
 
+struct MetaDataOffset
+{
+    uint32_t dwEncodeErrorFlags                         = 0;
+    uint32_t dwReferencePicturesMotionResultsBitMask    = 0;
+    uint32_t dwEncodedBitstreamWrittenBytesCount        = 0;
+    uint32_t dwReconstructedPictureWrittenBytesCount    = 0;
+    uint32_t dwWrittenSubregionsCount                   = 0;
+
+    uint32_t dwbSize        = 0;
+    uint32_t dwbStartOffset = 0;
+    uint32_t dwbHeaderSize  = 0;
+
+    uint32_t dwMetaDataSize             = 0;
+    uint32_t dwMetaDataSubRegionSize    = 0;
+};
+
 //!
 //! \struct EncoderParams
 //! \brief  Encoder parameters
@@ -52,6 +68,7 @@ struct EncoderParams
     PMOS_SURFACE                    psRawSurface;               //!< Raw surface
     PMOS_SURFACE                    psReconSurface;             //!< reconstructed surface
     PMOS_RESOURCE                   presBitstreamBuffer;        //!< Output buffer for bitstream data.
+    PMOS_RESOURCE                   presMetadataBuffer;         //!< Output buffer for meta data.
     PMOS_RESOURCE                   presMbCodeSurface;          //!< PAK objects provided by framework.
     PMOS_SURFACE                    psMbSegmentMapSurface;      //!< [VP9]
     /* \brief [AVC & MPEG2] MB QP data provided by framework.
@@ -146,6 +163,7 @@ struct EncoderParams
     uint32_t                        uiMVoffset; // App provides PAK objects and MV data in the same surface. This is offset to MV Data.
     bool                            fullHeaderInAppData;         //!< [JPEG]
     uint32_t                        uiOverallNALPayload;
+    MetaDataOffset                  metaDataOffset;
 };
 
 #endif // !__CODEC_DEF_ENCODE_H__

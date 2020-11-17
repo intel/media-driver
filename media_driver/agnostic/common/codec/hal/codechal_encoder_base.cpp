@@ -1240,6 +1240,12 @@ MOS_STATUS CodechalEncoderState::InitCommon()
     m_rawSurface           = *(encodeParams->psRawSurface);           // used by all
     m_resBitstreamBuffer    = *(encodeParams->presBitstreamBuffer);   // used by all
 
+    if(encodeParams->presMetadataBuffer)
+    {
+        m_presMetadataBuffer    = encodeParams->presMetadataBuffer;
+        m_metaDataOffset        = encodeParams->metaDataOffset;
+    }
+
     CODECHAL_ENCODE_CHK_COND_RETURN(
         Mos_ResourceIsNull(&m_rawSurface.OsResource),
         "Raw surface is nullptr!");
@@ -5031,6 +5037,33 @@ MOS_STATUS CodechalEncoderState::SetupWalkerContext(
         InterfaceDescriptorDataStartOffset,
         false,
         InterfaceDescriptorTotalLength);
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalEncoderState::ResolveMetaData(
+    PMOS_RESOURCE pHwLayoutMetaData,
+    PMOS_RESOURCE pResolvedLayoutMetadata)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MOS_COMMAND_BUFFER cmdBuffer;
+    MOS_ZeroMemory(&cmdBuffer, sizeof(cmdBuffer));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+    MHW_MI_COPY_MEM_MEM_PARAMS CpyParams;
+    CpyParams.presSrc = pHwLayoutMetaData;
+    CpyParams.presDst = pResolvedLayoutMetadata;
+    int bufSize = m_metaDataOffset.dwMetaDataSize + m_numSlices*m_metaDataOffset.dwMetaDataSubRegionSize;
+    for (int i = 0; i < bufSize; i = i + 4)
+    {
+        CpyParams.dwSrcOffset = i;
+        CpyParams.dwDstOffset = i;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(&cmdBuffer,&CpyParams));
+    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
 
     return eStatus;
 }
