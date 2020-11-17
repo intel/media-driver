@@ -2353,7 +2353,7 @@ namespace vISA {
         std::array<Field, 9> fields = std::array<Field, 9>
         {
             Field(Datatype::ONE), // linkage
-                Field(Datatype::ONE), // name_len
+                Field(Datatype::TWO), // name_len
                 Field(Datatype::VARCHAR, 1), // name
                 Field(Datatype::FOUR), // offset
                 Field(Datatype::FOUR), // size
@@ -2370,7 +2370,9 @@ namespace vISA {
         //! \param      [in] version.
         //!             Version of current ISA file.
         //!
-        Function(unsigned version) {}
+        Function(unsigned version) {
+            if (version <= 306) setVersion306();
+        }
 
         //!
         //! \brief      Constructor of Function class.
@@ -2454,11 +2456,32 @@ namespace vISA {
         //!
         //! \brief      Returns the integer value of the NameLen field.
         //! \details    NameLen field is at index 1 in the internal
-        //!             array of Fields.
+        //!             array of Fields for version <= 306
         //! \retval     An integer.
         //!
-        uint8_t getNameLen() {
+        uint8_t getNameLen_Ver306() {
             return (uint8_t)fields[1].number8;
+        }
+
+        //!
+        //! \brief      Returns the integer value of the NameLen field.
+        //! \details    NameLen field is at index 1 in the internal
+        //!             array of Fields
+        //! \retval     An integer.
+        //!
+        uint16_t getNameLen() {
+            return (uint16_t)fields[1].number16;
+        }
+
+        //!
+        //! \brief      Sets the integer value of the NameLen field.
+        //! \details    NameLen field is at index 1 in the internal
+        //!             array of Fields for version <= 306
+        //! \param      [in] value.
+        //!             Integer be assigned.
+        //!
+        void setNameLen_Ver306(uint8_t value) {
+            fields[1].number8 = value;
         }
 
         //!
@@ -2468,8 +2491,9 @@ namespace vISA {
         //! \param      [in] value.
         //!             Integer be assigned.
         //!
-        void setNameLen(uint8_t value) {
-            fields[1].number8 = value;
+        void setNameLen(uint16_t value)
+        {
+            fields[1].number16 = value;
         }
 
         //!
@@ -2684,6 +2708,18 @@ namespace vISA {
                 r->addToBuffer(buffer, m);
             }
             i++;
+        }
+
+                //!
+        //! \brief      Makes the changes needed to support 306 version's Function.
+        //! \details    This function is called when the current ISA file has the 306 version.
+        //!             Initially all the objects are created with last version's format, so
+        //!             in order to suppport newer versions, changes of datatypes and insertion/removal
+        //!             of fields can be needed.
+        //!
+        void setVersion306()
+        {
+            fields[1] = Datatype::ONE;
         }
 
     };
@@ -4550,7 +4586,7 @@ namespace vISA {
     public:
         std::array<Field, 11> fields = std::array<Field, 11>
         {
-            Field(Datatype::ONE), // name_len
+            Field(Datatype::TWO), // name_len
                 Field(Datatype::VARCHAR, 0), // name
                 Field(Datatype::FOUR), // offset
                 Field(Datatype::FOUR), // size
@@ -4571,7 +4607,9 @@ namespace vISA {
         //! \param      [in] version.
         //!             Version of current ISA file.
         //!
-        Kernel(unsigned version) {}
+        Kernel(unsigned version) {
+            if (version <= 306) setVersion306();
+        }
 
         //!
         //! \brief      Constructor of Kernel class.
@@ -4647,11 +4685,33 @@ namespace vISA {
         //!
         //! \brief      Returns the integer value of the NameLen field.
         //! \details    NameLen field is at index 0 in the internal
+        //!             array of Fields for vesrion <= 306
+        //! \retval     An integer.
+        //!
+        uint8_t getNameLen_Ver306() {
+            return (uint8_t)fields[0].number8;
+        }
+
+        //!
+        //! \brief      Returns the integer value of the NameLen field.
+        //! \details    NameLen field is at index 0 in the internal
         //!             array of Fields.
         //! \retval     An integer.
         //!
-        uint8_t getNameLen() {
-            return (uint8_t)fields[0].number8;
+        uint16_t getNameLen()
+        {
+            return (uint16_t)fields[0].number16;
+        }
+
+        //!
+        //! \brief      Sets the integer value of the NameLen field.
+        //! \details    NameLen field is at index 0 in the internal
+        //!             array of Fields for version <= 306
+        //! \param      [in] value.
+        //!             Integer be assigned.
+        //!
+        void setNameLen_Ver306(uint8_t value) {
+            fields[0].number8 = value;
         }
 
         //!
@@ -4661,8 +4721,9 @@ namespace vISA {
         //! \param      [in] value.
         //!             Integer be assigned.
         //!
-        void setNameLen(uint8_t value) {
-            fields[0].number8 = value;
+        void setNameLen(uint16_t value)
+        {
+            fields[0].number16 = value;
         }
 
         //!
@@ -4956,6 +5017,18 @@ namespace vISA {
                 r->addToBuffer(buffer, m);
             }
             i++;
+        }
+
+        //!
+        //! \brief      Makes the changes needed to support 306 version's Kernel.
+        //! \details    This function is called when the current ISA file has the 306 version.
+        //!             Initially all the objects are created with last version's format, so
+        //!             in order to suppport newer versions, changes of datatypes and insertion/removal
+        //!             of fields can be needed.
+        //!
+        void setVersion306()
+        {
+            fields[0] = Datatype::ONE;
         }
 
     };

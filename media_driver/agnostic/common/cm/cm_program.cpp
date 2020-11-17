@@ -394,11 +394,18 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
         CmSafeMemSet(kernInfo, 0, sizeof(CM_KERNEL_INFO));
 
         vISA::Kernel *kernel = nullptr;
-        uint8_t nameLen = 0;
+        uint16_t nameLen = 0;
         if (useVisaApi)
         {
             kernel = header->getKernelInfo()[i];
-            nameLen = kernel->getNameLen();
+            if (getVersionAsInt(m_cisaMajorVersion, m_cisaMinorVersion) < getVersionAsInt(3, 7))
+            {
+                nameLen = (uint16_t) kernel->getNameLen_Ver306();
+            }
+            else
+            {
+                nameLen = kernel->getNameLen();
+            }
             CmSafeMemCopy(kernInfo->kernelName, kernel->getName(), nameLen);
         }
         else
