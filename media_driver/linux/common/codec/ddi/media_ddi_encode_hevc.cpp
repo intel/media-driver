@@ -1109,6 +1109,9 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         {
             picParams->BRCMaxQp  = (vaEncMiscParamRC->max_qp == 0) ? 51 : (uint8_t)CodecHal_Clip3(1, 51, (int8_t)vaEncMiscParamRC->max_qp);
             picParams->BRCMinQp = (vaEncMiscParamRC->min_qp == 0) ? 1 : (uint8_t)CodecHal_Clip3(1, picParams->BRCMaxQp, (int8_t)vaEncMiscParamRC->min_qp);
+#if VA_CHECK_VERSION(1, 10, 0)
+            picParams->TargetFrameSize = vaEncMiscParamRC->target_frame_size;
+#endif
         }
         else
         {
