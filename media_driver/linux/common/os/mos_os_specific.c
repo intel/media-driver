@@ -7156,6 +7156,18 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         {
             //user's value to enable scalability
             osInterface->bVeboxScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
+            osInterface->bEnableDbgOvrdInVE    = true;
+
+            if (osInterface->eForceVebox == MOS_FORCE_VEBOX_NONE)
+            {
+                osInterface->eForceVebox = MOS_FORCE_VEBOX_1_2;
+            }
+        }
+        else if ((!osInterface->bVeboxScalabilityMode)
+            && (eStatusUserFeature == MOS_STATUS_SUCCESS))
+        {
+            osInterface->bEnableDbgOvrdInVE = true;
+            osInterface->eForceVebox        = MOS_FORCE_VEBOX_NONE;
         }
 #endif
     }

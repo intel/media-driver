@@ -260,6 +260,18 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     {
         //user's value to enable scalability
         (*streamState)->veboxScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
+        (*streamState)->enableDbgOvrdInVirtualEngine = true;
+
+        if ((*streamState)->eForceVebox == MOS_FORCE_VEBOX_NONE)
+        {
+            (*streamState)->eForceVebox = MOS_FORCE_VEBOX_1_2;
+        }
+    }
+    else if ((!(*streamState)->veboxScalabilityMode)
+        && (eStatusUserFeature == MOS_STATUS_SUCCESS))
+    {
+        (*streamState)->enableDbgOvrdInVirtualEngine = true;
+        (*streamState)->eForceVebox        = MOS_FORCE_VEBOX_NONE;
     }
 
 #endif
