@@ -183,6 +183,9 @@ protected:
 
     // Renderer feature reporting
     VphalFeatureReport          *m_reporting;
+    // Default value for Gpu Context
+    MOS_GPU_CONTEXT             m_renderGpuContext;
+
 public:
     //!
     //! \brief    VphalRenderer constructor

@@ -1298,9 +1298,10 @@ finish:
 
 MOS_STATUS VphalRenderer::SetRenderGpuContext(VPHAL_RENDER_PARAMS& RenderParams)
 {
-    if (MEDIA_IS_SKU(m_pSkuTable, FtrCCSNode))
+    MOS_GPU_CONTEXT currentGpuContext = m_renderGpuContext;
+
+    if (currentGpuContext != MOS_GPU_CONTEXT_RENDER)
     {
-        MOS_GPU_CONTEXT currentGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
         bool            bLumaKeyEnabled   = false;
         for (uint32_t uiSources = 0; uiSources < RenderParams.uSrcCount; uiSources++)
         {
@@ -1315,8 +1316,9 @@ MOS_STATUS VphalRenderer::SetRenderGpuContext(VPHAL_RENDER_PARAMS& RenderParams)
         {
             currentGpuContext = MOS_GPU_CONTEXT_RENDER;
         }
-        UpdateRenderGpuContext(currentGpuContext);
     }
+
+    UpdateRenderGpuContext(currentGpuContext);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1379,6 +1381,8 @@ MOS_STATUS VphalRenderer::Initialize(
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
     VPHAL_RENDER_CHK_NULL(m_pRenderHal);
     //---------------------------------------
+
+    m_renderGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
 
     Align16State.pPerfData   = &PerfData;
     Fast1toNState.pPerfData  = &PerfData;
