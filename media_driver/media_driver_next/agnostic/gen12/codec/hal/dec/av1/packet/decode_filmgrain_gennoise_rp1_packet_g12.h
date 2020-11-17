@@ -108,7 +108,6 @@ public:
     MOS_STATUS Initilize();
     
     virtual MOS_STATUS Init() override;
-    virtual MOS_STATUS AllocateResources();
 
     virtual std::string GetPacketName() override
     {
@@ -153,11 +152,6 @@ protected:
     CodechalHwInterface     *m_hwInterface      = nullptr;
     DecodeMemComp           *m_mmcState         = nullptr;
     const CodecAv1PicParams *m_picParams        = nullptr;  //!< Pointer to picture parameter
-
-    // Surfaces for RegressPhase1
-    MOS_SURFACE *m_yRandomValuesSurface  = nullptr;  //!< Y random values 2D surface, size = 70 * 70 * sizeof(short)
-    MOS_SURFACE *m_yDitheringTempSurface = nullptr;  //!< First step in generating dithering noise table for Y, 2D surface, size = 70 * 70 * sizeof(short)
-    MOS_BUFFER * m_yCoefficientsSurface  = nullptr;  //!< Y Coefficients required for generating dithering noise table, 1D buffer, size = 24 * size(short)
 
     uint32_t m_bindingTableIndex[rp1NumSurfaces] =
     {

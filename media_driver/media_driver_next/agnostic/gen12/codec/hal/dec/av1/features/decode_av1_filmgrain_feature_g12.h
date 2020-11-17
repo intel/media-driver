@@ -340,6 +340,7 @@ public:
 protected:
     DecodeAllocator *   m_allocator    = nullptr;
     Av1BasicFeature *   m_basicFeature = nullptr;
+    bool                m_resourceAllocated = false;
 };
 
 }  // namespace decode

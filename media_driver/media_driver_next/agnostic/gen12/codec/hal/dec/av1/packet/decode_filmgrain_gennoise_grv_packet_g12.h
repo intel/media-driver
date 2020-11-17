@@ -175,10 +175,8 @@ public:
     MOS_STATUS Prepare() override;
     MOS_STATUS Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase) override;
     MOS_STATUS Initilize();
-    
+
     virtual MOS_STATUS Init() override;
-    virtual MOS_STATUS AllocateFixedSizeSurfaces();
-    virtual MOS_STATUS AllocateVariableSizeSurfaces();
 
     virtual std::string GetPacketName() override
     {
@@ -217,13 +215,6 @@ protected:
     CodechalHwInterface    *m_hwInterface      = nullptr;
     DecodeMemComp          *m_mmcState         = nullptr;
     const CodecAv1PicParams *m_picParams = nullptr;  //!< Pointer to picture parameter
-
-    // Surfaces for GetRandomValues
-    MOS_BUFFER * m_gaussianSequenceSurface        = nullptr;  //!< Gaussian Sequence surface, 1D buffer, size = 2048 * sizeof(short)
-    MOS_SURFACE *m_yRandomValuesSurface           = nullptr;  //!< Y random values 2D surface, size = 70 * 70 * sizeof(short)
-    MOS_SURFACE *m_uRandomValuesSurface           = nullptr;  //!< U random values 2D surface, size = 38 * 38 * sizeof(short)
-    MOS_SURFACE *m_vRandomValuesSurface           = nullptr;  //!< V random values 2D surface, size = 38 * 38 * sizeof(short)
-    MOS_BUFFER * m_coordinatesRandomValuesSurface = nullptr;  //!< Random values for coordinates, 1D buffer, size = RoundUp(ImageWidth / 64) * RoundUp(ImageHeight / 64) * sizeof(int)
 
     uint32_t m_bindingTableIndex[grvNumSurfaces] = {
         grvInputGaussianSeq,

@@ -902,11 +902,6 @@ MOS_STATUS Av1DecodeFilmGrainG12::Init(void *settings)
         m_kernelStates[i] = MHW_KERNEL_STATE();
     }
 
-    m_bitDepthIndicator = m_basicFeature->m_av1DepthIndicator;
-
-    DECODE_CHK_STATUS(InitializeKernelState());
-    DECODE_CHK_STATUS(AllocateFixedSizeSurfaces());
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -918,6 +913,15 @@ MOS_STATUS Av1DecodeFilmGrainG12::Update(void *params)
     CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
     m_picParams = static_cast<CodecAv1PicParams *>(decodeParams->m_picParams);
     DECODE_CHK_NULL(m_picParams);
+
+    m_bitDepthIndicator = m_basicFeature->m_av1DepthIndicator;
+
+    if (!m_resourceAllocated)
+    {
+        DECODE_CHK_STATUS(InitializeKernelState());
+        DECODE_CHK_STATUS(AllocateFixedSizeSurfaces());
+        m_resourceAllocated = true;
+    }
 
     bool applyY  = (m_picParams->m_filmGrainParams.m_numYPoints > 0) ? 1 : 0;
     bool applyCb = (m_picParams->m_filmGrainParams.m_numCbPoints > 0 || m_picParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_chromaScalingFromLuma) ? 1 : 0;

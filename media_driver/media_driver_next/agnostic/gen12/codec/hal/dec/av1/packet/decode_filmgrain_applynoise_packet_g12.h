@@ -323,7 +323,6 @@ public:
     MOS_STATUS Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase) override;
     MOS_STATUS Initilize();
     virtual MOS_STATUS Init() override;
-    virtual MOS_STATUS AllocateResources();
     virtual std::string GetPacketName() override
     {
         return "AV1_DECODE_FilmGrainAppNoise";
@@ -383,15 +382,6 @@ protected:
 
     // Surfaces for ApplyNoise
     FilmGrainProcParams     *m_filmGrainProcParams = nullptr;
-
-    MOS_SURFACE             *m_yDitheringSurface = nullptr;                 //!< Y Dithering surface, size = 8 bit: 4 * 64 * 64 * sizeof(char), 10 bit:  4 * 64 * 64 * sizeof(short)
-    MOS_SURFACE             *m_uDitheringSurface = nullptr;                 //!< U Dithering surface, size = 8 bit:   4 * 32 * 32 * sizeof(char), 10 bit:  4 * 32 * 32 * sizeof(short)
-    MOS_SURFACE             *m_vDitheringSurface = nullptr;                 //!< V Dithering surface, size = 8 bit:   4 * 32 * 32 * sizeof(char), 10 bit:  4 * 32 * 32 * sizeof(short)
-    MOS_BUFFER              *m_coordinatesRandomValuesSurface = nullptr;    //!< Random values for coordinates, 1D buffer, size = RoundUp(ImageWidth / 64) * RoundUp(ImageHeight / 64) * sizeof(int)
-
-    MOS_BUFFER              *m_yGammaLUTSurface = nullptr;                  //!< Input Y Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
-    MOS_BUFFER              *m_uGammaLUTSurface = nullptr;                  //!< Input U Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
-    MOS_BUFFER              *m_vGammaLUTSurface = nullptr;                  //!< Input V Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
 
     uint32_t m_bindingTableIndex[anNumSurfaces] =
     {

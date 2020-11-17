@@ -78,32 +78,7 @@ MOS_STATUS FilmGrainGrvPacket::Init()
     m_allocator = m_av1Pipeline->GetDecodeAllocator();
     DECODE_CHK_NULL(m_allocator);
 
-    DECODE_CHK_STATUS(AllocateFixedSizeSurfaces());
-
     DECODE_CHK_STATUS(Initilize());
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS FilmGrainGrvPacket::AllocateFixedSizeSurfaces()
-{
-    DECODE_FUNC_CALL();
-
-    DECODE_CHK_NULL(m_filmGrainFeature);
-    m_gaussianSequenceSurface        = m_filmGrainFeature->m_gaussianSequenceSurface;
-    m_yRandomValuesSurface           = m_filmGrainFeature->m_yRandomValuesSurface;
-    m_uRandomValuesSurface           = m_filmGrainFeature->m_uRandomValuesSurface;
-    m_vRandomValuesSurface           = m_filmGrainFeature->m_vRandomValuesSurface;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS FilmGrainGrvPacket::AllocateVariableSizeSurfaces()
-{
-    DECODE_FUNC_CALL();
-
-    DECODE_CHK_NULL(m_filmGrainFeature);
-    m_coordinatesRandomValuesSurface = m_filmGrainFeature->m_coordinatesRandomValuesSurface;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -115,8 +90,6 @@ MOS_STATUS FilmGrainGrvPacket::Prepare()
     DECODE_CHK_NULL(m_hwInterface);
 
     m_picParams = m_av1BasicFeature->m_av1PicParams;
-
-    DECODE_CHK_STATUS(AllocateVariableSizeSurfaces());
 
     //Reset BT index for a new frame
     ResetBindingTableEntry();
@@ -401,14 +374,14 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
     uint32_t        coordsWidth  = MOS_ROUNDUP_SHIFT(m_picParams->m_superResUpscaledWidthMinus1 + 1, 6);
     uint32_t        coordsHeight = MOS_ROUNDUP_SHIFT(m_picParams->m_superResUpscaledHeightMinus1 + 1, 6);
     uint32_t        allocSize    = coordsWidth * coordsHeight * sizeof(int32_t);
-    DECODE_CHK_NULL(m_coordinatesRandomValuesSurface);
-    auto data = (int32_t *)m_allocator->LockResouceForWrite(&m_coordinatesRandomValuesSurface->OsResource);
+    DECODE_CHK_NULL(m_filmGrainFeature->m_coordinatesRandomValuesSurface);
+    auto data = (int32_t *)m_allocator->LockResouceForWrite(&m_filmGrainFeature->m_coordinatesRandomValuesSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_ZeroMemory(data, allocSize);
 
     //Gaussian sequence - input, 1D
     bool isWritable                 = false;
-    m_gaussianSequenceSurface->size = 2048 * sizeof(int16_t);
+    m_filmGrainFeature->m_gaussianSequenceSurface->size = 2048 * sizeof(int16_t);
 
     RENDERHAL_SURFACE_STATE_PARAMS surfaceParams;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
@@ -421,7 +394,7 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
 
     m_bindingTableIndex[grvInputGaussianSeq] = SetBufferForHwAccess(
-        *m_gaussianSequenceSurface ,
+        *m_filmGrainFeature->m_gaussianSequenceSurface ,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -436,7 +409,7 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
 
     m_bindingTableIndex[grvOutputYRandomValue] = SetSurfaceForHwAccess(
-        m_yRandomValuesSurface,
+        m_filmGrainFeature->m_yRandomValuesSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -451,7 +424,7 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
 
     m_bindingTableIndex[grvOutputURandomValue] = SetSurfaceForHwAccess(
-        m_uRandomValuesSurface,
+        m_filmGrainFeature->m_uRandomValuesSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -466,7 +439,7 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
 
     m_bindingTableIndex[grvOutputVRandomValue] = SetSurfaceForHwAccess(
-        m_vRandomValuesSurface,
+        m_filmGrainFeature->m_vRandomValuesSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -482,7 +455,7 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
 
     m_bindingTableIndex[grvOutputCoordinates] = SetBufferForHwAccess(
-        *m_coordinatesRandomValuesSurface,
+        *m_filmGrainFeature->m_coordinatesRandomValuesSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);

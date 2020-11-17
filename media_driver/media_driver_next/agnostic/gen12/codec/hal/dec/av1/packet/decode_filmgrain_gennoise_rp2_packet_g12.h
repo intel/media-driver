@@ -211,15 +211,14 @@ class FilmGrainRp2Packet : public RenderCmdPacket
 {
 public:
     FilmGrainRp2Packet(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface);
-    
+
     virtual ~FilmGrainRp2Packet() {};
 
     MOS_STATUS Prepare() override;
     MOS_STATUS Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase) override;
     MOS_STATUS Initilize();
-    
+
     virtual MOS_STATUS Init() override;
-    virtual MOS_STATUS AllocateResources();
 
     virtual std::string GetPacketName() override
     {
@@ -265,19 +264,6 @@ protected:
     CodechalHwInterface     *m_hwInterface      = nullptr;
     DecodeMemComp           *m_mmcState         = nullptr;
     const CodecAv1PicParams *m_picParams        = nullptr;  //!< Pointer to picture parameter
-
-    //Surface for RegressionPhase2
-    MOS_SURFACE *m_yRandomValuesSurface         = nullptr;  //!< Y random values 2D surface, size = 70 * 70 * sizeof(short)
-    MOS_SURFACE *m_uRandomValuesSurface         = nullptr;  //!< U random values 2D surface, size = 38 * 38 * sizeof(short)
-    MOS_SURFACE *m_vRandomValuesSurface         = nullptr;  //!< V random values 2D surface, size = 38 * 38 * sizeof(short)
-    MOS_SURFACE *m_yDitheringTempSurface        = nullptr;  //!< First step in generating dithering noise table for Y, 2D surface, size = 70 * 70 * sizeof(short)
-
-    MOS_SURFACE *m_yDitheringSurface            = nullptr;  //!< Y Dithering surface, size = 8 bit: 4 * 64 * 64 * sizeof(char), 10 bit:  4 * 64 * 64 * sizeof(short)
-    MOS_SURFACE *m_uDitheringSurface            = nullptr;  //!< U Dithering surface, size = 8 bit:   4 * 32 * 32 * sizeof(char), 10 bit:  4 * 32 * 32 * sizeof(short)
-    MOS_SURFACE *m_vDitheringSurface            = nullptr;  //!< V Dithering surface, size = 8 bit:   4 * 32 * 32 * sizeof(char), 10 bit:  4 * 32 * 32 * sizeof(short)
-    MOS_BUFFER * m_yCoeffSurface                = nullptr;  //!< Input Y Coeff surface, size = 32 * sizeof(short), 1D buffer
-    MOS_BUFFER * m_uCoeffSurface                = nullptr;  //!< Input U Coeff surface, size = 32 * sizeof(short), 1D buffer
-    MOS_BUFFER * m_vCoeffSurface                = nullptr;  //!< Input V Coeff surface, size = 32 * sizeof(short), 1D buffer
 
     uint32_t m_bindingTableIndex[rp2NumSurfaces] =
     {

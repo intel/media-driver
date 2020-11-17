@@ -79,22 +79,6 @@ MOS_STATUS FilmGrainAppNoisePkt::Init()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS FilmGrainAppNoisePkt::AllocateResources()
-{
-    DECODE_FUNC_CALL();
-
-    m_filmGrainProcParams               = m_av1BasicFeature->m_filmGrainProcParams;
-    m_yDitheringSurface                 = m_filmGrainFeature->m_yDitheringSurface;
-    m_uDitheringSurface                 = m_filmGrainFeature->m_uDitheringSurface;
-    m_vDitheringSurface                 = m_filmGrainFeature->m_vDitheringSurface;
-    m_coordinatesRandomValuesSurface    = m_filmGrainFeature->m_coordinatesRandomValuesSurface;
-    m_yGammaLUTSurface                  = m_filmGrainFeature->m_yGammaLUTSurface;
-    m_uGammaLUTSurface                  = m_filmGrainFeature->m_uGammaLUTSurface;
-    m_vGammaLUTSurface                  = m_filmGrainFeature->m_vGammaLUTSurface;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS FilmGrainAppNoisePkt::Prepare()
 {
     DECODE_FUNC_CALL();
@@ -105,7 +89,8 @@ MOS_STATUS FilmGrainAppNoisePkt::Prepare()
 
     ResetBindingTableEntry();
 
-    DECODE_CHK_STATUS(AllocateResources());
+    m_filmGrainProcParams = m_av1BasicFeature->m_filmGrainProcParams;
+
     DECODE_CHK_STATUS(RenderEngineSetup());
     DECODE_CHK_STATUS(KernelStateSetup());
     DECODE_CHK_STATUS(SetUpSurfaceState());
@@ -423,7 +408,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputYDithering] = SetSurfaceForHwAccess(
-        m_yDitheringSurface,
+        m_filmGrainFeature->m_yDitheringSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -437,7 +422,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputUDithering] = SetSurfaceForHwAccess(
-        m_uDitheringSurface,
+        m_filmGrainFeature->m_uDitheringSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -451,7 +436,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputVDithering] = SetSurfaceForHwAccess(
-        m_vDitheringSurface,
+        m_filmGrainFeature->m_vDitheringSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -466,7 +451,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     surfaceParams.bBufferUse    = true;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputRandomValuesCoordinates] = SetBufferForHwAccess(
-        *m_coordinatesRandomValuesSurface,
+        *m_filmGrainFeature->m_coordinatesRandomValuesSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -474,7 +459,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     //Y Gamma LUT surface - input
     isWritable                 = false;
-    m_yGammaLUTSurface->size   = MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE);
+    m_filmGrainFeature->m_yGammaLUTSurface->size   = MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE);
 
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
@@ -484,7 +469,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputYGammaLut] = SetBufferForHwAccess(
-        *m_yGammaLUTSurface,
+        *m_filmGrainFeature->m_yGammaLUTSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -492,7 +477,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     //U Gamma LUT surface - input
     isWritable               = false;
-    m_uGammaLUTSurface->size = MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE);
+    m_filmGrainFeature->m_uGammaLUTSurface->size = MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE);
 
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
@@ -502,7 +487,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputUGammaLut] = SetBufferForHwAccess(
-        *m_uGammaLUTSurface,
+        *m_filmGrainFeature->m_uGammaLUTSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -510,7 +495,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     //V Gamma LUT surface - input
     isWritable               = false;
-    m_vGammaLUTSurface->size = MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE);
+    m_filmGrainFeature->m_vGammaLUTSurface->size = MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE);
 
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
@@ -520,7 +505,7 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
 
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[anInputVGammaLut] = SetBufferForHwAccess(
-        *m_vGammaLUTSurface,
+        *m_filmGrainFeature->m_vGammaLUTSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);

@@ -74,23 +74,11 @@ MOS_STATUS FilmGrainRp1Packet::Init()
     m_allocator = m_av1Pipeline->GetDecodeAllocator();
     DECODE_CHK_NULL(m_allocator);
 
-    DECODE_CHK_STATUS(AllocateResources());
-
     DECODE_CHK_STATUS(Initilize());
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS FilmGrainRp1Packet::AllocateResources()
-{
-    DECODE_FUNC_CALL();
-
-    m_yRandomValuesSurface  = m_filmGrainFeature->m_yRandomValuesSurface;
-    m_yDitheringTempSurface = m_filmGrainFeature->m_yDitheringTempSurface;
-    m_yCoefficientsSurface  = m_filmGrainFeature->m_yCoefficientsSurface;
-
-    return MOS_STATUS_SUCCESS;
-}
 
 MOS_STATUS FilmGrainRp1Packet::Prepare()
 {
@@ -369,7 +357,7 @@ MOS_STATUS FilmGrainRp1Packet::SetUpSurfaceState()
     surfaceParams.Boundary                    = RENDERHAL_SS_BOUNDARY_ORIGINAL;
 
     m_bindingTableIndex[rp1InputYRandomValue] = SetSurfaceForHwAccess(
-        m_yRandomValuesSurface,
+        m_filmGrainFeature->m_yRandomValuesSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -383,7 +371,7 @@ MOS_STATUS FilmGrainRp1Packet::SetUpSurfaceState()
     surfaceParams.Boundary = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[rp1OutputYDitheringSurface] = SetSurfaceForHwAccess(
-        m_yDitheringTempSurface,
+        m_filmGrainFeature->m_yDitheringTempSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
@@ -398,7 +386,7 @@ MOS_STATUS FilmGrainRp1Packet::SetUpSurfaceState()
     surfaceParams.bBufferUse    = true;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
     m_bindingTableIndex[rp1InputYCoeff] = SetBufferForHwAccess(
-        *m_yCoefficientsSurface,
+        *m_filmGrainFeature->m_yCoefficientsSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
