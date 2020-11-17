@@ -4424,6 +4424,7 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pInSurface = &pVeboxState->SfcTempSurface;
             pInSurface->rcMaxSrc = pInSurface->rcSrc;
             pInSurface->rcDst    = rcTempIn;
+            pInSurface->ScalingMode = pRenderPassData->pSrcSurface->ScalingMode;
 
             // recover the orignal rcDst for the second loop
             pcRenderParams->pTarget[0]->rcDst    = rcTemp;
