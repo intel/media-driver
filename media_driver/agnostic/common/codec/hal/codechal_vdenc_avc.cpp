@@ -4169,6 +4169,7 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupROIStreamIn(
                 m_avcPicParam,
+                m_avcSliceParams,
                 &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
         }
     }
@@ -4518,7 +4519,10 @@ MOS_STATUS CodechalVdencAvcState::SFDKernel()
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencAvcState::SetupROIStreamIn(PCODEC_AVC_ENCODE_PIC_PARAMS picParams, PMOS_RESOURCE vdencStreamIn)
+MOS_STATUS CodechalVdencAvcState::SetupROIStreamIn(
+    PCODEC_AVC_ENCODE_PIC_PARAMS   picParams,
+    PCODEC_AVC_ENCODE_SLICE_PARAMS slcParams,
+    PMOS_RESOURCE vdencStreamIn)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -4571,24 +4575,22 @@ MOS_STATUS CodechalVdencAvcState::SetupROIStreamIn(PCODEC_AVC_ENCODE_PIC_PARAMS 
     }
     else
     {
-        int32_t qpLevel;
-        int8_t  priorityLevelOrDQp[ENCODE_VDENC_AVC_MAX_ROI_NUMBER_ADV] = { 0 };
+        int8_t qpPrimeY = (int8_t)CodecHal_Clip3(10, 51, picParams->QpY + slcParams->slice_qp_delta);
         for (int32_t i = 0; i < m_picHeightInMb * m_picWidthInMb; i++)
         {
-            (pData + i)->DW1.Qpprimey = picParams->QpY;
+            (pData + i)->DW1.Qpprimey = qpPrimeY;
         }
         for (int32_t i = picParams->NumROI - 1; i >= 0; i--)
         {
             uint32_t curX, curY;
-            int8_t   dQpRoi = picParams->ROI[i].PriorityLevelOrDQp;
-            // clip delta qp roi to VDEnc supported range
-            priorityLevelOrDQp[i] = (char)CodecHal_Clip3(
-                ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, dQpRoi);
+            int8_t   dQpRoi = (int8_t)CodecHal_Clip3(
+                ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, picParams->ROI[i].PriorityLevelOrDQp);
+            int8_t   newQp = (int8_t)CodecHal_Clip3(10, 51, qpPrimeY + dQpRoi);
             for (curY = picParams->ROI[i].Top; curY < picParams->ROI[i].Bottom; curY++)
             {
                 for (curX = picParams->ROI[i].Left; curX < picParams->ROI[i].Right; curX++)
                 {
-                    (pData + (m_picWidthInMb * curY + curX))->DW1.Qpprimey = picParams->QpY + priorityLevelOrDQp[i];
+                    (pData + (m_picWidthInMb * curY + curX))->DW1.Qpprimey = newQp;
                 }
             }
         }

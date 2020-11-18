@@ -555,8 +555,9 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetupROIStreamIn(
-        PCODEC_AVC_ENCODE_PIC_PARAMS picParams,
-        PMOS_RESOURCE                vdencStreamIn);
+        PCODEC_AVC_ENCODE_PIC_PARAMS   picParams,
+        PCODEC_AVC_ENCODE_SLICE_PARAMS slcParams,
+        PMOS_RESOURCE                  vdencStreamIn);
 
     //!
     //! \brief    Set VDENC BRC ROI buffer
