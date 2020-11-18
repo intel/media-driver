@@ -112,7 +112,11 @@ struct CodechalVdencHevcLaDmem
     uint16_t AGop_Threshold;
     uint16_t PGop;
     uint8_t  downscaleRatio;     // 0-no scale, 1-2x, 2-4x
-    uint8_t  RSVD1[23];
+    uint8_t  isIframeInsideBGOP;
+    uint8_t  adaptiveIDR;
+    uint8_t  RSVD3;
+    uint32_t mbr_ratio;
+    uint8_t  RSVD1[16];
     // for Update, valid only when lookAheadFunc = 1
     uint32_t validStatsRecords;  // # of valid stats records
     uint32_t offset;             // offset in unit of entries
@@ -252,14 +256,16 @@ public:
     MOS_RESOURCE                            m_vdencLaStatsBuffer;                              //!< VDEnc statistics buffer for lookahead
     MOS_RESOURCE                            m_vdencLaDataBuffer;                               //!< lookahead data buffer, output of lookahead analysis
     MOS_RESOURCE                            m_vdencLaInitDmemBuffer = {};                           //!< VDEnc Lookahead Init DMEM buffer
-    MOS_RESOURCE                            m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                  //!< VDEnc Lookahead Update DMEM buffer
+    MOS_RESOURCE                            m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_LPLA_NUM_OF_PASSES];  //!< VDEnc Lookahead Update DMEM buffer
     MOS_RESOURCE                            m_vdencLaHistoryBuffer = {};                            //!< VDEnc lookahead history buffer
     bool                                    m_lookaheadPass = false;                           //!< Indicate if current pass is lookahead pass or encode pass
     bool                                    m_lookaheadInit = true;                            //!< Lookahead init flag
     bool                                    m_lookaheadReport = false;                         //!< Lookahead report valid flag
+    bool                                    m_lookaheadAdaptiveI = false;                      //!< Adaptive I flag for lookahead
     uint32_t                                m_vdencLaInitDmemBufferSize = 0;                   //!< Offset of Lookahead init DMEM buffer
     uint32_t                                m_vdencLaUpdateDmemBufferSize = 0;                 //!< Offset of Lookahead update DMEM buffer
     uint32_t                                m_numValidLaRecords = 0;                           //!< Number of valid lookahead records
+    uint32_t                                m_intraInterval = 0;                               //!< Frame count since last I frame
     int32_t                                 m_bufferFulnessError = 0;                          //!< VBV buffer fulness error between unit of bits (used by driver) and unit of frame (used by LA analsis kernel)
     uint8_t                                 m_cqmQpThreshold = 40;                             //!< QP threshold for CQM enable/disable. Used by lookahead analysis kernel.
     HMODULE                                 m_swLaMode = nullptr;                              //!< Software lookahead analysis mode
@@ -776,6 +782,17 @@ public:
     //! \return   void
     //!
     virtual void ProcessRoiDeltaQp();
+
+    //!
+    //! \brief    Program streamin buffer to force all the CUs to intra
+    //!
+    //! \param    [in] streamIn
+    //!           Pointer to streamin buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetupForceIntraStreamIn(PMOS_RESOURCE streamIn);
 
     // Inherited virtual function
     MOS_STATUS Initialize(CodechalSetting * settings)  override;

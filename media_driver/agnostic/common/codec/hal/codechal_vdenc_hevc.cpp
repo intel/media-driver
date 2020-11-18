@@ -1420,6 +1420,10 @@ void CodechalVdencHevcState::SetVdencPipeBufAddrParams(
         {
             pipeBufAddrParams.presVdencStreamInBuffer = &m_vdencOutputROIStreaminBuffer;
         }
+        else if (m_lookaheadPass)
+        {
+            pipeBufAddrParams.presVdencStreamInBuffer = &m_resVdencStreamInBuffer[0];
+        }
         else
         {
             pipeBufAddrParams.presVdencStreamInBuffer = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
@@ -2655,6 +2659,32 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
     m_lookaheadDepth = m_hevcSeqParams->LookaheadDepth;
     m_lookaheadPass  = (m_lookaheadDepth > 0) && (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP);
 
+    if (m_lookaheadPass)
+    {
+        if (m_hevcSeqParams->MaxAdaptiveGopPicSize < m_hevcSeqParams->MinAdaptiveGopPicSize)
+        {
+            m_hevcSeqParams->MaxAdaptiveGopPicSize = m_hevcSeqParams->MinAdaptiveGopPicSize;
+        }
+        else if ((m_hevcSeqParams->MaxAdaptiveGopPicSize > 0) && (m_hevcSeqParams->MinAdaptiveGopPicSize == 0))
+        {
+            m_hevcSeqParams->MinAdaptiveGopPicSize = (m_hevcSeqParams->MaxAdaptiveGopPicSize + 1) >> 1;
+        }
+
+        m_lookaheadAdaptiveI = (m_hevcSeqParams->MaxAdaptiveGopPicSize != m_hevcSeqParams->MinAdaptiveGopPicSize);
+        if (!m_lookaheadAdaptiveI && (m_hevcSeqParams->MaxAdaptiveGopPicSize == 0))
+        {
+            if (m_hevcSeqParams->GopPicSize > 0)
+            {
+                m_hevcSeqParams->MaxAdaptiveGopPicSize = m_hevcSeqParams->GopPicSize;
+                m_hevcSeqParams->MinAdaptiveGopPicSize = m_hevcSeqParams->GopPicSize;
+            }
+            else
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("Invalid GopPicSize in LPLA!");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+    }
 
     if (m_lookaheadDepth > 0)
     {
@@ -2732,6 +2762,11 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
         }
     }
 
+    if (m_lookaheadPass)
+    {
+        m_vdencHuCConditional2ndPass = m_lookaheadAdaptiveI && m_hevcPicParams->CodingType != I_TYPE;  //conditional 2nd pass for adaptive IDR
+    }
+
     if (m_brcEnabled)  // VDEnc BRC supports maximum 2 PAK passes
     {
         if (m_hevcPicParams->BRCPrecision == 1)  // single-pass BRC, App requirment with first priority
@@ -2758,7 +2793,7 @@ MOS_STATUS CodechalVdencHevcState::SetPictureStructs()
 
         // ACQP + SSC, ACQP + WP. CQP + SSC/WP donot need 2nd pass
         // driver programs 2nd pass, but it will be decided by conditional batch buffer end cmd to execute 2nd pass
-        if (m_vdencHuCConditional2ndPass && m_hevcVdencAcqpEnabled)
+        if (m_vdencHuCConditional2ndPass && (m_hevcVdencAcqpEnabled || m_lookaheadPass))
         {
             m_numPasses += 1;
         }
@@ -3313,11 +3348,14 @@ MOS_STATUS CodechalVdencHevcState::AllocateBrcResources()
         allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_vdencLaUpdateDmemBufferSize, CODECHAL_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC Lookahead update Dmem Buffer";
 
-        CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_vdencLaUpdateDmemBuffer[k]),
-            "Failed to create VDENC Lookahead Update Dmem Buffer");
+        for (auto i = 0; i < CODECHAL_LPLA_NUM_OF_PASSES; i++)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_vdencLaUpdateDmemBuffer[k][i]),
+                "Failed to create VDENC Lookahead Update Dmem Buffer");
+        }
     }
 
     for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
@@ -3456,7 +3494,11 @@ MOS_STATUS CodechalVdencHevcState::FreeBrcResources()
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcInitDmemBuffer[k]);
         m_osInterface->pfnFreeResource(m_osInterface, &m_vdencBrcConstDataBuffer[k]);
-        m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaUpdateDmemBuffer[k]);
+
+        for (auto i = 0; i < CODECHAL_LPLA_NUM_OF_PASSES; i++)
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, &m_vdencLaUpdateDmemBuffer[k][i]);
+        }
     }
 
     for (auto j = 0; j < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; j++)
@@ -3812,6 +3854,73 @@ MOS_STATUS CodechalVdencHevcState::PrepareHWMetaData(
     miStoreRegMemParams.dwOffset = m_metaDataOffset.dwEncodedBitstreamWrittenBytesCount;
     miStoreRegMemParams.dwRegister = mmioRegisters->hcpEncBitstreamBytecountFrameRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencHevcState::SetupForceIntraStreamIn(PMOS_RESOURCE streamIn)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(streamIn);
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly = true;
+
+    uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
+        m_osInterface,
+        streamIn,
+        &lockFlags);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+    MHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminDataParams;
+    uint32_t streamInWidth  = (MOS_ALIGN_CEIL(m_frameWidth, 64) / 32);
+    uint32_t streamInHeight = (MOS_ALIGN_CEIL(m_frameHeight, 64) / 32);
+
+    if (m_lookaheadPass)
+    {
+        // lookahead pass should lower QP by 2 to encode force intra frame.
+        MOS_ZeroMemory(&streaminDataParams, sizeof(streaminDataParams));
+        streaminDataParams.setQpRoiCtrl = true;
+        streaminDataParams.forceQp = m_hevcPicParams->QpY - 2;
+        SetStreaminDataPerRegion(streamInWidth, 0, streamInHeight, 0, streamInWidth, &streaminDataParams, data);
+    }
+
+    MOS_ZeroMemory(&streaminDataParams, sizeof(streaminDataParams));
+    streaminDataParams.puTypeCtrl = 1;  //force intra
+    streaminDataParams.maxTuSize = 3;
+    streaminDataParams.maxCuSize = 3;
+    switch (m_hevcSeqParams->TargetUsage)
+    {
+    case 1:
+    case 4:
+        streaminDataParams.numMergeCandidateCu64x64 = 4;
+        streaminDataParams.numMergeCandidateCu32x32 = 3;
+        streaminDataParams.numMergeCandidateCu16x16 = 2;
+        streaminDataParams.numMergeCandidateCu8x8   = 1;
+        streaminDataParams.numImePredictors         = m_imgStateImePredictors;
+        break;
+    case 7:
+        streaminDataParams.numMergeCandidateCu64x64 = 2;
+        streaminDataParams.numMergeCandidateCu32x32 = 2;
+        streaminDataParams.numMergeCandidateCu16x16 = 2;
+        streaminDataParams.numMergeCandidateCu8x8   = 0;
+        streaminDataParams.numImePredictors         = 4;
+        break;
+    }
+
+    uint32_t streamInNumCUs = streamInWidth * streamInHeight;
+    for (uint32_t i = 0; i < streamInNumCUs; i++)
+    {
+        SetStreaminDataPerLcu(&streaminDataParams, data + (i * 64));
+    }
+
+    m_osInterface->pfnUnlockResource(
+        m_osInterface,
+        streamIn);
 
     return eStatus;
 }

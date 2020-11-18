@@ -144,6 +144,7 @@
 #define CODECHAL_ENCODE_ME_DATA_SIZE_MULTIPLIER         (CODECHAL_ENCODE_NUM_MAX_VME_L0_REF + CODECHAL_ENCODE_NUM_MAX_VME_L1_REF)
 #define CODECHAL_ENCODE_FIELD_NUM_MAX_VME_L0_REF        4 // multiref - G7.5+
 #define CODECHAL_ENCODE_FIELD_NUM_MAX_VME_L1_REF        1 // multiref - G7.5+
+#define CODECHAL_LPLA_NUM_OF_PASSES                     2
 
 // BRC
 #define CODECHAL_ENCODE_BRC_KBPS                        1000     // 1000bps for disk storage, aligned with industry usage

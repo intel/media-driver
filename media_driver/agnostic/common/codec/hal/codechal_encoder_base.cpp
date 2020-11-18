@@ -3844,7 +3844,9 @@ MOS_STATUS CodechalEncoderState::ResetStatusReport()
     encodeStatus =
         (EncodeStatus*)(encodeStatusBuf->pEncodeStatus +
         encodeStatusBuf->wCurrIndex * encodeStatusBuf->dwReportSize);
+    uint32_t statusReportNumber = encodeStatus->lookaheadStatus.StatusReportNumber;
     MOS_ZeroMemory((uint8_t*)encodeStatus, sizeof(EncodeStatus));
+    encodeStatus->lookaheadStatus.StatusReportNumber = statusReportNumber;
 
     if (m_encEnabled)
     {

@@ -524,6 +524,13 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     */
     uint8_t                   LookaheadDepth;
 
+    /*! \brief Indicates minimal and maximal IDR distances used for adaptive GOP decision.
+    *
+    *    Applicable for LookAhead phase only.
+    */
+    uint16_t                  MinAdaptiveGopPicSize;
+    uint16_t                  MaxAdaptiveGopPicSize;
+
     uint32_t motion_vector_resolution_control_idc;
     uint32_t intra_boundary_filtering_disabled_flag;
     uint8_t     palette_max_size;
