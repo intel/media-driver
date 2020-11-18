@@ -1554,7 +1554,6 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxAvcDirectmodeCmd(
     if (!params->bDisableDmvBuffers)
     {
         MHW_MI_CHK_NULL(params->presAvcDmvBuffers);
-        MHW_MI_CHK_NULL(params->pAvcDmvList);
 
         cmd.DW36.MemoryObjectControlState =
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC].Value;

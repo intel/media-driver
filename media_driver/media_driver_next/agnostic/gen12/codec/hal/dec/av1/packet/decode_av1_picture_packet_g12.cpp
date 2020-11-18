@@ -24,7 +24,6 @@
 //! \brief    Defines the interface for av1 decode picture packet
 //!
 #include "codechal_utilities.h"
-#include "decode_av1_picture_packet.h"
 #include "decode_av1_picture_packet_g12.h"
 #include "mhw_mi_g12_X.h"
 #include "mhw_vdbox_g12_X.h"

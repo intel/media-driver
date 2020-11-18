@@ -124,8 +124,9 @@ namespace decode {
         if (m_enableRcs)
         {
             DecodeStatusRcs *decodeStatusRcs = (DecodeStatusRcs *)(m_dataStatusRcs + submitIndex * m_statusBufSizeRcs);
-            decodeStatusRcs->status          = querySkipped;
+            decodeStatusRcs->status = querySkipped;
         }
+
         return eStatus;
     }
 
@@ -156,6 +157,7 @@ namespace decode {
     MOS_STATUS DecodeStatusReport::ParseStatus(void* report, uint32_t index)
     {
         DECODE_FUNC_CALL();
+
         MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
         DecodeStatusMfx* decodeStatusMfx = nullptr;
         DecodeStatusRcs* decodeStatusRcs = nullptr;
@@ -186,6 +188,7 @@ namespace decode {
         }
 
         *((DecodeStatusReportData*)report) = *statusReportData;
+
         return eStatus;
     }
 
@@ -198,6 +201,7 @@ namespace decode {
         statusReportData->codecStatus = outOfRange ? CODECHAL_STATUS_UNAVAILABLE : CODECHAL_STATUS_INCOMPLETE;
 
         *((DecodeStatusReportData*)report) = *statusReportData;
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -230,7 +234,7 @@ namespace decode {
         DECODE_CHK_NULL(statusReportData);
         DECODE_CHK_NULL(decodeStatus);
 
-        if(!completed)
+        if (!completed)
         {
             statusReportData->codecStatus = CODECHAL_STATUS_INCOMPLETE;
         }

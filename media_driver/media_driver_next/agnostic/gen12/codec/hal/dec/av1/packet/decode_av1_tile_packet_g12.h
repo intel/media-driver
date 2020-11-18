@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_slice_packet_g12.h
-//! \brief    Defines the implementation of av1 decode slice packet for GEN12
+//! \file     decode_av1_tile_packet_g12.h
+//! \brief    Defines the implementation of av1 decode tile packet for GEN12
 //!
 
-#ifndef __DECODE_AV1_SLICE_PACKET_G12_H__
-#define __DECODE_AV1_SLICE_PACKET_G12_H__
+#ifndef __DECODE_AV1_TILE_PACKET_G12_H__
+#define __DECODE_AV1_TILE_PACKET_G12_H__
 
 #include "media_cmd_packet.h"
 #include "decode_av1_pipeline.h"

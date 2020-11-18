@@ -54,12 +54,12 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    uint32_t completedCount   = *m_completedCount;
-    uint32_t reportedCount    = m_reportedCount;
+    uint32_t completedCount = *m_completedCount;
+    uint32_t reportedCount = m_reportedCount;
     uint32_t reportedCountOrigin = m_reportedCount;
     uint32_t availableCount = m_submittedCount - reportedCount;
-    uint32_t generatedReportCount   = 0;
-    uint32_t reportIndex      = 0;
+    uint32_t generatedReportCount = 0;
+    uint32_t reportIndex = 0;
     bool reverseOrder = (requireNum > 1);
 
     while (reportedCount != completedCount && generatedReportCount < requireNum){
@@ -69,7 +69,7 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
                                      CounterToIndex(reportedCount);
         // m_reportedCount is used by component. Need to assign actual index before call ParseStatus
         m_reportedCount = reportIndex;
-        eStatus     = ParseStatus(((uint8_t*)status + m_sizeOfReport * generatedReportCount), reportIndex);
+        eStatus = ParseStatus(((uint8_t*)status + m_sizeOfReport * generatedReportCount), reportIndex);
 
         reportedCount++;
         generatedReportCount++;
@@ -85,8 +85,8 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
     }
 
     m_reportedCount = reportedCount;
-    return eStatus;
 
+    return eStatus;
 }
 
 MOS_STATUS MediaStatusReport::RegistObserver(MediaStatusReportObserver *observer)
@@ -119,6 +119,7 @@ MOS_STATUS MediaStatusReport::UnregistObserver(MediaStatusReportObserver *observ
     }
 
     m_completeObservers.erase(it);
+
     return eStatus;
 }
 

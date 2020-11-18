@@ -61,6 +61,9 @@
 #include "codechal_hw_g12_X.h"
 #ifdef _AVC_DECODE_SUPPORTED
 #include "codechal_decode_avc_g12.h"
+#ifdef _APOGEIOS_SUPPORTED
+#include "decode_avc_pipeline_adapter_m12.h"
+#endif
 #endif
 #include "codechal_decode_downsampling_g12.h"
 

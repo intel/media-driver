@@ -111,19 +111,6 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureManager() override;
 
-#if 0
-#if USE_CODECHAL_DEBUG_TOOL
-    //! \brief    Dump the quantization matrix parameters
-    //!
-    //! \param    [in] matrixData
-    //!           Pointer to CODECHAL_HEVC_IQ_MATRIX_PARAMS
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    //MOS_STATUS DumpIQParams(PCODECHAL_HEVC_IQ_MATRIX_PARAMS matrixData);
-#endif
-#endif
 protected:
     HucCopyPkt    *m_cdfCopyPkt       = nullptr;          //!< Update default cdf buffer with huc stream out packet
     Av1DecodeMode  m_decodeMode       = baseDecodeMode;   //!< Decode mode

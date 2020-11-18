@@ -132,13 +132,14 @@ namespace decode
         Av1DecodeTile                   m_tileCoding;                              //!< Tile coding
         std::vector<uint32_t>           m_refFrameIndexList;                       //!< Reference frame index list
         RefrenceAssociatedBuffer<Av1RefAssociatedBufs, Av1TempBufferOpInf, Av1BasicFeature> m_tempBuffers; //!< Reference associated buffers
-        InternalTargets                 m_internalTarget; //!< Internal decode out surface
+
+        InternalTargets                 m_internalTarget;                          //!< Internal decode out surface
         FilmGrainProcParams            *m_filmGrainProcParams       = nullptr;     //!< Film grain processing params
         bool                            m_frameCompletedFlag        = false;
-        bool                            m_filmGrainEnabled          = false;        //!< Per-frame film grain enable flag
-        bool                            m_usingDummyWl              = false;        //!< Indicate using dummy workload flag
-        PMOS_SURFACE                    m_destSurfaceForDummyWL     = nullptr;      //!< Internal Dummy dest surface
-        bool                            m_singleKernelPerfFlag      = true;         //!< Defaut to capture whole kernel execution timing for perf
+        bool                            m_filmGrainEnabled          = false;       //!< Per-frame film grain enable flag
+        bool                            m_usingDummyWl              = false;       //!< Indicate using dummy workload flag
+        PMOS_SURFACE                    m_destSurfaceForDummyWL     = nullptr;     //!< Internal Dummy dest surface
+        bool                            m_singleKernelPerfFlag      = true;        //!< Defaut to capture whole kernel execution timing for perf
 
     protected:
         virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;

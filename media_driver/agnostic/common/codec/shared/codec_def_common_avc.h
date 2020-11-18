@@ -33,6 +33,7 @@
 #define CODEC_AVC_NUM_REF_LISTS             2
 #define CODEC_AVC_NUM_REF_DMV_BUFFERS       (CODEC_AVC_MAX_NUM_REF_FRAME + 1) // Max 16 references + 1 for the current frame
 #define CODEC_AVC_NUM_DMV_BUFFERS           (CODEC_AVC_NUM_REF_DMV_BUFFERS + 1)  // 1 for non-reference
+#define CODEC_AVC_NUM_INIT_DMV_BUFFERS      4
 
 #define CODEC_MAX_NUM_REF_FIELD             (CODEC_MAX_NUM_REF_FRAME * CODEC_NUM_FIELDS_PER_FRAME)
 #define CODEC_AVC_MAX_SPS_NUM                32

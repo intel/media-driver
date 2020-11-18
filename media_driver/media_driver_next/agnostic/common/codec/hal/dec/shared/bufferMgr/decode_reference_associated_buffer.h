@@ -126,14 +126,17 @@ public:
     //!         The frame index for current picture
     //! \param  [in] refFrameList
     //!         The frame indicies of reference frame list
+    //! \param  [in] fixedFrameIdx
+    //!         The frameIdx user wants to keep into the refFrameList
+    //!         Default value is 0xff
     //! \return  MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS UpdatePicture(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList)
+    MOS_STATUS UpdatePicture(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList, uint32_t fixedFrameIdx = 0xff)
     {
         DECODE_FUNC_CALL();
 
-        DECODE_CHK_STATUS(UpdateRefList(curFrameIdx, refFrameList));
+        DECODE_CHK_STATUS(UpdateRefList(curFrameIdx, refFrameList, fixedFrameIdx));
         DECODE_CHK_STATUS(ActiveCurBuffer(curFrameIdx));
 
         return MOS_STATUS_SUCCESS;
@@ -221,6 +224,14 @@ protected:
     {
         DECODE_FUNC_CALL();
 
+        for (auto iter = m_activeBuffers.begin(); iter!= m_activeBuffers.end(); iter++)
+        {
+            if (curFrameIdx == iter->first)
+            {
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+
         if (m_aviableBuffers.size() == 0)
         {
             m_currentBuffer = m_bufferOp.Allocate();
@@ -250,16 +261,24 @@ protected:
     //!         The frame index for current picture
     //! \param  [in] refFrameList
     //!         The frame indicies of reference frame list
+    //! \param  [in] fixedFrameIdx
+    //!         The frameIdx user wants to keep into the refFrameList
     //! \return  MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS UpdateRefList(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList)
+    MOS_STATUS UpdateRefList(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList, uint32_t fixedFrameIdx)
     {
         DECODE_FUNC_CALL();
 
         auto iter = m_activeBuffers.begin();
         while (iter != m_activeBuffers.end())
         {
+            if (iter->first == fixedFrameIdx)
+            {
+                ++iter;
+                continue;
+            }
+
             if (!IsReference(iter->first, curFrameIdx, refFrameList))
             {
                 auto buffer = iter->second;

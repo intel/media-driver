@@ -44,6 +44,8 @@ namespace decode
         DECODE_CHK_NULL(cmdBuffer);
         DECODE_CHK_NULL(m_hwInterface);
 
+        DECODE_CHK_STATUS(m_miInterface->SetWatchdogTimerThreshold(
+            m_av1BasicFeature->m_width, m_av1BasicFeature->m_height, false));
         DECODE_CHK_STATUS(Mos_Solo_PreProcessDecode(m_osInterface, &m_av1BasicFeature->m_destSurface));
 
         SetPerfTag(CODECHAL_DECODE_MODE_AV1VLD, m_av1BasicFeature->m_pictureCodingType);

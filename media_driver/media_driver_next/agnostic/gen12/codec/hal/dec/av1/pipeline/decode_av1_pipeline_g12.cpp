@@ -133,7 +133,7 @@ namespace decode
                 m_statusReport->Init(&inputParameters);
             }
         }
-     
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -254,8 +254,8 @@ namespace decode
         m_fgGenNoiseSubPipeline = MOS_New(FilmGrainPreSubPipeline, this, m_task, m_numVdbox);
         DECODE_CHK_NULL(m_fgGenNoiseSubPipeline);
         DECODE_CHK_STATUS(m_preSubPipeline->Register(*m_fgGenNoiseSubPipeline));
-        DECODE_CHK_STATUS(m_fgGenNoiseSubPipeline->Init(*codecSettings));  
-        
+        DECODE_CHK_STATUS(m_fgGenNoiseSubPipeline->Init(*codecSettings));
+
         //post subpipeline for apply noise
         m_fgAppNoiseSubPipeline = MOS_New(FilmGrainPostSubPipeline, this, m_task, m_numVdbox);
         DECODE_CHK_NULL(m_fgAppNoiseSubPipeline);
