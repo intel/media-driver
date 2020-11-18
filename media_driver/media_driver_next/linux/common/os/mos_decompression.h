@@ -91,6 +91,8 @@ public:
     //!            The offset of copied surface from
     //! \param    [in] copyOutputOffset
     //!            The offset of copied to
+    //! \param    [in] bpp
+    //!            The copy format bit per pixel
     //! \param    [in] outputCompressed
     //!            true means apply compression on output surface, else output uncompressed surface
     //!
@@ -103,6 +105,7 @@ public:
         uint32_t      copyHeight,
         uint32_t      copyInputOffset,
         uint32_t      copyOutputOffset,
+        uint32_t      bpp,
         bool          outputCompressed);
 
 protected:

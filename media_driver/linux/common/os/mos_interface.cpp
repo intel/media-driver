@@ -2201,6 +2201,7 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     uint32_t            copyHeight,
     uint32_t            copyInputOffset,
     uint32_t            copyOutputOffset,
+    uint32_t            bpp,
     bool                outputCompressed)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -2221,7 +2222,7 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
 
         // Double Buffer Copy can support any tile status surface with/without compression
         mosDecompression->MediaMemoryCopy2D(inputResource, outputResource,
-            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, outputCompressed);
+            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bpp, outputCompressed);
     }
 
     return status;

@@ -1146,7 +1146,7 @@ void DdiMedia_MediaMemoryCopyInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE inputOs
 //! \param  [in] copyOutputOffset
 //!         The offset of copied to
 //!
-void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE inputOsResource, PMOS_RESOURCE outputOsResource, uint32_t copyWidth, uint32_t copyHeight, uint32_t copyInputOffset, uint32_t copyOutputOffset, bool boutputcompressed)
+void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE inputOsResource, PMOS_RESOURCE outputOsResource, uint32_t copyWidth, uint32_t copyHeight, uint32_t copyInputOffset, uint32_t copyOutputOffset, uint32_t bpp, bool boutputcompressed)
 {
     DDI_CHK_NULL(mosCtx, "nullptr mosCtx",);
     DDI_CHK_NULL(inputOsResource, "nullptr input osResource",);
@@ -1176,6 +1176,7 @@ void DdiMedia_MediaMemoryCopy2DInternal(PMOS_CONTEXT mosCtx, PMOS_RESOURCE input
             copyHeight,
             copyInputOffset,
             copyOutputOffset,
+            bpp,
             boutputcompressed);
     }
     else

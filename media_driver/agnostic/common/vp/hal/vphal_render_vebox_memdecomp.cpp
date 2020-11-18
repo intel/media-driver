@@ -321,6 +321,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     uint32_t      copyHeight,
     uint32_t      copyInputOffset,
     uint32_t      copyOutputOffset,
+    uint32_t      bpp,
     bool          outputCompressed)
 {
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
@@ -372,16 +373,44 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
 
     //Get context before proceeding
     auto gpuContext = m_osInterface->CurrentGpuContextOrdinal;
+    uint32_t pixelInByte = 1;
 
-    targetSurface.Format = Format_Y8;
-    sourceSurface.Format = Format_Y8;
+    switch (bpp)
+    {
+    case 8:
+        targetSurface.Format = Format_Y8;
+        sourceSurface.Format = Format_Y8;
+        pixelInByte = 1;
+        break;
+    case 16:
+        targetSurface.Format = Format_Y16U;
+        sourceSurface.Format = Format_Y16U;
+        pixelInByte = 2;
+        break;
+    case 32:
+        targetSurface.Format = Format_AYUV;
+        sourceSurface.Format = Format_AYUV;
+        pixelInByte = 4;
+        break;
+    case 64:
+        targetSurface.Format = Format_Y416;
+        sourceSurface.Format = Format_Y416;
+        pixelInByte = 8;
+        break;
+    default:
+        targetSurface.Format = Format_Y8;
+        sourceSurface.Format = Format_Y8;
+        pixelInByte = 1;
+        break;
+    }
+
 
     sourceSurface.dwOffset = copyInputOffset;
     targetSurface.dwOffset = copyOutputOffset;
 
-    sourceSurface.dwWidth  = copyWidth;
+    sourceSurface.dwWidth  = copyWidth / pixelInByte;
     sourceSurface.dwHeight = copyHeight;
-    targetSurface.dwWidth  = copyWidth;
+    targetSurface.dwWidth  = copyWidth / pixelInByte;
     targetSurface.dwHeight = copyHeight;
 
     // Sync for Vebox write
@@ -897,7 +926,8 @@ bool MediaVeboxDecompState::IsFormatSupported(PMOS_SURFACE surface)
         surface->Format != Format_A8B8G8R8    &&
         surface->Format != Format_X8R8G8B8    &&
         surface->Format != Format_X8B8G8R8    &&
-        surface->Format != Format_P8)
+        surface->Format != Format_P8          &&
+        surface->Format != Format_Y16U)
     {
         VPHAL_MEMORY_DECOMP_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX Decompression.", surface->Format);
         goto finish;

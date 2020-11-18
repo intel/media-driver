@@ -1008,6 +1008,7 @@ typedef struct _MOS_INTERFACE
         uint32_t              copyHeight,
         uint32_t              copyInputOffset,
         uint32_t              copyOutputOffset,
+        uint32_t              bpp,
         bool                  bOutputCompressed);
 
     MOS_STATUS (* pfnFillResource) (

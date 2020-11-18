@@ -3305,6 +3305,7 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
     uint32_t              copyHeight,
     uint32_t              copyInputOffset,
     uint32_t              copyOutputOffset,
+    uint32_t              bpp,
     bool                  bOutputCompressed)
 {
     MOS_STATUS              eStatus = MOS_STATUS_UNKNOWN;
@@ -3319,7 +3320,7 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
     if (osInterface->apoMosEnabled)
     {
         return MosInterface::MediaCopyResource2D(osInterface->osStreamState, inputOsResource, outputOsResource,
-            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bOutputCompressed);
+            copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bpp, bOutputCompressed);
     }
 
     pContext = osInterface->pOsContext;
@@ -3328,7 +3329,7 @@ MOS_STATUS Mos_Specific_MediaCopyResource2D(
         outputOsResource && outputOsResource->bo && outputOsResource->pGmmResInfo)
     {
         // Double Buffer Copy can support any tile status surface with/without compression
-        pContext->pfnMediaMemoryCopy2D(pContext, inputOsResource, outputOsResource, copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bOutputCompressed);
+        pContext->pfnMediaMemoryCopy2D(pContext, inputOsResource, outputOsResource, copyWidth, copyHeight, copyInputOffset, copyOutputOffset, bpp, bOutputCompressed);
     }
 
     eStatus = MOS_STATUS_SUCCESS;

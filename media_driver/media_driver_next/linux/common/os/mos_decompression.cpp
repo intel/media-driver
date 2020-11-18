@@ -73,6 +73,7 @@ MOS_STATUS MosDecompression::MediaMemoryCopy2D(
     uint32_t      copyHeight,
     uint32_t      copyInputOffset,
     uint32_t      copyOutputOffset,
+    uint32_t      bpp,
     bool          outputCompressed)
 {
     MOS_OS_CHK_NULL_RETURN(m_mediaMemDecompState);
@@ -84,6 +85,7 @@ MOS_STATUS MosDecompression::MediaMemoryCopy2D(
         copyHeight,
         copyInputOffset,
         copyOutputOffset,
+        bpp,
         outputCompressed);
 
     return MOS_STATUS_SUCCESS;
