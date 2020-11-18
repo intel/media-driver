@@ -295,7 +295,8 @@ enum Av1ColorRange
 enum Av1SurfaceId
 {
     reconPic        = 0,    //!< reconstructed picture
-    srcInputPic     = 1,    //!< input source picture (encoder only)
+    srcInputPic     = 1,    //!< input source picture of downscaled resolution (encoder only)
+    origUpscaledSrc = 3,    //!< input source picture of original resolution (encoder only)
     av1IntraFrame   = 6,    //!< intra frame
     av1LastRef      = 7,    //!< last frame
     av1Last2Ref     = 8,    //!< last2 frame
