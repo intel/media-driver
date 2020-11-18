@@ -141,12 +141,7 @@ MOS_STATUS FilmGrainPreSubPipeline::RegressPhase2Kernel(const CodechalDecodePara
 
 MediaFunction FilmGrainPreSubPipeline::GetMediaFunction()
 {
-    if(!MEDIA_IS_SKU(m_pipeline->GetSkuTable(), FtrCCSNode))
-    {
-        return RenderGenericFunc;
-    }
-
-    return ComputeVppFunc;
+    return RenderGenericFunc;
 }
 
 void FilmGrainPreSubPipeline::InitScalabilityPars(PMOS_INTERFACE osInterface)
