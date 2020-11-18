@@ -1226,7 +1226,7 @@ public:
 
     MOS_STATUS InitMmcState() override;
 
-    MOS_STATUS GetSystemPipeNumberCommon();
+    virtual MOS_STATUS GetSystemPipeNumberCommon();
 
     MOS_STATUS InitKernelStateMe();
 
