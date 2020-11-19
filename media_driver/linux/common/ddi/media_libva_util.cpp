@@ -220,6 +220,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
             {
                 tileformat = I915_TILING_NONE;
+                alignedWidth = MOS_ALIGN_CEIL(width, 2);
+                alignedHeight = MOS_ALIGN_CEIL(height, 2);
                 break;
             }
         case Media_Format_RGBP:
@@ -561,6 +563,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
             {
                 tileformat = I915_TILING_NONE;
                 alignedHeight = height;
+                if (format == Media_Format_YV12 ||
+                    format == Media_Format_I420)
+                {
+                    alignedHeight = MOS_ALIGN_CEIL(height, 2);
+                }
             }
         }
 
