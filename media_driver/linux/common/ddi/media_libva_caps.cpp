@@ -514,18 +514,6 @@ VAStatus MediaLibvaCaps::CheckAttribList(
                         continue;
                     }
                 }
-                else if ((*m_profileEntryTbl[idx].m_attributes)[attrib[j].type] &
-                         (VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE))
-                {
-                    if((attrib[j].value & VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS)
-                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE)
-                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_POWER_OF_TWO_ROWS)
-                       ||(attrib[j].value & VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS))
-                    {
-                        isValidAttrib = true;
-                        continue;
-                    }
-                }
             }
             else if((attrib[j].type == VAConfigAttribMaxPictureWidth)
                  || (attrib[j].type == VAConfigAttribMaxPictureHeight)
@@ -808,15 +796,8 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     attrib.type = VAConfigAttribEncSliceStructure;
     if (entrypoint == VAEntrypointEncSliceLP)
     {
-        if(IsHevcProfile(profile))
-        {
-            attrib.value = VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
-        }
-        else
-        {
-            attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS
-                | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
-        }
+        attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS
+            | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE;
     }
     else
     {
