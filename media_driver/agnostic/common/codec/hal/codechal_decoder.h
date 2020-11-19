@@ -1002,22 +1002,6 @@ protected:
     uint32_t                    m_standardDecodeSizeNeeded = 0;
     //! \brief Slice level patch list size is required
     uint32_t                    m_standardDecodePatchListSizeNeeded = 0;
-    //! \Hcp state level command buffer size is required
-    uint32_t                    m_HcpStateCmdBufferSizeNeeded = 0;
-    //! \Hcp state level patch list size is required
-    uint32_t                    m_HcpPatchListSizeNeeded = 0;
-    //! \Huc state level command buffer size is required
-    uint32_t                    m_HucStateCmdBufferSizeNeeded = 0;
-    //! \Huc state level patch list size is required
-    uint32_t                    m_HucPatchListSizeNeeded = 0;
-    //! \Huc Primitive level command buffer size is required
-    uint32_t                    m_HucPrimitiveCmdBufferSizeNeeded = 0;
-    //! \Huc Primitive level patch list size is required
-    uint32_t                    m_HucPrimitivePatchListSizeNeeded = 0;
-    //! \CP Primitive level command buffer size is required
-    uint32_t                    m_CpPrimitiveCmdBufferSizeNeeded = 0;
-    //! \CP Primitive level patch list size is required
-    uint32_t                    m_CpPrimitivePatchListSizeNeeded = 0;
     //! \brief Indicates if current input bitstream is incomplete
     bool                        m_incompletePicture = false;
     //! \brief The index of execution call in multiple execution call mode

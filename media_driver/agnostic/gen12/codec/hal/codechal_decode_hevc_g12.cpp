@@ -1142,14 +1142,14 @@ void CodechalDecodeHevcG12::CalcRequestedSpace(
         else
         {
             //Since G12, HCP primitive level buffers are in separate allocated 2nd level batch buffer. So only have state level size here
-            requestedSize = m_HcpStateCmdBufferSizeNeeded * m_scalabilityState->u8RtPhaseNum + m_HucStateCmdBufferSizeNeeded + 
-                            m_HucPrimitiveCmdBufferSizeNeeded + m_CpPrimitiveCmdBufferSizeNeeded * m_numSlices;
+            requestedSize = m_commandBufferSizeNeeded;
             //Patch list is still submit with primitive level buffers, so requestedPatchListSize still need to contain the primitive level size.
-            requestedPatchListSize = m_HcpPatchListSizeNeeded * m_scalabilityState->u8RtPhaseNum + m_HucPatchListSizeNeeded +
-                                     m_HucPrimitivePatchListSizeNeeded + m_CpPrimitivePatchListSizeNeeded * m_numSlices +
+            requestedPatchListSize = m_commandPatchListSizeNeeded +
                                      (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1 + m_hevcPicParams->num_tile_rows_minus1));
             additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
         }
+        requestedSize *= m_scalabilityState->u8RtPhaseNum;
+        requestedPatchListSize *= m_scalabilityState->u8RtPhaseNum;
     }
     else
     {
@@ -1161,16 +1161,23 @@ void CodechalDecodeHevcG12::CalcRequestedSpace(
         }
         else
         {
-            //Since G12, HCP primitive level buffers are in separate allocated 2nd level batch buffer. So only have state level size here.
-            requestedSize = m_HcpStateCmdBufferSizeNeeded + m_HucStateCmdBufferSizeNeeded + m_HucPrimitiveCmdBufferSizeNeeded +
-                            m_CpPrimitiveCmdBufferSizeNeeded * m_numSlices;
-
-            //Patch list is still submit with primitive level buffers, so requestedPatchListSize still need to contain the primitive level size.
-            requestedPatchListSize = m_HcpPatchListSizeNeeded + m_HucPatchListSizeNeeded + m_HucPrimitivePatchListSizeNeeded +
-                                     m_CpPrimitivePatchListSizeNeeded * m_numSlices +
-                                     (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
-
-            additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
+            if (m_isVirtualTile)
+            {
+                //For virtual tile, FrontEnd and BackEnd B0 shares one cmd buffer, cmd buffer size need to double.
+                requestedSize = 2 * m_commandBufferSizeNeeded;
+                requestedPatchListSize = 2 * m_commandPatchListSizeNeeded +
+                    (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
+                additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
+            }
+            else
+            {
+                //Since G12, HCP primitive level buffers are in separate allocated 2nd level batch buffer. So only have state level size here.
+                requestedSize = m_commandBufferSizeNeeded;
+                //Patch list is still submit with primitive level buffers, so requestedPatchListSize still need to contain the primitive level size.
+                requestedPatchListSize = m_commandPatchListSizeNeeded +
+                    (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
+                additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
+            }
         }
     }
 }
@@ -2256,31 +2263,6 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateStandard (
         &m_standardDecodeSizeNeeded,
         &m_standardDecodePatchListSizeNeeded,
         m_shortFormatInUse));
-
-    //HCP Commands
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetHcpStateCommandSize(
-        m_mode,
-        &m_HcpStateCmdBufferSizeNeeded,
-        &m_HcpPatchListSizeNeeded,
-        &stateCmdSizeParams));
-
-    //Huc State Commands
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetHucStateCommandSize(
-        m_mode,
-        &m_HucStateCmdBufferSizeNeeded,
-        &m_HucPatchListSizeNeeded,
-        &stateCmdSizeParams));
-
-    //Huc Primitive Commands
-    CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->GetHucPrimitiveCommandSize(
-        m_mode,
-        &m_HucPrimitiveCmdBufferSizeNeeded,
-        &m_HucPrimitivePatchListSizeNeeded));
-    
-    //CP Primitive Commands
-     m_cpInterface->GetCpSliceLevelCmdSize(
-        m_CpPrimitiveCmdBufferSizeNeeded,
-        m_CpPrimitivePatchListSizeNeeded);
 
     if ( MOS_VE_SUPPORTED(m_osInterface))
     {
