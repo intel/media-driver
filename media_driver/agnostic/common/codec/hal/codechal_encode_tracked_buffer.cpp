@@ -65,7 +65,7 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateForCurrFrame()
     }
 
     // allocate MV temporal buffer
-    AllocateMvTemporalBuffer();
+    AllocateMvTemporalBuffer(m_trackedBufCurrIdx);
 
     // allocate VDEnc downscaled recon surface
     if (m_encoder->m_vdencEnabled)
@@ -764,19 +764,23 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateDsReconSurfacesVdenc()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMvTemporalBuffer()
+MOS_STATUS CodechalEncodeTrackedBuffer::AllocateMvTemporalBuffer(uint8_t bufIndex)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (m_encoder->m_vdencEnabled && m_encoder->m_vdencMvTemporalBufferSize && m_encoder->m_currRefList->bUsedAsRef)
+    if (m_encoder->m_vdencEnabled && m_encoder->m_vdencMvTemporalBufferSize)
     {
-        if ((m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, m_trackedBufCurrIdx)))
+        // Allocate/fetch buffer if current frame can be used for reference or it's a special buffer for pre-generated I frame MV streamout surface
+        if((m_encoder->m_currRefList && m_encoder->m_currRefList->bUsedAsRef) || bufIndex == CODEC_NUM_REF_BUFFERS)
         {
-            return MOS_STATUS_SUCCESS;
-        }
+            if ((m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, mvTemporalBuffer, bufIndex)))
+            {
+                return MOS_STATUS_SUCCESS;
+            }
 
-        CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->AllocateResource(
-            m_standard, m_encoder->m_vdencMvTemporalBufferSize, 1, mvTemporalBuffer, "mvTemporalBuffer", m_trackedBufCurrIdx, false));
+            CODECHAL_ENCODE_CHK_NULL_RETURN(m_trackedBufCurrMvTemporal = (MOS_RESOURCE*)m_allocator->AllocateResource(
+                m_standard, m_encoder->m_vdencMvTemporalBufferSize, 1, mvTemporalBuffer, "mvTemporalBuffer", bufIndex, false));
+        }
     }
 
     return MOS_STATUS_SUCCESS;

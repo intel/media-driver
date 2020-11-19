@@ -348,6 +348,17 @@ public:
     MOS_STATUS AllocateSurface2xDS();
 
     //!
+    //! \brief  Allocate Mv temporal buffer
+    //!
+    //! \param  [in] bufIndex
+    //!         buffer index used
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AllocateMvTemporalBuffer(uint8_t bufIndex);
+
+    //!
     //! \brief    Constructor
     //!
     CodechalEncodeTrackedBuffer(CodechalEncoderState* encoder);
@@ -462,17 +473,6 @@ private:
     {
         m_mbCodeCurrIdx = m_trackedBufCurrIdx;
     }
-
-    //!
-    //! \brief  Allocate Mv temporal buffer
-    //!
-    //! \param  [in] bufIndex
-    //!         buffer index used
-    //!
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS AllocateMvTemporalBuffer();
 
     //!
     //! \brief  Allocate Ds Recon Surfaces Vdenc

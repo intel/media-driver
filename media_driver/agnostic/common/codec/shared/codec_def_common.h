@@ -287,7 +287,7 @@ struct _CODEC_REF_LIST
             uint32_t                            dwUnequalFieldSurfaceIdx;
         };
 
-        // HEVC
+        // HEVC / AVC
         struct
         {
             bool                                bIsIntra;
