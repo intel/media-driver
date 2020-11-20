@@ -896,7 +896,7 @@ MOS_STATUS CodechalEncodeHevcBase::SetSequenceStructs()
         m_lcuBrcEnabled = false;  // when VCM is enabled, only frame-based BRC
     }
 
-    if (m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ || m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR)
+    if ((!m_vdencEnabled && m_hevcSeqParams->RateControlMethod == RATECONTROL_ICQ) || m_hevcSeqParams->RateControlMethod == RATECONTROL_QVBR)
     {
         if (m_hevcSeqParams->ICQQualityFactor < CODECHAL_ENCODE_HEVC_MIN_ICQ_QUALITYFACTOR ||
             m_hevcSeqParams->ICQQualityFactor > CODECHAL_ENCODE_HEVC_MAX_ICQ_QUALITYFACTOR)
