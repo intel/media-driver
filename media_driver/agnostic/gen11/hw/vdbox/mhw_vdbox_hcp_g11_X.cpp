@@ -1301,7 +1301,10 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpDecodeSurfaceStateCmd(
         }
     }
 
-    cmd->DW3.DefaultAlphaValue = 0xffff; // needs to be programmable
+    if ((params->ucBitDepthLumaMinus8 == 4) || (params->ucBitDepthChromaMinus8 == 4)) // 12 bit
+        cmd->DW3.DefaultAlphaValue = 0xfff0;
+    else
+        cmd->DW3.DefaultAlphaValue = 0xffff;
 
     return eStatus;
 }

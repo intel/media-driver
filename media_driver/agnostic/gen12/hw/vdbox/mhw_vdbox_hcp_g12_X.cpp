@@ -1545,7 +1545,10 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodeSurfaceStateCmd(
         }
     }
 
-    cmd->DW3.DefaultAlphaValue = 0xffff; // needs to be programmable
+    if ((params->ucBitDepthLumaMinus8 == 4) || (params->ucBitDepthChromaMinus8 == 4)) // 12 bit
+        cmd->DW3.DefaultAlphaValue = 0xfff0;
+    else
+        cmd->DW3.DefaultAlphaValue = 0xffff;
 
     if (params->ucSurfaceStateId != CODECHAL_HCP_DECODED_SURFACE_ID) //MMC is not need in HCP_SURFACE_STATE for non reference surfaces
     {
