@@ -978,7 +978,7 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         auto alloc_bo = (resource->bo) ? resource->bo : tempCmdBo;
 
         MOS_OS_CHK_STATUS_RETURN(streamState->osCpInterface->PermeatePatchForHM(
-            cmd_bo->virt,
+            tempCmdBo->virt,
             currentPatch,
             resource));
 
