@@ -1347,9 +1347,16 @@ DdiVp_SetProcPipelineParams(
     //DDI_CHK_RET(vaStatus, "Failed to update vphal advance deinterlace!");
 
     // Use Render to do scaling for resolution larger than 8K
-    if(MEDIA_IS_WA(&pMediaCtx->WaTable, WaDisableVeboxFor8K))
+    if(MEDIA_IS_WA(&pMediaCtx->WaTable, WaDisableVeboxFor8K) &&
+       ((pVpHalSrcSurf->dwWidth >= VPHAL_RNDR_8K_WIDTH || pVpHalSrcSurf->dwHeight >= VPHAL_RNDR_8K_HEIGHT) ||
+        (pVpHalTgtSurf->dwWidth >= VPHAL_RNDR_8K_WIDTH || pVpHalTgtSurf->dwHeight >= VPHAL_RNDR_8K_HEIGHT)))
     {
         pVpHalRenderParams->bDisableVeboxFor8K = true;
+        VP_DDI_NORMALMESSAGE("bDisableVeboxFor8K enabled: SrcSurface (width %d , height %d), RenderTarget (width %d, height %d)",
+            pVpHalSrcSurf->dwWidth,
+            pVpHalSrcSurf->dwHeight,
+            pVpHalTgtSurf->dwWidth,
+            pVpHalTgtSurf->dwHeight);
     }
 
     // Scaling algorithm

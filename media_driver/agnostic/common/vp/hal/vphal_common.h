@@ -1175,7 +1175,7 @@ struct VPHAL_RENDER_PARAMS
     bool                                    bPathKernel;                // HDR path config if use kernel
     bool                                    bAPGWorkloadEnable = false;         //!< Identify Whether APG workload Enabled or not
 
-    bool                                    bDisableVeboxFor8K = false;
+    bool                                    bDisableVeboxFor8K = false;  // set this flag as true only for 8K processing while related SKU item enabled
     bool                                    bUseVEHdrSfc       = false;  // use SFC for to perform CSC/Scaling/RGBSwap of HDR streaming; if false, use composite render.
     bool                                    bNonFirstFrame     = false;  // first frame or not: first frame false, otherwise true considering zeromemory parameters.
 
