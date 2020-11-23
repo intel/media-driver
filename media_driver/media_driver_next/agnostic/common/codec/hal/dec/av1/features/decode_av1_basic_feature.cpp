@@ -50,6 +50,10 @@ namespace decode
         {
             m_allocator->Destroy(m_destSurfaceForDummyWL);
         }
+        if (m_fgInternalSurf != nullptr && !m_allocator->ResourceIsNull(&m_fgInternalSurf->OsResource))
+        {
+            m_allocator->Destroy(m_fgInternalSurf);
+        }
     }
 
     MOS_STATUS Av1BasicFeature::Init(void *setting)
@@ -149,6 +153,33 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1BasicFeature::GetDecodeTargetFormat(MOS_FORMAT& format)
+    {
+        if (m_av1PicParams->m_profile == 0)
+        {
+            if (m_av1PicParams->m_bitDepthIdx == 0)
+            {
+                format = Format_NV12;
+            }
+            else if (m_av1PicParams->m_bitDepthIdx == 1)
+            {
+                format = Format_P010;
+            }
+            else
+            {
+                DECODE_ASSERTMESSAGE("Unsupported sub-sampling format!");
+                return MOS_STATUS_UNKNOWN;
+            }
+        }
+        else
+        {
+            DECODE_ASSERTMESSAGE("The profile has not been supported yet!");
+            return MOS_STATUS_UNKNOWN;
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1BasicFeature::SetPictureStructs(CodechalDecodeParams *decodeParams)
     {
         DECODE_FUNC_CALL();
@@ -172,11 +203,32 @@ namespace decode
 
         if (m_filmGrainEnabled)
         {
-            m_filmGrainProcParams = (FilmGrainProcParams *)&decodeParams->m_filmGrainProcParams;
+            m_filmGrainProcParams = (FilmGrainProcParams*)&decodeParams->m_filmGrainProcParams;
+
+            MOS_SURFACE surface = {};
+            MOS_ZeroMemory(&surface, sizeof(surface));
+            // if SFC enabled
+#ifdef _DECODE_PROCESSING_SUPPORTED
+            if (decodeParams->m_procParams != nullptr)
+            {
+                surface.dwWidth  = m_width;
+                surface.dwHeight = m_height;
+                DECODE_CHK_STATUS(GetDecodeTargetFormat(surface.Format));
+            }
+            else
+            {
+#endif
+                surface = m_destSurface;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+            }
+#endif
             if (m_filmGrainProcParams->m_inputSurface == nullptr)
             {
                 DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(
-                    m_av1PicParams->m_currPic.FrameIdx, &m_destSurface, IsMmcEnabled(), resourceOutputPicture));
+                    m_av1PicParams->m_currPic.FrameIdx,
+                    &surface,
+                    IsMmcEnabled(), resourceOutputPicture));
+
                 m_filmGrainProcParams->m_inputSurface = m_internalTarget.GetCurSurf();
             }
             else
@@ -185,6 +237,26 @@ namespace decode
                 DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(m_filmGrainProcParams->m_inputSurface));
             }
 
+            // For AVP+FilmGrain+SFC scenario, SFC will be the final unit,
+            // set temp surface for film grain output
+#ifdef _DECODE_PROCESSING_SUPPORTED
+            if (decodeParams->m_procParams != nullptr)
+            {
+                if (m_fgInternalSurf == nullptr || m_allocator->ResourceIsNull(&m_fgInternalSurf->OsResource))
+                {
+                    m_fgInternalSurf = m_allocator->AllocateSurface(m_width, m_height,
+                        "Internal film grain target surface", surface.Format, IsMmcEnabled(), resourceOutputPicture);
+                }
+                else
+                {
+                    DECODE_CHK_STATUS(m_allocator->Resize(m_fgInternalSurf, m_width, MOS_ALIGN_CEIL(m_height, 8), false,
+                        "Internal film grain target surface"));
+                }
+                DECODE_CHK_NULL(m_fgInternalSurf);
+
+                m_filmGrainProcParams->m_outputSurface = m_fgInternalSurf;
+            }
+#endif
             m_destSurface = *m_filmGrainProcParams->m_inputSurface;
 
             DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(m_filmGrainProcParams->m_outputSurface));
