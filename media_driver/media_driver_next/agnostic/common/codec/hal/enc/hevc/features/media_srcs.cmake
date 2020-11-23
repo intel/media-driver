@@ -18,5 +18,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(dec)
-media_include_subdirectory(enc)
+
+if("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_header_packer.cpp
+)
+
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_header_packer.h
+)
+endif()
+
+media_add_curr_to_include_path()
