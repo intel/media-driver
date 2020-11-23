@@ -4358,3 +4358,14 @@ fini:
         free(balancer);
     return ret;
 }
+
+bool mos_gem_bo_is_softpin(struct mos_linux_bo *bo)
+{
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
+    if (bo_gem == nullptr)
+    {
+        return false;
+    }
+
+    return bo_gem->is_softpin;
+}
