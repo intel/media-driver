@@ -149,6 +149,7 @@ MOS_STATUS SwFilterSubPipe::AddSwFilterUnordered(SwFilter *swFilter)
 
 SwFilterPipe::SwFilterPipe(VpInterface &vpInterface) : m_vpInterface(vpInterface)
 {
+    m_surfacesSetting.Clean();
 }
 
 SwFilterPipe::~SwFilterPipe()

@@ -1761,7 +1761,8 @@ VphalRenderer::VphalRenderer(
     bSkuDisableLaceFor4K(false),
     bSkuDisableDNFor4K(false),
     PerfData(),
-    m_reporting(nullptr)
+    m_reporting(nullptr),
+    m_renderGpuContext(MOS_GPU_CONTEXT_INVALID_HANDLE)
 {
     MOS_STATUS                          eStatus;
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
