@@ -6859,7 +6859,23 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     desc->objects[0].fd   = mediaSurface->name;
     desc->objects[0].size = mediaSurface->pGmmResourceInfo->GetSizeSurface();
 
-    bool bMmcEnabled = (MOS_RESOURCE_MMC_MODE)mediaSurface->pGmmResourceInfo->GetMmcMode(0) != MOS_MMC_DISABLED;
+    // Prepare Compression info for export surface handle
+    GMM_RESOURCE_FLAG       GmmFlags    = {0};
+    bool                    bMmcEnabled = false;
+    GmmFlags = mediaSurface->pGmmResourceInfo->GetResFlags();
+
+    if ((GmmFlags.Gpu.MMC               ||
+        GmmFlags.Gpu.CCS)               &&
+        (GmmFlags.Info.MediaCompressed ||
+         GmmFlags.Info.RenderCompressed))
+    {
+        bMmcEnabled = true;
+    }
+    else
+    {
+        bMmcEnabled = false;
+    }
+
     switch (mediaSurface->TileType) {
     case I915_TILING_X:
         desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_X_TILED;
@@ -6867,7 +6883,8 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     case I915_TILING_Y:
         if (mediaCtx->m_auxTableMgr && bMmcEnabled)
         {
-            desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS;
+            desc->objects[0].drm_format_modifier = GmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS :
+             (GmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
         }else
         {
             desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_Y_TILED;
