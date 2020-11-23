@@ -3991,6 +3991,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "‭39497‬",
         "Device ID of mock device, default is 0x9A49"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_RENDER_ENABLE_EUFUSION_ID,
+         "EUFusionEnable",
+         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+         __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+         "VP",
+         MOS_USER_FEATURE_TYPE_USER,
+         MOS_USER_FEATURE_VALUE_TYPE_INT32,
+         "0",
+         "Eanble EuFusion path. 1: enable, 0: disable."),
 };
 
 PMOS_USER_FEATURE_VALUE const MosUtilities::m_mosUserFeatureDescFields = MOSUserFeatureDescFields;
