@@ -224,7 +224,7 @@ struct CodechalDecodeParams
     //! \brief execution call index in multiple execution call mode
     uint32_t                m_executeCallIndex = 0;
     //! \brief [Decode Histogram] Input buffer to hold decode histogram
-    MOS_SURFACE             m_histogramSurface = { 0 };
+    MOS_SURFACE             m_histogramSurface = {};
 };
 
 typedef enum _CODECHAL_DUMMY_REFERENCE_STATUS
