@@ -31,7 +31,8 @@
 #include "media_ddi_decode_base.h"
 #include "codec_def_decode_av1.h"
 
-#define DECODE_ID_AV1           "VIDEO_DEC_AV1"
+#define DECODE_ID_AV1                       "VIDEO_DEC_AV1"
+#define MAX_ANCHOR_FRAME_NUM_AV1            128
 
 //!
 //! \class  DdiDecodeAV1
@@ -166,6 +167,9 @@ private:
     PDDI_MEDIA_SURFACE filmGrainOutSurface = nullptr;
     //! \brief   film grain output surface structure
     MOS_SURFACE outputSurface;
+
+    MOS_SURFACE anchorFrameList[MAX_ANCHOR_FRAME_NUM_AV1];
+    VASurfaceID anchorFrameListVA[MAX_ANCHOR_FRAME_NUM_AV1] = {0};
 };
 
 #endif /* _MEDIA_DDI_DECODE_AV1_H */

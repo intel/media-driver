@@ -91,6 +91,8 @@ struct CodecAv1PicParams
     CODEC_PICTURE   m_currDisplayPic;
     uint8_t         m_profile;        // [0..2]
     uint8_t         m_anchorFrameInsertion;
+    uint8_t         m_anchorFrameNum;
+    PMOS_SURFACE    m_anchorFrameList;
 
     // sequence info
     uint8_t         m_orderHintBitsMinus1;      // [0..7]

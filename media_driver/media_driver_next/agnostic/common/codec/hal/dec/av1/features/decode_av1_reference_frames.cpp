@@ -162,15 +162,35 @@ namespace decode
         DECODE_CHK_COND(((!picParams.m_picInfoFlags.m_fields.m_largeScaleTile && (picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_AV1)) ||
                             picParams.m_picInfoFlags.m_fields.m_largeScaleTile && (picParams.m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_LST_AV1)),
             "Invalid frame index of current frame");
-        m_currRefList = m_refList[picParams.m_currPic.FrameIdx];
+        if(picParams.m_anchorFrameList != nullptr)
+        {
+            // insert anchor frame list at once
+            for(auto i = 0; i < picParams.m_anchorFrameNum; i++)
+            {
+                m_currRefList = m_refList[i];
 
-        DECODE_CHK_STATUS(m_allocator->RegisterResource(&m_basicFeature->m_destSurface.OsResource));
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&picParams.m_anchorFrameList[i]));
+                DECODE_CHK_STATUS(m_allocator->RegisterResource(&(picParams.m_anchorFrameList[i].OsResource)));
 
-        m_currRefList->resRefPic        = m_basicFeature->m_destSurface.OsResource;
-        m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1;  //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
-        m_currRefList->m_frameHeight    = picParams.m_superResUpscaledHeightMinus1 + 1;
-        m_currRefList->m_miCols         = MOS_ALIGN_CEIL(picParams.m_frameWidthMinus1 + 1, 8) >> av1MiSizeLog2;
-        m_currRefList->m_miRows         = MOS_ALIGN_CEIL(picParams.m_frameHeightMinus1 + 1, 8) >> av1MiSizeLog2;          
+                m_currRefList->resRefPic        = picParams.m_anchorFrameList[i].OsResource;
+                m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1;  //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
+                m_currRefList->m_frameHeight    = picParams.m_superResUpscaledHeightMinus1 + 1;
+                m_currRefList->m_miCols         = MOS_ALIGN_CEIL(picParams.m_frameWidthMinus1 + 1, 8) >> av1MiSizeLog2;
+                m_currRefList->m_miRows         = MOS_ALIGN_CEIL(picParams.m_frameHeightMinus1 + 1, 8) >> av1MiSizeLog2;
+            }
+        }
+        else
+        {
+            m_currRefList = m_refList[picParams.m_currPic.FrameIdx];
+
+            DECODE_CHK_STATUS(m_allocator->RegisterResource(&m_basicFeature->m_destSurface.OsResource));
+
+            m_currRefList->resRefPic        = m_basicFeature->m_destSurface.OsResource;
+            m_currRefList->m_frameWidth     = picParams.m_superResUpscaledWidthMinus1 + 1;  //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
+            m_currRefList->m_frameHeight    = picParams.m_superResUpscaledHeightMinus1 + 1;
+            m_currRefList->m_miCols         = MOS_ALIGN_CEIL(picParams.m_frameWidthMinus1 + 1, 8) >> av1MiSizeLog2;
+            m_currRefList->m_miRows         = MOS_ALIGN_CEIL(picParams.m_frameHeightMinus1 + 1, 8) >> av1MiSizeLog2;
+        }
 
         return MOS_STATUS_SUCCESS;
     }

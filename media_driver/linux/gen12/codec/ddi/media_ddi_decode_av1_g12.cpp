@@ -134,7 +134,19 @@ VAStatus DdiDecodeAV1::ParsePicParams(
 
 
     picAV1Params->m_profile                                          = picParam->profile;
-    picAV1Params->m_anchorFrameInsertion                             = 0;
+    picAV1Params->m_anchorFrameInsertion                             = picParam->anchor_frames_num ? 1 : 0;
+    picAV1Params->m_anchorFrameNum                                   = picParam->anchor_frames_num;
+    if(picAV1Params->m_anchorFrameInsertion)
+    {
+        if(picParam->anchor_frames_num <= MAX_ANCHOR_FRAME_NUM_AV1)
+        {
+            MOS_SecureMemcpy(anchorFrameListVA, picParam->anchor_frames_num, picParam->anchor_frames_list, picParam->anchor_frames_num);
+        }
+        else
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
     picAV1Params->m_orderHintBitsMinus1                              = picParam->order_hint_bits_minus_1;
     picAV1Params->m_bitDepthIdx                                      = picParam->bit_depth_idx;
 
@@ -474,6 +486,19 @@ VAStatus DdiDecodeAV1::SetDecodeParams()
         outputSurface.Format   = expectedFormat;
         DdiMedia_MediaSurfaceToMosResource(filmGrainOutSurface, &(outputSurface.OsResource));
         filmGrainProcParams.m_outputSurface = &outputSurface;
+    }
+
+    //anchor frame list insertion
+    if(Av1PicParams->m_anchorFrameInsertion && (Av1PicParams->m_anchorFrameNum <= MAX_ANCHOR_FRAME_NUM_AV1))
+    {
+        MOS_FORMAT expectedFormat = GetFormat();
+        for(auto i = 0; i < Av1PicParams->m_anchorFrameNum; i++)
+        {
+            PDDI_MEDIA_SURFACE anchorFrame = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, anchorFrameListVA[i]);
+            anchorFrameList[i].Format = expectedFormat;
+            DdiMedia_MediaSurfaceToMosResource(anchorFrame, &(anchorFrameList[i].OsResource));
+        }
+        Av1PicParams->m_anchorFrameList = anchorFrameList;
     }
 
     return VA_STATUS_SUCCESS;
@@ -835,6 +860,12 @@ VAStatus DdiDecodeAV1::InitDecodeParams(
     bufMgr->dwNumSliceControl = 0;
     memset(&outputSurface, 0, sizeof(MOS_SURFACE));
     outputSurface.dwOffset = 0;
+
+    for(auto i = 0; i < MAX_ANCHOR_FRAME_NUM_AV1; i++)
+    {
+        memset(&anchorFrameList[i], 0, sizeof(MOS_SURFACE));
+        anchorFrameList[i].dwOffset = 0;
+    }
 
     DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
 
