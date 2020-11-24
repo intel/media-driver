@@ -144,6 +144,7 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
     DECODE_CHK_NULL(settings);
 
     DECODE_CHK_STATUS(MediaPipeline::InitPlatform());
+    DECODE_CHK_STATUS(MediaPipeline::CreateMediaCopy());
 
     DECODE_CHK_NULL(m_waTable);
 

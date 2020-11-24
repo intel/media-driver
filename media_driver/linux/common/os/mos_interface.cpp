@@ -1236,6 +1236,13 @@ MOS_STATUS MosInterface::GetReservedFromDevice(MOS_DEVICE_HANDLE device, uint32_
     }
 }
 
+MOS_STATUS MosInterface::GetperStreamParameters(MOS_STREAM_HANDLE stream, void **perStreamParameters)
+{
+    MOS_OS_CHK_NULL_RETURN(stream);
+    *perStreamParameters = (void*)stream->perStreamParameters;
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::ConvertResourceFromDdi(
     OsSpecificRes osResource,
     MOS_RESOURCE_HANDLE &resource,

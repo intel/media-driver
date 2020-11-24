@@ -39,6 +39,7 @@
 #include "media_feature_manager.h"
 #include "codechal_utilities.h"
 #include "media_perf_profiler.h"
+#include "media_copy.h"
 
 class MediaPacket;
 class MediaPipeline
@@ -58,8 +59,6 @@ public:
 
     //!
     //! \brief  Initialize the media pipeline
-    //! \param  [in] settings
-    //!         Pointer to the initialize settings
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -117,10 +116,12 @@ public:
 
     MediaContext *GetMediaContext() { return m_mediaContext; }
     virtual MediaFeatureManager *GetFeatureManager() { return m_featureManager; };
+    virtual MediaCopyBaseState* GetMediaCopy() {return m_mediaCopy;}
 
     std::shared_ptr<MediaFeatureManager::ManagerLite> GetPacketLevelFeatureManager(int packetId) { return m_featureManager->GetPacketLevelFeatureManager(packetId); }
 
     MediaScalability* &GetMediaScalability() { return m_scalability; }
+
     //!
     //! \brief  Get if frame tracking is enabled from scalability
     //! \return bool
@@ -216,6 +217,13 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureManager();
 
+    //!
+    //! \brief  create media copy
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateMediaCopy();
+
 protected:
     PMOS_INTERFACE                   m_osInterface = nullptr;      //!< OS interface
     CodechalDebugInterface           *m_debugInterface = nullptr;  //!< Interface used for debug dumps
@@ -228,6 +236,7 @@ protected:
     MediaContext        *m_mediaContext = nullptr;
     MediaStatusReport   *m_statusReport = nullptr;
     MediaFeatureManager *m_featureManager = nullptr;
+    MediaCopyBaseState  *m_mediaCopy = nullptr;
 
     std::map<uint32_t, MediaPacket *>               m_packetList;        //!< Packets list
     std::vector<PacketProperty>               m_activePacketList;  //!< Active packets property list

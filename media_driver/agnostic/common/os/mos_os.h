@@ -1011,6 +1011,10 @@ typedef struct _MOS_INTERFACE
         uint32_t              bpp,
         bool                  bOutputCompressed);
 
+    MOS_STATUS(*pfnGetMosContext) (
+        PMOS_INTERFACE        pOsInterface,
+        PMOS_CONTEXT*         mosContext);
+
     MOS_STATUS (* pfnFillResource) (
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource,

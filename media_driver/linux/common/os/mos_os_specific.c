@@ -3339,6 +3339,35 @@ finish:
 }
 
 //!
+//! \brief    Get Mos Context
+//! \details  Get Mos Context info
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS interface structure
+//! \param    mosContext void **
+//!           [out] pointer of mos_context
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_Specific_GetMosContext(
+        PMOS_INTERFACE        osInterface,
+        PMOS_CONTEXT*         mosContext)
+{
+    MOS_OS_CHK_NULL_RETURN(osInterface);
+    if (osInterface->apoMosEnabled)
+    {
+        void *apo_mos_context = nullptr;
+        MOS_OS_CHK_STATUS_RETURN(MosInterface::GetperStreamParameters(osInterface->osStreamState, &apo_mos_context));
+        *mosContext = (PMOS_CONTEXT)apo_mos_context;
+    }
+    else
+    {
+        *mosContext = (PMOS_CONTEXT)osInterface->pOsContext;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Set patch entry
 //! \details  Sets the patch entry in MS's patch list
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7358,6 +7387,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnDecompResource                         = Mos_Specific_DecompResource;
     pOsInterface->pfnDoubleBufferCopyResource               = Mos_Specific_DoubleBufferCopyResource;
     pOsInterface->pfnMediaCopyResource2D                    = Mos_Specific_MediaCopyResource2D;
+    pOsInterface->pfnGetMosContext                          = Mos_Specific_GetMosContext;
     pOsInterface->pfnUpdateResourceUsageType                = Mos_Specific_UpdateResourceUsageType;
     pOsInterface->pfnRegisterResource                       = Mos_Specific_RegisterResource;
     pOsInterface->pfnResetResourceAllocationIndex           = Mos_Specific_ResetResourceAllocationIndex;

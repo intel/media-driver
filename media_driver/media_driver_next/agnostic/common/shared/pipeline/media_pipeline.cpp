@@ -30,6 +30,7 @@
 #include "media_pipeline.h"
 #include "media_cmd_task.h"
 #include "media_packet.h"
+#include "media_interfaces_mcpy.h"
 
 MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInterface)
 {
@@ -48,6 +49,8 @@ MediaPipeline::~MediaPipeline()
 {
     DeletePackets();
     DeleteTasks();
+
+    MOS_Delete(m_mediaCopy);
 
     CODECHAL_DEBUG_TOOL(MOS_Delete(m_debugInterface));
 
@@ -234,6 +237,14 @@ MOS_STATUS MediaPipeline::CreateFeatureManager()
     {
         return MOS_STATUS_UNKNOWN;
     }
+}
+
+MOS_STATUS MediaPipeline::CreateMediaCopy()
+{
+    PMOS_CONTEXT mos_context = nullptr;
+    m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
+    m_mediaCopy = static_cast<MediaCopyBaseState*>(McpyDevice::CreateFactory(mos_context));
+    return MOS_STATUS_SUCCESS;
 }
 
 bool MediaPipeline::IsFrameTrackingEnabled()

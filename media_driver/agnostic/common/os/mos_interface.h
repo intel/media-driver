@@ -801,6 +801,20 @@ public:
     static MOS_STATUS GetReservedFromDevice(MOS_DEVICE_HANDLE device, uint32_t &val);
 
     //!
+    //! \brief    Get preStreamParameters(mos context) info from streamState
+    //! \details
+    //!
+    //! \param    [in] stream
+    //!           Handle of stream
+    //! \param    [out] perStreamParameters
+    //!           pointer of mos conxtex.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS GetperStreamParameters(MOS_STREAM_HANDLE stream, void **perStreamParameters);
+
+    //!
     //! \brief    Convert Resource From Ddi
     //! \details  [Resource Interface] Convert Resource structure From OS/API specific to MOS reource.
     //! \details  Caller: DDI only
