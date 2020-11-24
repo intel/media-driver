@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2020, Intel Corporation
+* Copyright (c) 2013-2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -131,6 +131,11 @@ public:
     //! \brief  Is Dummy SteamOut Enabled
     //!
     virtual bool IsDummyStreamEnabled() = 0;
+
+    //!
+    //! \brief  Is secure decode is enabled
+    //!
+    virtual bool IsSecureDecodeEnabled() = 0;
 
     //!
     //! \brief  Destructor

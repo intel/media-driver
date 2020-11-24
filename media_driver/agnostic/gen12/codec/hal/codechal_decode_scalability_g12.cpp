@@ -1578,12 +1578,10 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
     pScalState->ucScalablePipeNum                                    = CODECHAL_DECODE_HCP_Legacy_PIPE_NUM_1;
     PCODECHAL_DECODE_SCALABILITY_STATE_G12       pScalStateG12        = static_cast<PCODECHAL_DECODE_SCALABILITY_STATE_G12>(pScalState);
     PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12 pInitParamsG12       = static_cast<PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12>(pInitParams);
-
     uint8_t                                      u8MaxTileColumn      = HEVC_NUM_MAX_TILE_COLUMN;
     bool                                         bCanEnableRealTile   = true;
     bool                                         bCanEnableScalability = !pScalState->pHwInterface->IsDisableScalability();
-    PMOS_INTERFACE pOsInterface                                      = pScalState->pHwInterface->GetOsInterface();
-
+    PMOS_INTERFACE                               pOsInterface          = pScalState->pHwInterface->GetOsInterface();
 #if (_DEBUG || _RELEASE_INTERNAL)
     bCanEnableRealTile = !(static_cast<PCODECHAL_DECODE_SCALABILITY_STATE_G12>(pScalState))->bDisableRtMode;
     if (!pScalStateG12->bEnableRtMultiPhase)
@@ -1642,7 +1640,7 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
                                     && CodechalDecodeResolutionEqualLargerThan4k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
                                 || (CodechalDecodeNonRextFormat(pInitParams->format)
                                     && CodechalDecodeResolutionEqualLargerThan5k(pInitParams->u32PicWidthInPixel, pInitParams->u32PicHeightInPixel))
-                                || (bCanEnableRealTile && (!pOsInterface->osCpInterface->IsCpEnabled() || pOsInterface->bCanEnableSecureRt)))
+                                || (bCanEnableRealTile && (!pInitParams->usingSecureDecode || pOsInterface->bCanEnableSecureRt)))
                 {
                     pScalState->ucScalablePipeNum = CODECHAL_DECODE_HCP_SCALABLE_PIPE_NUM_2;
                 }
