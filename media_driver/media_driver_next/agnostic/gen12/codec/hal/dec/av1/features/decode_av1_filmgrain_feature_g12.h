@@ -26,6 +26,8 @@
 #ifndef __DECODE_AV1_FILMGRAIN_FEATURE_G12_H__
 #define __DECODE_AV1_FILMGRAIN_FEATURE_G12_H__
 
+#include "decode_resource_array.h"
+#include "decode_allocator.h"
 #include "decode_basic_feature.h"
 #include "codec_def_decode_av1.h"
 #include "codechal_hw_g12_X.h"
@@ -78,7 +80,7 @@ class Av1DecodeFilmGrainG12 : public MediaFeature
 public:
     Av1DecodeFilmGrainG12(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
 
-    ~Av1DecodeFilmGrainG12() {}
+    ~Av1DecodeFilmGrainG12();
 
     //!
     //! \brief  Init Film Grain feature related parameter
@@ -266,6 +268,7 @@ public:
     static const uint32_t           m_numSyncTags               = 16;                                   //!< Sync tags num of state heap settings
     static const float              m_maxScaleRatio;                                                    //!< Maximum scaling ratio for both X and Y directions
     static const float              m_minScaleRatio;                                                    //!< Minimum scaling ratio for both X and Y directions
+    static const int32_t            m_bufferPoolDepth            = 8;
 
     CodechalDecode                  *m_decoder                  = nullptr;                              //!< Pointer to Decode Interface
     MOS_INTERFACE                   *m_osInterface              = nullptr;                              //!< Pointer to OS Interface
@@ -341,6 +344,25 @@ protected:
     DecodeAllocator *   m_allocator    = nullptr;
     Av1BasicFeature *   m_basicFeature = nullptr;
     bool                m_resourceAllocated = false;
+
+    // Surfaces arrayfor GetRandomValues
+    BufferArray *                     m_coordinatesRandomValuesSurfaceArray   = nullptr;                      //!< Random values for coordinates, 1D buffer, size = RoundUp(ImageWidth / 64) * RoundUp(ImageHeight / 64) * sizeof(int)
+
+    // Surfaces array for RegressPhase1
+    BufferArray *                     m_yCoefficientsSurfaceArray             = nullptr;                      //!< Y Coefficients required for generating dithering noise table, 1D buffer, size = 24 * size(short)
+    
+    //Surface array for RegressionPhase2
+    SurfaceArray *                    m_yDitheringSurfaceArray                = nullptr;                      //!< Y Dithering surface, size = 8 bit: 4 * 64 * 64 * sizeof(char), 10 bit:  4 * 64 * 64 * sizeof(short)
+    SurfaceArray *                    m_uDitheringSurfaceArray                = nullptr;                      //!< U Dithering surface, size = 8 bit:   4 * 32 * 32 * sizeof(char), 10 bit:  4 * 32 * 32 * sizeof(short)
+    SurfaceArray *                    m_vDitheringSurfaceArray                = nullptr;                      //!< V Dithering surface, size = 8 bit:   4 * 32 * 32 * sizeof(char), 10 bit:  4 * 32 * 32 * sizeof(short)
+    BufferArray *                     m_yCoeffSurfaceArray                    = nullptr;                      //!< Input Y Coeff surface, size = 32 * sizeof(short), 1D buffer
+    BufferArray *                     m_uCoeffSurfaceArray                    = nullptr;                      //!< Input U Coeff surface, size = 32 * sizeof(short), 1D buffer
+    BufferArray *                     m_vCoeffSurfaceArray                    = nullptr;                      //!< Input V Coeff surface, size = 32 * sizeof(short), 1D buffer
+    
+    // Surfaces array for ApplyNoise
+    BufferArray *                     m_yGammaLUTSurfaceArray                 = nullptr;                      //!< Input Y Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
+    BufferArray *                     m_uGammaLUTSurfaceArray                 = nullptr;                      //!< Input U Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
+    BufferArray *                     m_vGammaLUTSurfaceArray                 = nullptr;                      //!< Input V Gamma LUT surface, size = 256 * sizeof(short), 1D buffer
 };
 
 }  // namespace decode
