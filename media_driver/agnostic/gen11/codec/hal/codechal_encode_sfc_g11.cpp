@@ -32,20 +32,14 @@
 MOS_STATUS CodecHalEncodeSfcG11::SetVeboxDiIecpParams(
     PMHW_VEBOX_DI_IECP_CMD_PARAMS         params)
 {
-    uint32_t                    width;
-    uint32_t                    height;
-    MOS_ALLOC_GFXRES_PARAMS     allocParamsForBufferLinear;
-    uint32_t                    size = 0, sizeLace = 0, sizeNoLace = 0;
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    height = m_inputSurface->dwHeight;
-    width = m_inputSurface->dwWidth;
-
     params->dwStartingX = 0;
-    params->dwEndingX = width - 1;
+    params->dwEndingX = m_inputSurface->dwWidth - 1;
     params->dwCurrInputSurfOffset = m_inputSurface->dwOffset;
     params->pOsResCurrInput = &m_inputSurface->OsResource;
     params->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
@@ -58,23 +52,11 @@ MOS_STATUS CodecHalEncodeSfcG11::SetVeboxDiIecpParams(
     // Allocate Resource to avoid Page Fault issue since HW will access it
     if (Mos_ResourceIsNull(&m_resLaceOrAceOrRgbHistogram))
     {
-        size = CODECHAL_SFC_VEBOX_RGB_HISTOGRAM_SIZE_G11;
-        size += CODECHAL_SFC_VEBOX_RGB_ACE_HISTOGRAM_SIZE_RESERVED_G11;
-        sizeLace = MOS_ROUNDUP_DIVIDE(height, 64) *
-            MOS_ROUNDUP_DIVIDE(width, 64)  *
-            CODECHAL_SFC_VEBOX_LACE_HISTOGRAM_256_BIN_PER_BLOCK;
-
-        sizeNoLace = CODECHAL_SFC_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE *
-            CODECHAL_SFC_NUM_FRAME_PREVIOUS_CURRENT                   *
-            CODECHAL_SFC_VEBOX_MAX_SLICES_G11;
-
-        size += MOS_MAX(sizeLace, sizeNoLace);
-
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
         allocParamsForBufferLinear.Format = Format_Buffer;
-        allocParamsForBufferLinear.dwBytes = size;
+        allocParamsForBufferLinear.dwBytes = GetResLaceOrAceOrRgbHistogramBufferSize();
         allocParamsForBufferLinear.pBufName = "ResLaceOrAceOrRgbHistogram";
 
         m_osInterface->pfnAllocateResource(
@@ -88,15 +70,11 @@ MOS_STATUS CodecHalEncodeSfcG11::SetVeboxDiIecpParams(
     // Allocate Resource to avoid Page Fault issue since HW will access it
     if (Mos_ResourceIsNull(&m_resStatisticsOutput))
     {
-        width = MOS_ALIGN_CEIL(width, 64);
-        height = MOS_ROUNDUP_DIVIDE(height, 4) + MOS_ROUNDUP_DIVIDE(CODECHAL_SFC_VEBOX_STATISTICS_SIZE_G11 * sizeof(uint32_t), width);
-        size = width * height;
-
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
         allocParamsForBufferLinear.Format = Format_Buffer;
-        allocParamsForBufferLinear.dwBytes = size;
+        allocParamsForBufferLinear.dwBytes = GetSfcVeboxStatisticsSize();
         allocParamsForBufferLinear.pBufName = "ResStatisticsOutput";
 
         m_osInterface->pfnAllocateResource(

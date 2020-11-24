@@ -445,7 +445,11 @@ MOS_STATUS CodechalEncodeCscDs::SetSurfacesToEncPak()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpYUVSurface(
                 cscSurface,
                 CodechalDbgAttr::attrEncodeRawInputSurface,
-                "Copied_SrcSurf")) // needs to consider YUV420
+                "Copied_SrcSurf")); // needs to consider YUV420
+            if (m_cscUsingSfc)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_sfcState->DumpBuffers(m_debugInterface));
+            }
         )
     }
 

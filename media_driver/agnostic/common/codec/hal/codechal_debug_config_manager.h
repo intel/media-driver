@@ -63,6 +63,7 @@ static const char *attrDecodeOutputSurface    = "DecodeOutputSurface";
 static const char *attrDecodeAuxSurface       = "DumpAuxsurface";
 static const char *attrDecodeBltOutput        = "DumpBltOutput";
 static const char *attrSfcOutputSurface       = "SfcOutputSurface";
+static const char *attrSfcBuffers             = "SfcBuffers";
 static const char *attrReferenceSurfaces      = "ReferenceSurfaces";
 static const char *attrEncodeRawInputSurface  = "EncodeRawInputSurface";
 static const char *attrReconstructedSurface   = "ReconstructedSurface";

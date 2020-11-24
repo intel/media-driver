@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,20 +28,22 @@
 #ifndef __CODECHAL_ENCODE_SFC_G11_H__
 #define __CODECHAL_ENCODE_SFC_G11_H__
 
-#include "codechal_encode_sfc.h"
-#define CODECHAL_SFC_VEBOX_MAX_SLICES_G11                              4
-#define CODECHAL_SFC_VEBOX_RGB_HISTOGRAM_SIZE_G11                     (CODECHAL_SFC_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
-                                                                   CODECHAL_SFC_NUM_RGB_CHANNEL                    * \
-                                                                   CODECHAL_SFC_VEBOX_MAX_SLICES_G11)
-#define CODECHAL_SFC_VEBOX_STATISTICS_SIZE_G11                          (32 * 8)
-#define CODECHAL_SFC_VEBOX_RGB_ACE_HISTOGRAM_SIZE_RESERVED_G11          (3072 * 4)
-class CodecHalEncodeSfcG11 : public CodecHalEncodeSfc
+#include "codechal_encode_sfc_base.h"
+
+class CodecHalEncodeSfcG11 : public CodecHalEncodeSfcBase
 {
 public:
-    CodecHalEncodeSfcG11() {};
-    ~CodecHalEncodeSfcG11() {};
+    CodecHalEncodeSfcG11() {}
+    virtual ~CodecHalEncodeSfcG11() {}
     
     virtual MOS_STATUS SetVeboxDiIecpParams(
-        PMHW_VEBOX_DI_IECP_CMD_PARAMS         params)override;
+        PMHW_VEBOX_DI_IECP_CMD_PARAMS         params) override;
+
+protected:
+    virtual int32_t GetSfcVeboxStatisticsSize() const override { return 32 * 8; }
+
+    // ACE/LACE/RGBHistogram buffer
+    virtual int32_t GetVeboxRgbAceHistogramSizeReserved() const override { return 3072 * 4; }
+    virtual int32_t GetVeboxMaxSlicesNum() const override { return 4; }
 };
 #endif  // __CODECHAL_ENCODE_SFC_G11_H__

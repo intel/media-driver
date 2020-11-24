@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2020, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal_encode_sfc.cpp
+//! \file     codechal_encode_sfc_base.cpp
 //! \brief    Implements the encode interface extension for CSC via VEBox/SFC.
 //! \details  Downsampling in this case is supported by the VEBox fixed function HW unit.
 //!
 
-#include "codechal_encode_sfc.h"
+#include "codechal_encode_sfc_base.h"
 #include "codechal_encoder_base.h"
 #include "hal_oca_interface.h"
 
@@ -89,7 +89,7 @@ const float CODECHAL_CSC_BT2020_YUV_RGB[9] =
     1.000000f, 1.881400f,  0.000000f      //B
 };
 
-CodecHalEncodeSfc::~CodecHalEncodeSfc()
+CodecHalEncodeSfcBase::~CodecHalEncodeSfcBase()
 {
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
 
@@ -100,7 +100,7 @@ CodecHalEncodeSfc::~CodecHalEncodeSfc()
     FreeResources();
 }
 
-bool CodecHalEncodeSfc::IsCspace(MHW_CSPACE srcCspace, MHW_CSPACE dstCspace)
+bool CodecHalEncodeSfcBase::IsCspace(MHW_CSPACE srcCspace, MHW_CSPACE dstCspace)
 {
     switch (dstCspace)
     {
@@ -138,7 +138,7 @@ bool CodecHalEncodeSfc::IsCspace(MHW_CSPACE srcCspace, MHW_CSPACE dstCspace)
     return false;
 }
 
-bool CodecHalEncodeSfc::GetRgbRangeAndOffset(
+bool CodecHalEncodeSfcBase::GetRgbRangeAndOffset(
     MHW_CSPACE          srcCspace,
     float               *rgbOffset,
     float               *rgbExcursion)
@@ -167,7 +167,7 @@ bool CodecHalEncodeSfc::GetRgbRangeAndOffset(
     return ret;
 }
 
-bool CodecHalEncodeSfc::GetYuvRangeAndOffset(
+bool CodecHalEncodeSfcBase::GetYuvRangeAndOffset(
     MHW_CSPACE          srcCspace,
     float               *lumaOffset,
     float               *lumaExcursion,
@@ -208,7 +208,7 @@ bool CodecHalEncodeSfc::GetYuvRangeAndOffset(
     return ret;
 }
 
-bool CodecHalEncodeSfc::CalcYuvToRgbMatrix(
+bool CodecHalEncodeSfcBase::CalcYuvToRgbMatrix(
     MHW_CSPACE      srcCspace,                          // [in] YUV Color space
     MHW_CSPACE      dstCspace,                          // [in] RGB Color space
     float           *transferMatrix,                    // [in] Transfer matrix (3x3)
@@ -245,7 +245,7 @@ bool CodecHalEncodeSfc::CalcYuvToRgbMatrix(
     return ret;
 }
 
-bool CodecHalEncodeSfc::CalcRgbToYuvMatrix(
+bool CodecHalEncodeSfcBase::CalcRgbToYuvMatrix(
     MHW_CSPACE      srcCspace,                      // [in] RGB Color space
     MHW_CSPACE      dstCspace,                      // [in] YUV Color space
     float           *transferMatrix,                // [in] Transfer matrix (3x3)
@@ -281,7 +281,7 @@ bool CodecHalEncodeSfc::CalcRgbToYuvMatrix(
     return ret;
 }
 
-void CodecHalEncodeSfc::GetCSCMatrix(
+void CodecHalEncodeSfcBase::GetCSCMatrix(
     MHW_CSPACE          srcCspace,                      // [in] Source Color space
     MHW_CSPACE          dstCspace,                      // [in] Destination Color space
     float               *cscMatrix)                     // [out] CSC matrix to use
@@ -350,7 +350,7 @@ void CodecHalEncodeSfc::GetCSCMatrix(
     }
 }
 
-void CodecHalEncodeSfc::GetCscMatrix(
+void CodecHalEncodeSfcBase::GetCscMatrix(
     MHW_CSPACE             srcCspace,                                    // [in] Source Cspace
     MHW_CSPACE             dstCspace,                                    // [in] Destination Cspace
     float                  *cscCoeff,                                    // [out] [3x3] Coefficients matrix
@@ -502,7 +502,54 @@ void CodecHalEncodeSfc::GetCscMatrix(
     }
 }
 
-MOS_STATUS CodecHalEncodeSfc::AllocateResources()
+inline int32_t CodecHalEncodeSfcBase::GetAvsLineBufferSize() const
+{
+    if (!m_inputSurface || m_inputSurface->dwHeight == 0)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Can't calculate buffer size! m_inputSurface == nullptr or dwHeight == 0");
+        return 0;
+    }
+    return MOS_ROUNDUP_DIVIDE(m_inputSurface->dwHeight, 8) * CODECHAL_SFC_AVS_LINEBUFFER_SIZE_PER_VERTICAL_PIXEL;
+}
+
+inline int32_t CodecHalEncodeSfcBase::GetStatisticsOutputBufferSize() const
+{
+    if (!m_inputSurface || m_inputSurface->dwHeight == 0 || m_inputSurface->dwWidth == 0)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Can't calculate buffer size! m_inputSurface == nullptr or dwHeight == 0 or dwWidth == 0");
+        return 0;
+    }
+    return MOS_ALIGN_CEIL(m_inputSurface->dwWidth, 64) *
+           (MOS_ROUNDUP_DIVIDE(m_inputSurface->dwHeight, 4) + MOS_ROUNDUP_DIVIDE(GetSfcVeboxStatisticsSize() * sizeof(uint32_t), m_inputSurface->dwWidth));
+}
+
+inline int32_t CodecHalEncodeSfcBase::GetVeboxRgbHistogramSize() const
+{
+    return CODECHAL_SFC_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE *
+           CODECHAL_SFC_NUM_RGB_CHANNEL *
+           GetVeboxMaxSlicesNum();
+}
+
+inline int32_t CodecHalEncodeSfcBase::GetResLaceOrAceOrRgbHistogramBufferSize() const
+{
+    if (!m_inputSurface || m_inputSurface->dwHeight == 0 || m_inputSurface->dwWidth == 0)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Can't calculate buffer size! m_inputSurface == nullptr or dwHeight == 0 or dwWidth == 0");
+        return 0;
+    }
+
+    int32_t sizeLace = MOS_ROUNDUP_DIVIDE(m_inputSurface->dwHeight, 64) *
+        MOS_ROUNDUP_DIVIDE(m_inputSurface->dwWidth, 64) *
+        CODECHAL_SFC_VEBOX_LACE_HISTOGRAM_256_BIN_PER_BLOCK;
+
+    int32_t sizeNoLace = CODECHAL_SFC_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE *
+        CODECHAL_SFC_NUM_FRAME_PREVIOUS_CURRENT *
+        GetVeboxMaxSlicesNum();
+
+    return GetVeboxRgbHistogramSize() + GetVeboxRgbAceHistogramSizeReserved() + MOS_MAX(sizeLace, sizeNoLace);
+}
+
+MOS_STATUS CodecHalEncodeSfcBase::AllocateResources()
 {
     MOS_ALLOC_GFXRES_PARAMS    allocParamsForBufferLinear;
     uint32_t                   ycoeffTableSize;
@@ -518,11 +565,13 @@ MOS_STATUS CodecHalEncodeSfc::AllocateResources()
     // Allocate AVS line buffer
     if (Mos_ResourceIsNull(&m_resAvsLineBuffer))
     {
+        size = GetAvsLineBufferSize();
+        CODECHAL_ENCODE_CHK_COND_RETURN(size == 0, "Invalid buffer size");
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         allocParamsForBufferLinear.Type     = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
         allocParamsForBufferLinear.Format   = Format_Buffer;
-        allocParamsForBufferLinear.dwBytes = MOS_ROUNDUP_DIVIDE(m_inputSurface->dwHeight, 8) * 5 * MHW_SFC_CACHELINE_SIZE;
+        allocParamsForBufferLinear.dwBytes = size;
 
         allocParamsForBufferLinear.pBufName = "SfcAvsLineBuffer";
 
@@ -563,7 +612,7 @@ MOS_STATUS CodecHalEncodeSfc::AllocateResources()
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::FreeResources()
+MOS_STATUS CodecHalEncodeSfcBase::FreeResources()
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
@@ -587,7 +636,7 @@ MOS_STATUS CodecHalEncodeSfc::FreeResources()
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::SetVeboxStateParams(
+MOS_STATUS CodecHalEncodeSfcBase::SetVeboxStateParams(
     PMHW_VEBOX_STATE_CMD_PARAMS         params)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
@@ -625,7 +674,7 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxStateParams(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::SetVeboxSurfaceStateParams(
+MOS_STATUS CodecHalEncodeSfcBase::SetVeboxSurfaceStateParams(
     PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS         params)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
@@ -659,25 +708,19 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxSurfaceStateParams(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::SetVeboxDiIecpParams(
+MOS_STATUS CodecHalEncodeSfcBase::SetVeboxDiIecpParams(
     PMHW_VEBOX_DI_IECP_CMD_PARAMS         params)
 {
-    uint32_t                    width;
-    uint32_t                    height;
-    MOS_ALLOC_GFXRES_PARAMS     allocParamsForBufferLinear;
-    uint32_t                    size = 0, sizeLace = 0, sizeNoLace = 0;
-    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    MOS_MEMCOMP_STATE           mmcMode = MOS_MEMCOMP_DISABLED;
+    MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
+    int32_t                 size;
+    MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
+    MOS_MEMCOMP_STATE       mmcMode = MOS_MEMCOMP_DISABLED;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
-
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
-    height = m_inputSurface->dwHeight;
-    width  = m_inputSurface->dwWidth;
-
     params->dwStartingX             = 0;
-    params->dwEndingX               = width - 1;
+    params->dwEndingX               = m_inputSurface->dwWidth - 1;
     params->dwCurrInputSurfOffset   = m_inputSurface->dwOffset;
     params->pOsResCurrInput         = &m_inputSurface->OsResource;
     params->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
@@ -704,18 +747,8 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxDiIecpParams(
     // Allocate Resource to avoid Page Fault issue since HW will access it
     if (Mos_ResourceIsNull(&m_resLaceOrAceOrRgbHistogram))
     {
-        size = CODECHAL_SFC_VEBOX_RGB_HISTOGRAM_SIZE;
-
-        sizeLace = MOS_ROUNDUP_DIVIDE(height, 64) *
-            MOS_ROUNDUP_DIVIDE(width, 64)  *
-            CODECHAL_SFC_VEBOX_LACE_HISTOGRAM_256_BIN_PER_BLOCK;
-
-        sizeNoLace = CODECHAL_SFC_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE *
-            CODECHAL_SFC_NUM_FRAME_PREVIOUS_CURRENT                   *
-            CODECHAL_SFC_VEBOX_MAX_SLICES;
-
-        size += MOS_MAX(sizeLace, sizeNoLace);
-
+        size = GetResLaceOrAceOrRgbHistogramBufferSize();
+        CODECHAL_ENCODE_CHK_COND_RETURN(size == 0, "Invalid buffer size");
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
@@ -734,10 +767,8 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxDiIecpParams(
     // Allocate Resource to avoid Page Fault issue since HW will access it
     if (Mos_ResourceIsNull(&m_resStatisticsOutput))
     {
-        width = MOS_ALIGN_CEIL(width, 64);
-        height = MOS_ROUNDUP_DIVIDE(height, 4) + MOS_ROUNDUP_DIVIDE(CODECHAL_SFC_VEBOX_STATISTICS_SIZE * sizeof(uint32_t), width);
-        size = width * height;
-
+        size = GetStatisticsOutputBufferSize();
+        CODECHAL_ENCODE_CHK_COND_RETURN(size == 0, "Invalid buffer size");
         MOS_ZeroMemory(&allocParamsForBufferLinear, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
         allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
@@ -756,7 +787,7 @@ MOS_STATUS CodecHalEncodeSfc::SetVeboxDiIecpParams(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::VeboxSetIecpParams(
+MOS_STATUS CodecHalEncodeSfcBase::VeboxSetIecpParams(
     PMHW_VEBOX_IECP_PARAMS         mhwVeboxIecpParams)
 {
     // Calculate matrix if not done so before. CSC is expensive!
@@ -814,7 +845,32 @@ MOS_STATUS CodecHalEncodeSfc::VeboxSetIecpParams(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS CodecHalEncodeSfcBase::DumpBuffers(CodechalDebugInterface* debugInterface)
+{
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        &m_resAvsLineBuffer,
+        CodechalDbgAttr::attrSfcBuffers,
+        "AvsLine",
+        GetAvsLineBufferSize()));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        &m_resLaceOrAceOrRgbHistogram,
+        CodechalDbgAttr::attrSfcBuffers,
+        "LaceOrAceOrRgbHistogram",
+        GetResLaceOrAceOrRgbHistogramBufferSize()));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
+        &m_resStatisticsOutput,
+        CodechalDbgAttr::attrSfcBuffers,
+        "StatisticsOutput",
+        GetStatisticsOutputBufferSize()));
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
+MOS_STATUS CodecHalEncodeSfcBase::SetSfcStateParams(
     PMHW_SFC_INTERFACE             sfcInterface,
     PMHW_SFC_STATE_PARAMS          params,
     PMHW_SFC_OUT_SURFACE_PARAMS    outSurfaceParams)
@@ -951,7 +1007,7 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcStateParams(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::SetSfcAvsStateParams(
+MOS_STATUS CodecHalEncodeSfcBase::SetSfcAvsStateParams(
     PMHW_SFC_INTERFACE             sfcInterface)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
@@ -991,7 +1047,7 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcAvsStateParams(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::SetSfcIefStateParams(
+MOS_STATUS CodecHalEncodeSfcBase::SetSfcIefStateParams(
     PMHW_SFC_IEF_STATE_PARAMS         params)
 {
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
@@ -1010,7 +1066,7 @@ MOS_STATUS CodecHalEncodeSfc::SetSfcIefStateParams(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::Initialize(
+MOS_STATUS CodecHalEncodeSfcBase::Initialize(
     CodechalHwInterface                *hwInterface,
     PMOS_INTERFACE                      osInterface)
 {
@@ -1057,7 +1113,7 @@ MOS_STATUS CodecHalEncodeSfc::Initialize(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::SetParams(
+MOS_STATUS CodecHalEncodeSfcBase::SetParams(
     CODECHAL_ENCODE_SFC_PARAMS*         params)
 {
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
@@ -1099,7 +1155,7 @@ MOS_STATUS CodecHalEncodeSfc::SetParams(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::AddSfcCommands(
+MOS_STATUS CodecHalEncodeSfcBase::AddSfcCommands(
     PMHW_SFC_INTERFACE              sfcInterface,
     PMOS_COMMAND_BUFFER             cmdBuffer)
 {
@@ -1146,7 +1202,7 @@ MOS_STATUS CodecHalEncodeSfc::AddSfcCommands(
     return eStatus;
 }
 
-MOS_STATUS CodecHalEncodeSfc::RenderStart(
+MOS_STATUS CodecHalEncodeSfcBase::RenderStart(
     CodechalEncoderState*       encoder)
 {
     MHW_VEBOX_STATE_CMD_PARAMS          veboxStateCmdParams;
@@ -1266,6 +1322,5 @@ MOS_STATUS CodecHalEncodeSfc::RenderStart(
         m_osInterface,
         &cmdBuffer,
         encoder->m_videoContextUsesNullHw));
-
     return eStatus;
 }
