@@ -481,13 +481,13 @@ using STRPSPic = STRPS::Pic;
 class HevcHeaderPacker
 {
 public:
-    BSBuffer *              m_bsBuffer;
-    HevcNALU                m_naluParams;
-    HevcSPS                 m_spsParams;
-    HevcPPS                 m_ppsParams;
-    HevcSlice               m_sliceParams;
-    uint8_t                 nalType;
-    std::array<mfxU8, 1024> m_rbsp;
+    BSBuffer *              m_bsBuffer      = nullptr;
+    HevcNALU                m_naluParams    = {};
+    HevcSPS                 m_spsParams     = {};
+    HevcPPS                 m_ppsParams     = {};
+    HevcSlice               m_sliceParams   = {};
+    uint8_t                 nalType         = 0;
+    std::array<mfxU8, 1024> m_rbsp          = {};
 
 public:
     HevcHeaderPacker();
