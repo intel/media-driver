@@ -1629,7 +1629,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
         }
         allocParamsForBufferLinear.pBufName = "VDEnc StreamIn Data Buffer";
 
-        for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+        for (auto i = 0; i < CODECHAL_ENCODE_VDENC_STREAMIN_BUFFER_NUM; i++)
         {
             CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(
                 m_osInterface->pfnAllocateResource(
@@ -2255,7 +2255,7 @@ void CodechalEncoderState::FreeResources()
 
         m_osInterface->pfnFreeResource(m_osInterface, &m_resHucFwBuffer);
 
-        for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+        for (auto i = 0; i < CODECHAL_ENCODE_VDENC_STREAMIN_BUFFER_NUM; i++)
         {
             m_osInterface->pfnFreeResource(
                 m_osInterface,
@@ -4939,7 +4939,7 @@ CodechalEncoderState::CodechalEncoderState(
         MOS_ZeroMemory(&m_sliceMapSurface[i], sizeof(m_sliceMapSurface[i]));
     }
 
-    for (auto i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
+    for (auto i = 0; i < CODECHAL_ENCODE_VDENC_STREAMIN_BUFFER_NUM; i++)
     {
         MOS_ZeroMemory(&m_resVdencStreamInBuffer[i], sizeof(m_resVdencStreamInBuffer[i]));
     }

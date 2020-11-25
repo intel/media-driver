@@ -3060,6 +3060,7 @@ CodechalVdencAvcState::~CodechalVdencAvcState()
     m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_pakStatsBufferFull);
     m_osInterface->pfnFreeResource(m_osInterface, &m_vdencTlbMmioBuffer);
+
     if (m_vdencBrcImgStatAllocated)
     {
         for (uint8_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
@@ -3473,6 +3474,10 @@ void CodechalVdencAvcState::InitializeDataMember()
     m_sliceLevelReportSupported   = false;  // Slice Level Report support
     m_brcRoiSupported             = false;
     m_brcMotionAdaptiveEnable     = false;
+
+    m_brcAdaptiveRegionBoostSupported = false;
+    m_brcAdaptiveRegionBoostEnable    = false;
+    m_curStreamInBufIdx               = 0;
 
     m_roundingInterEnable         = false;
     m_adaptiveRoundingInterEnable = false;
@@ -4144,13 +4149,22 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
 
     avcRefList[currRefIdx]->pRefPicSelectListEntry = nullptr;
 
-    if (m_avcPicParam->NumDirtyROI)
+    if (m_brcAdaptiveRegionBoostSupported && m_avcPicParam->TargetFrameSize && !m_lookaheadDepth)
+    {   // Adaptive region boost is enabled for TCBRC only
+        m_brcAdaptiveRegionBoostEnable = true;
+        m_vdencStreamInEnabled         = true;
+    } else
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupDirtyROI(
-            &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
+        m_brcAdaptiveRegionBoostEnable = false;
     }
 
-    if (m_avcPicParam->NumROI)
+    if (!m_brcAdaptiveRegionBoostEnable && m_avcPicParam->NumDirtyROI)  // ROI is not supported with ARB now
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupDirtyROI(
+            &(m_resVdencStreamInBuffer[m_curStreamInBufIdx])));
+    }
+
+    if (!m_brcAdaptiveRegionBoostEnable && m_avcPicParam->NumROI)  // ROI is not supported with ARB now
     {
         m_avcPicParam->bNativeROI = ProcessRoiDeltaQp();
         if (m_vdencBrcEnabled && !m_avcPicParam->bNativeROI)
@@ -4170,7 +4184,7 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupROIStreamIn(
                 m_avcPicParam,
                 m_avcSliceParams,
-                &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
+                &(m_resVdencStreamInBuffer[m_curStreamInBufIdx])));
         }
     }
     if(m_avcPicParam->ForceSkip.Enable && (m_pictureCodingType != I_TYPE))
@@ -4178,7 +4192,7 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
         m_avcPicParam->ForceSkip.Enable  = 1;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupForceSkipStreamIn(
             m_avcPicParam,
-            &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
+            &(m_resVdencStreamInBuffer[m_curStreamInBufIdx])));
     }
     else
         m_avcPicParam->ForceSkip.Enable  = 0;
@@ -4191,6 +4205,12 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
             0 : (targetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)targetBufferFulness);
     }
     m_prevTargetFrameSize = m_avcPicParam->TargetFrameSize;
+
+    if (m_brcAdaptiveRegionBoostEnable)
+    {
+        uint16_t rowOffset[CODECHAL_ENCODE_VDENC_STREAMIN_BUFFER_NUM] = {0, 3, 5, 2, 7, 4, 1, 6};
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupRegionBoosting(&(m_resVdencStreamInBuffer[m_curStreamInBufIdx]), rowOffset[m_curStreamInBufIdx]));
+    }
 
     return eStatus;
 }
@@ -4832,6 +4852,47 @@ MOS_STATUS CodechalVdencAvcState::SetupForceSkipStreamIn(PCODEC_AVC_ENCODE_PIC_P
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencAvcState::SetupRegionBoosting(PMOS_RESOURCE vdencStreamIn, uint16_t boostIndex)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(vdencStreamIn);
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly = 1;
+
+    CODECHAL_VDENC_STREAMIN_STATE *pData = (CODECHAL_VDENC_STREAMIN_STATE *)m_osInterface->pfnLockResource(
+        m_osInterface,
+        vdencStreamIn,
+        &lockFlags);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
+    MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+
+    for (uint16_t y = 0; y < m_picHeightInMb; y++)
+    {
+        if ((y & 7) == boostIndex)
+        {
+            for (uint16_t x = 0; x < m_picWidthInMb; x++)
+            {
+                pData->DW0.RegionOfInterestRoiSelection = 1;
+                pData++;
+            }
+        }
+        else
+        {
+            pData += m_picWidthInMb;
+        }
+    }
+
+    m_osInterface->pfnUnlockResource(
+        m_osInterface,
+        vdencStreamIn);
+    
+    return eStatus;
+}
+
 MOS_STATUS CodechalVdencAvcState::StoreHucErrorStatus(
     MmioRegistersHuc*   mmioRegisters,
     PMOS_COMMAND_BUFFER cmdBuffer,
@@ -5108,7 +5169,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
             return MOS_STATUS_UNIMPLEMENTED;
         }
         virtualAddrParams.regionParams[8].presRegion = &m_resVdencBrcRoiBuffer[m_currRecycledBufIdx];
-        virtualAddrParams.regionParams[9].presRegion = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
+        virtualAddrParams.regionParams[9].presRegion = &m_resVdencStreamInBuffer[m_curStreamInBufIdx];
     }
 
     // Output regions
@@ -5123,7 +5184,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
             CODECHAL_ENCODE_ASSERTMESSAGE("Non-native BRC ROI doesn't supports in CP case");
             return MOS_STATUS_UNIMPLEMENTED;
         }
-        virtualAddrParams.regionParams[10].presRegion = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
+        virtualAddrParams.regionParams[10].presRegion = &m_resVdencStreamInBuffer[m_curStreamInBufIdx];
         virtualAddrParams.regionParams[10].isWritable = true;
     }
 
@@ -5297,6 +5358,8 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    m_curStreamInBufIdx = (m_storeData - 1) & 7;
+
     auto ppsidx = ((PCODEC_AVC_ENCODE_SLICE_PARAMS)(params.pSliceParams))->pic_parameter_set_id;
     auto spsidx = ((PCODEC_AVC_ENCODE_PIC_PARAMS)(params.pPicParams))->seq_parameter_set_id;
 
@@ -5448,7 +5511,7 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
             m_avcPicParam->NumDirtyROI || m_encodeParams.bMbQpDataEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &(m_resVdencStreamInBuffer[m_currRecycledBufIdx]),
+                &(m_resVdencStreamInBuffer[m_curStreamInBufIdx]),
                 CodechalDbgAttr::attrStreamIn,
                 m_encodeParams.bMbQpDataEnabled ? "_MBQP" : "_ROI",
                 m_picWidthInMb * m_picHeightInMb * CODECHAL_CACHELINE_SIZE,
@@ -5660,14 +5723,14 @@ MOS_STATUS CodechalVdencAvcState::ExecuteKernelFunctions()
             m_hmeKernel ? m_hmeKernel->Get16xMeMvBottomFieldOffset() : (uint32_t)m_meMv16xBottomFieldOffset,
             CODECHAL_MEDIA_STATE_16X_ME));
 
-        meOutputParams.pResVdenStreamInBuffer = &(m_resVdencStreamInBuffer[m_currRecycledBufIdx]);
+        meOutputParams.pResVdenStreamInBuffer = &(m_resVdencStreamInBuffer[m_curStreamInBufIdx]);
         meOutputParams.psMeMvBuffer           = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xMvDataBuffer) : &m_4xMeMvDataBuffer;
         meOutputParams.psMeDistortionBuffer   = m_hmeKernel ? m_hmeKernel->GetSurface(CodechalKernelHme::SurfaceId::me4xDistortionBuffer) : &m_4xMeDistortionBuffer;
         meOutputParams.b16xMeInUse            = false;
         meOutputParams.bVdencStreamInInUse    = true;
         if (m_vdencStreamInEnabled) {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
-                &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
+                &m_resVdencStreamInBuffer[m_curStreamInBufIdx],
                 CodechalDbgAttr::attrOutput,
                 "MvData",
                 m_picWidthInMb * m_picHeightInMb * CODECHAL_CACHELINE_SIZE,
@@ -6352,7 +6415,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             auto syncParams             = g_cInitSyncParams;
             syncParams.GpuContext       = m_videoContext;
             syncParams.bReadOnly        = true;
-            syncParams.presSyncResource = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
+            syncParams.presSyncResource = &m_resVdencStreamInBuffer[m_curStreamInBufIdx];
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
             m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
         }
@@ -6971,6 +7034,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC TLB MMIO Buffer\n", __FUNCTION__);
         return eStatus;
     }
+
     return eStatus;
 }
 
@@ -7578,7 +7642,7 @@ MOS_STATUS CodechalVdencAvcState::SetMfxPipeBufAddrStateParams(
     }
 
     if (m_vdencStreamInEnabled)
-        param.presVdencStreamInBuffer = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
+        param.presVdencStreamInBuffer = &m_resVdencStreamInBuffer[m_curStreamInBufIdx];
 
     return eStatus;
 }
@@ -7737,7 +7801,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteMeKernel()
         // On-demand sync for VDEnc SHME StreamIn surface
         auto syncParams             = g_cInitSyncParams;
         syncParams.GpuContext       = m_renderContext;
-        syncParams.presSyncResource = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
+        syncParams.presSyncResource = &m_resVdencStreamInBuffer[m_curStreamInBufIdx];
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
         m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
@@ -7946,7 +8010,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
         if (m_avcPicParam->NumROI && !m_avcPicParam->bNativeROI && m_vdencBrcEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-                &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
+                &m_resVdencStreamInBuffer[m_curStreamInBufIdx],
                 0,
                 m_picWidthInMb * m_picHeightInMb * CODECHAL_CACHELINE_SIZE,
                 9,
@@ -7984,7 +8048,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
         if (m_avcPicParam->NumROI && !m_avcPicParam->bNativeROI && m_vdencBrcEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-                &m_resVdencStreamInBuffer[m_currRecycledBufIdx],
+                &m_resVdencStreamInBuffer[m_curStreamInBufIdx],
                 0,
                 m_picWidthInMb * m_picHeightInMb * CODECHAL_CACHELINE_SIZE,
                 10,
