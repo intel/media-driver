@@ -443,6 +443,22 @@ protected:
     bool               m_twoVersionsOfCurrDecPicFlag = false;               //!< Flag for SCC IBC mode
     uint8_t            m_IBCRefIdx = 0;                                     //!< Reference ID for IBC mode
 
+    //! \Hcp state level command buffer size is required
+    uint32_t m_HcpStateCmdBufferSizeNeeded = 0;
+    //! \Hcp state level patch list size is required
+    uint32_t m_HcpPatchListSizeNeeded = 0;
+    //! \Huc state level command buffer size is required
+    uint32_t m_HucStateCmdBufferSizeNeeded = 0;
+    //! \Huc state level patch list size is required
+    uint32_t m_HucPatchListSizeNeeded = 0;
+    //! \Huc Primitive level command buffer size is required
+    uint32_t m_HucPrimitiveCmdBufferSizeNeeded = 0;
+    //! \Huc Primitive level patch list size is required
+    uint32_t m_HucPrimitivePatchListSizeNeeded = 0;
+    //! \CP Primitive level command buffer size is required
+    uint32_t m_CpPrimitiveCmdBufferSizeNeeded = 0;
+    //! \CP Primitive level patch list size is required
+    uint32_t m_CpPrimitivePatchListSizeNeeded = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t m_rtFrameCount;  //!< frame count for real tile decoding
     uint32_t m_vtFrameCount;  //!< frame count for virtual tile decoding
