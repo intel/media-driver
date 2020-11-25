@@ -966,8 +966,8 @@ MOS_STATUS CodechalEncodeJpegState::ExecuteSliceLevel()
                 }
                 pakInsertObjectParams.dwOffset                      = 0;
                 pakInsertObjectParams.dwBitSize                     = pakInsertObjectParams.pBsBuffer->BufferSize;
-                //if full header is included in application data, it will be the last insert headers
-                if((appDataCmdSizeResidue == 0) && m_fullHeaderInAppData)
+                //if full header is included in application data, it will be the last header to insert and last chunk of it should be marked with EndOfSlice
+                if((appDataCmdSizeResidue == 0) && m_fullHeaderInAppData && (i == numAppDataCmdsNeeded - 1))
                 {
                     pakInsertObjectParams.bLastHeader                   = true;
                     pakInsertObjectParams.bEndOfSlice                   = true;
