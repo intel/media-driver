@@ -37,6 +37,7 @@ VpCmdPacket::VpCmdPacket(
 {
     m_hwInterface = hwInterface;
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
+    m_surfSetting.Clean();
 }
 
 MOS_STATUS VpCmdPacket::VpCmdPacketInit()
