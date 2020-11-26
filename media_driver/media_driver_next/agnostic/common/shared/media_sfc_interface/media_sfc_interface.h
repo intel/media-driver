@@ -98,6 +98,7 @@ struct VIDEO_PARAMS
             uint32_t                        lcuSize;
             bool                            lossless;
             bool                            superResInuse;
+            bool                            intraBC;
             uint32_t                        tileCols;
             uint32_t                        tileRows;
         } av1;
