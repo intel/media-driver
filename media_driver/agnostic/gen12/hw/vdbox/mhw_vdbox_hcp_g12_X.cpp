@@ -1448,6 +1448,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodeSurfaceStateCmd(
 
     mhw_vdbox_hcp_g12_X::HCP_SURFACE_STATE_CMD  *cmd =
         (mhw_vdbox_hcp_g12_X::HCP_SURFACE_STATE_CMD*)cmdBuffer->pCmdPtr;
+    uint32_t uvPlaneAlignment = m_uvPlaneAlignmentLegacy;
 
     MHW_MI_CHK_STATUS(MhwVdboxHcpInterfaceGeneric<mhw_vdbox_hcp_g12_X>::AddHcpDecodeSurfaceStateCmd(cmdBuffer, params));
 
@@ -1544,6 +1545,18 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodeSurfaceStateCmd(
             return MOS_STATUS_INVALID_PARAMETER;
         }
     }
+
+    if (params->ucSurfaceStateId == CODECHAL_HCP_SRC_SURFACE_ID)
+    {
+        uvPlaneAlignment = params->dwUVPlaneAlignment ? params->dwUVPlaneAlignment : m_rawUVPlaneAlignment;
+    }
+    else
+    {
+        uvPlaneAlignment = params->dwUVPlaneAlignment ? params->dwUVPlaneAlignment : m_reconUVPlaneAlignment;
+    }
+
+    cmd->DW2.YOffsetForUCbInPixel =
+        MOS_ALIGN_CEIL((params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset) / params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
 
     if ((params->ucBitDepthLumaMinus8 == 4) || (params->ucBitDepthChromaMinus8 == 4)) // 12 bit
         cmd->DW3.DefaultAlphaValue = 0xfff0;
