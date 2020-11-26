@@ -1629,21 +1629,10 @@ MOS_STATUS MosInterface::GetResourceInfo(
     gmmFlags = gmmResourceInfo->GetResFlags();
 
     // Get resource information
-    if (resource->b16UsrPtrMode)
-    {
-        // if usrptr surface, do not query those values from gmm, app will configure them.
-        details.dwWidth         = resource->iWidth;
-        details.dwHeight        = resource->iHeight;
-        details.dwPitch         = resource->iPitch;
-        details.dwSize          = resource->iSize;
-    }
-    else
-    {
-        details.dwWidth         = GFX_ULONG_CAST(gmmResourceInfo->GetBaseWidth());
-        details.dwHeight        = gmmResourceInfo->GetBaseHeight();
-        details.dwPitch         = GFX_ULONG_CAST(gmmResourceInfo->GetRenderPitch());
-        details.dwSize          = GFX_ULONG_CAST(gmmResourceInfo->GetSizeSurface());
-    }
+    details.dwWidth         = GFX_ULONG_CAST(gmmResourceInfo->GetBaseWidth());
+    details.dwHeight        = gmmResourceInfo->GetBaseHeight();
+    details.dwPitch         = GFX_ULONG_CAST(gmmResourceInfo->GetRenderPitch());
+    details.dwSize          = GFX_ULONG_CAST(gmmResourceInfo->GetSizeSurface());
     details.dwDepth         = MOS_MAX(1, gmmResourceInfo->GetBaseDepth());
     details.dwLockPitch     = GFX_ULONG_CAST(gmmResourceInfo->GetRenderPitch());
 
@@ -1691,83 +1680,69 @@ MOS_STATUS MosInterface::GetResourceInfo(
     details.Format   = resource->Format;
 
     // Get planes
-    if (resource->b16UsrPtrMode || resource->bExternalSurface)
-    {
-        // if usrptr surface, do not query those values from gmm, app will configure them.
-        details.RenderOffset.YUV.Y.BaseOffset = resource->YPlaneOffset.iSurfaceOffset;
-        details.RenderOffset.YUV.U.BaseOffset = resource->UPlaneOffset.iSurfaceOffset;
-        details.RenderOffset.YUV.U.XOffset    = resource->UPlaneOffset.iXOffset;
-        details.RenderOffset.YUV.U.YOffset    = resource->UPlaneOffset.iYOffset;
-        details.RenderOffset.YUV.V.BaseOffset = resource->VPlaneOffset.iSurfaceOffset;
-        details.RenderOffset.YUV.V.XOffset    = resource->VPlaneOffset.iXOffset;
-        details.RenderOffset.YUV.V.YOffset    = resource->VPlaneOffset.iYOffset;
-    }
-    else
-    {
-        MosUtilities::MosZeroMemory(reqInfo, sizeof(reqInfo));
-        gmmChannel = GMM_DISPLAY_BASE;
-        // Get the base offset of the surface (plane Y)
-        reqInfo[2].ReqRender = true;
-        reqInfo[2].Plane     = GMM_PLANE_Y;
-        reqInfo[2].Frame     = gmmChannel;
-        reqInfo[2].CubeFace  = __GMM_NO_CUBE_MAP;
-        reqInfo[2].ArrayIndex = 0;
-        gmmResourceInfo->GetOffset(reqInfo[2]);
-        details.RenderOffset.YUV.Y.BaseOffset = reqInfo[2].Render.Offset;
-        details.RenderOffset.YUV.Y.XOffset    = reqInfo[2].Render.XOffset;
-        details.RenderOffset.YUV.Y.YOffset    = reqInfo[2].Render.YOffset;
-        details.LockOffset.YUV.Y              = reqInfo[2].Lock.Offset;
+    MosUtilities::MosZeroMemory(reqInfo, sizeof(reqInfo));
+    gmmChannel = GMM_DISPLAY_BASE;
+    // Get the base offset of the surface (plane Y)
+    reqInfo[2].ReqRender = true;
+    reqInfo[2].Plane     = GMM_PLANE_Y;
+    reqInfo[2].Frame     = gmmChannel;
+    reqInfo[2].CubeFace  = __GMM_NO_CUBE_MAP;
+    reqInfo[2].ArrayIndex = 0;
+    gmmResourceInfo->GetOffset(reqInfo[2]);
+    details.RenderOffset.YUV.Y.BaseOffset = reqInfo[2].Render.Offset;
+    details.RenderOffset.YUV.Y.XOffset    = reqInfo[2].Render.XOffset;
+    details.RenderOffset.YUV.Y.YOffset    = reqInfo[2].Render.YOffset;
+    details.LockOffset.YUV.Y              = reqInfo[2].Lock.Offset;
 
-        // Get U/UV plane information (plane offset, X/Y offset)
-        reqInfo[0].ReqRender = true;
-        reqInfo[0].Plane     = GMM_PLANE_U;
-        reqInfo[0].Frame     = gmmChannel;
-        reqInfo[0].CubeFace  = __GMM_NO_CUBE_MAP;
-        reqInfo[0].ArrayIndex = 0;
-        gmmResourceInfo->GetOffset(reqInfo[0]);
+    // Get U/UV plane information (plane offset, X/Y offset)
+    reqInfo[0].ReqRender = true;
+    reqInfo[0].Plane     = GMM_PLANE_U;
+    reqInfo[0].Frame     = gmmChannel;
+    reqInfo[0].CubeFace  = __GMM_NO_CUBE_MAP;
+    reqInfo[0].ArrayIndex = 0;
+    gmmResourceInfo->GetOffset(reqInfo[0]);
 
-        details.RenderOffset.YUV.U.BaseOffset = reqInfo[0].Render.Offset;
-        details.RenderOffset.YUV.U.XOffset    = reqInfo[0].Render.XOffset;
-        details.RenderOffset.YUV.U.YOffset    = reqInfo[0].Render.YOffset;
-        details.LockOffset.YUV.U              = reqInfo[0].Lock.Offset;
+    details.RenderOffset.YUV.U.BaseOffset = reqInfo[0].Render.Offset;
+    details.RenderOffset.YUV.U.XOffset    = reqInfo[0].Render.XOffset;
+    details.RenderOffset.YUV.U.YOffset    = reqInfo[0].Render.YOffset;
+    details.LockOffset.YUV.U              = reqInfo[0].Lock.Offset;
 
-        // Get V plane information (plane offset, X/Y offset)
-        reqInfo[1].ReqRender = true;
-        reqInfo[1].Plane     = GMM_PLANE_V;
-        reqInfo[1].Frame     = gmmChannel;
-        reqInfo[1].CubeFace  = __GMM_NO_CUBE_MAP;
-        reqInfo[1].ArrayIndex = 0;
-        gmmResourceInfo->GetOffset(reqInfo[1]);
+    // Get V plane information (plane offset, X/Y offset)
+    reqInfo[1].ReqRender = true;
+    reqInfo[1].Plane     = GMM_PLANE_V;
+    reqInfo[1].Frame     = gmmChannel;
+    reqInfo[1].CubeFace  = __GMM_NO_CUBE_MAP;
+    reqInfo[1].ArrayIndex = 0;
+    gmmResourceInfo->GetOffset(reqInfo[1]);
 
-        details.RenderOffset.YUV.V.BaseOffset = reqInfo[1].Render.Offset;
-        details.RenderOffset.YUV.V.XOffset    = reqInfo[1].Render.XOffset;
-        details.RenderOffset.YUV.V.YOffset    = reqInfo[1].Render.YOffset;
-        details.LockOffset.YUV.V              = reqInfo[1].Lock.Offset;
+    details.RenderOffset.YUV.V.BaseOffset = reqInfo[1].Render.Offset;
+    details.RenderOffset.YUV.V.XOffset    = reqInfo[1].Render.XOffset;
+    details.RenderOffset.YUV.V.YOffset    = reqInfo[1].Render.YOffset;
+    details.LockOffset.YUV.V              = reqInfo[1].Lock.Offset;
 
-        // Get Y plane information (plane offset, X / Y offset)
-        details.dwOffset                        = details.RenderOffset.YUV.Y.BaseOffset;
-        details.YPlaneOffset.iSurfaceOffset     = details.RenderOffset.YUV.Y.BaseOffset;
-        details.YPlaneOffset.iXOffset           = details.RenderOffset.YUV.Y.XOffset;
-        details.YPlaneOffset.iYOffset           = details.RenderOffset.YUV.Y.YOffset;
-        details.YPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.Y;
+    // Get Y plane information (plane offset, X / Y offset)
+    details.dwOffset                        = details.RenderOffset.YUV.Y.BaseOffset;
+    details.YPlaneOffset.iSurfaceOffset     = details.RenderOffset.YUV.Y.BaseOffset;
+    details.YPlaneOffset.iXOffset           = details.RenderOffset.YUV.Y.XOffset;
+    details.YPlaneOffset.iYOffset           = details.RenderOffset.YUV.Y.YOffset;
+    details.YPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.Y;
 
-        // Get U/UV plane information (plane offset, X/Y offset)
-        details.UPlaneOffset.iSurfaceOffset     = details.RenderOffset.YUV.U.BaseOffset;
-        details.UPlaneOffset.iXOffset           = details.RenderOffset.YUV.U.XOffset;
-        details.UPlaneOffset.iYOffset           = details.RenderOffset.YUV.U.YOffset;
-        details.UPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.U;
+    // Get U/UV plane information (plane offset, X/Y offset)
+    details.UPlaneOffset.iSurfaceOffset     = details.RenderOffset.YUV.U.BaseOffset;
+    details.UPlaneOffset.iXOffset           = details.RenderOffset.YUV.U.XOffset;
+    details.UPlaneOffset.iYOffset           = details.RenderOffset.YUV.U.YOffset;
+    details.UPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.U;
 
-        // Get V plane information (plane offset, X/Y offset)
-        details.VPlaneOffset.iSurfaceOffset     = details.RenderOffset.YUV.V.BaseOffset;
-        details.VPlaneOffset.iXOffset           = details.RenderOffset.YUV.V.XOffset;
-        details.VPlaneOffset.iYOffset           = details.RenderOffset.YUV.V.YOffset;
-        details.VPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.V;
+    // Get V plane information (plane offset, X/Y offset)
+    details.VPlaneOffset.iSurfaceOffset     = details.RenderOffset.YUV.V.BaseOffset;
+    details.VPlaneOffset.iXOffset           = details.RenderOffset.YUV.V.XOffset;
+    details.VPlaneOffset.iYOffset           = details.RenderOffset.YUV.V.YOffset;
+    details.VPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.V;
 
-        details.YoffsetForUplane = (details.UPlaneOffset.iSurfaceOffset - details.dwOffset) / details.dwPitch +
-                                  details.UPlaneOffset.iYOffset;
-        details.YoffsetForVplane = (details.VPlaneOffset.iSurfaceOffset - details.dwOffset) / details.dwPitch +
-                                  details.VPlaneOffset.iYOffset;
-    }
+    details.YoffsetForUplane = (details.UPlaneOffset.iSurfaceOffset - details.dwOffset) / details.dwPitch +
+                              details.UPlaneOffset.iYOffset;
+    details.YoffsetForVplane = (details.VPlaneOffset.iSurfaceOffset - details.dwOffset) / details.dwPitch +
+                              details.VPlaneOffset.iYOffset;
 
     return eStatus;
 }
