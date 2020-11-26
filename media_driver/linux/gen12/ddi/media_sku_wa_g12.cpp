@@ -212,7 +212,6 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrHcpDecMemoryCompression, 0);
     MEDIA_WR_SKU(skuTable, Ftr10bitDecMemoryCompression, 0);
 
-    MEDIA_WR_SKU(skuTable, FtrCCSNode, 1);
     MEDIA_WR_SKU(skuTable, FtrRAMode, 1);
     MEDIA_WR_SKU(skuTable, FtrVpP010Output, 1);
     MEDIA_WR_SKU(skuTable, FtrVp10BitSupport, 1);
