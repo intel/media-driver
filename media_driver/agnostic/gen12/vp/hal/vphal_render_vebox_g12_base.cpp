@@ -576,6 +576,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     PMHW_VEBOX_INTERFACE        pVeboxInterface;
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
+    uint8_t                     InitValue;
 
     bAllocated              = false;
     bSurfCompressible       = false;
@@ -585,6 +586,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     pOsInterface            = pVeboxState->m_pOsInterface;
     pRenderHal              = pVeboxState->m_pRenderHal;
     pVeboxInterface         = pVeboxState->m_pVeboxInterface;
+    InitValue               = 0;
+    // change the init value when null hw is enabled
+    if (NullHW::IsEnabled())
+    {
+        InitValue = 0x80;
+    }
 
     GetOutputSurfParams(format, TileType);
 
@@ -877,7 +884,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
             pOsInterface,
             &(pVeboxState->VeboxStatisticsSurface.OsResource),
             dwSize,
-            0));
+            InitValue));
 
         pVeboxState->dwVeboxPerBlockStatisticsWidth  = dwWidth;
         pVeboxState->dwVeboxPerBlockStatisticsHeight = dwHeight - MOS_ROUNDUP_DIVIDE(VPHAL_VEBOX_STATISTICS_SIZE_G12 * sizeof(uint32_t), dwWidth);
@@ -904,6 +911,16 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
         false,
         MOS_MMC_DISABLED,
         &bAllocated));
+
+    if (bAllocated && NullHW::IsEnabled())
+    {
+        // Initialize VeboxRGBHistogram Surface
+        VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnFillResource(
+            pOsInterface,
+            &(pVeboxState->VeboxRGBHistogram.OsResource),
+            dwSize,
+            InitValue));
+    }
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     // Allocate Temp Surface for Vebox Update kernels----------------------------------------

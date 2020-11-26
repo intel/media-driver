@@ -686,6 +686,13 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     bool                            bAllocated          = false;
+    uint8_t                         InitValue           = 0;
+
+    // change the init value when null hw is enabled
+    if (NullHW::IsEnabled())
+    {
+        InitValue = 0x80;
+    }
 
     if (IS_VP_VEBOX_DN_ONLY(caps))
     {
@@ -796,6 +803,15 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
 
     m_isHistogramReallocated = bAllocated;
 
+    if (bAllocated && NullHW::IsEnabled())
+    {
+        // Initialize veboxRgbHistogram Surface
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(
+            &(m_veboxRgbHistogram->osSurface->OsResource),
+            dwSize,
+            InitValue));
+    }
+
     // Allocate Statistics State Surface----------------------------------------
     // Width to be a aligned on 64 bytes and height is 1/4 the height
     // Per frame information written twice per frame for 2 slices
@@ -818,6 +834,15 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         bAllocated,
         true,
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
+
+    if (bAllocated && NullHW::IsEnabled())
+    {
+        // Initialize veboxStatisticsSurface Surface
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(
+            &(m_veboxStatisticsSurface->osSurface->OsResource),
+            dwSize,
+            InitValue));
+    }
 
     if (caps.bHDR3DLUT)
     {
