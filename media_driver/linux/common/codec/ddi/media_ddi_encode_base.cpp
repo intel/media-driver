@@ -284,7 +284,7 @@ VAStatus DdiEncodeBase::StatusReport(
         }
         else if (CODECHAL_STATUS_ERROR == encodeStatusReport[0].CodecStatus)
         {
-            DDI_NORMALMESSAGE("Encoding failure due to HW issue");
+            DDI_ASSERTMESSAGE("Encoding failure due to HW issue");
             m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = DdiMediaUtil_LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);
             m_encodeCtx->BufMgr.pCodedBufferSegment->size = 0;
             m_encodeCtx->BufMgr.pCodedBufferSegment->status |= VA_CODED_BUF_STATUS_BAD_BITSTREAM;
