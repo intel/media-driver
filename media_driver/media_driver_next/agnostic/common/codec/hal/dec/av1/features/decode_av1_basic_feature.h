@@ -141,6 +141,7 @@ namespace decode
         PMOS_SURFACE                    m_destSurfaceForDummyWL     = nullptr;     //!< Internal Dummy dest surface
         bool                            m_singleKernelPerfFlag      = true;        //!< Defaut to capture whole kernel execution timing for perf
         PMOS_SURFACE                    m_fgInternalSurf            = nullptr;     //!< Internal film grain surface for AVP+FilmGrain+SFC case
+        MOS_SURFACE                     m_fgOutputSurf              = {};          //!< Film Grain output surface from App
 
     protected:
         virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;

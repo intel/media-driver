@@ -260,6 +260,7 @@ namespace decode
             m_destSurface = *m_filmGrainProcParams->m_inputSurface;
 
             DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(m_filmGrainProcParams->m_outputSurface));
+            m_fgOutputSurf = *m_filmGrainProcParams->m_outputSurface;
         }
 
         DECODE_CHK_STATUS(UpdateDefaultCdfTable());

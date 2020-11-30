@@ -182,12 +182,10 @@ namespace decode
             if (filmGrainFeature != nullptr && filmGrainFeature->m_filmGrainEnabled)
             {
                 auto av1Feature = dynamic_cast<Av1BasicFeature*>(feature);
-                DECODE_CHK_NULL(av1Feature->m_filmGrainProcParams);
                 CODECHAL_DEBUG_TOOL(
                     m_debugInterface->m_bufferDumpFrameNum = feature->m_frameNum;
-                    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(av1Feature->m_filmGrainProcParams->m_outputSurface));
                     DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
-                        av1Feature->m_filmGrainProcParams->m_outputSurface,
+                        &av1Feature->m_fgOutputSurf,
                         CodechalDbgAttr::attrFilmGrain,
                         "FilmGrain"));)
             }
