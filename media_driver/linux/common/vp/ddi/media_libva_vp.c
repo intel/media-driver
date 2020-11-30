@@ -1433,12 +1433,14 @@ DdiVp_SetProcPipelineParams(
             pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
             pVpHalSrcSurf->ScalingMode = VPHAL_SCALING_AVS;
             pVpHalSrcSurf->bInterlacedScaling = true;
+            pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_INTERLEAVED;
         }
         else if (pPipelineParam->filter_flags & VA_BOTTOM_FIELD)
         {
             pVpHalSrcSurf->SampleType = SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD;
             pVpHalSrcSurf->ScalingMode = VPHAL_SCALING_AVS;
             pVpHalSrcSurf->bInterlacedScaling = true;
+            pVpHalSrcSurf->InterlacedScalingType = ISCALING_INTERLEAVED_TO_INTERLEAVED;
         }
 
         // Kernel does not support 3-plane interlaced AVS, so for 3-plane interlaced scaling, need to use bilinear.
