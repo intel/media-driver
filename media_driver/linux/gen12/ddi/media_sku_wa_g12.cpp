@@ -40,7 +40,7 @@ static struct LinuxCodecInfo tglCodecInfo =
 {
     .avcDecoding    = 1,
     .mpeg2Decoding  = 1,
-    .vp8Decoding    = 0,
+    .vp8Decoding    = 1,
     .vc1Decoding    = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
     .jpegDecoding   = 1,
     .avcEncoding    = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
