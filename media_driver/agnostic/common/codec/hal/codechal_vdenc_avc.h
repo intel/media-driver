@@ -590,21 +590,6 @@ public:
                                       PMOS_RESOURCE                vdencStreamIn);
 
     //!
-    //! \brief    Set VDENC StreamIn Surface for BRC Adaptive Region Boost
-    //!
-    //! \param    [in] vdencStreamIn
-    //!           StreamIn Surface Resource.
-    //! \param    [in] boostIndex
-    //!           Region index for boosting.
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS SetupRegionBoosting(
-        PMOS_RESOURCE                vdencStreamIn,
-        uint16_t                     boostIndex);
-
-    //!
     //! \brief    Sort and set distinct delta QPs
     //!
     //! \return   bool
@@ -1006,10 +991,6 @@ protected:
     bool    m_sliceLevelReportSupported;    //!< Slice Level Report support
     bool    m_brcRoiSupported;              //!< BRC Roi Support Flag.
     bool    m_brcMotionAdaptiveEnable;      //!< BRC motion adaptive optimization enabled. 
-
-    bool     m_brcAdaptiveRegionBoostSupported;     //!< ARB in BRC mode supported flag.
-    bool     m_brcAdaptiveRegionBoostEnable;        //!< ARB in BRC mode enable flag.
-    uint8_t  m_curStreamInBufIdx;                   //!< Current StreamIn buf index [0:7]
 
     bool     m_roundingInterEnable;          //!< RoundingInter Enable Flag.
     bool     m_adaptiveRoundingInterEnable;  //!< Adaptive Rounding Inter Enable Flag.

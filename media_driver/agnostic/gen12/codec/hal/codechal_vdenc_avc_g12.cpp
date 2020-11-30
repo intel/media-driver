@@ -626,7 +626,6 @@ CodechalVdencAvcStateG12::CodechalVdencAvcStateG12(
 
     m_vdboxOneDefaultUsed = true;
     m_nonNativeBrcRoiSupported = true;
-    m_brcAdaptiveRegionBoostSupported = true;
 
     m_hmeSupported   = true;
     m_16xMeSupported = true;
@@ -690,7 +689,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SetPictureStructs()
         }
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupMBQPStreamIn(
-            &(m_resVdencStreamInBuffer[m_curStreamInBufIdx])));
+            &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1101,7 +1100,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     hucVDEncBrcDmem->UPD_WidthInMB_U16  = m_picWidthInMb;
     hucVDEncBrcDmem->UPD_HeightInMB_U16 = m_picHeightInMb;
 
-    hucVDEncBrcDmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING) || ((m_avcPicParam->TargetFrameSize > 0) && (m_lookaheadDepth == 0));  // GS or TCBRC
+    hucVDEncBrcDmem->MOTION_ADAPTIVE_G4 = (m_avcSeqParam->ScenarioInfo == ESCENARIO_GAMESTREAMING);
     hucVDEncBrcDmem->UPD_CQMEnabled_U8  = m_avcSeqParam->seq_scaling_matrix_present_flag || m_avcPicParam->pic_scaling_matrix_present_flag;
 
     hucVDEncBrcDmem->UPD_LA_TargetSize_U32 = m_avcPicParam->TargetFrameSize << 3;
@@ -1390,7 +1389,7 @@ MOS_STATUS CodechalVdencAvcStateG12::ExecuteMeKernel()
         surfaceParam.refL0List = &(m_avcSliceParams->RefPicList[LIST_0][0]);
         surfaceParam.refL1List = &(m_avcSliceParams->RefPicList[LIST_1][0]);
         surfaceParam.vdencStreamInEnabled = m_vdencEnabled && (m_16xMeSupported || m_staticFrameDetectionInUse);
-        surfaceParam.meVdencStreamInBuffer = &m_resVdencStreamInBuffer[m_curStreamInBufIdx];
+        surfaceParam.meVdencStreamInBuffer = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
         surfaceParam.vdencStreamInSurfaceSize = MOS_BYTES_TO_DWORDS(m_picHeightInMb * m_picWidthInMb * 64);
 
         if (m_hmeKernel->Is16xMeEnabled())
@@ -1412,7 +1411,7 @@ MOS_STATUS CodechalVdencAvcStateG12::ExecuteMeKernel()
         // On-demand sync for VDEnc SHME StreamIn surface
         auto syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_renderContext;
-        syncParams.presSyncResource = &m_resVdencStreamInBuffer[m_curStreamInBufIdx];
+        syncParams.presSyncResource = &m_resVdencStreamInBuffer[m_currRecycledBufIdx];
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
         m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);

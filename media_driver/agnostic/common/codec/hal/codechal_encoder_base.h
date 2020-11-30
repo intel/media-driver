@@ -127,12 +127,6 @@
 //!
 #define CODECHAL_ENCODE_RECYCLED_BUFFER_NUM             6
 
-//!
-//! \brief Number of buffers required for VDENC StreamIn is increased
-//!        for BRC Adaptive Region Boost.
-//!
-#define CODECHAL_ENCODE_VDENC_STREAMIN_BUFFER_NUM       8
-
 // Encode Sizes
 #define CODECHAL_ENCODE_STATUS_NUM                      512
 #define CODECHAL_ENCODE_VME_BBUF_NUM                    2
@@ -1590,7 +1584,7 @@ public:
     PMOS_RESOURCE                   m_resVdencModeTimerBuffer = nullptr;           //!< Resource of Vdenc mode timer buffer
 
     // VDEnc StreamIn Buffer
-    MOS_RESOURCE                    m_resVdencStreamInBuffer[CODECHAL_ENCODE_VDENC_STREAMIN_BUFFER_NUM];  //!< Resources of Vdenc stream in buffer
+    MOS_RESOURCE                    m_resVdencStreamInBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];  //!< Resources of Vdenc stream in buffer
 
     // Maximum number of slices allowed by video spec
     uint32_t                        m_maxNumSlicesAllowed = 0;          //!< Max number of slices allowed
