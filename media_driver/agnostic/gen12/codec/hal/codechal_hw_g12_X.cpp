@@ -297,6 +297,8 @@ MOS_STATUS CodechalHwInterfaceG12::GetAvpStateCommandSize(
     //calculate AVP related commands size
     uint32_t    avpCommandsSize = 0;
     uint32_t    avpPatchListSize = 0;
+    uint32_t    cpCmdsize        = 0;
+    uint32_t    cpPatchListSize  = 0;
 
     if (m_avpInterface)
     {
@@ -306,9 +308,14 @@ MOS_STATUS CodechalHwInterfaceG12::GetAvpStateCommandSize(
             params));
     }
 
+    if (m_cpInterface)
+    {
+        m_cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
     //Calc final command size
-    *commandsSize = avpCommandsSize;
-    *patchListSize = avpPatchListSize;
+    *commandsSize  = avpCommandsSize  + cpCmdsize;
+    *patchListSize = avpPatchListSize + cpPatchListSize;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -323,6 +330,8 @@ MOS_STATUS CodechalHwInterfaceG12::GetAvpPrimitiveCommandSize(
     //calculate AVP related commands size
     uint32_t avpCommandsSize = 0;
     uint32_t avpPatchListSize = 0;
+    uint32_t cpCmdsize        = 0;
+    uint32_t cpPatchListSize  = 0;
 
     if (m_avpInterface)
     {
@@ -331,9 +340,14 @@ MOS_STATUS CodechalHwInterfaceG12::GetAvpPrimitiveCommandSize(
             (uint32_t*)&avpPatchListSize));
     }
 
+    if (m_cpInterface)
+    {
+        m_cpInterface->GetCpSliceLevelCmdSize(cpCmdsize, cpPatchListSize);
+    }
+
     //Calc final command size
-    *commandsSize = avpCommandsSize;
-    *patchListSize = avpPatchListSize;
+    *commandsSize  = avpCommandsSize  + cpCmdsize;
+    *patchListSize = avpPatchListSize + cpPatchListSize;
 
     return MOS_STATUS_SUCCESS;
 }
