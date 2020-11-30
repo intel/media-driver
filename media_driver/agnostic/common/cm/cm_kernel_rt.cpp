@@ -811,6 +811,10 @@ int32_t CmKernelRT::Initialize( const char* kernelName, const char* options )
                 }
             }
         }
+        if (m_kernelInfo->blNoBarrier && m_options && strstr(m_options, "-hasBarrier"))
+        {
+            m_kernelInfo->blNoBarrier = false;
+        }
     }
 
     if(argSize > m_halMaxValues->maxArgByteSizePerKernel)
