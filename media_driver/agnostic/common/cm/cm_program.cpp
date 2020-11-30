@@ -180,6 +180,8 @@ int32_t CmProgramRT::Initialize( void* cisaCode, const uint32_t cisaCodeSize, co
     int32_t hr     = CM_FAILURE;
 
     m_isJitterEnabled = true; //by default jitter is ON
+    //get first kernel starting slot index
+    m_kernelIndex = m_device->GetKernelSlot();
 
     int numJitFlags = 0;
     const char *jitFlags[CM_RT_JITTER_MAX_NUM_FLAGS];

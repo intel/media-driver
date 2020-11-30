@@ -124,6 +124,11 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
     m_cmDeviceRefCount(0),
     m_gpuCopyKernelProgram(nullptr),
     m_surfInitKernelProgram(nullptr),
+    m_InitCmQueue(nullptr),
+    m_kernel0(nullptr),
+    m_kernel1(nullptr),
+    m_gpuInitTask0(nullptr),
+    m_gpuInitTask1(nullptr),
 #if USE_EXTENSION_CODE
     m_gtpin(nullptr),
 #endif
@@ -402,6 +407,8 @@ int32_t CmDeviceRTBase::Initialize(MOS_CONTEXT *mosContext)
         }
     }
 
+    // prepare GPU predefined queue/kernel/task for surface init
+    result = PrepareGPUinitSurface();
     // get the last tracker
     PCM_HAL_STATE state = (( PCM_CONTEXT_DATA )m_accelData)->cmHalState;
     m_surfaceMgr->SetLatestVeboxTrackerAddr(state->renderHal->veBoxTrackerRes.data);
@@ -1644,12 +1651,10 @@ CM_RT_API int32_t CmDeviceRTBase::CreateQueue(CmQueue* &queue)
         queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
     }
 
-    printf("++++++1647----- CmDeviceRTBase::CreateQueue  platform %d, queueCreateOption.QueueType %d \n", platform, queueCreateOption.QueueType);
     m_criticalSectionQueue.Acquire();
     for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
     {
         CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-        printf("++++++1652 check queue----- CmDeviceRTBase::CreateQueue  platform %d, queueCreateOption.QueueType %d \n", platform, queueCreateOption.QueueType);
         if (queueType == queueCreateOption.QueueType)
         {
             queue = (*iter);
@@ -1676,7 +1681,6 @@ CM_RT_API int32_t CmDeviceRTBase::CreateQueue(CmQueue* &queue)
         }
     }
 #endif
-    printf("+++++++++CmDeviceRTBase::CreateQueue  platform %d, queueCreateOption.QueueType %d \n", platform, queueCreateOption.QueueType);
     return CreateQueueEx(queue, queueCreateOption);
 }
 
@@ -1686,8 +1690,6 @@ CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
 {
     INSERT_API_CALL_LOG(GetHalState());
     CLock locker(m_criticalSectionQueue);
-    printf("++++++-1609---CmDeviceRTBase::CreateQueueEx , queueCreateOption.QueueType %d \n", queueCreateOption.QueueType);
-
 
     // Check queue type redirect is needed.
     PCM_CONTEXT_DATA cmData = (PCM_CONTEXT_DATA)GetAccelData();
@@ -2709,7 +2711,7 @@ int32_t CmDeviceRTBase::LoadPredefinedCopyKernel(CmProgram*& program)
 }
 
 //*-----------------------------------------------------------------------------
-//| Purpose:    Load Predefined Program, it is used by GPUCopy API
+//| Purpose:    Load Predefined surface init Program, it is used by GPU init surface API
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
 int32_t CmDeviceRTBase::LoadPredefinedInitKernel(CmProgram*& program)
@@ -2744,6 +2746,99 @@ int32_t CmDeviceRTBase::LoadPredefinedInitKernel(CmProgram*& program)
 
     return hr;
 }
+
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Prepare program/kernel/task/queue, used by GPU init surface API
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+int32_t CmDeviceRTBase::PrepareGPUinitSurface()
+{
+    PCM_HAL_STATE           cmHalState;
+    int32_t                 hr = CM_SUCCESS;
+    if (m_surfInitKernelProgram == nullptr)
+    {
+        CmProgram* tmpProgram = nullptr;
+        CM_CHK_CMSTATUS_GOTOFINISH(LoadPredefinedInitKernel(tmpProgram));
+        m_hasGpuInitKernel = true;
+    }
+
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateQueue(m_InitCmQueue));
+
+    // Single plane surface
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateKernel(m_surfInitKernelProgram, _NAME(surfaceCopy_set), m_kernel0, "PredefinedGPUInitKernel"));
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateTask(m_gpuInitTask0));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_gpuInitTask0);
+    CM_CHK_CMSTATUS_GOTOFINISH(m_gpuInitTask0->AddKernel(m_kernel0));
+    // 2-plane surface Y+UV
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateKernel(m_surfInitKernelProgram, _NAME(surfaceCopy_set_NV12), m_kernel1, "PredefinedGPUInitKernel"));
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateTask(m_gpuInitTask1));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(m_gpuInitTask1);
+    CM_CHK_CMSTATUS_GOTOFINISH(m_gpuInitTask1->AddKernel(m_kernel1));
+
+finish:
+    return hr;
+}
+
+
+//*-----------------------------------------------------------------------------
+//| Purpose:    Initialize surface by predefined GPU kernel
+//| Returns:    Result of the operation.
+//*-----------------------------------------------------------------------------
+#define BLOCK_PIXEL_WIDTH            (32)
+#define BLOCK_HEIGHT                 (8)
+int32_t CmDeviceRTBase::GPUinitSurface(CmSurface2D* surf2D, const uint32_t initValue, CmEvent*& event)
+{
+    int32_t                 hr = CM_SUCCESS;
+    uint32_t        width = 0;
+    uint32_t        height = 0;
+    uint32_t        sizePerPixel = 0;
+    SurfaceIndex*   outputIndexCM = nullptr;
+    CmThreadSpace*  threadSpace = nullptr;
+    uint32_t        threadWidth = 0;
+    uint32_t        threadHeight = 0;
+    uint32_t        threadNum = 0;
+    CM_SURFACE_FORMAT      format = CM_SURFACE_FORMAT_INVALID;
+
+    if (!HasGpuInitKernel())
+    {
+        return CM_NOT_IMPLEMENTED;
+    }
+    if (!surf2D)
+    {
+        CM_ASSERTMESSAGE("Error: Pointer to surface 2d is null.");
+        return CM_FAILURE;
+    }
+    CmSurface2DRT* surf2DRT = static_cast<CmSurface2DRT*>(surf2D);
+    CM_CHK_CMSTATUS_GOTOFINISH(surf2DRT->GetSurfaceDesc(width, height, format, sizePerPixel));
+    CM_CHK_CMSTATUS_GOTOFINISH(surf2D->GetIndex(outputIndexCM));
+    threadWidth = (uint32_t)ceil((double)width * sizePerPixel / BLOCK_PIXEL_WIDTH / 4);
+    threadHeight = (uint32_t)ceil((double)height / BLOCK_HEIGHT);
+    threadNum = threadWidth * threadHeight;
+
+    CM_CHK_CMSTATUS_GOTOFINISH(CreateThreadSpace(threadWidth, threadHeight, threadSpace));
+    CM_CHK_NULL_GOTOFINISH_CMERROR(threadSpace);
+
+    if (format == CM_SURFACE_FORMAT_NV12 || format == CM_SURFACE_FORMAT_P010 || format == CM_SURFACE_FORMAT_P016)
+    {
+        CM_CHK_CMSTATUS_GOTOFINISH(m_kernel1->SetThreadCount(threadNum));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_kernel1->SetKernelArg(0, sizeof(uint32_t), &initValue));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_kernel1->SetKernelArg(1, sizeof(SurfaceIndex), outputIndexCM));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_InitCmQueue->EnqueueFast(m_gpuInitTask1, event, threadSpace));
+    }
+    else
+    {
+        CM_CHK_CMSTATUS_GOTOFINISH(m_kernel0->SetThreadCount(threadNum));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_kernel0->SetKernelArg(0, sizeof(uint32_t), &initValue));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_kernel0->SetKernelArg(1, sizeof(SurfaceIndex), outputIndexCM));
+        CM_CHK_CMSTATUS_GOTOFINISH(m_InitCmQueue->EnqueueFast(m_gpuInitTask0, event, threadSpace));
+    }
+
+finish:
+    if (threadSpace)  DestroyThreadSpace(threadSpace);
+    return hr;
+}
+
 
 //*-----------------------------------------------------------------------------
 //| Purpose:    Return HW stepping infor, Not implemented yet.

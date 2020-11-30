@@ -1111,17 +1111,33 @@ CM_RT_API int32_t CmSurface2DRTBase::GetSurfaceDesc(uint32_t &width, uint32_t &h
     return ret;
 }
 
-CM_RT_API int32_t CmSurface2DRTBase::InitSurface(const unsigned int initValue, CmEvent* event)
+CM_RT_API int32_t CmSurface2DRTBase::InitSurface(const unsigned int initValue, CmEvent* event, unsigned int useGPU)
 {
     INSERT_API_CALL_LOG(nullptr);
 
     CM_RETURN_CODE                      hr          = CM_SUCCESS;
     CmDeviceRT*                         cmDevice   = nullptr;
+    CmQueueRT*                          queueRT     = nullptr;
+    CmQueue*                            pCmQueue    = nullptr;
     PCM_CONTEXT_DATA                    cmData     = nullptr;
     CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM  inParam;
     uint32_t                            pitch       = 0;
     uint32_t                            *surf       = nullptr;
     uint32_t                            widthInBytes = 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Read VerbosityLevel from RegisterKey
+    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData = { 0 };
+    m_surfaceMgr->GetCmDevice(cmDevice);
+    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+    cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+    CM_ASSERT(cmData);
+    CM_ASSERT(cmData->cmHalState);
+
+    // User feature key reads
+    int retStatus = MOS_UserFeature_ReadValue_ID(nullptr, __MEDIA_USER_FEATURE_VALUE_MDF_LOG_LEVEL_ID,
+                    &userFeatureValueData, cmData->cmHalState->osInterface->pOsContext);
+#endif
 
     if( event )
     {
@@ -1142,49 +1158,81 @@ CM_RT_API int32_t CmSurface2DRTBase::InitSurface(const unsigned int initValue, C
     uint32_t updatedHeight = 0;
     CM_CHK_CMSTATUS_GOTOFINISH(m_surfaceMgr->GetPixelBytesAndHeight(m_width, m_height, m_format, sizePerPixel, updatedHeight));
 
-    m_surfaceMgr->GetCmDevice(cmDevice);
-    CM_CHK_NULL_RETURN_CMERROR(cmDevice);
-    cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
-    CM_CHK_NULL_RETURN_CMERROR(cmData);
-    CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
-
-    CmSafeMemSet( &inParam, 0, sizeof( CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM ) );
-    inParam.width = m_width;
-    inParam.height = m_height;
-    inParam.handle = m_handle;
-    inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
-
-    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
-    CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
-
-    pitch = inParam.pitch;
-    surf = ( uint32_t *)inParam.data;
-
-    widthInBytes = m_width * sizePerPixel;
-    if(widthInBytes != pitch)
+    if (useGPU == 1)
     {
-        for (uint32_t i=0; i < updatedHeight; i++)
+        m_surfaceMgr->GetCmDevice(cmDevice);
+        CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+        event = nullptr;
+        hr = (CM_RETURN_CODE)cmDevice->GPUinitSurface(this, initValue, event);
+        if (hr != CM_SUCCESS)
         {
-            if (widthInBytes % sizeof(uint32_t) == 0)
-            {
-                CmDwordMemSet(surf, initValue, widthInBytes);
-            }
-            else
-            {
-                CmDwordMemSet(surf, initValue, widthInBytes + sizeof(uint32_t));
-            }
-
-           surf += (pitch >> 2); // divide by 4 byte to dword
+            CM_ASSERTMESSAGE("Error: EnqueueInitSurface2D failure in CmSurface2DRTBase::InitSurface.")
         }
+        hr = (CM_RETURN_CODE)event->WaitForTaskFinished();
+        if (hr != CM_SUCCESS)
+        {
+            CM_ASSERTMESSAGE("Error: WaitForTaskFinished failure in CmSurface2DRTBase::InitSurface.")
+        }
+
+        uint64_t executionTimeInNS = 0;
+        hr = (CM_RETURN_CODE)event->GetExecutionTime(executionTimeInNS);
+        if (hr != CM_SUCCESS)
+        {
+            CM_ASSERTMESSAGE("Error: GetExecutionTime failure in CmSurface2DRTBase::InitSurface.")
+        }
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (userFeatureValueData.u32Data >= CM_LOG_LEVEL_DEBUG)
+        {
+            printf("  CmSurface2DRTBase::InitSurface   GPU Kernel init surface execution time is %d ns\n", (unsigned int)executionTimeInNS);
+        }
+#endif
     }
     else
     {
-        CmDwordMemSet(surf, initValue, pitch * updatedHeight);
-    }
+        m_surfaceMgr->GetCmDevice(cmDevice);
+        CM_CHK_NULL_RETURN_CMERROR(cmDevice);
+        cmData = (PCM_CONTEXT_DATA)cmDevice->GetAccelData();
+        CM_CHK_NULL_RETURN_CMERROR(cmData);
+        CM_CHK_NULL_RETURN_CMERROR(cmData->cmHalState);
 
-    //Unlock Surface2D
-    inParam.data = nullptr;
-    CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
+        CmSafeMemSet(&inParam, 0, sizeof(CM_HAL_SURFACE2D_LOCK_UNLOCK_PARAM));
+        inParam.width = m_width;
+        inParam.height = m_height;
+        inParam.handle = m_handle;
+        inParam.lockFlag = CM_HAL_LOCKFLAG_WRITEONLY;
+
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnLock2DResource(cmData->cmHalState, &inParam));
+        CM_CHK_NULL_GOTOFINISH_CMERROR(inParam.data);
+
+        pitch = inParam.pitch;
+        surf = (uint32_t*)inParam.data;
+
+        widthInBytes = m_width * sizePerPixel;
+        if (widthInBytes != pitch)
+        {
+            for (uint32_t i = 0; i < updatedHeight; i++)
+            {
+                if (widthInBytes % sizeof(uint32_t) == 0)
+                {
+                    CmDwordMemSet(surf, initValue, widthInBytes);
+                }
+                else
+                {
+                    CmDwordMemSet(surf, initValue, widthInBytes + sizeof(uint32_t));
+                }
+
+                surf += (pitch >> 2); // divide by 4 byte to dword
+            }
+        }
+        else
+        {
+            CmDwordMemSet(surf, initValue, pitch * updatedHeight);
+        }
+
+        //Unlock Surface2D
+        inParam.data = nullptr;
+        CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(cmData->cmHalState->pfnUnlock2DResource(cmData->cmHalState, &inParam));
+    }
 
 finish:
     return hr;

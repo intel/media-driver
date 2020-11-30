@@ -182,7 +182,7 @@ public:
     static int32_t Create( CmDeviceRT* device, void* cisaCode, const uint32_t cisaCodeSize, CmProgramRT*& program,  const char* options, const uint32_t programId );
     static int32_t Destroy( CmProgramRT* &program );
 
-    int32_t GetCommonISACode( void* & commonISACode, uint32_t & size ) ;
+    int32_t GetCommonISACode( void* & commonISACode, uint32_t & size );
     int32_t GetKernelCount( uint32_t& kernelCount );
     int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& kernelInfo );
     int32_t GetIsaFileName( char* & kernelName );
@@ -204,6 +204,11 @@ public:
     int32_t SafeRelease( void);
 
     uint32_t GetProgramIndex();
+
+    uint32_t GetKernelStartIndex()
+    {
+        return m_kernelIndex;
+    }
 
     //! \brief    get m_isaFile object
     //! \detail   m_isaFile object provides methods to read, parse and write ISA files.
@@ -237,7 +242,11 @@ protected:
 
     uint32_t m_refCount;
 
+    //program array starting slot index
     uint32_t m_programIndex;
+
+    //kernel array starting slot index
+    uint32_t m_kernelIndex;
 
     //Function point to JIT compiling functions, get from CmDevice_RT or CmDeviceSim
     pJITCompile     m_fJITCompile;

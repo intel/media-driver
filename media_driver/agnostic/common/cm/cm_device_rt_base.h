@@ -352,6 +352,14 @@ public:
 
     int32_t LoadPredefinedInitKernel(CmProgram*& pProgram);
 
+    int32_t GetKernelSlot()
+    {
+        return m_kernelArray.GetFirstFreeIndex();
+    }
+
+    int32_t PrepareGPUinitSurface();
+
+    int32_t GPUinitSurface(CmSurface2D* surf2D, const uint32_t initValue, CmEvent*& event);
     bool CheckGTPinEnabled();
 
 #if USE_EXTENSION_CODE
@@ -545,6 +553,16 @@ protected:
     CmProgram* m_gpuCopyKernelProgram;
 
     CmProgram* m_surfInitKernelProgram;
+
+    CmQueue* m_InitCmQueue;
+
+    CmKernel* m_kernel0;
+
+    CmKernel* m_kernel1;
+
+    CmTask* m_gpuInitTask0;
+
+    CmTask* m_gpuInitTask1;
 
 #if USE_EXTENSION_CODE
     CmGTPin *m_gtpin;

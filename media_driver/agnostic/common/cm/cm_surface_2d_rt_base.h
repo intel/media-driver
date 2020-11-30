@@ -85,7 +85,8 @@ public:
                                      unsigned int &sizeperpixel);
 
     CM_RT_API int32_t InitSurface(const unsigned int initValue,
-                                  CmEvent *pEvent);
+                                  CmEvent *pEvent,
+                                  unsigned int useGPU = 0);
 
     CM_RT_API int32_t
     SetSurfaceStateParam(SurfaceIndex *pSurfIndex,

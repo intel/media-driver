@@ -180,7 +180,8 @@ public:
     //! \retval CM_FAILURE otherwise.
     //!
     CM_RT_API virtual int32_t InitSurface(const unsigned int initValue,
-                                          CmEvent *event) = 0;
+                                          CmEvent *event,
+                                          unsigned int useGPU = 0) = 0;
 
     //!
     //! \brief Retrieves libva surface ID.

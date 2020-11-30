@@ -482,7 +482,8 @@ int32_t CmSurfaceManagerBase::TouchSurfaceInPoolForDestroy()
     {
         return freeNum;
     }
-    while (!freeNum)
+
+    while (m_delayDestroyHead && !freeNum)
     {
         CSync *lock = m_device->GetQueueLock();
         lock->Acquire();

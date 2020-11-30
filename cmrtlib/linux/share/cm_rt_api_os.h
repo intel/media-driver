@@ -36,7 +36,7 @@ public:
     CM_RT_API virtual INT WriteSurface( const unsigned char* pSysMem, CmEvent* pEvent, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT ReadSurfaceStride( unsigned char* pSysMem, CmEvent* pEvent, const UINT stride, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
     CM_RT_API virtual INT WriteSurfaceStride( const unsigned char* pSysMem, CmEvent* pEvent, const UINT stride, UINT64 sysMemSize = 0xFFFFFFFFFFFFFFFFULL ) = 0;
-    CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent) = 0;
+    CM_RT_API virtual INT InitSurface(const DWORD initValue, CmEvent* pEvent, unsigned int useGPU = 0 ) = 0;
 
     CM_RT_API virtual INT GetVaSurfaceID( VASurfaceID  &iVASurface) = 0;
 
