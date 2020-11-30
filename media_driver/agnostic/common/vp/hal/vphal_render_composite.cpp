@@ -4236,10 +4236,19 @@ void CompositeState::SetSurfaceCompressionParams(
             pSource->CompressionMode == MOS_MMC_HORIZONTAL      ||
             pSource->CompressionMode == MOS_MMC_VERTICAL))
         {
-            VPHAL_RENDER_NORMALMESSAGE("MMC DISABLED for RT due to CompsitionMemoryCompressedOut no supported");
-            pSource->bIsCompressed   = false;
-            pSource->CompressionMode = MOS_MMC_DISABLED;
-            m_pOsInterface->pfnSetMemoryCompressionMode(m_pOsInterface, &pSource->OsResource, MOS_MEMCOMP_STATE(MOS_MEMCOMP_DISABLED));
+            // Set MC to let HW to clean Aux for RC surface
+            if (pSource->CompressionMode == MOS_MMC_RC)
+            {
+                VPHAL_RENDER_NORMALMESSAGE("Force MC to clean Aux for RC RT surface due to CompsitionMemoryCompressedOut no supported");
+                pSource->CompressionMode = MOS_MMC_MC;
+            }
+            else
+            {
+                VPHAL_RENDER_NORMALMESSAGE("MMC DISABLED for RT due to CompsitionMemoryCompressedOut no supported");
+                pSource->bIsCompressed   = false;
+                pSource->CompressionMode = MOS_MMC_DISABLED;
+                m_pOsInterface->pfnSetMemoryCompressionMode(m_pOsInterface, &pSource->OsResource, MOS_MEMCOMP_STATE(MOS_MEMCOMP_DISABLED));
+            }
         }
     }
 }
