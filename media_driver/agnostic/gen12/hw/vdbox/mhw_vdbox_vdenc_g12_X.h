@@ -1756,7 +1756,8 @@ public:
         }
 
         if (avcPicParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED && params->bVdencStreamInEnabled &&
-            (avcPicParams->NumDirtyROI && params->bVdencBRCEnabled || avcPicParams->NumROI && avcPicParams->bNativeROI))
+            (avcPicParams->NumDirtyROI && params->bVdencBRCEnabled || avcPicParams->NumROI && avcPicParams->bNativeROI ||
+                (avcPicParams->TargetFrameSize > 0 && !avcSeqParams->LookaheadDepth)))  // TCBRC (for AdaptiveRegionBoost)
         {
             cmd.DW34.RoiEnable = true;
         }

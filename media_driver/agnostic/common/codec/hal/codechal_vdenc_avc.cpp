@@ -3474,6 +3474,9 @@ void CodechalVdencAvcState::InitializeDataMember()
     m_brcRoiSupported             = false;
     m_brcMotionAdaptiveEnable     = false;
 
+    m_brcAdaptiveRegionBoostSupported = false;
+    m_brcAdaptiveRegionBoostEnable    = false;
+
     m_roundingInterEnable         = false;
     m_adaptiveRoundingInterEnable = false;
     m_roundingInterP              = false;
@@ -4144,13 +4147,22 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
 
     avcRefList[currRefIdx]->pRefPicSelectListEntry = nullptr;
 
-    if (m_avcPicParam->NumDirtyROI)
+    if (m_brcAdaptiveRegionBoostSupported && m_avcPicParam->TargetFrameSize && !m_lookaheadDepth)
+    {   // Adaptive region boost is enabled for TCBRC only
+        m_brcAdaptiveRegionBoostEnable = true;
+        m_vdencStreamInEnabled         = true;
+    } else
+    {
+        m_brcAdaptiveRegionBoostEnable = false;
+    }
+
+    if (!m_brcAdaptiveRegionBoostEnable && m_avcPicParam->NumDirtyROI)  // ROI is not supported with ARB now
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupDirtyROI(
             &(m_resVdencStreamInBuffer[m_currRecycledBufIdx])));
     }
 
-    if (m_avcPicParam->NumROI)
+    if (!m_brcAdaptiveRegionBoostEnable && m_avcPicParam->NumROI)  // ROI is not supported with ARB now
     {
         m_avcPicParam->bNativeROI = ProcessRoiDeltaQp();
         if (m_vdencBrcEnabled && !m_avcPicParam->bNativeROI)
@@ -4191,6 +4203,12 @@ MOS_STATUS CodechalVdencAvcState::SetPictureStructs()
             0 : (targetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)targetBufferFulness);
     }
     m_prevTargetFrameSize = m_avcPicParam->TargetFrameSize;
+
+    if (m_brcAdaptiveRegionBoostEnable)
+    {
+        uint16_t rowOffset[8] = {0, 3, 5, 2, 7, 4, 1, 6};
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetupRegionBoosting(&(m_resVdencStreamInBuffer[m_currRecycledBufIdx]), rowOffset[(m_storeData - 1) & 7]));
+    }
 
     return eStatus;
 }
@@ -4829,6 +4847,47 @@ MOS_STATUS CodechalVdencAvcState::SetupForceSkipStreamIn(PCODEC_AVC_ENCODE_PIC_P
     m_osInterface->pfnUnlockResource(
                                      m_osInterface,
                                      vdencStreamIn);
+    return eStatus;
+}
+
+MOS_STATUS CodechalVdencAvcState::SetupRegionBoosting(PMOS_RESOURCE vdencStreamIn, uint16_t boostIndex)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(vdencStreamIn);
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly = 1;
+
+    CODECHAL_VDENC_STREAMIN_STATE *pData = (CODECHAL_VDENC_STREAMIN_STATE *)m_osInterface->pfnLockResource(
+        m_osInterface,
+        vdencStreamIn,
+        &lockFlags);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pData);
+    MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb * CODECHAL_VDENC_STREAMIN_STATE::byteSize);
+
+    for (uint16_t y = 0; y < m_picHeightInMb; y++)
+    {
+        if ((y & 7) == boostIndex)
+        {
+            for (uint16_t x = 0; x < m_picWidthInMb; x++)
+            {
+                pData->DW0.RegionOfInterestRoiSelection = 1;
+                pData++;
+            }
+        }
+        else
+        {
+            pData += m_picWidthInMb;
+        }
+    }
+
+    m_osInterface->pfnUnlockResource(
+        m_osInterface,
+        vdencStreamIn);
+    
     return eStatus;
 }
 
@@ -6971,6 +7030,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         CODECHAL_ENCODE_ASSERTMESSAGE("%s: Failed to allocate VDENC TLB MMIO Buffer\n", __FUNCTION__);
         return eStatus;
     }
+
     return eStatus;
 }
 
