@@ -4601,9 +4601,7 @@ MOS_STATUS CodechalVdencAvcState::SetupROIStreamIn(
         for (int32_t i = picParams->NumROI - 1; i >= 0; i--)
         {
             uint32_t curX, curY;
-            int8_t   dQpRoi = (int8_t)CodecHal_Clip3(
-                ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, picParams->ROI[i].PriorityLevelOrDQp);
-            int8_t   newQp = (int8_t)CodecHal_Clip3(10, 51, qpPrimeY + dQpRoi);
+            int8_t   newQp = (int8_t)CodecHal_Clip3(10, 51, qpPrimeY + picParams->ROI[i].PriorityLevelOrDQp);
             for (curY = picParams->ROI[i].Top; curY < picParams->ROI[i].Bottom; curY++)
             {
                 for (curX = picParams->ROI[i].Left; curX < picParams->ROI[i].Right; curX++)
