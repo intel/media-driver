@@ -895,8 +895,8 @@ MOS_STATUS CodechalVdencVp9StateG12::SetupSegmentationStreamIn()
 
         // TU functions copied from there.
         streamIn[i].DW0.Maxtusize = 3;
-
         streamIn[i].DW0.Maxcusize = 3;
+
         // For InterFrames we change the CUsize to 32x32 if we have sub 32 blocks with different segids in superblock
         if ((i % 4) == 3 && m_pictureCodingType == P_TYPE)
         {
@@ -915,14 +915,14 @@ MOS_STATUS CodechalVdencVp9StateG12::SetupSegmentationStreamIn()
         case 1:     // Quality mode
         case 2:
         case 4:     // Normal mode
-            streamIn[i].DW6.Nummergecandidatecu8X8 = 1;
+            streamIn[i].DW6.Nummergecandidatecu8X8   = 1;
             streamIn[i].DW6.Nummergecandidatecu16X16 = 2;
             streamIn[i].DW6.Nummergecandidatecu32X32 = 3;
             streamIn[i].DW6.Nummergecandidatecu64X64 = 4;
             break;
         case 7:     // Speed mode
-            streamIn[i].DW0.Numimepredictors = 4;
-            streamIn[i].DW6.Nummergecandidatecu8X8 = 0;
+            streamIn[i].DW0.Numimepredictors         = CODECHAL_VDENC_NUMIMEPREDICTORS_SPEED;
+            streamIn[i].DW6.Nummergecandidatecu8X8   = 0;
             streamIn[i].DW6.Nummergecandidatecu16X16 = 2;
             streamIn[i].DW6.Nummergecandidatecu32X32 = 2;
             streamIn[i].DW6.Nummergecandidatecu64X64 = 2;
@@ -1209,25 +1209,29 @@ MOS_STATUS CodechalVdencVp9StateG12::SetCurbeMe(
         //StreamIn CURBE
         cmd.DW6.LCUSize = 1;//Only LCU64 supported by the VDEnc HW
         cmd.DW6.InputStreamInSurfaceEnable = params->segmapProvided;
-        cmd.DW31.MaxCuSize = 3;
-        cmd.DW31.MaxTuSize = 3;
+        cmd.DW31.MaxCuSize                 = 3;
+        cmd.DW31.MaxTuSize                 = 3;
+        cmd.DW31.NumImePredictors          = CODECHAL_VDENC_NUMIMEPREDICTORS;
         switch (params->TargetUsage)
         {
-        case 1:
-        case 4:
+        case 1: // Quality mode
+        case 2:
+        case 4: // Normal mode
             cmd.DW36.NumMergeCandidateCu64x64 = 4;
             cmd.DW36.NumMergeCandidateCu32x32 = 3;
             cmd.DW36.NumMergeCandidateCu16x16 = 2;
-            cmd.DW36.NumMergeCandidateCu8x8 = 1;
-            cmd.DW31.NumImePredictors = 8;
+            cmd.DW36.NumMergeCandidateCu8x8   = 1;
             break;
-        case 7:
+        case 7: // Speed mode
             cmd.DW36.NumMergeCandidateCu64x64 = 2;
             cmd.DW36.NumMergeCandidateCu32x32 = 2;
             cmd.DW36.NumMergeCandidateCu16x16 = 2;
-            cmd.DW36.NumMergeCandidateCu8x8 = 0;
-            cmd.DW31.NumImePredictors = 4;
+            cmd.DW36.NumMergeCandidateCu8x8   = 0;
+            cmd.DW31.NumImePredictors         = CODECHAL_VDENC_NUMIMEPREDICTORS_SPEED;
             break;
+        default:
+            MHW_ASSERTMESSAGE("Invalid TU provided!");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
     }
 
@@ -3615,7 +3619,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format = Format_Buffer;
             allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL((m_tileStatsOffset.counterBuffer + (m_maxScalableModeTiles * m_statsSize.counterBuffer)), CODECHAL_PAGE_SIZE);
-            allocParamsForBufferLinear.pBufName = "GEN11 Tile Level Statistics Buffer";
+            allocParamsForBufferLinear.pBufName = "GEN12 Tile Level Statistics Buffer";
 
             m_tileStatsPakIntegrationBufferSize = allocParamsForBufferLinear.dwBytes;
 
@@ -4316,7 +4320,7 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format = Format_Buffer;
             allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(CODECHAL_ENCODE_VP9_HUC_BRC_DATA_BUFFER_SIZE, CODECHAL_PAGE_SIZE);
-            allocParamsForBufferLinear.pBufName = "GEN11 PAK Integration FrameByteCount output";
+            allocParamsForBufferLinear.pBufName = "GEN12 PAK Integration FrameByteCount output";
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
                 m_osInterface,
                 &allocParamsForBufferLinear,
@@ -4334,7 +4338,7 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format = Format_Buffer;
             allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
-            allocParamsForBufferLinear.pBufName = "GEN11 HUC done Semaphore Memory";
+            allocParamsForBufferLinear.pBufName = "GEN12 HUC done Semaphore Memory";
 
             for (auto i = 0; i < m_numPipe; i++)
             {
@@ -4351,7 +4355,7 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format = Format_Buffer;
             allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
-            allocParamsForBufferLinear.pBufName = "GEN11 VDEnc PAK done Semaphore Memory";
+            allocParamsForBufferLinear.pBufName = "GEN12 VDEnc PAK done Semaphore Memory";
 
             for (auto i = 0; i < m_numPipe; i++)
             {
@@ -4368,7 +4372,7 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format = Format_Buffer;
             allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
-            allocParamsForBufferLinear.pBufName = "GEN11 VDEnc PAK Int done Semaphore Memory";
+            allocParamsForBufferLinear.pBufName = "GEN12 VDEnc PAK Int done Semaphore Memory";
 
             CODECHAL_ENCODE_CHK_STATUS_RETURN((MOS_STATUS)m_osInterface->pfnAllocateResource(
                 m_osInterface,

@@ -1230,7 +1230,7 @@ public:
 
     MOS_STATUS InitKernelStateMe();
 
-    MOS_STATUS SetCurbeMe(
+    virtual MOS_STATUS SetCurbeMe(
         MeCurbeParams* params);
 
     MOS_STATUS SendMeSurfaces(
