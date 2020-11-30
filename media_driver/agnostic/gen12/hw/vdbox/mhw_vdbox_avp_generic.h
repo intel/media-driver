@@ -89,7 +89,8 @@ protected:
         }
 
         cmd.DW2.YOffsetForUCbInPixel =
-            MOS_ALIGN_CEIL((params->psSurface->UPlaneOffset.iSurfaceOffset - params->psSurface->dwOffset) / params->psSurface->dwPitch + params->psSurface->RenderOffset.YUV.U.YOffset, uvPlaneAlignment);
+            MOS_ALIGN_CEIL(params->psSurface->UPlaneOffset.iYOffset, uvPlaneAlignment);
+
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
         return eStatus;
