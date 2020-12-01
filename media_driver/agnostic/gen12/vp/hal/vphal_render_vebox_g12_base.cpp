@@ -570,6 +570,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     bool                        bDIEnable;
     bool                        bSurfCompressible;
     bool                        bFFDNSurfCompressible;
+    bool                        bFFDISurfCompressible;
+    MOS_RESOURCE_MMC_MODE       FFDISurfCompressionMode;
     MOS_RESOURCE_MMC_MODE       SurfCompressionMode;
     MOS_RESOURCE_MMC_MODE       FFDNSurfCompressionMode;
     MHW_VEBOX_SURFACE_PARAMS    MhwVeboxSurfaceParam;
@@ -581,6 +583,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     bAllocated              = false;
     bSurfCompressible       = false;
     bFFDNSurfCompressible   = false;
+    bFFDISurfCompressible   = false;
+    FFDISurfCompressionMode = MOS_MMC_DISABLED;
     SurfCompressionMode     = MOS_MMC_DISABLED;
     FFDNSurfCompressionMode = MOS_MMC_DISABLED;
     pOsInterface            = pVeboxState->m_pOsInterface;
@@ -619,7 +623,18 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
         VPHAL_CSPACE        ColorSpace;
         VPHAL_SAMPLE_TYPE   SampleType;
 
-        GetFFDISurfParams(ColorSpace, SampleType);
+        VPHAL_RENDER_CHK_STATUS(GetFFDISurfParams(ColorSpace, SampleType));
+
+        if (SampleType != SAMPLE_PROGRESSIVE)
+        {
+            bFFDISurfCompressible   = false;
+            FFDISurfCompressionMode = MOS_MMC_DISABLED;
+        }
+        else
+        {
+            bFFDISurfCompressible   = bSurfCompressible;
+            FFDISurfCompressionMode = SurfCompressionMode;
+        }
 
         for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
         {
@@ -632,8 +647,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 TileType,
                 pVeboxState->m_currentSurface->dwWidth,
                 pVeboxState->m_currentSurface->dwHeight,
-                bSurfCompressible,
-                SurfCompressionMode,
+                bFFDISurfCompressible,
+                FFDISurfCompressionMode,
                 &bAllocated));
 
             pVeboxState->FFDISurfaces[i]->SampleType = SampleType;

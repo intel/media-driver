@@ -437,7 +437,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G9_BASE::AllocateResources()
         VPHAL_CSPACE        ColorSpace;
         VPHAL_SAMPLE_TYPE   SampleType;
 
-        GetFFDISurfParams(ColorSpace, SampleType);
+        VPHAL_RENDER_CHK_STATUS(GetFFDISurfParams(ColorSpace, SampleType));
 
         for (i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
         {
