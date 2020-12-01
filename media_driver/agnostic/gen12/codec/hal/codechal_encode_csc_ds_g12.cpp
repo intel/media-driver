@@ -100,7 +100,8 @@ MOS_STATUS CodechalEncodeCscDsG12::CheckRawColorFormat(MOS_FORMAT format, MOS_TI
         m_cscUsingSfc = IsSfcEnabled() ? 1 : 0;
         m_cscRequireColor = 1;
         //Use EU for better performance in big resolution cases
-        if (m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088)
+        if (m_cscRawSurfWidth * m_cscRawSurfHeight > 1920 * 1088
+            && !MEDIA_IS_WA(m_hwInterface->GetWaTable(), Wa_1409932735))
         {
             m_cscUsingSfc = 0;
         }
