@@ -573,11 +573,18 @@ MOS_STATUS VpResourceManager::VeboxInitSTMMHistory(MOS_SURFACE *stmmSurface)
     uint32_t            dwSize = 0;
     int32_t             x = 0, y = 0;
     uint8_t*            pByte = nullptr;
+    MOS_LOCK_PARAMS     LockFlags;
 
     VP_PUBLIC_CHK_NULL_RETURN(stmmSurface);
+    MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
+
+    LockFlags.WriteOnly = 1;
+    LockFlags.TiledAsTiled = 1; // Set TiledAsTiled flag for STMM surface initialization.
 
     // Lock the surface for writing
-    pByte = (uint8_t*)m_allocator.LockResouceForWrite(&stmmSurface->OsResource);
+    pByte = (uint8_t*)m_allocator.Lock(
+        &stmmSurface->OsResource,
+        &LockFlags);
     VP_PUBLIC_CHK_NULL_RETURN(pByte);
 
     dwSize = stmmSurface->dwWidth >> 2;
@@ -624,7 +631,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
             bSurfCompressible,
             surfCompressionMode,
             allocated,
-            true,
+            false,
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
 
         if (allocated)
