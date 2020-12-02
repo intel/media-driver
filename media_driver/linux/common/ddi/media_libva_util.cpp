@@ -421,6 +421,11 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
         }
+        else
+        {
+            DDI_ASSERTMESSAGE("Unsupported external surface memory type.");
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
 
         // Set cp flag to indicate the secure surface
         if (mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_PROTECTED)
@@ -537,19 +542,27 @@ VAStatus DdiMediaUtil_AllocateSurface(
             goto finish;
         }
 
-        mediaSurface->pGmmResourceInfo = gmmResourceInfo;
-        mediaSurface->bMapped          = false;
-        mediaSurface->format           = format;
-        mediaSurface->iWidth           = width;
-        mediaSurface->iHeight          = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
-        mediaSurface->iRealHeight      = height;
-        mediaSurface->iPitch           = pitch;
-        mediaSurface->iRefCount        = 0;
-        mediaSurface->bo               = bo;
-        mediaSurface->TileType         = tileformat;
-        mediaSurface->isTiled          = (tileformat != I915_TILING_NONE) ? 1 : 0;
-        mediaSurface->pData            = (uint8_t*) bo->virt;
-        DDI_VERBOSEMESSAGE("Allocate external surface %7d bytes (%d x %d resource).", mediaSurface->pSurfDesc->uiSize, width, height);
+        if (bo)
+        {
+            mediaSurface->pGmmResourceInfo = gmmResourceInfo;
+            mediaSurface->bMapped          = false;
+            mediaSurface->format           = format;
+            mediaSurface->iWidth           = width;
+            mediaSurface->iHeight          = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
+            mediaSurface->iRealHeight      = height;
+            mediaSurface->iPitch           = pitch;
+            mediaSurface->iRefCount        = 0;
+            mediaSurface->bo               = bo;
+            mediaSurface->TileType         = tileformat;
+            mediaSurface->isTiled          = (tileformat != I915_TILING_NONE) ? 1 : 0;
+            mediaSurface->pData            = (uint8_t*) bo->virt;
+            DDI_VERBOSEMESSAGE("Allocate external surface %7d bytes (%d x %d resource).", mediaSurface->pSurfDesc->uiSize, width, height);
+        }
+        else
+        {
+            DDI_ASSERTMESSAGE("Fail to allocate external surface");
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
     }
     else
     {
