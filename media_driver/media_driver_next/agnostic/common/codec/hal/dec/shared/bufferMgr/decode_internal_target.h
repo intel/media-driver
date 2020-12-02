@@ -90,6 +90,14 @@ public:
     {
         DECODE_FUNC_CALL();
 
+        for (auto iter = m_activeSurfaces.begin(); iter!= m_activeSurfaces.end(); iter++)
+        {
+            if (curFrameIdx == iter->first)
+            {
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+
         if (m_aviableSurfaces.size() == 0)
         {
             m_currentSurface = m_allocator->AllocateSurface(
@@ -126,16 +134,25 @@ public:
     //!         The frame index for current picture
     //! \param  [in] refFrameList
     //!         The frame indicies of reference frame list
+    //! \param  [in] fixedFrameIdx
+    //!         The frameIdx user wants to keep into the refFrameList
+    //!         Default value is 0xff
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS UpdateRefList(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList)
+    MOS_STATUS UpdateRefList(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList, uint32_t fixedFrameIdx = 0xff)
     {
         DECODE_FUNC_CALL();
 
         auto iter = m_activeSurfaces.begin();
         while (iter != m_activeSurfaces.end())
         {
+            if (iter->first == fixedFrameIdx)
+            {
+                ++iter;
+                continue;
+            }
+
             if (!IsReference(iter->first, curFrameIdx, refFrameList))
             {
                 auto buffer = iter->second;

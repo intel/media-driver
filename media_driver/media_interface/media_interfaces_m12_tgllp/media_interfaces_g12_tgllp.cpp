@@ -538,8 +538,8 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     #ifdef _AVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_AVCVLD)
         {
-        #ifdef _APOGEIOS_SUPPORTED
             bool apogeiosEnable = false;
+        #ifdef _APOGEIOS_SUPPORTED
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
@@ -557,7 +557,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
                 m_codechalDevice = MOS_New(DecodeAvcPipelineAdapterM12, hwInterface, debugInterface);
             }
             else
-            #endif
+        #endif
             {
                 m_codechalDevice = MOS_New(Decode::Avc, hwInterface, debugInterface, info);
             }
@@ -573,7 +573,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     ((CodechalSetting *)settings)->downsamplingHinted = false;
 #endif
 
-            if (settings != nullptr && ((CodechalSetting *)settings)->downsamplingHinted)
+            if (settings != nullptr && ((CodechalSetting *)settings)->downsamplingHinted && !apogeiosEnable)
             {
                 CodechalDecode *decoder = dynamic_cast<CodechalDecode *>(m_codechalDevice);
                 if (decoder == nullptr)

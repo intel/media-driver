@@ -88,7 +88,7 @@ public:
     const uint32_t      m_histogramBinWidth = 4;
 
 protected:
-    MOS_STATUS UpdateInternalTargets(DecodeBasicFeature &basicFeature);
+    virtual MOS_STATUS UpdateInternalTargets(DecodeBasicFeature &basicFeature);
 
     virtual MOS_STATUS GetRefFrameList(std::vector<uint32_t> &refFrameList) = 0;
     virtual MOS_STATUS GetDecodeTargetFormat(MOS_FORMAT &format) = 0;
