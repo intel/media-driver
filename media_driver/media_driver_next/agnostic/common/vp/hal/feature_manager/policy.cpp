@@ -1420,15 +1420,15 @@ bool Policy::IsVeboxSecurePathEnabled(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
 {
     VP_FUNC_CALL();
 
-
     if (m_vpInterface.GetHwInterface())
     {
-        VP_PUBLIC_ASSERTMESSAGE("No VP Interface Available");
+        // will remove when secure path ready
+        // VP_PUBLIC_ASSERTMESSAGE("No VP Interface Available");
         return false;
     }
 
-    if (m_vpInterface.GetHwInterface()->m_osInterface &&
-        m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface)
+    if (!(m_vpInterface.GetHwInterface()->m_osInterface &&
+          m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface))
     {
         VP_PUBLIC_ASSERTMESSAGE("No CP Interface Available");
         return false;
