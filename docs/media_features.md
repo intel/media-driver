@@ -13,19 +13,23 @@
 | VC-1 | Output | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
 |  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
 | JPEG* | Max Res. | 16k | 16k | 16k | 16k | 16k | 16k | 16k |
-| VP8 | Output | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
-|  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
+| VP8 | Output | NV12 | NV12 | NV12 | NV12 | NV12 | NV12** |  |
+|  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k** |  |
 | HEVC 8bit | Output |  | NV12 | NV12 | NV12 | NV12/YUY2/AYUV | NV12/YUY2/AYUV | NV12/YUY2/AYUV |
 |  | Max Res. |  | 8k | 8k | 8k | 8k | 8k | 8k |
 | HEVC 10bit | Output |  |  | P010 | P010 | P010/Y210/Y410 | P010/Y210/Y410 | P010/Y210/Y410 |
 |  | Max Res. |  |  | 8k | 8k | 8k | 8k | 8k |
+| HEVC 12bit | Output | | |  |  |  | P016/Y216/Y416 | P016/Y216/Y416 |
+| | Max Res. | | |  |  |  | 8k | 8k |
 | VP9 8bit | Output |  |  | NV12 | NV12 | NV12/AYUV | NV12/AYUV | NV12/AYUV |
 |  | Max Res. |  |  | 4k | 8k | 8k | 8k | 8k |
 | VP9 10bit | Output |  |  |  | P010 | P010/Y410 | P010/Y410 | P010/Y410 |
 |  | Max Res. |  |  |  | 8k | 8k | 8k | 8k |
+| VP9 12bit | Output | | | |  |  | P016/Y216/Y416 | P016/Y216/Y416 |
+| | Max Res. | | | |  |  | 8k | 8k |
 
 * \* JPEG output format: NV12/411P/422H/422V/444P/BGRP/RGBP/YUY2/ARGB
-
+* \** VP8 is only supported on TGL platform
 
 ## Supported Encoding Input Format and Max Resolution
 

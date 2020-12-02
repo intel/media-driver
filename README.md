@@ -99,13 +99,13 @@ Media driver supports two build types as below
 
 ### Decoding/Encoding Features
 
-|CODEC | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL/RKL | DG1/SG1 |
+|CODEC | Build Types | BDW | SKL | BXT/APL | KBLx | ICL | EHL/JSL | TGL*/RKL | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|---|
 | AVC | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> |
 | MPEG-2 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> |
 | VC-1 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> | <u>D</u><br><i>&nbsp;<i> |
 | JPEG | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
-| VP8 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> |  |  |
+| VP8 | <u>Full Feature</u><br><i>Free Kernel</i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D**</u><br><i>D**<i> |  |
 | HEVC 8bit | <u>Full Feature</u><br><i>Free Kernel</i> |  | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> | <u>D/E/Es</u><br><i>D/E<i> |
 | HEVC 8bit 422 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/Es</u><br><i>D<i> | <u>D</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> | <u>D/Es</u><br><i>D<i> |
 | HEVC 8bit 444 | <u>Full Feature</u><br><i>Free Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
@@ -129,6 +129,7 @@ AV1 hardware decoding is supported from Gen12+ platforms.
 * Es - Hardware(PAK) + Shader(media kernel+VME) Encoding
 
 \* TGL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #4](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
+\** VP8 decoding is only supported on TGL platform
 
 For more information, please refer to
 * [Media Features Summary](https://github.com/intel/media-driver/blob/master/docs/media_features.md#media-features-summary)

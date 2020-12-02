@@ -362,6 +362,7 @@ static bool InitDG1MediaSku(struct GfxDeviceInfo *devInfo,
     {
         MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     }
+    MEDIA_WR_SKU(skuTable, FtrIntelVP8VLDDecoding, 0);
 
     bool enableCodecMMC = false;
     bool enableVPMMC    = false;
@@ -447,6 +448,7 @@ static bool InitRKLMediaSku(struct GfxDeviceInfo *devInfo,
     }
 
     MEDIA_WR_SKU(skuTable, FtrSfcScalability, 0);
+    MEDIA_WR_SKU(skuTable, FtrIntelVP8VLDDecoding, 0);
 
     return true;
 }
