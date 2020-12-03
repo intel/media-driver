@@ -61,6 +61,7 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
 MediaCopyStateM12_0::~MediaCopyStateM12_0()
 {
     MOS_Delete(m_bltState);
+    MOS_Delete(m_veboxCopyState);
 }
 
 bool MediaCopyStateM12_0::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst)
@@ -95,6 +96,30 @@ MOS_STATUS MediaCopyStateM12_0::MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE 
     // implementation
     MCPY_CHK_NULL_RETURN(m_veboxCopyState);
     return m_veboxCopyState->CopyMainSurface(src, dst);
+}
+
+bool MediaCopyStateM12_0::IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst)
+{
+    bool supported = false;
+
+    if (m_osInterface &&
+        !MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVERing))
+    {
+        return false;
+    }
+
+    if (m_veboxCopyState)
+    {
+        supported = m_veboxCopyState->IsFormatSupported(src) && m_veboxCopyState->IsFormatSupported(dst);
+    }
+
+    if (src->TileType == MOS_TILE_LINEAR &&
+        dst->TileType == MOS_TILE_LINEAR)
+    {
+        supported = false;
+    }
+
+    return supported;
 }
 
 MOS_STATUS MediaCopyStateM12_0::MediaBltCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst)

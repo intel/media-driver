@@ -182,7 +182,10 @@ protected:
     //! \return   bool
     //!           Return true if support, otherwise return false.
     //!
-    virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
+    virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst)
+    {
+        return false;
+    }
 
     //!
     //! \brief    render format support.
@@ -273,7 +276,6 @@ public:
     MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
 
 protected:
-    VeboxCopyState     * m_veboxCopyState = nullptr;
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context
 };
 #endif

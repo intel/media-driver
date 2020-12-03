@@ -37,11 +37,6 @@ MediaCopyBaseState::~MediaCopyBaseState()
 {
     MOS_STATUS              eStatus;
 
-    if (m_veboxCopyState)
-    {
-        MOS_Delete(m_veboxCopyState);
-    }
-
     if (m_mhwInterfaces)
     {
         if (m_mhwInterfaces->m_cpInterface)
@@ -253,30 +248,6 @@ MOS_STATUS MediaCopyBaseState::TaskDispatch()
     MCPY_NORMALMESSAGE("Media Copy works on %s Engine", m_mcpyEngine?(m_mcpyEngine == MCPY_ENGINE_BLT?"BLT":"Render"):"VeBox");
 
     return eStatus;
-}
-
-bool MediaCopyBaseState::IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst)
-{
-    bool supported = false;
-
-    if (m_osInterface &&
-        !MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVERing))
-    {
-        return false;
-    }
-
-    if (m_veboxCopyState)
-    {
-        supported = m_veboxCopyState->IsFormatSupported(src) && m_veboxCopyState->IsFormatSupported(dst);
-    }
-
-    if (src->TileType == MOS_TILE_LINEAR &&
-        dst->TileType == MOS_TILE_LINEAR)
-    {
-        supported = false;
-    }
-
-    return supported;
 }
 
 //!

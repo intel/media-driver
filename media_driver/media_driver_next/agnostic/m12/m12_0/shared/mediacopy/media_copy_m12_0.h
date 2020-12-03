@@ -112,6 +112,9 @@ protected:
     //!
     virtual MOS_STATUS MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
+    virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
+
     BltState        * m_bltState       = nullptr;
+    VeboxCopyState  * m_veboxCopyState = nullptr;
 };
 #endif // __MEDIA_COPY_M12_0_H__
