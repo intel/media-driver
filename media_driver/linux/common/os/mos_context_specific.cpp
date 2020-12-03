@@ -365,6 +365,14 @@ void OsContextSpecific::DestroySSEUIPC()
     }
 }
 
+void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
+{
+    if (pSliceCount == nullptr)
+        MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
+}
+
+#endif //#ifndef ANDROID
+
 void OsContextSpecific::GetGpuPriority(int32_t* pPriority)
 {
     uint64_t priority = 0;
@@ -381,14 +389,6 @@ void OsContextSpecific::SetGpuPriority(int32_t priority)
         MOS_OS_NORMALMESSAGE("Warning: failed to set the gpu priority, errno is %d", ret);
     }
 }
-
-void OsContextSpecific::SetSliceCount(uint32_t *pSliceCount)
-{
-    if (pSliceCount == nullptr)
-        MOS_OS_ASSERTMESSAGE("pSliceCount is NULL.");
-}
-
-#endif //#ifndef ANDROID
 
 MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
 {
