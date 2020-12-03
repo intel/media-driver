@@ -25,6 +25,8 @@
 //! \brief    Factories for vp object creation.
 //!
 #include "vp_obj_factories.h"
+#include "vp_pipeline.h"
+#include "sw_filter_handle.h"
 using namespace vp;
 
 /****************************************************************************************************/
@@ -162,7 +164,9 @@ void HwFilterFactory::Destory(HwFilter *&pHwFilter)
 /*                                      SwFilterPipeFactory                                         */
 /****************************************************************************************************/
 
-SwFilterPipeFactory::SwFilterPipeFactory(VpInterface &vpInterface) : m_allocator(vpInterface)
+SwFilterPipeFactory::SwFilterPipeFactory(VpInterface &vpInterface) :
+    m_allocator(vpInterface),
+    m_vpInterface(vpInterface)
 {
 }
 
@@ -170,34 +174,85 @@ SwFilterPipeFactory::~SwFilterPipeFactory()
 {
 }
 
-MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, SwFilterPipe *&swFilterPipe)
+int SwFilterPipeFactory::GetPipeCountForProcessing(VP_PIPELINE_PARAMS &params)
 {
-    VP_PUBLIC_CHK_NULL_RETURN(params);
-    swFilterPipe = m_allocator.Create();
-    VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
-
-    FeatureRule featureRule;
-    MOS_STATUS status = swFilterPipe->Initialize(*params, featureRule);
-
-    if (MOS_FAILED(status))
+    int pipeCnt = 1;
+    int featureCnt = 0;
+    auto featureHander = *m_vpInterface.GetSwFilterHandlerMap();
+    for (auto &handler : featureHander)
     {
-        m_allocator.Destory(swFilterPipe);
+        int cnt = handler.second->GetPipeCountForProcessing(params);
+        if (cnt > 1)
+        {
+            pipeCnt = cnt;
+            featureCnt++;
+        }
     }
-    return status;
+    if (featureCnt > 1)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Invalid usage, only support 1 feature for multi-pipe.");
+        return 0;
+    }
+    return pipeCnt;
 }
 
-MOS_STATUS SwFilterPipeFactory::Create(VEBOX_SFC_PARAMS *params, SwFilterPipe *&swFilterPipe)
+MOS_STATUS SwFilterPipeFactory::Update(VP_PIPELINE_PARAMS &params, int index)
+{
+    auto featureHander = *m_vpInterface.GetSwFilterHandlerMap();
+    for (auto &handler : featureHander)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(handler.second->UpdateParamsForProcessing(params, index));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<SwFilterPipe*> &swFilterPipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(params);
-    swFilterPipe = m_allocator.Create();
-    VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
+    int pipeCnt = GetPipeCountForProcessing(*params);
+    if (pipeCnt == 0)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
 
-    MOS_STATUS status = swFilterPipe->Initialize(*params);
+    for (int index = 0; index < pipeCnt; index++)
+    {
+        VP_PIPELINE_PARAMS tempParams = *params;
+        VP_PUBLIC_CHK_STATUS_RETURN(Update(tempParams, index));
+
+        SwFilterPipe *pipe = m_allocator.Create();
+        VP_PUBLIC_CHK_NULL_RETURN(pipe);
+
+        FeatureRule featureRule;
+        MOS_STATUS status = pipe->Initialize(tempParams, featureRule);
+
+        if (MOS_FAILED(status))
+        {
+            m_allocator.Destory(pipe);
+            return status;
+        }
+
+        swFilterPipe.push_back(pipe);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterPipeFactory::Create(VEBOX_SFC_PARAMS *params, std::vector<SwFilterPipe*> &swFilterPipe)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(params);
+    SwFilterPipe *pipe = m_allocator.Create();
+    VP_PUBLIC_CHK_NULL_RETURN(pipe);
+
+    MOS_STATUS status = pipe->Initialize(*params);
 
     if (MOS_FAILED(status))
     {
-        m_allocator.Destory(swFilterPipe);
+        m_allocator.Destory(pipe);
+        return status;
     }
+
+    swFilterPipe.push_back(pipe);
     return status;
 }
 

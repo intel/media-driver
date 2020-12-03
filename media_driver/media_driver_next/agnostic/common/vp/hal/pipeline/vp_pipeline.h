@@ -176,7 +176,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreateSwFilterPipe(VP_PARAMS &params, SwFilterPipe *&swFilterPipe);
+    virtual MOS_STATUS CreateSwFilterPipe(VP_PARAMS &params, std::vector<SwFilterPipe*> &swFilterPipe);
 
     //!
     //! \brief  Get System Vebox Number

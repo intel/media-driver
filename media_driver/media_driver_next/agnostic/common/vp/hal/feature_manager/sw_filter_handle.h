@@ -49,6 +49,15 @@ public:
     {
         return;
     }
+
+    virtual int GetPipeCountForProcessing(VP_PIPELINE_PARAMS& params)
+    {
+        return 1;
+    }
+    virtual MOS_STATUS UpdateParamsForProcessing(VP_PIPELINE_PARAMS& params, int index)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 protected:
     VpInterface& m_vpInterface;
     FeatureType     m_type;
@@ -90,6 +99,8 @@ public:
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
     virtual SwFilter* CreateSwFilter();
     virtual bool IsFeatureEnabled(VEBOX_SFC_PARAMS& params);
+    virtual int GetPipeCountForProcessing(VP_PIPELINE_PARAMS& params);
+    virtual MOS_STATUS UpdateParamsForProcessing(VP_PIPELINE_PARAMS& params, int index);
 protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:

@@ -128,15 +128,18 @@ public:
     SwFilterPipeFactory(VpInterface &vpInterface);
     virtual ~SwFilterPipeFactory();
 
-    MOS_STATUS Create(PVP_PIPELINE_PARAMS params, SwFilterPipe *&swFilterPipe);
-    MOS_STATUS Create(VEBOX_SFC_PARAMS *params, SwFilterPipe *&swFilterPipe);
+    MOS_STATUS Create(PVP_PIPELINE_PARAMS params, std::vector<SwFilterPipe*> &swFilterPipe);
+    MOS_STATUS Create(VEBOX_SFC_PARAMS *params, std::vector<SwFilterPipe*> &swFilterPipe);
 
     // Create empty swFilter
     MOS_STATUS Create(SwFilterPipe *&swFilterPipe);
     void Destory(SwFilterPipe *&swfilterPipe);
 
 private:
+    int GetPipeCountForProcessing(VP_PIPELINE_PARAMS &params);
+    MOS_STATUS Update(VP_PIPELINE_PARAMS &params, int index);
     VpObjAllocator<SwFilterPipe> m_allocator;
+    VpInterface &m_vpInterface;
 };
 
 template <class _T>
