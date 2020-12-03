@@ -6672,9 +6672,27 @@ static uint32_t DdiMedia_GetDrmFormatOfSeparatePlane(uint32_t fourcc, int plane)
             return DRM_FORMAT_R16;
 
         case VA_FOURCC_YUY2:
+            return DRM_FORMAT_YUYV;
+        case VA_FOURCC_YVYU:
+            return DRM_FORMAT_YVYU;
+        case VA_FOURCC_VYUY:
+            return DRM_FORMAT_VYUY;
         case VA_FOURCC_UYVY:
-            // These are not representable as separate planes.
-            return 0;
+            return DRM_FORMAT_UYVY;
+        case VA_FOURCC_Y210:
+            return DRM_FORMAT_Y210;
+        case VA_FOURCC_Y216:
+            return DRM_FORMAT_Y216;
+        case VA_FOURCC_Y410:
+            return DRM_FORMAT_Y410;
+        case VA_FOURCC_Y416:
+            return DRM_FORMAT_Y416;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y212:
+            return DRM_FORMAT_Y216;
+        case VA_FOURCC_Y412:
+            return DRM_FORMAT_Y416;
+#endif
 
         case VA_FOURCC_ARGB:
             return DRM_FORMAT_ARGB8888;
