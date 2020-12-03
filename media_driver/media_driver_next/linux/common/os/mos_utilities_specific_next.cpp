@@ -1065,7 +1065,7 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureSetValue(
 
     if ((eStatus = UserFeatureDumpFile(m_szUserFeatureFile, &pKeyList)) != MOS_STATUS_SUCCESS)
     {
-        MOS_FreeMemory(pKeyList);
+        UserFeatureFreeKeyList(pKeyList);
         return eStatus;
     }
 
@@ -1141,7 +1141,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureGetKeyIdbyName(const char  *pcKe
     if ((eStatus = UserFeatureDumpFile(m_szUserFeatureFile, &pKeyList)) !=
         MOS_STATUS_SUCCESS )
     {
-        MOS_FreeMemory(pKeyList);
+        UserFeatureFreeKeyList(pKeyList);
         return eStatus;
     }
 
@@ -1184,7 +1184,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureGetKeyNamebyId(void  *UFKey, cha
         if ((eStatus = UserFeatureDumpFile(m_szUserFeatureFile, &pKeyList)) !=
             MOS_STATUS_SUCCESS )
         {
-            MOS_FreeMemory(pKeyList);
+            UserFeatureFreeKeyList(pKeyList);
             return eStatus;
         }
 
