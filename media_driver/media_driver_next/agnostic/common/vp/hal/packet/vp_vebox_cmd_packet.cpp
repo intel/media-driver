@@ -601,7 +601,6 @@ MOS_STATUS VpVeboxCmdPacket::SetDnParams(
     ConfigLumaPixRange(pDnParams->bDnEnabled, pDnParams->bAutoDetect, pDnParams->fDenoiseFactor);
     ConfigChromaPixRange(pDnParams->bChromaDenoise, pDnParams->bAutoDetect, pDnParams->fDenoiseFactor);
     ConfigDnLumaChromaParams(pDnParams->bDnEnabled, pDnParams->bChromaDenoise, &lumaParams, &chromaParams);
-    ConfigFMDParams(pDnParams->bProgressive, pDnParams->bAutoDetect);
 
     // bDNDITopFirst in DNDI parameters need be configured during SetDIParams.
 
@@ -1805,6 +1804,9 @@ MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
 
     pVeboxInterface = m_hwInterface->m_veboxInterface;
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
+
+    // Set FMD Params
+    VP_RENDER_CHK_STATUS_RETURN(ConfigFMDParams(pRenderData->GetDNDIParams().bProgressiveDN, pRenderData->DN.bAutoDetect));
 
     //----------------------------------
     // Allocate and reset VEBOX state
