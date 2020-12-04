@@ -94,6 +94,10 @@ FrameTrackerProducer::FrameTrackerProducer():
 
 FrameTrackerProducer::~FrameTrackerProducer()
 {
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
+
     if (!Mos_ResourceIsNull(&m_resource))
     {
         m_osInterface->pfnUnlockResource(
@@ -103,7 +107,7 @@ FrameTrackerProducer::~FrameTrackerProducer()
         m_osInterface->pfnFreeResourceWithFlag(
             m_osInterface,
             &m_resource,
-            1);
+            resFreeFlags.Value);
     }
 }
 

@@ -189,10 +189,12 @@ public:
     //! \brief  Destroy Surface
     //! \param  [in] surface
     //!         Pointer to VP_SURFACE
+    //! \param  [in] flags
+    //!         flags for vp surface destroy
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DestroyVpSurface(VP_SURFACE *&surface);
+    MOS_STATUS DestroyVpSurface(VP_SURFACE *&surface, MOS_GFXRES_FREE_FLAGS flags = {0});
 
     //!
     //! \brief  Allocate Surface
@@ -211,10 +213,12 @@ public:
     //! \brief  Destroy Surface
     //! \param  [in] surface
     //!         Pointer to MOS_SURFACE
+    //! \param  [in] flags
+    //!         flags for surface destroy
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DestroySurface(MOS_SURFACE* surface);
+    MOS_STATUS DestroySurface(MOS_SURFACE* surface, MOS_GFXRES_FREE_FLAGS flags = {0});
 
     //!
     //! \brief  Lock resource
@@ -324,49 +328,6 @@ public:
         VP_SURFACE                  *surface,
         MOS_GFXRES_TYPE             defaultResType,
         MOS_TILE_TYPE               defaultTileType);
-
-    //!
-    //! \brief    Allocates the Surface
-    //! \details  Allocates the Surface
-    //!           - if the surface is not already allocated OR
-    //!           - resource dimenisions OR format changed
-    //! \param    [in,out] surface
-    //!           Pointer to VPHAL_SURFACE
-    //! \param    [in] surfaceName
-    //!           Pointer to surface name
-    //! \param    [in] format
-    //!           Expected MOS_FORMAT
-    //! \param    [in] defaultResType
-    //!           Expected Resource Type
-    //! \param    [in] defaultTileType
-    //!           Expected Surface Tile Type
-    //! \param    [in] width
-    //!           Expected Surface Width
-    //! \param    [in] height
-    //!           Expected Surface Height
-    //! \param    [in] compressible
-    //!           Surface compressible or not
-    //! \param    [in] compressionMode
-    //!           Compression Mode
-    //! \param    [out] allocated
-    //!           true if allocated, false for not
-    //! \param    [in] resUsageType
-    //!           resource usage type for cache policy
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
-    //!
-    MOS_STATUS ReAllocateSurface(
-        PVPHAL_SURFACE          surface,
-        PCCHAR                  surfaceName,
-        MOS_FORMAT              format,
-        MOS_GFXRES_TYPE         defaultResType,
-        MOS_TILE_TYPE           defaultTileType,
-        uint32_t                width,
-        uint32_t                height,
-        bool                    compressible,
-        MOS_RESOURCE_MMC_MODE   compressionMode,
-        bool                    &allocated,
-        MOS_HW_RESOURCE_DEF     resUsageType = MOS_HW_RESOURCE_DEF_MAX);
 
     //!
     //! \brief    Reallocates the VP Surface
@@ -536,6 +497,15 @@ public:
     MOS_STATUS UpdateResourceUsageType(
         PMOS_RESOURCE           osResource,
         MOS_HW_RESOURCE_DEF     resUsageType);
+
+    //!
+    //! \brief    Check if sync free needed for compressed surface
+    //! \param    PMOS_SURFACE pOsSurface
+    //!           [in] os surface pointer
+    //! \return   bool
+    //!           true if success, otherwise failed reason
+    //!
+    bool isSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface);
 
 protected:
     //!

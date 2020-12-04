@@ -72,7 +72,11 @@ MOS_STATUS CmTracker::Initialize(uint32_t taskNum)
 
 CmTracker::~CmTracker()
 {
-    m_osInterface->pfnFreeResourceWithFlag(m_osInterface, &m_resource, 1);
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
+
+    m_osInterface->pfnFreeResourceWithFlag(m_osInterface, &m_resource, resFreeFlags.Value);
 }
 
 MOS_STATUS CmTracker::AssignFrameTracker(uint32_t trackerIndex, uint32_t *taskId, uint32_t *tracker, bool hasEvent)

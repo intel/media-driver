@@ -1338,6 +1338,8 @@ MOS_STATUS VpHal_GetSurfaceInfo(
 //!           Compression Mode
 //! \param    [out] pbAllocated
 //!           true if allocated, false for not
+//! \param    [in] resUsageType
+//!           resource usage type for caching
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success. Error code otherwise
 //!

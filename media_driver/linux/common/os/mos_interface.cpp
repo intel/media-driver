@@ -1544,6 +1544,13 @@ MOS_STATUS MosInterface::AllocateResource(
     return MOS_STATUS_SUCCESS;
 }
 
+//The input bit definition in MOS_GFXRES_FREE_FLAGS
+uint32_t MosInterface::ConvertHalFreeFlagsToOsFreeFlags(
+    uint32_t halFreeFlag)
+{
+    return halFreeFlag;
+}
+
 MOS_STATUS MosInterface::FreeResource(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource,

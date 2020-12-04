@@ -381,6 +381,27 @@ float VpHal_Lanczos(float x, uint32_t dwNumEntries, float fLanczosT)
     return VpHal_Sinc(x) * VpHal_Sinc(x / fLanczosT);
 }
 
+bool isSyncFreeNeededForMMCSurface(PVPHAL_SURFACE pSurface, PMOS_INTERFACE pOsInterface)
+{
+    if (nullptr == pSurface || nullptr == pOsInterface)
+    {
+        return false;
+    }
+
+    //Compressed surface aux table update is after resource dealloction, aux table update need wait the WLs complete
+    //the sync deallocation flag will make sure deallocation API return after all surface related WL been completed and resource been destroyed by OS
+    auto *pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+    if (pSkuTable &&
+        MEDIA_IS_SKU(pSkuTable, FtrE2ECompression) &&                                      //Compression enabled platform
+        !MEDIA_IS_SKU(pSkuTable, FtrFlatPhysCCS) &&                                        //NOT DGPU compression
+        ((pSurface->bCompressible) && (pSurface->CompressionMode != MOS_MMC_DISABLED)))    //Compressed enabled surface
+    {
+        return true;
+    }
+
+    return false;
+}
+
 //!
 //! \brief    Allocates the Surface
 //! \details  Allocates the Surface
@@ -408,6 +429,8 @@ float VpHal_Lanczos(float x, uint32_t dwNumEntries, float fLanczosT)
 //!           Compression Mode
 //! \param    [out] pbAllocated
 //!           true if allocated, false for not
+//! \param    [in] resUsageType
+//!           resource usage type for caching
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success. Error code otherwise
 //!
@@ -428,6 +451,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     MOS_STATUS              eStatus;
     VPHAL_GET_SURFACE_INFO  Info;
     MOS_ALLOC_GFXRES_PARAMS AllocParams;
+    MOS_GFXRES_FREE_FLAGS   resFreeFlags = {0};
 
     //---------------------------------
     VPHAL_PUBLIC_ASSERT(pOsInterface);
@@ -464,7 +488,13 @@ MOS_STATUS VpHal_ReAllocateSurface(
     AllocParams.ResUsageType    = resUsageType;
 
     // Delete resource if already allocated
-    pOsInterface->pfnFreeResource(pOsInterface, &(pSurface->OsResource));
+    //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
+    if (isSyncFreeNeededForMMCSurface(pSurface, pOsInterface))
+    {
+        resFreeFlags.SynchronousDestroy = 1;
+        VPHAL_PUBLIC_NORMALMESSAGE("Set SynchronousDestroy flag for compressed resource %s", pSurfaceName);
+    }
+    pOsInterface->pfnFreeResourceWithFlag(pOsInterface, &(pSurface->OsResource), resFreeFlags.Value);
 
     // Allocate surface
     VPHAL_PUBLIC_CHK_STATUS(pOsInterface->pfnAllocateResource(

@@ -404,6 +404,23 @@ typedef struct _MOS_LOCK_PARAMS
 } MOS_LOCK_PARAMS, *PMOS_LOCK_PARAMS;
 
 //!
+//! \brief flags for GFX allocation destroy
+//!
+typedef struct _MOS_GFXRES_FREE_FLAGS
+{
+    union
+    {
+        struct
+        {
+            uint32_t AssumeNotInUse : 1;
+            uint32_t SynchronousDestroy : 1;
+            uint32_t Reserved : 30;
+        };
+        uint32_t Value;
+    };
+} MOS_GFXRES_FREE_FLAGS;
+
+//!
 //! \brief Structure to Resource Flags
 //!
 typedef struct _MOS_GFXRES_FLAGS

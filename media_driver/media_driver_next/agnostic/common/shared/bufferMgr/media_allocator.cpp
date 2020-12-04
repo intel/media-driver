@@ -245,7 +245,7 @@ MOS_STATUS Allocator::DestroyBuffer(MOS_BUFFER *buffer)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Allocator::DestroySurface(MOS_SURFACE *surface)
+MOS_STATUS Allocator::DestroySurface(MOS_SURFACE *surface, MOS_GFXRES_FREE_FLAGS flags)
 {
     if (nullptr == surface)
     {
@@ -268,7 +268,7 @@ MOS_STATUS Allocator::DestroySurface(MOS_SURFACE *surface)
 #endif
 
     m_surfacePool.erase(it);
-    m_osInterface->pfnFreeResource(m_osInterface, &surface->OsResource);
+    m_osInterface->pfnFreeResourceWithFlag(m_osInterface, &surface->OsResource, flags.Value);
     MOS_Delete(surface);
 
     return MOS_STATUS_SUCCESS;
@@ -393,4 +393,25 @@ MOS_STATUS Allocator::UpdateResourceUsageType(
     }
 
     return m_osInterface->pfnUpdateResourceUsageType(osResource, resUsageType);
+}
+
+bool Allocator::isSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface)
+{
+    if (nullptr == pOsSurface)
+    {
+        return false;
+    }
+
+    //Compressed surface aux table update is after resource dealloction, aux table update need wait the WLs complete
+    //the sync deallocation flag will make sure deallocation API return after all surface related WL been completed and resource been destroyed by OS
+    auto *pSkuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    if (pSkuTable &&
+        MEDIA_IS_SKU(pSkuTable, FtrE2ECompression) &&                                        //Compression enabled platform
+        !MEDIA_IS_SKU(pSkuTable, FtrFlatPhysCCS) &&                                          //NOT DGPU compression
+        ((pOsSurface->bCompressible) && (pOsSurface->CompressionMode != MOS_MMC_DISABLED)))  //Compressed enabled surface
+    {
+        return true;
+    }
+
+    return false;
 }

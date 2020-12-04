@@ -903,6 +903,19 @@ public:
     );
 
     //!
+    //! \brief    Convert HAL free flags to OS free flags
+    //!
+    //! \param    [in] halFreeFlag
+    //!           bit definition in MOS_GFXRES_FREE_FLAGS
+    //!
+    //! \return   uint32_t
+    //!           OS resouce deallc flags
+    //!
+    static uint32_t ConvertHalFreeFlagsToOsFreeFlags(
+        uint32_t halFreeFlag
+    );
+
+    //!
     //! \brief    Free Resource
     //! \details  [Resource Interface] Free a graphic resource.
     //! \details  Caller: HAL only

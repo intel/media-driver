@@ -1105,6 +1105,10 @@ MOS_STATUS XRenderHal_Interface_g12::SetScratchSpaceBufferState(
 MOS_STATUS XRenderHal_Interface_g12::FreeScratchSpaceBuffer(
     RENDERHAL_INTERFACE *renderHal)
 {
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
+
     if (m_scratchSpaceResource.iSize <= 0)
     {
         return MOS_STATUS_SUCCESS;  // Scratch space is not allocated. No need to free resources.
@@ -1113,7 +1117,7 @@ MOS_STATUS XRenderHal_Interface_g12::FreeScratchSpaceBuffer(
     renderHal->pOsInterface
             ->pfnFreeResourceWithFlag(renderHal->pOsInterface,
                                       &m_scratchSpaceResource,
-                                      1);
+                                      resFreeFlags.Value);
     renderHal->pOsInterface
             ->pfnResetResourceAllocationIndex(renderHal->pOsInterface,
                                               &m_scratchSpaceResource);

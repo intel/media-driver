@@ -138,10 +138,12 @@ public:
     //! \brief  Destroy Surface
     //! \param  [in] surface
     //!         Pointer to MOS_SURFACE
+    //! \param  [in] flags
+    //!         flags for surface destroy
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DestroySurface(MOS_SURFACE *surface);
+    MOS_STATUS DestroySurface(MOS_SURFACE *surface, MOS_GFXRES_FREE_FLAGS flags = {0});
 
     //!
     //! \brief  Free a resource
@@ -232,6 +234,15 @@ public:
     MOS_STATUS UpdateResourceUsageType(
         PMOS_RESOURCE           osResource,
         MOS_HW_RESOURCE_DEF     resUsageType);
+
+    //!
+    //! \brief    Check if sync free needed for compressed surface
+    //! \param    PMOS_SURFACE pOsSurface
+    //!           [in] os surface pointer
+    //! \return   bool
+    //!           true if success, otherwise failed reason
+    //!
+    bool isSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface);
 
 protected:
 

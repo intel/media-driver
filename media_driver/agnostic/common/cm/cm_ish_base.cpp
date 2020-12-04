@@ -48,10 +48,14 @@ CmISHBase::CmISHBase():
 
 CmISHBase::~CmISHBase()
 {
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
+
     while (m_destroyedTrackers.size())
     {
         MOS_RESOURCE *res = m_destroyedResources.back();
-        m_osInterface->pfnFreeResourceWithFlag(m_osInterface, res, SURFACE_FLAG_ASSUME_NOT_IN_USE);
+        m_osInterface->pfnFreeResourceWithFlag(m_osInterface, res, resFreeFlags.Value);
 
         FrameTrackerToken *trackerToken = m_destroyedTrackers.back();
 
@@ -64,7 +68,7 @@ CmISHBase::~CmISHBase()
     if (m_resource)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, m_resource);
-        m_osInterface->pfnFreeResourceWithFlag(m_osInterface, m_resource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
+        m_osInterface->pfnFreeResourceWithFlag(m_osInterface, m_resource, resFreeFlags.Value);
         MOS_FreeMemory(m_resource);
     }
 
@@ -242,6 +246,10 @@ MOS_STATUS CmISHBase::ExpandHeapSize(uint32_t extraSize)
 
 MOS_STATUS CmISHBase::Refresh()
 {
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
+
     // goes from back to front to handle tracker overflow
     while (m_destroyedTrackers.size())
     {
@@ -252,7 +260,7 @@ MOS_STATUS CmISHBase::Refresh()
         }
         MOS_RESOURCE *res = m_destroyedResources.back();
         m_osInterface->pfnUnlockResource(m_osInterface, res);
-        m_osInterface->pfnFreeResourceWithFlag(m_osInterface, res, SURFACE_FLAG_ASSUME_NOT_IN_USE);
+        m_osInterface->pfnFreeResourceWithFlag(m_osInterface, res, resFreeFlags.Value);
 
         m_destroyedResources.pop_back();
         m_destroyedTrackers.pop_back();

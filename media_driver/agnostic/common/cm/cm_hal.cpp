@@ -350,10 +350,12 @@ finish:
 __inline void HalCm_FreeTsResource(
     PCM_HAL_STATE state)                                                       // [in] Pointer to CM HAL State
 {
-    PMOS_INTERFACE      osInterface;
-    MOS_STATUS          hr;
+    PMOS_INTERFACE        osInterface;
+    MOS_STATUS            hr;
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
 
-    osInterface    = state->osInterface;
+    resFreeFlags.AssumeNotInUse = 1;
+    osInterface = state->osInterface;
 
     if (!Mos_ResourceIsNull(&state->renderTimeStampResource.osResource))
     {
@@ -369,7 +371,7 @@ __inline void HalCm_FreeTsResource(
         osInterface->pfnFreeResourceWithFlag(
             osInterface,
             &state->renderTimeStampResource.osResource,
-            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+            resFreeFlags.Value);
     }
 
     //free vebox TS resource
@@ -388,7 +390,7 @@ __inline void HalCm_FreeTsResource(
         osInterface->pfnFreeResourceWithFlag(
             osInterface,
             &state->veboxTimeStampResource.osResource,
-            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+            resFreeFlags.Value);
     }
 }
 
@@ -399,9 +401,11 @@ __inline void HalCm_FreeTsResource(
 __inline void HalCm_FreeTrackerResources(
     PCM_HAL_STATE state)                                                       // [in] Pointer to CM HAL State
 {
-    PMOS_INTERFACE      osInterface;
-    MOS_STATUS          hr;
+    PMOS_INTERFACE        osInterface;
+    MOS_STATUS            hr;
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
 
+    resFreeFlags.AssumeNotInUse = 1;
     osInterface = state->osInterface;
 
     if (!Mos_ResourceIsNull(&state->renderHal->veBoxTrackerRes.osResource))
@@ -418,7 +422,7 @@ __inline void HalCm_FreeTrackerResources(
         osInterface->pfnFreeResourceWithFlag(
             osInterface,
             &state->renderHal->veBoxTrackerRes.osResource,
-            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+            resFreeFlags.Value);
     }
 }
 
@@ -509,14 +513,17 @@ finish:
 __inline void HalCm_FreeCsrResource(
     PCM_HAL_STATE state)   // [in] Pointer to CM HAL State
 {
-    PMOS_INTERFACE      osInterface = state->osInterface;
+    PMOS_INTERFACE        osInterface  = state->osInterface;
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
 
     if (!Mos_ResourceIsNull(&state->csrResource))
     {
         osInterface->pfnFreeResourceWithFlag(
             osInterface,
             &state->csrResource,
-            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+            resFreeFlags.Value);
     }
 }
 
@@ -527,8 +534,11 @@ __inline void HalCm_FreeCsrResource(
 __inline void HalCm_FreeSipResource(
     PCM_HAL_STATE state)   // [in] Pointer to CM HAL State
 {
-    PMOS_INTERFACE      osInterface = state->osInterface;
-    MOS_STATUS          hr = MOS_STATUS_SUCCESS;
+    PMOS_INTERFACE        osInterface = state->osInterface;
+    MOS_STATUS            hr = MOS_STATUS_SUCCESS;
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    resFreeFlags.AssumeNotInUse = 1;
 
     if (!Mos_ResourceIsNull(&state->sipResource.osResource))
     {
@@ -544,7 +554,7 @@ __inline void HalCm_FreeSipResource(
         osInterface->pfnFreeResourceWithFlag(
             osInterface,
             &state->sipResource.osResource,
-            SURFACE_FLAG_ASSUME_NOT_IN_USE);
+            resFreeFlags.Value);
     }
 }
 
@@ -9247,7 +9257,9 @@ MOS_STATUS HalCm_FreeBuffer(
     MOS_STATUS              eStatus;
     PCM_HAL_BUFFER_ENTRY    entry;
     PMOS_INTERFACE          osInterface;
+    MOS_GFXRES_FREE_FLAGS   resFreeFlags = {0};
 
+    resFreeFlags.AssumeNotInUse = 1;
     eStatus        = MOS_STATUS_SUCCESS;
     osInterface    = state->osInterface;
 
@@ -9260,7 +9272,7 @@ MOS_STATUS HalCm_FreeBuffer(
     }
     if (entry->isAllocatedbyCmrtUmd)
     {
-        osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
+        osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, resFreeFlags.Value);
     }
     else
     {
@@ -9391,8 +9403,10 @@ MOS_STATUS HalCm_FreeSurface2DUP(
 {
     MOS_STATUS                    eStatus;
     PCM_HAL_SURFACE2D_UP_ENTRY    entry;
-    PMOS_INTERFACE          osInterface;
+    PMOS_INTERFACE                osInterface;
+    MOS_GFXRES_FREE_FLAGS         resFreeFlags = {0};
 
+    resFreeFlags.AssumeNotInUse = 1;
     eStatus        = MOS_STATUS_SUCCESS;
     osInterface    = state->osInterface;
 
@@ -9404,7 +9418,7 @@ MOS_STATUS HalCm_FreeSurface2DUP(
         state->advExecutor->Delete2Dor3DStateMgr(entry->surfStateMgr);
     }
 
-    osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
+    osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, resFreeFlags.Value);
 
     osInterface->pfnResetResourceAllocationIndex(osInterface, &entry->osResource);
     entry->width = 0;
@@ -9769,8 +9783,10 @@ MOS_STATUS HalCm_FreeSurface2D(
     MOS_STATUS                 eStatus;
     PCM_HAL_SURFACE2D_ENTRY    entry;
     PMOS_INTERFACE             osInterface;
+    MOS_GFXRES_FREE_FLAGS      resFreeFlags = {0};
 
-    eStatus              = MOS_STATUS_SUCCESS;
+    resFreeFlags.AssumeNotInUse = 1;
+    eStatus        = MOS_STATUS_SUCCESS;
     osInterface    = state->osInterface;
 
     // Get the Buffer Entry
@@ -9782,7 +9798,7 @@ MOS_STATUS HalCm_FreeSurface2D(
     
     if(entry->isAllocatedbyCmrtUmd)
     {
-        osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
+        osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, resFreeFlags.Value);
     }
     else
     {
@@ -9883,8 +9899,10 @@ MOS_STATUS HalCm_Free3DResource(
     MOS_STATUS               eStatus;
     PCM_HAL_3DRESOURCE_ENTRY entry;
     PMOS_INTERFACE           osInterface;
+    MOS_GFXRES_FREE_FLAGS    resFreeFlags = {0};
 
-    eStatus              = MOS_STATUS_SUCCESS;
+    resFreeFlags.AssumeNotInUse = 1;
+    eStatus        = MOS_STATUS_SUCCESS;
     osInterface    = state->osInterface;
 
     // Get the Buffer Entry
@@ -9894,7 +9912,7 @@ MOS_STATUS HalCm_Free3DResource(
         state->advExecutor->Delete2Dor3DStateMgr(entry->surfStateMgr);
     }
 
-    osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, SURFACE_FLAG_ASSUME_NOT_IN_USE);
+    osInterface->pfnFreeResourceWithFlag(osInterface, &entry->osResource, resFreeFlags.Value);
 
     osInterface->pfnResetResourceAllocationIndex(osInterface, &entry->osResource);
 
