@@ -5455,6 +5455,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
 
     // Dump input probabilites before running HuC
     CODECHAL_DEBUG_TOOL(
+        CodechalHucRegionDumpType dumpType = m_superFrameHucPass ? CodechalHucRegionDumpType::hucRegionDumpHpuSuperFrame : CodechalHucRegionDumpType::hucRegionDumpHpu;
         m_debugInterface->DumpHucRegion(
             virtualAddrParams.regionParams[0].presRegion,
             0,
@@ -5463,7 +5464,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
             "_ProbBuffer",
             (virtualAddrParams.regionParams[0].isWritable ? true : false),
             currPass,
-            CodechalHucRegionDumpType::hucRegionDumpHpu);
+            dumpType);
     )
 
         ReturnCommandBuffer(&cmdBuffer);
@@ -5475,10 +5476,13 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
         bool renderFlags = m_videoContextUsesNullHw;
 
         CODECHAL_DEBUG_TOOL(
+            std::string nameCmdPass = (m_superFrameHucPass ? "HPU_SuperFramePass" : "HPU_Pass") + std::to_string(currPass);
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
                 &cmdBuffer,
                 CODECHAL_NUM_MEDIA_STATES,
-                ((currPass == 0) ? "HPU_Pass0" : "HPU_Pass1"))));
+                nameCmdPass.c_str()));
+        )
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, m_vp9PicParams->PicFlags.fields.super_frame));
@@ -5487,22 +5491,12 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SubmitCommandBuffer(&cmdBuffer, renderFlags));
 
         CODECHAL_DEBUG_TOOL(
-        if(m_superFrameHucPass)
-        {
+            CodechalHucRegionDumpType dumpType = m_superFrameHucPass ? CodechalHucRegionDumpType::hucRegionDumpHpuSuperFrame : CodechalHucRegionDumpType::hucRegionDumpHpu;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
                 &m_resHucProbDmemBuffer[currPass][m_currRecycledBufIdx],
                 sizeof(HucProbDmem),
                 currPass,
-                CodechalHucRegionDumpType::hucRegionDumpHpuSuperFrame));
-        }
-        else
-        {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resHucProbDmemBuffer[currPass][m_currRecycledBufIdx],
-                sizeof(HucProbDmem),
-                currPass,
-                CodechalHucRegionDumpType::hucRegionDumpHpu));
-        }
+                dumpType));
 
         for (auto i = 0; i < 16; i++)
         {
@@ -5520,7 +5514,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
                     hucRegionName[i],
                     !virtualAddrParams.regionParams[i].isWritable,
                     currPass,
-                    CodechalHucRegionDumpType::hucRegionDumpHpu);
+                    dumpType);
             }
         })
     }
