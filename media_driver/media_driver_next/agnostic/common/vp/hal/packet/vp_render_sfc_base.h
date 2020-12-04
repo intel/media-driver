@@ -362,7 +362,7 @@ protected:
     //!           The height of input surface
     //! \return   uint32_t
     //!
-    uint32_t GetSfdLineBufferSize(bool lineTiledBuffer, MOS_FORMAT formatOutput, uint32_t widthOutput, uint32_t heightOutput);
+    virtual uint32_t GetSfdLineBufferSize(bool lineTiledBuffer, MOS_FORMAT formatOutput, uint32_t widthOutput, uint32_t heightOutput);
 
     //!
     //! \brief    Allocate line buffer
