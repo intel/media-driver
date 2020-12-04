@@ -933,10 +933,10 @@ void VpHal_GetScalingRatio(
     {
         // VPHAL_ROTATION_90 || VPHAL_ROTATION_270 ||
         // VPHAL_ROTATE_90_MIRROR_HORIZONTAL || VPHAL_ROTATE_90_MIRROR_VERTICAL
-        fScaleX = (float)(pSource->rcDst.right - pSource->rcDst.left) /
-                  (float)(pSource->rcSrc.bottom - pSource->rcSrc.top);
-        fScaleY = (float)(pSource->rcDst.bottom - pSource->rcDst.top) /
+        fScaleX = (float)(pSource->rcDst.bottom - pSource->rcDst.top) /
                   (float)(pSource->rcSrc.right - pSource->rcSrc.left);
+        fScaleY = (float)(pSource->rcDst.right - pSource->rcDst.left) /
+                  (float)(pSource->rcSrc.bottom - pSource->rcSrc.top);
     }
 
     *pfScaleX = fScaleX;

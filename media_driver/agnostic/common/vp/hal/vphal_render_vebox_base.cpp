@@ -4370,8 +4370,19 @@ MOS_STATUS VpHal_RndrRenderVebox(
             }
 
             //May Lose Precision after 0.x
-            rcTempOut.right  = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
-            rcTempOut.bottom = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
+            if (pInSurface->Rotation == VPHAL_ROTATION_IDENTITY ||
+                pInSurface->Rotation == VPHAL_ROTATION_180      ||
+                pInSurface->Rotation == VPHAL_MIRROR_HORIZONTAL ||
+                pInSurface->Rotation == VPHAL_MIRROR_VERTICAL)
+            {
+                rcTempOut.right  = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
+                rcTempOut.bottom = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
+            }
+            else
+            {
+                rcTempOut.bottom = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
+                rcTempOut.right = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
+            }
 
             pOutSurface->rcDst    = rcTempOut;
             pOutSurface->rcSrc    = rcTempOut;
