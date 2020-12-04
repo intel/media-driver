@@ -4371,3 +4371,9 @@ mos_gem_bo_is_exec_object_async(struct mos_linux_bo *bo)
 
     return bo_gem->exec_async;
 }
+
+
+int mos_query_device_blob(int fd, MEDIA_SYSTEM_INFO* gfx_info)
+{
+    return -1;
+}

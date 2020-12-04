@@ -356,6 +356,7 @@ int mos_get_subslice_mask(int fd, unsigned int *subslice_mask);
 int mos_get_slice_mask(int fd, unsigned int *slice_mask);
 uint8_t mos_switch_off_n_bits(uint8_t in_mask, int n);
 unsigned int mos_hweight8(uint8_t w);
+int mos_query_device_blob(int fd, MEDIA_SYSTEM_INFO* gfx_info);
 
 #if defined(__cplusplus)
 extern "C" {
