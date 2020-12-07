@@ -59,6 +59,9 @@ namespace decode
     MOS_STATUS Av1BasicFeature::Init(void *setting)
     {
         DECODE_FUNC_CALL();
+
+        PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
+
         DECODE_CHK_NULL(setting);
 
         DECODE_CHK_STATUS(DecodeBasicFeature::Init(setting));
@@ -95,6 +98,9 @@ namespace decode
     MOS_STATUS Av1BasicFeature::Update(void *params)
     {
         DECODE_FUNC_CALL();
+
+        PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
+
         DECODE_CHK_NULL(params);
 
         DECODE_CHK_STATUS(DecodeBasicFeature::Update(params));

@@ -41,6 +41,8 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
+        PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
+
         DECODE_CHK_NULL(cmdBuffer);
         DECODE_CHK_NULL(m_hwInterface);
 
@@ -93,6 +95,8 @@ namespace decode
     MOS_STATUS Av1DecodePktG12::PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
+
+        PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
         if (IsPrologRequired())
         {
@@ -168,6 +172,8 @@ namespace decode
     MOS_STATUS Av1DecodePktG12::PackTileLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
+
+        PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
         int16_t tileIdx = m_av1BasicFeature->m_tileCoding.m_curTile;
 

@@ -103,6 +103,8 @@ namespace decode
         DecodePipelineParams *pipelineParams = (DecodePipelineParams *)params;
         m_pipeMode = pipelineParams->m_pipeMode;
 
+        PERF_UTILITY_AUTO((__FUNCTION__ + std::to_string((int)m_pipeMode)).c_str(), PERF_DECODE, PERF_LEVEL_HAL);
+
         auto basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
 
@@ -140,6 +142,8 @@ namespace decode
     MOS_STATUS Av1PipelineG12::Execute()
     {
         DECODE_FUNC_CALL();
+
+        PERF_UTILITY_AUTO((__FUNCTION__ + std::to_string((int)m_pipeMode)).c_str(), PERF_DECODE, PERF_LEVEL_HAL);
 
         if (m_pipeMode == decodePipeModeBegin)
         {
