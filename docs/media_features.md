@@ -73,7 +73,6 @@
 | HEVC 10bit | Input |  |  |  |  | P010/Y410 | P010/Y410 | P010/Y410 |
 |  | Max Res. |  |  |  |  | 8k | 8k | 8k |
 
-* \* TGL encoding is pending on i915 support on upstream, for more information, please check [Known Issues and Limitations #4](https://github.com/intel/media-driver/blob/master/README.md#known-issues-and-limitations).
 
 ## Supported Video Processing CSC/Scaling Format
 
