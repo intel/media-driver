@@ -90,6 +90,10 @@ protected:
     MOS_STATUS GetHdrExecutionCaps(SwFilter *feature);
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
     MOS_STATUS GetDeinterlaceExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetFDExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetFLDExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetFBExecutionCaps(SwFilter* feature);
+
 
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS UpdateFilterCaps(SwFilterPipe& subSwFilterPipe, VP_EngineEntry& engineCaps, VP_EXECUTE_CAPS &caps);

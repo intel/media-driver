@@ -69,6 +69,9 @@ enum FeatureType
     FeatureTypeCgcOnVebox,
     FeatureTypeHdr              = 0xC00,
     FeatureTypeHdrOnVebox,
+    FeatureTypeFD               = 0xD00,
+    FeatureTypeFLD              = 0xE00,
+    FeatureTypeFB               = 0xF00,
     // ...
     NumOfFeatureType
 };

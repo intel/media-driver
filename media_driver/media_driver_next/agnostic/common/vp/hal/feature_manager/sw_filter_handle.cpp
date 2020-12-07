@@ -82,7 +82,7 @@ MOS_STATUS SwFilterFeatureHandler::CreateSwFilter(SwFilter*& swFilter, VEBOX_SFC
         // nullptr == swFilter means no such feature in params, which is also the valid case.
         return MOS_STATUS_SUCCESS;
     }
-    swFilter = CreateSwFilter();;
+    swFilter = CreateSwFilter();
     VP_PUBLIC_CHK_NULL_RETURN(swFilter);
     MOS_STATUS status = swFilter->Configure(params);
     if (MOS_FAILED(status))
