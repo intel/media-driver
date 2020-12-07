@@ -298,7 +298,7 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
         StageEnables.GamutClamp1Enable = ConfigEntry.GamutClamp1;
         StageEnables.GamutClamp2Enable = ConfigEntry.GamutClamp2;
 
-        if (IS_YUV_FORMAT(pSrc->Format) || pSrc->Format == Format_AYUV)
+        if (IS_YUV_FORMAT(pSrc->Format) || IS_ALPHA_YUV_FORMAT(pSrc->Format))
         {
             StageEnables.PriorCSCEnable = 1;
         }

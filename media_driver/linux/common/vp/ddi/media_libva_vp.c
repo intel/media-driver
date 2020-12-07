@@ -1843,7 +1843,7 @@ VAStatus VpSetColorStandardExplictly(PVPHAL_SURFACE pVpHalSurf, VAProcColorStand
         }
     }
 
-    if (IS_YUV_FORMAT(pVpHalSurf->Format))
+    if (IS_YUV_FORMAT(pVpHalSurf->Format) || IS_ALPHA_YUV_FORMAT(pVpHalSurf->Format))
     {
         switch(colorProperties.colour_primaries)
         {

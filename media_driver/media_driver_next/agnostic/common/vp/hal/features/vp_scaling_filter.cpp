@@ -199,7 +199,7 @@ MOS_STATUS VpScalingFilter::SetYUVRGBPixel()
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcScalingParams);
 
-    if (IS_YUV_FORMAT(m_scalingParams.formatOutput) || (m_scalingParams.formatOutput == Format_AYUV))
+    if (IS_YUV_FORMAT(m_scalingParams.formatOutput) || IS_ALPHA_YUV_FORMAT(m_scalingParams.formatOutput))
     {
         m_sfcScalingParams->sfcColorfillParams.fColorFillYRPixel = (float)m_colorFillColorDst.Y / 255.0F;
         m_sfcScalingParams->sfcColorfillParams.fColorFillUGPixel = (float)m_colorFillColorDst.U / 255.0F;
