@@ -467,7 +467,9 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
         m_use64BitRelocs = true;
         m_useSwSwizzling = pOsDriverContext->bSimIsActive || MEDIA_IS_SKU(&m_skuTable, FtrUseSwSwizzling);
         m_tileYFlag      = MEDIA_IS_SKU(&m_skuTable, FtrTileY);
-    
+
+        MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_START,
+                          &eStatus, sizeof(eStatus), nullptr, 0);
         if (!Mos_Solo_IsEnabled(nullptr) && MEDIA_IS_SKU(&m_skuTable,FtrContextBasedScheduling))
         {
             m_intelContext = mos_gem_context_create_ext(pOsDriverContext->bufmgr,0);
@@ -489,6 +491,9 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
                m_intelContext->vm = nullptr;
            }
         }
+        MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_END,
+                          &m_intelContext, sizeof(void *),
+                          &eStatus, sizeof(eStatus));
 
         if (m_intelContext == nullptr)
         {
@@ -599,6 +604,8 @@ void OsContextSpecific::Destroy()
      #endif
         m_skuTable.reset();
         m_waTable.reset();
+        MOS_TraceEventExt(EVENT_GPU_CONTEXT_DESTROY, EVENT_TYPE_START,
+                          &m_intelContext, sizeof(void *), nullptr, 0);
         if (m_intelContext && m_intelContext->vm)
         {
             mos_gem_vm_destroy(m_intelContext->bufmgr, m_intelContext->vm);
@@ -607,7 +614,8 @@ void OsContextSpecific::Destroy()
         {
             mos_gem_context_destroy(m_intelContext);
         }
-
+        MOS_TraceEventExt(EVENT_GPU_CONTEXT_DESTROY, EVENT_TYPE_END,
+                          nullptr, 0, nullptr, 0);
         SetOsContextValid(false);
     }
 }
