@@ -163,7 +163,7 @@ static bool IsSurfNeedAvs(
     VPHAL_PUBLIC_CHK_NULL_NO_STATUS(pSurf);
 
     // Not perform AVS for surface with alpha channel.
-    if (pSurf->Format == Format_AYUV || pSurf->Format == Format_AUYV)
+    if (IS_ALPHA_YUV_FORMAT(pSurf->Format))
     {
         return false;
     }
