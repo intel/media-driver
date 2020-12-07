@@ -164,6 +164,9 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
         unsigned int nengine              = 0;
         struct i915_engine_class_instance *engine_map = nullptr;
 
+        MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_START,
+                          &gpuNode, sizeof(gpuNode), nullptr, 0);
+
         m_i915Context[0] = mos_gem_context_create_shared(osParameters->bufmgr,
                                              osParameters->intel_context,
                                              I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
@@ -360,6 +363,9 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
         MOS_OS_CHK_STATUS_RETURN(ReportEngineInfo(engine_map, nengine, isEngineSelectEnable));
         MOS_SafeFreeMemory(engine_map);
+        MOS_TraceEventExt(EVENT_GPU_CONTEXT_CREATE, EVENT_TYPE_END,
+                          m_i915Context, sizeof(void *),
+                          &nengine, sizeof(nengine));
     }
 
     MOS_OS_CHK_STATUS_RETURN(ReportMemoryInfo(osParameters->bufmgr));
@@ -371,6 +377,8 @@ void GpuContextSpecificNext::Clear()
 {
     MOS_OS_FUNCTION_ENTER;
 
+    MOS_TraceEventExt(EVENT_GPU_CONTEXT_DESTROY, EVENT_TYPE_START,
+                      m_i915Context, sizeof(void *), nullptr, 0);
     // hanlde the status buf bundled w/ the specified gpucontext
     if (m_statusBufferResource && m_statusBufferResource->pGfxResourceNext)
     {
@@ -417,6 +425,8 @@ void GpuContextSpecificNext::Clear()
             m_i915Context[i] = nullptr;
         }
     }
+    MOS_TraceEventExt(EVENT_GPU_CONTEXT_DESTROY, EVENT_TYPE_END,
+                      nullptr, 0, nullptr, 0);
 }
 
 MOS_STATUS GpuContextSpecificNext::RegisterResource(

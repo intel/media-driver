@@ -144,6 +144,8 @@ typedef enum _MEDIA_EVENT
     EVENT_DDI_MEDIA_MEM_COPY_CALLBACK,             //! event for Refactor DDI Media Mem Copy Callback
     EVENT_DDI_GET_TRANSCRYPTED_SHADER,             //! event for Refactor DDI Get Transcrypted Shader
     EVENT_DDI_CLEAR_VIDEO_VIEW,                    //! event for Refactor DDI Clear Video View
+    EVENT_GPU_CONTEXT_CREATE,                      //! event for gpu context create
+    EVENT_GPU_CONTEXT_DESTROY,                     //! event for gpu context destroy
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

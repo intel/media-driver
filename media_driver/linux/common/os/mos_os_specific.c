@@ -3359,6 +3359,19 @@ MOS_STATUS Mos_Specific_SetPatchEntry(
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
     MOS_OS_CHK_NULL_RETURN(pParams);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (!pParams->bUpperBoundPatch && pParams->presResource)
+    {
+        uint32_t handle = pParams->presResource->bo?pParams->presResource->bo->handle:0;
+        uint32_t eventData[] = {handle, pParams->uiResourceOffset,
+                                pParams->uiPatchOffset, pParams->bWrite,
+                                pParams->HwCommandType, pParams->forceDwordOffset,
+                                pParams->patchType};
+        MOS_TraceEventExt(EVENT_RESOURCE_PATCH, EVENT_TYPE_INFO2,
+                          &eventData, sizeof(eventData),
+                          nullptr, 0);
+    }
+#endif
     if (pOsInterface->apoMosEnabled)
     {
         return MosInterface::SetPatchEntry(pOsInterface->osStreamState, pParams);
