@@ -67,6 +67,12 @@ public:
         OsContextNext      *osContext);
 
     //!
+    //! \brief    Initialized the gpu context manager
+    //!
+    //!
+    virtual MOS_STATUS Initialize();
+
+    //!
     //! \brief    Clean up the gpu context manager
     //! \details  This function mainly celar all allocated gpu context in 
     //!           apu context array
