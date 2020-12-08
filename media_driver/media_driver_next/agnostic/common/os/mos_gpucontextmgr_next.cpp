@@ -33,13 +33,6 @@ GpuContextMgrNext::GpuContextMgrNext(GT_SYSTEM_INFO *gtSystemInfo, OsContextNext
     MOS_OS_FUNCTION_ENTER;
     m_initialized = false;
 
-    m_gpuContextArrayMutex = MosUtilities::MosCreateMutex();
-    MOS_OS_CHK_NULL_NO_STATUS_RETURN(m_gpuContextArrayMutex);
-
-    MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
-    m_gpuContextArray.clear();
-    MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
-
     if (gtSystemInfo)
     {
         MosUtilities::MosSecureMemcpy(&m_gtSystemInfo, sizeof(GT_SYSTEM_INFO), gtSystemInfo, sizeof(GT_SYSTEM_INFO));
@@ -59,8 +52,6 @@ GpuContextMgrNext::GpuContextMgrNext(GT_SYSTEM_INFO *gtSystemInfo, OsContextNext
         MOS_OS_ASSERTMESSAGE("Input osContext cannot be nullptr");
         return;
     }
-
-    m_initialized = true;
 }
 
 GpuContextMgrNext::~GpuContextMgrNext()
@@ -74,6 +65,21 @@ GpuContextMgrNext::~GpuContextMgrNext()
     }
 }
 
+MOS_STATUS GpuContextMgrNext::Initialize()
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    m_gpuContextArrayMutex = MosUtilities::MosCreateMutex();
+    MOS_OS_CHK_NULL_RETURN(m_gpuContextArrayMutex);
+
+    MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
+    m_gpuContextArray.clear();
+    MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
+
+    m_initialized = true;
+    return status;
+}
+
+
 GpuContextMgrNext *GpuContextMgrNext::GetObject(
     GT_SYSTEM_INFO *gtSystemInfo,
     OsContextNext     *osContext)
@@ -84,7 +90,20 @@ GpuContextMgrNext *GpuContextMgrNext::GetObject(
         MOS_OS_ASSERTMESSAGE("Invalid input parameters!");
         return nullptr;
     }
-    return MOS_New(GpuContextMgrNext, gtSystemInfo, osContext);
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    GpuContextMgrNext* pGpuContext = MOS_New(GpuContextMgrNext, gtSystemInfo, osContext);
+    if (!pGpuContext)
+    {
+        return nullptr;
+    }
+    status = pGpuContext->Initialize();
+    if (MOS_FAILED(status))
+    {
+        MOS_Delete(pGpuContext);
+        return nullptr;
+    }
+    return pGpuContext;
 }
 
 void GpuContextMgrNext::CleanUp()
