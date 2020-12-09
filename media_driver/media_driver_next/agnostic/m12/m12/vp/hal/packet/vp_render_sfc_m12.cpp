@@ -188,9 +188,9 @@ MOS_STATUS SfcRenderM12::SetupScalabilityParams()
     {
         VPHAL_COLORPACK colorPack = VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat);
         if ((VPHAL_COLORPACK_420 == colorPack || VPHAL_COLORPACK_422 == colorPack) &&
-            (!MOS_IS_ALIGNED(m_scalabilityParams.srcStartX, 2) || !MOS_IS_ALIGNED(m_scalabilityParams.srcEndX, 2)))
+            (!MOS_IS_ALIGNED(m_scalabilityParams.srcStartX, 2) || MOS_IS_ALIGNED(m_scalabilityParams.srcEndX, 2)))
         {
-            VP_PUBLIC_ASSERTMESSAGE("srcStartX(%d) or srcEndX(%d) is not 2 aligned with input format(%d).",
+            VP_PUBLIC_ASSERTMESSAGE("srcStartX(%d) is not even or srcEndX(%d) is not odd with input format(%d).",
                  m_scalabilityParams.srcStartX, m_scalabilityParams.srcEndX, m_renderData.SfcInputFormat);
         }
         sfcStateParams->tileType     = m_scalabilityParams.tileType;
