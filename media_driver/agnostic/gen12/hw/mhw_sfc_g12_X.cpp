@@ -576,7 +576,7 @@ MOS_STATUS MhwSfcInterfaceG12 :: SetSfcSamplerTable(
     }
 
     // Recalculate Horizontal scaling table
-    if (SrcFormat != pAvsParams->Format || fScaleX != pAvsParams->fScaleX)
+    if (SrcFormat != pAvsParams->Format || fScaleX != pAvsParams->fScaleX || pAvsParams->bUse8x8Filter != bUse8x8Filter)
     {
         MOS_ZeroMemory(
             piYCoefsX,
@@ -663,7 +663,7 @@ MOS_STATUS MhwSfcInterfaceG12 :: SetSfcSamplerTable(
     }
 
     // Recalculate Vertical scaling table
-    if (SrcFormat != pAvsParams->Format || fScaleY != pAvsParams->fScaleY)
+    if (SrcFormat != pAvsParams->Format || fScaleY != pAvsParams->fScaleY || pAvsParams->bUse8x8Filter != bUse8x8Filter)
     {
         memset((void *)piYCoefsY, 0, 8 * 32 * sizeof(int32_t));
 
@@ -746,6 +746,8 @@ MOS_STATUS MhwSfcInterfaceG12 :: SetSfcSamplerTable(
 
     // Save format used to calculate AVS parameters
     pAvsParams->Format = SrcFormat;
+    // Need to recaculate if use8x8Filter changed
+    pAvsParams->bUse8x8Filter = bUse8x8Filter;
 
     MhwSfcInterface::SetSfcAVSLumaTable(
         SrcFormat,
