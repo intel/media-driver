@@ -242,6 +242,9 @@ namespace decode
                 DECODE_CHK_NULL(m_filmGrainProcParams->m_inputSurface);
                 DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(m_filmGrainProcParams->m_inputSurface));
             }
+            m_filmGrainProcParams->m_inputSurface->UPlaneOffset.iYOffset
+                = (m_filmGrainProcParams->m_inputSurface->UPlaneOffset.iSurfaceOffset - m_filmGrainProcParams->m_inputSurface->dwOffset) / m_filmGrainProcParams->m_inputSurface->dwPitch
+                  + m_filmGrainProcParams->m_inputSurface->RenderOffset.YUV.U.YOffset;
 
             // For AVP+FilmGrain+SFC scenario, SFC will be the final unit,
             // set temp surface for film grain output
