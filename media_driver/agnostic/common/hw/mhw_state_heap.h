@@ -192,6 +192,7 @@ typedef struct _MHW_AVS_PARAMS
     int32_t                 *piUVCoefsX;
     int32_t                 *piUVCoefsY;
     bool                    bForcePolyPhaseCoefs;
+    bool                    bUse8x8Filter;
 } MHW_AVS_PARAMS, *PMHW_AVS_PARAMS;
 
 // Memory block state
