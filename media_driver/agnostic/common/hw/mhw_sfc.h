@@ -544,6 +544,20 @@ public:
         SFC_PIPE_MODE_VEBOX = 1
     };
 
+    enum SfcScalabMode
+    {
+        sfcScalabModeSingle = 0, //!< 0 - single pipe
+        sfcScalabModeLeftCol,    //!< 1 - left most column
+        sfcScalabModeRightCol,   //!< 2 - right most column
+        sfcScalabModeMiddleCol   //!< 3 - middle column
+    };
+
+    enum SfcScalabTileType
+    {
+        sfcScalabRealTile = 0, //!< 0 - real tile
+        sfcScalabVirtualTile   //!< 1 - virtual tile
+    };
+
 public:
     PMOS_INTERFACE                             m_osInterface       = nullptr;
 

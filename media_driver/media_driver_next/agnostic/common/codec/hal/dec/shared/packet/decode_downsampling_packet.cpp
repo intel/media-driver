@@ -63,7 +63,7 @@ MOS_STATUS DecodeDownSamplingPkt::Init()
     m_sfcInterface = MOS_New(MediaSfcInterface, m_hwInterface->GetOsInterface());
     DECODE_CHK_NULL(m_sfcInterface);
 
-    MOS_ZeroMemory(&m_SfcParams, sizeof(m_SfcParams));
+    MOS_ZeroMemory(&m_sfcParams, sizeof(m_sfcParams));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -83,8 +83,8 @@ MOS_STATUS DecodeDownSamplingPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_STATUS(InitSfcParams(m_SfcParams));
-    if (m_sfcInterface->IsParameterSupported(m_SfcParams) == MOS_STATUS_SUCCESS)
+    DECODE_CHK_STATUS(InitSfcParams(m_sfcParams));
+    if (m_sfcInterface->IsParameterSupported(m_sfcParams) == MOS_STATUS_SUCCESS)
     {
         m_isSupported = true;
     }
@@ -95,7 +95,7 @@ MOS_STATUS DecodeDownSamplingPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
 
     if (m_isSupported)
     {
-        DECODE_CHK_STATUS(m_sfcInterface->Render(&cmdBuffer, m_SfcParams));
+        DECODE_CHK_STATUS(m_sfcInterface->Render(&cmdBuffer, m_sfcParams));
     }
 
     return MOS_STATUS_SUCCESS;

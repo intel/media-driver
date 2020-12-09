@@ -101,7 +101,7 @@ protected:
     DecodeDownSamplingFeature *m_downSampling = nullptr;
     bool                       m_isSupported  = false;
 
-    VDBOX_SFC_PARAMS           m_SfcParams;
+    VDBOX_SFC_PARAMS           m_sfcParams;
 };
 
 }

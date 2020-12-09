@@ -192,9 +192,6 @@ MOS_STATUS SfcRenderM12::SetupScalabilityParams()
         {
             VP_PUBLIC_ASSERTMESSAGE("srcStartX(%d) or srcEndX(%d) is not 2 aligned with input format(%d).",
                  m_scalabilityParams.srcStartX, m_scalabilityParams.srcEndX, m_renderData.SfcInputFormat);
-
-            m_scalabilityParams.srcStartX   = MOS_ALIGN_CEIL(m_scalabilityParams.srcStartX, 2);
-            m_scalabilityParams.srcEndX     = MOS_ALIGN_CEIL(m_scalabilityParams.srcEndX, 2);
         }
         sfcStateParams->tileType     = m_scalabilityParams.tileType;
         sfcStateParams->srcStartX    = m_scalabilityParams.srcStartX;
