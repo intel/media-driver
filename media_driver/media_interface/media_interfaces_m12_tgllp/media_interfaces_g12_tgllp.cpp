@@ -309,7 +309,12 @@ finish:
 void MhwInterfacesG12Tgllp::Destroy()
 {
     MhwInterfaces::Destroy();
-    MOS_Delete(m_avpInterface);
+
+    bool isMhwDestroyed = GetDestroyState();
+    if (!isMhwDestroyed)
+    {
+        MOS_Delete(m_avpInterface);
+    }
 }
 
 #ifdef _MMC_SUPPORTED

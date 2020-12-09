@@ -138,6 +138,7 @@ public:
     //! \details  If the interfaces has destroyed, set this state value on
     //!
     void SetDestroyState(bool destorystate) { m_isDestroyed = destorystate; };
+    bool GetDestroyState() { return m_isDestroyed; };
 
 private:
     bool m_isDestroyed = false;
