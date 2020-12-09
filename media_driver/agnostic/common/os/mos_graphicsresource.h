@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -129,6 +129,10 @@ public:
         //!
         uint32_t m_memType = MOS_MEMPOOL_VIDEOMEMORY;
 
+        //!
+        //! \brief   A tile Encoding (aligned w/ GMM defination) needs set by force, take effects when implicitly tile handling
+        //!
+        MOS_TILE_MODE_GMM m_tileModeByForce = MOS_TILE_UNSET_GMM;
 
         //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
@@ -152,6 +156,7 @@ public:
             m_flags           = pParams->Flags;
             m_width           = pParams->dwWidth;
             m_memType         = pParams->dwMemType;
+            m_tileModeByForce = pParams->m_tileModeByForce;
         };
 
         CreateParams()

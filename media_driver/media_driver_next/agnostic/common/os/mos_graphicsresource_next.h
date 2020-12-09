@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -112,6 +112,11 @@ public:
         MOS_TILE_TYPE m_tileType = MOS_TILE_INVALID;
 
         //!
+        //! \brief   A tile Encoding (aligned w/ GMM defination) needs set by force, take effects when implicitly tile handling
+        //!
+        MOS_TILE_MODE_GMM m_tileModeByForce = MOS_TILE_UNSET_GMM;
+
+        //!
         //! \brief   Basic resource geometry
         //!
         MOS_GFXRES_TYPE m_type = MOS_GFXRES_INVALID;
@@ -154,6 +159,7 @@ public:
             }
             m_pSystemMemory   = pParams->pSystemMemory;
             m_tileType        = pParams->TileType;
+            m_tileModeByForce = pParams->m_tileModeByForce;
             m_type            = pParams->Type;
             m_flags           = pParams->Flags;
             m_width           = pParams->dwWidth;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2019, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -446,7 +446,8 @@ MOS_STATUS VpHal_ReAllocateSurface(
     bool                    bCompressible,
     MOS_RESOURCE_MMC_MODE   CompressionMode,
     bool*                   pbAllocated,
-    MOS_HW_RESOURCE_DEF     resUsageType)
+    MOS_HW_RESOURCE_DEF     resUsageType,
+    MOS_TILE_MODE_GMM       tileModeByForce)
 {
     MOS_STATUS              eStatus;
     VPHAL_GET_SURFACE_INFO  Info;
@@ -486,6 +487,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     AllocParams.pBufName        = pSurfaceName;
     AllocParams.dwArraySize     = 1;
     AllocParams.ResUsageType    = resUsageType;
+    AllocParams.m_tileModeByForce = tileModeByForce;
 
     // Delete resource if already allocated
     //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
