@@ -626,9 +626,17 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
     m_renderData.sfcStateParams->bInputColorSpace = cscParams->bInputColorSpace;
 
     // Chromasitting config
-    // config SFC chroma up sampling
-    m_renderData.bForcePolyPhaseCoefs   = cscParams->bChromaUpSamplingEnable;
-    m_renderData.SfcSrcChromaSiting     = cscParams->sfcSrcChromaSiting;
+    // VEBOX use polyphase coefficients for 1x scaling for better quality,
+    // VDBOX dosen't use polyphase coefficients.
+    if (MhwSfcInterface::SFC_PIPE_MODE_VEBOX == m_pipeMode)
+    {
+        m_renderData.bForcePolyPhaseCoefs = cscParams->bChromaUpSamplingEnable;
+    }
+    else
+    {
+        m_renderData.bForcePolyPhaseCoefs = false;
+    }
+    m_renderData.SfcSrcChromaSiting = cscParams->sfcSrcChromaSiting;
 
     // 8-Tap chroma filter enabled or not
     m_renderData.sfcStateParams->b8tapChromafiltering = cscParams->b8tapChromafiltering;
@@ -1018,7 +1026,8 @@ uint32_t SfcRenderBase::GetAvsLineBufferSize(bool lineTiledBuffer, bool b8tapChr
     }
     else
     {
-        size = width * linebufferSizePerPixel;
+        // Align width to 8 for AVS buffer size compute according to VDBOX SFC requirement.
+        size = MOS_ALIGN_CEIL(width, 8) * linebufferSizePerPixel;
     }
 
     // For tile column storage, based on above calcuation, an extra 1K CL need to be added as a buffer.

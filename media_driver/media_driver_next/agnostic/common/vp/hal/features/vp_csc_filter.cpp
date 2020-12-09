@@ -262,7 +262,7 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
     m_veboxCSCParams->bCSCEnabled = (m_cscParams.colorSpaceInput != m_cscParams.colorSpaceOutput);
     m_veboxCSCParams->alphaParams = m_cscParams.pAlphaParams;
 
-    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting());
+    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting(m_executeCaps));
 
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxCUSChromaParams(m_executeCaps));
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxCDSChromaParams(m_executeCaps));
@@ -278,7 +278,7 @@ MOS_STATUS VpCscFilter::SetSfcChromaParams(
     VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
 
     // Update chroma sitting according to updated input format.
-    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting());
+    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting(vpExecuteCaps));
 
     m_sfcCSCParams->sfcSrcChromaSiting = m_cscParams.chromaSitingInput;
 
@@ -569,9 +569,15 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpCscFilter::UpdateChromaSiting()
+MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
 {
     VP_FUNC_CALL();
+
+    // For VDBOX input, just using the chroma siting input directly.
+    if (!vpExecuteCaps.bVebox)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     if (MHW_CHROMA_SITING_NONE == m_cscParams.chromaSitingInput)
     {

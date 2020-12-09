@@ -104,9 +104,12 @@ protected:
     //!
     //! \brief    Setup Chroma sitting parameters
     //! \details  Setup Chroma sitting parameters
+    //! \param    [in] vpExecuteCaps
+    //!           Pointer to Vebox Render Execution Caps
     //! \return   MOS_STATUS
     //!
-    MOS_STATUS UpdateChromaSiting();
+    MOS_STATUS UpdateChromaSiting(
+        VP_EXECUTE_CAPS         vpExecuteCaps);
 
     //!
     //! \brief    Check whether Chroma Up Sampling Needed

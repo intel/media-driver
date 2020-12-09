@@ -179,12 +179,6 @@ bool DecodeScalabilityOption::IsSinglePipeDecode(DecodeScalabilityPars &params)
         return true;
     }
 
-    // SFC can only works with single pipe mode
-    if (params.usingSfc)
-    {
-        return true;
-    }
-
     return false;
 }
 

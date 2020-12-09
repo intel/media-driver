@@ -132,12 +132,12 @@ public:
     {
         if (m_resourceQueue.empty())
         {
-            return nullptr;
+            return m_empty;
         }
 
         if (index >= m_resourceQueue.size())
         {
-            return nullptr;
+            return m_empty;
         }
 
         return m_resourceQueue[index];
