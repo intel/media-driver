@@ -4274,6 +4274,18 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                             &currRefList.sRefReconBuffer,
                             CodechalDbgAttr::attrReconstructedSurface,
                             "ReconSurf"))
+                    }
+
+                    if (currRefList.bUsedAsRef && m_vdencMvTemporalBufferSize) {
+                        uint8_t coloc_idx = (m_currRefList->bIsIntra) ? CODEC_CURR_TRACKED_BUFFER : currRefList.ucScalingIdx;
+                        auto coloc_buffer = m_trackedBuf->GetMvTemporalBuffer(coloc_idx);
+                        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpBuffer(
+                            coloc_buffer,
+                            CodechalDbgAttr::attrMvData,
+                            "_CoLocated_Out",
+                            m_vdencMvTemporalBufferSize,
+                            0,
+                            CODECHAL_NUM_MEDIA_STATES));
                     })
             }
             CODECHAL_ENCODE_VERBOSEMESSAGE("Incrementing reports generated to %d.", (reportsGenerated + 1));
