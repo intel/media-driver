@@ -1221,6 +1221,11 @@ MOS_STATUS CodechalDecodeHevcG12::DecodeStateLevel()
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
     CODECHAL_DECODE_FUNCTION_ENTER;
 
+    if (m_secureDecoder && m_hcpDecPhase == CodechalHcpDecodePhaseInitialized)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->Execute(this));
+    }
+
     //HCP Decode Phase State Machine
     CODECHAL_DECODE_CHK_STATUS_RETURN(DetermineDecodePhase());
 
@@ -1233,11 +1238,6 @@ MOS_STATUS CodechalDecodeHevcG12::DecodeStateLevel()
     // Set HEVC Decode Phase, and execute it.
     if (m_shortFormatInUse && m_hcpDecPhase == CodechalHcpDecodePhaseLegacyS2L)
     {
-        if (m_secureDecoder)
-        {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->Execute(this));
-        }
-
         CODECHAL_DECODE_CHK_STATUS_RETURN(SendPictureS2L());
     }
     else
