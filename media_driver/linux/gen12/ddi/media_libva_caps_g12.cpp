@@ -1599,7 +1599,7 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
 
     attrib.type = VAConfigAttribMaxPictureHeight;
     GetPlatformSpecificAttrib(profile, entrypoint,
-        VAConfigAttribMaxPictureWidth, &attrib.value);
+        VAConfigAttribMaxPictureHeight, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
     attrib.type = VAConfigAttribEncJPEG;
