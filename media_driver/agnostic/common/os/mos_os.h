@@ -447,6 +447,7 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
     uint32_t            dwDepth;                                                //!< [in] 0: Implies 2D resource. >=1: volume resource
     uint32_t            dwArraySize;                                            //!< [in] 0,1: 1 element. >1: N elements
     MOS_TILE_TYPE       TileType;                                               //!< [in] Defines the layout of a physical page. Optimal choice depends on usage model.
+    MOS_TILE_MODE_GMM   m_tileModeByForce;                                      //!< [in] Indicates a tile Encoding (aligned w/ GMM defination) needs set by force
     MOS_FORMAT          Format;                                                 //!< [in] Pixel format
     void                *pSystemMemory;                                         //!< [in] Optional parameter. If non null, TileType must be set to linear.
     const char          *pBufName;                                              //!< [in] Optional parameter. A string indicates the buffer name and is used for debugging. nullptr is OK.
