@@ -1235,31 +1235,39 @@ MOS_STATUS CodechalDebugInterface::ReAllocateSurface(
     pSurface->CompressionMode = pSrcSurf->CompressionMode;
     pSurface->bIsCompressed   = pSrcSurf->bIsCompressed;
 
-    MOS_SURFACE details;
-    MOS_ZeroMemory(&details, sizeof(details));
-    details.Format = Format_Invalid;
-    CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, &pSurface->OsResource, &details));
+    if (!m_osInterface->apoMosEnabled)
+    {
+        MOS_SURFACE details;
+        MOS_ZeroMemory(&details, sizeof(details));
+        details.Format = Format_Invalid;
 
-    pSurface->Format   = details.Format;
-    pSurface->TileType = details.TileType;
-    pSurface->dwOffset = details.RenderOffset.YUV.Y.BaseOffset;
-    pSurface->YPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.Y.BaseOffset;
-    pSurface->YPlaneOffset.iXOffset = details.RenderOffset.YUV.Y.XOffset;
-    pSurface->YPlaneOffset.iYOffset =
-        (pSurface->YPlaneOffset.iSurfaceOffset - pSurface->dwOffset) / pSurface->dwPitch +
-        details.RenderOffset.YUV.Y.YOffset;
-    pSurface->UPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.U.BaseOffset;
-    pSurface->UPlaneOffset.iXOffset = details.RenderOffset.YUV.U.XOffset;
-    pSurface->UPlaneOffset.iYOffset =
-        (pSurface->UPlaneOffset.iSurfaceOffset - pSurface->dwOffset) / pSurface->dwPitch +
-        details.RenderOffset.YUV.U.YOffset;
-    pSurface->UPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.U;
-    pSurface->VPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.V.BaseOffset;
-    pSurface->VPlaneOffset.iXOffset = details.RenderOffset.YUV.V.XOffset;
-    pSurface->VPlaneOffset.iYOffset =
-        (pSurface->VPlaneOffset.iSurfaceOffset - pSurface->dwOffset) / pSurface->dwPitch +
-        details.RenderOffset.YUV.V.YOffset;
-    pSurface->VPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.V;
+        CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, &pSurface->OsResource, &details));
+
+        pSurface->Format   = details.Format;
+        pSurface->TileType = details.TileType;
+        pSurface->dwOffset = details.RenderOffset.YUV.Y.BaseOffset;
+        pSurface->YPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.Y.BaseOffset;
+        pSurface->YPlaneOffset.iXOffset = details.RenderOffset.YUV.Y.XOffset;
+        pSurface->YPlaneOffset.iYOffset =
+            (pSurface->YPlaneOffset.iSurfaceOffset - pSurface->dwOffset) / pSurface->dwPitch +
+            details.RenderOffset.YUV.Y.YOffset;
+        pSurface->UPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.U.BaseOffset;
+        pSurface->UPlaneOffset.iXOffset = details.RenderOffset.YUV.U.XOffset;
+        pSurface->UPlaneOffset.iYOffset =
+            (pSurface->UPlaneOffset.iSurfaceOffset - pSurface->dwOffset) / pSurface->dwPitch +
+            details.RenderOffset.YUV.U.YOffset;
+        pSurface->UPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.U;
+        pSurface->VPlaneOffset.iSurfaceOffset = details.RenderOffset.YUV.V.BaseOffset;
+        pSurface->VPlaneOffset.iXOffset = details.RenderOffset.YUV.V.XOffset;
+        pSurface->VPlaneOffset.iYOffset =
+            (pSurface->VPlaneOffset.iSurfaceOffset - pSurface->dwOffset) / pSurface->dwPitch +
+            details.RenderOffset.YUV.V.YOffset;
+        pSurface->VPlaneOffset.iLockSurfaceOffset = details.LockOffset.YUV.V;
+    }
+    else
+    {
+        CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, &pSurface->OsResource, pSurface));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
