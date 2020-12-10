@@ -85,7 +85,8 @@ const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
     VA_FOURCC_A2R10G10B10,
     VA_FOURCC_A2B10G10R10,
     VA_FOURCC_X2R10G10B10,
-    VA_FOURCC_X2B10G10R10
+    VA_FOURCC_X2B10G10R10,
+    VA_FOURCC_AYUV
 };
 
 const uint32_t MediaLibvaCaps::m_jpegSurfaceAttr[m_numJpegSurfaceAttr] =
@@ -3375,6 +3376,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_BGRP       : return GMM_FORMAT_BGRP;
         case Media_Format_NV12       : return GMM_FORMAT_NV12_TYPE;
         case Media_Format_NV21       : return GMM_FORMAT_NV21_TYPE;
+        case Media_Format_AYUV       : return GMM_FORMAT_AYUV_TYPE;
         case Media_Format_YUY2       : return GMM_FORMAT_YUY2;
         case Media_Format_UYVY       : return GMM_FORMAT_UYVY;
         case Media_Format_YV12       : return GMM_FORMAT_YV12_TYPE;
@@ -3390,18 +3392,16 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
         case Media_Format_P012       : return GMM_FORMAT_P016_TYPE;
         case Media_Format_P016       : return GMM_FORMAT_P016_TYPE;
-#if VA_CHECK_VERSION(1, 9, 0)
-        case Media_Format_Y212       : return GMM_FORMAT_Y212_TYPE;
-#endif
         case Media_Format_Y216       : return GMM_FORMAT_Y216_TYPE;
-#if VA_CHECK_VERSION(1, 9, 0)
-        case Media_Format_Y412       : return GMM_FORMAT_Y412_TYPE;
-#endif
         case Media_Format_Y416       : return GMM_FORMAT_Y416_TYPE;
         case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
         case Media_Format_R10G10B10X2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10X2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case Media_Format_Y212       : return GMM_FORMAT_Y212_TYPE;
+        case Media_Format_Y412       : return GMM_FORMAT_Y412_TYPE;
+#endif
         default                      : return GMM_FORMAT_INVALID;
     }
 }
