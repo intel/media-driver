@@ -52,6 +52,18 @@ MOS_STATUS MediaMemComp::InitMmcEnabled()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MediaMemComp::DecompressResource(PMOS_RESOURCE resource)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    if (resource)
+    {
+        status = m_osInterface->pfnDecompResource(m_osInterface, resource);
+    }
+
+    return status;
+}
+
 
 bool MediaMemComp::IsMmcFeatureEnabled()
 {

@@ -44,3 +44,13 @@ VPMediaMemComp::VPMediaMemComp(
 #endif
     InitMmcEnabled();
 }
+
+MOS_STATUS VPMediaMemComp::DecompressVPResource(PVPHAL_SURFACE surface)
+{
+    if (surface)
+    {
+        return DecompressResource(&surface->OsResource);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
