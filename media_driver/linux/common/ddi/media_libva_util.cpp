@@ -495,6 +495,19 @@ VAStatus DdiMediaUtil_AllocateSurface(
             gmmCustomParams.Size          = mediaSurface->pSurfDesc->uiSize;
             gmmCustomParams.BaseAlignment = 4096;
             gmmCustomParams.NoOfPlanes    = mediaSurface->pSurfDesc->uiPlanes;
+            switch (tileformat)
+            {
+                case I915_TILING_Y:
+                    gmmCustomParams.Flags.Info.TiledY = true;
+                    break;
+                case I915_TILING_X:
+                    gmmCustomParams.Flags.Info.TiledX = true;
+                    break;
+                case I915_TILING_NONE:
+                default:
+                    gmmCustomParams.Flags.Info.Linear = true;
+            }
+
             switch(mediaSurface->pSurfDesc->uiPlanes)
             {
                 case 1:
