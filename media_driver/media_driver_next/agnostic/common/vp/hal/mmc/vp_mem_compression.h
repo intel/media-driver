@@ -58,6 +58,8 @@ public:
     //!
     virtual ~VPMediaMemComp() {};
 
+    MOS_STATUS DecompressVPResource(PVPHAL_SURFACE surface);
+
 };
 
 #endif //__MEDIA_VP_MEM_COMPRESSION_H__

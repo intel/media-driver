@@ -168,6 +168,13 @@ protected:
     virtual MOS_STATUS ExecuteVpPipeline();
 
     //!
+    //! \brief  updated Execute Vp Pipeline status
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS UpdateExecuteStatus();
+
+    //!
     //! \brief  Create SwFilterPipe
     //! \param  [in] params
     //!         Pointer to the input parameters

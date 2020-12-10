@@ -103,6 +103,11 @@ public:
     //!
     MOS_STATUS InitMmcEnabled();
 
+    //!
+    //! \brief    Decompress Resources
+    //!
+    MOS_STATUS DecompressResource(PMOS_RESOURCE resource);
+
 protected:
     //!
     //! \brief    UpdateMmcInUseFeature

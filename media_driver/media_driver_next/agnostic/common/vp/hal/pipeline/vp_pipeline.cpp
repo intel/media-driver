@@ -267,16 +267,9 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
         m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
 
-        if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
+        if (eStatus)
         {
-            PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
-            VP_PUBLIC_CHK_NULL(params);
-            VPHAL_SURFACE_PTRS_DUMP(m_surfaceDumper,
-                                params->pTarget,
-                                VPHAL_MAX_TARGETS,
-                                params->uDstCount,
-                                m_frameCounter,
-                                VPHAL_DUMP_TYPE_POST_ALL);
+            VP_PUBLIC_CHK_STATUS(UpdateExecuteStatus());
         }
     }
 
@@ -288,6 +281,52 @@ finish:
     }
     m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
     m_frameCounter++;
+    return eStatus;
+}
+
+MOS_STATUS VpPipeline::UpdateExecuteStatus()
+{
+    MOS_STATUS                 eStatus = MOS_STATUS_SUCCESS;
+
+    if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
+    {
+        PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
+        VP_PUBLIC_CHK_NULL(params);
+        VPHAL_SURFACE_PTRS_DUMP(m_surfaceDumper,
+            params->pTarget,
+            VPHAL_MAX_TARGETS,
+            params->uDstCount,
+            m_frameCounter,
+            VPHAL_DUMP_TYPE_POST_ALL);
+#if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
+        // Decompre output surface for debug
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        bool uiForceDecompressedOutput = false;
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT_ID,
+            &userFeatureData,
+            m_osInterface->pOsContext);
+
+        if (eStatus == MOS_STATUS_SUCCESS)
+        {
+            uiForceDecompressedOutput = userFeatureData.u32Data;
+        }
+        else
+        {
+            uiForceDecompressedOutput = false;
+        }
+
+        if (uiForceDecompressedOutput)
+        {
+            VP_PUBLIC_NORMALMESSAGE("uiForceDecompressedOutput: %d", uiForceDecompressedOutput);
+            m_mmc->DecompressVPResource(params->pTarget[0]);
+        }
+#endif
+    }
+finish:
     return eStatus;
 }
 
