@@ -31,6 +31,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mhw_sfc_hwcmd_g12_X.h"
 #include "mhw_vdbox_g12_X.h"
 #include "mhw_mmio_g12.h"
+#include "mhw_sfc_g12_X.h"
 
 static uint16_t RDOQLamdas8bits[2][2][2][52] = //[Intra Slice/Inter Slice][Intra/Inter][Luma/Chroma][QP]
 {
@@ -677,6 +678,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
                     mhw_sfc_g12_X::SFC_AVS_CHROMA_Coeff_Table_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_IEF_STATE_CMD::byteSize +
                     mhw_sfc_g12_X::SFC_FRAME_START_CMD::byteSize;
+                patchListMaxSize +=
+                    MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_STATE_CMD_NUMBER_OF_ADDRESSES +
+                    MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_AVS_CHROMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                    MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_AVS_LUMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                    MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_AVS_STATE_CMD_NUMBER_OF_ADDRESSES +
+                    MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_FRAME_START_CMD_NUMBER_OF_ADDRESSES +
+                    MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_IEF_STATE_CMD_NUMBER_OF_ADDRESSES +
+                    MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_LOCK_CMD_NUMBER_OF_ADDRESSES;
             }
 
             if (paramsG12->bScalableMode)
@@ -719,6 +728,14 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
                         mhw_sfc_g12_X::SFC_AVS_CHROMA_Coeff_Table_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_IEF_STATE_CMD::byteSize +
                         mhw_sfc_g12_X::SFC_FRAME_START_CMD::byteSize;
+                    patchListMaxSize +=
+                        MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_STATE_CMD_NUMBER_OF_ADDRESSES +
+                        MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_AVS_CHROMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                        MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_AVS_LUMA_Coeff_Table_CMD_NUMBER_OF_ADDRESSES +
+                        MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_AVS_STATE_CMD_NUMBER_OF_ADDRESSES +
+                        MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_FRAME_START_CMD_NUMBER_OF_ADDRESSES +
+                        MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_IEF_STATE_CMD_NUMBER_OF_ADDRESSES +
+                        MhwSfcInterfaceG12::CommandsNumberOfAddresses::SFC_LOCK_CMD_NUMBER_OF_ADDRESSES;
                 }
             }
         }
