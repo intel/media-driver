@@ -716,7 +716,6 @@ MOS_STATUS CodecHalHevcMbencG12::SetupKernelArgsB()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), surfIndex));
 
         //load Balance surface
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_loadBalance->WriteSurface(m_FrameBalance, nullptr));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_loadBalance->GetIndex(surfIndex));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(cmKrn->SetKernelArg(idx++, sizeof(SurfaceIndex), surfIndex));
 
@@ -1476,6 +1475,19 @@ MOS_STATUS CodecHalHevcMbencG12::InitCurbeDataB()
                 sizeof(m_encLcu32ConstantDataLut)));
         }
         m_initEncConstTable = false;
+    }
+
+    if (m_resolutionChanged)
+    {
+        m_initEncLoadBalence = true;
+    }
+
+    if (m_initEncLoadBalence)
+    {
+        // Initialize the Enc Constant Table surface
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_loadBalance->WriteSurface((unsigned char *)m_FrameBalance, nullptr, sizeof(m_FrameBalance)));
+
+        m_initEncLoadBalence = false;
     }
 
     return eStatus;
