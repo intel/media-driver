@@ -1558,5 +1558,6 @@ EXTERN_C CM_RT_API const char* GetCmErrorString(int errCode);
 #include "cm_rt_g10.h"
 #include "cm_rt_g11.h"
 #include "cm_rt_g12_tgl.h"
+#include "cm_rt_g12_dg1.h"
 
 #endif //__CM_RT_H__
