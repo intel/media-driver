@@ -1365,6 +1365,9 @@ VAStatus MediaLibvaCaps::LoadAvcEncLpProfileEntrypoints()
                     AddEncConfig(m_encRcMode[j]);
                 }
                 AddEncConfig(VA_RC_QVBR);
+#if VA_CHECK_VERSION(1, 10, 0)
+                AddEncConfig(VA_RC_TCBRC);
+#endif
             }
             AddProfileEntry(profile[i], VAEntrypointEncSliceLP, attributeList,
                     configStartIdx, m_encConfigs.size() - configStartIdx);

@@ -1657,9 +1657,6 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
             (entrypoint == VAEntrypointEncSliceLP && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
     {
         attrib.value |= VA_RC_CBR | VA_RC_VBR | VA_RC_MB;
-#if VA_CHECK_VERSION(1, 10, 0)
-        attrib.value |= VA_RC_TCBRC;
-#endif
         if (IsHevcProfile(profile))
         {
             if (entrypoint != VAEntrypointEncSliceLP)
@@ -1680,6 +1677,9 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
             ((entrypoint == VAEntrypointEncSliceLP) && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels)))
     {
         attrib.value |= VA_RC_QVBR;
+#if VA_CHECK_VERSION(1, 10, 0)
+        attrib.value |= VA_RC_TCBRC;
+#endif
     }
     if(entrypoint == VAEntrypointFEI)
     {
