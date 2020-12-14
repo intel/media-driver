@@ -1019,6 +1019,14 @@ VAStatus DdiMediaDecode::CreateBuffer(
             buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
             buf->format     = Media_Format_CPU;
             break;
+#if VA_CHECK_VERSION(1, 10, 0)
+        case VAContextParameterUpdateBufferType:
+        {
+            buf->pData      = (uint8_t*)MOS_AllocAndZeroMemory(size * numElements);
+            buf->format     = Media_Format_CPU;
+            break;
+        }
+#endif
         default:
             va = m_ddiDecodeCtx->pCpDdiInterface->CreateBuffer(type, buf, size, numElements);
             if (va  == VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE)
