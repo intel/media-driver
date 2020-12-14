@@ -2173,7 +2173,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG11::AddHcpIndObjBaseAddrCmd(
                 m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC].Value;
 
             resourceParams.presResource = params->presPakBaseObjectBuffer;
-            resourceParams.dwOffset = 0;
+            resourceParams.dwOffset = params->presPakBaseObjectBuffer->dwResourceOffset;
             resourceParams.pdwCmd = (cmd.DW9_10.Value);
             resourceParams.dwLocationInCmd = 9;
             resourceParams.dwSize = MOS_ALIGN_FLOOR(params->dwPakBaseObjectSize, 0x1000);

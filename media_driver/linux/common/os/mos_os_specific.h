@@ -288,6 +288,7 @@ struct _MOS_SPECIFIC_RESOURCE
     GraphicsResource*       pGfxResource;
     GraphicsResourceNext*   pGfxResourceNext;
     bool                    bConvertedFromDDIResource;
+    uint32_t                dwResourceOffset;
     bool                    bExternalSurface;    //!< indicate the surface not allocated by media
 
     // Tile switch
