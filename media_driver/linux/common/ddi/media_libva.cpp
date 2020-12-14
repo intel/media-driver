@@ -6127,7 +6127,7 @@ DdiMedia_Copy(
 
     vaStatus = DdiMedia_CopyInternal(&mosCtx, &src, &dst, option.bits.va_copy_mode);
 
-    if (option.bits.va_copy_sync == VA_EXEC_SYNC)
+    if ((option.bits.va_copy_sync == VA_EXEC_SYNC) && dst_surface)
     {
         uint32_t timeout_NS = 100000000;
         while (0 != mos_gem_bo_wait(dst_surface->bo, timeout_NS))
