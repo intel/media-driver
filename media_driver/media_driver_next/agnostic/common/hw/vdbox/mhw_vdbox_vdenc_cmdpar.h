@@ -110,6 +110,7 @@ struct _MHW_CMD_PAR_T(VDENC_PIPE_MODE_SELECT)
     uint8_t tailPointerReadFrequency = 0;
     uint8_t streamingBufferConfig    = 0;
     uint8_t quantizationPrecision    = 0;
+    uint8_t latencyTolerate          = 0;
 };
 
 struct _MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)

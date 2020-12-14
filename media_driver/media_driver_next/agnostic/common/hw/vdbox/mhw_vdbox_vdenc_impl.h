@@ -230,6 +230,7 @@ protected:
         cmd->DW5.ParallelCaptureAndEncodeSessionId = params->wirelessSessionId;
         cmd->DW5.TailPointerReadFrequency          = params->tailPointerReadFrequency;
         cmd->DW5.QuantizationPrecisionOptimization = params->quantizationPrecision;
+        cmd->DW5.LatencyToleratePreFetchEnable     = params->latencyTolerate;
 
         return MOS_STATUS_SUCCESS;
     }
