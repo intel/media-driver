@@ -27,6 +27,10 @@
 |  | Max Res. |  |  |  | 8k | 8k | 8k | 8k |
 | VP9 12bit | Output | | | |  |  | P016/Y216/Y416 | P016/Y216/Y416 |
 | | Max Res. | | | |  |  | 8k | 8k |
+| AV1 8bit | Output | | | | | | NV12 | NV12 |
+|  | Max Res. | | | | | | 8k | 8k |
+| AV1 10bit | Output | | | | | | P010 | P010 |
+|  | Max Res. | | | | | | 8k | 8k |
 
 * \* JPEG output format: NV12/411P/422H/422V/444P/BGRP/RGBP/YUY2/ARGB
 * \** VP8 is only supported on TGL platform
