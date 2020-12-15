@@ -121,14 +121,16 @@ Media driver supports two build types as below
 | VP9 10bit 444 | <u>Full-Feature</u><br><i>Free-Kernel</i> |  |  |  |  | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> | <u>D/E</u><br><i>D/E<i> |
 | VP9 12bit | <u>Full-Feature</u><br><i>Free-Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
 | VP9 12bit 444 | <u>Full-Feature</u><br><i>Free-Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D<i> | <u>D</u><br><i>D<i> |
-
-AV1 hardware decoding is supported from Gen12+ platforms.
+| AV1 8bit | <u>Full-Feature</u><br><i>Free-Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D**<i> | <u>D</u><br><i>D**<i> |
+| AV1 10bit | <u>Full-Feature</u><br><i>Free-Kernel</i> |  |  |  |  |  |  | <u>D</u><br><i>D**<i> | <u>D</u><br><i>D**<i> |
 
 * D  - Hardware Decoding
 * E  - Hardware Encoding, Low Power Encoding(VDEnc/Huc)
 * Es - Hardware(PAK) + Shader(media kernel+VME) Encoding
 
 \* VP8 decoding is only supported on TGL platform
+
+\** AV1 film grain kernel is not open so far
 
 For more information, please refer to
 * [Media Features Summary](https://github.com/intel/media-driver/blob/master/docs/media_features.md#media-features-summary)
