@@ -782,8 +782,11 @@ void _MOS_Assert(
 //! \def MOS_OS_MEMNINJAMESSAGE(_message, ...)
 //!  MOS_MEMNINJAMESSAGE \a _message with MOS Utility comp/subcomp info
 //!
-#define MOS_OS_MEMNINJAMESSAGE(_message, ...)                                              \
+#define MOS_OS_MEMNINJAMESSAGE(_message, ...)                                               \
     MOS_MEMNINJAMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
+
+#define MOS_OS_FUNCTION_TRACE()                                                             \
+    MOS_FUNCTION_TRACE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF)
 
 #ifdef __cplusplus
 }

@@ -286,4 +286,36 @@ public:
     static const PCCHAR m_mosLogPathPrefix;
 #endif
 };
+
+#if MOS_MESSAGES_ENABLED
+
+class FunctionTrace
+{
+public:
+    FunctionTrace(MOS_COMPONENT_ID compID, uint8_t subCompID, const char *name):
+        m_compID(compID),
+        m_subCompID(subCompID),
+        m_name(name)
+    {
+        printf("Enter function: %s\r\n", m_name);
+    }
+
+    virtual ~FunctionTrace()
+    {
+        printf("Exit function: %s\r\n", m_name);
+    }
+
+protected:
+    MOS_COMPONENT_ID m_compID    = MOS_COMPONENT_COUNT;
+    uint8_t          m_subCompID = 0;
+    const char       *m_name     = nullptr;
+};
+
+#define MOS_FUNCTION_TRACE(_compID, _subCompID) FunctionTrace trace(_compID, _subCompID, __FUNCTION__);
+
+#else
+
+#define MOS_FUNCTION_CALL(_compID, _subCompID)
+
+#endif // #if MOS_MESSAGES_ENABLED
 #endif // __MOS_UTIL_DEBUG_NEXT_H__
