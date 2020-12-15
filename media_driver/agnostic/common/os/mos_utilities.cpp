@@ -3953,7 +3953,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "MOS",
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_UINT32,
-        "2",
+        "0",
         "Enable local memory level switch."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE_ID,
         "NULL HW Enable",
