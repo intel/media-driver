@@ -2220,7 +2220,7 @@ MOS_STATUS CodechalEncodeHevcBase::GetStatusReport(
         // qp(for TU 8x8) = qp*4
         // qp(for TU 16x16) = qp *16
         // qp(for TU 32x32) = qp*64
-        // all these qp’s are accumulated for entire frame.
+        // all these qp are accumulated for entire frame.
         // the HW will ceil the CumulativeQp number to max (24 bit)
 
         encodeStatusReport->QpY = encodeStatusReport->AverageQp =
