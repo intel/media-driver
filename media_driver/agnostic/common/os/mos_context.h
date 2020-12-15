@@ -151,7 +151,7 @@ public:
     virtual void SetSliceCount(uint32_t *pSliceCount) { MOS_UNUSED(pSliceCount); };
 
     //! \brief   Flag to indicate if implicit tile setting is needed
-    bool m_implicitTileNeeded = false;
+    bool m_mediaTile64 = false;
 
     //! \brief   Flag to indicate if NoGfxMemory needed
     bool m_noGfxMemoryNeeded  = false;
