@@ -241,8 +241,8 @@ protected:
     //! \brief   Component info
     MOS_COMPONENT                   m_component = COMPONENT_UNKNOWN;
 
-    //! \brief   Flag to indicate if implicit Tile is needed
-    bool                            m_implicitTileNeeded = false;
+    //! \brief   Flag to indicate if Tile64 is supported
+    bool                            m_mediaTile64 = false;
 
     //! \brief   Flag to indicate if NoGfxMemory is needed
     bool                            m_noGfxMemoryNeeded = false;
