@@ -238,6 +238,16 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    //!
+    //! \brief  Judge if it is gt test environment
+    //! \return bool
+    //!         true if success, else false
+    //!
+    virtual bool IsGtEnv()
+    {
+        return false;
+    }
+
 protected:
     VP_PARAMS              m_pvpParams              = {};   //!< vp Pipeline params
     VP_MHWINTERFACE        m_vpMhwInterface         = {};   //!< vp Pipeline Mhw Interface

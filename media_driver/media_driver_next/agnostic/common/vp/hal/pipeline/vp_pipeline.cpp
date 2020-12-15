@@ -386,7 +386,7 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
     {
         // Both VE mode and media solo mode should be able to get the VDBOX number via the same interface
         m_numVebox = (uint8_t)(mediaSysInfo.VEBoxInfo.NumberOfVEBoxEnabled);
-        if (m_numVebox == 0)
+        if (m_numVebox == 0 && !IsGtEnv())
         {
             VP_PUBLIC_ASSERTMESSAGE("Fail to get the m_numVebox with value 0");
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
