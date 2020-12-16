@@ -116,6 +116,16 @@ public:
     MOS_STATUS ReleaseCmdBuf(CommandBufferNext *cmdBuf);
 
     //!
+    //! \brief    Reset the command buffer to the initial state
+    //! \details  This function designed for situations where the command buffer manager
+    //!           is reused for another context. It unbind all command buffers from the
+    //!           gpucontext and recycle all the command buffers in use.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, other wise fail reason
+    //!
+    MOS_STATUS Reset();
+
+    //!
     //! \brief    Resize command buffer with required size
     //! \param    [in] cmdBufToResize
     //!           Command buffer need to be resized
@@ -136,7 +146,28 @@ public:
         return m_initialized;
     }
 
-protected:
+    //!
+    //! \brief    Set the cmd buf mgr handle
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, other wise fail reason
+    //!
+    MOS_STATUS SetCmdBufMgrHandle(uint64_t handle)
+    {
+        m_handle = handle;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief    Get the cmd buf mgr handle
+    //! \return   uint64_t
+    //!           Get the handle of cmdBufMgrNext
+    //!
+    uint64_t GetCmdBufMgrHandle()
+    {
+        return m_handle;
+    }
+
+ protected:
     //!
     //! \brief    Self define compare method as std:sort input 
     //! \detail   Command buffer size will be compared 
@@ -179,5 +210,8 @@ protected:
 
     //! \brief   Corresponding os context
     OsContextNext *m_osContext = nullptr;
+
+    //! \brief   cmd buffer handle
+    uint64_t       m_handle     = 0;
 };
 #endif // __COMMAND_BUFFER_MANAGER_NEXT_H__

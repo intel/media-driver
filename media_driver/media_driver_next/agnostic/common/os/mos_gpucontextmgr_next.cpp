@@ -146,9 +146,9 @@ GpuContextNext *GpuContextMgrNext::CreateGpuContext(
 {
     MOS_OS_FUNCTION_ENTER;
 
-    if (cmdBufMgr == nullptr)
+    if (cmdBufMgr == nullptr && !m_osContext->IsAynchronous())
     {
-        MOS_OS_ASSERTMESSAGE("nullptr of cmdbufmgr.");
+        MOS_OS_ASSERTMESSAGE("nullptr of cmdbufmgr in normal mode. nullptr can only be applied in Async mode");
         return nullptr;
     }
 

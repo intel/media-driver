@@ -39,7 +39,10 @@ public:
     //!
     //! \brief  Constructor
     //!
-    CommandBufferNext(){}
+    CommandBufferNext(CmdBufMgrNext *cmdBufMgr)
+    {
+        m_cmdBufMgr = cmdBufMgr;
+    }
 
     //!
     //! \brief  Destructor
@@ -51,7 +54,7 @@ public:
     //! \return   CommandBufferNext*
     //!           Os specific command buffer
     //!
-    static class CommandBufferNext *CreateCmdBuf();
+    static class CommandBufferNext *CreateCmdBuf(CmdBufMgrNext *cmdBufMgr);
 
     //!
     //! \brief    Allocate graphics resource for current command buffer
@@ -80,10 +83,15 @@ public:
 
     //!
     //! \brief    Unbind current command buffer from gpu context
+    //! \param    [in] isNative
+    //!           Indicate it is unbinded from dummy or native gpu context in async mode
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, otherwise fail reason
     //!
-    virtual void UnBindToGpuContext() = 0;
+    virtual void UnBindToGpuContext(bool isNative)
+    {
+        return ;
+    }
 
     //!
     //! \brief    Resize command buffer
@@ -93,6 +101,24 @@ public:
     //!           MOS_STATUS_SUCCESS if success, otherwise fail reason
     //!
     virtual MOS_STATUS ReSize(uint32_t newSize) = 0;
+
+    //!
+    //! \brief    Query command buffer if it is in HW execution
+    //!           Always return false in normal mode, only return true in aync mode
+    //!           when cmd buffer still in use by HW
+    //! \return   bool
+    //!           True if is used by HW, false if not
+    //!
+    virtual bool IsUsedByHw() { return false; }
+
+    //!
+    //! \brief    Query command buffer if it is in Cmd List
+    //!           Always return false in normal mode, only return true in aync mode
+    //!           when cmd buffer still in one or multiple cmd Lists
+    //! \return   bool
+    //!           True if is in cmdlist, false if not
+    //!
+    virtual bool IsInCmdList() { return false; }
 
     //!
     //! \brief    Query command buffer ready to use
@@ -122,6 +148,57 @@ public:
     //!
     uint8_t* GetLockAddr() { return m_lockAddr; }
 
+    //!
+    //! \brief    Get last native gpu context
+    //! \return   GpuContextNext*
+    //!           Pointer to the last native gpu context
+    //!
+    GpuContextNext *GetLastNativeGpuContext()
+    {
+        return m_lastNativeGpuContextHandle == MOS_GPU_CONTEXT_INVALID_HANDLE ?
+            nullptr : m_lastNativeGpuContext;
+    }
+
+    //!
+    //! \brief    Get last native gpu context handle
+    //! \return   GPU_CONTEXT_HANDLE
+    //!           Pointer to the last native gpu context handle
+    //!
+    GPU_CONTEXT_HANDLE GetLastNativeGpuContextHandle()
+    {
+        return m_lastNativeGpuContextHandle;
+    }
+
+    //!
+    //! \brief    Get last gpu context
+    //! \return   GpuContextNext*
+    //!           Pointer to the last gpu context
+    //!
+    GpuContextNext *GetGpuContext()
+    {
+        return m_gpuContext;
+    }
+
+    //!
+    //! \brief    Get last gpu context handle
+    //! \return   GPU_CONTEXT_HANDLE
+    //!           Pointer to the last gpu context handle
+    //!
+    GPU_CONTEXT_HANDLE GetGpuContextHandle()
+    {
+        return m_gpuContextHandle;
+    }
+
+    //!
+    //! \brief    Get cmd buffer manager current cmd buffer belong to
+    //! \return   CmdBufMgrNext *
+    //!           Pointer to the command buffer manager
+    //!
+    CmdBufMgrNext *GetCmdBufferMgr()
+    {
+        return m_cmdBufMgr;
+    }
+
 protected:
     //!
     //! \brief    Set ready to use
@@ -134,6 +211,18 @@ protected:
 
     //! \brief    Gpu context binded to
     GpuContextNext*       m_gpuContext       = nullptr;
+
+    //! \brief    Gpu context handle
+    GPU_CONTEXT_HANDLE    m_gpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
+
+    //! \brief    Last executed native Gpu context in async mode (Should not be used in normal mode)
+    GpuContextNext       *m_lastNativeGpuContext = nullptr;
+
+    //! \brief    the cmd buf manager it belongs to
+    CmdBufMgrNext       *m_cmdBufMgr           = nullptr;
+
+    //! \brief    Last native Gpu context handle
+    GPU_CONTEXT_HANDLE    m_lastNativeGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
 
     //! \brief    Graphics resouce for command buffer
     GraphicsResourceNext* m_graphicsResource = nullptr;

@@ -148,6 +148,13 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
+    //!
+    //! \brief    GetDecompState's mosinterface
+    //! \details  get the mosinterface
+    //! \return   mosinterface
+    //!
+    virtual PMOS_INTERFACE GetDecompStateMosInterface() = 0;
 };
 
 #endif // __MEDIAMEMORYDECOMP_H__

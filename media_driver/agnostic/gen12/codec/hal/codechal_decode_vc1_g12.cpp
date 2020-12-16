@@ -530,7 +530,10 @@ MOS_STATUS CodechalDecodeVc1G12::DecodePrimitiveLevelVLD()
 
             CodechalResLock ResourceLock(m_osInterface, &m_resDataBuffer);
             auto buf = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
-            buf += slc->slice_data_offset;
+            if(buf != nullptr)
+            {
+                buf += slc->slice_data_offset;
+            }
             if (lOffset > 3 && buf != nullptr &&
                 m_vc1PicParams->sequence_fields.AdvancedProfileFlag)
             {

@@ -191,6 +191,12 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    //!
+    //! \brief  Determine whether the device is using async mode
+    //! \return true if the device is in async mode, false otherwise
+    //!
+    bool IsAynchronous() { return m_aynchronousDevice; }
+
     static const uint32_t m_cmdBufAlignment = 16;   //!> Cmd buffer alignment
 
 protected:
@@ -235,9 +241,6 @@ protected:
     //! \brief   For Resource addressing, whether GPU address mode is active
     bool                            m_usesGfxAddress = false;
 
-    //! \brief   For limited GPU VA resource can not be mapped during creation
-    bool                            m_mapOnCreate = false;
-
     //! \brief   Component info
     MOS_COMPONENT                   m_component = COMPONENT_UNKNOWN;
 
@@ -252,5 +255,8 @@ protected:
 
     //! \brief the ptr to mos media copy module
     MosMediaCopy                    *m_mosMediaCopy = nullptr;
+
+    //!< Indicate if this device is working in aync mode or normal mode
+    bool                            m_aynchronousDevice = false;
 };
 #endif // #ifndef __MOS_CONTEXTNext_NEXT_H__

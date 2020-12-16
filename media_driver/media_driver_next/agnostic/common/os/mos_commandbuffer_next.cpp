@@ -26,11 +26,11 @@
 
 #include "mos_commandbuffer_specific_next.h"
 
-class CommandBufferNext *CommandBufferNext::CreateCmdBuf()
+class CommandBufferNext *CommandBufferNext::CreateCmdBuf(CmdBufMgrNext *cmdBufMgr)
 {
     MOS_OS_FUNCTION_ENTER;
 
-    CommandBufferNext* cmdBuf = MOS_New(CommandBufferSpecificNext);
+    CommandBufferNext* cmdBuf = MOS_New(CommandBufferSpecificNext, cmdBufMgr);
 
     return cmdBuf;
 }

@@ -247,6 +247,16 @@ public:
         PMHW_MI_INTERFACE               mhwMiInterface,
         PMHW_VEBOX_INTERFACE            veboxInterface);
 
+    //!
+    //! \brief    GetDecompState's mosinterface
+    //! \details  get the mosinterface
+    //! \return   mosinterface
+    //!
+    virtual PMOS_INTERFACE GetDecompStateMosInterface()
+    {
+        return m_osInterface;
+    }
+
 protected:
 
     //!
