@@ -373,7 +373,8 @@ public:
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
         bool                    zeroOnAllocate = 0,
-        MOS_HW_RESOURCE_DEF     resUsageType   = MOS_HW_RESOURCE_DEF_MAX);
+        MOS_HW_RESOURCE_DEF     resUsageType   = MOS_HW_RESOURCE_DEF_MAX,
+        MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM);
 
     //!
     //! \brief    Unified OS fill Resource
