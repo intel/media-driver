@@ -463,9 +463,17 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
 {
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
+    MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
+    auto *                          pSkuTable            = m_osInterface.pfnGetSkuTable(&m_osInterface);
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(pSkuTable);
+
+    if (MEDIA_IS_SKU(pSkuTable, FtrMediaTile64))
+    {
+        tileModeByForce = MOS_TILE_64_GMM;
+    }
 
     allocated = false;
     if (IS_VP_VEBOX_DN_ONLY(caps))
@@ -493,7 +501,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
             surfCompressionMode,
             allocated,
             false,
-            MOS_HW_RESOURCE_USAGE_VP_INPUT_REFERENCE_FF));
+            MOS_HW_RESOURCE_USAGE_VP_INPUT_REFERENCE_FF,
+            tileModeByForce));
 
         // if allocated, pVeboxState->PastSurface is not valid for DN reference.
         if (allocated)
@@ -613,9 +622,17 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
+    MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
+    auto *                          pSkuTable            = m_osInterface.pfnGetSkuTable(&m_osInterface);
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(pSkuTable);
+
+    if (MEDIA_IS_SKU(pSkuTable, FtrMediaTile64))
+    {
+        tileModeByForce = MOS_TILE_64_GMM;
+    }
 
     allocated = false;
     for (i = 0; i < VP_NUM_STMM_SURFACES; i++)
@@ -632,7 +649,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
             surfCompressionMode,
             allocated,
             false,
-            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
+            tileModeByForce));
 
         if (allocated)
         {
