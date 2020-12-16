@@ -1660,6 +1660,57 @@ MOS_STATUS Mos_Specific_SetGpuContextHandle(
 }
 
 //!
+//! \brief    Get GPU context pointer
+//! \details  Get GPU context pointer
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS Interface
+//! \param    GPU_CONTEXT_HANDLE gpuContextHandle
+//!           [in] GPU Context Handle
+//! \return   void *
+//!           a pointer to a gpu context
+//!
+void *Mos_Specific_GetGpuContextbyHandle(
+    PMOS_INTERFACE     pOsInterface,
+    GPU_CONTEXT_HANDLE gpuContextHandle)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    if (!pOsInterface)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
+        return nullptr;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::GetGpuContextbyHandle(pOsInterface->osStreamState, gpuContextHandle);
+    }
+
+    OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
+    if(!pOsContextSpecific)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
+        return nullptr;
+    }
+
+    GpuContextMgr *gpuContextMgr = pOsContextSpecific->GetGpuContextMgr();
+    if (!gpuContextMgr)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
+        return nullptr;
+    }
+
+    GpuContext *gpuContext = gpuContextMgr->GetGpuContext(gpuContextHandle);
+    if (!gpuContext)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
+        return nullptr;
+    }
+
+    return (void *)gpuContext;
+}
+
+//!
 //! \brief    Get GPU context Manager
 //! \param    PMOS_INTERFACE pOsInterface
 //!           [in] Pointer to OS Interface
@@ -7468,6 +7519,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->pfnSetGpuContextHandle                    = Mos_Specific_SetGpuContextHandle;
     pOsInterface->pfnGetGpuContextMgr                       = Mos_Specific_GetGpuContextMgr;
+    pOsInterface->pfnGetGpuContextbyHandle                  = Mos_Specific_GetGpuContextbyHandle;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;

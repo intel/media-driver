@@ -65,7 +65,7 @@ MOS_STATUS CmdBufMgrNext::Initialize(OsContextNext *osContext, uint32_t cmdBufSi
 
         for (uint32_t i = 0; i < m_initBufNum; i++)
         {
-            auto cmdBuf = CommandBufferNext::CreateCmdBuf();
+            auto cmdBuf = CommandBufferNext::CreateCmdBuf(this);
             if (cmdBuf == nullptr)
             {
                 MOS_OS_ASSERTMESSAGE("input nullptr returned by CommandBuffer::CreateCmdBuf.");
@@ -94,6 +94,60 @@ MOS_STATUS CmdBufMgrNext::Initialize(OsContextNext *osContext, uint32_t cmdBufSi
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CmdBufMgrNext::Reset()
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    CommandBufferNext *cmdBuf = nullptr;
+    auto gpuContextMgr      = m_osContext->GetGpuContextMgr();
+    MOS_OS_CHK_NULL_RETURN(gpuContextMgr);
+
+    MosUtilities::MosLockMutex(m_availablePoolMutex);
+
+    MosUtilities::MosLockMutex(m_inUsePoolMutex);
+
+    if (!m_inUseCmdBufPool.empty())
+    {
+        for (auto& cmdBuf : m_inUseCmdBufPool)
+        {
+            UpperInsert(cmdBuf);
+        }
+    }
+
+    // clear in-use command buffer pool
+    m_inUseCmdBufPool.clear();
+    MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
+
+    for (auto& cmdBuf : m_availableCmdBufPool)
+    {
+        if (cmdBuf != nullptr)
+        {
+            auto nativeGpuContext         = cmdBuf->GetLastNativeGpuContext();
+            auto nativeGpuContextHandle   = cmdBuf->GetLastNativeGpuContextHandle();
+            if (nativeGpuContext != nullptr && nativeGpuContext == gpuContextMgr->GetGpuContext(nativeGpuContextHandle))
+            {
+                cmdBuf->UnBindToGpuContext(true);
+                nativeGpuContext->ResetCmdBuffer();
+            }
+
+            auto gpuContext         = cmdBuf->GetGpuContext();
+            auto gpuContextHandle   = cmdBuf->GetGpuContextHandle();
+            if (gpuContext != nullptr && gpuContext == gpuContextMgr->GetGpuContext(gpuContextHandle))
+            {
+                cmdBuf->UnBindToGpuContext(false);
+                gpuContext->ResetCmdBuffer();
+            }
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Unexpected, found null command buffer!");
+        }
+    }
+    m_cmdBufTotalNum = m_availableCmdBufPool.size();
+    MosUtilities::MosUnlockMutex(m_availablePoolMutex);
+    return MOS_STATUS_SUCCESS;
+}
+
 void CmdBufMgrNext::CleanUp()
 {
     MOS_OS_FUNCTION_ENTER;
@@ -105,6 +159,13 @@ void CmdBufMgrNext::CleanUp()
     {
         if (cmdBuf != nullptr)
         {
+            auto gpuContext         = cmdBuf->GetLastNativeGpuContext();
+            auto gpuContextHandle   = cmdBuf->GetLastNativeGpuContextHandle();
+            auto gpuContextMgr      = m_osContext->GetGpuContextMgr();
+            if (gpuContext != nullptr && gpuContextMgr && gpuContext == gpuContextMgr->GetGpuContext(gpuContextHandle))
+            {
+                cmdBuf->UnBindToGpuContext(true);
+            }
             cmdBuf->Free();
             MOS_Delete(cmdBuf);
         }
@@ -121,7 +182,6 @@ void CmdBufMgrNext::CleanUp()
 
     if (!m_inUseCmdBufPool.empty())
     {
-        MOS_OS_ASSERTMESSAGE("Unexpected, inUseCmdBufPool is not empty!");
         for (auto& cmdBuf : m_inUseCmdBufPool)
         {
             if (cmdBuf != nullptr)
@@ -174,7 +234,7 @@ CommandBufferNext *CmdBufMgrNext::PickupOneCmdBuf(uint32_t size)
         }
 
         // find available buf
-        if (size <= cmdBuf->GetCmdBufSize())
+        if (size <= cmdBuf->GetCmdBufSize() && !cmdBuf->IsUsedByHw() && !cmdBuf->IsInCmdList())
         {
             m_inUseCmdBufPool.push_back(cmdBuf);
 
@@ -185,9 +245,9 @@ CommandBufferNext *CmdBufMgrNext::PickupOneCmdBuf(uint32_t size)
         // available buf  is not large enough, need reallocate
         else
         {
-            MOS_OS_VERBOSEMESSAGE("find available buf, but is not large enough");
+            MOS_OS_VERBOSEMESSAGE("find available buf, but is not large enough or it is still used by HW");
 
-            cmdBuf = CommandBufferNext::CreateCmdBuf();
+            cmdBuf = CommandBufferNext::CreateCmdBuf(this);
             if (cmdBuf == nullptr)
             {
                 MOS_OS_ASSERTMESSAGE("input nullptr returned by CommandBuffer::CreateCmdBuf.");
@@ -203,6 +263,7 @@ CommandBufferNext *CmdBufMgrNext::PickupOneCmdBuf(uint32_t size)
                 // directly push into inuse pool
                 m_inUseCmdBufPool.push_back(cmdBuf);
                 m_cmdBufTotalNum++;
+
             }
         }
 
@@ -218,7 +279,7 @@ CommandBufferNext *CmdBufMgrNext::PickupOneCmdBuf(uint32_t size)
             MOS_OS_VERBOSEMESSAGE("Increase the cmd buf pool size by %d", m_bufIncStepSize);
             for (uint32_t i = 0; i < m_bufIncStepSize; i++)
             {
-                cmdBuf = CommandBufferNext::CreateCmdBuf();
+                cmdBuf = CommandBufferNext::CreateCmdBuf(this);
                 if (cmdBuf == nullptr)
                 {
                     MOS_OS_ASSERTMESSAGE("input nullptr returned by CommandBuffer::CreateCmdBuf.");
@@ -246,6 +307,7 @@ CommandBufferNext *CmdBufMgrNext::PickupOneCmdBuf(uint32_t size)
                 }
                 m_cmdBufTotalNum++;
             }
+
             // sort by decent order
             std::sort(m_availableCmdBufPool.begin(), m_availableCmdBufPool.end(), &CmdBufMgrNext::GreaterSizeSort);
         }

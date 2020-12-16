@@ -3001,12 +3001,12 @@ MOS_STATUS MhwVeboxInterfaceG12::CreateGpuContext(
     MHW_CHK_NULL(pOsInterface);
 
     Mos_SetVirtualEngineSupported(pOsInterface, true);
-    Mos_CheckVirtualEngineSupported(pOsInterface, true, false);
+    Mos_CheckVirtualEngineSupported(pOsInterface, true, true);
 
     if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
     {
         MOS_GPUCTX_CREATOPTIONS createOption;
-    
+
         // Create VEBOX/VEBOX2 Context
         MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
             pOsInterface,
@@ -3017,7 +3017,7 @@ MOS_STATUS MhwVeboxInterfaceG12::CreateGpuContext(
     else
     {
         MOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionenhanced;
-    
+
         createOptionenhanced.LRCACount = 1;
         createOptionenhanced.UsingSFC  = true;
     

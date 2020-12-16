@@ -40,8 +40,10 @@ public:
     //!
     //! \brief  Constructor
     //!
-    CommandBufferSpecificNext() {}
-
+    CommandBufferSpecificNext(CmdBufMgrNext *cmdBufMgr) :
+        CommandBufferNext(cmdBufMgr)
+    {
+    }
     //!
     //! \brief  Destructor
     //!

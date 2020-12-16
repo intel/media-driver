@@ -83,6 +83,11 @@ public:
         MhwMiInterface                  *miInterface,
         MhwRenderInterface              *renderInterface);
 
+    virtual PMOS_INTERFACE GetDecompStateMosInterface()
+    {
+        return m_osInterface;
+    }
+
 protected:
 
     //!

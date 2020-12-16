@@ -396,6 +396,20 @@ public:
         GPU_CONTEXT_HANDLE gpuContext);
 
     //!
+    //! \brief    Get GPU context pointer
+    //! \details  Get GPU context pointer
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    GPU_CONTEXT_HANDLE gpuContextHandle
+    //!           [in] GPU Context Handle
+    //! \return   void *
+    //!           a pointer to a gpu context
+    //!
+    static void *GetGpuContextbyHandle(
+        MOS_STREAM_HANDLE  streamState,
+        GPU_CONTEXT_HANDLE gpuContextHandle);
+
+    //!
     //! \brief    Add Command
     //! \details  [Cmd Buffer Interface] Add gpu commands into cmd buffer
     //! \details  Caller: MHW only
@@ -651,7 +665,7 @@ public:
         uint8_t **indirectState,
         uint32_t &offset,
         uint32_t &size);
-    
+
     //!
     //! \brief    Setup indirect state
     //! \details  [Cmd Buffer Interface] Setup the indirect state region in cmd buffer.
@@ -671,6 +685,25 @@ public:
     static MOS_STATUS SetupIndirectState(
         MOS_STREAM_HANDLE streamState,
         uint32_t size);
+
+    //!
+    //! \brief    Setup commandlist and command pool
+    //! \details  Set the commandlist and commandPool used in this stream.
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] cmdList
+    //!           pointer to the command list.
+    //! \param    [in] cmdBufMgr
+    //!           pointer to the command buffer manager.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS SetupCurrentCmdListAndPool(
+        MOS_STREAM_HANDLE   streamState,
+        CommandList         *cmdList,
+        CmdBufMgrNext       *cmdBufMgr);
 
     //!
     //! \brief    Setup VE Attribute Buffer

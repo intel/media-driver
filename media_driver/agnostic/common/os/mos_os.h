@@ -397,7 +397,9 @@ typedef struct _MOS_LOCK_PARAMS
             uint32_t NoDecompress        : 1;                                    //!< No decompression for memory compressed surface
             uint32_t Uncached            : 1;                                    //!< Use uncached lock
             uint32_t ForceCached         : 1;                                    //!< Prefer normal map to global GTT map(Uncached) if both can work
-            uint32_t Reserved            : 25;                                   //!< Reserved for expansion.
+            uint32_t DumpBeforeSubmit    : 1;                                    //!< Lock only for dump before submit
+            uint32_t DumpAfterSubmit     : 1;                                    //!< Lock only for dump after submit
+            uint32_t Reserved            : 23;                                   //!< Reserved for expansion.
         };
         uint32_t    Value;
     };
@@ -569,12 +571,18 @@ typedef OsContextNext OsDeviceContext;
 typedef _MOS_GPUCTX_CREATOPTIONS GpuContextCreateOption;
 struct _MOS_INTERFACE;
 class MosVeInterface;
+class CommandList;
+class CmdBufMgrNext;
 
 struct MosStreamState
 {
     OsDeviceContext   *osDeviceContext = nullptr;
     GPU_CONTEXT_HANDLE currentGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
     MOS_COMPONENT      component;
+
+    CommandList        *currentCmdList      = nullptr;  //<! Command list used in async mode
+    CmdBufMgrNext      *currentCmdBufMgr    = nullptr;  //<! Cmd buffer manager used in async mode
+    bool                postponedExecution  = false;    //!< Indicate if the stream is work in postponed execution mode. This flag is only used in aync mode.
 
     bool supportVirtualEngine = false; //!< Flag to indicate using virtual engine interface
     MosVeInterface *virtualEngineInterface = nullptr; //!< Interface to virtual engine state
@@ -659,6 +667,9 @@ typedef struct _MOS_INTERFACE
     //!< A handle to the graphics context device that can be used to calls back
     //!< into the kernel subsystem
     HANDLE                          CurrentGpuContextRuntimeHandle;
+
+    //!< Only used in async mode for backward compatiable
+    GPU_CONTEXT_HANDLE              m_GpuContextHandleMap[MOS_GPU_CONTEXT_MAX] = {0};
 
     // OS dependent settings, flags, limits
     int32_t                         b64bit;
@@ -804,6 +815,10 @@ typedef struct _MOS_INTERFACE
 
     MOS_GPU_CONTEXT (* pfnGetGpuContext) (
         PMOS_INTERFACE              pOsInterface);
+
+    void* (*pfnGetGpuContextbyHandle)(
+        PMOS_INTERFACE              pOsInterface,
+        const GPU_CONTEXT_HANDLE    gpuContextHandle);
 
     GMM_CLIENT_CONTEXT* (* pfnGetGmmClientContext) (
         PMOS_INTERFACE              pOsInterface);
