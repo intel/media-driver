@@ -279,7 +279,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::GetAvpPrimitiveCommandSize(
 
     if(m_decodeInUse)
     {
-        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding))
+        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding) && !m_osInterface->bSimIsActive)
         {
             maxSize =
                 mhw_vdbox_avp_g12_X::AVP_TILE_CODING_CMD_LST::byteSize +
@@ -1854,7 +1854,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpTileCodingCmd(
 
     if (m_decodeInUse)
     {
-        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding))
+        if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrAV1VLDLSTDecoding) && !m_osInterface->bSimIsActive)
         {
             MHW_MI_CHK_STATUS(AddAvpDecodeTileCodingCmdLst(cmdBuffer, batchBuffer, params));
         }
