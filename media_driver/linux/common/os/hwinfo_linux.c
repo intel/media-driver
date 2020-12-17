@@ -59,9 +59,6 @@ static bool MediaGetParam(int fd, int32_t param, uint32_t *retValue)
     return drmIoctl(fd, DRM_IOCTL_I915_GETPARAM, &gp) == 0;
 }
 
-// Currently all Gen HW has 7 threads per EU. Redefine when this changes.
-#define GEN_HW_THREADS_PER_EU       7
-
 /*****************************************************************************\
 Description:
     Get ProductFamily according to input device FD
@@ -153,19 +150,30 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     gfxPlatform->usDeviceID         = drvInfo.devId;
     gfxPlatform->usRevId            = drvInfo.devRev;
 
-    gtSystemInfo->SliceCount        = drvInfo.sliceCount;
-    gtSystemInfo->SubSliceCount     = drvInfo.subSliceCount;
-    gtSystemInfo->EUCount           = drvInfo.euCount;
-
-    if (devInfo->InitMediaSysInfo &&
-        devInfo->InitMediaSysInfo(devInfo, gtSystemInfo))
+    if (mos_query_device_blob(fd, gtSystemInfo) == 0)
     {
-        MOS_OS_NORMALMESSAGE("Init Media SystemInfo\n");
+        gtSystemInfo->EUCount           = gtSystemInfo->SubSliceCount * gtSystemInfo->MaxEuPerSubSlice;
+        gtSystemInfo->ThreadCount       = gtSystemInfo->EUCount * gtSystemInfo->NumThreadsPerEu;
+        gtSystemInfo->VEBoxInfo.IsValid = true;
+        gtSystemInfo->VDBoxInfo.IsValid = true;
     }
     else
     {
-        MOS_OS_ASSERTMESSAGE("Failed to Init Gt System Info\n");
-        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+        MOS_OS_NORMALMESSAGE("Device blob query is not supported yet.\n");
+        gtSystemInfo->SliceCount        = drvInfo.sliceCount;
+        gtSystemInfo->SubSliceCount     = drvInfo.subSliceCount;
+        gtSystemInfo->EUCount           = drvInfo.euCount;
+
+        if (devInfo->InitMediaSysInfo &&
+            devInfo->InitMediaSysInfo(devInfo, gtSystemInfo))
+        {
+            MOS_OS_NORMALMESSAGE("Init Media SystemInfo\n");
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to Init Gt System Info\n");
+            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+        }
     }
 
     unsigned int maxNengine = 0;

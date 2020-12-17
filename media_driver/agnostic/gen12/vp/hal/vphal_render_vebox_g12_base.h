@@ -31,11 +31,9 @@
 #include "vphal_render_hdr_g11.h"
 #include "vphal_common_hdr.h"
 
-#define VPHAL_VEBOX_MAX_SLICES_G12                              4
-
 #define VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_G12                      (VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
                                                                  VPHAL_NUM_RGB_CHANNEL                    * \
-                                                                 VPHAL_VEBOX_MAX_SLICES_G12)
+                                                                 VPHAL_VEBOX_HISTOGRAM_SLICES_COUNT)
 #define VPHAL_VEBOX_RGB_ACE_HISTOGRAM_SIZE_RESERVED_G12         (3072 * 4)
 //!
 //! \brief Denoise Definitions

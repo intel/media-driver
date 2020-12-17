@@ -499,6 +499,10 @@ typedef enum _VEBOX_STAT_QUERY_TYPE
 #define VPHAL_NUM_RGB_CHANNEL                   3
 #define VPHAL_NUM_FRAME_PREVIOUS_CURRENT        2
 
+//No matter how many vebox running, the histogram slice number is always 4.
+//When there is only one VEBOX, 0 is written to the other histogram slices by HW.
+#define VPHAL_VEBOX_HISTOGRAM_SLICES_COUNT      4
+
 //!
 //! \brief Binding Table Index for Secure Block Copy kernel
 //!

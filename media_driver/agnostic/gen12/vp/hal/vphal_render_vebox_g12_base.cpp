@@ -912,7 +912,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     // Size of ACE histograms, 1 set for each slice. For single slice, other set will be 0
     dwSize += VPHAL_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE *       // Ace histogram size per slice
               VPHAL_NUM_FRAME_PREVIOUS_CURRENT                   *       // Ace for Prev + Curr
-              VPHAL_VEBOX_MAX_SLICES_G12;                                // Total number of slices
+              VPHAL_VEBOX_HISTOGRAM_SLICES_COUNT;                        // Total number of slices
 
     VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
         pOsInterface,

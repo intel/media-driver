@@ -454,7 +454,6 @@ MOS_STATUS VeboxCopyState::InitCommandBuffer(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     PMOS_INTERFACE              pOsInterface;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    MEDIA_SYSTEM_INFO* pGtSystemInfo;
     uint32_t                    iRemaining;
     RENDERHAL_GENERIC_PROLOG_PARAMS         GenericPrologParams = {};
     PMOS_RESOURCE                           gpuStatusBuffer = nullptr;

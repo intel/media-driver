@@ -32,6 +32,7 @@
 
 #define HDR_OETF_1DLUT_POINT_NUMBER                  256
 #define MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT      1024
+#define MHW_VEBOX_STARTING_INDEX                     0
 
 template <class TVeboxCmds>
 class MhwVeboxInterfaceGeneric : public MhwVeboxInterface
