@@ -371,8 +371,8 @@ MOS_STATUS CmdBufMgrNext::ReleaseCmdBuf(CommandBufferNext *cmdBuf)
     }
 
     // unlock after release buffer
-    MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
     MosUtilities::MosUnlockMutex(m_availablePoolMutex);
+    MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
 
     return eStatus;
 }
