@@ -294,18 +294,21 @@ protected:
         cmd->Dwords25.DW2.YOffsetForUCb = params->uOffsetStage1;
         cmd->Dwords25.DW3.YOffsetForVCr = params->vOffsetStage1;
 
-        cmd->Dwords69.DW0.Width                       = params->widthStage2 - 1;
-        cmd->Dwords69.DW0.Height                      = params->heightStage2 - 1;
-        cmd->Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage2;
+        if (params->widthStage2 && params->heightStage2)
+        {
+            cmd->Dwords69.DW0.Width                       = params->widthStage2 - 1;
+            cmd->Dwords69.DW0.Height                      = params->heightStage2 - 1;
+            cmd->Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage2;
 
-        tileMode                        = GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2);
-        cmd->Dwords69.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
-        cmd->Dwords69.DW1.TileWalk      = tileMode & 0x1;
-        cmd->Dwords69.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
-        cmd->Dwords69.DW1.SurfacePitch  = params->pitchStage2 - 1;
+            tileMode                        = GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2);
+            cmd->Dwords69.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
+            cmd->Dwords69.DW1.TileWalk      = tileMode & 0x1;
+            cmd->Dwords69.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
+            cmd->Dwords69.DW1.SurfacePitch  = params->pitchStage2 - 1;
 
-        cmd->Dwords69.DW2.YOffsetForUCb = params->uOffsetStage2;
-        cmd->Dwords69.DW3.YOffsetForVCr = params->vOffsetStage2;
+            cmd->Dwords69.DW2.YOffsetForUCb = params->uOffsetStage2;
+            cmd->Dwords69.DW3.YOffsetForVCr = params->vOffsetStage2;
+        }
 
         return MOS_STATUS_SUCCESS;
     }
