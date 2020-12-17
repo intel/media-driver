@@ -47,8 +47,6 @@ MOS_STATUS MhwRenderInterfaceG10::AddMediaVfeCmd(
 
     cmd->DW4.SliceDisable = params->eVfeSliceDisable;
 
-    MEDIA_SYSTEM_INFO *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-    MHW_MI_CHK_NULL(gtSystemInfo);
     auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
     MHW_MI_CHK_NULL(waTable);
 

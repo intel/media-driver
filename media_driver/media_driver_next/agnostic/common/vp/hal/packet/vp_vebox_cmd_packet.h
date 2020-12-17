@@ -34,19 +34,11 @@
 #include "vp_render_sfc_base.h"
 #include "vp_filter.h"
 
-#define VP_VEBOX_MAX_SLICES          4
 #define VP_MAX_NUM_FFDI_SURFACES     4                                       //!< 2 for ADI plus additional 2 for parallel execution on HSW+
 #define VP_NUM_FFDN_SURFACES         2                                       //!< Number of FFDN surfaces
 #define VP_NUM_STMM_SURFACES         2                                       //!< Number of STMM statistics surfaces
 #define VP_DNDI_BUFFERS_MAX          4                                       //!< Max DNDI buffers
 #define VP_NUM_KERNEL_VEBOX          8                                       //!< Max kernels called at Adv stage
-
-#define VP_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE                (256 * 4)
-#define VP_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE      (256 * 4)
-
-#define VP_VEBOX_RGB_HISTOGRAM_SIZE                      (VP_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
-                                                          VP_NUM_RGB_CHANNEL                    * \
-                                                          VP_VEBOX_MAX_SLICES)
 
 #define VP_VEBOX_RGB_ACE_HISTOGRAM_SIZE_RESERVED          (3072 * 4)
 
@@ -68,11 +60,13 @@
 #define VP_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE                (256 * 4)
 #define VP_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE      (256 * 4)
 
-#define VP_VEBOX_MAX_SLICES                              4
+//No matter how many vebox running, the histogram slice number is always 4.
+//When there is only one VEBOX, 0 is written to the other histogram slices by HW.
+#define VP_VEBOX_HISTOGRAM_SLICES_COUNT                      4
 
 #define VP_VEBOX_RGB_HISTOGRAM_SIZE                      (VP_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
                                                           VP_NUM_RGB_CHANNEL                    * \
-                                                          VP_VEBOX_MAX_SLICES)
+                                                          VP_VEBOX_HISTOGRAM_SLICES_COUNT)
 #define VP_VEBOX_RGB_ACE_HISTOGRAM_SIZE_RESERVED         (3072 * 4)
 
 //!

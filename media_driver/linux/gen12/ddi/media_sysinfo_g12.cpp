@@ -36,7 +36,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 //extern template class DeviceInfoFactory<GfxDeviceInfo>;
 typedef DeviceInfoFactory<GfxDeviceInfo> base_fact;
 
-#define GEN12_THREADS_PER_EU    7
+#define THREADS_NUMBER_PER_EU 7
 
 static bool InitTglMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_INFO *sysInfo)
 {
@@ -61,8 +61,7 @@ static bool InitTglMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_I
         sysInfo->EUCount       = devInfo->EUCount;
     }
 
-    sysInfo->L3CacheSizeInKb = devInfo->L3CacheSizeInKb;
-    sysInfo->L3BankCount     = devInfo->L3BankCount;
+    sysInfo->L3BankCount                            = devInfo->L3BankCount;
     sysInfo->VEBoxInfo.Instances.Bits.VEBox0Enabled = 1;
     sysInfo->MaxEuPerSubSlice = devInfo->MaxEuPerSubSlice;
     sysInfo->MaxSlicesSupported = sysInfo->SliceCount;
@@ -71,24 +70,13 @@ static bool InitTglMediaSysInfo(struct GfxDeviceInfo *devInfo, MEDIA_GT_SYSTEM_I
     sysInfo->VEBoxInfo.NumberOfVEBoxEnabled = 0; /*Query the VEBox engine info from KMD*/
     sysInfo->VDBoxInfo.NumberOfVDBoxEnabled = 0; /*Query the VDBox engine info from KMD*/
 
-    sysInfo->ThreadCount = sysInfo->EUCount * GEN12_THREADS_PER_EU;
+    sysInfo->ThreadCount = sysInfo->EUCount * THREADS_NUMBER_PER_EU;
 
     sysInfo->VEBoxInfo.IsValid = true;
     sysInfo->VDBoxInfo.IsValid = true;
 
-    /* the GMM doesn't care the real size of ERAM/LLC. Instead it is used to
-     * indicate whether the LLC/ERAM exists
-     */
-    if (devInfo->hasERAM)
-    {
-        // 64M
-        sysInfo->EdramSizeInKb = 64 * 1024;
-    }
-    if (devInfo->hasLLC)
-    {
-        // 2M
-        sysInfo->LLCCacheSizeInKb = 2 * 1024;
-    }
+    //Media driver does not set the other gtsysinfo fileds such as L3CacheSizeInKb, EdramSizeInKb and LLCCacheSizeInKb now.
+    //If needed in the future, query them from KMD.
 
     return true;
 }

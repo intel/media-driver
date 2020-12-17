@@ -4870,7 +4870,6 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     PMOS_INTERFACE              pOsInterface;
     MHW_GENERIC_PROLOG_PARAMS   genericPrologParams;
     MOS_STATUS                  eStatus;
-    MEDIA_SYSTEM_INFO           *pGtSystemInfo;
     bool                        isRender;
 
     //---------------------------------------------
@@ -4884,8 +4883,6 @@ MOS_STATUS RenderHal_InitCommandBuffer(
 
     eStatus         = MOS_STATUS_SUCCESS;
     pOsInterface    = pRenderHal->pOsInterface;
-    pGtSystemInfo   = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
-    MHW_RENDERHAL_CHK_NULL(pGtSystemInfo);
 
     // Send Start Marker command
     isRender = MOS_RCS_ENGINE_USED(pOsInterface->pfnGetGpuContext(pOsInterface));

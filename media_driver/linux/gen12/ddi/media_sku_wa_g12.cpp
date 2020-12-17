@@ -31,7 +31,7 @@
 #include "linux_media_skuwa.h"
 #include "mos_utilities.h"
 
-#define GEN12_VEBOX2_SUBSLICES 24
+static constexpr uint32_t singleVeboxSubSliceNumMax = 24;
 
 //extern template class DeviceInfoFactory<GfxDeviceInfo>;
 typedef DeviceInfoFactory<LinuxDeviceInit> DeviceInit;
@@ -195,7 +195,7 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrVcs2, 0);
 
     MEDIA_WR_SKU(skuTable, FtrSingleVeboxSlice, 1);
-    if (devInfo->SubSliceCount >= GEN12_VEBOX2_SUBSLICES)
+    if (devInfo->SubSliceCount >= singleVeboxSubSliceNumMax)
     {
         MEDIA_WR_SKU(skuTable, FtrSingleVeboxSlice, 0);
     }

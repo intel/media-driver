@@ -310,7 +310,7 @@ uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint3
     // Size of ACE histograms, 1 set for each slice. For single slice, other set will be 0
     dwSize += VP_VEBOX_ACE_HISTOGRAM_SIZE_PER_FRAME_PER_SLICE *         // Ace histogram size per slice
         VP_NUM_FRAME_PREVIOUS_CURRENT *                                 // Ace for Prev + Curr
-        VP_VEBOX_MAX_SLICES;                                            // Total number of slices
+        VP_VEBOX_HISTOGRAM_SLICES_COUNT;                                // Total number of slices
     return dwSize;
 }
 
