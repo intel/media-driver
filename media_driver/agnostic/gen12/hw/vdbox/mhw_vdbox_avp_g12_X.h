@@ -94,7 +94,7 @@ public:
     #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_UserFeature_ReadValue_ID(
             nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENABLE_AVP_SCALABILITY_DECODE_ID_G12,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_AVP_SCALABILITY_DECODE_ID,
             &userFeatureData,
             this->m_osInterface->pOsContext);
     #endif // _DEBUG || _RELEASE_INTERNAL

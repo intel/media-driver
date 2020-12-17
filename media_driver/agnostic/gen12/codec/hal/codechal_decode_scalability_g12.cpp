@@ -965,7 +965,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_DISABLE_HEVC_REALTILE_DECODE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_HEVC_REALTILE_DECODE_ID,
         &UserFeatureData,
         osInterface->pOsContext);
     pScalabilityState->bDisableRtMode = (UserFeatureData.u32Data != 0);
@@ -974,7 +974,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_REALTILE_MULTI_PHASE_DECODE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_HEVC_REALTILE_MULTI_PHASE_DECODE_ID,
         &UserFeatureData,
         osInterface->pOsContext);
     pScalabilityState->bEnableRtMultiPhase = (UserFeatureData.u32Data != 0);
@@ -990,7 +990,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_USER_PIPE_NUM_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_USER_PIPE_NUM_ID,
         &UserFeatureData,
         osInterface->pOsContext);
     pScalabilityState->dbgOverUserPipeNum = (uint8_t)UserFeatureData.u32Data;
