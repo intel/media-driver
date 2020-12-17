@@ -97,9 +97,9 @@ void write_bitdepth_colorspace_sampling(uint32_t codecProfile,
         (codecProfile == VP9_PROFILE_3))
     {
         /* sub_sampling_x/y */
-        /* Currently the sub_sampling_x = 0, sub_sampling_y = 1 */
+        /* Currently the sub_sampling_x = 0, sub_sampling_y = 0 */
         vp9_wb_write_bit(wb, 0);
-        vp9_wb_write_bit(wb, 1);
+        vp9_wb_write_bit(wb, 0);
         vp9_wb_write_bit(wb, 0); // unused
     }
 }
