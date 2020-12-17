@@ -318,6 +318,14 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     {
         m_Params.rcDstInput.bottom /= 2;
     }
+    // For interleaved--to-field scaling, the height of rcSrcInput is input frame height,
+    // the height of rcDstInput is output field height, for scaling ratio calculation, the
+    // bottom of rcDstInput need to multiple 2.
+    if(m_Params.interlacedScalingType == ISCALING_INTERLEAVED_TO_FIELD)
+    {
+        m_Params.rcDstInput.bottom *= 2;
+        m_Params.dwHeightOutput *= 2;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

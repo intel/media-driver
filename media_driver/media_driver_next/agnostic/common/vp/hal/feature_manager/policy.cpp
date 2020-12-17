@@ -522,15 +522,12 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     fScaleMin      = m_sfcHwEntry[scalingParams->formatInput].minScalingRatio;
     fScaleMax      = m_sfcHwEntry[scalingParams->formatInput].maxScalingRatio;
 
-    switch (scalingParams->interlacedScalingType)
+    if (scalingParams->interlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED)
     {
-    case ISCALING_INTERLEAVED_TO_FIELD:
-        dwDstMinHeight = dwSfcMinHeight / 2;
-        break;
-    case ISCALING_FIELD_TO_INTERLEAVED:
         dwDstMinHeight = dwSfcMinHeight * 2;
-        break;
-    default:
+    }
+    else
+    {
         dwDstMinHeight = dwSfcMinHeight;
     }
 
@@ -583,7 +580,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
               OUT_OF_BOUNDS(dwSourceRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
               OUT_OF_BOUNDS(dwSourceRegionHeight, dwSfcMinHeight, dwSfcMaxHeight) ||
               OUT_OF_BOUNDS(dwOutputRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
-              OUT_OF_BOUNDS(dwOutputRegionHeight, dwDstMinHeight, dwSfcMaxHeight) ||
+              OUT_OF_BOUNDS(dwOutputRegionHeight, dwSfcMinHeight, dwSfcMaxHeight) ||
               OUT_OF_BOUNDS(dwOutputSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)   ||
               OUT_OF_BOUNDS(dwOutputSurfaceHeight, dwDstMinHeight, dwSfcMaxHeight)))
         {

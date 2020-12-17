@@ -274,6 +274,22 @@ MOS_STATUS SwFilterScalingHandler::UpdateParamsForProcessing(VP_PIPELINE_PARAMS&
         if (params.pSrc[0] && params.pSrc[0]->pBwdRef)
         {
             params.pSrc[0]->pBwdRef->ScalingMode = params.pSrc[0]->ScalingMode;
+            params.pSrc[0]->pBwdRef->SurfType    = params.pSrc[0]->SurfType;
+            params.pSrc[0]->pBwdRef->InterlacedScalingType = params.pSrc[0]->InterlacedScalingType;
+            if (params.pSrc[0]->SampleType == SAMPLE_SINGLE_TOP_FIELD)
+            {
+                params.pSrc[0]->pBwdRef->SampleType = SAMPLE_SINGLE_BOTTOM_FIELD;
+                params.pTarget[0]->SampleType       = SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
+            }
+            else
+            {
+                params.pSrc[0]->pBwdRef->SampleType = SAMPLE_SINGLE_TOP_FIELD;
+                params.pTarget[0]->SampleType       = SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD;
+            }
+            if (params.pSrc[0]->pBwdRef->pDeinterlaceParams)
+            {
+                MOS_FreeMemAndSetNull(params.pSrc[0]->pBwdRef->pDeinterlaceParams);
+            }
             params.pSrc[0] = params.pSrc[0]->pBwdRef;
         }
     }
