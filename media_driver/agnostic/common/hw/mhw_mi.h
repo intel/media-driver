@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2018, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -175,6 +175,7 @@ typedef struct _MHW_PIPE_CONTROL_PARAMS
     uint32_t                bInvalidateTextureCache        : 1;
     uint32_t                bGenericMediaStateClear        : 1;
     uint32_t                bIndirectStatePointersDisable  : 1;
+    uint32_t                bHdcPipelineFlush              : 1;
 } MHW_PIPE_CONTROL_PARAMS, *PMHW_PIPE_CONTROL_PARAMS;
 
 typedef struct _MHW_MI_COPY_MEM_MEM_PARAMS
