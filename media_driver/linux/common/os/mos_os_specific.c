@@ -4021,6 +4021,12 @@ void Mos_Specific_ReturnCommandBuffer(
         return;
     }
 
+    // Need to ensure 4K extra padding for HW requirement.
+    if (pCmdBuffer && pCmdBuffer->iRemaining < EXTRA_PADDING_NEEDED)
+    {
+        MOS_OS_ASSERTMESSAGE("Need to ensure 4K extra padding for HW requirement.");
+    }
+
     if (pOsInterface->apoMosEnabled)
     {
         auto status = MosInterface::ReturnCommandBuffer(pOsInterface->osStreamState, pCmdBuffer, dwFlags);
