@@ -73,6 +73,9 @@ typedef enum
 {
     MOS_SUBCOMP_SELF               = 0,
     MOS_SUBCOMP_HLT                = 1,
+    MOS_SUBCOMP_CODEC              = 2,
+    MOS_SUBCOMP_VP                 = 3,
+    MOS_SUBCOMP_CP                 = 4,
     MOS_SUBCOMP_COUNT
 } MOS_SELF_SUBCOMP_ID;
 
