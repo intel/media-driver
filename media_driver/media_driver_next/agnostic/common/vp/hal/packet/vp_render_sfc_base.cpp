@@ -375,6 +375,7 @@ MOS_STATUS SfcRenderBase::SetupSfcState(PVP_SURFACE targetSurface)
     //---------------------------------
     m_renderData.sfcStateParams->sfcPipeMode = (MEDIASTATE_SFC_PIPE_MODE)m_pipeMode;
 
+    m_renderData.sfcStateParams->InputFrameFormat  = m_renderData.SfcInputFormat;
     m_renderData.sfcStateParams->OutputFrameFormat = targetSurface->osSurface->Format;
     m_renderData.sfcStateParams->dwOutputSurfaceOffset = targetSurface->osSurface->YPlaneOffset.iSurfaceOffset;
     m_renderData.sfcStateParams->wOutputSurfaceUXOffset = (uint16_t) targetSurface->osSurface->UPlaneOffset.iXOffset;
@@ -433,7 +434,7 @@ MOS_STATUS SfcRenderBase::SetupSfcState(PVP_SURFACE targetSurface)
     m_renderData.sfcStateParams->pOsResOutputSurface = &targetSurface->osSurface->OsResource;
 
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->pOsResAVSLineBuffer, m_AVSLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
-    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->pOsResIEFLineBuffer, m_IEFLineBufferSurface));
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(m_renderData.sfcStateParams->pOsResIEFLineBuffer, m_IEFLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
 
     VP_RENDER_CHK_STATUS_RETURN(SetupScalabilityParams());
 
@@ -1139,13 +1140,17 @@ MOS_STATUS SfcRenderBase::AllocateResources()
 
     if (m_scalabilityParams.numPipe > m_lineBufferAllocatedInArray    ||
         nullptr == m_AVSLineBufferSurfaceArray      ||
+        nullptr == m_IEFLineBufferSurfaceArray      ||
         nullptr == m_SFDLineBufferSurfaceArray)
     {
         DestroyLineBufferArray(m_AVSLineBufferSurfaceArray);
+        DestroyLineBufferArray(m_IEFLineBufferSurfaceArray);
         DestroyLineBufferArray(m_SFDLineBufferSurfaceArray);
         m_lineBufferAllocatedInArray = m_scalabilityParams.numPipe;
         m_AVSLineBufferSurfaceArray = MOS_NewArray(VP_SURFACE*, m_lineBufferAllocatedInArray);
         VP_RENDER_CHK_NULL_RETURN(m_AVSLineBufferSurfaceArray);
+        m_IEFLineBufferSurfaceArray = MOS_NewArray(VP_SURFACE*, m_lineBufferAllocatedInArray);
+        VP_RENDER_CHK_NULL_RETURN(m_IEFLineBufferSurfaceArray);
         m_SFDLineBufferSurfaceArray = MOS_NewArray(VP_SURFACE*, m_lineBufferAllocatedInArray);
         VP_RENDER_CHK_NULL_RETURN(m_SFDLineBufferSurfaceArray);
     }
@@ -1154,13 +1159,13 @@ MOS_STATUS SfcRenderBase::AllocateResources()
     size = GetAvsLineBufferSize(false, sfcStateParams->b8tapChromafiltering, sfcStateParams->dwInputFrameWidth, sfcStateParams->dwInputFrameHeight);
     VP_RENDER_CHK_STATUS_RETURN(AllocateLineBufferArray(m_AVSLineBufferSurfaceArray, size, "SfcAVSLineBufferSurface"));
 
+    // Allocate IEF Line Buffer surface----------------------------------------------
+    size = GetIefLineBufferSize(false, sfcStateParams->dwScaledRegionHeight);
+    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBufferArray(m_IEFLineBufferSurfaceArray, size, "SfcIEFLineBufferSurface"));
+
     // Allocate SFD Line Buffer surface
     size = GetSfdLineBufferSize(false, sfcStateParams->OutputFrameFormat, sfcStateParams->dwScaledRegionWidth, sfcStateParams->dwScaledRegionHeight);
     VP_RENDER_CHK_STATUS_RETURN(AllocateLineBufferArray(m_SFDLineBufferSurfaceArray, size, "SfcSFDLineBufferSurface"));
-
-    // Allocate IEF Line Buffer surface----------------------------------------------
-    size = GetIefLineBufferSize(false, sfcStateParams->dwScaledRegionHeight);
-    VP_RENDER_CHK_STATUS_RETURN(AllocateLineBuffer(m_IEFLineBufferSurface, size, "SfcIEFLineBufferSurface"));
 
     // Allocate AVS Line Tile Buffer surface----------------------------------------------
     size = GetAvsLineBufferSize(true, sfcStateParams->b8tapChromafiltering, sfcStateParams->dwInputFrameWidth, sfcStateParams->dwInputFrameHeight);
@@ -1201,11 +1206,11 @@ MOS_STATUS SfcRenderBase::FreeResources()
     // Free AVS Line Buffer surface for SFC
     DestroyLineBufferArray(m_AVSLineBufferSurfaceArray);
 
+    // Free IEF Line Buffer surface for SFC
+    DestroyLineBufferArray(m_IEFLineBufferSurfaceArray);
+
     // Free SFD Line Buffer surface for SFC
     DestroyLineBufferArray(m_SFDLineBufferSurfaceArray);
-
-    // Free IEF Line Buffer surface for SFC
-    m_allocator->DestroyVpSurface(m_IEFLineBufferSurface);
 
     // Free AVS Line Tile Buffer surface for SFC
     m_allocator->DestroyVpSurface(m_AVSLineTileBufferSurface);

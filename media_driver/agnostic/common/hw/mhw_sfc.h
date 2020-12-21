@@ -220,6 +220,7 @@ typedef struct _MHW_SFC_STATE_PARAMS
     MOS_FORMAT                      OutputFrameFormat;                          // Output Frame Format
     uint32_t                        dwInputFrameHeight;                         // Input Frame Height
     uint32_t                        dwInputFrameWidth;                          // Input Frame Width
+    MOS_FORMAT                      InputFrameFormat;                           // Input Frame Format
 
     // Scaling parameters
     uint32_t                        dwAVSFilterMode;                            // Bilinear, 5x5 or 8x8
@@ -497,6 +498,24 @@ public:
 
     virtual MOS_STATUS GetInputFrameWidthHeightAlignUnit(uint32_t &widthAlignUnit, uint32_t &heightAlignUnit,
         bool bVdbox, CODECHAL_STANDARD codecStandard, CodecDecodeJpegChromaType jpegChromaType);
+
+    //!
+    //! \brief    Set Sfc Index
+    //! \details  Set Sfc Index
+    //! \param    [in] dwSfcIndex
+    //!           set Sfc Index
+    //! \param    [in] dwSfcCount
+    //!           set Sfc Count
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS SetSfcIndex(
+        uint32_t dwSfcIndex,
+        uint32_t dwSfcCount)
+    {
+        MOS_UNUSED(dwSfcIndex);
+        MOS_UNUSED(dwSfcCount);
+        return MOS_STATUS_SUCCESS;
+    }
 
 protected:
 

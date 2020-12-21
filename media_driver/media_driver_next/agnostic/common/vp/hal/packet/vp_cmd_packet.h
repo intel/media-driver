@@ -27,6 +27,7 @@
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
 #include "vp_packet_shared_context.h"
+#include "media_scalability.h"
 
 namespace vp {
 
@@ -67,6 +68,16 @@ public:
         return m_PacketId;
     }
 
+    void SetMediaScalability(MediaScalability *scalability)
+    {
+        m_scalability = scalability;
+    }
+
+    MediaScalability *&GetMediaScalability()
+    {
+        return m_scalability;
+    }
+
 protected:
     virtual MOS_STATUS VpCmdPacketInit();
     bool IsOutputPipeVebox()
@@ -85,6 +96,9 @@ protected:
     PacketType                  m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
     VP_PACKET_SHARED_CONTEXT*   m_packetSharedContext = nullptr;
     VP_SURFACE_SETTING          m_surfSetting;
+
+private:
+    MediaScalability *m_scalability = nullptr;
 };
 }
 #endif // !__VP_CMD_PACKET_H__

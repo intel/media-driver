@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -46,11 +46,7 @@ MOS_STATUS VpScalabilityOption::SetScalabilityOption(ScalabilityPars *params)
     }
 
     m_numPipe = params->numVebox;
-    if (params->numTileColumns != m_numPipe)
-    {
-        m_numPipe = 1;// switch back to the single VDBOX mode if invalid tile column test cases.
-    }
-    m_raMode = params->raMode;
+    m_raMode  = params->raMode;
     SCALABILITY_VERBOSEMESSAGE("Tile Column = %d, System VDBOX Num = %d, Decided Pipe Num = %d.", params->numTileColumns, params->numVebox, m_numPipe);
 
     return MOS_STATUS_SUCCESS;
@@ -83,5 +79,10 @@ bool VpScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params)
         matched = true;
     }
     return matched;
+}
+
+uint32_t VpScalabilityOption::GetLRCACount()
+{
+    return m_numPipe;
 }
 }

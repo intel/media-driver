@@ -191,6 +191,23 @@ public:
 
     MOS_STATUS SetHistogramBuf(PMOS_BUFFER histogramBuf);
 
+    //!
+    //! \brief    Set sfc pipe selected with vebox
+    //! \details  Set sfc pipe selected with vebox
+    //! \param    [in] dwSfcPipe
+    //!           Sfc pipe selected with vebox
+    //! \param    [in] dwSfcNum
+    //!           Sfc pipe num in total
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS SetSfcPipe(uint32_t dwSfcPipe, uint32_t dwSfcNum)
+    {
+        MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
+        MOS_UNUSED(dwSfcPipe);
+        MOS_UNUSED(dwSfcNum);
+        return eStatus;
+    }
+
 protected:
     //!
     //! \brief    Initialize SfcState parameters
@@ -469,8 +486,8 @@ protected:
     uint32_t                        m_currentChannel = 0;                     //!< 0=StereoLeft or nonStereo, 1=StereoRight. N/A in nonStereo
 
     VP_SURFACE                      **m_AVSLineBufferSurfaceArray = nullptr;  //!< AVS Line Buffer Surface for SFC
-    VP_SURFACE                      **m_SFDLineBufferSurfaceArray = nullptr;  //!< SFD Line Buffer Surface for SFC
-    VP_SURFACE                      *m_IEFLineBufferSurface = nullptr;        //!< IEF Line Buffer Surface for SFC
+    VP_SURFACE                      **m_IEFLineBufferSurfaceArray = nullptr;  //!< IEF Line Buffer Surface for SFC
+    VP_SURFACE **                     m_SFDLineBufferSurfaceArray = nullptr;  //!< SFD Line Buffer Surface for SFC
 
     VP_SURFACE                      *m_AVSLineTileBufferSurface = nullptr;    //!< AVS Line Tile Buffer Surface for SFC
     VP_SURFACE                      *m_IEFLineTileBufferSurface = nullptr;    //!< IEF Line Tile Buffer Surface for SFC

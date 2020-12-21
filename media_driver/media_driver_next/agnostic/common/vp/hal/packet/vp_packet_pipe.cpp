@@ -234,6 +234,7 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
 
         VP_PUBLIC_CHK_STATUS_RETURN(SwitchContext(pPacket->GetPacketId(), scalability, mediaContext, bEnableVirtualEngine, numVebox));
         VP_PUBLIC_CHK_NULL_RETURN(scalability);
+        pPacket->SetMediaScalability(scalability);
 
         VP_PUBLIC_CHK_STATUS_RETURN(pTask->AddPacket(&prop));
         if (prop.immediateSubmit)
