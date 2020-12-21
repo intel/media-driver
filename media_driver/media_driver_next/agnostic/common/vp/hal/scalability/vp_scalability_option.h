@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -67,6 +67,30 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual bool IsScalabilityOptionMatched(ScalabilityPars *params);
+
+    //!
+    //! \brief  check if SFC flag is set
+    //! \return bool
+    //!         Ture for using SFC
+    //!
+    bool IsUsingSFC() { return m_usingSFC; };
+
+    //! \brief  Get LRCA count
+    //! \return uint32_t
+    //!         Return LRCA count
+    //!
+    uint32_t GetLRCACount();
+
+    //! \brief  Get max pipe number of multipe pipe mode
+    //! \return uint8_t
+    //!         Return decode scalability mode
+    //!
+    uint8_t GetMaxMultiPipeNum() { return m_maxNumMultiPipe; }
+
+    bool m_usingSFC = false;
+
+    uint8_t m_typicalNumMultiPipe = 2;
+    uint8_t m_maxNumMultiPipe     = 2;
 };
 }
 #endif // !__VP_SCALABILITY_OPTION_H__

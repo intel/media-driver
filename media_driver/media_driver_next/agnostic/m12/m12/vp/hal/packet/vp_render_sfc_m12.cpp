@@ -57,6 +57,8 @@ MOS_STATUS SfcRenderM12::SetupSfcState(
     sfcStateParamsM12 = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.sfcStateParams);
     VP_RENDER_CHK_NULL_RETURN(sfcStateParamsM12);
 
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resAvsLineBuffer, m_AVSLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
+    VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resIefLineBuffer, m_IEFLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resSfdLineBuffer, m_SFDLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resAvsLineTileBuffer, m_AVSLineTileBufferSurface));
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resIefLineTileBuffer, m_IEFLineTileBufferSurface));
@@ -201,4 +203,39 @@ MOS_STATUS SfcRenderM12::SetupScalabilityParams()
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Set sfc pipe selected with vebox
+//! \details  Set sfc pipe selected with vebox
+//! \param    [in] dwSfcPipe
+//!           Sfc pipe selected with vebox
+//! \param    [in] dwSfcNum
+//!           Sfc pipe num in total
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+MOS_STATUS SfcRenderM12::SetSfcPipe(
+    uint32_t dwSfcPipe,
+    uint32_t dwSfcNum)
+{
+    MOS_STATUS         eStatus = MOS_STATUS_SUCCESS;
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcInterface);
+    PMHW_SFC_INTERFACE pSfcInterface = static_cast<PMHW_SFC_INTERFACE>(m_sfcInterface);
+
+    if (dwSfcPipe >= dwSfcNum)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Scalability sfc pipe set by vebox, dwSfcPipe %d, dwSfcNum %d", dwSfcPipe, dwSfcNum);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    m_scalabilityParams.curPipe    = dwSfcPipe;
+    m_scalabilityParams.numPipe    = dwSfcNum;
+    m_scalabilityParams.engineMode = (0 == m_scalabilityParams.curPipe) ? 1 : (m_scalabilityParams.numPipe - 1 == m_scalabilityParams.curPipe) ? 2 : 3;
+
+    pSfcInterface = m_sfcInterface;
+
+    pSfcInterface->SetSfcIndex(dwSfcPipe, dwSfcNum);
+
+    return eStatus;
 }

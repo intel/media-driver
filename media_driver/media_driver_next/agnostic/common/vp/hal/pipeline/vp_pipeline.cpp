@@ -367,10 +367,10 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
         &userFeatureData,
         m_osInterface->pOsContext);
 
-    bool disableScalability = false;
+    bool disableScalability = true;
     if (statusKey == MOS_STATUS_SUCCESS)
     {
-        disableScalability = userFeatureData.i32Data ? true : false;
+        disableScalability = userFeatureData.i32Data ? false : true;
     }
 
     if (disableScalability)

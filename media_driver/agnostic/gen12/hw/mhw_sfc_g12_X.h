@@ -50,6 +50,8 @@ struct MHW_SFC_STATE_PARAMS_G12: public MHW_SFC_STATE_PARAMS
     // Histogram stream out
     PMOS_SURFACE                    histogramSurface;                    //!< Histogram stream out buffer
     // Row Store and Column Store Scratch buffer
+    PMOS_RESOURCE                   resAvsLineBuffer;                        // AVS Row Store buffer used by SFC
+    PMOS_RESOURCE                   resIefLineBuffer;                        // IEF Row Store buffer used by SFC
     PMOS_RESOURCE                   resSfdLineBuffer;                        // SFD Row Store buffer used by SFC
     PMOS_RESOURCE                   resAvsLineTileBuffer;                    // AVS Column Store buffer used by SFC
     PMOS_RESOURCE                   resIefLineTileBuffer;                    // IEF Column Store buffer used by SFC
