@@ -315,7 +315,7 @@ protected:
 
 #else
 
-#define MOS_FUNCTION_CALL(_compID, _subCompID)
+#define MOS_FUNCTION_TRACE(_compID, _subCompID)
 
 #endif // #if MOS_MESSAGES_ENABLED
 #endif // __MOS_UTIL_DEBUG_NEXT_H__
