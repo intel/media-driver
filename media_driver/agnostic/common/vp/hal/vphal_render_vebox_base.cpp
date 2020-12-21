@@ -4353,7 +4353,14 @@ MOS_STATUS VpHal_RndrRenderVebox(
             float                    TempfScaleY = 1.0;
             if ((pRenderData->fScaleX >= 0.0625F) && (pRenderData->fScaleX < 0.125F))
             {
-                TempfScaleX = 0.5F;
+                if (pVeboxState->m_sfcPipeState->m_bSFC2PassPerfMode)
+                {
+                    TempfScaleX = 0.125F;
+                }
+                else
+                {
+                    TempfScaleX = 0.5F;
+                }
             }
             else if ((pRenderData->fScaleX > 8.0F) && (pRenderData->fScaleX <= 16.0F))
             {
@@ -4362,7 +4369,14 @@ MOS_STATUS VpHal_RndrRenderVebox(
 
             if ((pRenderData->fScaleY >= 0.0625F) && (pRenderData->fScaleY < 0.125F))
             {
-                TempfScaleY = 0.5F;
+                if (pVeboxState->m_sfcPipeState->m_bSFC2PassPerfMode)
+                {
+                    TempfScaleY = 0.125F;
+                }
+                else
+                {
+                    TempfScaleY = 0.5F;
+                }
             }
             else if ((pRenderData->fScaleY > 8.0F) && (pRenderData->fScaleY <= 16.0F))
             {
@@ -4375,13 +4389,41 @@ MOS_STATUS VpHal_RndrRenderVebox(
                 pInSurface->Rotation == VPHAL_MIRROR_HORIZONTAL ||
                 pInSurface->Rotation == VPHAL_MIRROR_VERTICAL)
             {
-                rcTempOut.right  = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
-                rcTempOut.bottom = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
+                if ((TempfScaleX == 1.0F) && pVeboxState->m_sfcPipeState->m_bSFC2PassPerfMode)
+                {
+                    rcTempOut.right = pInSurface->rcDst.right - pInSurface->rcDst.left;
+                }
+                else
+                {
+                    rcTempOut.right  = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
+                }
+                if ((TempfScaleY == 1.0F) && pVeboxState->m_sfcPipeState->m_bSFC2PassPerfMode)
+                {
+                    rcTempOut.bottom = pInSurface->rcDst.bottom - pInSurface->rcDst.top;
+                }
+                else
+                {
+                    rcTempOut.bottom = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
+                }
             }
             else
             {
-                rcTempOut.bottom = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
-                rcTempOut.right = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
+                if ((TempfScaleX == 1.0F) && pVeboxState->m_sfcPipeState->m_bSFC2PassPerfMode)
+                {
+                    rcTempOut.bottom = pInSurface->rcDst.right - pInSurface->rcDst.left;
+                }
+                else
+                {
+                    rcTempOut.bottom = (long)((pInSurface->rcSrc.right - pInSurface->rcSrc.left) * TempfScaleX);
+                }
+                if ((TempfScaleY == 1.0F) && pVeboxState->m_sfcPipeState->m_bSFC2PassPerfMode)
+                {
+                    rcTempOut.right = pInSurface->rcDst.bottom - pInSurface->rcDst.top;
+                }
+                else
+                {
+                    rcTempOut.right = (long)((pInSurface->rcSrc.bottom - pInSurface->rcSrc.top) * TempfScaleY);
+                }
             }
 
             VPHAL_RENDER_NORMALMESSAGE("x scaling ratio %f, y %f, 1st pass sfc scaling ratio %f",
