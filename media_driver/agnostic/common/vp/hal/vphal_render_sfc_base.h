@@ -562,6 +562,7 @@ private:
 
 public:
     bool                            m_bSFC2Pass = false;
+    bool                            m_bSFC2PassPerfMode = false;
 
 protected:
     bool                            disableSFC    = false;                      //!< Disable SFC for validation purposes
