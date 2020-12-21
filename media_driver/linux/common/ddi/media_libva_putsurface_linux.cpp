@@ -390,9 +390,9 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     DDI_CHK_NULL(dri_vtable, "Null dri_vtable", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     dri_drawable = dri_vtable->get_drawable(ctx, (Drawable)draw);
-    assert(dri_drawable);
+    DDI_CHK_NULL(dri_drawable, "Null dri_drawable", VA_STATUS_ERROR_INVALID_PARAMETER);
     buffer = dri_vtable->get_rendering_buffer(ctx, dri_drawable);
-    assert(buffer);
+    DDI_CHK_NULL(buffer, "Null buffer", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     bufferObject = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
     DDI_CHK_NULL(bufferObject, "Null bufferObject", VA_STATUS_ERROR_INVALID_SURFACE);
