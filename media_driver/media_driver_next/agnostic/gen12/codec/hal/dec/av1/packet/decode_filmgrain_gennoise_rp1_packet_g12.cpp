@@ -319,7 +319,7 @@ MOS_STATUS FilmGrainRp1Packet::KernelStateSetup()
     m_renderData.KernelParam.block_width        = CODECHAL_MACROBLOCK_WIDTH;
     m_renderData.KernelParam.block_height       = CODECHAL_MACROBLOCK_HEIGHT;
     m_renderData.KernelParam.blocks_x           = 1;
-    m_renderData.KernelParam.blocks_y           = 1;
+    m_renderData.KernelParam.blocks_y           = 32;
 
     m_renderData.iCurbeOffset                   = m_renderHal->pMhwStateHeap->GetSizeofCmdInterfaceDescriptorData();
 
