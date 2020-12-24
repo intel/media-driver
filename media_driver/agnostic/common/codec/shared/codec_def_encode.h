@@ -44,9 +44,7 @@ struct CodechalEncodeSeiData
 struct MetaDataOffset
 {
     uint32_t dwEncodeErrorFlags                         = 0;
-    uint32_t dwReferencePicturesMotionResultsBitMask    = 0;
     uint32_t dwEncodedBitstreamWrittenBytesCount        = 0;
-    uint32_t dwReconstructedPictureWrittenBytesCount    = 0;
     uint32_t dwWrittenSubregionsCount                   = 0;
 
     uint32_t dwbSize        = 0;
