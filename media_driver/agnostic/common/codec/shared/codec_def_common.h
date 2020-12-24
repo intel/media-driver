@@ -34,6 +34,7 @@
 #define CODEC_MAX_NUM_REF_FRAME             16
 #define CODEC_MAX_NUM_REF_FRAME_NON_AVC     4
 #define CODEC_NUM_FIELDS_PER_FRAME          2
+#define CODEC_MAX_NUM_REF_RECYCLE_LIST      17
 
 #define CODEC_NUM_BLOCK_PER_MB              6  //!<  Block number per MB: 4Y + Cb +Cr
 

@@ -3813,14 +3813,6 @@ MOS_STATUS CodechalVdencHevcState::PrepareHWMetaData(
     storeDataParams.dwValue             = 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
-    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwReferencePicturesMotionResultsBitMask;
-    storeDataParams.dwValue             = 0;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
-
-    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwReconstructedPictureWrittenBytesCount;
-    storeDataParams.dwValue             = 0;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
-
     storeDataParams.dwResourceOffset    = m_metaDataOffset.dwWrittenSubregionsCount;
     storeDataParams.dwValue             = m_numSlices;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
