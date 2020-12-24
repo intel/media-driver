@@ -210,14 +210,6 @@ struct _MHW_CMD_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
 {
     virtual ~_MHW_CMD_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)() = default;
 
-    uint32_t mode                                            = 0;
-
-    // AVC
-    uint8_t  weighted_pred_flag                              = 0;
-    uint8_t  weighted_bipred_idc                             = 0;
-    int16_t  weights[2][32][3][2]                            = {};
-
-    // AV1, HEVC
     int8_t   weightsLuma[MAX_REF_LIST_NUM][MAX_REF_NUM]      = {};
     int16_t  offsetsLuma[MAX_REF_LIST_NUM][MAX_REF_NUM]      = {};
     uint32_t denomLuma                                       = 0;
