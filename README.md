@@ -37,9 +37,15 @@ Equivalents for other distributions should work.
 <workspace>
     |- media-driver
 ```
-4. 
+4. Create build_media new folder under your workspace
 ```
 $ mkdir <workspace>/build_media
+```
+then the workspace looks like below
+```
+<workspace>
+    |- media-driver
+    |- build_media
 ```
 5. 
 ```
