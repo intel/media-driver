@@ -108,7 +108,8 @@ BufferArray * DecodeAllocator::AllocateBufferArray(
 
 MOS_SURFACE* DecodeAllocator::AllocateSurface(
     const uint32_t width, const uint32_t height, const char* nameOfSurface,
-    MOS_FORMAT format, bool isCompressible, ResourceUsage resUsageType)
+    MOS_FORMAT format, bool isCompressible, ResourceUsage resUsageType,
+    MOS_TILE_MODE_GMM gmmTileMode)
 {
     if (!m_allocator)
         return nullptr;
@@ -124,6 +125,7 @@ MOS_SURFACE* DecodeAllocator::AllocateSurface(
     allocParams.pBufName    = nameOfSurface;
     allocParams.bIsCompressible = isCompressible;
     allocParams.ResUsageType = static_cast<MOS_HW_RESOURCE_DEF>(resUsageType);
+    allocParams.m_tileModeByForce = gmmTileMode;
 
     MOS_SURFACE* surface = m_allocator->AllocateSurface(allocParams, false, COMPONENT_Decode);
     if (surface == nullptr)
@@ -330,7 +332,8 @@ MOS_STATUS DecodeAllocator::Resize(MOS_SURFACE* &surface, const uint32_t widthNe
     {
         MOS_SURFACE* surfaceNew = AllocateSurface(widthNew, heightNew, nameOfSurface,
             surface->Format, surface->bCompressible,
-            ConvertGmmResourceUsage(surface->OsResource.pGmmResInfo->GetCachePolicyUsage()));
+            ConvertGmmResourceUsage(surface->OsResource.pGmmResInfo->GetCachePolicyUsage()), 
+            surface->TileModeGMM);
         DECODE_CHK_NULL(surfaceNew);
 
         Destroy(surface);

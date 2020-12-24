@@ -125,12 +125,15 @@ public:
     //!         Compressible flag, by default is false
     //! \param  [in] resUsageType
     //!         ResourceUsage to be set
+    //! \param  [in] gmmTileMode
+    //!         Specified GMM tile mode
     //! \return MOS_SURFACE*
     //!         return the pointer to MOS_SURFACE
     //!
     MOS_SURFACE* AllocateSurface(
         const uint32_t width, const uint32_t height, const char* nameOfSurface, MOS_FORMAT format = Format_NV12,
-        bool isCompressible = false, ResourceUsage resUsageType = resourceDefault);
+        bool isCompressible = false, ResourceUsage resUsageType = resourceDefault,
+        MOS_TILE_MODE_GMM gmmTileMode = MOS_TILE_UNSET_GMM);
 
     //!
     //! \brief  Allocate surface array

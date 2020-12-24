@@ -220,6 +220,10 @@ namespace decode
                 surface.dwWidth  = m_width;
                 surface.dwHeight = m_height;
                 DECODE_CHK_STATUS(GetDecodeTargetFormat(surface.Format));
+
+                auto procParams = (DecodeProcessingParams *)decodeParams->m_procParams;
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(procParams->m_outputSurface));
+                surface.TileModeGMM = procParams->m_outputSurface->TileModeGMM;
             }
             else
             {
@@ -254,7 +258,8 @@ namespace decode
                 if (m_fgInternalSurf == nullptr || m_allocator->ResourceIsNull(&m_fgInternalSurf->OsResource))
                 {
                     m_fgInternalSurf = m_allocator->AllocateSurface(m_width, m_height,
-                        "Internal film grain target surface", surface.Format, IsMmcEnabled(), resourceOutputPicture);
+                        "Internal film grain target surface", surface.Format, IsMmcEnabled(), resourceOutputPicture, 
+                        surface.TileModeGMM);
                 }
                 else
                 {

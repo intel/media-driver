@@ -106,7 +106,8 @@ public:
                                             "Internal target surface",
                                             dstSurface->Format,
                                             isMmcEnabled,
-                                            resUsageType);
+                                            resUsageType,
+                                            dstSurface->TileModeGMM);
         }
         else
         {
