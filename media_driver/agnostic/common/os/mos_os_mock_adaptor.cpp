@@ -165,5 +165,7 @@ MOS_STATUS MosMockAdaptor::Initialize(
 
     MOS_OS_CHK_STATUS_RETURN(ReplacePlatformInfo(osContext));
 
+    MOS_OS_CHK_STATUS_RETURN(UpdateUserFeatureKey(osContext));
+
     return eStatus;
 }

@@ -61,5 +61,14 @@ private:
     //!           Pointer of LinuxDeviceInit.
     //!
     LinuxDeviceInit *GetDeviceInit(uint32_t platKey);
+
+    //!
+    //! \brief    Update User FeatureKey
+    //! \details  Update User FeatureKey to report platform info.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateUserFeatureKey(
+        PMOS_CONTEXT osContext) override;
 };
 #endif
