@@ -311,6 +311,75 @@ static bool rklGt1fDevice4C9A = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x4C9A, &rklGt1Info);
 #endif
 
+#ifdef IGFX_GEN12_ADLS_SUPPORTED
+static struct GfxDeviceInfo adlsGt1Info = {
+    .platformType     = PLATFORM_DESKTOP,
+    .productFamily    = IGFX_ALDERLAKE_S,
+    .displayFamily    = IGFX_GEN12_CORE,
+    .renderFamily     = IGFX_GEN12_CORE,
+    .eGTType          = GTTYPE_GT1,
+    .L3CacheSizeInKb  = 0,
+    .L3BankCount      = 0,
+    .EUCount          = 0,
+    .SliceCount       = 0,
+    .SubSliceCount    = 0,
+    .MaxEuPerSubSlice = 0,
+    .isLCIA           = 0,
+    .hasLLC           = 0,
+    .hasERAM          = 0,
+    .InitMediaSysInfo = InitTglMediaSysInfo,
+    .InitShadowSku    = InitTglShadowSku,
+    .InitShadowWa     = InitTglShadowWa,
+};
+
+
+static struct GfxDeviceInfo adlsGt1fInfo = {
+    .platformType     = PLATFORM_DESKTOP,
+    .productFamily    = IGFX_ALDERLAKE_S,
+    .displayFamily    = IGFX_GEN12_CORE,
+    .renderFamily     = IGFX_GEN12_CORE,
+    .eGTType          = GTTYPE_GT0_5,
+    .L3CacheSizeInKb  = 0,
+    .L3BankCount      = 0,
+    .EUCount          = 0,
+    .SliceCount       = 0,
+    .SubSliceCount    = 0,
+    .MaxEuPerSubSlice = 0,
+    .isLCIA           = 0,
+    .hasLLC           = 0,
+    .hasERAM          = 0,
+    .InitMediaSysInfo = InitTglMediaSysInfo,
+    .InitShadowSku    = InitTglShadowSku,
+    .InitShadowWa     = InitTglShadowWa,
+};
+
+
+static bool adlsGt1Device4680 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4680, &adlsGt1Info);
+
+static bool adlsGt1Device4681 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4681, &adlsGt1Info);
+
+static bool adlsGt1Device4682 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4682, &adlsGt1Info);
+
+static bool adlsGt1Device4683 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4683, &adlsGt1fInfo);
+
+static bool adlsGt1Device4690 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4690, &adlsGt1Info);
+
+static bool adlsGt1Device4691 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4691, &adlsGt1Info);
+
+static bool adlsGt1Device4692 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4692, &adlsGt1Info);
+
+static bool adlsGt1Device4693 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4693, &adlsGt1Info);
+
+#endif
+
 static bool tgllpGt2Device9a40 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9A40, &tgllpGt2Info);
 

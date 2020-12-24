@@ -477,6 +477,56 @@ static bool rklDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
 
 #endif
 
+#ifdef IGFX_GEN12_ADLS_SUPPORTED
+static bool InitAdlsMediaSku(struct GfxDeviceInfo *devInfo,
+                             MediaFeatureTable *skuTable,
+                             struct LinuxDriverInfo *drvInfo)
+{
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    {
+        return false;
+    }
+
+    if (devInfo->eGTType == GTTYPE_GT0_5)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT0_5, 1);
+    }
+
+    MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
+
+    //Disable VP8 for ADLS
+    MEDIA_WR_SKU(skuTable, FtrIntelVP8VLDDecoding, 0);
+
+    return true;
+}
+
+static bool InitAdlsMediaWa(struct GfxDeviceInfo* devInfo,
+                            MediaWaTable* waTable,
+                            struct LinuxDriverInfo* drvInfo)
+{
+    if (!InitTglMediaWa(devInfo, waTable, drvInfo))
+    {
+        return false;
+    }
+
+    //ADL-S not need this
+    MEDIA_WR_WA(waTable, Wa_1409820462, 0);
+
+    return true;
+}
+
+static struct LinuxDeviceInit adlsDeviceInit =
+{
+    .productFamily    = IGFX_ALDERLAKE_S,
+    .InitMediaFeature = InitAdlsMediaSku,
+    .InitMediaWa = InitAdlsMediaWa,
+};
+
+static bool adlsDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
+    RegisterDevice(IGFX_ALDERLAKE_S, &adlsDeviceInit);
+#endif
+
+
 static struct LinuxDeviceInit tgllpDeviceInit =
 {
     .productFamily    = IGFX_TIGERLAKE_LP,

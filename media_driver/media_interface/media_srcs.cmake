@@ -67,4 +67,8 @@ if(GEN12_RKL)
     media_include_subdirectory(media_interfaces_m12_rkl)
 endif()
 
+if(GEN12_ADLS)
+    media_include_subdirectory(media_interfaces_m12_adls)
+endif()
+
 include(${MEDIA_EXT}/media_interface/media_srcs.cmake OPTIONAL)
