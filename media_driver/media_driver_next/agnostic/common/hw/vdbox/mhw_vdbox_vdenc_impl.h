@@ -817,56 +817,35 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_WEIGHTSOFFSETS_STATE);
 
-        if (params->mode == CODECHAL_ENCODE_MODE_AVC)
-        {
-            if (params->weighted_pred_flag)
-            {
-                cmd->DW1.WeightsForwardReference0  = params->weights[0][0][0][0];
-                cmd->DW1.OffsetForwardReference0   = params->weights[0][0][0][1];
-                cmd->DW1.WeightsForwardReference1  = params->weights[0][1][0][0];
-                cmd->DW1.OffsetForwardReference1   = params->weights[0][1][0][1];
-                cmd->DW2.WeightsForwardReference2  = params->weights[0][2][0][0];
-                cmd->DW2.OffsetForwardReference2   = params->weights[0][2][0][1];
-            }
+        cmd->DW1.WeightsForwardReference0 = Clip3(-128, 127, params->weightsLuma[0][0] + params->denomLuma);
+        cmd->DW1.OffsetForwardReference0  = params->offsetsLuma[0][0];
+        cmd->DW1.WeightsForwardReference1 = Clip3(-128, 127, params->weightsLuma[0][1] + params->denomLuma);
+        cmd->DW1.OffsetForwardReference1  = params->offsetsLuma[0][1];
 
-            if (params->weighted_bipred_idc == EXPLICIT_WEIGHTED_INTER_PRED_MODE)
-            {
-                cmd->DW2.WeightsBackwardReference0 = params->weights[1][0][0][0];
-                cmd->DW2.OffsetBackwardReference0  = params->weights[1][0][0][1];
-            }
-        }
-        else
-        {
-            cmd->DW1.WeightsForwardReference0 = Clip3(-128, 127, params->weightsLuma[0][0] + params->denomLuma);
-            cmd->DW1.OffsetForwardReference0  = params->offsetsLuma[0][0];
-            cmd->DW1.WeightsForwardReference1 = Clip3(-128, 127, params->weightsLuma[0][1] + params->denomLuma);
-            cmd->DW1.OffsetForwardReference1  = params->offsetsLuma[0][1];
+        cmd->DW2.WeightsForwardReference2  = Clip3(-128, 127, params->weightsLuma[0][2] + params->denomLuma);
+        cmd->DW2.OffsetForwardReference2   = params->offsetsLuma[0][2];
+        cmd->DW2.WeightsBackwardReference0 = Clip3(-128, 127, params->weightsLuma[1][0] + params->denomLuma);
+        cmd->DW2.OffsetBackwardReference0  = params->offsetsLuma[1][0];
 
-            cmd->DW2.WeightsForwardReference2  = Clip3(-128, 127, params->weightsLuma[0][2] + params->denomLuma);
-            cmd->DW2.OffsetForwardReference2   = params->offsetsLuma[0][2];
-            cmd->DW2.WeightsBackwardReference0 = Clip3(-128, 127, params->weightsLuma[1][0] + params->denomLuma);
-            cmd->DW2.OffsetBackwardReference0  = params->offsetsLuma[1][0];
+        cmd->DW3.CbWeightsForwardReference0 = Clip3(-128, 127, params->weightsChroma[0][0][0] + params->denomChroma);
+        cmd->DW3.CbOffsetForwardReference0  = params->offsetsChroma[0][0][0];
+        cmd->DW3.CbWeightsForwardReference1 = Clip3(-128, 127, params->weightsChroma[0][1][0] + params->denomChroma);
+        cmd->DW3.CbOffsetForwardReference1  = params->offsetsChroma[0][1][0];
 
-            cmd->DW3.CbWeightsForwardReference0 = Clip3(-128, 127, params->weightsChroma[0][0][0] + params->denomChroma);
-            cmd->DW3.CbOffsetForwardReference0  = params->offsetsChroma[0][0][0];
-            cmd->DW3.CbWeightsForwardReference1 = Clip3(-128, 127, params->weightsChroma[0][1][0] + params->denomChroma);
-            cmd->DW3.CbOffsetForwardReference1  = params->offsetsChroma[0][1][0];
+        cmd->DW4.CbWeightsForwardReference2  = Clip3(-128, 127, params->weightsChroma[0][2][0] + params->denomChroma);
+        cmd->DW4.CbOffsetForwardReference2   = params->offsetsChroma[0][2][0];
+        cmd->DW4.CbWeightsBackwardReference0 = Clip3(-128, 127, params->weightsChroma[1][0][0] + params->denomChroma);
+        cmd->DW4.CbOffsetBackwardReference0  = params->offsetsChroma[1][0][0];
 
-            cmd->DW4.CbWeightsForwardReference2  = Clip3(-128, 127, params->weightsChroma[0][2][0] + params->denomChroma);
-            cmd->DW4.CbOffsetForwardReference2   = params->offsetsChroma[0][2][0];
-            cmd->DW4.CbWeightsBackwardReference0 = Clip3(-128, 127, params->weightsChroma[1][0][0] + params->denomChroma);
-            cmd->DW4.CbOffsetBackwardReference0  = params->offsetsChroma[1][0][0];
+        cmd->DW5.CrWeightsForwardReference0 = Clip3(-128, 127, params->weightsChroma[0][0][1] + params->denomChroma);
+        cmd->DW5.CrOffsetForwardReference0  = params->offsetsChroma[0][0][1];
+        cmd->DW5.CrWeightsForwardReference1 = Clip3(-128, 127, params->weightsChroma[0][1][1] + params->denomChroma);
+        cmd->DW5.CrOffsetForwardReference1  = params->offsetsChroma[0][1][1];
 
-            cmd->DW5.CrWeightsForwardReference0 = Clip3(-128, 127, params->weightsChroma[0][0][1] + params->denomChroma);
-            cmd->DW5.CrOffsetForwardReference0  = params->offsetsChroma[0][0][1];
-            cmd->DW5.CrWeightsForwardReference1 = Clip3(-128, 127, params->weightsChroma[0][1][1] + params->denomChroma);
-            cmd->DW5.CrOffsetForwardReference1  = params->offsetsChroma[0][1][1];
-
-            cmd->DW6.CrWeightsForwardReference2  = Clip3(-128, 127, params->weightsChroma[0][2][1] + params->denomChroma);
-            cmd->DW6.CrOffsetForwardReference2   = params->offsetsChroma[0][2][1];
-            cmd->DW6.CrWeightsBackwardReference0 = Clip3(-128, 127, params->weightsChroma[1][0][1] + params->denomChroma);
-            cmd->DW6.CrOffsetBackwardReference0  = params->offsetsChroma[1][0][1];
-        }
+        cmd->DW6.CrWeightsForwardReference2  = Clip3(-128, 127, params->weightsChroma[0][2][1] + params->denomChroma);
+        cmd->DW6.CrOffsetForwardReference2   = params->offsetsChroma[0][2][1];
+        cmd->DW6.CrWeightsBackwardReference0 = Clip3(-128, 127, params->weightsChroma[1][0][1] + params->denomChroma);
+        cmd->DW6.CrOffsetBackwardReference0  = params->offsetsChroma[1][0][1];
 
         return MOS_STATUS_SUCCESS;
     }
