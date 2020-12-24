@@ -119,6 +119,18 @@ protected:
     virtual MOS_STATUS InitContext(
         PMOS_CONTEXT osContext);
 
+    //!
+    //! \brief    Update User FeatureKey
+    //! \details  Update User FeatureKey to report platform info.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateUserFeatureKey(
+        PMOS_CONTEXT osContext)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     PLATFORM                *m_pPlatform     = nullptr;
     MEDIA_WA_TABLE          *m_pWaTable      = nullptr;
