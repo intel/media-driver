@@ -720,7 +720,7 @@ MOS_STATUS CodecHalEncodeSfcBase::SetVeboxDiIecpParams(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
     params->dwStartingX             = 0;
-    params->dwEndingX               = m_inputSurface->dwWidth - 1;
+    params->dwEndingX               = m_inputSurfaceRegion.Width - 1; // Must be taken from SPS
     params->dwCurrInputSurfOffset   = m_inputSurface->dwOffset;
     params->pOsResCurrInput         = &m_inputSurface->OsResource;
     params->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
@@ -898,8 +898,15 @@ MOS_STATUS CodecHalEncodeSfcBase::SetSfcStateParams(
     widthAlignUnit                         = sfcInterface->m_veWidthAlignment;
     heightAlignUnit                        = sfcInterface->m_veHeightAlignment;
 
-    params->dwInputFrameWidth              = MOS_ALIGN_CEIL(m_inputSurface->dwWidth, widthAlignUnit);
-    params->dwInputFrameHeight             = MOS_ALIGN_CEIL(m_inputSurface->dwHeight, heightAlignUnit);
+    // Width and height must be set using SPS params instead of real surface size
+    if (m_inputSurface->dwWidth < m_inputSurfaceRegion.Width ||
+        m_inputSurface->dwHeight < m_inputSurfaceRegion.Height)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("width and height must be less than surface size");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    params->dwInputFrameWidth              = MOS_ALIGN_CEIL(m_inputSurfaceRegion.Width, widthAlignUnit);
+    params->dwInputFrameHeight             = MOS_ALIGN_CEIL(m_inputSurfaceRegion.Height, heightAlignUnit);
 
     params->dwChromaDownSamplingMode       = MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_444TO420;
     params->bAVSChromaUpsamplingEnable     = m_scaling;
