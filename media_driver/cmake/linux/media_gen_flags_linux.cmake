@@ -73,6 +73,10 @@ cmake_dependent_option(GEN12_RKL
     "Enabled RKL support (Gen12)" ON
     "GEN12_TGLLP" OFF)
 
+cmake_dependent_option(GEN12_ADLS
+    "Enabled ADLS support (Gen12)" ON
+    "GEN12_TGLLP" OFF)
+
 if(GEN8)
     add_definitions(-DIGFX_GEN8_SUPPORTED)
 endif()
@@ -150,6 +154,10 @@ endif()
 
 if(GEN12_RKL)
     add_definitions(-DIGFX_GEN12_RKL_SUPPORTED)
+endif()
+
+if(GEN12_ADLS)
+    add_definitions(-DIGFX_GEN12_ADLS_SUPPORTED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)
