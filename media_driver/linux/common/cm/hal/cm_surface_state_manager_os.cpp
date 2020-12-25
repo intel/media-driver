@@ -29,9 +29,9 @@
 CmSurfaceState3DMgr::CmSurfaceState3DMgr(CM_HAL_STATE *cmhal, MOS_RESOURCE *resource):
     CmSurfaceState2Dor3DMgr(cmhal, resource)
 {
-    CM_CHK_NULL_RETURN_VOID(resource);
     MOS_ZeroMemory(&m_resourceFor3d, sizeof(m_resourceFor3d));
+    CM_CHK_NULL_RETURN_VOID(resource);
     m_resourceFor3d = *resource;
     m_resource = &m_resourceFor3d;
+    return;
 }
-
