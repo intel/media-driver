@@ -997,7 +997,7 @@ finish:
 
 bool VpVeboxCmdPacket::UseKernelResource()
 {
-    return false;
+    return true;// false;
 }
 
 MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceParams(
@@ -1616,6 +1616,36 @@ MOS_STATUS VpVeboxCmdPacket::Init()
     return eStatus;
 }
 
+MOS_STATUS VpVeboxCmdPacket::Prepare()
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    return eStatus;
+}
+
+MOS_STATUS VpVeboxCmdPacket::PrepareState()
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    if (m_packetResourcesdPrepared)
+    {
+        VP_RENDER_NORMALMESSAGE("Resource Prepared, skip this time");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    VP_RENDER_CHK_STATUS_RETURN(SetupIndirectStates());
+
+    VP_RENDER_CHK_STATUS_RETURN(UpdateVeboxStates());
+
+    m_packetResourcesdPrepared = true;
+
+    return eStatus;
+}
+
 MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_SURFACE                          *inputSurface,
     VP_SURFACE                          *outputSurface,
@@ -1626,6 +1656,7 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_FUNC_CALL();
 
     VpVeboxRenderData       *pRenderData = GetLastExecRenderData();
+    m_packetResourcesdPrepared = false;
 
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
     VP_RENDER_CHK_NULL_RETURN(inputSurface);
@@ -1696,9 +1727,6 @@ MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t p
         }
     }
 
-    // Setup, Copy and Update VEBOX State
-    VP_RENDER_CHK_STATUS_RETURN(CopyAndUpdateVeboxState());
-
     // Send vebox command
     VP_RENDER_CHK_STATUS_RETURN(SendVeboxCmd(commandBuffer));
 
@@ -1737,34 +1765,6 @@ VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
     m_allocator->DestroyVpSurface(m_currentSurface);
     m_allocator->DestroyVpSurface(m_previousSurface);
     m_allocator->DestroyVpSurface(m_renderTarget);
-}
-
-MOS_STATUS VpVeboxCmdPacket::CopyAndUpdateVeboxState()
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    // Setup VEBOX State
-    VP_RENDER_CHK_STATUS_RETURN(SetupIndirectStates());
-
-    // Copy VEBOX State
-    VP_RENDER_CHK_STATUS_RETURN(CopyVeboxStates());
-
-    // Update VEBOX State
-    VP_RENDER_CHK_STATUS_RETURN(UpdateVeboxStates());
-
-    return eStatus;
-}
-
-
-//!
-//! \brief    Vebox Copy Vebox state heap, intended for HM or IDM
-//! \details  Copy Vebox state heap between different memory
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS VpVeboxCmdPacket::CopyVeboxStates()
-{
-    return MOS_STATUS_SUCCESS;  // no need to copy, always use driver resource in clear memory
 }
 
 //!
@@ -1861,19 +1861,6 @@ MOS_STATUS VpVeboxCmdPacket::GetStatisticsSurfaceOffsets(
 
 finish:
     return eStatus;
-}
-
-//!
-//! \brief    Vebox state heap update for auto mode features
-//! \details  Update Vebox indirect states for auto mode features
-//! \param    [in] pSrcSurface
-//!           Pointer to input surface of Vebox
-//! \return   MOS_STATUS
-//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-//!
-MOS_STATUS VpVeboxCmdPacket::UpdateVeboxStates()
-{
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpVeboxCmdPacket::AddVeboxDndiState()
@@ -2346,6 +2333,11 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagPaFormat()
         }
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::UpdateVeboxStates()
+{
     return MOS_STATUS_SUCCESS;
 }
 

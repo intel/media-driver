@@ -319,7 +319,7 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SU
 {
     surfSetting.Clean();
 
-    if (caps.bVebox)
+    if (caps.bVebox || caps.bDnKernelUpdate)
     {
         // Create Vebox Resources
         VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurface, outputSurface, pastSurface, futureSurface, resHint, surfSetting));

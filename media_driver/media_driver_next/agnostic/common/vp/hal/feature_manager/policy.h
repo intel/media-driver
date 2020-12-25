@@ -115,6 +115,10 @@ protected:
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
     bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps);
+    virtual MOS_STATUS UpdateSecureExecuteResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
