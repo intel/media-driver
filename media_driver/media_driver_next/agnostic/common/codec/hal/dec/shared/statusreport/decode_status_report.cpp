@@ -30,8 +30,7 @@
 namespace decode {
 
     DecodeStatusReport::DecodeStatusReport(
-        DecodeAllocator* allocator, bool enableMfx, bool enableRcs):
-        m_enableMfx(enableMfx),
+        DecodeAllocator* allocator, bool enableRcs):
         m_enableRcs(enableRcs),
         m_allocator(allocator)
     {
@@ -47,21 +46,18 @@ namespace decode {
     {
         DECODE_FUNC_CALL();
 
-        m_decodeCompletedCountBuf = m_allocator->AllocateBuffer(sizeof(uint32_t) * 2, "StatusQueryBufferGlobalCount", resourceInternalWrite, true, 0, true);
-        m_completedCountBuf = &m_decodeCompletedCountBuf->OsResource;
-        DECODE_CHK_STATUS(m_allocator->SkipResourceSync(m_decodeCompletedCountBuf));
+        // Allocate status buffer which includes completed count and decode status
+        m_statusBufMfx = m_allocator->AllocateBuffer(m_completedCountSize + m_statusBufSizeMfx * m_statusNum, "StatusQueryBufferMfx", resourceInternalWrite, true, 0, true);
+        DECODE_CHK_NULL(m_statusBufMfx);
+        m_completedCountBuf = &(m_statusBufMfx->OsResource);
 
-        m_completedCount = (uint32_t*)m_allocator->LockResouceForRead(m_decodeCompletedCountBuf);
-        DECODE_CHK_NULL(m_completedCount);
+        DECODE_CHK_STATUS(m_allocator->SkipResourceSync(m_statusBufMfx));
+        uint8_t *data = (uint8_t *)m_allocator->LockResouceForRead(m_statusBufMfx);
+        DECODE_CHK_NULL(data);
 
-        if (m_enableMfx)
-        {
-            m_statusBufMfx = m_allocator->AllocateBuffer(m_statusBufSizeMfx * m_statusNum, "StatusQueryBufferMfx", resourceInternalWrite, true, 0, true);
-
-            DECODE_CHK_STATUS(m_allocator->SkipResourceSync(m_statusBufMfx));
-            m_dataStatusMfx = (uint8_t*)m_allocator->LockResouceForRead(m_statusBufMfx);
-            DECODE_CHK_NULL(m_dataStatusMfx);
-        }
+        // complete count located at the beginging of the status buffer, following with decode status
+        m_completedCount = (uint32_t *)data;
+        m_dataStatusMfx  = data + m_completedCountSize;
 
         if (m_enableRcs)
         {
@@ -86,11 +82,9 @@ namespace decode {
         {
             m_statusBufAddr[i].osResource = &m_statusBufMfx->OsResource;
             m_statusBufAddr[i].bufSize = m_statusBufSizeMfx;
-            m_statusBufAddr[i].offset = i * sizeof(uint32_t);
         }
 
         m_statusBufAddr[statusReportRcs].osResource = &m_statusBufRcs->OsResource;
-        m_statusBufAddr[statusReportRcs].offset = 0;
         m_statusBufAddr[statusReportRcs].bufSize = m_statusBufSizeRcs;
 
         SetOffsetsForStatusBuf();
@@ -115,11 +109,8 @@ namespace decode {
             m_statusReportData[submitIndex].currDecodedPicRes = inputParameters->currDecodedPicRes;
         }
 
-        if (m_enableMfx)
-        {
-            DecodeStatusMfx* decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + submitIndex * m_statusBufSizeMfx);
-            decodeStatusMfx->status = querySkipped;
-        }
+        DecodeStatusMfx* decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + submitIndex * m_statusBufSizeMfx);
+        decodeStatusMfx->status = querySkipped;
 
         if (m_enableRcs)
         {
@@ -139,11 +130,8 @@ namespace decode {
         m_submittedCount++;
         uint32_t submitIndex = CounterToIndex(m_submittedCount);
 
-        if (m_enableMfx)
-        {
-            DecodeStatusMfx* decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + submitIndex * m_statusBufSizeMfx);
-            MOS_ZeroMemory((uint8_t*)decodeStatusMfx, m_statusBufSizeMfx);
-        }
+        DecodeStatusMfx* decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + submitIndex * m_statusBufSizeMfx);
+        MOS_ZeroMemory((uint8_t*)decodeStatusMfx, m_statusBufSizeMfx);
 
         if (m_enableRcs)
         {
@@ -158,25 +146,23 @@ namespace decode {
     {
         DECODE_FUNC_CALL();
 
-        MOS_STATUS      eStatus = MOS_STATUS_SUCCESS;
         DecodeStatusMfx* decodeStatusMfx = nullptr;
         DecodeStatusRcs* decodeStatusRcs = nullptr;
 
-        bool            mfxCompleted = false;
-        bool            rcsCompleted = false;
-
         DecodeStatusReportData* statusReportData = &m_statusReportData[index];
 
-        if (m_enableMfx)
-        {
-            decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + index * m_statusBufSizeMfx);
-            mfxCompleted = (decodeStatusMfx->status == queryEnd) || (decodeStatusMfx->status == querySkipped);
-        }
+        decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + index * m_statusBufSizeMfx);
+        bool mfxCompleted = (decodeStatusMfx->status == queryEnd) || (decodeStatusMfx->status == querySkipped);
 
+        bool rcsCompleted = false;
         if (m_enableRcs)
         {
             decodeStatusRcs = (DecodeStatusRcs *)(m_dataStatusRcs + index * m_statusBufSizeRcs);
             rcsCompleted    = (decodeStatusRcs->status == queryEnd) || (decodeStatusRcs->status == querySkipped);
+        }
+        else
+        {
+            rcsCompleted    = true;
         }
 
         UpdateCodecStatus(statusReportData, decodeStatusMfx, mfxCompleted && rcsCompleted);
@@ -184,12 +170,12 @@ namespace decode {
         // The frame is completed, notify the observers
         if (statusReportData->codecStatus == CODECHAL_STATUS_SUCCESSFUL)
         {
-            eStatus = NotifyObservers(decodeStatusMfx, decodeStatusRcs, statusReportData);
+            NotifyObservers(decodeStatusMfx, decodeStatusRcs, statusReportData);
         }
 
         *((DecodeStatusReportData*)report) = *statusReportData;
 
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS DecodeStatusReport::SetStatus(void *report, uint32_t index, bool outOfRange)
@@ -207,23 +193,26 @@ namespace decode {
 
     void DecodeStatusReport::SetOffsetsForStatusBuf()
     {
-        m_statusBufAddr[statusReportMfx].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, status);
-        m_statusBufAddr[DecErrorStatusOffset].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioErrorStatusReg);
-        m_statusBufAddr[DecMBCountOffset].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioMBCountReg);
-        m_statusBufAddr[DecFrameCrcOffset].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioFrameCrcReg);
-        m_statusBufAddr[CsEngineIdOffset_0].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[0]);
-        m_statusBufAddr[CsEngineIdOffset_1].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[1]);
-        m_statusBufAddr[CsEngineIdOffset_2].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[2]);
-        m_statusBufAddr[CsEngineIdOffset_3].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[3]);
-        m_statusBufAddr[CsEngineIdOffset_4].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[4]);
-        m_statusBufAddr[CsEngineIdOffset_5].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[5]);
-        m_statusBufAddr[CsEngineIdOffset_6].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[6]);
-        m_statusBufAddr[CsEngineIdOffset_7].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[7]);
-        m_statusBufAddr[HucErrorStatus2Mask].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2);
-        m_statusBufAddr[HucErrorStatus2Reg].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2) + sizeof(uint32_t);
-        m_statusBufAddr[HucErrorStatusMask].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus);
-        m_statusBufAddr[HucErrorStatusReg].offset = CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus) + sizeof(uint32_t);
-        m_statusBufAddr[statusReportRcs].offset = CODECHAL_OFFSETOF(DecodeStatusRcs, status);
+        const uint32_t mfxStatusOffset = m_completedCountSize;
+        m_statusBufAddr[statusReportMfx].offset      = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, status);
+        m_statusBufAddr[DecErrorStatusOffset].offset = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioErrorStatusReg);
+        m_statusBufAddr[DecMBCountOffset].offset     = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioMBCountReg);
+        m_statusBufAddr[DecFrameCrcOffset].offset    = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioFrameCrcReg);
+        m_statusBufAddr[CsEngineIdOffset_0].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[0]);
+        m_statusBufAddr[CsEngineIdOffset_1].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[1]);
+        m_statusBufAddr[CsEngineIdOffset_2].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[2]);
+        m_statusBufAddr[CsEngineIdOffset_3].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[3]);
+        m_statusBufAddr[CsEngineIdOffset_4].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[4]);
+        m_statusBufAddr[CsEngineIdOffset_5].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[5]);
+        m_statusBufAddr[CsEngineIdOffset_6].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[6]);
+        m_statusBufAddr[CsEngineIdOffset_7].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[7]);
+        m_statusBufAddr[HucErrorStatus2Mask].offset  = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2);
+        m_statusBufAddr[HucErrorStatus2Reg].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2) + sizeof(uint32_t);
+        m_statusBufAddr[HucErrorStatusMask].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus);
+        m_statusBufAddr[HucErrorStatusReg].offset    = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus) + sizeof(uint32_t);
+
+        const uint32_t rcsStatusOffset = 0;
+        m_statusBufAddr[statusReportRcs].offset      = rcsStatusOffset + CODECHAL_OFFSETOF(DecodeStatusRcs, status);
     }
 
     MOS_STATUS DecodeStatusReport::UpdateCodecStatus(
@@ -250,20 +239,12 @@ namespace decode {
     {
         DECODE_FUNC_CALL();
 
-        if (m_decodeCompletedCountBuf != nullptr)
-        {
-            m_allocator->UnLock(m_decodeCompletedCountBuf);
-            m_allocator->Destroy(m_decodeCompletedCountBuf);
-
-            m_completedCountBuf = nullptr;
-            m_decodeCompletedCountBuf = nullptr;
-        }
-
         if (m_statusBufMfx != nullptr)
         {
             m_allocator->UnLock(m_statusBufMfx);
             m_allocator->Destroy(m_statusBufMfx);
             m_statusBufMfx = nullptr;
+            m_completedCountBuf = nullptr;
         }
 
         if (m_statusBufRcs != nullptr)
