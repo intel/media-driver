@@ -220,13 +220,6 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
 
 MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox)
 {
-    // PrePare Packet in case any packet resources shared
-    for (std::vector<VpCmdPacket*>::reverse_iterator it = m_Pipe.rbegin(); it != m_Pipe.rend(); ++it)
-    {
-        VpCmdPacket* packet = *it;
-        VP_PUBLIC_CHK_STATUS_RETURN(packet->PrepareState());
-    }
-
     for (std::vector<VpCmdPacket *>::iterator it = m_Pipe.begin(); it != m_Pipe.end(); ++it)
     {
         VpCmdPacket *pPacket = *it;

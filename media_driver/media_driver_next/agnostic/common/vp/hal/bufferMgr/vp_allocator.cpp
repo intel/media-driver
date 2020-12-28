@@ -434,8 +434,7 @@ MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, MOS_GFXRES_FREE_F
     {
         // VP_SURFACE should always be allocated by interface in VpAllocator,
         // which will ensure nullptr != surface->osSurface.
-        VP_PUBLIC_NORMALMESSAGE("Surfaces already been deleted, return status!");
-        return status;
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
     if (surface->isResourceOwner)

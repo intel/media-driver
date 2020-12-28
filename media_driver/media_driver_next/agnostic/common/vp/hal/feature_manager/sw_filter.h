@@ -59,8 +59,7 @@ enum FeatureType
     FeatureTypeSteOnVebox,
     FeatureTypeAce              = 0x700,
     FeatureTypeAceOnVebox,
-    FeatureTypeVeboxUpdate      = 0x800,
-    FeatureTypeVeboxUpdateOnRender,
+    FeatureTypeSecureVeboxUpdate = 0x800,
     FeatureTypeTcc              = 0x900,
     FeatureTypeTccOnVebox,
     FeatureTypeProcamp          = 0xA00,
@@ -73,8 +72,6 @@ enum FeatureType
     FeatureTypeFD               = 0xD00,
     FeatureTypeFLD              = 0xE00,
     FeatureTypeFB               = 0xF00,
-    FeatureTypeSecureCopy      = 0x1000,
-    FeatureTypeSecureCopyOnRender,
     // ...
     NumOfFeatureType
 };
@@ -184,7 +181,7 @@ public:
         return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    virtual MOS_STATUS Configure(SwFilter& swFilter, VP_EXECUTE_CAPS caps)
+    virtual MOS_STATUS Configure(SwFilter* swFilter, VP_EXECUTE_CAPS caps)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }

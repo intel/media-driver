@@ -346,7 +346,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::Initialize(
     pVeboxState->SetRenderDisableFlag( pSettings->disableDnDi == false ? false : true );
 
     // Enable/Disable kernel Copy/Update for VEBox
-    pVeboxState->dwKernelUpdate = pSettings->kernelUpdate;
+    pVeboxState->dwKernelUpdate       = pSettings->kernelUpdate;
 
     // Setup Same Sample Threshold for VEBOX
     pVeboxState->iSameSampleThreshold = pSettings->sameSampleThreshold;

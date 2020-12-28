@@ -67,8 +67,6 @@ public:
 
     MOS_STATUS SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params);
 
-    MOS_STATUS SetSecureCopyParams(bool copyNeeded);
-
     MOS_STATUS PacketInit(
         VP_SURFACE* inputSurface,
         VP_SURFACE* outputSurface,
@@ -77,7 +75,7 @@ public:
         VP_EXECUTE_CAPS packetCaps) override;
 
 protected:
-    MOS_STATUS KernelStateSetup(KernelID kernelExecuteID);
+    MOS_STATUS KernelStateSetup();
 
     virtual MOS_STATUS SetupSurfaceState();
 
@@ -85,15 +83,11 @@ protected:
 
     virtual VP_SURFACE* GetSurface(SurfaceType type);
 
-    virtual MOS_STATUS SetupMediaWalker(VpRenderKernelObj * kernel);
+    virtual MOS_STATUS SetupMediaWalker() override;
 
     MOS_STATUS InitRenderHalSurface(
         VP_SURFACE         &surface,
         RENDERHAL_SURFACE  &renderSurface);
-
-    MOS_STATUS InitStateHeapSurface(
-        SurfaceType        type,
-        RENDERHAL_SURFACE& renderSurface);
 
     // comments here: Hight overwite params if needed
     MOS_STATUS UpdateRenderSurface(RENDERHAL_SURFACE_NEXT &renderSurface, KERNEL_SURFACE2D_STATE_PARAM& kernelParams);
@@ -101,13 +95,11 @@ protected:
 protected:
 
     KERNEL_OBJECTS                     m_kernelObjs;
-    KERNEL_CONFIGS                     m_kernelConfigs;
-    KERNEL_RENDER_DATA                 m_kernelRenderData;
 
     int32_t                            m_kernelIndex = 0;
     Kdll_FilterEntry                  *m_filter = nullptr;                                       // Kernel Filter (points to base of filter array)
     bool                               m_firstFrame = true;
-    std::vector<uint32_t>              m_kernelId;
+    std::vector<KernelId>              m_kernelId;
     VpKernelSet                       *m_kernelSet = nullptr;
     VpRenderKernelObj                 *m_kernel    = nullptr; // processing kernel pointer
 };
