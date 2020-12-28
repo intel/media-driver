@@ -4445,13 +4445,13 @@ MOS_STATUS VpHal_RndrRenderVebox(
             pInSurface->rcDst     = rcTempOut;
 
             VPHAL_RENDER_CHK_STATUS(pVeboxState->AllocateSfcTempSurfaces(pRenderer, pcRenderParams, pRenderData, pInSurface, pOutSurface));
-                pRenderPassData->pOutSurface = &pVeboxState->SfcTempSurface;
+            pOutSurface = &pVeboxState->SfcTempSurface;
             // Reset rendering flags for SFC since output surface changed
             pVeboxState->m_sfcPipeState->SetRenderingFlags(
                 pcRenderParams->pColorFillParams,
                 pcRenderParams->pCompAlpha,
                 pInSurface,
-                pRenderPassData->pOutSurface,
+                pOutSurface,
                 pRenderData);
         }
 
