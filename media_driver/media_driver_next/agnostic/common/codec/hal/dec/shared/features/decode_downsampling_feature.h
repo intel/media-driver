@@ -87,6 +87,10 @@ public:
     bool                m_histogramDebug = false;
     const uint32_t      m_histogramBinWidth = 4;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_SURFACE    m_outputSurfaceList[DecodeBasicFeature::m_maxFrameIndex] = {}; //! \brief Downsampled surfaces
+#endif
+
 protected:
     virtual MOS_STATUS UpdateInternalTargets(DecodeBasicFeature &basicFeature);
 
