@@ -292,17 +292,17 @@ public:
 class FunctionTrace
 {
 public:
-    FunctionTrace(MOS_COMPONENT_ID compID, uint8_t subCompID, const char *name):
+    FunctionTrace(MOS_COMPONENT_ID compID, uint8_t subCompID, const char* name) :
         m_compID(compID),
         m_subCompID(subCompID),
         m_name(name)
     {
-        printf("Enter function: %s\r\n", m_name);
+        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Enter Function: %s\r\n", m_name);
     }
 
     virtual ~FunctionTrace()
     {
-        printf("Exit function: %s\r\n", m_name);
+        MOS_VERBOSEMESSAGE(m_compID, m_subCompID, "Exit Function: %s\r\n", m_name);
     }
 
 protected:
@@ -315,7 +315,7 @@ protected:
 
 #else
 
-#define MOS_FUNCTION_CALL(_compID, _subCompID)
+#define MOS_FUNCTION_TRACE(_compID, _subCompID)
 
 #endif // #if MOS_MESSAGES_ENABLED
 #endif // __MOS_UTIL_DEBUG_NEXT_H__
