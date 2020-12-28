@@ -63,11 +63,6 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
-    virtual MOS_STATUS PrepareState()
-    {
-        return MOS_STATUS_SUCCESS;
-    };
-
     PacketType GetPacketId()
     {
         return m_PacketId;
@@ -101,10 +96,9 @@ protected:
     PacketType                  m_PacketId = VP_PIPELINE_PACKET_UNINITIALIZED;
     VP_PACKET_SHARED_CONTEXT*   m_packetSharedContext = nullptr;
     VP_SURFACE_SETTING          m_surfSetting;
-    bool                        m_packetResourcesdPrepared = false;
 
 private:
-    MediaScalability *          m_scalability = nullptr;
+    MediaScalability *m_scalability = nullptr;
 };
 }
 #endif // !__VP_CMD_PACKET_H__

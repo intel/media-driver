@@ -283,21 +283,23 @@ struct MEDIA_OBJECT_KA2_INLINE_DATA
     } DW15;
 };
 
+extern const MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_VP_OBJECT_KA2_INLINE_DATA;
+
 typedef struct _KERNEL_SURFACE2D_STATE_PARAM
 {
     struct {
-        bool                           updatedSurfaceParams; // true if using included surface params
-        MOS_FORMAT                     format;               // MOS_FORMAT for processing surfaces
-        uint32_t                       width;
-        uint32_t                       height;
-        uint32_t                       pitch;
-        uint32_t                       surface_offset;     // Offset to the origin of the surface, in bytes.
-        MOS_TILE_TYPE                  tileType;
-        bool                           bufferResource;
-        bool                           bindedKernel;
-        uint32_t                       bindIndex;
-        bool                           updatedRenderSurfaces;
-        RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // default can be skip. for future usages, if surface configed by kernel, use it directlly
+        bool       updatedSurfaceParams; // true if using included surface params
+        MOS_FORMAT format; //[IN] MOS_FORMAT
+        uint32_t   width;
+        uint32_t   height;
+        //uint32_t   depth;
+        uint32_t   pitch;
+        //uint16_t   memory_object_control;
+        //uint32_t   surface_x_offset;   // Horizontal offset to the origin of the surface, in columns of pixels.
+        //uint32_t   surface_y_offset;   // Vertical offset to the origin of the surface, in rows of pixels.
+        uint32_t   surface_offset;     // Offset to the origin of the surface, in bytes.
+        MOS_TILE_TYPE tileType;
+        RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // defaule can be skip. for future usages, if surface configed by kernel, use it directlly
     } surfaceOverwriteParams;
     bool       renderTarget;        // true for render target
     uint32_t   reserved[2]; // for future usage
@@ -308,6 +310,11 @@ class VpRenderKernelObj
 public:
     VpRenderKernelObj(PVP_MHWINTERFACE hwInterface);
     virtual ~VpRenderKernelObj() {};
+
+    virtual void SetKernelParams(RENDER_KERNEL_PARAMS& kernelParams)
+    {
+        m_kernelParams = &kernelParams;
+    }
 
     // Kernel Specific, which will inplenment be each kernel
     // GetCurbeState should be called after UpdateCurbeBindingIndex for all processed surfaces being called
@@ -321,20 +328,14 @@ public:
 
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam) = 0;
 
-    virtual MOS_STATUS SetKernelConfigs(void* params) = 0;
-
     // Kernel Common configs
-    virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings, KernelID executeKernelID)
+    virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)
     {
         MOS_ZeroMemory(&settsings, sizeof(RENDERHAL_KERNEL_PARAM));
 
         if (m_hwInterface && m_hwInterface->m_vpPlatformInterface)
         {
-            // adding when insert new kernels
-            if (executeKernelID >= VeboxSecureBlockCopy && executeKernelID < VeboxKernelMax)
-            {
-                settsings = m_hwInterface->m_vpPlatformInterface->GetVeboxKernelSettings(executeKernelID - VeboxSecureBlockCopy);
-            }
+            settsings = m_hwInterface->m_vpPlatformInterface->GetVeboxKernelSettings(m_kernelID);
             return MOS_STATUS_SUCCESS;
         }
         else
@@ -404,10 +405,12 @@ public:
         m_kernelSize = size;
         return MOS_STATUS_SUCCESS;
     }
+protected:
 
     virtual MOS_STATUS SetupSurfaceState() = 0;
 
 protected:
+    RENDER_KERNEL_PARAMS                                *m_kernelParams = nullptr;   // kernel input for processing params include kernel ID and process surface group
     std::map<SurfaceType, VP_SURFACE*>                  *m_surfaceGroup = nullptr;   // input surface process surface groups
     PVP_MHWINTERFACE                                     m_hwInterface = nullptr;
     std::vector<SurfaceType>                             m_surfaces;                 // vector for processed surfaces, the order should match with Curbe surface order
@@ -421,6 +424,4 @@ protected:
     //KERNEL_WALKER_PARAMS                                 m_kernelWalkerParams = {};   // Kernel Walker Params
 };
 }
-
-extern const vp::MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_VP_OBJECT_KA2_INLINE_DATA;
 #endif // __VP_RENDER_KERNEL_OBJ_H__

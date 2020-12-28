@@ -321,9 +321,7 @@ public:
 
     virtual MOS_STATUS Destory() { return MOS_STATUS_SUCCESS; };
 
-    virtual MOS_STATUS Prepare() override;
-
-    virtual MOS_STATUS PrepareState() override;
+    virtual MOS_STATUS Prepare() override { return MOS_STATUS_SUCCESS; };
 
     virtual MOS_STATUS                  AllocateExecRenderData()
     {
@@ -736,6 +734,13 @@ public:
         VP_SURFACE_SETTING                  &surfSetting,
         VP_EXECUTE_CAPS                     packetCaps) override;
 
+    //!
+    //! \brief    Copy and update vebox state
+    //! \details  Copy and update vebox state for input frame.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS CopyAndUpdateVeboxState();
 
     //!
     //! \brief    Check whether the Vebox command parameters are correct
@@ -750,6 +755,24 @@ public:
         const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
         const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
         const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams);
+
+    //!
+    //! \brief    Copy Vebox state heap
+    //! \details  Call HW interface function,
+    //!           use Secure_Block_Copy kernel,
+    //!           copy Vebox state heap between different memory
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS CopyVeboxStates();
+
+    //!
+    //! \brief    Vebox state heap update for auto mode features
+    //! \details  Update Vebox indirect states for auto mode features
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS UpdateVeboxStates();
 
     virtual MOS_STATUS QueryStatLayout(
         VEBOX_STAT_QUERY_TYPE QueryType,
@@ -789,15 +812,6 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS VeboxSetPerfTagPaFormat();
-
-    //!
-    //! \brief    Vebox state heap update for auto mode features
-    //! \details  Update Vebox indirect states for auto mode features
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    virtual MOS_STATUS UpdateVeboxStates();
-
 
 protected:
 

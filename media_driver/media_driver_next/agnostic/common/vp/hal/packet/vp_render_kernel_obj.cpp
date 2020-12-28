@@ -27,7 +27,7 @@
 #include "vp_render_kernel_obj.h"
 using namespace vp;
 
-const vp::MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_VP_OBJECT_KA2_INLINE_DATA =
+extern const vp::MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_VP_OBJECT_KA2_INLINE_DATA =
 {
     // DWORD 0
     {
