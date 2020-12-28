@@ -107,6 +107,10 @@ namespace decode {
             m_statusReportData[submitIndex].statusReportNumber = inputParameters->statusReportFeedbackNumber;
             m_statusReportData[submitIndex].currDecodedPic = inputParameters->currOriginalPic;
             m_statusReportData[submitIndex].currDecodedPicRes = inputParameters->currDecodedPicRes;
+#if (_DEBUG || _RELEASE_INTERNAL)
+            m_statusReportData[submitIndex].currSfcOutputPicRes = inputParameters->sfcOutputPicRes;
+            m_statusReportData[submitIndex].frameType = inputParameters->pictureCodingType;
+#endif
         }
 
         DecodeStatusMfx* decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + submitIndex * m_statusBufSizeMfx);
@@ -233,6 +237,19 @@ namespace decode {
         }
 
         return MOS_STATUS_SUCCESS;
+    }
+
+    const DecodeStatusMfx& DecodeStatusReport::GetMfxStatus(uint32_t counter)
+    {
+        uint32_t index = CounterToIndex(counter);
+        DecodeStatusMfx* decodeStatusMfx = (DecodeStatusMfx*)(m_dataStatusMfx + index * m_statusBufSizeMfx);
+        return *decodeStatusMfx;
+    }
+
+    const DecodeStatusReportData& DecodeStatusReport::GetReportData(uint32_t counter)
+    {
+        uint32_t index = CounterToIndex(counter);
+        return m_statusReportData[index];
     }
 
     MOS_STATUS DecodeStatusReport::Destroy()

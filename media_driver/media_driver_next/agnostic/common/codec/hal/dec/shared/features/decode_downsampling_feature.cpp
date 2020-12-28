@@ -173,6 +173,10 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
     // Update decode output in basic feature
     DECODE_CHK_STATUS(UpdateDecodeTarget(*m_inputSurface));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_outputSurfaceList[m_basicFeature->m_curRenderPic.FrameIdx] = m_outputSurface;
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

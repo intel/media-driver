@@ -114,6 +114,24 @@ namespace decode {
         //!
         virtual MOS_STATUS Reset() override;
 
+        //!
+        //! \brief  Get Mfx status for frame specified by counter
+        //! \param  [in] counter
+        //!         The decode counter of requesting frame
+        //! \return DecodeStatusMfx
+        //!         The Mfx status specified by counter
+        //!
+        const DecodeStatusMfx& GetMfxStatus(uint32_t counter);
+
+        //!
+        //! \brief  Get report data for frame specified by counter
+        //! \param  [in] counter
+        //!         The decode counter of requesting frame
+        //! \return DecodeStatusReportData
+        //!         The report data specified by counter
+        //!
+        const DecodeStatusReportData& GetReportData(uint32_t counter);
+
     protected:
         //!
         //! \brief  Collect the status report information into report buffer.

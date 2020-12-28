@@ -37,6 +37,7 @@
 #include "decode_basic_feature.h"
 #include "mos_solo_generic.h"
 #include "decode_sfc_histogram_postsubpipeline.h"
+#include "decode_common_feature_defs.h"
 
 namespace decode {
 
@@ -379,8 +380,122 @@ MOS_STATUS DecodePipeline::DumpDownSamplingParams(DecodeDownSamplingFeature &dow
 
     return MOS_STATUS_SUCCESS;
 }
-
 #endif
+
+MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
+{
+    DECODE_FUNC_CALL();
+
+    MOS_SURFACE dstSurface;
+    MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+    dstSurface.Format     = Format_NV12;
+    dstSurface.OsResource = reportData.currDecodedPicRes;
+    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
+
+    DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
+        &dstSurface, CodechalDbgAttr::attrDecodeOutputSurface, "DstSurf"));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
+        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
+    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
+    {
+        if (reportData.currSfcOutputPicRes != nullptr)
+        {
+            MOS_SURFACE sfcDstSurface;
+            MOS_ZeroMemory(&sfcDstSurface, sizeof(sfcDstSurface));
+            sfcDstSurface.Format     = Format_NV12;
+            sfcDstSurface.OsResource = *reportData.currSfcOutputPicRes;
+
+            if (!Mos_ResourceIsNull(&sfcDstSurface.OsResource))
+            {
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
+                DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
+                    &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstSurf"));
+            }
+        }
+    }
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS DecodePipeline::ReportVdboxIds(const DecodeStatusMfx& status)
+{
+    DECODE_FUNC_CALL();
+
+    // report the VDBOX IDs to user feature
+    uint32_t vdboxIds = ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED, m_osInterface->pOsContext).u32Data;
+
+    for (auto i = 0; i < csInstanceIdMax; i++)
+    {
+        CsEngineId csEngineId;
+        csEngineId.value = status.m_mmioCsEngineIdReg[i];
+        if (csEngineId.value != 0)
+        {
+            DECODE_ASSERT(csEngineId.fields.classId == classIdVideoEngine);
+            DECODE_ASSERT(csEngineId.fields.instanceId < csInstanceIdMax);
+            vdboxIds |= 1 << ((csEngineId.fields.instanceId) << 2);
+        }
+    }
+
+    if (vdboxIds != 0)
+    {
+        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED, vdboxIds, m_osInterface->pOsContext);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodePipeline::StatusCheck()
+{
+    DECODE_FUNC_CALL();
+
+    uint32_t completedCount = m_statusReport->GetCompletedCount();
+    if (completedCount <= m_statusCheckCount)
+    {
+        DECODE_CHK_COND(completedCount < m_statusCheckCount, "Invalid statuc check count");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    DecodeStatusReport* statusReport = dynamic_cast<DecodeStatusReport*>(m_statusReport);
+    DECODE_CHK_NULL(statusReport);
+
+    while (m_statusCheckCount < completedCount)
+    {
+        const DecodeStatusMfx& status = statusReport->GetMfxStatus(m_statusCheckCount);
+        if (status.status != DecodeStatusReport::queryEnd)
+        {
+            break;
+        }
+
+        DECODE_CHK_STATUS(ReportVdboxIds(status));
+
+#if USE_CODECHAL_DEBUG_TOOL
+        const DecodeStatusReportData& reportData = statusReport->GetReportData(m_statusCheckCount);
+
+        auto bufferDumpNumTemp = m_debugInterface->m_bufferDumpFrameNum;
+        auto currPicTemp       = m_debugInterface->m_currPic;
+        auto frameTypeTemp     = m_debugInterface->m_frameType;
+
+        m_debugInterface->m_bufferDumpFrameNum = m_statusCheckCount;
+        m_debugInterface->m_currPic            = reportData.currDecodedPic;
+        m_debugInterface->m_frameType          = reportData.frameType;
+
+        DECODE_CHK_STATUS(DumpOutput(reportData));
+
+        m_debugInterface->m_bufferDumpFrameNum = bufferDumpNumTemp;
+        m_debugInterface->m_currPic            = currPicTemp;
+        m_debugInterface->m_frameType          = frameTypeTemp;
+#endif
+
+        m_statusCheckCount++;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
 #endif
 
 }
