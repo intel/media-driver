@@ -1076,8 +1076,8 @@ uint32_t SfcRenderBase::GetSfdLineBufferSize(bool lineTiledBuffer, MOS_FORMAT fo
     }
     else
     {
-        size = (VPHAL_COLORPACK_444 == VpHal_GetSurfaceColorPack(formatOutput) || VPHAL_COLORPACK_422 == VpHal_GetSurfaceColorPack(formatOutput)) ?
-            0 : (widthOutput * SFC_SFD_LINEBUFFER_SIZE_PER_PIXEL);
+        size = MOS_ROUNDUP_DIVIDE(widthOutput, 10) * SFC_CACHELINE_SIZE_IN_BYTES;
+        size *= 2; //double for safe
     }
 
     // For tile column storage, based on above calcuation, an extra 1K CL need to be added as a buffer.
