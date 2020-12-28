@@ -2224,6 +2224,7 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
                 encryptTypes, DDI_CP_ENCRYPT_TYPES_NUM);
         if (numTypes > 0)
         {
+            attrib.value = 0;
             for (int32_t j = 0; j < numTypes; j++)
             {
                 attrib.value |= encryptTypes[j];
