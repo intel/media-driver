@@ -195,8 +195,12 @@ uint32_t Av1DecodePkt::CalculateCommandBufferSize()
 
     commandBufferSize = m_pictureStatesSize + m_tileStatesSize;
 
-    if (m_av1BasicFeature->m_usingDummyWl == true)
+    uint8_t currPipe = m_av1Pipeline->GetCurrentPipe();
+    DECODE_ASSERT(currPipe == 0);
+
+    if (m_av1BasicFeature->m_usingDummyWl == true && m_isDummyWLAllocated == false)
     {
+        m_isDummyWLAllocated = true; //only allocate dummy workload command buffer once for each frame.
         return (commandBufferSize * 2 + COMMAND_BUFFER_RESERVED_SPACE);
     }
     else
