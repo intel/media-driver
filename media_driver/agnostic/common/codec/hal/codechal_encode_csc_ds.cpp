@@ -1095,8 +1095,10 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
 
     auto cscFlagPrev = m_cscFlag;
     m_cscFlag = 0;
-    m_cscRawSurfWidth = details.dwWidth;
-    m_cscRawSurfHeight = details.dwHeight;
+    // Source surface width/height for CSC must be set using the lowest value between
+    // SequenceParametersSet width/height and real surface width/height
+    m_cscRawSurfWidth  = MOS_MIN(details.dwWidth,  m_encoder->m_frameWidth);
+    m_cscRawSurfHeight = MOS_MIN(details.dwHeight, m_encoder->m_frameHeight);
     m_colorRawSurface = cscColorNv12TileY; // by default assume NV12 Tile-Y format
     m_threadTraverseSizeX = 5;
     m_threadTraverseSizeY = 2;    // for NV12, thread space is 32x4
