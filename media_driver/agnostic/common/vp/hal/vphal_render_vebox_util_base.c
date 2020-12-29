@@ -140,6 +140,7 @@ MOS_STATUS VpHal_InitVeboxSurfaceStateCmdParams(
     MOS_ZeroMemory(pMhwVeboxSurfaceStateCmdParams, sizeof(*pMhwVeboxSurfaceStateCmdParams));
 
     pMhwVeboxSurfaceStateCmdParams->bDIEnable       = pVpHalVeboxSurfaceStateCmdParams->bDIEnable;
+    pMhwVeboxSurfaceStateCmdParams->b3DlutEnable    = pVpHalVeboxSurfaceStateCmdParams->b3DlutEnable;
 
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfInput)
     {

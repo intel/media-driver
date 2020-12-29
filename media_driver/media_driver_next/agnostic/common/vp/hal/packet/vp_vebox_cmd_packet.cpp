@@ -57,6 +57,7 @@ void VpVeboxCmdPacket::SetupSurfaceStates(
     pVeboxSurfaceStateCmdParams->pSurfSTMM     = m_veboxPacketSurface.pSTMMInput;
     pVeboxSurfaceStateCmdParams->pSurfDNOutput = m_veboxPacketSurface.pDenoisedCurrOutput;
     pVeboxSurfaceStateCmdParams->bDIEnable     = m_PacketCaps.bDI;
+    pVeboxSurfaceStateCmdParams->b3DlutEnable  = m_PacketCaps.bHDR3DLUT;  // Need to consider cappipe
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
@@ -1461,7 +1462,8 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
 
     MOS_ZeroMemory(pMhwVeboxSurfaceStateCmdParams, sizeof(*pMhwVeboxSurfaceStateCmdParams));
 
-    pMhwVeboxSurfaceStateCmdParams->bDIEnable = pVpHalVeboxSurfaceStateCmdParams->bDIEnable;
+    pMhwVeboxSurfaceStateCmdParams->bDIEnable       = pVpHalVeboxSurfaceStateCmdParams->bDIEnable;
+    pMhwVeboxSurfaceStateCmdParams->b3DlutEnable    = pVpHalVeboxSurfaceStateCmdParams->b3DlutEnable;
 
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfInput)
     {
