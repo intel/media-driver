@@ -759,6 +759,7 @@ typedef struct _MHW_VEBOX_SURFACE_STATE_CMD_PARAMS
     MHW_VEBOX_SURFACE_PARAMS         SurfDNOutput;
     MHW_VEBOX_SURFACE_PARAMS         SurfSkinScoreOutput;
     bool                             bDIEnable;
+    bool                             b3DlutEnable;
     bool                             bOutputValid;
 } MHW_VEBOX_SURFACE_STATE_CMD_PARAMS, *PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS;
 
