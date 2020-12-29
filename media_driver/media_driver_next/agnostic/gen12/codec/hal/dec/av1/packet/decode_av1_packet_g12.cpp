@@ -61,6 +61,7 @@ namespace decode
         HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
 
         m_av1BasicFeature->m_tileCoding.m_curTile++; //Update tile index of current frame
+        m_isDummyWLAllocated = false; //Update dummy workload flag for next frame.
 
         DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_av1BasicFeature->m_resDataBuffer, false));
 
