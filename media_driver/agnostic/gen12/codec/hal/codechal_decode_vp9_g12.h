@@ -170,6 +170,10 @@ protected:
 
     PCODECHAL_DECODE_SINGLEPIPE_VIRTUALENGINE_STATE m_sinlgePipeVeState;  //!< single pipe virtual engine state
     PCODECHAL_DECODE_SCALABILITY_STATE_G12           m_scalabilityState;   //!< Scalability state
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool m_histogramDebug = true;  //!< Internal histogram buffer debug
+#endif
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CodechalVp9SfcStateG12 *m_sfcState = nullptr;  //!< VP9 SFC state
 #endif

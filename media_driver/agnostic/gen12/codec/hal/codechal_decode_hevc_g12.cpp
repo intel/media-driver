@@ -632,7 +632,21 @@ MOS_STATUS CodechalDecodeHevcG12 ::InitializeDecodeMode()
         initParams.bIsTileEnabled      = m_hevcPicParams->tiles_enabled_flag;
         initParams.bHasSubsetParams    = !!m_decodeParams.m_subsetParams;
         initParams.format              = m_decodeParams.m_destSurface->Format;
-        initParams.usingSecureDecode   = (m_secureDecoder!= nullptr);
+        initParams.usingSecureDecode   = (m_secureDecoder != nullptr);
+        if (m_decodeHistogram == nullptr)
+        {
+            initParams.usingHistogram = false;
+#if (_DEBUG || _RELEASE_INTERNAL)
+            if (m_histogramDebug)
+            {
+                initParams.usingHistogram = true;
+            }
+#endif
+        }
+        else
+        {
+            initParams.usingHistogram = true;
+        }
         // Only support SCC real tile mode. SCC virtual tile scalability mode is disabled here
         initParams.bIsSccDecoding   = m_hevcSccPicParams != nullptr;
         initParams.u8NumTileColumns = m_hevcPicParams->num_tile_columns_minus1 + 1;

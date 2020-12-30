@@ -110,6 +110,7 @@ typedef struct _CODECHAL_DECODE_SCALABILITY_INIT_PARAMS
     uint8_t          u8NumTileRows;                  //!< Number of tile rows for this picture
     MOS_GPU_CONTEXT  gpuCtxInUse;                    //!< gpu context in use
     bool             usingSecureDecode;
+    bool             usingHistogram;
 }CODECHAL_DECODE_SCALABILITY_INIT_PARAMS, *PCODECHAL_DECODE_SCALABILITY_INIT_PARAMS;
 
 typedef struct _CODECHAL_DECODE_SCALABILITY_STATE CODECHAL_DECODE_SCALABILITY_STATE, *PCODECHAL_DECODE_SCALABILITY_STATE;

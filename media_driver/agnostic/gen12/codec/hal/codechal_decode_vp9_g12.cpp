@@ -86,6 +86,17 @@ CodechalDecodeVp9G12::CodechalDecodeVp9G12(
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
     Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DECODE_HISTOGRAM_DEBUG_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_histogramDebug = userFeatureData.u32Data ? true : false;
+#endif
 }
 
 MOS_STATUS CodechalDecodeVp9G12::SetGpuCtxCreatOption(
@@ -324,8 +335,21 @@ MOS_STATUS CodechalDecodeVp9G12 :: InitializeDecodeMode ()
         initParams.u32PicHeightInPixel = m_usFrameHeightAlignedMinBlk;
         initParams.format              = m_decodeParams.m_destSurface->Format;
         initParams.gpuCtxInUse         = GetVideoContext();
-        initParams.usingSecureDecode   = (m_secureDecoder!= nullptr);
-
+        initParams.usingSecureDecode   = (m_secureDecoder != nullptr);
+        if (m_decodeHistogram == nullptr)
+        {
+            initParams.usingHistogram = false;
+#if (_DEBUG || _RELEASE_INTERNAL)
+            if (m_histogramDebug)
+            {
+                initParams.usingHistogram = true;
+            }
+#endif
+        }
+        else
+        {
+            initParams.usingHistogram = true;
+        }
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_InitScalableParams_G12(
             m_scalabilityState,
             &initParams,
@@ -1035,6 +1059,14 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodePrimitiveLevel()
     }
 
     CODECHAL_DEBUG_TOOL(
+
+        if (m_histogramDebug && m_histogramSurface) {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
+                &m_histogramSurface->OsResource,
+                CodechalDbgAttr::attrSfcHistogram,
+                "_DEC",
+                256 * 4));
+        }
 
         if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState)) {
             CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_DbgDumpCmdBuffer_G12(
