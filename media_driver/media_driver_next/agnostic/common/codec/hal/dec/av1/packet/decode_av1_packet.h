@@ -182,9 +182,8 @@ protected:
 
     uint32_t m_pictureStatesSize    = 0;
     uint32_t m_picturePatchListSize = 0;
-    uint32_t m_tileStatesSize       = 0;
-    uint32_t m_tilePatchListSize    = 0;
-    bool     m_isDummyWLAllocated   = false;
+    uint32_t m_tileStatesSize      = 0;
+    uint32_t m_tilePatchListSize   = 0;
 };
 
 }  // namespace decode
