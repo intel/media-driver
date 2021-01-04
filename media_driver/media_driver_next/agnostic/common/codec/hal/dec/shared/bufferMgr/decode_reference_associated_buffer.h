@@ -239,11 +239,9 @@ protected:
         }
         else
         {
-            // The function UpdateRefList always attach the retired buffers to end of
-            // aviable buffer list, reusing those buffers could improve the health with
-            // error stream, so pick up the last element of list for current frame.
-            m_currentBuffer = m_aviableBuffers.back();
-            m_aviableBuffers.pop_back();
+            auto iter = m_aviableBuffers.begin();
+            m_currentBuffer = *iter;
+            m_aviableBuffers.erase(iter);
             m_bufferOp.Resize(m_currentBuffer);
         }
 
