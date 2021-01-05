@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -86,13 +86,13 @@ MOS_STATUS DecodeSfcHistogramSubPipeline::Prepare(DecodePipelineParams &params)
         DECODE_CHK_NULL(m_downsampFeature->m_histogramBuffer);
 
         CodechalDecodeParams*   decodeParams    = params.m_params;
-        MOS_RESOURCE            src             = m_downsampFeature->m_histogramBuffer->OsResource;
-        MOS_RESOURCE            dest            = decodeParams->m_histogramSurface.OsResource;
+        PMOS_RESOURCE           src             = &m_downsampFeature->m_histogramBuffer->OsResource;
+        PMOS_RESOURCE           dest            = &decodeParams->m_histogramSurface.OsResource;
         uint32_t                destOffset      = decodeParams->m_histogramSurface.dwOffset;
-        if (!m_allocator->ResourceIsNull(&src) &&
-            !m_allocator->ResourceIsNull(&dest))
+        if (!m_allocator->ResourceIsNull(src) &&
+            !m_allocator->ResourceIsNull(dest))
         {
-            DECODE_CHK_STATUS(CopyHistogramToDestBuf(&src, &dest, destOffset));
+            DECODE_CHK_STATUS(CopyHistogramToDestBuf(src, dest, destOffset));
         }
     }
 
