@@ -4478,10 +4478,6 @@ MOS_STATUS VpHal_RndrRenderVebox(
                                                 pcRenderParams,
                                                 pRenderPassData))
 
-        VPHAL_RNDR_DUMP_SURF(
-            pRenderer, pRenderPassData->uiSrcIndex, VPHAL_DBG_DUMP_TYPE_POST_ALL,
-            &pVeboxState->SfcTempSurface);
-
         if (pVeboxState->m_sfcPipeState && (pRenderPassData->bSFCScalingOnly || pVeboxState->m_sfcPipeState->m_bSFC2Pass))
         {
             pInSurface = &pVeboxState->SfcTempSurface;
