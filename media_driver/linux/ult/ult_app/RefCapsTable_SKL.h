@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,33 +25,37 @@
 #include "driver_loader.h"
 
 std::vector<FeatureID> refFeatureIDTable_SKL = {
-    { VAProfileH264Main               , VAEntrypointVLD                 },
-    { VAProfileH264Main               , VAEntrypointEncSlice            },
-    { VAProfileH264Main               , VAEntrypointFEI                 },
-    { VAProfileH264Main               , VAEntrypointEncSliceLP          },
-    { VAProfileH264High               , VAEntrypointVLD                 },
-    { VAProfileH264High               , VAEntrypointEncSlice            },
-    { VAProfileH264High               , VAEntrypointFEI                 },
-    { VAProfileH264High               , VAEntrypointEncSliceLP          },
-    { VAProfileH264ConstrainedBaseline, VAEntrypointVLD                 },
-    { VAProfileH264ConstrainedBaseline, VAEntrypointEncSlice            },
-    { VAProfileH264ConstrainedBaseline, VAEntrypointFEI                 },
-    { VAProfileH264ConstrainedBaseline, VAEntrypointEncSliceLP          },
-    { VAProfileMPEG2Simple            , VAEntrypointVLD                 },
-    { VAProfileMPEG2Simple            , VAEntrypointEncSlice            },
-    { VAProfileMPEG2Main              , VAEntrypointVLD                 },
-    { VAProfileMPEG2Main              , VAEntrypointEncSlice            },
-    { VAProfileVC1Advanced            , VAEntrypointVLD                 },
-    { VAProfileVC1Main                , VAEntrypointVLD                 },
-    { VAProfileVC1Simple              , VAEntrypointVLD                 },
-    { VAProfileJPEGBaseline           , VAEntrypointVLD                 },
-    { VAProfileJPEGBaseline           , VAEntrypointEncPicture          },
-    { VAProfileVP8Version0_3          , VAEntrypointVLD                 },
-    { VAProfileHEVCMain               , VAEntrypointVLD                 },
-    { VAProfileHEVCMain               , VAEntrypointEncSlice            },
-    { VAProfileHEVCMain               , VAEntrypointFEI                 },
-    { VAProfileNone                   , VAEntrypointVideoProc           },
-    { VAProfileNone                   , VAEntrypointStats               },
+    { VAProfileH264Main               , VAEntrypointVLD                         },
+    { VAProfileH264Main               , VAEntrypointEncSlice                    },
+    { VAProfileH264Main               , VAEntrypointFEI                         },
+    { VAProfileH264Main               , VAEntrypointEncSliceLP                  },
+    { VAProfileH264High               , VAEntrypointVLD                         },
+    { VAProfileH264High               , VAEntrypointEncSlice                    },
+    { VAProfileH264High               , VAEntrypointFEI                         },
+    { VAProfileH264High               , VAEntrypointEncSliceLP                  },
+    { VAProfileH264ConstrainedBaseline, VAEntrypointVLD                         },
+    { VAProfileH264ConstrainedBaseline, VAEntrypointEncSlice                    },
+    { VAProfileH264ConstrainedBaseline, VAEntrypointFEI                         },
+    { VAProfileH264ConstrainedBaseline, VAEntrypointEncSliceLP                  },
+    { VAProfileMPEG2Simple            , VAEntrypointVLD                         },
+    { VAProfileMPEG2Simple            , VAEntrypointEncSlice                    },
+    { VAProfileMPEG2Main              , VAEntrypointVLD                         },
+    { VAProfileMPEG2Main              , VAEntrypointEncSlice                    },
+    { VAProfileVC1Advanced            , VAEntrypointVLD                         },
+    { VAProfileVC1Main                , VAEntrypointVLD                         },
+    { VAProfileVC1Simple              , VAEntrypointVLD                         },
+    { VAProfileJPEGBaseline           , VAEntrypointVLD                         },
+    { VAProfileJPEGBaseline           , VAEntrypointEncPicture                  },
+    { VAProfileVP8Version0_3          , VAEntrypointVLD                         },
+    { VAProfileHEVCMain               , VAEntrypointVLD                         },
+    { VAProfileHEVCMain               , VAEntrypointEncSlice                    },
+    { VAProfileHEVCMain               , VAEntrypointFEI                         },
+    { VAProfileNone                   , VAEntrypointVideoProc                   },
+    { VAProfileNone                   , VAEntrypointStats                       },
+#ifdef VA_DRIVER_VTABLE_PROT_VERSION
+    { VAProfileProtected              , VAEntrypointProtectedTEEComm            },
+    { VAProfileProtected              , (VAEntrypoint) 0x1000                   },
+#endif
 };
 
 #endif // __REF_CAPS_TABLE_SKL_H__

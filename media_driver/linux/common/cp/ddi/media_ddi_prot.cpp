@@ -30,12 +30,18 @@
 #include "media_libva_caps.h"
 #include "media_libva.h"
 #include "media_libva_caps_cp_interface.h"
+#include "media_libva_cp_interface.h"
 #include "media_ddi_prot.h"
+#include <fcntl.h>                  // Needed for open().
+#include <linux/mei.h>
+#include <sys/ioctl.h>
 
 static bool isDefaultRegistered = DdiProtectedFactory::Register<DdiMediaProtected>(DDI_PROTECTED_DEFAULT);
 static bool isProtectedContentRegistered = DdiProtectedFactory::Register<DdiMediaProtected>(DDI_PROTECTED_CONTENT);
 
 std::map<uint32_t, DdiMediaProtected*> DdiMediaProtected::_impl;
+
+GUID MEI_GUID = { 0xfbf6fcf1, 0x96cf, 0x4e2e, { 0xa6, 0xa6, 0x1b, 0xab, 0x8c, 0xbe, 0x36, 0xb1  }  };
 
 DdiMediaProtected* DdiMediaProtected::GetInstance(uint32_t id)
 {
@@ -63,7 +69,7 @@ void DdiMediaProtected::FreeInstances()
 
 bool DdiMediaProtected::CheckEntrypointSupported(VAEntrypoint entrypoint)
 {
-    return false;
+    return true;
 }
 
 bool DdiMediaProtected::CheckAttribList(
@@ -72,7 +78,7 @@ bool DdiMediaProtected::CheckAttribList(
     VAConfigAttrib* attrib,
     uint32_t numAttribs)
 {
-    return false;
+    return true;
 }
 
 VAStatus DdiMediaProtected::DdiMedia_CreateProtectedSession(
@@ -86,6 +92,7 @@ VAStatus DdiMediaProtected::DdiMedia_CreateProtectedSession(
     DDI_CHK_NULL(protected_session, "nullptr protected_session",    VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
+
     PDDI_MEDIA_CONTEXT mediaDrvCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaDrvCtx, "nullptr mediaDrvCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(mediaDrvCtx->m_caps, "nullptr mediaDrvCtx->m_caps", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -123,7 +130,8 @@ VAStatus DdiMediaProtected::DdiMedia_DestroyProtectedSession(
     uint32_t            ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
     void *ctxPtr = DdiMedia_GetContextFromProtectedSessionID(ctx, protected_session, &ctxType);
 
-    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
+    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT ||
+        ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_LINK)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
 
@@ -153,6 +161,7 @@ VAStatus DdiMediaProtected::DdiMedia_AttachProtectedSession(
     void     *ctxPtr = DdiMedia_GetContextFromProtectedSessionID(ctx, protected_session, &ctxType);
     DDI_CHK_NULL(ctxPtr,      "nullptr ctxPtr",     VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
     if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
@@ -204,7 +213,7 @@ VAStatus DdiMediaProtected::DdiMedia_DetachProtectedSession(
 VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionExecute(
     VADriverContextP        ctx,
     VAProtectedSessionID    protected_session,
-    VABufferID              data)
+    VABufferID              bufId)
 {
     DDI_FUNCTION_ENTER();
 
@@ -215,12 +224,13 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionExecute(
     void     *ctxPtr = DdiMedia_GetContextFromProtectedSessionID(ctx, protected_session, &ctxType);
     DDI_CHK_NULL(ctxPtr,      "nullptr ctxPtr",     VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
+    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT ||
+        ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_LINK)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
 
         DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
-        vaStatus = prot->ProtectedSessionExecute(ctx, protected_session, data);
+        vaStatus = prot->ProtectedSessionExecute(ctx, protected_session, bufId);
     }
     else
     {
@@ -245,7 +255,8 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionHwUpdate(
     void     *ctxPtr = DdiMedia_GetContextFromProtectedSessionID(ctx, protected_session, &ctxType);
     DDI_CHK_NULL(ctxPtr,      "nullptr ctxPtr",     VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
+    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT ||
+        ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_LINK)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
 
@@ -279,7 +290,8 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionCreateBuffer(
     void     *ctxPtr = DdiMedia_GetContextFromProtectedSessionID(ctx, context, &ctxType);
     DDI_CHK_NULL(ctxPtr,      "nullptr ctxPtr",     VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
+    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT ||
+        ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_LINK)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
 
@@ -300,14 +312,101 @@ VAStatus DdiMediaProtected::CreateProtectedSession(
     VAConfigID              config_id,
     VAProtectedSessionID    *protected_session)
 {
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
+    PDDI_MEDIA_CONTEXT                  pMediaCtx       = nullptr;
+    VAStatus                            vaStatus        = VA_STATUS_SUCCESS;
+    PDDI_CP_CONTEXT                     pCpCtx          = nullptr;
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT   pVaCtxHeapElmt  = nullptr;
+    int32_t                             fdMei           = -1;
+    struct mei_connect_client_data      sConnectData;
+    int32_t                             ioctlStatus     = -1;
+
+
+    *protected_session  = VA_INVALID_ID;
+
+    DDI_CHK_NULL(ctx,     "nullptr ctx",          VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    pMediaCtx  = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(pMediaCtx,     "nullptr mediaDrvCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    // allocate pCpCtx
+    pCpCtx = (PDDI_CP_CONTEXT)MOS_AllocAndZeroMemory(sizeof(DDI_CP_CONTEXT));
+    DDI_CHK_NULL(pCpCtx, "Null pCpCtx.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+
+    DdiMediaUtil_LockMutex(&pMediaCtx->ProtMutex);
+
+    // get Free CP context index
+    pVaCtxHeapElmt = DdiMediaUtil_AllocPVAContextFromHeap(pMediaCtx->pProtCtxHeap);
+    if (nullptr == pVaCtxHeapElmt)
+    {
+        MOS_FreeMemAndSetNull(pCpCtx);
+        DdiMediaUtil_UnLockMutex(&pMediaCtx->ProtMutex);
+        VP_DDI_ASSERTMESSAGE("CP Context number exceeds maximum.");
+        return VA_STATUS_ERROR_INVALID_CONTEXT;
+    }
+
+    // store pVpCtx in pMedia
+    pVaCtxHeapElmt->pVaContext    = (void *)pCpCtx;
+    *protected_session = (VAContextID)(pVaCtxHeapElmt->uiVaContextID + DDI_MEDIA_VACONTEXTID_OFFSET_PROT);
+
+    // increate CP context number
+    pMediaCtx->uiNumProts++;
+
+    DdiMediaUtil_UnLockMutex(&pMediaCtx->ProtMutex);
+
+    fdMei = open(MEI_DEVICE, O_RDWR | O_SYNC);
+    if (fdMei == -1)
+    {
+        DDI_ASSERTMESSAGE("Cannot not open MEI device %d", errno);
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
+
+    sConnectData.in_client_uuid = *(reinterpret_cast<const uuid_le*>(&MEI_GUID));
+    ioctlStatus = ioctl(fdMei, IOCTL_MEI_CONNECT_CLIENT, &sConnectData);
+    if (ioctlStatus == -1)
+    {
+        DDI_ASSERTMESSAGE("Cannot not ioctl MEI device %d", errno);
+        return VA_STATUS_ERROR_OPERATION_FAILED;
+    }
+
+    pCpCtx->fdMei = fdMei;
+
+    return vaStatus;
 }
 
 VAStatus DdiMediaProtected::DestroyProtectedSession(
     VADriverContextP        ctx,
     VAProtectedSessionID    protected_session)
 {
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
+    PDDI_MEDIA_CONTEXT       pMediaCtx      = nullptr;
+    PDDI_CP_CONTEXT          pCpCtx         = nullptr;
+    uint32_t                 uiProtIndex    = -1;
+    uint32_t                 ctxType        = 0;
+    VAStatus                 vaStatus       = VA_STATUS_SUCCESS;
+
+    DDI_CHK_NULL(ctx, "Null ctx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    // initialize
+    pMediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(pMediaCtx, "Null pMediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    pCpCtx    = (PDDI_CP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, protected_session, &ctxType);
+    DDI_CHK_NULL(pCpCtx, "Null pCpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    close(pCpCtx->fdMei);
+
+    // Get CP context index
+    uiProtIndex = protected_session & DDI_MEDIA_MASK_VACONTEXTID;
+
+    // remove from context array
+    DdiMediaUtil_LockMutex(&pMediaCtx->ProtMutex);
+    // destroy cp context
+    MOS_FreeMemAndSetNull(pCpCtx);
+    DdiMediaUtil_ReleasePVAContextFromHeap(pMediaCtx->pProtCtxHeap, uiProtIndex);
+
+    pMediaCtx->uiNumProts--;
+    DdiMediaUtil_UnLockMutex(&pMediaCtx->ProtMutex);
+
+    return vaStatus;
 }
 
 VAStatus DdiMediaProtected::AttachProtectedSession(
@@ -328,9 +427,59 @@ VAStatus DdiMediaProtected::DetachProtectedSession(
 VAStatus DdiMediaProtected::ProtectedSessionExecute(
     VADriverContextP        ctx,
     VAProtectedSessionID    protected_session,
-    VABufferID              data)
+    VABufferID              bufId)
 {
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
+    PDDI_MEDIA_CONTEXT             pMediaCtx            = nullptr;
+    PDDI_CP_CONTEXT                pCpCtx               = nullptr;
+    uint32_t                       ctxType              = 0;
+    PDDI_MEDIA_BUFFER              pBuf                 = nullptr;
+    VAStatus                       vaStatus             = VA_STATUS_SUCCESS;
+    void                           *pData               = nullptr;
+    int32_t                        ret                  = -1;
+    VAProtectedSessionExecuteBuffer *exec_buff          = nullptr;
+
+
+    DDI_CHK_NULL(ctx, "Null ctx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    pMediaCtx   = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(pMediaCtx, "Null pMediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    pCpCtx      = (PDDI_CP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, protected_session, &ctxType);
+    DDI_CHK_NULL(pCpCtx, "Null pCpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    pBuf = DdiMedia_GetBufferFromVABufferID(pMediaCtx, bufId);
+    DDI_CHK_NULL(pBuf, "Null pBuf.", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    DdiMedia_MapBuffer(ctx, bufId, &pData);
+    DDI_CHK_NULL(pData, "Null pData.", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    switch ((int32_t)pBuf->uiType)
+    {
+        // Protcted Buffer Types
+        case VAProtectedSessionExecuteBufferType:
+            exec_buff = (VAProtectedSessionExecuteBuffer *)pData;
+            ret = write(pCpCtx->fdMei, exec_buff->input.data, exec_buff->input.data_size);
+            if (ret == -1)
+            {
+                vaStatus = VA_STATUS_ERROR_OPERATION_FAILED;
+                DDI_ASSERTMESSAGE("Write exec buff failed %d.", errno);
+            }
+
+            ret = read(pCpCtx->fdMei, exec_buff->output.data, exec_buff->output.data_size);
+            if (ret == -1)
+            {
+                vaStatus = VA_STATUS_ERROR_OPERATION_FAILED;
+                DDI_ASSERTMESSAGE("Read exec buff failed %d.", errno);
+            }
+
+            break;
+        default:
+            DDI_CHK_RET(vaStatus,"Unsupported buffer type!");
+            break;
+    }
+
+    DdiMedia_UnmapBuffer(ctx, bufId);
+    return vaStatus;
 }
 
 VAStatus DdiMediaProtected::ProtectedSessionHwUpdate(
@@ -350,7 +499,77 @@ VAStatus DdiMediaProtected::ProtectedSessionCreateBuffer(
     void                    *data,
     VABufferID              *bufId)
 {
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
+    PDDI_MEDIA_CONTEXT             pMediaCtx            = nullptr;
+    PDDI_CP_CONTEXT                pCpCtx               = nullptr;
+    uint32_t                       ctxType              = 0;
+    PDDI_MEDIA_BUFFER              pBuf                 = nullptr;
+    VAStatus                       vaStatus             = VA_STATUS_SUCCESS;
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT pBufferHeapElement   = nullptr;
+    MOS_STATUS                     eStatus              = MOS_STATUS_SUCCESS;
+
+    DDI_CHK_NULL(ctx, "Null ctx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(bufId, "Null bufId.", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    *bufId   = VA_INVALID_ID;
+
+    pMediaCtx   = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(pMediaCtx, "Null pMediaCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    pCpCtx    = (PDDI_CP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, protected_session, &ctxType);
+    DDI_CHK_NULL(pCpCtx, "Null pCpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    // only for VAProtectedSessionExecuteBufferType
+    if (type != VAProtectedSessionExecuteBufferType)
+    {
+        DDI_CHK_RET(vaStatus,"Unsupported buffer type!");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    // allocate new buf and init
+    pBuf                = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
+    DDI_CHK_NULL(pBuf, "Null pBuf.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    pBuf->pMediaCtx     = pMediaCtx;
+    pBuf->iSize         = size * num_elements;
+    pBuf->uiNumElements = num_elements;
+    pBuf->uiType        = type;
+    pBuf->format        = Media_Format_Buffer;
+    pBuf->uiOffset      = 0;
+    pBuf->pData         = (uint8_t*)MOS_AllocAndZeroMemory(size * num_elements);
+    if (nullptr == pBuf->pData)
+    {
+        MOS_FreeMemAndSetNull(pBuf);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+    pBuf->format       = Media_Format_CPU;
+
+    pBufferHeapElement  = DdiMediaUtil_AllocPMediaBufferFromHeap(pMediaCtx->pBufferHeap);
+    if (nullptr == pBufferHeapElement)
+    {
+        MOS_FreeMemAndSetNull(pBuf->pData);
+        MOS_FreeMemAndSetNull(pBuf);
+        VP_DDI_ASSERTMESSAGE("Invalid buffer index.");
+        return VA_STATUS_ERROR_INVALID_BUFFER;
+    }
+    pBufferHeapElement->pBuffer      = pBuf;
+    pBufferHeapElement->pCtx         = (void *)pCpCtx;
+    pBufferHeapElement->uiCtxType    = DDI_MEDIA_CONTEXT_TYPE_PROTECTED;
+    *bufId                           = pBufferHeapElement->uiVaBufferID;
+    pMediaCtx->uiNumBufs++;
+
+    // if there is data from client, then dont need to copy data from client
+    if (data)
+    {
+        // copy client data to new buf
+        eStatus = MOS_SecureMemcpy(pBuf->pData, size * num_elements, data, size * num_elements);
+        DDI_CHK_CONDITION((eStatus != MOS_STATUS_SUCCESS), "DDI: Failed to copy client data!", VA_STATUS_ERROR_MAX_NUM_EXCEEDED);
+    }
+    else
+    {
+        // do nothing if there is no data from client
+        vaStatus = VA_STATUS_SUCCESS;
+    }
+
+    return vaStatus;
 }
 
 uint64_t DdiMediaProtected::GetProtectedSurfaceTag(PDDI_MEDIA_CONTEXT media_ctx)

@@ -746,7 +746,8 @@ protected:
     {
         videoEncode, //!< Video encode
         videoDecode, //!< Video decode
-        videoProcess //!< Video processing
+        videoProcess,//!< Video processing
+        videoProtect //!< Video protection
     };
 
     enum EncodeFormat

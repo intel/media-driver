@@ -39,6 +39,11 @@
 #include <va/va_enc_hevc.h>
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>
+#if defined(__has_include)
+#if __has_include(<va/va_backend_prot.h>)
+# include <va/va_backend_prot.h>
+#endif //__has_include
+#endif //defined(__has_include)
 #ifdef ANDROID
 #if VA_MAJOR_VERSION < 1
 #include "va_internal_android.h"
@@ -67,6 +72,7 @@
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
 #define DDI_CODEC_GET_VTABLE_VPP(ctx)              (ctx->vtable_vpp)
+#define DDI_CODEC_GET_VTABLE_PROT(ctx)             (ctx->vtable_prot)
 #define DDI_CODEC_GET_VTABLE_TPI(ctx)              (ctx->vtable_tpi)
 
 #define DDI_CODEC_BATCH_BUFFER_SIZE                0x80000

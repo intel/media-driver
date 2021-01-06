@@ -25,6 +25,7 @@
 
 #include "media_libva.h"
 #include "media_libva_util.h"
+#include "media_ddi_prot.h"
 #include "mos_solo_generic.h"
 #include "mos_interface.h"
 #include "media_libva_caps.h"
@@ -87,7 +88,14 @@ void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxI
 
     if (index >= DDI_MEDIA_MAX_INSTANCE_NUMBER)
         return nullptr;
-    if ((vaCtxID&DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_DECODER)
+    if ((vaCtxID&DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_PROT)
+    {
+        DDI_VERBOSEMESSAGE("Protected session detected: 0x%x", vaCtxID);
+        *ctxType = DDI_MEDIA_CONTEXT_TYPE_PROTECTED;
+        index = index & DDI_MEDIA_MASK_VAPROTECTEDSESSION_ID;
+        return DdiMedia_GetVaContextFromHeap(mediaCtx->pProtCtxHeap, index, &mediaCtx->ProtMutex);
+    }
+    else if ((vaCtxID&DDI_MEDIA_MASK_VACONTEXT_TYPE) == DDI_MEDIA_VACONTEXTID_OFFSET_DECODER)
     {
         DDI_VERBOSEMESSAGE("Decode context detected: 0x%x", vaCtxID);
         *ctxType = DDI_MEDIA_CONTEXT_TYPE_DECODER;

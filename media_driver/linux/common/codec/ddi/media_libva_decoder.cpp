@@ -150,6 +150,14 @@ VAStatus DdiDecode_EndPicture (
     // assume the VAContextID is decoder ID
     PDDI_DECODE_CONTEXT decCtx     = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if (decCtx->pCpDdiInterface && decCtx->pCpDdiInterface->IsCencProcessing())
+    {
+        VAStatus va = decCtx->pCpDdiInterface->EndPicture(ctx, context);
+        DDI_FUNCTION_EXIT(va);
+        return va;
+    }
+
     if (decCtx->m_ddiDecode)
     {
         VAStatus va = decCtx->m_ddiDecode->EndPicture(ctx, context);

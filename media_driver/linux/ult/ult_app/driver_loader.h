@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,11 @@
 #include "va/va_drmcommon.h"
 #include "va/va_backend.h"
 #include "va/va_backend_vpp.h"
+#if defined(__has_include)
+#if __has_include(<va/va_backend_prot.h>)
+# include <va/va_backend_prot.h>
+#endif //__has_include
+#endif //defined(__has_include)
 
 struct FeatureID
 {
@@ -92,7 +97,7 @@ struct DriverSymbols
         }
         return true;
     }
-    
+
     // Functions
     VADriverInit                __vaDriverInit_;
     CmExtSendReqMsgFunc         vaCmExtSendReqMsg;
@@ -127,6 +132,9 @@ public:
     VADriverContext             m_ctx        = {};
     VADriverVTable              m_vtable     = {};
     VADriverVTableVPP           m_vtable_vpp = {};
+#ifdef VA_DRIVER_VTABLE_PROT_VERSION
+    VADriverVTableProt          m_vtable_prot = {};
+#endif
 
 private:
 
