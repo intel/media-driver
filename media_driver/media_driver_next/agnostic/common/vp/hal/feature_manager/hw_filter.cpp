@@ -168,5 +168,29 @@ HwFilterRender::~HwFilterRender()
 
 MOS_STATUS HwFilterRender::SetPacketParams(VpCmdPacket &packet)
 {
-    return MOS_STATUS_SUCCESS;
+    bool bRet = true;
+
+    PVPHAL_SURFACE pSrcSurface    = nullptr;
+    PVPHAL_SURFACE pOutputSurface = nullptr;
+
+    // Remove dependence on vphal surface later.
+    VP_PUBLIC_CHK_NULL_RETURN(m_swFilterPipe);
+    VP_SURFACE* inputSurf  = m_swFilterPipe->GetSurface(true, 0);
+    VP_SURFACE* outputSurf = m_swFilterPipe->GetSurface(false, 0);
+    // previousSurf can be nullptr;
+    VP_SURFACE* previousSurf = m_swFilterPipe->GetPastSurface(0);
+    auto& surfSetting        = m_swFilterPipe->GetSurfacesSetting();
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(inputSurf, outputSurf,
+        previousSurf, surfSetting, m_vpExecuteCaps));
+
+    for (auto handler : m_Params.Params)
+    {
+        if (handler)
+        {
+            bRet = handler->SetPacketParam(&packet) && bRet;
+        }
+    }
+    return bRet ? MOS_STATUS_SUCCESS : MOS_STATUS_UNKNOWN;
 }

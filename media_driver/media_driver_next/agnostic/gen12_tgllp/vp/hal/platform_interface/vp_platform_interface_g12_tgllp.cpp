@@ -39,7 +39,7 @@ extern const Kdll_RuleEntry         g_KdllRuleTable_g12lpcmfc[];
 
 using namespace vp;
 //Kernel Params ---------------------------------------------------------------
-const RENDERHAL_KERNEL_PARAM g_Vebox_KernelParam_g12[VEBOX_KERNEL_BASE_MAX_G12] =
+extern const RENDERHAL_KERNEL_PARAM g_Vebox_KernelParam_m12[VEBOX_KERNEL_BASE_MAX_G12] =
 {
     ///*  GRF_Count
     //    |  BT_Count
@@ -136,7 +136,11 @@ RENDERHAL_KERNEL_PARAM VpPlatformInterfaceG12Tgllp::GetVeboxKernelSettings(uint3
     MOS_ZeroMemory(&kernelParam, sizeof(RENDERHAL_KERNEL_PARAM));
     if (iKDTIndex < VEBOX_KERNEL_BASE_MAX_G12)
     {
-        kernelParam = g_Vebox_KernelParam_g12[iKDTIndex];
+        kernelParam = g_Vebox_KernelParam_m12[iKDTIndex];
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("not support in Vebox Kernels");
     }
     return kernelParam;
 }

@@ -1146,7 +1146,20 @@ MOS_STATUS Policy::BuildExecuteHwFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUT
         auto it = m_RenderFeatureHandlers.begin();
         for (; it != m_RenderFeatureHandlers.end(); ++it)
         {
+            if ((*(it->second)).IsFeatureEnabled(caps))
+            {
+                HwFilterParameter* pHwFilterParam = (*(it->second)).CreateHwFilterParam(caps, *params.executedFilters, m_vpInterface.GetHwInterface());
 
+                if (pHwFilterParam)
+                {
+                    params.Params.push_back(pHwFilterParam);
+                }
+                else
+                {
+                    VP_PUBLIC_ASSERTMESSAGE("Create HW Filter Failed, Return Error");
+                    return MOS_STATUS_NO_SPACE;
+                }
+            }
         }
     }
 
@@ -1293,6 +1306,10 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
             VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfOutput, false, 0));
         }
     }
+    else if (featurePipe.GetSecureProcessFlag())
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(UpdateSecureExecuteResource(featurePipe, caps, params));
+    }
     else
     {
         VP_PUBLIC_ASSERTMESSAGE("Output is not empty, featurePipe.IsPrimaryEmpty() = %d", featurePipe.IsPrimaryEmpty());
@@ -1424,8 +1441,8 @@ bool Policy::IsVeboxSecurePathEnabled(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
         return false;
     }
 
-    if (!(m_vpInterface.GetHwInterface()->m_osInterface &&
-          m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface))
+    if (!m_vpInterface.GetHwInterface()->m_osInterface ||
+        !m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface)
     {
         VP_PUBLIC_ASSERTMESSAGE("No CP Interface Available");
         return false;
@@ -1436,8 +1453,12 @@ bool Policy::IsVeboxSecurePathEnabled(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
     // Place holder: DDI can also have conditions for Kernel resource using
     if (!featurePipe.GetSecureProcessFlag() && caps.bVebox && cpInterface->IsHMEnabled())
     {
-        featurePipe.SetSecureProcessFlag(true);
         return true;
+    }
+
+    if (featurePipe.GetSecureProcessFlag())
+    {
+        featurePipe.SetSecureProcessFlag(false);
     }
 
     return false;

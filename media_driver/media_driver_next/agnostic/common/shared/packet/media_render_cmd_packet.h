@@ -146,6 +146,7 @@ enum KernelID
     // 2 VEBOX KERNELS
     VeboxSecureBlockCopy,
     VeboxUpdateDnState,
+    VeboxKernelMax,
 
     // User Ptr
     UserPtr,
@@ -193,6 +194,20 @@ public:
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         bool                            bWrite);
 
+    // Step3: RSS Setup with fixed binding index, return index insert in binding table
+    virtual uint32_t SetSurfaceForHwAccess(
+        PMOS_SURFACE                     surface,
+        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
+        uint32_t                        bindingIndex,
+        bool                            bWrite);
+
+    virtual uint32_t SetBufferForHwAccess(
+        PMOS_SURFACE                        buffer,
+        PRENDERHAL_SURFACE_NEXT             pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS     pSurfaceParams,
+        bool                                bWrite);
+
     virtual uint32_t SetBufferForHwAccess(
         MOS_BUFFER                          buffer,
         PRENDERHAL_SURFACE_NEXT             pRenderSurface,
@@ -207,7 +222,10 @@ public:
         uint32_t  maximumNumberofThreads = 0);
 
     // Step6: different kernel have different media walker settings
-    virtual MOS_STATUS SetupMediaWalker() = 0;
+    virtual MOS_STATUS SetupMediaWalker()
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     MOS_STATUS PrepareMediaWalkerParams(KERNEL_WALKER_PARAMS params, MHW_WALKER_PARAMS& mediaWalker);
 
@@ -220,11 +238,11 @@ protected:
 
     // for VPP usage, there are more data need to updated, create as virtual for future inplemention in VPP
     virtual MOS_STATUS InitRenderHalSurface(
-        MOS_SURFACE        pSurface,
+        MOS_SURFACE        surface,
         PRENDERHAL_SURFACE pRenderSurface);
 
     virtual MOS_STATUS InitRenderHalBuffer(
-        MOS_BUFFER         pSurface,
+        MOS_BUFFER         surface,
         PRENDERHAL_SURFACE pRenderSurface);
 
     MOS_STATUS InitKernelEntry();
