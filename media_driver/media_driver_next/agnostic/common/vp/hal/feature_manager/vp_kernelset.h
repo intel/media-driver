@@ -44,10 +44,13 @@ enum KernelId
 struct RENDER_KERNEL_PARAMS
 {
     std::map<SurfaceType, VP_SURFACE*> *surfacesGroup;
-    std::vector<KernelId>* kernelId;
+    std::vector<uint32_t>* kernelId;
 };
 
 typedef std::map<KernelId, VpRenderKernelObj*> KERNEL_OBJECTS;
+
+typedef std::map<KernelId, void*> KERNEL_CONFIGS;
+typedef std::map<KernelId, KERNEL_PACKET_RENDER_DATA> KERNEL_RENDER_DATA;
 
 class VpKernelSet
 {
