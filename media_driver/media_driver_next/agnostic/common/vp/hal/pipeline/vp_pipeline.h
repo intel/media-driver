@@ -37,6 +37,7 @@
 #include "vp_status_report.h"
 #include "vphal.h"
 #include "vp_dumper.h"
+#include "vp_debug_interface.h"
 #include "vp_feature_manager.h"
 #include "vp_packet_shared_context.h"
 #include "vp_kernelset.h"
@@ -266,8 +267,7 @@ protected:
     // Surface dumper fields (counter and specification)
     uint32_t               m_frameCounter           = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    VpSurfaceDumper       *m_surfaceDumper          = nullptr;
-    VpParameterDumper     *m_parameterDumper        = nullptr;
+    VpDebugInterface      *m_debugInterface         = nullptr;
 #endif
     bool                   m_currentFrameAPGEnabled = false;
     PacketFactory         *m_pPacketFactory         = nullptr;

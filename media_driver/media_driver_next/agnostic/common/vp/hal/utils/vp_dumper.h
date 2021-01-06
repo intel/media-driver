@@ -50,60 +50,77 @@
 #define VPHAL_SURF_DUMP_MANUAL_TRIGGER_STOPPED (0)
 
 //------------------------------------------------------------------------------
+// Dump macro for dumper.  Dump vphal parameters.
+//------------------------------------------------------------------------------
+#define VP_PARAMETERS_DUMPPER_DUMP_XML(              \
+    debuginterface, pRenderParams, frameCounter)     \
+    if (debuginterface)                                              \
+        debuginterface->DumpToXML(pRenderParams, frameCounter);      \
+
+//------------------------------------------------------------------------------
 // Dump macro.  Simply calls the dump function.  defined as null in production
 //------------------------------------------------------------------------------
-#define VPHAL_SURFACE_DUMP(dumper, surf, frameCntr, layerCntr, loc)         \
-    VPHAL_DEBUG_CHK_STATUS(dumper->DumpSurface(surf, frameCntr, layerCntr, loc));
+#define VP_SURFACE_DUMP(                                       \
+    debuginterface, surf, frameCntr, layerCntr, loc)           \
+    if (debuginterface)                                        \
+        VP_DEBUG_CHK_STATUS(debuginterface->DumpVpSurface(     \
+           surf, frameCntr, layerCntr, loc));
 
 //------------------------------------------------------------------------------
 // Dump array of surfaces
 //------------------------------------------------------------------------------
-#define VPHAL_SURFACE_PTRS_DUMP(                                            \
-    dumper, surfs, maxCntr, numCntr, frameCntr, loc)                            \
-    VPHAL_DEBUG_CHK_STATUS(dumper->DumpSurfaceArray(                            \
-        surfs, maxCntr, numCntr, frameCntr, loc));
-
+#define VP_SURFACE_PTRS_DUMP(                                    \
+    debuginterface, surfs, maxCntr, numCntr, frameCntr, loc)     \
+    if (debuginterface)                                          \
+        VP_DEBUG_CHK_STATUS(debuginterface->DumpVpSurfaceArray(  \
+            surfs, maxCntr, numCntr, frameCntr, loc));
 //------------------------------------------------------------------------------
 // Create macro for dumper.  Allocates and initializes.
 //    Potential leak if renderer not destroyed properly. However, cannot add a
 //    free here since renderer is not initialized to null (0)
 //------------------------------------------------------------------------------
-#define VPHAL_SURF_DUMP_CREATE()                                            \
-    m_surfaceDumper = MOS_New(VpSurfaceDumper, m_osInterface);              \
-    if (m_surfaceDumper)                                                        \
-        m_surfaceDumper->GetSurfaceDumpSpec();
+#define VP_SURF_DUMP_CREATE(surfaceDumper)                   \
+    surfaceDumper = MOS_New(VpSurfaceDumper, m_osInterface); \
+    if (surfaceDumper)                                       \
+        surfaceDumper->GetSurfaceDumpSpec();
 
 //------------------------------------------------------------------------------
 // Destroy macro for dumper.  Frees and sets to null.
 //------------------------------------------------------------------------------
-#define VPHAL_SURF_DUMP_DESTORY(surfaceDumper)                              \
-    MOS_Delete(surfaceDumper);                                                  \
+#define VP_SURF_DUMP_DESTORY(surfaceDumper)    \
+    MOS_Delete(surfaceDumper);                 \
     surfaceDumper = nullptr;
-
 
 //------------------------------------------------------------------------------
 // Create macro for vphal parameters dumper.  Allocates and initializes.
 //------------------------------------------------------------------------------
-#define VPHAL_PARAMETERS_DUMPPER_CREATE()                                   \
-    m_parameterDumper = MOS_New(VpParameterDumper, m_osInterface);          \
-    if (m_parameterDumper)                                                      \
-        m_parameterDumper->GetParametersDumpSpec();
+#define VP_PARAMETERS_DUMPPER_CREATE(parameterDumper)            \
+    parameterDumper = MOS_New(VpParameterDumper, m_osInterface); \
+    if (parameterDumper)                                         \
+        parameterDumper->GetParametersDumpSpec();
 
 //------------------------------------------------------------------------------
 // Destroy macro for dumper.  Frees and sets to null.
 //------------------------------------------------------------------------------
-#define VPHAL_PARAMETERS_DUMPPER_DESTORY(parameterDumper)                 \
-    MOS_Delete(parameterDumper);                                              \
+#define VP_PARAMETERS_DUMPPER_DESTORY(parameterDumper)    \
+    MOS_Delete(parameterDumper);                          \
     parameterDumper = nullptr;
 
 //------------------------------------------------------------------------------
-// Dump macro for dumper.  Dump vphal parameters.
+// Create macro for vp debug interface.  Allocates and initializes.
 //------------------------------------------------------------------------------
-#define VPHAL_PARAMETERS_DUMPPER_DUMP_XML(pRenderParams)                    \
-    m_parameterDumper->DumpToXML(                                               \
-        m_frameCounter,                                                         \
-        m_surfaceDumper->m_dumpSpec.pcOutputPath,                               \
-        pRenderParams);
+#define VP_DEBUG_INTERFACE_CREATE(debuginterface)       \
+    debuginterface = MOS_New(VpDebugInterface);         \
+    if (debuginterface)                                 \
+        VP_PUBLIC_CHK_STATUS_RETURN(                    \
+            debuginterface->Initialize(m_osInterface)); \
+
+//------------------------------------------------------------------------------
+// Destroy macro for vp debug interface.  Frees and sets to null.
+//------------------------------------------------------------------------------
+#define VP_DEBUG_INTERFACE_DESTROY(debuginterface)      \
+    MOS_Delete(debuginterface);                         \
+    debuginterface = nullptr;
 
 //! 
 //! Structure VPHAL_DBG_SURF_DUMP_SURFACE_DEF
@@ -152,7 +169,7 @@ struct VPHAL_SURF_DUMP_LOC
 struct VPHAL_SURF_DUMP_SPEC
 {
     char                          pcOutputPath[MAX_PATH];                       //!< Path where dumps are written
-    VPHAL_SURF_DUMP_LOC       *pDumpLocations;                              //!< Locations in post-processing pipeline to dump at
+    VPHAL_SURF_DUMP_LOC          *pDumpLocations;                              //!< Locations in post-processing pipeline to dump at
     uint32_t                      uiStartFrame;                                 //!< Frame to start dumping at
     uint32_t                      uiEndFrame;                                   //!< Frame to stop dumping at
     int32_t                       iNumDumpLocs;                                 //!< Number of pipe stage dump locations
@@ -172,7 +189,7 @@ struct VPHAL_FIELD_LAYOUT
     uint32_t                 dwSize;
     uint32_t                 uiNumber;
     char                     pcStructName[MAX_NAME_LEN];
-    VPHAL_FIELD_LAYOUT   *pChildLayout;
+    VPHAL_FIELD_LAYOUT      *pChildLayout;
     uint32_t                 uiNumChildren;
 
 };
@@ -732,14 +749,16 @@ public:
 
 #if (!(_DEBUG || _RELEASE_INTERNAL))
 
-#define VPHAL_SURFACE_DUMP(dumper, surf, frameCntr, layerCntr, loc)
-#define VPHAL_SURFACE_PTRS_DUMP(                                            \
-    dumper, surfs, maxCntr, numCntr, frameCntr, loc)
-#define VPHAL_SURF_DUMP_CREATE()
-#define VPHAL_SURF_DUMP_DESTORY(surfaceDumper)
-#define VPHAL_PARAMETERS_DUMPPER_CREATE()
-#define VPHAL_PARAMETERS_DUMPPER_DESTORY(pParametersDumpSpec)
-#define VPHAL_PARAMETERS_DUMPPER_DUMP_XML(pRenderParams)
+#define VP_PARAMETERS_DUMPPER_DUMP_XML(debuginterface, pRenderParams, frameCounter)
+#define VP_SURFACE_DUMP(debuginterface, surf, frameCntr, layerCntr, loc)
+#define VP_SURFACE_PTRS_DUMP(                                            \
+    debuginterface, surfs, maxCntr, numCntr, frameCntr, loc)
+#define VP_SURF_DUMP_CREATE(surfaceDumper)
+#define VP_SURF_DUMP_DESTORY(surfaceDumper)
+#define VP_PARAMETERS_DUMPPER_CREATE(pParametersDumpSpec)
+#define VP_PARAMETERS_DUMPPER_DESTORY(pParametersDumpSpec)
+#define VP_DEBUG_INTERFACE_CREATE(debuginterface)
+#define VP_DEBUG_INTERFACE_DESTROY(debuginterface)
 
 #endif // (!(_DEBUG || _RELEASE_INTERNAL) || EMUL)
 

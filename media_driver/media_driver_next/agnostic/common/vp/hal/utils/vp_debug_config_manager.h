@@ -20,34 +20,31 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal_debug_config_manager.h
+//! \file     vp_debug_config.manager.h
 //! \brief    Defines the dump configuration manager.
 //! \details  The debug interface dumps configuration manager file which parse attributes.
 //!
-#ifndef __CODECHAL_DEBUG_CONFIG_MANAGER_H__
-#define __CODECHAL_DEBUG_CONFIG_MANAGER_H__
+#ifndef __VP_DEBUG_CONFIG_MANAGER_H__
+#define __VP_DEBUG_CONFIG_MANAGER_H__
 
-#include "codechal_debug.h"
-#if USE_CODECHAL_DEBUG_TOOL
+#include "vp_debug_interface.h"
+#if USE_VP_DEBUG_TOOL
 
-class CodecDebugConfigMgr : public MediaDebugConfigMgr
+class VpDebugConfigMgr : public MediaDebugConfigMgr
 {
 public:
-    CodecDebugConfigMgr(
-        CodechalDebugInterface *debugInterface,
-        CODECHAL_FUNCTION       codecFunction,
-        std::string             outputFolderPath);
-    virtual ~CodecDebugConfigMgr();
+    VpDebugConfigMgr(
+        VpDebugInterface *debugInterface,
+        std::string       outputFolderPath);
+    virtual  ~VpDebugConfigMgr();
 
 protected:
-    void     GetFunctionType();
     uint32_t GetDumpFrameNum() override;
-    std::string InitFileName(MediaDbgFunction mediaFunction) override;
 
 protected:
-    CodechalDebugInterface *m_debugInterface = nullptr;
-    CODECHAL_FUNCTION       m_codecFunction;
+    VpDebugInterface *m_debugInterface = nullptr;
+    std::string       InitFileName(MediaDbgFunction mediaFunction) override;
 };
 
-#endif  //USE_CODECHAL_DEBUG_TOOL
-#endif  /* __CODECHAL_DEBUG_CONFIG_MANAGER_H__ */
+#endif  //USE_VP_DEBUG_TOOL
+#endif  /* __VP_DEBUG_CONFIG_MANAGER_H__ */
