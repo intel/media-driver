@@ -61,18 +61,13 @@ VpPipeline::~VpPipeline()
     MOS_Delete(m_statusReport);
     MOS_Delete(m_packetSharedContext);
     MOS_Delete(m_reporting);
+    VP_DEBUG_INTERFACE_DESTROY(m_debugInterface);
 
     if (m_mediaContext)
     {
         MOS_Delete(m_mediaContext);
         m_mediaContext = nullptr;
     }
-
-    // Destroy surface dumper
-    VPHAL_SURF_DUMP_DESTORY(m_surfaceDumper);
-
-    // Destroy vphal parameter dump
-    VPHAL_PARAMETERS_DUMPPER_DESTORY(m_parameterDumper);
 }
 
 MOS_STATUS VpPipeline::GetStatusReport(void *status, uint16_t numStatus)
@@ -172,15 +167,7 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-
-    // Initialize Surface Dumper
-    VPHAL_SURF_DUMP_CREATE()
-    VP_PUBLIC_CHK_NULL_RETURN(m_surfaceDumper);
-
-    // Initialize Parameter Dumper
-    VPHAL_PARAMETERS_DUMPPER_CREATE()
-    VP_PUBLIC_CHK_NULL_RETURN(m_parameterDumper);
-
+    VP_DEBUG_INTERFACE_CREATE(m_debugInterface)
 #endif
 
     m_pPacketFactory = MOS_New(PacketFactory, m_vpMhwInterface.m_vpPlatformInterface);
@@ -231,11 +218,13 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         // Set Pipeline status Table
         m_statusReport->SetPipeStatusReportParams(params, m_vpMhwInterface.m_statusTable);
 
-        VPHAL_PARAMETERS_DUMPPER_DUMP_XML(params);
+        VP_PARAMETERS_DUMPPER_DUMP_XML(m_debugInterface,
+            params,
+            m_frameCounter);
 
         for (uint32_t uiLayer = 0; uiLayer < params->uSrcCount && uiLayer < VPHAL_MAX_SOURCES; uiLayer++)
         {
-            VPHAL_SURFACE_DUMP(m_surfaceDumper,
+            VP_SURFACE_DUMP(m_debugInterface,
                 params->pSrc[uiLayer],
                 m_frameCounter,
                 uiLayer,
@@ -292,12 +281,13 @@ MOS_STATUS VpPipeline::UpdateExecuteStatus()
     {
         PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
         VP_PUBLIC_CHK_NULL(params);
-        VPHAL_SURFACE_PTRS_DUMP(m_surfaceDumper,
+        VP_SURFACE_PTRS_DUMP(m_debugInterface,
             params->pTarget,
             VPHAL_MAX_TARGETS,
             params->uDstCount,
             m_frameCounter,
             VPHAL_DUMP_TYPE_POST_ALL);
+
 #if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
         // Decompre output surface for debug
         MOS_USER_FEATURE_VALUE_DATA userFeatureData;
