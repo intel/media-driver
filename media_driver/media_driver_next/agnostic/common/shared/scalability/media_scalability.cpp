@@ -119,18 +119,43 @@ MOS_STATUS MediaScalability::VerifySpaceAvailable(uint32_t requestedSize, uint32
             requestedSize,
             0);
 
-        if (statusPatchList == MOS_STATUS_SUCCESS && statusCmdBuf == MOS_STATUS_SUCCESS)
+        if (statusPatchList != MOS_STATUS_SUCCESS && statusCmdBuf != MOS_STATUS_SUCCESS)
+        {
+            SCALABILITY_CHK_STATUS_RETURN(ResizeCommandBufferAndPatchList(requestedSize + COMMAND_BUFFER_RESERVED_SPACE, requestedPatchListSize));
+        }
+        else if (statusPatchList != MOS_STATUS_SUCCESS)
+        {
+            SCALABILITY_CHK_STATUS_RETURN(ResizeCommandBufferAndPatchList(0, requestedPatchListSize));
+        }
+        else if (statusCmdBuf != MOS_STATUS_SUCCESS)
+        {
+            SCALABILITY_CHK_STATUS_RETURN(ResizeCommandBufferAndPatchList(requestedSize + COMMAND_BUFFER_RESERVED_SPACE, 0));
+        }
+        else
         {
             // This flag is just a hint for encode, decode/vpp don't use this flag.
             singleTaskPhaseSupportedInPak = true;
             return eStatus;
         }
 
-        requestedSize          = requestedSize + COMMAND_BUFFER_RESERVED_SPACE;
-
-        SCALABILITY_CHK_STATUS_RETURN(ResizeCommandBufferAndPatchList(requestedSize, requestedPatchListSize));
-
     }
+
+    if (requestedPatchListSize)
+    {
+        statusPatchList = (MOS_STATUS)m_osInterface->pfnVerifyPatchListSize(
+            m_osInterface,
+            requestedPatchListSize);
+    }
+    statusCmdBuf = (MOS_STATUS)m_osInterface->pfnVerifyCommandBufferSize(
+        m_osInterface,
+        requestedSize,
+        0);
+
+    if(statusPatchList != MOS_STATUS_SUCCESS || statusCmdBuf != MOS_STATUS_SUCCESS)
+    {
+        eStatus = MOS_STATUS_NO_SPACE;
+    }
+
     return eStatus;
 }
 
