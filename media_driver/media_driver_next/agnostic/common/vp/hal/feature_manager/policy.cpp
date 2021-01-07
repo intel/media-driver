@@ -362,8 +362,8 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
         m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
         m_sfcHwEntry[cscParams->formatInput].cscSupported)
     {
-        hdrCSpace = IS_COLOR_SPACE_BT2020(cscParams->colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
-        hdrFormat = IS_COLOR_SPACE_BT2020(cscParams->colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8R8G8B8;
+        hdrCSpace = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;
+        hdrFormat = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
         if (m_sfcHwEntry[hdrFormat].inputSupported &&
             m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
             m_sfcHwEntry[hdrFormat].cscSupported)
@@ -422,11 +422,11 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_bypassCompMode             != VP_COMP_BYPASS_DISABLED       &&
-        cscParams->formatInput       == cscParams->formatOutput       &&
-        cscParams->colorSpaceInput   == cscParams->colorSpaceOutput   &&
-        cscParams->chromaSitingInput == cscParams->chromaSitingOutput &&
-        nullptr                      == cscParams->pIEFParams)
+    if (m_bypassCompMode                != VP_COMP_BYPASS_DISABLED          &&
+        cscParams->formatInput          == cscParams->formatOutput          &&
+        cscParams->input.colorSpace     == cscParams->output.colorSpace     &&
+        cscParams->input.chromaSiting   == cscParams->output.chromaSiting   &&
+        nullptr                         == cscParams->pIEFParams)
     {
         // for non-csc cases, all engine supported
         cscEngine->bEnabled     = 1;
@@ -437,14 +437,14 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
-    if (IS_COLOR_SPACE_BT2020_YUV(cscParams->colorSpaceInput))
+    if (IS_COLOR_SPACE_BT2020_YUV(cscParams->input.colorSpace))
     {
-        if ((cscParams->colorSpaceOutput == CSpace_BT601) ||
-            (cscParams->colorSpaceOutput == CSpace_BT709) ||
-            (cscParams->colorSpaceOutput == CSpace_BT601_FullRange) ||
-            (cscParams->colorSpaceOutput == CSpace_BT709_FullRange) ||
-            (cscParams->colorSpaceOutput == CSpace_stRGB) ||
-            (cscParams->colorSpaceOutput == CSpace_sRGB))
+        if ((cscParams->output.colorSpace == CSpace_BT601)              ||
+            (cscParams->output.colorSpace == CSpace_BT709)              ||
+            (cscParams->output.colorSpace == CSpace_BT601_FullRange)    ||
+            (cscParams->output.colorSpace == CSpace_BT709_FullRange)    ||
+            (cscParams->output.colorSpace == CSpace_stRGB)              ||
+            (cscParams->output.colorSpace == CSpace_sRGB))
         {
             midFormat = Format_A8R8G8B8;
             cscEngine->VeboxNeeded |= ENGINE_MUST(1); // Vebox Gamut compression is needed
@@ -531,25 +531,25 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         dwDstMinHeight = dwSfcMinHeight;
     }
 
-    dwSurfaceWidth  = scalingParams->dwWidthInput;
-    dwSurfaceHeight = scalingParams->dwHeightInput;
-    dwOutputSurfaceWidth  = scalingParams->dwWidthOutput;
-    dwOutputSurfaceHeight = scalingParams->dwHeightOutput;
+    dwSurfaceWidth  = scalingParams->input.dwWidth;
+    dwSurfaceHeight = scalingParams->input.dwHeight;
+    dwOutputSurfaceWidth  = scalingParams->output.dwWidth;
+    dwOutputSurfaceHeight = scalingParams->output.dwHeight;
 
     // Region of the input frame which needs to be processed by SFC
     uint32_t dwSourceRegionHeight = MOS_ALIGN_FLOOR(
-        MOS_MIN((uint32_t)(scalingParams->rcSrcInput.bottom - scalingParams->rcSrcInput.top), dwSurfaceHeight),
+        MOS_MIN((uint32_t)(scalingParams->input.rcSrc.bottom - scalingParams->input.rcSrc.top), dwSurfaceHeight),
         m_sfcHwEntry[scalingParams->formatInput].verticalAlignUnit);
     uint32_t dwSourceRegionWidth = MOS_ALIGN_FLOOR(
-        MOS_MIN((uint32_t)(scalingParams->rcSrcInput.right - scalingParams->rcSrcInput.left), dwSurfaceWidth),
+        MOS_MIN((uint32_t)(scalingParams->input.rcSrc.right - scalingParams->input.rcSrc.left), dwSurfaceWidth),
         m_sfcHwEntry[scalingParams->formatInput].horizontalAlignUnit);
 
     // Size of the Output Region over the Render Target
     uint32_t dwOutputRegionHeight = MOS_ALIGN_CEIL(
-        (uint32_t)(scalingParams->rcDstInput.bottom - scalingParams->rcDstInput.top),
+        (uint32_t)(scalingParams->input.rcDst.bottom - scalingParams->input.rcDst.top),
         m_sfcHwEntry[scalingParams->formatOutput].verticalAlignUnit);
     uint32_t dwOutputRegionWidth = MOS_ALIGN_CEIL(
-        (uint32_t)(scalingParams->rcDstInput.right - scalingParams->rcDstInput.left),
+        (uint32_t)(scalingParams->input.rcDst.right - scalingParams->input.rcDst.left),
         m_sfcHwEntry[scalingParams->formatOutput].horizontalAlignUnit);
 
     // Calculate the scaling ratio
@@ -560,7 +560,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
 
     if (fScaleX == 1.0f && fScaleY == 1.0f &&
         // Only support vebox crop from left-top, which is to align with legacy path.
-        0 == scalingParams->rcSrcInput.left && 0 == scalingParams->rcSrcInput.top)
+        0 == scalingParams->input.rcSrc.left && 0 == scalingParams->input.rcSrc.top)
     {
         // for non-Scaling cases, all engine supported
         scalingEngine->bEnabled     = 1;
@@ -642,7 +642,7 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
     {
         if (rotationParams->rotation > VPHAL_ROTATION_270               &&
             (!m_sfcHwEntry[rotationParams->formatInput].mirrorSupported ||
-             rotationParams->tileOutput != MOS_TILE_Y))
+             rotationParams->surfInfo.tileOutput != MOS_TILE_Y))
         {
             // Render FC Path  for Rotation
             rotationEngine->bEnabled = 1;

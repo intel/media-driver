@@ -89,10 +89,10 @@ MOS_STATUS MediaVdboxSfcRender::SetCSCParams(VDBOX_SFC_PARAMS &sfcParam, VP_EXEC
     cscParams.type                  = FeatureTypeCscOnSfc;
     cscParams.formatInput           = sfcParam.input.format;
     cscParams.formatOutput          = sfcParam.output.surface->Format;
-    cscParams.colorSpaceInput       = sfcParam.input.colorSpace;
-    cscParams.colorSpaceOutput      = sfcParam.output.colorSpace;
-    cscParams.chromaSitingInput     = sfcParam.input.chromaSiting;
-    cscParams.chromaSitingOutput    = sfcParam.output.chromaSiting;
+    cscParams.input.colorSpace      = sfcParam.input.colorSpace;
+    cscParams.output.colorSpace     = sfcParam.output.colorSpace;
+    cscParams.input.chromaSiting    = sfcParam.input.chromaSiting;
+    cscParams.output.chromaSiting   = sfcParam.output.chromaSiting;
 
     m_cscFilter->Init();
     m_cscFilter->SetExecuteEngineCaps(cscParams, vpExecuteCaps);
@@ -115,29 +115,29 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     scalingParams.scalingMode               = VPHAL_SCALING_AVS;
     scalingParams.scalingPreference         = VPHAL_SCALING_PREFER_SFC;              //!< DDI indicate Scaling preference
     scalingParams.bDirectionalScalar        = false;                                 //!< Vebox Directional Scalar
-    scalingParams.rcSrcInput                = rcSrcInput;                            //!< No input crop support for VD mode. rcSrcInput must have same width/height of input image.
-    scalingParams.rcDstInput                = sfcParam.output.rcDst;
-    scalingParams.rcMaxSrcInput             = rcSrcInput;
-    scalingParams.dwWidthInput              = sfcParam.input.width;
-    scalingParams.dwHeightInput             = sfcParam.input.height;
-    scalingParams.rcSrcOutput               = rcOutput;
-    scalingParams.rcDstOutput               = rcOutput;
-    scalingParams.rcMaxSrcOutput            = rcOutput;
-    scalingParams.dwWidthOutput             = sfcParam.output.surface->dwWidth;
-    scalingParams.dwHeightOutput            = sfcParam.output.surface->dwHeight;
+    scalingParams.input.rcSrc               = rcSrcInput;                            //!< No input crop support for VD mode. rcSrcInput must have same width/height of input image.
+    scalingParams.input.rcDst               = sfcParam.output.rcDst;
+    scalingParams.input.rcMaxSrc            = rcSrcInput;
+    scalingParams.input.dwWidth             = sfcParam.input.width;
+    scalingParams.input.dwHeight            = sfcParam.input.height;
+    scalingParams.output.rcSrc              = rcOutput;
+    scalingParams.output.rcDst              = rcOutput;
+    scalingParams.output.rcMaxSrc           = rcOutput;
+    scalingParams.output.dwWidth            = sfcParam.output.surface->dwWidth;
+    scalingParams.output.dwHeight           = sfcParam.output.surface->dwHeight;
     scalingParams.pColorFillParams          = nullptr;
     scalingParams.pCompAlpha                = nullptr;
-    scalingParams.colorSpaceOutput          = sfcParam.output.colorSpace;
+    scalingParams.csc.colorSpaceOutput      = sfcParam.output.colorSpace;
     scalingParams.interlacedScalingType     = sfcParam.videoParams.fieldParams.isFieldToInterleaved ? ISCALING_FIELD_TO_INTERLEAVED : ISCALING_NONE;
     if (sfcParam.videoParams.fieldParams.isFieldToInterleaved)
     {
-        scalingParams.srcSampleType         = sfcParam.videoParams.fieldParams.isBottomField ? SAMPLE_SINGLE_BOTTOM_FIELD : SAMPLE_SINGLE_TOP_FIELD;
-        scalingParams.dstSampleType         = sfcParam.videoParams.fieldParams.isBottomFirst ? SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD : SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
+        scalingParams.input.sampleType      = sfcParam.videoParams.fieldParams.isBottomField ? SAMPLE_SINGLE_BOTTOM_FIELD : SAMPLE_SINGLE_TOP_FIELD;
+        scalingParams.output.sampleType     = sfcParam.videoParams.fieldParams.isBottomFirst ? SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD : SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD;
     }
     else
     {
-        scalingParams.srcSampleType         = SAMPLE_PROGRESSIVE;
-        scalingParams.dstSampleType         = SAMPLE_PROGRESSIVE;
+        scalingParams.input.sampleType      = SAMPLE_PROGRESSIVE;
+        scalingParams.output.sampleType     = SAMPLE_PROGRESSIVE;
     }
 
     m_scalingFilter->Init(sfcParam.videoParams.codecStandard, sfcParam.videoParams.jpeg.jpegChromaType);
@@ -156,7 +156,7 @@ MOS_STATUS MediaVdboxSfcRender::SetRotMirParams(VDBOX_SFC_PARAMS &sfcParam, VP_E
     rotMirParams.formatInput            = sfcParam.input.format;
     rotMirParams.formatOutput           = sfcParam.output.surface->Format;
     rotMirParams.rotation               = sfcParam.input.mirrorEnabled ? VPHAL_MIRROR_HORIZONTAL : VPHAL_ROTATION_IDENTITY;
-    rotMirParams.tileOutput             = sfcParam.output.surface->TileType;
+    rotMirParams.surfInfo.tileOutput    = sfcParam.output.surface->TileType;
 
     m_rotMirFilter->Init();
     m_rotMirFilter->SetExecuteEngineCaps(rotMirParams, vpExecuteCaps);

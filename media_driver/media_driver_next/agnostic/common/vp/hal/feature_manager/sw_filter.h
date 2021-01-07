@@ -233,12 +233,15 @@ protected:
 
 struct FeatureParamCsc : public FeatureParam
 {
+    struct CSC_PARAMS
+    {
+        VPHAL_CSPACE    colorSpace;
+        uint32_t        chromaSiting;
+    };
+    CSC_PARAMS          input;
+    CSC_PARAMS          output;
     PVPHAL_IEF_PARAMS   pIEFParams;
     PVPHAL_ALPHA_PARAMS pAlphaParams;
-    VPHAL_CSPACE        colorSpaceInput;
-    VPHAL_CSPACE        colorSpaceOutput;
-    uint32_t            chromaSitingInput;
-    uint32_t            chromaSitingOutput;
     FeatureParamCsc     *next;                //!< pointe to new/next generated CSC params
 };
 
@@ -263,26 +266,35 @@ private:
 
 struct FeatureParamScaling : public FeatureParam
 {
+    struct SCALING_PARAMS
+    {
+        uint32_t                dwWidth;
+        uint32_t                dwHeight;
+        RECT                    rcSrc;
+        RECT                    rcDst;                          //!< Input dst rect without rotate being applied.
+        RECT                    rcMaxSrc;
+        VPHAL_SAMPLE_TYPE       sampleType;
+    };
+
+    // Parameters maintained by scaling feature parameters
+    SCALING_PARAMS              input;
+    SCALING_PARAMS              output;
     VPHAL_SCALING_MODE          scalingMode;
     VPHAL_SCALING_PREFERENCE    scalingPreference;              //!< DDI indicate Scaling preference
     bool                        bDirectionalScalar = false;     //!< Vebox Directional Scalar
-    RECT                        rcSrcInput;
-    RECT                        rcDstInput;                     //!< Input dst rect without rotate being applied.
-    bool                        bRotateNeeded;                  //!< Whether rotate SwFilter exists on SwFilterPipe.
-    RECT                        rcMaxSrcInput;
-    uint32_t                    dwWidthInput;
-    uint32_t                    dwHeightInput;
-    RECT                        rcSrcOutput;
-    RECT                        rcDstOutput;
-    RECT                        rcMaxSrcOutput;
-    uint32_t                    dwWidthOutput;
-    uint32_t                    dwHeightOutput;
     PVPHAL_COLORFILL_PARAMS     pColorFillParams;               //!< ColorFill - BG only
     PVPHAL_ALPHA_PARAMS         pCompAlpha;                     //!< Alpha for composited surfaces
-    VPHAL_CSPACE                colorSpaceOutput;
     VPHAL_ISCALING_TYPE         interlacedScalingType;
-    VPHAL_SAMPLE_TYPE           srcSampleType;
-    VPHAL_SAMPLE_TYPE           dstSampleType;
+
+    // Parameters maintained by other feature parameters.
+    struct {
+        VPHAL_CSPACE            colorSpaceOutput;
+    } csc;
+
+    struct {
+        bool                    rotationNeeded;                 //!< Whether rotate SwFilter exists on SwFilterPipe.
+    } rotation;
+
     FeatureParamScaling        *next;                           //!< pointe to new/next generated scaling params
 };
 
@@ -305,8 +317,13 @@ private:
 
 struct FeatureParamRotMir : public FeatureParam
 {
+    // Parameters maintained by rotation feature parameters
     VPHAL_ROTATION rotation;
-    MOS_TILE_TYPE  tileOutput;
+
+    // Parameters maintained by other feature parameters.
+    struct {
+        MOS_TILE_TYPE  tileOutput;
+    } surfInfo;
 };
 
 class SwFilterRotMir : public SwFilter
