@@ -56,6 +56,12 @@ MOS_STATUS MhwVdboxHucInterfaceG12::GetHucStateCommandSize(
     *commandsSize  += mhw_vdbox_vdenc_g12_X::VD_PIPELINE_FLUSH_CMD::byteSize;
     *patchListSize += PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD);
 
+    if(params->uNumVdPipelineFlush)
+    {
+        *commandsSize  += params->uNumVdPipelineFlush * mhw_vdbox_vdenc_g12_X::VD_PIPELINE_FLUSH_CMD::byteSize;
+        *patchListSize += params->uNumVdPipelineFlush * PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD);
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

@@ -523,6 +523,14 @@ struct MHW_VDBOX_STATE_CMDSIZE_PARAMS
     bool       bShortFormat = false;
     bool       bHucDummyStream = false;
     bool       bSfcInUse = false;
+    uint32_t   uNumStoreDataImm = 0;
+    uint32_t   uNumStoreReg = 0;
+    uint32_t   uNumMfxWait = 0;
+    uint32_t   uNumAddConBBEnd = 0;
+    uint32_t   uNumMiCopy = 0;
+    uint32_t   uNumMiFlush = 0;
+    uint32_t   bPerformHucStreamOut = false;
+    uint32_t   uNumVdPipelineFlush = 0;
     virtual ~MHW_VDBOX_STATE_CMDSIZE_PARAMS() {}
 };
 using PMHW_VDBOX_STATE_CMDSIZE_PARAMS = MHW_VDBOX_STATE_CMDSIZE_PARAMS * ;
