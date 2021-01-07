@@ -117,13 +117,13 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
-    m_Params.colorSpaceInput    = surfInput->ColorSpace;
-    m_Params.colorSpaceOutput   = surfOutput->ColorSpace;
+    m_Params.input.colorSpace    = surfInput->ColorSpace;
+    m_Params.output.colorSpace   = surfOutput->ColorSpace;
     m_Params.pIEFParams         = surfInput->pIEFParams;
     m_Params.formatInput        = surfInput->Format;
     m_Params.formatOutput       = surfOutput->Format;
-    m_Params.chromaSitingInput  = surfInput->ChromaSiting;
-    m_Params.chromaSitingOutput = surfOutput->ChromaSiting;
+    m_Params.input.chromaSiting  = surfInput->ChromaSiting;
+    m_Params.output.chromaSiting = surfOutput->ChromaSiting;
     m_Params.pAlphaParams       = params.pCompAlpha;
 
     return MOS_STATUS_SUCCESS;
@@ -149,13 +149,13 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
 
         GetVeboxOutputParams(caps, surfInput->osSurface->Format, surfInput->osSurface->TileType,
                             surfOutput->osSurface->Format, veboxOutputFormat, veboxOutputTileType);
-        m_Params.colorSpaceInput = surfInput->ColorSpace;
-        m_Params.colorSpaceOutput = surfInput->ColorSpace;
+        m_Params.input.colorSpace = surfInput->ColorSpace;
+        m_Params.output.colorSpace = surfInput->ColorSpace;
 
         m_Params.formatInput = surfInput->osSurface->Format;
         m_Params.formatOutput = veboxOutputFormat;
-        m_Params.chromaSitingInput = surfInput->ChromaSiting;
-        m_Params.chromaSitingOutput = surfOutput->ChromaSiting;
+        m_Params.input.chromaSiting = surfInput->ChromaSiting;
+        m_Params.output.chromaSiting = surfOutput->ChromaSiting;
 
         m_Params.pAlphaParams = nullptr;
         m_Params.pIEFParams = nullptr;
@@ -174,14 +174,14 @@ MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)
     {
         return MOS_STATUS_SUCCESS;
     }
-    m_Params.colorSpaceInput    = params.input.colorSpace;
-    m_Params.colorSpaceOutput   = params.output.colorSpace;
-    m_Params.pIEFParams         = nullptr;
-    m_Params.formatInput        = params.input.surface->Format;
-    m_Params.formatOutput       = params.output.surface->Format;
-    m_Params.chromaSitingInput  = params.input.chromaSiting;
-    m_Params.chromaSitingOutput = params.output.chromaSiting;
-    m_Params.pAlphaParams       = nullptr;
+    m_Params.input.colorSpace       = params.input.colorSpace;
+    m_Params.output.colorSpace      = params.output.colorSpace;
+    m_Params.pIEFParams             = nullptr;
+    m_Params.formatInput            = params.input.surface->Format;
+    m_Params.formatOutput           = params.output.surface->Format;
+    m_Params.input.chromaSiting     = params.input.chromaSiting;
+    m_Params.output.chromaSiting    = params.output.chromaSiting;
+    m_Params.pAlphaParams           = nullptr;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -224,12 +224,12 @@ MOS_STATUS SwFilterCsc::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
 
-    m_Params.colorSpaceInput    = inputSurf->ColorSpace;
-    m_Params.colorSpaceOutput   = outputSurf->ColorSpace;
     m_Params.formatInput        = inputSurf->osSurface->Format;
     m_Params.formatOutput       = outputSurf->osSurface->Format;
-    m_Params.chromaSitingInput  = inputSurf->ChromaSiting;
-    m_Params.chromaSitingOutput = outputSurf->ChromaSiting;
+    m_Params.input.colorSpace   = inputSurf->ColorSpace;
+    m_Params.output.colorSpace  = outputSurf->ColorSpace;
+    m_Params.input.chromaSiting = inputSurf->ChromaSiting;
+    m_Params.output.chromaSiting = outputSurf->ChromaSiting;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -271,13 +271,13 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     m_Params.scalingPreference      = surfInput->ScalingPreference;
     m_Params.bDirectionalScalar     = surfInput->bDirectionalScalar;
     m_Params.formatInput            = surfInput->Format;
-    m_Params.rcSrcInput             = surfInput->rcSrc;
+    m_Params.input.rcSrc            = surfInput->rcSrc;
 
-    m_Params.rcMaxSrcInput          = surfInput->rcMaxSrc;
-    m_Params.dwWidthInput           = surfInput->dwWidth;
-    m_Params.dwHeightInput          = surfInput->dwHeight;
+    m_Params.input.rcMaxSrc         = surfInput->rcMaxSrc;
+    m_Params.input.dwWidth          = surfInput->dwWidth;
+    m_Params.input.dwHeight         = surfInput->dwHeight;
     m_Params.formatOutput           = surfOutput->Format;
-    m_Params.colorSpaceOutput       = surfOutput->ColorSpace;
+    m_Params.csc.colorSpaceOutput   = surfOutput->ColorSpace;
     m_Params.pColorFillParams       = params.pColorFillParams;
     m_Params.pCompAlpha             = params.pColorFillParams ? params.pCompAlpha : nullptr;
 
@@ -286,45 +286,43 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         surfInput->Rotation == VPHAL_MIRROR_HORIZONTAL ||
         surfInput->Rotation == VPHAL_MIRROR_VERTICAL)
     {
-        m_Params.bRotateNeeded  = false;
-        m_Params.dwWidthOutput  = surfOutput->dwWidth;
-        m_Params.dwHeightOutput = surfOutput->dwHeight;
-
-        m_Params.rcDstInput     = surfInput->rcDst;
-        m_Params.rcSrcOutput    = surfOutput->rcSrc;
-        m_Params.rcDstOutput    = surfOutput->rcDst;
-        m_Params.rcMaxSrcOutput = surfOutput->rcMaxSrc;
+        m_Params.rotation.rotationNeeded    = false;
+        m_Params.output.dwWidth             = surfOutput->dwWidth;
+        m_Params.output.dwHeight            = surfOutput->dwHeight;
+        m_Params.input.rcDst                = surfInput->rcDst;
+        m_Params.output.rcSrc               = surfOutput->rcSrc;
+        m_Params.output.rcDst               = surfOutput->rcDst;
+        m_Params.output.rcMaxSrc            = surfOutput->rcMaxSrc;
     }
     else
     {
-        m_Params.bRotateNeeded      = true;
-        m_Params.dwWidthOutput      = surfOutput->dwHeight;
-        m_Params.dwHeightOutput     = surfOutput->dwWidth;
-
-        RECT_ROTATE(m_Params.rcDstInput, surfInput->rcDst);
-        RECT_ROTATE(m_Params.rcSrcOutput, surfOutput->rcSrc);
-        RECT_ROTATE(m_Params.rcDstOutput, surfOutput->rcDst);
-        RECT_ROTATE(m_Params.rcMaxSrcOutput, surfOutput->rcMaxSrc);
+        m_Params.rotation.rotationNeeded    = true;
+        m_Params.output.dwWidth             = surfOutput->dwHeight;
+        m_Params.output.dwHeight            = surfOutput->dwWidth;
+        RECT_ROTATE(m_Params.input.rcDst, surfInput->rcDst);
+        RECT_ROTATE(m_Params.output.rcSrc, surfOutput->rcSrc);
+        RECT_ROTATE(m_Params.output.rcDst, surfOutput->rcDst);
+        RECT_ROTATE(m_Params.output.rcMaxSrc, surfOutput->rcMaxSrc);
     }
 
-    m_Params.interlacedScalingType = surfInput->InterlacedScalingType;
-    m_Params.srcSampleType         = surfInput->SampleType;
-    m_Params.dstSampleType         = surfOutput->SampleType;
+    m_Params.interlacedScalingType  = surfInput->InterlacedScalingType;
+    m_Params.input.sampleType       = surfInput->SampleType;
+    m_Params.output.sampleType      = surfOutput->SampleType;
 
     // For field-to-interleaved scaling, the height of rcSrcInput is input field height,
     // the height of rcDstInput is output frame height, for scaling ratio calculation, the
     // bottom of rcDstInput need to divide 2.
     if(m_Params.interlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED)
     {
-        m_Params.rcDstInput.bottom /= 2;
+        m_Params.input.rcDst.bottom /= 2;
     }
     // For interleaved--to-field scaling, the height of rcSrcInput is input frame height,
     // the height of rcDstInput is output field height, for scaling ratio calculation, the
     // bottom of rcDstInput need to multiple 2.
     if(m_Params.interlacedScalingType == ISCALING_INTERLEAVED_TO_FIELD)
     {
-        m_Params.rcDstInput.bottom *= 2;
-        m_Params.dwHeightOutput *= 2;
+        m_Params.input.rcDst.bottom *= 2;
+        m_Params.output.dwHeight *= 2;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -336,12 +334,12 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
     m_Params.scalingPreference      = VPHAL_SCALING_PREFER_SFC;
     m_Params.bDirectionalScalar     = false;
     m_Params.formatInput            = params.input.surface->Format;
-    m_Params.rcSrcInput             = params.input.rcSrc;
-    m_Params.rcMaxSrcInput          = params.input.rcSrc;
-    m_Params.dwWidthInput           = params.input.surface->dwWidth;
-    m_Params.dwHeightInput          = params.input.surface->dwHeight;
+    m_Params.input.rcSrc            = params.input.rcSrc;
+    m_Params.input.rcMaxSrc         = params.input.rcSrc;
+    m_Params.input.dwWidth          = params.input.surface->dwWidth;
+    m_Params.input.dwHeight         = params.input.surface->dwHeight;
     m_Params.formatOutput           = params.output.surface->Format;
-    m_Params.colorSpaceOutput       = params.output.colorSpace;
+    m_Params.csc.colorSpaceOutput   = params.output.colorSpace;
     m_Params.pColorFillParams       = nullptr;
     m_Params.pCompAlpha             = nullptr;
 
@@ -352,23 +350,22 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
         params.input.rotation == (MEDIA_ROTATION)VPHAL_MIRROR_HORIZONTAL    ||
         params.input.rotation == (MEDIA_ROTATION)VPHAL_MIRROR_VERTICAL)
     {
-        m_Params.dwWidthOutput  = params.output.surface->dwWidth;
-        m_Params.dwHeightOutput = params.output.surface->dwHeight;
-
-        m_Params.rcDstInput     = params.output.rcDst;
-        m_Params.rcSrcOutput    = recOutput;
-        m_Params.rcDstOutput    = recOutput;
-        m_Params.rcMaxSrcOutput = recOutput;
+        m_Params.output.dwWidth     = params.output.surface->dwWidth;
+        m_Params.output.dwHeight    = params.output.surface->dwHeight;
+        m_Params.input.rcDst        = params.output.rcDst;
+        m_Params.output.rcSrc       = recOutput;
+        m_Params.output.rcDst       = recOutput;
+        m_Params.output.rcMaxSrc    = recOutput;
     }
     else
     {
-        m_Params.dwWidthOutput      = params.output.surface->dwHeight;
-        m_Params.dwHeightOutput     = params.output.surface->dwWidth;
+        m_Params.output.dwWidth     = params.output.surface->dwHeight;
+        m_Params.output.dwHeight    = params.output.surface->dwWidth;
 
-        RECT_ROTATE(m_Params.rcDstInput, params.output.rcDst);
-        RECT_ROTATE(m_Params.rcSrcOutput, recOutput);
-        RECT_ROTATE(m_Params.rcDstOutput, recOutput);
-        RECT_ROTATE(m_Params.rcMaxSrcOutput, recOutput);
+        RECT_ROTATE(m_Params.input.rcDst, params.output.rcDst);
+        RECT_ROTATE(m_Params.output.rcSrc, recOutput);
+        RECT_ROTATE(m_Params.output.rcDst, recOutput);
+        RECT_ROTATE(m_Params.output.rcMaxSrc, recOutput);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -407,9 +404,9 @@ MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
 
-    m_Params.colorSpaceOutput   = outputSurf->ColorSpace;
+    m_Params.csc.colorSpaceOutput   = outputSurf->ColorSpace;
     // update source sample type for field to interleaved mode.
-    m_Params.srcSampleType      = inputSurf->SampleType;
+    m_Params.input.sampleType       = inputSurf->SampleType;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -440,7 +437,7 @@ MOS_STATUS SwFilterRotMir::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
     m_Params.rotation     = surfInput->Rotation;
-    m_Params.tileOutput   = surfOutput->TileType;
+    m_Params.surfInfo.tileOutput = surfOutput->TileType;
     m_Params.formatInput  = surfInput->Format;
     m_Params.formatOutput = surfOutput->Format;
     return MOS_STATUS_SUCCESS;
@@ -450,7 +447,7 @@ MOS_STATUS SwFilterRotMir::Configure(VEBOX_SFC_PARAMS &params)
 {
     // Parameter checking should be done in SwFilterRotMirHandler::IsFeatureEnabled.
     m_Params.rotation     = (VPHAL_ROTATION)params.input.rotation;
-    m_Params.tileOutput   = params.output.surface->TileType;
+    m_Params.surfInfo.tileOutput = params.output.surface->TileType;
     m_Params.formatInput  = params.input.surface->Format;
     m_Params.formatOutput = params.output.surface->Format;
     return MOS_STATUS_SUCCESS;
@@ -490,7 +487,7 @@ MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
     m_Params.formatInput = inputSurf->osSurface->Format;
     m_Params.formatOutput = outputSurf->osSurface->Format;
-    m_Params.tileOutput = outputSurf->osSurface->TileType;
+    m_Params.surfInfo.tileOutput = outputSurf->osSurface->TileType;
     return MOS_STATUS_SUCCESS;
 }
 

@@ -62,10 +62,10 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcState(
     wVYOffset           = 0;
 
     // Check input/output size
-    MHW_ASSERT(pSfcStateParams->dwInputFrameWidth   >= MHW_SFC_MIN_WIDTH);
-    MHW_ASSERT(pSfcStateParams->dwInputFrameHeight  >= MHW_SFC_MIN_HEIGHT);
-    MHW_ASSERT(pSfcStateParams->dwOutputFrameWidth  <= MHW_SFC_MAX_WIDTH);
-    MHW_ASSERT(pSfcStateParams->dwOutputFrameHeight <= MHW_SFC_MAX_HEIGHT);
+    MHW_ASSERT(pSfcStateParams->dwInputFrameWidth   >= m_minWidth);
+    MHW_ASSERT(pSfcStateParams->dwInputFrameHeight  >= m_minHeight);
+    MHW_ASSERT(pSfcStateParams->dwOutputFrameWidth  <= m_maxWidth);
+    MHW_ASSERT(pSfcStateParams->dwOutputFrameHeight <= m_maxHeight);
 
     // Set DW1
     cmd.DW1.SfcPipeMode                  = pSfcStateParams->sfcPipeMode;
