@@ -170,6 +170,17 @@ public:
     }
 
     //!
+    //! \brief    Reset last native gpu context
+    //! \return   void
+    //!
+    void ResetLastNativeGpuContext()
+    {
+        m_lastNativeGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
+        m_lastNativeGpuContext       = nullptr;
+        return;
+    }
+
+    //!
     //! \brief    Get last gpu context
     //! \return   GpuContextNext*
     //!           Pointer to the last gpu context
@@ -187,6 +198,17 @@ public:
     GPU_CONTEXT_HANDLE GetGpuContextHandle()
     {
         return m_gpuContextHandle;
+    }
+
+    //!
+    //! \brief    Reset gpu context
+    //! \return   void
+    //!
+    void ResetGpuContext()
+    {
+        m_gpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
+        m_gpuContext       = nullptr;
+        return;
     }
 
     //!

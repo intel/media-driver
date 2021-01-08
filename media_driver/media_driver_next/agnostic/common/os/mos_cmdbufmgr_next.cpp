@@ -129,6 +129,7 @@ MOS_STATUS CmdBufMgrNext::Reset()
                 cmdBuf->UnBindToGpuContext(true);
                 nativeGpuContext->ResetCmdBuffer();
             }
+            cmdBuf->ResetLastNativeGpuContext();
 
             auto gpuContext         = cmdBuf->GetGpuContext();
             auto gpuContextHandle   = cmdBuf->GetGpuContextHandle();
@@ -137,6 +138,7 @@ MOS_STATUS CmdBufMgrNext::Reset()
                 cmdBuf->UnBindToGpuContext(false);
                 gpuContext->ResetCmdBuffer();
             }
+            cmdBuf->ResetGpuContext();
         }
         else
         {
