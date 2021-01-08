@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,13 +35,20 @@ namespace decode
 {
     class Av1BasicFeature;
 
+    struct Av1SharedBuf
+    {
+        PMOS_BUFFER buffer = nullptr;
+        int refCnt = 0;
+    };
+
     struct Av1RefAssociatedBufs
     {
         PMOS_BUFFER mvBuf = nullptr;
-        PMOS_BUFFER segIdBuf = nullptr;
-        PMOS_BUFFER segIdWriteBuf = nullptr;
-        PMOS_BUFFER initCdfBuf = nullptr;
-        PMOS_BUFFER bwdAdaptCdfBuf = nullptr;
+        Av1SharedBuf *segIdBuf = nullptr;
+        Av1SharedBuf segIdWriteBuf;
+        Av1SharedBuf *initCdfBuf = nullptr;
+        Av1SharedBuf bwdAdaptCdfBuf;
+        Av1SharedBuf defaultCdfBuf;
         bool disableFrmEndUpdateCdf = false;
     };
 
@@ -53,11 +60,15 @@ namespace decode
                         Av1BasicFeature& basicFeature);
         virtual Av1RefAssociatedBufs *Allocate();
         virtual MOS_STATUS Resize(Av1RefAssociatedBufs* &buffer);
+        virtual MOS_STATUS Deactive(Av1RefAssociatedBufs* &buffer);
+        virtual bool IsAvailable(Av1RefAssociatedBufs* &buffer);
         virtual void Destroy(Av1RefAssociatedBufs* &buffer);
     protected:
         void                  SetAvpBufSizeParam(MhwVdboxAvpBufferSizeParams& params, int32_t mibSizeLog2);
         void                  RecordSegIdBufInfo(Av1RefAssociatedBufs *buffer);
         void                  RecordCdfTableBufInfo(Av1RefAssociatedBufs *buffer);
+        inline Av1SharedBuf  *RefSharedBuffer(Av1SharedBuf *sharedBuf);
+        inline Av1SharedBuf  *DeRefSharedBuffer(Av1SharedBuf *sharedBuf);
         MhwVdboxAvpInterface *m_avpInterface = nullptr;  //!< Avp interface;
         int32_t               widthInSb;
         int32_t               heightInSb;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -64,9 +64,9 @@ namespace decode
         {
             DECODE_ASSERTMESSAGE( "Failed to get SegmentIdBuffer size.");
         }
-        bufs->segIdWriteBuf = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "SegmentIdWriteBuffer", resourceInternalReadWriteCache);
+        bufs->segIdWriteBuf.buffer = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "SegmentIdWriteBuffer", resourceInternalReadWriteCache);
 
-        bufs->bwdAdaptCdfBuf = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_basicFeature->m_cdfMaxNumBytes,
+        bufs->bwdAdaptCdfBuf.buffer = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_basicFeature->m_cdfMaxNumBytes,
             CODECHAL_PAGE_SIZE), "CdfTableBuffer", resourceInternalReadWriteCache);
         return bufs;
     }
@@ -93,7 +93,7 @@ namespace decode
         DECODE_CHK_STATUS(m_avpInterface->GetAv1BufferSize(
             segmentIdBuf,
             &avpBufSizeParam));
-        DECODE_CHK_STATUS(m_allocator->Resize(buffer->segIdWriteBuf, avpBufSizeParam.m_bufferSize, false));
+        DECODE_CHK_STATUS(m_allocator->Resize(buffer->segIdWriteBuf.buffer, avpBufSizeParam.m_bufferSize, false));
 
         RecordSegIdBufInfo(buffer);
         RecordCdfTableBufInfo(buffer);
@@ -128,16 +128,17 @@ namespace decode
         {
             if (picParams->m_av1SegData.m_updateMap)
             {
-                buffer->segIdBuf = buffer->segIdWriteBuf;
+                buffer->segIdBuf = RefSharedBuffer(&buffer->segIdWriteBuf);
             }
             else
             {
                 auto tempBuffers = &(m_basicFeature->m_tempBuffers);
-                if (tempBuffers->GetBufferByFrameIndex(prevFrameIdx) != nullptr)
+                auto prevTempBuffer = tempBuffers->GetBufferByFrameIndex(prevFrameIdx);
+                if (prevTempBuffer != nullptr)
                 {
                     if (m_basicFeature->m_refFrames.CheckSegForPrimFrame(*picParams))
                     {
-                        buffer->segIdBuf = tempBuffers->GetBufferByFrameIndex(prevFrameIdx)->segIdBuf;
+                        buffer->segIdBuf = RefSharedBuffer(prevTempBuffer->segIdBuf);
                     }
                     else
                     {
@@ -157,35 +158,56 @@ namespace decode
         auto    picParams              = m_basicFeature->m_av1PicParams;
         uint8_t prevFrameIdx           = m_basicFeature->m_refFrames.GetPrimaryRefIdx();
         buffer->disableFrmEndUpdateCdf = picParams->m_picInfoFlags.m_fields.m_disableFrameEndUpdateCdf;
+
         if (picParams->m_primaryRefFrame == av1PrimaryRefNone)
         {
-            buffer->initCdfBuf = m_basicFeature->m_defaultCdfBufferInUse;
+            buffer->defaultCdfBuf.buffer = m_basicFeature->m_defaultCdfBufferInUse;
+            buffer->initCdfBuf = RefSharedBuffer(&buffer->defaultCdfBuf);
         }
         else
         {
             auto tempBuffers = &(m_basicFeature->m_tempBuffers);
-            if (tempBuffers->GetBufferByFrameIndex(prevFrameIdx) != nullptr)
+            auto prevTempBuffer = tempBuffers->GetBufferByFrameIndex(prevFrameIdx);
+            if (prevTempBuffer != nullptr)
             {
-                if (tempBuffers->GetBufferByFrameIndex(prevFrameIdx)->disableFrmEndUpdateCdf)
+                if (prevTempBuffer->disableFrmEndUpdateCdf)
                 {
-                    buffer->initCdfBuf = tempBuffers->GetBufferByFrameIndex(prevFrameIdx)->initCdfBuf;
+                    buffer->initCdfBuf = RefSharedBuffer(prevTempBuffer->initCdfBuf);
                 }
                 else
                 {
-                    buffer->initCdfBuf = tempBuffers->GetBufferByFrameIndex(prevFrameIdx)->bwdAdaptCdfBuf;
-                }
-
-                //If init cdf buffer and bwdAdapt cdf buffer point to same memory address,
-                //should get a another bwdAdapt cdf buffer for cdf stream out from avaliable buffer pool.
-                if (buffer->initCdfBuf == buffer->bwdAdaptCdfBuf)
-                {
-                    auto        aviabuf     = tempBuffers->GetAviableBuffer();
-                    PMOS_BUFFER temp        = aviabuf->bwdAdaptCdfBuf;
-                    aviabuf->bwdAdaptCdfBuf = buffer->bwdAdaptCdfBuf;
-                    buffer->bwdAdaptCdfBuf  = temp;
+                    buffer->initCdfBuf = RefSharedBuffer(&prevTempBuffer->bwdAdaptCdfBuf);
                 }
             }
         }
+    }
+
+    MOS_STATUS Av1TempBufferOpInf::Deactive(Av1RefAssociatedBufs* &buffer)
+    {
+        DeRefSharedBuffer(buffer->segIdBuf);
+        DeRefSharedBuffer(buffer->initCdfBuf);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool Av1TempBufferOpInf::IsAvailable(Av1RefAssociatedBufs* &buffer)
+    {
+        if (buffer == nullptr)
+        {
+            return false;
+        }
+        if (buffer->segIdWriteBuf.refCnt > 0)
+        {
+            return false;
+        }
+        if (buffer->bwdAdaptCdfBuf.refCnt > 0)
+        {
+            return false;
+        }
+        if (buffer->defaultCdfBuf.refCnt > 0)
+        {
+            return false;
+        }
+        return true;
     }
 
     void Av1TempBufferOpInf::Destroy(Av1RefAssociatedBufs* &buffer)
@@ -195,12 +217,44 @@ namespace decode
         if (buffer != nullptr)
         {
             m_allocator->Destroy(buffer->mvBuf);
-            m_allocator->Destroy(buffer->segIdWriteBuf);
-            m_allocator->Destroy(buffer->bwdAdaptCdfBuf);
+
+            m_allocator->Destroy(buffer->segIdWriteBuf.buffer);
+            if (buffer->segIdWriteBuf.refCnt != 0)
+            {
+                DECODE_NORMALMESSAGE("The reference count is %d while destory SegId buffer", buffer->segIdWriteBuf.refCnt);
+            }
+
+            m_allocator->Destroy(buffer->bwdAdaptCdfBuf.buffer);
+            if (buffer->bwdAdaptCdfBuf.refCnt != 0)
+            {
+                DECODE_NORMALMESSAGE("The reference count is %d while destory CDF buffer", buffer->bwdAdaptCdfBuf.refCnt);
+            }
 
             MOS_Delete(buffer);
             buffer = nullptr;
         }
     }
 
+    Av1SharedBuf *Av1TempBufferOpInf::RefSharedBuffer(Av1SharedBuf *sharedBuf)
+    {
+        if (sharedBuf != nullptr)
+        {
+            sharedBuf->refCnt++;
+        }
+        return sharedBuf;
+    }
+
+    Av1SharedBuf *Av1TempBufferOpInf::DeRefSharedBuffer(Av1SharedBuf *sharedBuf)
+    {
+        if (sharedBuf != nullptr)
+        {
+            sharedBuf->refCnt--;
+            if (sharedBuf->refCnt < 0)
+            {
+                DECODE_ASSERTMESSAGE("AV1 shared buffer reference count is %d which should not small than zero.", sharedBuf->refCnt);
+                sharedBuf->refCnt = 0;
+            }
+        }
+        return sharedBuf;
+    }
 }  // namespace decode

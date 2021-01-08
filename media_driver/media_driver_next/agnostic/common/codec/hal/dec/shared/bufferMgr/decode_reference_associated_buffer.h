@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,8 @@ public:
 
     virtual BufferType *Allocate() = 0;
     virtual MOS_STATUS Resize(BufferType* &buffer) = 0;
+    virtual MOS_STATUS Deactive(BufferType* &buffer) { return MOS_STATUS_SUCCESS; }
+    virtual bool IsAvailable(BufferType* &buffer) { return true; }
     virtual void Destroy(BufferType* &buffer) = 0;
 
 protected:
@@ -80,11 +82,11 @@ public:
         }
         m_activeBuffers.clear();
 
-        for (auto& buf : m_aviableBuffers)
+        for (auto& buf : m_availableBuffers)
         {
             m_bufferOp.Destroy(buf);
         }
-        m_aviableBuffers.clear();
+        m_availableBuffers.clear();
     }
 
     //!
@@ -107,14 +109,14 @@ public:
 
         DECODE_CHK_STATUS(m_bufferOp.Init(hwInterface, allocator, basicFeature));
 
-        DECODE_ASSERT(m_aviableBuffers.empty());
+        DECODE_ASSERT(m_availableBuffers.empty());
         DECODE_ASSERT(m_activeBuffers.empty());
 
         for (uint32_t i = 0; i < initialAllocNum; i++)
         {
             BufferType *buffer = m_bufferOp.Allocate();
             DECODE_CHK_NULL(buffer);
-            m_aviableBuffers.push_back(buffer);
+            m_availableBuffers.push_back(buffer);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -194,22 +196,33 @@ public:
     }
 
     //!
-    //! \brief  Return one avaliable buffer
+    //! \brief  Return one available buffer
     //! \return BufferType*
     //!         Point of buffer, nullptr if fail
     //!
-    BufferType *GetAviableBuffer()
+    BufferType *GetAvailableBuffer()
     {
         DECODE_FUNC_CALL();
-        if (m_aviableBuffers.size() == 0)
+
+        BufferType *buffer = nullptr;
+        for (auto &availableBuffer : m_availableBuffers)
         {
-            BufferType *buffer = m_bufferOp.Allocate();
-            if (buffer != nullptr)
+            if (m_bufferOp.IsAvailable(availableBuffer))
             {
-                m_aviableBuffers.push_back(buffer);
+                buffer = availableBuffer;
             }
         }
-        return m_aviableBuffers[0];
+
+        if (buffer == nullptr)
+        {
+            buffer = m_bufferOp.Allocate();
+            if (buffer != nullptr)
+            {
+                m_availableBuffers.push_back(buffer);
+            }
+        }
+
+        return buffer;
     }
 
 protected:
@@ -224,28 +237,36 @@ protected:
     {
         DECODE_FUNC_CALL();
 
-        for (auto iter = m_activeBuffers.begin(); iter!= m_activeBuffers.end(); iter++)
+        m_currentBuffer = nullptr;
+
+        for (auto iter = m_activeBuffers.begin(); iter != m_activeBuffers.end(); iter++)
         {
             if (curFrameIdx == iter->first)
             {
+                m_currentBuffer = iter->second;
                 return MOS_STATUS_SUCCESS;
             }
         }
 
-        if (m_aviableBuffers.size() == 0)
+        // The function UpdateRefList always attach the retired buffers to end of
+        // available buffer list, reusing those buffers could improve the health with
+        // error stream, so pick up the last element of list for current frame as possible.
+        for (auto iter = m_availableBuffers.rbegin(); iter != m_availableBuffers.rend(); iter++)
         {
-            m_currentBuffer = m_bufferOp.Allocate();
-            m_bufferOp.Resize(m_currentBuffer);
-        }
-        else
-        {
-            auto iter = m_aviableBuffers.begin();
-            m_currentBuffer = *iter;
-            m_aviableBuffers.erase(iter);
-            m_bufferOp.Resize(m_currentBuffer);
+            if (m_bufferOp.IsAvailable(*iter))
+            {
+                m_currentBuffer = *iter;
+                m_availableBuffers.erase((++iter).base());
+                break;
+            }
         }
 
-        DECODE_CHK_NULL(m_currentBuffer);
+        if (m_currentBuffer == nullptr)
+        {
+            m_currentBuffer = m_bufferOp.Allocate();
+            DECODE_CHK_NULL(m_currentBuffer);
+        }
+        m_bufferOp.Resize(m_currentBuffer);
 
         auto ret = m_activeBuffers.insert(std::make_pair(curFrameIdx, m_currentBuffer));
         DECODE_CHK_COND(ret.second == false,
@@ -284,7 +305,8 @@ protected:
                 auto buffer = iter->second;
                 iter = m_activeBuffers.erase(iter);
 
-                m_aviableBuffers.push_back(buffer);
+                m_availableBuffers.push_back(buffer);
+                DECODE_CHK_STATUS(m_bufferOp.Deactive(buffer));
             }
             else
             {
@@ -328,7 +350,7 @@ protected:
 
     BufferOp                        m_bufferOp;                //!< Buffer operation
     std::map<uint32_t, BufferType*> m_activeBuffers;           //!< Active buffers corresponding to current reference frame list
-    std::vector<BufferType*>        m_aviableBuffers;          //!< Buffers in idle
+    std::vector<BufferType*>        m_availableBuffers;        //!< Buffers in idle
     BufferType*                     m_currentBuffer = nullptr; //!< Point to buffer of current picture
 };
 
