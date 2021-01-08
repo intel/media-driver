@@ -38,16 +38,18 @@ jobs:
           sudo apt-get install -y --no-install-recommends clang-11; \
         fi
     - name: install prerequisites
-      run: sudo apt-get install -y --no-install-recommends
-        cmake
-        libdrm-dev
-        libegl1-mesa-dev
-        libgl1-mesa-dev
-        libx11-dev
-        libxext-dev
-        libxfixes-dev
-        libwayland-dev
-        make
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
     - name: print tools versions
       run: |
         cmake --version
@@ -99,16 +101,18 @@ jobs:
         repository: intel/gmmlib
         path: gmmlib
     - name: install prerequisites
-      run: sudo apt-get install -y --no-install-recommends
-        cmake
-        libdrm-dev
-        libegl1-mesa-dev
-        libgl1-mesa-dev
-        libx11-dev
-        libxext-dev
-        libxfixes-dev
-        libwayland-dev
-        make
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
     - name: print tools versions
       run: |
         cmake --version
@@ -160,16 +164,18 @@ jobs:
         repository: intel/gmmlib
         path: gmmlib
     - name: install prerequisites
-      run: sudo apt-get install -y --no-install-recommends
-        cmake
-        libdrm-dev
-        libegl1-mesa-dev
-        libgl1-mesa-dev
-        libx11-dev
-        libxext-dev
-        libxfixes-dev
-        libwayland-dev
-        make
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
     - name: print tools versions
       run: |
         cmake --version
@@ -223,16 +229,18 @@ jobs:
         repository: intel/gmmlib
         path: gmmlib
     - name: install prerequisites
-      run: sudo apt-get install -y --no-install-recommends
-        cmake
-        libdrm-dev
-        libegl1-mesa-dev
-        libgl1-mesa-dev
-        libx11-dev
-        libxext-dev
-        libxfixes-dev
-        libwayland-dev
-        make
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
     - name: print tools versions
       run: |
         cmake --version
@@ -286,16 +294,18 @@ jobs:
         repository: intel/gmmlib
         path: gmmlib
     - name: install prerequisites
-      run: sudo apt-get install -y --no-install-recommends
-        cmake
-        libdrm-dev
-        libegl1-mesa-dev
-        libgl1-mesa-dev
-        libx11-dev
-        libxext-dev
-        libxfixes-dev
-        libwayland-dev
-        make
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
     - name: print tools versions
       run: |
         cmake --version
