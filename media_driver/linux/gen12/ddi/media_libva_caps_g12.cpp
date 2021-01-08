@@ -2262,6 +2262,16 @@ VAStatus MediaLibvaCapsG12::CreateDecAttributes(
             (VAConfigAttribType)VAConfigAttribCustomRoundingControl, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
+#if VA_CHECK_VERSION(1, 11, 0)
+    if(IsAV1Profile(profile) && MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrAV1VLDLSTDecoding))
+    {
+        attrib.type                             = VAConfigAttribDecAV1Features;
+        VAConfigAttribValDecAV1Features feature = {0};
+        feature.bits.lst_support                = true;
+        attrib.value                            = feature.value;
+        (*attribList)[attrib.type]              = attrib.value;
+    }
+#endif
     return status;
 }
 
