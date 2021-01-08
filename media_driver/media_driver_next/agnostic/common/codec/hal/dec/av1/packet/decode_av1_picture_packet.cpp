@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1152,20 +1152,21 @@ namespace decode{
 
         DECODE_CHK_STATUS(FixAvpPipeBufAddrParams(pipeBufAddrParams));
 
-        PMOS_BUFFER curInitCdfBuffer = tempBuffers->GetCurBuffer()->initCdfBuf;
+        DECODE_CHK_NULL(tempBuffers->GetCurBuffer()->initCdfBuf);
+        PMOS_BUFFER curInitCdfBuffer = tempBuffers->GetCurBuffer()->initCdfBuf->buffer;
         DECODE_CHK_NULL(curInitCdfBuffer);
         pipeBufAddrParams.m_cdfTableInitializationBuffer = &(curInitCdfBuffer->OsResource);
 
         if (!m_av1PicParams->m_picInfoFlags.m_fields.m_disableFrameEndUpdateCdf)
         {
-            PMOS_BUFFER curBwdCdfBuffer = tempBuffers->GetCurBuffer()->bwdAdaptCdfBuf;
+            PMOS_BUFFER curBwdCdfBuffer = tempBuffers->GetCurBuffer()->bwdAdaptCdfBuf.buffer;
             DECODE_CHK_NULL(curBwdCdfBuffer);
             pipeBufAddrParams.m_cdfTableBwdAdaptationBuffer = &(curBwdCdfBuffer->OsResource);
         }
 
         if (m_av1PicParams->m_av1SegData.m_enabled && m_av1PicParams->m_av1SegData.m_updateMap)
         {
-            PMOS_BUFFER curSegIDWriteBuffer = tempBuffers->GetCurBuffer()->segIdWriteBuf;
+            PMOS_BUFFER curSegIDWriteBuffer = tempBuffers->GetCurBuffer()->segIdWriteBuf.buffer;
             DECODE_CHK_NULL(curSegIDWriteBuffer);
             pipeBufAddrParams.m_segmentIdWriteBuffer = &(curSegIDWriteBuffer->OsResource);
         }
@@ -1177,7 +1178,9 @@ namespace decode{
             if (useSegMapFromPrevFrame && refFrames.CheckSegForPrimFrame(*m_av1PicParams))
             {
                 auto tempBuf = tempBuffers->GetBufferByFrameIndex(prevFrameIdx);
-                pipeBufAddrParams.m_segmentIdReadBuffer = tempBuf ? &(tempBuf->segIdBuf->OsResource) : nullptr;
+                auto segIdBuf = tempBuf ? tempBuf->segIdBuf : nullptr;
+                auto buf = segIdBuf ? segIdBuf->buffer : nullptr;
+                pipeBufAddrParams.m_segmentIdReadBuffer = buf ? &(buf->OsResource) : nullptr;
             }
         }
 
