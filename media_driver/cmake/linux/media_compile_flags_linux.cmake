@@ -38,28 +38,11 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -Werror=return-type
 
     # General optimization options
-    -march=${UFO_MARCH}
-    -mpopcnt
-    -msse
-    -msse2
-    -msse3
-    -mssse3
-    -msse4.1
-    -msse4.2
-    -msse4
-    -mfpmath=sse
     -finline-functions
     -funswitch-loops
     -fno-short-enums
     -Wa,--noexecstack
     -fno-strict-aliasing
-
-    # Common defines
-    -DUSE_MMX
-    -DUSE_SSE
-    -DUSE_SSE2
-    -DUSE_SSE3
-    -DUSE_SSSE3
 
     # Other common flags
     -fmessage-length=0
