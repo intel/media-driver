@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -378,10 +378,10 @@ MOS_STATUS FilmGrainRp1Packet::SetUpSurfaceState()
     DECODE_VERBOSEMESSAGE("RP1: surface[%d] Output Y Dithering surface BT index: %d\n", rp1OutputYDitheringSurface, m_bindingTableIndex[rp1OutputYDitheringSurface]);
 
     //Y coefficients - input
-    isWritable = false;
+    isWritable = true;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl     = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget = false;
+    surfaceParams.bRenderTarget = true;
     surfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     surfaceParams.bBufferUse    = true;
     MOS_ZeroMemory(&renderHalSurfaceNext, sizeof(RENDERHAL_SURFACE_NEXT));
