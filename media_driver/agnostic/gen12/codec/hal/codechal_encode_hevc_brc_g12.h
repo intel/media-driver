@@ -21,7 +21,7 @@
 */
 //!
 //! \file     codechal_encode_hevc_brc_g12.h
-//! \brief    HEVC dual-pipe base class kernel interface for GEN12 platform.
+//! \brief    HEVC dual-pipe brc class kernel interface for GEN12 platform.
 //!
 
 

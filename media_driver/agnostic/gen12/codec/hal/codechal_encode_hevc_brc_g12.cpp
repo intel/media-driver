@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal_encode_hevc_mbenc_g12.cpp
-//! \brief    HEVC dual-pipe encoder mbenc kernels for GEN12.
+//! \file     codechal_encode_hevc_brc_g12.cpp
+//! \brief    HEVC dual-pipe encoder brc kernels for GEN12.
 //!
 
 #include "codechal_encode_hevc_mbenc_g12.h"
