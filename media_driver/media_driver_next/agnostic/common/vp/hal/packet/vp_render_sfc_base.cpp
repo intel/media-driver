@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1107,6 +1107,7 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
                                       MOS_MMC_DISABLED,
                                       allocated,
                                       false,
+                                      true,
                                       MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
     }
     else if (lineBuffer)

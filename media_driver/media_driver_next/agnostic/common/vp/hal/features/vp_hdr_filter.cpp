@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -187,7 +187,7 @@ MOS_STATUS VpVeboxHdrParameter::Initialize(HW_FILTER_HDR_PARAM &params)
 /****************************************************************************************************/
 /*                                   Policy Vebox Hdr Handler                                         */
 /****************************************************************************************************/
-PolicyVeboxHdrHandler::PolicyVeboxHdrHandler()
+PolicyVeboxHdrHandler::PolicyVeboxHdrHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
 {
     m_Type = FeatureTypeHdrOnVebox;
 }

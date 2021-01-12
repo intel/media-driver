@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020 Intel Corporation
+* Copyright (c) 2020-2021 Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 #ifndef __VP_FEATURE_CAPS_H__
 #define __VP_FEATURE_CAPS_H__
 #include "vp_utils.h"
-
+#include "mos_resource_defs.h"
 
 #define SUPPORTED 1
 #define UNSUPPORTED 0
@@ -122,5 +122,30 @@ typedef struct VP_VEBOX_ENTRY_REC
     bool                          iecp;// all IECP features like procamp/STD/Gamut etc
     bool                          hsb;// high speed bypass mode
 }VP_VEBOX_ENTRY_REC;
+
+struct VP_POLICY_RULES
+{
+    struct
+    {
+        struct
+        {
+            bool enable;                    // true if enable 2 pass scaling.
+            float ratioFor1stPass;          // scaling ratio for 1st pass when 2 pass scaling needed. valid value in (1, maxSfcScalingRatio].
+            float maxRatioEnlarged;         // Max ratio enlarged according to maxSfcScalingRatio. valid value is (1, ratioFor1stPass].
+                                            // maxRatio for 2 pass scaling is maxSfcScalingRatio * maxRatioEnlarged.
+        } scaling;
+        struct
+        {
+            bool enable;
+        } csc;
+    } sfcMultiPassSupport;
+};
+
+struct VP_HW_CAPS
+{
+    VP_SFC_ENTRY_REC    m_sfcHwEntry[Format_Count] = {};
+    VP_VEBOX_ENTRY_REC  m_veboxHwEntry[Format_Count] = {};
+    VP_POLICY_RULES     m_rules = {};
+};
 
 #endif// __VP_FEATURE_CAPS_H__

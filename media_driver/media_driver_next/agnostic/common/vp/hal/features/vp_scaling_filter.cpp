@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -595,7 +595,7 @@ MOS_STATUS VpSfcScalingParameter::Initialize(HW_FILTER_SCALING_PARAM &params)
 /****************************************************************************************************/
 /*                                   Policy Sfc Scaling Handler                                     */
 /****************************************************************************************************/
-PolicySfcScalingHandler::PolicySfcScalingHandler()
+PolicySfcScalingHandler::PolicySfcScalingHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
 {
     m_Type = FeatureTypeScalingOnSfc;
 }
@@ -655,4 +655,86 @@ HwFilterParameter *PolicySfcScalingHandler::CreateHwFilterParam(VP_EXECUTE_CAPS 
     {
         return nullptr;
     }
+}
+
+uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded)
+{
+    if (!is2PassNeeded)
+    {
+        // No scaling in 1st pass.
+        return input;
+    }
+
+    float       ratioFor1stPass = m_hwCaps.m_rules.sfcMultiPassSupport.scaling.ratioFor1stPass;
+    uint32_t    scaledSize      = 0;
+
+    if (input >= output)
+    {
+        scaledSize = MOS_MAX(output, (uint32_t)(1.0F * input / ratioFor1stPass));
+    }
+    else
+    {
+        scaledSize = MOS_MIN(output, (uint32_t)(input * ratioFor1stPass));
+    }
+    return scaledSize;
+}
+
+MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    SwFilterScaling *featureScaling = dynamic_cast<SwFilterScaling *>(&feature);
+    VP_PUBLIC_CHK_NULL_RETURN(featureScaling);
+
+    if (caps.b1stPassOfSfc2PassScaling)
+    {
+        SwFilterScaling *filter2ndPass = featureScaling;
+        SwFilterScaling *filter1ndPass = (SwFilterScaling *)feature.Clone();
+
+        VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
+        VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
+
+        filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
+        filter1ndPass->SetFeatureType(filter2ndPass->GetFeatureType());
+
+        FeatureParamScaling &params2ndPass = filter2ndPass->GetSwFilterParams();
+        FeatureParamScaling &params1stPass = filter1ndPass->GetSwFilterParams();
+
+        uint32_t inputWidth = params1stPass.input.rcSrc.right - params1stPass.input.rcSrc.left;
+        uint32_t inputHeight = params1stPass.input.rcSrc.bottom - params1stPass.input.rcSrc.top;
+        uint32_t outputWidth = params1stPass.input.rcDst.right - params1stPass.input.rcDst.left;
+        uint32_t outputHeight = params1stPass.input.rcDst.bottom - params1stPass.input.rcDst.top;
+
+        uint32_t scaledWidth = Get1stPassScaledSize(inputWidth, outputWidth, filter1ndPass->GetFilterEngineCaps().sfc2PassScalingNeededX);
+        uint32_t scaledHeight = Get1stPassScaledSize(inputHeight, outputHeight, filter1ndPass->GetFilterEngineCaps().sfc2PassScalingNeededY);
+
+        VP_PUBLIC_NORMALMESSAGE("2 pass sfc scaling setting: (%dx%d)->(%dx%d)->(%dx%d)",
+            inputWidth, inputHeight, scaledWidth, scaledHeight, outputWidth, outputHeight);
+
+        params1stPass.input.rcDst.left = 0;
+        params1stPass.input.rcDst.right = scaledWidth;
+        params1stPass.input.rcDst.top = 0;
+        params1stPass.input.rcDst.bottom = scaledHeight;
+
+        params1stPass.output.dwWidth = scaledWidth;
+        params1stPass.output.dwHeight = scaledHeight;
+        params1stPass.output.rcSrc = params1stPass.input.rcDst;
+        params1stPass.output.rcDst = params1stPass.input.rcDst;
+        params1stPass.output.rcMaxSrc = params1stPass.output.rcSrc;
+
+        params2ndPass.input.dwWidth = params1stPass.output.dwWidth;
+        params2ndPass.input.dwHeight = params1stPass.output.dwHeight;
+        params2ndPass.input.rcSrc = params1stPass.input.rcDst;
+        params2ndPass.input.rcMaxSrc = params2ndPass.input.rcSrc;
+
+        // Clear engine caps for filter in 2nd pass.
+        filter2ndPass->SetFeatureType(FeatureTypeScaling);
+        filter2ndPass->GetFilterEngineCaps().value = 0;
+
+        executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
+    }
+    else
+    {
+        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }

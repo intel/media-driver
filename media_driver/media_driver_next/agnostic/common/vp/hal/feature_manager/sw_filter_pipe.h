@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019 - 2020, Intel Corporation
+* Copyright (c) 2019 - 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -132,6 +132,7 @@ public:
     MOS_STATUS AddSwFilterOrdered(SwFilter *swFilter, bool isInputPipe, int index, bool useNewSwFilterSet);
     MOS_STATUS AddSwFilterUnordered(SwFilter *swFilter, bool isInputPipe, int index);
     MOS_STATUS RemoveSwFilter(SwFilter *swFilter);
+    VP_SURFACE *ReplaceSurface(VP_SURFACE *surf, bool isInputSurface, uint32_t index);
     VP_SURFACE *GetSurface(bool isInputSurface, uint32_t index);
     VP_SURFACE *GetPastSurface(uint32_t index);
     VP_SURFACE *GetFutureSurface(uint32_t index);

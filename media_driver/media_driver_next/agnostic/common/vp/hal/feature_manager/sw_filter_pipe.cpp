@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -71,10 +71,10 @@ MOS_STATUS SwFilterSubPipe::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
     {
         if (featureSet)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(featureSet->Update(inputSurf, outputSurf));
+            VP_PUBLIC_CHK_STATUS_RETURN(featureSet->Update(inputSurf, outputSurf, *this));
         }
     }
-    VP_PUBLIC_CHK_STATUS_RETURN(m_UnorderedFilters.Update(inputSurf, outputSurf));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_UnorderedFilters.Update(inputSurf, outputSurf, *this));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -743,6 +743,19 @@ VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
         }
 
         return surf;
+    }
+    return nullptr;
+}
+
+VP_SURFACE *SwFilterPipe::ReplaceSurface(VP_SURFACE *surf, bool isInputSurface, uint32_t index)
+{
+    auto &surfaces = isInputSurface ? m_InputSurfaces : m_OutputSurfaces;
+
+    if (index < surfaces.size())
+    {
+        VP_SURFACE *ret = surfaces[index];
+        surfaces[index] = surf;
+        return ret;
     }
     return nullptr;
 }

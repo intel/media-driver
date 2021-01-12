@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -931,15 +931,18 @@ protected:
     //! \brief    Vebox get the back-end colorspace conversion matrix
     //! \details  When the i/o is A8R8G8B8 or X8R8G8B8, the transfer matrix
     //!           needs to be updated accordingly
-    //! \param    [in] pSrcSurface
-    //!           Pointer to input surface of Vebox
-    //! \param    [in] pOutSurface
-    //!           Pointer to output surface of Vebox
+    //! \param    [in] inputColorSpace
+    //!           color space of vebox input surface
+    //! \param    [in] outputColorSpace
+    //!           color space of vebox output surface
+    //! \param    [in] inputFormat
+    //!           format of vebox input surface
     //! \return   void
     //!
     virtual void VeboxGetBeCSCMatrix(
-        PVPHAL_SURFACE pSrcSurface,
-        PVPHAL_SURFACE pOutSurface);
+        VPHAL_CSPACE    inputColorSpace,
+        VPHAL_CSPACE    outputColorSpace,
+        MOS_FORMAT      inputFormat);
 
     virtual MOS_STATUS SetDiParams(
         bool                    bDiEnabled,

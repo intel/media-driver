@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -189,12 +189,14 @@ public:
     //! \brief  Destroy Surface
     //! \param  [in] surface
     //!         Pointer to VP_SURFACE
+    //! \param  [in] deferredDestroyed
+    //!         Deferred destroy the resource until CleanRecycler being called.
     //! \param  [in] flags
     //!         flags for vp surface destroy
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DestroyVpSurface(VP_SURFACE *&surface, MOS_GFXRES_FREE_FLAGS flags = {0});
+    MOS_STATUS DestroyVpSurface(VP_SURFACE *&surface, bool deferredDestroyed = false, MOS_GFXRES_FREE_FLAGS flags = {0});
 
     //!
     //! \brief  Allocate Surface
@@ -356,6 +358,8 @@ public:
     //!           true if allocated, false for not
     //! \param    [in] zeroOnAllocate
     //!           zero when surface allocated
+    //! \param    [in] deferredDestroyed
+    //!           Deferred destroy the resource until CleanRecycler being called.
     //! \param    [in] resUsageType
     //!           resource usage type for cache policy
     //! \return   MOS_STATUS
@@ -373,6 +377,7 @@ public:
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
         bool                    zeroOnAllocate = 0,
+        bool                    deferredDestroyed = false,
         MOS_HW_RESOURCE_DEF     resUsageType   = MOS_HW_RESOURCE_DEF_MAX,
         MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM);
 
@@ -506,7 +511,8 @@ public:
     //! \return   bool
     //!           true if success, otherwise failed reason
     //!
-    bool isSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface);
+    bool IsSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface);
+    void CleanRecycler();
 
 protected:
     //!
@@ -529,6 +535,7 @@ protected:
     PMOS_INTERFACE  m_osInterface   = nullptr;
     Allocator       *m_allocator    = nullptr;
     VPMediaMemComp  *m_mmc          = nullptr;
+    std::vector<VP_SURFACE *> m_recycler;   // Container for delayed destroyed surface.
 };
 
 typedef VpAllocator* PVpAllocator;

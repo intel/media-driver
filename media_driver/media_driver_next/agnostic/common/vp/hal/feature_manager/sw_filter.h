@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@
 namespace vp
 {
 class VpInterface;
+class SwFilterSubPipe;
 enum FeatureType
 {
     FeatureTypeInvalid          = 0,
@@ -190,7 +191,7 @@ public:
     }
     virtual SwFilter *Clone() = 0;
     virtual bool operator == (class SwFilter&) = 0;
-    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf) = 0;
+    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe) = 0;
     virtual MOS_STATUS SetFeatureType(FeatureType type);
     SwFilter* CreateSwFilter(FeatureType type);
     void DestroySwFilter(SwFilter* p);
@@ -257,7 +258,7 @@ public:
     virtual FeatureParamCsc &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS SetFeatureType(FeatureType type);
 
 private:
@@ -309,7 +310,7 @@ public:
     virtual FeatureParamScaling &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
 
 private:
     FeatureParamScaling m_Params = {};
@@ -337,7 +338,7 @@ public:
     virtual FeatureParamRotMir &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
 
 private:
     FeatureParamRotMir m_Params = {};
@@ -362,7 +363,7 @@ public:
     virtual FeatureParamDenoise& GetSwFilterParams();
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
 
 private:
     FeatureParamDenoise m_Params = {};
@@ -388,7 +389,7 @@ public:
     virtual FeatureParamDeinterlace& GetSwFilterParams();
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
     virtual MOS_STATUS SetResourceAssignmentHint(RESOURCE_ASSIGNMENT_HINT &hint)
     {
         hint.bDi = 1;
@@ -416,7 +417,7 @@ public:
     virtual FeatureParamSte& GetSwFilterParams();
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
 
 private:
     FeatureParamSte m_Params = {};
@@ -443,7 +444,7 @@ public:
     virtual FeatureParamTcc& GetSwFilterParams();
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
 
 private:
     FeatureParamTcc m_Params = {};
@@ -468,7 +469,7 @@ public:
     virtual FeatureParamProcamp& GetSwFilterParams();
     virtual SwFilter* Clone();
     virtual bool operator == (SwFilter& swFilter);
-    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf);
+    virtual MOS_STATUS Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe);
 
 private:
     FeatureParamProcamp m_Params = {};
@@ -493,7 +494,7 @@ public:
     virtual FeatureParamHdr &GetSwFilterParams();
     virtual SwFilter *       Clone();
     virtual bool             operator==(SwFilter &swFilter);
-    virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf);
+    virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
 
 private:
     FeatureParamHdr m_Params = {};
@@ -507,7 +508,7 @@ public:
 
     MOS_STATUS AddSwFilter(SwFilter *swFilter);
     MOS_STATUS RemoveSwFilter(SwFilter *swFilter);
-    MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf);
+    MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
     MOS_STATUS Clean();
     SwFilter *GetSwFilter(FeatureType type);
     bool IsEmpty()

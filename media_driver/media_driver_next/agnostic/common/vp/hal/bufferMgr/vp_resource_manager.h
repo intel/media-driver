@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -323,13 +323,17 @@ struct VP_FRAME_IDS
     int32_t     pastFrameId;
     int32_t     futureFrameId;
 };
+struct VP_SURFACE_PARAMS;
 
 class VpResourceManager
 {
 public:
     VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting);
     virtual ~VpResourceManager();
-    MOS_STATUS StartProcessNewFrame(SwFilterPipe &pipe);
+    MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
+    void OnNewFrameProcessEnd();
+    MOS_STATUS GetResourceHint(std::vector<FeatureType> &featurePool, SwFilterPipe& executedFilters, RESOURCE_ASSIGNMENT_HINT &hint);
+    MOS_STATUS AssignExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters);
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
@@ -422,6 +426,16 @@ protected:
         m_veboxSurfaceConfigMap.insert(std::make_pair(VEBOX_SURFACES_CONFIG(_b64DI, _sfcEnable, _sameSample, _outOfBound, _pastRefAvailable, _futureRefAvailable, _firstDiField).value, VEBOX_SURFACES(_currentInputSurface, _pastInputSurface, _currentOutputSurface, _pastOutputSurface)));
     }
 
+    MOS_STATUS GetIntermediaOutputSurfaceParams(VP_SURFACE_PARAMS &params, SwFilterPipe &executedFilters);
+    MOS_STATUS AssignIntermediaSurface(SwFilterPipe &executedFilters);
+
+    bool IsDeferredResourceDestroyNeeded()
+    {
+        // For 0 == m_currentPipeIndex case, the surface being destroyed should not
+        // be used in current DDI call any more. So no need deferred destroyed.
+        return m_currentPipeIndex > 0;
+    }
+
 protected:
     MOS_INTERFACE                &m_osInterface;
     VpAllocator                  &m_allocator;
@@ -454,6 +468,9 @@ protected:
     uint32_t    m_imageHeightOfPastHistogram             = 0;
     uint32_t    m_imageWidthOfCurrentHistogram           = 0;
     uint32_t    m_imageHeightOfCurrentHistogram          = 0;
+    std::vector<VP_SURFACE *> m_intermediaSurfaces;
+    // Pipe index for one DDI call.
+    uint32_t    m_currentPipeIndex                       = 0;
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__
