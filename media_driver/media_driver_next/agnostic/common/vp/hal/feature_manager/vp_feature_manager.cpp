@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -560,7 +560,9 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     uint32_t                    dwOutputRegionHeight = 0;
     bool                        bRet = false;
     float                       fScaleX = 0.0f, fScaleY = 0.0f;
+    float                       minRatio = 0.125f, maxRatio = 8.0f;
     bool                        disableSFC = false;
+    VP_POLICY_RULES             rules = {};
 
     VPHAL_RENDER_CHK_NULL_NO_STATUS(params);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(params->pTarget[0]);
@@ -694,13 +696,21 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         fScaleY = (float)dwOutputRegionWidth / (float)dwSourceRegionHeight;
     }
 
+    m_hwInterface->m_vpPlatformInterface->InitPolicyRules(rules);
+
+    if (rules.sfcMultiPassSupport.scaling.enable)
+    {
+        minRatio /= rules.sfcMultiPassSupport.scaling.maxRatioEnlarged;
+        maxRatio *= rules.sfcMultiPassSupport.scaling.maxRatioEnlarged;
+    }
+
     // SFC scaling range is [0.125, 8] for both X and Y direction.
-    if ((fScaleX < 0.125F) || (fScaleX > 8.0F) ||
-        (fScaleY < 0.125F) || (fScaleY > 8.0F))
+    if ((fScaleX < minRatio) || (fScaleX > maxRatio) ||
+        (fScaleY < minRatio) || (fScaleY > maxRatio))
     {
         VPHAL_RENDER_NORMALMESSAGE("Scaling factor not supported by SFC Pipe.");
-            bRet = false;
-            return bRet;
+        bRet = false;
+        return bRet;
     }
 
     // Check if the input/output combination is supported, given certain alpha fill mode.
