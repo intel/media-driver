@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -251,8 +251,13 @@ namespace decode
         DECODE_CHK_STATUS(Av1Pipeline::Initialize(settings));
         DECODE_CHK_STATUS(InitMmcState());
 
-        //pre subpipeline for generate noise
         auto *codecSettings     = (CodechalSetting *)settings;
+        m_fgCoordValSurfInitPipeline = MOS_New(FilmGrainSurfaceInit, this, m_task, m_numVdbox);
+        DECODE_CHK_NULL(m_fgCoordValSurfInitPipeline);
+        DECODE_CHK_STATUS(m_preSubPipeline->Register(*m_fgCoordValSurfInitPipeline));
+        DECODE_CHK_STATUS(m_fgCoordValSurfInitPipeline->Init(*codecSettings));
+
+        //pre subpipeline for generate noise
         m_fgGenNoiseSubPipeline = MOS_New(FilmGrainPreSubPipeline, this, m_task, m_numVdbox);
         DECODE_CHK_NULL(m_fgGenNoiseSubPipeline);
         DECODE_CHK_STATUS(m_preSubPipeline->Register(*m_fgGenNoiseSubPipeline));
