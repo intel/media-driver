@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -100,7 +100,7 @@ private:
 class PolicyVeboxDiHandler : public PolicyFeatureHandler
 {
 public:
-    PolicyVeboxDiHandler();
+    PolicyVeboxDiHandler(VP_HW_CAPS &hwCaps);
     virtual ~PolicyVeboxDiHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);

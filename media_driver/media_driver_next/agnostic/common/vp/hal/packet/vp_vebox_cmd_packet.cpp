@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -362,12 +362,10 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
     if (m_CscInputCspace  != cscParams->inputColorSpcase ||
         m_CscOutputCspace != cscParams->outputColorSpcase)
     {
-        VpHal_GetCscMatrix(
+        VeboxGetBeCSCMatrix(
             cscParams->inputColorSpcase,
             cscParams->outputColorSpcase,
-            m_fCscCoeff,
-            m_fCscInOffset,
-            m_fCscOutOffset);
+            cscParams->inputFormat);
 
         m_CscInputCspace = cscParams->inputColorSpcase;
         m_CscOutputCspace = cscParams->outputColorSpcase;
@@ -1921,15 +1919,14 @@ MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
 }
 
 void VpVeboxCmdPacket::VeboxGetBeCSCMatrix(
-  PVPHAL_SURFACE pSrcSurface,
-  PVPHAL_SURFACE pOutSurface)
+    VPHAL_CSPACE    inputColorSpace,
+    VPHAL_CSPACE    outputColorSpace,
+    MOS_FORMAT      inputFormat)
 {
-    float                       fTemp[3];
-
     // Get the matrix to use for conversion
     VpHal_GetCscMatrix(
-        pSrcSurface->ColorSpace,
-        pOutSurface->ColorSpace,
+        inputColorSpace,
+        outputColorSpace,
         m_fCscCoeff,
         m_fCscInOffset,
         m_fCscOutOffset);
@@ -1938,9 +1935,10 @@ void VpVeboxCmdPacket::VeboxGetBeCSCMatrix(
     // Vebox only supports A8B8G8R8 input, swap the 1st and 3rd
     // columns of the transfer matrix for A8R8G8B8 and X8R8G8B8
     // This only happens when SFC output is used
-    if ((pSrcSurface->Format == Format_A8R8G8B8) ||
-      (pSrcSurface->Format == Format_X8R8G8B8))
+    if (inputFormat == Format_A8R8G8B8 ||
+        inputFormat == Format_X8R8G8B8)
     {
+        float   fTemp[3] = {};
         fTemp[0] = m_fCscCoeff[0];
         fTemp[1] = m_fCscCoeff[3];
         fTemp[2] = m_fCscCoeff[6];

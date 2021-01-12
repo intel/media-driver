@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -162,11 +162,11 @@ private:
 class PolicySfcCscHandler : public PolicyFeatureHandler
 {
 public:
-    PolicySfcCscHandler();
+    PolicySfcCscHandler(VP_HW_CAPS &hwCaps);
     virtual ~PolicySfcCscHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
-
+    virtual MOS_STATUS UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
     static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
     {
         if (param.type != FeatureTypeCscOnSfc)
@@ -201,11 +201,10 @@ private:
 class PolicyVeboxCscHandler : public PolicyFeatureHandler
 {
 public:
-    PolicyVeboxCscHandler();
+    PolicyVeboxCscHandler(VP_HW_CAPS &hwCaps);
     virtual ~PolicyVeboxCscHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter* CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface);
-
     static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
     {
         if (param.type != FeatureTypeCscOnVebox)

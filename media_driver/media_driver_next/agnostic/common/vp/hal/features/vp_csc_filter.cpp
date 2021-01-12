@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -723,7 +723,7 @@ MOS_STATUS VpSfcCscParameter::Initialize(HW_FILTER_CSC_PARAM &params)
 /****************************************************************************************************/
 /*                                   Policy Sfc Csc Handler                                         */
 /****************************************************************************************************/
-PolicySfcCscHandler::PolicySfcCscHandler()
+PolicySfcCscHandler::PolicySfcCscHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
 {
     m_Type = FeatureTypeCscOnSfc;
 }
@@ -785,6 +785,49 @@ HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpEx
         return nullptr;
     }
 }
+
+MOS_STATUS PolicySfcCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    SwFilterCsc *featureCsc = dynamic_cast<SwFilterCsc *>(&feature);
+    VP_PUBLIC_CHK_NULL_RETURN(featureCsc);
+
+    if (caps.b1stPassOfSfc2PassScaling)
+    {
+        SwFilterCsc *filter2ndPass = featureCsc;
+        SwFilterCsc *filter1ndPass = (SwFilterCsc *)feature.Clone();
+
+        VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
+        VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
+
+        filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
+        filter1ndPass->SetFeatureType(filter2ndPass->GetFeatureType());
+
+        FeatureParamCsc &params2ndPass = filter2ndPass->GetSwFilterParams();
+        FeatureParamCsc &params1stPass = filter1ndPass->GetSwFilterParams();
+
+        // No csc in 1st pass.
+        params1stPass.formatOutput = params1stPass.formatInput;
+        params1stPass.output = params1stPass.input;
+        params1stPass.pIEFParams = nullptr;
+        params1stPass.pAlphaParams = nullptr;
+
+        // Clear engine caps for filter in 2nd pass.
+        filter2ndPass->SetFeatureType(FeatureTypeCsc);
+        filter2ndPass->GetFilterEngineCaps().value = 0;
+
+        executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
+    }
+    else
+    {
+        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
+/*                                   Vebox Csc Parameter                                            */
+/****************************************************************************************************/
 VpPacketParameter* VpVeboxCscParameter::Create(HW_FILTER_CSC_PARAM& param)
 {
     if (nullptr == param.pPacketParamFactory)
@@ -832,7 +875,7 @@ MOS_STATUS VpVeboxCscParameter::Initialize(HW_FILTER_CSC_PARAM& params)
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.CalculateEngineParams());
     return MOS_STATUS_SUCCESS;
 }
-PolicyVeboxCscHandler::PolicyVeboxCscHandler()
+PolicyVeboxCscHandler::PolicyVeboxCscHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
 {
     m_Type = FeatureTypeCscOnVebox;
 }
@@ -892,4 +935,5 @@ HwFilterParameter* PolicyVeboxCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
         return nullptr;
     }
 }
+
 }

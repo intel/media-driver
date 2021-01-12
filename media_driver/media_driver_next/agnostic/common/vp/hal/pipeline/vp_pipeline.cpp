@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -236,7 +236,8 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
-    VP_PUBLIC_CHK_STATUS_RETURN(m_resourceManager->StartProcessNewFrame(*swFilterPipes[0]));
+    // Notify resourceManager for start of new frame processing.
+    VP_PUBLIC_CHK_STATUS_RETURN(m_resourceManager->OnNewFrameProcessStart(*swFilterPipes[0]));
 
     for (auto &pipe : swFilterPipes)
     {
@@ -269,6 +270,8 @@ finish:
         m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
     }
     m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
+    // Notify resourceManager for end of new frame processing.
+    m_resourceManager->OnNewFrameProcessEnd();
     m_frameCounter++;
     return eStatus;
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -261,7 +261,7 @@ MOS_STATUS VpSfcRotMirParameter::Initialize(HW_FILTER_ROT_MIR_PARAM & params)
 /****************************************************************************************************/
 /*                        Policy Sfc Rotation and Mirror Handler                                    */
 /****************************************************************************************************/
-PolicySfcRotMirHandler::PolicySfcRotMirHandler()
+PolicySfcRotMirHandler::PolicySfcRotMirHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
 {
     m_Type = FeatureTypeRotMirOnSfc;
 }
@@ -322,4 +322,32 @@ HwFilterParameter *PolicySfcRotMirHandler::CreateHwFilterParam(VP_EXECUTE_CAPS v
     {
         return nullptr;
     }
+}
+
+MOS_STATUS PolicySfcRotMirHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    SwFilterRotMir *featureRotMir = dynamic_cast<SwFilterRotMir *>(&feature);
+    VP_PUBLIC_CHK_NULL_RETURN(featureRotMir);
+
+    if (caps.b1stPassOfSfc2PassScaling)
+    {
+        SwFilterRotMir *filter2ndPass = featureRotMir;
+        SwFilterRotMir *filter1ndPass = (SwFilterRotMir *)feature.Clone();
+        FeatureParamRotMir &params1stPass = filter1ndPass->GetSwFilterParams();
+
+        // No rotation in 1st pass.
+        params1stPass.rotation = VPHAL_ROTATION_IDENTITY;
+
+        // Clear engine caps for filter in 2nd pass.
+        filter2ndPass->SetFeatureType(FeatureTypeRotMir);
+        filter2ndPass->GetFilterEngineCaps().value = 0;
+
+        executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
+    }
+    else
+    {
+        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }

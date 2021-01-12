@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -422,7 +422,7 @@ MOS_STATUS VpAllocator::CopyVpSurface(VP_SURFACE &dst, VP_SURFACE &src)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, MOS_GFXRES_FREE_FLAGS flags)
+MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, bool deferredDestroyed, MOS_GFXRES_FREE_FLAGS flags)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     if (nullptr == surface)
@@ -436,6 +436,13 @@ MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, MOS_GFXRES_FREE_F
         // which will ensure nullptr != surface->osSurface.
         VP_PUBLIC_NORMALMESSAGE("Surfaces already been deleted, return status!");
         return status;
+    }
+
+    if (deferredDestroyed)
+    {
+        m_recycler.push_back(surface);
+        surface = nullptr;
+        return MOS_STATUS_SUCCESS;
     }
 
     if (surface->isResourceOwner)
@@ -667,6 +674,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         MOS_RESOURCE_MMC_MODE   compressionMode,
         bool                    &allocated,
         bool                    zeroOnAllocate,
+        bool                    deferredDestroyed,
         MOS_HW_RESOURCE_DEF     resUsageType,
         MOS_TILE_MODE_GMM       tileModeByForce)
 {
@@ -707,12 +715,12 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     }
 
     //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
-    if (surface && isSyncFreeNeededForMMCSurface(surface->osSurface))
+    if (surface && IsSyncFreeNeededForMMCSurface(surface->osSurface))
     {
         resFreeFlags.SynchronousDestroy = 1;
         VP_PUBLIC_NORMALMESSAGE("Set SynchronousDestroy flag for compressed resource %s", surfaceName);
     }
-    VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface, resFreeFlags));
+    VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface, deferredDestroyed, resFreeFlags));
 
     AllocParamsInitType(allocParams, surface, defaultResType, defaultTileType);
 
@@ -966,7 +974,7 @@ MOS_STATUS VpAllocator::UpdateResourceUsageType(
 }
 
 
-bool VpAllocator::isSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface)
+bool VpAllocator::IsSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface)
 {
     if (nullptr == pOsSurface)
     {
@@ -974,6 +982,23 @@ bool VpAllocator::isSyncFreeNeededForMMCSurface(PMOS_SURFACE pOsSurface)
     }
 
     return (m_allocator->isSyncFreeNeededForMMCSurface(pOsSurface));
+}
+
+void VpAllocator::CleanRecycler()
+{
+    while (!m_recycler.empty())
+    {
+        MOS_GFXRES_FREE_FLAGS resFreeFlags = {};
+        VP_SURFACE *surf = m_recycler.back();
+        m_recycler.pop_back();
+        //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
+        if (surf && IsSyncFreeNeededForMMCSurface(surf->osSurface))
+        {
+            resFreeFlags.SynchronousDestroy = 1;
+            VP_PUBLIC_NORMALMESSAGE("Set SynchronousDestroy flag for compressed resource.");
+        }
+        DestroyVpSurface(surf, false, resFreeFlags);
+    }
 }
 
 bool VP_SURFACE::IsEmpty()

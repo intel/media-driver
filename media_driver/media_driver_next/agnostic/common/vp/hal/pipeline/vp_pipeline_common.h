@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -129,10 +129,11 @@ struct _VP_EXECUTE_CAPS
             uint32_t bSfcRotMir     : 1;   // Sfc Rotation/Mirror needed;
             uint32_t bSfcScaling    : 1;   // Sfc Scaling Needed;
             uint32_t bSfcIef        : 1;   // Sfc Details Needed;
+            uint32_t b1stPassOfSfc2PassScaling : 1; // 1st pass of sfc 2pass scaling.
 
             // Render Features
             uint32_t bComposite     : 1;
-            uint32_t reserved       : 7;   // Reserved
+            uint32_t reserved       : 6;   // Reserved
         };
     };
 };
@@ -154,7 +155,9 @@ typedef struct _VP_EngineEntry
             uint32_t FurtherProcessNeeded : 1;
             uint32_t CompositionNeeded : 1;
             uint32_t bypassVeboxFeatures : 1;
-            uint32_t reserve : 18;
+            uint32_t sfc2PassScalingNeededX : 1;
+            uint32_t sfc2PassScalingNeededY : 1;
+            uint32_t reserve : 16;
         };
         uint32_t value;
     };
@@ -180,8 +183,8 @@ union RESOURCE_ASSIGNMENT_HINT
     struct
     {
         // Hint for DI
-        uint32_t    bDi                 : 1;
-        uint32_t    b60fpsDi            : 1;
+        uint32_t    bDi                     : 1;
+        uint32_t    b60fpsDi                : 1;
     };
     uint32_t value;
 };

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -199,7 +199,7 @@ MOS_STATUS VpVeboxSteParameter::Initialize(HW_FILTER_STE_PARAM &params)
 /****************************************************************************************************/
 /*                                   Policy Vebox Ste Handler                                         */
 /****************************************************************************************************/
-PolicyVeboxSteHandler::PolicyVeboxSteHandler()
+PolicyVeboxSteHandler::PolicyVeboxSteHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
 {
     m_Type = FeatureTypeSteOnVebox;
 }

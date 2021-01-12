@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -211,7 +211,7 @@ bool SwFilterCsc::operator == (SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamCsc));
 }
 
-MOS_STATUS SwFilterCsc::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
+MOS_STATUS SwFilterCsc::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
     if (FeatureTypeCscOnVebox == m_type)
     {
@@ -397,14 +397,32 @@ bool SwFilterScaling::operator == (SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamScaling));
 }
 
-MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
+MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
+    SwFilterRotMir *rotMir = dynamic_cast<SwFilterRotMir *>(pipe.GetSwFilter(FeatureTypeRotMir));
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
 
+    m_Params.formatInput = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
     m_Params.csc.colorSpaceOutput   = outputSurf->ColorSpace;
+
+    if (rotMir &&
+        (rotMir->GetSwFilterParams().rotation == VPHAL_ROTATION_90 ||
+        rotMir->GetSwFilterParams().rotation == VPHAL_ROTATION_270 ||
+        rotMir->GetSwFilterParams().rotation == VPHAL_ROTATE_90_MIRROR_VERTICAL ||
+        rotMir->GetSwFilterParams().rotation == VPHAL_ROTATE_90_MIRROR_HORIZONTAL))
+    {
+        m_Params.rotation.rotationNeeded = true;
+    }
+    else
+    {
+        m_Params.rotation.rotationNeeded = false;
+    }
+
     // update source sample type for field to interleaved mode.
     m_Params.input.sampleType       = inputSurf->SampleType;
 
@@ -479,7 +497,7 @@ bool SwFilterRotMir::operator == (SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamRotMir));
 }
 
-MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
+MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -553,7 +571,7 @@ bool vp::SwFilterDenoise::operator==(SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamDenoise));
 }
 
-MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -628,7 +646,7 @@ bool vp::SwFilterDeinterlace::operator==(SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamDeinterlace));
 }
 
-MOS_STATUS vp::SwFilterDeinterlace::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+MOS_STATUS vp::SwFilterDeinterlace::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -706,7 +724,7 @@ bool vp::SwFilterSte::operator==(SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamSte));
 }
 
-MOS_STATUS vp::SwFilterSte::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+MOS_STATUS vp::SwFilterSte::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -794,7 +812,7 @@ bool vp::SwFilterTcc::operator==(SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamTcc));
 }
 
-MOS_STATUS vp::SwFilterTcc::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+MOS_STATUS vp::SwFilterTcc::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -878,7 +896,7 @@ bool vp::SwFilterProcamp::operator==(SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamProcamp));
 }
 
-MOS_STATUS vp::SwFilterProcamp::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf)
+MOS_STATUS vp::SwFilterProcamp::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -969,7 +987,7 @@ bool vp::SwFilterHdr::operator==(SwFilter &swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamHdr));
 }
 
-MOS_STATUS vp::SwFilterHdr::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
+MOS_STATUS vp::SwFilterHdr::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
@@ -1064,12 +1082,12 @@ void SwFilterSet::SetLocation(std::vector<SwFilterSet *> *location)
     m_location = location;
 }
 
-MOS_STATUS SwFilterSet::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
+MOS_STATUS SwFilterSet::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
     for (auto swFilter : m_swFilters)
     {
         VP_PUBLIC_CHK_NULL_RETURN(swFilter.second);
-        VP_PUBLIC_CHK_STATUS_RETURN(swFilter.second->Update(inputSurf, outputSurf));
+        VP_PUBLIC_CHK_STATUS_RETURN(swFilter.second->Update(inputSurf, outputSurf, pipe));
     }
     return MOS_STATUS_SUCCESS;
 }
