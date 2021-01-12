@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -242,7 +242,10 @@ MOS_STATUS MediaPipeline::CreateFeatureManager()
 MOS_STATUS MediaPipeline::CreateMediaCopy()
 {
     PMOS_CONTEXT mos_context = nullptr;
-    m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
+    if (m_osInterface && m_osInterface->pfnGetMosContext)
+    {
+        m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
+    }
     m_mediaCopy = static_cast<MediaCopyBaseState*>(McpyDevice::CreateFactory(mos_context));
     return MOS_STATUS_SUCCESS;
 }

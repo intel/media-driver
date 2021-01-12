@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ class McpyDevice
 public:
     virtual ~McpyDevice() {}
 
-    MediaCopyBaseState *m_mcpyDevice; //!< Media memory copy device
+    MediaCopyBaseState *m_mcpyDevice = nullptr; //!< Media memory copy device
 
     //!
     //! \brief    Create Media memory copy instance

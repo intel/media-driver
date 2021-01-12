@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -48,12 +48,12 @@ MOS_STATUS MediaCopyStateM12_0::Initialize(  PMOS_INTERFACE  osInterface, MhwInt
     // blt init
     m_bltState = MOS_New(BltState, m_osInterface, m_mhwInterfaces);
     MCPY_CHK_NULL_RETURN(m_bltState);
-    m_bltState->Initialize();
+    MCPY_CHK_STATUS_RETURN(m_bltState->Initialize());
 
     // vebox init
     m_veboxCopyState = MOS_New(VeboxCopyState, m_osInterface, m_mhwInterfaces);
     MCPY_CHK_NULL_RETURN(m_veboxCopyState);
-    m_veboxCopyState->Initialize();
+    MCPY_CHK_STATUS_RETURN(m_veboxCopyState->Initialize());
 
     return eStatus;
 }
