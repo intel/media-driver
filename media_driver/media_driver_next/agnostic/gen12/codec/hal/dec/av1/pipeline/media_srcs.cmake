@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Intel Corporation
+# Copyright (c) 2019-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_pipeline_adapter_g12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_presubpipeline_g12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_postsubpipeline_g12.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_surf_init_g12.cpp
 )
 
 set(TMP_HEADERS_
@@ -34,7 +33,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_pipeline_adapter_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_presubpipeline_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_postsubpipeline_g12.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_surf_init_g12.cpp
 )
 endif()
 
