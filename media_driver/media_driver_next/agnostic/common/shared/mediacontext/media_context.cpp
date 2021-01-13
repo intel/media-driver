@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -281,7 +281,7 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
 
     // request to create or reuse gpuContext
     MOS_GPU_NODE node = MOS_GPU_NODE_MAX;
-    MOS_OS_CHK_STATUS_RETURN(FunctionToNode(func, node));
+    MOS_OS_CHK_STATUS_RETURN(FunctionToNode(func, option, node));
 
     // WA for legacy MOS
     MOS_OS_CHK_STATUS_RETURN(FunctionToGpuContext(func, option, node, newAttr.ctxForLegacyMos));
@@ -302,7 +302,7 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, MOS_GPU_NODE& node)
+MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_NODE& node)
 {
     MOS_OS_FUNCTION_ENTER;
     MOS_STATUS status = MOS_STATUS_SUCCESS;
@@ -319,7 +319,14 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, MOS_GPU_NODE& node)
         node = MOS_GPU_NODE_3D;
         break;
     case VdboxDecodeFunc:
-        MOS_OS_CHK_STATUS_RETURN(FunctionToNodeDecode(node));
+        if (option.LRCACount >= 2)
+        {
+            node = MOS_GPU_NODE_VIDEO; // multiple pipe decode always using VIDEO node
+        }
+        else
+        {
+            MOS_OS_CHK_STATUS_RETURN(FunctionToNodeDecode(node));
+        }
         break;
     case VdboxDecodeWaFunc:
     case VdboxDecrpytFunc:

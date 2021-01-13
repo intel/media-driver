@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -163,12 +163,14 @@ protected:
     //! \detail Usually there is a corresponding GPU node to implement the specific media function
     //! \param  [in] func
     //!         Media function to get GPU node
+    //! \param  [in] option
+    //!         Media GPU create option
     //! \param  [out] node
     //!         GPU node of the media function
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS FunctionToNode(MediaFunction func, MOS_GPU_NODE& node);
+    MOS_STATUS FunctionToNode(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_NODE& node);
     MOS_STATUS FunctionToNodeDecode(MOS_GPU_NODE& node);
 
     // Be compatible to Legacy MOS
