@@ -661,19 +661,23 @@ uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t 
 {
     if (!is2PassNeeded)
     {
-        // No scaling in 1st pass.
-        return input;
+        bool scalingIn1stPass = input >= output ?
+            m_hwCaps.m_rules.sfcMultiPassSupport.scaling.downScaling.scalingIn1stPassIf1PassEnough :
+            m_hwCaps.m_rules.sfcMultiPassSupport.scaling.upScaling.scalingIn1stPassIf1PassEnough;
+        return scalingIn1stPass ? output : input;
     }
 
-    float       ratioFor1stPass = m_hwCaps.m_rules.sfcMultiPassSupport.scaling.ratioFor1stPass;
+    float       ratioFor1stPass = 0;
     uint32_t    scaledSize      = 0;
 
     if (input >= output)
     {
-        scaledSize = MOS_MAX(output, (uint32_t)(1.0F * input / ratioFor1stPass));
+        ratioFor1stPass = m_hwCaps.m_rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass;
+        scaledSize = MOS_MAX(output, (uint32_t)(input * ratioFor1stPass));
     }
     else
     {
+        ratioFor1stPass = m_hwCaps.m_rules.sfcMultiPassSupport.scaling.upScaling.ratioFor1stPass;
         scaledSize = MOS_MIN(output, (uint32_t)(input * ratioFor1stPass));
     }
     return scaledSize;

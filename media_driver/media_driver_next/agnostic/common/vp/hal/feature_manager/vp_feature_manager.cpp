@@ -700,8 +700,8 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
 
     if (rules.sfcMultiPassSupport.scaling.enable)
     {
-        minRatio /= rules.sfcMultiPassSupport.scaling.maxRatioEnlarged;
-        maxRatio *= rules.sfcMultiPassSupport.scaling.maxRatioEnlarged;
+        minRatio *= rules.sfcMultiPassSupport.scaling.downScaling.minRatioEnlarged;
+        maxRatio *= rules.sfcMultiPassSupport.scaling.upScaling.maxRatioEnlarged;
     }
 
     // SFC scaling range is [0.125, 8] for both X and Y direction.

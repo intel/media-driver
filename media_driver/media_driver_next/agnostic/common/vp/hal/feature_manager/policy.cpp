@@ -522,8 +522,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     fScaleMax      = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxScalingRatio;
     if (m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable)
     {
-        fScaleMin2Pass = fScaleMin / m_hwCaps.m_rules.sfcMultiPassSupport.scaling.maxRatioEnlarged;
-        fScaleMax2Pass = fScaleMax * m_hwCaps.m_rules.sfcMultiPassSupport.scaling.maxRatioEnlarged;
+        fScaleMin2Pass = fScaleMin * m_hwCaps.m_rules.sfcMultiPassSupport.scaling.downScaling.minRatioEnlarged;
+        fScaleMax2Pass = fScaleMax * m_hwCaps.m_rules.sfcMultiPassSupport.scaling.upScaling.maxRatioEnlarged;
     }
 
     if (scalingParams->interlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED)

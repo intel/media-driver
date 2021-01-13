@@ -101,3 +101,38 @@ MOS_STATUS vp::VpRenderKernel::Destroy()
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
+{
+    rules.sfcMultiPassSupport.csc.enable = false;
+    if (m_sfc2PassScalingEnabled)
+    {
+        rules.sfcMultiPassSupport.scaling.enable = true;
+        // one pass SFC scaling range is [1/8, 8], two pass cover[1/16, 16](AVS Removal) for both X and Y direction.
+        rules.sfcMultiPassSupport.scaling.downScaling.minRatioEnlarged = 0.5;
+        rules.sfcMultiPassSupport.scaling.upScaling.maxRatioEnlarged = 2;
+
+        // For 2 pass upscaling: first pass do 2X, rest for others.
+        rules.sfcMultiPassSupport.scaling.upScaling.ratioFor1stPass = 2;
+        rules.sfcMultiPassSupport.scaling.upScaling.scalingIn1stPassIf1PassEnough = false;
+
+        if (m_sfc2PassScalingPerfMode)
+        {
+            // for 2 pass downscaling: first pass do 1/8, rest for others.
+            rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass = 1.0F / 8;
+            rules.sfcMultiPassSupport.scaling.downScaling.scalingIn1stPassIf1PassEnough = true;
+        }
+        else
+        {
+            // for 2 pass downscaling: first pass do 1/2, rest for others.
+            rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass = 0.5;
+            rules.sfcMultiPassSupport.scaling.downScaling.scalingIn1stPassIf1PassEnough = false;
+        }
+    }
+    else
+    {
+        rules.sfcMultiPassSupport.scaling.enable = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
