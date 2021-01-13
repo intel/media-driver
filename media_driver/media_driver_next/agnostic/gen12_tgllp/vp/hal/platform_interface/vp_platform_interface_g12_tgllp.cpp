@@ -56,13 +56,6 @@ extern const RENDERHAL_KERNEL_PARAM g_Vebox_KernelParam_m12[VEBOX_KERNEL_BASE_MA
         { 4, 34,  0, VP_USE_MEDIA_THREADS_MAX,  0,  2,  64,  8,  1,  1 },    // UPDATEDNSTATE
 };
 
-MOS_STATUS VpPlatformInterfaceG12Tgllp::InitPolicyRules(VP_POLICY_RULES &rules)
-{
-    rules.sfcMultiPassSupport.csc.enable = false;
-    rules.sfcMultiPassSupport.scaling.enable = false;
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount,
                                                             VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount)
 {

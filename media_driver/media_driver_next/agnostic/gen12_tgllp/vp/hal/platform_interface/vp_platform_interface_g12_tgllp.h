@@ -53,7 +53,6 @@ public:
     virtual ~VpPlatformInterfaceG12Tgllp()
     {}
 
-    virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules);
     virtual MOS_STATUS InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount, VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount);
     virtual MOS_STATUS InitVpRenderHwCaps();
     virtual VPFeatureManager *CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface);

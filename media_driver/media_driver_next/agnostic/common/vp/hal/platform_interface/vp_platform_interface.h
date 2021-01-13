@@ -94,10 +94,7 @@ public:
         VP_PUBLIC_CHK_STATUS_RETURN(InitPolicyRules(vpHwCaps.m_rules));
         return MOS_STATUS_SUCCESS;
     }
-    virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
+    virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules);
     virtual MOS_STATUS InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount, VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount)
     {
         return MOS_STATUS_UNIMPLEMENTED;
@@ -153,6 +150,8 @@ protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VpRenderKernel m_kernel;
     void (*m_modifyKdllFunctionPointers)(PKdll_State) = nullptr;
+    bool m_sfc2PassScalingEnabled = false;
+    bool m_sfc2PassScalingPerfMode = false;
 };
 
 }
