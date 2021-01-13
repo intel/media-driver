@@ -94,6 +94,9 @@ protected:
     virtual MOS_STATUS SetAvpTileCodingParams(MhwVdboxAvpTileCodingParams &tileCodingParams,
                                     int16_t tileIdx);
 
+    virtual MOS_STATUS SetInloopFilterStateParams(MhwVdboxAvpPicStateParams &picStateParams);
+    virtual MOS_STATUS AddAvpInloopFilterStateCmd(MOS_COMMAND_BUFFER &cmdBuffer);
+
     MOS_STATUS AddAvpTileState(MOS_COMMAND_BUFFER &cmdBuffer, int16_t tileIdx);
 
     //!

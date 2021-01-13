@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,10 @@ MOS_STATUS Av1DecodePkt::Init()
     DECODE_CHK_NULL(m_tilePkt);
     DECODE_CHK_STATUS(m_tilePkt->CalculateCommandSize(m_tileStatesSize, m_tilePatchListSize));
 
+    m_secondLevelBBArray = m_allocator->AllocateBatchBufferArray(
+        m_pictureStatesSize, 1, CODEC_NUM_AV1_SECOND_BB, true);
+    DECODE_CHK_NULL(m_secondLevelBBArray);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -79,6 +83,9 @@ MOS_STATUS Av1DecodePkt::Prepare()
 MOS_STATUS Av1DecodePkt::Destroy()
 {
     m_statusReport->UnregistObserver(this);
+
+    DECODE_CHK_STATUS(m_allocator->Destroy(m_secondLevelBBArray));
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -266,7 +273,20 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
         (void*)m_av1Pipeline, m_osInterface, m_miInterface, cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
+}
 
+MOS_STATUS Av1DecodePkt::InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase)
+{
+    DECODE_FUNC_CALL();
+
+    auto &cmdBuffer = m_picCmdBuffer;
+    MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+    cmdBuffer.pCmdBase   = (uint32_t*)batchBufBase;
+    cmdBuffer.pCmdPtr    = cmdBuffer.pCmdBase;
+    cmdBuffer.iRemaining = batchBuffer.iSize;
+    cmdBuffer.OsResource = batchBuffer.OsResource;
+
+    return MOS_STATUS_SUCCESS;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
