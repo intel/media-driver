@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -468,7 +468,7 @@ MOS_STATUS DecodePipeline::StatusCheck()
         const DecodeStatusMfx& status = statusReport->GetMfxStatus(m_statusCheckCount);
         if (status.status != DecodeStatusReport::queryEnd)
         {
-            break;
+            DECODE_ASSERTMESSAGE("Media reset may have occured at frame %d.", m_statusCheckCount);
         }
 
         DECODE_CHK_STATUS(ReportVdboxIds(status));
