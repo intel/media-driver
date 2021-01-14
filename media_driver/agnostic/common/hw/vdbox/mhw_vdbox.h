@@ -351,6 +351,7 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS
     bool                        oneOnOneMapping = false;                 // Flag for indicating using 1:1 ref index mapping for vdenc
     bool                        isLowDelayB = true;                      // Flag to indicate if it is LDB
     bool                        isIFrame    = false;                     // Flag to indicate if it is I frame
+    bool                        isPFrame    = false;                     // Flag to indicate if it is P frame
     bool                        bIBCEnabled = false;
     uint8_t                     IBCRefIdxMask = 0;
     PMOS_RESOURCE               presVdencCumulativeCuCountStreamoutSurface = nullptr;
