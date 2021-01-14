@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,13 @@
 
 #include "decode_av1_pipeline.h"
 #include "codec_def_decode_av1.h"
+#include "decode_filmgrain_surf_init_g12.h"
 #include "decode_filmgrain_presubpipeline_g12.h"
 #include "decode_filmgrain_postsubpipeline_g12.h"
 
 namespace decode
 {
+    class FilmGrainSurfaceInit;
     class FilmGrainPreSubPipeline;
     class FilmGrainPostSubPipeline;
     class Av1DecodePktG12;
@@ -153,6 +155,7 @@ namespace decode
         //!
         MOS_STATUS CreateFeatureManager() override;
 
+        FilmGrainSurfaceInit        *m_fgCoordValSurfInitPipeline = nullptr;
         FilmGrainPreSubPipeline     *m_fgGenNoiseSubPipeline = nullptr;    //!< Film Grain Generate Noise sub pipeline, used as pre-subpipeline before HW decoding
         FilmGrainPostSubPipeline    *m_fgAppNoiseSubPipeline = nullptr;    //!< Film Grain Apply Noise sub pipeline, used as post-subpipeline after HW decoding
 
