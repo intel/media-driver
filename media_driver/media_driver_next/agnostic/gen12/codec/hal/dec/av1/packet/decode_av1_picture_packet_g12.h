@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -56,13 +56,20 @@ namespace decode
 
     protected:
         virtual MOS_STATUS VdInit(MOS_COMMAND_BUFFER &cmdBuffer);
+
+        virtual void SetAvpPipeModeSelectParams(
+            MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &vdboxPipeModeSelectParams) override;
         virtual MOS_STATUS AddAvpPipeModeSelectCmd(MOS_COMMAND_BUFFER &cmdBuffer) override;
 
         virtual MOS_STATUS AddAvpPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer) override;
         MOS_STATUS         SetSurfaceMmcState(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams);
 
+        virtual MOS_STATUS SetAvpPicStateParams(MhwVdboxAvpPicStateParams &picStateParams) override;
+        virtual MOS_STATUS SetInterPredStateParams(MhwVdboxAvpPicStateParams &picStateParams);
+        virtual MOS_STATUS SetInloopFilterStateParams(MhwVdboxAvpPicStateParams &picStateParams) override;
         virtual MOS_STATUS AddAvpInterPredStateCmd(MOS_COMMAND_BUFFER &cmdBuffer);
         virtual MOS_STATUS AddAvpPicStateCmd(MOS_COMMAND_BUFFER &cmdBuffer);
+        virtual MOS_STATUS AddAvpInloopFilterStateCmd(MOS_COMMAND_BUFFER &cmdBuffer);
 
         //!
         //! \brief    Calculate picture state command size

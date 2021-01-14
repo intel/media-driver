@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -159,43 +159,6 @@ namespace decode
         MhwVdboxAvpBsdParams bsdObjParams;
         DECODE_CHK_STATUS(SetBsdObjParams(bsdObjParams, tileIdx));
         DECODE_CHK_STATUS(m_avpInterface->AddAvpBsdObjectCmd(&cmdBuffer, nullptr, &bsdObjParams));
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS Av1DecodeTilePkt::AddAvpInloopFilterStateCmd(MOS_COMMAND_BUFFER &cmdBuffer)
-    {
-        DECODE_FUNC_CALL();
-
-        MhwVdboxAvpPicStateParams picStateParams;
-        DECODE_CHK_STATUS(SetInloopFilterStateParams(picStateParams));
-        DECODE_CHK_STATUS(m_avpInterface->AddAvpInloopFilterStateCmd(&cmdBuffer, &picStateParams));
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS Av1DecodeTilePkt::SetInloopFilterStateParams(MhwVdboxAvpPicStateParams& picStateParams)
-    {
-        DECODE_FUNC_CALL();
-
-        MOS_ZeroMemory(&picStateParams, sizeof(picStateParams));
-        picStateParams.m_picParams = m_av1PicParams;
-
-        if (m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres)
-        {
-            //setup super-res step/offset for luma/chroma, per av1_upscale_normative_rows()
-            if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
-            {
-                m_av1BasicFeature->m_tileCoding.GetUpscaleConvolveStepX0(*m_av1PicParams, false); // Luma
-                m_av1BasicFeature->m_tileCoding.GetUpscaleConvolveStepX0(*m_av1PicParams, true);  // Chroma
-            }
-
-            uint16_t col = m_av1BasicFeature->m_tileCoding.m_tileDesc[m_av1BasicFeature->m_tileCoding.m_curTile].m_tileColumn;
-            picStateParams.m_lumaPlaneXStepQn     = m_av1BasicFeature->m_tileCoding.m_lumaXStepQn;
-            picStateParams.m_lumaPlaneX0Qn        = m_av1BasicFeature->m_tileCoding.m_lumaX0Qn[col];
-            picStateParams.m_chromaPlaneXStepQn   = m_av1BasicFeature->m_tileCoding.m_chromaXStepQn;
-            picStateParams.m_chromaPlaneX0Qn      = m_av1BasicFeature->m_tileCoding.m_chromaX0Qn[col];
-        }
 
         return MOS_STATUS_SUCCESS;
     }

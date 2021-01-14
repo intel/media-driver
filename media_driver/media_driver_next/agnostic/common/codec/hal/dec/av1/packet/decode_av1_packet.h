@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -115,8 +115,6 @@ public:
         return "AV1_DECODE";
     }
 
-    PMHW_BATCH_BUFFER GetSecondLvlBB() { return m_batchBuf; };
-
 protected:
     //!
     //! \brief  Calculate Command Buffer Size
@@ -150,7 +148,6 @@ protected:
 
     virtual MOS_STATUS StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
     virtual MOS_STATUS EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
-    MOS_STATUS InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
 
 #if USE_CODECHAL_DEBUG_TOOL
     //! \brief    Dump the output resources in status report callback function
@@ -177,22 +174,16 @@ protected:
     CodechalHwInterface    *m_hwInterface      = nullptr;
     DecodeMemComp          *m_mmcState         = nullptr;
 
-    Av1DecodePicPkt        *m_picturePkt       = nullptr;
-    Av1DecodeTilePkt       *m_tilePkt          = nullptr;
-    bool                    m_isLastTileInPartialFrm = false;
-    bool                    m_isFirstTileInPartialFrm = false;
+    Av1DecodePicPkt *        m_picturePkt       = nullptr;
+    Av1DecodeTilePkt *       m_tilePkt          = nullptr;
 
     // Parameters passed from application
-    const CodecAv1PicParams *m_av1PicParams   = nullptr;  //!< Pointer to picture parameter
+    const CodecAv1PicParams  *m_av1PicParams    = nullptr;  //!< Pointer to picture parameter
 
     uint32_t m_pictureStatesSize    = 0;
     uint32_t m_picturePatchListSize = 0;
-    uint32_t m_tileStatesSize       = 0;
-    uint32_t m_tilePatchListSize    = 0;
-
-    BatchBufferArray     *m_secondLevelBBArray = nullptr; //!< Point to second level batch buffer
-    MOS_COMMAND_BUFFER    m_picCmdBuffer;
-    PMHW_BATCH_BUFFER     m_batchBuf = nullptr;
+    uint32_t m_tileStatesSize      = 0;
+    uint32_t m_tilePatchListSize   = 0;
 };
 
 }  // namespace decode

@@ -43,7 +43,7 @@ public:
         : Av1DecodeTilePkt(pipeline, hwInterface)
     {
     }
-    virtual ~Av1DecodeTilePktG12() {};
+    virtual ~Av1DecodeTilePktG12();
 
     MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer, int16_t tileIdx) override;
 
