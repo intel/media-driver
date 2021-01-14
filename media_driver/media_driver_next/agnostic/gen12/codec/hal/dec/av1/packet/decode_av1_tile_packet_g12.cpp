@@ -29,13 +29,19 @@
 
 namespace decode
 {
-    MOS_STATUS Av1DecodeTilePktG12::Execute(MOS_COMMAND_BUFFER& cmdBuffer, int16_t tileIdx)
-    {
-        //AV1 Tile Level Commands
-        DECODE_CHK_STATUS(AddAvpInloopFilterStateCmd(cmdBuffer));
-        DECODE_CHK_STATUS(AddAvpTileState(cmdBuffer, tileIdx));
-        DECODE_CHK_STATUS(AddBsdObj(cmdBuffer, tileIdx));
 
-        return MOS_STATUS_SUCCESS;
-    }
+Av1DecodeTilePktG12::~Av1DecodeTilePktG12()
+{
+
+}
+
+MOS_STATUS Av1DecodeTilePktG12::Execute(MOS_COMMAND_BUFFER& cmdBuffer, int16_t tileIdx)
+{
+    //AV1 Tile Level Commands
+    DECODE_CHK_STATUS(AddAvpTileState(cmdBuffer, tileIdx));
+    DECODE_CHK_STATUS(AddBsdObj(cmdBuffer, tileIdx));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }

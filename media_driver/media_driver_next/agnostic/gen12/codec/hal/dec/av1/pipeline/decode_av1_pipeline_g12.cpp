@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@ namespace decode
         DECODE_CHK_NULL(basicFeature);
 
         DecodeScalabilityPars scalPars;
-        MOS_ZeroMemory(&scalPars, sizeof(scalPars));
+        MOS_ZeroMemory(&scalPars, sizeof(ScalabilityPars));
         scalPars.disableScalability = true;
         scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
         if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
@@ -193,15 +193,6 @@ namespace decode
                         CodechalDbgAttr::attrFilmGrain,
                         "FilmGrain"));)
             }
-
-            CODECHAL_DEBUG_TOOL(
-                PMHW_BATCH_BUFFER batchBuffer = m_av1DecodePkt->GetSecondLvlBB();
-                batchBuffer->iLastCurrent = batchBuffer->iSize;
-                batchBuffer->dwOffset = 0;
-                DECODE_CHK_STATUS(m_debugInterface->Dump2ndLvlBatch(
-                    batchBuffer,
-                    CODECHAL_NUM_MEDIA_STATES,
-                    "AV1_DEC_Secondary"));)
 
             // Only update user features for the first frame.
             if (feature->m_frameNum == 0)
