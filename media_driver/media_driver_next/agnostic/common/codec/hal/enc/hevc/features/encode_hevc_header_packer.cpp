@@ -95,7 +95,7 @@ MOS_STATUS HevcHeaderPacker::GetSliceParams(const CODEC_HEVC_ENCODE_SLICE_PARAMS
     m_sliceParams.segment_address                 = hevcSliceParams.slice_segment_address;
     m_sliceParams.reserved_flags                  = 0;  //could be got, but seems always 0
     m_sliceParams.type                            = hevcSliceParams.slice_type;
-    m_sliceParams.pic_output_flag                 = 0;  //pre=0, unused
+    m_sliceParams.pic_output_flag                 = 1;
     m_sliceParams.colour_plane_id                 = 0;  //pre=0, unused
     m_sliceParams.short_term_ref_pic_set_sps_flag = 0;  //NA
     for (int i = 0; i < MAX_NUM_LONG_TERM_PICS; i++)    //NA
