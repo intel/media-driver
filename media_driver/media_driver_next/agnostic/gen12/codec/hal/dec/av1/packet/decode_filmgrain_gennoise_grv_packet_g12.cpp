@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -370,15 +370,6 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
 {
     DECODE_FUNC_CALL();
 
-    // Initialize coordinate surface with 0 per kernel requirement
-    uint32_t        coordsWidth  = MOS_ROUNDUP_SHIFT(m_picParams->m_superResUpscaledWidthMinus1 + 1, 6);
-    uint32_t        coordsHeight = MOS_ROUNDUP_SHIFT(m_picParams->m_superResUpscaledHeightMinus1 + 1, 6);
-    uint32_t        allocSize    = coordsWidth * coordsHeight * sizeof(int32_t);
-    DECODE_CHK_NULL(m_filmGrainFeature->m_coordinatesRandomValuesSurface);
-    auto data = (int32_t *)m_allocator->LockResouceForWrite(&m_filmGrainFeature->m_coordinatesRandomValuesSurface->OsResource);
-    DECODE_CHK_NULL(data);
-    MOS_ZeroMemory(data, allocSize);
-
     //Gaussian sequence - input, 1D
     bool isWritable                 = false;
     m_filmGrainFeature->m_gaussianSequenceSurface->size = 2048 * sizeof(int16_t);
@@ -386,7 +377,7 @@ MOS_STATUS FilmGrainGrvPacket::SetUpSurfaceState()
     RENDERHAL_SURFACE_STATE_PARAMS surfaceParams;
     MOS_ZeroMemory(&surfaceParams, sizeof(RENDERHAL_SURFACE_STATE_PARAMS));
     surfaceParams.MemObjCtl        = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
-    surfaceParams.bRenderTarget    = true;
+    surfaceParams.bRenderTarget    = false;
     surfaceParams.Boundary         = RENDERHAL_SS_BOUNDARY_ORIGINAL;
     surfaceParams.bBufferUse       = true;
 
