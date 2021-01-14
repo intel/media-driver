@@ -2656,6 +2656,15 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
         m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams);
     }
 
+
+    if (m_hevcSeqParams->VBVBufferSizeInBit < m_hevcSeqParams->InitVBVBufferFullnessInBit)
+    {
+        CODECHAL_ENCODE_NORMALMESSAGE(
+            "VBVBufferSizeInBit is less than InitVBVBufferFullnessInBit, \
+            min(VBVBufferSizeInBit, InitVBVBufferFullnessInBit) will set to \
+            hucVdencBrcInitDmem->InitBufFull_U32 and hucVdencBrcUpdateDmem->TARGETSIZE_U32(except Low Delay BRC).\n");
+    }
+
     m_lookaheadDepth = m_hevcSeqParams->LookaheadDepth;
     m_lookaheadPass  = (m_lookaheadDepth > 0) && (m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP);
 
