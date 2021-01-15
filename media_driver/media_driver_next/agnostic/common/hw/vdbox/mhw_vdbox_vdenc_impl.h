@@ -401,7 +401,7 @@ protected:
         }
 
         typename cmd_t::VDENC_Reference_Picture_CMD *fwdRefs[] =
-            {&cmd->FwdRef0, &cmd->FwdRef1, &cmd->FwdRef2};
+            {&cmd->FwdRef0, &cmd->FwdRef1, &cmd->FwdRef2, &cmd->BwdRef0};
         uint32_t fwdRefsDwLoaction[] =
             {_MHW_CMD_DW_LOCATION(FwdRef0), _MHW_CMD_DW_LOCATION(FwdRef1), _MHW_CMD_DW_LOCATION(FwdRef2)};
 
