@@ -410,7 +410,7 @@ void MosUtilDebug::MosMessageInit(MOS_CONTEXT_HANDLE mosCtx)
         if (MosUtilities::m_mosUltFlag)
         {
             MosSetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
-            MosSetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_VERBOSE);
+            MosSetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_MEMNINJA);
             m_mosMsgParams.bUseOutputDebugString = 0;
             m_mosMsgParams.components[MOS_COMPONENT_OS].bBySubComponent = 0;
             MosCompAssertEnableDisable(MOS_COMPONENT_CM, 0);
