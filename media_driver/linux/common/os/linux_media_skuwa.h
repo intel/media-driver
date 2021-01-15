@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -148,6 +148,11 @@ public:
         return *this;
     }
 
+    MediaMap *GetMediaSku()
+    {
+        return mediaMap;
+    }
+
 protected:
      MediaMap *mediaMap = nullptr;
 };
@@ -263,6 +268,11 @@ public:
         }
 
         return *this;
+    }
+
+    MediaMap *GetMediaWa()
+    {
+        return mediaMap;
     }
 
 protected:

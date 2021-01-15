@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -79,6 +79,13 @@ public:
     //!           Pointer to VPHAL_FEATURE_REPOR: rendering features reported
     //!
     virtual VphalFeatureReport* GetRenderFeatureReport() override;
+
+protected:
+    virtual bool IsApoEnabled() override
+    {
+        return true;
+    }
+
 };
 #endif // !__VP_PIPELINE_ADAPTER_G12_H__
 

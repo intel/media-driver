@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1494,6 +1494,15 @@ void VpParameterDumper::GetParametersDumpSpec()
         }
     }
 #endif
+
+    // Get enableSkuWaDump
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_DBG_PARA_DUMP_ENABLE_SKUWA_DUMP_ID,
+        &UserFeatureData,
+        m_osInterface->pOsContext));
+    pDumpSpec->enableSkuWaDump = UserFeatureData.u32Data;
 
     if ((eStatus != MOS_STATUS_SUCCESS) || (!bDumpEnabled))
     {

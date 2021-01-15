@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1353,7 +1353,8 @@ MOS_STATUS VphalRenderer::FreeIntermediateSurfaces()
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VphalRenderer::Initialize(
-    const VphalSettings                 *pSettings)
+    const VphalSettings                 *pSettings, 
+    bool                                isApoEnabled)
 {
     void*                               pKernelBin;
     void*                               pFcPatchBin;
@@ -1381,7 +1382,7 @@ MOS_STATUS VphalRenderer::Initialize(
     VPHAL_RENDER_CHK_NULL(m_pOsInterface);
     VPHAL_RENDER_CHK_NULL(m_pRenderHal);
     //---------------------------------------
-
+    m_isApoEnabled     = isApoEnabled;
     m_renderGpuContext = m_pOsInterface->pfnGetGpuContext(m_pOsInterface);
 
     Align16State.pPerfData   = &PerfData;
@@ -2117,8 +2118,7 @@ MOS_STATUS VphalRenderer::CreateSurfaceDumper()
 MOS_STATUS VphalRenderer::AllocateDebugDumper()
 {
     PRENDERHAL_INTERFACE pRenderHal = m_pRenderHal;
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;   
     // Allocate feature report
     m_reporting = MOS_New(VphalFeatureReport);
     if (m_reporting == nullptr)
@@ -2143,6 +2143,13 @@ MOS_STATUS VphalRenderer::AllocateDebugDumper()
     }
 
     VPHAL_DBG_PARAMETERS_DUMPPER_CREATE()
+    
+    // if m_isApoEnabled is false dump in legacy path, otherwise in APO path
+    if (!m_isApoEnabled)
+    {
+        SkuWaTable_DUMPPER_DUMP_XML(m_pSkuTable, m_pWaTable);
+    }
+    
     if (m_parameterDumper == nullptr)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");

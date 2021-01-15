@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3243,7 +3243,16 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_STRING,
         "",
         "Vphal Debug Dump Output Directory"),
-     MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED_ID,
+    MOS_DECLARE_UF_KEY(__VPHAL_DBG_PARA_DUMP_ENABLE_SKUWA_DUMP_ID,
+        "enableSkuWaDump",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "VP",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+        "0",
+        "VP parameter dump sku and wa info enable"),
+    MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED_ID,
         "Force VP Memorycopy Outputcompressed",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
         __MEDIA_USER_FEATURE_SUBKEY_REPORT,

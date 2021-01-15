@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -46,6 +46,10 @@ public:
     void DumpToXML(
         PVPHAL_RENDER_PARAMS            pRenderParams,
         uint32_t                        framecounter);
+
+    void SkuWa_DumpToXML(
+        MEDIA_FEATURE_TABLE             *skuTable,
+        MEDIA_WA_TABLE                  *waTable);
 
     MOS_STATUS DumpVpSurfaceArray(
         PVPHAL_SURFACE                 *ppSurfaces,

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -154,6 +154,14 @@
         uiFrameCounter,                                                         \
         m_surfaceDumper->m_dumpSpec.pcOutputPath,                               \
         pRenderParams);
+
+//------------------------------------------------------------------------------
+// Dump macro for dumper.  Dump Sku and workaround information.
+//------------------------------------------------------------------------------
+#define SkuWaTable_DUMPPER_DUMP_XML(skuTable, waTable) \
+    m_parameterDumper->SkuWa_DumpToXML(                \
+        skuTable,                                      \
+        waTable);
 
 //! 
 //! Structure VPHAL_DBG_SURF_DUMP_SURFACE_DEF
@@ -402,6 +410,7 @@ struct VPHAL_DBG_PARAMS_DUMP_SPEC
     char                       outFileLocation[MAX_PATH];                         // Location where dump files need to be stored
     uint32_t                   uiStartFrame;                                      // Start frame for dumping
     uint32_t                   uiEndFrame;                                        // End Frame for dumping
+    uint32_t                   enableSkuWaDump;                                   // Enable sku and wa info dump
 };
 
 //==<FUNCTIONS>=================================================================
@@ -1115,6 +1124,13 @@ public:
         char                        *pcOutputPath,
         PVPHAL_RENDER_PARAMS        pRenderParams);
 
+    //!
+    //! \brief    Dumps Sku and Workaround information to XML File
+    //! 
+    virtual MOS_STATUS SkuWa_DumpToXML(
+        MEDIA_FEATURE_TABLE        *skuTable,
+        MEDIA_WA_TABLE             *waTable);
+
 protected:
     //!
     //! \brief    Dumps the source Surface Parameters
@@ -1185,6 +1201,10 @@ protected:
     //!
     virtual const char * GetComponentStr(
         MOS_COMPONENT             component);
+
+    virtual char *GetDumpSpecLocation();
+
+    virtual bool GetDumpSpecSkuWaDumpEnable();
 
 private:
     PMOS_INTERFACE  m_osInterface;
@@ -1415,6 +1435,7 @@ public:
 #define VPHAL_DBG_PARAMETERS_DUMPPER_CREATE()
 #define VPHAL_DBG_PARAMETERS_DUMPPER_DESTORY(pParametersDumpSpec)
 #define VPHAL_DBG_PARAMETERS_DUMPPER_DUMP_XML(pRenderParams)
+#define SkuWaTable_DUMPPER_DUMP_XML(skuTable, waTable)
 
 #endif // (!(_DEBUG || _RELEASE_INTERNAL) || EMUL)
 

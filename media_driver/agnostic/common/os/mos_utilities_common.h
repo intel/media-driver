@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -449,6 +449,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_PARAM_DUMP_END_FRAME_KEY_NAME_ID,
     __VPHAL_DBG_DUMP_OUTPUT_DIRECTORY_ID,
+    __VPHAL_DBG_PARA_DUMP_ENABLE_SKUWA_DUMP_ID,
 #endif
     __VPHAL_SET_SINGLE_SLICE_VEBOX_ID,
     __VPHAL_BYPASS_COMPOSITION_ID,

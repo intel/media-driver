@@ -168,6 +168,7 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     VP_DEBUG_INTERFACE_CREATE(m_debugInterface)
+    SkuWaTable_DUMP_XML(m_skuTable, m_waTable)
 #endif
 
     m_pPacketFactory = MOS_New(PacketFactory, m_vpMhwInterface.m_vpPlatformInterface);
