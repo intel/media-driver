@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -122,6 +122,14 @@
     MOS_Delete(debuginterface);                         \
     debuginterface = nullptr;
 
+//------------------------------------------------------------------------------
+// Dump macro for dumper.  Dump Sku and workaround information.
+//------------------------------------------------------------------------------
+#define SkuWaTable_DUMP_XML(skuTable, waTable) \
+    m_debugInterface->SkuWa_DumpToXML(                        \
+        skuTable,                                        \
+        waTable);
+
 //! 
 //! Structure VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 //! \brief    Plane definition
@@ -203,6 +211,7 @@ struct VPHAL_PARAMS_DUMP_SPEC
     char                       outFileLocation[MAX_PATH];                         // Location where dump files need to be stored
     uint32_t                   uiStartFrame;                                      // Start frame for dumping
     uint32_t                   uiEndFrame;                                        // End Frame for dumping
+    uint32_t                   enableSkuWaDump;                                   // Enable sku and wa info dump
 };
 
 //==<FUNCTIONS>=================================================================
@@ -467,6 +476,13 @@ public:
         uint32_t                    uiFrameCounter,
         char                        *pcOutputPath,
         PVPHAL_RENDER_PARAMS        pRenderParams);
+
+    //!
+    //! \brief    Dumps Sku and Workaround information to XML File
+    //!
+    virtual MOS_STATUS SkuWa_DumpToXML(
+        MEDIA_FEATURE_TABLE        *skuTable,
+        MEDIA_WA_TABLE             *waTable);
 
 protected:
     //!
@@ -759,7 +775,7 @@ public:
 #define VP_PARAMETERS_DUMPPER_DESTORY(pParametersDumpSpec)
 #define VP_DEBUG_INTERFACE_CREATE(debuginterface)
 #define VP_DEBUG_INTERFACE_DESTROY(debuginterface)
-
+#define SkuWaTable_DUMP_XML(skuTable, waTable)
 #endif // (!(_DEBUG || _RELEASE_INTERNAL) || EMUL)
 
 

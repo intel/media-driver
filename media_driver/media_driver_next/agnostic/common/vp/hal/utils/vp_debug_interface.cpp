@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -79,12 +79,22 @@ MOS_STATUS VpDebugInterface::Initialize(PMOS_INTERFACE pOsInterface)
 
 void VpDebugInterface::DumpToXML(PVPHAL_RENDER_PARAMS pRenderParams, uint32_t framecounter)
 {
-    if (m_surfaceDumper && m_surfaceDumper)
+    if (m_surfaceDumper && m_parameterDumper)
     {
         m_parameterDumper->DumpToXML(
             framecounter,
             m_surfaceDumper->m_dumpSpec.pcOutputPath,
             pRenderParams);
+    }
+}
+
+void VpDebugInterface::SkuWa_DumpToXML(MEDIA_FEATURE_TABLE *skuTable, MEDIA_WA_TABLE *waTable)
+{
+    if (m_parameterDumper)
+    {
+        m_parameterDumper->SkuWa_DumpToXML(
+            skuTable,
+            waTable);
     }
 }
 

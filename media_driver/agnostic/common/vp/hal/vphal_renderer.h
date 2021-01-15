@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -185,6 +185,7 @@ protected:
     VphalFeatureReport          *m_reporting;
     // Default value for Gpu Context
     MOS_GPU_CONTEXT             m_renderGpuContext;
+    bool                        m_isApoEnabled = false;
 
 public:
     //!
@@ -258,7 +259,8 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Initialize(
-        const VphalSettings                 *pSettings);
+        const VphalSettings                 *pSettings,
+        bool                                isApoEnabled);
 
     //!
     //! \brief    Main render function
