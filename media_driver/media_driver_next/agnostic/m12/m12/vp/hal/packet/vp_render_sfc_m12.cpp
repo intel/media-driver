@@ -239,3 +239,26 @@ MOS_STATUS SfcRenderM12::SetSfcPipe(
 
     return eStatus;
 }
+
+bool SfcRenderM12::IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat)
+{
+    // ARGB8,ABGR10, output format need to enable swap
+    // Only be used with RGB output formats and CSC conversion is turned on.
+    if (outputFormat == Format_X8R8G8B8 ||
+        outputFormat == Format_A8R8G8B8 ||
+        outputFormat == Format_R10G10B10A2)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool SfcRenderM12::IsCscNeeded(SFC_CSC_PARAMS &cscParams)
+{
+    return cscParams.bCSCEnabled                        ||
+        IsInputChannelSwapNeeded(cscParams.inputFormat) ||
+        IsOutputChannelSwapNeeded(cscParams.outputFormat);
+}

@@ -225,6 +225,24 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
                 m_cscInOffset,
                 m_cscOutOffset);
 
+            // swap the 1st and 3rd columns of the transfer matrix for A8R8G8B8 and X8R8G8B8
+            // to ensure SFC input being A8B8G8R8.
+            if (IsInputChannelSwapNeeded(m_renderData.SfcInputFormat))
+            {
+                float   fTemp[3] = {};
+                fTemp[0] = m_cscCoeff[0];
+                fTemp[1] = m_cscCoeff[3];
+                fTemp[2] = m_cscCoeff[6];
+
+                m_cscCoeff[0] = m_cscCoeff[2];
+                m_cscCoeff[3] = m_cscCoeff[5];
+                m_cscCoeff[6] = m_cscCoeff[8];
+
+                m_cscCoeff[2] = fTemp[0];
+                m_cscCoeff[5] = fTemp[1];
+                m_cscCoeff[8] = fTemp[2];
+            }
+
             m_cscInputCspace = m_renderData.SfcInputCspace;
             m_cscRTCspace    = m_renderData.pSfcPipeOutSurface->ColorSpace;
         }
@@ -588,6 +606,21 @@ bool SfcRenderBase::IsVdboxSfcFormatSupported(
     return true;
 }
 
+bool SfcRenderBase::IsInputChannelSwapNeeded(MOS_FORMAT inputFormat)
+{
+    // 1st and 3rd columns of A8R8G8B8 and X8R8G8B8 need be swapped
+    // to ensure SFC input being A8B8G8R8.
+    if (inputFormat == Format_A8R8G8B8 ||
+        inputFormat == Format_X8R8G8B8)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
 {
     VP_PUBLIC_CHK_NULL_RETURN(cscParams);
@@ -606,25 +639,12 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
         m_renderData.bIEF = false;
         m_renderData.pIefParams = nullptr;
     }
-    m_renderData.bCSC           = cscParams->bCSCEnabled;
-    m_renderData.SfcInputCspace = cscParams->inputColorSpcase;
+    m_renderData.bCSC           = IsCscNeeded(*cscParams);
+    m_renderData.SfcInputCspace = cscParams->inputColorSpace;
     m_renderData.SfcInputFormat = cscParams->inputFormat;
 
-    // ARGB8,ABGR10,A16B16G16R16,VYUY and YVYU output format need to enable swap
-    if (cscParams->outputFormat == Format_X8R8G8B8 ||
-        cscParams->outputFormat == Format_A8R8G8B8 ||
-        cscParams->outputFormat == Format_R10G10B10A2 ||
-        cscParams->outputFormat == Format_A16B16G16R16 ||
-        cscParams->outputFormat == Format_VYUY ||
-        cscParams->outputFormat == Format_YVYU)
-    {
-        m_renderData.sfcStateParams->bRGBASwapEnable = true;
-    }
-    else
-    {
-        m_renderData.sfcStateParams->bRGBASwapEnable = false;
-    }
-    m_renderData.sfcStateParams->bInputColorSpace = cscParams->bInputColorSpace;
+    m_renderData.sfcStateParams->bRGBASwapEnable = IsOutputChannelSwapNeeded(cscParams->outputFormat);
+    m_renderData.sfcStateParams->bInputColorSpace = cscParams->isInputColorSpaceRGB;
 
     // Chromasitting config
     // VEBOX use polyphase coefficients for 1x scaling for better quality,
