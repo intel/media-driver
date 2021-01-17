@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,35 @@ VPFeatureManagerM12_0::VPFeatureManagerM12_0(
     PVP_MHWINTERFACE  hwInterface) :
     VPFeatureManager(hwInterface)
 {
+}
+
+bool VPFeatureManagerM12_0::IsVeboxInputFormatSupport(PVPHAL_SURFACE pSrcSurface)
+{
+    bool    bRet = false;
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
+
+    // Check if Sample Format is supported
+    // Vebox only support P016 format, P010 format can be supported by faking it as P016
+    if (pSrcSurface->Format != Format_NV12 &&
+        pSrcSurface->Format != Format_AYUV &&
+        pSrcSurface->Format != Format_P010 &&
+        pSrcSurface->Format != Format_P016 &&
+        pSrcSurface->Format != Format_P210 &&
+        pSrcSurface->Format != Format_P216 &&
+        pSrcSurface->Format != Format_Y8 &&
+        pSrcSurface->Format != Format_Y16U &&
+        pSrcSurface->Format != Format_Y16S &&
+        !IS_PA_FORMAT(pSrcSurface->Format)/* &&
+        !IS_RGB64_FLOAT_FORMAT(pSrcSurface->Format)*/)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
+        goto finish;
+    }
+
+    bRet = true;
+
+finish:
+    return bRet;
 }
 
 MOS_STATUS VPFeatureManagerM12_0::CheckFeatures(void * params, bool &bApgFuncSupported)

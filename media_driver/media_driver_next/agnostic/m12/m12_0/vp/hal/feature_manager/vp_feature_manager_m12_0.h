@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,6 +57,9 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS CheckFeatures(void *params, bool &bapgFuncSupported);
+
+protected:
+    virtual bool IsVeboxInputFormatSupport(PVPHAL_SURFACE pSrcSurface);
 };
 
 }

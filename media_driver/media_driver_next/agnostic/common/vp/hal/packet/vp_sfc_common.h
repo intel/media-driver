@@ -54,31 +54,31 @@ typedef struct _SFC_COLORFILL_PARAMS
 //!
 typedef struct _VPHAL_SFC_RENDER_DATA
 {
-  bool                                bColorFill;                             //!< Enable ColorFill
-  bool                                bScaling;                               //!< Enable Scaling
-  bool                                bIEF;                                   //!< Enable IEF filter
-  bool                                bCSC;                                   //!< Enable CSC filter
-  bool                                bMirrorEnable;                          //!< Enable Mirror filter
+    bool                                bColorFill;                             //!< Enable ColorFill
+    bool                                bScaling;                               //!< Enable Scaling
+    bool                                bIEF;                                   //!< Enable IEF filter
+    bool                                bCSC;                                   //!< Enable CSC filter
+    bool                                bMirrorEnable;                          //!< Enable Mirror filter
 
-  float                               fScaleX;                                //!< X Scaling ratio
-  float                               fScaleY;                                //!< Y Scaling ratio
-  uint16_t                            wIEFFactor;                             //!< IEF factor
-  MHW_SFC_STATE_PARAMS               *sfcStateParams;                         //!< Pointer to SFC state params
-  PVPHAL_IEF_PARAMS                   pIefParams;                             //!< Pointer to IEF params
-  PMHW_AVS_PARAMS                     pAvsParams;                             //!< Pointer to AVS params
-  PSFC_COLORFILL_PARAMS               pColorFillParams;                       //!< Pointer to ColorFill params
-  PVPHAL_ALPHA_PARAMS                 pAlphaParams;                           //!< Pointer to Alpha params
-  VPHAL_CSPACE                        SfcInputCspace;                         //!< SFC Input Color Space
-  MOS_FORMAT                          SfcInputFormat;                         //!< SFC Input Format
-  VPHAL_ROTATION                      SfcRotation;                            //!< SFC Rotation Mode
-  uint32_t                            mirrorType;                             //!< Mirror Type -- vert/horiz
-  VPHAL_SCALING_MODE                  SfcScalingMode;                         //!< SFC Scaling Mode
+    float                               fScaleX;                                //!< X Scaling ratio
+    float                               fScaleY;                                //!< Y Scaling ratio
+    uint16_t                            wIEFFactor;                             //!< IEF factor
+    MHW_SFC_STATE_PARAMS               *sfcStateParams;                         //!< Pointer to SFC state params
+    PVPHAL_IEF_PARAMS                   pIefParams;                             //!< Pointer to IEF params
+    PMHW_AVS_PARAMS                     pAvsParams;                             //!< Pointer to AVS params
+    PSFC_COLORFILL_PARAMS               pColorFillParams;                       //!< Pointer to ColorFill params
+    PVPHAL_ALPHA_PARAMS                 pAlphaParams;                           //!< Pointer to Alpha params
+    VPHAL_CSPACE                        SfcInputCspace;                         //!< SFC Input Color Space
+    MOS_FORMAT                          SfcInputFormat;                         //!< SFC Input Format
+    VPHAL_ROTATION                      SfcRotation;                            //!< SFC Rotation Mode
+    uint32_t                            mirrorType;                             //!< Mirror Type -- vert/horiz
+    VPHAL_SCALING_MODE                  SfcScalingMode;                         //!< SFC Scaling Mode
 
-  uint32_t                            SfcSrcChromaSiting;                     //!< SFC Source Surface Chroma Siting
+    uint32_t                            SfcSrcChromaSiting;                     //!< SFC Source Surface Chroma Siting
 
-  PVP_SURFACE                         pSfcPipeOutSurface;                     //!< SFC Pipe output surface
+    PVP_SURFACE                         pSfcPipeOutSurface;                     //!< SFC Pipe output surface
 
-  bool                                bForcePolyPhaseCoefs;                   //!< SFC AVS force polyphase coef
+    bool                                bForcePolyPhaseCoefs;                   //!< SFC AVS force polyphase coef
 } VP_SFC_RENDER_DATA, *PVP_SFC_RENDER_DATA;
 
 //!

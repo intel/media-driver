@@ -81,6 +81,9 @@ protected:
     virtual MOS_STATUS SetCodecPipeMode(CODECHAL_STANDARD codecStandard);
 
     virtual MOS_STATUS SetupScalabilityParams();
+
+    virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat);
+    virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams);
 };
 
 }

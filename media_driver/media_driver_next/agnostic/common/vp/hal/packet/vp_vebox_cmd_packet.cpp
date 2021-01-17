@@ -359,16 +359,16 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
 
     MHW_VEBOX_IECP_PARAMS& veboxIecpParams = pRenderData->GetIECPParams();
 
-    if (m_CscInputCspace  != cscParams->inputColorSpcase ||
-        m_CscOutputCspace != cscParams->outputColorSpcase)
+    if (m_CscInputCspace  != cscParams->inputColorSpace ||
+        m_CscOutputCspace != cscParams->outputColorSpace)
     {
         VeboxGetBeCSCMatrix(
-            cscParams->inputColorSpcase,
-            cscParams->outputColorSpcase,
+            cscParams->inputColorSpace,
+            cscParams->outputColorSpace,
             cscParams->inputFormat);
 
-        m_CscInputCspace = cscParams->inputColorSpcase;
-        m_CscOutputCspace = cscParams->outputColorSpcase;
+        m_CscInputCspace = cscParams->inputColorSpace;
+        m_CscOutputCspace = cscParams->outputColorSpace;
     }
 
     if (m_PacketCaps.bVebox &&

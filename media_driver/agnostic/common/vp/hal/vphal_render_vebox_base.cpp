@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4348,7 +4348,13 @@ MOS_STATUS VpHal_RndrRenderVebox(
         rcTemp = pcRenderParams->pTarget[0]->rcDst;
         rcTempIn = pcRenderParams->pSrc[0]->rcDst;
         if (pVeboxState->m_sfcPipeState && pVeboxState->m_sfcPipeState->m_bSFC2Pass)
-        { //SFC 2 pass, there is the first pass's surface;
+        {
+            if (0 == pRenderData->fScaleX || 0 == pRenderData->fScaleY)
+            {
+                VPHAL_RENDER_ASSERTMESSAGE("Invalid scaling ratio in pRenderData during SFC 2 pass scaling!");
+            }
+
+            //SFC 2 pass, here is the output surface of first pass.
             float                    TempfScaleX = 1.0;
             float                    TempfScaleY = 1.0;
             if ((pRenderData->fScaleX >= 0.0625F) && (pRenderData->fScaleX < 0.125F))

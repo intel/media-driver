@@ -140,11 +140,11 @@ struct _SFC_SCALING_PARAMS
 struct _SFC_CSC_PARAMS
 {
     bool                            bCSCEnabled;                                 // CSC Enabled
-    bool                            bInputColorSpace;                            // 0: YUV color space, 1:RGB color space
+    bool                            isInputColorSpaceRGB;                        // 0: YUV color space, 1:RGB color space
     bool                            bIEFEnable;                                  // IEF Enabled
     bool                            bChromaUpSamplingEnable;                     // ChromaUpSampling
     bool                            b8tapChromafiltering;                        // Enables 8 tap filtering for Chroma Channels
-    VPHAL_CSPACE                    inputColorSpcase;                            // Input Color Space
+    VPHAL_CSPACE                    inputColorSpace;                             // Input Color Space
     MOS_FORMAT                      inputFormat;                                 // SFC Input Format
     MOS_FORMAT                      outputFormat;                                // SFC Output Format
     PVPHAL_IEF_PARAMS               iefParams;                                   // Vphal Params
@@ -233,8 +233,8 @@ struct _VEBOX_PROCAMP_PARAMS
 struct _VEBOX_CSC_PARAMS
 {
     bool                            bCSCEnabled;                                 // CSC Enabled
-    VPHAL_CSPACE                    inputColorSpcase;                            // Input Color Space
-    VPHAL_CSPACE                    outputColorSpcase;                            // Input Color Space
+    VPHAL_CSPACE                    inputColorSpace;                             // Input Color Space
+    VPHAL_CSPACE                    outputColorSpace;                            // Input Color Space
     MOS_FORMAT                      inputFormat;                                 // Input Format
     MOS_FORMAT                      outputFormat;                                // Output Format
     PVPHAL_ALPHA_PARAMS             alphaParams;                                 // Output Alpha Params

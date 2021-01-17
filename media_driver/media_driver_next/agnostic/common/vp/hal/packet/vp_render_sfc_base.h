@@ -457,6 +457,9 @@ protected:
     MOS_STATUS SetLineBuffer(PMOS_RESOURCE &osResLineBuffer, VP_SURFACE *lineBuffer);
 
     virtual MOS_STATUS SetupScalabilityParams() = 0;
+    virtual bool IsInputChannelSwapNeeded(MOS_FORMAT inputFormat);
+    virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat) = 0;
+    virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams) = 0;
 
 protected:
 

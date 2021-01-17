@@ -202,25 +202,25 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
         m_sfcCSCParams->iefParams = m_cscParams.pIEFParams;
     }
 
-    m_cscParams.input.colorSpace     = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace);
-    m_sfcCSCParams->inputColorSpcase = m_cscParams.input.colorSpace;
+    m_cscParams.input.colorSpace    = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace);
+    m_sfcCSCParams->inputColorSpace = m_cscParams.input.colorSpace;
 
     m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput, m_cscParams.output.colorSpace);
     m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
     m_sfcCSCParams->outputFormat    = m_cscParams.formatOutput;
 
-    if (m_sfcCSCParams->inputColorSpcase != m_cscParams.output.colorSpace)
+    if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace)
     {
         m_sfcCSCParams->bCSCEnabled = true;
     }
 
     if (IS_RGB_CSPACE(m_cscParams.input.colorSpace))
     {
-        m_sfcCSCParams->bInputColorSpace = true;
+        m_sfcCSCParams->isInputColorSpaceRGB = true;
     }
     else
     {
-        m_sfcCSCParams->bInputColorSpace = false;
+        m_sfcCSCParams->isInputColorSpaceRGB = false;
     }
 
     // Set Chromasting Params
@@ -254,8 +254,8 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
         MOS_ZeroMemory(m_veboxCSCParams, sizeof(VEBOX_CSC_PARAMS));
     }
 
-    m_veboxCSCParams->inputColorSpcase  = m_cscParams.input.colorSpace;
-    m_veboxCSCParams->outputColorSpcase = m_cscParams.output.colorSpace;
+    m_veboxCSCParams->inputColorSpace   = m_cscParams.input.colorSpace;
+    m_veboxCSCParams->outputColorSpace  = m_cscParams.output.colorSpace;
     m_veboxCSCParams->inputFormat       = m_cscParams.formatInput;
     m_veboxCSCParams->outputFormat      = m_cscParams.formatOutput;
 
