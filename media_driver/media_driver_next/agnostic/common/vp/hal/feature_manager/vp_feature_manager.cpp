@@ -267,9 +267,12 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // for now, Temp removed ARGB input for APG
-    if (pvpParams->pSrc[0]->Format == Format_A8R8G8B8 ||
-        pvpParams->pSrc[0]->Format == Format_X8R8G8B8)
+    // Temp removed RGB input with DN/DI/IECP case
+    if ((IS_RGB_FORMAT(pvpParams->pSrc[0]->Format)) &&
+        (pvpParams->pSrc[0]->pDenoiseParams         ||
+        pvpParams->pSrc[0]->pDeinterlaceParams      ||
+        pvpParams->pSrc[0]->pProcampParams          ||
+        pvpParams->pSrc[0]->pColorPipeParams))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -460,8 +463,11 @@ finish:
 }
 bool VPFeatureManager::IsVeboxInputFormatSupport(PVPHAL_SURFACE pSrcSurface)
 {
-    bool    bRet = false;
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
+    if (nullptr == pSrcSurface)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("nullptr == pSrcSurface");
+        return false;
+    }
 
     // Check if Sample Format is supported
     // Vebox only support P016 format, P010 format can be supported by faking it as P016
@@ -474,17 +480,18 @@ bool VPFeatureManager::IsVeboxInputFormatSupport(PVPHAL_SURFACE pSrcSurface)
         pSrcSurface->Format != Format_Y8 &&
         pSrcSurface->Format != Format_Y16U &&
         pSrcSurface->Format != Format_Y16S &&
-        !IS_PA_FORMAT(pSrcSurface->Format)/* &&
+        !IS_PA_FORMAT(pSrcSurface->Format) &&
+        (pSrcSurface->Format != Format_A8B8G8R8) &&
+        (pSrcSurface->Format != Format_X8B8G8R8) &&
+        (pSrcSurface->Format != Format_A8R8G8B8) &&
+        (pSrcSurface->Format != Format_X8R8G8B8)/* &&
         !IS_RGB64_FLOAT_FORMAT(pSrcSurface->Format)*/)
     {
-        VPHAL_RENDER_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
-        goto finish;
+        VP_PUBLIC_NORMALMESSAGE("Unsupported Source Format '0x%08x' for VEBOX.", pSrcSurface->Format);
+        return false;
     }
 
-    bRet = true;
-
-finish:
-    return bRet;
+    return true;
 }
 bool VPFeatureManager::IsVeboxRTFormatSupport(
     PVPHAL_SURFACE pSrcSurface,
