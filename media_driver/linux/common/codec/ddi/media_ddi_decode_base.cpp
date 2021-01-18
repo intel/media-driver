@@ -220,8 +220,10 @@ VAStatus DdiMediaDecode::BeginPicture(
     m_streamOutEnabled              = false;
     m_ddiDecodeCtx->DecodeParams.m_numSlices       = 0;
     m_ddiDecodeCtx->DecodeParams.m_dataSize        = 0;
+    m_ddiDecodeCtx->DecodeParams.m_dataOffset      = 0;
     m_ddiDecodeCtx->DecodeParams.m_deblockDataSize = 0;
     m_ddiDecodeCtx->DecodeParams.m_executeCallIndex = 0;
+    m_ddiDecodeCtx->DecodeParams.m_cencBuf         = nullptr;
     m_groupIndex                                   = 0;
 
     // register render targets
