@@ -220,7 +220,7 @@ MOS_STATUS VpHal_RndrRectSurfaceAlignment(
     eStatus = MOS_STATUS_SUCCESS;
 
     VpHal_RndrGetAlignUnit(&wWidthAlignUnit, &wHeightAlignUnit, pSurface->Format);
-    VpHal_RndrGetAlignUnit(&wWidthAlignUnitForDstRect, &wHeightAlignUnitForDstRect, formatForDstRect);
+    VpHal_RndrGetAlignUnit(&wWidthAlignUnitForDstRect, &wHeightAlignUnitForDstRect, formatForDstRect, pSurface->bInterlacedScaling);
 
     // The source rectangle is floored to the aligned unit to
     // get rid of invalid data(ex: an odd numbered src rectangle with NV12 format
@@ -1607,7 +1607,8 @@ finish:
 void VpHal_RndrGetAlignUnit(
     uint16_t*       pwWidthAlignUnit,
     uint16_t*       pwHeightAlignUnit,
-    MOS_FORMAT      format)
+    MOS_FORMAT      format,
+    bool            isInterlacedScaling)
 {
     switch (format)
     {
@@ -1623,6 +1624,10 @@ void VpHal_RndrGetAlignUnit(
         case Format_P016:
             *pwWidthAlignUnit = 2;
             *pwHeightAlignUnit = 2;
+            if (isInterlacedScaling && format == Format_NV12)
+            {
+                *pwHeightAlignUnit = 4;
+            }
             break;
 
         case Format_YVU9:
