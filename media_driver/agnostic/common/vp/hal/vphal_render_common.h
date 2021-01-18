@@ -2591,7 +2591,8 @@ typedef struct
 void VpHal_RndrGetAlignUnit(
     uint16_t*       pwWidthAlignUnit,
     uint16_t*       pwHeightAlignUnit,
-    MOS_FORMAT      format);
+    MOS_FORMAT      format,
+    bool            isInterlacedScaling = false);
 
 //!
 //! \brief    Set packed YUV component offsets
