@@ -5782,8 +5782,8 @@ bool CompositeState::RenderBufferComputeWalker(
 
     pWalkerParams->GroupStartingX = (AlignedRect.left / uiMediaWalkerBlockSize);
     pWalkerParams->GroupStartingY = (AlignedRect.top / uiMediaWalkerBlockSize);
-    pWalkerParams->GroupWidth     = pRenderingData->iBlocksX;
-    pWalkerParams->GroupHeight    = pRenderingData->iBlocksY;
+    pWalkerParams->GroupWidth     = pWalkerParams->GroupStartingX + pRenderingData->iBlocksX;
+    pWalkerParams->GroupHeight    = pWalkerParams->GroupStartingY + pRenderingData->iBlocksY;
 
     pWalkerParams->ThreadWidth  = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_WIDTH;
     pWalkerParams->ThreadHeight = VPHAL_COMP_COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
