@@ -118,6 +118,7 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
     m_rotationState                = procParams->m_rotationState;
     m_blendState                   = procParams->m_blendState;
     m_mirrorState                  = procParams->m_mirrorState;
+    m_scalingMode                  = procParams->m_scalingMode;
     m_isReferenceOnlyPattern       = procParams->m_isReferenceOnlyPattern;
 
     DECODE_CHK_NULL(procParams->m_outputSurface);

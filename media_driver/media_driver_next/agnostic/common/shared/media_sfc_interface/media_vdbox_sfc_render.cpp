@@ -112,7 +112,7 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     scalingParams.type                      = FeatureTypeScalingOnSfc;
     scalingParams.formatInput               = sfcParam.input.format;
     scalingParams.formatOutput              = sfcParam.output.surface->Format;
-    scalingParams.scalingMode               = VPHAL_SCALING_AVS;
+    scalingParams.scalingMode               = GetScalingMode(sfcParam.scalingMode);
     scalingParams.scalingPreference         = VPHAL_SCALING_PREFER_SFC;              //!< DDI indicate Scaling preference
     scalingParams.bDirectionalScalar        = false;                                 //!< Vebox Directional Scalar
     scalingParams.input.rcSrc               = rcSrcInput;                            //!< No input crop support for VD mode. rcSrcInput must have same width/height of input image.
@@ -211,6 +211,27 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
     m_allocator->DestroyVpSurface(renderTarget);
 
     return MOS_STATUS_SUCCESS;
+}
+
+VPHAL_SCALING_MODE MediaVdboxSfcRender::GetScalingMode(CODECHAL_SCALING_MODE scalingMode)
+{
+    // Default mode is VPHAL_SCALING_AVS
+    VPHAL_SCALING_MODE sfcScalingMode = VPHAL_SCALING_AVS;
+
+    switch(scalingMode)
+    {
+    case CODECHAL_SCALING_BILINEAR:
+        sfcScalingMode = VPHAL_SCALING_BILINEAR;
+        break;
+    case CODECHAL_SCALING_NEAREST:
+    case CODECHAL_SCALING_AVS:
+    case CODECHAL_SCALING_ADV_QUALITY:
+    default:
+        sfcScalingMode = VPHAL_SCALING_AVS;
+        break;
+    }
+
+    return sfcScalingMode;
 }
 
 bool MediaVdboxSfcRender::IsVdboxSfcFormatSupported(

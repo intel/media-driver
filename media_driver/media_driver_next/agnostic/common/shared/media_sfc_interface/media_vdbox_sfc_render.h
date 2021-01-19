@@ -100,6 +100,8 @@ protected:
     MOS_STATUS SetRotMirParams(VDBOX_SFC_PARAMS &sfcParam, VP_EXECUTE_CAPS &vpExecuteCaps);
     MOS_STATUS SetHistogramParams(VDBOX_SFC_PARAMS &sfcParam);
 
+    VPHAL_SCALING_MODE GetScalingMode(CODECHAL_SCALING_MODE scalingMode);
+
     VP_MHWINTERFACE         m_vpMhwInterface        = {};
     PMOS_INTERFACE          m_osInterface           = nullptr;
     vp::VpAllocator         *m_allocator            = nullptr;

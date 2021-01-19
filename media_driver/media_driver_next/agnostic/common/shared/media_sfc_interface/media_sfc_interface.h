@@ -136,6 +136,7 @@ struct VDBOX_SFC_PARAMS
     } output;
 
     VIDEO_PARAMS                    videoParams;        //!< standard related params.
+    CODECHAL_SCALING_MODE           scalingMode;
 };
 
 union MEDIA_SFC_INTERFACE_MODE

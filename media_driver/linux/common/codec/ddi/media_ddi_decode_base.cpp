@@ -137,9 +137,33 @@ VAStatus DdiMediaDecode::ParseProcessingBuffer(
         decProcessingParams->m_outputSurfaceRegion.m_width  = procBuf->output_region->width;
         decProcessingParams->m_outputSurfaceRegion.m_height = procBuf->output_region->height;
 
+        // Interpolation flags
+        // Set the vdbox scaling mode
+        uint32_t uInterpolationflags = 0;
+#if VA_CHECK_VERSION(1, 9, 0)
+        uInterpolationflags = procBuf->filter_flags & VA_FILTER_INTERPOLATION_MASK;
+#endif
+
+        switch (uInterpolationflags)
+        {
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FILTER_INTERPOLATION_NEAREST_NEIGHBOR:
+            decProcessingParams->m_scalingMode = CODECHAL_SCALING_NEAREST;
+            break;
+        case VA_FILTER_INTERPOLATION_BILINEAR:
+            decProcessingParams->m_scalingMode = CODECHAL_SCALING_BILINEAR;
+            break;
+        case VA_FILTER_INTERPOLATION_ADVANCED:
+        case VA_FILTER_INTERPOLATION_DEFAULT:
+#endif
+        default:
+            decProcessingParams->m_scalingMode = CODECHAL_SCALING_AVS;
+           break;
+        }
+
         // Chroma siting
         // Set the vertical chroma siting info
-        uint32_t chromaSitingFlags;
+        uint32_t chromaSitingFlags = 0;
         chromaSitingFlags                       = procBuf->input_color_properties.chroma_sample_location & 0x3;
         decProcessingParams->m_chromaSitingType = CODECHAL_CHROMA_SITING_NONE;
         decProcessingParams->m_rotationState    = 0;

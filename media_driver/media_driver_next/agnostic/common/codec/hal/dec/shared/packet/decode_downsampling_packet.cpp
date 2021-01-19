@@ -134,6 +134,7 @@ MOS_STATUS DecodeDownSamplingPkt::InitSfcParams(VDBOX_SFC_PARAMS &sfcParams)
                                     m_downSampling->m_outputSurfaceRegion.m_height;
 
     sfcParams.videoParams.codecStandard = m_basicFeature->m_standard;
+    sfcParams.scalingMode         = m_downSampling->m_scalingMode;
 
     // If histogram is enabled
     if (m_downSampling->m_histogramDestSurf || m_downSampling->m_histogramDebug)
