@@ -370,6 +370,14 @@ typedef enum _CODECHAL_STATUS
     CODECHAL_STATUS_UNAVAILABLE = 3     //!< Indicates that the entry in the status reporting array was not used
 } CODECHAL_STATUS, *PCODECHAL_STATUS;
 
+typedef enum _CODECHAL_SCALING_MODE
+{
+    CODECHAL_SCALING_NEAREST = 0,
+    CODECHAL_SCALING_BILINEAR,
+    CODECHAL_SCALING_AVS,
+    CODECHAL_SCALING_ADV_QUALITY        // !< Advance Perf mode
+} CODECHAL_SCALING_MODE;
+
 typedef enum _CODECHAL_CHROMA_SITING_TYPE
 {
     CODECHAL_CHROMA_SITING_NONE             = 0x00,

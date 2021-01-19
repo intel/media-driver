@@ -81,6 +81,8 @@ public:
     bool           m_isInputSurfAllocated = false;
     bool           m_isReferenceOnlyPattern = false;
 
+    CODECHAL_SCALING_MODE  m_scalingMode = CODECHAL_SCALING_NEAREST;
+
     // Histogram
     PMOS_BUFFER         m_histogramBuffer = nullptr;    // SFC histogram internal  buffer
     PMOS_SURFACE        m_histogramDestSurf = nullptr;  // SFC histogram dest surface

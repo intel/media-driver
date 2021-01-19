@@ -83,6 +83,8 @@ struct DecodeProcessingParams
     uint32_t       m_mirrorState;
     bool           m_isSourceSurfAllocated;
     bool           m_isReferenceOnlyPattern;
+
+    CODECHAL_SCALING_MODE m_scalingMode;
 };
 
 //!
