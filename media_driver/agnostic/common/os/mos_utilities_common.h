@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -473,6 +473,9 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT_ID,
     __VPHAL_ENABLE_1K_1DLUT_ID,
     __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED_ID,
+#endif
+#if (_DEBUG || _RELEASE_INTERNAL)
+    __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT_ID,
 #endif
 #if ((_DEBUG || _RELEASE_INTERNAL) && !EMUL)
     __VPHAL_RNDR_VEBOX_MODE_0_ID,

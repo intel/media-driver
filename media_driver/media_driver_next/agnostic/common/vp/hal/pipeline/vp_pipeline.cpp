@@ -57,6 +57,9 @@ VpPipeline::~VpPipeline()
     MOS_Delete(m_kernelSet);
     MOS_Delete(m_paramChecker);
     MOS_Delete(m_mmc);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DestroySurface();
+#endif
     MOS_Delete(m_allocator);
     MOS_Delete(m_statusReport);
     MOS_Delete(m_packetSharedContext);
@@ -83,6 +86,19 @@ MOS_STATUS VpPipeline::Destroy()
 
     return MOS_STATUS_SUCCESS;
 }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS VpPipeline::DestroySurface()
+{
+    if (m_tempTargetSurface)
+    {
+        m_allocator->FreeResource(&m_tempTargetSurface->OsResource);
+        MOS_FreeMemAndSetNull(m_tempTargetSurface);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
 
 MOS_STATUS VpPipeline::UserFeatureReport()
 {
@@ -258,7 +274,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
         m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
 
-        if (eStatus)
+        if (MOS_SUCCEEDED(eStatus))
         {
             VP_PUBLIC_CHK_STATUS(UpdateExecuteStatus());
         }
@@ -279,8 +295,7 @@ finish:
 
 MOS_STATUS VpPipeline::UpdateExecuteStatus()
 {
-    MOS_STATUS                 eStatus = MOS_STATUS_SUCCESS;
-
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
         PVP_PIPELINE_PARAMS params = m_pvpParams.renderParams;
@@ -298,13 +313,13 @@ MOS_STATUS VpPipeline::UpdateExecuteStatus()
         bool uiForceDecompressedOutput = false;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
-        eStatus = MOS_UserFeature_ReadValue_ID(
+        MOS_STATUS eStatus1 = MOS_UserFeature_ReadValue_ID(
             nullptr,
             __VPHAL_RNDR_FORCE_VP_DECOMPRESSED_OUTPUT_ID,
             &userFeatureData,
             m_osInterface->pOsContext);
 
-        if (eStatus == MOS_STATUS_SUCCESS)
+        if (eStatus1 == MOS_STATUS_SUCCESS)
         {
             uiForceDecompressedOutput = userFeatureData.u32Data;
         }
@@ -462,10 +477,79 @@ MOS_STATUS VpPipeline::CreateFeatureReport()
     return MOS_STATUS_SUCCESS;
 }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+VPHAL_SURFACE *VpPipeline::AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTargetSurface)
+{
+    m_tempTargetSurface = (VPHAL_SURFACE *)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+    if (!m_tempTargetSurface)
+    {
+        return nullptr;
+    }
+    return m_tempTargetSurface;
+}
+#endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    bool                        allocated;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {0};
+
+    MEDIA_FEATURE_TABLE *skuTable = nullptr;
+    skuTable                      = m_vpMhwInterface.m_osInterface->pfnGetSkuTable(m_vpMhwInterface.m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(skuTable);
+
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT_ID,
+        &userFeatureData,
+        m_vpMhwInterface.m_osInterface->pOsContext);
+
+    if (userFeatureData.bData                       &&
+        MOS_TILE_LINEAR != params->pTarget[0]->TileType &&
+        (Format_P010 == params->pTarget[0]->Format || Format_NV12 == params->pTarget[0]->Format) &&
+        MEDIA_IS_SKU(skuTable, FtrSFCLinearOutputSupport))
+    {
+        if (!m_tempTargetSurface)
+        {
+            m_tempTargetSurface = AllocateTempTargetSurface(m_tempTargetSurface);
+        }
+        VP_PUBLIC_CHK_NULL_RETURN(m_tempTargetSurface);
+        eStatus = m_allocator->ReAllocateSurface(
+            m_tempTargetSurface,
+            "TempTargetSurface",
+            params->pTarget[0]->Format,
+            MOS_GFXRES_2D,
+            MOS_TILE_LINEAR,
+            params->pTarget[0]->dwWidth,
+            params->pTarget[0]->dwHeight,
+            false,
+            MOS_MMC_DISABLED,
+            &allocated);
+
+        m_tempTargetSurface->ColorSpace = params->pTarget[0]->ColorSpace;
+        m_tempTargetSurface->rcSrc      = params->pTarget[0]->rcSrc;
+        m_tempTargetSurface->rcDst      = params->pTarget[0]->rcDst;
+        m_tempTargetSurface->rcMaxSrc   = params->pTarget[0]->rcMaxSrc;
+
+        if (eStatus == MOS_STATUS_SUCCESS)
+        {
+            params->pTarget[0] = m_tempTargetSurface;    //params is the copy of pcRenderParams which will not cause the memleak,
+        }
+    }
+    return eStatus;
+}
+#endif
+
 MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(params);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    SurfaceReplace(params);    // replace output surface from Tile-Y to Linear
+#endif
 
     if ((m_vpMhwInterface.m_osInterface != nullptr))
     {

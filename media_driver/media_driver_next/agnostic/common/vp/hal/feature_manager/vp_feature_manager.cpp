@@ -774,9 +774,11 @@ bool VPFeatureManager::IsOutputFormatSupported(PVPHAL_SURFACE outSurface)
         outSurface->Format != Format_Y216 &&
         outSurface->Format != Format_Y416)
     {
-        if (outSurface->TileType == MOS_TILE_Y    &&
-            (outSurface->Format == Format_P010    ||
-             outSurface->Format == Format_P016    ||
+        if ((outSurface->TileType == MOS_TILE_Y ||
+             (MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrSFCLinearOutputSupport) &&
+              outSurface->TileType == MOS_TILE_LINEAR))                          && 
+            (outSurface->Format == Format_P010  ||
+             outSurface->Format == Format_P016  ||
              outSurface->Format == Format_NV12))
         {
             ret = true;
