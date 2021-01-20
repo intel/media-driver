@@ -3262,6 +3262,17 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "0",
         "Force VP Memorycopy Outputcompressed"),
 #endif
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_DECLARE_UF_KEY(__VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT_ID,
+            "Enable SFC NV12 P010 Linear Output",
+            __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+            __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+            "VP",
+            MOS_USER_FEATURE_TYPE_USER,
+            MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+            "0",
+            "Set SFC NV12/P010 Linear Output"),
+#endif
     MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_SET_SINGLE_SLICE_VEBOX_ID,
         "SetSingleSliceVeboxEnable",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -117,6 +117,15 @@ public:
     virtual MOS_STATUS Destroy() override;
 
     //!
+    //! \brief  Destory the tempSurface and release internal resources
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_STATUS DestroySurface();
+#endif
+
+    //!
     //! \brief  get Status Report Table
     //! \return PVPHAL_STATUS_TABLE
     //!         Pointers to status Table
@@ -149,6 +158,22 @@ public:
     //!           Return true if supported, otherwise failed
     //!
     bool IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
+
+    //!
+    //! \brief  replace output surface from Tile-Y to Linear
+    //! \param  [in] params
+    //!         Pointer to VP pipeline params
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_STATUS SurfaceReplace(PVP_PIPELINE_PARAMS params);
+#endif
+
+    // for debug purpose
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual VPHAL_SURFACE *AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTargetSurface);
+#endif
 
 protected:
 
@@ -277,6 +302,9 @@ protected:
     VPFeatureManager      *m_paramChecker           = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
     VpInterface           *m_vpInterface            = nullptr;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    VPHAL_SURFACE         *m_tempTargetSurface      = nullptr;
+#endif
 };
 
 struct _VP_SFC_PACKET_PARAMS
