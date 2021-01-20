@@ -341,6 +341,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     bool                                        brcEnabled,
     bool                                        streaminEnabled,
     bool                                        roiStreamInEnabled,
+    bool                                        brcAdaptiveRegionBoostEnable,
     bool                                        roundingEnabled,
     bool                                        panicEnabled,
     int32_t                                     currentPass
@@ -378,6 +379,7 @@ MOS_STATUS CodechalCmdInitializer::CmdInitializerSetConstData(
     m_panicEnabled       = panicEnabled;
     m_roiStreamInEnabled = roiStreamInEnabled;
     m_currentPass        = currentPass;
+    m_brcAdaptiveRegionBoostEnabled = brcAdaptiveRegionBoostEnable;
 
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;

@@ -112,6 +112,12 @@ MOS_STATUS CodechalCmdInitializerG11::ConstructHevcHucCmd1ConstData(
         }
     }
 
+    // For TCBRC adaptive region boost
+    if(m_brcAdaptiveRegionBoostEnabled)
+    {
+        cmd1.ROIStreamInEnabled = 1;
+    }
+
     // default
     cmd1.FwdPocNumForRefId0inL0 = 0x01;
     cmd1.FwdPocNumForRefId0inL1 = 0xff;
