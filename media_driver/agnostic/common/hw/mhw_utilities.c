@@ -64,8 +64,6 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
 
     pbCmdBufBase = (uint8_t*)pCmdBuffer->pCmdBase;
 
-    MOS_TraceEventExt(EVENT_RESOURCE_REGISTER, EVENT_TYPE_INFO2, &pParams->HwCommandType, sizeof(uint32_t), &pParams->dwLocationInCmd, sizeof(uint32_t));
-
     MHW_CHK_STATUS(pOsInterface->pfnRegisterResource(
         pOsInterface,
         pParams->presResource,
@@ -86,6 +84,13 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     *pParams->pdwCmd = (*pParams->pdwCmd & ~dwMask) | (dwGfxAddrBottom & dwMask);
     // this is next DW for top part of the address
     *(pParams->pdwCmd + 1) = dwGfxAddrTop;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    {
+        uint32_t evtData[4] ={(uint32_t)pParams->HwCommandType, pParams->dwLocationInCmd, pParams->dwOffset, pParams->dwSize};
+        MOS_TraceEventExt(EVENT_RESOURCE_REGISTER, EVENT_TYPE_INFO2, evtData, sizeof(evtData), &ui64GfxAddress, sizeof(ui64GfxAddress));
+    }
+#endif
 
     if (pParams->dwOffsetInSSH > 0)
     {
