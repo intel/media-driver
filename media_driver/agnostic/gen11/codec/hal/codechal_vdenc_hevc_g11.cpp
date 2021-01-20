@@ -561,7 +561,7 @@ void CodechalVdencHevcStateG11::SetStreaminDataPerLcu(
     PCODECHAL_VDENC_HEVC_STREAMIN_STATE_G10 data = (PCODECHAL_VDENC_HEVC_STREAMIN_STATE_G10)streaminData;
     if (streaminParams->setQpRoiCtrl)
     {
-        if (m_vdencNativeROIEnabled)
+        if (m_vdencNativeROIEnabled || m_brcAdaptiveRegionBoostEnable)
         {
             data->DW0.RoiCtrl = streaminParams->roiCtrl;
         }
@@ -1995,6 +1995,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
             m_brcEnabled,
             m_vdencStreamInEnabled,
             m_vdencNativeROIEnabled,
+            m_brcAdaptiveRegionBoostEnable,
             m_hevcVdencRoundingEnabled,
             panicEnabled,
             GetCurrentPass()));
@@ -3480,7 +3481,6 @@ MOS_STATUS CodechalVdencHevcStateG11::SetDmemHuCBrcInitReset()
         hucVdencBrcInitDmem->StreamInROIEnable_U8 = 1;
         hucVdencBrcInitDmem->StreamInSurfaceEnable_U8 = 1;
     }
-
     // RDOQ adaptation hardened to HW starting Gen11
     hucVdencBrcInitDmem->RDOQ_AdaptationEnable_U8 = 0;
 
@@ -4764,6 +4764,7 @@ CodechalVdencHevcStateG11::CodechalVdencHevcStateG11(
     m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_hucPakStitchEnabled = true;
     m_scalabilityState = nullptr;
+    m_brcAdaptiveRegionBoostSupported = true;
 
     MOS_ZeroMemory(&m_resPakcuLevelStreamoutData, sizeof(m_resPakcuLevelStreamoutData));
     MOS_ZeroMemory(&m_resPakSliceLevelStreamoutData, sizeof(m_resPakSliceLevelStreamoutData));

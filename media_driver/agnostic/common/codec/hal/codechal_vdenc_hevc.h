@@ -202,6 +202,8 @@ public:
     bool                                    m_pakOnlyPass = false;                             //!< flag to signal VDEnc+PAK vs. PAK only
     bool                                    m_hevcVisualQualityImprovement = false;            //!< VQI enable flag
     bool                                    m_enableMotionAdaptive = false;                    //!< Motion adaptive enable flag
+    bool                                    m_brcAdaptiveRegionBoostSupported = false;         //!< ARB in BRC mode supported flag.
+    bool                                    m_brcAdaptiveRegionBoostEnable = false;            //!< ARB in BRC mode enable flag.
 
     //Resources for VDEnc
     MOS_RESOURCE                            m_sliceCountBuffer;                                //!< Slice count buffer
@@ -788,11 +790,21 @@ public:
     //!
     //! \param    [in] streamIn
     //!           Pointer to streamin buffer
+    MOS_STATUS SetupForceIntraStreamIn(PMOS_RESOURCE streamIn);
+
+    //! \brief    Set VDENC StreamIn Surface for BRC Adaptive Region Boost
+    //!
+    //! \param    [in] vdencStreamIn
+    //!           StreamIn Surface Resource.
+    //! \param    [in] boostIndex
+    //!           Region index for boosting.
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetupForceIntraStreamIn(PMOS_RESOURCE streamIn);
+    virtual MOS_STATUS SetupRegionBoosting(
+        PMOS_RESOURCE                vdencStreamIn,
+        uint16_t                     boostIndex);
 
     // Inherited virtual function
     MOS_STATUS Initialize(CodechalSetting * settings)  override;

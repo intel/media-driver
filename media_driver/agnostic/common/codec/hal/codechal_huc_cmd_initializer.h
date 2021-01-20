@@ -216,6 +216,7 @@ public:
     bool                                        m_roundingEnabled = false;
     bool                                        m_panicEnabled = false;
     bool                                        m_roiStreamInEnabled = false;
+    bool                                        m_brcAdaptiveRegionBoostEnabled = false;
     int32_t                                     m_currentPass = 0;
     int32_t                                     m_cmdCount = 0 ;
 
@@ -291,6 +292,7 @@ public:
         bool                                        brcEnabled,
         bool                                        streaminEnabled,
         bool                                        roiStreamInEnabled,
+        bool                                        brcAdaptiveRegionBoostEnable,
         bool                                        roundingEnabled,
         bool                                        panicEnabled,
         int32_t                                     currentPass
