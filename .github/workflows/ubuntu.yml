@@ -29,7 +29,7 @@ jobs:
         path: gmmlib
     - name: install toolchain
       run: |
-        if sudo apt-cache search --names-only ^clang-11$ | grep -q clang-11; then \
+        if [[ -e $CC && -e $CXX ]]; then \
           echo "clang-11 already presents in the image"; \
         else \
           echo "clang-11 missed in the image, installing from llvm"; \
