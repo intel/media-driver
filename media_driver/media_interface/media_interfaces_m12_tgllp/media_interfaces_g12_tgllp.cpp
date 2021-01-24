@@ -645,7 +645,30 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     #ifdef _VP9_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_VP9VLD)
         {
-            m_codechalDevice = MOS_New(Decode::Vp9, hwInterface, debugInterface, info);
+#ifdef _APOGEIOS_SUPPORTED
+            bool                        apogeiosEnable = false;
+            MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+            userFeatureData.i32Data     = apogeiosEnable;
+            userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_VP9D_ENABLE_ID,
+                &userFeatureData,
+                hwInterface->GetOsInterface()->pOsContext);
+        
+             apogeiosEnable = userFeatureData.bData ? true : false;
+
+            if (apogeiosEnable)
+            {
+                m_codechalDevice = MOS_New(DecodeVp9PipelineAdapterG12, hwInterface, debugInterface);
+            }
+            else
+#endif
+            {
+                m_codechalDevice = MOS_New(Decode::Vp9, hwInterface, debugInterface, info);
+            }
         }
         else
     #endif
