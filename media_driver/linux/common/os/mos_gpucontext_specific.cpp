@@ -976,11 +976,14 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             skipSyncBoList.push_back(alloc_bo);
         }
 
-        MOS_TraceEventExt(EVENT_MOS_BATCH_SUBMIT, EVENT_TYPE_INFO,
-                            &alloc_bo->handle,
-                            sizeof(alloc_bo->handle),
-                            &currentPatch->uiWriteOperation,
-                            sizeof(currentPatch->uiWriteOperation));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        {
+            uint32_t evtData[] = {alloc_bo->handle, currentPatch->uiWriteOperation, currentPatch->AllocationOffset};
+            MOS_TraceEventExt(EVENT_MOS_BATCH_SUBMIT, EVENT_TYPE_INFO,
+                              evtData, sizeof(evtData),
+                              &boOffset, sizeof(boOffset));
+        }
+#endif
         if(mos_gem_bo_is_softpin(alloc_bo))
         {
             if (alloc_bo != tempCmdBo)
