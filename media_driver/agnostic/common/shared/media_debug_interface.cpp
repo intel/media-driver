@@ -922,6 +922,344 @@ MOS_STATUS MediaDebugInterface::DumpData(
     return MOS_STATUS_SUCCESS;
 }
 
+#define FIELD_TO_OFS(name, shift) ofs << shift #name << ": " << (int64_t)ptr->name << std::endl;
+#define EMPTY_TO_OFS()
+#define UNION_STRUCT_START_TO_OFS()     ofs << "union"      << std::endl \
+                                            << "{"          << std::endl \
+                                            << "    struct" << std::endl \
+                                            << "    {"      << std::endl;
+
+#define UNION_STRUCT_FIELD_TO_OFS(name) ofs << "        "#name << ": " << ptr->name << std::endl;
+#define UNION_END_TO_OFS(name)          ofs << "    }"      << std::endl \
+                                            << "    "#name << ": " << ptr->name << std::endl \
+                                            << "}" << std::endl;
+#define OFFSET_FIELD_TO_OFS(class_name, f_name, shift) << shift "                 "#f_name": " << ptr->class_name.f_name << std::endl
+#define PLANE_OFFSET_TO_OFS(name) ofs << "MOS_PLANE_OFFSET "#name << std::endl \
+                                                            OFFSET_FIELD_TO_OFS(name, iSurfaceOffset,)    \
+                                                            OFFSET_FIELD_TO_OFS(name, iXOffset,)          \
+                                                            OFFSET_FIELD_TO_OFS(name, iYOffset,)          \
+                                                            OFFSET_FIELD_TO_OFS(name, iLockSurfaceOffset,);
+#define RESOURCE_OFFSET_TO_OFS(name, shift) ofs << shift "MOS_RESOURCE_OFFSETS "#name << std::endl \
+                                                                                OFFSET_FIELD_TO_OFS(name, BaseOffset, shift) \
+                                                                                OFFSET_FIELD_TO_OFS(name, XOffset, shift)    \
+                                                                                OFFSET_FIELD_TO_OFS(name, YOffset, shift);
+MOS_STATUS MediaDebugInterface::DumpSurfaceInfo(
+    PMOS_SURFACE surface,
+    const char* surfaceName)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(surface);
+    MEDIA_DEBUG_CHK_NULL(surfaceName);
+
+    if (!m_configMgr->AttrIsEnabled(MediaDbgAttr::attrSurfaceInfo))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char* funcName = (m_mediafunction == MEDIA_FUNCTION_VP) ? "_VP" : ((m_mediafunction == MEDIA_FUNCTION_ENCODE) ? "_ENC" : "_DEC");
+    const char* filePath = CreateFileName(funcName, surfaceName, MediaDbgExtType::txt);
+    std::ofstream ofs(filePath);
+    PMOS_SURFACE ptr = surface;
+
+    if (ofs.fail())
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    ofs << "Surface name: " << surfaceName << std::endl;
+
+    EMPTY_TO_OFS();
+    ofs << "MOS_SURFACE:" << std::endl;
+    FIELD_TO_OFS(dwArraySlice, );
+    FIELD_TO_OFS(dwMipSlice, );
+    FIELD_TO_OFS(S3dChannel, );
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(Type, );
+    FIELD_TO_OFS(bOverlay, );
+    FIELD_TO_OFS(bFlipChain, );
+
+#if !defined(LINUX)
+    EMPTY_TO_OFS();
+    UNION_STRUCT_START_TO_OFS();
+    UNION_STRUCT_FIELD_TO_OFS(dwFirstArraySlice);
+    UNION_STRUCT_FIELD_TO_OFS(dwFirstMipSlice);
+    UNION_END_TO_OFS(dwSubResourceIndex);
+#endif
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(dwWidth, );
+    FIELD_TO_OFS(dwHeight, );
+    FIELD_TO_OFS(dwSize, );
+    FIELD_TO_OFS(dwDepth, );
+    FIELD_TO_OFS(dwArraySize, );
+    FIELD_TO_OFS(dwLockPitch, );
+    FIELD_TO_OFS(dwPitch, );
+    FIELD_TO_OFS(dwSlicePitch, );
+    FIELD_TO_OFS(dwQPitch, );
+    FIELD_TO_OFS(TileType, );
+    FIELD_TO_OFS(TileModeGMM, );
+    FIELD_TO_OFS(bGMMTileEnabled, );
+    FIELD_TO_OFS(Format, );
+    FIELD_TO_OFS(bArraySpacing, );
+    FIELD_TO_OFS(bCompressible, );
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(dwOffset, );
+    PLANE_OFFSET_TO_OFS(YPlaneOffset);
+    PLANE_OFFSET_TO_OFS(UPlaneOffset);
+    PLANE_OFFSET_TO_OFS(VPlaneOffset);
+
+    EMPTY_TO_OFS();
+    UNION_STRUCT_START_TO_OFS();
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.YUV.Y, "    ");
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.YUV.U, "    ");
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.YUV.V, "    ");
+    ofs << "    } YUV;" << std::endl;
+    RESOURCE_OFFSET_TO_OFS(RenderOffset.RGB, );
+    ofs << "}" << std::endl;
+
+    EMPTY_TO_OFS();
+    UNION_STRUCT_START_TO_OFS();
+    UNION_STRUCT_FIELD_TO_OFS(LockOffset.YUV.Y);
+    UNION_STRUCT_FIELD_TO_OFS(LockOffset.YUV.U);
+    UNION_STRUCT_FIELD_TO_OFS(LockOffset.YUV.V);
+    UNION_END_TO_OFS(LockOffset.RGB);
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(bIsCompressed, );
+    FIELD_TO_OFS(CompressionMode, );
+    FIELD_TO_OFS(CompressionFormat, );
+    FIELD_TO_OFS(YoffsetForUplane, );
+    FIELD_TO_OFS(YoffsetForVplane, );
+
+    EMPTY_TO_OFS();
+    EMPTY_TO_OFS();
+    MOS_STATUS sts = DumpMosSpecificResourceInfoToOfs(&surface->OsResource, ofs);
+    ofs.close();
+
+    return sts;
+}
+
+#define FIELD_TO_OFS_8SHIFT(name) FIELD_TO_OFS(name, "        ")
+MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
+    PMOS_RESOURCE pOsResource,
+    std::ofstream& ofs)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+    if (Mos_ResourceIsNull(pOsResource))
+    {
+        MEDIA_DEBUG_ASSERTMESSAGE("pOsResource is null");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    PMOS_RESOURCE ptr = pOsResource;
+    ofs << "MOS_RESOURCE:" << std::endl;
+#if !defined(LINUX)
+    FIELD_TO_OFS(RunTimeHandle, );
+#else
+    FIELD_TO_OFS(iWidth, );
+    FIELD_TO_OFS(iHeight, );
+    FIELD_TO_OFS(iSize, );
+    FIELD_TO_OFS(iPitch, );
+    FIELD_TO_OFS(iDepth, );
+    FIELD_TO_OFS(Format, );
+    FIELD_TO_OFS(iCount, );
+    FIELD_TO_OFS(dwGfxAddress, );
+    FIELD_TO_OFS(isTiled, );
+    FIELD_TO_OFS(TileType, );
+    FIELD_TO_OFS(bMapped, );
+
+    EMPTY_TO_OFS();
+    FIELD_TO_OFS(bo->size, );
+    FIELD_TO_OFS(bo->align, );
+    FIELD_TO_OFS(bo->offset, );
+    FIELD_TO_OFS(bo->handle, );
+    FIELD_TO_OFS(bo->offset64, );
+    FIELD_TO_OFS(bo->aux_mapped, );
+#endif
+    ofs << "iAllocationIndex[MOS_GPU_CONTEXT_MAX == " << (uint32_t)MOS_GPU_CONTEXT_MAX << "]: {";
+    for (int i = 0; i < MOS_GPU_CONTEXT_MAX; ++i)
+        ofs << ptr->iAllocationIndex[i] << ", ";
+    ofs << "}" << std::endl;
+
+    {
+        PGMM_RESOURCE_INFO ptr = pOsResource->pGmmResInfo;
+        EMPTY_TO_OFS();
+        ofs << "GMM_RESOURCE_INFO:" << std::endl;
+        FIELD_TO_OFS(GetResourceType(), );
+        FIELD_TO_OFS(GetResourceFormat(), );
+        FIELD_TO_OFS(GetBitsPerPixel(), );
+
+        {
+            GMM_RESOURCE_FLAG flags = pOsResource->pGmmResInfo->GetResFlags();
+            GMM_RESOURCE_FLAG* ptr = &flags;
+
+            EMPTY_TO_OFS();
+            ofs << "    GMM_RESOURCE_FLAG:" << std::endl;
+            FIELD_TO_OFS_8SHIFT(Gpu.CameraCapture);
+            FIELD_TO_OFS_8SHIFT(Gpu.CCS);
+            FIELD_TO_OFS_8SHIFT(Gpu.ColorDiscard);
+            FIELD_TO_OFS_8SHIFT(Gpu.ColorSeparation);
+            FIELD_TO_OFS_8SHIFT(Gpu.ColorSeparationRGBX);
+            FIELD_TO_OFS_8SHIFT(Gpu.Constant);
+            FIELD_TO_OFS_8SHIFT(Gpu.Depth);
+            FIELD_TO_OFS_8SHIFT(Gpu.FlipChain);
+            FIELD_TO_OFS_8SHIFT(Gpu.FlipChainPreferred);
+            FIELD_TO_OFS_8SHIFT(Gpu.HistoryBuffer);
+            FIELD_TO_OFS_8SHIFT(Gpu.HiZ);
+            FIELD_TO_OFS_8SHIFT(Gpu.Index);
+            FIELD_TO_OFS_8SHIFT(Gpu.IndirectClearColor);
+            FIELD_TO_OFS_8SHIFT(Gpu.InstructionFlat);
+            FIELD_TO_OFS_8SHIFT(Gpu.InterlacedScan);
+            FIELD_TO_OFS_8SHIFT(Gpu.MCS);
+            FIELD_TO_OFS_8SHIFT(Gpu.MMC);
+            FIELD_TO_OFS_8SHIFT(Gpu.MotionComp);
+            FIELD_TO_OFS_8SHIFT(Gpu.NoRestriction);
+            FIELD_TO_OFS_8SHIFT(Gpu.Overlay);
+            FIELD_TO_OFS_8SHIFT(Gpu.Presentable);
+            FIELD_TO_OFS_8SHIFT(Gpu.ProceduralTexture);
+            FIELD_TO_OFS_8SHIFT(Gpu.Query);
+            FIELD_TO_OFS_8SHIFT(Gpu.RenderTarget);
+            FIELD_TO_OFS_8SHIFT(Gpu.S3d);
+            FIELD_TO_OFS_8SHIFT(Gpu.S3dDx);
+            FIELD_TO_OFS_8SHIFT(Gpu.__S3dNonPacked);
+            FIELD_TO_OFS_8SHIFT(Gpu.ScratchFlat);
+            FIELD_TO_OFS_8SHIFT(Gpu.SeparateStencil);
+            FIELD_TO_OFS_8SHIFT(Gpu.State);
+            FIELD_TO_OFS_8SHIFT(Gpu.Stream);
+            FIELD_TO_OFS_8SHIFT(Gpu.TextApi);
+            FIELD_TO_OFS_8SHIFT(Gpu.Texture);
+            FIELD_TO_OFS_8SHIFT(Gpu.TiledResource);
+            FIELD_TO_OFS_8SHIFT(Gpu.TilePool);
+            FIELD_TO_OFS_8SHIFT(Gpu.UnifiedAuxSurface);
+            FIELD_TO_OFS_8SHIFT(Gpu.Vertex);
+            FIELD_TO_OFS_8SHIFT(Gpu.Video);
+            FIELD_TO_OFS_8SHIFT(Gpu.__NonMsaaTileXCcs);
+            FIELD_TO_OFS_8SHIFT(Gpu.__NonMsaaTileYCcs);
+            FIELD_TO_OFS_8SHIFT(Gpu.__MsaaTileMcs);
+            FIELD_TO_OFS_8SHIFT(Gpu.__NonMsaaLinearCCS);
+            FIELD_TO_OFS_8SHIFT(Gpu.__Remaining);
+
+            EMPTY_TO_OFS();
+            FIELD_TO_OFS_8SHIFT(Info.AllowVirtualPadding);
+            FIELD_TO_OFS_8SHIFT(Info.BigPage);
+            FIELD_TO_OFS_8SHIFT(Info.Cacheable);
+            FIELD_TO_OFS_8SHIFT(Info.ContigPhysMemoryForiDART);
+            FIELD_TO_OFS_8SHIFT(Info.CornerTexelMode);
+            FIELD_TO_OFS_8SHIFT(Info.ExistingSysMem);
+            FIELD_TO_OFS_8SHIFT(Info.ForceResidency);
+            FIELD_TO_OFS_8SHIFT(Info.Gfdt);
+            FIELD_TO_OFS_8SHIFT(Info.GttMapType);
+            FIELD_TO_OFS_8SHIFT(Info.HardwareProtected);
+            FIELD_TO_OFS_8SHIFT(Info.KernelModeMapped);
+            FIELD_TO_OFS_8SHIFT(Info.LayoutBelow);
+            FIELD_TO_OFS_8SHIFT(Info.LayoutMono);
+            FIELD_TO_OFS_8SHIFT(Info.LayoutRight);
+            FIELD_TO_OFS_8SHIFT(Info.LocalOnly);
+            FIELD_TO_OFS_8SHIFT(Info.Linear);
+            FIELD_TO_OFS_8SHIFT(Info.MediaCompressed);
+            FIELD_TO_OFS_8SHIFT(Info.NoOptimizationPadding);
+            FIELD_TO_OFS_8SHIFT(Info.NoPhysMemory);
+            FIELD_TO_OFS_8SHIFT(Info.NotLockable);
+            FIELD_TO_OFS_8SHIFT(Info.NonLocalOnly);
+            FIELD_TO_OFS_8SHIFT(Info.StdSwizzle);
+            FIELD_TO_OFS_8SHIFT(Info.PseudoStdSwizzle);
+            FIELD_TO_OFS_8SHIFT(Info.Undefined64KBSwizzle);
+            FIELD_TO_OFS_8SHIFT(Info.RedecribedPlanes);
+            FIELD_TO_OFS_8SHIFT(Info.RenderCompressed);
+            FIELD_TO_OFS_8SHIFT(Info.Rotated);
+            FIELD_TO_OFS_8SHIFT(Info.Shared);
+            FIELD_TO_OFS_8SHIFT(Info.SoftwareProtected);
+            FIELD_TO_OFS_8SHIFT(Info.SVM);
+#if !defined(LINUX)
+            FIELD_TO_OFS_8SHIFT(Info.Tile4);
+            FIELD_TO_OFS_8SHIFT(Info.Tile64);
+#endif
+            FIELD_TO_OFS_8SHIFT(Info.TiledW);
+            FIELD_TO_OFS_8SHIFT(Info.TiledX);
+            FIELD_TO_OFS_8SHIFT(Info.TiledY);
+            FIELD_TO_OFS_8SHIFT(Info.TiledYf);
+            FIELD_TO_OFS_8SHIFT(Info.TiledYs);
+            FIELD_TO_OFS_8SHIFT(Info.XAdapter);
+            FIELD_TO_OFS_8SHIFT(Info.__PreallocatedResInfo);
+#if !defined(LINUX)
+            FIELD_TO_OFS_8SHIFT(Info.LMemBarPreferred);
+            FIELD_TO_OFS_8SHIFT(Info.LMemBarOrNonlocalOnly);
+            FIELD_TO_OFS_8SHIFT(Info.LMemBarIndifferent);
+            FIELD_TO_OFS_8SHIFT(Info.CpuVisibleOnDemand);
+            FIELD_TO_OFS_8SHIFT(Info.DwmFbrResource);
+#endif
+
+            EMPTY_TO_OFS();
+            FIELD_TO_OFS_8SHIFT(Wa.GTMfx2ndLevelBatchRingSizeAlign);
+            FIELD_TO_OFS_8SHIFT(Wa.ILKNeedAvcMprRowStore32KAlign);
+            FIELD_TO_OFS_8SHIFT(Wa.ILKNeedAvcDmvBuffer32KAlign);
+            FIELD_TO_OFS_8SHIFT(Wa.NoBufferSamplerPadding);
+            FIELD_TO_OFS_8SHIFT(Wa.NoLegacyPlanarLinearVideoRestrictions);
+            FIELD_TO_OFS_8SHIFT(Wa.CHVAstcSkipVirtualMips);
+            FIELD_TO_OFS_8SHIFT(Wa.DisablePackedMipTail);
+            FIELD_TO_OFS_8SHIFT(Wa.__ForceOtherHVALIGN4);
+            FIELD_TO_OFS_8SHIFT(Wa.DisableDisplayCcsClearColor);
+            FIELD_TO_OFS_8SHIFT(Wa.DisableDisplayCcsCompression);
+            FIELD_TO_OFS_8SHIFT(Wa.PreGen12FastClearOnly);
+#if !defined(LINUX)
+            FIELD_TO_OFS_8SHIFT(Wa.ForceStdAllocAlign);
+#endif
+        }
+
+        FIELD_TO_OFS(GetBaseWidth(), );
+        FIELD_TO_OFS(GetBaseHeight(), );
+        FIELD_TO_OFS(GetBaseDepth(), );
+        FIELD_TO_OFS(GetMaxLod(), );
+        FIELD_TO_OFS(GetArraySize(), );
+        FIELD_TO_OFS(GetSetCpSurfTag(0, 0), );
+        FIELD_TO_OFS(GetCachePolicyUsage(), );
+        FIELD_TO_OFS(GetNumSamples(), );
+        FIELD_TO_OFS(GetSamplePattern(), );
+
+        EMPTY_TO_OFS();
+        FIELD_TO_OFS(IsArraySpacingSingleLod(), );
+        FIELD_TO_OFS(GetBaseAlignment(), );
+        FIELD_TO_OFS(GetHAlign(), );
+        FIELD_TO_OFS(GetVAlign(), );
+        FIELD_TO_OFS(GetMipTailStartLodSurfaceState(), );
+        FIELD_TO_OFS(GetQPitch(), );
+
+        EMPTY_TO_OFS();
+        ofs << "MmcMode[GMM_MAX_MMC_INDEX == " << GMM_MAX_MMC_INDEX << "]: {";
+        for (uint32_t i = 0; i < GMM_MAX_MMC_INDEX; ++i)
+            ofs << (uint32_t)ptr->GetMmcMode(i) << ", ";
+        ofs << "}" << std::endl;
+
+        ofs << "MmcHint[GMM_MAX_MMC_INDEX == " << GMM_MAX_MMC_INDEX << "]: {";
+        for (uint32_t i = 0; i < GMM_MAX_MMC_INDEX; ++i)
+            ofs << (uint32_t)ptr->GetMmcHint(i) << ", ";
+        ofs << "}" << std::endl;
+
+        FIELD_TO_OFS(GetRenderPitch(), );
+        FIELD_TO_OFS(GetSizeMainSurface(), );
+        FIELD_TO_OFS(GmmGetTileMode(), );
+
+#if !defined(LINUX)
+        EMPTY_TO_OFS();
+        FIELD_TO_OFS(GetMultiTileArch().Enable, );
+#endif
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#undef FIELD_TO_OFS_8SHIFT
+#undef RESOURCE_OFFSET_TO_OFS
+#undef PLANE_OFFSET_TO_OFS
+#undef OFFSET_FIELD_TO_OFS
+#undef UNION_END_TO_OFS
+#undef UNION_STRUCT_FIELD_TO_OFS
+#undef UNION_STRUCT_START_TO_OFS
+#undef EMPTY_TO_OFS
+#undef FIELD_TO_OFS
+
 MOS_STATUS MediaDebugInterface::DumpBltOutput(
     PMOS_SURFACE surface,
     const char * attrName)
