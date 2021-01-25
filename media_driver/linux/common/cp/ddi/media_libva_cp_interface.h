@@ -46,6 +46,7 @@ typedef struct DDI_CP_CONTEXT
     DdiCpInterface                      *pCpDdiInterface;
     std::shared_ptr<void>               pDrvPrivate;
     std::multimap<uint32_t, void *>     mapAttaching;
+    int32_t                             fdMei;
 
 } DDI_CP_CONTEXT, *PDDI_CP_CONTEXT;
 

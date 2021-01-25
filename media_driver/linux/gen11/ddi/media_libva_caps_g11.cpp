@@ -27,6 +27,7 @@
 #include "codec_def_encode_hevc_g11.h"
 #include "media_libva_util.h"
 #include "media_libva.h"
+#include "media_libva_caps_cp_interface.h"
 #include "media_libva_caps_g11.h"
 #include "media_libva_caps_factory.h"
 #include "media_ddi_decode_const.h"
@@ -643,6 +644,8 @@ VAStatus MediaLibvaCapsG11::LoadProfileEntrypoints()
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
 #endif
+    status = m_CapsCp->LoadCpProfileEntrypoints();
+    DDI_CHK_RET(status, "Failed to initialize CP Caps!");
     return status;
 }
 

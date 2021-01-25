@@ -47,6 +47,16 @@
 #define DDI_PROTECTED_DISPLAY_LINK  2
 #define DDI_PROTECTED_CONTENT       3
 
+#define MEI_DEVICE "/dev/mei0"
+
+typedef struct _GUID
+{
+    uint32_t Data1;
+    uint16_t Data2;
+    uint16_t Data3;
+    uint8_t Data4[8];
+} GUID;
+
 //!
 //! \class  DdiMediaProtected
 //! \brief  Ddi media protected
@@ -176,7 +186,7 @@ public:
     static VAStatus DdiMedia_ProtectedSessionExecute(
         VADriverContextP        ctx,
         VAProtectedSessionID    protected_session,
-        VABufferID              data);
+        VABufferID              bufId);
 
     //!
     //! \brief   Update protected session hardware settings
@@ -271,7 +281,7 @@ protected:
     virtual VAStatus ProtectedSessionExecute(
         VADriverContextP        ctx,
         VAProtectedSessionID    protected_session,
-        VABufferID              data);
+        VABufferID              bufId);
 
     virtual VAStatus ProtectedSessionHwUpdate(
         VADriverContextP        ctx,

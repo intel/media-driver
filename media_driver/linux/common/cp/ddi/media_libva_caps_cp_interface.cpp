@@ -97,14 +97,47 @@ int32_t MediaLibvaCapsCpInterface::GetEncryptionTypes(
 
 VAStatus MediaLibvaCapsCpInterface::LoadCpProfileEntrypoints()
 {
-    CapsStubMessage();
+    VAStatus status = VA_STATUS_SUCCESS;
+
+    AttribMap *attributeList = nullptr;
+    status = CreateCpAttributes(VAProfileProtected, VAEntrypointProtectedTEEComm, &attributeList);
+
+    uint32_t configStartIdx, configNum;
+
+    configStartIdx = m_cpConfigs.size();
+    configNum = m_cpConfigs.size() - configStartIdx;
+
+    AddProfileEntry(VAProfileProtected, VAEntrypointProtectedTEEComm, attributeList, configStartIdx, configNum);
+
     return VA_STATUS_SUCCESS;
 }
 
 bool MediaLibvaCapsCpInterface::IsCpConfigId(VAConfigID configId)
 {
-    CapsStubMessage();
-    return false;
+    return ((configId >= DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE) &&
+            (configId <= (DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE + m_cpConfigs.size())));
+}
+
+
+VAStatus MediaLibvaCapsCpInterface::CreateCpAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList)
+{
+    DDI_CHK_NULL(attributeList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAStatus status = m_mediaCaps->CreateAttributeList(attributeList);
+    DDI_CHK_RET(status, "Failed to initialize Caps!");
+
+    auto attribList = *attributeList;
+    DDI_CHK_NULL(attribList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAConfigAttrib attrib;
+    attrib.type = (VAConfigAttribType)VAConfigAttribTEETypeClient;
+    attrib.value = 1;
+    (*attribList)[attrib.type] = attrib.value;
+
+    return status;
 }
 
 VAStatus MediaLibvaCapsCpInterface::CreateCpConfig(
@@ -114,7 +147,15 @@ VAStatus MediaLibvaCapsCpInterface::CreateCpConfig(
         int32_t numAttribs,
         VAConfigID *configId)
 {
-    CapsStubMessage();
+    // attribList and numAttribs are for future usage.
+    DDI_UNUSED(attribList);
+    DDI_UNUSED(numAttribs);
+
+    DDI_CHK_NULL(configId, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    *configId = m_mediaCaps->m_profileEntryTbl[profileTableIdx].m_configStartIdx
+        + DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE;
+
     return VA_STATUS_SUCCESS;
 }
 

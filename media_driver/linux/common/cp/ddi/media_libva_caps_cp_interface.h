@@ -53,9 +53,16 @@ public:
         int32_t numAttribs,
         VAConfigID *configId);
 
+    virtual VAStatus CreateCpAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList);
+
 protected:
     DDI_MEDIA_CONTEXT *m_mediaCtx; //!< Pointer to media context
     MediaLibvaCaps *m_mediaCaps;
+    std::vector<uint32_t> m_cpConfigs;   //!< Store supported cp configs
+
 
     MediaLibvaCaps::ProfileEntrypoint* GetProfileEntrypoint(int32_t profileTableIdx);
 

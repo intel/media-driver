@@ -20,7 +20,7 @@ jobs:
     - name: checkout libva
       uses: actions/checkout@v2
       with:
-        repository: intel/libva
+        repository: shiqiangyu/libva
         path: libva
     - name: checkout gmmlib
       uses: actions/checkout@v2
@@ -93,7 +93,7 @@ jobs:
     - name: checkout libva
       uses: actions/checkout@v2
       with:
-        repository: intel/libva
+        repository: shiqiangyu/libva
         path: libva
     - name: checkout gmmlib
       uses: actions/checkout@v2
@@ -156,7 +156,7 @@ jobs:
     - name: checkout libva
       uses: actions/checkout@v2
       with:
-        repository: intel/libva
+        repository: shiqiangyu/libva
         path: libva
     - name: checkout gmmlib
       uses: actions/checkout@v2
@@ -221,7 +221,7 @@ jobs:
     - name: checkout libva
       uses: actions/checkout@v2
       with:
-        repository: intel/libva
+        repository: shiqiangyu/libva
         path: libva
     - name: checkout gmmlib
       uses: actions/checkout@v2
@@ -286,7 +286,7 @@ jobs:
     - name: checkout libva
       uses: actions/checkout@v2
       with:
-        repository: intel/libva
+        repository: shiqiangyu/libva
         path: libva
     - name: checkout gmmlib
       uses: actions/checkout@v2
