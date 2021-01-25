@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -165,7 +165,7 @@ MediaFunction DecodeInputBitstream::GetMediaFunction()
 
 void DecodeInputBitstream::InitScalabilityPars(PMOS_INTERFACE osInterface)
 {
-    MOS_ZeroMemory(&m_decodeScalabilityPars, sizeof(ScalabilityPars));
+    MOS_ZeroMemory(&m_decodeScalabilityPars, sizeof(m_decodeScalabilityPars));
     m_decodeScalabilityPars.disableScalability = true;
     m_decodeScalabilityPars.disableRealTile = true;
     m_decodeScalabilityPars.enableVE = MOS_VE_SUPPORTED(osInterface);

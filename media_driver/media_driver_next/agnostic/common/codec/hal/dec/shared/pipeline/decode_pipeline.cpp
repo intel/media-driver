@@ -245,8 +245,10 @@ MOS_STATUS DecodePipeline::Prepare(void *params)
     DECODE_CHK_NULL(params);
     DecodePipelineParams *pipelineParams = (DecodePipelineParams *)params;
     CodechalDecodeParams *decodeParams = pipelineParams->m_params;
-
     DECODE_CHK_NULL(decodeParams);
+
+    DECODE_CHK_STATUS(m_task->Clear());
+    m_activePacketList.clear();
 
     DECODE_CHK_NULL(m_featureManager);
     DECODE_CHK_STATUS(m_featureManager->CheckFeatures(decodeParams));
@@ -281,7 +283,6 @@ MOS_STATUS DecodePipeline::ExecuteActivePackets()
         if (prop.immediateSubmit)
         {
             DECODE_CHK_STATUS(task->Submit(true, m_scalability, m_debugInterface));
-            DECODE_CHK_STATUS(task->Clear());
         }
     }
 
@@ -468,8 +469,11 @@ MOS_STATUS DecodePipeline::StatusCheck()
         const DecodeStatusMfx& status = statusReport->GetMfxStatus(m_statusCheckCount);
         if (status.status != DecodeStatusReport::queryEnd)
         {
-            DECODE_ASSERTMESSAGE("Media reset may have occured at frame %d.", m_statusCheckCount);
+            DECODE_ASSERTMESSAGE("Media reset may have occured at frame %d, status is %d, completedCount is %d.",
+                m_statusCheckCount, status.status, completedCount);
         }
+        DECODE_NORMALMESSAGE("hucStatus2 is 0x%x at frame %d.", status.m_hucErrorStatus2, m_statusCheckCount);
+        DECODE_NORMALMESSAGE("hucStatus is 0x%x at frame %d.", status.m_hucErrorStatus, m_statusCheckCount);
 
         DECODE_CHK_STATUS(ReportVdboxIds(status));
 

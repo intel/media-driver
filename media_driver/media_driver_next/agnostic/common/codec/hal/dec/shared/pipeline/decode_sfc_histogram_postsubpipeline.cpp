@@ -116,7 +116,7 @@ MediaFunction DecodeSfcHistogramSubPipeline::GetMediaFunction()
 void DecodeSfcHistogramSubPipeline::InitScalabilityPars(PMOS_INTERFACE osInterface)
 {
     DECODE_FUNC_CALL();
-    MOS_ZeroMemory(&m_decodeScalabilityPars, sizeof(ScalabilityPars));
+    MOS_ZeroMemory(&m_decodeScalabilityPars, sizeof(m_decodeScalabilityPars));
     m_decodeScalabilityPars.disableScalability = true;
     m_decodeScalabilityPars.disableRealTile = true;
     m_decodeScalabilityPars.enableVE = MOS_VE_SUPPORTED(osInterface);
