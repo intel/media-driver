@@ -97,6 +97,7 @@ typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
 {
     uint32_t                                Mode;
     PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
     PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams;
     PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
     uint8_t                                *pucVdencMvCosts;
