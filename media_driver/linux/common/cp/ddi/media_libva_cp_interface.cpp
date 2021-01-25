@@ -173,3 +173,9 @@ VAStatus DdiCpInterface::EndPicture(
     DdiStubMessage();
     return VA_STATUS_SUCCESS;
 }
+
+VAStatus DdiCpInterface::IsAttachedSessionAlive()
+{
+    DdiStubMessage();
+    return VA_STATUS_SUCCESS;
+}
