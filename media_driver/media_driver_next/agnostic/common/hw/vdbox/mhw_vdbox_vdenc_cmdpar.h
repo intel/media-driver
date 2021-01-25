@@ -44,9 +44,6 @@ static constexpr uint32_t MAX_REF_NUM_L1   = 4;  //  low delay B may have 3 L1 r
 static constexpr uint32_t MAX_REF_NUM      = MAX_REF_NUM_L0 > MAX_REF_NUM_L1 ? MAX_REF_NUM_L0 : MAX_REF_NUM_L1;
 static constexpr uint32_t MAX_REF_NUM_L0L1 = MAX_REF_NUM_L0 + MAX_REF_NUM_L1;
 
-static constexpr uint32_t VDENC_ROWSTORE_BASEADDRESS      = 2370;
-static constexpr uint32_t VDENC_IPDL_ROWSTORE_BASEADDRESS = 384;
-
 enum class SurfaceFormat
 {
     yuv422          = 0x0,

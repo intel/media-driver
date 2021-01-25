@@ -48,15 +48,27 @@ Impl::Impl(PMOS_INTERFACE osItf)
     InitRowstoreUserFeatureSettings();
 }
 
-MOS_STATUS Impl::SetRowstoreCachingAddrs(const mhw::vdbox::RowStoreCacheParams &params)
+MOS_STATUS Impl::EnableVdencRowstoreCacheIfSupported(uint32_t address)
 {
     MHW_FUNCTION_ENTER;
 
-    if (this->m_vdencRowStoreCache.supported && params.codec == CODECHAL_ENCODE_RESERVED_0)
+    if (this->m_vdencRowStoreCache.supported)
     {
-        this->m_vdencRowStoreCache.enabled       = true;
-        this->m_vdencRowStoreCache.dwAddress     = VDENC_ROWSTORE_BASEADDRESS;
-        this->m_vdencIpdlRowstoreCache.dwAddress = VDENC_IPDL_ROWSTORE_BASEADDRESS;
+        this->m_vdencRowStoreCache.enabled   = true;
+        this->m_vdencRowStoreCache.dwAddress = address;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Impl::EnableVdencRowIpdlstoreCacheIfSupported(uint32_t address)
+{
+    MHW_FUNCTION_ENTER;
+
+    if (this->m_vdencIpdlRowstoreCache.supported)
+    {
+        this->m_vdencIpdlRowstoreCache.enabled   = true;
+        this->m_vdencIpdlRowstoreCache.dwAddress = address;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -101,20 +113,32 @@ MOS_STATUS Impl::InitRowstoreUserFeatureSettings()
         &userFeatureData,
         m_osItf->pOsContext);
 #endif  // _DEBUG || _RELEASE_INTERNAL
-    this->m_rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
+    bool rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
 
-    if (this->m_rowstoreCachingSupported)
+    if (!rowstoreCachingSupported)
     {
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-#if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_VDENCROWSTORECACHE_DISABLE_ID,
-            &userFeatureData,
-            m_osItf->pOsContext);
-#endif  // _DEBUG || _RELEASE_INTERNAL
-        this->m_vdencRowStoreCache.supported = userFeatureData.i32Data ? false : true;
+        return MOS_STATUS_SUCCESS;
     }
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_VDENCROWSTORECACHE_DISABLE_ID,
+        &userFeatureData,
+        m_osItf->pOsContext);
+#endif  // _DEBUG || _RELEASE_INTERNAL
+    this->m_vdencRowStoreCache.supported = userFeatureData.i32Data ? false : true;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_INTRAROWSTORECACHE_DISABLE_ID,
+        &userFeatureData,
+        m_osItf->pOsContext);
+#endif  // _DEBUG || _RELEASE_INTERNAL
+    this->m_vdencIpdlRowstoreCache.supported = userFeatureData.i32Data ? false : true;
 
     return MOS_STATUS_SUCCESS;
 }
