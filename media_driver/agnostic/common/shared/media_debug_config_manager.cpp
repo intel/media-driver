@@ -447,6 +447,7 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "#" << MediaDbgAttr::attrHuCDmem << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrCmdBufferMfx << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attr2ndLvlBatchMfx << ":0" << std::endl;
+    ofs << "#" << MediaDbgAttr::attrSurfaceInfo << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrHuffmanTbl << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrScanParams << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrDriverUltDump << ":0" << std::endl;
@@ -464,6 +465,7 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "##" << MediaDbgAttr::attrForceYUVDumpWithMemcpy << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrDisableSwizzleForDumps << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrSfcOutputSurface << ":0" << std::endl;
+    ofs << "##" << MediaDbgAttr::attrSfcBuffers << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrReferenceSurfaces << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrEncodeRawInputSurface << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrReconstructedSurface << ":0" << std::endl;

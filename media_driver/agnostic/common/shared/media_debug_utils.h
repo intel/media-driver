@@ -67,6 +67,7 @@ static const char *attrHucRegions             = "HucRegions";
 static const char *attrHuCDmem                = "HucDmem";
 static const char *attrCmdBufferMfx           = "CmdBufferMfx";
 static const char *attr2ndLvlBatchMfx         = "2ndLvlBatchMfx";
+static const char *attrSurfaceInfo            = "SurfaceInfo";
 static const char *attrDecodeOutputSurface    = "DecodeOutputSurface";
 static const char *attrDecodeAuxSurface       = "DumpAuxsurface";
 static const char *attrDecodeBltOutput        = "DumpBltOutput";

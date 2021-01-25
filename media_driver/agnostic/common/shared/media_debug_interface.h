@@ -110,6 +110,14 @@ public:
         const char *attrName,
         const char *bufferName);
 
+    MOS_STATUS DumpSurfaceInfo(
+        PMOS_SURFACE surface,
+        const char*  surfaceName);
+
+    MOS_STATUS DumpMosSpecificResourceInfoToOfs(
+        PMOS_RESOURCE  pOsResource,
+        std::ofstream &ofs);
+
     MOS_STATUS DumpBufferInHexDwords(
         uint8_t *data,
         uint32_t size);
