@@ -901,7 +901,8 @@ finish:
 void VphalSfcState::GetOutputWidthHeightAlignUnit(
     MOS_FORMAT              outputFormat,
     uint16_t                &widthAlignUnit,
-    uint16_t                &heightAlignUnit)
+    uint16_t                &heightAlignUnit,
+    bool                    isInterlacedScaling)
 {
     widthAlignUnit  = 1;
     heightAlignUnit = 1;
@@ -1074,7 +1075,8 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     GetOutputWidthHeightAlignUnit(
         pSfcStateParams->OutputFrameFormat,
         wOutputWidthAlignUnit,
-        wOutputHeightAlignUnit);
+        wOutputHeightAlignUnit,
+        pSrcSurface->bInterlacedScaling);
 
     // Apply alignment restriction to Region of the input frame.
     GetInputWidthHeightAlignUnit(
