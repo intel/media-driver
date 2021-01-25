@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -46,23 +46,39 @@ namespace decode
         DECODE_CHK_NULL(cmdBuffer);
         DECODE_CHK_NULL(m_hwInterface);
 
-        DECODE_CHK_STATUS(m_miInterface->SetWatchdogTimerThreshold(
+        int16_t tileIdx = m_av1BasicFeature->m_tileCoding.m_curTile;
+        m_isLastTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId)) ? 1 : 0;
+        m_isFirstTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId
+            - m_av1BasicFeature->m_tileCoding.m_numTiles + 1)) ? 1 : 0;
+
+        // For frame based submission mode, these cmds only need to be programed once per frame, otherwise need program per tile.
+        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        {
+            DECODE_CHK_STATUS(m_miInterface->SetWatchdogTimerThreshold(
             m_av1BasicFeature->m_width, m_av1BasicFeature->m_height, false));
-        DECODE_CHK_STATUS(Mos_Solo_PreProcessDecode(m_osInterface, &m_av1BasicFeature->m_destSurface));
 
-        SetPerfTag(CODECHAL_DECODE_MODE_AV1VLD, m_av1BasicFeature->m_pictureCodingType);
+            DECODE_CHK_STATUS(Mos_Solo_PreProcessDecode(m_osInterface, &m_av1BasicFeature->m_destSurface));
 
-        auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(MHW_VDBOX_NODE_1);
-        HalOcaInterface::On1stLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+            SetPerfTag(CODECHAL_DECODE_MODE_AV1VLD, m_av1BasicFeature->m_pictureCodingType);
+
+            auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(MHW_VDBOX_NODE_1);
+            HalOcaInterface::On1stLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+        }
 
         DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
         DECODE_CHK_STATUS(PackTileLevelCmds(*cmdBuffer));
 
-        HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
+        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        {
+            HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
+        }
+
+        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        {
+            DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_av1BasicFeature->m_resDataBuffer, false));
+        }
 
         m_av1BasicFeature->m_tileCoding.m_curTile++; //Update tile index of current frame
-
-        DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_av1BasicFeature->m_resDataBuffer, false));
 
         //Set ReadyToExecute to true for the last tile of the frame
         Mos_Solo_SetReadyToExecute(m_osInterface, m_av1BasicFeature->m_frameCompletedFlag);
@@ -98,22 +114,44 @@ namespace decode
 
         PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
-        if (IsPrologRequired())
+        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
         {
-            DECODE_CHK_STATUS(AddForceWakeup(cmdBuffer));
-            DECODE_CHK_STATUS(SendPrologWithFrameTracking(cmdBuffer, true));
+            if (IsPrologRequired())
+            {
+                DECODE_CHK_STATUS(AddForceWakeup(cmdBuffer));
+                DECODE_CHK_STATUS(SendPrologWithFrameTracking(cmdBuffer, true));
+            }
+            DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
-        DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
-
-        if (m_av1BasicFeature->m_usingDummyWl && (m_av1Pipeline->TileBasedDecodingInuse() ||
-            (m_av1BasicFeature->m_tileCoding.m_curTile == (m_av1BasicFeature->m_tileCoding.m_lastTileId
-            - m_av1BasicFeature->m_tileCoding.m_numTiles + 1))))
+        if (m_av1BasicFeature->m_usingDummyWl && (m_av1Pipeline->TileBasedDecodingInuse() || m_isFirstTileInPartialFrm))
         {
             DECODE_CHK_STATUS(InitDummyWL(cmdBuffer));
         }
 
-        DECODE_CHK_STATUS(m_picturePkt->Execute(cmdBuffer));
+        // For multiple tiles per frame case, picture level command is same between different tiles, so put them into 2nd
+        // level BB to exectue picture level cmd only once for 1st tile of the frame and reduce SW latency eventually.
+        if (!(m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile) && !m_av1Pipeline->TileBasedDecodingInuse())
+        {
+            if (m_isFirstTileInPartialFrm)
+            {
+                m_batchBuf = m_secondLevelBBArray->Fetch();
+
+                if (m_batchBuf != nullptr)
+                {
+                    ResourceAutoLock resLock(m_allocator, &m_batchBuf->OsResource);
+                    uint8_t *batchBufBase = (uint8_t *)resLock.LockResouceForWrite();
+                    DECODE_CHK_STATUS(InitPicLevelCmdBuffer(*m_batchBuf, batchBufBase));
+                    DECODE_CHK_STATUS(m_picturePkt->Execute(m_picCmdBuffer));
+                    DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&m_picCmdBuffer, nullptr));
+                }
+            }
+            DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, m_batchBuf));
+        }
+        else
+        {
+            DECODE_CHK_STATUS(m_picturePkt->Execute(cmdBuffer));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -182,16 +220,16 @@ namespace decode
             DECODE_CHK_STATUS(m_tilePkt->Execute(cmdBuffer, tileIdx));
         }
 
-        DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
-        DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
-
-        DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
-        DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
-
-        bool isLastTileInFullFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_totalTileNum) - 1) ? 1 : 0;
-        bool isLastTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId)) ? 1 : 0;
+        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        {
+            DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
+            DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
+            DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
+            DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
+        }
 
         // For film grain frame, apply noise packet should update report global count
+        bool isLastTileInFullFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_totalTileNum) - 1) ? 1 : 0;
         if (isLastTileInFullFrm && !m_av1BasicFeature->m_filmGrainEnabled)
         {
             DECODE_CHK_STATUS(UpdateStatusReport(statusReportGlobalCount, &cmdBuffer));
@@ -209,7 +247,7 @@ namespace decode
                 }
             })
 
-        if (isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
         {
             DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
         }
