@@ -1248,7 +1248,7 @@ MOS_STATUS CodecHalEncodeSfcBase::RenderStart(
 
     // the first task?
     requestFrameTracking = false;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoder->SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(encoder->SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking, mmioVeboxRegisters));
 
     // If m_pollingSyncEnabled is set, insert HW semaphore to wait for external
     // raw surface processing to complete, before start CSC. Once the marker in
@@ -1299,6 +1299,7 @@ MOS_STATUS CodecHalEncodeSfcBase::RenderStart(
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddSfcCommands(sfcInterface, &cmdBuffer));
 
+    HalOcaInterface::TraceMessage(cmdBuffer, *pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
     HalOcaInterface::OnDispatch(cmdBuffer, *pOsContext, *miInterface, *mmioVeboxRegisters);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(veboxInterface->AddVeboxDiIecp(&cmdBuffer, &veboxDiIecpCmdParams));
