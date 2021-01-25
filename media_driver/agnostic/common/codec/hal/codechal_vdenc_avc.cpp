@@ -4576,10 +4576,7 @@ MOS_STATUS CodechalVdencAvcState::SetupROIStreamIn(
                     break;
                 }
             }
-            if (dqpidx == -1)
-            {
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
+            CODECHAL_ENCODE_CHK_COND_RETURN(dqpidx == -1, "Max number of supported different dQP for ROI is %u", m_maxNumNativeRoi);
 
             uint32_t curX, curY;
             for (curY = picParams->ROI[i].Top; curY < picParams->ROI[i].Bottom; curY++)
@@ -4779,14 +4776,26 @@ MOS_STATUS CodechalVdencAvcState::SetupBrcROIBuffer(PCODEC_AVC_ENCODE_PIC_PARAMS
 
     MOS_ZeroMemory(pData, m_picHeightInMb * m_picWidthInMb);
 
+
     for (int32_t i = picParams->NumROI - 1; i >= 0; i--)
     {
+        int32_t dqpidx = -1;
+        for (int32_t j = 0; j < m_maxNumBrcRoi; j++)
+        {
+            if (m_avcPicParam->ROIDistinctDeltaQp[j] == m_avcPicParam->ROI[i].PriorityLevelOrDQp)
+            {
+                dqpidx = j;
+                break;
+            }
+        }
+        CODECHAL_ENCODE_CHK_COND_RETURN(dqpidx == -1, "Max number of supported different dQP for ROI is %u", m_maxNumBrcRoi);
+
         uint32_t curX, curY;
         for (curY = picParams->ROI[i].Top; curY < picParams->ROI[i].Bottom; curY++)
         {
             for (curX = picParams->ROI[i].Left; curX < picParams->ROI[i].Right; curX++)
             {
-                *(pData + (m_picWidthInMb * curY + curX)) = i + 1; // Shift ROI by 1
+                *(pData + (m_picWidthInMb * curY + curX)) = dqpidx + 1; // Shift ROI by 1
             }
         }
     }
