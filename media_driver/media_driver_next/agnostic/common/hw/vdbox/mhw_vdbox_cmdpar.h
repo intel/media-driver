@@ -42,15 +42,6 @@ struct RowStoreCache
     bool     enabled   = false;
     uint32_t dwAddress = 0;
 };
-
-struct RowStoreCacheParams
-{
-    uint32_t codec;
-
-    // other codecs like AVC may need extra information
-    // like whether resolution is > 4K, define these
-    // fields here
-};
 }  // namespace vdbox
 }  // namespace mhw
 

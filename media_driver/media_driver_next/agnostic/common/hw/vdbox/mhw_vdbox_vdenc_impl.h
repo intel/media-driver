@@ -145,7 +145,9 @@ class Impl : public Itf
     _MHW_CMD_ALL_DEF_FOR_IMPL(VD_PIPELINE_FLUSH);
 
 public:
-    MOS_STATUS SetRowstoreCachingAddrs(const vdbox::RowStoreCacheParams &params) override;
+    MOS_STATUS EnableVdencRowstoreCacheIfSupported(uint32_t address) override;
+
+    MOS_STATUS EnableVdencRowIpdlstoreCacheIfSupported(uint32_t address) override;
 
     MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) override;
 
@@ -164,7 +166,6 @@ protected:
     PMOS_COMMAND_BUFFER m_currentCmdBuf   = nullptr;
     PMHW_BATCH_BUFFER   m_currentBatchBuf = nullptr;
 
-    bool                             m_rowstoreCachingSupported                                 = false;
     vdbox::RowStoreCache             m_vdencRowStoreCache                                       = {};
     vdbox::RowStoreCache             m_vdencIpdlRowstoreCache                                   = {};
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};
@@ -751,7 +752,7 @@ protected:
                 &resourceParams));
         }
 
-        if (this->m_vdencRowStoreCache.enabled)
+        if (this->m_vdencIpdlRowstoreCache.enabled)
         {
             cmd->IntraPredictionRowstoreBaseAddress.BufferPictureFields.DW0.CacheSelect = cmd_t::VDENC_Surface_Control_Bits_CMD::CACHE_SELECT_UNNAMED1;
             cmd->IntraPredictionRowstoreBaseAddress.LowerAddress.DW0.Value              = m_vdencIpdlRowstoreCache.dwAddress << 6;
