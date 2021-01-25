@@ -743,6 +743,12 @@ bool CodechalSfcState::IsSfcOutputSupported(
         return false;
     }
 
+    if (Mos_ResourceIsNull(&decodeProcParams->m_outputSurface->OsResource))
+    {
+        CODECHAL_DECODE_NORMALMESSAGE("m_outputSurface->OsResource is Null");
+        return false;
+    }
+
     PMOS_SURFACE srcSurface = decodeProcParams->m_inputSurface;
     PMOS_SURFACE destSurface = decodeProcParams->m_outputSurface;
 

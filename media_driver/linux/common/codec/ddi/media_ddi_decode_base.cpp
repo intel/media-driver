@@ -720,6 +720,7 @@ VAStatus DdiMediaDecode::ExtraDownScaling(
     }
 
     if(m_ddiDecodeCtx->DecodeParams.m_procParams != nullptr &&
+       m_procBuf &&
        !isDecodeDownScalingSupported)
     {
         //check vp context
