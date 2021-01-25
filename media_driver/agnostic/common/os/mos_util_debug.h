@@ -605,6 +605,20 @@ void _MOS_Assert(
 }
 
 //!
+//! \def MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(_compID, _subCompID, _condition, destroyFunction, retVal, _message)
+//!  Check if \a _condition is true, if so assert, call destroy function and return \a retVal
+//!
+#define MOS_CHK_COND_WITH_DESTROY_RETURN_VALUE(_compID, _subCompID, _condition, destroyFunction, retVal, _message, ...)  \
+{                                                                                                                        \
+    if (_condition)                                                                                                      \
+    {                                                                                                                    \
+        destroyFunction();                                                                                               \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);                                                 \
+        return retVal;                                                                                                   \
+    }                                                                                                                    \
+}
+
+//!
 //! The following HR macros are temporary until MOS switches to MOS_STATUS. When that happens,
 //! and therefore these macros will be moved to an OS specific file.
 //!
