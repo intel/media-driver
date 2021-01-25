@@ -119,6 +119,11 @@ VAStatus DdiDecode_BeginPicture (
     PDDI_DECODE_CONTEXT decCtx  = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
 
+    if (decCtx->pCpDdiInterface)
+    {
+        DDI_CHK_RET(decCtx->pCpDdiInterface->IsAttachedSessionAlive(), "Session not alive!");
+    }
+
     if (decCtx->m_ddiDecode)
     {
         VAStatus va = decCtx->m_ddiDecode->BeginPicture(ctx, context, renderTarget);
@@ -150,6 +155,12 @@ VAStatus DdiDecode_EndPicture (
     // assume the VAContextID is decoder ID
     PDDI_DECODE_CONTEXT decCtx     = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if (decCtx->pCpDdiInterface)
+    {
+        DDI_CHK_RET(decCtx->pCpDdiInterface->IsAttachedSessionAlive(), "Session not alive!");
+    }
+
     if (decCtx->m_ddiDecode)
     {
         VAStatus va = decCtx->m_ddiDecode->EndPicture(ctx, context);
@@ -187,6 +198,11 @@ VAStatus DdiDecode_RenderPicture (
     uint32_t  ctxType;
     PDDI_DECODE_CONTEXT decCtx  = (PDDI_DECODE_CONTEXT)DdiMedia_GetContextFromContextID(ctx, context, &ctxType);
     DDI_CHK_NULL(decCtx,            "nullptr decCtx",            VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if (decCtx->pCpDdiInterface)
+    {
+        DDI_CHK_RET(decCtx->pCpDdiInterface->IsAttachedSessionAlive(), "Session not alive!");
+    }
 
     priorityIndexInBuffers = DdiMedia_GetGpuPriority(ctx, buffers, numOfBuffers, &updatePriority, &priority);
     if (priorityIndexInBuffers != -1)

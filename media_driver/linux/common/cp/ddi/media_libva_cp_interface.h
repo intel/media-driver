@@ -108,6 +108,8 @@ public:
         VAContextID         context
     );
 
+    virtual VAStatus IsAttachedSessionAlive();
+
 };
 
 //!
