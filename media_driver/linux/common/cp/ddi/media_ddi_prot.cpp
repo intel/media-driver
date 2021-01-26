@@ -231,36 +231,6 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionExecute(
     return vaStatus;
 }
 
-VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionHwUpdate(
-    VADriverContextP        ctx,
-    VAProtectedSessionID    protected_session,
-    VABufferID              data)
-{
-    DDI_FUNCTION_ENTER();
-
-    DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
-
-    VAStatus vaStatus = VA_STATUS_SUCCESS;
-    uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
-    void     *ctxPtr = DdiMedia_GetContextFromProtectedSessionID(ctx, protected_session, &ctxType);
-    DDI_CHK_NULL(ctxPtr,      "nullptr ctxPtr",     VA_STATUS_ERROR_INVALID_CONTEXT);
-
-    if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
-    {
-        DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
-
-        DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
-        vaStatus = prot->ProtectedSessionHwUpdate(ctx, protected_session, data);
-    }
-    else
-    {
-        DDI_ASSERTMESSAGE("DDI: Invalid protected_session");
-        vaStatus = VA_STATUS_ERROR_INVALID_CONTEXT;
-    }
-
-    return vaStatus;
-}
-
 VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionCreateBuffer(
     VADriverContextP        ctx,
     VAContextID             context,
@@ -326,14 +296,6 @@ VAStatus DdiMediaProtected::DetachProtectedSession(
 }
 
 VAStatus DdiMediaProtected::ProtectedSessionExecute(
-    VADriverContextP        ctx,
-    VAProtectedSessionID    protected_session,
-    VABufferID              data)
-{
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
-}
-
-VAStatus DdiMediaProtected::ProtectedSessionHwUpdate(
     VADriverContextP        ctx,
     VAProtectedSessionID    protected_session,
     VABufferID              data)
