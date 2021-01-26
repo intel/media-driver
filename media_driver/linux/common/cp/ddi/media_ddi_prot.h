@@ -178,24 +178,6 @@ public:
         VAProtectedSessionID    protected_session,
         VABufferID              data);
 
-    //!
-    //! \brief   Update protected session hardware settings
-    //!
-    //! \param   [in] ctx
-    //!          Pointer to VA driver context
-    //! \param   [in] protected_session
-    //!          VA protected session ID
-    //! \param   [in] data
-    //!          VA buffer ID
-    //!
-    //! \return  VAStatus
-    //!          VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    static VAStatus DdiMedia_ProtectedSessionHwUpdate(
-        VADriverContextP        ctx,
-        VAProtectedSessionID    protected_session,
-        VABufferID              data);
-
     //! \brief   Create protected session buffer
     //!
     //! \param   [in] ctx
@@ -269,11 +251,6 @@ protected:
         VAContextID             context);
 
     virtual VAStatus ProtectedSessionExecute(
-        VADriverContextP        ctx,
-        VAProtectedSessionID    protected_session,
-        VABufferID              data);
-
-    virtual VAStatus ProtectedSessionHwUpdate(
         VADriverContextP        ctx,
         VAProtectedSessionID    protected_session,
         VABufferID              data);
