@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,12 @@ public:
     //! \brief    SetSurfaceMmcMode
     //!
     virtual MOS_STATUS SetSurfaceMmcMode(
+        PMOS_SURFACE surface);
+
+    //!
+    //! \brief    SetSurfaceMmcFormat
+    //!
+    virtual MOS_STATUS SetSurfaceMmcFormat(
         PMOS_SURFACE surface);
 
     //!

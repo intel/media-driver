@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,12 +35,14 @@
 #include "media_interfaces_vphal.h"
 #include "mos_os.h"
 #include "renderhal.h"
+#include "media_mem_compression.h"
 
 using namespace vp;
 
 typedef MediaInterfacesFactory<VphalDevice> VphalFactory;
 
-MediaSfcRender::MediaSfcRender(PMOS_INTERFACE osInterface, MEDIA_SFC_INTERFACE_MODE mode) : m_osInterface(osInterface), m_mode(mode)
+MediaSfcRender::MediaSfcRender(PMOS_INTERFACE osInterface, MEDIA_SFC_INTERFACE_MODE mode, MediaMemComp *mmc) :
+    m_osInterface(osInterface), m_mode(mode), m_mmc(mmc)
 {
 }
 
@@ -249,7 +251,7 @@ MOS_STATUS MediaSfcRender::Initialize()
     {
         m_vdboxSfcRender = MOS_New(MediaVdboxSfcRender);
         VP_PUBLIC_CHK_NULL_RETURN(m_vdboxSfcRender);
-        VP_PUBLIC_CHK_STATUS_RETURN(m_vdboxSfcRender->Initialize(*m_vpMhwinterface));
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vdboxSfcRender->Initialize(*m_vpMhwinterface, m_mmc));
     }
 
     m_initialized = true;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -59,8 +59,7 @@ MOS_STATUS DecodeDownSamplingPkt::Init()
     m_downSampling = dynamic_cast<DecodeDownSamplingFeature *>(
         featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
     DECODE_CHK_NULL(m_downSampling);
-
-    m_sfcInterface = MOS_New(MediaSfcInterface, m_hwInterface->GetOsInterface());
+    m_sfcInterface = MOS_New(MediaSfcInterface, m_hwInterface->GetOsInterface(), m_pipeline->GetMmcState());
     DECODE_CHK_NULL(m_sfcInterface);
 
     MOS_ZeroMemory(&m_sfcParams, sizeof(m_sfcParams));

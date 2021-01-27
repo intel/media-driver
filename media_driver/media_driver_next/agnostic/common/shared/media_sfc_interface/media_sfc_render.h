@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,7 +57,7 @@ public:
     //! \param    mode
     //!           [in] 1: VEBOX-SFC only, 2: VDBOX-SFC only, 3: Both VEBOX-SFC and VDBOX-SFC.
     //!
-    MediaSfcRender(PMOS_INTERFACE osInterface, MEDIA_SFC_INTERFACE_MODE mode);
+    MediaSfcRender(PMOS_INTERFACE osInterface, MEDIA_SFC_INTERFACE_MODE mode, MediaMemComp *mmc);
 
     virtual ~MediaSfcRender();
 
@@ -129,6 +129,7 @@ protected:
     MediaVdboxSfcRender     *m_vdboxSfcRender       = nullptr;
     bool                    m_initialized           = false;
     MEDIA_SFC_INTERFACE_MODE m_mode                 = {};
+    MediaMemComp            *m_mmc                  = nullptr;
 };
 
 #endif // __MEDIA_SFC_RENDER_H__

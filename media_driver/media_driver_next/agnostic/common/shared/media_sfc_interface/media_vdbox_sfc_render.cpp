@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,7 +50,10 @@ void MediaVdboxSfcRender::Destroy()
     MOS_Delete(m_scalingFilter);
     MOS_Delete(m_rotMirFilter);
     MOS_Delete(m_allocator);
-    MOS_Delete(m_mmc);
+    if (m_isMmcAllocated)
+    {
+        MOS_Delete(m_mmc);
+    }
 }
 
 //!
@@ -59,15 +62,24 @@ void MediaVdboxSfcRender::Destroy()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS MediaVdboxSfcRender::Initialize(VP_MHWINTERFACE &vpMhwinterface)
+MOS_STATUS MediaVdboxSfcRender::Initialize(VP_MHWINTERFACE &vpMhwinterface, MediaMemComp *mmc)
 {
     VP_PUBLIC_CHK_NULL_RETURN(vpMhwinterface.m_vpPlatformInterface);
     VP_PUBLIC_CHK_NULL_RETURN(vpMhwinterface.m_osInterface);
 
     m_vpMhwInterface    = vpMhwinterface;
     m_osInterface       = m_vpMhwInterface.m_osInterface;
-    m_mmc               = MOS_New(VPMediaMemComp, m_osInterface, &m_vpMhwInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
+    if (mmc)
+    {
+        m_mmc = mmc;
+        m_isMmcAllocated = false;
+    }
+    else
+    {
+        m_mmc = MOS_New(VPMediaMemComp, m_osInterface, &m_vpMhwInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
+        m_isMmcAllocated = true;
+    }
     m_allocator         = MOS_New(VpAllocator, m_osInterface, m_mmc);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     m_cscFilter         = MOS_New(VpCscFilter, &m_vpMhwInterface);
@@ -147,6 +159,14 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     return m_sfcRender->SetScalingParams(m_scalingFilter->GetSfcParams());
 }
 
+MOS_STATUS MediaVdboxSfcRender::SetSfcMmcParams(VDBOX_SFC_PARAMS &sfcParam)
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(m_mmc->SetSurfaceMmcState(sfcParam.output.surface));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_mmc->SetSurfaceMmcMode(sfcParam.output.surface));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_mmc->SetSurfaceMmcFormat(sfcParam.output.surface));
+    return m_sfcRender->SetMmcParams(sfcParam.output.surface, true, m_mmc->IsMmcEnabled());
+}
+
 MOS_STATUS MediaVdboxSfcRender::SetRotMirParams(VDBOX_SFC_PARAMS &sfcParam, VP_EXECUTE_CAPS &vpExecuteCaps)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
@@ -187,6 +207,7 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
     VP_PUBLIC_CHK_STATUS_RETURN(SetScalingParams(sfcParam, vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(SetRotMirParams(sfcParam, vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(SetHistogramParams(sfcParam));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetSfcMmcParams(sfcParam));
 
     RECT        rcOutput        = {0, 0, (int32_t)sfcParam.output.surface->dwWidth, (int32_t)sfcParam.output.surface->dwHeight};
     // The value of plane offset are different between vp and codec. updatePlaneOffset need be set to true when create vp surface

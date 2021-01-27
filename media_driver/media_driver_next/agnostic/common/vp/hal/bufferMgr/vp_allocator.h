@@ -44,7 +44,7 @@ public:
     //! \param  [in] osInterface
     //!         Pointer to MOS_INTERFACE
     //!
-    VpAllocator(PMOS_INTERFACE osInterface, VPMediaMemComp *mmc);
+    VpAllocator(PMOS_INTERFACE osInterface, MediaMemComp *mmc);
 
     //!
     //! \brief  vpAllocator Destructor
@@ -580,7 +580,7 @@ protected:
 
     PMOS_INTERFACE  m_osInterface   = nullptr;
     Allocator       *m_allocator    = nullptr;
-    VPMediaMemComp  *m_mmc          = nullptr;
+    MediaMemComp    *m_mmc          = nullptr;
     std::vector<VP_SURFACE *> m_recycler;   // Container for delayed destroyed surface.
 };
 
