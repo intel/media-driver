@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 #include "media_libva_caps_cp_interface.h"
 #include "media_ddi_decode_const.h"
 #include "media_ddi_encode_const.h"
+#include "media_ddi_prot.h"
 #include "media_libva_caps_factory.h"
 
 typedef MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT> CapsFactory;
@@ -155,6 +156,16 @@ bool MediaLibvaCaps::CheckEntrypointCodecType(VAEntrypoint entrypoint, CodecType
                 return false;
             }
             break;
+        case videoProtect:
+            {
+                DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
+                if (prot && prot->CheckEntrypointSupported(entrypoint))
+                {
+                    return true;
+                }
+                return false;
+            }
+            break;
         default:
             DDI_ASSERTMESSAGE("DDI: Unsupported codecType");
             return false;
@@ -205,6 +216,11 @@ VAStatus MediaLibvaCaps::GetProfileEntrypointFromConfigId(
     {
         configOffset = configId - DDI_VP_GEN_CONFIG_ATTRIBUTES_BASE;
         codecType = videoProcess;
+    }
+    else if( m_CapsCp->IsCpConfigId(configId) )
+    {
+        configOffset = configId - DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE;
+        codecType = videoProtect;
     }
     else
     {
@@ -435,6 +451,15 @@ VAStatus MediaLibvaCaps::CheckAttribList(
     {
         return VA_STATUS_ERROR_INVALID_VALUE;
     }
+
+    DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
+    if (prot &&
+        prot->CheckEntrypointSupported(entrypoint) &&
+        prot->CheckAttribList(profile, entrypoint, attrib, numAttribs))
+    {
+        return VA_STATUS_SUCCESS;
+    }
+
     for(int32_t j = 0; j < numAttribs; j ++)
     {
         bool isValidAttrib = false;
@@ -2275,6 +2300,10 @@ VAStatus MediaLibvaCaps::CreateConfig(
     {
         return CreateEncConfig(i,entrypoint,attribList, numAttribs, configId);
     }
+    else if(CheckEntrypointCodecType(entrypoint, videoProtect))
+    {
+        return m_CapsCp->CreateCpConfig(i, entrypoint, attribList, numAttribs, configId);
+    }
     else
     {
         DDI_ASSERTMESSAGE("DDI: Unsupported EntryPoint");
@@ -3355,7 +3384,8 @@ bool MediaLibvaCaps::IsMfeSupportedProfile(VAProfile profile)
 
 VAStatus MediaLibvaCaps::DestroyConfig(VAConfigID configId)
 {
-    if( IsDecConfigId(configId) || IsEncConfigId(configId) || IsVpConfigId(configId))
+    if ( IsDecConfigId(configId) || IsEncConfigId(configId) || IsVpConfigId(configId) ||
+         (m_CapsCp && m_CapsCp->IsCpConfigId(configId)) )
     {
         return VA_STATUS_SUCCESS;
     }
