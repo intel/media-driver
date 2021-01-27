@@ -2170,8 +2170,7 @@ MOS_STATUS CodechalEncodeAvcBase::AllocateEncResources()
 
     // to be used in CodecHalEncode_TrackedBuffer_AllocateMbCodeMvDataResources() later
     m_mbCodeSize = MOS_ALIGN_CEIL(fieldNumMBs * 16 * 4, CODECHAL_PAGE_SIZE) + fieldNumMBs * 16 * 4;
-    m_mvDataSize = MOS_ALIGN_CEIL(fieldNumMBs * (32 * 4), CODECHAL_PAGE_SIZE) +  // top field MV + 4K align for bottom field MV
-                   fieldNumMBs * (32 * 4);                                       // bottom field MV
+    m_mvDataSize = MOS_ALIGN_CEIL(fieldNumMBs * (32 * 4), CODECHAL_PAGE_SIZE) * 2; // top field MV + bottom field MV (both page aligned)
 
     // allocate 3 + 2 buffers initially
     if ((m_codecFunction == CODECHAL_FUNCTION_ENC_PAK) && (!m_vdencEnabled))
