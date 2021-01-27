@@ -166,9 +166,20 @@ MOS_STATUS CodechalKernelIntraDistMdfG12::SetupSurfaces()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->UpdateSurface2D(
         &m_surfaceParam.input4xDsSurface->OsResource,
         m_src4xSurface));
+
+    CM_SURFACE2D_STATE_PARAM surfStateParam;
+    MOS_ZeroMemory(&surfStateParam, sizeof(CM_SURFACE2D_STATE_PARAM));
+    surfStateParam.format = CM_SURFACE_FORMAT_A8R8G8B8;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_src4xSurface->SetSurfaceStateParam(nullptr, &surfStateParam));
+
     if (currFieldPicture)
     {
         m_src4xSurface->SetProperty(currBottomField ? CM_BOTTOM_FIELD : CM_TOP_FIELD);
+
+        MOS_ZeroMemory(&surfStateParam, sizeof(CM_SURFACE2D_STATE_PARAM));
+        surfStateParam.height           = MOS_ALIGN_CEIL((m_curbeParam.downScaledHeightInMb4x * 4), 8);
+        surfStateParam.surface_y_offset = currBottomField ? surfStateParam.height : 0;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_surfaceParam.intraDistSurface->SetSurfaceStateParam(nullptr, &surfStateParam));
     }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->CreateVmeSurfaceG7_5(
