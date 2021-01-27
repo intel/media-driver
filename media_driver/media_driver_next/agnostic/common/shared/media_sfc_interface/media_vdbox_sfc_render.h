@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -67,7 +67,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS Initialize(VP_MHWINTERFACE &vpMhwinterface);
+    virtual MOS_STATUS Initialize(VP_MHWINTERFACE &vpMhwinterface, MediaMemComp *mmc);
 
     //!
     //! \brief    Add sfc states to command buffer
@@ -99,17 +99,19 @@ protected:
     MOS_STATUS SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_EXECUTE_CAPS &vpExecuteCaps);
     MOS_STATUS SetRotMirParams(VDBOX_SFC_PARAMS &sfcParam, VP_EXECUTE_CAPS &vpExecuteCaps);
     MOS_STATUS SetHistogramParams(VDBOX_SFC_PARAMS &sfcParam);
+    MOS_STATUS SetSfcMmcParams(VDBOX_SFC_PARAMS &sfcParam);
 
     VPHAL_SCALING_MODE GetScalingMode(CODECHAL_SCALING_MODE scalingMode);
 
     VP_MHWINTERFACE         m_vpMhwInterface        = {};
     PMOS_INTERFACE          m_osInterface           = nullptr;
     vp::VpAllocator         *m_allocator            = nullptr;
-    VPMediaMemComp          *m_mmc                  = nullptr;
+    MediaMemComp            *m_mmc                  = nullptr;
     vp::SfcRenderBase       *m_sfcRender            = nullptr;
     vp::VpCscFilter         *m_cscFilter            = nullptr;
     vp::VpScalingFilter     *m_scalingFilter        = nullptr;
     vp::VpRotMirFilter      *m_rotMirFilter         = nullptr;
+    bool                    m_isMmcAllocated        = false;
 };
 
 #endif // __MEDIA_VDBOX_SFC_RENDER_H__

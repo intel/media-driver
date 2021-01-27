@@ -31,7 +31,7 @@
 
 using namespace vp;
 
-VpAllocator::VpAllocator(PMOS_INTERFACE osInterface, VPMediaMemComp *mmc) :
+VpAllocator::VpAllocator(PMOS_INTERFACE osInterface, MediaMemComp *mmc) :
     m_osInterface(osInterface),
     m_mmc(mmc)
 {

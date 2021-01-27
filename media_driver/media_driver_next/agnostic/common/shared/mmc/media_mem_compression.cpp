@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -173,6 +173,22 @@ MOS_STATUS MediaMemComp::GetSurfaceMmcFormat(
         status = m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface, &surface->OsResource, mmcFormat);
     else
         *mmcFormat = 0;
+
+    return status;
+}
+
+MOS_STATUS MediaMemComp::SetSurfaceMmcFormat(
+        PMOS_SURFACE surface)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, surface);
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_MMC, MOS_MMC_SUBCOMP_SELF, m_osInterface);
+
+    if(m_mmcEnabled)
+        status =  m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface, &surface->OsResource, &surface->CompressionFormat);
+    else
+        surface->CompressionFormat = 0;
 
     return status;
 }

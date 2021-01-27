@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include "media_common_defs.h"
 
 class MediaSfcRender;
+class MediaMemComp;
 
 struct VEBOX_SFC_PARAMS
 {
@@ -157,8 +158,10 @@ public:
     //! \details  Initialize the MediaSfcInterface members.
     //! \param    osInterface
     //!           [in] Pointer to MOS_INTERFACE.
+    //! \param    mmc
+    //!           [in] Pointer to MediaMemComp.
     //!
-    MediaSfcInterface(PMOS_INTERFACE osInterface);
+    MediaSfcInterface(PMOS_INTERFACE osInterface, MediaMemComp *mmc = nullptr);
 
     virtual ~MediaSfcInterface();
 
@@ -219,6 +222,7 @@ public:
 protected:
     PMOS_INTERFACE m_osInterface    = nullptr;
     MediaSfcRender *m_sfcRender     = nullptr;
+    MediaMemComp   *m_mmc           = nullptr;
 };
 
 #endif // __MEDIA_SFC_INTERFACE_H__
