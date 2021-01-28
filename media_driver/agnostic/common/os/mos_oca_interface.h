@@ -198,6 +198,22 @@ public:
     }
 
     //!
+    //! \brief  Add resource to dump list.
+    //! \param  [in] hOcaBuf
+    //!         Oca buffer handle.
+    //! \param  [in] mosCtx
+    //!         DDI device context.
+    //! \param  [in] resource
+    //!         Reference to MOS_RESOURCE.
+    //! \return MOS_STATUS
+    //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS AddResourceToDumpList(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT mosCtx, MOS_RESOURCE &resource)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
+    //!
     //! \brief  Add data block to oca log section.
     //! \param  [in] hOcaBuf
     //!         Oca buffer handle.

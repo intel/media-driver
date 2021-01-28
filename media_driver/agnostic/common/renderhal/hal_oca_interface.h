@@ -171,6 +171,19 @@ public:
     //! \brief  Add vp kernel info to oca log section.
     //! \param  [in] cmdBuffer
     //!         Command buffer for current BB.
+    //! \param  [in] osInterface
+    //!         Reference to MOS_INTERFACE.
+    //! \param  [in] res
+    //!         Reference to MOS_RESOURCE.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MOS_RESOURCE &res);
+
+    //!
+    //! \brief  Add vp kernel info to oca log section.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
     //! \param  [in] mosContext
     //!         Reference to MOS_CONTEXT.
     //! \param  [in] vpKernelID

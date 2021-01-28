@@ -6708,6 +6708,11 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
         *(pdwCmd + 1) = pSurfaceStateToken->DW5.SurfaceBaseAddress64;
     }
 
+    if (pSurfaceStateToken->pResourceInfo)
+    {
+        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *(PMOS_RESOURCE)(pSurfaceStateToken->pResourceInfo));
+    }
+
     MOS_PATCH_ENTRY_PARAMS PatchEntryParams;
 
     uint8_t *pbPtrCmdBuf = (uint8_t *)pCmdBuffer->pCmdBase;
