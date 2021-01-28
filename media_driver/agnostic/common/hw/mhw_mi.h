@@ -748,6 +748,8 @@ protected:
     //!
     bool IsGlobalGttInUse();
 
+    void GetWatchdogThreshold(PMOS_INTERFACE osInterface);
+
     MhwCpInterface      *m_cpInterface = nullptr; //!< Responsible for CP functionality
     PMOS_INTERFACE      m_osInterface = nullptr;   //!< Responsible for interaction with OS
 

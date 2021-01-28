@@ -1961,6 +1961,11 @@ VAStatus DdiMedia__Initialize (
     output_dri_init(ctx);
 #endif
 
+    if (VA_STATUS_SUCCESS != DdiMediaUtil_SetMediaResetEnableFlag(mediaCtx))
+    {
+        mediaCtx->bMediaResetEnable = false;
+    }
+
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 
     return VA_STATUS_SUCCESS;
@@ -3928,7 +3933,7 @@ static VAStatus DdiMedia_StatusCheck (
             }
             else if(surface->curStatusReport.vpp.status == VPREP_NOTREADY)
             {
-                return VA_STATUS_ERROR_HW_BUSY;
+                return mediaCtx->bMediaResetEnable ? VA_STATUS_SUCCESS : VA_STATUS_ERROR_HW_BUSY;
             }
             else
             {
