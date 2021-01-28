@@ -266,7 +266,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "1",
-        "If enabled, media reset will be enabled. This key is not valid on Linux."),
+        "If enabled, media reset will be enabled."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
         "Media Reset TH",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -275,7 +275,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "0",
-        "If enabled, media reset will be enabled. This key is not valid on Linux."),
+        "If enabled, media reset will be enabled."),
     MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_SOFT_RESET_ENABLE_ID,
         "Soft Reset",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -4190,7 +4190,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
          MOS_USER_FEATURE_TYPE_USER,
          MOS_USER_FEATURE_VALUE_TYPE_INT32,
          "0",
-         "Eanble EuFusion path. 1: enable, 0: disable."),
+         "Enable EuFusion path. 1: enable, 0: disable."),
 };
 
 PMOS_USER_FEATURE_VALUE const MosUtilities::m_mosUserFeatureDescFields = MOSUserFeatureDescFields;

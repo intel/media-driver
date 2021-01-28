@@ -478,6 +478,9 @@ struct DDI_MEDIA_CONTEXT
     // Media copy data structure
     void               *pMediaCopyState;
 
+    // Media reset enable flag
+    bool                bMediaResetEnable;
+
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT  pMosCtx,

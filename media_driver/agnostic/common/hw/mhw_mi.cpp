@@ -64,21 +64,7 @@ MhwMiInterface::MhwMiInterface(
 
     MediaResetParam.watchdogCountThreshold = MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // User feature config of watchdog timer threshold
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH_ID,
-        &userFeatureData,
-        osInterface->pOsContext);
-    if (userFeatureData.u32Data != 0)
-    {
-        MediaResetParam.watchdogCountThreshold = userFeatureData.u32Data;
-    }
-#endif
+    GetWatchdogThreshold(m_osInterface);
 
     if (m_osInterface->bUsesGfxAddress)
     {
@@ -111,3 +97,4 @@ MOS_STATUS MhwMiInterface::AddProtectedProlog(MOS_COMMAND_BUFFER *cmdBuffer)
 
     return MOS_STATUS_SUCCESS;
 }
+
