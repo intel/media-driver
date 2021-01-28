@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,41 @@
 //!
 #include "vphal_g12_tgllp.h"
 #include "vphal_renderer_g12_tgllp.h"
+
+MOS_STATUS VphalStateG12Tgllp::Allocate(
+    const VphalSettings *pVpHalSettings)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    VPHAL_PUBLIC_CHK_NULL(pVpHalSettings);
+    VPHAL_PUBLIC_CHK_NULL(m_renderHal);
+
+    // Update MOCS
+    if (m_renderHal->pOsInterface && m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject && m_renderHal->pOsInterface->pfnGetGmmClientContext)
+    {
+        MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
+        MEMORY_OBJECT_CONTROL_STATE StateMocs        = m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_MP_RESOURCE_USAGE_DEFAULT,
+            m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface));
+
+        //update MOCS for Instruction Cache
+        pStateBaseParams->mocs4InstructionCache = StateMocs.DwordValue;
+        //update MOCS for General state
+        pStateBaseParams->mocs4GeneralState = StateMocs.DwordValue;
+        //update MOCS for Dynamic state
+        pStateBaseParams->mocs4DynamicState = StateMocs.DwordValue;
+        //update MOCS for Surface state
+        pStateBaseParams->mocs4SurfaceState = StateMocs.DwordValue;
+        //update MOCS for Indirect Object
+        pStateBaseParams->mocs4IndirectObjectBuffer = StateMocs.DwordValue;
+        //update MOCS for Stateless Dataport access
+        pStateBaseParams->mocs4StatelessDataport = StateMocs.DwordValue;
+    }
+
+    eStatus = VphalState::Allocate(pVpHalSettings);
+
+finish:
+    return eStatus;
+}
 
 //!
 //! \brief    Create instance of VphalRenderer
