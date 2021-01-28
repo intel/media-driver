@@ -108,6 +108,19 @@ public:
     {
     }
 
+    //!
+    //! \brief    Allocate VPHAL Resources
+    //! \details  Allocate VPHAL Resources
+    //!           - Allocate and initialize HW states
+    //!           - Allocate and initialize renderer states
+    //! \param    [in] pVpHalSettings
+    //!           Pointer to VPHAL Settings
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS Allocate(
+        const VphalSettings *pVpHalSettings);
+
 protected:
     //!
     //! \brief    Create instance of VphalRenderer
