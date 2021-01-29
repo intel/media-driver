@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -291,7 +291,8 @@ typedef enum MOS_HW_COMMAND_ENUM
     MOS_SFC_STATE,
     MOS_MI_ATOMIC,
     MOS_MFX_CC_BASE_ADDR_STATE,
-    MOS_VEBOX_SURFACE_STATE
+    MOS_VEBOX_SURFACE_STATE,
+    MOS_HW_COMMAND_MAX
 } MOS_HW_COMMAND;
 C_ASSERT(MOS_HW_COMMANDS == 16); //!< update this and Mos_GetUseGlobalGtt_XXX()
 

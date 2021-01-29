@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 #define __HAL_OCA_INTERFACE_H__
 
 #include "mhw_mi.h"
+#include "mos_os_hw.h"
 
 /****************************************************************************************************/
 /*                                      HalOcaInterface                                             */
@@ -175,10 +176,12 @@ public:
     //!         Reference to MOS_INTERFACE.
     //! \param  [in] res
     //!         Reference to MOS_RESOURCE.
+    //! \param  [in] hwCmdType
+    //!         Hw command type.
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    static void DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MOS_RESOURCE &res);
+    static void DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MOS_RESOURCE &res, MOS_HW_COMMAND hwCmdType);
 
     //!
     //! \brief  Add vp kernel info to oca log section.
