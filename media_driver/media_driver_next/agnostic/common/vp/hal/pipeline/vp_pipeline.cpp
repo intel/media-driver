@@ -71,6 +71,12 @@ VpPipeline::~VpPipeline()
         MOS_Delete(m_mediaContext);
         m_mediaContext = nullptr;
     }
+
+    if (m_vpSettings)
+    {
+        MOS_FreeMemory(m_vpSettings);
+        m_vpSettings = nullptr;
+    }
 }
 
 MOS_STATUS VpPipeline::GetStatusReport(void *status, uint16_t numStatus)
@@ -201,6 +207,10 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);
 
     VP_PUBLIC_CHK_STATUS_RETURN(GetSystemVeboxNumber());
+
+    VP_PUBLIC_CHK_STATUS_RETURN(SetVideoProcessingSettings(m_vpMhwInterface.m_settings));
+
+    m_vpMhwInterface.m_settings = m_vpSettings;
 
     return MOS_STATUS_SUCCESS;
 }

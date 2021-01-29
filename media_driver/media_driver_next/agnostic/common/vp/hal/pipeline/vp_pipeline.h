@@ -265,6 +265,39 @@ protected:
     }
 
     //!
+    //! \brief  set Video Processing Settings
+    //! \param  [in] params
+    //!         Pointer to the input parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetVideoProcessingSettings(void* settings)
+    {
+        if (!settings)
+        {
+            VPHAL_PUBLIC_NORMALMESSAGE("No VPP Settings needed, driver to handle features behavious by self");
+            return MOS_STATUS_SUCCESS;
+        }
+
+        VP_SETTINGS* vpSettings = (VP_SETTINGS*)settings;
+
+        if (m_vpSettings == nullptr)
+        {
+            m_vpSettings = (VP_SETTINGS*)MOS_AllocAndZeroMemory(sizeof(VP_SETTINGS));
+
+            if (m_vpSettings == nullptr)
+            {
+                VP_PUBLIC_ASSERTMESSAGE("No Space, VP Settings created failed");
+                return MOS_STATUS_NO_SPACE;
+            }
+        }
+
+        *m_vpSettings = *vpSettings;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
     //! \brief  Judge if it is gt test environment
     //! \return bool
     //!         true if success, else false
@@ -305,6 +338,7 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     VPHAL_SURFACE         *m_tempTargetSurface      = nullptr;
 #endif
+    VP_SETTINGS           *m_vpSettings = nullptr;
 };
 
 struct _VP_SFC_PACKET_PARAMS
