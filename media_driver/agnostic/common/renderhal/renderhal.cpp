@@ -6734,6 +6734,7 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
 
     MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
     PMOS_RESOURCE pMosResource = (PMOS_RESOURCE)pSurfaceStateToken->pResourceInfo;
+    MHW_RENDERHAL_CHK_NULL_RETURN(pMosResource);
     if (pOsInterface->pfnGetMemoryCompressionMode)
     {
         pOsInterface->pfnGetMemoryCompressionMode(pOsInterface, pMosResource, &mmcMode);
