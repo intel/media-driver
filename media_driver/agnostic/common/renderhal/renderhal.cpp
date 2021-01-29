@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -6710,7 +6710,7 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
 
     if (pSurfaceStateToken->pResourceInfo)
     {
-        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *(PMOS_RESOURCE)(pSurfaceStateToken->pResourceInfo));
+        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *(PMOS_RESOURCE)(pSurfaceStateToken->pResourceInfo), (MOS_HW_COMMAND)pSurfaceStateToken->DW0.DriverID);
     }
 
     MOS_PATCH_ENTRY_PARAMS PatchEntryParams;

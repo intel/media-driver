@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2018, Intel Corporation
+* Copyright (c) 2014-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -160,7 +160,7 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
         MOS_SURFACE_STATE           == pParams->HwCommandType   ||
         MOS_SURFACE_STATE_ADV       == pParams->HwCommandType)
     {
-        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource);
+        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType);
     }
 
 finish:
