@@ -237,6 +237,7 @@ MOS_STATUS MediaSfcRender::Initialize()
     m_vpMhwinterface->m_mhwMiInterface         = m_renderHal->pMhwMiInterface;
     m_vpMhwinterface->m_statusTable            = m_statusTable;
     m_vpMhwinterface->m_vpPlatformInterface    = m_vpPlatformInterface;
+    m_vpMhwinterface->m_settings               = nullptr;
 
     if (m_mode.veboxSfcEnabled)
     {
