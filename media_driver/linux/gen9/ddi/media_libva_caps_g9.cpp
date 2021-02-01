@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include "codec_def_encode_hevc.h"
 #include "media_libva_util.h"
 #include "media_libva.h"
+#include "media_libva_caps_cp_interface.h"
 #include "media_libva_caps_g9.h"
 #include "media_libva_caps_factory.h"
 
@@ -303,6 +304,8 @@ VAStatus MediaLibvaCapsG9::LoadProfileEntrypoints()
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
 #endif
+    status = m_CapsCp->LoadCpProfileEntrypoints();
+    DDI_CHK_RET(status, "Failed to initialize CP Caps!");
     return status;
 }
 
