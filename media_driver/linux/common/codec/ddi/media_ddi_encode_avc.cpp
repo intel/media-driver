@@ -339,6 +339,11 @@ VAStatus DdiEncodeAvc::ParseMiscParamMaxFrameSize(void *data)
     VAEncMiscParameterBufferMaxFrameSize *vaEncMiscParamMaxFrameSize = (VAEncMiscParameterBufferMaxFrameSize *)data;
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
+    if (seqParams->UserMaxFrameSize != vaEncMiscParamMaxFrameSize->max_frame_size >> 3)
+    {
+        seqParams->bResetBRC = 0x1;
+    }
+
     // populate MaxFrameSize from DDI
     seqParams->UserMaxFrameSize = vaEncMiscParamMaxFrameSize->max_frame_size >> 3;  // convert to byte
 
