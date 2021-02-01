@@ -561,8 +561,7 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
 
         bool isPlanar = false;
 
-        isPlanar = (pSurface->OsResource.Format == Format_NV12) || (pSurface->OsResource.Format == Format_P010) || (pSurface->OsResource.Format == Format_P016);
-
+        isPlanar = (pSurface->Format == Format_NV12) || (pSurface->Format == Format_P010) || (pSurface->Format == Format_P016);
         if (isPlanar && pSurface->TileType != MOS_TILE_LINEAR)
         {
             bool bAllocated;
@@ -593,6 +592,15 @@ MOS_STATUS VphalSurfaceDumper::DumpSurfaceToFile(
                 &m_temp2DSurfForCopy->OsResource,
                 &LockFlags);
             pLockedResource = &m_temp2DSurfForCopy->OsResource;
+
+            // get plane definitions
+            VPHAL_DEBUG_CHK_STATUS(GetPlaneDefs(
+                m_temp2DSurfForCopy,
+                planes,
+                &dwNumPlanes,
+                &dwSize,
+                hasAuxSurf,        //(hasAuxSurf && enableAuxDump),
+                !enableAuxDump));  // !(hasAuxSurf && enableAuxDump)));
         }
         else
         {
