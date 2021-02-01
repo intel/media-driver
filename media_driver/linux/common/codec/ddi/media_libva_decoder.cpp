@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -159,13 +159,6 @@ VAStatus DdiDecode_EndPicture (
     if (decCtx->pCpDdiInterface)
     {
         DDI_CHK_RET(decCtx->pCpDdiInterface->IsAttachedSessionAlive(), "Session not alive!");
-
-        if (decCtx->pCpDdiInterface->IsCencProcessing())
-        {
-            VAStatus va = decCtx->pCpDdiInterface->EndPicture(ctx, context);
-            DDI_FUNCTION_EXIT(va);
-            return va;
-        }
     }
 
     if (decCtx->m_ddiDecode)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -52,10 +52,6 @@ std::vector<FeatureID> refFeatureIDTable_SKL = {
     { VAProfileHEVCMain               , VAEntrypointFEI                 },
     { VAProfileNone                   , VAEntrypointVideoProc           },
     { VAProfileNone                   , VAEntrypointStats               },
-#if VA_CHECK_VERSION(1,11,0)
-    { VAProfileProtected              , VAEntrypointProtectedTEEComm    },
-    { VAProfileProtected              , VAEntrypointProtectedContent    },
-#endif
 };
 
 #endif // __REF_CAPS_TABLE_SKL_H__
