@@ -369,17 +369,33 @@ MOS_STATUS FilmGrainAppNoisePkt::SetUpSurfaceState()
     surfaceParams.MemObjCtl         = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_ELLC_LLC_L3].Value;
     surfaceParams.bRenderTarget     = true;
     surfaceParams.Boundary          = RENDERHAL_SS_BOUNDARY_ORIGINAL;
-    surfaceParams.bUseSinglePlane   = true;
+    if (m_hwInterface->Uses2PlanesInputSurfaceFilmGrain())
+    {
+        surfaceParams.b2PlaneNV12NeededByKernel = true;
+    }
+    else
+    {
+        surfaceParams.bUseSinglePlane      = true;
+        renderHalSurfaceNext.dwHeightInUse = (m_filmGrainProcParams->m_inputSurface->UPlaneOffset.iYOffset * 3) / 2;
+        renderHalSurfaceNext.dwWidthInUse  = 0;
+    }
 
-    renderHalSurfaceNext.dwHeightInUse  = (m_filmGrainProcParams->m_inputSurface->UPlaneOffset.iYOffset * 3) / 2;
-    renderHalSurfaceNext.dwWidthInUse   = 0;
-
-    m_bindingTableIndex[anInputYuv] = SetSurfaceForHwAccess(
+    m_bindingTableIndex[anInputYOrYuv] = SetSurfaceForHwAccess(
         m_filmGrainProcParams->m_inputSurface,
         &renderHalSurfaceNext,
         &surfaceParams,
         isWritable);
-    DECODE_VERBOSEMESSAGE("AN:surface[%d] Input YUV surface index: %d\n", anInputYuv, m_bindingTableIndex[anInputYuv]);
+
+    if (m_hwInterface->Uses2PlanesInputSurfaceFilmGrain())
+    {
+        m_bindingTableIndex[anInputUv] = m_bindingTableIndex[anInputYOrYuv] + 1;
+        DECODE_VERBOSEMESSAGE("AN:surface[%d] Input Y surface index: %d\n", anInputYOrYuv, m_bindingTableIndex[anInputYOrYuv]);
+        DECODE_VERBOSEMESSAGE("AN:surface[%d] Input UV surface index: %d\n", anInputUv, m_bindingTableIndex[anInputUv]);
+    }
+    else
+    {
+        DECODE_VERBOSEMESSAGE("AN:surface[%d] Input YUV surface index: %d\n", anInputYOrYuv, m_bindingTableIndex[anInputYOrYuv]);
+    }
 
     // Output Y/UV surface
     isWritable                  = true;
@@ -532,16 +548,16 @@ MOS_STATUS FilmGrainAppNoisePkt::SetCurbeApplyNoise(
 
     FilmGrainApplyNoiseCurbe curbe;
 
-    curbe.DW0.InputYuvSurfaceIndex                   = anInputYuv;
-    curbe.DW1.OutputYSurfaceIndex                    = anOutputY;
-    curbe.DW2.OutputUvSurfaceIndex                   = anOutputUv;
-    curbe.DW3.YDitheringSurfaceIndex                 = anInputYDithering;
-    curbe.DW4.UDitheringSurfaceIndex                 = anInputUDithering;
-    curbe.DW5.VDitheringSurfaceIndex                 = anInputVDithering;
-    curbe.DW6.RandomValuesForCoordinatesSurfaceIndex = anInputRandomValuesCoordinates;
-    curbe.DW7.YGammaCorrectionLutSurfaceIndex        = anInputYGammaLut;
-    curbe.DW8.UGammaCorrectionLutSurfaceIndex        = anInputUGammaLut;
-    curbe.DW9.VGammaCorrectionLutSurfaceIndex        = anInputVGammaLut;
+    curbe.DW0.InputYuvSurfaceIndex                   = m_bindingTableIndex[anInputYOrYuv];
+    curbe.DW1.OutputYSurfaceIndex                    = m_bindingTableIndex[anOutputY];
+    curbe.DW2.OutputUvSurfaceIndex                   = m_bindingTableIndex[anOutputUv];
+    curbe.DW3.YDitheringSurfaceIndex                 = m_bindingTableIndex[anInputYDithering];
+    curbe.DW4.UDitheringSurfaceIndex                 = m_bindingTableIndex[anInputUDithering];
+    curbe.DW5.VDitheringSurfaceIndex                 = m_bindingTableIndex[anInputVDithering];
+    curbe.DW6.RandomValuesForCoordinatesSurfaceIndex = m_bindingTableIndex[anInputRandomValuesCoordinates];
+    curbe.DW7.YGammaCorrectionLutSurfaceIndex        = m_bindingTableIndex[anInputYGammaLut];
+    curbe.DW8.UGammaCorrectionLutSurfaceIndex        = m_bindingTableIndex[anInputUGammaLut];
+    curbe.DW9.VGammaCorrectionLutSurfaceIndex        = m_bindingTableIndex[anInputVGammaLut];
 
     int apply_y  = (m_picParams->m_filmGrainParams.m_numYPoints > 0) ? 1 : 0;
     int apply_cb = (m_picParams->m_filmGrainParams.m_numCbPoints > 0 || m_picParams->m_filmGrainParams.m_filmGrainInfoFlags.m_fields.m_chromaScalingFromLuma) ? 1 : 0;

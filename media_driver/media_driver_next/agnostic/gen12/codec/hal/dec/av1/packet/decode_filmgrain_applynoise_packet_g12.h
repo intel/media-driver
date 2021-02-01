@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -291,7 +291,8 @@ C_ASSERT(sizeof(FilmGrainApplyNoiseCurbe) == 72);
 //!
 enum FilmGrainApplyNoiseBindingTableOffset
 {
-    anInputYuv = 0,
+    anInputYOrYuv = 0,
+    anInputUv,
     anOutputY,
     anOutputUv,
     anInputYDithering,
@@ -385,7 +386,8 @@ protected:
 
     uint32_t m_bindingTableIndex[anNumSurfaces] =
     {
-        anInputYuv,
+        anInputYOrYuv,
+        anInputUv,
         anOutputY,
         anOutputUv,
         anInputYDithering,
