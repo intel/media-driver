@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -508,6 +508,16 @@ typedef enum _VPHAL_DI_MODE
 C_ASSERT(DI_MODE_ADI == 1);         //!< When adding, update assert & vphal_solo_scenario.cpp
 
 //!
+//! \ brief HVS DN Mode enum
+//!
+typedef enum _VPHAL_HVSDN_MODE
+{
+    HVSDENOISE_AUTO_BDRATE = 0,
+    HVSDENOISE_AUTO_SUBJECTIVE,
+    HVSDENOISE_MANUAL
+} VPHAL_HVSDN_MODE;
+
+//!
 //! \brief Blend Type enum
 //!
 typedef enum _VPHAL_BLEND_TYPE
@@ -858,6 +868,7 @@ typedef struct _VPHAL_HVSDENOISE_PARAMS
 {
     uint16_t            QP;
     uint16_t            Strength;
+    VPHAL_HVSDN_MODE    Mode;
     void*               pHVSDenoiseParam;
     uint32_t            dwDenoiseParamSize;
 } VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
