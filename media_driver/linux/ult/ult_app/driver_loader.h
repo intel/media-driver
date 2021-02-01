@@ -29,9 +29,6 @@
 #include "va/va_drmcommon.h"
 #include "va/va_backend.h"
 #include "va/va_backend_vpp.h"
-#if VA_CHECK_VERSION(1,11,0)
-#include <va/va_backend_prot.h>
-#endif
 
 struct FeatureID
 {
@@ -130,9 +127,6 @@ public:
     VADriverContext             m_ctx        = {};
     VADriverVTable              m_vtable     = {};
     VADriverVTableVPP           m_vtable_vpp = {};
-#if VA_CHECK_VERSION(1,11,0)
-    VADriverVTableProt          m_vtable_prot = {};
-#endif
 
 private:
 

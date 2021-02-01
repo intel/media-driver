@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3060,9 +3060,6 @@ static VAStatus DdiMedia_CreateBuffer (
         case DDI_MEDIA_CONTEXT_TYPE_VP:
             va = DdiVp_CreateBuffer(ctx, ctxPtr, type, size, num_elements, data, bufId);
             break;
-        case DDI_MEDIA_CONTEXT_TYPE_PROTECTED:
-            va = DdiMediaProtected::DdiMedia_ProtectedSessionCreateBuffer(ctx, context, type, size, num_elements, data, bufId);
-            break;
         default:
             va = VA_STATUS_ERROR_INVALID_CONTEXT;
     }
@@ -3167,7 +3164,6 @@ VAStatus DdiMedia_MapBufferInternal (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_VP:
-        case DDI_MEDIA_CONTEXT_TYPE_PROTECTED:
             break;
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
             ctxPtr = DdiMedia_GetCtxFromVABufferID(mediaCtx, buf_id);
@@ -3456,7 +3452,6 @@ VAStatus DdiMedia_UnmapBuffer (
     switch (ctxType)
     {
         case DDI_MEDIA_CONTEXT_TYPE_VP:
-        case DDI_MEDIA_CONTEXT_TYPE_PROTECTED:
             break;
         case DDI_MEDIA_CONTEXT_TYPE_DECODER:
             ctxPtr = DdiMedia_GetCtxFromVABufferID(mediaCtx, buf_id);
@@ -3569,8 +3564,6 @@ VAStatus DdiMedia_DestroyBuffer (
         case DDI_MEDIA_CONTEXT_TYPE_VP:
             break;
         case DDI_MEDIA_CONTEXT_TYPE_MEDIA:
-            break;
-        case DDI_MEDIA_CONTEXT_TYPE_PROTECTED:
             break;
         default:
             return VA_STATUS_ERROR_INVALID_BUFFER;
@@ -7288,11 +7281,6 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     struct VADriverVTableVPP *pVTableVpp  = DDI_CODEC_GET_VTABLE_VPP(ctx);
     DDI_CHK_NULL(pVTableVpp,  "nullptr pVTableVpp",   VA_STATUS_ERROR_INVALID_CONTEXT);
 
-#if VA_CHECK_VERSION(1,11,0)
-    struct VADriverVTableProt *pVTableProt = DDI_CODEC_GET_VTABLE_PROT(ctx);
-    DDI_CHK_NULL(pVTableProt,  "nullptr pVTableProt",   VA_STATUS_ERROR_INVALID_CONTEXT);
-#endif
-
     ctx->pDriverData                         = nullptr;
     ctx->version_major                       = VA_MAJOR_VERSION;
     ctx->version_minor                       = VA_MINOR_VERSION;
@@ -7367,14 +7355,6 @@ VAStatus __vaDriverInit(VADriverContextP ctx )
     pVTableVpp->vaQueryVideoProcFilters      = DdiMedia_QueryVideoProcFilters;
     pVTableVpp->vaQueryVideoProcFilterCaps   = DdiMedia_QueryVideoProcFilterCaps;
     pVTableVpp->vaQueryVideoProcPipelineCaps = DdiMedia_QueryVideoProcPipelineCaps;
-
-#if VA_CHECK_VERSION(1,11,0)
-    pVTableProt->vaCreateProtectedSession    = DdiMediaProtected::DdiMedia_CreateProtectedSession;
-    pVTableProt->vaDestroyProtectedSession   = DdiMediaProtected::DdiMedia_DestroyProtectedSession;
-    pVTableProt->vaAttachProtectedSession    = DdiMediaProtected::DdiMedia_AttachProtectedSession;
-    pVTableProt->vaDetachProtectedSession    = DdiMediaProtected::DdiMedia_DetachProtectedSession;
-    pVTableProt->vaProtectedSessionExecute   = DdiMediaProtected::DdiMedia_ProtectedSessionExecute;
-#endif
 
     //pVTable->vaSetSurfaceAttributes          = DdiMedia_SetSurfaceAttributes;
     pVTable->vaGetSurfaceAttributes          = DdiMedia_GetSurfaceAttributes;
