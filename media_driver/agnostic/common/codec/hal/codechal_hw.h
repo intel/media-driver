@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1569,6 +1569,11 @@ public:
     }
 
     virtual bool UsesRenderEngine(CODECHAL_FUNCTION codecFunction, uint32_t standard);
+
+    virtual bool Uses2PlanesInputSurfaceFilmGrain()
+    {
+        return false;
+    }
 
     //!
     //! \brief    Get film grain kernel info
