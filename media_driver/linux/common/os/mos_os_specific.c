@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -7195,16 +7195,6 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             nullptr);
         osInterface->frameSplit = (uint32_t)userFeatureData.i32Data;
 
-        // read the "Force VEBOX" user feature key
-        // 0: not force
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            NULL,
-            __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
-            &userFeatureData,
-            nullptr);
-        osInterface->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
-
         //KMD Virtual Engine DebugOverride
         // 0: not Override
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -7229,7 +7219,6 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         {
             //user's value to enable scalability
             osInterface->bVeboxScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
-            osInterface->bEnableDbgOvrdInVE    = true;
 
             if (osInterface->eForceVebox == MOS_FORCE_VEBOX_NONE)
             {
@@ -7239,9 +7228,19 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         else if ((!osInterface->bVeboxScalabilityMode)
             && (eStatusUserFeature == MOS_STATUS_SUCCESS))
         {
-            osInterface->bEnableDbgOvrdInVE = true;
             osInterface->eForceVebox        = MOS_FORCE_VEBOX_NONE;
         }
+
+        // read the "Force VEBOX" user feature key
+        // 0: not force
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
+            &userFeatureData,
+            nullptr);
+        osInterface->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
+
 #endif
     }
 
