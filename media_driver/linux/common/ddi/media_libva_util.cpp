@@ -1389,25 +1389,17 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
         surface->pMediaCtx->m_auxTableMgr->UnmapResource(surface->pGmmResourceInfo, surface->bo);
     }
 
-    // For External Buffer, only needs to destory SurfaceDescriptor
-    if ( DdiMediaUtil_IsExternalSurface(surface) )
+    if(surface->bMapped)
     {
-        // In DdiMediaUtil_AllocateSurface call, driver will increase the surface reference count by calling drm_intel_bo_gem_create_from_name
-        // Thus, when freeing the surface, the drm_intel_bo_unreference function should be called to avoid memory leak
-        mos_bo_unreference(surface->bo);
+        DdiMediaUtil_UnlockSurface(surface);
+        DDI_VERBOSEMESSAGE("DDI: try to free a locked surface.");
+    }
+    mos_bo_unreference(surface->bo);
+    // For External Buffer, only needs to destory SurfaceDescriptor
+    if (surface->pSurfDesc)
+    {
         MOS_FreeMemory(surface->pSurfDesc);
         surface->pSurfDesc = nullptr;
-    }
-    else
-    {
-        // calling sequence checking
-        if (surface->bMapped)
-        {
-            DdiMediaUtil_UnlockSurface(surface);
-            DDI_VERBOSEMESSAGE("DDI: try to free a locked surface.");
-        }
-        mos_bo_unreference(surface->bo);
-        surface->bo = nullptr;
     }
 
     if (nullptr != surface->pGmmResourceInfo)
