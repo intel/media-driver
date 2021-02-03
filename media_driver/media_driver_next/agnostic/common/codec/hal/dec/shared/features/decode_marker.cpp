@@ -40,22 +40,29 @@ DecodeMarker::~DecodeMarker()
     MOS_Delete(m_markerBuffer);
 }
 
-MOS_STATUS DecodeMarker::Init(CodechalDecodeParams& params)
+MOS_STATUS DecodeMarker::Update(void *params)
 {
     DECODE_FUNC_CALL();
 
-    m_setMarkerEnabled = params.m_setMarkerEnabled;
-    m_setMarkerNumTs   = params.setMarkerNumTs;
+    DECODE_CHK_NULL(params);
+
+    CodechalDecodeParams* decodeParams = (CodechalDecodeParams*)params;
+    m_setMarkerEnabled = decodeParams->m_setMarkerEnabled;
+    m_setMarkerNumTs   = decodeParams->setMarkerNumTs;
 
     if (m_setMarkerEnabled)
     {
-        DECODE_CHK_NULL(params.m_presSetMarker);
+        DECODE_CHK_NULL(decodeParams->m_presSetMarker);
     }
 
-    m_markerBuffer = MOS_New(MOS_BUFFER);
-    if (params.m_presSetMarker != nullptr)
+    if (m_markerBuffer == nullptr)
     {
-        m_markerBuffer->OsResource = *params.m_presSetMarker;
+        m_markerBuffer = MOS_New(MOS_BUFFER);
+    }
+
+    if (decodeParams->m_presSetMarker != nullptr)
+    {
+        m_markerBuffer->OsResource = *decodeParams->m_presSetMarker;
     }
     else
     {

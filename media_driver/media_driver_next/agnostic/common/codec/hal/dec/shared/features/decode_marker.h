@@ -50,13 +50,13 @@ public:
     virtual ~DecodeMarker();
 
     //!
-    //! \brief  Initialize decode predication
+    //! \brief  Update decode predication
     //! \param  [in] params
     //!         Reference to CodechalDecodeParams
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Init(CodechalDecodeParams& params);
+    virtual MOS_STATUS Update(void *params) override;
 
     bool            m_setMarkerEnabled = false;   //!< Indicates whether or not SetMarker is enabled
     PMOS_BUFFER     m_markerBuffer     = nullptr; //!< Resource for SetMarker

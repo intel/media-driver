@@ -48,13 +48,13 @@ public:
     //!
     virtual ~DecodePredication();
     //!
-    //! \brief  Initialize decode predication
+    //! \brief  Update decode predication
     //! \param  [in] params
     //!         Reference to CodechalDecodeParams
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Init(CodechalDecodeParams& params);
+    virtual MOS_STATUS Update(void *params) override;
 
     PMOS_BUFFER      m_predicationBuffer = nullptr;      //!< Internal resource for Predication
     PMOS_BUFFER      m_resPredication = nullptr;         //!< External resource for predication

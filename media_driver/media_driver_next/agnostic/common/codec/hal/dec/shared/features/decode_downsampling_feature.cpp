@@ -127,8 +127,10 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
 
     m_outputSurfaceRegion.m_x      = procParams->m_outputSurfaceRegion.m_x;
     m_outputSurfaceRegion.m_y      = procParams->m_outputSurfaceRegion.m_y;
-    m_outputSurfaceRegion.m_width  = procParams->m_outputSurfaceRegion.m_width;
-    m_outputSurfaceRegion.m_height = procParams->m_outputSurfaceRegion.m_height;
+    m_outputSurfaceRegion.m_width  = (procParams->m_outputSurfaceRegion.m_width == 0) ?
+        m_outputSurface.dwWidth : procParams->m_outputSurfaceRegion.m_width;
+    m_outputSurfaceRegion.m_height = (procParams->m_outputSurfaceRegion.m_height == 0) ?
+        m_outputSurface.dwHeight : procParams->m_outputSurfaceRegion.m_height;
 
     if (procParams->m_inputSurface != nullptr)
     {
