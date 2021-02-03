@@ -308,27 +308,22 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
     }
 
     // check video procressing settings
+    uint32_t kernelUpdate = 0;
+
     if (m_hwInterface->m_settings)
     {
         VP_SETTINGS* settings = (VP_SETTINGS*)m_hwInterface->m_settings;
 
-        bool bVeboxStateBlockCopy =
-            (settings->kernelUpdate & VP_VEBOX_FLAG_ENABLE_KERNEL_COPY);
+        kernelUpdate = settings->kernelUpdate;
+    }
 
-        // Will remove when Enable Secure Copy for Vebox
-        if (bVeboxStateBlockCopy)
-        {
-            return MOS_STATUS_SUCCESS;
-        }
+    bool bKernelDnUpdate =
+        (kernelUpdate & VP_VEBOX_FLAG_ENABLE_KERNEL_DN_UPDATE);
 
-        bool bKernelDnUpdate =
-            (settings->kernelUpdate & VP_VEBOX_FLAG_ENABLE_KERNEL_DN_UPDATE);
-
-        // Will remove when Enable Secure Copy for Vebox
-        if (bKernelDnUpdate)
-        {
-            return MOS_STATUS_SUCCESS;
-        }
+    // Will remove when Enable Secure Copy for Vebox
+    if (bKernelDnUpdate)
+    {
+        return MOS_STATUS_SUCCESS;
     }
 
     bApgFuncSupported = true;
