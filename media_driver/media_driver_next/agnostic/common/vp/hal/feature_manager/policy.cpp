@@ -1444,40 +1444,6 @@ MOS_STATUS Policy::AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS
     return MOS_STATUS_SUCCESS;
 }
 
-bool Policy::IsVeboxSecurePathEnabled(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps)
-{
-    VP_FUNC_CALL();
-
-    if (m_vpInterface.GetHwInterface())
-    {
-        // will remove when secure path ready
-        // VP_PUBLIC_ASSERTMESSAGE("No VP Interface Available");
-        return false;
-    }
-
-    if (!m_vpInterface.GetHwInterface()->m_osInterface ||
-        !m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface)
-    {
-        VP_PUBLIC_ASSERTMESSAGE("No CP Interface Available");
-        return false;
-    }
-
-    MosCpInterface* cpInterface = (m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface);
-
-    // Place holder: DDI can also have conditions for Kernel resource using
-    if (!featurePipe.GetSecureProcessFlag() && caps.bVebox && cpInterface->IsHMEnabled())
-    {
-        return true;
-    }
-
-    if (featurePipe.GetSecureProcessFlag())
-    {
-        featurePipe.SetSecureProcessFlag(false);
-    }
-
-    return false;
-}
-
 MOS_STATUS Policy::BuildVeboxSecureFilters(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
 {
     return MOS_STATUS_SUCCESS;
