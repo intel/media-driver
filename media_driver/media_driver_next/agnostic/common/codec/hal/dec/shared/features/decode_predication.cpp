@@ -42,24 +42,31 @@ DecodePredication::~DecodePredication()
     MOS_Delete(m_resPredication);
 }
 
-MOS_STATUS DecodePredication::Init(CodechalDecodeParams& params)
+MOS_STATUS DecodePredication::Update(void *params)
 {
     DECODE_FUNC_CALL();
 
-    m_predicationEnabled = params.m_predicationEnabled;
+    DECODE_CHK_NULL(params);
+
+    CodechalDecodeParams* decodeParams = (CodechalDecodeParams*)params;
+    m_predicationEnabled = decodeParams->m_predicationEnabled;
     if (!m_predicationEnabled)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    m_predicationNotEqualZero = params.m_predicationNotEqualZero;
-    m_predicationResOffset    = params.m_predicationResOffset;
+    m_predicationNotEqualZero = decodeParams->m_predicationNotEqualZero;
+    m_predicationResOffset    = decodeParams->m_predicationResOffset;
 
-    m_resPredication = MOS_New(MOS_BUFFER);
-    DECODE_CHK_NULL(m_resPredication);
-    if (params.m_presPredication != nullptr)
+    if (m_resPredication == nullptr)
     {
-        m_resPredication->OsResource = *params.m_presPredication;
+        m_resPredication = MOS_New(MOS_BUFFER);
+    }
+
+    DECODE_CHK_NULL(m_resPredication);
+    if (decodeParams->m_presPredication != nullptr)
+    {
+        m_resPredication->OsResource = *decodeParams->m_presPredication;
     }
     else
     {
@@ -72,7 +79,7 @@ MOS_STATUS DecodePredication::Init(CodechalDecodeParams& params)
         DECODE_CHK_NULL(m_predicationBuffer);
     }
 
-    *(params.m_tempPredicationBuffer) = &m_predicationBuffer->OsResource;
+    *(decodeParams->m_tempPredicationBuffer) = &m_predicationBuffer->OsResource;
 
     return MOS_STATUS_SUCCESS;
 }
