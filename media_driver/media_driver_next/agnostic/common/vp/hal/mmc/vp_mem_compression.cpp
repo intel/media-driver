@@ -28,20 +28,28 @@
 //!
 #include "mos_defs.h"
 #include "vp_mem_compression.h"
+#include "vp_platform_interface.h"
 
 VPMediaMemComp::VPMediaMemComp(
-    PMOS_INTERFACE osInterface,
-    PVP_MHWINTERFACE vpInterface)
-    :MediaMemComp(osInterface, vpInterface->m_mhwMiInterface)
+    PMOS_INTERFACE    osInterface,
+    VP_MHWINTERFACE  &vpInterface)
+    :MediaMemComp(osInterface, vpInterface.m_mhwMiInterface)
 {
-    m_mmcFeatureId = __VPHAL_ENABLE_MMC_ID;
+    m_mmcFeatureId      = __VPHAL_ENABLE_MMC_ID;
     m_mmcInuseFeatureId = __VPHAL_ENABLE_MMC_IN_USE_ID;
 
 #if(LINUX)
-    m_bComponentMmcEnabled = !MEDIA_IS_WA(vpInterface->m_waTable, WaDisableVPMmc);
+    m_bComponentMmcEnabled = !MEDIA_IS_WA(vpInterface.m_waTable, WaDisableVPMmc);
 #else
     m_bComponentMmcEnabled = true;
 #endif
+
+    if (vpInterface.m_vpPlatformInterface &&
+        !vpInterface.m_vpPlatformInterface->IsPlatformCompressionEnabled())
+    {
+        m_bComponentMmcEnabled = false;
+    }
+
     InitMmcEnabled();
 }
 

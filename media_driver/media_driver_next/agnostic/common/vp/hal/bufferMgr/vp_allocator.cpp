@@ -686,6 +686,12 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
     //---------------------------------
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
+
+    if (!m_mmc->IsMmcEnabled())
+    {
+        compressible    = 0;
+        compressionMode = MOS_MMC_DISABLED;
+    }
     //---------------------------------
 
     // compressible should be compared with bCompressible since it is inited by bCompressible in previous call

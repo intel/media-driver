@@ -644,8 +644,11 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
     if (allocated)
     {
         // Report Compress Status
-        m_reporting.FFDICompressible = bSurfCompressible;
-        m_reporting.FFDICompressMode = (uint8_t)(surfCompressionMode);
+        if (m_veboxOutput[0]->osSurface)
+        {
+            m_reporting.FFDICompressible = m_veboxOutput[0]->osSurface->bIsCompressed;
+            m_reporting.FFDICompressMode = (uint8_t)m_veboxOutput[0]->osSurface->CompressionMode;
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -710,8 +713,11 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
                 caps.bRefValid = false;
             }
             // Report Compress Status
-            m_reporting.FFDNCompressible = bSurfCompressible;
-            m_reporting.FFDNCompressMode = (uint8_t)(surfCompressionMode);
+            if (m_veboxDenoiseOutput[i]->osSurface)
+            {
+                m_reporting.FFDNCompressible = m_veboxDenoiseOutput[i]->osSurface->bIsCompressed;
+                m_reporting.FFDNCompressMode = (uint8_t)m_veboxDenoiseOutput[i]->osSurface->CompressionMode;
+            }
         }
         else
         {

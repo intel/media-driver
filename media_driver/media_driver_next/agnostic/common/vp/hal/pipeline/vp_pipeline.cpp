@@ -176,7 +176,7 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     m_mediaContext = MOS_New(MediaContext, scalabilityVp, &m_vpMhwInterface, m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_mediaContext);
 
-    m_mmc = MOS_New(VPMediaMemComp, m_osInterface, &m_vpMhwInterface);
+    m_mmc = MOS_New(VPMediaMemComp, m_osInterface, m_vpMhwInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
 
     m_allocator = MOS_New(VpAllocator, m_osInterface, m_mmc);

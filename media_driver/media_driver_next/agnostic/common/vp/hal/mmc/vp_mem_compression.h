@@ -41,7 +41,7 @@ public:
     //!
     VPMediaMemComp(
         PMOS_INTERFACE       osInterface,
-        PVP_MHWINTERFACE     vpInterface);
+        VP_MHWINTERFACE     &vpInterface);
 
     //!
     //! \brief    Copy constructor

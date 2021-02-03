@@ -146,12 +146,18 @@ public:
         return kernelParam;
     }
 
+    virtual bool IsPlatformCompressionEnabled()
+    {
+        return !m_vpMmcDisabled;
+    }
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VpRenderKernel m_kernel;
     void (*m_modifyKdllFunctionPointers)(PKdll_State) = nullptr;
     bool m_sfc2PassScalingEnabled = false;
     bool m_sfc2PassScalingPerfMode = false;
+    bool m_vpMmcDisabled = false;
 };
 
 }
