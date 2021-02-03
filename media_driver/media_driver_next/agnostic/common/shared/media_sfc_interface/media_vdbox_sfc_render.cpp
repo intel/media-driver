@@ -69,6 +69,7 @@ MOS_STATUS MediaVdboxSfcRender::Initialize(VP_MHWINTERFACE &vpMhwinterface, Medi
 
     m_vpMhwInterface    = vpMhwinterface;
     m_osInterface       = m_vpMhwInterface.m_osInterface;
+
     if (mmc)
     {
         m_mmc = mmc;
@@ -76,10 +77,11 @@ MOS_STATUS MediaVdboxSfcRender::Initialize(VP_MHWINTERFACE &vpMhwinterface, Medi
     }
     else
     {
-        m_mmc = MOS_New(VPMediaMemComp, m_osInterface, &m_vpMhwInterface);
+        m_mmc = MOS_New(VPMediaMemComp, m_osInterface, m_vpMhwInterface);
         VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
         m_isMmcAllocated = true;
     }
+
     m_allocator         = MOS_New(VpAllocator, m_osInterface, m_mmc);
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     m_cscFilter         = MOS_New(VpCscFilter, &m_vpMhwInterface);
