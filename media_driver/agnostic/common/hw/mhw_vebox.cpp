@@ -224,6 +224,15 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
     uint32_t                uiOffset;
     MOS_ALLOC_GFXRES_PARAMS AllocParams;
     MOS_LOCK_PARAMS         LockFlags;
+    MEDIA_FEATURE_TABLE     *skuTable = nullptr;
+
+    MHW_FUNCTION_ENTER;
+
+    MHW_CHK_NULL(m_osInterface);
+    MHW_CHK_NULL(m_osInterface->pfnGetSkuTable);
+
+    skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    MHW_CHK_NULL(skuTable);
 
     eStatus         = MOS_STATUS_SUCCESS;
 
@@ -289,10 +298,22 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
     AllocParams.pBufName = "VphalVeboxHeap";
     AllocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF;
 
+    if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+    {
+        AllocParams.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
+    }
+
     MHW_CHK_STATUS(m_osInterface->pfnAllocateResource(
         m_osInterface,
         &AllocParams,
         &m_veboxHeap->DriverResource));
+
+    if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+    {
+        // Use device memory for vebox heap kernel resource, as no cpu access on it.
+        AllocParams.dwMemType = MOS_MEMPOOL_DEVICEMEMORY;
+        AllocParams.Flags.bNotLockable = 1;
+    }
 
     MHW_CHK_STATUS(m_osInterface->pfnAllocateResource(
         m_osInterface,

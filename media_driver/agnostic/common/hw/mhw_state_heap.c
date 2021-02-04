@@ -1465,8 +1465,15 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
     uint32_t                    dwNumHeaps;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     PMHW_BLOCK_MANAGER          pBlockManager = nullptr;
+    MEDIA_FEATURE_TABLE        *skuTable = nullptr;
 
     MHW_FUNCTION_ENTER;
+
+    MHW_CHK_NULL(m_pOsInterface);
+    MHW_CHK_NULL(m_pOsInterface->pfnGetSkuTable);
+
+    skuTable = m_pOsInterface->pfnGetSkuTable(m_pOsInterface);
+    MHW_CHK_NULL(skuTable);
 
     pNewStateHeap = (PMHW_STATE_HEAP)MOS_AllocAndZeroMemory(sizeof(MHW_STATE_HEAP));
     MHW_CHK_NULL(pNewStateHeap);
@@ -1483,6 +1490,11 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
     AllocParams.Format    = Format_Buffer;
     AllocParams.dwBytes   = pNewStateHeap->dwSize;
     AllocParams.pBufName  = "DynamicStateHeap";
+    if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+    {
+        AllocParams.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
+    }
+
     MHW_CHK_STATUS(m_pOsInterface->pfnAllocateResource(
         m_pOsInterface,
         &AllocParams,
