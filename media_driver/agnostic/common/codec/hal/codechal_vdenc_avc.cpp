@@ -7833,6 +7833,20 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     {
         return eStatus;
     }
+    // get access to the MMIO registers 
+    CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
+    MmioRegistersMfx *mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
+    // Special processing for one slice case (to avoid limitations for multi-slice configuration)
+    if (m_numSlices == 1)
+    {
+        MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParamsAVC;
+        MOS_ZeroMemory(&miStoreRegMemParamsAVC, sizeof(miStoreRegMemParamsAVC));
+        miStoreRegMemParamsAVC.presStoreBuffer = presSliceSizeStreamoutBuffer;
+        miStoreRegMemParamsAVC.dwOffset        = 0;
+
+        miStoreRegMemParamsAVC.dwRegister = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParamsAVC));
+    }
 
     MHW_MI_STORE_DATA_PARAMS storeDataParams;
     MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
@@ -7870,8 +7884,6 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
     miStoreRegMemParams.presStoreBuffer = presMetadataBuffer;
     miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodedBitstreamWrittenBytesCount;
-    CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx *mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
     miStoreRegMemParams.dwRegister  = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
 
