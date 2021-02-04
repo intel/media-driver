@@ -52,7 +52,8 @@ namespace decode
             - m_av1BasicFeature->m_tileCoding.m_numTiles + 1)) ? 1 : 0;
 
         // For frame based submission mode, these cmds only need to be programed once per frame, otherwise need program per tile.
-        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
+            (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
             DECODE_CHK_STATUS(m_miInterface->SetWatchdogTimerThreshold(
             m_av1BasicFeature->m_width, m_av1BasicFeature->m_height, false));
@@ -68,12 +69,14 @@ namespace decode
         DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
         DECODE_CHK_STATUS(PackTileLevelCmds(*cmdBuffer));
 
-        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
+            (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
             HalOcaInterface::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
         }
 
-        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
+            (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
             DECODE_CHK_STATUS(m_allocator->SyncOnResource(&m_av1BasicFeature->m_resDataBuffer, false));
         }
@@ -114,7 +117,8 @@ namespace decode
 
         PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
-        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
+            (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
             if (IsPrologRequired())
             {
@@ -124,7 +128,8 @@ namespace decode
             DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
-        if (m_av1BasicFeature->m_usingDummyWl && (m_av1Pipeline->TileBasedDecodingInuse() || m_isFirstTileInPartialFrm))
+        if (m_av1BasicFeature->m_usingDummyWl && (m_av1Pipeline->TileBasedDecodingInuse() ||
+            m_isFirstTileInPartialFrm) || (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
             DECODE_CHK_STATUS(InitDummyWL(cmdBuffer));
         }
@@ -220,7 +225,8 @@ namespace decode
             DECODE_CHK_STATUS(m_tilePkt->Execute(cmdBuffer, tileIdx));
         }
 
-        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
+            (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
             DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
             DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));

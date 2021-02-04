@@ -76,6 +76,13 @@ namespace decode
         virtual MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer) = 0;
 
         //!
+        //! \brief  Init av1 state commands
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS InitAv1State(MOS_COMMAND_BUFFER& cmdBuffer) { return MOS_STATUS_SUCCESS; };
+
+        //!
         //! \brief  Calculate Command Size
         //!
         //! \param  [in, out] commandBufferSize
