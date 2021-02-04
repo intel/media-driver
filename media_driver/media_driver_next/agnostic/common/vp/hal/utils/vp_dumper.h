@@ -125,10 +125,11 @@
 //------------------------------------------------------------------------------
 // Dump macro for dumper.  Dump Sku and workaround information.
 //------------------------------------------------------------------------------
-#define SkuWaTable_DUMP_XML(skuTable, waTable) \
-    m_debugInterface->SkuWa_DumpToXML(                        \
-        skuTable,                                        \
-        waTable);
+#define SkuWaTable_DUMP_XML(skuTable, waTable)         \
+   if (m_debugInterface)                               \
+       m_debugInterface->SkuWa_DumpToXML(              \
+            skuTable,                                  \
+            waTable);                                  
 
 //! 
 //! Structure VPHAL_DBG_SURF_DUMP_SURFACE_DEF
