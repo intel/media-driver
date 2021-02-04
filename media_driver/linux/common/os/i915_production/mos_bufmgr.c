@@ -2715,6 +2715,8 @@ mos_gem_bo_clear_relocs(struct mos_linux_bo *bo, int start)
         struct mos_bo_gem *target_bo_gem = (struct mos_bo_gem *) bo_gem->reloc_target_info[i].bo;
         if (&target_bo_gem->bo != bo) {
             bo_gem->reloc_tree_fences -= target_bo_gem->reloc_tree_fences;
+            target_bo_gem->used_as_reloc_target = false;
+            target_bo_gem->reloc_count = 0;
             mos_gem_bo_unreference_locked_timed(&target_bo_gem->bo,
                                   time.tv_sec);
         }
