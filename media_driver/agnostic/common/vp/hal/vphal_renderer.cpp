@@ -2144,17 +2144,17 @@ MOS_STATUS VphalRenderer::AllocateDebugDumper()
 
     VPHAL_DBG_PARAMETERS_DUMPPER_CREATE()
     
-    // if m_isApoEnabled is false dump in legacy path, otherwise in APO path
-    if (!m_isApoEnabled)
-    {
-        SkuWaTable_DUMPPER_DUMP_XML(m_pSkuTable, m_pWaTable);
-    }
-    
     if (m_parameterDumper == nullptr)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");
         eStatus = MOS_STATUS_NULL_POINTER;
         goto finish;
+    }
+
+    // if m_isApoEnabled is false dump in legacy path, otherwise in APO path
+    if (!m_isApoEnabled)
+    {
+        SkuWaTable_DUMPPER_DUMP_XML(m_pSkuTable, m_pWaTable);
     }
 
 #endif
