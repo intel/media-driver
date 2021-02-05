@@ -160,7 +160,8 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
         MOS_SURFACE_STATE           == pParams->HwCommandType   ||
         MOS_SURFACE_STATE_ADV       == pParams->HwCommandType)
     {
-        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType);
+        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType,
+            pParams->dwLocationInCmd, pParams->dwOffset);
     }
 
 finish:
