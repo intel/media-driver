@@ -189,10 +189,14 @@ void HalOcaInterface::TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &m
 //!         Reference to MOS_RESOURCE.
 //! \param  [in] hwCmdType
 //!         Hw command type.
+//! \param  [in] locationInCmd
+//!         Location in command.
+//! \param  [in] offsetInRes
+//!         Offset in resource.
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void HalOcaInterface::DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MOS_RESOURCE &res, MOS_HW_COMMAND hwCmdType)
+void HalOcaInterface::DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MOS_RESOURCE &res, MOS_HW_COMMAND hwCmdType, uint32_t locationInCmd, uint32_t offsetInRes)
 {
 }
 

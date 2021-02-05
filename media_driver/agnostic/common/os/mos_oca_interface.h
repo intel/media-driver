@@ -207,10 +207,14 @@ public:
     //!         Reference to MOS_RESOURCE.
     //! \param  [in] hwCmdType
     //!         Hw command Type.
+    //! \param  [in] locationInCmd
+    //!         Location in command.
+    //! \param  [in] offsetInRes
+    //!         Offset in resource.
     //! \return MOS_STATUS
     //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS AddResourceToDumpList(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT mosCtx, MOS_RESOURCE &resource, MOS_HW_COMMAND hwCmdType)
+    virtual MOS_STATUS AddResourceToDumpList(MOS_OCA_BUFFER_HANDLE hOcaBuf, PMOS_CONTEXT mosCtx, MOS_RESOURCE &resource, MOS_HW_COMMAND hwCmdType, uint32_t locationInCmd, uint32_t offsetInRes)
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }

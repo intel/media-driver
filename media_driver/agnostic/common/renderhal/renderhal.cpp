@@ -6681,6 +6681,7 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
     SURFACE_STATE_TOKEN_COMMON *pSurfaceStateToken = (SURFACE_STATE_TOKEN_COMMON*)pParams->pSurfaceToken;
 
     uint32_t* pdwCmd = (uint32_t*)(pParams->pIndirectStateBase + iSurfaceStateOffset);
+    uint32_t locationInCmd = 0;
 
     // Copy surface state from system memory to graphics memory/indirect state
     if (pSurfaceStateToken->DW3.SurfaceStateType == MEDIASTATE_BTS_DEFAULT_TYPE)
@@ -6691,6 +6692,7 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
         // Patch offset is 8 DW from the surface state base
         pdwCmd += 8;
         iSurfaceStateOffset += 8 * sizeof(uint32_t);
+        locationInCmd = 8;
     }
     else
     {
@@ -6700,6 +6702,7 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
         // Patch offset is 6 DW from the surface state base
         pdwCmd += 6;
         iSurfaceStateOffset += 6 * sizeof(uint32_t);
+        locationInCmd = 6;
     }
 
     if (pOsInterface->bUsesGfxAddress)
@@ -6710,7 +6713,8 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
 
     if (pSurfaceStateToken->pResourceInfo)
     {
-        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *(PMOS_RESOURCE)(pSurfaceStateToken->pResourceInfo), (MOS_HW_COMMAND)pSurfaceStateToken->DW0.DriverID);
+        HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *(PMOS_RESOURCE)(pSurfaceStateToken->pResourceInfo), (MOS_HW_COMMAND)pSurfaceStateToken->DW0.DriverID,
+            locationInCmd, 0);
     }
 
     MOS_PATCH_ENTRY_PARAMS PatchEntryParams;
