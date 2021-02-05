@@ -398,6 +398,8 @@ public:
         MOS_FORMAT format = Format_NV12,
         bool isCompressible = false);
 
+    MOS_STATUS DestroySurface(PMOS_SURFACE surface);
+
     //!
     //! \brief  Entry to allocate and intialize the decode instance
     //! \param  [in] codecHalSettings
@@ -901,6 +903,8 @@ private:
         uint32_t allocWidth,
         uint32_t allocHeight,
         MOS_FORMAT format);
+
+    bool isSyncFreeNeededForMMCSurface(PMOS_SURFACE surface);
     //!
     //! \brief    Resize specific reference surfaces
     //! \details  Resize specific reference surfaces for decode downsampling for all codec types

@@ -610,6 +610,55 @@ MOS_STATUS CodechalDecode::AllocateRefSurfaces(
     return MOS_STATUS_SUCCESS;
 }
 
+bool CodechalDecode::isSyncFreeNeededForMMCSurface(PMOS_SURFACE surface)
+{
+    if (nullptr == surface || nullptr == m_osInterface)
+    {
+        return false;
+    }
+    //Compressed surface aux table update is after resource dealloction, aux table update need wait the WLs complete
+    //the sync deallocation flag will make sure deallocation API return after all surface related WL been completed and resource been destroyed by OS
+    auto *pSkuTable = m_hwInterface->GetSkuTable();
+    GMM_RESOURCE_FLAG gmmFlags;
+    bool              hasAuxSurf = false;
+    gmmFlags   = (&surface->OsResource)->pGmmResInfo->GetResFlags();
+    hasAuxSurf = (gmmFlags.Gpu.CCS || gmmFlags.Info.MediaCompressed) && gmmFlags.Gpu.UnifiedAuxSurface;
+
+    if (pSkuTable &&
+        MEDIA_IS_SKU(pSkuTable, FtrE2ECompression) &&                                    //Compression enabled platform
+        !MEDIA_IS_SKU(pSkuTable, FtrFlatPhysCCS) &&                                      //NOT DGPU compression
+        (surface->bCompressible) && ((surface->CompressionMode != MOS_MMC_DISABLED) || hasAuxSurf))  //Compressed enabled surface
+    {
+        return true;
+    }
+
+    return false;
+}
+
+MOS_STATUS CodechalDecode::DestroySurface(PMOS_SURFACE surface)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    if (nullptr == surface)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (surface && isSyncFreeNeededForMMCSurface(surface))
+    {
+        resFreeFlags.SynchronousDestroy    = 1;
+        CODECHAL_DECODE_NORMALMESSAGE("Set SynchronousDestroy flag for compressed resource\n");
+    }
+
+    m_osInterface->pfnFreeResourceWithFlag(m_osInterface, &surface->OsResource, resFreeFlags.Value);
+    surface = nullptr;
+
+    return eStatus;
+}
+
 MOS_STATUS CodechalDecode::RefSurfacesResize(
     uint32_t     frameIdx,
     uint32_t     width,
@@ -653,9 +702,7 @@ void CodechalDecode::DeallocateSpecificRefSurfaces(uint32_t frameIdx)
     {
         if (!Mos_ResourceIsNull(&m_refSurfaces[frameIdx].OsResource))
         {
-            m_osInterface->pfnFreeResource(
-                m_osInterface,
-                &m_refSurfaces[frameIdx].OsResource);
+            DestroySurface(&m_refSurfaces[frameIdx]);
         }
     }
 }
@@ -674,9 +721,8 @@ void CodechalDecode::DeallocateRefSurfaces()
         {
             if (!Mos_ResourceIsNull(&m_refSurfaces[i].OsResource))
             {
-                m_osInterface->pfnFreeResource(
-                    m_osInterface,
-                    &m_refSurfaces[i].OsResource);
+                DestroySurface(&m_refSurfaces[i]);
+                
             }
         }
 

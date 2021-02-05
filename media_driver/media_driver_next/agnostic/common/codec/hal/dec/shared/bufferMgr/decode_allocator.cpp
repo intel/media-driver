@@ -383,7 +383,12 @@ MOS_STATUS DecodeAllocator::Destroy(MOS_SURFACE* & surface)
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_STATUS(m_allocator->DestroySurface(surface));
+    //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+    resFreeFlags.SynchronousDestroy = m_allocator->isSyncFreeNeededForMMCSurface(surface) ? 1 : 0;
+    DECODE_NORMALMESSAGE("SynchronousDestroy flag (%d) for surface\n", resFreeFlags.SynchronousDestroy);
+
+    DECODE_CHK_STATUS(m_allocator->DestroySurface(surface, resFreeFlags));
     surface = nullptr;
     return MOS_STATUS_SUCCESS;
 }
@@ -396,7 +401,13 @@ MOS_STATUS DecodeAllocator::Destroy(MOS_SURFACE& surface)
     DECODE_CHK_NULL(dup);
     DECODE_CHK_STATUS(MOS_SecureMemcpy(dup, sizeof(MOS_SURFACE), &surface, sizeof(MOS_SURFACE)));
 
-    DECODE_CHK_STATUS(m_allocator->DestroySurface(dup));
+    //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+    resFreeFlags.SynchronousDestroy = m_allocator->isSyncFreeNeededForMMCSurface(dup) ? 1 : 0;
+    DECODE_NORMALMESSAGE("SynchronousDestroy flag (%d) for surface\n", resFreeFlags.SynchronousDestroy);
+
+    DECODE_CHK_STATUS(m_allocator->DestroySurface(dup, resFreeFlags));
+
     return MOS_STATUS_SUCCESS;
 }
 

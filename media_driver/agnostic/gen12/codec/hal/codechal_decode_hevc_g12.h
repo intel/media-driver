@@ -439,7 +439,7 @@ protected:
     uint32_t           m_frameSizeMaxAlloced = 0;                           //!< Max Frame size used for buffer allocation in past frames
 
     bool               m_isSeparateTileDecoding = false;                    //!< Single pipe tile decoding for IBC/PAL
-    MOS_RESOURCE       m_resRefBeforeLoopFilter;                            //!< For SCC IBC
+    MOS_SURFACE        m_resRefBeforeLoopFilter;                            //!< For SCC IBC
     bool               m_twoVersionsOfCurrDecPicFlag = false;               //!< Flag for SCC IBC mode
     uint8_t            m_IBCRefIdx = 0;                                     //!< Reference ID for IBC mode
 

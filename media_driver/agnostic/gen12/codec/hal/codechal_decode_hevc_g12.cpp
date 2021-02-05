@@ -97,14 +97,12 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourcesVariableSizes ()
     if (CodecHalDecodeIsSCCIBCMode(m_hevcSccPicParams))
     {
         bool isNeedBiggerSize = (widthMax > m_widthLastMaxAlloced) || (heightMax > m_heightLastMaxAlloced);
-        bool isResourceNull = Mos_ResourceIsNull(&m_resRefBeforeLoopFilter);
+        bool isResourceNull = Mos_ResourceIsNull(&m_resRefBeforeLoopFilter.OsResource);
         if (isNeedBiggerSize || isResourceNull)
         {
             if (!isResourceNull)
             {
-                m_osInterface->pfnFreeResource(
-                    m_osInterface,
-                    &m_resRefBeforeLoopFilter);
+                DestroySurface(&m_resRefBeforeLoopFilter);
             }
 
             // allocate an internal temporary buffer as reference which holds pixels before in-loop filter
@@ -185,7 +183,7 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourceRefBefLoopFilter()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-    if (!Mos_ResourceIsNull(&m_resRefBeforeLoopFilter))
+    if (!Mos_ResourceIsNull(&m_resRefBeforeLoopFilter.OsResource))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -202,7 +200,7 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourceRefBefLoopFilter()
                                                   m_destSurface.bCompressible),
         "Failed to allocate reference before loop filter for IBC.");
 
-    m_resRefBeforeLoopFilter = surface.OsResource;
+    m_resRefBeforeLoopFilter = surface;
 
     return eStatus;
 }
@@ -253,9 +251,9 @@ CodechalDecodeHevcG12::~CodechalDecodeHevcG12 ()
         MOS_FreeMemAndSetNull(m_scalabilityState);
     }
 
-    if (!Mos_ResourceIsNull(&m_resRefBeforeLoopFilter))
+    if (!Mos_ResourceIsNull(&m_resRefBeforeLoopFilter.OsResource))
     {
-        m_osInterface->pfnFreeResource(m_osInterface, &m_resRefBeforeLoopFilter);
+        DestroySurface(&m_resRefBeforeLoopFilter);
     }
     for (uint32_t i = 0; i < CODEC_HEVC_NUM_SECOND_BB; i++)
     {
@@ -1006,7 +1004,7 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
 
     if (m_twoVersionsOfCurrDecPicFlag)
     {
-        m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx]->resRefPic = m_resRefBeforeLoopFilter;
+        m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx]->resRefPic = m_resRefBeforeLoopFilter.OsResource;
     }
     else
     {
