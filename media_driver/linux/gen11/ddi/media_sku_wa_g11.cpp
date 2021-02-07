@@ -385,6 +385,10 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrTileY, 1);
 
     MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
+    
+    /*Software workaround to disable the UV offset calculation by gmmlib
+      CPU blt call will add/remove padding on the platform*/
+    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
 
     return true;
 }
