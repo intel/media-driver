@@ -386,6 +386,14 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
 
+    /*software wa to disable calculate the UV offset by gmmlib
+      CPU blt call will add/remove padding on the platform.
+      beside this usage, media driver still need to consider another senario:
+      surface is created with unaligned height and gmmlib return unaligned height when app
+      convey different usage hint. but the uvOffset from gmmlib is another value.
+      so, if media still use gmmlib cpu blt to do the de-tiling, this WA need to be enabled*/
+    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
+
     return true;
 }
 
