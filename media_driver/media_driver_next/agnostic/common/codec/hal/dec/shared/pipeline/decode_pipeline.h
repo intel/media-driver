@@ -222,6 +222,16 @@ public:
         return m_osInterface->phasedSubmission;
     }
 
+    //!
+    //! \brief    Help function to check if guc submission mode
+    //!
+    //! \return   True if guc submission mode, otherwise return false
+    //!
+    virtual bool IsGucSubmission()
+    {
+        return m_osInterface->bGucSubmission;
+    }
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
     //!
     //! \brief  Check if down sampling supported for current frame

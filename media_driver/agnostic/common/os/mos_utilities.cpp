@@ -4047,6 +4047,17 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         "0",
         "Internal Res tile as 3 used"),
 #endif //(_DEBUG || _RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION_ID,
+            "Enable Guc Submission",
+            __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+            __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+            "MOS",
+            MOS_USER_FEATURE_TYPE_USER,
+            MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+            "1",
+            "To decide if using guc submission."),
+#endif //(_DEBUG || _RELEASE_INTERNAL)
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
        __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE,
        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,

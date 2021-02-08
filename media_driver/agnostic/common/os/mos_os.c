@@ -768,6 +768,7 @@ MOS_STATUS Mos_InitInterface(
 
         pOsInterface->osStreamState->ctxBasedScheduling       = pOsInterface->ctxBasedScheduling;
         pOsInterface->osStreamState->multiNodeScaling         = pOsInterface->multiNodeScaling;
+        pOsInterface->osStreamState->bGucSubmission           = pOsInterface->bGucSubmission;
         pOsInterface->osStreamState->perStreamParameters      = pOsInterface->pOsContext;
     }
 

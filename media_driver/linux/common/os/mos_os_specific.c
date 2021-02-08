@@ -7168,6 +7168,13 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         osInterface->pVEInterf = nullptr;
         osInterface->VEEnable = false;
 
+        auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+        MOS_OS_CHK_NULL_RETURN(skuTable);
+        if (MEDIA_IS_SKU(skuTable, FtrGucSubmission))
+        {
+            osInterface->bGucSubmission = true;
+        }
+
 #if (_DEBUG || _RELEASE_INTERNAL)
         //Read Scalable/Legacy Decode mode on Gen11+
         //1:by default for scalable decode mode
@@ -7194,6 +7201,24 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             &userFeatureData,
             nullptr);
         osInterface->frameSplit = (uint32_t)userFeatureData.i32Data;
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION_ID,
+            &userFeatureData,
+        nullptr);
+        osInterface->bGucSubmission = osInterface->bGucSubmission && ((uint32_t)userFeatureData.i32Data);
+
+        // read the "Force VEBOX" user feature key
+        // 0: not force
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            NULL,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
+            &userFeatureData,
+            nullptr);
+        osInterface->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
 
         //KMD Virtual Engine DebugOverride
         // 0: not Override

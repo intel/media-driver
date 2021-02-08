@@ -214,6 +214,16 @@ protected:
                                int32_t dr4);
 
     //!
+    //! \brief    Combin cmd buffer for each pipe and use one submission  in scalability mode
+    //! \return   int32_t
+    //!           Return 0 if successful, otherwise error code
+    //!
+    int32_t ParallelSubmitCommands(std::map<uint32_t, PMOS_COMMAND_BUFFER> secondaryCmdBufs,
+                               PMOS_CONTEXT osContext,
+                               uint32_t execFlag,
+                               int32_t dr4);
+
+    //!
     //! \brief    Set the flags of engin quering according to create options
     //! \return   void
     //!

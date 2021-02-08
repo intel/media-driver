@@ -283,51 +283,71 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
             if (nengine >= 2)
             {
-                //master queue
-                m_i915Context[1] = mos_gem_context_create_shared(osParameters->bufmgr,
-                                                                 osParameters->intel_context,
-                                                                 I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
-                if (m_i915Context[1] == nullptr)
+                if(!streamState->bGucSubmission)
                 {
-                    MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
-                    MOS_SafeFreeMemory(engine_map);
-                    return MOS_STATUS_UNKNOWN;
-                }
-                m_i915Context[1]->pOsContext = osParameters;
-
-                if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
-                {
-                    MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
-                    MOS_SafeFreeMemory(engine_map);
-                    return MOS_STATUS_UNKNOWN;
-                }
-
-                //slave queue
-                for (int i=1; i<nengine; i++)
-                {
-                    m_i915Context[i+1] = mos_gem_context_create_shared(osParameters->bufmgr,
+                    //master queue
+                    m_i915Context[1] = mos_gem_context_create_shared(osParameters->bufmgr,
                                                                      osParameters->intel_context,
                                                                      I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
-                    if (m_i915Context[i+1] == nullptr)
+                    if (m_i915Context[1] == nullptr)
                     {
-                        MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
+                        MOS_OS_ASSERTMESSAGE("Failed to create master context.\n");
                         MOS_SafeFreeMemory(engine_map);
                         return MOS_STATUS_UNKNOWN;
                     }
-                    m_i915Context[i+1]->pOsContext = osParameters;
+                    m_i915Context[1]->pOsContext = osParameters;
 
-                    if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1) != S_SUCCESS)
+                    if (mos_set_context_param_load_balance(m_i915Context[1], engine_map, 1))
                     {
-                        int err = errno;
-                        if (err == ENODEV)
+                        MOS_OS_ASSERTMESSAGE("Failed to set master context bond extension.\n");
+                        MOS_SafeFreeMemory(engine_map);
+                        return MOS_STATUS_UNKNOWN;
+                    }
+
+                    //slave queue
+                    for (int i=1; i<nengine; i++)
+                    {
+                        m_i915Context[i+1] = mos_gem_context_create_shared(osParameters->bufmgr,
+                                                                         osParameters->intel_context,
+                                                                         I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE);
+                        if (m_i915Context[i+1] == nullptr)
                         {
-                            mos_gem_context_destroy(m_i915Context[i+1]);
-                            m_i915Context[i+1] = nullptr;
-                            break;
+                            MOS_OS_ASSERTMESSAGE("Failed to create slave context.\n");
+                            MOS_SafeFreeMemory(engine_map);
+                            return MOS_STATUS_UNKNOWN;
                         }
-                        else
+                        m_i915Context[i+1]->pOsContext = osParameters;
+
+                        if (mos_set_context_param_bond(m_i915Context[i+1], engine_map[0], &engine_map[i], 1) != S_SUCCESS)
                         {
-                            MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension. errno=%d\n",err);
+                            int err = errno;
+                            if (err == ENODEV)
+                            {
+                                mos_gem_context_destroy(m_i915Context[i+1]);
+                                m_i915Context[i+1] = nullptr;
+                                break;
+                            }
+                            else
+                            {
+                                MOS_OS_ASSERTMESSAGE("Failed to set slave context bond extension. errno=%d\n",err);
+                                MOS_SafeFreeMemory(engine_map);
+                                return MOS_STATUS_UNKNOWN;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //create context with different width
+                    for(int i = 1; i < nengine; i++)
+                    {
+                        unsigned int ctxWidth = i + 1;
+                        m_i915Context[i] = mos_gem_context_create_shared(osParameters->bufmgr,
+                                                                     osParameters->intel_context,
+                                                                     0); // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
+                        if (mos_set_context_param_parallel(m_i915Context[i], engine_map, ctxWidth) != S_SUCCESS)
+                        {
+                            MOS_OS_ASSERTMESSAGE("Failed to set parallel extension.\n");
                             MOS_SafeFreeMemory(engine_map);
                             return MOS_STATUS_UNKNOWN;
                         }
@@ -1212,7 +1232,7 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
         {
             if (cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASK)
             {
-                if (scalaEnabled)
+                if (scalaEnabled && !streamState->bGucSubmission)
                 {
                     uint32_t secondaryIndex = 0;
                     it = m_secondaryCmdBufs.begin();
@@ -1235,6 +1255,13 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
                                                  DR4);
                         it++;
                     }
+                }
+                else if(scalaEnabled && streamState->bGucSubmission)
+                {
+                    ret = ParallelSubmitCommands(m_secondaryCmdBufs,
+                                         perStreamParameters,
+                                         execFlag,
+                                         DR4);
                 }
                 else
                 {
@@ -1420,6 +1447,92 @@ int32_t GpuContextSpecificNext::SubmitPipeCommands(
     if(cmdBuffer->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)
     {
         close(fence);
+    }
+
+    return ret;
+}
+
+int32_t GpuContextSpecificNext::ParallelSubmitCommands(
+    std::map<uint32_t, PMOS_COMMAND_BUFFER> secondaryCmdBufs,
+    PMOS_CONTEXT osContext,
+    uint32_t execFlag,
+    int32_t dr4)
+{
+    int32_t      ret        = 0;
+    int          fence      = -1;
+    unsigned int fenceFlag  = 0;
+    auto         it         = m_secondaryCmdBufs.begin();
+    MOS_LINUX_BO *cmdBos[MAX_PARALLEN_CMD_BO_NUM];
+    int          numBos     = 0; // exclude FE bo
+
+    MOS_LINUX_CONTEXT *queue = m_i915Context[0];
+    bool isVeboxSubmission   = false;
+
+    if (execFlag == MOS_GPU_NODE_VIDEO || execFlag == MOS_GPU_NODE_VIDEO2)
+    {
+        execFlag = I915_EXEC_DEFAULT;
+    }
+    if (execFlag == MOS_GPU_NODE_VE)
+    {
+        execFlag = I915_EXEC_DEFAULT;
+        isVeboxSubmission = true;
+    }
+
+    while(it != m_secondaryCmdBufs.end())
+    {
+        if(it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_ALONE)
+        {
+            fenceFlag = I915_EXEC_FENCE_OUT;
+            queue = m_i915Context[0];
+
+            ret = mos_gem_bo_context_exec2(it->second->OsResource.bo,
+                                  it->second->OsResource.bo->size,
+                                  queue,
+                                  nullptr,
+                                  0,
+                                  dr4,
+                                  execFlag | fenceFlag,
+                                  &fence);
+
+            osContext->submit_fence = fence;
+        }
+
+        if((it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_MASTER)
+            || (it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_SLAVE))
+        {
+            cmdBos[numBos++] = it->second->OsResource.bo;
+
+            if(it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)
+            {
+                queue = m_i915Context[numBos - 1];
+                if(-1 != fence)
+                {
+                    fenceFlag = I915_EXEC_FENCE_IN;
+                }
+
+                ret = mos_gem_bo_context_exec3(cmdBos,
+                                              numBos,
+                                              queue,
+                                              nullptr,
+                                              0,
+                                              dr4,
+                                              execFlag | fenceFlag,
+                                              &fence);
+
+                for(int i = 0; i < numBos; i++)
+                {
+                    cmdBos[i] = nullptr;
+                }
+                numBos = 0;
+
+                if(-1 != fence)
+                {
+                    close(fence);
+                }
+            }
+        }
+
+        it++;
     }
 
     return ret;
