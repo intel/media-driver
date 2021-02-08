@@ -32,6 +32,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_decode_histogram.h
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mcpy.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_hwinfo_device.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_hwinfo.h
 )
 
 if(${MMC_Supported} STREQUAL "yes")
