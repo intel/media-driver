@@ -201,8 +201,22 @@ VpResourceManager::~VpResourceManager()
     m_allocator.CleanRecycler();
 }
 
+void VpResourceManager::CleanTempSurfaces()
+{
+    VP_FUNC_CALL();
+
+    while (!m_tempSurface.empty())
+    {
+        auto it = m_tempSurface.begin();
+        m_allocator.DestroyVpSurface(it->second);
+        m_tempSurface.erase(it);
+    }
+}
+
 MOS_STATUS VpResourceManager::OnNewFrameProcessStart(SwFilterPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_SURFACE *inputSurface    = pipe.GetSurface(true, 0);
     VP_SURFACE *outputSurface   = pipe.GetSurface(false, 0);
     SwFilter   *diFilter        = pipe.GetSwFilter(true, 0, FeatureTypeDi);
@@ -219,7 +233,7 @@ MOS_STATUS VpResourceManager::OnNewFrameProcessStart(SwFilterPipe &pipe)
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
-    VP_SURFACE *pastSurface = pipe.GetPastSurface(0);
+    VP_SURFACE *pastSurface   = pipe.GetPastSurface(0);
     VP_SURFACE *futureSurface = pipe.GetFutureSurface(0);
 
     int32_t currentFrameId = inputSurface ? inputSurface->FrameID : (outputSurface ? outputSurface->FrameID : 0);
@@ -300,6 +314,7 @@ void VpResourceManager::OnNewFrameProcessEnd()
 {
     m_allocator.CleanRecycler();
     m_currentPipeIndex = 0;
+    CleanTempSurfaces();
 }
 
 void VpResourceManager::InitSurfaceConfigMap()
@@ -435,7 +450,7 @@ MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceParams(VP_SURFACE_PARAMS
 
 MOS_STATUS VpResourceManager::AssignIntermediaSurface(SwFilterPipe &executedFilters)
 {
-    VP_SURFACE *outputSurface  = executedFilters.GetSurface(false, 0);
+    VP_SURFACE* outputSurface = executedFilters.GetSurface(false, 0);
     if (outputSurface)
     {
         // No need intermedia surface.
@@ -482,14 +497,42 @@ MOS_STATUS VpResourceManager::AssignIntermediaSurface(SwFilterPipe &executedFilt
     return MOS_STATUS_SUCCESS;
 }
 
+VP_SURFACE * VpResourceManager::GetCopyInstOfExtSurface(VP_SURFACE* surf)
+{
+    VP_FUNC_CALL();
+
+    if (nullptr == surf || 0 == surf->GetAllocationHandle())
+    {
+        return nullptr;
+    }
+    auto it = m_tempSurface.find(surf->GetAllocationHandle());
+    if (it != m_tempSurface.end())
+    {
+        return it->second;
+    }
+    VP_SURFACE *surface = m_allocator.AllocateVpSurface(*surf);
+    if (surface)
+    {
+        m_tempSurface.insert(make_pair(surf->GetAllocationHandle(), surface));
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Allocate temp surface faild!");
+    }
+    return surface;
+}
+
 MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters)
 {
     VP_FUNC_CALL();
-    VP_SURFACE                  *inputSurface   = executedFilters.GetSurface(true, 0);
-    VP_SURFACE                  *outputSurface  = executedFilters.GetSurface(false, 0);
-    VP_SURFACE                  *pastSurface    = executedFilters.GetPastSurface(0);
-    VP_SURFACE                  *futureSurface  = executedFilters.GetFutureSurface(0);
+
+    VP_SURFACE                  *inputSurface   = GetCopyInstOfExtSurface(executedFilters.GetSurface(true, 0));
+    VP_SURFACE                  *outputSurface  = GetCopyInstOfExtSurface(executedFilters.GetSurface(false, 0));
+    VP_SURFACE                  *pastSurface    = GetCopyInstOfExtSurface(executedFilters.GetPastSurface(0));
+    VP_SURFACE                  *futureSurface  = GetCopyInstOfExtSurface(executedFilters.GetFutureSurface(0));
+
     RESOURCE_ASSIGNMENT_HINT    resHint         = {};
+
     VP_PUBLIC_CHK_STATUS_RETURN(GetResourceHint(featurePool, executedFilters, resHint));
 
     if (nullptr == outputSurface)
@@ -515,6 +558,7 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SU
         // Create Vebox Resources
         VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurface, outputSurface, pastSurface, futureSurface, resHint, surfSetting));
     }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1154,7 +1198,11 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     uint32_t                        i;
     auto&                           surfGroup = surfSetting.surfGroup;
 
-    VP_PUBLIC_CHK_STATUS_RETURN(AllocateVeboxResource(caps, inputSurface, outputSurface));
+    // Render case reuse vebox resource, and don`t need re-allocate.
+    if (!caps.bRender)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AllocateVeboxResource(caps, inputSurface, outputSurface));
+    }
 
     if (caps.bDI || caps.bDiProcess2ndField)
     {

@@ -50,7 +50,6 @@
 #define VEBOX_AUTO_DENOISE_SUPPORTED    1
 #endif
 
-
 #define IS_VP_VEBOX_DN_ONLY(_a) (_a.bDN &&          \
                                !(_a.bDI) &&   \
                                !(_a.bQueryVariance) && \
@@ -436,41 +435,45 @@ protected:
         return m_currentPipeIndex > 0;
     }
 
+    void CleanTempSurfaces();
+    VP_SURFACE* GetCopyInstOfExtSurface(VP_SURFACE* surf);
+
 protected:
     MOS_INTERFACE                &m_osInterface;
     VpAllocator                  &m_allocator;
     VphalFeatureReport           &m_reporting;
 
     // Vebox Resource
-    VP_SURFACE* m_veboxDenoiseOutput[VP_NUM_DN_SURFACES] = {};            //!< Vebox Denoise output surface
-    VP_SURFACE* m_veboxOutput[VP_MAX_NUM_VEBOX_SURFACES] = {};            //!< Vebox output surface, can be reuse for DI usages
-    VP_SURFACE* m_veboxSTMMSurface[VP_NUM_STMM_SURFACES] = {};            //!< Vebox STMM input/output surface
-    VP_SURFACE *m_veboxStatisticsSurface                 = nullptr;       //!< Statistics Surface for VEBOX
-    VP_SURFACE *m_veboxRgbHistogram                      = nullptr;       //!< RGB Histogram surface for Vebox
-    VP_SURFACE *m_veboxDNTempSurface                     = nullptr;       //!< Vebox DN Update kernels temp surface
-    VP_SURFACE *m_veboxDNSpatialConfigSurface            = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel
-    VP_SURFACE *m_vebox3DLookUpTables                    = nullptr;
-    uint32_t    m_currentDnOutput                        = 0;
-    uint32_t    m_currentStmmIndex                       = 0;
-    uint32_t    m_veboxOutputCount                       = 2;             //!< PE on: 4 used. PE off: 2 used
-    bool        m_pastDnOutputValid                      = false;         //!< true if vebox DN output of previous frame valid.
-    VP_FRAME_IDS m_currentFrameIds                       = {};
-    VP_FRAME_IDS m_pastFrameIds                          = {};
-    bool         m_firstFrame                            = true;
-    bool         m_sameSamples                           = false;
-    bool         m_outOfBound                            = false;
-    RECT         m_maxSrcRect                            = {};
+    VP_SURFACE* m_veboxDenoiseOutput[VP_NUM_DN_SURFACES]     = {};            //!< Vebox Denoise output surface
+    VP_SURFACE* m_veboxOutput[VP_MAX_NUM_VEBOX_SURFACES]     = {};            //!< Vebox output surface, can be reuse for DI usages
+    VP_SURFACE* m_veboxSTMMSurface[VP_NUM_STMM_SURFACES]     = {};            //!< Vebox STMM input/output surface
+    VP_SURFACE *m_veboxStatisticsSurface                     = nullptr;       //!< Statistics Surface for VEBOX
+    VP_SURFACE *m_veboxRgbHistogram                          = nullptr;       //!< RGB Histogram surface for Vebox
+    VP_SURFACE *m_veboxDNTempSurface                         = nullptr;       //!< Vebox DN Update kernels temp surface
+    VP_SURFACE *m_veboxDNSpatialConfigSurface                = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel
+    VP_SURFACE *m_vebox3DLookUpTables                        = nullptr;
+    uint32_t    m_currentDnOutput                            = 0;
+    uint32_t    m_currentStmmIndex                           = 0;
+    uint32_t    m_veboxOutputCount                           = 2;             //!< PE on: 4 used. PE off: 2 used
+    bool        m_pastDnOutputValid                          = false;         //!< true if vebox DN output of previous frame valid.
+    VP_FRAME_IDS m_currentFrameIds                           = {};
+    VP_FRAME_IDS m_pastFrameIds                              = {};
+    bool         m_firstFrame                                = true;
+    bool         m_sameSamples                               = false;
+    bool         m_outOfBound                                = false;
+    RECT         m_maxSrcRect                                = {};
     VEBOX_SURFACE_CONFIG_MAP m_veboxSurfaceConfigMap;
-    bool        m_isHistogramReallocated                 = false;
-    bool        m_isCurrentHistogramInuse                = false;
-    bool        m_isPastHistogramValid                   = false;
-    uint32_t    m_imageWidthOfPastHistogram              = 0;
-    uint32_t    m_imageHeightOfPastHistogram             = 0;
-    uint32_t    m_imageWidthOfCurrentHistogram           = 0;
-    uint32_t    m_imageHeightOfCurrentHistogram          = 0;
+    bool        m_isHistogramReallocated                     = false;
+    bool        m_isCurrentHistogramInuse                    = false;
+    bool        m_isPastHistogramValid                       = false;
+    uint32_t    m_imageWidthOfPastHistogram                  = 0;
+    uint32_t    m_imageHeightOfPastHistogram                 = 0;
+    uint32_t    m_imageWidthOfCurrentHistogram               = 0;
+    uint32_t    m_imageHeightOfCurrentHistogram              = 0;
     std::vector<VP_SURFACE *> m_intermediaSurfaces;
+    std::map<uint64_t, VP_SURFACE *> m_tempSurface; // allocation handle and surface pointer pair.
     // Pipe index for one DDI call.
-    uint32_t    m_currentPipeIndex                       = 0;
+    uint32_t    m_currentPipeIndex                           = 0;
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__
