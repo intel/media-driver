@@ -634,6 +634,7 @@ struct MosStreamState
     int32_t eForceVebox = 0;  //!< Force select Vebox
 #endif // _DEBUG || _RELEASE_INTERNAL
 
+    bool  bGucSubmission     = false;  //!< Flag to indicate if guc submission is enabled
     OS_PER_STREAM_PARAMETERS  perStreamParameters = nullptr; //!< Parameters of OS specific per stream
 };
 
@@ -1384,6 +1385,7 @@ typedef struct _MOS_INTERFACE
     bool                            phasedSubmission = false;                     //!< Flag to indicate if secondary command buffers are submitted together (Win) or separately (Linux)
     bool                            frameSplit = true;                            //!< Flag to indicate if frame split is enabled
     bool                            bSetHandleInvalid = false;
+    bool                            bGucSubmission = false;                       //!< Flag to indicate if guc submission is enabled
     MOS_CMD_BUF_ATTRI_VE            bufAttriVe[MOS_GPU_CONTEXT_MAX];
 
     MOS_STATUS (*pfnCheckVirtualEngineSupported)(

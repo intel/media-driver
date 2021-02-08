@@ -189,6 +189,13 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     (*streamState)->veEnable                = false;
     (*streamState)->phasedSubmission        = true;
 
+    auto skuTable = GetSkuTable(*streamState);
+    MOS_OS_CHK_NULL_RETURN(skuTable);
+    if (MEDIA_IS_SKU(skuTable, FtrGucSubmission))
+    {
+        (*streamState)->bGucSubmission = true;
+    }
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     // read the "Force VDBOX" user feature key
     // 0: not force
@@ -225,6 +232,14 @@ MOS_STATUS MosInterface::CreateOsStreamState(
         &userFeatureData,
         (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->frameSplit = (uint32_t)userFeatureData.i32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        NULL,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION_ID,
+        &userFeatureData,
+    nullptr);
+    (*streamState)->bGucSubmission = (*streamState)->bGucSubmission && ((uint32_t)userFeatureData.i32Data);
 
     //KMD Virtual Engine DebugOverride
     // 0: not Override

@@ -40,6 +40,8 @@
 #include "libdrm_macros.h"
 
 #define S_SUCCESS 0
+#define mos_safe_free(p)        \
+        if(p) free(p);          \
 
 struct drm_clip_rect;
 struct mos_bufmgr;
@@ -254,6 +256,7 @@ struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr);
 void mos_gem_vm_destroy(struct mos_bufmgr *bufmgr, struct drm_i915_gem_vm_control* vm);
 
 #define MAX_ENGINE_INSTANCE_NUM 8
+#define MAX_PARALLEN_CMD_BO_NUM MAX_ENGINE_INSTANCE_NUM
 
 int mos_query_engines_count(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine);
@@ -263,6 +266,11 @@ int mos_query_engines(struct mos_bufmgr *bufmgr,
                       __u64 caps,
                       unsigned int *nengine,
                       struct i915_engine_class_instance *ci);
+
+int mos_set_context_param_parallel(struct mos_linux_context *ctx,
+                         struct i915_engine_class_instance *ci,
+                         unsigned int count);
+
 int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
                          struct i915_engine_class_instance *ci,
                          unsigned int count);
@@ -278,6 +286,12 @@ int
 mos_gem_bo_context_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
                                struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
                                unsigned int flags, int *fence);
+
+int
+mos_gem_bo_context_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
+                               struct drm_clip_rect *cliprects, int num_cliprects, int DR4,
+                               unsigned int flags, int *fence);
+
 int mos_bo_gem_export_to_prime(struct mos_linux_bo *bo, int *prime_fd);
 struct mos_linux_bo *mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr,
                         int prime_fd, int size);
@@ -378,6 +392,10 @@ drm_export int
 mos_gem_bo_exec(struct mos_linux_bo *bo, int used,
               drm_clip_rect_t * cliprects, int num_cliprects, int DR4);
 drm_export int do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
+     drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
+     unsigned int flags, int *fence);
+
+drm_export int do_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
      unsigned int flags, int *fence);
 
