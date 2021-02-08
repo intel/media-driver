@@ -449,7 +449,11 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             {
                 *value = ENCODE_JPEG_MAX_PIC_WIDTH;
             }
-            else if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
+            else if(IsHevcProfile(profile))
+            {
+                *value = CODEC_16K_MAX_PIC_WIDTH;
+            }
+            else if(IsVp9Profile(profile))
             {
                 *value = CODEC_8K_MAX_PIC_WIDTH;
             }
@@ -469,7 +473,11 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
             {
                 *value = ENCODE_JPEG_MAX_PIC_HEIGHT;
             }
-            else if(IsHevcProfile(profile) || (IsVp9Profile(profile)))
+            else if(IsHevcProfile(profile))
+            {
+                *value = CODEC_12K_MAX_PIC_HEIGHT;
+            }
+            else if(IsVp9Profile(profile))
             {
                 *value = CODEC_8K_MAX_PIC_HEIGHT;
             }
