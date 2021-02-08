@@ -78,6 +78,9 @@ struct VP_SURFACE
     bool        IsEmpty();
     // Clean the vp surface to empty state. Only valid for false == isResourceOwner case.
     MOS_STATUS  Clean();
+
+    // Get Allocation Handle of resource
+    uint64_t    GetAllocationHandle();
 };
 
 struct _VP_SETTINGS

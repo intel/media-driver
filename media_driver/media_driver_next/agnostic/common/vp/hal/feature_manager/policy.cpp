@@ -31,6 +31,7 @@
 #include "vp_feature_manager.h"
 #include "vp_platform_interface.h"
 #include "sw_filter_handle.h"
+
 using namespace vp;
 
 /****************************************************************************************************/
@@ -1067,6 +1068,11 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
                         feature->GetFilterEngineCaps().VeboxNeeded  = 0;
                         feature->GetFilterEngineCaps().RenderNeeded = 0;
                     }
+                    else if (feature->GetFilterEngineCaps().RenderNeeded)
+                    {
+                        feature->GetFilterEngineCaps().SfcNeeded    = 0;
+                        feature->GetFilterEngineCaps().RenderNeeded = 1;
+                    }
                     else
                     {
                         feature->GetFilterEngineCaps().SfcNeeded    = 0;
@@ -1302,7 +1308,6 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
     VP_SURFACE* surfInput  = nullptr;
     VP_SURFACE* surfOutput = nullptr;
     uint32_t    index      = 0;
-    SwFilterSubPipe* inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
 
     if (featurePipe.IsPrimaryEmpty())
     {
@@ -1334,8 +1339,6 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
         input->SurfType = SURF_IN_PRIMARY;
         featurePipe.ReplaceSurface(input, true, index);
     }
-
-    // Place Holder for multi-Process(include FC) cases where Temp surface needed here
 
     return MOS_STATUS_SUCCESS;
 }

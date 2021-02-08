@@ -569,6 +569,7 @@ protected:
     //! \return   MOS_STATUS
     //!
     MOS_STATUS SetMmcFlags(MOS_SURFACE &osSurface);
+
     //!
     //! \brief    Update surface plane offset
     //! \details  Update surface plane offset with render offset

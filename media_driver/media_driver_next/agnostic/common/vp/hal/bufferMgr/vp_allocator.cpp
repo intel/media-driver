@@ -1120,6 +1120,22 @@ MOS_STATUS VP_SURFACE::Clean()
     return MOS_STATUS_SUCCESS;
 }
 
+uint64_t VP_SURFACE::GetAllocationHandle()
+{
+#if(LINUX)
+    if (osSurface && osSurface->OsResource.bo)
+    {
+        return osSurface->OsResource.bo->handle;
+    }
+    else
+    {
+        return 0;
+    }
+#else
+    return osSurface ? osSurface->OsResource.AllocationInfo.m_AllocationHandle : 0;
+#endif
+}
+
 MOS_STATUS VpAllocator::SetMmcFlags(MOS_SURFACE &osSurface)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
