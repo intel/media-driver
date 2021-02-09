@@ -376,6 +376,11 @@ private:
                                 MOS_GPUCTX_CREATOPTIONS *createOptions);
 
     //--------------------------------------------------------------------------------
+    // Destroy compute GPU context
+    //--------------------------------------------------------------------------------
+    MOS_STATUS DestroyComputeGpuContext();
+
+    //--------------------------------------------------------------------------------
     // Calls CM HAL API to submit a group task to command buffer.
     //--------------------------------------------------------------------------------
     MOS_STATUS ExecuteGroupTask(CM_HAL_STATE *halState,
