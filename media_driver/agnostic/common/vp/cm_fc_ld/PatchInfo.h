@@ -58,8 +58,7 @@ enum {
   PP_CNL    = 9,  ///< CannonLake
   PP_ICL    = 10, ///< IceLake
   PP_ICLLP  = 11, ///< IceLake LP
-  PP_TGL    = 12, ///< TigerLake
-  PP_TGLLP  = 13, ///< TigerLake LP
+  PP_TGL  = 13, ///< TigerLake LP
 };
 
 /// Patch info header.
@@ -89,7 +88,6 @@ struct PInfoHdr {
     case PP_ICL:
     case PP_ICLLP:
     case PP_TGL:
-    case PP_TGLLP:
       return true;
     default: break;
     }

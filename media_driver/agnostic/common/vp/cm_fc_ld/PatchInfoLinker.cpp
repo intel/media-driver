@@ -295,7 +295,6 @@ unsigned PatchInfoLinker::writeNOP(unsigned N) {
   uint64_t compact_nop = 0;
   switch (Platform) {
   case cm::patch::PP_TGL:
-  case cm::patch::PP_TGLLP:
     regular_nop = 0x00000060U;
     compact_nop = 0x20000060U;
     break;
@@ -329,7 +328,6 @@ unsigned PatchInfoLinker::writeEOT() {
 
   switch (Platform) {
   case cm::patch::PP_TGL:
-  case cm::patch::PP_TGLLP:
   {
       if (hasR127Token)
       {
