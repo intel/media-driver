@@ -184,6 +184,24 @@ typedef enum
     RATECONTROL_IWD_VBR     = 100
 } RATE_CONTROL_METHOD;
 
+//!
+//! \brief    Help function to check if the rate control method is BRC
+//!
+//! \param    [in] rc
+//!           Rate control method
+//!
+//! \return   True if using BRC , else return false
+//!
+inline bool IsRateControlBrc(uint8_t rc)
+{
+    return (rc == RATECONTROL_CBR) ||
+           (rc == RATECONTROL_VBR) ||
+           (rc == RATECONTROL_AVBR) ||
+           (rc == RATECONTROL_VCM) ||
+           (rc == RATECONTROL_ICQ) ||
+           (rc == RATECONTROL_QVBR);
+}
+
 typedef enum
 {
     DEFAULT_WEIGHTED_INTER_PRED_MODE  =  0,

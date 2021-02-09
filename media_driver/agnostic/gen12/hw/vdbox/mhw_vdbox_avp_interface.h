@@ -140,6 +140,7 @@ public:
     MOS_SURFACE                 *m_decodedPic                                               = nullptr;  //!< Decoded Output Frame Buffer
     MOS_RESOURCE                *m_intrabcDecodedOutputFrameBuffer                          = nullptr;  //!< IntraBC Decoded output frame buffer
     MOS_RESOURCE                *m_cdfTableInitializationBuffer                             = nullptr;  //!< CDF Tables Initialization Buffer
+    uint32_t                    m_cdfTableInitializationBufferOffset                        = 0;        //!< CDF Tables Initialization Buffer Size
     MOS_RESOURCE                *m_cdfTableBwdAdaptationBuffer                              = nullptr;  //!< CDF Tables Backward Adaptation Buffer
 
     MOS_RESOURCE                *m_segmentIdReadBuffer                                      = nullptr;  //!< AV1 Segment ID Read Buffer
