@@ -111,18 +111,6 @@ MOS_STATUS CodechalDecodeJpegG12::SetFrameStates()
             &vesetParams));
     }
 
-#ifdef _MMC_SUPPORTED
-    // To WA invalid aux data caused HW issue when MMC on
-    if (m_mmc && m_mmc->IsMmcEnabled() && (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)) &&
-        !Mos_ResourceIsNull(&m_destSurface.OsResource) &&
-        m_destSurface.OsResource.bConvertedFromDDIResource)
-    {
-        CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
-            this, m_miInterface, &m_destSurface.OsResource, m_veState));
-    }
-#endif
-
     return eStatus;
 }
 
@@ -131,6 +119,17 @@ MOS_STATUS CodechalDecodeJpegG12::DecodeStateLevel()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
+#ifdef _MMC_SUPPORTED
+    // To WA invalid aux data caused HW issue when MMC on
+    if (m_mmc->IsMmcEnabled() && (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)) &&
+        !Mos_ResourceIsNull(&m_destSurface.OsResource) &&
+        m_destSurface.OsResource.bConvertedFromDDIResource)
+    {
+        CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
+        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
+            this, m_miInterface, &m_destSurface.OsResource, m_veState));
+    }
+#endif
 
     MHW_VDBOX_JPEG_DECODE_PIC_STATE jpegPicState;
     jpegPicState.dwOutputFormat = m_decodeParams.m_destSurface->Format;
@@ -566,6 +565,21 @@ MOS_STATUS CodechalDecodeJpegG12::AllocateStandard(
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeJpeg::AllocateStandard(settings));
 
+#ifdef _MMC_SUPPORTED
+    // To WA invalid aux data caused HW issue when MMC on
+    if (m_mmc->IsMmcEnabled() && (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)))
+    {
+        //Add HUC STATE Commands
+        MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
+
+        m_hwInterface->GetHucStateCommandSize(
+            CODECHAL_DECODE_MODE_JPEG,
+            &m_HucStateCmdBufferSizeNeeded,
+            &m_HucPatchListSizeNeeded,
+            &stateCmdSizeParams);
+    }
+#endif
+
     if ( MOS_VE_SUPPORTED(m_osInterface))
     {
         static_cast<MhwVdboxMfxInterfaceG12*>(m_mfxInterface)->DisableScalabilitySupport();
@@ -590,5 +604,19 @@ CodechalDecodeJpegG12::CodechalDecodeJpegG12(
     CODECHAL_DECODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
 
     Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+}
+
+void CodechalDecodeJpegG12::CalcRequestedSpace(
+    uint32_t &requestedSize,
+    uint32_t &additionalSizeNeeded,
+    uint32_t &requestedPatchListSize)
+{
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    requestedSize = m_commandBufferSizeNeeded + m_HucStateCmdBufferSizeNeeded +
+                    (m_standardDecodeSizeNeeded * (m_decodeParams.m_numSlices + 1));
+    requestedPatchListSize = m_commandPatchListSizeNeeded + m_HucPatchListSizeNeeded +
+                             (m_standardDecodePatchListSizeNeeded * (m_decodeParams.m_numSlices + 1));
+    additionalSizeNeeded = COMMAND_BUFFER_RESERVED_SPACE;
 }
 
