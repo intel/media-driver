@@ -133,6 +133,38 @@ static const uint32_t av1RestorationTilesizeMax = 256;                          
 /* Shift down with rounding for use when n >= 0, value >= 0 */
 #define ROUND_POWER_OF_TWO(value, n) (((value) + (((1 << (n)) >> 1))) >> (n))
 
+enum AV1_OBU_TYPE
+{
+    OBU_SEQUENCE_HEADER        = 1,
+    OBU_TEMPORAL_DELIMITER     = 2,
+    OBU_FRAME_HEADER           = 3,
+    OBU_TILE_GROUP             = 4,
+    OBU_METADATA               = 5,
+    OBU_FRAME                  = 6,
+    OBU_REDUNDANT_FRAME_HEADER = 7,
+    OBU_PADDING                = 15,
+};
+
+inline bool IsFrameHeader(uint8_t bs)
+{
+    uint8_t data = bs;
+
+    data = (data >> 3) & 0x0f;
+
+    auto obu_type = (AV1_OBU_TYPE)data;
+    bool isFh     = false;
+    if (obu_type == OBU_FRAME_HEADER || obu_type == OBU_FRAME)
+    {
+        isFh = true;
+    }
+    else
+    {
+        isFh = false;
+    }
+
+    return isFh;
+}
+
 //!
 //! \enum CodecAv1ReferenceMode
 //! AV1 reference mode
