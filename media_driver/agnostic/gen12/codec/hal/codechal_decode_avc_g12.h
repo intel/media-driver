@@ -124,6 +124,10 @@ protected:
     MOS_STATUS  InitSfcState() override;
 
     MOS_STATUS SetGpuCtxCreatOption(CodechalSetting *settings) override;
+    void CalcRequestedSpace(
+        uint32_t &requestedSize,
+        uint32_t &additionalSizeNeeded,
+        uint32_t &requestedPatchListSize) override;
 
     //!
     //! \brief  Utility function to allocate internal histogram surface
@@ -137,6 +141,10 @@ protected:
 
     PMOS_SURFACE m_histogramSurface = nullptr;  //!< Internal histogram buffer
 
+    //! \Huc state level command buffer size is required
+    uint32_t m_HucStateCmdBufferSizeNeeded = 0;
+    //! \Huc state level patch list size is required
+    uint32_t m_HucPatchListSizeNeeded = 0;
 };
 
 #endif  // __CODECHAL_DECODER_AVC_G12_H__

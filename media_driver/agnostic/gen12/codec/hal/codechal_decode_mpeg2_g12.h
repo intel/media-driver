@@ -84,11 +84,20 @@ public:
 
     MOS_STATUS  InitMmcState() override;
 
+    void CalcRequestedSpace(
+        uint32_t &requestedSize,
+        uint32_t &additionalSizeNeeded,
+        uint32_t &requestedPatchListSize) override;
+
 protected:
     MOS_STATUS SetGpuCtxCreatOption(CodechalSetting *settings) override;
 
 private:
     PCODECHAL_DECODE_SINGLEPIPE_VIRTUALENGINE_STATE m_veState = nullptr;  //!< single pipe virtual engine state
+    //! \Huc state level command buffer size is required
+    uint32_t m_HucStateCmdBufferSizeNeeded = 0;
+    //! \Huc state level patch list size is required
+    uint32_t m_HucPatchListSizeNeeded = 0;
 };
 
 #endif  // __CODECHAL_DECODER_MPEG2_G11_H__

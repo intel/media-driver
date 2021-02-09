@@ -243,6 +243,7 @@ MOS_STATUS CodecHalMmcStateG12::SendPrologCmd(
     return MOS_STATUS_SUCCESS;
 }
 
+//Program Huc Copy related command to clear aux table, not sumbit
 MOS_STATUS CodecHalMmcStateG12::ClearAuxSurf(
     CodechalDecode*                                 m_decoder,
     MhwMiInterface *                                miInterface,
@@ -313,25 +314,7 @@ MOS_STATUS CodecHalMmcStateG12::ClearAuxSurf(
         0,                // u32CopyInputOffset
         auxSurfOffset));  // u32CopyOutputOffset
 
-    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-    CODECHAL_HW_CHK_STATUS_RETURN(miInterface->AddMiFlushDwCmd(
-        &cmdBuffer,
-        &flushDwParams));
-
-    CODECHAL_HW_CHK_STATUS_RETURN(miInterface->AddMiBatchBufferEnd(
-        &cmdBuffer,
-        nullptr));
-
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
-
-    if (MOS_VE_SUPPORTED(m_osInterface))
-    {
-        CodecHalDecodeSinglePipeVE_PopulateHintParams(m_veState, &cmdBuffer, false);
-    }
-
-    CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
-
-    CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_decoder->GetVideoContext()));
 
     return eStatus;
 }
