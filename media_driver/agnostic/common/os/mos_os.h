@@ -786,6 +786,10 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);
 
+    MOS_STATUS (* pfnDestroyGpuComputeContext) (
+        PMOS_INTERFACE              osInterface,
+        GPU_CONTEXT_HANDLE          gpuContextHandle);
+
     MOS_STATUS (* pfnSetGpuContext) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);

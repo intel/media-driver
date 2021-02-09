@@ -410,6 +410,20 @@ public:
         GPU_CONTEXT_HANDLE gpuContextHandle);
 
     //!
+    //! \brief   Get GpuContext
+    //! \details MOS internal toolset func to get GPU context instance
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] gpuContext
+    //!           MOS GPU Context handle
+    //!
+    //! \return   GpuContextSpecificNext
+    //!           GPU Context instance got by GPU context handle, nullptr if get failed
+    //!
+    static GpuContextSpecificNext *GetGpuContext(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE handle);
+
+    //!
     //! \brief    Add Command
     //! \details  [Cmd Buffer Interface] Add gpu commands into cmd buffer
     //! \details  Caller: MHW only
@@ -1859,20 +1873,6 @@ private:
     static MOS_STATUS ComposeCommandBufferHeader(
         MOS_STREAM_HANDLE streamState,
         COMMAND_BUFFER_HANDLE cmdBuffer);
-
-    //!
-    //! \brief   Get GpuContext
-    //! \details MOS internal toolset func to get GPU context instance
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] gpuContext
-    //!           MOS GPU Context handle
-    //!
-    //! \return   GpuContextSpecificNext
-    //!           GPU Context instance got by GPU context handle, nullptr if get failed
-    //!
-    static GpuContextSpecificNext *GetGpuContext(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE handle);
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     //! \brief    Unified dump command buffer initialization

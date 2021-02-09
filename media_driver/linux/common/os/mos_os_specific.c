@@ -5032,6 +5032,79 @@ MOS_STATUS Mos_Specific_DestroyGpuContext(
 }
 
 //!
+//! \brief    Destroy Compute GPU context
+//! \details  Destroy Compute GPU context
+//!           [in] Pointer to OS interface structure
+//! \param    GPU_CONTEXT_HANDLE gpuContextHandle
+//!           [in] GPU Context handle
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS Mos_Specific_DestroyGpuComputeContext(
+    PMOS_INTERFACE        osInterface,
+    GPU_CONTEXT_HANDLE    gpuContextHandle)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    MOS_OS_CHK_NULL_RETURN(osInterface);
+    if(MOS_GPU_CONTEXT_INVALID_HANDLE == gpuContextHandle)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid compute gpu context handle.");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
+    if (!osInterface->modularizedGpuCtxEnabled || Mos_Solo_IsEnabled(nullptr))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(osInterface->osContextPtr);
+    MOS_OS_CHK_NULL_RETURN(pOsContextSpecific);
+
+    GPU_CONTEXT_HANDLE iGpuContextHandle = pOsContextSpecific->GetGpuContextHandle(MOS_GPU_CONTEXT_CM_COMPUTE);
+    if(iGpuContextHandle == gpuContextHandle)
+    {
+        MOS_OS_ASSERTMESSAGE("It will be destroyed in osInterface destroy.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    iGpuContextHandle = pOsContextSpecific->GetGpuContextHandle(MOS_GPU_CONTEXT_COMPUTE);
+    if(iGpuContextHandle == gpuContextHandle)
+    {
+        MOS_OS_ASSERTMESSAGE("It will be destroyed in osInterface destroy.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (osInterface->apoMosEnabled)
+    {
+        auto gpuContext = MosInterface::GetGpuContext(osInterface->osStreamState, gpuContextHandle);
+        MOS_OS_CHK_NULL_RETURN(gpuContext);
+
+        MOS_GPU_CONTEXT gpuContextName = gpuContext->GetCpuContextID();
+        if(gpuContextName != MOS_GPU_CONTEXT_CM_COMPUTE && gpuContextName != MOS_GPU_CONTEXT_COMPUTE)
+        {
+            MOS_OS_ASSERTMESSAGE("It is not compute gpu context and it will be destroyed in osInterface destroy.");
+            return MOS_STATUS_SUCCESS;
+        }
+        return MosInterface::DestroyGpuContext(osInterface->osStreamState, gpuContextHandle);
+    }
+
+    GpuContextMgr *gpuContextMgr = pOsContextSpecific->GetGpuContextMgr();
+    MOS_OS_CHK_NULL_RETURN(gpuContextMgr);
+    GpuContext *gpuContext = gpuContextMgr->GetGpuContext(gpuContextHandle);
+    MOS_OS_CHK_NULL_RETURN(gpuContext);
+
+    MOS_GPU_CONTEXT gpuContextName = gpuContext->GetCpuContextID();
+    if(gpuContextName != MOS_GPU_CONTEXT_CM_COMPUTE && gpuContextName != MOS_GPU_CONTEXT_COMPUTE)
+    {
+        MOS_OS_ASSERTMESSAGE("It is not compute gpu context and it will be destroyed in osInterface destroy.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    gpuContextMgr->DestroyGpuContext(gpuContext);
+    return MOS_STATUS_SUCCESS;
+ }
+
+//!
 //! \brief    Sets the perf tag
 //! \details  Sets the perf tag
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7490,6 +7563,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnCreateGpuContext                       = Mos_Specific_CreateGpuContext;
     pOsInterface->pfnCreateGpuComputeContext                = Mos_Specific_CreateGpuComputeContext;
     pOsInterface->pfnDestroyGpuContext                      = Mos_Specific_DestroyGpuContext;
+    pOsInterface->pfnDestroyGpuComputeContext               = Mos_Specific_DestroyGpuComputeContext;
     pOsInterface->pfnIsGpuContextValid                      = Mos_Specific_IsGpuContextValid;
     pOsInterface->pfnSyncOnResource                         = Mos_Specific_SyncOnResource;
     pOsInterface->pfnSyncGpuContext                         = Mos_Specific_SyncGpuContext;

@@ -118,6 +118,9 @@ int32_t CmQueueRT::Destroy(CmQueueRT* &queue )
     }
 
     uint32_t result = queue->CleanQueue();
+
+    queue->DestroyComputeGpuContext();
+
     CmSafeDelete( queue );
 
     return result;
@@ -4071,6 +4074,30 @@ MOS_STATUS CmQueueRT::CreateGpuContext(CM_HAL_STATE *halState,
                                                createOptions);
     }
     halState->osInterface->streamIndex = old_stream_idx;
+    return status;
+}
+
+MOS_STATUS  CmQueueRT::DestroyComputeGpuContext()
+{
+    MOS_STATUS          status      = MOS_STATUS_SUCCESS;
+    PCM_CONTEXT_DATA    cmCtxData   = nullptr;
+    PCM_HAL_STATE       cmHalState  = nullptr;
+
+    if (MOS_GPU_CONTEXT_INVALID_HANDLE == m_gpuContextHandle)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    cmCtxData   = (PCM_CONTEXT_DATA)m_device->GetAccelData();
+    if(!cmCtxData || !cmCtxData->cmHalState || !cmCtxData->cmHalState->osInterface)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    cmHalState = cmCtxData->cmHalState;
+
+    status =  cmHalState->osInterface->pfnDestroyGpuComputeContext(cmHalState->osInterface, m_gpuContextHandle);
+
     return status;
 }
 
