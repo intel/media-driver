@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -807,6 +807,8 @@ VAStatus MediaLibvaCapsG12::LoadProfileEntrypoints()
     DDI_CHK_RET(status, "Failed to initialize Caps!");
     status = LoadNoneProfileEntrypoints();
     DDI_CHK_RET(status, "Failed to initialize Caps!");
+    status = m_CapsCp->LoadCpProfileEntrypoints();
+    DDI_CHK_RET(status, "Failed to initialize CP Caps!");
 
     return status;
 }

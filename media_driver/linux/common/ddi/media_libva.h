@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,9 @@
 #include <va/va_enc_hevc.h>
 #include <va/va_vpp.h>
 #include <va/va_backend_vpp.h>
+#if VA_CHECK_VERSION(1,11,0)
+#include <va/va_backend_prot.h>
+#endif
 #ifdef ANDROID
 #if VA_MAJOR_VERSION < 1
 #include "va_internal_android.h"
@@ -67,6 +70,9 @@
 
 #define DDI_CODEC_GET_VTABLE(ctx)                  (ctx->vtable)
 #define DDI_CODEC_GET_VTABLE_VPP(ctx)              (ctx->vtable_vpp)
+#if VA_CHECK_VERSION(1,11,0)
+#define DDI_CODEC_GET_VTABLE_PROT(ctx)             (ctx->vtable_prot)
+#endif
 #define DDI_CODEC_GET_VTABLE_TPI(ctx)              (ctx->vtable_tpi)
 
 #define DDI_CODEC_BATCH_BUFFER_SIZE                0x80000

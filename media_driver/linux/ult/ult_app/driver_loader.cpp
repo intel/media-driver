@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -119,6 +119,9 @@ VAStatus DriverDllLoader::InitDriver(Platform_t platform_id)
     m_drmstate.auth_type = 3;
     m_ctx.vtable         = &m_vtable;
     m_ctx.vtable_vpp     = &m_vtable_vpp;
+#if VA_CHECK_VERSION(1,11,0)
+    m_ctx.vtable_prot    = &m_vtable_prot;
+#endif
     m_ctx.drm_state      = &m_drmstate;
     m_currentPlatform    = platform_id;
     m_ctx.vtable_tpi     = nullptr;

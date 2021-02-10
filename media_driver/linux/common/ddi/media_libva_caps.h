@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -746,7 +746,8 @@ protected:
     {
         videoEncode, //!< Video encode
         videoDecode, //!< Video decode
-        videoProcess //!< Video processing
+        videoProcess,//!< Video processing
+        videoProtect //!< Video protection
     };
 
     enum EncodeFormat
