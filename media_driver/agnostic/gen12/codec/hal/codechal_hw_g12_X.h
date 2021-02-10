@@ -53,8 +53,6 @@ class CodechalHwInterfaceG12 : public CodechalHwInterface
 protected:
     static const CODECHAL_SSEU_SETTING m_defaultSsEuLutG12[CODECHAL_NUM_MEDIA_STATES_G12];
 
-    MhwVdboxAvpInterface   *m_avpInterface = nullptr;        //!< Pointer to Mhw avp interface
-
 public:
     //!
     //! \brief    Constructor
@@ -97,18 +95,6 @@ public:
     //!
     MOS_STATUS SetCacheabilitySettings(
         MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) override;
-
-    //!
-    //! \brief    Get avp interface
-    //! \details  Get avp interface in codechal hw interface
-    //!
-    //! \return   [out] MhwVdboxAvpInterface*
-    //!           Interface got.
-    //!
-    inline MhwVdboxAvpInterface* GetAvpInterface()
-    {
-        return m_avpInterface;
-    }
 
     //!
     //! \brief    Calculates the maximum size for AVP picture level commands
