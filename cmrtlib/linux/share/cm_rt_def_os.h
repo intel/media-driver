@@ -138,6 +138,9 @@ typedef enum _VA_CM_FORMAT {
     VA_CM_FMT_P016                 =  VA_FOURCC_P016,
     VA_CM_FMT_P208                 =  VA_FOURCC_P208,
     VA_CM_FMT_AYUV                 =  VA_FOURCC_AYUV,
+#if VA_CHECK_VERSION(1, 13, 0)
+    VA_CM_FMT_XYUV                 =  VA_FOURCC_XYUV,
+#endif
     VA_CM_FMT_Y210                 =  VA_FOURCC_Y210,
 #if VA_CHECK_VERSION(1, 9, 0)
     VA_CM_FMT_Y212                 =  VA_FOURCC_Y212,

@@ -182,6 +182,9 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_Y210        ,
     Media_Format_Y216        ,
     Media_Format_AYUV        ,
+#if VA_CHECK_VERSION(1, 13, 0)
+    Media_Format_XYUV        ,
+#endif
     Media_Format_Y410        ,
     Media_Format_Y416        ,
     Media_Format_Y8          ,

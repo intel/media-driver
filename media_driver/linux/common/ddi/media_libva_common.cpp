@@ -255,6 +255,9 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface
     switch (surface->format)
     {
         case Media_Format_AYUV:
+#if VA_CHECK_VERSION(1, 13, 0)
+        case Media_Format_XYUV:
+#endif
             aligned_width = MOS_ALIGN_CEIL(surface->iWidth, 128);
             aligned_height = MOS_ALIGN_CEIL(surface->iHeight * 3 / 4, 64);
             break;
