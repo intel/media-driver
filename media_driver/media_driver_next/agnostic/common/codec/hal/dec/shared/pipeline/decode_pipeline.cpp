@@ -387,21 +387,25 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 {
     DECODE_FUNC_CALL();
 
-    MOS_SURFACE dstSurface;
-    MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
-    dstSurface.Format     = Format_NV12;
-    dstSurface.OsResource = reportData.currDecodedPicRes;
-    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDecodeOutputSurface))
+    {
+        MOS_SURFACE dstSurface;
+        MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+        dstSurface.Format     = Format_NV12;
+        dstSurface.OsResource = reportData.currDecodedPicRes;
+        DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
 
-    DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
-        &dstSurface, CodechalDbgAttr::attrDecodeOutputSurface, "DstSurf"));
+        DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
+            &dstSurface, CodechalDbgAttr::attrDecodeOutputSurface, "DstSurf"));
+    }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
         m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
     if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
     {
-        if (reportData.currSfcOutputPicRes != nullptr)
+        if (reportData.currSfcOutputPicRes != nullptr &&
+            m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrSfcOutputSurface))
         {
             MOS_SURFACE sfcDstSurface;
             MOS_ZeroMemory(&sfcDstSurface, sizeof(sfcDstSurface));
@@ -469,7 +473,7 @@ MOS_STATUS DecodePipeline::StatusCheck()
         const DecodeStatusMfx& status = statusReport->GetMfxStatus(m_statusCheckCount);
         if (status.status != DecodeStatusReport::queryEnd)
         {
-            DECODE_ASSERTMESSAGE("Media reset may have occured at frame %d, status is %d, completedCount is %d.",
+            DECODE_NORMALMESSAGE("Media reset may have occured at frame %d, status is %d, completedCount is %d.",
                 m_statusCheckCount, status.status, completedCount);
         }
         DECODE_NORMALMESSAGE("hucStatus2 is 0x%x at frame %d.", status.m_hucErrorStatus2, m_statusCheckCount);

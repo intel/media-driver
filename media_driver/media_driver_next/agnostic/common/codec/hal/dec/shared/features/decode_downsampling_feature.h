@@ -42,6 +42,9 @@ namespace decode
 class DecodeDownSamplingFeature: public MediaFeature
 {
 public:
+    using SurfaceWidthT  = decltype(MOS_SURFACE::dwWidth);
+    using SurfaceHeightT = decltype(MOS_SURFACE::dwHeight);
+
     DecodeDownSamplingFeature(MediaFeatureManager *featureManager, DecodeAllocator *allocator, CodechalHwInterface *hwInterface);
     virtual ~DecodeDownSamplingFeature();
 
@@ -97,6 +100,7 @@ protected:
     virtual MOS_STATUS UpdateInternalTargets(DecodeBasicFeature &basicFeature);
 
     virtual MOS_STATUS GetRefFrameList(std::vector<uint32_t> &refFrameList) = 0;
+    virtual MOS_STATUS GetDecodeTargetSize(SurfaceWidthT &width, SurfaceHeightT &height) = 0;
     virtual MOS_STATUS GetDecodeTargetFormat(MOS_FORMAT &format) = 0;
     virtual MOS_STATUS UpdateDecodeTarget(MOS_SURFACE &surface) = 0;
 
