@@ -195,8 +195,7 @@ MOS_STATUS DecodeDownSamplingFeature::UpdateInternalTargets(DecodeBasicFeature &
 
     MOS_SURFACE surface;
     MOS_ZeroMemory(&surface, sizeof(surface));
-    surface.dwWidth  = basicFeature.m_width;
-    surface.dwHeight = basicFeature.m_height;
+    DECODE_CHK_STATUS(GetDecodeTargetSize(surface.dwWidth, surface.dwHeight));
     DECODE_CHK_STATUS(GetDecodeTargetFormat(surface.Format));
     DECODE_CHK_STATUS(m_internalTargets.ActiveCurSurf(
         curFrameIdx, &surface, basicFeature.IsMmcEnabled(), resourceOutputPicture));
