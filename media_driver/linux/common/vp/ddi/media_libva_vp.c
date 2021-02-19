@@ -263,6 +263,9 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
         format = Format_Y416;
         break;
     case Media_Format_AYUV:
+#if VA_CHECK_VERSION(1, 13, 0)
+    case Media_Format_XYUV:
+#endif
         format = Format_AYUV;
         break;
     case Media_Format_Y8:

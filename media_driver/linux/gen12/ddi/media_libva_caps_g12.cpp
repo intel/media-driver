@@ -59,6 +59,9 @@ const VAImageFormat m_supportedImageformatsG12[] =
     {VA_FOURCC_X2B10G10R10,    VA_LSB_FIRST,   32, 30, 0x000003ff, 0x000ffc00, 0x3ff00000,  0},          /* [31:0] X:B:G:R 2:10:10:10 little endian */
     {VA_FOURCC_RGB565,         VA_LSB_FIRST,   16, 16, 0xf800,     0x07e0,     0x001f,      0},          /* [15:0] R:G:B 5:6:5 little endian */
     {VA_FOURCC_AYUV,           VA_LSB_FIRST,   32, 0,0,0,0,0},
+#if VA_CHECK_VERSION(1, 13, 0)
+    {VA_FOURCC_XYUV,           VA_LSB_FIRST,   32, 0,0,0,0,0},
+#endif
     {VA_FOURCC_Y800,           VA_LSB_FIRST,   8,  0,0,0,0,0},
     {VA_FOURCC_NV12,           VA_LSB_FIRST,   12, 0,0,0,0,0},
     {VA_FOURCC_NV21,           VA_LSB_FIRST,   12, 0,0,0,0,0},
@@ -1000,6 +1003,14 @@ VAStatus MediaLibvaCapsG12::AddEncSurfaceAttributes(
             attribList[numAttribs].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribList[numAttribs].value.value.i = VA_FOURCC_AYUV;
             numAttribs++;
+
+#if VA_CHECK_VERSION(1, 13, 0)
+            attribList[numAttribs].type = VASurfaceAttribPixelFormat;
+            attribList[numAttribs].value.type = VAGenericValueTypeInteger;
+            attribList[numAttribs].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribList[numAttribs].value.value.i = VA_FOURCC_XYUV;
+            numAttribs++;
+#endif
         }
         else if (profile == VAProfileHEVCMain444_10 || profile == VAProfileHEVCSccMain444_10)
         {
@@ -1058,6 +1069,14 @@ VAStatus MediaLibvaCapsG12::AddEncSurfaceAttributes(
             attribList[numAttribs].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribList[numAttribs].value.value.i = VA_FOURCC_AYUV;
             numAttribs++;
+
+#if VA_CHECK_VERSION(1, 13, 0)
+            attribList[numAttribs].type          = VASurfaceAttribPixelFormat;
+            attribList[numAttribs].value.type    = VAGenericValueTypeInteger;
+            attribList[numAttribs].flags         = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribList[numAttribs].value.value.i = VA_FOURCC_XYUV;
+            numAttribs++;
+#endif
         }
         else if (profile == VAProfileVP9Profile3)
         {
@@ -1381,6 +1400,14 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribs[i].value.value.i = VA_FOURCC_AYUV;
             i++;
+
+#if VA_CHECK_VERSION(1, 13, 0)
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_XYUV;
+            i++;
+#endif
         }
         else if(profile == VAProfileHEVCMain444_10 || profile == VAProfileVP9Profile3)
         {
@@ -1464,6 +1491,14 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].value.value.i = VA_FOURCC_AYUV;
             i++;
 
+#if VA_CHECK_VERSION(1, 13, 0)
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_XYUV;
+            i++;
+#endif
+
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
@@ -1482,6 +1517,14 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribs[i].value.value.i = VA_FOURCC_AYUV;
             i++;
+
+#if VA_CHECK_VERSION(1, 13, 0)
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_XYUV;
+            i++;
+#endif
 
             attribs[i].type = VASurfaceAttribPixelFormat;
             attribs[i].value.type = VAGenericValueTypeInteger;
@@ -2525,6 +2568,9 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG12::ConvertMediaFmtToGmmFmt(
 #endif
         case Media_Format_Y216       : return GMM_FORMAT_Y216_TYPE;
         case Media_Format_AYUV       : return GMM_FORMAT_AYUV_TYPE;
+#if VA_CHECK_VERSION(1, 13, 0)
+        case Media_Format_XYUV       : return GMM_FORMAT_AYUV_TYPE;
+#endif
         case Media_Format_Y410       : return GMM_FORMAT_Y410_TYPE;
 #if VA_CHECK_VERSION(1, 9, 0)
         case Media_Format_Y412       : return GMM_FORMAT_Y412_TYPE;

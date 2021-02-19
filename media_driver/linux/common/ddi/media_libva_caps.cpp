@@ -2790,6 +2790,14 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
             attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
             attribs[i].value.value.i = VA_FOURCC_AYUV;
             i++;
+
+#if VA_CHECK_VERSION(1, 13, 0)
+            attribs[i].type = VASurfaceAttribPixelFormat;
+            attribs[i].value.type = VAGenericValueTypeInteger;
+            attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+            attribs[i].value.value.i = VA_FOURCC_XYUV;
+            i++;
+#endif
         }
         else if(profile == VAProfileHEVCMain444_10 || profile == VAProfileVP9Profile3)
         {
@@ -3445,6 +3453,9 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_Y212       : return GMM_FORMAT_Y212_TYPE;
         case Media_Format_Y412       : return GMM_FORMAT_Y412_TYPE;
 #endif
+#if VA_CHECK_VERSION(1, 13, 0)
+        case Media_Format_XYUV       : return GMM_FORMAT_AYUV_TYPE;
+#endif
         default                      : return GMM_FORMAT_INVALID;
     }
 }
@@ -3466,6 +3477,9 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
         case VA_FOURCC_BGRP   : return GMM_FORMAT_BGRP;
         case VA_FOURCC_RGB565 : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
         case VA_FOURCC_AYUV   : return GMM_FORMAT_AYUV_TYPE;
+#if VA_CHECK_VERSION(1, 13, 0)
+        case VA_FOURCC_XYUV   : return GMM_FORMAT_AYUV_TYPE;
+#endif
         case VA_FOURCC_NV12   : return GMM_FORMAT_NV12_TYPE;
         case VA_FOURCC_NV21   : return GMM_FORMAT_NV21_TYPE;
         case VA_FOURCC_YUY2   : return GMM_FORMAT_YUY2;

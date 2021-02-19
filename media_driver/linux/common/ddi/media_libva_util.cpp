@@ -262,6 +262,9 @@ VAStatus DdiMediaUtil_AllocateSurface(
 #endif
         case Media_Format_Y216:
         case Media_Format_AYUV:
+#if VA_CHECK_VERSION(1, 13, 0)
+        case Media_Format_XYUV:
+#endif
         case Media_Format_Y410:
 #if VA_CHECK_VERSION(1, 9, 0)
         case Media_Format_Y412:
