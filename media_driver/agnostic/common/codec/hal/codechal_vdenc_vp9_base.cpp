@@ -568,6 +568,7 @@ MOS_STATUS CodechalVdencVp9State::CalculateRePakThresholds()
         switch (m_vp9SeqParams->TargetUsage)
         {
         case TU_QUALITY:
+        case 2: 
             repakSavingThreshold = 2;
             break;
         case TU_PERFORMANCE:
