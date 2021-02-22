@@ -2460,20 +2460,20 @@ public:
 
                 refFrameId = hevcSlcParams->RefPicList[0][0].FrameIdx;
                 diffPoc = ((refFrameId >= CODEC_MAX_NUM_REF_FRAME_HEVC) ? 0x0 : hevcPicParams->RefFramePOCList[refFrameId]) - hevcPicParams->CurrPicOrderCnt;
-                cmd.DW3.PocNumberForRefid0InL0   = -diffPoc;
+                cmd.DW3.PocNumberForRefid0InL0    = CodecHal_Clip3(-16, 16, -diffPoc);
                 cmd.DW2.LongTermReferenceFlagsL0  = (refFrameId >= CODEC_MAX_NUM_REF_FRAME_HEVC) ? 0 : CodecHal_PictureIsLongTermRef(hevcPicParams->RefFrameList[refFrameId]);
                 refFrameId = hevcSlcParams->RefPicList[0][1].FrameIdx;
                 diffPoc = ((refFrameId >= CODEC_MAX_NUM_REF_FRAME_HEVC) ? 0x0 : hevcPicParams->RefFramePOCList[refFrameId]) - hevcPicParams->CurrPicOrderCnt;
-                cmd.DW3.PocNumberForRefid1InL0    = -diffPoc;
+                cmd.DW3.PocNumberForRefid1InL0    = CodecHal_Clip3(-16, 16, -diffPoc);
                 cmd.DW2.LongTermReferenceFlagsL0 |= ((refFrameId >= CODEC_MAX_NUM_REF_FRAME_HEVC) ? 0 : CodecHal_PictureIsLongTermRef(hevcPicParams->RefFrameList[refFrameId])) << 1;
                 refFrameId = hevcSlcParams->RefPicList[0][2].FrameIdx;
                 diffPoc                        = ((refFrameId >= CODEC_MAX_NUM_REF_FRAME_HEVC) ? 0x0 : hevcPicParams->RefFramePOCList[refFrameId]) - hevcPicParams->CurrPicOrderCnt;
-                cmd.DW4.PocNumberForRefid2InL0    = -diffPoc;
+                cmd.DW4.PocNumberForRefid2InL0 = CodecHal_Clip3(-16, 16, -diffPoc);
                 cmd.DW2.LongTermReferenceFlagsL0 |= ((refFrameId >= CODEC_MAX_NUM_REF_FRAME_HEVC) ? 0 : CodecHal_PictureIsLongTermRef(hevcPicParams->RefFrameList[refFrameId])) << 2;
 
                 refFrameId = hevcSlcParams->RefPicList[1][0].FrameIdx;
                 diffPoc                          = ((refFrameId >= CODEC_MAX_NUM_REF_FRAME_HEVC) ? 0x0 : hevcPicParams->RefFramePOCList[refFrameId]) - hevcPicParams->CurrPicOrderCnt;
-                cmd.DW3.PocNumberForRefid0InL1   = -diffPoc;
+                cmd.DW3.PocNumberForRefid0InL1   = CodecHal_Clip3(-16, 16, -diffPoc);
                 cmd.DW2.LongTermReferenceFlagsL1 = CodecHal_PictureIsLongTermRef(hevcPicParams->RefFrameList[refFrameId]);
 
                 cmd.DW3.PocNumberForRefid1InL1 = cmd.DW3.PocNumberForRefid1InL0;
