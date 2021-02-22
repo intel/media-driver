@@ -30,6 +30,7 @@
 #include "mos_util_user_interface.h"
 #include "mos_solo_generic.h"
 #include "mos_os_virtualengine_next.h"
+#include "codechal_decode_scalability_g12.h"
 
 //!
 //! \brief    calculate secondary cmd buffer index
@@ -1368,7 +1369,7 @@ MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
     CodechalSetting *                          codecHalSetting)
 {
     PMOS_INTERFACE                           pOsInterface;
-    CODECHAL_DECODE_SCALABILITY_INIT_PARAMS  initParams;
+    CODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12  initParams;
     MOS_STATUS                               eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
