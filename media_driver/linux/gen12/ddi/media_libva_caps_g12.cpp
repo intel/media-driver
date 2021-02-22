@@ -1135,9 +1135,7 @@ VAStatus MediaLibvaCapsG12::AddEncSurfaceAttributes(
         }
         else if(IsHevcProfile(profile))
         {
-            uint32_t heightValue = CODEC_12K_MAX_PIC_HEIGHT;
-            GetPlatformSpecificAttrib(profile, entrypoint, VAConfigAttribMaxPictureHeight, &heightValue);
-            attribList[numAttribs].value.value.i = (int32_t)heightValue;
+            attribList[numAttribs].value.value.i = CODEC_12K_MAX_PIC_HEIGHT;
         }
         else if(IsVp9Profile(profile))
         {
