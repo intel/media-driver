@@ -90,6 +90,12 @@ MOS_STATUS Heap::Allocate(uint32_t heapSize, bool keepLocked)
     allocParams.Format = Format_Buffer;
     allocParams.dwBytes = heapSize;
     allocParams.pBufName = "Heap";
+
+    if (m_hwWriteOnly && !keepLocked)
+    {
+        allocParams.Flags.bNotLockable = true;
+    }
+
     HEAP_CHK_STATUS(m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParams,

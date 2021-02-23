@@ -145,6 +145,10 @@ public:
     //! \brief Invalid heap ID.
     static const uint8_t m_invalidId = 0;
 
+    //!
+    //! \brief  Mark the heap as hardware write only heap or not
+    void SetHeapHwWriteOnly(bool isHwWriteOnly) { m_hwWriteOnly = isHwWriteOnly; }
+
 protected:
     //!
     //! \brief  Stores the provided OS interface in the heap
@@ -234,5 +238,6 @@ private:
     PMOS_INTERFACE m_osInterface = nullptr;
     //! \brief unique identifier for the heap within the heap manager
     uint32_t m_id = m_invalidId;
+    bool m_hwWriteOnly = false;            //!< Indictaes that heap is used by hardware write only.
 };
 #endif // __HEAP_H__

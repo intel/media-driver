@@ -184,6 +184,10 @@ public:
         return m_blockManager.LockHeapsOnAllocate();
     }
 
+    //!
+    //! \brief  Mark the heap as hardware write only heap or not
+    void SetHwWriteOnlyHeap(bool isHwWriteOnlyHeap) { m_hwWriteOnlyHeap = isHwWriteOnlyHeap; }
+
 private:
     //!
     //! \brief  Allocates a heap of requested size
@@ -236,6 +240,8 @@ private:
     std::list<uint32_t> m_heapIds;
     //! \brief OS interface used for managing graphics resources
     PMOS_INTERFACE m_osInterface = nullptr;
+    //!< Indictaes that heap is used by hardware write only.
+    bool m_hwWriteOnlyHeap = false;
 };
 
 #endif // __HEAP_MANAGER_H__
