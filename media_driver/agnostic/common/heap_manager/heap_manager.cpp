@@ -199,7 +199,7 @@ MOS_STATUS HeapManager::AllocateHeap(uint32_t size)
     ++m_currHeapId;
     m_heapIds.push_back(m_currHeapId);
 
-    HEAP_CHK_STATUS(m_blockManager.RegisterHeap(m_currHeapId, size));
+    HEAP_CHK_STATUS(m_blockManager.RegisterHeap(m_currHeapId, size, m_hwWriteOnlyHeap));
 
     return MOS_STATUS_SUCCESS;
 }

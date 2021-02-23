@@ -232,7 +232,7 @@ MOS_STATUS MemoryBlockManager::RefreshBlockStates(bool &blocksUpdated)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MemoryBlockManager::RegisterHeap(uint32_t heapId, uint32_t size)
+MOS_STATUS MemoryBlockManager::RegisterHeap(uint32_t heapId, uint32_t size , bool hwWriteOnly)
 {
     HEAP_FUNCTION_ENTER;
 
@@ -242,6 +242,12 @@ MOS_STATUS MemoryBlockManager::RegisterHeap(uint32_t heapId, uint32_t size)
     HEAP_CHK_NULL(heap);
     HEAP_CHK_STATUS(heap->RegisterOsInterface(m_osInterface));
     size = MOS_ALIGN_CEIL(size, m_heapAlignment);
+    
+    if (hwWriteOnly)
+    {
+        heap->SetHeapHwWriteOnly(hwWriteOnly);
+    }
+
     HEAP_CHK_STATUS(heap->Allocate(size, m_lockHeapsOnAllocate));
 
     if (heap->IsValid())

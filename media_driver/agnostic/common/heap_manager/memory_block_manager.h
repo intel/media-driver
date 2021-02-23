@@ -128,7 +128,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS RegisterHeap(uint32_t heapId, uint32_t size);
+    MOS_STATUS RegisterHeap(uint32_t heapId, uint32_t size, bool hwWriteOnly = false);
 
     //!
     //! \brief  Removes the specified heap from the block manager, this occurs when the
