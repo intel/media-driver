@@ -491,5 +491,6 @@ typedef uint32_t               GPU_CONTEXT_HANDLE;
 #define MOS_BUF_NAME_LENGTH 64
 
 #define MOS_INVALID_HANDLE 0
+#define MOS_DUMMY_FENCE (uint64_t)(-1)
 
 #endif // __MOS_DEFS_H__
