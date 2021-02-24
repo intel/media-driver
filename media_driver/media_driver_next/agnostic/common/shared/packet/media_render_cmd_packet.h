@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -95,6 +95,7 @@ typedef struct _KERNEL_WALKER_PARAMS
     int32_t                             iCurbeLength;
     RECT                                alignedRect;
     bool                                rotationNeeded;
+    bool                                bSyncFlag;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
@@ -112,6 +113,10 @@ typedef struct _KERNEL_PACKET_RENDER_DATA
 
     // Media render state
     PRENDERHAL_MEDIA_STATE              mediaState;
+
+    int32_t                             bindingTable;
+    uint32_t                            bindingTableEntry;
+    int32_t                             mediaID;
 
     KERNEL_WALKER_PARAMS                walkerParam;
 
@@ -261,18 +266,13 @@ protected:
 
     void ResetBindingTableEntry()
     {
-        m_bindingTableEntry = 0;
+        m_renderData.bindingTableEntry = 0;
     }
 
 protected:
     PRENDERHAL_INTERFACE        m_renderHal   = nullptr;
     MhwCpInterface*             m_cpInterface = nullptr;
     PMOS_INTERFACE              m_osInterface = nullptr;
-
-    int32_t                     m_bindingTable      = 0;
-    int32_t                     m_mediaID           = 0;
-    uint32_t                    m_bindingTableEntry = 0;
-    int32_t                     m_curbeOffset       = 0;
 
     // Perf
     VPHAL_PERFTAG               PerfTag; // need to check the perf setting in codec

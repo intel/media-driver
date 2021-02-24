@@ -32,6 +32,7 @@
 #include "media_feature_manager.h"
 #include "vp_utils.h"
 #include "vp_pipeline_common.h"
+#include "vp_render_common.h"
 #include <vector>
 #include "media_sfc_interface.h"
 
@@ -74,8 +75,10 @@ enum FeatureType
     FeatureTypeFD               = 0xD00,
     FeatureTypeFLD              = 0xE00,
     FeatureTypeFB               = 0xF00,
-    FeatureTypeSecureCopy      = 0x1000,
+    FeatureTypeSecureCopy       = 0x1000,
     FeatureTypeSecureCopyOnRender,
+    FeatureTypeSR               = 0x1100,
+    FeatureTypeSROnRender,
     // ...
     NumOfFeatureType
 };
@@ -104,10 +107,15 @@ enum SurfaceType
     SurfaceTypeAlphaOrVignette,
     SurfaceTypeVeboxStateHeap_Drv,
     SurfaceTypeVeboxStateHeap_Knr,
+    SurfaceTypeRenderInput,
+    SurfaceTypeRenderOutput,
+    SurfaceTypeRenderSRInput, //Super Resolution related Surface and Buffer index Reserved
+    SurfaceTypeRenderSRBuffer = SurfaceTypeRenderSRInput + 0x100,
+    SurfaceTypeRenderSRMax = SurfaceTypeRenderSRBuffer + 0x100,
     NumberOfSurfaceType
 };
 
-typedef std::map<SurfaceType, VP_SURFACE*> VP_SURFACE_GROUP;
+using  VP_SURFACE_GROUP = std::map<SurfaceIndex, VP_SURFACE*>;
 
 struct VP_SURFACE_SETTING
 {

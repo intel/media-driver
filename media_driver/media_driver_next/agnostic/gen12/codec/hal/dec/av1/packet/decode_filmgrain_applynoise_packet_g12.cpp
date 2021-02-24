@@ -108,9 +108,9 @@ MOS_STATUS FilmGrainAppNoisePkt::Prepare()
         m_renderData.walkerParam.alignedRect.right  = m_av1BasicFeature->m_filmGrainProcParams->m_outputSurface->dwWidth;
         m_renderData.walkerParam.alignedRect.bottom = m_av1BasicFeature->m_filmGrainProcParams->m_outputSurface->dwHeight;
         m_renderData.walkerParam.iCurbeLength       = m_renderData.iCurbeLength;
-        m_renderData.walkerParam.iCurbeOffset       = m_curbeOffset;
-        m_renderData.walkerParam.iBindingTable      = m_bindingTable;
-        m_renderData.walkerParam.iMediaID           = m_mediaID;
+        m_renderData.walkerParam.iCurbeOffset       = m_renderData.iCurbeOffset;
+        m_renderData.walkerParam.iBindingTable      = m_renderData.bindingTable;
+        m_renderData.walkerParam.iMediaID           = m_renderData.mediaID;
         m_renderData.walkerParam.iBlocksX           = m_renderData.KernelParam.blocks_x;
         m_renderData.walkerParam.iBlocksY           = m_renderData.KernelParam.blocks_y;
         DECODE_CHK_STATUS(PrepareComputeWalkerParams(m_renderData.walkerParam, m_gpgpuWalkerParams));

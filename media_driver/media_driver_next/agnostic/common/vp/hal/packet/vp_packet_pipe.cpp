@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +49,8 @@ void PacketFactory::ClearPacketPool(std::vector<VpCmdPacket *> &pool)
     }
 }
 
-MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet* vpKernels)
+MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet* vpKernels, 
+void *debugInterface)
 {
     m_pTask = pTask;
     m_pHwInterface = pHwInterface;
@@ -57,6 +58,10 @@ MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInter
     m_pMmc = pMmc;
     m_packetSharedContext = packetSharedContext;
     m_kernelSet = vpKernels;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_debugInterface = static_cast<VpDebugInterface*>(debugInterface);
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -221,6 +226,7 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
 MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox)
 {
     // PrePare Packet in case any packet resources shared
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     for (std::vector<VpCmdPacket*>::reverse_iterator it = m_Pipe.rbegin(); it != m_Pipe.rend(); ++it)
     {
         VpCmdPacket* packet = *it;
@@ -248,8 +254,27 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
         {
             VP_PUBLIC_CHK_STATUS_RETURN(pTask->Submit(true, scalability, nullptr));
         }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        for (auto& handle : pPacket->GetSurfSetting().surfGroup)
+        {
+            if(handle.first)
+            {
+                VP_SURFACE_DUMP(m_PacketFactory.m_debugInterface,
+                handle.second,
+                0,
+                handle.first,
+                VPHAL_DUMP_TYPE_POST_COMP);
+            }
+            
+        }
+#endif
     }
-    return MOS_STATUS_SUCCESS;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+finish:
+#endif
+    return eStatus;
 }
 
 VpCmdPacket *PacketPipe::CreatePacket(EngineType type)

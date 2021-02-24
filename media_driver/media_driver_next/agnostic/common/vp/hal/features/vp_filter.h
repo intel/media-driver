@@ -31,11 +31,15 @@
 #include "mos_defs.h"
 #include "vp_pipeline_common.h"
 #include "vp_sfc_common.h"
+#include "vp_render_common.h"
 #include "vp_utils.h"
 #include "sw_filter.h"
 #include "vp_feature_caps.h"
 
 namespace vp {
+
+#define ESR_LAYER_NUM       10
+
 class VpCmdPacket;
 
 class VpFilter
@@ -279,6 +283,8 @@ using PVEBOX_PROCAMP_PARAMS = VEBOX_PROCAMP_PARAMS *;
 using VEBOX_CSC_PARAMS      = _VEBOX_CSC_PARAMS;
 using PVEBOX_CSC_PARAMS     = VEBOX_CSC_PARAMS *;
 
+using KERNEL_ARGS = std::vector<KRN_ARG>;
+
 struct _VEBOX_UPDATE_PARAMS
 {
     VEBOX_DN_PARAMS                 denoiseParams;
@@ -290,6 +296,91 @@ using VEBOX_UPDATE_PARAMS      = _VEBOX_UPDATE_PARAMS;
 using PVEBOX_UPDATE_PARAMS     = VEBOX_UPDATE_PARAMS *;
 using VEBOX_HDR_PARAMS      = _VEBOX_HDR_PARAMS;
 using PVEBOX_HDR_PARAMS     = VEBOX_HDR_PARAMS *;
+
+struct SR_LAYER_PARAMS
+{
+    uint32_t                                          uLayerID;
+    KERNEL_ARGS                                       kernelArgs;
+    SurfaceIndex                                      outputSurface;
+    uint32_t                                          uWidth;
+    uint32_t                                          uHeight;
+    MOS_FORMAT                                        format;
+    std::string                                       sKernelName;
+    uint32_t                                          uKernelID;
+    SurfaceIndex                                      weightBuffer;
+    uint32_t                                          uWeightBufferSize;
+    uint32_t                                          uOutChannels;
+    uint32_t                                          uInChannels;
+    uint32_t                                          uWeightsPerChannel;
+
+    SurfaceIndex                                      biasBuffer;
+    uint32_t                                          uBiasBufferSize;
+    SurfaceIndex                                      reluBuffer;
+    uint32_t                                          uReluBufferSize;
+
+    uint32_t                                          uThreadWidth;
+    uint32_t                                          uThreadHeight;
+
+    uint16_t                                          imgDim[2];
+    uint16_t                                          channelDim[2];
+
+    float                                             reluValue;
+    uint16_t                                          relu;
+    uint16_t                                          addToOutput;
+};
+
+struct CHROMA_LAYER_PARAMS
+{
+    uint32_t                                          uLayerID;
+    KERNEL_ARGS                                       kernelArgs;
+    SurfaceIndex                                      inputSRYSurface;
+    SurfaceIndex                                      inputUSurface;
+    SurfaceIndex                                      inputVSurface;
+    SurfaceIndex                                      outputSurface;
+    uint16_t                                          kernelFormat;
+    float                                             fDeltaU;
+    float                                             fDeltaV;
+    float                                             fShiftU;
+    float                                             fShiftV;
+    float                                             fScaleX;
+    float                                             fScaleY;
+    float                                             fChromaScaleX;
+    float                                             fChromaScaleY;
+    float                                             original_x;
+    float                                             original_y;
+    float                                             fScaleRatioX;
+    float                                             fScaleRatioY;
+
+    std::string                                       sKernelName;
+    uint32_t                                          uKernelID;
+
+    uint32_t                                          uThreadWidth;
+    uint32_t                                          uThreadHeight;
+};
+
+struct  _RENDER_SR_PARAMS
+{
+    bool bEnableSR;
+    std::vector<SR_LAYER_PARAMS> layersParam;
+    CHROMA_LAYER_PARAMS chromaLayerParam;
+    const uint8_t *(*sr2xConvWeightTable)[ESR_LAYER_NUM];
+    const uint8_t *(*sr2xConvBiasTable)[ESR_LAYER_NUM];
+    const uint8_t *(*sr2xConvPreluTable)[ESR_LAYER_NUM];
+
+    const uint32_t (*sr2xConvWeightTableSize)[ESR_LAYER_NUM];
+    const uint32_t (*sr2xConvBiasTableSize)[ESR_LAYER_NUM];
+    const uint32_t (*sr2xConvPreluTableSize)[ESR_LAYER_NUM];
+    uint32_t uInputWidth;
+    uint32_t uInputHeight;
+    MOS_FORMAT inputFormat;
+    RECT                    rcSrcInput;
+    RECT                    rcDstInput;                     //!< Input dst rect without rotate being applied.
+    uint32_t                uOutputWidth;
+    uint32_t                uOutputHeight;
+};
+
+using RENDER_SR_PARAMS = _RENDER_SR_PARAMS;
+using PRENDER_SR_PARAMS = RENDER_SR_PARAMS*;
 
 class SwFilterPipe;
 class HwFilter;

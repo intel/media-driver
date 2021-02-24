@@ -1,4 +1,4 @@
-/* Copyright (c) 2020, Intel Corporation
+/* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,12 +32,12 @@ using namespace vp;
 VpKernelSet::VpKernelSet(PVP_MHWINTERFACE hwInterface) :
     m_hwInterface(hwInterface)
 {
-    m_kernelPool = hwInterface->m_vpPlatformInterface->GetKernel();
+    m_pKernelPool = &hwInterface->m_vpPlatformInterface->GetKernelPool();
 }
 
 MOS_STATUS VpKernelSet::GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kernel)
 {
-    Kdll_State* kernelState = m_kernelPool->GetKdllState();
+    Kdll_State* kernelState = m_pKernelPool->at(0).GetKdllState();
 
     if (kernelState)
     {
@@ -50,4 +50,29 @@ MOS_STATUS VpKernelSet::GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kern
         VP_PUBLIC_ASSERTMESSAGE("Kernel State not inplenmented, return error");
         return MOS_STATUS_UNINITIALIZED;
     }
+}
+
+MOS_STATUS VpKernelSet::FindAndInitKernelObj(VpRenderKernelObj* kernelObj)
+{
+    VP_RENDER_CHK_NULL_RETURN(kernelObj);
+    VP_RENDER_CHK_NULL_RETURN(m_pKernelPool);
+
+    bool bFind = false;
+    for (auto &kernel : *m_pKernelPool)
+    {
+        if (!kernel.GetKernelName().compare(kernelObj->GetKernelName()))
+        {
+            VP_RENDER_CHK_STATUS_RETURN(kernelObj->Init(kernel));
+            bFind = true;
+            break;
+        }
+    }
+
+    if (!bFind)
+    {
+        VP_RENDER_ASSERTMESSAGE("The kernel is not found!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return MOS_STATUS_SUCCESS;
 }

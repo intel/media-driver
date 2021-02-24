@@ -201,7 +201,7 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     // Create active tasks
     MediaTask *pTask = GetTask(MediaTask::TaskType::cmdTask);
     VP_PUBLIC_CHK_NULL_RETURN(pTask);
-    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, &m_vpMhwInterface, m_allocator, m_mmc, m_packetSharedContext, m_kernelSet));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_pPacketFactory->Initialize(pTask, &m_vpMhwInterface, m_allocator, m_mmc, m_packetSharedContext, m_kernelSet, m_debugInterface));
 
     m_pPacketPipeFactory = MOS_New(PacketPipeFactory, *m_pPacketFactory);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketPipeFactory);

@@ -157,7 +157,8 @@ struct _VP_EXECUTE_CAPS
 
             // Render Features
             uint32_t bComposite     : 1;
-            uint32_t reserved       : 6;   // Reserved
+            uint32_t bSR            : 1;
+            uint32_t reserved       : 5;   // Reserved
         };
     };
 };

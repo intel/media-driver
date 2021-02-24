@@ -1251,7 +1251,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                 {
                     UpdateExeCaps(feature, caps, EngineTypeVebox);
                 }
-                else if (caps.bComposite && engineCaps->RenderNeeded)
+                else if (engineCaps->RenderNeeded)
                 {
                     // use render path to implement feature.
                     UpdateExeCaps(feature, caps, EngineTypeRender);
@@ -1429,6 +1429,10 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             break;
         case FeatureTypeRotMir:
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(RotMir, Render)));
+            break;
+        case FeatureTypeSR:
+            caps.bSR = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Render)));
             break;
         default:
             break;

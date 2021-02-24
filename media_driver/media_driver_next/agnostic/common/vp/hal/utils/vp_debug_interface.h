@@ -64,6 +64,12 @@ public:
         uint32_t       uiCounter,
         uint32_t       Location);
 
+    MOS_STATUS DumpVpSurface(
+        PVP_SURFACE pSurf,
+        uint32_t    uiFrameNumber,
+        uint32_t    uiCounter,
+        uint32_t    Location);
+
 protected:
     MOS_USER_FEATURE_VALUE_ID SetOutputPathKey() override;
     MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() override;

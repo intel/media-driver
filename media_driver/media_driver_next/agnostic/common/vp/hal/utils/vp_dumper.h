@@ -34,6 +34,7 @@
 #include "renderhal.h"
 #include "mhw_vebox.h"
 #include "vphal_common.h"       // Common interfaces and structures
+#include "vp_pipeline_common.h"
 
 #if !defined(LINUX) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
@@ -156,7 +157,8 @@ enum VPHAL_SURF_DUMP_LOCATION
     VPHAL_DUMP_TYPE_POST_COMP,
     VPHAL_DUMP_TYPE_PRE_MEMDECOMP,
     VPHAL_DUMP_TYPE_POST_MEMDECOMP,
-    VPHAL_DUMP_TYPE_POST_ALL
+    VPHAL_DUMP_TYPE_POST_ALL,
+    VPHAL_DUMP_TYPE_INTERNAL
 };
 
 //!
@@ -256,6 +258,16 @@ public:
         bool                        bNoDecompWhenLock,
         uint8_t*                    pData);
 
+    virtual MOS_STATUS DumpSurfaceToFile(
+        PMOS_INTERFACE              pOsInterface,
+        PVP_SURFACE                 pSurface,
+        const char                  *psPathPrefix,
+        uint64_t                    iCounter,
+        bool                        bLockSurface,
+        bool                        bNoDecompWhenLock,
+        uint8_t*                    pData);
+
+
     VPHAL_SURF_DUMP_SPEC    m_dumpSpec;
 
     //!
@@ -288,6 +300,13 @@ public:
     //!
     virtual MOS_STATUS DumpSurface(
         PVPHAL_SURFACE                  pSurf,
+        uint32_t                        uiFrameNumber,
+        uint32_t                        uiCounter,
+        uint32_t                        Location);
+
+
+     virtual MOS_STATUS DumpSurface(
+        PVP_SURFACE                  pSurf,
         uint32_t                        uiFrameNumber,
         uint32_t                        uiCounter,
         uint32_t                        Location);
@@ -393,6 +412,13 @@ private:
         bool                                auxEnable,
         bool                                isDeswizzled);
 
+    MOS_STATUS GetPlaneDefs(
+        PVP_SURFACE                         pSurface,
+        VPHAL_SURF_DUMP_SURFACE_DEF*        pPlanes,
+        uint32_t*                           pdwNumPlanes,
+        uint32_t*                           pdwSize,
+        bool                                auxEnable,
+        bool                                isDeswizzled);
     //!
     //! \brief    Parse dump location
     //! \details  Take dump location strings and break down into individual post-

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #include "mhw_sfc.h"
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
+#include "vp_debug_interface.h"
 
 #include <vector>
 #include "hw_filter.h"
@@ -35,6 +36,7 @@
 
 class MediaScalability;
 class MediaContext;
+class VpDebugInterface;
 
 namespace vp {
 
@@ -46,9 +48,11 @@ class PacketFactory
 public:
     PacketFactory(VpPlatformInterface *vpPlatformInterface);
     virtual ~PacketFactory();
-    MOS_STATUS Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet* vpKernels);
+    MOS_STATUS   Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet *vpKernels, void *debugInterface);
     VpCmdPacket *CreatePacket(EngineType type);
     void ReturnPacket(VpCmdPacket *&pPacket);
+
+    VpDebugInterface       *m_debugInterface = nullptr;
 
 protected:
     VpCmdPacket *CreateVeboxPacket();
@@ -64,7 +68,7 @@ protected:
     PVpAllocator        m_pAllocator = nullptr;
     VPMediaMemComp      *m_pMmc = nullptr;
     VpPlatformInterface *m_vpPlatformInterface = nullptr;
-    VpKernelSet* m_kernelSet = nullptr;
+    VpKernelSet         *m_kernelSet = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
 };
 
