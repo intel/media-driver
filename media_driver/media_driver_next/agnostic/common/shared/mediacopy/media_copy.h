@@ -117,7 +117,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS PreProcess();
+    virtual MOS_STATUS PreProcess(MCPY_METHOD preferMethod = MCPY_METHOD_BALANCE);
 
     //!
     //! \brief    surface copy func.
@@ -274,6 +274,7 @@ public:
     MCPY_ENGINE         m_mcpyEngine     = MCPY_ENGINE_RENDER;
     MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
     MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
+    bool                m_allowBltCopy   = false;
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context
