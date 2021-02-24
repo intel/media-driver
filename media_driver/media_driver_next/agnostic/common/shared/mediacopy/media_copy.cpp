@@ -96,7 +96,8 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
 
     // common policy check
     // legal check
-    if (m_mcpySrc.CpMode == MCPY_CPMODE_CP && m_mcpyDst.CpMode == MCPY_CPMODE_CLEAR)
+    // Blt engine does not support protection, allow the copy if dst is staging buffer in system mem
+    if (m_mcpySrc.CpMode == MCPY_CPMODE_CP && m_mcpyDst.CpMode == MCPY_CPMODE_CLEAR && !m_allowBltCopy)
     {
         MCPY_ASSERTMESSAGE("illegal usage");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -144,7 +145,7 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
 //!
-MOS_STATUS MediaCopyBaseState::PreProcess()
+MOS_STATUS MediaCopyBaseState::PreProcess(MCPY_METHOD preferMethod)
 {
     return MOS_STATUS_SUCCESS;
 }
@@ -209,10 +210,10 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     m_mcpyDst.CpMode          = dst->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
     m_mcpyDst.TileMode        = ResDetails.TileType;
     m_mcpyDst.OsRes           = dst;
+    
+    MCPY_CHK_STATUS_RETURN(PreProcess(preferMethod));
 
     MCPY_CHK_STATUS_RETURN(CapabilityCheck());
-
-    MCPY_CHK_STATUS_RETURN(PreProcess());
 
     CopyEnigneSelect(preferMethod);
 
