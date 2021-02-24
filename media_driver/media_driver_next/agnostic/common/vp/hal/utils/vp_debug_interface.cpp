@@ -112,6 +112,20 @@ MOS_STATUS VpDebugInterface::DumpVpSurface(
                Location);
 }
 
+MOS_STATUS VpDebugInterface::DumpVpSurface(
+    PVP_SURFACE pSurf,
+    uint32_t       uiFrameNumber,
+    uint32_t       uiCounter,
+    uint32_t       Location)
+{
+    VP_DEBUG_CHK_NULL_RETURN(m_surfaceDumper)
+    return m_surfaceDumper->DumpSurface(
+               pSurf,
+               uiFrameNumber,
+               uiCounter,
+               Location);
+}
+
 MOS_STATUS VpDebugInterface::DumpVpSurfaceArray(
     PVPHAL_SURFACE                  *ppSurfaces,
     uint32_t                        uiMaxSurfaces,

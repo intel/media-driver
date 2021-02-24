@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,11 @@ public:
     MediaScalability *&GetMediaScalability()
     {
         return m_scalability;
+    }
+
+    VP_SURFACE_SETTING &GetSurfSetting()
+    {
+        return m_surfSetting;
     }
 
 protected:

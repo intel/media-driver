@@ -29,14 +29,12 @@
 
 #include "hal_kerneldll.h"
 #include "vp_feature_manager.h"
+#include "vp_render_common.h"
 
 namespace vp
 {
 class VPFeatureManager;
 class SfcRenderBase;
-
-#define VP_USE_MEDIA_THREADS_MAX         0
-
 class VpKernelSet;
 
 class VpRenderKernel
@@ -60,6 +58,45 @@ public:
         return m_kernelDllState;
     }
 
+    MOS_STATUS SetKernelName(
+        void*                 name,
+        uint32_t              nameLen);
+
+    MOS_STATUS SetKernelName(std::string kernelname);
+
+    std::string& GetKernelName()
+    {
+        return m_kernelName;
+    }
+
+    uint32_t& GetKernelSize()
+    {
+        return m_kernelBinSize;
+    }
+
+    uint32_t& GetKernelBinOffset()
+    {
+        return m_kernelBinOffset;
+    }
+
+    const void* GetKernelBinPointer()
+    {
+        return m_kernelBin;
+    }
+
+    MOS_STATUS SetKernelBinOffset(uint32_t offset);
+
+    MOS_STATUS SetKernelBinSize(uint32_t size);
+
+    MOS_STATUS SetKernelBinPointer(void* pBin);
+
+    MOS_STATUS AddKernelArg(KRN_ARG& arg);
+
+    KERNEL_ARGS GetKernelArgs()
+    {
+        return m_kernelArgs;
+    }
+
 protected:
     // Compositing Kernel DLL/Search state
     const Kdll_RuleEntry        *m_kernelDllRules = nullptr;
@@ -68,11 +105,20 @@ protected:
     // Compositing Kernel buffer and size
     const void                  *m_kernelBin = nullptr;
     uint32_t                     m_kernelBinSize = 0;
+    // CM Kernel Execution Code Offset
+    uint32_t                     m_kernelBinOffset = 0;
+
+    // CM Kernel Arguments
+    KERNEL_ARGS                  m_kernelArgs;
+
+    std::string                  m_kernelName = {};
 
     // CM Compositing Kernel patch file buffer and size
     const void                  *m_fcPatchBin = nullptr;
-    uint32_t                    m_fcPatchBinSize = 0;
+    uint32_t                     m_fcPatchBinSize = 0;
 };
+
+using KERNEL_POOL = std::vector<VpRenderKernel>;
 
 class VpPlatformInterface
 {
@@ -83,10 +129,12 @@ public:
         m_pOsInterface = pOsInterface;
     }
 
-    virtual ~VpPlatformInterface()
-    {
-        m_kernel.Destroy();
-    }
+    virtual ~VpPlatformInterface();
+
+    virtual MOS_STATUS InitVpCmKernels(
+        const uint32_t*       cisaCode,
+        uint32_t              cisaCodeSize);
+
     virtual MOS_STATUS InitVpHwCaps(VP_HW_CAPS &vpHwCaps)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(InitVpVeboxSfcHwCaps(vpHwCaps.m_veboxHwEntry, Format_Count, vpHwCaps.m_sfcHwEntry, Format_Count));
@@ -94,6 +142,15 @@ public:
         VP_PUBLIC_CHK_STATUS_RETURN(InitPolicyRules(vpHwCaps.m_rules));
         return MOS_STATUS_SUCCESS;
     }
+
+    virtual MOS_STATUS InitVPFCKernels(
+        const Kdll_RuleEntry* kernelRules,
+        const uint32_t* kernelBin,
+        uint32_t              kernelSize,
+        const uint32_t* patchKernelBin,
+        uint32_t              patchKernelSize,
+        void (*ModifyFunctionPointers)(PKdll_State) = nullptr);
+
     virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules);
     virtual MOS_STATUS InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount, VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount)
     {
@@ -121,9 +178,9 @@ public:
         return MOS_STATUS_UNIMPLEMENTED;
     }
 
-    VpRenderKernel* GetKernel()
+    KERNEL_POOL& GetKernelPool()
     {
-        return &m_kernel;
+        return m_kernelPool;
     }
 
     virtual MOS_STATUS VeboxQueryStatLayout(
@@ -153,7 +210,7 @@ public:
 
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
-    VpRenderKernel m_kernel;
+    KERNEL_POOL    m_kernelPool;
     void (*m_modifyKdllFunctionPointers)(PKdll_State) = nullptr;
     bool m_sfc2PassScalingEnabled = false;
     bool m_sfc2PassScalingPerfMode = false;

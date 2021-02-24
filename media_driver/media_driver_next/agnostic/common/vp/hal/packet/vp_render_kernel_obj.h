@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,8 +33,6 @@ class RenderCmdPacket;
 
 namespace vp {
 
-struct RENDER_KERNEL_PARAMS;
-
 //!
 //! \brief Secure Block Copy kernel inline data size
 //!
@@ -48,6 +46,52 @@ struct RENDER_KERNEL_PARAMS;
 //! \brief Secure Block Copy kernel block height
 //!
 #define SECURE_BLOCK_COPY_KERNEL_BLOCK_HEIGHT   24
+
+#define KERNEL_BINARY_PADDING_SIZE CM_KERNEL_BINARY_PADDING_SIZE
+
+enum KernelId
+{
+    Kernel_Invalidate = 0,
+    Kernel_FastComposition,
+    Kernel_Max
+};
+
+typedef struct _KERNEL_SURFACE_STATE_PARAM
+{
+    struct {
+        bool                           updatedSurfaceParams; // true if using included surface params
+        MOS_FORMAT                     format;               // MOS_FORMAT for processing surfaces
+        uint32_t                       width;
+        uint32_t                       height;
+        uint32_t                       pitch;
+        uint32_t                       surface_offset;     // Offset to the origin of the surface, in bytes.
+        MOS_TILE_TYPE                  tileType;
+        bool                           bufferResource;
+        bool                           bindedKernel;
+        uint32_t                       bindIndex;
+        bool                           updatedRenderSurfaces;
+        RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // default can be skip. for future usages, if surface configed by kernel, use it directlly
+    } surfaceOverwriteParams;
+    bool       renderTarget;        // true for render target
+    uint32_t   reserved[2]; // for future usage
+} KERNEL_SURFACE_STATE_PARAM;
+
+using KERNEL_ARGS = std::vector<KRN_ARG>;
+using KERNEL_CONFIGS = std::map<KernelIndex, void*>;
+using KERNEL_SAMPLER_STATE_GROUP = std::map<SamplerIndex, MHW_SAMPLER_STATE_PARAM>;
+using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
+using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
+using KERNEL_SURFACE_CONFIG = std::map<SurfaceIndex, KERNEL_SURFACE_STATE_PARAM>;
+using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceIndex, uint32_t>;
+
+typedef struct _KERNEL_PARAMS
+{
+    KernelIndex          kernelId;
+    KERNEL_ARGS          kernelArgs;
+    KERNEL_THREAD_SPACE  kernelThreadSpace;
+    KERNEL_SAMPLER_INDEX kernelSamplerIndex;
+    bool                 syncFlag;
+} KERNEL_PARAMS;
 
 struct MEDIA_OBJECT_KA2_INLINE_DATA
 {
@@ -283,48 +327,37 @@ struct MEDIA_OBJECT_KA2_INLINE_DATA
     } DW15;
 };
 
-typedef struct _KERNEL_SURFACE2D_STATE_PARAM
-{
-    struct {
-        bool                           updatedSurfaceParams; // true if using included surface params
-        MOS_FORMAT                     format;               // MOS_FORMAT for processing surfaces
-        uint32_t                       width;
-        uint32_t                       height;
-        uint32_t                       pitch;
-        uint32_t                       surface_offset;     // Offset to the origin of the surface, in bytes.
-        MOS_TILE_TYPE                  tileType;
-        bool                           bufferResource;
-        bool                           bindedKernel;
-        uint32_t                       bindIndex;
-        bool                           updatedRenderSurfaces;
-        RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // default can be skip. for future usages, if surface configed by kernel, use it directlly
-    } surfaceOverwriteParams;
-    bool       renderTarget;        // true for render target
-    uint32_t   reserved[2]; // for future usage
-} KERNEL_SURFACE2D_STATE_PARAM;
-
 class VpRenderKernelObj
 {
 public:
     VpRenderKernelObj(PVP_MHWINTERFACE hwInterface);
-    virtual ~VpRenderKernelObj() {};
+    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, uint32_t kernelID, uint32_t kernelIndex);
+    virtual ~VpRenderKernelObj();
 
     // Kernel Specific, which will inplenment be each kernel
     // GetCurbeState should be called after UpdateCurbeBindingIndex for all processed surfaces being called
-    virtual MOS_STATUS GetCurbeState(void*& curbe, uint32_t& curbeLength) = 0;
+    virtual MOS_STATUS Init(VpRenderKernel& kernel);
 
-    virtual MOS_STATUS GetMediaWalkerSettings() = 0;
+    virtual MOS_STATUS GetCurbeState(void*& curbe, uint32_t& curbeLength);
 
-    virtual MOS_STATUS GetInlineState(void** inlineData, uint32_t& inlineLength) = 0;
+    virtual MOS_STATUS GetInlineState(void** inlineData, uint32_t& inlineLength);
 
-    virtual MOS_STATUS GetKernelID(int32_t& kuid) = 0;
+    virtual uint32_t GetKernelIndex();
 
-    virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam) = 0;
+    virtual KERNEL_WALKER_PARAMS& GetWalkerSetting();
 
-    virtual MOS_STATUS SetKernelConfigs(void* params) = 0;
+    virtual MOS_STATUS SetKernelConfigs(
+        KERNEL_CONFIGS& kernelConfigs,
+        KERNEL_PARAMS& kernelParams,
+        VP_SURFACE_GROUP& surfaces,
+        KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup);
+
+    virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs, uint32_t kernelExecuteID);
+
+    virtual KERNEL_SAMPLER_STATES& GetSamplerStates();
 
     // Kernel Common configs
-    virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings, KernelID executeKernelID)
+    virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings, uint32_t executeKernelID)
     {
         MOS_ZeroMemory(&settsings, sizeof(RENDERHAL_KERNEL_PARAM));
 
@@ -344,17 +377,12 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS SetProcessSurface(std::map<SurfaceType, VP_SURFACE*>& surface)
-    {
-        m_surfaceGroup = &surface;
-        VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
-        return MOS_STATUS_SUCCESS;
-    }
+    MOS_STATUS SetKernelID(uint32_t kid);
 
-    uint32_t GetKernelID()
-    {
-        return m_kernelID;
-    }
+    MOS_STATUS SetKernelIndex(uint32_t kid);
+
+    virtual uint32_t GetKernelID();
+
     void* GetKernelBinary()
     {
         return m_kernelBinary;
@@ -365,26 +393,27 @@ public:
         return m_kernelSize;
     }
 
-    std::vector<SurfaceType>& GetProcessingSurfaces()
-    {
-        return m_surfaces;
-    }
-
-    std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>& GetKernelSurfaceConfig()
+    KERNEL_SURFACE_CONFIG& GetKernelSurfaceConfig()
     {
         return m_surfaceState;
     }
 
-    MOS_STATUS UpdateCurbeBindingIndex(SurfaceType type, uint32_t index)
+    std::string& GetKernelName()
+    {
+        return m_kernelName;
+    }
+
+    MOS_STATUS UpdateCurbeBindingIndex(SurfaceIndex surface, uint32_t index)
     {
         // Surface Type is sepsrated during one submission
-        m_surfaceBindingIndex.insert(std::make_pair(type, index));
+        m_surfaceBindingIndex.insert(std::make_pair(surface, index));
+
         return MOS_STATUS_SUCCESS;
     }
 
-    uint32_t GetSurfaceIndex(SurfaceType type)
+    uint32_t GetSurfaceBindingIndex(SurfaceIndex surface)
     {
-        auto it = m_surfaceBindingIndex.find(type);
+        auto it = m_surfaceBindingIndex.find(surface);
 
         if (it != m_surfaceBindingIndex.end())
         {
@@ -405,22 +434,44 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS SetupSurfaceState() = 0;
+protected:
+
+    virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE& threadSpace, bool bSyncFlag);
+
+    virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS& kernelArgs);
+
+    virtual MOS_STATUS SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup, KERNEL_SAMPLER_INDEX &kernelSamplerIndex);
+
+    virtual MOS_STATUS SetupSurfaceState();
+
+    MOS_STATUS SetProcessSurfaceGroup(VP_SURFACE_GROUP& surfaces)
+    {
+        m_surfaceGroup = &surfaces;
+        VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
+        return MOS_STATUS_SUCCESS;
+    }
 
 protected:
-    std::map<SurfaceType, VP_SURFACE*>                  *m_surfaceGroup = nullptr;   // input surface process surface groups
-    PVP_MHWINTERFACE                                     m_hwInterface = nullptr;
-    std::vector<SurfaceType>                             m_surfaces;                 // vector for processed surfaces, the order should match with Curbe surface order
-    std::map<SurfaceType, KERNEL_SURFACE2D_STATE_PARAM>  m_surfaceState;             // surfaces processed pool where the surface state will generated here, if KERNEL_SURFACE2D_STATE_PARAM 
-    std::map<SurfaceType, uint32_t>                      m_surfaceBindingIndex;             // store the binding index for processed surface
-    uint32_t                                             m_kernelID = 0;
+
+    VP_SURFACE_GROUP                                        *m_surfaceGroup = nullptr;   // input surface process surface groups
+    PVP_MHWINTERFACE                                        m_hwInterface = nullptr;
+    KERNEL_SURFACE_CONFIG                                   m_surfaceState;             // surfaces processed pool where the surface state will generated here, if KERNEL_SURFACE_STATE_PARAM 
+    KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
 
     // kernel attribute 
-    void *                                               m_kernelBinary = nullptr;
-    uint32_t                                             m_kernelSize = 0;
-    //KERNEL_WALKER_PARAMS                                 m_kernelWalkerParams = {};   // Kernel Walker Params
+    std::string                                             m_kernelName;
+    void *                                                  m_kernelBinary = nullptr;
+    uint32_t                                                m_kernelSize = 0;
+    uint32_t                                                m_kernelID = 0;
+    uint32_t                                                m_kernelIndex = 0;
+
+    //kernel Arguments
+    KERNEL_ARGS                                             m_kernelArgs;
+    KERNEL_SAMPLER_STATES                                   m_samplerStates;
+    KERNEL_WALKER_PARAMS                                    m_walkerParam;
+
+    static MEDIA_OBJECT_KA2_INLINE_DATA                     g_cInit_VP_MEDIA_OBJECT_KA2_INLINE_DATA;
+
 };
 }
-
-extern const vp::MEDIA_OBJECT_KA2_INLINE_DATA g_cInit_MEDIA_VP_OBJECT_KA2_INLINE_DATA;
 #endif // __VP_RENDER_KERNEL_OBJ_H__

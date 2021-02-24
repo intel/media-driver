@@ -36,6 +36,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_cmd_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_sfc_common.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_vebox_common.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_common.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_packet_shared_context.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_kernel_obj.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_cmd_packet.h

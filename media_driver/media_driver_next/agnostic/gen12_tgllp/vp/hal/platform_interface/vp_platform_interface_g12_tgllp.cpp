@@ -74,16 +74,13 @@ MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpRenderHwCaps()
 {
     m_modifyKdllFunctionPointers = nullptr;
 #if defined(ENABLE_KERNELS)
-    if (!m_kernel.GetKdllState())
-    {
-        m_kernel.InitVPKernel(
-            g_KdllRuleTable_g12lpcmfc,
-            IGVPKRN_G12_TGLLP_CMFC,
-            IGVPKRN_G12_TGLLP_CMFC_SIZE,
-            IGVPKRN_G12_TGLLP_CMFCPATCH,
-            IGVPKRN_G12_TGLLP_CMFCPATCH_SIZE,
-            m_modifyKdllFunctionPointers);
-    }
+    InitVPFCKernels(
+        g_KdllRuleTable_g12lpcmfc,
+        IGVPKRN_G12_TGLLP_CMFC,
+        IGVPKRN_G12_TGLLP_CMFC_SIZE,
+        IGVPKRN_G12_TGLLP_CMFCPATCH,
+        IGVPKRN_G12_TGLLP_CMFCPATCH_SIZE,
+        m_modifyKdllFunctionPointers);
 #endif
 
     return MOS_STATUS_SUCCESS;

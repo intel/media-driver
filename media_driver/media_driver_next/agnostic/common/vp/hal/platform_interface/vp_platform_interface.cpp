@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,24 +25,27 @@
 //! \details  render packet provide the structures and generate the cmd buffer which mediapipline will used.
 //!
 #include "vp_platform_interface.h"
+#include "cm_visa.h"
+
 using namespace vp;
 
 MOS_STATUS VpRenderKernel::InitVPKernel(
     const Kdll_RuleEntry *kernelRules,
-    const uint32_t       *kernelBin,
+    const uint32_t *      kernelBin,
     uint32_t              kernelSize,
-    const uint32_t       *patchKernelBin,
+    const uint32_t *      patchKernelBin,
     uint32_t              patchKernelSize,
-    void(*ModifyFunctionPointers)(PKdll_State) = nullptr)
+    void (*ModifyFunctionPointers)(PKdll_State) = nullptr)
 {
+    VP_FUNC_CALL();
     m_kernelDllRules = kernelRules;
-    m_kernelBin = (const void*)kernelBin;
-    m_kernelBinSize = kernelSize;
-    m_fcPatchBin = (const void*)patchKernelBin;
+    m_kernelBin      = (const void *)kernelBin;
+    m_kernelBinSize  = kernelSize;
+    m_fcPatchBin     = (const void *)patchKernelBin;
     m_fcPatchBinSize = patchKernelSize;
 
-    void* pKernelBin = nullptr;
-    void* pFcPatchBin = nullptr;
+    void *pKernelBin  = nullptr;
+    void *pFcPatchBin = nullptr;
 
     pKernelBin = MOS_AllocMemory(m_kernelBinSize);
     if (!pKernelBin)
@@ -92,6 +95,34 @@ MOS_STATUS VpRenderKernel::InitVPKernel(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpPlatformInterface::InitVPFCKernels(
+    const Kdll_RuleEntry *kernelRules,
+    const uint32_t *      kernelBin,
+    uint32_t              kernelSize,
+    const uint32_t *      patchKernelBin,
+    uint32_t              patchKernelSize,
+    void (*ModifyFunctionPointers)(PKdll_State))
+{
+    VP_FUNC_CALL();
+    VpRenderKernel vpKernel;
+    if (!vpKernel.GetKdllState())
+    {
+        vpKernel.InitVPKernel(
+            kernelRules,
+            kernelBin,
+            kernelSize,
+            patchKernelBin,
+            patchKernelSize,
+            ModifyFunctionPointers);
+
+        vpKernel.SetKernelName("vpFCkernels");
+
+        m_kernelPool.push_back(vpKernel);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS vp::VpRenderKernel::Destroy()
 {
     if (m_kernelDllState)
@@ -104,28 +135,29 @@ MOS_STATUS vp::VpRenderKernel::Destroy()
 
 MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
 {
+    VP_FUNC_CALL();
     rules.sfcMultiPassSupport.csc.enable = false;
     if (m_sfc2PassScalingEnabled)
     {
         rules.sfcMultiPassSupport.scaling.enable = true;
         // one pass SFC scaling range is [1/8, 8], two pass cover[1/16, 16](AVS Removal) for both X and Y direction.
         rules.sfcMultiPassSupport.scaling.downScaling.minRatioEnlarged = 0.5;
-        rules.sfcMultiPassSupport.scaling.upScaling.maxRatioEnlarged = 2;
+        rules.sfcMultiPassSupport.scaling.upScaling.maxRatioEnlarged   = 2;
 
         // For 2 pass upscaling: first pass do 2X, rest for others.
-        rules.sfcMultiPassSupport.scaling.upScaling.ratioFor1stPass = 2;
+        rules.sfcMultiPassSupport.scaling.upScaling.ratioFor1stPass               = 2;
         rules.sfcMultiPassSupport.scaling.upScaling.scalingIn1stPassIf1PassEnough = false;
 
         if (m_sfc2PassScalingPerfMode)
         {
             // for 2 pass downscaling: first pass do 1/8, rest for others.
-            rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass = 1.0F / 8;
+            rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass               = 1.0F / 8;
             rules.sfcMultiPassSupport.scaling.downScaling.scalingIn1stPassIf1PassEnough = true;
         }
         else
         {
             // for 2 pass downscaling: first pass do 1/2, rest for others.
-            rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass = 0.5;
+            rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass               = 0.5;
             rules.sfcMultiPassSupport.scaling.downScaling.scalingIn1stPassIf1PassEnough = false;
         }
     }
@@ -135,4 +167,187 @@ MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::VpRenderKernel::SetKernelName(void *name, uint32_t nameLen)
+{
+    VP_FUNC_CALL();
+    if (name == nullptr || nameLen < 1 || nameLen > 256)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    std::string kernelname((char *)name, nameLen);
+
+    m_kernelName.assign(kernelname);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::VpRenderKernel::SetKernelName(std::string kernelname)
+{
+    VP_FUNC_CALL();
+    m_kernelName.assign(kernelname);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::VpRenderKernel::SetKernelBinOffset(uint32_t offset)
+{
+    VP_FUNC_CALL();
+    m_kernelBinOffset = offset;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::VpRenderKernel::SetKernelBinSize(uint32_t size)
+{
+    VP_FUNC_CALL();
+    m_kernelBinSize = size;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::VpRenderKernel::SetKernelBinPointer(void *pBin)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(pBin);
+    m_kernelBin = pBin;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS vp::VpRenderKernel::AddKernelArg(KRN_ARG &kernelArg)
+{
+    m_kernelArgs.push_back(kernelArg);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPlatformInterface::InitVpCmKernels(
+    const uint32_t *cisaCode,
+    uint32_t        cisaCodeSize)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(cisaCode);
+
+    if (cisaCodeSize == 0)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    uint8_t *pBuf             = (uint8_t *)cisaCode;
+    uint32_t bytePos          = 0;
+    uint32_t cisaMagicNumber  = 0;
+    uint8_t  cisaMajorVersion = 0;
+    uint8_t  cisaMinorVersion = 0;
+
+    READ_FIELD_FROM_BUF(cisaMagicNumber, uint32_t);
+    READ_FIELD_FROM_BUF(cisaMajorVersion, uint8_t);
+    READ_FIELD_FROM_BUF(cisaMinorVersion, uint8_t);
+
+    auto getVersionAsInt = [](int major, int minor) { return major * 100 + minor; };
+    if (getVersionAsInt(cisaMajorVersion, cisaMinorVersion) < getVersionAsInt(3, 2) ||
+        cisaMagicNumber != CISA_MAGIC_NUMBER)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    vISA::ISAfile *isaFile = MOS_New(vISA::ISAfile, (uint8_t *)cisaCode, cisaCodeSize);
+
+    if (!isaFile->readFile())
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    vISA::Header *header = isaFile->getHeader();
+
+    for (uint32_t i = 0; i < header->getNumKernels(); i++)
+    {
+        VpRenderKernel vpKernel;
+
+        vpKernel.SetKernelBinPointer((void *)cisaCode);
+
+        vISA::Kernel *kernel = header->getKernelInfo()[i];
+        VP_PUBLIC_CHK_STATUS_RETURN(vpKernel.SetKernelName((void *)kernel->getName(), kernel->getNameLen()));
+
+        uint8_t          numGenBinaries = kernel->getNumGenBinaries();
+        vISA::GenBinary *genBinary      = kernel->getGenBinaryInfo()[numGenBinaries - 1];
+
+        vpKernel.SetKernelBinOffset(genBinary->getBinaryOffset());
+        vpKernel.SetKernelBinSize(genBinary->getBinarySize());
+
+        vISA::KernelBody *kernelBody = isaFile->getKernelsData().at(i);
+        if (kernelBody->getNumInputs() > CM_MAX_ARGS_PER_KERNEL)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        for (uint32_t j = 0; j < kernelBody->getNumInputs(); j++)
+        {
+            KRN_ARG          kernelArg = {};
+            vISA::InputInfo *inputInfo = kernelBody->getInputInfo()[j];
+            uint8_t          kind      = inputInfo->getKind();
+
+            if (kind == 0x2)  // compiler value for surface
+            {
+                kind = ARG_KIND_SURFACE;  // runtime value for surface. surface will be further classified to 1D/2D/3D
+            }
+            else if (kind == 0x3)  // compiler value for vme index
+            {
+                kind = ARG_KIND_VME_INDEX;
+            }
+            else if (kind == 0x8)
+            {
+                kind = ARG_KIND_IMPLICT_LOCALSIZE;
+            }
+            else if (kind == 0x10)
+            {
+                kind = ARG_KIND_IMPLICT_GROUPSIZE;
+            }
+            else if (kind == 0x18)
+            {
+                kind = ARG_KIND_IMPLICIT_LOCALID;
+            }
+            else if (kind == 0x2A)
+            {
+                kind = ARG_KIND_SURFACE_2D_SCOREBOARD;
+            }
+            else if (kind == 0x20)
+            {
+                kind = ARG_KIND_GENERAL_DEPVEC;
+            }
+            else if (kind == 0x30)
+            {
+                kind = ARG_KIND_GENERAL_DEPCNT;
+            }
+            else if (kind == 0x80)
+            {
+                // IMP_PSEUDO_INPUT = 0x80 is pseudo input. All inputs after this
+                // will be ignored by CMRT without checking and payload copied.
+                // This resizes the argument count to achieve this.
+                return MOS_STATUS_UNIMPLEMENTED;
+            }
+
+            kernelArg.uIndex           = j;
+            kernelArg.eArgKind         = (KRN_ARG_KIND)kind;
+            kernelArg.uOffsetInPayload = inputInfo->getOffset() - CM_PAYLOAD_OFFSET;
+            kernelArg.uSize            = inputInfo->getSize();
+
+            vpKernel.AddKernelArg(kernelArg);
+        }
+
+        m_kernelPool.push_back(vpKernel);
+    }
+
+    MOS_Delete(isaFile);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+VpPlatformInterface::~VpPlatformInterface()
+{
+    for (auto& kernel : m_kernelPool)
+    {
+        kernel.Destroy();
+    }
 }

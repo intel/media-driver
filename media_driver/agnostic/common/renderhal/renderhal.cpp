@@ -1185,7 +1185,6 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     uint32_t                     dwSizeSSH;
     uint32_t                     dwSizeISH;
     uint32_t                     dwSizeMediaState;
-    uint32_t                     dwSizeSamplers;
     PMHW_STATE_HEAP              pDshHeap;
     PMHW_STATE_HEAP              pIshHeap;
     int32_t                      i;
@@ -1301,7 +1300,8 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
         // Sampler states
         pStateHeap->dwOffsetSampler     = dwSizeMediaState;
         pStateHeap->dwSizeSampler       = MOS_ALIGN_CEIL(pSettings->iSamplers * pHwSizes->dwSizeSamplerState,  MHW_SAMPLER_STATE_ALIGN);
-        dwSizeMediaState               += pSettings->iMediaIDs * pStateHeap->dwSizeSampler;
+        pStateHeap->dwSizeSamplers      = pStateHeap->dwSizeSampler;
+        dwSizeMediaState               += pSettings->iMediaIDs * pStateHeap->dwSizeSamplers;
 
         // Sampler 8x8 State table is allocated in this area
         pStateHeap->dwOffsetSampler8x8Table = dwSizeMediaState;
@@ -1339,8 +1339,8 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
         dwSizeMediaState += pStateHeap->dwSizeSamplerIndirect;
 
         // Get the total size of all the samplers
-        dwSizeSamplers                  = MOS_ALIGN_CEIL((dwSizeMediaState - dwOffsetSamplers),  MHW_SAMPLER_STATE_ALIGN);
-        dwSizeMediaState               += pSettings->iMediaIDs * dwSizeSamplers;
+        pStateHeap->dwSizeSamplers      = MOS_ALIGN_CEIL((dwSizeMediaState - dwOffsetSamplers),  MHW_SAMPLER_STATE_ALIGN);
+        dwSizeMediaState               += pSettings->iMediaIDs * pStateHeap->dwSizeSamplers;
 
         // Sampler 8x8 State table is part of Sampler8x8 state
         pStateHeap->dwOffsetSampler8x8Table   = 0;
@@ -5717,7 +5717,7 @@ MOS_STATUS RenderHal_SetupInterfaceDescriptor(
     pParams->iMediaId             = pInterfaceDescriptorParams->iMediaID;
     pParams->dwKernelOffset       = pKernelAllocation->dwOffset;
     pParams->dwSamplerOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetSampler +
-                                  pInterfaceDescriptorParams->iMediaID * pStateHeap->dwSizeSampler;
+                                  pInterfaceDescriptorParams->iMediaID * pStateHeap->dwSizeSamplers;
     pParams->dwSamplerCount       = pKernelAllocation->Params.Sampler_Count;
     pParams->dwBindingTableOffset = pInterfaceDescriptorParams->iBindingTableID * pStateHeap->iBindingTableSize;
     pParams->iCurbeOffset         = pInterfaceDescriptorParams->iCurbeOffset;
@@ -6288,12 +6288,12 @@ MOS_STATUS RenderHal_SetSamplerStates(
     // Offset/Pointer to Samplers
     iOffsetSampler   = pMediaState->dwOffset +                      // Offset to media state
                        pStateHeap->dwOffsetSampler +                // Offset to sampler area
-                       iMediaID * pStateHeap->dwSizeSampler;        // Samplers for media ID
+                       iMediaID * pStateHeap->dwSizeSamplers;        // Samplers for media ID
     pPtrSampler      = pStateHeap->pGshBuffer + iOffsetSampler;     // Pointer to Samplers
 
     iOffsetSampler   = pMediaState->dwOffset +                      // Offset to media state
                        pStateHeap->dwOffsetSamplerAVS +             // Offset to sampler area
-                       iMediaID * pStateHeap->dwSizeSamplerAVS;     // Samplers for media ID
+                       iMediaID * pStateHeap->dwSizeSamplers;     // Samplers for media ID
     pPtrSamplerAvs   = pStateHeap->pGshBuffer + iOffsetSampler;     // Pointer to AVS Samplers
 
     // Setup sampler states
