@@ -60,6 +60,11 @@ namespace decode
         DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, av1DecodePacketId), m_av1DecodePkt));
         DECODE_CHK_STATUS(m_av1DecodePkt->Init());
 
+        if (m_decodecp)
+        {
+            m_decodecp->EnableSampleGroupConstantIV();
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
