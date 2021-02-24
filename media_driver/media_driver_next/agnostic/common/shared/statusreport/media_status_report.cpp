@@ -54,7 +54,6 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    uint32_t completedCount = *m_completedCount;
     uint32_t reportedCount = m_reportedCount;
     uint32_t reportedCountOrigin = m_reportedCount;
     uint32_t availableCount = m_submittedCount - reportedCount;
@@ -62,10 +61,10 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
     uint32_t reportIndex = 0;
     bool reverseOrder = (requireNum > 1);
 
-    while (reportedCount != completedCount && generatedReportCount < requireNum){
+    while (reportedCount != *m_completedCount && generatedReportCount < requireNum){
 
         // Get reverse order index to temporally fix application get status report size bigger than 2 case.
-        reportIndex = reverseOrder ? CounterToIndex(completedCount + reportedCountOrigin - reportedCount -1) :
+        reportIndex = reverseOrder ? CounterToIndex(*m_completedCount + reportedCountOrigin - reportedCount - 1) :
                                      CounterToIndex(reportedCount);
         // m_reportedCount is used by component. Need to assign actual index before call ParseStatus
         m_reportedCount = reportIndex;
