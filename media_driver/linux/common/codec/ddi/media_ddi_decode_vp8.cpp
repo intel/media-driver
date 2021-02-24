@@ -85,7 +85,8 @@ VAStatus DdiDecodeVP8::ParseSliceParams(
     //macroblock_offset is in unit of bit.it should be always the next byte, the byte is divided to two parts
     //used bits and remaining bits, if used bits == 8, uiFirstMbByteOffset should add 1, so use 8 to do the ceil operator
     picParams->uiFirstMbByteOffset = slcParam->slice_data_offset + ((slcParam->macroblock_offset + 8) >> 3);
-
+    //offset to the first bit of MB from the first byte of partition data
+    picParams->uiP0FirstmbbitoffsetFromFrameHeader = slcParam->macroblock_offset & 0x7;
     MOS_SecureMemcpy(picParams->uiPartitionSize, sizeof(picParams->uiPartitionSize), slcParam->partition_size, sizeof(picParams->uiPartitionSize));
     //partition 0 size in command buffer includes the one byte in bool decoder if remaining bits of bool decoder is zero.
     picParams->uiPartitionSize[0] -= (slcParam->macroblock_offset & 0x7) ? 0 : 1;
