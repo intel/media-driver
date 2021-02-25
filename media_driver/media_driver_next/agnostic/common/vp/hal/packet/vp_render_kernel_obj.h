@@ -459,7 +459,7 @@ protected:
     KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
 
     // kernel attribute 
-    std::string                                             m_kernelName;
+    std::string                                             m_kernelName = "";
     void *                                                  m_kernelBinary = nullptr;
     uint32_t                                                m_kernelSize = 0;
     uint32_t                                                m_kernelID = 0;
@@ -468,7 +468,7 @@ protected:
     //kernel Arguments
     KERNEL_ARGS                                             m_kernelArgs;
     KERNEL_SAMPLER_STATES                                   m_samplerStates;
-    KERNEL_WALKER_PARAMS                                    m_walkerParam;
+    KERNEL_WALKER_PARAMS                                    m_walkerParam = {};
 
     static MEDIA_OBJECT_KA2_INLINE_DATA                     g_cInit_VP_MEDIA_OBJECT_KA2_INLINE_DATA;
 

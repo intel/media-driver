@@ -240,6 +240,7 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
     uint32_t cisaMagicNumber  = 0;
     uint8_t  cisaMajorVersion = 0;
     uint8_t  cisaMinorVersion = 0;
+    vISA::ISAfile *isaFile    = nullptr;
 
     READ_FIELD_FROM_BUF(cisaMagicNumber, uint32_t);
     READ_FIELD_FROM_BUF(cisaMajorVersion, uint8_t);
@@ -252,7 +253,8 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    vISA::ISAfile *isaFile = MOS_New(vISA::ISAfile, (uint8_t *)cisaCode, cisaCodeSize);
+    isaFile = MOS_New(vISA::ISAfile, (uint8_t *)cisaCode, cisaCodeSize);
+    VP_RENDER_CHK_NULL_RETURN(isaFile);
 
     if (!isaFile->readFile())
     {
