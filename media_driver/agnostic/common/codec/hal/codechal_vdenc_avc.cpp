@@ -5510,7 +5510,7 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
         }
 
         // BRC non-native ROI dump as HuC_region8[in], HuC_region9[in] and HuC_region10[out]
-        if (m_avcPicParam->NumROI && !(m_vdencBrcEnabled && m_avcPicParam->bNativeROI) ||
+        if (m_avcPicParam->NumROI && (!m_vdencBrcEnabled || m_avcPicParam->bNativeROI) ||
             m_avcPicParam->NumDirtyROI || m_encodeParams.bMbQpDataEnabled)
         {
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
