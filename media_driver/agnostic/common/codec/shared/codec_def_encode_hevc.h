@@ -1096,4 +1096,28 @@ struct CodecEncodeHevcFeiPicParams
     uint32_t                    dwNumPasses;    //number of QPs
     uint8_t                    *pDeltaQp;       //list of detla QPs
 };
+
+//!
+//! \struct    CodecEncodeHevcSSHParams
+//! \brief     Codec encode HEVC Slice Header params
+//!
+struct CodecEncodeHevcSliceHeaderParams
+{
+    uint8_t                     log2_max_pic_order_cnt_lsb_minus4; //Hevc slice header packer use
+    uint8_t                     num_long_term_pics;
+    struct LongTermRef
+    {
+        uint8_t                 used_by_curr_pic_lt_flag : 1;
+        uint8_t                 delta_poc_msb_present_flag : 1;
+        uint32_t                poc_lsb_lt;
+        uint32_t                delta_poc_msb_cycle_lt;
+    } lt[8];
+    uint8_t                     lists_modification_present_flag;
+    uint8_t                     ref_pic_list_modification_flag_lx[2];
+    uint8_t                     list_entry_lx[2][16];
+    uint8_t                     num_negative_pics;
+    uint8_t                     num_positive_pics;
+    uint16_t                    delta_poc_minus1[2][16];
+    bool                        used_by_curr_pic_flag[2][16];
+};
 #endif  // __CODEC_DEF_ENCODE_HEVC_H__

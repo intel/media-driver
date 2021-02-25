@@ -496,6 +496,7 @@ public:
     MOS_STATUS GetPPSParams(PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams);
     MOS_STATUS GetSPSParams(PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams);
     MOS_STATUS GetSliceParams(const CODEC_HEVC_ENCODE_SLICE_PARAMS hevcSliceParams);
+    MOS_STATUS LoadSliceHeaderParams(CodecEncodeHevcSliceHeaderParams* pSH);
     void       PackSSH(
               BitstreamWriter &bs,
               HevcNALU const & nalu,
