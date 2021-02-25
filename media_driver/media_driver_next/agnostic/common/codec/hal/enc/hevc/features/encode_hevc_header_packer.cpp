@@ -66,7 +66,7 @@ MOS_STATUS HevcHeaderPacker::GetPPSParams(PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevc
 {
     m_ppsParams.dependent_slice_segments_enabled_flag       = hevcPicParams->dependent_slice_segments_enabled_flag;
     m_ppsParams.num_extra_slice_header_bits                 = 0;
-    m_ppsParams.output_flag_present_flag                    = 1;
+    m_ppsParams.output_flag_present_flag                    = 0;
     m_ppsParams.lists_modification_present_flag             = 0;                                    //NA
     m_ppsParams.cabac_init_present_flag                     = 1;                                    //NA
     m_ppsParams.weighted_pred_flag                          = hevcPicParams->weighted_pred_flag;    //NA
@@ -102,7 +102,6 @@ MOS_STATUS HevcHeaderPacker::GetSliceParams(const CODEC_HEVC_ENCODE_SLICE_PARAMS
     {
         m_sliceParams.lt[i] = {};
     }                                                    //NA
-    m_sliceParams.short_term_ref_pic_set_sps_flag = 1;   //NA
     m_sliceParams.short_term_ref_pic_set_idx      = 0;   //NA
     m_sliceParams.strps                           = {};  //NA
     m_sliceParams.num_long_term_sps               = 0;   //NA
@@ -115,7 +114,7 @@ MOS_STATUS HevcHeaderPacker::GetSliceParams(const CODEC_HEVC_ENCODE_SLICE_PARAMS
     m_sliceParams.num_ref_idx_l1_active_minus1    = hevcSliceParams.num_ref_idx_l1_active_minus1;  //NA
     //m_sliceParams.ref_pic_list_modification_flag_lx={0};//NA
     //m_sliceParams.list_entry_lx=0;//NA
-    m_sliceParams.num_ref_idx_active_override_flag       = 0;                                    //NA
+    m_sliceParams.num_ref_idx_active_override_flag       = 1;                                    //NA
     m_sliceParams.mvd_l1_zero_flag                       = hevcSliceParams.mvd_l1_zero_flag;     //NA
     m_sliceParams.cabac_init_flag                        = hevcSliceParams.cabac_init_flag;      //NA
     m_sliceParams.five_minus_max_num_merge_cand          = 5 - hevcSliceParams.MaxNumMergeCand;  //NA
@@ -470,6 +469,53 @@ bool HevcHeaderPacker::PackSSHPWT(
     return !!nSE;
 }
 
+MOS_STATUS HevcHeaderPacker::LoadSliceHeaderParams(CodecEncodeHevcSliceHeaderParams* pSH)
+{
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pSH);
+
+    m_spsParams.log2_max_pic_order_cnt_lsb_minus4       = pSH->log2_max_pic_order_cnt_lsb_minus4;
+    m_sliceParams.num_long_term_pics                    = pSH->num_long_term_pics;
+    for (int i = 0; i < m_sliceParams.num_long_term_pics; i++)
+    {
+        m_sliceParams.lt[i].used_by_curr_pic_lt_flag   = pSH->lt[i].used_by_curr_pic_lt_flag;
+        m_sliceParams.lt[i].delta_poc_msb_present_flag = pSH->lt[i].delta_poc_msb_present_flag;
+        m_sliceParams.lt[i].poc_lsb_lt                 = pSH->lt[i].poc_lsb_lt;
+        m_sliceParams.lt[i].delta_poc_msb_cycle_lt     = pSH->lt[i].delta_poc_msb_cycle_lt;
+    }
+    m_ppsParams.lists_modification_present_flag         = pSH->lists_modification_present_flag;
+    for (int i = 0; i < 2; i++)
+    {
+        m_sliceParams.ref_pic_list_modification_flag_lx[i] = pSH->ref_pic_list_modification_flag_lx[i];
+        for (int j = 0; j < 16; j++)
+        {
+            m_sliceParams.list_entry_lx[i][j] = pSH->list_entry_lx[i][j];
+        }
+    }
+    m_sliceParams.strps.num_negative_pics                   = pSH->num_negative_pics;
+    m_sliceParams.strps.num_positive_pics                   = pSH->num_positive_pics;
+
+    if (pSH->num_negative_pics > 16 || pSH->num_positive_pics > 16 || pSH->num_negative_pics + pSH->num_positive_pics > 16)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    for (int i = 0; i < pSH->num_negative_pics + pSH->num_positive_pics; i++)
+    {
+        if (i < pSH->num_negative_pics)
+        {
+            m_sliceParams.strps.pic[i].delta_poc_s0_minus1      = pSH->delta_poc_minus1[0][i];
+            m_sliceParams.strps.pic[i].used_by_curr_pic_s0_flag = pSH->used_by_curr_pic_flag[0][i];
+        }
+        else
+        {
+            m_sliceParams.strps.pic[i].delta_poc_s1_minus1      = pSH->delta_poc_minus1[1][i - pSH->num_negative_pics];
+            m_sliceParams.strps.pic[i].used_by_curr_pic_s1_flag = pSH->used_by_curr_pic_flag[1][i - pSH->num_negative_pics];
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS HevcHeaderPacker::SliceHeaderPacker(EncoderParams *encodeParams)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -482,20 +528,22 @@ MOS_STATUS HevcHeaderPacker::SliceHeaderPacker(EncoderParams *encodeParams)
     mfxU32          BitLenRecorded = 0;
 
     EncoderParams *pCodecHalEncodeParams = encodeParams;
-    MOS_OS_CHK_NULL_RETURN(pCodecHalEncodeParams);
-    BSBuffer *pBSBuffer;
-    pBSBuffer = pCodecHalEncodeParams->pBSBuffer;
-    MOS_OS_CHK_NULL_RETURN(pBSBuffer);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pCodecHalEncodeParams);
+    BSBuffer *pBSBuffer = pCodecHalEncodeParams->pBSBuffer;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pBSBuffer);
     PCODEC_ENCODER_SLCDATA pSlcData = (PCODEC_ENCODER_SLCDATA)pCodecHalEncodeParams->pSlcHeaderData;
-    eStatus = GetSPSParams(static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams));
-    eStatus = GetPPSParams(static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams));
-    eStatus = GetNaluParams(nalType, 0, 0, pBSBuffer->pCurrent == pBSBuffer->pBase);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetSPSParams(static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams)));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetPPSParams(static_cast<PCODEC_HEVC_ENCODE_PICTURE_PARAMS>(encodeParams->pPicParams)));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(GetNaluParams(nalType, 0, 0, pBSBuffer->pCurrent == pBSBuffer->pBase));
+
     //uint8_t *pCurrent = pBSBuffer->pCurrent;
     //uint32_t
     for (uint32_t startLcu = 0, slcCount = 0; slcCount < encodeParams->dwNumSlices; slcCount++)
     {
         //startLcu += m_hevcSliceParams[slcCount].NumLCUsInSlice;
-        eStatus = GetSliceParams(static_cast<PCODEC_HEVC_ENCODE_SLICE_PARAMS>(encodeParams->pSliceParams)[slcCount]);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetSliceParams(static_cast<PCODEC_HEVC_ENCODE_SLICE_PARAMS>(encodeParams->pSliceParams)[slcCount]));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(LoadSliceHeaderParams((CodecEncodeHevcSliceHeaderParams*) pCodecHalEncodeParams->pSliceHeaderParams));
+        
         rbsp.Reset(pBegin, mfxU32(pEnd - pBegin));
         m_naluParams.long_start_code = 0/*pBSBuffer->pCurrent + (BitLenRecorded + 7) / 8 == pBSBuffer->pBase*/;
         PackSSH(rbsp, m_naluParams, m_spsParams, m_ppsParams, m_sliceParams, false);

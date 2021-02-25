@@ -162,6 +162,7 @@ struct EncoderParams
     bool                            fullHeaderInAppData;         //!< [JPEG]
     uint32_t                        uiOverallNALPayload;
     MetaDataOffset                  metaDataOffset;
+    void *                          pSliceHeaderParams;         //!< [HEVC]
 };
 
 #endif // !__CODEC_DEF_ENCODE_H__
