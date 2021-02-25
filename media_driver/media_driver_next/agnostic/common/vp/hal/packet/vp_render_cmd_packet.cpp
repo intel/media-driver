@@ -282,7 +282,9 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     VP_UNUSED(previousSurface);
 
     VP_SURFACE *input  = m_allocator->AllocateVpSurface();
+    VP_RENDER_CHK_NULL_RETURN(input);
     VP_SURFACE *output = m_allocator->AllocateVpSurface();
+    VP_RENDER_CHK_NULL_RETURN(output);
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*input, *inputSurface));
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*output, *outputSurface));
