@@ -144,6 +144,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     EXTRA_PARAMS         extraParams)
 {
     MOS_USER_FEATURE_VALUE_DATA userFeatureData     = {};
+    MOS_STATUS                  eStatusUserFeature  = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
     MOS_OS_CHK_NULL_RETURN(streamState);
@@ -211,7 +212,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
     //1:by default for scalable decode mode
     //0:for legacy decode mode
     MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_STATUS eStatusUserFeature = MosUtilities::MosUserFeatureReadValueID(
+    eStatusUserFeature = MosUtilities::MosUserFeatureReadValueID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
         &userFeatureData,
@@ -250,6 +251,7 @@ MOS_STATUS MosInterface::CreateOsStreamState(
         &userFeatureData,
         (MOS_CONTEXT_HANDLE) nullptr);
     (*streamState)->enableDbgOvrdInVirtualEngine = userFeatureData.u32Data ? true : false;
+#endif
 
     if (component == COMPONENT_VPCommon ||
         component == COMPONENT_VPreP    ||
@@ -264,6 +266,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
             &userFeatureData,
             (MOS_CONTEXT_HANDLE) nullptr);
         (*streamState)->veboxScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
         if((*streamState)->veboxScalabilityMode
             && (eStatusUserFeature == MOS_STATUS_SUCCESS))
         {
@@ -292,8 +296,8 @@ MOS_STATUS MosInterface::CreateOsStreamState(
             &userFeatureData,
             (MOS_CONTEXT_HANDLE) nullptr);
         (*streamState)->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
-    }
 #endif
+    }
 
     MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
     // Report if pre-si environment is in use
