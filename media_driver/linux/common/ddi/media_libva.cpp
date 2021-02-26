@@ -117,21 +117,6 @@ VAStatus DdiMedia_UnmapBuffer (
     VABufferID          buf_id    /* in */
 );
 
-//!
-//! \brief  Destroy buffer 
-//! 
-//! \param  [in] ctx
-//!         Pointer to VA driver context
-//! \param  [in] buffer_id
-//!         VA buffer ID
-//!
-//! \return     VAStatus
-//!     VA_STATUS_SUCCESS if success, else fail reason
-//!
-VAStatus DdiMedia_DestroyBuffer (
-    VADriverContextP    ctx,
-    VABufferID          buffer_id
-);
 
 VAStatus DdiMedia_DestroyImage (
     VADriverContextP ctx,
@@ -779,39 +764,6 @@ static void DdiMedia_FreeSurfaceHeapElements(PDDI_MEDIA_CONTEXT mediaCtx)
         MOS_FreeMemory(mediaSurfaceHeapElmt->pSurface);
         DdiMediaUtil_ReleasePMediaSurfaceFromHeap(surfaceHeap,mediaSurfaceHeapElmt->uiVaSurfaceID);
         mediaCtx->uiNumSurfaces--;
-    }
-}
-
-/////////////////////////////////////////////////////////////////////////////
-//! \Free allocated bufferheap elements
-//! \params
-//! [in] VADriverContextP
-//! [out] none
-//! \returns
-/////////////////////////////////////////////////////////////////////////////
-static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx)
-{
-    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
-    if (nullptr == mediaCtx)
-        return;
-
-    PDDI_MEDIA_HEAP  bufferHeap = mediaCtx->pBufferHeap;
-    if (nullptr == bufferHeap)
-        return;
-
-    PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapBase = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pHeapBase;
-    if (nullptr == mediaBufferHeapBase)
-        return;
-
-    int32_t bufNums = mediaCtx->uiNumBufs;
-    for (int32_t elementId = 0; bufNums > 0; ++elementId)
-    {
-        PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
-        if (nullptr == mediaBufferHeapElmt->pBuffer)
-            continue;
-        DdiMedia_DestroyBuffer(ctx,mediaBufferHeapElmt->uiVaBufferID);
-        //Ensure the non-empty buffer to be destroyed.
-        --bufNums;
     }
 }
 
@@ -2011,7 +1963,6 @@ static VAStatus DdiMedia_Terminate (
     }
     //destory resources
     DdiMedia_FreeSurfaceHeapElements(mediaCtx);
-    DdiMedia_FreeBufferHeapElements(ctx);
     DdiMedia_FreeImageHeapElements(ctx);
     DdiMedia_FreeContextHeapElements(ctx);
     DdiMedia_FreeContextCMElements(ctx);
