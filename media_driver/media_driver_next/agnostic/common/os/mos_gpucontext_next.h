@@ -258,7 +258,7 @@ protected:
     CmdBufMgrNext *m_cmdBufMgr = nullptr;
 
     //! \brief    Related command buffer manager
-    uint64_t      m_cmdBufMgrHandle = 0;
+    uint64_t      m_cmdBufMgrHandle = UINT64_MAX;
 
     //! \brief    Index in gpucontextNext mgr pool for current gpu context
     GPU_CONTEXT_HANDLE m_gpuContextHandle = 0;
