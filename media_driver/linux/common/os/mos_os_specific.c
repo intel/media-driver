@@ -7220,10 +7220,12 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
     PLATFORM                            Platform;
     MOS_STATUS                          eStatus;
     MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
+    MOS_STATUS                          eStatusUserFeature;
 
     MOS_OS_FUNCTION_ENTER;
 
     eStatus = MOS_STATUS_SUCCESS;
+    eStatusUserFeature = MOS_STATUS_SUCCESS;
 
     // Get platform information
     memset(&Platform, 0, sizeof(PLATFORM));
@@ -7252,7 +7254,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
         //1:by default for scalable decode mode
         //0:for legacy decode mode
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_STATUS eStatusUserFeature = MOS_UserFeature_ReadValue_ID(
+        eStatusUserFeature = MOS_UserFeature_ReadValue_ID(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
             &userFeatureData,
@@ -7301,6 +7303,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             &userFeatureData,
             nullptr);
         osInterface->bEnableDbgOvrdInVE = userFeatureData.u32Data ? true : false;
+#endif
 
         // UMD Vebox Virtual Engine Scalability Mode
         // 0: disable. can set to 1 only when KMD VE is enabled.
@@ -7311,6 +7314,8 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             &userFeatureData,
             nullptr);
         osInterface->bVeboxScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
         if(osInterface->bVeboxScalabilityMode
             && (eStatusUserFeature == MOS_STATUS_SUCCESS))
         {
@@ -7337,7 +7342,6 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             &userFeatureData,
             nullptr);
         osInterface->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
-
 #endif
     }
 
