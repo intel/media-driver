@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@ MOS_STATUS CodecHalEncodeSfcG11::SetVeboxDiIecpParams(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
     params->dwStartingX = 0;
-    params->dwEndingX = m_inputSurface->dwWidth - 1;
+    params->dwEndingX = m_inputSurfaceRegion.Width - 1; // Must be taken from SPS
     params->dwCurrInputSurfOffset = m_inputSurface->dwOffset;
     params->pOsResCurrInput = &m_inputSurface->OsResource;
     params->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
