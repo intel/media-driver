@@ -2653,7 +2653,11 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
         rowStoreParams.ucBitDepthMinus8 = m_hevcSeqParams->bit_depth_luma_minus8;
         rowStoreParams.ucLCUSize        = 1 << (m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3);
         // VDEnc only support LCU64 for now
-        CODECHAL_ENCODE_ASSERT(rowStoreParams.ucLCUSize == MAX_LCU_SIZE);
+        if (rowStoreParams.ucLCUSize != MAX_LCU_SIZE)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("HEVC VDEnc only support LCU64 for now.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         m_hwInterface->SetRowstoreCachingOffsets(&rowStoreParams);
     }
 
