@@ -771,6 +771,11 @@ protected:
         uint32_t        colorFormat;
     };
 
+#if VA_CHECK_VERSION(1, 10, 0)
+    static const uint32_t m_numEncRcMode = 10;
+#else
+    static const uint32_t m_numEncRcMode = 9;
+#endif
     static const uint16_t m_maxProfiles = 17; //!< Maximum number of supported profiles
     static const uint16_t m_maxProfileEntries = 64; //!< Maximum number of supported profile & entrypoint combinations
     static const uint32_t m_numVpSurfaceAttr = 18; //!< Number of VP surface attributes
@@ -779,7 +784,7 @@ protected:
     static const uint16_t m_maxEntrypoints = 7; //!<  Maximum number of supported entrypoints
     static const uint32_t m_decSliceMode[2]; //!< Store 2 decode slices modes
     static const uint32_t m_decProcessMode[2]; //!< Store 2 decode process modes
-    static const uint32_t m_encRcMode[9]; //!< Store 9 encode rate control modes
+    static const uint32_t m_encRcMode[m_numEncRcMode]; //!< Store encode rate control modes
     static const uint32_t m_vpSurfaceAttr[m_numVpSurfaceAttr]; //!< Store the VP surface attributes
     static const uint32_t m_jpegSurfaceAttr[m_numJpegSurfaceAttr]; //!< Store the JPEG surface attributes
     static const uint32_t m_jpegEncSurfaceAttr[m_numJpegEncSurfaceAttr]; //!< Store the JPEG encode surface attributes

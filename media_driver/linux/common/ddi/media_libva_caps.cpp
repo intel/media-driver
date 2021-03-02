@@ -61,11 +61,14 @@ const uint32_t MediaLibvaCaps::m_decProcessMode[2] =
     VA_DEC_PROCESSING
 };
 
-const uint32_t MediaLibvaCaps::m_encRcMode[9] =
+const uint32_t MediaLibvaCaps::m_encRcMode[m_numEncRcMode] =
 {
     VA_RC_CQP, VA_RC_CBR, VA_RC_VBR,
     VA_RC_CBR | VA_RC_MB, VA_RC_VBR | VA_RC_MB,
     VA_RC_ICQ, VA_RC_VCM, VA_RC_QVBR, VA_RC_AVBR
+#if VA_CHECK_VERSION(1, 10, 0)
+    , VA_RC_TCBRC
+#endif
 };
 
 const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
