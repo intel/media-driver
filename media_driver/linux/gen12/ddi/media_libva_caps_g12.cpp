@@ -1680,8 +1680,15 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
         if (IsHevcProfile(profile))
         {
             if (entrypoint != VAEntrypointEncSliceLP)
+            {
                 attrib.value |= VA_RC_ICQ;
-
+            }
+#if VA_CHECK_VERSION(1, 10, 0)
+            else
+            {
+                attrib.value |= VA_RC_TCBRC;
+            }
+#endif
             attrib.value |= VA_RC_VCM | VA_RC_QVBR;
         }
         if (IsVp9Profile(profile))
