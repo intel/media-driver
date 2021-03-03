@@ -713,7 +713,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::GetHcpStateCommandSize(
                     4 * PATCH_LIST_COMMAND(MI_ATOMIC_CMD) +
                     2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD) +
                     3 * PATCH_LIST_COMMAND(MI_SEMAPHORE_WAIT_CMD) +
-                    3 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +
+                    18 * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +
                     2 * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) +
                     2 * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD);
 
