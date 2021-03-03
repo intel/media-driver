@@ -2691,7 +2691,6 @@ do_exec2(struct mos_linux_bo *bo, int used, struct mos_linux_context *ctx,
      unsigned int flags, int *fence
      )
 {
-
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bo->bufmgr;
     struct drm_i915_gem_execbuffer2 execbuf;
     int ret = 0;

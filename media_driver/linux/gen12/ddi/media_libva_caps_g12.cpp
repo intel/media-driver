@@ -40,6 +40,10 @@
 #define VA_CENC_TYPE_NONE 0x00000000
 #endif
 
+#ifdef ANDROID
+#include <va/va_android.h>
+#endif
+
 #ifndef VA_ENCRYPTION_TYPE_NONE
 #define VA_ENCRYPTION_TYPE_NONE 0x00000000
 #endif

@@ -307,7 +307,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
             hRes = VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
             goto finish;
     }
-
     if (DdiMediaUtil_IsExternalSurface(mediaSurface))
     {
         // Default set as compression not supported, surface compression import only support from Memory Type VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
