@@ -349,6 +349,23 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     bool                                bShortFormat,
     CodechalSetting                     *settings);
 
+
+//! \brief    construct gpu context creation options when scalability supported
+//! \param    [in]  scalabilityState
+//!                Scalability decode state
+//! \param    [in]  gpuCtxCreatOptions
+//!                pointer to gpu context creation options
+//! \param    [in]  codechalSetting
+//!                Pointer to codechal setting
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation_g12(
+    PCODECHAL_DECODE_SCALABILITY_STATE         pScalState,
+    PMOS_GPUCTX_CREATOPTIONS_ENHANCED          gpuCtxCreatOpts,
+    CodechalSetting *                          codecHalSetting);
+
+
 //!
 //! \brief    State initialization for virtual engine decode supporting scalable and single pipe mode
 //! \param    [in]  pScalabilityState

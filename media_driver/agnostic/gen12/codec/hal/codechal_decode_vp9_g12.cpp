@@ -117,7 +117,7 @@ MOS_STATUS CodechalDecodeVp9G12::SetGpuCtxCreatOption(
 
         if (static_cast<MhwVdboxMfxInterfaceG12 *>(m_mfxInterface)->IsScalabilitySupported())
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeScalability_ConstructParmsForGpuCtxCreation(
+            CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeScalability_ConstructParmsForGpuCtxCreation_g12(
                 m_scalabilityState,
                 (PMOS_GPUCTX_CREATOPTIONS_ENHANCED)m_gpuCtxCreatOpt,
                 codecHalSetting));

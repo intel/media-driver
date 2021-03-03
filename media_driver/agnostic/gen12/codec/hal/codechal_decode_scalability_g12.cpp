@@ -1665,6 +1665,98 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
     return eStatus;
 }
 
+
+MOS_STATUS CodechalDecodeScalability_ConstructParmsForGpuCtxCreation_g12(
+    PCODECHAL_DECODE_SCALABILITY_STATE         pScalState,
+    PMOS_GPUCTX_CREATOPTIONS_ENHANCED          gpuCtxCreatOpts,
+    CodechalSetting *                          codecHalSetting)
+{
+    PMOS_INTERFACE                           pOsInterface;
+    CODECHAL_DECODE_SCALABILITY_INIT_PARAMS_G12  initParams;
+    MOS_STATUS                               eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_DECODE_FUNCTION_ENTER;
+
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalState);
+    CODECHAL_DECODE_CHK_NULL_RETURN(pScalState->pHwInterface);
+    CODECHAL_DECODE_CHK_NULL_RETURN(gpuCtxCreatOpts);
+    CODECHAL_DECODE_CHK_NULL_RETURN(codecHalSetting);
+    bool sfcInUse = codecHalSetting->sfcInUseHinted && codecHalSetting->downsamplingHinted
+                       && (MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrSFCPipe)
+                       && !MEDIA_IS_SKU(pScalState->pHwInterface->GetSkuTable(), FtrDisableVDBox2SFC));
+    pOsInterface    = pScalState->pHwInterface->GetOsInterface();
+    MEDIA_FEATURE_TABLE *m_skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (pOsInterface->bEnableDbgOvrdInVE)
+    {
+        PMOS_VIRTUALENGINE_INTERFACE pVEInterface = pScalState->pVEInterface;
+        CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface);
+        gpuCtxCreatOpts->DebugOverride      = true;
+        if (MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
+        {
+            gpuCtxCreatOpts->UsingSFC = false;// this param ignored when dbgoverride enabled
+        }
+        else
+        {
+            gpuCtxCreatOpts->UsingSFC = sfcInUse;  // this param ignored when dbgoverride enabled
+        }
+        CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDebugOvrdDecidePipeNum(pScalState));
+
+        if (pOsInterface->apoMosEnabled)
+        {
+            CODECHAL_DECODE_CHK_NULL_RETURN(pVEInterface->veInterface);
+            for (uint32_t i = 0; i < pVEInterface->veInterface->GetEngineCount(); i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->veInterface->GetEngineLogicId(i);
+            }
+        }
+        else
+        {
+            for (uint32_t i = 0; i < pVEInterface->ucEngineCount; i++)
+            {
+                gpuCtxCreatOpts->EngineInstance[i] = pVEInterface->EngineLogicId[i];
+            }
+        }
+    }
+    else
+#endif
+    {
+        if (MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
+        {
+            gpuCtxCreatOpts->UsingSFC = false;
+        }
+        else
+        {
+            gpuCtxCreatOpts->UsingSFC = sfcInUse;
+        }
+
+        MOS_ZeroMemory(&initParams, sizeof(initParams));
+        initParams.u32PicWidthInPixel   = MOS_ALIGN_CEIL(codecHalSetting->width, 8);
+        initParams.u32PicHeightInPixel  = MOS_ALIGN_CEIL(codecHalSetting->height, 8);
+        if (((codecHalSetting->standard == CODECHAL_VP9) || (codecHalSetting->standard == CODECHAL_HEVC))
+                && (codecHalSetting->chromaFormat == HCP_CHROMA_FORMAT_YUV420))
+        {
+            initParams.format = Format_NV12;
+            if (codecHalSetting->lumaChromaDepth == CODECHAL_LUMA_CHROMA_DEPTH_10_BITS)
+            {
+                initParams.format = Format_P010;
+            }
+        }
+        initParams.usingSFC             = sfcInUse;
+        initParams.usingSecureDecode    = codecHalSetting->secureMode;
+        CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnDecidePipeNum(
+            pScalState,
+            &initParams));
+    }
+
+    CODECHAL_DECODE_CHK_STATUS_RETURN(pScalState->pfnMapPipeNumToLRCACount(
+        pScalState,
+        &gpuCtxCreatOpts->LRCACount));
+
+    return eStatus;
+}
+
+
 MOS_STATUS CodechalDecodeScalability_MapPipeNumToLRCACount_G12(
     PCODECHAL_DECODE_SCALABILITY_STATE   pScalState,
     uint32_t                             *LRCACount)
