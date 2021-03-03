@@ -54,6 +54,8 @@ static __inline PDDI_CP_CONTEXT DdiCp_GetCpContextFromPVOID(void *cpCtx)
     return (PDDI_CP_CONTEXT)cpCtx;
 }
 
+struct DDI_DECODE_CONTEXT;
+
 class DdiCpInterface
 {
 public:
@@ -99,7 +101,9 @@ public:
         PMOS_CONTEXT                osContext,
         CodechalSetting *           settings);
 
-    virtual VAStatus SetDecodeParams(CodechalDecodeParams    *decodeParams);
+    virtual VAStatus SetDecodeParams(
+        DDI_DECODE_CONTEXT *ddiDecodeContext,
+        CodechalSetting *setting);
 
     virtual bool IsCencProcessing();
 

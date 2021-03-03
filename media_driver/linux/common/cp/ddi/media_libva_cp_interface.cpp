@@ -153,7 +153,8 @@ VAStatus DdiCpInterface::CreateCencDecode(
 }
 
 VAStatus DdiCpInterface::SetDecodeParams(
-    CodechalDecodeParams    *decodeParams)
+    DDI_DECODE_CONTEXT *ddiDecodeContext,
+    CodechalSetting *setting)
 {
     DdiStubMessage();
     return VA_STATUS_SUCCESS;

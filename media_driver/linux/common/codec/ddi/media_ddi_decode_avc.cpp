@@ -570,7 +570,6 @@ VAStatus DdiDecodeAVC::CodecHalInit(
     m_codechalSettings->shortFormatInUse = m_ddiDecodeCtx->bShortFormatInUse;
 
     CODECHAL_FUNCTION codecFunction = CODECHAL_FUNCTION_DECODE;
-    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
     CODECHAL_STANDARD_INFO standardInfo;
     memset(&standardInfo, 0, sizeof(standardInfo));
@@ -590,6 +589,8 @@ VAStatus DdiDecodeAVC::CodecHalInit(
 
     m_codechalSettings->mode     = CODECHAL_DECODE_MODE_AVCVLD;
     m_codechalSettings->standard = CODECHAL_AVC;
+
+    m_ddiDecodeCtx->pCpDdiInterface->SetCpParams(m_ddiDecodeAttr->uiEncryptionType, m_codechalSettings);
 
     m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer = (void*)MOS_AllocAndZeroMemory(sizeof(CODEC_AVC_IQ_MATRIX_PARAMS));
     if (m_ddiDecodeCtx->DecodeParams.m_iqMatrixBuffer == nullptr)
