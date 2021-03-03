@@ -820,7 +820,6 @@ typedef struct
 {
     char *   Path;
     uint32_t Length;
-    uint32_t RefCnt;
 } MOS_USER_FEATURE_KEY_PATH_INFO, *PMOS_USER_FEATURE_KEY_PATH_INFO;
 
 #ifdef __cplusplus
