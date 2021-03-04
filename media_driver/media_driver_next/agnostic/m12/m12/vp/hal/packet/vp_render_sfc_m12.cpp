@@ -117,13 +117,10 @@ MOS_STATUS SfcRenderM12::SetSfcStateInputOrderingModeHcp(
     else if (CODECHAL_VP9 == m_videoConfig.codecStandard)
     {
         VPHAL_COLORPACK colorPack = VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat);
-        if (VPHAL_COLORPACK_420 == colorPack)
+        if ((VPHAL_COLORPACK_420 == colorPack)
+            || (VPHAL_COLORPACK_444 == colorPack))
         {
             sfcStateParams->dwVDVEInputOrderingMode = MhwSfcInterfaceG12::LCU_64_64_VP9;
-        }
-        else if (VPHAL_COLORPACK_444 == colorPack)
-        {
-            sfcStateParams->dwVDVEInputOrderingMode = MhwSfcInterfaceG12::LCU_64_64_VP9_ENC;
         }
         else
         {
