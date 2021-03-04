@@ -586,6 +586,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
             mediaSurface->isTiled          = (tileformat != I915_TILING_NONE) ? 1 : 0;
             mediaSurface->pData            = (uint8_t*) bo->virt;
             DDI_VERBOSEMESSAGE("Allocate external surface %7d bytes (%d x %d resource).", mediaSurface->pSurfDesc->uiSize, width, height);
+            uint32_t event[] = {bo->handle, format, width, height, pitch, bo->size, tileformat, cpTag};
+            MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_INFO, event, sizeof(event), &gmmResourceInfo->GetResFlags(), sizeof(GMM_RESOURCE_FLAG));
         }
         else
         {
