@@ -129,8 +129,7 @@ public:
         LCU_16_16_HEVC = 0,
         LCU_32_32_HEVC = 1,
         LCU_64_64_HEVC = 2,
-        LCU_64_64_VP9 = 3,
-        LCU_64_64_VP9_ENC = 4
+        LCU_64_64_VP9 =  3 // should use 3 for VP9
     };
 
     #define PATCH_LIST_COMMAND(x) (x##_NUMBER_OF_ADDRESSES)
