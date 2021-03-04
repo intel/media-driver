@@ -1341,6 +1341,10 @@ void DdiMediaDecode::ReportDecodeMode(
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VP9_MODE_ID;
             MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
             break;
+        case CODECHAL_DECODE_MODE_AV1VLD:
+            userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_AV1_MODE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            break;
         default:
             break;
     }
