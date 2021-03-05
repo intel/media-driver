@@ -717,7 +717,10 @@ MOS_STATUS CodechalVdencHevcState::SetupROIStreamIn(PMOS_RESOURCE streamIn)
         }
         else
         {
-            streaminDataParams.forceQp = forceQp;
+            streaminDataParams.forceQp[0] = forceQp;
+            streaminDataParams.forceQp[1] = forceQp;
+            streaminDataParams.forceQp[2] = forceQp;
+            streaminDataParams.forceQp[3] = forceQp;
         }
 
         SetStreaminDataPerRegion(streamInWidth, top, bottom, left, right, &streaminDataParams, data);
@@ -796,14 +799,18 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
             //            uint32_t YOffset = (h % 2) * 2;
             //            uint32_t XOffset = 2 * (w/2 * 2) + w % 2;
 
-            int32_t ForceQp = pInputData[(h/2) * m_encodeParams.psMbQpDataSurface->dwPitch + (w/2)];
             //            (pData + (Offset + XOffset + YOffset))->DW7.QpEnable = 0xf;
             //            (pData + (Offset + XOffset + YOffset))->DW14.ForceQp_0 = ForceQp;
             //            (pData + (Offset + XOffset + YOffset))->DW14.ForceQp_1 = ForceQp;
             //            (pData + (Offset + XOffset + YOffset))->DW14.ForceQp_2 = ForceQp;
             //            (pData + (Offset + XOffset + YOffset))->DW14.ForceQp_3 = ForceQp;
             streaminDataParams.setQpRoiCtrl = true;
-            streaminDataParams.forceQp = (int8_t)ForceQp;
+
+            streaminDataParams.forceQp[0] = (int8_t) ( pInputData[(h * 2)     * m_encodeParams.psMbQpDataSurface->dwPitch + (w * 2)]);
+            streaminDataParams.forceQp[1] = (int8_t) ( pInputData[(h * 2)     * m_encodeParams.psMbQpDataSurface->dwPitch + (w * 2 + 1)]);
+            streaminDataParams.forceQp[2] = (int8_t) ( pInputData[(h * 2 + 1) * m_encodeParams.psMbQpDataSurface->dwPitch + (w * 2)]);
+            streaminDataParams.forceQp[3] = (int8_t) ( pInputData[(h * 2 + 1) * m_encodeParams.psMbQpDataSurface->dwPitch + (w * 2 + 1)]);
+
             SetStreaminDataPerRegion(streamInWidth, h, h+1, w, w+1, &streaminDataParams, data);
 
         }
@@ -3984,7 +3991,10 @@ MOS_STATUS CodechalVdencHevcState::SetupForceIntraStreamIn(PMOS_RESOURCE streamI
         // lookahead pass should lower QP by 2 to encode force intra frame.
         MOS_ZeroMemory(&streaminDataParams, sizeof(streaminDataParams));
         streaminDataParams.setQpRoiCtrl = true;
-        streaminDataParams.forceQp = m_hevcPicParams->QpY - 2;
+        streaminDataParams.forceQp[0] = m_hevcPicParams->QpY - 2;
+        streaminDataParams.forceQp[1] = m_hevcPicParams->QpY - 2;
+        streaminDataParams.forceQp[2] = m_hevcPicParams->QpY - 2;
+        streaminDataParams.forceQp[3] = m_hevcPicParams->QpY - 2;
         SetStreaminDataPerRegion(streamInWidth, 0, streamInHeight, 0, streamInWidth, &streaminDataParams, data);
     }
 
