@@ -568,7 +568,10 @@ void CodechalVdencHevcStateG11::SetStreaminDataPerLcu(
         else
         {
             data->DW7.QpEnable = 0xf;
-            data->DW14.ForceQp_0 = data->DW14.ForceQp_1 = data->DW14.ForceQp_2 = data->DW14.ForceQp_3 = streaminParams->forceQp;
+            data->DW14.ForceQp_0 = streaminParams->forceQp[0];
+            data->DW14.ForceQp_1 = streaminParams->forceQp[1];
+            data->DW14.ForceQp_2 = streaminParams->forceQp[2];
+            data->DW14.ForceQp_3 = streaminParams->forceQp[3];
         }
     }
     else
