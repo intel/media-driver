@@ -343,6 +343,23 @@ VAStatus DdiMedia_UnmapBuffer (
     VABufferID          buf_id
 );
 
+
+//!
+//! \brief  Destroy buffer
+//!
+//! \param  [in] ctx
+//!         Pointer to VA driver context
+//! \param  [in] buffer_id
+//!         VA buffer ID
+//!
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMedia_DestroyBuffer (
+    VADriverContextP    ctx,
+    VABufferID          buffer_id
+);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
