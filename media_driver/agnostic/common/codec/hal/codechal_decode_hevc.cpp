@@ -2694,6 +2694,7 @@ CodechalDecodeHevc::CodechalDecodeHevc(
                                             m_saoLineBufferPicWidth(0),
                                             m_mvBufferProgrammed(false),
                                             m_secondLevelBatchBufferIndex(0),
+                                            m_secondLevelBatchBuffer(),
                                             m_dmemBufferIdx(0),
                                             m_dmemBufferSize(0),
                                             m_dmemTransferSize(0),
