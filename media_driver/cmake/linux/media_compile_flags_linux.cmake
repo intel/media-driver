@@ -42,7 +42,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -funswitch-loops
     -fno-short-enums
     -Wa,--noexecstack
-    -fno-strict-aliasing
 
     # Other common flags
     -fmessage-length=0

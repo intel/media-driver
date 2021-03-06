@@ -44,7 +44,6 @@ ifeq ($(CMRT_BUILD_TYPE), debug)
         -O0
 else
     LOCAL_CFLAGS += \
-        -fno-strict-aliasing \
         -D_FORTIFY_SOURCE=2
 endif
 
