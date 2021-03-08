@@ -621,6 +621,78 @@ VAStatus DdiDecode_CreateContext (
     return va;
 }
 
+
+//!
+//! \brief  Get ctx from VA buffer ID
+//!
+//! \param  [in] mediaCtx
+//!         pddi media context
+//! \param  [in] bufferID
+//!         VA Buffer ID
+//!
+//! \return void*
+//!     Pointer to buffer heap element context
+//!
+static void* DdiMedia_GetDecCtxFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID)
+{
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", nullptr);
+
+    uint32_t i      = (uint32_t)bufferID;
+    DDI_CHK_LESS(i, mediaCtx->pBufferHeap->uiAllocatedHeapElements, "invalid buffer id", nullptr);
+    DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT bufHeapElement  = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)mediaCtx->pBufferHeap->pHeapBase;
+    bufHeapElement += i;
+    void *temp      = bufHeapElement->pCtx;
+    DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+
+    return temp;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+//! \Free allocated bufferheap elements
+//! \params
+//! [in] VADriverContextP
+//! [out] none
+//! \returns
+/////////////////////////////////////////////////////////////////////////////
+static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx, PDDI_DECODE_CONTEXT decCtx)
+{
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    if (nullptr == mediaCtx)
+        return;
+
+    PDDI_MEDIA_HEAP  bufferHeap = mediaCtx->pBufferHeap;
+    if (nullptr == bufferHeap)
+        return;
+
+    PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapBase = (PDDI_MEDIA_BUFFER_HEAP_ELEMENT)bufferHeap->pHeapBase;
+    if (nullptr == mediaBufferHeapBase)
+        return;
+
+    int32_t bufNums = mediaCtx->uiNumBufs;
+    for (int32_t elementId = 0; bufNums > 0; ++elementId)
+    {
+        PDDI_MEDIA_BUFFER_HEAP_ELEMENT mediaBufferHeapElmt = &mediaBufferHeapBase[elementId];
+        if (nullptr == mediaBufferHeapElmt->pBuffer)
+            continue;
+
+        void *pDecContext =DdiMedia_GetDecCtxFromVABufferID(mediaCtx, mediaBufferHeapElmt->uiVaBufferID);
+        if(pDecContext == decCtx)
+        {
+            DDI_MEDIA_BUFFER   *buf     = DdiMedia_GetBufferFromVABufferID(mediaCtx,  mediaBufferHeapElmt->uiVaBufferID);
+            if(buf->uiType == VASliceDataBufferType ||
+                buf->uiType == VAProtectedSliceDataBufferType ||
+                buf->uiType == VASliceParameterBufferType)
+            {
+                DdiMedia_DestroyBuffer(ctx, mediaBufferHeapElmt->uiVaBufferID);
+            }
+        }
+        //Ensure the non-empty buffer to be destroyed.
+        --bufNums;
+    }
+}
+
 VAStatus DdiDecode_DestroyContext (
     VADriverContextP    ctx,
     VAContextID         context
@@ -639,6 +711,8 @@ VAStatus DdiDecode_DestroyContext (
     DdiMediaUtil_ReleasePVAContextFromHeap(mediaCtx->pDecoderCtxHeap, decIndex);
     mediaCtx->uiNumDecoders--;
     DdiMediaUtil_UnLockMutex(&mediaCtx->DecoderMutex);
+
+    DdiMedia_FreeBufferHeapElements(ctx, decCtx);
 
     if (decCtx->m_ddiDecode) {
     DdiDecodeCleanUp(ctx,decCtx);
