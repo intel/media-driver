@@ -5,7 +5,7 @@
 (2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384)
 
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL/ADL-S | DG1/SG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL/ADL-S/ADL-P | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Output | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
 |  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -43,7 +43,7 @@
 (4k=4096x4096, 16k=16384x16384)
 
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL/ADL-S  | DG1/SG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL/ADL-S/ADL-P  | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Input |  | NV12 | NV12 | More* | More* | More* | More* |
 |  | Max Res. |  | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -67,7 +67,7 @@
 (2k=2048x2048, 4k=4096x4096, 8k=8192x8192)
 
 
-| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL/ADL-S | DG1/SG1 |
+| Codec | Type | BDW | SKL | BXT/APL | KBLx | ICL | TGL/RKL/ADL-S/ADL-P | DG1/SG1 |
 |---|---|---|---|---|---|---|---|---|
 | AVC | Input | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 | NV12 |
 |  | Max Res. | 4k | 4k | 4k | 4k | 4k | 4k | 4k |
@@ -93,7 +93,7 @@
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |      |      |      |
 |      JSL/EHL          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |      |      |      |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |      |      |      |
-|   TGL/RKL/ADL-S       | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
+|   TGL/RKL/ADL-S/ADL-P | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |      DG1/SG1          | Input  |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
 |                       | Output |  Y   |  Y   |  Y   |  Y   |  Y   |      |  Y   |  Y   |  Y   |  Y   |  Y   |  Y   |
