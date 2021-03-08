@@ -28,6 +28,7 @@
 #include "decode_av1_filmgrain_feature_g12.h"
 #include "decode_av1_feature_defs_g12.h"
 #include "mos_defs.h"
+#include "hal_oca_interface.h"
 
 namespace decode
 {
@@ -178,6 +179,10 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     // Initialize command buffer and insert prolog
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));
 
+    HalOcaInterface::On1stLevelBBStart(*commandBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle,
+        *m_hwInterface->GetMiInterface(), *m_hwInterface->GetMiInterface()->GetMmioRegisters());
+    HalOcaInterface::TraceMessage(*commandBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+
     if (pOsInterface)
     {
         if (m_av1BasicFeature->m_singleKernelPerfFlag)
@@ -256,6 +261,8 @@ MOS_STATUS FilmGrainGrvPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     {
         RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddMediaStateFlush(commandBuffer, nullptr, &FlushParam));
     }
+
+    HalOcaInterface::On1stLevelBBEnd(*commandBuffer, *m_osInterface);
 
     if (pBatchBuffer)
     {
