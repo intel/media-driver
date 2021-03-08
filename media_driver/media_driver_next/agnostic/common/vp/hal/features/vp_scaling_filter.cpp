@@ -113,6 +113,7 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     MOS_FORMAT format,
     bool bOutput,
     bool bRotateNeeded,
+    bool bVEHDR3DlutUsed,
     uint16_t & widthAlignUnit,
     uint16_t & heightAlignUnit)
 {
@@ -135,6 +136,11 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     {
         // Output rect has been rotated in SwFilterScaling::Configure. Need to swap the alignUnit accordingly.
         swap(widthAlignUnit, heightAlignUnit);
+    }
+    if (m_pvpMhwInterface && MEDIA_IS_SKU(m_pvpMhwInterface->m_skuTable, FtrHeight8AlignVE3DLUTDualPipe)
+        && bVEHDR3DlutUsed)
+    {
+        heightAlignUnit = 8;
     }
 }
 
@@ -274,8 +280,8 @@ MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(bool isOutputSurf, uint32_t 
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     GetFormatWidthHeightAlignUnit(isOutputSurf ? m_scalingParams.formatOutput : m_scalingParams.formatInput,
-        isOutputSurf, m_scalingParams.rotation.rotationNeeded, wWidthAlignUnit, wHeightAlignUnit);
-    GetFormatWidthHeightAlignUnit(m_scalingParams.formatOutput, true, m_scalingParams.rotation.rotationNeeded, wWidthAlignUnitForDstRect, wHeightAlignUnitForDstRect);
+        isOutputSurf, m_scalingParams.rotation.rotationNeeded, false, wWidthAlignUnit, wHeightAlignUnit);
+    GetFormatWidthHeightAlignUnit(m_scalingParams.formatOutput, true, false, m_scalingParams.rotation.rotationNeeded, wWidthAlignUnitForDstRect, wHeightAlignUnitForDstRect);
 
     // The source rectangle is floored to the aligned unit to
     // get rid of invalid data(ex: an odd numbered src rectangle with NV12 format
@@ -393,6 +399,7 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         GetFormatWidthHeightAlignUnit(
             m_scalingParams.formatOutput,
             true,
+            false,
             m_scalingParams.rotation.rotationNeeded,
             wOutputWidthAlignUnit,
             wOutputHeightAlignUnit);
@@ -401,6 +408,7 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         GetFormatWidthHeightAlignUnit(
             m_sfcScalingParams->inputFrameFormat,
             false,
+            m_executeCaps.bHDR3DLUT,
             m_scalingParams.rotation.rotationNeeded,
             wInputWidthAlignUnit,
             wInputHeightAlignUnit);
