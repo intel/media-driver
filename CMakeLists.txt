@@ -20,7 +20,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-set(MEDIA_VERSION "21.1.2${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
+set(MEDIA_VERSION "21.1.3${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
 
 include(os_release_info.cmake)
 
