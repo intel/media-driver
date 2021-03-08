@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -53,13 +53,6 @@ public:
     //!
     virtual MOS_STATUS Init(DDI_DEVICE_CONTEXT osDriverContextNext) = 0;
 
-private:
-    //!
-    //! \brief  Destory the OS ContextNext Object, internal function, called by cleanup
-    //!
-    virtual void Destroy() = 0;
-
-public:
     //!
     //! \brief  Static entrypoint, get the OS ContextNext Object
     //! \return the os specific object for OS contextNext
@@ -197,6 +190,13 @@ public:
     //!
     bool IsAynchronous() { return m_aynchronousDevice; }
 
+protected:
+    //!
+    //! \brief  Destory the OS ContextNext Object, internal function, called by cleanup
+    //!
+    virtual void Destroy() = 0;
+
+public:
     static const uint32_t m_cmdBufAlignment = 16;   //!> Cmd buffer alignment
 
 protected:
