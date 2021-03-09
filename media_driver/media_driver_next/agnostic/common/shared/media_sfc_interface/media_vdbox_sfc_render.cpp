@@ -232,6 +232,7 @@ MOS_STATUS MediaVdboxSfcRender::AddSfcStates(MOS_COMMAND_BUFFER *cmdBuffer, VDBO
                             cmdBuffer));
 
     m_allocator->DestroyVpSurface(renderTarget);
+    m_allocator->CleanRecycler(); 
 
     return MOS_STATUS_SUCCESS;
 }
