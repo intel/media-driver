@@ -38,6 +38,12 @@ class CmThreadSpaceRT;
 class CmThreadGroupSpace;
 };
 
+template <typename T1, typename T2>
+static inline T1 NonZeroMin(T1 a, T2 b)
+{
+ return (a == 0) ? b : MOS_MIN(a, b);
+}
+
 class CmCommandBuffer
 {
 public:
@@ -74,7 +80,7 @@ public:
     MOS_STATUS AddProtectedProlog();
     MOS_STATUS AddConditionalBatchBufferEnd(CM_HAL_CONDITIONAL_BB_END_INFO *cbbInfo);
     MOS_STATUS AddConditionalFrameTracker(MOS_RESOURCE *resource, uint32_t offset, uint32_t tag, CM_HAL_CONDITIONAL_BB_END_INFO *cbbInfo);
-    MOS_STATUS AddPowerOption(CM_POWER_OPTION *option);
+    virtual MOS_STATUS AddPowerOption(CM_POWER_OPTION *option);
 
     //UMD profiler related
     MOS_STATUS AddUmdProfilerStart();

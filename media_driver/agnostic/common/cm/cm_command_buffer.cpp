@@ -792,12 +792,6 @@ MOS_STATUS CmCommandBuffer::AddConditionalBatchBufferEnd(CM_HAL_CONDITIONAL_BB_E
     return MOS_STATUS_SUCCESS;
 }
 
-template <typename T1, typename T2>
-static inline T1 NonZeroMin(T1 a, T2 b)
-{
-    return (a==0)?b:MOS_MIN(a, b);
-}
-
 MOS_STATUS CmCommandBuffer::AddPowerOption(CM_POWER_OPTION *option)
 {
     if (option == nullptr)
@@ -817,7 +811,7 @@ MOS_STATUS CmCommandBuffer::AddPowerOption(CM_POWER_OPTION *option)
         (MEDIA_IS_SKU(skuTable, FtrSSEUPowerGating)|| MEDIA_IS_SKU(skuTable, FtrSSEUPowerGatingControlByUMD)))
     {
         if ((option->nSlice || option->nSubSlice || option->nEU)
-            && (gtSystemInfo->SliceCount && gtSystemInfo->SubSliceCount))
+            && (gtSystemInfo != nullptr && gtSystemInfo->SliceCount && gtSystemInfo->SubSliceCount))
         {
             m_cmdBuf.Attributes.dwNumRequestedEUSlices = NonZeroMin(option->nSlice, gtSystemInfo->SliceCount);
             m_cmdBuf.Attributes.dwNumRequestedSubSlices = NonZeroMin(option->nSubSlice,

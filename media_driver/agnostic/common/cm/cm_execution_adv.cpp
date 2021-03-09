@@ -585,8 +585,8 @@ int CmExecutionAdv::SetSuggestedL3Config(L3_SUGGEST_CONFIG l3SuggestConfig)
             count = m_cmhal->cmHalInterface->m_l3ConfigCount;
             break;
         default: // gen9
-            count = sizeof(SKL_L3_PLANE)/sizeof(L3ConfigRegisterValues);
-            table = (L3ConfigRegisterValues *)SKL_L3_PLANE;
+            count = sizeof(SKL_L3_PLANE) / sizeof(L3ConfigRegisterValues);
+            table = (L3ConfigRegisterValues*)SKL_L3_PLANE;
             break;
     }
     if (static_cast<size_t>(l3SuggestConfig) >= count)
