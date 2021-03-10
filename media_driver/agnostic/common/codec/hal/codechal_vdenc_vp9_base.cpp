@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -595,10 +595,10 @@ MOS_STATUS CodechalVdencVp9State::CalculateRePakThresholds()
             int32_t threshold = (int32_t)((18630 - b + c - d) / 10);
             int32_t calculatedRepakSavingThreshold = repakSavingThreshold * scale;
 
-            // to avoid overflow of the integer threshold, it must be (RepakSavingThreshold * scale) <= 40342
-            if (calculatedRepakSavingThreshold > 40342)
+            // To avoid overflow of the integer threshold, it must be (RepakSavingThreshold * scale) <= CODEC_VP9_MAX_REPAK_THRESHOLD
+            if (calculatedRepakSavingThreshold > CODEC_VP9_MAX_REPAK_THRESHOLD)
             {
-                calculatedRepakSavingThreshold = 40342;
+                calculatedRepakSavingThreshold = CODEC_VP9_MAX_REPAK_THRESHOLD;
             }
             m_rePakThreshold[i] = calculatedRepakSavingThreshold * threshold;
         }
