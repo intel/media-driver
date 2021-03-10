@@ -202,8 +202,8 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
         m_sfcCSCParams->iefParams = m_cscParams.pIEFParams;
     }
 
-    m_cscParams.input.colorSpace    = m_cscParams.input.colorSpace;
-    m_sfcCSCParams->inputColorSpace = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace);
+    m_cscParams.input.colorSpace    = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace);
+    m_sfcCSCParams->inputColorSpace = m_cscParams.input.colorSpace;
 
     m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput, m_cscParams.output.colorSpace);
     m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
@@ -322,7 +322,7 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     VP_RENDER_CHK_NULL_RETURN(m_veboxCSCParams);
 
     VPHAL_COLORPACK       srcColorPack;
-    bool bNeedUpSampling = vpExecuteCaps.bIECP || vpExecuteCaps.bHDR3DLUT;
+    bool bNeedUpSampling = vpExecuteCaps.bIECP;
     bool bDIEnabled      = vpExecuteCaps.bDI;
 
     srcColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatInput);

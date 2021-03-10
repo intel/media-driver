@@ -96,7 +96,6 @@ protected:
         MOS_FORMAT              format,
         bool                    bOutput,
         bool                    bRotateNeeded,
-        bool                    bVE3DlutUsed,
         uint16_t                &widthAlignUnit,
         uint16_t                &heightAlignUnit);
 

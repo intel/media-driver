@@ -354,24 +354,21 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
-    MOS_FORMAT   hdrFormat  = Format_Any;
-    VPHAL_CSPACE hdrCSpace  = CSpace_Any;
-    hdrCSpace               = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;
-    hdrFormat               = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
-    if (m_hwCaps.m_sfcHwEntry[hdrFormat].inputSupported &&
+    MOS_FORMAT   hdrFormat = Format_Any;
+    VPHAL_CSPACE hdrCSpace = CSpace_Any;
+
+    if (m_hwCaps.m_sfcHwEntry[cscParams->formatInput].inputSupported &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
-        m_hwCaps.m_sfcHwEntry[hdrFormat].cscSupported)
+        m_hwCaps.m_sfcHwEntry[cscParams->formatInput].cscSupported)
     {
-        cscEngine->bEnabled = 1;
-        cscEngine->VeboxNeeded  = 0;
-        cscEngine->RenderNeeded = 0;
-        if (hdrFormat != cscParams->formatOutput || hdrCSpace != cscParams->output.colorSpace)
+        hdrCSpace = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;
+        hdrFormat = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
+        if (m_hwCaps.m_sfcHwEntry[hdrFormat].inputSupported &&
+            m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
+            m_hwCaps.m_sfcHwEntry[hdrFormat].cscSupported)
         {
-            cscEngine->SfcNeeded    |= 1;
-        }
-        else
-        {
-            cscEngine->SfcNeeded    = 0;
+            cscEngine->bEnabled = 1;
+            cscEngine->SfcNeeded |= 1;
         }
     }
     else
@@ -921,6 +918,7 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     {
         pHDREngine->bEnabled        = 1;
         pHDREngine->VeboxNeeded     = 1;
+        pHDREngine->VeboxIECPNeeded = 1;
         if (hdrParams->formatOutput == Format_A8B8G8R8 || hdrParams->formatOutput == Format_A8R8G8B8)
         {
             pHDREngine->VeboxARGBOut = 1;
@@ -1098,10 +1096,6 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
             }
         }
     }
-    else
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombination(inputPipe));
-    }
 
     engineCaps.value = 0;
     // Set Engine Caps the first time
@@ -1119,39 +1113,6 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
         }
     }
 
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS Policy::FilterFeatureCombination(SwFilterSubPipe *pipe)
-{
-    VP_FUNC_CALL();
-
-    auto hdr = pipe->GetSwFilter(FeatureTypeHdr);
-    if (nullptr != hdr)
-    {
-        for (auto filterID : m_featurePool)
-        {
-            if (filterID == FeatureTypeTcc ||
-                filterID == FeatureTypeSte ||
-                filterID == FeatureTypeProcamp)
-            {
-                auto feature = pipe->GetSwFilter(FeatureType(filterID));
-                if (feature && feature->GetFilterEngineCaps().bEnabled)
-                {
-                    feature->GetFilterEngineCaps().bEnabled = false;
-                }
-            }
-            if (filterID == FeatureTypeCsc)
-            {
-                SwFilterCsc *feature = (SwFilterCsc *)pipe->GetSwFilter(FeatureType(filterID));
-                if (feature)
-                {
-                    auto &params      = feature->GetSwFilterParams();
-                    params.pIEFParams = nullptr;
-                }
-            }
-        }
-    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1286,7 +1247,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                 }
                 // Vebox only cases
                 else if (caps.bVebox && engineCaps->bEnabled &&
-                    (engineCaps->VeboxNeeded || (!caps.bHDR3DLUT && caps.bIECP && filterID == FeatureTypeCsc)))
+                    (engineCaps->VeboxNeeded || (caps.bIECP && filterID == FeatureTypeCsc)))
                 {
                     UpdateExeCaps(feature, caps, EngineTypeVebox);
                 }
