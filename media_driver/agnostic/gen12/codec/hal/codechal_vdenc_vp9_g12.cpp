@@ -3667,6 +3667,11 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
         }
     }
 
+    if (m_dysRefFrameFlags != DYS_REF_NONE)
+    {
+        m_brcReset = 1;
+    }
+
     if (m_vdencBrcEnabled && IsFirstPipe())
     {
         // Invoke BRC init/reset FW
