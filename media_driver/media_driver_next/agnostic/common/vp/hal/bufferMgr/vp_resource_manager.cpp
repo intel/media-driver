@@ -605,14 +605,14 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
     // Check IECP first here, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
     if (executeCaps.bIECP)
     {
-        if (executeCaps.bHDR3DLUT)
-        {
-            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
-        }
         // Upsampling to yuv444 for IECP input/output.
         // To align with legacy path, need to check whether inputFormat can also be used for IECP case,
         // in which case IECP down sampling will be applied.
         return Format_AYUV;
+    }
+    else if (executeCaps.bHDR3DLUT)
+    {
+        return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
     }
     else if (executeCaps.bDI)
     {
@@ -1266,6 +1266,12 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     // Insert Vebox statistics surface
     surfGroup.insert(std::make_pair(SurfaceTypeStatistics, m_veboxStatisticsSurface));
 
+    if (VeboxHdr3DlutNeeded(caps))
+    {
+        // Insert Vebox 3Dlut surface
+        surfGroup.insert(std::make_pair(SurfaceType3dLut, m_vebox3DLookUpTables));
+    }
+
     // Update previous Dn output flag for next frame to use.
     if (surfGroup.find(SurfaceTypeDNOutput) != surfGroup.end() || m_sameSamples && m_pastDnOutputValid)
     {
@@ -1349,6 +1355,11 @@ bool VpResourceManager::VeboxOutputNeeded(VP_EXECUTE_CAPS& caps)
 bool VpResourceManager::VeboxDenoiseOutputNeeded(VP_EXECUTE_CAPS& caps)
 {
     return caps.bDN;
+}
+
+bool VpResourceManager::VeboxHdr3DlutNeeded(VP_EXECUTE_CAPS &caps)
+{
+    return caps.bHDR3DLUT;
 }
 
 // In some case, STMM should not be destroyed even when not being used by current workload to maintain data,

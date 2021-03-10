@@ -365,6 +365,7 @@ protected:
     MOS_STATUS AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_ID &surfaceId, SurfaceType surfaceType, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastRefSurface, VP_SURFACE *futureRefSurface, VP_SURFACE_GROUP &surfGroup);
     bool VeboxOutputNeeded(VP_EXECUTE_CAPS& caps);
     bool VeboxDenoiseOutputNeeded(VP_EXECUTE_CAPS& caps);
+    bool VeboxHdr3DlutNeeded(VP_EXECUTE_CAPS &caps);
     // In some case, STMM should not be destroyed but not be used by current workload to maintain data,
     // e.g. DI second field case.
     // If queryAssignment == true, query whether STMM needed by current workload.
