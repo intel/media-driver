@@ -1092,6 +1092,11 @@ MOS_STATUS CodecHalHevcMbencG12::EncodeMbEncKernel(
             m_encBCombinedBuffer2[m_currRecycledBufIdx].dwSize,
             0,
             CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+            m_swScoreboardState->GetCurSwScoreboardSurface(),
+            CodechalDbgAttr::attrOutput,
+            "SBoutSurface",
+            CODECHAL_MEDIA_STATE_HEVC_B_MBENC));
     )
 
 #if 0 // the dump should be done in the GetStatusReport. However, if ENC causes PAK hangs-up, there is no way to get them.
@@ -1702,6 +1707,13 @@ MOS_STATUS CodecHalHevcMbencG12::SetupSurfacesB()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_cmDev->UpdateSurface2D(
         &m_swScoreboardState->GetCurSwScoreboardSurface()->OsResource,
         m_swScoreboardSurf));
+
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpSurface(
+            m_swScoreboardState->GetCurSwScoreboardSurface(),
+            CodechalDbgAttr::attrOutput,
+            "SBinSurface",
+            CODECHAL_MEDIA_STATE_HEVC_B_MBENC));)
 
     if ((!m_mbQpDataEnabled) || (m_brcEnabled))
     {

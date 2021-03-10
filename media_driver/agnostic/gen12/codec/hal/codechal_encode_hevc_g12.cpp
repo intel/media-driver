@@ -3125,32 +3125,13 @@ MOS_STATUS CodechalEncHevcStateG12::Initialize(CodechalSetting *settings)
         m_osInterface->pOsContext);
     m_singleTaskPhaseSupported = (userFeatureData.i32Data) ? true : false;
 
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_REGION_NUMBER_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    // Region number must be greater than 1
-    m_numberConcurrentGroup = (userFeatureData.i32Data < 1) ? 1 : userFeatureData.i32Data;
-
-    if (m_numberConcurrentGroup > 15)
-    {
-        // Region number cannot be larger than 15 (4 bits fields)
-        m_numberConcurrentGroup = 15;
-    }
+    // Max ConcurrentGroup used in the ENC kernel
+    m_numberConcurrentGroup = 4;
 
     m_sizeOfHcpPakFrameStats = 9 * CODECHAL_CACHELINE_SIZE;  //Frame statistics occupying 9 caceline on gen12
 
-    // Subthread number used in the ENC kernel
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_HEVC_ENCODE_SUBTHREAD_NUM_ID_G12,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_numberEncKernelSubThread = (userFeatureData.i32Data < 1) ? 1 : userFeatureData.i32Data;
+    // Max Subthread number used in the ENC kernel
+    m_numberEncKernelSubThread = 3;
 
     if (m_numberEncKernelSubThread > m_hevcThreadTaskDataNum)
     {
