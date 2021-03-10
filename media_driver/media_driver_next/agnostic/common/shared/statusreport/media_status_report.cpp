@@ -39,7 +39,7 @@ MOS_STATUS MediaStatusReport::GetAddress(uint32_t statusReportType, PMOS_RESOURC
 
     if (statusReportType == 0x50)
     {
-        offset = m_statusBufAddr[statusReportType].offset;
+        offset = 0;
     }
     else
     {

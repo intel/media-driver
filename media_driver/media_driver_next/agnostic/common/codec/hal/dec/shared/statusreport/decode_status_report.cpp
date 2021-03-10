@@ -46,9 +46,8 @@ namespace decode {
     {
         DECODE_FUNC_CALL();
 
-        // Allocate status buffer which includes decode status and completed count
-        uint32_t bufferSize = m_statusBufSizeMfx * m_statusNum + m_completedCountSize;
-        m_statusBufMfx = m_allocator->AllocateBuffer(bufferSize, "StatusQueryBufferMfx", resourceInternalWrite, true, 0, true);
+        // Allocate status buffer which includes completed count and decode status
+        m_statusBufMfx = m_allocator->AllocateBuffer(m_completedCountSize + m_statusBufSizeMfx * m_statusNum, "StatusQueryBufferMfx", resourceInternalWrite, true, 0, true);
         DECODE_CHK_NULL(m_statusBufMfx);
         m_completedCountBuf = &(m_statusBufMfx->OsResource);
 
@@ -56,9 +55,9 @@ namespace decode {
         uint8_t *data = (uint8_t *)m_allocator->LockResouceForRead(m_statusBufMfx);
         DECODE_CHK_NULL(data);
 
-        // Decode status located at the beginging of the status buffer, following with complete count
-        m_dataStatusMfx  = data;
-        m_completedCount = (uint32_t *)(data + m_statusBufSizeMfx * m_statusNum);
+        // complete count located at the beginging of the status buffer, following with decode status
+        m_completedCount = (uint32_t *)data;
+        m_dataStatusMfx  = data + m_completedCountSize;
 
         if (m_enableRcs)
         {
@@ -76,7 +75,7 @@ namespace decode {
         DECODE_CHK_NULL(m_statusBufAddr);
 
         m_statusBufAddr[statusReportGlobalCount].osResource = m_completedCountBuf;
-        m_statusBufAddr[statusReportGlobalCount].offset = m_statusBufSizeMfx * m_statusNum;
+        m_statusBufAddr[statusReportGlobalCount].offset = 0;
         m_statusBufAddr[statusReportGlobalCount].bufSize = sizeof(uint32_t) * 2;
 
         for(int i = 0; i < statusReportGlobalCount; i++)
@@ -198,7 +197,7 @@ namespace decode {
 
     void DecodeStatusReport::SetOffsetsForStatusBuf()
     {
-        const uint32_t mfxStatusOffset = 0;
+        const uint32_t mfxStatusOffset = m_completedCountSize;
         m_statusBufAddr[statusReportMfx].offset      = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, status);
         m_statusBufAddr[DecErrorStatusOffset].offset = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioErrorStatusReg);
         m_statusBufAddr[DecMBCountOffset].offset     = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioMBCountReg);
