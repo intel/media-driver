@@ -681,6 +681,12 @@ static void DdiMedia_FreeBufferHeapElements(VADriverContextP    ctx, PDDI_DECODE
         if(pDecContext == decCtx)
         {
             DDI_MEDIA_BUFFER   *buf     = DdiMedia_GetBufferFromVABufferID(mediaCtx,  mediaBufferHeapElmt->uiVaBufferID);
+
+            if (nullptr == buf)
+            {
+                return;
+            }
+
             if(buf->uiType == VASliceDataBufferType ||
                 buf->uiType == VAProtectedSliceDataBufferType ||
                 buf->uiType == VASliceParameterBufferType)
