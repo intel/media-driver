@@ -30,28 +30,27 @@
 
 MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface)
 {
-    MhwCpInterface* pMhwCpInterface = nullptr;
+    MhwCpInterface* pInterface = nullptr;
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (nullptr == cp_interface)
+    if (cp_interface)
     {
-        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_MHW, "NULL pointer parameters");
-        return nullptr;
+        pInterface = cp_interface->Create_MhwCpInterface(osInterface);
+        MOS_Delete(cp_interface);
     }
 
-    pMhwCpInterface = cp_interface->Create_MhwCpInterface(osInterface);
-    MOS_Delete(cp_interface);
+    if (nullptr == pInterface) MhwStubMessage();
 
-    if (nullptr == pMhwCpInterface) MhwStubMessage();
-
-    return (nullptr == pMhwCpInterface) ? MOS_New(MhwCpInterface) : pMhwCpInterface;
+    return (nullptr == pInterface) ? MOS_New(MhwCpInterface) : pInterface;
 }
 
-void Delete_MhwCpInterface(MhwCpInterface* pMhwCpInterface)
+void Delete_MhwCpInterface(MhwCpInterface* pInterface)
 {
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (pMhwCpInterface != nullptr && cp_interface != nullptr)
+    if (pInterface != nullptr && cp_interface != nullptr)
     {
-        cp_interface->Delete_MhwCpInterface(pMhwCpInterface);
+        cp_interface->Delete_MhwCpInterface(pInterface);
+        pInterface = nullptr;
     }
+    MOS_Delete(pInterface);
     MOS_Delete(cp_interface);
 }

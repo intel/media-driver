@@ -20,12 +20,6 @@
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/cp_interfaces.h
-    ${CMAKE_CURRENT_LIST_DIR}/cplib_utils.h
-)
-
-set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/cp_interfaces.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/cplib_utils.cpp
 )
 
 set(SOURCES_

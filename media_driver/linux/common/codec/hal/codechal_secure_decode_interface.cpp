@@ -42,16 +42,13 @@ CodechalSecureDecodeInterface *Create_SecureDecodeInterface(
         return nullptr;
     }
 
-    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (nullptr == cp_interface)
-    {
-        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "NULL pointer parameters");
-        return nullptr;
-    }
-
     CodechalSecureDecodeInterface *pInterface = nullptr;
-    pInterface = cp_interface->Create_SecureDecodeInterface(codechalSettings, hwInterfaceInput);
-    MOS_Delete(cp_interface);
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (cp_interface)
+    {
+        pInterface = cp_interface->Create_SecureDecodeInterface(codechalSettings, hwInterfaceInput);
+        MOS_Delete(cp_interface);
+    }
 
     if (nullptr == pInterface) SecureDecodeStubMessage();
 
@@ -64,6 +61,8 @@ void Delete_SecureDecodeInterface(CodechalSecureDecodeInterface *pInterface)
     if (pInterface != nullptr && cp_interface != nullptr)
     {
         cp_interface->Delete_SecureDecodeInterface(pInterface);
+        pInterface = nullptr;
     }
+    MOS_Delete(pInterface);
     MOS_Delete(cp_interface);
 }

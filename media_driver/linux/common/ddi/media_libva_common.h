@@ -440,8 +440,6 @@ struct DDI_MEDIA_CONTEXT
     PDDI_MEDIA_HEAP     pMfeCtxHeap;
     uint32_t            uiNumMfes;
 
-    bool                cpLibWasLoaded;
-
     // display info
     uint32_t            uiDisplayWidth;
     uint32_t            uiDisplayHeight;

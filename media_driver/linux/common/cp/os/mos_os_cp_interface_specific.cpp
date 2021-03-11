@@ -30,20 +30,17 @@
 
 MosCpInterface* Create_MosCpInterface(void* pvOsInterface)
 {
+    MosCpInterface* pInterface = nullptr;
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (nullptr == cp_interface)
+    if (cp_interface)
     {
-        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_OS, "NULL pointer parameters");
-        return nullptr;
+        pInterface = cp_interface->Create_MosCpInterface(pvOsInterface);
+        MOS_Delete(cp_interface);
     }
 
-    MosCpInterface* pMosCpInterface = nullptr;
-    pMosCpInterface = cp_interface->Create_MosCpInterface(pvOsInterface);
-    MOS_Delete(cp_interface);
+    if (nullptr == pInterface) OsStubMessage();
 
-    if (nullptr == pMosCpInterface) OsStubMessage();
-
-    return nullptr == pMosCpInterface ? MOS_New(MosCpInterface) : pMosCpInterface;
+    return nullptr == pInterface ? MOS_New(MosCpInterface) : pInterface;
 }
 
 void Delete_MosCpInterface(MosCpInterface* pInterface)
@@ -52,7 +49,9 @@ void Delete_MosCpInterface(MosCpInterface* pInterface)
     if (pInterface != nullptr && cp_interface != nullptr)
     {
         cp_interface->Delete_MosCpInterface(pInterface);
+        pInterface = nullptr;
     }
+    MOS_Delete(pInterface);
     MOS_Delete(cp_interface);
 }
 

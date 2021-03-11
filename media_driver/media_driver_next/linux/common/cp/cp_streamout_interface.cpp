@@ -25,7 +25,7 @@
 //!
 
 #include "cp_streamout_interface.h"
-#include "cp_interfaces_next.h"
+#include "cp_interfaces.h"
 
 static void CpStreamOutStubMessage()
 {
@@ -43,16 +43,13 @@ CpStreamOutInterface *Create_CpStreamOutInterface(
         return nullptr;
     }
 
-    CpInterfacesNext *cp_interface = dynamic_cast<CpInterfacesNext *>(CpInterfacesFactory::Create(CP_INTERFACE));
-    if (nullptr == cp_interface)
-    {
-        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "NULL pointer parameters");
-        return nullptr;
-    }
-
     CpStreamOutInterface *pInterface = nullptr;
-    pInterface = cp_interface->Create_CpStreamOutInterface(pipeline, task, hwInterface);
-    MOS_Delete(cp_interface);
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (cp_interface)
+    {
+        pInterface = cp_interface->Create_CpStreamOutInterface(pipeline, task, hwInterface);
+        MOS_Delete(cp_interface);
+    }
 
     if (nullptr == pInterface) CpStreamOutStubMessage();
 
@@ -61,10 +58,12 @@ CpStreamOutInterface *Create_CpStreamOutInterface(
 
 void Delete_CpStreamOutInterface(CpStreamOutInterface *pInterface)
 {
-    CpInterfacesNext *cp_interface = dynamic_cast<CpInterfacesNext *>(CpInterfacesFactory::Create(CP_INTERFACE));
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
     if (pInterface != nullptr && cp_interface != nullptr)
     {
         cp_interface->Delete_CpStreamOutInterface(pInterface);
+        pInterface = nullptr;
     }
+    MOS_Delete(pInterface);
     MOS_Delete(cp_interface);
 }

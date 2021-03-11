@@ -19,12 +19,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/cp_interfaces_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decodecp_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/cp_streamout_interface.cpp
 )
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/cp_interfaces_next.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_cp_bitstream.h
 )
 set(SOURCES_NEW

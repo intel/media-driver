@@ -25,7 +25,7 @@
 //!
 
 #include "decodecp_interface.h"
-#include "cp_interfaces_next.h"
+#include "cp_interfaces.h"
 
 static void DecodeCpStubMessage()
 {
@@ -42,16 +42,13 @@ DecodeCpInterface *Create_DecodeCpInterface(
         return nullptr;
     }
 
-    CpInterfacesNext *cp_interface = dynamic_cast<CpInterfacesNext *>(CpInterfacesFactory::Create(CP_INTERFACE));
-    if (nullptr == cp_interface)
-    {
-        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "NULL pointer parameters");
-        return nullptr;
-    }
-
     DecodeCpInterface *pInterface = nullptr;
-    pInterface = cp_interface->Create_DecodeCpInterface(codechalSettings, hwInterfaceInput);
-    MOS_Delete(cp_interface);
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
+    if (cp_interface)
+    {
+        pInterface = cp_interface->Create_DecodeCpInterface(codechalSettings, hwInterfaceInput);
+        MOS_Delete(cp_interface);
+    }
 
     if (nullptr == pInterface) DecodeCpStubMessage();
 
@@ -60,10 +57,12 @@ DecodeCpInterface *Create_DecodeCpInterface(
 
 void Delete_DecodeCpInterface(DecodeCpInterface *pInterface)
 {
-    CpInterfacesNext *cp_interface = dynamic_cast<CpInterfacesNext *>(CpInterfacesFactory::Create(CP_INTERFACE));
+    CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
     if (pInterface != nullptr && cp_interface != nullptr)
     {
         cp_interface->Delete_DecodeCpInterface(pInterface);
+        pInterface = nullptr;
     }
+    MOS_Delete(pInterface);
     MOS_Delete(cp_interface);
 }

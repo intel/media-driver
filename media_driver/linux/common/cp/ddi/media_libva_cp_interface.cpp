@@ -42,29 +42,28 @@ static void DdiStubMessage()
 
 DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx)
 {
+    DdiCpInterface* pInterface = nullptr;
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (nullptr == cp_interface)
+    if (cp_interface)
     {
-        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_DDI, "NULL pointer prot");
-        return nullptr;
+        pInterface = cp_interface->Create_DdiCpInterface(mosCtx);
+        MOS_Delete(cp_interface);
     }
 
-    DdiCpInterface* pDdiCpInterface = nullptr;
-    pDdiCpInterface = cp_interface->Create_DdiCpInterface(mosCtx);
-    MOS_Delete(cp_interface);
+    if (nullptr == pInterface) DdiStubMessage();
 
-    if (nullptr == pDdiCpInterface) DdiStubMessage();
-
-    return nullptr == pDdiCpInterface ? MOS_New(DdiCpInterface, mosCtx) : pDdiCpInterface;
+    return nullptr == pInterface ? MOS_New(DdiCpInterface, mosCtx) : pInterface;
 }
 
-void Delete_DdiCpInterface(DdiCpInterface* pDdiCpInterface)
+void Delete_DdiCpInterface(DdiCpInterface* pInterface)
 {
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (pDdiCpInterface != nullptr && cp_interface != nullptr)
+    if (pInterface != nullptr && cp_interface != nullptr)
     {
-        cp_interface->Delete_DdiCpInterface(pDdiCpInterface);
+        cp_interface->Delete_DdiCpInterface(pInterface);
+        pInterface = nullptr;
     }
+    MOS_Delete(pInterface);
     MOS_Delete(cp_interface);
 }
 

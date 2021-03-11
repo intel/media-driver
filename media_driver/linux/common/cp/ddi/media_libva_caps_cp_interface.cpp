@@ -51,32 +51,31 @@ MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCpInterface(DDI_MEDIA_CONTEXT *m
         return nullptr;
     }
 
+    MediaLibvaCapsCpInterface* pInterface = nullptr;
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (nullptr == cp_interface)
+    if (cp_interface)
     {
-        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CAPS, "NULL pointer prot");
-        return nullptr;
+        pInterface = cp_interface->Create_MediaLibvaCapsCpInterface(mediaCtx, mediaCaps);
+        MOS_Delete(cp_interface);
     }
 
-    MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface = nullptr;
-    pMediaLibvaCapsCpInterface = cp_interface->Create_MediaLibvaCapsCpInterface(mediaCtx, mediaCaps);
-    MOS_Delete(cp_interface);
-
-    if (nullptr == pMediaLibvaCapsCpInterface)
+    if (nullptr == pInterface)
     {
         CapsStubMessage();
     }
 
-    return nullptr == pMediaLibvaCapsCpInterface ? MOS_New(MediaLibvaCapsCpInterface, mediaCtx, mediaCaps) : pMediaLibvaCapsCpInterface;
+    return nullptr == pInterface ? MOS_New(MediaLibvaCapsCpInterface, mediaCtx, mediaCaps) : pInterface;
 }
 
-void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pMediaLibvaCapsCpInterface)
+void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pInterface)
 {
     CpInterfaces *cp_interface = CpInterfacesFactory::Create(CP_INTERFACE);
-    if (pMediaLibvaCapsCpInterface != nullptr && cp_interface != nullptr)
+    if (pInterface != nullptr && cp_interface != nullptr)
     {
-        cp_interface->Delete_MediaLibvaCapsCpInterface(pMediaLibvaCapsCpInterface);
+        cp_interface->Delete_MediaLibvaCapsCpInterface(pInterface);
+        pInterface = nullptr;
     }
+    MOS_Delete(pInterface);
     MOS_Delete(cp_interface);
 }
 

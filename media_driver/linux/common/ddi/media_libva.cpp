@@ -57,7 +57,6 @@
 #include "media_interfaces_mmd.h"
 #include "media_interfaces_mcpy.h"
 #include "media_user_settings_mgr.h"
-#include "cplib_utils.h"
 #include "media_interfaces.h"
 #include "mos_interface.h"
 #include "drm_fourcc.h"
@@ -1615,12 +1614,6 @@ VAStatus DdiMedia__Initialize (
 
     mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd);
 
-    mediaCtx->cpLibWasLoaded = CPLibUtils::LoadCPLib(ctx);
-    if (!mediaCtx->cpLibWasLoaded)
-    {
-        DDI_NORMALMESSAGE("CPLIB is not loaded.");
-    }
-
 #ifdef _MMC_SUPPORTED
     mediaCtx->pfnMemoryDecompress  = DdiMedia_MediaMemoryDecompressInternal;
     mediaCtx->pfnMediaMemoryCopy   = DdiMedia_MediaMemoryCopyInternal;
@@ -2056,11 +2049,6 @@ static VAStatus DdiMedia_Terminate (
     }
     mediaCtx->SkuTable.reset();
     mediaCtx->WaTable.reset();
-
-    if (mediaCtx->cpLibWasLoaded)
-    {
-        CPLibUtils::UnloadCPLib(ctx);
-    }
 
     // release media driver context, ctx creation is behind the mos_utilities_init
     // If free earilier than MOS_utilities_close, memnja count error.

@@ -30,12 +30,13 @@
 #include <stdint.h>
 #include <va/va.h>
 #include "cp_factory.h"
-#include "cplib_utils.h"
 #include "codechal_secure_decode_interface.h"
 #include "mhw_cp_interface.h"
 #include "mos_os_cp_interface_specific.h"
 #include "media_libva_cp_interface.h"
 #include "media_libva_caps_cp_interface.h"
+#include "cp_streamout_interface.h"
+#include "decodecp_interface.h"
 
 #define CP_INTERFACE            1
 
@@ -70,7 +71,7 @@ public:
     //!
     virtual CodechalSecureDecodeInterface* Create_SecureDecodeInterface(
         CodechalSetting *    codechalSettings,
-        CodechalHwInterface *hwInterfaceInput);
+        CodechalHwInterface *hwInterfaceInput) = 0;
 
     //!
     //! \brief   Delete the CodechalSecureDecodeInterface Object
@@ -78,7 +79,7 @@ public:
     //! \param   [in] pInterface
     //!          CodechalSecureDecodeInterface*
     //!
-    virtual void Delete_SecureDecodeInterface(CodechalSecureDecodeInterface *pInterface);
+    virtual void Delete_SecureDecodeInterface(CodechalSecureDecodeInterface *pInterface) = 0;
 
     //!
     //! \brief   Create MhwCpInterface Object
@@ -90,7 +91,7 @@ public:
     //! \return  MhwCpInterface*
     //!          Return CP Wrapper Object
     //!
-    virtual MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface);
+    virtual MhwCpInterface* Create_MhwCpInterface(PMOS_INTERFACE osInterface) = 0;
 
     //!
     //! \brief   Delete the MhwCpInterface Object
@@ -98,7 +99,7 @@ public:
     //! \param   [in] pInterface
     //!          MhwCpInterface*
     //!
-    virtual void Delete_MhwCpInterface(MhwCpInterface *pInterface);
+    virtual void Delete_MhwCpInterface(MhwCpInterface *pInterface) = 0;
 
     //!
     //! \brief   Create MosCpInterface Object
@@ -112,7 +113,7 @@ public:
     //! \return  MosCpInterface*
     //!          Return CP Wrapper Object
     //!
-    virtual MosCpInterface* Create_MosCpInterface(void* pvOsInterface);
+    virtual MosCpInterface* Create_MosCpInterface(void* pvOsInterface) = 0;
 
     //!
     //! \brief   Delete the MosCpInterface Object
@@ -120,7 +121,7 @@ public:
     //! \param   [in] pInterface
     //!          MosCpInterface*
     //!
-    virtual void Delete_MosCpInterface(MosCpInterface* pInterface);
+    virtual void Delete_MosCpInterface(MosCpInterface* pInterface) = 0;
 
     //!
     //! \brief   Create DdiCpInterface Object
@@ -134,7 +135,7 @@ public:
     //! \return  DdiCpInterface*
     //!          Return CP Wrapper Object
     //!
-    virtual DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx);
+    virtual DdiCpInterface* Create_DdiCpInterface(MOS_CONTEXT& mosCtx) = 0;
 
     //!
     //! \brief   Delete the DdiCpInterface Object
@@ -142,7 +143,7 @@ public:
     //! \param   [in] pInterface
     //!          DdiCpInterface*
     //!
-    virtual void Delete_DdiCpInterface(DdiCpInterface* pInterface);
+    virtual void Delete_DdiCpInterface(DdiCpInterface* pInterface) = 0;
 
     //!
     //! \brief   Create MediaLibvaCapsCpInterface Object
@@ -158,7 +159,7 @@ public:
     //!
     virtual MediaLibvaCapsCpInterface* Create_MediaLibvaCapsCpInterface(
         DDI_MEDIA_CONTEXT *mediaCtx,
-        MediaLibvaCaps *mediaCaps);
+        MediaLibvaCaps *mediaCaps) = 0;
 
     //!
     //! \brief   Delete the MediaLibvaCapsCpInterface Object
@@ -166,7 +167,58 @@ public:
     //! \param   [in] pInterface
     //!          MediaLibvaCapsCpInterface*
     //!
-    virtual void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pInterface);
+    virtual void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pInterface) = 0;
+
+    //!
+    //! \brief   Create CpStreamOutInterface Object
+    //!          Must use Delete_CpStreamOutInterface to delete created Object to avoid ULT Memory Leak errors
+    //!
+    //! \param   [in] pipeline
+    //!          MediaPipeline*
+    //! \param   [in] task
+    //!          MediaTask*
+    //! \param   [in] hwInterface
+    //!          CodechalHwInterface*
+    //!
+    //! \return  CpStreamOutInterface*
+    //!          Return CP Wrapper Object
+    //!
+    virtual CpStreamOutInterface *Create_CpStreamOutInterface(
+        MediaPipeline *pipeline,
+        MediaTask *task,
+        CodechalHwInterface *hwInterface) = 0;
+
+    //!
+    //! \brief   Delete the CpStreamOutInterface Object
+    //!
+    //! \param   [in] pInterface
+    //!          CpStreamOutInterface
+    //!
+    virtual void Delete_CpStreamOutInterface(CpStreamOutInterface *pInterface) = 0;
+
+    //!
+    //! \brief   Create DecodeCpInterface Object
+    //!          Must use Delete_DecodeCpInterface to delete created Object to avoid ULT Memory Leak errors
+    //!
+    //! \param   [in] codechalSettings
+    //!          CodechalSetting*
+    //! \param   [in] hwInterfaceInput
+    //!          CodechalHwInterface*
+    //!
+    //! \return  DecodeCpInterface*
+    //!          Return CP Wrapper Object
+    //!
+    virtual DecodeCpInterface *Create_DecodeCpInterface(
+        CodechalSetting *    codechalSettings,
+        CodechalHwInterface *hwInterfaceInput) = 0;
+
+    //!
+    //! \brief   Delete the DecodeCpInterface Object
+    //!
+    //! \param   [in] pInterface
+    //!          DecodeCpInterface
+    //!
+    virtual void Delete_DecodeCpInterface(DecodeCpInterface *pInterface) = 0;
 
 };
 
