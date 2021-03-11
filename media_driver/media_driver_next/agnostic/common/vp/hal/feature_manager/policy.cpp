@@ -568,7 +568,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
 
     if (fScaleX == 1.0f && fScaleY == 1.0f &&
         // Only support vebox crop from left-top, which is to align with legacy path.
-        0 == scalingParams->input.rcSrc.left && 0 == scalingParams->input.rcSrc.top)
+        0 == scalingParams->input.rcSrc.left && 0 == scalingParams->input.rcSrc.top &&
+        scalingParams->interlacedScalingType == ISCALING_NONE)
     {
         // for non-Scaling cases, all engine supported
         scalingEngine->bEnabled     = 1;
