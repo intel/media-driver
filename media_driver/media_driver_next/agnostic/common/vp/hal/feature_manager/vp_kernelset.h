@@ -63,7 +63,7 @@ public:
         KERNEL_OBJECTS& kernelObjs)
     {
         // once add kernels here, then it should return success, kernelObjs shoule not be empty
-        return MOS_STATUS_UNIMPLEMENTED;
+        return MOS_STATUS_SUCCESS;
     }
 
     virtual MOS_STATUS DestroyKernelObjects(KERNEL_OBJECTS& kernelObjs)
