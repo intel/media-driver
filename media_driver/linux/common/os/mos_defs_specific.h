@@ -29,11 +29,13 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <string>
 
 typedef pthread_mutex_t         MOS_MUTEX, *PMOS_MUTEX;         //!< mutex pointer
 typedef sem_t                   MOS_SEMAPHORE, *PMOS_SEMAPHORE;           //!< semaphore pointer
 typedef pthread_t               MOS_THREADHANDLE;                         //!< thread handle
 typedef uint32_t                UFKEY, *PUFKEY;                           //!< Handle of user feature key
+typedef std::string             UFKEY_NEXT, *PUFKEY_NEXT;
 
 #define _T(x)     x
 #define MAX_PATH  128

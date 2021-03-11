@@ -26,6 +26,7 @@
 #ifndef __MOS_UTILITIES_SPECIFIC_NEXT_H__
 #define __MOS_UTILITIES_SPECIFIC_NEXT_H__
 
+#include <map>
 #include "mos_defs.h"
 #include "mos_utilities_specific.h"
 
@@ -291,5 +292,6 @@ public:
     static const char*          m_szUserFeatureFile;
     static int32_t              m_mosTraceFd;
     static const char* const    m_mosTracePath;
+    static std::map<std::string, std::map<std::string, std::string>> m_regBuffer;
 };
 #endif // __MOS_UTILITIES_SPECIFIC_NEXT_H__

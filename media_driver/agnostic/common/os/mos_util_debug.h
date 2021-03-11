@@ -356,6 +356,7 @@ MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx
 #define MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_NORMALMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_VERBOSEMESSAGE(_compID, _subCompID, _message, ...)
+#define MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_DEBUGMESSAGE_IF(_cond, _level, _compID, _subCompID, _message, ...)
 #define MOS_DEBUGMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_MEMNINJAMESSAGE(_compID, _subCompID, _message, ...)

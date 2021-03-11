@@ -45,6 +45,7 @@
 #include <sys/sem.h>
 #include <signal.h>
 #include <unistd.h>  // fork
+#include <algorithm>
 
 const char *MosUtilitiesSpecificNext::m_szUserFeatureFile = USER_FEATURE_FILE;
 
@@ -68,6 +69,8 @@ double MosUtilities::MosGetTime()
 //!
 const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker_raw";
 int32_t           MosUtilitiesSpecificNext::m_mosTraceFd    = -1;
+
+std::map<std::string, std::map<std::string, std::string>> MosUtilitiesSpecificNext::m_regBuffer;
 
 //!
 //! \brief for int64_t/uint64_t format print warning
@@ -1494,6 +1497,234 @@ MOS_STATUS MosUtilities::MosUserFeatureNotifyChangeKeyValue(
     semop(semid, operation, 1);
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosUtilities::MosInitializeReg()
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    std::ifstream regStream;
+
+    try
+    {
+        using util = MosUtilitiesSpecificNext;
+        regStream.open(USER_FEATURE_FILE_NEXT);
+        if (regStream.good())
+        {
+            std::string id = "";
+
+            while(!regStream.eof())
+            {
+                std::string line = "";
+
+                std::getline(regStream, line);
+                if (std::string::npos != line.find(USER_SETTING_CONFIG_PATH))
+                {
+                    id = USER_SETTING_CONFIG_PATH;
+                }
+                else if (std::string::npos != line.find(USER_SETTING_REPORT_PATH))
+                {
+                    id = USER_SETTING_REPORT_PATH;
+                }
+                else if (line.find("]") != std::string::npos)
+                {
+                    auto mkPos = line.find_last_of("]");
+                    id = line.substr(0, mkPos+1);
+                }
+                else
+                {
+                    if (id == USER_SETTING_REPORT_PATH)
+                    {
+                        continue;
+                    }
+
+                    std::size_t pos = line.find("=");
+                    if (std::string::npos != pos && !id.empty())
+                    {
+                        std::string name = line.substr(0,pos);
+                        std::string value = line.substr(pos+1);
+
+                        auto &keys = util::m_regBuffer[id];
+                        keys[name] = value;
+                    }
+                }
+            }
+
+        }
+    }
+    catch(const std::exception &e)
+    {
+        status = MOS_STATUS_FILE_OPEN_FAILED;
+    }
+
+    regStream.close();
+
+    return status;
+}
+
+MOS_STATUS MosUtilities::MosUninitializeReg()
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    std::ofstream regStream;
+    try
+    {
+        using util = MosUtilitiesSpecificNext;
+        regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
+        if (regStream.good())
+        {
+            for(auto pair: util::m_regBuffer)
+            {
+                regStream << pair.first << std::endl;
+
+                auto &keys = util::m_regBuffer[pair.first];
+                for (auto key: keys)
+                {
+                    auto name = key.first;
+                    regStream << key.first << "=" << key.second << std::endl;
+                }
+
+                keys.clear();
+            }
+
+            util::m_regBuffer.clear();
+            regStream.flush();
+        }
+    }
+    catch(const std::exception &e)
+    {
+        status = MOS_STATUS_FILE_WRITE_FAILED;
+    }
+
+    regStream.close();
+    return status;
+}
+
+MOS_STATUS MosUtilities::MosCreateRegKey(
+    UFKEY_NEXT keyHandle,
+    const std::string &subKey,
+    uint32_t samDesired,
+    PUFKEY_NEXT key)
+{
+    MOS_UNUSED(keyHandle);
+    MOS_UNUSED(samDesired);
+
+    using util = MosUtilitiesSpecificNext;
+
+    auto ret = util::m_regBuffer.find(subKey);
+
+    if (ret == util::m_regBuffer.end())
+    {
+        util::m_regBuffer[subKey] = {};
+    }
+
+    *key = subKey;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosUtilities::MosOpenRegKey(
+    UFKEY_NEXT keyHandle,
+    const std::string &subKey,
+    uint32_t samDesired,
+    PUFKEY_NEXT key)
+{
+    std::string tempSubKey = subKey;
+    if (subKey.find_first_of("\\") != std::string::npos)
+    {
+        tempSubKey = subKey.substr(1);
+    }
+
+    if (tempSubKey.find_first_of("[") == std::string::npos)
+    {
+        tempSubKey = "[" + tempSubKey + "]";
+    }
+    return MosCreateRegKey(keyHandle, tempSubKey, samDesired, key);
+}
+
+MOS_STATUS MosUtilities::MosCloseRegKey(
+    UFKEY_NEXT keyHandle)
+{
+    MOS_UNUSED(keyHandle);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosUtilities::MosGetRegValue(
+    UFKEY_NEXT keyHandle,
+    const std::string &valueName,
+    uint32_t *type,
+    char *data,
+    uint32_t *size)
+{
+    MOS_OS_CHK_NULL_RETURN(data);
+    MOS_OS_CHK_NULL_RETURN(size);
+    MOS_UNUSED(type);
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    using util = MosUtilitiesSpecificNext;
+
+    if ( util::m_regBuffer.end() == util::m_regBuffer.find(keyHandle))
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    try
+    {
+        // Read the value from ENV. variable as first
+        std::string name = valueName;
+        std::replace(name.begin(),name.end(),' ','_');
+        char* retVal = getenv(name.c_str());
+        if (retVal != nullptr)
+        {
+            std::string strData = retVal;
+            *size = strData.length();
+            return MOS_SecureMemcpy(data, strData.length(), strData.c_str(), strData.length());
+        }
+
+        auto keys = util::m_regBuffer[keyHandle];
+        auto it = keys.find(valueName);
+        if (it == keys.end())
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        status = MOS_SecureMemcpy(data, it->second.length(), it->second.c_str(), it->second.length());
+    }
+    catch(const std::exception &e)
+    {
+        status = MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return status;
+}
+
+MOS_STATUS MosUtilities::MosSetRegValue(
+    UFKEY_NEXT keyHandle,
+    const std::string &valueName,
+    uint32_t type,
+    const std::string &data)
+{
+    MOS_UNUSED(type);
+
+    using util = MosUtilitiesSpecificNext;
+
+    if ( util::m_regBuffer.end() == util::m_regBuffer.find(keyHandle))
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+    try
+    {
+        auto &keys = MosUtilitiesSpecificNext::m_regBuffer[keyHandle];
+
+        keys[valueName] = data;
+    }
+    catch(const std::exception &e)
+    {
+        status = MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return status;
 }
 
 HANDLE MosUtilities::MosCreateEventEx(

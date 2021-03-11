@@ -1197,6 +1197,118 @@ public:
     static void MosSleep(
         uint32_t   mSec);
 
+    //!
+    //! \brief    Initialize reg related resouces
+    //!
+    static MOS_STATUS MosInitializeReg();
+
+    //!
+    //! \brief    Uninitialize reg related resouces
+    //!
+    static MOS_STATUS MosUninitializeReg();
+    //!
+    //! \brief    Creates the specified reg key
+    //! \details  Creates the specified reg key. If the key already exists,
+    //!           the function opens it.
+    //! \param    [in] keyHandle
+    //!           Handle to a currently open key.
+    //! \param    [in] subKey
+    //!           Pointer to a null-terminated string specifying the name of a
+    //!           subkey that this function opens or creates.
+    //! \param    [in] samDesired
+    //!           A mask that specifies the access rights for the key to be created.
+    //! \param    [out] key
+    //!           A pointer to a variable that receives a handle to the opened or created key.
+    //! \return   MOS_STATUS
+    //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+    //!           If the function fails, the return value is a error code.
+    //!
+    static MOS_STATUS MosCreateRegKey(
+        UFKEY_NEXT keyHandle,
+        const std::string &subKey,
+        uint32_t samDesired,
+        PUFKEY_NEXT key);
+
+    //!
+    //! \brief    Opens the specified reg key.
+    //! \details  Opens the specified reg key.
+    //! \param    [in] keyHandle
+    //!           A handle to an open reg key.
+    //! \param    [in] subKey
+    //!           The name of the reg subkey to be opened.
+    //! \param    [in] samDesired
+    //!           A mask that specifies the desired access rights to the key to be opened.
+    //! \param    [out] key
+    //!           A pointer to a variable that receives a handle to the opened key.
+    //! \return   MOS_STATUS
+    //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+    //!           If the function fails, the return value is a error code.
+    //!
+    static MOS_STATUS MosOpenRegKey(
+        UFKEY_NEXT keyHandle,
+        const std::string &subKey,
+        uint32_t samDesired,
+        PUFKEY_NEXT key);
+
+    //!
+    //! \brief    Closes a handle to the specified reg key.
+    //! \details  Closes a handle to the specified reg key.
+    //! \param    [in] keyHandle
+    //!           A handle to an open reg key.
+    //! \return   MOS_STATUS
+    //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+    //!           If the function fails, the return value is a error code.
+    //!
+    static MOS_STATUS MosCloseRegKey(
+        UFKEY_NEXT keyHandle);
+
+    //!
+    //! \brief    Retrieves the type and data for the specified reg value.
+    //! \details  Retrieves the type and data for the specified reg value.
+    //! \param    [in] keyHandle
+    //!           A handle to an open reg key.
+    //! \param    [in] valueName
+    //!           The name of the reg value.
+    //! \param    [in] type
+    //!           A pointer to a variable that receives a code indicating the
+    //!           type of data stored in the specified value.
+    //! \param    [out] data
+    //!           A pointer to a buffer that receives the value's data.
+    //! \param    [out] size
+    //!           A pointer to a variable that specifies the size of the buffer
+    //!           pointed to by the data parameter, in bytes.
+    //! \return   MOS_STATUS
+    //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+    //!           If the function fails, the return value is a error code.
+    //!
+    static MOS_STATUS MosGetRegValue(
+        UFKEY_NEXT keyHandle,
+        const std::string &valueName,
+        uint32_t *type,
+        char *data,
+        uint32_t *size);
+
+    //!
+    //! \brief    Sets the data and type of a specified value under a reg key.
+    //! \details  Sets the data and type of a specified value under a reg key.
+    //! \param    [in] keyHandle
+    //!           A handle to an open reg key.
+    //! \param    [in] valueName
+    //!           The name of the value to be set.
+    //! \param    [in] type
+    //!           The type of data parameter.
+    //! \param    [out] data
+    //!           The data to be stored.
+    //! \return   MOS_STATUS
+    //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+    //!           If the function fails, the return value is a error code.
+    //!
+    static MOS_STATUS MosSetRegValue(
+        UFKEY_NEXT keyHandle,
+        const std::string &valueName,
+        uint32_t type,
+        const std::string &data);
+
     //------------------------------------------------------------------------------
     // Wrappers for OS Specific User Feature Functions Implementations
     //------------------------------------------------------------------------------

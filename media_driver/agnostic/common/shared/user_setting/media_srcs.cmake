@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,27 +18,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(user_setting)
-
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/null_hardware.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_debug_config_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_value.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_configure.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_definition.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mediamemdecomp.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr.h
-    ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager.h
-    ${CMAKE_CURRENT_LIST_DIR}/null_hardware.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_debug_config_manager.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_debug_utils.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_value.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_configure.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting_definition.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting.h
 )
 
 set(SOURCES_
@@ -53,13 +44,11 @@ set(HEADERS_
 
 set(COMMON_SOURCES_
     ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
+    ${TMP_SOURCES_})
 
 set(COMMON_HEADERS_
     ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
+    ${TMP_HEADERS_})
 
 source_group( "Common Files" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
