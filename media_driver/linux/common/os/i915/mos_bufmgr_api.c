@@ -125,36 +125,6 @@ mos_bo_unmap(struct mos_linux_bo *buf)
     return buf->bufmgr->bo_unmap(buf);
 }
 
-int
-mos_bo_subdata(struct mos_linux_bo *bo, unsigned long offset,
-             unsigned long size, const void *data)
-{
-    return bo->bufmgr->bo_subdata(bo, offset, size, data);
-}
-
-int
-mos_bo_get_subdata(struct mos_linux_bo *bo, unsigned long offset,
-             unsigned long size, void *data)
-{
-    int ret;
-    if (bo->bufmgr->bo_get_subdata)
-        return bo->bufmgr->bo_get_subdata(bo, offset, size, data);
-
-    if (size == 0 || data == nullptr)
-        return 0;
-
-    ret = mos_bo_map(bo, 0);
-    if (ret)
-        return ret;
-#ifdef __cplusplus
-    memcpy(data, (unsigned char *)bo->virt + offset, size);
-#else
-    memcpy(data, (unsigned char *)bo->virtual + offset, size);
-#endif
-    mos_bo_unmap(bo);
-    return 0;
-}
-
 void
 mos_bo_wait_rendering(struct mos_linux_bo *bo)
 {
