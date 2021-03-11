@@ -1096,13 +1096,10 @@ VAStatus DdiMediaDecode::CreateBuffer(
 
     if( true == buf->bCFlushReq )
     {
-        mos_bo_subdata(buf->bo, buf->uiOffset, size * numElements, data);
+        mos_bo_wait_rendering(buf->bo);
     }
-    else
-    {
-        status = MOS_SecureMemcpy((void *)(buf->pData + buf->uiOffset), size * numElements, data, size * numElements);
-        DDI_CHK_CONDITION((status != MOS_STATUS_SUCCESS), "DDI:Failed to copy buffer data!", VA_STATUS_ERROR_OPERATION_FAILED);
-    }
+    status = MOS_SecureMemcpy((void *)(buf->pData + buf->uiOffset), size * numElements, data, size * numElements);
+    DDI_CHK_CONDITION((status != MOS_STATUS_SUCCESS), "DDI:Failed to copy buffer data!", VA_STATUS_ERROR_OPERATION_FAILED);
     return va;
 
 CleanUpandReturn:

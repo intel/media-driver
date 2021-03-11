@@ -264,21 +264,12 @@ VAStatus DdiDecodeVP8::ParseProbabilityData(
 {
     if (vp8ProbDataBuff->pData && probInputBuf)
     {
-        MOS_LINUX_BO *boDes = nullptr;
-        boDes               = vp8ProbDataBuff->bo;
-
-        mos_bo_wait_rendering(boDes);
-        if (0 == mos_bo_subdata(boDes,
-                     0,
-                     sizeof(CODECHAL_VP8_COEFFPROB_DATA),
-                     probInputBuf))
-        {
-            return VA_STATUS_SUCCESS;
-        }
-        else
-        {
-            return VA_STATUS_ERROR_INVALID_PARAMETER;
-        }
+        mos_bo_wait_rendering(vp8ProbDataBuff->bo);
+        MOS_SecureMemcpy(vp8ProbDataBuff->pData,
+                         sizeof(CODECHAL_VP8_COEFFPROB_DATA),
+                         probInputBuf,
+                         sizeof(CODECHAL_VP8_COEFFPROB_DATA));
+        return VA_STATUS_SUCCESS;
     }
     else
     {
