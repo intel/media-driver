@@ -157,6 +157,7 @@ namespace decode
 
         auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
+        DECODE_CHK_NULL(basicFeature->m_av1PicParams);
         if (basicFeature->m_av1PicParams->m_anchorFrameInsertion)
         {
             return MOS_STATUS_SUCCESS;
