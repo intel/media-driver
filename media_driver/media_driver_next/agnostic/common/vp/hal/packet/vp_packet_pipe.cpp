@@ -258,7 +258,7 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
 #if (_DEBUG || _RELEASE_INTERNAL)
         for (auto& handle : pPacket->GetSurfSetting().surfGroup)
         {
-            if(handle.first)
+            if(handle.first && handle.second)
             {
                 VP_SURFACE_DUMP(m_PacketFactory.m_debugInterface,
                 handle.second,
