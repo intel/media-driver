@@ -1256,6 +1256,11 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateStandard (
 
    if ( MOS_VE_SUPPORTED(m_osInterface))
     {
+#ifdef ANDROID
+        // This is a w/a solution on Android as scalability is not working
+        // Remove it after we fix it
+        static_cast<MhwVdboxMfxInterfaceG12*>(m_mfxInterface)->DisableScalabilitySupport();
+#endif
         if (static_cast<MhwVdboxMfxInterfaceG12*>(m_mfxInterface)->IsScalabilitySupported())
         {
             m_scalabilityState = (PCODECHAL_DECODE_SCALABILITY_STATE_G12)MOS_AllocAndZeroMemory(sizeof(CODECHAL_DECODE_SCALABILITY_STATE_G12));
