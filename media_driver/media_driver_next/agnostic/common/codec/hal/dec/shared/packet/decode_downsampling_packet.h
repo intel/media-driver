@@ -93,6 +93,14 @@ public:
     //!         true if down sampling supported for current frame
     bool IsSupported() { return m_isSupported; }
 
+    //! \brief Set down sampling mode
+    //! \param [in, out] mode
+    //!        down sampling mode
+    //! \return MOS_STATUS
+    //!         status
+    //!
+    virtual MOS_STATUS SetSfcMode(MEDIA_SFC_INTERFACE_MODE &mode) = 0;
+
 protected:
     virtual MOS_STATUS InitSfcParams(VDBOX_SFC_PARAMS &sfcParams);
 
