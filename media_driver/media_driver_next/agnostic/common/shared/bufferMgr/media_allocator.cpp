@@ -140,6 +140,12 @@ PMOS_BUFFER Allocator::AllocateBuffer(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroO
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     TraceInfo *info = MOS_New(TraceInfo);
+    if (nullptr == info)
+    {
+        MOS_Delete(buffer);
+        return nullptr;
+    }
+
     info->component = component;
     //Note, param.pBufName cannot be null.
     //This assignment statement will calcualte the string length and copy param.pBufName to info->name.
