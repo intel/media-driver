@@ -70,7 +70,8 @@ protected:
         MOS_FORMAT              inputFormat,
         MOS_FORMAT              outputFormat,
         uint16_t                &widthAlignUnit,
-        uint16_t                &heightAlignUnit);
+        uint16_t                &heightAlignUnit,
+        bool                    isInterlacedScaling = false);
 };
 
 #endif // __VPHAL_SFC_SUPPORTED

@@ -1083,7 +1083,8 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
         m_renderData.SfcInputFormat,
         pSfcStateParams->OutputFrameFormat,
         wInputWidthAlignUnit,
-        wInputHeightAlignUnit);
+        wInputHeightAlignUnit,
+        pSrcSurface->bInterlacedScaling);
 
     if(pSrcSurface->bDirectionalScalar)
     {
@@ -1098,9 +1099,28 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     // Region of the input frame which needs to be processed by SFC
     pSfcStateParams->dwSourceRegionVerticalOffset   = MOS_ALIGN_CEIL((uint32_t)pSrcSurface->rcSrc.top,  wInputHeightAlignUnit);
     pSfcStateParams->dwSourceRegionHorizontalOffset = MOS_ALIGN_CEIL((uint32_t)pSrcSurface->rcSrc.left, wInputWidthAlignUnit);
-    pSfcStateParams->dwSourceRegionHeight           = MOS_ALIGN_FLOOR(
-                                                        MOS_MIN((uint32_t)(dwVeboxBottom - pSrcSurface->rcSrc.top), pSfcStateParams->dwInputFrameHeight),
-                                                        wInputHeightAlignUnit);
+
+
+    if (pSrcSurface->bInterlacedScaling && 
+        (pSrcSurface->rcSrc.bottom - pSrcSurface->rcSrc.top) == (pSrcSurface->rcDst.bottom - pSrcSurface->rcDst.top))
+    {
+        pSfcStateParams->dwSourceRegionHeight = MOS_ALIGN_CEIL(
+            MOS_MIN((uint32_t)(dwVeboxBottom - pSrcSurface->rcSrc.top), pSfcStateParams->dwInputFrameHeight),
+            wInputHeightAlignUnit);
+
+        if (pSfcStateParams->dwSourceRegionHeight > pSfcStateParams->dwInputFrameHeight)
+        {
+            pSfcStateParams->dwSourceRegionHeight -= wInputHeightAlignUnit;
+            VPHAL_RENDER_ASSERTMESSAGE("Interlaced scaling case: surface height is %d, which is not 4 align. Use floor align.", pSfcStateParams->dwInputFrameHeight);
+        }
+    }
+    else
+    {
+        pSfcStateParams->dwSourceRegionHeight = MOS_ALIGN_FLOOR(
+            MOS_MIN((uint32_t)(dwVeboxBottom - pSrcSurface->rcSrc.top), pSfcStateParams->dwInputFrameHeight),
+            wInputHeightAlignUnit);
+    }
+
     pSfcStateParams->dwSourceRegionWidth            = MOS_ALIGN_FLOOR(
                                                         MOS_MIN((uint32_t)(dwVeboxRight  - pSrcSurface->rcSrc.left), pSfcStateParams->dwInputFrameWidth),
                                                         wInputWidthAlignUnit);
@@ -1108,6 +1128,8 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     // Size of the Scaled Region over the Render Target
     pSfcStateParams->dwScaledRegionHeight           = MOS_ALIGN_CEIL(MOS_UF_ROUND(m_renderData.fScaleY * pSfcStateParams->dwSourceRegionHeight), wOutputHeightAlignUnit);
     pSfcStateParams->dwScaledRegionWidth            = MOS_ALIGN_CEIL(MOS_UF_ROUND(m_renderData.fScaleX * pSfcStateParams->dwSourceRegionWidth), wOutputWidthAlignUnit);
+
+
 
     // Scaled region is pre-rotated. Adjust its width and height with those of the output frame
     if (m_renderData.SfcRotation == VPHAL_ROTATION_IDENTITY ||

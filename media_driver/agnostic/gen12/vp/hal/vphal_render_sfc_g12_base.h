@@ -78,7 +78,8 @@ protected:
         MOS_FORMAT              inputFormat,
         MOS_FORMAT              outputFormat,
         uint16_t                &widthAlignUnit,
-        uint16_t                &heightAlignUnit);
+        uint16_t                &heightAlignUnit,
+        bool                    isInterlacedScaling = false);
 
     virtual void DetermineCscParams(
         PVPHAL_SURFACE                  src,

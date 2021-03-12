@@ -188,7 +188,8 @@ void VphalSfcStateG12::GetInputWidthHeightAlignUnit(
     MOS_FORMAT              inputFormat,
     MOS_FORMAT              outputFormat,
     uint16_t                &widthAlignUnit,
-    uint16_t                &heightAlignUnit)
+    uint16_t                &heightAlignUnit,
+    bool                    isInterlacedScaling)
 {
     MOS_UNUSED(outputFormat);
     widthAlignUnit  = 1;
