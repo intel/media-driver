@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 #define __MEDIA_INTERFACES_G12_DG1_H__
 
 #include "media_interfaces_g12_tgllp.h"
-#include "renderhal_g12_dg1.h"
+#include "renderhal_g12_1.h"
 
 #define DG1_L3_CONFIG_NUM                      3
 static const L3ConfigRegisterValues DG1_L3_PLANE[] = {
@@ -41,7 +41,7 @@ static const L3ConfigRegisterValues DG1_L3_PLANE[] = {
 class RenderHalInterfacesG12Dg1 : public RenderHalDevice
 {
 protected:
-    using XRenderHal = XRenderHal_Interface_g12_dg1;
+    using XRenderHal = XRenderHal_Interface_G12_1;
     MOS_STATUS Initialize();
 };
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -135,7 +135,7 @@
 
 #include "cm_hal_g12.h"
 #include "vphal_g12_tgllp.h"
-#include "renderhal_g12.h"
+#include "renderhal_g12_0.h"
 #include "media_user_settings_mgr_g12.h"
 
 #include "codechal_decode_histogram_g12.h"
@@ -319,7 +319,7 @@ public:
 class RenderHalInterfacesG12Tgllp : public RenderHalDevice
 {
 protected:
-    using XRenderHal = XRenderHal_Interface_g12;
+    using XRenderHal = XRenderHal_Interface_G12_0;
     MOS_STATUS Initialize();
 };
 

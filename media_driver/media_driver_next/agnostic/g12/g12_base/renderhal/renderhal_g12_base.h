@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2020, Intel Corporation
+* Copyright (c) 2016-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file       renderhal_g12.h
+//! \file       renderhal_g12_base.h
 //! \brief      header file of Gen12 hardware functions
 //! \details    Gen12 hardware functions declare
 //!
-#ifndef __RENDERHAL_G12_H__
-#define __RENDERHAL_G12_H__
+#ifndef __RENDERHAL_G12_BASE_H__
+#define __RENDERHAL_G12_BASE_H__
 
 #include "renderhal_platform_interface.h"
 #include "mhw_render_g12_X.h"
@@ -43,11 +43,11 @@ typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_G12 : _RENDERHAL_GENERIC_PROLOG_
 //!              SLM     URB     DC      RO      Rest/L3 Client Pool
 //!               0      64      0       0       416 (KB chunks based on GT2)
 #define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G12LP_RENDERHAL (0xD0000020)
-class XRenderHal_Interface_g12 : public XRenderHal_Platform_Interface
+class XRenderHal_Interface_G12_Base : public XRenderHal_Platform_Interface
 {
 public:
-    XRenderHal_Interface_g12();
-    virtual ~XRenderHal_Interface_g12() {}
+    XRenderHal_Interface_G12_Base();
+    virtual ~XRenderHal_Interface_G12_Base() {}
 
     //!
     //! \brief    Setup Surface State
@@ -397,4 +397,4 @@ protected:
     MOS_RESOURCE m_scratchSpaceResource;
 };
 
-#endif // __RENDERHAL_G12_H__
+#endif // __RENDERHAL_G12_BASE_H__

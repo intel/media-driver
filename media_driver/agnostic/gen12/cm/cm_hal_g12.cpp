@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "mhw_render_g12_X.h"
 #include "cm_def.h"
 #include "renderhal_platform_interface.h"
-#include "renderhal_g12.h"
+#include "renderhal_g12_base.h"
 #include "hal_oca_interface.h"
 #include "mhw_mmio_g12.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
@@ -431,7 +431,7 @@ MOS_STATUS CM_HAL_G12_X::SubmitCommands(
     uint32_t                     tag;
     uint32_t                     tagOffset = 0;
     MHW_RENDER_ENGINE_L3_CACHE_SETTINGS_G12 cacheSettings = {};
-    XRenderHal_Interface_g12 *renderHalG12 = nullptr;
+    XRenderHal_Interface_G12_Base *renderHalG12 = nullptr;
 
     MOS_CONTEXT                 *pOsContext = renderHal->pOsInterface->pOsContext;
     PMHW_MI_MMIOREGISTERS       pMmioRegisters = renderHal->pMhwRenderInterface->GetMmioRegisters();
@@ -687,7 +687,7 @@ MOS_STATUS CM_HAL_G12_X::SubmitCommands(
     }
 
     renderHalG12 =
-        static_cast<XRenderHal_Interface_g12 *>(renderHal->pRenderHalPltInterface);
+        static_cast<XRenderHal_Interface_G12_Base *>(renderHal->pRenderHalPltInterface);
 
     CM_CHK_NULL_GOTOFINISH_MOSERROR(renderHalG12);
 

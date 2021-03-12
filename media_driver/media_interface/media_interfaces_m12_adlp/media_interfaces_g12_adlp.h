@@ -29,7 +29,7 @@
 
 
 #include "media_interfaces_g12_tgllp.h"
-#include "renderhal_g12.h"
+#include "renderhal_g12_base.h"
 
 
 class CMHalInterfacesG12Adlp : public CMHalDevice

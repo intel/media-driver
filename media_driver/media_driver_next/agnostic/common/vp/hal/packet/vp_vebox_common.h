@@ -24,7 +24,7 @@
 
 #include "mhw_vebox.h"
 #include "vphal_common.h"
-#include "renderhal_g12.h"
+#include "renderhal_g12_base.h"
 #include "vp_filter.h"
 
 typedef class VP_VEBOX_RENDER_DATA           *PVPHAL_VEBOX_RENDER_DATA;

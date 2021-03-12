@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,13 +20,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file       renderhal_g12_dg1.cpp
+//! \file       renderhal_g12_1.cpp
 //! \brief      implementation of Gen12 DG1 hardware functions
 //! \details    Render functions
 //!
 
 #include "renderhal.h"
-#include "renderhal_g12_dg1.h"
+#include "renderhal_g12_1.h"
 #include "mhw_mi_g12_X.h"
 
 //!
@@ -38,7 +38,7 @@
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
-MOS_STATUS XRenderHal_Interface_g12_dg1::EnableL3Caching(
+MOS_STATUS XRenderHal_Interface_G12_1::EnableL3Caching(
     PRENDERHAL_INTERFACE         pRenderHal,
     PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
 {
@@ -86,7 +86,7 @@ finish:
 //! \return     MOS_STATUS
 //!             MOS_STATUS_SUCCESS if success. Error code otherwise
 //!
-MOS_STATUS XRenderHal_Interface_g12_dg1::SetCacheOverrideParams(
+MOS_STATUS XRenderHal_Interface_G12_1::SetCacheOverrideParams(
     PRENDERHAL_INTERFACE            pRenderHal,
     PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
     bool                            bEnableSLM)

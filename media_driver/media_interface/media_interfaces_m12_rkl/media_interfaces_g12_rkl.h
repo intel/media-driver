@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 
 #include "media_interfaces_g12_tgllp.h"
-#include "renderhal_g12.h"
+#include "renderhal_g12_base.h"
 
 class CMHalInterfacesG12Rkl : public CMHalDevice
 {

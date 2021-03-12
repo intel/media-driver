@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,13 +20,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file       renderhal_g12.cpp
+//! \file       renderhal_g12_base.cpp
 //! \brief      implementation of Gen12 hardware functions
 //! \details    Render functions
 //!
 
 #include "renderhal.h"
-#include "renderhal_g12.h"
+#include "renderhal_g12_base.h"
 #include "mhw_mi_g12_X.h"
 
 //!
@@ -93,7 +93,7 @@ const RENDERHAL_DYN_HEAP_SETTINGS g_cRenderHal_DSH_Settings_g12 =
     2048        // iMaxKernels
 };
 
-XRenderHal_Interface_g12::XRenderHal_Interface_g12()
+XRenderHal_Interface_G12_Base::XRenderHal_Interface_G12_Base()
 {
     MOS_ZeroMemory(&m_scratchSpaceResource, sizeof(m_scratchSpaceResource));
     return;
@@ -116,7 +116,7 @@ XRenderHal_Interface_g12::XRenderHal_Interface_g12()
 //!           [in] Ignored (not used in Gen11)
 //! \return   MOS_STATUS
 //!
-MOS_STATUS XRenderHal_Interface_g12::SetupSurfaceState (
+MOS_STATUS XRenderHal_Interface_G12_Base::SetupSurfaceState (
     PRENDERHAL_INTERFACE             pRenderHal,
     PRENDERHAL_SURFACE               pRenderHalSurface,
     PRENDERHAL_SURFACE_STATE_PARAMS  pParams,
@@ -393,7 +393,7 @@ finish:
 //!           [in] SLM size in 1K
 //! \return   encoded output
 //!
-uint32_t XRenderHal_Interface_g12::EncodeSLMSize(uint32_t SLMSize)
+uint32_t XRenderHal_Interface_G12_Base::EncodeSLMSize(uint32_t SLMSize)
 {
     uint32_t EncodedValue;
     if (SLMSize <= 2)
@@ -423,7 +423,7 @@ uint32_t XRenderHal_Interface_g12::EncodeSLMSize(uint32_t SLMSize)
 //!           [in] Nano Seconds
 //! \return   void
 //!
-void XRenderHal_Interface_g12::ConvertToNanoSeconds(
+void XRenderHal_Interface_G12_Base::ConvertToNanoSeconds(
     PRENDERHAL_INTERFACE                 pRenderHal,
     uint64_t                            iTicks,
     uint64_t                            *piNs)
@@ -445,7 +445,7 @@ void XRenderHal_Interface_g12::ConvertToNanoSeconds(
 //!             [in]    Pointer to surface
 //! \return     uint8_t
 //!
-uint8_t XRenderHal_Interface_g12::SetChromaDirection(
+uint8_t XRenderHal_Interface_G12_Base::SetChromaDirection(
     PRENDERHAL_INTERFACE pRenderHal,
     PRENDERHAL_SURFACE   pRenderHalSurface)
 {
@@ -529,7 +529,7 @@ uint8_t XRenderHal_Interface_g12::SetChromaDirection(
 //!           [out] Pointer to PRENDERHAL_STATE_HEAP_SETTINGSStructure
 //! \return   void
 //!
-void XRenderHal_Interface_g12::InitStateHeapSettings(
+void XRenderHal_Interface_G12_Base::InitStateHeapSettings(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
     MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
@@ -543,7 +543,7 @@ void XRenderHal_Interface_g12::InitStateHeapSettings(
 //!           [out] Pointer to PRENDERHAL_INTERFACE
 //! \return   void
 //!
-void XRenderHal_Interface_g12::InitSurfaceTypes(
+void XRenderHal_Interface_G12_Base::InitSurfaceTypes(
     PRENDERHAL_INTERFACE    pRenderHal)
 {
     MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
@@ -561,7 +561,7 @@ void XRenderHal_Interface_g12::InitSurfaceTypes(
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
-MOS_STATUS XRenderHal_Interface_g12::EnableL3Caching(
+MOS_STATUS XRenderHal_Interface_G12_Base::EnableL3Caching(
     PRENDERHAL_INTERFACE         pRenderHal,
     PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
 {
@@ -615,7 +615,7 @@ finish:
 //!           [out] optional; pointer to sampler state in GSH
 //! \return   MOS_STATUS
 //!
-MOS_STATUS XRenderHal_Interface_g12::GetSamplerOffsetAndPtr_DSH(
+MOS_STATUS XRenderHal_Interface_G12_Base::GetSamplerOffsetAndPtr_DSH(
     PRENDERHAL_INTERFACE     pRenderHal,
     int32_t                  iMediaID,
     int32_t                  iSamplerID,
@@ -711,7 +711,7 @@ finish:
 //!             [in]    Pointer to HW interface
 //! \return     void
 //!
-void XRenderHal_Interface_g12::InitDynamicHeapSettings(
+void XRenderHal_Interface_G12_Base::InitDynamicHeapSettings(
     PRENDERHAL_INTERFACE  pRenderHal)
 {
     MHW_RENDERHAL_ASSERT(pRenderHal);
@@ -720,12 +720,12 @@ void XRenderHal_Interface_g12::InitDynamicHeapSettings(
     pRenderHal->DynamicHeapSettings           = g_cRenderHal_DSH_Settings_g12;
 }
 
-void XRenderHal_Interface_g12::SetFusedEUDispatch(bool enable)
+void XRenderHal_Interface_G12_Base::SetFusedEUDispatch(bool enable)
 {
     m_vfeStateParams.bFusedEuDispatch = enable? true : false;
 }
 
-MOS_STATUS XRenderHal_Interface_g12::SetNumOfWalkers(uint32_t numOfWalkers)
+MOS_STATUS XRenderHal_Interface_G12_Base::SetNumOfWalkers(uint32_t numOfWalkers)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     // value: [0,1] - One or two active walkers per context.
@@ -749,7 +749,7 @@ MOS_STATUS XRenderHal_Interface_g12::SetNumOfWalkers(uint32_t numOfWalkers)
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
-MOS_STATUS XRenderHal_Interface_g12::SetPowerOptionStatus(
+MOS_STATUS XRenderHal_Interface_G12_Base::SetPowerOptionStatus(
     PRENDERHAL_INTERFACE         pRenderHal,
     PMOS_COMMAND_BUFFER          pCmdBuffer)
 {
@@ -803,7 +803,7 @@ finish:
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
-MOS_STATUS XRenderHal_Interface_g12::SetCompositePrologCmd(
+MOS_STATUS XRenderHal_Interface_G12_Base::SetCompositePrologCmd(
     PRENDERHAL_INTERFACE pRenderHal, 
     PMOS_COMMAND_BUFFER  pCmdBuffer)
 {
@@ -844,7 +844,7 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS XRenderHal_Interface_g12::IsRenderHalMMCEnabled(
+MOS_STATUS XRenderHal_Interface_G12_Base::IsRenderHalMMCEnabled(
     PRENDERHAL_INTERFACE         pRenderHal)
 {
     MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
@@ -885,7 +885,7 @@ finish:
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
-MOS_STATUS XRenderHal_Interface_g12::IsOvrdNeeded(
+MOS_STATUS XRenderHal_Interface_G12_Base::IsOvrdNeeded(
     PRENDERHAL_INTERFACE              pRenderHal,
     PMOS_COMMAND_BUFFER               pCmdBuffer,
     PRENDERHAL_GENERIC_PROLOG_PARAMS  pGenericPrologParams)
@@ -970,7 +970,7 @@ finish:
 //! \return     MOS_STATUS
 //!             MOS_STATUS_SUCCESS if success. Error code otherwise
 //!
-MOS_STATUS XRenderHal_Interface_g12::SetCacheOverrideParams(
+MOS_STATUS XRenderHal_Interface_G12_Base::SetCacheOverrideParams(
     PRENDERHAL_INTERFACE            pRenderHal,
     PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
     bool                            bEnableSLM)
@@ -990,7 +990,7 @@ finish:
 //! \brief      Get the size of Render Surface State Command
 //! \return     size_t
 //!             the size of render surface state command
-size_t XRenderHal_Interface_g12::GetSurfaceStateCmdSize()
+size_t XRenderHal_Interface_G12_Base::GetSurfaceStateCmdSize()
 {
     return MOS_ALIGN_CEIL( MOS_MAX(mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::byteSize,
                    mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD::byteSize), MHW_SURFACE_STATE_ALIGN);
@@ -1001,7 +1001,7 @@ size_t XRenderHal_Interface_g12::GetSurfaceStateCmdSize()
 //!             surface format
 //! \return     bool
 //!             true or false
-bool XRenderHal_Interface_g12::IsFormatMMCSupported(MOS_FORMAT format)
+bool XRenderHal_Interface_G12_Base::IsFormatMMCSupported(MOS_FORMAT format)
 {
     // Check if Sample Format is supported
     if ((format != Format_YUY2)             &&
@@ -1045,7 +1045,7 @@ bool XRenderHal_Interface_g12::IsFormatMMCSupported(MOS_FORMAT format)
     return true;
 }
 
-MOS_STATUS XRenderHal_Interface_g12::AllocateScratchSpaceBuffer(
+MOS_STATUS XRenderHal_Interface_G12_Base::AllocateScratchSpaceBuffer(
     uint32_t perThreadScratchSpace,
     RENDERHAL_INTERFACE *renderHal)
 {
@@ -1054,7 +1054,7 @@ MOS_STATUS XRenderHal_Interface_g12::AllocateScratchSpaceBuffer(
 
 static const uint32_t FIXED_SCRATCH_SPACE_BUFFER_INDEX = 6;
 
-MOS_STATUS XRenderHal_Interface_g12::SetScratchSpaceBufferState(
+MOS_STATUS XRenderHal_Interface_G12_Base::SetScratchSpaceBufferState(
     RENDERHAL_INTERFACE *renderHal,
     uint32_t indexOfBindingTable)
 {
@@ -1102,7 +1102,7 @@ MOS_STATUS XRenderHal_Interface_g12::SetScratchSpaceBufferState(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS XRenderHal_Interface_g12::FreeScratchSpaceBuffer(
+MOS_STATUS XRenderHal_Interface_G12_Base::FreeScratchSpaceBuffer(
     RENDERHAL_INTERFACE *renderHal)
 {
     MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};

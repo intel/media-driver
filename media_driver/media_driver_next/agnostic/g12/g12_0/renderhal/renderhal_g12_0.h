@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2016-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,26 +19,28 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-
 //!
-//! \file     media_interfaces_g12_adls.h
-//! \brief    All interfaces used for adls that require factory creation
+//! \file       renderhal_g12_0.h
+//! \brief      header file of Gen12 hardware functions
+//! \details    Gen12 hardware functions declare
 //!
+#ifndef __RENDERHAL_G12_0_H__
+#define __RENDERHAL_G12_0_H__
 
-#ifndef __MEDIA_INTERFACES_G12_adls_H__
-#define __MEDIA_INTERFACES_G12_adls_H__
-
-#include "media_interfaces_g12_tgllp.h"
 #include "renderhal_g12_base.h"
+#include "mhw_render_g12_X.h"
+#include "mhw_render_hwcmd_g12_X.h" 
+#include "mhw_state_heap_hwcmd_g12_X.h"
 
-class CMHalInterfacesG12Adls : public CMHalDevice
+class XRenderHal_Interface_G12_0 : public XRenderHal_Interface_G12_Base
 {
-protected:
-    using CMHal = CM_HAL_G12_X;
-    MOS_STATUS Initialize(
-        CM_HAL_STATE *pCmState);
+public:
+    XRenderHal_Interface_G12_0() : XRenderHal_Interface_G12_Base()
+    {
+
+    }
+
+    virtual ~XRenderHal_Interface_G12_0() {}
 };
 
-
-
-#endif // __MEDIA_INTERFACES_G12_rkl_H__
+#endif // __RENDERHAL_G12_0_H__

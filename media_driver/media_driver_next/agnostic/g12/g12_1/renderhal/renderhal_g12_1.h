@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2018, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,29 +20,29 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file       renderhal_g12_dg1.h
+//! \file       renderhal_g12_1.h
 //! \brief      header file of Gen12 DG1 hardware functions
 //! \details    Gen12 hardware functions declare
 //!
-#ifndef __RENDERHAL_G12_DG1_H__
-#define __RENDERHAL_G12_DG1_H__
+#ifndef __RENDERHAL_G12_1_H__
+#define __RENDERHAL_G12_1_H__
 
-#include "renderhal_g12.h"
+#include "renderhal_g12_base.h"
 
 //! \brief      for Gen12LP/DG1 VP and MDF
 //!              SLM     URB     DC      RO      Rest/L3 Client Pool
 //!               0    96(fixed) 0       0       2048 (KB chunks based on GT2)
 #define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G12LP_DG1_RENDERHAL (0x00000200)
 
-class XRenderHal_Interface_g12_dg1 : public XRenderHal_Interface_g12
+class XRenderHal_Interface_G12_1 : public XRenderHal_Interface_G12_Base
 {
 public:
-    XRenderHal_Interface_g12_dg1(): XRenderHal_Interface_g12()
+    XRenderHal_Interface_G12_1(): XRenderHal_Interface_G12_Base()
     {
 
     }
     
-    virtual ~XRenderHal_Interface_g12_dg1() {}
+    virtual ~XRenderHal_Interface_G12_1() {}
 
     //!
     //! \brief    Enables L3 cacheing flag and sets related registers/values
@@ -73,4 +73,4 @@ public:
         bool                            bEnableSLM);
 };
 
-#endif // __RENDERHAL_G12_DG1_H__
+#endif // __RENDERHAL_G12_1_H__
