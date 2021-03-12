@@ -2264,13 +2264,6 @@ MOS_STATUS CodechalVdencVp9StateG12::PlatformCapabilityCheck()
     uint8_t col = (1 << (m_vp9PicParams->log2_tile_columns));
     uint8_t row = (1 << (m_vp9PicParams->log2_tile_rows));
 
-    // Single pipe cannot handle N X M or M X N tile row/column cases, either one has to be 1, return error
-    if ((col > 1) && (row > 1) && (m_numPipe == 1))
-    {
-        CODECHAL_ENCODE_ASSERTMESSAGE("Single pipe cannot handle N X M or M X N tile row/column cases, either one has to be 1");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
     // Handling invalid tiling and scalability cases. When NumTilingColumn does not match NumPipe fall back to single pipe mode
     if (m_numPipe > 1 && (col != m_numPipe))
     {
