@@ -63,8 +63,8 @@ MOS_STATUS MediaUserSettingsMgr::MediaUserSettingsInit(PRODUCT_FAMILY productFam
     if (m_userFeatureRefCount == 0 && m_inst == nullptr)
     {
         m_inst = (MediaUserSettingsMgr *)MosUtilDevice::CreateFactory(productFamily);
-        m_userFeatureRefCount++;
     }
+    m_userFeatureRefCount++;
     m_userFeatureMutexLock.Unlock();
 
     return eStatus;
