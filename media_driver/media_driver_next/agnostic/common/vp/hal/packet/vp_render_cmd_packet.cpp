@@ -68,14 +68,6 @@ VpRenderCmdPacket::VpRenderCmdPacket(MediaTask *task, PVP_MHWINTERFACE hwInterfa
 
 VpRenderCmdPacket::~VpRenderCmdPacket()
 {
-    for (auto it : m_surfSetting.surfGroup)
-    {
-        if (it.second)
-        {
-            m_allocator->DestroyVpSurface(it.second);
-        }
-    }
-
     for (auto &samplerstate : m_kernelSamplerStateGroup)
     {
         if (samplerstate.second.SamplerType == MHW_SAMPLER_TYPE_AVS)
@@ -132,7 +124,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnSetVfeStateParams(
                 m_renderHal,
                 MEDIASTATE_DEBUG_COUNTER_FREE_RUNNING,
-                RENDERHAL_USE_MEDIA_THREADS_MAX,
+                m_renderData.KernelParam.Thread_Count,
                 m_renderData.iCurbeLength,
                 m_renderData.iInlineLength,
                 nullptr));
@@ -281,17 +273,6 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     VP_UNUSED(outputSurface);
     VP_UNUSED(previousSurface);
 
-    VP_SURFACE *input  = m_allocator->AllocateVpSurface();
-    VP_RENDER_CHK_NULL_RETURN(input);
-    VP_SURFACE *output = m_allocator->AllocateVpSurface();
-    VP_RENDER_CHK_NULL_RETURN(output);
-
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*input, *inputSurface));
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*output, *outputSurface));
-
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeRenderInput, input));
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeRenderOutput, output));
-
     m_PacketCaps = packetCaps;
 
     // Init packet surface params.
@@ -312,10 +293,10 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
     MOS_ZeroMemory(&m_renderData.KernelEntry, sizeof(Kdll_CacheEntry));
 
     // Store pointer to Kernel Parameter
-    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelSettings(m_renderData.KernelParam, m_kernel->GetKernelID()));
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelSettings(m_renderData.KernelParam));
 
     // Set Parameters for Kernel Entry
-    m_renderData.KernelEntry.iKUID       = m_kernel->GetKernelID();
+    m_renderData.KernelEntry.iKUID       = m_kernel->GetKernelBinaryID();
     m_renderData.KernelEntry.iKCID       = -1;
     m_renderData.KernelEntry.iFilterSize = 2;
     m_renderData.KernelEntry.pFilter     = m_filter;
@@ -448,7 +429,7 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
     m_renderData.iCurbeLength = MOS_ALIGN_CEIL(curbeLength, m_renderHal->dwCurbeBlockAlign);
     m_totalCurbeSize += m_renderData.iCurbeLength;
 
-    MOS_SafeFreeMemory(curbeData);
+    m_kernel->FreeCurbe(curbeData);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -466,7 +447,8 @@ MOS_STATUS VpRenderCmdPacket::SetupMediaWalker()
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    m_renderData.walkerParam = m_kernel->GetWalkerSetting();
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetWalkerSetting(m_renderData.walkerParam));
+
     switch (m_walkerType)
     {
     case WALKER_TYPE_MEDIA:
@@ -492,8 +474,6 @@ MOS_STATUS VpRenderCmdPacket::SetupWalkerParams()
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
-
-    m_renderData.walkerParam = m_kernel->GetWalkerSetting();
 
     m_renderData.walkerParam.iBindingTable = m_renderData.bindingTable;
 

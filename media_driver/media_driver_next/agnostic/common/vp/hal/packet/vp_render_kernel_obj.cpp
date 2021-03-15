@@ -235,6 +235,11 @@ uint32_t VpRenderKernelObj::GetKernelID()
     return m_kernelID;
 }
 
+uint32_t VpRenderKernelObj::GetKernelBinaryID()
+{
+    return m_kernelBinaryID;
+}
+
 MOS_STATUS VpRenderKernelObj::SetKernelIndex(uint32_t kid)
 {
     VP_FUNC_CALL();
@@ -248,9 +253,10 @@ uint32_t VpRenderKernelObj::GetKernelIndex()
     return m_kernelIndex;
 }
 
-KERNEL_WALKER_PARAMS& VpRenderKernelObj::GetWalkerSetting()
+MOS_STATUS VpRenderKernelObj::GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam)
 {
-    return m_walkerParam;
+    walkerParam = m_walkerParam;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpRenderKernelObj::SetupSurfaceState()
@@ -404,5 +410,17 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs, ui
 
 MOS_STATUS VpRenderKernelObj::GetInlineState(void** inlineData, uint32_t& inlineLength)
 {
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CONFIGS& kernelConfigs, VP_SURFACE_GROUP& surfacesGroup)
+{
+    VP_RENDER_CHK_NULL_RETURN(binary);
+    m_kernelBinary = binary;
+    m_kernelSize = size;
+
+    VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs, m_kernelID));
+    VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfacesGroup));
+
     return MOS_STATUS_SUCCESS;
 }

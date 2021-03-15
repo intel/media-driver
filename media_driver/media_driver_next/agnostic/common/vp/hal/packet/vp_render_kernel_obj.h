@@ -344,7 +344,7 @@ public:
 
     virtual uint32_t GetKernelIndex();
 
-    virtual KERNEL_WALKER_PARAMS& GetWalkerSetting();
+    virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam);
 
     virtual MOS_STATUS SetKernelConfigs(
         KERNEL_CONFIGS& kernelConfigs,
@@ -352,21 +352,19 @@ public:
         VP_SURFACE_GROUP& surfaces,
         KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup);
 
-    virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs, uint32_t kernelExecuteID);
-
     virtual KERNEL_SAMPLER_STATES& GetSamplerStates();
 
     // Kernel Common configs
-    virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings, uint32_t executeKernelID)
+    virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)
     {
         MOS_ZeroMemory(&settsings, sizeof(RENDERHAL_KERNEL_PARAM));
 
         if (m_hwInterface && m_hwInterface->m_vpPlatformInterface)
         {
             // adding when insert new kernels
-            if (executeKernelID >= VeboxSecureBlockCopy && executeKernelID < VeboxKernelMax)
+            if (m_kernelID >= VeboxSecureBlockCopy && m_kernelID < VeboxKernelMax)
             {
-                settsings = m_hwInterface->m_vpPlatformInterface->GetVeboxKernelSettings(executeKernelID - VeboxSecureBlockCopy);
+                settsings = m_hwInterface->m_vpPlatformInterface->GetVeboxKernelSettings(m_kernelID - VeboxSecureBlockCopy);
             }
             return MOS_STATUS_SUCCESS;
         }
@@ -377,11 +375,21 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS FreeCurbe(void*& curbe)
+    {
+        VP_FUNC_CALL();
+
+        MOS_SafeFreeMemory(curbe);
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS SetKernelID(uint32_t kid);
 
     MOS_STATUS SetKernelIndex(uint32_t kid);
 
     virtual uint32_t GetKernelID();
+
+    virtual uint32_t GetKernelBinaryID();
 
     void* GetKernelBinary()
     {
@@ -426,13 +434,7 @@ public:
         }
     }
 
-    MOS_STATUS InitKernel(void* binary, uint32_t size)
-    {
-        VP_RENDER_CHK_NULL_RETURN(binary);
-        m_kernelBinary = binary;
-        m_kernelSize = size;
-        return MOS_STATUS_SUCCESS;
-    }
+    MOS_STATUS InitKernel(void* binary, uint32_t size, KERNEL_CONFIGS& kernelConfigs, VP_SURFACE_GROUP& surfacesGroup);
 
 protected:
 
@@ -443,6 +445,8 @@ protected:
     virtual MOS_STATUS SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup, KERNEL_SAMPLER_INDEX &kernelSamplerIndex);
 
     virtual MOS_STATUS SetupSurfaceState();
+
+    virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs, uint32_t kernelExecuteID);
 
     MOS_STATUS SetProcessSurfaceGroup(VP_SURFACE_GROUP& surfaces)
     {
@@ -461,6 +465,7 @@ protected:
     // kernel attribute 
     std::string                                             m_kernelName = "";
     void *                                                  m_kernelBinary = nullptr;
+    uint32_t                                                m_kernelBinaryID = 0;
     uint32_t                                                m_kernelSize = 0;
     uint32_t                                                m_kernelID = 0;
     uint32_t                                                m_kernelIndex = 0;
