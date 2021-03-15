@@ -1629,6 +1629,14 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(cmdBufferInUse));
         }
+        else
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBufferInUse));
+        }
+    }
+    else
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBufferInUse));
     }
 
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
@@ -1786,6 +1794,14 @@ MOS_STATUS CodechalDecodeHevcG12::AddPipeEpilog(
                 decodeStatusReport,
                 cmdBufferInUse));
         }
+        else
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBufferInUse));
+        }
+    }
+    else
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBufferInUse));
     }
 
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
@@ -2050,6 +2066,10 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
         CodecHalDecodeScalabilityIsLastRealTilePhase(m_scalabilityState))
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(AddPipeEpilog(cmdBufferInUse, scdryCmdBuffer));
+    }
+    else
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBufferInUse));
     }
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &primCmdBuffer, 0);

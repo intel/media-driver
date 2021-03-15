@@ -796,6 +796,14 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodeStateLevel()
             CODECHAL_DECODE_CHK_STATUS_RETURN(StartStatusReport(
                 cmdBufferInUse));
         }
+        else
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBufferInUse));
+        }
+    }
+    else
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StartPredicate(m_miInterface, cmdBufferInUse));
     }
 
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
@@ -1041,6 +1049,14 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodePrimitiveLevel()
                 decodeStatusReport,
                 cmdBufferInUse));
         }
+        else
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBufferInUse));
+        }
+    }
+    else
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(NullHW::StopPredicate(m_miInterface, cmdBufferInUse));
     }
 
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
