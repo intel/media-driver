@@ -167,7 +167,7 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
     DECODE_CHK_STATUS(CreateStatusReport());
 
     m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface);
-    if(m_decodecp)
+    if (m_decodecp)
     {
         m_decodecp->RegisterParams(codecSettings);
     }
@@ -253,7 +253,7 @@ MOS_STATUS DecodePipeline::Prepare(void *params)
     DECODE_CHK_NULL(m_featureManager);
     DECODE_CHK_STATUS(m_featureManager->CheckFeatures(decodeParams));
     DECODE_CHK_STATUS(m_featureManager->Update(decodeParams));
-    if(m_decodecp)
+    if (m_decodecp)
     {
         m_decodecp->UpdateParams(true);
     }

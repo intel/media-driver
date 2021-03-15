@@ -528,7 +528,29 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_MPEG2IDCT ||
             info->Mode == CODECHAL_DECODE_MODE_MPEG2VLD)
         {
-            m_codechalDevice = MOS_New(Decode::Mpeg2, hwInterface, debugInterface, info);
+        #ifdef _APOGEIOS_SUPPORTED
+            bool apogeiosEnable = false;
+            MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+            userFeatureData.i32Data = apogeiosEnable;
+            userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_MPEG2D_ENABLE_ID,
+                &userFeatureData,
+                hwInterface->GetOsInterface()->pOsContext);
+            apogeiosEnable = userFeatureData.bData ? true : false;
+
+            if (apogeiosEnable)
+            {
+                m_codechalDevice = MOS_New(DecodeMpeg2PipelineAdapterM12, hwInterface, debugInterface);
+            }
+            else
+        #endif
+            {
+                m_codechalDevice = MOS_New(Decode::Mpeg2, hwInterface, debugInterface, info);
+            }
         }
         else
     #endif

@@ -77,6 +77,9 @@
 
 #ifdef _MPEG2_DECODE_SUPPORTED
 #include "codechal_decode_mpeg2_g12.h"
+#ifdef _APOGEIOS_SUPPORTED
+#include "decode_mpeg2_pipeline_adapter_m12.h"
+#endif
 #endif
 
 #ifdef _VC1_DECODE_SUPPORTED

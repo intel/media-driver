@@ -29,6 +29,13 @@
 
 #include "codec_def_common_mpeg2.h"
 
+#define CODEC_MPEG2_BATCH_BUFFERS_NUM         3        //! number of batch buffers
+#define CODEC_MPEG2_BYTES_PER_MB              512      //! bitstream size per macroblock
+#define CODEC_MPEG2_IDCTBLOCK_SIZE            64       //! IDCT block size
+
+#define CODEC_MPEG2_MB_MOTION_FORWARD         2        //!< Bit 1
+#define CODEC_MPEG2_MB_MOTION_BACKWARD        4        //!< Bit 2
+
 //!
 //! \struct CodecDecodeMpeg2PicParams
 //! \brief  Mpeg2 picture parameter
