@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -46,6 +46,14 @@ struct MetaDataOffset
     uint32_t dwEncodeErrorFlags                         = 0;
     uint32_t dwEncodedBitstreamWrittenBytesCount        = 0;
     uint32_t dwWrittenSubregionsCount                   = 0;
+
+    uint32_t dwEncodeStats                       = 0;
+    uint32_t dwAverageQP                         = 0;
+    uint32_t dwIntraCodingUnitsCount             = 0;
+    uint32_t dwInterCodingUnitsCount             = 0;
+    uint32_t dwSkipCodingUnitsCount              = 0;
+    uint32_t dwAverageMotionEstimationXDirection = 0;
+    uint32_t dwAverageMotionEstimationYDirection = 0;
 
     uint32_t dwbSize        = 0;
     uint32_t dwbStartOffset = 0;

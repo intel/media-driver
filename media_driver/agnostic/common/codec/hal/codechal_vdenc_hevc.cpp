@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3922,6 +3922,30 @@ MOS_STATUS CodechalVdencHevcState::PrepareHWMetaData(
 
     storeDataParams.dwResourceOffset    = m_metaDataOffset.dwWrittenSubregionsCount;
     storeDataParams.dwValue             = m_numSlices;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwAverageQP;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwIntraCodingUnitsCount;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwInterCodingUnitsCount;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwSkipCodingUnitsCount;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwAverageMotionEstimationXDirection;
+    storeDataParams.dwValue             = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwAverageMotionEstimationYDirection;
+    storeDataParams.dwValue             = 0;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
     MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
