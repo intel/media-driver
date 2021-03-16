@@ -40,6 +40,10 @@ MediaDebugConfigMgr::MediaDebugConfigMgr(
 
 MediaDebugConfigMgr::~MediaDebugConfigMgr()
 {
+    if (m_debugAllConfigs != nullptr)
+    {
+        MOS_Delete(m_debugAllConfigs);
+    }
 }
 
 MOS_STATUS MediaDebugConfigMgr::ParseConfig(MOS_CONTEXT_HANDLE mosCtx)
@@ -317,7 +321,7 @@ MOS_STATUS MediaDebugConfigMgr::DeleteCfgNode(uint32_t frameIdx)
 std::string MediaDebugConfigMgr::GetMediaStateStr(MEDIA_DEBUG_STATE_TYPE mediaState)
 {
     MediaDbgKernel::KernelStateMap::kernelMapType &kernelMap = MediaDbgKernel::KernelStateMap::GetKernelStateMap();
-    auto                                              it        = kernelMap.find(mediaState);
+    auto                                           it        = kernelMap.find(mediaState);
     if (it != kernelMap.end())
     {
         return it->second;
@@ -362,7 +366,7 @@ bool MediaDebugConfigMgr::AttrIsEnabled(
     if (nullptr != m_debugAllConfigs)
     {
         MediaKernelDumpConfig attrs   = m_debugAllConfigs->kernelAttribs[kernelName];
-        bool             enabled = KernelAttrEnabled(attrs, attrName);
+        bool                  enabled = KernelAttrEnabled(attrs, attrName);
         if (enabled)
         {
             return enabled;

@@ -287,6 +287,13 @@ public:
     //! \return decode context
     //!
     MOS_GPU_CONTEXT GetDecodeContext() { return m_decodeContext; }
+    
+    //!
+    //! \brief  Indicates whether current process pipe is first process pipe of current frame
+    //! \return bool
+    //!         true for first process pipe, false for other process pipe
+    //!
+    bool IsFirstProcessPipe(const DecodePipelineParams &pipelineParams);
 
 protected:
     //!
@@ -362,12 +369,6 @@ protected:
     //!
     virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager& subPacketManager, CodechalSetting &codecSettings);
 
-    //!
-    //! \brief  Indicates whether current process pipe is first process pipe of current frame
-    //! \return bool
-    //!         true for first process pipe, false for other process pipe
-    //!
-    bool IsFirstProcessPipe(const DecodePipelineParams& pipelineParams);
 
 #if USE_CODECHAL_DEBUG_TOOL
 #ifdef _DECODE_PROCESSING_SUPPORTED
