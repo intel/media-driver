@@ -676,7 +676,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         bool                    zeroOnAllocate,
         bool                    deferredDestroyed,
         MOS_HW_RESOURCE_DEF     resUsageType,
-        MOS_TILE_MODE_GMM       tileModeByForce)
+        MOS_TILE_MODE_GMM       tileModeByForce,
+        uint32_t                memType)
 {
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
     MOS_ALLOC_GFXRES_PARAMS allocParams = {};
@@ -739,6 +740,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.dwArraySize     = 1;
     allocParams.ResUsageType    = resUsageType;
     allocParams.m_tileModeByForce = tileModeByForce;
+    allocParams.dwMemType       = memType;
 
     surface = AllocateVpSurface(allocParams, zeroOnAllocate);
     VP_PUBLIC_CHK_NULL_RETURN(surface);

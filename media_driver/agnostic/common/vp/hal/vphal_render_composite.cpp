@@ -7053,7 +7053,9 @@ MOS_STATUS CompositeState::Initialize(
             false,
             MOS_MMC_DISABLED,
             &bAllocated,
-            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER,
+            MOS_TILE_UNSET_GMM,
+            MOS_MEMPOOL_DEVICEMEMORY));
     }
 
     // Setup Procamp Parameters

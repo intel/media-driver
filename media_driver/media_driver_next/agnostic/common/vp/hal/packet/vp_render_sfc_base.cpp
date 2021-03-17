@@ -1128,7 +1128,9 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
                                       allocated,
                                       false,
                                       true,
-                                      MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF));
+                                      MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
+                                      MOS_TILE_UNSET_GMM,
+                                      MOS_MEMPOOL_DEVICEMEMORY));
     }
     else if (lineBuffer)
     {

@@ -850,7 +850,10 @@ MOS_STATUS VphalSfcState::AllocateResources()
         1,
         false,
         MOS_MMC_DISABLED,
-        &bAllocated));
+        &bAllocated,
+        MOS_HW_RESOURCE_DEF_MAX,
+        MOS_TILE_UNSET_GMM,
+        MOS_MEMPOOL_DEVICEMEMORY));
 
     // Allocate IEF Line Buffer surface----------------------------------------------
     dwWidth  = 1;
@@ -868,7 +871,10 @@ MOS_STATUS VphalSfcState::AllocateResources()
         1,
         false,
         MOS_MMC_DISABLED,
-        &bAllocated));
+        &bAllocated,
+        MOS_HW_RESOURCE_DEF_MAX,
+        MOS_TILE_UNSET_GMM,
+        MOS_MEMPOOL_DEVICEMEMORY));
 
     // Allocate SFD Line Buffer surface----------------------------------------------
     if (NEED_SFD_LINE_BUFFER(pSfcStateParams->dwScaledRegionHeight))
@@ -886,7 +892,10 @@ MOS_STATUS VphalSfcState::AllocateResources()
             1,
             false,
             MOS_MMC_DISABLED,
-            &bAllocated));
+            &bAllocated,
+            MOS_HW_RESOURCE_DEF_MAX,
+            MOS_TILE_UNSET_GMM,
+            MOS_MEMPOOL_DEVICEMEMORY));
     }
 
 finish:

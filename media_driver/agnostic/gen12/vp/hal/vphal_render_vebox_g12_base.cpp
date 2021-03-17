@@ -649,7 +649,10 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 pVeboxState->m_currentSurface->dwHeight,
                 bFFDISurfCompressible,
                 FFDISurfCompressionMode,
-                &bAllocated));
+                &bAllocated,
+                MOS_HW_RESOURCE_DEF_MAX,
+                MOS_TILE_UNSET_GMM,
+                MOS_MEMPOOL_DEVICEMEMORY));
 
             pVeboxState->FFDISurfaces[i]->SampleType = SampleType;
 
@@ -723,7 +726,10 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 pVeboxState->m_currentSurface->dwHeight,
                 bFFDNSurfCompressible,
                 FFDNSurfCompressionMode,
-                &bAllocated));
+                &bAllocated,
+                MOS_HW_RESOURCE_DEF_MAX,
+                MOS_TILE_UNSET_GMM,
+                MOS_MEMPOOL_DEVICEMEMORY));
 
             // if allocated, pVeboxState->PreviousSurface is not valid for DN reference.
             if (bAllocated)

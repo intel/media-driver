@@ -1367,7 +1367,8 @@ MOS_STATUS VpHal_ReAllocateSurface(
     MOS_RESOURCE_MMC_MODE   CompressionMode,                                    // [in]    Compression mode
     bool*                   pbAllocated,                                        // [out]   Flag indicating new allocation
     MOS_HW_RESOURCE_DEF     resUsageType = MOS_HW_RESOURCE_DEF_MAX,             // [in]    resource usage type
-    MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM);              // [in]    Flag to indicate if GMM flag tile64 need set
+    MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM,               // [in]    Flag to indicate if GMM flag tile64 need set
+    uint32_t                memType = MOS_MEMPOOL_VIDEOMEMORY);                 // [in]    Flag to indicate the memType
 
 //!
 //! \brief    Reads the Surface contents and copy to the Dst Buffer

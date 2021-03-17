@@ -447,7 +447,8 @@ MOS_STATUS VpHal_ReAllocateSurface(
     MOS_RESOURCE_MMC_MODE   CompressionMode,
     bool*                   pbAllocated,
     MOS_HW_RESOURCE_DEF     resUsageType,
-    MOS_TILE_MODE_GMM       tileModeByForce)
+    MOS_TILE_MODE_GMM       tileModeByForce,
+    uint32_t                memType)
 {
     MOS_STATUS              eStatus;
     VPHAL_GET_SURFACE_INFO  Info;
@@ -488,6 +489,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     AllocParams.dwArraySize     = 1;
     AllocParams.ResUsageType    = resUsageType;
     AllocParams.m_tileModeByForce = tileModeByForce;
+    AllocParams.dwMemType       = memType;
 
     // Delete resource if already allocated
     //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
