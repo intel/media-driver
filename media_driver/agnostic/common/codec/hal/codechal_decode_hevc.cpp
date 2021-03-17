@@ -1713,6 +1713,12 @@ MOS_STATUS CodechalDecodeHevc::InitPicLongFormatMhwParams()
         {
             if (m_picMhwParams.PipeBufAddrParams->presReferences[i] != nullptr)
             {
+                if (Mos_ResourceIsNull(m_picMhwParams.PipeBufAddrParams->presReferences[i]))
+                {
+                    MOS_ZeroMemory(&m_hevcRefList[m_hevcPicParams->CurrPic.FrameIdx]->resRefPic, sizeof(MOS_RESOURCE));
+                    CODECHAL_DECODE_ASSERTMESSAGE("Ref frame for Current Frame is not exist. Current frame will be skipped. Thus, clear current frame Ref List.");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
                     m_osInterface,
                     m_picMhwParams.PipeBufAddrParams->presReferences[i],
