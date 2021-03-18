@@ -134,3 +134,4 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${DI
 
 include(CPack)
 
+include_directories(/home/test/james/gmmlib/)
