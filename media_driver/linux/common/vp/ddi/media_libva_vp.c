@@ -90,8 +90,8 @@ VAStatus     DdiVp_SetProcFilterTotalColorCorrectionParams(PDDI_VP_CONTEXT, uint
 VAStatus     DdiVp_SetProcFilterHdrTmParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferHDRToneMapping*);
 VAStatus     DdiVp_SetProcPipelineBlendingParams(PDDI_VP_CONTEXT pVpCtx, uint32_t uiSurfIndex, VAProcPipelineParameterBuffer* pPipelineParam);
 VAStatus     DdiVp_ConvertSurface (VADriverContextP ctx, DDI_MEDIA_SURFACE  *srcSurface, int16_t srcx,  int16_t srcy, uint16_t srcw,  uint16_t srch,  DDI_MEDIA_SURFACE  *dstSurface,  int16_t destx,  int16_t desty, uint16_t destw, uint16_t desth );
-VAStatus     DdiVp_UpdateProcPipelineForwardReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
-VAStatus     DdiVp_UpdateProcPipelineBackwardReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
+VAStatus     DdiVp_UpdateProcPipelineFutureReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
+VAStatus     DdiVp_UpdateProcPipelinePastReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
 VAStatus     DdiVp_UpdateVphalTargetSurfColorSpace(VADriverContextP, PDDI_VP_CONTEXT, VAProcPipelineParameterBuffer*, uint32_t targetIndex);
 VAStatus     DdiVp_BeginPictureInt(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx, VASurfaceID vaSurfID);
 
@@ -1174,15 +1174,15 @@ DdiVp_SetProcPipelineParams(
 
     // Update fwd and bkward ref frames: Required for Advanced processing - will be supported in the future
 
-    pVpHalSrcSurf->uFwdRefCount  = pPipelineParam->num_forward_references;
+    pVpHalSrcSurf->uFwdRefCount  = pPipelineParam->num_backward_references;
 
-    vaStatus = DdiVp_UpdateProcPipelineForwardReferenceFrames(pVpCtx, pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
-    DDI_CHK_RET(vaStatus, "Failed to update forward reference frames!");
+    vaStatus = DdiVp_UpdateProcPipelineFutureReferenceFrames(pVpCtx, pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
+    DDI_CHK_RET(vaStatus, "Failed to update future reference frames!");
 
-    pVpHalSrcSurf->uBwdRefCount  = pPipelineParam->num_backward_references;
+    pVpHalSrcSurf->uBwdRefCount  = pPipelineParam->num_forward_references;
 
-    vaStatus = DdiVp_UpdateProcPipelineBackwardReferenceFrames(pVpCtx, pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
-    DDI_CHK_RET(vaStatus, "Failed to update backward reference frames!");
+    vaStatus = DdiVp_UpdateProcPipelinePastReferenceFrames(pVpCtx, pVaDrvCtx, pVpHalSrcSurf, pPipelineParam);
+    DDI_CHK_RET(vaStatus, "Failed to update past reference frames!");
 
     // Check if filter values changed,if yes, then reset all filters for this surface
 
@@ -3890,7 +3890,7 @@ DdiVp_SetProcPipelineBlendingParams(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//! \purpose Update the forward reference frames for VPHAL input surface
+//! \purpose Update the future reference frames for VPHAL input surface
 //! \params
 //! [in]  pVpCtx : VP context
 //! [in]  pVaDrvCtx : VA Driver context
@@ -3900,7 +3900,7 @@ DdiVp_SetProcPipelineBlendingParams(
 //! \returns VA_STATUS_SUCCESS if call succeeds
 ////////////////////////////////////////////////////////////////////////////////
 VAStatus
-DdiVp_UpdateProcPipelineForwardReferenceFrames(
+DdiVp_UpdateProcPipelineFutureReferenceFrames(
     PDDI_VP_CONTEXT                 pVpCtx,
     VADriverContextP                pVaDrvCtx,
     PVPHAL_SURFACE                  pVpHalSrcSurf,
@@ -3930,9 +3930,10 @@ DdiVp_UpdateProcPipelineForwardReferenceFrames(
 
     pSurface = pVpHalSrcSurf;
 
-    if (pPipelineParam->forward_references != nullptr)
+    // DDI regard backward_references as future frame, but VPHAL regard pFwdRef as future frame
+    if (pPipelineParam->backward_references != nullptr)
     {
-        for (i = 0;i < pPipelineParam->num_forward_references; i++)
+        for (i = 0;i < pPipelineParam->num_backward_references; i++)
         {
             PDDI_MEDIA_SURFACE pRefSurfBuffObj = nullptr;
             if(pSurface->pFwdRef == nullptr)
@@ -3952,9 +3953,9 @@ DdiVp_UpdateProcPipelineForwardReferenceFrames(
                 pSurface->pFwdRef->dwWidth       = pVpHalSrcSurf->dwWidth;
                 pSurface->pFwdRef->dwHeight      = pVpHalSrcSurf->dwHeight;
                 pSurface->pFwdRef->dwPitch       = pVpHalSrcSurf->dwPitch;
-                pSurface->uFwdRefCount           = pPipelineParam->num_forward_references - i;
+                pSurface->uFwdRefCount           = pPipelineParam->num_backward_references - i;
             }
-            pRefSurfBuffObj = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, pPipelineParam->forward_references[i]);
+            pRefSurfBuffObj = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, pPipelineParam->backward_references[i]);
             DDI_CHK_NULL(pRefSurfBuffObj,
                             "Null pRefSurfBuffObj!",
                              VA_STATUS_ERROR_INVALID_SURFACE);
@@ -3979,7 +3980,7 @@ DdiVp_UpdateProcPipelineForwardReferenceFrames(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//! \purpose Update the backward reference frames for VPHAL input surface
+//! \purpose Update the past reference frames for VPHAL input surface
 //! \params
 //! [in]  pVpCtx : VP context
 //! [in]  pVaDrvCtx : VA Driver context
@@ -3989,7 +3990,7 @@ DdiVp_UpdateProcPipelineForwardReferenceFrames(
 //! \returns VA_STATUS_SUCCESS if call succeeds
 ////////////////////////////////////////////////////////////////////////////////
 VAStatus
-DdiVp_UpdateProcPipelineBackwardReferenceFrames(
+DdiVp_UpdateProcPipelinePastReferenceFrames(
     PDDI_VP_CONTEXT                 pVpCtx,
     VADriverContextP                pVaDrvCtx,
     PVPHAL_SURFACE                  pVpHalSrcSurf,
@@ -4019,9 +4020,10 @@ DdiVp_UpdateProcPipelineBackwardReferenceFrames(
 
     pSurface = pVpHalSrcSurf;
 
-    if (pPipelineParam->backward_references != nullptr)
+    // DDI regard forward_references as past frame, but VPHAL regard pBwdRef as past frame
+    if (pPipelineParam->forward_references != nullptr)
     {
-        for (i = 0;i < pPipelineParam->num_backward_references; i++)
+        for (i = 0;i < pPipelineParam->num_forward_references; i++)
         {
             PDDI_MEDIA_SURFACE pRefSurfBuffObj = nullptr;
             if(pSurface->pBwdRef == nullptr)
@@ -4041,9 +4043,9 @@ DdiVp_UpdateProcPipelineBackwardReferenceFrames(
                 pSurface->pBwdRef->dwWidth       = pVpHalSrcSurf->dwWidth;
                 pSurface->pBwdRef->dwHeight      = pVpHalSrcSurf->dwHeight;
                 pSurface->pBwdRef->dwPitch       = pVpHalSrcSurf->dwPitch;
-                pSurface->uBwdRefCount           = pPipelineParam->num_backward_references - i;;
+                pSurface->uBwdRefCount           = pPipelineParam->num_forward_references - i;;
             }
-            pRefSurfBuffObj = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, pPipelineParam->backward_references[i]);
+            pRefSurfBuffObj = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, pPipelineParam->forward_references[i]);
             DDI_CHK_NULL(pRefSurfBuffObj,
                             "Null pRefSurfBuffObj!",
                              VA_STATUS_ERROR_INVALID_SURFACE);

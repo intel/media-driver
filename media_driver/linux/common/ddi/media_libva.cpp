@@ -6525,6 +6525,23 @@ DdiMedia_QueryVideoProcPipelineCaps(
         pipeline_caps->min_output_width           = VP_MIN_PIC_WIDTH;
         pipeline_caps->min_output_height          = VP_MIN_PIC_WIDTH;
     }
+
+    for (int i = 0; i < num_filters; i++) {
+        void *pData;
+        DdiMedia_MapBuffer(ctx, filters[i], &pData);
+        DDI_CHK_NULL(pData, "nullptr pData", VA_STATUS_ERROR_INVALID_PARAMETER);
+        VAProcFilterParameterBufferBase* base_param = (VAProcFilterParameterBufferBase*) pData;
+        if (base_param->type == VAProcFilterDeinterlacing)
+        {
+            VAProcFilterParameterBufferDeinterlacing *di_param = (VAProcFilterParameterBufferDeinterlacing *)base_param;
+            if (di_param->algorithm == VAProcDeinterlacingMotionAdaptive ||
+                di_param->algorithm == VAProcDeinterlacingMotionCompensated)
+            {
+                pipeline_caps->num_forward_references = 1;
+            }
+        }
+    }
+    
     return VA_STATUS_SUCCESS;
 }
 
