@@ -59,6 +59,7 @@ MOS_STATUS HevcHeaderPacker::GetSPSParams(PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hev
     m_spsParams.chroma_format_idc                   = hevcSeqParams->chroma_format_idc;        //NA
     m_spsParams.high_precision_offsets_enabled_flag = 0;                                       //NA
     m_spsParams.bit_depth_chroma_minus8             = hevcSeqParams->bit_depth_chroma_minus8;  //NA
+    m_bDssEnabled                                   = hevcSeqParams->SliceSizeControl;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -83,7 +84,7 @@ MOS_STATUS HevcHeaderPacker::GetPPSParams(PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevc
     m_sliceParams.no_output_of_prior_pics_flag              = hevcPicParams->no_output_of_prior_pics_flag;
     m_sliceParams.pic_parameter_set_id                      = hevcPicParams->slice_pic_parameter_set_id;
     m_sliceParams.collocated_ref_idx                        = hevcPicParams->CollocatedRefPicIndex;                                                                     //NA
-    m_sliceParams.pic_order_cnt_lsb                         = (hevcPicParams->CurrPicOrderCnt & ~(0xFFFFFFFF << (m_spsParams.log2_max_pic_order_cnt_lsb_minus4 + 4)));  //Related to CurrPicOrderCnt? Observed from MSDK =(task.POC & ~(0xFFFFFFFF << (sps.log2_max_pic_order_cnt_lsb_minus4 + 4)))
+    m_sliceParams.pic_order_cnt_lsb                         = hevcPicParams->CurrPicOrderCnt; // need reset poc_lsb later, store cur poc now for later lsb calculation
     nalType                                                 = hevcPicParams->nal_unit_type;
     return MOS_STATUS_SUCCESS;
 }
@@ -474,6 +475,7 @@ MOS_STATUS HevcHeaderPacker::LoadSliceHeaderParams(CodecEncodeHevcSliceHeaderPar
     CODECHAL_ENCODE_CHK_NULL_RETURN(pSH);
 
     m_spsParams.log2_max_pic_order_cnt_lsb_minus4       = pSH->log2_max_pic_order_cnt_lsb_minus4;
+    m_sliceParams.pic_order_cnt_lsb                     &= ~(0xFFFFFFFF << (m_spsParams.log2_max_pic_order_cnt_lsb_minus4 + 4));
     m_sliceParams.num_long_term_pics                    = pSH->num_long_term_pics;
     for (int i = 0; i < m_sliceParams.num_long_term_pics; i++)
     {
@@ -546,7 +548,7 @@ MOS_STATUS HevcHeaderPacker::SliceHeaderPacker(EncoderParams *encodeParams)
         
         rbsp.Reset(pBegin, mfxU32(pEnd - pBegin));
         m_naluParams.long_start_code = 0/*pBSBuffer->pCurrent + (BitLenRecorded + 7) / 8 == pBSBuffer->pBase*/;
-        PackSSH(rbsp, m_naluParams, m_spsParams, m_ppsParams, m_sliceParams, false);
+        PackSSH(rbsp, m_naluParams, m_spsParams, m_ppsParams, m_sliceParams, m_bDssEnabled);
         BitLen = rbsp.GetOffset();
         pBegin += CeilDiv(BitLen, 8u);
         pSlcData[slcCount].SliceOffset            = (uint32_t)(pBSBuffer->pCurrent + (BitLenRecorded + 7) / 8 - pBSBuffer->pBase);

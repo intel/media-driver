@@ -488,6 +488,7 @@ public:
     HevcSlice               m_sliceParams   = {};
     uint8_t                 nalType         = 0;
     std::array<mfxU8, 1024> m_rbsp          = {};
+    bool                    m_bDssEnabled   = false;
 
 public:
     HevcHeaderPacker();
