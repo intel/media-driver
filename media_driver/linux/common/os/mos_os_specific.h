@@ -125,7 +125,7 @@ enum DdiSurfaceFormat
 
 // should be defined in libdrm, this is a temporary solution to pass QuickBuild
 #define I915_EXEC_VEBOX                  (4<<0)
-#define I915_EXEC_VCS2                   (7<<0)
+#define I915_EXEC_VCS2                   (6<<0)
 
 // I915_EXEC_BSD_* -- Attempt to provide backwards and forwards
 // compatibility with versions of include/drm/i915_drm.h that do not
@@ -179,7 +179,7 @@ typedef enum _MOS_GPU_NODE
     MOS_GPU_NODE_VIDEO   = I915_EXEC_BSD,
     MOS_GPU_NODE_VIDEO2  = I915_EXEC_VCS2,
     MOS_GPU_NODE_BLT     = I915_EXEC_BLT,
-    MOS_GPU_NODE_MAX     = 7,//GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2, I915_EXEC_BLT) + 1
+    MOS_GPU_NODE_MAX     = 7 //GFX_MAX(I915_EXEC_RENDER, I915_EXEC_VEBOX, I915_EXEC_BSD, I915_EXEC_VCS2, I915_EXEC_BLT) + 1
 } MOS_GPU_NODE, *PMOS_GPU_NODE;
 
 //!
