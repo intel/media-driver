@@ -1984,7 +1984,8 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
     CmThreadSpace       *threadSpace = nullptr;
     CmTask              *task = nullptr;
     uint32_t            srcSurfAlignedWidthInBytes = 0;
-    CM_GPUCOPY_KERNEL *gpuCopyKernelParam = nullptr;
+    CM_GPUCOPY_KERNEL   *gpuCopyKernelParam = nullptr;
+    CmEvent             *internalEvent      = nullptr;
 
     if ((outputSurface == nullptr) || (inputSurface == nullptr))
     {
@@ -2064,17 +2065,27 @@ CM_RT_API int32_t CmQueueRT::EnqueueCopyGPUToGPU( CmSurface2D* outputSurface, Cm
         task->SetProperty(taskConfig);
     }
 
-    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, event, threadSpace));
-    if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (event))
+    CM_CHK_CMSTATUS_GOTOFINISH(EnqueueFast(task, internalEvent, threadSpace));
+    if ((option & CM_FASTCOPY_OPTION_BLOCKING) && (internalEvent))
     {
-        CM_CHK_CMSTATUS_GOTOFINISH(event->WaitForTaskFinished());
+        CM_CHK_CMSTATUS_GOTOFINISH(internalEvent->WaitForTaskFinished());
+    }
+
+    if (event == CM_NO_EVENT)  //User doesn't need CmEvent for this copy
+    {
+        event = nullptr;
+        CM_CHK_CMSTATUS_GOTOFINISH(DestroyEventFast(internalEvent));
+    }
+    else //User needs this CmEvent
+    {
+        event = internalEvent;
     }
 
 finish:
 
     if (kernel && gpuCopyKernelParam)        GPUCOPY_KERNEL_UNLOCK(gpuCopyKernelParam);
-    if (threadSpace)                                m_device->DestroyThreadSpace(threadSpace);
-    if (task)                              m_device->DestroyTask(task);
+    if (threadSpace)                         m_device->DestroyThreadSpace(threadSpace);
+    if (task)                                m_device->DestroyTask(task);
 
     return hr;
 }
@@ -2644,6 +2655,7 @@ CM_RT_API int32_t CmQueueRT::DestroyEvent( CmEvent* & event )
     if( status == CM_SUCCESS && eventRT == nullptr)
     {
         m_eventArray.SetElement(index, nullptr);
+	m_eventCount--;
     }
 
     // Should return nullptr to application even the event is not destroyed

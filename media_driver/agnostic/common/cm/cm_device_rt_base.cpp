@@ -147,7 +147,8 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
     m_hasGpuCopyKernel(false),
     m_hasGpuInitKernel(false),
     m_kernelsLoaded(0),
-    m_preloadKernelEnabled(true)
+    m_preloadKernelEnabled(true),
+    m_swScoreBoardUnit(nullptr)
 {
     //Initialize the structures in the class
     MOS_ZeroMemory(&m_halMaxValues, sizeof(m_halMaxValues));
@@ -159,6 +160,9 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
 
     // Create the notifers
     m_notifierGroup = MOS_New(CmNotifierGroup);
+
+    m_swScoreBoardUnit = MOS_New(CM_SW_SCOREBOARD_UNIT);
+    MOS_ZeroMemory(m_swScoreBoardUnit, sizeof(CM_SW_SCOREBOARD_UNIT));
 }
 
 //*-----------------------------------------------------------------------------
@@ -167,6 +171,17 @@ CmDeviceRTBase::CmDeviceRTBase(uint32_t options):
 //*-----------------------------------------------------------------------------
 void CmDeviceRTBase::DestructCommon()
 {
+    //Free sw score board
+    if(m_swScoreBoardUnit != nullptr)
+    {
+        if(m_swScoreBoardUnit->swBoard != nullptr)
+            MosSafeDeleteArray(m_swScoreBoardUnit->swBoard);
+        if(m_swScoreBoardUnit->swBoardSurf != nullptr)
+            DestroySurface(m_swScoreBoardUnit->swBoardSurf);
+        MOS_Delete(m_swScoreBoardUnit);
+        m_swScoreBoardUnit = nullptr;
+    }
+
     // Delete Predefined Program
     if(m_gpuCopyKernelProgram)
     {
@@ -1818,7 +1833,8 @@ CM_RT_API int32_t CmDeviceRTBase::CreateThreadSpace(uint32_t width,
     CmThreadSpaceRT *threadSpaceRT = nullptr;
     CmDeviceRT *cmDevice = static_cast<CmDeviceRT*>(this);
     CM_CHK_NULL_RETURN_CMERROR(cmDevice);
-    int32_t result = CmThreadSpaceRT::Create(cmDevice, freeSlotInThreadSpaceArray, width, height, threadSpaceRT );
+
+    int32_t result = CmThreadSpaceRT::Create(cmDevice, freeSlotInThreadSpaceArray, width, height, threadSpaceRT, m_swScoreBoardUnit);
     if (result == CM_SUCCESS)
     {
         m_threadSpaceArray.SetElement( freeSlotInThreadSpaceArray, threadSpaceRT );
