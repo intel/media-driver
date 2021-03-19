@@ -1862,7 +1862,7 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
         VAConfigAttribValEncROI roi_attrib = {0};
         if (IsAvcProfile(profile))
         {
-            roi_attrib.bits.num_roi_regions = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_G9;
+            roi_attrib.bits.num_roi_regions = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_ADV;
         }
         else if (IsHevcProfile(profile))
         {
@@ -2439,7 +2439,7 @@ VAStatus MediaLibvaCapsG12::QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uin
 
     if(isVdenc)
     {
-        *maxNum = ENCODE_VDENC_AVC_MAX_ROI_NUMBER;
+        *maxNum = ENCODE_VDENC_AVC_MAX_ROI_NUMBER_ADV;
     }
     else
     {
