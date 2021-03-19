@@ -630,11 +630,19 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
+    auto                           *skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    Mos_MemPool                     memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(skuTable);
+
+    if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+    {
+        memTypeSurfVideoMem = MOS_MEMPOOL_DEVICEMEMORY;
+    }
 
     MOS_FORMAT      veboxOutputFormat                   = inputSurface->osSurface->Format;
     MOS_TILE_TYPE   veboxOutputTileType                 = inputSurface->osSurface->TileType;
@@ -677,7 +685,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
             IsDeferredResourceDestroyNeeded(),
             MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF,
             MOS_TILE_UNSET_GMM,
-            MOS_MEMPOOL_DEVICEMEMORY));
+            memTypeSurfVideoMem));
 
         m_veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
         m_veboxOutput[i]->rcDst      = inputSurface->rcDst;
@@ -705,7 +713,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
-    auto *                          pSkuTable           = m_osInterface.pfnGetSkuTable(&m_osInterface);
+    auto *                          pSkuTable           = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    Mos_MemPool                     memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
@@ -714,6 +723,11 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     if (MEDIA_IS_SKU(pSkuTable, FtrMediaTile64))
     {
         tileModeByForce = MOS_TILE_64_GMM;
+    }
+
+    if (MEDIA_IS_SKU(pSkuTable, FtrLimitedLMemBar))
+    {
+        memTypeSurfVideoMem = MOS_MEMPOOL_DEVICEMEMORY;
     }
 
     allocated = false;
@@ -745,7 +759,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
             IsDeferredResourceDestroyNeeded(),
             MOS_HW_RESOURCE_USAGE_VP_INPUT_REFERENCE_FF,
             tileModeByForce,
-            MOS_MEMPOOL_DEVICEMEMORY));
+            memTypeSurfVideoMem));
 
         // if allocated, pVeboxState->PastSurface is not valid for DN reference.
         if (allocated)
@@ -869,7 +883,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
-    auto *                          pSkuTable            = m_osInterface.pfnGetSkuTable(&m_osInterface);
+    auto *                          pSkuTable           = MosInterface::GetSkuTable(m_osInterface.osStreamState);
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);

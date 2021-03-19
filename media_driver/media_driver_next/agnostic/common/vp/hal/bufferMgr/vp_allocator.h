@@ -380,7 +380,7 @@ public:
         bool                    deferredDestroyed = false,
         MOS_HW_RESOURCE_DEF     resUsageType   = MOS_HW_RESOURCE_DEF_MAX,
         MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM,
-        uint32_t                memType = MOS_MEMPOOL_VIDEOMEMORY);
+        Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY);
 
     //!
     //! \brief    Allocates the Surface

@@ -431,6 +431,10 @@ bool isSyncFreeNeededForMMCSurface(PVPHAL_SURFACE pSurface, PMOS_INTERFACE pOsIn
 //!           true if allocated, false for not
 //! \param    [in] resUsageType
 //!           resource usage type for caching
+//! \param    [in] tileModeByForce
+//!           Forced tile mode
+//! \param    [in] memType
+//!           vidoe memory location
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success. Error code otherwise
 //!
@@ -448,7 +452,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     bool*                   pbAllocated,
     MOS_HW_RESOURCE_DEF     resUsageType,
     MOS_TILE_MODE_GMM       tileModeByForce,
-    uint32_t                memType)
+    Mos_MemPool             memType)
 {
     MOS_STATUS              eStatus;
     VPHAL_GET_SURFACE_INFO  Info;

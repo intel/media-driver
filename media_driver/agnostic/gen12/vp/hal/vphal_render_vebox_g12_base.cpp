@@ -579,6 +579,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     PVPHAL_VEBOX_STATE_G12_BASE pVeboxState = this;
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
     uint8_t                     InitValue;
+    Mos_MemPool                 memTypeSurfVdieoMem = MOS_MEMPOOL_VIDEOMEMORY;
 
     bAllocated              = false;
     bSurfCompressible       = false;
@@ -595,6 +596,11 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     if (NullHW::IsEnabled())
     {
         InitValue = 0x80;
+    }
+
+    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrLimitedLMemBar))
+    {
+        memTypeSurfVdieoMem = MOS_MEMPOOL_DEVICEMEMORY;
     }
 
     GetOutputSurfParams(format, TileType);
@@ -652,7 +658,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 &bAllocated,
                 MOS_HW_RESOURCE_DEF_MAX,
                 MOS_TILE_UNSET_GMM,
-                MOS_MEMPOOL_DEVICEMEMORY));
+                memTypeSurfVdieoMem));
 
             pVeboxState->FFDISurfaces[i]->SampleType = SampleType;
 
@@ -729,7 +735,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 &bAllocated,
                 MOS_HW_RESOURCE_DEF_MAX,
                 MOS_TILE_UNSET_GMM,
-                MOS_MEMPOOL_DEVICEMEMORY));
+                memTypeSurfVdieoMem));
 
             // if allocated, pVeboxState->PreviousSurface is not valid for DN reference.
             if (bAllocated)
