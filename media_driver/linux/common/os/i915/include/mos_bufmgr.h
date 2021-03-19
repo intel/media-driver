@@ -1,5 +1,5 @@
 /*
- * Copyright © 2008-2018 Intel Corporation
+ * Copyright © 2008-2021 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,8 +53,16 @@ typedef struct mos_bufmgr MOS_BUFMGR;
 
 #include "mos_os_specific.h"
 
+enum mos_memory_zone {
+   MEMZONE_SYS,
+   MEMZONE_DEVICE,
+   MEMZONE_COUNT,
+};
+
 #define MEMZONE_SYS_START     (1ull << 16)
+#define MEMZONE_SYS_SIZE      ((1ull << 40) - (1ull << 16))
 #define MEMZONE_DEVICE_START  (1ull << 40)
+#define MEMZONE_DEVICE_SIZE   (1ull << 40)
 #define MEMZONE_TOTAL         (1ull << 48)
 #define PAGE_SIZE_64K         (1ull << 16)
 #define PAGE_SIZE_4G          (1ull << 32)
