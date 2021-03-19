@@ -291,11 +291,6 @@ struct mos_bo_gem {
     */
     bool exec_async;
 
-    /*
-    * Whether to remove the dependency of this bo in exebuf.
-    */
-    bool exec_capture;
-
     /**
      * Size in bytes of this buffer and its relocation descendents.
      *
@@ -543,8 +538,6 @@ mos_add_validate_buffer2(struct mos_linux_bo *bo, int need_fence)
         flags |= EXEC_OBJECT_PINNED;
     if (bo_gem->exec_async)
         flags |= EXEC_OBJECT_ASYNC;
-    if (bo_gem->exec_capture)
-        flags |= EXEC_OBJECT_CAPTURE;
 
     if (bo_gem->validate_index != -1) {
         bufmgr_gem->exec2_objects[bo_gem->validate_index].flags |= flags;
@@ -2285,8 +2278,6 @@ do_bo_emit_reloc2(struct mos_linux_bo *bo, uint32_t offset,
         flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
     if (target_bo_gem->exec_async)
         flags |= EXEC_OBJECT_ASYNC;
-    if (target_bo_gem->exec_capture)
-        flags |= EXEC_OBJECT_CAPTURE;
 
     if (target_bo != bo)
         mos_gem_bo_reference(target_bo);
@@ -2345,16 +2336,6 @@ mos_gem_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *t
     }
 }
 
-static void
-mos_gem_bo_set_object_capture(struct mos_linux_bo *bo)
-{
-    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *)bo;
-    if (bo_gem != nullptr)
-    {
-        bo_gem->exec_capture = true;
-    }
-}
-
 static int
 mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag)
 {
@@ -2394,8 +2375,6 @@ mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *targ
         flags |= EXEC_OBJECT_SUPPORTS_48B_ADDRESS;
     if (target_bo_gem->exec_async)
         flags |= EXEC_OBJECT_ASYNC;
-    if (target_bo_gem->exec_capture)
-        flags |= EXEC_OBJECT_CAPTURE;
     if (write_flag)
         flags |= EXEC_OBJECT_WRITE;
 
@@ -3991,13 +3970,6 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     if (ret == 0 && *gp.value > 0) {
         bufmgr_gem->bufmgr.set_object_async      = mos_gem_bo_set_object_async;
         bufmgr_gem->bufmgr.set_exec_object_async = mos_gem_bo_set_exec_object_async;
-    }
-
-    gp.param = I915_PARAM_HAS_EXEC_CAPTURE;
-    ret      = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-    if (ret == 0 && *gp.value > 0)
-    {
-        bufmgr_gem->bufmgr.set_object_capture      = mos_gem_bo_set_object_capture;
     }
 
     struct drm_i915_gem_context_param context_param;

@@ -202,7 +202,6 @@ int mos_bo_madvise(struct mos_linux_bo *bo, int madv);
 int mos_bo_use_48b_address_range(struct mos_linux_bo *bo, uint32_t enable);
 void mos_bo_set_object_async(struct mos_linux_bo *bo);
 void mos_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
-void mos_bo_set_object_capture(struct mos_linux_bo *bo);
 int mos_bo_set_softpin(struct mos_linux_bo *bo);
 int mos_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo, bool write_flag);
 

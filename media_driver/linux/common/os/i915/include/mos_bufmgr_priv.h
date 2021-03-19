@@ -335,13 +335,6 @@ struct mos_bufmgr {
      */
     void (*set_exec_object_async) (struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
 
-     /**
-     * Set capture flag for a buffer object.
-     *
-     * \param bo Buffer to set capture
-     */
-    void (*set_object_capture)(struct mos_linux_bo *bo);
-
     /**< Enables verbose debugging printouts */
     int debug;
     uint32_t *get_reserved = nullptr;

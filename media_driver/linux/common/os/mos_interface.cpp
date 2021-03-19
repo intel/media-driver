@@ -675,20 +675,6 @@ void *MosInterface::GetGpuContextbyHandle(
     return (void *)gpuContext;
 }
 
-MOS_STATUS MosInterface:: SetObjectCapture(
-    PMOS_RESOURCE osResource)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    //---------------------------------------
-    MOS_OS_CHK_NULL_RETURN(osResource);
-    //---------------------------------------
-
-    mos_bo_set_object_capture(osResource->bo);
-
-    return eStatus;
-}
-
 MOS_STATUS MosInterface::AddCommand(
     COMMAND_BUFFER_HANDLE cmdBuffer,
     const void *cmd,

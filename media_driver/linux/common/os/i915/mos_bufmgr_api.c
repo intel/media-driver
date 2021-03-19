@@ -67,13 +67,6 @@ mos_bo_set_exec_object_async(struct mos_linux_bo *bo, struct mos_linux_bo *targe
         bo->bufmgr->set_exec_object_async(bo, target_bo);
 }
 
-void
-mos_bo_set_object_capture(struct mos_linux_bo *bo)
-{
-    if (bo->bufmgr->set_object_capture)
-        bo->bufmgr->set_object_capture(bo);
-}
-
 struct mos_linux_bo *
 mos_bo_alloc_for_render(struct mos_bufmgr *bufmgr, const char *name,
                   unsigned long size, unsigned int alignment, int mem_type)

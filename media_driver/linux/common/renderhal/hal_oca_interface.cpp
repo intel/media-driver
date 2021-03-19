@@ -29,7 +29,6 @@
 #include "mos_os.h"
 #include "hal_oca_interface.h"
 #include "mhw_mmio.h"
-#include "mos_interface.h"
 
 /****************************************************************************************************/
 /*                                      HalOcaInterface                                             */
@@ -60,7 +59,6 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
         uint32_t gpuContextHandle, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters,
         uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
 {
-    MosInterface::SetObjectCapture(&cmdBuffer.OsResource);
 }
 
 //!
@@ -88,7 +86,6 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
         uint32_t gpuContextHandle, MhwMiInterface &mhwMiInterface, MmioRegistersMfx &mmioRegisters,
         uint32_t offsetOf1stLevelBB, bool bUseSizeOfCmdBuf, uint32_t sizeOf1stLevelBB)
 {
-    MosInterface::SetObjectCapture(&cmdBuffer.OsResource);
 }
 
 //!
@@ -124,7 +121,6 @@ void HalOcaInterface::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFA
 //!
 void HalOcaInterface::OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB)
 {
-    MosInterface::SetObjectCapture((PMOS_RESOURCE)pMosResource);
 }
 
 //!
@@ -146,7 +142,6 @@ void HalOcaInterface::OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
 //!
 void HalOcaInterface::OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfIndirectState, bool bUseSizeOfResource, uint32_t sizeOfIndirectState)
 {
-    MosInterface::SetObjectCapture((PMOS_RESOURCE)pMosResource);
 }
 
 //!
