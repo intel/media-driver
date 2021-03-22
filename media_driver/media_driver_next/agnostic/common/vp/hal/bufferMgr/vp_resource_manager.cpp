@@ -637,9 +637,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
-    VP_PUBLIC_CHK_NULL_RETURN(skuTable);
 
-    if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+    if (skuTable && MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
     {
         memTypeSurfVideoMem = MOS_MEMPOOL_DEVICEMEMORY;
     }
@@ -713,21 +712,23 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
-    auto *                          pSkuTable           = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
     Mos_MemPool                     memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
-    VP_PUBLIC_CHK_NULL_RETURN(pSkuTable);
 
-    if (MEDIA_IS_SKU(pSkuTable, FtrMediaTile64))
+    if (skuTable)
     {
-        tileModeByForce = MOS_TILE_64_GMM;
-    }
+        if (MEDIA_IS_SKU(skuTable, FtrMediaTile64))
+        {
+            tileModeByForce = MOS_TILE_64_GMM;
+        }
 
-    if (MEDIA_IS_SKU(pSkuTable, FtrLimitedLMemBar))
-    {
-        memTypeSurfVideoMem = MOS_MEMPOOL_DEVICEMEMORY;
+        if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+        {
+            memTypeSurfVideoMem = MOS_MEMPOOL_DEVICEMEMORY;
+        }
     }
 
     allocated = false;
@@ -883,13 +884,12 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
-    auto *                          pSkuTable           = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
-    VP_PUBLIC_CHK_NULL_RETURN(pSkuTable);
 
-    if (MEDIA_IS_SKU(pSkuTable, FtrMediaTile64))
+    if (skuTable && MEDIA_IS_SKU(skuTable, FtrMediaTile64))
     {
         tileModeByForce = MOS_TILE_64_GMM;
     }

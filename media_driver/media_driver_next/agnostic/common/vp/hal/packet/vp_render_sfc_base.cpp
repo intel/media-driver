@@ -1120,9 +1120,8 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface)
 
     skuTable = MosInterface::GetSkuTable(m_osInterface->osStreamState);
-    VP_PUBLIC_CHK_NULL_RETURN(skuTable)
 
-    if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+    if (skuTable && MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
     {
         memTypeSurfVdieoMem = MOS_MEMPOOL_DEVICEMEMORY;
     }
