@@ -200,6 +200,9 @@ static bool InitEhlShadowWa(struct GfxDeviceInfo *devInfo,
     waTable->WaDisregardPlatformChecks          = 1;
     waTable->Wa4kAlignUVOffsetNV12LinearSurface = 1;
 
+    //source and recon surfaces need to be aligned to the LCU size
+    waTable->WaAlignYUVResourceToLCU = 1;
+
     return true;
 }
 
