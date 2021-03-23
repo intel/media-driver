@@ -118,6 +118,8 @@ typedef struct _DDI_ENCODE_CONTEXT
     uint32_t                          indexNALUnit;
     uint8_t                           PicParamId;
     MOS_SURFACE                       segMapBuffer;
+    uint32_t                          segmentMapDataSize;
+    uint8_t                          *pSegmentMap;
     uint16_t                          wPicWidthInMB;          // Picture Width in MB width count
     uint16_t                          wPicHeightInMB;         // Picture Height in MB height count
     uint16_t                          wOriPicWidthInMB;

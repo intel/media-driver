@@ -1356,7 +1356,7 @@ protected:
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success
     //!
-    VAStatus CheckEncRTFormat(
+    virtual VAStatus CheckEncRTFormat(
             VAProfile profile,
             VAEntrypoint entrypoint,
             VAConfigAttrib* attrib);

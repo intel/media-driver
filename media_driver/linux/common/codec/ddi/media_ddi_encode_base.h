@@ -510,6 +510,7 @@ protected:
     //! \return   void
     void CleanUpBufferandReturn(DDI_MEDIA_BUFFER *buf);
 
+    bool    m_cpuFormat              = false;    //!< Flag for cpuFormat.
     bool    m_newSeqHeader           = false;    //!< Flag for new Sequence Header.
     bool    m_newPpsHeader           = false;    //!< Flag for new Pps Header.
     bool    m_arbitraryNumMbsInSlice = false;    //!< Flag to indicate if the sliceMapSurface needs to be programmed or not.

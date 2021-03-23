@@ -938,6 +938,13 @@ VAStatus DdiEncodeBase::CreateBuffer(
     }
     case VAEncMacroblockMapBufferType:
     {
+        if(m_cpuFormat)
+        {
+            // elementsNum should be 1, ignore here just for robustness
+            bufSize = size;
+            break;
+        }
+
         buf->uiWidth = MOS_ALIGN_CEIL(size, 64);
         if (size != buf->uiWidth)
         {
@@ -1279,7 +1286,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
     }
 
     if ((VAEncCodedBufferType != type) &&
-        (VAEncMacroblockMapBufferType != type) &&
+        (VAEncMacroblockMapBufferType != type || m_cpuFormat) &&
         (VAEncFEIMVBufferType != type) &&
         (VAEncFEIMBCodeBufferType != type) &&
         (VAEncFEICTBCmdBufferType != type)      &&
@@ -1321,7 +1328,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
     mediaCtx->uiNumBufs++;
 
     // return success if data is nullptr, no need to copy data
-    if (data == nullptr || VAEncMacroblockMapBufferType == type)
+    if (data == nullptr || (VAEncMacroblockMapBufferType == type && m_cpuFormat))
     {
         return va;
     }
