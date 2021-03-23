@@ -435,6 +435,8 @@ bool isSyncFreeNeededForMMCSurface(PVPHAL_SURFACE pSurface, PMOS_INTERFACE pOsIn
 //!           Forced tile mode
 //! \param    [in] memType
 //!           vidoe memory location
+//! \param    [in] isNotLockable
+//!           true if surface not lockable
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success. Error code otherwise
 //!
@@ -452,7 +454,8 @@ MOS_STATUS VpHal_ReAllocateSurface(
     bool*                   pbAllocated,
     MOS_HW_RESOURCE_DEF     resUsageType,
     MOS_TILE_MODE_GMM       tileModeByForce,
-    Mos_MemPool             memType)
+    Mos_MemPool             memType,
+    bool                    isNotLockable)
 {
     MOS_STATUS              eStatus;
     VPHAL_GET_SURFACE_INFO  Info;
@@ -494,6 +497,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     AllocParams.ResUsageType    = resUsageType;
     AllocParams.m_tileModeByForce = tileModeByForce;
     AllocParams.dwMemType       = memType;
+    AllocParams.Flags.bNotLockable = isNotLockable;
 
     // Delete resource if already allocated
     //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update

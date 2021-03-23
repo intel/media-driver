@@ -1372,7 +1372,8 @@ MOS_STATUS VpHal_ReAllocateSurface(
     bool*                   pbAllocated,                                        // [out]   Flag indicating new allocation
     MOS_HW_RESOURCE_DEF     resUsageType = MOS_HW_RESOURCE_DEF_MAX,             // [in]    resource usage type
     MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM,               // [in]    Flag to indicate if GMM flag tile64 need set
-    Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY);                 // [in]    Flag to indicate the memType
+    Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY,                  // [in]    Flag to indicate the memType
+    bool                    isNotLockable = false);                             // [in]    Flag to indicate whether resource being not lockable
 
 //!
 //! \brief    Reads the Surface contents and copy to the Dst Buffer

@@ -684,7 +684,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
             IsDeferredResourceDestroyNeeded(),
             MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF,
             MOS_TILE_UNSET_GMM,
-            memTypeSurfVideoMem));
+            memTypeSurfVideoMem,
+            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
 
         m_veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
         m_veboxOutput[i]->rcDst      = inputSurface->rcDst;
@@ -760,7 +761,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
             IsDeferredResourceDestroyNeeded(),
             MOS_HW_RESOURCE_USAGE_VP_INPUT_REFERENCE_FF,
             tileModeByForce,
-            memTypeSurfVideoMem));
+            memTypeSurfVideoMem,
+            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
 
         // if allocated, pVeboxState->PastSurface is not valid for DN reference.
         if (allocated)
@@ -885,6 +887,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     uint32_t                        i                   = 0;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
     auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
+    Mos_MemPool                     memTypeHistStat     = GetHistStatMemType();
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
@@ -912,12 +915,13 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
             IsDeferredResourceDestroyNeeded(),
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
             tileModeByForce,
-            GetHistStatMemType()));
+            memTypeHistStat,
+            MOS_MEMPOOL_DEVICEMEMORY == memTypeHistStat));
 
         if (allocated)
         {
             VP_PUBLIC_CHK_NULL_RETURN(m_veboxSTMMSurface[i]);
-            if (MOS_MEMPOOL_DEVICEMEMORY != GetHistStatMemType())
+            if (MOS_MEMPOOL_DEVICEMEMORY != memTypeHistStat)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(VeboxInitSTMMHistory(m_veboxSTMMSurface[i]->osSurface));
             }
@@ -977,6 +981,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     bool                            bSurfCompressible   = false;
     bool                            bAllocated          = false;
     uint8_t                         InitValue           = 0;
+    Mos_MemPool                     memTypeHistStat     = GetHistStatMemType();
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
@@ -1099,7 +1104,8 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         IsDeferredResourceDestroyNeeded(),
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
         MOS_TILE_UNSET_GMM,
-        GetHistStatMemType()));
+        memTypeHistStat,
+        MOS_MEMPOOL_DEVICEMEMORY == memTypeHistStat));
 
     m_isHistogramReallocated = bAllocated;
 
@@ -1137,11 +1143,12 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         IsDeferredResourceDestroyNeeded(),
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
         MOS_TILE_UNSET_GMM,
-        GetHistStatMemType()));
+        memTypeHistStat,
+        MOS_MEMPOOL_DEVICEMEMORY == memTypeHistStat));
 
     if (bAllocated)
     {
-        if (MOS_MEMPOOL_DEVICEMEMORY != GetHistStatMemType())
+        if (MOS_MEMPOOL_DEVICEMEMORY != memTypeHistStat)
         {
             // Initialize veboxStatisticsSurface Surface
             VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(

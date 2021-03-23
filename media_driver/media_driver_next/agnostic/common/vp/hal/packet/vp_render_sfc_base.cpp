@@ -1115,7 +1115,7 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
 {
     bool                allocated           = false;
     MEDIA_FEATURE_TABLE *skuTable           = nullptr;
-    Mos_MemPool         memTypeSurfVdieoMem = MOS_MEMPOOL_VIDEOMEMORY;
+    Mos_MemPool         memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
 
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface)
 
@@ -1123,7 +1123,7 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
 
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
     {
-        memTypeSurfVdieoMem = MOS_MEMPOOL_DEVICEMEMORY;
+        memTypeSurfVideoMem = MOS_MEMPOOL_DEVICEMEMORY;
     }
 
     if (size)
@@ -1143,7 +1143,8 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
                                       true,
                                       MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
                                       MOS_TILE_UNSET_GMM,
-                                      memTypeSurfVdieoMem));
+                                      memTypeSurfVideoMem,
+                                      MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
     }
     else if (lineBuffer)
     {

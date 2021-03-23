@@ -364,6 +364,8 @@ public:
     //!           Deferred destroy the resource until CleanRecycler being called.
     //! \param    [in] resUsageType
     //!           resource usage type for cache policy
+    //! \param    [in] Flag to indicate whether resource being lockable
+    //!           resource usage type for cache policy
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success. Error code otherwise
     //!
@@ -382,7 +384,8 @@ public:
         bool                    deferredDestroyed = false,
         MOS_HW_RESOURCE_DEF     resUsageType   = MOS_HW_RESOURCE_DEF_MAX,
         MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM,
-        Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY);
+        Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY,
+        bool                    isNotLockable = false);
 
     //!
     //! \brief    Allocates the Surface
