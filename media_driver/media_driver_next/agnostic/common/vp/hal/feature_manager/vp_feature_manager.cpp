@@ -317,6 +317,15 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         kernelUpdate = settings->kernelUpdate;
     }
 
+    bool bVeboxStateBlockCopy =
+        (kernelUpdate & VP_VEBOX_FLAG_ENABLE_KERNEL_COPY);
+
+    // Will remove when Enable Secure Copy for Vebox
+    if (bVeboxStateBlockCopy)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     bool bKernelDnUpdate =
         (kernelUpdate & VP_VEBOX_FLAG_ENABLE_KERNEL_DN_UPDATE);
 

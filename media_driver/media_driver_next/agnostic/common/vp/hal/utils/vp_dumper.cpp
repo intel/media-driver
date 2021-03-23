@@ -53,6 +53,8 @@
 #define VPHAL_SURF_DUMP_LOC_POSTCOMP            "postcomp"
 #define VPHAL_SURF_DUMP_LOC_PREMEMDECOMP        "prememdecomp"
 #define VPHAL_SURF_DUMP_LOC_POSTMEMDECOMP       "postmemdecomp"
+#define VPHAL_SURF_DUMP_LOC_VEBOX_DRIVERHEAP    "veboxdriverheap"
+#define VPHAL_SURF_DUMP_LOC_VEBOX_KERNELHEAP    "veboxkernelheap"
 #define VPHAL_SURF_DUMP_LOC_POSTALL             "postall"
 
 //==<Dump Parameters>====================================================
@@ -362,9 +364,12 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
         break;
 
     default:
-        VPHAL_DEBUG_ASSERTMESSAGE("Format '%d' not supported.", pSurface->Format);
-        eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        VPHAL_DEBUG_NORMALMESSAGE("Format '%d' not supported in current driver, using default 1 plane for dump", pSurface->Format);
+        *pdwNumPlanes = 1;
+        pPlanes[0].dwWidth = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch = pSurface->dwPitch;
+        break;
     }
 
     // For Deswizzled surfaces, Mos_Specific_LockResource() already do the de-padding between Y and UV surf.
@@ -434,7 +439,6 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
                    (pPlanes[2].dwWidth * pPlanes[2].dwHeight);
     }
 
-finish:
     return eStatus;
 }
 
@@ -733,9 +737,13 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
         break;
 
     default:
-        VPHAL_DEBUG_ASSERTMESSAGE("Format '%d' not supported.", pSurface->osSurface->Format);
-        eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        VPHAL_DEBUG_NORMALMESSAGE("Format '%d' not supported in current driver, using default 1 plane for dump", pSurface->osSurface->Format);
+        *pdwNumPlanes = 1;
+
+        pPlanes[0].dwWidth = pSurface->osSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->osSurface->dwHeight;
+        pPlanes[0].dwPitch = pSurface->osSurface->dwPitch;
+        break;
     }
 
     // For Deswizzled surfaces, Mos_Specific_LockResource() already do the de-padding between Y and UV surf.
@@ -805,7 +813,6 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
             (pPlanes[2].dwWidth * pPlanes[2].dwHeight);
     }
 
-finish:
     return eStatus;
 }
 
@@ -1440,6 +1447,14 @@ MOS_STATUS VpSurfaceDumper::LocStringToEnum(
     {
         *pLocation = VPHAL_DUMP_TYPE_POST_ALL;
     }
+    else if (strcmp(pcLocString, VPHAL_SURF_DUMP_LOC_VEBOX_DRIVERHEAP) == 0)
+    {
+        *pLocation = VPHAL_DUMP_TYPE_VEBOX_DRIVERHEAP;
+    }
+    else if (strcmp(pcLocString, VPHAL_SURF_DUMP_LOC_VEBOX_KERNELHEAP) == 0)
+    {
+        *pLocation = VPHAL_DUMP_TYPE_VEBOX_KERNELHEAP;
+    }
     else
     {
         VPHAL_DEBUG_NORMALMESSAGE("Unknown dump location \"%s\".", pcLocString);
@@ -1492,6 +1507,12 @@ MOS_STATUS VpSurfaceDumper::EnumToLocString(
             break;
         case VPHAL_DUMP_TYPE_POST_ALL:
             MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_SURF_DUMP_LOC_POSTALL);
+            break;
+        case VPHAL_DUMP_TYPE_VEBOX_DRIVERHEAP:
+            MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_SURF_DUMP_LOC_VEBOX_DRIVERHEAP);
+            break;
+        case VPHAL_DUMP_TYPE_VEBOX_KERNELHEAP:
+            MOS_SecureStringPrint(pcLocString, MAX_PATH, MAX_PATH, VPHAL_SURF_DUMP_LOC_VEBOX_KERNELHEAP);
             break;
         default:
             VPHAL_DEBUG_ASSERTMESSAGE("Unknown dump location \"%d\".", Location);

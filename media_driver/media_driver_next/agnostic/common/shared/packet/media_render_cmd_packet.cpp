@@ -28,6 +28,7 @@
 #include "media_render_cmd_packet.h"
 #include "mos_oca_interface.h"
 #include "renderhal_platform_interface.h"
+#include "hal_oca_interface.h"
 
 #define COMPUTE_WALKER_THREAD_SPACE_WIDTH 1
 #define COMPUTE_WALKER_THREAD_SPACE_HEIGHT 1

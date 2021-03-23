@@ -535,7 +535,7 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
 
     VP_PUBLIC_CHK_STATUS_RETURN(GetResourceHint(featurePool, executedFilters, resHint));
 
-    if (nullptr == outputSurface)
+    if (nullptr == outputSurface && IsOutputSurfaceNeeded(caps))
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AssignIntermediaSurface(executedFilters));
         outputSurface  = executedFilters.GetSurface(false, 0);
@@ -1233,7 +1233,8 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     auto&                           surfGroup = surfSetting.surfGroup;
 
     // Render case reuse vebox resource, and don`t need re-allocate.
-    if (!caps.bRender)
+    if (!caps.bRender ||
+        (caps.bRender && caps.bDnKernelUpdate))
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AllocateVeboxResource(caps, inputSurface, outputSurface));
     }
@@ -1317,6 +1318,20 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+bool VpResourceManager::IsOutputSurfaceNeeded(VP_EXECUTE_CAPS caps)
+{
+    // check whether intermedia surface needed to create based on caps
+    if (caps.bDnKernelUpdate ||  // State Heap as putput, but it was not tracked in resource manager yet
+        caps.bVeboxSecureCopy)   // State Heap as putput, but it was not tracked in resource manager yet
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 VP_SURFACE* VpResourceManager::GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *outputSurface)

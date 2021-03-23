@@ -297,6 +297,15 @@ using PVEBOX_UPDATE_PARAMS     = VEBOX_UPDATE_PARAMS *;
 using VEBOX_HDR_PARAMS      = _VEBOX_HDR_PARAMS;
 using PVEBOX_HDR_PARAMS     = VEBOX_HDR_PARAMS *;
 
+struct _STATE_COPY_PARAMS
+{
+    bool needed;
+    std::vector<uint32_t>           kernelGroup;
+};
+
+using STATE_COPY_PARAMS = _STATE_COPY_PARAMS;
+using PSTATE_COPY_PARAMS = STATE_COPY_PARAMS*;
+
 struct SR_LAYER_PARAMS
 {
     uint32_t                                          uLayerID;

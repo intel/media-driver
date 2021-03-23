@@ -441,12 +441,12 @@ MOS_STATUS VpVeboxCmdPacketG12::SetupDiIecpState(
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS VpVeboxCmdPacketG12::QueryStatLayout(
-    VEBOX_STAT_QUERY_TYPE QueryType,
+    VEBOX_STAT_QUERY_TYPE queryType,
     uint32_t*             pQuery)
 {
     VP_RENDER_ASSERT(pQuery);
 
-    return m_hwInterface->m_vpPlatformInterface->VeboxQueryStatLayout(QueryType, pQuery);
+    return m_hwInterface->m_vpPlatformInterface->VeboxQueryStatLayout(queryType, pQuery);
 }
 
 }

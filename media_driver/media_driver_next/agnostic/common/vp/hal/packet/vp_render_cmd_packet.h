@@ -67,7 +67,7 @@ public:
 
     MOS_STATUS SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params);
 
-    MOS_STATUS SetSecureCopyParams(bool copyNeeded);
+    MOS_STATUS SetSecureCopyParams(PSTATE_COPY_PARAMS params);
 
     MOS_STATUS PacketInit(
         VP_SURFACE* inputSurface,

@@ -1358,6 +1358,14 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
         // surface should be added before swFilters, since empty feature pipe will be allocated accordingly when surface being added.
         VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfOutput, false, 0));
     }
+    else
+    {
+        if (IsSecureResourceNeeded(caps))
+        {
+            
+            VP_PUBLIC_CHK_STATUS_RETURN(UpdateSecureExecuteResource(featurePipe, caps, params));
+        }
+    }
 
     VP_PUBLIC_CHK_STATUS_RETURN(AssignExecuteResource(caps, params));
 
@@ -1366,9 +1374,9 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
         // Update the input feature surfaces
         surfInput = featurePipe.RemoveSurface(true, index);
     }
-    else if (featurePipe.GetSecureProcessFlag())
+    else if (IsSecureResourceNeeded(caps))
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(UpdateSecureExecuteResource(featurePipe, caps, params));
+        VP_PUBLIC_NORMALMESSAGE("Secure Process Enabled, no need further process");
     }
     else
     {

@@ -155,7 +155,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    bool GetSecureProcessFlag()
+    bool IsSecurePreProcessComplete()
     {
         return m_processedSecurePrepared;
     }

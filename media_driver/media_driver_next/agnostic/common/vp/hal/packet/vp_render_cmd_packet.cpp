@@ -242,6 +242,8 @@ MOS_STATUS VpRenderCmdPacket::SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params)
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
+    KERNEL_PARAMS kernelParams = {};
+
     if (params->kernelGroup.empty())
     {
         VP_RENDER_ASSERTMESSAGE("No Kernel need to be processed");
@@ -251,14 +253,33 @@ MOS_STATUS VpRenderCmdPacket::SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params)
     for (auto it : params->kernelGroup)
     {
         m_kernelConfigs.insert(std::make_pair((KernelId)it, (void *)params));
+        kernelParams.kernelId = (KernelId)it;
+        m_renderKernelParams.push_back(kernelParams);
     }
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderCmdPacket::SetSecureCopyParams(bool copyNeeded)
+MOS_STATUS VpRenderCmdPacket::SetSecureCopyParams(PSTATE_COPY_PARAMS params)
 {
-    return MOS_STATUS();
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(params);
+
+    KERNEL_PARAMS kernelParams = {};
+
+    if (params->kernelGroup.empty())
+    {
+        VP_RENDER_ASSERTMESSAGE("No Kernel need to be processed");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    for (auto it : params->kernelGroup)
+    {
+        kernelParams.kernelId = it;
+        m_renderKernelParams.push_back(kernelParams);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpRenderCmdPacket::PacketInit(
@@ -379,7 +400,8 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
                         kernelSurfaceParam->surfaceOverwriteParams.bufferResource) ||
                     (!kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
-                        renderHalSurface.OsSurface.Type == MOS_GFXRES_BUFFER))
+                        (renderHalSurface.OsSurface.Type == MOS_GFXRES_BUFFER || 
+                         renderHalSurface.OsSurface.Type == MOS_GFXRES_INVALID)))
                 {
                     index = SetBufferForHwAccess(
                         &renderHalSurface.OsSurface,

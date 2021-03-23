@@ -710,6 +710,12 @@ public:
         bool                        bDiScdEnable,
         PMHW_VEBOX_DI_IECP_CMD_PARAMS   pVeboxDiIecpCmdParams);
 
+    //!
+    //! \brief    Check Vebox using kernel resource or not
+    //! \details  Check Vebox using kernel resource or not
+    //! \return   bool
+    //!           Return true if use kernel resource
+    //!
     virtual bool UseKernelResource();
 
     //!
@@ -983,6 +989,13 @@ private:
     //!
     virtual MOS_STATUS SetSfcMmcParams();
     MOS_STATUS InitSfcRender();
+
+    //!
+    //! \brief    Dump Vebox State Heap
+    //! \details  Dump Vebox State Heap
+    //! \return   MOS_STATUS  MOS_STATUS_SUCCESS if succeeded, otherwise failure
+    //!
+    MOS_STATUS DumpVeboxStateHeap();
 
 protected:
 

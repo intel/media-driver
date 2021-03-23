@@ -125,6 +125,13 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual bool IsSecureResourceNeeded(VP_EXECUTE_CAPS& caps)
+    {
+        VP_FUNC_CALL();
+
+        return false;
+    }
+
     std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
     std::vector<FeatureType> m_featurePool;

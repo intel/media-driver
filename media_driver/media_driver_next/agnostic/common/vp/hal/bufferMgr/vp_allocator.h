@@ -289,6 +289,8 @@ public:
     //!
     MOS_STATUS GetSurfaceInfo(VPHAL_SURFACE *surface, VPHAL_GET_SURFACE_INFO &info);
 
+    MOS_STATUS GetSurfaceInfo(VP_SURFACE* surface, VPHAL_GET_SURFACE_INFO& info);
+
     //!
     //! \brief    Initial the Type/TileType fields in Alloc Params structure
     //! \details  Initial the Type/TileType fields in Alloc Params structure

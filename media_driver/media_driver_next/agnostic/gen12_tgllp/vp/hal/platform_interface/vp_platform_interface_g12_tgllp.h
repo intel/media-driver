@@ -62,7 +62,7 @@ public:
     virtual RENDERHAL_KERNEL_PARAM GetVeboxKernelSettings(uint32_t iKDTIndex);
 
     virtual MOS_STATUS VeboxQueryStatLayout(
-        VEBOX_STAT_QUERY_TYPE QueryType,
+        VEBOX_STAT_QUERY_TYPE queryType,
         uint32_t* pQuery);
 
     virtual uint32_t VeboxQueryStaticSurfaceSize()

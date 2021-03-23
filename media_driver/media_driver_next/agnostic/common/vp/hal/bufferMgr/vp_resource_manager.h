@@ -342,6 +342,8 @@ public:
         return m_sameSamples;
     }
 
+    bool IsOutputSurfaceNeeded(VP_EXECUTE_CAPS caps);
+
     bool IsRefValid()
     {
         return m_currentFrameIds.pastFrameAvailable || m_currentFrameIds.futureFrameAvailable;

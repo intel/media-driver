@@ -1575,8 +1575,56 @@ MOS_STATUS VpVeboxCmdPacket::InitSfcRender()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpVeboxCmdPacket::DumpVeboxStateHeap()
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS    eStatus = MOS_STATUS_SUCCESS;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    static uint32_t counter = 0;
+    VP_SURFACE driverResource = {};
+    VP_SURFACE kernelResource = {};
+    MOS_SURFACE driverSurface = {};
+    MOS_SURFACE kernelSurface = {};
+
+    const MHW_VEBOX_HEAP* pVeboxHeap      = nullptr;
+    PMHW_VEBOX_INTERFACE  pVeboxInterface = m_hwInterface->m_veboxInterface;
+    VpDebugInterface*     debuginterface  = (VpDebugInterface*)m_hwInterface->m_debugInterface;
+    VP_RENDER_CHK_STATUS_RETURN(pVeboxInterface->GetVeboxHeapInfo(&pVeboxHeap));
+    VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
+
+    driverResource.osSurface = &driverSurface;
+    kernelResource.osSurface = &kernelSurface;
+    driverResource.osSurface->OsResource = pVeboxHeap->DriverResource;
+    kernelResource.osSurface->OsResource = pVeboxHeap->KernelResource;
+
+    VPHAL_GET_SURFACE_INFO info = {};
+    m_allocator->GetSurfaceInfo(&driverResource, info);
+    m_allocator->GetSurfaceInfo(&kernelResource, info);
+
+
+    VP_SURFACE_DUMP(debuginterface,
+        &kernelResource,
+        counter,
+        0,
+        VPHAL_DUMP_TYPE_VEBOX_DRIVERHEAP);
+
+    VP_SURFACE_DUMP(debuginterface,
+        &kernelResource,
+        counter,
+        0,
+        VPHAL_DUMP_TYPE_VEBOX_KERNELHEAP);
+
+    counter++;
+finish:
+#endif
+    return eStatus;
+}
+
 MOS_STATUS VpVeboxCmdPacket::Init()
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS    eStatus = MOS_STATUS_SUCCESS;
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_skuTable);
@@ -1710,9 +1758,10 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
 
 MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS    eStatus = MOS_STATUS_SUCCESS;
     VpVeboxRenderData   *pRenderData = GetLastExecRenderData();
-    VP_FUNC_CALL();
 
     if (m_currentSurface && m_currentSurface->osSurface)
     {
@@ -1733,6 +1782,11 @@ MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t p
     // Send vebox command
     VP_RENDER_CHK_STATUS_RETURN(SendVeboxCmd(commandBuffer));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Debug interface with state heap check
+    VP_RENDER_CHK_STATUS_RETURN(DumpVeboxStateHeap())
+#endif
+
     return eStatus;
 }
 
@@ -1740,6 +1794,8 @@ void VpVeboxCmdPacket::CopySurfaceValue(
     VP_SURFACE                  *pTargetSurface,
     VP_SURFACE                  *pSourceSurface)
 {
+    VP_FUNC_CALL();
+
     if (pTargetSurface == nullptr)
     {
         VP_RENDER_ASSERTMESSAGE("Input pTargetSurface is null");
@@ -1761,6 +1817,8 @@ VpVeboxCmdPacket::VpVeboxCmdPacket(
 
 VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
 {
+    VP_FUNC_CALL();
+
     MOS_Delete(m_sfcRender);
     MOS_Delete(m_lastExecRenderData);
     MOS_Delete(m_surfMemCacheCtl);
@@ -1826,6 +1884,8 @@ MOS_STATUS VpVeboxCmdPacket::GetStatisticsSurfaceOffsets(
     int32_t*                    pStatSlice0Offset,
     int32_t*                    pStatSlice1Offset)
 {
+    VP_FUNC_CALL();
+
     uint32_t    uiPitch;
     int32_t     iOffset;
     MOS_STATUS  eStatus;
@@ -1867,9 +1927,14 @@ finish:
 }
 
 MOS_STATUS VpVeboxCmdPacket::AddVeboxDndiState()
-{                                                                          
-    PMHW_VEBOX_INTERFACE             pVeboxInterface = m_hwInterface->m_veboxInterface;;
-    VpVeboxRenderData               *pRenderData = GetLastExecRenderData();
+{
+    VP_FUNC_CALL();
+
+    PMHW_VEBOX_INTERFACE             pVeboxInterface = m_hwInterface->m_veboxInterface;
+    VpVeboxRenderData               *pRenderData     = GetLastExecRenderData();
+
+    VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     if (pRenderData->DN.bDnEnabled || pRenderData->DI.bDeinterlace || pRenderData->DI.bQueryVariance)
     {
@@ -1880,8 +1945,13 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxDndiState()
 
 MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
 {
-    PMHW_VEBOX_INTERFACE             pVeboxInterface = m_hwInterface->m_veboxInterface;;
+    VP_FUNC_CALL();
+
+    PMHW_VEBOX_INTERFACE             pVeboxInterface = m_hwInterface->m_veboxInterface;
     VpVeboxRenderData*              pRenderData      = GetLastExecRenderData();
+
+    VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     if (pRenderData->IECP.IsIecpEnabled())
     {
@@ -1892,6 +1962,8 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
 
 MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
 {
+    VP_FUNC_CALL();
+
     PMHW_VEBOX_INTERFACE            pVeboxInterface = nullptr;
     VpVeboxRenderData               *pRenderData    = GetLastExecRenderData();
 

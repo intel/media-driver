@@ -607,6 +607,55 @@ MOS_STATUS VpAllocator::GetSurfaceInfo(VPHAL_SURFACE *surface, VPHAL_GET_SURFACE
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpAllocator::GetSurfaceInfo(VP_SURFACE* surface, VPHAL_GET_SURFACE_INFO& info)
+{
+    MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
+    MOS_SURFACE       resDetails;
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_mmc);
+    VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
+    VP_PUBLIC_CHK_NULL_RETURN(surface);
+    VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);
+
+    if (Mos_ResourceIsNull(&surface->osSurface->OsResource))
+    {
+        VP_PUBLIC_NORMALMESSAGE("invalid resource handle");
+        return MOS_STATUS_INVALID_HANDLE;
+    }
+
+    MOS_ZeroMemory(&resDetails, sizeof(MOS_SURFACE));
+    resDetails.dwArraySlice = info.ArraySlice;
+    resDetails.dwMipSlice   = info.MipSlice;
+    resDetails.S3dChannel   = info.S3dChannel;
+    resDetails.Format       = surface->osSurface->Format;
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&surface->osSurface->OsResource, &resDetails));
+
+    // Format_420O is mapped to Format_NV12 in VpHal here.
+    // But it is mapped to several different Formats in CodecHal under different conditions.
+    if (resDetails.Format == Format_420O)
+    {
+        resDetails.Format = Format_NV12;
+    }
+
+    // Get resource information
+    surface->osSurface->dwWidth         = resDetails.dwWidth;
+    surface->osSurface->dwHeight        = resDetails.dwHeight;
+    surface->osSurface->dwPitch         = resDetails.dwPitch;
+    surface->osSurface->dwSlicePitch    = resDetails.dwSlicePitch;
+    surface->osSurface->dwDepth         = resDetails.dwDepth;
+    surface->osSurface->TileType        = resDetails.TileType;
+    surface->osSurface->TileModeGMM     = resDetails.TileModeGMM;
+    surface->osSurface->bGMMTileEnabled = resDetails.bGMMTileEnabled;
+    surface->osSurface->bOverlay        = resDetails.bOverlay ? true : false;
+    surface->osSurface->bFlipChain      = resDetails.bFlipChain ? true : false;
+    surface->osSurface->Format          = resDetails.Format;
+    surface->osSurface->bCompressible   = resDetails.bCompressible ? true : false;
+    surface->osSurface->bIsCompressed   = resDetails.bIsCompressed ? true : false;
+    
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpAllocator::AllocParamsInitType(
     MOS_ALLOC_GFXRES_PARAMS     &allocParams,
     PVPHAL_SURFACE              surface,

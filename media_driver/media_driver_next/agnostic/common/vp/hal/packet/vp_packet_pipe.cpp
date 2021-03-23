@@ -266,7 +266,6 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
                 handle.first,
                 VPHAL_DUMP_TYPE_POST_COMP);
             }
-            
         }
 #endif
     }

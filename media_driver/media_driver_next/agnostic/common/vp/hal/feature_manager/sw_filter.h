@@ -94,8 +94,6 @@ enum SurfaceType
     SurfaceTypeScalar,
     SurfaceTypeSTMMIn,
     SurfaceTypeSTMMOut,
-    SurfaceTypeAutoDNNoiseLevel, // with kernel path needed
-    SurfaceTypeAutoDNSpatialConfig,
     SurfaceTypeACEHistory,
     SurfaceTypeFMDHistory,
     SurfaceTypeLaceAceRGBHistogram,
@@ -107,6 +105,8 @@ enum SurfaceType
     SurfaceTypeAlphaOrVignette,
     SurfaceTypeVeboxStateHeap_Drv,
     SurfaceTypeVeboxStateHeap_Knr,
+    SurfaceTypeAutoDNNoiseLevel, // with kernel path needed
+    SurfaceTypeAutoDNSpatialConfig,
     SurfaceTypeRenderInput,
     SurfaceTypeRenderOutput,
     SurfaceTypeRenderSRInput, //Super Resolution related Surface and Buffer index Reserved

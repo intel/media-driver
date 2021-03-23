@@ -118,6 +118,8 @@ struct _VP_MHWINTERFACE
 
     // vp Pipeline workload status report
     PVPHAL_STATUS_TABLE        m_statusTable;
+
+    void                      *m_debugInterface;
 };
 
 // To define the features enabling on different engines

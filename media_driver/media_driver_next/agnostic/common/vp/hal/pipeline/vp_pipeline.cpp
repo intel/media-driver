@@ -193,6 +193,8 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     SkuWaTable_DUMP_XML(m_skuTable, m_waTable)
 #endif
 
+    m_vpMhwInterface.m_debugInterface = (void*)m_debugInterface;
+
     m_pPacketFactory = MOS_New(PacketFactory, m_vpMhwInterface.m_vpPlatformInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_pPacketFactory);
 

@@ -149,7 +149,7 @@ enum KernelID
     CombinedFc = 0,
 
     // 2 VEBOX KERNELS
-    VeboxSecureBlockCopy,
+    VeboxSecureBlockCopy = 2,
     VeboxUpdateDnState,
     VeboxKernelMax,
 
@@ -286,10 +286,10 @@ protected:
     // object walker: media walker/compute walker
     WALKER_TYPE                 m_walkerType = WALKER_TYPE_DISABLED;
 
-    MHW_WALKER_PARAMS m_mediaWalkerParams = {};
+    MHW_WALKER_PARAMS       m_mediaWalkerParams = {};
 
     MHW_GPGPU_WALKER_PARAMS m_gpgpuWalkerParams = {};
 
-    PMHW_BATCH_BUFFER            pBatchBuffer = nullptr;
+    PMHW_BATCH_BUFFER       pBatchBuffer = nullptr;
 };
 #endif // __MEDIA_RENDER_CMD_PACKET_H__

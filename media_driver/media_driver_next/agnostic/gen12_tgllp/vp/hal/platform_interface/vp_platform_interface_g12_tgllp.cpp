@@ -195,13 +195,13 @@ RENDERHAL_KERNEL_PARAM VpPlatformInterfaceG12Tgllp::GetVeboxKernelSettings(uint3
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS vp::VpPlatformInterfaceG12Tgllp::VeboxQueryStatLayout(VEBOX_STAT_QUERY_TYPE QueryType, uint32_t* pQuery)
+MOS_STATUS vp::VpPlatformInterfaceG12Tgllp::VeboxQueryStatLayout(VEBOX_STAT_QUERY_TYPE queryType, uint32_t* pQuery)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     VPHAL_RENDER_ASSERT(pQuery);
 
-    switch (QueryType)
+    switch (queryType)
     {
     case VEBOX_STAT_QUERY_GNE_OFFEST:
         *pQuery = VP_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G12;
@@ -220,7 +220,7 @@ MOS_STATUS vp::VpPlatformInterfaceG12Tgllp::VeboxQueryStatLayout(VEBOX_STAT_QUER
         break;
 
     default:
-        VPHAL_RENDER_ASSERTMESSAGE("Vebox Statistics Layout Query, type ('%d') is not implemented.", QueryType);
+        VPHAL_RENDER_ASSERTMESSAGE("Vebox Statistics Layout Query, type ('%d') is not implemented.", queryType);
         eStatus = MOS_STATUS_UNKNOWN;
         break;
     }

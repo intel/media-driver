@@ -395,9 +395,12 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
         break;
 
     default:
-        VPHAL_DEBUG_ASSERTMESSAGE("Format '%d' not supported.", pSurface->Format);
-        eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        VPHAL_DEBUG_NORMALMESSAGE("input format is unclear for driver, using default 1 plane setting");
+        *pdwNumPlanes = 1;
+        pPlanes[0].dwWidth = pSurface->dwWidth;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch = pSurface->dwPitch;
+        break;
     }
 
     // For Deswizzled surfaces, Mos_Specific_LockResource() already do the de-padding between Y and UV surf. 
@@ -467,7 +470,6 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
                    (pPlanes[2].dwWidth * pPlanes[2].dwHeight);
     }
 
-finish:
     return eStatus;
 }
 

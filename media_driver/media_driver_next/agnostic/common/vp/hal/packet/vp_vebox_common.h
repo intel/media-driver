@@ -247,8 +247,6 @@ public:
     virtual MOS_STATUS Init()
     {
         MHW_ACE_PARAMS aceParams = {};
-        bUseKernelUpdate         = false;
-        bVeboxStateCopyNeeded    = false;
         PerfTag                  = VPHAL_NONE;
 
         DN.value                 = 0;
@@ -411,9 +409,6 @@ public:
                     STE.bSteEnabled || PROCAMP.bProcampEnabled;
         }
     } IECP;
-
-    bool bUseKernelUpdate = false;
-    bool bVeboxStateCopyNeeded = false;
 
     // Perf
     VPHAL_PERFTAG                       PerfTag = VPHAL_NONE;

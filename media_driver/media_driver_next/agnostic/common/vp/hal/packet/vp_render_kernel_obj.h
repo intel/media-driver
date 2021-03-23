@@ -454,7 +454,6 @@ protected:
         VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
         return MOS_STATUS_SUCCESS;
     }
-
 protected:
 
     VP_SURFACE_GROUP                                        *m_surfaceGroup = nullptr;   // input surface process surface groups
