@@ -60,7 +60,6 @@ static inline RENDERHAL_SURFACE_TYPE InitRenderHalSurfType(VPHAL_SURFACE_TYPE vp
 VpRenderCmdPacket::VpRenderCmdPacket(MediaTask *task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, VpKernelSet *kernelSet) : CmdPacket(task),
                                                                                                                                                             RenderCmdPacket(task, hwInterface->m_osInterface, hwInterface->m_renderHal),
                                                                                                                                                             VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_RENDER),
-                                                                                                                                                            m_filter(nullptr),
                                                                                                                                                             m_firstFrame(true),
                                                                                                                                                             m_kernelSet(kernelSet)
 {
@@ -242,20 +241,11 @@ MOS_STATUS VpRenderCmdPacket::SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params)
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
+    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+
     KERNEL_PARAMS kernelParams = {};
-
-    if (params->kernelGroup.empty())
-    {
-        VP_RENDER_ASSERTMESSAGE("No Kernel need to be processed");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    for (auto it : params->kernelGroup)
-    {
-        m_kernelConfigs.insert(std::make_pair((KernelId)it, (void *)params));
-        kernelParams.kernelId = (KernelId)it;
-        m_renderKernelParams.push_back(kernelParams);
-    }
+    kernelParams.kernelId = params->kernelId;
+    m_renderKernelParams.push_back(kernelParams);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -266,18 +256,8 @@ MOS_STATUS VpRenderCmdPacket::SetSecureCopyParams(PSTATE_COPY_PARAMS params)
     VP_RENDER_CHK_NULL_RETURN(params);
 
     KERNEL_PARAMS kernelParams = {};
-
-    if (params->kernelGroup.empty())
-    {
-        VP_RENDER_ASSERTMESSAGE("No Kernel need to be processed");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    for (auto it : params->kernelGroup)
-    {
-        kernelParams.kernelId = it;
-        m_renderKernelParams.push_back(kernelParams);
-    }
+    kernelParams.kernelId = params->kernelId;
+    m_renderKernelParams.push_back(kernelParams);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -310,19 +290,13 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
     // // Initialize States
-    MOS_ZeroMemory(m_filter, sizeof(m_filter));
     MOS_ZeroMemory(&m_renderData.KernelEntry, sizeof(Kdll_CacheEntry));
 
     // Store pointer to Kernel Parameter
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelSettings(m_renderData.KernelParam));
 
     // Set Parameters for Kernel Entry
-    m_renderData.KernelEntry.iKUID       = m_kernel->GetKernelBinaryID();
-    m_renderData.KernelEntry.iKCID       = -1;
-    m_renderData.KernelEntry.iFilterSize = 2;
-    m_renderData.KernelEntry.pFilter     = m_filter;
-    m_renderData.KernelEntry.iSize       = m_kernel->GetKernelSize();
-    m_renderData.KernelEntry.pBinary     = (uint8_t *)m_kernel->GetKernelBinary();
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelEntry(m_renderData.KernelEntry));
 
     // set the Inline Data length
     void *   InlineData    = nullptr;
@@ -789,7 +763,7 @@ MOS_STATUS VpRenderCmdPacket::SetSRParams(PRENDER_SR_PARAMS params)
                 m_surfSetting.surfGroup.insert(std::make_pair(layer.reluBuffer, pSurface));
             }
 
-            kernelParams.kernelId = layer.uKernelID;
+            kernelParams.kernelId = layer.kernelId;
             kernelParams.kernelArgs = layer.kernelArgs;
             kernelParams.kernelThreadSpace.uHeight = layer.uThreadHeight;
             kernelParams.kernelThreadSpace.uWidth = layer.uThreadWidth;
@@ -812,7 +786,7 @@ MOS_STATUS VpRenderCmdPacket::SetSRChromaParams(PRENDER_SR_PARAMS params)
     RENDER_PACKET_CHK_NULL_RETURN(params);
 
     KERNEL_PARAMS kernelParams = {};
-    kernelParams.kernelId = params->chromaLayerParam.uKernelID;
+    kernelParams.kernelId = params->chromaLayerParam.kernelId;
     kernelParams.kernelArgs = params->chromaLayerParam.kernelArgs;
     kernelParams.kernelThreadSpace.uWidth = params->chromaLayerParam.uThreadWidth;
     kernelParams.kernelThreadSpace.uHeight = params->chromaLayerParam.uThreadHeight;
@@ -1579,7 +1553,7 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
     pOsContext      = pOsInterface->pOsContext;
     pMmioRegisters  = pMhwRender->GetMmioRegisters();
 
-    RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(CombinedFc));
+    RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(kernelCombinedFc));
 
     // Initialize command buffer and insert prolog
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));

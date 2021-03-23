@@ -35,9 +35,10 @@
 
 namespace vp {
 
+// KernelIndex is the index in KERNEL_PARAMS_LIST
 using KERNEL_OBJECTS = std::map<KernelIndex, VpRenderKernelObj*>;
 using KERNEL_RENDER_DATA = std::map<KernelIndex, KERNEL_PACKET_RENDER_DATA>;
-using RENDER_KERNEL_PARAMS = std::vector<KERNEL_PARAMS>;
+using KERNEL_PARAMS_LIST = std::vector<KERNEL_PARAMS>;
 
 class VpKernelSet
 {
@@ -55,16 +56,17 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS CreateSingleKernelObject(
+        VpRenderKernelObj *&kernel,
+        VpKernelID kernelId,
+        KernelIndex kernelIndex);
+
     virtual MOS_STATUS CreateKernelObjects(
-        RENDER_KERNEL_PARAMS& kernelParams,
+        KERNEL_PARAMS_LIST& kernelParams,
         VP_SURFACE_GROUP& surfacesGroup,
         KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup,
         KERNEL_CONFIGS& kernelConfigs,
-        KERNEL_OBJECTS& kernelObjs)
-    {
-        // once add kernels here, then it should return success, kernelObjs shoule not be empty
-        return MOS_STATUS_SUCCESS;
-    }
+        KERNEL_OBJECTS& kernelObjs);
 
     virtual MOS_STATUS DestroyKernelObjects(KERNEL_OBJECTS& kernelObjs)
     {

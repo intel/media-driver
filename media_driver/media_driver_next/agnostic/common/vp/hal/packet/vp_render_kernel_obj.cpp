@@ -115,19 +115,9 @@ VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface) :
 {
 }
 
-VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, uint32_t kernelID, uint32_t kernelIndex) :
-    m_hwInterface(hwInterface)
+VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelId, uint32_t kernelIndex) :
+    m_hwInterface(hwInterface), m_kernelId(kernelId), m_kernelIndex(kernelIndex)
 {
-    KernelId id = KernelId(kernelID);
-    switch(id)
-    {
-      case Kernel_Invalidate:
-      default:
-        m_kernelName.assign("");
-        break;
-    }
-    SetKernelID(id);
-    SetKernelIndex(kernelIndex);
 }
 
 VpRenderKernelObj::~VpRenderKernelObj()
@@ -222,29 +212,20 @@ MOS_STATUS VpRenderKernelObj::GetCurbeState(void*& curbe, uint32_t& curbeLength)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetKernelID(uint32_t kid)
-{
-    VP_FUNC_CALL();
-    m_kernelID = kid;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-uint32_t VpRenderKernelObj::GetKernelID()
-{
-    return m_kernelID;
-}
-
 uint32_t VpRenderKernelObj::GetKernelBinaryID()
 {
     return m_kernelBinaryID;
 }
 
-MOS_STATUS VpRenderKernelObj::SetKernelIndex(uint32_t kid)
+MOS_STATUS VpRenderKernelObj::GetKernelEntry(Kdll_CacheEntry &entry)
 {
-    VP_FUNC_CALL();
-    m_kernelIndex = kid;
-
+    // Set Parameters for Kernel Entry
+    entry.iKUID         = m_kernelBinaryID;
+    entry.iKCID         = -1;
+    entry.iFilterSize   = 2;
+    entry.pFilter       = nullptr;
+    entry.iSize         = m_kernelSize;
+    entry.pBinary       = (uint8_t *)m_kernelBinary;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -384,7 +365,6 @@ MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS& kernelArgs)
 }
 
 MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
-    KERNEL_CONFIGS& kernelConfigs,
     KERNEL_PARAMS& kernelParams,
     VP_SURFACE_GROUP& surfaces,
     KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup)
@@ -402,7 +382,7 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs, uint32_t kernelExecuteID)
+MOS_STATUS VpRenderKernelObj::SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs)
 {
     //For legacy kernel usage
     return MOS_STATUS_SUCCESS;
@@ -419,7 +399,7 @@ MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CON
     m_kernelBinary = binary;
     m_kernelSize = size;
 
-    VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs, m_kernelID));
+    VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs));
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfacesGroup));
 
     return MOS_STATUS_SUCCESS;

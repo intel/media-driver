@@ -30,6 +30,7 @@
 #include "hal_kerneldll.h"
 #include "vp_feature_manager.h"
 #include "vp_render_common.h"
+#include "vp_kernel_config.h"
 
 namespace vp
 {
@@ -195,18 +196,14 @@ public:
         return 32 * 8;
     }
 
-    virtual RENDERHAL_KERNEL_PARAM GetVeboxKernelSettings(uint32_t iKDTIndex)
-    {
-        RENDERHAL_KERNEL_PARAM kernelParam;
-        MOS_ZeroMemory(&kernelParam, sizeof(RENDERHAL_KERNEL_PARAM));
-
-        return kernelParam;
-    }
-
     virtual bool IsPlatformCompressionEnabled()
     {
         return !m_vpMmcDisabled;
     }
+
+    virtual VpKernelConfig &GetKernelConfig() = 0;
+
+    MOS_STATUS GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param);
 
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;

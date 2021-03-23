@@ -33,28 +33,12 @@
 #include "igvpkrn_g12_tgllp_cmfc.h"
 #include "igvpkrn_g12_tgllp_cmfcpatch.h"
 #endif
+#include "vp_kernel_config_m12_base.h"
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_g12lp[];
 extern const Kdll_RuleEntry         g_KdllRuleTable_g12lpcmfc[];
 
 using namespace vp;
-//Kernel Params ---------------------------------------------------------------
-extern const RENDERHAL_KERNEL_PARAM g_Vebox_KernelParam_m12[VEBOX_KERNEL_BASE_MAX_G12] =
-{
-    ///*  GRF_Count
-    //    |  BT_Count
-    //    |  |    Sampler_Count
-    //    |  |    |  Thread_Count
-    //    |  |    |  |                             GRF_Start_Register
-    //    |  |    |  |                             |   CURBE_Length
-    //    |  |    |  |                             |   |   block_width
-    //    |  |    |  |                             |   |   |    block_height
-    //    |  |    |  |                             |   |   |    |   blocks_x
-    //    |  |    |  |                             |   |   |    |   |   blocks_y
-    //    |  |    |  |                             |   |   |    |   |   |*/
-        { 0, 0 ,  0, VP_USE_MEDIA_THREADS_MAX,  0,  0,   0,  0,  0,  0 },    // RESERVED
-        { 4, 34,  0, VP_USE_MEDIA_THREADS_MAX,  0,  2,  64,  8,  1,  1 },    // UPDATEDNSTATE
-};
 
 MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount,
                                                             VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount)
@@ -126,21 +110,6 @@ MOS_STATUS VpPlatformInterfaceG12Tgllp::CreateSfcRender(SfcRenderBase *&sfcRende
     }
 
     return MOS_STATUS_SUCCESS;
-}
-
-RENDERHAL_KERNEL_PARAM VpPlatformInterfaceG12Tgllp::GetVeboxKernelSettings(uint32_t iKDTIndex)
-{
-    RENDERHAL_KERNEL_PARAM kernelParam;
-    MOS_ZeroMemory(&kernelParam, sizeof(RENDERHAL_KERNEL_PARAM));
-    if (iKDTIndex < VEBOX_KERNEL_BASE_MAX_G12)
-    {
-        kernelParam = g_Vebox_KernelParam_m12[iKDTIndex];
-    }
-    else
-    {
-        VP_PUBLIC_ASSERTMESSAGE("not support in Vebox Kernels");
-    }
-    return kernelParam;
 }
 
 //!
@@ -226,4 +195,10 @@ MOS_STATUS vp::VpPlatformInterfaceG12Tgllp::VeboxQueryStatLayout(VEBOX_STAT_QUER
     }
 
     return eStatus;
+}
+
+VpKernelConfig &VpPlatformInterfaceG12Tgllp::GetKernelConfig()
+{
+    static VpKernelConfigM12_Base kernelConfig;
+    return kernelConfig;
 }

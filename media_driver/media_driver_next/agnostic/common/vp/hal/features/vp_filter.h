@@ -289,7 +289,7 @@ struct _VEBOX_UPDATE_PARAMS
 {
     VEBOX_DN_PARAMS                 denoiseParams;
     VP_EXECUTE_CAPS                 veboxExecuteCaps;
-    std::vector<uint32_t>           kernelGroup;
+    VpKernelID                      kernelId;
 };
 
 using VEBOX_UPDATE_PARAMS      = _VEBOX_UPDATE_PARAMS;
@@ -300,7 +300,7 @@ using PVEBOX_HDR_PARAMS     = VEBOX_HDR_PARAMS *;
 struct _STATE_COPY_PARAMS
 {
     bool needed;
-    std::vector<uint32_t>           kernelGroup;
+    VpKernelID                      kernelId;
 };
 
 using STATE_COPY_PARAMS = _STATE_COPY_PARAMS;
@@ -315,7 +315,7 @@ struct SR_LAYER_PARAMS
     uint32_t                                          uHeight;
     MOS_FORMAT                                        format;
     std::string                                       sKernelName;
-    uint32_t                                          uKernelID;
+    VpKernelID                                        kernelId;
     SurfaceIndex                                      weightBuffer;
     uint32_t                                          uWeightBufferSize;
     uint32_t                                          uOutChannels;
@@ -361,7 +361,7 @@ struct CHROMA_LAYER_PARAMS
     float                                             fScaleRatioY;
 
     std::string                                       sKernelName;
-    uint32_t                                          uKernelID;
+    VpKernelID                                        kernelId;
 
     uint32_t                                          uThreadWidth;
     uint32_t                                          uThreadHeight;

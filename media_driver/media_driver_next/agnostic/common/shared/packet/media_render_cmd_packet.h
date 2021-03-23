@@ -143,28 +143,6 @@ struct SseuSetting
     uint8_t   reserved;       // Place holder for frequency setting
 };
 
-enum KernelID
-{
-    // FC
-    CombinedFc = 0,
-
-    // 2 VEBOX KERNELS
-    VeboxSecureBlockCopy = 2,
-    VeboxUpdateDnState,
-    VeboxKernelMax,
-
-    // User Ptr
-    UserPtr,
-    // Fast 1toN
-    Fast1toN,
-
-    // HDR
-    HdrMandatory,
-    HdrPreprocess,
-
-    KernelMaxNumID
-};
-
 typedef struct _RENDERHAL_SURFACE_NEXT : public _RENDERHAL_SURFACE
 {
     uint32_t Index;

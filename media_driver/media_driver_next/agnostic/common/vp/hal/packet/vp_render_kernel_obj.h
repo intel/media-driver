@@ -49,13 +49,6 @@ namespace vp {
 
 #define KERNEL_BINARY_PADDING_SIZE CM_KERNEL_BINARY_PADDING_SIZE
 
-enum KernelId
-{
-    Kernel_Invalidate = 0,
-    Kernel_FastComposition,
-    Kernel_Max
-};
-
 typedef struct _KERNEL_SURFACE_STATE_PARAM
 {
     struct {
@@ -76,8 +69,8 @@ typedef struct _KERNEL_SURFACE_STATE_PARAM
     uint32_t   reserved[2]; // for future usage
 } KERNEL_SURFACE_STATE_PARAM;
 
+using KERNEL_CONFIGS = std::map<VpKernelID, void *>; // Only for legacy/non-cm kernels
 using KERNEL_ARGS = std::vector<KRN_ARG>;
-using KERNEL_CONFIGS = std::map<KernelIndex, void*>;
 using KERNEL_SAMPLER_STATE_GROUP = std::map<SamplerIndex, MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
@@ -86,7 +79,7 @@ using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceIndex, uint32_t>;
 
 typedef struct _KERNEL_PARAMS
 {
-    KernelIndex          kernelId;
+    VpKernelID           kernelId;
     KERNEL_ARGS          kernelArgs;
     KERNEL_THREAD_SPACE  kernelThreadSpace;
     KERNEL_SAMPLER_INDEX kernelSamplerIndex;
@@ -331,7 +324,7 @@ class VpRenderKernelObj
 {
 public:
     VpRenderKernelObj(PVP_MHWINTERFACE hwInterface);
-    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, uint32_t kernelID, uint32_t kernelIndex);
+    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelId, uint32_t kernelIndex);
     virtual ~VpRenderKernelObj();
 
     // Kernel Specific, which will inplenment be each kernel
@@ -347,7 +340,6 @@ public:
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam);
 
     virtual MOS_STATUS SetKernelConfigs(
-        KERNEL_CONFIGS& kernelConfigs,
         KERNEL_PARAMS& kernelParams,
         VP_SURFACE_GROUP& surfaces,
         KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup);
@@ -357,15 +349,14 @@ public:
     // Kernel Common configs
     virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)
     {
-        MOS_ZeroMemory(&settsings, sizeof(RENDERHAL_KERNEL_PARAM));
-
+        if (IsAdvKernel())
+        {
+            // For adv kernel, no need for kernel param.
+            return MOS_STATUS_SUCCESS;
+        }
         if (m_hwInterface && m_hwInterface->m_vpPlatformInterface)
         {
-            // adding when insert new kernels
-            if (m_kernelID >= VeboxSecureBlockCopy && m_kernelID < VeboxKernelMax)
-            {
-                settsings = m_hwInterface->m_vpPlatformInterface->GetVeboxKernelSettings(m_kernelID - VeboxSecureBlockCopy);
-            }
+            VP_PUBLIC_CHK_STATUS_RETURN(m_hwInterface->m_vpPlatformInterface->GetKernelParam(m_kernelId, settsings));
             return MOS_STATUS_SUCCESS;
         }
         else
@@ -383,13 +374,8 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS SetKernelID(uint32_t kid);
-
-    MOS_STATUS SetKernelIndex(uint32_t kid);
-
-    virtual uint32_t GetKernelID();
-
     virtual uint32_t GetKernelBinaryID();
+    virtual MOS_STATUS GetKernelEntry(Kdll_CacheEntry &entry);
 
     void* GetKernelBinary()
     {
@@ -436,6 +422,11 @@ public:
 
     MOS_STATUS InitKernel(void* binary, uint32_t size, KERNEL_CONFIGS& kernelConfigs, VP_SURFACE_GROUP& surfacesGroup);
 
+    bool IsAdvKernel()
+    {
+        return m_isAdvKernel;
+    }
+
 protected:
 
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE& threadSpace, bool bSyncFlag);
@@ -446,7 +437,7 @@ protected:
 
     virtual MOS_STATUS SetupSurfaceState();
 
-    virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs, uint32_t kernelExecuteID);
+    virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs);
 
     MOS_STATUS SetProcessSurfaceGroup(VP_SURFACE_GROUP& surfaces)
     {
@@ -456,7 +447,7 @@ protected:
     }
 protected:
 
-    VP_SURFACE_GROUP                                        *m_surfaceGroup = nullptr;   // input surface process surface groups
+    VP_SURFACE_GROUP                                        *m_surfaceGroup = nullptr;  // input surface process surface groups
     PVP_MHWINTERFACE                                        m_hwInterface = nullptr;
     KERNEL_SURFACE_CONFIG                                   m_surfaceState;             // surfaces processed pool where the surface state will generated here, if KERNEL_SURFACE_STATE_PARAM 
     KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
@@ -466,13 +457,15 @@ protected:
     void *                                                  m_kernelBinary = nullptr;
     uint32_t                                                m_kernelBinaryID = 0;
     uint32_t                                                m_kernelSize = 0;
-    uint32_t                                                m_kernelID = 0;
-    uint32_t                                                m_kernelIndex = 0;
+    VpKernelID                                              m_kernelId = kernelCombinedFc;
+    KernelIndex                                             m_kernelIndex = 0;          // index of current kernel in KERNEL_PARAMS_LIST
 
     //kernel Arguments
     KERNEL_ARGS                                             m_kernelArgs;
     KERNEL_SAMPLER_STATES                                   m_samplerStates;
     KERNEL_WALKER_PARAMS                                    m_walkerParam = {};
+
+    bool                                                    m_isAdvKernel = false;      // true mean multi kernel can be submitted in one workload.
 
     static MEDIA_OBJECT_KA2_INLINE_DATA                     g_cInit_VP_MEDIA_OBJECT_KA2_INLINE_DATA;
 

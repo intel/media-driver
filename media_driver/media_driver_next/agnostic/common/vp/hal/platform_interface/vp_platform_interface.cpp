@@ -353,3 +353,9 @@ VpPlatformInterface::~VpPlatformInterface()
         kernel.Destroy();
     }
 }
+
+MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param)
+{
+    VP_PUBLIC_CHK_STATUS_RETURN(GetKernelConfig().GetKernelParam(kernlId, param));
+    return MOS_STATUS_SUCCESS;
+}

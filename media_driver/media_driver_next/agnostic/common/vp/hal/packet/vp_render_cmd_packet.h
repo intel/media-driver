@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -150,16 +150,16 @@ protected:
 protected:
 
     KERNEL_OBJECTS                     m_kernelObjs;
-    KERNEL_CONFIGS                     m_kernelConfigs;
     KERNEL_RENDER_DATA                 m_kernelRenderData;
 
-    Kdll_FilterEntry                  *m_filter = nullptr;    // Kernel Filter (points to base of filter array)
+    KERNEL_CONFIGS                     m_kernelConfigs; // Kernel parameters for legacy kernels.
+
     bool                               m_firstFrame = true;
     
     VpKernelSet                       *m_kernelSet = nullptr;
     VpRenderKernelObj                 *m_kernel    = nullptr; // processing kernel pointer
 
-    RENDER_KERNEL_PARAMS               m_renderKernelParams;
+    KERNEL_PARAMS_LIST                 m_renderKernelParams;
     KERNEL_SAMPLER_STATE_GROUP         m_kernelSamplerStateGroup;
 
     KERNEL_SUBMISSION_MODE             m_submissionMode = MULTI_KERNELS_WITH_MULTI_MEDIA_STATES;

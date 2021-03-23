@@ -27,7 +27,6 @@
 namespace vp
 {
 #define CM_MAX_KERNEL_NAME_SIZE          256
-#define VP_USE_MEDIA_THREADS_MAX         0
 #define READ_FIELD_FROM_BUF( dst, type ) \
     dst = *((type *) &pBuf[bytePos]); \
     bytePos += sizeof(type);
@@ -72,7 +71,7 @@ struct KRN_ARG
 
 using SurfaceIndex = uint32_t;
 using SamplerIndex = uint32_t;
-using KernelIndex  = uint32_t;
+using KernelIndex  = uint32_t;              // index of current kernel in KERNEL_PARAMS_LIST
 
 enum KERNEL_SUBMISSION_MODE
 {

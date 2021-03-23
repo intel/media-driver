@@ -128,7 +128,7 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
     pOsContext = pOsInterface->pOsContext;
     pMmioRegisters = pMhwRender->GetMmioRegisters();
 
-    RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(CombinedFc));
+    RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(0));
 
     // Initialize command buffer and insert prolog
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));

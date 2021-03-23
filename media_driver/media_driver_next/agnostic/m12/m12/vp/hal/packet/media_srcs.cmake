@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2020-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,10 +20,12 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_m12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_kernel_config_m12_base.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_sfc_m12.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_kernel_config_m12_base.h
 )
 
 set(SOURCES_NEW
