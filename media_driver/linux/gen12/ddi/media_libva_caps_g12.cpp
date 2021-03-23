@@ -2333,6 +2333,22 @@ VAStatus MediaLibvaCapsG12::LoadAv1DecProfileEntrypoints()
         for (int32_t i = 0; i < 2; i++)
         {
             AddDecConfig(m_decSliceMode[i], VA_CENC_TYPE_NONE, VA_DEC_PROCESSING_NONE);
+            if (m_isEntryptSupported)
+            {
+                uint32_t encrytTypes[DDI_CP_ENCRYPT_TYPES_NUM];
+
+                int32_t numTypes = m_CapsCp->GetEncryptionTypes((VAProfile) VAProfileAV1Profile0,
+                        encrytTypes, DDI_CP_ENCRYPT_TYPES_NUM);
+
+                if (numTypes > 0)
+                {
+                    for (int32_t l = 0; l < numTypes; l++)
+                    {
+                        AddDecConfig(m_decSliceMode[i], encrytTypes[l],
+                                VA_DEC_PROCESSING_NONE);
+                    }
+                }
+            }
         }
 
         AddProfileEntry((VAProfile) VAProfileAV1Profile0, VAEntrypointVLD, attributeList,
