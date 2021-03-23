@@ -1717,7 +1717,7 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
     attrib.type = VAConfigAttribEncInterlaced;
     attrib.value = VA_ENC_INTERLACED_NONE;
 #ifndef ANDROID
-    if(IsAvcProfile(profile))
+    if(IsAvcProfile(profile) && (entrypoint != VAEntrypointEncSliceLP))
     {
         attrib.value = VA_ENC_INTERLACED_FIELD;
     }
