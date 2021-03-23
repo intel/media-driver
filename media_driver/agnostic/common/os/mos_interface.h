@@ -409,6 +409,17 @@ public:
         MOS_STREAM_HANDLE  streamState,
         GPU_CONTEXT_HANDLE gpuContextHandle);
 
+    //! \brief    Sets the object capture flags for Linux OCA dump
+    //! \details  Sets the object capture flags for Linux OCA dump
+    //!
+    //! \param    PMOS_RESOURCE osResource
+    //!           [in] osResource
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if success else failure reason
+    //!
+    static MOS_STATUS SetObjectCapture(
+        PMOS_RESOURCE osResource);
+
     //!
     //! \brief   Get GpuContext
     //! \details MOS internal toolset func to get GPU context instance
