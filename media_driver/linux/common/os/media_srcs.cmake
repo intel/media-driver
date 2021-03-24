@@ -38,7 +38,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/memory_policy_manager_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_vma.c
 )
 
 set(TMP_HEADERS_
@@ -54,7 +53,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_auxtable_mgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor_specific.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_vma.h
 )
 
 if(${Media_Scalability_Supported} STREQUAL "yes")

@@ -1,7 +1,7 @@
 /**************************************************************************
  *
  * Copyright © 2007 Red Hat Inc.
- * Copyright © 2007-2021 Intel Corporation
+ * Copyright © 2007-2012 Intel Corporation
  * Copyright 2006 Tungsten Graphics, Inc., Bismarck, ND., USA
  * All Rights Reserved.
  *
@@ -63,7 +63,6 @@
 #include "string.h"
 
 #include "i915_drm.h"
-#include "mos_vma.h"
 
 #ifdef HAVE_VALGRIND
 #include <valgrind.h>
@@ -157,7 +156,7 @@ struct mos_bufmgr_gem {
     } userptr_active;
 
     // manage address for softpin buffer object
-    mos_vma_heap vma_heap[MEMZONE_COUNT];
+    uint64_t head_offset;
     bool use_softpin;
 } mos_bufmgr_gem;
 
@@ -821,49 +820,6 @@ mos_gem_bo_cache_purge_bucket(struct mos_bufmgr_gem *bufmgr_gem,
     }
 }
 
-static enum mos_memory_zone
-mos_gem_bo_memzone_for_address(uint64_t address)
-{
-    if (address >= MEMZONE_DEVICE_START)
-        return MEMZONE_DEVICE;
-    else
-        return MEMZONE_SYS;
-}
-/**
- * Allocate a section of virtual memory for a buffer, assigning an address.
- */
-static uint64_t
-mos_gem_bo_vma_alloc(struct mos_bufmgr *bufmgr,
-          enum mos_memory_zone memzone,
-          uint64_t size,
-          uint64_t alignment)
-{
-    assert(bufmgr);
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
-    /* Force alignment to be some number of pages */
-    alignment = ALIGN(alignment, PAGE_SIZE);
-
-    uint64_t addr = mos_vma_heap_alloc(&bufmgr_gem->vma_heap[memzone], size, alignment);
-
-    assert((addr >> 48ull) == 0);
-    assert((addr % alignment) == 0);
-
-    return addr;
-}
-
-static void
-mos_gem_bo_vma_free(struct mos_bufmgr *bufmgr,
-         uint64_t address,
-         uint64_t size)
-{
-    assert(bufmgr);
-    struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
-    if (address == 0ull)
-        return;
-    enum mos_memory_zone memzone = mos_gem_bo_memzone_for_address(address);
-    mos_vma_heap_free(&bufmgr_gem->vma_heap[memzone], address, size);
-}
-
 drm_export struct mos_linux_bo *
 mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
                 const char *name,
@@ -1182,11 +1138,6 @@ mos_gem_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
 
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, 0);
 
-    if (bufmgr_gem->use_softpin)
-    {
-        mos_bo_set_softpin(&bo_gem->bo);
-    }
-
     MOS_DBG("bo_create_userptr: "
         "ptr %p buf %d (%s) size %ldb, stride 0x%x, tile mode %d\n",
         addr, bo_gem->gem_handle, bo_gem->name,
@@ -1360,11 +1311,6 @@ mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
     /* XXX stride is unknown */
     mos_bo_gem_set_in_aperture_size(bufmgr_gem, bo_gem, 0);
 
-    if (bufmgr_gem->use_softpin)
-    {
-        mos_bo_set_softpin(&bo_gem->bo);
-    }
-
     DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
     pthread_mutex_unlock(&bufmgr_gem->lock);
     MOS_DBG("bo_create_from_handle: %d (%s)\n", handle, bo_gem->name);
@@ -1405,12 +1351,6 @@ mos_gem_bo_free(struct mos_linux_bo *bo)
     if (ret != 0) {
         MOS_DBG("DRM_IOCTL_GEM_CLOSE %d failed (%s): %s\n",
             bo_gem->gem_handle, bo_gem->name, strerror(errno));
-    }
-
-    if (bufmgr_gem->use_softpin)
-    {
-        /* Return the VMA for reuse */
-        mos_gem_bo_vma_free(bo->bufmgr, bo->offset64, bo->size);
     }
     free(bo);
 }
@@ -2202,9 +2142,6 @@ mos_bufmgr_gem_destroy(struct mos_bufmgr *bufmgr)
                 "Failed to release test userptr object! (%d) "
                 "i915 kernel driver may not be sane!\n", errno);
     }
-
-    mos_vma_heap_finish(&bufmgr_gem->vma_heap[MEMZONE_SYS]);
-    mos_vma_heap_finish(&bufmgr_gem->vma_heap[MEMZONE_DEVICE]);
     free(bufmgr);
 }
 
@@ -3052,18 +2989,29 @@ mos_gem_bo_set_softpin(MOS_LINUX_BO *bo)
 {
     int ret = 0;
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
+    uint64_t offset = bufmgr_gem->head_offset;
+
+    // if offset is over 48b address range, return error
+    if (offset > 0xFFFFFFFFFFFF)
+    {
+        MOS_DBG("softpin failed: address over 48b range");
+        return -EINVAL;
+    }
 
     if (!mos_gem_bo_is_softpin(bo))
     {
-        uint64_t offset = mos_gem_bo_vma_alloc(bo->bufmgr, MEMZONE_SYS, bo->size, PAGE_SIZE_64K);
+        // update the head_offset, need to be 64K aligned
+        bufmgr_gem->head_offset += MOS_ALIGN_CEIL(bo->size, 64*1024);
+
+        // softpin the BO to the given offset
         ret = mos_gem_bo_set_softpin_offset(bo, offset);
+        if (ret == 0)
+        {
+            ret = mos_bo_use_48b_address_range(bo, 1);
+        }
+        return ret;
     }
 
-    if (ret == 0)
-    {
-        ret = mos_bo_use_48b_address_range(bo, 1);
-    }
-    
     return ret;
 }
 
@@ -4103,9 +4051,7 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     init_cache_buckets(bufmgr_gem);
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);
-    bufmgr_gem->use_softpin = false;
-    mos_vma_heap_init(&bufmgr_gem->vma_heap[MEMZONE_SYS], MEMZONE_SYS_START, MEMZONE_SYS_SIZE);
-    mos_vma_heap_init(&bufmgr_gem->vma_heap[MEMZONE_DEVICE], MEMZONE_DEVICE_START, MEMZONE_DEVICE_SIZE);
+
 exit:
     pthread_mutex_unlock(&bufmgr_list_mutex);
 
