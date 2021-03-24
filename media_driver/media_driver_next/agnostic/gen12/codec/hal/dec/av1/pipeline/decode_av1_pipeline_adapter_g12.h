@@ -69,6 +69,10 @@ public:
 
     virtual MOS_GPU_CONTEXT GetDecodeContext() override;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    virtual bool IsDownSamplingSupported() override;
+#endif
+
 protected:
     std::shared_ptr<decode::Av1PipelineG12> m_decoder;
 };

@@ -56,7 +56,7 @@ public:
     //! \brief  Indicates whether down sampling is supported
     //! \return If down sampling is supported by decode
     //!
-    virtual bool IsDownSamplingSupported() { return false; }
+    virtual bool IsDownSamplingSupported()= 0;
 #endif
 
     virtual MOS_SURFACE* GetDummyReference() = 0;
