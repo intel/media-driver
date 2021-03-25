@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -700,6 +700,11 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
 
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_destSurface);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_decodeParams.m_dataBuffer);
+
+    if (m_secureDecoder)
+    {
+        m_secureDecoder->EnableSampleGroupConstantIV();
+    }
 
     m_frameIdx++;
 
