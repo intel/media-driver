@@ -111,6 +111,7 @@ struct _VP_MHWINTERFACE
     PMHW_MI_INTERFACE           m_mhwMiInterface;
     vp::VpPlatformInterface    *m_vpPlatformInterface;
     void                       *m_settings;
+    VphalFeatureReport         *m_reporting;
 
     // Render GPU context/node
     MOS_GPU_NODE                m_renderGpuNode;

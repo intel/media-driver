@@ -335,8 +335,9 @@ struct VphalFeatureReport
     //! \brief    VphalFeatureReport Constructor
     //! \details  Creates instance of VphalFeatureReport
     //!
-    VphalFeatureReport()
+    VphalFeatureReport(void *owner = nullptr)
     {
+        this->owner = owner;
         // call InitReportValue() to initialize report value
         InitReportValue();
     };
@@ -346,7 +347,7 @@ struct VphalFeatureReport
     //! \details  initialize VphalFeatureReport value, can use it to reset report value
     //!
     void InitReportValue();
-
+    void                           *owner = nullptr;    //!< Pointer to object creating the report
     bool                            IECP;               //!< IECP enable/disable
     bool                            IEF;                //!< Enhancement filter
     bool                            Denoise;            //!< Denoise

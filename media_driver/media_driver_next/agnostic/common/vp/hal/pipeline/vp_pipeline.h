@@ -254,6 +254,13 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureReport();
 
+    virtual MOS_STATUS CreateReport()
+    {
+        m_reporting        = MOS_New(VphalFeatureReport);
+        VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
+        m_reporting->owner = this;
+        return MOS_STATUS_SUCCESS;
+    }
     //!
     //! \brief  set Predication Params
     //! \return MOS_STATUS

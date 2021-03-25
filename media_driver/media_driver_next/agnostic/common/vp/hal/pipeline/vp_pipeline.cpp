@@ -63,7 +63,15 @@ VpPipeline::~VpPipeline()
     MOS_Delete(m_allocator);
     MOS_Delete(m_statusReport);
     MOS_Delete(m_packetSharedContext);
-    MOS_Delete(m_reporting);
+    if (m_vpMhwInterface.m_reporting && this != m_vpMhwInterface.m_reporting->owner)
+    {
+        m_reporting = nullptr;
+    }
+    else
+    {
+        MOS_Delete(m_reporting);
+        m_vpMhwInterface.m_reporting = nullptr;
+    }
     VP_DEBUG_INTERFACE_DESTROY(m_debugInterface);
 
     if (m_mediaContext)
@@ -481,10 +489,23 @@ MOS_STATUS VpPipeline::CheckFeatures(void *params, bool &bapgFuncSupported)
 
 MOS_STATUS VpPipeline::CreateFeatureReport()
 {
-    if (m_reporting == nullptr)
+    if (m_vpMhwInterface.m_reporting)
     {
-       m_reporting = MOS_New(VphalFeatureReport);
+        if (m_reporting && m_reporting->owner == this && m_vpMhwInterface.m_reporting != m_reporting)
+        {
+            MOS_FreeMemory(m_reporting);
+        }
+        m_reporting = m_vpMhwInterface.m_reporting;
     }
+    else
+    {
+        if (m_reporting == nullptr)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(CreateReport());
+        }
+        m_vpMhwInterface.m_reporting = m_reporting;
+    }
+
     VP_PUBLIC_CHK_NULL_RETURN(m_reporting);
     return MOS_STATUS_SUCCESS;
 }
