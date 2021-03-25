@@ -247,6 +247,8 @@
 //!
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MCPY_TAG       "MCPY Sub Components Tags"
 
+#define __MOS_USER_FEATURE_KEY_DISABLE_ASSERT               "DisableAssert"
+
 #endif // MOS_MESSAGES_ENABLED
 
 //User feature key for MDF
