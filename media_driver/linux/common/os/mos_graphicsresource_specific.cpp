@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -185,6 +185,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
     gmmParams.ArraySize = 1;
 
     MOS_TILE_TYPE tileformat = params.m_tileType;
+    MOS_OS_NORMALMESSAGE("tilemode: tileformat = %d for %s, tileModeByForce = %d", tileformat, params.m_name.c_str(), params.m_tileModeByForce);
     switch (tileformat)
     {
         case MOS_TILE_Y:
@@ -202,6 +203,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
                     gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
                 }
             }
+            SetTileModebyForce(gmmParams, params.m_tileModeByForce);
             break;
         case MOS_TILE_X:
             gmmParams.Flags.Info.TiledX   = true;
@@ -355,7 +357,7 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_isCompressed    = gmmResourceInfoPtr->IsMediaMemoryCompressed(0);
         m_compressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfoPtr->GetMmcMode(0);
 
-        MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource).",bufSize, params.m_width, bufHeight);
+        MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource), tile encoding %d.",bufSize, params.m_width, bufHeight, m_tileModeGMM);
 
         struct {
             uint32_t m_handle;

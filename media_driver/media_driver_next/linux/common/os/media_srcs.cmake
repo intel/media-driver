@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020, Intel Corporation
+# Copyright (c) 2019-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,6 +21,7 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific_next_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_specific_next.cpp

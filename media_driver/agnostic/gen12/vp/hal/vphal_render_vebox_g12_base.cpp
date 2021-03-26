@@ -580,6 +580,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
     PVPHAL_VEBOX_RENDER_DATA    pRenderData = GetLastExecRenderData();
     uint8_t                     InitValue;
     Mos_MemPool                 memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
+    MOS_TILE_MODE_GMM           tileModeByForce = MOS_TILE_UNSET_GMM;
 
     bAllocated              = false;
     bSurfCompressible       = false;
@@ -717,6 +718,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
         FFDNSurfCompressionMode = SurfCompressionMode;
     }
 
+    tileModeByForce = MOS_TILE_UNSET_GMM;
+    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrMediaTile64))
+    {
+        VPHAL_RENDER_NORMALMESSAGE("tilemode: media support tile encoding 1");
+        tileModeByForce = MOS_TILE_64_GMM;
+    }
     // Allocate FFDN surfaces---------------------------------------------------
     if (IsFFDNSurfNeeded())
     {
@@ -735,7 +742,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 FFDNSurfCompressionMode,
                 &bAllocated,
                 MOS_HW_RESOURCE_DEF_MAX,
-                MOS_TILE_UNSET_GMM,
+                tileModeByForce,
                 memTypeSurfVideoMem,
                 MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
 
@@ -803,6 +810,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
         pRenderData->pRenderTarget->rcMaxSrc = pVeboxState->m_currentSurface->rcMaxSrc;
     }
 
+    tileModeByForce = MOS_TILE_UNSET_GMM;
+    if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrMediaTile64))
+    {
+        VPHAL_RENDER_NORMALMESSAGE("tilemode: media support tile encoding 1");
+        tileModeByForce = MOS_TILE_64_GMM;
+    }
     // Allocate STMM (Spatial-Temporal Motion Measure) Surfaces------------------
     if (IsSTMMSurfNeeded())
     {
@@ -822,7 +835,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 pVeboxState->m_currentSurface->dwHeight,
                 bSurfCompressible,
                 SurfCompressionMode,
-                &bAllocated));
+                &bAllocated,
+                MOS_HW_RESOURCE_DEF_MAX,
+                tileModeByForce));
 
             if (bAllocated)
             {

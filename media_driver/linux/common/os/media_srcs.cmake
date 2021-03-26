@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hwinfo_linux.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_specific_ext.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific.c
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_devult_specific.cpp
