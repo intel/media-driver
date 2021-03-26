@@ -27,6 +27,8 @@ namespace vp
 struct VP_PACKET_SHARED_CONTEXT
 {
     bool bFirstFrame = true;
+
+    virtual ~VP_PACKET_SHARED_CONTEXT(){};
 };
 };
 

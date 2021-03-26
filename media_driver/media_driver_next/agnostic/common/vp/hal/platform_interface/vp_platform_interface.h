@@ -191,10 +191,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual uint32_t VeboxQueryStaticSurfaceSize()
-    {
-        return 32 * 8;
-    }
+    virtual uint32_t VeboxQueryStaticSurfaceSize() = 0;
 
     virtual bool IsPlatformCompressionEnabled()
     {

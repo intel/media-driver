@@ -29,6 +29,7 @@
 #include "vp_vebox_cmd_packet.h"
 #include "sw_filter_pipe.h"
 #include "vp_utils.h"
+#include "vp_platform_interface.h"
 
 using namespace std;
 namespace vp
@@ -146,8 +147,8 @@ extern const VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION g_cInit_VEBOX_SPATIAL_ATTRIB
     }
 };
 
-VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting)
-    : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting)
+VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface)
+    : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting), m_vpPlatformInterface(vpPlatformInterface)
 {
     InitSurfaceConfigMap();
 }
@@ -522,6 +523,27 @@ VP_SURFACE * VpResourceManager::GetCopyInstOfExtSurface(VP_SURFACE* surf)
     return surface;
 }
 
+MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+{
+    VP_FUNC_CALL();
+
+    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeRenderInput, inputSurface));
+    VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResourceForRender(caps, inputSurface, resHint, surfSetting));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+{
+    VP_FUNC_CALL();
+
+    if (!caps.bRender)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters)
 {
     VP_FUNC_CALL();
@@ -557,6 +579,11 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SU
     {
         // Create Vebox Resources
         VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurface, outputSurface, pastSurface, futureSurface, resHint, surfSetting));
+    }
+
+    if (caps.bRender)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignRenderResource(caps, inputSurface, outputSurface, resHint, surfSetting));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1123,9 +1150,10 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     // Per frame information written twice per frame for 2 slices
     // Surface to be a rectangle aligned with dwWidth to get proper dwSize
     // APG PAth need to make sure input surface width/height is what to processed width/Height
+    uint32_t statistic_size = m_vpPlatformInterface.VeboxQueryStaticSurfaceSize();
     dwWidth = MOS_ALIGN_CEIL(inputSurface->osSurface->dwWidth, 64);
     dwHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4) +
-        MOS_ROUNDUP_DIVIDE(VP_VEBOX_STATISTICS_SIZE * sizeof(uint32_t), dwWidth);
+               MOS_ROUNDUP_DIVIDE(statistic_size * sizeof(uint32_t), dwWidth);
     dwSize = dwWidth * dwHeight;
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
@@ -1307,6 +1335,8 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
 
     // Insert Vebox statistics surface
     surfGroup.insert(std::make_pair(SurfaceTypeStatistics, m_veboxStatisticsSurface));
+    surfSetting.dwVeboxPerBlockStatisticsHeight = m_dwVeboxPerBlockStatisticsHeight;
+    surfSetting.dwVeboxPerBlockStatisticsWidth  = m_dwVeboxPerBlockStatisticsWidth;
 
     if (VeboxHdr3DlutNeeded(caps))
     {

@@ -321,6 +321,8 @@ public:
         {
             uint32_t bDeinterlace           : 1;    // DN enabled;
             uint32_t bQueryVariance         : 1;    // DN enabled;
+            uint32_t bFmdEnabled            : 1;    // FMD enabled;
+            uint32_t bTFF                   : 1;
         };
         uint32_t value = 0;
     } DI;

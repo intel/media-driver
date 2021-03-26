@@ -327,7 +327,7 @@ struct VP_SURFACE_PARAMS;
 class VpResourceManager
 {
 public:
-    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting);
+    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface);
     virtual ~VpResourceManager();
     MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
     void OnNewFrameProcessEnd();
@@ -382,6 +382,8 @@ protected:
     void DestoryVeboxOutputSurface();
     void DestoryVeboxDenoiseOutputSurface();
     void DestoryVeboxSTMMSurface();
+    virtual MOS_STATUS AssignRenderResource(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
 
     //!
     //! \brief    Vebox initialize STMM History
@@ -446,12 +448,15 @@ protected:
     MOS_INTERFACE                &m_osInterface;
     VpAllocator                  &m_allocator;
     VphalFeatureReport           &m_reporting;
+    vp::VpPlatformInterface      &m_vpPlatformInterface;
 
     // Vebox Resource
     VP_SURFACE* m_veboxDenoiseOutput[VP_NUM_DN_SURFACES]     = {};            //!< Vebox Denoise output surface
     VP_SURFACE* m_veboxOutput[VP_MAX_NUM_VEBOX_SURFACES]     = {};            //!< Vebox output surface, can be reuse for DI usages
     VP_SURFACE* m_veboxSTMMSurface[VP_NUM_STMM_SURFACES]     = {};            //!< Vebox STMM input/output surface
     VP_SURFACE *m_veboxStatisticsSurface                     = nullptr;       //!< Statistics Surface for VEBOX
+    uint32_t    m_dwVeboxPerBlockStatisticsWidth             = 0;
+    uint32_t    m_dwVeboxPerBlockStatisticsHeight            = 0;
     VP_SURFACE *m_veboxRgbHistogram                          = nullptr;       //!< RGB Histogram surface for Vebox
     VP_SURFACE *m_veboxDNTempSurface                         = nullptr;       //!< Vebox DN Update kernels temp surface
     VP_SURFACE *m_veboxDNSpatialConfigSurface                = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel

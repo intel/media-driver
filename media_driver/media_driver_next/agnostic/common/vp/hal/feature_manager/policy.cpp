@@ -121,10 +121,6 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDnOnVebox, p));
 
-    p = MOS_New(PolicyVeboxDiHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnVebox, p));
-
     p = MOS_New(PolicyVeboxCscHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnVebox, p));
@@ -144,6 +140,14 @@ MOS_STATUS Policy::RegisterFeatures()
     p = MOS_New(PolicyVeboxHdrHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeHdrOnVebox, p));
+
+    p = MOS_New(PolicyDiHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnVebox, p));
+
+    p = MOS_New(PolicyDiHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiFmdOnRender, p));
 
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.clear();
@@ -775,10 +779,22 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
+    if (m_vpInterface.GetResourceManager()->IsRefValid() &&
+        diParams.bEnableFMD)
+    {
+        diParams.bFmdExtraVariance = true;
+    }
+
     if (m_vpInterface.GetResourceManager()->IsRefValid()    &&
         m_vpInterface.GetResourceManager()->IsSameSamples())
     {
         diEngine.bypassVeboxFeatures = 1;
+    }
+    else if (diParams.bFmdExtraVariance && diParams.bFmdKernelEnable)
+    {
+        diEngine.bEnabled     = 1;
+        diEngine.VeboxNeeded  = 0;
+        diEngine.RenderNeeded = 1;
     }
     else if (m_hwCaps.m_veboxHwEntry[inputformat].deinterlaceSupported)
     {
@@ -1313,6 +1329,11 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                     PolicyFeatureHandler *handler = m_VeboxSfcFeatureHandlers.find(feature->GetFeatureType())->second;
                     handler->UpdateFeaturePipe(caps, *feature, featurePipe, *params.executedFilters, true, 0);
                 }
+                else if (m_RenderFeatureHandlers.end() != m_RenderFeatureHandlers.find(feature->GetFeatureType()))
+                {
+                    PolicyFeatureHandler *handler = m_RenderFeatureHandlers.find(feature->GetFeatureType())->second;
+                    handler->UpdateFeaturePipe(caps, *feature, featurePipe, *params.executedFilters, true, 0);
+                }
                 else if (!engineCaps->bEnabled || !engineCaps->SfcNeeded && !engineCaps->VeboxNeeded && !engineCaps->RenderNeeded)
                 {
                     SwFilterFeatureHandler *handler = m_vpInterface.GetSwFilterHandler(feature->GetFeatureType());
@@ -1358,6 +1379,14 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
         // surface should be added before swFilters, since empty feature pipe will be allocated accordingly when surface being added.
         VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfOutput, false, 0));
     }
+    else if (caps.bDI && !caps.bRender)
+    {
+        surfOutput = featurePipe.GetSurface(false, 0);
+        VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
+        VP_SURFACE *surfOutput2 = m_vpInterface.GetAllocator().AllocateVpSurface(*surfOutput);
+        VP_PUBLIC_CHK_NULL_RETURN(surfOutput2);
+        VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfOutput2, false, 0));
+    }
     else
     {
         if (IsSecureResourceNeeded(caps))
@@ -1373,6 +1402,15 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
     {
         // Update the input feature surfaces
         surfInput = featurePipe.RemoveSurface(true, index);
+    }
+    else if (caps.bDI && !featurePipe.IsPrimaryEmpty())
+    {
+        surfInput = featurePipe.GetSurface(true, index);
+        VP_PUBLIC_CHK_NULL_RETURN(surfInput);
+        VP_SURFACE *input = m_vpInterface.GetAllocator().AllocateVpSurface(*surfInput);
+        VP_PUBLIC_CHK_NULL_RETURN(input);
+        input->SurfType = SURF_IN_PRIMARY;
+        featurePipe.ReplaceSurface(input, true, index);
     }
     else if (IsSecureResourceNeeded(caps))
     {
@@ -1482,6 +1520,12 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeSR:
             caps.bSR = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Render)));
+            break;
+        case FeatureTypeDi:
+            caps.bDI          = 1;
+            caps.bRender      = 1;
+            caps.bDIFmdKernel = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(DiFmd, Render)));
             break;
         default:
             break;

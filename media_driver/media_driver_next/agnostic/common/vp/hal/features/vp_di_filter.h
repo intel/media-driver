@@ -29,6 +29,9 @@
 #include "vp_filter.h"
 #include "sw_filter.h"
 
+#define FMD_SUMMATION_KERNEL_COLUMN_PER_MEDIA_OBJECT 4
+#define VP_VEBOX_PER_BLOCK_STATISTICS_SIZE 16
+
 namespace vp {
 class VpDiFilter : public VpFilter
 {
@@ -58,9 +61,15 @@ public:
         return m_pVeboxDiParams;
     }
 
+    PRENDER_DI_FMD_PARAMS GetRenderParams()
+    {
+        return m_pRenderDiFmdParams;
+    }
+
 protected:
     FeatureParamDeinterlace     m_diParams = {};
     PVEBOX_DI_PARAMS            m_pVeboxDiParams = nullptr;
+    PRENDER_DI_FMD_PARAMS       m_pRenderDiFmdParams = nullptr;
 };
 
 struct HW_FILTER_DI_PARAM : public HW_FILTER_PARAM
@@ -82,12 +91,12 @@ private:
     HW_FILTER_DI_PARAM m_Params = {};
 };
 
-class VpVeboxDiParameter : public VpPacketParameter
+class VpDiParameter : public VpPacketParameter
 {
 public:
     static VpPacketParameter *Create(HW_FILTER_DI_PARAM &param);
-    VpVeboxDiParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase *packetParamFactory);
-    virtual ~VpVeboxDiParameter();
+    VpDiParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase *packetParamFactory);
+    virtual ~VpDiParameter();
 
     virtual bool SetPacketParam(VpCmdPacket *pPacket);
 
@@ -97,28 +106,29 @@ private:
     VpDiFilter m_diFilter;
 };
 
-class PolicyVeboxDiHandler : public PolicyFeatureHandler
+class PolicyDiHandler : public PolicyFeatureHandler
 {
 public:
-    PolicyVeboxDiHandler(VP_HW_CAPS &hwCaps);
-    virtual ~PolicyVeboxDiHandler();
+    PolicyDiHandler(VP_HW_CAPS &hwCaps);
+    virtual ~PolicyDiHandler();
     virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+    virtual MOS_STATUS         UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
 
     static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
     {
-        if (param.type != FeatureTypeDiOnVebox)
+        if (param.type != FeatureTypeDiOnVebox && param.type != FeatureTypeDiFmdOnRender)
         {
-            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter for Vebox ACE!");
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter for Deinterlace!");
             return nullptr;
         }
 
-        HW_FILTER_DI_PARAM* aceParam = (HW_FILTER_DI_PARAM*)(&param);
-        return VpVeboxDiParameter::Create(*aceParam);
+        HW_FILTER_DI_PARAM *diParam = (HW_FILTER_DI_PARAM *)(&param);
+        return VpDiParameter::Create(*diParam);
     }
 
 private:
-    PacketParamFactory<VpVeboxDiParameter> m_PacketParamFactory;
+    PacketParamFactory<VpDiParameter> m_PacketParamFactory;
 };
 }
 #endif

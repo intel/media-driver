@@ -136,6 +136,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bDN            : 1;   // Vebox DN needed;
             uint32_t bDI            : 1;   // Vebox DI enabled
             uint32_t bDiProcess2ndField : 1;   // Vebox DI enabled
+            uint32_t bDIFmdKernel   : 1;   // Vebox FMD Kernel enabled
             uint32_t bIECP          : 1;   // Vebox IECP needed;
             uint32_t bSTE           : 1;   // Vebox STE needed;
             uint32_t bACE           : 1;   // Vebox ACE needed;

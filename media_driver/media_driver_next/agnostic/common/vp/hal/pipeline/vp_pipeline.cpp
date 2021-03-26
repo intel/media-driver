@@ -475,7 +475,7 @@ MOS_STATUS VpPipeline::CreateResourceManager()
 {
     if (nullptr == m_resourceManager)
     {
-        m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator, *m_reporting);
+        m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator, *m_reporting, *m_vpMhwInterface.m_vpPlatformInterface);
         VP_PUBLIC_CHK_NULL_RETURN(m_resourceManager);
     }
     return MOS_STATUS_SUCCESS;

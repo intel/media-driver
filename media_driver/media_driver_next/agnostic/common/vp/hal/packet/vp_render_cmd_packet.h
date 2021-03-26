@@ -19,8 +19,8 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __VP_RENDER_CMD_PACKET_EXT_H__
-#define __VP_RENDER_CMD_PACKET_EXT_H__
+#ifndef __VP_RENDER_CMD_PACKET_H__
+#define __VP_RENDER_CMD_PACKET_H__
 #include "media_render_cmd_packet.h"
 #include "vp_allocator.h"
 #include "vp_cmd_packet.h"
@@ -29,20 +29,6 @@
 
 namespace vp
 {
-//!
-//! \brief Secure Block Copy kernel inline data size
-//!
-#define SECURE_BLOCK_COPY_KERNEL_INLINE_SIZE    (1 * sizeof(uint32_t))
-//!
-//! \brief Secure Block Copy kernel width
-//!
-#define SECURE_BLOCK_COPY_KERNEL_SURF_WIDTH     64
-
-//!
-//! \brief Secure Block Copy kernel block height
-//!
-#define SECURE_BLOCK_COPY_KERNEL_BLOCK_HEIGHT   24
-
 class VpRenderCmdPacket : virtual public RenderCmdPacket, virtual public VpCmdPacket
 {
 public:
@@ -65,9 +51,7 @@ public:
 
     virtual MOS_STATUS SubmitWithMultiKernel(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
-    MOS_STATUS SetVeboxUpdateParams(PVEBOX_UPDATE_PARAMS params);
 
-    MOS_STATUS SetSecureCopyParams(PSTATE_COPY_PARAMS params);
 
     MOS_STATUS PacketInit(
         VP_SURFACE* inputSurface,
@@ -76,11 +60,7 @@ public:
         VP_SURFACE_SETTING& surfSetting,
         VP_EXECUTE_CAPS packetCaps) override;
 
-    MOS_STATUS SetSRParams(PRENDER_SR_PARAMS params);
-
-    MOS_STATUS SetSRChromaParams(PRENDER_SR_PARAMS params);
-
-    MOS_STATUS ReadSRWeights(uint16_t *pBuf, const uint8_t*pWeight, const uint32_t uWeightSize, uint32_t outChannels, uint32_t inChannels, uint32_t nWeightsPerChannel, uint32_t layer);
+    virtual MOS_STATUS SetDiFmdParams(PRENDER_DI_FMD_PARAMS params);
 
 protected:
 

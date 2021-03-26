@@ -57,6 +57,7 @@ enum FeatureType
     FeatureTypeDnOnVebox,
     FeatureTypeDi               = 0x500,
     FeatureTypeDiOnVebox,
+    FeatureTypeDiFmdOnRender,
     FeatureTypeSte              = 0x600,
     FeatureTypeSteOnVebox,
     FeatureTypeAce              = 0x700,
@@ -123,6 +124,8 @@ struct VP_SURFACE_SETTING
     bool                isPastHistogramValid;
     uint32_t            imageWidthOfPastHistogram;
     uint32_t            imageHeightOfPastHistogram;
+    uint32_t            dwVeboxPerBlockStatisticsHeight;
+    uint32_t            dwVeboxPerBlockStatisticsWidth;
 
     void Clean()
     {
@@ -130,6 +133,8 @@ struct VP_SURFACE_SETTING
         isPastHistogramValid        = false;
         imageWidthOfPastHistogram   = 0;
         imageHeightOfPastHistogram  = 0;
+        dwVeboxPerBlockStatisticsHeight = 0;
+        dwVeboxPerBlockStatisticsWidth  = 0;
     }
 };
 
@@ -385,6 +390,8 @@ struct FeatureParamDeinterlace : public FeatureParam
     bool                    bEnableFMD;         //!< FMD
     bool                    b60fpsDi;           //!< Used in frame Recon - if 30fps (one call per sample pair)
     bool                    bSCDEnable;         //!< Scene change detection
+    bool                    bFmdExtraVariance;  //!< Check if extra FMD variances need to be calculated
+    bool                    bFmdKernelEnable;   //!< FMD kernel path enabled
 };
 
 class SwFilterDeinterlace : public SwFilter

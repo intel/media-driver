@@ -391,6 +391,18 @@ struct  _RENDER_SR_PARAMS
 using RENDER_SR_PARAMS = _RENDER_SR_PARAMS;
 using PRENDER_SR_PARAMS = RENDER_SR_PARAMS*;
 
+struct _RENDER_DI_FMD_PARAMS
+{
+    bool                  bEnableDiFmd;
+    uint32_t              uKernelID;
+    uint32_t              dwVeboxPerBlockStatisticsHeight;
+    uint32_t              dwVeboxPerBlockStatisticsWidth;
+    VpKernelID            kernelId;
+};
+
+using RENDER_DI_FMD_PARAMS  = _RENDER_DI_FMD_PARAMS;
+using PRENDER_DI_FMD_PARAMS = RENDER_DI_FMD_PARAMS *;
+
 class SwFilterPipe;
 class HwFilter;
 class PacketParamFactoryBase;

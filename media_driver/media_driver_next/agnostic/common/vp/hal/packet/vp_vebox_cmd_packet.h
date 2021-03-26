@@ -223,6 +223,15 @@
                                                                     LUT65_MUL_SIZE * sizeof(int64_t)
 
 //!
+//! \brief Vebox Statistics Surface definition
+//!
+#define VPHAL_VEBOX_STATISTICS_SIZE (32 * 8)
+#define VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET 0x2C
+#define VPHAL_VEBOX_STATISTICS_SURFACE_STD_OFFSET 0x44
+#define VPHAL_VEBOX_STATISTICS_PER_FRAME_SIZE (32 * sizeof(uint32_t))
+#define VPHAL_VEBOX_STATISTICS_SURFACE_FMD_OFFSET 0
+
+//!
 //! \brief  Chroma Denoise params
 //!
 typedef struct _VPHAL_DNUV_PARAMS
@@ -269,6 +278,7 @@ typedef struct _VEBOX_PACKET_SURFACE_PARAMS
     VP_SURFACE                      *pAlphaOrVignette;
     VP_SURFACE                      *pLaceOrAceOrRgbHistogram;
     VP_SURFACE                      *pSurfSkinScoreOutput;
+    VP_SURFACE                      *pFMDHistorySurface;
 }VEBOX_PACKET_SURFACE_PARAMS, *PVEBOX_PACKET_SURFACE_PARAMS;
 };
 
@@ -684,7 +694,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS ConfigFMDParams(bool bProgressive, bool bAutoDenoise);
+    virtual MOS_STATUS ConfigFMDParams(bool bProgressive, bool bAutoDenoise, bool bFmdEnabled);
 
     //!
     //! \brief    Setup Vebox_State Command parameter

@@ -546,33 +546,9 @@ MOS_STATUS VpVeboxCmdPacket::ConfigDnLumaChromaParams(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpVeboxCmdPacket::ConfigFMDParams(bool bProgressive, bool bAutoDenoise)
+MOS_STATUS VpVeboxCmdPacket::ConfigFMDParams(bool bProgressive, bool bAutoDenoise, bool bFmdEnabled)
 {
-    MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
-    VpVeboxRenderData               *pRenderData = GetLastExecRenderData();
-
-    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
-
-#if VEBOX_AUTO_DENOISE_SUPPORTED
-    if (bProgressive && bAutoDenoise)
-    {
-        // out1 = Cur1st + Cur2nd
-        pRenderData->GetDNDIParams().dwFMDFirstFieldCurrFrame =
-            MEDIASTATE_DNDI_FIELDCOPY_NEXT;
-        // out2 = Prv1st + Prv2nd
-        pRenderData->GetDNDIParams().dwFMDSecondFieldPrevFrame =
-            MEDIASTATE_DNDI_FIELDCOPY_PREV;
-    }
-    else
-#endif
-    {
-        pRenderData->GetDNDIParams().dwFMDFirstFieldCurrFrame =
-            MEDIASTATE_DNDI_DEINTERLACE;
-        pRenderData->GetDNDIParams().dwFMDSecondFieldPrevFrame =
-            MEDIASTATE_DNDI_DEINTERLACE;
-    }
-
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpVeboxCmdPacket::SetDnParams(
@@ -724,6 +700,9 @@ MOS_STATUS VpVeboxCmdPacket::SetDiParams(PVEBOX_DI_PARAMS diParams)
     renderData->DI.value            = 0;
     renderData->DI.bDeinterlace     = diParams->bDiEnabled;
     renderData->DI.bQueryVariance   = false;
+    renderData->DI.bTFF             = (diParams->sampleTypeInput == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD) ||
+                                      (diParams->sampleTypeInput == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD);
+    renderData->DI.bFmdEnabled      = diParams->enableFMD;
 
     // for 30i->30fps + SFC
     if (m_PacketCaps.bSFC && !diParams->b60fpsDi)
@@ -1746,6 +1725,8 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     m_veboxPacketSurface.pAlphaOrVignette           = GetSurface(SurfaceTypeAlphaOrVignette);
     m_veboxPacketSurface.pLaceOrAceOrRgbHistogram   = GetSurface(SurfaceTypeLaceAceRGBHistogram);
     m_veboxPacketSurface.pSurfSkinScoreOutput       = GetSurface(SurfaceTypeSkinScore);
+    m_dwVeboxPerBlockStatisticsHeight               = surfSetting.dwVeboxPerBlockStatisticsHeight;
+    m_dwVeboxPerBlockStatisticsWidth                = surfSetting.dwVeboxPerBlockStatisticsWidth;
 
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pLaceOrAceOrRgbHistogram);
@@ -1974,7 +1955,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
 
     // Set FMD Params
-    VP_RENDER_CHK_STATUS_RETURN(ConfigFMDParams(pRenderData->GetDNDIParams().bProgressiveDN, pRenderData->DN.bAutoDetect));
+    VP_RENDER_CHK_STATUS_RETURN(ConfigFMDParams(pRenderData->GetDNDIParams().bProgressiveDN, pRenderData->DN.bAutoDetect, pRenderData->DI.bFmdEnabled));
 
     //----------------------------------
     // Allocate and reset VEBOX state
