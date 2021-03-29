@@ -137,7 +137,7 @@ Media driver supports two build types as below
 
 \* VP8 decoding is only supported on TGL platform
 
-\** AV1 film grain kernel is not open so far
+\** AV1 film grain kernel is not open source yet which doesn't necessarily match the libaom algorithm or film grain synthesis.
 
 For more information, please refer to
 * [Media Features Summary](https://github.com/intel/media-driver/blob/master/docs/media_features.md#media-features-summary)
