@@ -25,6 +25,8 @@
 //! \details  vp render kernel base object will provided interface where sub kernels processing ways
 //!
 #include "vp_render_kernel_obj.h"
+#include "vp_dumper.h"
+
 using namespace vp;
 
 vp::MEDIA_OBJECT_KA2_INLINE_DATA VpRenderKernelObj::g_cInit_VP_MEDIA_OBJECT_KA2_INLINE_DATA =
@@ -110,8 +112,9 @@ vp::MEDIA_OBJECT_KA2_INLINE_DATA VpRenderKernelObj::g_cInit_VP_MEDIA_OBJECT_KA2_
     0                                           // Reserved
 };
 
-VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface) :
-    m_hwInterface(hwInterface)
+VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
+    m_hwInterface(hwInterface),
+    m_allocator(allocator)
 {
 }
 
@@ -403,4 +406,87 @@ MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CON
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfacesGroup));
 
     return MOS_STATUS_SUCCESS;
+}
+
+void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
+{
+    uint8_t* pData;
+    char                    sPath[MAX_PATH];
+    char                    sOsPath[MAX_PATH];
+    uint8_t* pDst;
+    uint8_t* pTmpDst;
+    uint8_t* pTmpSrc;
+    uint32_t                iWidthInBytes;
+    uint32_t                iHeightInRows;
+    uint32_t                iBpp;
+    uint32_t                iSize;
+    uint32_t                iY;
+    MOS_LOCK_PARAMS         LockFlags;
+
+    VP_FUNC_CALL();
+
+    PMOS_INTERFACE        pOsInterface = m_hwInterface->m_osInterface;
+
+    pDst = nullptr;
+    MOS_ZeroMemory(sPath, MAX_PATH);
+    MOS_ZeroMemory(sOsPath, MAX_PATH);
+
+    // get bits per pixel for the format
+    pOsInterface->pfnGetBitsPerPixel(pOsInterface, pSurface->osSurface->Format, &iBpp);
+
+    iWidthInBytes = pSurface->osSurface->dwWidth;
+    iHeightInRows = pSurface->osSurface->dwHeight;
+
+    iSize = iWidthInBytes * iHeightInRows;
+
+    // Write original image to file
+    MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
+
+    LockFlags.ReadOnly = 1;
+
+    pData = (uint8_t*)m_allocator->Lock(
+        &pSurface->osSurface->OsResource,
+        &LockFlags);
+
+    MOS_SecureStringPrint(
+        sPath,
+        MAX_PATH,
+        sizeof(sPath),
+        "c:\\dump\\f[%08I64x]_%s_w[%d]_h[%d]_p[%d].%s",
+        1,
+        fileName,
+        pSurface->osSurface->dwWidth,
+        pSurface->osSurface->dwHeight,
+        pSurface->osSurface->dwPitch,
+        VP_GET_FORMAT_STRING(pSurface->osSurface->Format));
+
+    MOS_SecureMemcpy(sOsPath, MAX_PATH, sPath, strlen(sPath));
+
+    // Write the data to file
+    if (pSurface->osSurface->dwPitch == iWidthInBytes)
+    {
+        MOS_WriteFileFromPtr((const char*)sOsPath, pData, iSize);
+    }
+    else
+    {
+        pDst = (uint8_t*)MOS_AllocAndZeroMemory(iSize);
+        pTmpSrc = pData;
+        pTmpDst = pDst;
+
+        for (iY = 0; iY < iHeightInRows; iY++)
+        {
+            MOS_SecureMemcpy(pTmpDst, iSize, pTmpSrc, iWidthInBytes);
+            pTmpSrc += pSurface->osSurface->dwPitch;
+            pTmpDst += iWidthInBytes;
+        }
+
+        MOS_WriteFileFromPtr((const char*)sOsPath, pDst, iSize);
+    }
+
+    if (pDst)
+    {
+        MOS_FreeMemory(pDst);
+    }
+
+    m_allocator->UnLock(&pSurface->osSurface->OsResource);
 }

@@ -200,6 +200,7 @@ struct _VEBOX_ACE_PARAMS
     uint32_t                        dwAceLevel;
     uint32_t                        dwAceStrength;
     bool                            bAceHistogramEnabled;
+    bool                            bEnableLACE;
 };
 
 struct _VEBOX_TCC_PARAMS
@@ -521,7 +522,5 @@ struct HW_FILTER_PARAM
     VpPacketParameter*    (*pfnCreatePacketParam)(HW_FILTER_PARAM&) = nullptr;
 };
 }
-
-
 
 #endif // !__VP_FILTER_H__

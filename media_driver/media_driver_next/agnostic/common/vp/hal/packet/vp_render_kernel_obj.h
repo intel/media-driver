@@ -323,8 +323,8 @@ struct MEDIA_OBJECT_KA2_INLINE_DATA
 class VpRenderKernelObj
 {
 public:
-    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface);
-    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelId, uint32_t kernelIndex);
+    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator);
+    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex);
     virtual ~VpRenderKernelObj();
 
     // Kernel Specific, which will inplenment be each kernel
@@ -345,6 +345,13 @@ public:
         KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup);
 
     virtual KERNEL_SAMPLER_STATES& GetSamplerStates();
+
+    virtual void DumpSurfaces()
+    {
+        return;
+    }
+
+    virtual void DumpSurface(VP_SURFACE *pSurface,PCCHAR fileName);
 
     // Kernel Common configs
     virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)
@@ -451,6 +458,7 @@ protected:
     PVP_MHWINTERFACE                                        m_hwInterface = nullptr;
     KERNEL_SURFACE_CONFIG                                   m_surfaceState;             // surfaces processed pool where the surface state will generated here, if KERNEL_SURFACE_STATE_PARAM 
     KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
+    PVpAllocator                                            m_allocator = nullptr;
 
     // kernel attribute 
     std::string                                             m_kernelName = "";

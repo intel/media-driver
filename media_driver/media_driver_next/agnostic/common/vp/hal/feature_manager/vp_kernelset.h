@@ -43,7 +43,7 @@ using KERNEL_PARAMS_LIST = std::vector<KERNEL_PARAMS>;
 class VpKernelSet
 {
 public:
-    VpKernelSet(PVP_MHWINTERFACE hwInterface);
+    VpKernelSet(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator);
     virtual ~VpKernelSet() {};
 
     virtual MOS_STATUS Clean()
@@ -89,6 +89,7 @@ protected:
 
     KERNEL_POOL*          m_pKernelPool = nullptr;
     PVP_MHWINTERFACE      m_hwInterface = nullptr;
+    PVpAllocator          m_allocator   = nullptr;
 };
 }
 

@@ -132,6 +132,12 @@
             skuTable,                                  \
             waTable);                                  
 
+//------------------------------------------------------------------------------
+// Dump surface for dumper.  Dump surface format information.
+//------------------------------------------------------------------------------
+#define VP_GET_FORMAT_STRING(format)                   \
+        VpDumperTool::GetFormatStr(format)             \
+
 //! 
 //! Structure VPHAL_DBG_SURF_DUMP_SURFACE_DEF
 //! \brief    Plane definition
@@ -805,6 +811,7 @@ public:
 #define VP_DEBUG_INTERFACE_CREATE(debuginterface)
 #define VP_DEBUG_INTERFACE_DESTROY(debuginterface)
 #define SkuWaTable_DUMP_XML(skuTable, waTable)
+#define VP_GET_FORMAT_STRING(format) ""
 #endif // (!(_DEBUG || _RELEASE_INTERNAL) || EMUL)
 
 

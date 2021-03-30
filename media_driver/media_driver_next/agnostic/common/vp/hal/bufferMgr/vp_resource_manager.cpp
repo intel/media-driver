@@ -520,6 +520,7 @@ VP_SURFACE * VpResourceManager::GetCopyInstOfExtSurface(VP_SURFACE* surf)
     {
         VP_PUBLIC_ASSERTMESSAGE("Allocate temp surface faild!");
     }
+
     return surface;
 }
 

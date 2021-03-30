@@ -46,6 +46,12 @@
 #define VP_NUM_RGB_CHANNEL                   3
 #define VP_NUM_FRAME_PREVIOUS_CURRENT        2
 
+#define VP_VEBOX_MAX_SLICES_G12                           4
+
+#define VP_VEBOX_RGB_HISTOGRAM_SIZE_G12                   (VP_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
+                                                           VP_NUM_RGB_CHANNEL                    * \
+                                                           VP_VEBOX_MAX_SLICES_G12)
+
 #ifndef VEBOX_AUTO_DENOISE_SUPPORTED
 #define VEBOX_AUTO_DENOISE_SUPPORTED    1
 #endif
@@ -230,6 +236,10 @@
 #define VPHAL_VEBOX_STATISTICS_SURFACE_STD_OFFSET 0x44
 #define VPHAL_VEBOX_STATISTICS_PER_FRAME_SIZE (32 * sizeof(uint32_t))
 #define VPHAL_VEBOX_STATISTICS_SURFACE_FMD_OFFSET 0
+
+//! \brief Number of LACE's PWLF surfaces
+//!
+#define VP_NUM_LACE_PWLF_SURFACES                                   2
 
 //!
 //! \brief  Chroma Denoise params

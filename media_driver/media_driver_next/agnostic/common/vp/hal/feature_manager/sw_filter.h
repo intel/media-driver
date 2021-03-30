@@ -40,6 +40,7 @@ namespace vp
 {
 class VpInterface;
 class SwFilterSubPipe;
+
 enum FeatureType
 {
     FeatureTypeInvalid          = 0,
@@ -80,6 +81,9 @@ enum FeatureType
     FeatureTypeSecureCopyOnRender,
     FeatureTypeSR               = 0x1100,
     FeatureTypeSROnRender,
+    FeatureTypeLace             = 0x1200,
+    FeatureTypeLaceOnVebox,
+    FeatureTypeLaceOnRender,
     // ...
     NumOfFeatureType
 };
@@ -113,6 +117,13 @@ enum SurfaceType
     SurfaceTypeRenderSRInput, //Super Resolution related Surface and Buffer index Reserved
     SurfaceTypeRenderSRBuffer = SurfaceTypeRenderSRInput + 0x100,
     SurfaceTypeRenderSRMax = SurfaceTypeRenderSRBuffer + 0x100,
+    SurfaceTypeAggregatedHistogram,
+    SurfaceTypeFrameHistogram,
+    SurfaceTypeStdStatistics,
+    SurfaceTypePwlfIn,
+    SurfaceTypePwlfOut,
+    SurfaceTypeWeitCoef,
+    SurfaceTypGlobalToneMappingCurveLUT,
     NumberOfSurfaceType
 };
 
@@ -126,6 +137,11 @@ struct VP_SURFACE_SETTING
     uint32_t            imageHeightOfPastHistogram;
     uint32_t            dwVeboxPerBlockStatisticsHeight;
     uint32_t            dwVeboxPerBlockStatisticsWidth;
+    uint32_t            aggregateBlockSize;
+    bool                laceLutValid;
+    bool                updateGlobalToneMappingCurveLUTSurface;
+    bool                updateWeitCoefSurface;
+    bool                dumpLaceSurface;
 
     void Clean()
     {

@@ -26,6 +26,7 @@
 #include "vp_cmd_packet.h"
 #include "vp_kernelset.h"
 #include "vp_render_common.h"
+#include "vp_render_kernel_obj.h"
 
 namespace vp
 {
@@ -33,6 +34,7 @@ class VpRenderCmdPacket : virtual public RenderCmdPacket, virtual public VpCmdPa
 {
 public:
     VpRenderCmdPacket(MediaTask* task, PVP_MHWINTERFACE hwInterface, PVpAllocator& allocator, VPMediaMemComp* mmc, VpKernelSet* kernelSet);
+
     virtual ~VpRenderCmdPacket();
 
     MOS_STATUS Prepare() override;
@@ -51,8 +53,6 @@ public:
 
     virtual MOS_STATUS SubmitWithMultiKernel(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
-
-
     MOS_STATUS PacketInit(
         VP_SURFACE* inputSurface,
         VP_SURFACE* outputSurface,
@@ -61,6 +61,8 @@ public:
         VP_EXECUTE_CAPS packetCaps) override;
 
     virtual MOS_STATUS SetDiFmdParams(PRENDER_DI_FMD_PARAMS params);
+
+    virtual MOS_STATUS DumpOutput() override;
 
 protected:
 
@@ -127,6 +129,8 @@ protected:
         float   fInverseScaleFactor,
         int32_t iUvPhaseOffset);
 
+    MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
+
 protected:
 
     KERNEL_OBJECTS                     m_kernelObjs;
@@ -135,7 +139,6 @@ protected:
     KERNEL_CONFIGS                     m_kernelConfigs; // Kernel parameters for legacy kernels.
 
     bool                               m_firstFrame = true;
-    
     VpKernelSet                       *m_kernelSet = nullptr;
     VpRenderKernelObj                 *m_kernel    = nullptr; // processing kernel pointer
 
@@ -146,6 +149,10 @@ protected:
     uint32_t                           m_slmSize        = 0;
     uint32_t                           m_totalCurbeSize = 0;
     uint32_t                           m_totoalInlineSize = 0;
+
+    VP_SURFACE                        *m_currentSurface  = nullptr;              //!< Current frame
+    PVP_VEBOX_CACHE_CNTL               m_surfMemCacheCtl = nullptr;                      //!< Surface memory cache control
+
 };
 }
 

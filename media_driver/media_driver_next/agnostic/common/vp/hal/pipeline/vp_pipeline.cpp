@@ -460,7 +460,7 @@ MOS_STATUS VpPipeline::CreateVpKernelSets()
     VP_FUNC_CALL();
     if (nullptr == m_kernelSet)
     {
-        m_kernelSet = MOS_New(VpKernelSet, &m_vpMhwInterface);
+        m_kernelSet = MOS_New(VpKernelSet, &m_vpMhwInterface, m_allocator);
         VP_PUBLIC_CHK_NULL_RETURN(m_kernelSet);
     }
     return MOS_STATUS_SUCCESS;

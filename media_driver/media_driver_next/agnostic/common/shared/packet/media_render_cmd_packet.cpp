@@ -567,6 +567,62 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
     return pRenderSurface->Index;
 }
 
+uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_SURFACE_NEXT pRenderSurface, PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, uint32_t bindingIndex, bool bWrite)
+{
+    RENDERHAL_SURFACE                   RenderHalSurface;
+    RENDERHAL_SURFACE_STATE_PARAMS      SurfaceParam;
+    PRENDERHAL_SURFACE_STATE_ENTRY      pSurfaceEntry;
+
+    RENDER_PACKET_CHK_NULL_RETURN(m_osInterface);
+    RENDER_PACKET_CHK_NULL_RETURN(m_osInterface->osCpInterface);
+    RENDER_PACKET_CHK_NULL_RETURN(buffer);
+
+    MOS_ZeroMemory(&RenderHalSurface, sizeof(RenderHalSurface));
+
+    // not support CP yet
+    if (m_osInterface->osCpInterface->IsHMEnabled())
+    {
+        RENDER_PACKET_ASSERTMESSAGE("ERROR, need to use VpHal_CommonSetBufferSurfaceForHwAccess if under CP HM.");
+    }
+
+    // Register surfaces for rendering (GfxAddress/Allocation index)
+    // Register resource
+    RENDER_PACKET_CHK_STATUS_RETURN(m_osInterface->pfnRegisterResource(
+        m_osInterface,
+        &buffer->OsResource,
+        bWrite,
+        true));
+
+    // Setup Buffer surface-----------------------------------------------------
+    if (pSurfaceParams == nullptr)
+    {
+        MOS_ZeroMemory(&SurfaceParam, sizeof(SurfaceParam));
+        pSurfaceParams = &SurfaceParam;
+    }
+
+    RENDER_PACKET_CHK_STATUS_RETURN(InitRenderHalSurface(
+        *buffer,
+        &RenderHalSurface));
+
+    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSetupBufferSurfaceState(
+        m_renderHal,
+        &RenderHalSurface,
+        pSurfaceParams,
+        &pSurfaceEntry));
+
+    uint32_t iBTEntry = bindingIndex;
+    // Bind surface state-------------------------------------------------------
+    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnBindSurfaceState(
+        m_renderHal,
+        m_renderData.bindingTable,
+        iBTEntry,
+        pSurfaceEntry));
+
+    pRenderSurface->Index = bindingIndex;
+
+    return bindingIndex;
+}
+
 uint32_t RenderCmdPacket::SetBufferForHwAccess(MOS_BUFFER buffer, PRENDERHAL_SURFACE_NEXT pRenderSurface, PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, bool bWrite)
 {
     RENDERHAL_SURFACE                   RenderHalSurface;

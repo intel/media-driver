@@ -1343,10 +1343,12 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                         VP_PUBLIC_ASSERTMESSAGE("no Feature Handle, Return Pipe Init Error");
                         return MOS_STATUS_INVALID_HANDLE;
                     }
-                    // For feature which is force enabled on Sfc, just drop it if sfc not being used.
-                    featurePipe.RemoveSwFilter(feature);
-                    handler->Destory(feature);
-                    VP_PUBLIC_NORMALMESSAGE("filter missed packets generation");
+                    if (filterID != FeatureTypeLace)
+                    {
+                        featurePipe.RemoveSwFilter(feature);
+                        handler->Destory(feature);
+                        VP_PUBLIC_NORMALMESSAGE("filter missed packets generation");
+                    }
                 }
             }
         }
@@ -1371,7 +1373,15 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
     VP_SURFACE* surfOutput = nullptr;
     uint32_t    index      = 0;
 
-    if (featurePipe.IsPrimaryEmpty())
+    if (caps.bLACE && !caps.bRender)
+    {
+        surfOutput = featurePipe.GetSurface(false, 0);
+        VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
+        VP_SURFACE* surfOutput2 = m_vpInterface.GetAllocator().AllocateVpSurface(*surfOutput);
+        VP_PUBLIC_CHK_NULL_RETURN(surfOutput2);
+        VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfOutput2, false, 0));
+    }
+    else if (featurePipe.IsPrimaryEmpty())
     {
         // Update the input feature surfaces
         surfOutput = featurePipe.RemoveSurface(false, 0);
@@ -1398,7 +1408,16 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
 
     VP_PUBLIC_CHK_STATUS_RETURN(AssignExecuteResource(caps, params));
 
-    if (featurePipe.IsPrimaryEmpty())
+    if (caps.bLACE && !featurePipe.IsPrimaryEmpty())
+    {
+        surfInput = featurePipe.GetSurface(true, index);
+        VP_PUBLIC_CHK_NULL_RETURN(surfInput);
+        VP_SURFACE* input = m_vpInterface.GetAllocator().AllocateVpSurface(*surfInput);
+        VP_PUBLIC_CHK_NULL_RETURN(input);
+        input->SurfType = SURF_IN_PRIMARY;
+        featurePipe.ReplaceSurface(input, true, index);
+    }
+    else if (featurePipe.IsPrimaryEmpty())
     {
         // Update the input feature surfaces
         surfInput = featurePipe.RemoveSurface(true, index);
@@ -1416,7 +1435,7 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAP
     {
         VP_PUBLIC_NORMALMESSAGE("Secure Process Enabled, no need further process");
     }
-    else
+    else if (!caps.bLACE)
     {
         VP_PUBLIC_NORMALMESSAGE("Output is not empty, featurePipe.IsPrimaryEmpty() = %d", featurePipe.IsPrimaryEmpty());
         VP_SURFACE *intermediaSurface = params.executedFilters->GetSurface(false, 0);
@@ -1498,6 +1517,10 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             caps.bHDR3DLUT = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Hdr, Vebox)));
             break;
+        case FeatureTypeLace:
+            caps.bLACE = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Lace, Vebox)));
+            break;
         default:
             break;
         }
@@ -1520,6 +1543,10 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeSR:
             caps.bSR = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(SR, Render)));
+        case FeatureTypeLace:
+            caps.bLACE = 1;
+            caps.bRender = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Lace, Render)));
             break;
         case FeatureTypeDi:
             caps.bDI          = 1;

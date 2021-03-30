@@ -68,6 +68,11 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
+    virtual MOS_STATUS DumpOutput()
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
     PacketType GetPacketId()
     {
         return m_PacketId;

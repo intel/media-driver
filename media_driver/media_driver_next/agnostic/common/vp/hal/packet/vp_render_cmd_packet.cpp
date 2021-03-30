@@ -29,6 +29,8 @@
 #include "vp_pipeline_common.h"
 #include "vp_render_kernel_obj.h"
 #include "hal_oca_interface.h"
+#include "vp_pipeline.h"
+#include "vp_packet_pipe.h"
 
 namespace vp
 {
@@ -220,6 +222,7 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
     if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
+
         VP_RENDER_CHK_STATUS_RETURN(RenderCmdPacket::Submit(commandBuffer, packetPhase));
     }
     else if (m_submissionMode == MULTI_KERNELS_WITH_ONE_MEDIA_STATE)
@@ -231,7 +234,76 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->DestroyKernelObjects(m_kernelObjs));
+    if (!m_surfSetting.dumpLaceSurface)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->DestroyKernelObjects(m_kernelObjs));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)
+{
+    MOS_HW_RESOURCE_DEF                 Usage           = MOS_HW_RESOURCE_DEF_MAX;
+    MEMORY_OBJECT_CONTROL_STATE         MemObjCtrl      = {};
+    PMOS_INTERFACE                      pOsInterface    = nullptr;
+    PVP_VEBOX_CACHE_CNTL                pSettings       = nullptr;
+
+    VP_FUNC_CALL();
+
+    if (nullptr == m_surfMemCacheCtl)
+    {
+        m_surfMemCacheCtl = MOS_New(VP_VEBOX_CACHE_CNTL);
+    }
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_surfMemCacheCtl);
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface->m_osInterface);
+
+    MOS_ZeroMemory(m_surfMemCacheCtl, sizeof(VP_VEBOX_CACHE_CNTL));
+
+    pOsInterface    = m_hwInterface->m_osInterface;
+    pSettings       = m_surfMemCacheCtl;
+
+    pSettings->bDnDi = true;
+    pSettings->bLace = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrLace);
+
+    if (pSettings->bDnDi)
+    {
+        pSettings->DnDi.bL3CachingEnabled = true;
+
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.CurrentInputSurfMemObjCtl,        MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.PreviousInputSurfMemObjCtl,       MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.STMMInputSurfMemObjCtl,           MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.STMMOutputSurfMemObjCtl,          MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.DnOutSurfMemObjCtl,               MOS_MP_RESOURCE_USAGE_SurfaceState);
+
+        if (packetCaps.bVebox && !packetCaps.bSFC && !packetCaps.bRender)
+        {
+            // Disable cache for output surface in vebox only condition
+            VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.CurrentOutputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_DEFAULT);
+        }
+        else
+        {
+            VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.CurrentOutputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_SurfaceState);
+        }
+
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.StatisticsOutputSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.AlphaOrVignetteSurfMemObjCtl,     MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.LaceOrAceOrRgbHistogramSurfCtrl,  MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.SkinScoreSurfMemObjCtl,           MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.LaceLookUpTablesSurfMemObjCtl,    MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->DnDi.Vebox3DLookUpTablesSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_SurfaceState);
+    }
+    if (pSettings->bLace)
+    {
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.FrameHistogramSurfaceMemObjCtl,      MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.AggregatedHistogramSurfaceMemObjCtl, MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.StdStatisticsSurfaceMemObjCtl,       MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.PwlfInSurfaceMemObjCtl,              MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.PwlfOutSurfaceMemObjCtl,             MOS_MP_RESOURCE_USAGE_SurfaceState);
+        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Lace.WeitCoefSurfaceMemObjCtl,            MOS_MP_RESOURCE_USAGE_SurfaceState);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -254,6 +326,8 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     m_surfSetting = surfSetting;
 
     m_packetResourcesdPrepared = false;
+
+    VP_RENDER_CHK_STATUS_RETURN(InitSurfMemCacheControl(packetCaps));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -334,7 +408,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 
             uint32_t index = 0;
 
-            if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel)
+            if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
             {
                 index = SetSurfaceForHwAccess(
                     &renderHalSurface.OsSurface,
@@ -345,11 +419,26 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
             }
             else
             {
-                if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
-                        kernelSurfaceParam->surfaceOverwriteParams.bufferResource) ||
+                if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams  &&
+                     kernelSurfaceParam->surfaceOverwriteParams.bufferResource        &&
+                     kernelSurfaceParam->surfaceOverwriteParams.bindedKernel)         ||
                     (!kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
-                        (renderHalSurface.OsSurface.Type == MOS_GFXRES_BUFFER || 
+                        (renderHalSurface.OsSurface.Type == MOS_GFXRES_BUFFER         ||
                          renderHalSurface.OsSurface.Type == MOS_GFXRES_INVALID)))
+                {
+                    index = SetBufferForHwAccess(
+                        &renderHalSurface.OsSurface,
+                        &renderHalSurface,
+                        &renderSurfaceParams,
+                        kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
+                        renderSurfaceParams.bRenderTarget);
+                }
+                else if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
+                     kernelSurfaceParam->surfaceOverwriteParams.bufferResource            &&
+                     !kernelSurfaceParam->surfaceOverwriteParams.bindedKernel)            ||
+                    (!kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams     &&
+                    (renderHalSurface.OsSurface.Type == MOS_GFXRES_BUFFER                 ||
+                     renderHalSurface.OsSurface.Type == MOS_GFXRES_INVALID)))
                 {
                     index = SetBufferForHwAccess(
                         &renderHalSurface.OsSurface,
@@ -494,6 +583,18 @@ MOS_STATUS VpRenderCmdPacket::InitStateHeapSurface(SurfaceType type, RENDERHAL_S
         mosSurface.OsResource = pVeboxHeap->DriverResource;
         break;
     case SurfaceTypeVeboxStateHeap_Knr:
+    case SurfaceTypeVeboxInput:
+    case SurfaceTypeLaceAceRGBHistogram:
+    case SurfaceTypeLaceLut:
+    case SurfaceTypeStatistics:
+    case SurfaceTypeSkinScore:
+    case SurfaceTypeAggregatedHistogram:
+    case SurfaceTypeFrameHistogram:
+    case SurfaceTypeStdStatistics:
+    case SurfaceTypePwlfIn:
+    case SurfaceTypePwlfOut:
+    case SurfaceTypeWeitCoef:
+    case SurfaceTypGlobalToneMappingCurveLUT:
         mosSurface.OsResource = pVeboxHeap->KernelResource;
         break;
     default:
@@ -1363,6 +1464,13 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
             pBatchBuffer->dwSyncTag = dwSyncTag;
         }
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::DumpOutput()
+{
+    VP_FUNC_CALL();
 
     return MOS_STATUS_SUCCESS;
 }

@@ -192,6 +192,13 @@ public:
         bool                                bWrite);
 
     virtual uint32_t SetBufferForHwAccess(
+        PMOS_SURFACE                        buffer,
+        PRENDERHAL_SURFACE_NEXT             pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS     pSurfaceParams,
+        uint32_t                            bindingIndex,
+        bool                                bWrite);
+
+    virtual uint32_t SetBufferForHwAccess(
         MOS_BUFFER                          buffer,
         PRENDERHAL_SURFACE_NEXT             pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS     pSurfaceParams,

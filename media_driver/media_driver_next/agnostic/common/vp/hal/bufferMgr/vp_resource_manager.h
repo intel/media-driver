@@ -50,6 +50,11 @@
 #define VEBOX_AUTO_DENOISE_SUPPORTED    1
 #endif
 
+//!
+//! \brief Number of LACE's PWLF surfaces
+//!
+#define VP_NUM_LACE_PWLF_SURFACES                    2
+
 #define IS_VP_VEBOX_DN_ONLY(_a) (_a.bDN &&          \
                                !(_a.bDI) &&   \
                                !(_a.bQueryVariance) && \
@@ -329,14 +334,13 @@ class VpResourceManager
 public:
     VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface);
     virtual ~VpResourceManager();
-    MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
-    void OnNewFrameProcessEnd();
+    virtual MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
+    virtual void OnNewFrameProcessEnd();
     MOS_STATUS GetResourceHint(std::vector<FeatureType> &featurePool, SwFilterPipe& executedFilters, RESOURCE_ASSIGNMENT_HINT &hint);
     MOS_STATUS AssignExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters);
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
-    virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
-        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+
     bool IsSameSamples()
     {
         return m_sameSamples;
@@ -358,6 +362,41 @@ public:
     {
         width = m_imageWidthOfPastHistogram;
         height = m_imageHeightOfPastHistogram;
+    }
+
+    virtual VP_SURFACE* GetVeboxLaceLut()
+    {
+        return NULL;
+    }
+
+    virtual VP_SURFACE* GetVeboxAggregatedHistogramSurface()
+    {
+       return NULL;
+    }
+
+    virtual VP_SURFACE* GetVeboxFrameHistogramSurface()
+   {
+       return NULL;
+    }
+
+    virtual VP_SURFACE* GetVeboxStdStatisticsSurface()
+    {
+       return NULL;
+    }
+
+    virtual VP_SURFACE* GetVeboxPwlfSurface()
+    {
+       return NULL;
+    }
+
+    virtual VP_SURFACE* GetVeboxWeitCoefSurface()
+    {
+       return NULL;
+    }
+
+    virtual VP_SURFACE* GetVeboxGlobalToneMappingCurveLUTSurface()
+    {
+       return NULL;
     }
 
 protected:
@@ -384,6 +423,8 @@ protected:
     void DestoryVeboxSTMMSurface();
     virtual MOS_STATUS AssignRenderResource(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE* inputSurface, VP_SURFACE* outputSurface, VP_SURFACE* pastSurface, VP_SURFACE* futureSurface,
+        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING& surfSetting);
 
     //!
     //! \brief    Vebox initialize STMM History
@@ -483,6 +524,15 @@ protected:
     std::map<uint64_t, VP_SURFACE *> m_tempSurface; // allocation handle and surface pointer pair.
     // Pipe index for one DDI call.
     uint32_t    m_currentPipeIndex                           = 0;
+
+    VP_SURFACE *m_veboxLaceInputSurface                       = nullptr;
+    VP_SURFACE *m_veboxAggregatedHistogramSurface             = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
+    VP_SURFACE *m_veboxFrameHistogramSurface                  = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
+    VP_SURFACE *m_veboxStdStatisticsSurface                   = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
+    VP_SURFACE *m_veboxPwlfSurface[VP_NUM_LACE_PWLF_SURFACES] = {};            //!< VEBOX 1D LUT surface for Vebox Gen12
+    VP_SURFACE *m_veboxWeitCoefSurface                        = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
+    VP_SURFACE *m_veboxGlobalToneMappingCurveLUTSurface       = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
+
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__

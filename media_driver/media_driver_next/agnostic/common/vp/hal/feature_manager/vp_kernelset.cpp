@@ -29,8 +29,9 @@
 
 using namespace vp;
 
-VpKernelSet::VpKernelSet(PVP_MHWINTERFACE hwInterface) :
-    m_hwInterface(hwInterface)
+VpKernelSet::VpKernelSet(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
+    m_hwInterface(hwInterface),
+    m_allocator(allocator)
 {
     m_pKernelPool = &hwInterface->m_vpPlatformInterface->GetKernelPool();
 }
