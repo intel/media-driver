@@ -71,6 +71,8 @@ public:
 
     virtual VAStatus SetDecodeParams() override;
 
+    virtual MOS_FORMAT GetFormat() override;
+
     virtual void ContextInit(
         int32_t picWidth,
         int32_t picHeight) override;
