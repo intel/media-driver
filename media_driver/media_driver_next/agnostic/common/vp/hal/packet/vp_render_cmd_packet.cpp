@@ -76,7 +76,7 @@ VpRenderCmdPacket::~VpRenderCmdPacket()
             MOS_FreeMemAndSetNull(samplerstate.second.Avs.pMhwSamplerAvsTableParam);
         }
     }
-
+    MOS_Delete(m_surfMemCacheCtl);
 }
 
 MOS_STATUS VpRenderCmdPacket::Prepare()
