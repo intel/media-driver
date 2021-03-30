@@ -247,14 +247,7 @@ MOS_STATUS MediaPipeline::CreateMediaCopy()
         m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
     }
     m_mediaCopy = static_cast<MediaCopyBaseState*>(McpyDevice::CreateFactory(mos_context));
-    if (m_mediaCopy)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-    else
-    {
-        return MOS_STATUS_NULL_POINTER;
-    }
+    return MOS_STATUS_SUCCESS;
 }
 
 bool MediaPipeline::IsFrameTrackingEnabled()
