@@ -1133,7 +1133,7 @@ protected:
     //!
     //! \brief    Initialize MPEG2 encode profiles, entrypoints and attributes
     //!
-    VAStatus LoadMpeg2EncProfileEntrypoints();
+    virtual VAStatus LoadMpeg2EncProfileEntrypoints();
 
     //!
     //! \brief    Initialize JPEG decode profiles, entrypoints and attributes
