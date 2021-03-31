@@ -206,7 +206,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         MOS_OS_CHK_STATUS_RETURN(m_cmdBufMgr->Initialize(this, COMMAND_BUFFER_SIZE/2));
 
         // Prepare the gpu Context manager
-        m_gpuContextMgr = GpuContextMgrNext::GetObject(&m_gtSystemInfo, this);
+        m_gpuContextMgr = GpuContextMgrNext::GetObject(this);
         MOS_OS_CHK_NULL_RETURN(m_gpuContextMgr);
 
         //It must be done with m_gpuContextMgr ready. Insides it will create gpu context.

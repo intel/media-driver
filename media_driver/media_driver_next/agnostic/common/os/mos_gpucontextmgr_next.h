@@ -40,7 +40,7 @@ public:
     //!
     //! \brief  Constructor
     //!
-    GpuContextMgrNext(GT_SYSTEM_INFO *gtSystemInfo, OsContextNext *osContext);
+    GpuContextMgrNext(OsContextNext *osContext);
 
     //!
     //! \brief    Copy constructor
@@ -63,7 +63,6 @@ public:
     //!           gpu context manager specific object if success, else nullptr
     //!
     static GpuContextMgrNext* GetObject(
-        GT_SYSTEM_INFO *gtSystemInfo,
         OsContextNext      *osContext);
 
     //!
@@ -165,9 +164,6 @@ public:
 
 protected:
     GpuContextMgrNext() = default;
-    //! \brief    Gt system info 
-    //! \detail   reserve to reuse gpu context
-    GT_SYSTEM_INFO m_gtSystemInfo = {};
 
     //! \brief    Os Context
     OsContextNext *m_osContext = nullptr;
