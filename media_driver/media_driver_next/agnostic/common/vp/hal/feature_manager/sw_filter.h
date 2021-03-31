@@ -151,6 +151,11 @@ struct VP_SURFACE_SETTING
         imageHeightOfPastHistogram  = 0;
         dwVeboxPerBlockStatisticsHeight = 0;
         dwVeboxPerBlockStatisticsWidth  = 0;
+        aggregateBlockSize              = 0;
+        laceLutValid                    = false;
+        updateGlobalToneMappingCurveLUTSurface = true;
+        updateWeitCoefSurface                  = true;
+        dumpLaceSurface                        = false;
     }
 };
 
