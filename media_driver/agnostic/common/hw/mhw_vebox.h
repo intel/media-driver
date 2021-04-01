@@ -1200,6 +1200,7 @@ private:
     PMOS_INTERFACE         m_osInterface   = nullptr;
     PMHW_VEBOX_HEAP        m_veboxHeap     = nullptr;
     MHW_VEBOX_SETTINGS     m_veboxSettings;
+    bool                   m_veboxScalabilitywith4K    = false;
 };
 
 #endif // __MHW_VEBOX_H__

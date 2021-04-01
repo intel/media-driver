@@ -175,6 +175,9 @@ public:
     virtual VPHAL_SURFACE *AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTargetSurface);
 #endif
 
+    static const uint32_t m_4k_content_width  = 3840;
+    static const uint32_t m_4k_content_height = 2160;
+
 protected:
 
     //!
@@ -185,6 +188,15 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params);
+
+    //!
+    //! \brief  prepare execution params for vp scalability pipeline
+    //! \param  [in] params
+    //!         Pointer to VP scalability pipeline params
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS params);
 
     //!
     //! \brief  Execute Vp Pipeline, and generate VP Filters
@@ -314,12 +326,22 @@ protected:
         return false;
     }
 
+    //!
+    //! \brief  Judge if it is gt test environment
+    //! \return bool
+    //!         true if success, else false
+    //!
+    virtual bool IsMultiple()
+    {
+        return (m_numVebox > 1) ? true : false;
+    }
+
 protected:
     VP_PARAMS              m_pvpParams              = {};   //!< vp Pipeline params
     VP_MHWINTERFACE        m_vpMhwInterface         = {};   //!< vp Pipeline Mhw Interface
 
     uint8_t                m_numVebox               = 0;
-    bool                   m_forceMultiplePipe      = false;
+    uint32_t               m_forceMultiplePipe      = 0;
     VpAllocator           *m_allocator              = nullptr;  //!< vp Pipeline allocator
     VPMediaMemComp        *m_mmc                    = nullptr;  //!< vp Pipeline mmc
 

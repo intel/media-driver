@@ -396,16 +396,36 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
         &userFeatureData,
         m_osInterface->pOsContext);
 
-    bool disableScalability = true;
+    bool disableScalability = false;
     if (statusKey == MOS_STATUS_SUCCESS)
     {
         disableScalability = userFeatureData.i32Data ? false : true;
+        if (disableScalability == false)
+        {
+            m_forceMultiplePipe = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_DEFAULT;
+        }
+        else
+        {
+            m_forceMultiplePipe = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_FALSE;
+        }
+    }
+    else
+    {
+        m_forceMultiplePipe = MOS_SCALABILITY_ENABLE_MODE_DEFAULT;
     }
 
-    if (disableScalability)
+    if (disableScalability == true)
     {
         m_numVebox = 1;
         return MOS_STATUS_SUCCESS;
+    }
+    else if (m_forceMultiplePipe == MOS_SCALABILITY_ENABLE_MODE_DEFAULT)
+    {
+        if (m_vpMhwInterface.m_veboxInterface && !(m_vpMhwInterface.m_veboxInterface->m_veboxScalabilitywith4K))
+        {
+            m_numVebox = 1;
+            return MOS_STATUS_SUCCESS;
+        }
     }
 
     // Get vebox number from meida sys info.
@@ -413,12 +433,17 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
     MOS_STATUS        eStatus      = m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaSysInfo);
     if (MOS_SUCCEEDED(eStatus))
     {
-        // Both VE mode and media solo mode should be able to get the VDBOX number via the same interface
+        // Both VE mode and media solo mode should be able to get the VEBOX number via the same interface
         m_numVebox = (uint8_t)(mediaSysInfo.VEBoxInfo.NumberOfVEBoxEnabled);
+        VP_PUBLIC_NORMALMESSAGE("Vebox Number of Enabled %d", m_numVebox);
         if (m_numVebox == 0 && !IsGtEnv())
         {
             VP_PUBLIC_ASSERTMESSAGE("Fail to get the m_numVebox with value 0");
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        else if (m_numVebox == 0 && MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVERing))
+        {
+            m_numVebox = 1;
         }
     }
     else
@@ -686,6 +711,70 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
         m_vpMhwInterface.m_osInterface->osCpInterface->PrepareResources(
             (void **)ppSource, params->uSrcCount, (void **)ppTarget, params->uDstCount);
     }
+
+    PrepareVpPipelineScalabilityParams(params);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief  prepare execution params for vp scalability pipeline
+//! \param  [in] params
+//!         Pointer to VP scalability pipeline params
+//! \return MOS_STATUS
+//!         MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS VpPipeline::PrepareVpPipelineScalabilityParams(PVP_PIPELINE_PARAMS params)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(params);
+    VP_PUBLIC_CHK_NULL_RETURN(params->pSrc[0]);
+    VP_PUBLIC_CHK_NULL_RETURN(params->pTarget[0]);
+
+    // Disable vesfc scalability when reg key "Enable Vebox Scalability" was set to zero
+    if (m_forceMultiplePipe == (MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_FALSE))
+    {
+        m_numVebox = 1;
+    }
+    else
+    {
+        // Disable vesfc scalability when HDR was enabled if reg "Enable Vebox Scalability" was not set as true
+        if (params->pSrc[0]->pHDRParams || params->pTarget[0]->pHDRParams)
+        {
+            if (m_forceMultiplePipe != (MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_DEFAULT))
+            {
+                m_numVebox = 1;
+            }
+        }
+
+        if (((MOS_MIN(params->pSrc[0]->dwWidth, (uint32_t)params->pSrc[0]->rcSrc.right) > m_4k_content_width) &&
+             (MOS_MIN(params->pSrc[0]->dwHeight, (uint32_t)params->pSrc[0]->rcSrc.bottom) > m_4k_content_height)) ||
+            ((MOS_MIN(params->pTarget[0]->dwWidth, (uint32_t)params->pTarget[0]->rcSrc.right) > m_4k_content_width) &&
+             (MOS_MIN(params->pTarget[0]->dwHeight, (uint32_t)params->pTarget[0]->rcSrc.bottom) > m_4k_content_height)))
+        {
+            // Enable vesfc scalability only with 4k+ clips
+        }
+        else
+        {
+            // disable vesfc scalability with 4k- resolution clips if reg "Enable Vebox Scalability" was not set as true
+            if (m_forceMultiplePipe != (MOS_SCALABILITY_ENABLE_MODE_USER_FORCE | MOS_SCALABILITY_ENABLE_MODE_DEFAULT))
+            {
+                m_numVebox = 1;
+            }
+        }
+
+        // Disable DN when vesfc scalability was enabled for output mismatch issue
+        if (IsMultiple())
+        {
+            if (params->pSrc[0]->pDenoiseParams)
+            {
+                params->pSrc[0]->pDenoiseParams->bAutoDetect   = false;
+                params->pSrc[0]->pDenoiseParams->bEnableChroma = false;
+                params->pSrc[0]->pDenoiseParams->bEnableLuma   = false;
+            }
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

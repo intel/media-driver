@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -58,6 +58,9 @@ MOS_STATUS VpScalabilitySinglePipe::Initialize(const MediaScalabilityOption &opt
 
     m_scalabilityOption = MOS_New(VpScalabilityOption, (const VpScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(m_scalabilityOption);
+    SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
+
+    m_osInterface->osStreamState->component = COMPONENT_VPCommon;
 
     return MediaScalabilitySinglePipe::Initialize(option);
 }
