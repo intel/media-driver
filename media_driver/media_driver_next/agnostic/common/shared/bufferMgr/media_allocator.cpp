@@ -129,6 +129,11 @@ PMOS_BUFFER Allocator::AllocateBuffer(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroO
     }
 
     MOS_BUFFER *buffer = MOS_New(MOS_BUFFER);
+    if (nullptr == buffer)
+    {
+        return nullptr;
+    }
+
     memset(buffer, 0, sizeof(MOS_BUFFER));
     MOS_STATUS status = m_osInterface->pfnAllocateResource(m_osInterface, &param, &buffer->OsResource);
 
