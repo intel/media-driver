@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2018, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,12 @@ void VpHal_DdiDeleteSurface(PVPHAL_SURFACE pSurf)
         MOS_SafeFreeMemory(pSurf->pDenoiseParams);
 
         MOS_SafeFreeMemory(pSurf->pColorPipeParams);
+
+        if (pSurf->p3DLutParams)
+        {
+            MOS_SafeFreeMemory(pSurf->p3DLutParams->pExt3DLutSurface);
+            MOS_SafeFreeMemory(pSurf->p3DLutParams);
+        }
 
         MOS_SafeFreeMemory(pSurf);
     }

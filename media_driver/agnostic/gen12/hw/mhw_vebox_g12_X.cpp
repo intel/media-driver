@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2020, Intel Corporation
+* Copyright (c) 2015-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1612,20 +1612,40 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxGamutState(
             MHW_ASSERTMESSAGE("Invalid OutputGammaValue");
         }
 
-        for (i = 0; i < 255; i++)
+        if ((pVeboxGamutParams->InputGammaValue == MHW_GAMMA_1P0) && (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0))
         {
-            usGE_Values[i][0] = 256 * i;
-            usGE_Values[i][1] =
-            usGE_Values[i][2] =
-            usGE_Values[i][3] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), dInverseGamma) * 65536);
+            for (i = 0; i < 256; i++)
+            {
+                usGE_Values[i][0] = 257 * i;
+                usGE_Values[i][1] =
+                usGE_Values[i][2] =
+                usGE_Values[i][3] = 257 * i;
 
-            usGE_Values[i][4] = 256 * i;
-            usGE_Values[i][5] =
-            usGE_Values[i][6] =
-            usGE_Values[i][7] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), 1 / dForwardGamma) * 65536);
+                usGE_Values[i][4] = 257 * i;
+                usGE_Values[i][5] =
+                usGE_Values[i][6] =
+                usGE_Values[i][7] = 257 * i;
+            }
+            // Copy two uint16_t to one DW (UNT32).
+            MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
         }
-        // Copy two uint16_t to one DW (UNT32).
-        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1020, usGE_Values, sizeof(uint16_t) * 8 * 255);
+        else
+        {
+            for (i = 0; i < 255; i++)
+            {
+                usGE_Values[i][0] = 256 * i;
+                usGE_Values[i][1] =
+                usGE_Values[i][2] =
+                usGE_Values[i][3] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), dInverseGamma) * 65536);
+
+                usGE_Values[i][4] = 256 * i;
+                usGE_Values[i][5] =
+                usGE_Values[i][6] =
+                usGE_Values[i][7] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), 1 / dForwardGamma) * 65536);
+            }
+            // Copy two uint16_t to one DW (UNT32).
+            MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1020, usGE_Values, sizeof(uint16_t) * 8 * 255);
+        }
     }
     else if (pVeboxGamutParams->bH2S)
     {

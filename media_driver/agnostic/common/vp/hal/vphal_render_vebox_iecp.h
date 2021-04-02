@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017 - 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -55,6 +55,12 @@ public:
     bool                            bAlphaEnable;                               // Alpha Enable Param
     uint16_t                        wAlphaValue;                                // Color Pipe Alpha Value
 
+    // Front End CSC params
+    bool                            bFeCSCEnable;                               // Enable Front End CSC transform
+    float*                          pfFeCscCoeff;                               // [3x3] Front End CSC Coeff matrix
+    float*                          pfFeCscInOffset;                            // [3x1] Front End CSC Input Offset matrix
+    float*                          pfFeCscOutOffset;                           // [3x1] Front End CSC Output Offset matrix
+
     VPHAL_VEBOX_IECP_PARAMS()
     {
         pColorPipeParams    = nullptr;
@@ -67,6 +73,11 @@ public:
         pfCscOutOffset      = nullptr;
         bAlphaEnable        = false;
         wAlphaValue         = 0;
+
+        bFeCSCEnable        = false;
+        pfFeCscCoeff        = nullptr;
+        pfFeCscInOffset     = nullptr;
+        pfFeCscOutOffset    = nullptr;
     }
     virtual ~VPHAL_VEBOX_IECP_PARAMS()
     {
