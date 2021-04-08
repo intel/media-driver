@@ -2606,7 +2606,7 @@ DdiMedia_CreateSurfaces2(
                 break;
             default:
                 DDI_ASSERTMESSAGE("Unsupported type.");
-                break;
+                return VA_STATUS_ERROR_ATTR_NOT_SUPPORTED;
             }
         }
     }
