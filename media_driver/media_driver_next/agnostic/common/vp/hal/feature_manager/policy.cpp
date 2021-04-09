@@ -452,9 +452,24 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
             (cscParams->output.colorSpace == CSpace_stRGB)              ||
             (cscParams->output.colorSpace == CSpace_sRGB))
         {
-            midFormat = Format_A8R8G8B8;
-            cscEngine->VeboxNeeded |= ENGINE_MUST(1); // Vebox Gamut compression is needed
+            midFormat = Format_A8R8G8B8; // Vebox Gamut compression is needed, Vebox output is ARGB as SFC input
         }
+        else
+        {
+            midFormat = Format_Any;
+        }
+    }
+
+    if (midFormat != Format_Any &&
+        m_hwCaps.m_sfcHwEntry[midFormat].cscSupported &&
+        m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
+        m_hwCaps.m_sfcHwEntry[midFormat].inputSupported)
+    {
+        cscEngine->bEnabled    = 1;
+        cscEngine->SfcNeeded  |= 1;
+        cscEngine->VeboxNeeded = 0;
+
+        return MOS_STATUS_SUCCESS;
     }
 
     // SFC CSC enabling check

@@ -150,6 +150,7 @@ struct _VP_EXECUTE_CAPS
             uint32_t bACE           : 1;   // Vebox ACE needed;
             uint32_t bTCC           : 1;   // Vebox TCC needed;
             uint32_t bCGC           : 1;   // Vebox CGC needed
+            uint32_t bBt2020ToRGB   : 1;   // Vebox Bt2020 gamut compression to RGB format
             uint32_t bProcamp       : 1;   // Vebox Procamp needed;
             uint32_t bBeCSC         : 1;   // Vebox back end CSC needed;
             uint32_t bLACE          : 1;   // Vebox LACE Needed;
@@ -170,7 +171,7 @@ struct _VP_EXECUTE_CAPS
             // Render Features
             uint32_t bComposite     : 1;
             uint32_t bSR            : 1;
-            uint32_t reserved       : 5;   // Reserved
+            uint32_t reserved       : 4;   // Reserved
         };
     };
 };

@@ -609,6 +609,11 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
         }
         veboxOutputTileType = MOS_TILE_Y;
     }
+    else if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)
+    {
+        veboxOutputFormat   = Format_A8B8G8R8;
+        veboxOutputTileType = inputTileType;
+    }
     else if (executeCaps.bIECP)
     {
         // Upsampling to yuv444 for IECP input/output.
@@ -631,7 +636,12 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
     // Vebox Chroma Co-Sited downsampling is part of VEO. It only affects format of vebox output surface, but not
     // affect sfc input format, that's why different logic between GetSfcInputFormat and GetVeboxOutputParams.
     // Check IECP first here, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
-    if (executeCaps.bIECP)
+    if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)
+    {
+        // Upsampling to RGB444, and using ABGR as Vebox output
+        return Format_A8B8G8R8;
+    }
+    else if (executeCaps.bIECP)
     {
         // Upsampling to yuv444 for IECP input/output.
         // To align with legacy path, need to check whether inputFormat can also be used for IECP case,

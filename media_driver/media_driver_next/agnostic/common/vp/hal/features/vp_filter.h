@@ -217,7 +217,11 @@ struct _VEBOX_TCC_PARAMS
 struct _VEBOX_CGC_PARAMS
 {
     bool                                bEnableCGC;                                 // CGC Enabled
-    VPHAL_CSPACE                        colorSpace;
+    bool                                bBt2020ToRGB;                               // Bt2020 convert to sRGB
+    VPHAL_CSPACE                        inputColorSpace;
+    VPHAL_CSPACE                        outputColorSpace;
+    MOS_FORMAT                          inputFormat;
+    MOS_FORMAT                          outputFormat;
     bool                                bExtendedSrcGamut;
     bool                                bExtendedDstGamut;
     VPHAL_GAMUT_MODE                    GCompMode;

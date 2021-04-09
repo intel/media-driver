@@ -165,6 +165,12 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
     {
         return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
     }
+
+    // return sRGB as colorspace as Vebox will do Bt202 to sRGB Gamut switch
+    if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)
+    {
+        return CSpace_sRGB;
+    }
     return inputColorSpace;
 }
 
@@ -214,7 +220,7 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
         m_sfcCSCParams->bCSCEnabled = true;
     }
 
-    if (IS_RGB_CSPACE(m_cscParams.input.colorSpace))
+    if (IS_RGB_CSPACE(m_sfcCSCParams->inputColorSpace))
     {
         m_sfcCSCParams->isInputColorSpaceRGB = true;
     }

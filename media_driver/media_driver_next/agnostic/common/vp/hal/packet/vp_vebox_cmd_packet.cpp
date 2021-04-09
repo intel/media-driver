@@ -91,7 +91,8 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     pVeboxMode->DisableEncoderStatistics = true;
     pVeboxMode->DisableTemporalDenoiseFilter = false;
 
-    pVeboxMode->ColorGamutCompressionEnable = m_PacketCaps.bCGC;
+    pVeboxMode->ColorGamutCompressionEnable = m_PacketCaps.bCGC && !m_PacketCaps.bBt2020ToRGB;
+    pVeboxMode->ColorGamutExpansionEnable   = m_PacketCaps.bBt2020ToRGB;
 
     pVeboxStateCmdParams->bUseVeboxHeapKernelResource = UseKernelResource();
 
