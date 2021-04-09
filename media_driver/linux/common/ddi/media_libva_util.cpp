@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -207,7 +207,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
         case Media_Format_B10G10R10X2:
         case Media_Format_A16R16G16B16:
         case Media_Format_A16B16G16R16:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint     &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
             {
                 tileformat = I915_TILING_NONE;
@@ -224,12 +224,22 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 alignedHeight = MOS_ALIGN_CEIL(height, 2);
                 break;
             }
+
         case Media_Format_RGBP:
         case Media_Format_BGRP:
-        case Media_Format_A8R8G8B8:
-            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint &&
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint   &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER) &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE))
+            {
+                tileformat = I915_TILING_NONE;
+                break;
+            }
+        case Media_Format_A8R8G8B8:
+            if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint     &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER)   &&
+                !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_VPP_WRITE) &&
+                !(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly)           &&
+                  MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression)))
             {
                 tileformat = I915_TILING_NONE;
                 break;
@@ -461,6 +471,21 @@ VAStatus DdiMediaUtil_AllocateSurface(
                             gmmParams.Flags.Info.RenderCompressed = 1;
                         }
 
+                        if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly))
+                        {
+                            gmmParams.Flags.Info.MediaCompressed = 0;
+
+                            if (format == Media_Format_X8R8G8B8 ||
+                                format == Media_Format_X8B8G8R8 ||
+                                format == Media_Format_A8B8G8R8 ||
+                                format == Media_Format_A8R8G8B8 ||
+                                format == Media_Format_R8G8B8A8)
+                            {
+                                gmmParams.Flags.Info.MediaCompressed  = 0;
+                                gmmParams.Flags.Info.RenderCompressed = 1;
+                            }
+                        }
+
                         if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
                         {
                             gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
@@ -649,6 +674,21 @@ VAStatus DdiMediaUtil_AllocateSurface(
                     if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
                     {
                         gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
+                    }
+
+                    if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly))
+                    {
+                        gmmParams.Flags.Info.MediaCompressed = 0;
+
+                        if (format == Media_Format_X8R8G8B8 ||
+                            format == Media_Format_X8B8G8R8 ||
+                            format == Media_Format_A8B8G8R8 ||
+                            format == Media_Format_A8R8G8B8 ||
+                            format == Media_Format_R8G8B8A8)
+                        {
+                            gmmParams.Flags.Info.MediaCompressed  = 0;
+                            gmmParams.Flags.Info.RenderCompressed = 1;
+                        }
                     }
                 }
                 break;

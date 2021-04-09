@@ -2494,6 +2494,17 @@ MOS_STATUS Mos_Specific_AllocateResource(
                 GmmParams.Flags.Gpu.RenderTarget = 1;
                 GmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
 
+                if (pParams->CompressionMode == MOS_MMC_RC)
+                {
+                    GmmParams.Flags.Info.MediaCompressed = 0;
+                    GmmParams.Flags.Info.RenderCompressed = 1;
+                }
+                else
+                {
+                    GmmParams.Flags.Info.MediaCompressed = 1;
+                    GmmParams.Flags.Info.RenderCompressed = 0;
+                }
+
                 if(MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrFlatPhysCCS))
                 {
                     GmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
