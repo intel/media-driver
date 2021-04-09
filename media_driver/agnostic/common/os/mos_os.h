@@ -434,6 +434,7 @@ typedef struct _MOS_GFXRES_FLAGS
     int32_t         bOverlay;
     int32_t         bFlipChain;
     int32_t         bSVM;
+    int32_t         bCacheable;
 } MOS_GFXRES_FLAGS, *PMOS_GFXRES_FLAGS;
 
 //!
