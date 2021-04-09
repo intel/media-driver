@@ -392,7 +392,8 @@ protected:
     };
 
     bool       m_hevcRDOQPerfDisabled = false; //!< Flag to indicate if HEVC RDOQ Perf is disabled
-    uint32_t   m_watchDogTimerThreshold = 0; //!< For Watch Dog Timer threshold on Gen11+
+    uint32_t   m_watchDogTimerThreshold = 0;   //!< For Watch Dog Timer threshold on Gen11+
+    bool       m_disableTlbPrefetch = false;   //!< To disable TLB pre-fetch or not
 
     static const uint32_t   m_HevcSccPaletteSize = 96; //!< For HEVC SCC palette size on Gen12+
     static const uint32_t   m_hcpPakObjSize = MOS_BYTES_TO_DWORDS(sizeof(HcpPakObjectG12));   //!< hcp pak object size
@@ -453,6 +454,17 @@ public:
             m_watchDogTimerThreshold = userFeatureData.u32Data;
         }
 #endif
+
+        if (MEDIA_IS_WA(m_osInterface->pfnGetWaTable(m_osInterface), Wa_14012254246))
+        {
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_DISABLE_TLB_PREFETCH_ID,
+                &userFeatureData,
+                this->m_osInterface->pOsContext);
+            m_disableTlbPrefetch = userFeatureData.u32Data ? true : false;
+        }
 
         m_hevcEncCuRecordSize = sizeof(EncodeHevcCuDataG12);
         m_pakHWTileSizeRecordSize = sizeof(HCPPakHWTileSizeRecord_G12);

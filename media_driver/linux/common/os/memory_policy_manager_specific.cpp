@@ -40,7 +40,7 @@ int MemoryPolicyManager::UpdateMemoryPolicyWithWA(
     {
         mem_type = MOS_MEMPOOL_DEVICEMEMORY;
 
-        if (memPolicyPar->uiType == VAEncCodedBufferType)
+        if (memPolicyPar->uiType == VAEncCodedBufferType && !MEDIA_IS_WA(memPolicyPar->waTable, Wa_14012254246))
         {
             mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
         }

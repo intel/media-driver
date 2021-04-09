@@ -1447,6 +1447,11 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeModeSelectCmd(
         cmd.DW1.CodecSelect                        = cmd.CODEC_SELECT_ENCODE;
     }
 
+    if (m_disableTlbPrefetch)
+    {
+        cmd.DW1.PrefetchDisable = 1;
+    }
+
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
 
     // for Gen11+, we need to add MFX wait for both KIN and VRT before and after HCP Pipemode select...
