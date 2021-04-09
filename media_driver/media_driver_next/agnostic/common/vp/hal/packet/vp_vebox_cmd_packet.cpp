@@ -91,6 +91,15 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     pVeboxMode->DisableEncoderStatistics = true;
     pVeboxMode->DisableTemporalDenoiseFilter = false;
 
+    if (!m_PacketCaps.bDI  &&
+        m_PacketCaps.bDN   &&
+        (IS_RGB_CSPACE(m_currentSurface->ColorSpace)))
+    {
+        // RGB DN must disable Temporal filter in Vebox
+        pVeboxMode->DisableTemporalDenoiseFilter = true;
+        pVeboxMode->GlobalIECPEnable             = true;
+    }
+
     pVeboxMode->ColorGamutCompressionEnable = m_PacketCaps.bCGC && !m_PacketCaps.bBt2020ToRGB;
     pVeboxMode->ColorGamutExpansionEnable   = m_PacketCaps.bBt2020ToRGB;
 

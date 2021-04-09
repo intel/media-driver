@@ -323,6 +323,16 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
         return false;
     }
 
+    PVPHAL_SURFACE inputSurface = params.pSrc[surfIndex];
+
+    if (inputSurface                               &&
+        (inputSurface->Format == Format_A8R8G8B8   ||
+        inputSurface->Format == Format_A16R16G16B16))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Unsupported Format '0x%08x' which DN will not supported", inputSurface->Format);
+        return false;
+    }
+
     PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
     if (vphalSurf && vphalSurf->pDenoiseParams &&
         (vphalSurf->pDenoiseParams->bEnableLuma || vphalSurf->pDenoiseParams->bEnableHVSDenoise))
