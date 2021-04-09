@@ -514,9 +514,16 @@ MOS_STATUS CodechalDecodeAvc::SetPictureStructs()
     m_avcRefList[currPic.FrameIdx]->resRefPic = m_destSurface.OsResource;
 
     // Override reference list with ref surface passed from DDI
-    for (i = 0; i < m_refSurfaceNum; i++)
+    uint8_t surfCount = 0;
+    uint8_t surfIndex = 0;
+    while (surfCount < m_refSurfaceNum && surfIndex < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
     {
-        m_avcRefList[i]->resRefPic = m_refFrameSurface[i].OsResource;
+        if (!Mos_ResourceIsNull(&m_refFrameSurface[surfIndex].OsResource))
+        {
+            m_avcRefList[surfIndex]->resRefPic = m_refFrameSurface[surfIndex].OsResource;
+            surfCount++;
+        }
+        surfIndex++;
     }
 
     uint8_t index, duplicatedIdx;
