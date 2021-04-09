@@ -1538,6 +1538,7 @@ MOS_STATUS CodechalDecode::EndStatusReport(
         }
         else if(m_standard == CODECHAL_HEVC || m_standard == CODECHAL_VP9)
         {
+            CODECHAL_DECODE_CHK_NULL_RETURN(mmioRegistersHcp);
             regParams.dwRegister = mmioRegistersHcp->hcpFrameCrcRegOffset;
         }
 
