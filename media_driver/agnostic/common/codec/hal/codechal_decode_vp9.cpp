@@ -221,7 +221,9 @@ CodechalDecodeVp9 ::CodechalDecodeVp9(
     MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
 
     m_prevFrameParams.value = 0;
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_reportFrameCrc        = true;
+#endif
     for (uint8_t i = 0; i < CODEC_VP9_NUM_CONTEXTS; i++)
     {
         m_pendingResetFullTables[i] = 0;

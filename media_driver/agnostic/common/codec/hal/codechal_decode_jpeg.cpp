@@ -85,6 +85,9 @@ CodechalDecodeJpeg::CodechalDecodeJpeg(
     MOS_ZeroMemory(&m_resDataBuffer, sizeof(m_resDataBuffer));
     MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
     MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_reportFrameCrc = true;
+#endif
 }
 
 MOS_STATUS CodechalDecodeJpeg::InitializeBeginFrame()

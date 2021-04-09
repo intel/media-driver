@@ -1294,7 +1294,8 @@ MOS_STATUS CodechalHwInterface::SendHwSemaphoreWaitCmd(
     PMOS_RESOURCE                               semaMem,
     uint32_t                                    semaData,
     MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION   opCode,
-    PMOS_COMMAND_BUFFER                         cmdBuffer)
+    PMOS_COMMAND_BUFFER                         cmdBuffer,
+    uint32_t                                  semaMemOffset)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -1306,6 +1307,7 @@ MOS_STATUS CodechalHwInterface::SendHwSemaphoreWaitCmd(
     miSemaphoreWaitParams.bPollingWaitMode = true;
     miSemaphoreWaitParams.dwSemaphoreData = semaData;
     miSemaphoreWaitParams.CompareOperation = opCode;
+    miSemaphoreWaitParams.dwResourceOffset = semaMemOffset;
     eStatus = m_miInterface->AddMiSemaphoreWaitCmd(cmdBuffer, &miSemaphoreWaitParams);
 
     return eStatus;

@@ -1715,6 +1715,9 @@ CodechalDecodeMpeg2::CodechalDecodeMpeg2 (
     MOS_ZeroMemory(&m_resSyncObjectWaContextInUse, sizeof(m_resSyncObjectWaContextInUse));
     MOS_ZeroMemory(&m_resSyncObjectVideoContextInUse, sizeof(m_resSyncObjectVideoContextInUse));
     MOS_ZeroMemory(&m_savedMpeg2MbParam, sizeof(m_savedMpeg2MbParam));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_reportFrameCrc = true;
+#endif
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

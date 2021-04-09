@@ -2239,6 +2239,10 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateStandard (
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_debugInterface->SetSWCrcMode(true);
+#endif
+
     m_width                         = settings->width;
     m_height                        = settings->height;
     m_is10BitHevc                   = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? true : false;

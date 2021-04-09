@@ -41,6 +41,7 @@ MediaDebugInterface::MediaDebugInterface()
     memset(&m_currPic, 0, sizeof(CODEC_PICTURE));
     memset(m_fileName, 0, sizeof(m_fileName));
     memset(m_path, 0, sizeof(m_path));
+    InitCRCTable(m_crcTable);
 }
 
 MediaDebugInterface::~MediaDebugInterface()
@@ -58,6 +59,7 @@ MediaDebugInterface::~MediaDebugInterface()
 
 MOS_STATUS MediaDebugInterface::InitDumpLocation()
 {
+    m_crcGoldenRefFileName = m_outputFilePath + std::string("GoldenReference.txt");
     if (m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpToThreadFolder))
     {
         std::string ThreadSubFolder = "T" + std::to_string(MOS_GetCurrentThreadId()) + MOS_DIRECTORY_DELIMITER;
@@ -305,6 +307,394 @@ MOS_STATUS MediaDebugInterface::DumpCmdBuffer(
     return MOS_STATUS_SUCCESS;
 }
 
+void MediaDebugInterface::PackGoldenReferences(std::initializer_list<std::vector<uint32_t>> goldenReference)
+{
+    for (auto beg = goldenReference.begin(); beg != goldenReference.end(); beg++)
+    {
+        m_goldenReferences.push_back(*beg);
+    }
+}
+
+MOS_STATUS MediaDebugInterface::CaptureGoldenReference(uint8_t *buf, uint32_t size, uint32_t hwCrcValue)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    if (m_enableHwDebugHooks &&
+        !m_goldenReferenceExist)
+    {
+        if (m_swCRC)
+        {
+            if (buf == nullptr)
+            {
+                return MOS_STATUS_NULL_POINTER;
+            }
+            auto crcVal = CalculateCRC(buf, size, 0);
+            m_crcGoldenReference.push_back(crcVal);
+        }
+        else
+        {
+            m_crcGoldenReference.push_back(hwCrcValue);
+        }
+    }
+    return eStatus;
+}
+
+MOS_STATUS MediaDebugInterface::FillSemaResource(std::vector<uint32_t*> &vSemaData, std::vector<uint32_t> &data)
+{
+    if (vSemaData.size() != data.size())
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    for (uint32_t i = 0; i < vSemaData.size(); i++)
+    {
+        *vSemaData[i] = data[i];
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::LockResource(uint32_t *semaData, PMOS_RESOURCE reSemaphore)
+{
+    CodechalResLock semaLock(m_osInterface, reSemaphore);
+    semaData = (uint32_t *)semaLock.Lock(CodechalResLock::writeOnly);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::LockSemaResource(std::vector<uint32_t *> &vSemaData, std::vector<MOS_RESOURCE> &vResource)
+{
+    for (uint32_t i = 0; i < vResource.size(); i++)
+    {
+        CodechalResLock semaLock(m_osInterface, &vResource[i]);
+        uint32_t *      smData = (uint32_t *)semaLock.Lock(CodechalResLock::writeOnly);
+        LockResource(smData, &vResource[i]);
+        vSemaData.push_back(smData);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::StopExecutionAtFrame(CodechalHwInterface *hwInterface, PMOS_RESOURCE statusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t numFrame)
+{
+    MEDIA_DEBUG_ASSERTMESSAGE("Will stop to frame: %d!!!", numFrame);
+
+    MEDIA_DEBUG_CHK_STATUS(hwInterface->SendHwSemaphoreWaitCmd(
+        statusBuffer,
+        0x7f7f7f7f,
+        MHW_MI_SAD_EQUAL_SDD,
+        pCmdBuffer));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::DumpToFile(const GoldenReferences &goldenReferences)
+{
+    std::ofstream ofs(m_crcGoldenRefFileName, std::ios_base::out);
+    if (goldenReferences.size() <= 0)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    for (uint32_t i = 0; i < goldenReferences[0].size(); i++)
+    {
+        for (auto golden : goldenReferences)
+        {
+            ofs << golden[i] << '\t';
+        }
+        ofs << '\n';
+    }
+    ofs.close();
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer)
+{
+    MHW_MI_STORE_DATA_PARAMS storeDataParams;
+    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
+    storeDataParams.pOsResource      = pResource;
+    storeDataParams.dwResourceOffset = 0;
+    storeDataParams.dwValue          = frameNum;
+    MEDIA_DEBUG_CHK_STATUS(pMiInterface->AddMiStoreDataImmCmd(pCmdBuffer, &storeDataParams));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::DumpGoldenReference()
+{
+    if (m_enableHwDebugHooks && !m_goldenReferenceExist && m_goldenReferences.size() > 0)
+    {
+        return DumpToFile(m_goldenReferences);
+    }
+    else
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+}
+
+MOS_STATUS MediaDebugInterface::DumpYUVSurfaceToBuffer(PMOS_SURFACE surface,
+    uint8_t *                                                          buffer,
+    uint32_t &                                                         size)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.ReadOnly     = 1;
+    lockFlags.TiledAsTiled = 1;  // Bypass GMM CPU blit due to some issues in GMM CpuBlt function
+
+    uint8_t *lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
+    if (lockedAddr == nullptr)  // Failed to lock. Try to submit copy task and dump another surface
+    {
+        uint32_t        sizeToBeCopied = 0;
+        MOS_GFXRES_TYPE ResType;
+
+#if LINUX
+        // Linux does not have OsResource->ResType
+        ResType = surface->Type;
+#else
+        ResType = surface->OsResource.ResType;
+#endif
+
+        GMM_RESOURCE_FLAG gmmFlags  = surface->OsResource.pGmmResInfo->GetResFlags();
+        bool              allocated = false;
+
+        MEDIA_DEBUG_CHK_STATUS(ReAllocateSurface(
+            &m_temp2DSurfForCopy,
+            surface,
+            "Temp2DSurfForSurfDumper",
+            ResType));
+
+        // Ensure allocated buffer size contains the source surface size
+        if (m_temp2DSurfForCopy.OsResource.pGmmResInfo->GetSizeMainSurface() >= surface->OsResource.pGmmResInfo->GetSizeMainSurface())
+        {
+            sizeToBeCopied = (uint32_t)surface->OsResource.pGmmResInfo->GetSizeMainSurface();
+        }
+
+        if (sizeToBeCopied == 0)
+        {
+            // Currently, MOS's pfnAllocateResource does not support allocate a surface reference to another surface.
+            // When the source surface is not created from Media, it is possible that we cannot allocate the same size as source.
+            // For example, on Gen9, Render target might have GMM set CCS=1 MMC=0, but MOS cannot allocate surface with such combination.
+            // When Gmm allocation parameter is different, the resulting surface size/padding/pitch will be differnt.
+            // Once if MOS can support allocate a surface by reference another surface, we can do a bit to bit copy without problem.
+            MEDIA_DEBUG_ASSERTMESSAGE("Cannot allocate correct size, failed to copy nonlockable resource");
+            return MOS_STATUS_NULL_POINTER;
+        }
+
+        MEDIA_DEBUG_VERBOSEMESSAGE("Temp2DSurfaceForCopy width %d, height %d, pitch %d, TileType %d, bIsCompressed %d, CompressionMode %d",
+            m_temp2DSurfForCopy.dwWidth,
+            m_temp2DSurfForCopy.dwHeight,
+            m_temp2DSurfForCopy.dwPitch,
+            m_temp2DSurfForCopy.TileType,
+            m_temp2DSurfForCopy.bIsCompressed,
+            m_temp2DSurfForCopy.CompressionMode);
+
+        if (CopySurfaceData_Vdbox(sizeToBeCopied, &surface->OsResource, &m_temp2DSurfForCopy.OsResource) != MOS_STATUS_SUCCESS)
+        {
+            MEDIA_DEBUG_ASSERTMESSAGE("CopyDataSurface_Vdbox failed");
+            m_osInterface->pfnFreeResource(m_osInterface, &m_temp2DSurfForCopy.OsResource);
+            return MOS_STATUS_NULL_POINTER;
+        }
+        lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
+        MEDIA_DEBUG_CHK_NULL(lockedAddr);
+    }
+
+    uint32_t sizeMain     = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
+    uint8_t *surfBaseAddr = (uint8_t *)MOS_AllocMemory(sizeMain);
+    MEDIA_DEBUG_CHK_NULL(surfBaseAddr);
+
+    Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch, 0);
+
+    uint8_t *data = surfBaseAddr;
+    data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
+
+    uint32_t width  = surface->dwWidth;
+    uint32_t height = surface->dwHeight;
+
+    switch (surface->Format)
+    {
+    case Format_YUY2:
+    case Format_Y216V:
+    case Format_P010:
+    case Format_P016:
+        width = width << 1;
+        break;
+    case Format_Y216:
+    case Format_Y210:  //422 10bit -- Y0[15:0]:U[15:0]:Y1[15:0]:V[15:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_Y410:  //444 10bit -- A[31:30]:V[29:20]:Y[19:10]:U[9:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_R10G10B10A2:
+    case Format_AYUV:  //444 8bit  -- A[31:24]:Y[23:16]:U[15:8]:V[7:0] = 32bits per pixel = 4Bytes per pixel
+    case Format_A8R8G8B8:
+        width = width << 2;
+        break;
+    default:
+        break;
+    }
+
+    uint32_t pitch = surface->dwPitch;
+    if (surface->Format == Format_UYVY)
+        pitch = width;
+
+    if (CodecHal_PictureIsBottomField(m_currPic))
+    {
+        data += pitch;
+    }
+
+    if (CodecHal_PictureIsField(m_currPic))
+    {
+        pitch *= 2;
+        height /= 2;
+    }
+
+    // write luma data to file
+    for (uint32_t h = 0; h < height; h++)
+    {
+        MOS_SecureMemcpy(buffer, width, data, width);
+        buffer += width;
+        size += width;
+        data += pitch;
+    }
+
+    if (surface->Format != Format_A8B8G8R8)
+    {
+        switch (surface->Format)
+        {
+        case Format_NV12:
+        case Format_P010:
+        case Format_P016:
+            height >>= 1;
+            break;
+        case Format_Y416:
+        case Format_AUYV:
+        case Format_R10G10B10A2:
+            height *= 2;
+            break;
+        case Format_YUY2:
+        case Format_YUYV:
+        case Format_YUY2V:
+        case Format_Y216V:
+        case Format_YVYU:
+        case Format_UYVY:
+        case Format_VYUY:
+        case Format_Y216:  //422 16bit
+        case Format_Y210:  //422 10bit
+        case Format_P208:  //422 8bit
+            break;
+        case Format_422V:
+        case Format_IMC3:
+            height = height / 2;
+            break;
+        case Format_AYUV:
+        default:
+            height = 0;
+            break;
+        }
+
+        uint8_t *vPlaneData = surfBaseAddr;
+#ifdef LINUX
+        data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
+        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+        {
+            vPlaneData = surfBaseAddr + surface->VPlaneOffset.iSurfaceOffset;
+        }
+#else
+        data = surfBaseAddr + surface->UPlaneOffset.iLockSurfaceOffset;
+        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+        {
+            vPlaneData = surfBaseAddr + surface->VPlaneOffset.iLockSurfaceOffset;
+        }
+
+#endif
+
+        // write chroma data to file
+        for (uint32_t h = 0; h < height; h++)
+        {
+            MOS_SecureMemcpy(buffer, width, data, width);
+            buffer += width;
+            size += width;
+            data += pitch;
+        }
+
+        // write v planar data to file
+        if (surface->Format == Format_422V || surface->Format == Format_IMC3)
+        {
+            for (uint32_t h = 0; h < height; h++)
+            {
+                MOS_SecureMemcpy(buffer, width, vPlaneData, width);
+                buffer += width;
+                size += width;
+                vPlaneData += pitch;
+            }
+        }
+    }
+
+    m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);
+
+    MOS_FreeMemory(surfBaseAddr);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::LoadGoldenReference()
+{
+    std::ifstream ifs(m_crcGoldenRefFileName, std::ios_base::in);
+    std::vector<uint32_t> lines;
+    std::string           str;
+    uint32_t              num;
+    if (!ifs)
+    {
+        return MOS_STATUS_FILE_OPEN_FAILED;
+    }
+    uint32_t crc;
+    while (!ifs.eof())
+    {
+        std::getline(ifs, str);
+        std::stringstream stringin(str); 
+        lines.clear();
+        while (stringin >> num)
+        {
+            lines.push_back(num);
+        }
+        m_goldenReferences.push_back(lines);
+    }
+    ifs.close();
+    m_goldenReferences.pop_back();
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::SubmitDummyWorkload(MOS_COMMAND_BUFFER *pCmdBuffer, int32_t bNullRendering)
+{
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    MEDIA_DEBUG_CHK_STATUS(m_miInterface->AddMiFlushDwCmd(
+        pCmdBuffer,
+        &flushDwParams));
+    MEDIA_DEBUG_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(
+        pCmdBuffer,
+        nullptr));
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, pCmdBuffer, 0);
+    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, pCmdBuffer, bNullRendering));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::DetectCorruptionHw(CodechalHwInterface *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum)
+{
+    if (m_enableHwDebugHooks &&
+        m_goldenReferenceExist &&
+        m_goldenReferences.size() > 0 &&
+        vStatusBuffer.size() > 0)
+    {
+        for (uint32_t i = 0; i < vStatusBuffer.size(); i++)
+        {
+            MEDIA_DEBUG_CHK_STATUS(hwInterface->SendHwSemaphoreWaitCmd(
+                &vStatusBuffer[i],
+                m_goldenReferences[curIdx][i],
+                MHW_MI_SAD_EQUAL_SDD,
+                pCmdBuffer,
+                frameCrcOffset));
+        }
+        StoreNumFrame(m_miInterface, frameCntRes, frameNum, pCmdBuffer);
+        if (m_frameNumSpecified == frameNum)
+        {
+            StopExecutionAtFrame(hwInterface, &vStatusBuffer[0], pCmdBuffer, frameNum);
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MediaDebugInterface::Dump2ndLvlBatch(
     PMHW_BATCH_BUFFER      batchBuffer,
     MEDIA_DEBUG_STATE_TYPE mediaState,
@@ -488,6 +878,12 @@ MOS_STATUS MediaDebugInterface::DumpKernelRegion(
     {
         return DumpBufferInHexDwords(sshData, sshSize);
     }
+}
+
+MOS_STATUS MediaDebugInterface::SetSWCrcMode(bool swCrc)
+{
+    m_swCRC = swCrc;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MediaDebugInterface::DumpYUVSurface(
@@ -1607,6 +2003,39 @@ MOS_STATUS MediaDebugInterface::DumpBufferInHexDwords(uint8_t *data, uint32_t si
     ofs.close();
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::InitCRCTable(uint32_t crcTable[256])
+{
+    uint32_t polynomial = 0xEDB88320;
+    for (uint32_t i = 0; i < 256; i++)
+    {
+        uint32_t c = i;
+        for (size_t j = 0; j < 8; j++)
+        {
+            if (c & 1)
+            {
+                c = polynomial ^ (c >> 1);
+            }
+            else
+            {
+                c >>= 1;
+            }
+        }
+        crcTable[i] = c;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+uint32_t MediaDebugInterface::CalculateCRC(const void *buf, size_t len, uint32_t initial)
+{
+    uint32_t       c = initial ^ 0xFFFFFFFF;
+    const uint8_t *u = static_cast<const uint8_t *>(buf);
+    for (size_t i = 0; i < len; ++i)
+    {
+        c = m_crcTable[(c ^ u[i]) & 0xFF] ^ (c >> 8);
+    }
+    return c ^ 0xFFFFFFFF;
 }
 
 #endif  // USE_MEDIA_DEBUG_TOOL

@@ -1299,10 +1299,11 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendHwSemaphoreWaitCmd(
-        PMOS_RESOURCE                               semaMem,
-        uint32_t                                    semaData,
-        MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION   opCode,
-        PMOS_COMMAND_BUFFER                         cmdBuffer);
+        PMOS_RESOURCE                             semaMem,
+        uint32_t                                  semaData,
+        MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
+        PMOS_COMMAND_BUFFER                       cmdBuffer,
+        uint32_t                                  semaMemOffset = 0);
 
     //!
     //! \brief    Send mi atomic dword cmd

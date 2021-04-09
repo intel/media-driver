@@ -43,6 +43,12 @@ CodechalDebugInterface::~CodechalDebugInterface()
     }
 }
 
+void CodechalDebugInterface::CheckGoldenReferenceExist()
+{
+    std::ifstream crcGoldenRefStream(m_crcGoldenRefFileName);
+    m_goldenReferenceExist = crcGoldenRefStream.good() ? true : false;
+}
+
 MOS_STATUS CodechalDebugInterface::Initialize(
     CodechalHwInterface *hwInterface,
     CODECHAL_FUNCTION    codecFunction)
@@ -65,6 +71,33 @@ MOS_STATUS CodechalDebugInterface::Initialize(
 
     MediaDebugInterface::InitDumpLocation();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.i32Data     = 0;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        NULL,
+        __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_enableHwDebugHooks = userFeatureData.u32Data ? true : false;
+    CheckGoldenReferenceExist();
+    if (m_enableHwDebugHooks && m_goldenReferenceExist)
+    {
+        LoadGoldenReference();
+    }
+
+    userFeatureData.i32Data     = -1;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_frameNumSpecified = userFeatureData.i32Data;
+#endif
+    
     return MOS_STATUS_SUCCESS;
 }
 
@@ -146,6 +179,41 @@ MOS_USER_FEATURE_VALUE_ID CodechalDebugInterface::InitDefaultOutput()
 {
     m_outputFilePath.append(MEDIA_DEBUG_CODECHAL_DUMP_OUTPUT_FOLDER);
     return SetOutputPathKey();
+}
+
+MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE> &vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum)
+{
+    if (m_enableHwDebugHooks &&
+        m_goldenReferenceExist &&
+        m_goldenReferences.size() > 0 &&
+        vResource.size() > 0)
+    {
+        MOS_COMMAND_BUFFER cmdBuffer = {};
+        std::vector<uint32_t *> vSemaData;
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+        CODECHAL_DECODE_CHK_STATUS_RETURN(pCodechalDecode->SendPrologWithFrameTracking(&cmdBuffer, false));
+        LockSemaResource(vSemaData, vResource);
+        // for CRC mismatch detection
+        for (uint32_t i = 0; i < vResource.size(); i++)
+        {
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->SendHwSemaphoreWaitCmd(
+                &vResource[i],
+                m_goldenReferences[frameNum][i],
+                MHW_MI_SAD_EQUAL_SDD,
+                &cmdBuffer));
+        }
+        StoreNumFrame(m_miInterface, frameCntRes, frameNum, &cmdBuffer);
+        if (m_frameNumSpecified == frameNum)
+        {
+            StopExecutionAtFrame(m_hwInterface, &vResource[0], &cmdBuffer, frameNum);
+        }
+        // To hang the system at specified for golden PSMI
+        SubmitDummyWorkload(&cmdBuffer, pCodechalDecode->GetVideoContextUsesNullHw());
+        //Get Decode output
+        std::vector<uint32_t> data = {CalculateCRC(buf, size)};
+        CODECHAL_DEBUG_CHK_STATUS(FillSemaResource(vSemaData, data));
+    }
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalDebugInterface::DumpHucRegion(

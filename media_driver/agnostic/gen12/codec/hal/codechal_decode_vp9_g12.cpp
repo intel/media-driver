@@ -1265,6 +1265,10 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateStandard (
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_debugInterface->SetSWCrcMode(true);
+#endif
+
     m_width                      = settings->width;
     m_height                     = settings->height;
     if (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_8_BITS)

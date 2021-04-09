@@ -28,6 +28,8 @@
 #define __CODEC_DEBUG_H__
 
 #include "media_debug_interface.h"
+#include "codechal_decoder.h"
+
 #if USE_MEDIA_DEBUG_TOOL
 
 #define USE_CODECHAL_DEBUG_TOOL 1
@@ -123,8 +125,12 @@ public:
         uint32_t                  hucPassNum,
         CodechalHucRegionDumpType dumpType);
 
+    MOS_STATUS DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE>& vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum) override;
+    
     MOS_STATUS DumpEncodeStatusReport(
         uint8_t *report);
+
+    void CheckGoldenReferenceExist();
 
     CodechalHwInterface *m_hwInterface   = nullptr;
     CODECHAL_FUNCTION    m_codecFunction = CODECHAL_FUNCTION_INVALID;
@@ -133,6 +139,7 @@ public:
 protected:
     MOS_USER_FEATURE_VALUE_ID SetOutputPathKey() override;
     MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() override;
+    uint8_t *m_decodeOutputBuf = nullptr;
 };
 #else
 #define USE_CODECHAL_DEBUG_TOOL 0

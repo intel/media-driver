@@ -38,7 +38,7 @@
 #include "media_debug_utils.h"
 #include <sstream>
 #include <fstream>
-
+using GoldenReferences = std::vector<std::vector<uint32_t>>;
 class MediaDebugInterface
 {
 public:
@@ -128,8 +128,47 @@ public:
 
     MOS_STATUS DeleteCfgLinkNode(uint32_t frameIdx);
 
+    virtual MOS_STATUS InitCRCTable(uint32_t crcTable[256]);
+    
+    virtual uint32_t CalculateCRC(
+        const void *buf,
+        size_t      len,
+        uint32_t    initial=0 );
+
+    virtual MOS_STATUS CaptureGoldenReference(uint8_t *buf, uint32_t size, uint32_t hwCrcValue=0);
+
+    virtual MOS_STATUS DumpGoldenReference();
+
+    virtual MOS_STATUS LoadGoldenReference();
+
+    virtual MOS_STATUS DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE> &vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum) { return MOS_STATUS_SUCCESS; };
+
+    virtual MOS_STATUS DetectCorruptionHw(CodechalHwInterface *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum);
+
+    virtual MOS_STATUS StopExecutionAtFrame(CodechalHwInterface *hwInterface, PMOS_RESOURCE statusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t numFrame);
+
+    MOS_STATUS SetSWCrcMode(bool swCrc);
+
+    MOS_STATUS SubmitDummyWorkload(MOS_COMMAND_BUFFER *pcmdBuffer, int32_t bNullRendering);
+    MOS_STATUS DumpYUVSurfaceToBuffer(PMOS_SURFACE surface, uint8_t *buffer, uint32_t &size);
+    MOS_STATUS LockResource(uint32_t *semaData, PMOS_RESOURCE reSemaphore);
+
+    MOS_STATUS DumpToFile(const GoldenReferences &goldenReferences);
+
+    MOS_STATUS StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer);
+
+    bool       IsHwDebugHooksEnable() { return m_enableHwDebugHooks; }
+
+    void       PackGoldenReferences(std::initializer_list<std::vector<uint32_t>> goldenReferences);
+
+    MOS_STATUS FillSemaResource(std::vector<uint32_t *> &vResource, std::vector<uint32_t> &data);
+
+    MOS_STATUS LockSemaResource(std::vector<uint32_t *> &vSemaData, std::vector<MOS_RESOURCE> &vResource);
+
+    std::vector<uint32_t> GetCrcGoldenReference() {return m_crcGoldenReference; }
     std::string m_ddiFileName;
     std::string m_outputFilePath;
+    std::string m_crcGoldenRefFileName;
 
     MOS_SURFACE       m_temp2DSurfForCopy = {};
     PMOS_INTERFACE    m_osInterface       = nullptr;
@@ -147,11 +186,20 @@ public:
     bool              m_hybridVp8EncodeBrcEnable = false;
     bool              m_hybridVp9EncodeEnable    = false;
     bool              m_vdboxContextCreated      = false;
+    bool              m_enableHwDebugHooks       = false;
+    bool              m_goldenReferenceExist     = false;
+    bool              m_swCRC = false;
     uint16_t          m_preIndex                 = 0;
     uint16_t          m_refIndex                 = 0;
     uint32_t          m_bufferDumpFrameNum       = 0;
     uint32_t          m_decodeSurfDumpFrameNum   = 0;
     uint32_t          m_streamId                 = 0;
+    uint32_t          m_crcTable[256]            ={0};
+    int32_t           m_frameNumSpecified        = -1;
+    std::vector<uint32_t> m_crcGoldenReference   = {};
+    GoldenReferences      m_goldenReferences     = {};
+    uint32_t*         m_semaData                 = nullptr;
+
 
 protected:
     MOS_STATUS ReAllocateSurface(
