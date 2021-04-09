@@ -87,10 +87,10 @@ public:
     CODECHAL_SCALING_MODE  m_scalingMode = CODECHAL_SCALING_NEAREST;
 
     // Histogram
-    PMOS_BUFFER         m_histogramBuffer = nullptr;    // SFC histogram internal  buffer
-    PMOS_SURFACE        m_histogramDestSurf = nullptr;  // SFC histogram dest surface
-    bool                m_histogramDebug = false;
-    const uint32_t      m_histogramBinWidth = 4;
+    PMOS_BUFFER    m_histogramBuffer   = nullptr;  // SFC histogram internal buffer for current frame
+    PMOS_SURFACE   m_histogramDestSurf = nullptr;  // SFC histogram dest surface
+    bool           m_histogramDebug    = false;
+    const uint32_t m_histogramBinWidth = 4;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_SURFACE    m_outputSurfaceList[DecodeBasicFeature::m_maxFrameIndex] = {}; //! \brief Downsampled surfaces
@@ -103,12 +103,14 @@ protected:
     virtual MOS_STATUS GetDecodeTargetSize(SurfaceWidthT &width, SurfaceHeightT &height) = 0;
     virtual MOS_STATUS GetDecodeTargetFormat(MOS_FORMAT &format) = 0;
     virtual MOS_STATUS UpdateDecodeTarget(MOS_SURFACE &surface) = 0;
+    PMOS_BUFFER        AllocateHistogramBuffer(uint8_t frameIndex);
 
     CodechalHwInterface *m_hwInterface  = nullptr;
     DecodeAllocator     *m_allocator    = nullptr;
     DecodeBasicFeature  *m_basicFeature = nullptr;
 
     InternalTargets      m_internalTargets; //!< Internal targets for downsampling input if application dosen't prepare
+    PMOS_BUFFER          m_histogramBufferList[DecodeBasicFeature::m_maxFrameIndex] = {};  //! \brief Internal histogram output buffer list
 };
 }//decode
 

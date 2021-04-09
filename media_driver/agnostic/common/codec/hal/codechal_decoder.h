@@ -168,6 +168,8 @@ struct CodechalDecodeStatusReport
 #if (_DEBUG || _RELEASE_INTERNAL)
     //! \brief Applies when debug dumps are enabled, pointer to SFC output resource for the picture associated with this status report
     PMOS_RESOURCE           m_currSfcOutputPicRes = nullptr;
+    //! \brief Applies when debug dumps are enabled, pointer to histogram output resource for the picture associated with this status report
+    PMOS_RESOURCE           m_currHistogramOutBuf = nullptr;
     //! \brief Applies when debug dumps are enabled, stream out buffer
     PMOS_RESOURCE           m_streamOutBuf = nullptr;
     //! \brief Applies when debug dumps are enabled, index of the streamout buffer

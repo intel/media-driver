@@ -79,7 +79,7 @@ MOS_STATUS DecodeSfcHistogramSubPipeline::Prepare(DecodePipelineParams &params)
         DECODE_CHK_STATUS(Begin());
     }
     else if (params.m_pipeMode == decodePipeModeProcess &&
-        m_downsampFeature != nullptr)   //m_downsampFeature could be null if downsampling is not enabled
+             m_downsampFeature != nullptr && m_downsampFeature->m_histogramBuffer != nullptr)  //m_downsampFeature could be null if downsampling is not enabled
     {
         DECODE_CHK_NULL(params.m_params);
         DECODE_CHK_NULL(m_basicFeature);

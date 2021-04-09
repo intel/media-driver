@@ -115,6 +115,7 @@ struct DecodeStatusParameters
     MOS_RESOURCE       currDecodedPicRes;
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_RESOURCE      *sfcOutputPicRes;
+    MOS_RESOURCE      *histogramOutputBuf;
 #endif
 };
 

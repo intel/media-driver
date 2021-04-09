@@ -110,6 +110,7 @@ namespace decode {
             m_statusReportData[submitIndex].currDecodedPicRes = inputParameters->currDecodedPicRes;
 #if (_DEBUG || _RELEASE_INTERNAL)
             m_statusReportData[submitIndex].currSfcOutputPicRes = inputParameters->sfcOutputPicRes;
+            m_statusReportData[submitIndex].currHistogramOutBuf = inputParameters->histogramOutputBuf;
             m_statusReportData[submitIndex].frameType = inputParameters->pictureCodingType;
 #endif
         }

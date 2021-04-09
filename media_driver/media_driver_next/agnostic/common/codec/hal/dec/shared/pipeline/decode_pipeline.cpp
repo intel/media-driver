@@ -419,6 +419,16 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
                     &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstSurf"));
             }
         }
+
+        if (reportData.currHistogramOutBuf != nullptr &&
+            !Mos_ResourceIsNull(reportData.currHistogramOutBuf))
+        {
+            DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
+                reportData.currHistogramOutBuf,
+                CodechalDbgAttr::attrSfcHistogram,
+                "_DEC",
+                HISTOGRAM_BINCOUNT * downSamplingFeature->m_histogramBinWidth));
+        }
     }
 #endif
 
