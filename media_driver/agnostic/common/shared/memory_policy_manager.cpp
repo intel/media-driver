@@ -54,18 +54,18 @@ int MemoryPolicyManager::UpdateMemoryPolicy(
         return mem_type;
     }
 
-    // Follow default setting, tiled resource in Devcie Memory, 1D linear resource in System Memory
-    if (tile_type != GMM_NOT_TILED)
-    {
-        mem_type                  = MOS_MEMPOOL_DEVICEMEMORY;
-        resFlag.Info.LocalOnly    = 1;
-        resFlag.Info.NonLocalOnly = 0;
-    }
-    else if (tile_type == GMM_NOT_TILED && res_type == RESOURCE_1D)
+    // Follow default setting, tiled resource in Video Memory, 1D linear resource in System Memory
+    if (tile_type == GMM_NOT_TILED && res_type == RESOURCE_1D)
     {
         mem_type                  = MOS_MEMPOOL_SYSTEMMEMORY;
         resFlag.Info.LocalOnly    = 0;
         resFlag.Info.NonLocalOnly = 1;
+    }
+    else
+    {
+        mem_type                  = MOS_MEMPOOL_VIDEOMEMORY;
+        resFlag.Info.LocalOnly    = 0;
+        resFlag.Info.NonLocalOnly = 0;
     }
 
     // Override setting, depending on preferredMemType
@@ -87,7 +87,15 @@ int MemoryPolicyManager::UpdateMemoryPolicy(
 
     uint32_t surfSize = (uint32_t)memPolicyPar->resInfo->GetSizeSurface();
 
-    MOS_OS_NORMALMESSAGE("\"%s\" preferredMemType %d, mem_type %d, res_type %d, size %d", (memPolicyPar->resName ? memPolicyPar->resName : "Resource"), memPolicyPar->preferredMemType, mem_type, res_type, surfSize);
+    if (1 == resFlag.Info.LocalOnly && 0 == resFlag.Info.NotLockable)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid setting! Local only memory with cpu visible.");
+        MOS_OS_ASSERTMESSAGE("\"%s\" preferredMemType %d, mem_type %d, res_type %d, size %d", (memPolicyPar->resName ? memPolicyPar->resName : "Resource"), memPolicyPar->preferredMemType, mem_type, res_type, surfSize);
+    }
+    else
+    {
+        MOS_OS_NORMALMESSAGE("\"%s\" preferredMemType %d, mem_type %d, res_type %d, size %d", (memPolicyPar->resName ? memPolicyPar->resName : "Resource"), memPolicyPar->preferredMemType, mem_type, res_type, surfSize);
+    }
 
     return mem_type;
 }
