@@ -1668,17 +1668,14 @@ CM_RT_API int32_t CmDeviceRTBase::CreateQueue(CmQueue* &queue)
         queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
     }
 
-    //Limit queue reuse to RCS only for now
-    if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
+    for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
     {
-        for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
+        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+
+        if (queueType == queueCreateOption.QueueType)
         {
-            CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-            if (queueType == queueCreateOption.QueueType)
-            {
-                queue = (*iter);
-                return CM_SUCCESS;
-            }
+            queue = (*iter);
+            return CM_SUCCESS;
         }
     }
 
@@ -1705,19 +1702,16 @@ CM_RT_API int32_t CmDeviceRTBase::CreateQueueEx(CmQueue* &queue,
         queueCreateOption.QueueType = CM_QUEUE_TYPE_COMPUTE;
     }
 
-    //Limit queue reuse to RCS only for now
-    if (CM_QUEUE_TYPE_RENDER == queueCreateOption.QueueType)
+    for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
     {
-        for (auto iter = m_queue.begin(); iter != m_queue.end(); ++iter)
-        {
-            CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
-            unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
+        CM_QUEUE_TYPE queueType = (*iter)->GetQueueOption().QueueType;
+        unsigned int gpuContext = (*iter)->GetQueueOption().GPUContext;
 
-            if (queueType == queueCreateOption.QueueType && gpuContext == queueCreateOption.GPUContext)
-            {
-                queue = (*iter);
-                return CM_SUCCESS;
-            }
+        if ((queueType == queueCreateOption.QueueType && gpuContext == queueCreateOption.GPUContext) ||
+            (queueType == queueCreateOption.QueueType && queueType == CM_QUEUE_TYPE_COMPUTE))
+        {
+            queue = (*iter);
+            return CM_SUCCESS;
         }
     }
 
