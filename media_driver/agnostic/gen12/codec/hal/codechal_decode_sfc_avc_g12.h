@@ -42,7 +42,7 @@ public:
     //!
     //! \brief    Destructor
     //!
-    ~CodechalAvcSfcStateG12() { CODECHAL_HW_FUNCTION_ENTER; };
+    virtual ~CodechalAvcSfcStateG12() { CODECHAL_HW_FUNCTION_ENTER; };
 
     virtual MOS_STATUS SetSfcStateParams(
         PMHW_SFC_STATE_PARAMS               sfcStateParams,
