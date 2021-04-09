@@ -4864,6 +4864,12 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcUpdate()
             selectedSlot = oldestIdx;
         }
 
+        if (selectedSlot == -1)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("No valid ref slot index");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         slotInfo[selectedSlot].age = 0;
         slotInfo[selectedSlot].poc = m_hevcPicParams->CurrPicOrderCnt;
         slotInfo[selectedSlot].isUsed = true;
