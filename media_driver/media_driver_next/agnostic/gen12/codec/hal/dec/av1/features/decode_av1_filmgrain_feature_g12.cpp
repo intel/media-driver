@@ -1141,7 +1141,9 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
     DECODE_FUNC_CALL();
 
     //Gaussian sequence surface
-    m_gaussianSequenceSurface = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(2048 * sizeof(int16_t), CODECHAL_PAGE_SIZE), "GaussianSequenceSurface", resourceInternalReadWriteCache);
+    m_gaussianSequenceSurface = m_allocator->AllocateBuffer(
+        MOS_ALIGN_CEIL(2048 * sizeof(int16_t), CODECHAL_PAGE_SIZE), "GaussianSequenceSurface",
+        resourceInternalReadWriteCache, lockableVideoMem);
     DECODE_CHK_NULL(m_gaussianSequenceSurface);
 
     auto data = (int16_t *)m_allocator->LockResouceForWrite(&m_gaussianSequenceSurface->OsResource);
@@ -1157,7 +1159,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         "Film Grain GRV [out] YRandomValuesSurface",
         Format_R8UN,
         false,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        notLockableVideoMem);
     DECODE_CHK_NULL(m_yRandomValuesSurface);
 
     //U random values surface
@@ -1167,7 +1170,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         "Film Grain GRV [out] URandomValuesSurface",
         Format_R8UN,
         false,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        notLockableVideoMem);
     DECODE_CHK_NULL(m_uRandomValuesSurface);
 
     //V random values surface
@@ -1177,9 +1181,10 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         "Film Grain GRV [out] VRandomValuesSurface",
         Format_R8UN,
         false,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        notLockableVideoMem);
     DECODE_CHK_NULL(m_vRandomValuesSurface);
-    
+
     //Y Dithering Temp LUT Surface
     m_yDitheringTempSurface = m_allocator->AllocateSurface(
         70 * sizeof(int32_t),
@@ -1187,7 +1192,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         "Film Grain RP1 [out] YDitheringTempSurface",
         Format_R8UN,
         false,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        notLockableVideoMem);
     DECODE_CHK_NULL(m_yDitheringTempSurface);
 
     // Surfaces/buffers for RegressPhase1 kernel
@@ -1196,7 +1202,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         24 * sizeof(int16_t),
         "YCoeffSurface",
         m_bufferPoolDepth,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        lockableVideoMem);
     DECODE_CHK_NULL(m_yCoefficientsSurfaceArray);
 
     //Y dithering Surface
@@ -1207,7 +1214,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         m_bufferPoolDepth,
         Format_R8UN,
         false,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        notLockableVideoMem);
     DECODE_CHK_NULL(m_yDitheringSurfaceArray);
 
     //U dithering surface
@@ -1218,7 +1226,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         m_bufferPoolDepth,
         Format_R8UN,
         false,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        notLockableVideoMem);
     DECODE_CHK_NULL(m_uDitheringSurfaceArray);
 
     //V Dithering surface
@@ -1229,7 +1238,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         m_bufferPoolDepth,
         Format_R8UN,
         false,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        notLockableVideoMem);
     DECODE_CHK_NULL(m_vDitheringSurfaceArray);
 
     //Y Coefficients Surface, for input of RegressPhase2
@@ -1237,7 +1247,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         MOS_ALIGN_CEIL(32 * sizeof(int16_t), CODECHAL_PAGE_SIZE),
         "YCoeffSurface",
         m_bufferPoolDepth,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        lockableVideoMem);
     DECODE_CHK_NULL(m_yCoeffSurfaceArray);
 
     //U Coefficients Surface, for input of RegressPhase2
@@ -1245,7 +1256,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         MOS_ALIGN_CEIL(32 * sizeof(int16_t), CODECHAL_PAGE_SIZE),
         "UCoeffSurface",
         m_bufferPoolDepth,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        lockableVideoMem);
     DECODE_CHK_NULL(m_uCoeffSurfaceArray);
 
     //V Coefficients Surface, for input of RegressPhase2
@@ -1253,7 +1265,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         MOS_ALIGN_CEIL(32 * sizeof(int16_t), CODECHAL_PAGE_SIZE),
         "VCoeffSurface",
         m_bufferPoolDepth,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        lockableVideoMem);
     DECODE_CHK_NULL(m_vCoeffSurfaceArray);
 
     //Y Gamma LUT Surface, for input of ApplyNoise
@@ -1261,7 +1274,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE),
         "YGammaLUTSurface",
         m_bufferPoolDepth,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        lockableVideoMem);
     DECODE_CHK_NULL(m_yGammaLUTSurfaceArray);
 
     //U Gamma LUT Surface, for input of ApplyNoise
@@ -1269,7 +1283,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE),
         "UGammaLUTSurface",
         m_bufferPoolDepth,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        lockableVideoMem);
     DECODE_CHK_NULL(m_uGammaLUTSurfaceArray);
 
     //V Gamma LUT Surface, for input of ApplyNoise
@@ -1277,7 +1292,8 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         MOS_ALIGN_CEIL(257 * sizeof(int16_t), CODECHAL_PAGE_SIZE),
         "VGammaLUTSurface",
         m_bufferPoolDepth,
-        resourceInternalReadWriteCache);
+        resourceInternalReadWriteCache,
+        lockableVideoMem);
     DECODE_CHK_NULL(m_vGammaLUTSurfaceArray);
 
     return eStatus;
@@ -1301,8 +1317,7 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateVariableSizeSurfaces()
             "FilmGrainGRVCoordinateSurface",
             m_bufferPoolDepth,
             resourceInternalReadWriteCache,
-            true,
-            0);
+            notLockableVideoMem);
         DECODE_CHK_NULL(m_coordinatesRandomValuesSurfaceArray);
         m_coordinatesRandomValuesSurface = m_coordinatesRandomValuesSurfaceArray->Fetch();
         DECODE_CHK_NULL(m_coordinatesRandomValuesSurface);
@@ -1312,8 +1327,7 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateVariableSizeSurfaces()
         auto &buffer = m_coordinatesRandomValuesSurfaceArray->Fetch();
         DECODE_CHK_NULL(buffer);
         DECODE_CHK_STATUS(m_allocator->Resize(
-            buffer,
-            allocSize, false, true));
+            buffer, allocSize, notLockableVideoMem));
         m_coordinatesRandomValuesSurface = buffer;
     }
     m_coordinateSurfaceSize = allocSize;

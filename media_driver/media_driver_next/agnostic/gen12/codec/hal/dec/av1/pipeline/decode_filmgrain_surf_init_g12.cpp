@@ -99,12 +99,13 @@ MOS_STATUS FilmGrainSurfaceInit::InitCoordinateSurface()
         uint32_t allocSize = m_filmGrainFeature->m_coordinateSurfaceSize;
         if (m_tmpInitBuf == nullptr)
         {
-            m_tmpInitBuf = m_allocator->AllocateBuffer(allocSize, "tempInitializationBuffer", resourceInternalReadWriteCache, true, 0);
+            m_tmpInitBuf = m_allocator->AllocateBuffer(
+                allocSize, "tempInitializationBuffer", resourceInternalReadWriteCache, lockableVideoMem, true, 0);
             DECODE_CHK_NULL(m_tmpInitBuf);
         }
         else
         {
-            DECODE_CHK_STATUS(m_allocator->Resize(m_tmpInitBuf, allocSize, false, true));
+            DECODE_CHK_STATUS(m_allocator->Resize(m_tmpInitBuf, allocSize, lockableVideoMem, false, true));
         }
 
         HucCopyPkt::HucCopyParams copyParams;

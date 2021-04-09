@@ -99,12 +99,13 @@ MOS_STATUS DecodeInputBitstream::AllocateCatenatedBuffer()
 
     if (m_catenatedBuffer == nullptr)
     {
-        m_catenatedBuffer = m_allocator->AllocateBuffer(allocSize, "bitstream", resourceInputBitstream);
+        m_catenatedBuffer = m_allocator->AllocateBuffer(
+            allocSize, "bitstream", resourceInputBitstream, notLockableVideoMem);
         DECODE_CHK_NULL(m_catenatedBuffer);
         return MOS_STATUS_SUCCESS;
     }
 
-    DECODE_CHK_STATUS(m_allocator->Resize(m_catenatedBuffer, allocSize));
+    DECODE_CHK_STATUS(m_allocator->Resize(m_catenatedBuffer, allocSize, notLockableVideoMem));
     return MOS_STATUS_SUCCESS;
 }
 

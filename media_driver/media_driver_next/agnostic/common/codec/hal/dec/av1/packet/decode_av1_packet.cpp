@@ -64,7 +64,7 @@ MOS_STATUS Av1DecodePkt::Init()
     DECODE_CHK_STATUS(m_tilePkt->CalculateCommandSize(m_tileStatesSize, m_tilePatchListSize));
 
     m_secondLevelBBArray = m_allocator->AllocateBatchBufferArray(
-        m_pictureStatesSize, 1, CODEC_NUM_AV1_SECOND_BB, true);
+        m_pictureStatesSize, 1, CODEC_NUM_AV1_SECOND_BB, true, lockableVideoMem);
     DECODE_CHK_NULL(m_secondLevelBBArray);
 
     return MOS_STATUS_SUCCESS;

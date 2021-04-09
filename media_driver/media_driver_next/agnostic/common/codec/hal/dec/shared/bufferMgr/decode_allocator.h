@@ -55,6 +55,13 @@ enum ResourceUsage
     resourceDefault                  = MOS_HW_RESOURCE_DEF_MAX
 };
 
+enum ResourceAccessReq
+{
+    notLockableVideoMem = 0,
+    lockableVideoMem,
+    lockableSystemMem
+};
+
 class DecodeAllocator
 {
 public:
@@ -78,6 +85,8 @@ public:
     //!         Buffer name
     //! \param  [in] resUsageType
     //!         ResourceUsage to be set
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \param  [in] initOnAllocate
     //!         Indicate if this buffer need to be initialized when allocate, by default is false
     //! \param  [in] initValue
@@ -88,7 +97,8 @@ public:
     //!         return the pointer to MOS_BUFFER
     //!
     MOS_BUFFER* AllocateBuffer(const uint32_t sizeOfBuffer, const char* nameOfBuffer,
-        ResourceUsage resUsageType = resourceDefault, bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
+        ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem,
+        bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
 
     //!
     //! \brief  Allocate buffer array
@@ -100,6 +110,8 @@ public:
     //!         number of buffer array
     //! \param  [in] resUsageType
     //!         ResourceUsage to be set
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \param  [in] initOnAllocate
     //!         Indicate if this buffer need to be initialized when allocate, by default is false
     //! \param  [in] initValue
@@ -109,7 +121,8 @@ public:
     //!
     BufferArray * AllocateBufferArray(
         const uint32_t sizeOfBuffer, const char* nameOfBuffer, const uint32_t numberOfBuffer,
-        ResourceUsage resUsageType = resourceDefault, bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
+        ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem,
+        bool initOnAllocate = false, uint8_t initValue = 0, bool bPersistent = false);
 
     //!
     //! \brief  Allocate Surface
@@ -125,14 +138,17 @@ public:
     //!         Compressible flag, by default is false
     //! \param  [in] resUsageType
     //!         ResourceUsage to be set
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \param  [in] gmmTileMode
     //!         Specified GMM tile mode
     //! \return MOS_SURFACE*
     //!         return the pointer to MOS_SURFACE
     //!
     MOS_SURFACE* AllocateSurface(
-        const uint32_t width, const uint32_t height, const char* nameOfSurface, MOS_FORMAT format = Format_NV12,
-        bool isCompressible = false, ResourceUsage resUsageType = resourceDefault,
+        const uint32_t width, const uint32_t height, const char* nameOfSurface,
+        MOS_FORMAT format = Format_NV12, bool isCompressible = false, 
+        ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem,
         MOS_TILE_MODE_GMM gmmTileMode = MOS_TILE_UNSET_GMM);
 
     //!
@@ -151,12 +167,15 @@ public:
     //!         Compress flag, by default is false
     //! \param  [in] resUsageType
     //!         ResourceUsage to be set
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \return SurfaceArray*
     //!         return the pointer to SurfaceArray
     //!
     SurfaceArray * AllocateSurfaceArray(
         const uint32_t width, const uint32_t height, const char* nameOfSurface,
-        const uint32_t numberOfSurface, MOS_FORMAT format = Format_NV12, bool isCompressed = false, ResourceUsage resUsageType = resourceDefault);
+        const uint32_t numberOfSurface, MOS_FORMAT format = Format_NV12, bool isCompressed = false,
+        ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem);
 
     //!
     //! \brief  Allocate batch buffer
@@ -164,10 +183,13 @@ public:
     //!         Batch buffer size
     //! \param  [in] numOfBuffer
     //!         Surface height
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \return PMHW_BATCH_BUFFER
     //!         return the pointer to allocated batch buffer if success, else nullptr
     //!
-    PMHW_BATCH_BUFFER AllocateBatchBuffer(const uint32_t sizeOfBuffer, const uint32_t numOfBuffer=1);
+    PMHW_BATCH_BUFFER AllocateBatchBuffer(const uint32_t sizeOfBuffer, const uint32_t numOfBuffer=1,
+        ResourceAccessReq accessReq = lockableVideoMem);
 
     //!
     //! \brief  Allocate batch buffer array
@@ -179,17 +201,24 @@ public:
     //!         Number of batch buffer array
     //! \param  [in] secondLevel
     //!         Flag to indicate second level batch buffer
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \return BatchBufferArray*
     //!         return the pointer to BatchBufferArray
     //!
     BatchBufferArray * AllocateBatchBufferArray(
         const uint32_t sizeOfSubBuffer, const uint32_t numOfSubBuffer,
-        const uint32_t numberOfBatchBuffer, bool secondLevel);
+        const uint32_t numberOfBatchBuffer, bool secondLevel,
+        ResourceAccessReq accessReq = lockableVideoMem);
 
     //!
     //! \brief  Resize linear buffer
+    //! \param  [in/out] buffer
+    //!         The pointer of linear buffer
     //! \param  [in] sizeNew
     //!         New size for linear buffer
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \param  [in] force
     //!         Flag indicates whether resize buffer by force when size changed
     //! \param  [in] clearData
@@ -197,14 +226,19 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Resize(MOS_BUFFER* &buffer, const uint32_t sizeNew, bool force = false, bool clearData = false);
+    MOS_STATUS Resize(MOS_BUFFER* &buffer, const uint32_t sizeNew, ResourceAccessReq accessReq = lockableVideoMem,
+        bool force = false, bool clearData = false);
 
     //!
     //! \brief  Resize surface
+    //! \param  [in/out] surface
+    //!         The pointer of surface
     //! \param  [in] widthNew
     //!         New width
     //! \param  [in] heightNew
     //!         New height
+    //! \param  [in] accessReq
+    //!         Resource access requirement, by default is lockable
     //! \param  [in] force
     //!         Flag indicates whether resize surface by force when size changed
     //! \param  [in] nameOfSurface
@@ -213,7 +247,7 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS Resize(MOS_SURFACE* &surface, const uint32_t widthNew, const uint32_t heightNew,
-                      bool force = false, const char* nameOfSurface = "");
+        ResourceAccessReq accessReq = lockableVideoMem, bool force = false, const char* nameOfSurface = "");
 
     //!
     //! \brief  Resize batch buffer
@@ -224,8 +258,8 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Resize(PMHW_BATCH_BUFFER &batchBuffer, 
-                      const uint32_t sizeOfBufferNew, const uint32_t numOfBufferNew);
+    MOS_STATUS Resize(PMHW_BATCH_BUFFER &batchBuffer, const uint32_t sizeOfBufferNew, const uint32_t numOfBufferNew,
+        ResourceAccessReq accessReq = lockableVideoMem);
 
     //!
     //! \brief  Destroy buffer
@@ -469,8 +503,23 @@ public:
     ResourceUsage ConvertGmmResourceUsage(const GMM_RESOURCE_USAGE_TYPE gmmResUsage);
 
 protected:
+    //!
+    //! \brief    Apply resource access requirement to allocate parameters
+    //! \details  Apply resource access requirement to allocate parameters
+    //! \param    ResourceAccessReq accessReq
+    //!           [in] Resource access requirement
+    //! \param    MOS_ALLOC_GFXRES_PARAMS allocParams
+    //!           [out] allocation parameters
+    //! \return   void
+    //!
+    void SetAccessRequirement(ResourceAccessReq accessReq, MOS_ALLOC_GFXRES_PARAMS &allocParams);
+
     PMOS_INTERFACE m_osInterface = nullptr;  //!< PMOS_INTERFACE
     Allocator *m_allocator = nullptr;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool m_forceLockable = false;
+#endif
 
 };
 }

@@ -676,7 +676,9 @@ MOS_STATUS Mhw_AllocateBb(
     PMHW_BATCH_BUFFER       pBatchBuffer,
     PMHW_BATCH_BUFFER       pBatchBufferList,
     uint32_t                dwSize,
-    uint32_t                batchCount=1);
+    uint32_t                batchCount = 1,
+    bool                    notLockable = false,
+    bool                    inSystemMem = false);
 
 MOS_STATUS Mhw_FreeBb(
     PMOS_INTERFACE          pOsInterface,

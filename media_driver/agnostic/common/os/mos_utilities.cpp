@@ -4247,6 +4247,17 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_UINT32,
         "1",
         "Disable TLB pre-fetch. 1: disable; 0: enabled. "),
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_FORCE_DECODE_RESOURCE_LOCKABLE_ID,
+         "ForceDecodeResourceLockable",
+         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+         __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+         "Codec",
+         MOS_USER_FEATURE_TYPE_USER,
+         MOS_USER_FEATURE_VALUE_TYPE_INT32,
+         "0",
+         "Force decode resource lockable. 1: Force lockable, 0: default."),
+#endif
 };
 
 PMOS_USER_FEATURE_VALUE const MosUtilities::m_mosUserFeatureDescFields = MOSUserFeatureDescFields;

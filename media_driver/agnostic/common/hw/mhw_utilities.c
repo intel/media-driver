@@ -900,6 +900,10 @@ finish:
 //!           [in/out] If valid, represents the batch buffer list maintained by the client
 //! \param    uint32_t dwSize
 //!           [in] Sixe of the batch vuffer to be allocated
+//! \param    bool notLockable
+//!           [in] Indicate if the batch buffer not lockable, by default is false
+//! \param    bool inSystemMem
+//!           [in] Indicate if the batch buffer in system memory, by default is false
 //! \return   MOS_STATUS
 //!           true  if the Batch Buffer was successfully allocated
 //!           false if failed
@@ -909,7 +913,9 @@ MOS_STATUS Mhw_AllocateBb(
     PMHW_BATCH_BUFFER       pBatchBuffer,
     PMHW_BATCH_BUFFER       pBatchBufferList,
     uint32_t                dwSize,
-    uint32_t                batchCount)
+    uint32_t                batchCount,
+    bool                    notLockable,
+    bool                    inSystemMem)
 {
     MOS_RESOURCE                        OsResource;
     MOS_ALLOC_GFXRES_PARAMS             AllocParams;
@@ -918,6 +924,7 @@ MOS_STATUS Mhw_AllocateBb(
 
     MHW_CHK_NULL(pOsInterface);
     MHW_CHK_NULL(pBatchBuffer);
+    MHW_ASSERT(!(notLockable && inSystemMem)); // Notlockable system memory doesn't make sense
 
     MHW_FUNCTION_ENTER;
 
@@ -933,6 +940,19 @@ MOS_STATUS Mhw_AllocateBb(
     AllocParams.dwBytes  = allocSize;
     AllocParams.pBufName = "BatchBuffer";
     AllocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS;
+    AllocParams.Flags.bNotLockable = notLockable ? 1 : 0;
+    if (notLockable)
+    {
+        AllocParams.dwMemType = MOS_MEMPOOL_DEVICEMEMORY;
+    }
+    else if (inSystemMem)
+    {
+        AllocParams.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
+    }
+    else
+    {
+        AllocParams.dwMemType = MOS_MEMPOOL_VIDEOMEMORY;
+    }
 
     MHW_CHK_STATUS(pOsInterface->pfnAllocateResource(
         pOsInterface,

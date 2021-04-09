@@ -57,17 +57,19 @@ namespace decode
         }
 
         Av1RefAssociatedBufs *bufs = MOS_New(Av1RefAssociatedBufs);
-        bufs->mvBuf = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "MvTemporalBuffer", resourceInternalReadWriteCache);
+        bufs->mvBuf = m_allocator->AllocateBuffer(
+            avpBufSizeParam.m_bufferSize, "MvTemporalBuffer", resourceInternalReadWriteCache, notLockableVideoMem);
 
         if (m_avpInterface->GetAv1BufferSize(segmentIdBuf,
                                             &avpBufSizeParam) != MOS_STATUS_SUCCESS)
         {
             DECODE_ASSERTMESSAGE( "Failed to get SegmentIdBuffer size.");
         }
-        bufs->segIdWriteBuf.buffer = m_allocator->AllocateBuffer(avpBufSizeParam.m_bufferSize, "SegmentIdWriteBuffer", resourceInternalReadWriteCache);
+        bufs->segIdWriteBuf.buffer = m_allocator->AllocateBuffer(
+            avpBufSizeParam.m_bufferSize, "SegmentIdWriteBuffer", resourceInternalReadWriteCache, notLockableVideoMem);
 
         bufs->bwdAdaptCdfBuf.buffer = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_basicFeature->m_cdfMaxNumBytes,
-            CODECHAL_PAGE_SIZE), "CdfTableBuffer", resourceInternalReadWriteCache);
+            CODECHAL_PAGE_SIZE), "CdfTableBuffer", resourceInternalReadWriteCache, notLockableVideoMem);
         return bufs;
     }
 
@@ -88,12 +90,14 @@ namespace decode
         DECODE_CHK_STATUS(m_avpInterface->GetAv1BufferSize(
             mvTemporalBuf,
             &avpBufSizeParam));
-        DECODE_CHK_STATUS(m_allocator->Resize(buffer->mvBuf, avpBufSizeParam.m_bufferSize, false));
+        DECODE_CHK_STATUS(m_allocator->Resize(
+            buffer->mvBuf, avpBufSizeParam.m_bufferSize, notLockableVideoMem, false));
 
         DECODE_CHK_STATUS(m_avpInterface->GetAv1BufferSize(
             segmentIdBuf,
             &avpBufSizeParam));
-        DECODE_CHK_STATUS(m_allocator->Resize(buffer->segIdWriteBuf.buffer, avpBufSizeParam.m_bufferSize, false));
+        DECODE_CHK_STATUS(m_allocator->Resize(
+            buffer->segIdWriteBuf.buffer, avpBufSizeParam.m_bufferSize, notLockableVideoMem, false));
 
         RecordSegIdBufInfo(buffer);
         RecordCdfTableBufInfo(buffer);

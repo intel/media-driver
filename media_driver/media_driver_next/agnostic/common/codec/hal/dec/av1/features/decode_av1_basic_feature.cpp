@@ -82,7 +82,8 @@ namespace decode
                     "Dummy Decode Output Frame Buffer",
                     Format_NV12,
                     false,
-                    resourceOutputPicture);
+                    resourceOutputPicture,
+                    notLockableVideoMem);
                 DECODE_CHK_NULL(m_destSurfaceForDummyWL);
             }
         }
@@ -237,7 +238,7 @@ namespace decode
                 DECODE_CHK_STATUS(m_internalTarget.ActiveCurSurf(
                     m_av1PicParams->m_currPic.FrameIdx,
                     &surface,
-                    IsMmcEnabled(), resourceOutputPicture));
+                    IsMmcEnabled(), resourceOutputPicture, notLockableVideoMem));
 
                 m_filmGrainProcParams->m_inputSurface = m_internalTarget.GetCurSurf();
             }
@@ -257,14 +258,14 @@ namespace decode
             {
                 if (m_fgInternalSurf == nullptr || m_allocator->ResourceIsNull(&m_fgInternalSurf->OsResource))
                 {
-                    m_fgInternalSurf = m_allocator->AllocateSurface(m_width, m_height,
-                        "Internal film grain target surface", surface.Format, IsMmcEnabled(), resourceOutputPicture, 
-                        surface.TileModeGMM);
+                    m_fgInternalSurf = m_allocator->AllocateSurface(
+                        m_width, m_height, "Internal film grain target surface", surface.Format, IsMmcEnabled(),
+                        resourceOutputPicture, notLockableVideoMem, surface.TileModeGMM);
                 }
                 else
                 {
-                    DECODE_CHK_STATUS(m_allocator->Resize(m_fgInternalSurf, m_width, MOS_ALIGN_CEIL(m_height, 8), false,
-                        "Internal film grain target surface"));
+                    DECODE_CHK_STATUS(m_allocator->Resize(m_fgInternalSurf, m_width, MOS_ALIGN_CEIL(m_height, 8),
+                        notLockableVideoMem, false, "Internal film grain target surface"));
                 }
                 DECODE_CHK_NULL(m_fgInternalSurf);
 
@@ -579,7 +580,9 @@ namespace decode
         {
             for (uint8_t index = 0; index < av1DefaultCdfTableNum; index++)
             {
-                m_tmpCdfBuffers[index] = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "TempCdfTableBuffer", resourceInternalRead);
+                m_tmpCdfBuffers[index] = m_allocator->AllocateBuffer(
+                    MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "TempCdfTableBuffer",
+                    resourceInternalRead, lockableVideoMem);
                 DECODE_CHK_NULL(m_tmpCdfBuffers[index]);
 
                 auto data = (uint16_t *)m_allocator->LockResouceForWrite(&m_tmpCdfBuffers[index]->OsResource);
@@ -587,7 +590,9 @@ namespace decode
 
                 // reset all CDF tables to default values
                 DECODE_CHK_STATUS(InitDefaultFrameContextBuffer(data, index));
-                m_defaultCdfBuffers[index] = m_allocator->AllocateBuffer(MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "m_defaultCdfBuffers", resourceInternalRead);
+                m_defaultCdfBuffers[index] = m_allocator->AllocateBuffer(
+                    MOS_ALIGN_CEIL(m_cdfMaxNumBytes, CODECHAL_PAGE_SIZE), "m_defaultCdfBuffers",
+                    resourceInternalRead, notLockableVideoMem);
                 DECODE_CHK_NULL(m_defaultCdfBuffers[index]);
             }
 

@@ -48,7 +48,8 @@ namespace decode {
 
         // Allocate status buffer which includes decode status and completed count
         uint32_t bufferSize = m_statusBufSizeMfx * m_statusNum + m_completedCountSize;
-        m_statusBufMfx = m_allocator->AllocateBuffer(bufferSize, "StatusQueryBufferMfx", resourceInternalWrite, true, 0, true);
+        m_statusBufMfx = m_allocator->AllocateBuffer(
+            bufferSize, "StatusQueryBufferMfx", resourceInternalWrite, lockableSystemMem, true, 0, true);
         DECODE_CHK_NULL(m_statusBufMfx);
         m_completedCountBuf = &(m_statusBufMfx->OsResource);
 
@@ -62,7 +63,8 @@ namespace decode {
 
         if (m_enableRcs)
         {
-            m_statusBufRcs = m_allocator->AllocateBuffer(m_statusBufSizeRcs * m_statusNum, "StatusQueryBufferRcs", resourceInternalWrite, true, 0, true);
+            m_statusBufRcs = m_allocator->AllocateBuffer(
+                m_statusBufSizeRcs * m_statusNum, "StatusQueryBufferRcs", resourceInternalWrite, lockableSystemMem, true, 0, true);
 
             DECODE_CHK_STATUS(m_allocator->SkipResourceSync(m_statusBufRcs));
             m_dataStatusRcs = (uint8_t *)m_allocator->LockResouceForRead(m_statusBufRcs);

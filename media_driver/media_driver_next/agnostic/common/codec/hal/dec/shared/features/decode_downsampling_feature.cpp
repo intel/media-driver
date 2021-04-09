@@ -194,7 +194,7 @@ MOS_STATUS DecodeDownSamplingFeature::UpdateInternalTargets(DecodeBasicFeature &
     DECODE_CHK_STATUS(GetDecodeTargetSize(surface.dwWidth, surface.dwHeight));
     DECODE_CHK_STATUS(GetDecodeTargetFormat(surface.Format));
     DECODE_CHK_STATUS(m_internalTargets.ActiveCurSurf(
-        curFrameIdx, &surface, basicFeature.IsMmcEnabled(), resourceOutputPicture));
+        curFrameIdx, &surface, basicFeature.IsMmcEnabled(), resourceOutputPicture, notLockableVideoMem));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -213,6 +213,7 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
         auto histogramBuffer = m_allocator->AllocateBuffer(HISTOGRAM_BINCOUNT * m_histogramBinWidth,
             "Histogram internal buffer",
             resourceInternalReadWriteCache,
+            lockableVideoMem,
             true,
             0,
             false);
