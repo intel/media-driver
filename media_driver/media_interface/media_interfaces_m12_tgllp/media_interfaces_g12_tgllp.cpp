@@ -855,7 +855,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
 
                 if (apogeiosEnable)
                 {
-                    m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterG12, hwInterface, debugInterface);
+                    m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterG12Xe, hwInterface, debugInterface);
                     if (m_codechalDevice == nullptr)
                     {
                         CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");

@@ -123,7 +123,7 @@
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_hevc_g12.h"
 #ifdef _APOGEIOS_SUPPORTED
-#include "encode_hevc_vdenc_pipeline_adapter_g12.h"
+#include "encode_hevc_vdenc_pipeline_adapter_g12_xe.h"
 #include "decode_hevc_pipeline_adapter_m12.h"
 #include "decode_vp9_pipeline_adapter_m12.h"
 #endif
