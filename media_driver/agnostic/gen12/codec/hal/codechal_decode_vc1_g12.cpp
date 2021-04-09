@@ -1322,17 +1322,6 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-#ifdef _MMC_SUPPORTED
-    // To Clear invalid aux data of output surface when MMC on
-    if (m_mmc && m_mmc->IsMmcEnabled() &&
-        !Mos_ResourceIsNull(&m_deblockSurface.OsResource) &&
-        m_deblockSurface.OsResource.bConvertedFromDDIResource)
-    {
-        CODECHAL_DECODE_VERBOSEMESSAGE("Clear invalid aux data of output surface before frame %d submission", m_frameNum);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
-            this, m_miInterface, &m_deblockSurface.OsResource, m_veState));
-    }
-#endif
     MhwRenderInterface *renderEngineInterface = m_hwInterface->GetRenderInterface();
     PMHW_KERNEL_STATE         kernelState           = &m_olpKernelState;
     PMHW_STATE_HEAP_INTERFACE stateHeapInterface = renderEngineInterface->m_stateHeapInterface;
