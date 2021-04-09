@@ -242,9 +242,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     picParams->ucMaximumQP = encMiscParamRC->max_qp;
     if (picParams->ucMaximumQP == 0 && picParams->ucMinimumQP)
         picParams->ucMaximumQP = 51;
-#if VA_CHECK_VERSION(1, 10, 0)
-    picParams->TargetFrameSize = encMiscParamRC->target_frame_size;
-#endif
+
     if ((VA_RC_CBR == m_encodeCtx->uiRCMethod) || ((VA_RC_CBR | VA_RC_MB) == m_encodeCtx->uiRCMethod))
     {
         seqParams->MaxBitRate = seqParams->TargetBitRate;
@@ -303,6 +301,16 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
 
 #ifndef ANDROID
     seqParams->FrameSizeTolerance = static_cast<ENCODE_FRAMESIZE_TOLERANCE>(encMiscParamRC->rc_flags.bits.frame_tolerance_mode);
+#endif
+
+#if VA_CHECK_VERSION(1, 10, 0)
+    if (m_encodeCtx->bVdencActive &&
+        (m_encodeCtx->uiRCMethod & (VA_RC_VBR | VA_RC_QVBR | VA_RC_VCM)))
+    {
+        picParams->TargetFrameSize = encMiscParamRC->target_frame_size;
+        // to force VC scenario for TCBRC
+        seqParams->bAutoMaxPBFrameSizeForSceneChange = encMiscParamRC->target_frame_size != 0;
+    }
 #endif
 
     return VA_STATUS_SUCCESS;
