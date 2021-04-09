@@ -114,9 +114,14 @@ struct CodechalVdencHevcLaDmem
     uint8_t  downscaleRatio;     // 0-no scale, 1-2x, 2-4x
     uint8_t  isIframeInsideBGOP;
     uint8_t  adaptiveIDR;
-    uint8_t  RSVD3;
+    uint8_t  GopOpt;  //0 open GOP, 1 close GOP, 2 strict GOP
     uint32_t mbr_ratio;
-    uint8_t  RSVD1[16];
+    uint8_t  la_dump_type;
+    uint8_t  codec_type;
+    uint8_t  RSVD[2];
+    uint32_t enc_frame_width;
+    uint32_t enc_frame_height;
+    uint8_t  RSVD1[4];
     // for Update, valid only when lookAheadFunc = 1
     uint32_t validStatsRecords;  // # of valid stats records
     uint32_t offset;             // offset in unit of entries

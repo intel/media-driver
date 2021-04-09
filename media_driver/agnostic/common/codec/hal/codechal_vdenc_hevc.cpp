@@ -2719,7 +2719,7 @@ MOS_STATUS CodechalVdencHevcState::SetSequenceStructs()
             return eStatus;
         }
 
-        if (m_targetBufferFulness == 0)
+        if (m_targetBufferFulness == 0 && m_prevTargetFrameSize == 0)
         {
             m_targetBufferFulness = m_hevcSeqParams->VBVBufferSizeInBit - m_hevcSeqParams->InitVBVBufferFullnessInBit;
             if (m_lookaheadPass)
@@ -3144,12 +3144,21 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
             m_targetBufferFulness = encTargetBufferFulness < 0 ?
                 0 : (encTargetBufferFulness > 0xFFFFFFFF ? 0xFFFFFFFF : (uint32_t)encTargetBufferFulness);
             int32_t deltaBits = (int32_t)((int64_t)(encodeStatus->lookaheadStatus.targetBufferFulness) + m_bufferFulnessError - (int64_t)(m_targetBufferFulness));
+            deltaBits /= 64;
             if (deltaBits > 8)
             {
+                if ((uint32_t)deltaBits > encodeStatus->lookaheadStatus.targetFrameSize)
+                {
+                    deltaBits = (int32_t)(encodeStatus->lookaheadStatus.targetFrameSize);
+                }
                 encodeStatus->lookaheadStatus.targetFrameSize += (uint32_t)(deltaBits >> 3);
             }
             else if (deltaBits < -8)
             {
+                if ((-deltaBits) > (int32_t)(encodeStatus->lookaheadStatus.targetFrameSize))
+                {
+                    deltaBits = -(int32_t)(encodeStatus->lookaheadStatus.targetFrameSize);
+                }
                 encodeStatus->lookaheadStatus.targetFrameSize -= (uint32_t)((-deltaBits) >> 3);
             }
         }

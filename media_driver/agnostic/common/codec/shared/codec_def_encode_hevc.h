@@ -390,7 +390,19 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     */
     uint8_t StreamBufferSessionID;
 
-    uint8_t Reserved16b;
+    uint8_t maxAdaptiveMiniGopSize;
+
+    union
+    {
+        struct
+        {
+            uint8_t ClosedGop     : 1; // [0..1]
+            uint8_t StrictGop     : 1; // [0..1]
+            uint8_t AdaptiveGop   : 1; // [0..1]
+            uint8_t ReservedBits  : 5; // [0]
+        } fields;
+        uint8_t value;
+    } GopFlags;
 
     /*! \brief Number of B frames per level in BGOP (between each two consecutive anchor frames).
     *
