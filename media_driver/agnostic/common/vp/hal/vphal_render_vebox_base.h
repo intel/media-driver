@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -632,6 +632,7 @@ public:
                                             bTFF           = false;
                                             bTopField      = false;
                                             bBeCsc         = false;
+                                            bFeCsc         = false;
                                             bVeboxBypass   = false;
                                             b60fpsDi       = false;
                                             bQueryVariance = false;
@@ -724,6 +725,7 @@ public:
     bool                                bTFF;
     bool                                bTopField;
     bool                                bBeCsc;
+    bool                                bFeCsc;
     bool                                bVeboxBypass;
     bool                                b60fpsDi;
     bool                                bQueryVariance;
@@ -927,6 +929,11 @@ public:
     float                           fCscCoeff[9];                               //!< [3x3] Coeff matrix for CSC
     float                           fCscInOffset[3];                            //!< [3x1] Input Offset matrix for CSC
     float                           fCscOutOffset[3];                           //!< [3x1] Output Offset matrix for CSC
+
+    // Front End CSC in VEBOX params
+    float                           *fFeCscCoeff;                                //!< [3x3] Coeff matrix for CSC
+    float                           *fFeCscInOffset;                             //!< [3x1] Input Offset matrix for CSC
+    float                           *fFeCscOutOffset;                            //!< [3x1] Output Offset matrix for CSC
 
     // Dynamic linking filter
     Kdll_FilterEntry                SearchFilter[2];

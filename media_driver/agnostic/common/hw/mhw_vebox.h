@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2020, Intel Corporation
+* Copyright (c) 2014-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -592,9 +592,9 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
 
     // CSC params
     bool                            bCSCEnable;                                 // Enable CSC transform
-    float                           *pfCscCoeff;                                 // [3x3] CSC Coeff matrix
-    float                           *pfCscInOffset;                              // [3x1] CSC Input Offset matrix
-    float                           *pfCscOutOffset;                             // [3x1] CSC Output Offset matrix
+    float                           *pfCscCoeff;                                // [3x3] CSC Coeff matrix
+    float                           *pfCscInOffset;                             // [3x1] CSC Input Offset matrix
+    float                           *pfCscOutOffset;                            // [3x1] CSC Output Offset matrix
     bool                            bAlphaEnable;                               // Alpha Enable Param
     uint16_t                        wAlphaValue;                                // Color Pipe Alpha Value
 
@@ -602,6 +602,12 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
 
     MHW_3DLUT_PARAMS                s3DLutParams;
     MHW_1DLUT_PARAMS                s1DLutParams;
+
+    // Front End CSC params
+    bool                            bFeCSCEnable;                               // Enable Front End CSC transform
+    float                           *pfFeCscCoeff;                              // [3x3] Front End CSC Coeff matrix
+    float                           *pfFeCscInOffset;                           // [3x1] Front End CSC Input Offset matrix
+    float                           *pfFeCscOutOffset;                          // [3x1] Front End CSC Output Offset matrix
 } MHW_VEBOX_IECP_PARAMS, *PMHW_VEBOX_IECP_PARAMS;
 
 //!
@@ -661,12 +667,6 @@ typedef struct _MHW_VEBOX_GAMUT_PARAMS
     MHW_GAMUT_MODE                      GExpMode;
     uint32_t                            *pFwdGammaBias;
     uint32_t                            *pInvGammaBias;
-    float                               *pfCscCoeff;         // [3x3] CSC Coeff matrix
-    float                               *pfCscInOffset;      // [3x1] CSC Input Offset matrix
-    float                               *pfCscOutOffset;     // [3x1] CSC Output Offset matrix
-    float                               *pfFeCscCoeff;       // [3x3] Front-end CSC Coeff matrix
-    float                               *pfFeCscInOffset;    // [3x1] Front-end CSC Input Offset matrix
-    float                               *pfFeCscOutOffset;   // [3x1] Front-end CSC Output Offset matrix
     int32_t                             Matrix[3][3];
 
     // Gamma correction

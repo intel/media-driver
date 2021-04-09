@@ -79,7 +79,7 @@ VAStatus     DdiVp_DestroySrcParams(PDDI_VP_CONTEXT pVpCtx);
 VAStatus     DdiVp_DestroyTargetParams(PDDI_VP_CONTEXT pVpCtx);
 VAStatus     DdiVp_DestroyRenderParams(PDDI_VP_CONTEXT pVpCtx);
 VAStatus     DdiVp_InitCtx(VADriverContextP, PDDI_VP_CONTEXT);
-VAStatus     DdiVp_UpdateFilterParamBuffer(PDDI_VP_CONTEXT, uint32_t, int32_t, void *, uint32_t, DDI_VP_STATE*);
+VAStatus     DdiVp_UpdateFilterParamBuffer(VADriverContextP, PDDI_VP_CONTEXT, uint32_t, int32_t, void *, uint32_t, DDI_VP_STATE*);
 VAStatus     DdiVp_ClearFilterParamBuffer(PDDI_VP_CONTEXT , uint32_t, DDI_VP_STATE);
 VAStatus     DdiVp_SetProcFilterDinterlaceParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferDeinterlacing*);
 VAStatus     DdiVp_SetProcFilterDenoiseParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBuffer*);
@@ -94,7 +94,9 @@ VAStatus     DdiVp_UpdateProcPipelineForwardReferenceFrames(PDDI_VP_CONTEXT pVpC
 VAStatus     DdiVp_UpdateProcPipelineBackwardReferenceFrames(PDDI_VP_CONTEXT pVpCtx, VADriverContextP pVaDrvCtx, PVPHAL_SURFACE pVpHalSrcSurf, VAProcPipelineParameterBuffer* pPipelineParam);
 VAStatus     DdiVp_UpdateVphalTargetSurfColorSpace(VADriverContextP, PDDI_VP_CONTEXT, VAProcPipelineParameterBuffer*, uint32_t targetIndex);
 VAStatus     DdiVp_BeginPictureInt(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx, VASurfaceID vaSurfID);
-
+#if VA_CHECK_VERSION(1, 12, 0)
+VAStatus     DdiVp_SetProcFilter3DLutParams(VADriverContextP pVaDrvCtx, PDDI_VP_CONTEXT pVpCtx, uint32_t uSurfIndex, VAProcFilterParameterBuffer3DLUT* p3DLutParamBuff);
+#endif
 #if (VA_MAJOR_VERSION < 1)
 VAStatus     DdiVp_GetColorSpace(PVPHAL_SURFACE pVpHalSurf, VAProcColorStandardType colorStandard, uint32_t flag);
 #else
@@ -405,6 +407,11 @@ DdiVp_DestroySrcParams(PDDI_VP_CONTEXT pVpCtx)
                     MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex]->pLumaKeyParams);
                     MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex]->pColorPipeParams);
                     MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex]->pHDRParams);
+                    if (pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex]->p3DLutParams)
+                    {
+                        MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex]->p3DLutParams->pExt3DLutSurface);
+                    }
+                    MOS_FreeMemAndSetNull(pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex]->p3DLutParams);
                     DdiVp_DestroyVpHalSurface(pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex]);
                     pVpCtx->pVpHalRenderParams->pSrc[uSurfIndex] = nullptr;
                 }
@@ -1235,7 +1242,7 @@ DdiVp_SetProcPipelineParams(
               && pVpHalSrcSurf->SurfType != SURF_IN_PRIMARY))
         {
             // Pass the filter type
-            vaStatus = DdiVp_UpdateFilterParamBuffer(pVpCtx, uSurfIndex, filter_param->type, pData, pFilterBuf->uiNumElements, &vpStateFlags);
+            vaStatus = DdiVp_UpdateFilterParamBuffer(pVaDrvCtx, pVpCtx, uSurfIndex, filter_param->type, pData, pFilterBuf->uiNumElements, &vpStateFlags);
             DDI_CHK_RET(vaStatus, "Failed to update parameter buffer!");
         }
     }
@@ -2101,6 +2108,7 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
 //////////////////////////////////////////////////////////////////////////////////////////////
 //! \purpose Setup the appropriate filter params for VPHAL input surface based on Filter type
 //! \params
+//! [in]  pVaDrvCtx : Driver context
 //! [in]  pVpCtx : VP context
 //! [in]  uSurfIndex : uSurfIndex to the input surface array
 //! [in]  FilterType : Filter type
@@ -2112,6 +2120,7 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
 //////////////////////////////////////////////////////////////////////////////////////////////
 VAStatus
 DdiVp_UpdateFilterParamBuffer(
+        VADriverContextP    pVaDrvCtx,
         PDDI_VP_CONTEXT     pVpCtx,
         uint32_t            uSurfIndex,
         int32_t             FilterType,
@@ -2175,6 +2184,15 @@ DdiVp_UpdateFilterParamBuffer(
                                             uSurfIndex,
                                             (VAProcFilterParameterBufferHDRToneMapping*) pData);
             break;
+#if VA_CHECK_VERSION(1, 12, 0)
+        case VAProcFilter3DLUT:
+            vaStatus = DdiVp_SetProcFilter3DLutParams(
+                                            pVaDrvCtx,
+                                            pVpCtx,
+                                            uSurfIndex,
+                                            (VAProcFilterParameterBuffer3DLUT*) pData);
+            break;
+#endif
         case VAProcFilterNone:
             vaStatus = VA_STATUS_ERROR_INVALID_PARAMETER;
             break;
@@ -2812,7 +2830,77 @@ DdiVp_SetProcFilterHdrTmParams(
 
     return eStatus;
 }
+#if VA_CHECK_VERSION(1, 12, 0)
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//! \purpose Three Three-Dimensional Look Up Table(3DLUT) filter params for VPHAL input surface
+//! \params
+//! [in]  pVaDrvCtx: Driver context
+//! [in]  pVpCtx : VP context
+//! [in]  uSurfIndex : uSurfIndex to the input surface array
+//! [in]  p3DLutParamBuff : Pointer to 3DLUT param buffer data
+//! [out] None
+//! \returns VA_STATUS_SUCCESS if call succeeds
+//////////////////////////////////////////////////////////////////////////////////////////////////
+VAStatus
+DdiVp_SetProcFilter3DLutParams(
+    VADriverContextP                                 pVaDrvCtx,
+    PDDI_VP_CONTEXT                                  pVpCtx,
+    uint32_t                                         uSurfIndex,
+    VAProcFilterParameterBuffer3DLUT*                p3DLutParamBuff)
+{
+    PVPHAL_RENDER_PARAMS pVpHalRenderParams  = nullptr;
+    PVPHAL_SURFACE       pSrc                = nullptr;
+    VAStatus             eStatus             = VA_STATUS_SUCCESS;
 
+    PDDI_MEDIA_SURFACE   pMedia3DLutSurf     = nullptr;
+    PDDI_MEDIA_CONTEXT   pMediaCtx           = nullptr;
+
+    VP_DDI_FUNCTION_ENTER;
+    DDI_CHK_NULL(p3DLutParamBuff, "Null p3DLutParamBuff.", VA_STATUS_ERROR_INVALID_BUFFER);
+    DDI_CHK_NULL(pVaDrvCtx,       "Null pVaDrvCtx.",       VA_STATUS_ERROR_INVALID_BUFFER);
+
+    pMediaCtx   = DdiMedia_GetMediaContext(pVaDrvCtx);
+
+    pVpHalRenderParams = VpGetRenderParams(pVpCtx);
+    DDI_CHK_NULL(pVpHalRenderParams, "Null pVpHalRenderParams.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    pSrc = pVpHalRenderParams->pSrc[uSurfIndex];
+    DDI_CHK_NULL(pSrc, "Null pSrc.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    pMedia3DLutSurf = DdiMedia_GetSurfaceFromVASurfaceID(pMediaCtx, p3DLutParamBuff->lut_surface);
+    DDI_CHK_NULL(pMedia3DLutSurf, "Null pMedia3DLutSurf.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    // only primary surface takes effect if 3DLUT filter
+    if (SURF_IN_PRIMARY == pSrc->SurfType)
+    {
+        if (nullptr == pSrc->p3DLutParams)
+        {
+            pSrc->p3DLutParams = (PVPHAL_3DLUT_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_3DLUT_PARAMS));
+            DDI_CHK_NULL(pSrc->p3DLutParams, "p3DLutParams MOS_AllocAndZeroMemory failed.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+        }
+
+        pSrc->p3DLutParams->LutSize               = (uint32_t)p3DLutParamBuff->lut_size;
+        pSrc->p3DLutParams->BitDepthPerChannel    = (uint16_t)p3DLutParamBuff->bit_depth;
+        pSrc->p3DLutParams->ByteCountPerEntry     = (uint16_t)(p3DLutParamBuff->num_channel * (pSrc->p3DLutParams->BitDepthPerChannel / 8));
+        if (nullptr == pSrc->p3DLutParams->pExt3DLutSurface)
+        {
+            pSrc->p3DLutParams->pExt3DLutSurface      = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+            DDI_CHK_NULL(pSrc->p3DLutParams->pExt3DLutSurface, "p3DLutParams MOS_AllocAndZeroMemory failed.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+        }
+
+        if (pSrc->p3DLutParams->pExt3DLutSurface)
+        {
+            PMOS_RESOURCE pOsResource     = nullptr;
+            pOsResource                   = &(pSrc->p3DLutParams->pExt3DLutSurface->OsResource);
+            DDI_CHK_NULL(pOsResource, "Null  pOsResource.", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+            DdiMedia_MediaSurfaceToMosResource(pMedia3DLutSurf, pOsResource);
+            Mos_Solo_SetOsResource(pMedia3DLutSurf->pGmmResourceInfo, pOsResource);
+        }
+    }
+
+    return eStatus;
+}
+#endif
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //! \purpose Create Media Buffer
 //! \params
@@ -4126,21 +4214,26 @@ DdiVp_QueryVideoProcFilterCaps (
 {
 #define QUERY_CAPS_ATTRIBUTE 1 /* query the actual filter caps attribute in vp module */
 
-    uint32_t uCnt;            /* used for loop                               */
-    uint32_t uQueryCapsNum;   /* the filter caps number queried by app layer */
-    uint32_t uExistCapsNum;   /* the actual number of filters in vp module   */
-    uint32_t uQueryFlag = 0;  /* QUERY_CAPS_ATTRIBUTE: search caps attribute */
-    DDI_UNUSED(pVaCtxID);
+    uint32_t uCnt            = 0;   /* used for loop */
+    uint32_t uQueryCapsNum   = 0;   /* the filter caps number queried by app layer */
+    uint32_t uExistCapsNum   = 0;   /* the actual number of filters in vp module */
+    uint32_t uQueryFlag      = 0;   /* QUERY_CAPS_ATTRIBUTE: search caps attribute */
+    PDDI_MEDIA_CONTEXT mediaDrvCtx = nullptr;
 
     VP_DDI_FUNCTION_ENTER;
 
-    DDI_CHK_NULL (filter_caps, "Null filter_caps.", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL (num_filter_caps, "Null num_filter_caps.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL (pVaDrvCtx, "Null pVaDrvCtx.", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    mediaDrvCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
+    DDI_CHK_NULL (mediaDrvCtx, "Null mediaDrvCtx.", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     if (*num_filter_caps != 0)
     {
         /* return filter caps attribute  */
         uQueryFlag = QUERY_CAPS_ATTRIBUTE;
+        /* check filter_caps pointer to fill in the filter_caps */
+        DDI_CHK_NULL (filter_caps, "Null filter_caps.", VA_STATUS_ERROR_INVALID_PARAMETER);
     }
 
     uQueryCapsNum = *num_filter_caps;
@@ -4292,7 +4385,6 @@ DdiVp_QueryVideoProcFilterCaps (
             break;
         case VAProcFilterHighDynamicRangeToneMapping:
         {
-            PDDI_MEDIA_CONTEXT mediaDrvCtx = DdiMedia_GetMediaContext(pVaDrvCtx);
             if (mediaDrvCtx)
             {
                 uExistCapsNum = 1;
@@ -4325,6 +4417,62 @@ DdiVp_QueryVideoProcFilterCaps (
             }
             break;
         }
+#if VA_CHECK_VERSION(1, 12, 0)
+        case VAProcFilter3DLUT:
+            uExistCapsNum = 0;
+            *num_filter_caps = uExistCapsNum;
+            /* 3DLUT is supported in VEBOX on Gen11+*/
+            if (!MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrDisableVEBoxFeatures))
+            {
+                /* 3DLUT exposes 3 kinds of caps on Gen11+*/
+                if (mediaDrvCtx->platform.eRenderCoreFamily >= IGFX_GEN11_CORE)
+                {
+                    uExistCapsNum = 3;
+                    *num_filter_caps = uExistCapsNum;
+                    /* set the actual filter caps attribute in vp module */
+                    if (uQueryFlag == QUERY_CAPS_ATTRIBUTE)
+                    {
+                        if (uQueryCapsNum < uExistCapsNum)
+                        {
+                            return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+                        }
+                        uint32_t channel_mapping = VA_3DLUT_CHANNEL_RGB_RGB |
+                                                   VA_3DLUT_CHANNEL_YUV_RGB |
+                                                   VA_3DLUT_CHANNEL_VUY_RGB;
+
+                        VAProcFilterCap3DLUT* lut3DCap = nullptr;
+                        /* 17^3 */
+                        lut3DCap                      = (VAProcFilterCap3DLUT *)filter_caps + 0;
+                        lut3DCap->lut_size            = 17;
+                        lut3DCap->lut_stride[0]       = 17;
+                        lut3DCap->lut_stride[1]       = 17;
+                        lut3DCap->lut_stride[2]       = 32;
+                        lut3DCap->bit_depth           = 16;
+                        lut3DCap->num_channel         = 4;
+                        lut3DCap->channel_mapping     = channel_mapping;
+                        /* 33^3 */
+                        lut3DCap                      = (VAProcFilterCap3DLUT *)filter_caps + 1;
+                        lut3DCap->lut_size            = 33;
+                        lut3DCap->lut_stride[0]       = 33;
+                        lut3DCap->lut_stride[1]       = 33;
+                        lut3DCap->lut_stride[2]       = 64;
+                        lut3DCap->bit_depth           = 16;
+                        lut3DCap->num_channel         = 4;
+                        lut3DCap->channel_mapping     = channel_mapping;
+                        /* 65^3 */
+                        lut3DCap                      = (VAProcFilterCap3DLUT *)filter_caps + 2;
+                        lut3DCap->lut_size            = 65;
+                        lut3DCap->lut_stride[0]       = 65;
+                        lut3DCap->lut_stride[1]       = 65;
+                        lut3DCap->lut_stride[2]       = 128;
+                        lut3DCap->bit_depth           = 16;
+                        lut3DCap->num_channel         = 4;
+                        lut3DCap->channel_mapping     = channel_mapping;
+                    }
+                }
+            }
+            break;
+#endif
         case VAProcFilterCount:
         case VAProcFilterNone:
             return VA_STATUS_ERROR_INVALID_VALUE;
