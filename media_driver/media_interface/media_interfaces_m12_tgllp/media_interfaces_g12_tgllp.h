@@ -317,6 +317,10 @@ public:
         PMOS_CONTEXT    osDriverContext,
         bool            bInitVphalState,
         MOS_STATUS      *eStatus);
+
+    MOS_STATUS CreateVpPlatformInterface(
+        PMOS_INTERFACE osInterface,
+        MOS_STATUS *   eStatus);
 };
 
 class RenderHalInterfacesG12Tgllp : public RenderHalDevice

@@ -84,6 +84,13 @@ public:
         bool            bInitVphalState,
         MOS_STATUS      *eStatus) = 0;
 
+    virtual MOS_STATUS CreateVpPlatformInterface(
+        PMOS_INTERFACE osInterface,
+        MOS_STATUS *   eStatus)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
     //!
     //! \brief    Destroys all created VpHal interfaces
     //! \details  If the HAL creation fails, this is used for cleanup

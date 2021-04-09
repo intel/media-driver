@@ -116,6 +116,23 @@ MOS_STATUS VphalInterfacesG12Tgllp::Initialize(
     return *eStatus;
 }
 
+MOS_STATUS VphalInterfacesG12Tgllp::CreateVpPlatformInterface(
+    PMOS_INTERFACE osInterface,
+    MOS_STATUS *   eStatus)
+{
+    vp::VpPlatformInterface *vpPlatformInterface = MOS_New(vp::VpPlatformInterfaceG12Tgllp, osInterface);
+    if (nullptr == vpPlatformInterface)
+    {
+        *eStatus = MOS_STATUS_NULL_POINTER;
+    }
+    else
+    {
+        m_vpPlatformInterface = vpPlatformInterface;
+        *eStatus              = MOS_STATUS_SUCCESS;
+    }
+    return *eStatus;
+}
+
 static bool tgllpRegisteredMhw =
     MediaInterfacesFactory<MhwInterfaces>::
     RegisterHal<MhwInterfacesG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
