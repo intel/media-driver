@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -111,6 +111,9 @@ namespace decode
         m_av1PicParams  = static_cast<CodecAv1PicParams*>(decodeParams->m_picParams);
         DECODE_CHK_NULL(m_av1PicParams);
 
+        // Do error detection and concealment
+        DECODE_CHK_STATUS(ErrorDetectAndConceal());
+
         if (m_av1PicParams->m_bitDepthIdx == 0) m_av1DepthIndicator = 0;
         if (m_av1PicParams->m_bitDepthIdx == 1) m_av1DepthIndicator = 1;
         if (m_av1PicParams->m_bitDepthIdx == 2) m_av1DepthIndicator = 2;
@@ -147,6 +150,185 @@ namespace decode
 
         DECODE_CHK_STATUS(SetPictureStructs(decodeParams));
         DECODE_CHK_STATUS(SetTileStructs());
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Av1BasicFeature::ErrorDetectAndConceal()
+    {
+        DECODE_FUNC_CALL()
+        DECODE_CHK_NULL(m_av1PicParams);
+
+        // Profile and subsampling
+        if (m_av1PicParams->m_seqInfoFlags.m_fields.m_monoChrome ||
+            m_av1PicParams->m_profile != 0 ||
+            !(m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX ==1 &&
+                m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 1))
+        {
+            DECODE_ASSERTMESSAGE("Only 4:2:0 8bit and 10bit are supported!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if(m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc &&
+            (!(m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame ||
+                m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == intraOnlyFrame) ||
+                !m_av1PicParams->m_picInfoFlags.m_fields.m_allowScreenContentTools ||
+                m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres))
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        //Tx Mode
+        if(m_av1PicParams->m_losslessMode &&
+            m_av1PicParams->m_modeControlFlags.m_fields.m_txMode != (uint32_t)CodecAv1TxType::ONLY_4X4)
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec! Coded Lossless only allows TX_4X4.\n");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_forceIntegerMv &&
+            m_av1PicParams->m_picInfoFlags.m_fields.m_allowHighPrecisionMv)
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_forceIntegerMv &&
+            (!m_av1PicParams->m_picInfoFlags.m_fields.m_allowScreenContentTools &&
+             !(m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == intraOnlyFrame
+                 || m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame)))
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        //Order Hint
+        if (!m_av1PicParams->m_seqInfoFlags.m_fields.m_enableOrderHint &&
+            (m_av1PicParams->m_seqInfoFlags.m_fields.m_enableJntComp ||
+                m_av1PicParams->m_picInfoFlags.m_fields.m_useRefFrameMvs))
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        //CDF Upate
+        if (!m_av1PicParams->m_picInfoFlags.m_fields.m_disableFrameEndUpdateCdf &&
+            m_av1PicParams->m_picInfoFlags.m_fields.m_disableCdfUpdate)
+        {
+            DECODE_ASSERTMESSAGE("Illegal Cdf update params combination!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        //Reference Mode
+        if ((m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame ||
+            m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == intraOnlyFrame) &&
+                (m_av1PicParams->m_modeControlFlags.m_fields.m_referenceMode != singleReference))
+        {
+            DECODE_ASSERTMESSAGE("Reference mode shouldn't be singleReference for keyFrame or intraOnlyFrame.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        //Skip Mode
+        if (((m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame ||
+                m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == intraOnlyFrame ||
+                m_av1PicParams->m_modeControlFlags.m_fields.m_referenceMode == singleReference) ||
+                !m_av1PicParams->m_seqInfoFlags.m_fields.m_enableOrderHint) &&
+                m_av1PicParams->m_modeControlFlags.m_fields.m_skipModePresent)
+        {
+            DECODE_ASSERTMESSAGE("SkipModePresent should be 0 for keyFrame, intraOnlyFrame or singleReference.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if ((m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame ||
+            m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == intraOnlyFrame) &&
+            (m_av1PicParams->m_picInfoFlags.m_fields.m_allowWarpedMotion ||
+                (m_av1PicParams->m_primaryRefFrame != av1PrimaryRefNone)))
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        if (m_av1PicParams->m_seqInfoFlags.m_fields.m_enableOrderHint &&
+            m_av1PicParams->m_orderHintBitsMinus1 > 7)
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        //Error Concealment for CDEF
+        if (m_av1PicParams->m_losslessMode ||
+            m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc ||
+            !m_av1PicParams->m_seqInfoFlags.m_fields.m_enableCdef)
+        {
+            m_av1PicParams->m_cdefBits            = 0;
+            m_av1PicParams->m_cdefYStrengths[0]   = 0;
+            m_av1PicParams->m_cdefUvStrengths[0]  = 0;
+            m_av1PicParams->m_cdefDampingMinus3   = 0;
+        }
+
+        //Error Concealment for Loop Filter
+        if (m_av1PicParams->m_losslessMode ||
+            m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc)
+        {
+            m_av1PicParams->m_filterLevel[0] = 0;
+            m_av1PicParams->m_filterLevel[1] = 0;
+
+            m_av1PicParams->m_refDeltas[intraFrame]     = 1;
+            m_av1PicParams->m_refDeltas[lastFrame]      = 0;
+            m_av1PicParams->m_refDeltas[last2Frame]     = 0;
+            m_av1PicParams->m_refDeltas[last3Frame]     = 0;
+            m_av1PicParams->m_refDeltas[bwdRefFrame]    = 0;
+            m_av1PicParams->m_refDeltas[goldenFrame]    = -1;
+            m_av1PicParams->m_refDeltas[altRef2Frame]   = -1;
+            m_av1PicParams->m_refDeltas[altRefFrame]    = -1;
+
+            m_av1PicParams->m_modeDeltas[0] = 0;
+            m_av1PicParams->m_modeDeltas[1] = 0;
+
+            m_av1PicParams->m_loopFilterInfoFlags.m_value = 0;
+        }
+
+        // Error Concealment for Loop Restoration
+        if ((!m_av1PicParams->m_picInfoFlags.m_fields.m_useSuperres &&
+            m_av1PicParams->m_losslessMode) ||
+            m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc)
+        {
+            m_av1PicParams->m_loopRestorationFlags.m_value = 0;
+        }
+
+        // Error Concealment for DeltaLF and DeltaQ
+        if (m_av1PicParams->m_baseQindex == 0)
+        {
+            m_av1PicParams->m_modeControlFlags.m_fields.m_deltaQPresentFlag = 0;
+        }
+        if (m_av1PicParams->m_modeControlFlags.m_fields.m_deltaQPresentFlag)
+        {
+            if (m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc)
+            {
+                m_av1PicParams->m_modeControlFlags.m_fields.m_deltaLfPresentFlag = 0;
+            }
+        }
+        else
+        {
+            m_av1PicParams->m_modeControlFlags.m_fields.m_log2DeltaQRes = 0;
+            m_av1PicParams->m_modeControlFlags.m_fields.m_log2DeltaLfRes = 0;
+            m_av1PicParams->m_modeControlFlags.m_fields.m_deltaLfPresentFlag = 0;
+            m_av1PicParams->m_modeControlFlags.m_fields.m_deltaLfMulti = 0;
+        }
+        if (m_av1PicParams->m_modeControlFlags.m_fields.m_deltaLfPresentFlag == 0)
+        {
+            m_av1PicParams->m_modeControlFlags.m_fields.m_log2DeltaLfRes = 0;
+            m_av1PicParams->m_modeControlFlags.m_fields.m_deltaLfMulti = 0;
+        }
+
+        // Error Concealment for Film Grain
+        if (!m_av1PicParams->m_seqInfoFlags.m_fields.m_filmGrainParamsPresent ||
+            !(m_av1PicParams->m_picInfoFlags.m_fields.m_showFrame ||
+              m_av1PicParams->m_picInfoFlags.m_fields.m_showableFrame))
+        {
+            memset(&m_av1PicParams->m_filmGrainParams, 0, sizeof(CodecAv1FilmGrainParams));
+        }
 
         return MOS_STATUS_SUCCESS;
     }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -73,6 +73,13 @@ namespace decode
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
         virtual MOS_STATUS Update(void *params) override;
+
+        //!
+        //! \brief  Detect conformance conflict and do error concealment
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS ErrorDetectAndConceal();
 
         //!
         //! \brief    Initialize one of AV1 Decode frame context buffers with default values

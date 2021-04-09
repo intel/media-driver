@@ -197,6 +197,7 @@ namespace decode
 
             CODECHAL_DEBUG_TOOL(
                 PMHW_BATCH_BUFFER batchBuffer = m_av1DecodePkt->GetSecondLvlBB();
+                DECODE_CHK_NULL(batchBuffer);
                 batchBuffer->iLastCurrent = batchBuffer->iSize;
                 batchBuffer->dwOffset = 0;
                 DECODE_CHK_STATUS(m_debugInterface->Dump2ndLvlBatch(
