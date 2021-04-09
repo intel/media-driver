@@ -2215,6 +2215,15 @@ MOS_STATUS CodechalEncodeHevcBase::GetStatusReport(
 
     if (m_frameWidth != 0 && m_frameHeight != 0)
     {
+        uint32_t log2LcuSize = 2;
+
+        //The CumulativeQp from the PAK has accumulation unit of LCU, so we align and divide height, width by LCU size
+        if ((m_codecFunction == CODECHAL_FUNCTION_FEI_ENC_PAK) ||
+            (m_codecFunction == (CODECHAL_FUNCTION_FEI_ENC | CODECHAL_FUNCTION_FEI_ENC_PAK)))
+        {
+            log2LcuSize = m_hevcSeqParams->log2_max_coding_block_size_minus3 + 3;
+        }
+        
         // Based on HW team:
         // The CumulativeQp from the PAK accumulated at TU level and normalized to TU4x4
         // qp(for TU 8x8) = qp*4
@@ -2225,8 +2234,8 @@ MOS_STATUS CodechalEncodeHevcBase::GetStatusReport(
 
         encodeStatusReport->QpY = encodeStatusReport->AverageQp =
             (uint8_t)(((uint32_t)encodeStatus->QpStatusCount.hcpCumulativeQP)
-                / ((MOS_ALIGN_CEIL(m_frameWidth, (1 << 2)) >> 2) *
-                (MOS_ALIGN_CEIL(m_frameHeight, (1 << 2)) >> 2)));
+                / ((MOS_ALIGN_CEIL(m_frameWidth, (1 << log2LcuSize)) >> log2LcuSize) *
+                (MOS_ALIGN_CEIL(m_frameHeight, (1 << log2LcuSize)) >> log2LcuSize)));
     }
 
     if (!Mos_ResourceIsNull(&m_resFrameStatStreamOutBuffer))
