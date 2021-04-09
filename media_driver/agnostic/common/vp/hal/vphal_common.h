@@ -662,8 +662,6 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
 typedef struct _RENDERHAL_INTERFACE     *PRENDERHAL_INTERFACE;
 typedef class MhwVeboxInterface         *PMHW_VEBOX_INTERFACE;
 typedef class MhwSfcInterface           *PMHW_SFC_INTERFACE;
-typedef struct VPHAL_SURFACE            *PVPHAL_SURFACE;
-
 class VphalRenderer;
 
 class MhwCpInterface;
@@ -942,32 +940,10 @@ typedef struct _VPHAL_COLORPIPE_PARAMS
 } VPHAL_COLORPIPE_PARAMS, *PVPHAL_COLORPIPE_PARAMS;
 
 //!
-//! \brief Vphal 3DLUT Channel Mapping enum
-//!
-typedef enum _VPHAL_3DLUT_CHANNEL_MAPPING
-{
-    CHANNEL_MAPPING_RGB_RGB          = 0,
-    CHANNEL_MAPPING_YUV_RGB          = 1 << 0,
-    CHANNEL_MAPPING_VUY_RGB          = 1 << 1,
-} VPHAL_3DLUT_CHANNEL_MAPPING;
-
-//!
-//! Structure VPHAL_3DLUT_PARAMS
-//! \brief 3DLUT parameters - 3DLUT
-//!
-typedef struct _VPHAL_3DLUT_PARAMS
-{
-    PVPHAL_SURFACE             pExt3DLutSurface;          // Pointer to the 3DLUT surface which app passes to driver.
-    uint32_t                   LutSize;                   // Size of 3DLUT, i.e, how many entries LUT has.
-    uint32_t                   ChannelMapping;            // Channel Mapping for the 3DLUT input to 3DLUT output.
-    uint16_t                   BitDepthPerChannel;        // Bit Depth Per Channel(4 channels for 3DLUT).
-    uint16_t                   ByteCountPerEntry;         // Byte Count Per Entry including reserved bytes.
-} VPHAL_3DLUT_PARAMS, * PVPHAL_3DLUT_PARAMS;
-
-//!
 //! Structure VPHAL_SURFACE
 //! \brief DDI-VPHAL surface definition
 //!
+typedef struct VPHAL_SURFACE           *PVPHAL_SURFACE;
 struct VPHAL_SURFACE
 {
     // Color Information
@@ -1065,9 +1041,6 @@ struct VPHAL_SURFACE
     PVPHAL_HDR_PARAMS           pHDRParams = nullptr;
     VPHAL_GAMMA_TYPE            GammaType = VPHAL_GAMMA_NONE;    //!<Gamma Type
     bool                        bPreAPGWorkloadEnable = false;   //!< Previous Surface Execution Path
-
-    // 3DLUT parameters
-    PVPHAL_3DLUT_PARAMS         p3DLutParams = nullptr;          //!< 3DLut Mapping Params
 };
 
 //!

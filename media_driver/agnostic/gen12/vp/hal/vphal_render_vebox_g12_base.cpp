@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1019,36 +1019,29 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
 
     if (pRenderData->bHdr3DLut)
     {
-        if (pVeboxState->m_currentSurface->p3DLutParams)
-        {
-            pVeboxState->Vebox3DLookUpTables = *(pVeboxState->m_currentSurface->p3DLutParams->pExt3DLutSurface);
-        }
-        else
-        {
-            // Allocate 3DLut Table Surface
-            const uint32_t dwSegSize = 65;
-            const uint32_t dwMulSize = 128;
-            uint32_t dwSizeInBytes = dwSegSize * dwSegSize * dwMulSize * 8;
-            VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
-                pOsInterface,
-                &pVeboxState->Vebox3DLookUpTables,
-                "Vebox3DLutTableSurface_g12",
-                Format_Buffer,
-                MOS_GFXRES_BUFFER,
-                MOS_TILE_LINEAR,
-                dwSizeInBytes,
-                1,
-                false,
-                MOS_MMC_DISABLED,
-                &bAllocated));
+        // Allocate 3DLut Table Surface
+        const uint32_t dwSegSize = 65;
+        const uint32_t dwMulSize = 128;
+        uint32_t dwSizeInBytes = dwSegSize * dwSegSize * dwMulSize * 8;
+        VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+            pOsInterface,
+            &pVeboxState->Vebox3DLookUpTables,
+            "Vebox3DLutTableSurface_g12",
+            Format_Buffer,
+            MOS_GFXRES_BUFFER,
+            MOS_TILE_LINEAR,
+            dwSizeInBytes,
+            1,
+            false,
+            MOS_MMC_DISABLED,
+            &bAllocated));
 
-            if (nullptr == m_hdr3DLutGenerator)
-            {
+        if (nullptr == m_hdr3DLutGenerator)
+        {
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-                PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
-                m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_G12_TGLLP, IGVP3DLUT_GENERATION_G12_TGLLP_SIZE);
+            PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
+            m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_G12_TGLLP, IGVP3DLUT_GENERATION_G12_TGLLP_SIZE);
 #endif
-            }
         }
     }
     else
@@ -2346,38 +2339,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupVeboxState(
             true));
         pVeboxStateCmdParams->Vebox3DLookUpTablesSurfCtrl.Value = pVeboxState->DnDiSurfMemObjCtl.Vebox3DLookUpTablesSurfMemObjCtl;
 
+        if (m_hdr3DLutGenerator)
+        {
+            m_hdr3DLutGenerator->Render(
+                pRenderData->uiMaxDisplayLum,
+                pRenderData->uiMaxContentLevelLum,
+                pRenderData->hdrMode,
+                &pVeboxState->Vebox3DLookUpTables);
+        }
+
         pLUT3D->ArbitrationPriorityControl = 0;
         pLUT3D->Lut3dEnable                = true;
-        pLUT3D->Lut3dSize                  = 2;
-
-        if (pVeboxState->m_currentSurface->p3DLutParams)
-        {
-            if (pVeboxState->m_currentSurface->p3DLutParams->LutSize == 17)
-            {
-                pLUT3D->Lut3dSize = 1;
-            }
-            else if (pVeboxState->m_currentSurface->p3DLutParams->LutSize == 33)
-            {
-                pLUT3D->Lut3dSize = 0;
-            }
-            else if (pVeboxState->m_currentSurface->p3DLutParams->LutSize == 65)
-            {
-                pLUT3D->Lut3dSize = 2;
-            }
-        }
-        else
-        {
-            if (m_hdr3DLutGenerator)
-            {
-                m_hdr3DLutGenerator->Render(
-                    pRenderData->uiMaxDisplayLum,
-                    pRenderData->uiMaxContentLevelLum,
-                    pRenderData->hdrMode,
-                    &pVeboxState->Vebox3DLookUpTables);
-            }
-            // 65^3 is the default.
-            pLUT3D->Lut3dSize = 2;
-        }
+        // 65^3 is the default.
+        pLUT3D->Lut3dSize                  =  2;
     }
 
 finish:
@@ -2993,8 +2967,7 @@ void VPHAL_VEBOX_STATE_G12_BASE::VeboxSetRenderingFlags(
         bToneMapping = true;
     }
     pRenderData->bHdr3DLut = bToneMapping;
-    pRenderData->bHdr3DLut |= (pSrc->p3DLutParams != nullptr);
-    VPHAL_RENDER_NORMALMESSAGE("Enable 3DLut for HDR ToneMapping %d or 3DLUT filter %d.", bToneMapping, (pSrc->p3DLutParams != nullptr));
+    VPHAL_RENDER_NORMALMESSAGE("Enable 3DLut for HDR ToneMapping %d.", pRenderData->bHdr3DLut);
 
     VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(pSrc, pRenderTarget);
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017 - 2021, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -179,12 +179,6 @@ MOS_STATUS VPHAL_VEBOX_IECP_RENDERER::InitParams(
     pMhwVeboxIecpParams->bAlphaEnable   = pVphalVeboxIecpParams->bAlphaEnable;
     pMhwVeboxIecpParams->wAlphaValue    = pVphalVeboxIecpParams->wAlphaValue;
 
-    // Front End CSC
-    pMhwVeboxIecpParams->bFeCSCEnable          = pVphalVeboxIecpParams->bFeCSCEnable;
-    pMhwVeboxIecpParams->pfFeCscCoeff          = pVphalVeboxIecpParams->pfFeCscCoeff;
-    pMhwVeboxIecpParams->pfFeCscInOffset       = pVphalVeboxIecpParams->pfFeCscInOffset;
-    pMhwVeboxIecpParams->pfFeCscOutOffset      = pVphalVeboxIecpParams->pfFeCscOutOffset;
-
 finish:
     return eStatus;
 }
@@ -264,31 +258,5 @@ void VPHAL_VEBOX_IECP_RENDERER::SetParams(
         pVphalVeboxIecpParams->srcFormat = pSrcSurface->Format;
 
         pRenderData->GetVeboxStateParams()->pVphalVeboxIecpParams = pVphalVeboxIecpParams;
-    }
-
-    // If 3DLUT is enabled, Front End CSC needs to be enabled explicitly for YUV output
-    if (pRenderData->bHdr3DLut)
-    {
-        if (IS_YUV_FORMAT(pOutSurface->Format) &&
-           (pVeboxState->CscOutputCspace != pOutSurface->ColorSpace))
-        {
-            VPHAL_CSPACE outColorSpace         = pOutSurface->ColorSpace;
-            VPHAL_CSPACE inColorSpace          = (IS_COLOR_SPACE_BT2020_YUV(pOutSurface->ColorSpace)) ? CSpace_BT2020_RGB : CSpace_sRGB;
-            // Get the matrix to use for conversion
-            VpHal_GetCscMatrix(
-                inColorSpace,
-                outColorSpace,
-                pVeboxState->fFeCscCoeff,
-                pVeboxState->fFeCscInOffset,
-                pVeboxState->fFeCscOutOffset);
-
-            // Copy the values into IECP Params
-            pVphalVeboxIecpParams->bFeCSCEnable          = true;
-            pVphalVeboxIecpParams->pfFeCscCoeff          = pVeboxState->fFeCscCoeff;
-            pVphalVeboxIecpParams->pfFeCscInOffset       = pVeboxState->fFeCscInOffset;
-            pVphalVeboxIecpParams->pfFeCscOutOffset      = pVeboxState->fFeCscOutOffset;
-
-            pRenderData->GetVeboxStateParams()->pVphalVeboxIecpParams = pVphalVeboxIecpParams;
-        }
     }
 }

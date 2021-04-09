@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -409,28 +409,6 @@ protected:
                 ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[0]),
                 ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[1]),
                 ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[2]));
-        }
-        else if (pVeboxIecpParams->bFeCSCEnable)
-        {
-            // Coeff is S2.16, so multiply the floating value by 65536
-            SET_COEFS(
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[0] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[1] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[2] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[3] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[4] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[5] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[6] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[7] * 65536)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[8] * 65536)));
-            SET_INPUT_OFFSETS(
-                ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[0] * 128.0F)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[1] * 128.0F)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[2] * 128.0F)));
-            SET_OUTPUT_OFFSETS(
-                ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[0] * 128.0F)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[1] * 128.0F)),
-                ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[2] * 128.0F)));
         }
         else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT601)
         {

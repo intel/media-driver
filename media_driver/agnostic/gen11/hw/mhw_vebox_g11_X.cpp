@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2021, Intel Corporation
+* Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1420,48 +1420,48 @@ MOS_STATUS MhwVeboxInterfaceG11::AddVeboxGamutState(
         {
             pIecpState->CscState.DW0.TransformEnable = true;
 
-            if (pVeboxIecpParams->pfCscCoeff    &&
-                pVeboxIecpParams->pfCscInOffset &&
-                pVeboxIecpParams->pfCscOutOffset)
+            if (pVeboxGamutParams->pfCscCoeff    &&
+                pVeboxGamutParams->pfCscInOffset &&
+                pVeboxGamutParams->pfCscOutOffset)
             {
                 // BSD only; switch the first and third row to output ARGB instead of ABGR
-                pIecpState->CscState.DW0.C0             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[0] * 65536.0F);
-                pIecpState->CscState.DW1.C1             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[1] * 65536.0F);
-                pIecpState->CscState.DW2.C2             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[2] * 65536.0F);
-                pIecpState->CscState.DW3.C3             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[3] * 65536.0F);
-                pIecpState->CscState.DW4.C4             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[4] * 65536.0F);
-                pIecpState->CscState.DW5.C5             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[5] * 65536.0F);
-                pIecpState->CscState.DW6.C6             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[6] * 65536.0F);
-                pIecpState->CscState.DW7.C7             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[7] * 65536.0F);
-                pIecpState->CscState.DW8.C8             = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[8] * 65536.0F);
-                pIecpState->CscState.DW9.OffsetIn1      = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[0] * 128.0F);
-                pIecpState->CscState.DW9.OffsetOut1     = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[0] * 128.0F);
-                pIecpState->CscState.DW10.OffsetIn2     = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[1] * 128.0F);
-                pIecpState->CscState.DW10.OffsetOut2    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[1] * 128.0F);
-                pIecpState->CscState.DW11.OffsetIn3     = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[2] * 128.0F);
-                pIecpState->CscState.DW11.OffsetOut3    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[2] * 128.0F);
+                pIecpState->CscState.DW0.C0             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[0] * 65536.0F);
+                pIecpState->CscState.DW1.C1             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[1] * 65536.0F);
+                pIecpState->CscState.DW2.C2             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[2] * 65536.0F);
+                pIecpState->CscState.DW3.C3             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[3] * 65536.0F);
+                pIecpState->CscState.DW4.C4             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[4] * 65536.0F);
+                pIecpState->CscState.DW5.C5             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[5] * 65536.0F);
+                pIecpState->CscState.DW6.C6             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[6] * 65536.0F);
+                pIecpState->CscState.DW7.C7             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[7] * 65536.0F);
+                pIecpState->CscState.DW8.C8             = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscCoeff[8] * 65536.0F);
+                pIecpState->CscState.DW9.OffsetIn1      = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscInOffset[0] * 128.0F);
+                pIecpState->CscState.DW9.OffsetOut1     = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscOutOffset[0] * 128.0F);
+                pIecpState->CscState.DW10.OffsetIn2     = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscInOffset[1] * 128.0F);
+                pIecpState->CscState.DW10.OffsetOut2    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscOutOffset[1] * 128.0F);
+                pIecpState->CscState.DW11.OffsetIn3     = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscInOffset[2] * 128.0F);
+                pIecpState->CscState.DW11.OffsetOut3    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfCscOutOffset[2] * 128.0F);
 
-                if (pVeboxIecpParams->pfFeCscCoeff    &&
-                    pVeboxIecpParams->pfFeCscInOffset &&
-                    pVeboxIecpParams->pfFeCscOutOffset)
+                if (pVeboxGamutParams->pfFeCscCoeff    &&
+                    pVeboxGamutParams->pfFeCscInOffset &&
+                    pVeboxGamutParams->pfFeCscOutOffset)
                 {
                     pIecpState->FrontEndCsc.DW0.FrontEndCscTransformEnable = true;
 
-                    pIecpState->FrontEndCsc.DW0.FecscC0TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[0] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW1.FecscC1TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[1] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW2.FecscC2TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[2] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW3.FecscC3TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[3] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW4.FecscC4TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[4] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW5.FecscC5TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[5] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW6.FecscC6TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[6] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW7.FecscC7TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[7] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW8.FecscC8TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscCoeff[8] * 65536.0F);
-                    pIecpState->FrontEndCsc.DW9.FecScOffsetIn1OffsetInForYR    = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscInOffset[0] * 128.0F);
-                    pIecpState->FrontEndCsc.DW9.FecScOffsetOut1OffsetOutForYR  = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscOutOffset[0] * 128.0F);
-                    pIecpState->FrontEndCsc.DW10.FecScOffsetIn2OffsetOutForUG  = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscInOffset[1] * 128.0F);
-                    pIecpState->FrontEndCsc.DW10.FecScOffsetOut2OffsetOutForUG = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscOutOffset[1] * 128.0F);
-                    pIecpState->FrontEndCsc.DW11.FecScOffsetIn3OffsetOutForVB  = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscInOffset[2] * 128.0F);
-                    pIecpState->FrontEndCsc.DW11.FecScOffsetOut3OffsetOutForVB = (uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfFeCscOutOffset[2] * 128.0F);
+                    pIecpState->FrontEndCsc.DW0.FecscC0TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[0] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW1.FecscC1TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[1] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW2.FecscC2TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[2] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW3.FecscC3TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[3] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW4.FecscC4TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[4] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW5.FecscC5TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[5] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW6.FecscC6TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[6] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW7.FecscC7TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[7] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW8.FecscC8TransformCoefficient    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscCoeff[8] * 65536.0F);
+                    pIecpState->FrontEndCsc.DW9.FecScOffsetIn1OffsetInForYR    = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscInOffset[0] * 128.0F);
+                    pIecpState->FrontEndCsc.DW9.FecScOffsetOut1OffsetOutForYR  = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscOutOffset[0] * 128.0F);
+                    pIecpState->FrontEndCsc.DW10.FecScOffsetIn2OffsetOutForUG  = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscInOffset[1] * 128.0F);
+                    pIecpState->FrontEndCsc.DW10.FecScOffsetOut2OffsetOutForUG = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscOutOffset[1] * 128.0F);
+                    pIecpState->FrontEndCsc.DW11.FecScOffsetIn3OffsetOutForVB  = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscInOffset[2] * 128.0F);
+                    pIecpState->FrontEndCsc.DW11.FecScOffsetOut3OffsetOutForVB = (uint32_t)MOS_F_ROUND(pVeboxGamutParams->pfFeCscOutOffset[2] * 128.0F);
                 }
             }
             else
