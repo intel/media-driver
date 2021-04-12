@@ -230,20 +230,12 @@ private:
     VAStatus DefaultQmatrix();
     //!
     //! \brief    scale Qmatrix buffer to Encode Context,
-    //!           if qmatrix is supplied by application
+    //!           if qmatrix and full jpeg headers are supplied by application
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
     VAStatus QualityScaleQmatrix();
-    //!
-    //! \brief    Application send whole header and qmatrix
-    //!           must be extracted from it
-    //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    VAStatus QmatrixFromHeader();
     //!
     //! \brief    Convert Media Format To Input Surface Format
     //!
