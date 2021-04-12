@@ -94,6 +94,7 @@ MOS_STATUS Heap::Allocate(uint32_t heapSize, bool keepLocked)
     if (m_hwWriteOnly && !keepLocked)
     {
         allocParams.Flags.bNotLockable = true;
+        allocParams.dwMemType = MOS_MEMPOOL_DEVICEMEMORY;
     }
 
     HEAP_CHK_STATUS(m_osInterface->pfnAllocateResource(
