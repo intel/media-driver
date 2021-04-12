@@ -378,12 +378,12 @@ void VPHAL_VEBOX_STATE::Destroy()
 {
     PVPHAL_VEBOX_STATE                  pVeboxState = this;
 
-    MOS_Delete(pVeboxState->fFeCscCoeff);
-    MOS_Delete(pVeboxState->fFeCscInOffset);
-    MOS_Delete(pVeboxState->fFeCscOutOffset);
-
     if (pVeboxState)
     {
+        MOS_SafeFreeMemory(pVeboxState->fFeCscCoeff);
+        MOS_SafeFreeMemory(pVeboxState->fFeCscInOffset);
+        MOS_SafeFreeMemory(pVeboxState->fFeCscOutOffset);
+
         // Free VEBOX allocations
         if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrVERing))
         {
