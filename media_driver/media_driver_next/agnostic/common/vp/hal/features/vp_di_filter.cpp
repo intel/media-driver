@@ -349,6 +349,7 @@ MOS_STATUS PolicyDiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
 
         // Clear engine caps for filter in 2nd pass.
         filter2ndPass->SetFeatureType(FeatureTypeDi);
+        filter2ndPass->SetRenderTargetType(RenderTargetTypeParameter);
         filter2ndPass->GetFilterEngineCaps().value = 0;
 
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
