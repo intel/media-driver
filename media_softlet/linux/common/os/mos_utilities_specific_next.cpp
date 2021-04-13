@@ -1328,6 +1328,9 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
 
     if (m_mosUtilInitCount == 0)
     {
+        //Generate random seed
+        srand((unsigned)time(nullptr));
+
         //Init MOS User Feature Key from mos desc table
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
         MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
