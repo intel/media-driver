@@ -50,13 +50,6 @@
 #endif // MOS_MEDIASOLO_SUPPORTED
 #include "mos_solo_generic.h"
 
-#ifndef ANDROID
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/sem.h>
-#include <sys/types.h>
-#endif
-
 #include "mos_os_virtualengine.h"
 #include "mos_util_user_interface.h"
 
@@ -558,270 +551,6 @@ int32_t Linux_Refresh(MOS_CONTEXT *pOsContext)
     return true;
 }
 
-#ifndef ANDROID
-
-#define MOS_LINUX_IPC_INVALID_ID -1
-#define MOS_LINUX_SHM_INVALID (void *)-1
-#define MOS_LINUX_SEM_MAX_TRIES 10
-
-static MOS_STATUS DetachDestroyShm(int32_t shmid, void  *pShm)
-{
-    struct shmid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    if (shmid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if ((pShm != MOS_LINUX_SHM_INVALID) && (pShm != nullptr) && shmdt(pShm) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (shmctl(shmid, IPC_STAT, &buf) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (buf.shm_nattch == 0)
-    {
-        if (shmctl(shmid, IPC_RMID, nullptr) < 0)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS ConnectCreateShm(long key, uint32_t size, int32_t *pShmid, void  **ppShm)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    MOS_OS_CHK_NULL_RETURN(pShmid);
-    MOS_OS_CHK_NULL_RETURN(ppShm);
-
-    struct shmid_ds buf;
-    int32_t         shmid     = -1;
-    key_t           key_value = (key_t)key;
-    void *          shmptr    = nullptr;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    shmid = shmget(key_value, size, IPC_CREAT | 0666);
-    if (shmid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    shmptr = shmat(shmid, 0, 0);
-    if (shmptr == MOS_LINUX_SHM_INVALID)
-    {
-        DetachDestroyShm(shmid, shmptr);
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (shmctl(shmid, IPC_STAT, &buf) < 0)
-    {
-        // can't get any status info
-        DetachDestroyShm(shmid, shmptr);
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    *ppShm = shmptr;
-    *pShmid = shmid;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS ConnectCreateSemaphore(long key, int32_t *pSemid)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    MOS_OS_CHK_NULL_RETURN(pSemid);
-    int32_t         semid = -1;
-    struct sembuf   sop;
-    struct semid_ds buf;
-    uint32_t        i         = 0;
-    key_t           key_value = (key_t)key;
-    int32_t         val       = 0;
-    MOS_ZeroMemory(&sop, sizeof(sop));
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
-
-    if (semid != MOS_LINUX_IPC_INVALID_ID)
-    {
-        // initialize it to 0
-        if (semctl(semid, 0, SETVAL, val) == -1)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-
-        // Perform a "no-op" semaphore operation - changes sem_otime
-        // so other processes can see we've initialized the set.
-        sop.sem_num = 0;
-        sop.sem_op  = 0; //Wait for value to equal 0
-        sop.sem_flg = 0;
-        if (semop(semid, &sop, 1) == -1)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-
-    }
-    else
-    {
-        // errno EEXIST
-        semid = semget(key, 1, 0666);
-        if (semid == MOS_LINUX_IPC_INVALID_ID)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-    }
-
-    *pSemid = semid;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS DestroySemaphore(int32_t semid)
-{
-    int32_t nwait = -1;
-
-    if (semid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    nwait = semctl(semid, 0, GETZCNT, 0);
-
-    if (nwait > 0)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (semctl(semid, 0, IPC_RMID, nullptr) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static int16_t ShmAttachedNumber(int32_t shmid)
-{
-    struct shmid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    if (shmctl(shmid, IPC_STAT, &buf) < 0)
-    {
-        return -1;
-    }
-
-    return buf.shm_nattch;
-}
-
-static MOS_STATUS LockSemaphore(int32_t semid)
-{
-    struct sembuf op[2];
-    op[0].sem_num = 0; // wait for [0] to be 0
-    op[0].sem_op  = 0;
-    op[0].sem_flg = 0;
-    op[1].sem_num = 0;
-    op[1].sem_op  = 1; // increment
-    op[1].sem_flg = SEM_UNDO;
-
-    if (semid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (semop(semid, op, 2) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS UnLockSemaphore(int32_t semid)
-{
-    struct sembuf op;
-    op.sem_num = 0;
-    op.sem_op  = -1; // decrement back to 0
-    op.sem_flg = SEM_UNDO;
-
-    if (semid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (semop(semid, &op, 1) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-void DestroyIPC(PMOS_CONTEXT pOsContext)
-{
-    if (MOS_LINUX_IPC_INVALID_ID != pOsContext->semid)
-    {
-        int16_t iAttachedNum = 0;
-
-        if (MOS_LINUX_IPC_INVALID_ID != pOsContext->shmid)
-        {
-            LockSemaphore(pOsContext->semid);
-            iAttachedNum = ShmAttachedNumber(pOsContext->shmid);
-
-            DetachDestroyShm(pOsContext->shmid, pOsContext->pShm);
-            pOsContext->shmid = MOS_LINUX_IPC_INVALID_ID;
-            pOsContext->pShm = MOS_LINUX_SHM_INVALID;
-
-            if (iAttachedNum) --iAttachedNum;
-            UnLockSemaphore(pOsContext->semid);
-        }
-    }
-}
-
-MOS_STATUS CreateIPC(PMOS_CONTEXT pOsContext)
-{
-    MOS_STATUS eStatus;
-
-    MOS_OS_CHK_NULL(pOsContext);
-    pOsContext->semid = MOS_LINUX_IPC_INVALID_ID;
-    pOsContext->shmid = MOS_LINUX_IPC_INVALID_ID;
-    pOsContext->pShm = MOS_LINUX_SHM_INVALID;
-
-    struct semid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    //wait and retry untill to get a valid semaphore
-    for (int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i ++)
-    {
-        ConnectCreateSemaphore(DUAL_VDBOX_KEY, &pOsContext->semid);
-
-        //check whether the semid is initialized or not
-        if (semctl(pOsContext->semid, 0, IPC_STAT, &buf) == -1)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-        if (buf.sem_otime != 0)
-        {
-            break;
-        }
-
-        MOS_Sleep(1); //wait and retry
-    }
-
-    LockSemaphore(pOsContext->semid);
-    eStatus = ConnectCreateShm(DUAL_VDBOX_KEY, sizeof(VDBOX_WORKLOAD), &pOsContext->shmid, &pOsContext->pShm);
-    UnLockSemaphore(pOsContext->semid);
-    MOS_CHK_STATUS_SAFE(eStatus);
-
-finish:
-    return eStatus;
-}
-#endif
-
 GpuContextSpecific* Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -1147,13 +876,6 @@ void Linux_Destroy(
         MOS_OS_ASSERTMESSAGE("OsContext is null.");
         return;
     }
-
- #ifndef ANDROID
-    if (pOsContext->bKMDHasVCS2)
-    {
-        DestroyIPC(pOsContext);
-    }
- #endif
 
     if (!modularizedGpuCtxEnabled)
     {
@@ -1504,11 +1226,6 @@ MOS_STATUS Linux_InitContext(
         {
             pContext->bKMDHasVCS2 = false;
         }
-    }
-    if (pContext->bKMDHasVCS2)
-    {
-        eStatus = CreateIPC(pContext);
-        MOS_CHK_STATUS_SAFE(eStatus);
     }
 #endif
 
@@ -6799,25 +6516,6 @@ MOS_STATUS Mos_Specific_CreateVideoNodeAssociation(
     return MOS_STATUS_SUCCESS;
 }
 
-//!
-//! \brief    Destroy GPU node association.
-//! \details  Destroy GPU node association.
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] OS Interface
-//! \param    MOS_GPU_NODE VideoNodeOrdinal
-//!           [in] VCS node ordinal
-//! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if success, otherwise error code
-//!
-MOS_STATUS Mos_Specific_DestroyVideoNodeAssociation(
-    PMOS_INTERFACE     pOsInterface,
-    MOS_GPU_NODE       VideoNodeOrdinal)
-{
-    MOS_UNUSED(pOsInterface);
-    MOS_UNUSED(VideoNodeOrdinal);
-    return MOS_STATUS_SUCCESS;
-}
-
 #else
 
 //!
@@ -6837,21 +6535,22 @@ MOS_STATUS Mos_Specific_CreateVideoNodeAssociation(
     int32_t             bSetVideoNode,
     MOS_GPU_NODE        *pVideoNodeOrdinal)
 {
-    PMOS_OS_CONTEXT         pOsContext;
-    PVDBOX_WORKLOAD         pVDBoxWorkLoad = nullptr;
+    PMOS_OS_CONTEXT         pOsContext      = nullptr;
+    PVDBOX_WORKLOAD         pVDBoxWorkLoad  = nullptr;
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
 
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pVideoNodeOrdinal);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pVideoNodeOrdinal);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->pOsContext);
 
     pOsContext = pOsInterface->pOsContext;
 
     if (false == pOsContext->bKMDHasVCS2)
     {
         *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
-        goto finish;
+        return MOS_STATUS_SUCCESS;
     }
 
     // If node selection is forced or we have only one VDBox, turn balancing off.
@@ -6879,69 +6578,19 @@ MOS_STATUS Mos_Specific_CreateVideoNodeAssociation(
         pOsContext->bPerCmdBufferBalancing = 0;
     }
 #endif // _DEBUG || _RELEASE_INTERNAL
-   
-    if (pOsContext->semid == MOS_LINUX_IPC_INVALID_ID)
+
+    if(!bSetVideoNode)
     {
-        MOS_OS_ASSERTMESSAGE("Invalid semid in OsContext.");
-        eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        static const uint32_t nodeOptionCount = 2;
+        static MOS_GPU_NODE vdNodeOpitons[nodeOptionCount] = { MOS_GPU_NODE_VIDEO2, MOS_GPU_NODE_VIDEO };
+        uint32_t nodeSelected = rand() % nodeOptionCount;
+        *pVideoNodeOrdinal = vdNodeOpitons[nodeSelected];
     }
+    MOS_OS_NORMALMESSAGE("VDBoxWorkLoad use node %x.", *pVideoNodeOrdinal);
 
-    LockSemaphore(pOsContext->semid);
-
-    pVDBoxWorkLoad = (PVDBOX_WORKLOAD)pOsContext->pShm;
-    MOS_OS_ASSERT(pVDBoxWorkLoad);
-
-    if (bSetVideoNode)
-    {
-        if (*pVideoNodeOrdinal == MOS_GPU_NODE_VIDEO)
-        {
-            pVDBoxWorkLoad->uiVDBoxCount[0]++;
-        }
-        else if (*pVideoNodeOrdinal == MOS_GPU_NODE_VIDEO2)
-        {
-            pVDBoxWorkLoad->uiVDBoxCount[1]++;
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("VDBoxWorkLoad not set.");
-        }
-    }
-    else
-    {
-        if (pVDBoxWorkLoad->uiVDBoxCount[0] < pVDBoxWorkLoad->uiVDBoxCount[1])
-        {
-            *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
-            pVDBoxWorkLoad->uiVDBoxCount[0]++;
-        }
-        else if (pVDBoxWorkLoad->uiVDBoxCount[0] == pVDBoxWorkLoad->uiVDBoxCount[1])
-        {
-            // this ping-pong method improves much performance for multi-session HD to HD xcode
-            if (pVDBoxWorkLoad->uiRingIndex == 0)
-            {
-                *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
-                pVDBoxWorkLoad->uiVDBoxCount[0]++;
-                pVDBoxWorkLoad->uiRingIndex = 1;
-            }
-            else
-            {
-                *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO2;
-                pVDBoxWorkLoad->uiVDBoxCount[1]++;
-                pVDBoxWorkLoad->uiRingIndex = 0;
-            }
-        }
-        else
-        {
-            *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO2;
-            pVDBoxWorkLoad->uiVDBoxCount[1]++;
-        }
-    }
-
-    UnLockSemaphore(pOsContext->semid);
-
-finish:
     return eStatus;
 }
+#endif
 
 //!
 //! \brief    Destroy GPU node association.
@@ -6957,45 +6606,10 @@ MOS_STATUS Mos_Specific_DestroyVideoNodeAssociation(
     PMOS_INTERFACE     pOsInterface,
     MOS_GPU_NODE       VideoNodeOrdinal)
 {
-    PMOS_OS_CONTEXT         pOsContext = nullptr;
-    PVDBOX_WORKLOAD         pVDBoxWorkLoad = nullptr;
-
-    MOS_OS_FUNCTION_ENTER;
-    MOS_OS_CHK_NULL_RETURN(pOsInterface);
-    MOS_OS_CHK_NULL_RETURN(pOsInterface->pOsContext);
-    pOsContext    = pOsInterface->pOsContext;
-
-    // not do workload balancing in UMD just return;
-    if (pOsContext->bKMDHasVCS2 == false)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-     if (pOsContext->semid == MOS_LINUX_IPC_INVALID_ID)
-     {
-         MOS_OS_ASSERTMESSAGE("Invalid semid in OsContext.");
-         return MOS_STATUS_UNKNOWN;
-     }
-
-    LockSemaphore(pOsContext->semid);
-
-    pVDBoxWorkLoad = (PVDBOX_WORKLOAD)pOsContext->pShm;
-    MOS_OS_ASSERT(pVDBoxWorkLoad);
-
-    if (VideoNodeOrdinal == MOS_GPU_NODE_VIDEO)
-    {
-        pVDBoxWorkLoad->uiVDBoxCount[0]--;
-    }
-    else
-    {
-        pVDBoxWorkLoad->uiVDBoxCount[1]--;
-    }
-
-    UnLockSemaphore(pOsContext->semid);
-
+    MOS_UNUSED(pOsInterface);
+    MOS_UNUSED(VideoNodeOrdinal);
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_VDBOX_NODE_IND Mos_Specific_GetVdboxNodeId(
     PMOS_INTERFACE pOsInterface,
