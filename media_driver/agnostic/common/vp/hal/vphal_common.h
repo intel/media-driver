@@ -207,7 +207,7 @@ extern "C" {
 #define NLAS_NONLINEARCROP_DEFAULT    0.0F
 #define NLAS_NONLINEARCROP_STEP       0.001F
 
-#define VPHAL_MAX_SOURCES               17       //!< worst case: 16 sub-streams + 1 pri video
+#define VPHAL_MAX_SOURCES               65       //!< worst case: 64 sub-streams + 1 pri video
 #define VPHAL_MAX_CHANNELS              2
 #define VPHAL_MAX_TARGETS               8        //!< multi output support
 #define VPHAL_MAX_FUTURE_FRAMES         18       //!< maximum future frames supported in VPHAL
