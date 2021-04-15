@@ -5025,6 +5025,15 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
+    if (!m_singleTaskPhaseSupported)
+    {
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
+                &cmdBuffer,
+                CODECHAL_NUM_MEDIA_STATES,
+                "BRCINIT"));
+        )
+    }
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
     if (!m_singleTaskPhaseSupported)
@@ -5250,6 +5259,17 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     }
 
     CODECHAL_DEBUG_TOOL(DumpHucBrcUpdate(true));
+
+    if (!m_singleTaskPhaseSupported)
+    {
+        std::string pak_pass = "BRCUPDATE_PASS" + std::to_string(static_cast<uint32_t>(m_currPass));
+        CODECHAL_DEBUG_TOOL(
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpCmdBuffer(
+                &cmdBuffer,
+                CODECHAL_NUM_MEDIA_STATES,
+                pak_pass.data()));
+        )
+    }
 
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
