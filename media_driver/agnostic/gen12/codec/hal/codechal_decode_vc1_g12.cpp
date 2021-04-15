@@ -1423,6 +1423,8 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
     surfaceParamsSrc.dwHeightToUse[MHW_U_PLANE] = surfaceParamsSrc.psSurface->dwHeight / 2;
     surfaceParamsSrc.dwYOffset[MHW_U_PLANE] =
         (m_destSurface.UPlaneOffset.iYOffset % MOS_YTILE_H_ALIGNMENT);
+    surfaceParamsSrc.dwCacheabilityControl  =
+        m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC].Value;
 
 #ifdef _MMC_SUPPORTED
     if (m_mmc)
@@ -1441,6 +1443,8 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
     surfaceParamsDst.psSurface->dwDepth = 1;    // depth needs to be 0 for codec 2D surface
     surfaceParamsDst.dwBindingTableOffset[MHW_Y_PLANE] = CODECHAL_DECODE_VC1_OLP_DST_Y;
     surfaceParamsDst.dwBindingTableOffset[MHW_U_PLANE] = CODECHAL_DECODE_VC1_OLP_DST_UV;
+    surfaceParamsDst.dwCacheabilityControl =
+        m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_POST_DEBLOCKING_CODEC].Value;
 
 #ifdef _MMC_SUPPORTED
     if (m_mmc)
@@ -1473,6 +1477,11 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
     stateBaseAddrParams.dwDynamicStateSize = kernelState->m_dshRegion.GetHeapSize();
     stateBaseAddrParams.presInstructionBuffer = ish;
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
+    stateBaseAddrParams.mocs4GeneralState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
+    stateBaseAddrParams.mocs4DynamicState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
+    stateBaseAddrParams.mocs4SurfaceState       = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
+    stateBaseAddrParams.mocs4IndirectObjectBuffer = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
+    stateBaseAddrParams.mocs4StatelessDataport = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
     MHW_VFE_PARAMS_G12 vfeParams= {};
