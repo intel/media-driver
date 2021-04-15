@@ -247,8 +247,7 @@ protected:
         cmd->Dwords25.DW0.SurfaceFormatByteSwizzle    = params->displayFormatSwizzle;
 
         uint32_t tileMode               = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);
-        cmd->Dwords25.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
-        cmd->Dwords25.DW1.TileWalk      = tileMode & 0x1;
+        cmd->Dwords25.DW1.TileMode      = tileMode;
         cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceRawFormat(params->format));
         cmd->Dwords25.DW1.SurfacePitch  = params->pitch - 1;
 
@@ -267,8 +266,7 @@ protected:
         cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirection;
 
         uint32_t tileMode               = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);
-        cmd->Dwords25.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
-        cmd->Dwords25.DW1.TileWalk      = tileMode & 0x1;
+        cmd->Dwords25.DW1.TileMode      = tileMode;
         cmd->Dwords25.DW1.SurfacePitch  = params->pitch - 1;
         cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceReconFormat(params->format));
 
@@ -287,8 +285,7 @@ protected:
         cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage1;
 
         uint32_t tileMode               = GetHwTileType(params->tileTypeStage1, params->tileModeGmmStage1, params->gmmTileEnStage1);
-        cmd->Dwords25.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
-        cmd->Dwords25.DW1.TileWalk      = tileMode & 0x1;
+        cmd->Dwords25.DW1.TileMode      = tileMode;
         cmd->Dwords25.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
         cmd->Dwords25.DW1.SurfacePitch  = params->pitchStage1 - 1;
 
@@ -302,8 +299,7 @@ protected:
             cmd->Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage2;
 
             tileMode                        = GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2);
-            cmd->Dwords69.DW1.TiledSurface  = (tileMode & 0x2) >> 1;
-            cmd->Dwords69.DW1.TileWalk      = tileMode & 0x1;
+            cmd->Dwords69.DW1.TileMode      = tileMode;
             cmd->Dwords69.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
             cmd->Dwords69.DW1.SurfacePitch  = params->pitchStage2 - 1;
 
