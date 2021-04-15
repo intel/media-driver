@@ -86,6 +86,7 @@ struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 : public MHW_VDBOX_PIPE_MODE_SELECT
     bool                        bStreamingBufferEnabled = false;
     bool                        bIsRandomAccess = false;
     bool                        bLookaheadPass = false;
+    bool                        bAdaptiveRounding = false;
     uint8_t                     tuMinus1 = 3;
     uint8_t                     ucQuantizationPrecision = 0;
     uint8_t                     tuSettingsRevision = 0;
