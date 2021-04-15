@@ -243,6 +243,16 @@ private:
     //!
     bool IsPerfModeWidthMemInfo(uint32_t *regs);
 
+    //!
+    //! \brief    Map the platform ID
+    //!
+    //! \param    [in] platform
+    //!
+    //! \return   uint32_t
+    //!           mapped platform id used to fill node header
+    //!
+    uint32_t PlatFormIdMap(PLATFORM platform);
+
 protected:
     MOS_RESOURCE               m_perfStoreBuffer;       //!< Buffer for perf data collection
     Map                        m_contextIndexMap;       //!< Map between CodecHal/VPHal and PerfDataContext

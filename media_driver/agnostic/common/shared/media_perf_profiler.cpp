@@ -327,8 +327,10 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     // Append the header info
     MOS_ZeroMemory(header, m_bufferSize);
     header->eventType   = UMD_PERF_LOG;
-    header->genPlatform = (GFX_GET_CURRENT_RENDERCORE(platform) - 8) & 0x7;
-    header->genPlatform_ext = ((GFX_GET_CURRENT_RENDERCORE(platform) - 8) >> 3) & 0x3;
+
+    uint32_t mappedPlatFormId = PlatFormIdMap(platform);
+    header->genPlatform = (mappedPlatFormId - 8) & 0x7;
+    header->genPlatform_ext = ((mappedPlatFormId - 8) >> 3) & 0x3;
     
     if (IsPerfModeWidthMemInfo(m_registers))
     {
@@ -692,6 +694,22 @@ PerfGPUNode MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
     }
 
     return node;
+}
+
+uint32_t MediaPerfProfiler::PlatFormIdMap(PLATFORM platform)
+{
+    uint32_t perfPlatFormId = 0;
+
+    if (GFX_GET_CURRENT_RENDERCORE(platform) > IGFX_GEN12LP_CORE)
+    {
+        perfPlatFormId = ((((uint32_t)(GFX_GET_CURRENT_RENDERCORE(platform)) >> 8) - 0xc) << 2) + (GFX_GET_CURRENT_RENDERCORE(platform) & 0x3) + (uint32_t)(IGFX_GEN12LP_CORE);
+    }
+    else
+    {
+        perfPlatFormId = (uint32_t)(GFX_GET_CURRENT_RENDERCORE(platform));
+    }
+
+    return perfPlatFormId;
 }
 
 bool MediaPerfProfiler::IsPerfModeWidthMemInfo(uint32_t *regs)
