@@ -162,7 +162,7 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::VpFeatureManagerNext::UnregisterFeatures()
+MOS_STATUS VpFeatureManagerNext::UnregisterFeatures()
 {
     while (!m_featureHandler.empty())
     {
@@ -240,8 +240,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    if (pvpParams->pSrc[0]->pDeinterlaceParams              ||
-        pvpParams->pSrc[0]->pBlendingParams                 ||
+    if (pvpParams->pSrc[0]->pBlendingParams                 ||
         pvpParams->pSrc[0]->pLumaKeyParams                  ||
         pvpParams->pConstriction)
     {
@@ -253,8 +252,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // Disable DN kernel copy/update in APO path.
-    // Disable chroma DN in APO path.
     // Disable HVS Denoise in APO path.
     if (pvpParams->pSrc[0]->pDenoiseParams                       &&
         pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise)
@@ -269,10 +266,8 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
 
     // Temp removed RGB input with DN/DI/IECP case
     if ((IS_RGB_FORMAT(pvpParams->pSrc[0]->Format)) &&
-        (pvpParams->pSrc[0]->pDenoiseParams         ||
-        pvpParams->pSrc[0]->pDeinterlaceParams      ||
-        pvpParams->pSrc[0]->pProcampParams          ||
-        pvpParams->pSrc[0]->pColorPipeParams))
+        (pvpParams->pSrc[0]->pProcampParams         ||
+         pvpParams->pSrc[0]->pColorPipeParams))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -304,34 +299,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
     if (pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
     {
         VP_PUBLIC_NORMALMESSAGE("DDI choose to use Composition, change to Composition.");
-        return MOS_STATUS_SUCCESS;
-    }
-
-    // check video procressing settings
-    uint32_t kernelUpdate = 0;
-
-    if (m_hwInterface->m_settings)
-    {
-        VP_SETTINGS* settings = (VP_SETTINGS*)m_hwInterface->m_settings;
-
-        kernelUpdate = settings->kernelUpdate;
-    }
-
-    bool bVeboxStateBlockCopy =
-        (kernelUpdate & VP_VEBOX_FLAG_ENABLE_KERNEL_COPY);
-
-    // Will remove when Enable Secure Copy for Vebox
-    if (bVeboxStateBlockCopy)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    bool bKernelDnUpdate =
-        (kernelUpdate & VP_VEBOX_FLAG_ENABLE_KERNEL_DN_UPDATE);
-
-    // Will remove when Enable Secure Copy for Vebox
-    if (bKernelDnUpdate)
-    {
         return MOS_STATUS_SUCCESS;
     }
 
