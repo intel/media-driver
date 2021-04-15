@@ -58,9 +58,10 @@ MOS_STATUS VpScalabilitySinglePipe::Initialize(const MediaScalabilityOption &opt
 
     m_scalabilityOption = MOS_New(VpScalabilityOption, (const VpScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(m_scalabilityOption);
-    SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
-
-    m_osInterface->osStreamState->component = COMPONENT_VPCommon;
+    if (m_osInterface->osStreamState)
+    {
+        m_osInterface->osStreamState->component = COMPONENT_VPCommon;
+    }
 
     return MediaScalabilitySinglePipe::Initialize(option);
 }
