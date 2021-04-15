@@ -1099,7 +1099,7 @@ protected:
 
     MOS_RESOURCE               m_frameCountTypeBuf = { 0 };
 
-    MOS_RESOURCE               m_crcBuf;
+    MOS_RESOURCE               m_crcBuf = { 0 };
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //! \brief Downsampled surfaces
