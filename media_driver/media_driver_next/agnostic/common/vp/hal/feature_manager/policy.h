@@ -82,6 +82,7 @@ protected:
     MOS_STATUS GetCSCExecutionCapsDi(SwFilter* feature);
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetSFCRotationExecutionCaps(FeatureParamRotMir *rotationParams, VP_EngineEntry *rotationEngine);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
     MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);
     MOS_STATUS GetSteExecutionCaps(SwFilter* feature);

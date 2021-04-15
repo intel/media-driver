@@ -875,6 +875,9 @@ MOS_STATUS SfcRenderBase::InitMhwOutSurfParams(
     {
         pMhwOutSurfParams->dwUYoffset = ((pSfcPipeOutSurface->osSurface->UPlaneOffset.iSurfaceOffset - pSfcPipeOutSurface->osSurface->YPlaneOffset.iSurfaceOffset)
               / pSfcPipeOutSurface->osSurface->dwPitch) + pSfcPipeOutSurface->osSurface->UPlaneOffset.iYOffset;
+
+        pMhwOutSurfParams->dwVUoffset = ((pSfcPipeOutSurface->osSurface->VPlaneOffset.iSurfaceOffset - pSfcPipeOutSurface->osSurface->UPlaneOffset.iSurfaceOffset)
+              / pSfcPipeOutSurface->osSurface->dwPitch) + pSfcPipeOutSurface->osSurface->VPlaneOffset.iYOffset;
     }
 
     return eStatus;

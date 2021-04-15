@@ -296,6 +296,7 @@ typedef struct _MHW_SFC_OUT_SURFACE_PARAMS
     uint32_t                    dwSurfaceXOffset;   //!<  Surface X offset
     uint32_t                    dwSurfaceYOffset;   //!<  Surface Y offset
     uint32_t                    dwUYoffset;         //!<  Surface Uoffset in Vertical
+    uint32_t                    dwVUoffset;         //!<  Surface Voffset in Vertical, named by Vplane relative to Uplane
     PMOS_RESOURCE               pOsResource;        //!<  Surface resource
     bool                        bCompressible;      //!<  Surface can be compressed
     uint32_t                    dwCompressionFormat;//!< Surface Compression format

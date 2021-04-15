@@ -372,6 +372,13 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
         break;
     }
 
+    if (MOS_TILE_LINEAR != pSurface->TileType && Format_RGBP == pSurface->Format)
+    {
+        for (i = 0; i < *pdwNumPlanes; i++)
+        {
+            pPlanes[i].dwHeight = MOS_ALIGN_CEIL(pPlanes[i].dwHeight, 16);
+        }
+    }
     // For Deswizzled surfaces, Mos_Specific_LockResource() already do the de-padding between Y and UV surf.
     // so, don't use the info of U/V PlaneOffset, as the padding is already removed.
     for (i = 0; i < *pdwNumPlanes; i++)

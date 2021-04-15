@@ -558,6 +558,8 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
     skuTable                      = m_vpMhwInterface.m_osInterface->pfnGetSkuTable(m_vpMhwInterface.m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(skuTable);
 
+    //SFC NV12/P010 Linear Output.
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT_ID,
@@ -596,6 +598,63 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
             params->pTarget[0] = m_tempTargetSurface;    //params is the copy of pcRenderParams which will not cause the memleak,
         }
     }
+
+    typedef struct _RGBFormatConfig
+    {
+        MOS_FORMAT      format;
+        MOS_TILE_TYPE   tielType;
+    } RGBFormatConfig;
+
+    static const RGBFormatConfig rgbCfg[VP_RGB_OUTPUT_OVERRIDE_ID_MAX] = {
+        {Format_Invalid, MOS_TILE_INVALID},
+        {Format_RGBP, MOS_TILE_LINEAR},
+        {Format_RGBP, MOS_TILE_Y},
+        {Format_R8G8B8, MOS_TILE_LINEAR}
+    };
+
+    //SFC RGBP Linear/Tile RGB24 Linear Output.
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT_ID,
+        &userFeatureData,
+        m_vpMhwInterface.m_osInterface->pOsContext);
+    if (userFeatureData.u32Data == VP_RGB_OUTPUT_OVERRIDE_ID_INVALID || userFeatureData.u32Data >= VP_RGB_OUTPUT_OVERRIDE_ID_MAX)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (rgbCfg[userFeatureData.u32Data].format != params->pTarget[0]->Format &&
+        MEDIA_IS_SKU(skuTable, FtrSFCRGBPRGB24OutputSupport))
+    {
+        if (!m_tempTargetSurface)
+        {
+            m_tempTargetSurface = AllocateTempTargetSurface(m_tempTargetSurface);
+        }
+        VP_PUBLIC_CHK_NULL_RETURN(m_tempTargetSurface);
+        eStatus = m_allocator->ReAllocateSurface(
+            m_tempTargetSurface,
+            "TempTargetSurface",
+            rgbCfg[userFeatureData.u32Data].format,
+            MOS_GFXRES_2D,
+            rgbCfg[userFeatureData.u32Data].tielType,
+            params->pTarget[0]->dwWidth,
+            params->pTarget[0]->dwHeight,
+            false,
+            MOS_MMC_DISABLED,
+            &allocated);
+
+        m_tempTargetSurface->ColorSpace = params->pTarget[0]->ColorSpace;
+        m_tempTargetSurface->rcSrc      = params->pTarget[0]->rcSrc;
+        m_tempTargetSurface->rcDst      = params->pTarget[0]->rcDst;
+        m_tempTargetSurface->rcMaxSrc   = params->pTarget[0]->rcMaxSrc;
+
+        if (eStatus == MOS_STATUS_SUCCESS)
+        {
+            params->pTarget[0] = m_tempTargetSurface;  //params is the copy of pcRenderParams which will not cause the memleak,
+        }
+    }
+
     return eStatus;
 }
 #endif

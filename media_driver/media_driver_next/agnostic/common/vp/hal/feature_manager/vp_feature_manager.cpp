@@ -673,10 +673,10 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     dwOutputRegionHeight = MOS_MIN(dwOutputRegionHeight, params->pTarget[0]->dwHeight);
     dwOutputRegionWidth = MOS_MIN(dwOutputRegionWidth, params->pTarget[0]->dwWidth);
 
-    if (params->pSrc[0]->Rotation > VPHAL_ROTATION_270 &&
+    if ((params->pSrc[0]->Rotation > VPHAL_ROTATION_IDENTITY && params->pSrc[0]->Rotation != VPHAL_MIRROR_HORIZONTAL) &&
         params->pTarget[0]->TileType != MOS_TILE_Y)
     {
-        VPHAL_RENDER_NORMALMESSAGE("non TileY output mirror not supported by SFC Pipe.");
+        VPHAL_RENDER_NORMALMESSAGE("non TileY output mirror and rotation not supported by SFC Pipe.");
         bRet = false;
         return bRet;
     }
@@ -769,9 +769,7 @@ bool VPFeatureManager::IsOutputFormatSupported(PVPHAL_SURFACE outSurface)
         outSurface->Format != Format_Y216 &&
         outSurface->Format != Format_Y416)
     {
-        if ((outSurface->TileType == MOS_TILE_Y ||
-             (MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrSFCLinearOutputSupport) &&
-              outSurface->TileType == MOS_TILE_LINEAR))                          && 
+        if (outSurface->TileType == MOS_TILE_Y  &&
             (outSurface->Format == Format_P010  ||
              outSurface->Format == Format_P016  ||
              outSurface->Format == Format_NV12))

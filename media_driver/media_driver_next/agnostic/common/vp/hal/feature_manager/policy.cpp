@@ -689,6 +689,69 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Policy::GetSFCRotationExecutionCaps(FeatureParamRotMir *rotationParams, VP_EngineEntry *rotationEngine)
+{
+    if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].inputSupported &&
+        m_hwCaps.m_sfcHwEntry[rotationParams->formatOutput].outputSupported)
+    {
+        bool isSfcRotationSupported = false;
+        if (VPHAL_ROTATION_IDENTITY == rotationParams->rotation)
+        {
+            isSfcRotationSupported = true;
+        }
+        else if (VPHAL_MIRROR_HORIZONTAL == rotationParams->rotation)
+        {
+            if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].mirrorSupported)
+            {
+                isSfcRotationSupported = true;
+            }
+        }
+        else if (rotationParams->rotation <= VPHAL_ROTATION_270)
+        {
+            // Rotation w/o mirror case
+            if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].rotationSupported &&
+                rotationParams->surfInfo.tileOutput == MOS_TILE_Y)
+            {
+                isSfcRotationSupported = true;
+            }
+        }
+        else
+        {
+            // Rotation w/ mirror case
+            if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].mirrorSupported &&
+                m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].rotationSupported &&
+                rotationParams->surfInfo.tileOutput == MOS_TILE_Y)
+            {
+                isSfcRotationSupported = true;
+            }
+        }
+
+        if (isSfcRotationSupported)
+        {
+            rotationEngine->bEnabled  = 1;
+            rotationEngine->SfcNeeded = 1;
+            VP_PUBLIC_NORMALMESSAGE("SFC support rotation");
+        }
+        else
+        {
+            // Render FC Path  for Rotation
+            rotationEngine->bEnabled     = 1;
+            rotationEngine->RenderNeeded = 1;
+            rotationEngine->SfcNeeded    = 0;
+            VP_PUBLIC_NORMALMESSAGE("SFC can not support rotation, fall back to render");
+        }
+    }
+    else
+    {
+        // Render FC Path  for Rotation
+        rotationEngine->bEnabled     = 1;
+        rotationEngine->RenderNeeded = 1;
+        rotationEngine->SfcNeeded    = 0;
+        VP_PUBLIC_NORMALMESSAGE("The format can not support rotation, fall back to render");
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
 {
     VP_FUNC_CALL();
@@ -718,31 +781,7 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
     }
 
     // SFC Rotation/Mirror enabling check
-    if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].inputSupported &&
-        m_hwCaps.m_sfcHwEntry[rotationParams->formatOutput].outputSupported)
-    {
-        if (rotationParams->rotation > VPHAL_ROTATION_270               &&
-            (!m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].mirrorSupported ||
-             rotationParams->surfInfo.tileOutput != MOS_TILE_Y))
-        {
-            // Render FC Path  for Rotation
-            rotationEngine->bEnabled = 1;
-            rotationEngine->RenderNeeded = 1;
-            rotationEngine->SfcNeeded = 0;
-        }
-        else
-        {
-            rotationEngine->bEnabled = 1;
-            rotationEngine->SfcNeeded = 1;
-        }
-    }
-    else
-    {
-        // Render FC Path  for Rotation
-        rotationEngine->bEnabled = 1;
-        rotationEngine->RenderNeeded = 1;
-        rotationEngine->SfcNeeded = 0;
-    }
+    GetSFCRotationExecutionCaps(rotationParams, rotationEngine);
 
     return MOS_STATUS_SUCCESS;
 }
