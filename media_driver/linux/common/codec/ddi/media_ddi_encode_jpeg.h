@@ -29,9 +29,9 @@
 
 #include "media_ddi_encode_base.h"
 
-static const uint8_t maxNumQuantTableIndex = 3;
-static const uint8_t numQuantMatrix        = 64;
-static const uint8_t maxNumHuffTables      = 2;
+static const int32_t maxNumQuantTableIndex = 3;
+static const int32_t quantMatrixSize       = 64;
+static const int32_t maxNumHuffTables      = 2;
 
 static const uint32_t defaultLumaQuant[64] =  //!< Default Quantization Matrix for luma component
 {                                             //!< of JPEG Encode in zig zag scan order (from JPEG Spec, Table K.1)
@@ -229,13 +229,13 @@ private:
     //!
     VAStatus DefaultQmatrix();
     //!
-    //! \brief    scale Qmatrix buffer to Encode Context,
-    //!           if qmatrix and full jpeg headers are supplied by application
+    //! \brief    Application send whole header and qmatrix
+    //!           must be extracted from it
     //!
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    VAStatus QualityScaleQmatrix();
+    VAStatus QmatrixFromHeader();
     //!
     //! \brief    Convert Media Format To Input Surface Format
     //!
