@@ -412,7 +412,6 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 {
     uint8_t* pData;
     char                    sPath[MAX_PATH];
-    char                    sOsPath[MAX_PATH];
     uint8_t* pDst;
     uint8_t* pTmpDst;
     uint8_t* pTmpSrc;
@@ -429,7 +428,6 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 
     pDst = nullptr;
     MOS_ZeroMemory(sPath, MAX_PATH);
-    MOS_ZeroMemory(sOsPath, MAX_PATH);
 
     // get bits per pixel for the format
     pOsInterface->pfnGetBitsPerPixel(pOsInterface, pSurface->osSurface->Format, &iBpp);
@@ -460,12 +458,10 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
         pSurface->osSurface->dwPitch,
         VP_GET_FORMAT_STRING(pSurface->osSurface->Format));
 
-    MOS_SecureMemcpy(sOsPath, MAX_PATH, sPath, strlen(sPath));
-
     // Write the data to file
     if (pSurface->osSurface->dwPitch == iWidthInBytes)
     {
-        MOS_WriteFileFromPtr((const char*)sOsPath, pData, iSize);
+        MOS_WriteFileFromPtr((const char*)sPath, pData, iSize);
     }
     else
     {
@@ -480,7 +476,7 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
             pTmpDst += iWidthInBytes;
         }
 
-        MOS_WriteFileFromPtr((const char*)sOsPath, pDst, iSize);
+        MOS_WriteFileFromPtr((const char*)sPath, pDst, iSize);
     }
 
     if (pDst)
