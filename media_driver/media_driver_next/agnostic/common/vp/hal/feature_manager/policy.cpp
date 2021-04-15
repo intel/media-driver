@@ -101,6 +101,39 @@ bool Policy::IsVeboxSfcFormatSupported(MOS_FORMAT  formatInput, MOS_FORMAT forma
     }
 }
 
+bool Policy::IsAlphaEnabled(FeatureParamScaling* scalingParams)
+{
+    VP_FUNC_CALL();
+
+    if (scalingParams == nullptr)
+    {
+        return false;
+    }
+
+    bool isAlphaEnabled = false;
+    isAlphaEnabled      =  scalingParams->pCompAlpha != nullptr &&
+                           scalingParams->pCompAlpha->AlphaMode == VPHAL_ALPHA_FILL_MODE_BACKGROUND;
+    return isAlphaEnabled;
+}
+
+bool Policy::IsColorfillEnabled(FeatureParamScaling* scalingParams)
+{
+    VP_FUNC_CALL();
+
+    if (scalingParams == nullptr)
+    {
+        return false;
+    }
+
+    bool isColorFill = false;
+    isColorFill      = (scalingParams->pColorFillParams &&
+                     (!RECT1_CONTAINS_RECT2(scalingParams->input.rcDst, scalingParams->output.rcDst)))
+                     ? true
+                     : false;
+
+    return isColorFill;
+}
+
 MOS_STATUS Policy::RegisterFeatures()
 {
     VP_FUNC_CALL();
@@ -588,6 +621,10 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     if (fScaleX == 1.0f && fScaleY == 1.0f &&
         // Only support vebox crop from left-top, which is to align with legacy path.
         0 == scalingParams->input.rcSrc.left && 0 == scalingParams->input.rcSrc.top &&
+        // If Alpha enabled, which should go SFC pipe.
+        !IsAlphaEnabled(scalingParams) &&
+        // If Colorfill enabled, which should go SFC pipe.
+        !IsColorfillEnabled(scalingParams) &&
         scalingParams->interlacedScalingType != ISCALING_INTERLEAVED_TO_FIELD &&
         scalingParams->interlacedScalingType != ISCALING_FIELD_TO_INTERLEAVED)
     {
