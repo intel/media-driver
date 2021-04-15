@@ -166,11 +166,7 @@ MOS_STATUS PacketPipe::AddPacket(HwFilter &hwFilter)
         return status;
     }
     m_Pipe.push_back(pPacket);
-    if (hwFilter.GetRenderTargetType() == RenderTargetTypeSurface)
-    {
-        VP_PUBLIC_CHK_STATUS_RETURN(SetOutputPipeMode(hwFilter.GetEngineType()));
-    }
-
+    VP_PUBLIC_CHK_STATUS_RETURN(SetOutputPipeMode(hwFilter.GetEngineType()));
     m_veboxFeatureInuse |= hwFilter.IsVeboxFeatureInuse();
 
     return MOS_STATUS_SUCCESS;

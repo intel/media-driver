@@ -55,13 +55,6 @@ MOS_STATUS SwFilter::SetFeatureType(FeatureType type)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SwFilter::SetRenderTargetType(RenderTargetType type)
-{
-    m_renderTargetType = type;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 SwFilter* SwFilter::CreateSwFilter(FeatureType type)
 {
     auto handle = m_vpInterface.GetSwFilterHandler(m_type);
@@ -1097,20 +1090,4 @@ MOS_STATUS SwFilterSet::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, Sw
         VP_PUBLIC_CHK_STATUS_RETURN(swFilter.second->Update(inputSurf, outputSurf, pipe));
     }
     return MOS_STATUS_SUCCESS;
-}
-
-RenderTargetType SwFilterSet::GetRenderTargetType()
-{
-    for (auto swFilter : m_swFilters)
-    {
-        if (swFilter.second)
-        {
-            RenderTargetType renderTargetType = swFilter.second->GetRenderTargetType();
-            if (renderTargetType == RenderTargetTypeSurface)
-            {
-                return RenderTargetTypeSurface;
-            }
-        }
-    }
-    return RenderTargetTypeParameter;
 }

@@ -88,13 +88,6 @@ enum FeatureType
     NumOfFeatureType
 };
 
-enum RenderTargetType
-{
-    RenderTargetTypeInvalid = 0,
-    RenderTargetTypeSurface,
-    RenderTargetTypeParameter
-};
-
 enum SurfaceType
 {
     SurfaceTypeInvalid = 0,
@@ -215,10 +208,6 @@ public:
     {
         return m_type;
     }
-    virtual RenderTargetType GetRenderTargetType()
-    {
-        return m_renderTargetType;
-    }
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS &params, bool bInputSurf, int surfIndex) = 0;
     virtual MOS_STATUS Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS caps)
     {
@@ -238,7 +227,6 @@ public:
     virtual bool operator == (class SwFilter&) = 0;
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe) = 0;
     virtual MOS_STATUS SetFeatureType(FeatureType type);
-    virtual MOS_STATUS SetRenderTargetType(RenderTargetType type);
     SwFilter* CreateSwFilter(FeatureType type);
     void DestroySwFilter(SwFilter* p);
 
@@ -276,7 +264,6 @@ protected:
     SwFilterSet *m_location = nullptr;
     VP_EngineEntry  m_EngineCaps = {};
     bool m_noNeedUpdate = false;
-    RenderTargetType m_renderTargetType = RenderTargetTypeSurface;
 };
 
 struct FeatureParamCsc : public FeatureParam
@@ -567,7 +554,6 @@ public:
 
     std::vector<class SwFilterSet *> *GetLocation();
     void SetLocation(std::vector<class SwFilterSet *> *location);
-    RenderTargetType                  GetRenderTargetType();
 
 private:
     std::map<FeatureType, SwFilter *> m_swFilters;
