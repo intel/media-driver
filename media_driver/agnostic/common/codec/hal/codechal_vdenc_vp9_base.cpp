@@ -4414,6 +4414,7 @@ void CodechalVdencVp9State::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELEC
     pipeModeSelectParams.bVdencEnabled = true;
     pipeModeSelectParams.bVdencPakObjCmdStreamOutEnable = m_vdencPakObjCmdStreamOutEnabled;
     pipeModeSelectParams.bTlbPrefetchEnable = true;
+    pipeModeSelectParams.isIFrame = (m_vp9PicParams->PicFlags.fields.frame_type == 0);
 
     // Add 1 to compensate for VdencPipeModeSelect params values
     pipeModeSelectParams.ChromaType = m_vp9SeqParams->SeqFlags.fields.EncodedFormat + 1;
