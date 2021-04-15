@@ -30,6 +30,7 @@
 #include "codec_def_common_encode.h"
 
 #define CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS 8
+#define ENCODE_VP9_NUM_MAX_L0_REF 3
 
 typedef enum
 {
