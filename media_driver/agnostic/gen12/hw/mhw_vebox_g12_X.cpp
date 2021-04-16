@@ -2196,6 +2196,11 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxIecpState(
         }
     }
 
+    if (pVeboxIecpParams->bFeCSCEnable)
+    {
+        MhwVeboxInterfaceGeneric<mhw_vebox_g12_X>::SetVeboxIecpStateFecsc(&pVeboxIecpState->FrontEndCsc, pVeboxIecpParams);
+    }
+
     // Enable Back End CSC for capture pipeline or Vebox output pipe
     if (pVeboxIecpParams->CapPipeParams.bActive ||
         pVeboxIecpParams->bCSCEnable)

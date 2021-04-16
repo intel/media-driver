@@ -4425,7 +4425,7 @@ DdiVp_QueryVideoProcFilterCaps (
             if (!MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrDisableVEBoxFeatures))
             {
                 /* 3DLUT exposes 3 kinds of caps on Gen11+*/
-                if (mediaDrvCtx->platform.eRenderCoreFamily >= IGFX_GEN11_CORE)
+                if (mediaDrvCtx->platform.eRenderCoreFamily >= IGFX_GEN12_CORE)
                 {
                     uExistCapsNum = 3;
                     *num_filter_caps = uExistCapsNum;

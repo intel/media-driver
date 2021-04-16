@@ -1081,6 +1081,19 @@ void VPHAL_VEBOX_STATE_G12_BASE::FreeResources()
     PMOS_INTERFACE              pOsInterface = pVeboxState->m_pOsInterface;
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pOsInterface);
 
+    // Free 3DLook Up table surface which is allocated in VEBOX
+    // If it is the external surface, the external needs to call free explicitly
+    // e.g. pVeboxState->m_currentSurface->p3DLutParams->pExt3DLutSurface
+    // is allocated by App, passed to driver for VEBOX access, this surface should
+    // be freed by App instead of driver.
+    if ((pVeboxState->m_currentSurface) &&
+        (pVeboxState->m_currentSurface->p3DLutParams == NULL))
+    {
+        pOsInterface->pfnFreeResource(
+            pOsInterface,
+            &pVeboxState->Vebox3DLookUpTables.OsResource);
+    }
+
     // Free FFDI surfaces
     for (int i = 0; i < pVeboxState->iNumFFDISurfaces; i++)
     {
@@ -1158,11 +1171,6 @@ void VPHAL_VEBOX_STATE_G12_BASE::FreeResources()
     {
         m_sfcPipeState->FreeResources();
     }
-
-    // Free 3DLook Up table surface for VEBOX
-    pOsInterface->pfnFreeResource(
-        pOsInterface,
-        &pVeboxState->Vebox3DLookUpTables.OsResource);
 
     MOS_Delete(m_hdr3DLutGenerator);
 
