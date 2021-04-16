@@ -92,6 +92,8 @@ public:
         return m_Params.Type;
     }
 
+    RenderTargetType GetRenderTargetType();
+
     bool IsVeboxFeatureInuse()
     {
         return ::IsVeboxFeatureInuse(m_vpExecuteCaps);

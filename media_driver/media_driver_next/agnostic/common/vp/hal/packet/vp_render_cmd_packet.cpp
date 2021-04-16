@@ -326,6 +326,7 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     m_surfSetting = surfSetting;
 
     m_packetResourcesdPrepared = false;
+    m_renderKernelParams.clear();
 
     VP_RENDER_CHK_STATUS_RETURN(InitSurfMemCacheControl(packetCaps));
 

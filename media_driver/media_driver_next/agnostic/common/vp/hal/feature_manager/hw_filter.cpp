@@ -97,6 +97,18 @@ MOS_STATUS HwFilter::Clean()
     return MOS_STATUS_SUCCESS;
 }
 
+RenderTargetType HwFilter::GetRenderTargetType()
+{
+    if (m_swFilterPipe)
+    {
+        return m_swFilterPipe->GetRenderTargetType();
+    }
+    else
+    {
+        return RenderTargetTypeInvalid;
+    }
+}
+
 /****************************************************************************************************/
 /*                                      HwFilterVebox                                               */
 /****************************************************************************************************/

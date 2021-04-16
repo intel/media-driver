@@ -1194,6 +1194,8 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                 &(m_veboxStatisticsSurface->osSurface->OsResource),
                 dwSize,
                 InitValue));
+            m_dwVeboxPerBlockStatisticsWidth  = dwWidth;
+            m_dwVeboxPerBlockStatisticsHeight = MOS_ROUNDUP_DIVIDE(inputSurface->osSurface->dwHeight, 4);
         }
     }
 
