@@ -137,41 +137,42 @@ struct _VP_EXECUTE_CAPS
     union {
         uint32_t value;
         struct {
-            uint32_t bVebox         : 1;   // Vebox needed;
-            uint32_t bSFC           : 1;   // SFC needed;
-            uint32_t bRender        : 1;   // Render Only needed;
+            uint32_t bVebox         : 1;   // Vebox needed
+            uint32_t bSFC           : 1;   // SFC needed
+            uint32_t bRender        : 1;   // Render Only needed
+            uint32_t bSecureVebox   : 1;   // Vebox in Secure Mode
             // Vebox Features
-            uint32_t bDN            : 1;   // Vebox DN needed;
+            uint32_t bDN            : 1;   // Vebox DN needed
             uint32_t bDI            : 1;   // Vebox DI enabled
             uint32_t bDiProcess2ndField : 1;   // Vebox DI enabled
             uint32_t bDIFmdKernel   : 1;   // Vebox FMD Kernel enabled
-            uint32_t bIECP          : 1;   // Vebox IECP needed;
-            uint32_t bSTE           : 1;   // Vebox STE needed;
-            uint32_t bACE           : 1;   // Vebox ACE needed;
-            uint32_t bTCC           : 1;   // Vebox TCC needed;
+            uint32_t bIECP          : 1;   // Vebox IECP needed
+            uint32_t bSTE           : 1;   // Vebox STE needed
+            uint32_t bACE           : 1;   // Vebox ACE needed
+            uint32_t bTCC           : 1;   // Vebox TCC needed
             uint32_t bCGC           : 1;   // Vebox CGC needed
             uint32_t bBt2020ToRGB   : 1;   // Vebox Bt2020 gamut compression to RGB format
-            uint32_t bProcamp       : 1;   // Vebox Procamp needed;
-            uint32_t bBeCSC         : 1;   // Vebox back end CSC needed;
-            uint32_t bLACE          : 1;   // Vebox LACE Needed;
+            uint32_t bProcamp       : 1;   // Vebox Procamp needed
+            uint32_t bBeCSC         : 1;   // Vebox back end CSC needed
+            uint32_t bLACE          : 1;   // Vebox LACE Needed
             uint32_t bQueryVariance : 1;
             uint32_t bRefValid      : 1;   // Vebox Ref is Valid
-            uint32_t bSTD           : 1;   // Vebox LACE STD Needed;
+            uint32_t bSTD           : 1;   // Vebox LACE STD Needed
             uint32_t bDnKernelUpdate: 1;
             uint32_t bVeboxSecureCopy : 1;
-            uint32_t bHDR3DLUT      : 1;  // Vebox 3DLUT needed;
+            uint32_t bHDR3DLUT      : 1;  // Vebox 3DLUT needed
 
             // SFC features
             uint32_t bSfcCsc        : 1;   // Sfc Csc enabled
-            uint32_t bSfcRotMir     : 1;   // Sfc Rotation/Mirror needed;
-            uint32_t bSfcScaling    : 1;   // Sfc Scaling Needed;
-            uint32_t bSfcIef        : 1;   // Sfc Details Needed;
-            uint32_t b1stPassOfSfc2PassScaling : 1; // 1st pass of sfc 2pass scaling.
+            uint32_t bSfcRotMir     : 1;   // Sfc Rotation/Mirror needed
+            uint32_t bSfcScaling    : 1;   // Sfc Scaling Needed
+            uint32_t bSfcIef        : 1;   // Sfc Details Needed
+            uint32_t b1stPassOfSfc2PassScaling : 1; // 1st pass of sfc 2pass scaling
 
             // Render Features
             uint32_t bComposite     : 1;
             uint32_t bSR            : 1;
-            uint32_t reserved       : 4;   // Reserved
+            uint32_t reserved       : 2;   // Reserved
         };
     };
 };

@@ -1741,8 +1741,11 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pLaceOrAceOrRgbHistogram);
 
-    m_DNDIFirstFrame = (!m_PacketCaps.bRefValid && (m_PacketCaps.bDN || m_PacketCaps.bDI));
-    m_DIOutputFrames = MEDIA_VEBOX_DI_OUTPUT_CURRENT;
+    m_DNDIFirstFrame    = (!m_PacketCaps.bRefValid && (m_PacketCaps.bDN || m_PacketCaps.bDI));
+    m_DIOutputFrames    = MEDIA_VEBOX_DI_OUTPUT_CURRENT;
+
+    // Get Vebox Secure mode form policy
+    m_useKernelResource = packetCaps.bSecureVebox;
 
     return MOS_STATUS_SUCCESS;
 }

@@ -1052,7 +1052,8 @@ protected:
     static const uint32_t       m_satS0Table[MHW_STE_FACTOR_MAX + 1];
     static const uint32_t       m_satS1Table[MHW_STE_FACTOR_MAX + 1];
 
-    MediaScalability           *m_scalability              = nullptr;               //!< scalability
+    MediaScalability           *m_scalability              = nullptr;            //!< scalability
+    bool                        m_useKernelResource        = false;               //!< Use Vebox Kernel Resource 
 
 };
 
