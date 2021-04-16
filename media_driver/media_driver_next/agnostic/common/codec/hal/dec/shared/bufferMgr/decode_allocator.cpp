@@ -38,7 +38,7 @@ DecodeAllocator::DecodeAllocator(PMOS_INTERFACE osInterface) :
     m_allocator = MOS_New(Allocator, m_osInterface);
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_forceLockable = ReadUserFeature(
-        __MEDIA_USER_FEATURE_VALUE_HCP_DECODE_MODE_SWITCH_THRESHOLD1_ID, m_osInterface->pOsContext).u32Data;
+        __MEDIA_USER_FEATURE_VALUE_FORCE_DECODE_RESOURCE_LOCKABLE_ID, m_osInterface->pOsContext).u32Data;
 #endif
 }
 
