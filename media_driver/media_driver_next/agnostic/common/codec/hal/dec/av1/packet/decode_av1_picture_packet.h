@@ -159,8 +159,6 @@ namespace decode
         CodecAv1PicParams          *m_av1PicParams    = nullptr; //!< Pointer to picture parameter
         MOS_SURFACE                 refSurface[av1TotalRefsPerFrame];
 
-        MOS_BUFFER                  m_resDataBufferForDummyWL;
-
         //!
         //! \brief    Setup SkipModeFrame[0] and SkipModeFrame[1] per av1_setup_skip_mode_allowed of ref decoder
         //! \return   MOS_STATUS
@@ -227,7 +225,8 @@ namespace decode
         //buffers for dummy workload
         PMOS_BUFFER                 m_curMvBufferForDummyWL                                   = nullptr;
         PMOS_BUFFER                 m_bwdAdaptCdfBufForDummyWL                                = nullptr;
-        bool                        m_isBsBufferWritten                                       = false;
+        PMOS_BUFFER                 m_resDataBufferForDummyWL                                 = nullptr;
+        bool                        m_dummyBsBufInited                                        = false;
 
         uint32_t m_prevFrmWidth         = 0;    //!< Frame width of the previous frame
         uint32_t m_prevFrmHeight        = 0;    //!< Frame height of the previous frame

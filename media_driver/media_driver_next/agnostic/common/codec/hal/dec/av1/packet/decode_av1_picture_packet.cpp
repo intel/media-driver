@@ -96,6 +96,7 @@ namespace decode{
             m_allocator->Destroy(m_decodedBlockDataStreamoutBuffer);
             m_allocator->Destroy(m_curMvBufferForDummyWL);
             m_allocator->Destroy(m_bwdAdaptCdfBufForDummyWL);
+            m_allocator->Destroy(m_resDataBufferForDummyWL);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -1402,11 +1403,12 @@ namespace decode{
     {
         DECODE_FUNC_CALL();
 
-        if (!m_isBsBufferWritten)
+        if (!m_dummyBsBufInited)
         {
-            m_resDataBufferForDummyWL= *m_allocator->AllocateBuffer(
+            m_resDataBufferForDummyWL= m_allocator->AllocateBuffer(
                 140, "BsBuffer for inserted Dummy WL", resourceInputBitstream, lockableVideoMem); //140 Bytes
-            auto data = (uint8_t *)m_allocator->LockResouceForWrite(&m_resDataBufferForDummyWL.OsResource);
+            DECODE_CHK_NULL(m_resDataBufferForDummyWL);
+            auto data = (uint8_t *)m_allocator->LockResouceForWrite(&m_resDataBufferForDummyWL->OsResource);
             DECODE_CHK_NULL(data);
 
             uint32_t bsBuffer[] =
@@ -1423,7 +1425,7 @@ namespace decode{
             };
 
             MOS_SecureMemcpy(data, sizeof(bsBuffer), bsBuffer, sizeof(bsBuffer));
-            m_isBsBufferWritten = true;
+            m_dummyBsBufInited = true;
         }
         MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
 
@@ -1431,7 +1433,7 @@ namespace decode{
         indObjBaseAddrParams.Mode            = CODECHAL_DECODE_MODE_AV1VLD;
         indObjBaseAddrParams.dwDataSize      = 140;
         indObjBaseAddrParams.dwDataOffset    = 0;
-        indObjBaseAddrParams.presDataBuffer  = &(m_resDataBufferForDummyWL.OsResource);
+        indObjBaseAddrParams.presDataBuffer  = &(m_resDataBufferForDummyWL->OsResource);
 
         DECODE_CHK_STATUS(m_avpInterface->AddAvpIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams));
 
