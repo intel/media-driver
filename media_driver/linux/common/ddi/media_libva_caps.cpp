@@ -787,6 +787,10 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
         {
             attrib.value = ENCODE_VP8_NUM_MAX_L0_REF ;
         }
+        if(IsVp9Profile(profile))
+        {
+            attrib.value = ENCODE_VP9_NUM_MAX_L0_REF;
+        }
         if (IsHevcProfile(profile))
         {
             GetPlatformSpecificAttrib(profile, entrypoint,
