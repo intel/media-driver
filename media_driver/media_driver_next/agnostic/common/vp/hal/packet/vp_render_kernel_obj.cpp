@@ -446,6 +446,12 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
         &pSurface->osSurface->OsResource,
         &LockFlags);
 
+    if (pData == nullptr)
+    {
+        VP_RENDER_ASSERTMESSAGE("pData == nullptr");
+        return;
+    }
+
     MOS_SecureStringPrint(
         sPath,
         MAX_PATH,

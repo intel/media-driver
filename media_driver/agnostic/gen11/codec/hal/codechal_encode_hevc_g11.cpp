@@ -6620,6 +6620,7 @@ MOS_STATUS CodechalEncHevcStateG11::ConfigStitchDataBuffer()
     lockFlagsWriteOnly.WriteOnly = 1;
 
     HucCommandData* hucStitchDataBuf = (HucCommandData*)m_osInterface->pfnLockResource(m_osInterface, &m_resHucStitchDataBuffer[m_currRecycledBufIdx][currentPass], &lockFlagsWriteOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucStitchDataBuf);
 
     MOS_ZeroMemory(hucStitchDataBuf, sizeof(HucCommandData));
     hucStitchDataBuf->TotalCommands = 1;

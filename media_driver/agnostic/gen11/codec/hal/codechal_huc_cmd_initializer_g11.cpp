@@ -215,7 +215,9 @@ MOS_STATUS CodechalCmdInitializerG11::AddCmdConstData(
     lockFlagsWriteOnly.WriteOnly = 1;
 
     hucConstData = (HucComData *)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDataBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass], &lockFlagsWriteOnly);
-    hucConstData->TotalCommands = m_cmdCount;    
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
+
+    hucConstData->TotalCommands = m_cmdCount;
 
     hucConstData->InputCOM[idx].ID = cmdId;
     hucConstData->InputCOM[idx].SizeOfData = size;
@@ -243,6 +245,7 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerSetDmem(bool brcEnabled)
     // Setup CmdInitializer DMEM
     hucCmdInitializerDmem = (HucComDmem *)m_osInterface->pfnLockResource(
         m_osInterface, &m_cmdInitializerDmemBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass], &lockFlagsWriteOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucCmdInitializerDmem);
 
     MOS_ZeroMemory(hucCmdInitializerDmem, sizeof(HucComDmem));
 
@@ -412,6 +415,7 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9SetDmem()
 
         hucConstData = (HucComData*)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerDataBuffer[m_encoder->m_currRecycledBufIdx][m_vp9Params.currentPass], &lockFlagsWriteOnly);
     }
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
 
     MOS_ZeroMemory(hucConstData, sizeof(HucComData));
 
@@ -484,6 +488,8 @@ MOS_STATUS CodechalCmdInitializerG11::CmdInitializerVp9SetDmem()
         hucCmdInitializerDmem = (HucComDmem*)m_osInterface->pfnLockResource(
             m_osInterface, &m_cmdInitializerDmemBuffer[m_encoder->m_currRecycledBufIdx][m_vp9Params.currentPass], &lockFlagsWriteOnly);
     }
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucCmdInitializerDmem);
+
     MOS_ZeroMemory(hucCmdInitializerDmem, sizeof(HucComDmem));
 
     hucCmdInitializerDmem->TotalOutputCommands = 2;
@@ -678,6 +684,7 @@ MOS_STATUS CodechalCmdInitializerG11::SetCopyDmem()
 
     hucCmdCopyDmem = (HucComDmem*)m_osInterface->pfnLockResource(
         m_osInterface, &m_cmdInitializerCopyDmemBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass], &lockFlagsWriteOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucCmdCopyDmem);
 
     MOS_ZeroMemory(hucCmdCopyDmem, sizeof(hucCmdCopyDmem));
 
@@ -706,6 +713,7 @@ MOS_STATUS CodechalCmdInitializerG11::SetCopyData(
     lockFlagsWriteOnly.WriteOnly = 1;
 
     auto hucConstData = (HucComData*)m_osInterface->pfnLockResource(m_osInterface, &m_cmdInitializerCopyDataBuffer[m_encoder->m_currRecycledBufIdx][m_currentPass], &lockFlagsWriteOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
 
     MOS_ZeroMemory(hucConstData, sizeof(HucComData));
     hucConstData->TotalCommands = 1;

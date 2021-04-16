@@ -5362,6 +5362,7 @@ MOS_STATUS CodechalVdencAvcState::SetConstDataHuCBrcUpdate()
     {
         MOS_LOCK_PARAMS lockFlagsWriteOnly;
         auto            hucConstData = (PAVCVdencBRCCostantData)m_osInterface->pfnLockResource(m_osInterface, &m_resVdencBrcConstDataBuffer, &lockFlagsWriteOnly);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
 
         // adjustment due to dirty ROI
         for (int j = 0; j < 42; j++)
@@ -7729,6 +7730,7 @@ MOS_STATUS CodechalVdencAvcState::FillHucConstData(uint8_t *data)
 {
     auto hucConstData = (PAVCVdencBRCCostantData)data;
     auto avcSeqParams = m_avcSeqParam;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(hucConstData);
 
     MOS_SecureMemcpy(hucConstData->UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t), (void *)BRC_UPD_GlobalRateQPAdjTabI_U8, 64 * sizeof(uint8_t));
     if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_LOW)  // Sliding Window BRC

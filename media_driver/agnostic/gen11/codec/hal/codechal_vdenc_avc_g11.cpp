@@ -1462,6 +1462,7 @@ MOS_STATUS CodechalVdencAvcStateG11::SetDmemHuCBrcUpdate()
     lockFlagsReadOnly.ReadOnly = 1;
     auto initDmem              = (BrcInitDmem *)m_osInterface->pfnLockResource(
         m_osInterface, &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx], &lockFlagsReadOnly);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(initDmem);
 
     if (initDmem->INIT_AdaptiveHMEExtensionEnable_U8)
     {

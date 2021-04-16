@@ -3214,6 +3214,12 @@ void VpDumperTool::WriteFrame(
         &pSurface->OsResource,
         &LockFlags);
 
+    if(pData == nullptr)
+    {
+        VPHAL_DEBUG_ASSERTMESSAGE("pData == nullptr.");
+
+        return;
+    }
     MOS_SecureStringPrint(
         sPath,
         MAX_PATH,

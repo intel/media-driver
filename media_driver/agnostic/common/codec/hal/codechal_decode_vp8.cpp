@@ -1167,6 +1167,7 @@ MOS_STATUS CodechalDecodeVp8::SetFrameStates()
         {
             CodechalResLock ResourceLock(m_osInterface, &m_resDataBuffer);
             auto bitstreamBuffer = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
+            CODECHAL_DECODE_CHK_NULL_RETURN(bitstreamBuffer);
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(ParseFrameHead(bitstreamBuffer + m_dataOffset, m_dataSize));
         }
@@ -1176,6 +1177,7 @@ MOS_STATUS CodechalDecodeVp8::SetFrameStates()
 
             CodechalResLock ResourceLock(m_osInterface, &m_resTmpBitstreamBuffer);
             auto bitstreamBuffer = (uint8_t*)ResourceLock.Lock(CodechalResLock::readOnly);
+            CODECHAL_DECODE_CHK_NULL_RETURN(bitstreamBuffer);
 
             CODECHAL_DECODE_CHK_STATUS_RETURN(ParseFrameHead(bitstreamBuffer, m_dataSize));
         }

@@ -783,7 +783,7 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
     auto pInputData = (uint8_t*)m_osInterface->pfnLockResource(
                                                             m_osInterface, &(m_encodeParams.psMbQpDataSurface->OsResource),
                                                             &LockFlagsReadOnly);
-
+    CODECHAL_ENCODE_CHK_NULL_RETURN(pInputData);
     MHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminDataParams;
 
     for (uint32_t h = 0; h < streamInHeight; h++)
