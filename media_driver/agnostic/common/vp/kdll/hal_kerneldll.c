@@ -3347,7 +3347,8 @@ Kdll_State *KernelDll_AllocateStates(
 
     // Get link file binary data
     pLinkHeader = (Kdll_LinkFileHeader *) pCacheEntry[IDR_VP_LinkFile].pBinary;
-    if (pLinkHeader->dwVersion != IDR_VP_LINKFILE_VERSION ||
+    if (pLinkHeader == nullptr ||
+        pLinkHeader->dwVersion != IDR_VP_LINKFILE_VERSION ||
         sizeof(Kdll_LinkFileHeader) != IDR_VP_LINKFILE_HEADER)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Invalid link file version.");

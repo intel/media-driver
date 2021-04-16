@@ -1420,6 +1420,7 @@ MOS_STATUS VphalRenderer::Initialize(
                                             m_modifyKdllFunctionPointers);
     if (!pKernelDllState)
     {
+        eStatus = MOS_STATUS_NULL_POINTER;
         VPHAL_RENDER_ASSERTMESSAGE("Failed to allocate KDLL state.");
         goto finish;
     }
