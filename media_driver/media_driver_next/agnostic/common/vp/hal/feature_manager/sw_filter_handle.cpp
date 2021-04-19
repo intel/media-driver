@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -530,6 +530,7 @@ bool SwFilterProcampHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool i
 
     PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
     if (vphalSurf && vphalSurf->pProcampParams &&
+        !IS_RGB_FORMAT(vphalSurf->Format)      &&
         vphalSurf->pProcampParams->bEnabled)
     {
         return true;
