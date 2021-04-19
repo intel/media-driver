@@ -431,7 +431,7 @@ bool VPFeatureManager::IsVeboxOutFeasible(
         m_hwInterface->m_osInterface->pOsContext));
     dwCompBypassMode = UserFeatureData.u32Data;
 
-    if (dwCompBypassMode  != VP_COMP_BYPASS_DISABLED                           &&
+    if (dwCompBypassMode != VP_COMP_BYPASS_DISABLED                            &&
         params->uDstCount ==1                                                  &&
         SAME_SIZE_RECT(params->pSrc[0]->rcSrc, params->pSrc[0]->rcDst)         &&
         RECT1_CONTAINS_RECT2(params->pSrc[0]->rcMaxSrc, params->pSrc[0]->rcSrc) &&
