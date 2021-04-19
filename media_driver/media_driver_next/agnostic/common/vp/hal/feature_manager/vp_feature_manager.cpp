@@ -266,7 +266,8 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
 
     // Temp removed RGB input with DN/DI/IECP case
     if ((IS_RGB_FORMAT(pvpParams->pSrc[0]->Format)) &&
-        (pvpParams->pSrc[0]->pColorPipeParams))
+        (pvpParams->pSrc[0]->pProcampParams         ||
+         pvpParams->pSrc[0]->pColorPipeParams))
     {
         return MOS_STATUS_SUCCESS;
     }
