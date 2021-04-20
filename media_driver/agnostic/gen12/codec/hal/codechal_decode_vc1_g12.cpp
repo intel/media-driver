@@ -60,9 +60,6 @@ MOS_STATUS CodechalDecodeVc1G12::AllocateStandard(
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeVc1::AllocateStandard(settings));
 
 #ifdef _MMC_SUPPORTED
-    // Disable Decode MMC
-    m_mmc->SetMmcDisabled();
-
     // To WA invalid aux data caused HW issue when MMC on
     if (m_mmc->IsMmcEnabled() && (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)))
     {
