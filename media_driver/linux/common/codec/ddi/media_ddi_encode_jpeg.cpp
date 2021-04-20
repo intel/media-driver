@@ -349,7 +349,7 @@ VAStatus DdiEncodeJpeg::Qmatrix(void *ptr)
 
         picParams->m_numQuantTable++;
 
-        for (int32_t i = 0; i < quantMatrixSize; i++)
+        for (int32_t i = 0; i < numQuantMatrix; i++)
         {
             quantMatrix->m_quantTable[0].m_qm[i] = quantParams->lum_quantiser_matrix[i] & 0xFF;
         }
@@ -368,7 +368,7 @@ VAStatus DdiEncodeJpeg::Qmatrix(void *ptr)
 
         picParams->m_numQuantTable++;
 
-        for (int32_t i = 0; i < quantMatrixSize; i++)
+        for (int32_t i = 0; i < numQuantMatrix; i++)
         {
             quantMatrix->m_quantTable[1].m_qm[i] = quantParams->chroma_quantiser_matrix[i] & 0xFF;
         }
@@ -511,17 +511,17 @@ VAStatus DdiEncodeJpeg::EncodeInCodecHal(uint32_t numSlices)
     MOS_ZeroMemory(&encodeParams, sizeof(EncoderParams));
     encodeParams.ExecCodecFunction = CODECHAL_FUNCTION_PAK;
 
-    // If app sends whole header - driver must extract QMatrix from it and ignore QMatrix buffer
-    // If app sends only QMatrix - driver must use it without scaling
-    // otherwise - driver must scale default QMatrix
-    DDI_NORMALMESSAGE("Func %s: m_appDataWholeHeader: %u, m_quantSupplied: %d", __FUNCTION__, m_appDataWholeHeader, m_quantSupplied);
-    if (m_appDataWholeHeader)
+    // Check if Qunt table was sent by application
+    // if it is not sent  by application, driver will use default and scaled by quality setting
+    // if it is sent by application, and it also packed header with scaled qmatrix
+    // scal the qmatrix to change with quality setting
+    if (!m_quantSupplied)
     {
-        DDI_CHK_RET(QmatrixFromHeader(), "Failed to parse Quant Matrix from header");
+        DefaultQmatrix();
     }
-    else if (!m_quantSupplied)
+    else if(m_appDataWholeHeader)
     {
-        DDI_CHK_RET(DefaultQmatrix(), "Failed to load default Quant Matrix");
+        QualityScaleQmatrix();
     }
 
     // Raw Surface
@@ -607,7 +607,6 @@ uint32_t DdiEncodeJpeg::ConvertMediaFormatToInputSurfaceFormat(DDI_MEDIA_FORMAT 
 
 VAStatus DdiEncodeJpeg::DefaultQmatrix()
 {
-    DDI_FUNCTION_ENTER();
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     CodecEncodeJpegQuantTable *quantMatrix = (CodecEncodeJpegQuantTable *)m_encodeCtx->pQmatrixParams;
@@ -633,7 +632,7 @@ VAStatus DdiEncodeJpeg::DefaultQmatrix()
         quantMatrix->m_quantTable[qMatrixCount].m_precision = 0;
         quantMatrix->m_quantTable[qMatrixCount].m_tableID   = qMatrixCount;
 
-        for (int32_t i = 0; i < quantMatrixSize; i++)
+        for (int32_t i = 0; i < numQuantMatrix; i++)
         {
             uint32_t quantValue = 0;
             if (qMatrixCount == 0)
@@ -662,11 +661,9 @@ VAStatus DdiEncodeJpeg::DefaultQmatrix()
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus DdiEncodeJpeg::QmatrixFromHeader()
+VAStatus DdiEncodeJpeg::QualityScaleQmatrix()
 {
-    DDI_FUNCTION_ENTER();
     DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
-    DDI_CHK_NULL(m_appData, "nullptr m_appData", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     CodecEncodeJpegQuantTable *quantMatrix = (CodecEncodeJpegQuantTable *)m_encodeCtx->pQmatrixParams;
     DDI_CHK_NULL(quantMatrix, "nullptr quantMatrix", VA_STATUS_ERROR_INVALID_PARAMETER);
@@ -674,55 +671,42 @@ VAStatus DdiEncodeJpeg::QmatrixFromHeader()
     // To get Quality from Pic Params
     CodecEncodeJpegPictureParams *picParams = (CodecEncodeJpegPictureParams *)m_encodeCtx->pPicParams;
     DDI_CHK_NULL(picParams, "nullptr picParams", VA_STATUS_ERROR_INVALID_PARAMETER);
-    picParams->m_numQuantTable = 0; // Will be extracted from header
-    m_quantSupplied = false;
 
-    const uint8_t hdrStartCode    = 0xFF;
-    const int32_t qTblHeaderSize = 4; // 2 Bytes: DQT, 2 Bytes: table length
-    uint8_t *appQTblData    = ((uint8_t*)m_appData);
-    uint8_t *appQTblDataEnd = ((uint8_t*)m_appData) + m_appDataTotalSize;
-    while (appQTblData = (uint8_t*)memchr(appQTblData, hdrStartCode, appQTblDataEnd - appQTblData))
+    uint32_t quality = 0;
+    if (picParams->m_quality < 50)
     {
-        if (appQTblDataEnd - appQTblData < qTblHeaderSize) // Don't find header start code or it's length
-            break;
+        quality = 5000 / picParams->m_quality;
+    }
+    else
+    {
+        quality = 200 - (picParams->m_quality * 2);
+    }
 
-        if (appQTblData[1] == 0xDA) // "Start of scan" 2nd start code
+    // 2 tables - one for luma and one for chroma
+    for (int32_t qMatrixCount = 0; qMatrixCount < picParams->m_numQuantTable; qMatrixCount++)
+    {
+        quantMatrix->m_quantTable[qMatrixCount].m_precision = 0;
+        quantMatrix->m_quantTable[qMatrixCount].m_tableID   = qMatrixCount;
+
+        for (int32_t i = 0; i < numQuantMatrix; i++)
         {
-            break;
-        }
-        else if (appQTblData[1] != 0xDB) // Not "Define Quantization Table" 2nd start code
-        {
-            appQTblData += 2;
-            continue;
-        }
+            uint32_t quantValue = 0;
+            quantValue = ( ((uint32_t)(quantMatrix->m_quantTable[qMatrixCount].m_qm[i])) * quality + 50) / 100;
 
-        // Handle "Define Quantization Table"
-        // Structure: [16Bits start code][16Bits length]{ [4Bits precision][4Bits type][8 * 64Bits QTable] } * num_quant_tables
-        int32_t quantTableLength = (appQTblData[2] << 8) + appQTblData[3];
-        appQTblData += qTblHeaderSize;
-        int32_t  numQMatrix = (quantTableLength - qTblHeaderSize) / quantMatrixSize;
-        DDI_CHK_CONDITION(appQTblData + quantTableLength > appQTblDataEnd || (quantTableLength - qTblHeaderSize) % quantMatrixSize,
-            "Invalid QTable size in DQT header", VA_STATUS_ERROR_INVALID_PARAMETER);
-        for (int qMatrixIdx = 0; qMatrixIdx < numQMatrix; ++qMatrixIdx)
-        {
-            uint8_t  tablePrecision   =  appQTblData[0] >> 4;
-            uint8_t  tableType        =  appQTblData[0] & 0xF;
-            appQTblData++;
-            DDI_CHK_CONDITION(tableType >= JPEG_MAX_NUM_QUANT_TABLE_INDEX, "QTable type is equal or greater than JPEG_MAX_NUM_QUANT_TABLE (3)", VA_STATUS_ERROR_INVALID_PARAMETER);
+            // Clamp the value to range between 1 and 255
+            if (quantValue < 1)
+            {
+                quantValue = 1;
+            }
+            else if (quantValue > 255)
+            {
+                quantValue = 255;
+            }
 
-            picParams->m_numQuantTable++;
-            quantMatrix->m_quantTable[tableType].m_precision = tablePrecision;
-            quantMatrix->m_quantTable[tableType].m_tableID   = tableType;
-            for (int32_t j = 0; j < quantMatrixSize; ++appQTblData, ++j)
-                quantMatrix->m_quantTable[tableType].m_qm[j] = *appQTblData;
-
-            if (picParams->m_numQuantTable == JPEG_MAX_NUM_QUANT_TABLE_INDEX) // Max 3 QTables for encode
-                break;
+            quantMatrix->m_quantTable[qMatrixCount].m_qm[i] = (uint16_t)quantValue;
         }
     }
-    DDI_CHK_CONDITION(picParams->m_numQuantTable == 0, "No quant tables were found in header", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    m_quantSupplied = true;
     return VA_STATUS_SUCCESS;
 }
 
