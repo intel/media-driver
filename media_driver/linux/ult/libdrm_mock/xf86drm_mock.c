@@ -274,6 +274,10 @@ mosdrmIoctl(int fd, unsigned long request, void *arg)
                     *(int *)(gp->value) = 1;
                     ret = 0;
                     break;
+                case I915_PARAM_HAS_EXEC_CAPTURE:
+                    *(int *)(gp->value) = 1;
+                    ret = 0;
+                    break;
                 default:
                     printf("drmIoctl:DRM_IOCTL_I915_GETPARAM with unsupport type\n");
                     do {
