@@ -205,7 +205,7 @@ MOS_STATUS FilmGrainAppNoisePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8
 
     MOS_ZeroMemory(&PipeControlParams, sizeof(PipeControlParams));
     PipeControlParams.dwFlushMode                   = MHW_FLUSH_WRITE_CACHE;
-    PipeControlParams.bGenericMediaStateClear       = true;
+    PipeControlParams.bGenericMediaStateClear       = false;
     PipeControlParams.bIndirectStatePointersDisable = true;
     PipeControlParams.bDisableCSStall               = false;
     RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddPipeControl(commandBuffer, nullptr, &PipeControlParams));
