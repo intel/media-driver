@@ -167,6 +167,7 @@ struct VP_SURFACE_SETTING
 };
 
 #define FEATURE_TYPE_MASK   0xffffff00
+#define FEATURE_TYPE_ENGINE_ASSIGNED(feature) (((feature)&FEATURE_TYPE_MASK) != (feature))
 
 inline bool operator==(FeatureType a, FeatureType b)
 {

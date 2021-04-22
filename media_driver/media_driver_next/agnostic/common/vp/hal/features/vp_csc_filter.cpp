@@ -328,7 +328,7 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     VP_RENDER_CHK_NULL_RETURN(m_veboxCSCParams);
 
     VPHAL_COLORPACK       srcColorPack;
-    bool bNeedUpSampling = vpExecuteCaps.bIECP || vpExecuteCaps.bHDR3DLUT;
+    bool bNeedUpSampling = vpExecuteCaps.bIECP || m_veboxCSCParams->bCSCEnabled;
     bool bDIEnabled      = vpExecuteCaps.bDI;
 
     srcColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatInput);

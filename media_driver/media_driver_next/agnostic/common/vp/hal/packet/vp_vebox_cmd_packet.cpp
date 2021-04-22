@@ -372,6 +372,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
     if (m_CscInputCspace  != cscParams->inputColorSpace ||
         m_CscOutputCspace != cscParams->outputColorSpace)
     {
+        // For VE 3DLUT HDR cases, CSC params will be overriden in AddVeboxGamutState
         VeboxGetBeCSCMatrix(
             cscParams->inputColorSpace,
             cscParams->outputColorSpace,

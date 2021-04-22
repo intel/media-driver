@@ -1414,13 +1414,13 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
             {
                 engineCaps = &(feature->GetFilterEngineCaps());
 
-                if (m_VeboxSfcFeatureHandlers.end() != m_VeboxSfcFeatureHandlers.find(feature->GetFeatureType()))
+                if (FEATURE_TYPE_ENGINE_ASSIGNED(feature->GetFeatureType()) && m_VeboxSfcFeatureHandlers.end() != m_VeboxSfcFeatureHandlers.find(feature->GetFeatureType()))
                 {
                     // Engine has been assigned to feature.
                     PolicyFeatureHandler *handler = m_VeboxSfcFeatureHandlers.find(feature->GetFeatureType())->second;
                     handler->UpdateFeaturePipe(caps, *feature, featurePipe, *params.executedFilters, true, 0);
                 }
-                else if (m_RenderFeatureHandlers.end() != m_RenderFeatureHandlers.find(feature->GetFeatureType()))
+                else if (FEATURE_TYPE_ENGINE_ASSIGNED(feature->GetFeatureType()) && m_RenderFeatureHandlers.end() != m_RenderFeatureHandlers.find(feature->GetFeatureType()))
                 {
                     PolicyFeatureHandler *handler = m_RenderFeatureHandlers.find(feature->GetFeatureType())->second;
                     handler->UpdateFeaturePipe(caps, *feature, featurePipe, *params.executedFilters, true, 0);
@@ -1718,10 +1718,20 @@ MOS_STATUS Policy::AddFiltersBasedOnCaps(
     VP_EXECUTE_CAPS& caps,
     SwFilterPipe& executedFilters)
 {
-    //Create and Add CSC filter for VEBOX IECP chromasiting config
-    if (caps.bSFC && !caps.bBeCSC && (caps.bIECP || caps.bDI))
+    // Create and Add CSC filter for VEBOX IECP chromasiting config
+    // HDR State holder: To keep same as Legacy path -- for VE 3DLut HDR, enable VE chroma up sampling when ONLY VE output.
+    if (!caps.bBeCSC && ((caps.bSFC && (caps.bIECP || caps.bDI)) || (!caps.bSFC && caps.bHDR3DLUT)))
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AddNewFilterOnVebox(featurePipe, caps, executedFilters, FeatureTypeCsc));
+    }
+    else
+    {
+        if (caps.bBeCSC && caps.bHDR3DLUT) 
+        {
+            // bBeCSC won't be set in GetCSCExecutionCaps for HDR case
+            VP_PUBLIC_ASSERTMESSAGE("bBeCSC shouldn't be set in GetCSCExecutionCaps for HDR case");
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
     }
     return MOS_STATUS_SUCCESS;
 }
