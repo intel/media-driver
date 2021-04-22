@@ -60,8 +60,11 @@ MOS_STATUS CodechalDecodeVc1G12::AllocateStandard(
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeVc1::AllocateStandard(settings));
 
 #ifdef _MMC_SUPPORTED
-    // Disable Decode MMC
-    m_mmc->SetMmcDisabled();
+    // Disable Decode MMC for IGFX
+    if (!MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrFlatPhysCCS))
+    {
+        m_mmc->SetMmcDisabled();
+    }
 
     // To WA invalid aux data caused HW issue when MMC on
     if (m_mmc->IsMmcEnabled() && (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)))
@@ -170,14 +173,11 @@ MOS_STATUS CodechalDecodeVc1G12::DecodeStateLevel()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 #ifdef _MMC_SUPPORTED
-    // To WA invalid aux data caused HW issue when MMC on
-    // To make sure aux table is clear when MMC off
-    if ((MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)) &&
-        !Mos_ResourceIsNull(&m_destSurface.OsResource) && m_destSurface.OsResource.bConvertedFromDDIResource &&
-        !(!CodecHal_PictureIsField(m_vc1PicParams->CurrPic) &&
-            m_vc1PicParams->picture_fields.picture_type == vc1SkippedFrame))
+    // To make sure aux table is clear when MMC off(IGFX)
+    // Can not clear aux table for DGFX because of stolen memory
+    if (!m_mmc->IsMmcEnabled() && !Mos_ResourceIsNull(&m_destSurface.OsResource) && m_destSurface.OsResource.bConvertedFromDDIResource)
     {
-        CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
+        CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by Huc Copy before frame %d submission", m_frameNum);
         CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
             this, m_miInterface, &m_destSurface.OsResource, m_veState));
     }
