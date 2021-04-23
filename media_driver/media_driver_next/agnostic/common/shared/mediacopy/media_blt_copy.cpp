@@ -20,12 +20,13 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     meida_blt.cpp
+//! \file     media_blt_copy.cpp
 //! \brief    Common interface used in Blitter Engine
 //! \details  Common interface used in Blitter Engine which are platform independent
 //!
 
 #include "media_blt_copy.h"
+#define BIT( n )                            ( 1 << (n) )
 
 //!
 //! \brief    BltState constructor
@@ -188,24 +189,51 @@ MOS_STATUS BltState::SetupFastCopyBltParam(
     BLT_CHK_NULL_RETURN(inputSurface);
     BLT_CHK_NULL_RETURN(outputSurface);
 
+    uint32_t          BytesPerTexel = 1;
     MOS_SURFACE       ResDetails;
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     MOS_ZeroMemory(pMhwBltParams, sizeof(MHW_FAST_COPY_BLT_PARAM));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, inputSurface, &ResDetails));
 
-    pMhwBltParams->dwSrcPitch  = ResDetails.dwPitch;
+    if (inputSurface->TileType != MOS_TILE_LINEAR)
+    { 
+        pMhwBltParams->dwSrcPitch = ResDetails.dwPitch / 4;
+    }
+    else
+    {
+        pMhwBltParams->dwSrcPitch = ResDetails.dwPitch;
+    }
+    
     pMhwBltParams->dwSrcTop    = 0;
     pMhwBltParams->dwSrcLeft   = 0;
 
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, outputSurface, &ResDetails));
-    pMhwBltParams->dwDstPitch  = ResDetails.dwPitch;
+
+    if (outputSurface->TileType != MOS_TILE_LINEAR)
+    {
+        pMhwBltParams->dwDstPitch = ResDetails.dwPitch/4;
+    }
+    else
+    {
+        pMhwBltParams->dwDstPitch  = ResDetails.dwPitch;
+    }
     pMhwBltParams->dwDstTop    = 0;
     pMhwBltParams->dwDstLeft   = 0;
-    pMhwBltParams->dwDstBottom = (uint32_t)outputSurface->pGmmResInfo->GetSizeMainSurface() / ResDetails.dwPitch;
-    pMhwBltParams->dwDstRight  = ResDetails.dwPitch / 4;    // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
 
-    pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit
+    //pMhwBltParams->dwDstBottom = ResDetails.dwHeight;
+    // Using below botton to replace the above bottom, it will cover 2 and 3 planes format.
+    // Then only do progam once the AddBlockCopyBlt() see 300--309 for multi-planes format, such as NV12/RGBP and so on.
+    pMhwBltParams->dwDstBottom = (uint32_t)outputSurface->pGmmResInfo->GetSizeMainSurface() / ResDetails.dwPitch;
+    pMhwBltParams->dwDstRight = ResDetails.dwWidth;
+
+    BLT_CHK_NULL_RETURN(outputSurface->pGmmResInfo);
+    if (outputSurface->pGmmResInfo->GetResourceType() != RESOURCE_BUFFER)
+    {
+        BytesPerTexel = outputSurface->pGmmResInfo->GetBitsPerPixel() / 8; // using Bytes.
+    }
+
+    pMhwBltParams->dwColorDepth = GetColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BytesPerTexel);
 
     pMhwBltParams->pSrcOsResource = inputSurface;
     pMhwBltParams->pDstOsResource = outputSurface;
@@ -235,20 +263,75 @@ MOS_STATUS BltState::SubmitCMD(
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
+    // Add flush DW
+    MHW_MI_FLUSH_DW_PARAMS FlushDwParams;
+    MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
+    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &FlushDwParams));
+
     if (pBltStateParam->bCopyMainSurface)
     {
         BLT_CHK_STATUS_RETURN(SetupFastCopyBltParam(
             &fastCopyBltParam,
             pBltStateParam->pSrcSurface,
             pBltStateParam->pDstSurface));
-        BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
+
+        MHW_MI_LOAD_REGISTER_IMM_PARAMS RegisterDwParams;
+        MOS_ZeroMemory(&RegisterDwParams, sizeof(RegisterDwParams));
+        RegisterDwParams.dwRegister = mhw_blt_state::BCS_SWCTRL_CMD::REGISTER_OFFSET;
+
+        mhw_blt_state::BCS_SWCTRL_CMD swctrl;
+        if (pBltStateParam->pSrcSurface->TileType != MOS_TILE_LINEAR)
+        {
+           swctrl.DW0.TileYSource = 1;
+           swctrl.DW0.Mask |= BIT(0);
+        }
+        if (pBltStateParam->pDstSurface->TileType != MOS_TILE_LINEAR)
+        {//output tiled
+           swctrl.DW0.TileYDestination = 1;
+           swctrl.DW0.Mask |= BIT(1);
+        }
+
+        RegisterDwParams.dwData = swctrl.DW0.Value;
+        m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &RegisterDwParams);
+  
+        // BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
+        BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
             &cmdBuffer,
-            &fastCopyBltParam));
+            &fastCopyBltParam,
+            0,
+            0));
+        /*
+        // 2 planes:
+        if (pBltStateParam->pSrcSurface->Format == Format_NV12)
+        {
+             int dstBytesPerTexelForScaling = 1;
+             int srcBytesPerTexelForScaling = 1;
+             uint32_t dstOffset = 0;
+             uint32_t srcOffset = 0;
+             uint32_t dstheight = fastCopyBltParam.dwDstBottom;
+   
+             dstBytesPerTexelForScaling = 2;
+             srcBytesPerTexelForScaling = 2;
+
+             MOS_SURFACE       ResDetails;
+             MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
+             BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pSrcSurface, &ResDetails));
+
+             dstOffset = ResDetails.RenderOffset.YUV.U.BaseOffset;
+             srcOffset = ResDetails.RenderOffset.YUV.U.BaseOffset;
+
+             fastCopyBltParam.dwDstBottom /= dstBytesPerTexelForScaling;
+             // BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
+             BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
+              &cmdBuffer,
+              &fastCopyBltParam,
+              srcOffset,
+              dstOffset));
+        }
+        */
     }
 
     // Add flush DW
-    MHW_MI_FLUSH_DW_PARAMS FlushDwParams;
-    MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
     BLT_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &FlushDwParams));
 
     // Add Batch Buffer end
@@ -260,3 +343,40 @@ MOS_STATUS BltState::SubmitCMD(
     return MOS_STATUS_SUCCESS;
 }
 
+uint32_t BltState::GetColorDepth(
+    GMM_RESOURCE_FORMAT dstFormat,
+    uint32_t            BytesPerTexel)
+{
+    uint32_t bitsPerTexel = BytesPerTexel * 8;
+
+    switch (bitsPerTexel)
+    {
+     case 8:
+         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_8BITCOLOR;
+         break;
+     case 16:
+         switch (dstFormat)
+         {
+           case GMM_FORMAT_B5G5R5A1_UNORM:
+            return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
+            break;
+           default:
+            return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;;
+            break;
+         }
+         break;
+     case 64:
+         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_64BITCOLOR;
+         break;
+     case 96:
+         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
+         break;
+     case 128:
+         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_128BITCOLOR;
+         break;
+     default:
+         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
+         break;
+    }
+
+ }

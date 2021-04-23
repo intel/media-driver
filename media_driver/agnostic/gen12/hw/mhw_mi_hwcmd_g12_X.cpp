@@ -353,4 +353,3 @@ mhw_mi_g12_X::VD_CONTROL_STATE_CMD::VD_CONTROL_STATE_CMD()
     DW2.Value                                        = 0;        
 
 }
-
