@@ -102,6 +102,12 @@ MOS_RESOURCE *Allocator::AllocateResource(MOS_ALLOC_GFXRES_PARAMS &param, bool z
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     TraceInfo *info = MOS_New(TraceInfo);
+    if (nullptr == info)
+    {
+        FreeResource(resource);
+        MOS_Delete(resource);
+        return nullptr;
+    }
     info->component = component;
     //Note, param.pBufName cannot be null.
     //This assignment statement will calcualte the string length and copy param.pBufName to info->name.
@@ -147,6 +153,7 @@ PMOS_BUFFER Allocator::AllocateBuffer(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroO
     TraceInfo *info = MOS_New(TraceInfo);
     if (nullptr == info)
     {
+        FreeResource(&buffer->OsResource);
         MOS_Delete(buffer);
         return nullptr;
     }
@@ -182,6 +189,12 @@ MOS_SURFACE *Allocator::AllocateSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zer
     m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, surface);
 #if (_DEBUG || _RELEASE_INTERNAL)
     TraceInfo *info = MOS_New(TraceInfo);
+    if (nullptr == info)
+    {
+        FreeResource(&surface->OsResource);
+        MOS_Delete(surface);
+        return nullptr;
+    }
     info->component = component;
     MOS_OS_ASSERT(param.pBufName != nullptr);
     info->name      = param.pBufName;

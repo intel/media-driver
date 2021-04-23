@@ -171,6 +171,11 @@ private:
     //!
     bool IsRelativeMMIO(uint32_t &reg)
     {
+        if (nullptr == m_osInterface)
+        {
+            MHW_ASSERTMESSAGE("invalid m_osInterface for RelativeMMIO");
+            return false;
+        }
         MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
 
         if ((MOS_VCS_ENGINE_USED(gpuContext) || MOS_VECS_ENGINE_USED(gpuContext)) &&
@@ -192,6 +197,11 @@ private:
     //!
     bool IsRemappingMMIO(uint32_t &reg)
     {
+        if (nullptr == m_osInterface)
+        {
+            MHW_ASSERTMESSAGE("invalid m_osInterface for RemappingMMIO");
+            return false;
+        }
         MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
 
         if (MOS_RCS_ENGINE_USED(gpuContext) &&

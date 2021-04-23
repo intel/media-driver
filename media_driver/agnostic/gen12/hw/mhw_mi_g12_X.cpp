@@ -204,7 +204,7 @@ MOS_STATUS MhwMiInterfaceG12::AddMiBatchBufferStartCmd(
 
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(batchBuffer);
-
+    MHW_MI_CHK_NULL(m_osInterface);
     bool vcsEngineUsed =
         MOS_VCS_ENGINE_USED(m_osInterface->pfnGetGpuContext(m_osInterface));
 
@@ -310,7 +310,7 @@ MOS_STATUS MhwMiInterfaceG12::AddMiStoreRegisterMemCmd(
     MHW_MI_CHK_NULL(cmdBuffer);
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
     MHW_MI_CHK_NULL(params);
-
+    MHW_MI_CHK_NULL(m_osInterface);
     mhw_mi_g12_X::MI_STORE_REGISTER_MEM_CMD *cmd =
         (mhw_mi_g12_X::MI_STORE_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
 
@@ -516,7 +516,7 @@ MOS_STATUS MhwMiInterfaceG12::SetWatchdogTimerThreshold(uint32_t frameWidth, uin
     MEDIA_WA_TABLE *waTable = nullptr;
 
     MHW_FUNCTION_ENTER;
-
+    MHW_MI_CHK_NULL(m_osInterface);
     if (m_osInterface->bMediaReset == false ||
         m_osInterface->umdMediaResetEnable == false)
     {
@@ -627,7 +627,7 @@ MOS_STATUS MhwMiInterfaceG12::AddWatchdogTimerStartCmd(
     MOS_GPU_CONTEXT gpuContext;
 
     MHW_FUNCTION_ENTER;
-
+    MHW_MI_CHK_NULL(m_osInterface);
     if (m_osInterface->bMediaReset == false ||
         m_osInterface->umdMediaResetEnable == false)
     {
@@ -672,7 +672,7 @@ MOS_STATUS MhwMiInterfaceG12::AddWatchdogTimerStopCmd(
     MOS_GPU_CONTEXT gpuContext;
 
     MHW_FUNCTION_ENTER;
-
+    MHW_MI_CHK_NULL(m_osInterface);
     if (m_osInterface->bMediaReset == false ||
         m_osInterface->umdMediaResetEnable == false)
     {
@@ -730,7 +730,7 @@ MOS_STATUS MhwMiInterfaceG12::SkipMiBatchBufferEndBb(
     MHW_FUNCTION_ENTER;
 
     MHW_MI_CHK_STATUS(MhwMiInterfaceGeneric<mhw_mi_g12_X>::SkipMiBatchBufferEndBb(batchBuffer));
-
+    MHW_MI_CHK_NULL(m_osInterface);
     auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
     MHW_MI_CHK_NULL(waTable);
 

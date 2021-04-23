@@ -188,7 +188,15 @@ public:
     inline uint32_t GetSizeSamplerStateAvs(
         PRENDERHAL_INTERFACE    pRenderHal)
     {
-        return 2 * pRenderHal->pHwSizes->dwSizeSamplerStateAvs; // Kernel using 1,3,5 sampler index for AVS sampler state.
+        if (pRenderHal && pRenderHal->pHwSizes)
+        {
+            return 2 * pRenderHal->pHwSizes->dwSizeSamplerStateAvs;  // Kernel using 1,3,5 sampler index for AVS sampler state.
+        }
+        else
+        {
+            MHW_RENDERHAL_ASSERTMESSAGE("Failed to get SizeSamplerStateAvs");
+            return 0;
+        }
     }
 
     //!
