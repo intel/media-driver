@@ -24,6 +24,7 @@
 
 #include <mutex>
 #include "mos_util_debug.h"
+#include "mos_os.h"
 
 #define VP_UNUSED(param) (void)(param)
 //------------------------------------------------------------------------------
@@ -216,7 +217,7 @@ namespace vp
 class Trace
 {
 public:
-    Trace(const char* name) : m_name(name)
+    Trace(const char* name) : m_name(name), m_perfUtility(name, PERF_VP, PERF_LEVEL_HAL)
     {
         VP_DEBUG_NORMALMESSAGE("Enter function:%s\r\n", name);
     }
@@ -228,9 +229,11 @@ public:
 
 protected:
     const char* m_name;
+    AutoPerfUtility m_perfUtility;
 };
 }
 
+// Function trace for vp hal layer.
 #define VP_FUNC_CALL() vp::Trace trace(__FUNCTION__);
 
 #endif // !__VP_UTILS_H__
