@@ -216,10 +216,10 @@ namespace decode
         DECODE_FUNC_CALL();
 
         // Tile Level Commands
-        DECODE_CHK_STATUS(static_cast<CodechalHwInterfaceG12*>(m_hwInterface)->GetAvpPrimitiveCommandSize(
-                                                                    m_av1BasicFeature->m_mode,
-                                                                    &m_tileStatesSize,
-                                                                    &m_tilePatchListSize));
+        DECODE_CHK_STATUS(m_hwInterface->GetAvpPrimitiveCommandSize(
+                            m_av1BasicFeature->m_mode,
+                            &m_tileStatesSize,
+                            &m_tilePatchListSize));
 
         return MOS_STATUS_SUCCESS;
     }

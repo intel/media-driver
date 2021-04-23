@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ MOS_STATUS Av1Pipeline::Prepare(void *params)
 
     if (basicFeature->m_frameNum == 0)
     {
-        for (uint8_t i = 0; i < av1DefaultCdfTableNum; i++)
+        for (uint8_t i = 0; i < basicFeature->av1DefaultCdfTableNum; i++)
         {
             HucCopyPkt::HucCopyParams copyParams = {};
             copyParams.srcBuffer  = &(basicFeature->m_tmpCdfBuffers[i]->OsResource);

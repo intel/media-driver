@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -43,7 +43,7 @@ public:
     Av1DecodePktG12(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
         Av1DecodePkt(pipeline, task, hwInterface)
     {
-        m_hwInterface = dynamic_cast<CodechalHwInterfaceG12 *>(hwInterface);
+        m_hwInterface = hwInterface;
     }
 
     virtual ~Av1DecodePktG12() {}
@@ -67,7 +67,7 @@ protected:
 
     MhwVdboxVdencInterface          *m_vdencInterface   = nullptr;
     MhwVdboxAvpInterface            *m_avpInterface     = nullptr;
-    CodechalHwInterfaceG12          *m_hwInterface      = nullptr;
+    CodechalHwInterface             *m_hwInterface      = nullptr;
 };
 
 }

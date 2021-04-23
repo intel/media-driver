@@ -1607,6 +1607,50 @@ public:
         uint8_t*    &kernelBase,
         uint32_t    &kernelSize);
 
+    //!
+    //! \brief    Calculates the maximum size for AVP picture level commands
+    //! \details  Client facing function to calculate the maximum size for AVP picture level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!           The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \param    [in] params
+    //!           Indicate the command size parameters
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetAvpStateCommandSize(
+            uint32_t                        mode,
+            uint32_t                        *commandsSize,
+            uint32_t                        *patchListSize,
+            PMHW_VDBOX_STATE_CMDSIZE_PARAMS params)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+    //!
+    //! \brief    Calculates maximum size for AVP tile level commands
+    //! \details  Client facing function to calculate maximum size for AVP tile level commands
+    //! \param    [in] mode
+    //!           Indicate the codec mode
+    //! \param    [out] commandsSize
+    //!            The maximum command buffer size
+    //! \param    [out] patchListSize
+    //!           The maximum command patch list size
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetAvpPrimitiveCommandSize(
+            uint32_t                        mode,
+            uint32_t                        *commandsSize,
+            uint32_t                        *patchListSize)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
+
+
     //! \brief    default disable vdbox balancing by UMD
     bool bEnableVdboxBalancingbyUMD = false;
     

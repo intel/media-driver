@@ -36,7 +36,7 @@ namespace decode
                                        Av1BasicFeature& basicFeature)
     {
         DECODE_CHK_STATUS(BufferOpInf::Init(hwInterface, allocator, basicFeature));
-        m_avpInterface = static_cast<CodechalHwInterfaceG12*>(m_hwInterface)->GetAvpInterface();
+        m_avpInterface = m_hwInterface->GetAvpInterface();
         m_basicFeature = &basicFeature;
         DECODE_CHK_NULL(m_avpInterface);
         return MOS_STATUS_SUCCESS;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -44,7 +44,7 @@ public:
     {
         if (m_hwInterface != nullptr)
         {
-            m_avpInterface  =  static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetAvpInterface();
+            m_avpInterface = hwInterface->GetAvpInterface();
         }
     }
     virtual ~Av1DecodeTilePkt(){};

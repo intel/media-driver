@@ -31,14 +31,11 @@
 #include "decode_av1_reference_frames.h"
 #include "decode_av1_temporal_buffers.h"
 #include "decode_av1_tile_coding.h"
-#include "mhw_vdbox_g12_X.h"
 #include "mhw_vdbox_avp_interface.h"
 #include "decode_internal_target.h"
-#include "codechal_hw_g12_X.h"
 
 namespace decode
 {
-    static const uint32_t           av1DefaultCdfTableNum    = 4;     // Number of inited cdf table
     class Av1BasicFeature : public DecodeBasicFeature
     {
     public:
@@ -50,7 +47,6 @@ namespace decode
         {
             if (hwInterface != nullptr)
             {
-                m_avpInterface = static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetAvpInterface();
                 m_osInterface  = hwInterface->GetOsInterface();
             }
         };
@@ -131,7 +127,7 @@ namespace decode
         PMOS_BUFFER                     m_defaultCdfBufferInUse    = nullptr;      //!< default cdf table used base on current base_qindex
         uint8_t                         m_curCoeffCdfQCtx          = 0;            //!< Coeff CDF Q context ID for current frame
         static const uint32_t           m_cdfMaxNumBytes           = 15104;        //!< Max number of bytes for CDF tables buffer, which equals to 236*64 (236 Cache Lines)
-
+        static const uint32_t           av1DefaultCdfTableNum      = 4;            //!< Number of inited cdf table
                                                                                    //for Internal buffer upating
         bool                            m_defaultFcInitialized     = false;        //!< default Frame context initialized flag. default frame context should be initialized only once, and set this flag to 1 once initialized.
 

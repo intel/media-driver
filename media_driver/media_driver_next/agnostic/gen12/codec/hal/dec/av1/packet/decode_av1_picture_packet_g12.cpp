@@ -74,10 +74,16 @@ namespace decode
 
         MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 pipeModeSelectParams;
         pipeModeSelectParams ={};
-        Av1DecodePicPkt::SetAvpPipeModeSelectParams(pipeModeSelectParams);
+        SetAvpPipeModeSelectParams(pipeModeSelectParams);
         DECODE_CHK_STATUS(m_avpInterface->AddAvpPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
         return MOS_STATUS_SUCCESS;
+    }
+
+    void Av1DecodePicPktG12::SetAvpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12& pipeModeSelectParams)
+    {
+        DECODE_FUNC_CALL();
+        pipeModeSelectParams.bDeblockerStreamOutEnable = false;
     }
 
     MOS_STATUS Av1DecodePicPktG12::AddAvpPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer)
@@ -142,7 +148,7 @@ namespace decode
         stateCmdSizeParams.bHucDummyStream = false;
         stateCmdSizeParams.bSfcInUse       = false;
         // Picture Level Commands
-        DECODE_CHK_STATUS(static_cast<CodechalHwInterfaceG12*>(m_hwInterface)->GetAvpStateCommandSize(
+        DECODE_CHK_STATUS(m_hwInterface->GetAvpStateCommandSize(
                 m_av1BasicFeature->m_mode,
                 &m_pictureStatesSize,
                 &m_picturePatchListSize,

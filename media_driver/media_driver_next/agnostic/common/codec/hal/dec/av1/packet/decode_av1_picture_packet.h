@@ -45,7 +45,7 @@ namespace decode
         {
             if (m_hwInterface != nullptr)
             {
-                m_avpInterface  =  static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetAvpInterface();
+                m_avpInterface = hwInterface->GetAvpInterface();
             }
         }
 
@@ -122,7 +122,6 @@ namespace decode
         virtual MOS_STATUS AddAvpIndObjBaseAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer);
         virtual void       SetAvpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS &indObjBaseAddrParams);
 
-        virtual void       SetAvpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &vdboxPipeModeSelectParams);
         virtual MOS_STATUS AddAvpPipeModeSelectCmd(MOS_COMMAND_BUFFER &cmdBuffer) = 0;
 
         virtual MOS_STATUS SetAvpPicStateParams(MhwVdboxAvpPicStateParams &picStateParams);

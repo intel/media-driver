@@ -28,6 +28,7 @@
 #define __DECODE_AV1_PICTURE_PACKET_G12_H__
 
 #include "decode_av1_picture_packet.h"
+#include "mhw_vdbox_g12_X.h"
 
 namespace decode
 {
@@ -60,6 +61,7 @@ namespace decode
 
         virtual MOS_STATUS AddAvpPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer) override;
         MOS_STATUS         SetSurfaceMmcState(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams);
+        void               SetAvpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 &vdboxPipeModeSelectParams);
 
         virtual MOS_STATUS AddAvpInterPredStateCmd(MOS_COMMAND_BUFFER &cmdBuffer);
         virtual MOS_STATUS AddAvpPicStateCmd(MOS_COMMAND_BUFFER &cmdBuffer);
