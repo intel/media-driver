@@ -1048,7 +1048,7 @@ VAStatus MediaLibvaInterfaceNext::LoadFunction(VADriverContextP ctx)
     ctx->max_entrypoints                     = DDI_CODEC_GEN_MAX_ENTRYPOINTS;
     ctx->max_attributes                      = (int32_t)VAConfigAttribTypeMax;
     ctx->max_subpic_formats                  = DDI_CODEC_GEN_MAX_SUBPIC_FORMATS;
-    ctx->max_display_attributes              = DDI_CODEC_GEN_MAX_DISPLAY_ATTRIBUTES ;
+    ctx->max_display_attributes              = DDI_MEDIA_GEN_MAX_DISPLAY_ATTRIBUTES ;
     ctx->str_vendor                          = DDI_CODEC_GEN_STR_VENDOR;
     ctx->vtable_tpi                          = nullptr;
 

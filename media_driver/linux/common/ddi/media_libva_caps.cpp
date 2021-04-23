@@ -3073,6 +3073,45 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
     MOS_FreeMemory(attribs);
     return status;
 }
+    
+VAStatus MediaLibvaCaps::QueryDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t *numAttribs)
+{
+    DDI_CHK_NULL(attribList, "Null attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(numAttribs, "Null num_attribs", VA_STATUS_ERROR_INVALID_PARAMETER);
+    *numAttribs = 0;
+
+    attribList->type = VADisplayAttribCopy;
+    (*numAttribs) ++;
+
+    return GetDisplayAttributes(attribList, *numAttribs);
+}
+
+VAStatus MediaLibvaCaps::GetDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t numAttribs)
+{
+    DDI_CHK_NULL(attribList, "Null attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
+    for(auto i = 0; i < numAttribs; i ++)
+    {
+        switch(attribList->type)
+        {
+            case VADisplayAttribCopy:
+                attribList->min_value = attribList->value = attribList->max_value = 0;
+                attribList->flags = VA_DISPLAY_ATTRIB_GETTABLE;
+                break;
+            default:
+                attribList->min_value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->max_value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->flags = VA_DISPLAY_ATTRIB_NOT_SUPPORTED;
+                break;
+        }
+        attribList ++;
+    }
+    return VA_STATUS_SUCCESS;
+}
 
 bool MediaLibvaCaps::IsVc1Profile(VAProfile profile)
 {
