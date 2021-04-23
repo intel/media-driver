@@ -2599,6 +2599,33 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG12::ConvertMediaFmtToGmmFmt(
     }
 }
 
+VAStatus MediaLibvaCapsG12::GetDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t numAttribs)
+{
+    DDI_CHK_NULL(attribList, "Null attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
+    for(auto i = 0; i < numAttribs; i ++)
+    {
+        switch(attribList->type)
+        {
+            case VADisplayAttribCopy:
+                attribList->min_value = attribList->value = attribList->max_value = (1 << VA_EXEC_MODE_DEFAULT);
+                attribList->flags = VA_DISPLAY_ATTRIB_GETTABLE;
+                break;
+            default:
+                attribList->min_value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->max_value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->flags = VA_DISPLAY_ATTRIB_NOT_SUPPORTED;
+                break;
+        }
+        attribList ++;
+    }
+    return VA_STATUS_SUCCESS;
+}
+
+
+
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool tglLPRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
