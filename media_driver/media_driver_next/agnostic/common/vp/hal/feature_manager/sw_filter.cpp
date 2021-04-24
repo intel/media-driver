@@ -149,25 +149,7 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
     VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
     VP_PUBLIC_CHK_NULL_RETURN(surfOutput->osSurface);
 
-    if (caps.bHDR3DLUT)
-    {
-        m_Params.input.colorSpace  = surfInput->ColorSpace;
-        m_Params.formatInput       = surfInput->osSurface->Format;
-        m_Params.input.chromaSiting = surfInput->ChromaSiting;
-
-        // CSC before HDR converts BT2020 P010 to ARGB10
-        m_Params.output.colorSpace   = CSpace_BT2020_RGB;
-        m_Params.formatOutput        = Format_B10G10R10A2;
-        m_Params.output.chromaSiting = surfOutput->ChromaSiting;
-
-        m_Params.pAlphaParams = nullptr;
-        m_Params.pIEFParams   = nullptr;
-
-        m_noNeedUpdate = true;
-
-        return MOS_STATUS_SUCCESS;
-    }
-    else if (caps.bSFC)
+    if (caps.bSFC)
     {
         MOS_FORMAT      veboxOutputFormat   = surfInput->osSurface->Format;
         MOS_TILE_TYPE   veboxOutputTileType = surfInput->osSurface->TileType;
