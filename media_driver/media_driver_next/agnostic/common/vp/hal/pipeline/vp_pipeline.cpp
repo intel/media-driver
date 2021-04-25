@@ -631,7 +631,9 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
         {Format_Invalid, MOS_TILE_INVALID},
         {Format_RGBP, MOS_TILE_LINEAR},
         {Format_RGBP, MOS_TILE_Y},
-        {Format_R8G8B8, MOS_TILE_LINEAR}
+        {Format_R8G8B8, MOS_TILE_LINEAR},
+        {Format_BGRP, MOS_TILE_LINEAR},
+        {Format_BGRP, MOS_TILE_Y}
     };
 
     //SFC RGBP Linear/Tile RGB24 Linear Output.
