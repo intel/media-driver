@@ -97,6 +97,9 @@ MOS_STATUS FilmGrainPostSubPipeline::DoFilmGrainApplyNoise(const CodechalDecodeP
     {
         Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
         DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(pipeline, av1FilmGrainAppPacketId), true, 0, 0));
+        // For film grain frame, apply noise packet should update report global count, so need to set
+        // frameTrackingRequested flag to true.
+        m_activePacketList.back().frameTrackingRequested = true;
     }
 
     return MOS_STATUS_SUCCESS;

@@ -174,8 +174,8 @@ MOS_STATUS DecodeScalabilitySinglePipe::SendAttrWithFrameTracking(
         cmdBuffer.Attributes.bEnableMediaFrameTracking    = true;
         cmdBuffer.Attributes.resMediaFrameTrackingSurface = resource;
         cmdBuffer.Attributes.dwMediaFrameTrackingTag      = m_statusReport->GetSubmittedCount() + 1;
-        // Set media frame tracking address offset(the offset from the encoder status buffer page)
-        cmdBuffer.Attributes.dwMediaFrameTrackingAddrOffset = 0;
+        // Set media frame tracking address offset(the offset from the decoder status buffer page)
+        cmdBuffer.Attributes.dwMediaFrameTrackingAddrOffset = offset;
     }
 
     return eStatus;

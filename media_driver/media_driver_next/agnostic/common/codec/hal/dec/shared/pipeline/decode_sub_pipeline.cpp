@@ -90,6 +90,7 @@ MOS_STATUS DecodeSubPipeline::ActivatePacket(uint32_t packetId, bool immediateSu
     prop.packetId                         = iter->first;
     prop.packet                           = iter->second;
     prop.immediateSubmit                  = immediateSubmit;
+    prop.frameTrackingRequested           = false;
 
     prop.stateProperty.currentPass        = pass;
     prop.stateProperty.currentPipe        = pipe;
