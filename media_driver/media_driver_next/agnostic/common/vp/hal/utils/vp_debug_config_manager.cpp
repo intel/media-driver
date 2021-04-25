@@ -39,11 +39,15 @@ VpDebugConfigMgr::VpDebugConfigMgr(
 
 uint32_t VpDebugConfigMgr::GetDumpFrameNum()
 {
+    VP_FUNC_CALL();
+
     return (uint32_t)m_debugInterface->m_bufferDumpFrameNum;
 }
 
 std::string VpDebugConfigMgr::InitFileName(MediaDbgFunction mediaFunction)
 {
+    VP_FUNC_CALL();
+
     return "VpDbgSetting.cfg";
 }
 

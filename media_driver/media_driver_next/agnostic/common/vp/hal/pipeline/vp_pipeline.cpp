@@ -104,6 +104,8 @@ MOS_STATUS VpPipeline::Destroy()
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_STATUS VpPipeline::DestroySurface()
 {
+    VP_FUNC_CALL();
+
     if (m_tempTargetSurface)
     {
         m_allocator->FreeResource(&m_tempTargetSurface->OsResource);
@@ -163,6 +165,8 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 
 MOS_STATUS VpPipeline::CreatePacketSharedContext()
 {
+    VP_FUNC_CALL();
+
     m_packetSharedContext = MOS_New(VP_PACKET_SHARED_CONTEXT);
     VP_PUBLIC_CHK_NULL_RETURN(m_packetSharedContext);
     return MOS_STATUS_SUCCESS;
@@ -227,6 +231,8 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
 
 bool VpPipeline::IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
 {
+    VP_FUNC_CALL();
+
     VpFeatureManagerNext *featureManagerNext = dynamic_cast<VpFeatureManagerNext *>(m_featureManager);
     if (nullptr == featureManagerNext)
     {
@@ -315,6 +321,8 @@ finish:
 
 MOS_STATUS VpPipeline::UpdateExecuteStatus()
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
@@ -361,6 +369,8 @@ finish:
 
 MOS_STATUS VpPipeline::CreateSwFilterPipe(VP_PARAMS &params, std::vector<SwFilterPipe*> &swFilterPipe)
 {
+    VP_FUNC_CALL();
+
     switch (m_pvpParams.type)
     {
     case PIPELINE_PARAM_TYPE_LEGACY:
@@ -385,6 +395,8 @@ MOS_STATUS VpPipeline::CreateSwFilterPipe(VP_PARAMS &params, std::vector<SwFilte
 
 MOS_STATUS VpPipeline::GetSystemVeboxNumber()
 {
+    VP_FUNC_CALL();
+
     // Check whether scalability being disabled.
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -498,6 +510,8 @@ MOS_STATUS VpPipeline::CreateVpKernelSets()
 //!
 MOS_STATUS VpPipeline::CreateResourceManager()
 {
+    VP_FUNC_CALL();
+
     if (nullptr == m_resourceManager)
     {
         m_resourceManager = MOS_New(VpResourceManager, *m_osInterface, *m_allocator, *m_reporting, *m_vpMhwInterface.m_vpPlatformInterface);
@@ -508,12 +522,16 @@ MOS_STATUS VpPipeline::CreateResourceManager()
 
 MOS_STATUS VpPipeline::CheckFeatures(void *params, bool &bapgFuncSupported)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(m_paramChecker);
     return m_paramChecker->CheckFeatures(params, bapgFuncSupported);
 }
 
 MOS_STATUS VpPipeline::CreateFeatureReport()
 {
+    VP_FUNC_CALL();
+
     if (m_vpMhwInterface.m_reporting)
     {
         if (m_reporting && m_reporting->owner == this && m_vpMhwInterface.m_reporting != m_reporting)
@@ -538,6 +556,8 @@ MOS_STATUS VpPipeline::CreateFeatureReport()
 #if (_DEBUG || _RELEASE_INTERNAL)
 VPHAL_SURFACE *VpPipeline::AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTargetSurface)
 {
+    VP_FUNC_CALL();
+
     m_tempTargetSurface = (VPHAL_SURFACE *)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
     if (!m_tempTargetSurface)
     {
@@ -550,6 +570,8 @@ VPHAL_SURFACE *VpPipeline::AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTarget
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
     bool                        allocated;
     MOS_USER_FEATURE_VALUE_DATA userFeatureData = {0};

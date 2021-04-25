@@ -125,6 +125,8 @@ MOS_STATUS VpPlatformInterface::InitVPFCKernels(
 
 MOS_STATUS vp::VpRenderKernel::Destroy()
 {
+    VP_FUNC_CALL();
+
     if (m_kernelDllState)
     {
         KernelDll_ReleaseStates(m_kernelDllState);
@@ -219,6 +221,8 @@ MOS_STATUS vp::VpRenderKernel::SetKernelBinPointer(void *pBin)
 
 MOS_STATUS vp::VpRenderKernel::AddKernelArg(KRN_ARG &kernelArg)
 {
+    VP_FUNC_CALL();
+
     m_kernelArgs.push_back(kernelArg);
     return MOS_STATUS_SUCCESS;
 }
@@ -356,6 +360,8 @@ VpPlatformInterface::~VpPlatformInterface()
 
 MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(GetKernelConfig().GetKernelParam(kernlId, param));
     return MOS_STATUS_SUCCESS;
 }

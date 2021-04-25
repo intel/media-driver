@@ -133,6 +133,8 @@ void VpPipelineAdapter::Destroy()
 
 MOS_STATUS VpPipelineAdapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     VP_PIPELINE_PARAMS params = {};
 

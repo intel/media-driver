@@ -117,6 +117,8 @@ MOS_STATUS VpProcampFilter::CalculateEngineParams()
 /****************************************************************************************************/
 HwFilterParameter *HwFilterProcampParameter::Create(HW_FILTER_PROCAMP_PARAM &param, FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     HwFilterProcampParameter *p = MOS_New(HwFilterProcampParameter, featureType);
     if (p)
     {
@@ -139,11 +141,15 @@ HwFilterProcampParameter::~HwFilterProcampParameter()
 
 MOS_STATUS HwFilterProcampParameter::ConfigParams(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterProcampParameter::Initialize(HW_FILTER_PROCAMP_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
@@ -153,6 +159,8 @@ MOS_STATUS HwFilterProcampParameter::Initialize(HW_FILTER_PROCAMP_PARAM &param)
 /****************************************************************************************************/
 VpPacketParameter *VpVeboxProcampParameter::Create(HW_FILTER_PROCAMP_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -178,6 +186,8 @@ VpVeboxProcampParameter::~VpVeboxProcampParameter() {}
 
 bool VpVeboxProcampParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
+    VP_FUNC_CALL();
+
     VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
     if (nullptr == pVeboxPacket)
     {
@@ -194,6 +204,8 @@ bool VpVeboxProcampParameter::SetPacketParam(VpCmdPacket *pPacket)
 
 MOS_STATUS VpVeboxProcampParameter::Initialize(HW_FILTER_PROCAMP_PARAM &params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_procampFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_procampFilter.SetExecuteEngineCaps(params.procampParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_procampFilter.CalculateEngineParams());
@@ -213,11 +225,15 @@ PolicyVeboxProcampHandler::~PolicyVeboxProcampHandler()
 
 bool PolicyVeboxProcampHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return vpExecuteCaps.bProcamp;
 }
 
 HwFilterParameter* PolicyVeboxProcampHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     if (IsFeatureEnabled(vpExecuteCaps))
     {
         if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())

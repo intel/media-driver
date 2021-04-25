@@ -38,6 +38,8 @@ VpKernelSet::VpKernelSet(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
 
 MOS_STATUS VpKernelSet::GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kernel)
 {
+    VP_FUNC_CALL();
+
     Kdll_State* kernelState = m_pKernelPool->at(0).GetKdllState();
 
     if (kernelState)
@@ -55,6 +57,8 @@ MOS_STATUS VpKernelSet::GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kern
 
 MOS_STATUS VpKernelSet::FindAndInitKernelObj(VpRenderKernelObj* kernelObj)
 {
+    VP_FUNC_CALL();
+
     VP_RENDER_CHK_NULL_RETURN(kernelObj);
     VP_RENDER_CHK_NULL_RETURN(m_pKernelPool);
 

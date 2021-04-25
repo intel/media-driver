@@ -64,6 +64,8 @@ VpPacketParameter::~VpPacketParameter()
 
 void VpPacketParameter::Destory(VpPacketParameter *&p)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == p)
     {
         return;
@@ -98,16 +100,22 @@ PolicyFeatureHandler::~PolicyFeatureHandler()
 
 bool PolicyFeatureHandler::IsFeatureEnabled(SwFilterPipe &swFilterPipe)
 {
+    VP_FUNC_CALL();
+
     return false;
 }
 
 HwFilterParameter *PolicyFeatureHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     return nullptr;
 }
 
 MOS_STATUS PolicyFeatureHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
+    VP_FUNC_CALL();
+
     featurePipe.RemoveSwFilter(&feature);
     executePipe.AddSwFilterUnordered(&feature, isInputPipe, index);
     return MOS_STATUS_SUCCESS;
@@ -115,16 +123,22 @@ MOS_STATUS PolicyFeatureHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilte
 
 bool PolicyFeatureHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return false;
 }
 
 FeatureType PolicyFeatureHandler::GetType()
 {
+    VP_FUNC_CALL();
+
     return m_Type;
 }
 
 HwFilterParameter *PolicyFeatureHandler::GetHwFeatureParameterFromPool()
 {
+    VP_FUNC_CALL();
+
     if (m_Pool.empty())
     {
         return nullptr;
@@ -136,6 +150,8 @@ HwFilterParameter *PolicyFeatureHandler::GetHwFeatureParameterFromPool()
 
 MOS_STATUS PolicyFeatureHandler::ReleaseHwFeatureParameter(HwFilterParameter *&pParam)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(pParam);
     m_Pool.push_back(pParam);
     pParam = nullptr;
@@ -161,11 +177,15 @@ PacketParamFactoryBase::~PacketParamFactoryBase()
 
 VpPacketParameter *PacketParamFactoryBase::GetPacketParameter(PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     return nullptr;
 }
 
 void PacketParamFactoryBase::ReturnPacketParameter(VpPacketParameter *&p)
 {
+    VP_FUNC_CALL();
+
     if (p)
     {
         m_Pool.push_back(p);

@@ -39,6 +39,7 @@ namespace vp
 
 inline bool IsInterleaveFirstField(VPHAL_SAMPLE_TYPE sampleType)
 {
+    VP_FUNC_CALL();
     return ((sampleType == SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD)   ||
             (sampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD)     ||
             (sampleType == SAMPLE_SINGLE_TOP_FIELD));
@@ -313,6 +314,7 @@ MOS_STATUS VpResourceManager::OnNewFrameProcessStart(SwFilterPipe &pipe)
 
 void VpResourceManager::OnNewFrameProcessEnd()
 {
+    VP_FUNC_CALL();
     m_allocator.CleanRecycler();
     m_currentPipeIndex = 0;
     CleanTempSurfaces();
@@ -320,6 +322,7 @@ void VpResourceManager::OnNewFrameProcessEnd()
 
 void VpResourceManager::InitSurfaceConfigMap()
 {
+    VP_FUNC_CALL();
     ///*             _b64DI
     //               |      _sfcEnable
     //               |      |      _sameSample
@@ -342,6 +345,8 @@ void VpResourceManager::InitSurfaceConfigMap()
 
 uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight)
 {
+    VP_FUNC_CALL();
+
     // Allocate Rgb Histogram surface----------------------------------------------
     // Size of RGB histograms, 1 set for each slice. For single slice, other set will be 0
     uint32_t dwSize = VP_VEBOX_RGB_HISTOGRAM_SIZE;
@@ -355,6 +360,8 @@ uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint3
 
 MOS_STATUS VpResourceManager::GetResourceHint(std::vector<FeatureType> &featurePool, SwFilterPipe& executedFilters, RESOURCE_ASSIGNMENT_HINT &hint)
 {
+    VP_FUNC_CALL();
+
     uint32_t    index      = 0;
     SwFilterSubPipe *inputPipe = executedFilters.GetSwFilterPrimaryPipe(index);
 
@@ -388,6 +395,8 @@ struct VP_SURFACE_PARAMS
 
 MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceParams(VP_SURFACE_PARAMS &params, SwFilterPipe &executedFilters)
 {
+    VP_FUNC_CALL();
+
     SwFilterCsc *csc = dynamic_cast<SwFilterCsc *>(executedFilters.GetSwFilter(true, 0, FeatureType::FeatureTypeCsc));
     SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(executedFilters.GetSwFilter(true, 0, FeatureType::FeatureTypeScaling));
     SwFilterRotMir *rotMir = dynamic_cast<SwFilterRotMir *>(executedFilters.GetSwFilter(true, 0, FeatureType::FeatureTypeRotMir));
@@ -451,6 +460,8 @@ MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceParams(VP_SURFACE_PARAMS
 
 MOS_STATUS VpResourceManager::AssignIntermediaSurface(SwFilterPipe &executedFilters)
 {
+    VP_FUNC_CALL();
+
     VP_SURFACE* outputSurface = executedFilters.GetSurface(false, 0);
     if (outputSurface)
     {
@@ -574,6 +585,8 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
 MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface,
     VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
 {
+    VP_FUNC_CALL();
+
     surfSetting.Clean();
 
     if (caps.bVebox || caps.bDnKernelUpdate)
@@ -593,6 +606,8 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SU
 MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat,
                                 MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType)
 {
+    VP_FUNC_CALL();
+
     // Vebox Chroma Co-Sited downsampleing is part of VEO. It only affects format of vebox output surface, but not
     // affect sfc input format, that's why different logic between GetSfcInputFormat and GetVeboxOutputParams.
     // Check DI first and downsampling to NV12 if possible to save bandwidth no matter IECP enabled or not.
@@ -633,6 +648,8 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
 
 MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput)
 {
+    VP_FUNC_CALL();
+
     // Vebox Chroma Co-Sited downsampling is part of VEO. It only affects format of vebox output surface, but not
     // affect sfc input format, that's why different logic between GetSfcInputFormat and GetVeboxOutputParams.
     // Check IECP first here, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
@@ -665,6 +682,8 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
 
 MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface,  bool &allocated)
 {
+    VP_FUNC_CALL();
+
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
@@ -748,6 +767,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
 
 MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated)
 {
+    VP_FUNC_CALL();
+
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
@@ -880,6 +901,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
 //!
 MOS_STATUS VpResourceManager::VeboxInitSTMMHistory(MOS_SURFACE *stmmSurface)
 {
+    VP_FUNC_CALL();
+
     uint32_t            dwSize = 0;
     int32_t             x = 0, y = 0;
     uint8_t*            pByte = nullptr;
@@ -920,6 +943,8 @@ MOS_STATUS VpResourceManager::VeboxInitSTMMHistory(MOS_SURFACE *stmmSurface)
 // Allocate STMM (Spatial-Temporal Motion Measure) Surfaces
 MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated)
 {
+    VP_FUNC_CALL();
+
     MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
     bool                            bSurfCompressible   = false;
     uint32_t                        i                   = 0;
@@ -973,6 +998,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
 
 void VpResourceManager::DestoryVeboxOutputSurface()
 {
+    VP_FUNC_CALL();
+
     for (uint32_t i = 0; i < VP_MAX_NUM_VEBOX_SURFACES; i++)
     {
         m_allocator.DestroyVpSurface(m_veboxOutput[i], IsDeferredResourceDestroyNeeded());
@@ -981,6 +1008,8 @@ void VpResourceManager::DestoryVeboxOutputSurface()
 
 void VpResourceManager::DestoryVeboxDenoiseOutputSurface()
 {
+    VP_FUNC_CALL();
+
     for (uint32_t i = 0; i < VP_NUM_DN_SURFACES; i++)
     {
         m_allocator.DestroyVpSurface(m_veboxDenoiseOutput[i], IsDeferredResourceDestroyNeeded());
@@ -989,6 +1018,8 @@ void VpResourceManager::DestoryVeboxDenoiseOutputSurface()
 
 void VpResourceManager::DestoryVeboxSTMMSurface()
 {
+    VP_FUNC_CALL();
+
     // Free DI history buffers (STMM = Spatial-temporal motion measure)
     for (uint32_t i = 0; i < VP_NUM_STMM_SURFACES; i++)
     {
@@ -998,11 +1029,15 @@ void VpResourceManager::DestoryVeboxSTMMSurface()
 
 uint32_t VpResourceManager::Get3DLutSize()
 {
+    VP_FUNC_CALL();
+
     return VP_VEBOX_HDR_3DLUT65;
 }
 
 Mos_MemPool VpResourceManager::GetHistStatMemType()
 {
+    VP_FUNC_CALL();
+
     return MOS_MEMPOOL_VIDEOMEMORY;
 }
 
@@ -1224,6 +1259,8 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
 
 MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_ID &surfaceId, SurfaceType surfaceType, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, VP_SURFACE_GROUP &surfGroup)
 {
+    VP_FUNC_CALL();
+
     switch (surfaceId)
     {
     case VEBOX_SURFACE_INPUT:
@@ -1372,6 +1409,8 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
 
 bool VpResourceManager::IsOutputSurfaceNeeded(VP_EXECUTE_CAPS caps)
 {
+    VP_FUNC_CALL();
+
     // check whether intermedia surface needed to create based on caps
     if (caps.bDnKernelUpdate ||  // State Heap as putput, but it was not tracked in resource manager yet
         caps.bVeboxSecureCopy)   // State Heap as putput, but it was not tracked in resource manager yet
@@ -1386,6 +1425,8 @@ bool VpResourceManager::IsOutputSurfaceNeeded(VP_EXECUTE_CAPS caps)
 
 VP_SURFACE* VpResourceManager::GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *outputSurface)
 {
+    VP_FUNC_CALL();
+
     if (caps.bRender)
     {
         // Place Holder when enable DI
@@ -1434,6 +1475,8 @@ MOS_STATUS VpResourceManager::InitVeboxSpatialAttributesConfiguration()
 
 bool VpResourceManager::VeboxOutputNeeded(VP_EXECUTE_CAPS& caps)
 {
+    VP_FUNC_CALL();
+
     // If DN and/or Hotpixel are the only functions enabled then the only output is the Denoised Output
     // and no need vebox output.
     // For any other vebox features being enabled, vebox output surface is needed.
@@ -1453,11 +1496,15 @@ bool VpResourceManager::VeboxOutputNeeded(VP_EXECUTE_CAPS& caps)
 
 bool VpResourceManager::VeboxDenoiseOutputNeeded(VP_EXECUTE_CAPS& caps)
 {
+    VP_FUNC_CALL();
+
     return caps.bDN;
 }
 
 bool VpResourceManager::VeboxHdr3DlutNeeded(VP_EXECUTE_CAPS &caps)
 {
+    VP_FUNC_CALL();
+
     return caps.bHDR3DLUT;
 }
 
@@ -1467,6 +1514,8 @@ bool VpResourceManager::VeboxHdr3DlutNeeded(VP_EXECUTE_CAPS &caps)
 // If queryAssignment == false, query whether STMM needed to be allocated.
 bool VpResourceManager::VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps, bool queryAssignment)
 {
+    VP_FUNC_CALL();
+
     if (queryAssignment)
     {
         return caps.bDI || caps.bDN;

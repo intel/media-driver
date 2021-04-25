@@ -55,6 +55,8 @@ VPMediaMemComp::VPMediaMemComp(
 
 MOS_STATUS VPMediaMemComp::DecompressVPResource(PVPHAL_SURFACE surface)
 {
+    VP_FUNC_CALL();
+
     if (surface)
     {
         return DecompressResource(&surface->OsResource);

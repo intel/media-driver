@@ -48,6 +48,8 @@ VpPipelineG12Adapter::~VpPipelineG12Adapter()
 
 MOS_STATUS VpPipelineG12Adapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS eStatus = VpPipelineAdapter::Render(pcRenderParams);
 
     if (eStatus == MOS_STATUS_SUCCESS)
@@ -63,6 +65,8 @@ MOS_STATUS VpPipelineG12Adapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
 MOS_STATUS VpPipelineG12Adapter::Allocate(
     const VphalSettings     *pVpHalSettings)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS status = VphalStateG12Tgllp::Allocate(pVpHalSettings);
     if (MOS_FAILED(status))
     {
@@ -75,11 +79,15 @@ MOS_STATUS VpPipelineG12Adapter::GetStatusReport(
     PQUERY_STATUS_REPORT_APP  pQueryReport,
     uint16_t                  numStatus)
 {
+    VP_FUNC_CALL();
+
     return VphalStateG12Tgllp::GetStatusReport(pQueryReport, numStatus);
 }
 
 VphalFeatureReport* VpPipelineG12Adapter::GetRenderFeatureReport()
 {
+    VP_FUNC_CALL();
+
     if (m_bApgEnabled)
     {
         return m_vpPipeline == nullptr ? nullptr : m_vpPipeline->GetFeatureReport();

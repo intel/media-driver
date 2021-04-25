@@ -113,6 +113,8 @@ MOS_STATUS VpSteFilter::CalculateEngineParams()
 /****************************************************************************************************/
 HwFilterParameter *HwFilterSteParameter::Create(HW_FILTER_STE_PARAM &param, FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     HwFilterSteParameter *p = MOS_New(HwFilterSteParameter, featureType);
     if (p)
     {
@@ -135,11 +137,15 @@ HwFilterSteParameter::~HwFilterSteParameter()
 
 MOS_STATUS HwFilterSteParameter::ConfigParams(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterSteParameter::Initialize(HW_FILTER_STE_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
@@ -149,6 +155,8 @@ MOS_STATUS HwFilterSteParameter::Initialize(HW_FILTER_STE_PARAM &param)
 /****************************************************************************************************/
 VpPacketParameter *VpVeboxSteParameter::Create(HW_FILTER_STE_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -174,6 +182,8 @@ VpVeboxSteParameter::~VpVeboxSteParameter() {}
 
 bool VpVeboxSteParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
+    VP_FUNC_CALL();
+
     VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
     if (nullptr == pVeboxPacket)
     {
@@ -190,6 +200,8 @@ bool VpVeboxSteParameter::SetPacketParam(VpCmdPacket *pPacket)
 
 MOS_STATUS VpVeboxSteParameter::Initialize(HW_FILTER_STE_PARAM &params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_steFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_steFilter.SetExecuteEngineCaps(params.steParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_steFilter.CalculateEngineParams());
@@ -209,11 +221,16 @@ PolicyVeboxSteHandler::~PolicyVeboxSteHandler()
 
 bool PolicyVeboxSteHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return vpExecuteCaps.bSTE;
 }
 
 HwFilterParameter* PolicyVeboxSteHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+
+    VP_FUNC_CALL();
+
     if (IsFeatureEnabled(vpExecuteCaps))
     {
         if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())

@@ -118,6 +118,8 @@ MOS_STATUS VpTccFilter::CalculateEngineParams()
 /****************************************************************************************************/
 HwFilterParameter *HwFilterTccParameter::Create(HW_FILTER_TCC_PARAM &param, FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     HwFilterTccParameter *p = MOS_New(HwFilterTccParameter, featureType);
     if (p)
     {
@@ -140,11 +142,15 @@ HwFilterTccParameter::~HwFilterTccParameter()
 
 MOS_STATUS HwFilterTccParameter::ConfigParams(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterTccParameter::Initialize(HW_FILTER_TCC_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
@@ -154,6 +160,8 @@ MOS_STATUS HwFilterTccParameter::Initialize(HW_FILTER_TCC_PARAM &param)
 /****************************************************************************************************/
 VpPacketParameter *VpVeboxTccParameter::Create(HW_FILTER_TCC_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -179,6 +187,8 @@ VpVeboxTccParameter::~VpVeboxTccParameter() {}
 
 bool VpVeboxTccParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
+    VP_FUNC_CALL();
+
     VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
     if (nullptr == pVeboxPacket)
     {
@@ -195,6 +205,8 @@ bool VpVeboxTccParameter::SetPacketParam(VpCmdPacket *pPacket)
 
 MOS_STATUS VpVeboxTccParameter::Initialize(HW_FILTER_TCC_PARAM &params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_tccFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_tccFilter.SetExecuteEngineCaps(params.tccParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_tccFilter.CalculateEngineParams());
@@ -214,11 +226,15 @@ PolicyVeboxTccHandler::~PolicyVeboxTccHandler()
 
 bool PolicyVeboxTccHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return vpExecuteCaps.bTCC;
 }
 
 HwFilterParameter* PolicyVeboxTccHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     if (IsFeatureEnabled(vpExecuteCaps))
     {
         if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())

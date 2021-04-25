@@ -36,6 +36,8 @@ namespace vp
 {
 static inline RENDERHAL_SURFACE_TYPE InitRenderHalSurfType(VPHAL_SURFACE_TYPE vpSurfType)
 {
+    VP_FUNC_CALL();
+
     switch (vpSurfType)
     {
     case SURF_IN_BACKGROUND:
@@ -315,6 +317,8 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     VP_SURFACE_SETTING &surfSetting,
     VP_EXECUTE_CAPS     packetCaps)
 {
+    VP_FUNC_CALL();
+
     // will remodify when normal render path enabled
     VP_UNUSED(inputSurface);
     VP_UNUSED(outputSurface);
@@ -496,6 +500,8 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
 
 VP_SURFACE *VpRenderCmdPacket::GetSurface(SurfaceType type)
 {
+    VP_FUNC_CALL();
+
     auto        it   = m_surfSetting.surfGroup.find(type);
     VP_SURFACE *surf = (m_surfSetting.surfGroup.end() != it) ? it->second : nullptr;
 
@@ -1634,6 +1640,8 @@ finish:
 
 MOS_STATUS VpRenderCmdPacket::SetDiFmdParams(PRENDER_DI_FMD_PARAMS params)
 {
+    VP_FUNC_CALL();
+
     return MOS_STATUS_SUCCESS;
 }
 

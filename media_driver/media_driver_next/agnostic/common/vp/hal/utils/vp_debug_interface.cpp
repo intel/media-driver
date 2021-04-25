@@ -52,6 +52,8 @@ VpDebugInterface::~VpDebugInterface()
 
 MOS_STATUS VpDebugInterface::Initialize(PMOS_INTERFACE pOsInterface)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     VP_DEBUG_FUNCTION_ENTER;
 
@@ -79,6 +81,8 @@ MOS_STATUS VpDebugInterface::Initialize(PMOS_INTERFACE pOsInterface)
 
 void VpDebugInterface::DumpToXML(PVPHAL_RENDER_PARAMS pRenderParams, uint32_t framecounter)
 {
+    VP_FUNC_CALL();
+
     if (m_surfaceDumper && m_parameterDumper)
     {
         m_parameterDumper->DumpToXML(
@@ -90,6 +94,8 @@ void VpDebugInterface::DumpToXML(PVPHAL_RENDER_PARAMS pRenderParams, uint32_t fr
 
 void VpDebugInterface::SkuWa_DumpToXML(MEDIA_FEATURE_TABLE *skuTable, MEDIA_WA_TABLE *waTable)
 {
+    VP_FUNC_CALL();
+
     if (m_parameterDumper)
     {
         m_parameterDumper->SkuWa_DumpToXML(
@@ -104,6 +110,8 @@ MOS_STATUS VpDebugInterface::DumpVpSurface(
     uint32_t       uiCounter,
     uint32_t       Location)
 {
+    VP_FUNC_CALL();
+
     VP_DEBUG_CHK_NULL_RETURN(m_surfaceDumper)
     return m_surfaceDumper->DumpSurface(
                pSurf,
@@ -118,6 +126,8 @@ MOS_STATUS VpDebugInterface::DumpVpSurface(
     uint32_t       uiCounter,
     uint32_t       Location)
 {
+    VP_FUNC_CALL();
+
     VP_DEBUG_CHK_NULL_RETURN(m_surfaceDumper)
     return m_surfaceDumper->DumpSurface(
                pSurf,
@@ -133,6 +143,8 @@ MOS_STATUS VpDebugInterface::DumpVpSurfaceArray(
     uint32_t                        uiFrameNumber,
     uint32_t                        Location)
 {
+    VP_FUNC_CALL();
+
     VP_DEBUG_CHK_NULL_RETURN(m_surfaceDumper)
     return m_surfaceDumper->DumpSurfaceArray(
                ppSurfaces,
@@ -144,11 +156,15 @@ MOS_STATUS VpDebugInterface::DumpVpSurfaceArray(
 
 MOS_USER_FEATURE_VALUE_ID VpDebugInterface::SetOutputPathKey()
 {
+    VP_FUNC_CALL();
+
     return __VPHAL_DBG_SURF_DUMP_OUTFILE_KEY_NAME_ID;
 }
 
 MOS_USER_FEATURE_VALUE_ID VpDebugInterface::InitDefaultOutput()
 {
+    VP_FUNC_CALL();
+
     m_outputFilePath.append(MEDIA_DEBUG_VPHAL_DUMP_OUTPUT_FOLDER);
     return SetOutputPathKey();
 }

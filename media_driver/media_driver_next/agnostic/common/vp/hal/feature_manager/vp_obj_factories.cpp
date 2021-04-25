@@ -44,6 +44,8 @@ HwFilterPipeFactory::~HwFilterPipeFactory()
 MOS_STATUS HwFilterPipeFactory::Create(SwFilterPipe &swfilterPipe,
     Policy &policy, HwFilterPipe *&pHwFilterPipe)
 {
+    VP_FUNC_CALL();
+
     pHwFilterPipe = m_allocator.Create();
 
     VP_PUBLIC_CHK_NULL_RETURN(pHwFilterPipe);
@@ -57,6 +59,8 @@ MOS_STATUS HwFilterPipeFactory::Create(SwFilterPipe &swfilterPipe,
 
 MOS_STATUS HwFilterPipeFactory::Destory(HwFilterPipe *&pHwfilterPipe)
 {
+    VP_FUNC_CALL();
+
     return m_allocator.Destory(pHwfilterPipe);
 }
 
@@ -74,6 +78,8 @@ HwFilterFactory::~HwFilterFactory()
 
 HwFilter *HwFilterFactory::Create(HW_FILTER_PARAMS &param)
 {
+    VP_FUNC_CALL();
+
     HwFilter *p = nullptr;
     switch (param.Type)
     {
@@ -103,6 +109,8 @@ HwFilter *HwFilterFactory::Create(HW_FILTER_PARAMS &param)
 
 void HwFilterFactory::Destory(HwFilter *&pHwFilter)
 {
+    VP_FUNC_CALL();
+
     if (pHwFilter)
     {
         switch (pHwFilter->GetEngineType())
@@ -176,6 +184,8 @@ SwFilterPipeFactory::~SwFilterPipeFactory()
 
 int SwFilterPipeFactory::GetPipeCountForProcessing(VP_PIPELINE_PARAMS &params)
 {
+    VP_FUNC_CALL();
+
     int pipeCnt = 1;
     int featureCnt = 0;
     auto featureHander = *m_vpInterface.GetSwFilterHandlerMap();
@@ -198,6 +208,8 @@ int SwFilterPipeFactory::GetPipeCountForProcessing(VP_PIPELINE_PARAMS &params)
 
 MOS_STATUS SwFilterPipeFactory::Update(VP_PIPELINE_PARAMS &params, int index)
 {
+    VP_FUNC_CALL();
+
     auto featureHander = *m_vpInterface.GetSwFilterHandlerMap();
     for (auto &handler : featureHander)
     {
@@ -208,6 +220,8 @@ MOS_STATUS SwFilterPipeFactory::Update(VP_PIPELINE_PARAMS &params, int index)
 
 MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<SwFilterPipe*> &swFilterPipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(params);
     int pipeCnt = GetPipeCountForProcessing(*params);
     if (pipeCnt == 0)
@@ -240,6 +254,8 @@ MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<S
 
 MOS_STATUS SwFilterPipeFactory::Create(VEBOX_SFC_PARAMS *params, std::vector<SwFilterPipe*> &swFilterPipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(params);
     SwFilterPipe *pipe = m_allocator.Create();
     VP_PUBLIC_CHK_NULL_RETURN(pipe);
@@ -258,6 +274,8 @@ MOS_STATUS SwFilterPipeFactory::Create(VEBOX_SFC_PARAMS *params, std::vector<SwF
 
 MOS_STATUS SwFilterPipeFactory::Create(SwFilterPipe *&swFilterPipe)
 {
+    VP_FUNC_CALL();
+
     swFilterPipe = m_allocator.Create();
     VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
 
@@ -266,5 +284,7 @@ MOS_STATUS SwFilterPipeFactory::Create(SwFilterPipe *&swFilterPipe)
 
 void SwFilterPipeFactory::Destory(SwFilterPipe *&swFilterPipe)
 {
+    VP_FUNC_CALL();
+
     m_allocator.Destory(swFilterPipe);
 }

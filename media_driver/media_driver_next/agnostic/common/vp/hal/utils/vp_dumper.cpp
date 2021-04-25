@@ -32,6 +32,7 @@
 #include "mos_os.h"
 #include "vp_dumper.h"
 #include "mos_context_next.h"
+#include "vp_utils.h"
 
 #define ALLOC_GRANULARITY                           5000000
 
@@ -66,6 +67,8 @@ void VpDumperTool::GetOsFilePath(
     const char* pcFilePath,
     char*       pOsFilePath)
 {
+    VP_FUNC_CALL();
+
     MOS_SecureMemcpy(pOsFilePath, MAX_PATH, (void*)pcFilePath, strlen(pcFilePath));
 }
 
@@ -77,6 +80,8 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     bool                              auxEnable,
     bool                              isDeswizzled)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS      eStatus;
     uint32_t        i;
     bool            PaddingEnable = false;
@@ -457,6 +462,8 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     bool                              auxEnable,
     bool                              isDeswizzled)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS      eStatus;
     uint32_t        i;
     bool            PaddingEnable = false;
@@ -826,6 +833,8 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
 bool VpSurfaceDumper::HasAuxSurf(
     PMOS_RESOURCE    osResource)
 {
+    VP_FUNC_CALL();
+
     bool    hasAuxSurf = false;
 #if !EMUL
     GMM_RESOURCE_FLAG                   gmmFlags;
@@ -846,6 +855,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     bool                    bNoDecompWhenLock,
     uint8_t*                pData)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                          eStatus;
     bool                                isSurfaceLocked;
     char                                sPath[MAX_PATH], sOsPath[MAX_PATH];
@@ -1178,6 +1189,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     bool                    bNoDecompWhenLock,
     uint8_t*                pData)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                          eStatus;
     bool                                isSurfaceLocked;
     char                                sPath[MAX_PATH], sOsPath[MAX_PATH];
@@ -1370,6 +1383,8 @@ finish:
 char* VpSurfaceDumper::WhitespaceTrim(
     char*   ptr)
 {
+    VP_FUNC_CALL();
+
     char*    pcTemp;                             // pointer to temp string to remove spces
 
     VPHAL_DEBUG_ASSERT(ptr);
@@ -1400,6 +1415,8 @@ finish:
 void VpDumperTool::StringToLower(
     char* pcString)
 {
+    VP_FUNC_CALL();
+
     size_t stStrLen;                                                           // length of string
     size_t i;                                                                  // loop iterator
 
@@ -1417,6 +1434,8 @@ MOS_STATUS VpSurfaceDumper::LocStringToEnum(
     char*                           pcLocString,
     uint32_t                        *pLocation)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS eStatus;
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -1477,6 +1496,8 @@ MOS_STATUS VpSurfaceDumper::EnumToLocString(
     uint32_t                        Location,
     char*                           pcLocString)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS  eStatus;
     uint32_t    i;
     size_t      stStrLen;
@@ -1545,6 +1566,8 @@ MOS_STATUS VpSurfaceDumper::SurfTypeStringToEnum(
     char*                         pcSurfType,
     VPHAL_SURFACE_TYPE            *pSurfType)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS eStatus;
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -1584,6 +1607,8 @@ finish:
 MOS_STATUS VpSurfaceDumper::ProcessDumpLocations(
     char*                      pcDumpLocData)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS  eStatus;
     char*       pcCommaLoc;                                                        // pointer to next comma in dump location string
     char*       pcCurrToken;                                                       // pointer to current token in a string
@@ -1658,6 +1683,8 @@ finish:
 
 void VpSurfaceDumper::GetSurfaceDumpSpec()
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     bool                            bDumpEnabled;
@@ -1805,6 +1832,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
     uint32_t                        uiCounter,
     uint32_t                        Location)
 {
+    VP_FUNC_CALL();
+
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
     int32_t VphalSurfDumpManualTrigger = VPHAL_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET;
 
@@ -1980,6 +2009,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
     uint32_t                        uiCounter,
     uint32_t                        Location)
 {
+    VP_FUNC_CALL();
+
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
     int32_t VphalSurfDumpManualTrigger = VPHAL_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET;
 
@@ -2156,6 +2187,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceArray(
     uint32_t                        uiFrameNumber,
     uint32_t                        Location)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS      eStatus;
     uint32_t        uiIndex;
     uint32_t        uiLayer;
@@ -2190,6 +2223,8 @@ finish:
 
 void VpParameterDumper::GetParametersDumpSpec()
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
     MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
     bool                            bDumpEnabled;
@@ -2299,6 +2334,8 @@ MOS_STATUS VpParameterDumper::DumpSourceSurface(
     uint32_t                        index,
     char*                           &pcOutContents)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                      eStatus;
     char                            sSurfaceFilePath[MAX_PATH] = { 0 }, sOsSurfaceFilePath[MAX_PATH] = { 0 };
 
@@ -2512,6 +2549,8 @@ MOS_STATUS VpParameterDumper::DumpTargetSurface(
     uint32_t                        index,
     char*                           &pcOutContents)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                      eStatus;
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -2543,6 +2582,8 @@ MOS_STATUS VpParameterDumper::DumpRenderParameter(
     PVPHAL_RENDER_PARAMS            pRenderParams,
     char*                           &pcOutContents)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS                      eStatus;
 
     eStatus = MOS_STATUS_SUCCESS;
@@ -2581,6 +2622,8 @@ MOS_STATUS VpParameterDumper::DumpToXML(
     char                            *pcOutputPath,
     PVPHAL_RENDER_PARAMS            pRenderParams)
 {
+    VP_FUNC_CALL();
+
     char                            sPath[MAX_PATH] = { 0 }, sOsPath[MAX_PATH] = { 0 };
     MOS_STATUS                      eStatus;
     char*                           pcOutContents;
@@ -2677,6 +2720,8 @@ VpParameterDumper::~VpParameterDumper()
 
 const char * VpDumperTool::GetFormatStr(MOS_FORMAT format)
 {
+    VP_FUNC_CALL();
+
     switch (format)
     {
         case Format_A8R8G8B8    : return _T("argb");
@@ -2755,6 +2800,8 @@ MOS_STATUS VpDumperTool::GetSurfaceSize(
     uint32_t*               piWidthInBytes,
     uint32_t*               piHeightInRows)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS  eStatus;
     uint32_t    iWidthInBytes;
     uint32_t    iHeightInRows;
@@ -3100,6 +3147,8 @@ MOS_STATUS VpDumperTool::AppendString(
     PCCHAR pcToAppendFmt,
     ...)
 {
+    VP_FUNC_CALL();
+
     static size_t stTotalStrLen = 0;
     static size_t stTotalAlloc  = 0;
 
@@ -3176,6 +3225,8 @@ void VpDumperTool::WriteFrame(
     PCCHAR                  fileName,
     uint64_t                iCounter)
 {
+    VP_FUNC_CALL();
+
     uint8_t*                pData;
     char                    sPath[MAX_PATH];
     char                    sOsPath[MAX_PATH];
@@ -3267,6 +3318,8 @@ void VpDumperTool::WriteFrame(
 
 const char * VpParameterDumper::GetComponentStr(MOS_COMPONENT component)
 {
+    VP_FUNC_CALL();
+
     switch (component)
     {
     case COMPONENT_UNKNOWN:         return _T("COMPONENT_UNKNOWN");
@@ -3284,6 +3337,8 @@ const char * VpParameterDumper::GetComponentStr(MOS_COMPONENT component)
 
 const char * VpParameterDumper::GetWholeFormatStr(MOS_FORMAT format)
 {
+    VP_FUNC_CALL();
+
     switch (format)
     {
     case Format_Invalid:            return _T("Format_Invalid");
@@ -3399,6 +3454,8 @@ const char * VpParameterDumper::GetWholeFormatStr(MOS_FORMAT format)
 
 const char * VpParameterDumper::GetTileTypeStr(MOS_TILE_TYPE tile_type)
 {
+    VP_FUNC_CALL();
+
     switch (tile_type)
     {
     case MOS_TILE_X:            return _T("MOS_TILE_X");
@@ -3413,6 +3470,8 @@ const char * VpParameterDumper::GetTileTypeStr(MOS_TILE_TYPE tile_type)
 
 const char * VpParameterDumper::GetSurfaceTypeStr(VPHAL_SURFACE_TYPE surface_type)
 {
+    VP_FUNC_CALL();
+
     switch (surface_type)
     {
     case SURF_NONE:             return _T("SURF_NONE");
@@ -3430,6 +3489,8 @@ const char * VpParameterDumper::GetSurfaceTypeStr(VPHAL_SURFACE_TYPE surface_typ
 
 const char * VpParameterDumper::GetSampleTypeStr(VPHAL_SAMPLE_TYPE sample_type)
 {
+    VP_FUNC_CALL();
+
     switch (sample_type)
     {
     case SAMPLE_PROGRESSIVE:                                 return _T("SAMPLE_PROGRESSIVE");
@@ -3448,6 +3509,8 @@ const char * VpParameterDumper::GetSampleTypeStr(VPHAL_SAMPLE_TYPE sample_type)
 
 const char * VpParameterDumper::GetColorSpaceStr(VPHAL_CSPACE color_space)
 {
+    VP_FUNC_CALL();
+
     switch (color_space)
     {
     case CSpace_None:                      return _T("CSpace_None");
@@ -3479,6 +3542,8 @@ const char * VpParameterDumper::GetColorSpaceStr(VPHAL_CSPACE color_space)
 
 const char * VpParameterDumper::GetBlendTypeStr(VPHAL_BLEND_TYPE blend_type)
 {
+    VP_FUNC_CALL();
+
     switch (blend_type)
     {
     case BLEND_NONE:               return _T("BLEND_NONE");
@@ -3495,6 +3560,8 @@ const char * VpParameterDumper::GetBlendTypeStr(VPHAL_BLEND_TYPE blend_type)
 
 const char * VpParameterDumper::GetPaletteTypeStr(VPHAL_PALETTE_TYPE palette_type)
 {
+    VP_FUNC_CALL();
+
     switch (palette_type)
     {
     case VPHAL_PALETTE_NONE:          return _T("VPHAL_PALETTE_NONE");
@@ -3509,6 +3576,8 @@ const char * VpParameterDumper::GetPaletteTypeStr(VPHAL_PALETTE_TYPE palette_typ
 
 const char * VpParameterDumper::GetScalingModeStr(VPHAL_SCALING_MODE scaling_mode)
 {
+    VP_FUNC_CALL();
+
     switch (scaling_mode)
     {
     case VPHAL_SCALING_NEAREST:         return _T("VPHAL_SCALING_NEAREST");
@@ -3522,6 +3591,8 @@ const char * VpParameterDumper::GetScalingModeStr(VPHAL_SCALING_MODE scaling_mod
 
 const char * VpParameterDumper::GetRotationModeStr(VPHAL_ROTATION rotation_mode)
 {
+    VP_FUNC_CALL();
+
     switch (rotation_mode)
     {
     case VPHAL_ROTATION_IDENTITY:               return _T("VPHAL_ROTATION_IDENTITY");
@@ -3541,6 +3612,8 @@ const char * VpParameterDumper::GetRotationModeStr(VPHAL_ROTATION rotation_mode)
 
 const char * VpParameterDumper::GetDIModeStr(VPHAL_DI_MODE di_mode)
 {
+    VP_FUNC_CALL();
+
     switch (di_mode)
     {
     case DI_MODE_BOB:         return _T("DI_MODE_BOB");
@@ -3553,6 +3626,8 @@ const char * VpParameterDumper::GetDIModeStr(VPHAL_DI_MODE di_mode)
 
 const char * VpParameterDumper::GetDenoiseModeStr(VPHAL_NOISELEVEL noise_level)
 {
+    VP_FUNC_CALL();
+
     switch (noise_level)
     {
     case NOISELEVEL_DEFAULT:         return _T("NOISELEVEL_DEFAULT");

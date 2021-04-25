@@ -56,6 +56,8 @@ MOS_STATUS VpScalingFilter::Init(
     CODECHAL_STANDARD           codecStandard,
     CodecDecodeJpegChromaType   jpegChromaType)
 {
+    VP_FUNC_CALL();
+
     m_bVdbox            = true;
     m_codecStandard     = codecStandard;
     m_jpegChromaType    = jpegChromaType;
@@ -121,6 +123,8 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     uint16_t & widthAlignUnit,
     uint16_t & heightAlignUnit)
 {
+    VP_FUNC_CALL();
+
     widthAlignUnit = 1;
     heightAlignUnit = 1;
 
@@ -145,6 +149,8 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
 
 MOS_STATUS VpScalingFilter::IsColorfillEnable()
 {
+    VP_FUNC_CALL();
+
     m_bColorfillEnable = (m_scalingParams.pColorFillParams &&
         (!RECT1_CONTAINS_RECT2(m_scalingParams.input.rcDst, m_scalingParams.output.rcDst))) ?
         true : false;
@@ -154,6 +160,8 @@ MOS_STATUS VpScalingFilter::IsColorfillEnable()
 
 MOS_STATUS VpScalingFilter::SetColorFillParams()
 {
+    VP_FUNC_CALL();
+
     VPHAL_COLOR_SAMPLE_8        Src = {};
     VPHAL_CSPACE                src_cspace, dst_cspace;
 
@@ -202,6 +210,8 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
 
 MOS_STATUS VpScalingFilter::SetYUVRGBPixel()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcScalingParams);
 
     if (IS_YUV_FORMAT(m_scalingParams.formatOutput) || IS_ALPHA_YUV_FORMAT(m_scalingParams.formatOutput))
@@ -232,6 +242,8 @@ MOS_STATUS VpScalingFilter::SetYUVRGBPixel()
 
 MOS_STATUS VpScalingFilter::SetAlphaPixelParams()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcScalingParams);
     VP_PUBLIC_CHK_NULL_RETURN(m_scalingParams.pCompAlpha);
 
@@ -272,6 +284,8 @@ MOS_STATUS VpScalingFilter::SetAlphaPixelParams()
 
 MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(bool isOutputSurf, uint32_t &width, uint32_t &height, RECT &rcSrc, RECT &rcDst)
 {
+    VP_FUNC_CALL();
+
     uint16_t   wWidthAlignUnit            = 0;
     uint16_t   wHeightAlignUnit           = 0;
     uint16_t   wWidthAlignUnitForDstRect  = 0;
@@ -349,6 +363,8 @@ MOS_STATUS VpScalingFilter::SetExecuteEngineCaps(
 
 MOS_STATUS VpScalingFilter::CalculateEngineParams()
 {
+    VP_FUNC_CALL();
+
     VP_RENDER_CHK_STATUS_RETURN(IsColorfillEnable());
 
     if (m_executeCaps.bSFC)
@@ -511,6 +527,8 @@ MOS_STATUS VpScalingFilter::Destroy()
 /****************************************************************************************************/
  HwFilterParameter *HwFilterScalingParameter::Create(HW_FILTER_SCALING_PARAM &param, FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     HwFilterScalingParameter *p = MOS_New(HwFilterScalingParameter, featureType);
     if (p)
     {
@@ -533,11 +551,15 @@ HwFilterScalingParameter::~HwFilterScalingParameter()
 
 MOS_STATUS HwFilterScalingParameter::ConfigParams(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterScalingParameter::Initialize(HW_FILTER_SCALING_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
@@ -547,6 +569,8 @@ MOS_STATUS HwFilterScalingParameter::Initialize(HW_FILTER_SCALING_PARAM &param)
 /****************************************************************************************************/
 VpPacketParameter *VpSfcScalingParameter::Create(HW_FILTER_SCALING_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -575,6 +599,8 @@ VpSfcScalingParameter::~VpSfcScalingParameter()
 
 bool VpSfcScalingParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
+    VP_FUNC_CALL();
+
     VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
     if (nullptr == pVeboxPacket)
     {
@@ -591,6 +617,8 @@ bool VpSfcScalingParameter::SetPacketParam(VpCmdPacket *pPacket)
 
 MOS_STATUS VpSfcScalingParameter::Initialize(HW_FILTER_SCALING_PARAM &params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.SetExecuteEngineCaps(params.scalingParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_ScalingFilter.CalculateEngineParams());
@@ -609,11 +637,15 @@ PolicySfcScalingHandler::~PolicySfcScalingHandler()
 
 bool PolicySfcScalingHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return vpExecuteCaps.bSfcScaling;
 }
 
 HwFilterParameter *PolicySfcScalingHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     if (IsFeatureEnabled(vpExecuteCaps))
     {
         if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())
@@ -664,6 +696,8 @@ HwFilterParameter *PolicySfcScalingHandler::CreateHwFilterParam(VP_EXECUTE_CAPS 
 
 uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded)
 {
+    VP_FUNC_CALL();
+
     if (!is2PassNeeded)
     {
         bool scalingIn1stPass = input >= output ?
@@ -690,6 +724,8 @@ uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t 
 
 MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
+    VP_FUNC_CALL();
+
     SwFilterScaling *featureScaling = dynamic_cast<SwFilterScaling *>(&feature);
     VP_PUBLIC_CHK_NULL_RETURN(featureScaling);
 

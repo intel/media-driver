@@ -213,6 +213,8 @@ VpVeboxCmdPacketG12::~VpVeboxCmdPacketG12()
 void VpVeboxCmdPacketG12::GetLumaDefaultValue(
     PVP_SAMPLER_STATE_DN_PARAM pLumaParams)
 {
+    VP_FUNC_CALL();
+
     VP_RENDER_ASSERT(pLumaParams);
 
     pLumaParams->dwDenoiseASDThreshold   = NOISE_ABSSUMTEMPORALDIFF_THRESHOLD_DEFAULT_G12;
@@ -227,6 +229,8 @@ void VpVeboxCmdPacketG12::GetLumaDefaultValue(
 
 MOS_STATUS VpVeboxCmdPacketG12::GetDnLumaParams(bool bDnEnabled, bool bAutoDetect, float fDnFactor, bool bRefValid, PVP_SAMPLER_STATE_DN_PARAM pLumaParams)
 {
+    VP_FUNC_CALL();
+
     VpVeboxRenderData *pRenderData = GetLastExecRenderData();
 
     VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
@@ -271,6 +275,8 @@ MOS_STATUS VpVeboxCmdPacketG12::GetDnLumaParams(bool bDnEnabled, bool bAutoDetec
 
 MOS_STATUS VpVeboxCmdPacketG12::GetDnChromaParams(bool bChromaDenoise, bool bAutoDetect, float fDnFactor, PVPHAL_DNUV_PARAMS pChromaParams)
 {
+    VP_FUNC_CALL();
+
     VpVeboxRenderData *pRenderData = GetLastExecRenderData();
 
     VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
@@ -311,6 +317,8 @@ MOS_STATUS VpVeboxCmdPacketG12::GetDnChromaParams(bool bChromaDenoise, bool bAut
 
 MOS_STATUS VpVeboxCmdPacketG12::ConfigLumaPixRange(bool bDnEnabled, bool bAutoDetect, float fDnFactor)
 {
+    VP_FUNC_CALL();
+
     VpVeboxRenderData *pRenderData = GetLastExecRenderData();
     uint32_t dwDenoiseFactor = (uint32_t)fDnFactor;
     const uint32_t idxDefault = 0, idxMin = 1, idxMid = 2, idxMax = 3;
@@ -366,6 +374,8 @@ MOS_STATUS VpVeboxCmdPacketG12::ConfigLumaPixRange(bool bDnEnabled, bool bAutoDe
 
 MOS_STATUS VpVeboxCmdPacketG12::ConfigChromaPixRange(bool bChromaDenoise, bool bAutoDetect, float fDnFactor)
 {
+    VP_FUNC_CALL();
+
     // Place hold: Add config for chroma pix range.
 
     return MOS_STATUS_SUCCESS;
@@ -385,6 +395,8 @@ MOS_STATUS VpVeboxCmdPacketG12::SetupDiIecpState(
     bool                          bDiScdEnable,
     PMHW_VEBOX_DI_IECP_CMD_PARAMS pVeboxDiIecpCmdParams)
 {
+    VP_FUNC_CALL();
+
     return VpVeboxCmdPacket::SetupDiIecpState(bDiScdEnable, pVeboxDiIecpCmdParams);
 }
 
@@ -444,6 +456,8 @@ MOS_STATUS VpVeboxCmdPacketG12::QueryStatLayout(
     VEBOX_STAT_QUERY_TYPE queryType,
     uint32_t*             pQuery)
 {
+    VP_FUNC_CALL();
+
     VP_RENDER_ASSERT(pQuery);
 
     return m_hwInterface->m_vpPlatformInterface->VeboxQueryStatLayout(queryType, pQuery);

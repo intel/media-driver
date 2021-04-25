@@ -49,6 +49,8 @@ HwFilter::~HwFilter()
 
 MOS_STATUS HwFilter::Initialize(HW_FILTER_PARAMS &param)
 {
+    VP_FUNC_CALL();
+
     bool bRet = true;
 
     Clean();
@@ -70,6 +72,8 @@ MOS_STATUS HwFilter::Initialize(HW_FILTER_PARAMS &param)
 
 MOS_STATUS HwFilter::ConfigParam(HW_FILTER_PARAM& param)
 {
+    VP_FUNC_CALL();
+
     if (!param.pfnCreatePacketParam)
     {
         VP_PUBLIC_ASSERTMESSAGE("Create packet params function is Null, return invalid params");
@@ -84,6 +88,8 @@ MOS_STATUS HwFilter::ConfigParam(HW_FILTER_PARAM& param)
 
 MOS_STATUS HwFilter::Clean()
 {
+    VP_FUNC_CALL();
+
     std::vector<VpPacketParameter *>::iterator it = m_Params.Params.begin();
     for (; it != m_Params.Params.end(); ++it)
     {
@@ -99,6 +105,8 @@ MOS_STATUS HwFilter::Clean()
 
 RenderTargetType HwFilter::GetRenderTargetType()
 {
+    VP_FUNC_CALL();
+
     if (m_swFilterPipe)
     {
         return m_swFilterPipe->GetRenderTargetType();
@@ -127,6 +135,8 @@ HwFilterVebox::~HwFilterVebox()
 
 MOS_STATUS HwFilterVebox::SetPacketParams(VpCmdPacket &packet)
 {
+    VP_FUNC_CALL();
+
     bool bRet = true;
 
     PVPHAL_SURFACE pSrcSurface = nullptr;
@@ -165,6 +175,8 @@ HwFilterVeboxSfc::~HwFilterVeboxSfc()
 
 MOS_STATUS HwFilterVeboxSfc::SetPacketParams(VpCmdPacket &packet)
 {
+    VP_FUNC_CALL();
+
     return HwFilterVebox::SetPacketParams(packet);
 }
 
@@ -180,6 +192,8 @@ HwFilterRender::~HwFilterRender()
 
 MOS_STATUS HwFilterRender::SetPacketParams(VpCmdPacket &packet)
 {
+    VP_FUNC_CALL();
+
     bool bRet = true;
 
     PVPHAL_SURFACE pSrcSurface    = nullptr;

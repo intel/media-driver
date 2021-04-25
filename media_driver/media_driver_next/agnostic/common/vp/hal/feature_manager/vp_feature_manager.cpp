@@ -48,6 +48,8 @@ VpFeatureManagerNext::~VpFeatureManagerNext()
 
 MOS_STATUS VpFeatureManagerNext::Init(void* settings)
 {
+    VP_FUNC_CALL();
+
     if (!m_policy)
     {
         m_policy = MOS_New(Policy, m_vpInterface);
@@ -60,6 +62,8 @@ MOS_STATUS VpFeatureManagerNext::Init(void* settings)
 
 bool VpFeatureManagerNext::IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
 {
+    VP_FUNC_CALL();
+
     if (m_policy)
     {
         return m_policy->IsVeboxSfcFormatSupported(formatInput, formatOutput);
@@ -70,6 +74,8 @@ bool VpFeatureManagerNext::IsVeboxSfcFormatSupported(MOS_FORMAT formatInput, MOS
 
 MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(SwFilterPipe &swFilterPipe, HwFilterPipe *&pHwFilterPipe)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     pHwFilterPipe = nullptr;
 
@@ -84,6 +90,8 @@ MOS_STATUS VpFeatureManagerNext::CreateHwFilterPipe(SwFilterPipe &swFilterPipe, 
 MOS_STATUS VpFeatureManagerNext::InitPacketPipe(SwFilterPipe &swFilterPipe,
                 PacketPipe &packetPipe)
 {
+    VP_FUNC_CALL();
+
     HwFilterPipe *pHwFilterPipe = nullptr;
 
     MOS_STATUS status = CreateHwFilterPipe(swFilterPipe, pHwFilterPipe);
@@ -108,11 +116,15 @@ MOS_STATUS VpFeatureManagerNext::InitPacketPipe(SwFilterPipe &swFilterPipe,
 
 MOS_STATUS VpFeatureManagerNext::UpdateResources(HwFilterPipe &hwFilterPipe)
 {
+    VP_FUNC_CALL();
+
     return hwFilterPipe.UpdateResources();
 }
 
 MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
 {
+    VP_FUNC_CALL();
+
     if (m_isFeatureRegistered)
     {
         return MOS_STATUS_SUCCESS;
@@ -164,6 +176,8 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
 
 MOS_STATUS VpFeatureManagerNext::UnregisterFeatures()
 {
+    VP_FUNC_CALL();
+
     while (!m_featureHandler.empty())
     {
         auto it = m_featureHandler.begin();
@@ -189,6 +203,8 @@ VPFeatureManager::VPFeatureManager(
 
 MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupported)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(params);
 
     PVP_PIPELINE_PARAMS pvpParams = (PVP_PIPELINE_PARAMS)params;
@@ -308,6 +324,8 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
 
 MOS_STATUS VPFeatureManager::CheckFeatures(void * params)
 {
+    VP_FUNC_CALL();
+
     bool bApgFuncSupported = false;
     return CheckFeatures(params, bApgFuncSupported);
 }
@@ -316,6 +334,8 @@ bool VPFeatureManager::IsHdrNeeded(
     PVPHAL_SURFACE              pSrc,
     PVPHAL_SURFACE              pRenderTarget)
 {
+    VP_FUNC_CALL();
+
     if (!pSrc || !pRenderTarget)
     {
         return false;
@@ -377,6 +397,8 @@ bool VPFeatureManager::IsHdrNeeded(
 
 bool VPFeatureManager::Is2PassesCSCNeeded(PVPHAL_SURFACE pSrc, PVPHAL_SURFACE pRenderTarget)
 {
+    VP_FUNC_CALL();
+
     bool bRet = false;
     bool b2PassesCSCNeeded = false;
 
@@ -407,6 +429,8 @@ finish:
 bool VPFeatureManager::IsVeboxOutFeasible(
     PVP_PIPELINE_PARAMS params)
 {
+    VP_FUNC_CALL();
+
     bool    bRet = false;
 
     // Vebox Comp Bypass is on by default
@@ -457,6 +481,8 @@ finish:
 }
 bool VPFeatureManager::IsVeboxInputFormatSupport(PVPHAL_SURFACE pSrcSurface)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == pSrcSurface)
     {
         VP_PUBLIC_ASSERTMESSAGE("nullptr == pSrcSurface");
@@ -491,6 +517,8 @@ bool VPFeatureManager::IsVeboxRTFormatSupport(
     PVPHAL_SURFACE pSrcSurface,
     PVPHAL_SURFACE pRTSurface)
 {
+    VP_FUNC_CALL();
+
     bool bRet = false;
 
     if ((nullptr == pSrcSurface) || (nullptr == pRTSurface))
@@ -529,6 +557,8 @@ bool VPFeatureManager::IsVeboxRTFormatSupport(
 
 bool VPFeatureManager::IsVeboxSupported(PVP_PIPELINE_PARAMS params)
 {
+    VP_FUNC_CALL();
+
     VPHAL_RENDER_CHK_NULL_NO_STATUS(params);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(params->pSrc[0]);
 
@@ -548,6 +578,8 @@ finish:
 
 bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
 {
+    VP_FUNC_CALL();
+
     uint32_t                    dwSfcMaxWidth = 0;
     uint32_t                    dwSfcMaxHeight = 0;
     uint32_t                    dwSfcMinWidth = 0;
@@ -755,6 +787,8 @@ finish:
 
 bool VPFeatureManager::IsOutputFormatSupported(PVPHAL_SURFACE outSurface)
 {
+    VP_FUNC_CALL();
+
     bool ret = true;
 
     if (!IS_RGB32_FORMAT(outSurface->Format) &&
@@ -802,6 +836,8 @@ void VPFeatureManager::GetAlignUnit(
     uint16_t        &wHeightAlignUnit,
     MOS_FORMAT      format)
 {
+    VP_FUNC_CALL();
+
     switch (format)
     {
         case Format_YV12:
@@ -861,6 +897,8 @@ MOS_STATUS VPFeatureManager::RectSurfaceAlignment(
     PVPHAL_SURFACE       pSurface,
     MOS_FORMAT           formatForDstRect)
 {
+    VP_FUNC_CALL();
+
     uint16_t   wWidthAlignUnit;
     uint16_t   wHeightAlignUnit;
     uint16_t   wWidthAlignUnitForDstRect;
@@ -916,6 +954,8 @@ MOS_STATUS VPFeatureManager::RectSurfaceAlignment(
 
 bool VPFeatureManager::IsDiFormatSupported(MOS_FORMAT format)
 {
+    VP_FUNC_CALL();
+
     if (format != Format_AYUV         &&
         format != Format_Y416         &&
         format != Format_Y410         &&
@@ -936,5 +976,7 @@ bool VPFeatureManager::IsDiFormatSupported(MOS_FORMAT format)
 
 bool VPFeatureManager::IsVeboxSurfaceHeightAligned(VPHAL_SURFACE &surf)
 {
+    VP_FUNC_CALL();
+
     return MOS_IS_ALIGNED(MOS_MIN((uint32_t)surf.dwHeight, (uint32_t)surf.rcSrc.bottom), 4);
 }

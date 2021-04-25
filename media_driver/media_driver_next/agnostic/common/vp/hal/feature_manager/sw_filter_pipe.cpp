@@ -48,6 +48,8 @@ SwFilterSubPipe::~SwFilterSubPipe()
 
 MOS_STATUS SwFilterSubPipe::Clean()
 {
+    VP_FUNC_CALL();
+
     for (auto &filterSet : m_OrderedFilters)
     {
         if (filterSet)
@@ -67,6 +69,8 @@ MOS_STATUS SwFilterSubPipe::Clean()
 
 MOS_STATUS SwFilterSubPipe::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf)
 {
+    VP_FUNC_CALL();
+
     for (auto &featureSet : m_OrderedFilters)
     {
         if (featureSet)
@@ -81,6 +85,8 @@ MOS_STATUS SwFilterSubPipe::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
 
 SwFilter *SwFilterSubPipe::GetSwFilter(FeatureType type)
 {
+    VP_FUNC_CALL();
+
     // Search unordered filters firstly.
     SwFilter *swFilter = m_UnorderedFilters.GetSwFilter(type);
 
@@ -103,6 +109,8 @@ SwFilter *SwFilterSubPipe::GetSwFilter(FeatureType type)
 
 MOS_STATUS SwFilterSubPipe::AddSwFilterOrdered(SwFilter *swFilter, bool useNewSwFilterSet)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(swFilter);
 
     MOS_STATUS status = MOS_STATUS_SUCCESS;
@@ -139,6 +147,8 @@ MOS_STATUS SwFilterSubPipe::AddSwFilterOrdered(SwFilter *swFilter, bool useNewSw
 
 MOS_STATUS SwFilterSubPipe::AddSwFilterUnordered(SwFilter *swFilter)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(swFilter);
     return m_UnorderedFilters.AddSwFilter(swFilter);
 }
@@ -159,6 +169,8 @@ SwFilterPipe::~SwFilterPipe()
 
 MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule)
 {
+    VP_FUNC_CALL();
+
     Clean();
 
     uint32_t i = 0;
@@ -240,6 +252,8 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
 
 MOS_STATUS SwFilterPipe::Initialize(VEBOX_SFC_PARAMS &params)
 {
+    VP_FUNC_CALL();
+
     Clean();
 
     // Initialize input surface.
@@ -319,6 +333,8 @@ MOS_STATUS SwFilterPipe::Initialize(VEBOX_SFC_PARAMS &params)
 
 void SwFilterPipe::UpdateSwFilterPipeType()
 {
+    VP_FUNC_CALL();
+
     m_swFilterPipeType = SwFilterPipeTypeInvalid;
 
     if (1 == m_InputSurfaces.size() && 1 == m_OutputSurfaces.size())
@@ -341,6 +357,8 @@ void SwFilterPipe::UpdateSwFilterPipeType()
 
 MOS_STATUS SwFilterPipe::Clean()
 {
+    VP_FUNC_CALL();
+
     // Do not unregister features in Clean, which will be reused until swFilterPipe being destroyed.
     m_swFilterPipeType = SwFilterPipeTypeInvalid;
 
@@ -373,6 +391,8 @@ MOS_STATUS SwFilterPipe::Clean()
 
 bool SwFilterPipe::IsEmpty()
 {
+    VP_FUNC_CALL();
+
     if (0 == m_OutputSurfaces.size())
     {
         return true;
@@ -382,6 +402,8 @@ bool SwFilterPipe::IsEmpty()
 
 bool SwFilterPipe::IsPrimaryEmpty()
 {
+    VP_FUNC_CALL();
+
     uint32_t index;
     auto pipe = GetSwFilterPrimaryPipe(index);
 
@@ -395,6 +417,8 @@ bool SwFilterPipe::IsPrimaryEmpty()
 
 MOS_STATUS SwFilterPipe::ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule, bool isInputPipe)
 {
+    VP_FUNC_CALL();
+
     std::vector<SwFilterSubPipe *>  &pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
     std::vector<FeatureSubRule>     &rulePipes = isInputPipe ? featureRule.m_InputPipes : featureRule.m_OutputPipes;
     SwFilter *swFilter = nullptr;
@@ -445,6 +469,8 @@ MOS_STATUS SwFilterPipe::ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, Featur
 
 MOS_STATUS SwFilterPipe::ConfigFeatures(VP_PIPELINE_PARAMS &params, FeatureRule &featureRule)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS status1 = ConfigFeaturesToPipe(params, featureRule, true); 
     MOS_STATUS status2 = ConfigFeaturesToPipe(params, featureRule, false);
 
@@ -454,6 +480,8 @@ MOS_STATUS SwFilterPipe::ConfigFeatures(VP_PIPELINE_PARAMS &params, FeatureRule 
 
 MOS_STATUS SwFilterPipe::ConfigFeatures(VEBOX_SFC_PARAMS &params)
 {
+    VP_FUNC_CALL();
+
     std::vector<SwFilterSubPipe *>  &pipes = m_InputPipes;
 
     SwFilter *swFilter = nullptr;
@@ -485,6 +513,8 @@ MOS_STATUS SwFilterPipe::ConfigFeatures(VEBOX_SFC_PARAMS &params)
 
 MOS_STATUS SwFilterPipe::UpdateFeatures(bool isInputPipe, uint32_t pipeIndex)
 {
+    VP_FUNC_CALL();
+
     auto &pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
     auto &surfaces = isInputPipe ? m_InputSurfaces : m_OutputSurfaces;
 
@@ -519,6 +549,8 @@ MOS_STATUS SwFilterPipe::UpdateFeatures(bool isInputPipe, uint32_t pipeIndex)
 
 MOS_STATUS SwFilterPipe::CleanFeaturesFromPipe(bool isInputPipe, uint32_t index)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     std::vector<SwFilterSubPipe *>  &pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
 
@@ -532,6 +564,8 @@ MOS_STATUS SwFilterPipe::CleanFeaturesFromPipe(bool isInputPipe, uint32_t index)
 
 MOS_STATUS SwFilterPipe::CleanFeaturesFromPipe(bool isInputPipe)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     std::vector<SwFilterSubPipe *>  &pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
     for (uint32_t pipeIndex = 0; pipeIndex < pipes.size(); ++pipeIndex)
@@ -552,6 +586,8 @@ MOS_STATUS SwFilterPipe::CleanFeaturesFromPipe(bool isInputPipe)
 
 MOS_STATUS SwFilterPipe::CleanFeatures()
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS status1 = CleanFeaturesFromPipe(true);
     MOS_STATUS status2 = CleanFeaturesFromPipe(false);
 
@@ -561,6 +597,8 @@ MOS_STATUS SwFilterPipe::CleanFeatures()
 
 SwFilter *SwFilterPipe::GetSwFilter(bool isInputPipe, int index, FeatureType type)
 {
+    VP_FUNC_CALL();
+
     SwFilterSubPipe * pipe = GetSwFilterSubPipe(isInputPipe, index);
     if (nullptr == pipe)
     {
@@ -573,6 +611,8 @@ SwFilter *SwFilterPipe::GetSwFilter(bool isInputPipe, int index, FeatureType typ
 
 SwFilterSubPipe* SwFilterPipe::GetSwFilterSubPipe(bool isInputPipe, int index)
 {
+    VP_FUNC_CALL();
+
     SwFilterSubPipe* pSubPipe = nullptr;
     auto& pipes = isInputPipe ? m_InputPipes : m_OutputPipes;
 
@@ -585,6 +625,8 @@ SwFilterSubPipe* SwFilterPipe::GetSwFilterSubPipe(bool isInputPipe, int index)
 
 SwFilterSubPipe* SwFilterPipe::GetSwFilterPrimaryPipe(uint32_t& index)
 {
+    VP_FUNC_CALL();
+
     SwFilterSubPipe* pSubPipe = nullptr;
 
     index = 0;
@@ -610,6 +652,8 @@ SwFilterSubPipe* SwFilterPipe::GetSwFilterPrimaryPipe(uint32_t& index)
 // useNewSwFilterSet: true if insert new swFilterSet in pipe, otherwise, reuse the last one in pipe.
 MOS_STATUS SwFilterPipe::AddSwFilterOrdered(SwFilter *swFilter, bool isInputPipe, int index, bool useNewSwFilterSet)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(swFilter);
 
     SwFilterSubPipe *pSubPipe = GetSwFilterSubPipe(isInputPipe, index);
@@ -620,6 +664,8 @@ MOS_STATUS SwFilterPipe::AddSwFilterOrdered(SwFilter *swFilter, bool isInputPipe
 
 MOS_STATUS SwFilterPipe::AddSwFilterUnordered(SwFilter *swFilter, bool isInputPipe, int index)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(swFilter);
 
     SwFilterSubPipe *pSubPipe = GetSwFilterSubPipe(isInputPipe, index);
@@ -630,6 +676,8 @@ MOS_STATUS SwFilterPipe::AddSwFilterUnordered(SwFilter *swFilter, bool isInputPi
 
 MOS_STATUS SwFilterPipe::RemoveSwFilter(SwFilter *swFilter)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(swFilter);
 
     SwFilterSet *swFilterSet = swFilter->GetLocation();
@@ -658,6 +706,8 @@ MOS_STATUS SwFilterPipe::RemoveSwFilter(SwFilter *swFilter)
 
 VP_SURFACE *SwFilterPipe::GetSurface(bool isInputSurface, uint32_t index)
 {
+    VP_FUNC_CALL();
+
     if (isInputSurface)
     {
         return index < m_InputSurfaces.size() ? m_InputSurfaces[index] : nullptr;
@@ -670,16 +720,22 @@ VP_SURFACE *SwFilterPipe::GetSurface(bool isInputSurface, uint32_t index)
 
 VP_SURFACE *SwFilterPipe::GetPastSurface(uint32_t index)
 {
+    VP_FUNC_CALL();
+
     return index < m_pastSurface.size() ? m_pastSurface[index] : nullptr;
 }
 
 VP_SURFACE *SwFilterPipe::GetFutureSurface(uint32_t index)
 {
+    VP_FUNC_CALL();
+
     return index < m_futureSurface.size() ? m_futureSurface[index] : nullptr;
 }
 
 MOS_STATUS SwFilterPipe::SetPastSurface(uint32_t index, VP_SURFACE *surf)
 {
+    VP_FUNC_CALL();
+
     if (index >= m_pastSurface.size())
     {
         return MOS_STATUS_INVALID_PARAMETER;
@@ -690,6 +746,8 @@ MOS_STATUS SwFilterPipe::SetPastSurface(uint32_t index, VP_SURFACE *surf)
 
 MOS_STATUS SwFilterPipe::SetFutureSurface(uint32_t index, VP_SURFACE *surf)
 {
+    VP_FUNC_CALL();
+
     if (index >= m_futureSurface.size())
     {
         return MOS_STATUS_INVALID_PARAMETER;
@@ -700,6 +758,8 @@ MOS_STATUS SwFilterPipe::SetFutureSurface(uint32_t index, VP_SURFACE *surf)
 
 VP_SURFACE *SwFilterPipe::RemovePastSurface(uint32_t index)
 {
+    VP_FUNC_CALL();
+
     if (index >= m_pastSurface.size())
     {
         return nullptr;
@@ -711,6 +771,8 @@ VP_SURFACE *SwFilterPipe::RemovePastSurface(uint32_t index)
 
 VP_SURFACE *SwFilterPipe::RemoveFutureSurface(uint32_t index)
 {
+    VP_FUNC_CALL();
+
     if (index >= m_futureSurface.size())
     {
         return nullptr;
@@ -722,6 +784,8 @@ VP_SURFACE *SwFilterPipe::RemoveFutureSurface(uint32_t index)
 
 VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
 {
+    VP_FUNC_CALL();
+
     auto &surfaces = isInputSurface ? m_InputSurfaces : m_OutputSurfaces;
 
     if (index < surfaces.size())
@@ -749,6 +813,8 @@ VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
 
 VP_SURFACE *SwFilterPipe::ReplaceSurface(VP_SURFACE *surf, bool isInputSurface, uint32_t index)
 {
+    VP_FUNC_CALL();
+
     auto &surfaces = isInputSurface ? m_InputSurfaces : m_OutputSurfaces;
 
     if (index < surfaces.size())
@@ -762,6 +828,8 @@ VP_SURFACE *SwFilterPipe::ReplaceSurface(VP_SURFACE *surf, bool isInputSurface, 
 
 MOS_STATUS SwFilterPipe::AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint32_t index)
 {
+    VP_FUNC_CALL();
+
     auto &surfaces = isInputSurface ? m_InputSurfaces : m_OutputSurfaces;
     auto &pipes = isInputSurface ? m_InputPipes : m_OutputPipes;
 
@@ -809,6 +877,8 @@ MOS_STATUS SwFilterPipe::AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint
 
 MOS_STATUS SwFilterPipe::RemoveUnusedLayers(bool bUpdateInput)
 {
+    VP_FUNC_CALL();
+
     // If bUpdateInput == true, surfaces1 is input layers, which will be updated, and surfaces2 is output layers,
     // otherwise, surfaces1 is output layers, which will be updated, and surfaces2 is input layers.
     auto &surfaces1 = bUpdateInput ? m_InputSurfaces : m_OutputSurfaces;
@@ -883,6 +953,8 @@ MOS_STATUS SwFilterPipe::RemoveUnusedLayers(bool bUpdateInput)
 
 MOS_STATUS SwFilterPipe::Update()
 {
+    VP_FUNC_CALL();
+
     uint32_t i = 0;
 
     VP_PUBLIC_CHK_STATUS_RETURN(RemoveUnusedLayers(true));
@@ -905,5 +977,7 @@ MOS_STATUS SwFilterPipe::Update()
 
 uint32_t SwFilterPipe::GetSurfaceCount(bool isInputSurface)
 {
+    VP_FUNC_CALL();
+
     return isInputSurface ? m_InputSurfaces.size() : m_OutputSurfaces.size();
 }

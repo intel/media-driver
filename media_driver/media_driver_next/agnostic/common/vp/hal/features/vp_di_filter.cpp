@@ -145,6 +145,8 @@ MOS_STATUS VpDiFilter::CalculateEngineParams()
 /****************************************************************************************************/
 HwFilterParameter *HwFilterDiParameter::Create(HW_FILTER_DI_PARAM &param, FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     HwFilterDiParameter *p = MOS_New(HwFilterDiParameter, featureType);
     if (p)
     {
@@ -167,11 +169,15 @@ HwFilterDiParameter::~HwFilterDiParameter()
 
 MOS_STATUS HwFilterDiParameter::ConfigParams(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterDiParameter::Initialize(HW_FILTER_DI_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
@@ -181,6 +187,8 @@ MOS_STATUS HwFilterDiParameter::Initialize(HW_FILTER_DI_PARAM &param)
 /****************************************************************************************************/
 VpPacketParameter *VpDiParameter::Create(HW_FILTER_DI_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -244,6 +252,8 @@ bool VpDiParameter::SetPacketParam(VpCmdPacket *pPacket)
 
 MOS_STATUS VpDiParameter::Initialize(HW_FILTER_DI_PARAM &params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_diFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_diFilter.SetExecuteEngineCaps(params.diParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_diFilter.CalculateEngineParams());
@@ -263,6 +273,8 @@ PolicyDiHandler::~PolicyDiHandler()
 
 bool PolicyDiHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return vpExecuteCaps.bDI;
 }
 
@@ -329,6 +341,8 @@ HwFilterParameter* PolicyDiHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecut
 
 MOS_STATUS PolicyDiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
+    VP_FUNC_CALL();
+
     SwFilterDeinterlace *featureDi = dynamic_cast<SwFilterDeinterlace *>(&feature);
     VP_PUBLIC_CHK_NULL_RETURN(featureDi);
 

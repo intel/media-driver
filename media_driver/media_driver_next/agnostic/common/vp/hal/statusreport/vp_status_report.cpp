@@ -48,7 +48,6 @@ void VPStatusReport::SetPipeStatusReportParams(PVP_PIPELINE_PARAMS pVpParams, PV
 MOS_STATUS VPStatusReport::UpdateStatusTableAfterSubmit(
     MOS_STATUS                  eLastStatus)
 {
-
     PVPHAL_STATUS_ENTRY             pStatusEntry;
     bool                            bEmptyTable;
     MOS_STATUS                      eStatus;

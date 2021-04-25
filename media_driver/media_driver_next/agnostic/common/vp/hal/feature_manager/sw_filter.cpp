@@ -46,6 +46,8 @@ SwFilter::~SwFilter()
 
 MOS_STATUS SwFilter::SetFeatureType(FeatureType type)
 {
+    VP_FUNC_CALL();
+
     if ((type & FEATURE_TYPE_MASK) != (m_type & FEATURE_TYPE_MASK))
     {
         return MOS_STATUS_INVALID_PARAMETER;
@@ -57,6 +59,8 @@ MOS_STATUS SwFilter::SetFeatureType(FeatureType type)
 
 MOS_STATUS SwFilter::SetRenderTargetType(RenderTargetType type)
 {
+    VP_FUNC_CALL();
+
     m_renderTargetType = type;
 
     return MOS_STATUS_SUCCESS;
@@ -64,6 +68,8 @@ MOS_STATUS SwFilter::SetRenderTargetType(RenderTargetType type)
 
 SwFilter* SwFilter::CreateSwFilter(FeatureType type)
 {
+    VP_FUNC_CALL();
+
     auto handle = m_vpInterface.GetSwFilterHandler(m_type);
     SwFilter* p = nullptr;
     if (handle)
@@ -85,6 +91,8 @@ SwFilter* SwFilter::CreateSwFilter(FeatureType type)
 
 void SwFilter::DestroySwFilter(SwFilter* p)
 {
+    VP_FUNC_CALL();
+
     auto handle = m_vpInterface.GetSwFilterHandler(m_type);
 
     if (handle)
@@ -114,12 +122,16 @@ SwFilterCsc::~SwFilterCsc()
 
 MOS_STATUS SwFilterCsc::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     // Parameter checking should be done in SwFilterCscHandler::IsFeatureEnabled.
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
@@ -144,6 +156,8 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
 
 MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS caps)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);
     VP_PUBLIC_CHK_NULL_RETURN(surfInput->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
@@ -177,6 +191,8 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
 
 MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)
 {
+    VP_FUNC_CALL();
+
     if (m_noNeedUpdate)
     {
         return MOS_STATUS_SUCCESS;
@@ -194,11 +210,15 @@ MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)
 
 FeatureParamCsc &SwFilterCsc::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter *SwFilterCsc::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterCsc *swFilter = dynamic_cast<SwFilterCsc *>(p);
@@ -214,12 +234,16 @@ SwFilter *SwFilterCsc::Clone()
 
 bool SwFilterCsc::operator == (SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterCsc *p = dynamic_cast<SwFilterCsc *>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamCsc));
 }
 
 MOS_STATUS SwFilterCsc::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     if (FeatureTypeCscOnVebox == m_type)
     {
         // BeCSC may be added for IECP/DI. No need update.
@@ -243,6 +267,8 @@ MOS_STATUS SwFilterCsc::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, Sw
 
 MOS_STATUS SwFilterCsc::SetFeatureType(FeatureType type)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::SetFeatureType(type));
     m_Params.type = m_type;
     return MOS_STATUS_SUCCESS;
@@ -264,12 +290,16 @@ SwFilterScaling::~SwFilterScaling()
 
 MOS_STATUS SwFilterScaling::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     // Parameter checking should be done in SwFilterScalingHandler::IsFeatureEnabled.
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
@@ -337,6 +367,8 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
 
 MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
 {
+    VP_FUNC_CALL();
+
     m_Params.scalingMode            = VPHAL_SCALING_AVS;
     m_Params.scalingPreference      = VPHAL_SCALING_PREFER_SFC;
     m_Params.bDirectionalScalar     = false;
@@ -380,11 +412,15 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
 
 FeatureParamScaling &SwFilterScaling::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter *SwFilterScaling::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterScaling *swFilter = dynamic_cast<SwFilterScaling *>(p);
@@ -400,12 +436,16 @@ SwFilter *SwFilterScaling::Clone()
 
 bool SwFilterScaling::operator == (SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterScaling *p = dynamic_cast<SwFilterScaling *>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamScaling));
 }
 
 MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     SwFilterRotMir *rotMir = dynamic_cast<SwFilterRotMir *>(pipe.GetSwFilter(FeatureTypeRotMir));
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
@@ -451,12 +491,16 @@ SwFilterRotMir::~SwFilterRotMir()
 
 MOS_STATUS SwFilterRotMir::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterRotMir::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     // Parameter checking should be done in SwFilterRotMirHandler::IsFeatureEnabled.
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
@@ -470,6 +514,8 @@ MOS_STATUS SwFilterRotMir::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
 
 MOS_STATUS SwFilterRotMir::Configure(VEBOX_SFC_PARAMS &params)
 {
+    VP_FUNC_CALL();
+
     // Parameter checking should be done in SwFilterRotMirHandler::IsFeatureEnabled.
     m_Params.rotation     = (VPHAL_ROTATION)params.input.rotation;
     m_Params.surfInfo.tileOutput = params.output.surface->TileType;
@@ -480,11 +526,15 @@ MOS_STATUS SwFilterRotMir::Configure(VEBOX_SFC_PARAMS &params)
 
 FeatureParamRotMir &SwFilterRotMir::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter *SwFilterRotMir::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterRotMir *swFilter = dynamic_cast<SwFilterRotMir *>(p);
@@ -500,12 +550,16 @@ SwFilter *SwFilterRotMir::Clone()
 
 bool SwFilterRotMir::operator == (SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterRotMir *p = dynamic_cast<SwFilterRotMir *>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamRotMir));
 }
 
 MOS_STATUS SwFilterRotMir::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
@@ -532,12 +586,16 @@ SwFilterDenoise::~SwFilterDenoise()
 
 MOS_STATUS SwFilterDenoise::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
 
     m_Params.sampleTypeInput = surfInput->SampleType;
@@ -554,11 +612,15 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
 
 FeatureParamDenoise& SwFilterDenoise::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter *SwFilterDenoise::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterDenoise *swFilter = dynamic_cast<SwFilterDenoise *>(p);
@@ -574,12 +636,16 @@ SwFilter *SwFilterDenoise::Clone()
 
 bool vp::SwFilterDenoise::operator==(SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterDenoise* p = dynamic_cast<SwFilterDenoise*>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamDenoise));
 }
 
 MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
@@ -605,12 +671,16 @@ SwFilterDeinterlace::~SwFilterDeinterlace()
 
 MOS_STATUS SwFilterDeinterlace::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterDeinterlace::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);
     VP_PUBLIC_CHK_NULL_RETURN(surfInput->pDeinterlaceParams);
@@ -629,11 +699,15 @@ MOS_STATUS SwFilterDeinterlace::Configure(VP_PIPELINE_PARAMS& params, bool isInp
 
 FeatureParamDeinterlace& SwFilterDeinterlace::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter *SwFilterDeinterlace::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterDeinterlace *swFilter = dynamic_cast<SwFilterDeinterlace *>(p);
@@ -649,12 +723,16 @@ SwFilter *SwFilterDeinterlace::Clone()
 
 bool vp::SwFilterDeinterlace::operator==(SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterDeinterlace* p = dynamic_cast<SwFilterDeinterlace*>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamDeinterlace));
 }
 
 MOS_STATUS vp::SwFilterDeinterlace::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
@@ -680,12 +758,16 @@ SwFilterSte::~SwFilterSte()
 
 MOS_STATUS SwFilterSte::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterSte::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
 
     m_Params.formatInput   = surfInput->Format;
@@ -707,11 +789,15 @@ MOS_STATUS SwFilterSte::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, 
 
 FeatureParamSte& SwFilterSte::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter * SwFilterSte::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterSte *swFilter = dynamic_cast<SwFilterSte *>(p);
@@ -727,12 +813,16 @@ SwFilter * SwFilterSte::Clone()
 
 bool vp::SwFilterSte::operator==(SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterSte* p = dynamic_cast<SwFilterSte*>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamSte));
 }
 
 MOS_STATUS vp::SwFilterSte::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
@@ -758,12 +848,16 @@ SwFilterTcc::~SwFilterTcc()
 
 MOS_STATUS SwFilterTcc::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterTcc::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
 
     m_Params.formatInput   = surfInput->Format;
@@ -795,11 +889,15 @@ MOS_STATUS SwFilterTcc::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, 
 
 FeatureParamTcc& SwFilterTcc::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter * SwFilterTcc::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterTcc *swFilter = dynamic_cast<SwFilterTcc *>(p);
@@ -815,12 +913,16 @@ SwFilter * SwFilterTcc::Clone()
 
 bool vp::SwFilterTcc::operator==(SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterTcc* p = dynamic_cast<SwFilterTcc*>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamTcc));
 }
 
 MOS_STATUS vp::SwFilterTcc::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
@@ -846,12 +948,16 @@ SwFilterProcamp::~SwFilterProcamp()
 
 MOS_STATUS SwFilterProcamp::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterProcamp::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
 
     m_Params.formatInput   = surfInput->Format;
@@ -879,11 +985,15 @@ MOS_STATUS SwFilterProcamp::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
 
 FeatureParamProcamp& SwFilterProcamp::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter * SwFilterProcamp::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter* p = CreateSwFilter(m_type);
 
     SwFilterProcamp *swFilter = dynamic_cast<SwFilterProcamp *>(p);
@@ -899,12 +1009,16 @@ SwFilter * SwFilterProcamp::Clone()
 
 bool vp::SwFilterProcamp::operator==(SwFilter& swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterProcamp* p = dynamic_cast<SwFilterProcamp*>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamProcamp));
 }
 
 MOS_STATUS vp::SwFilterProcamp::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
@@ -929,12 +1043,16 @@ SwFilterHdr::~SwFilterHdr()
 
 MOS_STATUS SwFilterHdr::Clean()
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex)
 {
+    VP_FUNC_CALL();
+
     PVPHAL_SURFACE surfInput  = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
@@ -970,11 +1088,15 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
 }
 FeatureParamHdr &SwFilterHdr::GetSwFilterParams()
 {
+    VP_FUNC_CALL();
+
     return m_Params;
 }
 
 SwFilter *SwFilterHdr::Clone()
 {
+    VP_FUNC_CALL();
+
     SwFilter *p = CreateSwFilter(m_type);
 
     SwFilterHdr *swFilter = dynamic_cast<SwFilterHdr *>(p);
@@ -990,12 +1112,16 @@ SwFilter *SwFilterHdr::Clone()
 
 bool vp::SwFilterHdr::operator==(SwFilter &swFilter)
 {
+    VP_FUNC_CALL();
+
     SwFilterHdr *p = dynamic_cast<SwFilterHdr *>(&swFilter);
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamHdr));
 }
 
 MOS_STATUS vp::SwFilterHdr::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
@@ -1018,6 +1144,8 @@ SwFilterSet::~SwFilterSet()
 
 MOS_STATUS SwFilterSet::AddSwFilter(SwFilter *swFilter)
 {
+    VP_FUNC_CALL();
+
     auto it = m_swFilters.find(swFilter->GetFeatureType());
     if (m_swFilters.end() != it)
     {
@@ -1031,6 +1159,8 @@ MOS_STATUS SwFilterSet::AddSwFilter(SwFilter *swFilter)
 
 MOS_STATUS SwFilterSet::RemoveSwFilter(SwFilter *swFilter)
 {
+    VP_FUNC_CALL();
+
     auto it = m_swFilters.find(swFilter->GetFeatureType());
     if (m_swFilters.end() == it)
     {
@@ -1052,6 +1182,8 @@ MOS_STATUS SwFilterSet::RemoveSwFilter(SwFilter *swFilter)
 
 MOS_STATUS SwFilterSet::Clean()
 {
+    VP_FUNC_CALL();
+
     while (!m_swFilters.empty())
     {
         auto it = m_swFilters.begin();
@@ -1070,6 +1202,8 @@ MOS_STATUS SwFilterSet::Clean()
 
 SwFilter *SwFilterSet::GetSwFilter(FeatureType type)
 {
+    VP_FUNC_CALL();
+
     auto it = m_swFilters.find(type);
     if (m_swFilters.end() == it)
     {
@@ -1082,15 +1216,21 @@ SwFilter *SwFilterSet::GetSwFilter(FeatureType type)
 
 std::vector<SwFilterSet *> *SwFilterSet::GetLocation()
 {
+    VP_FUNC_CALL();
+
     return m_location;
 }
 void SwFilterSet::SetLocation(std::vector<SwFilterSet *> *location)
 {
+    VP_FUNC_CALL();
+
     m_location = location;
 }
 
 MOS_STATUS SwFilterSet::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
 {
+    VP_FUNC_CALL();
+
     for (auto swFilter : m_swFilters)
     {
         VP_PUBLIC_CHK_NULL_RETURN(swFilter.second);
@@ -1101,6 +1241,8 @@ MOS_STATUS SwFilterSet::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, Sw
 
 RenderTargetType SwFilterSet::GetRenderTargetType()
 {
+    VP_FUNC_CALL();
+
     for (auto swFilter : m_swFilters)
     {
         if (swFilter.second)

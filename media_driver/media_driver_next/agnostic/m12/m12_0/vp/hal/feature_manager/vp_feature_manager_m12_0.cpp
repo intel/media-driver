@@ -41,6 +41,8 @@ VPFeatureManagerM12_0::VPFeatureManagerM12_0(
 
 bool VPFeatureManagerM12_0::IsVeboxInputFormatSupport(PVPHAL_SURFACE pSrcSurface)
 {
+    VP_FUNC_CALL();
+
     bool    bRet = false;
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
 
@@ -70,6 +72,8 @@ finish:
 
 MOS_STATUS VPFeatureManagerM12_0::CheckFeatures(void * params, bool &bApgFuncSupported)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(params);
 
     PVP_PIPELINE_PARAMS pvpParams = (PVP_PIPELINE_PARAMS)params;

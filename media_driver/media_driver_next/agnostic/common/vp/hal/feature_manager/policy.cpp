@@ -76,6 +76,8 @@ Policy::~Policy()
 
 MOS_STATUS Policy::Initialize()
 {
+    VP_FUNC_CALL();
+
     VpPlatformInterface *vpPlatformInterface = (VpPlatformInterface *)m_vpInterface.GetHwInterface()->m_vpPlatformInterface;
     VP_PUBLIC_CHK_NULL_RETURN(vpPlatformInterface);
     VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpHwCaps(m_hwCaps));
@@ -86,6 +88,8 @@ MOS_STATUS Policy::Initialize()
 
 bool Policy::IsVeboxSfcFormatSupported(MOS_FORMAT  formatInput, MOS_FORMAT formatOutput)
 {
+    VP_FUNC_CALL();
+
     if (!m_initialized)
     {
         return false;
@@ -292,6 +296,8 @@ MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAM
 
 MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwFilterSubPipe& swFilterPipe)
 {
+    VP_FUNC_CALL();
+
     SwFilter* feature = swFilterPipe.GetSwFilter(featureType);
     SwFilter* diFilter = nullptr;
 
@@ -370,6 +376,8 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterSubPipe& swFilterPipe)
 
 MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
 {
+    VP_FUNC_CALL();
+
     SwFilterHdr     *hdr       = nullptr;
     SwFilterCsc     *csc       = nullptr;
     FeatureParamHdr *hdrParams = nullptr;
@@ -422,6 +430,8 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
 
 MOS_STATUS Policy::GetCSCExecutionCapsDi(SwFilter* feature)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(feature);
 
     SwFilterCsc* csc = dynamic_cast<SwFilterCsc*>(feature);
@@ -691,6 +701,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
 
 MOS_STATUS Policy::GetSFCRotationExecutionCaps(FeatureParamRotMir *rotationParams, VP_EngineEntry *rotationEngine)
 {
+    VP_FUNC_CALL();
+
     if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].inputSupported &&
         m_hwCaps.m_sfcHwEntry[rotationParams->formatOutput].outputSupported)
     {
@@ -1045,6 +1057,8 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
 
 MOS_STATUS Policy::GetExecutionCaps(SwFilter* feature)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(feature);
 
     VP_EngineEntry defaultEngine = feature->GetFilterEngineCaps();
@@ -1664,6 +1678,8 @@ MOS_STATUS Policy::AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS
 
 MOS_STATUS Policy::BuildVeboxSecureFilters(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params)
 {
+    VP_FUNC_CALL();
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1718,6 +1734,8 @@ MOS_STATUS Policy::AddFiltersBasedOnCaps(
     VP_EXECUTE_CAPS& caps,
     SwFilterPipe& executedFilters)
 {
+    VP_FUNC_CALL();
+
     //Create and Add CSC filter for VEBOX IECP chromasiting config
     if (caps.bSFC && !caps.bBeCSC && (caps.bIECP || caps.bDI))
     {
@@ -1732,6 +1750,8 @@ MOS_STATUS Policy::AddNewFilterOnVebox(
     SwFilterPipe& executedFilters,
     FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     PVP_SURFACE pSurfInput = featurePipe.GetSurface(true, 0);
     PVP_SURFACE pSurfOutput = featurePipe.GetSurface(false, 0);
     VP_PUBLIC_CHK_NULL_RETURN(pSurfInput);

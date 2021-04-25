@@ -40,6 +40,8 @@ VpKernelConfig::~VpKernelConfig()
 
 MOS_STATUS VpKernelConfig::GetKernelParam(VpKernelID kernelId, RENDERHAL_KERNEL_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     auto it = m_kernelParams.find(kernelId);
     if (it == m_kernelParams.end())
     {

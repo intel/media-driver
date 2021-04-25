@@ -80,6 +80,8 @@ const uint32_t   VpIef::s_r3c[s_iefMaxItem] = {
 
 MOS_STATUS VpIef::CalculateIefParams()
 {
+    VP_FUNC_CALL();
+
     PVPHAL_IEF_PARAMS   pIEFParams;
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
 
@@ -111,6 +113,8 @@ MOS_STATUS VpIef::CalculateIefParams()
 MOS_STATUS VpIef::SetHwState(
     PMHW_SAMPLER_STATE_PARAM        pSamplerStateParams)
 {
+    VP_FUNC_CALL();
+
     // Init default parameters
     // Set IEF params
     PVPHAL_IEF_PARAMS   pIEFParams  = m_iefParams;
@@ -158,6 +162,8 @@ MOS_STATUS VpIef::SetHwState(
     PMHW_SFC_STATE_PARAMS           pSfcStateParams,
     PMHW_SFC_IEF_STATE_PARAMS       pSfcIefStateParams)
 {
+    VP_FUNC_CALL();
+
     PVPHAL_IEF_PARAMS   pIEFParams  = nullptr;
     MOS_STATUS          eStatus     = MOS_STATUS_SUCCESS;
 
@@ -216,6 +222,8 @@ void VpIef::Init(
     float                           scaleX,
     float                           scaleY)
 {
+    VP_FUNC_CALL();
+
     m_iefParams             = iefParams;
     m_format                = format;
     m_scaleX                = scaleX;

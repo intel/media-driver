@@ -42,6 +42,8 @@ VpCmdPacket::VpCmdPacket(
 
 MOS_STATUS VpCmdPacket::VpCmdPacketInit()
 {
+    VP_FUNC_CALL();
+
     return MOS_STATUS_SUCCESS;
 }
 

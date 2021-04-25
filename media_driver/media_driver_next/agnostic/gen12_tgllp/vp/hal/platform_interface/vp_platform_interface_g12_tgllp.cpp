@@ -43,6 +43,8 @@ using namespace vp;
 MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *veboxHwEntry, uint32_t veboxEntryCount,
                                                             VP_SFC_ENTRY_REC *sfcHwEntry, uint32_t sfcEntryCount)
 {
+    VP_FUNC_CALL();
+
     if (veboxEntryCount < Format_Count || sfcEntryCount < Format_Count ||
         nullptr == veboxHwEntry || nullptr == sfcHwEntry)
     {
@@ -56,6 +58,8 @@ MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC 
 
 MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpRenderHwCaps()
 {
+    VP_FUNC_CALL();
+
     m_modifyKdllFunctionPointers = nullptr;
 #if defined(ENABLE_KERNELS)
     InitVPFCKernels(
@@ -72,21 +76,29 @@ MOS_STATUS VpPlatformInterfaceG12Tgllp::InitVpRenderHwCaps()
 
 VPFeatureManager *VpPlatformInterfaceG12Tgllp::CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface)
 {
+    VP_FUNC_CALL();
+
     return MOS_New(VPFeatureManagerM12_0, hwInterface);
 }
 
 VpCmdPacket *VpPlatformInterfaceG12Tgllp::CreateVeboxPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc)
 {
+    VP_FUNC_CALL();
+
     return MOS_New(VpVeboxCmdPacketG12, task, hwInterface, allocator, mmc);
 }
 
 VpCmdPacket *VpPlatformInterfaceG12Tgllp::CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpKernelSet* kernel)
 {
+    VP_FUNC_CALL();
+
     return nullptr;
 }
 
 MOS_STATUS VpPlatformInterfaceG12Tgllp::CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_NULL_RETURN(allocator);
 
     sfcRender = MOS_New(SfcRenderM12,
@@ -166,6 +178,8 @@ MOS_STATUS VpPlatformInterfaceG12Tgllp::CreateSfcRender(SfcRenderBase *&sfcRende
 //!
 MOS_STATUS vp::VpPlatformInterfaceG12Tgllp::VeboxQueryStatLayout(VEBOX_STAT_QUERY_TYPE queryType, uint32_t* pQuery)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     VPHAL_RENDER_ASSERT(pQuery);
@@ -199,6 +213,8 @@ MOS_STATUS vp::VpPlatformInterfaceG12Tgllp::VeboxQueryStatLayout(VEBOX_STAT_QUER
 
 VpKernelConfig &VpPlatformInterfaceG12Tgllp::GetKernelConfig()
 {
+    VP_FUNC_CALL();
+
     static VpKernelConfigM12_Base kernelConfig;
     return kernelConfig;
 }

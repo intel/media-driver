@@ -161,6 +161,8 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
 
 VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE inputColorSpace, VPHAL_CSPACE colorSpaceOutput)
 {
+    VP_FUNC_CALL();
+
     if (executeCaps.bHDR3DLUT)
     {
         return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
@@ -622,6 +624,8 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
 
 bool VpCscFilter::IsChromaUpSamplingNeeded()
 {
+    VP_FUNC_CALL();
+
     bool                  bChromaUpSampling = false;
     VPHAL_COLORPACK       srcColorPack, dstColorPack;
 
@@ -643,6 +647,8 @@ bool VpCscFilter::IsChromaUpSamplingNeeded()
 /****************************************************************************************************/
 HwFilterParameter *HwFilterCscParameter::Create(HW_FILTER_CSC_PARAM &param, FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     HwFilterCscParameter *p = MOS_New(HwFilterCscParameter, featureType);
     if (p)
     {
@@ -665,11 +671,15 @@ HwFilterCscParameter::~HwFilterCscParameter()
 
 MOS_STATUS HwFilterCscParameter::ConfigParams(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterCscParameter::Initialize(HW_FILTER_CSC_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
@@ -679,6 +689,8 @@ MOS_STATUS HwFilterCscParameter::Initialize(HW_FILTER_CSC_PARAM &param)
 /****************************************************************************************************/
 VpPacketParameter *VpSfcCscParameter::Create(HW_FILTER_CSC_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -704,6 +716,8 @@ VpSfcCscParameter::~VpSfcCscParameter() {}
 
 bool VpSfcCscParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
+    VP_FUNC_CALL();
+
     VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
     if (nullptr == pVeboxPacket)
     {
@@ -720,6 +734,8 @@ bool VpSfcCscParameter::SetPacketParam(VpCmdPacket *pPacket)
 
 MOS_STATUS VpSfcCscParameter::Initialize(HW_FILTER_CSC_PARAM &params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.cscParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.CalculateEngineParams());
@@ -739,11 +755,15 @@ PolicySfcCscHandler::~PolicySfcCscHandler()
 
 bool PolicySfcCscHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return vpExecuteCaps.bSfcCsc;
 }
 
 HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     if (IsFeatureEnabled(vpExecuteCaps))
     {
         if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())
@@ -794,6 +814,8 @@ HwFilterParameter *PolicySfcCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpEx
 
 MOS_STATUS PolicySfcCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
+    VP_FUNC_CALL();
+
     SwFilterCsc *featureCsc = dynamic_cast<SwFilterCsc *>(&feature);
     VP_PUBLIC_CHK_NULL_RETURN(featureCsc);
 
@@ -836,6 +858,8 @@ MOS_STATUS PolicySfcCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter
 /****************************************************************************************************/
 VpPacketParameter* VpVeboxCscParameter::Create(HW_FILTER_CSC_PARAM& param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -861,6 +885,8 @@ VpVeboxCscParameter::~VpVeboxCscParameter()
 }
 bool VpVeboxCscParameter::SetPacketParam(VpCmdPacket* pPacket)
 {
+    VP_FUNC_CALL();
+
     VpVeboxCmdPacket* pVeboxPacket = dynamic_cast<VpVeboxCmdPacket*>(pPacket);
     if (nullptr == pVeboxPacket)
     {
@@ -876,6 +902,8 @@ bool VpVeboxCscParameter::SetPacketParam(VpCmdPacket* pPacket)
 }
 MOS_STATUS VpVeboxCscParameter::Initialize(HW_FILTER_CSC_PARAM& params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.SetExecuteEngineCaps(params.cscParams, params.vpExecuteCaps));
     VP_PUBLIC_CHK_STATUS_RETURN(m_CscFilter.CalculateEngineParams());
@@ -890,10 +918,14 @@ PolicyVeboxCscHandler::~PolicyVeboxCscHandler()
 }
 bool PolicyVeboxCscHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     return vpExecuteCaps.bBeCSC;
 }
 HwFilterParameter* PolicyVeboxCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     if (IsFeatureEnabled(vpExecuteCaps))
     {
         if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())

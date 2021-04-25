@@ -103,6 +103,8 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
 /****************************************************************************************************/
 HwFilterParameter *HwFilterHdrParameter::Create(HW_FILTER_HDR_PARAM &param, FeatureType featureType)
 {
+    VP_FUNC_CALL();
+
     HwFilterHdrParameter *p = MOS_New(HwFilterHdrParameter, featureType);
     if (p)
     {
@@ -125,11 +127,15 @@ HwFilterHdrParameter::~HwFilterHdrParameter()
 
 MOS_STATUS HwFilterHdrParameter::ConfigParams(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     return hwFilter.ConfigParam(m_Params);
 }
 
 MOS_STATUS HwFilterHdrParameter::Initialize(HW_FILTER_HDR_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     m_Params = param;
     return MOS_STATUS_SUCCESS;
 }
@@ -139,6 +145,8 @@ MOS_STATUS HwFilterHdrParameter::Initialize(HW_FILTER_HDR_PARAM &param)
 /****************************************************************************************************/
 VpPacketParameter *VpVeboxHdrParameter::Create(HW_FILTER_HDR_PARAM &param)
 {
+    VP_FUNC_CALL();
+
     if (nullptr == param.pPacketParamFactory)
     {
         return nullptr;
@@ -163,6 +171,8 @@ VpVeboxHdrParameter::~VpVeboxHdrParameter() {}
 
 bool VpVeboxHdrParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
+    VP_FUNC_CALL();
+
     VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
     if (nullptr == pVeboxPacket)
     {
@@ -179,6 +189,8 @@ bool VpVeboxHdrParameter::SetPacketParam(VpCmdPacket *pPacket)
 
 MOS_STATUS VpVeboxHdrParameter::Initialize(HW_FILTER_HDR_PARAM &params)
 {
+    VP_FUNC_CALL();
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_HdrFilter.Init());
     VP_PUBLIC_CHK_STATUS_RETURN(m_HdrFilter.CalculateEngineParams(params.hdrParams, params.vpExecuteCaps));
     return MOS_STATUS_SUCCESS;
@@ -197,12 +209,16 @@ PolicyVeboxHdrHandler::~PolicyVeboxHdrHandler()
 
 bool PolicyVeboxHdrHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
+    VP_FUNC_CALL();
+
     //Need to check if other path activated
     return vpExecuteCaps.bHDR3DLUT;
 }
 
 HwFilterParameter *PolicyVeboxHdrHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
+    VP_FUNC_CALL();
+
     if (IsFeatureEnabled(vpExecuteCaps))
     {
         if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())

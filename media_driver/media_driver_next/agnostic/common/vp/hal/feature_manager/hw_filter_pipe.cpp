@@ -46,6 +46,8 @@ HwFilterPipe::~HwFilterPipe()
 
 MOS_STATUS HwFilterPipe::Initialize(SwFilterPipe &swFilterPipe, Policy &policy)
 {
+    VP_FUNC_CALL();
+
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     SwFilterPipe &subSwFilterPipe = swFilterPipe;
     HwFilter *pHwFilter = nullptr;
@@ -80,6 +82,8 @@ MOS_STATUS HwFilterPipe::Initialize(SwFilterPipe &swFilterPipe, Policy &policy)
 
 void HwFilterPipe::Clean()
 {
+    VP_FUNC_CALL();
+
     while (!m_Pipe.empty())
     {
         HwFilter *p = m_Pipe.back();
@@ -90,12 +94,16 @@ void HwFilterPipe::Clean()
 
 MOS_STATUS HwFilterPipe::AddHwFilter(HwFilter &hwFilter)
 {
+    VP_FUNC_CALL();
+
     m_Pipe.push_back(&hwFilter);
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS HwFilterPipe::InitPacketPipe(PacketPipe &packetPipe)
 {
+    VP_FUNC_CALL();
+
     for (std::vector<HwFilter*>::iterator it = m_Pipe.begin(); it!= m_Pipe.end(); ++it)
     {
         if (nullptr == *it)
@@ -109,16 +117,22 @@ MOS_STATUS HwFilterPipe::InitPacketPipe(PacketPipe &packetPipe)
 
 MOS_STATUS HwFilterPipe::UpdateResources()
 {
+    VP_FUNC_CALL();
+
     return MOS_STATUS_SUCCESS;
 }
 
 uint32_t HwFilterPipe::HwFilterCount()
 {
+    VP_FUNC_CALL();
+
     return m_Pipe.size();
 }
 
 EngineType HwFilterPipe::GetEngineType(uint32_t index)
 {
+    VP_FUNC_CALL();
+
     if (index >= m_Pipe.size() || nullptr == m_Pipe[index])
     {
         return EngineTypeInvalid;
