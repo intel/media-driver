@@ -7843,4 +7843,28 @@ MOS_STATUS CodechalVdencVp9State::DumpSegmentParams(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS CodechalVdencVp9State::CreateVp9Par()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_debugInterface);
+
+    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDumpEncodePar))
+    {
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_vp9Par = MOS_New(EncodeVp9Par));
+        MOS_ZeroMemory(m_vp9Par, sizeof(EncodeVp9Par));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencVp9State::DestroyVp9Par()
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+
+    MOS_Delete(m_vp9Par);
+
+    return MOS_STATUS_SUCCESS;
+}
 #endif

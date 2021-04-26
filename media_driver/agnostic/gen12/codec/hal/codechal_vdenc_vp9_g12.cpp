@@ -2824,6 +2824,10 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteTileLevel()
         m_lastFrameScalableMode = m_scalableMode;
     }
 
+    CODECHAL_DEBUG_TOOL(
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpFrameParFile());
+    )
+
     return eStatus;
 }
 
@@ -5223,6 +5227,13 @@ MOS_STATUS CodechalVdencVp9StateG12::ConstructPicStateBatchBuf(
     m_hucSlbbSize = (uint16_t)constructedCmdBuf.iOffset;
 
     m_osInterface->pfnUnlockResource(m_osInterface, picStateBuffer);
+
+#if USE_CODECHAL_DEBUG_TOOL
+    CODECHAL_DEBUG_TOOL(
+        PopulateImageStateParams();
+        )
+#endif
+
 
     return eStatus;
 }
