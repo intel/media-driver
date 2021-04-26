@@ -25,35 +25,6 @@
 //!
 #include "mhw_blt.h"
 
-mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::XY_BLOCK_COPY_BLT_CMD()
-{
-    DW0.Value                                        = 0x5040000a;
-    //DW0.DwordLength                                  = GetOpLength(dwSize);
-    //DW0.ColorDepth                                   = COLOR_DEPTH_8BITCOLOR;
-    //DW0.InstructionTargetOpcode                      = INSTRUCTION_TARGETOPCODE_INSTRUCTIONTARGETXYBLOCKCOPYBLT;
-    //DW0.Client                                       = CLIENT_2DPROCESSOR;
-
-    DW1.Value                                        = 0x00000000;
-    //DW1.DestinationTiling                            = DESTINATION_TILING_LINEAR;
-
-    DW2.Value                                        = 0x00000000;
-
-    DW3.Value                                        = 0x00000000;
-
-    DW4_5.Value[0] = DW4_5.Value[1]                  = 0x00000000;
-
-    DW6.Value                                        = 0x00000000;
-
-    DW7.Value                                        = 0x00000000;
-
-    DW8.Value                                        = 0x00000000;
-    //DW8.SourceTiling                                 = SOURCE_TILING_LINEAR;
-
-    DW9_10.Value[0] = DW9_10.Value[1]                = 0x00000000;
-
-    DW11.Value                                       = 0x00000000;
-}
-
 mhw_blt_state::XY_FAST_COPY_BLT_CMD::XY_FAST_COPY_BLT_CMD()
 {
     DW0.Value                                        = 0x50800008;
@@ -82,19 +53,6 @@ mhw_blt_state::XY_FAST_COPY_BLT_CMD::XY_FAST_COPY_BLT_CMD()
 
 }
 
-
-mhw_blt_state::BCS_SWCTRL_CMD::BCS_SWCTRL_CMD()
-{
-    DW0.Value                                        = 0;
-    DW0.TileYSource                                  = 0x0;
-    DW0.TileYDestination                             = 0x0;
-    DW0.NotInvalidateBlitterCacheonBCSFlush          = 0x0;
-    DW0.ShrinkBlitterCache                           = 0x0;
-    DW0.TileYSourceMask                              = 0x1;
-    DW0.TileYDestinationMask                         = 0x1;
-    DW0.Mask                                         = 0x0;
-}
-
 MhwBltInterface::MhwBltInterface(PMOS_INTERFACE pOsInterface)
 {
     MHW_FUNCTION_ENTER;
@@ -108,14 +66,7 @@ MhwBltInterface::MhwBltInterface(PMOS_INTERFACE pOsInterface)
     }
 
     m_osInterface       = pOsInterface;
-    if (m_osInterface->bUsesGfxAddress)
-    {
-        pfnAddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
-    }
-    else  //PatchList
-    {
-        pfnAddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
-    }
+    pfnAddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
 }
 
 MOS_STATUS MhwBltInterface::AddFastCopyBlt(
@@ -161,71 +112,6 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
     // add destination address
     MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
     ResourceParams.dwLsbNum        = 12;
-    ResourceParams.presResource    = pFastCopyBltParam->pDstOsResource;
-    ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
-    ResourceParams.dwLocationInCmd = 4;
-    ResourceParams.bIsWritable     = true;
-
-    MHW_CHK_STATUS(pfnAddResourceToCmd(
-        m_osInterface,
-        pCmdBuffer,
-        &ResourceParams));
-
-    Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize);
-
-finish:
-    return eStatus;
-}
-
-MOS_STATUS MhwBltInterface::AddBlockCopyBlt(
-    PMOS_COMMAND_BUFFER      pCmdBuffer,
-    PMHW_FAST_COPY_BLT_PARAM pFastCopyBltParam, 
-    uint32_t                 srcOffset,
-    uint32_t                 dstOffset)
-{
-    MHW_FUNCTION_ENTER;
-
-    MHW_RESOURCE_PARAMS ResourceParams;
-    MOS_STATUS          eStatus;
-
-    eStatus = MOS_STATUS_SUCCESS;
-
-    mhw_blt_state::XY_BLOCK_COPY_BLT_CMD cmd;
-
-    cmd.DW0.ColorDepth = pFastCopyBltParam->dwColorDepth;
-    cmd.DW1.DestinationPitch = pFastCopyBltParam->dwDstPitch -1;
-    cmd.DW1.DestinationMocsValue = 2;//may need change
-
-    cmd.DW1.DestinationTiling = (pFastCopyBltParam->pDstOsResource->TileType == MOS_TILE_LINEAR) ? 0:1; 
-    cmd.DW8.SourceTiling = (pFastCopyBltParam->pSrcOsResource->TileType == MOS_TILE_LINEAR) ? 0:1;
-    cmd.DW8.SourceMocs = 2; // need check the Mocs table
-
-    cmd.DW2.DestinationX1CoordinateLeft = 0;
-    cmd.DW2.DestinationY1CoordinateTop = 0;
-    cmd.DW3.DestinationX2CoordinateRight = pFastCopyBltParam->dwDstRight;
-    cmd.DW3.DestinationY2CoordinateBottom = pFastCopyBltParam->dwDstBottom;
-    cmd.DW7.SourceX1CoordinateLeft = pFastCopyBltParam->dwSrcLeft;
-    cmd.DW7.SourceY1CoordinateTop = pFastCopyBltParam->dwSrcTop;
-    cmd.DW8.SourcePitch = pFastCopyBltParam->dwSrcPitch -1;
-
-    // add source address
-    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-    ResourceParams.dwLsbNum        = 12;
-    ResourceParams.dwOffset        = srcOffset;
-    ResourceParams.presResource    = pFastCopyBltParam->pSrcOsResource;
-    ResourceParams.pdwCmd          = &(cmd.DW9_10.Value[0]);
-    ResourceParams.dwLocationInCmd = 9;
-    ResourceParams.bIsWritable     = true;
-
-    MHW_CHK_STATUS(pfnAddResourceToCmd(
-        m_osInterface,
-        pCmdBuffer,
-        &ResourceParams));
-
-    // add destination address
-    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-    ResourceParams.dwLsbNum        = 12;
-    ResourceParams.dwOffset        = dstOffset;
     ResourceParams.presResource    = pFastCopyBltParam->pDstOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
     ResourceParams.dwLocationInCmd = 4;

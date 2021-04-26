@@ -119,18 +119,6 @@ protected:
         PMOS_RESOURCE            inputSurface,
         PMOS_RESOURCE            outputSurface);
 
-    //!
-    //! \brief    Get color depth.
-    //! \details  get different format's color depth.
-    //! \param    surface 
-    //!           [in] input or output surface.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    uint32_t GetColorDepth(
-        GMM_RESOURCE_FORMAT dstFormat,
-        uint32_t            BytesPerTexel);
-
 public:
     PMOS_INTERFACE m_osInterface      = nullptr;
     MhwInterfaces *m_mhwInterfaces    = nullptr;

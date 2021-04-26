@@ -121,7 +121,8 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
 
     // blt check.
     if ((m_mcpySrc.CompressionMode != MOS_MMC_DISABLED) ||
-        (m_mcpyDst.CompressionMode != MOS_MMC_DISABLED))
+        (m_mcpyDst.CompressionMode != MOS_MMC_DISABLED) ||
+        (m_mcpySrc.TileMode != m_mcpyDst.TileMode))
     {
         m_mcpyEngineCaps.engineBlt = false;
     }

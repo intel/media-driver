@@ -766,7 +766,6 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
         MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
         break;
     case MOS_GPU_NODE_COMPUTE:
-    case MOS_GPU_NODE_BLT:
         MosUtilities::MosSecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
         break;
     case MOS_GPU_NODE_VE:
