@@ -347,9 +347,10 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
                                                                      0); // I915_CONTEXT_CREATE_FLAGS_SINGLE_TIMELINE not allowed for parallel submission
                         if (mos_set_context_param_parallel(m_i915Context[i], engine_map, ctxWidth) != S_SUCCESS)
                         {
-                            MOS_OS_ASSERTMESSAGE("Failed to set parallel extension.\n");
-                            MOS_SafeFreeMemory(engine_map);
-                            return MOS_STATUS_UNKNOWN;
+                            MOS_OS_ASSERTMESSAGE("Failed to set parallel extension since discontinuous logical engine.\n");
+                            mos_gem_context_destroy(m_i915Context[i]);
+                            m_i915Context[i] = nullptr;
+                            break;
                         }
                     }
                 }
@@ -1505,6 +1506,7 @@ int32_t GpuContextSpecificNext::ParallelSubmitCommands(
             if(it->second->iSubmissionType & SUBMISSION_TYPE_MULTI_PIPE_FLAGS_LAST_PIPE)
             {
                 queue = m_i915Context[numBos - 1];
+                MOS_OS_CHK_NULL_RETURN(queue);
                 if(-1 != fence)
                 {
                     fenceFlag = I915_EXEC_FENCE_IN;
