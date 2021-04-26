@@ -455,6 +455,9 @@ static bool adlpGt2Device46AA = DeviceInfoFactory<GfxDeviceInfo>::
 static bool adlpGt2Device462A = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x462A, &adlpGt2Info);
 
+static bool adlpGt2Device4626 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x4626, &adlpGt2Info);
+
 #endif
 
 static bool tgllpGt2Device9a40 = DeviceInfoFactory<GfxDeviceInfo>::
