@@ -169,7 +169,7 @@ public:
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS SurfaceReplace(PVP_PIPELINE_PARAMS params);
 #endif
-
+    MOS_STATUS InitUserFeatureSetting();
     // for debug purpose
 #if (_DEBUG || _RELEASE_INTERNAL)
     virtual VPHAL_SURFACE *AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTargetSurface);
@@ -366,6 +366,11 @@ protected:
     VpInterface           *m_vpInterface            = nullptr;
 #if (_DEBUG || _RELEASE_INTERNAL)
     VPHAL_SURFACE         *m_tempTargetSurface      = nullptr;
+    struct
+    {
+        uint32_t enableSFCNv12P010LinearOutput      = 0;
+        uint32_t enableSFCRGBPRGB24Output           = 0;
+    } m_userFeatureSetting;
 #endif
     VP_SETTINGS           *m_vpSettings = nullptr;
 };

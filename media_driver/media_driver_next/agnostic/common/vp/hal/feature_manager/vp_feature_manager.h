@@ -117,6 +117,12 @@ protected:
     virtual bool IsOutputFormatSupported(
         PVPHAL_SURFACE              outSurface);
 
+    virtual bool IsRGBOutputFormatSupported(
+        PVPHAL_SURFACE              outSurface);
+
+    virtual bool IsNV12P010OutputFormatSupported(
+        PVPHAL_SURFACE              outSurface);
+
     //!
     //! \brief    Get the aligned the surface height and width unit
     //! \details  According to the format of the surface, get the aligned unit for the surface

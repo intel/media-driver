@@ -785,35 +785,75 @@ finish:
     return bRet;
 }
 
+bool VPFeatureManager::IsRGBOutputFormatSupported(PVPHAL_SURFACE outSurface)
+{
+    if (nullptr == outSurface)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE(" invalid outputsurface");
+        return false;
+    }
+
+    if (IS_RGB32_FORMAT(outSurface->Format)) // Remove RGB565 support due to quality issue. IS_RGB16_FORMAT(outSurface->Format)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool VPFeatureManager::IsNV12P010OutputFormatSupported(PVPHAL_SURFACE outSurface)
+{
+    if (nullptr == outSurface)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE(" invalid outputsurface");
+        return false;
+    }
+
+    if (outSurface->TileType == MOS_TILE_Y &&
+        (outSurface->Format == Format_P010 ||
+         outSurface->Format == Format_P016 ||
+         outSurface->Format == Format_NV12))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool VPFeatureManager::IsOutputFormatSupported(PVPHAL_SURFACE outSurface)
 {
     VP_FUNC_CALL();
+    if (nullptr == outSurface)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE(" invalid outputsurface");
+        return false;
+    }
 
     bool ret = true;
 
-    if (!IS_RGB32_FORMAT(outSurface->Format) &&
-        // Remove RGB565 support due to quality issue, may reopen this after root cause in the future.
-        //!IS_RGB16_FORMAT(outSurface->Format)   &&
-        outSurface->Format != Format_YUY2 &&
-        outSurface->Format != Format_UYVY &&
-        outSurface->Format != Format_AYUV &&
-        outSurface->Format != Format_Y210 &&
-        outSurface->Format != Format_Y410 &&
-        outSurface->Format != Format_Y216 &&
-        outSurface->Format != Format_Y416)
+    if (IsRGBOutputFormatSupported(outSurface) ||
+        outSurface->Format == Format_YUY2 ||
+        outSurface->Format == Format_UYVY ||
+        outSurface->Format == Format_AYUV ||
+        outSurface->Format == Format_Y210 ||
+        outSurface->Format == Format_Y410 ||
+        outSurface->Format == Format_Y216 ||
+        outSurface->Format == Format_Y416)
     {
-        if (outSurface->TileType == MOS_TILE_Y  &&
-            (outSurface->Format == Format_P010  ||
-             outSurface->Format == Format_P016  ||
-             outSurface->Format == Format_NV12))
-        {
-            ret = true;
-        }
-        else
-        {
-            VPHAL_RENDER_NORMALMESSAGE("Unsupported Render Target Format '0x%08x' for SFC Pipe.", outSurface->Format);
-            ret = false;
-        }
+        ret = true;
+    }
+    else if (IsNV12P010OutputFormatSupported(outSurface))
+    {
+        ret = true;
+    }
+    else
+    {
+        VPHAL_RENDER_NORMALMESSAGE("Unsupported Render Target Format '0x%08x' for SFC Pipe.", outSurface->Format);
+        ret = false;
     }
 
     return ret;

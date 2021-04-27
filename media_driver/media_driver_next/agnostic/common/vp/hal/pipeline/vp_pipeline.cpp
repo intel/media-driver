@@ -199,7 +199,7 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateFeatureManager());
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
-
+    VP_PUBLIC_CHK_STATUS_RETURN(InitUserFeatureSetting());
 #if (_DEBUG || _RELEASE_INTERNAL)
     VP_DEBUG_INTERFACE_CREATE(m_debugInterface)
     SkuWaTable_DUMP_XML(m_skuTable, m_waTable)
@@ -567,19 +567,14 @@ VPHAL_SURFACE *VpPipeline::AllocateTempTargetSurface(VPHAL_SURFACE *m_tempTarget
 }
 #endif
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
+MOS_STATUS VpPipeline::InitUserFeatureSetting()
 {
     VP_FUNC_CALL();
 
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
-    bool                        allocated;
     MOS_USER_FEATURE_VALUE_DATA userFeatureData = {0};
 
-    MEDIA_FEATURE_TABLE *skuTable = nullptr;
-    skuTable                      = m_vpMhwInterface.m_osInterface->pfnGetSkuTable(m_vpMhwInterface.m_osInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(skuTable);
-
+#if (_DEBUG || _RELEASE_INTERNAL)
     //SFC NV12/P010 Linear Output.
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
@@ -587,8 +582,31 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
         __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT_ID,
         &userFeatureData,
         m_vpMhwInterface.m_osInterface->pOsContext);
+    m_userFeatureSetting.enableSFCNv12P010LinearOutput = userFeatureData.bData;
 
-    if (userFeatureData.bData                       &&
+    //SFC RGBP Linear/Tile RGB24 Linear Output.
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT_ID,
+        &userFeatureData,
+        m_vpMhwInterface.m_osInterface->pOsContext);
+    m_userFeatureSetting.enableSFCRGBPRGB24Output = userFeatureData.u32Data;
+#endif
+    return eStatus;
+}
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
+{
+    MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    bool                        allocated;
+
+    MEDIA_FEATURE_TABLE *skuTable = nullptr;
+    skuTable                      = m_vpMhwInterface.m_osInterface->pfnGetSkuTable(m_vpMhwInterface.m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(skuTable);
+
+    if (m_userFeatureSetting.enableSFCNv12P010LinearOutput &&
         MOS_TILE_LINEAR != params->pTarget[0]->TileType &&
         (Format_P010 == params->pTarget[0]->Format || Format_NV12 == params->pTarget[0]->Format) &&
         MEDIA_IS_SKU(skuTable, FtrSFCLinearOutputSupport))
@@ -636,19 +654,13 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
         {Format_BGRP, MOS_TILE_Y}
     };
 
-    //SFC RGBP Linear/Tile RGB24 Linear Output.
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT_ID,
-        &userFeatureData,
-        m_vpMhwInterface.m_osInterface->pOsContext);
-    if (userFeatureData.u32Data == VP_RGB_OUTPUT_OVERRIDE_ID_INVALID || userFeatureData.u32Data >= VP_RGB_OUTPUT_OVERRIDE_ID_MAX)
+    if (m_userFeatureSetting.enableSFCRGBPRGB24Output == VP_RGB_OUTPUT_OVERRIDE_ID_INVALID ||
+        m_userFeatureSetting.enableSFCRGBPRGB24Output >= VP_RGB_OUTPUT_OVERRIDE_ID_MAX)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    if (rgbCfg[userFeatureData.u32Data].format != params->pTarget[0]->Format &&
+    if (rgbCfg[m_userFeatureSetting.enableSFCRGBPRGB24Output].format != params->pTarget[0]->Format &&
         MEDIA_IS_SKU(skuTable, FtrSFCRGBPRGB24OutputSupport))
     {
         if (!m_tempTargetSurface)
@@ -659,9 +671,9 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
         eStatus = m_allocator->ReAllocateSurface(
             m_tempTargetSurface,
             "TempTargetSurface",
-            rgbCfg[userFeatureData.u32Data].format,
+            rgbCfg[m_userFeatureSetting.enableSFCRGBPRGB24Output].format,
             MOS_GFXRES_2D,
-            rgbCfg[userFeatureData.u32Data].tielType,
+            rgbCfg[m_userFeatureSetting.enableSFCRGBPRGB24Output].tielType,
             params->pTarget[0]->dwWidth,
             params->pTarget[0]->dwHeight,
             false,
