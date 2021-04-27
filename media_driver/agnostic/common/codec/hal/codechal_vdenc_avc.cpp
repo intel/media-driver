@@ -6174,16 +6174,18 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     auto avcSeqParams = m_avcSeqParams[avcPicParams->seq_parameter_set_id];
     auto slcData      = m_slcData;
 
-    // For use with the single task phase implementation
-    if (m_sliceStructCaps != CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE)
-    {
-        uint32_t numSlc = (m_frameFieldHeightInMb + m_sliceHeight - 1) / m_sliceHeight;
+    // *** Temporarily commented until ULT fully support multislice ROW mode
 
-        if (numSlc != m_numSlices)
-        {
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-    }
+    // For use with the single task phase implementation
+    //if (m_sliceStructCaps != CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE)
+    //{
+    //    uint32_t numSlc = (m_frameFieldHeightInMb + m_sliceHeight - 1) / m_sliceHeight;
+
+    //    if (numSlc != m_numSlices)
+    //    {
+    //        return MOS_STATUS_INVALID_PARAMETER;
+    //    }
+    //}
 
     bool useBatchBufferForPakSlices = false;
     if (m_singleTaskPhaseSupported && m_singleTaskPhaseSupportedInPak)
