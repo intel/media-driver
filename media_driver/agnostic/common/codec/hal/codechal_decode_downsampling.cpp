@@ -511,6 +511,13 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     stateBaseAddrParams.dwDynamicStateSize = kernelState->m_dshRegion.GetHeapSize();
     stateBaseAddrParams.presInstructionBuffer = ish;
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
+
+    //Function is shared by Gen9 Gen10 Gen11 Gen12,  here Gen9 will be used when fetching cache's Index.
+    stateBaseAddrParams.mocs4GeneralState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen9.Index;
+    stateBaseAddrParams.mocs4DynamicState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen9.Index;
+    stateBaseAddrParams.mocs4SurfaceState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen9.Index;
+    stateBaseAddrParams.mocs4IndirectObjectBuffer = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen9.Index;
+    stateBaseAddrParams.mocs4StatelessDataport = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen9.Index;
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_renderInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetupMediaVfe(&cmdBuffer, kernelState));

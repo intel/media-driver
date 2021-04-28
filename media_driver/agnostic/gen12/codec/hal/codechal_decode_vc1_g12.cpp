@@ -1474,11 +1474,11 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
     stateBaseAddrParams.dwDynamicStateSize = kernelState->m_dshRegion.GetHeapSize();
     stateBaseAddrParams.presInstructionBuffer = ish;
     stateBaseAddrParams.dwInstructionBufferSize = kernelState->m_ishRegion.GetHeapSize();
-    stateBaseAddrParams.mocs4GeneralState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
-    stateBaseAddrParams.mocs4DynamicState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
-    stateBaseAddrParams.mocs4SurfaceState       = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
-    stateBaseAddrParams.mocs4IndirectObjectBuffer = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
-    stateBaseAddrParams.mocs4StatelessDataport = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
+    stateBaseAddrParams.mocs4GeneralState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
+    stateBaseAddrParams.mocs4DynamicState = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
+    stateBaseAddrParams.mocs4SurfaceState       = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
+    stateBaseAddrParams.mocs4IndirectObjectBuffer = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
+    stateBaseAddrParams.mocs4StatelessDataport = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
     CODECHAL_DECODE_CHK_STATUS_RETURN(renderEngineInterface->AddStateBaseAddrCmd(&cmdBuffer, &stateBaseAddrParams));
 
     MHW_VFE_PARAMS_G12 vfeParams= {};

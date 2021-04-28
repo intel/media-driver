@@ -506,7 +506,7 @@ typedef union _MHW_MEMORY_OBJECT_CONTROL_PARAMS
         uint32_t                   : 1 ;
         uint32_t   Index           : 6 ;
         uint32_t                   : 25;
-    } Gen9;
+    } Gen9, Gen10, Gen11, Gen12, Gen12_5, Gen12_7;
     uint32_t       Value;
 } MHW_MEMORY_OBJECT_CONTROL_PARAMS, *PMHW_MEMORY_OBJECT_CONTROL_PARAMS;
 
