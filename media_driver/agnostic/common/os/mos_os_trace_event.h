@@ -146,6 +146,10 @@ typedef enum _MEDIA_EVENT
     EVENT_DDI_CLEAR_VIDEO_VIEW,                    //! event for Refactor DDI Clear Video View
     EVENT_GPU_CONTEXT_CREATE,                      //! event for gpu context create
     EVENT_GPU_CONTEXT_DESTROY,                     //! event for gpu context destroy
+    EVENT_PIC_PARAM_AVC,                           //! event for AVC picture param
+    EVENT_PIC_PARAM_HEVC,                          //! event for HEVC picture param
+    EVENT_PIC_PARAM_VP9,                           //! event for VP9 picture param
+    EVENT_PIC_PARAM_AV1,                           //! event for AV1 picture param
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
