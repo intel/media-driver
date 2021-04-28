@@ -84,6 +84,7 @@ enum FeatureType
     FeatureTypeLace             = 0x1200,
     FeatureTypeLaceOnVebox,
     FeatureTypeLaceOnRender,
+    FeatureTypeGamutExt         = 0x1300,
     // ...
     NumOfFeatureType
 };
