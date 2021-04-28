@@ -1303,13 +1303,12 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
             scalability->SetCurrentPipeIndex((uint8_t)curPipe);
             scalability->GetCmdBuffer(&CmdBufferInUse);
             pCmdBufferInUse = &CmdBufferInUse;
-
-            pVeboxInterface->SetVeboxIndex(curPipe, numPipe, m_IsSfcUsed);
         }
         else
         {
             pCmdBufferInUse = CmdBuffer;
         }
+        pVeboxInterface->SetVeboxIndex(curPipe, numPipe, m_IsSfcUsed);
 
         HalOcaInterface::On1stLevelBBStart(*pCmdBufferInUse, *pOsContext, pOsInterface->CurrentGpuContextHandle, *pMhwMiInterface, *pMmioRegisters);
 
@@ -1393,10 +1392,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         {
             VP_RENDER_CHK_NULL_RETURN(m_sfcRender);
 
-            if (bMultipipe)
-            {
-                VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetSfcPipe(curPipe, numPipe));
-            }
+            VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetSfcPipe(curPipe, numPipe));
 
             VP_RENDER_CHK_STATUS_RETURN(m_sfcRender->SetupSfcState(m_renderTarget));
 
