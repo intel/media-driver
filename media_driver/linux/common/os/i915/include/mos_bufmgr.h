@@ -1,5 +1,5 @@
 /*
- * Copyright © 2008-2021 Intel Corporation
+ * Copyright © 2008-2018 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -43,12 +43,6 @@
 #define mos_safe_free(p)        \
         if(p) free(p);          \
 
-#define CHK_CONDITION(condition, _str, _ret)    \
-    if (condition) {                            \
-        fprintf(stderr, _str);                  \
-        return _ret;                            \
-    }
-
 struct drm_clip_rect;
 struct mos_bufmgr;
 struct mos_linux_context;
@@ -59,16 +53,8 @@ typedef struct mos_bufmgr MOS_BUFMGR;
 
 #include "mos_os_specific.h"
 
-enum mos_memory_zone {
-   MEMZONE_SYS,
-   MEMZONE_DEVICE,
-   MEMZONE_COUNT,
-};
-
 #define MEMZONE_SYS_START     (1ull << 16)
 #define MEMZONE_DEVICE_START  (1ull << 40)
-#define MEMZONE_SYS_SIZE      (MEMZONE_DEVICE_START - MEMZONE_SYS_START)
-#define MEMZONE_DEVICE_SIZE   (1ull << 40)
 #define MEMZONE_TOTAL         (1ull << 48)
 #define PAGE_SIZE_64K         (1ull << 16)
 #define PAGE_SIZE_4G          (1ull << 32)
