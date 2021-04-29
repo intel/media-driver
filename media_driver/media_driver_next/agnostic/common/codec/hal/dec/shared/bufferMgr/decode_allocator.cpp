@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,8 +32,8 @@
 
 namespace decode {
 
-DecodeAllocator::DecodeAllocator(PMOS_INTERFACE osInterface) :
-    m_osInterface(osInterface)
+DecodeAllocator::DecodeAllocator(PMOS_INTERFACE osInterface, bool limitedLMemBar) :
+    m_osInterface(osInterface), m_limitedLMemBar(limitedLMemBar)
 {
     m_allocator = MOS_New(Allocator, m_osInterface);
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -178,8 +178,17 @@ SurfaceArray * DecodeAllocator::AllocateSurfaceArray(
 PMHW_BATCH_BUFFER DecodeAllocator::AllocateBatchBuffer(
     const uint32_t sizeOfBuffer, const uint32_t numOfBuffer, ResourceAccessReq accessReq)
 {
-    bool notLockable = (accessReq == notLockableVideoMem);
-    bool inSystemMem = (accessReq == lockableSystemMem);
+    // The default setting is lockableVideoMem
+    bool notLockable = false;
+    bool inSystemMem = false;
+
+    // Config setting if running with limited LMem bar config.
+    if (m_limitedLMemBar)
+    {
+        notLockable = (accessReq == notLockableVideoMem);
+        inSystemMem = (accessReq == lockableSystemMem);
+    }
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_forceLockable)
     {
@@ -613,6 +622,15 @@ ResourceUsage DecodeAllocator::ConvertGmmResourceUsage(const GMM_RESOURCE_USAGE_
 void DecodeAllocator::SetAccessRequirement(
     ResourceAccessReq accessReq, MOS_ALLOC_GFXRES_PARAMS &allocParams)
 {
+    // The default setting is lockableVideoMem, just use default setting
+    // if not running with limited LMem bar config.
+    if (!m_limitedLMemBar)
+    {
+        allocParams.Flags.bNotLockable = 0;
+        allocParams.dwMemType = MOS_MEMPOOL_VIDEOMEMORY;
+        return;
+    }
+
     allocParams.Flags.bNotLockable = (accessReq == notLockableVideoMem) ? 1 : 0;
 
     if (accessReq == lockableSystemMem)
@@ -633,7 +651,7 @@ void DecodeAllocator::SetAccessRequirement(
     {
         allocParams.Flags.bNotLockable = 0;
 
-        if (allocParams.dwMemType = MOS_MEMPOOL_DEVICEMEMORY)
+        if (allocParams.dwMemType == MOS_MEMPOOL_DEVICEMEMORY)
         {
             allocParams.dwMemType = MOS_MEMPOOL_VIDEOMEMORY;
         }

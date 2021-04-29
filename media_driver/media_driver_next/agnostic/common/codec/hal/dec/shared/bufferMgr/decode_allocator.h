@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -69,8 +69,10 @@ public:
     //! \brief  Constructor
     //! \param  [in] osInterface
     //!         Pointer to MOS_INTERFACE
+    //! \param  [in] limitedLMemBar
+    //!         Indicate if running with limited LMem bar config
     //!
-    DecodeAllocator(PMOS_INTERFACE osInterface);
+    DecodeAllocator(PMOS_INTERFACE osInterface, bool limitedLMemBar);
 
     //!
     //! \brief  DecodeAllocator destructor
@@ -516,6 +518,7 @@ protected:
 
     PMOS_INTERFACE m_osInterface = nullptr;  //!< PMOS_INTERFACE
     Allocator *m_allocator = nullptr;
+    bool m_limitedLMemBar = false; //!< Indicate if running with limited LMem bar config
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_forceLockable = false;

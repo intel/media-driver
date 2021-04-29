@@ -161,7 +161,8 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
 
     m_numVdbox = GetSystemVdboxNumber();
 
-    m_allocator = MOS_New(DecodeAllocator, m_osInterface);
+    bool limitedLMemBar = MEDIA_IS_SKU(m_skuTable, FtrLimitedLMemBar) ? true : false;
+    m_allocator = MOS_New(DecodeAllocator, m_osInterface, limitedLMemBar);
     DECODE_CHK_NULL(m_allocator);
 
     DECODE_CHK_STATUS(CreateStatusReport());
