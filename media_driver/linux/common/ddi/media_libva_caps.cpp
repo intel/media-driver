@@ -1249,8 +1249,11 @@ VAStatus MediaLibvaCaps::CreateVpAttributes(
                    VA_RT_FORMAT_RGB16 |
                    VA_RT_FORMAT_RGB32;
 
-    if (m_mediaCtx->platform.eRenderCoreFamily == IGFX_GEN9_CORE)
+    if ((m_mediaCtx->platform.eRenderCoreFamily == IGFX_GEN9_CORE) ||
+        (m_mediaCtx->platform.eRenderCoreFamily == IGFX_GEN12_CORE))
+    {
         attrib.value |= VA_RT_FORMAT_RGBP;
+    }
 
     (*attribList)[attrib.type] = attrib.value;
     return status;
