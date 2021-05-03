@@ -50,6 +50,8 @@ CodechalHwInterface::CodechalHwInterface(
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
+    MHW_HWCMDPARSER_INIT(osInterface);
+
     // Basic intialization
     m_osInterface = osInterface;
 

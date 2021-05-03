@@ -37,11 +37,10 @@
 #include <list>
 #include <set>
 
-#define OPCODE_DEF(cmd, opcode) cmd = (opcode)
-
 class MhwCmdReader
 {
 public:
+#define OPCODE_DEF(cmd, opcode) cmd = (opcode)
     enum OPCODE
     {
         // MI commands
@@ -96,6 +95,7 @@ public:
         OPCODE_DEF(VD_CONTROL_STATE               , 0x738a0000),
         OPCODE_DEF(VD_PIPELINE_FLUSH              , 0x77800000),
     };
+#undef OPCODE_DEF
 
 protected:
     struct CmdField

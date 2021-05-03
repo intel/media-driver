@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,17 @@
 #include <memory>
 #include <vector>
 #include "mhw_utilities.h"
+
+#if _MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL)
+#include "mhw_hwcmd_parser.h"
+#else
+#define MHW_HWCMDPARSER_INIT(osInterface)
+#define MHW_HWCMDPARSER_DESTROY()
+#define MHW_HWCMDPARSER_FRAMEINFOUPDATE(frameType)
+#define MHW_HWCMDPARSER_PARSECMD(cmdName, cmdData, dwLen)
+#define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
+#define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
+#endif
 
 //   [Macro Prefixes]                 |   [Macro Suffixes]
 //   No Prefix: for external use      |   _T   : type
@@ -90,6 +101,9 @@
         this->m_currentBatchBuf = batchBuf;                                                               \
         auto cmdData            = this->__MHW_CMD_CREATE_F(cmd)();                                        \
         MHW_CHK_STATUS_RETURN(this->__MHW_CMD_SET_F(cmd)(cmdData->data()));                               \
+        MHW_HWCMDPARSER_PARSECMD(#cmd,                                                                    \
+            reinterpret_cast<uint32_t *>(cmdData->data()),                                                \
+            cmdData->size() / sizeof(uint32_t));                                                          \
         MHW_CHK_STATUS_RETURN(Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, cmdData->data(), cmdData->size())); \
         if (extraData && extraDataSize > 0)                                                               \
         {                                                                                                 \

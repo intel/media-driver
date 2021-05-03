@@ -539,6 +539,7 @@ public:
             m_sfcInterface = nullptr;
         }
 
+        MHW_HWCMDPARSER_DESTROY();
     }
 
     //!

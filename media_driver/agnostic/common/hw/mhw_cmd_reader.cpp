@@ -99,13 +99,16 @@ void MhwCmdReader::OverrideCmdBuf(uint32_t *cmdBuf, uint32_t dwLen)
 
 string MhwCmdReader::GetOverrideDataPath()
 {
+    // disable old version of command override tool
+    return "";
+
     char                        path[1024]      = {};
     MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
 
     userFeatureData.StringData.pStringData = path;
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_COMMAND_OVERRIDE_INPUT_FILE_PATH_ID,
+        __MEDIA_USER_FEATURE_VALUE_COMMAND_PARSER_INPUT_FILE_PATH_ID,
         &userFeatureData,
         nullptr);
 
