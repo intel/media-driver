@@ -1123,7 +1123,7 @@ protected:
     //!
     //! \brief    Initialize AVC Low-power encode profiles, entrypoints and attributes
     //!
-    VAStatus LoadAvcEncLpProfileEntrypoints();
+    virtual VAStatus LoadAvcEncLpProfileEntrypoints();
 
     //!
     //! \brief    Initialize MPEG2 decode profiles, entrypoints and attributes
@@ -1143,7 +1143,7 @@ protected:
     //!
     //! \brief    Initialize JPEG encode profiles, entrypoints and attributes
     //!
-    VAStatus LoadJpegEncProfileEntrypoints();
+    virtual VAStatus LoadJpegEncProfileEntrypoints();
 
     //!
     //! \brief    Initialize VC1 decode profiles, entrypoints and attributes
