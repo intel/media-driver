@@ -377,7 +377,7 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
         break;
     }
 
-    if (MOS_TILE_LINEAR != pSurface->TileType && Format_RGBP == pSurface->Format)
+    if (MOS_TILE_LINEAR != pSurface->TileType && (Format_RGBP == pSurface->Format || Format_BGRP == pSurface->Format))
     {
         for (i = 0; i < *pdwNumPlanes; i++)
         {
