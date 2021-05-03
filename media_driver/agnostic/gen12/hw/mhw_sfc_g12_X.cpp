@@ -249,16 +249,19 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
     {
         cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionEnable = pSfcStateParamsG12->bMMCEnable;
     }
-    cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = m_outputSurfCtrl.Gen9.Index;
+    cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = m_outputSurfCtrl.Gen12.Index;
 
     cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionMode = (pSfcStateParamsG12->MMCMode == MOS_MMC_RC) ? 1 : 0;
 
     // Set DW22
     cmd.DW22.AvsLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
-                                                   = m_avsLineBufferCtrl.Gen9.Index;
+                                                   = m_avsLineBufferCtrl.Gen12.Index;
     // Set DW25
     cmd.DW25.IefLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
-                                                   = m_iefLineBufferCtrl.Gen9.Index;
+                                                   = m_iefLineBufferCtrl.Gen12.Index;
+
+    cmd.DW28.SfdLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
+                                                   = m_sfdLineBufferCtrl.Gen12.Index;
 
     // Set DW29
     cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ?
@@ -291,7 +294,13 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
         cmd.DW36.Xphaseshift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)cmd.DW15.ScalingFactorWidth / 524288.0F - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
         cmd.DW37.Yphaseshift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)cmd.DW14.ScalingFactorHeight / 524288.0F - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
     }
+    cmd.DW40.AvsLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineTileBufferCtrl.Gen12.Index;
 
+    cmd.DW43.IefLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineTileBufferCtrl.Gen12.Index;
+
+    cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineTileBufferCtrl.Gen12.Index;
+
+    cmd.DW49.HistogramBaseAddressMOCSIndex = m_histogramBufferCtrl.Gen12.Index;
     if (pSfcStateParamsG12->pOsResOutputSurface)
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
@@ -784,6 +793,21 @@ MhwSfcInterfaceG12::MhwSfcInterfaceG12(PMOS_INTERFACE pOsInterface) : MhwSfcInte
         m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
     m_iefLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+    m_sfdLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+    m_avsLineTileBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+    m_iefLineTileBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+    m_sfdLineTileBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+    m_histogramBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
+        MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
         m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
 
     m_maxWidth  = MHW_SFC_MAX_WIDTH_G12;

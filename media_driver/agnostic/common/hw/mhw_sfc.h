@@ -594,6 +594,11 @@ public:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_outputSurfCtrl;          // Output Frame caching control bits
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_avsLineBufferCtrl;       // AVS Line Buffer caching control bits
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_iefLineBufferCtrl;       // IEF Line Buffer caching control bits
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_sfdLineBufferCtrl;       // SFD Line Buffer caching control bits
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_avsLineTileBufferCtrl;   // AVS Line Tile Buffer caching control bits
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_iefLineTileBufferCtrl;   // IEF Line Tile Buffer caching control bits
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_sfdLineTileBufferCtrl;   // SFD Line Tile Buffer caching control bits
+    MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_histogramBufferCtrl;     // Histogram Buffer caching control bits
 
     MHW_SCALING_MODE                           m_scalingMode;
 };

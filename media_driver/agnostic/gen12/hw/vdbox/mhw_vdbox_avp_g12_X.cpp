@@ -648,7 +648,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
 
     // Reference Picture Base Address. Only one control DW17 for all references
     cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
-        m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Value;
+        m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC].Gen12.Index;
 
     bool                firstRefPic = true;
     MOS_MEMCOMP_STATE   mmcMode = MOS_MEMCOMP_DISABLED;
@@ -685,7 +685,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
 
     //Decoded Output Frame Buffer
-    cmd.DecodedOutputFrameBufferAddressAttributes.DW0.Value = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC].Value;
+    cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC].Gen12.Index;
     cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnable(params->m_preDeblockSurfMmcState) ? 1 : 0;
     cmd.DecodedOutputFrameBufferAddressAttributes.DW0.CompressionType = MmcIsRc(params->m_preDeblockSurfMmcState) ? 1 : 0;
 
@@ -709,7 +709,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     //IntraBC Decoded Output Frame buffer
     if (params->m_intrabcDecodedOutputFrameBuffer != nullptr)
     {
-        cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_intrabcDecodedOutputFrameBuffer;
         resourceParams.dwOffset = 0;
@@ -730,7 +730,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // CDF Table Initialization Buffer
     if (params->m_cdfTableInitializationBuffer != nullptr)
     {
-        cmd.CdfTablesInitializationBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdfTablesInitializationBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdfTableInitializationBuffer;
         resourceParams.dwOffset = 0;
@@ -747,7 +747,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // CDF Tables Backward Adaptation Buffer
     if (params->m_cdfTableBwdAdaptationBuffer != nullptr)
     {
-        cmd.CdfTablesBackwardAdaptationBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdfTablesBackwardAdaptationBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdfTableBwdAdaptationBuffer;
         resourceParams.dwOffset = 0;
@@ -767,7 +767,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // AV1 Segment Id Read Buffer
     if (params->m_segmentIdReadBuffer != nullptr)
     {
-        cmd.Av1SegmentIdReadBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.Av1SegmentIdReadBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_segmentIdReadBuffer;
         resourceParams.dwOffset = 0;
@@ -786,7 +786,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // AV1 Segment Id Write Buffer
     if (params->m_segmentIdWriteBuffer != nullptr)
     {
-        cmd.Av1SegmentIdWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.Av1SegmentIdWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_segmentIdWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -803,7 +803,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
 
     //Collocated MV Temporal buffers
-    cmd.CollocatedMotionVectorTemporalBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+    cmd.CollocatedMotionVectorTemporalBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
     for (uint32_t i = 0; i < av1TotalRefsPerFrame; i++)
     {
@@ -826,7 +826,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Current Motion Vector Temporal Buffer
     if (params->m_curMvTemporalBuffer != nullptr)
     {
-        cmd.CurrentFrameMotionVectorWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CurrentFrameMotionVectorWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_curMvTemporalBuffer;
         resourceParams.dwOffset = 0;
@@ -850,7 +850,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
     else if (params->m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer != nullptr)
     {
-        cmd.BitstreamDecoderEncoderLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.BitstreamDecoderEncoderLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -867,7 +867,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Bitstream Decode Tile Line Rowstore Buffer
     if (params->m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer != nullptr)
     {
-        cmd.BitstreamDecoderEncoderTileLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.BitstreamDecoderEncoderTileLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -891,7 +891,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
     else if (params->m_intraPredictionLineRowstoreReadWriteBuffer != nullptr)
     {
-        cmd.IntraPredictionLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.IntraPredictionLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_intraPredictionLineRowstoreReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -908,7 +908,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Intra Prediction Tile Line Rowstore Buffer
     if (params->m_intraPredictionTileLineRowstoreReadWriteBuffer != nullptr)
     {
-        cmd.IntraPredictionTileLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.IntraPredictionTileLineRowstoreReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_intraPredictionTileLineRowstoreReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -930,7 +930,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
     else if (params->m_spatialMotionVectorLineReadWriteBuffer != nullptr)
     {
-        cmd.SpatialMotionVectorLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.SpatialMotionVectorLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_spatialMotionVectorLineReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -947,7 +947,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Spatial Motion Vector Tile Line Buffer
     if (params->m_spatialMotionVectorCodingTileLineReadWriteBuffer != nullptr)
     {
-        cmd.SpatialMotionVectorTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.SpatialMotionVectorTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_spatialMotionVectorCodingTileLineReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -964,7 +964,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     //Loop Restoration Meta Tile Column Read/Write Buffer
     if (params->m_loopRestorationMetaTileColumnReadWriteBuffer != nullptr)
     {
-        cmd.LoopRestorationMetaTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.LoopRestorationMetaTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_loopRestorationMetaTileColumnReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -981,7 +981,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     //Deblocker Filter Control Parameters Line Read Write Buffer
     if (params->m_loopRestorationFilterTileReadWriteLineYBuffer != nullptr)
     {
-        cmd.LoopRestorationFilterTileReadWriteLineYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.LoopRestorationFilterTileReadWriteLineYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_loopRestorationFilterTileReadWriteLineYBuffer;
         resourceParams.dwOffset = 0;
@@ -998,7 +998,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     //Deblocker Filter Control Parameters Tile Line Read Write Buffer
     if (params->m_loopRestorationFilterTileReadWriteLineUBuffer != nullptr)
     {
-        cmd.LoopRestorationFilterTileReadWriteLineUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.LoopRestorationFilterTileReadWriteLineUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_loopRestorationFilterTileReadWriteLineUBuffer;
         resourceParams.dwOffset = 0;
@@ -1015,7 +1015,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     //Deblocker Filter Control Parameters Tile Column Read Write Buffer
     if (params->m_loopRestorationFilterTileReadWriteLineVBuffer != nullptr)
     {
-        cmd.LoopRestorationFilterTileReadWriteLineVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.LoopRestorationFilterTileReadWriteLineVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_loopRestorationFilterTileReadWriteLineVBuffer;
         resourceParams.dwOffset = 0;
@@ -1037,7 +1037,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
     else if (params->m_deblockerFilterLineReadWriteYBuffer != nullptr)
     {
-        cmd.DeblockerFilterLineReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterLineReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterLineReadWriteYBuffer;
         resourceParams.dwOffset = 0;
@@ -1059,7 +1059,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
     else if (params->m_deblockerFilterLineReadWriteUBuffer != nullptr)
     {
-        cmd.DeblockerFilterLineReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterLineReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterLineReadWriteUBuffer;
         resourceParams.dwOffset = 0;
@@ -1080,7 +1080,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
     else if (params->m_deblockerFilterLineReadWriteVBuffer != nullptr)
     {
-        cmd.DeblockerFilterLineReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterLineReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterLineReadWriteVBuffer;
         resourceParams.dwOffset = 0;
@@ -1097,7 +1097,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Deblocker Filter Tile Line Read Write Y Buffer
     if (params->m_deblockerFilterTileLineReadWriteYBuffer != nullptr)
     {
-        cmd.DeblockerFilterTileLineReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterTileLineReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterTileLineReadWriteYBuffer;
         resourceParams.dwOffset = 0;
@@ -1114,7 +1114,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Deblocker Filter Tile Line Read Write V Buffer
     if (params->m_deblockerFilterTileLineReadWriteVBuffer != nullptr)
     {
-        cmd.DeblockerFilterTileLineReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterTileLineReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterTileLineReadWriteVBuffer;
         resourceParams.dwOffset = 0;
@@ -1131,7 +1131,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Deblocker Filter Tile Line Read Write U Buffer
     if (params->m_deblockerFilterTileLineReadWriteUBuffer != nullptr)
     {
-        cmd.DeblockerFilterTileLineReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterTileLineReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterTileLineReadWriteUBuffer;
         resourceParams.dwOffset = 0;
@@ -1148,7 +1148,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Deblocker Filter Tile Column Read Write Y Buffer
     if (params->m_deblockerFilterTileColumnReadWriteYBuffer != nullptr)
     {
-        cmd.DeblockerFilterTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterTileColumnReadWriteYBuffer;
         resourceParams.dwOffset = 0;
@@ -1165,7 +1165,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Deblocker Filter Tile Column Read Write U Buffer
     if (params->m_deblockerFilterTileColumnReadWriteUBuffer != nullptr)
     {
-        cmd.DeblockerFilterTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterTileColumnReadWriteUBuffer;
         resourceParams.dwOffset = 0;
@@ -1182,7 +1182,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Deblocker Filter Tile Column Read Write V Buffer
     if (params->m_deblockerFilterTileColumnReadWriteVBuffer != nullptr)
     {
-        cmd.DeblockerFilterTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Value;
+        cmd.DeblockerFilterTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC].Gen12.Index;
 
         resourceParams.presResource = params->m_deblockerFilterTileColumnReadWriteVBuffer;
         resourceParams.dwOffset = 0;
@@ -1204,7 +1204,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     }
     else if (params->m_cdefFilterLineReadWriteBuffer != nullptr)
     {
-        cmd.CdefFilterLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdefFilterLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdefFilterLineReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -1221,7 +1221,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Cdef Filter Tile Line Read Write Y Buffer
     if (params->m_cdefFilterTileLineReadWriteBuffer != nullptr)
     {
-        cmd.CdefFilterTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdefFilterTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdefFilterTileLineReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -1238,7 +1238,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Cdef Filter Tile Line Read Write U Buffer
     if (params->m_cdefFilterTileColumnReadWriteBuffer != nullptr)
     {
-        cmd.CdefFilterTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdefFilterTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdefFilterTileColumnReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -1255,7 +1255,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Cdef Filter Tile Line Read Write V Buffer
     if (params->m_cdefFilterMetaTileLineReadWriteBuffer != nullptr)
     {
-        cmd.CdefFilterMetaTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdefFilterMetaTileLineReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdefFilterMetaTileLineReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -1272,7 +1272,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Cdef Filter Tile Column Read Write Y Buffer
     if (params->m_cdefFilterMetaTileColumnReadWriteBuffer != nullptr)
     {
-        cmd.CdefFilterMetaTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdefFilterMetaTileColumnReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdefFilterMetaTileColumnReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -1289,7 +1289,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Cdef Filter Top Left Corner Read Write Buffer
     if (params->m_cdefFilterTopLeftCornerReadWriteBuffer != nullptr)
     {
-        cmd.CdefFilterTopLeftCornerReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.CdefFilterTopLeftCornerReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_cdefFilterTopLeftCornerReadWriteBuffer;
         resourceParams.dwOffset = 0;
@@ -1306,7 +1306,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Super-Res Tile Column Read Write Y Buffer
     if (params->m_superResTileColumnReadWriteYBuffer != nullptr)
     {
-        cmd.SuperResTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.SuperResTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_superResTileColumnReadWriteYBuffer;
         resourceParams.dwOffset = 0;
@@ -1323,7 +1323,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Super-Res Tile Column Read Write U Buffer
     if (params->m_superResTileColumnReadWriteUBuffer != nullptr)
     {
-        cmd.SuperResTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.SuperResTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_superResTileColumnReadWriteUBuffer;
         resourceParams.dwOffset = 0;
@@ -1340,7 +1340,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Super-Res Tile Column Read Write V Buffer
     if (params->m_superResTileColumnReadWriteVBuffer != nullptr)
     {
-        cmd.SuperResTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.SuperResTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_superResTileColumnReadWriteVBuffer;
         resourceParams.dwOffset = 0;
@@ -1357,7 +1357,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Loop Restoration Filter Tile Column Read Write Y Buffer
     if (params->m_loopRestorationFilterTileColumnReadWriteYBuffer != nullptr)
     {
-        cmd.LoopRestorationFilterTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.LoopRestorationFilterTileColumnReadWriteYBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_loopRestorationFilterTileColumnReadWriteYBuffer;
         resourceParams.dwOffset = 0;
@@ -1374,7 +1374,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Loop Restoration Filter Tile Column Read Write U Buffer
     if (params->m_loopRestorationFilterTileColumnReadWriteUBuffer != nullptr)
     {
-        cmd.LoopRestorationFilterTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.LoopRestorationFilterTileColumnReadWriteUBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_loopRestorationFilterTileColumnReadWriteUBuffer;
         resourceParams.dwOffset = 0;
@@ -1391,7 +1391,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Loop Restoration Filter Tile Column Read Write V Buffer
     if (params->m_loopRestorationFilterTileColumnReadWriteVBuffer != nullptr)
     {
-        cmd.LoopRestorationFilterTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.LoopRestorationFilterTileColumnReadWriteVBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_loopRestorationFilterTileColumnReadWriteVBuffer;
         resourceParams.dwOffset = 0;
@@ -1408,7 +1408,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Decoded Frame Status Error Buffer
     if (params->m_decodedFrameStatusErrorBuffer != nullptr)
     {
-        cmd.DecodedFrameStatusErrorBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.DecodedFrameStatusErrorBufferBaseAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_decodedFrameStatusErrorBuffer;
         resourceParams.dwOffset = 0;
@@ -1425,7 +1425,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
     // Decoded Block Data Streamout Buffer
     if (params->m_decodedBlockDataStreamoutBuffer != nullptr)
     {
-        cmd.DecodedBlockDataStreamoutBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+        cmd.DecodedBlockDataStreamoutBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Gen12.Index;
 
         resourceParams.presResource = params->m_decodedBlockDataStreamoutBuffer;
         resourceParams.dwOffset = 0;
@@ -1467,7 +1467,7 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpIndObjBaseAddrCmd(
         MHW_MI_CHK_NULL(params->presDataBuffer);
 
         cmd.AvpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value |=
-            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE].Value;
+            m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE].Gen12.Index;
 
         resourceParams.presResource     = params->presDataBuffer;
         resourceParams.dwOffset         = params->dwDataOffset;
