@@ -43,7 +43,9 @@ static const int   MHW_SFC_VE_HEIGHT_ALIGN   = 4;
 static const int   MHW_SFC_VE_WIDTH_ALIGN    = 16;
 static const float MHW_SFC_MIN_SCALINGFACTOR = (1.0F / 8.0F);
 static const float MHW_SFC_MAX_SCALINGFACTOR = 8.0F;
-static const uint32_t MHW_SFC_SFD_BUFF_HEIGHT_BAR = 4160;
+// After resuming from S3/S4, SFD surface is also need even scaled height smaller than 4160, such as 4154.
+// Lower the MHW_SFC_SFD_BUFF_HEIGHT_BAR from 4160 to 4000 to ensure SFD surface can be allocated for such case.
+static const uint32_t MHW_SFC_SFD_BUFF_HEIGHT_BAR = 4000;
 
 #define NEED_SFD_LINE_BUFFER(_SURFACE_HEIGHT) ((_SURFACE_HEIGHT) > MHW_SFC_SFD_BUFF_HEIGHT_BAR)
 #define SFD_LINE_BUFFER_SIZE(_SURFACE_HEIGHT) (NEED_SFD_LINE_BUFFER(_SURFACE_HEIGHT) ? (uint32_t)ceil((_SURFACE_HEIGHT) * MHW_SFC_CACHELINE_SIZE / 10) : 0)
