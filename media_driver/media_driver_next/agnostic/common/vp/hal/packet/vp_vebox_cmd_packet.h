@@ -760,7 +760,7 @@ public:
         VP_SURFACE                          *outputSurface,
         VP_SURFACE                          *previousSurface,
         VP_SURFACE_SETTING                  &surfSetting,
-        VP_EXECUTE_CAPS                     packetCaps) override;
+        VP_EXECUTE_CAPS                     packetCaps)override;
 
 
     //!
