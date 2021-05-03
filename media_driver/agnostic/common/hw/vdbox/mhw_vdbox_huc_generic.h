@@ -332,6 +332,7 @@ protected:
 
         if (params->presHucDataSource)
         {
+            cmd.HucDataSourceAttributes.DW0.Value |= m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
             resourceParams.presResource = params->presHucDataSource;
             resourceParams.dwOffset = 0;
             resourceParams.pdwCmd = (cmd.HucDataSourceBaseAddress.DW0_1.Value);
@@ -414,6 +415,7 @@ protected:
 
         if (params->presDataBuffer)
         {
+            cmd.HucIndirectStreamInObjectbaseAttributes.DW0.Value |= m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
             resourceParams.presResource = params->presDataBuffer;
             resourceParams.dwOffset = params->dwDataOffset;
             resourceParams.pdwCmd = cmd.HucIndirectStreamInObjectbaseAddress.DW0_1.Value;
@@ -430,6 +432,7 @@ protected:
         if (params->presStreamOutObjectBuffer)
         {
             // base address of the stream out buffer
+            cmd.HucIndirectStreamOutObjectbaseAttributes.DW0.Value |= m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED].Value;
             resourceParams.presResource = params->presStreamOutObjectBuffer;
             resourceParams.dwOffset = params->dwStreamOutObjectOffset;
             resourceParams.pdwCmd = cmd.HucIndirectStreamOutObjectbaseAddress.DW0_1.Value;

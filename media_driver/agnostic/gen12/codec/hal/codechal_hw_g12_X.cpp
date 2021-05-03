@@ -265,6 +265,10 @@ MOS_STATUS CodechalHwInterfaceG12::SetCacheabilitySettings(
     {
         CODECHAL_HW_CHK_STATUS_RETURN(m_avpInterface->SetCacheabilitySettings(cacheabilitySettings));
     }
+    if (m_hucInterface)
+    {
+        CODECHAL_HW_CHK_STATUS_RETURN(m_hucInterface->SetCacheabilitySettings(cacheabilitySettings));
+    }
 
     return eStatus;
 }
