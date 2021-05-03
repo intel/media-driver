@@ -652,8 +652,13 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
 
     // Vebox Chroma Co-Sited downsampling is part of VEO. It only affects format of vebox output surface, but not
     // affect sfc input format, that's why different logic between GetSfcInputFormat and GetVeboxOutputParams.
-    // Check IECP first here, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
-    if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)
+    // Check HDR case first, since 3DLUT output is fixed RGB32.
+    // Then Check IECP, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
+    if (executeCaps.bHDR3DLUT)
+    {
+        return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+    }
+    else if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)
     {
         // Upsampling to RGB444, and using ABGR as Vebox output
         return Format_A8B8G8R8;
@@ -664,10 +669,6 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
         // To align with legacy path, need to check whether inputFormat can also be used for IECP case,
         // in which case IECP down sampling will be applied.
         return Format_AYUV;
-    }
-    else if (executeCaps.bHDR3DLUT)
-    {
-        return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
     }
     else if (executeCaps.bDI)
     {
