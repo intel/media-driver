@@ -160,6 +160,7 @@ private:
 #define MOS_INVALID_APPID                   0xFFFFFFFF
 
 #define MOS_GPU_CONTEXT_CREATE_DEFAULT      1
+#define MOS_GPU_CONTEXT_CREATE_CM_DEFAULT   15
 
 #define MOS_VCS_ENGINE_USED(GpuContext) (              \
     ((GpuContext) == MOS_GPU_CONTEXT_VIDEO)         || \

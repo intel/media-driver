@@ -731,6 +731,22 @@ public:
         CmdBufMgrNext       *cmdBufMgr);
 
     //!
+    //! \brief    Setup commandlist and command pool from os interface
+    //! \details  Set the commandlist and commandPool used in this stream from os interface.
+    //!
+    //! \param    [in] pMosInterface
+    //!           pointer to the mos interface
+    //! \param    [out] streamStateDst
+    //!           Handle of Os Stream State.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS SetupCurrentCmdListAndPoolFromOsInterface(
+        PMOS_INTERFACE      pMosInterface,
+        MOS_STREAM_HANDLE   streamState);
+
+    //!
     //! \brief    Setup VE Attribute Buffer
     //! \details  [Cmd Buffer Interface] Setup VE Attribute Buffer into cmd buffer.
     //! \details  Caller: MHW only
