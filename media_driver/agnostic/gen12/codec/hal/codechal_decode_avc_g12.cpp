@@ -44,16 +44,20 @@ MOS_STATUS CodechalDecodeAvcG12::AllocateStandard(
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeAvc::AllocateStandard(settings));
 #ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
-    if (m_mmc->IsMmcEnabled() && (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)))
+    // Add disable Clear CCS WA due to green corruption issue
+    if (m_mmc->IsMmcEnabled())
     {
-        //Add HUC STATE Commands
-        MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
+        if (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002) && (!MEDIA_IS_WA(m_waTable, WaDisableClearCCS)))
+        {
+            //Add HUC STATE Commands
+            MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
 
-        m_hwInterface->GetHucStateCommandSize(
-            CODECHAL_DECODE_MODE_AVCVLD,
-            &m_HucStateCmdBufferSizeNeeded,
-            &m_HucPatchListSizeNeeded,
-            &stateCmdSizeParams);
+            m_hwInterface->GetHucStateCommandSize(
+                CODECHAL_DECODE_MODE_AVCVLD,
+                &m_HucStateCmdBufferSizeNeeded,
+                &m_HucPatchListSizeNeeded,
+                &stateCmdSizeParams);
+        }
     }
 #endif
 
@@ -243,20 +247,24 @@ MOS_STATUS CodechalDecodeAvcG12::DecodeStateLevel()
 
 #ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
-    if (m_mmc->IsMmcEnabled() && (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002)) &&
-        m_decodeParams.m_destSurface && !Mos_ResourceIsNull(&m_decodeParams.m_destSurface->OsResource) &&
+    // Add disable Clear CCS WA due to green corruption issue
+    if (m_mmc->IsMmcEnabled() && m_decodeParams.m_destSurface && !Mos_ResourceIsNull(&m_decodeParams.m_destSurface->OsResource) &&
         m_decodeParams.m_destSurface->OsResource.bConvertedFromDDIResource)
     {
-        if (m_secureDecoder && m_secureDecoder->IsAuxDataInvalid(&m_decodeParams.m_destSurface->OsResource))
+        if (MEDIA_IS_WA(m_waTable, Wa_1408785368) || MEDIA_IS_WA(m_waTable, Wa_22010493002) && (!MEDIA_IS_WA(m_waTable, WaDisableClearCCS)))
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_decodeParams.m_destSurface->OsResource, false, true));
+            if (m_secureDecoder && m_secureDecoder->IsAuxDataInvalid(&m_decodeParams.m_destSurface->OsResource))
+            {
+                CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_decodeParams.m_destSurface->OsResource, false, true));
+            }
+            else
+            {
+                CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
+                CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
+                    this, m_miInterface, &m_decodeParams.m_destSurface->OsResource, m_veState));
+            }
         }
-        else
-        {
-            CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by VE resolve before frame %d submission", m_frameNum);
-            CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
-                this, m_miInterface, &m_decodeParams.m_destSurface->OsResource, m_veState));
-        }
+
     }
 #endif
 
