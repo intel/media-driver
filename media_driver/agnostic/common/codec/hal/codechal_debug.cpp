@@ -27,6 +27,8 @@
 #include "codechal_debug.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_config_manager.h"
+#include "codechal_encoder_base.h"
+#include <iomanip>
 
 CodechalDebugInterface::CodechalDebugInterface()
 {
@@ -289,13 +291,15 @@ MOS_STATUS CodechalDebugInterface::DumpHucRegion(
     return DumpBuffer(region, nullptr, funcName.c_str(), regionSize, regionOffset);
 }
 
-#define FIELD_TO_OFS(type, name)                                       \
-    ofs << #name << ": " << (int64_t) * ((type *)report) << std::endl; \
-    report += sizeof(type) / sizeof(uint8_t);
-#define POINTER_TO_OFS(type, name)                       \
-    ofs << #name << ": " << (void *)report << std::endl; \
-    report += sizeof(void *) / sizeof(uint8_t);
-MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(uint8_t *report)
+MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(void* report)
+{
+    CODECHAL_DEBUG_ASSERTMESSAGE("WARNING: DumpEncodeStatusReport(void* report) is used. Make sure that pointer contains ::EncodeStatusReport or similar struct");
+    return DumpEncodeStatusReport((EncodeStatusReport*)report);
+}
+
+#define FIELD_TO_OFS(field_name) ofs << print_shift << std::setfill(' ') << std::setw(25) << std::left << std::string(#field_name) + ": " << (int64_t)report->field_name << std::endl;
+#define PTR_TO_OFS(ptr_name) ofs << print_shift << std::setfill(' ') << std::setw(25) << std::left << std::string(#ptr_name) + ": " << report->ptr_name << std::endl;
+MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(const EncodeStatusReport *report)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -315,55 +319,65 @@ MOS_STATUS CodechalDebugInterface::DumpEncodeStatusReport(uint8_t *report)
     {
         return MOS_STATUS_UNKNOWN;
     }
-
-    FIELD_TO_OFS(CODECHAL_STATUS, CodecStatus);
-    FIELD_TO_OFS(uint32_t, StatusReportNumber);
-    FIELD_TO_OFS(uint32_t, CurrOriginalPic.FrameIdx);
-    FIELD_TO_OFS(CODEC_PICTURE_FLAG, CurrOriginalPic.PicFlags);
-    FIELD_TO_OFS(uint32_t, CurrOriginalPic.PicEntry);
-    FIELD_TO_OFS(uint32_t, Func);
-    POINTER_TO_OFS(PCODEC_REF_LIST, pCurrRefList);
+    std::string print_shift = "";
+    sizeof(report->CodecStatus);
+    FIELD_TO_OFS(CodecStatus);
+    FIELD_TO_OFS(StatusReportNumber);
+    FIELD_TO_OFS(CurrOriginalPic.FrameIdx);
+    FIELD_TO_OFS(CurrOriginalPic.PicFlags);
+    FIELD_TO_OFS(CurrOriginalPic.PicEntry);
+    FIELD_TO_OFS(Func);
+    PTR_TO_OFS(  pCurrRefList);
     ofs << std::endl;
 
-    FIELD_TO_OFS(bool, bSequential);
-    FIELD_TO_OFS(uint32_t, bitstreamSize);
-    FIELD_TO_OFS(int8_t, QpY);
-    FIELD_TO_OFS(int8_t, SuggestedQpYDelta);
-    FIELD_TO_OFS(uint8_t, NumberPasses);
-    FIELD_TO_OFS(uint8_t, AverageQp);
-    FIELD_TO_OFS(uint64_t, HWCounterValue.IV);
-    FIELD_TO_OFS(uint64_t, HWCounterValue.Count);
-    POINTER_TO_OFS(uint64_t *, hwctr);
-    FIELD_TO_OFS(uint32_t, QueryStatusFlags);
+    FIELD_TO_OFS(bSequential);
+    FIELD_TO_OFS(bitstreamSize);
+    FIELD_TO_OFS(QpY);
+    FIELD_TO_OFS(SuggestedQpYDelta);
+    FIELD_TO_OFS(NumberPasses);
+    FIELD_TO_OFS(AverageQp);
+    FIELD_TO_OFS(HWCounterValue.IV);
+    FIELD_TO_OFS(HWCounterValue.Count);
+    PTR_TO_OFS(  hwctr);
+    FIELD_TO_OFS(QueryStatusFlags);
+
+    print_shift = "    ";
+    FIELD_TO_OFS(PanicMode);
+    FIELD_TO_OFS(SliceSizeOverflow);
+    FIELD_TO_OFS(NumSlicesNonCompliant);
+    FIELD_TO_OFS(LongTermReference);
+    FIELD_TO_OFS(FrameSkipped);
+    FIELD_TO_OFS(SceneChangeDetected);
+    print_shift = "";
     ofs << std::endl;
 
-    FIELD_TO_OFS(uint32_t, MAD);
-    FIELD_TO_OFS(uint32_t, loopFilterLevel);
-    FIELD_TO_OFS(int8_t, LongTermIndication);
-    FIELD_TO_OFS(uint16_t, NextFrameWidthMinus1);
-    FIELD_TO_OFS(uint16_t, NextFrameHeightMinus1);
-    FIELD_TO_OFS(uint8_t, NumberSlices);
+    FIELD_TO_OFS(MAD);
+    FIELD_TO_OFS(loopFilterLevel);
+    FIELD_TO_OFS(LongTermIndication);
+    FIELD_TO_OFS(NextFrameWidthMinus1);
+    FIELD_TO_OFS(NextFrameHeightMinus1);
+    FIELD_TO_OFS(NumberSlices);
 
-    FIELD_TO_OFS(uint16_t, PSNRx100[0]);
-    FIELD_TO_OFS(uint16_t, PSNRx100[1]);
-    FIELD_TO_OFS(uint16_t, PSNRx100[2]);
+    FIELD_TO_OFS(PSNRx100[0]);
+    FIELD_TO_OFS(PSNRx100[1]);
+    FIELD_TO_OFS(PSNRx100[2]);
 
-    FIELD_TO_OFS(uint32_t, NumberTilesInFrame);
-    FIELD_TO_OFS(uint8_t, UsedVdBoxNumber);
-    FIELD_TO_OFS(uint32_t, SizeOfSliceSizesBuffer);
-    POINTER_TO_OFS(uint16_t *, pSliceSizes);
-    FIELD_TO_OFS(uint32_t, SizeOfTileInfoBuffer);
-    POINTER_TO_OFS(void *, pHEVCTileinfo);
-    FIELD_TO_OFS(uint32_t, NumTileReported);
+    FIELD_TO_OFS(NumberTilesInFrame);
+    FIELD_TO_OFS(UsedVdBoxNumber);
+    FIELD_TO_OFS(SizeOfSliceSizesBuffer);
+    PTR_TO_OFS(  pSliceSizes);
+    FIELD_TO_OFS(SizeOfTileInfoBuffer);
+    PTR_TO_OFS(  pHEVCTileinfo);
+    FIELD_TO_OFS(NumTileReported);
     ofs << std::endl;
 
-    FIELD_TO_OFS(uint32_t, StreamId);
-    POINTER_TO_OFS(void *, pLookaheadStatus);
+    FIELD_TO_OFS(StreamId);
+    PTR_TO_OFS(  pLookaheadStatus);
     ofs.close();
 
     return MOS_STATUS_SUCCESS;
 }
 #undef FIELD_TO_OFS
-#undef POINTER_TO_OFS
+#undef PTR_TO_OFS
 
 #endif // USE_CODECHAL_DEBUG_TOOL

@@ -126,9 +126,12 @@ public:
         CodechalHucRegionDumpType dumpType);
 
     MOS_STATUS DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE>& vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum) override;
-    
+
     MOS_STATUS DumpEncodeStatusReport(
-        uint8_t *report);
+        void* report);
+
+    MOS_STATUS DumpEncodeStatusReport(
+        const struct EncodeStatusReport *report);
 
     void CheckGoldenReferenceExist();
 

@@ -4214,7 +4214,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                             "EncodeStatusReport_Buffer"));
 
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_statusReportDebugInterface->DumpEncodeStatusReport(
-                            (uint8_t*)encodeStatusReport));
+                            encodeStatusReport));
 
                         CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpFrameStatsBuffer(m_statusReportDebugInterface));
 
