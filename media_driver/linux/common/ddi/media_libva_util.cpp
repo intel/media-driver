@@ -1051,11 +1051,6 @@ static VAStatus CreateShadowResource(DDI_MEDIA_SURFACE *surface)
         return VA_STATUS_ERROR_INVALID_SURFACE;
     }
 
-    if (surface->iWidth <= 512 || surface->iRealHeight <= 512 || surface->format == Media_Format_P016)
-    {
-        return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-    }
-
     surface->pShadowBuffer = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     DDI_CHK_NULL(surface->pShadowBuffer, "Failed to allocate shadow buffer", VA_STATUS_ERROR_INVALID_BUFFER);
     surface->pShadowBuffer->pMediaCtx = surface->pMediaCtx;
@@ -1133,8 +1128,10 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
         DdiMedia_MediaSurfaceToMosResource(surface, &source);
         DdiMedia_MediaBufferToMosResource(surface->pShadowBuffer, &target);
     }
-
-    return mediaDrvCtx->pfnMediaMemoryTileConvert(
+    // Because Media driver context has single instance of pMediaMemDecompState,
+    // so we need to protect here to avoid some issue in multi theads cases.
+    DdiMediaUtil_LockMutex(&mediaDrvCtx->SurfaceMutex);
+    VAStatus status = mediaDrvCtx->pfnMediaMemoryTileConvert(
             &mosCtx,
             &source,
             &target,
@@ -1144,6 +1141,8 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
             0,
             !isDeSwizzle,
             false);
+    DdiMediaUtil_UnLockMutex(&mediaDrvCtx->SurfaceMutex);
+    return status;
 }
 
 // add thread protection for multiple thread?
