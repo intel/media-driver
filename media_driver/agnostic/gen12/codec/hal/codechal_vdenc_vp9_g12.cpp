@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3565,7 +3565,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
             allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format = Format_Buffer;
-            auto size = m_maxTileNumber * MOS_ALIGN_CEIL(m_hcpInterface->GetPakHWTileSizeRecordSize(), CODECHAL_CACHELINE_SIZE);
+            auto size = m_hcpTileRecordBufferSize;
             allocParamsForBufferLinear.dwBytes = size;
             allocParamsForBufferLinear.pBufName = "Tile Record Buffer";
 
@@ -3583,20 +3583,18 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 
     if (m_isTilingSupported && m_scalableMode && m_hucEnabled && IsFirstPipe() && IsFirstPass())
     {
-        // Max row is 4 by VP9 Spec
-        uint32_t m_maxScalableModeRows = 4;
-        uint32_t m_maxScalableModeTiles = m_numVdbox * m_maxScalableModeRows;
+        uint32_t numTiles = m_maxTileNumber;
 
         // Fill Pak integration kernel input tile stats structure
         MOS_ZeroMemory(&m_tileStatsOffset, sizeof(StatsInfo));
         // TileSizeRecord has to be 4k aligned
         m_tileStatsOffset.tileSizeRecord = 0;
         // VdencStats has to be 4k aligned
-        m_tileStatsOffset.vdencStats = MOS_ALIGN_CEIL((m_tileStatsOffset.tileSizeRecord + (m_maxScalableModeTiles * m_statsSize.tileSizeRecord)), CODECHAL_PAGE_SIZE);
+        m_tileStatsOffset.vdencStats = MOS_ALIGN_CEIL((m_tileStatsOffset.tileSizeRecord + (numTiles * m_statsSize.tileSizeRecord)), CODECHAL_PAGE_SIZE);
         // VP9PAKStats has to be 64 byte aligned
-        m_tileStatsOffset.pakStats = MOS_ALIGN_CEIL((m_tileStatsOffset.vdencStats + (m_maxScalableModeTiles * m_statsSize.vdencStats)), CODECHAL_PAGE_SIZE);
+        m_tileStatsOffset.pakStats = MOS_ALIGN_CEIL((m_tileStatsOffset.vdencStats + (numTiles * m_statsSize.vdencStats)), CODECHAL_PAGE_SIZE);
         // VP9CounterBuffer has to be 4k aligned
-        m_tileStatsOffset.counterBuffer = MOS_ALIGN_CEIL((m_tileStatsOffset.pakStats + (m_maxScalableModeTiles * m_statsSize.pakStats)), CODECHAL_PAGE_SIZE);
+        m_tileStatsOffset.counterBuffer = MOS_ALIGN_CEIL((m_tileStatsOffset.pakStats + (numTiles * m_statsSize.pakStats)), CODECHAL_PAGE_SIZE);
 
         MOS_LOCK_PARAMS lockFlagsWriteOnly;
         uint8_t* tileStatsData = nullptr;
@@ -3611,7 +3609,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
             allocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
             allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
             allocParamsForBufferLinear.Format = Format_Buffer;
-            allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL((m_tileStatsOffset.counterBuffer + (m_maxScalableModeTiles * m_statsSize.counterBuffer)), CODECHAL_PAGE_SIZE);
+            allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL((m_tileStatsOffset.counterBuffer + (numTiles * m_statsSize.counterBuffer)), CODECHAL_PAGE_SIZE);
             allocParamsForBufferLinear.pBufName = "GEN12 Tile Level Statistics Buffer";
 
             m_tileStatsPakIntegrationBufferSize = allocParamsForBufferLinear.dwBytes;
@@ -4165,9 +4163,11 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencVp9State::AllocateResources());
 
+    uint32_t numTiles = m_maxTileNumber;
+
     // create the tile coding state parameters
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_tileParams =
-                                        (PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12)MOS_AllocAndZeroMemory(sizeof(MHW_VDBOX_HCP_TILE_CODING_PARAMS_G12) * m_maxTileNumber));
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_tileParams = 
+        (PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12)MOS_AllocAndZeroMemory(sizeof(MHW_VDBOX_HCP_TILE_CODING_PARAMS_G12) * numTiles));
 
     if (m_isTilingSupported)
     {
@@ -4219,7 +4219,7 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
         //HCP scalability Sync buffer
         size = CODECHAL_ENCODE_VP9_MAX_NUM_HCP_PIPE * CODECHAL_CACHELINE_SIZE;
         allocParamsForBufferLinear.dwBytes = size;
-        allocParamsForBufferLinear.pBufName = "Hcp scalability Sync buffer ";
+        allocParamsForBufferLinear.pBufName = "Hcp scalability Sync buffer";
 
         eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
             m_osInterface,
@@ -4229,8 +4229,8 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
         m_hcpScalabilitySyncBuffer.dwSize = size;
 
         //HCP Tile Size Streamout Buffer. Use in HCP_IND_OBJ_CMD
-        size = m_maxTileNumber * MOS_ALIGN_CEIL(m_hcpInterface->GetPakHWTileSizeRecordSize(), CODECHAL_CACHELINE_SIZE);
-        allocParamsForBufferLinear.dwBytes = size;
+        m_hcpTileRecordBufferSize = numTiles * MOS_ALIGN_CEIL(m_hcpInterface->GetPakHWTileSizeRecordSize(), CODECHAL_CACHELINE_SIZE);
+        allocParamsForBufferLinear.dwBytes  = m_hcpTileRecordBufferSize;
         allocParamsForBufferLinear.pBufName = "HCP Tile Record Buffer";
 
         if (m_scalableMode && m_hucEnabled)
@@ -4261,7 +4261,7 @@ MOS_STATUS CodechalVdencVp9StateG12::AllocateResources()
             // HuC PAK Int Region 1 programming related stats
             MOS_ZeroMemory(&m_frameStatsOffset, sizeof(StatsInfo));
             m_frameStatsOffset.tileSizeRecord = 0;
-            m_frameStatsOffset.vdencStats = MOS_ALIGN_CEIL((m_frameStatsOffset.tileSizeRecord + (m_maxTileNumber * m_statsSize.tileSizeRecord)), CODECHAL_PAGE_SIZE);
+            m_frameStatsOffset.vdencStats = MOS_ALIGN_CEIL((m_frameStatsOffset.tileSizeRecord + (numTiles * m_statsSize.tileSizeRecord)), CODECHAL_PAGE_SIZE);
             m_frameStatsOffset.pakStats = MOS_ALIGN_CEIL((m_frameStatsOffset.vdencStats + m_statsSize.vdencStats), CODECHAL_PAGE_SIZE);
             m_frameStatsOffset.counterBuffer = MOS_ALIGN_CEIL((m_frameStatsOffset.pakStats + m_statsSize.pakStats), CODECHAL_PAGE_SIZE);
 
@@ -4985,7 +4985,7 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9PakInt(
     hucRegionName[9] = "_BrcDataOutputBuffer"; // This is the pak MMIO region 7 , not 4, of BRC update
     hucRegionSize[9] = MOS_ALIGN_CEIL(CODECHAL_ENCODE_VP9_HUC_BRC_DATA_BUFFER_SIZE, CODECHAL_PAGE_SIZE);
     hucRegionName[15] = "_TileRecordBuffer"; 
-    hucRegionSize[15] = m_maxTileNumber * MOS_ALIGN_CEIL(m_hcpInterface->GetPakHWTileSizeRecordSize(), CODECHAL_CACHELINE_SIZE);
+    hucRegionSize[15] = m_hcpTileRecordBufferSize;
     )
 
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;

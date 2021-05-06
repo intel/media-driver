@@ -1773,6 +1773,7 @@ public:
     CODECHAL_ENCODE_BUFFER                      m_resPakSliceLevelStreamutData;
 
     uint32_t                                    m_maxTileNumber = 1;
+    uint32_t                                    m_hcpTileRecordBufferSize = 0;
 
     uint32_t                                    m_bitDepth = 0;
     uint8_t                                     m_chromaFormat = 0;
