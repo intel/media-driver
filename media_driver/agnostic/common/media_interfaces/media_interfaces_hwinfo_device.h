@@ -61,7 +61,7 @@ public:
     //!
     virtual MOS_STATUS Initialize(PLATFORM platform)
     {
-        m_hwInfo.SetDeviceInfo(IP_VERSION_UNKNOW, 0);
+        m_hwInfo.SetDeviceInfo("IP_VERSION_UNKNOW", 0);
         return MOS_STATUS_SUCCESS;
     };
 
