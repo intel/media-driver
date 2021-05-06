@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -63,6 +63,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
     uint32_t      iDeviceId = 0;
     MOS_STATUS    eStatus;
     uint32_t      i = 0;
+    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -87,6 +88,18 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             return MOS_STATUS_INVALID_PARAMETER;
         }
         mos_bufmgr_gem_enable_reuse(m_bufmgr);
+        
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_SOFTPIN_ID,
+            &UserFeatureData,
+            nullptr);
+        if (UserFeatureData.i32Data)
+        {
+            mos_bufmgr_gem_enable_softpin(m_bufmgr);
+        }
+
         osDriverContext->bufmgr                 = m_bufmgr;
 
         //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
@@ -164,7 +177,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
         m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(m_bufmgr, &m_skuTable);
 
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_UserFeature_ReadValue_ID(

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1014,15 +1014,18 @@ MOS_STATUS GpuContextSpecificNext::SubmitCommandBuffer(
             resource));
 
         uint64_t boOffset = alloc_bo->offset64;
-        if (alloc_bo != tempCmdBo)
+        if (!mos_gem_bo_is_softpin(alloc_bo))
         {
-            auto item_ctx = perStreamParameters->contextOffsetList.begin();
-            for (; item_ctx != perStreamParameters->contextOffsetList.end(); item_ctx++)
+            if (alloc_bo != tempCmdBo)
             {
-                if (item_ctx->intel_context == perStreamParameters->intel_context && item_ctx->target_bo == alloc_bo)
+                auto item_ctx = perStreamParameters->contextOffsetList.begin();
+                for (; item_ctx != perStreamParameters->contextOffsetList.end(); item_ctx++)
                 {
-                    boOffset = item_ctx->offset64;
-                    break;
+                    if (item_ctx->intel_context == perStreamParameters->intel_context && item_ctx->target_bo == alloc_bo)
+                    {
+                        boOffset = item_ctx->offset64;
+                        break;
+                    }
                 }
             }
         }
