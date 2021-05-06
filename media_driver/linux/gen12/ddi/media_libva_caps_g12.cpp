@@ -84,6 +84,8 @@ const VAImageFormat m_supportedImageformatsG12[] =
     {VA_FOURCC_Y412,           VA_LSB_FIRST,   64, 0,0,0,0,0},
 #endif
     {VA_FOURCC_Y416,           VA_LSB_FIRST,   64, 0,0,0,0,0},
+    {VA_FOURCC_RGBP,           VA_LSB_FIRST,   24, 24,0,0,0,0},
+    {VA_FOURCC_BGRP,           VA_LSB_FIRST,   24, 24,0,0,0,0},
 };
 
 const VAConfigAttribValEncRateControlExt MediaLibvaCapsG12::m_encVp9RateControlExt =
