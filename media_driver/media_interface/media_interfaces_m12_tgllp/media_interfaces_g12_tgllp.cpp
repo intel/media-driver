@@ -446,7 +446,8 @@ MOS_STATUS McpyDeviceG12Tgllp::Initialize(
     if (device->Initialize(
         osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
     {
-        MCPY_FAILURE();
+        MOS_Delete(device);
+        MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
     }
 
     m_mcpyDevice = device;
