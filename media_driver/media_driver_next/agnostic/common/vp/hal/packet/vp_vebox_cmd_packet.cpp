@@ -1950,7 +1950,7 @@ MOS_STATUS VpVeboxCmdPacket::GetStatisticsSurfaceOffsets(
         VEBOX_STAT_QUERY_PER_FRAME_SIZE, &uiPitch));
 
     // Get the base address of Frame based statistics for each slice
-    if (m_PacketCaps.bDI || m_PacketCaps.bIECP) // VEBOX, VEBOX+IECP
+    if (m_PacketCaps.bDI) // VEBOX, VEBOX+IECP
     {
         // Frame based statistics begins after Encoder statistics
         iOffset = m_dwVeboxPerBlockStatisticsWidth *
@@ -1959,7 +1959,7 @@ MOS_STATUS VpVeboxCmdPacket::GetStatisticsSurfaceOffsets(
         *pStatSlice0Offset = iOffset + uiPitch;                                     // Slice 0 current frame
         *pStatSlice1Offset = iOffset + uiPitch * 3;                                 // Slice 1 current frame
     }
-    else if (m_PacketCaps.bDN || m_PacketCaps.bIECP) // DN, DN_IECP, SpatialDI
+    else if (m_PacketCaps.bDN) // DN, DN_IECP, SpatialDI
     {
         // Frame based statistics begins after Encoder statistics
         iOffset = m_dwVeboxPerBlockStatisticsWidth *
