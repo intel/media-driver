@@ -37,6 +37,7 @@
 #else
 #define MHW_HWCMDPARSER_INIT(osInterface)
 #define MHW_HWCMDPARSER_DESTROY()
+#define MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
 #define MHW_HWCMDPARSER_FRAMEINFOUPDATE(frameType)
 #define MHW_HWCMDPARSER_PARSECMD(cmdName, cmdData, dwLen)
 #define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
@@ -67,8 +68,14 @@
                                                                 const uint8_t *     extraData     = nullptr, \
                                                                 size_t              extraDataSize = 0)
 
-#define __MHW_CMD_CREATE_DECL(cmd)      mhw::Pointer<std::vector<uint8_t>> __MHW_CMD_CREATE_F(cmd)() const
-#define __MHW_CMD_SET_DECL(cmd)         MOS_STATUS __MHW_CMD_SET_F(cmd)(uint8_t * cmdDataPtr)
+#define __MHW_CMD_CREATE_DECL(cmd) mhw::Pointer<std::vector<uint8_t>> __MHW_CMD_CREATE_F(cmd)() const
+
+#if _MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL)
+#define __MHW_CMD_SET_DECL(cmd) MOS_STATUS __MHW_CMD_SET_F(cmd)(uint8_t * cmdDataPtr, const std::string &cmdName = #cmd)
+#else
+#define __MHW_CMD_SET_DECL(cmd) MOS_STATUS __MHW_CMD_SET_F(cmd)(uint8_t * cmdDataPtr)
+#endif
+
 #define _MHW_CMD_SET_DECL_OVERRIDE(cmd) __MHW_CMD_SET_DECL(cmd) override
 
 #define __MHW_CMD_PAR_GET_COMMON_DEF(cmd, par_t)                                      \
@@ -171,6 +178,10 @@ protected:                                     \
 // DWORD location of a command field
 #define _MHW_CMD_DW_LOCATION(field) \
     static_cast<uint32_t>((reinterpret_cast<uint32_t *>(&(cmd->field)) - reinterpret_cast<uint32_t *>(&(*cmd))))
+
+#define _MHW_CMD_ASSIGN_FIELD(dw, field, value) \
+    cmd->dw.field = (value);                    \
+    MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
 
 namespace mhw
 {

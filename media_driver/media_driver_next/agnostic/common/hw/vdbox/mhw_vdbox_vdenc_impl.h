@@ -203,35 +203,35 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_PIPE_MODE_SELECT);
 
-        cmd->DW1.StandardSelect                              = params->standardSelect;
-        cmd->DW1.ScalabilityMode                             = params->scalabilityMode;
-        cmd->DW1.FrameStatisticsStreamOutEnable              = params->frameStatisticsStreamOut;
-        cmd->DW1.VdencPakObjCmdStreamOutEnable               = params->pakObjCmdStreamOut;
-        cmd->DW1.TlbPrefetchEnable                           = params->tlbPrefetch;
-        cmd->DW1.PakThresholdCheckEnable                     = params->dynamicSlice;
-        cmd->DW1.VdencStreamInEnable                         = params->streamIn;
-        cmd->DW1.BitDepth                                    = params->bitDepthMinus8;
-        cmd->DW1.PakChromaSubSamplingType                    = params->chromaType;
-        cmd->DW1.OutputRangeControlAfterColorSpaceConversion = params->outputRangeControlCsc;
-        cmd->DW1.TileReplayEnable                            = params->tileBasedReplayMode;
-        cmd->DW1.IsRandomAccess                              = params->randomAccess;
-        cmd->DW1.RgbEncodingEnable                           = params->rgbEncodingMode;
-        cmd->DW1.StreamingBufferConfig                       = params->streamingBufferConfig;
+        _MHW_CMD_ASSIGN_FIELD(DW1, StandardSelect                             ,  params->standardSelect);
+        _MHW_CMD_ASSIGN_FIELD(DW1, ScalabilityMode                            ,  params->scalabilityMode);
+        _MHW_CMD_ASSIGN_FIELD(DW1, FrameStatisticsStreamOutEnable             ,  params->frameStatisticsStreamOut);
+        _MHW_CMD_ASSIGN_FIELD(DW1, VdencPakObjCmdStreamOutEnable              ,  params->pakObjCmdStreamOut);
+        _MHW_CMD_ASSIGN_FIELD(DW1, TlbPrefetchEnable                          ,  params->tlbPrefetch);
+        _MHW_CMD_ASSIGN_FIELD(DW1, PakThresholdCheckEnable                    ,  params->dynamicSlice);
+        _MHW_CMD_ASSIGN_FIELD(DW1, VdencStreamInEnable                        ,  params->streamIn);
+        _MHW_CMD_ASSIGN_FIELD(DW1, BitDepth                                   ,  params->bitDepthMinus8);
+        _MHW_CMD_ASSIGN_FIELD(DW1, PakChromaSubSamplingType                   ,  params->chromaType);
+        _MHW_CMD_ASSIGN_FIELD(DW1, OutputRangeControlAfterColorSpaceConversion,  params->outputRangeControlCsc);
+        _MHW_CMD_ASSIGN_FIELD(DW1, TileReplayEnable                           ,  params->tileBasedReplayMode);
+        _MHW_CMD_ASSIGN_FIELD(DW1, IsRandomAccess                             ,  params->randomAccess);
+        _MHW_CMD_ASSIGN_FIELD(DW1, RgbEncodingEnable                          ,  params->rgbEncodingMode);
+        _MHW_CMD_ASSIGN_FIELD(DW1, StreamingBufferConfig                      ,  params->streamingBufferConfig);
 
-        cmd->DW2.HmeRegionPreFetchenable                      = params->hmeRegionPrefetch;
-        cmd->DW2.Topprefetchenablemode                        = params->topPrefetchEnableMode;
-        cmd->DW2.LeftpreFetchatwraparound                     = params->leftPrefetchAtWrapAround;
-        cmd->DW2.Verticalshift32Minus1                        = params->verticalShift32Minus1;
-        cmd->DW2.Hzshift32Minus1                              = params->hzShift32Minus1;
-        cmd->DW2.NumVerticalReqMinus1                         = params->numVerticalReqMinus1;
-        cmd->DW2.Numhzreqminus1                               = params->numHzReqMinus1;
-        cmd->DW2.PreFetchOffsetForReferenceIn16PixelIncrement = params->prefetchOffset;
+        _MHW_CMD_ASSIGN_FIELD(DW2, HmeRegionPreFetchenable                     ,  params->hmeRegionPrefetch);
+        _MHW_CMD_ASSIGN_FIELD(DW2, Topprefetchenablemode                       ,  params->topPrefetchEnableMode);
+        _MHW_CMD_ASSIGN_FIELD(DW2, LeftpreFetchatwraparound                    ,  params->leftPrefetchAtWrapAround);
+        _MHW_CMD_ASSIGN_FIELD(DW2, Verticalshift32Minus1                       ,  params->verticalShift32Minus1);
+        _MHW_CMD_ASSIGN_FIELD(DW2, Hzshift32Minus1                             ,  params->hzShift32Minus1);
+        _MHW_CMD_ASSIGN_FIELD(DW2, NumVerticalReqMinus1                        ,  params->numVerticalReqMinus1);
+        _MHW_CMD_ASSIGN_FIELD(DW2, Numhzreqminus1                              ,  params->numHzReqMinus1);
+        _MHW_CMD_ASSIGN_FIELD(DW2, PreFetchOffsetForReferenceIn16PixelIncrement,  params->prefetchOffset);
 
-        cmd->DW5.CaptureMode                       = params->captureMode;
-        cmd->DW5.ParallelCaptureAndEncodeSessionId = params->wirelessSessionId;
-        cmd->DW5.TailPointerReadFrequency          = params->tailPointerReadFrequency;
-        cmd->DW5.QuantizationPrecisionOptimization = params->quantizationPrecision;
-        cmd->DW5.LatencyToleratePreFetchEnable     = params->latencyTolerate;
+        _MHW_CMD_ASSIGN_FIELD(DW5, CaptureMode                      ,  params->captureMode);
+        _MHW_CMD_ASSIGN_FIELD(DW5, ParallelCaptureAndEncodeSessionId,  params->wirelessSessionId);
+        _MHW_CMD_ASSIGN_FIELD(DW5, TailPointerReadFrequency         ,  params->tailPointerReadFrequency);
+        _MHW_CMD_ASSIGN_FIELD(DW5, QuantizationPrecisionOptimization,  params->quantizationPrecision);
+        _MHW_CMD_ASSIGN_FIELD(DW5, LatencyToleratePreFetchEnable    ,  params->latencyTolerate);
 
         return MOS_STATUS_SUCCESS;
     }
