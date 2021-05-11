@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Intel Corporation
+# Copyright (c) 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,14 +18,12 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(tgp)
-
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9_cml.c
+    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9_cml_tgp.c
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9_cml.h
+    ${CMAKE_CURRENT_LIST_DIR}/igvpkrn_g9_cml_tgp.h
 )
 
 set(SOURCES_
