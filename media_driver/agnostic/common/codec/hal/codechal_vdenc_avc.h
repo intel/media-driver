@@ -1479,11 +1479,12 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
     hucVDEncBrcDmem->UPD_HMECostEnable_U8 = 1;
     if (avcPicParams->NumROI)
     {
+        CODECHAL_ENCODE_CHK_COND_RETURN(m_avcPicParam->NumROI > sizeof(hucVDEncBrcDmem->UPD_ROIQpDelta_I8) - 1, "Number of ROI is greater that dmem roi array size");
+
         hucVDEncBrcDmem->UPD_RoiQpViaForceQp_U8 = avcPicParams->bNativeROI ? 0 : 1;
         for (uint8_t i = 0; i < m_avcPicParam->NumROI; i++)
         {
-            hucVDEncBrcDmem->UPD_ROIQpDelta_I8[i + 1] = (int8_t)CodecHal_Clip3(
-                ENCODE_VDENC_AVC_MIN_ROI_DELTA_QP_G9, ENCODE_VDENC_AVC_MAX_ROI_DELTA_QP_G9, m_avcPicParam->ROIDistinctDeltaQp[i]);
+            hucVDEncBrcDmem->UPD_ROIQpDelta_I8[i + 1] = m_avcPicParam->ROIDistinctDeltaQp[i];
         }
     }
     else if (avcPicParams->NumDirtyROI)
