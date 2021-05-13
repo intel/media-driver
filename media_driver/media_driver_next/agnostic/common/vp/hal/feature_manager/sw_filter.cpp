@@ -185,8 +185,31 @@ MOS_STATUS SwFilterCsc::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput,
 
         return MOS_STATUS_SUCCESS;
     }
+    else
+    {
+        // Skip CSC and only for chroma sitting purpose
+        m_Params.input.colorSpace = m_Params.output.colorSpace = surfInput->ColorSpace;
+        m_Params.formatInput = m_Params.formatOutput = surfInput->osSurface->Format;
+        m_Params.input.chromaSiting                  = surfInput->ChromaSiting;
+        m_Params.output.chromaSiting                 = surfOutput->ChromaSiting;
+        m_Params.pAlphaParams                        = nullptr;
+        m_Params.pIEFParams                          = nullptr;
+
+        m_noNeedUpdate = true;
+
+        return MOS_STATUS_SUCCESS;
+    }
 
     return MOS_STATUS_UNIMPLEMENTED;
+}
+
+MOS_STATUS SwFilterCsc::Configure(FeatureParamCsc &params)
+{
+    // Skip CSC and only for chroma sitting purpose
+    m_Params       = params;
+    m_noNeedUpdate = true;
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterCsc::Configure(VEBOX_SFC_PARAMS &params)

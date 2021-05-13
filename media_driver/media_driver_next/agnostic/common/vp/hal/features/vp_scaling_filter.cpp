@@ -92,9 +92,9 @@ MOS_STATUS VpScalingFilter::SfcAdjustBoundary(
         dwVeboxBottom *= 2;
         dwVeboxRight *= 2;
     }
-    if (MEDIA_IS_SKU(m_pvpMhwInterface->m_skuTable, FtrHeight8AlignVE3DLUTDualPipe) && m_executeCaps.bHDR3DLUT)
+    if (MEDIA_IS_SKU(m_pvpMhwInterface->m_skuTable, FtrHeight8AlignVE3DLUTDualPipe) && (m_executeCaps.bHDR3DLUT || m_executeCaps.bDV))
     {
-        VP_PUBLIC_NORMALMESSAGE("SFC Align Frame Height as 8x due to 3Dlut HDR Enable");
+        VP_PUBLIC_NORMALMESSAGE("SFC Align Frame Height as 8x due to 3Dlut Dual mode Enable");
         heightAlignUnit = MOS_ALIGN_CEIL(heightAlignUnit, 8);
     }
 

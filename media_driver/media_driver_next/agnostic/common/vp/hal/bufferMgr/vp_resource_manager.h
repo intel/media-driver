@@ -59,7 +59,7 @@
                                !(_a.bDI) &&   \
                                !(_a.bQueryVariance) && \
                                !(_a.bIECP) && \
-                               !(_a.bHDR3DLUT))
+                               !(_a.b3DlutOutput))
 
 namespace vp {
     struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION

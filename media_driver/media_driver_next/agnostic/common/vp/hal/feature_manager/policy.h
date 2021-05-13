@@ -111,10 +111,16 @@ protected:
         VP_EXECUTE_CAPS& caps,
         SwFilterPipe& executedFilters,
         FeatureType featureType);
+    virtual MOS_STATUS GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS &caps, FeatureParamCsc &cscParams);
 
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
     virtual MOS_STATUS FilterFeatureCombination(SwFilterSubPipe *pipe);
+
+    virtual bool IsBeCSCNeededOnCaps(VP_EXECUTE_CAPS &caps)
+    {
+        return (caps.bSFC && (caps.bIECP || caps.bDI));
+    }
 
     virtual bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps)
     {
@@ -160,6 +166,16 @@ protected:
     //!           Return true if enabled, otherwise failed
     //!
     virtual bool IsAlphaEnabled(FeatureParamScaling *scalingParams);
+
+    virtual bool IsHDRfilterExist(SwFilterSubPipe *inputPipe)
+    {
+        if (inputPipe)
+        {
+            SwFilter *feature = (SwFilter *)inputPipe->GetSwFilter(FeatureType(FeatureTypeHdr));
+            return feature != nullptr;
+        }
+        return false;
+    }
 };
 
 }

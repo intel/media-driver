@@ -163,7 +163,7 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
 {
     VP_FUNC_CALL();
 
-    if (executeCaps.bHDR3DLUT)
+    if (executeCaps.b3DlutOutput)
     {
         return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? CSpace_BT2020_RGB : CSpace_sRGB;
     }
@@ -330,7 +330,7 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     VP_RENDER_CHK_NULL_RETURN(m_veboxCSCParams);
 
     VPHAL_COLORPACK       srcColorPack;
-    bool bNeedUpSampling = vpExecuteCaps.bIECP || vpExecuteCaps.bHDR3DLUT;
+    bool bNeedUpSampling = vpExecuteCaps.bIECP || vpExecuteCaps.b3DlutOutput;
     bool bDIEnabled      = vpExecuteCaps.bDI;
 
     srcColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatInput);
