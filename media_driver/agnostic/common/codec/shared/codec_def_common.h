@@ -543,6 +543,26 @@ static __inline uint8_t GetU44ModeCost(double mcost)
     return (uint8_t)(mcost * 16 + 0.5);
 }
 
+static __inline uint8_t LimNumBits(uint8_t cost, int32_t numBits)
+{
+    int32_t startBit = -1;
+
+    for (int i = 7; i >= numBits; i--)
+    {
+        if ((cost >> i) != 0)
+        {
+            startBit = i;
+        }
+    }
+
+    if (startBit >= 0)
+    {
+        cost = ((cost >> (startBit - numBits + 1)) << (startBit - numBits + 1));
+    }
+
+    return cost;
+}
+
 static __inline uint32_t CodecHal_GetStandardFromMode(uint32_t mode)
 {
     uint32_t standard = CODECHAL_UNDEFINED;
