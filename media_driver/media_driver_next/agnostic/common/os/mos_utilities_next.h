@@ -1273,7 +1273,7 @@ public:
     //!           A pointer to a variable that receives a code indicating the
     //!           type of data stored in the specified value.
     //! \param    [out] data
-    //!           A pointer to a buffer that receives the value's data.
+    //!           Buffer that receives the value's data.
     //! \param    [out] size
     //!           A pointer to a variable that specifies the size of the buffer
     //!           pointed to by the data parameter, in bytes.
@@ -1285,7 +1285,7 @@ public:
         UFKEY_NEXT keyHandle,
         const std::string &valueName,
         uint32_t *type,
-        char *data,
+        std::string &data,
         uint32_t *size);
 
     //!

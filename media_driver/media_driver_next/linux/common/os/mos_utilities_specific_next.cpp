@@ -1651,10 +1651,9 @@ MOS_STATUS MosUtilities::MosGetRegValue(
     UFKEY_NEXT keyHandle,
     const std::string &valueName,
     uint32_t *type,
-    char *data,
+    std::string &data,
     uint32_t *size)
 {
-    MOS_OS_CHK_NULL_RETURN(data);
     MOS_OS_CHK_NULL_RETURN(size);
     MOS_UNUSED(type);
 
@@ -1677,7 +1676,8 @@ MOS_STATUS MosUtilities::MosGetRegValue(
         {
             std::string strData = retVal;
             *size = strData.length();
-            return MOS_SecureMemcpy(data, strData.length(), strData.c_str(), strData.length());
+            data = strData;
+            return MOS_STATUS_SUCCESS;
         }
 
         auto keys = util::m_regBuffer[keyHandle];
@@ -1687,7 +1687,7 @@ MOS_STATUS MosUtilities::MosGetRegValue(
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        status = MOS_SecureMemcpy(data, it->second.length(), it->second.c_str(), it->second.length());
+        data = it->second;
     }
     catch(const std::exception &e)
     {

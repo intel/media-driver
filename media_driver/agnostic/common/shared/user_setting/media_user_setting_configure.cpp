@@ -127,15 +127,14 @@ MOS_STATUS Configure::Read(Value &value,
 
     if (status == MOS_STATUS_SUCCESS)
     {
-        char data[MOS_USER_CONTROL_MAX_DATA_SIZE];
+        std::string strValue = "";
         uint32_t size = MOS_USER_CONTROL_MAX_DATA_SIZE;
+        uint32_t type = 0;
 
         m_mutexLock.Lock();
-        status = MosUtilities::MosGetRegValue(key, valueName, nullptr, data, &size);
+        status = MosUtilities::MosGetRegValue(key, valueName, &type, strValue, &size);
         if (status == MOS_STATUS_SUCCESS)
         {
-            std::string strValue = data;
-            strValue = strValue.substr(0, size);
             value = strValue;
         }
         m_mutexLock.Unlock();
