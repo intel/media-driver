@@ -923,6 +923,149 @@ MOS_STATUS VphalRenderer::RenderFast1toNComposite(
 }
 
 //!
+//! \brief    Overlay the substream into the primary stream (In place)
+//! \details  Overlay the substream into the primary stream, the rectangle of
+//! substreams needs to non-overlapped (In Place)
+//! \param    [in] pRenderParams
+//!           Pointer to VPHAL render parameter
+//! \param    [in,out] pRenderPassData
+//!           Pointer to the VPHAL render pass data
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalRenderer::RenderOverlay(
+    PVPHAL_RENDER_PARAMS    pRenderParams,
+    RenderpassData          *pRenderPassData)
+{
+    MOS_STATUS              eStatus                  = MOS_STATUS_SUCCESS;
+    uint32_t                uiSources                = 0;
+    uint32_t                uNumSurf                 = 0;
+    uint32_t                dwSrcHeight              = 1080;
+    uint32_t                dwSrcWidth               = 1920;
+    bool                    bOverlay                 = false;
+
+    VPHAL_RENDER_ASSERT(pRenderParams);
+    VPHAL_RENDER_ASSERT(pRenderPassData);
+
+    // determine number of surfaces, reusing the local variable uiSources to count valid surfaces
+    for (uiSources = 0; uiSources < VPHAL_MAX_SOURCES; uiSources++)
+    {
+        if (pRenderParams->pSrc[uiSources] != nullptr)
+        {
+            uNumSurf++;
+        }
+    }
+
+    //  At present, in-place composition limitied to 2 layers only
+    if (uNumSurf == 2)
+    {
+        if (/*((pRenderParams->pSrc[0]->OsResource.pData != 0) && (pRenderParams->pTarget[0]->OsResource.pData != 0)
+        &&(pRenderParams->pSrc[0]->OsResource.pData == pRenderParams->pTarget[0]->OsResource.pData))
+        && */(pRenderParams->pSrc[0]->Format == pRenderParams->pTarget[0]->Format)
+        && (pRenderParams->pSrc[0]->dwWidth == pRenderParams->pTarget[0]->dwWidth)
+        && (pRenderParams->pSrc[0]->dwHeight == pRenderParams->pTarget[0]->dwHeight))
+        {
+            // No Scaling, Rotation and DI allowed for Primary/RT surface
+            dwSrcHeight = (pRenderParams->pSrc[0]->rcSrc.bottom - pRenderParams->pSrc[0]->rcSrc.top);
+            dwSrcWidth = (pRenderParams->pSrc[0]->rcSrc.right - pRenderParams->pSrc[0]->rcSrc.left);
+            if ((dwSrcHeight !=pRenderParams->pTarget[0]->dwHeight)             ||
+                (dwSrcWidth != pRenderParams->pTarget[0]->dwWidth)              ||
+                (pRenderParams->pSrc[0]->Rotation != VPHAL_ROTATION_IDENTITY)   ||
+                (pRenderParams->pSrc[0]->pDeinterlaceParams))
+            {
+                bOverlay                                = false;
+                eStatus                                 = MOS_STATUS_INVALID_PARAMETER;  // Invalid condition with Inplace compostion
+                m_reporting->CompositionMode            = VPHAL_NO_COMPOSITION;
+                return eStatus;
+            }
+            bOverlay = true;
+        }
+        else
+        {
+            bOverlay                                    = false;   //Legacy Compostion Path
+            m_reporting->CompositionMode                = VPHAL_LEGACY_COMPOSITION;
+        }
+
+        if (pRenderParams->bOverlay)
+        {
+            VPHAL_RENDER_NORMALMESSAGE("RenderOverlay.");
+            // determine Sub stream input surface id
+            for (uiSources = 0; uiSources < VPHAL_MAX_SOURCES; uiSources++)
+            {
+                if (pRenderParams->pSrc[uiSources] != nullptr)
+                {
+                    if (pRenderParams->pSrc[uiSources]->SurfType == SURF_IN_SUBSTREAM)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            // Check Sub stream input surface id, if invalid, fallback to Legacy Compostion Path
+            if (uiSources == VPHAL_MAX_SOURCES)
+            {
+                bOverlay                                = false;   //Legacy Compostion Path
+                m_reporting->CompositionMode            = VPHAL_LEGACY_COMPOSITION;
+            }
+
+            if (pRenderParams->bOverlay != false)
+            {
+                //Verify if Secondary layer coordiates are within primary layer[0]
+                if (pRenderParams->pSrc[0]->rcSrc.left > pRenderParams->pSrc[uiSources]->rcSrc.left)
+                {
+                    pRenderParams->pSrc[uiSources]->rcDst.left = pRenderParams->pSrc[0]->rcDst.left;
+                }
+
+                if (pRenderParams->pSrc[0]->rcSrc.right < pRenderParams->pSrc[uiSources]->rcSrc.right)
+                {
+                    pRenderParams->pSrc[uiSources]->rcDst.right = pRenderParams->pSrc[0]->rcDst.right;
+                }
+
+                if (pRenderParams->pSrc[0]->rcSrc.top > pRenderParams->pSrc[uiSources]->rcSrc.top)
+                {
+                    pRenderParams->pSrc[uiSources]->rcDst.top = pRenderParams->pSrc[0]->rcDst.top;
+                }
+
+                if (pRenderParams->pSrc[0]->rcSrc.bottom < pRenderParams->pSrc[uiSources]->rcSrc.bottom)
+                {
+                    pRenderParams->pSrc[uiSources]->rcDst.bottom = pRenderParams->pSrc[0]->rcDst.bottom;
+                }
+
+                pRenderParams->pSrc[0]->rcSrc.left      = pRenderParams->pSrc[uiSources]->rcDst.left;
+                pRenderParams->pSrc[0]->rcSrc.top       = pRenderParams->pSrc[uiSources]->rcDst.top;
+                pRenderParams->pSrc[0]->rcSrc.right     = pRenderParams->pSrc[uiSources]->rcDst.right;
+                pRenderParams->pSrc[0]->rcSrc.bottom    = pRenderParams->pSrc[uiSources]->rcDst.bottom;
+
+                pRenderParams->pSrc[0]->rcDst.left      = pRenderParams->pSrc[uiSources]->rcDst.left;
+                pRenderParams->pSrc[0]->rcDst.top       = pRenderParams->pSrc[uiSources]->rcDst.top;
+                pRenderParams->pSrc[0]->rcDst.right     = pRenderParams->pSrc[uiSources]->rcDst.right;
+                pRenderParams->pSrc[0]->rcDst.bottom    = pRenderParams->pSrc[uiSources]->rcDst.bottom;
+
+                pRenderParams->pTarget[0]->rcSrc.left   = pRenderParams->pSrc[0]->rcSrc.left;
+                pRenderParams->pTarget[0]->rcSrc.top    = pRenderParams->pSrc[0]->rcSrc.top;
+                pRenderParams->pTarget[0]->rcSrc.right  = pRenderParams->pSrc[0]->rcSrc.right;
+                pRenderParams->pTarget[0]->rcSrc.bottom = pRenderParams->pSrc[0]->rcSrc.bottom;
+
+                pRenderParams->pTarget[0]->rcDst.left   = pRenderParams->pSrc[0]->rcDst.left;
+                pRenderParams->pTarget[0]->rcDst.top    = pRenderParams->pSrc[0]->rcDst.top;
+                pRenderParams->pTarget[0]->rcDst.right  = pRenderParams->pSrc[0]->rcDst.right;
+                pRenderParams->pTarget[0]->rcDst.bottom = pRenderParams->pSrc[0]->rcDst.bottom;
+
+                pRenderParams->pSrc[0]->dwWidth         = pRenderParams->pSrc[uiSources]->dwWidth;
+                pRenderParams->pSrc[0]->dwHeight        = pRenderParams->pSrc[uiSources]->dwHeight;
+                pRenderParams->pSrc[0]->dwPitch         = pRenderParams->pSrc[uiSources]->dwPitch;
+
+                m_reporting->CompositionMode    = VPHAL_INPLACE_COMPOSITION;
+            }
+        }
+
+        VPHAL_RENDER_NORMALMESSAGE("bOverlay %d, CompositionMode %d",
+            pRenderParams->bOverlay, m_reporting->CompositionMode);
+    }
+    return MOS_STATUS_INVALID_PARAMETER;
+}
+
+//!
 //! \brief    Compose input streams
 //! \details  Use composite render to compose input streams
 //! \param    [in] pRenderParams
@@ -945,6 +1088,10 @@ MOS_STATUS VphalRenderer::RenderComposite(
         this, pRenderParams->pSrc, VPHAL_MAX_SOURCES,
         pRenderParams->uSrcCount, VPHAL_DBG_DUMP_TYPE_PRE_COMP);
     //------------------------------------------
+
+    eStatus = RenderOverlay(pRenderParams, pRenderPassData);
+    if (eStatus == MOS_STATUS_SUCCESS)
+        goto finish;
 
     if (pRenderPassData->pSrcSurface &&
         (pRenderPassData->pSrcSurface->b16UsrPtr ||

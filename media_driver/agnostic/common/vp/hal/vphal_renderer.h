@@ -449,6 +449,21 @@ protected:
         RenderpassData          *pRenderPassData);
 
     //!
+    //! \brief    Overlay the substream into the primary stream (In place)
+    //! \details  Overlay the substream into the primary stream, the rectangle of
+    //! substreams needs to non-overlapped (In Place)
+    //! \param    [in] pRenderParams
+    //!           Pointer to VPHAL render parameter
+    //! \param    [in,out] pRenderPassData
+    //!           Pointer to the VPHAL render pass data
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS RenderOverlay(
+        PVPHAL_RENDER_PARAMS    pRenderParams,
+        RenderpassData          *pRenderPassData);
+
+    //!
     //! \brief    Get surface info for all input source
     //! \details  Get surface info for the input surface and its reference surfaces
     //! \param    [in] pRenderParams

@@ -569,7 +569,7 @@ C_ASSERT(GAMUT_MODE_ADVANCED == 2); //!< When adding, update assert & vphal_solo
 typedef enum _VPHAL_COMPOSITION_REPORT_MODE
 {
     VPHAL_NO_COMPOSITION,                        //!< No composition , Error Reporting cases
-    VPHAL_INPLACE_COMPOSITION,                   //!< Inplace Composition
+    VPHAL_INPLACE_COMPOSITION,                   //!< Inplace Composition, i.e. overlay
     VPHAL_LEGACY_COMPOSITION                     //!< Legacy Composition
 } VPHAL_COMPOSITION_REPORT_MODE;
 //!
@@ -1217,6 +1217,8 @@ struct VPHAL_RENDER_PARAMS
     bool                                    bUseVEHdrSfc       = false;  // use SFC for to perform CSC/Scaling/RGBSwap of HDR streaming; if false, use composite render.
     bool                                    bNonFirstFrame     = false;  // first frame or not: first frame false, otherwise true considering zeromemory parameters.
 
+    bool                                    bOverlay           = false;  // Overlay, in place composition, the rectangle of sub streams should be non-overlapped.
+
     VPHAL_RENDER_PARAMS() :
         uSrcCount(0),
         pSrc(),
@@ -1240,7 +1242,8 @@ struct VPHAL_RENDER_PARAMS
         pExtensionData(nullptr),
         bPathKernel(false),
         bUseVEHdrSfc(false),
-        bNonFirstFrame(false)
+        bNonFirstFrame(false),
+        bOverlay(false)
     {
     }
 
