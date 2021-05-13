@@ -1962,10 +1962,7 @@ VAStatus DdiMedia_InitMediaContext (
     output_dri_init(ctx);
 #endif
 
-    if (VA_STATUS_SUCCESS != DdiMediaUtil_SetMediaResetEnableFlag(mediaCtx))
-    {
-        mediaCtx->bMediaResetEnable = false;
-    }
+    DdiMediaUtil_SetMediaResetEnableFlag(mediaCtx);
 
     DdiMediaUtil_UnLockMutex(&GlobalMutex);
 

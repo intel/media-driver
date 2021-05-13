@@ -7657,18 +7657,18 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->dwGPUActiveBatch  = 0;
     pOsInterface->dwGPUPendingBatch = 0;
 
-    // disable it on Linux
-    pOsInterface->bMediaReset         = false;
-    pOsInterface->umdMediaResetEnable = false;
+    // enable it on Linux
+    pOsInterface->bMediaReset         = true;
+    pOsInterface->umdMediaResetEnable = true;
 
     pMediaWatchdog = getenv("INTEL_MEDIA_RESET_WATCHDOG");
     if (pMediaWatchdog != nullptr)
     {
         watchdog = strtol(pMediaWatchdog, nullptr, 0);
-        if (watchdog == 1)
+        if (watchdog == 0)
         {
-            pOsInterface->bMediaReset         = true;
-            pOsInterface->umdMediaResetEnable = true;
+            pOsInterface->bMediaReset         = false;
+            pOsInterface->umdMediaResetEnable = false;
         }
     }
 
