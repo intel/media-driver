@@ -1011,6 +1011,28 @@ public:
         const char * const  strSource);
 
     //!
+    //! \brief    String copy with security checks.
+    //! \details  String copy with security checks.
+    //!           Copy strSource to strDestination, with buffer size checking
+    //! \param    [out] strDestination
+    //!           Pointer to the character array to copy to, destsz
+    //! \param    [in] destsz
+    //!           Size of the destination buffer
+    //! \param    [in] strSource
+    //!           Pointer to the character array to copy from
+    //! \param    [in] maxCount
+    //!           Maximum number of characters to copy
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosSecureStrncpy(
+        char                *strDestination,
+        size_t              destSz,
+        const char* const   strSource,
+        size_t              maxCount);
+
+    //!
     //! \brief    Memory copy with security checks.
     //! \details  Memory copy with security checks.
     //!           Copy pSource to pDestination, with buffer size checking

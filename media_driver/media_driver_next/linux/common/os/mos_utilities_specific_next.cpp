@@ -142,6 +142,23 @@ MOS_STATUS MosUtilities::MosSecureStrcpy(char  *strDestination, size_t numberOfE
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MosUtilities::MosSecureStrncpy(char *strDestination, size_t destSz, const char* const strSource, size_t maxCount)
+{
+    if ( (strDestination == nullptr) || (strSource == nullptr) )
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if ( destSz <= maxCount ) // checks if there is space for null termination after copy.
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    strncpy(strDestination, strSource, maxCount);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosUtilities::MosSecureMemcpy(void  *pDestination, size_t dstLength, PCVOID pSource, size_t srcLength)
 {
     if ( (pDestination == nullptr) || (pSource == nullptr) )
