@@ -34,31 +34,6 @@ typedef struct VPHAL_VEBOX_STATE_PARAMS      *PVPHAL_VEBOX_STATE_PARAMS;
 typedef class MhwVeboxInterface              *PMHW_VEBOX_INTERFACE;
 
 typedef class VPHAL_VEBOX_IECP_PARAMS        *PVPHAL_VEBOX_IECP_PARAMS;
-typedef class VPHAL_VEBOX_IECP_PARAMS_EXT    *PVPHAL_VEBOX_IECP_PARAMS_EXT;
-class VPHAL_VEBOX_IECP_PARAMS
-{
-public:
-    PVPHAL_COLORPIPE_PARAMS         pColorPipeParams = nullptr;
-    PVPHAL_PROCAMP_PARAMS           pProcAmpParams = nullptr;
-    MOS_FORMAT                      dstFormat = Format_Any;
-    MOS_FORMAT                      srcFormat = Format_Any;
-
-    // CSC params
-    bool                            bCSCEnable = false;       // Enable CSC transform
-    float*                          pfCscCoeff = nullptr;     // [3x3] CSC Coeff matrix
-    float*                          pfCscInOffset = nullptr;  // [3x1] CSC Input Offset matrix
-    float*                          pfCscOutOffset = nullptr; // [3x1] CSC Output Offset matrix
-    bool                            bAlphaEnable = false;     // Alpha Enable Param
-    uint16_t                        wAlphaValue = 0;          // Color Pipe Alpha Value
-
-    VPHAL_VEBOX_IECP_PARAMS()
-    {
-    }
-    virtual ~VPHAL_VEBOX_IECP_PARAMS()
-    {
-    }
-    virtual PVPHAL_VEBOX_IECP_PARAMS_EXT   GetExtParams() { return nullptr; }
-};
 
 typedef struct VPHAL_VEBOX_STATE_PARAMS_EXT *PVPHAL_VEBOX_STATE_PARAMS_EXT;
 struct VPHAL_VEBOX_STATE_PARAMS

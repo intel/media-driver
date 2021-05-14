@@ -1151,20 +1151,6 @@ void VPHAL_VEBOX_STATE_G12_BASE::FreeResources()
         &pVeboxState->VeboxTempSurface.OsResource);
 #endif
 
-    // Free SFC temp surface
-    pOsInterface->pfnFreeResource(
-        pOsInterface,
-        &pVeboxState->SfcTempSurface.OsResource);
-    MOS_SafeFreeMemory(SfcTempSurface.pBlendingParams);
-    MOS_SafeFreeMemory(SfcTempSurface.pLumaKeyParams);
-
-    // Free SFC temp surface
-    pOsInterface->pfnFreeResource(
-      pOsInterface,
-      &pVeboxState->Sfc2ndTempSurface.OsResource);
-    MOS_SafeFreeMemory(Sfc2ndTempSurface.pBlendingParams);
-    MOS_SafeFreeMemory(Sfc2ndTempSurface.pLumaKeyParams);
-
     // Free SFC resources
     if (MEDIA_IS_SKU(pVeboxState->m_pSkuTable, FtrSFCPipe) &&
         m_sfcPipeState)
