@@ -1477,6 +1477,12 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
 
     // HMECost enabled by default in CModel V11738+
     hucVDEncBrcDmem->UPD_HMECostEnable_U8 = 1;
+    
+    // ROI and static region pct parameters
+    // must be zero if they are not used
+    hucVDEncBrcDmem->UPD_RoiQpViaForceQp_U8 = 0;
+    hucVDEncBrcDmem->UPD_StaticRegionPct_U16 = 0;
+    hucVDEncBrcDmem->UPD_ROISource_U8 = 0;
     if (avcPicParams->NumROI)
     {
         CODECHAL_ENCODE_CHK_COND_RETURN(m_avcPicParam->NumROI > sizeof(hucVDEncBrcDmem->UPD_ROIQpDelta_I8) - 1, "Number of ROI is greater that dmem roi array size");
@@ -1494,15 +1500,6 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcUpdateImpl(CODECHAL_VDENC_AVC_BRC
         {
             hucVDEncBrcDmem->UPD_ROISource_U8 = 2;
         }
-        else
-        {
-            hucVDEncBrcDmem->UPD_ROISource_U8 = 0;
-        }
-    }
-    else
-    {
-        hucVDEncBrcDmem->UPD_StaticRegionPct_U16 = 0;
-        hucVDEncBrcDmem->UPD_ROISource_U8 = 0;
     }
 
     hucVDEncBrcDmem->UPD_SLBB_Size_U16 = (uint16_t)m_hwInterface->m_vdencBrcImgStateBufferSize;
