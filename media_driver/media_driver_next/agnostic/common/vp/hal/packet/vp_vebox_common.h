@@ -219,6 +219,7 @@ public:
             MOS_FreeMemAndSetNull(pAceCacheData);
         }
     }
+
     virtual MOS_STATUS Init()
     {
         MHW_ACE_PARAMS aceParams = {};
@@ -239,11 +240,15 @@ public:
 
         MOS_ZeroMemory(&m_veboxDNDIParams, sizeof(MHW_VEBOX_DNDI_PARAMS));
         MOS_ZeroMemory(&m_veboxIecpParams, sizeof(MHW_VEBOX_IECP_PARAMS));
+        MOS_ZeroMemory(&m_veboxGamutParams, sizeof(MHW_VEBOX_GAMUT_PARAMS));
+        MOS_ZeroMemory(&m_HvsParams, sizeof(VPHAL_HVSDENOISE_PARAMS));
 
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(&m_veboxIecpParams.AceParams,
                 sizeof(MHW_ACE_PARAMS),
                 &aceParams,
                 sizeof(MHW_ACE_PARAMS)));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(InitChromaSampling());
 
         return MOS_STATUS_SUCCESS;
     }
