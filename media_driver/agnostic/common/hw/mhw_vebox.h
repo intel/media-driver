@@ -301,6 +301,21 @@ typedef struct _MHW_VEBOX_DNDI_PARAMS
 } MHW_VEBOX_DNDI_PARAMS, *PMHW_VEBOX_DNDI_PARAMS;
 
 //!
+//! \brief  VEBOX Chroma parameters
+//!
+typedef struct _MHW_VEBOX_CHROMA_PARAMS
+{
+    uint32_t dwPixRangeThresholdChromaU[MHW_PIXRANGETHRES_NUM];
+    uint32_t dwPixRangeWeightChromaU[MHW_PIXRANGETHRES_NUM];
+    uint32_t dwPixRangeThresholdChromaV[MHW_PIXRANGETHRES_NUM];
+    uint32_t dwPixRangeWeightChromaV[MHW_PIXRANGETHRES_NUM];
+    uint32_t dwHotPixelThresholdChromaU;
+    uint32_t dwHotPixelCountChromaU;
+    uint32_t dwHotPixelThresholdChromaV;
+    uint32_t dwHotPixelCountChromaV;
+} MHW_VEBOX_CHROMA_PARAMS;
+
+//!
 //! Structure MHW_STE_PARAMS
 //! \brief STE parameters - Skin Tone Enhancement
 //!

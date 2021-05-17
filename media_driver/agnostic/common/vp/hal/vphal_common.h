@@ -873,6 +873,15 @@ typedef struct _VPHAL_HVSDENOISE_PARAMS
     VPHAL_HVSDN_MODE    Mode;
     void*               pHVSDenoiseParam;
     uint32_t            dwDenoiseParamSize;
+    uint32_t            dwGlobalNoiseLevel  = 0;  //!< Global Noise Level for Y
+    uint32_t            dwGlobalNoiseLevelU = 0;  //!< Global Noise Level for U
+    uint32_t            dwGlobalNoiseLevelV = 0;  //!< Global Noise Level for V
+    uint16_t            TgneEnable          = 0;
+    uint16_t            FirstFrame          = 0;
+    uint16_t            TgneFirstFrame      = 0;
+    uint16_t            Fallback            = 0;
+    uint16_t            EnableChroma        = 0;
+    uint16_t            EnableTemporalGNE   = 0;
 } VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
 
 //!

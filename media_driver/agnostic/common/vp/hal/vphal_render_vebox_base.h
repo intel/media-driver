@@ -760,7 +760,9 @@ public:
 
     MHW_VEBOX_DNDI_PARAMS               VeboxDNDIParams;
 
-    PVPHAL_ALPHA_PARAMS                 pAlphaParams;
+    MHW_VEBOX_CHROMA_PARAMS             VeboxChromaParams;
+
+    PVPHAL_ALPHA_PARAMS                 pAlphaParams;                      
 
     // Batch Buffer rendering arguments
     VPHAL_ADVPROC_BB_ARGS               BbArgs;
