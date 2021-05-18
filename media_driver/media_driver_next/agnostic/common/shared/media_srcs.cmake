@@ -33,9 +33,10 @@ media_include_subdirectory(mediacopy)
 media_include_subdirectory(media_sfc_interface)
 
 set(TMP_HEADERS_
-   ${TMP_HEADERS_}
+    ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_utils.h
     ${CMAKE_CURRENT_LIST_DIR}/media_common_defs.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_factory.h
 )
 
 set(SOURCES_NEW

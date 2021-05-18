@@ -44,6 +44,7 @@
 
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
+#include "media_libva_context_next.h"
 
 #include <va/va.h>
 #include <va/va_backend.h>
@@ -397,6 +398,8 @@ typedef struct _DDI_X11_FUNC_TABLE
 }DDI_X11_FUNC_TABLE, *PDDI_X11_FUNC_TABLE;
 #endif
 
+class MediaLibvaContextNext;
+
 //!
 //! \struct DDI_MEDIA_CONTEXT
 //! \brief  Media heap for shared internal structures
@@ -404,7 +407,6 @@ typedef struct _DDI_X11_FUNC_TABLE
 struct DDI_MEDIA_CONTEXT
 {
     MOS_BUFMGR         *pDrmBufMgr;
-
     // handle for /dev/dri/card0
     int32_t             fd;
     int32_t             iDeviceId;
@@ -478,6 +480,9 @@ struct DDI_MEDIA_CONTEXT
 
     // Media reset enable flag
     bool                bMediaResetEnable;
+
+    // Media context next
+    MediaLibvaContextNext *m_pMediaLibvaContextNext;
 
     // Media memory decompression function
     void (* pfnMemoryDecompress)(

@@ -25,6 +25,11 @@
 //!
 
 #include "media_libva_interface_next.h"
+#include "media_libva_context_next.h"
+#include "media_libva_common.h"
+#include "media_libva_util.h"
+#include "media_libva.h"
+#include "mos_utilities.h"
 
 VAStatus MediaLibvaInterfaceNext::Initialize (
     VADriverContextP ctx,
@@ -33,5 +38,65 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     int32_t         *minor_version
 )
 {
+    DDI_FUNCTION_ENTER();
+
     return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::InitMediaContext (
+        VADriverContextP ctx,
+        int32_t          devicefd,
+        int32_t         *major_version,
+        int32_t         *minor_version
+)
+{
+    DDI_FUNCTION_ENTER();
+
+    if(major_version)
+    {
+        *major_version = VA_MAJOR_VERSION;
+    }
+
+    if(minor_version)
+    {
+        *minor_version = VA_MINOR_VERSION;
+    }
+
+    MediaLibvaContextNext *pMediaLibvaContextNext = nullptr;
+    pMediaLibvaContextNext = MOS_New(MediaLibvaContextNext);
+
+    if(nullptr == pMediaLibvaContextNext)
+    {
+        DDI_ASSERTMESSAGE("Unable to allocate media libva context next");
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    if(VA_STATUS_SUCCESS != pMediaLibvaContextNext->Init())
+    {
+        DDI_ASSERTMESSAGE("Unable to init media libva context next");
+        pMediaLibvaContextNext->Free();
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus MediaLibvaInterfaceNext::LoadFunction(VADriverContextP ctx)
+{
+    DDI_FUNCTION_ENTER();
+    
+    DDI_CHK_NULL(ctx,         "nullptr ctx",          VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    struct VADriverVTable    *pVTable     = DDI_CODEC_GET_VTABLE(ctx);
+    DDI_CHK_NULL(pVTable,     "nullptr pVTable",      VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    struct VADriverVTableVPP *pVTableVpp  = DDI_CODEC_GET_VTABLE_VPP(ctx);
+    DDI_CHK_NULL(pVTableVpp,  "nullptr pVTableVpp",   VA_STATUS_ERROR_INVALID_CONTEXT);
+
+#if VA_CHECK_VERSION(1,11,0)
+    struct VADriverVTableProt *pVTableProt = DDI_CODEC_GET_VTABLE_PROT(ctx);
+    DDI_CHK_NULL(pVTableProt,  "nullptr pVTableProt",   VA_STATUS_ERROR_INVALID_CONTEXT);
+#endif
+
+    return VA_STATUS_SUCCESS;
 }

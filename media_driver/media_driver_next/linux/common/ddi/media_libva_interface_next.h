@@ -29,13 +29,14 @@
 
 #include <va/va.h>
 #include <va/va_backend.h>
+#include "media_libva_common.h"
 
 class MediaLibvaInterfaceNext
 {
 public:
     //!
     //! \brief  Initialize
-    //! 
+    //!
     //! \param  [in] ctx
     //!         Pointer to VA driver context
     //! \param  [in] devicefd
@@ -54,6 +55,40 @@ public:
         int32_t         *major_version,     /* out */
         int32_t         *minor_version      /* out */
     );
+
+private:
+    //!
+    //! \brief  Initialize Media Context
+    //!
+    //! \param  [in] ctx
+    //!         Pointer to VA driver context
+    //! \param  [in] devicefd
+    //!         Devoce fd
+    //! \param  [out] major_version
+    //!         Major version
+    //! \param  [out] minor_version
+    //!         Minor version
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    static VAStatus InitMediaContext (
+        VADriverContextP ctx,
+        int32_t          devicefd,
+        int32_t         *major_version,
+        int32_t         *minor_version
+    );
+
+    //!
+    //! \brief  Load DDI function pointer
+    //! 
+    //! \param  [in] ctx
+    //!         Pointer to VA driver context
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    static VAStatus LoadFunction(VADriverContextP ctx);
 };
 
 #endif //__MEDIA_LIBVA_INTERFACE_NEXT_H__
