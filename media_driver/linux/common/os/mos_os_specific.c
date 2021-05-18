@@ -82,6 +82,32 @@
 
 //============= PRIVATE FUNCTIONS <BEGIN>=========================================
 
+bool SetupMediaSoloSwitch()
+{
+    bool mediaSoloEnabled = false;
+    MosUtilities::MosReadMediaSoloEnabledUserFeature(mediaSoloEnabled);
+    return mediaSoloEnabled;
+}
+
+bool SetupApoDdiSwitch(int32_t fd)
+{
+    if (fd < 0)
+    {
+        return false;
+    }
+
+    //Read user feature to determine if apg mos is enabled.
+    uint32_t    userfeatureValue = 0;
+    MOS_STATUS  estatus          = MosUtilities::MosReadApoDdiEnabledUserFeature(userfeatureValue);
+
+    if(estatus == MOS_STATUS_SUCCESS)
+    {
+        return (userfeatureValue != 0);
+    }
+
+    return false;
+}
+
 bool SetupApoMosSwitch(int32_t fd)
 {
     if (fd < 0)

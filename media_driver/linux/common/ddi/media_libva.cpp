@@ -62,6 +62,7 @@
 #include "drm_fourcc.h"
 #include "media_libva_interface.h"
 #include "media_libva_interface_next.h"
+#include "media_libva_apo_decision.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1583,6 +1584,8 @@ VAStatus DdiMedia__Initialize (
         DDI_ASSERTMESSAGE("Unable to get device FD");
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
+
+    apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd);
 
     if(MediaLibvaInterface::LoadFunction(ctx) != VA_STATUS_SUCCESS)
     {

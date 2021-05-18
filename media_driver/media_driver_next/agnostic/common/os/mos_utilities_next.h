@@ -947,6 +947,16 @@ public:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosReadApoDdiEnabledUserFeature(uint32_t& userfeatureValue, char* path = nullptr);
+    
+    //! \brief    Read the User Feature Value of Media Solo
+    //! \details  Read the User Feature Value of Media Solo
+    //! \param    uint32_t& mediasoloEnabled
+    //!           [out] media solo statue
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS MosReadMediaSoloEnabledUserFeature(bool &mediasoloEnabled);
 
     //------------------------------------------------------------------------------
     // String Functions
