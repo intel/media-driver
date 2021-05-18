@@ -206,7 +206,7 @@ bool DecodeScalabilityOption::IsResolutionMatchMultiPipeThreshold1(
     if (!IsRextFormat(surfaceFormat))
     {
         frameWidthTh = m_5KFrameWdithTh;
-        frameHeightTh = m_5KFrameWdithTh;
+        frameHeightTh = m_5KFrameHeightTh;
     }
 
     return (frameWidth >= frameWidthTh && frameHeight >= frameHeightTh) ||
