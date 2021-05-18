@@ -32,24 +32,26 @@
 #include <vector>
 #include "mhw_utilities.h"
 
-#if _MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL)
-#include "mhw_hwcmd_parser.h"
-#else
-#define MHW_HWCMDPARSER_INIT(osInterface)
-#define MHW_HWCMDPARSER_DESTROY()
-#define MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
-#define MHW_HWCMDPARSER_FRAMEINFOUPDATE(frameType)
-#define MHW_HWCMDPARSER_PARSECMD(cmdName, cmdData, dwLen)
-#define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
-#define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
-#endif
-
 //   [Macro Prefixes]                 |   [Macro Suffixes]
 //   No Prefix: for external use      |   _T   : type
 //   _        : for internal use      |   _F   : function name
 //   __       : intermediate macros   |   _M   : class member name
 //              only used by other    |   _DECL: declaration
 //              macros                |   _DEF : definition
+
+#define MHW_HWCMDPARSER_ENABLED (_MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL))
+#if MHW_HWCMDPARSER_ENABLED
+#include "mhw_hwcmd_parser.h"
+#else
+#define MHW_HWCMDPARSER_INIT(osInterface)
+#define MHW_HWCMDPARSER_DESTROY()
+#define MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN() false
+#define MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+#define MHW_HWCMDPARSER_FRAMEINFOUPDATE(frameType)
+#define MHW_HWCMDPARSER_PARSECMD(cmdName, cmdData, dwLen)
+#define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
+#define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
+#endif
 
 #define _MHW_CMD_T(cmd)      cmd##_CMD         // MHW command type
 #define __MHW_CMD_PAR_M(cmd) m_##cmd##_Params  // member which is a pointer to MHW command parameters
@@ -70,7 +72,7 @@
 
 #define __MHW_CMD_CREATE_DECL(cmd) mhw::Pointer<std::vector<uint8_t>> __MHW_CMD_CREATE_F(cmd)() const
 
-#if _MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL)
+#if MHW_HWCMDPARSER_ENABLED
 #define __MHW_CMD_SET_DECL(cmd) MOS_STATUS __MHW_CMD_SET_F(cmd)(uint8_t * cmdDataPtr, const std::string &cmdName = #cmd)
 #else
 #define __MHW_CMD_SET_DECL(cmd) MOS_STATUS __MHW_CMD_SET_F(cmd)(uint8_t * cmdDataPtr)
@@ -179,9 +181,7 @@ protected:                                     \
 #define _MHW_CMD_DW_LOCATION(field) \
     static_cast<uint32_t>((reinterpret_cast<uint32_t *>(&(cmd->field)) - reinterpret_cast<uint32_t *>(&(*cmd))))
 
-#define _MHW_CMD_ASSIGN_FIELD(dw, field, value) \
-    cmd->dw.field = (value);                    \
-    MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+#define _MHW_CMD_ASSIGN_FIELD(dw, field, value) cmd->dw.field = (value)
 
 namespace mhw
 {

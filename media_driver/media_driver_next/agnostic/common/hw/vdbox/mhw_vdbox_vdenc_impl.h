@@ -194,8 +194,21 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CONTROL_STATE);
 
-        cmd->DW1.VdencInitialization = params->vdencInitialization;
+#define DO_FIELDS() \
+    DO_FIELD(DW1, VdencInitialization, params->vdencInitialization)
 
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -203,36 +216,49 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_PIPE_MODE_SELECT);
 
-        _MHW_CMD_ASSIGN_FIELD(DW1, StandardSelect                             ,  params->standardSelect);
-        _MHW_CMD_ASSIGN_FIELD(DW1, ScalabilityMode                            ,  params->scalabilityMode);
-        _MHW_CMD_ASSIGN_FIELD(DW1, FrameStatisticsStreamOutEnable             ,  params->frameStatisticsStreamOut);
-        _MHW_CMD_ASSIGN_FIELD(DW1, VdencPakObjCmdStreamOutEnable              ,  params->pakObjCmdStreamOut);
-        _MHW_CMD_ASSIGN_FIELD(DW1, TlbPrefetchEnable                          ,  params->tlbPrefetch);
-        _MHW_CMD_ASSIGN_FIELD(DW1, PakThresholdCheckEnable                    ,  params->dynamicSlice);
-        _MHW_CMD_ASSIGN_FIELD(DW1, VdencStreamInEnable                        ,  params->streamIn);
-        _MHW_CMD_ASSIGN_FIELD(DW1, BitDepth                                   ,  params->bitDepthMinus8);
-        _MHW_CMD_ASSIGN_FIELD(DW1, PakChromaSubSamplingType                   ,  params->chromaType);
-        _MHW_CMD_ASSIGN_FIELD(DW1, OutputRangeControlAfterColorSpaceConversion,  params->outputRangeControlCsc);
-        _MHW_CMD_ASSIGN_FIELD(DW1, TileReplayEnable                           ,  params->tileBasedReplayMode);
-        _MHW_CMD_ASSIGN_FIELD(DW1, IsRandomAccess                             ,  params->randomAccess);
-        _MHW_CMD_ASSIGN_FIELD(DW1, RgbEncodingEnable                          ,  params->rgbEncodingMode);
-        _MHW_CMD_ASSIGN_FIELD(DW1, StreamingBufferConfig                      ,  params->streamingBufferConfig);
+#define DO_FIELDS()                                                                            \
+    DO_FIELD(DW1, StandardSelect, params->standardSelect);                                     \
+    DO_FIELD(DW1, ScalabilityMode, params->scalabilityMode);                                   \
+    DO_FIELD(DW1, FrameStatisticsStreamOutEnable, params->frameStatisticsStreamOut);           \
+    DO_FIELD(DW1, VdencPakObjCmdStreamOutEnable, params->pakObjCmdStreamOut);                  \
+    DO_FIELD(DW1, TlbPrefetchEnable, params->tlbPrefetch);                                     \
+    DO_FIELD(DW1, PakThresholdCheckEnable, params->dynamicSlice);                              \
+    DO_FIELD(DW1, VdencStreamInEnable, params->streamIn);                                      \
+    DO_FIELD(DW1, BitDepth, params->bitDepthMinus8);                                           \
+    DO_FIELD(DW1, PakChromaSubSamplingType, params->chromaType);                               \
+    DO_FIELD(DW1, OutputRangeControlAfterColorSpaceConversion, params->outputRangeControlCsc); \
+    DO_FIELD(DW1, TileReplayEnable, params->tileBasedReplayMode);                              \
+    DO_FIELD(DW1, IsRandomAccess, params->randomAccess);                                       \
+    DO_FIELD(DW1, RgbEncodingEnable, params->rgbEncodingMode);                                 \
+    DO_FIELD(DW1, StreamingBufferConfig, params->streamingBufferConfig);                       \
+                                                                                               \
+    DO_FIELD(DW2, HmeRegionPreFetchenable, params->hmeRegionPrefetch);                         \
+    DO_FIELD(DW2, Topprefetchenablemode, params->topPrefetchEnableMode);                       \
+    DO_FIELD(DW2, LeftpreFetchatwraparound, params->leftPrefetchAtWrapAround);                 \
+    DO_FIELD(DW2, Verticalshift32Minus1, params->verticalShift32Minus1);                       \
+    DO_FIELD(DW2, Hzshift32Minus1, params->hzShift32Minus1);                                   \
+    DO_FIELD(DW2, NumVerticalReqMinus1, params->numVerticalReqMinus1);                         \
+    DO_FIELD(DW2, Numhzreqminus1, params->numHzReqMinus1);                                     \
+    DO_FIELD(DW2, PreFetchOffsetForReferenceIn16PixelIncrement, params->prefetchOffset);       \
+                                                                                               \
+    DO_FIELD(DW5, CaptureMode, params->captureMode);                                           \
+    DO_FIELD(DW5, ParallelCaptureAndEncodeSessionId, params->wirelessSessionId);               \
+    DO_FIELD(DW5, TailPointerReadFrequency, params->tailPointerReadFrequency);                 \
+    DO_FIELD(DW5, QuantizationPrecisionOptimization, params->quantizationPrecision);           \
+    DO_FIELD(DW5, LatencyToleratePreFetchEnable, params->latencyTolerate)
 
-        _MHW_CMD_ASSIGN_FIELD(DW2, HmeRegionPreFetchenable                     ,  params->hmeRegionPrefetch);
-        _MHW_CMD_ASSIGN_FIELD(DW2, Topprefetchenablemode                       ,  params->topPrefetchEnableMode);
-        _MHW_CMD_ASSIGN_FIELD(DW2, LeftpreFetchatwraparound                    ,  params->leftPrefetchAtWrapAround);
-        _MHW_CMD_ASSIGN_FIELD(DW2, Verticalshift32Minus1                       ,  params->verticalShift32Minus1);
-        _MHW_CMD_ASSIGN_FIELD(DW2, Hzshift32Minus1                             ,  params->hzShift32Minus1);
-        _MHW_CMD_ASSIGN_FIELD(DW2, NumVerticalReqMinus1                        ,  params->numVerticalReqMinus1);
-        _MHW_CMD_ASSIGN_FIELD(DW2, Numhzreqminus1                              ,  params->numHzReqMinus1);
-        _MHW_CMD_ASSIGN_FIELD(DW2, PreFetchOffsetForReferenceIn16PixelIncrement,  params->prefetchOffset);
-
-        _MHW_CMD_ASSIGN_FIELD(DW5, CaptureMode                      ,  params->captureMode);
-        _MHW_CMD_ASSIGN_FIELD(DW5, ParallelCaptureAndEncodeSessionId,  params->wirelessSessionId);
-        _MHW_CMD_ASSIGN_FIELD(DW5, TailPointerReadFrequency         ,  params->tailPointerReadFrequency);
-        _MHW_CMD_ASSIGN_FIELD(DW5, QuantizationPrecisionOptimization,  params->quantizationPrecision);
-        _MHW_CMD_ASSIGN_FIELD(DW5, LatencyToleratePreFetchEnable    ,  params->latencyTolerate);
-
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -240,20 +266,33 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_SRC_SURFACE_STATE);
 
-        cmd->Dwords25.DW0.Width                       = params->width - 1;
-        cmd->Dwords25.DW0.Height                      = params->height - 1;
-        cmd->Dwords25.DW0.ColorSpaceSelection         = params->colorSpaceSelection;
-        cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirection;
-        cmd->Dwords25.DW0.SurfaceFormatByteSwizzle    = params->displayFormatSwizzle;
+#define DO_FIELDS()                                                                                                 \
+    DO_FIELD(Dwords25.DW0, Width, params->width - 1);                                                               \
+    DO_FIELD(Dwords25.DW0, Height, params->height - 1);                                                             \
+    DO_FIELD(Dwords25.DW0, ColorSpaceSelection, params->colorSpaceSelection);                                       \
+    DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params->vDirection);                                        \
+    DO_FIELD(Dwords25.DW0, SurfaceFormatByteSwizzle, params->displayFormatSwizzle);                                 \
+                                                                                                                    \
+    uint32_t tileMode = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);                    \
+    DO_FIELD(Dwords25.DW1, TileMode, tileMode);                                                                     \
+    DO_FIELD(Dwords25.DW1, SurfaceFormat, static_cast<uint32_t>(MosFormatToVdencSurfaceRawFormat(params->format))); \
+    DO_FIELD(Dwords25.DW1, SurfacePitch, params->pitch - 1);                                                        \
+                                                                                                                    \
+    DO_FIELD(Dwords25.DW2, YOffsetForUCb, params->uOffset);                                                         \
+    DO_FIELD(Dwords25.DW3, YOffsetForVCr, params->vOffset)
 
-        uint32_t tileMode               = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);
-        cmd->Dwords25.DW1.TileMode      = tileMode;
-        cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceRawFormat(params->format));
-        cmd->Dwords25.DW1.SurfacePitch  = params->pitch - 1;
-
-        cmd->Dwords25.DW2.YOffsetForUCb = params->uOffset;
-        cmd->Dwords25.DW3.YOffsetForVCr = params->vOffset;
-
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -261,18 +300,31 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_REF_SURFACE_STATE);
 
-        cmd->Dwords25.DW0.Width                       = params->width - 1;
-        cmd->Dwords25.DW0.Height                      = params->height - 1;
-        cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirection;
+#define DO_FIELDS()                                                                                                   \
+    DO_FIELD(Dwords25.DW0, Width, params->width - 1);                                                                 \
+    DO_FIELD(Dwords25.DW0, Height, params->height - 1);                                                               \
+    DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params->vDirection);                                          \
+                                                                                                                      \
+    uint32_t tileMode = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);                      \
+    DO_FIELD(Dwords25.DW1, TileMode, tileMode);                                                                       \
+    DO_FIELD(Dwords25.DW1, SurfacePitch, params->pitch - 1);                                                          \
+    DO_FIELD(Dwords25.DW1, SurfaceFormat, static_cast<uint32_t>(MosFormatToVdencSurfaceReconFormat(params->format))); \
+                                                                                                                      \
+    DO_FIELD(Dwords25.DW2, YOffsetForUCb, params->uOffset);                                                           \
+    DO_FIELD(Dwords25.DW3, YOffsetForVCr, params->vOffset)
 
-        uint32_t tileMode               = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);
-        cmd->Dwords25.DW1.TileMode      = tileMode;
-        cmd->Dwords25.DW1.SurfacePitch  = params->pitch - 1;
-        cmd->Dwords25.DW1.SurfaceFormat = static_cast<uint32_t>(MosFormatToVdencSurfaceReconFormat(params->format));
-
-        cmd->Dwords25.DW2.YOffsetForUCb = params->uOffset;
-        cmd->Dwords25.DW3.YOffsetForVCr = params->vOffset;
-
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -280,33 +332,46 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_DS_REF_SURFACE_STATE);
 
-        cmd->Dwords25.DW0.Width                       = params->widthStage1 - 1;
-        cmd->Dwords25.DW0.Height                      = params->heightStage1 - 1;
-        cmd->Dwords25.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage1;
+#define DO_FIELDS()                                                                                                \
+    DO_FIELD(Dwords25.DW0, Width, params->widthStage1 - 1);                                                        \
+    DO_FIELD(Dwords25.DW0, Height, params->heightStage1 - 1);                                                      \
+    DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params->vDirectionStage1);                                 \
+                                                                                                                   \
+    uint32_t tileMode = GetHwTileType(params->tileTypeStage1, params->tileModeGmmStage1, params->gmmTileEnStage1); \
+    DO_FIELD(Dwords25.DW1, TileMode, tileMode);                                                                    \
+    DO_FIELD(Dwords25.DW1, SurfaceFormat, cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8);     \
+    DO_FIELD(Dwords25.DW1, SurfacePitch, params->pitchStage1 - 1);                                                 \
+                                                                                                                   \
+    DO_FIELD(Dwords25.DW2, YOffsetForUCb, params->uOffsetStage1);                                                  \
+    DO_FIELD(Dwords25.DW3, YOffsetForVCr, params->vOffsetStage1);                                                  \
+                                                                                                                   \
+    if (params->widthStage2 && params->heightStage2)                                                               \
+    {                                                                                                              \
+        DO_FIELD(Dwords69.DW0, Width, params->widthStage2 - 1);                                                    \
+        DO_FIELD(Dwords69.DW0, Height, params->heightStage2 - 1);                                                  \
+        DO_FIELD(Dwords69.DW0, CrVCbUPixelOffsetVDirection, params->vDirectionStage2);                             \
+                                                                                                                   \
+        tileMode = GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2);      \
+        DO_FIELD(Dwords69.DW1, TileMode, tileMode);                                                                \
+        DO_FIELD(Dwords69.DW1, SurfaceFormat, cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8); \
+        DO_FIELD(Dwords69.DW1, SurfacePitch, params->pitchStage2 - 1);                                             \
+                                                                                                                   \
+        DO_FIELD(Dwords69.DW2, YOffsetForUCb, params->uOffsetStage2);                                              \
+        DO_FIELD(Dwords69.DW3, YOffsetForVCr, params->vOffsetStage2);                                              \
+    }
 
-        uint32_t tileMode               = GetHwTileType(params->tileTypeStage1, params->tileModeGmmStage1, params->gmmTileEnStage1);
-        cmd->Dwords25.DW1.TileMode      = tileMode;
-        cmd->Dwords25.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
-        cmd->Dwords25.DW1.SurfacePitch  = params->pitchStage1 - 1;
-
-        cmd->Dwords25.DW2.YOffsetForUCb = params->uOffsetStage1;
-        cmd->Dwords25.DW3.YOffsetForVCr = params->vOffsetStage1;
-
-        if (params->widthStage2 && params->heightStage2)
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
         {
-            cmd->Dwords69.DW0.Width                       = params->widthStage2 - 1;
-            cmd->Dwords69.DW0.Height                      = params->heightStage2 - 1;
-            cmd->Dwords69.DW0.CrVCbUPixelOffsetVDirection = params->vDirectionStage2;
-
-            tileMode                        = GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2);
-            cmd->Dwords69.DW1.TileMode      = tileMode;
-            cmd->Dwords69.DW1.SurfaceFormat = cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8;
-            cmd->Dwords69.DW1.SurfacePitch  = params->pitchStage2 - 1;
-
-            cmd->Dwords69.DW2.YOffsetForUCb = params->uOffsetStage2;
-            cmd->Dwords69.DW3.YOffsetForVCr = params->vOffsetStage2;
+            DO_FIELDS();
         }
-
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -814,36 +879,49 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_WEIGHTSOFFSETS_STATE);
 
-        cmd->DW1.WeightsForwardReference0 = Clip3(-128, 127, params->weightsLuma[0][0] + params->denomLuma);
-        cmd->DW1.OffsetForwardReference0  = params->offsetsLuma[0][0];
-        cmd->DW1.WeightsForwardReference1 = Clip3(-128, 127, params->weightsLuma[0][1] + params->denomLuma);
-        cmd->DW1.OffsetForwardReference1  = params->offsetsLuma[0][1];
+#define DO_FIELDS()                                                                                                     \
+    DO_FIELD(DW1, WeightsForwardReference0, Clip3(-128, 127, params->weightsLuma[0][0] + params->denomLuma));           \
+    DO_FIELD(DW1, OffsetForwardReference0, params->offsetsLuma[0][0]);                                                  \
+    DO_FIELD(DW1, WeightsForwardReference1, Clip3(-128, 127, params->weightsLuma[0][1] + params->denomLuma));           \
+    DO_FIELD(DW1, OffsetForwardReference1, params->offsetsLuma[0][1]);                                                  \
+                                                                                                                        \
+    DO_FIELD(DW2, WeightsForwardReference2, Clip3(-128, 127, params->weightsLuma[0][2] + params->denomLuma));           \
+    DO_FIELD(DW2, OffsetForwardReference2, params->offsetsLuma[0][2]);                                                  \
+    DO_FIELD(DW2, WeightsBackwardReference0, Clip3(-128, 127, params->weightsLuma[1][0] + params->denomLuma));          \
+    DO_FIELD(DW2, OffsetBackwardReference0, params->offsetsLuma[1][0]);                                                 \
+                                                                                                                        \
+    DO_FIELD(DW3, CbWeightsForwardReference0, Clip3(-128, 127, params->weightsChroma[0][0][0] + params->denomChroma));  \
+    DO_FIELD(DW3, CbOffsetForwardReference0, params->offsetsChroma[0][0][0]);                                           \
+    DO_FIELD(DW3, CbWeightsForwardReference1, Clip3(-128, 127, params->weightsChroma[0][1][0] + params->denomChroma));  \
+    DO_FIELD(DW3, CbOffsetForwardReference1, params->offsetsChroma[0][1][0]);                                           \
+                                                                                                                        \
+    DO_FIELD(DW4, CbWeightsForwardReference2, Clip3(-128, 127, params->weightsChroma[0][2][0] + params->denomChroma));  \
+    DO_FIELD(DW4, CbOffsetForwardReference2, params->offsetsChroma[0][2][0]);                                           \
+    DO_FIELD(DW4, CbWeightsBackwardReference0, Clip3(-128, 127, params->weightsChroma[1][0][0] + params->denomChroma)); \
+    DO_FIELD(DW4, CbOffsetBackwardReference0, params->offsetsChroma[1][0][0]);                                          \
+                                                                                                                        \
+    DO_FIELD(DW5, CrWeightsForwardReference0, Clip3(-128, 127, params->weightsChroma[0][0][1] + params->denomChroma));  \
+    DO_FIELD(DW5, CrOffsetForwardReference0, params->offsetsChroma[0][0][1]);                                           \
+    DO_FIELD(DW5, CrWeightsForwardReference1, Clip3(-128, 127, params->weightsChroma[0][1][1] + params->denomChroma));  \
+    DO_FIELD(DW5, CrOffsetForwardReference1, params->offsetsChroma[0][1][1]);                                           \
+                                                                                                                        \
+    DO_FIELD(DW6, CrWeightsForwardReference2, Clip3(-128, 127, params->weightsChroma[0][2][1] + params->denomChroma));  \
+    DO_FIELD(DW6, CrOffsetForwardReference2, params->offsetsChroma[0][2][1]);                                           \
+    DO_FIELD(DW6, CrWeightsBackwardReference0, Clip3(-128, 127, params->weightsChroma[1][0][1] + params->denomChroma)); \
+    DO_FIELD(DW6, CrOffsetBackwardReference0, params->offsetsChroma[1][0][1])
 
-        cmd->DW2.WeightsForwardReference2  = Clip3(-128, 127, params->weightsLuma[0][2] + params->denomLuma);
-        cmd->DW2.OffsetForwardReference2   = params->offsetsLuma[0][2];
-        cmd->DW2.WeightsBackwardReference0 = Clip3(-128, 127, params->weightsLuma[1][0] + params->denomLuma);
-        cmd->DW2.OffsetBackwardReference0  = params->offsetsLuma[1][0];
-
-        cmd->DW3.CbWeightsForwardReference0 = Clip3(-128, 127, params->weightsChroma[0][0][0] + params->denomChroma);
-        cmd->DW3.CbOffsetForwardReference0  = params->offsetsChroma[0][0][0];
-        cmd->DW3.CbWeightsForwardReference1 = Clip3(-128, 127, params->weightsChroma[0][1][0] + params->denomChroma);
-        cmd->DW3.CbOffsetForwardReference1  = params->offsetsChroma[0][1][0];
-
-        cmd->DW4.CbWeightsForwardReference2  = Clip3(-128, 127, params->weightsChroma[0][2][0] + params->denomChroma);
-        cmd->DW4.CbOffsetForwardReference2   = params->offsetsChroma[0][2][0];
-        cmd->DW4.CbWeightsBackwardReference0 = Clip3(-128, 127, params->weightsChroma[1][0][0] + params->denomChroma);
-        cmd->DW4.CbOffsetBackwardReference0  = params->offsetsChroma[1][0][0];
-
-        cmd->DW5.CrWeightsForwardReference0 = Clip3(-128, 127, params->weightsChroma[0][0][1] + params->denomChroma);
-        cmd->DW5.CrOffsetForwardReference0  = params->offsetsChroma[0][0][1];
-        cmd->DW5.CrWeightsForwardReference1 = Clip3(-128, 127, params->weightsChroma[0][1][1] + params->denomChroma);
-        cmd->DW5.CrOffsetForwardReference1  = params->offsetsChroma[0][1][1];
-
-        cmd->DW6.CrWeightsForwardReference2  = Clip3(-128, 127, params->weightsChroma[0][2][1] + params->denomChroma);
-        cmd->DW6.CrOffsetForwardReference2   = params->offsetsChroma[0][2][1];
-        cmd->DW6.CrWeightsBackwardReference0 = Clip3(-128, 127, params->weightsChroma[1][0][1] + params->denomChroma);
-        cmd->DW6.CrOffsetBackwardReference0  = params->offsetsChroma[1][0][1];
-
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -851,40 +929,50 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_HEVC_VP9_TILE_SLICE_STATE);
 
-        uint32_t width  = params->tileWidth >= 256 ? MOS_ALIGN_CEIL(params->tileWidth, 8) : params->tileWidth;
-        uint32_t height = params->tileHeight >= 128 ? MOS_ALIGN_CEIL(params->tileHeight, 8) : params->tileHeight;
+#define DO_FIELDS()                                                                                                          \
+    DO_FIELD(DW3, NumParEngine, params->numPipe);                                                                            \
+    DO_FIELD(DW3, TileNumber, params->tileId);                                                                               \
+    DO_FIELD(DW3, TileRowStoreSelect, params->tileRowStoreSelect);                                                           \
+    DO_FIELD(DW3, Log2WeightDenomLuma, params->log2WeightDenomLuma);                                                         \
+    DO_FIELD(DW3, HevcVp9Log2WeightDenomLuma, params->hevcVp9Log2WeightDenomLuma);                                           \
+    DO_FIELD(DW3, Log2WeightDenomChroma, params->log2WeightDenomChroma);                                                     \
+                                                                                                                             \
+    DO_FIELD(DW4, TileStartCtbX, params->tileStartLCUX * params->ctbSize);                                                   \
+    DO_FIELD(DW4, TileStartCtbY, params->tileStartLCUY * params->ctbSize);                                                   \
+                                                                                                                             \
+    DO_FIELD(DW5, TileWidth, (params->tileWidth >= 256 ? MOS_ALIGN_CEIL(params->tileWidth, 8) : params->tileWidth) - 1);     \
+    DO_FIELD(DW5, TileHeight, (params->tileHeight >= 128 ? MOS_ALIGN_CEIL(params->tileHeight, 8) : params->tileHeight) - 1); \
+                                                                                                                             \
+    DO_FIELD(DW6, StreaminOffsetEnable, params->tileEnable);                                                                 \
+    DO_FIELD(DW6, TileStreaminOffset, params->tileStreamInOffset);                                                           \
+                                                                                                                             \
+    if (cmd->DW4.TileStartCtbY == 0)                                                                                         \
+    {                                                                                                                        \
+        DO_FIELD(DW7, RowStoreOffsetEnable, params->tileEnable);                                                             \
+        DO_FIELD(DW7, TileRowstoreOffset, cmd->DW4.TileStartCtbX / 32);                                                      \
+    }                                                                                                                        \
+                                                                                                                             \
+    DO_FIELD(DW8, TileStreamoutOffsetEnable, params->tileEnable);                                                            \
+    DO_FIELD(DW8, TileStreamoutOffset, params->tileId * 19);                                                                 \
+                                                                                                                             \
+    DO_FIELD(DW9, LcuStreamOutOffsetEnable, params->tileEnable);                                                             \
+    DO_FIELD(DW9, TileLcuStreamOutOffset, params->tileLCUStreamOutOffset);                                                   \
+                                                                                                                             \
+    DO_FIELD(DW17, CumulativeCuTileOffsetEnable, params->tileEnable);                                                        \
+    DO_FIELD(DW17, CumulativeCuTileOffset, params->cumulativeCUTileOffset)
 
-        cmd->DW3.NumParEngine               = params->numPipe;
-        cmd->DW3.TileNumber                 = params->tileId;
-        cmd->DW3.TileRowStoreSelect         = params->tileRowStoreSelect;
-        cmd->DW3.Log2WeightDenomLuma        = params->log2WeightDenomLuma;
-        cmd->DW3.HevcVp9Log2WeightDenomLuma = params->hevcVp9Log2WeightDenomLuma;
-        cmd->DW3.Log2WeightDenomChroma      = params->log2WeightDenomChroma;
-
-        cmd->DW4.TileStartCtbX = params->tileStartLCUX * params->ctbSize;
-        cmd->DW4.TileStartCtbY = params->tileStartLCUY * params->ctbSize;
-
-        cmd->DW5.TileWidth  = width - 1;
-        cmd->DW5.TileHeight = height - 1;
-
-        cmd->DW6.StreaminOffsetEnable = params->tileEnable;
-        cmd->DW6.TileStreaminOffset   = params->tileStreamInOffset;
-
-        if (cmd->DW4.TileStartCtbY == 0)
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
         {
-            cmd->DW7.RowStoreOffsetEnable = params->tileEnable;
-            cmd->DW7.TileRowstoreOffset   = cmd->DW4.TileStartCtbX / 32;
+            DO_FIELDS();
         }
-
-        cmd->DW8.TileStreamoutOffsetEnable = params->tileEnable;
-        cmd->DW8.TileStreamoutOffset       = params->tileId * 19;
-
-        cmd->DW9.LcuStreamOutOffsetEnable = params->tileEnable;
-        cmd->DW9.TileLcuStreamOutOffset   = params->tileLCUStreamOutOffset;
-
-        cmd->DW17.CumulativeCuTileOffsetEnable = params->tileEnable;
-        cmd->DW17.CumulativeCuTileOffset       = params->cumulativeCUTileOffset;
-
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -892,13 +980,26 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_WALKER_STATE);
 
-        cmd->DW1.FirstSuperSlice     = params->firstSuperSlice;
-        cmd->DW1.MbLcuStartXPosition = params->tileSliceStartLcuMbX;
-        cmd->DW1.MbLcuStartYPosition = params->tileSliceStartLcuMbY;
+#define DO_FIELDS()                                                                \
+    DO_FIELD(DW1, FirstSuperSlice, params->firstSuperSlice);                       \
+    DO_FIELD(DW1, MbLcuStartXPosition, params->tileSliceStartLcuMbX);              \
+    DO_FIELD(DW1, MbLcuStartYPosition, params->tileSliceStartLcuMbY);              \
+                                                                                   \
+    DO_FIELD(DW2, NextsliceMbLcuStartXPosition, params->nextTileSliceStartLcuMbX); \
+    DO_FIELD(DW2, NextsliceMbStartYPosition, params->nextTileSliceStartLcuMbY)
 
-        cmd->DW2.NextsliceMbLcuStartXPosition = params->nextTileSliceStartLcuMbX;
-        cmd->DW2.NextsliceMbStartYPosition    = params->nextTileSliceStartLcuMbY;
-
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 
@@ -906,16 +1007,29 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VD_PIPELINE_FLUSH);
 
-        cmd->DW1.HevcPipelineDone           = params->waitDoneHEVC;
-        cmd->DW1.VdencPipelineDone          = params->waitDoneVDENC;
-        cmd->DW1.MflPipelineDone            = params->waitDoneMFL;
-        cmd->DW1.MfxPipelineDone            = params->waitDoneMFX;
-        cmd->DW1.VdCommandMessageParserDone = params->waitDoneVDCmdMsgParser;
-        cmd->DW1.HevcPipelineCommandFlush   = params->flushHEVC;
-        cmd->DW1.VdencPipelineCommandFlush  = params->flushVDENC;
-        cmd->DW1.MflPipelineCommandFlush    = params->flushMFL;
-        cmd->DW1.MfxPipelineCommandFlush    = params->flushMFX;
+#define DO_FIELDS()                                                            \
+    DO_FIELD(DW1, HevcPipelineDone, params->waitDoneHEVC);                     \
+    DO_FIELD(DW1, VdencPipelineDone, params->waitDoneVDENC);                   \
+    DO_FIELD(DW1, MflPipelineDone, params->waitDoneMFL);                       \
+    DO_FIELD(DW1, MfxPipelineDone, params->waitDoneMFX);                       \
+    DO_FIELD(DW1, VdCommandMessageParserDone, params->waitDoneVDCmdMsgParser); \
+    DO_FIELD(DW1, HevcPipelineCommandFlush, params->flushHEVC);                \
+    DO_FIELD(DW1, VdencPipelineCommandFlush, params->flushVDENC);              \
+    DO_FIELD(DW1, MflPipelineCommandFlush, params->flushMFL);                  \
+    DO_FIELD(DW1, MfxPipelineCommandFlush, params->flushMFX)
 
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
         return MOS_STATUS_SUCCESS;
     }
 };
