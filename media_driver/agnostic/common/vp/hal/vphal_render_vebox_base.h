@@ -659,6 +659,7 @@ public:
                                             pRenderTarget      = nullptr;
                                             SamplerStateParams = { };
                                             VeboxDNDIParams    = { };
+                                            VeboxChromaParams  = { };
                                             pAlphaParams       = nullptr;
                                             // Batch Buffer rendering arguments
                                             BbArgs = { };
