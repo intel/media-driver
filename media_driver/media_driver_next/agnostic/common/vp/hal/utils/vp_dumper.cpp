@@ -143,7 +143,6 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     case Format_X8R8G8B8:
     case Format_A8B8G8R8:
     case Format_X8B8G8R8:
-    case Format_R8G8B8:
     case Format_AYUV:
     case Format_AUYV:
     case Format_R10G10B10A2:
@@ -152,6 +151,12 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth * 4;
+        pPlanes[0].dwHeight = pSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->dwPitch;
+        break;
+    case Format_R8G8B8:
+        *pdwNumPlanes = 1;
+        pPlanes[0].dwWidth  = pSurface->dwWidth * 3;
         pPlanes[0].dwHeight = pSurface->dwHeight;
         pPlanes[0].dwPitch  = pSurface->dwPitch;
         break;
@@ -1028,16 +1033,33 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             }
             else
             {
-                MOS_SecureMemcpy(
-                    pTmpDst,
-                    planes[j].dwWidth,
-                    pTmpSrc,
-                    planes[j].dwWidth);
+                // For RGB24 format, need to remove one invalid zero every 64 byte
+                // which is designed to avoid splitting two cache lines
+                if (pSurface->Format == Format_R8G8B8)
+                {
+                    int dummyBytesPerLine = (int)(ceil)((planes[j].dwWidth) / 63.0);
+                    for (int p = 0; p < dummyBytesPerLine; p++)
+                    {
+                        MOS_SecureMemcpy(
+                            &pTmpDst[p * 63],
+                            63,
+                            &pTmpSrc[p * 64],
+                            63);
+                    }
+                }
+                else
+                {
+                    MOS_SecureMemcpy(
+                        pTmpDst,
+                        planes[j].dwWidth,
+                        pTmpSrc,
+                        planes[j].dwWidth);
 
+                }
                 pTmpSrc += planes[j].dwPitch;
                 pTmpDst += planes[j].dwWidth;
 
-                dstPlaneOffset[j+1] += planes[j].dwWidth;
+                dstPlaneOffset[j + 1] += planes[j].dwWidth;
             }
         }
 
