@@ -442,8 +442,10 @@ MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe()
     BRC Parameters set as follows as per CModel equation
     ***********************************************************************/
     // BPyramid GOP
-    const auto GopPicSize = encoderBrc->m_hevcSeqParams->GopPicSize;
-    const auto GopRefDist = encoderBrc->m_hevcSeqParams->GopRefDist;
+//    const auto GopPicSize = encoderBrc->m_hevcSeqParams->GopPicSize;
+//    const auto GopRefDist = encoderBrc->m_hevcSeqParams->GopRefDist;
+    uint16_t GopPicSize               = encoderBrc->m_hevcSeqParams->GopPicSize > INTRA_PERIOD_MAX ? INTRA_PERIOD_MAX : encoderBrc->m_hevcSeqParams->GopPicSize;
+    uint16_t GopRefDist               = encoderBrc->m_hevcSeqParams->GopRefDist;
 
     encoderBrc->m_HierchGopBRCEnabled = false;
     if(encoderBrc->m_hevcSeqParams->HierarchicalFlag && GopRefDist > 1 && GopRefDist <= 8 )
@@ -553,7 +555,9 @@ MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe()
     encoderBrc->curbe.DW24_DeviationThreshold6_Iframe = (uint32_t)(50 * pow(0.66, bpsRatio));
     encoderBrc->curbe.DW24_DeviationThreshold7_Iframe = (uint32_t)(50 * pow(0.9, bpsRatio));
 
-    if (encoderBrc->m_hevcSeqParams->HierarchicalFlag && !encoderBrc->m_hevcSeqParams->LowDelayMode &&
+    encoderBrc->curbe.DW26_BGOPSize = encoderBrc->m_hevcSeqParams->GopRefDist;
+
+    if (encoderBrc->m_hevcSeqParams->HierarchicalFlag && !encoderBrc->m_hevcSeqParams->LowDelayMode && !encoderBrc->m_lowDelay &&
         (encoderBrc->m_hevcSeqParams->GopRefDist == 4 || encoderBrc->m_hevcSeqParams->GopRefDist == 8))
     {
         encoderBrc->curbe.DW26_RandomAccess = true;
