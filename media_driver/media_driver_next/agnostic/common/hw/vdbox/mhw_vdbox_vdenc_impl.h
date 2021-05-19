@@ -273,8 +273,7 @@ protected:
     DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params->vDirection);                                        \
     DO_FIELD(Dwords25.DW0, SurfaceFormatByteSwizzle, params->displayFormatSwizzle);                                 \
                                                                                                                     \
-    uint32_t tileMode = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);                    \
-    DO_FIELD(Dwords25.DW1, TileMode, tileMode);                                                                     \
+    DO_FIELD(Dwords25.DW1, TileMode, GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn));      \
     DO_FIELD(Dwords25.DW1, SurfaceFormat, static_cast<uint32_t>(MosFormatToVdencSurfaceRawFormat(params->format))); \
     DO_FIELD(Dwords25.DW1, SurfacePitch, params->pitch - 1);                                                        \
                                                                                                                     \
@@ -305,8 +304,7 @@ protected:
     DO_FIELD(Dwords25.DW0, Height, params->height - 1);                                                               \
     DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params->vDirection);                                          \
                                                                                                                       \
-    uint32_t tileMode = GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn);                      \
-    DO_FIELD(Dwords25.DW1, TileMode, tileMode);                                                                       \
+    DO_FIELD(Dwords25.DW1, TileMode, GetHwTileType(params->tileType, params->tileModeGmm, params->gmmTileEn));        \
     DO_FIELD(Dwords25.DW1, SurfacePitch, params->pitch - 1);                                                          \
     DO_FIELD(Dwords25.DW1, SurfaceFormat, static_cast<uint32_t>(MosFormatToVdencSurfaceReconFormat(params->format))); \
                                                                                                                       \
@@ -332,33 +330,32 @@ protected:
     {
         _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_DS_REF_SURFACE_STATE);
 
-#define DO_FIELDS()                                                                                                \
-    DO_FIELD(Dwords25.DW0, Width, params->widthStage1 - 1);                                                        \
-    DO_FIELD(Dwords25.DW0, Height, params->heightStage1 - 1);                                                      \
-    DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params->vDirectionStage1);                                 \
-                                                                                                                   \
-    uint32_t tileMode = GetHwTileType(params->tileTypeStage1, params->tileModeGmmStage1, params->gmmTileEnStage1); \
-    DO_FIELD(Dwords25.DW1, TileMode, tileMode);                                                                    \
-    DO_FIELD(Dwords25.DW1, SurfaceFormat, cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8);     \
-    DO_FIELD(Dwords25.DW1, SurfacePitch, params->pitchStage1 - 1);                                                 \
-                                                                                                                   \
-    DO_FIELD(Dwords25.DW2, YOffsetForUCb, params->uOffsetStage1);                                                  \
-    DO_FIELD(Dwords25.DW3, YOffsetForVCr, params->vOffsetStage1);                                                  \
-                                                                                                                   \
-    if (params->widthStage2 && params->heightStage2)                                                               \
-    {                                                                                                              \
-        DO_FIELD(Dwords69.DW0, Width, params->widthStage2 - 1);                                                    \
-        DO_FIELD(Dwords69.DW0, Height, params->heightStage2 - 1);                                                  \
-        DO_FIELD(Dwords69.DW0, CrVCbUPixelOffsetVDirection, params->vDirectionStage2);                             \
-                                                                                                                   \
-        tileMode = GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2);      \
-        DO_FIELD(Dwords69.DW1, TileMode, tileMode);                                                                \
-        DO_FIELD(Dwords69.DW1, SurfaceFormat, cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8); \
-        DO_FIELD(Dwords69.DW1, SurfacePitch, params->pitchStage2 - 1);                                             \
-                                                                                                                   \
-        DO_FIELD(Dwords69.DW2, YOffsetForUCb, params->uOffsetStage2);                                              \
-        DO_FIELD(Dwords69.DW3, YOffsetForVCr, params->vOffsetStage2);                                              \
-    }
+        const bool stage2 = params->widthStage2 && params->heightStage2 && params->pitchStage2;
+
+#define DO_FIELDS()                                                                                                                           \
+    DO_FIELD(Dwords25.DW0, Width, params->widthStage1 - 1);                                                                                   \
+    DO_FIELD(Dwords25.DW0, Height, params->heightStage1 - 1);                                                                                 \
+    DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params->vDirectionStage1);                                                            \
+                                                                                                                                              \
+    DO_FIELD(Dwords25.DW1, TileMode, GetHwTileType(params->tileTypeStage1, params->tileModeGmmStage1, params->gmmTileEnStage1));              \
+    DO_FIELD(Dwords25.DW1, SurfaceFormat, cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8);                                \
+    DO_FIELD(Dwords25.DW1, SurfacePitch, params->pitchStage1 - 1);                                                                            \
+                                                                                                                                              \
+    DO_FIELD(Dwords25.DW2, YOffsetForUCb, params->uOffsetStage1);                                                                             \
+                                                                                                                                              \
+    DO_FIELD(Dwords25.DW3, YOffsetForVCr, params->vOffsetStage1);                                                                             \
+                                                                                                                                              \
+    DO_FIELD(Dwords69.DW0, Width, stage2 ? params->widthStage2 - 1 : 0);                                                                      \
+    DO_FIELD(Dwords69.DW0, Height, stage2 ? params->heightStage2 - 1 : 0);                                                                    \
+    DO_FIELD(Dwords69.DW0, CrVCbUPixelOffsetVDirection, stage2 ? params->vDirectionStage2 : 0);                                               \
+                                                                                                                                              \
+    DO_FIELD(Dwords69.DW1, TileMode, stage2 ? GetHwTileType(params->tileTypeStage2, params->tileModeGmmStage2, params->gmmTileEnStage2) : 0); \
+    DO_FIELD(Dwords69.DW1, SurfaceFormat, stage2 ? cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8 : 0);                   \
+    DO_FIELD(Dwords69.DW1, SurfacePitch, stage2 ? params->pitchStage2 - 1 : 0);                                                               \
+                                                                                                                                              \
+    DO_FIELD(Dwords69.DW2, YOffsetForUCb, stage2 ? params->uOffsetStage2 : 0);                                                                \
+                                                                                                                                              \
+    DO_FIELD(Dwords69.DW3, YOffsetForVCr, stage2 ? params->vOffsetStage2 : 0)
 
 #define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
         DO_FIELDS();
@@ -946,11 +943,8 @@ protected:
     DO_FIELD(DW6, StreaminOffsetEnable, params->tileEnable);                                                                 \
     DO_FIELD(DW6, TileStreaminOffset, params->tileStreamInOffset);                                                           \
                                                                                                                              \
-    if (cmd->DW4.TileStartCtbY == 0)                                                                                         \
-    {                                                                                                                        \
-        DO_FIELD(DW7, RowStoreOffsetEnable, params->tileEnable);                                                             \
-        DO_FIELD(DW7, TileRowstoreOffset, cmd->DW4.TileStartCtbX / 32);                                                      \
-    }                                                                                                                        \
+    DO_FIELD(DW7, RowStoreOffsetEnable, cmd->DW4.TileStartCtbY == 0 ? params->tileEnable : 0);                               \
+    DO_FIELD(DW7, TileRowstoreOffset, cmd->DW4.TileStartCtbY == 0 ? cmd->DW4.TileStartCtbX / 32 : 0);                        \
                                                                                                                              \
     DO_FIELD(DW8, TileStreamoutOffsetEnable, params->tileEnable);                                                            \
     DO_FIELD(DW8, TileStreamoutOffset, params->tileId * 19);                                                                 \
