@@ -1008,8 +1008,8 @@ MOS_STATUS CodechalVdencHevcStateG10::SetMeCurbe(bool using4xMe)
     {
         //StreamIn CURBE
         curbe.DW6.LCUSize = 1;//Only LCU64 supported by the VDEnc HW
-        // Kernel should use driver-prepared stream-in surface during ROI/ Dirty-Rect
-        curbe.DW6.InputStreamInEn = (m_hevcPicParams->NumROI || (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)));
+        // Kernel should use driver-prepared stream-in surface during ROI/ MBQP(LCUQP)/ Dirty-Rect
+        curbe.DW6.InputStreamInEn = (m_hevcPicParams->NumROI || m_encodeParams.bMbQpDataEnabled || (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)));
         curbe.DW31.NumImePredictors = m_imgStateImePredictors;
         curbe.DW31.MaxCuSize = 3;
         curbe.DW31.MaxTuSize = 3;
@@ -1275,8 +1275,8 @@ MOS_STATUS CodechalVdencHevcStateG10::SendMeSurfaces(bool using4xMe, PMOS_COMMAN
 
     if (using4xMe)
     {
-        // Send driver-prepared stream-in surface as input during ROI/ Dirty-Rect
-        if (m_hevcPicParams->NumROI || (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)))
+        // Send driver-prepared stream-in surface as input during ROI/ MBQP(LCUQP)/ Dirty-Rect
+        if (m_hevcPicParams->NumROI || m_encodeParams.bMbQpDataEnabled || (m_hevcPicParams->NumDirtyRects > 0 && (B_TYPE == m_hevcPicParams->CodingType)))
         {
             MOS_ZeroMemory(&surfaceCodecParams, sizeof(surfaceCodecParams));
             surfaceCodecParams.dwSize = MOS_BYTES_TO_DWORDS((MOS_ALIGN_CEIL(m_frameWidth, CODEC_HEVC_VDENC_LCU_WIDTH) / 32) * (MOS_ALIGN_CEIL(m_frameHeight, CODEC_HEVC_VDENC_LCU_HEIGHT) / 32) * CODECHAL_CACHELINE_SIZE);
