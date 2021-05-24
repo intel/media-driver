@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -6439,6 +6439,7 @@ CodechalVdencHevcStateG12::CodechalVdencHevcStateG12(
 #endif
     m_kuidCommon = IDR_CODEC_HME_DS_SCOREBOARD_KERNEL;
     m_scalabilityState = nullptr;
+    m_brcAdaptiveRegionBoostSupported = true;
 
     MOS_ZeroMemory(&m_resPakcuLevelStreamoutData, sizeof(m_resPakcuLevelStreamoutData));
     MOS_ZeroMemory(&m_resPakSliceLevelStreamoutData, sizeof(m_resPakSliceLevelStreamoutData));
@@ -8932,7 +8933,7 @@ void CodechalVdencHevcStateG12::SetStreaminDataPerLcu(
     PCODECHAL_VDENC_HEVC_STREAMIN_STATE_G12 data = (PCODECHAL_VDENC_HEVC_STREAMIN_STATE_G12)streaminData;
     if (streaminParams->setQpRoiCtrl)
     {
-        if (m_vdencNativeROIEnabled)
+        if (m_vdencNativeROIEnabled || m_brcAdaptiveRegionBoostEnable)
         {
             data->DW0.RoiCtrl = streaminParams->roiCtrl;
         }
@@ -9481,6 +9482,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetAddCommands(uint32_t commandType, PMOS_
         cmd2Params->bHevcVisualQualityImprovement = m_hevcVisualQualityImprovement;
         cmd2Params->roundInterValue = roundInterValue;
         cmd2Params->roundIntraValue = roundIntraValue;
+        cmd2Params->bROIStreamInEnabled = m_brcAdaptiveRegionBoostEnable ? true : cmd2Params->bROIStreamInEnabled;
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencCmd2Cmd(cmdBuffer, nullptr, cmd2Params));
     }
