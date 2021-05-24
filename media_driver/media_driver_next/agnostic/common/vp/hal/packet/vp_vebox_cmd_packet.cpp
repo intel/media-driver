@@ -395,8 +395,9 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
             cscParams->outputColorSpace,
             cscParams->inputFormat);
 
-        m_CscInputCspace = cscParams->inputColorSpace;
-        m_CscOutputCspace = cscParams->outputColorSpace;
+        veboxIecpParams.srcFormat  = cscParams->inputFormat;
+        veboxIecpParams.dstFormat  = cscParams->outputFormat;
+        veboxIecpParams.ColorSpace = (MHW_CSPACE)cscParams->inputColorSpace;
     }
 
     if (m_PacketCaps.bVebox &&
