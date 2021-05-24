@@ -52,6 +52,7 @@
 
 // Media Features width
 #define VPHAL_RNDR_8K_WIDTH (7680)
+#define VPHAL_RNDR_16K_HEIGHT_LIMIT (16352)
 
 // Media Features height
 #define VPHAL_RNDR_2K_HEIGHT  1080
