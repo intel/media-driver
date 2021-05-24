@@ -2615,18 +2615,23 @@ VAStatus DdiMedia_CreateSurfaces2(
                 surfDesc->modifier       = drmPrimeSurfaceDescriptor.objects[0].drm_format_modifier;
                 surfDesc->uiSize         = drmPrimeSurfaceDescriptor.objects[0].size;
                 surfDesc->uiBuffserSize  = drmPrimeSurfaceDescriptor.objects[0].size;
-                surfDesc->uiPlanes       = drmPrimeSurfaceDescriptor.layers[0].num_planes;
-                eStatus = MOS_SecureMemcpy(surfDesc->uiPitches, sizeof(surfDesc->uiPitches), drmPrimeSurfaceDescriptor.layers[0].pitch, sizeof(drmPrimeSurfaceDescriptor.layers[0].pitch));
-                if (eStatus != MOS_STATUS_SUCCESS)
+                if(drmPrimeSurfaceDescriptor.num_layers > 1)
                 {
-                    DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
-                    return VA_STATUS_ERROR_OPERATION_FAILED;
+                     surfDesc->uiPlanes = drmPrimeSurfaceDescriptor.num_layers;
+                     for (uint32_t k = 0; k < surfDesc->uiPlanes; k ++)
+                     {
+                         surfDesc->uiPitches[k] = drmPrimeSurfaceDescriptor.layers[k].pitch[0];
+                         surfDesc->uiOffsets[k] = drmPrimeSurfaceDescriptor.layers[k].offset[0];
+                     }
                 }
-                eStatus = MOS_SecureMemcpy(surfDesc->uiOffsets, sizeof(surfDesc->uiOffsets), drmPrimeSurfaceDescriptor.layers[0].offset, sizeof(drmPrimeSurfaceDescriptor.layers[0].offset));
-                if (eStatus != MOS_STATUS_SUCCESS)
+                else
                 {
-                    DDI_VERBOSEMESSAGE("DDI:Failed to copy surface buffer data!");
-                    return VA_STATUS_ERROR_OPERATION_FAILED;
+                    surfDesc->uiPlanes       = drmPrimeSurfaceDescriptor.layers[0].num_planes;
+                    for(uint32_t k = 0; k < surfDesc->uiPlanes; k ++)
+                    {
+                        surfDesc->uiPitches[k] = drmPrimeSurfaceDescriptor.layers[0].pitch[k];
+                        surfDesc->uiOffsets[k] = drmPrimeSurfaceDescriptor.layers[0].offset[k];
+                    }
                 }
             }
             else if (memTypeFlag != VA_SURFACE_ATTRIB_MEM_TYPE_VA) {

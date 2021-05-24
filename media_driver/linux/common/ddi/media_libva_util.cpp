@@ -343,6 +343,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 uint32_t swizzle_mode;
                 //Overwrite the tile format that matches the exteral buffer
                 mos_bo_get_tiling(bo, &tileformat, &swizzle_mode);
+                if(tileformat == 0)
+                {
+                    tileformat = mediaSurface->pSurfDesc->uiFlags & VA_SURFACE_EXTBUF_DESC_ENABLE_TILING? I915_TILING_Y:I915_TILING_NONE;
+                }
             }
             else
             {
