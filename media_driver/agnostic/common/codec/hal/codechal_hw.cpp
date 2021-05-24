@@ -25,7 +25,6 @@
 //!
 #include "codechal_hw.h"
 #include "codechal_setting.h"
-#include "mhw_cmd_reader.h"
 
 #define VDBOX_HUC_VDENC_BRC_INIT_KERNEL_DESCRIPTOR 4
 
@@ -715,8 +714,6 @@ MOS_STATUS CodechalHwInterface::AddVdencBrcImgBuffer(
 
     // Add batch buffer end insertion flag
     m_miInterface->AddBatchBufferEndInsertionFlag(constructedCmdBuf);
-
-    OVERRIDE_CMD_DATA(constructedCmdBuf.pCmdBase, constructedCmdBuf.iOffset);
 
     if (data)
     {
