@@ -1107,6 +1107,18 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDiIecp(
             {
                 pSurfCtrlBits->DW0.CompressionType = pSurfCtrlBits->MEMORY_COMPRESSION_TYPE_RENDER_COMPRESSION_ENABLE;
             }
+            switch (pVeboxDiIecpCmdParams->pOsResCurrInput->TileType)
+            {
+            case MOS_TILE_YF:
+                pSurfCtrlBits->DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
+                break;
+            case MOS_TILE_YS:
+                pSurfCtrlBits->DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
+                break;
+            default:
+                pSurfCtrlBits->DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
+                break;
+            }
         }
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
         ResourceParams.presResource    = pVeboxDiIecpCmdParams->pOsResCurrInput;

@@ -253,6 +253,19 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
 
     cmd.DW19.OutputFrameSurfaceBaseAddressMemoryCompressionMode = (pSfcStateParamsG12->MMCMode == MOS_MMC_RC) ? 1 : 0;
 
+    switch (pSfcStateParamsG12->tileType)
+    {
+    case MOS_TILE_YF:
+        cmd.DW19.OutputSurfaceTiledMode = TRMODE_TILEYF;
+        break;
+    case MOS_TILE_YS:
+        cmd.DW19.OutputSurfaceTiledMode = TRMODE_TILEYS;
+        break;
+    default:
+        cmd.DW19.OutputSurfaceTiledMode = TRMODE_NONE;
+        break;
+    }
+
     // Set DW22
     cmd.DW22.AvsLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
                                                    = m_avsLineBufferCtrl.Gen12.Index;
