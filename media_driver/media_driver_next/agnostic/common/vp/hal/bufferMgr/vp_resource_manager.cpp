@@ -572,7 +572,7 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
     if (nullptr == outputSurface && IsOutputSurfaceNeeded(caps))
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AssignIntermediaSurface(executedFilters));
-        outputSurface  = executedFilters.GetSurface(false, 0);
+        outputSurface  = GetCopyInstOfExtSurface(executedFilters.GetSurface(false, 0));
         VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
     }
 
@@ -1437,7 +1437,7 @@ VP_SURFACE* VpResourceManager::GetVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_S
     if (!caps.bSFC) // Vebox output directlly to output surface
     {
         // RenderTarget will be assigned in VpVeboxCmdPacket::GetSurface.
-        return nullptr;
+        return outputSurface;
     }
     else if (caps.bDI && caps.bVebox) // Vebox DI enable
     {
