@@ -139,6 +139,12 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit422, codecInfo->hevcVdenc);
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit444, codecInfo->hevcVdenc);
 
+        /* HEVC VDENC Main8/10bit-420/422/444 Scc Encoding. */
+        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMainSCC, codecInfo->hevcVdenc);
+        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bitSCC, codecInfo->hevcVdenc);
+        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain444SCC, codecInfo->hevcVdenc);
+        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit444SCC, codecInfo->hevcVdenc);
+
         /* HEVC 12bit Decoding. Currently it is enabled */
         MEDIA_WR_SKU(skuTable, FtrIntelHEVCVLDMain12bit420Decoding, 1);
         MEDIA_WR_SKU(skuTable, FtrIntelHEVCVLDMain12bit422Decoding, 1);

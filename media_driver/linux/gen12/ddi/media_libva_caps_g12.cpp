@@ -633,7 +633,7 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
         AddProfileEntry(VAProfileHEVCMain444_10, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain8bit420SCC))
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVDencMain8bit420SCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
@@ -649,7 +649,7 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10bit420SCC))
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVDencMain10bit420SCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
@@ -665,7 +665,7 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 
-      if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain8bit444SCC))
+      if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVDencMain8bit444SCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
@@ -681,7 +681,7 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
 
-    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVLDMain10bit444SCC))
+    if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelHEVCVDencMain10bit444SCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
         AddEncConfig(VA_RC_CQP);
