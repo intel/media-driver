@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,8 @@
 
 #include "mos_os_specific.h"
 #include "media_status_report_observer.h"
+
+#define STATUS_REPORT_GLOBAL_COUNT 0
 
 class MediaStatusReport
 {

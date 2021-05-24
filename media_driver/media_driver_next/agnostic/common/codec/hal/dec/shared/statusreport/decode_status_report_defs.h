@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 
 #include "mos_defs.h"
 #include "codec_def_common.h"
+#include "media_status_report.h"
 
 namespace decode
 {
@@ -63,6 +64,7 @@ union CsEngineId
 
 enum DecodeStatusReportType
 {
+    statusReportGlobalCount = STATUS_REPORT_GLOBAL_COUNT,
     statusReportMfx,
 
     //! \brief decode error status
@@ -96,7 +98,6 @@ enum DecodeStatusReportType
     HucErrorStatusMask,
 
     statusReportRcs,
-    statusReportGlobalCount = 0x50,
     statusReportMaxNum
 };
 

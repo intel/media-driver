@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ MOS_STATUS MediaStatusReport::GetAddress(uint32_t statusReportType, PMOS_RESOURC
 
     osResource = m_statusBufAddr[statusReportType].osResource;
 
-    if (statusReportType == 0x50)
+    if (statusReportType == STATUS_REPORT_GLOBAL_COUNT)
     {
         offset = m_statusBufAddr[statusReportType].offset;
     }

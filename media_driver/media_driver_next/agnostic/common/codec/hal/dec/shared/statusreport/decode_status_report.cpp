@@ -81,7 +81,7 @@ namespace decode {
         m_statusBufAddr[statusReportGlobalCount].offset = m_statusBufSizeMfx * m_statusNum;
         m_statusBufAddr[statusReportGlobalCount].bufSize = sizeof(uint32_t) * 2;
 
-        for(int i = 0; i < statusReportGlobalCount; i++)
+        for (int i = statusReportMfx; i < statusReportMaxNum; i++)
         {
             m_statusBufAddr[i].osResource = &m_statusBufMfx->OsResource;
             m_statusBufAddr[i].bufSize = m_statusBufSizeMfx;
