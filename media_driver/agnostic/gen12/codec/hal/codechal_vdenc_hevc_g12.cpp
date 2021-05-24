@@ -4799,6 +4799,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetConstDataHuCBrcUpdate()
     }
 
     hucConstData->UPD_TR_TargetSize_U32 = m_hevcPicParams->TargetFrameSize << 3;// byte to bit
+    hucConstData->UPD_TCBRC_SCENARIO_U8 = m_tcbrcQualityBoost;
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_vdencBrcConstDataBuffer[m_currRecycledBufIdx]);
 
@@ -6419,6 +6420,14 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
         m_osInterface->pOsContext);
     m_forceScalability = userFeatureData.i32Data ? true : false;
 #endif
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_TCBRC_QUALITY_BOOST_ENABLE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_tcbrcQualityBoost = (userFeatureData.i32Data) ? true : false;
 
     return eStatus;
 }

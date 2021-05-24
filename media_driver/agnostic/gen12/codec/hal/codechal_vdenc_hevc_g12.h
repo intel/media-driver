@@ -285,6 +285,9 @@ struct CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G12
     uint32_t   UPD_TR_TargetSize_U32; //TR_BRC
     uint32_t   UPD_LA_TargetFulness_U32; //LOOK_AHEAD
     uint8_t    UPD_deltaQP;
+    uint8_t    UPD_TCBRC_SCENARIO_U8;  // Unite scenario is 1, other is 0
+    uint8_t    UPD_ROM_CURRENT_U8;     // ROM average of current frame
+    uint8_t    UPD_ROM_ZERO_U8;        // ROM zero percentage (255 is 100%)
 };
 
 using PCODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G12 = CODECHAL_VDENC_HEVC_HUC_BRC_CONSTANT_DATA_G12*;
@@ -2728,6 +2731,7 @@ private:
     MOS_RESOURCE                m_resTileRowBRCsyncSemaphore;               //!< HW semaphore buffer for tile row BRC update
     bool                        m_RGBEncodingEnable = false;                //!< Enable RGB encoding
     bool                        m_CaptureModeEnable = false;                //!< Enable Capture mode with display
+    bool                        m_tcbrcQualityBoost = false;
 
     // This may be removed to VDENC HW interface later
     static const uint32_t       m_VdboxVDENCRegBase[4];
