@@ -549,7 +549,7 @@ MOS_STATUS CodechalDecodeJpeg::SetFrameStates()
                 &m_resDataBuffer,
                 CodechalDbgAttr::attrBitstream,
                 "_DEC",
-                m_dataSize,
+                (m_copiedDataBufferInUse ? m_nextCopiedDataOffset : m_dataSize),
                 0,
                 CODECHAL_NUM_MEDIA_STATES));
         })

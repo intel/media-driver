@@ -28,7 +28,7 @@
 #define __CODEC_DEF_DECODE_JPEG_H__
 
 #include "codec_def_common_jpeg.h"
-
+#define CODEC_DECODE_JPEG_BLOCK_SIZE 8
 //!
 //! \enum CodecDecodeJpegRotationType
 //! \brief JPEG Rotation Types

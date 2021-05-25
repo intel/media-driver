@@ -96,6 +96,9 @@
 
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg_g12.h"
+#ifdef _APOGEIOS_SUPPORTED
+#include "decode_jpeg_pipeline_adapter_m12.h"
+#endif
 #endif
 
 #ifdef _AV1_DECODE_SUPPORTED
