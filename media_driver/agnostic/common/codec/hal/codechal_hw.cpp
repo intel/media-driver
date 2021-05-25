@@ -512,6 +512,12 @@ MOS_STATUS CodechalHwInterface::GetVdencStateCommandsDataSize(
         commands += m_miInterface->GetMiFlushDwCmdSize();
         commands += m_miInterface->GetMiBatchBufferStartCmdSize();
     }
+    else if (standard == CODECHAL_RESERVED0)
+    {
+        commands += m_miInterface->GetMiFlushDwCmdSize();
+        commands += m_miInterface->GetMiBatchBufferStartCmdSize();
+        commands += m_sizeOfCmdBatchBufferEnd;
+    }
     else
     {
         MHW_ASSERTMESSAGE("Unsupported encode mode.");

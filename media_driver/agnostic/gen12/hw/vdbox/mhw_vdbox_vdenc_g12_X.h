@@ -501,6 +501,21 @@ public:
         return maxSize;
     }
 
+    uint32_t GetReserved0MaxSize()
+    {
+       uint maxSize =
+            TVdencCmds::VDENC_CONTROL_STATE_CMD::byteSize +
+            TVdencCmds::VDENC_PIPE_MODE_SELECT_CMD::byteSize +
+            TVdencCmds::VDENC_SRC_SURFACE_STATE_CMD::byteSize +
+            TVdencCmds::VDENC_REF_SURFACE_STATE_CMD::byteSize +
+            TVdencCmds::VDENC_DS_REF_SURFACE_STATE_CMD::byteSize +
+            TVdencCmds::VDENC_PIPE_BUF_ADDR_STATE_CMD::byteSize +
+            TVdencCmds::VDENC_WALKER_STATE_CMD::byteSize +
+            TVdencCmds::VD_PIPELINE_FLUSH_CMD::byteSize;;
+
+        return maxSize;
+    }
+
     MOS_STATUS GetVdencStateCommandsDataSize(
         uint32_t mode,
         uint32_t waAddDelayInVDEncDynamicSlice,
@@ -558,6 +573,15 @@ public:
                 MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES +
                 VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
         }
+        else if (standard == CODECHAL_RESERVED0)
+        {
+            maxSize = GetReserved0MaxSize();
+
+            patchListMaxSize =
+                MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES +
+                MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES +
+                VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
+        }
         else
         {
             MHW_ASSERTMESSAGE("Unsupported encode mode.");
@@ -582,6 +606,15 @@ public:
         return maxSize;
     }
 
+    uint32_t GetReserved0TileMaxSize()
+    {
+        uint32_t maxSize = GetVdencCmd1Size() +
+            GetVdencCmd2Size() +
+            TVdencCmds::VDENC_WALKER_STATE_CMD::byteSize;
+
+        return maxSize;
+    }
+
     MOS_STATUS GetVdencPrimitiveCommandsDataSize(
         uint32_t                        mode,
         uint32_t                        *commandsSize,
@@ -597,6 +630,10 @@ public:
         {
             maxSize = GetAvcSliceMaxSize();
             patchListMaxSize = VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
+        }
+        else if (standard == CODECHAL_RESERVED0)
+        {
+            maxSize = GetReserved0TileMaxSize();
         }
         else
         {

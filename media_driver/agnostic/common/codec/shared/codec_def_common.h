@@ -152,6 +152,8 @@ enum CODECHAL_STANDARD
     //AVP pipeline
     CODECHAL_AVP_BASE   = CODECHAL_HCP_BASE + 2,
     CODECHAL_AV1        = CODECHAL_AVP_BASE,
+
+    CODECHAL_RESERVED0,
     CODECHAL_STANDARD_MAX
 };
 
@@ -600,6 +602,9 @@ static __inline uint32_t CodecHal_GetStandardFromMode(uint32_t mode)
         break;
     case CODECHAL_DECODE_MODE_CENC:
         standard = CODECHAL_CENC;
+        break;
+    case CODECHAL_ENCODE_RESERVED_0:
+        standard = CODECHAL_RESERVED0;
         break;
     default:
         standard = CODECHAL_UNDEFINED;
