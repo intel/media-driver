@@ -89,7 +89,8 @@ public:
     {
         if (m_UnorderedFilters.IsEmpty())
         {
-            return RenderTargetTypeInvalid;
+            // For VEBOX copy case w/o any feature enabled
+            return RenderTargetTypeSurface;
         }
         else
         {

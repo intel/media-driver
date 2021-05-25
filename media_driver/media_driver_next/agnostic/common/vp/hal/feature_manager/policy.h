@@ -117,11 +117,6 @@ protected:
 
     virtual MOS_STATUS FilterFeatureCombination(SwFilterSubPipe *pipe);
 
-    virtual bool IsBeCSCNeededOnCaps(VP_EXECUTE_CAPS &caps)
-    {
-        return (caps.bSFC && (caps.bIECP || caps.bDI));
-    }
-
     virtual bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps)
     {
         return false;
