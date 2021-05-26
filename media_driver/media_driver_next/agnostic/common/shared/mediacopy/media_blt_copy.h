@@ -99,6 +99,22 @@ public:
     virtual MOS_STATUS CopyMainSurface(
         PMOS_RESOURCE src,
         PMOS_RESOURCE dst);
+    //!
+    //! \brief    Setup fast copy parameters
+    //! \details  Setup fast copy parameters for BLT Engine
+    //! \param    mhwParams
+    //!           [in/out] Pointer to MHW_FAST_COPY_BLT_PARAM
+    //! \param    inputSurface
+    //!           [in] Pointer to input surface
+    //! \param    outputSurface
+    //!           [in] Pointer to output surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+   virtual MOS_STATUS SetupFastCopyBltParam(
+        PMHW_FAST_COPY_BLT_PARAM mhwParams,
+        PMOS_RESOURCE            inputSurface,
+        PMOS_RESOURCE            outputSurface);
 
 protected:
 
@@ -114,10 +130,17 @@ protected:
         PBLT_STATE_PARAM pBltStateParam);
 
 
-    virtual MOS_STATUS SetupFastCopyBltParam(
-        PMHW_FAST_COPY_BLT_PARAM mhwParams,
-        PMOS_RESOURCE            inputSurface,
-        PMOS_RESOURCE            outputSurface);
+    //!
+    //! \brief    Get color depth.
+    //! \details  get different format's color depth.
+    //! \param    surface 
+    //!           [in] input or output surface.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    uint32_t GetColorDepth(
+        GMM_RESOURCE_FORMAT dstFormat,
+        uint32_t            BytesPerTexel);
 
 public:
     PMOS_INTERFACE m_osInterface      = nullptr;

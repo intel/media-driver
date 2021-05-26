@@ -57,7 +57,7 @@ void CompositeStateG12::SubmitStatesFillGenSpecificStaticData(
 
     if (pRenderingData->iLayers > 0)
     {
-        // "IEF Bypass" bit is changed to "MBZ" bit for Gen12 in HW interface,  so driver should always set "Bypass IEF" to be 0 in CURBE.
+        // IEFBypass bit is changed to MBZ bit for Gen12 in HW interface,  so driver should always set BypassIEF to be 0 in CURBE.
         pStatic->DW09.ObjKa2Gen9.IEFByPassEnable = false;
     }
 
