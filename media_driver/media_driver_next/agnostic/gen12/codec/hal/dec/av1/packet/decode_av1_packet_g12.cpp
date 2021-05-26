@@ -60,8 +60,6 @@ namespace decode
 
             DECODE_CHK_STATUS(Mos_Solo_PreProcessDecode(m_osInterface, &m_av1BasicFeature->m_destSurface));
 
-            SetPerfTag(CODECHAL_DECODE_MODE_AV1VLD, m_av1BasicFeature->m_pictureCodingType);
-
             auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(MHW_VDBOX_NODE_1);
             HalOcaInterface::On1stLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
         }
@@ -87,12 +85,6 @@ namespace decode
         Mos_Solo_SetReadyToExecute(m_osInterface, m_av1BasicFeature->m_frameCompletedFlag);
 
         DECODE_CHK_STATUS(Mos_Solo_PostProcessDecode(m_osInterface, &m_av1BasicFeature->m_destSurface));
-
-        if(m_av1BasicFeature->m_frameCompletedFlag && !m_av1BasicFeature->m_filmGrainEnabled)
-        {
-            m_osInterface->pfnIncPerfFrameID(m_osInterface);
-            m_osInterface->pfnResetPerfBufferID(m_osInterface);
-        }
 
         return MOS_STATUS_SUCCESS;
     }

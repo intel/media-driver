@@ -170,7 +170,6 @@ MOS_STATUS FilmGrainAppNoisePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8
 
     if (pOsInterface && !m_av1BasicFeature->m_singleKernelPerfFlag)
     {
-        pOsInterface->pfnSetPerfTag(pOsInterface, ((PERFTAG_CALL_FILM_GRAIN_AN_KERNEL << 8) | CODECHAL_DECODE_MODE_AV1VLD << 4 | m_av1BasicFeature->m_pictureCodingType));
         RENDER_PACKET_CHK_STATUS_RETURN(pPerfProfiler->AddPerfCollectStartCmd((void *)m_renderHal, pOsInterface, pMhwMiInterface, commandBuffer));
     }
 
@@ -274,12 +273,6 @@ MOS_STATUS FilmGrainAppNoisePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8
             pBatchBuffer->bBusy     = true;
             pBatchBuffer->dwSyncTag = dwSyncTag;
         }
-    }
-
-    if (m_av1BasicFeature->m_frameCompletedFlag && m_av1BasicFeature->m_filmGrainEnabled)
-    {
-        m_osInterface->pfnIncPerfFrameID(m_osInterface);
-        m_osInterface->pfnResetPerfBufferID(m_osInterface);
     }
 
     return MOS_STATUS_SUCCESS;
