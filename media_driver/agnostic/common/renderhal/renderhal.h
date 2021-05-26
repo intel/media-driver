@@ -1264,7 +1264,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        isMMCEnabled;
 
     MediaPerfProfiler               *pPerfProfiler = nullptr;  //!< Performance data profiler
-
+    int32_t                          iSourceCount  = 0;
     //---------------------------
     // HW interface functions
     //---------------------------
