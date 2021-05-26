@@ -30,6 +30,8 @@
 
 #include "codechal_encode_hevc_g12.h"
 
+#define INTRA_PERIOD_MAX 4000
+
 class CodecHalHevcMbencG12;
 namespace CMRT_UMD
 {

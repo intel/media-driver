@@ -553,7 +553,9 @@ MOS_STATUS CodecHalHevcBrcG12::BrcInitResetCurbe()
     encoderBrc->curbe.DW24_DeviationThreshold6_Iframe = (uint32_t)(50 * pow(0.66, bpsRatio));
     encoderBrc->curbe.DW24_DeviationThreshold7_Iframe = (uint32_t)(50 * pow(0.9, bpsRatio));
 
-    if (encoderBrc->m_hevcSeqParams->HierarchicalFlag && !encoderBrc->m_hevcSeqParams->LowDelayMode &&
+    encoderBrc->curbe.DW26_BGOPSize = encoderBrc->m_hevcSeqParams->GopRefDist;
+
+    if (encoderBrc->m_hevcSeqParams->HierarchicalFlag && !encoderBrc->m_hevcSeqParams->LowDelayMode && !encoderBrc->m_lowDelay &&
         (encoderBrc->m_hevcSeqParams->GopRefDist == 4 || encoderBrc->m_hevcSeqParams->GopRefDist == 8))
     {
         encoderBrc->curbe.DW26_RandomAccess = true;
