@@ -1265,9 +1265,19 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
     switch (surfaceId)
     {
     case VEBOX_SURFACE_INPUT:
+        if (nullptr == inputSurface)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("inputSurface should not be nullptr when surfaceId being VEBOX_SURFACE_INPUT.");
+            break;
+        }
         surfGroup.insert(std::make_pair(surfaceType, inputSurface));
         break;
     case VEBOX_SURFACE_OUTPUT:
+        if (nullptr == outputSurface)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("outputSurface should not be nullptr when surfaceId being VEBOX_SURFACE_OUTPUT.");
+            break;
+        }
         surfGroup.insert(std::make_pair(surfaceType, outputSurface));
         break;
     case VEBOX_SURFACE_PAST_REF:
@@ -1277,10 +1287,43 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
         }
         else
         {
-            surfGroup.insert(std::make_pair(surfaceType, pastSurface));
+            auto curDnOutputSurface = m_veboxDenoiseOutput[m_currentDnOutput];
+
+            if (nullptr == pastSurface)
+            {
+                VP_PUBLIC_ASSERTMESSAGE("pastSurface should not be nullptr when surfaceId being VEBOX_SURFACE_PAST_REF.");
+                break;
+            }
+
+            if (!caps.bDN                               ||
+                nullptr == curDnOutputSurface           ||
+                // When MEDIA_IS_SKU(skuTable, FtrMediaTile64) == true, DN output surface must be tile64,
+                // while pastSurface passed by OS maybe tile4, which is different from DN output surface.
+                // For such case, passSurface cannot be used, as vebox previous input surface and vebox
+                // DN output surface must share same setting. The derive pitch in vebox output surface
+                // state is for both of them. Check pitch to handle it.
+                pastSurface->osSurface->dwPitch == curDnOutputSurface->osSurface->dwPitch)
+            {
+                surfGroup.insert(std::make_pair(surfaceType, pastSurface));
+            }
+            else
+            {
+                // DN case with m_pastDnOutputValid being false. pastSurface cannot be used here as pitch
+                // of pastSurface is different from current DN output surface.
+                VP_PUBLIC_NORMALMESSAGE("Do not use pastSurface. pastSurf (TileModeGmm: %d, pitch: %d) vs curDnOutputSurface (TileModeGmm: %d, pitch: %d)",
+                    pastSurface->osSurface->TileModeGMM,
+                    pastSurface->osSurface->dwPitch,
+                    curDnOutputSurface->osSurface->TileModeGMM,
+                    curDnOutputSurface->osSurface->dwPitch);
+            }
         }
         break;
     case VEBOX_SURFACE_FUTURE_REF:
+        if (nullptr == futureSurface)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("futureSurface should not be nullptr when surfaceId being VEBOX_SURFACE_FUTURE_REF.");
+            break;
+        }
         surfGroup.insert(std::make_pair(surfaceType, futureSurface));
         break;
     case VEBOX_SURFACE_FRAME0:
