@@ -423,7 +423,24 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     //Init source rectangle
     Rect_init(&srcRect, srcx, srcy, srcw, srch);
     Rect_init(&dstRect, destx, desty, destw, desth);
-
+    
+    if( destx + destw > dri_drawable->x + dri_drawable->width )
+    {
+        //return VA_STATUS_ERROR_INVALID_PARAMETER;
+        dstRect.right = dri_drawable->x + dri_drawable->width - destx;
+        if(dstRect.right <= 0)
+        {
+            return VA_STATUS_SUCCESS;
+        }
+    }
+    if(desty + desth > dri_drawable->y + dri_drawable->height) 
+    {
+        dstRect.bottom = dri_drawable->y + dri_drawable->height - desty;
+        if(dstRect.bottom <= 0)
+        {
+            return VA_STATUS_SUCCESS;
+        }
+    }
     // Source Surface Information
     Surf.Format                 = VpGetFormatFromMediaFormat(bufferObject->format);           // Surface format
     Surf.SurfType               = SURF_IN_PRIMARY;       // Surface type (context)
@@ -450,6 +467,8 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     Surf.rcDst                  = dstRect;
 
     MOS_LINUX_BO* drawable_bo = mos_bo_gem_create_from_name(mediaCtx->pDrmBufMgr, "rendering buffer", buffer->dri2.name);
+
+
     if  (nullptr == drawable_bo)
     {
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
