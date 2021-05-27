@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -197,7 +197,19 @@ protected:
 #define DO_FIELDS() \
     DO_FIELD(DW1, VdencInitialization, params->vdencInitialization)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VDENC_PIPE_MODE_SELECT)
@@ -235,7 +247,19 @@ protected:
     DO_FIELD(DW5, QuantizationPrecisionOptimization, params->quantizationPrecision);           \
     DO_FIELD(DW5, LatencyToleratePreFetchEnable, params->latencyTolerate)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VDENC_SRC_SURFACE_STATE)
@@ -256,7 +280,19 @@ protected:
     DO_FIELD(Dwords25.DW2, YOffsetForUCb, params->uOffset);                                                         \
     DO_FIELD(Dwords25.DW3, YOffsetForVCr, params->vOffset)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VDENC_REF_SURFACE_STATE)
@@ -275,7 +311,19 @@ protected:
     DO_FIELD(Dwords25.DW2, YOffsetForUCb, params->uOffset);                                                           \
     DO_FIELD(Dwords25.DW3, YOffsetForVCr, params->vOffset)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VDENC_DS_REF_SURFACE_STATE)
@@ -309,7 +357,19 @@ protected:
                                                                                                                                               \
     DO_FIELD(Dwords69.DW3, YOffsetForVCr, stage2 ? params->vOffsetStage2 : 0)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VDENC_PIPE_BUF_ADDR_STATE)
@@ -847,7 +907,19 @@ protected:
     DO_FIELD(DW6, CrWeightsBackwardReference0, Clip3(-128, 127, params->weightsChroma[1][0][1] + params->denomChroma)); \
     DO_FIELD(DW6, CrOffsetBackwardReference0, params->offsetsChroma[1][0][1])
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VDENC_HEVC_VP9_TILE_SLICE_STATE)
@@ -883,7 +955,19 @@ protected:
     DO_FIELD(DW17, CumulativeCuTileOffsetEnable, params->tileEnable);                                                        \
     DO_FIELD(DW17, CumulativeCuTileOffset, params->cumulativeCUTileOffset)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VDENC_WALKER_STATE)
@@ -898,7 +982,19 @@ protected:
     DO_FIELD(DW2, NextsliceMbLcuStartXPosition, params->nextTileSliceStartLcuMbX); \
     DO_FIELD(DW2, NextsliceMbStartYPosition, params->nextTileSliceStartLcuMbY)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_CMD_SET_DECL_OVERRIDE(VD_PIPELINE_FLUSH)
@@ -916,7 +1012,19 @@ protected:
     DO_FIELD(DW1, MflPipelineCommandFlush, params->flushMFL);                  \
     DO_FIELD(DW1, MfxPipelineCommandFlush, params->flushMFX)
 
-#include "mhw_hwcmd_process_cmdfields.h"
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
     }
 };
 }  // namespace vdenc
