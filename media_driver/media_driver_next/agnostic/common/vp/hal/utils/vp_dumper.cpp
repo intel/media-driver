@@ -962,7 +962,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 
             // get plane definitions
             VPHAL_DEBUG_CHK_STATUS(GetPlaneDefs(
-                pSurface,
+                m_temp2DSurfForCopy,
                 planes,
                 &dwNumPlanes,
                 &dwSize,
@@ -1016,6 +1016,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 
     for (j = 0; j < dwNumPlanes; j++)
     {
+        pTmpSrc = pData + planes[j].dwOffset;
         for (i = 0; i < planes[j].dwHeight; i++)
         {
             if (hasAuxSurf && enableAuxDump)

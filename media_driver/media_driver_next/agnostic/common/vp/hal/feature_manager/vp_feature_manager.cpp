@@ -294,13 +294,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // Ensure only enable DN/ACE/STE/TCC for vebox only case. For other features supported on vebox, such as csc,
-    // just fallback to legacy path.
-    if (IsVeboxOutFeasible(pvpParams) && !IsVeboxSupported(pvpParams))
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
     if (!IsVeboxOutFeasible(pvpParams) &&
         !IsSfcOutputFeasible(pvpParams))
     {
