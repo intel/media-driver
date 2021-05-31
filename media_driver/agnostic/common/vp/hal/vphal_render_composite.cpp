@@ -2790,6 +2790,14 @@ void CompositeState::SetSurfaceParams(
         pSurfaceParams->bAVS = false;
     }
 
+    // Set bypass BobDi flag for kernel unsupported cases.
+    if (pSource->pDeinterlaceParams                         &&
+        DI_MODE_BOB == pSource->pDeinterlaceParams->DIMode  &&
+        !IsBobDiEnabled(pSource))
+    {
+        pSurfaceParams->bByPassBobDi = true;
+    }
+
     // Set interlacing flags
     switch (pSource->SampleType)
     {
