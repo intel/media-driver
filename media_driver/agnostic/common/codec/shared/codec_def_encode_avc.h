@@ -839,6 +839,9 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *    Value entries are distinct and within [MinDeltaQp..MaxDeltaQp].
     */
     int8_t ROIDistinctDeltaQp[16];
+    /*! \brief Number of distinct delta QP values assigned to the ROI
+    */
+    int8_t NumROIDistinctDeltaQp;
     /*! \brief indicate native ROI / force QP ROI to be used.
     */
     bool        bNativeROI;
