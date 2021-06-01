@@ -36,9 +36,6 @@ DecodeMemComp::DecodeMemComp(CodechalHwInterface *hwInterface) :
     m_mmcFeatureId      = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_ENABLE_ID;
     m_mmcInuseFeatureId = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
 
-#ifdef LINUX
-    m_bComponentMmcEnabled = false;
-#else
     if (hwInterface->m_enableCodecMmc)
     {
         m_bComponentMmcEnabled = true;
@@ -47,7 +44,6 @@ DecodeMemComp::DecodeMemComp(CodechalHwInterface *hwInterface) :
     {
         m_bComponentMmcEnabled = false;
     }
-#endif
 
     InitMmcEnabled();
     InitDecodeMmc(hwInterface);
