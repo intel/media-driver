@@ -3759,8 +3759,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
             }
         }
 
-        // If BobDi being disabled since not supported by kernel, no need update dwSurfaceHeight here.
-        if (pParams->bVertStride && !pParams->bByPassBobDi)
+        if (pParams->bVertStride)
         {
             dwSurfaceHeight /= 2;
             dwSurfaceHeight = MOS_MAX(dwSurfaceHeight, 1);
