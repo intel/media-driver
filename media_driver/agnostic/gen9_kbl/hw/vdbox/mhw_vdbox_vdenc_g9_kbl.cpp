@@ -198,7 +198,7 @@ MOS_STATUS MhwVdboxVdencInterfaceG9Kbl::AddVdencImgStateCmd(
         cmd.DW5.MbSliceThresholdValue = params->dwMbSlcThresholdValue;
     }
 
-    cmd.DW6.SliceMacroblockHeightMinusOne = params->wSlcHeightInMb - 1;
+    cmd.DW6.SliceMacroblockHeightMinusOne = params->wPicHeightInMb - 1;
 
     cmd.DW8.LumaIntraPartitionMask = avcPicParams->transform_8x8_mode_flag ? 0 : mhw_vdbox_vdenc_g9_kbl::VDENC_IMG_STATE_CMD::LUMA_INTRA_PARTITION_MASK_UNNAMED2;
 

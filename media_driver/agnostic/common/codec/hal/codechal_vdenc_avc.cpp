@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -7857,17 +7857,6 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     // get access to the MMIO registers 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
     MmioRegistersMfx *mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
-    // Special processing for one slice case (to avoid limitations for multi-slice configuration)
-    if (m_numSlices == 1)
-    {
-        MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParamsAVC;
-        MOS_ZeroMemory(&miStoreRegMemParamsAVC, sizeof(miStoreRegMemParamsAVC));
-        miStoreRegMemParamsAVC.presStoreBuffer = presSliceSizeStreamoutBuffer;
-        miStoreRegMemParamsAVC.dwOffset        = 0;
-
-        miStoreRegMemParamsAVC.dwRegister = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParamsAVC));
-    }
 
     MHW_MI_STORE_DATA_PARAMS storeDataParams;
     MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
@@ -7880,32 +7869,122 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     storeDataParams.dwValue          = m_numSlices;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
-    MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
-    MOS_ZeroMemory(&miCpyMemMemParams, sizeof(miCpyMemMemParams));
-    for (uint16_t slcCount = 0; slcCount < m_numSlices; slcCount++)
+    MHW_MI_LOAD_REGISTER_MEM_PARAMS  miLoadRegMemParams;
+    MHW_MI_LOAD_REGISTER_IMM_PARAMS  miLoadRegImmParams;
+    MHW_MI_MATH_PARAMS               miMathParams;
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    for (uint16_t slcCount = 0; slcCount < m_numSlices; ++slcCount)
     {
-        uint32_t subRegionSartOffset = m_metaDataOffset.dwMetaDataSize + slcCount * m_metaDataOffset.dwMetaDataSubRegionSize;
+        uint32_t subRegionStartOffset = m_metaDataOffset.dwMetaDataSize + slcCount * m_metaDataOffset.dwMetaDataSubRegionSize;
 
-        storeDataParams.dwResourceOffset = subRegionSartOffset + m_metaDataOffset.dwbStartOffset;
-        storeDataParams.dwValue          = m_slcData[slcCount].SliceOffset;
+        storeDataParams.dwResourceOffset = subRegionStartOffset + m_metaDataOffset.dwbStartOffset;
+        storeDataParams.dwValue          = 0; //m_slcData[slcCount].SliceOffset;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
-        storeDataParams.dwResourceOffset = subRegionSartOffset + m_metaDataOffset.dwbHeaderSize;
+        storeDataParams.dwResourceOffset = subRegionStartOffset + m_metaDataOffset.dwbHeaderSize;
         storeDataParams.dwValue          = m_slcData[slcCount].BitSize;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
-        miCpyMemMemParams.presSrc     = presSliceSizeStreamoutBuffer;
-        miCpyMemMemParams.presDst     = presMetadataBuffer;
-        miCpyMemMemParams.dwSrcOffset = slcCount * 2;
-        miCpyMemMemParams.dwDstOffset = subRegionSartOffset + m_metaDataOffset.dwbSize;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiCopyMemMemCmd(cmdBuffer, &miCpyMemMemParams));
+        // reg0Lo = (SlcCount)thSliceSize con (slcCount-1)thSliceSize
+        miLoadRegMemParams.presStoreBuffer = presSliceSizeStreamoutBuffer;
+        miLoadRegMemParams.dwOffset        = (slcCount / 2) * 4;
+        miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+        miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister0HiOffset;
+        miLoadRegImmParams.dwData     = 0;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+        // reg4Lo = mask
+        miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+        miLoadRegImmParams.dwData     = (slcCount & 1) ? 0xFFFF0000 : 0x0000FFFF;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+        miLoadRegImmParams.dwData     = 0;
+        miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+        MHW_MI_ALU_PARAMS aluParams[4 + 16 * 4];
+        int aluCount = 0;
+
+        // load  SrcA, reg0
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
+        ++aluCount;
+        // load  SrcB, reg4
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG4;
+        ++aluCount;
+        // and   SrcA, SrcB
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_AND;
+        ++aluCount;
+        // >> 16
+        if (slcCount & 1)
+        {
+            for (int i = 0; i < 16; ++i)
+            {
+                // store reg0, accu
+                aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+                aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
+                aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
+                ++aluCount;
+                // load SrcA, accu
+                aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+                aluParams[aluCount].Operand1 = MHW_MI_ALU_SRCA;
+                aluParams[aluCount].Operand2 = MHW_MI_ALU_GPREG0;
+                ++aluCount;
+                // load SrcB, accu
+                aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+                aluParams[aluCount].Operand1 = MHW_MI_ALU_SRCB;
+                aluParams[aluCount].Operand2 = MHW_MI_ALU_GPREG0;
+                ++aluCount;
+                // add  SrcA, SrcB
+                aluParams[aluCount].AluOpcode = MHW_MI_ALU_ADD;
+                ++aluCount;
+            }
+        }
+        // store reg0, accu
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
+        ++aluCount;
+
+        miMathParams.dwNumAluParams = aluCount;
+        miMathParams.pAluPayload    = aluParams;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiMathCmd(cmdBuffer, &miMathParams));
+
+        // Store from reg0Lo/Hi to presMetadataBuffer
+        MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+        miStoreRegMemParams.presStoreBuffer = presMetadataBuffer;
+        miStoreRegMemParams.dwOffset        = subRegionStartOffset + m_metaDataOffset.dwbSize;
+        miStoreRegMemParams.dwRegister      = (slcCount & 1) ? mmioRegisters->generalPurposeRegister0HiOffset : mmioRegisters->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+        MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+            cmdBuffer,
+            &flushDwParams));
     }
 
-    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    // Special processing for one slice case (to avoid limitations for multi-slice configuration)
+    // It is a temporary solution. I will implement programming via mfcBitstreamBytecountSliceRegOffset register
+    // But in the future we will use this programming for slice conformance feature
+    if (m_numSlices == 1)
+    {
+        MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParamsAVC;
+        MOS_ZeroMemory(&miStoreRegMemParamsAVC, sizeof(miStoreRegMemParamsAVC));
+        miStoreRegMemParamsAVC.presStoreBuffer = presMetadataBuffer;
+        miStoreRegMemParamsAVC.dwOffset        = m_metaDataOffset.dwMetaDataSize + m_metaDataOffset.dwbSize; // overwrite
+
+        miStoreRegMemParamsAVC.dwRegister = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParamsAVC));
+    }
+
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
     miStoreRegMemParams.presStoreBuffer = presMetadataBuffer;
     miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodedBitstreamWrittenBytesCount;
-    miStoreRegMemParams.dwRegister  = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
 
     return eStatus;
