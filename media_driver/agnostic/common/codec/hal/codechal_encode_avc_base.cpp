@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1771,8 +1771,7 @@ MOS_STATUS CodecHalAvcEncode_PackSliceHeader(
 
     SetNalUnit(&bsbuffer->pCurrent, (uint8_t)ref, nalType);
 
-    // In the VDEnc mode, PAK only gets this command at the beginning of the frame for slice position X=0, Y=0
-    PutVLCCode(bsbuffer, params->bVdencEnabled ? 0 : slcParams->first_mb_in_slice);
+    PutVLCCode(bsbuffer, slcParams->first_mb_in_slice);
     PutVLCCode(bsbuffer, slcParams->slice_type);
     PutVLCCode(bsbuffer, slcParams->pic_parameter_set_id);
 
@@ -3096,7 +3095,6 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
 
     uint32_t numMbsInPrevSlice = slcParams->NumMbsForSlice;  // Initiailize to num mbs in first slice
     uint32_t numMbsForFirstSlice;
-    uint32_t numMbs = 0;
 
     for (uint32_t sliceCount = 0; sliceCount < m_numSlices; sliceCount++)
     {
@@ -3132,8 +3130,8 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
                     }
                 }
             }
-            // VME: In current kernel, all slices should have the same MBs except the last one, the last one should have no more MBs than the previous
-            else if (!m_vdencEnabled || (m_vdencEnabled && m_sliceStructCaps == CODECHAL_SLICE_STRUCT_ROWSLICE))
+            // In current kernel, all slices should have the same MBs except the last one, the last one should have no more MBs than the previous
+            else
             {
                 if ((sliceCount < m_numSlices - 1 && numMbsForFirstSlice != slcParams->NumMbsForSlice) ||
                     (sliceCount == m_numSlices - 1 && numMbsForFirstSlice < slcParams->NumMbsForSlice))
@@ -3142,13 +3140,12 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
                     return eStatus;
                 }
             }
-            // Gaps between slices are not allowed
-            if (slcParams->first_mb_in_slice != numMbs)
+
+            if (slcParams->first_mb_in_slice != numMbsForFirstSlice * sliceCount)
             {
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 return eStatus;
             }
-            numMbs += slcParams->NumMbsForSlice;
         }
         else  // SLICE_STRUCT_ARBITRARYMBSLICE
         {
