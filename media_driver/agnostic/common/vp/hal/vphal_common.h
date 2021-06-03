@@ -546,7 +546,7 @@ C_ASSERT(VPHAL_SCALING_ADV_QUALITY == 3);   //!< When adding, update assert & vp
 
 typedef enum _VPHAL_SCALING_PREFERENCE
 {
-    VPHAL_SCALING_PREFER_SFC,          // SFC is default
+    VPHAL_SCALING_PREFER_SFC = 0,      // SFC is default
     VPHAL_SCALING_PREFER_COMP,         // For Gen9/10, Composition AVS get better quality than SFC AVS
     VPHAL_SCALING_PREFER_SFC_FOR_VEBOX // if VEBOX is required, use VEBOX + SFC, otherwise use Composistion
 } VPHAL_SCALING_PREFERENCE;
