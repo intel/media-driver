@@ -332,15 +332,16 @@ void VpResourceManager::InitSurfaceConfigMap()
     //               |      |      |      |      |      |      _firstDiField
     //               |      |      |      |      |      |      |      _currentInputSurface
     //               |      |      |      |      |      |      |      |                     _pastInputSurface
-    //               |      |      |      |      |      |      |      |                     |                      _currentOutputSurface
-    //               |      |      |      |      |      |      |      |                     |                      |                     _pastOutputSurface*/
-    //               |      |      |      |      |      |      |      |                     |                      |                     |                     */
+    //               |      |      |      |      |      |      |      |                     |                       _currentOutputSurface
+    //               |      |      |      |      |      |      |      |                     |                       |                     _pastOutputSurface*/
+    //               |      |      |      |      |      |      |      |                     |                       |                     |                 */
     AddSurfaceConfig(true,  true,  false, false, true,  false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
-    AddSurfaceConfig(true,  true,  true,  false, true,  false, false, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL,    VEBOX_SURFACE_NULL,   VEBOX_SURFACE_NULL);
-    AddSurfaceConfig(true,  true,  false, false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
-    AddSurfaceConfig(true,  true,  false, false, false, false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
-    AddSurfaceConfig(true,  true,  true,  false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
-    AddSurfaceConfig(true,  true,  true,  false, false, false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,    VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  true,  false, true,  false, false, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL,     VEBOX_SURFACE_NULL,   VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  false, false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  false, false, false, false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  false, false, true,  false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_PAST_REF, VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_FRAME0);
+    AddSurfaceConfig(true,  true,  true,  false, false, false, true,  VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
+    AddSurfaceConfig(true,  true,  true,  false, false, false, false, VEBOX_SURFACE_INPUT,  VEBOX_SURFACE_NULL,     VEBOX_SURFACE_FRAME1, VEBOX_SURFACE_NULL);
 }
 
 uint32_t VpResourceManager::GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight)

@@ -735,6 +735,20 @@ MOS_STATUS VpVeboxCmdPacket::SetProcampParams(
     return MOS_STATUS_SUCCESS;
 }
 
+bool VpVeboxCmdPacket::IsTopField(VPHAL_SAMPLE_TYPE sampleType)
+{
+    return sampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD ||
+        sampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD;
+}
+
+bool VpVeboxCmdPacket::IsTopFieldFirst(VPHAL_SAMPLE_TYPE sampleType)
+{
+    return m_DNDIFirstFrame ?
+        IsTopField(sampleType) :    // For no reference case, just do DI for current field.
+        (sampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD ||
+         sampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD);
+}
+
 MOS_STATUS VpVeboxCmdPacket::SetDiParams(PVEBOX_DI_PARAMS diParams)
 {
     VP_FUNC_CALL();
@@ -750,8 +764,7 @@ MOS_STATUS VpVeboxCmdPacket::SetDiParams(PVEBOX_DI_PARAMS diParams)
     renderData->DI.value            = 0;
     renderData->DI.bDeinterlace     = diParams->bDiEnabled;
     renderData->DI.bQueryVariance   = false;
-    renderData->DI.bTFF             = (diParams->sampleTypeInput == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD) ||
-                                      (diParams->sampleTypeInput == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD);
+    renderData->DI.bTFF             = IsTopFieldFirst(diParams->sampleTypeInput);
     renderData->DI.bFmdEnabled      = diParams->enableFMD;
 
     // for 30i->30fps + SFC
@@ -795,8 +808,7 @@ MOS_STATUS VpVeboxCmdPacket::SetDiParams(bool bDiEnabled, bool bSCDEnabled, bool
         return MOS_STATUS_SUCCESS;
     }
 
-    param.bDNDITopFirst = (sampleTypeInput == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD) ||
-                        (sampleTypeInput == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD);
+    param.bDNDITopFirst              = IsTopFieldFirst(sampleTypeInput);
     param.dwLumaTDMWeight            = VPHAL_VEBOX_DI_LUMA_TDM_WEIGHT_NATUAL;
     param.dwChromaTDMWeight          = VPHAL_VEBOX_DI_CHROMA_TDM_WEIGHT_NATUAL;
     param.dwSHCMDelta                = VPHAL_VEBOX_DI_SHCM_DELTA_NATUAL;

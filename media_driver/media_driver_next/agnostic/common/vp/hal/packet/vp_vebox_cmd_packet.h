@@ -977,6 +977,9 @@ protected:
         VPHAL_SAMPLE_TYPE       sampleTypeInput,
         MHW_VEBOX_DNDI_PARAMS   &param);
 
+    bool IsTopField(VPHAL_SAMPLE_TYPE sampleType);
+    bool IsTopFieldFirst(VPHAL_SAMPLE_TYPE sampleType);
+
     //!
     //! \brief    Get surface by type
     //! \details  Get surface by type
