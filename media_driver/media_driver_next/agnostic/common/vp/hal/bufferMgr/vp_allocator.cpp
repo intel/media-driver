@@ -28,6 +28,7 @@
 
 #include "vp_allocator.h"
 #include "vp_utils.h"
+#include "mos_solo_generic.h"
 
 using namespace vp;
 
@@ -1211,9 +1212,23 @@ MOS_STATUS VP_SURFACE::Clean()
     return MOS_STATUS_SUCCESS;
 }
 
-uint64_t VP_SURFACE::GetAllocationHandle()
+uint64_t VP_SURFACE::GetAllocationHandle(MOS_INTERFACE* osIntf)
 {
     VP_FUNC_CALL();
+
+#if MOS_MEDIASOLO_SUPPORTED
+    if (Mos_Solo_IsInUse(osIntf))
+    {
+        uint64_t handle = osSurface ? (uint64_t)osSurface->OsResource.pData : 0;
+        if (handle)
+        {
+            return handle;
+        }
+        // Media solo external surface will come here, in which case,
+        // AllocationHandle or bo->handle should be valid.
+    }
+#endif
+
 #if(LINUX)
     if (osSurface && osSurface->OsResource.bo)
     {

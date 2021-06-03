@@ -513,11 +513,11 @@ VP_SURFACE * VpResourceManager::GetCopyInstOfExtSurface(VP_SURFACE* surf)
 {
     VP_FUNC_CALL();
 
-    if (nullptr == surf || 0 == surf->GetAllocationHandle())
+    if (nullptr == surf || 0 == surf->GetAllocationHandle(&m_osInterface))
     {
         return nullptr;
     }
-    auto it = m_tempSurface.find(surf->GetAllocationHandle());
+    auto it = m_tempSurface.find(surf->GetAllocationHandle(&m_osInterface));
     if (it != m_tempSurface.end())
     {
         return it->second;
@@ -525,7 +525,7 @@ VP_SURFACE * VpResourceManager::GetCopyInstOfExtSurface(VP_SURFACE* surf)
     VP_SURFACE *surface = m_allocator.AllocateVpSurface(*surf);
     if (surface)
     {
-        m_tempSurface.insert(make_pair(surf->GetAllocationHandle(), surface));
+        m_tempSurface.insert(make_pair(surf->GetAllocationHandle(&m_osInterface), surface));
     }
     else
     {

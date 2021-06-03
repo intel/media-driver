@@ -88,7 +88,7 @@ struct VP_SURFACE
     MOS_STATUS  Clean();
 
     // Get Allocation Handle of resource
-    uint64_t    GetAllocationHandle();
+    uint64_t    GetAllocationHandle(MOS_INTERFACE *osIntf);
 };
 
 struct _VP_SETTINGS
