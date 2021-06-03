@@ -265,12 +265,9 @@ MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
 
 MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
 {
-
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
-
     DECODE_CHK_STATUS(ReadAvpStatus( m_statusReport, *cmdBuffer));
-
     DECODE_CHK_STATUS(MediaPacket::EndStatusReport(srType, cmdBuffer));
 
     SetPerfTag(CODECHAL_DECODE_MODE_AV1VLD, m_av1BasicFeature->m_pictureCodingType);
@@ -279,6 +276,9 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd(
         (void*)m_av1Pipeline, m_osInterface, m_miInterface, cmdBuffer));
+
+    // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
+    DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
