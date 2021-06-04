@@ -147,6 +147,16 @@ MOS_STATUS VeboxCopyState::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE dst)
 
     m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
 
+    // Sync on Vebox Input Resource, Ensure the input is ready to be read
+    // Currently, MOS RegisterResourcere cannot sync the 3d resource.
+    // Temporaly, call sync resource to do the sync explicitly.
+    // Sync need be done after switching context.
+    m_osInterface->pfnSyncOnResource(
+        m_osInterface,
+        src,
+        MOS_GPU_CONTEXT_VEBOX,
+        false);
+
     // Reset allocation list and house keeping
     m_osInterface->pfnResetOsStates(m_osInterface);
 
