@@ -673,3 +673,10 @@ MOS_STATUS DecodeHistogramDeviceG11Icllp::Initialize(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS MediaInterfacesHwInfoDeviceG11Icllp::Initialize(PLATFORM platform)
+{
+    m_hwInfo.SetDeviceInfo("m11_0", platform.usRevId);
+    return MOS_STATUS_SUCCESS;
+}
+

@@ -38,6 +38,7 @@
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
 #include "media_interfaces_decode_histogram.h"
+#include "media_interfaces_hwinfo_device.h"
 
 #include "mhw_cp_interface.h"
 #include "mhw_mi_g11_X.h"
@@ -279,6 +280,12 @@ public:
     MOS_STATUS Initialize(
         CodechalHwInterface *hwInterface,
         PMOS_INTERFACE osInterface);
+};
+
+class MediaInterfacesHwInfoDeviceG11Icllp : public MediaInterfacesHwInfoDevice
+{
+public:
+    MOS_STATUS Initialize(PLATFORM platform);
 };
 
 #endif // __MEDIA_INTERFACES_G11_ICLLP_H__
