@@ -116,7 +116,13 @@ mos_vma_hole_alloc(mos_vma_hole *hole, uint64_t offset, uint64_t size)
     * holes, one high and one low.
     */
     mos_vma_hole *high_hole = (mos_vma_hole*)calloc(1, sizeof(*hole));
-    assert(high_hole);
+    if(high_hole == nullptr)
+    {
+        assert(high_hole);
+
+        return;
+    }
+
     high_hole->offset = offset + size;
     high_hole->size = waste;
 
@@ -292,14 +298,17 @@ mos_vma_heap_free(mos_vma_heap *heap, uint64_t offset, uint64_t size)
         /* Neither hole is adjacent; make a new one */
         mos_vma_hole *hole = (mos_vma_hole*)calloc(1, sizeof(*hole));
         assert(hole);
-        hole->offset = offset;
-        hole->size = size;
+        if(hole)
+        {
+            hole->offset = offset;
+            hole->size = size;
 
-        /* Add it after the high hole so we maintain high-to-low ordering */
-        if (high_hole)
-            list_add(&hole->link, &high_hole->link);
-        else
-            list_add(&hole->link, &heap->holes);
+            /* Add it after the high hole so we maintain high-to-low ordering */
+            if (high_hole)
+                list_add(&hole->link, &high_hole->link);
+            else
+                list_add(&hole->link, &heap->holes);
+        }
     }
 
     mos_vma_heap_validate(heap);
