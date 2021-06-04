@@ -148,6 +148,26 @@ MOS_STATUS MediaDebugInterface::SetOutputFilePath()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MediaDebugInterface::DumpStringStream(std::stringstream& ss, const char* bufferName, const char* attrName)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(bufferName);
+    MEDIA_DEBUG_CHK_NULL(attrName);
+
+    if (!m_configMgr->AttrIsEnabled(attrName))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    const char* filePath = CreateFileName(bufferName, nullptr, MediaDbgExtType::txt);
+    std::ofstream ofs(filePath);
+    ofs << ss.str();
+    ofs.close();
+
+    return MOS_STATUS_SUCCESS;
+}
+
 bool MediaDebugInterface::DumpIsEnabled(
     const char *              attr,
     MEDIA_DEBUG_STATE_TYPE mediaState)

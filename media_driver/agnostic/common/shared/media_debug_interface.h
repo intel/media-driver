@@ -58,6 +58,11 @@ public:
 
     MOS_STATUS SetOutputFilePath();
 
+    MOS_STATUS DumpStringStream(
+        std::stringstream& ss,
+        const char*        bufferName,
+        const char*        attrName);
+
     MOS_STATUS DumpCmdBuffer(
         PMOS_COMMAND_BUFFER    cmdBuffer,
         MEDIA_DEBUG_STATE_TYPE mediaState,

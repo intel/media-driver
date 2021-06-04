@@ -42,6 +42,7 @@
 #include "codechal_debug_encode_par_g12.h"
 #include "mhw_vdbox_mfx_hwcmd_g12_X.h"
 #include "mhw_vdbox_vdenc_hwcmd_g12_X.h"
+#include <iomanip>
 #endif
 #include "hal_oca_interface.h"
 
@@ -1054,8 +1055,8 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcInitReset()
     }
 
     CODECHAL_DEBUG_TOOL(
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcInitParam(
-            hucVDEncBrcInitDmem));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcInitParam(hucVDEncBrcInitDmem));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpParsedBRCInitDmem(hucVDEncBrcInitDmem));
     )
 
     m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx]);
@@ -1117,8 +1118,8 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     hucVDEncBrcDmem->UPD_TCBRC_SCENARIO_U8 = m_avcSeqParam->bAutoMaxPBFrameSizeForSceneChange;
 
     CODECHAL_DEBUG_TOOL(
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(
-            hucVDEncBrcDmem));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(hucVDEncBrcDmem));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(DumpParsedBRCUpdateDmem(hucVDEncBrcDmem));
     )
 
     m_osInterface->pfnUnlockResource(m_osInterface, &(m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass]));
@@ -1745,4 +1746,200 @@ MOS_STATUS CodechalVdencAvcStateG12::PopulatePakParam(
 
     return MOS_STATUS_SUCCESS;
 }
+
+#define FIELD_TO_SS(field_name) ss << std::setfill(' ') << std::setw(25) << std::left << std::string(#field_name) + ": " << (int64_t)dmem->field_name << std::endl;
+#define ARRAY_TO_SS(arr_name)                                                              \
+{                                                                                           \
+    size_t size = sizeof(dmem->arr_name);                                                   \
+    ss << std::setfill(' ') << std::setw(25) << std::left << std::string(#arr_name) + ": "; \
+    ss << "{ " << (int64_t)dmem->arr_name[0];                                               \
+    for (size_t i = 1; i < sizeof(dmem->arr_name); ++i)                                     \
+        ss << ", " << (int64_t)dmem->arr_name[i];                                           \
+    ss << " };" << std::endl;                                                               \
+}
+
+MOS_STATUS CodechalVdencAvcStateG12::DumpParsedBRCInitDmem(BrcInitDmem* dmem)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+    CODECHAL_DEBUG_CHK_NULL(m_debugInterface);
+
+    // To make sure that DMEM doesn't changed and parsed dump contains all DMEM fields
+    CODECHAL_DEBUG_ASSERT(sizeof(dmem->RSVD2) == 55);
+
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrHuCDmem))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::stringstream ss;
+
+    FIELD_TO_SS(BRCFunc_U8);
+    FIELD_TO_SS(OpenSourceEnable_U8);
+    ARRAY_TO_SS(RVSD);
+    FIELD_TO_SS(INIT_BRCFlag_U16);
+    FIELD_TO_SS(Reserved);
+    FIELD_TO_SS(INIT_FrameWidth_U16);
+    FIELD_TO_SS(INIT_FrameHeight_U16);
+    FIELD_TO_SS(INIT_TargetBitrate_U32);
+    FIELD_TO_SS(INIT_MinRate_U32);
+    FIELD_TO_SS(INIT_MaxRate_U32);
+    FIELD_TO_SS(INIT_BufSize_U32);
+    FIELD_TO_SS(INIT_InitBufFull_U32);
+    FIELD_TO_SS(INIT_ProfileLevelMaxFrame_U32);
+    FIELD_TO_SS(INIT_FrameRateM_U32);
+    FIELD_TO_SS(INIT_FrameRateD_U32);
+    FIELD_TO_SS(INIT_GopP_U16);
+    FIELD_TO_SS(INIT_GopB_U16);
+    FIELD_TO_SS(INIT_MinQP_U16);
+    FIELD_TO_SS(INIT_MaxQP_U16);
+    ARRAY_TO_SS(INIT_DevThreshPB0_S8);
+    ARRAY_TO_SS(INIT_DevThreshVBR0_S8);
+    ARRAY_TO_SS(INIT_DevThreshI0_S8);
+    FIELD_TO_SS(INIT_InitQPIP);
+
+    FIELD_TO_SS(INIT_NotUseRhoDm_U8);
+    FIELD_TO_SS(INIT_InitQPB);
+    FIELD_TO_SS(INIT_MbQpCtrl_U8);
+    FIELD_TO_SS(INIT_SliceSizeCtrlEn_U8);
+    ARRAY_TO_SS(INIT_IntraQPDelta_I8);
+    FIELD_TO_SS(INIT_SkipQPDelta_I8);
+    ARRAY_TO_SS(INIT_DistQPDelta_I8);
+    FIELD_TO_SS(INIT_OscillationQpDelta_U8);
+    FIELD_TO_SS(INIT_HRDConformanceCheckDisable_U8);
+    FIELD_TO_SS(INIT_SkipFrameEnableFlag);
+    FIELD_TO_SS(INIT_TopQPDeltaThrForAdapt2Pass_U8);
+    FIELD_TO_SS(INIT_TopFrmSzThrForAdapt2Pass_U8);
+    FIELD_TO_SS(INIT_BotFrmSzThrForAdapt2Pass_U8);
+    FIELD_TO_SS(INIT_QPSelectForFirstPass_U8);
+    FIELD_TO_SS(INIT_MBHeaderCompensation_U8);
+    FIELD_TO_SS(INIT_OverShootCarryFlag_U8);
+    FIELD_TO_SS(INIT_OverShootSkipFramePct_U8);
+    ARRAY_TO_SS(INIT_EstRateThreshP0_U8);
+    ARRAY_TO_SS(INIT_EstRateThreshB0_U8);
+    ARRAY_TO_SS(INIT_EstRateThreshI0_U8);
+    FIELD_TO_SS(INIT_FracQPEnable_U8);
+    FIELD_TO_SS(INIT_ScenarioInfo_U8);
+    FIELD_TO_SS(INIT_StaticRegionStreamIn_U8);
+    FIELD_TO_SS(INIT_DeltaQP_Adaptation_U8);
+    FIELD_TO_SS(INIT_MaxCRFQualityFactor_U8);
+    FIELD_TO_SS(INIT_CRFQualityFactor_U8);
+    FIELD_TO_SS(INIT_BotQPDeltaThrForAdapt2Pass_U8);
+    FIELD_TO_SS(INIT_SlidingWindowSize_U8);
+    FIELD_TO_SS(INIT_SlidingWidowRCEnable_U8);
+    FIELD_TO_SS(INIT_SlidingWindowMaxRateRatio_U8);
+    FIELD_TO_SS(INIT_LowDelayGoldenFrameBoost_U8);
+    FIELD_TO_SS(INIT_AdaptiveCostEnable_U8);
+    FIELD_TO_SS(INIT_AdaptiveHMEExtensionEnable_U8);
+    FIELD_TO_SS(INIT_ICQReEncode_U8);
+    FIELD_TO_SS(INIT_LookaheadDepth_U8);
+    FIELD_TO_SS(INIT_SinglePassOnly);
+    FIELD_TO_SS(INIT_New_DeltaQP_Adaptation_U8);
+    ARRAY_TO_SS(RSVD2);
+
+    std::string bufName = std::string("ENC-HucDmemInit_Parsed_PASS") + std::to_string((uint32_t)m_currPass);
+    CODECHAL_DEBUG_CHK_STATUS(m_debugInterface->DumpStringStream(ss, bufName.c_str(), MediaDbgAttr::attrHuCDmem));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalVdencAvcStateG12::DumpParsedBRCUpdateDmem(BrcUpdateDmem* dmem)
+{
+    CODECHAL_DEBUG_FUNCTION_ENTER;
+    CODECHAL_DEBUG_CHK_NULL(m_debugInterface);
+
+    // To make sure that DMEM doesn't changed and parsed dump contains all DMEM fields
+    CODECHAL_DEBUG_ASSERT(sizeof(dmem->RSVD2) == 12);
+
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrHuCDmem))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::stringstream ss;
+
+    FIELD_TO_SS(BRCFunc_U8);
+    ARRAY_TO_SS(RSVD);
+    FIELD_TO_SS(UPD_TARGETSIZE_U32);
+    FIELD_TO_SS(UPD_FRAMENUM_U32);
+    FIELD_TO_SS(UPD_PeakTxBitsPerFrame_U32);
+    FIELD_TO_SS(UPD_FrameBudget_U32);
+    FIELD_TO_SS(FrameByteCount);
+    FIELD_TO_SS(TimingBudgetOverflow);
+    FIELD_TO_SS(ImgStatusCtrl);
+    FIELD_TO_SS(IPCMNonConformant);
+
+    ARRAY_TO_SS(UPD_startGAdjFrame_U16);
+    ARRAY_TO_SS(UPD_MBBudget_U16);
+    FIELD_TO_SS(UPD_SLCSZ_TARGETSLCSZ_U16);
+    ARRAY_TO_SS(UPD_SLCSZ_UPD_THRDELTAI_U16);
+    ARRAY_TO_SS(UPD_SLCSZ_UPD_THRDELTAP_U16);
+    FIELD_TO_SS(UPD_NumOfFramesSkipped_U16);
+    FIELD_TO_SS(UPD_SkipFrameSize_U16);
+    FIELD_TO_SS(UPD_StaticRegionPct_U16);
+    ARRAY_TO_SS(UPD_gRateRatioThreshold_U8);
+    FIELD_TO_SS(UPD_CurrFrameType_U8);
+    ARRAY_TO_SS(UPD_startGAdjMult_U8);
+    ARRAY_TO_SS(UPD_startGAdjDiv_U8);
+    ARRAY_TO_SS(UPD_gRateRatioThresholdQP_U8);
+    FIELD_TO_SS(UPD_PAKPassNum_U8);
+    FIELD_TO_SS(UPD_MaxNumPass_U8);
+    ARRAY_TO_SS(UPD_SceneChgWidth_U8);
+    FIELD_TO_SS(UPD_SceneChgDetectEn_U8);
+    FIELD_TO_SS(UPD_SceneChgPrevIntraPctThreshold_U8);
+    FIELD_TO_SS(UPD_SceneChgCurIntraPctThreshold_U8);
+    FIELD_TO_SS(UPD_IPAverageCoeff_U8);
+    FIELD_TO_SS(UPD_MinQpAdjustment_U8);
+    FIELD_TO_SS(UPD_TimingBudgetCheck_U8);
+    ARRAY_TO_SS(reserved_I8);
+    FIELD_TO_SS(UPD_CQP_QpValue_U8);
+    FIELD_TO_SS(UPD_CQP_FracQp_U8);
+    FIELD_TO_SS(UPD_HMEDetectionEnable_U8);
+    FIELD_TO_SS(UPD_HMECostEnable_U8);
+    FIELD_TO_SS(UPD_DisablePFrame8x8Transform_U8);
+    FIELD_TO_SS(RSVD3);
+    FIELD_TO_SS(UPD_ROISource_U8);
+    FIELD_TO_SS(RSVD4);
+    FIELD_TO_SS(UPD_TargetSliceSize_U16);
+    FIELD_TO_SS(UPD_MaxNumSliceAllowed_U16);
+    FIELD_TO_SS(UPD_SLBB_Size_U16);
+    FIELD_TO_SS(UPD_SLBB_B_Offset_U16);
+    FIELD_TO_SS(UPD_AvcImgStateOffset_U16);
+    FIELD_TO_SS(reserved_u16);
+    FIELD_TO_SS(NumOfSlice);
+
+    FIELD_TO_SS(AveHmeDist_U16);
+    FIELD_TO_SS(HmeDistAvailable_U8);
+    FIELD_TO_SS(DisableDMA);
+    FIELD_TO_SS(AdditionalFrameSize_U16);
+    FIELD_TO_SS(AddNALHeaderSizeInternally_U8);
+    FIELD_TO_SS(UPD_RoiQpViaForceQp_U8);
+    FIELD_TO_SS(CABACZeroInsertionSize_U32);
+    FIELD_TO_SS(MiniFramePaddingSize_U32);
+    FIELD_TO_SS(UPD_WidthInMB_U16);
+    FIELD_TO_SS(UPD_HeightInMB_U16);
+    ARRAY_TO_SS(UPD_ROIQpDelta_I8);
+
+    FIELD_TO_SS(HME0XOffset_I8);
+    FIELD_TO_SS(HME0YOffset_I8);
+    FIELD_TO_SS(HME1XOffset_I8);
+    FIELD_TO_SS(HME1YOffset_I8);
+    FIELD_TO_SS(MOTION_ADAPTIVE_G4);
+    FIELD_TO_SS(EnableLookAhead);
+    FIELD_TO_SS(UPD_LA_Data_Offset_U8);
+    FIELD_TO_SS(UPD_CQMEnabled_U8);
+    FIELD_TO_SS(UPD_LA_TargetSize_U32);
+    FIELD_TO_SS(UPD_LA_TargetFulness_U32);
+    FIELD_TO_SS(UPD_Delta_U8);
+    FIELD_TO_SS(UPD_ROM_CURRENT_U8);
+    FIELD_TO_SS(UPD_ROM_ZERO_U8);
+    FIELD_TO_SS(UPD_TCBRC_SCENARIO_U8);
+    ARRAY_TO_SS(RSVD2);
+
+    std::string bufName = std::string("ENC-HucDmemUpdate_Parsed_PASS") + std::to_string((uint32_t)m_currPass);
+    CODECHAL_DEBUG_CHK_STATUS(m_debugInterface->DumpStringStream(ss, bufName.c_str(), MediaDbgAttr::attrHuCDmem));
+
+    return MOS_STATUS_SUCCESS;
+}
+#undef FIELD_TO_SS
+#undef ARRAY_TO_SS
 #endif

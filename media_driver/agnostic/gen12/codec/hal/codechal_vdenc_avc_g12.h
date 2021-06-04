@@ -229,6 +229,13 @@ protected:
     virtual MOS_STATUS PopulatePakParam(
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER   secondLevelBatchBuffer) override;
+
+private:
+    MOS_STATUS DumpParsedBRCInitDmem(
+        struct BrcInitDmem* dmem);
+
+    MOS_STATUS DumpParsedBRCUpdateDmem(
+        struct BrcUpdateDmem* dmem);
 #endif
 };
 
