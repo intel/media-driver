@@ -2742,6 +2742,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpEncodePicStateCmd(
     cmd.DW4.TransquantBypassEnableFlag              = hevcPicParams->transquant_bypass_enabled_flag;
     cmd.DW4.StrongIntraSmoothingEnableFlag          = hevcSeqParams->strong_intra_smoothing_enable_flag;
     cmd.DW4.CuPacketStructure                       = 0; // output from HW VME, 1/2 CL per CU
+    cmd.DW4.ConstrainedIntraPredFlag                = hevcPicParams->constrained_intra_pred_flag;
 
     cmd.DW5.PicCbQpOffset                           = hevcPicParams->pps_cb_qp_offset & 0x1f;
     cmd.DW5.PicCrQpOffset                           = hevcPicParams->pps_cr_qp_offset & 0x1f;
