@@ -547,6 +547,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     uint32_t intra_boundary_filtering_disabled_flag;
     uint8_t     palette_max_size;
     uint8_t     delta_palette_max_predictor_size;
+    uint8_t     FullPassCodecType;  // [0..4]
 } CODEC_HEVC_ENCODE_SEQUENCE_PARAMS, *PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS;
 
 /*! \brief Provides the picture-level parameters of a compressed picture for HEVC decoding.
