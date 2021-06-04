@@ -286,6 +286,9 @@ MOS_STATUS VeboxCopyState::GetResourceInfo(PMOS_SURFACE surface)
     surface->bCompressible                                      = resDetails.bCompressible;
     surface->bIsCompressed                                      = resDetails.bIsCompressed;
     surface->dwOffset                                           = resDetails.RenderOffset.YUV.Y.BaseOffset;
+    surface->YPlaneOffset.iSurfaceOffset                        = resDetails.RenderOffset.YUV.Y.BaseOffset;
+    surface->YPlaneOffset.iXOffset                              = resDetails.RenderOffset.YUV.Y.XOffset;
+    surface->YPlaneOffset.iYOffset                              = resDetails.RenderOffset.YUV.Y.YOffset;
     surface->UPlaneOffset.iSurfaceOffset                        = resDetails.RenderOffset.YUV.U.BaseOffset;
     surface->UPlaneOffset.iXOffset                              = resDetails.RenderOffset.YUV.U.XOffset;
     surface->UPlaneOffset.iYOffset                              = resDetails.RenderOffset.YUV.U.YOffset;
