@@ -812,6 +812,13 @@ void _MOS_Assert(
     MOS_CHK_STATUS_MESSAGE_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _stmt, _message, ##__VA_ARGS__)
 
 //!
+//! \def MOS_OS_CHK_NULL_RETURN_VALUE(_ptr, retVal)
+//!  MOS_CHK_COND_RETURN_VALUE \a _ptr with MOS utility comp/subcomp info
+//!
+#define MOS_OS_CHK_NULL_RETURN_VALUE(_ptr, retVal)                                         \
+    MOS_CHK_COND_RETURN_VALUE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, (_ptr == nullptr), retVal, "Invalid (nullptr) Pointer.")
+
+//!
 //! \def MOS_OS_ASSERTMESSAGE(_message, ...)
 //!  MOS_ASSERTMESSAGE \a _message with MOS Utility comp/subcomp info
 //!
