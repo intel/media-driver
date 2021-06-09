@@ -62,8 +62,8 @@ set(SOURCES_ "")
 # add source
 media_include_subdirectory(agnostic)
 media_include_subdirectory(linux)
+media_include_subdirectory(media_driver_next)
 media_include_subdirectory(media_interface)
-media_include_subdirectory(${MEDIA_EXT}/media_driver_next)
 include(${MEDIA_EXT}/media_srcs_ext.cmake OPTIONAL)
 
 include(${MEDIA_DRIVER_CMAKE}/media_include_paths.cmake)
