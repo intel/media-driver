@@ -135,12 +135,12 @@ public:
     Kdll_State                  *pKernelDllState;
 
     // Compositing Kernel buffer and size
-    const void                  *pcKernelBin;
-    uint32_t                    dwKernelBinSize;
+    const void                  *pcKernelBin    = nullptr;
+    uint32_t                    dwKernelBinSize = 0;
 
     // CM Compositing Kernel patch file buffer and size
-    const void                  *pcFcPatchBin;
-    uint32_t                    dwFcPatchBinSize;
+    const void                  *pcFcPatchBin   = nullptr;
+    uint32_t                    dwFcPatchBinSize = 0;
 
     // Surface dumper fields (counter and specification)
     uint32_t                    uiFrameCounter;

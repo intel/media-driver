@@ -201,6 +201,8 @@ public:
     virtual VpKernelConfig &GetKernelConfig() = 0;
 
     MOS_STATUS GetKernelParam(VpKernelID kernlId, RENDERHAL_KERNEL_PARAM &param);
+    //only for get kernel binary in legacy path not being used in APO path.
+    virtual MOS_STATUS GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize);
 
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;

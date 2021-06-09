@@ -365,3 +365,16 @@ MOS_STATUS VpPlatformInterface::GetKernelParam(VpKernelID kernlId, RENDERHAL_KER
     VP_PUBLIC_CHK_STATUS_RETURN(GetKernelConfig().GetKernelParam(kernlId, param));
     return MOS_STATUS_SUCCESS;
 }
+
+//only for get kernel binary in legacy path not being used in APO path.
+MOS_STATUS VpPlatformInterface ::GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize)
+{
+    VP_FUNC_CALL();
+
+    kernelBin       = nullptr;
+    kernelSize      = 0;
+    patchKernelBin  = nullptr;
+    patchKernelSize = 0;
+
+    return MOS_STATUS_SUCCESS;
+}
