@@ -50,6 +50,7 @@ enum ProfileIdc
 //!
 enum LevelIdc
 {
+    levelHighP       = 2,
     levelHigh        = 4,
     levelHigh1440    = 6,
     levelMain        = 8,
@@ -1713,6 +1714,7 @@ MOS_STATUS CodechalEncodeMpeg2::CheckProfileAndLevel()
         case levelHigh1440:
         case levelMain:
         case levelLow:
+        case levelHighP:
             break;
         default:
             return eStatus;
