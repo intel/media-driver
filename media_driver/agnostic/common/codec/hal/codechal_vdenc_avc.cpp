@@ -5914,7 +5914,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     }
 
     MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS miConditionalBatchBufferEndParams;
-    if (m_vdencBrcEnabled)
+    if (m_vdencBrcEnabled && !m_swBrcMode)
     {
         // Insert conditional batch buffer end for HuC valid IMEM loaded check
         MOS_ZeroMemory(&miConditionalBatchBufferEndParams, sizeof(MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS));

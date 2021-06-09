@@ -642,7 +642,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS HuCBrcInitReset();
+    virtual MOS_STATUS HuCBrcInitReset();
 
     //!
     //! \brief    VDENC BRC Update HuC FW Cmd.
@@ -650,7 +650,7 @@ public:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS HuCBrcUpdate();
+    virtual MOS_STATUS HuCBrcUpdate();
 
     //!
     //! \brief    VDENC Loads Cost According To CodingType & QP.
