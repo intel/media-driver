@@ -620,6 +620,9 @@ VAStatus DdiEncodeHevc::ParsePicParams(
     hevcPicParams->slice_pic_parameter_set_id       = picParams->slice_pic_parameter_set_id;
     hevcPicParams->nal_unit_type                    = picParams->nal_unit_type;
     hevcPicParams->no_output_of_prior_pics_flag     = picParams->pic_fields.bits.no_output_of_prior_pics_flag;
+#if VA_CHECK_VERSION(1, 10, 0)
+    hevcPicParams->bEnableGPUWeightedPrediction     = picParams->pic_fields.bits.enable_gpu_weighted_prediction;
+#endif
     hevcPicParams->bDisplayFormatSwizzle            = NeedDisapayFormatSwizzle(rtTbl->pCurrentRT, rtTbl->pCurrentReconTarget);
 
     // Correct Input color space of Sequence parameter here
@@ -756,6 +759,10 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
         hevcSlcParams->MaxNumMergeCand                     = vaEncSlcParamsHEVC->max_num_merge_cand;
         hevcSlcParams->luma_log2_weight_denom              = vaEncSlcParamsHEVC->luma_log2_weight_denom;
         hevcSlcParams->delta_chroma_log2_weight_denom      = vaEncSlcParamsHEVC->delta_chroma_log2_weight_denom;
+#if VA_CHECK_VERSION(1, 10, 0)
+        hevcSlcParams->PredWeightTableBitOffset            = vaEncSlcParamsHEVC->pred_weight_table_bit_offset;
+        hevcSlcParams->PredWeightTableBitLength            = vaEncSlcParamsHEVC->pred_weight_table_bit_length;
+#endif
         hevcSlcParams->slice_id                            = hevcPicParams->NumSlices + slcCount;
         hevcSlcParams->BitLengthSliceHeaderStartingPortion = 40;
 
