@@ -33,6 +33,7 @@
 #include "media_interfaces_mhw.h"
 #include "hal_oca_interface.h"
 
+#define OutputSurfaceWidthRatio 1
 extern const SURFACE_STATE_TOKEN_COMMON g_cInit_SURFACE_STATE_TOKEN_COMMON =
 {
     // DWORD 0
@@ -3751,6 +3752,14 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition == RENDERHAL_PLANES_R32_FLOAT_X8X24_TYPELESS)
             {
                 dwSurfaceWidth = dwSurfaceWidth << 1;
+            }
+            else if (MEDIA_IS_SKU(pRenderHal->pSkuTable, FtrDisableRenderTargetWidthAdjust) &&
+                     (PlaneDefinition == RENDERHAL_PLANES_NV12_2PLANES                    ||
+                      PlaneDefinition == RENDERHAL_PLANES_P010                            ||
+                      PlaneDefinition == RENDERHAL_PLANES_YUY2_2PLANES                    ||
+                      PlaneDefinition == RENDERHAL_PLANES_YUY2))
+            {
+                dwSurfaceWidth = dwSurfaceWidth / OutputSurfaceWidthRatio;
             }
             else
             {
