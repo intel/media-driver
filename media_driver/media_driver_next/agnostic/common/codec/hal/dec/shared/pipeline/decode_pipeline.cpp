@@ -465,6 +465,39 @@ MOS_STATUS DecodePipeline::ReportVdboxIds(const DecodeStatusMfx& status)
     return MOS_STATUS_SUCCESS;
 }
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+MOS_STATUS DecodePipeline::ReportSfcLinearSurfaceUsage(const DecodeStatusReportData& reportData)
+{
+    DECODE_FUNC_CALL();
+
+    DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
+        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
+    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
+    {
+        if (reportData.currSfcOutputPicRes != nullptr)
+        {
+            MOS_SURFACE sfcDstSurface;
+            MOS_ZeroMemory(&sfcDstSurface, sizeof(sfcDstSurface));
+            sfcDstSurface.Format     = Format_NV12;
+            sfcDstSurface.OsResource = *reportData.currSfcOutputPicRes;
+            if (!Mos_ResourceIsNull(&sfcDstSurface.OsResource))
+            {
+                DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
+                if (sfcDstSurface.TileType == MOS_TILE_LINEAR)
+                {
+                    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_SFC_LINEAR_OUTPUT_USED_ID, 1, m_osInterface->pOsContext);
+                }
+                else
+                {
+                    WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_SFC_LINEAR_OUTPUT_USED_ID, 0, m_osInterface->pOsContext);
+                }
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
 MOS_STATUS DecodePipeline::StatusCheck()
 {
     DECODE_FUNC_CALL();
@@ -502,7 +535,9 @@ MOS_STATUS DecodePipeline::StatusCheck()
         m_debugInterface->m_bufferDumpFrameNum = m_statusCheckCount;
         m_debugInterface->m_currPic            = reportData.currDecodedPic;
         m_debugInterface->m_frameType          = reportData.frameType;
-
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        ReportSfcLinearSurfaceUsage(reportData);
+#endif
         DECODE_CHK_STATUS(DumpOutput(reportData));
 
         m_debugInterface->m_bufferDumpFrameNum = bufferDumpNumTemp;

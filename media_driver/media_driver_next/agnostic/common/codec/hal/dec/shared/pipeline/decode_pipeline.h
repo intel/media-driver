@@ -394,6 +394,16 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ReportVdboxIds(const DecodeStatusMfx& status);
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    //!
+    //! \brief  User feature key report for Sfc Linear Usage Status
+    //! \param  [in] status
+    //!         Status report from HW
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReportSfcLinearSurfaceUsage(const DecodeStatusReportData &reportData);
+#endif
 
     //!
     //! \brief  Internal status check after each frame
