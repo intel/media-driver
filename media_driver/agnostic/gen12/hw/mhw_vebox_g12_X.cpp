@@ -1040,6 +1040,9 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
     cmd.DW1.ForwardGammaCorrectionEnable = pVeboxMode->ForwardGammaCorrectionEnable;
     cmd.DW1.HdrEnable                    = pVeboxMode->Hdr1DLutEnable;
     cmd.DW1.Fp16ModeEnable               = pVeboxMode->Fp16ModeEnable;
+    cmd.DW1.StateSurfaceControlBits      = (pOsInterface->pfnCachePolicyGetMemoryObject(
+                                            MOS_MP_RESOURCE_USAGE_DEFAULT,
+                                            pOsInterface->pfnGetGmmClientContext(pOsInterface))).DwordValue;
 
     cmd.DW17.EncDataControlFor3DLUT       = 0;
 
@@ -2881,6 +2884,12 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
     // Set up VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS
     MOS_ZeroMemory(&veboxInputSurfCtrlBits, sizeof(veboxInputSurfCtrlBits));
     MOS_ZeroMemory(&veboxOutputSurfCtrlBits, sizeof(veboxOutputSurfCtrlBits));
+
+    veboxInputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
+    veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
+        (m_osInterface->pfnCachePolicyGetMemoryObject(
+            MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
+            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
 
     // Set Input surface compression status
     if (inSurParams->CompressionMode != MOS_MMC_DISABLED)

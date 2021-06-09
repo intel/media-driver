@@ -273,6 +273,7 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
     cmd.DW25.IefLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
                                                    = m_iefLineBufferCtrl.Gen12.Index;
 
+    // Set DW28
     cmd.DW28.SfdLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
                                                    = m_sfdLineBufferCtrl.Gen12.Index;
 
@@ -313,7 +314,12 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
 
     cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineTileBufferCtrl.Gen12.Index;
 
-    cmd.DW49.HistogramBaseAddressMOCSIndex = m_histogramBufferCtrl.Gen12.Index;
+    //Set DW40, DW43, DW46, DW49
+    cmd.DW40.AvsLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineBufferCtrl.Gen12.Index;
+    cmd.DW43.IefLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineBufferCtrl.Gen12.Index;
+    cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineBufferCtrl.Gen12.Index;
+    cmd.DW49.HistogramBaseAddressMOCSIndex                                         = m_histogramBufferCtrl.Gen12.Index;
+
     if (pSfcStateParamsG12->pOsResOutputSurface)
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));

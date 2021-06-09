@@ -7229,6 +7229,12 @@ MOS_STATUS RenderHal_SetBufferSurfaceForHwAccess(
     if (pSurfaceParams == nullptr)
     {
         MOS_ZeroMemory(&SurfaceParam, sizeof(SurfaceParam));
+
+        //set mem object control for cache
+        SurfaceParam.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+            MOS_MP_RESOURCE_USAGE_DEFAULT,
+            pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
+
         pSurfaceParams = &SurfaceParam;
     }
 

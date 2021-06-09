@@ -35,6 +35,7 @@ MhwSfcInterface::MhwSfcInterface(PMOS_INTERFACE pOsInterface)
     MOS_ZeroMemory(&m_outputSurfCtrl, sizeof(m_outputSurfCtrl));
     MOS_ZeroMemory(&m_avsLineBufferCtrl, sizeof(m_avsLineBufferCtrl));
     MOS_ZeroMemory(&m_iefLineBufferCtrl, sizeof(m_iefLineBufferCtrl));
+    MOS_ZeroMemory(&m_sfdLineBufferCtrl, sizeof(m_sfdLineBufferCtrl));
     pfnAddResourceToCmd = nullptr;
     m_scalingMode       = MHW_SCALING_AVS;
 

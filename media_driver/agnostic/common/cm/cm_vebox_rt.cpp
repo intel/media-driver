@@ -212,6 +212,7 @@ CM_RT_API int32_t CmVeboxRT::SetCurFrameOutputSurface( CmSurface2D* surface )
             if (surface2DBase != nullptr)
             {
                 m_surface2D[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF] = static_cast<CmSurface2DRT *>(surface2DBase);
+                m_surfaceCtrlBits[VEBOX_LACE_ACE_RGB_HISTOGRAM_OUTPUT_SURF] = m_surfaceCtrlBits[VEBOX_CURRENT_FRAME_OUTPUT_SURF];
             }
         }
     }

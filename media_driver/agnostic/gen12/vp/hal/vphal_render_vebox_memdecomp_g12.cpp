@@ -319,6 +319,12 @@ MOS_STATUS MediaVeboxDecompStateG12::VeboxSendVeboxTileConvertCMD(
     MOS_ZeroMemory(&veboxInputSurfCtrlBits, sizeof(veboxInputSurfCtrlBits));
     MOS_ZeroMemory(&veboxOutputSurfCtrlBits, sizeof(veboxOutputSurfCtrlBits));
 
+    veboxInputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
+    veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
+        (m_osInterface->pfnCachePolicyGetMemoryObject(
+            MOS_MP_RESOURCE_USAGE_DEFAULT,
+            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
+
     // Set Input surface compression status
     if (inputSurface->CompressionMode != MOS_MMC_DISABLED)
     {
@@ -418,7 +424,7 @@ MOS_STATUS MediaVeboxDecompStateG12::VeboxSendVeboxTileConvertCMD(
     ResourceParams.dwLocationInCmd = 3;
     ResourceParams.pdwCmd          = &(cmd.DW3_4.Value[0]);
     ResourceParams.bIsWritable     = true;
-    ResourceParams.dwOffset        = 
+    ResourceParams.dwOffset        =
         (outputSurface != nullptr ? outputSurface->dwOffset : inputSurface->dwOffset) + veboxOutputSurfCtrlBits.DW0.Value;
     m_veboxInterface->pfnAddResourceToCmd(m_osInterface, cmdBuffer, &ResourceParams);
 

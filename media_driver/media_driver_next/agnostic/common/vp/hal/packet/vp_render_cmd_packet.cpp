@@ -365,6 +365,8 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
+    VP_RENDER_CHK_NULL_RETURN(m_renderHal);
+    VP_RENDER_CHK_NULL_RETURN(m_renderHal->pOsInterface);
 
     if (!m_kernel->GetKernelSurfaceConfig().empty())
     {
@@ -390,6 +392,11 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 renderSurfaceParams.bWidthInDword_Y  = true;
                 renderSurfaceParams.bWidthInDword_UV = true;
             }
+
+            //set mem object control for cache
+            renderSurfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                MOS_MP_RESOURCE_USAGE_DEFAULT,
+                m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
 
             VP_SURFACE *vpSurface = nullptr;
 
