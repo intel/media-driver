@@ -31,6 +31,7 @@
 #include "codechal_hw.h"
 #include "codechal_encode_sfc.h"
 #include "codechal_utilities.h"
+#include "mos_context_next.h"
 
 //!
 //! \enum     DsStage
@@ -355,6 +356,7 @@ public:
     uint32_t GetRawSurfWidth() const { return m_cscRawSurfWidth; }
     uint32_t GetRawSurfHeight() const { return m_cscRawSurfHeight; }
     bool RequireCsc() const { return m_cscFlag != 0; }
+    bool RequireCopyOnly() const { return m_cscFlag == 1; } // m_cscRequireCopy bit only
     bool UseSfc() const { return m_cscUsingSfc != 0; }
     bool IsSfcEnabled() const { return m_cscEnableSfc != 0; }
     bool RenderConsumesCscSurface() const { return m_cscRequireCopy || m_cscRequireColor || m_cscRequireConvTo8bPlanar; }
@@ -482,6 +484,14 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS DsKernel(KernelParams* params);
+
+    //!
+    //! \brief    Raw surface Media Copy function
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS RawSurfaceMediaCopy(MOS_FORMAT format);
 
 protected:
     //!
@@ -635,6 +645,14 @@ protected:
     virtual MOS_STATUS AllocateSurfaceCsc();
 
     //!
+    //! \brief    Allocate Copy surface or pick an existing one from the pool
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AllocateSurfaceCopy(MOS_FORMAT);
+
+    //!
     //! \brief    Initialize DS kernel state
     //!
     //! \return   MOS_STATUS
@@ -691,6 +709,7 @@ protected:
     CodecHalEncodeSfc*                      m_sfcState = nullptr;                           //!< SFC interface
     MHW_KERNEL_STATE*                       m_cscKernelState = nullptr;                     //!< CSC kernel state
     MHW_KERNEL_STATE*                       m_dsKernelState = nullptr;                      //!< DS kernel state
+    MosMediaCopy*                           m_pMosMediaCopy = nullptr;                      //!< Mos Media Copy interface
 
     union
     {

@@ -122,6 +122,13 @@ uint16_t CodechalEncodeAllocator::MosToAllocatorFormat(MOS_FORMAT format)
     case Format_NV12 :
     case Format_YUY2 :
     case Format_P208 :
+    case Format_AYUV:
+    case Format_YUYV:
+    case Format_YVYU:
+    case Format_UYVY:
+    case Format_VYUY:
+    case Format_A8R8G8B8:
+    case Format_A8B8G8R8:
         allocFormat = allocatorSurface;
         break;
     default :

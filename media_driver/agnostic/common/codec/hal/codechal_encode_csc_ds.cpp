@@ -40,6 +40,18 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCsc()
     return m_encoder->m_trackedBuf->AllocateSurfaceCsc();
 }
 
+MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCopy(MOS_FORMAT format)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (!m_cscFlag)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    return m_encoder->m_trackedBuf->AllocateSurfaceCopy(format);
+}
+
 MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -1103,14 +1115,14 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     m_threadTraverseSizeX = 5;
     m_threadTraverseSizeY = 2;    // for NV12, thread space is 32x4
 
-    // check raw surface's alignment
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckRawSurfaceAlignment(details));
-
     // check raw surface's color/tile format
     if (m_cscEnableColor && !m_encoder->CheckSupportedFormat(&details))
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckRawColorFormat(details.Format, details.TileType));
     }
+
+    // check raw surface's alignment
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckRawSurfaceAlignment(details));
 
     // check raw surface's MMC state
     if (m_cscEnableMmc)
@@ -1129,8 +1141,25 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     {
         m_encoder->m_trackedBuf->ResizeCsc();
     }
-    CODECHAL_ENCODE_NORMALMESSAGE("raw surf = %d x %d, tile = %d, color = %d, cscFlag = %d",
-        details.dwWidth, details.dwHeight, details.TileType, m_colorRawSurface, m_cscFlag);
+
+    if (RequireCopyOnly())
+    {
+        CODECHAL_ENCODE_NORMALMESSAGE("raw surf = %d x %d, tile = %d, raw color format = %d, cscRequireCopy = %d",
+            details.dwWidth,
+            details.dwHeight,
+            details.TileType,
+            details.Format,
+            m_cscRequireCopy);
+    }
+    else
+    {
+        CODECHAL_ENCODE_NORMALMESSAGE("raw surf = %d x %d, tile = %d, color = %d, cscFlag = %d",
+            details.dwWidth,
+            details.dwHeight,
+            details.TileType,
+            m_colorRawSurface,
+            m_cscFlag);
+    }
 
     return eStatus;
 }
@@ -1829,6 +1858,43 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     return eStatus;
 }
 
+MOS_STATUS CodechalEncodeCscDs::RawSurfaceMediaCopy(MOS_FORMAT srcFormat)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    PMOS_CONTEXT mos_context = nullptr;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_osInterface);
+    m_osInterface->pfnGetMosContext(m_osInterface, &mos_context);
+
+    if (!m_pMosMediaCopy)
+    {
+        MOS_OS_CHK_NULL_RETURN(m_pMosMediaCopy = MOS_New(MosMediaCopy, mos_context));
+    }
+
+    // Call raw surface Copy function
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateSurfaceCopy(srcFormat));
+
+    auto cscSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
+
+    // Copy through VEBOX from Linear/TileY to TileY
+#ifdef LINUX
+    m_pMosMediaCopy->MediaCopy(
+        &m_rawSurfaceToEnc->OsResource,
+        &cscSurface->OsResource,
+        MCPY_METHOD_BALANCE);
+#else
+    m_pMosMediaCopy->MediaCopy(
+        &m_rawSurfaceToEnc->OsResource,
+        &cscSurface->OsResource,
+        false,
+        MCPY_METHOD_BALANCE);
+#endif // LINUX
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesToEncPak());
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalEncodeCscDs::SetHevcCscFlagAndRawColor()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -1910,11 +1976,6 @@ CodechalEncodeCscDs::CodechalEncodeCscDs(CodechalEncoderState *encoder)
 CodechalEncodeCscDs::~CodechalEncodeCscDs()
 {
     MOS_Delete(m_cscKernelState);
-    m_cscKernelState = nullptr;
-
-    if (m_sfcState)
-    {
-        MOS_Delete(m_sfcState);
-        m_sfcState = nullptr;
-    }
+    MOS_Delete(m_sfcState);
+    MOS_Delete(m_pMosMediaCopy);
 }
