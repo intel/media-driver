@@ -655,7 +655,7 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
     // affect sfc input format, that's why different logic between GetSfcInputFormat and GetVeboxOutputParams.
     // Check HDR case first, since 3DLUT output is fixed RGB32.
     // Then Check IECP, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
-    if (executeCaps.bHDR3DLUT)
+    if (executeCaps.b3DlutOutput)
     {
         return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
     }
