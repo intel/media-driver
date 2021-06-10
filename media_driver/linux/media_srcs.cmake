@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017 - 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,14 +26,6 @@ endif()
 
 if(GEN9)
     media_include_subdirectory(gen9)
-endif()
-
-if(GEN9_CML)
-    media_include_subdirectory(gen9_cml)
-endif()
-
-if(GEN9_CMPV)
-    media_include_subdirectory(gen9_cmpv)
 endif()
 
 if(GEN9_BXT)

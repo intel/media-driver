@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,10 +19,3 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(vp)
-if(ENABLE_KERNELS)
-        if(ENABLE_NONFREE_KERNELS)
-            media_include_subdirectory(kernel)
-        else()
-            media_include_subdirectory(kernel_free)
-        endif()
-endif()
