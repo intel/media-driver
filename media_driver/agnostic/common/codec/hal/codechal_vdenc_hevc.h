@@ -837,10 +837,7 @@ public:
         PMHW_BATCH_BUFFER batchBuffer,
         PMHW_VDBOX_HEVC_SLICE_STATE params) override;
 
-    MOS_STATUS PrepareHWMetaData(
-        PMOS_RESOURCE           presMetadataBuffer,
-        PMOS_RESOURCE           presLcuBaseAddressBuffer,
-        PMOS_COMMAND_BUFFER     cmdBuffer) override;
+    MOS_STATUS PrepareHWMetaData(PMOS_COMMAND_BUFFER cmdBuffer);
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpHucBrcInit();
