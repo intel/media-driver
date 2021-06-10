@@ -131,7 +131,10 @@ bool Policy::IsColorfillEnabled(FeatureParamScaling* scalingParams)
 
     bool isColorFill = false;
     isColorFill      = (scalingParams->pColorFillParams &&
-                     (!RECT1_CONTAINS_RECT2(scalingParams->input.rcDst, scalingParams->output.rcDst)))
+                     (!scalingParams->pColorFillParams->bDisableColorfillinSFC) &&
+                     (scalingParams->pColorFillParams->bOnePixelBiasinSFC ? 
+                     (!RECT1_CONTAINS_RECT2_ONEPIXELBIAS(scalingParams->input.rcDst, scalingParams->output.rcDst)):
+                     (!RECT1_CONTAINS_RECT2(scalingParams->input.rcDst, scalingParams->output.rcDst))))
                      ? true
                      : false;
 

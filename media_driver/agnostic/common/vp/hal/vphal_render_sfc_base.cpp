@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2020, Intel Corporation
+* Copyright (c) 2012-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -490,8 +490,11 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcState::GetOutputPipe(
     }
 
     bColorFill = (pcRenderParams->pColorFillParams &&
-                  (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst))) ?
-                 true : false;
+                  (!pcRenderParams->pColorFillParams->bDisableColorfillinSFC) &&
+                  (pcRenderParams->pColorFillParams->bOnePixelBiasinSFC ?
+                   (!RECT1_CONTAINS_RECT2_ONEPIXELBIAS(pSrc->rcDst, pRenderTarget->rcDst)) :
+                   (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst)))) ?
+                  true : false;
 
     if (IsOutputCapable(bColorFill, pSrc, pRenderTarget))
     {
@@ -651,9 +654,13 @@ void VphalSfcState::SetRenderingFlags(
     m_renderData.bScaling   = ((fScaleX == 1.0F) && (fScaleY == 1.0F)) ?
                                  false : true;
 
-    m_renderData.bColorFill = (pColorFillParams && pSrc->InterlacedScalingType == ISCALING_NONE &&
-                                  (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst))) ?
-                                 true : false;
+    m_renderData.bColorFill = (pColorFillParams &&
+                               (!pColorFillParams->bDisableColorfillinSFC) &&
+                               pSrc->InterlacedScalingType == ISCALING_NONE &&
+                               (pColorFillParams->bOnePixelBiasinSFC ?
+                               (!RECT1_CONTAINS_RECT2_ONEPIXELBIAS(pSrc->rcDst, pRenderTarget->rcDst)) :
+                               (!RECT1_CONTAINS_RECT2(pSrc->rcDst, pRenderTarget->rcDst)))) ?
+                               true : false;
 
     m_renderData.bIEF       = (pSrc->pIEFParams              &&
                                   pSrc->pIEFParams->bEnabled    &&
