@@ -767,10 +767,16 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
     LockFlags.WriteOnly = true;
 
-    auto data = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface,
+    auto dataGfx = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface,
                                                          streamIn,
                                                          &LockFlags);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(dataGfx);
+    MOS_SURFACE surfInfo;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, streamIn, &surfInfo));
+    uint32_t uiSize = surfInfo.dwSize;
+    auto data = (uint8_t*)MOS_AllocMemory(uiSize);
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+    MOS_SecureMemcpy(data, uiSize, dataGfx, uiSize);
 
     uint32_t streamInWidth = (MOS_ALIGN_CEIL(m_frameWidth, 64) / 32);
     uint32_t streamInHeight = (MOS_ALIGN_CEIL(m_frameHeight, 64) / 32);
@@ -835,6 +841,9 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
     {
         SetStreaminDataPerLcu(&streaminDataParams, data + (i * 64));
     }
+
+    MOS_SecureMemcpy(dataGfx, uiSize, data, uiSize);
+    MOS_SafeFreeMemory(data);
 
     m_osInterface->pfnUnlockResource(
                                     m_osInterface,
