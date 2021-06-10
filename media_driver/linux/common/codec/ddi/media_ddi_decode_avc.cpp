@@ -172,6 +172,26 @@ VAStatus DdiDecodeAVC::ParseSliceParams(
         avcSliceParams->slice_id = 0;
         avcSliceParams++;
     }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    {
+        auto pPP = avcPicParams;
+        int32_t data[4] = { 0, 0, pPP->CurrFieldOrderCnt[0], pPP->CurrFieldOrderCnt[1]};
+        uint8_t data2[CODEC_AVC_MAX_NUM_REF_FRAME];
+        data[0] = pPP->CurrPic.FrameIdx & 0xff;
+        data[0] |= pPP->seq_fields.log2_max_frame_num_minus4 << 8;
+        data[0] |= pPP->seq_fields.pic_order_cnt_type << 16;
+        data[0] |= pPP->seq_fields.log2_max_pic_order_cnt_lsb_minus4 << 24;
+        data[1] = pPP->frame_num;
+        data[1] |= pPP->pic_fields.field_pic_flag << 16;
+        data[1] |= pPP->pic_fields.reference_pic_flag << 22;
+        data[1] |= pPP->pic_fields.IntraPicFlag << 31;
+        for (int i = 0; i<CODEC_AVC_MAX_NUM_REF_FRAME; i++)
+        {
+            data2[i] = pPP->RefFrameList[i].FrameIdx;
+        }
+        MOS_TraceEvent(EVENT_PIC_PARAM_AVC, EVENT_TYPE_INFO, &data, sizeof(data), data2, sizeof(data2));
+    }
+#endif
     return VA_STATUS_SUCCESS;
 }
 
