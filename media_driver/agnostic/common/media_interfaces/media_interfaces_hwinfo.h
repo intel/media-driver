@@ -27,8 +27,6 @@
 #ifndef __MEDIA_INTERFACES_HWINFO_H__
 #define __MEDIA_INTERFACES_HWINFO_H__
 
-#define MAP_IP_VERSION(x) (uint32_t)std::hash<std::string>()(x)
-
 struct HwDeviceInfo
 {
     uint32_t ipVersion;      // ipVersion -Intellectual Property
@@ -51,9 +49,9 @@ public:
         return m_deviceInfo;
     };
 
-    void SetDeviceInfo(std::string ipVersion, uint32_t usRevId)
+    void SetDeviceInfo(uint32_t ipVersion, uint32_t usRevId)
     {
-        m_deviceInfo.ipVersion = MAP_IP_VERSION(ipVersion);
+        m_deviceInfo.ipVersion = ipVersion;
         m_deviceInfo.usRevId   = usRevId;
     };
 

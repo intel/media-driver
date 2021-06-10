@@ -1072,8 +1072,9 @@ MOS_STATUS DecodeHistogramDeviceG12Tgllp::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
+#define IP_VERSION_M12_0       0x1200
 MOS_STATUS MediaInterfacesHwInfoDeviceG12Tgllp::Initialize(PLATFORM platform)
 {
-    m_hwInfo.SetDeviceInfo("m12_0", platform.usRevId);
+    m_hwInfo.SetDeviceInfo(IP_VERSION_M12_0, platform.usRevId);
     return MOS_STATUS_SUCCESS;
 }
