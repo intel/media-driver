@@ -315,6 +315,63 @@ public:
             VASurfaceAttrib *attribList,
             uint32_t *numAttribs);
 
+
+    //!
+    //! \brief    Query display attributes
+    //!
+    //! \param    [in, out] attribList
+    //!           it returns the supported display attributes
+    //!
+    //!
+    //! \param    [in, out] numAttribs
+    //!           it returns the actual number of supported attributes
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
+    //!
+    virtual VAStatus QueryDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t *numAttribs);
+
+    //!
+    //! \brief    Get display attributes
+    //!           returns the current attributes values in "attribList"
+    //!
+    //! \param    [in, out] attribList
+    //!           the attrib type should be filled.
+    //!           returns the supported display attributes
+    //!
+    //! \param    [in] numAttribs
+    //!           the number of supported attributes
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
+    //!
+    virtual VAStatus GetDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t numAttribs);
+
+    //!
+    //! \brief    Set Display attributes
+    //!
+    //! \param    [in] attribList
+    //!           the supported display attributes
+    //!
+    //!
+    //! \param    [in] numAttribs
+    //!           the  number of supported attributes
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!           VA_STATUS_ERROR_ATTR_NOT_SUPPORTED if the attributes is not supported or not setable
+    //!
+    virtual VAStatus SetDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t numAttribs);
+
+
     //!
     //! \brief    Check if the resolution is valid for a given decode codec mode
     //!

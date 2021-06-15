@@ -551,6 +551,7 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
 #endif
     bool m_apoMosEnabled;
+    int32_t tileInfo;
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)

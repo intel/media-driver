@@ -368,6 +368,21 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(VADriverContextP    ctx,PDDI_MEDIA_SU
 //!
 VAStatus DdiMediaUtil_SetMediaResetEnableFlag(PDDI_MEDIA_CONTEXT mediaCtx);
 
+//!
+//! \brief  Init apo mos for media ctx
+//!         It is not a common function, just could be called for initial and re-initial function
+//!         and should be protected by GlobalMutex
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to VA driver context
+//!
+//! \return     VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMediaUtil_InitMosForMediaContext(PDDI_MEDIA_CONTEXT mediaCtx);
+
+
+
 //------------------------------------------------------------------------------
 // Macros for debug messages, Assert, Null check and condition check within ddi files
 //------------------------------------------------------------------------------
