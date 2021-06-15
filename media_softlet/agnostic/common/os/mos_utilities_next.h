@@ -1230,12 +1230,12 @@ public:
         uint32_t   mSec);
 
     //!
-    //! \brief    Initialize reg related resouces
+    //! \brief    Initialize reg related resources
     //!
     static MOS_STATUS MosInitializeReg();
 
     //!
-    //! \brief    Uninitialize reg related resouces
+    //! \brief    Uninitialize reg related resources
     //!
     static MOS_STATUS MosUninitializeReg();
     //!

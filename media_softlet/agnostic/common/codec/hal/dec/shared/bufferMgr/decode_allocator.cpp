@@ -21,7 +21,7 @@
 */
 //!
 //! \file     decode_allocator.cpp
-//! \brief    Defines the interface for decode resouce allocate
+//! \brief    Defines the interface for decode resource allocate
 //! \details  decode allocator will allocate and destory buffers, the caller
 //!           can use directly
 //!
@@ -243,7 +243,7 @@ void* DecodeAllocator::Lock(MOS_RESOURCE* resource, MOS_LOCK_PARAMS* lockFlag)
     return m_allocator->Lock(resource, lockFlag);
 }
 
-void* DecodeAllocator::LockResouceForWrite(MOS_RESOURCE* resource)
+void* DecodeAllocator::LockResourceForWrite(MOS_RESOURCE* resource)
 {
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -255,7 +255,7 @@ void* DecodeAllocator::LockResouceForWrite(MOS_RESOURCE* resource)
     return m_allocator->Lock(resource, &lockFlags);
 }
 
-void* DecodeAllocator::LockResouceWithNoOverwrite(MOS_RESOURCE* resource)
+void* DecodeAllocator::LockResourceWithNoOverwrite(MOS_RESOURCE* resource)
 {
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -268,7 +268,7 @@ void* DecodeAllocator::LockResouceWithNoOverwrite(MOS_RESOURCE* resource)
     return m_allocator->Lock(resource, &lockFlags);
 }
 
-void* DecodeAllocator::LockResouceForRead(MOS_RESOURCE* resource)
+void* DecodeAllocator::LockResourceForRead(MOS_RESOURCE* resource)
 {
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -280,7 +280,7 @@ void* DecodeAllocator::LockResouceForRead(MOS_RESOURCE* resource)
     return m_allocator->Lock(resource, &lockFlags);
 }
 
-void* DecodeAllocator::LockResouceForRead(MOS_BUFFER* buffer)
+void* DecodeAllocator::LockResourceForRead(MOS_BUFFER* buffer)
 {
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));

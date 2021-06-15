@@ -156,7 +156,7 @@ void VphalHVSDenoiser::InitKernelParams(void *kernelBinary, const int32_t kerneB
     m_kernelBinarySize      = kerneBinarySize;
 }
 
-void VphalHVSDenoiser::AllocateResouces(const uint32_t width, const uint32_t height)
+void VphalHVSDenoiser::AllocateResources(const uint32_t width, const uint32_t height)
 {
     uint32_t size         = width * height;
 
@@ -197,7 +197,7 @@ MOS_STATUS VphalHVSDenoiser::Render(const PVPHAL_SURFACE pSrcSuface)
         VPHAL_RENDER_CHK_NULL_RETURN(m_cmContext);
 
         m_hvsDenoise = MOS_New(HVSDenoise, m_renderHal, m_kernelBinary, m_kernelBinarySize, m_cmContext);
-        AllocateResouces(m_denoiseBufferInBytes, 1);
+        AllocateResources(m_denoiseBufferInBytes, 1);
 
         VPHAL_RENDER_NORMALMESSAGE("[0x%x] Init HVSDenoise[0x%x] and Allocate necessary resource!", this, m_hvsDenoise);
     }

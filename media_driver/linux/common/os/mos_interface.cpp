@@ -1279,7 +1279,7 @@ uint8_t MosInterface::GetCachePolicyL1Config(
     return 0;
 }
 
-MOS_STATUS MosInterface::GetReservedFromResouce(MOS_RESOURCE_HANDLE resource, uint32_t &val)
+MOS_STATUS MosInterface::GetReservedFromResource(MOS_RESOURCE_HANDLE resource, uint32_t &val)
 {
     return MOS_STATUS_UNIMPLEMENTED;
 }

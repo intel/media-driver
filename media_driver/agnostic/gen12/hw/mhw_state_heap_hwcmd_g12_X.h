@@ -352,7 +352,7 @@ public:
                 uint32_t                 Reserved78                                       : __CODEGEN_BITFIELD(14, 15)    ; //!< Reserved
                 uint32_t                 Height                                           : __CODEGEN_BITFIELD(16, 29)    ; //!< Height
                 uint32_t                 Reserved94                                       : __CODEGEN_BITFIELD(30, 30)    ; //!< Reserved
-                uint32_t                 DepthStencilResouce                              : __CODEGEN_BITFIELD(31, 31)    ; //!< Depth/Stencil Resouce
+                uint32_t                 DepthStencilResource                              : __CODEGEN_BITFIELD(31, 31)    ; //!< Depth/Stencil Resource
             };
             uint32_t                     Value;
         } DW2;

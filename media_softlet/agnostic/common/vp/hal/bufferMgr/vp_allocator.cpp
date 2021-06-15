@@ -21,7 +21,7 @@
 */
 //!
 //! \file     vp_allocator.cpp
-//! \brief    Defines the interface for vp resouce allocate
+//! \brief    Defines the interface for vp resource allocate
 //! \details  vp allocator will allocate and destory buffers, the caller
 //!           can use directly
 //!
@@ -483,7 +483,7 @@ void* VpAllocator::Lock(MOS_RESOURCE* resource, MOS_LOCK_PARAMS *lockFlag)
     return m_allocator->Lock(resource, lockFlag);
 }
 
-void* VpAllocator::LockResouceForWrite(MOS_RESOURCE *resource)
+void* VpAllocator::LockResourceForWrite(MOS_RESOURCE *resource)
 {
     VP_FUNC_CALL();
     MOS_LOCK_PARAMS lockFlags;
@@ -496,7 +496,7 @@ void* VpAllocator::LockResouceForWrite(MOS_RESOURCE *resource)
     return m_allocator->Lock(resource, &lockFlags);
 }
 
-void* VpAllocator::LockResouceWithNoOverwrite(MOS_RESOURCE *resource)
+void* VpAllocator::LockResourceWithNoOverwrite(MOS_RESOURCE *resource)
 {
     VP_FUNC_CALL();
     MOS_LOCK_PARAMS lockFlags;
@@ -510,7 +510,7 @@ void* VpAllocator::LockResouceWithNoOverwrite(MOS_RESOURCE *resource)
     return m_allocator->Lock(resource, &lockFlags);
 }
 
-void* VpAllocator::LockResouceForRead(MOS_RESOURCE *resource)
+void* VpAllocator::LockResourceForRead(MOS_RESOURCE *resource)
 {
     VP_FUNC_CALL();
     MOS_LOCK_PARAMS lockFlags;
@@ -940,7 +940,7 @@ MOS_STATUS VpAllocator::ReadSurface (
     VP_PUBLIC_ASSERT(!Mos_ResourceIsNull(&surface->OsResource));
     //----------------------------------------------
 
-    src = (uint8_t*)LockResouceForRead(&surface->OsResource);
+    src = (uint8_t*)LockResourceForRead(&surface->OsResource);
     VP_PUBLIC_CHK_NULL_RETURN(src);
 
     // Calculate Size in Bytes
@@ -998,7 +998,7 @@ MOS_STATUS VpAllocator::WriteSurface (
     VP_PUBLIC_ASSERT(!Mos_ResourceIsNull(&surface->OsResource));
     //----------------------------------------------
 
-    dst = (uint8_t*)LockResouceForWrite(&surface->OsResource);
+    dst = (uint8_t*)LockResourceForWrite(&surface->OsResource);
     VP_PUBLIC_CHK_NULL_RETURN(dst);
 
     // Calculate Size in Bytes
@@ -1059,7 +1059,7 @@ MOS_STATUS VpAllocator::WriteSurface(VP_SURFACE* vpsurface, uint32_t bpp, const 
     VP_PUBLIC_ASSERT(!Mos_ResourceIsNull(&surface->OsResource));
     //----------------------------------------------
 
-    dst = (uint8_t*)LockResouceForWrite(&surface->OsResource);
+    dst = (uint8_t*)LockResourceForWrite(&surface->OsResource);
     VP_PUBLIC_CHK_NULL_RETURN(dst);
 
     // Calculate Size in Bytes
@@ -1111,7 +1111,7 @@ MOS_STATUS VpAllocator::Write1DSurface(VP_SURFACE* vpsurface, const uint8_t* src
     VP_PUBLIC_ASSERT(!Mos_ResourceIsNull(&vpsurface->osSurface->OsResource));
 
     MOS_SURFACE* surface = vpsurface->osSurface;
-    uint8_t* dst = (uint8_t*)LockResouceForWrite(&surface->OsResource);
+    uint8_t* dst = (uint8_t*)LockResourceForWrite(&surface->OsResource);
 
     VP_PUBLIC_CHK_NULL_RETURN(dst);
 

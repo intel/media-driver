@@ -21,7 +21,7 @@
 */
 //!
 //! \file     media_allocator.h
-//! \brief    Defines the common interface for media resouce manage
+//! \brief    Defines the common interface for media resource manage
 //! \details  Media allocator will allocate and destory buffers, each component
 //!           is recommended to inherits and implement it's owner allocator
 //!

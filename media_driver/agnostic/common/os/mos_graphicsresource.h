@@ -339,7 +339,7 @@ public:
     virtual bool IsEqual(GraphicsResource* toCompare) = 0;
 
     //!
-    //! \brief  Check whether the current graphic resouce is valid
+    //! \brief  Check whether the current graphic resource is valid
     //! \return Returns true if the two resources are equal and false otherwise.
     //!
     virtual bool IsValid() = 0;
@@ -391,7 +391,7 @@ public:
 
 protected:
     //!
-    //! \brief  Global graphic resouce counter
+    //! \brief  Global graphic resource counter
     //!
     static uint32_t m_memAllocCounterGfx;
 

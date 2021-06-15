@@ -767,7 +767,7 @@ namespace decode
                     resourceInternalRead, lockableVideoMem);
                 DECODE_CHK_NULL(m_tmpCdfBuffers[index]);
 
-                auto data = (uint16_t *)m_allocator->LockResouceForWrite(&m_tmpCdfBuffers[index]->OsResource);
+                auto data = (uint16_t *)m_allocator->LockResourceForWrite(&m_tmpCdfBuffers[index]->OsResource);
                 DECODE_CHK_NULL(data);
 
                 // reset all CDF tables to default values

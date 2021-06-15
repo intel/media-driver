@@ -21,7 +21,7 @@
 */
 //!
 //! \file     media_allocator.cpp
-//! \brief    Defines the common interface for media resouce manage
+//! \brief    Defines the common interface for media resource manage
 //! \details  Media allocator will allocate and destory buffers, the caller
 //!           can use directly
 //!

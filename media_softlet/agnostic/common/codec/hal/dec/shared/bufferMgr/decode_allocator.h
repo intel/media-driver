@@ -21,7 +21,7 @@
 */
 //!
 //! \file     decode_allocator.h
-//! \brief    Defines the interface for decode resouce allocate
+//! \brief    Defines the interface for decode resource allocate
 //! \details  decode allocator will allocate and destory buffers, the caller
 //!           can use directly
 //!
@@ -344,7 +344,7 @@ public:
     //! \return void*
     //!         a poniter to data
     //!
-    void* LockResouceForWrite(MOS_RESOURCE *resource);
+    void* LockResourceForWrite(MOS_RESOURCE *resource);
 
     //!
     //! \brief  Lock resource with no overwrite flag
@@ -353,7 +353,7 @@ public:
     //! \return void*
     //!         a poniter to data
     //!
-    void* LockResouceWithNoOverwrite(MOS_RESOURCE *resource);
+    void* LockResourceWithNoOverwrite(MOS_RESOURCE *resource);
 
     //!
     //! \brief  Lock resource only for reading
@@ -362,7 +362,7 @@ public:
     //! \return void*
     //!         a poniter to data
     //!
-    void* LockResouceForRead(MOS_RESOURCE *resource);
+    void* LockResourceForRead(MOS_RESOURCE *resource);
 
     //!
     //! \brief  Lock resource only for reading
@@ -371,7 +371,7 @@ public:
     //! \return void*
     //!         a poniter to data
     //!
-    void* LockResouceForRead(MOS_BUFFER* buffer);
+    void* LockResourceForRead(MOS_BUFFER* buffer);
 
     //!
     //! \brief  Lock batch buffer
