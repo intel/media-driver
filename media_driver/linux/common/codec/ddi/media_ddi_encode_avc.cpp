@@ -2209,6 +2209,7 @@ void DdiEncodeAvc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slcR
         if (i == CODEC_MAX_NUM_REF_FRAME)
         {
             slcReference->FrameIdx = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
+            slcReference->PicFlags = PICTURE_INVALID;
         }
     }
 }
