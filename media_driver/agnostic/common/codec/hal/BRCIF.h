@@ -145,7 +145,7 @@ enum LABufferType
     LA_HISTORY_BUFF,
     LA_FRAME_STATISTICS_BUFF,
     LA_OUTPUT_BUFF,
-    LA_AUX_BUFF
+    LA_AUX_BUFF = 15
 };
 
 extern "C"    void * MC_CreateInstance(ProcessType processor);
