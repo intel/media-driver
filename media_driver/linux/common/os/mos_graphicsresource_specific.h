@@ -102,7 +102,7 @@ public:
     void Free(OsContext* osContextPtr, uint32_t  freeFlag = 0);
 
     //!
-    //! \brief  Check whether the specific graphic resouces is equal to the current one
+    //! \brief  Check whether the specific graphic resources is equal to the current one
     //! \param  [in] toCompare
     //!         ptr to the graphics resource to be compared with 
     //! \return Returns true if the two resources are equal and false otherwise.
@@ -110,7 +110,7 @@ public:
     bool IsEqual(GraphicsResource* toCompare);
 
     //!
-    //! \brief  Check whether the current graphic resouce is valid
+    //! \brief  Check whether the current graphic resource is valid
     //! \return Returns true if a resource is valid and false otherwise.
     //!
     bool IsValid();

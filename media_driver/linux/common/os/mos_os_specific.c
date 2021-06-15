@@ -3592,7 +3592,7 @@ MOS_STATUS Mos_Specific_RegisterResource (
     pResources = pOsGpuContext->pResources;
     if( nullptr == pResources)
     {
-        MOS_OS_ASSERTMESSAGE("pResouce is NULL.");
+        MOS_OS_ASSERTMESSAGE("pResource is NULL.");
         return MOS_STATUS_SUCCESS;
     }
     for (uiAllocation = 0;

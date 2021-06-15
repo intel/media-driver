@@ -54,7 +54,7 @@ namespace decode {
         m_completedCountBuf = &(m_statusBufMfx->OsResource);
 
         DECODE_CHK_STATUS(m_allocator->SkipResourceSync(m_statusBufMfx));
-        uint8_t *data = (uint8_t *)m_allocator->LockResouceForRead(m_statusBufMfx);
+        uint8_t *data = (uint8_t *)m_allocator->LockResourceForRead(m_statusBufMfx);
         DECODE_CHK_NULL(data);
 
         // Decode status located at the beginging of the status buffer, following with complete count
@@ -67,7 +67,7 @@ namespace decode {
                 m_statusBufSizeRcs * m_statusNum, "StatusQueryBufferRcs", resourceInternalWrite, lockableSystemMem, true, 0, true);
 
             DECODE_CHK_STATUS(m_allocator->SkipResourceSync(m_statusBufRcs));
-            m_dataStatusRcs = (uint8_t *)m_allocator->LockResouceForRead(m_statusBufRcs);
+            m_dataStatusRcs = (uint8_t *)m_allocator->LockResourceForRead(m_statusBufRcs);
             DECODE_CHK_NULL(m_dataStatusRcs);
         }
 

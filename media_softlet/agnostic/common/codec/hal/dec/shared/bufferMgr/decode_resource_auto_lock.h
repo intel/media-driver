@@ -55,32 +55,32 @@ public:
         }
     }
 
-    void* LockResouceForWrite()
+    void* LockResourceForWrite()
     {
         if (m_allocator == nullptr || m_resource == nullptr)
         {
             return nullptr;
         }
-        return m_allocator->LockResouceForWrite(m_resource);
+        return m_allocator->LockResourceForWrite(m_resource);
     }
 
-    void* LockResouceWithNoOverwrite()
+    void* LockResourceWithNoOverwrite()
     {
         if (m_allocator == nullptr || m_resource == nullptr)
         {
             return nullptr;
         }
 
-        return m_allocator->LockResouceWithNoOverwrite(m_resource);
+        return m_allocator->LockResourceWithNoOverwrite(m_resource);
     }
 
-    void* LockResouceForRead()
+    void* LockResourceForRead()
     {
         if (m_allocator == nullptr || m_resource == nullptr)
         {
             return nullptr;
         }
-        return m_allocator->LockResouceForRead(m_resource);
+        return m_allocator->LockResourceForRead(m_resource);
     }
 
 private:

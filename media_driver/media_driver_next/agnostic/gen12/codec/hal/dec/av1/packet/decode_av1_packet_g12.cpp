@@ -137,7 +137,7 @@ namespace decode
                 if (m_batchBuf != nullptr)
                 {
                     ResourceAutoLock resLock(m_allocator, &m_batchBuf->OsResource);
-                    uint8_t *batchBufBase = (uint8_t *)resLock.LockResouceForWrite();
+                    uint8_t *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
                     DECODE_CHK_STATUS(InitPicLevelCmdBuffer(*m_batchBuf, batchBufBase));
                     DECODE_CHK_STATUS(m_picturePkt->Execute(m_picCmdBuffer));
                     DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&m_picCmdBuffer, nullptr));

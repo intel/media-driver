@@ -199,7 +199,7 @@ void CmDeviceRTBase::DestructCommon()
 #endif
 
     // Solve resource release dependency issue
-    // Flush Queue to make sure no task internal and connected resouces left.
+    // Flush Queue to make sure no task internal and connected resources left.
     m_criticalSectionQueue.Acquire();
     for (auto iter = m_queue.begin(); iter != m_queue.end(); iter++)
     {

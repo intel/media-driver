@@ -243,7 +243,7 @@ protected:
     //! \brief    Last native Gpu context handle
     GPU_CONTEXT_HANDLE    m_lastNativeGpuContextHandle = MOS_GPU_CONTEXT_INVALID_HANDLE;
 
-    //! \brief    Graphics resouce for command buffer
+    //! \brief    Graphics resource for command buffer
     GraphicsResourceNext* m_graphicsResource = nullptr;
 
     //! \brief    Lock address for cpu side usage

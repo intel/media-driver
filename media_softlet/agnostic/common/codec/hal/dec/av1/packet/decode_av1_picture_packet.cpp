@@ -1402,7 +1402,7 @@ namespace decode{
             m_resDataBufferForDummyWL= m_allocator->AllocateBuffer(
                 140, "BsBuffer for inserted Dummy WL", resourceInputBitstream, lockableVideoMem); //140 Bytes
             DECODE_CHK_NULL(m_resDataBufferForDummyWL);
-            auto data = (uint8_t *)m_allocator->LockResouceForWrite(&m_resDataBufferForDummyWL->OsResource);
+            auto data = (uint8_t *)m_allocator->LockResourceForWrite(&m_resDataBufferForDummyWL->OsResource);
             DECODE_CHK_NULL(data);
 
             uint32_t bsBuffer[] =

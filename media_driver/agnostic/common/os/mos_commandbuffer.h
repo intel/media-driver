@@ -135,7 +135,7 @@ protected:
     //! \brief    Gpu context binded to
     GpuContext*       m_gpuContext       = nullptr;
 
-    //! \brief    Graphics resouce for command buffer
+    //! \brief    Graphics resource for command buffer
     GraphicsResource* m_graphicsResource = nullptr;
 
     //! \brief    Lock address for cpu side usage

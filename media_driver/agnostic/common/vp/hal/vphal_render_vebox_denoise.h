@@ -77,7 +77,7 @@ public:
     }
 
 private:
-    void AllocateResouces(const uint32_t width, const uint32_t height);
+    void AllocateResources(const uint32_t width, const uint32_t height);
     void FreeResources();
 
     EventManager*                m_eventManager            = nullptr;

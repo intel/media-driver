@@ -1146,7 +1146,7 @@ MOS_STATUS Av1DecodeFilmGrainG12::AllocateFixedSizeSurfaces()
         resourceInternalReadWriteCache, lockableVideoMem);
     DECODE_CHK_NULL(m_gaussianSequenceSurface);
 
-    auto data = (int16_t *)m_allocator->LockResouceForWrite(&m_gaussianSequenceSurface->OsResource);
+    auto data = (int16_t *)m_allocator->LockResourceForWrite(&m_gaussianSequenceSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 2048 * sizeof(int16_t), defaultGaussianSequence, 2048 * sizeof(int16_t));
 
@@ -1515,7 +1515,7 @@ MOS_STATUS Av1DecodeFilmGrainG12::SetFrameStates(
     // Y coefficients surface as input of RegressPhase1
     m_yCoefficientsSurface = m_yCoefficientsSurfaceArray->Fetch();
     DECODE_CHK_NULL(m_yCoefficientsSurface);
-    auto data = (int16_t *)m_allocator->LockResouceForWrite(&m_yCoefficientsSurface->OsResource);
+    auto data = (int16_t *)m_allocator->LockResourceForWrite(&m_yCoefficientsSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 24 * sizeof(int16_t), coeffY, 24 * sizeof(int16_t));
 
@@ -1530,40 +1530,40 @@ MOS_STATUS Av1DecodeFilmGrainG12::SetFrameStates(
     //Y/U/V coefficients surfaces as input of RegressPhase2
     m_yCoeffSurface = m_yCoeffSurfaceArray->Fetch();
     DECODE_CHK_NULL(m_yCoeffSurface);
-    data = (int16_t *)m_allocator->LockResouceForWrite(&m_yCoeffSurface->OsResource);
+    data = (int16_t *)m_allocator->LockResourceForWrite(&m_yCoeffSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 24 * sizeof(int16_t), coeffY, 24 * sizeof(int16_t));
 
     m_uCoeffSurface = m_uCoeffSurfaceArray->Fetch();
     DECODE_CHK_NULL(m_uCoeffSurface);
-    data = (int16_t *)m_allocator->LockResouceForWrite(&m_uCoeffSurface->OsResource);
+    data = (int16_t *)m_allocator->LockResourceForWrite(&m_uCoeffSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 25 * sizeof(int16_t), coeffU, 25 * sizeof(int16_t));
 
     m_vCoeffSurface = m_vCoeffSurfaceArray->Fetch();
     DECODE_CHK_NULL(m_vCoeffSurface);
-    data = (int16_t *)m_allocator->LockResouceForWrite(&m_vCoeffSurface->OsResource);
+    data = (int16_t *)m_allocator->LockResourceForWrite(&m_vCoeffSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 25 * sizeof(int16_t), coeffV, 25 * sizeof(int16_t));
 
     // Scaling LUTs surfaces
     m_yGammaLUTSurface = m_yGammaLUTSurfaceArray->Fetch();
     DECODE_CHK_NULL(m_yGammaLUTSurface);
-    data = (int16_t *)m_allocator->LockResouceForWrite(&m_yGammaLUTSurface->OsResource);
+    data = (int16_t *)m_allocator->LockResourceForWrite(&m_yGammaLUTSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 256 * sizeof(int16_t), m_scalingLutY, 256 * sizeof(int16_t));
     data[256] = m_scalingLutY[255];
 
     m_uGammaLUTSurface = m_uGammaLUTSurfaceArray->Fetch();
     DECODE_CHK_NULL(m_uGammaLUTSurface);
-    data = (int16_t *)m_allocator->LockResouceForWrite(&m_uGammaLUTSurface->OsResource);
+    data = (int16_t *)m_allocator->LockResourceForWrite(&m_uGammaLUTSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 256 * sizeof(int16_t), m_scalingLutCb, 256 * sizeof(int16_t));
     data[256] = m_scalingLutCb[255];
 
     m_vGammaLUTSurface = m_vGammaLUTSurfaceArray->Fetch();
     DECODE_CHK_NULL(m_vGammaLUTSurface);
-    data = (int16_t *)m_allocator->LockResouceForWrite(&m_vGammaLUTSurface->OsResource);
+    data = (int16_t *)m_allocator->LockResourceForWrite(&m_vGammaLUTSurface->OsResource);
     DECODE_CHK_NULL(data);
     MOS_SecureMemcpy(data, 256 * sizeof(int16_t), m_scalingLutCr, 256 * sizeof(int16_t));
     data[256] = m_scalingLutCr[255];
