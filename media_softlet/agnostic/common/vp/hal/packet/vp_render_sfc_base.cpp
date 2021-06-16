@@ -233,9 +233,60 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
     {
         psfcStateParams->bCSCEnable = true;
         pIEFStateParams->bCSCEnable = true;
+        if (m_bVdboxToSfc && m_videoConfig.codecStandard == CODECHAL_JPEG)
+        {
+            if (m_videoConfig.jpeg.jpegChromaType == jpegRGB)
+            {
+                m_cscCoeff[0] = 1.000000000f;
+                m_cscCoeff[1] = 0.000000000f;
+                m_cscCoeff[2] = 0.000000000f;
+                m_cscCoeff[3] = 0.000000000f;
+                m_cscCoeff[4] = 1.000000000f;
+                m_cscCoeff[5] = 0.000000000f;
+                m_cscCoeff[6] = 0.000000000f;
+                m_cscCoeff[7] = 0.000000000f;
+                m_cscCoeff[8] = 1.000000000f;
 
-        if ((m_cscInputCspace != m_renderData.SfcInputCspace) ||
-            (m_renderData.pSfcPipeOutSurface && m_cscRTCspace != m_renderData.pSfcPipeOutSurface->ColorSpace))
+                m_cscInOffset[0] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+                m_cscInOffset[1] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+                m_cscInOffset[2] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+            }
+            else
+            {
+                if (m_renderData.SfcInputFormat != Format_400P)
+                {
+                    m_cscCoeff[0] = 1.16438353f;
+                    m_cscCoeff[1] = 0.000000000f;
+                    m_cscCoeff[2] = 1.59602666f;
+                    m_cscCoeff[3] = 1.16438353f;
+                    m_cscCoeff[4] = -0.391761959f;
+                    m_cscCoeff[5] = -0.812967300f;
+                    m_cscCoeff[6] = 1.16438353f;
+                    m_cscCoeff[7] = 2.01723218f;
+                    m_cscCoeff[8] = 0.000000000f;
+                }
+                else
+                {
+                    m_cscCoeff[0] = 1.16438353f;
+                    m_cscCoeff[1] = 0.000000000f;
+                    m_cscCoeff[2] = 0.000000000f;
+                    m_cscCoeff[3] = 1.16438353f;
+                    m_cscCoeff[4] = 0.000000000f;
+                    m_cscCoeff[5] = 0.000000000f;
+                    m_cscCoeff[6] = 1.16438353f;
+                    m_cscCoeff[7] = 0.000000000f;
+                    m_cscCoeff[8] = 0.000000000f;
+                }
+                m_cscInOffset[0] = -16.000000f;   // Adjusted to S8.2 to accommodate VPHAL
+                m_cscInOffset[1] = -128.000000f;  // Adjusted to S8.2 to accommodate VPHAL
+                m_cscInOffset[2] = -128.000000f;  // Adjusted to S8.2 to accommodate VPHAL
+            }
+            m_cscOutOffset[0] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+            m_cscOutOffset[1] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+            m_cscOutOffset[2] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
+        }
+        else if ((m_cscInputCspace != m_renderData.SfcInputCspace) ||
+                (m_renderData.pSfcPipeOutSurface && m_cscRTCspace != m_renderData.pSfcPipeOutSurface->ColorSpace))
         {
             VpHal_GetCscMatrix(
                 m_renderData.SfcInputCspace,
