@@ -3703,7 +3703,7 @@ MOS_STATUS CodechalEncodeAvcBase::DumpPicParams(
     oss << "# bDisableSubMBPartition = " << +picParams->UserFlags.bDisableSubMBPartition << std::endl;
     oss << "# bEmulationByteInsertion = " << +picParams->UserFlags.bEmulationByteInsertion << std::endl;
     oss << "# bEnableRollingIntraRefresh = " << +picParams->UserFlags.bEnableRollingIntraRefresh << std::endl;
-    oss << "ForceRepartitionCheck =" << +picParams->UserFlags.ForceRepartitionCheck << std::endl;
+    oss << "ForceRepartitionCheck = " << +picParams->UserFlags.ForceRepartitionCheck << std::endl;
     oss << "UserFlags = " << +picParams->UserFlags.Value << std::endl;
     oss << "StatusReportFeedbackNumber = " << +picParams->StatusReportFeedbackNumber << std::endl;
     oss << "bIdrPic = " << +picParams->bIdrPic << std::endl;
@@ -3738,6 +3738,7 @@ MOS_STATUS CodechalEncodeAvcBase::DumpPicParams(
 
     oss << "RefPicFlag = " << +picParams->RefPicFlag << std::endl;
     oss << "BRCPrecision = " << +picParams->BRCPrecision << std::endl;
+    oss << "bDisplayFormatSwizzle = " << +picParams->bDisplayFormatSwizzle << std::endl;
     oss << "IntraInsertionLocation = " << +picParams->IntraRefreshMBNum << std::endl;
     oss << "IntraInsertionSize = " << +picParams->IntraRefreshUnitinMB << std::endl;
     oss << "QpDeltaForInsertedIntra = " << +picParams->IntraRefreshQPDelta << std::endl;
@@ -3783,6 +3784,8 @@ MOS_STATUS CodechalEncodeAvcBase::DumpPicParams(
     oss << "dwZMvThreshold = " << +picParams->dwZMvThreshold << std::endl;
 
     // Dump HME offset
+    oss << "bEnableHMEOffset = " << +picParams->bEnableHMEOffset << std::endl;
+
     for (uint8_t i = 0; i < 16; ++i)
     {
         for (uint8_t j = 0; j < 2; ++j)
@@ -3793,6 +3796,23 @@ MOS_STATUS CodechalEncodeAvcBase::DumpPicParams(
             }
         }
     }
+
+    oss << "bDisableFrameSkip = " << +picParams->bDisableFrameSkip << std::endl;
+    oss << "bEnableSync = " << +picParams->bEnableSync << std::endl;
+    oss << "bRepeatFrame = " << +picParams->bRepeatFrame << std::endl;
+    oss << "bEnableQpAdjustment = " << +picParams->bEnableQpAdjustment << std::endl;
+
+    oss << "NumDeltaQpForNonRectROI = " << +picParams->NumDeltaQpForNonRectROI << std::endl;
+    for (uint16_t i = 0; i < picParams->NumDeltaQpForNonRectROI; ++i)
+    {
+        oss << "NonRectROIDeltaQpList[" << +i << "] = " << +picParams->NonRectROIDeltaQpList[i] << std::endl;
+    }
+    
+    oss << "SyncMarkerX = " << +picParams->SyncMarkerX << std::endl;
+    oss << "SyncMarkerY = " << +picParams->SyncMarkerY << std::endl;
+    oss << "SyncMarkerSize = " << +picParams->SyncMarkerSize << std::endl;
+    oss << "HierarchLevelPlus1 = " << +picParams->HierarchLevelPlus1 << std::endl;
+    oss << "QpModulationStrength = " << +picParams->QpModulationStrength << std::endl;
 
     // Parameters not defined in DDI (Any non-DDI parameters printed should be preceeded by #)
     oss << "# Non-DDI Parameters:" << std::endl;
