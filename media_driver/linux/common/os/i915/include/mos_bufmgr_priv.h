@@ -345,7 +345,6 @@ struct mos_bufmgr {
     /**< Enables verbose debugging printouts */
     int debug;
     uint32_t *get_reserved = nullptr;
-    uint32_t *set_reserved = nullptr;
 };
 
 #define ALIGN(value, alignment)    ((value + alignment - 1) & ~(alignment - 1))

@@ -280,7 +280,5 @@ protected:
     //!     if call succeeds
     //!
     VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) override;
-
-
 };
 #endif

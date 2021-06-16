@@ -589,8 +589,7 @@ struct _MOS_OS_CONTEXT
 
     bool                bSimIsActive;   //!< To indicate if simulation environment
     bool                m_apoMosEnabled;  //!< apo mos or not
-    
-    int32_t             tileInfo;
+
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT                pOsContext,

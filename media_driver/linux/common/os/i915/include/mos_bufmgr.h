@@ -218,7 +218,7 @@ int mos_bo_references(struct mos_linux_bo *bo, struct mos_linux_bo *target_bo);
 int mos_bo_pad_to_size(struct mos_linux_bo *bo, uint64_t pad_to_size);
 
 /* drm_intel_bufmgr_gem.c */
-struct mos_bufmgr *mos_bufmgr_gem_init(int fd, int batch_size, int* ext_info);
+struct mos_bufmgr *mos_bufmgr_gem_init(int fd, int batch_size);
 struct mos_linux_bo *mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
                         const char *name,
                         unsigned int handle);

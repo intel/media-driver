@@ -1620,7 +1620,7 @@ VAStatus DdiMedia_InitMediaContext (
     }
 
     DdiMediaUtil_LockMutex(&GlobalMutex);
-    //1. media context is already created, return directly to support multiple entry
+    // media context is already created, return directly to support multiple entry
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     if(mediaCtx)
     {
@@ -1628,18 +1628,15 @@ VAStatus DdiMedia_InitMediaContext (
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_SUCCESS;
     }
-    //2. create media context
+
     mediaCtx = DdiMedia_CreateMediaDriverContext();
     if (nullptr == mediaCtx)
     {
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    //3. ref ++ for current media context, and set media context into driver context
     mediaCtx->uiRef++;
     ctx->pDriverData = (void *)mediaCtx;
-
-    //4. initial media context values, global variable of driver context;
     mediaCtx->fd     = devicefd;
 
     mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd);
@@ -1651,12 +1648,15 @@ VAStatus DdiMedia_InitMediaContext (
     mediaCtx->pfnMediaMemoryTileConvert = DdiMedia_MediaMemoryTileConvertInternal;
 #endif
     mediaCtx->modularizedGpuCtxEnabled = true;
-    mediaCtx->tileInfo = VA_ATTRIB_NOT_SUPPORTED;
-    //5. mos initialize
-    //5.1 if apo mos enabled
+
     if (mediaCtx->m_apoMosEnabled)
     {
-        //5.1.1 allocate sysinfo
+        MOS_CONTEXT mosCtx     = {};
+        mosCtx.fd              = mediaCtx->fd;
+        mosCtx.m_apoMosEnabled = mediaCtx->m_apoMosEnabled;
+
+        MosInterface::InitOsUtilities(&mosCtx);
+
         mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
         if (nullptr == mediaCtx->pGtSystemInfo)
         {
@@ -1664,20 +1664,40 @@ VAStatus DdiMedia_InitMediaContext (
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
 
-        VAStatus vaStatus = DdiMediaUtil_InitMosForMediaContext(mediaCtx);
-        if(vaStatus != VA_STATUS_SUCCESS)
+        if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
         {
+            DDI_ASSERTMESSAGE("Unable to create MOS device context.");
             FreeForMediaContext(mediaCtx);
-            return vaStatus;
+            return VA_STATUS_ERROR_OPERATION_FAILED;
         }
-        MosInterface::GetReservedFromDevice(mediaCtx->m_osDeviceContext, (uint32_t &)mediaCtx->tileInfo);
+        mediaCtx->pDrmBufMgr                = mosCtx.bufmgr;
+        mediaCtx->iDeviceId                 = mosCtx.iDeviceId;
+        mediaCtx->SkuTable                  = mosCtx.SkuTable;
+        mediaCtx->WaTable                   = mosCtx.WaTable;
+        *mediaCtx->pGtSystemInfo            = mosCtx.gtSystemInfo;
+        mediaCtx->platform                  = mosCtx.platform;
+        mediaCtx->m_auxTableMgr             = mosCtx.m_auxTableMgr;
+        mediaCtx->pGmmClientContext         = mosCtx.pGmmClientContext;
+        mediaCtx->m_useSwSwizzling          = mosCtx.bUseSwSwizzling;
+        mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
+        mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
+#ifdef _MMC_SUPPORTED
+        if (mosCtx.ppMediaMemDecompState == nullptr)
+        {
+            DDI_ASSERTMESSAGE("media decomp state is null.");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+        mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
+#endif
+        mediaCtx->pMediaCopyState           = *mosCtx.ppMediaCopyState;
     }
-    //5.2 modularized mos
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
-        // 5.2.1 prepare m_osContext
+        // prepare m_osContext
         MosUtilities::MosUtilitiesInit(nullptr);
-        // 5.2.2 Read user feature key here for Per Utility Tool Enabling?
+        //Read user feature key here for Per Utility Tool Enabling
+
         if (!g_perfutility->bPerfUtilityKey)
         {
             MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
@@ -1711,26 +1731,22 @@ VAStatus DdiMedia_InitMediaContext (
 
             g_perfutility->bPerfUtilityKey = true;
         }
-        //5.2.2 init drm buf manager, or find the existing drm buf manager from list
-        mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE, nullptr);
+
+        mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE);
         if (nullptr == mediaCtx->pDrmBufMgr)
         {
             DDI_ASSERTMESSAGE("DDI:No able to allocate buffer manager, fd=0x%d", mediaCtx->fd);
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
-        //5.2.3 enable buf object reuse, when it is enabled MADVICE command should be used
-
         mos_bufmgr_gem_enable_reuse(mediaCtx->pDrmBufMgr);
 
-        //5.2.4 get the device id.
         //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
         mediaCtx->iDeviceId = mos_bufmgr_gem_get_devid(mediaCtx->pDrmBufMgr);
 
         //TO--DO, apo set it to FALSE by default, to remove the logic in apo mos controlled by it????
         mediaCtx->bIsAtomSOC = IS_ATOMSOC(mediaCtx->iDeviceId);
 
-        //5.2.5 init sku wa
         MEDIA_FEATURE_TABLE *skuTable = &mediaCtx->SkuTable;
         MEDIA_WA_TABLE *     waTable  = &mediaCtx->WaTable;
         skuTable->reset();
@@ -1766,7 +1782,6 @@ VAStatus DdiMedia_InitMediaContext (
         }
         MediaUserSettingsMgr::MediaUserSettingsInit(platform.eProductFamily);
 
-        //5.2.7 gmm sku wa and init gmm
         GMM_SKU_FEATURE_TABLE gmmSkuTable;
         memset(&gmmSkuTable, 0, sizeof(gmmSkuTable));
 
@@ -1783,7 +1798,7 @@ VAStatus DdiMedia_InitMediaContext (
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
-        //5.2.8 mos solo init
+
         eStatus = Mos_Solo_DdiInitializeDeviceId(
             (void *)mediaCtx->pDrmBufMgr,
             &mediaCtx->SkuTable,
@@ -1799,7 +1814,7 @@ VAStatus DdiMedia_InitMediaContext (
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
-        //5.2.9 open gmm and create gmm context
+
         GMM_STATUS gmmStatus = OpenGmm(&mediaCtx->GmmFuncs);
         if (gmmStatus != GMM_SUCCESS)
         {
@@ -1836,7 +1851,7 @@ VAStatus DdiMedia_InitMediaContext (
             &UserFeatureData,
             nullptr);
 #endif
-        //5.2.10 check sw swizzle and tile Y defulault ? here?
+
         mediaCtx->m_useSwSwizzling = UserFeatureData.i32Data || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);
         mediaCtx->m_tileYFlag      = MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrTileY);
 
@@ -1848,7 +1863,7 @@ VAStatus DdiMedia_InitMediaContext (
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
-        //5.2.11  fill in the mos context struct as input to initialize m_osContext
+        // fill in the mos context struct as input to initialize m_osContext
         MOS_CONTEXT mosCtx           = {};
         mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
         mosCtx.fd                    = mediaCtx->fd;
@@ -1873,7 +1888,7 @@ VAStatus DdiMedia_InitMediaContext (
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
-        //5.2.12 Prepare the command buffer manager
+        // Prepare the command buffer manager
         mediaCtx->m_cmdBufMgr = CmdBufMgr::GetObject();
         if (mediaCtx->m_cmdBufMgr == nullptr)
         {
@@ -1881,7 +1896,7 @@ VAStatus DdiMedia_InitMediaContext (
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
-        //5.2.13 inital command buffer
+
         MOS_STATUS ret = mediaCtx->m_cmdBufMgr->Initialize(mediaCtx->m_osContext, COMMAND_BUFFER_SIZE/2);
         if (ret != MOS_STATUS_SUCCESS)
         {
@@ -1905,7 +1920,7 @@ VAStatus DdiMedia_InitMediaContext (
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-    //5.3 init heap
+
     if (DdiMedia_HeapInitialize(mediaCtx) != VA_STATUS_SUCCESS)
     {
         DestroyMediaContextMutex(mediaCtx);
@@ -1913,7 +1928,7 @@ VAStatus DdiMedia_InitMediaContext (
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    //5.4 Caps need platform and sku table, especially in MediaLibvaCapsCp::IsDecEncryptionSupported
+    //Caps need platform and sku table, especially in MediaLibvaCapsCp::IsDecEncryptionSupported
     mediaCtx->m_caps = MediaLibvaCaps::CreateMediaLibvaCaps(mediaCtx);
     if (!mediaCtx->m_caps)
     {
@@ -5697,10 +5712,15 @@ VAStatus DdiMedia_QueryDisplayAttributes(
     VADisplayAttribute *attr_list,
     int32_t            *num_attributes)
 {
-    DDI_FUNCTION_ENTER();
-    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(attr_list);
 
-    return mediaCtx->m_caps->QueryDisplayAttributes(attr_list, num_attributes);
+    DDI_FUNCTION_ENTER();
+
+    if (num_attributes)
+        *num_attributes = 0;
+
+    return VA_STATUS_SUCCESS;
 }
 
 //!
@@ -5724,10 +5744,13 @@ VAStatus DdiMedia_GetDisplayAttributes(
     VADisplayAttribute *attr_list,
     int32_t             num_attributes)
 {
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(attr_list);
+    DDI_UNUSED(num_attributes);
+
     DDI_FUNCTION_ENTER();
 
-    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
-    return mediaCtx->m_caps->GetDisplayAttributes(attr_list, num_attributes);
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
 }
 
 //!
@@ -5751,10 +5774,13 @@ VAStatus DdiMedia_SetDisplayAttributes(
     VADisplayAttribute *attr_list,
     int32_t             num_attributes)
 {
-    DDI_FUNCTION_ENTER();
-    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(attr_list);
+    DDI_UNUSED(num_attributes);
 
-    return mediaCtx->m_caps->SetDisplayAttributes(attr_list, num_attributes);
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
 }
 
 //!
