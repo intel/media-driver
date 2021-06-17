@@ -217,23 +217,42 @@ namespace vp
 class Trace
 {
 public:
-    Trace(const char* name) : m_name(name), m_perfUtility(name, PERF_VP, PERF_LEVEL_HAL)
+    Trace(const char* name) : m_name(name)
     {
-        VP_DEBUG_NORMALMESSAGE("Enter function:%s\r\n", name);
+        if (g_perfutility && (g_perfutility->dwPerfUtilityIsEnabled & VP_HAL))
+        {
+            g_perfutility->startTick(name);
+            m_enablePerfMeasure = true;
+        }
+        else // Always bypass function trace for perf measurement case.
+        {
+            VP_DEBUG_VERBOSEMESSAGE("Enter function:%s\r\n", name);
+        }
     }
 
     ~Trace()
     {
-        VP_DEBUG_NORMALMESSAGE("Exit function:%s\r\n", m_name);
+        if (m_enablePerfMeasure && g_perfutility)
+        {
+            g_perfutility->stopTick(m_name);
+        }
+        else
+        {
+            VP_DEBUG_VERBOSEMESSAGE("Exit function:%s\r\n", m_name);
+        }
     }
 
 protected:
-    const char* m_name;
-    AutoPerfUtility m_perfUtility;
+    const char* m_name              = nullptr;
+    bool        m_enablePerfMeasure = false;
 };
 }
 
+#if MOS_MESSAGES_ENABLED
 // Function trace for vp hal layer.
 #define VP_FUNC_CALL() vp::Trace trace(__FUNCTION__);
+#else
+#define VP_FUNC_CALL()
+#endif
 
 #endif // !__VP_UTILS_H__
