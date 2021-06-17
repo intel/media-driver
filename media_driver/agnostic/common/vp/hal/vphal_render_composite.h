@@ -908,7 +908,7 @@ private:
     //! \return   bool
     //!           Return true if Bob DI should be enabled, otherwise false
     //!
-    bool IsBobDiEnabled(PVPHAL_SURFACE pSrc);
+    virtual bool IsBobDiEnabled(PVPHAL_SURFACE pSrc);
 
     //!
     //! \brief    Set Composite Layer

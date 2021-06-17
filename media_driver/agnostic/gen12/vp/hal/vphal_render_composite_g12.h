@@ -106,6 +106,17 @@ protected:
         MEDIA_OBJECT_KA2_STATIC_DATA        *pStatic);
 
     //!
+    //! \brief    Judge whether Bob Di should be enabled
+    //! \details  Judge whether Bob Di should be enabled according to the parameter
+    //!           of pDeinterlaceParams and the height of the input surface
+    //! \param    [in] pSrc
+    //!           Pointer to Source Surface
+    //! \return   bool
+    //!           Return true if Bob DI should be enabled, otherwise false
+    //!
+    virtual bool IsBobDiEnabled(PVPHAL_SURFACE pSrc);
+
+    //!
     //! \brief    Initialize Composite render
     //! \param    [in] pSettings
     //!           Pointer to VPHAL Settings

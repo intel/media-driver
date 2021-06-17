@@ -65,3 +65,26 @@ void CompositeStateG12::SubmitStatesFillGenSpecificStaticData(
     // Set Bit-18
     pStatic->DW09.ObjKa2Gen9.AlphaChannelCalculation = pRenderingData->bAlphaCalculateEnable ? true : false;
 }
+
+//!
+//! \brief    Judge whether Bob Di should be enabled
+//! \details  Judge whether Bob Di should be enabled according to the parameter
+//!           of pDeinterlaceParams and the height of the input surface
+//! \param    [in] pSrc
+//!           Pointer to Source Surface
+//! \return   bool
+//!           Return true if Bob DI should be enabled, otherwise false
+//!
+bool CompositeStateG12::IsBobDiEnabled(PVPHAL_SURFACE pSrc)
+{
+    bool bRet = false;
+
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(m_pOsInterface);
+
+    // Kernel support inderlaced Y410/Y210 as input format
+    bRet = (pSrc->pDeinterlaceParams &&
+            !VpHal_RndrCommonIsAlignmentWANeeded(pSrc, m_pOsInterface->CurrentGpuContextOrdinal));
+
+finish:
+    return bRet;
+}
