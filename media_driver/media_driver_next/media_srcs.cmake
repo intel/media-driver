@@ -20,10 +20,6 @@
 
 media_include_subdirectory(agnostic)
 
-if(${PLATFORM} STREQUAL "linux")
-   media_include_subdirectory(linux)
-else()
-endif()
 set(SOURCES_
     ${SOURCES_}
     ${SOURCES_NEW}

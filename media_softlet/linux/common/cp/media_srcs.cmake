@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020, Intel Corporation
+# Copyright (c) 2019-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,13 +25,13 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_cp_bitstream.h
 )
-set(SOURCES_NEW
-    ${SOURCES_NEW}
+set(SOURCES_
+    ${SOURCES_}
     ${TMP_SOURCES_}
  )
 
-set(HEADERS_NEW
-    ${HEADERS_NEW}
+set(HEADERS_
+    ${HEADERS_}
     ${TMP_HEADERS_}
  )
 

@@ -66,6 +66,7 @@ media_include_subdirectory(media_driver_next)
 media_include_subdirectory(media_interface)
 
 media_include_subdirectory(../media_softlet/agnostic)
+media_include_subdirectory(../media_softlet/linux)
 
 include(${MEDIA_EXT}/media_srcs_ext.cmake OPTIONAL)
 include(${MEDIA_SOFTLET_EXT}/media_srcs_ext.cmake OPTIONAL)
