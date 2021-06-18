@@ -4669,8 +4669,12 @@ bool CodechalVdencAvcState::ProcessRoiDeltaQp()
         m_avcPicParam->ROIDistinctDeltaQp[k] = 0;
     }
     m_avcPicParam->NumROIDistinctDeltaQp = (int8_t)numQp;
+
+    bool bIsNativeROI = (!(numQp > m_maxNumNativeRoi || m_avcPicParam->ROIDistinctDeltaQp[0] < -8 || m_avcPicParam->ROIDistinctDeltaQp[numQp - 1] > 7));
+    bool bIsNativeROIAllowed = !m_vdencBrcEnabled || m_mbBrcEnabled; // BRC native ROI require MBBRC on
+
     // return whether is native ROI or not
-    return (!(numQp > m_maxNumNativeRoi || m_avcPicParam->ROIDistinctDeltaQp[0] < -8 || m_avcPicParam->ROIDistinctDeltaQp[numQp - 1] > 7));
+    return bIsNativeROI && bIsNativeROIAllowed;
 }
 
 
