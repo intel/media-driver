@@ -49,7 +49,7 @@ MOS_STATUS CodechalEncodeCscDs::AllocateSurfaceCopy(MOS_FORMAT format)
         return MOS_STATUS_SUCCESS;
     }
 
-    return m_encoder->m_trackedBuf->AllocateSurfaceCopy(format);
+    return m_encoder->m_trackedBuf->AllocateSurfaceCopy(format, m_rawSurfaceToEnc->OsResource.pGmmResInfo->GetSetCpSurfTag(false, 0));
 }
 
 MOS_STATUS CodechalEncodeCscDs::CheckRawColorFormat(MOS_FORMAT format, MOS_TILE_TYPE tileType)
@@ -1878,16 +1878,16 @@ MOS_STATUS CodechalEncodeCscDs::RawSurfaceMediaCopy(MOS_FORMAT srcFormat)
 
     // Copy through VEBOX from Linear/TileY to TileY
 #ifdef LINUX
-    m_pMosMediaCopy->MediaCopy(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_pMosMediaCopy->MediaCopy(
         &m_rawSurfaceToEnc->OsResource,
         &cscSurface->OsResource,
-        MCPY_METHOD_BALANCE);
+        MCPY_METHOD_BALANCE));
 #else
-    m_pMosMediaCopy->MediaCopy(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_pMosMediaCopy->MediaCopy(
         &m_rawSurfaceToEnc->OsResource,
         &cscSurface->OsResource,
         false,
-        MCPY_METHOD_BALANCE);
+        MCPY_METHOD_BALANCE));
 #endif // LINUX
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesToEncPak());
