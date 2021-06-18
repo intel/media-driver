@@ -177,9 +177,19 @@ MOS_STATUS CodechalDecodeVc1G12::DecodeStateLevel()
     // Can not clear aux table for DGFX because of stolen memory
     if (!m_mmc->IsMmcEnabled() && !Mos_ResourceIsNull(&m_destSurface.OsResource) && m_destSurface.OsResource.bConvertedFromDDIResource)
     {
-        CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by Huc Copy before frame %d submission", m_frameNum);
-        CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
-            this, m_miInterface, &m_destSurface.OsResource, m_veState));
+        if (m_secureDecoder && m_secureDecoder->IsAuxDataInvalid(&m_destSurface.OsResource))
+        {
+            // Not use CODECHAL_DECODE_CHK_STATUS_RETURN() here to avoid adding local variable
+            // Error can still be caught by CODECHAL_DECODE_CHK_STATUS_RETURN() in InitAuxSurface
+            CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS for secure decode before frame %d submission", m_frameNum);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&m_destSurface.OsResource, false, true));
+        }
+        else
+        {
+            CODECHAL_DECODE_VERBOSEMESSAGE("Clear CCS by Huc Copy before frame %d submission", m_frameNum);
+            CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
+                this, m_miInterface, &m_destSurface.OsResource, m_veState));
+        }
     }
 #endif
 
