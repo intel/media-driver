@@ -330,12 +330,13 @@ protected:
         PMHW_VDBOX_HEVC_SLICE_STATE_G12 sliceState);
 
 private:
-    PMOS_INTERFACE              m_osInterface   = nullptr;      //!< Pointer to OS interface
-    CodechalDecodeHevcG12       *m_decoder = nullptr;            //!< Pointer to the HEVC decoder
-    MhwVdboxHcpInterfaceG12     *m_hcpInterface = nullptr;       //!< Pointer to MHW HCP interface
-    MhwMiInterface              *m_miInterface = nullptr;        //!< Pointer to MHW MI interface
-    CodechalSecureDecodeInterface   *m_secureDecoder = nullptr;      //!< Secure decoder pointer
-
+    PMOS_INTERFACE              m_osInterface   = nullptr;        //!< Pointer to OS interface
+    CodechalDecodeHevcG12       *m_decoder = nullptr;             //!< Pointer to the HEVC decoder
+    MhwVdboxHcpInterfaceG12     *m_hcpInterface = nullptr;        //!< Pointer to MHW HCP interface
+    MhwMiInterface              *m_miInterface = nullptr;         //!< Pointer to MHW MI interface
+    CodechalSecureDecodeInterface   *m_secureDecoder = nullptr;   //!< Secure decoder pointer
+    CodechalHwInterface         *m_hwInterface       = nullptr;   //!< Pointer to HW interface
+    MhwVdboxVdencInterface      *m_vdencInterface    = nullptr;   //!< Pointer to Vdenc Interface
     uint32_t                     m_numSlices = 0;                 //!< Number of slices in the frame
     PCODEC_HEVC_PIC_PARAMS       m_hevcPicParams = nullptr;       //!< Pointer to HEVC picture parameter
     PCODEC_HEVC_SLICE_PARAMS     m_hevcSliceParams = nullptr;     //!< Pointer to HEVC slice parameter

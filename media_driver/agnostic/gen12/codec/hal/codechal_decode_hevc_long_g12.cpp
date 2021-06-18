@@ -38,6 +38,8 @@ HevcDecodeSliceLongG12::HevcDecodeSliceLongG12(
     m_hcpInterface = static_cast<MhwVdboxHcpInterfaceG12*>(hcpInterface);
     m_miInterface = miInterface;
     m_osInterface  = m_decoder->GetOsInterface();
+    m_hwInterface    = m_decoder->GetHwInterface();
+    m_vdencInterface = m_hwInterface->GetVdencInterface();
 
     //copy other params from decoder
     m_numSlices = m_decoder->m_numSlices;
@@ -275,6 +277,29 @@ MOS_STATUS HevcDecodeSliceLongG12::ProcessSliceLong(uint8_t *cmdResBase, uint32_
             {
                 MOS_SafeFreeMemory(sliceTileParams);
                 CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
+            }
+
+            if (MEDIA_IS_WA(m_waTable, Wa_2209620131) && m_isRealTile)
+            {
+                // Send MFX_WAIT command
+                eStatus = (MOS_STATUS)(m_miInterface->AddMfxWaitCmd(cmdBuf, nullptr, true));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(sliceTileParams);
+                    CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
+                }
+                // Send VD_PIPELINE_FLUSH command
+                MHW_VDBOX_VD_PIPE_FLUSH_PARAMS vdPipelineFlushParams;
+                MOS_ZeroMemory(&vdPipelineFlushParams, sizeof(vdPipelineFlushParams));
+                vdPipelineFlushParams.Flags.bWaitDoneHEVC           = 1;
+                vdPipelineFlushParams.Flags.bFlushHEVC              = 1;
+                vdPipelineFlushParams.Flags.bWaitDoneVDCmdMsgParser = 1;
+                eStatus = (MOS_STATUS)(m_vdencInterface->AddVdPipelineFlushCmd(cmdBuf, &vdPipelineFlushParams));
+                if (eStatus != MOS_STATUS_SUCCESS)
+                {
+                    MOS_SafeFreeMemory(sliceTileParams);
+                    CODECHAL_DECODE_CHK_STATUS_RETURN(eStatus);
+                }
             }
 
             if (++tileX > m_hevcPicParams->num_tile_columns_minus1)
