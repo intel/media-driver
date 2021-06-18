@@ -171,6 +171,15 @@ struct EncoderParams
     uint32_t                        uiOverallNALPayload;
     MetaDataOffset                  metaDataOffset;
     void *                          pSliceHeaderParams;         //!< [HEVC]
+
+    PMOS_RESOURCE                   m_presPredication = nullptr;            //! \brief [Predication] Resource for predication
+    uint64_t                        m_predicationResOffset = 0;             //! \brief [Predication] Offset for Predication resource
+    bool                            m_predicationNotEqualZero = false;      //! \brief [Predication] Predication mode
+    bool                            m_predicationEnabled = false;           //! \brief [Predication] Indicates whether or not Predication is enabled
+    PMOS_RESOURCE                   *m_tempPredicationBuffer = nullptr;     //! \brief [Predication] Temp buffer for Predication
+
+    bool                            m_setMarkerEnabled = false;             //! \brief [SetMarker] Indicates whether or not SetMarker is enabled
+    PMOS_RESOURCE                   m_presSetMarker = nullptr;              //! \brief [SetMarker] Resource for SetMarker
 };
 
 #endif // !__CODEC_DEF_ENCODE_H__

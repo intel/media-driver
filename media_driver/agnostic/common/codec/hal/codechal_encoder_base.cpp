@@ -1667,6 +1667,16 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
             "%s: Failed to allocate HUC STATUS 2 Buffer\n", __FUNCTION__);
     }
 
+    allocParamsForBufferLinear.dwBytes = sizeof(uint32_t);
+    allocParamsForBufferLinear.pBufName = "PredicationBuffer";
+
+    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(
+        m_osInterface->pfnAllocateResource(
+            m_osInterface,
+            &allocParamsForBufferLinear,
+            &m_predicationBuffer),
+        "%s: Failed to allocate predication buffer\n", __FUNCTION__);
+
     return eStatus;
 }
 
@@ -2273,6 +2283,8 @@ void CodechalEncoderState::FreeResources()
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencCmdInitializerDataBuffer[i]);
     }
+
+    m_osInterface->pfnFreeResource(m_osInterface, &m_predicationBuffer);
 
     return;
 }
@@ -4507,6 +4519,12 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
 
     MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
 
+    // Send Start Marker command
+    if (m_encodeParams.m_setMarkerEnabled)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendMarkerCommand(cmdBuffer, MOS_RCS_ENGINE_USED(gpuContext)));
+    }
+
     // initialize command buffer attributes
     cmdBuffer->Attributes.bTurboMode               = m_hwInterface->m_turboMode;
     cmdBuffer->Attributes.bMediaPreemptionEnabled  = MOS_RCS_ENGINE_USED(gpuContext) ?
@@ -4539,7 +4557,162 @@ MOS_STATUS CodechalEncoderState::SendPrologWithFrameTracking(
     genericPrologParams.dwStoreDataValue = m_storeData - 1;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd(cmdBuffer, &genericPrologParams, mmioRegister));
 
+    // Send predication command
+    if (m_encodeParams.m_predicationEnabled)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPredicationCommand(cmdBuffer));
+    }
+
     return eStatus;
+}
+
+MOS_STATUS CodechalEncoderState::SendPredicationCommand(
+    PMOS_COMMAND_BUFFER             cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_miInterface);
+
+    // Predication can be set based on the value of 64-bits within a buffer
+    auto PreparePredicationBuf = [&](bool predicationNotEqualZero) {
+        auto mmioRegistersMfx = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
+        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+        // load presPredication to general purpose register0
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    loadRegisterMemParams;
+        MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
+        loadRegisterMemParams.presStoreBuffer = m_encodeParams.m_presPredication;
+        loadRegisterMemParams.dwOffset = (uint32_t)m_encodeParams.m_predicationResOffset;
+        loadRegisterMemParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
+            cmdBuffer,
+            &loadRegisterMemParams));
+        MHW_MI_LOAD_REGISTER_IMM_PARAMS     loadRegisterImmParams;
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData = 0;
+        loadRegisterImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0HiOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
+            cmdBuffer,
+            &loadRegisterImmParams));
+
+        MOS_ZeroMemory(&loadRegisterMemParams, sizeof(loadRegisterMemParams));
+        loadRegisterMemParams.presStoreBuffer = m_encodeParams.m_presPredication;
+        loadRegisterMemParams.dwOffset = (uint32_t)m_encodeParams.m_predicationResOffset + sizeof(uint32_t);
+        loadRegisterMemParams.dwRegister = mmioRegistersMfx->generalPurposeRegister4LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(
+            cmdBuffer,
+            &loadRegisterMemParams));
+        MOS_ZeroMemory(&loadRegisterImmParams, sizeof(loadRegisterImmParams));
+        loadRegisterImmParams.dwData = 0;
+        loadRegisterImmParams.dwRegister = mmioRegistersMfx->generalPurposeRegister4HiOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(
+            cmdBuffer,
+            &loadRegisterImmParams));
+
+        //perform operation
+        MHW_MI_MATH_PARAMS  miMathParams;
+        MHW_MI_ALU_PARAMS   miAluParams[4];
+        MOS_ZeroMemory(&miMathParams, sizeof(miMathParams));
+        MOS_ZeroMemory(&miAluParams, sizeof(miAluParams));
+        // load     srcA, reg0
+        miAluParams[0].AluOpcode = MHW_MI_ALU_LOAD;
+        miAluParams[0].Operand1 = MHW_MI_ALU_SRCA;
+        miAluParams[0].Operand2 = MHW_MI_ALU_GPREG0;
+        // load     srcB, reg4
+        miAluParams[1].AluOpcode = MHW_MI_ALU_LOAD;
+        miAluParams[1].Operand1 = MHW_MI_ALU_SRCB;
+        miAluParams[1].Operand2 = MHW_MI_ALU_GPREG4;
+        // add      srcA, srcB
+        miAluParams[2].AluOpcode = predicationNotEqualZero ? MHW_MI_ALU_ADD : MHW_MI_ALU_OR;
+        miAluParams[2].Operand1 = MHW_MI_ALU_SRCB;
+        miAluParams[2].Operand2 = MHW_MI_ALU_GPREG4;
+        // store      reg0, ZF
+        miAluParams[3].AluOpcode = MHW_MI_ALU_STORE;
+        miAluParams[3].Operand1 = MHW_MI_ALU_GPREG0;
+        miAluParams[3].Operand2 = predicationNotEqualZero ? MHW_MI_ALU_ZF : MHW_MI_ALU_ACCU;
+        miMathParams.pAluPayload = miAluParams;
+        miMathParams.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiMathCmd(
+            cmdBuffer,
+            &miMathParams));
+
+        // if MHW_MI_ALU_ZF, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
+        // if MHW_MI_ALU_ACCU, the OR result directly copied
+        MHW_MI_STORE_REGISTER_MEM_PARAMS    storeRegParams;
+        MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+        storeRegParams.presStoreBuffer = &m_predicationBuffer;
+        storeRegParams.dwOffset = 0;
+        storeRegParams.dwRegister = mmioRegistersMfx->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(
+            cmdBuffer,
+            &storeRegParams));
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(m_encodeParams.m_tempPredicationBuffer);
+        *m_encodeParams.m_tempPredicationBuffer = &m_predicationBuffer;
+
+        return MOS_STATUS_SUCCESS;
+    };
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(PreparePredicationBuf(m_encodeParams.m_predicationNotEqualZero));
+
+    MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS  condBBEndParams;
+    MOS_ZeroMemory(&condBBEndParams, sizeof(condBBEndParams));
+    condBBEndParams.presSemaphoreBuffer = &m_predicationBuffer;
+    condBBEndParams.dwOffset = 0;
+    condBBEndParams.dwValue = 0;
+    condBBEndParams.bDisableCompareMask = true;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiConditionalBatchBufferEndCmd(
+        cmdBuffer,
+        &condBBEndParams));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncoderState::SendMarkerCommand(
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    bool isRender)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_miInterface);
+
+    PMOS_RESOURCE presSetMarker = (PMOS_RESOURCE) m_encodeParams.m_presSetMarker;
+
+    if (Mos_ResourceIsNull(presSetMarker))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (isRender)
+    {
+        // Send pipe_control to get the timestamp
+        MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
+        MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
+        pipeControlParams.presDest          = presSetMarker;
+        pipeControlParams.dwResourceOffset  = 0;
+        pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddPipeControl(cmdBuffer, NULL, &pipeControlParams));
+    }
+    else
+    {
+        // Send flush_dw to get the timestamp 
+        MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
+        MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+        flushDwParams.pOsResource           = presSetMarker;
+        flushDwParams.dwResourceOffset      = 0;
+        flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        flushDwParams.bQWordEnable          = 1;
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncoderState::UpdateCmdBufAttribute(

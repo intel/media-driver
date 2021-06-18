@@ -1743,6 +1743,8 @@ public:
     PMOS_RESOURCE                   presMbConstSurface = nullptr;
     PMOS_RESOURCE                   presVMEOutSurface = nullptr;
 
+    MOS_RESOURCE                    m_predicationBuffer = {};     //! \brief Internal buffer for predication
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_mmcUserFeatureUpdated;  //!< indicate if the user feature is updated with MMC state
 #endif
@@ -1962,6 +1964,29 @@ public:
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool frameTrackingRequested,
         MHW_MI_MMIOREGISTERS* mmioRegister = nullptr);
+
+    //!
+    //! \brief  Inserts predication command for a command buffer
+    //! \param  [in] cmdBuffer
+    //!         Command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendPredicationCommand(
+        PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief  Inserts marker commands for a command buffer
+    //! \param  [in] cmdBuffer
+    //!         Command buffer
+    //! \param  [in] isRender
+    //!         Whether render engine workload or not
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMarkerCommand(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        bool isRender);
 
     //!
     //! \brief  Calculate Command Buffer Size
