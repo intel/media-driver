@@ -21,14 +21,22 @@
 */
 //!
 //! \file     mhw_cmdpar.h
-//! \brief    MHW command parameters
+//! \brief    MHW cmdpar common defines
 //! \details
 //!
 
 #ifndef __MHW_CMDPAR_H__
 #define __MHW_CMDPAR_H__
 
-#include <cstdint>
+#include <memory>
+#include "mhw_utilities.h"
+
+//   [Macro Prefixes]                 |   [Macro Suffixes]
+//   No Prefix: for external use      |   _T   : type
+//   _        : for internal use      |   _F   : function name
+//   __       : intermediate macros   |   _M   : class member name
+//              only used by other    |   _DECL: declaration
+//              macros                |   _DEF : definition
 
 #define __MHW_CMD_PAR_T2(CMD) CMD##_Params         // MHW command parameter type
 #define _MHW_CMD_PAR_T(CMD) __MHW_CMD_PAR_T2(CMD)  // to support 2-level macro expanding
@@ -81,7 +89,7 @@ Pointer<T> MakePointer()
 }
 
 template <typename T, typename... Args>
-Pointer<T> MakePointer(Args &&... args)
+Pointer<T> MakePointer(Args &&...args)
 {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }

@@ -30,7 +30,7 @@
         DO_FIELDS();
     #undef DO_FIELD
     #if MHW_HWCMDPARSER_ENABLED
-        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        if (m_parseFieldsLayout)
         {
     #define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
             DO_FIELDS();

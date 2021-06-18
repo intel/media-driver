@@ -21,7 +21,7 @@
 */
 //!
 //! \file     mhw_hwcmd.h
-//! \brief    Common macros and functions to define MHW command structs.
+//! \brief    MHW hwcmd common defines
 //!
 
 #ifndef __MHW_HWCMD_H__

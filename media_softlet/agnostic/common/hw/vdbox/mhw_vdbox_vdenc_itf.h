@@ -28,7 +28,7 @@
 #ifndef __MHW_VDBOX_VDENC_ITF_H__
 #define __MHW_VDBOX_VDENC_ITF_H__
 
-#include "mhw_def.h"
+#include "mhw_itf.h"
 #include "mhw_vdbox_vdenc_cmdpar.h"
 
 namespace mhw

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     mhw_def.h
-//! \brief    MHW interface common defines
+//! \file     mhw_impl.h
+//! \brief    MHW impl common defines
 //! \details
 //!
 
-#ifndef __MHW_DEF_H__
-#define __MHW_DEF_H__
+#ifndef __MHW_IMPL_H__
+#define __MHW_IMPL_H__
 
-#include <memory>
-#include <vector>
-#include "mhw_utilities.h"
+#include "mhw_itf.h"
 
 //   [Macro Prefixes]                 |   [Macro Suffixes]
 //   No Prefix: for external use      |   _T   : type
@@ -39,35 +37,10 @@
 //              only used by other    |   _DECL: declaration
 //              macros                |   _DEF : definition
 
-#define MHW_HWCMDPARSER_ENABLED (_MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL))
-#if MHW_HWCMDPARSER_ENABLED
-#include "mhw_hwcmd_parser.h"
-#else
-#define MHW_HWCMDPARSER_INIT(osInterface)
-#define MHW_HWCMDPARSER_DESTROY()
-#define MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN() false
-#define MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
-#define MHW_HWCMDPARSER_FRAMEINFOUPDATE(frameType)
-#define MHW_HWCMDPARSER_PARSECMD(cmdName, cmdData, dwLen)
-#define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
-#define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
-#endif
-
 #define _MHW_CMD_T(CMD)      CMD##_CMD         // MHW command type
 #define __MHW_CMD_PAR_M(CMD) m_##CMD##_Params  // member which is a pointer to MHW command parameters
 
-#define __MHW_CMD_PAR_GET_F(CMD)       GetCmdPar_##CMD       // function name to get the pointer to MHW command parameter
-#define __MHW_CMD_BYTE_SIZE_GET_F(CMD) GetCmdByteSize_##CMD  // function name to get MHW command size in byte
-#define __MHW_CMD_ADD_F(CMD)           AddCmd_##CMD          // function name to add command
-#define __MHW_CMD_SET_F(CMD)           SetCmd_##CMD          // function name to set command data
-
-#define __MHW_CMD_PAR_GET_DECL(CMD)       mhw::Pointer<_MHW_CMD_PAR_T(CMD)> __MHW_CMD_PAR_GET_F(CMD)(bool reset)
-#define __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) size_t __MHW_CMD_BYTE_SIZE_GET_F(CMD)() const
-
-#define __MHW_CMD_ADD_DECL(CMD) MOS_STATUS __MHW_CMD_ADD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf,                  \
-                                                                PMHW_BATCH_BUFFER   batchBuf      = nullptr, \
-                                                                const uint8_t      *extraData     = nullptr, \
-                                                                size_t              extraDataSize = 0)
+#define __MHW_CMD_SET_F(CMD) SetCmd_##CMD  // function name to set command data
 
 #if MHW_HWCMDPARSER_ENABLED
 #define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)(void *cmdData, const std::string &cmdName = #CMD)
@@ -112,12 +85,6 @@
         return MOS_STATUS_SUCCESS;                                                                    \
     }
 
-#define _MHW_CMD_ALL_DEF_FOR_ITF(CMD)              \
-public:                                            \
-    virtual __MHW_CMD_PAR_GET_DECL(CMD)       = 0; \
-    virtual __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) = 0; \
-    virtual __MHW_CMD_ADD_DECL(CMD)           = 0
-
 #define _MHW_CMD_ALL_DEF_FOR_IMPL(CMD)                             \
 public:                                                            \
     __MHW_CMD_PAR_GET_DEF(CMD);                                    \
@@ -135,18 +102,6 @@ public:                                        \
     auto        cmd    = reinterpret_cast<typename cmd_t::_MHW_CMD_T(CMD) *>(cmdData); \
     const auto &params = this->__MHW_CMD_PAR_M(CMD);                                   \
     base_t::__MHW_CMD_SET_F(CMD)(cmd)
-
-#define _MHW_SETPARAMS_AND_ADDCMD(CMD, cmdPar_t, GetPar, AddCmd, ...)           \
-    {                                                                           \
-        auto par = GetPar(CMD, true);                                           \
-        auto p   = dynamic_cast<const cmdPar_t *>(this);                        \
-        if (p)                                                                  \
-        {                                                                       \
-            p->__MHW_CMD_PAR_SET_F(CMD)(par);                                   \
-        }                                                                       \
-        LOOP_FEATURE_INTERFACE_RETURN(cmdPar_t, __MHW_CMD_PAR_SET_F(CMD), par); \
-        AddCmd(CMD, __VA_ARGS__);                                               \
-    }
 
 // DWORD location of a command field
 #define _MHW_CMD_DW_LOCATION(field) \
@@ -213,6 +168,42 @@ inline uint32_t GetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileMode
 
     return tileMode;
 }
+
+class Impl
+{
+protected:
+    Impl(PMOS_INTERFACE osItf)
+    {
+        MHW_FUNCTION_ENTER;
+
+        MHW_CHK_NULL_NO_STATUS_RETURN(osItf);
+
+        m_osItf = osItf;
+        if (m_osItf->bUsesGfxAddress)
+        {
+            AddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
+        }
+        else
+        {
+            AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
+        }
+    }
+
+    virtual ~Impl() = default;
+
+protected:
+    MOS_STATUS(*AddResourceToCmd)
+    (PMOS_INTERFACE osItf, PMOS_COMMAND_BUFFER cmdBuf, PMHW_RESOURCE_PARAMS params) = nullptr;
+
+    PMOS_INTERFACE      m_osItf           = nullptr;
+    PMOS_COMMAND_BUFFER m_currentCmdBuf   = nullptr;
+    PMHW_BATCH_BUFFER   m_currentBatchBuf = nullptr;
+
+#if MHW_HWCMDPARSER_ENABLED
+    std::shared_ptr<HwcmdParser> m_hwcmdParser       = mhw::HwcmdParser::GetInstance();
+    bool                         m_parseFieldsLayout = m_hwcmdParser->ParseFieldsLayoutEn();
+#endif  // MHW_HWCMDPARSER_ENABLED
+};
 }  // namespace mhw
 
-#endif  // __MHW_DEF_H__
+#endif  // __MHW_IMPL_H__

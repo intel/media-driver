@@ -29,6 +29,7 @@
 #define __MHW_VDBOX_VDENC_IMPL_H__
 
 #include "mhw_vdbox_vdenc_itf.h"
+#include "mhw_impl.h"
 
 #ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
 #include "mhw_vdbox_vdenc_impl_ext.h"
@@ -133,7 +134,7 @@ inline SurfaceFormat MosFormatToVdencSurfaceReconFormat(MOS_FORMAT format)
     }
 }
 
-class Impl : public Itf
+class Impl : public Itf, public mhw::Impl
 {
     _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_CONTROL_STATE);
     _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_PIPE_MODE_SELECT);
@@ -192,21 +193,9 @@ public:
 protected:
     using base_t = Itf;
 
-    Impl(PMOS_INTERFACE osItf)
+    Impl(PMOS_INTERFACE osItf) : mhw::Impl(osItf)
     {
         MHW_FUNCTION_ENTER;
-
-        MHW_CHK_NULL_NO_STATUS_RETURN(osItf);
-
-        m_osItf = osItf;
-        if (m_osItf->bUsesGfxAddress)
-        {
-            AddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
-        }
-        else
-        {
-            AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
-        }
 
         InitRowstoreUserFeatureSettings();
     }
@@ -270,13 +259,6 @@ protected:
     }
 
 protected:
-    MOS_STATUS(*AddResourceToCmd)
-    (PMOS_INTERFACE osItf, PMOS_COMMAND_BUFFER cmdBuf, PMHW_RESOURCE_PARAMS params) = nullptr;
-
-    PMOS_INTERFACE      m_osItf           = nullptr;
-    PMOS_COMMAND_BUFFER m_currentCmdBuf   = nullptr;
-    PMHW_BATCH_BUFFER   m_currentBatchBuf = nullptr;
-
     vdbox::RowStoreCache             m_vdencRowStoreCache                                       = {};
     vdbox::RowStoreCache             m_vdencIpdlRowstoreCache                                   = {};
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};
