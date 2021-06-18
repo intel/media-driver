@@ -24,6 +24,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_def.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_hwcmd.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_hwcmd_process_cmdfields.h
 )
 
 set(SOURCES_
