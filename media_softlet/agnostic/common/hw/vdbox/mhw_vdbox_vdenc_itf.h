@@ -67,23 +67,28 @@ public:
     _MHW_CMD_ALL_DEF_FOR_ITF(VDENC_WALKER_STATE);
 
     _MHW_CMD_ALL_DEF_FOR_ITF(VD_PIPELINE_FLUSH);
+
+    _MHW_CMD_ALL_DEF_FOR_ITF(VDENC_CMD1);
+
+    _MHW_CMD_ALL_DEF_FOR_ITF(VDENC_CMD2);
+
+    _MHW_CMD_ALL_DEF_FOR_ITF(VDENC_CMD3);
+
+    _MHW_CMD_ALL_DEF_FOR_ITF(VDENC_CMD4);
+
+    _MHW_CMD_ALL_DEF_FOR_ITF(VDENC_CMD5);
 };
 }  // namespace vdenc
 }  // namespace vdbox
 }  // namespace mhw
 
-#ifndef MHW_VDBOX_VDENC_ITF_T
-#define MHW_VDBOX_VDENC_ITF_T mhw::vdbox::vdenc::Itf
-#endif
+#define MHW_VDBOX_VDENC_GET_CMD_PAR(CMD, reset) m_vdencItf->__MHW_CMD_PAR_GET_F(CMD)(reset)
 
-#define MHW_VDBOX_VDENC_GET_CMD_PAR(cmd, reset) \
-    mhw::DynamicPointerCast<MHW_VDBOX_VDENC_CMD_PAR_T(cmd)>(m_vdencItf->__MHW_CMD_PAR_GET_F(cmd)(reset))
+#define MHW_VDBOX_VDENC_GET_CMD_SIZE(CMD) m_vdencItf->__MHW_CMD_BYTE_SIZE_GET_F(CMD)()
 
-#define MHW_VDBOX_VDENC_GET_CMD_SIZE(cmd) m_vdencItf->__MHW_CMD_BYTE_SIZE_GET_F(cmd)()
+#define MHW_VDBOX_VDENC_ADD_CMD(CMD, ...) MHW_CHK_STATUS_RETURN(m_vdencItf->__MHW_CMD_ADD_F(CMD)(__VA_ARGS__))
 
-#define MHW_VDBOX_VDENC_ADD_CMD(cmd, ...) MHW_CHK_STATUS_RETURN(m_vdencItf->__MHW_CMD_ADD_F(cmd)(__VA_ARGS__))
-
-#define MHW_VDBOX_VDENC_SETPARAMS_AND_ADDCMD(cmd, ...) \
-    _MHW_SETPARAMS_AND_ADDCMD(cmd, MHW_VDBOX_VDENC_CMDPAR_T, MHW_VDBOX_VDENC_GET_CMD_PAR, MHW_VDBOX_VDENC_ADD_CMD, __VA_ARGS__)
+#define MHW_VDBOX_VDENC_SETPARAMS_AND_ADDCMD(CMD, ...) \
+    _MHW_SETPARAMS_AND_ADDCMD(CMD, mhw::vdbox::vdenc::CmdPar, MHW_VDBOX_VDENC_GET_CMD_PAR, MHW_VDBOX_VDENC_ADD_CMD, __VA_ARGS__)
 
 #endif  // __MHW_VDBOX_VDENC_ITF_H__

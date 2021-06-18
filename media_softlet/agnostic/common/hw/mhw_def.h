@@ -53,128 +53,99 @@
 #define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
 #endif
 
-#define _MHW_CMD_T(cmd)      cmd##_CMD         // MHW command type
-#define __MHW_CMD_PAR_M(cmd) m_##cmd##_Params  // member which is a pointer to MHW command parameters
+#define _MHW_CMD_T(CMD)      CMD##_CMD         // MHW command type
+#define __MHW_CMD_PAR_M(CMD) m_##CMD##_Params  // member which is a pointer to MHW command parameters
 
-#define __MHW_CMD_PAR_GET_F(cmd)       GetCmdPar_##cmd       // function name to get the pointer to MHW command parameter
-#define __MHW_CMD_BYTE_SIZE_GET_F(cmd) GetCmdByteSize_##cmd  // function name to get MHW command size in byte
-#define __MHW_CMD_ADD_F(cmd)           AddCmd_##cmd          // function name to add command
-#define __MHW_CMD_CREATE_F(cmd)        CreateCmd_##cmd       // function name to create command data
-#define __MHW_CMD_SET_F(cmd)           SetCmd_##cmd          // function name to set command data
+#define __MHW_CMD_PAR_GET_F(CMD)       GetCmdPar_##CMD       // function name to get the pointer to MHW command parameter
+#define __MHW_CMD_BYTE_SIZE_GET_F(CMD) GetCmdByteSize_##CMD  // function name to get MHW command size in byte
+#define __MHW_CMD_ADD_F(CMD)           AddCmd_##CMD          // function name to add command
+#define __MHW_CMD_SET_F(CMD)           SetCmd_##CMD          // function name to set command data
 
-#define __MHW_CMD_PAR_GET_DECL(cmd)       mhw::Pointer<_MHW_CMD_PAR_T(cmd)> __MHW_CMD_PAR_GET_F(cmd)(bool reset)
-#define __MHW_CMD_BYTE_SIZE_GET_DECL(cmd) size_t __MHW_CMD_BYTE_SIZE_GET_F(cmd)() const
+#define __MHW_CMD_PAR_GET_DECL(CMD)       mhw::Pointer<_MHW_CMD_PAR_T(CMD)> __MHW_CMD_PAR_GET_F(CMD)(bool reset)
+#define __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) size_t __MHW_CMD_BYTE_SIZE_GET_F(CMD)() const
 
-#define __MHW_CMD_ADD_DECL(cmd) MOS_STATUS __MHW_CMD_ADD_F(cmd)(PMOS_COMMAND_BUFFER cmdBuf,                  \
+#define __MHW_CMD_ADD_DECL(CMD) MOS_STATUS __MHW_CMD_ADD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf,                  \
                                                                 PMHW_BATCH_BUFFER   batchBuf      = nullptr, \
-                                                                const uint8_t *     extraData     = nullptr, \
+                                                                const uint8_t      *extraData     = nullptr, \
                                                                 size_t              extraDataSize = 0)
 
-#define __MHW_CMD_CREATE_DECL(cmd) mhw::Pointer<std::vector<uint8_t>> __MHW_CMD_CREATE_F(cmd)() const
-
 #if MHW_HWCMDPARSER_ENABLED
-#define __MHW_CMD_SET_DECL(cmd) MOS_STATUS __MHW_CMD_SET_F(cmd)(uint8_t * cmdDataPtr, const std::string &cmdName = #cmd)
+#define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)(void *cmdData, const std::string &cmdName = #CMD)
 #else
-#define __MHW_CMD_SET_DECL(cmd) MOS_STATUS __MHW_CMD_SET_F(cmd)(uint8_t * cmdDataPtr)
+#define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)(void *cmdData)
 #endif
 
-#define _MHW_CMD_SET_DECL_OVERRIDE(cmd) __MHW_CMD_SET_DECL(cmd) override
+#define _MHW_CMD_SET_DECL_OVERRIDE(CMD) __MHW_CMD_SET_DECL(CMD) override
 
-#define __MHW_CMD_PAR_GET_COMMON_DEF(cmd, par_t)                                      \
-    __MHW_CMD_PAR_GET_DECL(cmd) override                                              \
-    {                                                                                 \
-        MHW_FUNCTION_ENTER;                                                           \
-        if (this->__MHW_CMD_PAR_M(cmd) == nullptr)                                    \
-        {                                                                             \
-            this->__MHW_CMD_PAR_M(cmd) = mhw::MakePointer<par_t(cmd)>();              \
-        }                                                                             \
-        if (reset)                                                                    \
-        {                                                                             \
-            auto p = mhw::DynamicPointerCast<par_t(cmd)>(this->__MHW_CMD_PAR_M(cmd)); \
-            *p     = par_t(cmd)();                                                    \
-        }                                                                             \
-        return this->__MHW_CMD_PAR_M(cmd);                                            \
+#define __MHW_CMD_PAR_GET_DEF(CMD)              \
+    __MHW_CMD_PAR_GET_DECL(CMD) override        \
+    {                                           \
+        if (reset)                              \
+        {                                       \
+            *(this->__MHW_CMD_PAR_M(CMD)) = {}; \
+        }                                       \
+        return this->__MHW_CMD_PAR_M(CMD);      \
     }
 
-#define __MHW_CMD_BYTE_SIZE_GET_DEF(cmd)                \
-    __MHW_CMD_BYTE_SIZE_GET_DECL(cmd) override          \
+#define __MHW_CMD_BYTE_SIZE_GET_DEF(CMD)                \
+    __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) override          \
     {                                                   \
-        return sizeof(typename cmd_t::_MHW_CMD_T(cmd)); \
+        return sizeof(typename cmd_t::_MHW_CMD_T(CMD)); \
     }
 
-#define __MHW_CMD_ADD_DEF(cmd)                                                                            \
-    __MHW_CMD_ADD_DECL(cmd) override                                                                      \
-    {                                                                                                     \
-        MHW_FUNCTION_ENTER;                                                                               \
-        this->m_currentCmdBuf   = cmdBuf;                                                                 \
-        this->m_currentBatchBuf = batchBuf;                                                               \
-        auto cmdData            = this->__MHW_CMD_CREATE_F(cmd)();                                        \
-        MHW_CHK_STATUS_RETURN(this->__MHW_CMD_SET_F(cmd)(cmdData->data()));                               \
-        MHW_HWCMDPARSER_PARSECMD(#cmd,                                                                    \
-            reinterpret_cast<uint32_t *>(cmdData->data()),                                                \
-            cmdData->size() / sizeof(uint32_t));                                                          \
-        MHW_CHK_STATUS_RETURN(Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, cmdData->data(), cmdData->size())); \
-        if (extraData && extraDataSize > 0)                                                               \
-        {                                                                                                 \
-            MHW_CHK_STATUS_RETURN(Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, extraData, extraDataSize));     \
-        }                                                                                                 \
-        return MOS_STATUS_SUCCESS;                                                                        \
+#define __MHW_CMD_ADD_DEF(CMD)                                                                        \
+    __MHW_CMD_ADD_DECL(CMD) override                                                                  \
+    {                                                                                                 \
+        MHW_FUNCTION_ENTER;                                                                           \
+        this->m_currentCmdBuf   = cmdBuf;                                                             \
+        this->m_currentBatchBuf = batchBuf;                                                           \
+        typename cmd_t::_MHW_CMD_T(CMD) cmdData;                                                      \
+        MHW_CHK_STATUS_RETURN(this->__MHW_CMD_SET_F(CMD)(&cmdData));                                  \
+        MHW_HWCMDPARSER_PARSECMD(#CMD,                                                                \
+            reinterpret_cast<uint32_t*>(&cmdData),                                                    \
+            sizeof(cmdData) / sizeof(uint32_t));                                                      \
+        MHW_CHK_STATUS_RETURN(Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, &cmdData, sizeof(cmdData)));    \
+        if (extraData && extraDataSize > 0)                                                           \
+        {                                                                                             \
+            MHW_CHK_STATUS_RETURN(Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, extraData, extraDataSize)); \
+        }                                                                                             \
+        return MOS_STATUS_SUCCESS;                                                                    \
     }
 
-#define __MHW_CMD_CREATE_DEF(cmd)                                              \
-    __MHW_CMD_CREATE_DECL(cmd) override                                        \
-    {                                                                          \
-        typename cmd_t::_MHW_CMD_T(cmd) cmdData;                               \
-        auto p = reinterpret_cast<const uint8_t *>(&cmdData);                  \
-        return mhw::MakePointer<std::vector<uint8_t>>(p, p + sizeof(cmdData)); \
-    }
-
-#define _MHW_CMD_ALL_DEF_FOR_ITF(cmd)              \
+#define _MHW_CMD_ALL_DEF_FOR_ITF(CMD)              \
 public:                                            \
-    virtual __MHW_CMD_PAR_GET_DECL(cmd)       = 0; \
-    virtual __MHW_CMD_BYTE_SIZE_GET_DECL(cmd) = 0; \
-    virtual __MHW_CMD_ADD_DECL(cmd)           = 0
+    virtual __MHW_CMD_PAR_GET_DECL(CMD)       = 0; \
+    virtual __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) = 0; \
+    virtual __MHW_CMD_ADD_DECL(CMD)           = 0
 
-#define _MHW_CMD_ALL_DEF_FOR_IMPL(cmd)                             \
+#define _MHW_CMD_ALL_DEF_FOR_IMPL(CMD)                             \
 public:                                                            \
-    __MHW_CMD_PAR_GET_COMMON_DEF(cmd, _MHW_CMD_PAR_T);             \
-    __MHW_CMD_ADD_DEF(cmd);                                        \
-                                                                   \
+    __MHW_CMD_PAR_GET_DEF(CMD);                                    \
 protected:                                                         \
-    virtual __MHW_CMD_CREATE_DECL(cmd) = 0;                        \
-    virtual __MHW_CMD_SET_DECL(cmd) { return MOS_STATUS_SUCCESS; } \
-    mhw::Pointer<_MHW_CMD_PAR_T(cmd)> __MHW_CMD_PAR_M(cmd) = nullptr
+    virtual __MHW_CMD_SET_DECL(CMD) { return MOS_STATUS_SUCCESS; } \
+    mhw::Pointer<_MHW_CMD_PAR_T(CMD)> __MHW_CMD_PAR_M(CMD) = mhw::MakePointer<_MHW_CMD_PAR_T(CMD)>()
 
-#define _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(cmd) \
+#define _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(CMD) \
 public:                                        \
-    __MHW_CMD_BYTE_SIZE_GET_DEF(cmd);          \
-                                               \
-protected:                                     \
-    __MHW_CMD_CREATE_DEF(cmd)
+    __MHW_CMD_BYTE_SIZE_GET_DEF(CMD);          \
+    __MHW_CMD_ADD_DEF(CMD)
 
-#define __MHW_CMDSET_GETCMDPARAMS_COMMON(cmdName, par_t)                                   \
-    MHW_FUNCTION_ENTER;                                                                    \
-    auto cmd    = reinterpret_cast<typename cmd_t::_MHW_CMD_T(cmdName) *>(cmdDataPtr);     \
-    auto params = mhw::DynamicPointerCast<par_t(cmdName)>(this->__MHW_CMD_PAR_M(cmdName)); \
-    MHW_CHK_NULL_RETURN(cmd);                                                              \
-    MHW_CHK_NULL_RETURN(params)
+#define _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(CMD)                                     \
+    MHW_FUNCTION_ENTER;                                                                \
+    auto        cmd    = reinterpret_cast<typename cmd_t::_MHW_CMD_T(CMD) *>(cmdData); \
+    const auto &params = this->__MHW_CMD_PAR_M(CMD);                                   \
+    base_t::__MHW_CMD_SET_F(CMD)(cmd)
 
-#define __MHW_CMDSET_CALLBASE(cmd) base_t::__MHW_CMD_SET_F(cmd)(cmdDataPtr)
-
-#define _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(cmd)         \
-    __MHW_CMDSET_GETCMDPARAMS_COMMON(cmd, _MHW_CMD_PAR_T); \
-    __MHW_CMDSET_CALLBASE(cmd)
-
-#define _MHW_SETPARAMS_AND_ADDCMD(cmd, cmdPar_t, GetPar, AddCmd, ...)           \
+#define _MHW_SETPARAMS_AND_ADDCMD(CMD, cmdPar_t, GetPar, AddCmd, ...)           \
     {                                                                           \
-        auto par = GetPar(cmd, true);                                           \
+        auto par = GetPar(CMD, true);                                           \
         auto p   = dynamic_cast<const cmdPar_t *>(this);                        \
         if (p)                                                                  \
         {                                                                       \
-            p->__MHW_CMD_PAR_SET_F(cmd)(par);                                   \
+            p->__MHW_CMD_PAR_SET_F(CMD)(par);                                   \
         }                                                                       \
-        LOOP_FEATURE_INTERFACE_RETURN(cmdPar_t, __MHW_CMD_PAR_SET_F(cmd), par); \
-        AddCmd(cmd, __VA_ARGS__);                                               \
+        LOOP_FEATURE_INTERFACE_RETURN(cmdPar_t, __MHW_CMD_PAR_SET_F(CMD), par); \
+        AddCmd(CMD, __VA_ARGS__);                                               \
     }
 
 // DWORD location of a command field

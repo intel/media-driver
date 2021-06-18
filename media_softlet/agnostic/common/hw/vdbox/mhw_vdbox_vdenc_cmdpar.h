@@ -32,6 +32,15 @@
 #include "codec_def_common.h"
 #include "codec_def_common_encode.h"
 
+#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#include "mhw_vdbox_vdenc_cmdpar_ext.h"
+#define __MHW_VDBOX_VDENC_WRAPPER(STUFF)
+#define __MHW_VDBOX_VDENC_WRAPPER_EXT(STUFF) STUFF
+#else
+#define __MHW_VDBOX_VDENC_WRAPPER(STUFF) STUFF
+#define __MHW_VDBOX_VDENC_WRAPPER_EXT(STUFF)
+#endif
+
 namespace mhw
 {
 namespace vdbox
@@ -72,15 +81,11 @@ enum class SurfaceFormat
 
 struct _MHW_CMD_PAR_T(VDENC_CONTROL_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_CONTROL_STATE)() = default;
-
     bool vdencInitialization = true;
 };
 
 struct _MHW_CMD_PAR_T(VDENC_PIPE_MODE_SELECT)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_PIPE_MODE_SELECT)() = default;
-
     uint8_t standardSelect           = 0;
     bool    scalabilityMode          = false;
     bool    frameStatisticsStreamOut = false;
@@ -108,12 +113,11 @@ struct _MHW_CMD_PAR_T(VDENC_PIPE_MODE_SELECT)
     uint8_t streamingBufferConfig    = 0;
     uint8_t quantizationPrecision    = 0;
     uint8_t latencyTolerate          = 0;
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_MODE_SELECT_CMDPAR_EXT);
 };
 
 struct _MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)() = default;
-
     uint32_t          width                = 0;
     uint32_t          height               = 0;
     uint32_t          pitch                = 0;
@@ -130,8 +134,6 @@ struct _MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)
 
 struct _MHW_CMD_PAR_T(VDENC_REF_SURFACE_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_REF_SURFACE_STATE)() = default;
-
     uint32_t          width       = 0;
     uint32_t          height      = 0;
     uint32_t          pitch       = 0;
@@ -146,8 +148,6 @@ struct _MHW_CMD_PAR_T(VDENC_REF_SURFACE_STATE)
 
 struct _MHW_CMD_PAR_T(VDENC_DS_REF_SURFACE_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_DS_REF_SURFACE_STATE)() = default;
-
     uint8_t           vDirectionStage1  = 0;
     uint8_t           vDirectionStage2  = 0;
     uint32_t          widthStage1       = 0;
@@ -170,8 +170,6 @@ struct _MHW_CMD_PAR_T(VDENC_DS_REF_SURFACE_STATE)
 
 struct _MHW_CMD_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)() = default;
-
     PMOS_SURFACE      surfaceRaw                        = nullptr;
     MOS_MEMCOMP_STATE mmcStateRaw                       = MOS_MEMCOMP_DISABLED;
     uint32_t          compressionFormatRaw              = 0;
@@ -201,12 +199,11 @@ struct _MHW_CMD_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     mfdIntraRowStoreScratchBuffer     = nullptr;
     PMOS_RESOURCE     cumulativeCuCountStreamOutBuffer  = nullptr;
     PMOS_RESOURCE     colocatedMvWriteBuffer            = nullptr;
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_BUF_ADDR_STATE_CMDPAR_EXT);
 };
 
 struct _MHW_CMD_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)() = default;
-
     int8_t   weightsLuma[MAX_REF_LIST_NUM][MAX_REF_NUM]      = {};
     int16_t  offsetsLuma[MAX_REF_LIST_NUM][MAX_REF_NUM]      = {};
     uint32_t denomLuma                                       = 0;
@@ -217,8 +214,6 @@ struct _MHW_CMD_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
 
 struct _MHW_CMD_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)() = default;
-
     bool     tileEnable                 = false;
     bool     tileRowStoreSelect         = false;
     uint32_t tileWidth                  = 0;
@@ -234,12 +229,11 @@ struct _MHW_CMD_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
     uint32_t log2WeightDenomLuma        = 0;
     uint32_t log2WeightDenomChroma      = 0;
     uint32_t hevcVp9Log2WeightDenomLuma = 0;
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_HEVC_VP9_TILE_SLICE_STATE_CMDPAR_EXT);
 };
 
 struct _MHW_CMD_PAR_T(VDENC_WALKER_STATE)
 {
-    virtual ~_MHW_CMD_PAR_T(VDENC_WALKER_STATE)() = default;
-
     bool     firstSuperSlice          = true;
     uint32_t tileSliceStartLcuMbX     = 0;
     uint32_t tileSliceStartLcuMbY     = 0;
@@ -249,8 +243,6 @@ struct _MHW_CMD_PAR_T(VDENC_WALKER_STATE)
 
 struct _MHW_CMD_PAR_T(VD_PIPELINE_FLUSH)
 {
-    virtual ~_MHW_CMD_PAR_T(VD_PIPELINE_FLUSH)() = default;
-
     bool waitDoneHEVC           = false;
     bool waitDoneVDENC          = false;
     bool waitDoneMFL            = false;
@@ -260,6 +252,32 @@ struct _MHW_CMD_PAR_T(VD_PIPELINE_FLUSH)
     bool flushVDENC             = false;
     bool flushMFL               = false;
     bool flushMFX               = false;
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VD_PIPELINE_FLUSH_CMDPAR_EXT);
+};
+
+struct _MHW_CMD_PAR_T(VDENC_CMD1)
+{
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD1_CMDPAR_EXT);
+};
+
+struct _MHW_CMD_PAR_T(VDENC_CMD2)
+{
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD2_CMDPAR_EXT);
+};
+
+struct _MHW_CMD_PAR_T(VDENC_CMD3)
+{
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_CMDPAR_EXT);
+};
+
+struct _MHW_CMD_PAR_T(VDENC_CMD4)
+{
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD4_CMDPAR_EXT);
+};
+
+struct _MHW_CMD_PAR_T(VDENC_CMD5)
+{
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD5_CMDPAR_EXT);
 };
 
 class CmdPar
@@ -277,22 +295,14 @@ public:
     _MHW_CMD_PAR_SET_DEF(VDENC_HEVC_VP9_TILE_SLICE_STATE);
     _MHW_CMD_PAR_SET_DEF(VDENC_WALKER_STATE);
     _MHW_CMD_PAR_SET_DEF(VD_PIPELINE_FLUSH);
+    _MHW_CMD_PAR_SET_DEF(VDENC_CMD1);
+    _MHW_CMD_PAR_SET_DEF(VDENC_CMD2);
+    _MHW_CMD_PAR_SET_DEF(VDENC_CMD3);
+    _MHW_CMD_PAR_SET_DEF(VDENC_CMD4);
+    _MHW_CMD_PAR_SET_DEF(VDENC_CMD5);
 };
 }  // namespace vdenc
 }  // namespace vdbox
 }  // namespace mhw
-
-#ifndef MHW_VDBOX_VDENC_CMDPAR_T
-#define MHW_VDBOX_VDENC_CMDPAR_T mhw::vdbox::vdenc::CmdPar
-#endif
-
-#ifndef MHW_VDBOX_VDENC_CMD_PAR_T
-#define MHW_VDBOX_VDENC_CMD_PAR_T(cmd) mhw::vdbox::vdenc::_MHW_CMD_PAR_T(cmd)
-#endif
-
-#define MHW_VDBOX_VDENC_TO_ACTUAL_CMD_PAR(cmd)                                  \
-    MHW_FUNCTION_ENTER;                                                         \
-    auto params = mhw::DynamicPointerCast<MHW_VDBOX_VDENC_CMD_PAR_T(cmd)>(par); \
-    MHW_CHK_NULL_RETURN(params)
 
 #endif  // __MHW_VDBOX_VDENC_CMDPAR_H__

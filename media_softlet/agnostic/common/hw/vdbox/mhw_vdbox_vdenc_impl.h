@@ -30,6 +30,10 @@
 
 #include "mhw_vdbox_vdenc_itf.h"
 
+#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#include "mhw_vdbox_vdenc_impl_ext.h"
+#endif
+
 namespace mhw
 {
 namespace vdbox
@@ -131,8 +135,6 @@ inline SurfaceFormat MosFormatToVdencSurfaceReconFormat(MOS_FORMAT format)
 
 class Impl : public Itf
 {
-    friend class ImplExt;
-
     _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_CONTROL_STATE);
     _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_PIPE_MODE_SELECT);
     _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_SRC_SURFACE_STATE);
@@ -143,20 +145,129 @@ class Impl : public Itf
     _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_HEVC_VP9_TILE_SLICE_STATE);
     _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_WALKER_STATE);
     _MHW_CMD_ALL_DEF_FOR_IMPL(VD_PIPELINE_FLUSH);
+    _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_CMD1);
+    _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_CMD2);
+    _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_CMD3);
+    _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_CMD4);
+    _MHW_CMD_ALL_DEF_FOR_IMPL(VDENC_CMD5);
 
 public:
-    MOS_STATUS EnableVdencRowstoreCacheIfSupported(uint32_t address) override;
+    MOS_STATUS EnableVdencRowstoreCacheIfSupported(uint32_t address) override
+    {
+        MHW_FUNCTION_ENTER;
 
-    MOS_STATUS EnableVdencRowIpdlstoreCacheIfSupported(uint32_t address) override;
+        if (this->m_vdencRowStoreCache.supported)
+        {
+            this->m_vdencRowStoreCache.enabled   = true;
+            this->m_vdencRowStoreCache.dwAddress = address;
+        }
 
-    MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) override;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS EnableVdencRowIpdlstoreCacheIfSupported(uint32_t address) override
+    {
+        MHW_FUNCTION_ENTER;
+
+        if (this->m_vdencIpdlRowstoreCache.supported)
+        {
+            this->m_vdencIpdlRowstoreCache.enabled   = true;
+            this->m_vdencIpdlRowstoreCache.dwAddress = address;
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) override
+    {
+        MHW_FUNCTION_ENTER;
+
+        MHW_CHK_NULL_RETURN(settings);
+
+        size_t size = MOS_CODEC_RESOURCE_USAGE_END_CODEC * sizeof(MHW_MEMORY_OBJECT_CONTROL_PARAMS);
+
+        return MOS_SecureMemcpy(m_cacheabilitySettings, size, settings, size);
+    }
 
 protected:
     using base_t = Itf;
 
-    Impl(PMOS_INTERFACE osItf);
+    Impl(PMOS_INTERFACE osItf)
+    {
+        MHW_FUNCTION_ENTER;
 
-    virtual MOS_STATUS InitRowstoreUserFeatureSettings();
+        MHW_CHK_NULL_NO_STATUS_RETURN(osItf);
+
+        m_osItf = osItf;
+        if (m_osItf->bUsesGfxAddress)
+        {
+            AddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
+        }
+        else
+        {
+            AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
+        }
+
+        InitRowstoreUserFeatureSettings();
+    }
+
+    virtual MOS_STATUS InitRowstoreUserFeatureSettings()
+    {
+        MHW_FUNCTION_ENTER;
+
+        MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+        MEDIA_FEATURE_TABLE *       skuTable = this->m_osItf->pfnGetSkuTable(this->m_osItf);
+
+        MHW_MI_CHK_NULL(skuTable);
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        if (this->m_osItf->bSimIsActive)
+        {
+            // Disable RowStore Cache on simulation by default
+            userFeatureData.u32Data = 1;
+        }
+        else
+        {
+            userFeatureData.u32Data = 0;
+        }
+
+        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ROWSTORE_CACHE_DISABLE_ID,
+            &userFeatureData,
+            m_osItf->pOsContext);
+#endif  // _DEBUG || _RELEASE_INTERNAL
+        bool rowstoreCachingSupported = userFeatureData.i32Data ? false : true;
+
+        if (!rowstoreCachingSupported)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_VDENCROWSTORECACHE_DISABLE_ID,
+            &userFeatureData,
+            m_osItf->pOsContext);
+#endif  // _DEBUG || _RELEASE_INTERNAL
+        this->m_vdencRowStoreCache.supported = userFeatureData.i32Data ? false : true;
+
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_INTRAROWSTORECACHE_DISABLE_ID,
+            &userFeatureData,
+            m_osItf->pOsContext);
+#endif  // _DEBUG || _RELEASE_INTERNAL
+        this->m_vdencIpdlRowstoreCache.supported = userFeatureData.i32Data ? false : true;
+
+        return MOS_STATUS_SUCCESS;
+    }
 
 protected:
     MOS_STATUS(*AddResourceToCmd)
@@ -184,6 +295,11 @@ class ImplGeneric : public Impl
     _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VDENC_HEVC_VP9_TILE_SLICE_STATE);
     _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VDENC_WALKER_STATE);
     _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VD_PIPELINE_FLUSH);
+    _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VDENC_CMD1);
+    _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VDENC_CMD2);
+    _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VDENC_CMD3);
+    _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VDENC_CMD4);
+    _MHW_CMD_ALL_DEF_FOR_IMPL_GENERIC(VDENC_CMD5);
 
 protected:
     using base_t = Impl;
@@ -245,7 +361,8 @@ protected:
     DO_FIELD(DW5, ParallelCaptureAndEncodeSessionId, params->wirelessSessionId);               \
     DO_FIELD(DW5, TailPointerReadFrequency, params->tailPointerReadFrequency);                 \
     DO_FIELD(DW5, QuantizationPrecisionOptimization, params->quantizationPrecision);           \
-    DO_FIELD(DW5, LatencyToleratePreFetchEnable, params->latencyTolerate)
+    DO_FIELD(DW5, LatencyToleratePreFetchEnable, params->latencyTolerate);                     \
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_MODE_SELECT_IMPL_EXT)
 
 #define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
         DO_FIELDS();
@@ -869,6 +986,8 @@ protected:
                 &resourceParams));
         }
 
+        __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_BUF_ADDR_STATE_IMPL_EXT);
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -953,7 +1072,8 @@ protected:
     DO_FIELD(DW9, TileLcuStreamOutOffset, params->tileLCUStreamOutOffset);                                                   \
                                                                                                                              \
     DO_FIELD(DW17, CumulativeCuTileOffsetEnable, params->tileEnable);                                                        \
-    DO_FIELD(DW17, CumulativeCuTileOffset, params->cumulativeCUTileOffset)
+    DO_FIELD(DW17, CumulativeCuTileOffset, params->cumulativeCUTileOffset);                                                  \
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_HEVC_VP9_TILE_SLICE_STATE_IMPL_EXT)
 
 #define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
         DO_FIELDS();
@@ -1010,7 +1130,113 @@ protected:
     DO_FIELD(DW1, HevcPipelineCommandFlush, params->flushHEVC);                \
     DO_FIELD(DW1, VdencPipelineCommandFlush, params->flushVDENC);              \
     DO_FIELD(DW1, MflPipelineCommandFlush, params->flushMFL);                  \
-    DO_FIELD(DW1, MfxPipelineCommandFlush, params->flushMFX)
+    DO_FIELD(DW1, MfxPipelineCommandFlush, params->flushMFX);                  \
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VD_PIPELINE_FLUSH_IMPL_EXT)
+
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD1)
+    {
+        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD1);
+
+#define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD1_IMPL_EXT)
+
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD2)
+    {
+        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD2);
+
+#define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD2_IMPL_EXT)
+
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD3)
+    {
+        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD3);
+
+#define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_IMPL_EXT)
+
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD4)
+    {
+        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD4);
+
+#define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD4_IMPL_EXT)
+
+#define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
+        DO_FIELDS();
+#undef DO_FIELD
+#if MHW_HWCMDPARSER_ENABLED
+#define DO_FIELD(dw, field, value) MHW_HWCMDPARSER_PARSEFIELDLAYOUT(dw, field)
+        if (MHW_HWCMDPARSER_PARSEFIELDSLAYOUTEN())
+        {
+            DO_FIELDS();
+        }
+#undef DO_FIELD
+#endif
+#undef DO_FIELDS
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD5)
+    {
+        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD5);
+
+#define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD5_IMPL_EXT)
 
 #define DO_FIELD(dw, field, value) _MHW_CMD_ASSIGN_FIELD(dw, field, value)
         DO_FIELDS();

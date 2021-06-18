@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,22 +30,23 @@
 
 #include <cstdint>
 
-#define _MHW_CMD_PAR_T(cmd)  cmd##_Params   // MHW command parameter type
-#define __MHW_CMD_PAR_T(cmd) cmd##_Params_  // MHW command parameter type alias, to avoid compile error
+#define __MHW_CMD_PAR_T2(CMD) CMD##_Params         // MHW command parameter type
+#define _MHW_CMD_PAR_T(CMD) __MHW_CMD_PAR_T2(CMD)  // to support 2-level macro expanding
+#define __MHW_CMD_PAR_T(CMD) CMD##_Params_         // MHW command parameter type alias, to avoid compile error
 
-#define __MHW_CMD_PAR_SET_F(cmd) SetCmdParams_##cmd  // function name to set MHW command parameters
+#define __MHW_CMD_PAR_SET_F(CMD) SetCmdParams_##CMD  // function name to set MHW command parameters
 
-#define __MHW_CMD_PAR_SET_COMMON_DECL(cmd) __MHW_CMD_PAR_SET_F(cmd)(mhw::Pointer<__MHW_CMD_PAR_T(cmd)> par) const
+#define __MHW_CMD_PAR_SET_COMMON_DECL(CMD) __MHW_CMD_PAR_SET_F(CMD)(mhw::Pointer<__MHW_CMD_PAR_T(CMD)> params) const
 
 // CodecHal uses it to define set MHW params functions in header file
-#define MHW_CMD_PAR_SET_DECL_HDR(cmd) MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(cmd) override
+#define MHW_CMD_PAR_SET_DECL_HDR(CMD) MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(CMD) override
 
 // CodecHal uses it to define set MHW params functions in source file
-#define MHW_CMD_PAR_SET_DECL_SRC(cmd, CLASS) MOS_STATUS CLASS::__MHW_CMD_PAR_SET_COMMON_DECL(cmd)
+#define MHW_CMD_PAR_SET_DECL_SRC(CMD, CLASS) MOS_STATUS CLASS::__MHW_CMD_PAR_SET_COMMON_DECL(CMD)
 
-#define _MHW_CMD_PAR_SET_DEF(cmd)                         \
-    using __MHW_CMD_PAR_T(cmd) = _MHW_CMD_PAR_T(cmd);     \
-    virtual MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(cmd) \
+#define _MHW_CMD_PAR_SET_DEF(CMD)                         \
+    using __MHW_CMD_PAR_T(CMD) = _MHW_CMD_PAR_T(CMD);     \
+    virtual MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(CMD) \
     {                                                     \
         return MOS_STATUS_SUCCESS;                        \
     }
