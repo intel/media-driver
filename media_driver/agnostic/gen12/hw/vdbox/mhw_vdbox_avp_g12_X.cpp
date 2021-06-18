@@ -677,6 +677,13 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
             resourceParams.bIsWritable = false;
             resourceParams.dwSharedMocsOffset = 17 - resourceParams.dwLocationInCmd;
 
+            MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+            m_osInterface->pfnSyncOnResource(
+                m_osInterface,
+                params->m_references[i],
+                gpuContext,
+                false);
+
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 m_osInterface,
                 cmdBuffer,

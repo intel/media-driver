@@ -1997,6 +1997,13 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
 
             resourceParams.dwSharedMocsOffset = 53 - resourceParams.dwLocationInCmd; // Common Prodected Data bit is in DW53
 
+            MOS_GPU_CONTEXT gpuContext = m_osInterface->pfnGetGpuContext(m_osInterface);
+            m_osInterface->pfnSyncOnResource(
+                m_osInterface,
+                params->presReferences[i],
+                gpuContext,
+                false);
+
             MHW_MI_CHK_STATUS(pfnAddResourceToCmd(
                 m_osInterface,
                 cmdBuffer,
