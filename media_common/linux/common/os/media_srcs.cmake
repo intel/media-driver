@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Intel Corporation
+# Copyright (c) 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -17,8 +17,15 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mos_defs_specific.h
+)
 
-media_include_subdirectory(gen12)
-media_include_subdirectory(gen12_tgllp)
-media_include_subdirectory(m12)
-media_include_subdirectory(g12)
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "MOS" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+media_add_curr_to_include_path()

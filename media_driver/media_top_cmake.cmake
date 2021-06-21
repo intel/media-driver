@@ -64,7 +64,8 @@ media_include_subdirectory(agnostic)
 media_include_subdirectory(linux)
 media_include_subdirectory(media_driver_next)
 media_include_subdirectory(media_interface)
-
+media_include_subdirectory(../media_common/agnostic)
+media_include_subdirectory(../media_common/linux)
 media_include_subdirectory(../media_softlet/agnostic)
 media_include_subdirectory(../media_softlet/linux)
 

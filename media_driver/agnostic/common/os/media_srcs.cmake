@@ -34,20 +34,16 @@ set(TMP_SOURCES_
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/media_fourcc.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_context.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_defs.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_hw.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_trace_event.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_resource_defs.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_solo_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_common.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h
