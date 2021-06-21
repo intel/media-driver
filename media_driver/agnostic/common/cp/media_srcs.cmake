@@ -34,4 +34,18 @@ set(COMMON_HEADERS_
     ${TMP_HEADERS_}
 )
 
+set(TMP_DIRECTORIES_
+    ${CMAKE_CURRENT_LIST_DIR}
+)
+
+set(COMMON_CP_HEADERS_
+    ${COMMON_CP_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_CP_DIRECTORIES_
+    ${COMMON_CP_DIRECTORIES_}
+    ${TMP_DIRECTORIES_}
+)
+
 media_add_curr_to_include_path()

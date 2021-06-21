@@ -34,7 +34,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_pipeline_adapter_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_presubpipeline_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_postsubpipeline_g12.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_surf_init_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_filmgrain_surf_init_g12.h
 )
 endif()
 

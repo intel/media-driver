@@ -36,7 +36,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_hwcmd_g9_skl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_g9_skl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_hwcmd_g9_skl.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_g9_skl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_g9_skl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_hwcmd_g9_skl.h
 )
 
