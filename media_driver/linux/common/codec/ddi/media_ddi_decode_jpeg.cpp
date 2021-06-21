@@ -504,6 +504,52 @@ VAStatus DdiDecodeJPEG::BeginPicture(
     return vaStatus;
 }
 
+MOS_FORMAT DdiDecodeJPEG::GetFormat()
+{
+    MOS_FORMAT Format = Format_NV12;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_ddiDecodeCtx->RTtbl);
+    CodecDecodeJpegPicParams *jpegPicParam = (CodecDecodeJpegPicParams *)(m_ddiDecodeCtx->DecodeParams.m_picParams);
+
+    if (jpegPicParam->m_chromaType == jpegYUV400)
+    {
+        Format = Format_400P;
+    }
+    else if (jpegPicParam->m_chromaType == jpegYUV422H2Y
+        || jpegPicParam->m_chromaType == jpegYUV422H4Y)
+    {
+        Format = Format_422H;
+    }
+    else if (jpegPicParam->m_chromaType == jpegYUV422V2Y
+        || jpegPicParam->m_chromaType == jpegYUV422V4Y)
+    {
+        Format = Format_422V;
+    }
+    else if (jpegPicParam->m_chromaType == jpegYUV411)
+    {
+        Format = Format_411P;
+    }
+    else if (jpegPicParam->m_chromaType == jpegYUV444
+        || jpegPicParam->m_chromaType == jpegRGB
+        || jpegPicParam->m_chromaType == jpegBGR)
+    {
+        Format = Format_444P;
+    }
+    else
+    {
+        if(jpegPicParam->m_numCompInFrame == jpegNumComponent)
+        {
+            Format = Format_IMC3;
+        }
+        else if(jpegPicParam->m_numCompInFrame == jpegComponentU)
+        {
+            Format = Format_400P;
+        }
+    }
+
+    return Format;
+
+}
+
 VAStatus DdiDecodeJPEG::InitDecodeParams(
     VADriverContextP ctx,
     VAContextID      context)
@@ -625,6 +671,13 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
     if(m_ddiDecodeCtx->RTtbl.pCurrentRT != nullptr)
     {
         DdiMedia_MediaSurfaceToMosResource((&(m_ddiDecodeCtx->RTtbl))->pCurrentRT, &(m_destSurface.OsResource));
+    }
+
+    MOS_FORMAT expectedFormat = GetFormat();
+    if (m_destSurface.OsResource.Format != expectedFormat)
+    {
+        DDI_NORMALMESSAGE("Surface fomrat of decoded surface is inconsistent with Codec bitstream\n");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
     (&m_ddiDecodeCtx->DecodeParams)->m_destSurface = &m_destSurface;
