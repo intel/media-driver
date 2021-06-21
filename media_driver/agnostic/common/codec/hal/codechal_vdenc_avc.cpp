@@ -7863,9 +7863,11 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     {
         return eStatus;
     }
+
     // get access to the MMIO registers 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
     MmioRegistersMfx *mmioRegisters = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
+
     // Special processing for one slice case (to avoid limitations for multi-slice configuration)
     if (m_numSlices == 1)
     {
@@ -7916,6 +7918,310 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodedBitstreamWrittenBytesCount;
     miStoreRegMemParams.dwRegister  = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    // Statistics
+    // Average QP
+    if (m_avcSeqParam->RateControlMethod == RATECONTROL_CQP)
+    {
+        storeDataParams.dwResourceOffset = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwAverageQP;
+        storeDataParams.dwValue          = m_avcPicParam->QpY + m_avcSliceParams->slice_qp_delta;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+    }
+    else
+    {
+        CODECHAL_ENCODE_NORMALMESSAGE("RC mode is temporarily not supported");
+    }
+
+    MOS_RESOURCE *pPakFrameStat = (m_perMBStreamOutEnable) ? &m_pakStatsBufferFull : &m_pakStatsBuffer;  //& m_resFrameStatStreamOutBuffer; or m_pakStatsBuffer
+    MHW_MI_LOAD_REGISTER_IMM_PARAMS miLoadRegImmParams;
+    MHW_MI_LOAD_REGISTER_MEM_PARAMS miLoadRegMemParams;
+    MHW_MI_LOAD_REGISTER_REG_PARAMS miLoadRegRegParams;
+    MHW_MI_FLUSH_DW_PARAMS          flushDwParams;
+
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+
+    /*** Intra/Inter/Skip statistics counted by number of MBs (not sub-blocks) ***/
+    
+    /*** Intra16x16 + Intra8x8 + Intra4x4 ***/
+
+    MOS_ZeroMemory(&miLoadRegImmParams, sizeof(miLoadRegImmParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    miLoadRegImmParams.dwData     = 0xFFFF0000;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    miLoadRegImmParams.dwData     = 0;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    // DW4 Intra16x16:Intra8x8
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 4 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister0HiOffset;
+    miLoadRegImmParams.dwData     = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+    MHW_MI_MATH_PARAMS miMathParams;
+    MHW_MI_ALU_PARAMS aluParams[4 + 16 * 4];
+    int aluCount;
+
+    auto Reg0OpReg4ToReg0 = [&](MHW_MI_ALU_OPCODE opCode) {
+        aluCount = 0;
+        // load  SrcA, reg0
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
+        ++aluCount;
+        // load  SrcB, reg4
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG4;
+        ++aluCount;
+        // and   SrcA, SrcB
+        aluParams[aluCount].AluOpcode = opCode;
+        ++aluCount;
+
+        // store reg0, accu
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
+        ++aluCount;
+
+        miMathParams.dwNumAluParams = aluCount;
+        miMathParams.pAluPayload    = aluParams;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiMathCmd(cmdBuffer, &miMathParams));
+        return MOS_STATUS_SUCCESS;
+    };
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_AND));  // reg0 0:0:intra16x16:0
+
+    // DW5 Intra4x4:Inter16x16
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 5 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    miLoadRegImmParams.dwData     = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));  // reg4 0:0:intra4x4:inter16x16(garb)
+
+    auto AddHighShortsOfReg0Reg4ToReg0 = [&]() {
+        aluCount = 0;
+        // load  SrcA, reg0
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
+        ++aluCount;
+        // load  SrcB, reg4
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG4;
+        ++aluCount;
+        // add   SrcA, SrcB
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_ADD;
+        ++aluCount;
+
+        // ACCU keeps now 0:0:reg0+reg4:0
+
+        // 16bit shift left
+        for (int i = 0; i < 16; ++i)
+        {
+            // store reg0, accu
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+            aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
+            aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
+            ++aluCount;
+            // load SrcA, accu
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+            aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
+            aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
+            ++aluCount;
+            // load SrcB, accu
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+            aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
+            aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
+            ++aluCount;
+            // add  SrcA, SrcB
+            aluParams[aluCount].AluOpcode = MHW_MI_ALU_ADD;
+            ++aluCount;
+        }
+
+        // store reg0, accu
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
+        ++aluCount;
+
+        miMathParams.dwNumAluParams = aluCount;
+        miMathParams.pAluPayload    = aluParams;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiMathCmd(cmdBuffer, &miMathParams));
+
+        // move from reg0hi to reg0lo
+        MOS_ZeroMemory(&miLoadRegRegParams, sizeof(miLoadRegRegParams));
+        miLoadRegRegParams.dwSrcRegister = mmioRegisters->generalPurposeRegister0HiOffset;
+        miLoadRegRegParams.dwDstRegister = mmioRegisters->generalPurposeRegister0LoOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterRegCmd(cmdBuffer, &miLoadRegRegParams));
+        miLoadRegImmParams.dwData     = 0;
+        miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister0HiOffset;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+        return MOS_STATUS_SUCCESS;
+    };
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHighShortsOfReg0Reg4ToReg0()); // reg0 0:0:(Intra4x4+Intra16x16).hi:(Intra4x4+Intra16x16).lo
+
+    // Temp store from reg0 to presMetadataBuffer
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = m_presMetadataBuffer;
+    miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwIntraCodingUnitsCount;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    // DW4 Intra16x16:Intra8x8
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 4 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+
+    MOS_ZeroMemory(&miLoadRegImmParams, sizeof(miLoadRegImmParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    miLoadRegImmParams.dwData     = 0x0000FFFF;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    miLoadRegImmParams.dwData     = 0;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_AND));    // reg0 0:0:0:Intra8x8
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    miLoadRegMemParams.presStoreBuffer = m_presMetadataBuffer;
+    miLoadRegMemParams.dwOffset        = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwIntraCodingUnitsCount;
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_ADD));
+
+    // Store from reg0 to presMetadataBuffer
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = m_presMetadataBuffer;
+    miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwIntraCodingUnitsCount;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    /*** Inter16x16 + Inter16x8 + Inter8x16 + Intra8x8 ***/
+
+    MOS_ZeroMemory(&miLoadRegImmParams, sizeof(miLoadRegImmParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    miLoadRegImmParams.dwData     = 0xFFFF0000;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    miLoadRegImmParams.dwData     = 0;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    // DW6 Inter16x8:Inter8x16
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 6 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister0HiOffset;
+    miLoadRegImmParams.dwData     = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_AND));  // reg0 0:0:inter16x8:0
+
+    // DW7 Inter8x8:InterSkip16x16
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 7 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    miLoadRegImmParams.dwData     = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));  // reg4 0:0:inter8x8:0
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHighShortsOfReg0Reg4ToReg0());  // reg0 0:0:(Inter16x8+Inter8x8).hi:(Inter16x8+Inter8x8).lo;
+
+    // Temp store from reg0 to presMetadataBuffer
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = m_presMetadataBuffer;
+    miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwInterCodingUnitsCount;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    // DW6 Inter16x8:Inter8x16
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 6 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    // DW5 Intra4x4 : Inter16x16
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 5 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+
+    MOS_ZeroMemory(&miLoadRegImmParams, sizeof(miLoadRegImmParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    miLoadRegImmParams.dwData     = 0x0000FFFF;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_AND));  // reg0 0:Inter8x16:0:Inter16x16
+
+    // move from reg0hi to reg4lo
+    MOS_ZeroMemory(&miLoadRegRegParams, sizeof(miLoadRegRegParams));
+    miLoadRegRegParams.dwSrcRegister = mmioRegisters->generalPurposeRegister0HiOffset;
+    miLoadRegRegParams.dwDstRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterRegCmd(cmdBuffer, &miLoadRegRegParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_ADD));  // reg0 0:0:(Inter8x16+Inter16x16).hi::(Inter8x16+Inter16x16).hi
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    miLoadRegMemParams.presStoreBuffer = m_presMetadataBuffer;
+    miLoadRegMemParams.dwOffset        = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwInterCodingUnitsCount;
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister4LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_ADD));
+
+    // Store from reg0 to presMetadataBuffer
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = m_presMetadataBuffer;
+    miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwInterCodingUnitsCount;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    /*** Inter skip 16x16 ***/
+
+    MOS_ZeroMemory(&miLoadRegImmParams, sizeof(miLoadRegImmParams));
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4LoOffset;
+    miLoadRegImmParams.dwData     = 0x0000FFFF;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+    miLoadRegImmParams.dwData     = 0;
+    miLoadRegImmParams.dwRegister = mmioRegisters->generalPurposeRegister4HiOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &miLoadRegImmParams));
+
+    MOS_ZeroMemory(&miLoadRegMemParams, sizeof(miLoadRegMemParams));
+    // DW7 Inter8x8:InterSkip16x16
+    miLoadRegMemParams.presStoreBuffer = pPakFrameStat;
+    miLoadRegMemParams.dwOffset        = 7 * sizeof(uint32_t);
+    miLoadRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiLoadRegisterMemCmd(cmdBuffer, &miLoadRegMemParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(Reg0OpReg4ToReg0(MHW_MI_ALU_AND));
+
+    // Store from reg0 to presMetadataBuffer
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = m_presMetadataBuffer;
+    miStoreRegMemParams.dwOffset        = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwSkipCodingUnitsCount;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->generalPurposeRegister0LoOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+
+    // Average MV_X/MV_Y, report (0,0) as temp solution, later may need kernel involved
+    storeDataParams.dwResourceOffset = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwAverageMotionEstimationXDirection;
+    storeDataParams.dwValue          = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
+
+    storeDataParams.dwResourceOffset = m_metaDataOffset.dwEncodeStats + m_metaDataOffset.dwAverageMotionEstimationYDirection;
+    storeDataParams.dwValue          = 0;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
     return eStatus;
 }
