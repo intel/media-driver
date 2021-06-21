@@ -93,7 +93,7 @@
 #define UFINT_PATH_LINUX            "UFINT"
 #define UFEXT_PATH_LINUX            "UFEXT"
 
-#define _aligned_malloc(size, alignment)  memalign(alignment, size)
+#define _aligned_malloc(size, alignment)  aligned_alloc(alignment, size)
 #define _aligned_free(ptr)                free(ptr)
 
 #define __MOS_USER_FEATURE_KEY_MESSAGE_DEFAULT_VALUE_STR     "1"

@@ -21,7 +21,6 @@
 */
 
 #include "cm_test.h"
-#include <malloc.h>
 
 class BufferUPTest: public CmTest
 {

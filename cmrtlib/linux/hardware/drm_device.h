@@ -39,16 +39,16 @@
 #include <limits.h>
 #include <signal.h>
 #include <time.h>
-#include <sys/sysmacros.h>   //<sys/types.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #define stat_t struct stat
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <stdarg.h>
-#ifdef MAJOR_IN_MKDEV
+#ifdef __sun //#ifdef MAJOR_IN_MKDEV
 #include <sys/mkdev.h>
 #endif
-#ifdef MAJOR_IN_SYSMACROS
+#if defined(__GLIBC__) || defined(__linux__) //#ifdef MAJOR_IN_SYSMACROS
 #include <sys/sysmacros.h>
 #endif
 #include <math.h>

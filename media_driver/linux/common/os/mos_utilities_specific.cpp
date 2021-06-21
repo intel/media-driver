@@ -2557,7 +2557,7 @@ uint32_t MOS_GetThreadId(
 
 uint32_t MOS_GetCurrentThreadId()
 {
-    return (uint32_t)pthread_self();
+    return (uintptr_t)pthread_self();
 }
 
 MOS_STATUS MOS_WaitThread(
