@@ -8460,13 +8460,16 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
     oss << "SliceHeight = " << std::dec << +m_avcPar->SliceHeight << std::endl;
     oss << "NumSuperSlices = " << std::dec << +m_avcPar->NumSuperSlices << std::endl;
 
-    oss << "SuperSliceHeight = ";
-    uint32_t sliceIdx = 0;
-    for (; sliceIdx < m_avcPar->NumSuperSlices - 1; sliceIdx++)
+    if (m_avcPar->NumSuperSlices)
     {
-        oss << +m_avcPar->SuperSliceHeight[sliceIdx] << ",";
+        oss << "SuperSliceHeight = ";
+        uint32_t sliceIdx = 0;
+        for (; sliceIdx < m_avcPar->NumSuperSlices - 1; sliceIdx++)
+        {
+            oss << +m_avcPar->SuperSliceHeight[sliceIdx] << ",";
+        }
+        oss << +m_avcPar->SuperSliceHeight[sliceIdx] << std::endl;
     }
-    oss << +m_avcPar->SuperSliceHeight[sliceIdx] << std::endl;
 
     oss << "ISliceQP = " << std::dec << +m_avcPar->ISliceQP << std::endl;
     oss << "FrameRateM = " << std::dec << +m_avcPar->FrameRateM << std::endl;
