@@ -389,7 +389,7 @@ endif()
 if(GEN12)
     media_include_subdirectory(gen12)
     media_include_subdirectory(g12)
-    media_include_subdirectory(../media_driver_next/agnostic/gen12)
+    media_include_subdirectory(../media_softlet/agnostic/gen12)
 endif()
 
 if(GEN12_TGLLP)
