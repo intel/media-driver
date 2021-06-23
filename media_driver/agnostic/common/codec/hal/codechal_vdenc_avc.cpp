@@ -5802,6 +5802,24 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#if MHW_HWCMDPARSER_ENABLED
+    char frameType = '\0';
+    switch (m_avcPicParam->CodingType)
+    {
+    case I_TYPE:
+        frameType = 'I';
+        break;
+    case P_TYPE:
+        frameType = 'P';
+        break;
+    case B_TYPE:
+        frameType = 'B';
+        break;
+    }
+
+    MHW_HWCMDPARSER_FRAMEINFOUPDATE(frameType);
+#endif
+
     MHW_BATCH_BUFFER batchBuffer;
     MOS_ZeroMemory(&batchBuffer, sizeof(batchBuffer));
     batchBuffer.dwOffset     = m_currPass * BRC_IMG_STATE_SIZE_PER_PASS;
@@ -6095,6 +6113,9 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, secondLevelBatchBufferUsed));
+
+                MHW_HWCMDPARSER_PARSECMDBUF((uint32_t *)(secondLevelBatchBufferUsed->pData),
+                    secondLevelBatchBufferUsed->iCurrent / sizeof(uint32_t));
 
                 CODECHAL_DEBUG_TOOL(
                     CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulatePakParam(
@@ -6493,6 +6514,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
         //    &cmdBuffer));
     )
 
+    MHW_HWCMDPARSER_PARSECMDBUF(cmdBuffer.pCmdBase, cmdBuffer.iOffset / sizeof(uint32_t));
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
     bool renderingFlags = m_videoContextUsesNullHw;
