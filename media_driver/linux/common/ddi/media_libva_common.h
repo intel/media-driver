@@ -44,7 +44,7 @@
 
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
-#include "media_libva_context_next.h"
+#include "ddi_media_functions.h"
 
 #include <va/va.h>
 #include <va/va_backend.h>
@@ -398,8 +398,6 @@ typedef struct _DDI_X11_FUNC_TABLE
 }DDI_X11_FUNC_TABLE, *PDDI_X11_FUNC_TABLE;
 #endif
 
-class MediaLibvaContextNext;
-
 //!
 //! \struct DDI_MEDIA_CONTEXT
 //! \brief  Media heap for shared internal structures
@@ -481,9 +479,6 @@ struct DDI_MEDIA_CONTEXT
     // Media reset enable flag
     bool                bMediaResetEnable;
 
-    // Media context next
-    MediaLibvaContextNext *m_pMediaLibvaContextNext;
-
     // Media memory decompression function
     void (* pfnMemoryDecompress)(
         PMOS_CONTEXT  pMosCtx,
@@ -550,7 +545,8 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T    PutSurfaceRenderMutex;
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
 #endif
-    bool m_apoMosEnabled;
+    bool                  m_apoMosEnabled;
+    DdiMediaFunctions*    m_compList[CompCount];
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)
