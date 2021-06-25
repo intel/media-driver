@@ -535,12 +535,6 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
 
     MOS_ZeroMemory(&RenderHalSurface, sizeof(RenderHalSurface));
 
-    // not support CP yet
-    if (m_osInterface->osCpInterface->IsHMEnabled())
-    {
-        RENDER_PACKET_ASSERTMESSAGE("ERROR, need to use VpHal_CommonSetBufferSurfaceForHwAccess if under CP HM.");
-    }
-
     // Register surfaces for rendering (GfxAddress/Allocation index)
     // Register resource
     RENDER_PACKET_CHK_STATUS_RETURN(m_osInterface->pfnRegisterResource(
@@ -596,12 +590,6 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
     RENDER_PACKET_CHK_NULL_RETURN(buffer);
 
     MOS_ZeroMemory(&RenderHalSurface, sizeof(RenderHalSurface));
-
-    // not support CP yet
-    if (m_osInterface->osCpInterface->IsHMEnabled())
-    {
-        RENDER_PACKET_ASSERTMESSAGE("ERROR, need to use VpHal_CommonSetBufferSurfaceForHwAccess if under CP HM.");
-    }
 
     // Register surfaces for rendering (GfxAddress/Allocation index)
     // Register resource
