@@ -332,6 +332,7 @@ protected:
     DO_FIELD(DW5, TailPointerReadFrequency, params->tailPointerReadFrequency);                 \
     DO_FIELD(DW5, QuantizationPrecisionOptimization, params->quantizationPrecision);           \
     DO_FIELD(DW5, LatencyToleratePreFetchEnable, params->latencyTolerate);                     \
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_MODE_SELECT_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
@@ -906,6 +907,8 @@ protected:
                 this->m_currentCmdBuf,
                 &resourceParams));
         }
+
+        __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_BUF_ADDR_STATE_IMPL_EXT);
 
         return MOS_STATUS_SUCCESS;
     }
