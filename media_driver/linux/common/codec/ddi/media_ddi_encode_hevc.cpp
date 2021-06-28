@@ -1479,6 +1479,7 @@ void DdiEncodeHevc::GetSlcRefIdx(CODEC_PICTURE *picReference, CODEC_PICTURE *slc
         if (numMaxRefFrame == i)
         {
             slcReference->FrameIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_HEVC;
+            slcReference->PicFlags = PICTURE_INVALID;
             slcReference->PicEntry = 0xFF;
         }
     }
