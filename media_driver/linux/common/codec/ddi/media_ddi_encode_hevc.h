@@ -213,6 +213,17 @@ protected:
     //!
     VAStatus ParseMiscParams(void *ptr);
 
+    //!
+    //! \brief    Parse QMatrix Parameter buffer to Encode Context
+    //!
+    //! \param    [in] ptr
+    //!           Pointer to QMatrix Parameter buffer
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    VAStatus Qmatrix(void *ptr);
+
     uint16_t m_previousFRvalue = 0; //!< For saving FR value to be used in case of dynamic BRC reset.
 
 private:

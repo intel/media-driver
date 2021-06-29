@@ -77,6 +77,9 @@ DdiEncodeHevc::~DdiEncodeHevc()
     MOS_FreeMemory(m_encodeCtx->pSliceHeaderData);
     m_encodeCtx->pSliceHeaderData = nullptr;
 
+    MOS_FreeMemory(m_encodeCtx->pQmatrixParams);
+    m_encodeCtx->pQmatrixParams = nullptr;
+
     if (m_encodeCtx->pbsBuffer)
     {
         MOS_FreeMemory(m_encodeCtx->pbsBuffer->pBase);
@@ -186,6 +189,10 @@ VAStatus DdiEncodeHevc::ContextInitialize(
     m_encodeCtx->pSEIFromApp = (CodechalEncodeSeiData *)MOS_AllocAndZeroMemory(sizeof(CodechalEncodeSeiData));
     DDI_CHK_NULL(m_encodeCtx->pSEIFromApp, "nullptr m_encodeCtx->pSEIFromApp.", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
+    // Allocate Qmatrix structure
+    m_encodeCtx->pQmatrixParams = (void *)MOS_AllocAndZeroMemory(sizeof(CODECHAL_HEVC_IQ_MATRIX_PARAMS));
+    DDI_CHK_NULL(m_encodeCtx->pQmatrixParams, "nullptr QMatrixParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
+
     // for slice header from application
     m_encodeCtx->pSliceHeaderData = (CODEC_ENCODER_SLCDATA *)MOS_AllocAndZeroMemory(m_encodeCtx->wPicHeightInMB * m_encodeCtx->wPicWidthInMB * sizeof(CODEC_ENCODER_SLCDATA));
     DDI_CHK_NULL(m_encodeCtx->pSliceHeaderData, "nullptr m_encodeCtx->pSliceHeaderData.", VA_STATUS_ERROR_ALLOCATION_FAILED);
@@ -233,6 +240,10 @@ VAStatus DdiEncodeHevc::RenderPicture(VADriverContextP ctx, VAContextID context,
 
         switch (buf->uiType)
         {
+        case VAQMatrixBufferType:
+            DDI_CHK_STATUS(Qmatrix(data), VA_STATUS_ERROR_INVALID_BUFFER);
+            break;
+
         case VAEncSequenceParameterBufferType:
             DDI_CHK_STATUS(ParseSeqParams(data), VA_STATUS_ERROR_INVALID_BUFFER);
             m_encodeCtx->bNewSeq = true;
@@ -344,10 +355,11 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     {
         hevcSeqParams->TargetUsage = m_encodeCtx->targetUsage;
     }
-    encodeParams.pSeqParams   = m_encodeCtx->pSeqParams;
-    encodeParams.pVuiParams   = m_encodeCtx->pVuiParams;
-    encodeParams.pPicParams   = m_encodeCtx->pPicParams;
-    encodeParams.pSliceParams = m_encodeCtx->pSliceParams;
+    encodeParams.pSeqParams      = m_encodeCtx->pSeqParams;
+    encodeParams.pVuiParams      = m_encodeCtx->pVuiParams;
+    encodeParams.pPicParams      = m_encodeCtx->pPicParams;
+    encodeParams.pSliceParams    = m_encodeCtx->pSliceParams;
+    encodeParams.pIQMatrixBuffer = m_encodeCtx->pQmatrixParams;
 
     // Sequence data
     encodeParams.bNewSeq = m_encodeCtx->bNewSeq;
@@ -365,9 +377,6 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.pSeiData        = m_encodeCtx->pSEIFromApp;
     encodeParams.pSeiParamBuffer = m_encodeCtx->pSEIFromApp->pSEIBuffer;
     encodeParams.dwSEIDataOffset = 0;
-
-    CODECHAL_HEVC_IQ_MATRIX_PARAMS hevcIqMatrixParams;
-    encodeParams.pIQMatrixBuffer = &hevcIqMatrixParams;
 
     // whether driver need to pack slice header
     if (m_encodeCtx->bHavePackedSliceHdr)
@@ -602,6 +611,7 @@ VAStatus DdiEncodeHevc::ParsePicParams(
     hevcPicParams->weighted_bipred_flag           = picParams->pic_fields.bits.weighted_bipred_flag;
     hevcPicParams->loop_filter_across_slices_flag = picParams->pic_fields.bits.pps_loop_filter_across_slices_enabled_flag;
     hevcPicParams->loop_filter_across_tiles_flag  = picParams->pic_fields.bits.loop_filter_across_tiles_enabled_flag;
+    hevcPicParams->scaling_list_data_present_flag = picParams->pic_fields.bits.scaling_list_data_present_flag;
     hevcPicParams->bLastPicInSeq                  = (picParams->last_picture & HEVC_LAST_PICTURE_EOSEQ) ? 1 : 0;
     hevcPicParams->bLastPicInStream               = (picParams->last_picture & HEVC_LAST_PICTURE_EOSTREAM) ? 1 : 0;
     hevcPicParams->bUseRawPicForRef               = false;
@@ -846,6 +856,33 @@ VAStatus DdiEncodeHevc::ParseSlcParams(
 
     hevcPicParams->NumSlices += numSlices;
     m_encodeCtx->dwNumSlices = hevcPicParams->NumSlices;
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeHevc::Qmatrix(void *ptr)
+{
+    DDI_CHK_NULL(m_encodeCtx, "nullptr m_encodeCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(ptr, "nullptr ptr", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PCODECHAL_HEVC_IQ_MATRIX_PARAMS QmatrixParams = (PCODECHAL_HEVC_IQ_MATRIX_PARAMS)(m_encodeCtx->pQmatrixParams);
+    DDI_CHK_NULL(QmatrixParams, "nullptr hevcPicParams", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    VAQMatrixBufferHEVC *vaQMatrixHEVC = (VAQMatrixBufferHEVC *)ptr;
+
+    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists0[0][0], sizeof(QmatrixParams->ucScalingLists0),
+        (void *)&vaQMatrixHEVC->scaling_lists_4x4[0][0][0], sizeof(vaQMatrixHEVC->scaling_lists_4x4));
+    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists1[0][0], sizeof(QmatrixParams->ucScalingLists1),
+        (void *)&vaQMatrixHEVC->scaling_lists_8x8[0][0][0], sizeof(vaQMatrixHEVC->scaling_lists_8x8));
+    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists2[0][0], sizeof(QmatrixParams->ucScalingLists2),
+        (void *)&vaQMatrixHEVC->scaling_lists_16x16[0][0][0], sizeof(vaQMatrixHEVC->scaling_lists_16x16));
+    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingLists3[0][0], sizeof(QmatrixParams->ucScalingLists3),
+        (void *)&vaQMatrixHEVC->scaling_lists_32x32[0][0], sizeof(vaQMatrixHEVC->scaling_lists_32x32));
+
+    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingListDCCoefSizeID2[0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID2),
+        (void *)&vaQMatrixHEVC->scaling_list_dc_16x16[0][0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID2));
+    MOS_SecureMemcpy((void *)&QmatrixParams->ucScalingListDCCoefSizeID3[0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID3),
+        (void *)&vaQMatrixHEVC->scaling_list_dc_32x32[0], sizeof(QmatrixParams->ucScalingListDCCoefSizeID3));
 
     return VA_STATUS_SUCCESS;
 }
