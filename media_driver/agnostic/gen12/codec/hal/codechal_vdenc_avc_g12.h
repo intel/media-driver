@@ -58,6 +58,8 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
 
     MOS_STATUS InitializeState() override;
 
+    MOS_STATUS SetSequenceStructs() override;
+
     MOS_STATUS SetPictureStructs() override;
 
     MOS_STATUS GetTrellisQuantization(
@@ -192,6 +194,7 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
    protected:
     class SfdCurbe;
     bool                  m_vdencUltraModeEnable = false;   //!< Enable VDEnc ultra mode
+    bool                  m_forcedTCBRC = false;            //!< TCBRC forced instead of LowDelayBRC
 
     MOS_STATUS CalculateVdencCommandsSize() override;
     virtual void SetMfxAvcImgStateParams(MHW_VDBOX_AVC_IMG_PARAMS& param) override;

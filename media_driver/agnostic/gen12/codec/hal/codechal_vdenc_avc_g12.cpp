@@ -676,9 +676,38 @@ MOS_STATUS CodechalVdencAvcStateG12::InitializeState()
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencAvcStateG12::SetSequenceStructs()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    m_forcedTCBRC = false;
+    // For g12+ tcbrc is used instead of LowDelayBRC,
+    // also needs TargetFrameSize in PPS.
+    if (m_avcSeqParam->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW && !m_avcSeqParam->LookaheadDepth)
+    {
+        CODECHAL_ENCODE_NORMALMESSAGE("LDBRC switched to TCBRC\n");
+        m_forcedTCBRC = true;
+        m_avcSeqParam->FrameSizeTolerance = EFRAMESIZETOL_NORMAL;
+        m_avcSeqParam->MBBRC              = mbBrcDisabled; // no need with ARB
+    }
+
+    return CodechalVdencAvcState::SetSequenceStructs();
+}
+
 MOS_STATUS CodechalVdencAvcStateG12::SetPictureStructs()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    // TCBRC forced from LowDelayBRC also needs TargetFrameSize
+    if (m_forcedTCBRC)
+    {
+        if (m_avcPicParam->NumDirtyROI || m_avcPicParam->NumROI)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("ROI/DirtyROI disabled for TCBRC\n");
+            m_avcPicParam->NumDirtyROI = m_avcPicParam->NumROI = 0;
+        }
+        m_avcPicParam->TargetFrameSize = uint32_t(m_avcSeqParam->TargetBitRate * (100. / 8) / m_avcSeqParam->FramesPer100Sec);
+    }
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcState::SetPictureStructs());
 
