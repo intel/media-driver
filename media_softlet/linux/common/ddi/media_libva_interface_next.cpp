@@ -35,7 +35,6 @@
 #include "mos_utilities.h"
 #include "media_interfaces_mmd.h"
 #include "media_libva_caps.h"
-#include "media_libva_putsurface_linux.h"
 #include "media_ddi_prot.h"
 
 MEDIA_MUTEX_T MediaLibvaInterfaceNext::m_GlobalMutex = MEDIA_MUTEX_INITIALIZER;
