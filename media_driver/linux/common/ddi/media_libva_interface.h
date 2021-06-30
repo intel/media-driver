@@ -1586,6 +1586,7 @@ public:
         VAContextID       *contexts,
         int32_t           num_contexts
     );
+#endif
 
     //!
     //! \brief  Load DDI function pointer
@@ -1619,8 +1620,6 @@ public:
         int32_t         *major_version,
         int32_t         *minor_version
     );
-#endif
-
 };
 
 #endif //__MEDIA_LIBVA_INTERFACE_H__
