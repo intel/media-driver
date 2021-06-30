@@ -399,18 +399,19 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     DdiMediaUtil_MediaPrintFps();
     pitch = bufferObject->iPitch;
 
-    vpCtx         = nullptr;
-    if (nullptr != mediaCtx->pVpCtxHeap->pHeapBase)
+    DdiMediaUtil_LockMutex(&mediaCtx->PutSurfaceRenderMutex);
+    if (mediaCtx->PutSurfaceContext == VA_INVALID_ID)
     {
-        vpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, (VAContextID)(0 + DDI_MEDIA_VACONTEXTID_OFFSET_VP), &ctxType);
-        DDI_CHK_NULL(vpCtx, "Null vpCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
-        vpHal = vpCtx->pVpHal;
-        DDI_CHK_NULL(vpHal, "Null vpHal", VA_STATUS_ERROR_INVALID_PARAMETER);
+        VAStatus vaStatus = DdiVp_CreateContext(ctx, 0, 0, 0, 0, 0, 0, &mediaCtx->PutSurfaceContext);
+        DdiMediaUtil_UnLockMutex(&mediaCtx->PutSurfaceRenderMutex);
+        DDI_CHK_RET(vaStatus, "Create VP Context failed");
+    } else {
+        DdiMediaUtil_UnLockMutex(&mediaCtx->PutSurfaceRenderMutex);
     }
-    else
-    {
-        return VA_STATUS_ERROR_INVALID_CONTEXT;
-    }
+    vpCtx = (PDDI_VP_CONTEXT)DdiMedia_GetContextFromContextID(ctx, mediaCtx->PutSurfaceContext, &ctxType);
+    DDI_CHK_NULL(vpCtx, "Null vpCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
+    vpHal = vpCtx->pVpHal;
+    DDI_CHK_NULL(vpHal, "Null vpHal", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     // Zero memory
     MOS_ZeroMemory(&Surf,    sizeof(Surf));

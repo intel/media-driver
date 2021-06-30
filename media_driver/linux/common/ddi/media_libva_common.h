@@ -544,6 +544,7 @@ struct DDI_MEDIA_CONTEXT
     //vpgPutSurfaceLinuxHW acceleration hack
     MEDIA_MUTEX_T    PutSurfaceRenderMutex;
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
+    VAContextID      PutSurfaceContext;
 #endif
     bool                  m_apoMosEnabled;
     DdiMediaFunctions*    m_compList[CompCount];
