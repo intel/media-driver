@@ -167,7 +167,7 @@ MOS_STATUS CodechalHwInterface::InitCacheabilityControlSettings(
         auto gtSysInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
         CODECHAL_HW_CHK_NULL_RETURN(gtSysInfo);
 
-        l3CachingEnabled = (gtSysInfo->L3BankCount != 0);
+        l3CachingEnabled = (gtSysInfo->L3BankCount != 0 || gtSysInfo->L3CacheSizeInKb != 0);
     }
 
     if (l3CachingEnabled)
