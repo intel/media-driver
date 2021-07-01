@@ -112,7 +112,14 @@ MOS_STATUS CodechalEncHevcStateG9Glk::GetKernelHeaderAndSize(
     }
     else if (operation == ENC_ME)
     {
-        currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_B_HME;
+        if (krnStateIdx == 0)
+        {
+            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_P_HME;
+        }
+        else
+        {
+            currKrnHeader = &kernelHeaderTable->Hevc_LCUEnc_B_HME;
+        }
     }
     else if (operation == ENC_BRC)
     {
@@ -217,6 +224,7 @@ CodechalEncHevcStateG9Glk::CodechalEncHevcStateG9Glk(
     //m_kernelBase = (uint8_t *)IGCODECKRN_G9_BXT;
     m_kernelBase = (uint8_t *)IGCODECKRN_G9;
     pfnGetKernelHeaderAndSize = GetKernelHeaderAndSize;
+    m_noMeKernelForPFrame     = false;
     m_numRegionsInSlice       = 2;  // GLK has the same setting as BXT/APL
 
     MOS_STATUS eStatus = InitMhw();
