@@ -30,6 +30,7 @@
 
 #include "mhw_vdbox.h"
 #include "mhw_mi.h"
+#include "mhw_cmdpar.h"
 
 typedef struct _MHW_VDBOX_HUC_STREAM_OBJ_PARAMS
 {
@@ -110,6 +111,8 @@ protected:
 
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = { }; //!< Cacheability settings
 
+    mhw::Pointer<void> m_hucItfNew = nullptr;
+
     //!
     //! \brief    Constructor
     //!
@@ -143,6 +146,14 @@ public:
     //! \brief    Destructor
     //!
     virtual ~MhwVdboxHucInterface() {}
+
+    //!
+    //! \brief    Get new HUC interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new HUC interface
+    //!
+    virtual mhw::Pointer<void> GetNewHucInterface() { return nullptr; }
 
     //!
     //! \brief    Get Huc Status Hevc S2l Failure Mask
