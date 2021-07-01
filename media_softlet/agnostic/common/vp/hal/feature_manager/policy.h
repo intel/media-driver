@@ -115,6 +115,7 @@ protected:
 
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
+    virtual bool IsExcludedFeatureForHdr(FeatureType feature);
     virtual MOS_STATUS FilterFeatureCombination(SwFilterSubPipe *pipe);
 
     virtual bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps)

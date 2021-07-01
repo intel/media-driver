@@ -1163,7 +1163,7 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
     inputPipe = featurePipe.GetSwFilterPrimaryPipe(index);
 
     // Update the Engine Caps after engine setting up
-    if (engineCaps.value !=0 && inputPipe)
+    if (engineCaps.value != 0 && inputPipe)
     {
         bool sfcNeeded = false;
         // check whether sfc being must have.
@@ -1248,6 +1248,13 @@ MOS_STATUS Policy::UpdateFilterCaps(SwFilterPipe& featurePipe, VP_EngineEntry& e
     return MOS_STATUS_SUCCESS;
 }
 
+bool Policy::IsExcludedFeatureForHdr(FeatureType feature)
+{
+    return (FeatureTypeTcc  == feature  ||
+        FeatureTypeSte      == feature  ||
+        FeatureTypeProcamp  == feature);
+}
+
 MOS_STATUS Policy::FilterFeatureCombination(SwFilterSubPipe *pipe)
 {
     VP_FUNC_CALL();
@@ -1257,9 +1264,7 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterSubPipe *pipe)
     {
         for (auto filterID : m_featurePool)
         {
-            if (filterID == FeatureTypeTcc ||
-                filterID == FeatureTypeSte ||
-                filterID == FeatureTypeProcamp)
+            if (IsExcludedFeatureForHdr(filterID))
             {
                 auto feature = pipe->GetSwFilter(FeatureType(filterID));
                 if (feature && feature->GetFilterEngineCaps().bEnabled)
@@ -1457,12 +1462,10 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS
                         VP_PUBLIC_ASSERTMESSAGE("no Feature Handle, Return Pipe Init Error");
                         return MOS_STATUS_INVALID_HANDLE;
                     }
-                    if (filterID != FeatureTypeLace)
-                    {
-                        featurePipe.RemoveSwFilter(feature);
-                        handler->Destory(feature);
-                        VP_PUBLIC_NORMALMESSAGE("filter missed packets generation");
-                    }
+
+                    featurePipe.RemoveSwFilter(feature);
+                    handler->Destory(feature);
+                    VP_PUBLIC_NORMALMESSAGE("filter missed packets generation");
                 }
             }
         }
