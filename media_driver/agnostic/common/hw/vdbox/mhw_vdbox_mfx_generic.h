@@ -164,6 +164,8 @@ protected:
         }
         else if (params->Standard == CODECHAL_MPEG2)
         {
+            MHW_MI_CHK_NULL(params->pMpeg2IqMatrix);
+
             if (params->Mode == CODECHAL_ENCODE_MODE_MPEG2)
             {
                 cmd.DW1.Obj0.Avc = mpeg2QmIntra;
@@ -243,7 +245,9 @@ protected:
         }
         else if (params->Standard == CODECHAL_JPEG)
         {
+            MHW_MI_CHK_NULL(params->pJpegQuantMatrix);
             cmd.DW1.Obj0.Avc = params->pJpegQuantMatrix->m_jpegQMTableType[params->JpegQMTableSelector];
+
             if (params->bJpegQMRotation)
             {
                 for (auto i = 0; i < 8; i++)
@@ -2755,6 +2759,10 @@ protected:
 
         MHW_MI_CHK_NULL(cmdBuffer);
         MHW_MI_CHK_NULL(params);
+        MHW_MI_CHK_NULL(params->pDCBits);
+        MHW_MI_CHK_NULL(params->pDCValues);
+        MHW_MI_CHK_NULL(params->pACBits);
+        MHW_MI_CHK_NULL(params->pACValues);
 
         typename TMfxCmds::MFX_JPEG_HUFF_TABLE_STATE_CMD cmd;
 
