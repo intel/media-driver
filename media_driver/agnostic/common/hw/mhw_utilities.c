@@ -152,16 +152,17 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
             &PatchEntryParams));
     }
 
-    if (MOS_VEBOX_STATE             == pParams->HwCommandType   ||
-        MOS_VEBOX_DI_IECP           == pParams->HwCommandType   ||
-        MOS_VEBOX_TILING_CONVERT    == pParams->HwCommandType   ||
-        MOS_SFC_STATE               == pParams->HwCommandType   ||
-        MOS_STATE_BASE_ADDR         == pParams->HwCommandType   ||
-        MOS_SURFACE_STATE           == pParams->HwCommandType   ||
-        MOS_SURFACE_STATE_ADV       == pParams->HwCommandType   ||
-        MOS_MFX_PIPE_BUF_ADDR       == pParams->HwCommandType   ||
-        MOS_MFX_VP8_PIC             == pParams->HwCommandType   ||
-        MOS_MFX_BSP_BUF_BASE_ADDR   == pParams->HwCommandType)
+    if (MOS_VEBOX_STATE                == pParams->HwCommandType   ||
+        MOS_VEBOX_DI_IECP              == pParams->HwCommandType   ||
+        MOS_VEBOX_TILING_CONVERT       == pParams->HwCommandType   ||
+        MOS_SFC_STATE                  == pParams->HwCommandType   ||
+        MOS_STATE_BASE_ADDR            == pParams->HwCommandType   ||
+        MOS_SURFACE_STATE              == pParams->HwCommandType   ||
+        MOS_SURFACE_STATE_ADV          == pParams->HwCommandType   ||
+        MOS_MFX_PIPE_BUF_ADDR          == pParams->HwCommandType   ||
+        MOS_MFX_VP8_PIC                == pParams->HwCommandType   ||
+        MOS_MFX_BSP_BUF_BASE_ADDR      == pParams->HwCommandType   ||
+        MOS_MFX_INDIRECT_OBJ_BASE_ADDR == pParams->HwCommandType)
     {
         HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType,
             pParams->dwLocationInCmd, pParams->dwOffset);
