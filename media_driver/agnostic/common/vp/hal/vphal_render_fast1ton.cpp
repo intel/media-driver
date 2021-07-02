@@ -1,33 +1,30 @@
 /*
+* Copyright (c) 2018-2021, Intel Corporation
 *
-* Copyright (c) Intel Corporation (2018).
+* Permission is hereby granted, free of charge, to any person obtaining a
+* copy of this software and associated documentation files (the "Software"),
+* to deal in the Software without restriction, including without limitation
+* the rights to use, copy, modify, merge, publish, distribute, sublicense,
+* and/or sell copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following conditions:
 *
-* INTEL MAKES NO WARRANTY OF ANY KIND REGARDING THE CODE.  THIS CODE IS
-* LICENSED ON AN "AS IS" BASIS AND INTEL WILL NOT PROVIDE ANY SUPPORT,
-* ASSISTANCE, INSTALLATION, TRAINING OR OTHER SERVICES.  INTEL DOES NOT
-* PROVIDE ANY UPDATES, ENHANCEMENTS OR EXTENSIONS.  INTEL SPECIFICALLY
-* DISCLAIMS ANY WARRANTY OF MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR ANY
-* PARTICULAR PURPOSE, OR ANY OTHER WARRANTY.  Intel disclaims all liability,
-* including liability for infringement of any proprietary rights, relating to
-* use of the code. No license, express or implied, by estoppel or otherwise,
-* to any intellectual property rights is granted herein.
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
 *
-*
-* File Name  : vphal_render_fast1ton.cpp
-*
-* Abstract   : Video Surface multi scaling output Video Processing
-*
-* Environment: linux
-*
-* Notes      : This module contains video surface multi scaling output definitions
-*              for VPHAL
-*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+* OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+* ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
 //! \file     vphal_render_fast1ton.cpp
 //! \brief    Multi scaling output Surface alignment as 16 or non-16 bytes
 //! \details  Unified VP HAL multi scaling output Surface 16 or no-16 bytes alignment module interfaces
 //!
+
 #include "vphal_render_fast1ton.h"
 #include "vphal_debug.h"
 #include "vpkrnheader.h"
