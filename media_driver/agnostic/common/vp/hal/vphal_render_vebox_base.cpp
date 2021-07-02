@@ -2502,6 +2502,7 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
                                         pSrc->ColorSpace != pRenderTarget->ColorSpace);
 
     pRenderData->bProcamp           = ((IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) ||
+                                        pRenderData->b2PassesCSC                ||
                                         IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))  &&
                                         pSrc->pProcampParams                    &&
                                         pSrc->pProcampParams->bEnabled);
