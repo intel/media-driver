@@ -32,6 +32,7 @@
 #include "cm_device_rt.h"
 #include "cm_surface_2d.h"
 #include "cm_extension_creator.h"
+#include "cm_queue_rt.h"
 
 enum CM_TS_FLAG
 {
@@ -102,7 +103,12 @@ namespace CMRT_UMD
 //| Purpose:    Reset task and clear all the kernel
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmThreadSpaceRT::Create( CmDeviceRT* device, uint32_t indexTsArray, uint32_t width, uint32_t height, CmThreadSpaceRT* & threadSpace )
+int32_t CmThreadSpaceRT::Create( CmDeviceRT* device,
+                                 uint32_t indexTsArray,
+                                 uint32_t width,
+                                 uint32_t height,
+                                 CmThreadSpaceRT* & threadSpace,
+                                 CM_SW_SCOREBOARD_UNIT *swScoreBoardUnit)
 {
     if( (0 == width) || (0 == height) )
     {
@@ -111,7 +117,7 @@ int32_t CmThreadSpaceRT::Create( CmDeviceRT* device, uint32_t indexTsArray, uint
     }
 
     int32_t result = CM_SUCCESS;
-    threadSpace = new (std::nothrow) CmThreadSpaceRT( device, indexTsArray, width, height );
+    threadSpace = new (std::nothrow) CmThreadSpaceRT( device, indexTsArray, width, height, swScoreBoardUnit);
     if( threadSpace )
     {
         device->m_memObjectCount.threadSpaceCount++;
@@ -149,7 +155,11 @@ int32_t CmThreadSpaceRT::Destroy( CmThreadSpaceRT* &threadSpace )
 //| Purpose:    Constructor of CmThreadSpace
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-CmThreadSpaceRT::CmThreadSpaceRT( CmDeviceRT* device , uint32_t indexTsArray, uint32_t width, uint32_t height ):
+CmThreadSpaceRT::CmThreadSpaceRT( CmDeviceRT* device,
+                                  uint32_t indexTsArray,
+                                  uint32_t width,
+                                  uint32_t height,
+                                  CM_SW_SCOREBOARD_UNIT *swScoreBoardUnit):
     m_device( device ),
     m_width( width ),
     m_height( height ),
@@ -173,8 +183,8 @@ CmThreadSpaceRT::CmThreadSpaceRT( CmDeviceRT* device , uint32_t indexTsArray, ui
     m_dependencyVectorsSet(false),
     m_threadSpaceOrderSet(false),
     m_swBoardSurf(nullptr),
-    m_swBoard(nullptr),
     m_swScoreBoardEnabled(false),
+    m_swScoreBoardUnit(swScoreBoardUnit),
     m_threadGroupSpace(nullptr),
     m_dirtyStatus(nullptr),
     m_groupSelect(CM_MW_GROUP_NONE)
@@ -201,10 +211,9 @@ CmThreadSpaceRT::~CmThreadSpaceRT( void )
     {
         MOS_FreeMemory(m_wavefront26ZDispatchInfo.numThreadsInWave);
     }
-    
+
     if (m_swScoreBoardEnabled)
     {
-        MosSafeDeleteArray(m_swBoard);
         if (m_swBoardSurf != nullptr)
         {
             m_device->DestroySurface(m_swBoardSurf);
@@ -1993,6 +2002,51 @@ int32_t CmThreadSpaceRT::GetMediaWalkerGroupSelect(CM_MW_GROUP_SELECT &groupSele
     return CM_SUCCESS;
 }
 
+int32_t CmThreadSpaceRT::InitSwScoreBoardUnit()
+{
+    if(m_swScoreBoardUnit->width != m_width || m_swScoreBoardUnit->height != m_height)
+    {
+        //Update sw score board surface
+        if(m_swScoreBoardUnit->swBoard != nullptr)
+        {
+            MosSafeDeleteArray(m_swScoreBoardUnit->swBoard);
+            m_swScoreBoardUnit->swBoard = nullptr;
+        }
+        if(m_swScoreBoardUnit->swBoardSurf != nullptr)
+        {
+            m_device->DestroySurface(m_swScoreBoardUnit->swBoardSurf);
+            m_swScoreBoardUnit->swBoardSurf = nullptr;
+        }
+
+        m_swScoreBoardUnit->swBoard = MOS_NewArray(uint32_t, (m_height * m_width));
+        if (m_swScoreBoardUnit->swBoard)
+        {
+            CmSafeMemSet(m_swScoreBoardUnit->swBoard, 0, sizeof(uint32_t)* m_height * m_width);
+        }
+        else
+        {
+            CM_ASSERTMESSAGE("Error: Out of system memory.");
+            MosSafeDeleteArray(m_swScoreBoardUnit->swBoard);
+            return CM_OUT_OF_HOST_MEMORY;
+        }
+
+        //for 2D atomic
+        CM_CHK_CMSTATUS_RETURN(m_device->CreateSurface2D(m_width,
+                m_height,
+                Format_R32S,
+                m_swScoreBoardUnit->swBoardSurf));
+    }
+    
+    m_swScoreBoardUnit->width  = m_width;
+    m_swScoreBoardUnit->height = m_height;
+    m_swScoreBoardUnit->dependencyPatternType = m_dependencyPatternType;
+
+    CM_CHK_CMSTATUS_RETURN(InitSwScoreBoard(m_swScoreBoardUnit->swBoard));
+    CM_CHK_CMSTATUS_RETURN(m_swScoreBoardUnit->swBoardSurf->WriteSurface((uint8_t *)m_swScoreBoardUnit->swBoard, nullptr));
+
+    return CM_SUCCESS;
+}
+
 int32_t CmThreadSpaceRT::UpdateDependency()
 {
     //Init SW scoreboard
@@ -2000,30 +2054,35 @@ int32_t CmThreadSpaceRT::UpdateDependency()
     {
         return CM_SUCCESS;
     }
-    if (m_swBoard == nullptr)
-    {
-        m_swBoard = MOS_NewArray(uint32_t, (m_height * m_width));
-        if (m_swBoard)
-        {
-            CmSafeMemSet(m_swBoard, 0, sizeof(uint32_t)* m_height * m_width);
-        }
-        else
-        {
-            CM_ASSERTMESSAGE("Error: Out of system memory.");
-            MosSafeDeleteArray(m_swBoard);
-            return CM_OUT_OF_HOST_MEMORY;
-        }
-    }
+
+    CM_CHK_NULL_RETURN_CMERROR(m_swScoreBoardUnit);
+
+    if(m_swScoreBoardUnit->width != m_width ||
+       m_swScoreBoardUnit->height != m_height ||
+       m_swScoreBoardUnit->dependencyPatternType != m_dependencyPatternType)
+        CM_CHK_CMSTATUS_RETURN(InitSwScoreBoardUnit());
+
     if (m_swBoardSurf == nullptr)
     {
         //for 2D atomic
         CM_CHK_CMSTATUS_RETURN(m_device->CreateSurface2D(m_width,
-                m_height, 
+                m_height,
                 Format_R32S,
                 m_swBoardSurf));
     }
-    CM_CHK_CMSTATUS_RETURN(InitSwScoreBoard());
-    CM_CHK_CMSTATUS_RETURN(m_swBoardSurf->WriteSurface((uint8_t *)m_swBoard, nullptr));
+
+    CmQueueRT* cm_queue_rt = m_device->GetQueue().back();
+
+    if(cm_queue_rt)
+    {
+        CmEvent *cm_event = CM_NO_EVENT;
+        CM_CHK_CMSTATUS_RETURN(cm_queue_rt->EnqueueCopyGPUToGPU(m_swBoardSurf , m_swScoreBoardUnit->swBoardSurf, cm_queue_rt->GetQueueOption().QueueType, cm_event));
+    }
+    else
+    {
+        CM_CHK_CMSTATUS_RETURN(m_swBoardSurf->WriteSurface((uint8_t *)m_swScoreBoardUnit->swBoard, nullptr));
+    }
+
     return CM_SUCCESS;
 }
 
@@ -2062,7 +2121,7 @@ int32_t CmThreadSpaceRT::SetDependencyArgToKernel(CmKernelRT *pKernel) const
     return CM_SUCCESS;
 }
 
-int32_t CmThreadSpaceRT::InitSwScoreBoard()
+int32_t CmThreadSpaceRT::InitSwScoreBoard(uint32_t *swBoard)
 {
     int SB_BufLen = m_height * m_width;
     int bufIdx = 0;
@@ -2149,7 +2208,7 @@ int32_t CmThreadSpaceRT::InitSwScoreBoard()
                 break;
         }
 
-        *(m_swBoard + i) = entry_value;
+        *(swBoard + i) = entry_value;
     }
     return CM_SUCCESS;
 }
