@@ -1202,6 +1202,13 @@ VAStatus MediaLibvaCapsG12::AddEncSurfaceAttributes(
             attribList[numAttribs].value.value.i = m_encJpegMinHeight;
         }
         numAttribs++;
+
+        attribList[numAttribs].type = VASurfaceAttribMemoryType;
+        attribList[numAttribs].value.type = VAGenericValueTypeInteger;
+        attribList[numAttribs].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribList[numAttribs].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2;
+        numAttribs++;
     }
 
     return VA_STATUS_SUCCESS;
@@ -1600,6 +1607,13 @@ VAStatus MediaLibvaCapsG12::QuerySurfaceAttributes(
         attribs[i].value.type = VAGenericValueTypeInteger;
         attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE;
         attribs[i].value.value.i = maxHeight;
+        i++;
+
+        attribs[i].type = VASurfaceAttribMemoryType;
+        attribs[i].value.type = VAGenericValueTypeInteger;
+        attribs[i].flags = VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE;
+        attribs[i].value.value.i = VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2;
         i++;
     }
     else if(entrypoint == VAEntrypointEncSlice || entrypoint == VAEntrypointEncSliceLP || entrypoint == VAEntrypointEncPicture || entrypoint == VAEntrypointFEI)
