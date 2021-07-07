@@ -280,5 +280,48 @@ protected:
     //!     if call succeeds
     //!
     VAStatus QueryAVCROIMaxNum(uint32_t rcMode, bool isVdenc, uint32_t *maxNum, bool *isRoiInDeltaQP) override;
+
+    //!
+    //! \brief    Get surface attributes for a given config ID
+    //!
+    //! \param    [in] configId
+    //!           VA configuration
+    //!
+    //! \param    [in,out] attribList
+    //!           Pointer to VASurfaceAttrib array. It returns
+    //!           the supported  surface attributes
+    //!
+    //! \param    [in,out] numAttribs
+    //!           The number of elements allocated on input
+    //!           Return the number of elements actually filled in output
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
+    //!
+    virtual VAStatus QueryDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t *numAttribs);
+
+    //!
+    //! \brief    Get display attributes
+    //!           returns the current attributes values in "attribList"
+    //!
+    //! \param    [in, out] attribList
+    //!           the attrib type should be filled.
+    //!           returns the supported display attributes
+    //!
+    //! \param    [in] numAttribs
+    //!           the number of supported attributes
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
+    //!
+    virtual VAStatus GetDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t numAttribs);
+
+
 };
 #endif

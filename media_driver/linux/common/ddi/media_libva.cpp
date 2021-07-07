@@ -5712,15 +5712,10 @@ VAStatus DdiMedia_QueryDisplayAttributes(
     VADisplayAttribute *attr_list,
     int32_t            *num_attributes)
 {
-    DDI_UNUSED(ctx);
-    DDI_UNUSED(attr_list);
-
     DDI_FUNCTION_ENTER();
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
 
-    if (num_attributes)
-        *num_attributes = 0;
-
-    return VA_STATUS_SUCCESS;
+    return mediaCtx->m_caps->QueryDisplayAttributes(attr_list, num_attributes);
 }
 
 //!
@@ -5744,13 +5739,10 @@ VAStatus DdiMedia_GetDisplayAttributes(
     VADisplayAttribute *attr_list,
     int32_t             num_attributes)
 {
-    DDI_UNUSED(ctx);
-    DDI_UNUSED(attr_list);
-    DDI_UNUSED(num_attributes);
-
     DDI_FUNCTION_ENTER();
 
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    return mediaCtx->m_caps->GetDisplayAttributes(attr_list, num_attributes);
 }
 
 //!
@@ -5774,13 +5766,10 @@ VAStatus DdiMedia_SetDisplayAttributes(
     VADisplayAttribute *attr_list,
     int32_t             num_attributes)
 {
-    DDI_UNUSED(ctx);
-    DDI_UNUSED(attr_list);
-    DDI_UNUSED(num_attributes);
-
     DDI_FUNCTION_ENTER();
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
 
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
+    return mediaCtx->m_caps->SetDisplayAttributes(attr_list, num_attributes);
 }
 
 //!
