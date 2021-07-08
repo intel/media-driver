@@ -191,6 +191,7 @@ struct _VEBOX_DI_PARAMS
     bool                            enableFMD;                                  //!< FMD
     bool                            bSCDEnabled;                                //!< Scene change detection
     bool                            bHDContent;
+    bool                            bEnableQueryVariance;                       //!< Query variance enable
 };
 
 struct _VEBOX_ACE_PARAMS

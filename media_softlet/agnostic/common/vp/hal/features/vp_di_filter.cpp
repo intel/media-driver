@@ -102,13 +102,14 @@ MOS_STATUS VpDiFilter::CalculateEngineParams()
             MOS_ZeroMemory(m_pVeboxDiParams, sizeof(VEBOX_DI_PARAMS));
         }
 
-        m_pVeboxDiParams->bDiEnabled        = true;
-        m_pVeboxDiParams->sampleTypeInput   = m_diParams.sampleTypeInput;
-        m_pVeboxDiParams->b60fpsDi          = m_diParams.b60fpsDi;
-        m_pVeboxDiParams->diMode            = m_diParams.DIMode;
-        m_pVeboxDiParams->enableFMD         = m_diParams.bEnableFMD;
-        m_pVeboxDiParams->bSCDEnabled       = m_diParams.bSCDEnable;
-        m_pVeboxDiParams->bHDContent        = m_diParams.bHDContent;
+        m_pVeboxDiParams->bDiEnabled           = true;
+        m_pVeboxDiParams->sampleTypeInput      = m_diParams.sampleTypeInput;
+        m_pVeboxDiParams->b60fpsDi             = m_diParams.b60fpsDi;
+        m_pVeboxDiParams->diMode               = m_diParams.DIMode;
+        m_pVeboxDiParams->enableFMD            = m_diParams.bEnableFMD;
+        m_pVeboxDiParams->bSCDEnabled          = m_diParams.bSCDEnable;
+        m_pVeboxDiParams->bHDContent           = m_diParams.bHDContent;
+        m_pVeboxDiParams->bEnableQueryVariance = m_diParams.bQueryVarianceEnable;
     }
     else if (m_executeCaps.bRender)
     {

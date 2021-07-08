@@ -657,7 +657,7 @@ SwFilter *SwFilterDenoise::Clone()
     return p;
 }
 
-bool vp::SwFilterDenoise::operator==(SwFilter& swFilter)
+bool SwFilterDenoise::operator==(SwFilter& swFilter)
 {
     VP_FUNC_CALL();
 
@@ -665,7 +665,7 @@ bool vp::SwFilterDenoise::operator==(SwFilter& swFilter)
     return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamDenoise));
 }
 
-MOS_STATUS vp::SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
+MOS_STATUS SwFilterDenoise::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
 {
     VP_FUNC_CALL();
 
@@ -708,14 +708,15 @@ MOS_STATUS SwFilterDeinterlace::Configure(VP_PIPELINE_PARAMS& params, bool isInp
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);
     VP_PUBLIC_CHK_NULL_RETURN(surfInput->pDeinterlaceParams);
 
-    m_Params.formatInput        = surfInput->Format;
-    m_Params.formatOutput       = surfInput->Format;
-    m_Params.sampleTypeInput    = surfInput->SampleType;
-    m_Params.DIMode             = surfInput->pDeinterlaceParams->DIMode;            //!< DeInterlacing mode
-    m_Params.bEnableFMD         = surfInput->pDeinterlaceParams->bEnableFMD;        //!< FMD
-    m_Params.b60fpsDi           = !surfInput->pDeinterlaceParams->bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
-    m_Params.bSCDEnable         = surfInput->pDeinterlaceParams->bSCDEnable;        //!< Scene change detection
-    m_Params.bHDContent         = MEDIA_IS_HDCONTENT(surfInput->dwWidth, surfInput->dwHeight);
+    m_Params.formatInput          = surfInput->Format;
+    m_Params.formatOutput         = surfInput->Format;
+    m_Params.sampleTypeInput      = surfInput->SampleType;
+    m_Params.DIMode               = surfInput->pDeinterlaceParams->DIMode;            //!< DeInterlacing mode
+    m_Params.bEnableFMD           = surfInput->pDeinterlaceParams->bEnableFMD;        //!< FMD
+    m_Params.b60fpsDi             = !surfInput->pDeinterlaceParams->bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
+    m_Params.bSCDEnable           = surfInput->pDeinterlaceParams->bSCDEnable;        //!< Scene change detection
+    m_Params.bHDContent           = MEDIA_IS_HDCONTENT(surfInput->dwWidth, surfInput->dwHeight);
+    m_Params.bQueryVarianceEnable = false; // Feature is not supported in current filter, disable in current stage
 
     return MOS_STATUS_SUCCESS;
 }

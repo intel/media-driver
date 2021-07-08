@@ -425,12 +425,13 @@ struct FeatureParamDeinterlace : public FeatureParam
 {
     VPHAL_SAMPLE_TYPE       sampleTypeInput;
     bool                    bHDContent;
-    VPHAL_DI_MODE           DIMode;             //!< DeInterlacing mode
-    bool                    bEnableFMD;         //!< FMD
-    bool                    b60fpsDi;           //!< Used in frame Recon - if 30fps (one call per sample pair)
-    bool                    bSCDEnable;         //!< Scene change detection
-    bool                    bFmdExtraVariance;  //!< Check if extra FMD variances need to be calculated
-    bool                    bFmdKernelEnable;   //!< FMD kernel path enabled
+    VPHAL_DI_MODE           DIMode;               //!< DeInterlacing mode
+    bool                    bEnableFMD;           //!< FMD
+    bool                    b60fpsDi;             //!< Used in frame Recon - if 30fps (one call per sample pair)
+    bool                    bSCDEnable;           //!< Scene change detection
+    bool                    bFmdExtraVariance;    //!< Check if extra FMD variances need to be calculated
+    bool                    bFmdKernelEnable;     //!< FMD kernel path enabled
+    bool                    bQueryVarianceEnable; //!< Query variance enabled
 };
 
 class SwFilterDeinterlace : public SwFilter

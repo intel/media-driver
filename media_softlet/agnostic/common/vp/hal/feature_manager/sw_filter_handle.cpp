@@ -432,6 +432,13 @@ bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
         return true;
     }
 
+    if (vphalSurf && vphalSurf->bQueryVariance &&
+        vphalSurf->Format != Format_P010 &&
+        vphalSurf->Format != Format_P016)
+    {
+        VPHAL_PUBLIC_NORMALMESSAGE("Query Variance is enabled, but APG didn't support this feature yet");
+    }
+
     return false;
 }
 

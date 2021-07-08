@@ -763,7 +763,7 @@ MOS_STATUS VpVeboxCmdPacket::SetDiParams(PVEBOX_DI_PARAMS diParams)
 
     renderData->DI.value            = 0;
     renderData->DI.bDeinterlace     = diParams->bDiEnabled;
-    renderData->DI.bQueryVariance   = false;
+    renderData->DI.bQueryVariance   = diParams->bEnableQueryVariance;
     renderData->DI.bTFF             = IsTopFieldFirst(diParams->sampleTypeInput);
     renderData->DI.bFmdEnabled      = diParams->enableFMD;
 
