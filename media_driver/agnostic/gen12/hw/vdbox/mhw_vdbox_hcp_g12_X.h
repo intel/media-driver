@@ -278,6 +278,10 @@ struct MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12 : public MHW_VDBOX_PIPE_BUF_ADDR_PARAM
     PMOS_RESOURCE               presIntraPredLeftReconColStoreBuffer = nullptr;
     PMOS_RESOURCE               presCABACSyntaxStreamOutBuffer = nullptr;
     PMOS_RESOURCE               presCABACSyntaxStreamOutMaxAddr = nullptr;
+
+    //Reference Mmc
+    bool                        bSpecificReferencedMmcRequired = false;
+    MOS_MEMCOMP_STATE           ReferencesMmcState = MOS_MEMCOMP_DISABLED;
 };
 using PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12 = MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12 *;
 

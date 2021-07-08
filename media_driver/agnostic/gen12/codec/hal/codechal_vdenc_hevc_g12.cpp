@@ -2883,6 +2883,14 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
 
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
     SetHcpReconSurfaceParams(reconSurfaceParams);
+#ifdef _MMC_SUPPORTED
+    // Recon P010v MMC state set from RC for compression write
+    MOS_MEMCOMP_STATE tempMmcState = reconSurfaceParams.mmcState;
+    if (m_reconSurface.Format == Format_P010 && MmcEnable(tempMmcState))
+    {
+        reconSurfaceParams.mmcState = MOS_MEMCOMP_RC;
+    }
+#endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &reconSurfaceParams));
 
     // Add the surface state for reference picture, GEN12 HW change
@@ -2891,6 +2899,11 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
 
 #ifdef _MMC_SUPPORTED
+    // Reference P010v MMC state set from MC for compression read
+    if (m_reconSurface.Format == Format_P010 && MmcEnable(tempMmcState))
+    {
+        reconSurfaceParams.mmcState = tempMmcState;
+    }
     if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
         reconSurfaceParams.mmcSkipMask = (1 << m_slotForRecNotFiltered);
@@ -7135,6 +7148,17 @@ MOS_STATUS CodechalVdencHevcStateG12::AddHcpPipeBufAddrCmd(
 
 #ifdef _MMC_SUPPORTED
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
+    // Recon P010v MMC state set from RC for compression write
+    // Reference P010v MMC state set from MC for compression read
+    if (m_reconSurface.Format == Format_P010 && m_pipeBufAddrParams && MmcEnable(m_pipeBufAddrParams->PreDeblockSurfMmcState))
+    {
+        auto paramsG12 = dynamic_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12>(m_pipeBufAddrParams);
+        MHW_CHK_NULL_RETURN(paramsG12);
+        paramsG12->bSpecificReferencedMmcRequired = true;
+        paramsG12->ReferencesMmcState             = m_pipeBufAddrParams->PreDeblockSurfMmcState;
+
+        m_pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_RC;
+    }
 #endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(cmdBuffer, m_pipeBufAddrParams));
 

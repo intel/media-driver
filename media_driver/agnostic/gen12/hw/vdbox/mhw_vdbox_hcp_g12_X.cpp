@@ -2011,9 +2011,19 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
         }
     }
 
-    // Same MMC status for deblock and ref surfaces
-    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable;
-    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.CompressionType = cmd.DecodedPictureMemoryAddressAttributes.DW0.CompressionType;
+    auto paramsG12 = dynamic_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12>(params);
+    MHW_CHK_NULL_RETURN(paramsG12);
+    if (paramsG12->bSpecificReferencedMmcRequired)
+    {
+        cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnable(paramsG12->ReferencesMmcState) ? 1 : 0;
+        cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.CompressionType                    = MmcIsRc(paramsG12->ReferencesMmcState) ? 1 : 0;;
+    }
+    else
+    {
+        // Same MMC status for deblock and ref surfaces
+        cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable;
+        cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.CompressionType                    = cmd.DecodedPictureMemoryAddressAttributes.DW0.CompressionType;
+    }
 
     // Reset dwSharedMocsOffset
     resourceParams.dwSharedMocsOffset = 0;
@@ -2283,10 +2293,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
             &resourceParams));
     }
 
-    //Gen11 new added buffer
-    auto paramsG12 = dynamic_cast<PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12>(params);
-    MHW_CHK_NULL_RETURN(paramsG12);
-
+    // Gen12 new added buffer
     // Slice state stream out buffer
     if (paramsG12->presSliceStateStreamOutBuffer != nullptr)
     {
