@@ -24,24 +24,24 @@
 //! \brief    Defines the implementation of av1 decode packet
 //!
 
-#ifndef __DECODE_AV1_PACKET_H__
-#define __DECODE_AV1_PACKET_H__
+#ifndef __DECODE_AV1_PACKET_G12_BASE_H__
+#define __DECODE_AV1_PACKET_G12_BASE_H__
 
 #include "media_cmd_packet.h"
 #include "decode_av1_pipeline.h"
 #include "decode_utils.h"
 #include "decode_av1_basic_feature.h"
 #include "decode_status_report.h"
-#include "decode_av1_picture_packet.h"
-#include "decode_av1_tile_packet.h"
+#include "decode_av1_picture_packet_g12_base.h"
+#include "decode_av1_tile_packet_g12_base.h"
 
 namespace decode
 {
 
-class Av1DecodePkt : public CmdPacket, public MediaStatusReportObserver
+class Av1DecodePkt_G12_Base : public CmdPacket, public MediaStatusReportObserver
 {
 public:
-    Av1DecodePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
+    Av1DecodePkt_G12_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
         : CmdPacket(task)
     {
         if (pipeline != nullptr)
@@ -58,7 +58,7 @@ public:
             m_vdencInterface = hwInterface->GetVdencInterface();
         }
     }
-    virtual ~Av1DecodePkt(){};
+    virtual ~Av1DecodePkt_G12_Base(){};
 
     //!
     //! \brief  Initialize the media packet, allocate required resources
@@ -152,22 +152,6 @@ protected:
     virtual MOS_STATUS EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
     MOS_STATUS InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
 
-#if USE_CODECHAL_DEBUG_TOOL
-    //! \brief    Dump the output resources in status report callback function
-    //!
-    //! \param    [in] decodeStatusMfx
-    //!           Pointer to decoder status for vdbox
-    //! \param    [in] statusReportData
-    //!           Pointer to decoder status report data
-    //!
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS DumpResources(
-        DecodeStatusMfx         *decodeStatusMfx,
-        DecodeStatusReportData  *statusReportData);
-#endif
-
     MediaFeatureManager    *m_featureManager   = nullptr;
     Av1Pipeline            *m_av1Pipeline      = nullptr;
     DecodeAllocator        *m_allocator        = nullptr;
@@ -177,10 +161,10 @@ protected:
     CodechalHwInterface    *m_hwInterface      = nullptr;
     DecodeMemComp          *m_mmcState         = nullptr;
 
-    Av1DecodePicPkt        *m_picturePkt       = nullptr;
-    Av1DecodeTilePkt       *m_tilePkt          = nullptr;
-    bool                    m_isLastTileInPartialFrm = false;
-    bool                    m_isFirstTileInPartialFrm = false;
+    Av1DecodePicPkt_G12_Base  *m_picturePkt    = nullptr;
+    Av1DecodeTilePkt_G12_Base *m_tilePkt       = nullptr;
+    bool                   m_isLastTileInPartialFrm  = false;
+    bool                   m_isFirstTileInPartialFrm = false;
 
     // Parameters passed from application
     const CodecAv1PicParams *m_av1PicParams   = nullptr;  //!< Pointer to picture parameter
@@ -196,5 +180,5 @@ protected:
 };
 
 }  // namespace decode
-#endif // !__DECODE_AV1_PACKET_H__
+#endif // !__DECODE_AV1_PACKET_G12_BASE_H__
 

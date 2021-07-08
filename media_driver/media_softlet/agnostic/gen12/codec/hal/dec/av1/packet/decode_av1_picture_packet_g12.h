@@ -27,16 +27,16 @@
 #ifndef __DECODE_AV1_PICTURE_PACKET_G12_H__
 #define __DECODE_AV1_PICTURE_PACKET_G12_H__
 
-#include "decode_av1_picture_packet.h"
+#include "decode_av1_picture_packet_g12_base.h"
 #include "mhw_vdbox_g12_X.h"
 
 namespace decode
 {
-    class Av1DecodePicPktG12 : public Av1DecodePicPkt
+    class Av1DecodePicPktG12 : public Av1DecodePicPkt_G12_Base
     {
     public:
         Av1DecodePicPktG12(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
-            : Av1DecodePicPkt(pipeline, hwInterface)
+            : Av1DecodePicPkt_G12_Base(pipeline, hwInterface)
         {
         }
         virtual ~Av1DecodePicPktG12(){};

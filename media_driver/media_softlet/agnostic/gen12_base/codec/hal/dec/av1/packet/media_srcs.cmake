@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,16 +21,16 @@
 if(${AV1_Decode_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_packet.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_packet_g12_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet_g12_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet_g12_base.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_packet.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_packet_g12_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet_g12_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet_g12_base.h
 )
 endif()
 

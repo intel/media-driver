@@ -31,16 +31,16 @@
 #include "decode_av1_pipeline.h"
 #include "decode_utils.h"
 #include "decode_av1_basic_feature.h"
-#include "decode_av1_tile_packet.h"
+#include "decode_av1_tile_packet_g12_base.h"
 
 namespace decode
 {
 
-class Av1DecodeTilePktG12 : public Av1DecodeTilePkt
+class Av1DecodeTilePktG12 : public Av1DecodeTilePkt_G12_Base
 {
 public:
     Av1DecodeTilePktG12(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
-        : Av1DecodeTilePkt(pipeline, hwInterface)
+        : Av1DecodeTilePkt_G12_Base(pipeline, hwInterface)
     {
     }
     virtual ~Av1DecodeTilePktG12() {};

@@ -32,16 +32,16 @@
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_mi_g12_X.h"
 #include "mhw_render_g12_X.h"
-#include "decode_av1_packet.h"
+#include "decode_av1_packet_g12_base.h"
 
 namespace decode
 {
 
-class Av1DecodePktG12 : public Av1DecodePkt
+class Av1DecodePktG12 : public Av1DecodePkt_G12_Base
 {
 public:
     Av1DecodePktG12(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) :
-        Av1DecodePkt(pipeline, task, hwInterface)
+        Av1DecodePkt_G12_Base(pipeline, task, hwInterface)
     {
         m_hwInterface = hwInterface;
     }

@@ -20,15 +20,15 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_tile_packet.cpp
-//! \brief    Defines the interface for av1 decode tile packet
+//! \file     decode_av1_tile_packet_g12_base.cpp
+//! \brief    Defines the interface for g12 av1 decode tile packet
 //!
 #include "codechal_utilities.h"
-#include "decode_av1_tile_packet.h"
+#include "decode_av1_tile_packet_g12_base.h"
 
 namespace decode
 {
-    MOS_STATUS Av1DecodeTilePkt::Init()
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::Init()
     {
         DECODE_FUNC_CALL();
 
@@ -50,7 +50,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::Prepare()
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::Prepare()
     {
         DECODE_FUNC_CALL();
 
@@ -63,7 +63,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::SetAvpTileCodingParams(
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::SetAvpTileCodingParams(
         MhwVdboxAvpTileCodingParams &tileCodingParams,
         int16_t  tileIdx)
     {
@@ -136,7 +136,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::SetBsdObjParams(
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::SetBsdObjParams(
         MhwVdboxAvpBsdParams &bsdObjParams,
         int16_t                  tileIdx)
     {
@@ -150,7 +150,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::AddBsdObj(
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::AddBsdObj(
         MOS_COMMAND_BUFFER &cmdBuffer,
         int16_t            tileIdx)
     {
@@ -163,7 +163,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::AddAvpInloopFilterStateCmd(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::AddAvpInloopFilterStateCmd(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
@@ -174,7 +174,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::SetInloopFilterStateParams(MhwVdboxAvpPicStateParams& picStateParams)
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::SetInloopFilterStateParams(MhwVdboxAvpPicStateParams& picStateParams)
     {
         DECODE_FUNC_CALL();
 
@@ -200,7 +200,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::CalculateCommandSize(uint32_t &commandBufferSize,
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::CalculateCommandSize(uint32_t &commandBufferSize,
                                                       uint32_t &requestedPatchListSize)
     {
         DECODE_FUNC_CALL();
@@ -211,7 +211,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::CalculateTileStateCommandSize()
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::CalculateTileStateCommandSize()
     {
         DECODE_FUNC_CALL();
 
@@ -224,7 +224,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTilePkt::AddAvpTileState(
+    MOS_STATUS Av1DecodeTilePkt_G12_Base::AddAvpTileState(
         MOS_COMMAND_BUFFER &cmdBuffer,
         int16_t           tileIdx)
     {

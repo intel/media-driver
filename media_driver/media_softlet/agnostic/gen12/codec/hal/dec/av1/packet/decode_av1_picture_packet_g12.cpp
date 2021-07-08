@@ -34,7 +34,7 @@ namespace decode
     MOS_STATUS Av1DecodePicPktG12::Init()
     {
         DECODE_FUNC_CALL();
-        DECODE_CHK_STATUS(Av1DecodePicPkt::Init());
+        DECODE_CHK_STATUS(Av1DecodePicPkt_G12_Base::Init());
         DECODE_CHK_STATUS(CalculatePictureStateCommandSize());
         return MOS_STATUS_SUCCESS;
     }
@@ -91,7 +91,7 @@ namespace decode
         DECODE_FUNC_CALL();
 
         MhwVdboxAvpPipeBufAddrParams pipeBufAddrParams = {};
-        DECODE_CHK_STATUS(Av1DecodePicPkt::SetAvpPipeBufAddrParams(pipeBufAddrParams));
+        DECODE_CHK_STATUS(Av1DecodePicPkt_G12_Base::SetAvpPipeBufAddrParams(pipeBufAddrParams));
     #ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(SetSurfaceMmcState(pipeBufAddrParams));
     #endif
@@ -124,7 +124,7 @@ namespace decode
         DECODE_FUNC_CALL();
 
         MhwVdboxAvpPicStateParams picStateParams;
-        DECODE_CHK_STATUS(Av1DecodePicPkt::SetAvpInterPredStateParams(picStateParams));
+        DECODE_CHK_STATUS(SetAvpInterPredStateParams(picStateParams));
         DECODE_CHK_STATUS(m_avpInterface->AddAvpInterPredStateCmd(&cmdBuffer, &picStateParams));
 
         return MOS_STATUS_SUCCESS;

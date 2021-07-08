@@ -24,8 +24,8 @@
 //! \brief    Defines the implementation of av1 decode picture packet
 //!
 
-#ifndef __DECODE_AV1_PICTURE_PACKET_H__
-#define __DECODE_AV1_PICTURE_PACKET_H__
+#ifndef __DECODE_AV1_PICTURE_PACKET_G12_BASE_H__
+#define __DECODE_AV1_PICTURE_PACKET_G12_BASE_H__
 
 #include "media_cmd_packet.h"
 #include "decode_av1_pipeline.h"
@@ -34,13 +34,13 @@
 
 namespace decode
 {
-    class Av1DecodePicPkt : public DecodeSubPacket
+    class Av1DecodePicPkt_G12_Base : public DecodeSubPacket
     {
     public:
         //!
-        //! \brief  Av1DecodePicPkt constructor
+        //! \brief  Av1DecodePicPkt_G12_Base constructor
         //!
-        Av1DecodePicPkt(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
+        Av1DecodePicPkt_G12_Base(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
             : DecodeSubPacket(pipeline, hwInterface), m_av1Pipeline(pipeline)
         {
             if (m_hwInterface != nullptr)
@@ -50,9 +50,9 @@ namespace decode
         }
 
         //!
-        //! \brief  Av1DecodePicPkt deconstructor
+        //! \brief  Av1DecodePicPkt_G12_Base deconstructor
         //!
-        virtual ~Av1DecodePicPkt();
+        virtual ~Av1DecodePicPkt_G12_Base();
 
         //!
         //! \brief  Initialize the media packet, allocate required resources

@@ -19,6 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(gen12)
+media_include_subdirectory(gen12_base)
 media_include_subdirectory(gen12_tgllp)
 media_include_subdirectory(m12)
 media_include_subdirectory(g12)

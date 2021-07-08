@@ -20,11 +20,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_packet.cpp
+//! \file     decode_av1_packet_g12_base.cpp
 //! \brief    Defines the interface for av1 decode packet
 //!
 #include "codechal_utilities.h"
-#include "decode_av1_packet.h"
+#include "decode_av1_packet_g12_base.h"
 #include "decode_status_report_defs.h"
 #include "decode_predication_packet.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
@@ -32,7 +32,7 @@
 
 namespace decode {
 
-MOS_STATUS Av1DecodePkt::Init()
+MOS_STATUS Av1DecodePkt_G12_Base::Init()
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(m_miInterface);
@@ -54,12 +54,12 @@ MOS_STATUS Av1DecodePkt::Init()
 
     DecodeSubPacket* subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1PictureSubPacketId));
 
-    m_picturePkt = dynamic_cast<Av1DecodePicPkt*>(subPacket);
+    m_picturePkt = dynamic_cast<Av1DecodePicPkt_G12_Base*>(subPacket);
     DECODE_CHK_NULL(m_picturePkt);
     DECODE_CHK_STATUS(m_picturePkt->CalculateCommandSize(m_pictureStatesSize, m_picturePatchListSize));
 
     subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1TileSubPacketId));
-    m_tilePkt = dynamic_cast<Av1DecodeTilePkt*>(subPacket);
+    m_tilePkt = dynamic_cast<Av1DecodeTilePkt_G12_Base*>(subPacket);
     DECODE_CHK_NULL(m_tilePkt);
     DECODE_CHK_STATUS(m_tilePkt->CalculateCommandSize(m_tileStatesSize, m_tilePatchListSize));
 
@@ -70,7 +70,7 @@ MOS_STATUS Av1DecodePkt::Init()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::Prepare()
+MOS_STATUS Av1DecodePkt_G12_Base::Prepare()
 {
     DECODE_FUNC_CALL();
 
@@ -80,7 +80,7 @@ MOS_STATUS Av1DecodePkt::Prepare()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::Destroy()
+MOS_STATUS Av1DecodePkt_G12_Base::Destroy()
 {
     m_statusReport->UnregistObserver(this);
 
@@ -89,7 +89,7 @@ MOS_STATUS Av1DecodePkt::Destroy()
     return MOS_STATUS_SUCCESS;
 }
 
-void Av1DecodePkt::SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType)
+void Av1DecodePkt_G12_Base::SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType)
 {
     DECODE_FUNC_CALL();
 
@@ -99,12 +99,12 @@ void Av1DecodePkt::SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType)
     m_osInterface->pfnResetPerfBufferID(m_osInterface);
 }
 
-bool Av1DecodePkt::IsPrologRequired()
+bool Av1DecodePkt_G12_Base::IsPrologRequired()
 {
     return true; // if ScalableMode, should set to false.
 }
 
-MOS_STATUS Av1DecodePkt::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
+MOS_STATUS Av1DecodePkt_G12_Base::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DECODE_FUNC_CALL();
 
@@ -120,7 +120,7 @@ MOS_STATUS Av1DecodePkt::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuffer, bool frameTrackingRequested)
+MOS_STATUS Av1DecodePkt_G12_Base::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuffer, bool frameTrackingRequested)
 {
     DecodeSubPacket* subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, markerSubPacketId));
     DecodeMarkerPkt *makerPacket = dynamic_cast<DecodeMarkerPkt*>(subPacket);
@@ -155,7 +155,7 @@ MOS_STATUS Av1DecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuff
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::VdPipelineFlush(MOS_COMMAND_BUFFER & cmdBuffer)
+MOS_STATUS Av1DecodePkt_G12_Base::VdPipelineFlush(MOS_COMMAND_BUFFER & cmdBuffer)
 {
     DECODE_FUNC_CALL();
 
@@ -169,7 +169,7 @@ MOS_STATUS Av1DecodePkt::VdPipelineFlush(MOS_COMMAND_BUFFER & cmdBuffer)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::MiFlush(MOS_COMMAND_BUFFER & cmdBuffer)
+MOS_STATUS Av1DecodePkt_G12_Base::MiFlush(MOS_COMMAND_BUFFER & cmdBuffer)
 {
     DECODE_FUNC_CALL();
 
@@ -180,7 +180,7 @@ MOS_STATUS Av1DecodePkt::MiFlush(MOS_COMMAND_BUFFER & cmdBuffer)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statusReport)
+MOS_STATUS Av1DecodePkt_G12_Base::Completed(void *mfxStatus, void *rcsStatus, void *statusReport)
 {
     DECODE_FUNC_CALL();
 
@@ -195,14 +195,14 @@ MOS_STATUS Av1DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize)
+MOS_STATUS Av1DecodePkt_G12_Base::CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize)
 {
     commandBufferSize = CalculateCommandBufferSize();
     requestedPatchListSize = CalculatePatchListSize();
     return MOS_STATUS_SUCCESS;
 }
 
-uint32_t Av1DecodePkt::CalculateCommandBufferSize()
+uint32_t Av1DecodePkt_G12_Base::CalculateCommandBufferSize()
 {
     uint32_t commandBufferSize = 0;
 
@@ -218,7 +218,7 @@ uint32_t Av1DecodePkt::CalculateCommandBufferSize()
     }
 }
 
-uint32_t Av1DecodePkt::CalculatePatchListSize()
+uint32_t Av1DecodePkt_G12_Base::CalculatePatchListSize()
 {
     if (!m_osInterface->bUsesPatchList)
     {
@@ -239,7 +239,7 @@ uint32_t Av1DecodePkt::CalculatePatchListSize()
     }
 }
 
-MOS_STATUS Av1DecodePkt::ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMMAND_BUFFER& cmdBuffer)
+MOS_STATUS Av1DecodePkt_G12_Base::ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DECODE_FUNC_CALL();
 
@@ -250,7 +250,7 @@ MOS_STATUS Av1DecodePkt::ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMM
     return eStatus;
 }
 
-MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
+MOS_STATUS Av1DecodePkt_G12_Base::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
 {
 
     MediaPacket::StartStatusReport(srType, cmdBuffer);
@@ -263,7 +263,7 @@ MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
+MOS_STATUS Av1DecodePkt_G12_Base::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
@@ -283,7 +283,7 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodePkt::InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase)
+MOS_STATUS Av1DecodePkt_G12_Base::InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase)
 {
     DECODE_FUNC_CALL();
 
@@ -296,20 +296,5 @@ MOS_STATUS Av1DecodePkt::InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, ui
 
     return MOS_STATUS_SUCCESS;
 }
-
-#if USE_CODECHAL_DEBUG_TOOL
-
-MOS_STATUS Av1DecodePkt::DumpResources(
-    DecodeStatusMfx *       decodeStatusMfx,
-    DecodeStatusReportData *statusReportData)
-{
-    DECODE_FUNC_CALL();
-    DECODE_CHK_NULL(decodeStatusMfx);
-    DECODE_CHK_NULL(statusReportData);
-
-    return MOS_STATUS_SUCCESS;
-}
-
-#endif
 
 }

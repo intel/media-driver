@@ -20,20 +20,20 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_picture_packet.cpp
-//! \brief    Defines the interface for av1 decode picture packet
+//! \file     decode_av1_picture_packet_g12_base.cpp
+//! \brief    Defines the interface for g12 av1 decode picture packet
 //!
 #include "codechal_utilities.h"
-#include "decode_av1_picture_packet.h"
+#include "decode_av1_picture_packet_g12_base.h"
 #include "codechal_debug.h"
 
 namespace decode{
-    Av1DecodePicPkt::~Av1DecodePicPkt()
+    Av1DecodePicPkt_G12_Base::~Av1DecodePicPkt_G12_Base()
     {
         FreeResources();
     }
 
-    MOS_STATUS Av1DecodePicPkt::FreeResources()
+    MOS_STATUS Av1DecodePicPkt_G12_Base::FreeResources()
     {
         DECODE_FUNC_CALL();
 
@@ -102,7 +102,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::Init()
+    MOS_STATUS Av1DecodePicPkt_G12_Base::Init()
     {
         DECODE_FUNC_CALL();
 
@@ -124,7 +124,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::Prepare()
+    MOS_STATUS Av1DecodePicPkt_G12_Base::Prepare()
     {
         DECODE_FUNC_CALL();
 
@@ -156,7 +156,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetRowstoreCachingOffsets()
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetRowstoreCachingOffsets()
     {
         if (m_avpInterface->IsRowStoreCachingSupported() &&
             (m_av1BasicFeature->m_frameWidthAlignedMinBlk != MOS_ALIGN_CEIL(m_prevFrmWidth, av1MinBlockWidth)))
@@ -174,7 +174,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::AllocateFixedResources()
+    MOS_STATUS Av1DecodePicPkt_G12_Base::AllocateFixedResources()
     {
         DECODE_FUNC_CALL();
 
@@ -209,7 +209,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::AllocateVariableResources()
+    MOS_STATUS Av1DecodePicPkt_G12_Base::AllocateVariableResources()
     {
         DECODE_FUNC_CALL();
 
@@ -992,7 +992,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpDstSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& dstSurfaceParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpDstSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& dstSurfaceParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1013,7 +1013,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS *refSurfaceParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS *refSurfaceParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1061,7 +1061,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpIntraBCSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &intraBCSurfaceParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpIntraBCSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &intraBCSurfaceParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1078,7 +1078,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::AddAvpSurfacesCmd(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::AddAvpSurfacesCmd(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
@@ -1110,7 +1110,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::AddAvpSegmentStateCmd(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::AddAvpSegmentStateCmd(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
@@ -1134,7 +1134,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpSegmentStateParams(MhwVdboxAvpSegmentStateParams& segStateParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpSegmentStateParams(MhwVdboxAvpSegmentStateParams& segStateParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1143,7 +1143,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpPipeBufAddrParams(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpPipeBufAddrParams(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1253,7 +1253,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::FixAvpPipeBufAddrParams(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::FixAvpPipeBufAddrParams(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1308,7 +1308,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    void Av1DecodePicPkt::SetAvpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS& indObjBaseAddrParams)
+    void Av1DecodePicPkt_G12_Base::SetAvpIndObjBaseAddrParams(MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS& indObjBaseAddrParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1319,7 +1319,7 @@ namespace decode{
         indObjBaseAddrParams.presDataBuffer  = &(m_av1BasicFeature->m_resDataBuffer.OsResource);
     }
 
-    MOS_STATUS Av1DecodePicPkt::AddAvpIndObjBaseAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::AddAvpIndObjBaseAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
@@ -1330,7 +1330,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpPipeBufAddrParamsForDummyWL(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpPipeBufAddrParamsForDummyWL(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1379,7 +1379,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::UpdatePipeBufAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::UpdatePipeBufAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
@@ -1393,7 +1393,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::UpdateIndObjAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::UpdateIndObjAddrForDummyWL(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
@@ -1434,7 +1434,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpPicStateParams(MhwVdboxAvpPicStateParams& picStateParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpPicStateParams(MhwVdboxAvpPicStateParams& picStateParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1464,7 +1464,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetAvpInterPredStateParams(MhwVdboxAvpPicStateParams& picStateParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetAvpInterPredStateParams(MhwVdboxAvpPicStateParams& picStateParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1501,7 +1501,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize)
     {
         DECODE_FUNC_CALL();
 
@@ -1511,7 +1511,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetupSkipModeFrames(MhwVdboxAvpPicStateParams& picStateParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetupSkipModeFrames(MhwVdboxAvpPicStateParams& picStateParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1549,7 +1549,7 @@ namespace decode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodePicPkt::SetupFrameSignBias(MhwVdboxAvpPicStateParams& picStateParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::SetupFrameSignBias(MhwVdboxAvpPicStateParams& picStateParams)
     {
         DECODE_FUNC_CALL();
 
@@ -1583,7 +1583,7 @@ namespace decode{
     }
 
 #if USE_CODECHAL_DEBUG_TOOL
-    MOS_STATUS Av1DecodePicPkt::DumpResources(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
+    MOS_STATUS Av1DecodePicPkt_G12_Base::DumpResources(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams)
     {
         DECODE_FUNC_CALL();
 

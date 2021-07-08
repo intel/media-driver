@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_slice_packet.h
-//! \brief    Defines the implementation of av1 decode slice packet
+//! \file     decode_av1_slice_packet_g12_base.h
+//! \brief    Defines the implementation of g12 av1 decode slice packet
 //!
 
-#ifndef __DECODE_AV1_TILE_PACKET_H__
-#define __DECODE_AV1_TILE_PACKET_H__
+#ifndef __DECODE_AV1_TILE_PACKET_G12_BASE_H__
+#define __DECODE_AV1_TILE_PACKET_G12_BASE_H__
 
 #include "media_cmd_packet.h"
 #include "decode_av1_pipeline.h"
@@ -36,10 +36,10 @@
 namespace decode
 {
 
-class Av1DecodeTilePkt : public DecodeSubPacket
+class Av1DecodeTilePkt_G12_Base : public DecodeSubPacket
 {
 public:
-    Av1DecodeTilePkt(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
+    Av1DecodeTilePkt_G12_Base(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
         : DecodeSubPacket(pipeline, hwInterface), m_av1Pipeline(pipeline)
     {
         if (m_hwInterface != nullptr)
@@ -47,7 +47,7 @@ public:
             m_avpInterface = hwInterface->GetAvpInterface();
         }
     }
-    virtual ~Av1DecodeTilePkt(){};
+    virtual ~Av1DecodeTilePkt_G12_Base(){};
 
     //!
     //! \brief  Initialize the media packet, allocate required resources
