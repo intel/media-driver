@@ -467,6 +467,8 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T       CmMutex;
     MEDIA_MUTEX_T       MfeMutex;
 
+    MEDIA_MUTEX_T       MemDecompMutex;
+
     // GT system Info
     MEDIA_SYSTEM_INFO  *pGtSystemInfo;
 

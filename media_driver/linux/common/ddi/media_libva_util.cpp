@@ -1055,11 +1055,6 @@ static VAStatus CreateShadowResource(DDI_MEDIA_SURFACE *surface)
         return VA_STATUS_ERROR_INVALID_SURFACE;
     }
 
-    if (surface->iWidth <= 512 || surface->iRealHeight <= 512 || surface->format == Media_Format_P016)
-    {
-        return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
-    }
-
     surface->pShadowBuffer = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
     DDI_CHK_NULL(surface->pShadowBuffer, "Failed to allocate shadow buffer", VA_STATUS_ERROR_INVALID_BUFFER);
     surface->pShadowBuffer->pMediaCtx = surface->pMediaCtx;
@@ -1138,7 +1133,8 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
         DdiMedia_MediaBufferToMosResource(surface->pShadowBuffer, &target);
     }
 
-    return mediaDrvCtx->pfnMediaMemoryTileConvert(
+    DdiMediaUtil_LockMutex(&mediaDrvCtx->MemDecompMutex);
+    VAStatus status = mediaDrvCtx->pfnMediaMemoryTileConvert(
             &mosCtx,
             &source,
             &target,
@@ -1148,6 +1144,8 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
             0,
             !isDeSwizzle,
             false);
+    DdiMediaUtil_UnLockMutex(&mediaDrvCtx->MemDecompMutex);
+    return status;
 }
 
 // add thread protection for multiple thread?
@@ -1176,10 +1174,12 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
                 VAStatus vaStatus = VA_STATUS_SUCCESS;
                 if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
                 {
+                    DdiMediaUtil_LockMutex(&surface->pMediaCtx->MemDecompMutex);
                     if (surface->pShadowBuffer == nullptr)
                     {
                         CreateShadowResource(surface);
                     }
+                    DdiMediaUtil_UnLockMutex(&surface->pMediaCtx->MemDecompMutex);
 
                     if (surface->pShadowBuffer != nullptr)
                     {
@@ -1280,12 +1280,7 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
             else if (surface->pShadowBuffer != nullptr)
             {
                 SwizzleSurfaceByHW(surface, true);
-
                 mos_bo_unmap(surface->pShadowBuffer->bo);
-                DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
-                MOS_FreeMemory(surface->pShadowBuffer);
-                surface->pShadowBuffer = nullptr;
-
                 mos_bo_unmap(surface->bo);
             }
             else if (surface->pSystemShadow)
@@ -1433,6 +1428,13 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
     if (surface->pMediaCtx->m_auxTableMgr)
     {
         surface->pMediaCtx->m_auxTableMgr->UnmapResource(surface->pGmmResourceInfo, surface->bo);
+    }
+
+    if (surface->pShadowBuffer != nullptr)
+    {
+        DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
+        MOS_FreeMemory(surface->pShadowBuffer);
+        surface->pShadowBuffer = nullptr;
     }
 
     if(surface->bMapped)
