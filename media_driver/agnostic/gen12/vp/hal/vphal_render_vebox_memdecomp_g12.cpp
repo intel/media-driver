@@ -323,7 +323,7 @@ MOS_STATUS MediaVeboxDecompStateG12::VeboxSendVeboxTileConvertCMD(
     veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
         (m_osInterface->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
+            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue >> 1; //Need shift 1 bit for resvered bit
 
     // Set Input surface compression status
     if (inputSurface->CompressionMode != MOS_MMC_DISABLED)

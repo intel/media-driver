@@ -2889,7 +2889,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
     veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
         (m_osInterface->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
+            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue >> 1; //Need shift 1 bit for resvered bit
 
     // Set Input surface compression status
     if (inSurParams->CompressionMode != MOS_MMC_DISABLED)
