@@ -459,6 +459,8 @@ static bool InitRKLMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrSfcScalability, 0);
     MEDIA_WR_SKU(skuTable, FtrIntelVP8VLDDecoding, 0);
 
+    // turn off Compression on RKL as HW known issue
+    MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     return true;
 }
 
