@@ -1789,7 +1789,7 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSendVeboxCmd_Prepare(
     PVPHAL_VEBOX_RENDER_DATA                pRenderData  = GetLastExecRenderData();
 
     // Switch GPU context to VEBOX
-    pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_VEBOX);
+    VPHAL_RENDER_CHK_STATUS(pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_VEBOX));
 
     // Reset allocation list and house keeping
     pOsInterface->pfnResetOsStates(pOsInterface);
