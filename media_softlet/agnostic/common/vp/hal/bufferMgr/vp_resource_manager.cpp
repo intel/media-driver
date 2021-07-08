@@ -782,7 +782,9 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
 
     if (skuTable)
     {
-        if (MEDIA_IS_SKU(skuTable, FtrMediaTile64))
+        //DN output surface must be tile64 only when input format is bayer
+        if (MEDIA_IS_SKU(skuTable, FtrMediaTile64) &&
+            IS_BAYER_FORMAT(inputSurface->osSurface->Format))
         {
             tileModeByForce = MOS_TILE_64_GMM;
         }
@@ -1298,7 +1300,7 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
 
             if (!caps.bDN                               ||
                 nullptr == curDnOutputSurface           ||
-                // When MEDIA_IS_SKU(skuTable, FtrMediaTile64) == true, DN output surface must be tile64,
+                // When FtrMediaTile64 is true, DN output surface will be tile64 when input is bayer format,
                 // while pastSurface passed by OS maybe tile4, which is different from DN output surface.
                 // For such case, passSurface cannot be used, as vebox previous input surface and vebox
                 // DN output surface must share same setting. The derive pitch in vebox output surface
