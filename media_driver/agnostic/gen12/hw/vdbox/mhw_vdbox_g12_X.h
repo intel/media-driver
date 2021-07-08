@@ -90,6 +90,7 @@ struct MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 : public MHW_VDBOX_PIPE_MODE_SELECT
     uint8_t                     tuMinus1 = 3;
     uint8_t                     ucQuantizationPrecision = 0;
     uint8_t                     tuSettingsRevision = 0;
+    bool                        frameReconDisable = false;
 };
 using PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 = MHW_VDBOX_PIPE_MODE_SELECT_PARAMS_G12 *;
 
