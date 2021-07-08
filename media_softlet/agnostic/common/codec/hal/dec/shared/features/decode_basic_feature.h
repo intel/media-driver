@@ -124,6 +124,8 @@ public:
     MOS_BUFFER          m_resDataBuffer;                                //!< Decode input bitstream
     uint32_t            m_dataOffset = 0;
     uint32_t            m_dataSize = 0;                                 //!< Size of the bitstream required on this picture
+    PMOS_SURFACE        m_refFrameSurface = nullptr;                    //!< Handle of reference frame surface
+    uint32_t            m_refSurfaceNum = 0;                            //!< Number of reference frame surface
 
     bool                m_reportFrameCrc = false;                       //!< Flag to indicate if report frame CRC
 

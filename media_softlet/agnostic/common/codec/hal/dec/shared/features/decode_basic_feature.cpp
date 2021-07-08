@@ -108,6 +108,8 @@ MOS_STATUS DecodeBasicFeature::Update(void *params)
     m_dataSize              = decodeParams->m_dataSize; // The bitstream size will be properly set by SetRequiredBitstreamSize later.
     m_dataOffset            = decodeParams->m_dataOffset;
     m_numSlices             = decodeParams->m_numSlices;
+    m_refFrameSurface       = decodeParams->m_refFrameSurface;
+    m_refSurfaceNum         = decodeParams->m_refSurfaceNum;
 
     DECODE_CHK_NULL(decodeParams->m_dataBuffer);
     m_resDataBuffer.OsResource = *(decodeParams->m_dataBuffer);
