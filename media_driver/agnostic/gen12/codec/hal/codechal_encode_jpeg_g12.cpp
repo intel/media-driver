@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,6 @@ CodechalEncodeJpegStateG12::CodechalEncodeJpegStateG12(
         m_sinlgePipeVeState(nullptr)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-    InitMmcState();
 
     CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
     Mos_SetVirtualEngineSupported(m_osInterface, true);
@@ -150,6 +149,7 @@ MOS_STATUS CodechalEncodeJpegStateG12::Initialize(CodechalSetting  *settings)
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_miInterface);
     CODECHAL_ENCODE_CHK_NULL_RETURN(settings);
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMmcState());
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::Initialize(settings));
 
     // Picture Level Commands
