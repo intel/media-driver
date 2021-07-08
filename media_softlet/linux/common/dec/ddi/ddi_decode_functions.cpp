@@ -23,3 +23,61 @@
 //! \file     ddi_decode_functions.cpp
 //! \brief    ddi decode functions implementaion.
 //!
+
+#include "ddi_decode_functions.h"
+
+VAStatus DdiDecodeFunctions::CreateContext (
+    VADriverContextP  ctx,
+    VAConfigID        configId,
+    int32_t           pictureWidth,
+    int32_t           pictureHeight,
+    int32_t           flag,
+    VASurfaceID       *renderTargets,
+    int32_t           renderTargetsNum,
+    VAContextID       *context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeFunctions::DestroyContext (
+    VADriverContextP  ctx,
+    VAContextID       context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeFunctions::CreateBuffer (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VABufferType      type,
+    uint32_t          size,
+    uint32_t          elementsNum,
+    void              *data,
+    VABufferID        *bufId)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeFunctions::BeginPicture (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VASurfaceID       renderTarget)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeFunctions::RenderPicture (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VABufferID        *buffers,
+    int32_t           buffersNum)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeFunctions::EndPicture (
+    VADriverContextP  ctx,
+    VAContextID       context)
+{
+    return VA_STATUS_SUCCESS;
+}

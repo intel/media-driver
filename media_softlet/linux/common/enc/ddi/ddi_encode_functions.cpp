@@ -23,3 +23,60 @@
 //! \file     ddi_encode_functions.cpp
 //! \brief    ddi encode functions implementaion.
 //!
+#include "ddi_encode_functions.h"
+
+VAStatus DdiEncodeFunctions::CreateContext (
+    VADriverContextP  ctx,
+    VAConfigID        configId,
+    int32_t           pictureWidth,
+    int32_t           pictureHeight,
+    int32_t           flag,
+    VASurfaceID       *renderTargets,
+    int32_t           renderTargetsNum,
+    VAContextID       *context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeFunctions::DestroyContext (
+    VADriverContextP  ctx,
+    VAContextID       context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeFunctions::CreateBuffer (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VABufferType      type,
+    uint32_t          size,
+    uint32_t          elementsNum,
+    void              *data,
+    VABufferID        *bufId)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeFunctions::BeginPicture (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VASurfaceID       renderTarget)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeFunctions::RenderPicture (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VABufferID        *buffers,
+    int32_t           buffersNum)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiEncodeFunctions::EndPicture (
+    VADriverContextP  ctx,
+    VAContextID       context)
+{
+    return VA_STATUS_SUCCESS;
+}

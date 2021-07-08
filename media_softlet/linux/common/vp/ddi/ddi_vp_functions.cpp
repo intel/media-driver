@@ -23,3 +23,100 @@
 //! \file     ddi_vp_functions.cpp
 //! \brief    ddi vp functions implementaion.
 //!
+#include "ddi_vp_functions.h"
+
+VAStatus DdiVpFunctions::CreateContext (
+    VADriverContextP  ctx,
+    VAConfigID        configId,
+    int32_t           pictureWidth,
+    int32_t           pictureHeight,
+    int32_t           flag,
+    VASurfaceID       *renderTargets,
+    int32_t           renderTargetsNum,
+    VAContextID       *context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::DestroyContext (
+    VADriverContextP  ctx,
+    VAContextID       context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::CreateBuffer (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VABufferType      type,
+    uint32_t          size,
+    uint32_t          elementsNum,
+    void              *data,
+    VABufferID        *bufId)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::BeginPicture (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VASurfaceID       renderTarget)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::RenderPicture (
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VABufferID        *buffers,
+    int32_t           buffersNum)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::EndPicture (
+    VADriverContextP  ctx,
+    VAContextID       context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::CreateConfig (
+    VADriverContextP  ctx,
+    VAProfile         profile,
+    VAEntrypoint      entrypoint,
+    VAConfigAttrib    *attribList,
+    int32_t           attribsNum,
+    VAConfigID        *configId)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::QueryVideoProcFilters(
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VAProcFilterType  *filters,
+    uint32_t          *filtersNum)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::QueryVideoProcFilterCaps(
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VAProcFilterType  type,
+    void              *filterCaps,
+    uint32_t          *filterCapsNum)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiVpFunctions::QueryVideoProcPipelineCaps(
+    VADriverContextP    ctx,
+    VAContextID         context,
+    VABufferID          *filters,
+    uint32_t            filtersNum,
+    VAProcPipelineCaps  *pipelineCaps)
+{
+    return VA_STATUS_SUCCESS;
+}

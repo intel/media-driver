@@ -23,3 +23,56 @@
 //! \file     ddi_cp_functions.cpp
 //! \brief    ddi cp functions implementaion.
 //!
+#include "ddi_cp_functions.h"
+
+#if VA_CHECK_VERSION(1,11,0)
+VAStatus DdiCpFunctions::CreateProtectedSession(
+    VADriverContextP      ctx,
+    VAConfigID            configId,
+    VAProtectedSessionID  *protectedSession)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiCpFunctions::DestroyProtectedSession(
+    VADriverContextP      ctx,
+    VAProtectedSessionID  protectedSession)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiCpFunctions::AttachProtectedSession(
+    VADriverContextP      ctx,
+    VAContextID           context,
+    VAProtectedSessionID  protectedSession)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiCpFunctions::DetachProtectedSession(
+    VADriverContextP  ctx,
+    VAContextID       context)
+{
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiCpFunctions::ProtectedSessionExecute(
+    VADriverContextP      ctx,
+    VAProtectedSessionID  protectedSession,
+    VABufferID            data)
+{
+    return VA_STATUS_SUCCESS;
+}
+#endif
+
+VAStatus DdiCpFunctions::CreateBuffer(
+    VADriverContextP  ctx,
+    VAContextID       context,
+    VABufferType      type,
+    uint32_t          size,
+    uint32_t          elementsNum,
+    void              *data,
+    VABufferID        *bufId)
+{
+    return VA_STATUS_SUCCESS;
+}
