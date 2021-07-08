@@ -90,7 +90,11 @@ const MHW_PIPE_CONTROL_PARAMS  g_cRenderHal_InitPipeControlParams =
     false,                          // bInvalidateInstructionCache
     true,                           // bFlushRenderTargetCache
     false,                          // bTlbInvalidate
-    false                           // bInvalidateTextureCache
+    false,                          // bInvalidateTextureCache
+    false,                          // bGenericMediaStateClear
+    false,                          // bIndirectStatePointersDisable
+    false,                          // bHdcPipelineFlush
+    false,                          // bKernelFenceEnabled
 };
 
 extern const RENDERHAL_SURFACE_STATE_ENTRY g_cInitSurfaceStateEntry =

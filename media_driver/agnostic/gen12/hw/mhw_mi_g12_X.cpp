@@ -69,7 +69,7 @@ MOS_STATUS MhwMiInterfaceG12::AddPipeControl(
     }
 
     mhw_mi_g12_X::PIPE_CONTROL_CMD     cmd;
-    cmd.DW1.PipeControlFlushEnable     = true;
+    cmd.DW1.PipeControlFlushEnable     = params->bKernelFenceEnabled ? false : true;
     cmd.DW1.CommandStreamerStallEnable = !params->bDisableCSStall;
     cmd.DW4_5.Value[0]                 = params->dwDataDW1;
     cmd.DW4_5.Value[1]                 = params->dwDataDW2;
@@ -171,7 +171,8 @@ MOS_STATUS MhwMiInterfaceG12::AddPipeControl(
     if (cmd.DW1.CommandStreamerStallEnable &&
         (cmd.DW1.DcFlushEnable == 0 && cmd.DW1.NotifyEnable == 0 && cmd.DW1.PostSyncOperation == 0 &&
             cmd.DW1.DepthStallEnable == 0 && cmd.DW1.StallAtPixelScoreboard == 0 && cmd.DW1.DepthCacheFlushEnable == 0 &&
-            cmd.DW1.RenderTargetCacheFlushEnable == 0))
+            cmd.DW1.RenderTargetCacheFlushEnable == 0) &&
+            !params->bKernelFenceEnabled)
     {
         cmd.DW1.CommandStreamerStallEnable = 0;
     }

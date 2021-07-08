@@ -533,7 +533,8 @@ typedef struct _CM_TASK_CONFIG
 {
     bool     turboBoostFlag      : 1;
     bool     fusedEuDispatchFlag : 1;
-    uint32_t reserved_bits       :30;
+    bool     enableFenceFlag     : 1;
+    uint32_t reserved_bits       :29;
     uint32_t reserved0;
     uint32_t reserved1;
     uint32_t reserved2;

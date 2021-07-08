@@ -176,6 +176,7 @@ typedef struct _MHW_PIPE_CONTROL_PARAMS
     uint32_t                bGenericMediaStateClear        : 1;
     uint32_t                bIndirectStatePointersDisable  : 1;
     uint32_t                bHdcPipelineFlush              : 1;
+    uint32_t                bKernelFenceEnabled            : 1;
 } MHW_PIPE_CONTROL_PARAMS, *PMHW_PIPE_CONTROL_PARAMS;
 
 typedef struct _MHW_MI_COPY_MEM_MEM_PARAMS

@@ -771,8 +771,17 @@ MOS_STATUS CM_HAL_G12_X::SubmitCommands(
                 pipeCtlParams.presDest = &state->renderTimeStampResource.osResource;
                 pipeCtlParams.dwPostSyncOp = MHW_FLUSH_NOWRITE;
                 pipeCtlParams.dwFlushMode = MHW_FLUSH_CUSTOM;
-                pipeCtlParams.bInvalidateTextureCache = true;
-                pipeCtlParams.bFlushRenderTargetCache = true;
+                if (taskParam->taskConfig.enableFenceFlag)
+                {
+                    pipeCtlParams.bFlushRenderTargetCache = false;
+                    pipeCtlParams.bKernelFenceEnabled = true;
+                }
+                else
+                {
+                    pipeCtlParams.bInvalidateTextureCache = true;
+                    pipeCtlParams.bFlushRenderTargetCache = true;
+                }
+
                 CM_CHK_MOSSTATUS_GOTOFINISH(mhwMiInterface->AddPipeControl(&mosCmdBuffer,
                                                         nullptr,
                                                         &pipeCtlParams));
