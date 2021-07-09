@@ -1038,7 +1038,11 @@ namespace decode{
             {
                 PMOS_RESOURCE refResource[av1NumInterRefFrames];
                 uint8_t frameIdx = activeRefList[i];
-                refSurface[i + 1].OsResource = *refFrames.GetReferenceByFrameIndex(frameIdx);
+                auto refSuf = refFrames.GetReferenceByFrameIndex(frameIdx);
+                if (refSuf != nullptr)
+                {
+                    refSurface[i + 1].OsResource = *refSuf;
+                }
             }
 
             for (auto i = 0; i < av1TotalRefsPerFrame; i++)
