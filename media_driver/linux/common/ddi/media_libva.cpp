@@ -1404,7 +1404,6 @@ static VAStatus DdiMedia_HeapInitialize(
     DdiMediaUtil_InitMutex(&mediaCtx->ProtMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->MfeMutex);
-    DdiMediaUtil_InitMutex(&mediaCtx->MemDecompMutex);
 
     return VA_STATUS_SUCCESS;
 }
@@ -1459,7 +1458,6 @@ static VAStatus DdiMedia_HeapDestroy(
     DdiMediaUtil_DestroyMutex(&mediaCtx->ProtMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->MemDecompMutex);
 
     //resource checking
     if (mediaCtx->uiNumSurfaces != 0)
@@ -1536,7 +1534,6 @@ void DestroyMediaContextMutex(PDDI_MEDIA_CONTEXT mediaCtx)
     DdiMediaUtil_DestroyMutex(&mediaCtx->VpMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->CmMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->MfeMutex);
-    DdiMediaUtil_DestroyMutex(&mediaCtx->MemDecompMutex);
 #if !defined(ANDROID) && defined(X11_FOUND)
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
