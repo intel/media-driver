@@ -288,6 +288,16 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
         return eStatus;
     }
 
+    // if source surface or target surface is non-64align linear, return error here
+    if((sourceSurface.dwPitch%64 != 0 && sourceSurface.TileType == MOS_TILE_LINEAR) ||
+       (targetSurface.dwPitch%64 != 0 && targetSurface.TileType == MOS_TILE_LINEAR))
+    {
+        eStatus = MOS_STATUS_INVALID_PARAMETER;
+        VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("VEBOX does not support non-64align pitch linear surface, eStatus:%d.\n", eStatus);
+        MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
+        return eStatus;
+    }
+
     //Get context before proceeding
     auto gpuContext = m_osInterface->CurrentGpuContextOrdinal;
 
