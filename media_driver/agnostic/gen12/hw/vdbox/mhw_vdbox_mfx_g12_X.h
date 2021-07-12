@@ -118,11 +118,8 @@ public:
 
         m_osInterface = osInterface;
         if (m_numVdbox > 1
-#if (_DEBUG || _RELEASE_INTERNAL)
             && m_osInterface != nullptr
-            && m_osInterface->bHcpDecScalabilityMode
-#endif
-            )
+            && m_osInterface->bHcpDecScalabilityMode)
         {
             m_scalabilitySupported = true;
         }
