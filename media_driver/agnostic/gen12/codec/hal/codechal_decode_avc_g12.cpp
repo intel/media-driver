@@ -71,6 +71,11 @@ MOS_STATUS CodechalDecodeAvcG12::AllocateStandard(
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_InitInterface(m_osInterface, m_veState));
     }
 
+    if (m_miInterface)
+    {
+        NullHW::AddBypassMapItem((void*)(m_miInterface), !!(m_forceBypassHWID & (1<<AVC_NH_MASK)));
+    }
+
     return eStatus;
 }
 

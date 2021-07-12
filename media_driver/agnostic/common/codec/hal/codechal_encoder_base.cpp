@@ -991,6 +991,16 @@ MOS_STATUS CodechalEncoderState::Initialize(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(AllocateMDFResources());
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_BYPASSHW_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_forceBypassHWID = (uint32_t)userFeatureData.i32Data;
+#endif
+
     return eStatus;
 }
 
@@ -4317,8 +4327,10 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
         }
         codecStatus[i] = *encodeStatusReport;
 
-        NullHW::StatusReport((uint32_t &)codecStatus[i].CodecStatus,
-                                        codecStatus[i].bitstreamSize);
+        NullHW::StatusReport(
+            (void*)m_miInterface,
+            (uint32_t &)codecStatus[i].CodecStatus,
+            codecStatus[i].bitstreamSize);
     }
 
     encodeStatusBuf->wFirstIndex =

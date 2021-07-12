@@ -1348,5 +1348,10 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateStandard (
         MOS_ZeroMemory(m_picMhwParams.SurfaceParams[i], sizeof(MHW_VDBOX_SURFACE_PARAMS));
     }
 
+    if (m_miInterface)
+    {
+        NullHW::AddBypassMapItem((void*)(m_miInterface), !!(m_forceBypassHWID & (1<<VP9_NH_MASK)));
+    }
+
     return eStatus;
 }

@@ -81,6 +81,19 @@ MOS_STATUS VphalState::Allocate(
     MOS_GPU_CONTEXT             VeboxGpuContext;
     MOS_STATUS                  eStatus;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool forceBypassHW = false;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_VP_BYPASSHW_ENABLE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    forceBypassHW = (userFeatureData.i32Data) ? true : false;
+    NullHW::AddBypassMapItem((void*)(m_renderHal->pMhwMiInterface), forceBypassHW);
+#endif
+
     VPHAL_PUBLIC_CHK_NULL(pVpHalSettings);
     VPHAL_PUBLIC_CHK_NULL(m_renderHal);
 

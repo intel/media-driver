@@ -153,6 +153,12 @@ MOS_STATUS CodechalEncodeHevcBase::Initialize(CodechalSetting * settings)
         m_osInterface->pOsContext);
     m_rdoqIntraTuThresholdOverride = (uint32_t)userFeatureData.u32Data;
 #endif
+
+    if (m_miInterface)
+    {
+        NullHW::AddBypassMapItem((void*)(m_miInterface), !!(m_forceBypassHWID & (1<<HEVC_NH_MASK)));
+    }
+
     return eStatus;
 }
 

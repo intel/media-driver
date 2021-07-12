@@ -7036,6 +7036,11 @@ MOS_STATUS CodechalVdencVp9State::Initialize(CodechalSetting * settings)
         CODECHAL_ENCODE_MODE_VP9,
         &m_vdencPicStateSecondLevelBatchBufferSize);
 
+    if (m_miInterface)
+    {
+        NullHW::AddBypassMapItem((void*)(m_miInterface), !!(m_forceBypassHWID & (1<<VP9_NH_MASK)));
+    }
+
     return eStatus;
 }
 

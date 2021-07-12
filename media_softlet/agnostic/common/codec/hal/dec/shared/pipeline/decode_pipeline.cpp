@@ -178,6 +178,17 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
     DECODE_CHK_STATUS(CreateSubPipeLineManager(codecSettings));
     DECODE_CHK_STATUS(CreateSubPacketManager(codecSettings));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_DECODE_BYPASSHW_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_forceBypassHWID = (uint32_t)userFeatureData.i32Data;
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

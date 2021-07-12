@@ -373,6 +373,9 @@ protected:
 
     //! \brief    Apogeios Enable Flag
     bool                    m_apogeiosEnable = false;
+
+    //! \brief    Force bypass HW Flag
+    uint32_t                m_forceBypassHWID = 0;
 };
 
 //!

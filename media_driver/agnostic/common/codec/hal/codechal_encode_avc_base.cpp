@@ -1977,7 +1977,15 @@ CodechalEncodeAvcBase::~CodechalEncodeAvcBase()
 MOS_STATUS CodechalEncodeAvcBase::Initialize(CodechalSetting *settings)
 {
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMmcState());
-    return CodechalEncoderState::Initialize(settings);
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::Initialize(settings));
+
+    if (m_miInterface)
+    {
+        NullHW::AddBypassMapItem((void*)(m_miInterface), !!(m_forceBypassHWID & (1<<AVC_NH_MASK)));
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalEncodeAvcBase::UserFeatureKeyReport()

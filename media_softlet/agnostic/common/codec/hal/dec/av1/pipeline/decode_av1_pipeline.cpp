@@ -65,6 +65,11 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
 
     m_forceTileBasedDecoding = userFeatureData.i32Data;
 
+    if (m_hwInterface)
+    {
+        NullHW::AddBypassMapItem((void*)(m_hwInterface->GetMiInterface()), !!(m_forceBypassHWID & (1<<AV1_NH_MASK)));
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
