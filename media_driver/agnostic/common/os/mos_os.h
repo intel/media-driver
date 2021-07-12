@@ -1406,9 +1406,10 @@ typedef struct _MOS_INTERFACE
 #endif // MOS_MEDIASOLO_SUPPORTED
     bool                            VEEnable;
     bool                            bCanEnableSecureRt;
+
+    int32_t                         bHcpDecScalabilityMode;                       //!< enable scalability decode {mode: default, user force, false}
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_FORCE_VEBOX                 eForceVebox;                                  //!< Force select Vebox
-    int32_t                         bHcpDecScalabilityMode;                       //!< enable scalability decode {mode: default, user force, false}
     int32_t                         bEnableDbgOvrdInVE;                           //!< It is for all scalable engines: used together with KMD VE for UMD to specify an engine directly
     int32_t                         bSoftReset;                                   //!< trigger soft reset
 #endif // (_DEBUG || _RELEASE_INTERNAL)
