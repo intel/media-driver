@@ -30,6 +30,7 @@
 #ifdef MEDIA_SOFTLET
 
 #include "mos_bufmgr.h"
+#include "media_interfaces_hwinfo.h"
 
 class DDI_MEDIA_CONTEXT
 {
@@ -167,7 +168,8 @@ public:
 #endif // !defined(ANDROID) && defined(X11_FOUND)
     
     // Delete the duplicate defination in legacy context when MEDIA_SOFTLET ready
-    DdiMediaFunctions*    m_compList[CompCount] = nullptr;
+    DdiMediaFunctions      *m_compList[CompCount] = { nullptr };
+    MediaInterfacesHwInfo  *m_hwInfo              = nullptr;
 };
 
 typedef struct DDI_MEDIA_CONTEXT *PDDI_MEDIA_CONTEXT;

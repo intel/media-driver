@@ -29,6 +29,7 @@
 
 #include "media_interfaces.h"
 #include "media_interfaces_hwinfo.h"
+#include "igfxfmid.h"
 
 #define IP_VERSION_UNKNOW 0
 

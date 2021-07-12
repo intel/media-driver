@@ -37,6 +37,7 @@
 #include "media_libva_caps.h"
 #include "media_libva_putsurface_linux.h"
 #include "media_ddi_prot.h"
+#include "media_interfaces_hwinfo_device.h"
 
 #include "media_libva_caps.h"
 #include "ddi_cp_functions.h"
@@ -473,6 +474,8 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
+    mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
+
     DdiMediaUtil_UnLockMutex(&m_GlobalMutex);
 
     return VA_STATUS_ERROR_UNIMPLEMENTED;
@@ -793,7 +796,13 @@ VAStatus MediaLibvaInterfaceNext::Terminate(VADriverContextP ctx)
     mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
     MOS_FreeMemory(mediaCtx->pGtSystemInfo);
     MosInterface::CloseOsUtilities(nullptr);
+
     ReleaseCompList(mediaCtx);
+    if(mediaCtx->m_hwInfo)
+    {
+        MOS_FreeMemory(mediaCtx->m_hwInfo);
+    }
+    mediaCtx->m_hwInfo = nullptr;
 
     if (mediaCtx->uiRef > 1)
     {

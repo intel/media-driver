@@ -45,6 +45,7 @@
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
 #include "ddi_media_functions.h"
+#include "media_interfaces_hwinfo.h"
 
 #include <va/va.h>
 #include <va/va_backend.h>
@@ -548,8 +549,9 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T    PutSurfaceRenderMutex;
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
 #endif
-    bool                  m_apoMosEnabled;
-    DdiMediaFunctions*    m_compList[CompCount];
+    bool                   m_apoMosEnabled;
+    DdiMediaFunctions     *m_compList[CompCount];
+    MediaInterfacesHwInfo *m_hwInfo;
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)

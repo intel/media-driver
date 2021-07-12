@@ -34,6 +34,7 @@
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_nv12top010.h"
 #include "media_interfaces_decode_histogram.h"
+#include "media_interfaces_hwinfo_device.h"
 
 #include "mhw_cp_interface.h"
 #include "mhw_mi.h"
@@ -57,6 +58,7 @@ template class MediaInterfacesFactory<VphalDevice>;
 template class MediaInterfacesFactory<RenderHalDevice>;
 template class MediaInterfacesFactory<Nv12ToP010Device>;
 template class MediaInterfacesFactory<DecodeHistogramDevice>;
+template class MediaInterfacesFactory<MediaInterfacesHwInfoDevice>;
 
 typedef MediaInterfacesFactory<MhwInterfaces> MhwFactory;
 typedef MediaInterfacesFactory<MmdDevice> MmdFactory;
@@ -68,6 +70,7 @@ typedef MediaInterfacesFactory<VphalDevice> VphalFactory;
 typedef MediaInterfacesFactory<RenderHalDevice> RenderHalFactory;
 typedef MediaInterfacesFactory<Nv12ToP010Device> Nv12ToP010Factory;
 typedef MediaInterfacesFactory<DecodeHistogramDevice> DecodeHistogramFactory;
+typedef MediaInterfacesFactory<MediaInterfacesHwInfoDevice> HwInfoFactory;
 
 VphalState* VphalDevice::CreateFactory(
     PMOS_INTERFACE  osInterface,
@@ -601,4 +604,35 @@ CodechalDecodeHistogram* DecodeHistogramDevice::CreateFactory(
     MOS_Delete(device);
 
     return decodeHistogramDevice;
+}
+
+MediaInterfacesHwInfo* MediaInterfacesHwInfoDevice::CreateFactory(
+    PLATFORM platform)
+{
+    MediaInterfacesHwInfoDevice *device = nullptr;
+    MediaInterfacesHwInfo       *hwInfo = nullptr;
+
+    device = HwInfoFactory::CreateHal(platform.eProductFamily);
+    if (device == nullptr)
+    {
+        return nullptr;
+    }
+    else
+    {
+        device->Initialize(platform);
+    }
+
+    hwInfo = MOS_New(MediaInterfacesHwInfo);
+    if (hwInfo == nullptr)
+    {
+        MHW_ASSERTMESSAGE("Invalid(nullptr) MediaInterfacesHwInfo!");
+        MOS_Delete(device);
+        return nullptr;
+    }
+
+    hwInfo->SetDeviceInfo(device->m_hwInfo.GetDeviceInfo());
+
+    MOS_Delete(device);
+
+    return hwInfo;
 }
