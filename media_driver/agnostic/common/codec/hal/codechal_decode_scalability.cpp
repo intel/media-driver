@@ -1968,10 +1968,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState (
     vdboxNum = vdboxMfxInterface->GetNumVdbox();
 
     if (vdboxNum < 2
-#if (_DEBUG || _RELEASE_INTERNAL)
-        || !osInterface->bHcpDecScalabilityMode
-#endif
-    )
+        || !osInterface->bHcpDecScalabilityMode)
    {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         CODECHAL_DECODE_ASSERTMESSAGE("not support scalability on this platform.");

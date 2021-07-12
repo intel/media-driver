@@ -7298,7 +7298,6 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             osInterface->bGucSubmission = true;
         }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
         //Read Scalable/Legacy Decode mode on Gen11+
         //1:by default for scalable decode mode
         //0:for legacy decode mode
@@ -7316,6 +7315,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             osInterface->bHcpDecScalabilityMode = MOS_SCALABILITY_ENABLE_MODE_USER_FORCE;
         }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
         osInterface->frameSplit                  = false;
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(

@@ -927,10 +927,7 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
     vdboxNum = vdboxMfxInterface->GetNumVdbox();
 
     if (vdboxNum < 2
-#if (_DEBUG || _RELEASE_INTERNAL)
-        || !osInterface->bHcpDecScalabilityMode
-#endif
-        )
+        || !osInterface->bHcpDecScalabilityMode)
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         CODECHAL_DECODE_ASSERTMESSAGE("not support scalability on this platform.");
@@ -1587,13 +1584,14 @@ MOS_STATUS CodecHalDecodeScalability_DecidePipeNum_G12(
     bCanEnableRealTile = !(static_cast<PCODECHAL_DECODE_SCALABILITY_STATE_G12>(pScalState))->bDisableRtMode;
     if (!pScalStateG12->bEnableRtMultiPhase)
         u8MaxTileColumn = 2;
+#endif
     if(!bCanEnableScalability
         && pOsInterface
         && (pOsInterface->bHcpDecScalabilityMode == MOS_SCALABILITY_ENABLE_MODE_USER_FORCE))
     {
         bCanEnableScalability = true;
     }
-#endif
+
     bCanEnableRealTile = bCanEnableRealTile && pInitParamsG12->bIsTileEnabled && (pInitParams->u8NumTileColumns > 1) &&
                          (pInitParams->u8NumTileColumns <= u8MaxTileColumn) && (pInitParams->u8NumTileRows <= HEVC_NUM_MAX_TILE_ROW) &&
                          pInitParamsG12->bHasSubsetParams;
