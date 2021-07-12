@@ -747,6 +747,19 @@ public:
         MOS_STREAM_HANDLE   streamState);
 
     //!
+    //! \brief    Is Device Async or not
+    //! \details  Is Device Async or not.
+    //!
+    //! \param    [in] streamStateDst
+    //!           Handle of Os Stream State.
+    //!
+    //! \return   bool
+    //!           Return true if is async, otherwise false
+    //!
+    static bool IsAsyncDevice(
+        MOS_STREAM_HANDLE streamState);
+
+    //!
     //! \brief    Setup VE Attribute Buffer
     //! \details  [Cmd Buffer Interface] Setup VE Attribute Buffer into cmd buffer.
     //! \details  Caller: MHW only
