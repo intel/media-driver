@@ -162,7 +162,8 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
         MOS_MFX_PIPE_BUF_ADDR          == pParams->HwCommandType   ||
         MOS_MFX_VP8_PIC                == pParams->HwCommandType   ||
         MOS_MFX_BSP_BUF_BASE_ADDR      == pParams->HwCommandType   ||
-        MOS_MFX_INDIRECT_OBJ_BASE_ADDR == pParams->HwCommandType)
+        MOS_MFX_INDIRECT_OBJ_BASE_ADDR == pParams->HwCommandType   ||
+        MOS_MI_BATCH_BUFFER_START      == pParams->HwCommandType)
     {
         HalOcaInterface::DumpResourceInfo(*pCmdBuffer, *pOsInterface, *pParams->presResource, pParams->HwCommandType,
             pParams->dwLocationInCmd, pParams->dwOffset);

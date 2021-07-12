@@ -374,15 +374,16 @@ typedef struct _MOS_COMMAND_BUFFER
     // Common fields
     uint32_t            *pCmdBase;                   //!< Base    address (CPU)
     uint32_t            *pCmdPtr;                    //!< Current address (CPU)
-    int32_t             iOffset;                    //!< Current offset in bytes
-    int32_t             iRemaining;                 //!< Remaining size
-    int32_t             iTokenOffsetInCmdBuf;       //!< Pointer to (Un)Secure token's next field Offset
-    int32_t             iCmdIndex;                  //!< command buffer's index
-    MOS_VDBOX_NODE_IND  iVdboxNodeIndex;            //!< Which VDBOX buffer is binded to
-    MOS_VEBOX_NODE_IND  iVeboxNodeIndex;            //!< Which VEBOX buffer is binded to
+    int32_t             iOffset;                     //!< Current offset in bytes
+    int32_t             iRemaining;                  //!< Remaining size
+    int32_t             iTokenOffsetInCmdBuf;        //!< Pointer to (Un)Secure token's next field Offset
+    int32_t             iCmdIndex;                   //!< command buffer's index
+    MOS_VDBOX_NODE_IND  iVdboxNodeIndex;             //!< Which VDBOX buffer is binded to
+    MOS_VEBOX_NODE_IND  iVeboxNodeIndex;             //!< Which VEBOX buffer is binded to
     int32_t             iSubmissionType;
-    bool                is1stLvlBB;                    //!< indicate it's a first level BB or not
-    MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;       //!< Attributes for the command buffer to be provided to KMD at submission
+    bool                is1stLvlBB;                  //!< indicate it's a first level BB or not
+    struct _MOS_COMMAND_BUFFER   *cmdBuf1stLvl;      //!< Pointer to 1st level command buffer.
+    MOS_COMMAND_BUFFER_ATTRIBUTES Attributes;        //!< Attributes for the command buffer to be provided to KMD at submission
 } MOS_COMMAND_BUFFER;
 
 //!

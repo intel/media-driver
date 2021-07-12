@@ -139,10 +139,13 @@ namespace decode
                     ResourceAutoLock resLock(m_allocator, &m_batchBuf->OsResource);
                     uint8_t *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
                     DECODE_CHK_STATUS(InitPicLevelCmdBuffer(*m_batchBuf, batchBufBase));
+                    HalOcaInterface::OnSubLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, &m_batchBuf->OsResource, 0, true, 0);
+                    m_picCmdBuffer.cmdBuf1stLvl = &cmdBuffer;
                     DECODE_CHK_STATUS(m_picturePkt->Execute(m_picCmdBuffer));
                     DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&m_picCmdBuffer, nullptr));
                 }
             }
+
             DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferStartCmd(&cmdBuffer, m_batchBuf));
         }
         else
