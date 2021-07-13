@@ -2235,8 +2235,8 @@ MOS_STATUS CodechalEncodeHevcBase::GetStatusReport(
         encodeStatusReport->QpY = encodeStatusReport->AverageQp =
             (uint8_t)(((uint32_t)encodeStatus->QpStatusCount.hcpCumulativeQP)
                 / ((MOS_ALIGN_CEIL(m_frameWidth, (1 << log2LcuSize)) >> log2LcuSize) *
-                (MOS_ALIGN_CEIL(m_frameHeight, (1 << log2LcuSize)) >> log2LcuSize)));
-    }
+                (MOS_ALIGN_CEIL(m_frameHeight, (1 << log2LcuSize)) >> log2LcuSize))) - 6 * m_hevcSeqParams->bit_depth_luma_minus8; 
+   }
 
     if (!Mos_ResourceIsNull(&m_resFrameStatStreamOutBuffer))
     {
