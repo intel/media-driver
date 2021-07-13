@@ -124,8 +124,8 @@ MOS_STATUS DecodeHucBasic_G12_Base::StoreHucStatusRegister(MOS_COMMAND_BUFFER& c
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_RESOURCE* osResource;
-    uint32_t     offset;
+    MOS_RESOURCE* osResource = nullptr;
+    uint32_t     offset = 0;
 
     DECODE_CHK_STATUS(m_statusReport->GetAddress(decode::DecodeStatusReportType::HucErrorStatusMask, osResource, offset));
 
@@ -157,8 +157,8 @@ MOS_STATUS DecodeHucBasic_G12_Base::StoreHucStatus2Register(MOS_COMMAND_BUFFER& 
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_RESOURCE* osResource;
-    uint32_t     offset;
+    MOS_RESOURCE* osResource = nullptr;
+    uint32_t     offset = 0;
 
     DECODE_CHK_STATUS(m_statusReport->GetAddress(decode::DecodeStatusReportType::HucErrorStatus2Mask, osResource, offset));
 
