@@ -62,8 +62,6 @@ namespace decode {
         PMOS_RESOURCE           currSfcOutputPicRes = nullptr;
         //! \brief Applies when debug dumps are enabled, pointer to histogram output resource for the picture associated with this status report
         PMOS_RESOURCE           currHistogramOutBuf = nullptr;
-        //! \brief Applies when debug dumps are enabled, pointer to AV1 film grain output resource for the picture associated with this status report
-        PMOS_RESOURCE           currFgOutputPicRes = nullptr;
         //! \brief Applies when debug dumps are enabled, stream out buffer
         PMOS_RESOURCE           streamOutBuf = nullptr;
         //! \brief Applies when debug dumps are enabled, index of the streamout buffer

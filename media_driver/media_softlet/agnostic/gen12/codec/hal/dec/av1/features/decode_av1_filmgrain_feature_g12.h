@@ -229,10 +229,6 @@ public:
     static const int32_t    m_minChromaLegalRange   = 16;               //!< minimum chroma legal range
     static const int32_t    m_maxChromaLegalRange   = 240;              //!< maximum chroma legal range
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    MOS_SURFACE    m_fgOutputSurfList[DecodeBasicFeature::m_maxFrameIndex] = {}; //! \brief fimm grain applied surfaces
-#endif
-
     enum
     {
         fieldTopSrcY        = 0,                                        //!< Binding table offset for Top field input Y

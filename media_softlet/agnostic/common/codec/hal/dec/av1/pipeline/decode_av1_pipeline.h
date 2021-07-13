@@ -111,35 +111,6 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureManager() override;
 
-#if USE_CODECHAL_DEBUG_TOOL
-        //! \brief    Dump the parameters
-        //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS DumpParams(Av1BasicFeature &basicFeature);
-
-        //! \brief    Dump the picture parameters
-        //!
-        //! \param    [in] picParams
-        //!           Pointer to CodecAv1PicParams
-        //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS DumpPicParams(CodecAv1PicParams *picParams);
-
-        //! \brief    Dump Tile Group parameters into file
-        //!
-        //! \param    [in] tileParams
-        //!           Pointer to CodecAv1TileParams
-        //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS DumpBitstreamControlParams(CodecAv1TileParams *tileParams);
-#endif
-
 protected:
     HucCopyPkt    *m_cdfCopyPkt       = nullptr;          //!< Update default cdf buffer with huc stream out packet
     Av1DecodeMode  m_decodeMode       = baseDecodeMode;   //!< Decode mode

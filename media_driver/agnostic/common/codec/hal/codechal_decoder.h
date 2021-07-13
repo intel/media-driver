@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -170,8 +170,6 @@ struct CodechalDecodeStatusReport
     PMOS_RESOURCE           m_currSfcOutputPicRes = nullptr;
     //! \brief Applies when debug dumps are enabled, pointer to histogram output resource for the picture associated with this status report
     PMOS_RESOURCE           m_currHistogramOutBuf = nullptr;
-    //! \brief Applies when debug dumps are enabled, pointer to AV1 film grain output resource for the picture associated with this status report
-    PMOS_RESOURCE           m_currFgOutputPicRes = nullptr;
     //! \brief Applies when debug dumps are enabled, stream out buffer
     PMOS_RESOURCE           m_streamOutBuf = nullptr;
     //! \brief Applies when debug dumps are enabled, index of the streamout buffer
