@@ -242,6 +242,5 @@ protected:
     std::vector<PacketProperty>               m_activePacketList;  //!< Active packets property list
     std::map<MediaTask::TaskType, MediaTask *>      m_taskList;          //!< Task list
 
-    uint32_t m_forceBypassHWID = 0; //!< Force bypass HW ID
 };
 #endif // !__MEDIA_PIPELINE_H__

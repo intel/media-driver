@@ -28,7 +28,6 @@
 
 bool  NullHW::m_initilized = false;
 bool  NullHW::m_enabled = false;
-std::map<void*, bool> NullHW::m_forceBypassMap = {};
 
 MOS_STATUS NullHW::Init(
     PMOS_CONTEXT osContext)
@@ -69,13 +68,7 @@ MOS_STATUS NullHW::Destroy()
 
 MOS_STATUS NullHW::StartPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    bool forceBypassHw = false;
-    if (m_forceBypassMap.find((void*)miInterface) != m_forceBypassMap.end())
-    {
-        forceBypassHw = m_forceBypassMap[(void*)miInterface];
-    }
-
-    if (!m_enabled && !forceBypassHw)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -87,13 +80,7 @@ MOS_STATUS NullHW::StartPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFF
 
 MOS_STATUS NullHW::StopPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer)
 {
-    bool forceBypassHw = false;
-    if (m_forceBypassMap.find((void*)miInterface) != m_forceBypassMap.end())
-    {
-        forceBypassHw = m_forceBypassMap[(void*)miInterface];
-    }
-
-    if (!m_enabled && !forceBypassHw)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -103,26 +90,13 @@ MOS_STATUS NullHW::StopPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFE
     return miInterface->AddMiSetPredicateCmd(cmdBuffer, MHW_MI_SET_PREDICATE_DISABLE);
 }
 
-void NullHW::StatusReport(void* handle, uint32_t &status, uint32_t &streamSize)
+void NullHW::StatusReport(uint32_t &status, uint32_t &streamSize)
 {
-    bool forceBypassHw = false;
-    if (m_forceBypassMap.find(handle) != m_forceBypassMap.end())
-    {
-        forceBypassHw = m_forceBypassMap[handle];
-    }
-
-    if (!m_enabled && !forceBypassHw)
+    if (!m_enabled)
     {
         return;
     }
 
     status = 0;
     streamSize = 1024;
-}
-
-MOS_STATUS NullHW::AddBypassMapItem(void* key, bool value)
-{
-    MOS_OS_CHK_NULL_RETURN(key);
-    m_forceBypassMap[key] = value;
-    return MOS_STATUS_SUCCESS;
 }

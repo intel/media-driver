@@ -390,13 +390,6 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
             m_osInterface->pOsContext);
         m_perfFEBETimingEnabled = userFeatureData.bData;
 
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_DECODE_BYPASSHW_ID,
-            &userFeatureData,
-            m_osInterface->pOsContext);
-        m_forceBypassHWID = (uint32_t)userFeatureData.i32Data;
 #endif // _DEBUG || _RELEASE_INTERNAL
     }
 

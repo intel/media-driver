@@ -29,13 +29,6 @@
 
 #include "mos_os_specific.h"
 
-typedef enum {
-    AVC_NH_MASK  = 0,
-    HEVC_NH_MASK = 1,
-    VP9_NH_MASK  = 2,
-    AV1_NH_MASK  = 3,
-} CODEC_MASK;
-
 class MhwMiInterface;
 class NullHW
 {
@@ -88,15 +81,13 @@ public:
     //!
     //! \brief    Overwrite status report.
     //! \details  Overwrite the status of status report and bit-stream size.
-    //! \param    [in] handle
-    //!           handle to check whether forcebypass is enabled.
     //! \param    [out] status
     //!           Status of status report.
     //! \param    [out] streamSize
     //!           The size of bit-stream.
     //! \return   void
     //!
-    static void StatusReport(void* handle, uint32_t &status, uint32_t &streamSize);
+    static void StatusReport(uint32_t &status, uint32_t &streamSize);
 
     //!
     //! \brief    Check whether NULL Hardware enabled.
@@ -106,10 +97,8 @@ public:
     //!
     static bool IsEnabled() { return m_enabled; }
 
-    static MOS_STATUS AddBypassMapItem(void* key, bool value);
 private:
     static bool m_initilized;
     static bool m_enabled;
-    static std::map<void*, bool> m_forceBypassMap;
 };
 #endif

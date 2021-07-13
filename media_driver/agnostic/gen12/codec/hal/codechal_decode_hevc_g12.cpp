@@ -2370,11 +2370,6 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateStandard (
     MOS_ZeroMemory(m_picMhwParams.QmParams, sizeof(MHW_VDBOX_QM_PARAMS));
     MOS_ZeroMemory(m_picMhwParams.HevcTileState, sizeof(MHW_VDBOX_HEVC_TILE_STATE));
 
-    if (m_miInterface)
-    {
-        NullHW::AddBypassMapItem((void*)(m_miInterface), !!(m_forceBypassHWID & (1<<HEVC_NH_MASK)));
-    }
-
     return eStatus;
 }
 
