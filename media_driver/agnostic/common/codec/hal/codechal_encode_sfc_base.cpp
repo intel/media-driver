@@ -684,20 +684,24 @@ MOS_STATUS CodecHalEncodeSfcBase::SetVeboxSurfaceStateParams(
     CODECHAL_ENCODE_CHK_NULL_RETURN(params);
 
     // Initialize SurfInput
-    params->SurfInput.bActive                = true;
-    params->SurfInput.Format                 = m_inputSurface->Format;
-    params->SurfInput.dwWidth                = m_inputSurface->dwWidth;
-    params->SurfInput.dwHeight               = m_inputSurface->dwHeight;
-    params->SurfInput.dwPitch                = m_inputSurface->dwPitch;
-    params->SurfInput.TileType               = m_inputSurface->TileType;
-    params->SurfInput.TileModeGMM            = m_inputSurface->TileModeGMM;
-    params->SurfInput.bGMMTileEnabled        = m_inputSurface->bGMMTileEnabled;
-    params->SurfInput.dwYoffset              = m_inputSurface->YPlaneOffset.iYOffset;
-    params->SurfInput.pOsResource            = &m_inputSurface->OsResource;
-    params->SurfInput.rcMaxSrc.left          = m_inputSurfaceRegion.X;
-    params->SurfInput.rcMaxSrc.top           = m_inputSurfaceRegion.Y;
-    params->SurfInput.rcMaxSrc.right         = m_inputSurfaceRegion.X + m_inputSurfaceRegion.Width;
-    params->SurfInput.rcMaxSrc.bottom        = m_inputSurfaceRegion.Y + m_inputSurfaceRegion.Height;
+    params->SurfInput.bActive         = true;
+    params->SurfInput.Format          = m_inputSurface->Format;
+    params->SurfInput.dwWidth         = m_inputSurface->dwWidth;
+    params->SurfInput.dwHeight        = m_inputSurface->dwHeight;
+    params->SurfInput.dwPitch         = m_inputSurface->dwPitch;
+    params->SurfInput.TileType        = m_inputSurface->TileType;
+    params->SurfInput.TileModeGMM     = m_inputSurface->TileModeGMM;
+    params->SurfInput.bGMMTileEnabled = m_inputSurface->bGMMTileEnabled;
+    params->SurfInput.dwYoffset       = m_inputSurface->YPlaneOffset.iYOffset;
+    params->SurfInput.pOsResource     = &m_inputSurface->OsResource;
+
+    auto& rcMaxSrc  = params->SurfInput.rcMaxSrc;
+    rcMaxSrc.left   = m_inputSurfaceRegion.X;
+    rcMaxSrc.top    = m_inputSurfaceRegion.Y;
+    rcMaxSrc.right  = m_inputSurfaceRegion.X + m_inputSurfaceRegion.Width;
+    rcMaxSrc.bottom = m_inputSurfaceRegion.Y + m_inputSurfaceRegion.Height;
+    CODECHAL_ENCODE_CHK_COND_RETURN(rcMaxSrc.right < MHW_VEBOX_MIN_WIDTH || rcMaxSrc.bottom < MHW_VEBOX_MIN_HEIGHT,
+        "Invalid VEBOX input surface description. Minimal W x H: %d x %d; Requested W x H: %d x %d", MHW_VEBOX_MIN_WIDTH, MHW_VEBOX_MIN_HEIGHT, rcMaxSrc.right, rcMaxSrc.bottom);
 
     // Initialize SurfSTMM
     params->SurfSTMM.dwPitch                 = m_inputSurface->dwPitch;
@@ -724,6 +728,8 @@ MOS_STATUS CodecHalEncodeSfcBase::SetVeboxDiIecpParams(
     params->dwCurrInputSurfOffset   = m_inputSurface->dwOffset;
     params->pOsResCurrInput         = &m_inputSurface->OsResource;
     params->CurrInputSurfCtrl.Value = 0;  //Keep it here untill VPHAL moving to new CMD definition and remove this parameter definition.
+    CODECHAL_ENCODE_CHK_COND_RETURN(m_inputSurfaceRegion.Width < MHW_VEBOX_MIN_WIDTH,
+        "Invalid VEBOX_DI_IECP.EndingX value. It must be greater or equal to %d", MHW_VEBOX_MIN_WIDTH);
 
     CodecHalGetResourceInfo(
         m_osInterface,
@@ -902,7 +908,7 @@ MOS_STATUS CodecHalEncodeSfcBase::SetSfcStateParams(
     if (m_inputSurface->dwWidth < m_inputSurfaceRegion.Width ||
         m_inputSurface->dwHeight < m_inputSurfaceRegion.Height)
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("width and height must be less than surface size");
+        CODECHAL_ENCODE_ASSERTMESSAGE("width and height must be less than or equal to surface size");
         return MOS_STATUS_INVALID_PARAMETER;
     }
     params->dwInputFrameWidth              = MOS_ALIGN_CEIL(m_inputSurfaceRegion.Width, widthAlignUnit);
