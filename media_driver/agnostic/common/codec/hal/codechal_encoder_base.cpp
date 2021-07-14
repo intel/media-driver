@@ -2582,7 +2582,8 @@ MOS_STATUS CodechalEncoderState::AddMediaVfeCmd(
 
 MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    SendKernelCmdsParams *params)
+    SendKernelCmdsParams *params,
+    bool bEnableRenderOCA)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -2602,8 +2603,10 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
             // frame tracking tag is only added in the last command buffer header
             requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : m_lastTaskInPhase;
         }
+
         // Send command buffer header at the beginning (OS dependent)
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(cmdBuffer, requestFrameTracking));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            SendPrologWithFrameTracking(cmdBuffer, requestFrameTracking, bEnableRenderOCA ? m_renderEngineInterface->GetMmioRegisters() : nullptr));
 
         m_firstTaskInPhase = false;
     }

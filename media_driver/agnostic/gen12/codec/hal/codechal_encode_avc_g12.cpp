@@ -1469,7 +1469,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
     sendKernelCmdsParams.ucDmvPredFlag   =
         m_avcSliceParams->direct_spatial_mv_pred_flag;
     sendKernelCmdsParams.pKernelState    = kernelState;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams, true));
 
     // Set up MB BRC Constant Data Buffer if there is QP change within a frame
     if (mbConstDataBufferInUse)

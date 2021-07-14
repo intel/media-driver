@@ -65,6 +65,7 @@ static const uint32_t mbencBrcBufferSize = 128;
 static const uint32_t mbTextureThreshold = 1024;
 static const uint32_t adaptiveTxDecisionThreshold = 128;
 static const uint32_t brcHistoryBufferOffsetSceneChanged = 0x2FC;
+static const uint32_t ocaMvDataBufferMaxSize = 0x70000; // MV buffer size for 1280x704 stream
 
 static const uint32_t trellisQuantizationRounding[NUM_TARGET_USAGE_MODES] =
 {
@@ -4315,7 +4316,7 @@ MOS_STATUS CodechalEncodeAvcEncG11::MbEncKernel(bool mbEncIFrameDistInUse)
         sendKernelCmdsParams.ucDmvPredFlag   =
             m_avcSliceParams->direct_spatial_mv_pred_flag;
         sendKernelCmdsParams.pKernelState    = kernelState;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams, true));
     }
 
     // Set up MB BRC Constant Data Buffer if there is QP change within a frame
@@ -4551,6 +4552,9 @@ MOS_STATUS CodechalEncodeAvcEncG11::MbEncKernel(bool mbEncIFrameDistInUse)
             m_hwInterface,
             &walkerParams,
             &walkerCodecParams));
+
+        HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+        HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
 
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
             &cmdBuffer,
@@ -7220,6 +7224,17 @@ MOS_STATUS CodechalEncodeAvcEncG11::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
         cmdBuffer,
         &surfaceCodecParams,
         kernelState));
+
+    // Limit OCA dump size for MV buffer to ocaMvDataBufferMaxSize to do not overflow OCA
+    if (m_mvDataSize > ocaMvDataBufferMaxSize)
+    {
+        std::stringstream ss;
+        ss << "MV Data buffer ( size == 0x" << std::hex << m_mvDataSize << " ) is too large to fit into the OCA buffer. "
+            "Put only 0x" << std::hex << ocaMvDataBufferMaxSize << " bytes - max allowed size";
+        std::string ocaLog = ss.str();
+        HalOcaInterface::TraceMessage(*cmdBuffer, *m_osInterface->pOsContext, ocaLog.c_str(), ocaLog.length());
+    }
+    HalOcaInterface::OnIndirectState(*cmdBuffer, *m_osInterface->pOsContext, mvDataBuffer, 0, false, MOS_MIN(m_mvDataSize, ocaMvDataBufferMaxSize));
 
     // Current Picture Y
     MOS_ZeroMemory(&surfaceCodecParams, sizeof(CODECHAL_SURFACE_CODEC_PARAMS));

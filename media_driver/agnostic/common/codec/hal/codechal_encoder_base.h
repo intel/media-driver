@@ -2054,12 +2054,15 @@ public:
     //!         cmdbuffer to send cmds
     //! \param  [in] params
     //!         Parameters for send cmds
+    //! \param  [in] bEnableRenderOCA
+    //!         Enable/Disable OCA support for Render Command Streamer
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendGenericKernelCmds(
         PMOS_COMMAND_BUFFER   cmdBuffer,
-        SendKernelCmdsParams *params);
+        SendKernelCmdsParams *params,
+        bool                  bEnableRenderOCA = false);
 
     //!
     //! \brief  Start Status Report
