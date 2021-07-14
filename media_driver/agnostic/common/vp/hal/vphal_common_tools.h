@@ -182,6 +182,9 @@ typedef struct _VP_CONFIG
     //add config to switch 8K resolution on VEBOX or render
     //default is use render for 8k
     uint32_t   dwUseVeboxFor8K;
+
+    // Optimize Cpu timing for VEBOX/SFC
+    bool       bOptimizeCpuTiming;
 } VP_CONFIG, *PVP_CONFIG;
 
 //!

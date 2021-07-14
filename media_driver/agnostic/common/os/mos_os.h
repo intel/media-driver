@@ -1417,6 +1417,8 @@ typedef struct _MOS_INTERFACE
 
     int32_t                         bVeboxScalabilityMode;                        //!< Enable scalability vebox
 
+    bool                            bOptimizeCpuTiming;                           //!< Optimize Cpu Timing
+
     //!< os interface extension
     void                            *pOsExt;
 } MOS_INTERFACE;

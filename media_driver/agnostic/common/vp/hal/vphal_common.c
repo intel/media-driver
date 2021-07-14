@@ -483,6 +483,13 @@ MOS_STATUS VpHal_ReAllocateSurface(
         goto finish;
     }
 
+    if (pOsInterface->bOptimizeCpuTiming                  &&
+        (DefaultResType == MOS_GFXRES_BUFFER)             &&
+        (pSurface->dwWidth  >= dwWidth))
+    {
+        goto finish;
+    }
+
     MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
 
     VpHal_AllocParamsInitType(&AllocParams, pSurface, DefaultResType, DefaultTileType);
