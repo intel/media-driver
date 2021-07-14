@@ -53,6 +53,7 @@ message("-- media -- LIBVA_INSTALL_PATH = ${LIBVA_INSTALL_PATH}")
 message("-- media -- MEDIA_VERSION = ${MEDIA_VERSION}")
 if(X11_FOUND)
 message("-- media -- X11 Found")
+pkg_check_modules(LIBVAX11 libva-x11)
 endif()
 
 set(LIB_NAME_OBJ    "${LIB_NAME}_OBJ")
