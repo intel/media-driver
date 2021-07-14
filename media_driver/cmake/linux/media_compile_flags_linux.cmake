@@ -180,7 +180,7 @@ set(MEDIA_COMPILER_FLAGS_DEBUG
     -DINSTR_GTUNE_EXT
 )
 
-if(X11_FOUND)
+if(X11_FOUND AND LIBVAX11_FOUND)
     add_definitions(-DX11_FOUND)
 endif()
 
