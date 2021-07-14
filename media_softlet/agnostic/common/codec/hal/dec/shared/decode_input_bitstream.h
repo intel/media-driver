@@ -84,7 +84,7 @@ public:
     //! \return bool
     //!         Ture if input bitstream is complete, else return false
     //!
-    bool IsComplete();
+    virtual bool IsComplete();
 
     //!
     //! \brief  Get media function for context switch
@@ -108,7 +108,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Append(const CodechalDecodeParams &decodeParams);
+    virtual MOS_STATUS Append(const CodechalDecodeParams &decodeParams);
 
     //!
     //! \brief  Add new segment to segment list
@@ -135,7 +135,7 @@ protected:
     //!
     MOS_STATUS AllocateCatenatedBuffer();
 
-private:
+protected:
     DecodeBasicFeature*  m_basicFeature   = nullptr; //!< Decode basic feature
     DecodeAllocator *    m_allocator      = nullptr; //!< Resource allocator
 
