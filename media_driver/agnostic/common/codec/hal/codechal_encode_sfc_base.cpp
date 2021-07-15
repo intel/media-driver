@@ -357,7 +357,7 @@ void CodecHalEncodeSfcBase::GetCscMatrix(
     float                  *cscInOffset,                                 // [out] [3x1] Input Offset matrix
     float                  *cscOutOffset)                                // [out] [3x1] Output Offset matrix
 {
-    float   cscMatrix[12];
+    float   cscMatrix[12]{};
     int32_t i;
 
     GetCSCMatrix(
