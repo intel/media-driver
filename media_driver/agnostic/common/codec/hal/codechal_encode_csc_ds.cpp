@@ -1116,8 +1116,9 @@ MOS_STATUS CodechalEncodeCscDs::CheckCondition()
     m_threadTraverseSizeY = 2;    // for NV12, thread space is 32x4
 
     // check raw surface's color/tile format
-    if (m_cscEnableColor && !m_encoder->CheckSupportedFormat(&details))
+    if (!m_encoder->CheckSupportedFormat(&details))
     {
+        CODECHAL_ENCODE_CHK_COND_RETURN(!m_cscEnableColor && !m_cscEnableSfc, "Input color format = %d not supported!", details.Format);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CheckRawColorFormat(details.Format, details.TileType));
     }
 

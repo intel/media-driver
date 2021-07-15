@@ -366,6 +366,7 @@ public:
 
     void DisableCsc() { m_cscDsConvEnable = 0; }
     void EnableCopy() { m_cscEnableCopy = 1; }
+    void DisableCopy() { m_cscEnableCopy = 0; }
     void EnableColor() { m_cscEnableColor = 1; }
     void EnableMmc() { m_cscEnableMmc = 1; }
     void EnableSfc() { m_cscEnableSfc = 1; }
