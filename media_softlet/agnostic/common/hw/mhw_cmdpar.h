@@ -44,7 +44,7 @@
 
 #define __MHW_CMD_PAR_SET_F(CMD) SetCmdParams_##CMD  // function name to set MHW command parameters
 
-#define __MHW_CMD_PAR_SET_COMMON_DECL(CMD) __MHW_CMD_PAR_SET_F(CMD)(mhw::Pointer<__MHW_CMD_PAR_T(CMD)> params) const
+#define __MHW_CMD_PAR_SET_COMMON_DECL(CMD) __MHW_CMD_PAR_SET_F(CMD)(__MHW_CMD_PAR_T(CMD) &params) const
 
 // CodecHal uses it to define set MHW params functions in header file
 #define MHW_CMD_PAR_SET_DECL_HDR(CMD) MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(CMD) override

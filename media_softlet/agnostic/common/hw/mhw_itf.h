@@ -52,25 +52,32 @@
 #define __MHW_CMD_PAR_GET_F(CMD)       GetCmdPar_##CMD       // function name to get the pointer to MHW command parameter
 #define __MHW_CMD_BYTE_SIZE_GET_F(CMD) GetCmdByteSize_##CMD  // function name to get MHW command size in byte
 #define __MHW_CMD_ADD_F(CMD)           AddCmd_##CMD          // function name to add command
+#define __MHW_CMD_SET_F(CMD)           SetCmd_##CMD          // function name to set command data
 
-#define __MHW_CMD_PAR_GET_DECL(CMD)       mhw::Pointer<_MHW_CMD_PAR_T(CMD)> __MHW_CMD_PAR_GET_F(CMD)(bool reset)
+#define __MHW_CMD_PAR_GET_DECL(CMD)       _MHW_CMD_PAR_T(CMD)& __MHW_CMD_PAR_GET_F(CMD)()
 #define __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) size_t __MHW_CMD_BYTE_SIZE_GET_F(CMD)() const
 
-#define __MHW_CMD_ADD_DECL(CMD) MOS_STATUS __MHW_CMD_ADD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf,                  \
-                                                                PMHW_BATCH_BUFFER   batchBuf      = nullptr, \
-                                                                const uint8_t      *extraData     = nullptr, \
-                                                                size_t              extraDataSize = 0)
+#define __MHW_CMD_ADD_DECL(CMD) MOS_STATUS __MHW_CMD_ADD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf, PMHW_BATCH_BUFFER batchBuf = nullptr)
+
+#if MHW_HWCMDPARSER_ENABLED
+#define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)(const std::string &cmdName = #CMD)
+#else
+#define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)()
+#endif
 
 #define _MHW_CMD_ALL_DEF_FOR_ITF(CMD)              \
 public:                                            \
     virtual __MHW_CMD_PAR_GET_DECL(CMD)       = 0; \
     virtual __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) = 0; \
-    virtual __MHW_CMD_ADD_DECL(CMD)           = 0
+    virtual __MHW_CMD_ADD_DECL(CMD)           = 0; \
+protected:                                         \
+    virtual __MHW_CMD_SET_DECL(CMD) { return MOS_STATUS_SUCCESS; }
 
 #define _MHW_SETPARAMS_AND_ADDCMD(CMD, cmdPar_t, GetPar, AddCmd, ...)           \
     {                                                                           \
-        auto par = GetPar(CMD, true);                                           \
-        auto p   = dynamic_cast<const cmdPar_t *>(this);                        \
+        auto &par = GetPar(CMD);                                                \
+        par       = {};                                                         \
+        auto p    = dynamic_cast<const cmdPar_t *>(this);                       \
         if (p)                                                                  \
         {                                                                       \
             p->__MHW_CMD_PAR_SET_F(CMD)(par);                                   \

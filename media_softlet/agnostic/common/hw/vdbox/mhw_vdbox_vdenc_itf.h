@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,28 @@ namespace vdenc
 class Itf
 {
 public:
+    class ParamsSetting
+    {
+    public:
+        virtual ~ParamsSetting() = default;
+
+        _MHW_CMD_PAR_SET_DEF(VDENC_CONTROL_STATE);
+        _MHW_CMD_PAR_SET_DEF(VDENC_PIPE_MODE_SELECT);
+        _MHW_CMD_PAR_SET_DEF(VDENC_SRC_SURFACE_STATE);
+        _MHW_CMD_PAR_SET_DEF(VDENC_REF_SURFACE_STATE);
+        _MHW_CMD_PAR_SET_DEF(VDENC_DS_REF_SURFACE_STATE);
+        _MHW_CMD_PAR_SET_DEF(VDENC_PIPE_BUF_ADDR_STATE);
+        _MHW_CMD_PAR_SET_DEF(VDENC_WEIGHTSOFFSETS_STATE);
+        _MHW_CMD_PAR_SET_DEF(VDENC_HEVC_VP9_TILE_SLICE_STATE);
+        _MHW_CMD_PAR_SET_DEF(VDENC_WALKER_STATE);
+        _MHW_CMD_PAR_SET_DEF(VD_PIPELINE_FLUSH);
+        _MHW_CMD_PAR_SET_DEF(VDENC_CMD1);
+        _MHW_CMD_PAR_SET_DEF(VDENC_CMD2);
+        _MHW_CMD_PAR_SET_DEF(VDENC_CMD3);
+        _MHW_CMD_PAR_SET_DEF(VDENC_CMD4);
+        _MHW_CMD_PAR_SET_DEF(VDENC_CMD5);
+    };
+
     virtual ~Itf() = default;
 
     virtual MOS_STATUS EnableVdencRowstoreCacheIfSupported(uint32_t address) = 0;
@@ -82,13 +104,13 @@ public:
 }  // namespace vdbox
 }  // namespace mhw
 
-#define MHW_VDBOX_VDENC_GET_CMD_PAR(CMD, reset) m_vdencItf->__MHW_CMD_PAR_GET_F(CMD)(reset)
+#define MHW_VDBOX_VDENC_GET_CMD_PAR(CMD) m_vdencItf->__MHW_CMD_PAR_GET_F(CMD)()
 
 #define MHW_VDBOX_VDENC_GET_CMD_SIZE(CMD) m_vdencItf->__MHW_CMD_BYTE_SIZE_GET_F(CMD)()
 
 #define MHW_VDBOX_VDENC_ADD_CMD(CMD, ...) MHW_CHK_STATUS_RETURN(m_vdencItf->__MHW_CMD_ADD_F(CMD)(__VA_ARGS__))
 
 #define MHW_VDBOX_VDENC_SETPARAMS_AND_ADDCMD(CMD, ...) \
-    _MHW_SETPARAMS_AND_ADDCMD(CMD, mhw::vdbox::vdenc::CmdPar, MHW_VDBOX_VDENC_GET_CMD_PAR, MHW_VDBOX_VDENC_ADD_CMD, __VA_ARGS__)
+    _MHW_SETPARAMS_AND_ADDCMD(CMD, mhw::vdbox::vdenc::Itf::ParamsSetting, MHW_VDBOX_VDENC_GET_CMD_PAR, MHW_VDBOX_VDENC_ADD_CMD, __VA_ARGS__)
 
 #endif  // __MHW_VDBOX_VDENC_ITF_H__
