@@ -505,7 +505,7 @@ MOS_STATUS DecodePipeline::StatusCheck()
     uint32_t completedCount = m_statusReport->GetCompletedCount();
     if (completedCount <= m_statusCheckCount)
     {
-        DECODE_CHK_COND(completedCount < m_statusCheckCount, "Invalid statuc check count");
+        DECODE_CHK_COND(completedCount < m_statusCheckCount, "Invalid status check count");
         return MOS_STATUS_SUCCESS;
     }
 

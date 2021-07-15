@@ -118,35 +118,16 @@ namespace decode
         //!
         virtual MOS_STATUS InitMmcState();
 
-
-    #if USE_CODECHAL_DEBUG_TOOL
-        //! \brief    Dump the parameters
+#if USE_CODECHAL_DEBUG_TOOL
         //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
+        //! \brief  Dump render targets
+        //! \param  [in] reportData
+        //!         Decode report data
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpParams(Av1BasicFeature &basicFeature);
-
-        //! \brief    Dump the picture parameters
-        //!
-        //! \param    [in] picParams
-        //!           Pointer to CodecAv1PicParams
-        //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS DumpPicParams(CodecAv1PicParams *picParams);
-
-        //! \brief    Dump Tile Group parameters into file
-        //!
-        //! \param    [in] tileParams
-        //!           Pointer to CodecAv1TileParams
-        //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-        MOS_STATUS DumpBitstreamControlParams(CodecAv1TileParams *tileParams);
-    #endif
+        virtual MOS_STATUS DumpOutput(const DecodeStatusReportData& reportData) override;
+#endif
 
         //!
         //! \brief  Create AV1 Decode feature manager for Gen12

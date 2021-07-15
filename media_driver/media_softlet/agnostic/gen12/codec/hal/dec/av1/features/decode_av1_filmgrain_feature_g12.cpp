@@ -962,6 +962,10 @@ MOS_STATUS Av1DecodeFilmGrainG12::Update(void *params)
         DECODE_CHK_STATUS(AllocateVariableSizeSurfaces());
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_fgOutputSurfList[m_basicFeature->m_curRenderPic.FrameIdx] = m_basicFeature->m_fgOutputSurf;
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
