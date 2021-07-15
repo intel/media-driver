@@ -123,19 +123,20 @@ private:
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool isRender)
     {
-        MOS_STATUS    eStatus    = MOS_STATUS_SUCCESS;
-        PMOS_RESOURCE pResMarker = NULL;
+        MOS_STATUS      eStatus     = MOS_STATUS_SUCCESS;
+        PMOS_RESOURCE   resMarker   = nullptr;
 
         MHW_FUNCTION_ENTER;
 
-        pResMarker = m_osInterface->pfnGetMarkerResource(m_osInterface);
+        resMarker = m_osInterface->pfnGetMarkerResource(m_osInterface);
+        MHW_CHK_NULL_RETURN(resMarker);
 
         if (isRender)
         {
             // Send pipe_control to get the timestamp
             MHW_PIPE_CONTROL_PARAMS             pipeControlParams;
             MOS_ZeroMemory(&pipeControlParams, sizeof(pipeControlParams));
-            pipeControlParams.presDest          = pResMarker;
+            pipeControlParams.presDest          = resMarker;
             pipeControlParams.dwResourceOffset  = sizeof(uint64_t);
             pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
             pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
@@ -147,15 +148,17 @@ private:
             // Send flush_dw to get the timestamp
             MHW_MI_FLUSH_DW_PARAMS  flushDwParams;
             MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-            flushDwParams.pOsResource           = pResMarker;
+            flushDwParams.pOsResource           = resMarker;
             flushDwParams.dwResourceOffset      = sizeof(uint64_t);
             flushDwParams.postSyncOperation     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
             flushDwParams.bQWordEnable          = 1;
 
             MHW_MI_CHK_STATUS(AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
         }
-
-        MOS_SafeFreeMemory(pResMarker);
+        if (!m_osInterface->apoMosEnabled)
+        {
+            MOS_SafeFreeMemory(resMarker);
+        }
         return eStatus;
     }
 

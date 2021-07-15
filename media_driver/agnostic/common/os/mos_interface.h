@@ -1881,6 +1881,28 @@ public:
     static int32_t IsGPUHung(
         MOS_STREAM_HANDLE streamState);
 
+    //!
+    //! \brief    Get SetMarker enabled flag
+    //! \details  Get SetMarker enabled flag from streamState
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   bool
+    //!           SetMarker enabled flag
+    //!
+    static bool IsSetMarkerEnabled(
+        MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief    Get SetMarker resource address
+    //! \details  Get SetMarker resource address from streamState
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \return   PMOS_RESOURCE
+    //!           SetMarker resource address
+    //!
+    static PMOS_RESOURCE GetMarkerResource(
+        MOS_STREAM_HANDLE streamState);
+
 private:
     //!
     //! \brief    Init per stream parameters

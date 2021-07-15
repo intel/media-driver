@@ -2853,6 +2853,18 @@ int32_t MosInterface::IsGPUHung(
     return result;
 }
 
+bool MosInterface::IsSetMarkerEnabled(
+    MOS_STREAM_HANDLE streamState)
+{
+    return false;
+}
+
+PMOS_RESOURCE MosInterface::GetMarkerResource(
+    MOS_STREAM_HANDLE   streamState)
+{
+    return nullptr;
+}
+
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 MOS_STATUS MosInterface::DumpCommandBufferInit(
     MOS_STREAM_HANDLE streamState)
