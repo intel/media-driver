@@ -47,7 +47,7 @@ static bool adlpRegisteredMhw =
 #ifdef _MMC_SUPPORTED
 static bool adlsRegisteredMmd =
     MediaInterfacesFactory<MmdDevice>::
-    RegisterHal<MmdDeviceG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
+    RegisterHal<MmdDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_P);
 #endif
 
 #define PLATFORM_INTEL_ADLP   23
