@@ -1289,7 +1289,8 @@ MOS_STATUS CodechalEncoderState::CheckResChangeAndCsc()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
             m_cscDsState->CheckReconSurfaceAlignment(&m_reconSurface));
 
-        if (CodecHal_PictureIsField(m_currOriginalPic) ||
+        if (!m_cscDsState->IsEnabled() ||
+            CodecHal_PictureIsField(m_currOriginalPic) ||
             CodecHal_PictureIsInterlacedFrame(m_currOriginalPic))
         {
             // CSC disabled for interlaced frame
