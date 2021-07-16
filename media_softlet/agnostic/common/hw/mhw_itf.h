@@ -36,8 +36,6 @@
 #else
 #define MHW_HWCMDPARSER_INIT(osInterface)
 #define MHW_HWCMDPARSER_DESTROY()
-#define MHW_HWCMDPARSER_FRAMEINFOUPDATE(frameType)
-#define MHW_HWCMDPARSER_PARSECMD(cmdName, cmdData, dwLen)
 #define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
 #define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
 #endif
@@ -58,12 +56,7 @@
 #define __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) size_t __MHW_CMD_BYTE_SIZE_GET_F(CMD)() const
 
 #define __MHW_CMD_ADD_DECL(CMD) MOS_STATUS __MHW_CMD_ADD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf, PMHW_BATCH_BUFFER batchBuf = nullptr)
-
-#if MHW_HWCMDPARSER_ENABLED
-#define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)(const std::string &cmdName = #CMD)
-#else
 #define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)()
-#endif
 
 #define _MHW_CMD_ALL_DEF_FOR_ITF(CMD)              \
 public:                                            \
