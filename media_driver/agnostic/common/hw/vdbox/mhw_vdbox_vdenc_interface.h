@@ -193,7 +193,7 @@ protected:
     bool                        m_rhoDomainStatsEnabled = false; //! indicate if rho domain stats is enabled
     bool                        m_perfModeSupported = true; //! indicate perf mode is supported
 
-    mhw::Pointer<mhw::vdbox::vdenc::Itf> m_vdencItfNew = nullptr;
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItfNew = nullptr;
 
     static const bool m_vdencFTQEnabled[NUM_VDENC_TARGET_USAGE_MODES];
     static const bool m_vdencBlockBasedSkipEnabled[NUM_VDENC_TARGET_USAGE_MODES];
@@ -248,7 +248,7 @@ public:
     //!
     //! \return   pointer to new VDENC interface
     //!
-    virtual mhw::Pointer<mhw::vdbox::vdenc::Itf> GetNewVdencInterface() { return nullptr; }
+    virtual std::shared_ptr<mhw::vdbox::vdenc::Itf> GetNewVdencInterface() { return nullptr; }
 
     //!
     //! \brief    Judge if row store caching supported

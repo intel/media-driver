@@ -59,40 +59,4 @@
         return MOS_STATUS_SUCCESS;                        \
     }
 
-namespace mhw
-{
-template <typename T>
-using Pointer = std::shared_ptr<T>;
-
-template <typename T, typename U>
-Pointer<T> StaticPointerCast(const Pointer<U> &r)
-{
-    return std::static_pointer_cast<T>(r);
-}
-
-template <typename T, typename U>
-Pointer<T> DynamicPointerCast(const Pointer<U> &r)
-{
-    return std::dynamic_pointer_cast<T>(r);
-}
-
-template <typename T, typename U>
-Pointer<T> ConstPointerCast(const Pointer<U> &r)
-{
-    return std::const_pointer_cast<T>(r);
-}
-
-template <typename T>
-Pointer<T> MakePointer()
-{
-    return std::make_shared<T>();
-}
-
-template <typename T, typename... Args>
-Pointer<T> MakePointer(Args &&...args)
-{
-    return std::make_shared<T>(std::forward<Args>(args)...);
-}
-}  // namespace mhw
-
 #endif  // __MHW_CMDPAR_H__

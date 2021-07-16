@@ -74,14 +74,15 @@
         return MOS_STATUS_SUCCESS;                                                                        \
     }
 
-#define _MHW_CMD_ALL_DEF_FOR_IMPL(CMD)                                                                   \
-public:                                                                                                  \
-    __MHW_CMD_PAR_GET_DEF(CMD);                                                                          \
-    __MHW_CMD_BYTE_SIZE_GET_DEF(CMD);                                                                    \
-    __MHW_CMD_ADD_DEF(CMD)                                                                               \
-protected:                                                                                               \
-    mhw::Pointer<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>> __MHW_CMD_PAR_M(CMD) = \
-        mhw::MakePointer<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>>()
+#define _MHW_CMD_ALL_DEF_FOR_IMPL(CMD)                                                                    \
+public:                                                                                                   \
+    __MHW_CMD_PAR_GET_DEF(CMD);                                                                           \
+    __MHW_CMD_BYTE_SIZE_GET_DEF(CMD);                                                                     \
+    __MHW_CMD_ADD_DEF(CMD)                                                                                \
+protected:                                                                                                \
+    std::unique_ptr<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>> __MHW_CMD_PAR_M(CMD) \
+        = std::unique_ptr<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>>(               \
+            new std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>())
 
 #define _MHW_CMD_SET_DECL_OVERRIDE(CMD) __MHW_CMD_SET_DECL(CMD) override
 
