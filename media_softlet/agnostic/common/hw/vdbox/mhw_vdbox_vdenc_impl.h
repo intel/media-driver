@@ -587,7 +587,7 @@ protected:
             }
         }
 
-        if (!params.lowDelayB && params.numActiveRefL1)
+        if ((!params.lowDelayB && params.numActiveRefL1) || params.isPFrame) //HW request HEVC PFrame to set address in BwdRef0 to be same as FwdRef0
         {
             if (!Mos_ResourceIsNull(params.refs[refIdx]))
             {

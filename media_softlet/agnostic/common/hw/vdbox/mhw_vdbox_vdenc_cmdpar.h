@@ -190,6 +190,7 @@ struct _MHW_CMD_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
     PMOS_SURFACE      surfaceDsStage2                   = nullptr;
     MOS_MEMCOMP_STATE mmcStateDsStage2                  = MOS_MEMCOMP_DISABLED;
     bool              lowDelayB                         = false;
+    bool              isPFrame                          = false; //only HEVC should touch this flag 
     PMOS_RESOURCE     colocatedMvReadBuffer             = nullptr;
     PMOS_RESOURCE     colMvTempBuffer[MAX_REF_NUM_L0L1] = {};
     PMOS_RESOURCE     pakObjCmdStreamOutBuffer          = nullptr;
