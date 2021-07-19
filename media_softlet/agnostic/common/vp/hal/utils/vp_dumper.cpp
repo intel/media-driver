@@ -1038,7 +1038,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                 // which is designed to avoid splitting two cache lines
                 if (pSurface->Format == Format_R8G8B8)
                 {
-                    int dummyBytesPerLine = (int)(ceil)((planes[j].dwWidth) / 63.0);
+                    int dummyBytesPerLine = planes[j].dwWidth / 63;
+                    int resPixel          = planes[j].dwWidth - 63 * dummyBytesPerLine;
                     for (int p = 0; p < dummyBytesPerLine; p++)
                     {
                         MOS_SecureMemcpy(
@@ -1046,6 +1047,14 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                             63,
                             &pTmpSrc[p * 64],
                             63);
+                    }
+                    if (resPixel > 0)
+                    {
+                        MOS_SecureMemcpy(
+                            &pTmpDst[dummyBytesPerLine * 63],
+                            resPixel,
+                            &pTmpSrc[dummyBytesPerLine * 64],
+                            resPixel);
                     }
                 }
                 else
