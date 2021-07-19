@@ -37,55 +37,65 @@
 //              only used by other    |   _DECL: declaration
 //              macros                |   _DEF : definition
 
-#define _MHW_CMD_T(CMD)       CMD##_CMD      // MHW command type
-#define __MHW_CMD_INFO_M(CMD) m_##CMD##_Info // MHW command parameters and data
+#define __MHW_CMD_T(CMD) CMD##_CMD  // MHW command type
 
-#define __MHW_CMD_PAR_GET_DEF(CMD)                 \
-    __MHW_CMD_PAR_GET_DECL(CMD) override           \
-    {                                              \
-        return this->__MHW_CMD_INFO_M(CMD)->first; \
+// MHW command parameters and data
+#define __MHW_CMDINFO_T(CMD) std::pair<_MHW_PAR_T(CMD), typename cmd_t::__MHW_CMD_T(CMD)>
+
+#define __MHW_CMDINFO_M(CMD) m_##CMD##_Info
+
+#define __MHW_GETPAR_DEF(CMD)                     \
+    __MHW_GETPAR_DECL(CMD) override               \
+    {                                             \
+        return this->__MHW_CMDINFO_M(CMD)->first; \
     }
 
-#define __MHW_CMD_BYTE_SIZE_GET_DEF(CMD)                \
-    __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) override          \
-    {                                                   \
-        return sizeof(typename cmd_t::_MHW_CMD_T(CMD)); \
+#define __MHW_GETSIZE_DEF(CMD)                           \
+    __MHW_GETSIZE_DECL(CMD) override                     \
+    {                                                    \
+        return sizeof(typename cmd_t::__MHW_CMD_T(CMD)); \
     }
 
 #if MHW_HWCMDPARSER_ENABLED
-#define MHW_HWCMDPARSER_INIT_CMDNAME(CMD) this->m_currentCmdName = #CMD
+#define MHW_HWCMDPARSER_INITCMDNAME(CMD) this->m_currentCmdName = #CMD
 #else
-#define MHW_HWCMDPARSER_INIT_CMDNAME(CMD)
+#define MHW_HWCMDPARSER_INITCMDNAME(CMD)
 #endif
 
-#define __MHW_CMD_ADD_DEF(CMD)                                             \
-    __MHW_CMD_ADD_DECL(CMD) override                                       \
-    {                                                                      \
-        MHW_FUNCTION_ENTER;                                                \
-        MHW_HWCMDPARSER_INIT_CMDNAME(CMD);                                 \
-        return this->AddCmd(cmdBuf,                                        \
-            batchBuf,                                                      \
-            this->__MHW_CMD_INFO_M(CMD)->second,                           \
-            [=]() -> MOS_STATUS { return this->__MHW_CMD_SET_F(CMD)(); }); \
+#define __MHW_ADDCMD_DEF(CMD)                                             \
+    __MHW_ADDCMD_DECL(CMD) override                                       \
+    {                                                                     \
+        MHW_FUNCTION_ENTER;                                               \
+        MHW_HWCMDPARSER_INITCMDNAME(CMD);                                 \
+        return this->AddCmd(cmdBuf,                                       \
+            batchBuf,                                                     \
+            this->__MHW_CMDINFO_M(CMD)->second,                           \
+            [=]() -> MOS_STATUS { return this->__MHW_SETCMD_F(CMD)(); }); \
     }
 
-#define _MHW_CMD_ALL_DEF_FOR_IMPL(CMD)                                                                     \
-public:                                                                                                    \
-    __MHW_CMD_PAR_GET_DEF(CMD);                                                                            \
-    __MHW_CMD_BYTE_SIZE_GET_DEF(CMD);                                                                      \
-    __MHW_CMD_ADD_DEF(CMD)                                                                                 \
-protected:                                                                                                 \
-    std::unique_ptr<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>> __MHW_CMD_INFO_M(CMD) \
-        = std::unique_ptr<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>>(                \
-            new std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>())
+#if __cplusplus < 201402L
+#define __MHW_CMDINFO_DEF(CMD) std::unique_ptr<__MHW_CMDINFO_T(CMD)> \
+    __MHW_CMDINFO_M(CMD) = std::unique_ptr<__MHW_CMDINFO_T(CMD)>(new __MHW_CMDINFO_T(CMD)())
+#else
+#define __MHW_CMDINFO_DEF(CMD) std::unique_ptr<__MHW_CMDINFO_T(CMD)> \
+    __MHW_CMDINFO_M(CMD) = std::make_unique<__MHW_CMDINFO_T(CMD)>()
+#endif
 
-#define _MHW_CMD_SET_DECL_OVERRIDE(CMD) __MHW_CMD_SET_DECL(CMD) override
+#define _MHW_CMD_ALL_DEF_FOR_IMPL(CMD) \
+public:                                \
+    __MHW_GETPAR_DEF(CMD);             \
+    __MHW_GETSIZE_DEF(CMD);            \
+    __MHW_ADDCMD_DEF(CMD)              \
+protected:                             \
+    __MHW_CMDINFO_DEF(CMD)
 
-#define _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(CMD)            \
-    MHW_FUNCTION_ENTER;                                       \
-    const auto &params = this->__MHW_CMD_INFO_M(CMD)->first;  \
-    auto       &cmd    = this->__MHW_CMD_INFO_M(CMD)->second; \
-    MHW_CHK_STATUS_RETURN(base_t::__MHW_CMD_SET_F(CMD)())
+#define _MHW_SETCMD_OVERRIDE_DECL(CMD) __MHW_SETCMD_DECL(CMD) override
+
+#define _MHW_SETCMD_CALLBASE(CMD)                            \
+    MHW_FUNCTION_ENTER;                                      \
+    const auto &params = this->__MHW_CMDINFO_M(CMD)->first;  \
+    auto &      cmd    = this->__MHW_CMDINFO_M(CMD)->second; \
+    MHW_CHK_STATUS_RETURN(base_t::__MHW_SETCMD_F(CMD)())
 
 // DWORD location of a command field
 #define _MHW_CMD_DW_LOCATION(field) \
@@ -171,15 +181,26 @@ protected:
         {
             AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
         }
+
+#if MHW_HWCMDPARSER_ENABLED
+        mhw::HwcmdParser::InitInstance(osItf);
+#endif
     }
 
-    virtual ~Impl() = default;
+    virtual ~Impl()
+    {
+        MHW_FUNCTION_ENTER;
+
+#if MHW_HWCMDPARSER_ENABLED
+        mhw::HwcmdParser::DestroyInstance();
+#endif
+    }
 
     template <typename Cmd, typename CmdSetting>
     MOS_STATUS AddCmd(PMOS_COMMAND_BUFFER cmdBuf,
         PMHW_BATCH_BUFFER                 batchBuf,
-        Cmd                              &cmd,
-        const CmdSetting                 &setting)
+        Cmd &                             cmd,
+        const CmdSetting &                setting)
     {
         this->m_currentCmdBuf   = cmdBuf;
         this->m_currentBatchBuf = batchBuf;
@@ -189,11 +210,11 @@ protected:
         MHW_CHK_STATUS_RETURN(setting());
 
         // call MHW cmd parser
-    #if MHW_HWCMDPARSER_ENABLED
+#if MHW_HWCMDPARSER_ENABLED
         this->m_hwcmdParser->ParseCmd(this->m_currentCmdName,
             reinterpret_cast<uint32_t *>(&cmd),
             sizeof(cmd) / sizeof(uint32_t));
-    #endif
+#endif
 
         // add cmd to cmd buffer
         return Mhw_AddCommandCmdOrBB(cmdBuf, batchBuf, &cmd, sizeof(cmd));

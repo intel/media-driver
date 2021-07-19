@@ -91,44 +91,6 @@ struct FeatureIDs
     }                                                                                               \
 }
 
-//!
-//! \def LOOP_FEATURE_INTERFACE_RETURN(_interfaceClass, _interface, ...)
-//!  Run _featureInterface for all features
-//!
-#define LOOP_FEATURE_INTERFACE_RETURN(_interfaceClass, _interface, ...)  \
-    {                                                                    \
-        if (m_featureManager)                                            \
-        {                                                                \
-            for (auto feature : *m_featureManager)                       \
-            {                                                            \
-                auto itf = dynamic_cast<_interfaceClass *>(feature);     \
-                if (itf)                                                 \
-                {                                                        \
-                    MHW_CHK_STATUS_RETURN(itf->_interface(__VA_ARGS__)); \
-                }                                                        \
-            }                                                            \
-        }                                                                \
-    }
-
-//!
-//! \def LOOP_FEATURE_INTERFACE_NO_RETURN(_interfaceClass, _interface, ...)
-//!  Run _featureInterface for all features
-//!
-#define LOOP_FEATURE_INTERFACE_NO_RETURN(_interfaceClass, _interface, ...) \
-    {                                                                      \
-        if (m_featureManager)                                              \
-        {                                                                  \
-            for (auto feature : *m_featureManager)                         \
-            {                                                              \
-                auto itf = dynamic_cast<_interfaceClass *>(feature);       \
-                if (itf)                                                   \
-                {                                                          \
-                    itf->_interface(__VA_ARGS__);                          \
-                }                                                          \
-            }                                                              \
-        }                                                                  \
-    }
-
 class MediaFeature;
 
 enum class LIST_TYPE

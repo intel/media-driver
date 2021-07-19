@@ -263,9 +263,9 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CONTROL_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_CONTROL_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CONTROL_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_CONTROL_STATE);
 
 #define DO_FIELDS() \
     DO_FIELD(DW1, VdencInitialization, params.vdencInitialization)
@@ -273,9 +273,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_PIPE_MODE_SELECT)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_PIPE_MODE_SELECT)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_PIPE_MODE_SELECT);
+        _MHW_SETCMD_CALLBASE(VDENC_PIPE_MODE_SELECT);
 
 #define DO_FIELDS()                                                                           \
     DO_FIELD(DW1, StandardSelect, params.standardSelect);                                     \
@@ -311,9 +311,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_SRC_SURFACE_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_SRC_SURFACE_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_SRC_SURFACE_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_SRC_SURFACE_STATE);
 
 #define DO_FIELDS()                                                                                                \
     DO_FIELD(Dwords25.DW0, Width, params.width - 1);                                                               \
@@ -332,9 +332,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_REF_SURFACE_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_REF_SURFACE_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_REF_SURFACE_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_REF_SURFACE_STATE);
 
 #define DO_FIELDS()                                                                                                  \
     DO_FIELD(Dwords25.DW0, Width, params.width - 1);                                                                 \
@@ -351,9 +351,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_DS_REF_SURFACE_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_DS_REF_SURFACE_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_DS_REF_SURFACE_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_DS_REF_SURFACE_STATE);
 
         const bool stage2 = params.widthStage2 && params.heightStage2 && params.pitchStage2;
 
@@ -385,9 +385,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_PIPE_BUF_ADDR_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_PIPE_BUF_ADDR_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_PIPE_BUF_ADDR_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_PIPE_BUF_ADDR_STATE);
 
         MHW_RESOURCE_PARAMS resourceParams;
 
@@ -885,9 +885,9 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_WEIGHTSOFFSETS_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_WEIGHTSOFFSETS_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_WEIGHTSOFFSETS_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_WEIGHTSOFFSETS_STATE);
 
 #define DO_FIELDS()                                                                                                   \
     DO_FIELD(DW1, WeightsForwardReference0, Clip3(-128, 127, params.weightsLuma[0][0] + params.denomLuma));           \
@@ -923,9 +923,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_HEVC_VP9_TILE_SLICE_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_HEVC_VP9_TILE_SLICE_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_HEVC_VP9_TILE_SLICE_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_HEVC_VP9_TILE_SLICE_STATE);
 
 #define DO_FIELDS()                                                                                                       \
     DO_FIELD(DW3, NumParEngine, params.numPipe);                                                                          \
@@ -960,9 +960,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_WALKER_STATE)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_WALKER_STATE)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_WALKER_STATE);
+        _MHW_SETCMD_CALLBASE(VDENC_WALKER_STATE);
 
 #define DO_FIELDS()                                                               \
     DO_FIELD(DW1, FirstSuperSlice, params.firstSuperSlice);                       \
@@ -975,9 +975,9 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VD_PIPELINE_FLUSH)
+    _MHW_SETCMD_OVERRIDE_DECL(VD_PIPELINE_FLUSH)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VD_PIPELINE_FLUSH);
+        _MHW_SETCMD_CALLBASE(VD_PIPELINE_FLUSH);
 
 #define DO_FIELDS()                                                           \
     DO_FIELD(DW1, HevcPipelineDone, params.waitDoneHEVC);                     \
@@ -994,45 +994,45 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD1)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_CMD1)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD1);
+        _MHW_SETCMD_CALLBASE(VDENC_CMD1);
 
 #define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD1_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD2)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_CMD2)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD2);
+        _MHW_SETCMD_CALLBASE(VDENC_CMD2);
 
 #define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD2_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD3)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_CMD3)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD3);
+        _MHW_SETCMD_CALLBASE(VDENC_CMD3);
 
 #define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD4)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_CMD4)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD4);
+        _MHW_SETCMD_CALLBASE(VDENC_CMD4);
 
 #define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD4_IMPL_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_CMD_SET_DECL_OVERRIDE(VDENC_CMD5)
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_CMD5)
     {
-        _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(VDENC_CMD5);
+        _MHW_SETCMD_CALLBASE(VDENC_CMD5);
 
 #define DO_FIELDS() __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD5_IMPL_EXT)
 
