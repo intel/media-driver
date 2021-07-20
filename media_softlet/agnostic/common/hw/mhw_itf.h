@@ -30,14 +30,8 @@
 
 #include "mhw_cmdpar.h"
 
-#define MHW_HWCMDPARSER_ENABLED (_MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL))
-#if MHW_HWCMDPARSER_ENABLED
+#if _MHW_HWCMDPARSER_SUPPORTED
 #include "mhw_hwcmd_parser.h"
-#else
-#define MHW_HWCMDPARSER_INIT(osInterface)
-#define MHW_HWCMDPARSER_DESTROY()
-#define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
-#define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
 #endif
 
 //   [Macro Prefixes]                 |   [Macro Suffixes]
@@ -47,36 +41,26 @@
 //              only used by other    |   _DECL: declaration
 //              macros                |   _DEF : definition
 
-#define __MHW_CMD_PAR_GET_F(CMD)       GetCmdPar_##CMD       // function name to get the pointer to MHW command parameter
-#define __MHW_CMD_BYTE_SIZE_GET_F(CMD) GetCmdByteSize_##CMD  // function name to get MHW command size in byte
-#define __MHW_CMD_ADD_F(CMD)           AddCmd_##CMD          // function name to add command
-#define __MHW_CMD_SET_F(CMD)           SetCmd_##CMD          // function name to set command data
+#define __MHW_GETPAR_F(CMD) GETPAR_##CMD         // function name to get the pointer to MHW command parameter
+#define MHW_GETPAR_F(CMD) __MHW_GETPAR_F(CMD)    // to support 2-level macro expanding
+#define __MHW_GETSIZE_F(CMD) GETSIZE_##CMD       // function name to get MHW command size in byte
+#define MHW_GETSIZE_F(CMD) __MHW_GETSIZE_F(CMD)  // to support 2-level macro expanding
+#define __MHW_ADDCMD_F(CMD) ADDCMD_##CMD         // function name to add command
+#define MHW_ADDCMD_F(CMD) __MHW_ADDCMD_F(CMD)    // to support 2-level macro expanding
+#define __MHW_SETCMD_F(CMD) SETCMD_##CMD         // function name to set command data
 
-#define __MHW_CMD_PAR_GET_DECL(CMD)       _MHW_CMD_PAR_T(CMD)& __MHW_CMD_PAR_GET_F(CMD)()
-#define __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) size_t __MHW_CMD_BYTE_SIZE_GET_F(CMD)() const
+#define __MHW_GETPAR_DECL(CMD) _MHW_PAR_T(CMD) & MHW_GETPAR_F(CMD)()
+#define __MHW_GETSIZE_DECL(CMD) size_t MHW_GETSIZE_F(CMD)() const
+#define __MHW_ADDCMD_DECL(CMD) MOS_STATUS MHW_ADDCMD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf, PMHW_BATCH_BUFFER batchBuf = nullptr)
+#define __MHW_SETCMD_DECL(CMD) MOS_STATUS __MHW_SETCMD_F(CMD)()
 
-#define __MHW_CMD_ADD_DECL(CMD) MOS_STATUS __MHW_CMD_ADD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf, PMHW_BATCH_BUFFER batchBuf = nullptr)
-#define __MHW_CMD_SET_DECL(CMD) MOS_STATUS __MHW_CMD_SET_F(CMD)()
-
-#define _MHW_CMD_ALL_DEF_FOR_ITF(CMD)              \
-public:                                            \
-    virtual __MHW_CMD_PAR_GET_DECL(CMD)       = 0; \
-    virtual __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) = 0; \
-    virtual __MHW_CMD_ADD_DECL(CMD)           = 0; \
-protected:                                         \
-    virtual __MHW_CMD_SET_DECL(CMD) { return MOS_STATUS_SUCCESS; }
-
-#define _MHW_SETPARAMS_AND_ADDCMD(CMD, cmdPar_t, GetPar, AddCmd, ...)           \
-    {                                                                           \
-        auto &par = GetPar(CMD);                                                \
-        par       = {};                                                         \
-        auto p    = dynamic_cast<const cmdPar_t *>(this);                       \
-        if (p)                                                                  \
-        {                                                                       \
-            p->__MHW_CMD_PAR_SET_F(CMD)(par);                                   \
-        }                                                                       \
-        LOOP_FEATURE_INTERFACE_RETURN(cmdPar_t, __MHW_CMD_PAR_SET_F(CMD), par); \
-        AddCmd(CMD, __VA_ARGS__);                                               \
-    }
+#define _MHW_CMD_ALL_DEF_FOR_ITF(CMD)    \
+public:                                  \
+    virtual __MHW_GETPAR_DECL(CMD)  = 0; \
+    virtual __MHW_GETSIZE_DECL(CMD) = 0; \
+    virtual __MHW_ADDCMD_DECL(CMD)  = 0; \
+                                         \
+protected:                               \
+    virtual __MHW_SETCMD_DECL(CMD) { return MOS_STATUS_SUCCESS; }
 
 #endif  // __MHW_DEF_H__
