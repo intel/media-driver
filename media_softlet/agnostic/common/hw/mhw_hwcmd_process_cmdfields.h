@@ -38,5 +38,5 @@
         }
     #endif  // MHW_HWCMDPARSER_ENABLED
     #undef DO_FIELDS
-#endif  // DO_FIELDS
         return MOS_STATUS_SUCCESS;
+#endif  // DO_FIELDS

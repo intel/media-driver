@@ -79,12 +79,12 @@ enum class SurfaceFormat
     ayuvVariant     = 0x14,
 };
 
-struct _MHW_PAR_T(VDENC_CONTROL_STATE)
+struct _MHW_CMD_PAR_T(VDENC_CONTROL_STATE)
 {
     bool vdencInitialization = true;
 };
 
-struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
+struct _MHW_CMD_PAR_T(VDENC_PIPE_MODE_SELECT)
 {
     uint8_t standardSelect           = 0;
     bool    scalabilityMode          = false;
@@ -116,7 +116,7 @@ struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_MODE_SELECT_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_SRC_SURFACE_STATE)
+struct _MHW_CMD_PAR_T(VDENC_SRC_SURFACE_STATE)
 {
     uint32_t          width                = 0;
     uint32_t          height               = 0;
@@ -132,7 +132,7 @@ struct _MHW_PAR_T(VDENC_SRC_SURFACE_STATE)
     uint8_t           vDirection           = 0;
 };
 
-struct _MHW_PAR_T(VDENC_REF_SURFACE_STATE)
+struct _MHW_CMD_PAR_T(VDENC_REF_SURFACE_STATE)
 {
     uint32_t          width       = 0;
     uint32_t          height      = 0;
@@ -146,7 +146,7 @@ struct _MHW_PAR_T(VDENC_REF_SURFACE_STATE)
     uint8_t           vDirection  = 0;
 };
 
-struct _MHW_PAR_T(VDENC_DS_REF_SURFACE_STATE)
+struct _MHW_CMD_PAR_T(VDENC_DS_REF_SURFACE_STATE)
 {
     uint8_t           vDirectionStage1  = 0;
     uint8_t           vDirectionStage2  = 0;
@@ -168,7 +168,7 @@ struct _MHW_PAR_T(VDENC_DS_REF_SURFACE_STATE)
     bool              gmmTileEnStage2   = false;
 };
 
-struct _MHW_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
+struct _MHW_CMD_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
 {
     PMOS_SURFACE      surfaceRaw                        = nullptr;
     MOS_MEMCOMP_STATE mmcStateRaw                       = MOS_MEMCOMP_DISABLED;
@@ -203,7 +203,7 @@ struct _MHW_PAR_T(VDENC_PIPE_BUF_ADDR_STATE)
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_PIPE_BUF_ADDR_STATE_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
+struct _MHW_CMD_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
 {
     int8_t   weightsLuma[MAX_REF_LIST_NUM][MAX_REF_NUM]      = {};
     int16_t  offsetsLuma[MAX_REF_LIST_NUM][MAX_REF_NUM]      = {};
@@ -213,7 +213,7 @@ struct _MHW_PAR_T(VDENC_WEIGHTSOFFSETS_STATE)
     uint32_t denomChroma                                     = 0;
 };
 
-struct _MHW_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
+struct _MHW_CMD_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
 {
     bool     tileEnable                 = false;
     bool     tileRowStoreSelect         = false;
@@ -233,7 +233,7 @@ struct _MHW_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_HEVC_VP9_TILE_SLICE_STATE_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_WALKER_STATE)
+struct _MHW_CMD_PAR_T(VDENC_WALKER_STATE)
 {
     bool     firstSuperSlice          = true;
     uint32_t tileSliceStartLcuMbX     = 0;
@@ -242,7 +242,7 @@ struct _MHW_PAR_T(VDENC_WALKER_STATE)
     uint32_t nextTileSliceStartLcuMbY = 0;
 };
 
-struct _MHW_PAR_T(VD_PIPELINE_FLUSH)
+struct _MHW_CMD_PAR_T(VD_PIPELINE_FLUSH)
 {
     bool waitDoneHEVC           = false;
     bool waitDoneVDENC          = false;
@@ -256,27 +256,27 @@ struct _MHW_PAR_T(VD_PIPELINE_FLUSH)
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VD_PIPELINE_FLUSH_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_CMD1)
+struct _MHW_CMD_PAR_T(VDENC_CMD1)
 {
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD1_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_CMD2)
+struct _MHW_CMD_PAR_T(VDENC_CMD2)
 {
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD2_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_CMD3)
+struct _MHW_CMD_PAR_T(VDENC_CMD3)
 {
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_CMD4)
+struct _MHW_CMD_PAR_T(VDENC_CMD4)
 {
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD4_CMDPAR_EXT);
 };
 
-struct _MHW_PAR_T(VDENC_CMD5)
+struct _MHW_CMD_PAR_T(VDENC_CMD5)
 {
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD5_CMDPAR_EXT);
 };
