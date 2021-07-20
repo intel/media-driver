@@ -27,7 +27,7 @@
 //!           this file is for the base interface which is shared by all.
 //!
 
-#include "decode_huc_g12_base.h"
+#include "decode_huc.h"
 #include "codechal_debug.h"
 #include "decode_pipeline.h"
 #include "decode_predication_packet.h"
@@ -36,7 +36,7 @@
 namespace decode
 {
 
-DecodeHucBasic_G12_Base::DecodeHucBasic_G12_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
+DecodeHucBasic::DecodeHucBasic(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
     : CmdPacket(task)
 {
     m_pipeline = dynamic_cast<DecodePipeline *>(pipeline);
@@ -57,11 +57,11 @@ DecodeHucBasic_G12_Base::DecodeHucBasic_G12_Base(MediaPipeline *pipeline, MediaT
     }
 }
 
-DecodeHucBasic_G12_Base::~DecodeHucBasic_G12_Base()
+DecodeHucBasic::~DecodeHucBasic()
 {
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::Init()
+MOS_STATUS DecodeHucBasic::Init()
 {
     DECODE_CHK_NULL(m_pipeline);
     DECODE_CHK_NULL(m_featureManager);
@@ -79,14 +79,14 @@ MOS_STATUS DecodeHucBasic_G12_Base::Init()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::AllocateResources()
+MOS_STATUS DecodeHucBasic::AllocateResources()
 {
     DECODE_CHK_NULL(m_allocator);
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::Completed(void* mfxStatus, void* rcsStatus, void* statusReport)
+MOS_STATUS DecodeHucBasic::Completed(void* mfxStatus, void* rcsStatus, void* statusReport)
 {
     DECODE_FUNC_CALL();
 
@@ -106,18 +106,18 @@ MOS_STATUS DecodeHucBasic_G12_Base::Completed(void* mfxStatus, void* rcsStatus, 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::Destroy()
+MOS_STATUS DecodeHucBasic::Destroy()
 {
     return MOS_STATUS_SUCCESS;
 }
 
-void DecodeHucBasic_G12_Base::SetHucStatusMask(uint32_t hucStatusMask, uint32_t hucStatus2Mask)
+void DecodeHucBasic::SetHucStatusMask(uint32_t hucStatusMask, uint32_t hucStatus2Mask)
 {
     m_hucStatusMask  = hucStatusMask;
     m_hucStatus2Mask = hucStatus2Mask;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::StoreHucStatusRegister(MOS_COMMAND_BUFFER& cmdBuffer)
+MOS_STATUS DecodeHucBasic::StoreHucStatusRegister(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     if(m_hucStatusMask == m_hucStatusInvalidMask)
     {
@@ -150,7 +150,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::StoreHucStatusRegister(MOS_COMMAND_BUFFER& c
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::StoreHucStatus2Register(MOS_COMMAND_BUFFER& cmdBuffer)
+MOS_STATUS DecodeHucBasic::StoreHucStatus2Register(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     if(m_hucStatus2Mask == m_hucStatusInvalidMask)
     {
@@ -183,7 +183,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::StoreHucStatus2Register(MOS_COMMAND_BUFFER& 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
+MOS_STATUS DecodeHucBasic::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
 {
 
     MediaPacket::StartStatusReport(srType, cmdBuffer);
@@ -191,7 +191,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::StartStatusReport(uint32_t srType, MOS_COMMA
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
+MOS_STATUS DecodeHucBasic::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer)
 {
 
     DECODE_FUNC_CALL();
@@ -203,7 +203,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::EndStatusReport(uint32_t srType, MOS_COMMAND
 
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer, bool mfxWakeup, bool hcpWakeup)
+MOS_STATUS DecodeHucBasic::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer, bool mfxWakeup, bool hcpWakeup)
 {
     DECODE_FUNC_CALL();
 
@@ -219,7 +219,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::SendPrologCmds(MOS_COMMAND_BUFFER& cmdBuffer)
+MOS_STATUS DecodeHucBasic::SendPrologCmds(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DecodeSubPacket* subPacket = m_pipeline->GetSubPacket(DecodePacketId(m_pipeline, markerSubPacketId));
     DecodeMarkerPkt *makerPacket = dynamic_cast<DecodeMarkerPkt*>(subPacket);
@@ -252,7 +252,7 @@ MOS_STATUS DecodeHucBasic_G12_Base::SendPrologCmds(MOS_COMMAND_BUFFER& cmdBuffer
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodeHucBasic_G12_Base::MemoryFlush(MOS_COMMAND_BUFFER &cmdBuffer)
+MOS_STATUS DecodeHucBasic::MemoryFlush(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     MHW_MI_FLUSH_DW_PARAMS flushDwParams;
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));

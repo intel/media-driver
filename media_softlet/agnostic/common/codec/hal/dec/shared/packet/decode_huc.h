@@ -21,14 +21,14 @@
 */
 
 //!
-//! \file     decode_huc_g12_base.h.h
+//! \file     decode_huc.h
 //! \brief    Defines the common interface for decode huc usage
 //! \details  The media huc interface is further sub-divided by different huc usages,
 //!           this file is for the base interface which is shared by all components.
 //!
 
-#ifndef __DECODE_HUC_G12_Base_H__
-#define __DECODE_HUC_G12_Base_H__
+#ifndef __DECODE_HUC_H__
+#define __DECODE_HUC_H__
 
 #include "codechal_hw.h"
 #include "mhw_vdbox_huc_interface.h"
@@ -44,18 +44,18 @@ namespace decode
 {
     class DecodePipeline;
 
-    class DecodeHucBasic_G12_Base : public CmdPacket, public MediaStatusReportObserver
+    class DecodeHucBasic :public CmdPacket, public MediaStatusReportObserver
     {
     public:
         //!
         //! \brief  Decode huc basic constructor
         //!
-        DecodeHucBasic_G12_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface);
+        DecodeHucBasic(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface);
 
         //!
         //! \brief  Decode huc basic destructor
         //!
-        virtual ~DecodeHucBasic_G12_Base();
+        virtual ~DecodeHucBasic();
 
         virtual MOS_STATUS Init() override;
 
@@ -173,4 +173,4 @@ namespace decode
         uint32_t       m_hucStatus2Mask = m_hucStatusInvalidMask; //!< MMIO mask for HuC status2
     };
 }
-#endif  // !__DECODE_HUC_G12_Base_H__
+#endif  // !__DECODE_HUC_H__

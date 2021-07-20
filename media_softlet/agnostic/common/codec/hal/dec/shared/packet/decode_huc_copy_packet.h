@@ -28,14 +28,14 @@
 #define __CODECHAL_HUC_COPY_PACKET_H__
 
 #include "media_cmd_packet.h"
-#include "decode_huc_g12_base.h"
+#include "decode_huc.h"
 #include "media_pipeline.h"
 #include "codechal_hw.h"
 #include "decode_utils.h"
 
 namespace decode
 {
-class HucCopyPkt : public DecodeHucBasic_G12_Base
+    class HucCopyPkt : public DecodeHucBasic
     {
     public:
         struct HucCopyParams
@@ -48,7 +48,7 @@ class HucCopyPkt : public DecodeHucBasic_G12_Base
         };
 
         HucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
-            : DecodeHucBasic_G12_Base(pipeline, task, hwInterface)
+            : DecodeHucBasic(pipeline, task, hwInterface)
         {
         }
 
