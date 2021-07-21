@@ -1,5 +1,5 @@
 
-# Copyright(c) 2021 Intel Corporation
+# Copyright(c) 2018 Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files(the "Software"),
@@ -45,6 +45,9 @@ LOCAL_SRC_FILES := \
     agnostic/common/cm/cm_kernel_rt.cpp \
     agnostic/common/cm/cm_log.cpp \
     agnostic/common/cm/cm_media_state.cpp \
+    agnostic/common/cm/cm_mem.cpp \
+    agnostic/common/cm/cm_mem_c_impl.cpp \
+    agnostic/common/cm/cm_mem_sse2_impl.cpp \
     agnostic/common/cm/cm_perf.cpp \
     agnostic/common/cm/cm_printf_host.cpp \
     agnostic/common/cm/cm_program.cpp \
@@ -173,6 +176,8 @@ LOCAL_SRC_FILES := \
     agnostic/common/renderhal/renderhal.cpp \
     agnostic/common/renderhal/renderhal_common.cpp \
     agnostic/common/renderhal/renderhal_dsh.cpp \
+    agnostic/common/shared/media_debug_config_manager.cpp \
+    agnostic/common/shared/media_debug_interface.cpp \
     agnostic/common/shared/media_perf_profiler.cpp \
     agnostic/common/shared/media_user_settings_mgr.cpp \
     agnostic/common/shared/mediamemdecomp.cpp \
@@ -205,6 +210,8 @@ LOCAL_SRC_FILES := \
     agnostic/common/vp/hal/vphal_render_vebox_util_base.c \
     agnostic/common/vp/hal/vphal_renderer.cpp \
     agnostic/common/vp/kdll/hal_kerneldll.c \
+    agnostic/g12/g12_base/hw/render/mhw_render_g12_X.cpp \
+    agnostic/g12/g12_base/hw/render/mhw_render_hwcmd_g12_X.cpp \
     agnostic/gen10/cm/cm_hal_g10.cpp \
     agnostic/gen10/codec/hal/codechal_debug_encode_par_g10.cpp \
     agnostic/gen10/codec/hal/codechal_decode_downsampling_g10.cpp \
@@ -382,8 +389,6 @@ LOCAL_SRC_FILES := \
     agnostic/gen12/codec/kernelisa/Gen12_HEVC_B_LCU64.c \
     agnostic/gen12/hw/mhw_mi_g12_X.cpp \
     agnostic/gen12/hw/mhw_mi_hwcmd_g12_X.cpp \
-    agnostic/gen12/hw/mhw_render_g12_X.cpp \
-    agnostic/gen12/hw/mhw_render_hwcmd_g12_X.cpp \
     agnostic/gen12/hw/mhw_sfc_g12_X.cpp \
     agnostic/gen12/hw/mhw_sfc_hwcmd_g12_X.cpp \
     agnostic/gen12/hw/mhw_state_heap_g12.c \
@@ -556,6 +561,9 @@ LOCAL_SRC_FILES := \
     linux/common/cm/hal/cm_global_api_os.cpp \
     linux/common/cm/hal/cm_hal_os.cpp \
     linux/common/cm/hal/cm_ish.cpp \
+    linux/common/cm/hal/cm_mem_os.cpp \
+    linux/common/cm/hal/cm_mem_os_c_impl.cpp \
+    linux/common/cm/hal/cm_mem_os_sse4_impl.cpp \
     linux/common/cm/hal/cm_queue_rt_os.cpp \
     linux/common/cm/hal/cm_surface_2d_rt.cpp \
     linux/common/cm/hal/cm_surface_2d_wrapper.cpp \
@@ -597,6 +605,7 @@ LOCAL_SRC_FILES := \
     linux/common/ddi/media_libva_caps.cpp \
     linux/common/ddi/media_libva_common.cpp \
     linux/common/ddi/media_libva_util.cpp \
+    linux/common/hw/mhw_mi_linux.cpp \
     linux/common/media_interfaces/media_interfaces.cpp \
     linux/common/os/hwinfo_linux.c \
     linux/common/os/i915/mos_bufmgr.c \
@@ -625,6 +634,7 @@ LOCAL_SRC_FILES := \
     linux/common/renderhal/renderhal_linux.cpp \
     linux/common/vp/ddi/media_libva_vp.c \
     linux/common/vp/ddi/media_libva_vp_tools.c \
+    linux/common/vp/hal/skuwa_dump_specific.c \
     linux/common/vp/hal/vphal_common_specific.c \
     linux/common/vp/hal/vphal_render_common_specific.c \
     linux/gen10/ddi/media_libva_caps_g10.cpp \
@@ -759,6 +769,8 @@ LOCAL_SRC_FILES := \
     media_driver_next/agnostic/common/vp/hal/scalability/vp_scalability_option.cpp \
     media_driver_next/agnostic/common/vp/hal/scalability/vp_scalability_singlepipe.cpp \
     media_driver_next/agnostic/common/vp/hal/statusreport/vp_status_report.cpp \
+    media_driver_next/agnostic/common/vp/hal/utils/vp_debug_config_manager.cpp \
+    media_driver_next/agnostic/common/vp/hal/utils/vp_debug_interface.cpp \
     media_driver_next/agnostic/common/vp/hal/utils/vp_dumper.cpp \
     media_driver_next/agnostic/gen12/codec/hal/dec/av1/features/decode_av1_feature_manager_g12.cpp \
     media_driver_next/agnostic/gen12/codec/hal/dec/av1/features/decode_av1_filmgrain_feature_g12.cpp \
@@ -773,6 +785,7 @@ LOCAL_SRC_FILES := \
     media_driver_next/agnostic/gen12/codec/hal/dec/av1/pipeline/decode_av1_pipeline_g12.cpp \
     media_driver_next/agnostic/gen12/codec/hal/dec/av1/pipeline/decode_filmgrain_postsubpipeline_g12.cpp \
     media_driver_next/agnostic/gen12/codec/hal/dec/av1/pipeline/decode_filmgrain_presubpipeline_g12.cpp \
+    media_driver_next/agnostic/gen12/codec/hal/dec/av1/pipeline/decode_filmgrain_surf_init_g12.cpp \
     media_driver_next/agnostic/gen12/codec/hal/dec/shared/decode_mem_compression_g12.cpp \
     media_driver_next/agnostic/gen12/codec/hal/shared/codec_mem_compression_g12.cpp \
     media_driver_next/agnostic/gen12/vp/hal/vp_pipeline_adapter_g12.cpp \
@@ -796,9 +809,12 @@ LOCAL_SRC_FILES := \
     media_driver_next/linux/common/os/mos_os_virtualengine_singlepipe_specific_next.cpp \
     media_driver_next/linux/common/os/mos_util_debug_specific_next.cpp \
     media_driver_next/linux/common/os/mos_utilities_specific_next.cpp \
+    media_driver_next/linux/common/vp/hal/skuwa_dumper_specific.c \
     media_interface/media_interfaces_m10_cnl/media_interfaces_g10_cnl.cpp \
     media_interface/media_interfaces_m11_icllp/media_interfaces_g11_icllp.cpp \
     media_interface/media_interfaces_m11_jsl_ehl/media_interfaces_g11_jsl_ehl.cpp \
+    media_interface/media_interfaces_m12_adlp/media_interfaces_g12_adlp.cpp \
+    media_interface/media_interfaces_m12_adls/media_interfaces_g12_adls.cpp \
     media_interface/media_interfaces_m12_rkl/media_interfaces_g12_rkl.cpp \
     media_interface/media_interfaces_m12_tgllp/media_interfaces_g12_tgllp.cpp \
     media_interface/media_interfaces_m8_bdw/media_interfaces_g8_bdw.cpp \
@@ -823,12 +839,16 @@ LOCAL_STATIC_LIBRARIES = \
 LOCAL_CPPFLAGS = \
     -DDRV_I915 \
     -DOTC_GRALLOC \
-    -DANDROID \
     -DANDROID_VERSION=800 \
-    -DLINUX \
     -fexceptions \
     -frtti \
-    -std=c++14 \
+    -std=c++17 \
+    -Wno-error \
+    -Wno-unused-parameter \
+    -Wno-deprecated-declarations \
+    -Wno-implicit-fallthrough \
+    -Wno-missing-field-initializers \
+    -Wno-c++11-narrowing \
     -DENABLE_KERNELS \
     -DHEVC_FEI_ENABLE_CMRT \
     -DIGFX_GEN10_CNL_SUPPORTED \
@@ -836,6 +856,8 @@ LOCAL_CPPFLAGS = \
     -DIGFX_GEN11_ICLLP_SUPPORTED \
     -DIGFX_GEN11_JSL_SUPPORTED \
     -DIGFX_GEN11_SUPPORTED \
+    -DIGFX_GEN12_ADLP_SUPPORTED \
+    -DIGFX_GEN12_ADLS_SUPPORTED \
     -DIGFX_GEN12_RKL_SUPPORTED \
     -DIGFX_GEN12_SUPPORTED \
     -DIGFX_GEN12_TGLLP_CMFCPATCH_SUPPORTED \
@@ -852,8 +874,8 @@ LOCAL_CPPFLAGS = \
     -DIGFX_GEN9_KBL_SUPPORTED \
     -DIGFX_GEN9_SKL_SUPPORTED \
     -DIGFX_GEN9_SUPPORTED \
-    -DMEDIA_VERSION=\"20.4.5\" \
-    -DMEDIA_VERSION_DETAILS=\"74e2f111\" \
+    -DMEDIA_VERSION=\"21.1.3\" \
+    -DMEDIA_VERSION_DETAILS=\"0fee644d8\" \
     -DVEBOX_AUTO_DENOISE_SUPPORTED=1 \
     -DX11_FOUND \
     -D_AV1_DECODE_SUPPORTED \
@@ -878,12 +900,6 @@ LOCAL_CPPFLAGS = \
     -D__STDC_CONSTANT_MACROS \
     -D__STDC_LIMIT_MACROS \
     -D__VPHAL_SFC_SUPPORTED=1 \
-    -Wno-error \
-    -Wno-unused-parameter \
-    -Wno-c++11-narrowing \
-    -Wno-pointer-bool-conversion \
-    -Wno-tautological-pointer-compare \
-    -Wno-missing-field-initializers \
     -DiHD_drv_video_EXPORTS
 
 LOCAL_CONLYFLAGS = -x c++
@@ -975,6 +991,7 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/agnostic/gen12/vp/hal \
     $(LOCAL_PATH)/agnostic/gen12/renderhal \
     $(LOCAL_PATH)/agnostic/gen12/shared \
+    $(LOCAL_PATH)/agnostic/g12/g12_base/hw/render \
     $(LOCAL_PATH)/media_driver_next/agnostic/gen12/vp/hal \
     $(LOCAL_PATH)/media_driver_next/agnostic/gen12/codec/hal/dec/av1/pipeline \
     $(LOCAL_PATH)/media_driver_next/agnostic/gen12/codec/hal/dec/av1/packet \
@@ -998,6 +1015,7 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/linux/common/ddi \
     $(LOCAL_PATH)/linux/common/os \
     $(LOCAL_PATH)/linux/common/vp/ddi \
+    $(LOCAL_PATH)/linux/common/hw \
     $(LOCAL_PATH)/linux/gen8/ddi \
     $(LOCAL_PATH)/linux/gen9/ddi \
     $(LOCAL_PATH)/linux/gen9_bxt/ddi \
@@ -1022,6 +1040,8 @@ LOCAL_C_INCLUDES  = \
     $(LOCAL_PATH)/media_interface/media_interfaces_m11_jsl_ehl \
     $(LOCAL_PATH)/media_interface/media_interfaces_m12_tgllp \
     $(LOCAL_PATH)/media_interface/media_interfaces_m12_rkl \
+    $(LOCAL_PATH)/media_interface/media_interfaces_m12_adls \
+    $(LOCAL_PATH)/media_interface/media_interfaces_m12_adlp \
     $(LOCAL_PATH)/media_driver_next/agnostic/common/shared/pipeline \
     $(LOCAL_PATH)/media_driver_next/agnostic/common/shared/packet \
     $(LOCAL_PATH)/media_driver_next/agnostic/common/shared/features \

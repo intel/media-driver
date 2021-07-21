@@ -615,7 +615,7 @@ MOS_STATUS VpAllocator::AllocParamsInitType(
 {
     VP_PUBLIC_CHK_NULL_RETURN(surface);
 
-#if !EMUL && !LINUX
+#if !EMUL && !LINUX && !ANDROID
     //  Need to reallocate surface according to expected tiletype instead of tiletype of the surface what we have
     if ( surface                           != nullptr &&
          surface->OsResource.pGmmResInfo   != nullptr &&
@@ -1122,7 +1122,7 @@ MOS_STATUS VP_SURFACE::Clean()
 
 uint64_t VP_SURFACE::GetAllocationHandle()
 {
-#if(LINUX)
+#if(LINUX || ANDROID)
     if (osSurface && osSurface->OsResource.bo)
     {
         return osSurface->OsResource.bo->handle;

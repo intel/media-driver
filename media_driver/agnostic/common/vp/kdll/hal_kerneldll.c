@@ -4926,7 +4926,7 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
     VPHAL_RENDER_FUNCTION_ENTER;
 
     // Disable pop-up box window for STL assertion to avoid VM hang in auto test.
-#if (!LINUX)
+#if (!LINUX) && (!ANDROID)
     ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 #if defined(_MSC_VER)
     ::_set_error_mode(_OUT_TO_STDERR);
