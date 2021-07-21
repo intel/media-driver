@@ -30,14 +30,8 @@
 
 #include "mhw_cmdpar.h"
 
-#define MHW_HWCMDPARSER_ENABLED (_MHW_HWCMDPARSER_SUPPORTED && (_DEBUG || _RELEASE_INTERNAL))
-#if MHW_HWCMDPARSER_ENABLED
+#if _MHW_HWCMDPARSER_SUPPORTED
 #include "mhw_hwcmd_parser.h"
-#else
-#define MHW_HWCMDPARSER_INIT(osInterface)
-#define MHW_HWCMDPARSER_DESTROY()
-#define MHW_HWCMDPARSER_PARSECMDBUF(cmdBuf, dwLen)
-#define MHW_HWCMDPARSER_PARSECMDBUFGFX(cmdBufGfx)
 #endif
 
 //   [Macro Prefixes]                 |   [Macro Suffixes]
