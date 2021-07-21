@@ -33,30 +33,6 @@
 #include "mhw_mi.h"
 #include "media_status_report.h"
 
-#define SETPAR_AND_ADDCMD(CMD, itf, ...)                                                    \
-    {                                                                                       \
-        auto &par       = itf->MHW_GETPAR_F(CMD)();                                         \
-        par             = {};                                                               \
-        using setting_t = typename std::remove_reference<decltype(*itf)>::type::ParSetting; \
-        auto p          = dynamic_cast<const setting_t *>(this);                            \
-        if (p)                                                                              \
-        {                                                                                   \
-            MHW_CHK_STATUS_RETURN(p->MHW_SETPAR_F(CMD)(par));                               \
-        }                                                                                   \
-        if (m_featureManager)                                                               \
-        {                                                                                   \
-            for (auto feature : *m_featureManager)                                          \
-            {                                                                               \
-                p = dynamic_cast<const setting_t *>(feature);                               \
-                if (p)                                                                      \
-                {                                                                           \
-                    MHW_CHK_STATUS_RETURN(p->MHW_SETPAR_F(CMD)(par));                       \
-                }                                                                           \
-            }                                                                               \
-        }                                                                                   \
-        MHW_CHK_STATUS_RETURN(itf->MHW_ADDCMD_F(CMD)(__VA_ARGS__));                         \
-    }
-
 namespace CMRT_UMD
 {
     class CmTask;

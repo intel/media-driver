@@ -539,9 +539,7 @@ public:
             m_sfcInterface = nullptr;
         }
 
-    #if MHW_HWCMDPARSER_ENABLED
-        mhw::HwcmdParser::DestroyInstance();
-    #endif
+        MHW_HWCMDPARSER_DESTROY();
     }
 
     //!
