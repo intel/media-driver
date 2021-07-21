@@ -25,7 +25,7 @@
 //!
 
 #include "codechal_encode_jpeg_g12.h"
-#include "codechal_mmc_g12.h"
+#include "codechal_mmc_encode_jpeg_g12.h"
 #include "mos_util_user_interface.h"
 
 CodechalEncodeJpegStateG12::CodechalEncodeJpegStateG12(
@@ -72,7 +72,7 @@ MOS_STATUS CodechalEncodeJpegStateG12::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 #ifdef _MMC_SUPPORTED
-    m_mmcState = MOS_New(CodecHalMmcStateG12, m_hwInterface);
+    m_mmcState = MOS_New(CodechalMmcEncodeJpegG12, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
 #endif
     return MOS_STATUS_SUCCESS;
