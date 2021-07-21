@@ -39,7 +39,7 @@
 //              macros                |   _DEF : definition
 
 #define __MHW_CMD_PAR_T2(CMD) CMD##_Params         // MHW command parameter type
-#define _MHW_CMD_PAR_T(CMD) __MHW_CMD_PAR_T2(CMD)  // to support 2-level macro expanding
+#define _MHW_PAR_T(CMD) __MHW_CMD_PAR_T2(CMD)  // to support 2-level macro expanding
 #define __MHW_CMD_PAR_T(CMD) CMD##_Params_         // MHW command parameter type alias, to avoid compile error
 
 #define __MHW_CMD_PAR_SET_F(CMD) SetCmdParams_##CMD  // function name to set MHW command parameters
@@ -47,13 +47,13 @@
 #define __MHW_CMD_PAR_SET_COMMON_DECL(CMD) __MHW_CMD_PAR_SET_F(CMD)(__MHW_CMD_PAR_T(CMD) &params) const
 
 // CodecHal uses it to define set MHW params functions in header file
-#define MHW_CMD_PAR_SET_DECL_HDR(CMD) MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(CMD) override
+#define MHW_SETPAR_DECL_HDR(CMD) MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(CMD) override
 
 // CodecHal uses it to define set MHW params functions in source file
-#define MHW_CMD_PAR_SET_DECL_SRC(CMD, CLASS) MOS_STATUS CLASS::__MHW_CMD_PAR_SET_COMMON_DECL(CMD)
+#define MHW_SETPAR_DECL_SRC(CMD, CLASS) MOS_STATUS CLASS::__MHW_CMD_PAR_SET_COMMON_DECL(CMD)
 
-#define _MHW_CMD_PAR_SET_DEF(CMD)                         \
-    using __MHW_CMD_PAR_T(CMD) = _MHW_CMD_PAR_T(CMD);     \
+#define _MHW_SETPAR_DEF(CMD)                         \
+    using __MHW_CMD_PAR_T(CMD) = _MHW_PAR_T(CMD);     \
     virtual MOS_STATUS __MHW_CMD_PAR_SET_COMMON_DECL(CMD) \
     {                                                     \
         return MOS_STATUS_SUCCESS;                        \

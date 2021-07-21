@@ -75,13 +75,13 @@ public:                                                                         
     __MHW_CMD_BYTE_SIZE_GET_DEF(CMD);                                                                      \
     __MHW_CMD_ADD_DEF(CMD)                                                                                 \
 protected:                                                                                                 \
-    std::unique_ptr<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>> __MHW_CMD_INFO_M(CMD) \
-        = std::unique_ptr<std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>>(                \
-            new std::pair<_MHW_CMD_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>())
+    std::unique_ptr<std::pair<_MHW_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>> __MHW_CMD_INFO_M(CMD) \
+        = std::unique_ptr<std::pair<_MHW_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>>(                \
+            new std::pair<_MHW_PAR_T(CMD), typename cmd_t::_MHW_CMD_T(CMD)>())
 
-#define _MHW_CMD_SET_DECL_OVERRIDE(CMD) __MHW_CMD_SET_DECL(CMD) override
+#define _MHW_SETCMD_OVERRIDE_DECL(CMD) __MHW_CMD_SET_DECL(CMD) override
 
-#define _MHW_CMDSET_GETCMDPARAMS_AND_CALLBASE(CMD)            \
+#define _MHW_SETCMD_CALLBASE(CMD)            \
     MHW_FUNCTION_ENTER;                                       \
     const auto &params = this->__MHW_CMD_INFO_M(CMD)->first;  \
     auto       &cmd    = this->__MHW_CMD_INFO_M(CMD)->second; \

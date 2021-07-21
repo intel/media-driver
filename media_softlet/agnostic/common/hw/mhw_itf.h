@@ -46,7 +46,7 @@
 #define __MHW_CMD_ADD_F(CMD)           AddCmd_##CMD          // function name to add command
 #define __MHW_CMD_SET_F(CMD)           SetCmd_##CMD          // function name to set command data
 
-#define __MHW_CMD_PAR_GET_DECL(CMD)       _MHW_CMD_PAR_T(CMD)& __MHW_CMD_PAR_GET_F(CMD)()
+#define __MHW_CMD_PAR_GET_DECL(CMD)       _MHW_PAR_T(CMD)& __MHW_CMD_PAR_GET_F(CMD)()
 #define __MHW_CMD_BYTE_SIZE_GET_DECL(CMD) size_t __MHW_CMD_BYTE_SIZE_GET_F(CMD)() const
 
 #define __MHW_CMD_ADD_DECL(CMD) MOS_STATUS __MHW_CMD_ADD_F(CMD)(PMOS_COMMAND_BUFFER cmdBuf, PMHW_BATCH_BUFFER batchBuf = nullptr)
