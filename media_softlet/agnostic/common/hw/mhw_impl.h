@@ -171,9 +171,25 @@ protected:
         {
             AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
         }
+
+    #if MHW_HWCMDPARSER_ENABLED
+        mhw::HwcmdParser::InitInstance(osItf);
+
+        m_hwcmdParser = mhw::HwcmdParser::GetInstance();
+        MHW_CHK_NULL_NO_STATUS_RETURN(m_hwcmdParser);
+
+        m_parseFieldsLayout = m_hwcmdParser->ParseFieldsLayoutEn();
+    #endif
     }
 
-    virtual ~Impl() = default;
+    virtual ~Impl()
+    {
+        MHW_FUNCTION_ENTER;
+
+    #if MHW_HWCMDPARSER_ENABLED
+        mhw::HwcmdParser::DestroyInstance();
+    #endif
+    }
 
     template <typename Cmd, typename CmdSetting>
     MOS_STATUS AddCmd(PMOS_COMMAND_BUFFER cmdBuf,
@@ -209,8 +225,8 @@ protected:
 
 #if MHW_HWCMDPARSER_ENABLED
     std::string                  m_currentCmdName;
-    std::shared_ptr<HwcmdParser> m_hwcmdParser       = mhw::HwcmdParser::GetInstance();
-    bool                         m_parseFieldsLayout = m_hwcmdParser->ParseFieldsLayoutEn();
+    std::shared_ptr<HwcmdParser> m_hwcmdParser       = nullptr;
+    bool                         m_parseFieldsLayout = false;
 #endif  // MHW_HWCMDPARSER_ENABLED
 };
 }  // namespace mhw

@@ -5817,7 +5817,11 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         break;
     }
 
-    mhw::HwcmdParser::GetInstance()->UpdateFrameInfo(frameType);
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        instance->UpdateFrameInfo(frameType);
+    }
 #endif
 
     MHW_BATCH_BUFFER batchBuffer;
@@ -6115,8 +6119,12 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, secondLevelBatchBufferUsed));
 
             #if MHW_HWCMDPARSER_ENABLED
-                mhw::HwcmdParser::GetInstance()->ParseCmdBuf((uint32_t *)(secondLevelBatchBufferUsed->pData),
-                    secondLevelBatchBufferUsed->iCurrent / sizeof(uint32_t));
+                auto instance = mhw::HwcmdParser::GetInstance();
+                if (instance)
+                {
+                    instance->ParseCmdBuf((uint32_t *)(secondLevelBatchBufferUsed->pData),
+                        secondLevelBatchBufferUsed->iCurrent / sizeof(uint32_t));
+                }
             #endif
 
                 CODECHAL_DEBUG_TOOL(
@@ -6517,7 +6525,11 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     )
 
 #if MHW_HWCMDPARSER_ENABLED
-    mhw::HwcmdParser::GetInstance()->ParseCmdBuf(cmdBuffer.pCmdBase, cmdBuffer.iOffset / sizeof(uint32_t));
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        instance->ParseCmdBuf(cmdBuffer.pCmdBase, cmdBuffer.iOffset / sizeof(uint32_t));
+    }
 #endif
     m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
 
