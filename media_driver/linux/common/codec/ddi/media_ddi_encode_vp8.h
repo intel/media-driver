@@ -287,4 +287,5 @@ private:
         bool                                  picReference);
 
     uint32_t   m_mvOffset = 0; //!< Motion vector offset.
+    uint32_t   m_framesPer100Sec = 0;
 };

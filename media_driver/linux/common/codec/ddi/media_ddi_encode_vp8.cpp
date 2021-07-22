@@ -710,6 +710,11 @@ void DdiEncodeVp8::ParseMiscParamFR(void *data)
     tmpId = vaFrameRate->framerate_flags.bits.temporal_id;
 #endif
     seqParams->FramesPer100Sec[tmpId] = numerator/denominator;
+    if(m_framesPer100Sec && m_framesPer100Sec != seqParams->FramesPer100Sec[tmpId])
+    {
+        seqParams->ResetBRC = 0x1;
+    }
+    m_framesPer100Sec = seqParams->FramesPer100Sec[tmpId];
 }
 
 void DdiEncodeVp8::ParseMiscParamRC(void *data)
