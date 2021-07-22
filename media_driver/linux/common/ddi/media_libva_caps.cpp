@@ -83,14 +83,16 @@ const uint32_t MediaLibvaCaps::m_vpSurfaceAttr[m_numVpSurfaceAttr] =
     VA_FOURCC('R', 'G', 'B', 'P'),
     VA_FOURCC('R', 'G', 'B', 'X'),
     VA_FOURCC('P', '0', '1', '0'),
-    VA_FOURCC('R','G','2', '4'),
+    VA_FOURCC('R', 'G', '2', '4'),
     VA_FOURCC_ARGB,
     VA_FOURCC_ABGR,
     VA_FOURCC_A2R10G10B10,
     VA_FOURCC_A2B10G10R10,
     VA_FOURCC_X2R10G10B10,
     VA_FOURCC_X2B10G10R10,
-    VA_FOURCC_AYUV
+    VA_FOURCC_AYUV,
+    VA_FOURCC_Y210,
+    VA_FOURCC_Y410
 };
 
 const uint32_t MediaLibvaCaps::m_jpegSurfaceAttr[m_numJpegSurfaceAttr] =
