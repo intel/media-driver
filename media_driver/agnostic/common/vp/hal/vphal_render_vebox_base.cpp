@@ -2537,7 +2537,8 @@ void VPHAL_VEBOX_STATE::VeboxSetRenderingFlags(
                                        !pSrc->p3DLutParams);
 
     pRenderData->bProcamp           = ((IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData) ||
-                                        IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData))  &&
+                                        IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData)   ||
+                                        pRenderData->b2PassesCSC)               && // 2pass CSC goes into VEBOX + render. In this case, need to anable procamp.
                                         pSrc->pProcampParams                    &&
                                         pSrc->pProcampParams->bEnabled);
 
