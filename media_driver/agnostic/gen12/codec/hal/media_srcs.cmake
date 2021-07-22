@@ -435,17 +435,6 @@ if(${JPEG_Encode_Supported} STREQUAL "yes")
         ${TMP_3_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_jpeg_g12.h
     )
-
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_jpeg_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_jpeg_g12.h
-        )
-    endif()
 endif()
 
 set(SOURCES_
