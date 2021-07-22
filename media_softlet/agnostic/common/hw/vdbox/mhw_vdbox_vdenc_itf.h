@@ -104,13 +104,4 @@ public:
 }  // namespace vdbox
 }  // namespace mhw
 
-#define MHW_VDBOX_VDENC_GET_CMD_PAR(CMD) m_vdencItf->__MHW_CMD_PAR_GET_F(CMD)()
-
-#define MHW_VDBOX_VDENC_GET_CMD_SIZE(CMD) m_vdencItf->__MHW_CMD_BYTE_SIZE_GET_F(CMD)()
-
-#define MHW_VDBOX_VDENC_ADD_CMD(CMD, ...) MHW_CHK_STATUS_RETURN(m_vdencItf->__MHW_CMD_ADD_F(CMD)(__VA_ARGS__))
-
-#define MHW_VDBOX_VDENC_SETPARAMS_AND_ADDCMD(CMD, ...) \
-    _MHW_SETPARAMS_AND_ADDCMD(CMD, mhw::vdbox::vdenc::Itf::ParSetting, MHW_VDBOX_VDENC_GET_CMD_PAR, MHW_VDBOX_VDENC_ADD_CMD, __VA_ARGS__)
-
 #endif  // __MHW_VDBOX_VDENC_ITF_H__
