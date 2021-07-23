@@ -31,7 +31,7 @@
 
 #define CODECHAL_MAX_DPB_NUM_AV1              127                                // Maximum number of uncompressed decoded buffers that driver supports for non-LST mode
 #define CODEC_NUM_REF_AV1_TEMP_BUFFERS        8
-#define CODEC_NUM_AV1_SECOND_BB               16
+#define CODEC_NUM_AV1_SECOND_BB               64
 #define CODEC_NUM_AV1_TEMP_BUFFERS            (CODEC_NUM_REF_AV1_TEMP_BUFFERS + 1) //!< Temp buffers number
 #define CODECHAL_MAX_DPB_NUM_LST_AV1          255                                // Maximum number of uncompressed decoded buffers that driver supports with LST support
 
