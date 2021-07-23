@@ -188,7 +188,9 @@ namespace decode
         }
 
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_forceIntegerMv &&
-            m_av1PicParams->m_picInfoFlags.m_fields.m_allowHighPrecisionMv)
+            m_av1PicParams->m_picInfoFlags.m_fields.m_allowHighPrecisionMv &&
+            !(m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == intraOnlyFrame ||
+             m_av1PicParams->m_picInfoFlags.m_fields.m_frameType == keyFrame))
         {
             DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
             return MOS_STATUS_INVALID_PARAMETER;
