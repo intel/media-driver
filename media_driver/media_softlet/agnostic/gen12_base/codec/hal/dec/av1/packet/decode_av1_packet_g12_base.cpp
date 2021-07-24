@@ -21,7 +21,7 @@
 */
 //!
 //! \file     decode_av1_packet_g12_base.cpp
-//! \brief    Defines the interface for av1 decode packet
+//! \brief    Defines the interface for gen12 base av1 decode packet
 //!
 #include "codechal_utilities.h"
 #include "decode_av1_packet_g12_base.h"
