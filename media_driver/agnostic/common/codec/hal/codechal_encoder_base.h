@@ -1492,7 +1492,8 @@ public:
     bool                            m_forceSinglePakPass = false;                   //!< Flag to enable forcing single pak pass
     bool                            m_useCmScalingKernel = false;                   //!< Flag to use cm scaling kernel
     bool                            m_useMwWlkrForAsmScalingKernel = false;         //!< Use media walker for ASM scaling kernel flag
-    bool                            m_combinedDownScaleAndDepthConversion = false;   //!< Combied downscale and depth conversion
+    bool                            m_combinedDownScaleAndDepthConversion = false;  //!< Combied downscale and depth conversion
+    bool                            m_bRenderOcaEnabled = false;                    //!< Should encoder support OCA for RCS
     uint32_t                        m_brcPakStatisticsSize = 0;                     //!< Bitrate control PAK statistics size
     uint32_t                        m_brcHistoryBufferSize = 0;                     //!< Bitrate control history buffer size
     uint32_t                        m_mbencBrcBufferSize = 0;                       //!< Mbenc bitrate control buffer size
@@ -2054,15 +2055,12 @@ public:
     //!         cmdbuffer to send cmds
     //! \param  [in] params
     //!         Parameters for send cmds
-    //! \param  [in] bEnableRenderOCA
-    //!         Enable/Disable OCA support for Render Command Streamer
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SendGenericKernelCmds(
         PMOS_COMMAND_BUFFER   cmdBuffer,
-        SendKernelCmdsParams *params,
-        bool                  bEnableRenderOCA = false);
+        SendKernelCmdsParams *params);
 
     //!
     //! \brief  Start Status Report

@@ -30,6 +30,7 @@
 #include "igcodeckrn_g9.h"
 #include "codeckrnheader.h"
 #include "AvcEncFei_Mfe_gen9.h"
+#include "hal_oca_interface.h"
 
 #ifdef FEI_ENABLE_CMRT
 static const char *                 strDsIsaName        = "/opt/intel/mediasdk/lib64/hme_downscale_gen9.isa";
@@ -3620,6 +3621,9 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::PreProcKernel()
         &walkerParams,
         &walkerCodecParams));
 
+    HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
         &cmdBuffer,
         &walkerParams));
@@ -3655,6 +3659,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::PreProcKernel()
 
     if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }

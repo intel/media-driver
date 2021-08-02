@@ -32,6 +32,7 @@
 #include "codeckrnheader.h"
 #include "igcodeckrn_g12.h"
 #include "media_user_settings_mgr_g12.h"
+#include "hal_oca_interface.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par_g12.h"
 #include "mhw_vdbox_mfx_hwcmd_g12_X.h"
@@ -1469,7 +1470,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
     sendKernelCmdsParams.ucDmvPredFlag   =
         m_avcSliceParams->direct_spatial_mv_pred_flag;
     sendKernelCmdsParams.pKernelState    = kernelState;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams, true));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SendGenericKernelCmds(&cmdBuffer, &sendKernelCmdsParams));
 
     // Set up MB BRC Constant Data Buffer if there is QP change within a frame
     if (mbConstDataBufferInUse)
@@ -1686,6 +1687,9 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
         &walkerParams,
         &walkerCodecParams));
 
+    HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
         &cmdBuffer,
         &walkerParams));
@@ -1721,6 +1725,7 @@ MOS_STATUS CodechalEncodeAvcEncG12::MbEncKernel(bool mbEncIFrameDistInUse)
 
     if ((!m_singleTaskPhaseSupported || m_lastTaskInPhase))
     {
+        HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
         m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_renderContextUsesNullHw);
         m_lastTaskInPhase = false;
     }

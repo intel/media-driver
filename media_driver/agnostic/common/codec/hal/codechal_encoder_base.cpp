@@ -966,6 +966,11 @@ MOS_STATUS CodechalEncoderState::Initialize(
         }
     }
 
+    if (m_standard == CODECHAL_AVC)
+    {
+        m_bRenderOcaEnabled = true;
+    }
+
     // Disable SHME and UHME if HME is disabled
     if(!m_hmeSupported)
     {
@@ -2016,6 +2021,9 @@ MOS_STATUS CodechalEncoderState::ExecuteMeKernel(
         &walkerParams,
         &walkerCodecParams));
 
+    HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderEngineInterface->GetMmioRegisters());
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderEngineInterface->AddMediaObjectWalkerCmd(
         &cmdBuffer,
         &walkerParams));
@@ -2582,8 +2590,7 @@ MOS_STATUS CodechalEncoderState::AddMediaVfeCmd(
 
 MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
     PMOS_COMMAND_BUFFER cmdBuffer,
-    SendKernelCmdsParams *params,
-    bool bEnableRenderOCA)
+    SendKernelCmdsParams *params)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
@@ -2606,7 +2613,7 @@ MOS_STATUS CodechalEncoderState::SendGenericKernelCmds(
 
         // Send command buffer header at the beginning (OS dependent)
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
-            SendPrologWithFrameTracking(cmdBuffer, requestFrameTracking, bEnableRenderOCA ? m_renderEngineInterface->GetMmioRegisters() : nullptr));
+            SendPrologWithFrameTracking(cmdBuffer, requestFrameTracking, m_bRenderOcaEnabled ? m_renderEngineInterface->GetMmioRegisters() : nullptr));
 
         m_firstTaskInPhase = false;
     }

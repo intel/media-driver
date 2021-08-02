@@ -1515,6 +1515,8 @@ MOS_STATUS CodechalEncodeCscDs::CscKernel(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiSemaphoreWaitCmd(&cmdBuffer, &miSemaphoreWaitParams));
         }
 
+    HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderInterface->GetMmioRegisters());
     if (!m_encoder->m_computeContextEnabled)
     {
         MHW_WALKER_PARAMS walkerParams;
@@ -1826,6 +1828,9 @@ MOS_STATUS CodechalEncodeCscDs::DsKernel(
     {
         walkerParams.GroupIdLoopSelect = m_groupId;
     }
+
+    HalOcaInterface::TraceMessage(cmdBuffer, *m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface->pOsContext, *m_miInterface, *m_renderInterface->GetMmioRegisters());
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_renderInterface->AddMediaObjectWalkerCmd(&cmdBuffer, &walkerParams));
 
