@@ -182,12 +182,15 @@ namespace decode
 
                 CODECHAL_DEBUG_TOOL(
                     PMHW_BATCH_BUFFER batchBuffer = m_av1DecodePkt->GetSecondLvlBB();
-                    batchBuffer->iLastCurrent = batchBuffer->iSize;
-                    batchBuffer->dwOffset = 0;
-                    DECODE_CHK_STATUS(m_debugInterface->Dump2ndLvlBatch(
-                        batchBuffer,
-                        CODECHAL_NUM_MEDIA_STATES,
-                        "AV1_DEC_Secondary"));)
+                    if (batchBuffer != nullptr)
+                    {
+                        batchBuffer->iLastCurrent = batchBuffer->iSize;
+                        batchBuffer->dwOffset = 0;
+                        DECODE_CHK_STATUS(m_debugInterface->Dump2ndLvlBatch(
+                            batchBuffer,
+                            CODECHAL_NUM_MEDIA_STATES,
+                            "AV1_DEC_Secondary"));
+                    })
 
 #if (_DEBUG || _RELEASE_INTERNAL)
                 DECODE_CHK_STATUS(StatusCheck());
