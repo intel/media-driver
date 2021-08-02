@@ -382,6 +382,8 @@ protected:
 
     static const HevcSliceType  m_hevcBsdSliceType[3]; //!< HEVC Slice Types for Long Format
 
+    std::shared_ptr<void> m_hcpItfNew = nullptr;
+
     //!
     //! \brief    Constructor
     //!
@@ -433,6 +435,14 @@ public:
     //! \brief    Destructor
     //!
     virtual ~MhwVdboxHcpInterface() {}
+
+    //!
+    //! \brief    Get new HCP interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new HCP interface
+    //!
+    virtual std::shared_ptr<void> GetNewHcpInterface() { return nullptr; }
 
     //!
     //! \brief    Get OS interface
