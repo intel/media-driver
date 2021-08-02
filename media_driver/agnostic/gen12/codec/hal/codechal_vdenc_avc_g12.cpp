@@ -1108,6 +1108,9 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVDEncBrcDmem);
     SetDmemHuCBrcUpdateImpl<BrcUpdateDmem>(hucVDEncBrcDmem);
 
+    if (hucVDEncBrcDmem->UPD_CurrFrameType_U8 == 1 && m_avcPicParam->RefPicFlag == 1)
+        hucVDEncBrcDmem->UPD_CurrFrameType_U8 = 3;  // separated type for reference B
+
     MOS_LOCK_PARAMS lockFlagsReadOnly;
     MOS_ZeroMemory(&lockFlagsReadOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsReadOnly.ReadOnly = 1;
