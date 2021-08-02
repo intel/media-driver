@@ -1645,6 +1645,7 @@ namespace decode{
 
         return MOS_STATUS_SUCCESS;
     }
+
 #endif
 
 }

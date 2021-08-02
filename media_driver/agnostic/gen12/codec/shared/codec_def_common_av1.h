@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -328,7 +328,6 @@ enum Av1SurfaceId
 {
     reconPic        = 0,    //!< reconstructed picture
     srcInputPic     = 1,    //!< input source picture of downscaled resolution (encoder only)
-    filmGrainPic    = 2,    //!< film grain applied picture
     origUpscaledSrc = 3,    //!< input source picture of original resolution (encoder only)
     av1IntraFrame   = 6,    //!< intra frame
     av1LastRef      = 7,    //!< last frame
@@ -339,7 +338,7 @@ enum Av1SurfaceId
     av1AltRef2      = 12,   //!< Altref2 frame
     av1AltRef       = 13,    //!< Altref frame
     intrabcDecodedFrame = 14,   //!< IntraBC Decoded Frame
-    av1CdefPixelsStreamout = 15 //!< Cdef pixels streamout (encoder only)
+    av1CdefPixelsStreamout = 15 //!< Cdef pixels streamout (encouder only)
 };
 
 //CDF tables for Intra

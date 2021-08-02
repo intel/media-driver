@@ -826,13 +826,6 @@ void _MOS_Assert(
     MOS_ASSERTMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 
 //!
-//! \def MOS_OS_CRITICALMESSAGE(_message, ...)
-//!  MOS_ASSERTMESSAGE \a _message with MOS Utility comp/subcomp info
-//!
-#define MOS_OS_CRITICALMESSAGE(_message, ...)                                                 \
-    MOS_CRITICALMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
-
-//!
 //! \def MOS_OS_NORMALMESSAGE(_message, ...)
 //!  MOS_UTIL_NORMALMESSAGE \a _message with MOS Utility comp/subcomp info
 //!

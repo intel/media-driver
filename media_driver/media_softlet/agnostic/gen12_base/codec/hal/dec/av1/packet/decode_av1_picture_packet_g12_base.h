@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_picture_packet_g12_base.h
+//! \file     decode_av1_picture_packet.h
 //! \brief    Defines the implementation of av1 decode picture packet
 //!
 

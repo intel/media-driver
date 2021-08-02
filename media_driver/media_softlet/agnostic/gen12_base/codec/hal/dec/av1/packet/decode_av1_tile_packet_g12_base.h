@@ -107,15 +107,15 @@ protected:
     //!
     virtual MOS_STATUS CalculateTileStateCommandSize();
 
-    Av1Pipeline *          m_av1Pipeline        = nullptr;
-    MhwVdboxAvpInterface * m_avpInterface       = nullptr;
-    Av1BasicFeature *      m_av1BasicFeature    = nullptr;
-    DecodeAllocator *      m_allocator          = nullptr;
+    Av1Pipeline *          m_av1Pipeline     = nullptr;
+    MhwVdboxAvpInterface * m_avpInterface     = nullptr;
+    Av1BasicFeature *      m_av1BasicFeature = nullptr;
+    DecodeAllocator *      m_allocator        = nullptr;
 
     // Parameters passed from application
-    CodecAv1PicParams               *m_av1PicParams      = nullptr;      //!< Pointer to AV1 picture parameter
-    CodecAv1SegmentsParams          *m_segmentParams     = nullptr;      //!< Pointer to AV1 segments parameter
-    CodecAv1TileParams              *m_av1TileParams     = nullptr;      //!< Pointer to AV1 tiles parameter
+    CodecAv1PicParams               *m_av1PicParams                         = nullptr;      //!< Pointer to AV1 picture parameter
+    CodecAv1SegmentsParams          *m_segmentParams                        = nullptr;      //!< Pointer to AV1 segments parameter
+    CodecAv1TileParams              *m_av1TileParams                        = nullptr;      //!< Pointer to AV1 tiles parameter
 
     uint32_t m_tileStatesSize      = 0;  //!< Tile state command size
     uint32_t m_tilePatchListSize   = 0;  //!< Tile patch list size

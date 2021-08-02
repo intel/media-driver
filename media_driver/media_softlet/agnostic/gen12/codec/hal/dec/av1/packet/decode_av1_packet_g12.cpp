@@ -120,8 +120,8 @@ namespace decode
             DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
-        if (m_av1BasicFeature->m_usingDummyWl && ((m_av1Pipeline->TileBasedDecodingInuse() ||
-            m_isFirstTileInPartialFrm) || (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile)))
+        if (m_av1BasicFeature->m_usingDummyWl && (m_av1Pipeline->TileBasedDecodingInuse() ||
+            m_isFirstTileInPartialFrm) || (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
             DECODE_CHK_STATUS(InitDummyWL(cmdBuffer));
         }
