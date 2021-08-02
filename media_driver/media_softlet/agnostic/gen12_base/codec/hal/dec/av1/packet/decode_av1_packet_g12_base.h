@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_packet.h
-//! \brief    Defines the implementation of av1 decode packet
+//! \file     decode_av1_packet_g12_base.h
+//! \brief    Defines the implementation of gen12 base av1 decode packet
 //!
 
 #ifndef __DECODE_AV1_PACKET_G12_BASE_H__

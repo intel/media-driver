@@ -386,7 +386,7 @@ namespace decode
             uint8_t index = m_av1PicParams->m_refFrameMap[i].FrameIdx;
             if (index < CODECHAL_MAX_DPB_NUM_AV1)
             {
-                    m_refFrameIndexList.push_back(index);
+                m_refFrameIndexList.push_back(index);
             }
         }
 
