@@ -155,6 +155,7 @@ MOS_STATUS VphalSurfaceDumper::GetPlaneDefs(
     case Format_IRW3:
     case Format_V8U8:
     case Format_R16F:
+    case Format_R16UN:
     case Format_Y16S:
     case Format_Y16U:
         *pdwNumPlanes = 1;
