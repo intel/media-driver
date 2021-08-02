@@ -994,6 +994,8 @@ MOS_STATUS Mhw_AllocateBb(
     bool                    notLockable,
     bool                    inSystemMem)
 {
+    MHW_FUNCTION_ENTER;
+
     MOS_RESOURCE                        OsResource;
     MOS_ALLOC_GFXRES_PARAMS             AllocParams;
     uint32_t                            allocSize;
@@ -1002,8 +1004,6 @@ MOS_STATUS Mhw_AllocateBb(
     MHW_CHK_NULL(pOsInterface);
     MHW_CHK_NULL(pBatchBuffer);
     MHW_ASSERT(!(notLockable && inSystemMem)); // Notlockable system memory doesn't make sense
-
-    MHW_FUNCTION_ENTER;
 
     dwSize += 8 * MHW_CACHELINE_SIZE;
     dwSize = MOS_ALIGN_CEIL(dwSize, MOS_PAGE_SIZE);
@@ -1083,12 +1083,12 @@ MOS_STATUS Mhw_FreeBb(
     PMHW_BATCH_BUFFER       pBatchBuffer,
     PMHW_BATCH_BUFFER       pBatchBufferList)
 {
+    MHW_FUNCTION_ENTER;
+
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     MHW_CHK_NULL(pOsInterface);
     MHW_CHK_NULL(pBatchBuffer);
-
-    MHW_FUNCTION_ENTER;
 
     if (pBatchBuffer->bLocked)
     {
@@ -1141,13 +1141,13 @@ MOS_STATUS Mhw_LockBb(
     PMOS_INTERFACE          pOsInterface,
     PMHW_BATCH_BUFFER       pBatchBuffer)
 {
+    MHW_FUNCTION_ENTER;
+
     MOS_LOCK_PARAMS         LockFlags;
     MOS_STATUS              eStatus;
 
     MHW_CHK_NULL(pOsInterface);
     MHW_CHK_NULL(pBatchBuffer);
-
-    MHW_FUNCTION_ENTER;
 
     eStatus         = MOS_STATUS_UNKNOWN;
 
@@ -1189,12 +1189,12 @@ MOS_STATUS Mhw_UnlockBb(
     PMHW_BATCH_BUFFER       pBatchBuffer,
     bool                    bResetBuffer)
 {
+    MHW_FUNCTION_ENTER;
+
     MOS_STATUS              eStatus;
 
     MHW_CHK_NULL(pOsInterface);
     MHW_CHK_NULL(pBatchBuffer);
-
-    MHW_FUNCTION_ENTER;
 
     eStatus = MOS_STATUS_UNKNOWN;
 
