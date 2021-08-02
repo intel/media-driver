@@ -31,6 +31,7 @@
 #include "mos_resource_defs.h"
 #include <string>
 #include "mos_context.h"
+#include "mos_interface.h"
 
 class GraphicsResource
 {
@@ -135,6 +136,16 @@ public:
         MOS_TILE_MODE_GMM m_tileModeByForce = MOS_TILE_UNSET_GMM;
 
         //!
+        //! \brief   gmm resource usage type
+        //!
+        GMM_RESOURCE_USAGE_TYPE m_gmmResUsageType = GMM_RESOURCE_USAGE_UNKNOWN;
+
+        //!
+        //! \brief   mos resource usage type, set mocs index
+        //!
+        MOS_HW_RESOURCE_DEF m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
+
+        //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
         //!
         CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams)
@@ -157,6 +168,16 @@ public:
             m_width           = pParams->dwWidth;
             m_memType         = pParams->dwMemType;
             m_tileModeByForce = pParams->m_tileModeByForce;
+            m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(pParams->ResUsageType);
+
+            if (pParams->ResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS || pParams->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC)
+            {
+                m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
+            }
+            else
+            {
+                m_mocsMosResUsageType = pParams->ResUsageType;
+            }
         };
 
         CreateParams()
@@ -534,6 +555,14 @@ protected:
 
     //! \brief   Mutex for allocation index array
     PMOS_MUTEX m_allocationIndexMutex = nullptr;
+
+    //! \brief   Mutex for allocation index array
+    MEMORY_OBJECT_CONTROL_STATE m_memObjCtrlState = {};
+
+    //!
+    //! \brief   mos resource usage type, set mocs index
+    //!
+    MOS_HW_RESOURCE_DEF m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
 };
 #endif // #ifndef __MOS_GRAPHICS_RESOURCE_H__
 

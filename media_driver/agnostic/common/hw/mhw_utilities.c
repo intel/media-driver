@@ -27,8 +27,81 @@
 #include "mhw_render.h"
 #include "mhw_state_heap.h"
 #include "hal_oca_interface.h"
+#include "mos_interface.h"
 
 #define MHW_NS_PER_TICK_RENDER_ENGINE 80  // 80 nano seconds per tick in render engine
+
+//!
+//! \brief    Set mocs index
+//! \details  Set mocs index
+//!           command buffer or indirect state
+//! \param    PMOS_INTERFACE osInterface
+//!           [in] OS interface
+//! \param    PMOS_RESOURCE resource
+//!           [in] resource
+//! \param    MHW_MOCS_PARAMS &mocsParams
+//!           [in] mocsParams
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS Mhw_SetMocsTableIndex(
+    PMOS_INTERFACE       osInterface,
+    PMOS_RESOURCE        resource,
+    MHW_MOCS_PARAMS      &mocsParams)
+{
+    MHW_CHK_NULL_RETURN(resource);
+    MHW_CHK_NULL_RETURN(osInterface);
+
+    // Index is defined in bit 1:6
+    const uint8_t indexBitFieldLow      = 1;
+    const uint8_t indexMask             = 0x3F;
+    auto          memObjCtrlState       = resource->memObjCtrlState;
+    uint32_t      memObjCtrlStateValue  = 0;
+
+    uint32_t    *data                   = mocsParams.mocsTableIndex;
+    uint32_t    value                   = 0;
+    uint32_t    mask                    = 0;
+    uint8_t     bitFieldLow             = mocsParams.bitFieldLow;
+    uint8_t     bitFieldHigh            = mocsParams.bitFieldHigh;
+
+    if (data == nullptr)
+    {
+        MHW_NORMALMESSAGE("skip to set the mocs");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (bitFieldLow > bitFieldHigh || bitFieldHigh > 31)
+    {
+        MOS_OS_ASSERTMESSAGE("invalid bit field");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    value = *data;
+
+    if (resource->mocsMosResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC       ||
+        resource->mocsMosResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS  ||
+        resource->memObjCtrlState.DwordValue == 0)
+    {
+        MHW_NORMALMESSAGE("Invalid resource->mocsMosResUsageType = %d, use default cache MOS_MP_RESOURCE_USAGE_DEFAULT", resource->mocsMosResUsageType);
+        auto gmmClientContext   = osInterface->pfnGetGmmClientContext(osInterface);
+        memObjCtrlState    = MosInterface::GetCachePolicyMemoryObject(gmmClientContext, MOS_MP_RESOURCE_USAGE_DEFAULT);
+    }
+
+    memObjCtrlStateValue = (memObjCtrlState.DwordValue >> indexBitFieldLow) & indexMask;
+
+    if (bitFieldHigh == 31)
+    {
+        mask = (1 << bitFieldLow) - 1;
+    }
+    else
+    {
+        mask = (~((1 << (bitFieldHigh + 1)) - 1)) | ((1 << bitFieldLow) - 1);
+    }
+    value = value & mask;
+    *data = value | (memObjCtrlStateValue << bitFieldLow);
+
+    return MOS_STATUS_SUCCESS;
+}
 
 //!
 //! \brief    Adds graphics address of a resource to the command buffer or indirect state
@@ -84,6 +157,8 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     *pParams->pdwCmd = (*pParams->pdwCmd & ~dwMask) | (dwGfxAddrBottom & dwMask);
     // this is next DW for top part of the address
     *(pParams->pdwCmd + 1) = dwGfxAddrTop;
+
+    Mhw_SetMocsTableIndex(pOsInterface, pParams->presResource, pParams->mocsParams);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     {

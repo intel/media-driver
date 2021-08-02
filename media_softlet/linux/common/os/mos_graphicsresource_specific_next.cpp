@@ -141,6 +141,8 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     GMM_RESCREATE_PARAMS    gmmParams;
     MosUtilities::MosZeroMemory(&gmmParams, sizeof(gmmParams));
 
+    gmmParams.Usage   = params.m_gmmResUsageType;
+
     switch (params.m_type)
     {
         case MOS_GFXRES_BUFFER:
@@ -359,8 +361,9 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
             (gmmResourceInfoPtr->GetMmcHint(0) == GMM_MMC_HINT_ON) : false;
         m_isCompressed    = gmmResourceInfoPtr->IsMediaMemoryCompressed(0);
         m_compressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfoPtr->GetMmcMode(0);
+        m_memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(pOsContextSpecific->GetGmmClientContext(), params.m_mocsMosResUsageType);
 
-        MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource), tile encoding %d.",bufSize, params.m_width, bufHeight, m_tileModeGMM);
+        MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource), tile encoding %d.", bufSize, params.m_width, bufHeight, m_tileModeGMM);
 
         struct {
             uint32_t m_handle;
@@ -471,9 +474,12 @@ MOS_STATUS GraphicsResourceSpecificNext::ConvertToMosResource(MOS_RESOURCE* pMos
     pMosResource->MmapOperation = m_mmapOperation;
     pMosResource->pGmmResInfo   = m_gmmResInfo;
 
-    pMosResource->user_provided_va    = m_userProvidedVA;
+    pMosResource->user_provided_va  = m_userProvidedVA;
 
-    pMosResource->pGfxResourceNext    = this;
+    pMosResource->memObjCtrlState   = m_memObjCtrlState;
+    pMosResource->mocsMosResUsageType = m_mocsMosResUsageType;
+
+    pMosResource->pGfxResourceNext  = this;
 
     return  MOS_STATUS_SUCCESS;
 }
@@ -682,11 +688,8 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
     MOS_OS_CHK_NULL_RETURN(streamState->perStreamParameters);
     auto perStreamParameters = (PMOS_CONTEXT)streamState->perStreamParameters;
 
-    if (nullptr == perStreamParameters)
-    {
-        MOS_OS_ASSERTMESSAGE("input parameter perStreamParameters is NULL.");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
+    gmmParams.Usage = MosInterface::GetGmmResourceUsageType(params->ResUsageType);
+
     switch (params->Format)
     {
     case Format_Buffer:
@@ -842,6 +845,17 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
         resource->TileModeGMM     = (MOS_TILE_MODE_GMM)gmmResourceInfo->GetTileModeSurfaceState();
         resource->bGMMTileEnabled = true;
         resource->pData    = (uint8_t *)bo->virt;  //It is useful for batch buffer to fill commands
+        if (params->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC ||
+            params->ResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS)
+        {
+            resource->memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(perStreamParameters->pGmmClientContext, MOS_MP_RESOURCE_USAGE_DEFAULT);
+            resource->mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
+        }
+        else
+        {
+            resource->memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(perStreamParameters->pGmmClientContext, params->ResUsageType);
+            resource->mocsMosResUsageType = params->ResUsageType;
+        }
         MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource), tile encoding.", iSize, params->dwWidth, iHeight, resource->TileModeGMM);
     }
     else

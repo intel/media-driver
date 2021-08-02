@@ -137,9 +137,14 @@ public:
         uint32_t m_memType = MOS_MEMPOOL_VIDEOMEMORY;
 
         //!
-        //! \brief   gmm resource usage type
+        //! \brief   gmm resource usage type, set patusage or mocs usage
         //!
         GMM_RESOURCE_USAGE_TYPE m_gmmResUsageType = GMM_RESOURCE_USAGE_UNKNOWN;
+
+        //!
+        //! \brief   mos resource usage type, set mocs index
+        //!
+        MOS_HW_RESOURCE_DEF m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
 
         //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
@@ -164,6 +169,15 @@ public:
             m_flags           = pParams->Flags;
             m_width           = pParams->dwWidth;
             m_memType         = pParams->dwMemType;
+
+            if (pParams->ResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS || pParams->ResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC)
+            {
+                m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
+            }
+            else
+            {
+                m_mocsMosResUsageType = pParams->ResUsageType;
+            }
             m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(pParams->ResUsageType);
         };
 
@@ -530,6 +544,14 @@ protected:
 
     //! \brief   Mutex for allocation index array
     PMOS_MUTEX m_allocationIndexMutex = nullptr;
+
+    //! \brief   Mutex for allocation index array
+    MEMORY_OBJECT_CONTROL_STATE m_memObjCtrlState = {};
+
+    //!
+    //! \brief   mos resource usage type, set mocs index
+    //!
+    MOS_HW_RESOURCE_DEF m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
 };
 #endif // #ifndef __MOS_GRAPHICS_RESOURCE_NEXT_H__
 

@@ -1247,28 +1247,40 @@ GMM_RESOURCE_USAGE_TYPE MosInterface::GetGmmResourceUsageType(
     return GmmResourceUsage[resUsage];
 }
 
+MEMORY_OBJECT_CONTROL_STATE MosInterface::GetGmmCachePolicyMemoryObject(
+    GMM_CLIENT_CONTEXT      *gmmClientContext,
+    GMM_RESOURCE_USAGE_TYPE gmmUsage)
+{
+    MOS_OS_FUNCTION_ENTER;
+    if (!gmmClientContext)
+    {
+        return {0};
+    }
+
+    if (gmmClientContext->GetCachePolicyElement(gmmUsage).Initialized)
+    {
+        return gmmClientContext->CachePolicyGetMemoryObject(nullptr, gmmUsage);
+    }
+    else if (gmmClientContext->GetCachePolicyElement(MP_RESOURCE_USAGE_DEFAULT).Initialized)
+    {
+        MOS_OS_ASSERTMESSAGE("Cache is not initialized for GMM_RESOURCE_USAGE_TYPE %d, use MP_RESOURCE_USAGE_DEFAULT", gmmUsage);
+        return gmmClientContext->CachePolicyGetMemoryObject(nullptr, MP_RESOURCE_USAGE_DEFAULT);
+    }
+    else
+    {
+        MOS_OS_ASSERTMESSAGE("Cache is not initialized for GMM_RESOURCE_USAGE_TYPE %d", gmmUsage);
+        return gmmClientContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
+    }
+}
+
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetCachePolicyMemoryObject(
-    MOS_STREAM_HANDLE   streamState,
+    GMM_CLIENT_CONTEXT *gmmClientContext,
     MOS_HW_RESOURCE_DEF mosUsage)
 {
     MOS_OS_FUNCTION_ENTER;
 
-    //auto gmmClientContext = MosInterface::GetGmmClientContext(streamState);
-    // Force convert to stream handle for wrapper
-    auto gmmClientContext = (GMM_CLIENT_CONTEXT *)streamState;
-    MOS_OS_ASSERT(gmmClientContext);
-
     GMM_RESOURCE_USAGE_TYPE usage = GmmResourceUsage[mosUsage];
-    if (gmmClientContext->GetCachePolicyElement(usage).Initialized)
-    {
-        return gmmClientContext->CachePolicyGetMemoryObject(nullptr, usage);
-    }
-    else
-    {
-        return gmmClientContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
-    }
-
-    return {0};
+    return MosInterface::GetGmmCachePolicyMemoryObject(gmmClientContext, usage);
 }
 
 uint8_t MosInterface::GetCachePolicyL1Config(
@@ -1532,7 +1544,9 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
         resource->pGmmResInfo  = mediaBuffer->pGmmResourceInfo;
     }
 
-    resource->bConvertedFromDDIResource = true;
+    resource->bConvertedFromDDIResource     = true;
+    resource->memObjCtrlState.DwordValue    = 0;
+    resource->mocsMosResUsageType           = MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC;
 
     return MOS_STATUS_SUCCESS;
 }

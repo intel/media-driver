@@ -308,17 +308,6 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
         cmd.DW36.Xphaseshift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)cmd.DW15.ScalingFactorWidth / 524288.0F - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
         cmd.DW37.Yphaseshift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)cmd.DW14.ScalingFactorHeight / 524288.0F - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
     }
-    cmd.DW40.AvsLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineTileBufferCtrl.Gen12.Index;
-
-    cmd.DW43.IefLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineTileBufferCtrl.Gen12.Index;
-
-    cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineTileBufferCtrl.Gen12.Index;
-
-    //Set DW40, DW43, DW46, DW49
-    cmd.DW40.AvsLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineBufferCtrl.Gen12.Index;
-    cmd.DW43.IefLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineBufferCtrl.Gen12.Index;
-    cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineBufferCtrl.Gen12.Index;
-    cmd.DW49.HistogramBaseAddressMOCSIndex                                         = m_histogramBufferCtrl.Gen12.Index;
 
     if (pSfcStateParamsG12->pOsResOutputSurface)
     {
@@ -344,7 +333,6 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
         ResourceParams.dwLocationInCmd             = 20;
         ResourceParams.HwCommandType               = MOS_SFC_STATE;
         ResourceParams.bIsWritable                 = true;
-
         MHW_CHK_STATUS_RETURN(pfnAddResourceToCmd(
           pOsInterface,
           pCmdBuffer,
@@ -438,12 +426,18 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
         ResourceParams.dwLocationInCmd             = 47;
         ResourceParams.HwCommandType               = MOS_SFC_STATE;
         ResourceParams.bIsWritable                 = true;
+        InitMocsParams(ResourceParams, &cmd.DW40.Value, 1, 6);
 
         MHW_CHK_STATUS_RETURN(pfnAddResourceToCmd(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
     }
+    //Set DW40, DW43, DW46, DW49
+    cmd.DW40.AvsLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineBufferCtrl.Gen12.Index;
+    cmd.DW43.IefLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineBufferCtrl.Gen12.Index;
+    cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineBufferCtrl.Gen12.Index;
+    cmd.DW49.HistogramBaseAddressMOCSIndex                                         = m_histogramBufferCtrl.Gen12.Index;
 
     MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 

@@ -294,6 +294,9 @@ struct _MOS_SPECIFIC_RESOURCE
     // Tile switch
     MOS_TILE_MODE_GMM   TileModeGMM;
     bool                bGMMTileEnabled;
+
+    MEMORY_OBJECT_CONTROL_STATE memObjCtrlState;
+    MOS_HW_RESOURCE_DEF         mocsMosResUsageType;
 };
 
 //!

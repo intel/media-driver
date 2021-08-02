@@ -590,6 +590,14 @@ enum WRITE_FLAG
     WRITE_WA  = 0x2,
 };
 
+
+typedef struct _MHW_MOCS_PARAMS
+{
+    uint32_t *mocsTableIndex;
+    uint8_t  bitFieldLow;
+    uint8_t  bitFieldHigh;
+} MHW_MOCS_PARAMS;
+
 typedef struct _MHW_RESOURCE_PARAMS
 {
     PMOS_RESOURCE                       presResource;
@@ -613,6 +621,7 @@ typedef struct _MHW_RESOURCE_PARAMS
     uint32_t                            shiftAmount;
     uint32_t                            shiftDirection;
     MOS_PATCH_TYPE                      patchType;
+    MHW_MOCS_PARAMS                     mocsParams;
 }MHW_RESOURCE_PARAMS, *PMHW_RESOURCE_PARAMS;
 
 typedef struct _MHW_GENERIC_PROLOG_PARAMS
@@ -624,6 +633,18 @@ typedef struct _MHW_GENERIC_PROLOG_PARAMS
     uint32_t                    dwStoreDataOffset;
     uint32_t                    dwStoreDataValue;
 } MHW_GENERIC_PROLOG_PARAMS, *PMHW_GENERIC_PROLOG_PARAMS;
+
+void inline InitMocsParams(
+    MHW_RESOURCE_PARAMS &hwResourceParam,
+    uint32_t            *addr,
+    uint8_t             bitFieldLow,
+    uint8_t             bitFieldHigh)
+{
+    hwResourceParam.mocsParams.mocsTableIndex = addr;
+    hwResourceParam.mocsParams.bitFieldLow    = bitFieldLow;
+    hwResourceParam.mocsParams.bitFieldHigh   = bitFieldHigh;
+    return;
+}
 
 MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     PMOS_INTERFACE              pOsInterface,

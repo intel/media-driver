@@ -29,6 +29,7 @@
 #include "mos_oca_interface.h"
 #include "renderhal_platform_interface.h"
 #include "hal_oca_interface.h"
+#include "mos_interface.h"
 
 #define COMPUTE_WALKER_THREAD_SPACE_WIDTH 1
 #define COMPUTE_WALKER_THREAD_SPACE_HEIGHT 1
@@ -547,11 +548,19 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
     if (pSurfaceParams == nullptr)
     {
         MOS_ZeroMemory(&SurfaceParam, sizeof(SurfaceParam));
-
-        //set mem object control for cache
-        SurfaceParam.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_MP_RESOURCE_USAGE_DEFAULT,
-            m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+        if (buffer->OsResource.mocsMosResUsageType == MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC      ||
+            buffer->OsResource.mocsMosResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS ||
+            buffer->OsResource.memObjCtrlState.DwordValue   == 0)
+        {
+            //set mem object control for cache
+            SurfaceParam.MemObjCtl = (MosInterface::GetCachePolicyMemoryObject(
+                m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface),
+                MOS_MP_RESOURCE_USAGE_DEFAULT)).DwordValue;
+        }
+        else
+        {
+            SurfaceParam.MemObjCtl = buffer->OsResource.memObjCtrlState.DwordValue;
+        }
 
         pSurfaceParams = &SurfaceParam;
     }

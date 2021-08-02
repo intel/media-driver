@@ -357,6 +357,11 @@ MOS_STATUS GraphicsResourceSpecific::Allocate(OsContext* osContextPtr, CreatePar
         m_isCompressed    = gmmResourceInfoPtr->IsMediaMemoryCompressed(0);
         m_compressionMode = (MOS_RESOURCE_MMC_MODE)gmmResourceInfoPtr->GetMmcMode(0);
 
+        m_memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(
+            pOsContextSpecific->GetGmmClientContext(),
+            params.m_mocsMosResUsageType);
+        m_mocsMosResUsageType = params.m_mocsMosResUsageType;
+
         MOS_OS_VERBOSEMESSAGE("Alloc %7d bytes (%d x %d resource), tile encoding %d.",bufSize, params.m_width, bufHeight, m_tileModeGMM);
 
         struct {
@@ -468,7 +473,10 @@ MOS_STATUS GraphicsResourceSpecific::ConvertToMosResource(MOS_RESOURCE* pMosReso
     pMosResource->MmapOperation = m_mmapOperation;
     pMosResource->pGmmResInfo   = m_gmmResInfo;
 
-    pMosResource->user_provided_va    = m_userProvidedVA;
+    pMosResource->user_provided_va  = m_userProvidedVA;
+
+    pMosResource->memObjCtrlState   = m_memObjCtrlState;
+    pMosResource->mocsMosResUsageType = m_mocsMosResUsageType;
 
     pMosResource->pGfxResource    = this;
 
