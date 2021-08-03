@@ -83,6 +83,7 @@ VAStatus     DdiVp_UpdateFilterParamBuffer(VADriverContextP, PDDI_VP_CONTEXT, ui
 VAStatus     DdiVp_ClearFilterParamBuffer(PDDI_VP_CONTEXT , uint32_t, DDI_VP_STATE);
 VAStatus     DdiVp_SetProcFilterDinterlaceParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferDeinterlacing*);
 VAStatus     DdiVp_SetProcFilterDenoiseParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBuffer*);
+VAStatus     DdiVp_SetProcFilterHVSDenoiseParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferHVSNoiseReduction*);
 VAStatus     DdiVp_SetProcFilterSharpnessParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBuffer*);
 VAStatus     DdiVp_SetProcFilterColorBalanceParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBufferColorBalance*, uint32_t );
 VAStatus     DdiVp_SetProcFilterSkinToneEnhancementParams(PDDI_VP_CONTEXT, uint32_t, VAProcFilterParameterBuffer*);
@@ -2153,6 +2154,13 @@ DdiVp_UpdateFilterParamBuffer(
                                             uSurfIndex,
                                             (VAProcFilterParameterBuffer*) pData);
             break;
+        case VAProcFilterHVSNoiseReduction:
+            vpStateFlags->bDenoiseEnable = true;
+            vaStatus = DdiVp_SetProcFilterHVSDenoiseParams(
+                                            pVpCtx,
+                                            uSurfIndex,
+                                            (VAProcFilterParameterBufferHVSNoiseReduction*) pData);
+            break;
         case VAProcFilterSharpening:
             vpStateFlags->bIEFEnable = true;
             vaStatus = DdiVp_SetProcFilterSharpnessParams(
@@ -2458,6 +2466,78 @@ DdiVp_SetProcFilterDenoiseParams(
     return VA_STATUS_SUCCESS;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//! \purpose Set DN filter params for VPHAL input surface
+//! \params
+//! [in]  pVpCtx : VP context
+//! [in]  uSurfIndex : uSurfIndex to the input surface array
+//! [in]  pDnParamBuff : Pointer to DN param buffer data
+//! [out] None
+//! \returns VA_STATUS_SUCCESS if call succeeds
+////////////////////////////////////////////////////////////////////////////////
+VAStatus
+DdiVp_SetProcFilterHVSDenoiseParams(
+    PDDI_VP_CONTEXT                                  pVpCtx,
+    uint32_t                                         uSurfIndex,
+    VAProcFilterParameterBufferHVSNoiseReduction*    pHVSDnParamBuff)
+{
+    PVPHAL_RENDER_PARAMS      pVpHalRenderParams = nullptr;
+    PVPHAL_SURFACE            pSrc = nullptr;
+
+    VP_DDI_FUNCTION_ENTER;
+    DDI_CHK_NULL(pVpCtx, "Null pVpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(pHVSDnParamBuff,
+                "Null pHVSDnParamBuff.",
+                     VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    // initialize
+    pVpHalRenderParams = VpGetRenderParams(pVpCtx);
+    DDI_CHK_NULL(pVpHalRenderParams,
+                    "Null pVpHalRenderParams.",
+                     VA_STATUS_ERROR_INVALID_PARAMETER);
+    pSrc = pVpHalRenderParams->pSrc[uSurfIndex];
+    DDI_CHK_NULL(pSrc, "Null pSrc.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    if (nullptr == pSrc->pDenoiseParams)
+    {
+        pSrc->pDenoiseParams = (PVPHAL_DENOISE_PARAMS)MOS_AllocAndZeroMemory(sizeof(VPHAL_DENOISE_PARAMS));
+    }
+    DDI_CHK_NULL(pSrc->pDenoiseParams, "pDenoiseParams MOS_AllocAndZeroMemory failed.", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    
+    // Luma and chroma denoise should be always enabled when noise reduction is needed
+    pSrc->pDenoiseParams->bEnableLuma       = true;
+    pSrc->pDenoiseParams->bEnableChroma     = true;
+    pSrc->pDenoiseParams->bEnableHVSDenoise = true;
+    
+    switch (pHVSDnParamBuff->mode)
+    {
+        case VA_PROC_HVS_DENOISE_AUTO_SUBJECTIVE:
+            pSrc->pDenoiseParams->HVSDenoise.Mode = HVSDENOISE_AUTO_SUBJECTIVE;
+            pSrc->pDenoiseParams->bAutoDetect     = true;
+            break;
+        case VA_PROC_HVS_DENOISE_MANUAL:
+            pSrc->pDenoiseParams->HVSDenoise.Mode = HVSDENOISE_MANUAL;
+            break;
+        case VA_PROC_HVS_DENOISE_DEFAULT:
+        case VA_PROC_HVS_DENOISE_AUTO_BDRATE:
+        default:
+            pSrc->pDenoiseParams->HVSDenoise.Mode = HVSDENOISE_AUTO_BDRATE;
+            pSrc->pDenoiseParams->bAutoDetect     = true;
+    }// switch (pHVSDnParamBuff->mode)
+
+    if (pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE)
+    {
+        pSrc->pDenoiseParams->HVSDenoise.QP       = 32;       // HVS Auto Bdrate Mode default qp 32
+    }
+    else
+    {
+        pSrc->pDenoiseParams->HVSDenoise.QP       = pHVSDnParamBuff->qp;
+        pSrc->pDenoiseParams->HVSDenoise.Strength = pHVSDnParamBuff->strength;
+    }
+    VP_DDI_NORMALMESSAGE("HVS Denoise is enabled with qp %d, strength %d, mode %d!", pSrc->pDenoiseParams->HVSDenoise.QP, pSrc->pDenoiseParams->HVSDenoise.Strength, pSrc->pDenoiseParams->HVSDenoise.Mode);
+
+    return VA_STATUS_SUCCESS;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////
 //! \purpose Set Sharpness (Image Enhancement Filter, IEF) filter params for VPHAL input surface
 //! \params
@@ -4263,6 +4343,11 @@ DdiVp_QueryVideoProcFilterCaps (
                 baseCap->range.default_value = NOISEREDUCTION_DEFAULT;
                 baseCap->range.step          = NOISEREDUCTION_STEP;
             }
+            break;
+        
+        /* HVS Noise reduction filter */
+        case VAProcFilterHVSNoiseReduction:
+            /* Add it later */
             break;
 
         /* Deinterlacing filter */

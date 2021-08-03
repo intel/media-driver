@@ -1531,6 +1531,40 @@ finish:
     return eStatus;
 }
 
+//! \brief    Vebox get statistics surface base
+//! \details  Calculate address of statistics surface address based on the
+//!           functions which were enabled in the previous call.
+//! \param    uint8_t* pStat
+//!           [in] Pointer to Statistics surface
+//! \param    uint8_t* * pStatSlice0Base
+//!           [out] Statistics surface Slice 0 base pointer
+//! \param    uint8_t* * pStatSlice1Base
+//!           [out] Statistics surface Slice 1 base pointer
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VPHAL_VEBOX_STATE::VeboxGetStatisticsSurfaceBase(
+    uint8_t * pStat,
+    uint8_t **pStatSlice0Base,
+    uint8_t **pStatSlice1Base)
+{
+    int32_t    iOffsetSlice0, iOffsetSlice1;
+    MOS_STATUS eStatus;
+
+    eStatus = MOS_STATUS_UNKNOWN;
+
+    // Calculate the offsets of Slice0 and Slice1
+    VPHAL_RENDER_CHK_STATUS(VeboxGetStatisticsSurfaceOffsets(
+        &iOffsetSlice0,
+        &iOffsetSlice1));
+
+    *pStatSlice0Base = pStat + iOffsetSlice0;  // Slice 0 current frame
+    *pStatSlice1Base = pStat + iOffsetSlice1;  // Slice 1 current frame
+
+finish:
+    return eStatus;
+}
+
 //!
 //! \brief    Vebox state heap update for auto mode features
 //! \details  Update Vebox indirect states for auto mode features

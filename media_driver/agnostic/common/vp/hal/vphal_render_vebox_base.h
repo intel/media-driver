@@ -1794,6 +1794,24 @@ protected:
         int32_t*                            pStatSlice1Offset);
 
     //!
+    //! \brief    Vebox get statistics surface base
+    //! \details  Calculate address of statistics surface address based on the
+    //!           functions which were enabled in the previous call.
+    //! \param    uint8_t* pStat
+    //!           [in] Pointer to Statistics surface
+    //! \param    uint8_t* * pStatSlice0Base
+    //!           [out] Statistics surface Slice 0 base pointer
+    //! \param    uint8_t* * pStatSlice1Base
+    //!           [out] Statistics surface Slice 1 base pointer
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS VeboxGetStatisticsSurfaceBase(
+        uint8_t * pStat,
+        uint8_t **pStatSlice0Base,
+        uint8_t **pStatSlice1Base);
+
+    //!
     //! \brief    Check if 2 passes CSC are supported on the platform
     //!
     virtual bool Is2PassesCscPlatformSupported()
