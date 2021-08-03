@@ -187,6 +187,9 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
             Clean();
             return MOS_STATUS_NULL_POINTER;
         }
+
+        surf->Palette = params.pSrc[i]->Palette;
+
         m_InputSurfaces.push_back(surf);
 
         // Keep m_pastSurface/m_futureSurface same size as m_InputSurfaces.
@@ -202,6 +205,7 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
         }
         m_pastSurface.push_back(pastSurface);
         m_futureSurface.push_back(futureSurface);
+        m_linkedLayerIndex.push_back(0);
 
         // Initialize m_InputPipes.
         SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
@@ -277,6 +281,7 @@ MOS_STATUS SwFilterPipe::Initialize(VEBOX_SFC_PARAMS &params)
         // Keep m_PastSurface same size as m_InputSurfaces.
         m_pastSurface.push_back(nullptr);
         m_futureSurface.push_back(nullptr);
+        m_linkedLayerIndex.push_back(0);
 
         // Initialize m_InputPipes.
         SwFilterSubPipe *pipe = MOS_New(SwFilterSubPipe);
@@ -385,6 +390,7 @@ MOS_STATUS SwFilterPipe::Clean()
             surfaces->pop_back();
         }
     }
+    m_linkedLayerIndex.clear();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -393,11 +399,23 @@ bool SwFilterPipe::IsEmpty()
 {
     VP_FUNC_CALL();
 
-    if (0 == m_OutputSurfaces.size())
+    for (auto pipe : m_InputPipes)
     {
-        return true;
+        if (!pipe->IsEmpty())
+        {
+            return false;
+        }
     }
-    return false;
+
+    for (auto pipe : m_OutputPipes)
+    {
+        if (!pipe->IsEmpty())
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool SwFilterPipe::IsPrimaryEmpty()
@@ -804,6 +822,10 @@ VP_SURFACE *SwFilterPipe::RemoveSurface(bool isInputSurface, uint32_t index)
             {
                 m_vpInterface.GetAllocator().DestroyVpSurface(m_futureSurface[index]);
             }
+            if (m_linkedLayerIndex[index])
+            {
+                m_linkedLayerIndex[index] = 0;
+            }
         }
 
         return surf;
@@ -841,6 +863,7 @@ MOS_STATUS SwFilterPipe::AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint
             // Keep m_PastSurface same size as m_InputSurfaces.
             m_pastSurface.push_back(nullptr);
             m_futureSurface.push_back(nullptr);
+            m_linkedLayerIndex.push_back(0);
         }
     }
 
@@ -933,6 +956,17 @@ MOS_STATUS SwFilterPipe::RemoveUnusedLayers(bool bUpdateInput)
                     break;
                 }
             }
+
+            // Keep m_futureSurface same size as m_InputSurfaces.
+            auto itLinkedIndex = m_linkedLayerIndex.begin();
+            for (i = 0; itLinkedIndex != m_linkedLayerIndex.end(); ++itSurf, ++i)
+            {
+                if (i == index)
+                {
+                    m_linkedLayerIndex.erase(itLinkedIndex);
+                    break;
+                }
+            }
         }
 
         auto itPipe = pipes.begin();
@@ -980,4 +1014,33 @@ uint32_t SwFilterPipe::GetSurfaceCount(bool isInputSurface)
     VP_FUNC_CALL();
 
     return isInputSurface ? m_InputSurfaces.size() : m_OutputSurfaces.size();
+}
+
+bool SwFilterPipe::IsAllInputPipeSurfaceFeatureEmpty()
+{
+    for (uint32_t i = 0; i < GetSurfaceCount(true); ++i)
+    {
+        SwFilterSubPipe *inputPipe = GetSwFilterSubPipe(true, i);
+        if (inputPipe && !inputPipe->IsSurfaceFeatureEmpty())
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool SwFilterPipe::IsAllInputPipeSurfaceFeatureEmpty(std::vector<int> &layerIndexes)
+{
+    for (uint32_t i = 0; i < layerIndexes.size(); ++i)
+    {
+        uint32_t executedIndex = layerIndexes[i];
+        SwFilterSubPipe *inputPipe = GetSwFilterSubPipe(true, executedIndex);
+        if (inputPipe && !inputPipe->IsSurfaceFeatureEmpty())
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

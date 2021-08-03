@@ -714,3 +714,109 @@ void SwFilterHdrHandler::Destory(SwFilter *&swFilter)
     m_swFilterFactory.Destory(filter);
     return;
 }
+
+/****************************************************************************************************/
+/*                                      SwFilterColorFillHandler                                    */
+/****************************************************************************************************/
+
+SwFilterColorFillHandler::SwFilterColorFillHandler(VpInterface &vpInterface, FeatureType featureType) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeColorFill),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterColorFillHandler::~SwFilterColorFillHandler()
+{}
+
+bool SwFilterColorFillHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    VP_FUNC_CALL();
+
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    if (!isInputSurf && params.pColorFillParams)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterColorFillHandler::CreateSwFilter()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(m_type);
+    }
+
+    return swFilter;
+}
+
+void SwFilterColorFillHandler::Destory(SwFilter*& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterColorFill* filter = nullptr;
+    filter = dynamic_cast<SwFilterColorFill*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterAlphaHandler                                        */
+/****************************************************************************************************/
+
+SwFilterAlphaHandler::SwFilterAlphaHandler(VpInterface &vpInterface, FeatureType featureType) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeAlpha),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterAlphaHandler::~SwFilterAlphaHandler()
+{}
+
+bool SwFilterAlphaHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    VP_FUNC_CALL();
+
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    if (!isInputSurf && params.pCompAlpha)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterAlphaHandler::CreateSwFilter()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(m_type);
+    }
+
+    return swFilter;
+}
+
+void SwFilterAlphaHandler::Destory(SwFilter*& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterAlpha* filter = nullptr;
+    filter = dynamic_cast<SwFilterAlpha*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}

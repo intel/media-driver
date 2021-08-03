@@ -226,7 +226,10 @@ MOS_STATUS VpScalingFilter::SetYUVRGBPixel()
     else
     {
         // Swap the channel here because HW only natively supports XBGR output
-        if ((m_scalingParams.formatOutput == Format_A8R8G8B8) || (m_scalingParams.formatOutput == Format_X8R8G8B8) || (m_scalingParams.formatOutput == Format_R10G10B10A2))
+        if ((m_scalingParams.formatOutput == Format_A8R8G8B8)       ||
+            (m_scalingParams.formatOutput == Format_X8R8G8B8)       ||
+            (m_scalingParams.formatOutput == Format_R10G10B10A2)    ||
+            (m_scalingParams.formatOutput == Format_A16R16G16B16))
         {
             m_sfcScalingParams->sfcColorfillParams.fColorFillYRPixel = (float)m_colorFillColorDst.B / 255.0F;
             m_sfcScalingParams->sfcColorfillParams.fColorFillUGPixel = (float)m_colorFillColorDst.G / 255.0F;
@@ -773,15 +776,151 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
         params2ndPass.input.rcSrc = params1stPass.input.rcDst;
         params2ndPass.input.rcMaxSrc = params2ndPass.input.rcSrc;
 
-        // Clear engine caps for filter in 2nd pass.
+        // Set engine caps for filter in 2nd pass.
         filter2ndPass->SetFeatureType(FeatureTypeScaling);
         filter2ndPass->GetFilterEngineCaps().value = 0;
+        filter2ndPass->GetFilterEngineCaps().bEnabled = 1;
+        filter2ndPass->GetFilterEngineCaps().SfcNeeded = 1;
+        filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
 
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
     }
     else
     {
         return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS PolicySfcColorFillHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    VP_FUNC_CALL();
+
+    if (caps.bSFC && caps.bSfcScaling)
+    {
+        if (true == isInputPipe)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
+        SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(executePipe.GetSwFilter(true, 0, FeatureTypeScaling));
+        SwFilterColorFill *colorfill = dynamic_cast<SwFilterColorFill *>(&feature);
+
+        if (colorfill)
+        {
+            if (scaling)
+            {
+                scaling->GetSwFilterParams().pColorFillParams = colorfill->GetSwFilterParams().colorFillParams;
+            }
+            bool removeFeatureFromFeaturePipe = featurePipe.IsAllInputPipeSurfaceFeatureEmpty();
+            if (removeFeatureFromFeaturePipe)
+            {
+                // Will be removed and destroyed in Policy::UpdateFeaturePipe.
+                colorfill->GetFilterEngineCaps().bEnabled = false;
+            }
+            else
+            {
+                colorfill->ResetFeatureType();
+            }
+            return MOS_STATUS_SUCCESS;
+        }
+    }
+
+    return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+}
+
+MOS_STATUS PolicySfcColorFillHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    VP_FUNC_CALL();
+
+    if (true == isInputPipe)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    SwFilterColorFill *colorfill = dynamic_cast<SwFilterColorFill *>(&feature);
+    if (colorfill)
+    {
+        bool removeFeatureFromFeaturePipe = featurePipe.IsAllInputPipeSurfaceFeatureEmpty();
+        if (removeFeatureFromFeaturePipe)
+        {
+            // Will be removed and destroyed in Policy::UpdateFeaturePipe.
+            colorfill->GetFilterEngineCaps().bEnabled = false;
+        }
+        else
+        {
+            colorfill->ResetFeatureType();
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS PolicySfcAlphaHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    VP_FUNC_CALL();
+
+    if (caps.bSFC && caps.bSfcScaling)
+    {
+        if (true == isInputPipe)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
+        SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(executePipe.GetSwFilter(true, 0, FeatureTypeScaling));
+        SwFilterCsc *csc = dynamic_cast<SwFilterCsc *>(executePipe.GetSwFilter(true, 0, FeatureTypeCsc));
+        SwFilterAlpha *alpha = dynamic_cast<SwFilterAlpha *>(&feature);
+
+        if (alpha)
+        {
+            if (scaling)
+            {
+                scaling->GetSwFilterParams().pCompAlpha = alpha->GetSwFilterParams().compAlpha;
+            }
+            if (csc)
+            {
+                csc->GetSwFilterParams().pAlphaParams = alpha->GetSwFilterParams().compAlpha;
+            }
+            bool removeFeatureFromFeaturePipe = featurePipe.IsAllInputPipeSurfaceFeatureEmpty();
+            if (removeFeatureFromFeaturePipe)
+            {
+                // Will be removed and destroyed in Policy::UpdateFeaturePipe.
+                alpha->GetFilterEngineCaps().bEnabled = false;
+            }
+            else
+            {
+                alpha->ResetFeatureType();
+            }
+            return MOS_STATUS_SUCCESS;
+        }
+    }
+
+    return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+}
+
+MOS_STATUS PolicySfcAlphaHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    VP_FUNC_CALL();
+
+    if (true == isInputPipe)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    SwFilterAlpha *alpha = dynamic_cast<SwFilterAlpha *>(&feature);
+    if (alpha)
+    {
+        bool removeFeatureFromFeaturePipe = featurePipe.IsAllInputPipeSurfaceFeatureEmpty();
+        if (removeFeatureFromFeaturePipe)
+        {
+            // Will be removed and destroyed in Policy::UpdateFeaturePipe.
+            alpha->GetFilterEngineCaps().bEnabled = false;
+        }
+        else
+        {
+            alpha->ResetFeatureType();
+        }
     }
 
     return MOS_STATUS_SUCCESS;

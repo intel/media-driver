@@ -1271,7 +1271,10 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
         else
         {
             // Swap the channel here because HW only natively supports XBGR output
-            if ((pOutSurface->Format == Format_A8R8G8B8) || (pOutSurface->Format == Format_X8R8G8B8) || (pOutSurface->Format == Format_R10G10B10A2))
+            if ((pOutSurface->Format == Format_A8R8G8B8)    ||
+                (pOutSurface->Format == Format_X8R8G8B8)    ||
+                (pOutSurface->Format == Format_R10G10B10A2) ||
+                (pOutSurface->Format == Format_A16R16G16B16))
             {
                 pSfcStateParams->fColorFillYRPixel = (float)m_colorFillColorDst.B / 255.0F;
                 pSfcStateParams->fColorFillUGPixel = (float)m_colorFillColorDst.G / 255.0F;

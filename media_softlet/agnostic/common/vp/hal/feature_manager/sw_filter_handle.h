@@ -187,6 +187,35 @@ protected:
     SwFilterFactory<SwFilterHdr> m_swFilterFactory;
 };
 
+class SwFilterColorFillHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterColorFillHandler(VpInterface &vpInterface, FeatureType featureType);
+    virtual ~SwFilterColorFillHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter *CreateSwFilter();
+
+protected:
+    virtual void Destory(SwFilter *&swFilter);
+
+protected:
+    SwFilterFactory<SwFilterColorFill>  m_swFilterFactory;
+};
+
+class SwFilterAlphaHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterAlphaHandler(VpInterface &vpInterface, FeatureType featureType);
+    virtual ~SwFilterAlphaHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter *CreateSwFilter();
+
+protected:
+    virtual void Destory(SwFilter *&swFilter);
+
+protected:
+    SwFilterFactory<SwFilterAlpha>      m_swFilterFactory;
+};
 }
 
 #endif //__SW_FILTER_HANDLE_H__

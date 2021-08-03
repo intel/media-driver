@@ -209,5 +209,59 @@ private:
 
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;
 };
+
+class PolicySfcColorFillHandler : public PolicyFeatureHandler
+{
+public:
+    PolicySfcColorFillHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
+    {
+        m_Type = FeatureTypeColorFillOnSfc;
+    }
+    virtual ~PolicySfcColorFillHandler()
+    {
+    }
+    virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
+    {
+        // Not create hwFilters for single ColorFill features. It will combined with scaling filter for sfc or involved in FC.
+        return false;
+    }
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
+    {
+        return nullptr;
+    }
+    virtual MOS_STATUS UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
+    virtual MOS_STATUS UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        return nullptr;
+    }
+};
+
+class PolicySfcAlphaHandler : public PolicyFeatureHandler
+{
+public:
+    PolicySfcAlphaHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
+    {
+        m_Type = FeatureTypeAlphaOnSfc;
+    }
+    virtual ~PolicySfcAlphaHandler()
+    {
+    }
+    virtual bool IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
+    {
+        // Not create hwFilters for single ColorFill features. It will combined with scaling filter for sfc or involved in FC.
+        return false;
+    }
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
+    {
+        return nullptr;
+    }
+    virtual MOS_STATUS UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
+    virtual MOS_STATUS UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
+    static VpPacketParameter* CreatePacketParam(HW_FILTER_PARAM& param)
+    {
+        return nullptr;
+    }
+};
 }
 #endif // !__VP_SCALING_FILTER_H__

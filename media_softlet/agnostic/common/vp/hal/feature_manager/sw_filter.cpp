@@ -57,6 +57,15 @@ MOS_STATUS SwFilter::SetFeatureType(FeatureType type)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilter::ResetFeatureType()
+{
+    VP_FUNC_CALL();
+
+    m_type = (FeatureType)(m_type & FEATURE_TYPE_MASK);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS SwFilter::SetRenderTargetType(RenderTargetType type)
 {
     VP_FUNC_CALL();
@@ -136,14 +145,15 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
-    m_Params.input.colorSpace    = surfInput->ColorSpace;
-    m_Params.output.colorSpace   = surfOutput->ColorSpace;
-    m_Params.pIEFParams         = surfInput->pIEFParams;
-    m_Params.formatInput        = surfInput->Format;
-    m_Params.formatOutput       = surfOutput->Format;
-    m_Params.input.chromaSiting  = surfInput->ChromaSiting;
-    m_Params.output.chromaSiting = surfOutput->ChromaSiting;
-    m_Params.pAlphaParams       = params.pCompAlpha;
+    m_Params.input.colorSpace       = surfInput->ColorSpace;
+    m_Params.output.colorSpace      = surfOutput->ColorSpace;
+    m_Params.pIEFParams             = surfInput->pIEFParams;
+    m_Params.formatInput            = surfInput->Format;
+    m_Params.formatOutput           = surfOutput->Format;
+    m_Params.input.chromaSiting     = surfInput->ChromaSiting;
+    m_Params.output.chromaSiting    = surfOutput->ChromaSiting;
+    // Will be assigned duringPolicySfcAlphaHandler::UpdateFeaturePipe.
+    m_Params.pAlphaParams           = nullptr;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -327,6 +337,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     PVPHAL_SURFACE surfInput = isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0];
     PVPHAL_SURFACE surfOutput = isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex];
 
+    m_Params.isPrimary              = params.uSrcCount == 1 || SURF_IN_PRIMARY == surfInput->SurfType;
     m_Params.scalingMode            = surfInput->ScalingMode;
     m_Params.scalingPreference      = surfInput->ScalingPreference;
     m_Params.bDirectionalScalar     = surfInput->bDirectionalScalar;
@@ -338,8 +349,10 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     m_Params.input.dwHeight         = surfInput->dwHeight;
     m_Params.formatOutput           = surfOutput->Format;
     m_Params.csc.colorSpaceOutput   = surfOutput->ColorSpace;
-    m_Params.pColorFillParams       = params.pColorFillParams;
-    m_Params.pCompAlpha             = params.pColorFillParams ? params.pCompAlpha : nullptr;
+    // Will be assigned during PolicySfcColorFillHandler::UpdateFeaturePipe.
+    m_Params.pColorFillParams       = nullptr;
+    // Will be assigned during PolicySfcAlphaHandler::UpdateFeaturePipe.
+    m_Params.pCompAlpha             = nullptr;
 
     if (surfInput->Rotation == VPHAL_ROTATION_IDENTITY ||
         surfInput->Rotation == VPHAL_ROTATION_180 ||
@@ -392,6 +405,7 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
 {
     VP_FUNC_CALL();
 
+    m_Params.isPrimary              = true;
     m_Params.scalingMode            = VPHAL_SCALING_AVS;
     m_Params.scalingPreference      = VPHAL_SCALING_PREFER_SFC;
     m_Params.bDirectionalScalar     = false;
@@ -711,10 +725,7 @@ MOS_STATUS SwFilterDeinterlace::Configure(VP_PIPELINE_PARAMS& params, bool isInp
     m_Params.formatInput          = surfInput->Format;
     m_Params.formatOutput         = surfInput->Format;
     m_Params.sampleTypeInput      = surfInput->SampleType;
-    m_Params.DIMode               = surfInput->pDeinterlaceParams->DIMode;            //!< DeInterlacing mode
-    m_Params.bEnableFMD           = surfInput->pDeinterlaceParams->bEnableFMD;        //!< FMD
-    m_Params.b60fpsDi             = !surfInput->pDeinterlaceParams->bSingleField;      //!< Used in frame Recon - if 30fps (one call per sample pair)
-    m_Params.bSCDEnable           = surfInput->pDeinterlaceParams->bSCDEnable;        //!< Scene change detection
+    m_Params.diParams             = surfInput->pDeinterlaceParams;
     m_Params.bHDContent           = MEDIA_IS_HDCONTENT(surfInput->dwWidth, surfInput->dwHeight);
     m_Params.bQueryVarianceEnable = false; // Feature is not supported in current filter, disable in current stage
 
@@ -987,22 +998,7 @@ MOS_STATUS SwFilterProcamp::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
     m_Params.formatInput   = surfInput->Format;
     m_Params.formatOutput  = surfInput->Format;// Procamp didn't change the original format;
 
-    if (surfInput->pProcampParams)
-    {
-        m_Params.bEnableProcamp = surfInput->pProcampParams->bEnabled;
-        m_Params.fBrightness = surfInput->pProcampParams->fBrightness;
-        m_Params.fContrast = surfInput->pProcampParams->fContrast;
-        m_Params.fHue = surfInput->pProcampParams->fHue;
-        m_Params.fSaturation = surfInput->pProcampParams->fSaturation;
-    }
-    else
-    {
-        m_Params.bEnableProcamp = false;
-        m_Params.fBrightness = 0;
-        m_Params.fContrast = 0;
-        m_Params.fHue = 0;
-        m_Params.fSaturation = 0;
-    }
+    m_Params.procampParams = surfInput->pProcampParams;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1151,6 +1147,218 @@ MOS_STATUS vp::SwFilterHdr::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
     m_Params.formatInput  = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterColorFill                                           */
+/****************************************************************************************************/
+
+SwFilterColorFill::SwFilterColorFill(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeColorFill)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterColorFill::~SwFilterColorFill()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterColorFill::Clean()
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterColorFill::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    VP_FUNC_CALL();
+
+    if (isInputSurf ||
+        nullptr == params.pColorFillParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    auto surfOutput = params.pTarget[0];
+
+    m_Params.formatInput    = surfOutput->Format;
+    m_Params.formatOutput   = surfOutput->Format;
+    m_Params.colorFillParams = params.pColorFillParams;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamColorFill& SwFilterColorFill::GetSwFilterParams()
+{
+    VP_FUNC_CALL();
+
+    return m_Params;
+}
+
+SwFilter *SwFilterColorFill::Clone()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* p = CreateSwFilter(m_type);
+
+    SwFilterColorFill *swFilter = dynamic_cast<SwFilterColorFill *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterColorFill::operator==(SwFilter& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterColorFill* p = dynamic_cast<SwFilterColorFill*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamColorFill));
+}
+
+MOS_STATUS vp::SwFilterColorFill::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = outputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+VP_EngineEntry SwFilterColorFill::GetCombinedFilterEngineCaps(SwFilterSubPipe *inputPipeSelected)
+{
+    if (nullptr == inputPipeSelected)
+    {
+        return m_EngineCaps;
+    }
+    else
+    {
+        VP_EngineEntry engineCaps = m_EngineCaps;
+
+        SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(inputPipeSelected->GetSwFilter(FeatureTypeScaling));
+
+        if (nullptr == scaling)
+        {
+            // return default one for no scaling filter case.
+            VP_PUBLIC_ASSERTMESSAGE("No scaling filter exists");
+            return engineCaps;
+        }
+
+        FeatureParamScaling &scalingParams = scaling->GetSwFilterParams();
+
+        bool isColorFill = (m_Params.colorFillParams &&
+                    (!m_Params.colorFillParams->bDisableColorfillinSFC) &&
+                    (m_Params.colorFillParams->bOnePixelBiasinSFC ? 
+                    (!RECT1_CONTAINS_RECT2_ONEPIXELBIAS(scalingParams.input.rcDst, scalingParams.output.rcDst)):
+                    (!RECT1_CONTAINS_RECT2(scalingParams.input.rcDst, scalingParams.output.rcDst))))
+                    ? true
+                    : false;
+
+        if (!isColorFill && (engineCaps.VeboxNeeded || engineCaps.SfcNeeded))
+        {
+            engineCaps.VeboxNeeded = 0;
+            engineCaps.SfcNeeded = 0;
+            engineCaps.bypassIfVeboxSfcInUse = 1;
+        }
+
+        return engineCaps;
+    }
+}
+
+/****************************************************************************************************/
+/*                                        SwFilterAlpha                                             */
+/****************************************************************************************************/
+
+SwFilterAlpha::SwFilterAlpha(VpInterface& vpInterface) : SwFilter(vpInterface, FeatureTypeAlpha)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterAlpha::~SwFilterAlpha()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterAlpha::Clean()
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterAlpha::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex)
+{
+    VP_FUNC_CALL();
+
+    if (isInputSurf ||
+        nullptr == params.pCompAlpha)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    auto surfOutput = params.pTarget[0];
+
+    m_Params.formatInput    = surfOutput->Format;
+    m_Params.formatOutput   = surfOutput->Format;
+    m_Params.compAlpha      = params.pCompAlpha;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamAlpha& SwFilterAlpha::GetSwFilterParams()
+{
+    VP_FUNC_CALL();
+
+    return m_Params;
+}
+
+SwFilter *SwFilterAlpha::Clone()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* p = CreateSwFilter(m_type);
+
+    SwFilterAlpha *swFilter = dynamic_cast<SwFilterAlpha *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool vp::SwFilterAlpha::operator==(SwFilter& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterAlpha* p = dynamic_cast<SwFilterAlpha*>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamAlpha));
+}
+
+MOS_STATUS vp::SwFilterAlpha::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSurf, SwFilterSubPipe &pipe)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput = outputSurf->osSurface->Format;
     m_Params.formatOutput = outputSurf->osSurface->Format;
     return MOS_STATUS_SUCCESS;
 }

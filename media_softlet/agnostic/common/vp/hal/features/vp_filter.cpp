@@ -116,8 +116,32 @@ MOS_STATUS PolicyFeatureHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilte
 {
     VP_FUNC_CALL();
 
-    featurePipe.RemoveSwFilter(&feature);
-    executePipe.AddSwFilterUnordered(&feature, isInputPipe, index);
+    if (isInputPipe)
+    {
+        featurePipe.RemoveSwFilter(&feature);
+        executePipe.AddSwFilterUnordered(&feature, isInputPipe, index);
+    }
+    else
+    {
+        bool removeFeatureFromFeaturePipe = featurePipe.IsAllInputPipeSurfaceFeatureEmpty();
+        if (removeFeatureFromFeaturePipe)
+        {
+            featurePipe.RemoveSwFilter(&feature);
+            executePipe.AddSwFilterUnordered(&feature, isInputPipe, index);
+        }
+        else
+        {
+            SwFilter *swFilter = feature.Clone();
+            executePipe.AddSwFilterUnordered(swFilter, isInputPipe, index);
+            feature.ResetFeatureType();
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS PolicyFeatureHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    VP_FUNC_CALL();
     return MOS_STATUS_SUCCESS;
 }
 

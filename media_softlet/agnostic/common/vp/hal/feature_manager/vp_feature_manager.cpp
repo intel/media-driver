@@ -170,6 +170,14 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeDi, p));
 
+    p = MOS_New(SwFilterColorFillHandler, m_vpInterface, FeatureTypeColorFill);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeColorFill, p));
+
+    p = MOS_New(SwFilterAlphaHandler, m_vpInterface, FeatureTypeAlpha);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_featureHandler.insert(std::make_pair(FeatureTypeAlpha, p));
+
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;
 }

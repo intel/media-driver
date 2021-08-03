@@ -77,12 +77,13 @@ protected:
     MOS_STATUS BuildExecutionEngines(SwFilterSubPipe &swFilterPipe);
     MOS_STATUS GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
+    MOS_STATUS InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engineCapsInputPipe, VP_EngineEntry &engineCapsOutputPipe);
     MOS_STATUS GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS GetCSCExecutionCapsHdr(SwFilter *hdr, SwFilter *csc);
     MOS_STATUS GetCSCExecutionCapsDi(SwFilter* feature);
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetSFCRotationExecutionCaps(FeatureParamRotMir *rotationParams, VP_EngineEntry *rotationEngine);
+    bool IsSfcRotationSupported(FeatureParamRotMir *rotationParams);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
     MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);
     MOS_STATUS GetSteExecutionCaps(SwFilter* feature);
@@ -91,25 +92,45 @@ protected:
     MOS_STATUS GetHdrExecutionCaps(SwFilter *feature);
     MOS_STATUS GetExecutionCaps(SwFilter* feature);
     MOS_STATUS GetDeinterlaceExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetFDExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetFLDExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetFBExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetColorFillExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetAlphaExecutionCaps(SwFilter* feature);
 
+    MOS_STATUS BuildExecuteCaps(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS &caps, VP_EngineEntry &engineCapsInputPipe, VP_EngineEntry &engineCapsOutputPipe,
+                                bool &isSingleSubPipe, uint32_t &selectedPipeIndex);
+    MOS_STATUS BypassVeboxFeatures(SwFilterSubPipe *featureSubPipe, VP_EngineEntry &engineCaps);
+    MOS_STATUS GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEntry &engineCapsInputPipe,
+                                    SwFilterSubPipe *&singlePipeSelected, bool &isSingleSubPipe, uint32_t &selectedPipeIndex);
 
+    // inputPipeSelected != nullptr for single input pipe case, otherwise, it's multi-input pipe case.
+    MOS_STATUS GetOutputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEntry &engineCaps, SwFilterSubPipe *inputPipeSelected);
+
+    MOS_STATUS UpdateFeatureTypeWithEngine(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps,
+                                        bool isolatedFeatureSelected, bool outputPipeNeeded);
+    MOS_STATUS UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featureSubPipe, VP_EXECUTE_CAPS& caps, bool isolatedFeatureSelected);
+    MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps);
+
+    MOS_STATUS UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex,
+                                bool isInputPipe, VP_EXECUTE_CAPS& caps);
+
+    MOS_STATUS UpdateFeaturePipeSingleLayer(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex, VP_EXECUTE_CAPS& caps);
+    MOS_STATUS UpdateFeatureOutputPipe(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, SwFilterPipe &executedFilters, VP_EXECUTE_CAPS& caps);
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
-    MOS_STATUS UpdateFilterCaps(SwFilterPipe& subSwFilterPipe, VP_EngineEntry& engineCaps, VP_EXECUTE_CAPS &caps);
-    MOS_STATUS BuildExecuteFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
-    MOS_STATUS BuildExecuteHwFilter(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
-    MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
-    MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS BuildExecuteFilter(SwFilterPipe& swFilterPipe, std::vector<int> &layerIndexes, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS BuildExecuteHwFilter(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, std::vector<int> &layerIndexes, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, std::vector<int> &layerIndexes, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     virtual MOS_STATUS AddFiltersBasedOnCaps(
         SwFilterPipe& featurePipe,
-        VP_EXECUTE_CAPS& caps,
-        SwFilterPipe& executedFilters);
-    MOS_STATUS AddNewFilterOnVebox(
-        SwFilterPipe& featurePipe,
+        uint32_t pipeIndex,
         VP_EXECUTE_CAPS& caps,
         SwFilterPipe& executedFilters,
+        uint32_t executedPipeIndex);
+    MOS_STATUS AddNewFilterOnVebox(
+        SwFilterPipe& featurePipe,
+        uint32_t pipeIndex,
+        VP_EXECUTE_CAPS& caps,
+        SwFilterPipe& executedFilters,
+        uint32_t executedPipeIndex,
         FeatureType featureType);
     virtual MOS_STATUS GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS &caps, FeatureParamCsc &cscParams);
 

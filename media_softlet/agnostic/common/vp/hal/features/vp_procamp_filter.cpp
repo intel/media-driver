@@ -96,11 +96,14 @@ MOS_STATUS VpProcampFilter::CalculateEngineParams()
             MOS_ZeroMemory(m_pVeboxProcampParams, sizeof(VEBOX_PROCAMP_PARAMS));
         }
 
-        m_pVeboxProcampParams->bEnableProcamp = m_procampParams.bEnableProcamp;
-        m_pVeboxProcampParams->fBrightness = m_procampParams.fBrightness;
-        m_pVeboxProcampParams->fContrast = m_procampParams.fContrast;
-        m_pVeboxProcampParams->fHue = m_procampParams.fHue;
-        m_pVeboxProcampParams->fSaturation = m_procampParams.fSaturation;
+        if (m_procampParams.procampParams)
+        {
+            m_pVeboxProcampParams->bEnableProcamp = m_procampParams.procampParams->bEnabled;
+            m_pVeboxProcampParams->fBrightness = m_procampParams.procampParams->fBrightness;
+            m_pVeboxProcampParams->fContrast = m_procampParams.procampParams->fContrast;
+            m_pVeboxProcampParams->fHue = m_procampParams.procampParams->fHue;
+            m_pVeboxProcampParams->fSaturation = m_procampParams.procampParams->fSaturation;
+        }
     }
     else
     {

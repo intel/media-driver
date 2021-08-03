@@ -842,7 +842,7 @@ MOS_STATUS PolicySfcCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter
 
         // Clear engine caps for filter in 2nd pass.
         filter2ndPass->SetFeatureType(FeatureTypeCsc);
-        filter2ndPass->GetFilterEngineCaps().value = 0;
+        filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
 
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
     }

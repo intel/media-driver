@@ -98,6 +98,11 @@ public:
         }
     }
 
+    bool IsSurfaceFeatureEmpty()
+    {
+        return IsEmpty() || RenderTargetTypeParameter == GetRenderTargetType();
+    }
+
 private:
     std::vector<SwFilterSet *> m_OrderedFilters;    // For features in featureRule
     SwFilterSet m_UnorderedFilters;                 // For features not in featureRule
@@ -156,6 +161,9 @@ public:
     MOS_STATUS AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint32_t index);
     MOS_STATUS Update();
     uint32_t GetSurfaceCount(bool isInputSurface);
+    bool IsAllInputPipeSurfaceFeatureEmpty();
+    bool IsAllInputPipeSurfaceFeatureEmpty(std::vector<int> &layerIndexes);
+
     VP_SURFACE_SETTING &GetSurfacesSetting()
     {
         return m_surfacesSetting;
@@ -194,6 +202,25 @@ public:
         return RenderTargetTypeParameter;
     }
 
+    uint32_t GetLinkedLayerIndex(uint32_t index)
+    {
+        if (index >= m_linkedLayerIndex.size())
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid layer index!");
+            return 0;
+        }
+        return m_linkedLayerIndex[index];
+    }
+    void SetLinkedLayerIndex(uint32_t index, uint32_t linkedIndex)
+    {
+        if (index >= m_linkedLayerIndex.size())
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid layer index!");
+            return;
+        }
+        m_linkedLayerIndex[index] = linkedIndex;
+    }
+
 protected:
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe, uint32_t index);
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe);
@@ -207,6 +234,7 @@ protected:
     std::vector<VP_SURFACE *>           m_OutputSurfaces;
     std::vector<VP_SURFACE *>           m_pastSurface;
     std::vector<VP_SURFACE *>           m_futureSurface;
+    std::vector<int>                    m_linkedLayerIndex; // Only valid for execute pipe. layer index in original pipe.
     // Only be used for executedFilters in HW_FILTER_PARAMS. It contains the internal surfaces, including the
     // statistic buffer and histogram, for one submission, which are managed by resource manager.
     VP_SURFACE_SETTING                  m_surfacesSetting;

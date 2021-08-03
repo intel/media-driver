@@ -426,10 +426,12 @@ void MosUtilDebug::MosMessageInit(MOS_CONTEXT_HANDLE mosCtx)
         if (MosUtilities::m_mosUltFlag)
         {
             MosSetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
-            MosSetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_MEMNINJA);
-            m_mosMsgParams.bUseOutputDebugString = 0;
+            MosSetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_CRITICAL);
+            MosSetCompMessageLevel(MOS_COMPONENT_VP, MOS_MESSAGE_LVL_CRITICAL);
+            m_mosMsgParams.bUseOutputDebugString = 1;
             m_mosMsgParams.components[MOS_COMPONENT_OS].bBySubComponent = 0;
             MosCompAssertEnableDisable(MOS_COMPONENT_CM, 0);
+            MosCompAssertEnableDisable(MOS_COMPONENT_VP, 1);
         }
 
         MosHLTInit(mosCtx);
