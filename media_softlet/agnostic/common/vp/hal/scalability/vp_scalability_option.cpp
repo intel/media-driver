@@ -70,7 +70,8 @@ bool VpScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params)
     newOption.SetScalabilityOption(params);
 
     if (m_numPipe != newOption.GetNumPipe() ||
-        m_raMode != newOption.GetRAMode())
+        m_raMode != newOption.GetRAMode() ||
+        m_protectMode != newOption.GetProtectMode())
     {
         matched = false;
     }

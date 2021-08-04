@@ -76,6 +76,7 @@ MOS_STATUS MediaScalabilitySinglePipe::Initialize(const MediaScalabilityOption &
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
 
     gpuCtxCreateOption->RAMode = option.GetRAMode();
+    gpuCtxCreateOption->ProtectMode = option.GetProtectMode();
     gpuCtxCreateOption->LRCACount = 1;
     // This setting is only for encode, please override it in decode/vpp
     gpuCtxCreateOption->UsingSFC = false;

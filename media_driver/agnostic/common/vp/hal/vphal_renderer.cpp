@@ -1233,7 +1233,7 @@ MOS_STATUS VphalRenderer::UpdateRenderGpuContext(MOS_GPU_CONTEXT currentGpuConte
     PVPHAL_VEBOX_STATE      pVeboxState = nullptr;
     int                     i           = 0;
 
-    if (MEDIA_IS_SKU(m_pSkuTable, FtrRAMode) &&
+    if ((MEDIA_IS_SKU(m_pSkuTable, FtrRAMode) || MEDIA_IS_SKU(m_pSkuTable, FtrProtectedEnableBitRequired)) &&
         m_pOsInterface->osCpInterface->IsCpEnabled() &&
         (m_pOsInterface->osCpInterface->IsHMEnabled() || m_pOsInterface->osCpInterface->IsSMEnabled()))
     {
@@ -1248,7 +1248,8 @@ MOS_STATUS VphalRenderer::UpdateRenderGpuContext(MOS_GPU_CONTEXT currentGpuConte
             renderGpuContext = MOS_GPU_CONTEXT_RENDER_RA;
             renderGpuNode    = MOS_GPU_NODE_3D;
         }
-        createOption.RAMode = 1;
+        createOption.RAMode = MEDIA_IS_SKU(m_pSkuTable, FtrRAMode);
+        createOption.ProtectMode = MEDIA_IS_SKU(m_pSkuTable, FtrProtectedEnableBitRequired);
     }
     else
     {
@@ -1264,6 +1265,7 @@ MOS_STATUS VphalRenderer::UpdateRenderGpuContext(MOS_GPU_CONTEXT currentGpuConte
             renderGpuNode    = MOS_GPU_NODE_3D;
         }
         createOption.RAMode = 0;
+        createOption.ProtectMode = 0;
     }
 
     // no gpucontext will be created if the gpu context has been created before.

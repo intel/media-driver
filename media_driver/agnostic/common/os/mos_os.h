@@ -507,6 +507,7 @@ struct _MOS_GPUCTX_CREATOPTIONS
 {
     uint32_t CmdBufferNumScale;
     uint32_t RAMode;
+    uint32_t ProtectMode;
     uint32_t gpuNode;
     //For slice shutdown
     union
@@ -524,6 +525,7 @@ struct _MOS_GPUCTX_CREATOPTIONS
 
     _MOS_GPUCTX_CREATOPTIONS() : CmdBufferNumScale(MOS_GPU_CONTEXT_CREATE_DEFAULT),
         RAMode(0),
+        ProtectMode(0),
         gpuNode(0),
         SSEUValue(0){}
 

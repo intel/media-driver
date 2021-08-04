@@ -38,6 +38,7 @@ DecodeScalabilityOption::DecodeScalabilityOption(const DecodeScalabilityOption &
     m_usingSlimVdbox        = option.m_usingSlimVdbox;
     m_FESeparateSubmission  = option.m_FESeparateSubmission;
     m_raMode                = option.m_raMode;
+    m_protectMode           = option.m_protectMode;
 }
 
 MOS_STATUS DecodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params)
@@ -51,6 +52,7 @@ MOS_STATUS DecodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params
     m_usingSFC       = decPars->usingSfc;
     m_usingSlimVdbox = decPars->usingSlimVdbox;
     m_raMode         = decPars->raMode;
+    m_protectMode    = decPars->protectMode;
 
     if (IsSinglePipeDecode(*decPars))
     {
@@ -129,7 +131,8 @@ bool DecodeScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params
         m_usingSlimVdbox       != newOption.IsUsingSlimVdbox()       ||
         m_mode                 != newOption.GetMode()                ||
         m_FESeparateSubmission != newOption.IsFESeparateSubmission() ||
-        m_raMode               != newOption.GetRAMode())
+        m_raMode               != newOption.GetRAMode()              ||
+        m_protectMode          != newOption.GetProtectMode())
     {
         matched = false;
     }
@@ -153,7 +156,8 @@ bool DecodeScalabilityOption::IsScalabilityOptionMatched(MediaScalabilityOption 
         m_usingSlimVdbox       != decodeOption->IsUsingSlimVdbox()       ||
         m_mode                 != decodeOption->GetMode()                ||
         m_FESeparateSubmission != decodeOption->IsFESeparateSubmission() ||
-        m_raMode               != decodeOption->GetRAMode())
+        m_raMode               != decodeOption->GetRAMode()              ||
+        m_protectMode          != decodeOption->GetProtectMode())
     {
         return false;
     }

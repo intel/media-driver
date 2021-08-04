@@ -191,7 +191,8 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
             m_computeContextEnabled = false;
         }
 
-        if (m_osInterface->osCpInterface->IsHMEnabled() && MEDIA_IS_SKU(m_skuTable, FtrRAMode))
+        if (m_osInterface->osCpInterface->IsHMEnabled() &&
+            (MEDIA_IS_SKU(m_skuTable, FtrRAMode) || MEDIA_IS_SKU(m_skuTable, FtrProtectedEnableBitRequired)))
         {
             if (m_computeContextEnabled)
             {
@@ -203,7 +204,8 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
                 gpuContext          = MOS_GPU_CONTEXT_RENDER_RA;
                 renderGpuNode       = MOS_GPU_NODE_3D;
             }
-            createOption.RAMode     = 1;
+            createOption.RAMode     = MEDIA_IS_SKU(m_skuTable, FtrRAMode);
+            createOption.ProtectMode = MEDIA_IS_SKU(m_skuTable, FtrProtectedEnableBitRequired);
         }
         else
         {
@@ -218,6 +220,7 @@ MOS_STATUS CodechalEncoderState::CreateGpuContexts()
                 renderGpuNode = MOS_GPU_NODE_3D;
             }
             createOption.RAMode = 0;
+            createOption.ProtectMode = 0;
         }
 
         if (m_hwInterface->m_slicePowerGate)

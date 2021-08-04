@@ -73,9 +73,11 @@ public:
     //!
     uint8_t GetNumPipe() { return m_numPipe; };
     uint32_t GetRAMode() const { return m_raMode; };
+    uint32_t GetProtectMode() const { return m_protectMode; };
 protected:
     uint8_t m_numPipe = 0;
     uint32_t m_raMode = 0;
+    uint32_t m_protectMode = 0;
     static constexpr uint32_t m_4KFrameWdithTh = 3840;
     static constexpr uint32_t m_4KFrameHeightTh = 2160;
     static constexpr uint32_t m_5KFrameWdithTh  = 5120;

@@ -158,17 +158,23 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
 
     MediaScalability * veStateProvided = nullptr;
 
-    if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrRAMode) && IS_RENDER_ENGINE_FUNCTION(func))
+    if (IS_RENDER_ENGINE_FUNCTION(func))
     {
         auto scalPars = (ScalabilityPars *)requirement;
         MOS_OS_CHK_NULL_RETURN(scalPars);
         MOS_OS_CHK_NULL_RETURN(m_osInterface->osCpInterface);
-        scalPars->raMode = m_osInterface->osCpInterface->IsHMEnabled() ? 1 : 0;
+        scalPars->raMode = m_osInterface->osCpInterface->IsHMEnabled() ? MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrRAMode) : 0;
+        scalPars->protectMode = m_osInterface->osCpInterface->IsHMEnabled() ? MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrProtectedEnableBitRequired) : 0;
         if (scalPars->raMode)
         {
             MOS_OS_NORMALMESSAGE("request RA mode context for protected render workload");
             WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_RA_MODE_ENABLE_ID, 1, m_osInterface->pOsContext);
         }
+        if (scalPars->protectMode)
+        {
+            MOS_OS_NORMALMESSAGE("request protect mode context for protected render workload");
+            WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_PROTECT_MODE_ENABLE_ID, 1, m_osInterface->pOsContext);
+        }        
     }
 
     uint32_t index = m_invalidContextAttribute;
