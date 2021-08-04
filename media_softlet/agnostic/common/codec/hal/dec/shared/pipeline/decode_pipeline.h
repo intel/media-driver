@@ -347,7 +347,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager);
+    MOS_STATUS CreatePreSubPipeLines(DecodeSubPipelineManager &subPipelineManager);
 
     //!
     //! \brief  Create Post sub pipelines
