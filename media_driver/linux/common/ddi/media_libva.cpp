@@ -6931,25 +6931,13 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     {
         bMmcEnabled = false;
     }
+    DDI_CHK_NULL(mediaCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    switch (mediaSurface->TileType) {
-    case I915_TILING_X:
-        desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_X_TILED;
-        break;
-    case I915_TILING_Y:
-        if (mediaCtx->m_auxTableMgr && bMmcEnabled)
-        {
-            desc->objects[0].drm_format_modifier = GmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS :
-             (GmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
-        }else
-        {
-            desc->objects[0].drm_format_modifier = I915_FORMAT_MOD_Y_TILED;
-        }
-        break;
-    case I915_TILING_NONE:
-    default:
-        desc->objects[0].drm_format_modifier = DRM_FORMAT_MOD_NONE;
-    }
+    if(VA_STATUS_SUCCESS != mediaCtx->m_caps->GetSurfaceModifier(mediaSurface, desc->objects[0].drm_format_modifier))
+    {
+        DDI_ASSERTMESSAGE("could not find related modifier values");
+        return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+    }    
 
     int composite_object = flags & VA_EXPORT_SURFACE_COMPOSED_LAYERS;
 

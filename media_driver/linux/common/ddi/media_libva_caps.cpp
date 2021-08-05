@@ -35,6 +35,7 @@
 #include "media_ddi_encode_const.h"
 #include "media_ddi_prot.h"
 #include "media_libva_caps_factory.h"
+#include "drm_fourcc.h"
 
 typedef MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT> CapsFactory;
 
@@ -3664,4 +3665,26 @@ MediaLibvaCaps * MediaLibvaCaps::CreateMediaLibvaCaps(DDI_MEDIA_CONTEXT *mediaCt
     {
         return nullptr;
     }
+}
+
+VAStatus MediaLibvaCaps::GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, uint64_t &modifier)
+{
+    DDI_CHK_NULL(mediaSurface,                   "nullptr mediaSurface",                   VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(mediaSurface->bo,               "nullptr mediaSurface->bo",               VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(mediaSurface->pGmmResourceInfo, "nullptr mediaSurface->pGmmResourceInfo", VA_STATUS_ERROR_INVALID_SURFACE);
+    GMM_TILE_TYPE gmmTileType = mediaSurface->pGmmResourceInfo->GetTileType();
+    switch(gmmTileType)
+    {
+        case GMM_TILED_Y:
+            modifier = I915_FORMAT_MOD_Y_TILED;
+            break;
+        case GMM_TILED_X:
+            modifier = I915_FORMAT_MOD_X_TILED;
+            break;
+        default:
+            modifier = DRM_FORMAT_MOD_NONE;
+            break;
+
+    }
+    return VA_STATUS_SUCCESS;
 }

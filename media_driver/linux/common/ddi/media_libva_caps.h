@@ -695,6 +695,18 @@ public:
         return VA_STATUS_SUCCESS;
     }
 
+    //! \brief Get surface drm modifier
+    //!
+    //! \param    [in] mediaSurface
+    //!           Pointer to the media surface
+    //! \param    [out] modifier
+    //!           reference of the modifier
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    virtual VAStatus GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, uint64_t &modifier);
+
 protected:
     //!
     //! \class    ProfileEntrypoint
@@ -1393,5 +1405,6 @@ protected:
     //!           VA_STATUS_SUCCESS if success
     //!
     VAStatus GetGeneralConfigAttrib(VAConfigAttrib* attrib);
+
 };
 #endif
