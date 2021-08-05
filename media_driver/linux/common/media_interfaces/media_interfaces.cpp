@@ -607,7 +607,7 @@ CodechalDecodeHistogram* DecodeHistogramDevice::CreateFactory(
 }
 
 MediaInterfacesHwInfo* MediaInterfacesHwInfoDevice::CreateFactory(
-    PLATFORM platform)
+    PLATFORM platform, MEDIA_WA_TABLE *waTable)
 {
     MediaInterfacesHwInfoDevice *device = nullptr;
     MediaInterfacesHwInfo       *hwInfo = nullptr;
@@ -619,6 +619,7 @@ MediaInterfacesHwInfo* MediaInterfacesHwInfoDevice::CreateFactory(
     }
     else
     {
+        device->RefreshRevId(platform, waTable);
         device->Initialize(platform);
     }
 

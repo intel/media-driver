@@ -54,7 +54,16 @@ public:
     //! \return   Pointer to Gen specific hw info if
     //!           successful, otherwise return nullptr
     //!
-    static MediaInterfacesHwInfo* CreateFactory(PLATFORM platform);
+    static MediaInterfacesHwInfo *CreateFactory(PLATFORM platform, MEDIA_WA_TABLE *waTable = nullptr);
+
+    //!
+    //! \brief    Refresh RevId
+    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
+    //!
+    virtual MOS_STATUS RefreshRevId(PLATFORM &platform, MEDIA_WA_TABLE *waTable)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
 
     //!
     //! \brief    Initializes platform specific hw type
