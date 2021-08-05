@@ -1414,7 +1414,7 @@ MOS_STATUS CodechalEncodeJpegState::DumpPicParams(
     CodecEncodeJpegPictureParams *picParams)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
-    if (m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
+    if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrPicParams))
     {
         return MOS_STATUS_SUCCESS;
     }
