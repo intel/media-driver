@@ -474,7 +474,7 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
+    mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform, &mediaCtx->WaTable);
 
     DdiMediaUtil_UnLockMutex(&m_GlobalMutex);
 
