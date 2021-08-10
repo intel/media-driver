@@ -2585,31 +2585,6 @@ GMM_RESOURCE_FORMAT MediaLibvaCapsG12::ConvertMediaFmtToGmmFmt(
     }
 }
 
-VAStatus MediaLibvaCapsG12::QueryDisplayAttributes(
-            VADisplayAttribute *attribList,
-            int32_t *numAttribs)
-{
-    DDI_UNUSED(attribList);
-    DDI_CHK_NULL(numAttribs, "Null num_attribs", VA_STATUS_ERROR_INVALID_PARAMETER);
-
-    if (numAttribs)
-        *numAttribs = 0;
-
-    return VA_STATUS_SUCCESS;
-}
-
-VAStatus MediaLibvaCapsG12::GetDisplayAttributes(
-            VADisplayAttribute *attribList,
-            int32_t numAttribs)
-{
-    DDI_UNUSED(attribList);
-    DDI_UNUSED(numAttribs);
-
-    return VA_STATUS_ERROR_UNIMPLEMENTED;
-}
-
-
-
 extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 
 static bool tglLPRegistered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::

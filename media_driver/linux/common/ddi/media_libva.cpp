@@ -1659,17 +1659,49 @@ VAStatus DdiMedia_InitMediaContext (
     mediaCtx->pfnMediaMemoryTileConvert = DdiMedia_MediaMemoryTileConvertInternal;
 #endif
     mediaCtx->modularizedGpuCtxEnabled = true;
-    mediaCtx->tileInfo = VA_ATTRIB_NOT_SUPPORTED;
 
     if (mediaCtx->m_apoMosEnabled)
     {
-        VAStatus status = DdiMediaUtil_InitMosForMediaContext(mediaCtx);
-        if(VA_STATUS_SUCCESS != status)
+        MOS_CONTEXT mosCtx     = {};
+        mosCtx.fd              = mediaCtx->fd;
+        mosCtx.m_apoMosEnabled = mediaCtx->m_apoMosEnabled;
+
+        MosInterface::InitOsUtilities(&mosCtx);
+
+        mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
+        if (nullptr == mediaCtx->pGtSystemInfo)
         {
             FreeForMediaContext(mediaCtx);
-            return status; 
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        MosInterface::GetReservedFromDevice(mediaCtx->m_osDeviceContext, (uint32_t &)mediaCtx->tileInfo);
+
+        if (MosInterface::CreateOsDeviceContext(&mosCtx, &mediaCtx->m_osDeviceContext) != MOS_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Unable to create MOS device context.");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+        mediaCtx->pDrmBufMgr                = mosCtx.bufmgr;
+        mediaCtx->iDeviceId                 = mosCtx.iDeviceId;
+        mediaCtx->SkuTable                  = mosCtx.SkuTable;
+        mediaCtx->WaTable                   = mosCtx.WaTable;
+        *mediaCtx->pGtSystemInfo            = mosCtx.gtSystemInfo;
+        mediaCtx->platform                  = mosCtx.platform;
+        mediaCtx->m_auxTableMgr             = mosCtx.m_auxTableMgr;
+        mediaCtx->pGmmClientContext         = mosCtx.pGmmClientContext;
+        mediaCtx->m_useSwSwizzling          = mosCtx.bUseSwSwizzling;
+        mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
+        mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
+#ifdef _MMC_SUPPORTED
+        if (mosCtx.ppMediaMemDecompState == nullptr)
+        {
+            DDI_ASSERTMESSAGE("media decomp state is null.");
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_OPERATION_FAILED;
+        }
+        mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
+#endif
+        mediaCtx->pMediaCopyState           = *mosCtx.ppMediaCopyState;
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
@@ -1711,7 +1743,7 @@ VAStatus DdiMedia_InitMediaContext (
             g_perfutility->bPerfUtilityKey = true;
         }
 
-        mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE,nullptr);
+        mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE);
         if (nullptr == mediaCtx->pDrmBufMgr)
         {
             DDI_ASSERTMESSAGE("DDI:No able to allocate buffer manager, fd=0x%d", mediaCtx->fd);
