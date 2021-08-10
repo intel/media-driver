@@ -81,7 +81,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
         m_fd = osDriverContext->fd;
 
-        m_bufmgr = mos_bufmgr_gem_init(m_fd, BATCH_BUFFER_SIZE);
+        m_bufmgr = mos_bufmgr_gem_init(m_fd, BATCH_BUFFER_SIZE, &osDriverContext->tileInfo);
         if (nullptr == m_bufmgr)
         {
             MOS_OS_ASSERTMESSAGE("Not able to allocate buffer manager, fd=0x%d", m_fd);

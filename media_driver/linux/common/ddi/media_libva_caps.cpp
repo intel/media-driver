@@ -3074,6 +3074,40 @@ VAStatus MediaLibvaCaps::QuerySurfaceAttributes(
     return status;
 }
 
+VAStatus MediaLibvaCaps::QueryDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t *numAttribs)
+{
+    DDI_UNUSED(attribList);
+    DDI_CHK_NULL(numAttribs, "Null num_attribs", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    if (numAttribs)
+        *numAttribs = 0;
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus MediaLibvaCaps::GetDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t numAttribs)
+{
+    DDI_UNUSED(attribList);
+    DDI_UNUSED(numAttribs);
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaCaps::SetDisplayAttributes(
+            VADisplayAttribute * attribList,
+            int32_t numAttribs)
+{
+    DDI_UNUSED(attribList);
+    DDI_UNUSED(numAttribs);
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+
 bool MediaLibvaCaps::IsVc1Profile(VAProfile profile)
 {
     return (

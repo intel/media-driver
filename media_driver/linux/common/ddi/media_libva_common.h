@@ -552,6 +552,7 @@ struct DDI_MEDIA_CONTEXT
     bool                   m_apoMosEnabled;
     DdiMediaFunctions     *m_compList[CompCount];
     MediaInterfacesHwInfo *m_hwInfo;
+    int32_t tileInfo;
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)

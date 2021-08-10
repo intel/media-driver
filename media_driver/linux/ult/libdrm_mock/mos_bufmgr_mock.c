@@ -3952,7 +3952,7 @@ mos_bufmgr_gem_unref(struct mos_bufmgr *bufmgr)
  * \param fd File descriptor of the opened DRM device.
  */
 struct mos_bufmgr *
-mos_bufmgr_gem_init(int fd, int batch_size)
+mos_bufmgr_gem_init(int fd, int batch_size, int* ext_info)
 {
     struct mos_bufmgr_gem *bufmgr_gem;
     struct drm_i915_gem_get_aperture aperture;
