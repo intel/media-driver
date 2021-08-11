@@ -47,7 +47,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     # Other common flags
     -fmessage-length=0
     -fvisibility=hidden
-    -fstack-protector
     -fdata-sections
     -ffunction-sections
     -Wl,--gc-sections
@@ -64,6 +63,11 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -g
 )
 
+if(MEDIA_BUILD_HARDENING)
+    set(MEDIA_COMPILER_FLAGS_COMMON
+        ${MEDIA_COMPILER_FLAGS_COMMON}
+        -fstack-protector)
+endif()
 
 if(${UFO_MARCH} STREQUAL "slm")
     set(MEDIA_COMPILER_FLAGS_COMMON
@@ -119,9 +123,13 @@ if(${UFO_VARIANT} STREQUAL "default")
     set(MEDIA_COMPILER_FLAGS_RELEASE
         ${MEDIA_COMPILER_FLAGS_RELEASE}
         -O2
-        -D_FORTIFY_SOURCE=2
         -fno-omit-frame-pointer
     )
+    if(MEDIA_BUILD_HARDENING)
+        set(MEDIA_COMPILER_FLAGS_RELEASE
+            ${MEDIA_COMPILER_FLAGS_RELEASE}
+            -D_FORTIFY_SOURCE=2)
+    endif()
 endif()
 
 if(NOT ${PLATFORM} STREQUAL "android")
