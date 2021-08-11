@@ -116,7 +116,13 @@ if(MEDIA_BUILD_FATAL_WARNINGS)
     set_target_properties(${LIB_NAME_OBJ} PROPERTIES COMPILE_FLAGS "-Werror")
 endif()
 
-set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fstack-protector -fPIC")
+set(MEDIA_LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fPIC")
+option(MEDIA_BUILD_HARDENING "Enable hardening (stack-protector, fortify source)" ON)
+if(MEDIA_BUILD_HARDENING)
+    set(MEDIA_LINK_FLAGS "${MEDIA_LINK_FLAGS} -fstack-protector")
+endif()
+set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS ${MEDIA_LINK_FLAGS})
+
 set_target_properties(${LIB_NAME}        PROPERTIES PREFIX "")
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES PREFIX "")
 
