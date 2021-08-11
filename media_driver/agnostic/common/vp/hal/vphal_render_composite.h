@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2016-2020, Intel Corporation
+* Copyright (c) 2016-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -180,7 +180,6 @@ typedef struct _VPHAL_COMPOSITE_PARAMS
     PVPHAL_ALPHA_PARAMS     pCompAlpha;           //!< Alpha for composited surface
     bool                    bAlphaCalculateEnable;
     bool                    bForceSkipColorFill;  //!< Force skip colorfill even the first layer is translucent
-    bool                    bComputeWlaker;       //!< Compute walker in use
 
     // Resource counters
     int32_t                 nLayers;

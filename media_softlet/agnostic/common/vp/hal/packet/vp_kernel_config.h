@@ -25,6 +25,7 @@
 #include <map>
 #include "renderhal.h"
 #include "vphal.h"
+#include "hal_kerneldll.h"
 
 #define VP_USE_MEDIA_THREADS_MAX    0
 // Compositing Block size
@@ -44,6 +45,21 @@ public:
     VpKernelConfig();
     virtual ~VpKernelConfig();
     MOS_STATUS GetKernelParam(VpKernelID kernelId, RENDERHAL_KERNEL_PARAM &param);
+
+    virtual Kdll_Scalingratio GetFilterScalingRatio(float scaleX, float scaleY)
+    {
+        return Scalingratio_Any;
+    }
+
+    virtual bool IsFcCscCoeffPatchModeEnabled()
+    {
+        return true;
+    }
+
+    virtual bool IsDpFcKernelEnabled()
+    {
+        return false;
+    }
 
 protected:
     std::map<VpKernelID, RENDERHAL_KERNEL_PARAM> m_kernelParams;    // Kernel params.

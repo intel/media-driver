@@ -59,10 +59,6 @@ public:
         return m_kernelDllState;
     }
 
-    MOS_STATUS SetKernelName(
-        void*                 name,
-        uint32_t              nameLen);
-
     MOS_STATUS SetKernelName(std::string kernelname);
 
     std::string& GetKernelName()
@@ -102,24 +98,23 @@ protected:
     // Compositing Kernel DLL/Search state
     const Kdll_RuleEntry        *m_kernelDllRules = nullptr;
     Kdll_State                  *m_kernelDllState = nullptr;
-
     // Compositing Kernel buffer and size
     const void                  *m_kernelBin = nullptr;
-    uint32_t                     m_kernelBinSize = 0;
+    uint32_t                    m_kernelBinSize = 0;
     // CM Kernel Execution Code Offset
-    uint32_t                     m_kernelBinOffset = 0;
-
+    uint32_t                    m_kernelBinOffset = 0;
     // CM Kernel Arguments
-    KERNEL_ARGS                  m_kernelArgs;
-
-    std::string                  m_kernelName = {};
-
+    KERNEL_ARGS                 m_kernelArgs;
+    std::string                 m_kernelName = {};
     // CM Compositing Kernel patch file buffer and size
     const void                  *m_fcPatchBin = nullptr;
-    uint32_t                     m_fcPatchBinSize = 0;
+    uint32_t                    m_fcPatchBinSize = 0;
+
+public:
+    const static std::string          s_kernelNameNonAdvKernels;
 };
 
-using KERNEL_POOL = std::vector<VpRenderKernel>;
+using KERNEL_POOL = std::map<std::string, VpRenderKernel>;
 
 class VpPlatformInterface
 {

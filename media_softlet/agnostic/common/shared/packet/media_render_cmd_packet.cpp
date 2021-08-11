@@ -445,14 +445,26 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
     PRENDERHAL_SURFACE_NEXT         pRenderSurface, 
     PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, 
     uint32_t                        bindingIndex, 
-    bool                            bWrite)
+    bool                            bWrite,
+    PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntries,
+    int32_t                         numOfSurfaceEntries)
 {
     PMOS_INTERFACE                  pOsInterface;
-    PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceEntries[MHW_MAX_SURFACE_PLANES];
+    PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntriesTmp[MHW_MAX_SURFACE_PLANES];
+    PRENDERHAL_SURFACE_STATE_ENTRY  *pSurfaceEntries = nullptr;
     int32_t                         iSurfaceEntries;
     int32_t                         i;
     MOS_STATUS                      eStatus;
     RENDERHAL_SURFACE_STATE_PARAMS  surfaceParams;
+
+    if (nullptr == surfaceEntries || MHW_MAX_SURFACE_PLANES != numOfSurfaceEntries)
+    {
+        pSurfaceEntries = surfaceEntriesTmp;
+    }
+    else
+    {
+        pSurfaceEntries = &surfaceEntries;
+    }
 
     // Initialize Variables
     eStatus = MOS_STATUS_SUCCESS;
@@ -740,7 +752,7 @@ MOS_STATUS RenderCmdPacket::PrepareMediaWalkerParams(KERNEL_WALKER_PARAMS params
 
     uiMediaWalkerBlockSize = m_renderHal->pHwSizes->dwSizeMediaWalkerBlock;
     alignedRect            = params.alignedRect;
-    bVerticalPattern       = params.rotationNeeded;
+    bVerticalPattern       = params.isVerticalPattern;
 
     // Calculate aligned output area in order to determine the total # blocks
     // to process in case of non-16x16 aligned target.
@@ -750,6 +762,13 @@ MOS_STATUS RenderCmdPacket::PrepareMediaWalkerParams(KERNEL_WALKER_PARAMS params
     alignedRect.top    -= alignedRect.top % uiMediaWalkerBlockSize;
     alignedRect.right  -= alignedRect.right % uiMediaWalkerBlockSize;
     alignedRect.bottom -= alignedRect.bottom % uiMediaWalkerBlockSize;
+
+    if (params.calculateBlockXYByAlignedRect)
+    {
+        // Set number of blocks
+        params.iBlocksX = (alignedRect.right  - alignedRect.left) / uiMediaWalkerBlockSize;
+        params.iBlocksY = (alignedRect.bottom - alignedRect.top ) / uiMediaWalkerBlockSize;
+    }
 
     // Set walker cmd params - Rasterscan
     mediaWalker.InterfaceDescriptorOffset = params.iMediaID;
@@ -822,6 +841,10 @@ MOS_STATUS RenderCmdPacket::PrepareMediaWalkerParams(KERNEL_WALKER_PARAMS params
         mediaWalker.LocalEnd.x = params.iBlocksX - 1;
         mediaWalker.LocalEnd.y = 0;
     }
+
+    mediaWalker.UseScoreboard   = m_renderHal->VfeScoreboard.ScoreboardEnable;
+    mediaWalker.ScoreboardMask  = m_renderHal->VfeScoreboard.ScoreboardMask;
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -842,33 +865,55 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
     alignedRect.right  -= alignedRect.right  % uiMediaWalkerBlockSize;
     alignedRect.bottom -= alignedRect.bottom % uiMediaWalkerBlockSize;
 
-    // Set walker cmd params - Rasterscan
-    gpgpuWalker.InterfaceDescriptorOffset    = m_renderData.mediaID;
+    if (params.calculateBlockXYByAlignedRect)
+    {
+        // Set number of blocks
+        params.iBlocksX = (alignedRect.right  - alignedRect.left) / uiMediaWalkerBlockSize;
+        params.iBlocksY = (alignedRect.bottom - alignedRect.top ) / uiMediaWalkerBlockSize;
+    }
 
+    // Set walker cmd params - Rasterscan
+    gpgpuWalker.InterfaceDescriptorOffset    = params.iMediaID;
+
+    // Specifies the initial value of the X component of the thread group when walker is started.
+    // During the walker operation, when X is incremented to the X Dimension limit, on the next step
+    // it is re-loaded with theStarting Xvalue. Same as GroupStartingY.
     gpgpuWalker.GroupStartingX = (alignedRect.left / uiMediaWalkerBlockSize);
     gpgpuWalker.GroupStartingY = (alignedRect.top / uiMediaWalkerBlockSize);
+    // The X dimension of the thread group (maximum X is dimension -1), same as GroupHeight.
     gpgpuWalker.GroupWidth     = params.iBlocksX;
     gpgpuWalker.GroupHeight    = params.iBlocksY;
+    if (params.isGroupStartInvolvedInGroupSize)
+    {
+        gpgpuWalker.GroupWidth  += gpgpuWalker.GroupStartingX;
+        gpgpuWalker.GroupHeight += gpgpuWalker.GroupStartingY;
+    }
 
     gpgpuWalker.ThreadWidth  = COMPUTE_WALKER_THREAD_SPACE_WIDTH;
     gpgpuWalker.ThreadHeight = COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
     gpgpuWalker.ThreadDepth  = COMPUTE_WALKER_THREAD_SPACE_DEPTH;
-    gpgpuWalker.IndirectDataStartAddress = m_renderData.iCurbeOffset;
+    gpgpuWalker.IndirectDataStartAddress = params.iCurbeOffset;
     // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
     gpgpuWalker.IndirectDataLength       = MOS_ALIGN_CEIL(params.iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);
-    gpgpuWalker.BindingTableID = m_renderData.bindingTable;
+    gpgpuWalker.BindingTableID           = params.iBindingTable;
 
     return MOS_STATUS_SUCCESS;
 }
 
+void RenderCmdPacket::UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam)
+{
+    // CURBE_Length is set as the size of curbe buffer. 32 alignment with 5 bits right shift need be done before it being used.
+    kernelParam.CURBE_Length = (kernelParam.CURBE_Length + 31) >> 5;
+}
+
 MOS_STATUS RenderCmdPacket::LoadKernel()
 {
-    int32_t                     iKrnAllocation;
-    MHW_KERNEL_PARAM            MhwKernelParam;
-    RENDERHAL_KERNEL_PARAM      KernelParam;
+    int32_t                     iKrnAllocation  = 0;
+    MHW_KERNEL_PARAM            MhwKernelParam  = {};
+    RENDERHAL_KERNEL_PARAM      KernelParam     = m_renderData.KernelParam;
     // Load kernel to GSH
     INIT_MHW_KERNEL_PARAM(MhwKernelParam, &m_renderData.KernelEntry);
-    INIT_KERNEL_CONFIG_PARAM(KernelParam, &m_renderData.KernelParam);
+    UpdateKernelConfigParam(KernelParam);
     iKrnAllocation = m_renderHal->pfnLoadKernel(
         m_renderHal,
         &KernelParam,

@@ -80,6 +80,8 @@ protected:
 
     virtual MOS_STATUS SetupMediaWalker() override;
 
+    virtual void UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam) override;
+
     MOS_STATUS SendMediaStates(PRENDERHAL_INTERFACE pRenderHal, PMOS_COMMAND_BUFFER pCmdBuffer);
 
     MOS_STATUS InitRenderHalSurface(

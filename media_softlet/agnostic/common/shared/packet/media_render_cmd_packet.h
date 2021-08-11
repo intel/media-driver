@@ -65,37 +65,20 @@
         (MhwKernelParam).iKCID    = (_pKernelEntry)->iKCID;                         \
     } while(0)
 
-//!
-//! \brief Initialize Kernel config struct for loading Kernel
-//!
-#define INIT_KERNEL_CONFIG_PARAM(KernelParam, _KernelParam)                        \
-    do                                                                              \
-    {                                                                               \
-        MOS_ZeroMemory(&(KernelParam), sizeof(KernelParam));                         \
-        (KernelParam).GRF_Count            = (_KernelParam)->GRF_Count;                       \
-        (KernelParam).BT_Count             = (_KernelParam)->BT_Count;                         \
-        (KernelParam).Sampler_Count        = (_KernelParam)->Sampler_Count;                         \
-        (KernelParam).Thread_Count         = (_KernelParam)->Thread_Count;                         \
-        (KernelParam).GRF_Start_Register   = (_KernelParam)->GRF_Start_Register;                       \
-        (KernelParam).CURBE_Length         = ((_KernelParam)->CURBE_Length + 31) >> 5;                         \
-        (KernelParam).block_width          = (_KernelParam)->block_width;                         \
-        (KernelParam).block_height         = (_KernelParam)->block_height;                         \
-        (KernelParam).blocks_x             = (_KernelParam)->blocks_x;                         \
-        (KernelParam).blocks_y             = (_KernelParam)->blocks_y;                         \
-    } while(0)
-
 typedef struct _KERNEL_WALKER_PARAMS
 {
-    bool                                walkerNeeded;
-    int32_t                             iBlocksX;
-    int32_t                             iBlocksY;
     int32_t                             iBindingTable;
     int32_t                             iMediaID;
     int32_t                             iCurbeOffset;
     int32_t                             iCurbeLength;
+
+    int32_t                             iBlocksX;
+    int32_t                             iBlocksY;
     RECT                                alignedRect;
-    bool                                rotationNeeded;
+    bool                                isVerticalPattern;
     bool                                bSyncFlag;
+    bool                                isGroupStartInvolvedInGroupSize;    // true if group start need be involved in the group size.
+    bool                                calculateBlockXYByAlignedRect;      // true if iBlocksX/iBlocksY is calculated by alignedRect in RenderCmdPacket instead of kernel object.
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
@@ -183,7 +166,9 @@ public:
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         uint32_t                        bindingIndex,
-        bool                            bWrite);
+        bool                            bWrite,
+        PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntries = nullptr,
+        int32_t                         numOfSurfaceEntries = 0);
 
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                        buffer,
@@ -253,6 +238,8 @@ protected:
     {
         m_renderData.bindingTableEntry = 0;
     }
+
+    virtual void UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam);
 
 protected:
     PRENDERHAL_INTERFACE        m_renderHal   = nullptr;

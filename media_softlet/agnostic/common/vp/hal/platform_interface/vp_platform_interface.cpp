@@ -29,6 +29,8 @@
 
 using namespace vp;
 
+const std::string VpRenderKernel::s_kernelNameNonAdvKernels = "vpFcKernels";
+
 MOS_STATUS VpRenderKernel::InitVPKernel(
     const Kdll_RuleEntry *kernelRules,
     const uint32_t *      kernelBin,
@@ -92,6 +94,8 @@ MOS_STATUS VpRenderKernel::InitVPKernel(
         MOS_SafeFreeMemory(pFcPatchBin);
     }
 
+    SetKernelName(VpRenderKernel::s_kernelNameNonAdvKernels);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -104,9 +108,13 @@ MOS_STATUS VpPlatformInterface::InitVPFCKernels(
     void (*ModifyFunctionPointers)(PKdll_State))
 {
     VP_FUNC_CALL();
-    VpRenderKernel vpKernel;
-    if (!vpKernel.GetKdllState())
+
+    // For non-adv kernels.
+    if (m_kernelPool.end() == m_kernelPool.find(VpRenderKernel::s_kernelNameNonAdvKernels))
     {
+        // Need refine later. Should not push_back local variable, which will cause default
+        // assign operator being used and may cause issue if we release any internal members in destruction.
+        VpRenderKernel vpKernel;
         vpKernel.InitVPKernel(
             kernelRules,
             kernelBin,
@@ -115,15 +123,13 @@ MOS_STATUS VpPlatformInterface::InitVPFCKernels(
             patchKernelSize,
             ModifyFunctionPointers);
 
-        vpKernel.SetKernelName("vpFCkernels");
-
-        m_kernelPool.push_back(vpKernel);
+        m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
     }
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::VpRenderKernel::Destroy()
+MOS_STATUS VpRenderKernel::Destroy()
 {
     VP_FUNC_CALL();
 
@@ -171,22 +177,7 @@ MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::VpRenderKernel::SetKernelName(void *name, uint32_t nameLen)
-{
-    VP_FUNC_CALL();
-    if (name == nullptr || nameLen < 1 || nameLen > 256)
-    {
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    std::string kernelname((char *)name, nameLen);
-
-    m_kernelName.assign(kernelname);
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS vp::VpRenderKernel::SetKernelName(std::string kernelname)
+MOS_STATUS VpRenderKernel::SetKernelName(std::string kernelname)
 {
     VP_FUNC_CALL();
     m_kernelName.assign(kernelname);
@@ -194,7 +185,7 @@ MOS_STATUS vp::VpRenderKernel::SetKernelName(std::string kernelname)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::VpRenderKernel::SetKernelBinOffset(uint32_t offset)
+MOS_STATUS VpRenderKernel::SetKernelBinOffset(uint32_t offset)
 {
     VP_FUNC_CALL();
     m_kernelBinOffset = offset;
@@ -202,7 +193,7 @@ MOS_STATUS vp::VpRenderKernel::SetKernelBinOffset(uint32_t offset)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::VpRenderKernel::SetKernelBinSize(uint32_t size)
+MOS_STATUS VpRenderKernel::SetKernelBinSize(uint32_t size)
 {
     VP_FUNC_CALL();
     m_kernelBinSize = size;
@@ -210,7 +201,7 @@ MOS_STATUS vp::VpRenderKernel::SetKernelBinSize(uint32_t size)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::VpRenderKernel::SetKernelBinPointer(void *pBin)
+MOS_STATUS VpRenderKernel::SetKernelBinPointer(void *pBin)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(pBin);
@@ -219,7 +210,7 @@ MOS_STATUS vp::VpRenderKernel::SetKernelBinPointer(void *pBin)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS vp::VpRenderKernel::AddKernelArg(KRN_ARG &kernelArg)
+MOS_STATUS VpRenderKernel::AddKernelArg(KRN_ARG &kernelArg)
 {
     VP_FUNC_CALL();
 
@@ -269,12 +260,23 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
 
     for (uint32_t i = 0; i < header->getNumKernels(); i++)
     {
-        VpRenderKernel vpKernel;
-
-        vpKernel.SetKernelBinPointer((void *)cisaCode);
-
         vISA::Kernel *kernel = header->getKernelInfo()[i];
-        VP_PUBLIC_CHK_STATUS_RETURN(vpKernel.SetKernelName((void *)kernel->getName(), kernel->getNameLen()));
+
+        if (kernel->getName() == nullptr || kernel->getNameLen() < 1 || kernel->getNameLen() > 256)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
+        std::string kernelName(kernel->getName(), kernel->getNameLen());
+
+        if (m_kernelPool.end() != m_kernelPool.find(kernelName))
+        {
+            continue;
+        }
+
+        VpRenderKernel vpKernel;
+        vpKernel.SetKernelName(kernelName);
+        vpKernel.SetKernelBinPointer((void *)cisaCode);
 
         uint8_t          numGenBinaries = kernel->getNumGenBinaries();
         vISA::GenBinary *genBinary      = kernel->getGenBinaryInfo()[numGenBinaries - 1];
@@ -342,7 +344,7 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
             vpKernel.AddKernelArg(kernelArg);
         }
 
-        m_kernelPool.push_back(vpKernel);
+        m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
     }
 
     MOS_Delete(isaFile);
@@ -354,7 +356,7 @@ VpPlatformInterface::~VpPlatformInterface()
 {
     for (auto& kernel : m_kernelPool)
     {
-        kernel.Destroy();
+        kernel.second.Destroy();
     }
 }
 

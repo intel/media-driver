@@ -40,12 +40,28 @@ MOS_STATUS VpKernelSet::GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kern
 {
     VP_FUNC_CALL();
 
-    Kdll_State* kernelState = m_pKernelPool->at(0).GetKdllState();
+    auto it = m_pKernelPool->find(VpRenderKernel::s_kernelNameNonAdvKernels);
+
+    if (m_pKernelPool->end() == it)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    Kdll_State* kernelState = it->second.GetKdllState();
 
     if (kernelState)
     {
-        size   = kernelState->ComponentKernelCache.pCacheEntries[kuid].iSize;
-        kernel = kernelState->ComponentKernelCache.pCacheEntries[kuid].pBinary;
+        // For FC case, the kernel binary and size are gotten during GetKernelEntry.
+        if (IDR_VP_EOT == kuid)
+        {
+            size = 0;
+            kernel = nullptr;
+        }
+        else
+        {
+            size   = kernelState->ComponentKernelCache.pCacheEntries[kuid].iSize;
+            kernel = kernelState->ComponentKernelCache.pCacheEntries[kuid].pBinary;
+        }
         return MOS_STATUS_SUCCESS;
     }
     else
@@ -55,6 +71,7 @@ MOS_STATUS VpKernelSet::GetKernelInfo(uint32_t kuid, uint32_t& size, void*& kern
     }
 }
 
+// For Adv kernel
 MOS_STATUS VpKernelSet::FindAndInitKernelObj(VpRenderKernelObj* kernelObj)
 {
     VP_FUNC_CALL();
@@ -63,13 +80,15 @@ MOS_STATUS VpKernelSet::FindAndInitKernelObj(VpRenderKernelObj* kernelObj)
     VP_RENDER_CHK_NULL_RETURN(m_pKernelPool);
 
     bool bFind = false;
-    for (auto &kernel : *m_pKernelPool)
+
+    if (m_pKernelPool)
     {
-        if (!kernel.GetKernelName().compare(kernelObj->GetKernelName()))
+        auto it = m_pKernelPool->find(kernelObj->GetKernelName());
+        if (m_pKernelPool->end() != it)
         {
+            auto &kernel = it->second;
             VP_RENDER_CHK_STATUS_RETURN(kernelObj->Init(kernel));
             bFind = true;
-            break;
         }
     }
 

@@ -193,7 +193,25 @@ MOS_STATUS VpRenderCmdPacket::SetupSamplerStates()
     VP_RENDER_CHK_NULL_RETURN(m_renderHal);
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    KERNEL_SAMPLER_STATES& samplerStates = m_kernel->GetSamplerStates();
+    KERNEL_SAMPLER_STATES samplerStates;
+
+    // Initialize m_kernelSamplerStateGroup.
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->SetSamplerStates(m_kernelSamplerStateGroup));
+
+    for (int samplerIndex = 0, activeSamplerLeft = m_kernelSamplerStateGroup.size(); activeSamplerLeft > 0; ++samplerIndex)
+    {
+        auto it = m_kernelSamplerStateGroup.find(samplerIndex);
+        if (m_kernelSamplerStateGroup.end() != it)
+        {
+            --activeSamplerLeft;
+            samplerStates.push_back(it->second);
+        }
+        else
+        {
+            MHW_SAMPLER_STATE_PARAM param = {};
+            samplerStates.push_back(param);
+        }
+    }
 
     if (!samplerStates.empty())
     {
@@ -342,7 +360,7 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    // // Initialize States
+    // Initialize States
     MOS_ZeroMemory(&m_renderData.KernelEntry, sizeof(Kdll_CacheEntry));
 
     // Store pointer to Kernel Parameter
@@ -352,11 +370,8 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetKernelEntry(m_renderData.KernelEntry));
 
     // set the Inline Data length
-    void *   InlineData    = nullptr;
-    uint32_t iInlineLength = 0;
-    m_kernel->GetInlineState(&InlineData, iInlineLength);
-    m_renderData.iInlineLength = iInlineLength;
-    m_totoalInlineSize += iInlineLength;
+    m_renderData.iInlineLength = (int32_t)m_kernel->GetInlineDataSize();
+    m_totoalInlineSize += m_renderData.iInlineLength;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -373,7 +388,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
         for (auto surface = m_kernel->GetKernelSurfaceConfig().begin(); surface != m_kernel->GetKernelSurfaceConfig().end(); surface++)
         {
             KERNEL_SURFACE_STATE_PARAM *kernelSurfaceParam = &surface->second;
-            SurfaceType                 type               = SurfaceType(surface->first);
+            SurfaceType                 type               = surface->first;
 
             RENDERHAL_SURFACE_NEXT renderHalSurface;
             MOS_ZeroMemory(&renderHalSurface, sizeof(RENDERHAL_SURFACE_NEXT));
@@ -427,16 +442,15 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                     &renderHalSurface,
                     &renderSurfaceParams,
                     kernelSurfaceParam->surfaceOverwriteParams.bindIndex,
-                    renderSurfaceParams.bRenderTarget);
+                    renderSurfaceParams.bRenderTarget,
+                    kernelSurfaceParam->surfaceEntries,
+                    kernelSurfaceParam->sizeOfSurfaceEntries);
             }
             else
             {
                 if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams  &&
                      kernelSurfaceParam->surfaceOverwriteParams.bufferResource        &&
-                     kernelSurfaceParam->surfaceOverwriteParams.bindedKernel)         ||
-                    (!kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams &&
-                        (renderHalSurface.OsSurface.Type == MOS_GFXRES_BUFFER         ||
-                         renderHalSurface.OsSurface.Type == MOS_GFXRES_INVALID)))
+                     kernelSurfaceParam->surfaceOverwriteParams.bindedKernel))
                 {
                     index = SetBufferForHwAccess(
                         &renderHalSurface.OsSurface,
@@ -467,7 +481,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         renderSurfaceParams.bRenderTarget);
                 }
             }
-
+            VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCompParams());
             VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
         }
     }
@@ -518,9 +532,6 @@ VP_SURFACE *VpRenderCmdPacket::GetSurface(SurfaceType type)
 MOS_STATUS VpRenderCmdPacket::SetupMediaWalker()
 {
     VP_FUNC_CALL();
-    VP_RENDER_CHK_NULL_RETURN(m_kernel);
-
-    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetWalkerSetting(m_renderData.walkerParam));
 
     switch (m_walkerType)
     {
@@ -548,15 +559,15 @@ MOS_STATUS VpRenderCmdPacket::SetupWalkerParams()
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    m_renderData.walkerParam.iBindingTable = m_renderData.bindingTable;
-
-    m_renderData.walkerParam.iMediaID = m_renderData.mediaID;
-
-    m_renderData.walkerParam.iCurbeOffset = m_renderData.iCurbeOffset;
-
-    m_renderData.walkerParam.iCurbeLength = m_renderData.iCurbeLength;
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetWalkerSetting(m_renderData.walkerParam, m_renderData));
 
     return MOS_STATUS_SUCCESS;
+}
+
+void VpRenderCmdPacket::UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam)
+{
+    // In VP, 32 alignment with 5 bits right shift has already been done for CURBE_Length.
+    // No need update here.
 }
 
 MOS_STATUS VpRenderCmdPacket::InitRenderHalSurface(VP_SURFACE &surface, RENDERHAL_SURFACE &renderSurface)

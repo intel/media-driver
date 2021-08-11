@@ -48,6 +48,8 @@ MOS_STATUS VpKernelConfig::GetKernelParam(VpKernelID kernelId, RENDERHAL_KERNEL_
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
+    // CURBE_Length in param here is 32 aligned with 5 bits right shift.
     param = (*it).second;
+
     return MOS_STATUS_SUCCESS;
 }
