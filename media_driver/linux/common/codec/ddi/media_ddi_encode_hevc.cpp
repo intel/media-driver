@@ -374,6 +374,7 @@ VAStatus DdiEncodeHevc::EncodeInCodecHal(uint32_t numSlices)
     encodeParams.bNewQmatrixData = m_encodeCtx->bNewQmatrixData;
     encodeParams.bPicQuant       = m_encodeCtx->bPicQuant;
     encodeParams.ppNALUnitParams = m_encodeCtx->ppNALUnitParams;
+    encodeParams.uiNumNalUnits   = m_encodeCtx->indexNALUnit;
     encodeParams.pSeiData        = m_encodeCtx->pSEIFromApp;
     encodeParams.pSeiParamBuffer = m_encodeCtx->pSEIFromApp->pSEIBuffer;
     encodeParams.dwSEIDataOffset = 0;
