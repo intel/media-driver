@@ -312,7 +312,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
                     {
                         if (mediaSurfaceHeapElmt != nullptr &&
                                 mediaSurfaceHeapElmt->pSurface != nullptr &&
-                                bo == mediaSurfaceHeapElmt->pSurface->bo)
+                                mediaSurfaceHeapElmt->pSurface == surface)
                         {
                             mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.m_codecStatus;
                             mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.m_numMbsAffected;
@@ -385,7 +385,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
                 {
                     if (mediaSurfaceHeapElmt != nullptr &&
                             mediaSurfaceHeapElmt->pSurface != nullptr &&
-                            bo == mediaSurfaceHeapElmt->pSurface->bo)
+                            mediaSurfaceHeapElmt->pSurface == surface)
                     {
                         mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.status = (uint32_t)tempNewReport.codecStatus;
                         mediaSurfaceHeapElmt->pSurface->curStatusReport.decode.errMbNum = (uint32_t)tempNewReport.numMbsAffected;
