@@ -1263,12 +1263,12 @@ MEMORY_OBJECT_CONTROL_STATE MosInterface::GetGmmCachePolicyMemoryObject(
     }
     else if (gmmClientContext->GetCachePolicyElement(MP_RESOURCE_USAGE_DEFAULT).Initialized)
     {
-        MOS_OS_ASSERTMESSAGE("Cache is not initialized for GMM_RESOURCE_USAGE_TYPE %d, use MP_RESOURCE_USAGE_DEFAULT", gmmUsage);
+        MOS_OS_NORMALMESSAGE("Cache is not initialized for GMM_RESOURCE_USAGE_TYPE %d, use MP_RESOURCE_USAGE_DEFAULT", gmmUsage);
         return gmmClientContext->CachePolicyGetMemoryObject(nullptr, MP_RESOURCE_USAGE_DEFAULT);
     }
     else
     {
-        MOS_OS_ASSERTMESSAGE("Cache is not initialized for GMM_RESOURCE_USAGE_TYPE %d", gmmUsage);
+        MOS_OS_NORMALMESSAGE("Cache is not initialized for GMM_RESOURCE_USAGE_TYPE %d", gmmUsage);
         return gmmClientContext->GetCachePolicyUsage()[GMM_RESOURCE_USAGE_UNKNOWN].MemoryObjectOverride;
     }
 }
