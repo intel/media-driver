@@ -13,8 +13,7 @@ The Intel(R) Media Driver for VAAPI is distributed under the MIT license with
 portions covered under the BSD 3-clause "New" or "Revised" License.
 You may obtain a copy of the License at [MIT](https://opensource.org/licenses/MIT) & [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-## Prerequisites
-
+## Building
 For Ubuntu 16.04+
 
 ```
@@ -23,15 +22,8 @@ apt install autoconf libtool libdrm-dev xorg xorg-dev openbox libx11-dev libgl1-
 
 Equivalents for other distributions should work.
 
-## Dependencies
-
-* [Libva](https://github.com/intel/libva)
-* [GmmLib](https://github.com/intel/gmmlib)(Please check [comparability with GmmLib](https://github.com/intel/media-driver/wiki/Comparability-with-GmmLib))
-
-## Building
-
-1. Build and install libva master
-2. Build and install gmmlib master
+1. Build and install libva from https://github.com/intel/libva
+2. Build and install gmmlib from https://github.com/intel/gmmlib
 3. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
 ```
 <workspace>
