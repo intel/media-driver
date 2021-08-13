@@ -625,6 +625,8 @@ protected:
     uint8_t                     m_numVdbox = 1; //!< vdbox num
     uint32_t                    m_brcNumPakPasses = 4; //!< Number of brc pak passes
 
+    std::shared_ptr<void>       m_mfxItfNew       = nullptr;
+
     MmioRegistersMfx            m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< mfx mmio registers
 
     //!
@@ -655,6 +657,14 @@ protected:
     //! \return   void
     //!
     virtual void CalcAvcImgStateMinMaxBitrate(MHW_VDBOX_AVC_IMG_BITRATE_PARAMS& params);
+
+     //!
+    //! \brief    Get new MFX interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new MFX interface
+    //!
+    virtual std::shared_ptr<void> GetNewMfxInterface() { return nullptr; }
 
     //!
     //! \brief    Add a resource to the command buffer
