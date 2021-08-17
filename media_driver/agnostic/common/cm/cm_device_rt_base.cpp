@@ -3979,6 +3979,11 @@ int32_t CmDeviceRTBase::CheckObjectCount()
     PCM_CONTEXT_DATA            cmData;
     PCM_HAL_STATE               cmHalState;
     cmData = (PCM_CONTEXT_DATA)GetAccelData();
+    if (nullptr == cmData)
+    {
+        // cmData is not available.
+        return result;
+    }
     cmHalState = cmData->cmHalState;
 
     // Read VerbosityLevel from RegisterKey

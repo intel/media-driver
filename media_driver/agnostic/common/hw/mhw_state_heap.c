@@ -29,6 +29,7 @@
 #include "media_interfaces_mhw.h"
 #include "mhw_mi.h"
 #include "mhw_cp_interface.h"
+#include "mos_interface.h"
 
 extern const uint8_t g_cMhw_VDirection[MHW_NUM_FRAME_FIELD_TYPES] = {
     MEDIASTATE_VDIRECTION_FULL_FRAME,
@@ -1499,8 +1500,13 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapDyn(
         m_pOsInterface,
         &AllocParams,
         &pNewStateHeap->resHeap));
-    MHW_CHK_STATUS(m_pOsInterface->pfnRegisterResource(m_pOsInterface, &pNewStateHeap->resHeap,
-                                                       true, true));
+
+    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
+    if (MosInterface::IsAsyncDevice(m_pOsInterface->osStreamState) == false)
+    {
+        MHW_CHK_STATUS(m_pOsInterface->pfnRegisterResource(m_pOsInterface, &pNewStateHeap->resHeap, true, true));
+    }
+
     if (StateHeapType == MHW_ISH_TYPE)
     {
         if (m_StateHeapSettings.m_keepIshLocked)

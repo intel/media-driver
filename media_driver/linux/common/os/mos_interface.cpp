@@ -3102,3 +3102,8 @@ bool MosInterface::MosSimulateOsApiFail(
     return bSimulateOsApiFail;
 }
 #endif  // #if (_DEBUG || _RELEASE_INTERNAL)
+
+bool MosInterface::IsAsyncDevice(MOS_STREAM_HANDLE streamState)
+{
+    return false;
+}

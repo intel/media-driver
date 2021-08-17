@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 
 #include "frame_tracker.h"
 #include "mhw_utilities.h"
+#include "mos_interface.h"
 
 bool FrameTrackerTokenFlat_IsExpired(const FrameTrackerTokenFlat *self)
 {
@@ -131,9 +132,13 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
         &allocParamsLinearBuffer,
         &m_resource));
 
-    MHW_CHK_STATUS_RETURN(
-        m_osInterface->pfnRegisterResource(m_osInterface, &m_resource, true, true));
-
+    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
+    if (MosInterface::IsAsyncDevice(m_osInterface->osStreamState) == false)
+    {
+        MHW_CHK_STATUS_RETURN(
+            m_osInterface->pfnRegisterResource(m_osInterface, &m_resource, true, true));
+    }
+    
     // Lock the Resource
     MOS_LOCK_PARAMS lockFlags;
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));

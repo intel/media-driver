@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 #include "renderhal_platform_interface.h"
 #include "cm_execution_adv.h"
 #include "cm_extension_creator.h"
+#include "mos_interface.h"
 
 #define INDEX_ALIGN(index, elemperIndex, base) ((index * elemperIndex)/base + ( (index *elemperIndex % base))? 1:0)
 
@@ -198,10 +199,16 @@ MOS_STATUS HalCm_AllocateTsResource(
         osInterface->pfnAllocateResource(osInterface,
                                          &allocParams,
                                          &state->renderTimeStampResource.osResource));
-    CM_CHK_MOSSTATUS_GOTOFINISH(
-        osInterface->pfnRegisterResource(osInterface,
-                                         &state->renderTimeStampResource.osResource,
-                                         true, true));
+
+    // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly for Async mode
+    if (MosInterface::IsAsyncDevice(osInterface->osStreamState) == false)
+    {
+        CM_CHK_MOSSTATUS_GOTOFINISH(
+            osInterface->pfnRegisterResource(osInterface,
+                &state->renderTimeStampResource.osResource,
+                true,
+                true));
+    }
 
     osInterface->pfnSkipResourceSync(&state->renderTimeStampResource.osResource);
 
