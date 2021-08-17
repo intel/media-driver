@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,7 @@
 #define __CODEC_DEF_COMMON_H__
 
 #include "mos_defs.h"
-#include "mos_os.h"
+#include "mos_os_next.h"
 #include <math.h>
 
 #define CODEC_MAX_NUM_REF_FRAME             16

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2018, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,7 +20,6 @@
 
 # shared
 set(TMP_2_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_avc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_encode.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_hevc.h

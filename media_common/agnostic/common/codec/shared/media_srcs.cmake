@@ -18,42 +18,22 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_av1.h
+)
 
-set(TMP_SOURCES_ "")
-
-set(TMP_HEADERS_ "")
-
-if( ${AV1_Decode_Supported} STREQUAL "yes" )
-    set(TMP_HEADERS_
-        ${TMP_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_av1.h
-    )
-endif()
-
-if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
-    set(TMP_HEADERS_
-        ${TMP_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_hevc_g12.h
-    )
-endif()
-
-# no source in this folder for now
-#set(SOURCES_
-#    ${SOURCES_}
-#    ${TMP_SOURCES_}
-#)
+set(TMP_2_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common.h
+)
 
 set(HEADERS_
     ${HEADERS_}
     ${TMP_HEADERS_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
+    ${TMP_2_HEADERS_}
 )
 
 source_group( "CodecHal\\Common" FILES ${TMP_HEADERS_} )
 
+source_group( "Codec\\Shared" FILES ${TMP_2_HEADERS_} )
 
 media_add_curr_to_include_path()
