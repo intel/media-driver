@@ -28,12 +28,11 @@
 #ifndef __VPHAL_H__
 #define __VPHAL_H__
 
-#include "vphal_common.h"
-#include "vphal_common_tools.h"
 #include "mos_utilities.h"
 #include "mos_util_debug.h"
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
+#include "vp_pipeline_adapter_base.h"
 
 //*-----------------------------------------------------------------------------
 //| DEFINITIONS
@@ -297,32 +296,7 @@ struct VphalSseuSetting
 //! Structure VphalSettings
 //! \brief VPHAL Settings - controls allocation of internal resources in VPHAL
 //!
-struct VphalSettings
-{
-    //!
-    //! \brief    VphalSettings Constructor
-    //! \details  Creates instance of VphalSettings
-    //!
-    VphalSettings() :
-        maxPhases(0),
-        mediaStates(0),
-        sameSampleThreshold(0),
-        disableDnDi(0),
-        kernelUpdate(0),
-        disableHdr(0),
-        veboxParallelExecution(0)
-    {
-    };
-
-    int32_t                maxPhases;
-    int32_t                mediaStates;
-    int32_t                sameSampleThreshold;
-    uint32_t               disableDnDi;                                          //!< For validation purpose
-    uint32_t               kernelUpdate;                                         //!< For VEBox Copy and Update kernels
-    uint32_t               disableHdr;                                           //!< Disable Hdr
-    uint32_t               veboxParallelExecution;                               //!< Control VEBox parallel execution with render engine
-};
-
+using VphalSettings =  VpSettings;
 #pragma pack(push)
 #pragma pack(1)
 
@@ -330,50 +304,7 @@ struct VphalSettings
 //! Structure VphalFeatureReport
 //! \brief    Vphal Feature Report Structure
 //!
-struct VphalFeatureReport
-{
-    //!
-    //! \brief    VphalFeatureReport Constructor
-    //! \details  Creates instance of VphalFeatureReport
-    //!
-    VphalFeatureReport(void *owner = nullptr)
-    {
-        this->owner = owner;
-        // call InitReportValue() to initialize report value
-        InitReportValue();
-    };
-
-    //!
-    //! \brief    initialize VphalFeatureReport value
-    //! \details  initialize VphalFeatureReport value, can use it to reset report value
-    //!
-    void InitReportValue();
-    void                           *owner = nullptr;    //!< Pointer to object creating the report
-    bool                            IECP;               //!< IECP enable/disable
-    bool                            IEF;                //!< Enhancement filter
-    bool                            Denoise;            //!< Denoise
-    bool                            ChromaDenoise;      //!< Chroma Denoise
-    VPHAL_DI_REPORT_MODE            DeinterlaceMode;    //!< Deinterlace mode
-    VPHAL_SCALING_MODE              ScalingMode;        //!< Scaling mode
-    VPHAL_OUTPUT_PIPE_MODE          OutputPipeMode;     //!< Output Pipe
-    bool                            VPMMCInUse;         //!< MMC enable flag
-    bool                            RTCompressible;     //!< RT MMC Compressible flag
-    uint8_t                         RTCompressMode;     //!< RT MMC Compression mode
-    bool                            FFDICompressible;   //!< FFDI MMC Compressible flag
-    uint8_t                         FFDICompressMode;   //!< FFDI MMC Compression mode
-    bool                            FFDNCompressible;   //!< FFDN MMC Compressible flag
-    uint8_t                         FFDNCompressMode;   //!< FFDN MMC Compression mode
-    bool                            STMMCompressible;   //!< STMM MMC Compressible flag
-    uint8_t                         STMMCompressMode;   //!< STMM MMC Compression mode
-    bool                            ScalerCompressible; //!< Scaler MMC Compressible flag for Gen10
-    uint8_t                         ScalerCompressMode; //!< Scaler MMC Compression mode for Gen10
-    bool                            PrimaryCompressible;//!< Input Primary Surface Compressible flag
-    uint8_t                         PrimaryCompressMode;//!< Input Primary Surface Compression mode
-    VPHAL_COMPOSITION_REPORT_MODE   CompositionMode;    //!< Inplace/Legacy Compostion flag
-    bool                            VEFeatureInUse;     //!< If any VEBOX feature is in use, excluding pure bypass for SFC
-    bool                            DiScdMode;          //!< Scene change detection
-    VPHAL_HDR_MODE                  HDRMode;            //!< HDR mode
-};
+using VphalFeatureReport = VpFeatureReport;
 
 #pragma pack(pop)
 
@@ -567,6 +498,9 @@ public:
 
         m_sfcInterface = sfcInterface;
     }
+
+    virtual MOS_STATUS GetVpMhwInterface(
+        VP_MHWINTERFACE &vpMhwinterface);
 
     HANDLE                      m_gpuAppTaskEvent;
 

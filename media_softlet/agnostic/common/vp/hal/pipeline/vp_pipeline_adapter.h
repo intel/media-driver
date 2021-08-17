@@ -26,7 +26,7 @@
 #include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
 
-class VpPipelineAdapter
+class VpPipelineAdapter : public VpPipelineAdapterBase
 {
 public:
     VpPipelineAdapter(
@@ -110,14 +110,12 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Init(
-      const VphalSettings *pVpHalSettings, VphalState &vphalState);
+      const VphalSettings *pVpHalSettings, VP_MHWINTERFACE vpMhwinterface);
 
     std::shared_ptr<vp::VpPipeline>    m_vpPipeline = {};
 
     VP_PIPELINE_PARAMS                 m_vpPipelineParams = {};   //!< vp Pipeline params
     bool                               m_bApgEnabled = false;    //!< VP APG path enabled
-    vp::VpPlatformInterface            &m_vpPlatformInterface; //!< vp platform interface. Should be destroyed during deconstruction.
-
 };
 #endif // !__VP_PIPELINE_ADAPTER_H__
 

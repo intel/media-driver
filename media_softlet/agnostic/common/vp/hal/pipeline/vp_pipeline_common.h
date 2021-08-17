@@ -103,35 +103,6 @@ struct _VP_SETTINGS
 
 using VP_SETTINGS = _VP_SETTINGS;
 
-struct _VP_MHWINTERFACE
-{
-    // Internals
-    PLATFORM                    m_platform;
-    MEDIA_FEATURE_TABLE         *m_skuTable;
-    MEDIA_WA_TABLE              *m_waTable;
-
-    // States
-    PMOS_INTERFACE              m_osInterface;
-    PRENDERHAL_INTERFACE        m_renderHal;
-    PMHW_VEBOX_INTERFACE        m_veboxInterface;
-    MhwCpInterface             *m_cpInterface;
-    PMHW_SFC_INTERFACE          m_sfcInterface;
-    VphalRenderer              *m_renderer;
-    PMHW_MI_INTERFACE           m_mhwMiInterface;
-    vp::VpPlatformInterface    *m_vpPlatformInterface;
-    void                       *m_settings;
-    VphalFeatureReport         *m_reporting;
-
-    // Render GPU context/node
-    MOS_GPU_NODE                m_renderGpuNode;
-    MOS_GPU_CONTEXT             m_renderGpuContext;
-
-    // vp Pipeline workload status report
-    PVPHAL_STATUS_TABLE        m_statusTable;
-
-    void                      *m_debugInterface;
-};
-
 // To define the features enabling on different engines
 struct _VP_EXECUTE_CAPS
 {
@@ -254,7 +225,6 @@ union RESOURCE_ASSIGNMENT_HINT
     uint32_t value[RESOURCE_ASSIGNMENT_HINT_SIZE];
 };
 
-using VP_MHWINTERFACE  = _VP_MHWINTERFACE;
 using PVP_MHWINTERFACE = VP_MHWINTERFACE * ;
 using VP_EXECUTE_CAPS  = _VP_EXECUTE_CAPS;
 using VP_PACKET_ENGINE = _VP_PACKET_ENGINE;

@@ -72,7 +72,14 @@ MOS_STATUS VpPipelineG12Adapter::Allocate(
     {
         return status;
     }
-    return Init(pVpHalSettings, *this);
+
+    VP_MHWINTERFACE vpMhwinterface = {};  //!< vp Mhw Interface
+    status                         = VphalStateG12Tgllp::GetVpMhwInterface(vpMhwinterface);
+    if (MOS_FAILED(status))
+    {
+        return status;
+    }
+    return Init(pVpHalSettings, vpMhwinterface);
 }
 
 MOS_STATUS VpPipelineG12Adapter::GetStatusReport(

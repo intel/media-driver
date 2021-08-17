@@ -179,6 +179,11 @@ public:
         return m_kernelPool;
     }
 
+    PMOS_INTERFACE &GetOsInterface()
+    {
+        return m_pOsInterface;
+    }
+
     virtual MOS_STATUS VeboxQueryStatLayout(
         VEBOX_STAT_QUERY_TYPE QueryType,
         uint32_t* pQuery)

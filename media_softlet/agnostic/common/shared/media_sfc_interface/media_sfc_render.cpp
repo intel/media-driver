@@ -251,7 +251,6 @@ MOS_STATUS MediaSfcRender::Initialize()
     m_vpMhwinterface->m_renderHal              = m_renderHal;
     m_vpMhwinterface->m_veboxInterface         = m_veboxInterface;
     m_vpMhwinterface->m_sfcInterface           = m_sfcInterface;
-    m_vpMhwinterface->m_renderer               = nullptr;
     m_vpMhwinterface->m_cpInterface            = m_cpInterface;
     m_vpMhwinterface->m_mhwMiInterface         = m_renderHal->pMhwMiInterface;
     m_vpMhwinterface->m_statusTable            = m_statusTable;
