@@ -1905,10 +1905,12 @@ MOS_STATUS CodechalDecodeHevc::SendPictureLongFormat()
             {
                 m_debugInterface->m_refIndex = n;
                 // dump mvdata
+                std::string mvBufDumpName = "_DEC_" + std::to_string(int32_t(n));
+           
                 CODECHAL_DECODE_CHK_STATUS_RETURN(m_debugInterface->DumpBuffer(
                     m_picMhwParams.PipeBufAddrParams->presColMvTempBuffer[n],
                     CodechalDbgAttr::attrMvData,
-                    "DEC",
+                    mvBufDumpName.c_str(),
                     m_mvBufferSize));
             }
         }
