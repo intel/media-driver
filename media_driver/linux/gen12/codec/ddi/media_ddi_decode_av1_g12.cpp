@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -79,7 +79,7 @@ VAStatus DdiDecodeAV1::ParseTileParams(
         tileParams->m_tileColumn                = pTileCtrl->tile_column;
 
         tileParams->m_anchorFrameIdx.FrameIdx   = pTileCtrl->anchor_frame_idx;
-        tileParams->m_tile_idx_in_tile_list     = pTileCtrl->tile_idx_in_tile_list;
+        tileParams->m_tileIndex                 = pTileCtrl->tile_idx_in_tile_list;
         tileParams->m_anchorFrameIdx.PicFlags   = PICTURE_FRAME;
         tileParams->m_anchorFrameIdx.PicEntry   = 0;                             // debug only
 
@@ -132,13 +132,13 @@ VAStatus DdiDecodeAV1::ParsePicParams(
     }
     picAV1Params->m_currPic.FrameIdx = frameIdx;
 
-
     picAV1Params->m_profile                                          = picParam->profile;
-    picAV1Params->m_anchorFrameInsertion                             = picParam->anchor_frames_num ? 1 : 0;
+    picAV1Params->m_anchorFrameInsertion                             = 0;
     picAV1Params->m_anchorFrameNum                                   = picParam->anchor_frames_num;
-    if(picAV1Params->m_anchorFrameInsertion)
+
+    if (picAV1Params->m_anchorFrameNum > 0)
     {
-        if(picParam->anchor_frames_num <= MAX_ANCHOR_FRAME_NUM_AV1)
+        if (picParam->anchor_frames_num <= MAX_ANCHOR_FRAME_NUM_AV1)
         {
             MOS_SecureMemcpy(anchorFrameListVA, picParam->anchor_frames_num, picParam->anchor_frames_list, picParam->anchor_frames_num);
         }
@@ -147,6 +147,7 @@ VAStatus DdiDecodeAV1::ParsePicParams(
             return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
     }
+
     picAV1Params->m_orderHintBitsMinus1                              = picParam->order_hint_bits_minus_1;
     picAV1Params->m_bitDepthIdx                                      = picParam->bit_depth_idx;
 
@@ -489,7 +490,7 @@ VAStatus DdiDecodeAV1::SetDecodeParams()
     }
 
     //anchor frame list insertion
-    if(Av1PicParams->m_anchorFrameInsertion && (Av1PicParams->m_anchorFrameNum <= MAX_ANCHOR_FRAME_NUM_AV1))
+    if (Av1PicParams->m_anchorFrameNum > 0 && Av1PicParams->m_anchorFrameNum <= MAX_ANCHOR_FRAME_NUM_AV1)
     {
         MOS_FORMAT expectedFormat = GetFormat();
         for(auto i = 0; i < Av1PicParams->m_anchorFrameNum; i++)

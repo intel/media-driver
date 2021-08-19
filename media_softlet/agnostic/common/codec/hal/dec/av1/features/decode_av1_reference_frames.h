@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -157,7 +157,17 @@ public:
     //! \return  MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS             UpdateCurFrame(const CodecAv1PicParams &picParams);
+    MOS_STATUS UpdateCurFrame(const CodecAv1PicParams &picParams);
+
+    //!
+    //! \brief  Update the reference list for current frame
+    //! \param  [in] picParams
+    //!         Picture parameters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS UpdateCurRefList(const CodecAv1PicParams &picParams);
+
     //!
     //! \brief  Update the current resource for currnet ref list
     //! \param  [in] pCurRefList
@@ -166,6 +176,7 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS             UpdateCurResource(const PCODEC_REF_LIST_AV1 pCurRefList);
+
     PCODEC_REF_LIST_AV1    m_refList[CODECHAL_MAX_DPB_NUM_LST_AV1]; //!< Pointer to reference list, actually the DPB
     PCODEC_REF_LIST_AV1    m_currRefList = nullptr;                 //!< Current frame reference list
 
