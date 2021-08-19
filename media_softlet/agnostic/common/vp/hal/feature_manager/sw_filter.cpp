@@ -88,6 +88,7 @@ SwFilter* SwFilter::CreateSwFilter(FeatureType type)
         {
             return nullptr;
         }
+        p->SetRenderTargetType(m_renderTargetType);
     }
     else
     {
