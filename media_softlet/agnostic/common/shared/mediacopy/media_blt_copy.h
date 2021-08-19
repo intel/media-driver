@@ -38,7 +38,7 @@
 #define BLT_CHK_NULL(_ptr)                  MOS_CHK_NULL(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _ptr)
 #define BLT_CHK_NULL_RETURN(_ptr)           MOS_CHK_NULL_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _ptr)
 #define BLT_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _message, ##__VA_ARGS__)
-
+#define BLT_BITS_PER_BYTE                   8
 //!
 //! \brief  Structure for BLT parameter
 //!
@@ -100,6 +100,24 @@ public:
         PMOS_RESOURCE src,
         PMOS_RESOURCE dst);
     //!
+    //! \brief    Setup blt copy parameters
+    //! \details  Setup blt copy parameters for BLT Engine
+    //! \param    mhwParams
+    //!           [in/out] Pointer to MHW_FAST_COPY_BLT_PARAM
+    //! \param    inputSurface
+    //!           [in] Pointer to input surface
+    //! \param    outputSurface
+    //!           [in] Pointer to output surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+   virtual MOS_STATUS SetupBltCopyParam(
+        PMHW_FAST_COPY_BLT_PARAM mhwParams,
+        PMOS_RESOURCE            inputSurface,
+        PMOS_RESOURCE            outputSurface);
+
+
+    //!
     //! \brief    Setup fast copy parameters
     //! \details  Setup fast copy parameters for BLT Engine
     //! \param    mhwParams
@@ -115,8 +133,6 @@ public:
         PMHW_FAST_COPY_BLT_PARAM mhwParams,
         PMOS_RESOURCE            inputSurface,
         PMOS_RESOURCE            outputSurface);
-
-protected:
 
     //!
     //! \brief    Submit command

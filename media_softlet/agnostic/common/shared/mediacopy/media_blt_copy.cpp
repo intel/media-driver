@@ -180,7 +180,7 @@ MOS_STATUS BltState::CopyMainSurface(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltState::SetupFastCopyBltParam(
+MOS_STATUS BltState::SetupBltCopyParam(
     PMHW_FAST_COPY_BLT_PARAM pMhwBltParams,
     PMOS_RESOURCE            inputSurface,
     PMOS_RESOURCE            outputSurface)
@@ -204,8 +204,8 @@ MOS_STATUS BltState::SetupFastCopyBltParam(
         pMhwBltParams->dwSrcPitch = ResDetails.dwPitch;
     }
     
-    pMhwBltParams->dwSrcTop    = 0;
-    pMhwBltParams->dwSrcLeft   = 0;
+    pMhwBltParams->dwSrcTop    = ResDetails.RenderOffset.YUV.Y.YOffset;
+    pMhwBltParams->dwSrcLeft   = ResDetails.RenderOffset.YUV.Y.XOffset;
 
     MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, outputSurface, &ResDetails));
@@ -218,8 +218,8 @@ MOS_STATUS BltState::SetupFastCopyBltParam(
     {
         pMhwBltParams->dwDstPitch  = ResDetails.dwPitch;
     }
-    pMhwBltParams->dwDstTop    = 0;
-    pMhwBltParams->dwDstLeft   = 0;
+    pMhwBltParams->dwDstTop    = ResDetails.RenderOffset.YUV.Y.YOffset;
+    pMhwBltParams->dwDstLeft   = ResDetails.RenderOffset.YUV.Y.XOffset;
 
     //pMhwBltParams->dwDstBottom = ResDetails.dwHeight;
     // Using below botton to replace the above bottom, it will cover 2 and 3 planes format.
@@ -270,7 +270,7 @@ MOS_STATUS BltState::SubmitCMD(
 
     if (pBltStateParam->bCopyMainSurface)
     {
-        BLT_CHK_STATUS_RETURN(SetupFastCopyBltParam(
+        BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
             &fastCopyBltParam,
             pBltStateParam->pSrcSurface,
             pBltStateParam->pDstSurface));
@@ -294,41 +294,11 @@ MOS_STATUS BltState::SubmitCMD(
         RegisterDwParams.dwData = swctrl.DW0.Value;
         m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &RegisterDwParams);
   
-        // BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
         BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
             &cmdBuffer,
             &fastCopyBltParam,
             0,
             0));
-        /*
-        // 2 planes:
-        if (pBltStateParam->pSrcSurface->Format == Format_NV12)
-        {
-             int dstBytesPerTexelForScaling = 1;
-             int srcBytesPerTexelForScaling = 1;
-             uint32_t dstOffset = 0;
-             uint32_t srcOffset = 0;
-             uint32_t dstheight = fastCopyBltParam.dwDstBottom;
-   
-             dstBytesPerTexelForScaling = 2;
-             srcBytesPerTexelForScaling = 2;
-
-             MOS_SURFACE       ResDetails;
-             MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
-             BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pSrcSurface, &ResDetails));
-
-             dstOffset = ResDetails.RenderOffset.YUV.U.BaseOffset;
-             srcOffset = ResDetails.RenderOffset.YUV.U.BaseOffset;
-
-             fastCopyBltParam.dwDstBottom /= dstBytesPerTexelForScaling;
-             // BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
-             BLT_CHK_STATUS_RETURN(m_bltInterface->AddBlockCopyBlt(
-              &cmdBuffer,
-              &fastCopyBltParam,
-              srcOffset,
-              dstOffset));
-        }
-        */
     }
 
     // Add flush DW
@@ -347,7 +317,7 @@ uint32_t BltState::GetColorDepth(
     GMM_RESOURCE_FORMAT dstFormat,
     uint32_t            BytesPerTexel)
 {
-    uint32_t bitsPerTexel = BytesPerTexel * 8;
+    uint32_t bitsPerTexel = BytesPerTexel * BLT_BITS_PER_BYTE;
 
     switch (bitsPerTexel)
     {
@@ -358,11 +328,11 @@ uint32_t BltState::GetColorDepth(
          switch (dstFormat)
          {
            case GMM_FORMAT_B5G5R5A1_UNORM:
-            return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
-            break;
+               return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
+               break;
            default:
-            return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;;
-            break;
+               return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;;
+               break;
          }
          break;
      case 64:
@@ -380,3 +350,56 @@ uint32_t BltState::GetColorDepth(
     }
 
  }
+
+MOS_STATUS BltState::SetupFastCopyBltParam(
+    PMHW_FAST_COPY_BLT_PARAM pMhwBltParams,
+    PMOS_RESOURCE            inputSurface,
+    PMOS_RESOURCE            outputSurface)
+{
+    BLT_CHK_NULL_RETURN(pMhwBltParams);
+    BLT_CHK_NULL_RETURN(inputSurface);
+    BLT_CHK_NULL_RETURN(outputSurface);
+
+    uint32_t          BytesPerTexel = 1;
+    MOS_SURFACE       ResDetails;
+    MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(pMhwBltParams, sizeof(MHW_FAST_COPY_BLT_PARAM));
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, inputSurface, &ResDetails));
+
+    if (inputSurface->TileType != MOS_TILE_LINEAR)
+    {
+        pMhwBltParams->dwSrcPitch = ResDetails.dwPitch / 4;
+    }
+    else
+    {
+        pMhwBltParams->dwSrcPitch = ResDetails.dwPitch;
+        pMhwBltParams->dwSrcPitch = ResDetails.dwPitch;
+    }
+
+    pMhwBltParams->dwSrcTop = 0;
+    pMhwBltParams->dwSrcLeft = 0;
+
+    MOS_ZeroMemory(&ResDetails, sizeof(MOS_SURFACE));
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, outputSurface, &ResDetails));
+    
+    if (outputSurface->TileType != MOS_TILE_LINEAR)
+    {
+       pMhwBltParams->dwDstPitch = ResDetails.dwPitch / 4;
+    }
+    else
+    {
+       pMhwBltParams->dwDstPitch = ResDetails.dwPitch;
+    }
+
+    pMhwBltParams->dwDstTop = 0;
+    pMhwBltParams->dwDstLeft = 0;
+    pMhwBltParams->dwDstBottom = (uint32_t)outputSurface->pGmmResInfo->GetSizeMainSurface() / ResDetails.dwPitch;
+    pMhwBltParams->dwDstRight = ResDetails.dwPitch / 4;    // Regard as 32 bit per pixel format, i.e. 4 byte per pixel.
+
+    pMhwBltParams->dwColorDepth = 3;  //0:8bit 1:16bit 3:32bit 4:64bit
+
+    pMhwBltParams->pSrcOsResource = inputSurface;
+    pMhwBltParams->pDstOsResource = outputSurface;
+
+    return MOS_STATUS_SUCCESS;
+}

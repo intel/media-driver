@@ -26,6 +26,7 @@
 //!
 
 #include "media_copy.h"
+#include "vphal_debug.h"
 
 MediaCopyBaseState::MediaCopyBaseState():
     m_osInterface(nullptr)
@@ -64,6 +65,14 @@ MediaCopyBaseState::~MediaCopyBaseState()
         MosUtilities::MosDestroyMutex(m_inUseGPUMutex);
         m_inUseGPUMutex = nullptr;
     }
+
+   #if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_surfaceDumper != nullptr)
+    {
+       MOS_Delete(m_surfaceDumper);
+       m_surfaceDumper = nullptr;
+    }
+   #endif
 }
 
 //!
@@ -77,6 +86,14 @@ MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface, MhwInterfa
 {
     m_inUseGPUMutex     = MosUtilities::MosCreateMutex();
     MCPY_CHK_NULL_RETURN(m_inUseGPUMutex);
+
+   #if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_surfaceDumper == nullptr)
+    {
+       m_surfaceDumper = MOS_New(VphalSurfaceDumper, osInterface);
+       MOS_OS_CHK_NULL_RETURN(m_surfaceDumper);
+    }
+   #endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -209,7 +226,7 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     m_mcpyDst.CpMode          = dst->pGmmResInfo->GetSetCpSurfTag(false, 0)?MCPY_CPMODE_CP:MCPY_CPMODE_CLEAR;
     m_mcpyDst.TileMode        = ResDetails.TileType;
     m_mcpyDst.OsRes           = dst;
-    
+
     MCPY_CHK_STATUS_RETURN(PreProcess(preferMethod));
 
     MCPY_CHK_STATUS_RETURN(CapabilityCheck());
@@ -221,10 +238,57 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
     return eStatus;
 }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS MediaCopyBaseState::CloneResourceInfo(PVPHAL_SURFACE pVphalSurface, PMOS_SURFACE pMosSurface)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    if(pVphalSurface == nullptr || pMosSurface == nullptr)
+    {
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    pVphalSurface->SurfType          = SURF_NONE;
+    pVphalSurface->OsResource        = pMosSurface->OsResource;
+    pVphalSurface->dwWidth           = pMosSurface->dwWidth;
+    pVphalSurface->dwHeight          = pMosSurface->dwHeight;
+    pVphalSurface->dwPitch           = pMosSurface->dwPitch;
+    pVphalSurface->Format            = pMosSurface->Format;
+    pVphalSurface->TileType          = pMosSurface->TileType;
+    pVphalSurface->TileModeGMM       = pMosSurface->TileModeGMM;
+    pVphalSurface->bGMMTileEnabled   = pMosSurface->bGMMTileEnabled;
+    pVphalSurface->dwDepth           = pMosSurface->dwDepth;
+    pVphalSurface->dwSlicePitch      = pMosSurface->dwSlicePitch;
+    pVphalSurface->dwOffset          = pMosSurface->dwOffset;
+    pVphalSurface->bCompressible     = pMosSurface->bCompressible;
+    pVphalSurface->bIsCompressed     = pMosSurface->bIsCompressed;
+    pVphalSurface->CompressionMode   = pMosSurface->CompressionMode;
+    pVphalSurface->CompressionFormat = pMosSurface->CompressionFormat;
+
+    pVphalSurface->YPlaneOffset.iLockSurfaceOffset = pMosSurface->YPlaneOffset.iLockSurfaceOffset;
+    pVphalSurface->YPlaneOffset.iSurfaceOffset     = pMosSurface->YPlaneOffset.iSurfaceOffset;
+    pVphalSurface->YPlaneOffset.iXOffset           = pMosSurface->YPlaneOffset.iXOffset;
+    pVphalSurface->YPlaneOffset.iYOffset           = pMosSurface->YPlaneOffset.iYOffset;
+
+    pVphalSurface->UPlaneOffset.iLockSurfaceOffset = pMosSurface->UPlaneOffset.iLockSurfaceOffset;
+    pVphalSurface->UPlaneOffset.iSurfaceOffset     = pMosSurface->UPlaneOffset.iSurfaceOffset;
+    pVphalSurface->UPlaneOffset.iXOffset           = pMosSurface->UPlaneOffset.iXOffset;
+    pVphalSurface->UPlaneOffset.iYOffset           = pMosSurface->UPlaneOffset.iYOffset;
+
+    pVphalSurface->VPlaneOffset.iLockSurfaceOffset = pMosSurface->VPlaneOffset.iLockSurfaceOffset;
+    pVphalSurface->VPlaneOffset.iSurfaceOffset     = pMosSurface->VPlaneOffset.iSurfaceOffset;
+    pVphalSurface->VPlaneOffset.iXOffset           = pMosSurface->VPlaneOffset.iXOffset;
+    pVphalSurface->VPlaneOffset.iYOffset           = pMosSurface->VPlaneOffset.iYOffset;
+
+    return eStatus;
+}
+#endif
+
 MOS_STATUS MediaCopyBaseState::TaskDispatch()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     MosUtilities::MosLockMutex(m_inUseGPUMutex);
+
     switch(m_mcpyEngine)
     {
         case MCPY_ENGINE_VEBOX:

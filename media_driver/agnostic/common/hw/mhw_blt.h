@@ -47,6 +47,16 @@ typedef struct _MHW_FAST_COPY_BLT_PARAM
     PMOS_RESOURCE   pDstOsResource;
 }MHW_FAST_COPY_BLT_PARAM, *PMHW_FAST_COPY_BLT_PARAM;
 
+typedef enum BLT_TILE_TYPE_ENUM
+{
+   BLT_TILED_X,
+   BLT_TILED_Y,
+   BLT_TILED_W,
+   BLT_NOT_TILED,
+   BLT_TILED_4,
+   BLT_TILED_64
+}BLT_TILE_TYPE;
+
 class mhw_blt_state
 {
 public:
@@ -418,7 +428,7 @@ public:
         static const size_t byteSize = 40;
     };
 
-        //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
     /// @brief BCS_SWCTRL
     /// @details
     ///
@@ -487,6 +497,20 @@ public:
         PMOS_COMMAND_BUFFER         pCmdBuffer,
         PMHW_FAST_COPY_BLT_PARAM    pFastCopyBltParam);
 
+    //!
+    //! \brief    Add Block copy
+    //! \details  MHW function to add block copy command
+    //! \param    [in] pCmdBuffer
+    //!           Pointer to Command buffer
+    //! \param    [in] pFastCopyBltParam
+    //!           Pointer to MHW_FAST_COPY_BLT_PARAM
+    //! \param    [in] srcOffset
+    //!           input surface's soruce offset
+    //! \param    [in] outOffset
+    //!           output surface's soruce offset
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     virtual MOS_STATUS AddBlockCopyBlt(
         PMOS_COMMAND_BUFFER         pCmdBuffer,
         PMHW_FAST_COPY_BLT_PARAM    pFastCopyBltParam,
@@ -498,6 +522,16 @@ public:
         PMOS_COMMAND_BUFFER     pCmdBuffer,
         PMHW_RESOURCE_PARAMS    pParams);
 
+    //!
+    //! \brief    Get fastcopy tilling mode
+    //! \details  Get fastcopy tilling mode
+    //! \param    [in] TileType
+    //!           Pointer to BLT_TILE_TYPE
+    //! \return   uint32_t
+    //!           0:1:2:3
+    //!
+    virtual uint32_t GetFastTilingMode(
+        BLT_TILE_TYPE              TileType);
 public:
     PMOS_INTERFACE m_osInterface = nullptr;
 };

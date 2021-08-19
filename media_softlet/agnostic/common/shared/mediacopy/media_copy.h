@@ -43,6 +43,9 @@
 #define MCPY_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 #define MCPY_NORMALMESSAGE(_message, ...)    MOS_NORMALMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 
+class VphalSurfaceDumper;
+typedef struct VPHAL_SURFACE* PVPHAL_SURFACE;
+
 typedef struct _MCPY_ENGINE_CAPS
 {
     uint32_t engineVebox   :1;
@@ -67,8 +70,8 @@ enum MCPY_CPMODE
 enum MCPY_METHOD
 {
     MCPY_METHOD_BALANCE  = 0,    // use vebox engine.
-    MCPY_METHOD_PERFORMANCE,     // use EU to get the best perf.
     MCPY_METHOD_POWERSAVING,     // use BCS engine
+    MCPY_METHOD_PERFORMANCE,     // use EU to get the best perf.
 };
 
 typedef struct _MCPY_STATE_PARAMS
@@ -266,6 +269,11 @@ protected:
     //!
     virtual MOS_STATUS MediaVeboxCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst)
     {return MOS_STATUS_SUCCESS;}
+    
+   #if (_DEBUG || _RELEASE_INTERNAL)
+    //debug only
+    MOS_STATUS CloneResourceInfo(PVPHAL_SURFACE pVphalSurface, PMOS_SURFACE pMosSurface);
+   #endif
 
 public:
     PMOS_INTERFACE      m_osInterface    = nullptr;
@@ -275,6 +283,7 @@ public:
     MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
     MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
     bool                m_allowBltCopy   = false;
+    VphalSurfaceDumper  *m_surfaceDumper  = nullptr;
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex = nullptr; // Mutex for in-use GPU context

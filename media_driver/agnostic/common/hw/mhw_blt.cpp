@@ -129,12 +129,21 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
 
     eStatus = MOS_STATUS_SUCCESS;
 
+    MHW_CHK_NULL_RETURN(pFastCopyBltParam);
+    MHW_CHK_NULL_RETURN(pFastCopyBltParam->pDstOsResource);
+    MHW_CHK_NULL_RETURN(pFastCopyBltParam->pSrcOsResource);
+    MHW_CHK_NULL_RETURN(pFastCopyBltParam->pDstOsResource->pGmmResInfo);
+    MHW_CHK_NULL_RETURN(pFastCopyBltParam->pSrcOsResource->pGmmResInfo);
+
     mhw_blt_state::XY_FAST_COPY_BLT_CMD cmd;
-    // regard as linear to linear copy
-    cmd.DW0.SourceTilingMethod            = 0;
-    cmd.DW0.DestinationTilingMethod       = 0;
-    cmd.DW1.TileYTypeForSource            = 0;
-    cmd.DW1.TileYTypeForDestination       = 0;
+
+    BLT_TILE_TYPE dstTiledMode = static_cast<BLT_TILE_TYPE>(pFastCopyBltParam->pDstOsResource->pGmmResInfo->GetTileType());
+    BLT_TILE_TYPE srcTiledMode = static_cast<BLT_TILE_TYPE>(pFastCopyBltParam->pSrcOsResource->pGmmResInfo->GetTileType());
+
+    cmd.DW0.SourceTilingMethod            = GetFastTilingMode(srcTiledMode);
+    cmd.DW0.DestinationTilingMethod       = GetFastTilingMode(dstTiledMode);
+    cmd.DW1.TileYTypeForSource            = (srcTiledMode == BLT_NOT_TILED) ? 0 : 1;
+    cmd.DW1.TileYTypeForDestination       = (dstTiledMode == BLT_NOT_TILED) ? 0 : 1;
     cmd.DW1.ColorDepth                    = pFastCopyBltParam->dwColorDepth;
     cmd.DW1.DestinationPitch              = pFastCopyBltParam->dwDstPitch;
     cmd.DW2.DestinationX1CoordinateLeft   = pFastCopyBltParam->dwDstLeft;
@@ -240,4 +249,21 @@ MOS_STATUS MhwBltInterface::AddBlockCopyBlt(
 
 finish:
     return eStatus;
+}
+
+uint32_t MhwBltInterface::GetFastTilingMode(BLT_TILE_TYPE TileType)
+{
+   switch(TileType)
+   {
+      case BLT_NOT_TILED:
+          return mhw_blt_state::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_LINEAR_TILINGDISABLED;
+      case BLT_TILED_Y:
+      case BLT_TILED_4:
+          return mhw_blt_state::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_TILE_Y;
+      case BLT_TILED_64:
+          return mhw_blt_state::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_64KBTILING;
+      default:
+         MHW_ASSERTMESSAGE("BLT: Can't support GMM TileType %d.", TileType);
+   }
+   return mhw_blt_state::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_LINEAR_TILINGDISABLED;
 }
