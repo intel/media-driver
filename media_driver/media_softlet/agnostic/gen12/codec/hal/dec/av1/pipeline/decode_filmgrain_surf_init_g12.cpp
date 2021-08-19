@@ -130,7 +130,6 @@ MediaFunction FilmGrainSurfaceInit::GetMediaFunction()
 
 void FilmGrainSurfaceInit::InitScalabilityPars(PMOS_INTERFACE osInterface)
 {
-    MOS_ZeroMemory(&m_decodeScalabilityPars, sizeof(ScalabilityPars));
     m_decodeScalabilityPars.disableScalability = true;
     m_decodeScalabilityPars.disableRealTile    = true;
     m_decodeScalabilityPars.enableVE           = MOS_VE_SUPPORTED(osInterface);

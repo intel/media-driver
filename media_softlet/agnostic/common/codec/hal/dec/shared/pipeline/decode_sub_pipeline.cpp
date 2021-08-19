@@ -38,6 +38,7 @@ DecodeSubPipeline::DecodeSubPipeline(DecodePipeline* pipeline, MediaTask* task, 
 {
     DECODE_ASSERT(m_pipeline != nullptr);
     DECODE_ASSERT(m_task != nullptr);
+    MOS_ZeroMemory(&m_decodeScalabilityPars, sizeof(m_decodeScalabilityPars));
 }
 
 DecodeSubPipeline::~DecodeSubPipeline()
