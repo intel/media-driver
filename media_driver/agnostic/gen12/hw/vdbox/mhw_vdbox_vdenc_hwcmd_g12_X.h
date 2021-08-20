@@ -187,8 +187,10 @@ public:
         //! \brief Explicit member initialization function
         VDENC_Surface_Control_Bits_CMD();
 
-        static const size_t dwSize = 1;
-        static const size_t byteSize = 4;
+        static const size_t dwSize      = 1;
+        static const size_t byteSize    = 4;
+        static const size_t mocsBitFiledLow     = 0;
+        static const size_t mocsBitFiledHigh    = 6;
     };
 
     //!
