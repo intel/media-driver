@@ -30,6 +30,12 @@
 typedef uint64_t MOS_OCA_BUFFER_HANDLE;
 #define OCA_HEAP_INVALID_OFFSET ((uint32_t)-1)
 
+#define OCA_LOG_SECTION_SIZE_MAX        0x3000
+#define OCA_LOG_SECTION_MAGIC_NUMBER    (0x5F691B7E574ACE30)
+
+#define MOS_OCA_MAX_STRING_LEN          (1024)          //!< The max string len for MosOcaStateHeapLog::TraceMessage.
+#define OCA_MAX_RESOURCE_INFO_COUNT_MAX 60
+
 typedef struct _MOS_OCA_LOG_HEADER
 {
     uint32_t    m_Type;             //!< Oca log type. Refer to MOS_OCA_LOG_TYPE.

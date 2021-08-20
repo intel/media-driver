@@ -64,6 +64,7 @@
 #include "mos_os_virtualengine_scalability_next.h"
 
 #include "memory_policy_manager.h"
+#include "mos_oca_interface_specific.h"
 
 //!
 //! \brief DRM VMAP patch

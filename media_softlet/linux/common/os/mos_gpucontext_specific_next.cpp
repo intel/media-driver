@@ -110,7 +110,15 @@ MOS_STATUS GpuContextSpecificNext::Init(OsContextNext *osContext,
 
     MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
 
-    m_commandBufferSize = COMMAND_BUFFER_SIZE;
+    if (m_ocaLogSectionSupported)
+    {
+        // increase size for oca log section
+        m_commandBufferSize = MosOcaInterfaceSpecific::IncreaseSize(COMMAND_BUFFER_SIZE);
+    }
+    else
+    {
+        m_commandBufferSize = COMMAND_BUFFER_SIZE;
+    }
 
     m_nextFetchIndex = 0;
 
@@ -652,6 +660,12 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
             MosUtilities::MosSecureMemcpy(tempCmdBuf, sizeof(MOS_COMMAND_BUFFER), comamndBuffer, sizeof(MOS_COMMAND_BUFFER));
         }
 
+        if (m_ocaLogSectionSupported)
+        {
+            MOS_LINUX_BO *boTemp = ((GraphicsResourceSpecificNext *)cmdBuf->GetResource())->GetBufferObject();
+            MosOcaInterfaceSpecific::InitOcaLogSection(boTemp);
+        }
+
         // Command buffers are treated as cyclical buffers, the CB after the just submitted one
         // has the minimal fence value that we should wait
         m_nextFetchIndex++;
@@ -728,15 +742,31 @@ MOS_STATUS GpuContextSpecificNext::ResetCommandBuffer()
 
 MOS_STATUS GpuContextSpecificNext::SetIndirectStateSize(const uint32_t size)
 {
-    if(size < m_commandBufferSize)
+    if (m_ocaLogSectionSupported)
     {
-        m_IndirectHeapSize = size;
-        return MOS_STATUS_SUCCESS;
+        if(MosOcaInterfaceSpecific::IncreaseSize(size) < m_commandBufferSize)
+        {
+            m_IndirectHeapSize = size;
+            return MOS_STATUS_SUCCESS;
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Indirect State Size if out of boundry!");
+            return MOS_STATUS_UNKNOWN;
+        }
     }
     else
     {
-        MOS_OS_ASSERTMESSAGE("Indirect State Size if out of boundry!");
-        return MOS_STATUS_UNKNOWN;
+        if(size < m_commandBufferSize)
+        {
+            m_IndirectHeapSize = size;
+            return MOS_STATUS_SUCCESS;
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Indirect State Size if out of boundry!");
+            return MOS_STATUS_UNKNOWN;
+        }
     }
 }
 
@@ -746,7 +776,14 @@ MOS_STATUS GpuContextSpecificNext::GetIndirectState(
 {
     MOS_OS_FUNCTION_ENTER;
 
-    offset = m_commandBufferSize - m_IndirectHeapSize;
+    if (m_ocaLogSectionSupported)
+    {
+        offset = m_commandBufferSize - m_IndirectHeapSize - OCA_LOG_SECTION_SIZE_MAX;
+    }
+    else
+    {
+        offset = m_commandBufferSize - m_IndirectHeapSize;
+    }
     size = m_IndirectHeapSize;
 
     return MOS_STATUS_SUCCESS;
@@ -759,7 +796,14 @@ MOS_STATUS GpuContextSpecificNext::GetIndirectStatePointer(
 
     MOS_OS_CHK_NULL_RETURN(indirectState);
 
-    *indirectState = (uint8_t *)m_commandBuffer->pCmdBase + m_commandBufferSize - m_IndirectHeapSize;
+    if (m_ocaLogSectionSupported)
+    {
+        *indirectState = (uint8_t *)m_commandBuffer->pCmdBase + m_commandBufferSize - m_IndirectHeapSize - OCA_LOG_SECTION_SIZE_MAX;
+    }
+    else
+    {
+        *indirectState = (uint8_t *)m_commandBuffer->pCmdBase + m_commandBufferSize - m_IndirectHeapSize;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -773,7 +817,15 @@ MOS_STATUS GpuContextSpecificNext::ResizeCommandBufferAndPatchList(
 
     // m_commandBufferSize is used for allocate command buffer and submit command buffer, in this moment, command buffer has not allocated yet.
     // Linux KMD requires command buffer size align to 8 bytes, or it will not execute the commands.
-    m_commandBufferSize = MOS_ALIGN_CEIL(requestedCommandBufferSize, 8);
+    if (m_ocaLogSectionSupported /*&& !m_ocaSizeIncreaseDone*/)
+    {
+        m_commandBufferSize = MOS_ALIGN_CEIL(MosOcaInterfaceSpecific::IncreaseSize(requestedCommandBufferSize), 8);
+        // m_ocaSizeIncreaseDone = true;
+    }
+    else
+    {
+        m_commandBufferSize = MOS_ALIGN_CEIL(requestedCommandBufferSize, 8);
+    }
 
     if (requestedPatchListSize > m_maxPatchLocationsize)
     {

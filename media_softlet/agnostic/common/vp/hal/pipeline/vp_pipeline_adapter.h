@@ -94,7 +94,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params);
+    virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params) = 0;
 
     virtual void Destroy();
 
@@ -111,6 +111,16 @@ protected:
     //!
     virtual MOS_STATUS Init(
       const VphalSettings *pVpHalSettings, VP_MHWINTERFACE vpMhwinterface);
+
+    //!
+    //! \brief  Finish the execution for each frame
+    //! \details Finish the execution for each frame
+    //! \param  [in] params
+    //!         Pointer to PVP_PIPELINE_PARAMS
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params, PRENDERHAL_INTERFACE renderHal);
 
     std::shared_ptr<vp::VpPipeline>    m_vpPipeline = {};
 

@@ -72,6 +72,8 @@ public:
         PQUERY_STATUS_REPORT_APP  pQueryReport,
         uint16_t                  numStatus) override;
 
+    virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params) override;
+
     //!
     //! \brief    Get feature reporting
     //! \details  Get feature reporting

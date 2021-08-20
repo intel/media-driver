@@ -104,3 +104,10 @@ VphalFeatureReport* VpPipelineG12Adapter::GetRenderFeatureReport()
         return VphalStateG12Tgllp::GetRenderFeatureReport();
     }
 }
+
+MOS_STATUS VpPipelineG12Adapter::Execute(PVP_PIPELINE_PARAMS params)
+{
+    VP_FUNC_CALL();
+
+    return VpPipelineAdapter::Execute(params, this->m_renderHal);
+}

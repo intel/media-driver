@@ -63,6 +63,7 @@
 #include "media_libva_interface.h"
 #include "media_libva_interface_next.h"
 #include "media_libva_apo_decision.h"
+#include "mos_oca_interface_specific.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1667,6 +1668,7 @@ VAStatus DdiMedia_InitMediaContext (
         mosCtx.m_apoMosEnabled = mediaCtx->m_apoMosEnabled;
 
         MosInterface::InitOsUtilities(&mosCtx);
+        MosOcaInterfaceSpecific::InitInterface();
 
         mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
         if (nullptr == mediaCtx->pGtSystemInfo)

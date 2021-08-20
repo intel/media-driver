@@ -37,6 +37,7 @@
 #include "media_libva_caps.h"
 #include "media_ddi_prot.h"
 #include "media_interfaces_hwinfo_device.h"
+#include "mos_oca_interface_specific.h"
 
 #include "media_libva_caps.h"
 #include "ddi_cp_functions.h"
@@ -376,6 +377,10 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     mosCtx.fd              = mediaCtx->fd;
 
     MosInterface::InitOsUtilities(&mosCtx);
+    if (mediaCtx->m_apoMosEnabled)
+    {
+        MosOcaInterfaceSpecific::InitInterface();
+    }
 
     mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
     if (nullptr == mediaCtx->pGtSystemInfo)

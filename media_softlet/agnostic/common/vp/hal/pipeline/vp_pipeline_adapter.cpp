@@ -21,6 +21,7 @@
 */
 #include "vp_pipeline_adapter.h"
 #include "vp_platform_interface.h"
+#include "vphal_debug.h"
 
 VpPipelineAdapter::VpPipelineAdapter(
     vp::VpPlatformInterface     &vpPlatformInterface,
@@ -77,12 +78,13 @@ MOS_STATUS VpPipelineAdapter::Init(
     return m_vpPipeline->Init(&vpMhwinterface);
 }
 
-MOS_STATUS VpPipelineAdapter::Execute(PVP_PIPELINE_PARAMS params)
+MOS_STATUS VpPipelineAdapter::Execute(PVP_PIPELINE_PARAMS params, PRENDERHAL_INTERFACE renderHal)
 {
     MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
     vp::VP_PARAMS vpParams = {};
 
     VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(renderHal);
 
     vpParams.type = vp::PIPELINE_PARAM_TYPE_LEGACY;
     vpParams.renderParams = params;
@@ -100,6 +102,7 @@ MOS_STATUS VpPipelineAdapter::Execute(PVP_PIPELINE_PARAMS params)
             VP_PUBLIC_CHK_STATUS_RETURN(eStatus);
         }
     }
+    VPHAL_DBG_OCA_DUMPER_SET_RENDER_PARAM(renderHal, params);
 
     return m_vpPipeline->Execute();
 }

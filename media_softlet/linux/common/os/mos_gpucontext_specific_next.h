@@ -29,6 +29,7 @@
 
 #include "mos_gpucontext_next.h"
 #include "mos_graphicsresource_specific_next.h"
+#include "mos_oca_interface_specific.h"
 
 #define ENGINE_INSTANCE_SELECT_ENABLE_MASK                   0xFF
 #define ENGINE_INSTANCE_SELECT_COMPUTE_INSTANCE_SHIFT        16
@@ -93,7 +94,9 @@ public:
 
     MOS_STATUS VerifyCommandBufferSize(const uint32_t requestedSize)
     {
-        return (m_commandBufferSize < requestedSize) ? MOS_STATUS_UNKNOWN:MOS_STATUS_SUCCESS;
+        return m_ocaLogSectionSupported ?
+               ((m_commandBufferSize < MosOcaInterfaceSpecific::IncreaseSize(requestedSize)) ? MOS_STATUS_UNKNOWN:MOS_STATUS_SUCCESS) :
+               ((m_commandBufferSize < requestedSize) ? MOS_STATUS_UNKNOWN:MOS_STATUS_SUCCESS);
     }
 
     MOS_STATUS GetIndirectState(
@@ -305,6 +308,8 @@ private:
     MOS_LINUX_CONTEXT*  m_i915Context[MAX_ENGINE_INSTANCE_NUM+1];
     uint32_t     m_i915ExecFlag = 0;
     int32_t      m_currCtxPriority = 0;
+    bool m_ocaLogSectionSupported = true;
+    // bool m_ocaSizeIncreaseDone = false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     /*!\brief bits(23...16), (15...8), (7...0) are for Compute, VEbox and VDbox ;

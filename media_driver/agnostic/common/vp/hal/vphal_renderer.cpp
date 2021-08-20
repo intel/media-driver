@@ -1131,6 +1131,7 @@ MOS_STATUS VphalRenderer::Render(
     RenderParams = *pcRenderParams;
 
     VPHAL_DBG_PARAMETERS_DUMPPER_DUMP_XML(&RenderParams);
+    VPHAL_DBG_OCA_DUMPER_SET_RENDER_PARAM(pRenderHal, &RenderParams);
 
     // Get resource information for render target
     MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
@@ -1590,6 +1591,8 @@ VphalRenderer::~VphalRenderer()
 
     // Destroy vphal parameter dump
     VPHAL_DBG_PARAMETERS_DUMPPER_DESTORY(m_parameterDumper);
+
+    VPHAL_DBG_OCA_DUMPER_DESTORY(m_pRenderHal);
 
 finish:
     return;
@@ -2162,6 +2165,15 @@ MOS_STATUS VphalRenderer::AllocateDebugDumper()
 
 #endif
 
+    // vphal oca dumper object should also be created for release driver.
+    VPHAL_DBG_OCA_DUMPER_CREATE(pRenderHal)
+    if (nullptr == pRenderHal->pVphalOcaDumper)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Invalid null pointer!");
+        eStatus = MOS_STATUS_NULL_POINTER;
+        goto finish;
+    }
+
 finish:
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -2183,6 +2195,7 @@ finish:
             VPHAL_DBG_STATE_DUMPPER_DESTORY(pRenderHal->pStateDumper)
         }
 #endif
+        VPHAL_DBG_OCA_DUMPER_DESTORY(pRenderHal)
 
     }
 
