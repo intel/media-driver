@@ -150,6 +150,10 @@ typedef enum _MEDIA_EVENT
     EVENT_PIC_PARAM_HEVC,                          //! event for HEVC picture param
     EVENT_PIC_PARAM_VP9,                           //! event for VP9 picture param
     EVENT_PIC_PARAM_AV1,                           //! event for AV1 picture param
+    EVENT_MEDIA_LOG,                               //! event for media log
+    EVENT_MEDIA_LOG_RESERVE,                       //! event for more media log
+    EVENT_MEDIA_ERR,                               //! event for media error
+    EVENT_MEDIA_ERR_RESERVE,                       //! event for more media error
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
@@ -159,5 +163,51 @@ typedef enum _MEDIA_EVENT_TYPE
     EVENT_TYPE_END   = 2,           //! function exit event
     EVENT_TYPE_INFO2 = 3,           //! function extra information event
 } MEDIA_EVENT_TYPE;
+
+typedef enum _MT_LEVEL
+{
+    MT_VERBOSE  = 0,  //! verbos runtime log
+    MT_NORMAL   = 1,  //! normal runtime log
+    MT_CRITICAL = 2,  //! critical runtime log
+} MT_LEVEL;
+
+#pragma pack(1)
+typedef struct _MT_PARAM
+{
+    int32_t id;
+    int64_t value;
+} MT_PARAM;
+#pragma pack()
+
+//!
+//! \def media trace log id
+//!  |------------|------------------------------------| total 32bits
+//!  8bits comp id  24bits user specific id
+//!
+typedef enum _MT_LOG_ID
+{
+    MT_LOG_ID_BASE       = 0x00000000, // marker for tool, don't change this line
+    MT_MEM_ALLOC_ERR,
+    MT_GRAPHIC_ALLOC_ERR,
+    MT_LOG_ID_CP_BASE    = 0x01000000,
+    MT_LOG_ID_VP_BASE    = 0x02000000,
+    MT_LOG_ID_DEC_BASE   = 0x03000000,
+    MT_LOG_ID_ENC_BASE   = 0x04000000,
+} MT_LOG_ID;
+
+//!
+//! \def media trace parameter id
+//!
+typedef enum _MT_PARAM_ID
+{
+    MT_PARAM_ID_BASE     = 0,
+    MT_ERROR_CODE,
+    MT_PARAM_ID_CP_BASE  = 0x01000000,
+    MT_CP_SESSION_TYPE,
+    MT_CP_SESSION_MODE,
+    MT_PARAM_ID_VP_BASE  = 0x02000000,
+    MT_PARAM_ID_DEC_BASE = 0x03000000,
+    MT_PARAM_ID_ENC_BASE = 0x04000000,
+} MT_PARAM_ID;
 
 #endif
