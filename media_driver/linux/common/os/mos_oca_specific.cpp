@@ -156,7 +156,7 @@ MOS_STATUS MosOcaInterfaceSpecific::On1stLevelBBStart(uint64_t &gpuVaOcaBuffer, 
     }
 
     PMOS_RESOURCE pOsResource = (PMOS_RESOURCE)pMosResource;
-    if (ocaBufHandle > MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
     {
         MosOcaInterfaceSpecific::OnOcaError(pMosContext, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
         return MOS_STATUS_INVALID_PARAMETER;
@@ -183,7 +183,7 @@ MOS_STATUS MosOcaInterfaceSpecific::On1stLevelBBEnd(MOS_OCA_BUFFER_HANDLE ocaBuf
     {
         return MOS_STATUS_SUCCESS; 
     }
-    if (ocaBufHandle > MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || ocaBufHandle < 0)
     {
         MosOcaInterfaceSpecific::OnOcaError(mosCtx, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
         return MOS_STATUS_INVALID_PARAMETER;
@@ -669,6 +669,7 @@ void MosOcaInterfaceSpecific::Initialize()
         {
             if (pthread_mutex_init(m_ocaMutex, nullptr))
             {
+                free(m_ocaMutex);
                 m_ocaMutex = nullptr;
                 return;
             }
