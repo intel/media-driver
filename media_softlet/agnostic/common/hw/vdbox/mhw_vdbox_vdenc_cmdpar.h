@@ -79,6 +79,21 @@ enum class SurfaceFormat
     ayuvVariant     = 0x14,
 };
 
+struct _MHW_PAR_T(VDENC_STREAMIN_STATE)
+{
+    uint8_t maxTuSize;
+    uint8_t maxCuSize;
+    uint8_t numImePredictors;
+    uint8_t numMergeCandidateCu64x64;
+    uint8_t numMergeCandidateCu32x32;
+    uint8_t numMergeCandidateCu16x16;
+    uint8_t numMergeCandidateCu8x8;
+    bool    setQpRoiCtrl;
+    int8_t  forceQp;
+    uint8_t roiCtrl;
+    uint8_t puTypeCtrl;
+};
+
 struct _MHW_PAR_T(VDENC_CONTROL_STATE)
 {
     bool vdencInitialization = true;
