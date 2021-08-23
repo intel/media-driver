@@ -842,9 +842,6 @@ protected:
             resourceParams.bIsWritable     = true;
             resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
-            InitMocsParams(resourceParams, &cmd.VdencCumulativeCuCountStreamoutSurface.PictureFields.DW0.Value,
-                cmd.VdencCumulativeCuCountStreamoutSurface.PictureFields.mocsBitFiledLow, cmd.VdencCumulativeCuCountStreamoutSurface.PictureFields.mocsBitFiledHigh);
-
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 this->m_osItf,
                 this->m_currentCmdBuf,

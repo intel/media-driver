@@ -1341,9 +1341,6 @@ public:
             resourceParams.dwLocationInCmd = 65;
             resourceParams.bIsWritable = true;
 
-            InitMocsParams(resourceParams, &cmd.VdencCumulativeCuCountStreamoutSurface.PictureFields.DW0.Value,
-                cmd.VdencCumulativeCuCountStreamoutSurface.PictureFields.mocsBitFiledLow, cmd.VdencCumulativeCuCountStreamoutSurface.PictureFields.mocsBitFiledHigh);
-
             MHW_MI_CHK_STATUS(this->AddResourceToCmd(
                 this->m_osInterface,
                 cmdBuffer,
