@@ -462,6 +462,7 @@ struct DDI_MEDIA_CONTEXT
 
     // mutexs to protect the shared resource among multiple context
     MEDIA_MUTEX_T       SurfaceMutex;
+    MEDIA_MUTEX_T       MemDecompMutex;
     MEDIA_MUTEX_T       BufferMutex;
     MEDIA_MUTEX_T       ImageMutex;
     MEDIA_MUTEX_T       DecoderMutex;

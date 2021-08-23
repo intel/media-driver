@@ -322,7 +322,11 @@ struct mos_bo_gem {
      *
      */
     uint64_t pad_to_size;
-    uint8_t mem_region;
+
+    /**
+     * Memory Type on created the surfaces for local/system memory
+     */
+    int mem_region;
 };
 
 static unsigned int
@@ -334,6 +338,10 @@ mos_gem_compute_batch_space(struct mos_linux_bo ** bo_array, int count);
 static int
 mos_gem_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
                 uint32_t * swizzle_mode);
+
+static int
+mos_gem_bo_check_mem_region_internal(struct mos_linux_bo *bo,
+                     int mem_type);
 
 static int
 mos_gem_bo_set_tiling_internal(struct mos_linux_bo *bo,
@@ -1033,6 +1041,11 @@ retry:
             if (mos_gem_bo_set_tiling_internal(&bo_gem->bo,
                                  tiling_mode,
                                  stride)) {
+                mos_gem_bo_free(&bo_gem->bo);
+                goto retry;
+            }
+
+            if (mos_gem_bo_check_mem_region_internal(&bo_gem->bo, mem_type)) {
                 mos_gem_bo_free(&bo_gem->bo);
                 goto retry;
             }
@@ -3173,6 +3186,24 @@ mos_gem_bo_unpin(struct mos_linux_bo *bo)
 
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_UNPIN, &unpin);
     if (ret != 0)
+        return -errno;
+
+    return 0;
+}
+
+static int
+mos_gem_bo_check_mem_region_internal(struct mos_linux_bo *bo,
+                     int mem_type)
+{
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
+
+    // when re-cycle the gem_bo, need to keep the VA space is keeping consistent on memory type
+    if (bo_gem->mem_region ==  I915_MEMORY_CLASS_SYSTEM                            &&
+        (mem_type == MOS_MEMPOOL_VIDEOMEMORY || mem_type == MOS_MEMPOOL_DEVICEMEMORY))
+        return -errno;
+
+    if (bo_gem->mem_region ==  I915_MEMORY_CLASS_DEVICE                      &&
+        (mem_type == MOS_MEMPOOL_SYSTEMMEMORY))
         return -errno;
 
     return 0;

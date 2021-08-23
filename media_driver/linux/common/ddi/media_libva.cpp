@@ -1319,10 +1319,12 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
         else
         {
             DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+            DdiMediaUtil_LockMutex(&mediaCtx->MemDecompMutex);
 
             DdiMedia_MediaSurfaceToMosResource(mediaSurface, &surface);
             DdiMedia_MediaMemoryDecompressInternal(&mosCtx, &surface);
 
+            DdiMediaUtil_UnLockMutex(&mediaCtx->MemDecompMutex);
             DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
 
             if (pCpDdiInterface)
