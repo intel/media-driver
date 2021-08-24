@@ -26,7 +26,7 @@ Equivalents for other distributions should work.
 ## Dependencies
 
 * [Libva](https://github.com/intel/libva)
-* [GmmLib](https://github.com/intel/gmmlib)(Please check [comparability with GmmLib](https://github.com/intel/media-driver/wiki/Comparability-with-GmmLib))
+* [GmmLib](https://github.com/intel/gmmlib)(Please check [compatibility with GmmLib](https://github.com/intel/media-driver/wiki/Compatibility-with-GmmLib))
 
 ## Building
 
