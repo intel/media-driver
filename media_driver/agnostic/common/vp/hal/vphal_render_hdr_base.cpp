@@ -356,7 +356,7 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             }
             else
             {
-                VPHAL_RENDER_ASSERTMESSAGE("Color Space Not found.");
+                VPHAL_RENDER_ASSERTMESSAGE("Color Space %d Not found.", pSrc->ColorSpace);
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 goto finish;
             }
@@ -424,7 +424,7 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             {
                 CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709;
             }
-            else if (pHdrState->bVeboxpreprocessed && pTarget->ColorSpace == CSpace_BT709_FullRange)
+            else if (pTarget->ColorSpace == CSpace_BT709_FullRange)
             {
                 // CSC for target BT709_FULLRANGE is only exposed to Vebox Preprocessed HDR cases.
                 CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709_FULLRANGE;
@@ -436,7 +436,7 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             }
             else
             {
-                VPHAL_RENDER_ASSERTMESSAGE("Color Space Not found.");
+                VPHAL_RENDER_ASSERTMESSAGE("Color Space %d Not found.", pTarget->ColorSpace);
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 goto finish;
             }
