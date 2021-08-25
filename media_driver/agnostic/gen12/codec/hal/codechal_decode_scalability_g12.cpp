@@ -58,7 +58,8 @@ static MOS_STATUS CodecHalDecodeScalability_CalculateScdryCmdBufIndex_G12(
     if (pScalabilityState->HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_REAL_TILE)
     {
         *pdwBufIdxPlus1 = pScalabilityState->u8RtCurPipe + 1;
-        if(pScalabilityStateBase->pHwInterface->GetOsInterface()->phasedSubmission)
+        if(pScalabilityStateBase->pHwInterface->GetOsInterface()->phasedSubmission
+        && !pScalabilityStateBase->pHwInterface->GetOsInterface()->bGucSubmission)
         {
             /*  3 tiles 2 pipe for example:
                 cur phase               cur pip
@@ -247,9 +248,12 @@ MOS_STATUS CodecHalDecodeScalability_GetCmdBufferToUse_G12(
 
     CODECHAL_DECODE_CHK_NULL(pScalabilityStateBase);
     CODECHAL_DECODE_CHK_NULL(ppCmdBufToUse);
+    CODECHAL_DECODE_CHK_NULL(pScalabilityStateBase->pHwInterface);
+    CODECHAL_DECODE_CHK_NULL(pScalabilityStateBase->pHwInterface->GetOsInterface());
 
     if (!CodecHalDecodeScalabilityIsFESeparateSubmission(pScalabilityState) ||
-        CodecHalDecodeScalabilityIsBEPhaseG12(pScalabilityState))
+        CodecHalDecodeScalabilityIsBEPhaseG12(pScalabilityState) ||
+        pScalabilityStateBase->pHwInterface->GetOsInterface()->bGucSubmission)
     {
         pScalabilityState->bUseSecdryCmdBuffer = true;
         CODECHAL_DECODE_CHK_STATUS(CodecHalDecodeScalability_GetVESecondaryCmdBuffer_G12(pScalabilityState, pScdryCmdBuf));
@@ -693,7 +697,9 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
     HcpDecPhase = pScalabilityStateBase->HcpDecPhase;
 
     //FE& BE0 Sync. to refine (ucNumVdbox > )for GT3
-    if (HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE0 && pScalabilityState->pHwInterface->GetMfxInterface()->GetNumVdbox() > 2)
+    if (HcpDecPhase == CODECHAL_HCP_DECODE_PHASE_BE0
+        && pScalabilityState->pHwInterface->GetMfxInterface()->GetNumVdbox() > 2
+        && !pOsInterface->bGucSubmission)
     {
         if (pScalabilityState->bFESeparateSubmission)
         {
@@ -714,7 +720,7 @@ MOS_STATUS CodecHalDecodeScalability_FEBESync_G12(
     }
 
     if (CodecHalDecodeScalabilityIsBEPhaseG12(pScalabilityState) ||
-        CodecHalDecodeScalabilityIsFirstRealTilePhase(pScalabilityState))
+        (CodecHalDecodeScalabilityIsFirstRealTilePhase(pScalabilityState)))
     {
         // Stop Watchdog before BEs wait
         pMiInterface->AddWatchdogTimerStopCmd(pCmdBufferInUse);
@@ -1008,6 +1014,11 @@ MOS_STATUS CodecHalDecodeScalability_InitializeState_G12(
         pScalabilityState->bFESeparateSubmission = true;
     }
     else
+    {
+        pScalabilityState->bFESeparateSubmission = false;
+    }
+
+    if(osInterface->bGucSubmission)
     {
         pScalabilityState->bFESeparateSubmission = false;
     }
@@ -1442,13 +1453,14 @@ MOS_STATUS CodecHalDecodeScalability_AllocateResources_VariableSizes_G12(
     CODECHAL_DECODE_CHK_NULL_RETURN(pScalabilityState->pHwInterface->GetOsInterface());
     CODECHAL_DECODE_CHK_NULL_RETURN(pHcpBufSizeParam);
     CODECHAL_DECODE_CHK_NULL_RETURN(pAllocParam);
+    pOsInterface = pScalabilityState->pHwInterface->GetOsInterface();
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeScalability_AllocateResources_VariableSizes(pScalabilityState, pHcpBufSizeParam, pAllocParam));
 
     // for multi-pipe scalability mode
     if (pScalabilityState->ucNumVdbox > 2)
     {
-        if (pScalabilityState->bFESeparateSubmission)
+        if (pScalabilityState->bFESeparateSubmission && pOsInterface->bGucSubmission)
         {
             for (int i = 1; i < CODECHAL_HCP_STREAMOUT_BUFFER_MAX_NUM; i++)
             {
@@ -1922,7 +1934,8 @@ void CodecHalDecodeScalability_DecPhaseToSubmissionType_G12(
                 pCmdBuffer->iSubmissionType |= ((pScalabilityState->u8RtCurPipe - 1) << SUBMISSION_TYPE_MULTI_PIPE_SLAVE_INDEX_SHIFT);
             }
 
-            if (pScalabilityState->u8RtCurPhase == pScalabilityState->u8RtPhaseNum - 1)
+            if (!(pScalabilityState->pHwInterface->GetOsInterface()->bGucSubmission)
+            && (pScalabilityState->u8RtCurPhase == pScalabilityState->u8RtPhaseNum - 1))
             {
                 if (pScalabilityState->u8RtCurPipe == pScalabilityState->u8RtPipeInLastPhase - 1)
                 {

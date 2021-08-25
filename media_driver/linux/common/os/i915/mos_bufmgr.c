@@ -327,6 +327,22 @@ struct mos_bo_gem {
     int mem_region;
 };
 
+struct mos_exec_info {
+    /* save all exec2_objects for res*/
+    struct drm_i915_gem_exec_object2* obj;
+    /* save batch buffer*/
+    struct drm_i915_gem_exec_object2* batch_obj;
+    /* save previous ptr to void mem leak when free*/
+    struct drm_i915_gem_exec_object2* pSavePreviousExec2Objects;
+    /*bo resource count*/
+    uint32_t obj_count;
+    /*batch buffer bo count*/
+    uint32_t batch_count;
+    /*remain size of 'obj'*/
+    uint32_t obj_remain_size;
+#define      OBJ512_SIZE    512
+};
+
 static unsigned int
 mos_gem_estimate_batch_space(struct mos_linux_bo ** bo_array, int count);
 
@@ -3112,12 +3128,216 @@ skip_execution:
 }
 
 drm_export int
-do_exec3(struct mos_linux_bo **bo, int num_bo, struct mos_linux_context *ctx,
+do_exec3(struct mos_linux_bo **bo, int _num_bo, struct mos_linux_context *ctx,
      drm_clip_rect_t *cliprects, int num_cliprects, int DR4,
-     unsigned int flags, int *fence
+     unsigned int _flags, int *fence
      )
 {
-    return 0;
+    uint64_t flags = _flags;
+    uint64_t num_bo = _num_bo;
+    if((bo == nullptr) || (ctx == nullptr) || (num_bo == 0))
+    {
+        return -EINVAL;
+    }
+
+    struct mos_bufmgr_gem           *bufmgr_gem = (struct mos_bufmgr_gem *)bo[0]->bufmgr;
+    struct drm_i915_gem_execbuffer2 execbuf;
+    int                             ret = 0;
+    int                             i;
+
+    pthread_mutex_lock(&bufmgr_gem->lock);
+
+    struct mos_exec_info exec_info;
+    memset(static_cast<void*>(&exec_info), 0, sizeof(exec_info));
+    exec_info.batch_obj = (struct drm_i915_gem_exec_object2 *) calloc (num_bo, sizeof(struct drm_i915_gem_exec_object2));
+    if(exec_info.batch_obj == nullptr)
+    {
+        ret = -ENOMEM;
+        goto skip_execution;
+    }
+    exec_info.obj_remain_size = OBJ512_SIZE;
+    exec_info.obj = (struct drm_i915_gem_exec_object2 *) calloc (OBJ512_SIZE, sizeof(struct drm_i915_gem_exec_object2));
+    if(exec_info.obj == nullptr)
+    {
+        ret = -ENOMEM;
+        goto skip_execution;
+    }
+
+    for(i = 0; i < num_bo; i++)
+    {
+        if (to_bo_gem(bo[i])->has_error)
+        {
+            ret = -ENOMEM;
+            goto skip_execution;
+        }
+
+        /* Update indices and set up the validate list. */
+        mos_gem_bo_process_reloc2(bo[i]);
+
+        /* Add the batch buffer to the validation list.  There are no relocations
+         * pointing to it.
+         */
+        mos_add_validate_buffer2(bo[i], 0);
+
+        if((bufmgr_gem->exec_count - 1 + num_bo) > exec_info.obj_remain_size)
+        {
+            // origin size + OBJ512_SIZE + obj_count + batch_count;
+            uint32_t new_obj_size = exec_info.obj_count + exec_info.obj_remain_size + OBJ512_SIZE + bufmgr_gem->exec_count - 1 + num_bo;
+            struct drm_i915_gem_exec_object2 *new_obj = (struct drm_i915_gem_exec_object2 *)realloc(exec_info.obj, new_obj_size * sizeof(struct drm_i915_gem_exec_object2));
+            if(new_obj == nullptr)
+            {
+                ret = -ENOMEM;
+                goto skip_execution;
+            }
+            exec_info.obj_remain_size = new_obj_size - exec_info.obj_count;
+            exec_info.obj = new_obj;
+        }
+        if(0 == i)
+        {
+            uint32_t cp_size = (bufmgr_gem->exec_count - 1) * sizeof(struct drm_i915_gem_exec_object2);
+            memcpy(exec_info.obj, bufmgr_gem->exec2_objects, cp_size);
+            exec_info.obj_count += (bufmgr_gem->exec_count - 1);
+            exec_info.obj_remain_size -= (bufmgr_gem->exec_count - 1);
+        }
+        else
+        {
+            for(int e2 = 0; e2 < bufmgr_gem->exec_count - 1; e2++)
+            {
+                int e1;
+                for(e1 = 0; e1 < exec_info.obj_count; e1++)
+                {
+                    // skip the duplicated bo if it is already in the list of exec_info.obj
+                    if(bufmgr_gem->exec2_objects[e2].handle == exec_info.obj[e1].handle)
+                    {
+                        break;
+                    }
+                }
+                //if no duplicated bo found, add it into list of exec_info.obj
+                if(e1 == exec_info.obj_count)
+                {
+                    exec_info.obj[exec_info.obj_count] = bufmgr_gem->exec2_objects[e2];
+                    exec_info.obj_count++;
+                    exec_info.obj_remain_size--;
+                }
+            }
+        }
+        memcpy(&exec_info.batch_obj[i], &bufmgr_gem->exec2_objects[bufmgr_gem->exec_count - 1], sizeof(struct drm_i915_gem_exec_object2));
+        exec_info.batch_count++;
+        uint32_t reloc_count = bufmgr_gem->exec2_objects[bufmgr_gem->exec_count - 1].relocation_count;
+        uint32_t cp_size = (reloc_count * sizeof(struct drm_i915_gem_relocation_entry));
+        
+        struct drm_i915_gem_relocation_entry* ptr_reloc = (struct drm_i915_gem_relocation_entry *)calloc(reloc_count,sizeof(struct drm_i915_gem_relocation_entry));
+        if(ptr_reloc == nullptr)
+        {
+            ret = -ENOMEM;
+            goto skip_execution;
+        }
+        memcpy(ptr_reloc, (struct drm_i915_gem_relocation_entry *)bufmgr_gem->exec2_objects[bufmgr_gem->exec_count - 1].relocs_ptr, cp_size);
+
+        exec_info.batch_obj[i].relocs_ptr = (uintptr_t)ptr_reloc;
+        exec_info.batch_obj[i].relocation_count = reloc_count;
+
+        //clear bo
+        if (bufmgr_gem->bufmgr.debug)
+        {
+            mos_gem_dump_validation_list(bufmgr_gem);
+        }
+
+        for (int j = 0; j < bufmgr_gem->exec_count; j++) {
+            struct mos_bo_gem *bo_gem = to_bo_gem(bufmgr_gem->exec_bos[j]);
+
+            if(bo_gem)
+            {
+                bo_gem->idle = false;
+
+                /* Disconnect the buffer from the validate list */
+                bo_gem->validate_index = -1;
+                bufmgr_gem->exec_bos[j] = nullptr;
+            }
+        }
+        bufmgr_gem->exec_count = 0;
+    }
+
+    //add back batch obj to the last position
+    for(i = 0; i < num_bo; i++)
+    {
+       exec_info.obj[exec_info.obj_count] = exec_info.batch_obj[i];
+       exec_info.obj_count++;
+       exec_info.obj_remain_size--;
+    }
+
+    //save previous ptr
+    exec_info.pSavePreviousExec2Objects = bufmgr_gem->exec2_objects;
+    bufmgr_gem->exec_count = exec_info.obj_count;
+    bufmgr_gem->exec2_objects = exec_info.obj;
+
+    memclear(execbuf);
+    execbuf.buffers_ptr = (uintptr_t)bufmgr_gem->exec2_objects;
+    execbuf.buffer_count = bufmgr_gem->exec_count;
+    execbuf.batch_start_offset = 0;
+    execbuf.cliprects_ptr = (uintptr_t)cliprects;
+    execbuf.num_cliprects = num_cliprects;
+    execbuf.DR1 = 0;
+    execbuf.DR4 = DR4;
+    execbuf.flags = flags;
+    if (ctx == nullptr)
+        i915_execbuffer2_set_context_id(execbuf, 0);
+    else
+        i915_execbuffer2_set_context_id(execbuf, ctx->ctx_id);
+    execbuf.rsvd2 = 0;
+    if((flags & I915_EXEC_FENCE_SUBMIT) || (flags & I915_EXEC_FENCE_IN))
+    {
+        execbuf.rsvd2 = *fence;
+    }
+    else if(flags & I915_EXEC_FENCE_OUT)
+    {
+        execbuf.rsvd2 = -1;
+    }
+
+    if (bufmgr_gem->no_exec)
+        goto skip_execution;
+
+   ret = drmIoctl(bufmgr_gem->fd,
+               DRM_IOCTL_I915_GEM_EXECBUFFER2_WR,
+               &execbuf);
+
+    if (ret != 0) {
+        ret = -errno;
+        if (ret == -ENOSPC) {
+            MOS_DBG("Execbuffer fails to pin. "
+                "Estimate: %u. Actual: %u. Available: %u\n",
+                mos_gem_estimate_batch_space(bufmgr_gem->exec_bos,
+                                   bufmgr_gem->exec_count),
+                mos_gem_compute_batch_space(bufmgr_gem->exec_bos,
+                                  bufmgr_gem->exec_count),
+                (unsigned int) bufmgr_gem->gtt_size);
+        }
+    }
+
+    bufmgr_gem->exec2_objects = exec_info.pSavePreviousExec2Objects;
+
+    if(flags & I915_EXEC_FENCE_OUT)
+    {
+        *fence = execbuf.rsvd2 >> 32;
+    }
+
+skip_execution:
+    if (bufmgr_gem->bufmgr.debug)
+        mos_gem_dump_validation_list(bufmgr_gem);
+
+    bufmgr_gem->exec_count = 0;
+    if(exec_info.batch_obj)
+    {
+        for(i = 0; i < num_bo; i++)
+        {
+            mos_safe_free((struct drm_i915_gem_relocation_entry *)exec_info.batch_obj[i].relocs_ptr);
+        }
+    }
+    mos_safe_free(exec_info.obj);
+    mos_safe_free(exec_info.batch_obj);
+    pthread_mutex_unlock(&bufmgr_gem->lock);
+
+    return ret;
 }
 
 static int
@@ -4601,7 +4821,56 @@ int mos_set_context_param_parallel(struct mos_linux_context *ctx,
                      struct i915_engine_class_instance *ci,
                      unsigned int count)
 {
-    return 0;
+    if((ctx == nullptr) || (ci == nullptr) || (count <= 0))
+    {
+        return -EINVAL;
+    }
+
+    int      ret  = 0;
+    uint32_t size = 0;
+    int      n;
+    struct i915_context_engines_parallel_submit* parallel_submit = nullptr;
+    struct i915_context_param_engines* set_engines = nullptr;
+
+    size = sizeof(struct i915_context_engines_parallel_submit) + count * sizeof(*ci);
+    parallel_submit = (struct i915_context_engines_parallel_submit*)malloc(size);
+    if(parallel_submit == nullptr)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    memset(parallel_submit, 0, size);
+    parallel_submit->base.name = I915_CONTEXT_ENGINES_EXT_PARALLEL_SUBMIT;
+    parallel_submit->engine_index = 0;
+    parallel_submit->width = count;
+    parallel_submit->num_siblings = 1;
+    for(int i = 0; i < count; i++)
+    {
+        parallel_submit->engines[i] = ci[i];
+    }
+
+    /* I915_DEFINE_CONTEXT_PARAM_ENGINES */
+    size = sizeof(struct i915_context_param_engines) + sizeof(struct i915_engine_class_instance);
+    set_engines = (struct i915_context_param_engines*) malloc(size);
+    if(set_engines == nullptr)
+    {
+        ret = -ENOMEM;
+        goto fini;
+    }
+    set_engines->extensions = (uintptr_t)(parallel_submit);
+    set_engines->engines[0].engine_class = I915_ENGINE_CLASS_INVALID;
+    set_engines->engines[0].engine_instance = I915_ENGINE_CLASS_INVALID_NONE;
+
+    ret = mos_set_context_param(ctx,
+                          size,
+                          I915_CONTEXT_PARAM_ENGINES,
+                          (uintptr_t)set_engines);
+fini:
+    if (set_engines)
+        free(set_engines);
+    if (parallel_submit)
+        free(parallel_submit);
+    return ret;
 }
 
 int mos_set_context_param_load_balance(struct mos_linux_context *ctx,
