@@ -555,6 +555,7 @@ static bool InitAdlpMediaSku(struct GfxDeviceInfo *devInfo,
     }
 
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
+    MEDIA_WR_SKU(skuTable, FtrGucSubmission, 1);
 
     return true;
 }

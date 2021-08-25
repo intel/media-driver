@@ -13,16 +13,15 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit:
 
-commit 1e3944578b749449bd7fa6bf0bae4c3d3f5f1733
-Merge: f602a96e0252 2485e2753ec8
+commit 6f2f7c83303d2227f47551423e507d77d9ea01c7 
+Merge: 94ff371eb849 ab5d964c001b
 Author: Dave Airlie <airlied@redhat.com>
-Date:   Tue Sep 28 17:08:21 2021 +1000
+Date:   Fri Oct 22 06:30:33 2021 +1000
 
-    Merge tag 'amd-drm-next-5.16-2021-09-27' of https://gitlab.freedesktop.org/agd5f/linux into drm-next
+    Merge tag 'drm-intel-gt-next-2021-10-21' of git://anongit.freedesktop.org/drm/drm-intel into drm-next
 
     <...>
 
-    From: Alex Deucher <alexander.deucher@amd.com>
-    Link: https://patchwork.freedesktop.org/patch/msgid/20210927212653.4575-1-alexander.deucher@amd.com
     Signed-off-by: Dave Airlie <airlied@redhat.com>
-
+    From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+    Link: https://patchwork.freedesktop.org/patch/msgid/YXFmLKoq8Fg9JxSd@jlahtine-mobl.ger.corp.intel.com
