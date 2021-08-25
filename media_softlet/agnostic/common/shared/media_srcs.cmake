@@ -37,6 +37,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_utils.h
     ${CMAKE_CURRENT_LIST_DIR}/media_common_defs.h
     ${CMAKE_CURRENT_LIST_DIR}/media_factory.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_capstable.h
 )
 
 set(SOURCES_
