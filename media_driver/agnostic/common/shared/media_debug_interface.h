@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -170,6 +170,8 @@ public:
 
     MOS_STATUS LockSemaResource(std::vector<uint32_t *> &vSemaData, std::vector<MOS_RESOURCE> &vResource);
 
+    int32_t GetStopFrameNumber() { return m_stopFrameNumber; }
+
     std::vector<uint32_t> GetCrcGoldenReference() {return m_crcGoldenReference; }
     std::string m_ddiFileName;
     std::string m_outputFilePath;
@@ -200,7 +202,7 @@ public:
     uint32_t          m_decodeSurfDumpFrameNum   = 0;
     uint32_t          m_streamId                 = 0;
     uint32_t          m_crcTable[256]            ={0};
-    int32_t           m_frameNumSpecified        = -1;
+    int32_t           m_stopFrameNumber          = -1;
     std::vector<uint32_t> m_crcGoldenReference   = {};
     GoldenReferences      m_goldenReferences     = {};
     uint32_t*         m_semaData                 = nullptr;

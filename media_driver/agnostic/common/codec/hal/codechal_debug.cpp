@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -97,7 +97,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
-    m_frameNumSpecified = userFeatureData.i32Data;
+    m_stopFrameNumber = userFeatureData.i32Data;
 #endif
     
     return MOS_STATUS_SUCCESS;
@@ -205,11 +205,7 @@ MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(CodechalDecode *pCodechalD
                 &cmdBuffer));
         }
         StoreNumFrame(m_miInterface, frameCntRes, frameNum, &cmdBuffer);
-        if (m_frameNumSpecified == frameNum)
-        {
-            StopExecutionAtFrame(m_hwInterface, &vResource[0], &cmdBuffer, frameNum);
-        }
-        // To hang the system at specified for golden PSMI
+
         SubmitDummyWorkload(&cmdBuffer, pCodechalDecode->GetVideoContextUsesNullHw());
         //Get Decode output
         std::vector<uint32_t> data = {CalculateCRC(buf, size)};

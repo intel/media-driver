@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -707,10 +707,6 @@ MOS_STATUS MediaDebugInterface::DetectCorruptionHw(CodechalHwInterface *hwInterf
                 frameCrcOffset));
         }
         StoreNumFrame(m_miInterface, frameCntRes, frameNum, pCmdBuffer);
-        if (m_frameNumSpecified == frameNum)
-        {
-            StopExecutionAtFrame(hwInterface, &vStatusBuffer[0], pCmdBuffer, frameNum);
-        }
     }
     return MOS_STATUS_SUCCESS;
 }

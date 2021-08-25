@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2020, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1597,6 +1597,13 @@ MOS_STATUS CodechalDecode::EndStatusReport(
             cmdBuffer,
             &flushDwParams));
     }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_debugInterface->GetStopFrameNumber() == m_frameNum)
+    {
+        m_debugInterface->StopExecutionAtFrame(m_hwInterface, &GetDecodeStatusBuf()->m_statusBuffer, cmdBuffer, m_frameNum); //Hang at specific frame.
+    }
+#endif
 
     return eStatus;
 }
