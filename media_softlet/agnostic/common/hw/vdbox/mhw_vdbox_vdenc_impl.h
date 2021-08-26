@@ -140,27 +140,90 @@ class Impl : public Itf, public mhw::Impl
     _VDENC_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_IMPL);
 
 public:
-    MOS_STATUS EnableVdencRowstoreCacheIfSupported(uint32_t address) override
+    MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) override
     {
         MHW_FUNCTION_ENTER;
 
-        if (this->m_vdencRowStoreCache.supported)
+        switch (par.format)
         {
-            this->m_vdencRowStoreCache.enabled   = true;
-            this->m_vdencRowStoreCache.dwAddress = address;
+        case RowStorePar::AVC:
+        {
+            if (this->m_rowStoreCache.vdenc.supported)
+            {
+                this->m_rowStoreCache.vdenc.enabled   = true;
+                this->m_rowStoreCache.vdenc.dwAddress = !par.isField ? 1280 : 1536;
+            }
+            if (this->m_rowStoreCache.ipdl.supported)
+            {
+                this->m_rowStoreCache.ipdl.enabled   = true;
+                this->m_rowStoreCache.ipdl.dwAddress = 512;
+            }
+
+            break;
         }
-
-        return MOS_STATUS_SUCCESS;
-    }
-
-    MOS_STATUS EnableVdencRowIpdlstoreCacheIfSupported(uint32_t address) override
-    {
-        MHW_FUNCTION_ENTER;
-
-        if (this->m_vdencIpdlRowstoreCache.supported)
+        case RowStorePar::HEVC:
         {
-            this->m_vdencIpdlRowstoreCache.enabled   = true;
-            this->m_vdencIpdlRowstoreCache.dwAddress = address;
+            constexpr bool enable[16][5] =
+            {
+                { 1, 1, 1, 0, 1 }, { 1, 1, 1, 1, 1 }, { 1, 1, 0, 0, 0 }, { 1, 1, 0, 1, 0 },
+                { 1, 1, 1, 1, 1 }, { 1, 1, 0, 0, 1 }, { 1, 1, 1, 0, 0 }, { 1, 0, 1, 0, 1 },
+                { 1, 1, 1, 0, 0 }, { 1, 0, 1, 0, 1 }, { 1, 1, 1, 1, 1 }, { 1, 1, 0, 1, 1 },
+                { 1, 1, 1, 1, 1 }, { 1, 0, 1, 1, 1 }, { 1, 1, 1, 1, 1 }, { 1, 0, 1, 1, 1 }
+            };
+    
+            constexpr uint32_t address[16][5] =
+            {
+                { 0, 256, 1280,    0, 2048 }, { 0, 256, 1280, 1824, 1792 }, { 0, 512,    0,    0,    0 }, { 0, 256,   0, 2304,    0 },
+                { 0, 256, 1024,    0, 1792 }, { 0, 512,    0,    0, 2048 }, { 0, 256, 1792,    0,    0 }, { 0,   0, 512,    0, 2048 },
+                { 0, 256, 1792,    0,    0 }, { 0,   0,  256,    0, 1792 }, { 0, 256, 1024, 1568, 1536 }, { 0, 512,   0, 2112, 2048 },
+                { 0, 256, 1792, 2336, 2304 }, { 0,   0,  512, 1600, 1536 }, { 0, 128, 1664, 2336, 2304 }, { 0,   0, 256, 1600, 1536 }
+            };
+
+            bool     isLcu32or64 = par.lcuSize == RowStorePar::SIZE_32 || par.lcuSize == RowStorePar::SIZE_64;
+            bool     isGt4k      = par.frameWidth > 4096;
+            bool     isGt8k      = par.frameWidth > 8192;
+            uint32_t index       = 0;
+
+            if (par.format != mhw ::vdbox::vdenc::RowStorePar::YUV444)
+            {
+                index = 2 * isGt4k + isLcu32or64;
+            }
+            else
+            {
+                uint32_t subidx = par.bitDepth == RowStorePar::DEPTH_12 ? 2 : (par.bitDepth == RowStorePar::DEPTH_10 ? 1 : 0);
+                index           = 4 + 6 * isLcu32or64 + 2 * subidx + isGt4k;
+            }
+
+            if (!isGt8k && this->m_rowStoreCache.vdenc.supported)
+            {
+                this->m_rowStoreCache.vdenc.enabled   = enable[index][3];
+                if (this->m_rowStoreCache.vdenc.enabled)
+                {
+                    this->m_rowStoreCache.vdenc.dwAddress = address[index][3];
+                }
+            }
+
+            break;
+        }
+        case RowStorePar::AV1:
+        {
+            if (this->m_rowStoreCache.vdenc.supported)
+            {
+                this->m_rowStoreCache.vdenc.enabled   = true;
+                this->m_rowStoreCache.vdenc.dwAddress = 2370;
+            }
+            if (this->m_rowStoreCache.ipdl.supported)
+            {
+                this->m_rowStoreCache.ipdl.enabled   = true;
+                this->m_rowStoreCache.ipdl.dwAddress = 384;
+            }
+
+            break;
+        }
+        default:
+        {
+            break;
+        }
         }
 
         return MOS_STATUS_SUCCESS;
@@ -180,8 +243,11 @@ public:
 protected:
     using base_t = Itf;
 
-    vdbox::RowStoreCache             m_vdencRowStoreCache                                       = {};
-    vdbox::RowStoreCache             m_vdencIpdlRowstoreCache                                   = {};
+    struct
+    {
+        RowStoreCache vdenc;
+        RowStoreCache ipdl;
+    } m_rowStoreCache                                                                           = {};
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};
 
     Impl(PMOS_INTERFACE osItf) : mhw::Impl(osItf)
@@ -234,7 +300,7 @@ protected:
             &userFeatureData,
             m_osItf->pOsContext);
 #endif  // _DEBUG || _RELEASE_INTERNAL
-        this->m_vdencRowStoreCache.supported = userFeatureData.i32Data ? false : true;
+        this->m_rowStoreCache.vdenc.supported = userFeatureData.i32Data ? false : true;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -244,7 +310,7 @@ protected:
             &userFeatureData,
             m_osItf->pOsContext);
 #endif  // _DEBUG || _RELEASE_INTERNAL
-        this->m_vdencIpdlRowstoreCache.supported = userFeatureData.i32Data ? false : true;
+        this->m_rowStoreCache.ipdl.supported = userFeatureData.i32Data ? false : true;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -399,10 +465,10 @@ protected:
                 &resourceParams));
         }
 
-        if (this->m_vdencRowStoreCache.enabled)
+        if (this->m_rowStoreCache.vdenc.enabled)
         {
             cmd.RowStoreScratchBuffer.BufferPictureFields.DW0.CacheSelect = cmd_t::VDENC_Surface_Control_Bits_CMD::CACHE_SELECT_UNNAMED1;
-            cmd.RowStoreScratchBuffer.LowerAddress.DW0.Value              = this->m_vdencRowStoreCache.dwAddress << 6;
+            cmd.RowStoreScratchBuffer.LowerAddress.DW0.Value              = this->m_rowStoreCache.vdenc.dwAddress << 6;
         }
         else if (!Mos_ResourceIsNull(params.intraRowStoreScratchBuffer))
         {
@@ -809,10 +875,10 @@ protected:
                 &resourceParams));
         }
 
-        if (this->m_vdencIpdlRowstoreCache.enabled)
+        if (this->m_rowStoreCache.ipdl.enabled)
         {
             cmd.IntraPredictionRowstoreBaseAddress.BufferPictureFields.DW0.CacheSelect = cmd_t::VDENC_Surface_Control_Bits_CMD::CACHE_SELECT_UNNAMED1;
-            cmd.IntraPredictionRowstoreBaseAddress.LowerAddress.DW0.Value              = m_vdencIpdlRowstoreCache.dwAddress << 6;
+            cmd.IntraPredictionRowstoreBaseAddress.LowerAddress.DW0.Value              = this->m_rowStoreCache.ipdl.dwAddress << 6;
         }
         else if (!Mos_ResourceIsNull(params.mfdIntraRowStoreScratchBuffer))
         {

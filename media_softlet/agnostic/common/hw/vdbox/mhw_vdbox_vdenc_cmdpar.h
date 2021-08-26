@@ -79,6 +79,46 @@ enum class SurfaceFormat
     ayuvVariant     = 0x14,
 };
 
+struct RowStorePar
+{
+    enum Codec
+    {
+        AVC,
+        HEVC,
+        VP9,
+        AV1
+    };
+
+    enum ChromaFormat
+    {
+        MONOCHROME,
+        YUV420,
+        YUV422,
+        YUV444
+    };
+
+    enum BitDepth
+    {
+        DEPTH_8,
+        DEPTH_10,
+        DEPTH_12
+    };
+
+    enum LcuSize
+    {
+        SIZE_32,
+        SIZE_64,
+        SIZE_OTHER,
+    };
+
+    Codec        mode       = AVC;
+    ChromaFormat format     = MONOCHROME;
+    BitDepth     bitDepth   = DEPTH_8;
+    LcuSize      lcuSize    = SIZE_32;
+    bool         isField    = false;
+    uint32_t     frameWidth = 0;
+};
+
 struct _MHW_PAR_T(VDENC_STREAMIN_STATE)
 {
     uint8_t maxTuSize;

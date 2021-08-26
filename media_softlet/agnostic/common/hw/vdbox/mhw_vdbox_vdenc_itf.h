@@ -67,9 +67,7 @@ public:
 
     virtual ~Itf() = default;
 
-    virtual MOS_STATUS EnableVdencRowstoreCacheIfSupported(uint32_t address) = 0;
-
-    virtual MOS_STATUS EnableVdencRowIpdlstoreCacheIfSupported(uint32_t address) = 0;
+    virtual MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) = 0;
 
     virtual MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) = 0;
 
