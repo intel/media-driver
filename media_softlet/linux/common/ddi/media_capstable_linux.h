@@ -42,11 +42,11 @@
 //!
 struct ConfigLinux
 {
-    VAProfile       profile;
-    VAEntrypoint    entrypoint;
-    VAConfigAttrib  *attribList;
-    int32_t         numAttribs;
-    ComponentData   componentData;
+    VAProfile       profile       = VAProfileNone;
+    VAEntrypoint    entrypoint    = VAEntrypointVLD;
+    VAConfigAttrib  *attribList   = nullptr;
+    int32_t         numAttribs    = 0;
+    ComponentData   componentData = {};
 
     ConfigLinux(
         VAProfile      p,
