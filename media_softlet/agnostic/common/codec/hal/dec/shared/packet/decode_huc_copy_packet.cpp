@@ -32,7 +32,10 @@ namespace decode
 
 MOS_STATUS HucCopyPkt::PushCopyParams(HucCopyParams &copyParams)
 {
+    DECODE_CHK_COND(copyParams.copyLength <= 0, "HucCopyPkt: Invalid copy params!");
+
     m_copyParamsList.push_back(copyParams);
+    
     return MOS_STATUS_SUCCESS;
 }
 
