@@ -144,7 +144,7 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
-        switch (par.format)
+        switch (par.mode)
         {
         case RowStorePar::AVC:
         {
@@ -184,7 +184,7 @@ public:
             bool     isGt8k      = par.frameWidth > 8192;
             uint32_t index       = 0;
 
-            if (par.format != mhw ::vdbox::vdenc::RowStorePar::YUV444)
+            if (par.format != RowStorePar::YUV444)
             {
                 index = 2 * isGt4k + isLcu32or64;
             }
