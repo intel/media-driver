@@ -118,20 +118,6 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
     m_outputSurface = *(procParams->m_outputSurface);
     DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&m_outputSurface));
 
-    if (m_outputSurface.TileType == MOS_TILE_LINEAR)  //check output surface tile type
-    {
-        PMOS_INTERFACE pOsInterface = m_hwInterface->GetOsInterface();
-        MEDIA_FEATURE_TABLE *skuTable = nullptr;
-        skuTable                      = pOsInterface->pfnGetSkuTable(pOsInterface);
-        DECODE_CHK_NULL(skuTable);
-        if (!MEDIA_IS_SKU(skuTable, FtrSFCLinearOutputSupport))
-        {
-            m_enabled = false;
-            DECODE_ASSERTMESSAGE("Invalid Output Surface Tile Type !");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-    }
-
     m_outputSurfaceRegion.m_x      = procParams->m_outputSurfaceRegion.m_x;
     m_outputSurfaceRegion.m_y      = procParams->m_outputSurfaceRegion.m_y;
     m_outputSurfaceRegion.m_width  = (procParams->m_outputSurfaceRegion.m_width == 0) ?

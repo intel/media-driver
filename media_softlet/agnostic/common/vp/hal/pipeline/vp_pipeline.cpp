@@ -609,7 +609,7 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
     if (m_userFeatureSetting.enableSFCNv12P010LinearOutput &&
         MOS_TILE_LINEAR != params->pTarget[0]->TileType &&
         (Format_P010 == params->pTarget[0]->Format || Format_NV12 == params->pTarget[0]->Format) &&
-        MEDIA_IS_SKU(skuTable, FtrSFCLinearOutputSupport))
+        MEDIA_IS_SKU(skuTable, FtrSFC420LinearOutputSupport))
     {
         if (!m_tempTargetSurface)
         {

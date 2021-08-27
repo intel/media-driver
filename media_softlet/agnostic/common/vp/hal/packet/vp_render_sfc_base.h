@@ -163,7 +163,8 @@ public:
     virtual bool IsVdboxSfcFormatSupported(
         CODECHAL_STANDARD           codecStandard,
         MOS_FORMAT                  inputFormat,
-        MOS_FORMAT                  outputFormat);
+        MOS_FORMAT                  outputFormat,
+        MOS_TILE_TYPE               tileType);
 
     bool IsCSC() { return m_renderData.bCSC; }
     bool IsScaling() { return m_renderData.bScaling; }

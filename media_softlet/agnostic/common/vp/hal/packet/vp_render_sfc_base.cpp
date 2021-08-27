@@ -617,9 +617,16 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
 bool SfcRenderBase::IsVdboxSfcFormatSupported(
     CODECHAL_STANDARD           codecStandard,
     MOS_FORMAT                  inputFormat,
-    MOS_FORMAT                  outputFormat)
+    MOS_FORMAT                  outputFormat,
+    MOS_TILE_TYPE               tileType)
 {
     VP_FUNC_CALL();
+
+    if (tileType == MOS_TILE_LINEAR && (outputFormat == Format_NV12 || outputFormat == Format_P010))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Unsupported output format '0x%08x' on tile type '0x%08x'", outputFormat, tileType)
+        return false;
+    }
 
     if (CODECHAL_AVC == codecStandard || CODECHAL_HEVC == codecStandard ||
         CODECHAL_VP9 == codecStandard || CODECHAL_AV1 == codecStandard)

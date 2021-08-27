@@ -428,7 +428,7 @@ MOS_STATUS MediaSfcRender::IsParameterSupported(
     }
 
     // Check input and output format (limited only to current decode processing usage)
-    if (!m_vdboxSfcRender->IsVdboxSfcFormatSupported(sfcParam.videoParams.codecStandard, sfcParam.input.format, sfcParam.output.surface->Format))
+    if (!m_vdboxSfcRender->IsVdboxSfcFormatSupported(sfcParam.videoParams.codecStandard, sfcParam.input.format, sfcParam.output.surface->Format, sfcParam.output.surface->TileType))
     {
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }

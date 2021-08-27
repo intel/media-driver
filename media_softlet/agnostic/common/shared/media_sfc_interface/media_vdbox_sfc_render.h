@@ -92,7 +92,8 @@ public:
     bool IsVdboxSfcFormatSupported(
         CODECHAL_STANDARD           codecStandard,
         MOS_FORMAT                  inputFormat,
-        MOS_FORMAT                  outputFormat);
+        MOS_FORMAT                  outputFormat,
+        MOS_TILE_TYPE               tileType);
 
 protected:
     MOS_STATUS SetCSCParams(VDBOX_SFC_PARAMS &sfcParam, VP_EXECUTE_CAPS &vpExecuteCaps);
