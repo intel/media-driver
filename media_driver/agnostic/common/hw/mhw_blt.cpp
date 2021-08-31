@@ -203,11 +203,13 @@ MOS_STATUS MhwBltInterface::AddBlockCopyBlt(
 
     cmd.DW0.ColorDepth = pFastCopyBltParam->dwColorDepth;
     cmd.DW1.DestinationPitch = pFastCopyBltParam->dwDstPitch -1;
-    cmd.DW1.DestinationMocsValue = 2;//may need change
+    cmd.DW1.DestinationMocsValue =
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_DESTINATION).DwordValue;
 
     cmd.DW1.DestinationTiling = (pFastCopyBltParam->pDstOsResource->TileType == MOS_TILE_LINEAR) ? 0:1; 
     cmd.DW8.SourceTiling = (pFastCopyBltParam->pSrcOsResource->TileType == MOS_TILE_LINEAR) ? 0:1;
-    cmd.DW8.SourceMocs = 2; // need check the Mocs table
+    cmd.DW8.SourceMocs =
+        m_osInterface->pfnGetGmmClientContext(m_osInterface)->CachePolicyGetMemoryObject(nullptr, GMM_RESOURCE_USAGE_BLT_SOURCE).DwordValue;
 
     cmd.DW2.DestinationX1CoordinateLeft = 0;
     cmd.DW2.DestinationY1CoordinateTop = 0;

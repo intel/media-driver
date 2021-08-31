@@ -84,8 +84,11 @@ MediaCopyBaseState::~MediaCopyBaseState()
 //!
 MOS_STATUS MediaCopyBaseState::Initialize(PMOS_INTERFACE osInterface, MhwInterfaces *mhwInterfaces)
 {
-    m_inUseGPUMutex     = MosUtilities::MosCreateMutex();
-    MCPY_CHK_NULL_RETURN(m_inUseGPUMutex);
+    if (m_inUseGPUMutex == nullptr)
+    {
+        m_inUseGPUMutex     = MosUtilities::MosCreateMutex();
+        MCPY_CHK_NULL_RETURN(m_inUseGPUMutex);
+    }
 
    #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_surfaceDumper == nullptr)
