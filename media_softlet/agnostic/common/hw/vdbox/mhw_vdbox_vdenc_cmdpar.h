@@ -129,7 +129,7 @@ struct _MHW_PAR_T(VDENC_STREAMIN_STATE)
     uint8_t numMergeCandidateCu16x16;
     uint8_t numMergeCandidateCu8x8;
     bool    setQpRoiCtrl;
-    int8_t  forceQp;
+    int8_t  forceQp[4];
     uint8_t roiCtrl;
     uint8_t puTypeCtrl;
 };
