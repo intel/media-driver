@@ -711,20 +711,6 @@ void _MOS_Assert(
 }
 
 //!
-//! \def MOS_CHK_HR_RETURN(_compID, _subCompID, _stmt)
-//!  Check _stmt, assert and return an error for failure
-//!
-#define MOS_CHK_HR_RETURN(_compID, _subCompID, _stmt)                                       \
-{                                                                                           \
-    hr = (_stmt);                                                                           \
-    if (hr != MOS_STATUS_SUCCESS)                                                           \
-    {                                                                                       \
-        MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, hr = 0x%x", hr);        \
-        return hr;                                                                          \
-    }                                                                                       \
-}
-
-//!
 //! \def MOS_CHK_HR_NO_STATUS_RETURN(_compID, _subCompID, _stmt)
 //!  Check _stmt, assert and return void
 //!
