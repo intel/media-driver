@@ -2578,6 +2578,7 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
             (uint32_t)pSrcSurface->rcSrc.right < pSrcSurface->dwWidth))
     {
         pSrcSurface->bVEBOXCroppingUsed = true;
+        pRenderTarget->bVEBOXCroppingUsed = true;
         VPHAL_RENDER_NORMALMESSAGE("bVEBOXCroppingUsed = true, pSrcSurface->rcSrc.bottom: %d, pSrcSurface->rcSrc.right: %d; pSrcSurface->dwHeight: %d, pSrcSurface->dwHeight: %d;",
             (uint32_t)pSrcSurface->rcSrc.bottom,
             (uint32_t)pSrcSurface->rcSrc.right,
@@ -2587,6 +2588,7 @@ bool VPHAL_VEBOX_STATE_G12_BASE::IsNeeded(
     else
     {
         pSrcSurface->bVEBOXCroppingUsed = false;
+        pRenderTarget->bVEBOXCroppingUsed = false;
     }
 
     // Set MMC State

@@ -676,6 +676,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     if (fScaleX == 1.0f && fScaleY == 1.0f &&
         // Only support vebox crop from left-top, which is to align with legacy path.
         0 == scalingParams->input.rcSrc.left && 0 == scalingParams->input.rcSrc.top &&
+        SAME_SIZE_RECT(scalingParams->input.rcDst, scalingParams->output.rcDst) &&
         // If Alpha enabled, which should go SFC pipe.
         !IsAlphaEnabled(scalingParams) &&
         // If Colorfill enabled, which should go SFC pipe.

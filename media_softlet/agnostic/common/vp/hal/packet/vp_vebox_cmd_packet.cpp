@@ -1810,11 +1810,45 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     m_dwVeboxPerBlockStatisticsHeight               = surfSetting.dwVeboxPerBlockStatisticsHeight;
     m_dwVeboxPerBlockStatisticsWidth                = surfSetting.dwVeboxPerBlockStatisticsWidth;
 
+    VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrInput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pLaceOrAceOrRgbHistogram);
 
     m_DNDIFirstFrame    = (!m_PacketCaps.bRefValid && (m_PacketCaps.bDN || m_PacketCaps.bDI));
     m_DIOutputFrames    = MEDIA_VEBOX_DI_OUTPUT_CURRENT;
+
+    auto curInput = m_veboxPacketSurface.pCurrInput;
+    auto curOutput = m_veboxPacketSurface.pCurrOutput;
+    if (!m_IsSfcUsed &&
+        ((uint32_t)curInput->rcSrc.bottom < curInput->osSurface->dwHeight ||
+        (uint32_t)curInput->rcSrc.right < curInput->osSurface->dwWidth))
+    {
+        curInput->bVEBOXCroppingUsed = true;
+        VP_RENDER_NORMALMESSAGE("bVEBOXCroppingUsed = true, input: rcSrc.bottom: %d, rcSrc.right: %d; dwHeight: %d, dwHeight: %d;",
+            (uint32_t)curInput->rcSrc.bottom,
+            (uint32_t)curInput->rcSrc.right,
+            curInput->osSurface->dwHeight,
+            curInput->osSurface->dwWidth);
+
+        if (curOutput)
+        {
+            curOutput->bVEBOXCroppingUsed = true;
+            VP_RENDER_NORMALMESSAGE("                           output: rcSrc.bottom: %d, rcSrc.right: %d; dwHeight: %d, dwHeight: %d;",
+                (uint32_t)curOutput->rcSrc.bottom,
+                (uint32_t)curOutput->rcSrc.right,
+                curOutput->osSurface->dwHeight,
+                curOutput->osSurface->dwWidth);
+        }
+    }
+    else
+    {
+        curInput->bVEBOXCroppingUsed = false;
+        if (curOutput)
+        {
+            curOutput->bVEBOXCroppingUsed = false;
+        }
+    }
+
 
     // Get Vebox Secure mode form policy
     m_useKernelResource = packetCaps.bSecureVebox;
