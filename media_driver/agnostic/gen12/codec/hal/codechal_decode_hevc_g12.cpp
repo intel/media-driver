@@ -814,6 +814,39 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
         }
     }
 
+    if (!(CodecHalDecodeIsSCCIBCMode(m_hevcSccPicParams)))
+    {
+        uint8_t refCurrIndex   = -1;
+        uint8_t refBeforeIndex = -1;
+        uint8_t refAfterIndex  = -1;
+
+        for (int i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+        {
+            uint8_t indexCurr   = m_hevcPicParams->RefPicSetLtCurr[i];
+            uint8_t indexBefore = m_hevcPicParams->RefPicSetStCurrBefore[i];
+            uint8_t indexAfter  = m_hevcPicParams->RefPicSetStCurrAfter[i];
+
+            if (indexCurr < CODEC_MAX_NUM_REF_FRAME_HEVC)
+            {
+                refCurrIndex = m_hevcPicParams->RefFrameList[indexCurr].FrameIdx;
+            }
+            if (indexBefore < CODEC_MAX_NUM_REF_FRAME_HEVC)
+            {
+                refBeforeIndex = m_hevcPicParams->RefFrameList[indexBefore].FrameIdx;
+            }
+            if (indexAfter < CODEC_MAX_NUM_REF_FRAME_HEVC)
+            {
+                refAfterIndex = m_hevcPicParams->RefFrameList[indexAfter].FrameIdx;
+            }
+
+            if ((refCurrIndex == m_hevcPicParams->CurrPic.FrameIdx) || (refBeforeIndex == m_hevcPicParams->CurrPic.FrameIdx) || (refAfterIndex == m_hevcPicParams->CurrPic.FrameIdx))
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+    }
+
+
     m_twoVersionsOfCurrDecPicFlag = 0;
     if (CodecHalDecodeIsSCCIBCMode(m_hevcSccPicParams))
     {
