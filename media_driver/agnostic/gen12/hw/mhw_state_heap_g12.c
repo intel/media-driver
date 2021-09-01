@@ -357,39 +357,39 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
             mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD *pCmd =
                 (mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD*)pLocationOfSurfaceInSsh;
             MHW_MI_CHK_NULL(pCmd);
-            *pCmd = mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD();
+            mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD CmdInit;
 
-            pCmd->DW1.Width                         = (pParams->dwWidthToUse[i] == 0) ?
+            CmdInit.DW1.Width                         = (pParams->dwWidthToUse[i] == 0) ?
                 pParams->psSurface->dwWidth - 1 : pParams->dwWidthToUse[i] - 1;
-            pCmd->DW1.Height                        =  (pParams->dwHeightToUse[i] == 0) ?
+            CmdInit.DW1.Height                        =  (pParams->dwHeightToUse[i] == 0) ?
                 pParams->psSurface->dwHeight - 1: pParams->dwHeightToUse[i] - 1;
-            pCmd->DW1.CrVCbUPixelOffsetVDirection   = pParams->Direction;
+            CmdInit.DW1.CrVCbUPixelOffsetVDirection   = pParams->Direction;
 
-            pCmd->DW2.SurfacePitch              = pParams->psSurface->dwPitch - 1;
-            pCmd->DW2.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
-            pCmd->DW2.InterleaveChroma          = pParams->bInterleaveChroma;
+            CmdInit.DW2.SurfacePitch              = pParams->psSurface->dwPitch - 1;
+            CmdInit.DW2.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
+            CmdInit.DW2.InterleaveChroma          = pParams->bInterleaveChroma;
 
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
-                pCmd->DW2.TileMode = mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEYMAJOR;
+                CmdInit.DW2.TileMode = mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEYMAJOR;
             }
             else if (pParams->psSurface->TileType == MOS_TILE_LINEAR)
             {
-                pCmd->DW2.TileMode = mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODELINEAR;
+                CmdInit.DW2.TileMode = mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODELINEAR;
             }
             else if (pParams->psSurface->TileType == MOS_TILE_X)
             {
-                pCmd->DW2.TileMode = mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEXMAJOR;
+                CmdInit.DW2.TileMode = mhw_state_heap_g12_X::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEXMAJOR;
             }
 
-            pCmd->DW2.MemoryCompressionEnable       =
+            CmdInit.DW2.MemoryCompressionEnable       =
                 (pParams->psSurface->MmcState == MOS_MEMCOMP_RC || pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
-            pCmd->DW2.MemoryCompressionType         =
+            CmdInit.DW2.MemoryCompressionType         =
                 (pParams->psSurface->MmcState == MOS_MEMCOMP_RC) ? 1 : 0;
 
-            pCmd->DW5.SurfaceMemoryObjectControlState   = pParams->dwCacheabilityControl;
+            CmdInit.DW5.SurfaceMemoryObjectControlState   = pParams->dwCacheabilityControl;
 
-            pCmd->DW5.TiledResourceMode                 = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
+            CmdInit.DW5.TiledResourceMode                 = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
 
             if (i == MHW_U_PLANE)         // AVS U plane
             {
@@ -402,26 +402,27 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
                 pCmd->DW3.YOffsetforU = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset / pSurface->dwPitch);*/
 
                 // Currently CodecHal/VPHAL are not using the same PlaneOffsets, need to modify CodecHal to match VPHAL
-                pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
+                CmdInit.DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
             }
             else if (i == MHW_V_PLANE)    // AVS V plane
             {
-                pCmd->DW0.XOffset = pParams->psSurface->VPlaneOffset.iXOffset >> 2;
-                pCmd->DW0.YOffset = pParams->psSurface->VPlaneOffset.iYOffset >> 2;
+                CmdInit.DW0.XOffset = pParams->psSurface->VPlaneOffset.iXOffset >> 2;
+                CmdInit.DW0.YOffset = pParams->psSurface->VPlaneOffset.iYOffset >> 2;
 
                 //pCmd->DW4.XOffsetforV = ((uint32_t)pParams->psSurface->UPlaneOffset.iLockSurfaceOffset % pSurface->dwPitch);
                 //pCmd->DW4.YOffsetforV = ((uint32_t)pParams->psSurface->VPlaneOffset.iLockSurfaceOffset / pSurface->dwPitch);
             }
             else                                                  // AVS/DNDI Y plane
             {
-                pCmd->DW3.XOffsetForUCb = pParams->dwXOffset[MHW_U_PLANE];
-                pCmd->DW3.YOffsetForUCb = pParams->dwYOffset[MHW_U_PLANE];
-                pCmd->DW4.XOffsetForVCr = pParams->dwXOffset[MHW_V_PLANE];
-                pCmd->DW4.YOffsetForVCr = pParams->dwYOffset[MHW_V_PLANE];
+                CmdInit.DW3.XOffsetForUCb = pParams->dwXOffset[MHW_U_PLANE];
+                CmdInit.DW3.YOffsetForUCb = pParams->dwYOffset[MHW_U_PLANE];
+                CmdInit.DW4.XOffsetForVCr = pParams->dwXOffset[MHW_V_PLANE];
+                CmdInit.DW4.YOffsetForVCr = pParams->dwYOffset[MHW_V_PLANE];
             }
 
             // temporary code for Codec, need to remove in the future
-            pCmd->DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
+            CmdInit.DW3.YOffsetForUCb = pParams->psSurface->UPlaneOffset.iYOffset;
+            *pCmd = CmdInit;
 
             ResourceParams.presResource     = &pParams->psSurface->OsResource;
             ResourceParams.dwOffset         =
@@ -447,6 +448,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
                 (mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD*)pLocationOfSurfaceInSsh;
 
             mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD CmdInit;
+            CmdInit = *pCmd;
             // Add additional defaults specific to media
             CmdInit.DW0.SurfaceHorizontalAlignment = 1;
             CmdInit.DW0.SurfaceVerticalAlignment = 1;
@@ -455,7 +457,6 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
             CmdInit.DW7.ShaderChannelSelectBlue = CmdInit.SHADER_CHANNEL_SELECT_BLUE_BLUE;
             CmdInit.DW7.ShaderChannelSelectGreen = CmdInit.SHADER_CHANNEL_SELECT_GREEN_GREEN;
             CmdInit.DW7.ShaderChannelSelectRed = CmdInit.SHADER_CHANNEL_SELECT_RED_RED;
-            *pCmd = CmdInit;
 
             MHW_MI_CHK_STATUS(Mhw_SurfaceFormatToType(
                 pParams->ForceSurfaceFormat[i],
@@ -465,48 +466,49 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
             // Force surface type to be 2D for this case since its a requirement for the Gen11 HEVC Kernel
             if (i == MHW_Y_PLANE && pParams->ForceSurfaceFormat[i] == MHW_GFX3DSTATE_SURFACEFORMAT_R32_UINT && pParams->dwSurfaceType == GFX3DSTATE_SURFACETYPE_2D)
                 dwSurfaceType = GFX3DSTATE_SURFACETYPE_2D;
-            pCmd->DW0.SurfaceType               = dwSurfaceType;
-            pCmd->DW0.VerticalLineStride        = pParams->bVertLineStride;
-            pCmd->DW0.VerticalLineStrideOffset  = pParams->bVertLineStrideOffs;
-            pCmd->DW0.MediaBoundaryPixelMode    = pParams->MediaBoundaryPixelMode;
-            pCmd->DW0.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
+            CmdInit.DW0.SurfaceType               = dwSurfaceType;
+            CmdInit.DW0.VerticalLineStride        = pParams->bVertLineStride;
+            CmdInit.DW0.VerticalLineStrideOffset  = pParams->bVertLineStrideOffs;
+            CmdInit.DW0.MediaBoundaryPixelMode    = pParams->MediaBoundaryPixelMode;
+            CmdInit.DW0.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
 
             if (IS_Y_MAJOR_TILE_FORMAT(pParams->psSurface->TileType))
             {
-                pCmd->DW0.TileMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_YMAJOR;
+                CmdInit.DW0.TileMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_YMAJOR;
             }
             else if (pParams->psSurface->TileType == MOS_TILE_LINEAR)
             {
-                pCmd->DW0.TileMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_LINEAR;
+                CmdInit.DW0.TileMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_LINEAR;
             }
             else if (pParams->psSurface->TileType == MOS_TILE_X)
             {
-                pCmd->DW0.TileMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_XMAJOR;
+                CmdInit.DW0.TileMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::TILE_MODE_XMAJOR;
             }
 
-            pCmd->DW1.MemoryObjectControlState  = pParams->dwCacheabilityControl;
+            CmdInit.DW1.MemoryObjectControlState  = pParams->dwCacheabilityControl;
 
-            pCmd->DW2.Width                     = (pParams->dwWidthToUse[i] == 0) ?
+            CmdInit.DW2.Width                     = (pParams->dwWidthToUse[i] == 0) ?
                 pParams->psSurface->dwWidth : pParams->dwWidthToUse[i];
-            pCmd->DW2.Height                    = (pParams->dwHeightToUse[i] == 0) ?
+            CmdInit.DW2.Height                    = (pParams->dwHeightToUse[i] == 0) ?
                 pParams->psSurface->dwHeight : pParams->dwHeightToUse[i];
-            pCmd->DW3.SurfacePitch              = (pParams->dwPitchToUse[i] == 0) ?
+            CmdInit.DW3.SurfacePitch              = (pParams->dwPitchToUse[i] == 0) ?
                 pParams->psSurface->dwPitch : pParams->dwPitchToUse[i];
             if (pParams->psSurface->MmcState == MOS_MEMCOMP_MC)
             {
-                pCmd->DW7.MemoryCompressionEnable   =
+                CmdInit.DW7.MemoryCompressionEnable   =
                 (pParams->psSurface->MmcState == MOS_MEMCOMP_RC || pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
-                pCmd->DW7.MemoryCompressionMode     = 0;
-                pCmd->DW4.DecompressInL3            = (pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
+                CmdInit.DW7.MemoryCompressionMode     = 0;
+                CmdInit.DW4.DecompressInL3            = (pParams->psSurface->MmcState == MOS_MEMCOMP_MC) ? 1 : 0;
             }
             else if(pParams->psSurface->MmcState == MOS_MEMCOMP_RC)
             {
-                pCmd->DW4.DecompressInL3 = 1;
-                pCmd->DW7.MemoryCompressionEnable = 0;
-                pCmd->DW7.MemoryCompressionMode   = 0;
+                CmdInit.DW4.DecompressInL3 = 1;
+                CmdInit.DW7.MemoryCompressionEnable = 0;
+                CmdInit.DW7.MemoryCompressionMode   = 0;
                 // Render Compression Enable on Current Surface
-                pCmd->DW6.Obj0.AuxiliarySurfaceMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::AUXILIARY_SURFACE_MODE_AUXCCSE;
+                CmdInit.DW6.Obj0.AuxiliarySurfaceMode = mhw_state_heap_g12_X::RENDER_SURFACE_STATE_CMD::AUXILIARY_SURFACE_MODE_AUXCCSE;
 # if !EMUL
+                *pCmd = CmdInit;
                 MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
                 ResourceParams.presResource     = &pParams->psSurface->OsResource;
                 ResourceParams.dwOffset = pParams->psSurface->dwOffset + pParams->dwBaseAddrOffset[i]
@@ -536,16 +538,23 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
                     pOsInterface,
                     pCmdBuffer,
                     &ResourceParams));
+                CmdInit = *pCmd;
 # endif
             }
+            else
+            {
+                CmdInit.DW7.MemoryCompressionEnable   = 0;
+                CmdInit.DW7.MemoryCompressionMode     = 0;
+                CmdInit.DW4.DecompressInL3            = 0;
+            }
 
-            pCmd->DW3.SurfacePitch--;   // both for 1D & 2D surface
+            CmdInit.DW3.SurfacePitch--;   // both for 1D & 2D surface
             // need to sync up with VP & CM for depth setup
-            pCmd->DW3.Depth                     = pParams->psSurface->dwDepth;
+            CmdInit.DW3.Depth                     = pParams->psSurface->dwDepth;
 
             if (dwSurfaceType == GFX3DSTATE_SURFACETYPE_BUFFER)
             {
-                if (pCmd->DW0.TileMode)
+                if (CmdInit.DW0.TileMode)
                 {
                     MHW_ASSERTMESSAGE("1D surfaces should not be tiled!");
                     eStatus = MOS_STATUS_INVALID_PARAMETER;
@@ -554,13 +563,14 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G12_X::SetSurfaceState(
             }
             else // 2D Surface
             {
-                pCmd->DW2.Width--;
-                pCmd->DW2.Height--;
-                pCmd->DW3.Depth--;
-                pCmd->DW5.XOffset           = pParams->dwXOffset[i] >> 2;
-                pCmd->DW5.YOffset           = pParams->dwYOffset[i] >> 2;
-                pCmd->DW5.TiledResourceMode = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
+                CmdInit.DW2.Width--;
+                CmdInit.DW2.Height--;
+                CmdInit.DW3.Depth--;
+                CmdInit.DW5.XOffset           = pParams->dwXOffset[i] >> 2;
+                CmdInit.DW5.YOffset           = pParams->dwYOffset[i] >> 2;
+                CmdInit.DW5.TiledResourceMode = Mhw_ConvertToTRMode(pParams->psSurface->TileType);
             }
+            *pCmd = CmdInit;
 
             MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
             ResourceParams.presResource     = &pParams->psSurface->OsResource;
