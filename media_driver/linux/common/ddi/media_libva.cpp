@@ -2037,6 +2037,7 @@ VAStatus DdiMedia_Terminate (
         MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
         mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
         MOS_FreeMemory(mediaCtx->pGtSystemInfo);
+        MosOcaInterfaceSpecific::UninitInterface();
         MosInterface::CloseOsUtilities(nullptr);
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)

@@ -799,6 +799,7 @@ VAStatus MediaLibvaInterfaceNext::Terminate(VADriverContextP ctx)
     MosInterface::DestroyOsDeviceContext(mediaCtx->m_osDeviceContext);
     mediaCtx->m_osDeviceContext = MOS_INVALID_HANDLE;
     MOS_FreeMemory(mediaCtx->pGtSystemInfo);
+    MosOcaInterfaceSpecific::UninitInterface();
     MosInterface::CloseOsUtilities(nullptr);
 
     ReleaseCompList(mediaCtx);

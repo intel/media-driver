@@ -169,7 +169,7 @@ void HalOcaInterface::On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFA
     MOS_OCA_BUFFER_HANDLE   ocaBufHandle   = 0;
     MOS_STATUS              status         = MOS_STATUS_SUCCESS;
 
-    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) > MAX_NUM_OF_OCA_BUF_CONTEXT)
+    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         // Will come here for UMD_OCA not being enabled case.
         return;
@@ -273,7 +273,7 @@ void HalOcaInterface::TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &m
     MOS_OCA_BUFFER_HANDLE   ocaBufHandle    = 0;
     MOS_STATUS              status          = MOS_STATUS_SUCCESS;
     
-    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) > MAX_NUM_OF_OCA_BUF_CONTEXT)
+    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         return;
     }
@@ -315,7 +315,7 @@ void HalOcaInterface::DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERF
     MOS_STATUS              status          = MOS_STATUS_SUCCESS;
     MOS_OCA_BUFFER_HANDLE   ocaBufHandle    = 0;
 
-    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) > MAX_NUM_OF_OCA_BUF_CONTEXT)
+    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         return;
     }
@@ -355,7 +355,7 @@ void HalOcaInterface::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEX
     MOS_OCA_BUFFER_HANDLE   ocaBufHandle    = 0;
     uint32_t                updateSize      = 0;
 
-    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) > MAX_NUM_OF_OCA_BUF_CONTEXT)
+    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) >= MAX_NUM_OF_OCA_BUF_CONTEXT)
     {
         return;
     }
@@ -401,7 +401,7 @@ void HalOcaInterface::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT 
     MOS_OCA_BUFFER_HANDLE ocaBufHandle   = 0;
     uint32_t updateSize                  = 0;
 
-    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) > MAX_NUM_OF_OCA_BUF_CONTEXT ||
+    if (nullptr == pOcaInterface || (ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext)) >= MAX_NUM_OF_OCA_BUF_CONTEXT ||
         nullptr == pVphalDumper)
     {
         return;

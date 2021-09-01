@@ -68,6 +68,7 @@
 MOS_STATUS  MosOcaInterfaceSpecific::s_ocaStatus          = MOS_STATUS_SUCCESS;
 uint32_t MosOcaInterfaceSpecific::s_lineNumForOcaErr      = 0;
 bool MosOcaInterfaceSpecific::s_bOcaStatusExistInReg      = false;
+int32_t MosOcaInterfaceSpecific::s_refCount               = 0;
 
 //!
 //! \brief  Get the idle oca buffer, which is neither used by hw nor locked, and lock it for edit.
@@ -465,7 +466,7 @@ MOS_STATUS MosOcaInterfaceSpecific::DumpDataBlock(MOS_OCA_BUFFER_HANDLE ocaBufHa
     {
         return MOS_STATUS_SUCCESS; 
     }
-    if (ocaBufHandle > MAX_NUM_OF_OCA_BUF_CONTEXT || nullptr == pHeader)
+    if (ocaBufHandle >= MAX_NUM_OF_OCA_BUF_CONTEXT || nullptr == pHeader)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -646,12 +647,10 @@ void MosOcaInterfaceSpecific::Initialize()
             return;
         }
         m_config.maxResInfoCount = OCA_MAX_RESOURCE_INFO_COUNT_MAX;
-        //m_resInfoPool = MOS_NewArray(MOS_OCA_RESOURCE_INFO, m_config.maxResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
-        m_resInfoPool = new MOS_OCA_RESOURCE_INFO[m_config.maxResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT];
+        m_resInfoPool = MOS_NewArray(MOS_OCA_RESOURCE_INFO, m_config.maxResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
         if (nullptr == m_resInfoPool)
         {
-            delete []m_resInfoPool;
-            // MOS_DeleteArray(m_resInfoPool);
+            MOS_DeleteArray(m_resInfoPool);
             return;
         }
         MosUtilities::MosZeroMemory(m_resInfoPool, sizeof(MOS_OCA_RESOURCE_INFO)*m_config.maxResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
@@ -664,17 +663,7 @@ void MosOcaInterfaceSpecific::Initialize()
             return;
         }
 
-        m_ocaMutex = (PMOS_MUTEX)malloc(sizeof(MOS_MUTEX));
-        if (m_ocaMutex != nullptr)
-        {
-            if (pthread_mutex_init(m_ocaMutex, nullptr))
-            {
-                free(m_ocaMutex);
-                m_ocaMutex = nullptr;
-                return;
-            }
-        }
-
+        m_ocaMutex = MOS_CreateMutex();
         if (nullptr == m_ocaMutex)
         {
             return;
@@ -717,13 +706,12 @@ void MosOcaInterfaceSpecific::Uninitialize()
     {
         if (nullptr != m_ocaMutex)
         {
-            pthread_mutex_destroy(m_ocaMutex);
-            free(m_ocaMutex);
+            MOS_DestroyMutex(m_ocaMutex);
             m_ocaMutex = nullptr;
         }
         if (m_resInfoPool != nullptr)
         {
-            delete []m_resInfoPool;
+            MOS_DeleteArray(m_resInfoPool);
             m_resInfoPool = nullptr;
             for (int i = 0; i < MAX_NUM_OF_OCA_BUF_CONTEXT; ++i)
             {
@@ -739,6 +727,10 @@ void MosOcaInterfaceSpecific::Uninitialize()
 //!
 void MosOcaInterfaceSpecific::InitInterface()
 {
+    if (MOS_AtomicIncrement(&s_refCount) > 1)
+    {
+        return;
+    }
     MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific&)MosOcaInterfaceSpecific::GetInstance();
     ins.Initialize();
 }
@@ -748,6 +740,10 @@ void MosOcaInterfaceSpecific::InitInterface()
 //!
 void MosOcaInterfaceSpecific::UninitInterface()
 {
+    if (MOS_AtomicDecrement(&s_refCount) != 1)
+    {
+        return;
+    }
     MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific&)MosOcaInterfaceSpecific::GetInstance();
     ins.Uninitialize();
 }
