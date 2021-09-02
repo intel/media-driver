@@ -2497,6 +2497,30 @@ public:
         uint32_t                    value,
         bool                        bAdd);
 
+    //!
+    //! \brief  Set a 16 bit value to specified gfx memory dword
+    //!
+    //! \param  [in] cmdBuffer
+    //!         command buffer
+    //! \param  [in] presStoreBuffer
+    //!         buffer to modify
+    //! \param  [in] offset
+    //!         member offset in the buffer
+    //! \param  [in] value
+    //!         value to set
+    //! \param  [in] bSecond
+    //!         second or first word in dword
+    //!
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SetBufferWithIMMValueU16(
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_RESOURCE       presStoreBuffer,
+        uint32_t            offset,
+        uint32_t            value,
+        bool                bSecond);
+
     bool          m_enableFakeHrdSize   = false;
     int32_t       m_fakeIFrameHrdSize   = 0;
     int32_t       m_fakePBFrameHrdSize  = 0;

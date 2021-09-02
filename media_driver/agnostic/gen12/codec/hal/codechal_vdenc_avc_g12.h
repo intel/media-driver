@@ -233,6 +233,8 @@ protected:
         PMOS_COMMAND_BUFFER cmdBuffer,
         PMHW_BATCH_BUFFER   secondLevelBatchBuffer) override;
 
+    virtual MOS_STATUS ModifyEncodedFrameSizeWithFakeHeaderSize( PMOS_COMMAND_BUFFER cmdBuffer) override;
+
 private:
     MOS_STATUS DumpParsedBRCInitDmem(
         struct BrcInitDmem* dmem);

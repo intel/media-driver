@@ -6508,6 +6508,13 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             m_currPass));
     }
 
+#if USE_CODECHAL_DEBUG_TOOL
+    if (m_vdencBrcEnabled && m_enableFakeHrdSize)
+    {
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(ModifyEncodedFrameSizeWithFakeHeaderSize( &cmdBuffer));
+    }
+#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(EndStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
 
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
@@ -9032,4 +9039,10 @@ MOS_STATUS CodechalVdencAvcState::DumpSeqParFile()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CodechalVdencAvcState::ModifyEncodedFrameSizeWithFakeHeaderSize( PMOS_COMMAND_BUFFER /*cmdBuffer*/)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    return MOS_STATUS_SUCCESS;
+}
 #endif

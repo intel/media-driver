@@ -1284,7 +1284,28 @@ MOS_STATUS CodechalVdencAvcStateG12::CalculateVdencCommandsSize()
     m_pictureStatesSize += vdencPictureStatesSize;
     m_picturePatchListSize += vdencPicturePatchListSize;
 
-        // Slice Level Commands
+#if USE_CODECHAL_DEBUG_TOOL
+    // for ModifyEncodedFrameSizeWithFakeHeaderSize
+    // total sum is 368 (108*2 + 152)
+    if (m_hucInterface && m_enableFakeHrdSize)
+        m_pictureStatesSize +=
+        // 2x AddBufferWithIMMValue to change frame size
+            (
+                mhw_mi_g12_X::MI_FLUSH_DW_CMD::byteSize +
+                mhw_mi_g12_X::MI_LOAD_REGISTER_MEM_CMD::byteSize +
+                mhw_mi_g12_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 3 +
+                mhw_mi_g12_X::MI_MATH_CMD::byteSize + sizeof(MHW_MI_ALU_PARAMS) * 4 +
+                mhw_mi_g12_X::MI_STORE_REGISTER_MEM_CMD::byteSize
+            ) * 2 +
+            // SetBufferWithIMMValueU16 to change header size
+            (   mhw_mi_g12_X::MI_FLUSH_DW_CMD::byteSize +
+                mhw_mi_g12_X::MI_LOAD_REGISTER_MEM_CMD::byteSize +
+                mhw_mi_g12_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 5 +
+                2 * (mhw_mi_g12_X::MI_MATH_CMD::byteSize + sizeof(MHW_MI_ALU_PARAMS) * 4) +
+                mhw_mi_g12_X::MI_STORE_REGISTER_MEM_CMD::byteSize);
+#endif
+
+    // Slice Level Commands
     m_hwInterface->GetVdencPrimitiveCommandsDataSize(
         CODECHAL_ENCODE_MODE_AVC,
         (uint32_t*)&vdencSliceStatesSize,
@@ -1974,4 +1995,41 @@ MOS_STATUS CodechalVdencAvcStateG12::DumpParsedBRCUpdateDmem(BrcUpdateDmem* dmem
 }
 #undef FIELD_TO_SS
 #undef ARRAY_TO_SS
+
+MOS_STATUS CodechalVdencAvcStateG12::ModifyEncodedFrameSizeWithFakeHeaderSize( PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    if (!m_fakeIFrameHrdSize && !m_fakePBFrameHrdSize)
+        return MOS_STATUS_SUCCESS;
+
+    uint32_t fakeHeaderSizeInBytes = (m_pictureCodingType == I_TYPE) ? m_fakeIFrameHrdSize : m_fakePBFrameHrdSize;
+
+    //calculate all frame headers size, including 1st slice header
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_encodeParams.pBSBuffer);
+    uint32_t totalHeaderSize = uint32_t(m_encodeParams.pBSBuffer->pCurrent - m_encodeParams.pBSBuffer->pBase);
+
+    // change encdode frame size for next frame and next pass
+    for (int i = 0; i < 2; i++)
+    {
+        if (m_resVdencBrcUpdateDmemBufferPtr[i] == nullptr)
+            continue;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(AddBufferWithIMMValue(
+            cmdBuffer,
+            m_resVdencBrcUpdateDmemBufferPtr[i],
+            sizeof(uint32_t) * 5,
+            fakeHeaderSizeInBytes - totalHeaderSize,
+            true));
+    }
+
+    // change headers size (U16)
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetBufferWithIMMValueU16(
+        cmdBuffer,
+        m_resPakStatsBuffer,
+        0,
+        fakeHeaderSizeInBytes * 8,
+        0)); // second or first word in dword
+
+    return MOS_STATUS_SUCCESS;
+}
 #endif

@@ -1140,6 +1140,17 @@ protected:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    //!
+    //! \brief  Modify the frame and slice header size with fake header size
+    //!
+    //! \param  [in] cmdBuffer
+    //!         command buffer
+    //!
+    //! \return MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ModifyEncodedFrameSizeWithFakeHeaderSize( PMOS_COMMAND_BUFFER cmdBuffer);
 #endif
 };
 
