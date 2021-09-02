@@ -5816,7 +5816,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         frameType = 'P';
         break;
     case B_TYPE:
-        frameType = 'B';
+        frameType = m_avcPicParam->RefPicFlag ? 'B' : 'b';
         break;
     }
 
