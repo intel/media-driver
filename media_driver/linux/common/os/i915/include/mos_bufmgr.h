@@ -62,6 +62,7 @@ typedef struct mos_bufmgr MOS_BUFMGR;
 enum mos_memory_zone {
    MEMZONE_SYS,
    MEMZONE_DEVICE,
+   MEMZONE_PRIME, //for imported PRIME buffers
    MEMZONE_COUNT,
 };
 
@@ -69,8 +70,11 @@ enum mos_memory_zone {
 #define MEMZONE_DEVICE_START  (1ull << 40)
 #define MEMZONE_SYS_SIZE      (MEMZONE_DEVICE_START - MEMZONE_SYS_START)
 #define MEMZONE_DEVICE_SIZE   (1ull << 40)
+#define MEMZONE_PRIME_START   (MEMZONE_DEVICE_START + MEMZONE_DEVICE_SIZE)
+#define MEMZONE_PRIME_SIZE    (1ull << 40)
 #define MEMZONE_TOTAL         (1ull << 48)
 #define PAGE_SIZE_64K         (1ull << 16)
+#define PAGE_SIZE_2M          (1ull << 21)
 #define PAGE_SIZE_4G          (1ull << 32)
 #define ARRAY_INIT_SIZE       5
 
