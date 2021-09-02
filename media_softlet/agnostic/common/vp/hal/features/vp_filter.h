@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a

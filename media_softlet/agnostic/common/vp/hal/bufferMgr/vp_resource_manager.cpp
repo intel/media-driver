@@ -776,6 +776,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
     auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
     Mos_MemPool                     memTypeSurfVideoMem = MOS_MEMPOOL_VIDEOMEMORY;
+    uint32_t                        dwHeight;
+    MOS_TILE_TYPE                   TileType;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
@@ -807,6 +809,29 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
         surfCompressionMode = MOS_MMC_MC;
     }
 
+    if (caps.bCappipe)
+    {
+        bSurfCompressible   = false;
+        surfCompressionMode = MOS_MMC_DISABLED;
+        // Add 4 to input height for DN and STMM if Bayer Pattern offset is 10 or 11
+        if (IS_BAYER_GRBG_FORMAT(inputSurface->osSurface->Format) ||
+            IS_BAYER_GBRG_FORMAT(inputSurface->osSurface->Format))
+        {
+            dwHeight = inputSurface->osSurface->dwHeight + 4;
+        }
+        else
+        {
+            dwHeight = inputSurface->osSurface->dwHeight;
+        }
+        // For Bayer pattern inputs only the Current Denoised Output/Previous Denoised Input are in Tile-Y
+        TileType = IS_BAYER_FORMAT(inputSurface->osSurface->Format) ? MOS_TILE_Y : inputSurface->osSurface->TileType;
+    }
+    else
+    {
+        dwHeight = inputSurface->osSurface->dwHeight;
+        TileType = inputSurface->osSurface->TileType;
+    }
+
     for (uint32_t i = 0; i < VP_NUM_DN_SURFACES; i++)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
@@ -814,9 +839,9 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
             "VeboxFFDNSurface",
             inputSurface->osSurface->Format,
             MOS_GFXRES_2D,
-            inputSurface->osSurface->TileType,
+            TileType,
             inputSurface->osSurface->dwWidth,
-            inputSurface->osSurface->dwHeight,
+            dwHeight,
             bSurfCompressible,
             surfCompressionMode,
             allocated,
@@ -955,6 +980,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
     auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
     Mos_MemPool                     memTypeHistStat     = GetHistStatMemType();
+    uint32_t                        dwHeight;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
@@ -962,6 +988,24 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrMediaTile64))
     {
         tileModeByForce = MOS_TILE_64_GMM;
+    }
+
+    if (caps.bCappipe)
+    {
+        // Add 4 to input height for DN and STMM if Bayer Pattern offset is 10 or 11
+        if (IS_BAYER_GRBG_FORMAT(inputSurface->osSurface->Format) ||
+            IS_BAYER_GBRG_FORMAT(inputSurface->osSurface->Format))
+        {
+            dwHeight = inputSurface->osSurface->dwHeight + 4;
+        }
+        else
+        {
+            dwHeight = inputSurface->osSurface->dwHeight;
+        }
+    }
+    else
+    {
+        dwHeight = inputSurface->osSurface->dwHeight;
     }
 
     allocated = false;
@@ -974,7 +1018,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
             MOS_GFXRES_2D,
             MOS_TILE_Y,
             inputSurface->osSurface->dwWidth,
-            inputSurface->osSurface->dwHeight,
+            dwHeight,
             bSurfCompressible,
             surfCompressionMode,
             allocated,
@@ -1531,6 +1575,7 @@ bool VpResourceManager::VeboxOutputNeeded(VP_EXECUTE_CAPS& caps)
         caps.bQueryVariance     ||
         caps.bDiProcess2ndField ||
         caps.bIECP              ||
+        caps.bCappipe           || 
         (caps.bDN && caps.bSFC))  // DN + SFC needs IECP implicitly and outputs to DI surface
     {
         return true;

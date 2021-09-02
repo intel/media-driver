@@ -1561,6 +1561,11 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
                                       &pMhwVeboxSurfaceStateCmdParams->SurfSkinScoreOutput));
     }
 
+    if (m_inputDepth)
+    {
+        pMhwVeboxSurfaceStateCmdParams->SurfInput.dwBitDepth = m_inputDepth;
+    }
+
     return eStatus;
 }
 

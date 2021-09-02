@@ -1057,6 +1057,7 @@ protected:
 
     MediaScalability           *m_scalability              = nullptr;            //!< scalability
     bool                        m_useKernelResource        = false;               //!< Use Vebox Kernel Resource 
+    uint32_t                    m_inputDepth               = 0;
 
 };
 
