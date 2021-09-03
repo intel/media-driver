@@ -281,6 +281,7 @@ struct _MHW_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
     uint32_t ctbSize                    = 0;
     uint32_t tileStreamInOffset         = 0;
     uint32_t tileLCUStreamOutOffset     = 0;
+    bool     cumulativeCUTileOffsetEn   = false;
     uint32_t cumulativeCUTileOffset     = 0;
     uint32_t log2WeightDenomLuma        = 0;
     uint32_t log2WeightDenomChroma      = 0;

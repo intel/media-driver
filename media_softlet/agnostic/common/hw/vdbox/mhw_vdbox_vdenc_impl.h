@@ -1005,7 +1005,7 @@ protected:
     DO_FIELD(DW9, LcuStreamOutOffsetEnable, params.tileEnable);                                                           \
     DO_FIELD(DW9, TileLcuStreamOutOffset, params.tileLCUStreamOutOffset);                                                 \
                                                                                                                           \
-    DO_FIELD(DW17, CumulativeCuTileOffsetEnable, params.tileEnable);                                                      \
+    DO_FIELD(DW17, CumulativeCuTileOffsetEnable, params.cumulativeCUTileOffsetEn);                                        \
     DO_FIELD(DW17, CumulativeCuTileOffset, params.cumulativeCUTileOffset);                                                \
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_HEVC_VP9_TILE_SLICE_STATE_IMPL_EXT)
 
