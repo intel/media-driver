@@ -84,9 +84,9 @@ struct EntrypointData
     ProfileSurfaceAttribInfo  *surfaceAttrib;
 };
 
-typedef std::map<VAEntrypoint, EntrypointData*>         EntrypointMap;
-typedef std::map<VAProfile,    EntrypointMap*>          ProfileMap;
-typedef std::map<uint32_t,     std::vector<uint32_t>>   ImgTable;
+typedef std::map<VAEntrypoint, EntrypointData*>   EntrypointMap;
+typedef std::map<VAProfile,    EntrypointMap*>    ProfileMap;
+typedef std::map<uint32_t,     VAImageFormat*>    ImgTable;
 
 struct CapsData
 {

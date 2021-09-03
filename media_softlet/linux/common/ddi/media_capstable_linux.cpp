@@ -102,9 +102,8 @@ VAStatus MediaCapsTableSpecific::QueryConfigProfiles(
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus MediaCapsTableSpecific::QueryConfigEntrypointsMap(
-    VAProfile      profile,
-    EntrypointMap  &entryMap)
+EntrypointMap* MediaCapsTableSpecific::QueryConfigEntrypointsMap(
+    VAProfile      profile)
 {
     DDI_FUNCTION_ENTER();
 
@@ -112,50 +111,45 @@ VAStatus MediaCapsTableSpecific::QueryConfigEntrypointsMap(
 
     if(m_profileMap->find(profile) == m_profileMap->end())
     {
-        return VA_STATUS_ERROR_INVALID_CONFIG;
+        return nullptr;
     }
 
-    entryMap = *m_profileMap->at(profile);
-    return VA_STATUS_SUCCESS;
+    return m_profileMap->at(profile);
 }
 
-VAStatus MediaCapsTableSpecific::QuerySupportedAttrib(
+AttribList* MediaCapsTableSpecific::QuerySupportedAttrib(
     VAProfile     profile,
-    VAEntrypoint  entrypoint,
-    AttribList    &attribList)
+    VAEntrypoint  entrypoint)
 {
     DDI_FUNCTION_ENTER();
 
     if(m_profileMap->find(profile) == m_profileMap->end()                             ||
        m_profileMap->at(profile)->find(entrypoint) == m_profileMap->at(profile)->end())
     {
-        return VA_STATUS_ERROR_INVALID_CONFIG;
+        return nullptr;
     }
 
-    attribList = *m_profileMap->at(profile)->at(entrypoint)->attribList;
-    return VA_STATUS_SUCCESS;
+    return m_profileMap->at(profile)->at(entrypoint)->attribList;
 }
 
-std::vector<ConfigLinux> MediaCapsTableSpecific::GetConfigList()
+std::vector<ConfigLinux>* MediaCapsTableSpecific::GetConfigList()
 {
     DDI_FUNCTION_ENTER();
 
-    return m_configList;
+    return &m_configList;
 }
 
-VAStatus MediaCapsTableSpecific::QueryConfigItemFromIndex(
-    VAConfigID     configId,
-    ConfigLinux    &configItem)
+ConfigLinux* MediaCapsTableSpecific::QueryConfigItemFromIndex(
+    VAConfigID     configId)
 {
     DDI_FUNCTION_ENTER();
 
     if (configId >= m_configList.size())
     {
-        return VA_STATUS_ERROR_INVALID_CONFIG;
+        return nullptr;
     }
 
-    configItem = m_configList[configId];
-    return VA_STATUS_SUCCESS;
+    return &m_configList[configId];
 }
 
 VAStatus MediaCapsTableSpecific::CreateConfig(
@@ -212,27 +206,25 @@ uint32_t MediaCapsTableSpecific::GetImageFormatsMaxNum()
     return m_imgTbl->size();
 }
 
-VAStatus MediaCapsTableSpecific::QuerySurfaceAttributesFromConfigId(
-    VAConfigID                 configId,
-    ProfileSurfaceAttribInfo   &surfaceAttrib)
+ProfileSurfaceAttribInfo* MediaCapsTableSpecific::QuerySurfaceAttributesFromConfigId(
+    VAConfigID                 configId)
 {
     DDI_FUNCTION_ENTER();
 
-    ConfigLinux  configItem;
-    VAStatus     status = QueryConfigItemFromIndex(configId, configItem);
-    DDI_CHK_RET(status, "Invalid config_id!");
+    ConfigLinux*  configItem = nullptr;
+    configItem = QueryConfigItemFromIndex(configId);
+    DDI_CHK_NULL(configItem, "Invalid config id!", nullptr);
 
-    VAProfile    profile = configItem.profile;
-    VAEntrypoint entrypoint = configItem.entrypoint;
+    VAProfile    profile = configItem->profile;
+    VAEntrypoint entrypoint = configItem->entrypoint;
 
     uint32_t i = 0;
 
     if (m_profileMap->find(profile) == m_profileMap->end() ||
         m_profileMap->at(profile)->find(entrypoint) == m_profileMap->at(profile)->end())
     {
-        return VA_STATUS_ERROR_UNIMPLEMENTED;
+        return nullptr;
     }
-    surfaceAttrib = *m_profileMap->at(profile)->at(entrypoint)->surfaceAttrib;
 
-    return VA_STATUS_SUCCESS;
+    return m_profileMap->at(profile)->at(entrypoint)->surfaceAttrib;
 }

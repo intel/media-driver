@@ -94,7 +94,7 @@ public:
     //!
     //! \brief    Get configlist, this is for component createConfig
     //!
-    std::vector<ConfigLinux> GetConfigList();
+    std::vector<ConfigLinux>* GetConfigList();
 
     //!
     //! \brief    Get Image Table
@@ -112,16 +112,12 @@ public:
     //! \param    [in] entrypoint
     //!           VA entrypoint
     //!
-    //! \param    [in/out] AttribList
-    //!           attribList
+    //! \return   AttribList*
+    //!           nullptr if query failed
     //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success
-    //!
-    VAStatus QuerySupportedAttrib(
+    AttribList* QuerySupportedAttrib(
         VAProfile      profile,
-        VAEntrypoint   entrypoint,
-        AttribList     &attribList);
+        VAEntrypoint   entrypoint);
 
     //!
     //! \brief    Get specific config item
@@ -129,15 +125,11 @@ public:
     //! \param    [in] configId
     //!           config list index
     //!
-    //! \param    [in/out] configItem
-    //!           config item
+    //! \return   ConfigLinux
+    //!           nullptr if invalid index
     //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success
-    //!
-    VAStatus QueryConfigItemFromIndex(
-        VAConfigID    configId,
-        ConfigLinux   &configItem);
+    ConfigLinux* QueryConfigItemFromIndex(
+        VAConfigID    configId);
 
     //!
     //! \brief    Create a configuration
@@ -185,17 +177,12 @@ public:
     //! \brief    Query EntrypointsMap
     //!
     //! \param    [in] configId
-    //!           config list index
     //!
-    //! \param    [in/out] configItem
-    //!           config item
+    //! \return   EntrypointMap*
+    //!           nullptr if invalid profile
     //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success
-    //!
-    VAStatus QueryConfigEntrypointsMap(
-        VAProfile      profile,
-        EntrypointMap  &entryMap);
+    EntrypointMap* QueryConfigEntrypointsMap(
+        VAProfile      profile);
 
     //!
     //! \brief    Query supported profiles
@@ -217,18 +204,13 @@ public:
     //! \brief    Query SurfaceAttributes From ConfigId
     //!
     //! \param    [in] configId
-    //!           VA configuration
-    //!
-    //! \param    [in,out] surfaceAttrib
     //!           Supported surface attrib
     //!
-    //! \return   VAStatus
-    //!           VA_STATUS_SUCCESS if success
-    //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
+    //! \return   ProfileSurfaceAttribInfo*
+    //!           nullptr if invalid configid
     //!
-    VAStatus QuerySurfaceAttributesFromConfigId(
-        VAConfigID                configId,
-        ProfileSurfaceAttribInfo  &surfaceAttrib);
+    ProfileSurfaceAttribInfo* QuerySurfaceAttributesFromConfigId(
+        VAConfigID                configId);
 
     //!
     //! \brief    Return the maxinum number of supported image formats for current platform ipVersion
