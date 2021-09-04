@@ -6923,22 +6923,6 @@ VAStatus DdiMedia_ExportSurfaceHandle(
     desc->objects[0].fd   = mediaSurface->name;
     desc->objects[0].size = mediaSurface->pGmmResourceInfo->GetSizeSurface();
 
-    // Prepare Compression info for export surface handle
-    GMM_RESOURCE_FLAG       GmmFlags    = {0};
-    bool                    bMmcEnabled = false;
-    GmmFlags = mediaSurface->pGmmResourceInfo->GetResFlags();
-
-    if ((GmmFlags.Gpu.MMC               ||
-        GmmFlags.Gpu.CCS)               &&
-        (GmmFlags.Info.MediaCompressed ||
-         GmmFlags.Info.RenderCompressed))
-    {
-        bMmcEnabled = true;
-    }
-    else
-    {
-        bMmcEnabled = false;
-    }
     DDI_CHK_NULL(mediaCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     if(VA_STATUS_SUCCESS != mediaCtx->m_caps->GetSurfaceModifier(mediaSurface, desc->objects[0].drm_format_modifier))

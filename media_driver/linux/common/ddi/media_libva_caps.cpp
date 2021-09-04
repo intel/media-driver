@@ -3711,17 +3711,53 @@ VAStatus MediaLibvaCaps::GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, uin
     DDI_CHK_NULL(mediaSurface,                   "nullptr mediaSurface",                   VA_STATUS_ERROR_INVALID_SURFACE);
     DDI_CHK_NULL(mediaSurface->bo,               "nullptr mediaSurface->bo",               VA_STATUS_ERROR_INVALID_SURFACE);
     DDI_CHK_NULL(mediaSurface->pGmmResourceInfo, "nullptr mediaSurface->pGmmResourceInfo", VA_STATUS_ERROR_INVALID_SURFACE);
-    GMM_TILE_TYPE gmmTileType = mediaSurface->pGmmResourceInfo->GetTileType();
+    GMM_TILE_TYPE  gmmTileType = mediaSurface->pGmmResourceInfo->GetTileType();
+    GMM_RESOURCE_FLAG       GmmFlags    = {0};
+    GmmFlags = mediaSurface->pGmmResourceInfo->GetResFlags();
+
+    bool                    bMmcEnabled = false;
+    if ((GmmFlags.Gpu.MMC               ||
+        GmmFlags.Gpu.CCS)               &&
+        (GmmFlags.Info.MediaCompressed ||
+         GmmFlags.Info.RenderCompressed))
+    {
+        bMmcEnabled = true;
+    }
+    else
+    {
+        bMmcEnabled = false;
+    }
+
     switch(gmmTileType)
     {
         case GMM_TILED_Y:
-            modifier = I915_FORMAT_MOD_Y_TILED;
+            if (m_mediaCtx->m_auxTableMgr && bMmcEnabled)
+            {
+                modifier = GmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS :
+-                 (GmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
+            }
+            else
+            {
+                modifier = I915_FORMAT_MOD_Y_TILED;
+            }
             break;
         case GMM_TILED_X:
             modifier = I915_FORMAT_MOD_X_TILED;
             break;
-        default:
+        case GMM_NOT_TILED:
             modifier = DRM_FORMAT_MOD_NONE;
+            break;
+        default:
+            //handle other possible tile format
+            if(I915_TILING_Y == mediaSurface->TileType)
+            {
+                modifier = GmmFlags.Info.MediaCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS :
+-                 (GmmFlags.Info.RenderCompressed ? I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS : I915_FORMAT_MOD_Y_TILED);
+            }
+            else
+            {
+                modifier = DRM_FORMAT_MOD_NONE;
+            }
             break;
 
     }
