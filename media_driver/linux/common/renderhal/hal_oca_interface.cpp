@@ -333,6 +333,19 @@ void HalOcaInterface::DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERF
     }
 }
 
+    //!
+//! \brief  Trace OCA Sku Value.
+//! \param  [in] cmdBuffer
+//!         Command buffer for current BB.
+//! \param  [in] osInterface
+//!         Reference to MOS_INTERFACE.
+//! \return void
+//!         No return value. Handle all exception inside the function.
+//!
+void HalOcaInterface::TraceOcaSkuValue(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface)
+{
+}
+
 //!
 //! \brief  Add vp kernel info to oca log section.
 //! \param  [in] cmdBuffer

@@ -1987,6 +1987,8 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(
     HalOcaInterface::On1stLevelBBStart(CmdBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
         *pRenderHal->pMhwMiInterface, *pMmioRegisters);
 
+    HalOcaInterface::TraceOcaSkuValue(CmdBuffer, *pOsInterface);
+
     // Add vphal param to log.
     HalOcaInterface::DumpVphalParam(CmdBuffer, *pOsContext, pRenderHal->pVphalOcaDumper);
 

@@ -188,6 +188,17 @@ public:
     static void DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MOS_RESOURCE &res, MOS_HW_COMMAND hwCmdType, uint32_t locationInCmd, uint32_t offsetInRes);
 
     //!
+    //! \brief  Trace OCA Sku Value.
+    //! \param  [in] cmdBuffer
+    //!         Command buffer for current BB.
+    //! \param  [in] osInterface
+    //!         Reference to MOS_INTERFACE.
+    //! \return void
+    //!         No return value. Handle all exception inside the function.
+    //!
+    static void TraceOcaSkuValue(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface);
+
+    //!
     //! \brief  Add vp kernel info to oca log section.
     //! \param  [in] cmdBuffer
     //!         Command buffer for current BB.

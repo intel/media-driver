@@ -1329,6 +1329,8 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         char ocaMsg[] = "VP APG Vebox Packet";
         HalOcaInterface::TraceMessage(*pCmdBufferInUse, *pOsContext, ocaMsg, sizeof(ocaMsg));
 
+        HalOcaInterface::TraceOcaSkuValue(*pCmdBufferInUse, *pOsInterface);
+
         // Add vphal param to log.
         HalOcaInterface::DumpVphalParam(*pCmdBufferInUse, *pOsContext, pRenderHal->pVphalOcaDumper);
 
