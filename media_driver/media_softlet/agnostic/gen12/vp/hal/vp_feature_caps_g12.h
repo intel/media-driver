@@ -135,12 +135,12 @@ VP_FF_SFC_FORMAT(Format_IRW7,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_S
   Input Format Supported -----------------o   |              |                          |                     |   |   |   |   |   |   |   |   |   |   |   |
                 Format                    |   |              |                          |                     |   |   |   |   |   |   |   |   |   |   |   |
 --------------------------------------------------------------------------------------------------------------------------------------------------------*/
-VP_FF_VEBOX_FORMAT(Format_NV12,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  2,  0,  0,  1,  1,  0,  1,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_NV12,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  2,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 VP_FF_VEBOX_FORMAT(Format_P010,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  2,  1,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 VP_FF_VEBOX_FORMAT(Format_P016,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  2,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_YUY2,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  1,  1,  0,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_YUYV,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  1,  1,  0,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_UYVY,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  1,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_YUY2,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_YUYV,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_UYVY,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 VP_FF_VEBOX_FORMAT(Format_Y216,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 VP_FF_VEBOX_FORMAT(Format_Y210,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 VP_FF_VEBOX_FORMAT(Format_P216,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
@@ -148,8 +148,8 @@ VP_FF_VEBOX_FORMAT(Format_P210,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, M
 VP_FF_VEBOX_FORMAT(Format_AYUV,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 VP_FF_VEBOX_FORMAT(Format_Y416,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 VP_FF_VEBOX_FORMAT(Format_Y410,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_YVYU,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  1,  1,  0,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_VYUY,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  1,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_YVYU,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_VYUY,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1)
 
 // Block ARGB output from Vebox as quality issue
 VP_FF_VEBOX_FORMAT(Format_A8B8G8R8,       1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  0,  0,  0,  1,  0,  1,  1)
