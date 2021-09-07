@@ -268,5 +268,7 @@ bool MediaVdboxSfcRender::IsVdboxSfcFormatSupported(
     {
         return false;
     }
-    return m_sfcRender->IsVdboxSfcFormatSupported(codecStandard, inputFormat, outputFormat, tileType);
+
+    return (m_sfcRender->IsVdboxSfcInputFormatSupported(codecStandard, inputFormat) &&
+            m_sfcRender->IsVdboxSfcOutputFormatSupported(codecStandard, outputFormat, tileType));
 }

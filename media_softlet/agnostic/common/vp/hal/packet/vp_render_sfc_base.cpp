@@ -614,19 +614,11 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     return MOS_STATUS_SUCCESS;
 }
 
-bool SfcRenderBase::IsVdboxSfcFormatSupported(
+bool SfcRenderBase::IsVdboxSfcInputFormatSupported(
     CODECHAL_STANDARD           codecStandard,
-    MOS_FORMAT                  inputFormat,
-    MOS_FORMAT                  outputFormat,
-    MOS_TILE_TYPE               tileType)
+    MOS_FORMAT                  inputFormat)
 {
     VP_FUNC_CALL();
-
-    if (tileType == MOS_TILE_LINEAR && (outputFormat == Format_NV12 || outputFormat == Format_P010))
-    {
-        VP_PUBLIC_ASSERTMESSAGE("Unsupported output format '0x%08x' on tile type '0x%08x'", outputFormat, tileType)
-        return false;
-    }
 
     if (CODECHAL_AVC == codecStandard || CODECHAL_HEVC == codecStandard ||
         CODECHAL_VP9 == codecStandard || CODECHAL_AV1 == codecStandard)
@@ -648,7 +640,45 @@ bool SfcRenderBase::IsVdboxSfcFormatSupported(
             VP_PUBLIC_ASSERTMESSAGE("Unsupported Output Format '0x%08x' for SFC.", inputFormat);
             return false;
         }
+    }
+    else if (codecStandard < CODECHAL_HCP_BASE) // For other legacy standard.
+    {
+        if ((inputFormat != Format_NV12) &&
+            (inputFormat != Format_400P) &&
+            (inputFormat != Format_IMC3) &&
+            (inputFormat != Format_422H) &&
+            (inputFormat != Format_444P) &&
+            (inputFormat != Format_P010))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Unsupported Input Format '0x%08x' for SFC.", inputFormat);
+            return false;
+        }
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Unsupported standard '0x%08x' for SFC.", codecStandard);
+        return false;
+    }
 
+    return true;
+}
+
+bool SfcRenderBase::IsVdboxSfcOutputFormatSupported(
+    CODECHAL_STANDARD           codecStandard,
+    MOS_FORMAT                  outputFormat,
+    MOS_TILE_TYPE               tileType)
+{
+    VP_FUNC_CALL();
+
+    if (tileType == MOS_TILE_LINEAR && (outputFormat == Format_NV12 || outputFormat == Format_P010))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Unsupported output format '0x%08x' on tile type '0x%08x'", outputFormat, tileType)
+        return false;
+    }
+
+    if (CODECHAL_AVC == codecStandard || CODECHAL_HEVC == codecStandard ||
+        CODECHAL_VP9 == codecStandard || CODECHAL_AV1 == codecStandard)
+    {
         if ((outputFormat != Format_A8R8G8B8) &&
             (outputFormat != Format_NV12) &&
             (outputFormat != Format_P010) &&
@@ -666,17 +696,6 @@ bool SfcRenderBase::IsVdboxSfcFormatSupported(
     }
     else if (codecStandard < CODECHAL_HCP_BASE) // For other legacy standard.
     {
-        if ((inputFormat != Format_NV12) &&
-            (inputFormat != Format_400P) &&
-            (inputFormat != Format_IMC3) &&
-            (inputFormat != Format_422H) &&
-            (inputFormat != Format_444P) &&
-            (inputFormat != Format_P010))
-        {
-            VP_PUBLIC_ASSERTMESSAGE("Unsupported Input Format '0x%08x' for SFC.", inputFormat);
-            return false;
-        }
-
         if (outputFormat != Format_A8R8G8B8 &&
             outputFormat != Format_NV12     &&
             outputFormat != Format_P010     &&

@@ -149,20 +149,31 @@ public:
     virtual MOS_STATUS SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled);
 
     //!
-    //! \brief    Check whether VDBOX-SFC Format Supported
-    //! \details  Check whether VDBOX-SFC Format Supported.
+    //! \brief    Check whether VDBOX-SFC Input Format Supported
+    //! \details  Check whether VDBOX-SFC Input Format Supported.
     //! \param    codecStandard
     //!           [in] Codec Standard.
     //! \param    inputFormat
     //!           [in] Format of Input Frame
+    //! \return   bool
+    //!           Return true if supported, otherwise failed
+    //!
+    virtual bool IsVdboxSfcInputFormatSupported(
+    CODECHAL_STANDARD           codecStandard,
+    MOS_FORMAT                  inputFormat);
+
+    //!
+    //! \brief    Check whether VDBOX-SFC Output Format Supported
+    //! \details  Check whether VDBOX-SFC Output Format Supported.
+    //! \param    codecStandard
+    //!           [in] Codec Standard.
     //! \param    outputFormat
     //!           [in] Format of Output Frame
     //! \return   bool
     //!           Return true if supported, otherwise failed
     //!
-    virtual bool IsVdboxSfcFormatSupported(
+    virtual bool IsVdboxSfcOutputFormatSupported(
         CODECHAL_STANDARD           codecStandard,
-        MOS_FORMAT                  inputFormat,
         MOS_FORMAT                  outputFormat,
         MOS_TILE_TYPE               tileType);
 
