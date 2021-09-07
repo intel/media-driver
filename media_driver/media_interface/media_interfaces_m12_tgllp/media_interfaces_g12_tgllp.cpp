@@ -881,34 +881,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
             #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
-                #ifdef _APOGEIOS_SUPPORTED
-                bool apogeiosEnable = false;
-                MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
-                MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
-                MOS_UserFeature_ReadValue_ID(
-                    nullptr,
-                    __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-                    &userFeatureData,
-                    hwInterface->GetOsInterface()->pOsContext);
-                apogeiosEnable = userFeatureData.bData ? true : false;
-
-                if (apogeiosEnable)
-                {
-                    m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterG12Xe, hwInterface, debugInterface);
-                    if (m_codechalDevice == nullptr)
-                    {
-                        CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                        return MOS_STATUS_INVALID_PARAMETER;
-                    }
-                    return MOS_STATUS_SUCCESS;
-                }
-                else
-                #endif
-                {
-                    encoder = MOS_New(Encode::HevcVdenc, hwInterface, debugInterface, info);
-                }
-
+                encoder = MOS_New(Encode::HevcVdenc, hwInterface, debugInterface, info);
             #endif
             }
             else
