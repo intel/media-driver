@@ -494,13 +494,13 @@ MOS_STATUS MosOcaInterfaceSpecific::DumpDataBlock(MOS_OCA_BUFFER_HANDLE ocaBufHa
     {
         return MOS_STATUS_NOT_ENOUGH_BUFFER;
     }
-    m_ocaBufContextList[ocaBufHandle].logSection.offset += copySize;
 
     MOS_OS_CHK_STATUS_RETURN(InsertData(ocaBufHandle, (uint8_t *)pHeader, pHeader->m_HeaderSize));
     if (pHeader->m_DataSize > 0)
     {
         MOS_OS_CHK_STATUS_RETURN(InsertData(ocaBufHandle, (uint8_t *)pData, pHeader->m_DataSize));
     }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -512,9 +512,8 @@ MOS_STATUS MosOcaInterfaceSpecific::InsertData(MOS_OCA_BUFFER_HANDLE ocaBufHandl
     }
 
     uint32_t sizeCpy = std::min(m_ocaLogSectionSizeLimit - m_ocaBufContextList[ocaBufHandle].logSection.offset, size);
-
     MOS_OS_CHK_STATUS_RETURN(MOS_SecureMemcpy((uint8_t *)m_ocaBufContextList[ocaBufHandle].logSection.base + m_ocaBufContextList[ocaBufHandle].logSection.offset, sizeCpy, p, sizeCpy));
-
+    m_ocaBufContextList[ocaBufHandle].logSection.offset += sizeCpy;
     return MOS_STATUS_SUCCESS;
 }
 

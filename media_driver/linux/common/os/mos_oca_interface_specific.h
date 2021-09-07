@@ -365,6 +365,11 @@ public:
     //!
     static void InitOcaErrorHandler();
 
+    bool IsOcaEnabled()
+    {
+         return m_isOcaEnabled;
+    }
+
     static MosOcaInterface& GetInstance();
     
     static uint32_t IncreaseSize(uint32_t cmdBufSize);
@@ -391,10 +396,7 @@ private:
     //! \brief  Oca Interface uninitialize.
     //!
     void Uninitialize();
-    bool IsOcaEnabled()
-    {
-         return m_isOcaEnabled;
-    }
+
     MosOcaInterfaceSpecific();
     MosOcaInterfaceSpecific(MosOcaInterfaceSpecific &);
     MosOcaInterfaceSpecific& operator= (MosOcaInterfaceSpecific &);
