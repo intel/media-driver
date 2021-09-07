@@ -215,11 +215,7 @@ void VPHAL_VEBOX_IECP_RENDERER::SetParams(
         }
     }
 
-    if (IS_VPHAL_OUTPUT_PIPE_SFC(pRenderData) ||
-        IS_VPHAL_OUTPUT_PIPE_VEBOX(pRenderData))
-    {
-        pRenderData->GetVeboxStateParams()->pVphalVeboxIecpParams = pVphalVeboxIecpParams;
-    }
+    pRenderData->GetVeboxStateParams()->pVphalVeboxIecpParams = pVphalVeboxIecpParams;
 
     // Check if Back End CSC is enabled in VEBOX
     if (pRenderData->bBeCsc)
@@ -262,8 +258,6 @@ void VPHAL_VEBOX_IECP_RENDERER::SetParams(
 
         // Set input foramt
         pVphalVeboxIecpParams->srcFormat = pSrcSurface->Format;
-
-        pRenderData->GetVeboxStateParams()->pVphalVeboxIecpParams = pVphalVeboxIecpParams;
     }
 
     // If 3DLUT is enabled, Front End CSC needs to be enabled explicitly for YUV output
@@ -287,8 +281,10 @@ void VPHAL_VEBOX_IECP_RENDERER::SetParams(
             pVphalVeboxIecpParams->pfFeCscCoeff          = pVeboxState->fFeCscCoeff;
             pVphalVeboxIecpParams->pfFeCscInOffset       = pVeboxState->fFeCscInOffset;
             pVphalVeboxIecpParams->pfFeCscOutOffset      = pVeboxState->fFeCscOutOffset;
-
-            pRenderData->GetVeboxStateParams()->pVphalVeboxIecpParams = pVphalVeboxIecpParams;
         }
+    }
+    else
+    {
+        pVphalVeboxIecpParams->bFeCSCEnable              = false;
     }
 }

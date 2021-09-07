@@ -5084,15 +5084,15 @@ bool VPHAL_VEBOX_STATE::IS_OUTPUT_PIPE_VEBOX_FEASIBLE(PVPHAL_VEBOX_STATE _pVebox
          RECT1_CONTAINS_RECT2(rcMaxSrc, rcSrc) %d, \
          rcSrc.top %d \
          rcSrc.left %d \
-         SAME_SIZE_RECT(rcDst, pTarget[0]->rcDst) %p, \
+         SAME_SIZE_RECT(rcDst, pTarget[0]->rcDst) %d, \
          pIEFParams %d, \
          SampleType %d, \
-         Rotation %p, \
+         Rotation %d, \
          bQueryVariance %d, \
-         IsFormatSupported %p, \
+         IsFormatSupported %d, \
          IsRTFormatSupported %d, \
          VeboxIs2PassesCSCNeeded %d, \
-         AlphaMode %p, \
+         AlphaMode %d, \
          rcDst.top %d, \
          rcDst.left %d",
         _pVeboxState->dwCompBypassMode,

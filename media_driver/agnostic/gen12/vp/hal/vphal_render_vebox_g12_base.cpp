@@ -1053,15 +1053,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
             }
         }
     }
-    else
-    {
-        // Free 3DLook Up table surface for VEBOX
-        pOsInterface->pfnFreeResource(
-            pOsInterface,
-            &pVeboxState->Vebox3DLookUpTables.OsResource);
-
-        MOS_Delete(m_hdr3DLutGenerator);
-    }
 
 finish:
     if (eStatus != MOS_STATUS_SUCCESS)
