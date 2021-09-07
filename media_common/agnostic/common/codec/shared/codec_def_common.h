@@ -633,4 +633,14 @@ static __inline int32_t CodecHal_Clip3(int x, int y, int z)
 
     return ret;
 }
+
+static __inline uint32_t CeilLog2(uint32_t value)
+{
+    uint32_t res = 0;
+
+    while (value > (uint32_t)(1 << res)) res++;
+
+    return res;
+}
+
 #endif  // __CODEC_DEF_COMMON_H__
