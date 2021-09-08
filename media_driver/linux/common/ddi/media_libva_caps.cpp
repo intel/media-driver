@@ -3485,7 +3485,9 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
         case Media_Format_P010       : return GMM_FORMAT_P010_TYPE;
         case Media_Format_P012       : return GMM_FORMAT_P016_TYPE;
         case Media_Format_P016       : return GMM_FORMAT_P016_TYPE;
+        case Media_Format_Y210       : return GMM_FORMAT_Y210_TYPE;
         case Media_Format_Y216       : return GMM_FORMAT_Y216_TYPE;
+        case Media_Format_Y410       : return GMM_FORMAT_Y410_TYPE;
         case Media_Format_Y416       : return GMM_FORMAT_Y416_TYPE;
         case Media_Format_R10G10B10A2: return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
         case Media_Format_B10G10R10A2: return GMM_FORMAT_B10G10R10A2_UNORM_TYPE;
