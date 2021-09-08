@@ -168,7 +168,7 @@ void VpHal_DdiReportFeatureMode(
     VPHAL_PUBLIC_CHK_NULL_NO_STATUS_RETURN(pReport);
 
     // Report DI mode
-    switch (pReport->DeinterlaceMode)
+    switch (pReport->GetFeatures().deinterlaceMode)
     {
         case VPHAL_DI_REPORT_BOB         :
         case VPHAL_DI_REPORT_ADI_BOB     :
@@ -186,33 +186,33 @@ void VpHal_DdiReportFeatureMode(
 
     // Report Scaling mode
     pConfigValues->dwCurrentScalingMode =
-        (pReport->ScalingMode == VPHAL_SCALING_AVS) ? VPDDI_ADVANCEDSCALING :
-            (pReport->ScalingMode > VPHAL_SCALING_AVS) ? VPDDI_SUPERRESOLUTIONSCALING : VPDDI_SCALING;
+        (pReport->GetFeatures().scalingMode == VPHAL_SCALING_AVS) ? VPDDI_ADVANCEDSCALING :
+            (pReport->GetFeatures().scalingMode > VPHAL_SCALING_AVS) ? VPDDI_SUPERRESOLUTIONSCALING : VPDDI_SCALING;
 
     // Report Output Pipe
-    pConfigValues->dwCurrentOutputPipeMode = pReport->OutputPipeMode;
+    pConfigValues->dwCurrentOutputPipeMode = pReport->GetFeatures().outputPipeMode;
 
     // Report VE Feature In Use
-    pConfigValues->dwCurrentVEFeatureInUse = pReport->VEFeatureInUse;
+    pConfigValues->dwCurrentVEFeatureInUse = pReport->GetFeatures().veFeatureInUse;
 
     // Report MMC status
-    pConfigValues->dwVPMMCInUse              = pReport->VPMMCInUse;
-    pConfigValues->dwRTCompressible          = pReport->RTCompressible;
-    pConfigValues->dwRTCompressMode          = pReport->RTCompressMode;
-    pConfigValues->dwFFDICompressible        = pReport->FFDICompressible;
-    pConfigValues->dwFFDICompressMode        = pReport->FFDICompressMode;
-    pConfigValues->dwFFDNCompressible        = pReport->FFDNCompressible;
-    pConfigValues->dwFFDNCompressMode        = pReport->FFDNCompressMode;
-    pConfigValues->dwSTMMCompressible        = pReport->STMMCompressible;
-    pConfigValues->dwSTMMCompressMode        = pReport->STMMCompressMode;
-    pConfigValues->dwScalerCompressible      = pReport->ScalerCompressible;
-    pConfigValues->dwScalerCompressMode      = pReport->ScalerCompressMode;
-    pConfigValues->dwPrimaryCompressible     = pReport->PrimaryCompressible;
-    pConfigValues->dwPrimaryCompressMode     = pReport->PrimaryCompressMode;
+    pConfigValues->dwVPMMCInUse              = pReport->GetFeatures().vpMMCInUse;
+    pConfigValues->dwRTCompressible          = pReport->GetFeatures().rtCompressible;
+    pConfigValues->dwRTCompressMode          = pReport->GetFeatures().rtCompressMode;
+    pConfigValues->dwFFDICompressible        = pReport->GetFeatures().ffdiCompressible;
+    pConfigValues->dwFFDICompressMode        = pReport->GetFeatures().ffdiCompressMode;
+    pConfigValues->dwFFDNCompressible        = pReport->GetFeatures().ffdnCompressible;
+    pConfigValues->dwFFDNCompressMode        = pReport->GetFeatures().ffdnCompressMode;
+    pConfigValues->dwSTMMCompressible        = pReport->GetFeatures().stmmCompressible;
+    pConfigValues->dwSTMMCompressMode        = pReport->GetFeatures().stmmCompressMode;
+    pConfigValues->dwScalerCompressible      = pReport->GetFeatures().scalerCompressible;
+    pConfigValues->dwScalerCompressMode      = pReport->GetFeatures().scalerCompressMode;
+    pConfigValues->dwPrimaryCompressible     = pReport->GetFeatures().primaryCompressible;
+    pConfigValues->dwPrimaryCompressMode     = pReport->GetFeatures().primaryCompressMode;
 
     // Report In Place Compositon status
-    pConfigValues->dwCurrentCompositionMode = pReport->CompositionMode;
-    pConfigValues->dwCurrentScdMode         = pReport->DiScdMode;
+    pConfigValues->dwCurrentCompositionMode = pReport->GetFeatures().compositionMode;
+    pConfigValues->dwCurrentScdMode         = pReport->GetFeatures().diScdMode;
 
     VP_DDI_NORMALMESSAGE("VP Feature Report: \
         OutputPipeMode %d, \
@@ -225,16 +225,16 @@ void VpHal_DdiReportFeatureMode(
         PrimaryCompressible %d, \
         PrimaryCompressMode %d, \
         CompositionMode %d",
-        pReport->OutputPipeMode,
-        pReport->VEFeatureInUse,
-        pReport->ScalingMode,
-        pReport->DeinterlaceMode,
-        pReport->VPMMCInUse,
-        pReport->RTCompressible,
-        pReport->RTCompressMode,
-        pReport->PrimaryCompressible,
-        pReport->PrimaryCompressMode,
-        pReport->CompositionMode
+        pReport->GetFeatures().outputPipeMode,
+        pReport->GetFeatures().veFeatureInUse,
+        pReport->GetFeatures().scalingMode,
+        pReport->GetFeatures().deinterlaceMode,
+        pReport->GetFeatures().vpMMCInUse,
+        pReport->GetFeatures().rtCompressible,
+        pReport->GetFeatures().rtCompressMode,
+        pReport->GetFeatures().primaryCompressible,
+        pReport->GetFeatures().primaryCompressMode,
+        pReport->GetFeatures().compositionMode
     );
 }
 

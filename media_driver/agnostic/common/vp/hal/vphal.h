@@ -33,6 +33,7 @@
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"
 #include "vp_pipeline_adapter_base.h"
+#include "vp_feature_report.h"
 
 //*-----------------------------------------------------------------------------
 //| DEFINITIONS

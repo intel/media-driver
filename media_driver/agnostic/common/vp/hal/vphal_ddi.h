@@ -67,25 +67,6 @@ typedef enum _FPS_DETECTION_STATE
     FPS_DETECTION_STATES      //!< Number of frame rate detection states
 } FPS_DETECTION_STATE;
 
-//!
-//! \brief Deinterlace Mode enum
-//!
-typedef enum
-{
-    VPDDI_PROGRESSIVE = 0,     //!< Progressive mode
-    VPDDI_BOB = 1,             //!< BOB DI mode
-    VPDDI_ADI = 2              //!< ADI mode
-} DI_MODE;
-
-//!
-//! \brief Scaling Mode enum
-//!
-typedef enum
-{
-    VPDDI_SCALING = 0,                //!< Bilinear scaling
-    VPDDI_ADVANCEDSCALING = 1,        //!< AVS scaling
-    VPDDI_SUPERRESOLUTIONSCALING = 2  //!< Super scaling
-} SCALING_MODE;
 
 //!
 //! \brief    Judge whether the input procamp value is default or not

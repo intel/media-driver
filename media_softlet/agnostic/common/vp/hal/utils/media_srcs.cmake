@@ -22,6 +22,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_dumper.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_config_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_utils.cpp
 )
 
 set(TMP_HEADERS_

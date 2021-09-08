@@ -994,8 +994,8 @@ void VphalRenderer::UpdateReport(
 
     if (pRenderPassData->pPrimarySurface && pRenderPassData->pPrimarySurface->bCompressible)
     {
-        m_reporting->PrimaryCompressible = true;
-        m_reporting->PrimaryCompressMode = (uint8_t)(pRenderPassData->pPrimarySurface->CompressionMode);
+        m_reporting->GetFeatures().primaryCompressible = true;
+        m_reporting->GetFeatures().primaryCompressMode = (uint8_t)(pRenderPassData->pPrimarySurface->CompressionMode);
     }
 
     if (pRenderParams->pTarget[0]->bCompressible)
@@ -1003,8 +1003,8 @@ void VphalRenderer::UpdateReport(
         MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
 
         VpHal_GetSurfaceInfo(m_pOsInterface, &Info, pRenderParams->pTarget[0]);
-        m_reporting->RTCompressible = true;
-        m_reporting->RTCompressMode = (uint8_t)(pRenderParams->pTarget[0]->CompressionMode);
+        m_reporting->GetFeatures().rtCompressible = true;
+        m_reporting->GetFeatures().rtCompressMode = (uint8_t)(pRenderParams->pTarget[0]->CompressionMode);
     }
 }
 

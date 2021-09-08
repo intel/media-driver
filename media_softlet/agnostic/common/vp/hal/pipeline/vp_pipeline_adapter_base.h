@@ -33,6 +33,7 @@
 #include "mhw_sfc.h"
 #include "vp_utils.h"
 #include "media_interfaces_mhw.h"
+#include "vp_feature_report.h"
 
 namespace vp
 {
@@ -73,80 +74,24 @@ struct VpSettings
 };
 
 //!
-//! Structure VphalFeatureReport
-//! \brief    Vphal Feature Report Structure
+//! \brief Deinterlace Mode enum
 //!
-struct VpFeatureReport
+typedef enum
 {
-    //!
-    //! \brief    VphalFeatureReport Constructor
-    //! \details  Creates instance of VphalFeatureReport
-    //!
-    VpFeatureReport(void *owner = nullptr)
-    {
-        this->owner = owner;
-        // call InitReportValue() to initialize report value
-        InitReportValue();
-    };
+    VPDDI_PROGRESSIVE = 0,  //!< Progressive mode
+    VPDDI_BOB         = 1,  //!< BOB DI mode
+    VPDDI_ADI         = 2   //!< ADI mode
+} DI_MODE;
 
-    //!
-    //! \brief    initialize VphalFeatureReport value
-    //! \details  initialize VphalFeatureReport value, can use it to reset report value
-    //!
-    void                          InitReportValue()
-    {
-        IECP                = false;
-        IEF                 = false;
-        Denoise             = false;
-        ChromaDenoise       = false;
-        DeinterlaceMode     = VPHAL_DI_REPORT_PROGRESSIVE;
-        ScalingMode         = VPHAL_SCALING_NEAREST;
-        OutputPipeMode      = VPHAL_OUTPUT_PIPE_MODE_COMP;
-        VPMMCInUse          = false;
-        RTCompressible      = false;
-        RTCompressMode      = 0;
-        FFDICompressible    = false;
-        FFDICompressMode    = 0;
-        FFDNCompressible    = false;
-        FFDNCompressMode    = 0;
-        STMMCompressible    = false;
-        STMMCompressMode    = 0;
-        ScalerCompressible  = false;
-        ScalerCompressMode  = 0;
-        PrimaryCompressible = false;
-        PrimaryCompressMode = 0;
-        CompositionMode     = VPHAL_NO_COMPOSITION;
-        DiScdMode           = false;
-        VEFeatureInUse      = false;
-        HDRMode             = VPHAL_HDR_MODE_NONE;
-    }
-
-    void *                        owner = nullptr;      //!< Pointer to object creating the report
-    bool                          IECP;                 //!< IECP enable/disable
-    bool                          IEF;                  //!< Enhancement filter
-    bool                          Denoise;              //!< Denoise
-    bool                          ChromaDenoise;        //!< Chroma Denoise
-    VPHAL_DI_REPORT_MODE          DeinterlaceMode;      //!< Deinterlace mode
-    VPHAL_SCALING_MODE            ScalingMode;          //!< Scaling mode
-    VPHAL_OUTPUT_PIPE_MODE        OutputPipeMode;       //!< Output Pipe
-    bool                          VPMMCInUse;           //!< MMC enable flag
-    bool                          RTCompressible;       //!< RT MMC Compressible flag
-    uint8_t                       RTCompressMode;       //!< RT MMC Compression mode
-    bool                          FFDICompressible;     //!< FFDI MMC Compressible flag
-    uint8_t                       FFDICompressMode;     //!< FFDI MMC Compression mode
-    bool                          FFDNCompressible;     //!< FFDN MMC Compressible flag
-    uint8_t                       FFDNCompressMode;     //!< FFDN MMC Compression mode
-    bool                          STMMCompressible;     //!< STMM MMC Compressible flag
-    uint8_t                       STMMCompressMode;     //!< STMM MMC Compression mode
-    bool                          ScalerCompressible;   //!< Scaler MMC Compressible flag for Gen10
-    uint8_t                       ScalerCompressMode;   //!< Scaler MMC Compression mode for Gen10
-    bool                          PrimaryCompressible;  //!< Input Primary Surface Compressible flag
-    uint8_t                       PrimaryCompressMode;  //!< Input Primary Surface Compression mode
-    VPHAL_COMPOSITION_REPORT_MODE CompositionMode;      //!< Inplace/Legacy Compostion flag
-    bool                          VEFeatureInUse;       //!< If any VEBOX feature is in use, excluding pure bypass for SFC
-    bool                          DiScdMode;            //!< Scene change detection
-    VPHAL_HDR_MODE                HDRMode;              //!< HDR mode
-};
+//!
+//! \brief Scaling Mode enum
+//!
+typedef enum
+{
+    VPDDI_SCALING                = 0,  //!< Bilinear scaling
+    VPDDI_ADVANCEDSCALING        = 1,  //!< AVS scaling
+    VPDDI_SUPERRESOLUTIONSCALING = 2   //!< Super scaling
+} SCALING_MODE;
 
 struct _VP_MHWINTERFACE
 {

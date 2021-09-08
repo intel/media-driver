@@ -697,11 +697,11 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetDiOutput(
     //----------------------------
     // VEBOX feature reporting
     //----------------------------
-    m_reporting->IECP    = IsIECPEnabled();
-    m_reporting->Denoise = pRenderData->bDenoise;
+     m_reporting->GetFeatures().iecp    = IsIECPEnabled();
+     m_reporting->GetFeatures().denoise = pRenderData->bDenoise;
     if (pRenderData->bDeinterlace)
     {
-        m_reporting->DeinterlaceMode =
+        m_reporting->GetFeatures().deinterlaceMode =
             (pRenderData->bSingleField && !pRenderData->bRefValid ) ?
             VPHAL_DI_REPORT_ADI_BOB :    // VEBOX BOB
             VPHAL_DI_REPORT_ADI;         // ADI
@@ -3736,12 +3736,12 @@ sfc_sample_out:
     }
 
     // Feature reporting
-    m_reporting->IECP    = pRenderData->bIECP;
-    m_reporting->Denoise = pRenderData->bDenoise;
+    m_reporting->GetFeatures().iecp    = pRenderData->bIECP;
+    m_reporting->GetFeatures().denoise = pRenderData->bDenoise;
 
     if (pRenderData->bDeinterlace)
     {
-        m_reporting->DeinterlaceMode =
+        m_reporting->GetFeatures().deinterlaceMode =
             (pRenderData->bSingleField &&
                 (!pRenderData->bRefValid  ||
                 pSrcSurface->pDeinterlaceParams->DIMode == DI_MODE_BOB)) ?
@@ -3790,9 +3790,9 @@ finish:
     {   //set 2passcsc outputpipe to VPHAL_OUTPUT_PIPE_MODE_COMP for final report.
         SET_VPHAL_OUTPUT_PIPE(pRenderData, VPHAL_OUTPUT_PIPE_MODE_COMP);
     }
-    m_reporting->OutputPipeMode = pRenderData->OutputPipe;
-    m_reporting->VEFeatureInUse = !pRenderData->bVeboxBypass;
-    m_reporting->DiScdMode      = pRenderData->VeboxDNDIParams.bSyntheticFrame;
+    m_reporting->GetFeatures().outputPipeMode = pRenderData->OutputPipe;
+    m_reporting->GetFeatures().veFeatureInUse = !pRenderData->bVeboxBypass;
+    m_reporting->GetFeatures().diScdMode      = pRenderData->VeboxDNDIParams.bSyntheticFrame;
 
     return eStatus;
 }
@@ -3948,12 +3948,12 @@ finish:
 //!
 void VPHAL_VEBOX_STATE::CopyFeatureReporting(VphalFeatureReport* pReporting)
 {
-    pReporting->IECP            = m_reporting->IECP;
-    pReporting->Denoise         = m_reporting->Denoise;
-    pReporting->DeinterlaceMode = m_reporting->DeinterlaceMode;
-    pReporting->OutputPipeMode  = m_reporting->OutputPipeMode;
-    pReporting->VPMMCInUse      = bEnableMMC;
-    pReporting->VEFeatureInUse  = m_reporting->VEFeatureInUse;
+    pReporting->GetFeatures().iecp                  = m_reporting->GetFeatures().iecp;
+    pReporting->GetFeatures().denoise               = m_reporting->GetFeatures().denoise;
+    pReporting->GetFeatures().deinterlaceMode       = m_reporting->GetFeatures().deinterlaceMode;
+    pReporting->GetFeatures().outputPipeMode        = m_reporting->GetFeatures().outputPipeMode;
+    pReporting->GetFeatures().vpMMCInUse            = bEnableMMC;
+    pReporting->GetFeatures().veFeatureInUse        = m_reporting->GetFeatures().veFeatureInUse;
 }
 
 //!
@@ -3965,15 +3965,15 @@ void VPHAL_VEBOX_STATE::CopyFeatureReporting(VphalFeatureReport* pReporting)
 void VPHAL_VEBOX_STATE::CopyResourceReporting(VphalFeatureReport* pReporting)
 {
     // Report Vebox intermediate surface
-    pReporting->FFDICompressible   = m_reporting->FFDICompressible;
-    pReporting->FFDICompressMode   = m_reporting->FFDICompressMode;
-    pReporting->FFDNCompressible   = m_reporting->FFDNCompressible;
-    pReporting->FFDNCompressMode   = m_reporting->FFDNCompressMode;
-    pReporting->STMMCompressible   = m_reporting->STMMCompressible;
-    pReporting->STMMCompressMode   = m_reporting->STMMCompressMode;
-    pReporting->ScalerCompressible = m_reporting->ScalerCompressible;
-    pReporting->ScalerCompressMode = m_reporting->ScalerCompressMode;
-    pReporting->DiScdMode          = m_reporting->DiScdMode;
+    pReporting->GetFeatures().ffdiCompressible   = m_reporting->GetFeatures().ffdiCompressible;
+    pReporting->GetFeatures().ffdiCompressMode   = m_reporting->GetFeatures().ffdiCompressMode;
+    pReporting->GetFeatures().ffdnCompressible   = m_reporting->GetFeatures().ffdnCompressible;
+    pReporting->GetFeatures().ffdnCompressMode   = m_reporting->GetFeatures().ffdnCompressMode;
+    pReporting->GetFeatures().stmmCompressible   = m_reporting->GetFeatures().stmmCompressible;
+    pReporting->GetFeatures().stmmCompressMode   = m_reporting->GetFeatures().stmmCompressMode;
+    pReporting->GetFeatures().scalerCompressible = m_reporting->GetFeatures().scalerCompressible;
+    pReporting->GetFeatures().scalerCompressMode = m_reporting->GetFeatures().scalerCompressMode;
+    pReporting->GetFeatures().diScdMode          = m_reporting->GetFeatures().diScdMode;
 }
 
 //!
@@ -4681,7 +4681,7 @@ MOS_STATUS VpHal_RndrRenderVebox(
 
 finish:
     VPHAL_RENDER_NORMALMESSAGE("VPOutputPipe = %d, VEFeatureInUse = %d", 
-        pRenderer->GetReport()->OutputPipeMode, pRenderer->GetReport()->VEFeatureInUse);    
+        pRenderer->GetReport()->GetFeatures().outputPipeMode, pRenderer->GetReport()->GetFeatures().veFeatureInUse);
 
     return eStatus;
 }

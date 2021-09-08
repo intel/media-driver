@@ -122,12 +122,12 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 
     if (m_reporting)
     {
-        m_reporting->OutputPipeMode = m_vpOutputPipe;
-        m_reporting->VEFeatureInUse = m_veboxFeatureInuse;
+        m_reporting->GetFeatures().outputPipeMode = m_vpOutputPipe;
+        m_reporting->GetFeatures().veFeatureInUse = m_veboxFeatureInuse;
 
         if (m_mmc)
         {
-            m_reporting->VPMMCInUse = m_mmc->IsMmcEnabled();
+            m_reporting->GetFeatures().vpMMCInUse = m_mmc->IsMmcEnabled();
         }
 
         if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
@@ -136,14 +136,14 @@ MOS_STATUS VpPipeline::UserFeatureReport()
             VP_PUBLIC_CHK_NULL_RETURN(params);
             if (params->pSrc[0] && params->pSrc[0]->bCompressible)
             {
-                m_reporting->PrimaryCompressible = true;
-                m_reporting->PrimaryCompressMode = (uint8_t)(params->pSrc[0]->CompressionMode);
+                m_reporting->GetFeatures().primaryCompressible = true;
+                m_reporting->GetFeatures().primaryCompressMode = (uint8_t)(params->pSrc[0]->CompressionMode);
             }
 
             if (params->pTarget[0]->bCompressible)
             {
-                m_reporting->RTCompressible = true;
-                m_reporting->RTCompressMode = (uint8_t)(params->pTarget[0]->CompressionMode);
+                m_reporting->GetFeatures().rtCompressible = true;
+                m_reporting->GetFeatures().rtCompressMode = (uint8_t)(params->pTarget[0]->CompressionMode);
             }
         }
     }

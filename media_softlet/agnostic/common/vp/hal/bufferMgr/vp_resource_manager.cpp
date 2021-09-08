@@ -759,8 +759,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
         // Report Compress Status
         if (m_veboxOutput[0]->osSurface)
         {
-            m_reporting.FFDICompressible = m_veboxOutput[0]->osSurface->bIsCompressed;
-            m_reporting.FFDICompressMode = (uint8_t)m_veboxOutput[0]->osSurface->CompressionMode;
+            m_reporting.GetFeatures().ffdiCompressible = m_veboxOutput[0]->osSurface->bIsCompressed;
+            m_reporting.GetFeatures().ffdiCompressMode = (uint8_t)m_veboxOutput[0]->osSurface->CompressionMode;
         }
     }
 
@@ -867,8 +867,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
             // Report Compress Status
             if (m_veboxDenoiseOutput[i]->osSurface)
             {
-                m_reporting.FFDNCompressible = m_veboxDenoiseOutput[i]->osSurface->bIsCompressed;
-                m_reporting.FFDNCompressMode = (uint8_t)m_veboxDenoiseOutput[i]->osSurface->CompressionMode;
+                m_reporting.GetFeatures().ffdnCompressible = m_veboxDenoiseOutput[i]->osSurface->bIsCompressed;
+                m_reporting.GetFeatures().ffdnCompressMode = (uint8_t)m_veboxDenoiseOutput[i]->osSurface->CompressionMode;
             }
         }
         else
@@ -1037,8 +1037,8 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
                 VP_PUBLIC_CHK_STATUS_RETURN(VeboxInitSTMMHistory(m_veboxSTMMSurface[i]->osSurface));
             }
             // Report Compress Status
-            m_reporting.STMMCompressible = bSurfCompressible;
-            m_reporting.STMMCompressMode = (uint8_t)surfCompressionMode;
+            m_reporting.GetFeatures().stmmCompressible = bSurfCompressible;
+            m_reporting.GetFeatures().stmmCompressMode = (uint8_t)surfCompressionMode;
         }
     }
     return MOS_STATUS_SUCCESS;

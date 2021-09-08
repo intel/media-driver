@@ -478,8 +478,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
             if (bAllocated)
             {
                 // Report Compress Status
-                m_reporting->FFDICompressible = bSurfCompressible;
-                m_reporting->FFDICompressMode = (uint8_t)(SurfCompressionMode);
+                m_reporting->GetFeatures().ffdiCompressible = bSurfCompressible;
+                m_reporting->GetFeatures().ffdiCompressMode = (uint8_t)(SurfCompressionMode);
             }
         }
     }
@@ -572,8 +572,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
             if (bAllocated)
             {
                 // Report Compress Status
-                m_reporting->FFDNCompressible = bFFDNSurfCompressible;
-                m_reporting->FFDNCompressMode = (uint8_t)(FFDNSurfCompressionMode);
+                m_reporting->GetFeatures().ffdnCompressible = bFFDNSurfCompressible;
+                m_reporting->GetFeatures().ffdnCompressMode = (uint8_t)(FFDNSurfCompressionMode);
             }
         }
     }
@@ -631,8 +631,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_G10_BASE::AllocateResources()
                 VPHAL_RENDER_CHK_STATUS(VeboxInitSTMMHistory(i));
 
                 // Report Compress Status
-                m_reporting->STMMCompressible = bSurfCompressible;
-                m_reporting->STMMCompressMode = (uint8_t)(SurfCompressionMode);
+                m_reporting->GetFeatures().stmmCompressible = bSurfCompressible;
+                m_reporting->GetFeatures().stmmCompressMode = (uint8_t)(SurfCompressionMode);
             }
         }
     }

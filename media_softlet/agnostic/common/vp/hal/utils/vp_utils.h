@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 #include <mutex>
 #include "mos_util_debug.h"
 #include "mos_os.h"
+#include "vphal_common.h"
 
 #define VP_UNUSED(param) (void)(param)
 //------------------------------------------------------------------------------
@@ -254,5 +255,13 @@ protected:
 #else
 #define VP_FUNC_CALL()
 #endif
+
+
+class VpUtils
+{
+public:
+    // it is only be used by vpdata->pVpHalState->CopySurface, will be removed after mediaCopy ready
+    static MOS_SURFACE VpHalConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE surface);
+};
 
 #endif // !__VP_UTILS_H__
