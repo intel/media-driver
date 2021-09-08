@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2017, Intel Corporation
+* Copyright (c) 2012-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #ifndef __RENDERHAL_G9_H__
 #define __RENDERHAL_G9_H__
 
-#include "renderhal_platform_interface.h"
+#include "renderhal_platform_interface_legacy.h"
 #include "mhw_render_hwcmd_g9_X.h"
 #include "mhw_state_heap_hwcmd_g9_X.h"
 #if (_RELEASE_INTERNAL || _DEBUG)
@@ -94,7 +94,7 @@ typedef struct _WORK_QUEUE_CMD_GUC
 } WORK_QUEUE_CMD_GUC, *PWORK_QUEUE_CMD_GUC;
 #endif
 #endif
-class XRenderHal_Interface_g9 : public XRenderHal_Platform_Interface
+class XRenderHal_Interface_g9 : public XRenderHal_Platform_Interface_Legacy
 {
 public:
     XRenderHal_Interface_g9() {}

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #ifndef __RENDERHAL_G8_H__
 #define __RENDERHAL_G8_H__
 
-#include "renderhal_platform_interface.h"
+#include "renderhal_platform_interface_legacy.h"
 #include "mhw_render_hwcmd_g8_X.h"
 #include "mhw_state_heap_hwcmd_g8_X.h"
 #include "mhw_mmio_g8.h"
@@ -85,7 +85,7 @@ typedef enum _RENDERHAL_MO_CACHE_CONTROL_G8
     RENDERHAL_MO_CACHE_CONTROL_WB_G8                = 0x3
 } RENDERHAL_MO_CACHE_CONTROL_G8;
 
-class XRenderHal_Interface_g8 : public XRenderHal_Platform_Interface
+class XRenderHal_Interface_g8 : public XRenderHal_Platform_Interface_Legacy
 {
 public:
     XRenderHal_Interface_g8() {}

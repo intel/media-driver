@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 #ifndef __RENDERHAL_G11_H__
 #define __RENDERHAL_G11_H__
 
-#include "renderhal_platform_interface.h"
+#include "renderhal_platform_interface_legacy.h"
 #include "mhw_render_hwcmd_g11_X.h" 
 #include "mhw_state_heap_hwcmd_g11_X.h"
 #include "mhw_render_g11_X.h"
@@ -44,7 +44,7 @@ typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_G11 : _RENDERHAL_GENERIC_PROLOG_
 
 #define RENDERHAL_SAMPLERS_AVS_G11          6
 
-class XRenderHal_Interface_g11 : public XRenderHal_Platform_Interface
+class XRenderHal_Interface_g11 : public XRenderHal_Platform_Interface_Legacy
 {
 public:
     XRenderHal_Interface_g11() {}

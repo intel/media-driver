@@ -27,7 +27,7 @@
 #ifndef __RENDERHAL_G12_BASE_H__
 #define __RENDERHAL_G12_BASE_H__
 
-#include "renderhal_platform_interface.h"
+#include "renderhal_platform_interface_legacy.h"
 #include "mhw_render_g12_X.h"
 #include "mhw_render_hwcmd_g12_X.h" 
 #include "mhw_state_heap_hwcmd_g12_X.h"
@@ -43,7 +43,7 @@ typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_G12 : _RENDERHAL_GENERIC_PROLOG_
 //!              SLM     URB     DC      RO      Rest/L3 Client Pool
 //!               0      64      0       0       416 (KB chunks based on GT2)
 #define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_G12LP_RENDERHAL (0xD0000020)
-class XRenderHal_Interface_G12_Base : public XRenderHal_Platform_Interface
+class XRenderHal_Interface_G12_Base : public XRenderHal_Platform_Interface_Legacy
 {
 public:
     XRenderHal_Interface_G12_Base();

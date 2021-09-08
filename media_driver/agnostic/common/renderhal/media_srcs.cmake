@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_legacy.h
     ${CMAKE_CURRENT_LIST_DIR}/vphal_renderhal_common.h
 )
 
