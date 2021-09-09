@@ -66,6 +66,7 @@ typedef struct _MOS_OCA_LOG_HEADER_VPHAL_PARAM
 
 typedef struct _MOS_OCA_RESOURCE_INFO
 {
+    uint64_t                    gfxAddress;
     uint64_t                    sizeAllocation;
     uint64_t                    sizeSurface;
     uint64_t                    sizeSurfacePhy;
@@ -403,7 +404,7 @@ private:
 
     PMOS_MUTEX                      m_ocaMutex                                      = nullptr;
 
-    bool                            m_isOcaEnabled                                  = true;
+    bool                            m_isOcaEnabled                                  = false;
     bool                            m_isInitialized                                 = false;
     MOS_OCA_RESOURCE_INFO           *m_resInfoPool                                  = nullptr;  
     MOS_OCA_BUF_CONTEXT             m_ocaBufContextList[MAX_NUM_OF_OCA_BUF_CONTEXT] = {};
