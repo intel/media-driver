@@ -505,13 +505,13 @@ typedef struct _MHW_VDBOX_HCP_BSD_PARAMS
 
 typedef struct _MHW_VDBOX_ROWSTORE_PARAMS
 {
-    uint32_t   Mode;
-    uint32_t   dwPicWidth;
-    uint32_t   bMbaff;
-    bool       bIsFrame;
-    uint8_t    ucBitDepthMinus8;
-    uint8_t    ucChromaFormat;
-    uint8_t    ucLCUSize;
+    uint32_t   Mode = 0;
+    uint32_t   dwPicWidth = 0;
+    uint32_t   bMbaff = 0;
+    bool       bIsFrame = false;
+    uint8_t    ucBitDepthMinus8 = 0;
+    uint8_t    ucChromaFormat = 0;
+    uint8_t    ucLCUSize = 0;
 } MHW_VDBOX_ROWSTORE_PARAMS, *PMHW_VDBOX_ROWSTORE_PARAMS;
 
 typedef struct _MHW_VDBOX_ROWSTORE_CACHE
