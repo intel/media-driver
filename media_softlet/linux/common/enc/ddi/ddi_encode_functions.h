@@ -28,12 +28,44 @@
 #define __DDI_ENCODE_FUNCTIONS_H__
 
 #include "ddi_media_functions.h"
+#include "media_libva_caps_next.h"
 
 class DdiEncodeFunctions :public DdiMediaFunctions
 {
 public:
 
     virtual ~DdiEncodeFunctions() override{};
+
+    //!
+    //! \brief    Create a configuration
+    //! \details  It passes in the attribute list that specifies the attributes it
+    //!           cares about, with the rest taking default values.
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] profile
+    //!           VA profile
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
+    //! \param    [in] attribList
+    //!           Pointer to VAConfigAttrib array that specifies the attributes
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in the array attribList
+    //! \param    [out] configId
+    //!           Pointer to returned VAConfigID if success
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    virtual VAStatus CreateConfig(
+        VADriverContextP  ctx,
+        VAProfile         profile,
+        VAEntrypoint      entrypoint,
+        VAConfigAttrib   *attribList,
+        int32_t           numAttribs,
+        VAConfigID       *configId
+    ) override;
+
     //!
     //! \brief  Create context
     //!

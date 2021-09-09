@@ -142,6 +142,7 @@ typedef sem_t MEDIA_SEM_T, *PMEDIA_SEM_T;
 #define MEDIAAPI_EXPORT __attribute__((visibility("default")))
 
 class MediaLibvaCaps;
+class MediaLibvaCapsNext;
 
 typedef enum _DDI_MEDIA_FORMAT
 {
@@ -550,9 +551,10 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T    PutSurfaceRenderMutex;
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
 #endif
-    bool                   m_apoMosEnabled;
+    bool                  m_apoMosEnabled;
     DdiMediaFunctions     *m_compList[CompCount];
     MediaInterfacesHwInfo *m_hwInfo;
+    MediaLibvaCapsNext    *m_capsNext;
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)

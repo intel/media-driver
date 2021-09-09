@@ -58,7 +58,7 @@ MediaLibvaCapsNext* MediaLibvaCapsNext::CreateCaps(DDI_MEDIA_CONTEXT *mediaCtx)
     }
 }
 
-std::vector<ConfigLinux>* MediaLibvaCapsNext::GetConfigList()
+ConfigList* MediaLibvaCapsNext::GetConfigList()
 {
     return m_capsTable->GetConfigList();
 }

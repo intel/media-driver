@@ -143,16 +143,12 @@ public:
         bool               outputCompressed);
 
     PLATFORM            platform = {};
-
-    MediaLibvaCaps     *m_caps   = false;
-
+    MediaLibvaCapsNext  *m_capsNext = nullptr;
     GMM_CLIENT_CONTEXT  *pGmmClientContext = nullptr;
-
-    GmmExportEntries   GmmFuncs  = {};
+    GmmExportEntries    GmmFuncs  = {};
 
     // Aux Table Manager
     AuxTableMgr         *m_auxTableMgr = nullptr;
-
     bool                m_useSwSwizzling = false;
     bool                m_tileYFlag      = false;
 

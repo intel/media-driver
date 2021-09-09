@@ -27,7 +27,7 @@
 #ifndef __MEDIA_LIBVA_CAPS_NEXT_H__
 #define __MEDIA_LIBVA_CAPS_NEXT_H__
 
-#include "media_capstable_linux.h"
+#include "media_capstable_specific.h"
 #include "media_libva_common_next.h"
 
 class MediaLibvaCapsNext
@@ -47,9 +47,9 @@ public:
     //!
     //! \brief    Get configlist for create configs
     //!
-    //! \return   std::vector<ConfigLinux>*
+    //! \return   All supported ConfigLinuxList
     //!
-    std::vector<ConfigLinux>* GetConfigList();
+    ConfigList* GetConfigList();
 
     //!
     //! \brief    Get Attrib Value

@@ -20,8 +20,8 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_capstable_linux.h
-//! \brief    Header file of media caps table class on linux
+//! \file     media_capstable_specific.h
+//! \brief    Header file of media caps table class on specific os
 //!
 
 #ifndef __MEDIA_CAPSTABLE_LINUX_H__
@@ -57,6 +57,8 @@ struct ConfigLinux
     ConfigLinux(){}
 };
 
+typedef std::vector<ConfigLinux> ConfigList;
+
 #define CONFIG_ATTRIB_NONE 0x00000000
 
 //!
@@ -74,7 +76,7 @@ public:
     //!
     //! \brief  Store config
     //!
-    std::vector<ConfigLinux> m_configList = {};
+    ConfigList m_configList = {};
 
     //!
     //! \brief    Constructor
@@ -94,7 +96,7 @@ public:
     //!
     //! \brief    Get configlist, this is for component createConfig
     //!
-    std::vector<ConfigLinux>* GetConfigList();
+    ConfigList* GetConfigList();
 
     //!
     //! \brief    Get Image Table

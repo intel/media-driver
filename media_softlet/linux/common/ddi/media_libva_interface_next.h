@@ -52,8 +52,8 @@ public:
     static VAStatus Initialize (
         VADriverContextP ctx,
         int32_t          devicefd,
-        int32_t         *major_version,     /* out */
-        int32_t         *minor_version      /* out */
+        int32_t          *major_version,     /* out */
+        int32_t          *minor_version      /* out */
     );
 
     //!
@@ -208,34 +208,210 @@ public:
     );
 
     //!
-    //! \brief  Create a configuration for the encode/decode/vp pipeline
-    //! \details    it passes in the attribute list that specifies the attributes it cares
-    //!             about, with the rest taking default values.
+    //! \brief    Query supported entrypoints for a given profile
     //!
-    //! \param  [in] ctx
-    //!         Pointer to VA driver context
-    //! \param  [in] profile
-    //!         VA profile of configuration
-    //! \param  [in] entrypoint
-    //!         VA entrypoint of configuration
-    //! \param  [out] attribList
-    //!         VA attrib list
-    //! \param  [out] attribsNum
-    //!         Number of attribs
-    //! \param  [out] configId
-    //!         VA config id
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] profile
+    //!           VA profile
+    //! \param    [in] entrypointList
+    //!           Pointer to VAEntrypoint array that can hold at least vaMaxNumEntrypoints() entries
+    //! \param    [out] numEntryPoints
+    //!           It returns the actual number of supported VAEntrypoints.
     //!
-    //! \return VAStatus
-    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
     //!
-    static VAStatus CreateConfig (
+    static VAStatus QueryConfigEntrypoints(
+        VADriverContextP ctx,
+        VAProfile        profile,
+        VAEntrypoint     *entrypointList,
+        int32_t          *entrypointsNum);
+
+    //!
+    //! \brief    Query supported profiles
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] profileList
+    //!           Pointer to VAProfile array that can hold at least vaMaxNumProfile() entries
+    //! \param    [out] numProfiles
+    //!           Pointer to int32_t. It returns the actual number of supported profiles.
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    static VAStatus QueryConfigProfiles(
+        VADriverContextP  ctx,
+        VAProfile         *profile_list,
+        int32_t           *num_profiles);
+
+    //!
+    //! \brief    Query all attributes for a given configuration
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] configId
+    //!           VA configuration
+    //! \param    [in,out] profile
+    //!           Pointer to VAProfile of the configuration
+    //! \param    [in,out] entrypoint
+    //!           Pointer to VAEntrypoint of the configuration
+    //! \param    [in,out] attribList
+    //!           Pointer to VAConfigAttrib array that can hold at least
+    //!           vaMaxNumConfigAttributes() entries.
+    //! \param    [in,out] numAttribs
+    //!           The actual number of VAConfigAttrib returned in the array attribList
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    static VAStatus QueryConfigAttributes(
+        VADriverContextP  ctx,
+        VAConfigID        configId,
+        VAProfile         *profile,
+        VAEntrypoint      *entrypoint,
+        VAConfigAttrib    *attribList,
+        int32_t           *numAttribs);
+
+    //!
+    //! \brief    Create a configuration
+    //! \details  It passes in the attribute list that specifies the attributes it
+    //!           cares about, with the rest taking default values.
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] profile
+    //!           VA profile
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
+    //! \param    [in] attribList
+    //!           Pointer to VAConfigAttrib array that specifies the attributes
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in the array attribList
+    //! \param    [out] configId
+    //!           Pointer to returned VAConfigID if success
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    static VAStatus CreateConfig(
         VADriverContextP  ctx,
         VAProfile         profile,
         VAEntrypoint      entrypoint,
         VAConfigAttrib    *attribList,
-        int32_t           attribsNum,
-        VAConfigID        *configId
-    );
+        int32_t           numAttribs,
+        VAConfigID        *configId);
+
+    //!
+    //! \brief    Destory the VAConfigID
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] configId
+    //!           Specify the VAConfigID
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
+    //!           VA_STATUS_ERROR_INVALID_CONFIG if the conifgId is invalid
+    //!
+    static VAStatus DestroyConfig(
+        VADriverContextP  ctx,
+        VAConfigID        configId);
+
+    //!
+    //! \brief    Get attributes for a given profile/entrypoint pair
+    //! \details  The caller must provide an "attribList" with all attributes to be
+    //!           retrieved.  Upon return, the attributes in "attribList" have been
+    //!           updated with their value.  Unknown attributes or attributes that are
+    //!           not supported for the given profile/entrypoint pair will have their
+    //!           value set to VA_ATTRIB_NOT_SUPPORTED.
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] profile
+    //!           VA profile
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
+    //! \param    [in,out] attribList
+    //!           Pointer to VAConfigAttrib array. The attribute type is set by caller and
+    //!           attribute value is set by this function.
+    //! \param    [in] numAttribs
+    //!           Number of VAConfigAttrib in the array attribList
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    static VAStatus GetConfigAttributes(
+        VADriverContextP  ctx,
+        VAProfile         profile,
+        VAEntrypoint      entrypoint,
+        VAConfigAttrib    *attribList,
+        int32_t           numAttribs);
+
+    //!
+    //! \brief    Get surface attributes for a given config ID
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] configId
+    //!           VA configuration
+    //! \param    [in,out] attribList
+    //!           Pointer to VASurfaceAttrib array. It returns
+    //!           the supported  surface attributes
+    //! \param    [in,out] numAttribs
+    //!           The number of elements allocated on input
+    //!           Return the number of elements actually filled in output
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!           VA_STATUS_ERROR_MAX_NUM_EXCEEDED if size of attribList is too small
+    //!
+    static VAStatus QuerySurfaceAttributes(
+        VADriverContextP ctx,
+        VAConfigID       configId,
+        VASurfaceAttrib  *attribList,
+        uint32_t         *numAttribs);
+
+    //!
+    //! \brief    Query the suppported image formats
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in,out] formatList
+    //!           Pointer to a VAImageFormat array. The array size shouldn't be less than vaMaxNumImageFormats
+    //!           It will return the supported image formats.
+    //! \param    [in,out] num_formats
+    //!           Pointer to a integer that will return the real size of formatList.
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if succeed
+    //!
+    static VAStatus QueryImageFormats(
+        VADriverContextP ctx,
+        VAImageFormat    *formatList,
+        int32_t          *numFormats);
+
+    //!
+    //! \brief    Get process rate for a given config ID
+    //!
+    //! \param    [in] ctx
+    //!          Pointer to VA driver context
+    //! \param    [in] configId
+    //!           VA configuration
+    //! \param    [in,out] procBuf
+    //!           Pointer to VAProcessingRateParameter
+    //! \param    [in,out] processingRate
+    //!           Return the process rate
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    static VAStatus QueryProcessingRate(
+        VADriverContextP           ctx,
+        VAConfigID                 configId,
+        VAProcessingRateParameter  *procBuf,
+        uint32_t                   *processingRate);
 
     //!
     //! \brief  Query video proc filters
@@ -404,6 +580,16 @@ public:
 #endif
 
 private:
+    //!
+    //! \brief  Map CompType from entrypoint
+    //! 
+    //! \param  [in] entrypoint
+    //!         VAEntrypoint
+    //!
+    //! \return CompType
+    //!
+    static CompType MapCompTypeFromEntrypoint(VAEntrypoint entrypoint);
+
     //!
     //! \brief  Map CompType from CtxType
     //! 
@@ -623,7 +809,7 @@ private:
     static bool DsoGetSymbols(
         struct dso_handle          *h,
         void                       *vtable,
-        uint32_t                    vtable_length,
+        uint32_t                   vtable_length,
         const struct dso_symbol    *symbols);
 
     //!

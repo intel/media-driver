@@ -24,6 +24,64 @@
 //! \brief    ddi encode functions implementaion.
 //!
 #include "ddi_encode_functions.h"
+#include "media_libva_util.h"
+#include "media_libva_common_next.h"
+
+VAStatus DdiEncodeFunctions::CreateConfig (
+    VADriverContextP  ctx,
+    VAProfile         profile,
+    VAEntrypoint      entrypoint,
+    VAConfigAttrib   *attribList,
+    int32_t           numAttribs,
+    VAConfigID       *configId)
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+    DDI_CHK_NULL(configId,   "nullptr configId",   VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(attribList, "nullptr attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,             "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->m_capsNext, "nullptr m_caps",   VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    status = mediaCtx->m_capsNext->CreateConfig(profile, entrypoint, attribList, numAttribs, configId);
+    DDI_CHK_RET(status, "Create common config failed");
+
+    uint32_t rcMode = 0;      
+    uint32_t feiFunction = 0;
+
+    for(int i = 0; i < numAttribs; i++)
+    {
+        if(attribList[i].type == VAConfigAttribFEIFunctionType)
+        {
+            feiFunction = attribList[i].value;
+        }
+
+        if(attribList[i].type == VAConfigAttribRateControl)
+        {
+            rcMode = attribList[i].value;
+        }
+    }
+
+    auto configList = mediaCtx->m_capsNext->GetConfigList();
+    DDI_CHK_NULL(configList, "Get configList failed", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    for(int i = 0; i < configList->size(); i++)
+    {
+        if((configList->at(i).profile == profile)        &&
+           (configList->at(i).entrypoint == entrypoint))
+        {
+            if((rcMode      == configList->at(i).componentData.data.rcMode)       &&
+               (feiFunction == configList->at(i).componentData.data.feiFunction))
+            {
+                *configId = i;
+                return VA_STATUS_SUCCESS;
+            }
+        }
+    }
+
+    *configId = 0xFFFFFFFF;
+    return VA_STATUS_ERROR_ATTR_NOT_SUPPORTED;
+}
 
 VAStatus DdiEncodeFunctions::CreateContext (
     VADriverContextP  ctx,
