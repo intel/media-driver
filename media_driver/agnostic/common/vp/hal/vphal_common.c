@@ -133,7 +133,7 @@ bool VpHal_CSC(
                 break;
 
             default:
-                VPHAL_PUBLIC_ASSERTMESSAGE("Unsupported Output ColorSpace.");
+                VPHAL_PUBLIC_NORMALMESSAGE("Unsupported Output ColorSpace %d.", (uint32_t)dstCspace);
                 bResult = false;
                 break;
         }
@@ -275,7 +275,7 @@ void VpHal_GetCscMatrix(
             break;
 
         default:
-            VPHAL_PUBLIC_ASSERTMESSAGE("Unsupported Input ColorSpace for Vebox.");
+            VPHAL_PUBLIC_NORMALMESSAGE("Unsupported Input ColorSpace for Vebox %d.", (uint32_t)SrcCspace);
     }
 
     // Get the output offsets
@@ -331,7 +331,7 @@ void VpHal_GetCscMatrix(
             break;
 
         default:
-            VPHAL_PUBLIC_ASSERTMESSAGE("Unsupported Output ColorSpace for Vebox.");
+            VPHAL_PUBLIC_NORMALMESSAGE("Unsupported Output ColorSpace for Vebox %d.", (uint32_t)DstCspace);
     }
 }
 
