@@ -29,6 +29,7 @@
 #include "decode_pipeline.h"
 #include "decode_common_feature_defs.h"
 #include "decode_sfc_histogram_postsubpipeline.h"
+#include "decode_huc_copy_creator_base.h"
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
 
@@ -63,10 +64,14 @@ MOS_STATUS DecodeSfcHistogramSubPipeline::Init(CodechalSetting &settings)
         DecodeFeatureIDs::decodeDownSampling));
 
     //Create Packets
-    m_copyPkt = MOS_New(HucCopyPkt, m_pipeline, m_task, hwInterface);
+    HucCopyPacketCreatorBase *hucPktCreator = dynamic_cast<HucCopyPacketCreatorBase *>(m_pipeline);
+    DECODE_CHK_NULL(hucPktCreator);
+    m_copyPkt = hucPktCreator->CreateHucCopyPkt(m_pipeline, m_task, hwInterface);
     DECODE_CHK_NULL(m_copyPkt);
-    DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(m_pipeline, hucCopyPacketId), *m_copyPkt));
-    DECODE_CHK_STATUS(m_copyPkt->Init());
+    MediaPacket *packet = dynamic_cast<MediaPacket *>(m_copyPkt);
+    DECODE_CHK_NULL(packet);
+    DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(m_pipeline, hucCopyPacketId), *packet));
+    DECODE_CHK_STATUS(packet->Init());
 
     return MOS_STATUS_SUCCESS;
 }
@@ -132,7 +137,7 @@ MOS_STATUS DecodeSfcHistogramSubPipeline::CopyHistogramToDestBuf(MOS_RESOURCE* s
 
     DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(m_pipeline, hucCopyPacketId), true, 0, 0));
 
-    HucCopyPkt::HucCopyParams copyParams;
+    HucCopyPktItf::HucCopyParams copyParams;
     copyParams.srcBuffer    = src;
     copyParams.srcOffset    = 0;
     copyParams.destBuffer   = dest;

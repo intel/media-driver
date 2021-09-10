@@ -30,6 +30,8 @@
 #include "decode_basic_feature.h"
 #include "decode_pipeline.h"
 
+#include "decode_huc_copy_creator_base.h"
+
 namespace decode {
 
 DecodeInputBitstream::DecodeInputBitstream(DecodePipeline* pipeline, MediaTask* task, uint8_t numVdbox)
@@ -59,10 +61,14 @@ MOS_STATUS DecodeInputBitstream::Init(CodechalSetting& settings)
     m_basicFeature = dynamic_cast<DecodeBasicFeature*>(featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_basicFeature);
 
-    m_concatPkt = MOS_New(HucCopyPkt, m_pipeline, m_task, hwInterface);
+    HucCopyPacketCreatorBase *hucPktCreator = dynamic_cast<HucCopyPacketCreatorBase *>(m_pipeline);
+    DECODE_CHK_NULL(hucPktCreator);
+    m_concatPkt = hucPktCreator->CreateHucCopyPkt(m_pipeline, m_task, hwInterface);  
     DECODE_CHK_NULL(m_concatPkt);
-    DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(m_pipeline, hucCopyPacketId), *m_concatPkt));
-    DECODE_CHK_STATUS(m_concatPkt->Init());
+    MediaPacket *packet = dynamic_cast<MediaPacket *>(m_concatPkt);
+    DECODE_CHK_NULL(packet);
+    DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(m_pipeline, hucCopyPacketId), *packet));
+    DECODE_CHK_STATUS(packet->Init());
 
     return MOS_STATUS_SUCCESS;
 }
@@ -145,7 +151,7 @@ MOS_STATUS DecodeInputBitstream::Append(const CodechalDecodeParams &decodeParams
 
 void DecodeInputBitstream::AddNewSegment(MOS_RESOURCE& resource, uint32_t offset, uint32_t size)
 {
-    HucCopyPkt::HucCopyParams copyParams;
+    HucCopyPktItf::HucCopyParams copyParams;
     copyParams.srcBuffer    = &resource;
     copyParams.srcOffset    = offset;
     copyParams.destBuffer   = &(m_catenatedBuffer->OsResource);

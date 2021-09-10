@@ -25,6 +25,7 @@ media_include_subdirectory(bufferMgr)
 media_include_subdirectory(scalability)
 media_include_subdirectory(statusreport)
 media_include_subdirectory(mmc)
+media_include_subdirectory(hucItf)
 
 set(TMP_SOURCES_
     ${TMP_SOURCES_}

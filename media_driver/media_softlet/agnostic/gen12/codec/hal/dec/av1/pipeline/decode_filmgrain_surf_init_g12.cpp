@@ -60,7 +60,7 @@ MOS_STATUS FilmGrainSurfaceInit::Init(CodechalSetting &settings)
     m_filmGrainFeature = dynamic_cast<Av1DecodeFilmGrainG12 *>(featureManager->GetFeature(Av1FeatureIDs::av1SwFilmGrain));
     DECODE_CHK_NULL(m_filmGrainFeature);
 
-    m_surfInitPkt             = MOS_New(HucCopyPkt, m_pipeline, m_task, hwInterface);
+    m_surfInitPkt             = MOS_New(HucCopyPktG12, m_pipeline, m_task, hwInterface);
     DECODE_CHK_NULL(m_surfInitPkt);
     Av1PipelineG12 *pipeline = dynamic_cast<Av1PipelineG12 *>(m_pipeline);
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(pipeline, hucCopyPacketId), *m_surfInitPkt));
@@ -108,7 +108,7 @@ MOS_STATUS FilmGrainSurfaceInit::InitCoordinateSurface()
             DECODE_CHK_STATUS(m_allocator->Resize(m_tmpInitBuf, allocSize, lockableVideoMem, false, true));
         }
 
-        HucCopyPkt::HucCopyParams copyParams;
+        HucCopyPktG12::HucCopyParams copyParams;
         copyParams.srcBuffer  = &(m_tmpInitBuf->OsResource);
         copyParams.srcOffset  = 0;
         copyParams.destBuffer = &(m_filmGrainFeature->m_coordinatesRandomValuesSurface->OsResource);

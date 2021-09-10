@@ -31,6 +31,8 @@
 
 #include "decode_av1_pipeline_g12.h"
 #include "decode_av1_filmgrain_feature_g12.h"
+#include "decode_huc_copy_packet_g12.h"
+
 
 namespace decode {
 
@@ -94,10 +96,10 @@ protected:
     virtual void InitScalabilityPars(PMOS_INTERFACE osInterface) override;
 
 private:
-    Av1DecodeFilmGrainG12 *m_filmGrainFeature   = nullptr;        //!< Film Grain feature
-    DecodeAllocator *    m_allocator            = nullptr;        //!< Resource allocator
-    HucCopyPkt *         m_surfInitPkt          = nullptr;        //!< Surface init packet
-    PMOS_BUFFER          m_tmpInitBuf           = nullptr;        //!< Init buffer filled with 0
+    Av1DecodeFilmGrainG12 * m_filmGrainFeature   = nullptr;        //!< Film Grain feature
+    DecodeAllocator *       m_allocator            = nullptr;        //!< Resource allocator
+    HucCopyPktG12 *         m_surfInitPkt          = nullptr;        //!< Surface init packet
+    PMOS_BUFFER             m_tmpInitBuf           = nullptr;        //!< Init buffer filled with 0
 };
 }  // namespace decode
 #endif

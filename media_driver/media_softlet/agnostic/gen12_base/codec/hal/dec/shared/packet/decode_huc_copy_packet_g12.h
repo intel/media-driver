@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_huc_copy_packet.h
+//! \file     decode_huc_copy_packet_g12.h
 //! \brief    Defines the implementation of huc copy packet 
 //!
 
-#ifndef __CODECHAL_HUC_COPY_PACKET_H__
-#define __CODECHAL_HUC_COPY_PACKET_H__
+#ifndef __CODECHAL_HUC_COPY_PACKET_G12_H__
+#define __CODECHAL_HUC_COPY_PACKET_G12_H__
 
 #include "media_cmd_packet.h"
 #include "decode_huc_g12_base.h"
@@ -36,16 +36,16 @@
 
 namespace decode
 {
-class HucCopyPkt : public DecodeHucBasic_G12_Base, public HucCopyPktItf
+class HucCopyPktG12 : public DecodeHucBasic_G12_Base, public HucCopyPktItf
     {
     public:
 
-        HucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
+        HucCopyPktG12(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
             : DecodeHucBasic_G12_Base(pipeline, task, hwInterface)
         {
         }
 
-        virtual ~HucCopyPkt() { m_copyParamsList.clear(); }
+        virtual ~HucCopyPktG12() { m_copyParamsList.clear(); }
 
         virtual MOS_STATUS PushCopyParams(HucCopyParams &copyParams) override;
 
