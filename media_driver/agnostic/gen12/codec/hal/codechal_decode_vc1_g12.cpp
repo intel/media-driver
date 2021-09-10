@@ -543,6 +543,16 @@ MOS_STATUS CodechalDecodeVc1G12::DecodePrimitiveLevelVLD()
     if (!CodecHal_PictureIsField(m_vc1PicParams->CurrPic) &&
         m_vc1PicParams->picture_fields.picture_type == vc1SkippedFrame)
     {
+        if (!bSkipFrameReported)
+        {
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.i32Data = true;
+            userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_SKIP_FRAME_IN_USE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+            bSkipFrameReported = true;
+        }
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(HandleSkipFrame());
         goto submit;
     }
@@ -850,6 +860,16 @@ submit:
 
     if (m_olpNeeded)
     {
+        if (!bOlpReported)
+        {
+            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+            userFeatureWriteData.Value.i32Data = m_olpNeeded;
+            userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_OLP_IN_USE_ID;
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+            bOlpReported = true;
+        }
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(PerformVc1Olp());
     }
     else

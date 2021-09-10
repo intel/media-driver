@@ -100,5 +100,8 @@ protected:
     uint32_t m_HucStateCmdBufferSizeNeeded = 0;
     //! \Huc state level patch list size is required
     uint32_t m_HucPatchListSizeNeeded = 0;
+    //! \Record whether status reported
+    bool bOlpReported             = 0;
+    bool bSkipFrameReported       = 0;
 };
 #endif  // __CODECHAL_DECODER_VC1_G12_H__
