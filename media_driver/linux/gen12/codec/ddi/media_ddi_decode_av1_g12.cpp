@@ -140,7 +140,8 @@ VAStatus DdiDecodeAV1::ParsePicParams(
     {
         if (picParam->anchor_frames_num <= MAX_ANCHOR_FRAME_NUM_AV1)
         {
-            MOS_SecureMemcpy(anchorFrameListVA, picParam->anchor_frames_num, picParam->anchor_frames_list, picParam->anchor_frames_num);
+            MOS_SecureMemcpy(anchorFrameListVA, picParam->anchor_frames_num * sizeof(VASurfaceID),
+                             picParam->anchor_frames_list, picParam->anchor_frames_num * sizeof(VASurfaceID));
         }
         else
         {
