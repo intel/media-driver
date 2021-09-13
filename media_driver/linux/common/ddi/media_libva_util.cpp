@@ -320,6 +320,15 @@ VAStatus DdiMediaUtil_AllocateSurface(
             hRes = VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
             goto finish;
     }
+    //different alignment requirement for different codec and different platform
+    //for MPEG2 and AVC , it should be 16
+    //for HEVC on the platform pre-gen12 (include), it is 64
+    //may need api change for to convey different codec usage.
+    if(VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER & mediaSurface->surfaceUsageHint)
+    {
+        alignedWidth = MOS_ALIGN_CEIL(alignedWidth, 16);
+        alignedHeight = MOS_ALIGN_CEIL(alignedHeight, 16);
+    }
 
     if (DdiMediaUtil_IsExternalSurface(mediaSurface))
     {
