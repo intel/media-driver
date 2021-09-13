@@ -224,6 +224,13 @@ protected:
     //!
     virtual MOS_STATUS CreateMediaCopy();
 
+    //!
+    //! \brief  media user setting
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS InitUserSetting();
+
 protected:
     PMOS_INTERFACE                   m_osInterface = nullptr;      //!< OS interface
     CodechalDebugInterface           *m_debugInterface = nullptr;  //!< Interface used for debug dumps

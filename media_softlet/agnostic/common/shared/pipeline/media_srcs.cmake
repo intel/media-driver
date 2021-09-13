@@ -21,6 +21,7 @@
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/media_pipeline.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_setting.cpp
 )
 
 set(TMP_HEADERS_
