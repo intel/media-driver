@@ -1280,6 +1280,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     inputPipe  = (uint8_t)curPipe;
     numPipe    = scalability->GetPipeNumber();
     bMultipipe = (numPipe > 1) ? true : false;
+    pVeboxInterface->SetVeboxIndex(0, numPipe, m_IsSfcUsed);
 
     bDiVarianceEnable = m_PacketCaps.bDI;
 
