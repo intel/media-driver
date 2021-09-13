@@ -964,24 +964,7 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
             sliceState.dwBatchBufferForPakSlicesStartOffset = batchBufferForPakSlicesStartOffset;
         }
 
-        if (m_avcRoundingParams != nullptr && m_avcRoundingParams->bEnableCustomRoudingIntra)
-        {
-            sliceState.dwRoundingIntraValue = m_avcRoundingParams->dwRoundingIntra;
-        }
-        else
-        {
-            sliceState.dwRoundingIntraValue = 5;
-        }
-        if (m_avcRoundingParams != nullptr && m_avcRoundingParams->bEnableCustomRoudingInter)
-        {
-            sliceState.bRoundingInterEnable = true;
-            sliceState.dwRoundingValue = m_avcRoundingParams->dwRoundingInter;
-        }
-        else
-        {
-            sliceState.bRoundingInterEnable = m_roundingInterEnable;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(GetInterRounding(&sliceState));
-        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRounding(m_avcRoundingParams, &sliceState));
 
         sliceState.oneOnOneMapping = m_oneOnOneMapping;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendSlice(&cmdBuffer, &sliceState));

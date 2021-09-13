@@ -3657,70 +3657,89 @@ MOS_STATUS CodechalVdencAvcState::ValidateNumReferences(PCODECHAL_ENCODE_AVC_VAL
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencAvcState::GetInterRounding(PMHW_VDBOX_AVC_SLICE_STATE sliceState)
+MOS_STATUS CodechalVdencAvcState::SetRounding(PCODECHAL_ENCODE_AVC_ROUNDING_PARAMS param, PMHW_VDBOX_AVC_SLICE_STATE sliceState)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState->pEncodeAvcSeqParams);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState->pEncodeAvcPicParams);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState->pEncodeAvcSliceParams);
-
-    auto    avcSeqParams   = sliceState->pEncodeAvcSeqParams;
-    auto    avcPicParams   = sliceState->pEncodeAvcPicParams;
-    auto    avcSliceParams = sliceState->pEncodeAvcSliceParams;
-    uint8_t sliceQP        = avcPicParams->pic_init_qp_minus26 + 26 + avcSliceParams->slice_qp_delta;
-
-    switch (Slice_Type[avcSliceParams->slice_type])
+    if (param != nullptr && param->bEnableCustomRoudingIntra)
     {
-    case SLICE_P:
-        if (m_roundingInterP == CODECHAL_ENCODE_AVC_INVALID_ROUNDING)
+        sliceState->dwRoundingIntraValue = param->dwRoundingIntra;
+    }
+    else
+    {
+        sliceState->dwRoundingIntraValue = 5;
+    }
+
+    if (param != nullptr && param->bEnableCustomRoudingInter)
+    {
+        sliceState->bRoundingInterEnable = true;
+        sliceState->dwRoundingValue      = param->dwRoundingInter;
+    }
+    else
+    {
+        sliceState->bRoundingInterEnable = m_roundingInterEnable;
+
+        CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState->pEncodeAvcSeqParams);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState->pEncodeAvcPicParams);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(sliceState->pEncodeAvcSliceParams);
+
+        auto    avcSeqParams   = sliceState->pEncodeAvcSeqParams;
+        auto    avcPicParams   = sliceState->pEncodeAvcPicParams;
+        auto    avcSliceParams = sliceState->pEncodeAvcSliceParams;
+        uint8_t sliceQP        = avcPicParams->pic_init_qp_minus26 + 26 + avcSliceParams->slice_qp_delta;
+
+        switch (Slice_Type[avcSliceParams->slice_type])
         {
-            // Adaptive Rounding is only used in CQP case
-            if (m_adaptiveRoundingInterEnable && !m_vdencBrcEnabled)
+        case SLICE_P:
+            if (m_roundingInterP == CODECHAL_ENCODE_AVC_INVALID_ROUNDING)
             {
-                // If IPPP scenario
-                if (avcSeqParams->GopRefDist == 1)
+                // Adaptive Rounding is only used in CQP case
+                if (m_adaptiveRoundingInterEnable && !m_vdencBrcEnabled)
                 {
-                    sliceState->dwRoundingValue = CodechalVdencAvcState::AdaptiveInterRoundingPWithoutB[sliceQP];
+                    // If IPPP scenario
+                    if (avcSeqParams->GopRefDist == 1)
+                    {
+                        sliceState->dwRoundingValue = CodechalVdencAvcState::AdaptiveInterRoundingPWithoutB[sliceQP];
+                    }
+                    else
+                    {
+                        sliceState->dwRoundingValue = CodechalVdencAvcState::AdaptiveInterRoundingP[sliceQP];
+                    }
                 }
                 else
                 {
-                    sliceState->dwRoundingValue = CodechalVdencAvcState::AdaptiveInterRoundingP[sliceQP];
+                    sliceState->dwRoundingValue = CodechalVdencAvcState::InterRoundingP[avcSeqParams->TargetUsage];
                 }
             }
             else
             {
-                sliceState->dwRoundingValue = CodechalVdencAvcState::InterRoundingP[avcSeqParams->TargetUsage];
+                sliceState->dwRoundingValue = m_roundingInterP;
             }
-        }
-        else
-        {
-            sliceState->dwRoundingValue = m_roundingInterP;
-        }
-        break;
-    case SLICE_B:
-        if (m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef)
-        {
-            sliceState->dwRoundingValue = InterRoundingBRef[avcSeqParams->TargetUsage];
-        }
-        else
-        {
-            if (m_adaptiveRoundingInterEnable && !m_vdencBrcEnabled)
+            break;
+        case SLICE_B:
+            if (m_refList[m_currReconstructedPic.FrameIdx]->bUsedAsRef)
             {
-                sliceState->dwRoundingValue = AdaptiveInterRoundingB[sliceQP];
+                sliceState->dwRoundingValue = InterRoundingBRef[avcSeqParams->TargetUsage];
             }
             else
             {
-                sliceState->dwRoundingValue = InterRoundingB[avcSeqParams->TargetUsage];
+                if (m_adaptiveRoundingInterEnable && !m_vdencBrcEnabled)
+                {
+                    sliceState->dwRoundingValue = AdaptiveInterRoundingB[sliceQP];
+                }
+                else
+                {
+                    sliceState->dwRoundingValue = InterRoundingB[avcSeqParams->TargetUsage];
+                }
             }
+            break;
+        default:
+            // do nothing
+            break;
         }
-        break;
-    default:
-        // do nothing
-        break;
     }
 
     return eStatus;
@@ -6342,24 +6361,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
             sliceState.dwBatchBufferForPakSlicesStartOffset = batchBufferForPakSlicesStartOffset;
         }
 
-        if (m_avcRoundingParams != nullptr && m_avcRoundingParams->bEnableCustomRoudingIntra)
-        {
-            sliceState.dwRoundingIntraValue = m_avcRoundingParams->dwRoundingIntra;
-        }
-        else
-        {
-            sliceState.dwRoundingIntraValue = 5;
-        }
-        if (m_avcRoundingParams != nullptr && m_avcRoundingParams->bEnableCustomRoudingInter)
-        {
-            sliceState.bRoundingInterEnable = true;
-            sliceState.dwRoundingValue      = m_avcRoundingParams->dwRoundingInter;
-        }
-        else
-        {
-            sliceState.bRoundingInterEnable = m_roundingInterEnable;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(GetInterRounding(&sliceState));
-        }
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRounding(m_avcRoundingParams, &sliceState));
 
         sliceState.oneOnOneMapping = m_oneOnOneMapping;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendSlice(&cmdBuffer, &sliceState));
