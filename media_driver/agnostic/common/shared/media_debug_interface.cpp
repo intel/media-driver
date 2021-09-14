@@ -896,12 +896,6 @@ MOS_STATUS MediaDebugInterface::DumpKernelRegion(
     }
 }
 
-MOS_STATUS MediaDebugInterface::SetSWCrcMode(bool swCrc)
-{
-    m_swCRC = swCrc;
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MediaDebugInterface::DumpYUVSurface(
     PMOS_SURFACE           surface,
     const char *           attrName,

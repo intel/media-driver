@@ -752,10 +752,7 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
         m_resDataBuffer = *(m_decodeParams.m_dataBuffer);
     }
 
-    if (m_hevcPicParams->RequestCRC)
-    {
-        m_reportFrameCrc = true;
-    }
+    m_reportFrameCrc = true;
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CheckAndCopyBitstream());
 
@@ -2272,10 +2269,6 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateStandard (
     CODECHAL_DECODE_CHK_NULL_RETURN(settings);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitMmcState());
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    m_debugInterface->SetSWCrcMode(true);
-#endif
 
     m_width                         = settings->width;
     m_height                        = settings->height;

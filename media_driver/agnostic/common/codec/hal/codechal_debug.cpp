@@ -90,6 +90,7 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         LoadGoldenReference();
     }
 
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.i32Data     = -1;
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     MOS_UserFeature_ReadValue_ID(
@@ -98,6 +99,16 @@ MOS_STATUS CodechalDebugInterface::Initialize(
         &userFeatureData,
         m_osInterface->pOsContext);
     m_stopFrameNumber = userFeatureData.i32Data;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    userFeatureData.i32Data     = 0;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_CODECHAL_ENABLE_SW_CRC_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_swCRC = userFeatureData.i32Data == 0 ? false : true;
 #endif
     
     return MOS_STATUS_SUCCESS;

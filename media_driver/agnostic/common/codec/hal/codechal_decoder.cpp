@@ -1435,14 +1435,28 @@ MOS_STATUS CodechalDecode::Execute(void *params)
             uint32_t yuvSize = 0;
 
             CheckDecodeOutputBufSize(*decodeParams->m_destSurface);
-
-            m_debugInterface->DumpYUVSurfaceToBuffer(decodeParams->m_destSurface,
-                m_decodeOutputBuf,
-                yuvSize);
-            uint32_t curIdx = (m_decodeStatusBuf.m_currIndex + CODECHAL_DECODE_STATUS_NUM - 1) % CODECHAL_DECODE_STATUS_NUM;
-            m_debugInterface->CaptureGoldenReference(m_decodeOutputBuf, yuvSize, m_decodeStatusBuf.m_decodeStatus[curIdx].m_mmioFrameCrcReg);
-            if (m_debugInterface->m_swCRC)
+            if (!m_debugInterface->m_swCRC)  //HW CRC
             {
+                uint32_t curIdx             = (m_decodeStatusBuf.m_currIndex + CODECHAL_DECODE_STATUS_NUM - 1) % CODECHAL_DECODE_STATUS_NUM;
+                while (true)
+                {
+                    uint32_t globalHWStoredData = *(m_decodeStatusBuf.m_data);
+                    uint32_t globalCount        = m_decodeStatusBuf.m_swStoreData - globalHWStoredData;
+                    uint32_t localCount         = m_decodeStatusBuf.m_decodeStatus[curIdx].m_swStoredData - globalHWStoredData;
+                    if (localCount == 0 || localCount > globalCount)  //Decode OK
+                    {
+                        m_debugInterface->CaptureGoldenReference(m_decodeOutputBuf, yuvSize, m_decodeStatusBuf.m_decodeStatus[curIdx].m_mmioFrameCrcReg);
+                        break;
+                    }
+                    MOS_Sleep(1);
+                }
+            }
+            else  //sw crc
+            {
+                m_debugInterface->DumpYUVSurfaceToBuffer(decodeParams->m_destSurface,
+                    m_decodeOutputBuf,
+                    yuvSize);
+                m_debugInterface->CaptureGoldenReference(m_decodeOutputBuf, yuvSize, 0);
                 std::vector<MOS_RESOURCE> vRes = {m_crcBuf};
                 m_debugInterface->DetectCorruptionSw(this, vRes, &m_frameCountTypeBuf, m_decodeOutputBuf, yuvSize, m_frameNum);
             }
