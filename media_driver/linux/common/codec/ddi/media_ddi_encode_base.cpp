@@ -1328,7 +1328,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
     mediaCtx->uiNumBufs++;
 
     // return success if data is nullptr, no need to copy data
-    if (data == nullptr || (VAEncMacroblockMapBufferType == type && m_cpuFormat))
+    if (data == nullptr)
     {
         return va;
     }
