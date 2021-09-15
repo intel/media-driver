@@ -29,7 +29,6 @@
 #define __MHW_CMDPAR_H__
 
 #include <memory>
-#include "mhw_utilities.h"
 
 //   [Macro Prefixes]                 |   [Macro Suffixes]
 //   No Prefix: for external use      |   _T   : type

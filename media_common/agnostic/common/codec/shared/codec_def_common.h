@@ -28,7 +28,7 @@
 #define __CODEC_DEF_COMMON_H__
 
 #include "mos_defs.h"
-#include "mos_os_next.h"
+#include "mos_os.h"
 #include <math.h>
 
 #define CODEC_MAX_NUM_REF_FRAME             16

@@ -20,27 +20,13 @@
 
 # shared
 set(TMP_2_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_avc.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_encode.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_hevc.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_jpeg.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_mpeg2.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_common_vp9.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_vp8_probs.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_vp9_probs.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_avc.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_hevc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_jpeg.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_mpeg2.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vc1.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vp8.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vp9.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_avc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_hevc.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_jpeg.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_mpeg2.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp9.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp8.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_cenc_decode.h

@@ -70,6 +70,7 @@ media_include_subdirectory(../media_softlet/agnostic)
 media_include_subdirectory(../media_softlet/linux)
 
 include(${MEDIA_EXT}/media_srcs_ext.cmake OPTIONAL)
+include(${MEDIA_COMMON_EXT}/media_srcs_ext.cmake OPTIONAL)
 include(${MEDIA_SOFTLET_EXT}/media_srcs_ext.cmake OPTIONAL)
 
 include(${MEDIA_DRIVER_CMAKE}/media_include_paths.cmake)

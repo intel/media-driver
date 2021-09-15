@@ -18,6 +18,20 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(os)
-media_include_subdirectory(codec)
-media_include_subdirectory(hw)
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox.h
+)
+
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "MHW\\Vdbox" FILES ${TMP_HEADERS_} )
+
+media_add_curr_to_include_path()

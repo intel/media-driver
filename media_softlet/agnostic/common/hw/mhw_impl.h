@@ -29,6 +29,7 @@
 #define __MHW_IMPL_H__
 
 #include "mhw_itf.h"
+#include "mhw_utilities.h"
 
 //   [Macro Prefixes]                 |   [Macro Suffixes]
 //   No Prefix: for external use      |   _T   : type

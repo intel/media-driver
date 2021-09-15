@@ -26,7 +26,6 @@ set(TMP_SOURCES_
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_generic.h

@@ -30,6 +30,7 @@
 
 #include "mhw_itf.h"
 #include "mhw_vdbox_vdenc_cmdpar.h"
+#include "mhw_utilities.h"
 
 #define _VDENC_CMD_DEF(DEF)               \
     DEF(VDENC_CONTROL_STATE);             \

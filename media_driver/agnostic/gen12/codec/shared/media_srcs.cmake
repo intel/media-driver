@@ -23,13 +23,6 @@ set(TMP_SOURCES_ "")
 
 set(TMP_HEADERS_ "")
 
-if( ${AV1_Decode_Supported} STREQUAL "yes" )
-    set(TMP_HEADERS_
-        ${TMP_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_av1.h
-    )
-endif()
-
 if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
     set(TMP_HEADERS_
         ${TMP_HEADERS_}
