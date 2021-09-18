@@ -42,7 +42,7 @@
 #include "media_libva_vp_tools.h"
 #if (_DEBUG || _RELEASE_INTERNAL)
 #if ANDROID
-#include "media_libva_vp_tools_android.h"
+//#include "media_libva_vp_tools_android.h"
 #endif
 #endif // #if (_DEBUG || _RELEASE_INTERNAL)
 
