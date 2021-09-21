@@ -233,7 +233,8 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
         seqParams->RateControlMethod = RATECONTROL_CQL;
     }
 
-    seqParams->TargetUsage = vp9TargetUsage;
+    if (m_encodeCtx->bNewSeq)
+        seqParams->TargetUsage = vp9TargetUsage;
 
     /* If the segmentation is not enabled, the SegData will be reset */
     if (vp9PicParam->PicFlags.fields.segmentation_enabled == 0)
