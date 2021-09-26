@@ -64,6 +64,12 @@
 #define NOISE_TEMPORALPIXELDIFF_THRESHOLD_DEFAULT       12
 #define NOISE_SUMABSTEMPORALDIFF_THRESHOLD_DEFAULT      128
 
+//!
+//! \brief Spatial Denoise Definitions
+//!
+#define NOSIE_GNE_CHROMA_THRESHOLD                  1850
+#define NOSIE_GNE_LUMA_THRESHOLD                    32000
+
 // Pixel Range Threshold Array Denoise Definitions for SKL+ 5x5 Bilateral Filter
 #define NOISE_BLF_RANGE_THRESHOLD_ADP_NLVL          1
 #define NOISE_BLF_RANGE_THRESHOLD_ADP_NLVL_MIN      65536
