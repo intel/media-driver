@@ -392,9 +392,9 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
     if (feature->GetFilterEngineCaps().value == 0)
     {
         // Return success after all feature enabled and fully switched to APO path.
-        VP_PUBLIC_ASSERTMESSAGE("No engine being assigned!");
-        return MOS_STATUS_INVALID_PARAMETER;
+        VP_PUBLIC_NORMALMESSAGE("No engine being assigned for feature %d. Will bypass it.", featureType);
     }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1019,7 +1019,8 @@ MOS_STATUS Policy::GetTccExecutionCaps(SwFilter* feature)
     }
 
     if (m_hwCaps.m_veboxHwEntry[inputformat].inputSupported &&
-        m_hwCaps.m_veboxHwEntry[inputformat].iecp)
+        m_hwCaps.m_veboxHwEntry[inputformat].iecp           &&
+        m_hwCaps.m_veboxHwEntry[inputformat].tccSupported)
     {
         tccEngine.bEnabled = 1;
         tccEngine.VeboxNeeded = 1;
