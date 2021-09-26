@@ -42,11 +42,14 @@ MOS_STATUS CodechalMmcEncodeJpegG12::SetPipeBufAddr(
     MOS_FUNCTION_ENTER(MOS_COMPONENT_CODEC,  MOS_CODEC_SUBCOMP_ENCODE);
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, pipeBufAddrParams);
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, pipeBufAddrParams->psRawSurface);
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, pipeBufAddrParams->pRawSurfParam);
 
     if (m_mmcEnabled)
     {
         MOS_CHK_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
             &pipeBufAddrParams->psRawSurface->OsResource, &pipeBufAddrParams->RawSurfMmcState));
+        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, m_osInterface->pfnGetMemoryCompressionFormat(m_osInterface,
+            &pipeBufAddrParams->psRawSurface->OsResource, &pipeBufAddrParams->pRawSurfParam->dwCompressionFormat));
     }
     else
     {
