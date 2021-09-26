@@ -1568,6 +1568,8 @@ void VpHal_AllocParamsInitType(
 MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(
     PVPHAL_SURFACE pSurface);
 
+bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE pSurface, PMOS_INTERFACE pOsInterface);
+
 //!
 //! \brief  VEBOX IECP parameters
 //!

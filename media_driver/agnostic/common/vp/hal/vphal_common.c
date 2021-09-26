@@ -381,7 +381,7 @@ float VpHal_Lanczos(float x, uint32_t dwNumEntries, float fLanczosT)
     return VpHal_Sinc(x) * VpHal_Sinc(x / fLanczosT);
 }
 
-bool isSyncFreeNeededForMMCSurface(PVPHAL_SURFACE pSurface, PMOS_INTERFACE pOsInterface)
+bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE pSurface, PMOS_INTERFACE pOsInterface)
 {
     if (nullptr == pSurface || nullptr == pOsInterface)
     {
@@ -508,7 +508,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
 
     // Delete resource if already allocated
     //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
-    if (isSyncFreeNeededForMMCSurface(pSurface, pOsInterface))
+    if (IsSyncFreeNeededForMMCSurface(pSurface, pOsInterface))
     {
         resFreeFlags.SynchronousDestroy = 1;
         VPHAL_PUBLIC_NORMALMESSAGE("Set SynchronousDestroy flag for compressed resource %s", pSurfaceName);
