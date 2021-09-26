@@ -356,7 +356,10 @@ MOS_STATUS VpScalingFilter::SetExecuteEngineCaps(
     m_executeCaps   = vpExecuteCaps;
 
     m_scalingParams = scalingParams;
-    m_scalingParams.input.rcMaxSrc = m_scalingParams.input.rcSrc;
+    if (!m_bVdbox)
+    {
+        m_scalingParams.input.rcMaxSrc = m_scalingParams.input.rcSrc;
+    }
 
     // Set Src/Dst Surface Rect
     VP_PUBLIC_CHK_STATUS_RETURN(SetRectSurfaceAlignment(false, m_scalingParams.input.dwWidth,
@@ -438,6 +441,8 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         //Set source input offset in Horizontal/vertical
         m_sfcScalingParams->dwSourceRegionHorizontalOffset = MOS_ALIGN_CEIL((uint32_t)m_scalingParams.input.rcSrc.left, wInputWidthAlignUnit);
         m_sfcScalingParams->dwSourceRegionVerticalOffset   = MOS_ALIGN_CEIL((uint32_t)m_scalingParams.input.rcSrc.top, wInputHeightAlignUnit);
+
+        // Exclude padding area of the SFC input
         m_sfcScalingParams->dwSourceRegionHeight           = MOS_ALIGN_FLOOR(
             MOS_MIN((uint32_t)(m_scalingParams.input.rcSrc.bottom - m_scalingParams.input.rcSrc.top), m_sfcScalingParams->dwInputFrameHeight),
             wInputHeightAlignUnit);
@@ -470,6 +475,14 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
 
         m_sfcScalingParams->dwScaledRegionHeight = MOS_MIN(m_sfcScalingParams->dwScaledRegionHeight, m_sfcScalingParams->dwOutputFrameHeight);
         m_sfcScalingParams->dwScaledRegionWidth  = MOS_MIN(m_sfcScalingParams->dwScaledRegionWidth, m_sfcScalingParams->dwOutputFrameWidth);
+
+        if (m_bVdbox)
+        {
+            // In VD-to-SFC modes, scaled region should be programmed to same value as Output Frame Resolution.
+            // Output Frame Resolution should be updated after scaled region being calculated, or scaling ratio may be incorrect.
+            m_sfcScalingParams->dwOutputFrameHeight = m_sfcScalingParams->dwScaledRegionHeight;
+            m_sfcScalingParams->dwOutputFrameWidth  = m_sfcScalingParams->dwScaledRegionWidth;
+        }
 
         uint32_t dstInputLeftAligned = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.input.rcDst.left, wOutputWidthAlignUnit);
         uint32_t dstInputTopAligned = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.input.rcDst.top, wOutputHeightAlignUnit);

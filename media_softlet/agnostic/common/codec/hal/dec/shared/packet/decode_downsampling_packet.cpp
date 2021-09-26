@@ -124,25 +124,28 @@ MOS_STATUS DecodeDownSamplingPkt::InitSfcParams(VDBOX_SFC_PARAMS &sfcParams)
 
     DECODE_CHK_NULL(m_downSampling->m_inputSurface);
 
-    // x + width/ y + height is the effective width/height of SFC input, which may be smaller than frame width/height.
-    sfcParams.input.width         = m_downSampling->m_inputSurfaceRegion.m_x +
-                                    m_downSampling->m_inputSurfaceRegion.m_width;
-    sfcParams.input.height        = m_downSampling->m_inputSurfaceRegion.m_y +
-                                    m_downSampling->m_inputSurfaceRegion.m_height;
-    sfcParams.input.format        = m_downSampling->m_inputSurface->Format;
-    sfcParams.input.colorSpace    = CSpace_Any;
-    sfcParams.input.chromaSiting  = m_downSampling->m_chromaSitingType;
-    sfcParams.input.mirrorEnabled = (m_downSampling->m_mirrorState != 0);
+    // VD-SFC Input Frame width/height must equal to decoded frame width/height
+    sfcParams.input.width           = m_downSampling->m_inputSurface->dwWidth;
+    sfcParams.input.height          = m_downSampling->m_inputSurface->dwHeight;
+    // x + width/ y + height is the right/bottom padding boundary of SFC input, which may be smaller than frame width/height.
+    sfcParams.input.effectiveWidth  = m_downSampling->m_inputSurfaceRegion.m_x +
+                                      m_downSampling->m_inputSurfaceRegion.m_width;
+    sfcParams.input.effectiveHeight = m_downSampling->m_inputSurfaceRegion.m_y +
+                                      m_downSampling->m_inputSurfaceRegion.m_height;
+    sfcParams.input.format          = m_downSampling->m_inputSurface->Format;
+    sfcParams.input.colorSpace      = CSpace_Any;
+    sfcParams.input.chromaSiting    = m_downSampling->m_chromaSitingType;
+    sfcParams.input.mirrorEnabled   = (m_downSampling->m_mirrorState != 0);
 
-    sfcParams.output.surface      = &(m_downSampling->m_outputSurface);
-    sfcParams.output.colorSpace   = CSpace_Any;
-    sfcParams.output.chromaSiting = m_downSampling->m_chromaSitingType;
-    sfcParams.output.rcDst.left   = m_downSampling->m_outputSurfaceRegion.m_x;
-    sfcParams.output.rcDst.top    = m_downSampling->m_outputSurfaceRegion.m_y;
-    sfcParams.output.rcDst.right  = m_downSampling->m_outputSurfaceRegion.m_x +
-                                    m_downSampling->m_outputSurfaceRegion.m_width;
-    sfcParams.output.rcDst.bottom = m_downSampling->m_outputSurfaceRegion.m_y +
-                                    m_downSampling->m_outputSurfaceRegion.m_height;
+    sfcParams.output.surface        = &(m_downSampling->m_outputSurface);
+    sfcParams.output.colorSpace     = CSpace_Any;
+    sfcParams.output.chromaSiting   = m_downSampling->m_chromaSitingType;
+    sfcParams.output.rcDst.left     = m_downSampling->m_outputSurfaceRegion.m_x;
+    sfcParams.output.rcDst.top      = m_downSampling->m_outputSurfaceRegion.m_y;
+    sfcParams.output.rcDst.right    = m_downSampling->m_outputSurfaceRegion.m_x +
+                                      m_downSampling->m_outputSurfaceRegion.m_width;
+    sfcParams.output.rcDst.bottom   = m_downSampling->m_outputSurfaceRegion.m_y +
+                                      m_downSampling->m_outputSurfaceRegion.m_height;
 
     sfcParams.videoParams.codecStandard = m_basicFeature->m_standard;
     sfcParams.scalingMode         = m_downSampling->m_scalingMode;

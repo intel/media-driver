@@ -121,6 +121,7 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     VP_PUBLIC_CHK_NULL_RETURN(m_scalingFilter);
 
     RECT                rcSrcInput          = {0, 0, (int32_t)sfcParam.input.width,             (int32_t)sfcParam.input.height              };
+    RECT                rcEffectiveSrcInput = {0, 0, (int32_t)sfcParam.input.effectiveWidth,    (int32_t)sfcParam.input.effectiveHeight     };
     RECT                rcOutput            = {0, 0, (int32_t)sfcParam.output.surface->dwWidth, (int32_t)sfcParam.output.surface->dwHeight  };
     FeatureParamScaling scalingParams       = {};
     scalingParams.type                      = FeatureTypeScalingOnSfc;
@@ -129,10 +130,10 @@ MOS_STATUS MediaVdboxSfcRender::SetScalingParams(VDBOX_SFC_PARAMS &sfcParam, VP_
     scalingParams.scalingMode               = GetScalingMode(sfcParam.scalingMode);
     scalingParams.scalingPreference         = VPHAL_SCALING_PREFER_SFC;              //!< DDI indicate Scaling preference
     scalingParams.bDirectionalScalar        = false;                                 //!< Vebox Directional Scalar
-    scalingParams.input.rcSrc               = rcSrcInput;                            //!< No input crop support for VD mode. rcSrcInput must have same width/height of input image.
+    scalingParams.input.rcSrc               = rcEffectiveSrcInput;                   //!< rcEffectiveSrcInput exclude right/bottom padding area of SFC input.
     scalingParams.input.rcDst               = sfcParam.output.rcDst;
     scalingParams.input.rcMaxSrc            = rcSrcInput;
-    scalingParams.input.dwWidth             = sfcParam.input.width;
+    scalingParams.input.dwWidth             = sfcParam.input.width;                  //!< No input crop support for VD mode. Input Frame Height/Width must have same width/height of decoded frames.
     scalingParams.input.dwHeight            = sfcParam.input.height;
     scalingParams.output.rcSrc              = rcOutput;
     scalingParams.output.rcDst              = rcOutput;
