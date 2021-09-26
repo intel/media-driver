@@ -786,9 +786,9 @@ MOS_STATUS VphalState::GetStatusReport(
         }
 
 #if (LINUX || ANDROID)
-        dwGpuTag           = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
+        dwGpuTag    = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
-        dwGpuTag           = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal, m_osInterface->streamIndex));
+        dwGpuTag    = m_osInterface->pfnGetGpuStatusSyncTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #endif
         bDoneByGpu         = (dwGpuTag >= pStatusEntry->dwTag);
         bFailedOnSubmitCmd = (pStatusEntry->dwStatus == VPREP_ERROR);

@@ -247,7 +247,7 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
 #if (LINUX || ANDROID)
         dwGpuTag = pOsContext->GetGPUTag(m_pOsInterface, pStatusEntry->GpuContextOrdinal);
 #else
-        dwGpuTag = pOsContext->GetGPUTag(pOsContext->GetGpuContextHandle(pStatusEntry->GpuContextOrdinal, m_pOsInterface->streamIndex));
+        dwGpuTag = m_pOsInterface->pfnGetGpuStatusSyncTag(m_pOsInterface, pStatusEntry->GpuContextOrdinal);
 #endif
         bDoneByGpu         = (dwGpuTag >= pStatusEntry->dwTag);
         bFailedOnSubmitCmd = (pStatusEntry->dwStatus == VPREP_ERROR);

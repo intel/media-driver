@@ -961,6 +961,9 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         int32_t                     *pFlag);
 
+    uint32_t (* pfnGetInterfaceVersion) (
+        PMOS_INTERFACE              pOsInterface);
+
 #if MOS_MESSAGES_ENABLED
 
     #define pfnAllocateResource(pOsInterface, pParams, pOsResource) \

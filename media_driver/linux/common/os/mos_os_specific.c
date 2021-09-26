@@ -6233,6 +6233,23 @@ MOS_STATUS Mos_Specific_WaitAllCmdCompletion_Os(
 }
 
 //!
+//! \brief    Get interface version
+//! \details  Get interface version
+//!
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS Interface
+//!
+//! \return   uint32_t
+//!           Read-only OS runtime interface version, it's meaning diff from OS and API
+//!
+uint32_t Mos_Specific_GetInterfaceVersion(
+    PMOS_INTERFACE        pOsInterface)
+{
+    MOS_UNUSED(pOsInterface);
+    return 0;
+}
+
+//!
 //! \brief    Determines if the resource should be CPU cacheable during allocation
 //! \param    PMOS_INTERFACE pOsInterface
 //!           [in] Pointer to OS Interface
@@ -7607,6 +7624,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnGetIndirectState                       = Mos_Specific_GetIndirectState;
     pOsInterface->pfnGetIndirectStatePointer                = Mos_Specific_GetIndirectStatePointer;
     pOsInterface->pfnSetPatchEntry                          = Mos_Specific_SetPatchEntry;
+    pOsInterface->pfnGetInterfaceVersion                    = Mos_Specific_GetInterfaceVersion;
 
     pOsInterface->pfnLoadLibrary                            = Mos_Specific_LoadLibrary;
     pOsInterface->pfnFreeLibrary                            = Mos_Specific_FreeLibrary;
