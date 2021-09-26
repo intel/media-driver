@@ -4988,6 +4988,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(
             &cmdBuffer, bRequestFrameTracking, validMmio ? &mmioRegister: nullptr));
     }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     // load kernel from WOPCM into L2 storage RAM
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;
@@ -5041,6 +5042,9 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
     flushDwParams.bVideoPipelineCacheInvalidate = true;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(&cmdBuffer, &flushDwParams));
+
+    // Collect HuC Init/Reset kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     // Handle HUC_STATUS error codes
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHucOutputRegistersHandling(mmioRegisters, &cmdBuffer, true));
@@ -5098,6 +5102,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(
             SendPrologWithFrameTracking(&cmdBuffer, bRequestFrameTracking, validMmio ? &mmioRegister : nullptr));
     }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     if (m_brcInit || m_brcReset)
     {
@@ -5274,6 +5279,9 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     storeRegParams.dwOffset        = 0;
     storeRegParams.dwRegister      = mmioRegisters->hucStatusRegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(&cmdBuffer, &storeRegParams));
+
+    // Collect HuC Update kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     // Handle HUC_STATUS error codes
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AddHucOutputRegistersHandling(mmioRegisters, &cmdBuffer, true));
@@ -5878,10 +5886,9 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     if (m_vdencBrcEnabled)
     {
         PerfTagSetting perfTag;
-        perfTag.Value = 0;
-        perfTag.Mode  = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
-        // STF: HuC+VDEnc+PAK single BB, non-STF: HuC Init/HuC Update/(VDEnc+PAK) in separate BBs
-        perfTag.CallType          = m_singleTaskPhaseSupported ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE : CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET;
+        perfTag.Value             = 0;
+        perfTag.Mode              = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
+        perfTag.CallType          = CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET;
         perfTag.PictureCodingType = m_pictureCodingType;
         m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
@@ -5907,11 +5914,8 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcInitReset());
         }
 
-        if (!m_singleTaskPhaseSupported)
-        {
-            perfTag.CallType = CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE;
-            m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
-        }
+        perfTag.CallType = m_currPass == 0 ? CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE : CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE_SECOND_PASS;
+        m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
         // Invoke BRC update FW
         CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcUpdate());
@@ -5921,7 +5925,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     PerfTagSetting perfTag;
     perfTag.Value             = 0;
     perfTag.Mode              = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
-    perfTag.CallType          = CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE;
+    perfTag.CallType          = m_currPass == 0 ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE : CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE_SECOND_PASS;
     perfTag.PictureCodingType = m_pictureCodingType;
     m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
