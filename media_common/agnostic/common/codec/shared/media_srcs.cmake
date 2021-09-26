@@ -34,7 +34,8 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_avc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_hevc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vc1.h 
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vp9.h  
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode_vp9.h
+    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_avc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_jpeg.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_mpeg2.h

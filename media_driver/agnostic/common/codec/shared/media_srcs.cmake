@@ -28,7 +28,6 @@ set(TMP_2_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_decode.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_hevc.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode_vp8.h
-    ${CMAKE_CURRENT_LIST_DIR}/codec_def_encode.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_def_cenc_decode.h
 )
 
