@@ -23,10 +23,7 @@
 //! \file     media_user_setting.cpp
 //! \brief    Initialize user setting of media
 //!
-
 #include "media_pipeline.h"
-
-
 MOS_STATUS MediaPipeline::InitUserSetting()
 {
     DeclareUserSettingKey(
@@ -34,5 +31,17 @@ MOS_STATUS MediaPipeline::InitUserSetting()
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
+    DeclareUserSettingKey(
+        "Enable Codec MMC",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        "Simulation In Use",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+#endif
     return MOS_STATUS_SUCCESS;
 }
