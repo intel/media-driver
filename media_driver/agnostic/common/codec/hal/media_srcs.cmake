@@ -51,15 +51,8 @@ if(${MMC_Supported} STREQUAL "yes")
     )
 endif()
 
-if(NOT "${Media_Reserved}" STREQUAL "yes")
-    set(TMP_1_SOURCES_
-            ${TMP_1_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_setting.cpp
-       )
-endif()
 set(TMP_1_HEADERS_
         ${TMP_1_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_setting.h
 )
 
 #decode
