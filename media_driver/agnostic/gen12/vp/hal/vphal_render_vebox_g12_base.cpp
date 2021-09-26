@@ -2389,6 +2389,9 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G12_BASE::GetOutputPipe(
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pcRenderParams);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pRenderData);
     VPHAL_RENDER_CHK_NULL_NO_STATUS(pSrcSurface);
+    VPHAL_RENDER_CHK_NULL_NO_STATUS(pcRenderParams->pTarget[0]);
+
+    pTarget             = pcRenderParams->pTarget[0];
 
     bCompBypassFeasible = IS_COMP_BYPASS_FEASIBLE(pRenderData->bCompNeeded, pcRenderParams, pSrcSurface);
 
@@ -2411,6 +2414,15 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G12_BASE::GetOutputPipe(
         goto finish;
     }
 
+    // Let Kernel to output P010 instead of VEBOX output
+    if (pSrcSurface->p3DLutParams &&
+        (pTarget->Format == Format_P010 ||
+         pTarget->Format == Format_P016))
+    {
+        OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
+        goto finish;
+    }
+
     bOutputPipeVeboxFeasible = IS_OUTPUT_PIPE_VEBOX_FEASIBLE(pVeboxState, pcRenderParams, pSrcSurface);
     if (bOutputPipeVeboxFeasible)
     {
@@ -2423,9 +2435,6 @@ VPHAL_OUTPUT_PIPE_MODE VPHAL_VEBOX_STATE_G12_BASE::GetOutputPipe(
         OutputPipe = VPHAL_OUTPUT_PIPE_MODE_COMP;
         goto finish;
     }
-
-    pTarget             = pcRenderParams->pTarget[0];
-    VPHAL_RENDER_CHK_NULL_NO_STATUS(pcRenderParams->pTarget[0]);
 
     bHDRToneMappingNeed = (pSrcSurface->pHDRParams || pTarget->pHDRParams);
     // Check if SFC can be the output pipe
