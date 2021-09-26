@@ -35,8 +35,13 @@ class MediaFactory
 public:
     typedef T *Type;
     typedef Type (*Creator)();
+    typedef Type (*PlaceCreator)(void *);
     typedef std::map<KeyType, Creator>  Creators;
+    typedef std::map<KeyType, PlaceCreator>  PlaceCreators;
+    typedef std::map<KeyType, uint32_t>  Sizes;
     typedef typename Creators::iterator Iterator;
+    typedef typename Sizes::iterator Iterator_Sizes;
+    typedef typename PlaceCreators::iterator Iterator_PlaceCreators;
 
     //!
     //! \brief    register one Class C with key.
@@ -57,11 +62,15 @@ public:
     static bool Register(KeyType key, bool forceReplace = false)
     {
         Creators &creators = GetCreators();
+        Sizes    &sizes    = GetSizes();
+        PlaceCreators &placecreators = GetPlaceCreators();
         Iterator creator = creators.find(key);
         if (creator == creators.end())
         {
             std::pair<Iterator, bool> result =
                 creators.insert(std::make_pair(key, Create<C>));
+            sizes.insert(std::make_pair(key, sizeof(C)));
+            placecreators.insert(std::make_pair(key, PlaceCreate<C>));
             return result.second;
         }
         else
@@ -101,6 +110,30 @@ public:
         return nullptr;
     }
 
+    static Type PlaceCreate(
+        KeyType key, void* privateData)
+    {
+        PlaceCreators &placecreators = GetPlaceCreators();
+        Iterator_PlaceCreators placecreator = placecreators.find(key);
+        if (placecreator != placecreators.end())
+        {
+            return (placecreator->second)(privateData);
+        };
+
+        return nullptr;
+    }
+
+    static uint32_t ReturnClassSize(KeyType key)
+    {
+        Sizes    &sizes    = GetSizes();
+        Iterator_Sizes sizeit = sizes.find(key);
+        if (sizeit != sizes.end())
+        {
+            return sizeit->second;
+        }
+
+        return 0; 
+    }
     //!
     //! \brief    check object that is registered with key.
     //! \details  check object that is registered with key. And Args is passed to check the object.
@@ -135,6 +168,13 @@ private:
         return MOS_New(C);
     }
 
+    template <class C>
+    static Type PlaceCreate(void *privateData)
+    {
+        // The factory only provide the method to create but not keep the pointer to the memory.
+        // So the memory free is owned by who call the factory to create it.
+        return new (privateData)C;
+    }
 
     //!
     //! \brief    obtain the static pair table of param@ key and callback function
@@ -148,5 +188,21 @@ private:
 
         return creators;
     }
+
+    static PlaceCreators &GetPlaceCreators()
+    {
+        static PlaceCreators placecreators;
+
+        return placecreators;
+    }
+
+    static Sizes &GetSizes()
+    {
+        static Sizes sizes;
+
+        return sizes;
+    }
+
+
 };
 #endif
