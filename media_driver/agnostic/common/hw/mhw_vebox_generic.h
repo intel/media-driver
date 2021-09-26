@@ -99,6 +99,9 @@ public:
 
         typename TVeboxCmds::VEBOX_SURFACE_STATE_CMD cmd1, cmd2;
 
+        MEDIA_FEATURE_TABLE    *pSkuTable = nullptr;
+        pSkuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+        MHW_CHK_NULL(pSkuTable);
         MHW_CHK_NULL(pCmdBuffer);
         MHW_CHK_NULL(pVeboxSurfaceStateCmdParams);
 
@@ -113,6 +116,13 @@ public:
             &cmd1,
             false,
             pVeboxSurfaceStateCmdParams->bDIEnable);
+
+        if (pVeboxSurfaceStateCmdParams->b3DlutEnable && MEDIA_IS_SKU(pSkuTable, FtrHeight8AlignVE3DLUTDualPipe))
+        {
+            cmd1.DW2.Height = MOS_ALIGN_CEIL((cmd1.DW2.Height + 1), 8) - 1;
+            MHW_NORMALMESSAGE("Align Input Height as 8x due to 3DlutEnable");
+        }
+
         Mos_AddCommand(pCmdBuffer, &cmd1, cmd1.byteSize);
         MHW_NORMALMESSAGE("Vebox input Height: %d, Width: %d;", cmd1.DW2.Height, cmd1.DW2.Width);
 
@@ -131,6 +141,12 @@ public:
             if (pVeboxSurfaceStateCmdParams->SurfInput.Format == pVeboxSurfaceStateCmdParams->SurfOutput.Format)
             {
                 cmd2.DW3.SurfaceFormat = cmd1.DW3.SurfaceFormat;
+            }
+
+            if (pVeboxSurfaceStateCmdParams->b3DlutEnable && MEDIA_IS_SKU(pSkuTable, FtrHeight8AlignVE3DLUTDualPipe))
+            {
+                cmd2.DW2.Height = MOS_ALIGN_CEIL((cmd2.DW2.Height + 1), 8) - 1;
+                MHW_NORMALMESSAGE("Align Output Height as 8x due to 3DlutEnable");
             }
 
             Mos_AddCommand(pCmdBuffer, &cmd2, cmd2.byteSize);
