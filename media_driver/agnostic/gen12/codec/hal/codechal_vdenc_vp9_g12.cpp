@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3838,6 +3838,15 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     if (IsFirstPipe())
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StartStatusReport(&cmdBuffer, CODECHAL_NUM_MEDIA_STATES));
+    }
+
+    // Send VDENC_CONTROL_STATE Pipe Initialization
+    MHW_VDBOX_VDENC_CONTROL_STATE_PARAMS vdencControlStateParams;
+    {
+        MOS_ZeroMemory(&vdencControlStateParams, sizeof(MHW_VDBOX_VDENC_CONTROL_STATE_PARAMS));
+        vdencControlStateParams.bVdencInitialization = true;
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(
+            static_cast<MhwVdboxVdencInterfaceG12X *>(m_vdencInterface)->AddVdencControlStateCmd(&cmdBuffer, &vdencControlStateParams));
     }
 
     //Send VD_CONTROL_STATE Pipe Initialization
