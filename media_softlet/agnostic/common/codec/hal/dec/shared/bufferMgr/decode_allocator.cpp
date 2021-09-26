@@ -97,7 +97,9 @@ BufferArray * DecodeAllocator::AllocateBufferArray(
     bool initOnAllocate, uint8_t initValue, bool bPersistent)
 {
     if (!m_allocator)
+    {
         return nullptr;
+    }
 
     BufferArray * bufferArray = MOS_New(BufferArray, this);
     if (bufferArray == nullptr)
@@ -122,7 +124,9 @@ MOS_SURFACE* DecodeAllocator::AllocateSurface(
     MOS_TILE_MODE_GMM gmmTileMode)
 {
     if (!m_allocator)
+    {
         return nullptr;
+    }
 
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
@@ -150,6 +154,46 @@ MOS_SURFACE* DecodeAllocator::AllocateSurface(
 
     return surface;
 }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_SURFACE *DecodeAllocator::AllocateLinearSurface(
+    const uint32_t width, const uint32_t height, const char *nameOfSurface,
+    MOS_FORMAT format, bool isCompressible,
+    ResourceUsage resUsageType, ResourceAccessReq accessReq,
+    MOS_TILE_MODE_GMM gmmTileMode)
+{
+    if (!m_allocator)
+    {
+        return nullptr;
+    }
+
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
+    MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    allocParams.Type              = MOS_GFXRES_2D;
+    allocParams.TileType          = MOS_TILE_LINEAR;
+    allocParams.Format            = format;
+    allocParams.dwWidth           = width;
+    allocParams.dwHeight          = height;
+    allocParams.dwArraySize       = 1;
+    allocParams.pBufName          = nameOfSurface;
+    allocParams.bIsCompressible   = isCompressible;
+    allocParams.ResUsageType      = static_cast<MOS_HW_RESOURCE_DEF>(resUsageType);
+    allocParams.m_tileModeByForce = gmmTileMode;
+    SetAccessRequirement(accessReq, allocParams);
+
+    MOS_SURFACE *surface = m_allocator->AllocateSurface(allocParams, false, COMPONENT_Decode);
+    if (surface == nullptr)
+    {
+        return nullptr;
+    }
+    if (GetSurfaceInfo(surface) != MOS_STATUS_SUCCESS)
+    {
+        DECODE_ASSERTMESSAGE("Failed to get surface informaton for %s", nameOfSurface);
+    }
+
+    return surface;
+}
+#endif
 
 SurfaceArray * DecodeAllocator::AllocateSurfaceArray(
     const uint32_t width, const uint32_t height, const char* nameOfSurface,

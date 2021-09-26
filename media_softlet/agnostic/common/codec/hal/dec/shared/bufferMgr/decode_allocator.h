@@ -179,6 +179,30 @@ public:
         const uint32_t numberOfSurface, MOS_FORMAT format = Format_NV12, bool isCompressed = false,
         ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Allocate Linear Output Surface
+    //! \param  [in] width
+    //!         surface width
+    //! \param  [in] height
+    //!         surface height
+    //! \param  [in] surfaceName
+    //!         Surface name
+    //! \param  [in] format
+    //!         Surface format, by default is NV12
+    //! \param  [in] compressible
+    //!         Compressible flag, by default is false
+    //! \param  [in] resUsageType
+    //!         ResourceUsage to be set
+    //! \param  [in] gmmTileMode
+    //!         Specified GMM tile mode
+    //!
+    MOS_SURFACE * AllocateLinearSurface(
+        const uint32_t width, const uint32_t height, const char *nameOfSurface,
+        MOS_FORMAT format = Format_NV12, bool isCompressible = false,
+        ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem,
+        MOS_TILE_MODE_GMM gmmTileMode = MOS_TILE_UNSET_GMM);
+#endif
     //!
     //! \brief  Allocate batch buffer
     //! \param  [in] sizeOfBuffer
