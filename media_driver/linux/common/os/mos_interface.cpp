@@ -54,7 +54,6 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 #endif
 
     //Read user feature key here for Per Utility Tool Enabling
-#if _RELEASE_INTERNAL
     if (!g_perfutility->bPerfUtilityKey)
     {
         MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
@@ -88,7 +87,7 @@ MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 
         g_perfutility->bPerfUtilityKey = true;
     }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
