@@ -211,6 +211,24 @@ public:
     virtual MOS_STATUS ResetSemaphore(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer) = 0;
 
     //!
+    //! \brief  Oca 1st Level BB Start
+    //! \param  [in, out] cmdBuffer
+    //!         Reference to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Oca1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer) { return MOS_STATUS_SUCCESS; };
+
+    //!
+    //! \brief  Oca 1st Level BB End
+    //! \param  [in, out] cmdBuffer
+    //!         Reference to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Oca1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer) { return MOS_STATUS_SUCCESS; };
+
+    //!
     //! \brief  Get pipe number
     //! \return Pipe number
     //!

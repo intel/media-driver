@@ -32,6 +32,7 @@
 #include "media_scalability_defs.h"
 #include "media_scalability_singlepipe.h"
 #include "mhw_mi.h"
+#include "hal_oca_interface.h"
 
 MediaScalabilitySinglePipe::MediaScalabilitySinglePipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType) :
     MediaScalability(mediaContext)
@@ -241,6 +242,9 @@ MOS_STATUS MediaScalabilitySinglePipe::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
 
     SCALABILITY_CHK_STATUS_RETURN(GetCmdBuffer(cmdBuffer));
     SCALABILITY_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(cmdBuffer, nullptr));
+
+    SCALABILITY_CHK_STATUS_RETURN(Oca1stLevelBBEnd(*cmdBuffer));
+
     SCALABILITY_CHK_STATUS_RETURN(ReturnCmdBuffer(cmdBuffer));
 
     if (MOS_VE_SUPPORTED(m_osInterface))

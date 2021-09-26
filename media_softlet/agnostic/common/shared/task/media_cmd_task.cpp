@@ -105,9 +105,15 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
 
         MEDIA_CHK_STATUS_RETURN(scalability->GetCmdBuffer(&cmdBuffer, prop.frameTrackingRequested));
         //Set first packet for each pipe in the first pass, used for prolog & forcewakeup insertion
-        if (scalability->GetCurrentPass() == 0 && curPipe < scalability->GetCurrentPipe())
+        bool isFirstPacket = scalability->GetCurrentPass() == 0 && curPipe < scalability->GetCurrentPipe();
+        if (isFirstPacket)
         {
             packetPhase = MediaPacket::firstPacket;
+        }
+
+        if (isFirstPacket || !prop.stateProperty.singleTaskPhaseSupported)
+        {
+            scalability->Oca1stLevelBBStart(cmdBuffer);
         }
 
         curPipe = scalability->GetCurrentPipe();
