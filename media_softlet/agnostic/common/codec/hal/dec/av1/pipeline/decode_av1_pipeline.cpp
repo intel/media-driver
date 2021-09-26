@@ -28,7 +28,7 @@
 #include "media_user_settings_mgr_g12.h"
 #include "codechal_setting.h"
 #include "decode_av1_feature_manager.h"
-#include "decode_huc_copy_creator_base.h"
+#include "decode_huc_packet_creator_base.h"
 
 namespace decode {
 
@@ -45,7 +45,7 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(DecodePipeline::Initialize(settings));
 
-    HucCopyPacketCreatorBase *hucPktCreator = dynamic_cast<HucCopyPacketCreatorBase *>(this);
+    HucPacketCreatorBase *hucPktCreator = dynamic_cast<HucPacketCreatorBase *>(this);
     DECODE_CHK_NULL(hucPktCreator);
     m_cdfCopyPkt = hucPktCreator->CreateHucCopyPkt(this, m_task, m_hwInterface); 
     DECODE_CHK_NULL(m_cdfCopyPkt);

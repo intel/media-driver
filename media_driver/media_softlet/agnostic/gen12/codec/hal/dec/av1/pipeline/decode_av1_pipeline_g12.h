@@ -31,7 +31,7 @@
 #include "decode_filmgrain_surf_init_g12.h"
 #include "decode_filmgrain_presubpipeline_g12.h"
 #include "decode_filmgrain_postsubpipeline_g12.h"
-#include "decode_huc_copy_creator_g12.h"
+#include "decode_huc_packet_creator_g12.h"
 
 namespace decode
 {
@@ -39,7 +39,7 @@ namespace decode
     class FilmGrainPreSubPipeline;
     class FilmGrainPostSubPipeline;
     class Av1DecodePktG12;
-    class Av1PipelineG12 : public Av1Pipeline, public HucCopyPacketCreatorG12
+    class Av1PipelineG12 : public Av1Pipeline, public HucPacketCreatorG12
     {
     public:
         //!

@@ -20,11 +20,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_huc_copy_creator.h
+//! \file     decode_huc_packet_creator_base.h
 //!
 
-#ifndef __CODECHAL_HUC_COPY_PACKET_CREATOR_BASE_H__
-#define __CODECHAL_HUC_COPY_PACKET_CREATOR_BASE_H__
+#ifndef __CODECHAL_HUC_PACKET_CREATOR_BASE_H__
+#define __CODECHAL_HUC_PACKET_CREATOR_BASE_H__
 
 #include "decode_huc_copy_packet_itf.h"
 #include "media_cmd_packet.h"
@@ -33,17 +33,18 @@
 
 namespace decode
 {
-class HucCopyPacketCreatorBase
+class HucPacketCreatorBase
 {
 public:    
 
-    HucCopyPacketCreatorBase()
+    HucPacketCreatorBase()
     {
     }
 
-    virtual ~HucCopyPacketCreatorBase() {}
+    virtual ~HucPacketCreatorBase() {}
 
     virtual HucCopyPktItf *CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) = 0;
+    virtual CmdPacket *    CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) = 0;
 
 
 };

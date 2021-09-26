@@ -20,29 +20,29 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_huc_copy_creator_g12.h
+//! \file     decode_huc_packet_creator_g12.h
 //!
 
-#ifndef __CODECHAL_HUC_COPY_PACKET_CREATOR_G12_H__
-#define __CODECHAL_HUC_COPY_PACKET_CREATOR_G12_H__
+#ifndef __CODECHAL_HUC_PACKET_CREATOR_G12_H__
+#define __CODECHAL_HUC_PACKET_CREATOR_G12_H__
 
-#include "decode_huc_copy_creator_base.h"
+#include "decode_huc_packet_creator_base.h"
 
 
 namespace decode
 {
-class HucCopyPacketCreatorG12 : public HucCopyPacketCreatorBase
+class HucPacketCreatorG12 : public HucPacketCreatorBase
 {
 public:    
 
-    HucCopyPacketCreatorG12()
+    HucPacketCreatorG12()
     {
     }
 
-    virtual ~HucCopyPacketCreatorG12() {}
+    virtual ~HucPacketCreatorG12() {}
 
     virtual  HucCopyPktItf *CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) override;
- 
+    virtual CmdPacket *    CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) override;
 };
 
 }  // namespace decode

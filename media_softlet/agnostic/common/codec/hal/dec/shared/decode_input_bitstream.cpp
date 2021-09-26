@@ -30,7 +30,7 @@
 #include "decode_basic_feature.h"
 #include "decode_pipeline.h"
 
-#include "decode_huc_copy_creator_base.h"
+#include "decode_huc_packet_creator_base.h"
 
 namespace decode {
 
@@ -61,7 +61,7 @@ MOS_STATUS DecodeInputBitstream::Init(CodechalSetting& settings)
     m_basicFeature = dynamic_cast<DecodeBasicFeature*>(featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_basicFeature);
 
-    HucCopyPacketCreatorBase *hucPktCreator = dynamic_cast<HucCopyPacketCreatorBase *>(m_pipeline);
+    HucPacketCreatorBase *hucPktCreator = dynamic_cast<HucPacketCreatorBase *>(m_pipeline);
     DECODE_CHK_NULL(hucPktCreator);
     m_concatPkt = hucPktCreator->CreateHucCopyPkt(m_pipeline, m_task, hwInterface);  
     DECODE_CHK_NULL(m_concatPkt);

@@ -24,16 +24,20 @@
 //! \brief    Defines the implementation of huc copy creator
 //!
 
-#include "decode_huc_copy_creator_g12.h"
+#include "decode_huc_packet_creator_g12.h"
 #include "decode_huc_copy_packet_g12.h"
 
 namespace decode
 {
+HucCopyPktItf *HucPacketCreatorG12::CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
+{
+    HucCopyPktItf *copyPkt = MOS_New(HucCopyPktG12, pipeline, task, hwInterface);
+    return copyPkt;
+}
 
-    HucCopyPktItf *HucCopyPacketCreatorG12::CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
-    {
-        HucCopyPktItf *copyPkt = MOS_New(HucCopyPktG12, pipeline, task, hwInterface);
-        return copyPkt;
-    }
+CmdPacket *HucPacketCreatorG12::CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface)
+{
+    return nullptr;
+}
 
 }  // namespace decode

@@ -29,7 +29,7 @@
 #include "decode_pipeline.h"
 #include "decode_common_feature_defs.h"
 #include "decode_sfc_histogram_postsubpipeline.h"
-#include "decode_huc_copy_creator_base.h"
+#include "decode_huc_packet_creator_base.h"
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
 
@@ -64,7 +64,7 @@ MOS_STATUS DecodeSfcHistogramSubPipeline::Init(CodechalSetting &settings)
         DecodeFeatureIDs::decodeDownSampling));
 
     //Create Packets
-    HucCopyPacketCreatorBase *hucPktCreator = dynamic_cast<HucCopyPacketCreatorBase *>(m_pipeline);
+    HucPacketCreatorBase *hucPktCreator = dynamic_cast<HucPacketCreatorBase *>(m_pipeline);
     DECODE_CHK_NULL(hucPktCreator);
     m_copyPkt = hucPktCreator->CreateHucCopyPkt(m_pipeline, m_task, hwInterface);
     DECODE_CHK_NULL(m_copyPkt);
