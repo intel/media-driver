@@ -1847,8 +1847,17 @@ MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeInd
             else
             {
                 auto *handlers = (caps.bSFC || caps.bVebox) ? &m_VeboxSfcFeatureHandlers : &m_RenderFeatureHandlers;
-                PolicyFeatureHandler *handler = handlers->find(feature->GetFeatureType())->second;
-                VP_PUBLIC_CHK_STATUS_RETURN(handler->UpdateUnusedFeature(caps, *feature, featurePipe, executedFilters, isInputPipe, executePipeIndex));
+
+                auto processHandler = handlers->find(feature->GetFeatureType());
+
+                if (processHandler != handlers->end())
+                {
+                    PolicyFeatureHandler* handler = processHandler->second;
+                    if (handler)
+                    {
+                        VP_PUBLIC_CHK_STATUS_RETURN(handler->UpdateUnusedFeature(caps, *feature, featurePipe, executedFilters, isInputPipe, executePipeIndex));
+                    }
+                }
             }
 
             if (!engineCaps->bEnabled)
