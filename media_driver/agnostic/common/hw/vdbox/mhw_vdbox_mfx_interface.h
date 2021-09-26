@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -658,14 +658,6 @@ protected:
     //!
     virtual void CalcAvcImgStateMinMaxBitrate(MHW_VDBOX_AVC_IMG_BITRATE_PARAMS& params);
 
-     //!
-    //! \brief    Get new MFX interface, temporal solution before switching from
-    //!           old interface to new one
-    //!
-    //! \return   pointer to new MFX interface
-    //!
-    virtual std::shared_ptr<void> GetNewMfxInterface() { return nullptr; }
-
     //!
     //! \brief    Add a resource to the command buffer
     //! \details  Internal function to add either a graphics address of a resource or
@@ -865,6 +857,14 @@ public:
     //! \brief    Destructor
     //!
     virtual ~MhwVdboxMfxInterface() {}
+
+    //!
+    //! \brief    Get new MFX interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new MFX interface
+    //!
+    virtual std::shared_ptr<void> GetNewMfxInterface() { return nullptr; }
 
     //!
     //! \brief    Judge if decode is in use
