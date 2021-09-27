@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2020, Intel Corporation
+* Copyright (c) 2014-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include "mhw_utilities.h"
 #include "mhw_state_heap.h"
 #include "mhw_mi.h"
-
+#include "mhw_render_itf.h"
 
 #define MHW_RENDER_ENGINE_SSH_SURFACES_PER_BT_MAX           256
 #define MHW_RENDER_ENGINE_SAMPLERS_MAX                      16
@@ -614,6 +614,14 @@ public:
     //!           height align unit
     virtual void GetSamplerResolutionAlignUnit(bool isAVSSampler, uint32_t &widthAlignUnit, uint32_t &heightAlignUnit) = 0;
 
+    //!
+    //! \brief    Get new render interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new render interface
+    //!
+    virtual std::shared_ptr<mhw::render::Itf> GetNewRenderInterface() { return nullptr; }
+
 protected:
     //!
     //! \brief    Initializes the Render interface
@@ -697,6 +705,7 @@ protected:
 
     uint32_t    m_l3CacheCntlRegisterOffset = M_L3_CACHE_CNTL_REG_OFFSET;
     uint32_t    m_l3CacheCntlRegisterValueDefault = M_L3_CACHE_CNTL_REG_VALUE_DEFAULT;
+    std::shared_ptr <mhw::render::Itf> m_renderItfNew = nullptr;
 
     //!
     //! \brief    Adds a resource to the command buffer or indirect state (SSH)

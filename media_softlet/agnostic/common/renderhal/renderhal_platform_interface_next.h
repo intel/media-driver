@@ -34,12 +34,62 @@
 #include "mos_os.h"
 #include "renderhal.h"
 #include "renderhal_platform_interface.h"
+#include "mhw_render_itf.h"
+#include "mhw_render_cmdpar.h"
+#include "media_packet.h"
+#include "vp_utils.h"
+#include "media_feature_manager.h"
 
-class XRenderHal_Platform_Interface_Next : public XRenderHal_Platform_Interface
+class XRenderHal_Platform_Interface_Next : public XRenderHal_Platform_Interface, public mhw::render::Itf::ParSetting
 {
 public:
     XRenderHal_Platform_Interface_Next() {}
     virtual ~XRenderHal_Platform_Interface_Next() {}
+
+    MOS_STATUS AddPipelineSelectCmd(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer,
+        bool                        gpGpuPipe);
+
+    MOS_STATUS SendStateBaseAddress(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    MOS_STATUS AddSipStateCmd(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    MOS_STATUS AddCfeStateCmd(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer,
+        PMHW_VFE_PARAMS             params);
+
+    MOS_STATUS SendChromaKey(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    MOS_STATUS SendPalette(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    MOS_STATUS SetL3Cache(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer);
+
+    PMHW_MI_MMIOREGISTERS GetMmioRegisters(
+        PRENDERHAL_INTERFACE        pRenderHal);
+
+    MOS_STATUS EnablePreemption(
+        PRENDERHAL_INTERFACE            pRenderHal,
+        PMOS_COMMAND_BUFFER             pCmdBuffer);
+
+protected:
+
+    PRENDERHAL_INTERFACE              m_renderHal = nullptr;
+    MediaFeatureManager               *m_featureManager = nullptr;
+    PMHW_GPGPU_WALKER_PARAMS          m_gpgpuWalkerParams = nullptr;
+    PMHW_ID_ENTRY_PARAMS              m_interfaceDescriptorParams = nullptr;
+    std::shared_ptr<mhw::render::Itf> m_renderItf = nullptr;
 
 };
 

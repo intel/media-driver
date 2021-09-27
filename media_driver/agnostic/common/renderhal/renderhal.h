@@ -42,6 +42,8 @@
 
 #include "frame_tracker.h"
 #include "media_common_defs.h"
+#include "mhw_render_itf.h"
+#include "mhw_render_cmdpar.h"
 
 class XRenderHal_Platform_Interface;
 
@@ -1129,6 +1131,7 @@ typedef struct _RENDERHAL_SETMARKER_SETTINGS
 } RENDERHAL_SETMARKER_SETTINGS;
 
 typedef MhwMiInterface *PMHW_MI_INTERFACE;
+
 //!
 // \brief   Hardware dependent render engine interface
 //!
@@ -1734,7 +1737,7 @@ typedef struct _RENDERHAL_INTERFACE
     //-----------------------------
     //Platform related interface
     XRenderHal_Platform_Interface           *pRenderHalPltInterface;
-
+    std::shared_ptr<mhw::render::Itf>        m_renderItf = nullptr;
 } RENDERHAL_INTERFACE;
 
 //!

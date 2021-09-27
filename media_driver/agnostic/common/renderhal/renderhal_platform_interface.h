@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -382,6 +382,92 @@ public:
     //! \return   true or false
     virtual bool IsComputeContextInUse(
         PRENDERHAL_INTERFACE    pRenderHal) = 0;
+
+    //! \brief    Add Pipeline SelectCmd
+    //! \details  Add Pipeline SelectCmd
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS AddPipelineSelectCmd(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer,
+        bool                        gpGpuPipe) = 0;
+
+    //! \brief    Send StateBase Address
+    //! \details  Send StateBase Address
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SendStateBaseAddress(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer) = 0;
+
+    //! \brief    Add Sip State Cmd
+    //! \details  Add Sip State Cmd
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS AddSipStateCmd(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer) = 0;
+
+    //! \brief    Add Cfe State Cmd
+    //! \details  Add Cfe State Cmd
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS AddCfeStateCmd(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer,
+        PMHW_VFE_PARAMS             params) = 0;
+
+    //! \brief    Send ChromaKey
+    //! \details  Send ChromaKey
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SendChromaKey(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer) = 0;
+
+    //! \brief    Send Palette
+    //! \details  Send Palette
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SendPalette(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer) = 0;
+
+    //! \brief    Set L3Cache
+    //! \details  Set L3Cache
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to RenderHal Interface Structure
+    //! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+    //!           [in] Pointer to Command Buffer
+    //! \return   MOS_STATUS
+    virtual MOS_STATUS SetL3Cache(
+        PRENDERHAL_INTERFACE        pRenderHal,
+        PMOS_COMMAND_BUFFER         pCmdBuffer) = 0;
+
+    virtual PMHW_MI_MMIOREGISTERS GetMmioRegisters(
+        PRENDERHAL_INTERFACE        pRenderHal) = 0;
+
+    virtual MOS_STATUS EnablePreemption(
+        PRENDERHAL_INTERFACE            pRenderHal,
+        PMOS_COMMAND_BUFFER             pCmdBuffer) = 0;
 
     //! \brief    Send Compute Walker
     //! \details  Send Compute Walker
