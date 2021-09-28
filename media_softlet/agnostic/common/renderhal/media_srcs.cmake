@@ -19,7 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_next.cpp
 )
 
 set(TMP_HEADERS

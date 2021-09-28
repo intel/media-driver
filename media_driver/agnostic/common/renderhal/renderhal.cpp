@@ -32,8 +32,6 @@
 #include "media_interfaces_renderhal.h"
 #include "media_interfaces_mhw.h"
 #include "hal_oca_interface.h"
-#include "vphal_render_common.h"
-#include "mhw_render_impl.h"
 
 #define OutputSurfaceWidthRatio 1
 extern const SURFACE_STATE_TOKEN_COMMON g_cInit_SURFACE_STATE_TOKEN_COMMON =
@@ -5348,7 +5346,7 @@ MOS_STATUS RenderHal_SendMediaStates(
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface);
     MHW_RENDERHAL_ASSERT(pRenderHal->pStateHeap->bGshLocked);
-    MHW_RENDERHAL_CHK_NULL(pRenderHal->pRenderHalPltInterface->GetMmioRegisters(pRenderHal));
+    MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwRenderInterface->GetMmioRegisters());
 
     //---------------------------------------
     pOsInterface            = pRenderHal->pOsInterface;
@@ -5356,7 +5354,7 @@ MOS_STATUS RenderHal_SendMediaStates(
     pMhwMiInterface         = pRenderHal->pMhwMiInterface;
     pStateHeap              = pRenderHal->pStateHeap;
     pOsContext              = pOsInterface->pOsContext;
-    pMmioRegisters          = pRenderHal->pRenderHalPltInterface->GetMmioRegisters(pRenderHal);
+    pMmioRegisters          = pMhwRender->GetMmioRegisters();
 
     // This need not be secure, since PPGTT will be used here. But moving this after
     // L3 cache configuration will delay UMD from fetching another media state.
@@ -5368,22 +5366,23 @@ MOS_STATUS RenderHal_SendMediaStates(
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnEnableL3Caching(pRenderHal, &pRenderHal->L3CacheSettings));
 
     // Send L3 Cache Configuration
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SetL3Cache(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pMhwRender->SetL3Cache(pCmdBuffer));
 
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->EnablePreemption(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pMhwRender->EnablePreemption(pCmdBuffer));
 
     // Send Debug Control, LRI commands used here & hence must be launched from a secure bb
     MHW_RENDERHAL_CHK_STATUS(RenderHal_AddDebugControl(pRenderHal, pCmdBuffer));
 
     // Send Pipeline Select command
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddPipelineSelectCmd(pRenderHal, pCmdBuffer, (pGpGpuWalkerParams) ? true : false));
+    MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddPipelineSelectCmd(pCmdBuffer,
+                                                                 (pGpGpuWalkerParams) ? true: false));
 
     // The binding table for surface states is at end of command buffer. No need to add it to indirect state heap.
     HalOcaInterface::OnIndirectState(*pCmdBuffer, *pOsContext, pRenderHal->StateBaseAddressParams.presInstructionBuffer,
         pStateHeap->CurIDEntryParams.dwKernelOffset, false, pStateHeap->iKernelUsedForDump);
 
     // Send State Base Address command
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendStateBaseAddress(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendStateBaseAddress(pRenderHal, pCmdBuffer));
 
     if (pRenderHal->bComputeContextInUse)
     {
@@ -5396,7 +5395,8 @@ MOS_STATUS RenderHal_SendMediaStates(
     // Send SIP State if ASM debug enabled
     if (pRenderHal->bIsaAsmDebugEnable)
     {
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddSipStateCmd(pRenderHal, pCmdBuffer));
+        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddSipStateCmd(pCmdBuffer,
+                                                                &pRenderHal->SipStateParams));
     }
 
     pVfeStateParams = pRenderHal->pRenderHalPltInterface->GetVfeStateParameters();
@@ -5408,7 +5408,7 @@ MOS_STATUS RenderHal_SendMediaStates(
     else
     {
         // set CFE State
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddCfeStateCmd(pRenderHal, pCmdBuffer, pVfeStateParams));
+        MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddCfeStateCmd(pCmdBuffer, pVfeStateParams));
     }
 
     // Send CURBE Load
@@ -5424,10 +5424,10 @@ MOS_STATUS RenderHal_SendMediaStates(
     }
 
     // Send Chroma Keys
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendChromaKey(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendChromaKey(pRenderHal, pCmdBuffer));
 
     // Send Palettes in use
-    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendPalette(pRenderHal, pCmdBuffer));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendPalette(pRenderHal, pCmdBuffer));
 
     HalOcaInterface::OnDispatch(*pCmdBuffer, *pOsContext, *pRenderHal->pMhwMiInterface, *pMmioRegisters);
 
@@ -5514,18 +5514,18 @@ finish:
 //!
 //! \brief    Setup Buffer Surface State
 //! \details  Setup Buffer Surface States
-//!           For buffer surfaces, the number of entries in the buffer
-//!           ranges from 1 to 2^27.   After subtracting one from the number
-//!           of entries, software must place the fields of the resulting
-//!           27-bit value into the Height, Width, and Depth fields as
+//!           For buffer surfaces, the number of entries in the buffer 
+//!           ranges from 1 to 2^27.   After subtracting one from the number 
+//!           of entries, software must place the fields of the resulting 
+//!           27-bit value into the Height, Width, and Depth fields as 
 //!           indicated, right-justified in each field.
 //!           Unused upper bits must be set to zero.
 //!
-//!           Width:  contains bits [6:0] of the number of entries in the
+//!           Width:  contains bits [6:0] of the number of entries in the 
 //!                   buffer 1 [0,127]  --> 7 Bits
-//!           Height: contains bits [20:7] of the number of entries in the
+//!           Height: contains bits [20:7] of the number of entries in the 
 //!                   buffer 1 [0,16383] --> 14 Bits
-//!           Depth:  contains bits [26:21] of the number of entries in the
+//!           Depth:  contains bits [26:21] of the number of entries in the 
 //!                   buffer 1 [0,63]  --> 6 Bits
 //! \param    PRENDERHAL_INTERFACE pRenderHal
 //!           [in]  Pointer to RenderHal Interface
@@ -6879,8 +6879,6 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pCpInterface = mhwInterfaces->m_cpInterface;
     pRenderHal->pMhwMiInterface = mhwInterfaces->m_miInterface;
     pRenderHal->pMhwRenderInterface = mhwInterfaces->m_renderInterface;
-    pRenderHal->m_renderItf = std::static_pointer_cast<mhw::render::Itf>(pRenderHal->pMhwRenderInterface->GetNewRenderInterface());
-
     MOS_Delete(mhwInterfaces);
 
     // Set Cp Interface

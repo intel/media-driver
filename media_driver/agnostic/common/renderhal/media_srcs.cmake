@@ -22,7 +22,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_common.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_legacy.cpp
 )
 
 set(TMP_HEADERS_
