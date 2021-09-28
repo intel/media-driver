@@ -37,7 +37,7 @@ namespace decode
         // tile descriptors
         if (m_tileDesc)
         {
-            delete m_tileDesc;
+            free(m_tileDesc);
             m_tileDesc = nullptr;
         }
     }
@@ -85,7 +85,7 @@ namespace decode
         if (nullptr != m_tileDesc &&
             (m_prevFrmTileNum < tileNumLimit))
         {
-            delete m_tileDesc;
+            free(m_tileDesc);
             m_tileDesc = nullptr;
         }
         if (nullptr == m_tileDesc)
