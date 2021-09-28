@@ -6314,6 +6314,16 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
         m_osInterface->pOsContext);
     m_CaptureModeEnable = userFeatureData.i32Data ? true : false;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_HEVC_VDENC_TCBRC_ARB_DISABLE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_brcAdaptiveRegionBoostSupported = userFeatureData.i32Data ? false : m_brcAdaptiveRegionBoostSupported;
+#endif
+
     // common initilization
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencHevcState::Initialize(settings));
 
