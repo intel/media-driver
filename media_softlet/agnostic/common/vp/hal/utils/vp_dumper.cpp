@@ -1003,7 +1003,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         psPathPrefix,
         iCounter,
         pSurface->dwWidth,
-        pSurface->dwHeight,
+        planes[0].dwHeight,
         pSurface->dwPitch,
         VpDumperTool::GetFormatStr(pSurface->Format));
 
