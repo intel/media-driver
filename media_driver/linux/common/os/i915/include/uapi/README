@@ -11,26 +11,18 @@ repository, at version the driver require:
 
 $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
-The last update was done at the following kernel commit :
+The last update was done at the following kernel commit:
 
-commit 16065fcdd19ddb9e093192914ac863884f308766
-Author: Gerd Hoffmann <kraxel@redhat.com>
-Date:   Fri Feb 8 15:04:09 2019 +0100
+commit 1e3944578b749449bd7fa6bf0bae4c3d3f5f1733
+Merge: f602a96e0252 2485e2753ec8
+Author: Dave Airlie <airlied@redhat.com>
+Date:   Tue Sep 28 17:08:21 2021 +1000
 
-    drm/virtio: do NOT reuse resource ids
+    Merge tag 'amd-drm-next-5.16-2021-09-27' of https://gitlab.freedesktop.org/agd5f/linux into drm-next
 
-    Bisected guest kernel changes crashing qemu.  Landed at
-    "6c1cd97bda drm/virtio: fix resource id handling".  Looked again, and
-    noticed we where not only leaking *some* ids, but *all* ids.  The old
-    code never ever called virtio_gpu_resource_id_put().
+    <...>
 
-    So, commit 6c1cd97bda effectively makes the linux kernel starting
-    re-using IDs after releasing them, and apparently virglrenderer can't
-    deal with that.  Oops.
-
-    This patch puts a temporary stopgap into place for the 5.0 release.
-
-    Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
-    Reviewed-by: Dave Airlie <airlied@redhat.com>
+    From: Alex Deucher <alexander.deucher@amd.com>
+    Link: https://patchwork.freedesktop.org/patch/msgid/20210927212653.4575-1-alexander.deucher@amd.com
     Signed-off-by: Dave Airlie <airlied@redhat.com>
-    Link: https://patchwork.freedesktop.org/patch/msgid/20190208140409.15280-1-kraxel@redhat.com
+
