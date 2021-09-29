@@ -165,6 +165,15 @@ MOS_STATUS Av1Pipeline::CreateFeatureManager()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Av1Pipeline::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
+{
+    DECODE_FUNC_CALL();
+
+    DECODE_CHK_STATUS(DecodePipeline::CreateSubPackets(subPacketManager, codecSettings));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 Av1Pipeline::Av1DecodeMode Av1Pipeline::GetDecodeMode()
 {
     return m_decodeMode;

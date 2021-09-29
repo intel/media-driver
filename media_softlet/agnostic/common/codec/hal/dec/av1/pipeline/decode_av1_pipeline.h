@@ -111,6 +111,15 @@ protected:
     //!
     virtual MOS_STATUS CreateFeatureManager() override;
 
+    //!
+    //! \brief  Create sub packets
+    //! \param  [in] codecSettings
+    //!         Point to codechal settings
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings) override;
+
 #if USE_CODECHAL_DEBUG_TOOL
         //! \brief    Dump the parameters
         //!
