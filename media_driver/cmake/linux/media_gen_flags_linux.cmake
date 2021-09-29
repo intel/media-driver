@@ -67,7 +67,7 @@ cmake_dependent_option(GEN12_TGLLP
 
 cmake_dependent_option(GEN12_DG1
     "Enabled DG1 support (Gen12)" ON
-    "GEN12;ENABLE_PRODUCTION_KMD" OFF)
+    "GEN12" OFF)
 
 cmake_dependent_option(GEN12_RKL
     "Enabled RKL support (Gen12)" ON
