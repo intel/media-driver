@@ -82,9 +82,10 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
         return;
     }
     ocaBufHandle = GetOcaBufferHandle(cmdBuffer, mosContext);
-    if (MOS_OCA_INVALID_BUFFER_HANDLE == ocaBufHandle)
+    if (ocaBufHandle != MOS_OCA_INVALID_BUFFER_HANDLE)
     {
-        OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
+        // will come here when On1stLevelBBStart being called twice without On1stLevelBBEnd being called.
+        OnOcaError(&mosContext, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
         return;
     }
     else
