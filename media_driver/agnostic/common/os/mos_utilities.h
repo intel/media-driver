@@ -206,44 +206,44 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
 #endif
 
 #if MOS_MESSAGES_ENABLED
-template<class _Ty> inline
-void MOS_DeleteUtil(
-    const char *functionName,
-    const char *filename,
-    int32_t     line,
-    _Ty&        ptr)
+    #define MOS_DeleteUtil(functionName, filename, line, ptr) \
+        if (ptr != nullptr) \
+            { \
+                MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+                MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+                delete(ptr); \
+                ptr = nullptr; \
+            }
 #else
-template<class _Ty> inline
-void MOS_DeleteUtil(_Ty& ptr)
+    #define MOS_DeleteUtil(ptr) \
+        if (ptr != nullptr) \
+            { \
+                MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+                MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+                delete(ptr); \
+                ptr = nullptr; \
+            }
 #endif
-{
-#if MOS_MESSAGES_ENABLED
-    MosUtilities::MosDeleteUtil<_Ty>(functionName, filename, line, ptr);
-#else
-    MosUtilities::MosDeleteUtil<_Ty>(ptr);
-#endif
-    return;
-}
 
 #if MOS_MESSAGES_ENABLED
-template<class _Ty> inline
-void MOS_DeleteArrayUtil(
-    const char *functionName,
-    const char *filename,
-    int32_t     line,
-    _Ty&        ptr)
+    #define MOS_DeleteArrayUtil(functionName, filename, line, ptr) \
+        if (ptr != nullptr) \
+        { \
+            MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+            MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+            delete[](ptr); \
+            ptr = nullptr; \
+        }
 #else
-template <class _Ty> inline
-void MOS_DeleteArrayUtil(_Ty& ptr)
+    #define MOS_DeleteArrayUtil(ptr) \
+        if (ptr != nullptr) \
+        { \
+            MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter); \
+            MOS_MEMNINJA_FREE_MESSAGE(ptr, functionName, filename, line); \
+            delete[](ptr); \
+            ptr = nullptr; \
+        }
 #endif
-{
-#if MOS_MESSAGES_ENABLED
-    MosUtilities::MosDeleteArrayUtil<_Ty>(functionName, filename, line, ptr);
-#else
-    MosUtilities::MosDeleteArrayUtil<_Ty>(ptr);
-#endif
-    return;
-}
 
 #if MOS_MESSAGES_ENABLED
 #define MOS_DeleteArray(ptr) MOS_DeleteArrayUtil(__FUNCTION__, __FILE__, __LINE__, ptr)
