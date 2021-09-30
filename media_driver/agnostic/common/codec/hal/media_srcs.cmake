@@ -20,7 +20,6 @@
 
 # common
 set(TMP_1_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/codechal.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_hw.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_utilities.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc.cpp

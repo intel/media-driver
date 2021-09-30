@@ -20,9 +20,11 @@
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_setting.h
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_common.h
 )
 
 set(TMP_1_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_common.cpp
 )
 
 if(NOT "${Media_Reserved}" STREQUAL "yes")

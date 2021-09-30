@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,20 +20,20 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     codechal.cpp
+//! \file     codechal_common.cpp
 //! \brief    Impelements the public interface for CodecHal.
 //! \details
 //!
 
-#include "codechal.h"
+#include "codechal_common.h"
 #include "codechal_hw.h"
 #include "codechal_debug.h"
 #include "mos_solo_generic.h"
 #include "codechal_setting.h"
 
 Codechal::Codechal(
-    CodechalHwInterface*    hwInterface,
-    CodechalDebugInterface* debugInterface)
+    CodechalHwInterface    *hwInterface,
+    CodechalDebugInterface *debugInterface)
 {
     CODECHAL_PUBLIC_FUNCTION_ENTER;
 
@@ -97,7 +97,7 @@ Codechal::~Codechal()
     MOS_TraceEvent(EVENT_CODECHAL_DESTROY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
 }
 
-MOS_STATUS Codechal::Allocate(CodechalSetting * codecHalSettings)
+MOS_STATUS Codechal::Allocate(CodechalSetting *codecHalSettings)
 {
     CODECHAL_PUBLIC_FUNCTION_ENTER;
 
