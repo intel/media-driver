@@ -257,6 +257,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
                 //non lockable resource enabled, we can't lock source surface
                 eStatus = MOS_STATUS_NULL_POINTER;
                 VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("Failed to lock non-lockable input resource, buffer copy failed, eStatus:%d.\n", eStatus);
+                MT_ERR1(MT_ERR_LOCK_SURFACE, MT_SURF_IS_INPUT, 1);
                 break;
             }
 
@@ -267,6 +268,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
                 eStatus = MOS_STATUS_NULL_POINTER;
                 m_osInterface->pfnUnlockResource(m_osInterface, &sourceSurface.OsResource);
                 VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("Failed to lock non-lockable output resource, buffer copy failed, eStatus:%d.\n", eStatus);
+                MT_ERR1(MT_ERR_LOCK_SURFACE, MT_SURF_IS_OUTPUT, 1);
                 break;
             }
             // This resource is a series of bytes. Is not 2 dimensional.
@@ -279,6 +281,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("Failed to copy linear buffer from source to target, eStatus:%d.\n", eStatus);
+                MT_ERR(MT_MEDIA_COPY_CPU);
                 break;
             }
         } while (false);
@@ -294,6 +297,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         VPHAL_MEMORY_DECOMP_ASSERTMESSAGE("VEBOX does not support non-64align pitch linear surface, eStatus:%d.\n", eStatus);
+        MT_ERR2(MT_MEDIA_COPY_VE_LMITATION, MT_SURF_PITCH, sourceSurface.dwPitch, MT_SURF_PITCH, targetSurface.dwPitch);
         MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
         return eStatus;
     }
@@ -480,6 +484,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryTileConvert(
         sourceSurface.TileType == MOS_TILE_LINEAR)
     {
         VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupport linear to linear convert, return unsupport feature");
+        MT_ERR2(MT_MEDIA_COPY_VE_LMITATION, MT_SURF_TILE_TYPE, MOS_TILE_LINEAR, MT_SURF_TILE_TYPE, MOS_TILE_LINEAR);
         return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
@@ -489,6 +494,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryTileConvert(
         if (!IsFormatSupported(&sourceSurface))
         {
             VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupport processing format, return unsupport feature");
+            MT_ERR2(MT_MEDIA_COPY_VE_LMITATION, MT_SURF_MOS_FORMAT, sourceSurface.Format, MT_SURF_IS_INPUT, 1);
             return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
 
@@ -500,6 +506,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryTileConvert(
         if (!IsFormatSupported(&targetSurface))
         {
             VPHAL_MEMORY_DECOMP_NORMALMESSAGE("unsupport processing format, return unsupport feature");
+            MT_ERR2(MT_MEDIA_COPY_VE_LMITATION, MT_SURF_MOS_FORMAT, targetSurface.Format, MT_SURF_IS_OUTPUT, 1);
             return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
         }
 

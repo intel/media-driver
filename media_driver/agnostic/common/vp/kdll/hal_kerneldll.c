@@ -1525,6 +1525,7 @@ void KernelDll_GetCSCMatrix(
         else
         {
             VPHAL_RENDER_ASSERTMESSAGE("Not supported color space conversion(from %d to %d)", src, dst);
+            MT_ERR2(MT_VP_KERNEL_CSC, MT_VP_COLORSPACE, src, MT_VP_COLORSPACE, dst);
         }
     }
 
@@ -2526,6 +2527,7 @@ bool KernelDll_UpdateState(
                 else
                 {
                     VPHAL_RENDER_ASSERTMESSAGE("reached maximum number of component kernels.");
+                    MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                     return false;
                 }
                 break;
@@ -2584,6 +2586,7 @@ bool KernelDll_UpdateState(
                     if (pData == nullptr || iSize == 0)
                     {
                         VPHAL_RENDER_ASSERTMESSAGE("invalid patch.");
+                        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                         return false;
                     }
 
@@ -2597,6 +2600,7 @@ bool KernelDll_UpdateState(
                         if (pSearchState->PatchCount >= DL_MAX_PATCHES)
                         {
                             VPHAL_RENDER_ASSERTMESSAGE("reached maximum number of patches.");
+                            MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                             return false;
                         }
 
@@ -2618,6 +2622,7 @@ bool KernelDll_UpdateState(
                     if (pPatch->iPatchDataSize + iSize > DL_MAX_PATCH_DATA_SIZE)
                     {
                         VPHAL_RENDER_ASSERTMESSAGE("exceeded maximum patch size.");
+                        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                         return false;
                     }
 
@@ -2654,6 +2659,7 @@ bool KernelDll_UpdateState(
                     if (nPatches + pPatch->nPatches > DL_MAX_PATCH_BLOCKS)
                     {
                         VPHAL_RENDER_ASSERTMESSAGE("exceeded number of patch blocks.");
+                        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                         return false;
                     }
 
@@ -2896,6 +2902,7 @@ bool KernelDll_UpdateState(
             default:
                 // Failed to find a matching rule -> kernel search will fail
                 VPHAL_RENDER_ASSERTMESSAGE("Invalid rule %d @ layer %d, state %d.", pRuleEntry->id, pSearchState->layer_number, pSearchState->state);
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                 return false;
         }
     }
@@ -2983,6 +2990,7 @@ bool KernelDll_SortRuleTable(Kdll_State *pState)
                 if (pRule->id != RID_IsParserState)
                 {
                     VPHAL_RENDER_ASSERTMESSAGE("Rule does not start with State.");
+                    MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                     return false;
                 }
 
@@ -2991,6 +2999,7 @@ bool KernelDll_SortRuleTable(Kdll_State *pState)
                 if (state <  Parser_Begin)
                 {
                     VPHAL_RENDER_ASSERTMESSAGE("Invalid State %d.", state);
+                    MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                     return false;
                 }
                 else if (state >= Parser_Custom)
@@ -3021,6 +3030,7 @@ bool KernelDll_SortRuleTable(Kdll_State *pState)
     if (!pState->pSortedRules)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Failed to allocate rule table.");
+        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
         return false;
     }
 
@@ -3061,6 +3071,7 @@ bool KernelDll_SortRuleTable(Kdll_State *pState)
             if (pRule->id != RID_Op_NewEntry)
             {
                 VPHAL_RENDER_ASSERTMESSAGE("New rule entry expected.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                 return false;
             }
 
@@ -3137,6 +3148,7 @@ bool KernelDll_SortRuleTable(Kdll_State *pState)
             if (pRuleSet->iSetCount < 1)
             {
                 VPHAL_RENDER_ASSERTMESSAGE("Ruleset must have at least one set rule.");
+                MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
                 return false;
             }
         }
@@ -3207,6 +3219,7 @@ Kdll_State *KernelDll_AllocateStates(
     if (!pState)
     {
         VPHAL_RENDER_ASSERTMESSAGE("Failed to allocate kernel dll states.");
+        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
         goto cleanup;
     }
     pState->iSize        = i;
@@ -3224,6 +3237,7 @@ Kdll_State *KernelDll_AllocateStates(
     if (!KernelDll_SetupFunctionPointers(pState, ModifyFunctionPointers))
     {
         VPHAL_RENDER_ASSERTMESSAGE("Failed to setup function pointers.");
+        MT_ERR1(MT_VP_KERNEL_RULE, MT_CODE_LINE, __LINE__);
         goto cleanup;
     }
 

@@ -369,11 +369,32 @@ MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx
         MOS_TraceEvent(EVENT_MEDIA_LOG, 3, head, sizeof(head), param, sizeof(param)); \
     }
 
+#define MT_LOG4(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4)                              \
+    {                                                                                 \
+        int32_t   head[] = {id, lvl};                                                 \
+        MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}};                  \
+        MOS_TraceEvent(EVENT_MEDIA_LOG, 4, head, sizeof(head), param, sizeof(param)); \
+    }
+
+#define MT_LOG5(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5)                                   \
+    {                                                                                              \
+        int32_t   head[] = {id, lvl};                                                              \
+        MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}};                     \
+        MOS_TraceEvent(EVENT_MEDIA_LOG, 5, head, sizeof(head), param, sizeof(param));              \
+    }
+
+#define MT_LOG6(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6)                           \
+    {                                                                                              \
+        int32_t   head[] = {id, lvl};                                                              \
+        MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}, {p6, v6}};           \
+        MOS_TraceEvent(EVENT_MEDIA_LOG, 6, head, sizeof(head), param, sizeof(param));              \
+    }
+
 #define MT_LOG7(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7)                   \
     {                                                                                              \
         int32_t   head[] = {id, lvl};                                                              \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}, {p6, v6}, {p7, v7}}; \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 4, head, sizeof(head), param, sizeof(param));              \
+        MOS_TraceEvent(EVENT_MEDIA_LOG, 7, head, sizeof(head), param, sizeof(param));              \
     }
 
 
@@ -416,6 +437,9 @@ MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx
 #define MT_LOG1(id, lvl, p1, v1)
 #define MT_LOG2(id, lvl, p1, v1, p2, v2)
 #define MT_LOG3(id, lvl, p1, v1, p2, v2, p3, v3)
+#define MT_LOG4(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4)
+#define MT_LOG5(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5)
+#define MT_LOG6(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6)
 #define MT_LOG7(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7)
 #define MT_ERR(id)
 #define MT_ERR1(id, p1, v1)
