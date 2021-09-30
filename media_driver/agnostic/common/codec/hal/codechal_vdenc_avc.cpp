@@ -6975,7 +6975,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
     if (m_nonNativeBrcRoiSupported)
     {
         // BRC ROI Buffer
-        allocParamsForBufferLinear.dwBytes = m_picWidthInMb * m_picHeightInMb;
+        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(m_picWidthInMb * m_picHeightInMb, MHW_CACHELINE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC BRC ROI Buffer";
 
         for (uint32_t i = 0; i < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM; i++)
