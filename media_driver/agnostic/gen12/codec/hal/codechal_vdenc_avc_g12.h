@@ -154,22 +154,6 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     //!
     MOS_STATUS  SetAndPopulateVEHintParams(
         PMOS_COMMAND_BUFFER  cmdBuffer);
-    //!
-    //! \brief    Prepare HW MetaData buffer
-    //! \details  Prepare HW MetaData buffer (with G12 specific)
-    //! \param    [in] presMetadataBuffer
-    //!               Pointer to allocated HW MetaData buffer
-    //!           [in] presSliceSizeStreamoutBuffer
-    //!               Pointer to m_pakSliceSizeStreamoutBuffer
-    //!           [in] cmdBuffer
-    //!               Pointer to primary cmd buffer
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS PrepareHWMetaData(
-        PMOS_RESOURCE       presMetadataBuffer,
-        PMOS_RESOURCE       presSliceSizeStreamoutBuffer,
-        PMOS_COMMAND_BUFFER cmdBuffer) override;
 
     //!
     //! \brief    Set VDENC StreamIn QP Surface state

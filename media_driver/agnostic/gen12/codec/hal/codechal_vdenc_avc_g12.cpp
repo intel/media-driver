@@ -1552,34 +1552,6 @@ void CodechalVdencAvcStateG12::CopyMBQPDataToStreamIn(CODECHAL_VDENC_STREAMIN_ST
     }
 }
 
-MOS_STATUS CodechalVdencAvcStateG12::PrepareHWMetaData(
-    PMOS_RESOURCE       presMetadataBuffer,
-    PMOS_RESOURCE       presSliceSizeStreamoutBuffer,
-    PMOS_COMMAND_BUFFER cmdBuffer)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    if (!presMetadataBuffer)
-    {
-        return eStatus;
-    }
-
-    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParamsAVC;
-    MOS_ZeroMemory(&miStoreRegMemParamsAVC, sizeof(miStoreRegMemParamsAVC));
-    miStoreRegMemParamsAVC.presStoreBuffer = presSliceSizeStreamoutBuffer;
-    miStoreRegMemParamsAVC.dwOffset        = 0;
-
-    CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
-    MmioRegistersMfx *mmioRegisters   = m_hwInterface->SelectVdboxAndGetMmioRegister(m_vdboxIndex, cmdBuffer);
-    miStoreRegMemParamsAVC.dwRegister = mmioRegisters->mfcBitstreamBytecountFrameRegOffset;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParamsAVC));
-
-    eStatus = CodechalVdencAvcState::PrepareHWMetaData(presMetadataBuffer, presSliceSizeStreamoutBuffer, cmdBuffer);
-
-    return eStatus;
-}
-
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS CodechalVdencAvcStateG12::PopulateBrcInitParam(
     void *cmd)
