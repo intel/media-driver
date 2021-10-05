@@ -718,8 +718,16 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxSurfaceCmd(
     mhw_vdbox_mfx_g12_X::MFX_SURFACE_STATE_CMD cmd;
     cmd.DW1.SurfaceId = params->ucSurfaceStateId;
 
-    cmd.DW2.Height = params->psSurface->dwHeight - 1;
-    cmd.DW2.Width = params->psSurface->dwWidth - 1;
+    if (params->ucSurfaceStateId == CODECHAL_MFX_SRC_SURFACE_ID)  // Take actual height/width from SPS in case of source surface
+    {
+        cmd.DW2.Height = params->dwActualHeight - 1;
+        cmd.DW2.Width  = params->dwActualWidth - 1;
+    }
+    else
+    {
+        cmd.DW2.Height = params->psSurface->dwHeight - 1;
+        cmd.DW2.Width  = params->psSurface->dwWidth - 1;
+    }
 
     cmd.DW3.TileWalk = mhw_vdbox_mfx_g12_X::MFX_SURFACE_STATE_CMD::TILE_WALK_YMAJOR;
     cmd.DW3.TiledSurface = 1;

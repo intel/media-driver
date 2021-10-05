@@ -6045,8 +6045,8 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
     surfaceParams.Mode                  = m_mode;
     surfaceParams.ucSurfaceStateId      = CODECHAL_MFX_SRC_SURFACE_ID;
     surfaceParams.psSurface             = m_rawSurfaceToPak;
-    surfaceParams.dwActualHeight        = surfaceParams.psSurface->dwHeight;
-    surfaceParams.dwActualWidth         = surfaceParams.psSurface->dwWidth;
+    surfaceParams.dwActualHeight        = m_avcSeqParam->FrameHeight;
+    surfaceParams.dwActualWidth         = m_avcSeqParam->FrameWidth;
     surfaceParams.bDisplayFormatSwizzle = m_avcPicParam->bDisplayFormatSwizzle;
     surfaceParams.bColorSpaceSelection  = (m_avcSeqParam->InputColorSpace == ECOLORSPACE_P709) ? 1 : 0;
     CODECHAL_DEBUG_TOOL(m_debugInterface->DumpSurfaceInfo(m_rawSurfaceToPak, "RawSurfaceToPak"));
