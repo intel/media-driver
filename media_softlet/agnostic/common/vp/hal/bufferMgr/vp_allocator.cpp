@@ -825,7 +825,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     VP_PUBLIC_CHK_NULL_RETURN(surface);
 
     MT_LOG7(MT_VP_HAL_REALLOC_SURF, MT_NORMAL, MT_VP_INTERNAL_SURF_TYPE, surfaceName ? *((int64_t*)surfaceName) : 0,
-        MT_SURF_WIDTH, width, MT_SURF_HEIGHT, height, MT_SURF_MOS_FORMAT, format, MT_SURF_TILE_TYPE, surface->osSurface->TileType,
+        MT_SURF_WIDTH, width, MT_SURF_HEIGHT, height, MT_SURF_MOS_FORMAT, format, MT_SURF_TILE_TYPE, surface->osSurface->TileModeGMM,
         MT_SURF_COMP_ABLE, surface->osSurface->bCompressible, MT_SURF_COMP_MODE, surface->osSurface->CompressionMode);
 
     allocated = true;

@@ -532,7 +532,7 @@ MOS_STATUS VpHal_ReAllocateSurface(
     *pbAllocated     = true;
 
     MT_LOG7(MT_VP_HAL_REALLOC_SURF, MT_NORMAL, MT_VP_INTERNAL_SURF_TYPE, pSurfaceName ? *((int64_t*)pSurfaceName) : 0,
-        MT_SURF_WIDTH, dwWidth, MT_SURF_HEIGHT, dwHeight, MT_SURF_MOS_FORMAT, Format, MT_SURF_TILE_TYPE, pSurface->TileType,
+        MT_SURF_WIDTH, dwWidth, MT_SURF_HEIGHT, dwHeight, MT_SURF_MOS_FORMAT, Format, MT_SURF_TILE_TYPE, pSurface->TileModeGMM,
         MT_SURF_COMP_ABLE, pSurface->bCompressible, MT_SURF_COMP_MODE, pSurface->CompressionMode);
 
 finish:
