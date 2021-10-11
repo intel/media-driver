@@ -32,8 +32,7 @@
 #include "hwinfo_linux.h"
 #include "linux_system_info.h"
 #include "media_libva_caps_factory.h"
-
-template<> typename MediaCapsTable<CapsData>::OsCapsTable MediaCapsTable<CapsData>::m_pltCaps = {};
+#include "caps_register_specific.h"
 
 MediaCapsTableSpecific::MediaCapsTableSpecific(HwDeviceInfo &deviceInfo)
 {

@@ -33,6 +33,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_capstable_specific.h
     ${CMAKE_CURRENT_LIST_DIR}/capstable_data_linux_definition.h
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/capstable_data_hevc_vdenc_m12_0_r0_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/capstable_data_m12_0_r0_specific.h.h
+    ${CMAKE_CURRENT_LIST_DIR}/capstable_data_image_format_definition.h
+    ${CMAKE_CURRENT_LIST_DIR}/caps_register_specific.h
 )
 
 set(SOURCES_
