@@ -718,7 +718,8 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxSurfaceCmd(
     mhw_vdbox_mfx_g12_X::MFX_SURFACE_STATE_CMD cmd;
     cmd.DW1.SurfaceId = params->ucSurfaceStateId;
 
-    if (params->ucSurfaceStateId == CODECHAL_MFX_SRC_SURFACE_ID)  // Take actual height/width from SPS in case of source surface
+    // Take actual height/width from SPS in case of AVC encode and source surface
+    if (params->Mode == CODECHAL_ENCODE_MODE_AVC && params->ucSurfaceStateId == CODECHAL_MFX_SRC_SURFACE_ID)
     {
         cmd.DW2.Height = params->dwActualHeight - 1;
         cmd.DW2.Width  = params->dwActualWidth - 1;
