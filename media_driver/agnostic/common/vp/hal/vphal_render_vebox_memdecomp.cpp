@@ -934,7 +934,7 @@ bool MediaVeboxDecompState::IsFormatSupported(PMOS_SURFACE surface)
         surface->dwHeight = surface->dwSize / surface->dwPitch;
     }
 
-    if (IS_RGB64_FLOAT_FORMAT(surface->Format))
+    if (IS_RGB64_FLOAT_FORMAT(surface->Format) || IS_RGB64_FORMAT(surface->Format))
     {
         surface->Format = Format_Y416;
     }
