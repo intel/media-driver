@@ -208,16 +208,20 @@ GpuContextNext *GpuContextMgrNext::GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHa
         return nullptr;
     }
 
+    GpuContextNext *gpuContext = nullptr;
+    MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
     if (!m_gpuContextArray.empty() && gpuContextHandle < m_gpuContextArray.size())
     {
-        return m_gpuContextArray.at(gpuContextHandle);
+        gpuContext = m_gpuContextArray.at(gpuContextHandle);
     }
     else
     {
         MOS_OS_ASSERTMESSAGE("GPU context array is empty or got invalid index, something must be wrong!");
         MT_ERR2(MT_MOS_GPUCXT_GET, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_HANDLE, gpuContextHandle);
-        return nullptr;
+        gpuContext = nullptr;
     }
+    MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
+    return gpuContext;
 }
 
 void GpuContextMgrNext::DestroyGpuContext(GpuContextNext *gpuContext)
