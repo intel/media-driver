@@ -59,8 +59,7 @@ MOS_STATUS CodechalVdencVp9StateG12::UserFeatureKeyReport()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencVp9State::UserFeatureKeyReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_VDBOX_NUM_ID, m_numPipe, m_osInterface->pOsContext);
-    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_VE_ID, m_useVirtualEngine, m_osInterface->pOsContext);
+    CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_ENCODE_USED_VDBOX_NUM_ID, m_numPipe, m_osInterface->pOsContext);
     CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_HW_STITCH, m_enableTileStitchByHW, m_osInterface->pOsContext);
     CodecHalEncodeWriteKey(__MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_SINGLE_PASS_DYS_ENABLE_ID, m_singlePassDys, m_osInterface->pOsContext);
 #endif
@@ -4667,11 +4666,11 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
     m_numPipe = m_numVdbox;
 
     m_scalableMode = (m_numPipe > 1);
-    m_useVirtualEngine = true;
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRowstoreCachingOffsets());
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_STATUS eStatusKey = MOS_UserFeature_ReadValue_ID(
         nullptr,
@@ -4680,6 +4679,7 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
         m_osInterface->pOsContext);
     m_enableTileStitchByHW = userFeatureData.i32Data ? true : false;
 
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     userFeatureData.i32Data = 1;
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     MOS_UserFeature_ReadValue_ID(

@@ -35,12 +35,8 @@
 #include "codechal_encode_singlepipe_virtualengine.h"
 #include "codechal_encode_scalability.h"
 
-#define __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_VDBOX_NUM_ID      5155
-#define __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_VE_ID      5156
-#define __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_HW_STITCH  5157
-
-#define  HUC_CMD_LIST_MODE 1
-#define  HUC_BATCH_BUFFER_END 0x05000000
+#define HUC_CMD_LIST_MODE                           1
+#define HUC_BATCH_BUFFER_END                        0x05000000
 #define VDBOX_HUC_PAK_INTEGRATION_KERNEL_DESCRIPTOR 15
 
 class CodechalVdencVp9StateG12 : public CodechalVdencVp9State
