@@ -3354,6 +3354,10 @@ VAStatus DdiMedia_MapBufferInternal (
                 if (nullptr != buf->pSurface && Media_Format_CPU != buf->format)
                 {
                     vaStatus = DdiMedia_MediaMemoryDecompress(mediaCtx, buf->pSurface);
+                    if (buf->pSurface->pDecCtx == nullptr)
+                    {
+                       buf->pSurface->pDecCtx = decCtx;
+                    }
                 }
 
                 if (VA_STATUS_SUCCESS == vaStatus)

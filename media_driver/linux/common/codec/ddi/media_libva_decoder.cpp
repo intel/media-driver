@@ -528,6 +528,11 @@ VAStatus DdiDecode_CreateContext (
     decCtx->pMediaCtx                       = mediaCtx;
     decCtx->m_ddiDecode                     = ddiDecBase;
 
+    if (mode == CODECHAL_DECODE_MODE_VP9VLD)
+    {
+        decCtx->m_ddiDecode->SetVP9DecodeMode(true);
+    }
+
     mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
     mosCtx.m_gpuContextMgr       = mediaCtx->m_gpuContextMgr;
     mosCtx.m_cmdBufMgr           = mediaCtx->m_cmdBufMgr;
