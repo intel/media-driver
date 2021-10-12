@@ -31,17 +31,6 @@
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mhw_mmio_g12.h"
 
-typedef struct _MHW_MI_VD_CONTROL_STATE_PARAMS
-{
-    bool    vdencEnabled;
-    bool    avpEnabled;
-    bool    initialization;
-    bool    vdencInitialization;
-    bool    scalableModePipeLock;
-    bool    scalableModePipeUnlock;
-    bool    memoryImplicitFlush;
-}MHW_MI_VD_CONTROL_STATE_PARAMS, *PMHW_MI_VD_CONTROL_STATE_PARAMS;
-
 typedef struct _MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS : public _MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS
 {
     bool                        enableEndCurrentBatchBuffLevel;
@@ -71,56 +60,56 @@ struct MhwMiInterfaceG12 : public MhwMiInterfaceGeneric<mhw_mi_g12_X>
 
     MOS_STATUS AddMiConditionalBatchBufferEndCmd(
         PMOS_COMMAND_BUFFER                         cmdBuffer,
-        PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS params);
+        PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS params) override;
 
     MOS_STATUS AddMiSetPredicateCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        MHW_MI_SET_PREDICATE_ENABLE         enableFlag);
+        MHW_MI_SET_PREDICATE_ENABLE         enableFlag) override;
 
     MOS_STATUS AddMiBatchBufferStartCmd(
         PMOS_COMMAND_BUFFER             cmdBuffer,
-        PMHW_BATCH_BUFFER               batchBuffer);
+        PMHW_BATCH_BUFFER               batchBuffer) override;
 
     MOS_STATUS AddMiStoreRegisterMemCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_MI_STORE_REGISTER_MEM_PARAMS   params);
+        PMHW_MI_STORE_REGISTER_MEM_PARAMS   params) override;
 
     MOS_STATUS AddMiLoadRegisterMemCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_MI_STORE_REGISTER_MEM_PARAMS   params);
+        PMHW_MI_STORE_REGISTER_MEM_PARAMS   params) override;
 
     MOS_STATUS AddMiLoadRegisterImmCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_MI_LOAD_REGISTER_IMM_PARAMS    params);
+        PMHW_MI_LOAD_REGISTER_IMM_PARAMS    params) override;
 
     MOS_STATUS AddMiLoadRegisterRegCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_MI_LOAD_REGISTER_REG_PARAMS    params);
+        PMHW_MI_LOAD_REGISTER_REG_PARAMS    params) override;
 
     MOS_STATUS AddMiSemaphoreWaitCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_MI_SEMAPHORE_WAIT_PARAMS       params);
+        PMHW_MI_SEMAPHORE_WAIT_PARAMS       params) override;
 
     MOS_STATUS AddMiForceWakeupCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_MI_FORCE_WAKEUP_PARAMS         params);
+        PMHW_MI_FORCE_WAKEUP_PARAMS         params) override;
 
     MOS_STATUS AddPipeControl(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
         PMHW_BATCH_BUFFER                   batchBuffer,
-        PMHW_PIPE_CONTROL_PARAMS            params);
+        PMHW_PIPE_CONTROL_PARAMS            params) override;
 
     MOS_STATUS AddMediaStateFlush(
         PMOS_COMMAND_BUFFER          cmdBuffer,
         PMHW_BATCH_BUFFER            batchBuffer,
-        PMHW_MEDIA_STATE_FLUSH_PARAM params = nullptr);
+        PMHW_MEDIA_STATE_FLUSH_PARAM params = nullptr) override;
 
     MOS_STATUS SkipMiBatchBufferEndBb(
-        PMHW_BATCH_BUFFER batchBuffer);
+        PMHW_BATCH_BUFFER batchBuffer) override;
 
     MOS_STATUS AddMiFlushDwCmd(
         PMOS_COMMAND_BUFFER     cmdBuffer,
-        PMHW_MI_FLUSH_DW_PARAMS params);
+        PMHW_MI_FLUSH_DW_PARAMS params) override;
 
     //!
     //! \brief    Adds Mi Vd control state cmd in command buffer
@@ -135,23 +124,23 @@ struct MhwMiInterfaceG12 : public MhwMiInterfaceGeneric<mhw_mi_g12_X>
     //!
     MOS_STATUS AddMiVdControlStateCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_MI_VD_CONTROL_STATE_PARAMS     params);
+        PMHW_MI_VD_CONTROL_STATE_PARAMS     params) override;
 
     void InitMmioRegisters();
 
     MOS_STATUS SetWatchdogTimerThreshold(
         uint32_t                             frameWidth,
         uint32_t                             frameHeight,
-        bool                                 isEncoder = true);
+        bool                                 isEncoder = true) override;
 
     MOS_STATUS SetWatchdogTimerRegisterOffset(
-        MOS_GPU_CONTEXT                      gpuContext);
+        MOS_GPU_CONTEXT                      gpuContext) override;
 
     MOS_STATUS AddWatchdogTimerStartCmd(
-        PMOS_COMMAND_BUFFER                  cmdBuffer);
+        PMOS_COMMAND_BUFFER                  cmdBuffer) override;
 
     MOS_STATUS AddWatchdogTimerStopCmd(
-        PMOS_COMMAND_BUFFER                  cmdBuffer);
+        PMOS_COMMAND_BUFFER                  cmdBuffer) override;
 
 private:
     // MMIO Range 0x1C0000 - 0x200000 is used for Media VDBox or VEBox

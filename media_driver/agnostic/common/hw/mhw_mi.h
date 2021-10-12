@@ -308,6 +308,16 @@ typedef struct _MHW_MI_FORCE_WAKEUP_PARAMS
     uint32_t               Reserved31_26                   : 6; //!< Reserved Mask
 } MHW_MI_FORCE_WAKEUP_PARAMS, *PMHW_MI_FORCE_WAKEUP_PARAMS;
 
+typedef struct _MHW_MI_VD_CONTROL_STATE_PARAMS
+{
+    bool    vdencEnabled;
+    bool    avpEnabled;
+    bool    initialization;
+    bool    vdencInitialization;
+    bool    scalableModePipeLock;
+    bool    scalableModePipeUnlock;
+    bool    memoryImplicitFlush;
+} MHW_MI_VD_CONTROL_STATE_PARAMS, *PMHW_MI_VD_CONTROL_STATE_PARAMS;
 
 class MhwMiInterface
 {
@@ -706,6 +716,24 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddWatchdogTimerStopCmd(PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
+    //!
+    //! \brief    Adds Mi Vd control state cmd in command buffer
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Command buffer to which HW command is added
+    //! \param    [in] params
+    //!           Params structure used to populate the HW command
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddMiVdControlStateCmd(
+        PMOS_COMMAND_BUFFER                 cmdBuffer,
+        PMHW_MI_VD_CONTROL_STATE_PARAMS     params)
+    {
+        return MOS_STATUS_SUCCESS;
+    };
 
 protected:
     //!
