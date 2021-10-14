@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -104,6 +104,32 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1DecodeTile::ErrorDetectAndConceal()
+    {
+        DECODE_FUNC_CALL()
+        DECODE_CHK_NULL(m_tileDesc);
+
+        // Error Concealment for Tile size
+        // m_numTiles means the total number of tile, m_lastTileId means the last tile index
+        for (uint32_t i = 0; i < m_numTiles; i++)
+        {
+            if (m_tileDesc[i].m_size + m_tileDesc[i].m_offset > m_basicFeature->m_dataSize)
+            {
+                if (i == m_lastTileId)
+                {
+                    DECODE_ASSERTMESSAGE("The last tile size is oversize!");
+                    m_tileDesc[i].m_size = m_basicFeature->m_dataSize - m_tileDesc[i].m_offset;
+                }
+                else
+                {
+                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize! Skip Frame!");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+        }
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1DecodeTile::ParseTileInfo(const CodecAv1PicParams & picParams, CodecAv1TileParams *tileParams)
     {
         DECODE_FUNC_CALL();
@@ -168,6 +194,9 @@ namespace decode
         {
             m_newFrameStart = false;
         }
+
+        // Do error detection and concealment
+        DECODE_CHK_STATUS(ErrorDetectAndConceal());
 
         return MOS_STATUS_SUCCESS;
     }

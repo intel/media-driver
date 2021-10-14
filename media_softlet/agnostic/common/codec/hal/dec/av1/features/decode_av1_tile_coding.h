@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -115,6 +115,13 @@ namespace decode
         //!
         MOS_STATUS Update(CodecAv1PicParams & picParams,
                                CodecAv1TileParams *tileParams);
+
+        //!
+        //! \brief  Detect conformance conflict and do error concealment
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS ErrorDetectAndConceal();
 
         //!
         //! \brief    Calculate decode pass number
