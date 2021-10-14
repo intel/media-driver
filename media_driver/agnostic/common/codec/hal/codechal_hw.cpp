@@ -84,6 +84,34 @@ CodechalHwInterface::CodechalHwInterface(
     MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
 }
 
+#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+CodechalHwInterface::CodechalHwInterface(
+    PMOS_INTERFACE    osInterface,
+    CODECHAL_FUNCTION codecFunction,
+    MhwInterfacesNext *mhwInterfacesNext,
+    bool              disableScalability)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+#if MHW_HWCMDPARSER_ENABLED
+    mhw::HwcmdParser::InitInstance(osInterface);
+#endif
+
+    // Basic intialization
+    m_osInterface = osInterface;
+
+    m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
+
+    m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    m_waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+
+    CODECHAL_HW_ASSERT(m_skuTable);
+    CODECHAL_HW_ASSERT(m_waTable);
+
+    m_disableScalability = disableScalability;
+}
+#endif
+
 MOS_STATUS CodechalHwInterface::SetCacheabilitySettings(
     MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC])
 {
