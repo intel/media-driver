@@ -1641,6 +1641,27 @@ struct drm_i915_gem_context_param {
  * By default, new contexts allow persistence.
  */
 #define I915_CONTEXT_PARAM_PERSISTENCE	0xb
+
+/*
+ * I915_CONTEXT_PARAM_RINGSIZE:
+ *
+ * Sets the size of the CS ringbuffer to use for logical ring contexts. This
+ * applies a limit of how many batches can be queued to HW before the caller
+ * is blocked due to lack of space for more commands.
+ *
+ * Only reliably possible to be set prior to first use, i.e. during
+ * construction. At any later point, the current execution must be flushed as
+ * the ring can only be changed while the context is idle. Note, the ringsize
+ * can be specified as a constructor property, see
+ * I915_CONTEXT_CREATE_EXT_SETPARAM, but can also be set later if required.
+ *
+ * Only applies to the current set of engine and lost when those engines
+ * are replaced by a new mapping (see I915_CONTEXT_PARAM_ENGINES).
+ *
+ * Must be between 4 - 512 KiB, in intervals of page size [4 KiB].
+ * Default is 16 KiB.
+ */
+#define I915_CONTEXT_PARAM_RINGSIZE	0xc
 /* Must be kept compact -- no holes and well documented */
 
 	__u64 value;
@@ -1937,20 +1958,24 @@ struct drm_i915_gem_userptr {
 };
 
 enum drm_i915_oa_format {
-	I915_OA_FORMAT_A13 = 1,	    /* HSW only */
-	I915_OA_FORMAT_A29,	    /* HSW only */
-	I915_OA_FORMAT_A13_B8_C8,   /* HSW only */
-	I915_OA_FORMAT_B4_C8,	    /* HSW only */
-	I915_OA_FORMAT_A45_B8_C8,   /* HSW only */
-	I915_OA_FORMAT_B4_C8_A16,   /* HSW only */
-	I915_OA_FORMAT_C4_B8,	    /* HSW+ */
+	/* haswell */
+	I915_OA_FORMAT_A13 = 1,
+	I915_OA_FORMAT_A29,
+	I915_OA_FORMAT_A13_B8_C8,
+	I915_OA_FORMAT_B4_C8,
+	I915_OA_FORMAT_A45_B8_C8,
+	I915_OA_FORMAT_B4_C8_A16,
 
-	/* Gen8+ */
+	/* haswell+ */
+	I915_OA_FORMAT_C4_B8,
+
+	/* broadwell+ */
 	I915_OA_FORMAT_A12,
 	I915_OA_FORMAT_A12_B8_C8,
 	I915_OA_FORMAT_A32u40_A4u32_B8_C8,
 
-	I915_OA_FORMAT_MAX	    /* non-ABI */
+	/* non-ABI */
+	I915_OA_FORMAT_MAX
 };
 
 enum drm_i915_perf_property_id {
@@ -2008,6 +2033,30 @@ enum drm_i915_perf_property_id {
 	 */
 	DRM_I915_PERF_PROP_HOLD_PREEMPTION,
 
+	/**
+	 * Specifying this pins all contexts to the specified SSEU power
+	 * configuration for the duration of the recording.
+	 *
+	 * This parameter's value is a pointer to a struct
+	 * drm_i915_gem_context_param_sseu.
+	 *
+	 * This property is available in perf revision 4.
+	 */
+	DRM_I915_PERF_PROP_GLOBAL_SSEU,
+
+	/**
+	 * This optional parameter specifies the timer interval in nanoseconds
+	 * at which the i915 driver will check the OA buffer for available data.
+	 * Minimum allowed value is 100 microseconds. A default value is used by
+	 * the driver if this parameter is not specified. Note that larger timer
+	 * values will reduce cpu consumption during OA perf captures. However,
+	 * excessively large values would potentially result in OA buffer
+	 * overwrites as captures reach end of the OA buffer.
+	 *
+	 * This property is available in perf revision 5.
+	 */
+	DRM_I915_PERF_PROP_POLL_OA_PERIOD,
+
 	DRM_I915_PERF_PROP_MAX /* non-ABI */
 };
 
@@ -2062,6 +2111,39 @@ struct drm_i915_perf_open_param {
  * This ioctl is available in perf revision 2.
  */
 #define I915_PERF_IOCTL_CONFIG	_IO('i', 0x2)
+
+/**
+ * Returns OA buffer properties to be used with mmap.
+ *
+ * This ioctl is available in perf revision 8.
+ */
+#define I915_PERF_IOCTL_GET_OA_BUFFER_INFO _IOWR('i', 0x3, struct drm_i915_perf_oa_buffer_info)
+
+/**
+ * OA buffer size and offset.
+ *
+ * OA output buffer
+ *   type: 0
+ *   flags: mbz
+ *
+ *   After querying the info, pass (size,offset) to mmap(),
+ *
+ *   mmap(0, info.size, PROT_READ, MAP_PRIVATE, perf_fd, info.offset).
+ *
+ *   Note that only a private (not shared between processes, or across fork())
+ *   read-only mmapping is allowed.
+ *
+ *   Userspace must treat the incoming data as tainted, but it conforms to the OA
+ *   format as specified by user config. The buffer provides reports that have
+ *   OA counters - A, B and C.
+ */
+struct drm_i915_perf_oa_buffer_info {
+	__u32 type;   /* in */
+	__u32 flags;  /* in */
+	__u64 size;   /* out */
+	__u64 offset; /* out */
+	__u64 rsvd;   /* mbz */
+};
 
 /**
  * Common to all i915 perf records
@@ -2261,14 +2343,21 @@ struct drm_i915_engine_info {
 
 	/** Engine flags. */
 	__u64 flags;
+#define I915_ENGINE_INFO_HAS_LOGICAL_INSTANCE		(1 << 1)
 
 	/** Capabilities of this engine. */
 	__u64 capabilities;
 #define I915_VIDEO_CLASS_CAPABILITY_HEVC		(1 << 0)
 #define I915_VIDEO_AND_ENHANCE_CLASS_CAPABILITY_SFC	(1 << 1)
 
+	__u64 rsvd3;
+
+	/** Logical engine instance */
+	__u16 logical_instance;
+
 	/** Reserved fields. */
-	__u64 rsvd1[4];
+	__u16 rsvd1[3];
+	__u64 rsvd2[2];
 };
 
 /**
