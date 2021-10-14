@@ -150,6 +150,7 @@ struct mos_bufmgr_gem {
     unsigned int no_exec : 1;
     unsigned int has_vebox : 1;
     unsigned int has_ext_mmap : 1;
+    unsigned int has_fence_reg : 1;
     bool fenced_relocs;
 
     struct {
@@ -1330,14 +1331,16 @@ mos_bo_gem_create_from_name(struct mos_bufmgr *bufmgr,
     bo_gem->use_48b_address_range = bufmgr_gem->bufmgr.bo_use_48b_address_range ? true : false;
 
     memclear(get_tiling);
-    get_tiling.handle = bo_gem->gem_handle;
-    ret = drmIoctl(bufmgr_gem->fd,
+    if (bufmgr_gem->has_fence_reg) {
+        get_tiling.handle = bo_gem->gem_handle;
+        ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_GET_TILING,
                &get_tiling);
-    if (ret != 0) {
-        mos_gem_bo_unreference(&bo_gem->bo);
-        pthread_mutex_unlock(&bufmgr_gem->lock);
-        return nullptr;
+        if (ret != 0) {
+            mos_gem_bo_unreference(&bo_gem->bo);
+            pthread_mutex_unlock(&bufmgr_gem->lock);
+            return nullptr;
+        }
     }
     bo_gem->tiling_mode = get_tiling.tiling_mode;
     bo_gem->swizzle_mode = get_tiling.swizzle_mode;
@@ -2937,6 +2940,9 @@ mos_gem_bo_set_tiling_internal(struct mos_linux_bo *bo,
     struct drm_i915_gem_set_tiling set_tiling;
     int ret;
 
+    if (!bufmgr_gem->has_fence_reg)
+        return 0;
+
     if (bo_gem->global_name == 0 &&
         tiling_mode == bo_gem->tiling_mode &&
         stride == bo_gem->stride)
@@ -3105,14 +3111,16 @@ mos_bo_gem_create_from_prime(struct mos_bufmgr *bufmgr, int prime_fd, int size)
     pthread_mutex_unlock(&bufmgr_gem->lock);
 
     memclear(get_tiling);
-    get_tiling.handle = bo_gem->gem_handle;
-    ret = drmIoctl(bufmgr_gem->fd,
+    if(bufmgr_gem->has_fence_reg) {
+        get_tiling.handle = bo_gem->gem_handle;
+        ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_GET_TILING,
                &get_tiling);
-    if (ret != 0) {
-        MOS_DBG("create_from_prime: failed to get tiling: %s\n", strerror(errno));
-        mos_gem_bo_unreference(&bo_gem->bo);
-        return nullptr;
+        if (ret != 0) {
+            MOS_DBG("create_from_prime: failed to get tiling: %s\n", strerror(errno));
+            mos_gem_bo_unreference(&bo_gem->bo);
+            return nullptr;
+        }
     }
     bo_gem->tiling_mode = get_tiling.tiling_mode;
     bo_gem->swizzle_mode = get_tiling.swizzle_mode;
@@ -3986,6 +3994,10 @@ mos_bufmgr_gem_init(int fd, int batch_size)
     gp.param = I915_PARAM_MMAP_VERSION;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
     bufmgr_gem->has_ext_mmap = (ret == 0) & (*gp.value > 0);
+
+    gp.param = I915_PARAM_NUM_FENCES_AVAIL;
+    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
+    bufmgr_gem->has_fence_reg = (ret == 0) & (*gp.value > 0);
 
     gp.param = I915_PARAM_HAS_EXEC_SOFTPIN;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
