@@ -521,7 +521,17 @@ VAStatus DdiMediaUtil_AllocateSurface(
             MOS_ZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
             gmmCustomParams.Type          = RESOURCE_2D;
             gmmCustomParams.Format        = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
-            gmmCustomParams.BaseWidth64   = width;
+            if ((format == Media_Format_YV12) || \
+                (format == Media_Format_I420) || \
+                (format == Media_Format_IYUV) || \
+                (format == Media_Format_NV12) || \
+                (format == Media_Format_NV21)) {
+                // Align width to 2 for specific planar formats to handle
+                // odd dimensions for external non-compressible surfaces
+                gmmCustomParams.BaseWidth64 = MOS_ALIGN_CEIL(width, 2);
+            } else {
+                gmmCustomParams.BaseWidth64 = width;
+            }
             gmmCustomParams.BaseHeight    = baseHeight;
             gmmCustomParams.Pitch         = pitch;
             gmmCustomParams.Size          = mediaSurface->pSurfDesc->uiSize;
