@@ -192,6 +192,8 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     static const uint32_t m_singlePassMinFrameWidth   = 3840;
     static const uint32_t m_singlePassMinFrameHeight  = 2160;
     static const uint32_t m_singlePassMinFramePer100s = 6000;
+    uint8_t* m_pMBQPShadowBuffer = nullptr;
+    uint32_t m_uiMBQPShadowBufferSize = 0;
 
 protected:
 
