@@ -28,6 +28,8 @@
 #ifndef __MHW_MMIO_G12_H__
 #define __MHW_MMIO_G12_H__
 
+#include "mhw_mmio_common.h"
+
 // CS register offsets
 #define CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G12                                       0x2600
 #define CS_GENERAL_PURPOSE_REGISTER0_HI_OFFSET_G12                                       0x2604
@@ -128,69 +130,6 @@
 #define MFX_LRA0_REG_OFFSET_NODE_1_INIT_G12                                              0
 #define MFX_LRA1_REG_OFFSET_NODE_1_INIT_G12                                              0
 #define MFX_LRA2_REG_OFFSET_NODE_1_INIT_G12                                              0
-
-
-
-
-
-// Media Engine 
-#define M_MMIO_MAX_RELATIVE_OFFSET                                                       0x3FFF //!< Max reg relative offset in an engine
-#define M_MMIO_MEDIA_LOW_OFFSET                                                          0x1C0000 //!< Low bound of VDBox and VEBox MMIO offset
-#define M_MMIO_MEDIA_HIGH_OFFSET                                                         0x200000 //!< High bound of VDBox and VEBox MMIO offset
-
-
-//Render 
-#define M_MMIO_RCS_AUX_TABLE_BASE_LOW                                                    0x4200
-#define M_MMIO_RCS_AUX_TABLE_BASE_HIGH                                                   0x4204
-#define M_MMIO_RCS_AUX_TABLE_INVALIDATE                                                  0x4208
-#define M_MMIO_RCS_HW_FE_REMAP_RANGE_BEGIN                                               0x2000
-#define M_MMIO_RCS_HW_FE_REMAP_RANGE_END                                                 0x27FF
-#define M_MMIO_RCS_AUX_TBL_REMAP_RANGE_BEGIN                                             0x4200
-#define M_MMIO_RCS_AUX_TBL_REMAP_RANGE_END                                               0x420F
-#define M_MMIO_RCS_TRTT_REMAP_RANGE_BEGIN                                                0x4400
-#define M_MMIO_RCS_TRTT_REMAP_RANGE_END                                                  0x441F
-
-//VD
-#define M_MMIO_VD0_AUX_TABLE_BASE_LOW                                                    0x4210
-#define M_MMIO_VD0_AUX_TABLE_BASE_HIGH                                                   0x4214
-#define M_MMIO_VD0_AUX_TABLE_INVALIDATE                                                  0x4218
-#define M_MMIO_VD1_AUX_TABLE_BASE_LOW                                                    0x4220
-#define M_MMIO_VD1_AUX_TABLE_BASE_HIGH                                                   0x4224
-#define M_MMIO_VD1_AUX_TABLE_INVALIDATE                                                  0x4228
-#define M_MMIO_VD2_AUX_TABLE_BASE_LOW                                                    0x4290
-#define M_MMIO_VD2_AUX_TABLE_BASE_HIGH                                                   0x4294
-#define M_MMIO_VD2_AUX_TABLE_INVALIDATE                                                  0x4298
-#define M_MMIO_VD3_AUX_TABLE_BASE_LOW                                                    0x42A0
-#define M_MMIO_VD3_AUX_TABLE_BASE_HIGH                                                   0x42A4
-#define M_MMIO_VD3_AUX_TABLE_INVALIDATE                                                  0x42A8
-
-//VE
-#define M_MMIO_VE0_AUX_TABLE_BASE_LOW                                                    0x4230
-#define M_MMIO_VE0_AUX_TABLE_BASE_HIGH                                                   0x4234
-#define M_MMIO_VE0_AUX_TABLE_INVALIDATE                                                  0x4238
-#define M_MMIO_VE1_AUX_TABLE_BASE_LOW                                                    0x42B0
-#define M_MMIO_VE1_AUX_TABLE_BASE_HIGH                                                   0x42B4
-#define M_MMIO_VE1_AUX_TABLE_INVALIDATE                                                  0x42B8
-
-//Compute
-#define M_MMIO_CCS0_AUX_TABLE_BASE_LOW                                                   0x42C0
-#define M_MMIO_CCS0_AUX_TABLE_BASE_HIGH                                                  0x42C4
-#define M_MMIO_CCS0_AUX_TABLE_INVALIDATE                                                 0x42C8
-#define M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN                                              0x1A000
-#define M_MMIO_CCS0_HW_FRONT_END_BASE_END                                                0x1A7FF
-#define M_MMIO_CCS1_HW_FRONT_END_BASE_BEGIN                                              0x1C000
-#define M_MMIO_CCS1_HW_FRONT_END_BASE_END                                                0x1C7FF
-#define M_MMIO_CCS2_HW_FRONT_END_BASE_BEGIN                                              0x1E000
-#define M_MMIO_CCS2_HW_FRONT_END_BASE_END                                                0x1E7FF
-#define M_MMIO_CCS3_HW_FRONT_END_BASE_BEGIN                                              0x26000
-#define M_MMIO_CCS3_HW_FRONT_END_BASE_END                                                0x267FF
-
-
-//L3 cache configure
-#define M_MMIO_RCS_L3ALLOCREG                                                            0xB134
-#define M_MMIO_CCS0_L3ALLOCREG                                                           0xB234
-#define M_MMIO_RCS_TCCNTLREG                                                             0xB138
-#define M_MMIO_CCS0_TCCNTLREG                                                            0xB238
 
 // HAL
 #define REG_GPR_BASE_G12                                                                 CS_GENERAL_PURPOSE_REGISTER0_LO_OFFSET_G12

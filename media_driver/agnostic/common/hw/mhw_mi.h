@@ -34,6 +34,7 @@ class MhwCpInterface;
 #include "mhw_utilities.h"
 #include "mhw_cp_interface.h"
 #include "mhw_mmio.h"
+#include "mhw_mi_itf.h"
 
 #define MHW_MI_WATCHDOG_ENABLE_COUNTER                  0x0
 #define MHW_MI_WATCHDOG_DISABLE_COUNTER                 0x1
@@ -735,6 +736,14 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
+    //!
+    //! \brief    Get new render interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new render interface
+    //!
+    virtual std::shared_ptr<mhw::mi::Itf> GetNewMiInterface() { return nullptr; }
+
 protected:
     //!
     //! \brief    Initializes the MI interface
@@ -801,6 +810,7 @@ protected:
     //! \brief Mmio registers address
     MHW_MI_MMIOREGISTERS       m_mmioRegisters = {};  //!< mfx mmio registers
 
+    std::shared_ptr<mhw::mi::Itf> m_miItfNew = nullptr;
 };
 
 #endif // __MHW_MI_H__

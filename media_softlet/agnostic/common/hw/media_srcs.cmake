@@ -29,6 +29,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio_common.h
 )
 
 set(SOURCES_
