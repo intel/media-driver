@@ -1067,9 +1067,7 @@ static VAStatus CreateShadowResource(DDI_MEDIA_SURFACE *surface)
         return VA_STATUS_ERROR_INVALID_SURFACE;
     }
 
-    PDDI_DECODE_CONTEXT decCtx = (PDDI_DECODE_CONTEXT)surface->pDecCtx;
-    if (surface->iWidth < 64 || surface->iRealHeight < 64 || (surface->iPitch %64 != 0)
-        || ((surface->iWidth <= 512 || surface->iRealHeight <= 512) && decCtx && decCtx->m_ddiDecode && decCtx->m_ddiDecode->IsVP9DecodeMode()))
+    if (surface->iWidth <= 512 || surface->iRealHeight <= 512 || surface->format == Media_Format_P016)
     {
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }

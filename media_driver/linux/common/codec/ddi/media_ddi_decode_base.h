@@ -299,26 +299,6 @@ public:
         VABufferID             *bufId);
     
     //!
-    //! \brief    if it is VP9 Decode Mode
-    //!
-    //! \return   true or false
-    //!
-    bool IsVP9DecodeMode()
-    {
-        return m_isVP9DecodeMode;
-    }
-
-    //!
-    //! \brief    if it is VP9 Decode Mode
-    //!
-    //! \return   true or false
-    //!
-    void SetVP9DecodeMode( bool isVP9dMode)
-    {
-        m_isVP9DecodeMode = isVP9dMode;
-    }
-
-    //!
     //! \brief    if it is  range extention
     //!
     //! \return   true or false
@@ -469,7 +449,6 @@ protected:
     uint32_t                    m_sliceCtrlBufNum;      //!<Slice control Buffer Number
     uint32_t                    m_decProcessingType;    //!<Decode Processing type
     CodechalSetting             *m_codechalSettings = nullptr;    //!<Codechal Settings
-    bool                        m_isVP9DecodeMode = false; //!< VP9 Decode Mode in use
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     VAProcPipelineParameterBuffer *m_procBuf = nullptr; //!< Process parameters for vp sfc input
