@@ -103,7 +103,6 @@ protected:                             \
     static_cast<uint32_t>((reinterpret_cast<uint32_t *>(&(cmd.field)) - reinterpret_cast<uint32_t *>(&cmd)))
 
 #define _MHW_CMD_ASSIGN_FIELD(dw, field, value) cmd.dw.field = (value)
-#define PATCH_LIST_COMMAND(x)  (x##_NUMBER_OF_ADDRESSES)
 
 namespace mhw
 {
