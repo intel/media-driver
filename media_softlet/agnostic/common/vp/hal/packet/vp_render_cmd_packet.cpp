@@ -406,12 +406,12 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 renderSurfaceParams.bWidth16Align    = false;
                 renderSurfaceParams.bWidthInDword_Y  = true;
                 renderSurfaceParams.bWidthInDword_UV = true;
-            }
 
-            //set mem object control for cache
-            renderSurfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-                MOS_MP_RESOURCE_USAGE_DEFAULT,
-                m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+                //set mem object control for cache
+                renderSurfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                    MOS_MP_RESOURCE_USAGE_DEFAULT,
+                    m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+            }
 
             VP_SURFACE *vpSurface = nullptr;
 
