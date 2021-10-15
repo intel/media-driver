@@ -4486,6 +4486,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_INT32,
         "0",
         "Report out whether skip frame is in use."),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_HUC_LOAD_STATUS_ID,
+        "Huc Load Fail",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Report",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_INT32,
+        "0",
+        "Report out Huc loaded fails."),
 };
 
 PMOS_USER_FEATURE_VALUE const MosUtilities::m_mosUserFeatureDescFields = MOSUserFeatureDescFields;

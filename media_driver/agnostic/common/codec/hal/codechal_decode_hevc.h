@@ -581,6 +581,8 @@ public:
     PIC_LONG_FORMAT_MHW_PARAMS      m_picMhwParams;                                         //!< picture parameters
 
     bool                         m_dummyReferenceSlot[CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC];
+
+    bool m_reportHucStatus = false;
 };
 
 #endif  // __CODECHAL_DECODER_HEVC_H__
