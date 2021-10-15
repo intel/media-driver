@@ -194,7 +194,7 @@ MOS_USER_FEATURE_VALUE_ID CodechalDebugInterface::InitDefaultOutput()
     return SetOutputPathKey();
 }
 
-MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE> &vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum)
+MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(std::vector<MOS_RESOURCE> &vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum)
 {
     if (m_enableHwDebugHooks &&
         m_goldenReferenceExist &&
@@ -203,13 +203,20 @@ MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(CodechalDecode *pCodechalD
     {
         MOS_COMMAND_BUFFER cmdBuffer = {};
         std::vector<uint32_t *> vSemaData;
-        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
-        CODECHAL_DECODE_CHK_STATUS_RETURN(pCodechalDecode->SendPrologWithFrameTracking(&cmdBuffer, false));
+        MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
+        MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
+        genericPrologParams.pOsInterface  = m_osInterface;
+        genericPrologParams.pvMiInterface = m_miInterface;
+
+        CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+        CODECHAL_DEBUG_CHK_STATUS(Mhw_SendGenericPrologCmd(
+            &cmdBuffer,
+            &genericPrologParams));
         LockSemaResource(vSemaData, vResource);
         // for CRC mismatch detection
         for (uint32_t i = 0; i < vResource.size(); i++)
         {
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_hwInterface->SendHwSemaphoreWaitCmd(
+            CODECHAL_DEBUG_CHK_STATUS(m_hwInterface->SendHwSemaphoreWaitCmd(
                 &vResource[i],
                 m_goldenReferences[frameNum][i],
                 MHW_MI_SAD_EQUAL_SDD,
@@ -217,7 +224,7 @@ MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(CodechalDecode *pCodechalD
         }
         StoreNumFrame(m_miInterface, frameCntRes, frameNum, &cmdBuffer);
 
-        SubmitDummyWorkload(&cmdBuffer, pCodechalDecode->GetVideoContextUsesNullHw());
+        SubmitDummyWorkload(&cmdBuffer, false);
         //Get Decode output
         std::vector<uint32_t> data = {CalculateCRC(buf, size)};
         CODECHAL_DEBUG_CHK_STATUS(FillSemaResource(vSemaData, data));

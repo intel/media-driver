@@ -1458,7 +1458,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
                     yuvSize);
                 m_debugInterface->CaptureGoldenReference(m_decodeOutputBuf, yuvSize, 0);
                 std::vector<MOS_RESOURCE> vRes = {m_crcBuf};
-                m_debugInterface->DetectCorruptionSw(this, vRes, &m_frameCountTypeBuf, m_decodeOutputBuf, yuvSize, m_frameNum);
+                m_debugInterface->DetectCorruptionSw(vRes, &m_frameCountTypeBuf, m_decodeOutputBuf, yuvSize, m_frameNum);
             }
         }
 #endif

@@ -28,7 +28,6 @@
 #define __CODEC_DEBUG_H__
 
 #include "media_debug_interface.h"
-#include "codechal_decoder.h"
 
 #if USE_MEDIA_DEBUG_TOOL
 
@@ -125,7 +124,7 @@ public:
         uint32_t                  hucPassNum,
         CodechalHucRegionDumpType dumpType);
 
-    MOS_STATUS DetectCorruptionSw(CodechalDecode *pCodechalDecode, std::vector<MOS_RESOURCE>& vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum) override;
+    MOS_STATUS DetectCorruptionSw(std::vector<MOS_RESOURCE>& vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum);
 
     MOS_STATUS DumpEncodeStatusReport(
         void* report);
