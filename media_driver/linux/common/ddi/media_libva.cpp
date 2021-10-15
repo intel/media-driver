@@ -64,6 +64,8 @@
 #include "media_libva_interface_next.h"
 #include "media_libva_apo_decision.h"
 #include "mos_oca_interface_specific.h"
+#include "media_interfaces_hwinfo_device.h"
+#include "media_libva_caps_next.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1600,27 +1602,31 @@ VAStatus DdiMedia__Initialize (
     }
 
     apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd);
-
-    if(MediaLibvaInterface::LoadFunction(ctx) != VA_STATUS_SUCCESS)
-    {
-        DDI_ASSERTMESSAGE("Failed to load function pointer");
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
-    }
     if(apoDdiEnabled)
     {
-        return MediaLibvaInterfaceNext::Initialize(ctx, devicefd, major_version, minor_version);
+        if(MediaLibvaInterface::LoadFunction(ctx) != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Failed to load function pointer");
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        } 
     }
     else
     {
-        return DdiMedia_InitMediaContext(ctx, devicefd, major_version, minor_version);
+        if(DdiMedia_LoadFuncion(ctx) != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Failed to load function pointer");
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
     }
+    return DdiMedia_InitMediaContext(ctx, devicefd, major_version, minor_version, apoDdiEnabled);
 }
 
 VAStatus DdiMedia_InitMediaContext (
     VADriverContextP ctx,
     int32_t          devicefd,
-    int32_t         *major_version,
-    int32_t         *minor_version
+    int32_t          *major_version,
+    int32_t          *minor_version,
+    bool             apoDdiEnabled
 )
 {
     if(major_version)
@@ -1956,14 +1962,45 @@ VAStatus DdiMedia_InitMediaContext (
     if (mediaCtx->m_caps->Init() != VA_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("Caps init failed. Not supported GFX device.");
-        MOS_Delete(mediaCtx->m_caps);
-        mediaCtx->m_caps = nullptr;
+        DdiMedia_CleanUp(mediaCtx);
         DestroyMediaContextMutex(mediaCtx);
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
     ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
 
+    if(apoDdiEnabled)
+    {
+        mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
+        if (nullptr == mediaCtx)
+        {
+            DDI_ASSERTMESSAGE("Unregister hwinfo platform.");
+            DdiMedia_CleanUp(mediaCtx);
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+
+        mediaCtx->m_capsNext = MediaLibvaCapsNext::CreateCaps(mediaCtx);
+        if (!mediaCtx->m_capsNext)
+        {
+            DDI_ASSERTMESSAGE("Caps next init failed. Not supported GFX device.");
+            DdiMedia_CleanUp(mediaCtx);
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+
+        if (MediaLibvaInterfaceNext::InitCompList(mediaCtx) != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Init CompList failed. Not supported GFX device.");
+            DdiMedia_CleanUp(mediaCtx);
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+    }
+    
 #if !defined(ANDROID) && defined(X11_FOUND)
     DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceRenderMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
@@ -1987,6 +2024,145 @@ VAStatus DdiMedia_InitMediaContext (
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus DdiMedia_LoadFuncion (VADriverContextP ctx)
+{
+    DDI_CHK_NULL(ctx,         "nullptr ctx",          VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    struct VADriverVTable    *pVTable     = DDI_CODEC_GET_VTABLE(ctx);
+    DDI_CHK_NULL(pVTable,     "nullptr pVTable",      VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    struct VADriverVTableVPP *pVTableVpp  = DDI_CODEC_GET_VTABLE_VPP(ctx);
+    DDI_CHK_NULL(pVTableVpp,  "nullptr pVTableVpp",   VA_STATUS_ERROR_INVALID_CONTEXT);
+
+#if VA_CHECK_VERSION(1,11,0)
+    struct VADriverVTableProt *pVTableProt = DDI_CODEC_GET_VTABLE_PROT(ctx);
+    DDI_CHK_NULL(pVTableProt,  "nullptr pVTableProt",   VA_STATUS_ERROR_INVALID_CONTEXT);
+#endif
+
+    ctx->pDriverData                         = nullptr;
+    ctx->version_major                       = VA_MAJOR_VERSION;
+    ctx->version_minor                       = VA_MINOR_VERSION;
+    ctx->max_profiles                        = DDI_CODEC_GEN_MAX_PROFILES;
+    ctx->max_entrypoints                     = DDI_CODEC_GEN_MAX_ENTRYPOINTS;
+    ctx->max_attributes                      = (int32_t)VAConfigAttribTypeMax;
+    ctx->max_subpic_formats                  = DDI_CODEC_GEN_MAX_SUBPIC_FORMATS;
+    ctx->max_display_attributes              = DDI_MEDIA_GEN_MAX_DISPLAY_ATTRIBUTES;
+    ctx->str_vendor                          = DDI_CODEC_GEN_STR_VENDOR;
+    ctx->vtable_tpi                          = nullptr;
+
+    pVTable->vaTerminate                     = DdiMedia_Terminate;
+    pVTable->vaQueryConfigEntrypoints        = DdiMedia_QueryConfigEntrypoints;
+    pVTable->vaQueryConfigProfiles           = DdiMedia_QueryConfigProfiles;
+    pVTable->vaQueryConfigAttributes         = DdiMedia_QueryConfigAttributes;
+    pVTable->vaCreateConfig                  = DdiMedia_CreateConfig;
+    pVTable->vaDestroyConfig                 = DdiMedia_DestroyConfig;
+    pVTable->vaGetConfigAttributes           = DdiMedia_GetConfigAttributes;
+
+    pVTable->vaCreateSurfaces                = DdiMedia_CreateSurfaces;
+    pVTable->vaDestroySurfaces               = DdiMedia_DestroySurfaces;
+    pVTable->vaCreateSurfaces2               = DdiMedia_CreateSurfaces2;
+
+    pVTable->vaCreateContext                 = DdiMedia_CreateContext;
+    pVTable->vaDestroyContext                = DdiMedia_DestroyContext;
+    pVTable->vaCreateBuffer                  = DdiMedia_CreateBuffer;
+    pVTable->vaBufferSetNumElements          = DdiMedia_BufferSetNumElements;
+    pVTable->vaMapBuffer                     = DdiMedia_MapBuffer;
+    pVTable->vaUnmapBuffer                   = DdiMedia_UnmapBuffer;
+    pVTable->vaDestroyBuffer                 = DdiMedia_DestroyBuffer;
+    pVTable->vaBeginPicture                  = DdiMedia_BeginPicture;
+    pVTable->vaRenderPicture                 = DdiMedia_RenderPicture;
+    pVTable->vaEndPicture                    = DdiMedia_EndPicture;
+    pVTable->vaSyncSurface                   = DdiMedia_SyncSurface;
+#if VA_CHECK_VERSION(1, 9, 0)
+    pVTable->vaSyncSurface2                  = DdiMedia_SyncSurface2;
+    pVTable->vaSyncBuffer                    = DdiMedia_SyncBuffer;
+#endif
+    pVTable->vaQuerySurfaceStatus            = DdiMedia_QuerySurfaceStatus;
+    pVTable->vaQuerySurfaceError             = DdiMedia_QuerySurfaceError;
+    pVTable->vaQuerySurfaceAttributes        = DdiMedia_QuerySurfaceAttributes;
+    pVTable->vaPutSurface                    = DdiMedia_PutSurface;
+    pVTable->vaQueryImageFormats             = DdiMedia_QueryImageFormats;
+
+    pVTable->vaCreateImage                   = DdiMedia_CreateImage;
+    pVTable->vaDeriveImage                   = DdiMedia_DeriveImage;
+    pVTable->vaDestroyImage                  = DdiMedia_DestroyImage;
+    pVTable->vaSetImagePalette               = DdiMedia_SetImagePalette;
+    pVTable->vaGetImage                      = DdiMedia_GetImage;
+    pVTable->vaPutImage                      = DdiMedia_PutImage;
+    pVTable->vaQuerySubpictureFormats        = DdiMedia_QuerySubpictureFormats;
+    pVTable->vaCreateSubpicture              = DdiMedia_CreateSubpicture;
+    pVTable->vaDestroySubpicture             = DdiMedia_DestroySubpicture;
+    pVTable->vaSetSubpictureImage            = DdiMedia_SetSubpictureImage;
+    pVTable->vaSetSubpictureChromakey        = DdiMedia_SetSubpictureChromakey;
+    pVTable->vaSetSubpictureGlobalAlpha      = DdiMedia_SetSubpictureGlobalAlpha;
+    pVTable->vaAssociateSubpicture           = DdiMedia_AssociateSubpicture;
+    pVTable->vaDeassociateSubpicture         = DdiMedia_DeassociateSubpicture;
+    pVTable->vaQueryDisplayAttributes        = DdiMedia_QueryDisplayAttributes;
+    pVTable->vaGetDisplayAttributes          = DdiMedia_GetDisplayAttributes;
+    pVTable->vaSetDisplayAttributes          = DdiMedia_SetDisplayAttributes;
+    pVTable->vaQueryProcessingRate           = DdiMedia_QueryProcessingRate;
+#if VA_CHECK_VERSION(1,10,0)
+    pVTable->vaCopy                          = DdiMedia_Copy;
+#endif
+
+    // vaTrace
+    pVTable->vaBufferInfo                    = DdiMedia_BufferInfo;
+    pVTable->vaLockSurface                   = DdiMedia_LockSurface;
+    pVTable->vaUnlockSurface                 = DdiMedia_UnlockSurface;
+
+    pVTableVpp->vaQueryVideoProcFilters      = DdiMedia_QueryVideoProcFilters;
+    pVTableVpp->vaQueryVideoProcFilterCaps   = DdiMedia_QueryVideoProcFilterCaps;
+    pVTableVpp->vaQueryVideoProcPipelineCaps = DdiMedia_QueryVideoProcPipelineCaps;
+
+#if VA_CHECK_VERSION(1,11,0)
+    pVTableProt->vaCreateProtectedSession    = DdiMediaProtected::DdiMedia_CreateProtectedSession;
+    pVTableProt->vaDestroyProtectedSession   = DdiMediaProtected::DdiMedia_DestroyProtectedSession;
+    pVTableProt->vaAttachProtectedSession    = DdiMediaProtected::DdiMedia_AttachProtectedSession;
+    pVTableProt->vaDetachProtectedSession    = DdiMediaProtected::DdiMedia_DetachProtectedSession;
+    pVTableProt->vaProtectedSessionExecute   = DdiMediaProtected::DdiMedia_ProtectedSessionExecute;
+#endif
+
+    //pVTable->vaSetSurfaceAttributes          = DdiMedia_SetSurfaceAttributes;
+    pVTable->vaGetSurfaceAttributes          = DdiMedia_GetSurfaceAttributes;
+    //Export PRIMEFD/FLINK to application for buffer sharing with OpenCL/GL
+    pVTable->vaAcquireBufferHandle           = DdiMedia_AcquireBufferHandle;
+    pVTable->vaReleaseBufferHandle           = DdiMedia_ReleaseBufferHandle;
+    pVTable->vaExportSurfaceHandle           = DdiMedia_ExportSurfaceHandle;
+#ifndef ANDROID
+    pVTable->vaCreateMFContext               = DdiMedia_CreateMfeContextInternal;
+    pVTable->vaMFAddContext                  = DdiMedia_AddContextInternal;
+    pVTable->vaMFReleaseContext              = DdiMedia_ReleaseContextInternal;
+    pVTable->vaMFSubmit                      = DdiEncode_MfeSubmit;
+#endif
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiMedia_CleanUp (PDDI_MEDIA_CONTEXT mediaCtx)
+{
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if (mediaCtx->m_caps)
+    {
+        MOS_Delete(mediaCtx->m_caps);
+        mediaCtx->m_caps = nullptr;
+    }
+
+    if (mediaCtx->m_capsNext)
+    {
+        MOS_Delete(mediaCtx->m_capsNext);
+        mediaCtx->m_capsNext = nullptr;
+    }
+
+    MediaLibvaInterfaceNext::ReleaseCompList(mediaCtx);
+    if(mediaCtx->m_hwInfo)
+    {
+        MOS_FreeMemory(mediaCtx->m_hwInfo);
+        mediaCtx->m_hwInfo = nullptr;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
 VAStatus DdiMedia_Terminate (
     VADriverContextP ctx
 )
@@ -2005,7 +2181,7 @@ VAStatus DdiMedia_Terminate (
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
 
-    if (mediaCtx->m_caps)
+    if (mediaCtx->m_caps || mediaCtx->m_capsNext)
     {
         if (mediaCtx->dri_output != nullptr) {
             if (mediaCtx->dri_output->handle)
@@ -2017,11 +2193,8 @@ VAStatus DdiMedia_Terminate (
     }
 #endif
 
-    if (mediaCtx->m_caps)
-    {
-        MOS_Delete(mediaCtx->m_caps);
-        mediaCtx->m_caps = nullptr;
-    }
+    DdiMedia_CleanUp(mediaCtx);
+
     //destory resources
     DdiMedia_FreeSurfaceHeapElements(mediaCtx);
     DdiMedia_FreeBufferHeapElements(ctx);

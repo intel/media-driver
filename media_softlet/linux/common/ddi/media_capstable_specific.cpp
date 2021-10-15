@@ -143,12 +143,14 @@ ConfigLinux* MediaCapsTableSpecific::QueryConfigItemFromIndex(
 {
     DDI_FUNCTION_ENTER();
 
-    if (configId >= m_configList.size())
+    if (!(IS_VALID_CONFIG_ID(configId))                              ||
+        (REMOVE_CONFIG_ID_OFFSET(configId) >= m_configList.size()))
     {
+        DDI_ASSERTMESSAGE("Invalid config ID");
         return nullptr;
     }
 
-    return &m_configList[configId];
+    return &m_configList[REMOVE_CONFIG_ID_OFFSET(configId)];
 }
 
 VAStatus MediaCapsTableSpecific::CreateConfig(
@@ -183,8 +185,10 @@ VAStatus MediaCapsTableSpecific::DestroyConfig(VAConfigID configId)
 {
     DDI_FUNCTION_ENTER();
 
-    if(configId < m_configList.size())
+    if((IS_VALID_CONFIG_ID(configId))                               &&
+       (REMOVE_CONFIG_ID_OFFSET(configId) < m_configList.size()))
     {
+        DDI_ASSERTMESSAGE("Invalid config ID");
         return VA_STATUS_SUCCESS;
     }
 
@@ -209,6 +213,12 @@ ProfileSurfaceAttribInfo* MediaCapsTableSpecific::QuerySurfaceAttributesFromConf
     VAConfigID                 configId)
 {
     DDI_FUNCTION_ENTER();
+
+    if (!IS_VALID_CONFIG_ID(configId))
+    {
+        DDI_ASSERTMESSAGE("Invalid config ID");
+        return nullptr;
+    }  
 
     ConfigLinux*  configItem = nullptr;
     configItem = QueryConfigItemFromIndex(configId);

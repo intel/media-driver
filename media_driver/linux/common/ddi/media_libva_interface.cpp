@@ -30,6 +30,8 @@
 #include "media_libva_encoder.h"
 #include "media_libva_util.h"
 
+#include "media_libva_interface_next.h"
+
 VAStatus MediaLibvaInterface::LoadFunction(VADriverContextP ctx)
 {
     DDI_CHK_NULL(ctx,         "nullptr ctx",          VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -52,7 +54,7 @@ VAStatus MediaLibvaInterface::LoadFunction(VADriverContextP ctx)
     ctx->max_entrypoints                     = DDI_CODEC_GEN_MAX_ENTRYPOINTS;
     ctx->max_attributes                      = (int32_t)VAConfigAttribTypeMax;
     ctx->max_subpic_formats                  = DDI_CODEC_GEN_MAX_SUBPIC_FORMATS;
-    ctx->max_display_attributes              = DDI_MEDIA_GEN_MAX_DISPLAY_ATTRIBUTES ;
+    ctx->max_display_attributes              = DDI_MEDIA_GEN_MAX_DISPLAY_ATTRIBUTES;
     ctx->str_vendor                          = DDI_CODEC_GEN_STR_VENDOR;
     ctx->vtable_tpi                          = nullptr;
 
@@ -155,8 +157,18 @@ VAStatus MediaLibvaInterface::QueryConfigEntrypoints(
     VAEntrypoint      *entrypoint_list,
     int32_t           *num_entrypoints)
 {
-    return DdiMedia_QueryConfigEntrypoints(ctx, profile, entrypoint_list,
-        num_entrypoints);
+    VAStatus status = MediaLibvaInterfaceNext::QueryConfigEntrypoints(
+        ctx, profile, entrypoint_list, num_entrypoints);
+
+    if (status != VA_STATUS_SUCCESS)
+    {
+        return DdiMedia_QueryConfigEntrypoints(ctx, profile, entrypoint_list,
+            num_entrypoints);
+    }
+    else
+    {
+        return status;
+    }
 }
 
 VAStatus MediaLibvaInterface::QueryConfigProfiles(
@@ -164,7 +176,17 @@ VAStatus MediaLibvaInterface::QueryConfigProfiles(
     VAProfile         *profile_list,
     int32_t           *num_profiles)
 {
-    return DdiMedia_QueryConfigProfiles(ctx, profile_list, num_profiles);
+    VAStatus status = MediaLibvaInterfaceNext::QueryConfigProfiles(
+        ctx, profile_list, num_profiles);
+
+    if(status != VA_STATUS_SUCCESS)
+    {
+        return DdiMedia_QueryConfigProfiles(ctx, profile_list, num_profiles);
+    }
+    else
+    {
+        return status;
+    }
 }
 
 VAStatus MediaLibvaInterface::QueryConfigAttributes(
@@ -205,7 +227,16 @@ VAStatus MediaLibvaInterface::GetConfigAttributes(
     VAConfigAttrib    *attrib_list,
     int32_t           num_attribs)
 {
-    return DdiMedia_GetConfigAttributes(ctx, profile, entrypoint, attrib_list, num_attribs);
+    VAStatus status = MediaLibvaInterfaceNext::GetConfigAttributes(ctx, profile, entrypoint, attrib_list, num_attribs);
+
+    if(status != VA_STATUS_SUCCESS)
+    {
+        return DdiMedia_GetConfigAttributes(ctx, profile, entrypoint, attrib_list, num_attribs);
+    }
+    else
+    {
+        return status;
+    }
 }
 
 VAStatus MediaLibvaInterface::CreateSurfaces(
@@ -408,7 +439,17 @@ VAStatus MediaLibvaInterface::QueryImageFormats(
     VAImageFormat     *format_list,
     int32_t           *num_formats)
 {
-    return DdiMedia_QueryImageFormats(ctx, format_list, num_formats);
+    VAStatus status = MediaLibvaInterfaceNext::QueryImageFormats(
+        ctx, format_list, num_formats);
+
+    if(status != VA_STATUS_SUCCESS)
+    {
+        return DdiMedia_QueryImageFormats(ctx, format_list, num_formats);
+    }
+    else
+    {
+        return status;
+    }
 }
 
 VAStatus MediaLibvaInterface::CreateImage(

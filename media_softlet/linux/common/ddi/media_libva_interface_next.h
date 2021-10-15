@@ -34,6 +34,26 @@
 class MediaLibvaInterfaceNext
 {
 public:
+
+    //!
+    //! \brief  Init component list
+    //!
+    //! \param  [in] mediaCtx
+    //!         Pointer to ddi media context
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    static VAStatus InitCompList(PDDI_MEDIA_CONTEXT mediaCtx);
+
+    //!
+    //! \brief  Release component list
+    //!
+    //! \param  [in] mediaCtx
+    //!         Pointer to ddi media context
+    //!
+    static void ReleaseCompList(PDDI_MEDIA_CONTEXT mediaCtx);
+
     //!
     //! \brief  Initialize
     //!
@@ -576,7 +596,6 @@ public:
         VAProtectedSessionID  protectedSession,
         VABufferID            data
     );
-
 #endif
 
 private:
@@ -599,25 +618,6 @@ private:
     //! \return CompType
     //!
     static CompType MapComponentFromCtxType(uint32_t ctxType);
-
-    //!
-    //! \brief  Init component list
-    //!
-    //! \param  [in] mediaCtx
-    //!         Pointer to ddi media context
-    //!
-    //! \return VAStatus
-    //!     VA_STATUS_SUCCESS if success, else fail reason
-    //!
-    static VAStatus InitCompList(PDDI_MEDIA_CONTEXT mediaCtx);
-
-    //!
-    //! \brief  Release component list
-    //!
-    //! \param  [in] mediaCtx
-    //!         Pointer to ddi media context
-    //!
-    static void ReleaseCompList(PDDI_MEDIA_CONTEXT mediaCtx);
 
     //!
     //! \brief  Load DDI function pointer

@@ -61,6 +61,12 @@ typedef std::vector<ConfigLinux> ConfigList;
 
 #define CONFIG_ATTRIB_NONE 0x00000000
 
+// This offset is for cap fallback enabling, can be removed when all refactor done
+#define CONFIG_ID_OFFSET 10000
+#define ADD_CONFIG_ID_OFFSET(x) (x) + CONFIG_ID_OFFSET
+#define REMOVE_CONFIG_ID_OFFSET(x) (x) - CONFIG_ID_OFFSET
+#define IS_VALID_CONFIG_ID(x) ((x) > CONFIG_ID_OFFSET)
+
 //!
 //! \class  MediaLibvaCaps
 //! \brief  Media libva caps

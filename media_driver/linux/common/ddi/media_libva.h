@@ -327,6 +327,17 @@ VAStatus DdiMedia_GetDeviceFD (
 );
 
 //!
+//! \brief  Load DDI function
+//!
+//! \param  [in] ctx
+//!         Pointer to VA driver context
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMedia_LoadFuncion (VADriverContextP ctx);
+
+//!
 //! \brief  Initialize
 //!
 //! \param  [in] ctx
@@ -356,6 +367,8 @@ VAStatus DdiMedia__Initialize (
 //!         Major version
 //! \param  [out] minor_version
 //!         Minor version
+//! \param  [in]  apoDdiEnabled
+//!         If apo ddi enabled       
 //!
 //! \return VAStatus
 //!     VA_STATUS_SUCCESS if success, else fail reason
@@ -363,9 +376,21 @@ VAStatus DdiMedia__Initialize (
 VAStatus DdiMedia_InitMediaContext (
     VADriverContextP ctx,
     int32_t          devicefd,
-    int32_t         *major_version,     /* out */
-    int32_t         *minor_version      /* out */
+    int32_t          *major_version,     /* out */
+    int32_t          *minor_version,     /* out */
+    bool             apoDdiEnabled
 );
+
+//!
+//! \brief  clean up casp/caps next/complist/hwinfo
+//!
+//! \param  [in] mediaCtx
+//!         Pointer to media context
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMedia_CleanUp(PDDI_MEDIA_CONTEXT mediaCtx);
 
 //!
 //! \brief  clean up all library internal resources

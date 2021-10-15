@@ -73,7 +73,7 @@ VAStatus DdiEncodeFunctions::CreateConfig (
             if((rcMode      == configList->at(i).componentData.data.rcMode)       &&
                (feiFunction == configList->at(i).componentData.data.feiFunction))
             {
-                *configId = i;
+                *configId = ADD_CONFIG_ID_OFFSET(i);
                 return VA_STATUS_SUCCESS;
             }
         }

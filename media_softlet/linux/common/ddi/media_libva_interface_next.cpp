@@ -425,10 +425,23 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     }
 
     mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
+    if(!mediaCtx->m_hwInfo)
+    {
+        DDI_ASSERTMESSAGE("Query hwInfo failed. Not supported GFX device.");
+        DestroyMediaContextMutex(mediaCtx);
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
     mediaCtx->m_capsNext = MediaLibvaCapsNext::CreateCaps(mediaCtx);
     if (!mediaCtx->m_capsNext)
     {
         DDI_ASSERTMESSAGE("Caps create failed. Not supported GFX device.");
+        if(mediaCtx->m_hwInfo)
+        {
+            MOS_FreeMemory(mediaCtx->m_hwInfo);
+        }
+        mediaCtx->m_hwInfo = nullptr;
         DestroyMediaContextMutex(mediaCtx);
         FreeForMediaContext(mediaCtx);
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
@@ -461,6 +474,12 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     if (InitCompList(mediaCtx) != VA_STATUS_SUCCESS)
     {
         DDI_ASSERTMESSAGE("Caps init failed. Not supported GFX device.");
+        MediaLibvaInterfaceNext::ReleaseCompList(mediaCtx);
+        if(mediaCtx->m_hwInfo)
+        {
+            MOS_FreeMemory(mediaCtx->m_hwInfo);
+        }
+        mediaCtx->m_hwInfo = nullptr;
         MOS_Delete(mediaCtx->m_capsNext);
         mediaCtx->m_capsNext = nullptr;
         DestroyMediaContextMutex(mediaCtx);
@@ -1052,7 +1071,6 @@ VAStatus MediaLibvaInterfaceNext::LoadFunction(VADriverContextP ctx)
     pVTable->vaQuerySurfaceAttributes        = QuerySurfaceAttributes;
     pVTable->vaQueryImageFormats             = QueryImageFormats;
 
-    pVTable->vaCreateConfig                  = CreateConfig;
     pVTable->vaCreateContext                 = CreateContext;
     pVTable->vaDestroyContext                = DestroyContext;
     pVTable->vaCreateBuffer                  = CreateBuffer;
