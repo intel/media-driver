@@ -935,6 +935,24 @@ protected:
         PMOS_RESOURCE       presSliceSizeStreamoutBuffer,
         PMOS_COMMAND_BUFFER cmdBuffer) override;
 
+    //!
+    //! \brief    Add MI_STORE commands in the command buffer to update DMEM from other HW output buffer if needed
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Pointer to the command buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddMiStoreForHWOutputToHucDmem(PMOS_COMMAND_BUFFER cmdBuffer)
+    {
+        // Nothing to do
+        // HW store PAK statistics directly to DMEM resource
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual void SetBufferToStorePakStatistics();
+
 protected:
     bool                                        m_vdencSinglePassEnable = false;   //!< Enable VDEnc single pass
 

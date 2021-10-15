@@ -5121,6 +5121,9 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
             &miConditionalBatchBufferEndParams));
     }
 
+    // Update HuC DMEM data from other HW buffer if needed
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddMiStoreForHWOutputToHucDmem(&cmdBuffer));
+
     //Set MFX/VDENC image state command in VDENC BRC buffer
     PMHW_VDBOX_AVC_IMG_PARAMS imageStateParams = CreateMhwVdboxAvcImgParams();
     CODECHAL_ENCODE_CHK_NULL_RETURN(imageStateParams);
@@ -5892,21 +5895,7 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         perfTag.PictureCodingType = m_pictureCodingType;
         m_osInterface->pfnSetPerfTag(m_osInterface, perfTag.Value);
 
-        // Set HuC DMEM buffers which need to be updated.
-        // They are first pass of next frame and next pass of current frame, as the 2nd VDEnc+PAK pass may not be triggered.
-        uint32_t nextRecycledBufIdx         = (m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
-        uint32_t nextPass                   = (m_currPass + 1) % CODECHAL_VDENC_BRC_NUM_OF_PASSES;
-        m_resVdencBrcUpdateDmemBufferPtr[0] = &m_resVdencBrcUpdateDmemBuffer[nextRecycledBufIdx][0];
-        if (m_lastTaskInPhase)
-        {
-            // last pass of current frame, no next pass
-            m_resVdencBrcUpdateDmemBufferPtr[1] = nullptr;
-        }
-        else
-        {
-            m_resVdencBrcUpdateDmemBufferPtr[1] =
-                &m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][nextPass];
-        }
+        SetBufferToStorePakStatistics();
 
         // Invoke BRC init/reset FW
         if (m_brcInit || m_brcReset)
@@ -8357,6 +8346,26 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
     return eStatus;
+}
+
+void CodechalVdencAvcState::SetBufferToStorePakStatistics()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    // Set HuC DMEM buffers which need to be updated.
+    // They are first pass of next frame and next pass of current frame, as the 2nd VDEnc+PAK pass may not be triggered.
+    uint32_t nextRecycledBufIdx         = (m_currRecycledBufIdx + 1) % CODECHAL_ENCODE_RECYCLED_BUFFER_NUM;
+    uint32_t nextPass                   = (m_currPass + 1) % CODECHAL_VDENC_BRC_NUM_OF_PASSES;
+    m_resVdencBrcUpdateDmemBufferPtr[0] = &m_resVdencBrcUpdateDmemBuffer[nextRecycledBufIdx][0];
+    if (m_lastTaskInPhase)
+    {
+        // last pass of current frame, no next pass
+        m_resVdencBrcUpdateDmemBufferPtr[1] = nullptr;
+    }
+    else
+    {
+        m_resVdencBrcUpdateDmemBufferPtr[1] = &m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][nextPass];
+    }
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
