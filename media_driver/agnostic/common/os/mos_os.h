@@ -465,6 +465,7 @@ typedef struct _MOS_ALLOC_GFXRES_PARAMS
     int32_t             bBypassMODImpl;
     int32_t             dwMemType;                                              //!< [in] Optional paramerter. Prefer memory type
     MOS_HW_RESOURCE_DEF ResUsageType;                                           //!< [in] the resource usage type to determine the cache policy
+    bool                hardwareProtected;                                      //!< [in] Flag as hint that Resource can be used as hw protected
 } MOS_ALLOC_GFXRES_PARAMS, *PMOS_ALLOC_GFXRES_PARAMS;
 
 //!

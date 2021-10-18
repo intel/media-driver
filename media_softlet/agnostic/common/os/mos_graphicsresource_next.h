@@ -145,6 +145,10 @@ public:
         //! \brief   mos resource usage type, set mocs index
         //!
         MOS_HW_RESOURCE_DEF m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
+        
+        //! \brief   Flag as hint that Resource can be used as hw protected
+        //!
+        bool m_hardwareProtected = false;
 
         //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
@@ -179,6 +183,7 @@ public:
                 m_mocsMosResUsageType = pParams->ResUsageType;
             }
             m_gmmResUsageType = MosInterface::GetGmmResourceUsageType(pParams->ResUsageType);
+            m_hardwareProtected = pParams->hardwareProtected;
         };
 
         CreateParams()
