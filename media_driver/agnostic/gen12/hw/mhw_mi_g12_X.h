@@ -70,6 +70,11 @@ struct MhwMiInterfaceG12 : public MhwMiInterfaceGeneric<mhw_mi_g12_X>
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_BATCH_BUFFER               batchBuffer) override;
 
+    MOS_STATUS AddMiBatchBufferStartWithOcaCmd(
+        PMOS_COMMAND_BUFFER             cmdBuffer,
+        PMHW_BATCH_BUFFER               batchBuffer,
+        std::vector<MOS_SUB_OCA_ENTRY>& ocaEntries);
+
     MOS_STATUS AddMiStoreRegisterMemCmd(
         PMOS_COMMAND_BUFFER                 cmdBuffer,
         PMHW_MI_STORE_REGISTER_MEM_PARAMS   params) override;

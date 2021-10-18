@@ -235,6 +235,24 @@ MOS_STATUS MhwMiInterfaceG12::AddMiBatchBufferStartCmd(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MhwMiInterfaceG12::AddMiBatchBufferStartWithOcaCmd(
+    PMOS_COMMAND_BUFFER                 cmdBuffer,
+    PMHW_BATCH_BUFFER                   batchBuffer,
+    std::vector<MOS_SUB_OCA_ENTRY>&     ocaEntries)
+{
+    MOS_SUB_OCA_ENTRY subOcaEntry = {};
+
+    subOcaEntry.osResource         = &batchBuffer->OsResource;
+    subOcaEntry.offset             = batchBuffer->dwOffset;
+    subOcaEntry.size               = batchBuffer->iSize;
+
+    ocaEntries.push_back(subOcaEntry);
+
+    MHW_MI_CHK_STATUS(AddMiBatchBufferStartCmd(cmdBuffer, batchBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MhwMiInterfaceG12::AddMiConditionalBatchBufferEndCmd(
     PMOS_COMMAND_BUFFER                             cmdBuffer,
     PMHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS     params)
