@@ -94,20 +94,20 @@ VAStatus MediaLibvaInterface::LoadFunction(VADriverContextP ctx)
     pVTable->vaCreateImage                   = CreateImage;
     pVTable->vaDeriveImage                   = DeriveImage;
     pVTable->vaDestroyImage                  = DestroyImage;
-    pVTable->vaSetImagePalette               = SetImagePalette;
+    pVTable->vaSetImagePalette               = MediaLibvaInterfaceNext::SetImagePalette;
     pVTable->vaGetImage                      = GetImage;
     pVTable->vaPutImage                      = PutImage;
-    pVTable->vaQuerySubpictureFormats        = QuerySubpictureFormats;
-    pVTable->vaCreateSubpicture              = CreateSubpicture;
-    pVTable->vaDestroySubpicture             = DestroySubpicture;
-    pVTable->vaSetSubpictureImage            = SetSubpictureImage;
-    pVTable->vaSetSubpictureChromakey        = SetSubpictureChromakey;
-    pVTable->vaSetSubpictureGlobalAlpha      = SetSubpictureGlobalAlpha;
-    pVTable->vaAssociateSubpicture           = AssociateSubpicture;
-    pVTable->vaDeassociateSubpicture         = DeassociateSubpicture;
+    pVTable->vaQuerySubpictureFormats        = MediaLibvaInterfaceNext::QuerySubpictureFormats;
+    pVTable->vaCreateSubpicture              = MediaLibvaInterfaceNext::CreateSubpicture;
+    pVTable->vaDestroySubpicture             = MediaLibvaInterfaceNext::DestroySubpicture;
+    pVTable->vaSetSubpictureImage            = MediaLibvaInterfaceNext::SetSubpictureImage;
+    pVTable->vaSetSubpictureChromakey        = MediaLibvaInterfaceNext::SetSubpictureChromakey;
+    pVTable->vaSetSubpictureGlobalAlpha      = MediaLibvaInterfaceNext::SetSubpictureGlobalAlpha;
+    pVTable->vaAssociateSubpicture           = MediaLibvaInterfaceNext::AssociateSubpicture;
+    pVTable->vaDeassociateSubpicture         = MediaLibvaInterfaceNext::DeassociateSubpicture;
     pVTable->vaQueryDisplayAttributes        = QueryDisplayAttributes;
     pVTable->vaGetDisplayAttributes          = GetDisplayAttributes;
-    pVTable->vaSetDisplayAttributes          = SetDisplayAttributes;
+    pVTable->vaSetDisplayAttributes          = MediaLibvaInterfaceNext::SetDisplayAttributes;
     pVTable->vaQueryProcessingRate           = QueryProcessingRate;
 #if VA_CHECK_VERSION(1,10,0)
     pVTable->vaCopy                          = Copy;
@@ -477,14 +477,6 @@ VAStatus MediaLibvaInterface::DestroyImage(
     return DdiMedia_DestroyImage(ctx, image);
 }
 
-VAStatus MediaLibvaInterface::SetImagePalette(
-    VADriverContextP  ctx,
-    VAImageID         image,
-    unsigned char     *palette)
-{
-    return DdiMedia_SetImagePalette(ctx, image, palette);
-}
-
 VAStatus MediaLibvaInterface::GetImage(
     VADriverContextP  ctx,
     VASurfaceID       surface,
@@ -514,85 +506,6 @@ VAStatus MediaLibvaInterface::PutImage(
         dest_x, dest_y, dest_width, dest_height);
 }
 
-VAStatus MediaLibvaInterface::QuerySubpictureFormats(
-    VADriverContextP  ctx,
-    VAImageFormat     *format_list,
-    uint32_t          *flags,
-    uint32_t          *num_formats)
-{
-    return DdiMedia_QuerySubpictureFormats(ctx, format_list, flags, num_formats);
-}
-
-VAStatus MediaLibvaInterface::CreateSubpicture(
-    VADriverContextP  ctx,
-    VAImageID         image,
-    VASubpictureID    *subpicture)
-{
-    return DdiMedia_CreateSubpicture(ctx, image, subpicture);
-}
-
-VAStatus MediaLibvaInterface::DestroySubpicture(
-    VADriverContextP  ctx,
-    VASubpictureID    subpicture)
-{
-    return DdiMedia_DestroySubpicture(ctx, subpicture);
-}
-
-VAStatus MediaLibvaInterface::SetSubpictureImage(
-    VADriverContextP  ctx,
-    VASubpictureID    subpicture,
-    VAImageID         image)
-{
-    return DdiMedia_SetSubpictureImage(ctx, subpicture, image);
-}
-
-VAStatus MediaLibvaInterface::SetSubpictureChromakey(
-    VADriverContextP  ctx,
-    VASubpictureID    subpicture,
-    uint32_t          chromakey_min,
-    uint32_t          chromakey_max,
-    uint32_t          chromakey_mask)
-{
-    return DdiMedia_SetSubpictureChromakey(ctx, subpicture, chromakey_min, chromakey_max,
-        chromakey_mask);
-}
-
-VAStatus MediaLibvaInterface::SetSubpictureGlobalAlpha(
-    VADriverContextP ctx,
-    VASubpictureID   subpicture,
-    float            global_alpha)
-{
-    return DdiMedia_SetSubpictureGlobalAlpha(ctx, subpicture, global_alpha);
-}
-
-VAStatus MediaLibvaInterface::AssociateSubpicture(
-    VADriverContextP  ctx,
-    VASubpictureID    subpicture,
-    VASurfaceID       *target_surfaces,
-    int32_t           num_surfaces,
-    int16_t           src_x,
-    int16_t           src_y,
-    uint16_t          src_width,
-    uint16_t          src_height,
-    int16_t           dest_x,
-    int16_t           dest_y,
-    uint16_t          dest_width,
-    uint16_t          dest_height,
-    uint32_t          flags)
-{
-    return DdiMedia_AssociateSubpicture(ctx, subpicture, target_surfaces, num_surfaces,
-        src_x, src_y, src_width, src_height, dest_x, dest_y, dest_width, dest_height, flags);
-}
-
-VAStatus MediaLibvaInterface::DeassociateSubpicture(
-    VADriverContextP  ctx,
-    VASubpictureID    subpicture,
-    VASurfaceID       *target_surfaces,
-    int32_t           num_surfaces)
-{
-    return DdiMedia_DeassociateSubpicture(ctx, subpicture, target_surfaces, num_surfaces);
-}
-
 VAStatus MediaLibvaInterface::QueryDisplayAttributes(
     VADriverContextP    ctx,
     VADisplayAttribute  *attr_list,
@@ -607,14 +520,6 @@ VAStatus MediaLibvaInterface::GetDisplayAttributes(
     int32_t             num_attributes)
 {
     return DdiMedia_GetDisplayAttributes(ctx, attr_list, num_attributes);
-}
-
-VAStatus MediaLibvaInterface::SetDisplayAttributes(
-    VADriverContextP    ctx,
-    VADisplayAttribute  *attr_list,
-    int32_t             num_attributes)
-{
-    return DdiMedia_SetDisplayAttributes(ctx, attr_list, num_attributes);
 }
 
 VAStatus MediaLibvaInterface::QueryProcessingRate(

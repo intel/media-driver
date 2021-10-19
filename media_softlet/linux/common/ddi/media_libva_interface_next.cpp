@@ -1438,6 +1438,171 @@ VAStatus MediaLibvaInterfaceNext::QueryImageFormats(
     return mediaCtx->m_capsNext->QueryImageFormats(formatList, formatsNum);
 }
 
+VAStatus MediaLibvaInterfaceNext::SetImagePalette(
+    VADriverContextP ctx,
+    VAImageID        image,
+    unsigned char   *palette)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(image);
+    DDI_UNUSED(palette);
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::QuerySubpictureFormats(
+    VADriverContextP ctx,
+    VAImageFormat   *format_list,
+    uint32_t        *flags,
+    uint32_t        *num_formats)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(format_list);
+    DDI_UNUSED(flags);
+    DDI_UNUSED(num_formats);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus MediaLibvaInterfaceNext::CreateSubpicture(
+    VADriverContextP ctx,
+    VAImageID        image,
+    VASubpictureID  *subpicture)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(image);
+    DDI_UNUSED(subpicture);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::DestroySubpicture(
+    VADriverContextP ctx,
+    VASubpictureID   subpicture)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(subpicture);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::SetSubpictureImage(
+    VADriverContextP ctx,
+    VASubpictureID   subpicture,
+    VAImageID        image)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(subpicture);
+    DDI_UNUSED(image);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::SetSubpictureChromakey(
+    VADriverContextP ctx,
+    VASubpictureID   subpicture,
+    uint32_t         chromakey_min,
+    uint32_t         chromakey_max,
+    uint32_t         chromakey_mask)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(subpicture);
+    DDI_UNUSED(chromakey_min);
+    DDI_UNUSED(chromakey_max);
+    DDI_UNUSED(chromakey_mask);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::SetSubpictureGlobalAlpha(
+    VADriverContextP ctx,
+    VASubpictureID   subpicture,
+    float            global_alpha)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(subpicture);
+    DDI_UNUSED(global_alpha);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::AssociateSubpicture(
+    VADriverContextP ctx,
+    VASubpictureID   subpicture,
+    VASurfaceID     *target_surfaces,
+    int32_t          num_surfaces,
+    int16_t          src_x,
+    int16_t          src_y,
+    uint16_t         src_width,
+    uint16_t         src_height,
+    int16_t          dest_x,
+    int16_t          dest_y,
+    uint16_t         dest_width,
+    uint16_t         dest_height,
+    uint32_t         flags)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(subpicture);
+    DDI_UNUSED(target_surfaces);
+    DDI_UNUSED(num_surfaces);
+    DDI_UNUSED(src_x);
+    DDI_UNUSED(src_y);
+    DDI_UNUSED(src_width);
+    DDI_UNUSED(src_height);
+    DDI_UNUSED(dest_x);
+    DDI_UNUSED(dest_y);
+    DDI_UNUSED(dest_width);
+    DDI_UNUSED(dest_height);
+    DDI_UNUSED(flags);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::DeassociateSubpicture(
+    VADriverContextP ctx,
+    VASubpictureID   subpicture,
+    VASurfaceID     *target_surfaces,
+    int32_t          num_surfaces)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(subpicture);
+    DDI_UNUSED(target_surfaces);
+    DDI_UNUSED(num_surfaces);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
+VAStatus MediaLibvaInterfaceNext::SetDisplayAttributes(
+    VADriverContextP    ctx,
+    VADisplayAttribute *attr_list,
+    int32_t             num_attributes)
+{
+    DDI_UNUSED(ctx);
+    DDI_UNUSED(attr_list);
+    DDI_UNUSED(num_attributes);
+
+    DDI_FUNCTION_ENTER();
+
+    return VA_STATUS_ERROR_UNIMPLEMENTED;
+}
+
 CompType MediaLibvaInterfaceNext::MapCompTypeFromEntrypoint(VAEntrypoint entrypoint)
 {
     DDI_FUNCTION_ENTER();
