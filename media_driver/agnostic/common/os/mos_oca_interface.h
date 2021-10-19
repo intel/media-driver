@@ -43,6 +43,13 @@ typedef struct _MOS_OCA_LOG_HEADER
     uint32_t    m_DataSize;         //!< The size of data block without message header.
 }MOS_OCA_LOG_HEADER, *PMOS_OCA_LOG_HEADER;
 
+typedef struct _MOS_SUB_OCA_ENTRY
+{
+    PMOS_RESOURCE   osResource;
+    uint32_t        offset;
+    uint32_t        size;
+} MOS_SUB_OCA_ENTRY;
+
 class MosOcaInterface
 {
 public:
