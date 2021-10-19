@@ -1055,8 +1055,11 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcInitReset()
 
     SetDmemHuCBrcInitResetImpl<BrcInitDmem>(hucVDEncBrcInitDmem);
 
-    // fractional QP enable for extended rho domain
+    // enable fractional QP by extended rho domain setting
     hucVDEncBrcInitDmem->INIT_FracQPEnable_U8 = (uint8_t)m_vdencInterface->IsRhoDomainStatsEnabled();
+    // enable fractional QP for TCBRC
+    if ((m_avcPicParam->TargetFrameSize > 0) && (m_lookaheadDepth == 0))
+        hucVDEncBrcInitDmem->INIT_FracQPEnable_U8 = 1;
 
     hucVDEncBrcInitDmem->INIT_SinglePassOnly = m_vdencSinglePassEnable ? true : false;
 
