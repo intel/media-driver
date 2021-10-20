@@ -87,6 +87,14 @@ public:
         MHW_STATE_HEAP_TYPE    stateHeapType,
         PMHW_KERNEL_STATE      kernelState);
 
+    virtual MOS_STATUS DumpRgbDataOnYUVSurface(
+        PMOS_SURFACE           surface,
+        const char *           attrName,
+        const char *           surfName,
+        MEDIA_DEBUG_STATE_TYPE mediaState = CODECHAL_NUM_MEDIA_STATES,
+        uint32_t               width_in   = 0,
+        uint32_t               height_in  = 0);
+
     virtual MOS_STATUS DumpYUVSurface(
         PMOS_SURFACE           surface,
         const char *           attrName,

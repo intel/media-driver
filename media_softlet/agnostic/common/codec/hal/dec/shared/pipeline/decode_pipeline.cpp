@@ -418,6 +418,18 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
                 DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&sfcDstSurface));
                 DECODE_CHK_STATUS(m_debugInterface->DumpYUVSurface(
                     &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstSurf"));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+                //rgb format read from reg key
+                uint32_t sfcOutputRgbFormatFlag =
+                    ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_DECODE_SFC_RGBFORMAT_OUTPUT_DEBUG_ID, m_osInterface->pOsContext).u32Data;
+
+                if (sfcOutputRgbFormatFlag)
+                {
+                    DECODE_CHK_STATUS(m_debugInterface->DumpRgbDataOnYUVSurface(
+                        &sfcDstSurface, CodechalDbgAttr::attrSfcOutputSurface, "SfcDstRgbSurf"));
+                }
+#endif
             }
         }
 

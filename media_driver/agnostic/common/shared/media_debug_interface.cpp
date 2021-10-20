@@ -896,6 +896,17 @@ MOS_STATUS MediaDebugInterface::DumpKernelRegion(
     }
 }
 
+MOS_STATUS MediaDebugInterface::DumpRgbDataOnYUVSurface(
+    PMOS_SURFACE           surface,
+    const char *           attrName,
+    const char *           surfName,
+    MEDIA_DEBUG_STATE_TYPE mediaState,
+    uint32_t               width_in,
+    uint32_t               height_in)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MediaDebugInterface::DumpYUVSurface(
     PMOS_SURFACE           surface,
     const char *           attrName,
