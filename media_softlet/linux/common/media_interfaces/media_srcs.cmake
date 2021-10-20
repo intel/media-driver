@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Intel Corporation
+# Copyright (c) 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,10 +18,16 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(os)
-media_include_subdirectory(cp)
-media_include_subdirectory(vp)
-media_include_subdirectory(ddi)
-media_include_subdirectory(dec)
-media_include_subdirectory(enc)
-media_include_subdirectory(media_interfaces)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_next.cpp
+)
+
+set(TMP_HEADERS_ "")
+
+
+set(SOURCES_
+    ${SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+#media_add_curr_to_include_path()

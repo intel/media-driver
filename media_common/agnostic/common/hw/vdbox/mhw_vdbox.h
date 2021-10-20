@@ -525,6 +525,7 @@ struct MHW_VDBOX_STATE_CMDSIZE_PARAMS
     bool       bShortFormat = false;
     bool       bHucDummyStream = false;
     bool       bSfcInUse = false;
+    bool       bDecodeInUse = false;
     uint32_t   uNumStoreDataImm = 0;
     uint32_t   uNumStoreReg = 0;
     uint32_t   uNumMfxWait = 0;
