@@ -67,6 +67,7 @@ namespace decode
             m_firstTileInTg     = 0;
             m_tileGroupId       = -1;
             m_isTruncatedTile   = false;
+            m_decPassNum        = 1;
         }
 
         if (m_numTiles > av1MaxTileNum)
@@ -259,27 +260,28 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    uint16_t Av1DecodeTile::CalcNumPass(const CodecAv1PicParams &picParams, CodecAv1TileParams *tileParams)
+    MOS_STATUS Av1DecodeTile::CalcNumPass(const CodecAv1PicParams &picParams, CodecAv1TileParams *tileParams)
     {
         DECODE_FUNC_CALL();
 
-        uint16_t m_passNum;
+        uint16_t passNum;
         uint16_t startTile = m_lastTileId + 1;//record before parsing new bitstream portion
 
         DECODE_CHK_STATUS(ParseTileInfo(picParams, tileParams));
 
         if (picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
         {
-            m_passNum = picParams.m_tileCountMinus1 + 1;
+            passNum   = picParams.m_tileCountMinus1 + 1;
             m_curTile = 0;
         }
         else
         {
-            m_passNum = m_lastTileId - startTile + 1;
+            passNum   = m_lastTileId - startTile + 1;
             m_curTile = startTile;
         }
 
-        return m_passNum;
+        m_decPassNum = passNum;
+        return MOS_STATUS_SUCCESS;
     }
 
     void Av1DecodeTile::GetUpscaleConvolveStepX0(const CodecAv1PicParams &picParams, bool isChroma)
