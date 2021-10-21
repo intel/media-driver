@@ -140,6 +140,10 @@ struct CodecEncodeJpegScanHeader
     uint8_t      m_dcCodingTblSelector[4];      //!< DC coding table selector
     uint8_t      m_acCodingTblSelector[4];      //!< AC coding table selector
 
+    uint32_t     FirstDCTCoeff;
+    uint32_t     LastDCTCoeff;
+    uint32_t     Ah;
+    uint32_t     Al;
 };
 
 // matrix required to read in the quantization matrix

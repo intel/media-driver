@@ -100,7 +100,7 @@ struct EncoderParams
     bool                            bNewVuiData;                //!< [AVC & MPEG2] Indicates that pVuiParams is present and expected to be valid.
     bool                            bJpegQuantMatrixSent;       //!< [JPEG] Indicates whether a quant matrix was sent by the framework.
     PBSBuffer                       pBSBuffer;                  //!< Packed header data provided by the framework to be inserted in the bitstream.
-    PCODECHAL_NAL_UNIT_PARAMS       *ppNALUnitParams;           //!< Information about the packed header data in pBSBuffer.
+    PCODECHAL_NAL_UNIT_PARAMS       *ppNALUnitParams = nullptr; //!< Information about the packed header data in pBSBuffer.
     uint32_t                        uiNumNalUnits;              //!< Number of NAL units in ppNALUnitParams.
     void                            *pSlcHeaderData;            //!< [AVC, HEVC, & MPEG2] Packed slice header data provided by the framework.
     bool                            bAcceleratorHeaderPackingCaps;  //!< [AVC] Indicates whether or not the driver is packing the slice headers.
