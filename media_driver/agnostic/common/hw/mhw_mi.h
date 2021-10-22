@@ -406,25 +406,6 @@ public:
         PMHW_BATCH_BUFFER               batchBuffer) = 0;
 
     //!
-    //! \brief    Adds MI_BATCH_BUFFER_START to the command buffer
-    //! \param    [in] cmdBuffer
-    //!           Command buffer to which requested command is added
-    //! \param    [in] batchBuffer
-    //!           Batch buffer to refer to in MI_BATCH_BUFFER_START
-    //! \param    [in] ocaEntries
-    //!           ocaEntries to which oca entry is added
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS AddMiBatchBufferStartWithOcaCmd(
-        PMOS_COMMAND_BUFFER                 cmdBuffer,
-        PMHW_BATCH_BUFFER                   batchBuffer,
-        std::vector<MOS_SUB_OCA_ENTRY>&     ocaEntries)
-    {
-        return MOS_STATUS_SUCCESS;
-    };
-
-    //!
     //! \brief    Adds MI_STORE_DATA_IMM to the command buffer
     //! \param    [in] cmdBuffer
     //!           Command buffer to which requested command is added
