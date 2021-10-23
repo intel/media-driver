@@ -151,6 +151,7 @@ struct mos_bufmgr_gem {
     unsigned int has_vebox : 1;
     unsigned int has_ext_mmap : 1;
     unsigned int has_fence_reg : 1;
+    unsigned int has_lmem : 1;
     bool fenced_relocs;
 
     struct {
@@ -319,6 +320,11 @@ struct mos_bo_gem {
      *
      */
     uint64_t pad_to_size;
+
+    /**
+     * Memory Type on created the surfaces for local/system memory
+     */
+    int mem_region;
 };
 
 static unsigned int
@@ -330,6 +336,10 @@ mos_gem_compute_batch_space(struct mos_linux_bo ** bo_array, int count);
 static int
 mos_gem_bo_get_tiling(struct mos_linux_bo *bo, uint32_t * tiling_mode,
                 uint32_t * swizzle_mode);
+
+static int
+mos_gem_bo_check_mem_region_internal(struct mos_linux_bo *bo,
+                     int mem_type);
 
 static int
 mos_gem_bo_set_tiling_internal(struct mos_linux_bo *bo,
@@ -829,6 +839,80 @@ mos_gem_bo_cache_purge_bucket(struct mos_bufmgr_gem *bufmgr_gem,
     }
 }
 
+static int
+mos_gem_query_items(int fd, struct drm_i915_query_item *items, uint32_t n_items)
+{
+    struct drm_i915_query q;
+
+    memclear(q);
+    q.num_items = n_items;
+    q.items_ptr = (uintptr_t)items;
+
+    return drmIoctl(fd, DRM_IOCTL_I915_QUERY, &q);
+}
+
+/**
+ * query mechanism for memory regions.
+ */
+static struct drm_i915_query_memory_regions *mos_gem_get_query_memory_regions(int fd)
+{
+    int ret;
+    struct drm_i915_query_item item;
+    struct drm_i915_query_memory_regions *query_info;
+
+    memclear(item);
+    item.query_id = DRM_I915_QUERY_MEMORY_REGIONS;
+    ret = mos_gem_query_items(fd, &item, 1);
+    if (ret != 0 || item.length <= 0)
+        return NULL;
+
+    query_info = (drm_i915_query_memory_regions*)calloc(1, item.length);
+
+    item.data_ptr = (uintptr_t)query_info;
+    ret = mos_gem_query_items(fd, &item, 1);
+    if (ret != 0) {
+        free(query_info);
+        return NULL;
+    }
+
+    return query_info;
+}
+
+/**
+ * check how many lmem regions are available on device.
+ */
+static uint8_t mos_gem_get_lmem_region_count(int fd)
+{
+    struct drm_i915_query_memory_regions *query_info;
+    uint8_t num_regions = 0;
+    uint8_t lmem_regions = 0;
+
+    query_info = mos_gem_get_query_memory_regions(fd);
+
+    if(query_info)
+    {
+        num_regions = query_info->num_regions;
+
+        for (int i = 0; i < num_regions; i++) {
+            if (query_info->regions[i].region.memory_class == I915_MEMORY_CLASS_DEVICE)
+            {
+                lmem_regions += 1;
+            }
+        }
+        free(query_info);
+    }
+
+    return lmem_regions;
+}
+
+/**
+ * check if lmem is available on device.
+ */
+static bool mos_gem_has_lmem(int fd)
+{
+    return mos_gem_get_lmem_region_count(fd) > 0;
+}
+
 static enum mos_memory_zone
 mos_gem_bo_memzone_for_address(uint64_t address)
 {
@@ -958,27 +1042,58 @@ retry:
                 mos_gem_bo_free(&bo_gem->bo);
                 goto retry;
             }
+            if (bufmgr_gem->has_lmem && mos_gem_bo_check_mem_region_internal(&bo_gem->bo, mem_type)) {
+                mos_gem_bo_free(&bo_gem->bo);
+                goto retry;
+            }
         }
     }
     pthread_mutex_unlock(&bufmgr_gem->lock);
 
     if (!alloc_from_cache) {
-        struct drm_i915_gem_create create;
 
         bo_gem = (struct mos_bo_gem *)calloc(1, sizeof(*bo_gem));
         if (!bo_gem)
             return nullptr;
 
         bo_gem->bo.size = bo_size;
+        bo_gem->mem_region = I915_MEMORY_CLASS_SYSTEM;
 
-        memclear(create);
-        create.size = bo_size;
+        if(bufmgr_gem->has_lmem &&
+            (mem_type == MOS_MEMPOOL_VIDEOMEMORY || mem_type == MOS_MEMPOOL_DEVICEMEMORY)) {
+            struct drm_i915_gem_memory_class_instance mem_region;
+            memclear(mem_region);
+            mem_region.memory_class = I915_MEMORY_CLASS_DEVICE;
+            mem_region.memory_instance = 0;
 
-        ret = drmIoctl(bufmgr_gem->fd,
+            struct drm_i915_gem_create_ext_memory_regions regions;
+            memclear(regions);
+            regions.base.name = I915_GEM_CREATE_EXT_MEMORY_REGIONS;
+            regions.num_regions = 1;
+            regions.regions = (uintptr_t)(&mem_region);
+
+            struct drm_i915_gem_create_ext create;
+            memclear(create);
+            create.size = bo_size;
+            create.extensions = (uintptr_t)(&regions);
+
+            ret = drmIoctl(bufmgr_gem->fd,
+                    DRM_IOCTL_I915_GEM_CREATE_EXT,
+                    &create);
+            bo_gem->gem_handle = create.handle;
+            bo_gem->bo.handle = bo_gem->gem_handle;
+            bo_gem->mem_region = I915_MEMORY_CLASS_DEVICE;
+        }
+        else {
+            struct drm_i915_gem_create create;
+            memclear(create);
+            create.size = bo_size;
+            ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_CREATE,
                    &create);
-        bo_gem->gem_handle = create.handle;
-        bo_gem->bo.handle = bo_gem->gem_handle;
+            bo_gem->gem_handle = create.handle;
+            bo_gem->bo.handle = bo_gem->gem_handle;
+        }
         if (ret != 0) {
             free(bo_gem);
             return nullptr;
@@ -1562,7 +1677,41 @@ map_wc(struct mos_linux_bo *bo)
         return -EINVAL;
 
     /* Get a mapping of the buffer if we haven't before. */
-    if (bo_gem->mem_wc_virtual == nullptr) {
+    if (bo_gem->mem_wc_virtual == nullptr && bufmgr_gem->has_lmem) {
+        struct drm_i915_gem_mmap_offset mmap_arg;
+
+        MOS_DBG("bo_map_wc: mmap_offset %d (%s), map_count=%d\n",
+            bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+
+        memclear(mmap_arg);
+        mmap_arg.handle = bo_gem->gem_handle;
+        /* To indicate the uncached virtual mapping to KMD */
+        mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+        ret = drmIoctl(bufmgr_gem->fd,
+                   DRM_IOCTL_I915_GEM_MMAP_OFFSET,
+                   &mmap_arg);
+        if (ret != 0) {
+            ret = -errno;
+            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                __FILE__, __LINE__, bo_gem->gem_handle,
+                bo_gem->name, strerror(errno));
+            return ret;
+        }
+
+        /* and mmap it */
+        bo_gem->mem_wc_virtual = drm_mmap(0, bo->size, PROT_READ | PROT_WRITE,
+                           MAP_SHARED, bufmgr_gem->fd,
+                           mmap_arg.offset);
+        if (bo_gem->mem_wc_virtual == MAP_FAILED) {
+            bo_gem->mem_wc_virtual = nullptr;
+            ret = -errno;
+            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                __FILE__, __LINE__,
+                bo_gem->gem_handle, bo_gem->name,
+                strerror(errno));
+        }
+    }
+    else if (bo_gem->mem_wc_virtual == nullptr) {
         struct drm_i915_gem_mmap mmap_arg;
 
         MOS_DBG("bo_map_wc: mmap %d (%s), map_count=%d\n",
@@ -1604,6 +1753,7 @@ mos_gem_bo_map_wc(struct mos_linux_bo *bo) {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     struct drm_i915_gem_set_domain set_domain;
+    struct drm_i915_gem_wait wait;
     int ret;
 
     pthread_mutex_lock(&bufmgr_gem->lock);
@@ -1614,26 +1764,39 @@ mos_gem_bo_map_wc(struct mos_linux_bo *bo) {
         return ret;
     }
 
-    /* Now move it to the GTT domain so that the GPU and CPU
-     * caches are flushed and the GPU isn't actively using the
-     * buffer.
-     *
-     * The domain change is done even for the objects which
-     * are not bounded. For them first the pages are acquired,
-     * before the domain change.
-     */
-    memclear(set_domain);
-    set_domain.handle = bo_gem->gem_handle;
-    set_domain.read_domains = I915_GEM_DOMAIN_GTT;
-    set_domain.write_domain = I915_GEM_DOMAIN_GTT;
-    ret = drmIoctl(bufmgr_gem->fd,
+    if (bufmgr_gem->has_lmem) {
+        assert(bufmgr_gem->has_wait_timeout);
+        memclear(wait);
+        wait.bo_handle = bo_gem->gem_handle;
+        wait.timeout_ns = -1; // infinite wait
+        ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_WAIT, &wait);
+        if (ret == -1) {
+            MOS_DBG("%s:%d: DRM_IOCTL_I915_GEM_WAIT failed (%d)\n",
+                __FILE__, __LINE__, errno);
+        }
+    } else {
+        /* Now move it to the GTT domain so that the GPU and CPU
+         * caches are flushed and the GPU isn't actively using the
+         * buffer.
+         *
+         * The domain change is done even for the objects which
+         * are not bounded. For them first the pages are acquired,
+         * before the domain change.
+         */
+        memclear(set_domain);
+        set_domain.handle = bo_gem->gem_handle;
+        set_domain.read_domains = I915_GEM_DOMAIN_GTT;
+        set_domain.write_domain = I915_GEM_DOMAIN_GTT;
+        ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_SET_DOMAIN,
                &set_domain);
-    if (ret != 0) {
-        MOS_DBG("%s:%d: Error setting domain %d: %s\n",
-            __FILE__, __LINE__, bo_gem->gem_handle,
-            strerror(errno));
+        if (ret != 0) {
+            MOS_DBG("%s:%d: Error setting domain %d: %s\n",
+                __FILE__, __LINE__, bo_gem->gem_handle,
+                strerror(errno));
+        }
     }
+
     mos_gem_bo_mark_mmaps_incoherent(bo);
     VG(VALGRIND_MAKE_MEM_DEFINED(bo_gem->mem_wc_virtual, bo->size));
     pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -1666,7 +1829,6 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
-    struct drm_i915_gem_set_domain set_domain;
     int ret;
 
     if (bo_gem->is_userptr) {
@@ -1681,28 +1843,95 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 
     pthread_mutex_lock(&bufmgr_gem->lock);
 
-    if (!bo_gem->mem_virtual) {
-        struct drm_i915_gem_mmap mmap_arg;
+    if (bufmgr_gem->has_lmem) {
+        struct drm_i915_gem_wait wait;
 
-        MOS_DBG("bo_map: %d (%s), map_count=%d\n",
-            bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+        if (!bo_gem->mem_virtual) {
+            struct drm_i915_gem_mmap_offset mmap_arg;
 
-        memclear(mmap_arg);
-        mmap_arg.handle = bo_gem->gem_handle;
-        mmap_arg.size = bo->size;
-        ret = drmIoctl(bufmgr_gem->fd,
-                   DRM_IOCTL_I915_GEM_MMAP,
+            MOS_DBG("bo_map: %d (%s), map_count=%d\n",
+                bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+
+            memclear(mmap_arg);
+            mmap_arg.handle = bo_gem->gem_handle;
+            mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+            ret = drmIoctl(bufmgr_gem->fd,
+                   DRM_IOCTL_I915_GEM_MMAP_OFFSET,
                    &mmap_arg);
-        if (ret != 0) {
-            ret = -errno;
-            MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
-                __FILE__, __LINE__, bo_gem->gem_handle,
-                bo_gem->name, strerror(errno));
-            pthread_mutex_unlock(&bufmgr_gem->lock);
-            return ret;
+            if (ret != 0) {
+                ret = -errno;
+                MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                    __FILE__, __LINE__, bo_gem->gem_handle,
+                    bo_gem->name, strerror(errno));
+                pthread_mutex_unlock(&bufmgr_gem->lock);
+                return ret;
+            }
+
+            /* and mmap it */
+            bo_gem->mem_virtual = drm_mmap(0, bo->size, PROT_READ | PROT_WRITE,
+                MAP_SHARED, bufmgr_gem->fd,
+                mmap_arg.offset);
+            if (bo_gem->mem_virtual == MAP_FAILED) {
+                bo_gem->mem_virtual = nullptr;
+                ret = -errno;
+                MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                    __FILE__, __LINE__,
+                    bo_gem->gem_handle, bo_gem->name,
+                    strerror(errno));
+            }
         }
-        VG(VALGRIND_MALLOCLIKE_BLOCK(mmap_arg.addr_ptr, mmap_arg.size, 0, 1));
-        bo_gem->mem_virtual = (void *)(uintptr_t) mmap_arg.addr_ptr;
+
+        assert(bufmgr_gem->has_wait_timeout);
+        memclear(wait);
+        wait.bo_handle = bo_gem->gem_handle;
+        wait.timeout_ns = -1; // infinite wait
+        ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_WAIT, &wait);
+        if (ret == -1) {
+            MOS_DBG("%s:%d: DRM_IOCTL_I915_GEM_WAIT failed (%d)\n",
+                __FILE__, __LINE__, errno);
+        }
+    } else { /*!has_lmem*/
+        struct drm_i915_gem_set_domain set_domain;
+
+        if (!bo_gem->mem_virtual) {
+            struct drm_i915_gem_mmap mmap_arg;
+
+            MOS_DBG("bo_map: %d (%s), map_count=%d\n",
+                bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+
+            memclear(mmap_arg);
+            mmap_arg.handle = bo_gem->gem_handle;
+            mmap_arg.size = bo->size;
+            ret = drmIoctl(bufmgr_gem->fd,
+                DRM_IOCTL_I915_GEM_MMAP,
+                &mmap_arg);
+            if (ret != 0) {
+                ret = -errno;
+                MOS_DBG("%s:%d: Error mapping buffer %d (%s): %s .\n",
+                    __FILE__, __LINE__, bo_gem->gem_handle,
+                    bo_gem->name, strerror(errno));
+                pthread_mutex_unlock(&bufmgr_gem->lock);
+                return ret;
+            }
+            VG(VALGRIND_MALLOCLIKE_BLOCK(mmap_arg.addr_ptr, mmap_arg.size, 0, 1));
+            bo_gem->mem_virtual = (void *)(uintptr_t) mmap_arg.addr_ptr;
+        }
+
+        memclear(set_domain);
+        set_domain.handle = bo_gem->gem_handle;
+        set_domain.read_domains = I915_GEM_DOMAIN_CPU;
+        if (write_enable)
+            set_domain.write_domain = I915_GEM_DOMAIN_CPU;
+        else
+            set_domain.write_domain = 0;
+        ret = drmIoctl(bufmgr_gem->fd,
+            DRM_IOCTL_I915_GEM_SET_DOMAIN,
+            &set_domain);
+        if (ret != 0) {
+            MOS_DBG("%s:%d: Error setting to CPU domain %d: %s\n",
+            __FILE__, __LINE__, bo_gem->gem_handle,
+            strerror(errno));
+        }
     }
     MOS_DBG("bo_map: %d (%s) -> %p\n", bo_gem->gem_handle, bo_gem->name,
         bo_gem->mem_virtual);
@@ -1711,22 +1940,6 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 #else
     bo->virtual = bo_gem->mem_virtual;
 #endif
-
-    memclear(set_domain);
-    set_domain.handle = bo_gem->gem_handle;
-    set_domain.read_domains = I915_GEM_DOMAIN_CPU;
-    if (write_enable)
-        set_domain.write_domain = I915_GEM_DOMAIN_CPU;
-    else
-        set_domain.write_domain = 0;
-    ret = drmIoctl(bufmgr_gem->fd,
-               DRM_IOCTL_I915_GEM_SET_DOMAIN,
-               &set_domain);
-    if (ret != 0) {
-        MOS_DBG("%s:%d: Error setting to CPU domain %d: %s\n",
-            __FILE__, __LINE__, bo_gem->gem_handle,
-            strerror(errno));
-    }
 
     if (write_enable)
         bo_gem->mapped_cpu_write = true;
@@ -1750,18 +1963,39 @@ map_gtt(struct mos_linux_bo *bo)
 
     /* Get a mapping of the buffer if we haven't before. */
     if (bo_gem->gtt_virtual == nullptr) {
-        struct drm_i915_gem_mmap_gtt mmap_arg;
+        __u64 offset = 0;
+        if (bufmgr_gem->has_lmem) {
+            struct drm_i915_gem_mmap_offset mmap_arg;
 
-        MOS_DBG("bo_map_gtt: mmap %d (%s), map_count=%d\n",
-            bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+            MOS_DBG("map_gtt: mmap_offset %d (%s), map_count=%d\n",
+                bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
 
-        memclear(mmap_arg);
-        mmap_arg.handle = bo_gem->gem_handle;
+            memclear(mmap_arg);
+            mmap_arg.handle = bo_gem->gem_handle;
+            mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
 
-        /* Get the fake offset back... */
-        ret = drmIoctl(bufmgr_gem->fd,
+            /* Get the fake offset back... */
+            ret = drmIoctl(bufmgr_gem->fd,
+                       DRM_IOCTL_I915_GEM_MMAP_OFFSET,
+                       &mmap_arg);
+            offset = mmap_arg.offset;
+        }
+        else
+        {
+            struct drm_i915_gem_mmap_gtt mmap_arg;
+
+            MOS_DBG("bo_map_gtt: mmap %d (%s), map_count=%d\n",
+                bo_gem->gem_handle, bo_gem->name, bo_gem->map_count);
+
+            memclear(mmap_arg);
+            mmap_arg.handle = bo_gem->gem_handle;
+
+           /* Get the fake offset back... */
+            ret = drmIoctl(bufmgr_gem->fd,
                    DRM_IOCTL_I915_GEM_MMAP_GTT,
                    &mmap_arg);
+            offset = mmap_arg.offset;
+        }
         if (ret != 0) {
             ret = -errno;
             MOS_DBG("%s:%d: Error preparing buffer map %d (%s): %s .\n",
@@ -1774,7 +2008,7 @@ map_gtt(struct mos_linux_bo *bo)
         /* and mmap it */
         bo_gem->gtt_virtual = drm_mmap(0, bo->size, PROT_READ | PROT_WRITE,
                            MAP_SHARED, bufmgr_gem->fd,
-                           mmap_arg.offset);
+                           offset);
         if (bo_gem->gtt_virtual == MAP_FAILED) {
             bo_gem->gtt_virtual = nullptr;
             ret = -errno;
@@ -1803,6 +2037,7 @@ mos_gem_bo_map_gtt(struct mos_linux_bo *bo)
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     struct drm_i915_gem_set_domain set_domain;
+    struct drm_i915_gem_wait wait;
     int ret;
 
     pthread_mutex_lock(&bufmgr_gem->lock);
@@ -1813,28 +2048,39 @@ mos_gem_bo_map_gtt(struct mos_linux_bo *bo)
         return ret;
     }
 
-    /* Now move it to the GTT domain so that the GPU and CPU
-     * caches are flushed and the GPU isn't actively using the
-     * buffer.
-     *
-     * The pagefault handler does this domain change for us when
-     * it has unbound the BO from the GTT, but it's up to us to
-     * tell it when we're about to use things if we had done
-     * rendering and it still happens to be bound to the GTT.
-     */
-    memclear(set_domain);
-    set_domain.handle = bo_gem->gem_handle;
-    set_domain.read_domains = I915_GEM_DOMAIN_GTT;
-    set_domain.write_domain = I915_GEM_DOMAIN_GTT;
-    ret = drmIoctl(bufmgr_gem->fd,
+    if (bufmgr_gem->has_lmem) {
+        assert(bufmgr_gem->has_wait_timeout);
+        memclear(wait);
+        wait.bo_handle = bo_gem->gem_handle;
+        wait.timeout_ns = -1; // infinite wait
+        ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_WAIT, &wait);
+        if (ret == -1) {
+            MOS_DBG("%s:%d: DRM_IOCTL_I915_GEM_WAIT failed (%d)\n",
+                __FILE__, __LINE__, errno);
+        }
+    } else {
+        /* Now move it to the GTT domain so that the GPU and CPU
+         * caches are flushed and the GPU isn't actively using the
+         * buffer.
+         *
+         * The pagefault handler does this domain change for us when
+         * it has unbound the BO from the GTT, but it's up to us to
+         * tell it when we're about to use things if we had done
+         * rendering and it still happens to be bound to the GTT.
+         */
+        memclear(set_domain);
+        set_domain.handle = bo_gem->gem_handle;
+        set_domain.read_domains = I915_GEM_DOMAIN_GTT;
+        set_domain.write_domain = I915_GEM_DOMAIN_GTT;
+        ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_SET_DOMAIN,
                &set_domain);
-    if (ret != 0) {
-        MOS_DBG("%s:%d: Error setting domain %d: %s\n",
-            __FILE__, __LINE__, bo_gem->gem_handle,
-            strerror(errno));
+        if (ret != 0) {
+            MOS_DBG("%s:%d: Error setting domain %d: %s\n",
+                __FILE__, __LINE__, bo_gem->gem_handle,
+                strerror(errno));
+        }
     }
-
     mos_gem_bo_mark_mmaps_incoherent(bo);
     VG(VALGRIND_MAKE_MEM_DEFINED(bo_gem->gtt_virtual, bo->size));
     pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -1963,16 +2209,32 @@ mos_gem_bo_unmap_gtt(struct mos_linux_bo *bo)
 int mos_gem_bo_get_fake_offset(struct mos_linux_bo *bo)
 {
     int ret;
-    struct drm_i915_gem_mmap_gtt mmap_arg;
+    __u64  offset = 0;
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
 
-    memclear(mmap_arg);
-    mmap_arg.handle = bo_gem->gem_handle;
+    if (bufmgr_gem->has_lmem) {
+        struct drm_i915_gem_mmap_offset mmap_arg;
 
-    ret = drmIoctl(bufmgr_gem->fd,
-            DRM_IOCTL_I915_GEM_MMAP_GTT,
-            &mmap_arg);
+        memclear(mmap_arg);
+        mmap_arg.handle = bo_gem->gem_handle;
+        mmap_arg.flags = I915_MMAP_OFFSET_FIXED;
+
+        ret = drmIoctl(bufmgr_gem->fd,
+                   DRM_IOCTL_I915_GEM_MMAP_OFFSET,
+                   &mmap_arg);
+        offset = mmap_arg.offset;
+    } else {
+        struct drm_i915_gem_mmap_gtt mmap_arg;
+
+        memclear(mmap_arg);
+        mmap_arg.handle = bo_gem->gem_handle;
+
+        ret = drmIoctl(bufmgr_gem->fd,
+                DRM_IOCTL_I915_GEM_MMAP_GTT,
+                &mmap_arg);
+        offset = mmap_arg.offset;
+    }
     if (ret != 0) {
         ret = -errno;
         MOS_DBG("%s:%d: Error to get buffer fake offset %d (%s): %s .\n",
@@ -1981,7 +2243,7 @@ int mos_gem_bo_get_fake_offset(struct mos_linux_bo *bo)
             strerror(errno));
     }
     else {
-        bo->offset64 = mmap_arg.offset;
+        bo->offset64 = offset;
     }
     return ret;
 }
@@ -2088,20 +2350,33 @@ mos_gem_bo_start_gtt_access(struct mos_linux_bo *bo, int write_enable)
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
     struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     struct drm_i915_gem_set_domain set_domain;
+    struct drm_i915_gem_wait wait;
     int ret;
 
-    memclear(set_domain);
-    set_domain.handle = bo_gem->gem_handle;
-    set_domain.read_domains = I915_GEM_DOMAIN_GTT;
-    set_domain.write_domain = write_enable ? I915_GEM_DOMAIN_GTT : 0;
-    ret = drmIoctl(bufmgr_gem->fd,
+    if (bufmgr_gem->has_lmem) {
+        assert(bufmgr_gem->has_wait_timeout);
+        memclear(wait);
+        wait.bo_handle = bo_gem->gem_handle;
+        wait.timeout_ns = -1; // infinite wait
+        ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GEM_WAIT, &wait);
+        if (ret == -1) {
+            MOS_DBG("%s:%d: DRM_IOCTL_I915_GEM_WAIT failed (%d)\n",
+                __FILE__, __LINE__, errno);
+        }
+    } else {
+        memclear(set_domain);
+        set_domain.handle = bo_gem->gem_handle;
+        set_domain.read_domains = I915_GEM_DOMAIN_GTT;
+        set_domain.write_domain = write_enable ? I915_GEM_DOMAIN_GTT : 0;
+        ret = drmIoctl(bufmgr_gem->fd,
                DRM_IOCTL_I915_GEM_SET_DOMAIN,
                &set_domain);
-    if (ret != 0) {
-        MOS_DBG("%s:%d: Error setting memory domains %d (%08x %08x): %s .\n",
-            __FILE__, __LINE__, bo_gem->gem_handle,
-            set_domain.read_domains, set_domain.write_domain,
-            strerror(errno));
+        if (ret != 0) {
+            MOS_DBG("%s:%d: Error setting memory domains %d (%08x %08x): %s .\n",
+                __FILE__, __LINE__, bo_gem->gem_handle,
+                set_domain.read_domains, set_domain.write_domain,
+                strerror(errno));
+        }
     }
 }
 
@@ -2560,7 +2835,6 @@ mos_gem_bo_process_reloc2(struct mos_linux_bo *bo)
 
     for (i = 0; i < bo_gem->reloc_count; i++) {
         struct mos_linux_bo *target_bo = bo_gem->reloc_target_info[i].bo;
-        int need_fence;
 
         if (target_bo == bo)
             continue;
@@ -2931,6 +3205,24 @@ mos_gem_bo_unpin(struct mos_linux_bo *bo)
 }
 
 static int
+mos_gem_bo_check_mem_region_internal(struct mos_linux_bo *bo,
+                     int mem_type)
+{
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
+
+    // when re-cycle the gem_bo, need to keep the VA space is keeping consistent on memory type
+    if (bo_gem->mem_region ==  I915_MEMORY_CLASS_SYSTEM                            &&
+        (mem_type == MOS_MEMPOOL_VIDEOMEMORY || mem_type == MOS_MEMPOOL_DEVICEMEMORY))
+        return -errno;
+
+    if (bo_gem->mem_region ==  I915_MEMORY_CLASS_DEVICE                      &&
+        (mem_type == MOS_MEMPOOL_SYSTEMMEMORY))
+        return -errno;
+
+    return 0;
+}
+
+static int
 mos_gem_bo_set_tiling_internal(struct mos_linux_bo *bo,
                      uint32_t tiling_mode,
                      uint32_t stride)
@@ -3024,12 +3316,13 @@ static int
 mos_gem_bo_set_softpin(MOS_LINUX_BO *bo)
 {
     int ret = 0;
+    struct mos_bo_gem *bo_gem = (struct mos_bo_gem *) bo;
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bo->bufmgr;
 
     pthread_mutex_lock(&bufmgr_gem->lock);
     if (!mos_gem_bo_is_softpin(bo))
     {
-        uint64_t offset = mos_gem_bo_vma_alloc(bo->bufmgr, MEMZONE_SYS, bo->size, PAGE_SIZE_64K);
+        uint64_t offset = mos_gem_bo_vma_alloc(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, PAGE_SIZE_64K);
         ret = mos_gem_bo_set_softpin_offset(bo, offset);
     }
     pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -4001,8 +4294,7 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 
     gp.param = I915_PARAM_HAS_EXEC_SOFTPIN;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_I915_GETPARAM, &gp);
-    if (ret == 0 && *gp.value > 0)
-    {
+    if (ret == 0 && *gp.value > 0) {
         bufmgr_gem->bufmgr.bo_set_softpin        = mos_gem_bo_set_softpin;
         bufmgr_gem->bufmgr.bo_add_softpin_target = mos_gem_bo_add_softpin_target;
     }
@@ -4032,6 +4324,8 @@ mos_bufmgr_gem_init(int fd, int batch_size)
             bufmgr_gem->bufmgr.bo_use_48b_address_range = mos_gem_bo_use_48b_address_range;
         }
     }
+
+    bufmgr_gem->has_lmem = mos_gem_has_lmem(bufmgr_gem->fd);
 
     /* Let's go with one relocation per every 2 dwords (but round down a bit
      * since a power of two will mean an extra page allocation for the reloc
