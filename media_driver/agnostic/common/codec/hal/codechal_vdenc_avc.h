@@ -81,6 +81,8 @@
 #define CODECHAL_VDENC_AVC_POS_MULT_VBR                     100
 #define CODECHAL_VDENC_AVC_NEG_MULT_VBR                     -50
 
+#define CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM          (NUM_PIC_TYPES + 1) //!< For each frame type + 1 for ref B
+
 #define __CODEGEN_BITFIELD(l, h) (h) - (l) + 1
 //!
 //! \brief CODECHAL_VDENC_STREAMIN_STATE
@@ -916,7 +918,7 @@ protected:
 
     virtual uint32_t GetBRCCostantDataSize() { return sizeof(AVCVdencBRCCostantData); }
 
-    virtual MOS_STATUS FillHucConstData(uint8_t *data);
+    virtual MOS_STATUS FillHucConstData(uint8_t *data, uint8_t picType);
 
     //!
     //! \brief    Prepare HW MetaData buffer
@@ -952,6 +954,8 @@ protected:
     }
 
     virtual void SetBufferToStorePakStatistics();
+
+    virtual uint32_t GetCurrConstDataBufIdx();
 
 protected:
     bool                                        m_vdencSinglePassEnable = false;   //!< Enable VDEnc single pass
@@ -1007,7 +1011,7 @@ protected:
     MOS_RESOURCE m_resVdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_VDENC_BRC_NUM_OF_PASSES];  //!< Brc Update DMEM Buffer Array.
     MOS_RESOURCE m_resVdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                                      //!< Brc Init DMEM Buffer Array.
     MOS_RESOURCE m_resVdencBrcImageStatesReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                               //!< Read-only VDENC+PAK IMG STATE buffer.
-    MOS_RESOURCE m_resVdencBrcConstDataBuffer;                                                                          //!< BRC Const Data Buffer.
+    MOS_RESOURCE m_resVdencBrcConstDataBuffer[CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM];                              //!< BRC Const Data Buffer for each frame type.
     MOS_RESOURCE m_resVdencBrcHistoryBuffer;                                                                            //!< BRC History Buffer.
     MOS_RESOURCE m_resVdencBrcRoiBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM];                                           //!< BRC ROI Buffer.
     MOS_RESOURCE m_resVdencBrcDbgBuffer;                                                                                //!< BRC Debug Buffer.
@@ -1250,7 +1254,9 @@ MOS_STATUS CodechalVdencAvcState::SetDmemHuCBrcInitResetImpl(CODECHAL_VDENC_AVC_
     hucVDEncBrcInitDmem->INIT_ProfileLevelMaxFrame_U32 = profileLevelMaxFrame;
     if (avcSeqParams->GopRefDist && (avcSeqParams->GopPicSize > 0))
     {
+        // Their ratio is used in BRC kernel to detect mini GOP structure. Have to be multiple.
         hucVDEncBrcInitDmem->INIT_GopP_U16 = (avcSeqParams->GopPicSize - 1) / avcSeqParams->GopRefDist;
+        hucVDEncBrcInitDmem->INIT_GopB_U16 = (avcSeqParams->GopRefDist - 1) * hucVDEncBrcInitDmem->INIT_GopP_U16;
     }
 
     if (m_minMaxQpControlEnabled)
