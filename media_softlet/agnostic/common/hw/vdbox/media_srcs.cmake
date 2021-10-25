@@ -20,6 +20,9 @@
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_itf.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_itf.h

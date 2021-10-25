@@ -42,6 +42,7 @@
 #include "mhw_vdbox_avp_interface.h"
 #include "mhw_vdbox_huc_interface.h"
 #include "mhw_vdbox_vdenc_interface.h"
+#include "mhw_vdbox_hcp_itf.h"
 
 #include "media_interfaces_mhw.h"
 
@@ -380,6 +381,8 @@ protected:
     MhwVdboxAvpInterface            *m_avpInterface = nullptr;        //!< Pointer to Mhw avp interface
     MhwVdboxHucInterface            *m_hucInterface = nullptr;        //!< Pointer to Mhw huc interface
     MhwVdboxVdencInterface          *m_vdencInterface = nullptr;      //!< Pointer to Mhw vdenc interface
+    std::shared_ptr<mhw::vdbox::hcp::Itf>   m_hcpItf   = nullptr;
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
 
     CODECHAL_SSEU_SETTING const         *m_ssEuTable = nullptr;       //!< Pointer to the default SSEU settings table
     uint16_t                            m_numMediaStates = CODECHAL_NUM_MEDIA_STATES;  //!< number of media states
