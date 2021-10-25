@@ -593,3 +593,9 @@ MOS_STATUS DecodeHistogramDeviceG9Kbl::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
+#define IP_VERSION_M9_0 0x0900
+MOS_STATUS MediaInterfacesHwInfoDeviceG9Kbl::Initialize(PLATFORM platform)
+{
+    m_hwInfo.SetDeviceInfo(IP_VERSION_M9_0, platform.usRevId);
+    return MOS_STATUS_SUCCESS;
+}

@@ -30,6 +30,7 @@
 #include "media_interfaces.h"
 #include "media_interfaces_cmhal.h"
 #include "media_interfaces_decode_histogram.h"
+#include "media_interfaces_hwinfo_device.h"
 
 #include "cm_hal_g9.h"
 
@@ -51,6 +52,12 @@ public:
     MOS_STATUS Initialize(
         CodechalHwInterface *hwInterface,
         PMOS_INTERFACE osInterface);
+};
+
+class MediaInterfacesHwInfoDeviceG9Cfl : public MediaInterfacesHwInfoDevice
+{
+public:
+    MOS_STATUS Initialize(PLATFORM platform);
 };
 
 #endif // __MEDIA_INTERFACES_G9_CFL_H__
