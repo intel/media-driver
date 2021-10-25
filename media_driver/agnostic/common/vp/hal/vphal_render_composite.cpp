@@ -2319,7 +2319,7 @@ MOS_STATUS CompositeState::Render(
         VPHAL_RENDER_ASSERTMESSAGE("Invalid number of samples.");
         goto finish;
     }
-    pRenderHal->iSourceCount = iSources;
+    pRenderHal->eufusionBypass = pRenderHal->eufusionBypass || ((iSources > 1) ? 1:0);
     // Determine cspace for compositing
     ColorSpace = PrepareCSC(pcRenderParams,
                             pSources,
