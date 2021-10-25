@@ -463,6 +463,27 @@ public:
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
     //!
+    //! \brief    Dump Indirect state in Command Buffer
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] cmdBuffer
+    //!           Handle of cmd buffer to add cmd. cmd buffer handle can be get by calling GetCommandBuffer.
+    //! \param    [in] gpuNode
+    //!           Gpu node.
+    //! \param    [in] filePathPrefix
+    //!           The prefix for indirect state dump file.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS DumpIndirectState(
+        MOS_STREAM_HANDLE     streamState,
+        COMMAND_BUFFER_HANDLE cmdBuffer,
+        MOS_GPU_NODE          gpuNode,
+        const char            *filePathPrefix);
+
+    //!
     //! \brief    Dump Command Buffer
     //! \details  [Cmd Buffer Interface] Dump an existing cmd buffer
     //! \details  Caller: HAL only
