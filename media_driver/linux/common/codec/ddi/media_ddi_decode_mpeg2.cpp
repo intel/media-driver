@@ -228,7 +228,7 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
         }
         else
         {
-            codecPicParam->m_forwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+            codecPicParam->m_forwardRefIdx = codecPicParam->m_currPic.FrameIdx;
         }
 
         if (codecPicParam->m_secondField)
@@ -252,7 +252,7 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
         }
         else
         {
-            codecPicParam->m_forwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+            codecPicParam->m_forwardRefIdx = codecPicParam->m_currPic.FrameIdx;
         }
         if (picParam->backward_reference_picture != VA_INVALID_SURFACE)
         {
@@ -264,19 +264,19 @@ VAStatus DdiDecodeMPEG2::ParsePicParams(
         }
         else
         {
-            codecPicParam->m_backwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+            codecPicParam->m_backwardRefIdx = codecPicParam->m_currPic.FrameIdx;
         }
     }
 
     //add protection checking to prevent ref pic index larger than DPB size
-    if (codecPicParam->m_forwardRefIdx > CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
+    if (codecPicParam->m_forwardRefIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
     {
-        codecPicParam->m_forwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+        codecPicParam->m_forwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2 - 1;
     }
 
-    if (codecPicParam->m_backwardRefIdx > CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
+    if (codecPicParam->m_backwardRefIdx >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2)
     {
-        codecPicParam->m_backwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2;
+        codecPicParam->m_backwardRefIdx = CODECHAL_NUM_UNCOMPRESSED_SURFACE_MPEG2 - 1;
     }
 
     codecPicParam->W0.m_scanOrder          = picParam->picture_coding_extension.bits.alternate_scan;
