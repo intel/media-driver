@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-Copyright (c) 2017-2020, Intel Corporation
+Copyright (c) 2017-2021, Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -1604,7 +1604,7 @@ public:
         if (avcPicParams->CodingType != I_TYPE)
         {
             cmd.DW2.BidirectionalWeight       = 0x20;
-            cmd.DW4.SubPelMode                = 3;
+            cmd.DW4.SubPelMode                = (avcPicParams->bEnableSubPelMode) ? avcPicParams->SubPelMode : 3;
             cmd.DW4.BmeDisableForFbrMessage   = 1;
             cmd.DW4.InterSadMeasureAdjustment = 2;
             cmd.DW5.CrePrefetchEnable         = 1;
