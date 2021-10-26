@@ -84,6 +84,52 @@ CodechalHwInterface::CodechalHwInterface(
     MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
 }
 
+#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+CodechalHwInterface::CodechalHwInterface(
+    PMOS_INTERFACE    osInterface,
+    CODECHAL_FUNCTION codecFunction,
+    MhwInterfacesNext *mhwInterfacesNext,
+    bool              disableScalability)
+{
+    CODECHAL_HW_FUNCTION_ENTER;
+
+#if MHW_HWCMDPARSER_ENABLED
+    mhw::HwcmdParser::InitInstance(osInterface);
+#endif
+
+    // Basic intialization
+    // Basic intialization
+    m_osInterface = osInterface;
+
+    m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
+
+    m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    m_waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+
+    CODECHAL_HW_ASSERT(m_skuTable);
+    CODECHAL_HW_ASSERT(m_waTable);
+
+    // Init sub-interfaces
+    m_cpInterface = mhwInterfacesNext->m_cpInterface;
+    m_mfxInterface = mhwInterfacesNext->m_mfxInterface;
+    m_hcpInterface = mhwInterfacesNext->m_hcpInterface;
+    m_hucInterface = mhwInterfacesNext->m_hucInterface;
+    m_vdencInterface = mhwInterfacesNext->m_vdencInterface;
+    m_veboxInterface = mhwInterfacesNext->m_veboxInterface;
+    m_sfcInterface = mhwInterfacesNext->m_sfcInterface;
+    m_miInterface = mhwInterfacesNext->m_miInterface;
+    m_renderInterface = mhwInterfacesNext->m_renderInterface;
+
+    m_stateHeapSettings = MHW_STATE_HEAP_SETTINGS();
+    m_disableScalability = disableScalability;
+
+    MOS_ZeroMemory(&m_hucDmemDummy, sizeof(m_hucDmemDummy));
+    MOS_ZeroMemory(&m_dummyStreamIn, sizeof(m_dummyStreamIn));
+    MOS_ZeroMemory(&m_dummyStreamOut, sizeof(m_dummyStreamOut));
+    MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
+}
+#endif
+
 MOS_STATUS CodechalHwInterface::SetCacheabilitySettings(
     MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC])
 {
