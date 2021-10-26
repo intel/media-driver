@@ -532,8 +532,11 @@ MOS_STATUS DecodePipeline::StatusCheck()
             DECODE_NORMALMESSAGE("Media reset may have occured at frame %d, status is %d, completedCount is %d.",
                 m_statusCheckCount, status.status, completedCount);
         }
+
         DECODE_NORMALMESSAGE("hucStatus2 is 0x%x at frame %d.", status.m_hucErrorStatus2, m_statusCheckCount);
         DECODE_NORMALMESSAGE("hucStatus is 0x%x at frame %d.", status.m_hucErrorStatus, m_statusCheckCount);
+
+        DECODE_CHK_STATUS(HwStatusCheck(status));
 
         DECODE_CHK_STATUS(ReportVdboxIds(status));
 

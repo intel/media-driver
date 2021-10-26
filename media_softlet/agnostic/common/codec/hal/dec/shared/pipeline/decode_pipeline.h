@@ -394,6 +394,19 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ReportVdboxIds(const DecodeStatusMfx& status);
+
+    //!
+    //! \brief  Earlier stop for hw error status
+    //! \param  [in] status
+    //!         Status report from HW
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS HwStatusCheck(const DecodeStatusMfx &status)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
     //!
     //! \brief  User feature key report for Sfc Linear Usage Status
