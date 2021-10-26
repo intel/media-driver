@@ -592,13 +592,17 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     uint32_t                    dwSfcMaxHeight = 0;
     uint32_t                    dwSfcMinWidth = 0;
     uint32_t                    dwSfcMinHeight = 0;
-    uint32_t                    dwDstMinHeight = 0;
     uint16_t                    wWidthAlignUnit = 0;
     uint16_t                    wHeightAlignUnit = 0;
     uint32_t                    dwSourceRegionWidth = 0;
     uint32_t                    dwSourceRegionHeight = 0;
     uint32_t                    dwOutputRegionWidth = 0;
     uint32_t                    dwOutputRegionHeight = 0;
+    uint32_t                    dwTargetMinWidth     = 0;
+    uint32_t                    dwTargetMinHeight    = 0;
+    uint32_t                    dwOutputMinWidth     = 0;
+    uint32_t                    dwOutputMinHeight    = 0;
+    bool                        isInterlaced         = false;
     bool                        bRet = false;
     float                       fScaleX = 0.0f, fScaleY = 0.0f;
     float                       minRatio = 0.125f, maxRatio = 8.0f;
@@ -651,18 +655,6 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     wWidthAlignUnit     = 1;
     wHeightAlignUnit    = 1;
 
-    switch (params->pSrc[0]->InterlacedScalingType)
-    {
-    case ISCALING_INTERLEAVED_TO_FIELD:
-        dwDstMinHeight = dwSfcMinHeight / 2;
-        break;
-    case ISCALING_FIELD_TO_INTERLEAVED:
-        dwDstMinHeight = dwSfcMinHeight * 2;
-        break;
-    default:
-        dwDstMinHeight = dwSfcMinHeight;
-    }
-
     // Apply alignment restriction to the source and scaled regions.
     switch (params->pTarget[0]->Format)
     {
@@ -694,18 +686,63 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         (uint32_t)(params->pSrc[0]->rcDst.right - params->pSrc[0]->rcDst.left),
         wWidthAlignUnit);
 
-    if (OUT_OF_BOUNDS(params->pSrc[0]->dwWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
-        OUT_OF_BOUNDS(params->pSrc[0]->dwHeight, dwSfcMinHeight, dwSfcMaxHeight) ||
-        OUT_OF_BOUNDS(dwSourceRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)         ||
-        OUT_OF_BOUNDS(dwSourceRegionHeight, dwSfcMinHeight, dwSfcMaxHeight)      ||
-        OUT_OF_BOUNDS(dwOutputRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)         ||
-        OUT_OF_BOUNDS(dwOutputRegionHeight, dwDstMinHeight, dwSfcMaxHeight)      ||
-        OUT_OF_BOUNDS(params->pTarget[0]->dwWidth, dwSfcMinWidth, dwSfcMaxWidth) ||
-        OUT_OF_BOUNDS(params->pTarget[0]->dwHeight, dwDstMinHeight, dwSfcMaxHeight))
+    dwTargetMinWidth  = dwSfcMinWidth;
+    dwTargetMinHeight = dwSfcMinHeight;
+    dwOutputMinWidth  = dwSfcMinWidth;
+    dwOutputMinHeight = dwSfcMinHeight;
+    switch (params->pSrc[0]->InterlacedScalingType)
     {
-        VPHAL_RENDER_NORMALMESSAGE("Surface dimensions not supported by SFC Pipe.");
+    case ISCALING_INTERLEAVED_TO_INTERLEAVED:
+        isInterlaced      = true;
+        break;
+    case ISCALING_FIELD_TO_INTERLEAVED:
+        dwTargetMinWidth  = dwSfcMinWidth * 2;
+        dwTargetMinHeight = dwSfcMinHeight * 2;
+        isInterlaced      = true;
+        break;
+    case ISCALING_INTERLEAVED_TO_FIELD:
+        dwOutputMinWidth  = dwSfcMinWidth / 2;
+        dwOutputMinHeight = dwSfcMinHeight / 2;
+        dwTargetMinWidth  = dwSfcMinWidth / 2;
+        dwTargetMinHeight = dwSfcMinHeight / 2;
+        isInterlaced      = true;
+        break;
+    default:
+        isInterlaced      = false;
+        break;
+    }
+
+    if (OUT_OF_BOUNDS(params->pSrc[0]->dwWidth, dwSfcMinWidth, dwSfcMaxWidth)       ||
+        OUT_OF_BOUNDS(params->pSrc[0]->dwHeight, dwSfcMinHeight, dwSfcMaxHeight)    ||
+        OUT_OF_BOUNDS(dwSourceRegionWidth, dwSfcMinWidth, dwSfcMaxWidth)            ||
+        OUT_OF_BOUNDS(dwSourceRegionHeight, dwSfcMinHeight, dwSfcMaxHeight)         ||
+        OUT_OF_BOUNDS(dwOutputRegionWidth, dwOutputMinWidth, dwSfcMaxWidth)         ||
+        OUT_OF_BOUNDS(dwOutputRegionHeight, dwOutputMinHeight, dwSfcMaxHeight)      ||
+        OUT_OF_BOUNDS(params->pTarget[0]->dwWidth, dwTargetMinWidth, dwSfcMaxWidth) ||
+        OUT_OF_BOUNDS(params->pTarget[0]->dwHeight, dwTargetMinHeight, dwSfcMaxHeight))
+    {
+        VPHAL_RENDER_NORMALMESSAGE("Surface dimensions not supported by SFC Pipe");
         bRet = false;
         return bRet;
+    }
+    if (isInterlaced)
+    {
+        if (params->pSrc[0]->Rotation != VPHAL_ROTATION_IDENTITY)
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Interlaced scaling cannot support rotate or mirror by SFC pipe.");
+            bRet = false;
+            return bRet;
+        }
+
+        if (params->pSrc[0]->rcSrc.left != 0 ||
+            params->pSrc[0]->rcSrc.top  != 0 ||
+            params->pSrc[0]->rcDst.left != 0 ||
+            params->pSrc[0]->rcDst.top  != 0)
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Interlaced scaling cannot support offset by SFC pipe.");
+            bRet = false;
+            return bRet;
+        }
     }
 
     // Size of the Output Region over the Render Target
@@ -727,8 +764,16 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
         params->pSrc[0]->Rotation == VPHAL_MIRROR_HORIZONTAL ||
         params->pSrc[0]->Rotation == VPHAL_MIRROR_VERTICAL)
     {
-        fScaleX = (float)dwOutputRegionWidth / (float)dwSourceRegionWidth;
-        fScaleY = (float)dwOutputRegionHeight / (float)dwSourceRegionHeight;
+        if (params->pSrc[0]->InterlacedScalingType == ISCALING_INTERLEAVED_TO_FIELD)
+        {
+            fScaleX = (float)dwOutputRegionWidth / (float)dwSourceRegionWidth;
+            fScaleY = (float)dwOutputRegionHeight * 2.0F / (float)dwSourceRegionHeight;
+        }
+        else
+        {
+            fScaleX = (float)dwOutputRegionWidth / (float)dwSourceRegionWidth;
+            fScaleY = (float)dwOutputRegionHeight / (float)dwSourceRegionHeight;
+        }
     }
     else
     {
