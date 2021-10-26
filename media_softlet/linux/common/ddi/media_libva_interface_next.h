@@ -728,6 +728,36 @@ public:
         VAProcPipelineCaps  *pipelineCaps
     );
 
+#ifdef MEDIA_SOFTLET
+    //!
+    //! \brief  Create surfaces
+    //!
+    //! \param  [in] ctx
+    //!         Pointer to VA driver context
+    //! \param  [in] width
+    //!         Surface width
+    //! \param  [in] height
+    //!         Surface height
+    //! \param  [in] format
+    //!         Surface format
+    //! \param  [in] surfacesName
+    //!         Number of surfaces
+    //! \param  [out] surfaces
+    //!         VA created surfaces
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    static VAStatus CreateSurfaces (
+        VADriverContextP  ctx,
+        int32_t           width,
+        int32_t           height,
+        int32_t           format,
+        int32_t           surfacesName,
+        VASurfaceID       *surfaces
+    );
+#endif
+
 #if VA_CHECK_VERSION(1,11,0)
 
     //!
@@ -1143,6 +1173,50 @@ private:
     static VAStatus DestroyContextCM(
         VADriverContextP ctx,
         VAContextID      ctxID);
+
+#ifdef MEDIA_SOFTLET
+    //!
+    //! \brief  Convert Os format to media format
+    //!
+    //! \param  [in] fourcc
+    //!         FourCC
+    //! \param  [in] rtformatType
+    //!         Rt format type
+    //!
+    //! \return DDI_MEDIA_FORMAT
+    //!     Ddi media format
+    //!
+    static DDI_MEDIA_FORMAT OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType);
+
+    //!
+    //! \brief  create render target
+    //!
+    //! \param  [in] mediaDrvCtx
+    //!         Pointer to media context
+    //! \param  [in] mediaFormat
+    //!         media format
+    //! \param  [in] width
+    //!         width
+    //! \param  [in] height
+    //!         height
+    //! \param  [in] surfDesc
+    //!         media surface descriptor
+    //! \param  [in] surfaceUsageHint
+    //!         surface usage hint
+    //! \param  [in] memType
+    //!         memory type
+    //! \return uint_32
+    //!     surface ID
+    //!
+    static uint32_t CreateRenderTarget(
+        PDDI_MEDIA_CONTEXT            mediaDrvCtx,
+        DDI_MEDIA_FORMAT              mediaFormat,
+        uint32_t                      width,
+        uint32_t                      height,
+        DDI_MEDIA_SURFACE_DESCRIPTOR *surfDesc,
+        uint32_t                      surfaceUsageHint,
+        int                           memType);
+#endif
 
 public:
     // Global mutex

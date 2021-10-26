@@ -29,6 +29,10 @@
 #include "media_libva_putsurface_linux.h"
 #endif
 
+#ifdef MEDIA_SOFTLET
+#include "media_libva_util_next.h"
+#endif
+
 #include "media_libva_interface_next.h"
 #include "media_libva_util.h"
 #include "media_libva.h"
@@ -51,7 +55,7 @@ void MediaLibvaInterfaceNext::FreeForMediaContext(PDDI_MEDIA_CONTEXT mediaCtx)
 {
     DDI_FUNCTION_ENTER();
 
-    DdiMediaUtil_UnLockMutex(&m_GlobalMutex);
+    MosUtilities::MosUnlockMutex(&m_GlobalMutex);
 
     if (mediaCtx)
     {
@@ -346,7 +350,7 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
         *minor_version = VA_MINOR_VERSION;
     }
 
-    DdiMediaUtil_LockMutex(&m_GlobalMutex);
+    MosUtilities::MosLockMutex(&m_GlobalMutex);
     PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
     if(mediaCtx)
     {
@@ -488,7 +492,7 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    DdiMediaUtil_UnLockMutex(&m_GlobalMutex);
+    MosUtilities::MosUnlockMutex(&m_GlobalMutex);
 
     return VA_STATUS_ERROR_UNIMPLEMENTED;
 }
@@ -768,7 +772,7 @@ VAStatus MediaLibvaInterfaceNext::Terminate(VADriverContextP ctx)
     PDDI_MEDIA_CONTEXT mediaCtx   = GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    DdiMediaUtil_LockMutex(&m_GlobalMutex);
+    MosUtilities::MosLockMutex(&m_GlobalMutex);
 
 #if !defined(ANDROID) && defined(X11_FOUND)
     DestroyX11Connection(mediaCtx);
@@ -820,7 +824,7 @@ VAStatus MediaLibvaInterfaceNext::Terminate(VADriverContextP ctx)
     if (mediaCtx->uiRef > 1)
     {
         mediaCtx->uiRef--;
-        DdiMediaUtil_UnLockMutex(&m_GlobalMutex);
+        MosUtilities::MosUnlockMutex(&m_GlobalMutex);
 
         return VA_STATUS_SUCCESS;
     }
@@ -833,7 +837,7 @@ VAStatus MediaLibvaInterfaceNext::Terminate(VADriverContextP ctx)
     mediaCtx         = nullptr;
     ctx->pDriverData = nullptr;
 
-    DdiMediaUtil_UnLockMutex(&m_GlobalMutex);
+    MosUtilities::MosUnlockMutex(&m_GlobalMutex);
 
     return VA_STATUS_SUCCESS;
 }
@@ -1182,9 +1186,9 @@ VAStatus MediaLibvaInterfaceNext::CreateBuffer (
     DDI_CHK_NULL(mediaCtx->m_compList[componentIndex], "nullptr complist", VA_STATUS_ERROR_INVALID_CONTEXT);
     *bufId = VA_INVALID_ID;
 
-    DdiMediaUtil_LockMutex(&mediaCtx->BufferMutex);
+    MosUtilities::MosLockMutex(&mediaCtx->BufferMutex);
     VAStatus vaStatus = mediaCtx->m_compList[componentIndex]->CreateBuffer(ctx, context, type, size, elementsNum, data, bufId);
-    DdiMediaUtil_UnLockMutex(&mediaCtx->BufferMutex);
+    MosUtilities::MosUnlockMutex(&mediaCtx->BufferMutex);
 
     MOS_TraceEventExt(EVENT_VA_BUFFER, EVENT_TYPE_END, bufId, sizeof(bufId), nullptr, 0);
     return vaStatus;
@@ -1213,14 +1217,14 @@ VAStatus MediaLibvaInterfaceNext::BeginPicture (
     PDDI_MEDIA_SURFACE surface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, renderTarget);
     DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
 
-    DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
+    MosUtilities::MosLockMutex(&mediaCtx->SurfaceMutex);
     surface->curCtxType = ctxType;
     surface->curStatusReportQueryState = DDI_MEDIA_STATUS_REPORT_QUERY_STATE_PENDING;
     if(ctxType == DDI_MEDIA_CONTEXT_TYPE_VP)
     {
         surface->curStatusReport.vpp.status = VPREP_NOTAVAILABLE;
     }
-    DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+    MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
 
     CompType componentIndex = MapComponentFromCtxType(ctxType);
     DDI_CHK_NULL(mediaCtx->m_compList[componentIndex],  "nullptr complist", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -1761,3 +1765,232 @@ CompType MediaLibvaInterfaceNext::MapComponentFromCtxType(uint32_t ctxType)
             return CompCommon;
     }
 }
+
+#ifdef MEDIA_SOFTLET
+VAStatus MediaLibvaInterfaceNext::CreateSurfaces (
+    VADriverContextP    ctx,
+    int32_t             width,
+    int32_t             height,
+    int32_t             format,
+    int32_t             surfacesName,
+    VASurfaceID        *surfaces
+)
+{
+    DDI_FUNCTION_ENTER();
+    int32_t event[] = {width, height, format};
+    MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_START, event, sizeof(event), nullptr, 0);
+
+    DDI_CHK_NULL(ctx,               "nullptr ctx",          VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_LARGER(surfacesName, 0, "Invalid surfacesName", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(surfaces,          "nullptr surfaces",     VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_LARGER(width,        0, "Invalid width",        VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_LARGER(height,       0, "Invalid height",       VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PDDI_MEDIA_CONTEXT mediaDrvCtx = GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaDrvCtx,       "nullptr mediaDrvCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if( format != VA_RT_FORMAT_YUV420 ||
+        format != VA_RT_FORMAT_YUV422 ||
+        format != VA_RT_FORMAT_YUV444 ||
+        format != VA_RT_FORMAT_YUV400 ||
+        format != VA_RT_FORMAT_YUV411)
+    {
+        return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
+    }
+
+    DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(VA_FOURCC_NV12,format);
+
+    for(int32_t i = 0; i < surfacesName; i++)
+    {
+        VASurfaceID vaSurfaceID = (VASurfaceID)CreateRenderTarget(mediaDrvCtx, mediaFmt, width, height, nullptr, VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC, MOS_MEMPOOL_VIDEOMEMORY);
+        if (VA_INVALID_ID != vaSurfaceID)
+        {
+            surfaces[i] = vaSurfaceID;
+        }
+        else
+        {
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+    }
+
+    MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_END, &surfacesName, sizeof(int32_t), surfaces, surfacesName*sizeof(VAGenericID));
+    return VA_STATUS_SUCCESS;
+}
+
+DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType)
+{
+    switch (fourcc)
+    {
+        case VA_FOURCC_A2R10G10B10:
+            return Media_Format_B10G10R10A2;
+        case VA_FOURCC_A2B10G10R10:
+            return Media_Format_R10G10B10A2;
+        case VA_FOURCC_X2R10G10B10:
+            return Media_Format_B10G10R10X2;
+        case VA_FOURCC_X2B10G10R10:
+            return Media_Format_R10G10B10X2;
+        case VA_FOURCC_BGRA:
+        case VA_FOURCC_ARGB:
+#ifdef VA_RT_FORMAT_RGB32_10BPP
+            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
+            {
+                return Media_Format_B10G10R10A2;
+            }
+#endif
+            return Media_Format_A8R8G8B8;
+        case VA_FOURCC_RGBA:
+#ifdef VA_RT_FORMAT_RGB32_10BPP
+            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
+            {
+                return Media_Format_R10G10B10A2;
+            }
+#endif
+            return Media_Format_R8G8B8A8;
+        case VA_FOURCC_ABGR:
+#ifdef VA_RT_FORMAT_RGB32_10BPP
+            if(VA_RT_FORMAT_RGB32_10BPP == rtformatType)
+            {
+                return Media_Format_R10G10B10A2;
+            }
+#endif
+            return Media_Format_A8B8G8R8;
+        case VA_FOURCC_BGRX:
+        case VA_FOURCC_XRGB:
+            return Media_Format_X8R8G8B8;
+        case VA_FOURCC_XBGR:
+        case VA_FOURCC_RGBX:
+            return Media_Format_X8B8G8R8;
+        case VA_FOURCC_R5G6B5:
+            return Media_Format_R5G6B5;
+        case VA_FOURCC_R8G8B8:
+            return Media_Format_R8G8B8;
+        case VA_FOURCC_NV12:
+            return Media_Format_NV12;
+        case VA_FOURCC_NV21:
+            return Media_Format_NV21;
+        case VA_FOURCC_YUY2:
+            return Media_Format_YUY2;
+        case VA_FOURCC_UYVY:
+            return Media_Format_UYVY;
+        case VA_FOURCC_YV12:
+            return Media_Format_YV12;
+        case VA_FOURCC_IYUV:
+            return Media_Format_IYUV;
+        case VA_FOURCC_I420:
+            return Media_Format_I420;
+        case VA_FOURCC_422H:
+            return Media_Format_422H;
+        case VA_FOURCC_422V:
+            return Media_Format_422V;
+        case VA_FOURCC('4','0','0','P'):
+        case VA_FOURCC_Y800:
+            return Media_Format_400P;
+        case VA_FOURCC_411P:
+            return Media_Format_411P;
+        case VA_FOURCC_IMC3:
+            return Media_Format_IMC3;
+        case VA_FOURCC_444P:
+            return Media_Format_444P;
+        case VA_FOURCC_BGRP:
+            return Media_Format_BGRP;
+        case VA_FOURCC_RGBP:
+            return Media_Format_RGBP;
+        case VA_FOURCC_P208:
+            return Media_Format_Buffer;
+        case VA_FOURCC_P010:
+            return Media_Format_P010;
+        case VA_FOURCC_P012:
+            return Media_Format_P012;
+        case VA_FOURCC_P016:
+            return Media_Format_P016;
+        case VA_FOURCC_Y210:
+            return Media_Format_Y210;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y212:
+            return Media_Format_Y212;
+#endif
+        case VA_FOURCC_Y216:
+            return Media_Format_Y216;
+        case VA_FOURCC_AYUV:
+            return Media_Format_AYUV;
+#if VA_CHECK_VERSION(1, 13, 0)
+        case VA_FOURCC_XYUV:
+            return Media_Format_XYUV;
+#endif
+        case VA_FOURCC_Y410:
+            return Media_Format_Y410;
+#if VA_CHECK_VERSION(1, 9, 0)
+        case VA_FOURCC_Y412:
+            return Media_Format_Y412;
+#endif
+        case VA_FOURCC_Y416:
+            return Media_Format_Y416;
+        case VA_FOURCC_Y8:
+            return Media_Format_Y8;
+        case VA_FOURCC_Y16:
+            return Media_Format_Y16S;
+        case VA_FOURCC_VYUY:
+            return Media_Format_VYUY;
+        case VA_FOURCC_YVYU:
+            return Media_Format_YVYU;
+        case VA_FOURCC_ARGB64:
+            return Media_Format_A16R16G16B16;
+        case VA_FOURCC_ABGR64:
+            return Media_Format_A16B16G16R16;
+
+        default:
+            return Media_Format_Count;
+    }
+}
+
+uint32_t MediaLibvaInterfaceNext::CreateRenderTarget(
+    PDDI_MEDIA_CONTEXT            mediaDrvCtx,
+    DDI_MEDIA_FORMAT              mediaFormat,
+    uint32_t                      width,
+    uint32_t                      height,
+    DDI_MEDIA_SURFACE_DESCRIPTOR *surfDesc,
+    uint32_t                      surfaceUsageHint,
+    int                           memType
+)
+{
+    MosUtilities::MosLockMutex(&mediaDrvCtx->SurfaceMutex);
+
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = MediaLibvaUtilNext::AllocPMediaSurfaceFromHeap(mediaDrvCtx->pSurfaceHeap);
+    if (nullptr == surfaceElement)
+    {
+        MosUtilities::MosUnlockMutex(&mediaDrvCtx->SurfaceMutex);
+        return VA_INVALID_ID;
+    }
+
+    surfaceElement->pSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
+    if (nullptr == surfaceElement->pSurface)
+    {
+        MediaLibvaUtilNext::ReleasePMediaSurfaceFromHeap(mediaDrvCtx->pSurfaceHeap, surfaceElement->uiVaSurfaceID);
+        MosUtilities::MosUnlockMutex(&mediaDrvCtx->SurfaceMutex);
+        return VA_INVALID_ID;
+    }
+
+    surfaceElement->pSurface->pMediaCtx       = mediaDrvCtx;
+    surfaceElement->pSurface->iWidth          = width;
+    surfaceElement->pSurface->iHeight         = height;
+    surfaceElement->pSurface->pSurfDesc       = surfDesc;
+    surfaceElement->pSurface->format          = mediaFormat;
+    surfaceElement->pSurface->uiLockedBufID   = VA_INVALID_ID;
+    surfaceElement->pSurface->uiLockedImageID = VA_INVALID_ID;
+    surfaceElement->pSurface->surfaceUsageHint= surfaceUsageHint;
+    surfaceElement->pSurface->memType         = memType;
+
+    if(MediaLibvaUtilNext::CreateSurface(surfaceElement->pSurface, mediaDrvCtx)!= VA_STATUS_SUCCESS)
+    {
+        MOS_FreeMemory(surfaceElement->pSurface);
+        MediaLibvaUtilNext::ReleasePMediaSurfaceFromHeap(mediaDrvCtx->pSurfaceHeap, surfaceElement->uiVaSurfaceID);
+        MosUtilities::MosUnlockMutex(&mediaDrvCtx->SurfaceMutex);
+        return VA_INVALID_ID;
+    }
+
+    mediaDrvCtx->uiNumSurfaces++;
+    uint32_t surfaceID = surfaceElement->uiVaSurfaceID;
+    MosUtilities::MosUnlockMutex(&mediaDrvCtx->SurfaceMutex);
+    return surfaceID;
+}
+#endif
