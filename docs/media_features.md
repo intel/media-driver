@@ -86,21 +86,22 @@
 
 ## Supported Video Processing CSC/Scaling Format
 
-| Platform      | Format | NV12 | YV12 | I420 | P010 | YUY2 | UYVY | Y210 | AYUV | Y410 | P016* | Y216* | Y416* |
-|---------------|--------|------|------|------|------|------|------|------|------|------|-------|-------|-------|
-| BDW           | Input  | Y    | Y    | Y    |      | Y    |      |      |      |      |       |       |       |
-|               | Output | Y    | Y    | Y    |      | Y    |      |      |      |      |       |       |       |
-| SKL/BXTx/KBLx | Input  | Y    | Y    | Y    | Y    | Y    |      |      |      |      |       |       |       |
-|               | Output | Y    | Y    | Y    |      | Y    |      |      |      |      |       |       |       |
-| ICL           | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    |       |       |       |
-|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    |       |       |       |
-| JSL/EHL       | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    |       |       |       |
-|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    |       |       |       |
-| TGLx          | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     |
-|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     |
-| DG1/SG1       | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     |
-|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     |
+| Platform      | Format | NV12 | YV12 | I420 | P010 | YUY2 | UYVY | Y210 | AYUV | Y410 | P016* | Y216* | Y416* | ARGB/ABGR | A2R10G10B10/A2B10G10R10 |
+|---------------|--------|------|------|------|------|------|------|------|------|------|-------|-------|-------|-----------|-------------------------|
+| BDW           | Input  | Y    | Y    | Y    |      | Y    |      |      |      |      |       |       |       | Y         | N                       |
+|               | Output | Y    | Y    | Y    |      | Y    |      |      |      |      |       |       |       | Y         | N                       |
+| SKL/BXTx/KBLx | Input  | Y    | Y    | Y    | Y    | Y    |      |      |      |      |       |       |       | Y         | N                       |
+|               | Output | Y    | Y    | Y    |      | Y    |      |      |      |      |       |       |       | Y         | N                       |
+| ICL           | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    |       |       |       | Y         | N                       |
+|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    |       |       |       | Y         | Y                       |
+| JSL/EHL       | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    |       |       |       | Y         | N                       |
+|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    |       |       |       | Y         | Y                       |
+| TGLx          | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     | Y         | N                       |
+|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
+| DG1/SG1       | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     | Y         | N                       |
+|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
 
 * \* For SFC path, there are NOT real 16bit, SFC precision is 12bit; For kernel path, we support real 16bit.
+* TGL/DG1/SG1 capable of max resolution: 16K; ICL/JSL/EHL/SKL/BXT/KBL/BDW capable of max resolution: 4k.
 
 ##### Resolution definition: 2k=2048x2048, 4k=4096x4096, 8k=8192x8192, 16k=16384x16384
