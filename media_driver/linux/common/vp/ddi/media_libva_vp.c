@@ -2094,6 +2094,12 @@ DdiVp_UpdateVphalTargetSurfColorSpace(
 #endif
 
     pVpHalSrcSurf = pVpHalRenderParams->pSrc[0];
+
+    if (pVpHalSrcSurf != nullptr && IS_COLOR_SPACE_BT2020(pVpHalSrcSurf->ColorSpace) && pVpHalSrcSurf->Format == Format_444P)
+    {
+        pVpHalSrcSurf->ColorSpace = CSpace_BT709;
+    }
+
     // Not support BT601/BT709 -> BT2020 colorspace conversion, if colorspace is not set, will keep it same with input.
     if(pVpHalSrcSurf != nullptr &&
        pPipelineParam->output_color_standard == 0 &&
