@@ -272,6 +272,10 @@ MOS_STATUS OsContextSpecific::CreateIPC()
     m_semId = MOS_LINUX_IPC_INVALID_ID;
     m_shmId = MOS_LINUX_IPC_INVALID_ID;
     m_shm   = MOS_LINUX_SHM_INVALID;
+    if (m_apoMosEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     struct semid_ds buf;
     MOS_ZeroMemory(&buf, sizeof(buf));
@@ -308,6 +312,11 @@ finish:
 
 void OsContextSpecific::DestroyIPC()
 {
+    if (m_apoMosEnabled)
+    {
+        return;
+    }
+
     if (MOS_LINUX_IPC_INVALID_ID != m_semId)
     {
         int16_t iAttachedNum = 0;
@@ -337,12 +346,19 @@ MOS_STATUS OsContextSpecific::CreateSSEUIPC()
     m_sseuSemId = MOS_LINUX_IPC_INVALID_ID;
     m_sseuShmId = MOS_LINUX_IPC_INVALID_ID;
     m_sseuShm   = MOS_LINUX_SHM_INVALID;
-
+    if (m_apoMosEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
     return eStatus;
 }
 
 void OsContextSpecific::DestroySSEUIPC()
 {
+    if (m_apoMosEnabled)
+    {
+        return;
+    }
     if (MOS_LINUX_IPC_INVALID_ID != m_sseuSemId)
     {
         short iAttachedNum = 0;
@@ -523,7 +539,7 @@ MOS_STATUS OsContextSpecific::Init(PMOS_CONTEXT pOsDriverContext)
                 return eStatus;
             }
         }
-    
+
         eStatus = CreateSSEUIPC();
         if (eStatus != MOS_STATUS_SUCCESS)
         {
