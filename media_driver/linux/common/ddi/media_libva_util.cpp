@@ -687,11 +687,6 @@ VAStatus DdiMediaUtil_AllocateSurface(
                         gmmParams.Flags.Info.RenderCompressed = 1;
                     }
 
-                    if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
-                    {
-                        gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
-                    }
-
                     if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly))
                     {
                         gmmParams.Flags.Info.MediaCompressed = 0;
@@ -704,6 +699,14 @@ VAStatus DdiMediaUtil_AllocateSurface(
                         {
                             gmmParams.Flags.Info.MediaCompressed  = 0;
                             gmmParams.Flags.Info.RenderCompressed = 1;
+                        }
+                        else
+                        {
+                            gmmParams.Flags.Gpu.MMC               = false;
+                            gmmParams.Flags.Info.MediaCompressed  = 0;
+                            gmmParams.Flags.Info.RenderCompressed = 0;
+                            gmmParams.Flags.Gpu.CCS               = 0;
+                            gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
                         }
                     }
                 }
