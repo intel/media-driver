@@ -82,6 +82,8 @@ public:
 
     virtual MOS_STATUS SetCpInterface(MhwCpInterface *cpInterface) = 0;
 
+    virtual uint32_t GetMmioInterfaces(MHW_MMIO_REGISTER_OPCODE opCode) = 0;
+
     _MI_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 };
 }  // namespace mi

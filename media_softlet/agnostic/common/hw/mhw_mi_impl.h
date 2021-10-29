@@ -165,6 +165,92 @@ public:
         m_cpInterface = cpInterface;
         return MOS_STATUS_SUCCESS;
     }
+
+    uint32_t GetMmioInterfaces(MHW_MMIO_REGISTER_OPCODE opCode) override
+    {
+        uint32_t mmioRegisters = MHW_MMIO_RCS_AUX_TABLE_NONE;
+
+        switch (opCode) {
+        case MHW_MMIO_RCS_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_RCS_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_RCS_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_RCS_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_RCS_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_RCS_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD0_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD0_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD0_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD0_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD0_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD0_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD1_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD1_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD1_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD1_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD1_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD1_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD2_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD2_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD2_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD2_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD2_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD2_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD3_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD3_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD3_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD3_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD3_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD3_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VE0_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VE0_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VE0_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VE0_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VE0_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VE0_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VE1_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VE1_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VE1_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VE1_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VE1_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VE1_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_CCS0_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_CCS0_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_CCS0_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_CCS0_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_CCS0_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_CCS0_AUX_TABLE_INVALIDATE;
+            break;
+        default:
+            MHW_ASSERTMESSAGE("Invalid mmio data provided");;
+            break;
+        }
+
+        return mmioRegisters;
+    }
+
 protected:
     using base_t = Itf;
 

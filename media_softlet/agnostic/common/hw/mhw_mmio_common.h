@@ -80,6 +80,8 @@ static constexpr uint32_t M_MMIO_RCS_AUX_TBL_REMAP_RANGE_END                    
 static constexpr uint32_t M_MMIO_RCS_TRTT_REMAP_RANGE_BEGIN                                           = 0x4400;
 static constexpr uint32_t M_MMIO_RCS_TRTT_REMAP_RANGE_END                                             = 0x441F;
 
+static constexpr uint32_t M_MMIO_MEDIA_REG_BASE                                                       = 0X380000; //!<Media Engine Base
+
 //VD
 static constexpr uint32_t M_MMIO_VD0_AUX_TABLE_BASE_LOW                                               = 0x4210;
 static constexpr uint32_t M_MMIO_VD0_AUX_TABLE_BASE_HIGH                                              = 0x4214;

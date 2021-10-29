@@ -48,31 +48,6 @@ namespace mi
     static const uint32_t MHW_MI_DECODER_16Kx16K_WATCHDOG_THRESHOLD_IN_MS = 256;
     static const uint32_t MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND          = (19200123 / 1000);   // Time stamp counts per millisecond
 
-    static uint32_t m_mmioRcsAuxTableBaseLow = M_MMIO_RCS_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioRcsAuxTableBaseHigh = M_MMIO_RCS_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioRcsAuxTableInvalidate = M_MMIO_RCS_AUX_TABLE_INVALIDATE;
-    static uint32_t m_mmioVd0AuxTableBaseLow = M_MMIO_VD0_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioVd0AuxTableBaseHigh = M_MMIO_VD0_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioVd0AuxTableInvalidate = M_MMIO_VD0_AUX_TABLE_INVALIDATE;
-    static uint32_t m_mmioVd1AuxTableBaseLow = M_MMIO_VD1_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioVd1AuxTableBaseHigh = M_MMIO_VD1_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioVd1AuxTableInvalidate = M_MMIO_VD1_AUX_TABLE_INVALIDATE;
-    static uint32_t m_mmioVd2AuxTableBaseLow = M_MMIO_VD2_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioVd2AuxTableBaseHigh = M_MMIO_VD2_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioVd2AuxTableInvalidate = M_MMIO_VD2_AUX_TABLE_INVALIDATE;
-    static uint32_t m_mmioVd3AuxTableBaseLow = M_MMIO_VD3_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioVd3AuxTableBaseHigh = M_MMIO_VD3_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioVd3AuxTableInvalidate = M_MMIO_VD3_AUX_TABLE_INVALIDATE;
-    static uint32_t m_mmioVe0AuxTableBaseLow = M_MMIO_VE0_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioVe0AuxTableBaseHigh = M_MMIO_VE0_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioVe0AuxTableInvalidate = M_MMIO_VE0_AUX_TABLE_INVALIDATE;
-    static uint32_t m_mmioVe1AuxTableBaseLow = M_MMIO_VE1_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioVe1AuxTableBaseHigh = M_MMIO_VE1_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioVe1AuxTableInvalidate = M_MMIO_VE1_AUX_TABLE_INVALIDATE;
-    static uint32_t m_mmioCcs0AuxTableBaseLow = M_MMIO_CCS0_AUX_TABLE_BASE_LOW;
-    static uint32_t m_mmioCcs0AuxTableBaseHigh = M_MMIO_CCS0_AUX_TABLE_BASE_HIGH;
-    static uint32_t m_mmioCcs0AuxTableInvalidate = M_MMIO_CCS0_AUX_TABLE_INVALIDATE;
-
     enum MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION
     {
         MHW_MI_SAD_GREATER_THAN_SDD          = 0,
@@ -130,6 +105,35 @@ namespace mi
         MHW_FLUSH_WRITE_CACHE,           // Flush write cache
         MHW_FLUSH_READ_CACHE,            // Flush read cache
         MHW_FLUSH_CUSTOM                 // Flush with custom parameters
+    };
+
+    enum MHW_MMIO_REGISTER_OPCODE
+    {
+        MHW_MMIO_RCS_AUX_TABLE_NONE        = 0,
+        MHW_MMIO_RCS_AUX_TABLE_BASE_LOW    = 1,
+        MHW_MMIO_RCS_AUX_TABLE_BASE_HIGH   = 2,
+        MHW_MMIO_RCS_AUX_TABLE_INVALIDATE  = 3,
+        MHW_MMIO_VD0_AUX_TABLE_BASE_LOW    = 4,
+        MHW_MMIO_VD0_AUX_TABLE_BASE_HIGH   = 5,
+        MHW_MMIO_VD0_AUX_TABLE_INVALIDATE  = 6,
+        MHW_MMIO_VD1_AUX_TABLE_BASE_LOW    = 7,
+        MHW_MMIO_VD1_AUX_TABLE_BASE_HIGH   = 8,
+        MHW_MMIO_VD1_AUX_TABLE_INVALIDATE  = 9,
+        MHW_MMIO_VD2_AUX_TABLE_BASE_LOW    = 10,
+        MHW_MMIO_VD2_AUX_TABLE_BASE_HIGH   = 11,
+        MHW_MMIO_VD2_AUX_TABLE_INVALIDATE  = 12,
+        MHW_MMIO_VD3_AUX_TABLE_BASE_LOW    = 13,
+        MHW_MMIO_VD3_AUX_TABLE_BASE_HIGH   = 14,
+        MHW_MMIO_VD3_AUX_TABLE_INVALIDATE  = 15,
+        MHW_MMIO_VE0_AUX_TABLE_BASE_LOW    = 16,
+        MHW_MMIO_VE0_AUX_TABLE_BASE_HIGH   = 17,
+        MHW_MMIO_VE0_AUX_TABLE_INVALIDATE  = 18,
+        MHW_MMIO_VE1_AUX_TABLE_BASE_LOW    = 19,
+        MHW_MMIO_VE1_AUX_TABLE_BASE_HIGH   = 20,
+        MHW_MMIO_VE1_AUX_TABLE_INVALIDATE  = 21,
+        MHW_MMIO_CCS0_AUX_TABLE_BASE_LOW   = 22,
+        MHW_MMIO_CCS0_AUX_TABLE_BASE_HIGH  = 23,
+        MHW_MMIO_CCS0_AUX_TABLE_INVALIDATE = 24,
     };
 
     struct MHW_MI_ALU_PARAMS
