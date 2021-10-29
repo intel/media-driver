@@ -34,6 +34,8 @@
 class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
 {
    public:
+    uint8_t m_qpModulationStrength = 0;       //!< Current QP modulation strength
+    bool m_isFirstDeltaQP = true;              //!< check if it is first time
 
     PCODECHAL_ENCODE_SINGLEPIPE_VIRTUALENGINE_STATE m_sinlgePipeVeState;  //!< single pipe virtual engine state
     //!
@@ -76,6 +78,8 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     MOS_STATUS HuCBrcDummyStreamObject(PMOS_COMMAND_BUFFER cmdBuffer) override { return MOS_STATUS_SUCCESS; }
 
     MOS_STATUS SetDmemHuCBrcInitReset() override;
+
+    virtual MOS_STATUS DeltaQPUpdate(uint8_t QpModulationStrength);
 
     MOS_STATUS SetDmemHuCBrcUpdate() override;
 

@@ -1114,6 +1114,15 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcInitReset()
     return eStatus;
 }
 
+MOS_STATUS CodechalVdencAvcStateG12::DeltaQPUpdate(uint8_t QpModulationStrength)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    m_qpModulationStrength = QpModulationStrength;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1163,9 +1172,10 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
 
     if (m_lookaheadDepth > 0)
     {
+        DeltaQPUpdate(m_avcPicParam->QpModulationStrength);
         hucVDEncBrcDmem->EnableLookAhead = 1;
         hucVDEncBrcDmem->UPD_LA_TargetFulness_U32 = m_targetBufferFulness;
-        hucVDEncBrcDmem->UPD_Delta_U8 = m_avcPicParam->QpModulationStrength;
+        hucVDEncBrcDmem->UPD_Delta_U8 = m_qpModulationStrength;
     }
 
     hucVDEncBrcDmem->UPD_TCBRC_SCENARIO_U8 = m_avcSeqParam->bAutoMaxPBFrameSizeForSceneChange;
