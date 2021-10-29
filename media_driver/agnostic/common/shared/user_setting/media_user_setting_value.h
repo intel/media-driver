@@ -63,7 +63,7 @@ public:
     template <class T>
     T Get() const
     {
-        T ret;
+        T ret=T();
 
         std::stringstream convert(m_value);
         convert >> ret;
