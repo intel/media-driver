@@ -193,6 +193,8 @@ protected:
         }
         return false;
     }
+
+    void PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineCaps);
 };
 
 }
