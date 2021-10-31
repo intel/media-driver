@@ -81,7 +81,8 @@ typedef struct VP_SFC_ENTRY_REC
 }VP_SFC_ENTRY_REC;
 
 #define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported, \
-                           _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported, _bHsbMode, _TCCSupported)     \
+                           _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported, _bHsbMode, \
+                           _TCCSupported, _ACESupported, _STESupported)     \
         {                                                                                                                   \
             veboxHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
             veboxHwEntry[SurfaceFormat].outputSupported                         = bOutput;                                  \
@@ -99,7 +100,10 @@ typedef struct VP_SFC_ENTRY_REC
             veboxHwEntry[SurfaceFormat].b3dLutSupported                         = _3DLutSupported;                          \
             veboxHwEntry[SurfaceFormat].iecp                                    = _IecpSupported;                           \
             veboxHwEntry[SurfaceFormat].hsb                                     = _bHsbMode;                                \
-            veboxHwEntry[SurfaceFormat].tccSupported                             = _TCCSupported;                                \
+            veboxHwEntry[SurfaceFormat].tccSupported                            = _TCCSupported;                            \
+            veboxHwEntry[SurfaceFormat].aceSupported                            = _ACESupported;                            \
+            veboxHwEntry[SurfaceFormat].tccSupported                            = _TCCSupported;                            \
+            veboxHwEntry[SurfaceFormat].steSupported                            = _STESupported;                            \
         }                                                                                                                   \
 
 typedef struct VP_VEBOX_ENTRY_REC
@@ -123,6 +127,8 @@ typedef struct VP_VEBOX_ENTRY_REC
     bool                          iecp;// all IECP features like procamp/STD/Gamut etc
     bool                          hsb;// high speed bypass mode
     bool                          tccSupported;
+    bool                          aceSupported;
+    bool                          steSupported;
 }VP_VEBOX_ENTRY_REC;
 
 struct VP_POLICY_RULES

@@ -1000,7 +1000,8 @@ MOS_STATUS Policy::GetSteExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
-    if (m_hwCaps.m_veboxHwEntry[inputformat].inputSupported &&
+    if (m_hwCaps.m_veboxHwEntry[inputformat].steSupported   &&
+        m_hwCaps.m_veboxHwEntry[inputformat].inputSupported &&
         m_hwCaps.m_veboxHwEntry[inputformat].iecp)
     {
         steEngine.bEnabled = 1;
