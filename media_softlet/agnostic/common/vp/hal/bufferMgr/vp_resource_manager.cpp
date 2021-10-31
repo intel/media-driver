@@ -337,14 +337,14 @@ MOS_STATUS VpResourceManager::GetFormatForFcIntermediaSurface(MOS_FORMAT& format
     int32_t                         cspace_in_use[CSpace_Count] = {};
     bool                            bYUVTarget = false;
     MEDIA_CSPACE                    cs = CSpace_Any;
-    MEDIA_CSPACE                    Temp_ColorSpace = CSpace_Any;
-    MEDIA_CSPACE                    Main_ColorSpace = CSpace_None;
+    MEDIA_CSPACE                    tempColorSpace = CSpace_Any;
+    MEDIA_CSPACE                    mainColorSpace = CSpace_None;
 
     auto PostProcess = [&](MOS_STATUS status)
     {
         VP_PUBLIC_NORMALMESSAGE("Main_ColorSpace %d, Temp_ColorSpace %d, csc_count %d.",
-            Main_ColorSpace, Temp_ColorSpace, csc_count);
-        colorSpace = Temp_ColorSpace;
+            mainColorSpace, tempColorSpace, csc_count);
+        colorSpace = tempColorSpace;
         // Set AYUV or ARGB output depending on intermediate cspace
         if (KernelDll_IsCspace(colorSpace, CSpace_RGB))
         {
@@ -378,9 +378,9 @@ MOS_STATUS VpResourceManager::GetFormatForFcIntermediaSurface(MOS_FORMAT& format
 
         // Save Main Video color space
         if (src->SurfType == SURF_IN_PRIMARY &&
-            Main_ColorSpace == CSpace_None)
+            mainColorSpace == CSpace_None)
         {
-            Main_ColorSpace = src->ColorSpace;
+            mainColorSpace = src->ColorSpace;
         }
 
         // Set xvYCC pass through mode
@@ -388,7 +388,7 @@ MOS_STATUS VpResourceManager::GetFormatForFcIntermediaSurface(MOS_FORMAT& format
             (src->ColorSpace == CSpace_xvYCC709 ||
              src->ColorSpace == CSpace_xvYCC601))
         {
-            Temp_ColorSpace = src->ColorSpace;
+            tempColorSpace = src->ColorSpace;
             return PostProcess(MOS_STATUS_SUCCESS);
         }
 
@@ -450,18 +450,19 @@ MOS_STATUS VpResourceManager::GetFormatForFcIntermediaSurface(MOS_FORMAT& format
         // Save best choice as requiring minimum number of CSC operations
         // Use main cspace as default if same CSC count
         if ((csc_count <  csc_min) ||
-            (csc_count == csc_min && cs == Main_ColorSpace) )
+            (csc_count == csc_min && cs == mainColorSpace))
         {
-            Temp_ColorSpace = cs;
+            tempColorSpace = cs;
             csc_min = csc_count;
         }
     }
 
     // If all layers are palletized, use the CS from first layer (as good as any other)
-    if (Temp_ColorSpace == CSpace_Any && surfCount > 0)
+    if (tempColorSpace == CSpace_Any && surfCount > 0)
     {
         src = featurePipe.GetSurface(true, 0);
-        Temp_ColorSpace = src->ColorSpace;
+        VP_PUBLIC_CHK_NULL_RETURN(src);
+        tempColorSpace = src->ColorSpace;
     }
 
     return PostProcess(MOS_STATUS_SUCCESS);
