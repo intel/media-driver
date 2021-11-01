@@ -510,7 +510,6 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         {
             cscEngine->usedForNextPass = false;
         }
-        PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -526,8 +525,6 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         cscEngine->VeboxNeeded          = 0;
         cscEngine->RenderNeeded         = 0;
         cscEngine->forceEnableForSfc    = 1;
-
-        PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -559,12 +556,10 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
             cscEngine->SfcNeeded   = 1;
             cscEngine->VeboxNeeded = 0;
 
-            PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
             return MOS_STATUS_SUCCESS;
         }
         else
         {
-            PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
     }
@@ -595,7 +590,6 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         cscEngine->VeboxNeeded = 1;
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -628,7 +622,6 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         {
             scalingEngine->usedForNextPass = false;
         }
-        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -697,7 +690,6 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         scalingEngine->VeboxNeeded          = 0;
         scalingEngine->RenderNeeded         = 0;
         scalingEngine->forceEnableForSfc    = 1;
-        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -759,7 +751,6 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         }
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -827,7 +818,6 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
         {
             rotationEngine->usedForNextPass = false;
         }
-        PrintFeatureExecutionCaps(__FUNCTION__, *rotationEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -839,7 +829,6 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
         rotationEngine->SfcNeeded               = 0;
         rotationEngine->RenderNeeded            = 0;
         rotationEngine->forceEnableForSfc       = 1;
-        PrintFeatureExecutionCaps(__FUNCTION__, *rotationEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -848,7 +837,6 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
     rotationEngine->fcSupported     = 1;
     rotationEngine->SfcNeeded       = IsSfcRotationSupported(rotationParams);
 
-    PrintFeatureExecutionCaps(__FUNCTION__, *rotationEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -876,7 +864,6 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
     if (denoiseEngine.value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("Scaling Feature Already been processed, Skip further process");
-        PrintFeatureExecutionCaps(__FUNCTION__, denoiseEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -909,7 +896,6 @@ MOS_STATUS Policy::GetDenoiseExecutionCaps(SwFilter* feature)
     denoiseParams.widthAlignUnitInput = widthAlignUint;
     denoiseParams.heightAlignUnitInput = heightAlignUnit;
 
-    PrintFeatureExecutionCaps(__FUNCTION__, denoiseEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -934,8 +920,7 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
 
     if (diEngine.value != 0)
     {
-        VP_PUBLIC_NORMALMESSAGE("DI Feature Already been processed, Skip further process.");
-        PrintFeatureExecutionCaps(__FUNCTION__, diEngine);
+        VP_PUBLIC_NORMALMESSAGE("Scaling Feature Already been processed, Skip further process");
         return MOS_STATUS_SUCCESS;
     }
 
@@ -971,7 +956,6 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
         diEngine.fcSupported  = 1;
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, diEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -996,7 +980,6 @@ MOS_STATUS Policy::GetSteExecutionCaps(SwFilter* feature)
     if (steEngine.value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("ACE Feature Already been processed, Skip further process");
-        PrintFeatureExecutionCaps(__FUNCTION__, steEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1009,7 +992,6 @@ MOS_STATUS Policy::GetSteExecutionCaps(SwFilter* feature)
         steEngine.VeboxIECPNeeded = 1;
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, steEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1034,7 +1016,6 @@ MOS_STATUS Policy::GetTccExecutionCaps(SwFilter* feature)
     if (tccEngine.value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("TCC Feature Already been processed, Skip further process");
-        PrintFeatureExecutionCaps(__FUNCTION__, tccEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1047,7 +1028,6 @@ MOS_STATUS Policy::GetTccExecutionCaps(SwFilter* feature)
         tccEngine.VeboxIECPNeeded = 1;
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, tccEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1072,7 +1052,6 @@ MOS_STATUS Policy::GetProcampExecutionCaps(SwFilter* feature)
     if (procampEngine.value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("Procamp Feature Already been processed, Skip further process");
-        PrintFeatureExecutionCaps(__FUNCTION__, procampEngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1086,7 +1065,6 @@ MOS_STATUS Policy::GetProcampExecutionCaps(SwFilter* feature)
         procampEngine.VeboxIECPNeeded = 1;
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, procampEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1111,7 +1089,6 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     if (pHDREngine->value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("HDR Feature Already been processed, Skip further process");
-        PrintFeatureExecutionCaps(__FUNCTION__, *pHDREngine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1130,7 +1107,6 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
         }
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, *pHDREngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1155,7 +1131,6 @@ MOS_STATUS Policy::GetColorFillExecutionCaps(SwFilter* feature)
     if (engine.value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("ColorFill Feature Already been processed, Skip further process");
-        PrintFeatureExecutionCaps(__FUNCTION__, engine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1164,7 +1139,6 @@ MOS_STATUS Policy::GetColorFillExecutionCaps(SwFilter* feature)
     engine.fcSupported = 1;
     engine.SfcNeeded = 1;    // For SFC, the parameter in scaling is used.
 
-    PrintFeatureExecutionCaps(__FUNCTION__, engine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1189,7 +1163,6 @@ MOS_STATUS Policy::GetAlphaExecutionCaps(SwFilter* feature)
     if (engine.value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("Alpha Feature Already been processed, Skip further process");
-        PrintFeatureExecutionCaps(__FUNCTION__, engine);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1199,7 +1172,6 @@ MOS_STATUS Policy::GetAlphaExecutionCaps(SwFilter* feature)
     engine.SfcNeeded = 1;    // For SFC, the parameter in scaling is used.
     engine.VeboxNeeded = params.compAlpha->AlphaMode != VPHAL_ALPHA_FILL_MODE_BACKGROUND;
 
-    PrintFeatureExecutionCaps(__FUNCTION__, engine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1212,7 +1184,6 @@ MOS_STATUS Policy::GetExecutionCaps(SwFilter* feature)
     VP_EngineEntry &defaultEngine = feature->GetFilterEngineCaps();
     defaultEngine.value = 0;
 
-    PrintFeatureExecutionCaps(__FUNCTION__, defaultEngine);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1297,11 +1268,6 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
     }
 
-    VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%x (bVebox %d, bSFC %d, bRender %d, bComposite %d, bOutputPipeFeatureInuse %d, bIECP %d, bDiProcess2ndField %d)",
-        caps.value, caps.bVebox, caps.bSFC, caps.bRender, caps.bComposite, caps.bOutputPipeFeatureInuse, caps.bIECP, caps.bDiProcess2ndField);
-    PrintFeatureExecutionCaps("engineCapsInputPipe", engineCapsInputPipe);
-    PrintFeatureExecutionCaps("engineCapsOutputPipe", engineCapsOutputPipe);
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1343,7 +1309,6 @@ MOS_STATUS Policy::GetOutputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineE
         engineCapsOutputPipe.nonVeboxFeatureExists |= (!engineCaps.VeboxNeeded && !engineCaps.bypassIfVeboxSfcInUse);
     }
 
-    PrintFeatureExecutionCaps(__FUNCTION__, engineCapsOutputPipe);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1470,7 +1435,6 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                         engineCapsForVeboxSfc.nonFcFeatureExists ? engineCapsForVeboxSfc :
                         engineCapsForFc;
 
-    PrintFeatureExecutionCaps(__FUNCTION__, engineCapsInputPipe);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2356,11 +2320,4 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
     }
 
     return MOS_STATUS_UNIMPLEMENTED;
-}
-
-void Policy::PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineCaps)
-{
-    VP_PUBLIC_NORMALMESSAGE("%s, value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d)",
-        name, engineCaps.value, engineCaps.bEnabled, engineCaps.VeboxNeeded, engineCaps.SfcNeeded,
-        engineCaps.RenderNeeded, engineCaps.fcSupported, engineCaps.isolated);
 }

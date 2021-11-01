@@ -163,19 +163,6 @@ enum SurfaceType
     SurfaceTypePwlfOut,
     SurfaceTypeWeitCoef,
     SurfaceTypGlobalToneMappingCurveLUT,
-    // FC
-    SurfaceTypeFcInputLayer0,
-    SurfaceTypeFcInputLayer1,
-    SurfaceTypeFcInputLayer2,
-    SurfaceTypeFcInputLayer3,
-    SurfaceTypeFcInputLayer4,
-    SurfaceTypeFcInputLayer5,
-    SurfaceTypeFcInputLayer6,
-    SurfaceTypeFcInputLayer7,
-    SurfaceTypeFcInputLayerMax = SurfaceTypeFcInputLayer7,
-    SurfaceTypeFcTarget0,
-    SurfaceTypeFcTarget1,
-    SurfaceTypeFcCscCoeff,
     NumberOfSurfaceType
 };
 

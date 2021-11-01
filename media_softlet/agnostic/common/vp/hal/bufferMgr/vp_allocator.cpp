@@ -267,6 +267,27 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
     // But it is mapped to several different Formats in CodecHal under different conditions.
     osSurface.Format                            = vphalSurf.Format;
 
+    // dwOffset/YPlaneOffset/UPlaneOffset/VPlaneOffset will not be initialized during GetSurfaceInfo
+    // Just align them with vphal surface.
+    // Align Y plane information (plane offset, X/Y offset)
+    osSurface.dwOffset                          = vphalSurf.dwOffset;
+    osSurface.YPlaneOffset.iLockSurfaceOffset   = vphalSurf.YPlaneOffset.iLockSurfaceOffset;
+    osSurface.YPlaneOffset.iSurfaceOffset       = vphalSurf.YPlaneOffset.iSurfaceOffset;
+    osSurface.YPlaneOffset.iXOffset             = vphalSurf.YPlaneOffset.iXOffset;
+    osSurface.YPlaneOffset.iYOffset             = vphalSurf.YPlaneOffset.iYOffset;
+
+    // Align U/UV plane information (plane offset, X/Y offset)
+    osSurface.UPlaneOffset.iLockSurfaceOffset   = vphalSurf.UPlaneOffset.iLockSurfaceOffset;
+    osSurface.UPlaneOffset.iSurfaceOffset       = vphalSurf.UPlaneOffset.iSurfaceOffset;
+    osSurface.UPlaneOffset.iXOffset             = vphalSurf.UPlaneOffset.iXOffset;
+    osSurface.UPlaneOffset.iYOffset             = vphalSurf.UPlaneOffset.iYOffset;
+
+    // Align V plane information (plane offset, X/Y offset)
+    osSurface.VPlaneOffset.iLockSurfaceOffset   = vphalSurf.VPlaneOffset.iLockSurfaceOffset;
+    osSurface.VPlaneOffset.iSurfaceOffset       = vphalSurf.VPlaneOffset.iSurfaceOffset;
+    osSurface.VPlaneOffset.iXOffset             = vphalSurf.VPlaneOffset.iXOffset;
+    osSurface.VPlaneOffset.iYOffset             = vphalSurf.VPlaneOffset.iYOffset;
+
     // Initialize other parameters in vp surface according to vphal surface.
     surf->ColorSpace                            = vphalSurf.ColorSpace;
     surf->ExtendedGamut                         = vphalSurf.ExtendedGamut;
