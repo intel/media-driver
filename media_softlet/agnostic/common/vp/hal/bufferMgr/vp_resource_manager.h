@@ -61,6 +61,8 @@
                                !(_a.bIECP) && \
                                !(_a.b3DlutOutput))
 
+#define VP_NUM_FC_INTERMEDIA_SURFACES   2
+
 namespace vp {
     struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
     {
@@ -336,9 +338,10 @@ public:
     virtual ~VpResourceManager();
     virtual MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
     virtual void OnNewFrameProcessEnd();
+    MOS_STATUS PrepareFcIntermediateSurface(SwFilterPipe &featurePipe);
     MOS_STATUS GetResourceHint(std::vector<FeatureType> &featurePool, SwFilterPipe& executedFilters, RESOURCE_ASSIGNMENT_HINT &hint);
     MOS_STATUS AssignExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters);
-    MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
+    MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, VP_SURFACE *pastSurface, VP_SURFACE *futureSurface,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
 
     bool IsSameSamples()
@@ -421,7 +424,9 @@ protected:
     void DestoryVeboxOutputSurface();
     void DestoryVeboxDenoiseOutputSurface();
     void DestoryVeboxSTMMSurface();
-    virtual MOS_STATUS AssignRenderResource(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS AssignRenderResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
+        RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE* inputSurface, VP_SURFACE* outputSurface, VP_SURFACE* pastSurface, VP_SURFACE* futureSurface,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING& surfSetting);
@@ -472,8 +477,8 @@ protected:
         m_veboxSurfaceConfigMap.insert(std::make_pair(VEBOX_SURFACES_CONFIG(_b64DI, _sfcEnable, _sameSample, _outOfBound, _pastRefAvailable, _futureRefAvailable, _firstDiField).value, VEBOX_SURFACES(_currentInputSurface, _pastInputSurface, _currentOutputSurface, _pastOutputSurface)));
     }
 
-    MOS_STATUS GetIntermediaOutputSurfaceParams(VP_SURFACE_PARAMS &params, SwFilterPipe &executedFilters);
-    MOS_STATUS AssignIntermediaSurface(SwFilterPipe &executedFilters);
+    MOS_STATUS GetIntermediaOutputSurfaceParams(VP_EXECUTE_CAPS& caps, VP_SURFACE_PARAMS &params, SwFilterPipe &executedFilters);
+    MOS_STATUS AssignIntermediaSurface(VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters);
 
     bool IsDeferredResourceDestroyNeeded()
     {
@@ -484,6 +489,9 @@ protected:
 
     void CleanTempSurfaces();
     VP_SURFACE* GetCopyInstOfExtSurface(VP_SURFACE* surf);
+
+    MOS_STATUS GetFormatForFcIntermediaSurface(MOS_FORMAT& format, MEDIA_CSPACE &colorSpace, SwFilterPipe &featurePipe);
+    MOS_STATUS GetFcIntermediateSurfaceForOutput(VP_SURFACE *&intermediaSurface, SwFilterPipe &executedFilters);
 
 protected:
     MOS_INTERFACE                &m_osInterface;
@@ -520,6 +528,8 @@ protected:
     uint32_t    m_imageHeightOfPastHistogram                 = 0;
     uint32_t    m_imageWidthOfCurrentHistogram               = 0;
     uint32_t    m_imageHeightOfCurrentHistogram              = 0;
+    bool        m_isFcIntermediateSurfacePrepared            = false;
+    VP_SURFACE *m_fcIntermediateSurface[VP_NUM_FC_INTERMEDIA_SURFACES] = {}; // Ping-pong surface for multi-layer composition.
     std::vector<VP_SURFACE *> m_intermediaSurfaces;
     std::map<uint64_t, VP_SURFACE *> m_tempSurface; // allocation handle and surface pointer pair.
     // Pipe index for one DDI call.
@@ -533,6 +543,8 @@ protected:
     VP_SURFACE *m_veboxWeitCoefSurface                        = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
     VP_SURFACE *m_veboxGlobalToneMappingCurveLUTSurface       = nullptr;       //!< VEBOX 1D LUT surface for Vebox Gen12
 
+    // Fc Resource
+    VP_SURFACE *m_cmfcCoeff                                   = nullptr;
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__
