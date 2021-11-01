@@ -152,17 +152,6 @@ extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaratio
 //    }
 //}
 
-//Memory alloc fail simulatiion related defination
-#if (_DEBUG || _RELEASE_INTERNAL)
-
-bool MOS_SimulateAllocMemoryFail(
-    size_t      size,
-    size_t      alignment,
-    const char *functionName,
-    const char *filename,
-    int32_t     line);
-#endif  //(_DEBUG || _RELEASE_INTERNAL)
-
 #if MOS_MESSAGES_ENABLED
 template<class _Ty, class... _Types>
 _Ty* MOS_NewUtil(const char *functionName,
@@ -258,26 +247,6 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-//!
-//! \brief    Init Function for MOS OS specific utilities
-//! \details  Initial MOS OS specific utilities related structures, and only execute once for multiple entries
-//! \param    [in] mosCtx
-//!           os device ctx handle
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_OS_Utilities_Init(MOS_CONTEXT_HANDLE mosCtx);
-
-//!
-//! \brief    Close Function for MOS OS utilities
-//! \details  close/remove MOS OS utilities related structures, and only execute once for multiple entries
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_OS_Utilities_Close(MOS_CONTEXT_HANDLE mosCtx);
 
 //------------------------------------------------------------------------------
 //  Allocate, free and set a memory region
@@ -772,52 +741,6 @@ MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia();
 MOS_STATUS MOS_GenerateUserFeatureKeyXML(MOS_CONTEXT_HANDLE mosCtx);
 
 //!
-//! \brief    Get the User Feature Value from Table
-//! \details  Get the related User Feature Value item according to Filter rules , and pass the item
-//!            into return callback function
-//! \param    [in] descTable
-//!           The user feature key description table
-//! \param    [in] numOfItems
-//!           Number of user feature keys described in the table
-//! \param    [in] maxId
-//!           Max value ID in the table
-//! \param    [out] keyValueMap
-//!           Optional pointer to the value map where the table items will be linked to, could be nullptr
-//! \param    [in] CallbackFunc
-//!           Pointer to the Callback function, and pass the User Feature Value item as its parameter
-//! \param    [in] pUserFeatureKeyFilter
-//!           use the filter rule to select some User Feature Value item
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_GetItemFromMOSUserFeatureDescField(
-    MOS_USER_FEATURE_VALUE      *descTable,
-    uint32_t                    numOfItems,
-    uint32_t                    maxId,
-    MOS_USER_FEATURE_VALUE_MAP  *keyValueMap,
-    MOS_STATUS                  (*CallbackFunc)(MOS_USER_FEATURE_VALUE_MAP *, PMOS_USER_FEATURE_VALUE),
-    PMOS_USER_FEATURE_VALUE     pUserFeatureKeyFilter);
-
-//!
-//! \brief    Set the User Feature Default Value
-//! \details  Set the User Feature Default Value in the user feature key map
-//! \param    [in] pOsUserFeatureInterface
-//!           Pointer to OS User Interface structure
-//! \param    [in] pWriteValues
-//!           Pointer to User Feature Write Data
-//! \param    [in] uiNumOfValues
-//!           Number of User Feature Write Data
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_UserFeature_SetDefaultValues(
-    PMOS_USER_FEATURE_INTERFACE             pOsUserFeatureInterface,
-    PMOS_USER_FEATURE_VALUE_WRITE_DATA      pWriteValues,
-    uint32_t                                uiNumOfValues);
-
-//!
 //! \brief    Link user feature key description table items to specified UserFeatureKeyTable
 //! \details  Link user feature key description table items to specified UserFeatureKeyTable
 //!           according to ID sequence and do some post processing such as malloc related memory
@@ -901,21 +824,6 @@ MOS_STATUS MOS_CopyUserFeatureValueData(
     PMOS_USER_FEATURE_VALUE_DATA pDstData,
     MOS_USER_FEATURE_VALUE_TYPE ValueType
 );
-
-//!
-//! \brief    Free the allocated memory for the related Value type
-//! \details  Free the allocated memory for the related Value type
-//! \param    [in] pData
-//!           Pointer to the User Feature Value Data
-//! \param    [in] ValueType
-//!           related Value Type needed to be deallocated.
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_DestroyUserFeatureData(
-    PMOS_USER_FEATURE_VALUE_DATA pData,
-    MOS_USER_FEATURE_VALUE_TYPE  ValueType);
 
 //!
 //! \brief    Read Single Value from User Feature based on value of enum type in MOS_USER_FEATURE_VALUE_TYPE
@@ -1063,41 +971,6 @@ const char* MOS_UserFeature_LookupReadPath(
 //!
 const char* MOS_UserFeature_LookupWritePath(
     uint32_t ValueID);
-
-//!
-//! \brief    Enable user feature change notification
-//! \details  Enable user feature change notification
-//!           Create notification data and register the wait event
-//! \param    [in] pOsUserFeatureInterface
-//!           Pointer to OS User Interface structure
-//! \param    [in/out] pNotification
-//!           Pointer to User Feature Notification Data
-//! \param    [in] mosCtx
-//!           Pointer to DDI device handle
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_UserFeature_EnableNotification(
-    PMOS_USER_FEATURE_INTERFACE               pOsUserFeatureInterface,
-    PMOS_USER_FEATURE_NOTIFY_DATA             pNotification,
-    MOS_CONTEXT_HANDLE                        mosCtx);
-
-//!
-//! \brief    Disable user feature change notification
-//! \details  Disable user feature change notification
-//!           Unregister the wait event and frees notification data
-//! \param    [in] pOsUserFeatureInterface
-//!           Pointer to OS User Interface structure
-//! \param    [in/out] pNotification
-//!           Pointer to User Feature Notification Data
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_UserFeature_DisableNotification(
-    PMOS_USER_FEATURE_INTERFACE                pOsUserFeatureInterface,
-    PMOS_USER_FEATURE_NOTIFY_DATA              pNotification);
 
 //!
 //! \brief    Parses the user feature path and gets type and sub path
