@@ -1567,11 +1567,16 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapSta(
     MOS_ALLOC_GFXRES_PARAMS     AllocParams;
     uint32_t                    i, dwNumHeaps;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
+    MEDIA_FEATURE_TABLE         *skuTable = nullptr;
 
     MHW_FUNCTION_ENTER;
 
     pOsInterface = m_pOsInterface;
     MHW_CHK_NULL(pOsInterface);
+    MHW_CHK_NULL(pOsInterface->pfnGetSkuTable);
+
+    skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+    MHW_CHK_NULL(skuTable);
 
     pNewStateHeap = (PMHW_STATE_HEAP)MOS_AllocAndZeroMemory(sizeof(MHW_STATE_HEAP));
     MHW_CHK_NULL(pNewStateHeap);
@@ -1583,6 +1588,12 @@ MOS_STATUS XMHW_STATE_HEAP_INTERFACE::ExtendStateHeapSta(
     AllocParams.Format = Format_Buffer;
     AllocParams.dwBytes = pNewStateHeap->dwSize;
     AllocParams.pBufName = "StateHeap";
+
+    if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
+    {
+        AllocParams.dwMemType = MOS_MEMPOOL_SYSTEMMEMORY;
+    }
+
     MHW_CHK_STATUS(pOsInterface->pfnAllocateResource(
         pOsInterface,
         &AllocParams,
