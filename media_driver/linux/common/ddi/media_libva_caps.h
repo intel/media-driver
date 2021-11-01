@@ -744,6 +744,22 @@ public:
     //!
     virtual VAStatus GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, uint64_t &modifier);
 
+    //! \brief Set tile format according to external surface's modifier
+    //!
+    //! \param    [in] mediaSurface
+    //!           Pointer to the media surface
+    //! \param    [out] tileformat
+    //!           Reference to the tileformat
+    //! \param    [out] bMemCompEnable
+    //!           Reference to the memory compress flag
+    //! \param    [out] bMemCompRC
+    //!           Reference to the memory compress rate control
+    //!
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success
+    //!
+    virtual VAStatus SetExternalSurfaceTileFormat(DDI_MEDIA_SURFACE* mediaSurface, uint32_t &tileformat, bool &bMemCompEnable, bool &bMemCompRC);
+
 protected:
     //!
     //! \class    ProfileEntrypoint

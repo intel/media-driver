@@ -3767,3 +3767,41 @@ VAStatus MediaLibvaCaps::GetSurfaceModifier(DDI_MEDIA_SURFACE* mediaSurface, uin
     }
     return VA_STATUS_SUCCESS;
 }
+
+VAStatus MediaLibvaCaps::SetExternalSurfaceTileFormat(DDI_MEDIA_SURFACE* mediaSurface,
+                                                      uint32_t &tileformat, bool &bMemCompEnable, bool &bMemCompRC)
+{
+    DDI_CHK_NULL(mediaSurface,                     "nullptr mediaSurface",                     VA_STATUS_ERROR_INVALID_SURFACE);
+    DDI_CHK_NULL(mediaSurface->pSurfDesc,          "nullptr mediaSurface->pSurfDesc",          VA_STATUS_ERROR_INVALID_SURFACE);
+
+    switch (mediaSurface->pSurfDesc->modifier)
+    {
+        case DRM_FORMAT_MOD_LINEAR:
+            tileformat = I915_TILING_NONE;
+            bMemCompEnable = false;
+            break;
+        case I915_FORMAT_MOD_X_TILED:
+            tileformat = I915_TILING_X;
+            bMemCompEnable = false;
+            break;
+        case I915_FORMAT_MOD_Y_TILED:
+        case I915_FORMAT_MOD_Yf_TILED:
+            tileformat = I915_TILING_Y;
+            bMemCompEnable = false;
+            break;
+        case I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS:
+            tileformat = I915_TILING_Y;
+            bMemCompEnable = true;
+            bMemCompRC = true;
+            break;
+        case I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS:
+            tileformat = I915_TILING_Y;
+            bMemCompEnable = true;
+            bMemCompRC = false;
+            break;
+        default:
+            return VA_STATUS_ERROR_INVALID_SURFACE;
+    }
+
+    return VA_STATUS_SUCCESS;
+}

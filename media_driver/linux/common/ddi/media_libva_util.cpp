@@ -372,35 +372,12 @@ VAStatus DdiMediaUtil_AllocateSurface(
             if( bo != nullptr )
             {
                 pitch = mediaSurface->pSurfDesc->uiPitches[0];
-                switch (mediaSurface->pSurfDesc->modifier)
-                {
-                    case DRM_FORMAT_MOD_LINEAR:
-                        tileformat = I915_TILING_NONE;
-                        bMemCompEnable = false;
-                        break;
-                    case I915_FORMAT_MOD_X_TILED:
-                        tileformat = I915_TILING_X;
-                        bMemCompEnable = false;
-                        break;
-                    case I915_FORMAT_MOD_Y_TILED:
-                    case I915_FORMAT_MOD_Yf_TILED:
-                        tileformat = I915_TILING_Y;
-                        bMemCompEnable = false;
-                        break;
-                    case I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS:
-                        tileformat = I915_TILING_Y;
-                        bMemCompEnable = true;
-                        bMemCompRC = true;
-                        break;
-                    case I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS:
-                        tileformat = I915_TILING_Y;
-                        bMemCompEnable = true;
-                        bMemCompRC = false;
-                        break;
-                    default:
-                        DDI_ASSERTMESSAGE("Unsupported modifier.");
-                        hRes = VA_STATUS_ERROR_INVALID_PARAMETER;
-                        goto finish;
+
+                DDI_CHK_NULL(mediaDrvCtx->m_caps, "nullptr m_caps", VA_STATUS_ERROR_INVALID_CONTEXT);
+                if (VA_STATUS_SUCCESS != mediaDrvCtx->m_caps->SetExternalSurfaceTileFormat(mediaSurface, tileformat, bMemCompEnable, bMemCompRC)) {
+                    DDI_ASSERTMESSAGE("Unsupported modifier.");
+                    hRes = VA_STATUS_ERROR_INVALID_PARAMETER;
+                    goto finish;
                 }
             }
             else
