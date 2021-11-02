@@ -1505,6 +1505,8 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID, false, m_hwInterface->m_osInterface->pOsContext);
     }
 
+    MT_LOG2(MT_VP_HAL_RENDER_VE, MT_NORMAL, MT_VP_MHW_VE_SCALABILITY_EN, bMultipipe, MT_VP_MHW_VE_SCALABILITY_USE_SFC, m_IsSfcUsed);
+
     return eStatus;
 }
 
@@ -1531,6 +1533,8 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
                                       pVpHalVeboxSurfaceStateCmdParams->pSurfInput,
                                       &pMhwVeboxSurfaceStateCmdParams->SurfInput));
         pMhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset = pVpHalVeboxSurfaceStateCmdParams->pSurfInput->osSurface->YPlaneOffset.iYOffset;
+        MT_LOG2(MT_VP_MHW_VE_SURFSTATE_INPUT, MT_NORMAL, MT_SURF_TILE_MODE, pVpHalVeboxSurfaceStateCmdParams->pSurfInput->osSurface->TileModeGMM,
+            MT_SURF_MOS_FORMAT, pVpHalVeboxSurfaceStateCmdParams->pSurfInput->osSurface->Format);
     }
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfOutput)
     {
@@ -1540,6 +1544,8 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
                                       pVpHalVeboxSurfaceStateCmdParams->pSurfOutput,
                                       &pMhwVeboxSurfaceStateCmdParams->SurfOutput));
         pMhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset = pVpHalVeboxSurfaceStateCmdParams->pSurfOutput->osSurface->YPlaneOffset.iYOffset;
+        MT_LOG2(MT_VP_MHW_VE_SURFSTATE_OUT, MT_NORMAL, MT_SURF_TILE_MODE, pVpHalVeboxSurfaceStateCmdParams->pSurfOutput->osSurface->TileModeGMM,
+            MT_SURF_MOS_FORMAT, pVpHalVeboxSurfaceStateCmdParams->pSurfOutput->osSurface->Format);
     }
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfSTMM)
     {
@@ -1547,6 +1553,8 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
         VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceParams(
                                       pVpHalVeboxSurfaceStateCmdParams->pSurfSTMM,
                                       &pMhwVeboxSurfaceStateCmdParams->SurfSTMM));
+        MT_LOG2(MT_VP_MHW_VE_SURFSTATE_STMM, MT_NORMAL, MT_SURF_TILE_MODE, pVpHalVeboxSurfaceStateCmdParams->pSurfSTMM->osSurface->TileModeGMM,
+            MT_SURF_MOS_FORMAT, pVpHalVeboxSurfaceStateCmdParams->pSurfSTMM->osSurface->Format);
     }
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput)
     {
@@ -1555,6 +1563,8 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
                                       pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput,
                                       &pMhwVeboxSurfaceStateCmdParams->SurfDNOutput));
         pMhwVeboxSurfaceStateCmdParams->SurfDNOutput.dwYoffset = pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput->osSurface->YPlaneOffset.iYOffset;
+        MT_LOG2(MT_VP_MHW_VE_SURFSTATE_DNOUT, MT_NORMAL, MT_SURF_TILE_MODE, pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput->osSurface->TileModeGMM,
+            MT_SURF_MOS_FORMAT, pVpHalVeboxSurfaceStateCmdParams->pSurfDNOutput->osSurface->Format);
     }
     if (pVpHalVeboxSurfaceStateCmdParams->pSurfSkinScoreOutput)
     {
@@ -1562,6 +1572,8 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
         VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceParams(
                                       pVpHalVeboxSurfaceStateCmdParams->pSurfSkinScoreOutput,
                                       &pMhwVeboxSurfaceStateCmdParams->SurfSkinScoreOutput));
+        MT_LOG2(MT_VP_MHW_VE_SURFSTATE_SKINSCORE, MT_NORMAL, MT_SURF_TILE_MODE, pVpHalVeboxSurfaceStateCmdParams->pSurfSkinScoreOutput->osSurface->TileModeGMM,
+            MT_SURF_MOS_FORMAT, pVpHalVeboxSurfaceStateCmdParams->pSurfSkinScoreOutput->osSurface->Format);
     }
 
     if (m_inputDepth)
@@ -2152,11 +2164,13 @@ MOS_STATUS VpVeboxCmdPacket::IsCmdParamsValid(
         if (nullptr == VeboxDiIecpCmdParams.pOsResPrevOutput &&
             (MEDIA_VEBOX_DI_OUTPUT_PREVIOUS == veboxMode.DIOutputFrames || MEDIA_VEBOX_DI_OUTPUT_BOTH == veboxMode.DIOutputFrames))
         {
+            MT_ERR1(MT_VP_HAL_RENDER_VE, MT_SURF_ALLOC_HANDLE, 0);
             return MOS_STATUS_INVALID_PARAMETER;
         }
         if (nullptr == VeboxDiIecpCmdParams.pOsResCurrOutput &&
             (MEDIA_VEBOX_DI_OUTPUT_CURRENT == veboxMode.DIOutputFrames || MEDIA_VEBOX_DI_OUTPUT_BOTH == veboxMode.DIOutputFrames))
         {
+            MT_ERR1(MT_VP_HAL_RENDER_VE, MT_SURF_ALLOC_HANDLE, 0);
             return MOS_STATUS_INVALID_PARAMETER;
         }
     }
@@ -2166,6 +2180,8 @@ MOS_STATUS VpVeboxCmdPacket::IsCmdParamsValid(
         if ((VeboxSurfaceStateCmdParams.pSurfInput->osSurface->TileModeGMM == VeboxSurfaceStateCmdParams.pSurfDNOutput->osSurface->TileModeGMM) &&
             (VeboxSurfaceStateCmdParams.pSurfInput->osSurface->dwPitch != VeboxSurfaceStateCmdParams.pSurfDNOutput->osSurface->dwPitch))
         {
+            MT_ERR3(MT_VP_MHW_VE_SURFSTATE_INPUT, MT_SURF_TILE_MODE, VeboxSurfaceStateCmdParams.pSurfInput->osSurface->TileModeGMM,
+                MT_SURF_PITCH, VeboxSurfaceStateCmdParams.pSurfInput->osSurface->dwPitch, MT_SURF_PITCH, VeboxSurfaceStateCmdParams.pSurfDNOutput->osSurface->dwPitch);
             return MOS_STATUS_INVALID_PARAMETER;
         }
     }

@@ -1525,7 +1525,7 @@ void KernelDll_GetCSCMatrix(
         else
         {
             VPHAL_RENDER_ASSERTMESSAGE("Not supported color space conversion(from %d to %d)", src, dst);
-            MT_ERR2(MT_VP_KERNEL_CSC, MT_VP_COLORSPACE, src, MT_VP_COLORSPACE, dst);
+            MT_ERR2(MT_VP_KERNEL_CSC, MT_VP_KERNEL_CSPACE, src, MT_VP_KERNEL_CSPACE, dst);
         }
     }
 
@@ -2376,6 +2376,7 @@ bool KernelDll_FindRule(
                 // Undefined search rule will fail
                 default:
                     VPHAL_RENDER_ASSERTMESSAGE("Invalid rule %d @ layer %d, state %d.", pRuleEntry->id, pSearchState->layer_number, pSearchState->state);
+                    MT_ERR3(MT_VP_KERNEL_RULE, MT_VP_KERNEL_RULE_ID, pRuleEntry->id, MT_VP_KERNEL_RULE_LAYERNUM, pSearchState->layer_number, MT_VP_KERNEL_RULE_SEARCH_STATE, pSearchState->state);
                     break;
             }  // End of switch to deal with all matching rule IDs
 
@@ -2393,6 +2394,7 @@ bool KernelDll_FindRule(
 
     // Failed to find a matching rule -> kernel search will fail
     VPHAL_RENDER_NORMALMESSAGE("Fail to find a matching rule @ layer %d, state %d.", pSearchState->layer_number, pSearchState->state);
+    MT_ERR2(MT_VP_KERNEL_RULE, MT_VP_KERNEL_RULE_LAYERNUM, pSearchState->layer_number, MT_VP_KERNEL_RULE_SEARCH_STATE, pSearchState->state);
 
     // No match -> return
     pSearchState->pMatchingRuleSet = nullptr;

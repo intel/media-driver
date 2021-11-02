@@ -507,6 +507,7 @@ void _MOS_Assert(
     if (stmtStatus != MOS_STATUS_SUCCESS)                                                           \
     {                                                                                               \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, eStatus = 0x%x", stmtStatus);   \
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, stmtStatus); \
         return stmtStatus;                                                                          \
     }                                                                                               \
 }
@@ -521,6 +522,7 @@ void _MOS_Assert(
     if (eStatus != MOS_STATUS_SUCCESS)                                                         \
     {                                                                                          \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, eStatus = 0x%x", eStatus); \
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, eStatus); \
         break;                                                                                 \
     }                                                                                          \
 }
@@ -535,6 +537,7 @@ void _MOS_Assert(
     if (stmtStatus != MOS_STATUS_SUCCESS)                                       \
     {                                                                           \
         MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);        \
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, stmtStatus); \
         return stmtStatus;                                                      \
     }                                                                           \
 }
@@ -548,6 +551,7 @@ void _MOS_Assert(
     if ((_ptr) == nullptr)                                                  \
     {                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");  \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         return MOS_STATUS_NULL_POINTER;                                     \
     }                                                                       \
 }
@@ -561,6 +565,7 @@ void _MOS_Assert(
         if ((_ptr) == nullptr)                                                      \
         {                                                                           \
             MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);        \
+            MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
             return MOS_STATUS_NULL_POINTER;                                         \
         }                                                                           \
     }
@@ -576,6 +581,7 @@ void _MOS_Assert(
     if (eStatus != MOS_STATUS_SUCCESS)                                                         \
     {                                                                                          \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, eStatus = 0x%x", eStatus); \
+        MT_ERR2(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         goto finish;                                                                           \
     }                                                                                          \
 }
@@ -589,6 +595,7 @@ void _MOS_Assert(
     eStatus = (MOS_STATUS)(_stmt);                                                          \
     if (eStatus != MOS_STATUS_SUCCESS)                                                      \
     {                                                                                       \
+        MT_ERR2(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);                    \
         goto finish;                                                                        \
     }                                                                                       \
@@ -603,6 +610,7 @@ void _MOS_Assert(
     eStatus = (MOS_STATUS)(_stmt);                                                          \
     if (eStatus != MOS_STATUS_SUCCESS)                                                      \
     {                                                                                       \
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, eStatus); \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, eStatus = 0x%x", eStatus);\
         return;                                                                             \
     }                                                                                       \
@@ -630,6 +638,7 @@ void _MOS_Assert(
     if ((_ptr) == nullptr)                                                                  \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");               \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID);   \
         eStatus = MOS_STATUS_NULL_POINTER;                                                  \
         goto finish;                                                                        \
     }                                                                                       \
@@ -644,6 +653,7 @@ void _MOS_Assert(
     if ((_ptr) == nullptr)                                                                  \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");               \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID);   \
         goto finish;                                                                        \
     }                                                                                       \
 }
@@ -657,6 +667,7 @@ void _MOS_Assert(
     if ((_ptr) == nullptr)                                                                  \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");               \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID);   \
         return;                                                                             \
     }                                                                                       \
 }
@@ -670,6 +681,7 @@ void _MOS_Assert(
     if (_condition)                                                                         \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID,  _message, ##__VA_ARGS__);                   \
+        MT_ERR2(MT_ERR_CONDITION_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         eStatus = MOS_STATUS_INVALID_PARAMETER;                                             \
         goto finish;                                                                        \
     }                                                                                       \
@@ -684,6 +696,7 @@ void _MOS_Assert(
     if (_condition)                                                                         \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID,  _message, ##__VA_ARGS__);                   \
+        MT_ERR2(MT_ERR_CONDITION_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         return MOS_STATUS_INVALID_PARAMETER;                                                \
     }                                                                                       \
 }
@@ -696,6 +709,7 @@ void _MOS_Assert(
 {                                                                                           \
     if (_condition)                                                                         \
     {                                                                                       \
+        MT_ERR2(MT_ERR_CONDITION_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         MOS_ASSERTMESSAGE(_compID, _subCompID,  _message, ##__VA_ARGS__);                   \
         return retVal;                                                                      \
     }                                                                                       \
@@ -710,6 +724,7 @@ void _MOS_Assert(
     if (_condition)                                                                                                      \
     {                                                                                                                    \
         destroyFunction();                                                                                               \
+        MT_ERR2(MT_ERR_CONDITION_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID);                            \
         MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);                                                 \
         return retVal;                                                                                                   \
     }                                                                                                                    \
@@ -730,6 +745,7 @@ void _MOS_Assert(
     if (hr != MOS_STATUS_SUCCESS)                                                           \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "hr check failed.");                         \
+        MT_ERR3(MT_ERR_HR_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, hr);    \
         goto finish;                                                                        \
     }                                                                                       \
 }
@@ -744,6 +760,7 @@ void _MOS_Assert(
     if (hr != MOS_STATUS_SUCCESS)                                                           \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID, "MOS returned error, hr = 0x%x", hr);        \
+        MT_ERR3(MT_ERR_HR_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, hr);    \
         return;                                                                             \
     }                                                                                       \
 }
@@ -758,6 +775,7 @@ void _MOS_Assert(
     if (hr != MOS_STATUS_SUCCESS)                                                           \
     {                                                                                       \
         MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ##__VA_ARGS__);                    \
+        MT_ERR3(MT_ERR_HR_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID, MT_ERROR_CODE, hr);    \
         goto finish;                                                                        \
     }                                                                                       \
 }

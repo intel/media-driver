@@ -257,6 +257,7 @@ MOS_STATUS CodechalDecodeHevcG11::SetFrameStates ()
         (((m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus2 >> 32) & m_hucInterface->GetHucStatus2ImemLoadedMask()) == 0))
     {
         CODECHAL_DECODE_ASSERTMESSAGE("HuC IMEM Loaded fails");
+        MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_ERROR_STATUS2, (m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus2 >> 32));
         return MOS_STATUS_UNKNOWN;
     }
 

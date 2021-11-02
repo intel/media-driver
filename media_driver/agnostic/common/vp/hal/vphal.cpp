@@ -415,6 +415,7 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
                 eStatus             = eStatusSingleRender;
                 bHasNonAvsSubstream = false;
                 VPHAL_PUBLIC_ASSERTMESSAGE("Failed to create intermediate surface, eStatus: %d.\n", eStatus);
+                MT_ERR1(MT_VP_HAL_REALLOC_SURF, MT_CODE_LINE, __LINE__);
             }
         }
     } 
@@ -471,6 +472,7 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
             {
                 eStatus = eStatusSingleRender;
                 VPHAL_PUBLIC_ASSERTMESSAGE("Failed to redner for primary streams, eStatus: %d.\n", eStatus);
+                MT_ERR2(MT_VP_HAL_RENDER, MT_ERROR_CODE, eStatus, MT_CODE_LINE, __LINE__);
             }
         }
     }
@@ -505,6 +507,7 @@ static MOS_STATUS VpHal_RenderWithAvsForMultiStreams(
         {
             eStatus = eStatusSingleRender;
             VPHAL_PUBLIC_ASSERTMESSAGE("Failed to redner for substreams, eStatus: %d.\n", eStatus);
+            MT_ERR2(MT_VP_HAL_RENDER, MT_ERROR_CODE, eStatus, MT_CODE_LINE, __LINE__);
         }
 
         //Free the temporary surface
@@ -639,6 +642,7 @@ VphalState::VphalState(
         {
             VPHAL_DEBUG_ASSERTMESSAGE("Allocate MhwInterfaces failed");
             eStatus = MOS_STATUS_NO_SPACE;
+            MT_ERR1(MT_VP_HAL_INIT, MT_CODE_LINE, __LINE__);
         }
     }
 
@@ -673,6 +677,7 @@ VphalState::~VphalState()
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy RenderHal, eStatus:%d.\n", eStatus);
+                MT_ERR1(MT_VP_HAL_DESTROY, MT_CODE_LINE, __LINE__);
             }
         }
         MOS_FreeMemory(m_renderHal);
@@ -698,6 +703,7 @@ VphalState::~VphalState()
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
+            MT_ERR1(MT_VP_HAL_DESTROY, MT_CODE_LINE, __LINE__);
         }
     }
 

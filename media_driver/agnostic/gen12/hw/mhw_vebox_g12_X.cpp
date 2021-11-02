@@ -2799,7 +2799,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AdjustBoundary(
             (uint32_t)pSurfaceParam->rcSrc.right,
             *pdwSurfaceHeight,
             *pdwSurfaceWidth);
-        MT_LOG5(MT_VP_VE_ADJUST_SURFPARAM, MT_NORMAL, MT_VP_RENDER_VE_CROPPING, 1, MT_RECT_BOTTOM, pSurfaceParam->rcSrc.bottom, MT_RECT_RIGHT, pSurfaceParam->rcSrc.right,
+        MT_LOG5(MT_VP_MHW_VE_ADJUST_SURFPARAM, MT_NORMAL, MT_VP_RENDER_VE_CROPPING, 1, MT_RECT_BOTTOM, pSurfaceParam->rcSrc.bottom, MT_RECT_RIGHT, pSurfaceParam->rcSrc.right,
             MT_SURF_HEIGHT, *pdwSurfaceHeight, MT_SURF_WIDTH, *pdwSurfaceWidth);
     }
     else

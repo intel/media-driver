@@ -196,7 +196,7 @@ VP_SURFACE* VpAllocator::AllocateVpSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool 
     if (nullptr == surface->osSurface)
     {
         MOS_Delete(surface);
-        MT_ERR1(MT_GRAPHIC_ALLOC_ERR, MT_CODE_LINE, __LINE__);
+        MT_ERR1(MT_VP_HAL_ALLOC_SURF, MT_CODE_LINE, __LINE__);
         return nullptr;
     }
 
@@ -803,8 +803,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     surface = AllocateVpSurface(allocParams, zeroOnAllocate);
     VP_PUBLIC_CHK_NULL_RETURN(surface);
 
-    MT_LOG7(MT_VP_HAL_REALLOC_SURF, MT_NORMAL, MT_VP_INTERNAL_SURF_TYPE, surfaceName ? *((int64_t*)surfaceName) : 0,
-        MT_SURF_WIDTH, width, MT_SURF_HEIGHT, height, MT_SURF_MOS_FORMAT, format, MT_SURF_TILE_TYPE, surface->osSurface->TileModeGMM,
+    MT_LOG7(MT_VP_HAL_REALLOC_SURF, MT_NORMAL, MT_VP_HAL_INTER_SURF_TYPE, surfaceName ? *((int64_t*)surfaceName) : 0,
+        MT_SURF_WIDTH, width, MT_SURF_HEIGHT, height, MT_SURF_MOS_FORMAT, format, MT_SURF_TILE_MODE, surface->osSurface->TileModeGMM,
         MT_SURF_COMP_ABLE, surface->osSurface->bCompressible, MT_SURF_COMP_MODE, surface->osSurface->CompressionMode);
 
     allocated = true;

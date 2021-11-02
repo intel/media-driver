@@ -229,6 +229,8 @@ MOS_STATUS SwFilterPipeFactory::Create(PVP_PIPELINE_PARAMS params, std::vector<S
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+    MT_LOG1(MT_VP_HAL_SWWFILTER, MT_NORMAL, MT_VP_HAL_PIPE_CNT, pipeCnt);
+
     for (int index = 0; index < pipeCnt; index++)
     {
         VP_PIPELINE_PARAMS tempParams = *params;

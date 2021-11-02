@@ -190,6 +190,9 @@ GpuContextNext *GpuContextMgrNext::CreateGpuContext(
     }
     m_gpuContextCount++;
 
+    MT_LOG5(MT_MOS_GPUCXT_CREATE, MT_NORMAL, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_PTR, (int64_t)gpuContext,
+        MT_MOS_GPUCXT_COUNT, m_gpuContextCount, MT_MOS_GPU_NODE, gpuNode, MT_MOS_GPUCXT_HANDLE, gpuContextHandle);
+
     MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
     return gpuContext;
@@ -212,6 +215,7 @@ GpuContextNext *GpuContextMgrNext::GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHa
     else
     {
         MOS_OS_ASSERTMESSAGE("GPU context array is empty or got invalid index, something must be wrong!");
+        MT_ERR2(MT_MOS_GPUCXT_GET, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_HANDLE, gpuContextHandle);
         return nullptr;
     }
 }
@@ -242,11 +246,14 @@ void GpuContextMgrNext::DestroyGpuContext(GpuContextNext *gpuContext)
         m_gpuContextArray.clear();  // clear whole array
     }
 
+    MT_LOG3(MT_MOS_GPUCXT_DESTROY, MT_NORMAL, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_PTR, (int64_t)gpuContext, MT_MOS_GPUCXT_COUNT, m_gpuContextCount);
+
     MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
     if (!found)
     {
         MOS_OS_ASSERTMESSAGE("cannot find specified gpuContext in the gpucontext pool, something must be wrong");
+        MT_ERR3(MT_MOS_GPUCXT_DESTROY, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_PTR, (int64_t)gpuContext, MT_CODE_LINE, __LINE__);
     }
 }
 
@@ -261,6 +268,7 @@ void GpuContextMgrNext::DestroyAllGpuContexts()
     // delete each instance in m_gpuContextArray
     for (auto &curGpuContext : m_gpuContextArray)
     {
+        MT_LOG2(MT_MOS_GPUCXT_DESTROY, MT_NORMAL, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_PTR, (int64_t)curGpuContext);
         MOS_Delete(curGpuContext);
     }
 

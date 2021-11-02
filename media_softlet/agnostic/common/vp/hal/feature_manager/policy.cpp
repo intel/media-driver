@@ -230,6 +230,7 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
     if (MOS_FAILED(status))
     {
         VP_PUBLIC_ASSERTMESSAGE("Create HW Filter Failed, Return Error");
+        MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, status, MT_CODE_LINE, __LINE__);
         return status;
     }
 
@@ -240,6 +241,7 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
     if (!pFilter)
     {
         VP_PUBLIC_ASSERTMESSAGE("Create HW Filter Failed, Return Error");
+        MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, MOS_STATUS_UNIMPLEMENTED, MT_CODE_LINE, __LINE__);
         return MOS_STATUS_UNIMPLEMENTED;
     }
 
@@ -267,6 +269,7 @@ MOS_STATUS Policy::GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PAR
         {
             m_vpInterface.GetSwFilterPipeFactory().Destory(params.executedFilters);
             VP_PUBLIC_ASSERTMESSAGE("Create Executed Filter Failed, Return Error");
+            MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, status, MT_CODE_LINE, __LINE__);
             return status;
         }
     }
@@ -277,6 +280,7 @@ MOS_STATUS Policy::GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PAR
     {
         m_vpInterface.GetSwFilterPipeFactory().Destory(params.executedFilters);
         VP_PUBLIC_ASSERTMESSAGE("Create Executed Filter Failed, Return Error");
+        MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, status, MT_CODE_LINE, __LINE__);
         return status;
     }
 
@@ -1643,6 +1647,7 @@ MOS_STATUS Policy::BuildExecuteHwFilter(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS&
                 else
                 {
                     VP_PUBLIC_ASSERTMESSAGE("Create HW Filter Failed, Return Error");
+                    MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, MOS_STATUS_NO_SPACE, MT_CODE_LINE, __LINE__);
                     return MOS_STATUS_NO_SPACE;
                 }
             }
@@ -1667,6 +1672,7 @@ MOS_STATUS Policy::BuildExecuteHwFilter(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS&
                 else
                 {
                     VP_PUBLIC_ASSERTMESSAGE("Create HW Filter Failed, Return Error");
+                    MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, MOS_STATUS_NO_SPACE, MT_CODE_LINE, __LINE__);
                     return MOS_STATUS_NO_SPACE;
                 }
             }

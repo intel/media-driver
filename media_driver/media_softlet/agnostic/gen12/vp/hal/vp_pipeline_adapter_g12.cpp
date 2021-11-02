@@ -33,6 +33,7 @@ VpPipelineG12Adapter::VpPipelineG12Adapter(
     if (MOS_FAILED(eStatus))
     {
         MOS_OS_ASSERTMESSAGE("VpPipelineG12Adapter construct failed due to base class returned failure: eStatus = %d.", eStatus);
+        MT_ERR1(MT_VP_HAL_PIPELINE, MT_ERROR_CODE, eStatus);
         return;
     }
 }
@@ -70,6 +71,7 @@ MOS_STATUS VpPipelineG12Adapter::Allocate(
     MOS_STATUS status = VphalStateG12Tgllp::Allocate(pVpHalSettings);
     if (MOS_FAILED(status))
     {
+        MT_ERR1(MT_VP_HAL_PIPELINE, MT_ERROR_CODE, status);
         return status;
     }
 
@@ -77,6 +79,7 @@ MOS_STATUS VpPipelineG12Adapter::Allocate(
     status                         = VphalStateG12Tgllp::GetVpMhwInterface(vpMhwinterface);
     if (MOS_FAILED(status))
     {
+        MT_ERR1(MT_VP_HAL_PIPELINE, MT_ERROR_CODE, status);
         return status;
     }
     return Init(pVpHalSettings, vpMhwinterface);
