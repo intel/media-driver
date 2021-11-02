@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2020, Intel Corporation
+# Copyright (c) 2018-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -39,16 +39,6 @@ if(${HEVC_Decode_Supported} STREQUAL "yes")
     )
 endif()
 
-if(${AV1_Decode_Supported} STREQUAL "yes")
-    set(TMP_SOURCES_
-        ${TMP_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_decode_av1_g12.cpp
-    )
-    set(TMP_HEADERS_
-        ${TMP_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_decode_av1_g12.h
-    )
-endif()
 
 set(SOURCES_
     ${SOURCES_}

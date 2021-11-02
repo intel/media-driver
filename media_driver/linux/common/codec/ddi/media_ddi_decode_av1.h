@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_ddi_decode_av1_g12.h
+//! \file     media_ddi_decode_av1.h
 //! \brief    Defines DdiDecodeAV1 class for AV1 decode
 //!
 
-#ifndef __MEDIA_DDI_DECODER_AV1_G12_H__
-#define __MEDIA_DDI_DECODER_AV1_G12_H__
+#ifndef __MEDIA_DDI_DECODER_AV1_H__
+#define __MEDIA_DDI_DECODER_AV1_H__
 
 #include <va/va.h>
 #include "media_ddi_decode_base.h"

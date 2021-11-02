@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -124,6 +124,17 @@ if(${VP9_Decode_Supported} STREQUAL "yes")
     set(TMP_2_HEADERS_
         ${TMP_2_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/media_ddi_decode_vp9.h
+    )
+endif()
+
+if(${AV1_Decode_Supported} STREQUAL "yes")
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_decode_av1.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_decode_av1.h
     )
 endif()
 

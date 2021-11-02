@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_ddi_decode_av1_g12.cpp
+//! \file     media_ddi_decode_av1.cpp
 //! \brief    The class implementation of DdiDecodeAV1  for AV1 decode
 //!
 
@@ -28,7 +28,7 @@
 #include "media_libva_util.h"
 
 #include "media_ddi_decode_const_g12.h"
-#include "media_ddi_decode_av1_g12.h"
+#include "media_ddi_decode_av1.h"
 #include "mos_solo_generic.h"
 #include "codechal_memdecomp.h"
 #include "media_ddi_decode_const.h"
