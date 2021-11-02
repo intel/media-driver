@@ -28,9 +28,15 @@
 #define __CODEC_DEF_ENCODE_VP9_H__
 
 #include "codec_def_common_encode.h"
+#include "codec_def_common_vp9.h"
+#include "codec_def_encode_avc.h"
+#include "codec_def_encode.h"
 
 #define CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS 8
 #define ENCODE_VP9_NUM_MAX_L0_REF                   3
+#define VP9_MAX_COEFF_PARTITIONS                    4
+#define VP9_HYBRIDPAK_PER_MB_DATA_SIZE              816
+#define VP9_HYBRIDPAK_PER_MB_MV_DATA_SIZE           64
 
 typedef enum
 {
