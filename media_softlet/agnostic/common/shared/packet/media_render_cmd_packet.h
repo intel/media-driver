@@ -253,7 +253,7 @@ protected:
     uint32_t                     m_kernelCount = 0;
 
     // Kernel Render Data
-    KERNEL_PACKET_RENDER_DATA   m_renderData;
+    KERNEL_PACKET_RENDER_DATA   m_renderData = {};
 
     // object walker: media walker/compute walker
     WALKER_TYPE                 m_walkerType = WALKER_TYPE_DISABLED;
