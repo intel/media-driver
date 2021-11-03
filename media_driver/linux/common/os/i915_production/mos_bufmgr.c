@@ -4351,6 +4351,8 @@ mos_bufmgr_gem_init(int fd, int batch_size)
 
     bufmgr_gem->has_lmem = mos_gem_has_lmem(bufmgr_gem->fd);
 
+    bufmgr_gem->bufmgr.has_full_vd = true;
+
     /* Let's go with one relocation per every 2 dwords (but round down a bit
      * since a power of two will mean an extra page allocation for the reloc
      * buffer).
