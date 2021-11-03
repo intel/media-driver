@@ -930,7 +930,12 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         bool isPlanar = false;
         isPlanar      = (pSurface->Format == Format_NV12) || (pSurface->Format == Format_P010) || (pSurface->Format == Format_P016);
 
-        if (isPlanar && pSurface->TileType != MOS_TILE_LINEAR)
+        VPHAL_DEBUG_CHK_NULL(pOsInterface);
+        VPHAL_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
+        auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+
+        if ((skuTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) || isPlanar) &&
+            (pSurface->TileType != MOS_TILE_LINEAR))
         {
             bool bAllocated;
 
@@ -947,7 +952,10 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                 pSurface->dwHeight,
                 false,
                 MOS_MMC_DISABLED,
-                &bAllocated));
+                &bAllocated,
+                MOS_HW_RESOURCE_DEF_MAX,
+                MOS_TILE_UNSET_GMM,
+                MOS_MEMPOOL_SYSTEMMEMORY));
 
             m_osInterface->pfnDoubleBufferCopyResource(
                 m_osInterface,
