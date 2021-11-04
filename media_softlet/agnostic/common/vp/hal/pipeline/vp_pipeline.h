@@ -273,6 +273,9 @@ protected:
         m_reporting->owner = this;
         return MOS_STATUS_SUCCESS;
     }
+
+    virtual MOS_STATUS CreateUserFeatureControl();
+
     //!
     //! \brief  set Predication Params
     //! \return MOS_STATUS
@@ -373,6 +376,7 @@ protected:
     } m_userFeatureSetting;
 #endif
     VP_SETTINGS           *m_vpSettings = nullptr;
+    VpUserFeatureControl  *m_userFeatureControl = nullptr;
 };
 
 struct _VP_SFC_PACKET_PARAMS

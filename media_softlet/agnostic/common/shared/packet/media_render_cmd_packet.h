@@ -167,8 +167,8 @@ public:
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         uint32_t                        bindingIndex,
         bool                            bWrite,
-        PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntries = nullptr,
-        int32_t                         numOfSurfaceEntries = 0);
+        PRENDERHAL_SURFACE_STATE_ENTRY  *surfaceEntries = nullptr,
+        uint32_t                        *numOfSurfaceEntries = nullptr);
 
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                        buffer,
@@ -209,7 +209,7 @@ public:
 protected:
 
     // Step5: Load Kernel
-    MOS_STATUS LoadKernel();
+    virtual MOS_STATUS LoadKernel();
 
     // for VPP usage, there are more data need to updated, create as virtual for future inplemention in VPP
     virtual MOS_STATUS InitRenderHalSurface(
@@ -219,6 +219,15 @@ protected:
     virtual MOS_STATUS InitRenderHalBuffer(
         MOS_BUFFER         surface,
         PRENDERHAL_SURFACE pRenderSurface);
+
+    virtual void OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
+    {
+    }
+
+    virtual MOS_STATUS SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     MOS_STATUS InitKernelEntry();
 

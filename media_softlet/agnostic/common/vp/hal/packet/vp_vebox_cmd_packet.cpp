@@ -1194,25 +1194,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
 
     MOS_ZeroMemory(&GenericPrologParams, sizeof(GenericPrologParams));
 
-    // Linux will do nothing here since currently no frame tracking support
-   #ifndef EMUL
-     if(pOsInterface->bEnableKmdMediaFrameTracking)
-     {
-         // Get GPU Status buffer
-         VP_RENDER_CHK_STATUS_RETURN(pOsInterface->pfnGetGpuStatusBufferResource(pOsInterface, gpuStatusBuffer));
-         VP_RENDER_CHK_NULL_RETURN(gpuStatusBuffer);
-         // Register the buffer
-         VP_RENDER_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(pOsInterface, gpuStatusBuffer, true, true));
-
-         GenericPrologParams.bEnableMediaFrameTracking = true;
-         GenericPrologParams.presMediaFrameTrackingSurface = gpuStatusBuffer;
-         GenericPrologParams.dwMediaFrameTrackingTag = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
-         GenericPrologParams.dwMediaFrameTrackingAddrOffset = pOsInterface->pfnGetGpuStatusTagOffset(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
-
-         // Increment GPU Status Tag
-         pOsInterface->pfnIncrementGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
-     }
-   #endif
+    VP_RENDER_CHK_STATUS_RETURN(SetMediaFrameTracking(GenericPrologParams));
 
     return eStatus;
 }
@@ -1314,9 +1296,9 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         {
             // initialize the command buffer struct
             MOS_ZeroMemory(&CmdBufferInUse, sizeof(MOS_COMMAND_BUFFER));
-
+            bool frameTrackingRequested = m_PacketCaps.lastSubmission && (numPipe - 1 == curPipe);
             scalability->SetCurrentPipeIndex((uint8_t)curPipe);
-            scalability->GetCmdBuffer(&CmdBufferInUse);
+            scalability->GetCmdBuffer(&CmdBufferInUse, frameTrackingRequested);
             pCmdBufferInUse = &CmdBufferInUse;
         }
         else

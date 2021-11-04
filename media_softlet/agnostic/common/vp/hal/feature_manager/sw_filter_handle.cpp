@@ -367,7 +367,7 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
         (inputSurface->Format == Format_A8R8G8B8   ||
         inputSurface->Format == Format_A16R16G16B16))
     {
-        VP_PUBLIC_ASSERTMESSAGE("Unsupported Format '0x%08x' which DN will not supported", inputSurface->Format);
+        VP_PUBLIC_NORMALMESSAGE("Unsupported Format '0x%08x' which DN will not supported", inputSurface->Format);
         return false;
     }
 
@@ -714,6 +714,115 @@ void SwFilterHdrHandler::Destory(SwFilter *&swFilter)
     m_swFilterFactory.Destory(filter);
     return;
 }
+
+/****************************************************************************************************/
+/*                                      SwFilterLumakeyHandler                                      */
+/****************************************************************************************************/
+
+SwFilterLumakeyHandler::SwFilterLumakeyHandler(VpInterface &vpInterface, FeatureType featureType) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeLumakey),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterLumakeyHandler::~SwFilterLumakeyHandler()
+{}
+
+bool SwFilterLumakeyHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    VP_FUNC_CALL();
+
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE surf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (surf && surf->pLumaKeyParams)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterLumakeyHandler::CreateSwFilter()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(m_type);
+    }
+
+    return swFilter;
+}
+
+void SwFilterLumakeyHandler::Destory(SwFilter*& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterLumakey* filter = nullptr;
+    filter = dynamic_cast<SwFilterLumakey*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}
+
+/****************************************************************************************************/
+/*                                      SwFilterBlendingHandler                                     */
+/****************************************************************************************************/
+
+SwFilterBlendingHandler::SwFilterBlendingHandler(VpInterface &vpInterface, FeatureType featureType) :
+    SwFilterFeatureHandler(vpInterface, FeatureTypeBlending),
+    m_swFilterFactory(vpInterface)
+{}
+SwFilterBlendingHandler::~SwFilterBlendingHandler()
+{}
+
+bool SwFilterBlendingHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
+{
+    VP_FUNC_CALL();
+
+    if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
+    {
+        return false;
+    }
+
+    PVPHAL_SURFACE surf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (surf && surf->pBlendingParams)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+SwFilter* SwFilterBlendingHandler::CreateSwFilter()
+{
+    VP_FUNC_CALL();
+
+    SwFilter* swFilter = nullptr;
+    swFilter = m_swFilterFactory.Create();
+
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(m_type);
+    }
+
+    return swFilter;
+}
+
+void SwFilterBlendingHandler::Destory(SwFilter*& swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterBlending* filter = nullptr;
+    filter = dynamic_cast<SwFilterBlending*>(swFilter);
+    m_swFilterFactory.Destory(filter);
+    return;
+}
+
 
 /****************************************************************************************************/
 /*                                      SwFilterColorFillHandler                                    */

@@ -244,6 +244,13 @@ struct FeatureParam
     MOS_FORMAT  formatOutput;
 };
 
+enum FeatureCategory
+{
+    FeatureCategoryBasic    = 0,
+    FeatureCategoryIsolated,
+    FeatureCategoryFC,
+};
+
 class SwFilterSet;
 
 class SwFilter
@@ -255,6 +262,7 @@ public:
     {
         MOS_ZeroMemory(&m_EngineCaps, sizeof(m_EngineCaps));
         m_noNeedUpdate = false;
+        m_isInExePipe = false;
         return MOS_STATUS_SUCCESS;
     }
     virtual FeatureType GetFeatureType()
@@ -289,6 +297,7 @@ public:
     {
         return MOS_STATUS_UNIMPLEMENTED;
     }
+
     virtual SwFilter *Clone() = 0;
     virtual bool operator == (class SwFilter&) = 0;
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe) = 0;
@@ -332,6 +341,11 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    void SetExePipeFlag(bool isInExePipe)
+    {
+        m_isInExePipe = isInExePipe;
+    }
+
 protected:
     VpInterface &m_vpInterface;
     FeatureType m_type = FeatureTypeInvalid;
@@ -340,6 +354,7 @@ protected:
     VP_EngineEntry  m_EngineCaps = {};
     bool m_noNeedUpdate = false;
     RenderTargetType m_renderTargetType = RenderTargetTypeSurface;
+    bool m_isInExePipe = false;
 };
 
 struct FeatureParamCsc : public FeatureParam
@@ -489,6 +504,8 @@ struct FeatureParamDeinterlace : public FeatureParam
     bool                    bFmdExtraVariance;    //!< Check if extra FMD variances need to be calculated
     bool                    bFmdKernelEnable;     //!< FMD kernel path enabled
     bool                    bQueryVarianceEnable; //!< Query variance enabled
+    uint32_t                heightInput;
+    RECT                    rcSrc;
 };
 
 class SwFilterDeinterlace : public SwFilter
@@ -608,6 +625,48 @@ private:
     FeatureParamHdr m_Params = {};
 };
 
+struct FeatureParamLumakey : public FeatureParam
+{
+    PVPHAL_LUMAKEY_PARAMS   lumaKeyParams;
+};
+
+class SwFilterLumakey : public SwFilter
+{
+public:
+    SwFilterLumakey(VpInterface &vpInterface);
+    virtual ~SwFilterLumakey();
+    virtual MOS_STATUS       Clean();
+    virtual MOS_STATUS       Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamLumakey &GetSwFilterParams();
+    virtual SwFilter *       Clone();
+    virtual bool             operator==(SwFilter &swFilter);
+    virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+
+private:
+    FeatureParamLumakey m_Params = {};
+};
+
+struct FeatureParamBlending : public FeatureParam
+{
+    PVPHAL_BLENDING_PARAMS  blendingParams;
+};
+
+class SwFilterBlending : public SwFilter
+{
+public:
+    SwFilterBlending(VpInterface &vpInterface);
+    virtual ~SwFilterBlending();
+    virtual MOS_STATUS       Clean();
+    virtual MOS_STATUS       Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
+    virtual FeatureParamBlending &GetSwFilterParams();
+    virtual SwFilter *       Clone();
+    virtual bool             operator==(SwFilter &swFilter);
+    virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+
+private:
+    FeatureParamBlending m_Params = {};
+};
+
 struct FeatureParamColorFill : public FeatureParam
 {
     PVPHAL_COLORFILL_PARAMS colorFillParams;     //!< ColorFill - BG only
@@ -633,6 +692,7 @@ private:
 struct FeatureParamAlpha : public FeatureParam
 {
     PVPHAL_ALPHA_PARAMS     compAlpha;           //!< Alpha for composited surface
+    bool                    calculatingAlpha;    //!< Alpha calculation parameters
 };
 
 class SwFilterAlpha : public SwFilter

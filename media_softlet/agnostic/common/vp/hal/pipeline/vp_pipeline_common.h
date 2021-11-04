@@ -35,6 +35,7 @@
 namespace vp
 {
 class VpPlatformInterface;
+class VpUserFeatureControl;
 }
 
 using VP_PIPELINE_PARAMS   = VPHAL_RENDER_PARAMS;
@@ -57,6 +58,17 @@ using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
 #define RESOURCE_ASSIGNMENT_HINT_BITS           \
         RESOURCE_ASSIGNMENT_HINT_BITS_DI
 #define RESOURCE_ASSIGNMENT_HINT_SIZE   2
+
+//!
+//! \brief Enumeration for the user feature key "Bypass Composition" values
+//!
+typedef enum _VPHAL_COMP_BYPASS_MODE
+{
+    VPHAL_COMP_BYPASS_NOT_SET  = 0xffffffff,
+    VPHAL_COMP_BYPASS_DISABLED = 0x0,
+    VPHAL_COMP_BYPASS_ENABLED  = 0x1,
+    VPHAL_COMP_BYPASS_DEFAULT  = 0x2
+} VPHAL_COMP_BYPASS_MODE, *PVPHAL_COMP_BYPASS_MODE;
 
 struct VP_SURFACE
 {
@@ -114,6 +126,8 @@ struct _VP_EXECUTE_CAPS
             uint64_t bSecureVebox   : 1;   // Vebox in Secure Mode
 
             uint64_t bOutputPipeFeatureInuse : 1; // Output surface of pipeline is in use.
+            uint64_t bForceCscToRender : 1; // If true, force to use render for csc.
+            uint64_t lastSubmission : 1;    // If true, it's the last submission of current DDI.
 
             // Vebox Features
             uint64_t bDN            : 1;   // Vebox DN needed

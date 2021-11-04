@@ -35,7 +35,8 @@ enum _PacketType
 {
     VP_PIPELINE_PACKET_UNINITIALIZED  = 0,
     VP_PIPELINE_PACKET_VEBOX,
-    VP_PIPELINE_PACKET_RENDER
+    VP_PIPELINE_PACKET_RENDER,
+    VP_PIPELINE_PACKET_COMPUTE
 };
 using PacketType           = _PacketType;
 
@@ -99,6 +100,8 @@ protected:
     {
         return m_PacketCaps.bVebox && !m_PacketCaps.bSFC && !m_PacketCaps.bRender;
     }
+
+    virtual MOS_STATUS SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams);
 
 public:
     // HW intface to access MHW

@@ -93,6 +93,7 @@ MOS_STATUS VpRenderKernel::InitVPKernel(
         MOS_SafeFreeMemory(pKernelBin);
         MOS_SafeFreeMemory(pFcPatchBin);
     }
+    KernelDll_SetupFunctionPointers_Ext(m_kernelDllState);
 
     SetKernelName(VpRenderKernel::s_kernelNameNonAdvKernels);
 
@@ -173,6 +174,8 @@ MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
     {
         rules.sfcMultiPassSupport.scaling.enable = false;
     }
+
+    rules.isAvsSamplerSupported = false;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -257,10 +260,13 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
     }
 
     vISA::Header *header = isaFile->getHeader();
+    VP_PUBLIC_CHK_NULL_RETURN(header);
 
     for (uint32_t i = 0; i < header->getNumKernels(); i++)
     {
         vISA::Kernel *kernel = header->getKernelInfo()[i];
+
+        VP_PUBLIC_CHK_NULL_RETURN(kernel);
 
         if (kernel->getName() == nullptr || kernel->getNameLen() < 1 || kernel->getNameLen() > 256)
         {
@@ -285,6 +291,8 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
         vpKernel.SetKernelBinSize(genBinary->getBinarySize());
 
         vISA::KernelBody *kernelBody = isaFile->getKernelsData().at(i);
+        VP_PUBLIC_CHK_NULL_RETURN(kernelBody);
+
         if (kernelBody->getNumInputs() > CM_MAX_ARGS_PER_KERNEL)
         {
             return MOS_STATUS_INVALID_PARAMETER;
@@ -294,6 +302,7 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
         {
             KRN_ARG          kernelArg = {};
             vISA::InputInfo *inputInfo = kernelBody->getInputInfo()[j];
+            VP_PUBLIC_CHK_NULL_RETURN(inputInfo);
             uint8_t          kind      = inputInfo->getKind();
 
             if (kind == 0x2)  // compiler value for surface

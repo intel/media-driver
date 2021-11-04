@@ -38,7 +38,8 @@
 namespace vp
 {
 class VpPlatformInterface;
-}
+class VpUserFeatureControl;
+};
 
 //-----------------------------------------------------------------------------
 // VPHAL-DDI RENDERING INTERFACE
@@ -119,6 +120,7 @@ struct _VP_MHWINTERFACE
     PVPHAL_STATUS_TABLE m_statusTable;
 
     void *m_debugInterface;
+    vp::VpUserFeatureControl *m_userFeatureControl;
 };
 
 using VP_MHWINTERFACE  = _VP_MHWINTERFACE;

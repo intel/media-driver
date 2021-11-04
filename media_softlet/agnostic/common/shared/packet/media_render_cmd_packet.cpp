@@ -118,6 +118,7 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
     RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pMhwRenderInterface->GetMmioRegisters());
     RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pOsInterface);
     RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pOsInterface->pOsContext);
+    RENDER_PACKET_CHK_NULL_RETURN(commandBuffer);
 
     eStatus = MOS_STATUS_UNKNOWN;
     pOsInterface = m_renderHal->pOsInterface;
@@ -130,6 +131,12 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
     pMmioRegisters = pMhwRender->GetMmioRegisters();
 
     RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(0));
+
+    HalOcaInterface::On1stLevelBBStart(*commandBuffer, *pOsContext, pOsInterface->CurrentGpuContextHandle,
+        *m_renderHal->pMhwMiInterface, *pMmioRegisters);
+    OcaDumpDbgInfo(*commandBuffer, *pOsContext);
+
+    RENDER_PACKET_CHK_STATUS_RETURN(SetMediaFrameTracking(GenericPrologParams));
 
     // Initialize command buffer and insert prolog
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));
@@ -146,6 +153,14 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
         m_renderHal,
         &m_renderHal->L3CacheSettings,
         bEnableSLM));
+
+    if (m_renderHal->bCmfcCoeffUpdate)
+    {
+        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendCscCoeffSurface(m_renderHal,
+            commandBuffer,
+            m_renderHal->pCmfcCoeffSurface,
+            m_renderHal->pStateHeap->pKernelAllocation[m_renderHal->iKernelAllocationID].pKernelEntry));
+    }
 
     // Flush media states
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnSendMediaStates(
@@ -202,6 +217,8 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
         RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddMediaStateFlush(commandBuffer, nullptr, &FlushParam));
     }
 
+    HalOcaInterface::On1stLevelBBEnd(*commandBuffer, *pOsInterface);
+
     if (pBatchBuffer)
     {
         // Send Batch Buffer end command (HW/OS dependent)
@@ -217,8 +234,7 @@ MOS_STATUS RenderCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t pa
         RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddMiBatchBufferEnd(commandBuffer, nullptr));
     }
 
-    // Return unused command buffer space to OS
-    pOsInterface->pfnReturnCommandBuffer(pOsInterface, commandBuffer, 0);
+    // No need return command buffer here, which will be done in CmdTask::Submit.
 
     MOS_NULL_RENDERING_FLAGS  NullRenderingFlags;
 
@@ -446,24 +462,24 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
     PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, 
     uint32_t                        bindingIndex, 
     bool                            bWrite,
-    PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntries,
-    int32_t                         numOfSurfaceEntries)
+    PRENDERHAL_SURFACE_STATE_ENTRY  *surfaceEntries,
+    uint32_t                        *numOfSurfaceEntries)
 {
-    PMOS_INTERFACE                  pOsInterface;
-    PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntriesTmp[MHW_MAX_SURFACE_PLANES];
+    PMOS_INTERFACE                  pOsInterface = nullptr;
+    PRENDERHAL_SURFACE_STATE_ENTRY  surfaceEntriesTmp[MHW_MAX_SURFACE_PLANES] = {};
     PRENDERHAL_SURFACE_STATE_ENTRY  *pSurfaceEntries = nullptr;
-    int32_t                         iSurfaceEntries;
-    int32_t                         i;
-    MOS_STATUS                      eStatus;
-    RENDERHAL_SURFACE_STATE_PARAMS  surfaceParams;
+    int32_t                         iSurfaceEntries = 0;
+    int32_t                         i = 0;
+    MOS_STATUS                      eStatus = MOS_STATUS_SUCCESS;
+    RENDERHAL_SURFACE_STATE_PARAMS  surfaceParams = {};
 
-    if (nullptr == surfaceEntries || MHW_MAX_SURFACE_PLANES != numOfSurfaceEntries)
+    if (nullptr == surfaceEntries || nullptr == numOfSurfaceEntries)
     {
         pSurfaceEntries = surfaceEntriesTmp;
     }
     else
     {
-        pSurfaceEntries = &surfaceEntries;
+        pSurfaceEntries = surfaceEntries;
     }
 
     // Initialize Variables
@@ -531,6 +547,11 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
             pSurfaceEntries[i]));
 
         pRenderSurface->Index = iBTEntry;
+    }
+
+    if (numOfSurfaceEntries)
+    {
+        *numOfSurfaceEntries = iSurfaceEntries;
     }
 
     return bindingIndex;

@@ -27,6 +27,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_kernel_obj.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_cmd_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_kernel_config.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_fc_kernel.cpp
 )
 
 set(TMP_HEADERS_
@@ -42,6 +43,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_kernel_obj.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_cmd_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_kernel_config.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_fc_kernel.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_fc_types.h
 )
 
 set(SOURCES_

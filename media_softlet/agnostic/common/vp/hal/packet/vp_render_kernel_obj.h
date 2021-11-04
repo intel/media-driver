@@ -57,6 +57,7 @@ typedef struct _KERNEL_SURFACE_STATE_PARAM
         uint32_t                       width;
         uint32_t                       height;
         uint32_t                       pitch;
+
         uint32_t                       surface_offset;     // Offset to the origin of the surface, in bytes.
         MOS_TILE_TYPE                  tileType;
         bool                           bufferResource;
@@ -65,9 +66,10 @@ typedef struct _KERNEL_SURFACE_STATE_PARAM
         bool                           updatedRenderSurfaces; // true if renderSurfaceParams be used.
         RENDERHAL_SURFACE_STATE_PARAMS renderSurfaceParams;  // default can be skip. for future usages, if surface configed by kernel, use it directlly
     } surfaceOverwriteParams;
-    bool       renderTarget;        // true for render target
-    PRENDERHAL_SURFACE_STATE_ENTRY      surfaceEntries;
-    int32_t                             sizeOfSurfaceEntries;
+
+    bool                                renderTarget;        // true for render target
+    PRENDERHAL_SURFACE_STATE_ENTRY      *surfaceEntries;
+    uint32_t                            *sizeOfSurfaceEntries;
 } KERNEL_SURFACE_STATE_PARAM;
 
 using KERNEL_CONFIGS = std::map<VpKernelID, void *>; // Only for legacy/non-cm kernels
@@ -338,6 +340,21 @@ public:
 
     virtual uint32_t GetKernelIndex();
 
+    VpKernelID GetKernelId()
+    {
+        return m_kernelId;
+    }
+
+    virtual bool IsKernelCached()
+    {
+        return false;
+    }
+
+    virtual Kdll_CacheEntry *GetCachedEntryForKernelLoad()
+    {
+        return nullptr;
+    }
+
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam, KERNEL_PACKET_RENDER_DATA &renderData);
 
     virtual MOS_STATUS SetKernelConfigs(
@@ -401,8 +418,16 @@ public:
 
     MOS_STATUS UpdateCurbeBindingIndex(SurfaceType surface, uint32_t index)
     {
-        // Surface Type is sepsrated during one submission
-        m_surfaceBindingIndex.insert(std::make_pair(surface, index));
+        // Surface Type is specified during one submission
+        auto it = m_surfaceBindingIndex.find(surface);
+        if (it != m_surfaceBindingIndex.end())
+        {
+            it->second = index;
+        }
+        else
+        {
+            m_surfaceBindingIndex.insert(std::make_pair(surface, index));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -422,7 +447,8 @@ public:
         }
     }
 
-    MOS_STATUS InitKernel(void* binary, uint32_t size, KERNEL_CONFIGS& kernelConfigs, VP_SURFACE_GROUP& surfacesGroup);
+    MOS_STATUS InitKernel(void* binary, uint32_t size, KERNEL_CONFIGS& kernelConfigs,
+                        VP_SURFACE_GROUP& surfacesGroup, VP_RENDER_CACHE_CNTL& surfMemCacheCtl);
 
     bool IsAdvKernel()
     {
@@ -435,6 +461,21 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    virtual MOS_STATUS SetCacheCntl(PVP_RENDER_CACHE_CNTL)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS InitRenderHalSurface(
+        SurfaceType             type,
+        VP_SURFACE              *surf,
+        PRENDERHAL_SURFACE      renderHalSurface)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
+    virtual void OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
 
 protected:
 

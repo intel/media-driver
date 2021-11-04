@@ -1190,6 +1190,11 @@ MOS_STATUS VphalSfcState::SetSfcStateParams(
     {
         pSfcStateParams->bBypassXAdaptiveFilter = false;
         pSfcStateParams->bBypassYAdaptiveFilter = false;
+
+        if (MEDIASTATE_SFC_AVS_FILTER_BILINEAR == pSfcStateParams->dwAVSFilterMode)
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Legacy Check: bBypassXAdaptiveFilter/bBypassYAdaptiveFilter are set to false for bilinear scaling.");
+        }
     }
     else
     {

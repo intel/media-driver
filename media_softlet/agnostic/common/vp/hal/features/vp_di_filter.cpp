@@ -279,7 +279,7 @@ bool PolicyDiHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
     VP_FUNC_CALL();
 
-    return vpExecuteCaps.bDI;
+    return vpExecuteCaps.bDI && vpExecuteCaps.bVebox;
 }
 
 HwFilterParameter* PolicyDiHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)

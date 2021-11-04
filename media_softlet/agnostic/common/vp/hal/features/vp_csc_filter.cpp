@@ -820,7 +820,7 @@ MOS_STATUS PolicySfcCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter
     SwFilterCsc *featureCsc = dynamic_cast<SwFilterCsc *>(&feature);
     VP_PUBLIC_CHK_NULL_RETURN(featureCsc);
 
-    if (caps.b1stPassOfSfc2PassScaling)
+    if (caps.b1stPassOfSfc2PassScaling || caps.bForceCscToRender)
     {
         SwFilterCsc *filter2ndPass = featureCsc;
         SwFilterCsc *filter1ndPass = (SwFilterCsc *)feature.Clone();
@@ -837,7 +837,16 @@ MOS_STATUS PolicySfcCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter
         // No csc in 1st pass.
         params1stPass.formatOutput = params1stPass.formatInput;
         params1stPass.output = params1stPass.input;
-        params1stPass.pIEFParams = nullptr;
+        if (caps.b1stPassOfSfc2PassScaling)
+        {
+            params1stPass.pIEFParams = nullptr;
+        }
+        else
+        {
+            // 2nd pass is render. Do IEF in first pass as it is not supported in 3D sampler.
+            params1stPass.pIEFParams = params2ndPass.pIEFParams;
+            params2ndPass.pIEFParams = nullptr;
+        }
         params1stPass.pAlphaParams = nullptr;
 
         // Clear engine caps for filter in 2nd pass.
@@ -974,5 +983,4 @@ HwFilterParameter* PolicyVeboxCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
         return nullptr;
     }
 }
-
 }

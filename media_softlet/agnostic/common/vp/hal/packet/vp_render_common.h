@@ -79,5 +79,18 @@ enum KERNEL_SUBMISSION_MODE
     MULTI_KERNELS_WITH_ONE_MEDIA_STATE
 };
 
+typedef struct _VP_RENDER_CACHE_CNTL
+{
+    // Input
+    bool                        bDnDi;
+    bool                        bLace;
+    bool                        bCompositing;
+
+    // Output
+    VPHAL_DNDI_CACHE_CNTL        DnDi;
+    VPHAL_LACE_CACHE_CNTL        Lace;
+    VPHAL_COMPOSITE_CACHE_CNTL   Composite;
+} VP_RENDER_CACHE_CNTL, *PVP_RENDER_CACHE_CNTL;
+
 }
 #endif // !__VP_SFC_COMMON_H__

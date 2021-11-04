@@ -30,6 +30,7 @@
 
 namespace vp
 {
+
 class VpRenderCmdPacket : virtual public RenderCmdPacket, virtual public VpCmdPacket
 {
 public:
@@ -39,10 +40,7 @@ public:
 
     MOS_STATUS Prepare() override;
 
-    MOS_STATUS Init() override
-    {
-        return RenderCmdPacket::Init();
-    }
+    MOS_STATUS Init() override;
 
     MOS_STATUS Destroy() override
     {
@@ -62,9 +60,13 @@ public:
 
     virtual MOS_STATUS SetDiFmdParams(PRENDER_DI_FMD_PARAMS params);
 
+    virtual MOS_STATUS SetFcParams(PRENDER_FC_PARAMS params);
+
     virtual MOS_STATUS DumpOutput() override;
 
 protected:
+
+    virtual MOS_STATUS LoadKernel() override;
 
     MOS_STATUS KernelStateSetup();
 
@@ -81,6 +83,10 @@ protected:
     virtual MOS_STATUS SetupMediaWalker() override;
 
     virtual void UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam) override;
+
+    virtual void OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext) override;
+
+    virtual MOS_STATUS SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams) override;
 
     MOS_STATUS SendMediaStates(PRENDERHAL_INTERFACE pRenderHal, PMOS_COMMAND_BUFFER pCmdBuffer);
 
@@ -131,11 +137,14 @@ protected:
         float   fInverseScaleFactor,
         int32_t iUvPhaseOffset);
 
+    virtual MOS_STATUS InitFcMemCacheControlForTarget(PVP_RENDER_CACHE_CNTL settings);
+    virtual MOS_STATUS InitFcMemCacheControl(PVP_RENDER_CACHE_CNTL settings);
     MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
 
 protected:
 
     KERNEL_OBJECTS                     m_kernelObjs;
+    // Only for MULTI_KERNELS_WITH_ONE_MEDIA_STATE case.
     KERNEL_RENDER_DATA                 m_kernelRenderData;
 
     KERNEL_CONFIGS                     m_kernelConfigs; // Kernel parameters for legacy kernels.
@@ -153,7 +162,7 @@ protected:
     uint32_t                           m_totoalInlineSize = 0;
 
     VP_SURFACE                        *m_currentSurface  = nullptr;              //!< Current frame
-    PVP_VEBOX_CACHE_CNTL               m_surfMemCacheCtl = nullptr;                      //!< Surface memory cache control
+    PVP_RENDER_CACHE_CNTL              m_surfMemCacheCtl = nullptr;              //!< Surface memory cache control
 
 };
 }

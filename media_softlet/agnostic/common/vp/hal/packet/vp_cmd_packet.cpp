@@ -47,4 +47,37 @@ MOS_STATUS VpCmdPacket::VpCmdPacketInit()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpCmdPacket::SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams)
+{
+    PMOS_INTERFACE  osInterface = nullptr;
+    PMOS_RESOURCE   gpuStatusBuffer = nullptr;
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface->m_osInterface);
+
+    osInterface = m_hwInterface->m_osInterface;
+
+#ifndef EMUL
+    if(m_PacketCaps.lastSubmission && osInterface->bEnableKmdMediaFrameTracking)
+    {
+        // Get GPU Status buffer
+        VP_PUBLIC_CHK_STATUS_RETURN(osInterface->pfnGetGpuStatusBufferResource(osInterface, gpuStatusBuffer));
+        VP_PUBLIC_CHK_NULL_RETURN(gpuStatusBuffer);
+        // Register the buffer
+        VP_PUBLIC_CHK_STATUS_RETURN(osInterface->pfnRegisterResource(osInterface, gpuStatusBuffer, true, true));
+
+        genericPrologParams.bEnableMediaFrameTracking = true;
+        genericPrologParams.presMediaFrameTrackingSurface = gpuStatusBuffer;
+        genericPrologParams.dwMediaFrameTrackingTag = osInterface->pfnGetGpuStatusTag(osInterface, osInterface->CurrentGpuContextOrdinal);
+        genericPrologParams.dwMediaFrameTrackingAddrOffset = osInterface->pfnGetGpuStatusTagOffset(osInterface, osInterface->CurrentGpuContextOrdinal);
+
+        VP_PUBLIC_CHK_NULL_RETURN(osInterface->pfnIncrementGpuStatusTag);
+        // Increment GPU Status Tag
+        osInterface->pfnIncrementGpuStatusTag(osInterface, osInterface->CurrentGpuContextOrdinal);
+    }
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }

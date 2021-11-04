@@ -26,6 +26,7 @@
 //!
 #include "vp_render_kernel_obj.h"
 #include "vp_dumper.h"
+#include  "hal_oca_interface.h"
 
 using namespace vp;
 
@@ -99,6 +100,11 @@ MOS_STATUS VpRenderKernelObj::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& sampl
     return MOS_STATUS_SUCCESS;
 }
 
+void VpRenderKernelObj::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
+{
+    HalOcaInterface::DumpVpKernelInfo(cmdBuffer, mosContext, m_kernelId, 0, nullptr);
+}
+
 // Only for Adv kernels.
 MOS_STATUS VpRenderKernelObj::SetWalkerSetting(KERNEL_THREAD_SPACE& threadSpace, bool bSyncFlag)
 {
@@ -141,15 +147,19 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CONFIGS& kernelConfigs, VP_SURFACE_GROUP& surfacesGroup)
+MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CONFIGS& kernelConfigs,
+                                        VP_SURFACE_GROUP& surfacesGroup, VP_RENDER_CACHE_CNTL& surfMemCacheCtl)
 {
     VP_FUNC_CALL();
 
-    VP_RENDER_CHK_NULL_RETURN(binary);
+    if (kernelCombinedFc != m_kernelId)
+    {
+        VP_RENDER_CHK_NULL_RETURN(binary);
+    }
     // m_kernelBinary and m_kernelSize being nullptr and 0 for FC case.
     m_kernelBinary = binary;
     m_kernelSize = size;
-
+    SetCacheCntl(&surfMemCacheCtl);
     VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs));
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfacesGroup));
 

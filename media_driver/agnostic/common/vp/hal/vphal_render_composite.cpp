@@ -3052,6 +3052,7 @@ int32_t CompositeState::SetLayer(
     uint32_t    dwDestRectWidth, dwDestRectHeight;  // Target rectangle Width Height
     float       fOffsetY, fOffsetX;                 // x,y Sr offset
     float       fShiftX , fShiftY;                  // x,y Dst shift + Sampler BOB adj
+    float       oriShiftX, oriShiftY;               // Used to check whether all entries of one layer share same shift.
     float       fDiScaleY;                          // BOB scaling factor for Y
     float       fScaleX, fScaleY;                   // x,y scaling factor
     float       fStepX , fStepY;                    // x,y scaling steps
@@ -3092,6 +3093,8 @@ int32_t CompositeState::SetLayer(
     fOffsetY = 0;
     fShiftX  = 0;
     fShiftY  = 0;
+    oriShiftX = 0.0f;
+    oriShiftY = 0.0f;
 
     // Initialize States
     pRenderHal   = m_pRenderHal;
@@ -3467,6 +3470,20 @@ int32_t CompositeState::SetLayer(
 
                 pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_BILINEAR;
             }
+
+            if (MHW_SAMPLER_FILTER_BILINEAR == pSamplerStateParams->Unorm.SamplerFilterMode &&
+                VPHAL_SCALING_BILINEAR != pSource->ScalingMode ||
+                MHW_SAMPLER_FILTER_NEAREST == pSamplerStateParams->Unorm.SamplerFilterMode &&
+                VPHAL_SCALING_NEAREST != pSource->ScalingMode)
+            {
+                VPHAL_RENDER_NORMALMESSAGE("Legacy Check: scaling mode and samplerFilterMode are not aligned.");
+            }
+
+            if (i != 0 && (oriShiftX != fShiftX || oriShiftY != fShiftY))
+            {
+                VPHAL_RENDER_NORMALMESSAGE("Legacy Check: fShiftX/fShiftY of entry %d is not same as previous entry.", i);
+            }
+
             pSamplerStateParams->Unorm.AddressU = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressV = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             pSamplerStateParams->Unorm.AddressW = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
@@ -3513,6 +3530,9 @@ int32_t CompositeState::SetLayer(
             // Set HDC Direct Write Flag
             pSamplerStateParams->Avs.bHdcDwEnable = pRenderingData->bHdcDwEnable;
         }
+
+        oriShiftX = fShiftX;
+        oriShiftY = fShiftY;
 
         pSamplerStateParams->bInUse        = true;
 

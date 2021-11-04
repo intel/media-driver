@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Intel Corporation
+# Copyright (c) 2019-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_config_manager.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_utils.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_user_feature_control.cpp
 )
 
 set(TMP_HEADERS_
@@ -30,6 +31,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_utils.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_debug_config_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_user_feature_control.h
 )
 
 set(SOURCES_

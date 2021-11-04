@@ -31,6 +31,8 @@
 #include "hal_oca_interface.h"
 #include "vp_pipeline.h"
 #include "vp_packet_pipe.h"
+#include "vp_user_feature_control.h"
+
 
 namespace vp
 {
@@ -67,6 +69,15 @@ VpRenderCmdPacket::VpRenderCmdPacket(MediaTask *task, PVP_MHWINTERFACE hwInterfa
                                                                                                                                                             m_firstFrame(true),
                                                                                                                                                             m_kernelSet(kernelSet)
 {
+    if (m_hwInterface && m_hwInterface->m_userFeatureControl)
+    {
+        bool computeContextEnabled = m_hwInterface->m_userFeatureControl->IsComputeContextEnabled();
+        m_PacketId = computeContextEnabled ? VP_PIPELINE_PACKET_COMPUTE : VP_PIPELINE_PACKET_RENDER;
+    }
+    else
+    {
+        VP_RENDER_ASSERTMESSAGE("m_hwInterface or m_hwInterface->m_userFeatureControl is nullptr!");
+    }
 }
 
 VpRenderCmdPacket::~VpRenderCmdPacket()
@@ -81,11 +92,61 @@ VpRenderCmdPacket::~VpRenderCmdPacket()
     MOS_Delete(m_surfMemCacheCtl);
 }
 
+MOS_STATUS VpRenderCmdPacket::Init()
+{
+    return RenderCmdPacket::Init();
+}
+
+MOS_STATUS VpRenderCmdPacket::LoadKernel()
+{
+    int32_t                     iKrnAllocation  = 0;
+    MHW_KERNEL_PARAM            MhwKernelParam  = {};
+    RENDERHAL_KERNEL_PARAM      KernelParam     = m_renderData.KernelParam;
+    // Load kernel to GSH
+    INIT_MHW_KERNEL_PARAM(MhwKernelParam, &m_renderData.KernelEntry);
+    UpdateKernelConfigParam(KernelParam);
+    iKrnAllocation = m_renderHal->pfnLoadKernel(
+        m_renderHal,
+        &KernelParam,
+        &MhwKernelParam,
+        m_kernel->GetCachedEntryForKernelLoad());
+
+    if (iKrnAllocation < 0)
+    {
+        RENDER_PACKET_ASSERTMESSAGE("kernel load failed");
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    if (m_renderData.iCurbeOffset < 0)
+    {
+        RENDER_PACKET_ASSERTMESSAGE("Curbe Set Fail, return error");
+        return MOS_STATUS_UNKNOWN;
+    }
+    // Allocate Media ID, link to kernel
+    m_renderData.mediaID = m_renderHal->pfnAllocateMediaID(
+        m_renderHal,
+        iKrnAllocation,
+        m_renderData.bindingTable,
+        m_renderData.iCurbeOffset,
+        (m_renderData.iCurbeLength),
+        0,
+        nullptr);
+
+    if (m_renderData.mediaID < 0)
+    {
+        RENDER_PACKET_ASSERTMESSAGE("Allocate Media ID failed, return error");
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderCmdPacket::Prepare()
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(m_renderHal);
     VP_RENDER_CHK_NULL_RETURN(m_kernelSet);
+    VP_RENDER_CHK_NULL_RETURN(m_surfMemCacheCtl);
 
     if (m_packetResourcesdPrepared)
     {
@@ -93,20 +154,23 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
         return MOS_STATUS_SUCCESS;
     }
 
-    m_PacketId = VP_PIPELINE_PACKET_RENDER;
-
     VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->CreateKernelObjects(
         m_renderKernelParams,
         m_surfSetting.surfGroup,
         m_kernelSamplerStateGroup,
         m_kernelConfigs,
-        m_kernelObjs));
+        m_kernelObjs,
+        *m_surfMemCacheCtl));
 
     if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
     {
         for (auto it = m_kernelObjs.begin(); it != m_kernelObjs.end(); it++)
         {
             m_kernel = it->second;
+            VP_RENDER_CHK_NULL_RETURN(m_kernel);
+
+            m_kernel->SetCacheCntl(m_surfMemCacheCtl);
+
             // reset render Data for current kernel
             MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
 
@@ -131,8 +195,6 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
                 m_renderData.iCurbeLength,
                 m_renderData.iInlineLength,
                 nullptr));
-
-            m_kernelRenderData.insert(std::make_pair(it->first, m_renderData));
         }
     }
     else if (m_submissionMode == MULTI_KERNELS_WITH_ONE_MEDIA_STATE)
@@ -140,10 +202,14 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
         MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
         VP_RENDER_CHK_STATUS_RETURN(RenderEngineSetup());
 
+        m_kernelRenderData.clear();
+
         // for multi-kernel prepare together
         for (auto it = m_kernelObjs.begin(); it != m_kernelObjs.end(); it++)
         {
             m_kernel = it->second;
+            VP_RENDER_CHK_NULL_RETURN(m_kernel);
+
             if (it != m_kernelObjs.begin())
             {
                 // reset render Data for current kernel
@@ -238,7 +304,6 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         VP_RENDER_ASSERTMESSAGE("No Kernel Object Creation");
         return MOS_STATUS_NULL_POINTER;
     }
-
     if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
@@ -262,31 +327,71 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderCmdPacket::InitFcMemCacheControlForTarget(PVP_RENDER_CACHE_CNTL settings)
+{
+    MOS_HW_RESOURCE_DEF                 Usage           = MOS_HW_RESOURCE_DEF_MAX;
+    MEMORY_OBJECT_CONTROL_STATE         MemObjCtrl      = {};
+    PMOS_INTERFACE                      pOsInterface    = m_osInterface;
+
+    VP_RENDER_CHK_NULL_RETURN(pOsInterface);
+    VP_RENDER_CHK_NULL_RETURN(settings);
+
+    VPHAL_SET_SURF_MEMOBJCTL(settings->Composite.TargetSurfMemObjCtl,         MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::InitFcMemCacheControl(PVP_RENDER_CACHE_CNTL settings)
+{
+    MOS_HW_RESOURCE_DEF                 Usage           = MOS_HW_RESOURCE_DEF_MAX;
+    MEMORY_OBJECT_CONTROL_STATE         MemObjCtrl      = {};
+    PMOS_INTERFACE                      pOsInterface    = m_osInterface;
+
+    VP_RENDER_CHK_NULL_RETURN(settings);
+
+    if (!settings->bCompositing)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    settings->Composite.bL3CachingEnabled = true;
+
+    VPHAL_SET_SURF_MEMOBJCTL(settings->Composite.PrimaryInputSurfMemObjCtl,   MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
+    VPHAL_SET_SURF_MEMOBJCTL(settings->Composite.InputSurfMemObjCtl,          MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
+
+    VP_RENDER_CHK_STATUS_RETURN(InitFcMemCacheControlForTarget(settings));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)
 {
     MOS_HW_RESOURCE_DEF                 Usage           = MOS_HW_RESOURCE_DEF_MAX;
     MEMORY_OBJECT_CONTROL_STATE         MemObjCtrl      = {};
     PMOS_INTERFACE                      pOsInterface    = nullptr;
-    PVP_VEBOX_CACHE_CNTL                pSettings       = nullptr;
+    PVP_RENDER_CACHE_CNTL               pSettings       = nullptr;
 
     VP_FUNC_CALL();
 
     if (nullptr == m_surfMemCacheCtl)
     {
-        m_surfMemCacheCtl = MOS_New(VP_VEBOX_CACHE_CNTL);
+        m_surfMemCacheCtl = MOS_New(VP_RENDER_CACHE_CNTL);
+        VP_PUBLIC_CHK_NULL_RETURN(m_surfMemCacheCtl);
     }
 
-    VP_PUBLIC_CHK_NULL_RETURN(m_surfMemCacheCtl);
     VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface->m_osInterface);
 
-    MOS_ZeroMemory(m_surfMemCacheCtl, sizeof(VP_VEBOX_CACHE_CNTL));
+    MOS_ZeroMemory(m_surfMemCacheCtl, sizeof(*m_surfMemCacheCtl));
 
     pOsInterface    = m_hwInterface->m_osInterface;
     pSettings       = m_surfMemCacheCtl;
 
+    pSettings->bCompositing = packetCaps.bComposite;
     pSettings->bDnDi = true;
     pSettings->bLace = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrLace);
+
+    VP_RENDER_CHK_STATUS_RETURN(InitFcMemCacheControl(pSettings));
 
     if (pSettings->bDnDi)
     {
@@ -341,6 +446,7 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     VP_UNUSED(inputSurface);
     VP_UNUSED(outputSurface);
     VP_UNUSED(previousSurface);
+    VP_RENDER_CHK_NULL_RETURN(m_renderHal);
 
     m_PacketCaps = packetCaps;
 
@@ -348,7 +454,11 @@ MOS_STATUS VpRenderCmdPacket::PacketInit(
     m_surfSetting = surfSetting;
 
     m_packetResourcesdPrepared = false;
+    m_kernelConfigs.clear();
     m_renderKernelParams.clear();
+
+    m_renderHal->eufusionBypass = false;
+    m_totoalInlineSize = 0;
 
     VP_RENDER_CHK_STATUS_RETURN(InitSurfMemCacheControl(packetCaps));
 
@@ -422,16 +532,34 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
 
             if (vpSurface)
             {
-                // Prepare surfaces tracked in Resource manager
-                VP_RENDER_CHK_STATUS_RETURN(InitRenderHalSurface(*vpSurface, renderHalSurface));
+                MOS_STATUS status = m_kernel->InitRenderHalSurface(type, vpSurface, &renderHalSurface);
+                if (MOS_STATUS_UNIMPLEMENTED == status)
+                {
+                    // Prepare surfaces tracked in Resource manager
+                    VP_RENDER_CHK_STATUS_RETURN(InitRenderHalSurface(*vpSurface, renderHalSurface));
+                    VP_RENDER_CHK_STATUS_RETURN(UpdateRenderSurface(renderHalSurface, *kernelSurfaceParam));
+                }
+                else
+                {
+                    VP_RENDER_CHK_STATUS_RETURN(status);
+                }
+                if (SurfaceTypeFcCscCoeff == type)
+                {
+                    m_renderHal->bCmfcCoeffUpdate  = true;
+                    m_renderHal->pCmfcCoeffSurface = &vpSurface->osSurface->OsResource;
+                }
+                else
+                {
+                    m_renderHal->bCmfcCoeffUpdate  = false;
+                    m_renderHal->pCmfcCoeffSurface = nullptr;
+                }
             }
             else
             {
                 // State Heaps are not tracked in resource manager till now
                 VP_RENDER_CHK_STATUS_RETURN(InitStateHeapSurface(type, renderHalSurface));
+                VP_RENDER_CHK_STATUS_RETURN(UpdateRenderSurface(renderHalSurface, *kernelSurfaceParam));
             }
-
-            VP_RENDER_CHK_STATUS_RETURN(UpdateRenderSurface(renderHalSurface, *kernelSurfaceParam));
 
             uint32_t index = 0;
 
@@ -481,9 +609,9 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         renderSurfaceParams.bRenderTarget);
                 }
             }
-            VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCompParams());
             VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
         }
+        VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCompParams());
     }
 
     return MOS_STATUS_SUCCESS;
@@ -570,6 +698,30 @@ void VpRenderCmdPacket::UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelPa
     // No need update here.
 }
 
+void VpRenderCmdPacket::OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
+{
+    // Add kernel info to log.
+    for (auto it = m_kernelObjs.begin(); it != m_kernelObjs.end(); it++)
+    {
+        auto kernel = it->second;
+        if (kernel)
+        {
+            kernel->OcaDumpKernelInfo(cmdBuffer, mosContext);
+        }
+        else
+        {
+            VP_RENDER_ASSERTMESSAGE("nullptr in m_kernelObjs!");
+        }
+    }
+    // Add vphal param to log.
+    HalOcaInterface::DumpVphalParam(cmdBuffer, mosContext, m_renderHal->pVphalOcaDumper);
+}
+
+MOS_STATUS VpRenderCmdPacket::SetMediaFrameTracking(RENDERHAL_GENERIC_PROLOG_PARAMS &genericPrologParams)
+{
+    return VpCmdPacket::SetMediaFrameTracking(genericPrologParams);
+}
+
 MOS_STATUS VpRenderCmdPacket::InitRenderHalSurface(VP_SURFACE &surface, RENDERHAL_SURFACE &renderSurface)
 {
     VP_FUNC_CALL();
@@ -654,6 +806,11 @@ MOS_STATUS VpRenderCmdPacket::UpdateRenderSurface(RENDERHAL_SURFACE_NEXT &render
         }
 
         renderSurface.OsSurface.Format = (overwriteParam.format != 0) ? overwriteParam.format : renderSurface.OsSurface.Format;
+
+        if (0 == renderSurface.OsSurface.dwQPitch)
+        {
+            renderSurface.OsSurface.dwQPitch = renderSurface.OsSurface.dwHeight;
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1390,6 +1547,8 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
 
     RENDER_PACKET_CHK_STATUS_RETURN(SetPowerMode(kernelCombinedFc));
 
+    RENDER_PACKET_CHK_STATUS_RETURN(SetMediaFrameTracking(GenericPrologParams));
+
     // Initialize command buffer and insert prolog
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnInitCommandBuffer(m_renderHal, commandBuffer, &GenericPrologParams));
 
@@ -1659,6 +1818,21 @@ finish:
 MOS_STATUS VpRenderCmdPacket::SetDiFmdParams(PRENDER_DI_FMD_PARAMS params)
 {
     VP_FUNC_CALL();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+
+MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(params);
+
+    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+
+    KERNEL_PARAMS kernelParams = {};
+    kernelParams.kernelId      = params->kernelId;
+    m_renderKernelParams.push_back(kernelParams);
 
     return MOS_STATUS_SUCCESS;
 }

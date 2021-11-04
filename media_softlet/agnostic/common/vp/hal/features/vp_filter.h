@@ -35,6 +35,7 @@
 #include "vp_utils.h"
 #include "sw_filter.h"
 #include "vp_feature_caps.h"
+#include "vp_render_fc_types.h"
 
 namespace vp {
 
@@ -256,6 +257,18 @@ struct _VEBOX_CSC_PARAMS
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
 };
 
+struct _RENDER_CSC_PARAMS
+{
+    uint32_t                        layer;
+    bool                            bCSCEnabled;                                 // CSC Enabled
+    VPHAL_CSPACE                    inputColorSpcase;                            // Input Color Space
+    VPHAL_CSPACE                    outputColorSpcase;                           // Input Color Space
+    MOS_FORMAT                      inputFormat;                                 // Input Format
+    MOS_FORMAT                      outputFormat;                                // Output Format
+    PVPHAL_ALPHA_PARAMS             alphaParams;                                 // Output Alpha Params
+    uint32_t                        inputChromaSetting;                          // Chroma setting
+};
+
 struct _VEBOX_HDR_PARAMS
 {
     uint32_t                        uiMaxDisplayLum;       //!< Maximum Display Luminance
@@ -408,6 +421,14 @@ struct _RENDER_DI_FMD_PARAMS
 
 using RENDER_DI_FMD_PARAMS  = _RENDER_DI_FMD_PARAMS;
 using PRENDER_DI_FMD_PARAMS = RENDER_DI_FMD_PARAMS *;
+
+struct _RENDER_FC_PARAMS
+{
+    VpKernelID              kernelId;
+    VP_COMPOSITE_PARAMS     compParams;
+};
+using RENDER_FC_PARAMS  = _RENDER_FC_PARAMS;
+using PRENDER_FC_PARAMS = RENDER_FC_PARAMS *;
 
 class SwFilterPipe;
 class HwFilter;

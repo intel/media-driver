@@ -187,6 +187,36 @@ protected:
     SwFilterFactory<SwFilterHdr> m_swFilterFactory;
 };
 
+class SwFilterLumakeyHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterLumakeyHandler(VpInterface &vpInterface, FeatureType featureType);
+    virtual ~SwFilterLumakeyHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter *CreateSwFilter();
+
+protected:
+    virtual void Destory(SwFilter *&swFilter);
+
+protected:
+    SwFilterFactory<SwFilterLumakey>    m_swFilterFactory;
+};
+
+class SwFilterBlendingHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterBlendingHandler(VpInterface &vpInterface, FeatureType featureType);
+    virtual ~SwFilterBlendingHandler();
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType);
+    virtual SwFilter *CreateSwFilter();
+
+protected:
+    virtual void Destory(SwFilter *&swFilter);
+
+protected:
+    SwFilterFactory<SwFilterBlending>   m_swFilterFactory;
+};
+
 class SwFilterColorFillHandler : public SwFilterFeatureHandler
 {
 public:

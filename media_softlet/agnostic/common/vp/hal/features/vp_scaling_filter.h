@@ -135,7 +135,7 @@ protected:
     MOS_STATUS SetRectSurfaceAlignment(bool isOutputSurf, uint32_t &width, uint32_t &height, RECT &rcSrc, RECT &rcDst);
 
 protected:
-    FeatureParamScaling          m_scalingParams;
+    FeatureParamScaling          m_scalingParams     = {};
     SFC_SCALING_PARAMS          *m_sfcScalingParams  = nullptr;
     float                        fScaleX             = 0.0f;
     float                        fScaleY             = 0.0f;

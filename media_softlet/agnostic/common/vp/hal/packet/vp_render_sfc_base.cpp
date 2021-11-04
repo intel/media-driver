@@ -187,7 +187,7 @@ void SfcRenderBase::SetXYAdaptiveFilter(
         m_renderData.SfcInputFormat == Format_AYUV) &&
         (m_renderData.fScaleX > 1.0F                ||
         m_renderData.fScaleY > 1.0F)                &&
-        (psfcStateParams->dwAVSFilterMode != MEDIASTATE_SFC_AVS_FILTER_BILINEAR))
+        psfcStateParams->dwAVSFilterMode != MEDIASTATE_SFC_AVS_FILTER_BILINEAR)
     {
         //For AVS, we need set psfcStateParams->bBypassXAdaptiveFilter and bBypassYAdaptiveFilter as false;
         psfcStateParams->bBypassXAdaptiveFilter = false;

@@ -113,6 +113,7 @@ void PacketFactory::ReturnPacket(VpCmdPacket *&pPacket)
         m_VeboxPacketPool.push_back(pPacket);
         break;
     case VP_PIPELINE_PACKET_RENDER:
+    case VP_PIPELINE_PACKET_COMPUTE:
         m_RenderPacketPool.push_back(pPacket);
         break;
     default:
@@ -238,6 +239,13 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
         {
             VP_PUBLIC_NORMALMESSAGE("Switch to Render Context");
             VP_PUBLIC_CHK_STATUS_RETURN(mediaContext->SwitchContext(RenderGenericFunc, &scalPars, &scalability));
+            VP_PUBLIC_CHK_NULL_RETURN(scalability);
+            break;
+        }
+    case VP_PIPELINE_PACKET_COMPUTE:
+        {
+            VP_PUBLIC_NORMALMESSAGE("Switch to Compute Context");
+            VP_PUBLIC_CHK_STATUS_RETURN(mediaContext->SwitchContext(ComputeVppFunc, &scalPars, &scalability));
             VP_PUBLIC_CHK_NULL_RETURN(scalability);
             break;
         }

@@ -34,6 +34,7 @@
 #include "vp_packet_pipe.h"
 #include "vp_platform_interface.h"
 #include "vp_utils.h"
+#include "vp_user_feature_control.h"
 using namespace vp;
 
 VpPipeline::VpPipeline(PMOS_INTERFACE osInterface) :
@@ -84,6 +85,13 @@ VpPipeline::~VpPipeline()
     {
         MOS_FreeMemory(m_vpSettings);
         m_vpSettings = nullptr;
+    }
+
+    if (m_userFeatureControl &&
+        (this == m_userFeatureControl->m_owner || nullptr == m_userFeatureControl->m_owner))
+    {
+        MOS_Delete(m_userFeatureControl);
+        m_vpMhwInterface.m_userFeatureControl = nullptr;
     }
 }
 
@@ -172,6 +180,16 @@ MOS_STATUS VpPipeline::CreatePacketSharedContext()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpPipeline::CreateUserFeatureControl()
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+    m_userFeatureControl = MOS_New(VpUserFeatureControl, *m_osInterface, this);
+    VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpPipeline::Init(void *mhwInterface)
 {
     VP_FUNC_CALL();
@@ -225,6 +243,16 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(SetVideoProcessingSettings(m_vpMhwInterface.m_settings));
 
     m_vpMhwInterface.m_settings = m_vpSettings;
+
+    if (m_vpMhwInterface.m_userFeatureControl)
+    {
+        m_userFeatureControl = m_vpMhwInterface.m_userFeatureControl;
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(CreateUserFeatureControl());
+        m_vpMhwInterface.m_userFeatureControl = m_userFeatureControl;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -737,16 +765,17 @@ MOS_STATUS VpPipeline::PrepareVpPipelineParams(PVP_PIPELINE_PARAMS params)
     VP_PUBLIC_CHK_NULL_RETURN(m_allocator);
     VP_PUBLIC_CHK_NULL_RETURN(m_featureManager);
 
-    VPHAL_GET_SURFACE_INFO  info;
+    // Can be removed, as all info can be gotten during AllocateVpSurface.
+    VPHAL_GET_SURFACE_INFO  info = {};
+    for (uint32_t i = 0; i < params->uSrcCount; ++i)
+    {
+        MOS_ZeroMemory(&info, sizeof(VPHAL_GET_SURFACE_INFO));
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(
+            params->pSrc[i],
+            info));
+    }
 
     MOS_ZeroMemory(&info, sizeof(VPHAL_GET_SURFACE_INFO));
-
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(
-        params->pSrc[0],
-        info));
-
-    MOS_ZeroMemory(&info, sizeof(VPHAL_GET_SURFACE_INFO));
-
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(
         params->pTarget[0],
         info));
@@ -871,6 +900,7 @@ MOS_STATUS VpPipeline::Prepare(void * params)
     VP_FUNC_CALL();
 
     VP_PUBLIC_CHK_NULL_RETURN(params);
+    VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
 
     m_pvpParams = *(VP_PARAMS *)params;
     // Get Output Pipe for Features. It should be configured in ExecuteVpPipeline.
@@ -879,6 +909,7 @@ MOS_STATUS VpPipeline::Prepare(void * params)
 
     if (PIPELINE_PARAM_TYPE_LEGACY == m_pvpParams.type)
     {
+        m_userFeatureControl->Update((PVP_PIPELINE_PARAMS)m_pvpParams.renderParams);
         // VP Execution Params Prepare
         eStatus = PrepareVpPipelineParams(m_pvpParams.renderParams);
         if (eStatus != MOS_STATUS_SUCCESS)

@@ -800,7 +800,57 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
     }
     else
     {
-        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        if (caps.bOutputPipeFeatureInuse)
+        {
+            return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        }
+        else
+        {
+            SwFilterScaling *filter2ndPass = featureScaling;
+            SwFilterScaling *filter1ndPass = (SwFilterScaling *)feature.Clone();
+
+            filter1ndPass->GetFilterEngineCaps().value = 0;
+            filter1ndPass->SetFeatureType(FeatureType::FeatureTypeScaling);
+
+            FeatureParamScaling &params2ndPass = filter2ndPass->GetSwFilterParams();
+            FeatureParamScaling &params1stPass = filter1ndPass->GetSwFilterParams();
+
+            uint32_t inputWidth = params1stPass.input.rcSrc.right - params1stPass.input.rcSrc.left;
+            uint32_t inputHeight = params1stPass.input.rcSrc.bottom - params1stPass.input.rcSrc.top;
+            uint32_t outputWidth = params1stPass.input.rcDst.right - params1stPass.input.rcDst.left;
+            uint32_t outputHeight = params1stPass.input.rcDst.bottom - params1stPass.input.rcDst.top;
+
+            VP_PUBLIC_NORMALMESSAGE("sfc scaling w/o rectangle info on target surface: (%dx%d)->(%dx%d)",
+                inputWidth, inputHeight, outputWidth, outputHeight);
+
+            params1stPass.input.rcDst.left = 0;
+            params1stPass.input.rcDst.right = outputWidth;
+            params1stPass.input.rcDst.top = 0;
+            params1stPass.input.rcDst.bottom = outputHeight;
+
+            params1stPass.output.dwWidth = outputWidth;
+            params1stPass.output.dwHeight = outputHeight;
+            params1stPass.output.rcSrc = params1stPass.input.rcDst;
+            params1stPass.output.rcDst = params1stPass.input.rcDst;
+            params1stPass.output.rcMaxSrc = params1stPass.output.rcSrc;
+
+            params2ndPass.input.dwWidth = params1stPass.output.dwWidth;
+            params2ndPass.input.dwHeight = params1stPass.output.dwHeight;
+            params2ndPass.input.rcSrc = params1stPass.input.rcDst;
+            params2ndPass.input.rcMaxSrc = params2ndPass.input.rcSrc;
+
+            // Set engine caps for filter in 2nd pass.
+            filter2ndPass->SetFeatureType(FeatureTypeScaling);
+            filter2ndPass->GetFilterEngineCaps().value = 0;
+            filter2ndPass->GetFilterEngineCaps().bEnabled = 1;
+            filter2ndPass->GetFilterEngineCaps().SfcNeeded = 1;
+            filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
+            filter2ndPass->GetFilterEngineCaps().fcSupported = 1;
+            filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
+
+            executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
+
+        }
     }
 
     return MOS_STATUS_SUCCESS;

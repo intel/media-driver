@@ -70,6 +70,7 @@ public:
 
 protected:
     virtual MOS_STATUS RegisterFeatures();
+    virtual void UnregisterFeatures();
     virtual MOS_STATUS GetExecutionCapsForSingleFeature(FeatureType featureType, SwFilterSubPipe& swFilterPipe);
     virtual MOS_STATUS UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
     virtual MOS_STATUS BuildVeboxSecureFilters(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
@@ -94,6 +95,8 @@ protected:
     MOS_STATUS GetDeinterlaceExecutionCaps(SwFilter* feature);
     MOS_STATUS GetColorFillExecutionCaps(SwFilter* feature);
     MOS_STATUS GetAlphaExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetLumakeyExecutionCaps(SwFilter* feature);
+    MOS_STATUS GetBlendingExecutionCaps(SwFilter* feature);
 
     MOS_STATUS BuildExecuteCaps(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS &caps, VP_EngineEntry &engineCapsInputPipe, VP_EngineEntry &engineCapsOutputPipe,
                                 bool &isSingleSubPipe, uint32_t &selectedPipeIndex);
@@ -162,7 +165,6 @@ protected:
 
     VpInterface         &m_vpInterface;
     VP_HW_CAPS          m_hwCaps = {};
-    uint32_t            m_bypassCompMode = 0;
     bool                m_initialized = false;
 
     //!

@@ -44,7 +44,13 @@ class VpKernelSet
 {
 public:
     VpKernelSet(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator);
-    virtual ~VpKernelSet() {};
+    virtual ~VpKernelSet()
+    {
+        for (auto &it : m_cachedKernels)
+        {
+            MOS_Delete(it.second);
+        }
+    };
 
     virtual MOS_STATUS Clean()
     {
@@ -66,14 +72,18 @@ public:
         VP_SURFACE_GROUP& surfacesGroup,
         KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup,
         KERNEL_CONFIGS& kernelConfigs,
-        KERNEL_OBJECTS& kernelObjs);
+        KERNEL_OBJECTS& kernelObjs,
+        VP_RENDER_CACHE_CNTL& surfMemCacheCtl);
 
     virtual MOS_STATUS DestroyKernelObjects(KERNEL_OBJECTS& kernelObjs)
     {
         while (!kernelObjs.empty())
         {
             auto it = kernelObjs.begin();
-            MOS_Delete(it->second);
+            if (m_cachedKernels.end() == m_cachedKernels.find(it->second->GetKernelId()))
+            {
+                MOS_Delete(it->second);
+            }
             kernelObjs.erase(it);
         }
 
@@ -86,10 +96,10 @@ protected:
     MOS_STATUS FindAndInitKernelObj(VpRenderKernelObj* kernelObj);
 
 protected:
-
     KERNEL_POOL*          m_pKernelPool = nullptr;
     PVP_MHWINTERFACE      m_hwInterface = nullptr;
     PVpAllocator          m_allocator   = nullptr;
+    std::map<VpKernelID, VpRenderKernelObj *> m_cachedKernels;
 };
 }
 

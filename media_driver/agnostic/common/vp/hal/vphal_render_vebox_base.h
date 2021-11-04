@@ -36,6 +36,7 @@
 #include "vphal_render_vebox_iecp.h"
 #include "vphal_render_sfc_base.h"
 #include "vphal_render_vebox_denoise.h"
+#include "vp_pipeline_common.h"
 
 #define VPHAL_MAX_NUM_FFDI_SURFACES     4                                       //!< 2 for ADI plus additional 2 for parallel execution on HSW+
 #define VPHAL_NUM_FFDN_SURFACES         2                                       //!< Number of FFDN surfaces
@@ -450,16 +451,6 @@ struct VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION
     // Padding for 32-byte alignment, VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION_G9 is 7 uint32_ts
     uint32_t dwPad[7];
 };
-
-//!
-//! \brief Enumeration for the user feature key "Bypass Composition" values
-//!
-typedef enum _VPHAL_COMP_BYPASS_MODE
-{
-    VPHAL_COMP_BYPASS_NOT_SET  = 0xffffffff,
-    VPHAL_COMP_BYPASS_DISABLED = 0x0,
-    VPHAL_COMP_BYPASS_ENABLED  = 0x1
-} VPHAL_COMP_BYPASS_MODE, *PVPHAL_COMP_BYPASS_MODE;
 
 //!
 //! \brief Kernel IDs

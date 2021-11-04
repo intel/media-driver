@@ -162,6 +162,8 @@ struct VP_POLICY_RULES
             bool enable;
         } csc;
     } sfcMultiPassSupport;
+
+    bool isAvsSamplerSupported;
 };
 
 struct VP_HW_CAPS

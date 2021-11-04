@@ -121,6 +121,9 @@
 #define VP_DEBUG_VERBOSEMESSAGE(_message, ...)                                    \
     MOS_VERBOSEMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
 
+#define VP_FUNCTION_VERBOSEMESSAGE(_message, ...)                                 \
+    MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE, MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
+
 #define VP_DEBUG_FUNCTION_ENTER                                                   \
     MOS_FUNCTION_ENTER(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG)
 
@@ -227,7 +230,7 @@ public:
         }
         else // Always bypass function trace for perf measurement case.
         {
-            VP_DEBUG_VERBOSEMESSAGE("Enter function:%s\r\n", name);
+            VP_FUNCTION_VERBOSEMESSAGE("Enter function:%s\r\n", name);
         }
     }
 
@@ -239,7 +242,7 @@ public:
         }
         else
         {
-            VP_DEBUG_VERBOSEMESSAGE("Exit function:%s\r\n", m_name);
+            VP_FUNCTION_VERBOSEMESSAGE("Exit function:%s\r\n", m_name);
         }
     }
 
