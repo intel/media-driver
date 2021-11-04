@@ -589,7 +589,7 @@ static int32_t _UserFeature_FindValue(MOS_UF_KEY UFKey, char * const pcValueName
 
     iResult = -1;
 
-    for ( i = 0; i < (int32_t)UFKey.ulValueNum; i++ )
+    for ( i = 0; i < UFKey.valueNum; i++ )
     {
         iResult = strcmp(UFKey.pValueArray[i].pcValueName, pcValueName);
         if ( iResult == 0 )
@@ -682,7 +682,7 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
     {
         //not found, add a new value to key struct.
         //reallocate memory for appending this value.
-        pValueArray = (MOS_UF_VALUE*)MOS_AllocMemory(sizeof(MOS_UF_VALUE)*(Key->ulValueNum+1));
+        pValueArray = (MOS_UF_VALUE*)MOS_AllocMemory(sizeof(MOS_UF_VALUE)*(Key->valueNum+1));
         if (pValueArray == nullptr)
         {
             MOS_FreeMemory(ulValueBuf);
@@ -690,19 +690,19 @@ static MOS_STATUS _UserFeature_Set(MOS_PUF_KEYLIST *pKeyList, MOS_UF_KEY NewKey)
         }
 
         MOS_SecureMemcpy(pValueArray,
-                        sizeof(MOS_UF_VALUE)*(Key->ulValueNum),
+                        sizeof(MOS_UF_VALUE)*(Key->valueNum),
                         Key->pValueArray,
-                        sizeof(MOS_UF_VALUE)*(Key->ulValueNum));
+                        sizeof(MOS_UF_VALUE)*(Key->valueNum));
 
         MOS_FreeMemory(Key->pValueArray);
 
         Key->pValueArray = pValueArray;
 
-        iPos = Key->ulValueNum;
-        MOS_SecureStrcpy(Key->pValueArray[Key->ulValueNum].pcValueName,
+        iPos = Key->valueNum;
+        MOS_SecureStrcpy(Key->pValueArray[Key->valueNum].pcValueName,
             MAX_USERFEATURE_LINE_LENGTH,
             NewKey.pValueArray[0].pcValueName);
-        Key->ulValueNum ++;
+        Key->valueNum ++;
     }
     else
     {
@@ -830,9 +830,9 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
     {
         return MOS_STATUS_NO_SPACE;
     }
-    CurKey->ulValueNum       = 0;
+    CurKey->valueNum        = 0;
     CurKey->pcKeyName[0]    = '\0';
-    CurKey->pValueArray       = nullptr;
+    CurKey->pValueArray     = nullptr;
 
     if ( (File = fopen(szFileName, "r")) == nullptr)
     {
@@ -857,7 +857,7 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
                 // Add last key struct to contents when the key is not first.
                 // otherwise, continue to load key struct data.
                 CurKey->pValueArray   = CurValue;
-                CurKey->ulValueNum   = iCount;
+                CurKey->valueNum      = iCount;
                 if(_UserFeature_Add(pKeyList, CurKey) != MOS_STATUS_SUCCESS)
                 {
                     // if the CurKey didn't be added in pKeyList, free it.
@@ -885,7 +885,7 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
             }
 
             MOS_SecureStrcpy(CurKey->pcKeyName, MAX_USERFEATURE_LINE_LENGTH, szTmp);
-            CurKey->ulValueNum = 0;
+            CurKey->valueNum = 0;
 
             // allocate capability length for valuearray.
             CurValue = (MOS_UF_VALUE*)MOS_AllocMemory(sizeof(MOS_UF_VALUE)*UF_CAPABILITY);
@@ -1014,10 +1014,10 @@ static MOS_STATUS _UserFeature_DumpFile(const char * const szFileName, MOS_PUF_K
     if (eStatus == MOS_STATUS_SUCCESS)
     {
         if ( bEmpty && (strlen(CurKey->pcKeyName) > 0) &&
-            (CurKey->ulValueNum == 0) )
+            (CurKey->valueNum == 0) )
         {
             CurKey->pValueArray   = CurValue;
-            CurKey->ulValueNum   = iCount;
+            CurKey->valueNum      = iCount;
             if(_UserFeature_Add(pKeyList, CurKey) != MOS_STATUS_SUCCESS)
             {
                 // if the CurKey didn't be added in pKeyList, free it.
@@ -1088,7 +1088,7 @@ static MOS_STATUS _UserFeature_DumpDataToFile(const char *szFileName, MOS_PUF_KE
         fprintf(File, "%s\n", UF_KEY_ID);
         fprintf(File,  "\t0x%.8x\n", (uint32_t)(uintptr_t)pKeyTmp->pElem->UFKey);
         fprintf(File,  "\t%s\n", pKeyTmp->pElem->pcKeyName);
-        for ( j = 0; j < (int32_t)pKeyTmp->pElem->ulValueNum; j ++ )
+        for ( j = 0; j < (int32_t)pKeyTmp->pElem->valueNum; j ++ )
         {
             fprintf(File, "\t\t%s\n", UF_VALUE_ID);
             if ( strlen(pKeyTmp->pElem->pValueArray[j].pcValueName) > 0 )
@@ -1116,7 +1116,7 @@ static MOS_STATUS _UserFeature_DumpDataToFile(const char *szFileName, MOS_PUF_KE
                     break;
                 } //switch (pKeyTmp->pElem->pValueArray[j].ulValueType)
             }
-        } // for ( j = 0; j < (int32_t)pKeyTmp->pElem->ulValueNum; j ++ )
+        } // for ( j = 0; j < (int32_t)pKeyTmp->pElem->valueNum; j ++ )
     } //for (pKeyTmp = pKeyList; pKeyTmp; pKeyTmp = pKeyTmp->pNext)
     fclose(File);
     MOS_UserFeatureNotifyChangeKeyValue(nullptr, false, nullptr, true);
@@ -1141,7 +1141,7 @@ static void _UserFeature_FreeKeyList(MOS_PUF_KEYLIST pKeyList)
     while(pKeyTmp)
     {
         pKeyTmpNext = pKeyTmp->pNext;
-        for(i=0;i<pKeyTmp->pElem->ulValueNum;i++)
+        for(i=0;i<pKeyTmp->pElem->valueNum;i++)
         {
             MOS_FreeMemory(pKeyTmp->pElem->pValueArray[i].ulValueBuf);
         }
@@ -1213,7 +1213,7 @@ static MOS_STATUS _UserFeature_SetValue(
     MOS_ZeroMemory(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH);
     MOS_SecureStrcpy(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH, strKey);
     NewKey.pValueArray = &NewValue;
-    NewKey.ulValueNum = 1;
+    NewKey.valueNum = 1;
 
     if ( (eStatus = _UserFeature_DumpFile(szUserFeatureFile, &pKeyList)) != MOS_STATUS_SUCCESS )
     {
@@ -1276,7 +1276,7 @@ static MOS_STATUS _UserFeature_QueryValue(
     MOS_ZeroMemory(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH);
     MOS_SecureStrcpy(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH, strKey);
     NewKey.pValueArray = &NewValue;
-    NewKey.ulValueNum = 1;
+    NewKey.valueNum = 1;
 
     if ( (eStatus = _UserFeature_DumpFile(szUserFeatureFile, &pKeyList)) == MOS_STATUS_SUCCESS)
     {

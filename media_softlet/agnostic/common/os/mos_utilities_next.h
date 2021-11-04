@@ -653,7 +653,7 @@ public:
     //!
     //! \brief    Unlink the user feature key Desc Fields table items to key value map
     //! \details  Unlink the user feature key Desc Fields table items to key value map
-    //!           according to ID sequence and do some post processing by calling MOS_DestroyUserFeatureData
+    //!           according to ID sequence and do some post processing by calling MosDestroyUserFeatureData
     //! \param    [in] pUserFeatureKey
     //!           Pointer to the User Feature Value needed to be destroyed
     //! \return   MOS_STATUS

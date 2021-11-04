@@ -1930,9 +1930,18 @@ MOS_STATUS MosUtilities::MosUserFeatureReadValueFromMapID(
                        &ufKey,
                        ufInfo)) != MOS_STATUS_SUCCESS)
     {
-        MOS_OS_NORMALMESSAGE("Failed to open user feature for reading eStatus:%d.", eStatus);
-        eStatus = MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
-        goto finish;
+        MOS_OS_NORMALMESSAGE("Failed to open user feature for concurrency.");
+        if ((eStatus = MosUserFeatureOpen(
+                 pUserFeature->Type,
+                 pUserFeature->pcPath,
+                 KEY_READ,
+                 &ufKey,
+                 ufInfo)) != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_NORMALMESSAGE("Failed to open user feature for reading eStatus:%d.", eStatus);
+            eStatus = MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
+            goto finish;
+        }
     }
 
     // Initialize Read Value

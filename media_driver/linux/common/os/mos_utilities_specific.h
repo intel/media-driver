@@ -116,7 +116,7 @@ typedef struct _MOS_UF_VALUE {
 typedef struct _MOS_UF_KEY {
     void              *UFKey;
     char              pcKeyName[MAX_USERFEATURE_LINE_LENGTH];
-    uint32_t          ulValueNum;
+    int32_t           valueNum;
     MOS_UF_VALUE     *pValueArray;
 } MOS_UF_KEY;
 

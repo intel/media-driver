@@ -47,7 +47,8 @@
 #include <unistd.h>  // fork
 #include <algorithm>
 
-const char *MosUtilitiesSpecificNext::m_szUserFeatureFile = USER_FEATURE_FILE;
+const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
+MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
 
 double MosUtilities::MosGetTime()
 {
@@ -540,7 +541,7 @@ void MosUtilities::MosSleep(uint32_t mSec)
 
     iResult = -1;
 
-    for ( i = 0; i < (int32_t)UFKey.ulValueNum; i++ )
+    for ( i = 0; i < UFKey.valueNum; i++ )
     {
         iResult = strcmp(UFKey.pValueArray[i].pcValueName, pcValueName);
         if ( iResult == 0 )
@@ -566,7 +567,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureAdd(MOS_PUF_KEYLIST *pKeyList, M
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    pNewNode = (MOS_UF_KEYNODE*)MOS_AllocMemory(sizeof(MOS_UF_KEYNODE));
+    pNewNode = (MOS_UF_KEYNODE *)MOS_AllocAndZeroMemory(sizeof(MOS_UF_KEYNODE));
     if (pNewNode == nullptr)
     {
         return MOS_STATUS_NO_SPACE;
@@ -604,41 +605,35 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
     }
 
     // Prepare the ValueBuff of the NewKey
-    if ((ulValueBuf = MOS_AllocMemory(NewKey.pValueArray[0].ulValueLen)) == nullptr)
+    if ((ulValueBuf = MOS_AllocAndZeroMemory(NewKey.pValueArray[0].ulValueLen)) == nullptr)
     {
          return MOS_STATUS_NO_SPACE;
     }
+    MOS_AtomicIncrement(&MosUtilities::m_mosMemAllocFakeCounter);  //ulValueBuf does not count it, because it is freed after the MEMNJA final report.
+    MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
 
     if ( (iPos = UserFeatureFindValue(*Key, NewKey.pValueArray[0].pcValueName)) == NOT_FOUND)
     {
         //not found, add a new value to key struct.
         //reallocate memory for appending this value.
-        pValueArray = (MOS_UF_VALUE*)MOS_AllocMemory(sizeof(MOS_UF_VALUE)*(Key->ulValueNum+1));
-        if (pValueArray == nullptr)
+        iPos = MOS_AtomicIncrement(&Key->valueNum);
+        if (iPos >= UF_CAPABILITY)
         {
-            MOS_FreeMemory(ulValueBuf);
-            return MOS_STATUS_NO_SPACE;
+            MOS_OS_ASSERTMESSAGE("user setting value icount %d must less than UF_CAPABILITY(64)", iPos);
+
+            return MOS_STATUS_USER_FEATURE_KEY_READ_FAILED;
         }
 
-        MosUtilities::MosSecureMemcpy(pValueArray,
-                        sizeof(MOS_UF_VALUE)*(Key->ulValueNum),
-                        Key->pValueArray,
-                        sizeof(MOS_UF_VALUE)*(Key->ulValueNum));
-
-        MOS_FreeMemory(Key->pValueArray);
-
-        Key->pValueArray = pValueArray;
-
-        iPos = Key->ulValueNum;
-        MosUtilities::MosSecureStrcpy(Key->pValueArray[Key->ulValueNum].pcValueName,
+        MosUtilities::MosSecureStrcpy(Key->pValueArray[iPos].pcValueName,
             MAX_USERFEATURE_LINE_LENGTH,
             NewKey.pValueArray[0].pcValueName);
-        Key->ulValueNum ++;
     }
     else
     {
         //if found, the previous value buffer needs to be freed before reallocating
         MOS_FreeMemory(Key->pValueArray[iPos].ulValueBuf);
+        MOS_AtomicDecrement(&MosUtilities::m_mosMemAllocFakeCounter);
+        MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
     }
 
     Key->pValueArray[iPos].ulValueLen  = NewKey.pValueArray[0].ulValueLen;
@@ -733,14 +728,14 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
     iCurId    =  0;
     eStatus  =  MOS_STATUS_SUCCESS;
 
-    CurKey = (MOS_UF_KEY*)MOS_AllocMemory(sizeof(MOS_UF_KEY));
+    CurKey = (MOS_UF_KEY *)MOS_AllocAndZeroMemory(sizeof(MOS_UF_KEY));
     if (CurKey == nullptr)
     {
         return MOS_STATUS_NO_SPACE;
     }
-    CurKey->ulValueNum       = 0;
+    CurKey->valueNum        = 0;
     CurKey->pcKeyName[0]    = '\0';
-    CurKey->pValueArray       = nullptr;
+    CurKey->pValueArray     = nullptr;
 
     if ( (File = fopen(szFileName, "r")) == nullptr)
     {
@@ -765,13 +760,13 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
                 // Add last key struct to contents when the key is not first.
                 // otherwise, continue to load key struct data.
                 CurKey->pValueArray   = CurValue;
-                CurKey->ulValueNum   = iCount;
+                CurKey->valueNum      = iCount;
                 if(UserFeatureAdd(pKeyList, CurKey) != MOS_STATUS_SUCCESS)
                 {
                     // if the CurKey didn't be added in pKeyList, free it.
                     MOS_FreeMemory(CurKey);
                 }
-                CurKey = (MOS_UF_KEY*)MOS_AllocMemory(sizeof(MOS_UF_KEY));
+                CurKey = (MOS_UF_KEY *)MOS_AllocAndZeroMemory(sizeof(MOS_UF_KEY));
                 if (CurKey == nullptr)
                 {
                     eStatus = MOS_STATUS_NO_SPACE;
@@ -793,10 +788,10 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
             }
 
             MosUtilities::MosSecureStrcpy(CurKey->pcKeyName, MAX_USERFEATURE_LINE_LENGTH, szTmp);
-            CurKey->ulValueNum = 0;
+            CurKey->valueNum = 0;
 
             // allocate capability length for valuearray.
-            CurValue = (MOS_UF_VALUE*)MOS_AllocMemory(sizeof(MOS_UF_VALUE)*UF_CAPABILITY);
+            CurValue = (MOS_UF_VALUE *)MOS_AllocAndZeroMemory(sizeof(MOS_UF_VALUE) * UF_CAPABILITY);
             if (CurValue == nullptr)
             {
                 eStatus = MOS_STATUS_NO_SPACE;
@@ -826,6 +821,7 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
                 if (iCount < 0 || iCount >= UF_CAPABILITY)
                 {
                     eStatus = MOS_STATUS_USER_FEATURE_KEY_READ_FAILED;
+                    MOS_OS_ASSERTMESSAGE("user setting value icount %d, and it must meet  0 < icount < UF_CAPABILITY(64)", iCount);
                     break;
                 }
 
@@ -922,10 +918,10 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureDumpFile(const char * const szF
     if (eStatus == MOS_STATUS_SUCCESS)
     {
         if ( bEmpty && (strlen(CurKey->pcKeyName) > 0) &&
-            (CurKey->ulValueNum == 0) )
+            (CurKey->valueNum == 0) )
         {
-            CurKey->pValueArray   = CurValue;
-            CurKey->ulValueNum   = iCount;
+            CurKey->pValueArray = CurValue;
+            CurKey->valueNum    = iCount;
             if(UserFeatureAdd(pKeyList, CurKey) != MOS_STATUS_SUCCESS)
             {
                 // if the CurKey didn't be added in pKeyList, free it.
@@ -987,7 +983,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureDumpDataToFile(const char *szFil
         fprintf(File, "%s\n", UF_KEY_ID);
         fprintf(File,  "\t0x%.8x\n", (uint32_t)(uintptr_t)pKeyTmp->pElem->UFKey);
         fprintf(File,  "\t%s\n", pKeyTmp->pElem->pcKeyName);
-        for ( j = 0; j < (int32_t)pKeyTmp->pElem->ulValueNum; j ++ )
+        for ( j = 0; j < pKeyTmp->pElem->valueNum; j ++ )
         {
             fprintf(File, "\t\t%s\n", UF_VALUE_ID);
             if ( strlen(pKeyTmp->pElem->pValueArray[j].pcValueName) > 0 )
@@ -1015,10 +1011,9 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureDumpDataToFile(const char *szFil
                     break;
                 } //switch (pKeyTmp->pElem->pValueArray[j].ulValueType)
             }
-        } // for ( j = 0; j < (int32_t)pKeyTmp->pElem->ulValueNum; j ++ )
+        } // for ( j = 0; j < pKeyTmp->pElem->valueNum; j ++ )
     } //for (pKeyTmp = pKeyList; pKeyTmp; pKeyTmp = pKeyTmp->pNext)
     fclose(File);
-    MosUtilities::MosUserFeatureNotifyChangeKeyValue(nullptr, false, nullptr, true);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1033,7 +1028,7 @@ void MosUtilitiesSpecificNext::UserFeatureFreeKeyList(MOS_PUF_KEYLIST pKeyList)
     while(pKeyTmp)
     {
         pKeyTmpNext = pKeyTmp->pNext;
-        for(i=0;i<pKeyTmp->pElem->ulValueNum;i++)
+        for(i=0;i<pKeyTmp->pElem->valueNum;i++)
         {
             MOS_FreeMemory(pKeyTmp->pElem->pValueArray[i].ulValueBuf);
         }
@@ -1055,12 +1050,10 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureSetValue(
     MOS_UF_KEY          NewKey;
     MOS_UF_VALUE        NewValue;
     MOS_STATUS          eStatus;
-    MOS_PUF_KEYLIST     pKeyList;
 
     eStatus   = MOS_STATUS_UNKNOWN;
-    pKeyList   = nullptr;
 
-    if ( (strKey== nullptr) || (pcValueName == nullptr) )
+    if ((strKey == nullptr) || (pcValueName == nullptr) || (m_ufKeyList == nullptr))
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -1081,20 +1074,13 @@ MOS_STATUS  MosUtilitiesSpecificNext::UserFeatureSetValue(
     MosUtilities::MosZeroMemory(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH);
     MosUtilities::MosSecureStrcpy(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH, strKey);
     NewKey.pValueArray = &NewValue;
-    NewKey.ulValueNum = 1;
+    NewKey.valueNum    = 1;
 
-    if ((eStatus = UserFeatureDumpFile(m_szUserFeatureFile, &pKeyList)) != MOS_STATUS_SUCCESS)
+    if ( ( eStatus = UserFeatureSet(&MosUtilitiesSpecificNext::m_ufKeyList, NewKey)) == MOS_STATUS_SUCCESS )
     {
-        UserFeatureFreeKeyList(pKeyList);
-        return eStatus;
+        MosUtilities::MosUserFeatureNotifyChangeKeyValue(nullptr, false, nullptr, true);
     }
 
-    if ( ( eStatus = UserFeatureSet(&pKeyList, NewKey)) == MOS_STATUS_SUCCESS )
-    {
-        eStatus = UserFeatureDumpDataToFile(m_szUserFeatureFile, pKeyList);
-    }
-
-    UserFeatureFreeKeyList(pKeyList);
     return eStatus;
 }
 
@@ -1114,9 +1100,9 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureQueryValue(
     char                strTempValueName[MAX_USERFEATURE_LINE_LENGTH];
 
     eStatus   = MOS_STATUS_UNKNOWN;
-    pKeyList   = nullptr;
+    pKeyList   = MosUtilitiesSpecificNext::m_ufKeyList;
 
-    if ( (strKey == nullptr) || (pcValueName == nullptr))
+    if ( (strKey == nullptr) || (pcValueName == nullptr) || (pKeyList == nullptr))
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -1127,23 +1113,19 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureQueryValue(
     MosUtilities::MosZeroMemory(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH);
     MosUtilities::MosSecureStrcpy(NewKey.pcKeyName, MAX_USERFEATURE_LINE_LENGTH, strKey);
     NewKey.pValueArray = &NewValue;
-    NewKey.ulValueNum = 1;
+    NewKey.valueNum    = 1;
 
-    if ((eStatus = UserFeatureDumpFile(m_szUserFeatureFile, &pKeyList)) == MOS_STATUS_SUCCESS)
+    if ( (eStatus = UserFeatureQuery(pKeyList, &NewKey)) == MOS_STATUS_SUCCESS )
     {
-        if ( (eStatus = UserFeatureQuery(pKeyList, &NewKey)) == MOS_STATUS_SUCCESS )
+        if(uiValueType != nullptr)
         {
-            if(uiValueType != nullptr)
-            {
-                *uiValueType = NewKey.pValueArray[0].ulValueType;
-            }
-            if (nDataSize != nullptr)
-            {
-                *nDataSize   = NewKey.pValueArray[0].ulValueLen;
-            }
+            *uiValueType = NewKey.pValueArray[0].ulValueType;
+        }
+        if (nDataSize != nullptr)
+        {
+            *nDataSize   = NewKey.pValueArray[0].ulValueLen;
         }
     }
-    UserFeatureFreeKeyList(pKeyList);
 
     return eStatus;
 }
@@ -1155,17 +1137,10 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureGetKeyIdbyName(const char  *pcKe
     MOS_STATUS          eStatus;
     MOS_PUF_KEYLIST     pTempNode;
 
-    pKeyList   = nullptr;
+    pKeyList   = MosUtilitiesSpecificNext::m_ufKeyList;
     iResult    = -1;
 
-    if ((eStatus = UserFeatureDumpFile(m_szUserFeatureFile, &pKeyList)) !=
-        MOS_STATUS_SUCCESS )
-    {
-        UserFeatureFreeKeyList(pKeyList);
-        return eStatus;
-    }
-
-    eStatus   = MOS_STATUS_INVALID_PARAMETER;
+    eStatus    = MOS_STATUS_INVALID_PARAMETER;
 
     for(pTempNode=pKeyList; pTempNode; pTempNode=pTempNode->pNext)
     {
@@ -1177,7 +1152,6 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureGetKeyIdbyName(const char  *pcKe
             break;
         }
     }
-    UserFeatureFreeKeyList(pKeyList);
 
     return eStatus;
 }
@@ -1188,7 +1162,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureGetKeyNamebyId(void  *UFKey, cha
     MOS_PUF_KEYLIST     pTempNode;
     MOS_STATUS          eStatus;
 
-    pKeyList   = nullptr;
+    pKeyList   = MosUtilitiesSpecificNext::m_ufKeyList;
 
     switch((uintptr_t)UFKey)
     {
@@ -1201,13 +1175,6 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureGetKeyNamebyId(void  *UFKey, cha
         eStatus = MOS_STATUS_SUCCESS;
         break;
     default:
-        if ((eStatus = UserFeatureDumpFile(m_szUserFeatureFile, &pKeyList)) !=
-            MOS_STATUS_SUCCESS )
-        {
-            UserFeatureFreeKeyList(pKeyList);
-            return eStatus;
-        }
-
         eStatus   = MOS_STATUS_UNKNOWN;
 
         for(pTempNode=pKeyList;pTempNode;pTempNode=pTempNode->pNext)
@@ -1219,7 +1186,6 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureGetKeyNamebyId(void  *UFKey, cha
                 break;
             }
         }
-        UserFeatureFreeKeyList(pKeyList);
         break;
     }
 
@@ -1363,7 +1329,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     {
         //Init MOS User Feature Key from mos desc table
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
-
+        MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
 #if _MEDIA_RESERVED
         m_codecUserFeatureExt = new CodechalUserSettingsMgr();
         m_vpUserFeatureExt    = new VphalUserSettingsMgr();
@@ -1425,6 +1391,9 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
         // so if there still is another active lib instance, logs would still be printed.
         MosUtilDebug::MosMessageClose();
 #endif
+        MosUtilitiesSpecificNext::UserFeatureDumpDataToFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, MosUtilitiesSpecificNext::m_ufKeyList);
+        MosUtilitiesSpecificNext::UserFeatureFreeKeyList(MosUtilitiesSpecificNext::m_ufKeyList);
+        MosUtilitiesSpecificNext::m_ufKeyList = nullptr;
     }
     m_mutexLock.Unlock();
     return eStatus;

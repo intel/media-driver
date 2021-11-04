@@ -110,6 +110,41 @@ static MOS_STATUS MosUserFeatureOpenKeyFile(
     uint32_t   samDesired,
     void       **phkResult);
 
+/*----------------------------------------------------------------------------
+    | Name      : UserFeatureDumpFile
+    | Purpose   : This function read the whole User Feature File and dump User Feature File
+    |             data to key linked list.
+    | Arguments : szFileName         [in]  User Feature File name.
+    |             pKeyList           [out] Key Linked list.
+    | Returns   : MOS_STATUS_SUCCESS           Operation success.
+    |             MOS_STATUS_USER_FEATURE_KEY_READ_FAILED  User Feature File can't be open as read.
+    |             MOS_STATUS_NO_SPACE          no space left for allocate
+    |             MOS_STATUS_UNKNOWN           unknown user feature type found in User Feature File
+    |             MOS_STATUS_INVALID_PARAMETER unknown items found in User Feature File
+    | Comments  :
+    \---------------------------------------------------------------------------*/
+static MOS_STATUS UserFeatureDumpFile(const char *const szFileName, MOS_PUF_KEYLIST *pKeyList);
+
+/*----------------------------------------------------------------------------
+| Name      : UserFeatureDumpDataToFile
+| Purpose   : This function dump key linked list data to File.
+| Arguments : szFileName             [in] A handle to the File.
+|             pKeyList               [in] Reserved, any LPDWORD type value.
+| Returns   : MOS_STATUS_SUCCESS                        Operation success.
+|             MOS_STATUS_USER_FEATURE_KEY_WRITE_FAILED  File can't be written.
+| Comments  :
+\---------------------------------------------------------------------------*/
+
+static MOS_STATUS UserFeatureDumpDataToFile(const char *szFileName, MOS_PUF_KEYLIST pKeyList);
+
+/*----------------------------------------------------------------------------
+| Name      : UserFeatureFreeKeyList
+| Purpose   : Free key list
+| Arguments : pKeyList           [in] key list to be free.
+| Returns   : None
+| Comments  :
+\---------------------------------------------------------------------------*/
+static void UserFeatureFreeKeyList(MOS_PUF_KEYLIST pKeyList);
 
 private:
 
@@ -173,41 +208,6 @@ private:
     static MOS_STATUS UserFeatureQuery(MOS_PUF_KEYLIST pKeyList, MOS_UF_KEY *NewKey);
 
     static MOS_STATUS UserFeatureReadNextTokenFromFile(FILE *pFile, const char *szFormat, char  *szToken);
-
-    /*----------------------------------------------------------------------------
-    | Name      : UserFeatureDumpFile
-    | Purpose   : This function read the whole User Feature File and dump User Feature File
-    |             data to key linked list.
-    | Arguments : szFileName         [in]  User Feature File name.
-    |             pKeyList           [out] Key Linked list.
-    | Returns   : MOS_STATUS_SUCCESS           Operation success.
-    |             MOS_STATUS_USER_FEATURE_KEY_READ_FAILED  User Feature File can't be open as read.
-    |             MOS_STATUS_NO_SPACE          no space left for allocate
-    |             MOS_STATUS_UNKNOWN           unknown user feature type found in User Feature File
-    |             MOS_STATUS_INVALID_PARAMETER unknown items found in User Feature File
-    | Comments  :
-    \---------------------------------------------------------------------------*/
-    static MOS_STATUS UserFeatureDumpFile(const char * const szFileName, MOS_PUF_KEYLIST* pKeyList);
-
-    /*----------------------------------------------------------------------------
-    | Name      : UserFeatureDumpDataToFile
-    | Purpose   : This function dump key linked list data to File.
-    | Arguments : szFileName             [in] A handle to the File.
-    |             pKeyList               [in] Reserved, any LPDWORD type value.
-    | Returns   : MOS_STATUS_SUCCESS                        Operation success.
-    |             MOS_STATUS_USER_FEATURE_KEY_WRITE_FAILED  File can't be written.
-    | Comments  :
-    \---------------------------------------------------------------------------*/
-    static MOS_STATUS UserFeatureDumpDataToFile(const char *szFileName, MOS_PUF_KEYLIST pKeyList);
-
-    /*----------------------------------------------------------------------------
-    | Name      : UserFeatureFreeKeyList
-    | Purpose   : Free key list
-    | Arguments : pKeyList           [in] key list to be free.
-    | Returns   : None
-    | Comments  :
-    \---------------------------------------------------------------------------*/
-    static void UserFeatureFreeKeyList(MOS_PUF_KEYLIST pKeyList);
 
     /*----------------------------------------------------------------------------
     | Name      : UserFeatureSetValue
@@ -290,6 +290,7 @@ private:
 
 public:
     static const char*          m_szUserFeatureFile;
+    static MOS_PUF_KEYLIST      m_ufKeyList;
     static int32_t              m_mosTraceFd;
     static const char* const    m_mosTracePath;
     static std::map<std::string, std::map<std::string, std::string>> m_regBuffer;
