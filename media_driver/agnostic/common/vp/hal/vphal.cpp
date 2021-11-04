@@ -605,6 +605,12 @@ VphalState::VphalState(
 
     VPHAL_PUBLIC_CHK_NULL(m_osInterface);
 
+    // For some cases, current GPUContexts will be created from both the legacy path and the Apo path;
+    // In Apo path, in order to make sure the GPUContext will be successfully created in switchcontext, it sets the GpuContextHandle to invalid before calling the create func,
+    // which overwrites the corresponding GpuContextHandle value and causes memory leak if the original GpuContextHandle is non-invalid.
+    // Setting this flag here is to avoid the GpuContextHandle overwrite in Apo path.
+    m_osInterface->bSetHandleInvalid = false;
+
     // Initialize platform, sku, wa tables
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
     m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
