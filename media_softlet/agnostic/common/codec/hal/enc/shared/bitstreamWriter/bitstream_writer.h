@@ -29,6 +29,7 @@
 
 #include <map>
 #include <assert.h>
+#include "media_class_trace.h"
 
 typedef unsigned char  mfxU8;
 typedef char           mfxI8;

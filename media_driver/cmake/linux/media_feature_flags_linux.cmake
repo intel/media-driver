@@ -163,6 +163,9 @@ else()
     add_definitions(-D__VPHAL_SFC_SUPPORTED=0)
 endif()
 
+bs_set_if_undefined(CLASS_TRACE 0)
+add_definitions(-DCLASS_TRACE=${CLASS_TRACE})
+
 if(ENABLE_KERNELS)
     add_definitions(-DENABLE_KERNELS)
 endif()

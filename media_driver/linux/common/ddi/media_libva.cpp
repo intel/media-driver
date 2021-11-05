@@ -2169,6 +2169,9 @@ VAStatus DdiMedia_Terminate (
 {
     DDI_FUNCTION_ENTER();
 
+#if CLASS_TRACE
+    ClassTrace::Dump("#In DdiMedia_Terminate", "temp/class_trace.log");
+#endif
     DDI_CHK_NULL(ctx,       "nullptr ctx",       VA_STATUS_ERROR_INVALID_CONTEXT);
 
     PDDI_MEDIA_CONTEXT mediaCtx   = DdiMedia_GetMediaContext(ctx);

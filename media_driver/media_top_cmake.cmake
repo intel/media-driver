@@ -148,6 +148,10 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
+if (${CLASS_TRACE} EQUAL 1)
+    message("start to generate media_trace_offset.h")
+    execute_process(COMMAND python3 ${BS_DIR_MEDIA}/Tools/MediaDriverTools/MediaClassTrace/gen_ClassTraceOffset.py -w ${BS_DIR_MEDIA} -h ${MEDIA_SOFTLET_EXT}/agnostic/common/shared/classtrace/media_trace_offset.h)
+endif ()
 # post target attributes
 bs_set_post_target()
 

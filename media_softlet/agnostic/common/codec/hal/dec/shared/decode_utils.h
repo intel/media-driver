@@ -24,6 +24,7 @@
 #include <mutex>
 #include "mos_util_debug.h"
 #include "mos_utilities.h"
+#include "media_class_trace.h"
 
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_DECODE sub-comp

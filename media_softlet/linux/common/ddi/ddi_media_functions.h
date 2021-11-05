@@ -30,6 +30,7 @@
 #include <va/va.h>
 #include <va/va_backend.h>
 #include "media_factory.h"
+#include "media_class_trace.h"
 
 class DdiMediaFunctions
 {

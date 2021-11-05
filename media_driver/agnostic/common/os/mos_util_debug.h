@@ -34,6 +34,7 @@
 #define __MOS_UTIL_DEBUG_H__
 #include "mos_defs.h"
 #include "mos_util_debug_specific.h"
+#include "media_class_trace.h"
 
 #ifdef __cplusplus
 extern "C" {

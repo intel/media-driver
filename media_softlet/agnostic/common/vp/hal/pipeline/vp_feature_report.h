@@ -31,6 +31,7 @@
 
 #include "vphal_common.h"
 #include "vphal_common_tools.h"
+#include "media_class_trace.h"
 
 //!
 //! Class VphalFeatureReport
