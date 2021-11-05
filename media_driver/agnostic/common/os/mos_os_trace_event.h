@@ -154,6 +154,21 @@ typedef enum _MEDIA_EVENT
     EVENT_MEDIA_LOG_RESERVE,                       //! event for more media log
     EVENT_MEDIA_ERR,                               //! event for media error
     EVENT_MEDIA_ERR_RESERVE,                       //! event for more media error
+    EVENT_DDI_DECODE_11_GETPROFILECOUNT,           //! event for Decode Get Profile Count
+    EVENT_DDI_DECODE_11_GETPROFILE,                //! event for Decode Get Profile
+    EVENT_DDI_DECODE_11_CHECKFORMAT,               //! event for Decode Check Format
+    EVENT_DDI_DECODE_11_GETCONFIGCOUNT,            //! event for Decode Config Count
+    EVENT_DDI_DECODE_11_GETCONFIG,                 //! event for Decode Config
+    EVENT_DDI_DECODE_11_GETBUFFERTYPECOUNT,        //! event for Decode Buffer Count
+    EVENT_DDI_DECODE_11_GETBUFFERINFO,             //! event for Decode Buffer Info
+    EVENT_DDI_DECODE_11_CREATEVIDEODECODER,        //! event for Decode Create Device
+    EVENT_DDI_DECODE_11_CREATEOUTPUTVIEW,          //! event for Decode Create Output View
+    EVENT_DDI_DECODE_11_BEGINFRAME,                //! event for Decode Begin Frame
+    EVENT_DDI_DECODE_11_SUBMITBUFFERS,             //! event for Decode Execute
+    EVENT_DDI_DECODE_11_EXTENSIONEXECUTE,          //! event for Decode Extension Execute
+    EVENT_DDI_DECODE_11_ENDFRAME,                  //! event for Decode End Frame
+    EVENT_DDI_DECODE_11_DESTROYOUTPUTVIEW,         //! event for Decode Destroy Output View
+    EVENT_DDI_DECODE_11_DESTROYVIDEODECODER,       //! event for Decode Destroy Device
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
