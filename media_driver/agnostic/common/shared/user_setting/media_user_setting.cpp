@@ -97,4 +97,9 @@ MOS_STATUS MediaUserSetting::Write(
     return m_configure.Write(valueName, value, group, mosContext, isForReport);
 }
 
+bool MediaUserSetting::IsDeclaredUserSetting(const std::string &valueName)
+{
+    return m_configure.IsDefinitionExist(valueName);
+}
+
 }
