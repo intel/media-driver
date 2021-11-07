@@ -1,7 +1,7 @@
 import os,sys,shutil,time
 import argparse
 
-def find_files(top, extensions=('.c', '.cpp', '.h'), exclude=('ult', 'googletest', 'classtrace')):
+def find_files(top, extensions=('.c', '.cpp', '.h'), exclude=('ult', 'googletest', 'classtrace', '.git')):
     res = []
     for root, dirs, files in os.walk(top):
         dirs[:] = [d for d in dirs if d not in exclude]
@@ -48,7 +48,7 @@ def genHeaderFile(top, offset_head_file):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Command line inputs for checking script',argument_default=argparse.SUPPRESS)
     parser.add_argument('-w', '--workspace', help='workspace of driver, ', required=True)
-    parser.add_argument('-h', '--headfile', help='the abs path of media_trace_offset.h', required=True)
+    parser.add_argument('-f', '--headfile', help='the abs path of media_trace_offset.h', required=True)
     args = parser.parse_args()
     time_start = time.time()
     genHeaderFile(args.workspace, args.headfile)
