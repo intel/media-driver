@@ -743,6 +743,12 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS IntermediateAllocation(PVPHAL_SURFACE &pIntermediate,
+        PMOS_INTERFACE                               pOsInterface,
+        uint32_t                                     dwTempWidth,
+        uint32_t                                     dwTempHeight,
+        PVPHAL_SURFACE                               pTarget);
+
     //!
     //! \brief    Prepare phases for composite and allocate intermediate buffer for rendering
     //! \param    [in] pcRenderParams
@@ -1085,6 +1091,15 @@ private:
     //!
     bool IsSamplerLumakeySupported(PVPHAL_SURFACE pSrc);
 
+    //!
+    //! \brief    Get intermediate surface output
+    //! \param    pOutput
+    //!           [in] Pointer to Intermediate Output Surface
+    //! \return   PVPHAL_SURFACE
+    //!           Return the chose output
+    //!
+    virtual MOS_STATUS GetIntermediateOutput(PVPHAL_SURFACE &output);
+
     // Procamp
     int32_t                         m_iMaxProcampEntries;
     int32_t                         m_iProcampVersion;
@@ -1151,8 +1166,9 @@ protected:
 
     static const int                AVS_CACHE_SIZE = 4;           //!< AVS coefficients cache size
     AvsCoeffsCache<AVS_CACHE_SIZE>  m_AvsCoeffsCache;             //!< AVS coefficients calculation is expensive, add cache to mitigate
-    VPHAL_SURFACE                   m_Intermediate;               //!< Intermediate surface (multiple phase / constriction support)
-    VPHAL_SURFACE                   m_Intermediate2;              //!< Rotation output intermediate surface
+    VPHAL_SURFACE                   m_Intermediate  = {};         //!< Intermediate surface (multiple phase / constriction support)
+    VPHAL_SURFACE                   m_Intermediate1 = {};         //!< Intermediate surface (multiple phase / constriction support)
+    VPHAL_SURFACE                   m_Intermediate2 = {};         //!< Rotation output intermediate surface
 
     Kdll_State                      *m_pKernelDllState = nullptr; //!< Compositing Kernel DLL/Search state
     RENDERHAL_KERNEL_PARAM          m_KernelParams = {0};
