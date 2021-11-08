@@ -35,5 +35,4 @@ set(HEADERS_
     ${TMP_HEADERS_}
  )
 
-media_include_subdirectory(ddi)
 media_add_curr_to_include_path()

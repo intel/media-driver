@@ -60,12 +60,15 @@
 #include "media_interfaces.h"
 #include "mos_interface.h"
 #include "drm_fourcc.h"
-#include "media_libva_interface.h"
-#include "media_libva_interface_next.h"
 #include "media_libva_apo_decision.h"
 #include "mos_oca_interface_specific.h"
+
+#ifdef _MANUAL_SOFTLET_
+#include "media_libva_interface.h"
+#include "media_libva_interface_next.h"
 #include "media_interfaces_hwinfo_device.h"
 #include "media_libva_caps_next.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -1573,6 +1576,77 @@ VAStatus DdiMedia_GetDeviceFD (
     return VA_STATUS_SUCCESS;
 }
 
+#ifdef _MANUAL_SOFTLET_
+
+VAStatus DdiMedia_CleanUpSoftlet(PDDI_MEDIA_CONTEXT mediaCtx)
+{
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    if (mediaCtx->m_capsNext)
+    {
+        MOS_Delete(mediaCtx->m_capsNext);
+        mediaCtx->m_capsNext = nullptr;
+    }
+
+    MediaLibvaInterfaceNext::ReleaseCompList(mediaCtx);
+    if(mediaCtx->m_hwInfo)
+    {
+        MOS_FreeMemory(mediaCtx->m_hwInfo);
+        mediaCtx->m_hwInfo = nullptr;
+    }
+
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiMedia__InitializeSoftlet(
+    PDDI_MEDIA_CONTEXT mediaCtx,
+    bool               apoDdiEnabled)
+{
+    VAStatus status = VA_STATUS_SUCCESS;
+    
+    if (nullptr == mediaCtx)
+    {
+        FreeForMediaContext(mediaCtx);
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+    }
+
+    if(apoDdiEnabled)
+    {
+        mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
+        if (nullptr == mediaCtx->m_hwInfo)
+        {
+            DDI_ASSERTMESSAGE("Unregister hwinfo platform.");
+            DdiMedia_CleanUp(mediaCtx);
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+
+        mediaCtx->m_capsNext = MediaLibvaCapsNext::CreateCaps(mediaCtx);
+        if (!mediaCtx->m_capsNext)
+        {
+            DDI_ASSERTMESSAGE("Caps next init failed. Not supported GFX device.");
+            DdiMedia_CleanUp(mediaCtx);
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+
+        if (MediaLibvaInterfaceNext::InitCompList(mediaCtx) != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Init CompList failed. Not supported GFX device.");
+            DdiMedia_CleanUp(mediaCtx);
+            DestroyMediaContextMutex(mediaCtx);
+            FreeForMediaContext(mediaCtx);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+    }
+
+    return status;
+}
+
+#endif
+
 VAStatus DdiMedia__Initialize (
     VADriverContextP ctx,
     int32_t         *major_version,
@@ -1601,16 +1675,11 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
+#ifdef _MANUAL_SOFTLET_
     apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd);
-    if(apoDdiEnabled)
-    {
-        if(MediaLibvaInterface::LoadFunction(ctx) != VA_STATUS_SUCCESS)
-        {
-            DDI_ASSERTMESSAGE("Failed to load function pointer");
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        } 
-    }
-    else
+#endif
+
+    if(!apoDdiEnabled)
     {
         if(DdiMedia_LoadFuncion(ctx) != VA_STATUS_SUCCESS)
         {
@@ -1618,6 +1687,18 @@ VAStatus DdiMedia__Initialize (
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
+
+#ifdef _MANUAL_SOFTLET_
+    else
+    {
+        if(MediaLibvaInterface::LoadFunction(ctx) != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Failed to load function pointer");
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+    }
+#endif
+
     return DdiMedia_InitMediaContext(ctx, devicefd, major_version, minor_version, apoDdiEnabled);
 }
 
@@ -1969,38 +2050,14 @@ VAStatus DdiMedia_InitMediaContext (
     }
     ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
 
-    if(apoDdiEnabled)
+#ifdef _MANUAL_SOFTLET_
+    if (DdiMedia__InitializeSoftlet(mediaCtx, apoDdiEnabled) != VA_STATUS_SUCCESS)
     {
-        mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
-        if (nullptr == mediaCtx)
-        {
-            DDI_ASSERTMESSAGE("Unregister hwinfo platform.");
-            DdiMedia_CleanUp(mediaCtx);
-            DestroyMediaContextMutex(mediaCtx);
-            FreeForMediaContext(mediaCtx);
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        }
-
-        mediaCtx->m_capsNext = MediaLibvaCapsNext::CreateCaps(mediaCtx);
-        if (!mediaCtx->m_capsNext)
-        {
-            DDI_ASSERTMESSAGE("Caps next init failed. Not supported GFX device.");
-            DdiMedia_CleanUp(mediaCtx);
-            DestroyMediaContextMutex(mediaCtx);
-            FreeForMediaContext(mediaCtx);
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        }
-
-        if (MediaLibvaInterfaceNext::InitCompList(mediaCtx) != VA_STATUS_SUCCESS)
-        {
-            DDI_ASSERTMESSAGE("Init CompList failed. Not supported GFX device.");
-            DdiMedia_CleanUp(mediaCtx);
-            DestroyMediaContextMutex(mediaCtx);
-            FreeForMediaContext(mediaCtx);
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        }
+        DDI_ASSERTMESSAGE("Softlet initialize failed");
+        return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
-    
+#endif
+
 #if !defined(ANDROID) && defined(X11_FOUND)
     DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceRenderMutex);
     DdiMediaUtil_InitMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
@@ -2147,19 +2204,9 @@ VAStatus DdiMedia_CleanUp (PDDI_MEDIA_CONTEXT mediaCtx)
         mediaCtx->m_caps = nullptr;
     }
 
-    if (mediaCtx->m_capsNext)
-    {
-        MOS_Delete(mediaCtx->m_capsNext);
-        mediaCtx->m_capsNext = nullptr;
-    }
-
-    MediaLibvaInterfaceNext::ReleaseCompList(mediaCtx);
-    if(mediaCtx->m_hwInfo)
-    {
-        MOS_FreeMemory(mediaCtx->m_hwInfo);
-        mediaCtx->m_hwInfo = nullptr;
-    }
-
+#ifdef _MANUAL_SOFTLET_
+    DdiMedia_CleanUpSoftlet(mediaCtx);
+#endif
     return VA_STATUS_SUCCESS;
 }
 
@@ -2184,7 +2231,11 @@ VAStatus DdiMedia_Terminate (
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceRenderMutex);
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
 
-    if (mediaCtx->m_caps || mediaCtx->m_capsNext)
+    if (mediaCtx->m_caps 
+#ifdef _MANUAL_SOFTLET_
+    || mediaCtx->m_capsNext
+#endif
+    )
     {
         if (mediaCtx->dri_output != nullptr) {
             if (mediaCtx->dri_output->handle)

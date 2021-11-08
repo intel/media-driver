@@ -24,7 +24,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_common.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_util.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_libva_interface.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_apo_decision.cpp
 )
 
@@ -37,7 +36,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_caps_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_common.h
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_util.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_libva_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/media_libva_apo_decision.h
 )
 

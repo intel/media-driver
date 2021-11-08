@@ -44,8 +44,11 @@
 
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
+
+#ifdef _MANUAL_SOFTLET_
 #include "ddi_media_functions.h"
 #include "media_interfaces_hwinfo.h"
+#endif
 
 #include <va/va.h>
 #include <va/va_backend.h>
@@ -552,9 +555,11 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T    PutSurfaceSwapBufferMutex;
 #endif
     bool                  m_apoMosEnabled;
-    DdiMediaFunctions     *m_compList[CompCount];
-    MediaInterfacesHwInfo *m_hwInfo;
-    MediaLibvaCapsNext    *m_capsNext;
+#ifdef _MANUAL_SOFTLET_
+    DdiMediaFunctions     *m_compList[CompCount] = {nullptr};
+    MediaInterfacesHwInfo *m_hwInfo = nullptr;
+    MediaLibvaCapsNext    *m_capsNext = nullptr;
+#endif
 };
 
 static __inline PDDI_MEDIA_CONTEXT DdiMedia_GetMediaContext (VADriverContextP ctx)
