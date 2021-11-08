@@ -2890,8 +2890,8 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
     veboxInputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
     veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
         (m_osInterface->pfnCachePolicyGetMemoryObject(
-            MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue >> 1; //Need shift 1 bit for resvered bit
+            MOS_MP_RESOURCE_USAGE_DEFAULT,
+            m_osInterface->pfnGetGmmClientContext(m_osInterface))).Gen12.Index;
 
     // Set Input surface compression status
     if (inSurParams->CompressionMode != MOS_MMC_DISABLED)
@@ -2971,6 +2971,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
     }
 
     MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+    InitMocsParams(ResourceParams, &cmd.DW1_2.Value[0], 1, 6);
     ResourceParams.presResource = inputSurface;
     ResourceParams.HwCommandType = MOS_VEBOX_TILING_CONVERT;
 
@@ -2982,6 +2983,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
     MHW_CHK_STATUS(pfnAddResourceToCmd(m_osInterface, cmdBuffer, &ResourceParams));
 
     MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+    InitMocsParams(ResourceParams, &cmd.DW3_4.Value[0], 1, 6);
 
     if (outputSurface)
     {
