@@ -1961,7 +1961,27 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(HCP_VP9_SEGMENT_STATE);
 
-        return MOS_STATUS_SUCCESS;
+#define DO_FIELDS()                                                                           \
+    DO_FIELD(DW1, SegmentId, params.segmentId);                                               \
+    DO_FIELD(DW2, SegmentSkipped, params.segmentSkipped);                                     \
+    DO_FIELD(DW2, SegmentReference, params.segmentReference);                                 \
+    DO_FIELD(DW2, SegmentReferenceEnabled, params.segmentReferenceEnabled);                   \
+    DO_FIELD(DW3, Filterlevelref0Mode0, params.filterLevelRef0Mode0);                         \
+    DO_FIELD(DW3, Filterlevelref0Mode1, params.filterLevelRef0Mode1);                         \
+    DO_FIELD(DW3, Filterlevelref1Mode0, params.filterLevelRef1Mode0);                         \
+    DO_FIELD(DW3, Filterlevelref1Mode1, params.filterLevelRef1Mode1);                         \
+    DO_FIELD(DW4, Filterlevelref2Mode0, params.filterLevelRef2Mode0);                         \
+    DO_FIELD(DW4, Filterlevelref2Mode1, params.filterLevelRef2Mode1);                         \
+    DO_FIELD(DW4, Filterlevelref3Mode0, params.filterLevelRef3Mode0);                         \
+    DO_FIELD(DW4, Filterlevelref3Mode1, params.filterLevelRef3Mode1);                         \
+    DO_FIELD(DW5, LumaDcQuantScaleDecodeModeOnly, params.lumaDcQuantScaleDecodeModeOnly);     \
+    DO_FIELD(DW5, LumaAcQuantScaleDecodeModeOnly, params.lumaAcQuantScaleDecodeModeOnly);     \
+    DO_FIELD(DW6, ChromaDcQuantScaleDecodeModeOnly, params.chromaDcQuantScaleDecodeModeOnly); \
+    DO_FIELD(DW6, ChromaAcQuantScaleDecodeModeOnly, params.chromaAcQuantScaleDecodeModeOnly); \
+    DO_FIELD(DW7, SegmentQindexDeltaEncodeModeOnly, params.segmentQindexDeltaEncodeModeOnly); \
+    DO_FIELD(DW7, SegmentLfLevelDeltaEncodeModeOnly, params.segmentLfLevelDeltaEncodeModeOnly);
+
+#include "mhw_hwcmd_process_cmdfields.h"
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(HEVC_VP9_RDOQ_STATE)

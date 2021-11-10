@@ -551,6 +551,24 @@ struct _MHW_PAR_T(HCP_VP9_PIC_STATE)
 
 struct _MHW_PAR_T(HCP_VP9_SEGMENT_STATE)
 {
+    uint32_t segmentId                         = 0;
+    uint32_t segmentSkipped                    = 0;
+    uint32_t segmentReference                  = 0;
+    uint32_t segmentReferenceEnabled           = 0;
+    uint32_t filterLevelRef0Mode0              = 0;
+    uint32_t filterLevelRef0Mode1              = 0;
+    uint32_t filterLevelRef1Mode0              = 0;
+    uint32_t filterLevelRef1Mode1              = 0;
+    uint32_t filterLevelRef2Mode0              = 0;
+    uint32_t filterLevelRef2Mode1              = 0;
+    uint32_t filterLevelRef3Mode0              = 0;
+    uint32_t filterLevelRef3Mode1              = 0;
+    uint32_t lumaDcQuantScaleDecodeModeOnly    = 0;
+    uint32_t lumaAcQuantScaleDecodeModeOnly    = 0;
+    uint32_t chromaDcQuantScaleDecodeModeOnly  = 0;
+    uint32_t chromaAcQuantScaleDecodeModeOnly  = 0;
+    uint32_t segmentQindexDeltaEncodeModeOnly  = 0;
+    uint32_t segmentLfLevelDeltaEncodeModeOnly = 0;
 };
 
 struct _MHW_PAR_T(HEVC_VP9_RDOQ_STATE)
