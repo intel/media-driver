@@ -612,18 +612,19 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
     MOS_AtomicIncrement(&MosUtilities::m_mosMemAllocFakeCounter);  //ulValueBuf does not count it, because it is freed after the MEMNJA final report.
     MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
 
-    if ( (iPos = UserFeatureFindValue(*Key, NewKey.pValueArray[0].pcValueName)) == NOT_FOUND)
+    if ((iPos = UserFeatureFindValue(*Key, NewKey.pValueArray[0].pcValueName)) == NOT_FOUND)
     {
         //not found, add a new value to key struct.
         //reallocate memory for appending this value.
         iPos = MOS_AtomicIncrement(&Key->valueNum);
+        iPos = iPos - 1;
         if (iPos >= UF_CAPABILITY)
         {
-            MOS_OS_ASSERTMESSAGE("user setting value icount %d must less than UF_CAPABILITY(64)", iPos);
-
+            MOS_OS_ASSERTMESSAGE("user setting requires iPos (%d) < UF_CAPABILITY(64)", iPos);
+            Key->valueNum = UF_CAPABILITY;
+            MOS_SafeFreeMemory(ulValueBuf);
             return MOS_STATUS_USER_FEATURE_KEY_READ_FAILED;
         }
-
         MosUtilities::MosSecureStrcpy(Key->pValueArray[iPos].pcValueName,
             MAX_USERFEATURE_LINE_LENGTH,
             NewKey.pValueArray[0].pcValueName);
@@ -2285,13 +2286,13 @@ uint32_t MosUtilities::MosWaitForMultipleObjects(
 int32_t MosUtilities::MosAtomicIncrement(
     int32_t *pValue)
 {
-    return __sync_fetch_and_add(pValue, 1);
+    return __sync_add_and_fetch(pValue, 1);
 }
 
 int32_t MosUtilities::MosAtomicDecrement(
     int32_t *pValue)
 {
-    return __sync_fetch_and_sub(pValue, 1);
+    return __sync_sub_and_fetch(pValue, 1);
 }
 
 VAStatus MosUtilities::MosStatusToOsResult(

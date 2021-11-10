@@ -2747,13 +2747,15 @@ uint32_t MOS_WaitForMultipleObjects(
 int32_t MOS_AtomicIncrement(
     int32_t *pValue)
 {
-    return __sync_fetch_and_add(pValue, 1);
+    //The function returns the new  value of the variable that pValue points to.
+    return __sync_add_and_fetch(pValue, 1);
 }
 
 int32_t MOS_AtomicDecrement(
     int32_t *pValue)
 {
-    return __sync_fetch_and_sub(pValue, 1);
+    //The function returns the new  value of the variable that pValue points to.
+    return __sync_sub_and_fetch(pValue, 1);
 }
 
 VAStatus MOS_StatusToOsResult(

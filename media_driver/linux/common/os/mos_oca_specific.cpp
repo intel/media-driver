@@ -726,12 +726,12 @@ void MosOcaInterfaceSpecific::Uninitialize()
 //!
 void MosOcaInterfaceSpecific::InitInterface()
 {
-    if (MOS_AtomicIncrement(&s_refCount) > 1)
+    if (MOS_AtomicIncrement(&s_refCount) == 1)
     {
-        return;
+        MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific &)MosOcaInterfaceSpecific::GetInstance();
+        ins.Initialize();
     }
-    MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific&)MosOcaInterfaceSpecific::GetInstance();
-    ins.Initialize();
+    return;
 }
 
 //!
@@ -739,11 +739,11 @@ void MosOcaInterfaceSpecific::InitInterface()
 //!
 void MosOcaInterfaceSpecific::UninitInterface()
 {
-    if (MOS_AtomicDecrement(&s_refCount) != 1)
+    if (MOS_AtomicDecrement(&s_refCount) == 0)
     {
-        return;
+        MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific &)MosOcaInterfaceSpecific::GetInstance();
+        ins.Uninitialize();
     }
-    MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific&)MosOcaInterfaceSpecific::GetInstance();
-    ins.Uninitialize();
+    return;
 }
 
