@@ -73,12 +73,7 @@ MOS_STATUS CodechalDecodeJpegG11::SetGpuCtxCreatOption(
                 MOS_GPU_NODE_VIDEO,
                 m_gpuCtxCreatOpt));
 
-            MOS_GPUCTX_CREATOPTIONS createOption;
-            CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
-                m_osInterface,
-                MOS_GPU_CONTEXT_VIDEO,
-                MOS_GPU_NODE_VIDEO,
-                &createOption));
+            m_videoContext = MOS_GPU_CONTEXT_VIDEO;
         }
         else
         {
@@ -164,6 +159,21 @@ MOS_STATUS CodechalDecodeJpegG11::DecodeStateLevel()
         default:
             return MOS_STATUS_UNKNOWN;
         }
+    }
+
+    if (m_decodeParams.m_destSurface->Format == Format_A8R8G8B8)
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
+            m_osInterface,
+            MOS_GPU_CONTEXT_VIDEO4));
+        m_videoContext = MOS_GPU_CONTEXT_VIDEO4;
+    }
+    else
+    {
+        CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
+            m_osInterface,
+            MOS_GPU_CONTEXT_VIDEO));
+        m_videoContext = MOS_GPU_CONTEXT_VIDEO;
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;
