@@ -585,7 +585,7 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         {
             VP_PUBLIC_NORMALMESSAGE("Non-csc cases. Still keep csc filter to avoid output from vebox.");
             cscEngine->bEnabled             = 1;
-            cscEngine->SfcNeeded            = 1;
+            cscEngine->SfcNeeded            = disableSfc ? 0 : 1;
             cscEngine->VeboxNeeded          = 0;
             cscEngine->RenderNeeded         = 1;
             cscEngine->fcSupported          = 1;
@@ -688,6 +688,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
 
     uint32_t dwSurfaceWidth = 0, dwSurfaceHeight = 0;
     uint32_t dwOutputSurfaceWidth = 0, dwOutputSurfaceHeight = 0;
+    uint32_t veboxMinWidth = 0, veboxMaxWidth = 0;
+    uint32_t veboxMinHeight = 0, veboxMaxHeight = 0;
     uint32_t dwSfcMinWidth = 0, dwSfcMaxWidth = 0;
     uint32_t dwSfcMinHeight = 0, dwSfcMaxHeight = 0;
     uint32_t dwDstMinHeight = 0;
@@ -717,6 +719,10 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
+    veboxMinWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minResolution;
+    veboxMaxWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxResolution;
+    veboxMinHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minResolution;
+    veboxMaxHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxResolution;
     dwSfcMinWidth  = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minResolution;
     dwSfcMaxWidth  = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxResolution;
     dwSfcMinHeight = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minResolution;
@@ -776,14 +782,44 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         scalingParams->interlacedScalingType != ISCALING_INTERLEAVED_TO_FIELD &&
         scalingParams->interlacedScalingType != ISCALING_FIELD_TO_INTERLEAVED)
     {
-        // for non-Scaling cases, all engine supported
-        scalingEngine->bEnabled             = 0;
-        scalingEngine->SfcNeeded            = 0;
-        scalingEngine->VeboxNeeded          = 0;
-        scalingEngine->RenderNeeded         = 0;
-        scalingEngine->forceEnableForSfc    = 1;
-        scalingEngine->forceEnableForRender = 1;
-        scalingEngine->fcSupported          = 1;
+        if (OUT_OF_BOUNDS(dwSurfaceWidth, veboxMinWidth, veboxMaxWidth) ||
+            OUT_OF_BOUNDS(dwSurfaceHeight, veboxMinHeight, veboxMaxHeight))
+        {
+            // for non-Scaling cases, all engine supported
+            scalingEngine->bEnabled             = 1;
+            scalingEngine->SfcNeeded            = 0;
+            scalingEngine->VeboxNeeded          = 0;
+            scalingEngine->RenderNeeded         = 1;
+            scalingEngine->fcSupported          = 1;
+            scalingEngine->forceEnableForSfc    = 0;
+            scalingEngine->forceEnableForRender = 0;
+            VP_PUBLIC_NORMALMESSAGE("The surface resolution is not supported by vebox.");
+        }
+        else if (OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
+                OUT_OF_BOUNDS(dwSurfaceHeight, dwSfcMinHeight, dwSfcMaxHeight))
+        {
+            // for non-Scaling cases, all engine supported
+            scalingEngine->bEnabled             = 0;
+            scalingEngine->SfcNeeded            = 0;
+            scalingEngine->VeboxNeeded          = 0;
+            scalingEngine->RenderNeeded         = 0;
+            scalingEngine->forceEnableForSfc    = 0;
+            scalingEngine->forceEnableForRender = 1;
+            scalingEngine->fcSupported          = 1;
+            scalingEngine->sfcNotSupported      = 1;
+            VP_PUBLIC_NORMALMESSAGE("The surface resolution is not supported by sfc.");
+        }
+        else
+        {
+            // for non-Scaling cases, all engine supported
+            scalingEngine->bEnabled             = 0;
+            scalingEngine->SfcNeeded            = 0;
+            scalingEngine->VeboxNeeded          = 0;
+            scalingEngine->RenderNeeded         = 0;
+            scalingEngine->forceEnableForSfc    = 1;
+            scalingEngine->forceEnableForRender = 1;
+            scalingEngine->fcSupported          = 1;
+        }
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
     }
@@ -793,7 +829,10 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         scalingEngine->bEnabled     = 1;
         scalingEngine->RenderNeeded = 1;
         scalingEngine->fcSupported  = 1;
+        scalingEngine->SfcNeeded    = 0;
         VP_PUBLIC_NORMALMESSAGE("Force scaling to FC. disableSfc %d", disableSfc);
+        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
+        return MOS_STATUS_SUCCESS;
     }
 
     // SFC Scaling enabling check
@@ -859,6 +898,22 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
                 }
             }
         }
+        else
+        {
+            scalingEngine->bEnabled     = 1;
+            scalingEngine->RenderNeeded = 1;
+            scalingEngine->fcSupported  = 1;
+            scalingEngine->SfcNeeded    = 0;
+            VP_PUBLIC_NORMALMESSAGE("Scaling parameters are not supported by SFC. Switch to Render.");
+        }
+    }
+    else
+    {
+        scalingEngine->bEnabled     = 1;
+        scalingEngine->RenderNeeded = 1;
+        scalingEngine->fcSupported  = 1;
+        scalingEngine->SfcNeeded    = 0;
+        VP_PUBLIC_NORMALMESSAGE("Format is not supported by SFC. Switch to Render.");
     }
 
     PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
@@ -1610,6 +1665,14 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     engineCapsForVeboxSfc.value |= engineCaps.value;
                     engineCapsForFc.value |= engineCaps.value;
                 }
+                if (engineCaps.sfcNotSupported)
+                {
+                    // sfc cannot be selected. Resolution limit is checked with scaling filter, even scaling
+                    // feature itself not being enabled.
+                    engineCapsForVeboxSfc.sfcNotSupported = engineCaps.sfcNotSupported;
+                    engineCapsForFc.sfcNotSupported = engineCaps.sfcNotSupported;
+                    VP_PUBLIC_NORMALMESSAGE("sfcNotSupported flag is set.");
+                }
                 continue;
             }
 
@@ -1673,7 +1736,14 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
     // For multi-layer case or color fill case, force to set fcOnlyFeatureExists flag.
     engineCapsForFc.fcOnlyFeatureExists = engineCapsForFc.fcOnlyFeatureExists ||
                                         featurePipe.GetSurfaceCount(true) > 1 ||
-                                        featurePipe.GetSurfaceCount(true) == 0;
+                                        featurePipe.GetSurfaceCount(true) == 0 ||
+                                        engineCapsForFc.nonVeboxFeatureExists && engineCapsForFc.sfcNotSupported;
+
+    if (engineCapsForVeboxSfc.nonVeboxFeatureExists && engineCapsForVeboxSfc.sfcNotSupported)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Clear nonVeboxFeatureExists flag to avoid sfc being selected, since sfcNotSupported == 1.");
+        engineCapsForVeboxSfc.nonVeboxFeatureExists = 0;
+    }
 
     // If want to disable vebox/sfc output to output surface with color fill directly for multilayer case,
     // fcOnlyFeatureExists need be set for vebox sfc for multi layer case here.
@@ -1681,14 +1751,17 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
 
     if (engineCapsIsolated.isolated)
     {
+        VP_PUBLIC_NORMALMESSAGE("engineCapsIsolated selected.");
         engineCapsInputPipe = engineCapsIsolated;
     }
     else if (engineCapsForVeboxSfc.nonFcFeatureExists)
     {
+        VP_PUBLIC_NORMALMESSAGE("engineCapsForVeboxSfc selected.");
         engineCapsInputPipe = engineCapsForVeboxSfc;
     }
     else
     {
+        VP_PUBLIC_NORMALMESSAGE("engineCapsForFc selected.");
         if (0 == engineCapsForFc.bEnabled)
         {
             engineCapsForFc.fcSupported = true;
