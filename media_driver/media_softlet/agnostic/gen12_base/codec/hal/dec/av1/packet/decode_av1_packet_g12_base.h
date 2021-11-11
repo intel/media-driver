@@ -28,9 +28,9 @@
 #define __DECODE_AV1_PACKET_G12_BASE_H__
 
 #include "media_cmd_packet.h"
-#include "decode_av1_pipeline.h"
+#include "decode_av1_pipeline_g12_base.h"
 #include "decode_utils.h"
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_basic_feature_g12.h"
 #include "decode_status_report.h"
 #include "decode_av1_picture_packet_g12_base.h"
 #include "decode_av1_tile_packet_g12_base.h"
@@ -48,7 +48,7 @@ public:
         {
             m_statusReport = pipeline->GetStatusReportInstance();
             m_featureManager = pipeline->GetFeatureManager();
-            m_av1Pipeline = dynamic_cast<Av1Pipeline*>(pipeline);
+            m_av1Pipeline = dynamic_cast<Av1PipelineG12_Base*>(pipeline);
         }
         if (hwInterface != nullptr)
         {
@@ -153,10 +153,10 @@ protected:
     MOS_STATUS InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
 
     MediaFeatureManager    *m_featureManager   = nullptr;
-    Av1Pipeline            *m_av1Pipeline      = nullptr;
+    Av1PipelineG12_Base    *m_av1Pipeline      = nullptr;
     DecodeAllocator        *m_allocator        = nullptr;
     PMOS_INTERFACE          m_osInterface      = nullptr;
-    Av1BasicFeature        *m_av1BasicFeature  = nullptr;
+    Av1BasicFeatureG12     *m_av1BasicFeature  = nullptr;
     MhwVdboxVdencInterface *m_vdencInterface   = nullptr;
     CodechalHwInterface    *m_hwInterface      = nullptr;
     DecodeMemComp          *m_mmcState         = nullptr;

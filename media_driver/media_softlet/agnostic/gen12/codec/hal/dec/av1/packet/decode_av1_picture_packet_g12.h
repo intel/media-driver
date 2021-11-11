@@ -35,7 +35,7 @@ namespace decode
     class Av1DecodePicPktG12 : public Av1DecodePicPkt_G12_Base
     {
     public:
-        Av1DecodePicPktG12(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
+        Av1DecodePicPktG12(Av1PipelineG12_Base *pipeline, CodechalHwInterface *hwInterface)
             : Av1DecodePicPkt_G12_Base(pipeline, hwInterface)
         {
         }

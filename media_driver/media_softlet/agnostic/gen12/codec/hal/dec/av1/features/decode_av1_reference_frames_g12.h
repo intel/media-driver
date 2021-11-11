@@ -20,11 +20,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_reference_frames.h
+//! \file     decode_av1_reference_frames_g12.h
 //! \brief    Defines reference list related logic for av1 decode
 //!
-#ifndef __DECODE_AV1_REFERENCE_FRAMES_H__
-#define __DECODE_AV1_REFERENCE_FRAMES_H__
+#ifndef __DECODE_AV1_REFERENCE_FRAMES_G12_H__
+#define __DECODE_AV1_REFERENCE_FRAMES_G12_H__
 
 #include "codec_def_decode_av1.h"
 #include "mhw_vdbox.h"
@@ -32,20 +32,20 @@
 
 namespace decode
 {
-class Av1BasicFeature;
+class Av1BasicFeatureG12;
 
-class Av1ReferenceFrames
+class Av1ReferenceFramesG12
 {
 public:
     //!
-    //! \brief  Av1ReferenceFrames constructor
+    //! \brief  Av1ReferenceFramesG12 constructor
     //!
-    Av1ReferenceFrames();
+    Av1ReferenceFramesG12();
 
     //!
-    //! \brief  Av1ReferenceFrames deconstructor
+    //! \brief  Av1ReferenceFramesG12 deconstructor
     //!
-    ~Av1ReferenceFrames();
+    ~Av1ReferenceFramesG12();
 
     //!
     //! \brief  Init Av1 reference frames
@@ -54,7 +54,7 @@ public:
     //! \return  MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS Init(Av1BasicFeature *basicFeature, DecodeAllocator& allocator);
+    MOS_STATUS Init(Av1BasicFeatureG12 *basicFeature, DecodeAllocator& allocator);
 
     //!
     //! \brief  Update reference frames for picture
@@ -182,12 +182,12 @@ public:
 
 protected:
 
-    uint8_t m_prevFrameIdx = 0;                 //!< primary reference frame index
-    Av1BasicFeature *m_basicFeature = nullptr;  //!< AV1 basic feature
-    DecodeAllocator *m_allocator    = nullptr;  //!< Decode allocator
-    std::vector<uint8_t> m_activeReferenceList; //!< Active reference list of current picture
+    uint8_t m_prevFrameIdx = 0;                    //!< primary reference frame index
+    Av1BasicFeatureG12 *m_basicFeature = nullptr;  //!< AV1 basic feature
+    DecodeAllocator *m_allocator = nullptr;        //!< Decode allocator
+    std::vector<uint8_t> m_activeReferenceList;    //!< Active reference list of current picture
 };
 
 }  // namespace decode
 
-#endif  // !__DECODE_AV1_REFERENCE_FRAMES_H__
+#endif  // !__DECODE_AV1_REFERENCE_FRAMES_G12_H__

@@ -303,5 +303,23 @@ struct CodecAv1TileParams
     uint32_t        m_bsTilePayloadSizeInBytes;
 };
 
+
+struct Av1SharedBuf
+{
+    PMOS_BUFFER buffer = nullptr;
+    int         refCnt = 0;
+};
+
+struct Av1RefAssociatedBufs
+{
+    PMOS_BUFFER   mvBuf    = nullptr;
+    Av1SharedBuf *segIdBuf = nullptr;
+    Av1SharedBuf  segIdWriteBuf;
+    Av1SharedBuf *initCdfBuf = nullptr;
+    Av1SharedBuf  bwdAdaptCdfBuf;
+    Av1SharedBuf  defaultCdfBuf;
+    bool          disableFrmEndUpdateCdf = false;
+};
+
 #endif  // __CODEC_DEF_DECODE_AV1_H__
 

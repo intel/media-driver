@@ -21,7 +21,6 @@
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
-media_include_subdirectory(av1)
 media_include_subdirectory(shared)
 
 set(SOURCES_

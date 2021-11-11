@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,18 +20,18 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_pipeline.h
+//! \file     decode_av1_pipeline_g12_base.h
 //! \brief    Defines the interface for av1 decode pipeline
 //!
-#ifndef __DECODE_AV1_PIPELINE_H__
-#define __DECODE_AV1_PIPELINE_H__
+#ifndef __DECODE_AV1_PIPELINE_G12_BASE_H__
+#define __DECODE_AV1_PIPELINE_G12_BASE_H__
 
 #include "decode_pipeline.h"
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_basic_feature_g12.h"
 
 namespace decode {
 
-class Av1Pipeline : public DecodePipeline
+class Av1PipelineG12_Base : public DecodePipeline
 {
 public:
     enum Av1DecodeMode
@@ -41,17 +41,17 @@ public:
     };
 
     //!
-    //! \brief  Av1Pipeline constructor
+    //! \brief  Av1PipelineG12_Base constructor
     //! \param  [in] hwInterface
     //!         Pointer to CodechalHwInterface
     //! \param  [in] debugInterface
     //!         Pointer to CodechalDebugInterface
     //!
-    Av1Pipeline(
+    Av1PipelineG12_Base(
         CodechalHwInterface *   hwInterface,
         CodechalDebugInterface *debugInterface);
 
-    virtual ~Av1Pipeline() {};
+    virtual ~Av1PipelineG12_Base() {};
 
     Av1DecodeMode GetDecodeMode();
 
@@ -126,7 +126,7 @@ protected:
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS DumpParams(Av1BasicFeature &basicFeature);
+        MOS_STATUS DumpParams(Av1BasicFeatureG12 &basicFeature);
 
         //! \brief    Dump the picture parameters
         //!
@@ -158,4 +158,4 @@ protected:
 };
 
 }
-#endif // !__DECODE_AV1_PIPELINE_H__
+#endif // !__DECODE_AV1_PIPELINE_G12_BASE_H__

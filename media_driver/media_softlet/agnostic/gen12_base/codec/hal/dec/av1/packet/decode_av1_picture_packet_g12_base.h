@@ -28,9 +28,9 @@
 #define __DECODE_AV1_PICTURE_PACKET_G12_BASE_H__
 
 #include "media_cmd_packet.h"
-#include "decode_av1_pipeline.h"
+#include "decode_av1_pipeline_g12_base.h"
 #include "decode_utils.h"
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_basic_feature_g12.h"
 
 namespace decode
 {
@@ -40,7 +40,7 @@ namespace decode
         //!
         //! \brief  Av1DecodePicPkt_G12_Base constructor
         //!
-        Av1DecodePicPkt_G12_Base(Av1Pipeline *pipeline, CodechalHwInterface *hwInterface)
+        Av1DecodePicPkt_G12_Base(Av1PipelineG12_Base *pipeline, CodechalHwInterface *hwInterface)
             : DecodeSubPacket(pipeline, hwInterface), m_av1Pipeline(pipeline)
         {
             if (m_hwInterface != nullptr)
@@ -149,9 +149,9 @@ namespace decode
         MOS_STATUS DumpResources(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams);
 
         //Interfaces
-        Av1Pipeline                *m_av1Pipeline     = nullptr;
+        Av1PipelineG12_Base        *m_av1Pipeline     = nullptr;
         MhwVdboxAvpInterface       *m_avpInterface    = nullptr;
-        Av1BasicFeature            *m_av1BasicFeature = nullptr;
+        Av1BasicFeatureG12         *m_av1BasicFeature = nullptr;
         DecodeAllocator            *m_allocator       = nullptr;
         DecodeMemComp              *m_mmcState        = nullptr;
 

@@ -20,23 +20,22 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_tile_coding.h
+//! \file     decode_av1_tile_coding_g12.h
 //! \brief    Defines tile coding related logic for av1 decode
 //!
-#ifndef __DECODE_AV1_TILE_CODING_H__
-#define __DECODE_AV1_TILE_CODING_H__
+#ifndef __DECODE_AV1_TILE_CODING_G12_H__
+#define __DECODE_AV1_TILE_CODING_G12_H__
 
 #include "codec_def_decode_av1.h"
 #include "mhw_vdbox.h"
 #include "codechal_setting.h"
-#include "mhw_vdbox_avp_interface.h"
 
 namespace decode
 {
-    class Av1BasicFeature;
-    class Av1Pipeline;
+    class Av1BasicFeatureG12;
+    class Av1PipelineG12;
 
-    class Av1DecodeTile
+    class Av1DecodeTileG12
     {
     public:
         //!
@@ -86,23 +85,23 @@ namespace decode
         //!
         //! \brief  Av1TileCoding constructor
         //!
-        Av1DecodeTile() {};
+        Av1DecodeTileG12() {};
 
         //!
         //! \brief  Av1TileCoding deconstructor
         //!
-        ~Av1DecodeTile();
+        ~Av1DecodeTileG12();
 
         //!
         //! \brief  Initialize Av1 tile coding
         //! \param  [in] params
-        //!         Pointer to Av1BasicFeature
+        //!         Pointer to Av1BasicFeatureG12
         //! \param  [in] codecSettings
         //!         Pointer to CodechalSetting
         //! \return  MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS Init(Av1BasicFeature *basicFeature, CodechalSetting *codecSettings);
+        MOS_STATUS Init(Av1BasicFeatureG12 *basicFeature, CodechalSetting *codecSettings);
 
         //!
         //! \brief  Update reference frames for tile
@@ -170,9 +169,9 @@ namespace decode
         //!
         MOS_STATUS ParseTileInfo(const CodecAv1PicParams & picParams, CodecAv1TileParams *tileParams);
 
-        Av1BasicFeature    *m_basicFeature  = nullptr;
+        Av1BasicFeatureG12 *m_basicFeature = nullptr;
     };
 
 }  // namespace decode
 
-#endif  // !__DECODE_AV1_TILE_CODING_H__
+#endif  // !__DECODE_AV1_TILE_CODING_G12_H__

@@ -20,19 +20,19 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_pipeline.cpp
+//! \file     decode_av1_pipeline_g12_base.cpp
 //! \brief    Defines the interface for av1 decode pipeline
 //!
-#include "decode_av1_pipeline.h"
+#include "decode_av1_pipeline_g12_base.h"
 #include "decode_utils.h"
 #include "media_user_settings_mgr_g12.h"
 #include "codechal_setting.h"
-#include "decode_av1_feature_manager.h"
+#include "decode_av1_feature_manager_g12_base.h"
 #include "decode_huc_packet_creator_base.h"
 
 namespace decode {
 
-Av1Pipeline::Av1Pipeline(
+Av1PipelineG12_Base::Av1PipelineG12_Base(
     CodechalHwInterface *   hwInterface,
     CodechalDebugInterface *debugInterface)
     : DecodePipeline(hwInterface, debugInterface)
@@ -40,7 +40,7 @@ Av1Pipeline::Av1Pipeline(
 
 }
 
-MOS_STATUS Av1Pipeline::Initialize(void *settings)
+MOS_STATUS Av1PipelineG12_Base::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(DecodePipeline::Initialize(settings));
@@ -73,12 +73,12 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1Pipeline::Prepare(void *params)
+MOS_STATUS Av1PipelineG12_Base::Prepare(void *params)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(params);
 
-    auto basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    auto basicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(basicFeature);
     DECODE_CHK_STATUS(DecodePipeline::Prepare(params));
 
@@ -98,14 +98,14 @@ MOS_STATUS Av1Pipeline::Prepare(void *params)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1Pipeline::Uninitialize()
+MOS_STATUS Av1PipelineG12_Base::Uninitialize()
 {
     DECODE_FUNC_CALL();
 
     return DecodePipeline::Uninitialize();
 }
 
-MOS_STATUS Av1Pipeline::UserFeatureReport()
+MOS_STATUS Av1PipelineG12_Base::UserFeatureReport()
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(DecodePipeline::UserFeatureReport());
@@ -115,7 +115,7 @@ MOS_STATUS Av1Pipeline::UserFeatureReport()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1Pipeline::ActivateDecodePackets()
+MOS_STATUS Av1PipelineG12_Base::ActivateDecodePackets()
 {
     DECODE_FUNC_CALL();
 
@@ -140,9 +140,9 @@ MOS_STATUS Av1Pipeline::ActivateDecodePackets()
     return MOS_STATUS_SUCCESS;
 }
 
-bool Av1Pipeline::FrameBasedDecodingInUse()
+bool Av1PipelineG12_Base::FrameBasedDecodingInUse()
 {
-    auto basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    auto basicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
 
     bool isframeBasedDecodingUsed = false;
 
@@ -157,15 +157,15 @@ bool Av1Pipeline::FrameBasedDecodingInUse()
     return isframeBasedDecodingUsed;
 }
 
-MOS_STATUS Av1Pipeline::CreateFeatureManager()
+MOS_STATUS Av1PipelineG12_Base::CreateFeatureManager()
 {
     DECODE_FUNC_CALL();
-    m_featureManager = MOS_New(DecodeAv1FeatureManager, m_allocator, m_hwInterface);
+    m_featureManager = MOS_New(DecodeAv1FeatureManagerG12_Base, m_allocator, m_hwInterface);
     DECODE_CHK_NULL(m_featureManager);
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1Pipeline::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
+MOS_STATUS Av1PipelineG12_Base::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
 {
     DECODE_FUNC_CALL();
 
@@ -174,13 +174,13 @@ MOS_STATUS Av1Pipeline::CreateSubPackets(DecodeSubPacketManager &subPacketManage
     return MOS_STATUS_SUCCESS;
 }
 
-Av1Pipeline::Av1DecodeMode Av1Pipeline::GetDecodeMode()
+Av1PipelineG12_Base::Av1DecodeMode Av1PipelineG12_Base::GetDecodeMode()
 {
     return m_decodeMode;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL
-MOS_STATUS Av1Pipeline::DumpParams(Av1BasicFeature &basicFeature)
+MOS_STATUS Av1PipelineG12_Base::DumpParams(Av1BasicFeatureG12 &basicFeature)
 {
     m_debugInterface->m_frameType = basicFeature.m_av1PicParams->m_picInfoFlags.m_fields.m_frameType ? P_TYPE : I_TYPE;
     m_debugInterface->m_bufferDumpFrameNum = basicFeature.m_frameNum;
@@ -194,7 +194,7 @@ MOS_STATUS Av1Pipeline::DumpParams(Av1BasicFeature &basicFeature)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1Pipeline::DumpBitstreamControlParams(CodecAv1TileParams *tileParams)
+MOS_STATUS Av1PipelineG12_Base::DumpBitstreamControlParams(CodecAv1TileParams *tileParams)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 
@@ -232,7 +232,7 @@ MOS_STATUS Av1Pipeline::DumpBitstreamControlParams(CodecAv1TileParams *tileParam
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1Pipeline::DumpPicParams(CodecAv1PicParams *picParams)
+MOS_STATUS Av1PipelineG12_Base::DumpPicParams(CodecAv1PicParams *picParams)
 {
     CODECHAL_DEBUG_FUNCTION_ENTER;
 

@@ -20,18 +20,18 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_basic_feature.cpp
-//! \brief    Defines the common interface for decode av1 parameter
-//!
+//! \file     decode_av1_basic_feature_g12.cpp
+//! \brief    Defines the common interface for decode av1 parameter g12
+//! 
 
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_basic_feature_g12.h"
 #include "decode_utils.h"
 #include "codechal_utilities.h"
 #include "decode_allocator.h"
 
 namespace decode
 {
-    Av1BasicFeature::~Av1BasicFeature()
+    Av1BasicFeatureG12::~Av1BasicFeatureG12()
     {
         for (uint8_t i = 0; i < av1DefaultCdfTableNum; i++)
         {
@@ -56,7 +56,7 @@ namespace decode
         }
     }
 
-    MOS_STATUS Av1BasicFeature::Init(void *setting)
+    MOS_STATUS Av1BasicFeatureG12::Init(void *setting)
     {
         DECODE_FUNC_CALL();
 
@@ -96,7 +96,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::Update(void *params)
+    MOS_STATUS Av1BasicFeatureG12::Update(void *params)
     {
         DECODE_FUNC_CALL();
 
@@ -154,7 +154,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::ErrorDetectAndConceal()
+    MOS_STATUS Av1BasicFeatureG12::ErrorDetectAndConceal()
     {
         DECODE_FUNC_CALL()
         DECODE_CHK_NULL(m_av1PicParams);
@@ -336,7 +336,7 @@ namespace decode
     }
 
     //Currently, m_bsBytesInBuffer of current bitstream buffer is not passed by application.
-    MOS_STATUS Av1BasicFeature::SetRequiredBitstreamSize(uint32_t requiredSize)
+    MOS_STATUS Av1BasicFeatureG12::SetRequiredBitstreamSize(uint32_t requiredSize)
     {
         DECODE_FUNC_CALL();
         m_dataSize = requiredSize;
@@ -344,7 +344,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::GetDecodeTargetFormat(MOS_FORMAT& format)
+    MOS_STATUS Av1BasicFeatureG12::GetDecodeTargetFormat(MOS_FORMAT& format)
     {
         if (m_av1PicParams->m_profile == 0)
         {
@@ -371,7 +371,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::SetPictureStructs(CodechalDecodeParams *decodeParams)
+    MOS_STATUS Av1BasicFeatureG12::SetPictureStructs(CodechalDecodeParams *decodeParams)
     {
         DECODE_FUNC_CALL();
         m_curRenderPic                  = m_av1PicParams->m_currPic;
@@ -472,7 +472,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::SetTileStructs()
+    MOS_STATUS Av1BasicFeatureG12::SetTileStructs()
     {
         DECODE_FUNC_CALL();
 
@@ -481,7 +481,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::SetSegmentData(CodecAv1PicParams &picParams)
+    MOS_STATUS Av1BasicFeatureG12::SetSegmentData(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -559,7 +559,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::CalculateGlobalMotionParams()
+    MOS_STATUS Av1BasicFeatureG12::CalculateGlobalMotionParams()
     {
         DECODE_FUNC_CALL();
 
@@ -597,7 +597,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::InitDefaultFrameContextBuffer(
+    MOS_STATUS Av1BasicFeatureG12::InitDefaultFrameContextBuffer(
         uint16_t              *ctxBuffer,
         uint8_t               index)
     {
@@ -724,7 +724,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature::SyntaxElementCdfTableInit(
+    MOS_STATUS Av1BasicFeatureG12::SyntaxElementCdfTableInit(
         uint16_t                    *ctxBuffer,
         SyntaxElementCdfTableLayout SyntaxElement)
     {
@@ -756,7 +756,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1BasicFeature :: UpdateDefaultCdfTable()
+    MOS_STATUS Av1BasicFeatureG12::UpdateDefaultCdfTable()
     {
         DECODE_FUNC_CALL();
 

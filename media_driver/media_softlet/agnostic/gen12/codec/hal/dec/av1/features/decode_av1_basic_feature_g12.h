@@ -20,29 +20,29 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_basic_feature.h
-//! \brief    Defines the common interface for decode av1 basic feature
+//! \file     decode_av1_basic_feature_g12.h
+//! \brief    Defines the common interface for decode av1 basic feature g12
 //!
-#ifndef __DECODE_AV1_BASIC_FEATURE_H__
-#define __DECODE_AV1_BASIC_FEATURE_H__
+#ifndef __DECODE_AV1_BASIC_FEATURE_G12_H__
+#define __DECODE_AV1_BASIC_FEATURE_G12_H__
 
 #include "decode_basic_feature.h"
 #include "codec_def_decode_av1.h"
-#include "decode_av1_reference_frames.h"
-#include "decode_av1_temporal_buffers.h"
-#include "decode_av1_tile_coding.h"
+#include "decode_av1_reference_frames_g12.h"
+#include "decode_av1_temporal_buffers_g12.h"
+#include "decode_av1_tile_coding_g12.h"
 #include "mhw_vdbox_avp_interface.h"
 #include "decode_internal_target.h"
 
 namespace decode
 {
-    class Av1BasicFeature : public DecodeBasicFeature
+    class Av1BasicFeatureG12 : public DecodeBasicFeature
     {
     public:
         //!
-        //! \brief  Av1BasicFeature constructor
+        //! \brief  Av1BasicFeatureG12 constructor
         //!
-        Av1BasicFeature(DecodeAllocator *allocator, CodechalHwInterface *hwInterface) :
+        Av1BasicFeatureG12(DecodeAllocator *allocator, CodechalHwInterface *hwInterface) :
                          DecodeBasicFeature(allocator, hwInterface)
         {
             if (hwInterface != nullptr)
@@ -52,9 +52,9 @@ namespace decode
         };
 
         //!
-        //! \brief  Av1BasicFeature deconstructor
+        //! \brief  Av1BasicFeatureG12 deconstructor
         //!
-        virtual ~Av1BasicFeature();
+        virtual ~Av1BasicFeatureG12();
 
         //!
         //! \brief  Initialize av1 basic feature CodechalSetting
@@ -131,10 +131,10 @@ namespace decode
                                                                                    //for Internal buffer upating
         bool                            m_defaultFcInitialized     = false;        //!< default Frame context initialized flag. default frame context should be initialized only once, and set this flag to 1 once initialized.
 
-        Av1ReferenceFrames              m_refFrames;                               //!< Reference frames
-        Av1DecodeTile                   m_tileCoding;                              //!< Tile coding
+        Av1ReferenceFramesG12           m_refFrames;                               //!< Reference frames
+        Av1DecodeTileG12                m_tileCoding;                              //!< Tile coding
         std::vector<uint32_t>           m_refFrameIndexList;                       //!< Reference frame index list
-        RefrenceAssociatedBuffer<Av1RefAssociatedBufs, Av1TempBufferOpInf, Av1BasicFeature> m_tempBuffers; //!< Reference associated buffers
+        RefrenceAssociatedBuffer<Av1RefAssociatedBufs, Av1TempBufferOpInfG12, Av1BasicFeatureG12> m_tempBuffers; //!< Reference associated buffers
 
         InternalTargets                 m_internalTarget;                          //!< Internal decode out surface
         FilmGrainProcParams            *m_filmGrainProcParams       = nullptr;     //!< Film grain processing params
@@ -166,4 +166,4 @@ namespace decode
 
 }  // namespace decode
 
-#endif  // !__DECODE_AV1_BASIC_FEATURE_H__
+#endif  // !__DECODE_AV1_BASIC_FEATURE_G12_H__

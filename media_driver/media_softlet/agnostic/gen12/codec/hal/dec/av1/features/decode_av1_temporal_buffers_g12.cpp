@@ -20,20 +20,20 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_temporal_buffers.cpp
+//! \file     decode_av1_temporal_buffers_g12.cpp
 //! \brief    Defines temporal buffers related logic for av1 decode
 //!
 
 #include "codec_def_decode_av1.h"
-#include "decode_av1_basic_feature.h"
-#include "decode_av1_temporal_buffers.h"
+#include "decode_av1_basic_feature_g12.h"
+#include "decode_av1_temporal_buffers_g12.h"
 #include "decode_utils.h"
 #include "codechal_utilities.h"
 
 namespace decode
 {
-    MOS_STATUS Av1TempBufferOpInf::Init(CodechalHwInterface& hwInterface, DecodeAllocator& allocator,
-                                       Av1BasicFeature& basicFeature)
+    MOS_STATUS Av1TempBufferOpInfG12::Init(CodechalHwInterface& hwInterface, DecodeAllocator& allocator,
+                                       Av1BasicFeatureG12& basicFeature)
     {
         DECODE_CHK_STATUS(BufferOpInf::Init(hwInterface, allocator, basicFeature));
         m_avpInterface = m_hwInterface->GetAvpInterface();
@@ -42,7 +42,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    Av1RefAssociatedBufs* Av1TempBufferOpInf::Allocate()
+    Av1RefAssociatedBufs* Av1TempBufferOpInfG12::Allocate()
     {
         DECODE_FUNC_CALL();
 
@@ -73,7 +73,7 @@ namespace decode
         return bufs;
     }
 
-    MOS_STATUS Av1TempBufferOpInf::Resize(Av1RefAssociatedBufs* &buffer)
+    MOS_STATUS Av1TempBufferOpInfG12::Resize(Av1RefAssociatedBufs* &buffer)
     {
         DECODE_FUNC_CALL();
 
@@ -105,7 +105,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    void Av1TempBufferOpInf::SetAvpBufSizeParam(MhwVdboxAvpBufferSizeParams& params, int32_t mibSizeLog2)
+    void Av1TempBufferOpInfG12::SetAvpBufSizeParam(MhwVdboxAvpBufferSizeParams& params, int32_t mibSizeLog2)
     {
         int32_t miCols = MOS_ALIGN_CEIL(m_basicFeature->m_width, 8) >> av1MiSizeLog2;
         int32_t miRows = MOS_ALIGN_CEIL(m_basicFeature->m_height, 8) >> av1MiSizeLog2;
@@ -124,7 +124,7 @@ namespace decode
         }
     }
 
-    void Av1TempBufferOpInf::RecordSegIdBufInfo(Av1RefAssociatedBufs *buffer)
+    void Av1TempBufferOpInfG12::RecordSegIdBufInfo(Av1RefAssociatedBufs *buffer)
     {
         auto    picParams    = m_basicFeature->m_av1PicParams;
         uint8_t prevFrameIdx = m_basicFeature->m_refFrames.GetPrimaryRefIdx();
@@ -157,7 +157,7 @@ namespace decode
         }
     }
 
-    void Av1TempBufferOpInf::RecordCdfTableBufInfo(Av1RefAssociatedBufs *buffer)
+    void Av1TempBufferOpInfG12::RecordCdfTableBufInfo(Av1RefAssociatedBufs *buffer)
     {
         auto    picParams              = m_basicFeature->m_av1PicParams;
         uint8_t prevFrameIdx           = m_basicFeature->m_refFrames.GetPrimaryRefIdx();
@@ -186,14 +186,14 @@ namespace decode
         }
     }
 
-    MOS_STATUS Av1TempBufferOpInf::Deactive(Av1RefAssociatedBufs* &buffer)
+    MOS_STATUS Av1TempBufferOpInfG12::Deactive(Av1RefAssociatedBufs* &buffer)
     {
         DeRefSharedBuffer(buffer->segIdBuf);
         DeRefSharedBuffer(buffer->initCdfBuf);
         return MOS_STATUS_SUCCESS;
     }
 
-    bool Av1TempBufferOpInf::IsAvailable(Av1RefAssociatedBufs* &buffer)
+    bool Av1TempBufferOpInfG12::IsAvailable(Av1RefAssociatedBufs* &buffer)
     {
         if (buffer == nullptr)
         {
@@ -214,7 +214,7 @@ namespace decode
         return true;
     }
 
-    void Av1TempBufferOpInf::Destroy(Av1RefAssociatedBufs* &buffer)
+    void Av1TempBufferOpInfG12::Destroy(Av1RefAssociatedBufs* &buffer)
     {
         DECODE_FUNC_CALL();
 
@@ -239,7 +239,7 @@ namespace decode
         }
     }
 
-    Av1SharedBuf *Av1TempBufferOpInf::RefSharedBuffer(Av1SharedBuf *sharedBuf)
+    Av1SharedBuf *Av1TempBufferOpInfG12::RefSharedBuffer(Av1SharedBuf *sharedBuf)
     {
         if (sharedBuf != nullptr)
         {
@@ -248,7 +248,7 @@ namespace decode
         return sharedBuf;
     }
 
-    Av1SharedBuf *Av1TempBufferOpInf::DeRefSharedBuffer(Av1SharedBuf *sharedBuf)
+    Av1SharedBuf *Av1TempBufferOpInfG12::DeRefSharedBuffer(Av1SharedBuf *sharedBuf)
     {
         if (sharedBuf != nullptr)
         {

@@ -21,27 +21,27 @@
 */
 
 //!
-//! \file     decode_av1_feature_manager.h
-//! \brief    Defines the common interface for av1 decode feature manager
+//! \file     decode_av1_feature_manager_g12_base.h
+//! \brief    Defines the common interface for av1 decode feature manager g12 base
 //! \details  The av1 decode feature manager is further sub-divided by codec type
 //!           this file is for the base interface which is shared by all components.
 //!
 
-#ifndef __DECODE_AV1_FEATURE_MANAGER_H__
-#define __DECODE_AV1_FEATURE_MANAGER_H__
+#ifndef __DECODE_AV1_FEATURE_MANAGER_G12_BASE_H__
+#define __DECODE_AV1_FEATURE_MANAGER_G12_BASE_H__
+
 #include <vector>
 #include "decode_allocator.h"
 #include "decode_feature_manager.h"
 #include "codechal_hw.h"
-#include "decode_av1_tile_coding.h"
 
 namespace decode
 {
-    class DecodeAv1FeatureManager : public DecodeFeatureManager
+class DecodeAv1FeatureManagerG12_Base : public DecodeFeatureManager
     {
     public:
         //!
-        //! \brief  DecodeAv1FeatureManager constructor
+        //! \brief  DecodeAv1FeatureManagerG12_Base constructor
         //! \param  [in] allocator
         //!         Pointer to DecodeAllocator
         //! \param  [in] hwInterface
@@ -51,14 +51,14 @@ namespace decode
         //! \param  [in] recycleBuf
         //!         Pointer to RecycleResource
         //!
-        DecodeAv1FeatureManager(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
+        DecodeAv1FeatureManagerG12_Base(DecodeAllocator *allocator, CodechalHwInterface *hwInterface)
             : DecodeFeatureManager(allocator, hwInterface)
         {}
 
         //!
-        //! \brief  DecodeAv1FeatureManager deconstructor
+        //! \brief  DecodeAv1FeatureManagerG12_Base deconstructor
         //!
-        virtual ~DecodeAv1FeatureManager() {}
+        virtual ~DecodeAv1FeatureManagerG12_Base() {}
 
     protected:
 
@@ -73,4 +73,4 @@ namespace decode
     };
 
 }
-#endif // !__DECODE_AV1_FEATURE_MANAGER_H__
+#endif // !__DECODE_AV1_FEATURE_MANAGER_G12_BASE_H__

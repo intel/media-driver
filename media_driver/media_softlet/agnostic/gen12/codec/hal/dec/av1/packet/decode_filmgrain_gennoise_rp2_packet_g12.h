@@ -28,7 +28,7 @@
 #define __DECODE_FILMGRAIN_GENNOISE_RP2_PACKET_G12_H__
 
 #include "media_render_cmd_packet.h"
-#include "decode_av1_pipeline.h"
+#include "decode_av1_pipeline_g12_base.h"
 #include "decode_av1_filmgrain_feature_g12.h"
 
 namespace decode
@@ -254,10 +254,10 @@ protected:
     Kdll_FilterEntry*       m_filter            = nullptr;                                       // Kernel Filter (points to base of filter array)
 
     MediaFeatureManager     *m_featureManager   = nullptr;
-    Av1Pipeline             *m_av1Pipeline      = nullptr;
+    Av1PipelineG12_Base     *m_av1Pipeline      = nullptr;
     DecodeAllocator         *m_allocator        = nullptr;
     PMOS_INTERFACE          m_osInterface       = nullptr;
-    Av1BasicFeature         *m_av1BasicFeature  = nullptr;
+    Av1BasicFeatureG12      *m_av1BasicFeature  = nullptr;
     Av1DecodeFilmGrainG12   *m_filmGrainFeature = nullptr;
 
     MhwVdboxVdencInterface  *m_vdencInterface   = nullptr;

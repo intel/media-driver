@@ -44,7 +44,7 @@ MOS_STATUS Av1DecodePkt_G12_Base::Init()
 
     DECODE_CHK_STATUS(CmdPacket::Init());
 
-    m_av1BasicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    m_av1BasicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_av1BasicFeature);
 
     m_allocator = m_av1Pipeline->GetDecodeAllocator();

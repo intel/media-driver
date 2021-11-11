@@ -42,7 +42,7 @@ FilmGrainRp2Packet::FilmGrainRp2Packet(MediaPipeline *pipeline, MediaTask *task,
         {
             m_statusReport   = pipeline->GetStatusReportInstance();
             m_featureManager = pipeline->GetFeatureManager();
-            m_av1Pipeline    = dynamic_cast<Av1Pipeline *>(pipeline);
+            m_av1Pipeline    = dynamic_cast<Av1PipelineG12_Base *>(pipeline);
         }
         if (hwInterface != nullptr)
         {
@@ -66,7 +66,7 @@ MOS_STATUS FilmGrainRp2Packet::Init()
 
     DECODE_CHK_STATUS(RenderCmdPacket::Init());
 
-    m_av1BasicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    m_av1BasicFeature = dynamic_cast<Av1BasicFeatureG12 *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_av1BasicFeature);
 
     m_filmGrainFeature = dynamic_cast<Av1DecodeFilmGrainG12 *>(m_featureManager->GetFeature(Av1FeatureIDs::av1SwFilmGrain));

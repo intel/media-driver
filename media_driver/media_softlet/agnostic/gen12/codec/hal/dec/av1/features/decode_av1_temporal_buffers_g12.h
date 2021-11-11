@@ -20,11 +20,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_temporal_buffers.h
+//! \file     decode_av1_temporal_buffers_g12.h
 //! \brief    Defines temporal buffers related logic for av1 decode
 //!
-#ifndef __DECODE_AV1_TEMPORAL_BUFFERS_H__
-#define __DECODE_AV1_TEMPORAL_BUFFERS_H__
+#ifndef __DECODE_AV1_TEMPORAL_BUFFERS_G12_H__
+#define __DECODE_AV1_TEMPORAL_BUFFERS_G12_H__
 
 #include "codec_def_decode_av1.h"
 #include "decode_allocator.h"
@@ -33,31 +33,14 @@
 
 namespace decode
 {
-    class Av1BasicFeature;
+    class Av1BasicFeatureG12;
 
-    struct Av1SharedBuf
-    {
-        PMOS_BUFFER buffer = nullptr;
-        int refCnt = 0;
-    };
-
-    struct Av1RefAssociatedBufs
-    {
-        PMOS_BUFFER mvBuf = nullptr;
-        Av1SharedBuf *segIdBuf = nullptr;
-        Av1SharedBuf segIdWriteBuf;
-        Av1SharedBuf *initCdfBuf = nullptr;
-        Av1SharedBuf bwdAdaptCdfBuf;
-        Av1SharedBuf defaultCdfBuf;
-        bool disableFrmEndUpdateCdf = false;
-    };
-
-    class Av1TempBufferOpInf : public BufferOpInf<Av1RefAssociatedBufs, Av1BasicFeature>
+    class Av1TempBufferOpInfG12 : public BufferOpInf<Av1RefAssociatedBufs, Av1BasicFeatureG12>
     {
     public:
-        ~Av1TempBufferOpInf() {};
+        ~Av1TempBufferOpInfG12() {};
         virtual MOS_STATUS Init(CodechalHwInterface& hwInterface, DecodeAllocator& allocator,
-                        Av1BasicFeature& basicFeature);
+                        Av1BasicFeatureG12& basicFeature);
         virtual Av1RefAssociatedBufs *Allocate();
         virtual MOS_STATUS Resize(Av1RefAssociatedBufs* &buffer);
         virtual MOS_STATUS Deactive(Av1RefAssociatedBufs* &buffer);
@@ -76,4 +59,4 @@ namespace decode
 
 }  // namespace decode
 
-#endif  // !__DECODE_AV1_TEMPORAL_BUFFERS_H__
+#endif  // !__DECODE_AV1_TEMPORAL_BUFFERS_G12_H__

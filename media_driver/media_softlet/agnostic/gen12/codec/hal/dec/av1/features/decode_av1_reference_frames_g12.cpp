@@ -20,24 +20,24 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_reference_frames.cpp
+//! \file     decode_av1_reference_frames_g12.cpp
 //! \brief    Defines reference list related logic for av1 decode
 //!
 
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_basic_feature_g12.h"
 #include "decode_utils.h"
 #include "codechal_utilities.h"
-#include "decode_av1_reference_frames.h"
+#include "decode_av1_reference_frames_g12.h"
 #include "codec_def_decode_av1.h"
 
 namespace decode
 {
-    Av1ReferenceFrames::Av1ReferenceFrames()
+    Av1ReferenceFramesG12::Av1ReferenceFramesG12()
     {
         memset(m_refList, 0, sizeof(m_refList));
     }
 
-    MOS_STATUS Av1ReferenceFrames::Init(Av1BasicFeature *basicFeature, DecodeAllocator& allocator)
+    MOS_STATUS Av1ReferenceFramesG12::Init(Av1BasicFeatureG12 *basicFeature, DecodeAllocator &allocator)
     {
         DECODE_FUNC_CALL();
 
@@ -51,7 +51,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    Av1ReferenceFrames::~Av1ReferenceFrames()
+    Av1ReferenceFramesG12::~Av1ReferenceFramesG12()
     {
         DECODE_FUNC_CALL();
 
@@ -59,7 +59,7 @@ namespace decode
         m_activeReferenceList.clear();
     }
 
-    MOS_STATUS Av1ReferenceFrames::UpdatePicture(CodecAv1PicParams & picParams)
+    MOS_STATUS Av1ReferenceFramesG12::UpdatePicture(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -80,7 +80,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    const std::vector<uint8_t> & Av1ReferenceFrames::GetActiveReferenceList(CodecAv1PicParams & picParams, CodecAv1TileParams & tileParams)
+    const std::vector<uint8_t> &Av1ReferenceFramesG12::GetActiveReferenceList(CodecAv1PicParams &picParams, CodecAv1TileParams &tileParams)
     {
         DECODE_FUNC_CALL();
 
@@ -112,7 +112,7 @@ namespace decode
         return m_activeReferenceList;
     }
 
-    PMOS_RESOURCE Av1ReferenceFrames::GetReferenceByFrameIndex(uint8_t frameIndex)
+    PMOS_RESOURCE Av1ReferenceFramesG12::GetReferenceByFrameIndex(uint8_t frameIndex)
     {
         DECODE_FUNC_CALL();
 
@@ -132,7 +132,7 @@ namespace decode
         return &(ref->resRefPic);
     }
 
-    PMOS_RESOURCE Av1ReferenceFrames::GetValidReference()
+    PMOS_RESOURCE Av1ReferenceFramesG12::GetValidReference()
     {
         DECODE_FUNC_CALL();
 
@@ -160,7 +160,7 @@ namespace decode
         return &(m_basicFeature->m_destSurface.OsResource);
     }
 
-    MOS_STATUS Av1ReferenceFrames::InsertAnchorFrame(CodecAv1PicParams & picParams)
+    MOS_STATUS Av1ReferenceFramesG12::InsertAnchorFrame(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -181,7 +181,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1ReferenceFrames::UpdateCurRefList(const CodecAv1PicParams & picParams)
+    MOS_STATUS Av1ReferenceFramesG12::UpdateCurRefList(const CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -201,7 +201,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1ReferenceFrames::UpdateCurResource(const PCODEC_REF_LIST_AV1 pCurRefList)
+    MOS_STATUS Av1ReferenceFramesG12::UpdateCurResource(const PCODEC_REF_LIST_AV1 pCurRefList)
     {
         DECODE_FUNC_CALL();
         DECODE_CHK_NULL(pCurRefList);
@@ -220,7 +220,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1ReferenceFrames::UpdateCurFrame(const CodecAv1PicParams & picParams)
+    MOS_STATUS Av1ReferenceFramesG12::UpdateCurFrame(const CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -257,7 +257,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1ReferenceFrames::Identify1stNearRef(const CodecAv1PicParams & picParams,
+    MOS_STATUS Av1ReferenceFramesG12::Identify1stNearRef(const CodecAv1PicParams &picParams,
         int32_t curFrameOffset, int32_t* refFrameOffset, int32_t* refIdx)
     {
         DECODE_FUNC_CALL();
@@ -299,7 +299,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1ReferenceFrames::Identify2ndNearRef(const CodecAv1PicParams & picParams,
+    MOS_STATUS Av1ReferenceFramesG12::Identify2ndNearRef(const CodecAv1PicParams & picParams,
         int32_t curFrameOffset,int32_t* refFrameOffset,int32_t* refIdx)
     {
         DECODE_FUNC_CALL();
@@ -334,7 +334,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    int32_t Av1ReferenceFrames::GetRelativeDist(const CodecAv1PicParams & picParams, int32_t a, int32_t b)
+    int32_t Av1ReferenceFramesG12::GetRelativeDist(const CodecAv1PicParams &picParams, int32_t a, int32_t b)
     {
         DECODE_FUNC_CALL();
 
@@ -355,7 +355,7 @@ namespace decode
         return diff;
     }
 
-    MOS_STATUS Av1ReferenceFrames::SetupMotionFieldProjection(CodecAv1PicParams & picParams)
+    MOS_STATUS Av1ReferenceFramesG12::SetupMotionFieldProjection(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -426,13 +426,13 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    bool Av1ReferenceFrames::MotionFieldProjection(CodecAv1PicParams & picParams, int32_t ref, int32_t dir)
+    bool Av1ReferenceFramesG12::MotionFieldProjection(CodecAv1PicParams &picParams, int32_t ref, int32_t dir)
     {
         DECODE_FUNC_CALL();
 
         //Calculate active reference bit mask for motion field
         uint8_t refPicIndex = picParams.m_refFrameIdx[ref - lastFrame];//0 corresponds to LAST_FRAME
-        int8_t refFrameIdx = -1;
+        uint8_t refFrameIdx = m_basicFeature->m_invalidFrameIndex;
         uint32_t miCols = 0, miRows = 0, refFrameType = 0;
 
         if (!CodecHal_PictureIsInvalid(picParams.m_refFrameMap[refPicIndex]))
@@ -443,7 +443,7 @@ namespace decode
             refFrameType    = m_refList[refFrameIdx]->m_frameType;
         }
 
-        if ((refFrameIdx < 0) || (refFrameType == intraOnlyFrame || refFrameType == keyFrame) ||
+        if ((refFrameIdx == m_basicFeature->m_invalidFrameIndex) || (refFrameType == intraOnlyFrame || refFrameType == keyFrame) ||
             (m_basicFeature->m_tileCoding.m_miCols != miCols) || (m_basicFeature->m_tileCoding.m_miRows != miRows))
         {
             picParams.m_activeRefBitMaskMfmv[ref - lastFrame] = 0;
@@ -456,7 +456,7 @@ namespace decode
         return picParams.m_activeRefBitMaskMfmv[ref - lastFrame];
     }
 
-    bool Av1ReferenceFrames::CheckSegForPrimFrame(CodecAv1PicParams & picParams)
+    bool Av1ReferenceFramesG12::CheckSegForPrimFrame(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 

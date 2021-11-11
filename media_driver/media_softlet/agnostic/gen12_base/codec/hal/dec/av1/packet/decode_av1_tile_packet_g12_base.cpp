@@ -39,7 +39,7 @@ namespace decode
         DECODE_CHK_NULL(m_av1Pipeline);
         DECODE_CHK_NULL(m_avpInterface);
 
-        m_av1BasicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        m_av1BasicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(m_av1BasicFeature);
 
         m_allocator = m_pipeline ->GetDecodeAllocator();
@@ -70,7 +70,7 @@ namespace decode
         DECODE_FUNC_CALL();
 
         MOS_ZeroMemory(&tileCodingParams, sizeof(tileCodingParams));
-        Av1DecodeTile::TileDesc *m_tileDesc=m_av1BasicFeature->m_tileCoding.m_tileDesc;
+        Av1DecodeTileG12::TileDesc *m_tileDesc = m_av1BasicFeature->m_tileCoding.m_tileDesc;
         uint16_t curCol = m_tileDesc[tileIdx].m_tileColumn;
         uint16_t curRow = m_tileDesc[tileIdx].m_tileRow;
         uint16_t srcTileId = curCol + curRow * m_av1PicParams->m_tileCols;
@@ -143,9 +143,9 @@ namespace decode
         DECODE_FUNC_CALL();
 
         MOS_ZeroMemory(&bsdObjParams ,sizeof(bsdObjParams));
-        Av1DecodeTile::TileDesc *m_tileDesc=m_av1BasicFeature->m_tileCoding.m_tileDesc;
+        Av1DecodeTileG12::TileDesc *m_tileDesc = m_av1BasicFeature->m_tileCoding.m_tileDesc;
         bsdObjParams.m_bsdDataLength = m_tileDesc[tileIdx].m_size;
-        bsdObjParams.m_bsdDataStartOffset =m_tileDesc[tileIdx].m_offset;
+        bsdObjParams.m_bsdDataStartOffset = m_tileDesc[tileIdx].m_offset;
 
         return MOS_STATUS_SUCCESS;
     }

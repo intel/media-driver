@@ -113,7 +113,7 @@ namespace decode{
         DECODE_CHK_NULL(m_av1Pipeline);
         DECODE_CHK_NULL(m_avpInterface);
 
-        m_av1BasicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        m_av1BasicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(m_av1BasicFeature);
 
         m_allocator = m_pipeline ->GetDecodeAllocator();
@@ -1032,7 +1032,7 @@ namespace decode{
             //set for intra frame
             refSurface[0] = m_av1BasicFeature->m_destSurface;
 
-            Av1ReferenceFrames &refFrames = m_av1BasicFeature->m_refFrames;
+            Av1ReferenceFramesG12 &refFrames = m_av1BasicFeature->m_refFrames;
             const std::vector<uint8_t> &activeRefList = refFrames.GetActiveReferenceList(*m_av1PicParams, m_av1BasicFeature->m_av1TileParams[m_av1BasicFeature->m_tileCoding.m_curTile]);
             for (uint8_t i = 0; i < activeRefList.size(); i++)
             {
@@ -1198,7 +1198,7 @@ namespace decode{
         DECODE_CHK_NULL(curMvBuffer);
         pipeBufAddrParams.m_curMvTemporalBuffer = &(curMvBuffer->OsResource);
 
-        Av1ReferenceFrames &refFrames = m_av1BasicFeature->m_refFrames;
+        Av1ReferenceFramesG12 &refFrames = m_av1BasicFeature->m_refFrames;
         uint8_t prevFrameIdx = refFrames.GetPrimaryRefIdx();
 
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame)
@@ -1531,7 +1531,7 @@ namespace decode{
         int32_t curFrameOffset = m_av1PicParams->m_orderHint;
         int32_t refFrameOffset[2] = { -1, 0x7fffffff };
         int32_t refIdx[2] = { -1, -1 };
-        Av1ReferenceFrames &refFrames = m_av1BasicFeature->m_refFrames;
+        Av1ReferenceFramesG12 &refFrames = m_av1BasicFeature->m_refFrames;
         DECODE_CHK_STATUS(refFrames.Identify1stNearRef(*m_av1PicParams, curFrameOffset, refFrameOffset, refIdx));
 
         if (refIdx[0] != -1 && refIdx[1] != -1)

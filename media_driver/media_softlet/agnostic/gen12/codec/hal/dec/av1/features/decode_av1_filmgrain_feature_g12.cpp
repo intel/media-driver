@@ -24,7 +24,6 @@
 //! \brief    Defines the interface for av1 decode film grain feature
 //!
 
-#include "decode_av1_basic_feature.h"
 #include "decode_av1_filmgrain_feature_g12.h"
 #include "decode_av1_feature_manager_g12.h"
 #include "codechal_utilities.h"
@@ -882,7 +881,7 @@ Av1DecodeFilmGrainG12::Av1DecodeFilmGrainG12(
     auto decFeatureManager = dynamic_cast<DecodeAv1FeatureManagerG12 *>(featureManager);
     DECODE_CHK_NULL_NO_STATUS_RETURN(decFeatureManager);
 
-    m_basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
+    m_basicFeature = dynamic_cast<Av1BasicFeatureG12 *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
     DECODE_CHK_NULL_NO_STATUS_RETURN(m_basicFeature);
 
     m_hwInterface = hwInterface;

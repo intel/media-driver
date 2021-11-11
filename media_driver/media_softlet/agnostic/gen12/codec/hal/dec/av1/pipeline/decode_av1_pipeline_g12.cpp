@@ -29,7 +29,7 @@
 #include "decode_av1_tile_packet_g12.h"
 #include "decode_utils.h"
 #include "codechal_debug.h"
-#include "decode_av1_tile_coding.h"
+#include "decode_av1_tile_coding_g12.h"
 #include "decode_av1_feature_manager_g12.h"
 #include "decode_mem_compression_g12.h"
 #include "decode_av1_feature_defs_g12.h"
@@ -39,7 +39,7 @@ namespace decode
     Av1PipelineG12::Av1PipelineG12(
         CodechalHwInterface *   hwInterface,
         CodechalDebugInterface *debugInterface)
-        : Av1Pipeline(hwInterface, debugInterface)
+        : Av1PipelineG12_Base(hwInterface, debugInterface)
     {
 
     }
@@ -67,7 +67,7 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        auto basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        auto basicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
 
         DecodeScalabilityPars scalPars;
@@ -105,12 +105,12 @@ namespace decode
 
         PERF_UTILITY_AUTO((__FUNCTION__ + std::to_string((int)m_pipeMode)).c_str(), PERF_DECODE, PERF_LEVEL_HAL);
 
-        auto basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        auto basicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
 
         if (IsFirstProcessPipe(*pipelineParams))
         {
-            DECODE_CHK_STATUS(Av1Pipeline::Prepare(params));
+            DECODE_CHK_STATUS(Av1PipelineG12_Base::Prepare(params));
         }
 
         DECODE_CHK_STATUS(m_preSubPipeline->Prepare(*pipelineParams));
@@ -160,7 +160,7 @@ namespace decode
             return MOS_STATUS_SUCCESS;
         }
 
-        auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        auto basicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
         DECODE_CHK_NULL(basicFeature->m_av1PicParams);
         if (basicFeature->m_av1PicParams->m_anchorFrameInsertion)
@@ -250,7 +250,7 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        DECODE_CHK_STATUS(Av1Pipeline::Initialize(settings));
+        DECODE_CHK_STATUS(Av1PipelineG12_Base::Initialize(settings));
         DECODE_CHK_STATUS(InitMmcState());
 
         auto *codecSettings     = (CodechalSetting *)settings;
@@ -288,14 +288,14 @@ namespace decode
             MOS_Delete(m_mmcState);
         }
 
-        return Av1Pipeline::Uninitialize();
+        return Av1PipelineG12_Base::Uninitialize();
     }
 
     MOS_STATUS Av1PipelineG12::UserFeatureReport()
     {
         DECODE_FUNC_CALL();
 
-        return Av1Pipeline::UserFeatureReport();
+        return Av1PipelineG12_Base::UserFeatureReport();
     }
 
     MOS_STATUS Av1PipelineG12::CreateSubPackets(DecodeSubPacketManager &subPacketManager, CodechalSetting &codecSettings)
@@ -322,7 +322,7 @@ namespace decode
         m_mmcState = MOS_New(DecodeMemCompG12, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
 
-        Av1BasicFeature *basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        Av1BasicFeatureG12 *basicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
         DECODE_CHK_STATUS(basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     #endif
@@ -336,7 +336,7 @@ namespace decode
 
         DECODE_CHK_STATUS(DecodePipeline::DumpOutput(reportData));
 
-        auto feature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        auto feature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(feature);
         auto filmGrainFeature = dynamic_cast<Av1DecodeFilmGrainG12*>(m_featureManager->GetFeature(
             Av1FeatureIDs::av1SwFilmGrain));

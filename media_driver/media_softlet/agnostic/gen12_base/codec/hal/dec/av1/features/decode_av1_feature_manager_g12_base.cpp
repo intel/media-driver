@@ -21,25 +21,25 @@
 */
 
 //!
-//! \file     decode_av1_feature_manager.cpp
-//! \brief    Defines the common interface for av1 decode feature manager
+//! \file     decode_av1_feature_manager_g12_base.cpp
+//! \brief    Defines the common interface for av1 decode feature manager g12 base
 //! \details  The av1 decode feature manager is further sub-divided by codec type
 //!           this file is for the base interface which is shared by all components.
 //!
 
-#include "decode_av1_feature_manager.h"
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_feature_manager_g12_base.h"
+#include "decode_av1_basic_feature_g12.h"
 #include "decode_utils.h"
 
 namespace decode
 {
-    MOS_STATUS DecodeAv1FeatureManager::CreateFeatures(void *codecSettings)
+    MOS_STATUS DecodeAv1FeatureManagerG12_Base::CreateFeatures(void *codecSettings)
     {
         DECODE_FUNC_CALL();
 
         DECODE_CHK_STATUS(DecodeFeatureManager::CreateFeatures(codecSettings));
 
-        Av1BasicFeature *decBasic = MOS_New(Av1BasicFeature, m_allocator, m_hwInterface);
+        Av1BasicFeatureG12 *decBasic = MOS_New(Av1BasicFeatureG12, m_allocator, m_hwInterface);
         DECODE_CHK_STATUS(RegisterFeatures(FeatureIDs::basicFeature, decBasic));
 
         return MOS_STATUS_SUCCESS;

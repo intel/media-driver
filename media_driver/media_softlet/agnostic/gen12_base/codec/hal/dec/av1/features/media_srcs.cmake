@@ -18,15 +18,15 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(${AVC_Decode_Supported} STREQUAL "yes")
+if(${AV1_Decode_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_pipeline.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_feature_manager_g12_base.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_pipeline.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_feature_manager_g12_base.h
 )
 endif()
 

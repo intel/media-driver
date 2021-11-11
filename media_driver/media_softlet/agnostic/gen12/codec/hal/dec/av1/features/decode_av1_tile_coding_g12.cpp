@@ -20,19 +20,19 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_tile_coding.cpp
+//! \file     decode_av1_tile_coding_g12.cpp
 //! \brief    Defines the common interface for av1 decode tile coding
 //!
 
-#include "decode_av1_tile_coding.h"
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_tile_coding_g12.h"
+#include "decode_av1_basic_feature_g12.h"
 #include "codec_def_common.h"
 #include "mhw_vdbox_avp_g12_X.h"
 #include "decode_pipeline.h"
 
 namespace decode
 {
-    Av1DecodeTile::~Av1DecodeTile()
+    Av1DecodeTileG12::~Av1DecodeTileG12()
     {
         // tile descriptors
         if (m_tileDesc)
@@ -42,7 +42,7 @@ namespace decode
         }
     }
 
-    MOS_STATUS Av1DecodeTile::Init(Av1BasicFeature *basicFeature, CodechalSetting *codecSettings)
+    MOS_STATUS Av1DecodeTileG12::Init(Av1BasicFeatureG12 *basicFeature, CodechalSetting *codecSettings)
     {
         DECODE_FUNC_CALL();
         DECODE_CHK_NULL(basicFeature);
@@ -53,7 +53,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTile::Update(CodecAv1PicParams & picParams,
+    MOS_STATUS Av1DecodeTileG12::Update(CodecAv1PicParams & picParams,
                                         CodecAv1TileParams *tileParams)
     {
         DECODE_FUNC_CALL();
@@ -105,7 +105,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTile::ErrorDetectAndConceal()
+    MOS_STATUS Av1DecodeTileG12::ErrorDetectAndConceal()
     {
         DECODE_FUNC_CALL()
         DECODE_CHK_NULL(m_tileDesc);
@@ -131,7 +131,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTile::ParseTileInfo(const CodecAv1PicParams & picParams, CodecAv1TileParams *tileParams)
+    MOS_STATUS Av1DecodeTileG12::ParseTileInfo(const CodecAv1PicParams & picParams, CodecAv1TileParams *tileParams)
     {
         DECODE_FUNC_CALL();
 
@@ -202,7 +202,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTile::CalculateTileCols(CodecAv1PicParams & picParams)
+    MOS_STATUS Av1DecodeTileG12::CalculateTileCols(CodecAv1PicParams & picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -225,7 +225,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTile::CalculateTileRows(CodecAv1PicParams &picParams)
+    MOS_STATUS Av1DecodeTileG12::CalculateTileRows(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -248,7 +248,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTile::CalcTileInfoMaxTile(CodecAv1PicParams &picParams)
+    MOS_STATUS Av1DecodeTileG12::CalcTileInfoMaxTile(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
 
@@ -260,7 +260,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeTile::CalcNumPass(const CodecAv1PicParams &picParams, CodecAv1TileParams *tileParams)
+    MOS_STATUS Av1DecodeTileG12::CalcNumPass(const CodecAv1PicParams &picParams, CodecAv1TileParams *tileParams)
     {
         DECODE_FUNC_CALL();
 
@@ -284,7 +284,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    void Av1DecodeTile::GetUpscaleConvolveStepX0(const CodecAv1PicParams &picParams, bool isChroma)
+    void Av1DecodeTileG12::GetUpscaleConvolveStepX0(const CodecAv1PicParams &picParams, bool isChroma)
     {
         DECODE_FUNC_CALL();
 
@@ -311,6 +311,12 @@ namespace decode
             upscaledPlaneWidth +
             av1RsScaleExtraOff - err / 2;
         x0 = (int32_t)((uint32_t)x0 & av1RsScaleSubpelMask);
+
+        if (picParams.m_tileCols > 64)
+        {
+            DECODE_ASSERTMESSAGE("Array index exceeds upper bound.");
+            return;
+        }
 
         for (auto col = 0; col < picParams.m_tileCols; col++)
         {
@@ -358,4 +364,4 @@ namespace decode
         }
     }
 
-}
+}   // namespace decode

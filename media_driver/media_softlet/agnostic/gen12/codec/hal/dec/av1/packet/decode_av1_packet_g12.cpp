@@ -25,8 +25,8 @@
 //!
 #include "decode_av1_packet_g12.h"
 #include "decode_utils.h"
-#include "decode_av1_pipeline.h"
-#include "decode_av1_basic_feature.h"
+#include "decode_av1_pipeline_g12_base.h"
+#include "decode_av1_basic_feature_g12.h"
 #include "decode_status_report_defs.h"
 #include "mos_solo_generic.h"
 #include "decode_status_report_defs.h"

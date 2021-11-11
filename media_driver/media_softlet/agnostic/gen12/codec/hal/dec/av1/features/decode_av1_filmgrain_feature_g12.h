@@ -31,6 +31,7 @@
 #include "decode_basic_feature.h"
 #include "codec_def_decode_av1.h"
 #include "codechal_hw_g12_X.h"
+#include "decode_av1_basic_feature_g12.h"
 
 namespace decode
 {
@@ -345,9 +346,9 @@ public:
         CodechalHwInterface               *hwInterface);
 
 protected:
-    DecodeAllocator *   m_allocator    = nullptr;
-    Av1BasicFeature *   m_basicFeature = nullptr;
-    bool                m_resourceAllocated = false;
+    DecodeAllocator *    m_allocator         = nullptr;
+    Av1BasicFeatureG12 * m_basicFeature      = nullptr;
+    bool                 m_resourceAllocated = false;
 
     // Surfaces arrayfor GetRandomValues
     BufferArray *                     m_coordinatesRandomValuesSurfaceArray   = nullptr;                      //!< Random values for coordinates, 1D buffer, size = RoundUp(ImageWidth / 64) * RoundUp(ImageHeight / 64) * sizeof(int)

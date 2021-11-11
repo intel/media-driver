@@ -23,12 +23,20 @@ set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_feature_manager_g12.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_filmgrain_feature_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_basic_feature_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_temporal_buffers_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_reference_frames_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_coding_g12.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_feature_manager_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_filmgrain_feature_g12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_basic_feature_g12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_temporal_buffers_g12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_reference_frames_g12.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_coding_g12.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_feature_defs_g12.h
 )
 endif()
