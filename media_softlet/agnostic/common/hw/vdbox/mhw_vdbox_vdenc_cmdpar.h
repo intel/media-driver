@@ -409,6 +409,7 @@ struct _MHW_PAR_T(VDENC_CMD1)
     uint8_t  vdencCmd1Par92    = 0;
     uint8_t  vdencCmd1Par93    = 0;
     uint8_t  vdencCmd1Par94    = 0;
+    uint8_t  vdencCmd1Par95    = 0;
 };
 
 struct _MHW_PAR_T(VDENC_CMD2)
