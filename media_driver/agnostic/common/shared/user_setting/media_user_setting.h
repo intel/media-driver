@@ -137,6 +137,15 @@ public:
         PMOS_CONTEXT mosContext,
         bool isForReport = false);
 
+    //!
+    //! \brief    Check whether the key has been registered 
+    //! \param    [in] valueName
+    //!           Name of the item
+    //! \return   bool
+    //!           true if user setting key has registered, otherwise will return false
+    //!
+    bool IsDeclaredUserSetting(const std::string &valueName);
+
 protected:
     //!
     //! \brief    Constructor
@@ -191,6 +200,12 @@ inline MOS_STATUS ReportUserSetting(
 {
     auto instance = MediaUserSetting::MediaUserSetting::Instance();
     return instance->Write(valueName, value, group, mosContext, true);
+}
+
+inline bool IsDeclaredUserSetting(const std::string &valueName)
+{
+    auto instance = MediaUserSetting::MediaUserSetting::Instance();
+    return instance->IsDeclaredUserSetting(valueName);
 }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
