@@ -136,6 +136,24 @@ public:
         PMOS_CONTEXT mosContext,
         bool isForReport);
 
+protected:
+    //!
+    //! \brief    Get media user setting definitions of specific group
+    //! \param    [in] group
+    //!           Group of the item
+    //! \return   Media user setting definitions
+    //!           Definitions of specific group, return definitions of device group if failed
+    //!
+    inline Definitions &GetDefinitions(const Group &group)
+    {
+        if (group < Group::Device || group >= Group::MaxCount)
+        {
+            return m_definitions[Group::Device];
+        }
+
+        return m_definitions[group];
+    }
+
     //!
     //! \brief    Check whether definition of specific item name exist in all groups
     //! \param    [in] itemName
@@ -155,25 +173,8 @@ public:
                 break;
             }
         }
+
         return ret;
-    }
-
-protected:
-    //!
-    //! \brief    Get media user setting definitions of specific group
-    //! \param    [in] group
-    //!           Group of the item
-    //! \return   Media user setting definitions
-    //!           Definitions of specific group, return definitions of device group if failed
-    //!
-    inline Definitions &GetDefinitions(const Group &group)
-    {
-        if (group < Group::Device || group >= Group::MaxCount)
-        {
-            return m_definitions[Group::Device];
-        }
-
-        return m_definitions[group];
     }
 
     //!
