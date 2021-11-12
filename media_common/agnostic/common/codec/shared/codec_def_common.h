@@ -87,6 +87,7 @@ typedef enum _CODEC_PICTURE_FLAG
     PICTURE_INTERLACED_FRAME        = 0x08,
     PICTURE_SHORT_TERM_REFERENCE    = 0x10,
     PICTURE_LONG_TERM_REFERENCE     = 0x20,
+    PICTURE_RESERVED0               = 0x40,
     PICTURE_INVALID                 = 0x80,
     PICTURE_RESIZE                  = 0xF0,
     PICTURE_MAX_7BITS               = 0xFF
@@ -154,6 +155,7 @@ enum CODECHAL_STANDARD
     CODECHAL_AV1        = CODECHAL_AVP_BASE,
 
     CODECHAL_RESERVED0,
+    CODECHAL_RESERVED1,
     CODECHAL_STANDARD_MAX
 };
 
@@ -178,7 +180,8 @@ enum CODECHAL_MODE
     CODECHAL_DECODE_MODE_MVCVLD             = 11,   // Needed for CP. Not in use by Codec HAL.
     CODECHAL_DECODE_MODE_VP9VLD             = 12,
     CODECHAL_DECODE_MODE_CENC               = 13,   // Only for getting HuC-based DRM command size. Not an actual mode.
-    CODECHAL_NUM_DECODE_MODES               = 14,
+    CODECHAL_DECODE_MODE_RESERVED0          = 14,
+    CODECHAL_NUM_DECODE_MODES               = 15,
 
     CODECHAL_ENCODE_MODE_AVC                = 16,   // Must be a power of 2 to match perf report expectations
     CODECHAL_ENCODE_MODE_MPEG2              = 18,

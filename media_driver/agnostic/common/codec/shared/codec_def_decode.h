@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -167,6 +167,12 @@ struct CodechalDecodeParams
     void                    *m_iqMatrixBuffer = nullptr;
     //! \brief [IT mode] MB level parameters to be used for decoding
     void                    *m_macroblockParams = nullptr;
+    //!\brief size of data contained in m_iqMatrixBuffer
+    uint32_t                m_iqMatrixSize = 0;
+    //! \brief reference parameters to be used for decoding
+    void                    *m_refParams = nullptr;
+    //! \brief tile info parameters to be used for decoding
+    void                    *m_tileParams = nullptr;
 
     //! \brief Reference count used for downsampling, If non-zero enables downsampling of the render target.
     uint32_t                m_refFrameCnt = 0;
