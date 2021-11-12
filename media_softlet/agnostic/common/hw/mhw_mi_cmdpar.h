@@ -300,6 +300,33 @@ namespace mi
 
     struct _MHW_PAR_T(MI_BATCH_BUFFER_END)
     {
+        MOS_RESOURCE                OsResource              = {};
+        int32_t                     iRemaining              = 0;       //!< Remaining space in the BB
+        int32_t                     iSize                   = 0;       //!< Command buffer size
+        uint32_t                    count                   = 0;       //!< Actual batch count in this resource. If larger than 1, multiple buffer has equal size and resource size count * size.
+        int32_t                     iCurrent                = 0;       //!< Current offset in CB
+        bool                        bLocked                 = false;   //!< True if locked in memory (pData must be valid)
+        uint8_t                     *pData                  = nullptr; //!< Pointer to BB data
+#if (_DEBUG || _RELEASE_INTERNAL)
+        int32_t                     iLastCurrent            = 0;       //!< Save offset in CB (for debug plug-in/out)
+#endif
+
+        // User defined
+        bool                        bSecondLevel            = false;   //!< REMOVE REMOVE
+        uint32_t                    dwOffset                = 0;       //!< Offset to the data in the OS resource
+
+        // Batch Buffer synchronization logic
+        bool                        bBusy                   = false;   //!< Busy flag (clear when Sync Tag is reached)
+        uint32_t                    dwCmdBufId              = 0;       //!< Command Buffer ID for the workload
+        PMHW_BATCH_BUFFER           pNext                   = nullptr; //!< Next BB in the sync list
+        PMHW_BATCH_BUFFER           pPrev                   = nullptr; //!< Prev BB in the sync list
+
+        // Batch Buffer Client Private Data
+        uint32_t                    dwSyncTag               = 0;
+        bool                        bMatch                  = false;
+        int32_t                     iPrivateType            = 0;       //!< Indicates the BB client
+        int32_t                     iPrivateSize            = 0;       //!< Size of the current render args
+        void                        *pPrivateData           = nullptr; //!< Pointer to private BB data
     };
 
     struct _MHW_PAR_T(MI_NOOP)
@@ -330,6 +357,20 @@ namespace mi
         MHW_MI_ALU_PARAMS           *pAluPayload   = nullptr;
         uint32_t                    dwNumAluParams = 0;
     };
+
+    struct _MHW_PAR_T(MI_COPY_MEM_MEM)
+    {
+        PMOS_RESOURCE               presSrc        = nullptr;
+        uint32_t                    dwSrcOffset    = 0;
+        PMOS_RESOURCE               presDst        = nullptr;
+        uint32_t                    dwDstOffset    = 0;
+    };
+    
+    struct _MHW_PAR_T(MFX_WAIT)
+    {
+        bool                        iStallVdboxPipeline = false;
+    };
+    
 
 }  // namespace mi
 }  // namespace mhw

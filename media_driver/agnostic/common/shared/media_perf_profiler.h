@@ -154,6 +154,26 @@ private:
                          uint32_t value);
 
     //!
+    //! \brief    Save data to the buffer which store the performance data 
+    //!
+    //! \param    [in] miInterface
+    //!           Pointer of MI interface
+    //! \param    [in] cmdBuffer
+    //!           Pointer of OS command buffer
+    //! \param    [in] offset
+    //!           Offset in the buffer
+    //! \param    [in] value       
+    //!           Value of data
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StoreDataNext(MhwMiInterface *miInterface, 
+                         PMOS_COMMAND_BUFFER cmdBuffer,
+                         uint32_t offset,
+                         uint32_t value);
+
+    //!
     //! \brief    Save register value to the buffer which store the performance data 
     //! \param    [in] osInterface
     //!           Pointer of MOS_INTERFACE
@@ -176,7 +196,31 @@ private:
                         PMOS_COMMAND_BUFFER cmdBuffer,
                         uint32_t offset,
                         uint32_t reg);
-    
+
+    //!
+    //! \brief    Save register value to the buffer which store the performance data 
+    //! \param    [in] osInterface
+    //!           Pointer of MOS_INTERFACE
+    //!
+    //! \param    [in] miInterface
+    //!           Pointer of MI interface
+    //! \param    [in] cmdBuffer
+    //!           Pointer of OS command buffer
+    //! \param    [in] offset
+    //!           Offset in the buffer
+    //! \param    [in] reg
+    //!           Address of register
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StoreRegisterNext(
+                        MOS_INTERFACE *osInterface,
+                        MhwMiInterface *miInterface,
+                        PMOS_COMMAND_BUFFER cmdBuffer,
+                        uint32_t offset,
+                        uint32_t reg);
+
     //!
     //! \brief    Save timestamp to the buffer by Pipe control command 
     //!
@@ -195,6 +239,23 @@ private:
                          uint32_t offset);
 
     //!
+    //! \brief    Save timestamp to the buffer by Pipe control command 
+    //!
+    //! \param    [in] miInterface 
+    //!           Pointer of MI interface
+    //! \param    [in] cmdBuffer
+    //!           Pointer of OS command buffer
+    //! \param    [in] offset
+    //!           Offset in the buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StoreTSByPipeCtrlNext(MhwMiInterface *miInterface,
+                         PMOS_COMMAND_BUFFER cmdBuffer,
+                         uint32_t offset);
+
+    //!
     //! \brief    Save timestamp to the buffer by MI command 
     //!
     //! \param    [in] miInterface 
@@ -208,6 +269,23 @@ private:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS StoreTSByMiFlush(MhwMiInterface *miInterface,
+                         PMOS_COMMAND_BUFFER cmdBuffer,
+                         uint32_t offset);
+
+    //!
+    //! \brief    Save timestamp to the buffer by MI command 
+    //!
+    //! \param    [in] miInterface 
+    //!           Pointer of MI interface
+    //! \param    [in] cmdBuffer
+    //!           Pointer of OS command buffer
+    //! \param    [in] offset
+    //!           Offset in the buffer
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StoreTSByMiFlushNext(MhwMiInterface *miInterface,
                          PMOS_COMMAND_BUFFER cmdBuffer,
                          uint32_t offset);
 

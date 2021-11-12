@@ -431,6 +431,108 @@ MOS_STATUS MediaPerfProfiler::StoreTSByMiFlush(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MediaPerfProfiler::StoreDataNext(
+    MhwMiInterface *miInterface, 
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    uint32_t offset,
+    uint32_t value)
+{
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
+    
+    if (miItf == nullptr) 
+    {
+        return (StoreData(miInterface, cmdBuffer, offset, value));
+    }
+    
+    auto &storeDataParams                 = miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+    storeDataParams                       = {};
+    storeDataParams.pOsResource           = &m_perfStoreBuffer;
+    storeDataParams.dwResourceOffset      = offset;
+    storeDataParams.dwValue               = value;
+
+    CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaPerfProfiler::StoreRegisterNext(
+    MOS_INTERFACE *osInterface,
+    MhwMiInterface *miInterface, 
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    uint32_t offset,
+    uint32_t reg)
+{
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
+    
+    if (miItf == nullptr) 
+    {
+        return (StoreRegister(osInterface, miInterface, cmdBuffer, offset, reg));
+    }
+    
+    auto &storeRegMemParams               = miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+    storeRegMemParams                     = {};
+    storeRegMemParams.presStoreBuffer     = &m_perfStoreBuffer;
+    storeRegMemParams.dwOffset            = offset;
+    storeRegMemParams.dwRegister          = reg;
+    
+    MEDIA_FEATURE_TABLE* skuTable = osInterface->pfnGetSkuTable(osInterface);
+    if(skuTable && MEDIA_IS_SKU(skuTable, FtrMemoryRemapSupport))
+    {
+        storeRegMemParams.dwOption        = CCS_HW_FRONT_END_MMIO_REMAP;
+    }
+
+    CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaPerfProfiler::StoreTSByPipeCtrlNext(
+    MhwMiInterface *miInterface,
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    uint32_t offset)
+{
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
+    
+    if (miItf == nullptr) 
+    {
+        return (StoreTSByPipeCtrl(miInterface, cmdBuffer, offset));
+    }
+    
+    auto &PipeControlParams               = miItf->MHW_GETPAR_F(PIPE_CONTROL)();
+    PipeControlParams                     = {};
+    PipeControlParams.dwResourceOffset    = offset;
+    PipeControlParams.dwPostSyncOp        = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+    PipeControlParams.dwFlushMode         = MHW_FLUSH_READ_CACHE;
+    PipeControlParams.presDest            = &m_perfStoreBuffer;
+
+    CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(PIPE_CONTROL)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaPerfProfiler::StoreTSByMiFlushNext(
+    MhwMiInterface *miInterface,
+    PMOS_COMMAND_BUFFER cmdBuffer,
+    uint32_t offset)
+{
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
+
+    if (miItf == nullptr) 
+    {
+        return (StoreTSByMiFlush(miInterface, cmdBuffer, offset));
+    }
+    
+    auto &FlushDwParams                   = miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    FlushDwParams                         = {};
+    FlushDwParams.postSyncOperation       = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+    FlushDwParams.dwResourceOffset        = offset;
+    FlushDwParams.pOsResource             = &m_perfStoreBuffer;
+
+    CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context, 
     MOS_INTERFACE *osInterface,
     MhwMiInterface *miInterface,
@@ -467,20 +569,20 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (m_multiprocess)
     {
-        CHK_STATUS_RETURN(StoreData(
+        CHK_STATUS_RETURN(StoreDataNext(
             miInterface,
             cmdBuffer,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, processId),
             MOS_GetPid()));
     }
 
-    CHK_STATUS_RETURN(StoreData(
+    CHK_STATUS_RETURN(StoreDataNext(
         miInterface,
         cmdBuffer, 
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, perfTag),
         osInterface->pfnGetPerfTag(osInterface)));
 
-    CHK_STATUS_RETURN(StoreData(
+    CHK_STATUS_RETURN(StoreDataNext(
         miInterface,
         cmdBuffer, 
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, engineTag),
@@ -488,7 +590,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
  
     if (m_timerBase != 0)
     {
-        CHK_STATUS_RETURN(StoreData(
+        CHK_STATUS_RETURN(StoreDataNext(
             miInterface,
             cmdBuffer, 
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, timeStampBase),
@@ -500,7 +602,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     {
         if (m_registers[regIndex] != 0)
         {
-            CHK_STATUS_RETURN(StoreRegister(
+            CHK_STATUS_RETURN(StoreRegisterNext(
                 osInterface,
                 miInterface,
                 cmdBuffer, 
@@ -515,7 +617,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     for (int i = 0; i < 2; i++)
     {
-        CHK_STATUS_RETURN(StoreData(
+        CHK_STATUS_RETURN(StoreDataNext(
             miInterface,
             cmdBuffer,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginCpuTime[i]),
@@ -528,14 +630,14 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (rcsEngineUsed)
     {
-        CHK_STATUS_RETURN(StoreTSByPipeCtrl(
+        CHK_STATUS_RETURN(StoreTSByPipeCtrlNext(
             miInterface,
             cmdBuffer, 
             offset));
     }
     else
     {
-        CHK_STATUS_RETURN(StoreTSByMiFlush(
+        CHK_STATUS_RETURN(StoreTSByMiFlushNext(
             miInterface,
             cmdBuffer,
             offset));
@@ -574,7 +676,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
     {
         if (m_registers[regIndex] != 0)
         {
-            CHK_STATUS_RETURN(StoreRegister(
+            CHK_STATUS_RETURN(StoreRegisterNext(
                 osInterface,
                 miInterface,
                 cmdBuffer, 
@@ -589,14 +691,14 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
 
     if (rcsEngineUsed)
     {
-        CHK_STATUS_RETURN(StoreTSByPipeCtrl(
+        CHK_STATUS_RETURN(StoreTSByPipeCtrlNext(
             miInterface,
             cmdBuffer,
             offset));
     }
     else
     {
-        CHK_STATUS_RETURN(StoreTSByMiFlush(
+        CHK_STATUS_RETURN(StoreTSByMiFlushNext(
             miInterface,
             cmdBuffer,
             offset));

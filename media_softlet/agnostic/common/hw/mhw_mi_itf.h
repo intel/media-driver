@@ -49,7 +49,9 @@
     DEF(MI_NOOP);                         \
     DEF(MI_ATOMIC);                       \
     DEF(MI_STORE_DATA_IMM);               \
-    DEF(MI_MATH)
+    DEF(MI_MATH);                         \
+    DEF(MI_COPY_MEM_MEM);                 \
+    DEF(MFX_WAIT)
 
 namespace mhw
 {

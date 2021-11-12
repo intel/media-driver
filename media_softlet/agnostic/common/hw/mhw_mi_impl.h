@@ -560,6 +560,65 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    _MHW_SETCMD_OVERRIDE_DECL(MI_COPY_MEM_MEM)
+    {
+        _MHW_SETCMD_CALLBASE(MI_COPY_MEM_MEM);
+
+        MHW_MI_CHK_NULL(this->m_currentCmdBuf);
+        MHW_MI_CHK_NULL(params.presSrc);
+        MHW_MI_CHK_NULL(params.presDst);
+
+        cmd.DW0.UseGlobalGttDestination = IsGlobalGttInUse();
+        cmd.DW0.UseGlobalGttSource      = IsGlobalGttInUse();
+
+        MHW_RESOURCE_PARAMS resourceParams = {};
+        resourceParams.presResource     = params.presDst;
+        resourceParams.dwOffset         = params.dwDstOffset;
+        resourceParams.pdwCmd           = cmd.DW1_2.Value;
+        resourceParams.dwLocationInCmd  = _MHW_CMD_DW_LOCATION(DW1_2.Value);
+        resourceParams.dwLsbNum         = MHW_COMMON_MI_GENERAL_SHIFT;
+        resourceParams.HwCommandType    = MOS_MI_COPY_MEM_MEM;
+        resourceParams.bIsWritable      = true;
+
+        MHW_MI_CHK_STATUS(AddResourceToCmd(
+            this->m_osItf,
+            this->m_currentCmdBuf,
+            &resourceParams));
+
+        resourceParams = {};
+        resourceParams.presResource     = params.presSrc;
+        resourceParams.dwOffset         = params.dwSrcOffset;
+        resourceParams.pdwCmd           = cmd.DW3_4.Value;
+        resourceParams.dwLocationInCmd  = _MHW_CMD_DW_LOCATION(DW3_4.Value);
+        resourceParams.dwLsbNum         = MHW_COMMON_MI_GENERAL_SHIFT;
+        resourceParams.HwCommandType    = MOS_MI_COPY_MEM_MEM;
+        resourceParams.bIsWritable      = false;
+
+        MHW_MI_CHK_STATUS(AddResourceToCmd(
+            this->m_osItf,
+            this->m_currentCmdBuf,
+            &resourceParams));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_SETCMD_OVERRIDE_DECL(MFX_WAIT)
+    {
+        _MHW_SETCMD_CALLBASE(MFX_WAIT);
+
+         if (this->m_currentCmdBuf == nullptr && this->m_currentBatchBuf == nullptr)
+        {
+            MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+            return MOS_STATUS_NULL_POINTER;
+        }
+
+        cmd.DW0.MfxSyncControlFlag = params.iStallVdboxPipeline;
+
+        // set the protection bit based on CP status
+        MHW_MI_CHK_STATUS(m_cpInterface->SetProtectionSettingsForMfxWait(this->m_osItf, &cmd));
+
+        return MOS_STATUS_SUCCESS;
+    }
 };
 }  // namespace render
 }  // namespace mhw

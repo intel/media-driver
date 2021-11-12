@@ -23,7 +23,6 @@
 //! \file     mhw_vdbox_avp_g12_X.cpp
 //! \brief    Constructs VdBox AVP commands on Gen12-based platforms
 
-#include "mhw_mmio_g12.h"
 #include "mhw_vdbox_avp_g12_X.h"
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mhw_vdbox_vdenc_hwcmd_g12_X.h"
