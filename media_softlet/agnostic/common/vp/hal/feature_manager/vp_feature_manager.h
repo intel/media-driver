@@ -165,6 +165,8 @@ protected:
 protected:
     PVP_MHWINTERFACE        m_hwInterface       = nullptr;
     PMOS_INTERFACE          m_pOsInterface      = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VPFeatureManager)
 };
 
 class VpFeatureManagerNext : public MediaFeatureManager
@@ -200,6 +202,8 @@ protected:
     Policy              * m_policy = nullptr;
     std::map<FeatureType, SwFilterFeatureHandler*> m_featureHandler;
     uint32_t           m_isFeatureRegistered = false;
+
+MEDIA_CLASS_DEFINE_END(VpFeatureManagerNext)
 };
 }
 #endif // !__VP_FEATURE_MANAGER_H__

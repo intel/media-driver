@@ -58,6 +58,8 @@ public:
 
 protected:
     PVEBOX_HDR_PARAMS m_pVeboxHdrParams = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpHdrFilter)
 };
 
 struct HW_FILTER_HDR_PARAM : public HW_FILTER_PARAM
@@ -77,6 +79,8 @@ public:
 
 private:
     HW_FILTER_HDR_PARAM m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(HwFilterHdrParameter)
 };
 
 class VpVeboxHdrParameter : public VpPacketParameter
@@ -92,6 +96,8 @@ private:
     MOS_STATUS Initialize(HW_FILTER_HDR_PARAM &params);
 
     VpHdrFilter m_HdrFilter;
+
+MEDIA_CLASS_DEFINE_END(VpVeboxHdrParameter)
 };
 
 class PolicyVeboxHdrHandler : public PolicyFeatureHandler
@@ -116,6 +122,8 @@ public:
 
 private:
     PacketParamFactory<VpVeboxHdrParameter> m_PacketParamFactory;
+
+MEDIA_CLASS_DEFINE_END(PolicyVeboxHdrHandler)
 };
 }  // namespace vp
 #endif

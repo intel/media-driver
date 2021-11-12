@@ -50,6 +50,8 @@ public:
     virtual ~HucCopyPktItf() {}
 
     virtual MOS_STATUS PushCopyParams(HucCopyParams &copyParams) = 0;
+
+MEDIA_CLASS_DEFINE_END(HucCopyPktItf)
 };
 
 }  // namespace decode

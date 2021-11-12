@@ -548,6 +548,7 @@ protected:
     bool m_forceLockable = false;
 #endif
 
+MEDIA_CLASS_DEFINE_END(DecodeAllocator)
 };
 }
 #endif // !__DECODE_ALLOCATOR_H__

@@ -521,6 +521,8 @@ protected:
     SCALABILITY_PARAMS              m_scalabilityParams             = {};
 
     MOS_SURFACE                     m_histogramSurf = {};   //!< Histogram buffer
+
+MEDIA_CLASS_DEFINE_END(SfcRenderBase)
 };
 
 }

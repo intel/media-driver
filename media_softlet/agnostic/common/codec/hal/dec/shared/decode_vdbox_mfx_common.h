@@ -41,6 +41,8 @@ public:
     uint32_t      m_mode = CODECHAL_UNSUPPORTED_MODE;//! \brief Decode mode
     MOS_SURFACE   m_destSurface = {};    //!< Dest data surface
     PMOS_RESOURCE m_streamOutBuffer = nullptr;//!< Stream Out Buffer
+
+MEDIA_CLASS_DEFINE_END(DecodeVdboxMfxData)
 };
 }
 #endif // !__DECODE_VDBOX_MFX_COMMON_H__

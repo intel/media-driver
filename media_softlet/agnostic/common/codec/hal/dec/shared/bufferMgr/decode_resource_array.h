@@ -172,6 +172,8 @@ private:
     uint32_t m_nextIndex  = 0;
 
     T* m_empty = nullptr;
+
+MEDIA_CLASS_DEFINE_END(ResourceArray)
 };
 
 }  // namespace decode

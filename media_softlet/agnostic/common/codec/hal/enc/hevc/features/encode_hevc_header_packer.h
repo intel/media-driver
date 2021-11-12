@@ -578,6 +578,8 @@ public:
         if (bThrow)
             throw std::logic_error(msg);
     }
+
+MEDIA_CLASS_DEFINE_END(HevcHeaderPacker)
 };
 
 #endif

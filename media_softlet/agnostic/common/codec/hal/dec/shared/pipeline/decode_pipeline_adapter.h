@@ -64,6 +64,8 @@ public:
     virtual void SetDummyReferenceStatus(CODECHAL_DUMMY_REFERENCE_STATUS status) = 0;
     virtual uint32_t GetCompletedReport() = 0;
     virtual MOS_GPU_CONTEXT GetDecodeContext() = 0;
+
+MEDIA_CLASS_DEFINE_END(DecodePipelineAdapter)
 };
 #endif // !__DECODE_PIPELINE_ADAPTER_H__
 

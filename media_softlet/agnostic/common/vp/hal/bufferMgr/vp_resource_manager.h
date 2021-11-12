@@ -545,6 +545,8 @@ protected:
 
     // Fc Resource
     VP_SURFACE *m_cmfcCoeff                                   = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpResourceManager)
 };
 }
 #endif // _VP_RESOURCE_MANAGER_H__

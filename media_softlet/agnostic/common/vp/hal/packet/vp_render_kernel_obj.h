@@ -510,6 +510,8 @@ protected:
     KernelIndex                                             m_kernelIndex = 0;          // index of current kernel in KERNEL_PARAMS_LIST
 
     bool                                                    m_isAdvKernel = false;      // true mean multi kernel can be submitted in one workload.
+
+MEDIA_CLASS_DEFINE_END(VpRenderKernelObj)
 };
 }
 #endif // __VP_RENDER_KERNEL_OBJ_H__

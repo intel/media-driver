@@ -153,6 +153,8 @@ namespace decode
         static const uint32_t m_hucStatusInvalidMask = 0;         //!< Invalid mask of Huc status MMIO
         uint32_t       m_hucStatusMask = m_hucStatusInvalidMask;  //!< MMIO mask for HuC status
         uint32_t       m_hucStatus2Mask = m_hucStatusInvalidMask; //!< MMIO mask for HuC status2
+
+    MEDIA_CLASS_DEFINE_END(DecodeHucBasic)
     };
 }
 #endif  // !__DECODE_HUC_H__

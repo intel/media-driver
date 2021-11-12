@@ -106,6 +106,8 @@ public:
 private:
     std::vector<SwFilterSet *> m_OrderedFilters;    // For features in featureRule
     SwFilterSet m_UnorderedFilters;                 // For features not in featureRule
+
+MEDIA_CLASS_DEFINE_END(SwFilterSubPipe)
 };
 
 enum SwFilterPipeType
@@ -257,6 +259,8 @@ protected:
     SwFilterPipeType                    m_swFilterPipeType = SwFilterPipeTypeInvalid;
     bool                                m_processedSecurePrepared = false;
     bool                                m_isExePipe = false;
+
+MEDIA_CLASS_DEFINE_END(SwFilterPipe)
 };
 
 

@@ -60,6 +60,7 @@ public:
 
     MOS_STATUS DecompressVPResource(PVPHAL_SURFACE surface);
 
+MEDIA_CLASS_DEFINE_END(VPMediaMemComp)
 };
 
 #endif //__MEDIA_VP_MEM_COMPRESSION_H__

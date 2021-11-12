@@ -222,11 +222,13 @@ protected:
         return false;
     }
 
- private:
+private:
     std::map<uint32_t, PMOS_SURFACE> m_activeSurfaces;           //!< Active surfaces corresponding to current reference frame list
     std::vector<PMOS_SURFACE>        m_aviableSurfaces;          //!< Surfaces in idle
     PMOS_SURFACE                     m_currentSurface = nullptr; //!< Point to surface of current picture
     DecodeAllocator*                 m_allocator = nullptr;
+
+MEDIA_CLASS_DEFINE_END(InternalTargets)
 };
 
 }  // namespace decode

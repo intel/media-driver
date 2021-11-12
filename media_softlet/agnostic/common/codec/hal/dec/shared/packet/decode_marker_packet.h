@@ -89,6 +89,8 @@ public:
 protected:
     MhwMiInterface* m_miInterface = nullptr;
     DecodeMarker* m_marker = nullptr;
+
+MEDIA_CLASS_DEFINE_END(DecodeMarkerPkt)
 };
 
 }

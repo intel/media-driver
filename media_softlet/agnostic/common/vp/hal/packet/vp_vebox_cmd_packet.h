@@ -1059,6 +1059,7 @@ protected:
     bool                        m_useKernelResource        = false;               //!< Use Vebox Kernel Resource 
     uint32_t                    m_inputDepth               = 0;
 
+MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacket)
 };
 
 }

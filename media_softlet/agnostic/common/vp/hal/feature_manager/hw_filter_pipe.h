@@ -61,6 +61,8 @@ public:
 private:
     std::vector<HwFilter*>  m_Pipe;
     VpInterface             &m_vpInterface;
+
+MEDIA_CLASS_DEFINE_END(HwFilterPipe)
 };
 }
 #endif // !__HW_FILTER_PIPE_H__

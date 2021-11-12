@@ -126,6 +126,8 @@ protected:
 
     VP_PIPELINE_PARAMS                 m_vpPipelineParams = {};   //!< vp Pipeline params
     bool                               m_bApgEnabled = false;    //!< VP APG path enabled
+
+MEDIA_CLASS_DEFINE_END(VpPipelineAdapter)
 };
 #endif // !__VP_PIPELINE_ADAPTER_H__
 

@@ -143,6 +143,8 @@ protected:
 
     bool            m_FESeparateSubmission = false;
     ScalabilityMode m_mode                 = scalabilitySingleMode;
+
+MEDIA_CLASS_DEFINE_END(DecodeScalabilityOption)
 };
 }
 #endif // !__DECODE_SCALABILITY_OPTION_H__

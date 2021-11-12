@@ -152,6 +152,8 @@ protected:
     ActivePacketListType    m_activePacketList;      //!< Active packets property list
 
     DecodeScalabilityPars   m_decodeScalabilityPars; //!< Decode scalability parameters
+
+MEDIA_CLASS_DEFINE_END(DecodeSubPipeline)
 };
 
 }//decode

@@ -89,6 +89,8 @@ public:
 protected:
     MhwMiInterface* m_miInterface = nullptr;
     DecodePredication* m_predication = nullptr;
+
+MEDIA_CLASS_DEFINE_END(DecodePredicationPkt)
 };
 
 }

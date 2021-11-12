@@ -227,6 +227,8 @@ protected:
 
     //! \brief    Apogeios Enable Flag
     bool                    m_apogeiosEnable = false;
+
+MEDIA_CLASS_DEFINE_END(Codechal)
 };
 
 #endif

@@ -91,6 +91,7 @@ protected:
     PMHW_ID_ENTRY_PARAMS              m_interfaceDescriptorParams = nullptr;
     std::shared_ptr<mhw::render::Itf> m_renderItf = nullptr;
 
+MEDIA_CLASS_DEFINE_END(XRenderHal_Platform_Interface_Next)
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_NEXT_H__

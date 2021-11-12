@@ -73,6 +73,8 @@ protected:
 
     SwFilterPipe            *m_executedPipe = nullptr;
     PRENDER_FC_PARAMS       m_renderFcParams = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpFcFilter)
 };
 
 struct HW_FILTER_FC_PARAM : public HW_FILTER_PARAM
@@ -92,6 +94,8 @@ public:
 
 private:
     HW_FILTER_FC_PARAM m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(HwFilterFcParameter)
 };
 
 class VpRenderFcParameter : public VpPacketParameter
@@ -107,6 +111,8 @@ private:
     MOS_STATUS Initialize(HW_FILTER_FC_PARAM&params);
 
     VpFcFilter m_fcFilter;
+
+MEDIA_CLASS_DEFINE_END(VpRenderFcParameter)
 };
 
 #define VP_COMP_MAX_LAYERS          8
@@ -143,6 +149,8 @@ public:
     {
         return nullptr;
     }
+
+MEDIA_CLASS_DEFINE_END(PolicyFcFeatureHandler)
 };
 
 class PolicyFcHandler : public PolicyFeatureHandler
@@ -197,6 +205,8 @@ private:
     // true to force all layer to use bilinear if bilinear is needed by any layer.
     // false to use nearest or bilinear based on the requirement of each layer.
     static bool s_forceNearestToBilinearIfBilinearExists;
+
+MEDIA_CLASS_DEFINE_END(PolicyFcHandler)
 };
 }
 #endif

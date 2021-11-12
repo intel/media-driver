@@ -82,6 +82,8 @@ protected:
 
     DecodeAllocator *       m_allocator   = nullptr;
     CodechalHwInterface *   m_hwInterface = nullptr;
+
+MEDIA_CLASS_DEFINE_END(DecodeFeatureManager)
 };
 
 

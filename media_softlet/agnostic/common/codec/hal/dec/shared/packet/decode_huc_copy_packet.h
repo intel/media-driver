@@ -101,6 +101,8 @@ class HucCopyPkt : public DecodeHucBasic_G12_Base, public HucCopyPktItf
 
         std::vector<HucCopyParams> m_copyParamsList; //!< Copy parameters list
         uint32_t                   m_copyParamsIdx = 0; //!< Copy parameters index
+
+    MEDIA_CLASS_DEFINE_END(HucCopyPkt)
     };
 
 }  // namespace decode

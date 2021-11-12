@@ -44,6 +44,8 @@ protected:
 protected:
     VpDebugInterface *m_debugInterface = nullptr;
     std::string       InitFileName(MediaDbgFunction mediaFunction) override;
+
+MEDIA_CLASS_DEFINE_END(VpDebugConfigMgr)
 };
 
 #endif  //USE_VP_DEBUG_TOOL

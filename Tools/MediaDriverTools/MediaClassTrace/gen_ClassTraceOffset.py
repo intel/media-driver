@@ -15,8 +15,8 @@ def chk_ADD_TRACE(file_path, class_info):
         #print(file_path)
         lines = fh.readlines()
         for line in lines:
-            if line.find('ADD_CLASS_TRACE') > -1:
-                class_name = line.split('ADD_CLASS_TRACE')[1][1:-2]
+            if line.find('MEDIA_CLASS_DEFINE_END') > -1:
+                class_name = line.split('MEDIA_CLASS_DEFINE_END')[1][1:-2]
                 if class_name not in class_info:
                     class_info[class_name] = [file_path]
                 else:

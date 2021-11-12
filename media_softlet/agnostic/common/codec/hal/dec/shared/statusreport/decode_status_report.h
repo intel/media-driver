@@ -187,6 +187,8 @@ namespace decode {
         PMOS_BUFFER            m_statusBufRcs = nullptr;
         uint8_t               *m_dataStatusMfx = nullptr;
         uint8_t               *m_dataStatusRcs = nullptr;
+
+    MEDIA_CLASS_DEFINE_END(DecodeStatusReport)
     };
 }
 

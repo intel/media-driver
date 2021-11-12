@@ -80,6 +80,8 @@ protected:
     //! \brief  Initialize scalability parameters
     //!
     virtual void InitScalabilityPars(PMOS_INTERFACE osInterface) {}
+
+MEDIA_CLASS_DEFINE_END(DecodeStreamOut)
 };
 }  // namespace decode
 

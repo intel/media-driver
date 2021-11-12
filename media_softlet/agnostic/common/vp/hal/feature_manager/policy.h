@@ -198,6 +198,8 @@ protected:
     }
 
     void PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineCaps);
+
+MEDIA_CLASS_DEFINE_END(Policy)
 };
 
 }

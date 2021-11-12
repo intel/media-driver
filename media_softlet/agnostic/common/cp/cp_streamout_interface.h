@@ -34,6 +34,8 @@ class CpStreamOutInterface
 {
 public:
     virtual ~CpStreamOutInterface() {}
+
+MEDIA_CLASS_DEFINE_END(CpStreamOutInterface)
 };
 
 

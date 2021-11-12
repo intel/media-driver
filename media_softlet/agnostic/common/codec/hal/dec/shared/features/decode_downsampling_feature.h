@@ -111,6 +111,8 @@ protected:
 
     InternalTargets      m_internalTargets; //!< Internal targets for downsampling input if application dosen't prepare
     PMOS_BUFFER          m_histogramBufferList[DecodeBasicFeature::m_maxFrameIndex] = {};  //! \brief Internal histogram output buffer list
+
+MEDIA_CLASS_DEFINE_END(DecodeDownSamplingFeature)
 };
 }//decode
 

@@ -112,6 +112,8 @@ protected:
 
 public:
     const static std::string          s_kernelNameNonAdvKernels;
+
+MEDIA_CLASS_DEFINE_END(VpRenderKernel)
 };
 
 using KERNEL_POOL = std::map<std::string, VpRenderKernel>;
@@ -211,6 +213,8 @@ protected:
     bool m_sfc2PassScalingEnabled = false;
     bool m_sfc2PassScalingPerfMode = false;
     bool m_vpMmcDisabled = false;
+
+MEDIA_CLASS_DEFINE_END(VpPlatformInterface)
 };
 
 }

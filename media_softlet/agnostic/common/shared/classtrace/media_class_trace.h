@@ -22,10 +22,10 @@
 
 //!
 //! \file     media_class_trace.h
-//! \brief    Define the MARCO ADD_CLASS_TRACE
-//! \details  Define the MARCO ADD_CLASS_TRACE.
+//! \brief    Define the MACRO MEDIA_CLASS_DEFINE_END
+//! \details  Define the MACRO MEDIA_CLASS_DEFINE_END.
 //!
 #ifndef __MEDIA_CLASS_TRACE_H__
 #define __MEDIA_CLASS_TRACE_H__
-#define ADD_CLASS_TRACE(class_name)
+#define MEDIA_CLASS_DEFINE_END(class_name)
 #endif //__MEDIA_CLASS_TRACE_H__

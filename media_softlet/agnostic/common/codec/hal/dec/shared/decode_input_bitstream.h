@@ -145,6 +145,8 @@ protected:
     PMOS_BUFFER     m_catenatedBuffer   = nullptr;   //!< Catenated bitstream for decode
     uint32_t        m_requiredSize      = 0;         //!< Size of bitstream in bytes of current frame
     uint32_t        m_segmentsTotalSize = 0;         //!< Total size of segments in m_segments
+
+MEDIA_CLASS_DEFINE_END(DecodeInputBitstream)
 };
 
 }

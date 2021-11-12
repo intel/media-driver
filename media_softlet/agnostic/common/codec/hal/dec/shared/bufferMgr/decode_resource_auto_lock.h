@@ -86,6 +86,8 @@ public:
 private:
     DecodeAllocator* m_allocator;
     PMOS_RESOURCE    m_resource;
+
+MEDIA_CLASS_DEFINE_END(ResourceAutoLock)
 };
 
 }  // namespace decode

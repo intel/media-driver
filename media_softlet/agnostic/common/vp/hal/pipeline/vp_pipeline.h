@@ -377,6 +377,8 @@ protected:
 #endif
     VP_SETTINGS           *m_vpSettings = nullptr;
     VpUserFeatureControl  *m_userFeatureControl = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpPipeline)
 };
 
 struct _VP_SFC_PACKET_PARAMS
@@ -474,6 +476,8 @@ private:
     VpAllocator& m_allocator;
     VpResourceManager* m_resourceManager;
     std::map<FeatureType, SwFilterFeatureHandler*>* m_swFilterHandler = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpInterface)
 };
 }  // namespace vp
 

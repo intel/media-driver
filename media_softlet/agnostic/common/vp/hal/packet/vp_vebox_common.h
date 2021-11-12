@@ -207,6 +207,8 @@ protected:
     PVPHAL_VEBOX_STATE_PARAMS           m_pVeboxStateParams = nullptr;                    //!< auto allocated param instance for set/submit VEBOX cmd
     // Vebox IECP Parameters
     PVPHAL_VEBOX_IECP_PARAMS            m_pVeboxIecpParams = nullptr;                     //!< auto allocated param instance for set/submit VEBOX IECP cmd
+
+MEDIA_CLASS_DEFINE_END(VP_VEBOX_RENDER_DATA)
   };
 
 class VpVeboxRenderData
@@ -414,6 +416,8 @@ protected:
     MHW_VEBOX_IECP_PARAMS   m_veboxIecpParams = {};
     MHW_VEBOX_CHROMA_SAMPLING m_chromaSampling = {};
     MHW_VEBOX_GAMUT_PARAMS  m_veboxGamutParams = {};
+
+MEDIA_CLASS_DEFINE_END(VpVeboxRenderData)
 };
 
 using PVpVeboxRenderData = VpVeboxRenderData*;

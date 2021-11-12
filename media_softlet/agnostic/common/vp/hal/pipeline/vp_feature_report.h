@@ -102,5 +102,7 @@ public:
 
 protected:
     VP_FEATURES m_features;
+
+MEDIA_CLASS_DEFINE_END(VpFeatureReport)
 };
 #endif // __VP_FEATURE_REPORT_H__

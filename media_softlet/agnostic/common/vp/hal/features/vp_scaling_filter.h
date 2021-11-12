@@ -150,6 +150,8 @@ protected:
     bool                         m_bVdbox            = false;
     CODECHAL_STANDARD            m_codecStandard     = CODECHAL_STANDARD_MAX;
     CodecDecodeJpegChromaType    m_jpegChromaType    = jpegYUV400;
+
+MEDIA_CLASS_DEFINE_END(VpScalingFilter)
 };
 
 struct HW_FILTER_SCALING_PARAM : public HW_FILTER_PARAM
@@ -169,6 +171,8 @@ public:
 private:
 
     HW_FILTER_SCALING_PARAM         m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(HwFilterScalingParameter)
 };
 
 class VpSfcScalingParameter : public VpPacketParameter
@@ -183,6 +187,8 @@ private:
     MOS_STATUS Initialize(HW_FILTER_SCALING_PARAM &params);
 
     VpScalingFilter m_ScalingFilter;
+
+MEDIA_CLASS_DEFINE_END(VpSfcScalingParameter)
 };
 
 class PolicySfcScalingHandler : public PolicyFeatureHandler
@@ -208,6 +214,8 @@ private:
     uint32_t Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded);
 
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;
+
+MEDIA_CLASS_DEFINE_END(PolicySfcScalingHandler)
 };
 
 class PolicySfcColorFillHandler : public PolicyFeatureHandler
@@ -235,6 +243,8 @@ public:
     {
         return nullptr;
     }
+
+MEDIA_CLASS_DEFINE_END(PolicySfcColorFillHandler)
 };
 
 class PolicySfcAlphaHandler : public PolicyFeatureHandler
@@ -262,6 +272,8 @@ public:
     {
         return nullptr;
     }
+
+MEDIA_CLASS_DEFINE_END(PolicySfcAlphaHandler)
 };
 }
 #endif // !__VP_SCALING_FILTER_H__

@@ -1448,6 +1448,8 @@ private:
     std::vector<VP_COMPOSITE_PARAMS> m_pool;
     std::map<VP_COMPOSITE_PARAMS *, VP_COMPOSITE_PARAMS *> m_inuse;
     std::map<VP_COMPOSITE_PARAMS *, VP_COMPOSITE_PARAMS *> m_idle;
+
+MEDIA_CLASS_DEFINE_END(VpCompositeParamsPool)
 };
 
 }

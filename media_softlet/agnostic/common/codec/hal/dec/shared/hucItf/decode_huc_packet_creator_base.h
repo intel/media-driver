@@ -47,6 +47,7 @@ public:
     virtual CmdPacket *    CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) = 0;
 
 
+MEDIA_CLASS_DEFINE_END(HucPacketCreatorBase)
 };
 
 }  // namespace decode

@@ -461,6 +461,8 @@ private:
     //!
     char* WhitespaceTrim(
         char*                       ptr);
+
+MEDIA_CLASS_DEFINE_END(VpSurfaceDumper)
 };
 
 
@@ -691,6 +693,8 @@ private:
     //!           String of vphal denoise level
     //!
     const char * GetDenoiseModeStr(VPHAL_NOISELEVEL noise_level);
+
+MEDIA_CLASS_DEFINE_END(VpParameterDumper)
 };
 
 //!
@@ -795,6 +799,7 @@ public:
     static const char * GetFormatStr(
         MOS_FORMAT                format);
 
+MEDIA_CLASS_DEFINE_END(VpDumperTool)
 };
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 

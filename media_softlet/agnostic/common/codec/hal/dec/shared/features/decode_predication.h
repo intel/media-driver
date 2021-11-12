@@ -63,6 +63,8 @@ public:
     bool             m_predicationNotEqualZero = false;  //!< Predication mode
 protected:
     DecodeAllocator* m_allocator;                        //!< Decode allocator
+
+MEDIA_CLASS_DEFINE_END(DecodePredication)
 };
 
 }//decode

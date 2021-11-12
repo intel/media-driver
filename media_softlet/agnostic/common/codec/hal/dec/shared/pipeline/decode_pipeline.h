@@ -473,6 +473,8 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                m_statusCheckCount = 0;     //!< count for status check
 #endif
+
+MEDIA_CLASS_DEFINE_END(DecodePipeline)
 };
 
 }//decode

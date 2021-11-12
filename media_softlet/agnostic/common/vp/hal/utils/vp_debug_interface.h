@@ -77,6 +77,7 @@ protected:
     VpSurfaceDumper *  m_surfaceDumper   = nullptr;
     VpParameterDumper *m_parameterDumper = nullptr;
 
+MEDIA_CLASS_DEFINE_END(VpDebugInterface)
 };
 
 #else

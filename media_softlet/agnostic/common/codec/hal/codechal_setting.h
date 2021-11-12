@@ -90,6 +90,8 @@ public:
     //! \brief    Create CodechalSetting instance 
     //!
     static CodechalSetting *CreateCodechalSetting();
+
+MEDIA_CLASS_DEFINE_END(CodechalSetting)
 };
 
 #endif

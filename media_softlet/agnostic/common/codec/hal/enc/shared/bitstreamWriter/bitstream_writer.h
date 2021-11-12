@@ -132,6 +132,8 @@ public:
     virtual void PutBit(mfxU32 b)            = 0;
     virtual void PutUE(mfxU32 b)             = 0;
     virtual void PutSE(mfxI32 b)             = 0;
+
+MEDIA_CLASS_DEFINE_END(IBsWriter)
 };
 
 class BitstreamWriter
@@ -188,6 +190,8 @@ private:
     mfxU32                    m_BinCountsInNALunits;
     bool                      m_firstBitFlag;
     std::map<mfxU32, mfxU32> *m_pInfo = nullptr;
+
+MEDIA_CLASS_DEFINE_END(BitstreamWriter)
 };
 
 #endif

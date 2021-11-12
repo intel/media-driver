@@ -46,6 +46,8 @@ protected:
 private:
     static uint32_t m_decodeUniqueId;
     static Mutex    m_mutex;
+
+MEDIA_CLASS_DEFINE_END(DecodeUniqueId)
 };
 
 #define DeclareDecodeUniqueId(type, name) \

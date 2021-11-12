@@ -68,6 +68,8 @@ protected:
 
     STATUS_TABLE_UPDATE_PARAMS m_StatusTableUpdateParams = {};
     MOS_INTERFACE             *m_osInterface             = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VPStatusReport)
 };
 }  // namespace vp
 

@@ -110,6 +110,8 @@ protected:
     bool                       m_isSupported  = false;
 
     VDBOX_SFC_PARAMS           m_sfcParams;
+
+MEDIA_CLASS_DEFINE_END(DecodeDownSamplingPkt)
 };
 
 }

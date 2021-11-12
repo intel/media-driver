@@ -81,6 +81,8 @@ public:
 
 protected:
     std::map<uint32_t, DecodeSubPacket *> m_subPacketList; //!< sub packet list
+
+MEDIA_CLASS_DEFINE_END(DecodeSubPacketManager)
 };
 
 }

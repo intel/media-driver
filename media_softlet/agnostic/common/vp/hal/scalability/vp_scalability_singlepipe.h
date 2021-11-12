@@ -85,6 +85,8 @@ protected:
 
 private:
     PVP_MHWINTERFACE  m_hwInterface = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpScalabilitySinglePipe)
 };
 }
 #endif // !__VP_SCALABILITY_SINGLEPIPE_H__

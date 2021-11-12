@@ -355,6 +355,8 @@ protected:
     bool m_noNeedUpdate = false;
     RenderTargetType m_renderTargetType = RenderTargetTypeSurface;
     bool m_isInExePipe = false;
+
+MEDIA_CLASS_DEFINE_END(SwFilter)
 };
 
 struct FeatureParamCsc : public FeatureParam
@@ -389,6 +391,8 @@ public:
 
 private:
     FeatureParamCsc m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterCsc)
 };
 
 struct FeatureParamScaling : public FeatureParam
@@ -441,6 +445,8 @@ public:
 
 private:
     FeatureParamScaling m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterScaling)
 };
 
 struct FeatureParamRotMir : public FeatureParam
@@ -469,6 +475,8 @@ public:
 
 private:
     FeatureParamRotMir m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterRotMir)
 };
 
 struct FeatureParamDenoise : public FeatureParam
@@ -494,6 +502,8 @@ public:
 
 private:
     FeatureParamDenoise m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterDenoise)
 };
 
 struct FeatureParamDeinterlace : public FeatureParam
@@ -528,6 +538,8 @@ public:
 
 private:
     FeatureParamDeinterlace m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterDeinterlace)
 };
 
 struct FeatureParamSte : public FeatureParam
@@ -550,6 +562,8 @@ public:
 
 private:
     FeatureParamSte m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterSte)
 };
 
 struct FeatureParamTcc : public FeatureParam
@@ -577,6 +591,8 @@ public:
 
 private:
     FeatureParamTcc m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterTcc)
 };
 
 struct FeatureParamProcamp : public FeatureParam
@@ -598,6 +614,8 @@ public:
 
 private:
     FeatureParamProcamp m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterProcamp)
 };
 
 struct FeatureParamHdr : public FeatureParam
@@ -623,6 +641,8 @@ public:
 
 private:
     FeatureParamHdr m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterHdr)
 };
 
 struct FeatureParamLumakey : public FeatureParam
@@ -644,6 +664,8 @@ public:
 
 private:
     FeatureParamLumakey m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterLumakey)
 };
 
 struct FeatureParamBlending : public FeatureParam
@@ -665,6 +687,8 @@ public:
 
 private:
     FeatureParamBlending m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterBlending)
 };
 
 struct FeatureParamColorFill : public FeatureParam
@@ -687,6 +711,8 @@ public:
 
 private:
     FeatureParamColorFill m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterColorFill)
 };
 
 struct FeatureParamAlpha : public FeatureParam
@@ -709,6 +735,8 @@ public:
 
 private:
     FeatureParamAlpha m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(SwFilterAlpha)
 };
 
 class SwFilterSet
@@ -735,6 +763,8 @@ private:
     std::map<FeatureType, SwFilter *> m_swFilters;
     // nullptr if it is unordered filters, otherwise, it's the pointer to m_OrderedFilters it belongs to.
     std::vector<class SwFilterSet *> *m_location = nullptr;
+
+MEDIA_CLASS_DEFINE_END(SwFilterSet)
 };
 
 }

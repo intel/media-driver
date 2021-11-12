@@ -61,6 +61,8 @@ public:
 protected:
     VpInterface& m_vpInterface;
     FeatureType     m_type;
+
+MEDIA_CLASS_DEFINE_END(SwFilterFeatureHandler)
 };
 
 class SwFilterCscHandler : public SwFilterFeatureHandler
@@ -75,6 +77,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterCsc> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterCscHandler)
 };
 
 class SwFilterRotMirHandler : public SwFilterFeatureHandler
@@ -89,6 +93,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterRotMir> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterRotMirHandler)
 };
 
 class SwFilterScalingHandler : public SwFilterFeatureHandler
@@ -105,6 +111,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterScaling> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterScalingHandler)
 };
 
 class SwFilterDnHandler : public SwFilterFeatureHandler
@@ -118,6 +126,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterDenoise> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterDnHandler)
 };
 
 class SwFilterDiHandler : public SwFilterFeatureHandler
@@ -131,6 +141,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterDeinterlace> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterDiHandler)
 };
 
 class SwFilterSteHandler : public SwFilterFeatureHandler
@@ -144,6 +156,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterSte> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterSteHandler)
 };
 
 class SwFilterTccHandler : public SwFilterFeatureHandler
@@ -157,6 +171,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterTcc> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterTccHandler)
 };
 
 class SwFilterProcampHandler : public SwFilterFeatureHandler
@@ -170,6 +186,8 @@ protected:
     virtual void Destory(SwFilter*& swFilter);
 protected:
     SwFilterFactory<SwFilterProcamp> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterProcampHandler)
 };
 
 class SwFilterHdrHandler : public SwFilterFeatureHandler
@@ -185,6 +203,8 @@ protected:
 
 protected:
     SwFilterFactory<SwFilterHdr> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterHdrHandler)
 };
 
 class SwFilterLumakeyHandler : public SwFilterFeatureHandler
@@ -200,6 +220,8 @@ protected:
 
 protected:
     SwFilterFactory<SwFilterLumakey>    m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterLumakeyHandler)
 };
 
 class SwFilterBlendingHandler : public SwFilterFeatureHandler
@@ -215,6 +237,8 @@ protected:
 
 protected:
     SwFilterFactory<SwFilterBlending>   m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterBlendingHandler)
 };
 
 class SwFilterColorFillHandler : public SwFilterFeatureHandler
@@ -230,6 +254,8 @@ protected:
 
 protected:
     SwFilterFactory<SwFilterColorFill>  m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterColorFillHandler)
 };
 
 class SwFilterAlphaHandler : public SwFilterFeatureHandler
@@ -245,6 +271,8 @@ protected:
 
 protected:
     SwFilterFactory<SwFilterAlpha>      m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(SwFilterAlphaHandler)
 };
 }
 

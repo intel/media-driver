@@ -100,6 +100,8 @@ protected:
     PVP_MHWINTERFACE      m_hwInterface = nullptr;
     PVpAllocator          m_allocator   = nullptr;
     std::map<VpKernelID, VpRenderKernelObj *> m_cachedKernels;
+
+MEDIA_CLASS_DEFINE_END(VpKernelSet)
 };
 }
 

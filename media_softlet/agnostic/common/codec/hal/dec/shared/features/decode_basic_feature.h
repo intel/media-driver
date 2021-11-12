@@ -157,6 +157,8 @@ protected:
 #ifdef _MMC_SUPPORTED
     bool                   m_isMmcEnabled = false;   //!< Indicate MMC enabled for current picture
 #endif
+
+MEDIA_CLASS_DEFINE_END(DecodeBasicFeature)
 };
 
 }//decode

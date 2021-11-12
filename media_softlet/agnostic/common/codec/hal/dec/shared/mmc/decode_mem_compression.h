@@ -70,6 +70,8 @@ protected:
     void InitDecodeMmc(CodechalHwInterface *hwInterface);
 
     bool m_mmcEnabledForDecode = false;  //!< Indicate if mmc is enabled for decode
+
+MEDIA_CLASS_DEFINE_END(DecodeMemComp)
 };
 
 #endif //__MEDIA_DECODE_MEM_COMPRESSION_H__

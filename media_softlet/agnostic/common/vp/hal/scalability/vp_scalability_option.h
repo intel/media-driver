@@ -91,6 +91,8 @@ public:
 
     uint8_t m_typicalNumMultiPipe = 2;
     uint8_t m_maxNumMultiPipe     = 2;
+
+MEDIA_CLASS_DEFINE_END(VpScalabilityOption)
 };
 }
 #endif // !__VP_SCALABILITY_OPTION_H__

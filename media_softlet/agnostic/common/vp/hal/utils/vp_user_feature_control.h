@@ -77,6 +77,8 @@ protected:
 
     CONTROL_VALUES m_ctrlValDefault = {};
     CONTROL_VALUES m_ctrlVal        = {};
+
+MEDIA_CLASS_DEFINE_END(VpUserFeatureControl)
 };
 
 

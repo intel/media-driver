@@ -61,6 +61,8 @@ public:
 protected:
     FeatureParamDenoise     m_dnParams = {};
     PVEBOX_DN_PARAMS        m_veboxDnParams = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpDnFilter)
 };
 
 struct HW_FILTER_DN_PARAM : public HW_FILTER_PARAM
@@ -80,6 +82,8 @@ public:
 
 private:
     HW_FILTER_DN_PARAM m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(HwFilterDnParameter)
 };
 
 class VpVeboxDnParameter : public VpPacketParameter
@@ -95,6 +99,8 @@ private:
     MOS_STATUS Initialize(HW_FILTER_DN_PARAM&params);
 
     VpDnFilter m_dnFilter;
+
+MEDIA_CLASS_DEFINE_END(VpVeboxDnParameter)
 };
 
 class PolicyVeboxDnHandler : public PolicyFeatureHandler
@@ -119,6 +125,8 @@ public:
 
 private:
     PacketParamFactory<VpVeboxDnParameter> m_PacketParamFactory;
+
+MEDIA_CLASS_DEFINE_END(PolicyVeboxDnHandler)
 };
 }
 #endif

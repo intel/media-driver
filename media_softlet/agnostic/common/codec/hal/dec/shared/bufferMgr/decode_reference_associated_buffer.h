@@ -58,6 +58,8 @@ protected:
     CodechalHwInterface* m_hwInterface  = nullptr;
     DecodeAllocator*     m_allocator    = nullptr;
     BasicFeature*        m_basicFeature = nullptr;
+
+MEDIA_CLASS_DEFINE_END(BufferOpInf)
 };
 
 template<typename BufferType, typename BufferOp, typename BasicFeature>
@@ -352,6 +354,8 @@ protected:
     std::map<uint32_t, BufferType*> m_activeBuffers;           //!< Active buffers corresponding to current reference frame list
     std::vector<BufferType*>        m_availableBuffers;        //!< Buffers in idle
     BufferType*                     m_currentBuffer = nullptr; //!< Point to buffer of current picture
+
+MEDIA_CLASS_DEFINE_END(RefrenceAssociatedBuffer)
 };
 
 }

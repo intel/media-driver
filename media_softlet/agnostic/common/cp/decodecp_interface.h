@@ -119,6 +119,7 @@ public:
     virtual bool       IsCpEnabled()                                     = 0;
     virtual void       SetCpEnabled(bool isCpInUse)                      = 0;
 
+MEDIA_CLASS_DEFINE_END(DecodeCpInterface)
 };
 
 //!

@@ -70,6 +70,8 @@ protected:
     VpPlatformInterface *m_vpPlatformInterface = nullptr;
     VpKernelSet         *m_kernelSet = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
+
+MEDIA_CLASS_DEFINE_END(PacketFactory)
 };
 
 class PacketPipe
@@ -99,6 +101,8 @@ private:
     std::vector<VpCmdPacket *> m_Pipe;
     VPHAL_OUTPUT_PIPE_MODE m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
     bool m_veboxFeatureInuse = false;
+
+MEDIA_CLASS_DEFINE_END(PacketPipe)
 };
 
 class PacketPipeFactory
@@ -112,6 +116,8 @@ public:
 private:
     PacketFactory &m_pPacketFactory;
     std::vector<PacketPipe *> m_Pool;
+
+MEDIA_CLASS_DEFINE_END(PacketPipeFactory)
 };
 
 }

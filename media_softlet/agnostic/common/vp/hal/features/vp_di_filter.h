@@ -70,6 +70,8 @@ protected:
     FeatureParamDeinterlace     m_diParams = {};
     PVEBOX_DI_PARAMS            m_pVeboxDiParams = nullptr;
     PRENDER_DI_FMD_PARAMS       m_pRenderDiFmdParams = nullptr;
+
+MEDIA_CLASS_DEFINE_END(VpDiFilter)
 };
 
 struct HW_FILTER_DI_PARAM : public HW_FILTER_PARAM
@@ -89,6 +91,8 @@ public:
 
 private:
     HW_FILTER_DI_PARAM m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(HwFilterDiParameter)
 };
 
 class VpDiParameter : public VpPacketParameter
@@ -104,6 +108,8 @@ private:
     MOS_STATUS Initialize(HW_FILTER_DI_PARAM&params);
 
     VpDiFilter m_diFilter;
+
+MEDIA_CLASS_DEFINE_END(VpDiParameter)
 };
 
 class PolicyDiHandler : public PolicyFeatureHandler
@@ -129,6 +135,8 @@ public:
 
 private:
     PacketParamFactory<VpDiParameter> m_PacketParamFactory;
+
+MEDIA_CLASS_DEFINE_END(PolicyDiHandler)
 };
 }
 #endif
