@@ -789,11 +789,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SetupMBQPStreamIn(
         &lockFlagsReadOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(pMBQPBuffer);
 
-    MOS_SURFACE surfInfo;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface,
-                                        &(m_encodeParams.psMbQpDataSurface->OsResource),
-                                        &surfInfo));
-    uint32_t uiSize = surfInfo.dwSize;
+    uint32_t uiSize = (uint32_t)m_encodeParams.psMbQpDataSurface->OsResource.pGmmResInfo->GetSizeSurface();
     if (uiSize > m_uiMBQPShadowBufferSize)
     {
         m_uiMBQPShadowBufferSize = uiSize;
