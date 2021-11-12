@@ -20,7 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file      mos_os_hw.h 
+//! \file      mos_os_hw.h
 //! \brief 
 //!
 //!

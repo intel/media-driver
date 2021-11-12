@@ -79,14 +79,10 @@ set(TMP_4_SOURCES_
 set(TMP_4_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_block_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_memory_pool.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_generic.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_render.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_render_generic.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_generic.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio.h
 )
 
 set(SOURCES_

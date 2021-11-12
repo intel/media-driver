@@ -19,7 +19,20 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_defs_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_specific.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific.h
 )
+
+if(${Media_Scalability_Supported} STREQUAL "yes")
+
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_virtualengine_specific.h
+)
+
+endif()
 
 set(HEADERS_
     ${HEADERS_}

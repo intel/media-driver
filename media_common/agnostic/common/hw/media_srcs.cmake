@@ -19,3 +19,24 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(vdbox)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_render.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities.h
+)
+
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group("MHW" FILES ${TMP_HEADERS_})
+
+media_add_curr_to_include_path()

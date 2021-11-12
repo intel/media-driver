@@ -481,11 +481,6 @@ protected:
     uint32_t m_count = 0;
 
     //!
-    //! \brief   the active S3D_CHANNEL for the graphic resource
-    //!
-    MOS_S3D_CHANNEL m_s3dChannel = MOS_S3D_NONE;
-
-    //!
     //! \brief   the size of the graphic resource
     //!
     uint32_t m_size = 0;
@@ -516,24 +511,9 @@ protected:
     MOS_GFXRES_TYPE m_type = MOS_GFXRES_INVALID;
 
     //!
-    //! \brief   U surface plane offset
-    //!
-    MOS_PLANE_OFFSET m_uPlaneOffset = {};
-
-    //!
-    //! \brief   V surface plane offset
-    //!
-    MOS_PLANE_OFFSET m_vPlaneOffset = {};
-
-    //!
     //! \brief   Type == 2D || VOLUME, width in pixels.
     //!
     uint32_t m_width = 0;
-
-    //!
-    //! \brief   Y surface plane offset or RGB
-    //!
-    MOS_PLANE_OFFSET m_yPlaneOffset = {};
 
     //!
     //! \brief  This is used by MDF when a wrapper MOS Resource is used to 

@@ -21,8 +21,13 @@
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_fourcc.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_defs.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_common.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_resource_defs.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_os_hw.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.h
 )
 
 set(HEADERS_

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -36,20 +36,11 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_hw.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_os_trace_event.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_solo_generic.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_debug.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_feature_keys.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_util_user_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_utilities.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontextmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cmdbufmgr.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_mock_adaptor.h
 )
 

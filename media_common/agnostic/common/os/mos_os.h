@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,11 @@
 #include "mos_utilities_next.h"
 #include "mos_util_debug_next.h"
 #include "mos_os_hw.h"         //!< HW specific details that flow through OS pathes
-#include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality 
+#ifndef MEDIA_SOFTLET
+#include "mos_os_cp_interface_specific.h"         //!< CP specific OS functionality
+#else
+class MosCpInterface;
+#endif
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 #include "work_queue_mngr.h"
