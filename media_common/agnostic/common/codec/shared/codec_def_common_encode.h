@@ -199,6 +199,7 @@ inline bool IsRateControlBrc(uint8_t rc)
            (rc == RATECONTROL_AVBR) ||
            (rc == RATECONTROL_VCM) ||
            (rc == RATECONTROL_ICQ) ||
+           (rc == RATECONTROL_CQL) ||
            (rc == RATECONTROL_QVBR);
 }
 
