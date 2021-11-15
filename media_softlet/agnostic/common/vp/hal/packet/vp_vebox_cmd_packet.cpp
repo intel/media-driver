@@ -897,7 +897,9 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
                                     m_PacketCaps.bDI));
 
     pVeboxDiIecpCmdParams->dwStartingX = 0;
-    pVeboxDiIecpCmdParams->dwEndingX   = dwWidth - 1;
+    pVeboxDiIecpCmdParams->dwEndingX   = dwWidth-1;
+    pVeboxDiIecpCmdParams->dwStartingY = 0;
+    pVeboxDiIecpCmdParams->dwEndingY   = dwHeight;
 
     pVeboxDiIecpCmdParams->pOsResCurrInput         = &m_veboxPacketSurface.pCurrInput->osSurface->OsResource;
     pVeboxDiIecpCmdParams->dwCurrInputSurfOffset   = m_veboxPacketSurface.pCurrInput->osSurface->dwOffset;
@@ -2091,6 +2093,9 @@ MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
 
     // Set GAMUT State
     VP_RENDER_CHK_STATUS_RETURN(AddVeboxGamutState());
+
+    // Set HDR State
+    VP_RENDER_CHK_STATUS_RETURN(AddVeboxHdrState());
 
     return MOS_STATUS_SUCCESS;
 }

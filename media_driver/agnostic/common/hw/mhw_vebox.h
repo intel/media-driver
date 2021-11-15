@@ -934,6 +934,8 @@ public:
         PMHW_VEBOX_IECP_PARAMS                  pVeboxIecpParams,
         PMHW_VEBOX_GAMUT_PARAMS                 pVeboxGamutParams) = 0;
 
+    virtual MOS_STATUS AddVeboxHdrState(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) { return MOS_STATUS_SUCCESS;}
+
     //!
     //! \brief      Add VEBOX IECP States
     //! \details    Add Vebox IECP states STD/E, ACE, TCC, FECSC, BLC, ProcAmp, also add CapPipe state
