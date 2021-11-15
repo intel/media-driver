@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -9595,7 +9595,7 @@ MOS_STATUS CodechalEncHevcStateG12::InitMmcState()
 //        WRITE_CURBE_FIELD_TO_FILE(MaxThreadWidth);
 //        WRITE_CURBE_FIELD_TO_FILE(MaxThreadHeight);
 //
-//        CODECHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(
+//        CODECHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(
 //            pDebugInterface->sPath,
 //            FileParams.psWriteToFile,
 //            FileParams.dwOffset));

@@ -227,7 +227,7 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
     // Write the data to file
     if (pSurface->osSurface->dwPitch == iWidthInBytes)
     {
-        MOS_WriteFileFromPtr((const char*)sPath, pData, iSize);
+        MosUtilities::MosWriteFileFromPtr((const char*)sPath, pData, iSize);
     }
     else
     {
@@ -242,7 +242,7 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
             pTmpDst += iWidthInBytes;
         }
 
-        MOS_WriteFileFromPtr((const char*)sPath, pDst, iSize);
+        MosUtilities::MosWriteFileFromPtr((const char*)sPath, pDst, iSize);
     }
 
     if (pDst)

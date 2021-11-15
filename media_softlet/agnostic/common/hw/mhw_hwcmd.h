@@ -35,6 +35,4 @@
 #define __CODEGEN_OP_LENGTH_BIAS 2
 #define __CODEGEN_OP_LENGTH(x) (uint32_t)((__CODEGEN_MAX(x, __CODEGEN_OP_LENGTH_BIAS)) - __CODEGEN_OP_LENGTH_BIAS)
 
-void MOS_ZeroMemory(void *pDestination, size_t stLength);
-
 #endif  // __MHW_HWCMD_H__

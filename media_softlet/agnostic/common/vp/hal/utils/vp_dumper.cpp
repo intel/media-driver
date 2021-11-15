@@ -1105,7 +1105,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 
                 VpDumperTool::GetOsFilePath(sPlanePath, sPlaneOsPath);
 
-                VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sPlaneOsPath, pDst + dstPlaneOffset[j], dstPlaneOffset[j + 1]));
+                VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sPlaneOsPath, pDst + dstPlaneOffset[j], dstPlaneOffset[j + 1]));
             }
             else
             {
@@ -1114,7 +1114,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         }
     }
 
-    VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDst, dwSize));
+    VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pDst, dwSize));
 
 #if !EMUL
     // Dump Aux surface data
@@ -1174,7 +1174,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             auxDataY,
             auxSizeY);
 
-        VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDstAux, auxSizeY));
+        VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pDstAux, auxSizeY));
         MOS_SafeFreeMemory(pDstAux);
 
         if (auxSizeUV && isPlanar)
@@ -1202,7 +1202,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                 auxDataUV,
                 auxSizeUV);
 
-            VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDstUVAux, auxSizeUV));
+            VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pDstUVAux, auxSizeUV));
             MOS_SafeFreeMemory(pDstUVAux);
         }
     }
@@ -1398,7 +1398,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 
                 VpDumperTool::GetOsFilePath(sPlanePath, sPlaneOsPath);
 
-                VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sPlaneOsPath, pDst + dstPlaneOffset[j], dstPlaneOffset[j + 1]));
+                VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sPlaneOsPath, pDst + dstPlaneOffset[j], dstPlaneOffset[j + 1]));
             }
             else
             {
@@ -1407,7 +1407,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         }
     }
 
-    VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pDst, dwSize));
+    VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pDst, dwSize));
 
 finish:
     MOS_SafeFreeMemory(pDst);
@@ -2745,7 +2745,7 @@ MOS_STATUS VpParameterDumper::DumpToXML(
 
     VpDumperTool::GetOsFilePath(sPath, sOsPath);
 
-    VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pcOutContents, strlen(pcOutContents)));
+    VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pcOutContents, strlen(pcOutContents)));
 finish:
     if (pcOutContents)
     {
@@ -3329,7 +3329,7 @@ void VpDumperTool::WriteFrame(
     // Write the data to file
     if (pSurface->dwPitch == iWidthInBytes)
     {
-        MOS_WriteFileFromPtr((const char *)sOsPath, pData, iSize);
+        MosUtilities::MosWriteFileFromPtr((const char *)sOsPath, pData, iSize);
     }
     else
     {
@@ -3344,7 +3344,7 @@ void VpDumperTool::WriteFrame(
             pTmpDst += iWidthInBytes;
         }
 
-        MOS_WriteFileFromPtr((const char *)sOsPath, pDst, iSize);
+        MosUtilities::MosWriteFileFromPtr((const char *)sOsPath, pDst, iSize);
     }
 
     if (pDst)

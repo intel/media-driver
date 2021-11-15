@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -244,270 +244,71 @@ _Ty* MOS_NewArrayUtil(int32_t numElements)
 
 #endif
 
+//------------------------------------------------------------------------------
+//  Allocate, free and set a memory region
+//------------------------------------------------------------------------------
+
+#if MOS_MESSAGES_ENABLED
+
+#define MOS_AlignedAllocMemory(size, alignment) \
+   MosUtilities::MosAlignedAllocMemoryUtils(size, alignment, __FUNCTION__, __FILE__, __LINE__)
+#define MOS_AlignedFreeMemory(ptr) \
+    MosUtilities::MosAlignedFreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#define MOS_AllocMemory(size) \
+    MosUtilities::MosAllocMemoryUtils(size, __FUNCTION__, __FILE__, __LINE__)
+#define MOS_FreeMemory(ptr) \
+    MosUtilities::MosFreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
+
+#define MOS_AllocAndZeroMemory(size) \
+    MosUtilities::MosAllocAndZeroMemoryUtils(size, __FUNCTION__, __FILE__, __LINE__)
+
+#define MOS_ReallocMemory(ptr, newSize) \
+    MosUtilities::MosReallocMemoryUtils(ptr, newSize, __FUNCTION__, __FILE__, __LINE__)
+
+#else // !MOS_MESSAGES_ENABLED
+
+#define MOS_AlignedAllocMemory(size, alignment) \
+   MosUtilities::MosAlignedAllocMemory(size, alignment)
+#define MOS_AlignedFreeMemory(ptr) \
+    MosUtilities::MosAlignedFreeMemory(ptr)
+
+#define MOS_AllocMemory(size) \
+    MosUtilities::MosAllocMemory(size)
+#define MOS_FreeMemory(ptr) \
+    MosUtilities::MosFreeMemory(ptr)
+
+#define MOS_AllocAndZeroMemory(size) \
+    MosUtilities::MosAllocAndZeroMemory(size)
+
+#define MOS_ReallocMemory(ptr, newSize) \
+    MosUtilities::MosReallocMemory(ptr, newSize)
+
+#endif // MOS_MESSAGES_ENABLED
+
+#define MOS_FreeMemAndSetNull(ptr)                      \
+do{                                                     \
+    MOS_FreeMemory(ptr);                                \
+    ptr = nullptr;                                      \
+} while (0)
+
+#define MOS_SafeFreeMemory(ptr)                         \
+    if (ptr) MOS_FreeMemory(ptr);                       \
+
+#define MOS_ZeroMemory(pDestination, stLength)          \
+    MosUtilities::MosZeroMemory(pDestination, stLength)
+
+#define MOS_FillMemory(pDestination, stLength, bFill)   \
+    MosUtilities::MosFillMemory(pDestination, stLength, bFill)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//------------------------------------------------------------------------------
-//  Allocate, free and set a memory region
-//------------------------------------------------------------------------------
-//!
-//! \brief    Allocates aligned memory and performs error checking
-//! \details  Wrapper for aligned_malloc(). Performs error checking.
-//!           It increases memory allocation counter variable
-//!           MosMemAllocCounter for checking memory leaks.
-//! \param    [in] size
-//!           Size of memorry to be allocated
-//! \param    [in] alignment
-//!           alignment
-//! \return   void *
-//!           Pointer to allocated memory
-//!
-#if MOS_MESSAGES_ENABLED
-void *MOS_AlignedAllocMemoryUtils(
-    size_t     size,
-    size_t     alignment,
-    const char *functionName,
-    const char *filename,
-    int32_t    line);
-
-#define MOS_AlignedAllocMemory(size, alignment) \
-   MOS_AlignedAllocMemoryUtils(size, alignment, __FUNCTION__, __FILE__, __LINE__)
-
-#else // !MOS_MESSAGES_ENABLED
-
-void  *MOS_AlignedAllocMemory(
-    size_t  size,
-    size_t  alignment);
-
-#endif // MOS_MESSAGES_ENABLED
-
-//!
-//! \brief    Wrapper for aligned_free(). Performs error checking.
-//! \details  Wrapper for aligned_free() - Free a block of memory that was allocated by MOS_AlignedAllocMemory.
-//!             Performs error checking.
-//!           It decreases memory allocation counter variable
-//!           MosMemAllocCounter for checking memory leaks.
-//! \param    [in] ptr
-//!           Pointer to the memory to be freed
-//! \return   void
-//!
-#if MOS_MESSAGES_ENABLED
-void MOS_AlignedFreeMemoryUtils(
-    void        *ptr,
-    const char  *functionName,
-    const char  *filename,
-    int32_t     line);
-
-#define MOS_AlignedFreeMemory(ptr) \
-    MOS_AlignedFreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
-
-#else // !MOS_MESSAGES_ENABLED
-
-void MOS_AlignedFreeMemory(void  *ptr);
-
-#endif // MOS_MESSAGES_ENABLED
-//!
-//! \brief    Allocates memory and performs error checking
-//! \details  Wrapper for malloc(). Performs error checking.
-//!           It increases memory allocation counter variable
-//!           MosMemAllocCounter for checking memory leaks.
-//! \param    [in] size
-//!           Size of memorry to be allocated
-//! \return   void *
-//!           Pointer to allocated memory
-//!
-#if MOS_MESSAGES_ENABLED
-void  *MOS_AllocMemoryUtils(
-    size_t     size,
-    const char *functionName,
-    const char *filename,
-    int32_t    line);
-
-#define MOS_AllocMemory(size) \
-    MOS_AllocMemoryUtils(size, __FUNCTION__, __FILE__, __LINE__)
-
-#else // !MOS_MESSAGES_ENABLED
-
-void  *MOS_AllocMemory(
-    size_t  size);
-
-#endif // MOS_MESSAGES_ENABLED
-
-//!
-//! \brief    Allocates and fills memory with 0
-//! \details  Wrapper for malloc(). Performs error checking,
-//!           and fills the allocated memory with 0.
-//!           It increases memory allocation counter variable
-//!           MosMemAllocCounter for checking memory leaks.
-//! \param    [in] size
-//!           Size of memorry to be allocated
-//! \return   void *
-//!           Pointer to allocated memory
-//!
-#if MOS_MESSAGES_ENABLED
-void  *MOS_AllocAndZeroMemoryUtils(
-    size_t     size,
-    const char *functionName,
-    const char *filename,
-    int32_t    line);
-
-#define MOS_AllocAndZeroMemory(size) \
-    MOS_AllocAndZeroMemoryUtils(size, __FUNCTION__, __FILE__, __LINE__)
-
-#else // !MOS_MESSAGES_ENABLED
-void  *MOS_AllocAndZeroMemory(
-    size_t                   size);
-#endif // MOS_MESSAGES_ENABLED
-
-//!
-//! \brief    Reallocate memory
-//! \details  Wrapper for realloc(). Performs error checking.
-//!           It modifies memory allocation counter variable
-//!           MosMemAllocCounter for checking memory leaks.
-//! \param    [in] ptr
-//!           Pointer to be reallocated
-//! \param    [in] new_size
-//!           Size of memory to be allocated
-//! \return   void *
-//!           Pointer to allocated memory
-//!
-#if MOS_MESSAGES_ENABLED
-void *MOS_ReallocMemoryUtils(
-    void       *ptr,
-    size_t     newSize,
-    const char *functionName,
-    const char *filename,
-    int32_t    line);
-
-#define MOS_ReallocMemory(ptr, newSize) \
-    MOS_ReallocMemoryUtils(ptr, newSize, __FUNCTION__, __FILE__, __LINE__)
-
-#else // !MOS_MESSAGES_ENABLED
-void *MOS_ReallocMemory(
-    void       *ptr,
-    size_t     newSize);
-#endif // MOS_MESSAGES_ENABLED
-
-//!
-//! \brief    Wrapper for free(). Performs error checking.
-//! \details  Wrapper for free(). Performs error checking.
-//!           It decreases memory allocation counter variable
-//!           MosMemAllocCounter for checking memory leaks.
-//! \param    [in] ptr
-//!           Pointer to the memory to be freed
-//! \return   void
-//!
-#if MOS_MESSAGES_ENABLED
-void MOS_FreeMemoryUtils(
-    void       *ptr,
-    const char *functionName,
-    const char *filename,
-    int32_t    line);
-
-#define MOS_FreeMemory(ptr) \
-    MOS_FreeMemoryUtils(ptr, __FUNCTION__, __FILE__, __LINE__)
-
-#else // !MOS_MESSAGES_ENABLED
-void MOS_FreeMemory(
-    void            *ptr);
-#endif // MOS_MESSAGES_ENABLED
-
-//!
-//! \brief    Wrapper for MOS_FreeMemory().
-//! \details  Wrapper for MOS_FreeMemory().  Calls MOS_FreeMemory() and then sets ptr to NULL.
-//! \param    [in] ptr
-//!           Pointer to the memory to be freed
-//! \return   void
-//!
-#define MOS_FreeMemAndSetNull(ptr)  \
-do{                                 \
-    MOS_FreeMemory(ptr);            \
-    ptr = nullptr;                     \
-} while (0)
-
-//!
-//! \brief    Wrapper for MOS_FreeMemory().
-//! \details  Wrapper for MOS_FreeMemory().  Calls MOS_FreeMemory() if ptr is not NULL.
-//!           This wrapper can be called when ptr can be nullptr and therefore we don't want to hit the assert inside MOS_FreeMemory().
-//!           It should not be used if ptr is expected to be non-NULL. In that case, we want to hit the assert.
-//! \param    [in] ptr
-//!           Pointer to the memory to be freed
-//! \return   void
-//!
-#define MOS_SafeFreeMemory(ptr)               \
-    if (ptr) MOS_FreeMemory(ptr);             \
-
-//!
-//! \brief    Wrapper to set a block of memory with zeros.
-//! \details  Wrapper to set a block of memory with zeros.
-//! \param    [in] pDestination
-//!           A pointer to the starting address of the memory
-//!           block to fill with zeros.
-//! \param    [in] stLength
-//!           Size of the memory block in bytes to be filled
-//! \return   void
-//!
-void MOS_ZeroMemory(
-    void            *pDestination,
-    size_t          stLength);
-
-//!
-//! \brief    Wrapper to set a block of memory with a specified value.
-//! \details  Wrapper to set a block of memory with a specified value.
-//! \param    [in] pDestination
-//!           A pointer to the starting address of the memory
-//!           block to fill with specified value bFill
-//! \param    [in] stLength
-//!           Size of the memory block in bytes to be filled
-//! \param    [in] bFill
-//!           The byte value with which to fill the memory block
-//! \return   void
-//!
-void MOS_FillMemory(
-    void            *pDestination,
-    size_t          stLength,
-    uint8_t         bFill);
 
 //------------------------------------------------------------------------------
 //  File I/O Functions
 //------------------------------------------------------------------------------
-//!
-//! \brief    Allocate a buffer and read contents from a file into this buffer
-//! \details  Allocate a buffer and read contents from a file into this buffer
-//! \param    [in] PpFilename
-//!           ointer to the filename from which to read
-//! \param    [out] lpNumberOfBytesRead,
-//!           pointer to return the number of bytes read
-//! \param    [out] ppReadBuffer
-//!           Pointer to return the buffer pointer where
-//!           the contents from the file are read to
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_ReadFileToPtr(
-    const char         *pFilename,
-    uint32_t           *lpNumberOfBytesRead,
-    void               **ppReadBuffer);
-
-//!
-//! \brief    Writes contents of buffer into a file
-//! \details  Writes contents of buffer into a file
-//! \param    [in] pFilename
-//!           Pointer to the filename to write the contents to
-//! \param    [in] lpBuffer
-//!           Pointer to the buffer whose contents will be written to the file
-//! \param    [in] writeSize
-//!           Number of bytes to write to the file
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_WriteFileFromPtr(
-    const char              *pFilename,
-    void                    *lpBuffer,
-    uint32_t                writeSize);
 
 //!
 //! \brief    Retrieves the size of the specified File.

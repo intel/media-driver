@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2017, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2855,7 +2855,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::InitKernelStateMe()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalEncode_CreateMDFKernelResource(this, kernelRes, 2, m_mdfMeBufSize, m_mdfMeSurfSize, m_mdfMeVmeSurfSize, m_meCurbeDataSizeFei));
     uint32_t codeSize;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_ReadFileToPtr(strMeIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(MosUtilities::MosReadFileToPtr(strMeIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->LoadProgram(kernelRes->pCommonISA, codeSize, kernelRes->pCmProgram, "-nojitter"));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateKernel(kernelRes->pCmProgram, "HME_P", kernelRes->ppKernel[0]));
@@ -2876,7 +2876,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::InitKernelStateScaling(PCODECHAL_ENCODER a
     CodecHalEncode_CreateMDFKernelResource(this, kernelRes, 6, m_mdfDsBufSize * 3, m_mdfDsSurfSize * 3, m_mdfDsVmeSurfSize, 0);
 
     uint32_t codeSize;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_ReadFileToPtr(strDsIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(MosUtilities::MosReadFileToPtr(strDsIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(avcEncoder->pCmDev->LoadProgram(kernelRes->pCommonISA, codeSize, kernelRes->pCmProgram, "-nojitter"));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(avcEncoder->pCmDev->CreateKernel(kernelRes->pCmProgram, "hme_frame_downscale", kernelRes->ppKernel[0]));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(avcEncoder->pCmDev->CreateKernel(kernelRes->pCmProgram, "hme_frame_downscale", kernelRes->ppKernel[1]));
@@ -3106,7 +3106,7 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::InitKernelStatePreProc()
     auto kernelRes = &m_resPreProcKernel;
     CodecHalEncode_CreateMDFKernelResource(this, kernelRes, 1, m_mdfPreProcBufSize, m_mdfPreProcSurfSize, m_mdfPreProcVmeSurfSize,m_preProcCurbeDataSizeFei);
     uint32_t codeSize;
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_ReadFileToPtr(strPreProcIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(MosUtilities::MosReadFileToPtr(strPreProcIsaName, (uint32_t*)&codeSize, &kernelRes->pCommonISA));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->LoadProgram(kernelRes->pCommonISA, codeSize, kernelRes->pCmProgram, "-nojitter"));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(pCmDev->CreateKernel(kernelRes->pCmProgram, "FEI_PreEnc", kernelRes->ppKernel[0]));
 

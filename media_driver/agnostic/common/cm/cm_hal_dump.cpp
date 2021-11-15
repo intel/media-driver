@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -242,7 +242,7 @@ int32_t HalCm_DumpCommadBuffer(PCM_HAL_STATE state, PMOS_COMMAND_BUFFER cmdBuffe
     // write command buffer dwords.
     bytesWritten += HalCm_CopyHexDwordLine(outputBuffer, sizeToAllocate - bytesWritten,
                                           (uint32_t *)cmdBuffer->pCmdBase + offset, numberOfDwords);
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
+    MOS_OS_CHK_STATUS(MosUtilities::MosWriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
     commandBufferNumber++;
 
     //Record command buffer dump counter
@@ -374,7 +374,7 @@ int32_t HalCm_DumpCurbeData(PCM_HAL_STATE state)
                           numberOfDwords);
     }
 
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
+    MOS_OS_CHK_STATUS(MosUtilities::MosWriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
 
     curbeDataNumber++;
 
@@ -550,7 +550,7 @@ int32_t HalCm_DumpSurfaceState(PCM_HAL_STATE state,  int offsetSurfaceState, siz
     }
 
     //Write to file
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)filename, surfaceoutputBuffer, 
+    MOS_OS_CHK_STATUS(MosUtilities::MosWriteFileFromPtr((const char *)filename, surfaceoutputBuffer, 
                       surfacebytesWritten));
 
     surfacestatedumpNumber++;
@@ -691,7 +691,7 @@ int32_t HalCm_DumpInterfaceDescriptorData(PCM_HAL_STATE state)
             numberOfDwords);
     }
 
-    MOS_OS_CHK_STATUS(MOS_WriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
+    MOS_OS_CHK_STATUS(MosUtilities::MosWriteFileFromPtr((const char *)fileName, outputBuffer, bytesWritten));
 
     IDDNumber++;
     if (!state->enableIDDumpTimeStamp)

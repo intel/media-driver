@@ -87,7 +87,7 @@ MOS_STATUS VphalParameterDumper::SkuWa_DumpToXML(
 
     MOS_SecureStringPrint(sPath, MAX_PATH, MAX_PATH, "%s%c%s.xml", pParamsDumpSpec->outFileLocation, MOS_DIR_SEPERATOR, SkuWatableFileName.c_str());
     VphalDumperTool::GetOsFilePath(sPath, sOsPath);
-    VPHAL_DEBUG_CHK_STATUS(MOS_WriteFileFromPtr(sOsPath, pcOutContents, strlen(pcOutContents)));
+    VPHAL_DEBUG_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(sOsPath, pcOutContents, strlen(pcOutContents)));
 
 finish:
     if (pcOutContents)

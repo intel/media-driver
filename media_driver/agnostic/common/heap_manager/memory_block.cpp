@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -139,7 +139,7 @@ MOS_STATUS MemoryBlockInternal::Dump(
     lockedResource += offset + m_offset;
     if (dumpInBinary)
     {
-        HEAP_CHK_STATUS(MOS_WriteFileFromPtr(
+        HEAP_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(
             filename.c_str(),
             lockedResource,
             size));
@@ -176,7 +176,7 @@ MOS_STATUS MemoryBlockInternal::Dump(
             formattedData += dataInHex;
         }
 
-        HEAP_CHK_STATUS(MOS_WriteFileFromPtr(
+        HEAP_CHK_STATUS(MosUtilities::MosWriteFileFromPtr(
             filename.c_str(),
             (void*)formattedData.c_str(),
             formattedData.size()));

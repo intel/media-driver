@@ -27,6 +27,7 @@
 #ifndef __MOS_UTILITIES_COMMON_H__
 #define __MOS_UTILITIES_COMMON_H__
 
+#include <string>
 #include "mos_defs.h"
 
 #ifndef __MOS_USER_FEATURE_WA_

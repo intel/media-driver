@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,14 +20,10 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 #include <cstring>
-
+#include "mos_utilities.h"
 using namespace std;
 
-#ifdef __cplusplus
-    extern "C" {
-#endif
-
-void MOS_ZeroMemory(void *pDestination, size_t stLength)
+void MosUtilities::MosZeroMemory(void *pDestination, size_t stLength)
 {
     if(pDestination != nullptr)
     {
@@ -35,6 +31,3 @@ void MOS_ZeroMemory(void *pDestination, size_t stLength)
     }
 }
 
-#ifdef __cplusplus
-    } // extern "C" 
-#endif

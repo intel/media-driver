@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -738,11 +738,11 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
             MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-%04d%02d%02d%02d%02d%02d.bin",
                 m_outputFileName, pid, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
 
-            MOS_WriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+            MosUtilities::MosWriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
         }
         else
         {
-            MOS_WriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
+            MosUtilities::MosWriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndex));
         }
 
         osInterface->pfnUnlockResource(
