@@ -334,7 +334,12 @@ public:
     // GetCurbeState should be called after UpdateCurbeBindingIndex for all processed surfaces being called
     virtual MOS_STATUS Init(VpRenderKernel& kernel);
 
-    virtual MOS_STATUS GetCurbeState(void*& curbe, uint32_t& curbeLength) = 0;
+    MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength, uint32_t &curbeLengthAligned, RENDERHAL_KERNEL_PARAM kernelParam, uint32_t dwBlockAlign)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(GetCurbeState(curbe, curbeLength));
+        VP_PUBLIC_CHK_STATUS_RETURN(GetAlignedLength(curbeLength, curbeLengthAligned, kernelParam, dwBlockAlign));
+        return MOS_STATUS_SUCCESS;
+    }
 
     virtual uint32_t GetInlineDataSize() = 0;
 
@@ -361,6 +366,12 @@ public:
         KERNEL_PARAMS& kernelParams,
         VP_SURFACE_GROUP& surfaces,
         KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup);
+
+    virtual MOS_STATUS GetScoreboardParams(PMHW_VFE_SCOREBOARD &scoreboardParams)
+    {
+        scoreboardParams = nullptr;
+        return MOS_STATUS_SUCCESS;
+    }
 
     virtual void DumpSurfaces()
     {
@@ -493,6 +504,15 @@ protected:
         VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
         return MOS_STATUS_SUCCESS;
     }
+
+    virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) = 0;
+
+    virtual MOS_STATUS GetAlignedLength(uint32_t &curbeLength, uint32_t &curbeLengthAligned, RENDERHAL_KERNEL_PARAM kernelParam, uint32_t dwBlockAlign)
+    {
+        curbeLengthAligned = MOS_ALIGN_CEIL(curbeLength, dwBlockAlign);
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
 
     VP_SURFACE_GROUP                                        *m_surfaceGroup = nullptr;  // input surface process surface groups

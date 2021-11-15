@@ -102,6 +102,7 @@ typedef struct _KERNEL_PACKET_RENDER_DATA
     int32_t                             mediaID;
 
     KERNEL_WALKER_PARAMS                walkerParam;
+    PMHW_VFE_SCOREBOARD                 scoreboardParams;
 
     // Debug parameters
     // Kernel Used for current rendering

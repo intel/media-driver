@@ -116,6 +116,7 @@ enum FeatureType
     FeatureTypeAlphaOnRender    = FeatureTypeAlpha | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeCappipe          = 0x2000,
     FeatureTypeCappipeOnVebox   = FeatureTypeCappipe | FEATURE_TYPE_ENGINE_BITS_VEBOX,
+    FeatureTypeCappipeOnRender  = FeatureTypeCappipe | FEATURE_TYPE_ENGINE_BITS_RENDER,
     // ...
     NumOfFeatureType
 };
@@ -176,6 +177,14 @@ enum SurfaceType
     SurfaceTypeFcTarget0,
     SurfaceTypeFcTarget1,
     SurfaceTypeFcCscCoeff,
+    //LGCA related Surfaces
+    SurfaceTypeSamplerSurfaceR,
+    SurfaceTypeSamplerSurfaceG,
+    SurfaceTypeSamplerSurfaceB,
+    SurfaceTypeOutputSurfaceR,
+    SurfaceTypeOutputSurfaceG,
+    SurfaceTypeOutputSurfaceB,
+    SurfaceTypeSamplerParamsMinMax,
     NumberOfSurfaceType
 };
 

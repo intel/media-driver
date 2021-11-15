@@ -75,7 +75,7 @@ protected:
     virtual MOS_STATUS UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, EngineType Type);
     virtual MOS_STATUS BuildVeboxSecureFilters(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
-    MOS_STATUS BuildExecutionEngines(SwFilterSubPipe &swFilterPipe);
+    MOS_STATUS BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index);
     MOS_STATUS GetHwFilterParam(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
     MOS_STATUS ReleaseHwFilterParam(HW_FILTER_PARAMS &params);
     MOS_STATUS InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engineCapsInputPipe, VP_EngineEntry &engineCapsOutputPipe);
@@ -141,7 +141,8 @@ protected:
     MOS_STATUS AssignExecuteResource(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
 
     virtual bool IsExcludedFeatureForHdr(FeatureType feature);
-    virtual MOS_STATUS FilterFeatureCombination(SwFilterSubPipe *pipe);
+
+    virtual MOS_STATUS FilterFeatureCombination(SwFilterPipe &pipe, bool isInputPipe, uint32_t index);
 
     virtual bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps)
     {

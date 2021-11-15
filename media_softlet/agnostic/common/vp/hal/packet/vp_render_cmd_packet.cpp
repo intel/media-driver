@@ -194,7 +194,9 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
                 m_renderData.KernelParam.Thread_Count,
                 m_renderData.iCurbeLength,
                 m_renderData.iInlineLength,
-                nullptr));
+                m_renderData.scoreboardParams));
+
+            m_kernelRenderData.insert(std::make_pair(it->first, m_renderData));
         }
     }
     else if (m_submissionMode == MULTI_KERNELS_WITH_ONE_MEDIA_STATE)
@@ -243,7 +245,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             RENDERHAL_USE_MEDIA_THREADS_MAX,
             m_totalCurbeSize,
             m_totoalInlineSize,
-            nullptr));
+            m_renderData.scoreboardParams));
     }
     else
     {
@@ -483,6 +485,8 @@ MOS_STATUS VpRenderCmdPacket::KernelStateSetup()
     m_renderData.iInlineLength = (int32_t)m_kernel->GetInlineDataSize();
     m_totoalInlineSize += m_renderData.iInlineLength;
 
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetScoreboardParams(m_renderData.scoreboardParams));
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -625,7 +629,9 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
     // set the Curbe Data length
     void *   curbeData   = nullptr;
     uint32_t curbeLength = 0;
-    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetCurbeState(curbeData, curbeLength));
+    uint32_t curbeLengthAligned = 0;
+
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetCurbeState(curbeData, curbeLength, curbeLengthAligned, m_renderData.KernelParam, m_renderHal->dwCurbeBlockAlign));
 
     m_renderData.iCurbeOffset = m_renderHal->pfnLoadCurbeData(
         m_renderHal,
@@ -639,7 +645,8 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
         return MOS_STATUS_UNKNOWN;
     }
 
-    m_renderData.iCurbeLength = MOS_ALIGN_CEIL(curbeLength, m_renderHal->dwCurbeBlockAlign);
+    m_renderData.iCurbeLength = curbeLengthAligned;
+ 
     m_totalCurbeSize += m_renderData.iCurbeLength;
 
     m_kernel->FreeCurbe(curbeData);

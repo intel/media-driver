@@ -338,20 +338,12 @@ MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAM
 
     for (index = 0; index < inputSurfCount; ++index)
     {
-        pipe = subSwFilterPipe.GetSwFilterSubPipe(true, index);
-        if (pipe)
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(*pipe));
-        }
+        VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, true, index));
     }
 
     for (index = 0; index < outputSurfCount; ++index)
     {
-        pipe = subSwFilterPipe.GetSwFilterSubPipe(false, index);
-        if (pipe)
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(*pipe));
-        }
+        VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, false, index));
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(BuildFilters(subSwFilterPipe, params));
@@ -454,15 +446,21 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::BuildExecutionEngines(SwFilterSubPipe& swFilterPipe)
+MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index)
 {
     VP_FUNC_CALL();
 
-    SwFilter* feature = nullptr;
-    for (auto filterID : m_featurePool)
+    SwFilterSubPipe *pipe    = nullptr;
+    SwFilter *       feature = nullptr;
+    pipe                     = swFilterPipe.GetSwFilterSubPipe(isInputPipe, index);
+
+    if (pipe)
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForSingleFeature(filterID, swFilterPipe));
-        VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombination(&swFilterPipe));
+        for (auto filterID : m_featurePool)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForSingleFeature(filterID, *pipe));
+        }
+        VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombination(swFilterPipe, isInputPipe, index));
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -1504,6 +1502,7 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         else if (engineCapsInputPipe.RenderNeeded)
         {
             caps.bRender = 1;
+            caps.bOutputPipeFeatureInuse = true;
         }
         else
         {
@@ -1871,9 +1870,13 @@ MOS_STATUS Policy::BuildFilters(SwFilterPipe& featurePipe, HW_FILTER_PARAMS& par
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::FilterFeatureCombination(SwFilterSubPipe *pipe)
+MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index)
 {
     VP_FUNC_CALL();
+
+    SwFilterSubPipe *pipe = nullptr;
+    pipe                  = swFilterPipe.GetSwFilterSubPipe(isInputPipe, index);
+    VP_PUBLIC_CHK_NULL_RETURN(pipe);
 
     auto hdr = pipe->GetSwFilter(FeatureTypeHdr);
     if (nullptr != hdr)
