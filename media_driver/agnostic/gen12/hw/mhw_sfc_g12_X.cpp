@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright (c) 2015-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
@@ -266,17 +266,6 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
         break;
     }
 
-    // Set DW22
-    cmd.DW22.AvsLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
-                                                   = m_avsLineBufferCtrl.Gen12.Index;
-    // Set DW25
-    cmd.DW25.IefLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
-                                                   = m_iefLineBufferCtrl.Gen12.Index;
-
-    // Set DW28
-    cmd.DW28.SfdLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables
-                                                   = m_sfdLineBufferCtrl.Gen12.Index;
-
     // Set DW29
     cmd.DW29.OutputSurfaceTileWalk       = (pOutSurface->TileType == MOS_TILE_Y) ?
                                                       true : false;
@@ -312,6 +301,7 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
     if (pSfcStateParamsG12->pOsResOutputSurface)
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        InitMocsParams(ResourceParams, &cmd.DW19.Value, 1, 6);
         ResourceParams.presResource                = pSfcStateParamsG12->pOsResOutputSurface;
         ResourceParams.pdwCmd                      = &(cmd.DW17.Value);
         ResourceParams.dwLocationInCmd             = 17;
@@ -323,11 +313,16 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
           pOsInterface,
           pCmdBuffer,
           &ResourceParams));
+        if (m_outputSurfCtrl.Gen12.Index != 0)
+        {
+            cmd.DW19.OutputFrameSurfaceBaseAddressIndexToMemoryObjectControlStateMocsTables = m_outputSurfCtrl.Gen12.Index;
+        }
     }
 
     if (pSfcStateParamsG12->pOsResAVSLineBuffer)
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        InitMocsParams(ResourceParams, &cmd.DW22.Value, 1, 6);
         ResourceParams.presResource                = pSfcStateParamsG12->pOsResAVSLineBuffer;
         ResourceParams.pdwCmd                      = &(cmd.DW20.Value);
         ResourceParams.dwLocationInCmd             = 20;
@@ -337,11 +332,16 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
           pOsInterface,
           pCmdBuffer,
           &ResourceParams));
+        if (m_avsLineBufferCtrl.Gen12.Index != 0)
+        {
+            cmd.DW22.AvsLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineBufferCtrl.Gen12.Index;
+        }
     }
 
     if (pSfcStateParamsG12->pOsResIEFLineBuffer)
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        InitMocsParams(ResourceParams, &cmd.DW25.Value, 1, 6);
         ResourceParams.presResource                = pSfcStateParamsG12->pOsResIEFLineBuffer;
         ResourceParams.pdwCmd                      = &(cmd.DW23.Value);
         ResourceParams.dwLocationInCmd             = 23;
@@ -352,11 +352,16 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
           pOsInterface,
           pCmdBuffer,
           &ResourceParams));
+        if (m_iefLineBufferCtrl.Gen12.Index != 0)
+        {
+            cmd.DW25.IefLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineBufferCtrl.Gen12.Index;
+        }
     }
 
     if (pSfcStateParamsG12->resSfdLineBuffer && !Mos_ResourceIsNull(pSfcStateParamsG12->resSfdLineBuffer))
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        InitMocsParams(ResourceParams, &cmd.DW28.Value, 1, 6);
         ResourceParams.presResource = pSfcStateParamsG12->resSfdLineBuffer;
         ResourceParams.pdwCmd = &(cmd.DW26.Value);
         ResourceParams.dwLocationInCmd = 26;
@@ -367,11 +372,16 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+        if (m_sfdLineBufferCtrl.Gen12.Index != 0)
+        {
+            cmd.DW28.SfdLineBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineBufferCtrl.Gen12.Index;
+        }
     }
 
     if (pSfcStateParamsG12->resAvsLineTileBuffer && !Mos_ResourceIsNull(pSfcStateParamsG12->resAvsLineTileBuffer))
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        InitMocsParams(ResourceParams, &cmd.DW40.Value, 1, 6);
         ResourceParams.presResource = pSfcStateParamsG12->resAvsLineTileBuffer;
         ResourceParams.pdwCmd = &(cmd.DW38.Value);
         ResourceParams.dwLocationInCmd = 38;
@@ -382,11 +392,17 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+
+        if (m_avsLineTileBufferCtrl.Gen12.Index != 0)
+        {
+            cmd.DW40.AvsLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineTileBufferCtrl.Gen12.Index;
+        }
     }
 
     if (pSfcStateParamsG12->resIefLineTileBuffer && !Mos_ResourceIsNull(pSfcStateParamsG12->resIefLineTileBuffer))
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        InitMocsParams(ResourceParams, &cmd.DW43.Value, 1, 6);
         ResourceParams.presResource = pSfcStateParamsG12->resIefLineTileBuffer;
         ResourceParams.pdwCmd = &(cmd.DW41.Value);
         ResourceParams.dwLocationInCmd = 41;
@@ -397,11 +413,17 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+
+        if (m_iefLineTileBufferCtrl.Gen12.Index != 0)
+        {
+            cmd.DW43.IefLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineTileBufferCtrl.Gen12.Index;
+        }
     }
 
     if (pSfcStateParamsG12->resSfdLineTileBuffer && !Mos_ResourceIsNull(pSfcStateParamsG12->resSfdLineTileBuffer))
     {
         MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+        InitMocsParams(ResourceParams, &cmd.DW46.Value, 1, 6);
         ResourceParams.presResource = pSfcStateParamsG12->resSfdLineTileBuffer;
         ResourceParams.pdwCmd = &(cmd.DW44.Value);
         ResourceParams.dwLocationInCmd = 44;
@@ -412,6 +434,11 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+
+        if (m_sfdLineTileBufferCtrl.Gen12.Index != 0)
+        {
+            cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineTileBufferCtrl.Gen12.Index;
+        }
     }
 
     if (pSfcStateParamsG12->histogramSurface && !Mos_ResourceIsNull(&pSfcStateParamsG12->histogramSurface->OsResource))
@@ -426,18 +453,18 @@ MOS_STATUS MhwSfcInterfaceG12::AddSfcState(
         ResourceParams.dwLocationInCmd             = 47;
         ResourceParams.HwCommandType               = MOS_SFC_STATE;
         ResourceParams.bIsWritable                 = true;
-        InitMocsParams(ResourceParams, &cmd.DW40.Value, 1, 6);
+        InitMocsParams(ResourceParams, &cmd.DW49.Value, 1, 6);
 
         MHW_CHK_STATUS_RETURN(pfnAddResourceToCmd(
             pOsInterface,
             pCmdBuffer,
             &ResourceParams));
+        
+        if (m_histogramBufferCtrl.Gen12.Index != 0)
+        {
+            cmd.DW49.HistogramBaseAddressMOCSIndex = m_histogramBufferCtrl.Gen12.Index;
+        }
     }
-    //Set DW40, DW43, DW46, DW49
-    cmd.DW40.AvsLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_avsLineBufferCtrl.Gen12.Index;
-    cmd.DW43.IefLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_iefLineBufferCtrl.Gen12.Index;
-    cmd.DW46.SfdLineTileBufferBaseAddressIndexToMemoryObjectControlStateMocsTables = m_sfdLineBufferCtrl.Gen12.Index;
-    cmd.DW49.HistogramBaseAddressMOCSIndex                                         = m_histogramBufferCtrl.Gen12.Index;
 
     MHW_CHK_STATUS_RETURN(Mos_AddCommand(pCmdBuffer, &cmd, cmd.byteSize));
 
