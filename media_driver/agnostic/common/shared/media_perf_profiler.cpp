@@ -559,6 +559,12 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     MOS_UnlockMutex(m_mutex);
 
+    if (BASE_OF_NODE(perfDataIndex) + sizeof(PerfEntry) > m_bufferSize)
+    {
+        MOS_OS_ASSERTMESSAGE("Reached maximum perf data buffer size, please increase it in Performance\\Perf Profiler Buffer Size");
+        return MOS_STATUS_NOT_ENOUGH_BUFFER;
+    }
+
     m_contextIndexMap[context] = perfDataIndex;
 
     bool             rcsEngineUsed = false;
