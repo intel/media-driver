@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include "codechal_utilities.h"
 #include "decode_av1_feature_defs_g12.h"
 #include "mhw_render_g12_X.h"
+#include "decode_utils.h"
 
 namespace decode
 {
@@ -1393,6 +1394,20 @@ MOS_STATUS Av1DecodeFilmGrainG12::PreProcScalingPointsAndLUTs()
     memset(m_scalingLutCb, 0, sizeof(*m_scalingLutCb) * 256);
     memset(m_scalingLutCr, 0, sizeof(*m_scalingLutCr) * 256);
 
+    // Check film grain parameter of the luma component
+    if (m_picParams->m_filmGrainParams.m_numYPoints > 14)
+    {
+        DECODE_ASSERTMESSAGE("Invalid film grain num_y_points (should be in [0, 14]) in pic parameter!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    for (auto i = 1; i < m_picParams->m_filmGrainParams.m_numYPoints; i++)
+    {
+        if (m_picParams->m_filmGrainParams.m_pointYValue[i] <= m_picParams->m_filmGrainParams.m_pointYValue[i - 1])
+        {
+            DECODE_ASSERTMESSAGE("Invalid film grain point_y_value (point_y_value[%d] should be greater than point_y_value[%d]) in pic parameter!", i, i - 1);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+    }
     DECODE_CHK_STATUS(InitScalingFunction(
         m_picParams->m_filmGrainParams.m_pointYValue,
         m_picParams->m_filmGrainParams.m_pointYScaling,
@@ -1406,11 +1421,40 @@ MOS_STATUS Av1DecodeFilmGrainG12::PreProcScalingPointsAndLUTs()
     }
     else
     {
+        // Check film grain parameter of the cb component
+        if (m_picParams->m_filmGrainParams.m_numCbPoints > 10)
+        {
+            DECODE_ASSERTMESSAGE("Invalid film grain num_cb_points (should be in [0, 10]) in pic parameter!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        for (auto i = 1; i < m_picParams->m_filmGrainParams.m_numCbPoints; i++)
+        {
+            if (m_picParams->m_filmGrainParams.m_pointCbValue[i] <= m_picParams->m_filmGrainParams.m_pointCbValue[i - 1])
+            {
+                DECODE_ASSERTMESSAGE("Invalid film grain point_cb_value (point_cb_value[%d] should be greater than point_cb_value[%d]) in pic parameter!", i, i - 1);
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
         DECODE_CHK_STATUS(InitScalingFunction(
             m_picParams->m_filmGrainParams.m_pointCbValue,
             m_picParams->m_filmGrainParams.m_pointCbScaling,
             m_picParams->m_filmGrainParams.m_numCbPoints,
             m_scalingLutCb));
+
+        // Check film grain parameter of the cr component
+        if (m_picParams->m_filmGrainParams.m_numCrPoints > 10)
+        {
+            DECODE_ASSERTMESSAGE("Invalid film grain num_cr_points (should be in [0, 10]) in pic parameter!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        for (auto i = 1; i < m_picParams->m_filmGrainParams.m_numCrPoints; i++)
+        {
+            if (m_picParams->m_filmGrainParams.m_pointCrValue[i] <= m_picParams->m_filmGrainParams.m_pointCrValue[i - 1])
+            {
+                DECODE_ASSERTMESSAGE("Invalid film grain point_cr_value (point_cr_value[%d] should be greater than point_cr_value[%d]) in pic parameter!", i, i - 1);
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
         DECODE_CHK_STATUS(InitScalingFunction(
             m_picParams->m_filmGrainParams.m_pointCrValue,
             m_picParams->m_filmGrainParams.m_pointCrScaling,
