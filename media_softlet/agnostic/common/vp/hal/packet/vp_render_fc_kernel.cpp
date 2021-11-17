@@ -1421,6 +1421,9 @@ MOS_STATUS VpRenderFcKernel::InitCscInCurbeData()
 
 MOS_STATUS VpRenderFcKernel::InitLayerInCurbeData(VP_FC_LAYER *layer)
 {
+    VP_PUBLIC_CHK_NULL_RETURN(layer);
+    VP_RENDER_CHK_NULL_RETURN(layer->surfaceEntries[0]);
+
     float   horizgap = 0;
     float   vertgap = 0;
     uint32_t bitDepth = 0;
@@ -1447,6 +1450,16 @@ MOS_STATUS VpRenderFcKernel::InitLayerInCurbeData(VP_FC_LAYER *layer)
         // set mono-chroma XOR composite specific curbe data. re-calculate fStep due to 1 bit = 1 pixel.
         m_curbeData.DW10.MonoXORCompositeMask = layer->surf->rcDst.left & 0x7;
     }
+
+    VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, width %d, height, %d, rotation %d, alpha %d, shiftX %f, shiftY %f, scaleX %f, scaleY %f, offsetX %f, offsetY %f, stepX %f, stepY %f, originX %f, originY %f",
+        layer->layerID, layer->surfaceEntries[0]->dwWidth, layer->surfaceEntries[0]->dwHeight, layer->rotation, alpha, layer->calculatedParams.fShiftX, layer->calculatedParams.fShiftY,
+         layer->calculatedParams.fScaleX, layer->calculatedParams.fScaleY, layer->calculatedParams.fOffsetX, layer->calculatedParams.fOffsetY, fStepX, fStepY, fOriginX, fOriginY);
+
+    VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, DestXTopLeft %d, DestYTopLeft %d, DestXBottomRight %d, DestYBottomRight %d",
+        layer->layerID, clipedDstRect.left, clipedDstRect.top, clipedDstRect.right - 1, clipedDstRect.bottom - 1);
+
+    VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, chromaSitingEnabled %d, isChromaUpSamplingNeeded %d, isChromaDownSamplingNeeded %d",
+        layer->layerID, layer->calculatedParams.chromaSitingEnabled, layer->calculatedParams.isChromaUpSamplingNeeded, layer->calculatedParams.isChromaDownSamplingNeeded);
 
     switch (layer->layerID)
     {
@@ -1482,6 +1495,9 @@ MOS_STATUS VpRenderFcKernel::InitLayerInCurbeData(VP_FC_LAYER *layer)
             m_curbeData.DW11.ChromasitingUOffset = (float)((1.0f / (layer->surf->osSurface->dwWidth)) - horizgap);
             m_curbeData.DW12.ChromasitingVOffset = (float)((0.5f / (layer->surf->osSurface->dwHeight)) - vertgap);
         }
+
+        VP_RENDER_NORMALMESSAGE("Scaling Info: layer 0, ChromasitingUOffset %f, ChromasitingVOffset %f",
+            m_curbeData.DW11.ChromasitingUOffset, m_curbeData.DW12.ChromasitingVOffset);
 
         // Set output depth.
         bitDepth = VpHal_GetSurfaceBitDepth(layer->surf->osSurface->Format);
@@ -2279,6 +2295,9 @@ MOS_STATUS VpRenderFcKernel::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& sample
             VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
 
+        VP_RENDER_CHK_NULL_RETURN(layer.surf);
+        VP_RENDER_CHK_NULL_RETURN(layer.surf->osSurface);
+
         for (uint32_t entryIndex = 0; entryIndex < layer.numOfSurfaceEntries; ++entryIndex)
         {
             int32_t                         samplerIndex        = 0;
@@ -2307,6 +2326,9 @@ MOS_STATUS VpRenderFcKernel::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& sample
             samplerStateParam.Unorm.AddressW            = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
 
             samplerStateGroup.insert(std::make_pair(samplerIndex, samplerStateParam));
+
+            VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, layerOrigin %d, entry %d, format %d, scalingMode %d, samplerType %d, samplerFilterMode %d, samplerIndex %d, yuvPlane %d",
+                layer.layerID, layer.layerIDOrigin, entryIndex, layer.surf->osSurface->Format, layer.scalingMode, samplerType, samplerStateParam.Unorm.SamplerFilterMode, samplerIndex, entry->YUVPlane);
         }
     }
 

@@ -3557,6 +3557,9 @@ int32_t CompositeState::SetLayer(
             {
                 pSamplerStateParams->Unorm.SamplerFilterMode = MHW_SAMPLER_FILTER_NEAREST;
             }
+
+            VPHAL_RENDER_NORMALMESSAGE("Scaling Info: layer %d, layerOrigin %d, entry %d, format %d, scalingMode %d, samplerType %d, samplerFilterMode %d, samplerIndex %d, yuvPlane %d",
+                iLayer, iLayer, i, pSource->Format, pSource->ScalingMode, SamplerType, pSamplerStateParams->Unorm.SamplerFilterMode, iSamplerID, pSurfaceEntries[i]->YUVPlane);
         }
         else if (SamplerType == MHW_SAMPLER_TYPE_AVS)
         {
@@ -3572,6 +3575,14 @@ int32_t CompositeState::SetLayer(
 
             // Set HDC Direct Write Flag
             pSamplerStateParams->Avs.bHdcDwEnable = pRenderingData->bHdcDwEnable;
+
+            VPHAL_RENDER_NORMALMESSAGE("Scaling Info: layer %d, entry %d, format %d, scalingMode %d, samplerType %d",
+                iLayer, i, pSource->Format, pSource->ScalingMode, SamplerType);
+        }
+        else
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Scaling Info: layer %d, entry %d, format %d, scalingMode %d, samplerType %d",
+                iLayer, i, pSource->Format, pSource->ScalingMode, SamplerType);
         }
 
         oriShiftX = fShiftX;
@@ -3905,6 +3916,12 @@ int32_t CompositeState::SetLayer(
         fOriginX /= 8;
     }
 
+    VPHAL_RENDER_NORMALMESSAGE("Scaling Info: layer %d, width %d, height, %d, rotation %d, alpha %d, shiftX %f, shiftY %f, scaleX %f, scaleY %f, offsetX %f, offsetY %f, stepX %f, stepY %f, originX %f, originY %f",
+        iLayer, dwSurfStateWd, dwSurfStateHt, pSource->Rotation, wAlpha, fShiftX, fShiftY, fScaleX, fScaleY, fOffsetX, fOffsetY, fStepX, fStepY, fOriginX, fOriginY);
+
+    VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, chromaSitingEnabled %d, isChromaUpSamplingNeeded %d, isChromaDownSamplingNeeded %d",
+        iLayer, pSource->bChromaSiting, m_bChromaUpSampling, m_bChromaDownSampling);
+
     switch (iLayer)
     {
         case 0:
@@ -3948,6 +3965,9 @@ int32_t CompositeState::SetLayer(
                     pStatic->DW11.ChromasitingUOffset = (float)((1.0f / (pSource->dwWidth)) - fHorizgap);
                     pStatic->DW12.ChromasitingVOffset = (float)((0.5f / (pSource->dwHeight)) - fVertgap);
                 }
+
+                VPHAL_RENDER_NORMALMESSAGE("Scaling Info: layer 0, ChromasitingUOffset %f, ChromasitingVOffset %f",
+                    pStatic->DW11.ChromasitingUOffset, pStatic->DW12.ChromasitingVOffset);
             }
             break;
         case 1:
@@ -5605,6 +5625,9 @@ bool CompositeState::RenderBufferMediaWalker(
                                  pBbArgs->rcDst[iLayers].left;
         *pdwDestXYBottomRight = ((pBbArgs->rcDst[iLayers].bottom - 1) << 16 ) |
                                  (pBbArgs->rcDst[iLayers].right - 1);
+
+        VPHAL_RENDER_NORMALMESSAGE("Scaling Info: layer %d, DestXTopLeft %d, DestYTopLeft %d, DestXBottomRight %d, DestYBottomRight %d",
+            iLayers, pBbArgs->rcDst[iLayers].left, pBbArgs->rcDst[iLayers].top, pBbArgs->rcDst[iLayers].right - 1, pBbArgs->rcDst[iLayers].bottom - 1);
     }
 
     // GRF 9.0-4
@@ -5795,6 +5818,9 @@ bool CompositeState::RenderBufferComputeWalker(
                                  pBbArgs->rcDst[iLayers].left;
         *pdwDestXYBottomRight = ((pBbArgs->rcDst[iLayers].bottom - 1) << 16 ) |
                                  (pBbArgs->rcDst[iLayers].right - 1);
+
+        VPHAL_RENDER_NORMALMESSAGE("Scaling Info: layer %d, DestXTopLeft %d, DestYTopLeft %d, DestXBottomRight %d, DestYBottomRight %d",
+            iLayers, pBbArgs->rcDst[iLayers].left, pBbArgs->rcDst[iLayers].top, pBbArgs->rcDst[iLayers].right - 1, pBbArgs->rcDst[iLayers].bottom - 1);
     }
 
     // GRF 9.0-4

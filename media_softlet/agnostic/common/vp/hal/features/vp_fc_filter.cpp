@@ -412,6 +412,12 @@ MOS_STATUS VpFcFilter::CalculateScalingParams(VP_FC_LAYER *layer, VP_FC_LAYER *t
                                                     layer->surf->SurfType, layer->layerID,
                                                     layer->surf->osSurface->Format, target->surf->osSurface->Format));
 
+    if (VPHAL_SCALING_NEAREST == layer->scalingMode && (isChromaUpSamplingNeeded || isChromaDownSamplingNeeded))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Scaling Info: Nearest scaling with isChromaUpSamplingNeeded (%d) and isChromaDownSamplingNeeded (%d)",
+            isChromaUpSamplingNeeded, isChromaDownSamplingNeeded);
+    }
+
     // Use 3D Nearest Mode only for 1x Scaling in both directions and only if the input is Progressive or interlaced scaling is used
     // In case of two or more layers, set Sampler State to Bilinear if any layer requires Bilinear
     // When primary surface needs chroma upsampling,
@@ -840,6 +846,8 @@ MOS_STATUS PolicyFcHandler::AddInputLayerForProcess(bool &bSkip, std::vector<int
         if (m_resCounter.lumaKeys < 0 || layerIndexes.size() > 1)
         {
             bSkip = true;
+            VP_PUBLIC_NORMALMESSAGE("Scaling Info: layer %d is not selected. lumaKeys %d, layerIndexes.size() %d",
+                index, m_resCounter.lumaKeys, layerIndexes.size());
             return MOS_STATUS_SUCCESS;
         }
         if (layerIndexes.size() == 1)
@@ -890,7 +898,7 @@ MOS_STATUS PolicyFcHandler::AddInputLayerForProcess(bool &bSkip, std::vector<int
 
     if (bypassSelection)
     {
-        VP_PUBLIC_NORMALMESSAGE("Bypass sampler selection for layer %d", index);
+        VP_PUBLIC_NORMALMESSAGE("Scaling Info: Bypass sampler selection for layer %d", index);
     }
     // Number of AVS, but lumaKey and BOB DI needs 3D sampler instead of AVS sampler.
     else if (scaling && VPHAL_SCALING_AVS == scalingMode &&
@@ -939,8 +947,12 @@ MOS_STATUS PolicyFcHandler::AddInputLayerForProcess(bool &bSkip, std::vector<int
     {
         //Multipass
         bSkip = true;
+        VP_PUBLIC_NORMALMESSAGE("Scaling Info: layer %d is not selected. layers %d, palettes %d, procamp %d, lumaKeys %d, avs %d, sampler %d",
+            index, m_resCounter.layers, m_resCounter.palettes, m_resCounter.procamp, m_resCounter.lumaKeys, m_resCounter.avs, m_resCounter.sampler);
         return MOS_STATUS_SUCCESS;
     }
+
+    VP_PUBLIC_NORMALMESSAGE("Scaling Info: scalingMode %d is selected for layer %d", scalingMode, index);
 
     // Append source to compositing operation
     if (scaling)
@@ -1044,6 +1056,7 @@ MOS_STATUS PolicyFcHandler::LayerSelectForProcess(std::vector<int> &layerIndexes
             if (scaling && VPHAL_SCALING_NEAREST == scaling->GetSwFilterParams().scalingMode)
             {
                 scaling->GetSwFilterParams().scalingMode = VPHAL_SCALING_BILINEAR;
+                VP_PUBLIC_NORMALMESSAGE("Scaling Info: Force nearest to bilinear for layer %d (%d)", layerIndexes[i], i);
             }
         }
     }
