@@ -20,35 +20,26 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_huc_packet_creator_g12.h
+//! \file     huc_streamout_interface_g12.cpp
+//! \brief    Defines the implementation of huc streamout creator
 //!
 
-#ifndef __CODECHAL_HUC_PACKET_CREATOR_G12_H__
-#define __CODECHAL_HUC_PACKET_CREATOR_G12_H__
-
-#include "decode_huc_packet_creator_base.h"
-
+#include "decode_huc_packet_creator_g12.h"
+#include "decode_huc_copy_packet_g12.h"
 
 namespace decode
 {
-class HucPacketCreatorG12 : public HucPacketCreatorBase
+HucCopyPktItf *HucPacketCreatorG12::CreateStreamOutInterface(
+    MediaPipeline       *pipeline,
+    MediaTask           *task,
+    CodechalHwInterface *hwInterface)
 {
-public:    
-
-    HucPacketCreatorG12()
+    if (nullptr == pipeline || nullptr == task || nullptr == hwInterface)
     {
+        MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, "NULL pointer parameters");
+        return nullptr;
     }
-
-    virtual ~HucPacketCreatorG12() {}
-
-    virtual  HucCopyPktItf *CreateHucCopyPkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) override;
-    virtual CmdPacket *    CreateProbUpdatePkt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterface *hwInterface) override;
-
-    virtual HucCopyPktItf *CreateStreamOutInterface(
-        MediaPipeline       *pipeline,
-        MediaTask           *task,
-        CodechalHwInterface *hwInterface) override;
-};
+    return MOS_New(HucCopyPktG12, pipeline, task, hwInterface);
+}
 
 }  // namespace decode
-#endif

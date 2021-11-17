@@ -20,6 +20,7 @@
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator_g12.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/huc_streamout_interface_g12.cpp
 )
 
 set(TMP_HEADERS_
