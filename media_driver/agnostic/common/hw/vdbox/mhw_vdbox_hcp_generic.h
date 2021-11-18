@@ -357,6 +357,21 @@ protected:
         cmd.DW1.IndirectBsdDataLength = params->dwBsdDataLength;
         cmd.DW2.IndirectDataStartAddress = params->dwBsdDataStartOffset;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+        {
+            struct
+            {
+                uint32_t DW0_Value;
+                uint32_t DW1_Value;
+                uint32_t DW2_Value;
+                uint32_t DW1_IndirectBsdDataLength;
+                uint32_t DW2_IndirectDataStartAddress;
+            } eventData = {cmd.DW0.Value, cmd.DW1.Value, cmd.DW2.Value, cmd.DW1.IndirectBsdDataLength, cmd.DW2.IndirectDataStartAddress};
+            MOS_TraceEvent(EVENT_DECODE_CMD_HCP_BSDOBJECT, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        }
+#endif
+
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
         return eStatus;

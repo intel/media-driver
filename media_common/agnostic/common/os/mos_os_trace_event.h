@@ -154,21 +154,32 @@ typedef enum _MEDIA_EVENT
     EVENT_MEDIA_LOG_RESERVE,                       //! event for more media log
     EVENT_MEDIA_ERR,                               //! event for media error
     EVENT_MEDIA_ERR_RESERVE,                       //! event for more media error
-    EVENT_DDI_DECODE_11_GETPROFILECOUNT,           //! event for Decode Get Profile Count
-    EVENT_DDI_DECODE_11_GETPROFILE,                //! event for Decode Get Profile
-    EVENT_DDI_DECODE_11_CHECKFORMAT,               //! event for Decode Check Format
-    EVENT_DDI_DECODE_11_GETCONFIGCOUNT,            //! event for Decode Config Count
-    EVENT_DDI_DECODE_11_GETCONFIG,                 //! event for Decode Config
-    EVENT_DDI_DECODE_11_GETBUFFERTYPECOUNT,        //! event for Decode Buffer Count
-    EVENT_DDI_DECODE_11_GETBUFFERINFO,             //! event for Decode Buffer Info
-    EVENT_DDI_DECODE_11_CREATEVIDEODECODER,        //! event for Decode Create Device
-    EVENT_DDI_DECODE_11_CREATEOUTPUTVIEW,          //! event for Decode Create Output View
-    EVENT_DDI_DECODE_11_BEGINFRAME,                //! event for Decode Begin Frame
-    EVENT_DDI_DECODE_11_SUBMITBUFFERS,             //! event for Decode Execute
-    EVENT_DDI_DECODE_11_EXTENSIONEXECUTE,          //! event for Decode Extension Execute
-    EVENT_DDI_DECODE_11_ENDFRAME,                  //! event for Decode End Frame
-    EVENT_DDI_DECODE_11_DESTROYOUTPUTVIEW,         //! event for Decode Destroy Output View
-    EVENT_DDI_DECODE_11_DESTROYVIDEODECODER,       //! event for Decode Destroy Device
+    EVENT_DECODE_DDI_11_GETPROFILECOUNT,           //! event for Decode Get Profile Count
+    EVENT_DECODE_DDI_11_GETPROFILE,                //! event for Decode Get Profile
+    EVENT_DECODE_DDI_11_CHECKFORMAT,               //! event for Decode Check Format
+    EVENT_DECODE_DDI_11_GETCONFIGCOUNT,            //! event for Decode Config Count
+    EVENT_DECODE_DDI_11_GETCONFIG,                 //! event for Decode Config
+    EVENT_DECODE_DDI_11_GETBUFFERTYPECOUNT,        //! event for Decode Buffer Count
+    EVENT_DECODE_DDI_11_GETBUFFERINFO,             //! event for Decode Buffer Info
+    EVENT_DECODE_DDI_11_CREATEVIDEODECODER,        //! event for Decode Create Device
+    EVENT_DECODE_DDI_11_CREATEOUTPUTVIEW,          //! event for Decode Create Output View
+    EVENT_DECODE_DDI_11_BEGINFRAME,                //! event for Decode Begin Frame
+    EVENT_DECODE_DDI_11_SUBMITBUFFERS,             //! event for Decode Execute
+    EVENT_DECODE_DDI_11_EXTENSIONEXECUTE,          //! event for Decode Extension Execute
+    EVENT_DECODE_DDI_11_ENDFRAME,                  //! event for Decode End Frame
+    EVENT_DECODE_DDI_11_DESTROYOUTPUTVIEW,         //! event for Decode Destroy Output View
+    EVENT_DECODE_DDI_11_DESTROYVIDEODECODER,       //! event for Decode Destroy Device
+    EVENT_DECODE_BUFFER_PICPARAM_VP9,              //! event for Decode VP9 Pic Paramters
+    EVENT_DECODE_BUFFER_SEGPARAM_VP9,              //! event for Decode VP9 Segment Paramters
+    EVENT_DECODE_BUFFER_SLICEPARAM_VP9,            //! event for Decode VP9 Slice Paramters
+    EVENT_DECODE_BUFFER_Bitstream,                 //! event for Decode Bitstream
+    EVENT_DECODE_CMD_HCP_PIPEMODESELECT,           //! event for Decode HcpPipeModeSelect Cmd
+    EVENT_DECODE_CMD_HCP_SURFACESTATE,             //! event for Decode HcpSurfaceState Cmd
+    EVENT_DECODE_CMD_HCP_PIPEBUFADDRSTATE,         //! event for Decode HcpPipeBufAddrState Cmd
+    EVENT_DECODE_CMD_HCP_INDOBJBASEADDRSTATE,      //! event for Decode HcpIndObjBaseAddrState Cmd
+    EVENT_DECODE_CMD_HCP_SEGMENTSTATE_VP9,         //! event for Decode HcpVp9SegmentState Cmd
+    EVENT_DECODE_CMD_HCP_PICSTATE_VP9,             //! event for Decode HcpVp9PicState Cmd
+    EVENT_DECODE_CMD_HCP_BSDOBJECT,                //! event for Decode HcpBsdObject Cmd
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

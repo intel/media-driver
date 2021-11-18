@@ -1971,6 +1971,21 @@ uint64_t MosInterface::GetResourceGfxAddress(
     return resource->bo->offset64;
 }
 
+uint32_t MosInterface::GetResourceAllocationHandle(
+    MOS_RESOURCE_HANDLE resource)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    if (resource && resource->bo)
+    {
+        return resource->bo->handle;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 uint32_t MosInterface::GetResourceAllocationIndex(
     MOS_STREAM_HANDLE   streamState,
     MOS_RESOURCE_HANDLE resource)

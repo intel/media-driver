@@ -1959,6 +1959,14 @@ public:
     static void MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID);
 
     //!
+    //! \brief    Get Event Trace Keyword.
+    //! \details  Determines by the print level, component and sub-component IDs
+    //!           whether the debug message should be printed.
+    //! \return   uint64_t
+    //!
+    static uint64_t GetTraceEventKeyword();
+
+    //!
     //! \brief    MOS log trace event
     //! \details  log trace event by id and event type, arg1 and arg2 are optional arguments
     //!           arguments are in raw data format, need match data structure in manifest.

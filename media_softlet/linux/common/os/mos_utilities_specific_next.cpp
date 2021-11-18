@@ -2372,6 +2372,11 @@ void MosUtilities::MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint3
     // not implemented
 }
 
+uint64_t MosUtilities::GetTraceEventKeyword()
+{
+    return 0;
+}
+
 #define TRACE_EVENT_MAX_SIZE    (1024)
 #define TRACE_EVENT_HEADER_SIZE (sizeof(uint32_t)*3)
 void MosUtilities::MosTraceEvent(

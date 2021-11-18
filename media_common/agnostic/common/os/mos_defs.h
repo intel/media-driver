@@ -61,6 +61,13 @@
 #define MOS_MEDIASOLO_SUPPORTED 0
 #endif
 
+//! Event Trace Logging a debug feature so should not be enabled in release builds
+#if (_DEBUG || _RELEASE_INTERNAL)
+#define MOS_EVENT_TRACE_DUMP_SUPPORTED 1
+#else
+#define MOS_EVENT_TRACE_DUMP_SUPPORTED 0
+#endif
+
 //! Command buffer dumps are a debug feature so should not be enabled in release builds
 #define MOS_COMMAND_BUFFER_DUMP_SUPPORTED   (_DEBUG || _RELEASE_INTERNAL)
 

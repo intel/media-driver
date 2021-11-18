@@ -695,4 +695,246 @@ public:
         uint32_t                        *size);
 };
 
+typedef struct _DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT
+{
+    uint32_t DW0_Value;
+    uint32_t DW1_Value;
+    uint32_t DW2_Value;
+    uint32_t DW3_Value;
+    uint32_t DW4_Value;
+    uint32_t DW5_Value;
+    uint32_t DW6_Value;
+    uint32_t DW1_CodecSelect;
+    uint32_t DW1_DeblockerStreamoutEnable;
+    uint32_t DW1_PicStatusErrorReportEnable;
+    uint32_t DW1_CodecStandardSelect;
+    uint32_t DW1_MultiEngineMode;
+    uint32_t DW1_PipeWorkingMode;
+    uint32_t DW1_PrefetchDisable;
+    uint32_t DW2_MediaSoftResetCounterPer1000Clocks;
+    uint32_t DW6_PhaseIndicator;
+    uint32_t DW6_HevcSeparateTileProgramming;
+} DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT;
+
+typedef struct _DECODE_EVENTDATA_CMD_HCPSURFACESTATE
+{
+    uint32_t DW0_Value;
+    uint32_t DW1_Value;
+    uint32_t DW2_Value;
+    uint32_t DW3_Value;
+    uint32_t DW4_Value;
+    uint32_t DW1_SurfaceId;
+    uint32_t DW1_SurfacePitchMinus1;
+    uint32_t DW2_YOffsetForUCbInPixel;
+    uint32_t DW2_SurfaceFormat;
+    uint32_t DW3_DefaultAlphaValue;
+    uint32_t DW4_MemoryCompressionEnable;
+    uint32_t DW4_CompressionType;
+} DECODE_EVENTDATA_CMD_HCPSURFACESTATE;
+
+typedef struct _DECODE_EVENTDATA_CMD_RESOURCE
+{
+    uint32_t hAllocation;
+    uint32_t Address_1;
+    uint32_t Address_0;
+} DECODE_EVENTDATA_CMD_RESOURCE;
+
+typedef struct _DECODE_EVENTDATA_CMD_HCPPIPEBUFADDRSTATE
+{
+    uint32_t                        DW0_Value;
+    uint32_t                        DecodedPictureAllocationHandle;
+    uint32_t                        DecodedPictureAddress_1;
+    uint32_t                        DecodedPictureAddress_0;
+    uint32_t                        DecodedPictureAttribute;
+    uint32_t                        DecodedPictureMemoryCompressionEnable;
+    uint32_t                        DecodedPictureCompressionType;
+    uint32_t                        DecodedPictureTileMode;
+    uint32_t                        DeblockingFilterLineBufferAddress_1;
+    uint32_t                        DeblockingFilterLineBufferAddress_0;
+    uint32_t                        DeblockingFilterLineBufferAttribute;
+    uint32_t                        DeblockingFilterTileLineBufferAddress_1;
+    uint32_t                        DeblockingFilterTileLineBufferAddress_0;
+    uint32_t                        DeblockingFilterTileLineBufferAttribute;
+    uint32_t                        DeblockingFilterTileColumnBufferAddress_1;
+    uint32_t                        DeblockingFilterTileColumnBufferAddress_0;
+    uint32_t                        DeblockingFilterTileColumnBufferAttribute;
+    uint32_t                        MetadataLineBufferAddress_1;
+    uint32_t                        MetadataLineBufferAddress_0;
+    uint32_t                        MetadataLineBufferAttribute;
+    uint32_t                        MetadataTileLineBufferAddress_1;
+    uint32_t                        MetadataTileLineBufferAddress_0;
+    uint32_t                        MetadataTileLineBufferAttribute;
+    uint32_t                        MetadataTileColumnBufferAddress_1;
+    uint32_t                        MetadataTileColumnBufferAddress_0;
+    uint32_t                        MetadataTileColumnBufferAttribute;
+    uint32_t                        SaoLineBufferAddress_1;
+    uint32_t                        SaoLineBufferAddress_0;
+    uint32_t                        SaoLineBufferAttribute;
+    uint32_t                        SaoTileLineBufferAddress_1;
+    uint32_t                        SaoTileLineBufferAddress_0;
+    uint32_t                        SaoTileLineBufferAttribute;
+    uint32_t                        SaoTileColumnBufferAddress_1;
+    uint32_t                        SaoTileColumnBufferAddress_0;
+    uint32_t                        SaoTileColumnBufferAttribute;
+    uint32_t                        CurrentMotionVectorTemporalBufferAddress_1;
+    uint32_t                        CurrentMotionVectorTemporalBufferAddress_0;
+    uint32_t                        CurrentMotionVectorTemporalBufferAttribute;
+    DECODE_EVENTDATA_CMD_RESOURCE   ReferencePicture[8];
+    uint32_t                        ReferencePictureAttribute;
+    uint32_t                        StreamoutDataDestinationAddress_1;
+    uint32_t                        StreamoutDataDestinationAddress_0;
+    uint32_t                        StreamoutDataDestinationAttribute;
+    DECODE_EVENTDATA_CMD_RESOURCE   CollocatedMotionVector[8];
+    uint32_t                        CollocatedMotionVectorAttribute;
+    uint32_t                        Vp9ProbabilityAddress_1;
+    uint32_t                        Vp9ProbabilityAddress_0;
+    uint32_t                        Vp9ProbabilityAttribute;
+    uint32_t                        Vp9SegmentIdAddress_1;
+    uint32_t                        Vp9SegmentIdAddress_0;
+    uint32_t                        Vp9SegmentIdAttribute;
+    uint32_t                        Vp9HvdTileRowstoreAddress_1;
+    uint32_t                        Vp9HvdTileRowstoreAddress_0;
+    uint32_t                        Vp9HvdTileRowstoreAttribute;
+    uint32_t                        HcpScalabilitySliceStateAddress_1;
+    uint32_t                        HcpScalabilitySliceStateAddress_0;
+    uint32_t                        HcpScalabilitySliceStateAttribute;
+    uint32_t                        HcpScalabilityCabacDecodedSyntaxAddress_1;
+    uint32_t                        HcpScalabilityCabacDecodedSyntaxAddress_0;
+    uint32_t                        HcpScalabilityCabacDecodedSyntaxAttribute;
+    uint32_t                        MotionVectorUpperRightColumnAddress_1;
+    uint32_t                        MotionVectorUpperRightColumnAddress_0;
+    uint32_t                        MotionVectorUpperRightColumnAttribute;
+    uint32_t                        IntraPredictionUpperRightColumnAddress_1;
+    uint32_t                        IntraPredictionUpperRightColumnAddress_0;
+    uint32_t                        IntraPredictionUpperRightColumnAttribute;
+    uint32_t                        IntraPredictionLeftReconColumnAddress_1;
+    uint32_t                        IntraPredictionLeftReconColumnAddress_0;
+    uint32_t                        IntraPredictionLeftReconColumnAttribute;
+    uint32_t                        HcpScalabilityCabacDecodedSyntaxMaxAddress_1;
+    uint32_t                        HcpScalabilityCabacDecodedSyntaxMaxAddress_0;
+} DECODE_EVENTDATA_CMD_HCPPIPEBUFADDRSTATE;
+
+typedef struct _DECODE_EVENTDATA_CMD_HCPINDOBJBASEADDRSTATE
+{
+    uint32_t DW0_Value;
+    uint32_t DW1_Value;
+    uint32_t DW2_Value;
+    uint32_t DW3_Value;
+    uint32_t DW4_Value;
+    uint32_t DW5_Value;
+    uint32_t DW1_2_BitstreamBaseAddress_1;
+    uint32_t DW1_2_BitstreamBaseAddress_0;
+    uint32_t DW3_MemoryCompressionEnable;
+    uint32_t DW3_CompressionType;
+    uint32_t DW4_5_BitstreamUpperAddress_1;
+    uint32_t DW4_5_BitstreamUpperAddress_0;
+} DECODE_EVENTDATA_CMD_HCPINDOBJBASEADDRSTATE;
+
+typedef struct _DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE
+{
+    uint32_t DW0_Value;
+    uint32_t DW1_Value;
+    uint32_t DW2_Value;
+    uint32_t DW3_Value;
+    uint32_t DW4_Value;
+    uint32_t DW5_Value;
+    uint32_t DW6_Value;
+    uint32_t DW1_SegmentId;    
+    uint32_t DW2_SegmentSkipped;
+    uint32_t DW2_SegmentReference;
+    uint32_t DW2_SegmentReferenceEnabled;    
+    uint32_t DW3_Filterlevelref0Mode0;
+    uint32_t DW3_Filterlevelref0Mode1;
+    uint32_t DW3_Filterlevelref1Mode0;
+    uint32_t DW3_Filterlevelref1Mode1;    
+    uint32_t DW4_Filterlevelref2Mode0;
+    uint32_t DW4_Filterlevelref2Mode1;
+    uint32_t DW4_Filterlevelref3Mode0;
+    uint32_t DW4_Filterlevelref3Mode1;    
+    uint32_t DW5_LumaDcQuantScaleDecodeModeOnly;
+    uint32_t DW5_LumaAcQuantScaleDecodeModeOnly;    
+    uint32_t DW6_ChromaDcQuantScaleDecodeModeOnly;
+    uint32_t DW6_ChromaAcQuantScaleDecodeModeOnly;
+} DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE;
+
+typedef struct _DECODE_EVENTDATA_CMD_HCPVP9PICSTATE
+{
+    uint32_t DW0_Value;
+    uint32_t DW1_Value;
+    uint32_t DW2_Value;
+    uint32_t DW3_Value;
+    uint32_t DW4_Value;
+    uint32_t DW5_Value;
+    uint32_t DW6_Value;
+    uint32_t DW7_Value;
+    uint32_t DW8_Value;
+    uint32_t DW9_Value;
+    uint32_t DW10_Value;
+    uint32_t DW1_FrameWidthInPixelsMinus1;
+    uint32_t DW1_FrameHeightInPixelsMinus1;    
+    uint32_t DW2_FrameType;
+    uint32_t DW2_AdaptProbabilitiesFlag;
+    uint32_t DW2_IntraonlyFlag;
+    uint32_t DW2_RefreshFrameContext;
+    uint32_t DW2_ErrorResilientMode;
+    uint32_t DW2_FrameParallelDecodingMode;
+    uint32_t DW2_FilterLevel;
+    uint32_t DW2_SharpnessLevel;
+    uint32_t DW2_SegmentationEnabled;
+    uint32_t DW2_SegmentationUpdateMap;
+    uint32_t DW2_LosslessMode;
+    uint32_t DW2_SegmentIdStreamoutEnable;
+    uint32_t DW2_SegmentIdStreaminEnable;
+    uint32_t DW2_AllowHiPrecisionMv;
+    uint32_t DW2_McompFilterType;
+    uint32_t DW2_SegmentationTemporalUpdate;
+    uint32_t DW2_RefFrameSignBias02;
+    uint32_t DW2_LastFrameType;
+    uint32_t DW2_UsePrevInFindMvReferences;    
+    uint32_t DW3_Log2TileRow;
+    uint32_t DW3_Log2TileColumn;
+    uint32_t DW3_ChromaSamplingFormat;
+    uint32_t DW3_Bitdepthminus8;
+    uint32_t DW3_ProfileLevel;    
+    uint32_t DW4_HorizontalScaleFactorForLast;
+    uint32_t DW4_VerticalScaleFactorForLast;    
+    uint32_t DW5_HorizontalScaleFactorForGolden;
+    uint32_t DW5_VerticalScaleFactorForGolden;    
+    uint32_t DW6_HorizontalScaleFactorForAltref;
+    uint32_t DW6_VerticalScaleFactorForAltref;    
+    uint32_t DW7_LastFrameWidthInPixelsMinus1;
+    uint32_t DW7_LastFrameHieghtInPixelsMinus1;    
+    uint32_t DW8_GoldenFrameWidthInPixelsMinus1;
+    uint32_t DW8_GoldenFrameHieghtInPixelsMinus1;    
+    uint32_t DW9_AltrefFrameWidthInPixelsMinus1;
+    uint32_t DW9_AltrefFrameHieghtInPixelsMinus1;    
+    uint32_t DW10_UncompressedHeaderLengthInBytes7;
+    uint32_t DW10_FirstPartitionSizeInBytes150;
+} DECODE_EVENTDATA_CMD_HCPVP9PICSTATE;
+
+void DecodeEventDataCmdHcpPipeModeSelectInit(
+    DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT        *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIPE_MODE_SELECT_CMD *pCmd);
+
+void DecodeEventDataCmdHcpSurfaceStateInit(
+    DECODE_EVENTDATA_CMD_HCPSURFACESTATE          *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_SURFACE_STATE_CMD    *pCmd);
+
+void DecodeEventDataCmdHcpPipeBufAddrStateInit(
+    DECODE_EVENTDATA_CMD_HCPPIPEBUFADDRSTATE         *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIPE_BUF_ADDR_STATE_CMD *pCmd,
+    PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS pParams);
+
+void DecodeEventDataCmdHcpIndObjBaseAddrStateInit(
+    DECODE_EVENTDATA_CMD_HCPINDOBJBASEADDRSTATE          *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD *pCmd);
+
+void DecodeEventDataCmdHcpVp9SegmentStateInit(
+    _DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE       *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_VP9_SEGMENT_STATE_CMD *pCmd);
+
+void DecodeEventDataCmdHcpVp9PicStateInit(
+    DECODE_EVENTDATA_CMD_HCPVP9PICSTATE        *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_VP9_PIC_STATE_CMD *pCmd);
+
 #endif

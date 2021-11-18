@@ -45,6 +45,7 @@
 #include <mutex>
 
 #define MOS_MAX_PERF_FILENAME_LEN 260
+#define EVENT_DECODE_DUMP_KEYWORD 0x100000
 
 class PerfUtility
 {
@@ -1650,6 +1651,8 @@ void MOS_TraceSetupInfo(
     uint32_t PlatFamily,
     uint32_t RenderFamily,
     uint32_t DeviceID);
+
+uint64_t MOS_GetTraceEventKeyword();
 
 //!
 //! \brief    MOS log trace event

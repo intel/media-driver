@@ -2823,6 +2823,11 @@ void MOS_TraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFam
     // not implemented
 }
 
+uint64_t MOS_GetTraceEventKeyword()
+{
+    return 0;
+}
+
 void MOS_TraceEvent(
     uint16_t         usId,
     uint8_t          ucType,

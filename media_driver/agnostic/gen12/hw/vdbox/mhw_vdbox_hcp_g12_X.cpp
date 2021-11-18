@@ -32,6 +32,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 #include "mhw_vdbox_g12_X.h"
 #include "mhw_mmio_g12.h"
 #include "mhw_sfc_g12_X.h"
+#include "mos_interface.h"
 
 static uint16_t RDOQLamdas8bits[2][2][2][52] = //[Intra Slice/Inter Slice][Intra/Inter][Luma/Chroma][QP]
 {
@@ -1452,6 +1453,15 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeModeSelectCmd(
         cmd.DW1.PrefetchDisable = 1;
     }
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    {
+        DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT eventData;
+        DecodeEventDataCmdHcpPipeModeSelectInit(&eventData, &cmd);
+        MOS_TraceEvent(EVENT_DECODE_CMD_HCP_PIPEMODESELECT, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
 
     // for Gen11+, we need to add MFX wait for both KIN and VRT before and after HCP Pipemode select...
@@ -1590,6 +1600,15 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodeSurfaceStateCmd(
         cmd->DW4.MemoryCompressionEnable = MmcEnable(params->mmcState) ? ((~params->mmcSkipMask) & 0xff) : 0;
         cmd->DW4.CompressionType         = MmcIsRc(params->mmcState) ? 0xff : 0;
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    {
+        DECODE_EVENTDATA_CMD_HCPSURFACESTATE eventData;
+        DecodeEventDataCmdHcpSurfaceStateInit(&eventData, cmd);
+        MOS_TraceEvent(EVENT_DECODE_CMD_HCP_SURFACESTATE, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
 
     return eStatus;
 }
@@ -2399,6 +2418,15 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
             &resourceParams));
     }
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    {
+        DECODE_EVENTDATA_CMD_HCPPIPEBUFADDRSTATE eventData;
+        DecodeEventDataCmdHcpPipeBufAddrStateInit(&eventData, &cmd, params);
+        MOS_TraceEvent(EVENT_DECODE_CMD_HCP_PIPEBUFADDRSTATE, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 
     return eStatus;
@@ -2443,6 +2471,15 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
             m_osInterface,
             cmdBuffer,
             &resourceParams));
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+        {
+            DECODE_EVENTDATA_CMD_HCPINDOBJBASEADDRSTATE eventData;
+            DecodeEventDataCmdHcpIndObjBaseAddrStateInit(&eventData, &cmd);
+            MOS_TraceEvent(EVENT_DECODE_CMD_HCP_INDOBJBASEADDRSTATE, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        }
+#endif
 
         resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
     }
@@ -3731,6 +3768,15 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateCmd(
         cmd.DW9.AltrefFrameHieghtInPixelsMinus1 = altRefFrameHeight - 1;
     }
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    {
+        DECODE_EVENTDATA_CMD_HCPVP9PICSTATE eventData;
+        DecodeEventDataCmdHcpVp9PicStateInit(&eventData, &cmd);
+        MOS_TraceEvent(EVENT_DECODE_CMD_HCP_PICSTATE_VP9, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+    }
+#endif
+
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
 
     return eStatus;
@@ -3983,6 +4029,15 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9SegmentStateCmd(
 
         cmd.DW6.ChromaDcQuantScaleDecodeModeOnly    = vp9SegData.ChromaDCQuantScale;
         cmd.DW6.ChromaAcQuantScaleDecodeModeOnly    = vp9SegData.ChromaACQuantScale;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+        {
+            DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE eventData;
+            DecodeEventDataCmdHcpVp9SegmentStateInit(&eventData, &cmd);
+            MOS_TraceEvent(EVENT_DECODE_CMD_HCP_SEGMENTSTATE_VP9, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        }
+#endif
     }
 
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, cmd.byteSize));
@@ -4452,4 +4507,242 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileCodingCmd(
     }
 
     return eStatus;
+}
+
+void DecodeEventDataCmdHcpPipeModeSelectInit(
+    DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT *       pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIPE_MODE_SELECT_CMD *pCmd)
+{
+    pEventData->DW0_Value                              = pCmd->DW0.Value;
+    pEventData->DW1_Value                              = pCmd->DW1.Value;
+    pEventData->DW2_Value                              = pCmd->DW2.Value;
+    pEventData->DW3_Value                              = pCmd->DW3.Value;
+    pEventData->DW4_Value                              = pCmd->DW4.Value;
+    pEventData->DW5_Value                              = pCmd->DW5.Value;
+    pEventData->DW6_Value                              = pCmd->DW6.Value;
+    pEventData->DW1_CodecSelect                        = pCmd->DW1.CodecSelect;
+    pEventData->DW1_DeblockerStreamoutEnable           = pCmd->DW1.DeblockerStreamoutEnable;
+    pEventData->DW1_PicStatusErrorReportEnable         = pCmd->DW1.PicStatusErrorReportEnable;
+    pEventData->DW1_CodecStandardSelect                = pCmd->DW1.CodecStandardSelect;
+    pEventData->DW1_MultiEngineMode                    = pCmd->DW1.MultiEngineMode;
+    pEventData->DW1_PipeWorkingMode                    = pCmd->DW1.PipeWorkingMode;
+    pEventData->DW1_PrefetchDisable                    = pCmd->DW1.PrefetchDisable;    
+    pEventData->DW2_MediaSoftResetCounterPer1000Clocks = pCmd->DW2.MediaSoftResetCounterPer1000Clocks;    
+    pEventData->DW6_PhaseIndicator                     = pCmd->DW6.PhaseIndicator;
+    pEventData->DW6_HevcSeparateTileProgramming        = pCmd->DW6.HevcSeparateTileProgramming;
+}
+
+void DecodeEventDataCmdHcpSurfaceStateInit(
+    DECODE_EVENTDATA_CMD_HCPSURFACESTATE       *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_SURFACE_STATE_CMD *pCmd)
+{
+    pEventData->DW0_Value                   = pCmd->DW0.Value;
+    pEventData->DW1_Value                   = pCmd->DW1.Value;
+    pEventData->DW2_Value                   = pCmd->DW2.Value;
+    pEventData->DW3_Value                   = pCmd->DW3.Value;
+    pEventData->DW4_Value                   = pCmd->DW4.Value;
+    pEventData->DW1_SurfaceId               = pCmd->DW1.SurfaceId;
+    pEventData->DW1_SurfacePitchMinus1      = pCmd->DW1.SurfacePitchMinus1;    
+    pEventData->DW2_YOffsetForUCbInPixel    = pCmd->DW2.YOffsetForUCbInPixel;
+    pEventData->DW2_SurfaceFormat           = pCmd->DW2.SurfaceFormat;    
+    pEventData->DW3_DefaultAlphaValue       = pCmd->DW3.DefaultAlphaValue;    
+    pEventData->DW4_MemoryCompressionEnable = pCmd->DW4.MemoryCompressionEnable;
+    pEventData->DW4_CompressionType         = pCmd->DW4.CompressionType;
+}
+
+void DecodeEventDataCmdHcpPipeBufAddrStateInit(
+    DECODE_EVENTDATA_CMD_HCPPIPEBUFADDRSTATE         *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIPE_BUF_ADDR_STATE_CMD *pCmd,
+    PMHW_VDBOX_PIPE_BUF_ADDR_PARAMS                   pParams)
+{
+    pEventData->DW0_Value                                   = pCmd->DW0.Value;
+    pEventData->DecodedPictureAllocationHandle              = MosInterface::GetResourceAllocationHandle(&pParams->psPreDeblockSurface->OsResource);
+    pEventData->DecodedPictureAddress_1                     = pCmd->DecodedPicture.DW0_1.Value[1];
+    pEventData->DecodedPictureAddress_0                     = pCmd->DecodedPicture.DW0_1.Value[0];
+    pEventData->DecodedPictureAttribute                     = pCmd->DecodedPictureMemoryAddressAttributes.DW0.Value;
+    pEventData->DecodedPictureMemoryCompressionEnable       = pCmd->DecodedPictureMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable;
+    pEventData->DecodedPictureCompressionType               = pCmd->DecodedPictureMemoryAddressAttributes.DW0.CompressionType;
+    pEventData->DecodedPictureTileMode                      = pCmd->DecodedPictureMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode;
+    pEventData->DeblockingFilterLineBufferAddress_1         = pCmd->DeblockingFilterLineBuffer.DW0_1.Value[1];
+    pEventData->DeblockingFilterLineBufferAddress_0         = pCmd->DeblockingFilterLineBuffer.DW0_1.Value[0];
+    pEventData->DeblockingFilterLineBufferAttribute         = pCmd->DeblockingFilterLineBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->DeblockingFilterTileLineBufferAddress_1     = pCmd->DeblockingFilterTileLineBuffer.DW0_1.Value[1];
+    pEventData->DeblockingFilterTileLineBufferAddress_0     = pCmd->DeblockingFilterTileLineBuffer.DW0_1.Value[0];
+    pEventData->DeblockingFilterTileLineBufferAttribute     = pCmd->DeblockingFilterTileLineBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->DeblockingFilterTileColumnBufferAddress_1   = pCmd->DeblockingFilterTileColumnBuffer.DW0_1.Value[1];
+    pEventData->DeblockingFilterTileColumnBufferAddress_0   = pCmd->DeblockingFilterTileColumnBuffer.DW0_1.Value[0];
+    pEventData->DeblockingFilterTileColumnBufferAttribute   = pCmd->DeblockingFilterTileColumnBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->MetadataLineBufferAddress_1                 = pCmd->MetadataLineBuffer.DW0_1.Value[1];
+    pEventData->MetadataLineBufferAddress_0                 = pCmd->MetadataLineBuffer.DW0_1.Value[0];
+    pEventData->MetadataLineBufferAttribute                 = pCmd->MetadataLineBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->MetadataTileLineBufferAddress_1             = pCmd->MetadataTileLineBuffer.DW0_1.Value[1];
+    pEventData->MetadataTileLineBufferAddress_0             = pCmd->MetadataTileLineBuffer.DW0_1.Value[0];
+    pEventData->MetadataTileLineBufferAttribute             = pCmd->MetadataTileLineBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->MetadataTileColumnBufferAddress_1           = pCmd->MetadataTileColumnBuffer.DW0_1.Value[1];
+    pEventData->MetadataTileColumnBufferAddress_0           = pCmd->MetadataTileColumnBuffer.DW0_1.Value[0];
+    pEventData->MetadataTileColumnBufferAttribute           = pCmd->MetadataTileColumnBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->SaoLineBufferAddress_1                      = pCmd->SaoLineBuffer.DW0_1.Value[1];
+    pEventData->SaoLineBufferAddress_0                      = pCmd->SaoLineBuffer.DW0_1.Value[0];
+    pEventData->SaoLineBufferAttribute                      = pCmd->SaoLineBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->SaoTileLineBufferAddress_1                  = pCmd->SaoTileLineBuffer.DW0_1.Value[1];
+    pEventData->SaoTileLineBufferAddress_0                  = pCmd->SaoTileLineBuffer.DW0_1.Value[0];
+    pEventData->SaoTileLineBufferAttribute                  = pCmd->SaoTileLineBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->SaoTileColumnBufferAddress_1                = pCmd->SaoTileColumnBuffer.DW0_1.Value[1];
+    pEventData->SaoTileColumnBufferAddress_0                = pCmd->SaoTileColumnBuffer.DW0_1.Value[0];
+    pEventData->SaoTileColumnBufferAttribute                = pCmd->SaoTileColumnBufferMemoryAddressAttributes.DW0.Value;
+    pEventData->CurrentMotionVectorTemporalBufferAddress_1  = pCmd->CurrentMotionVectorTemporalBuffer.DW0_1.Value[1];
+    pEventData->CurrentMotionVectorTemporalBufferAddress_0  = pCmd->CurrentMotionVectorTemporalBuffer.DW0_1.Value[0];
+    pEventData->CurrentMotionVectorTemporalBufferAttribute  = pCmd->CurrentMotionVectorTemporalBufferMemoryAddressAttributes.DW0.Value;
+    
+    for (int i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+    {
+        pEventData->ReferencePicture[i].hAllocation = pParams->presReferences[i] != NULL ? MosInterface::GetResourceAllocationHandle(pParams->presReferences[i]) : 0;
+        pEventData->ReferencePicture[i].Address_1   = pCmd->ReferencePictureBaseAddressRefaddr07[i].DW0_1.Value[1];
+        pEventData->ReferencePicture[i].Address_0   = pCmd->ReferencePictureBaseAddressRefaddr07[i].DW0_1.Value[0];
+    }    
+    pEventData->ReferencePictureAttribute = pCmd->ReferencePictureBaseAddressMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode;
+    
+    pEventData->StreamoutDataDestinationAddress_1 = pCmd->StreamoutDataDestination.DW0_1.Value[1];
+    pEventData->StreamoutDataDestinationAddress_0 = pCmd->StreamoutDataDestination.DW0_1.Value[0];
+    pEventData->StreamoutDataDestinationAttribute = pCmd->StreamoutDataDestinationMemoryAddressAttributes.DW0.Value;
+
+    for (int i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
+    {
+        pEventData->CollocatedMotionVector[i].hAllocation = pParams->presColMvTempBuffer[i] != NULL ? MosInterface::GetResourceAllocationHandle(pParams->presColMvTempBuffer[i]) : 0;
+        pEventData->CollocatedMotionVector[i].Address_1   = pCmd->CollocatedMotionVectorTemporalBuffer07[i].DW0_1.Value[1];
+        pEventData->CollocatedMotionVector[i].Address_0   = pCmd->CollocatedMotionVectorTemporalBuffer07[i].DW0_1.Value[0];
+    }
+    pEventData->CollocatedMotionVectorAttribute = pCmd->CollocatedMotionVectorTemporalBuffer07MemoryAddressAttributes.DW0.Value;
+
+    pEventData->Vp9ProbabilityAddress_1                      = pCmd->Vp9ProbabilityBufferReadWrite.DW0_1.Value[1];
+    pEventData->Vp9ProbabilityAddress_0                      = pCmd->Vp9ProbabilityBufferReadWrite.DW0_1.Value[0];
+    pEventData->Vp9ProbabilityAttribute                      = pCmd->Vp9ProbabilityBufferReadWriteMemoryAddressAttributes.DW0.Value;
+    pEventData->Vp9SegmentIdAddress_1                        = pCmd->DW86_87.Value[1];
+    pEventData->Vp9SegmentIdAddress_0                        = pCmd->DW86_87.Value[0];
+    pEventData->Vp9SegmentIdAttribute                        = pCmd->Vp9SegmentIdBufferReadWriteMemoryAddressAttributes.DW0.Value;
+    pEventData->Vp9HvdTileRowstoreAddress_1                  = pCmd->Vp9HvdTileRowstoreBufferReadWrite.DW0_1.Value[1];
+    pEventData->Vp9HvdTileRowstoreAddress_0                  = pCmd->Vp9HvdTileRowstoreBufferReadWrite.DW0_1.Value[0];
+    pEventData->Vp9HvdTileRowstoreAttribute                  = pCmd->Vp9HvdTileRowstoreBufferReadWriteMemoryAddressAttributes.DW0.Value;
+    pEventData->HcpScalabilitySliceStateAddress_1            = pCmd->HcpScalabilitySliceStateBufferBaseAddress.DW0_1.Value[1];
+    pEventData->HcpScalabilitySliceStateAddress_0            = pCmd->HcpScalabilitySliceStateBufferBaseAddress.DW0_1.Value[0];
+    pEventData->HcpScalabilitySliceStateAttribute            = pCmd->HcpScalabilitySliceStateBufferAttributesReadWrite.DW0.Value;
+
+    pEventData->HcpScalabilityCabacDecodedSyntaxAddress_1    = pCmd->HcpScalabilityCabacDecodedSyntaxElementsBufferBaseAddress.DW0_1.Value[1];
+    pEventData->HcpScalabilityCabacDecodedSyntaxAddress_0    = pCmd->HcpScalabilityCabacDecodedSyntaxElementsBufferBaseAddress.DW0_1.Value[0];
+    pEventData->HcpScalabilityCabacDecodedSyntaxAttribute    = pCmd->HcpScalabilityCabacDecodedSyntaxElementsBufferAttributesReadWrite.DW0.Value;
+    pEventData->MotionVectorUpperRightColumnAddress_1        = pCmd->MotionVectorUpperRightColumnStoreBufferBaseAddress.DW0_1.Value[1];
+    pEventData->MotionVectorUpperRightColumnAddress_0        = pCmd->MotionVectorUpperRightColumnStoreBufferBaseAddress.DW0_1.Value[0];
+    pEventData->MotionVectorUpperRightColumnAttribute        = pCmd->MotionVectorUpperRightColumnStoreBufferAttributesReadWrite.DW0.Value;
+    pEventData->IntraPredictionUpperRightColumnAddress_1     = pCmd->IntraPredictionUpperRightColumnStoreBufferBaseAddress.DW0_1.Value[1];
+    pEventData->IntraPredictionUpperRightColumnAddress_0     = pCmd->IntraPredictionUpperRightColumnStoreBufferBaseAddress.DW0_1.Value[0];
+    pEventData->IntraPredictionUpperRightColumnAttribute     = pCmd->IntraPredictionUpperRightColumnStoreBufferAttributesReadWrite.DW0.Value;
+    pEventData->IntraPredictionLeftReconColumnAddress_1      = pCmd->IntraPredictionLeftReconColumnStoreBufferBaseAddress.DW0_1.Value[1];
+    pEventData->IntraPredictionLeftReconColumnAddress_0      = pCmd->IntraPredictionLeftReconColumnStoreBufferBaseAddress.DW0_1.Value[0];
+    pEventData->IntraPredictionLeftReconColumnAttribute      = pCmd->IntraPredictionLeftReconColumnStoreBufferAttributesReadWrite.DW0.Value;
+    pEventData->HcpScalabilityCabacDecodedSyntaxMaxAddress_1 = pCmd->HcpScalabilityCabacDecodedSyntaxElementsBufferMaxAddress.DW0_1.Value[1];
+    pEventData->HcpScalabilityCabacDecodedSyntaxMaxAddress_0 = pCmd->HcpScalabilityCabacDecodedSyntaxElementsBufferMaxAddress.DW0_1.Value[0];
+}
+
+void DecodeEventDataCmdHcpIndObjBaseAddrStateInit(
+    DECODE_EVENTDATA_CMD_HCPINDOBJBASEADDRSTATE          *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD *pCmd)
+{
+    pEventData->DW0_Value                       = pCmd->DW0.Value;
+    pEventData->DW1_Value                       = pCmd->HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value[0];
+    pEventData->DW2_Value                       = pCmd->HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value[1];
+    pEventData->DW3_Value                       = pCmd->HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.Value;
+    pEventData->DW4_Value                       = pCmd->HcpIndirectBitstreamObjectAccessUpperBound.DW0_1.Value[0];
+    pEventData->DW5_Value                       = pCmd->HcpIndirectBitstreamObjectAccessUpperBound.DW0_1.Value[1];
+    pEventData->DW1_2_BitstreamBaseAddress_1    = pCmd->HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value[1];
+    pEventData->DW1_2_BitstreamBaseAddress_0    = pCmd->HcpIndirectBitstreamObjectBaseAddress.DW0_1.Value[0];    
+    pEventData->DW3_MemoryCompressionEnable     = pCmd->HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable;
+    pEventData->DW3_CompressionType             = pCmd->HcpIndirectBitstreamObjectMemoryAddressAttributes.DW0.CompressionType;
+    pEventData->DW4_5_BitstreamUpperAddress_1   = pCmd->HcpIndirectBitstreamObjectAccessUpperBound.DW0_1.Value[1];
+    pEventData->DW4_5_BitstreamUpperAddress_0   = pCmd->HcpIndirectBitstreamObjectAccessUpperBound.DW0_1.Value[0];
+}
+
+void DecodeEventDataCmdHcpVp9SegmentStateInit(
+    _DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE       *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_VP9_SEGMENT_STATE_CMD *pCmd)
+{
+    pEventData->DW0_Value                            = pCmd->DW0.Value;
+    pEventData->DW1_Value                            = pCmd->DW1.Value;
+    pEventData->DW2_Value                            = pCmd->DW2.Value;
+    pEventData->DW3_Value                            = pCmd->DW3.Value;
+    pEventData->DW4_Value                            = pCmd->DW4.Value;
+    pEventData->DW5_Value                            = pCmd->DW5.Value;
+    pEventData->DW6_Value                            = pCmd->DW6.Value;
+    pEventData->DW1_SegmentId                        = pCmd->DW1.SegmentId;    
+    pEventData->DW2_SegmentSkipped                   = pCmd->DW2.SegmentSkipped;         
+    pEventData->DW2_SegmentReference                 = pCmd->DW2.SegmentReference;  
+    pEventData->DW2_SegmentReferenceEnabled          = pCmd->DW2.SegmentReferenceEnabled;    
+    pEventData->DW3_Filterlevelref0Mode0             = pCmd->DW3.Filterlevelref0Mode0;
+    pEventData->DW3_Filterlevelref0Mode1             = pCmd->DW3.Filterlevelref0Mode1;
+    pEventData->DW3_Filterlevelref1Mode0             = pCmd->DW3.Filterlevelref1Mode0;
+    pEventData->DW3_Filterlevelref1Mode1             = pCmd->DW3.Filterlevelref1Mode1;    
+    pEventData->DW4_Filterlevelref2Mode0             = pCmd->DW4.Filterlevelref2Mode0;
+    pEventData->DW4_Filterlevelref2Mode1             = pCmd->DW4.Filterlevelref2Mode1;
+    pEventData->DW4_Filterlevelref3Mode0             = pCmd->DW4.Filterlevelref3Mode0;
+    pEventData->DW4_Filterlevelref3Mode1             = pCmd->DW4.Filterlevelref3Mode1;   
+    pEventData->DW5_LumaDcQuantScaleDecodeModeOnly   = pCmd->DW5.LumaDcQuantScaleDecodeModeOnly;
+    pEventData->DW5_LumaAcQuantScaleDecodeModeOnly   = pCmd->DW5.LumaAcQuantScaleDecodeModeOnly;    
+    pEventData->DW6_ChromaDcQuantScaleDecodeModeOnly = pCmd->DW6.ChromaDcQuantScaleDecodeModeOnly;
+    pEventData->DW6_ChromaAcQuantScaleDecodeModeOnly = pCmd->DW6.ChromaAcQuantScaleDecodeModeOnly;
+}
+
+void DecodeEventDataCmdHcpVp9PicStateInit(
+    DECODE_EVENTDATA_CMD_HCPVP9PICSTATE* pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_VP9_PIC_STATE_CMD *pCmd)
+{
+    pEventData->DW0_Value                               = pCmd->DW0.Value;
+    pEventData->DW1_Value                               = pCmd->DW1.Value;
+    pEventData->DW2_Value                               = pCmd->DW2.Value;
+    pEventData->DW3_Value                               = pCmd->DW3.Value;
+    pEventData->DW4_Value                               = pCmd->DW4.Value;
+    pEventData->DW5_Value                               = pCmd->DW5.Value;
+    pEventData->DW6_Value                               = pCmd->DW6.Value;
+    pEventData->DW7_Value                               = pCmd->DW7.Value;
+    pEventData->DW8_Value                               = pCmd->DW8.Value;
+    pEventData->DW9_Value                               = pCmd->DW9.Value;
+    pEventData->DW10_Value                              = pCmd->DW10.Value;
+    pEventData->DW1_FrameWidthInPixelsMinus1            = pCmd->DW1.FrameWidthInPixelsMinus1;
+    pEventData->DW1_FrameHeightInPixelsMinus1           = pCmd->DW1.FrameHeightInPixelsMinus1;    
+    pEventData->DW2_FrameType                           = pCmd->DW2.FrameType;
+    pEventData->DW2_AdaptProbabilitiesFlag              = pCmd->DW2.AdaptProbabilitiesFlag;
+    pEventData->DW2_IntraonlyFlag                       = pCmd->DW2.IntraonlyFlag;
+    pEventData->DW2_RefreshFrameContext                 = pCmd->DW2.RefreshFrameContext;
+    pEventData->DW2_ErrorResilientMode                  = pCmd->DW2.ErrorResilientMode;
+    pEventData->DW2_FrameParallelDecodingMode           = pCmd->DW2.FrameParallelDecodingMode;
+    pEventData->DW2_FilterLevel                         = pCmd->DW2.FilterLevel;
+    pEventData->DW2_SharpnessLevel                      = pCmd->DW2.SharpnessLevel;
+    pEventData->DW2_SegmentationEnabled                 = pCmd->DW2.SegmentationEnabled;
+    pEventData->DW2_SegmentationUpdateMap               = pCmd->DW2.SegmentationUpdateMap;
+    pEventData->DW2_LosslessMode                        = pCmd->DW2.LosslessMode;
+    pEventData->DW2_SegmentIdStreamoutEnable            = pCmd->DW2.SegmentIdStreamoutEnable;
+    pEventData->DW2_SegmentIdStreaminEnable             = pCmd->DW2.SegmentIdStreaminEnable;
+    pEventData->DW2_AllowHiPrecisionMv                  = pCmd->DW2.AllowHiPrecisionMv;  
+    pEventData->DW2_McompFilterType                     = pCmd->DW2.McompFilterType;    
+    pEventData->DW2_SegmentationTemporalUpdate          = pCmd->DW2.SegmentationTemporalUpdate;
+    pEventData->DW2_RefFrameSignBias02                  = pCmd->DW2.RefFrameSignBias02;
+    pEventData->DW2_LastFrameType                       = pCmd->DW2.LastFrameType;  
+    pEventData->DW2_UsePrevInFindMvReferences           = pCmd->DW2.UsePrevInFindMvReferences;    
+    pEventData->DW3_Log2TileRow                         = pCmd->DW3.Log2TileRow;
+    pEventData->DW3_Log2TileColumn                      = pCmd->DW3.Log2TileColumn;
+    pEventData->DW3_ChromaSamplingFormat                = pCmd->DW3.ChromaSamplingFormat;
+    pEventData->DW3_Bitdepthminus8                      = pCmd->DW3.Bitdepthminus8;
+    pEventData->DW3_ProfileLevel                        = pCmd->DW3.ProfileLevel;    
+    pEventData->DW4_HorizontalScaleFactorForLast        = pCmd->DW4.HorizontalScaleFactorForLast;
+    pEventData->DW4_VerticalScaleFactorForLast          = pCmd->DW4.VerticalScaleFactorForLast;    
+    pEventData->DW5_HorizontalScaleFactorForGolden      = pCmd->DW5.HorizontalScaleFactorForGolden;
+    pEventData->DW5_VerticalScaleFactorForGolden        = pCmd->DW5.VerticalScaleFactorForGolden;    
+    pEventData->DW6_HorizontalScaleFactorForAltref      = pCmd->DW6.HorizontalScaleFactorForAltref;
+    pEventData->DW6_VerticalScaleFactorForAltref        = pCmd->DW6.VerticalScaleFactorForAltref;    
+    pEventData->DW7_LastFrameWidthInPixelsMinus1        = pCmd->DW7.LastFrameWidthInPixelsMinus1;
+    pEventData->DW7_LastFrameHieghtInPixelsMinus1       = pCmd->DW7.LastFrameHieghtInPixelsMinus1;    
+    pEventData->DW8_GoldenFrameWidthInPixelsMinus1      = pCmd->DW8.GoldenFrameWidthInPixelsMinus1;
+    pEventData->DW8_GoldenFrameHieghtInPixelsMinus1     = pCmd->DW8.GoldenFrameHieghtInPixelsMinus1;
+    pEventData->DW9_AltrefFrameWidthInPixelsMinus1      = pCmd->DW9.AltrefFrameWidthInPixelsMinus1;
+    pEventData->DW9_AltrefFrameHieghtInPixelsMinus1     = pCmd->DW9.AltrefFrameHieghtInPixelsMinus1;
+    pEventData->DW10_UncompressedHeaderLengthInBytes7   = pCmd->DW10.UncompressedHeaderLengthInBytes70;
+    pEventData->DW10_FirstPartitionSizeInBytes150       = pCmd->DW10.FirstPartitionSizeInBytes150; 
 }

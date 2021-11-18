@@ -1203,6 +1203,22 @@ public:
         MOS_RESOURCE_HANDLE resource);
 
     //!
+    //! \brief    Get Resource Allocation Handle
+    //! \details  [Resource Interface] Get the allocation handle of a graphic resource.
+    //! \details  Caller: MHW Only
+    //! \details  This interface gets the read-only detailed info of a graphic resource.
+    //!           Any modification of details provided by this interface will not impact the actual resource.
+    //!
+    //! \param    [in] resource
+    //!           MOS Resource handle of the allocated resource.
+    //!
+    //! \return   uint32_t
+    //!           Allocation Handle. 0 if execution failed.
+    //!
+    static uint32_t GetResourceAllocationHandle(
+        MOS_RESOURCE_HANDLE resource);
+
+    //!
     //! \brief    Get Resource Allocation index
     //! \details  [Resource Interface] Get the allocation index of the resource.
     //! \details  Caller: MHW only
