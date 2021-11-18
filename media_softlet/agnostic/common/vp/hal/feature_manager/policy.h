@@ -143,6 +143,7 @@ protected:
     virtual bool IsExcludedFeatureForHdr(FeatureType feature);
 
     virtual MOS_STATUS FilterFeatureCombination(SwFilterPipe &pipe, bool isInputPipe, uint32_t index);
+    MOS_STATUS AddCommonFilters(SwFilterSubPipe &swFilterSubPipe, VP_SURFACE *input, VP_SURFACE *outputs);
 
     virtual bool IsVeboxSecurePathEnabled(SwFilterPipe& subSwFilterPipe, VP_EXECUTE_CAPS& caps)
     {

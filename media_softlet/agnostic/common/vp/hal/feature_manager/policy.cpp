@@ -2414,7 +2414,53 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
             {
                 surfInput = featurePipe.RemoveSurface(true, layerIndexes[i]);
             }
+
+            auto swFilterSubPipe = featurePipe.GetSwFilterSubPipe(true, layerIndexes[0]);
+            VP_PUBLIC_CHK_NULL_RETURN(swFilterSubPipe);
+
+            VP_SURFACE *output = featurePipe.GetSurface(false, 0);
+            VP_PUBLIC_CHK_NULL_RETURN(output);
+
+            // swFilters will be updated later in Policy::BuildExecuteFilter.
+            VP_PUBLIC_CHK_STATUS_RETURN(AddCommonFilters(*swFilterSubPipe, input, output));
         }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::AddCommonFilters(SwFilterSubPipe &swFilterSubPipe, VP_SURFACE *input, VP_SURFACE *output)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(input);
+    VP_PUBLIC_CHK_NULL_RETURN(output);
+
+    FeatureType featureList[] = { FeatureTypeScaling };
+    int32_t featureCount = sizeof(featureList) / sizeof(featureList[0]);
+    VP_EXECUTE_CAPS caps = {};
+
+    for (int32_t i = 0; i < featureCount; ++i)
+    {
+        FeatureType featureType = featureList[i];
+
+        SwFilter *swFilter = swFilterSubPipe.GetSwFilter(featureType);
+        if (nullptr != swFilter)
+        {
+            continue;
+        }
+
+        VP_PUBLIC_NORMALMESSAGE("Feature %d is added.", FeatureTypeScaling);
+
+        caps.value = 0;
+
+        SwFilterFeatureHandler *handler = m_vpInterface.GetSwFilterHandler(featureType);
+        VP_PUBLIC_CHK_NULL_RETURN(handler);
+        swFilter = handler->CreateSwFilter();
+        VP_PUBLIC_CHK_NULL_RETURN(swFilter);
+
+        VP_PUBLIC_CHK_STATUS_RETURN(swFilter->Configure(input, output, caps));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(swFilterSubPipe.AddSwFilterUnordered(swFilter));
     }
 
     return MOS_STATUS_SUCCESS;

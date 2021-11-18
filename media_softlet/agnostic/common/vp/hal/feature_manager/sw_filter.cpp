@@ -409,6 +409,11 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         m_Params.output.dwHeight *= 2;
     }
 
+    VP_PUBLIC_NORMALMESSAGE("Configure scaling parameters by VP_PIPELINE_PARAMS: intput %d x %d, output %d x %d, (%d, %d, %d, %d) -> (%d, %d, %d, %d)",
+        m_Params.input.dwWidth, m_Params.input.dwHeight, m_Params.output.dwWidth, m_Params.output.dwHeight,
+        m_Params.input.rcSrc.left, m_Params.input.rcSrc.top, m_Params.input.rcSrc.right, m_Params.input.rcSrc.bottom,
+        m_Params.input.rcDst.left, m_Params.input.rcDst.top, m_Params.input.rcDst.right, m_Params.input.rcDst.bottom);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -456,6 +461,59 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
         RECT_ROTATE(m_Params.output.rcDst, recOutput);
         RECT_ROTATE(m_Params.output.rcMaxSrc, recOutput);
     }
+
+    VP_PUBLIC_NORMALMESSAGE("Configure scaling parameters by VEBOX_SFC_PARAMS: intput %d x %d, output %d x %d, (%d, %d, %d, %d) -> (%d, %d, %d, %d)",
+        m_Params.input.dwWidth, m_Params.input.dwHeight, m_Params.output.dwWidth, m_Params.output.dwHeight,
+        m_Params.input.rcSrc.left, m_Params.input.rcSrc.top, m_Params.input.rcSrc.right, m_Params.input.rcSrc.bottom,
+        m_Params.input.rcDst.left, m_Params.input.rcDst.top, m_Params.input.rcDst.right, m_Params.input.rcDst.bottom);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterScaling::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS caps)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(surfInput);
+    VP_PUBLIC_CHK_NULL_RETURN(surfInput->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
+    VP_PUBLIC_CHK_NULL_RETURN(surfOutput->osSurface);
+
+    m_Params.type                       = FeatureTypeScaling;
+    m_Params.formatInput                = surfInput->osSurface->Format;
+    m_Params.formatOutput               = surfOutput->osSurface->Format;
+
+    m_Params.input.dwWidth              = surfInput->osSurface->dwWidth;
+    m_Params.input.dwHeight             = surfInput->osSurface->dwHeight;
+    m_Params.input.rcSrc                = surfInput->rcSrc;
+    m_Params.input.rcDst                = surfInput->rcDst;
+    m_Params.input.rcMaxSrc             = surfInput->rcMaxSrc;
+    m_Params.input.sampleType           = surfInput->SampleType;
+
+    m_Params.rotation.rotationNeeded    = false;
+    m_Params.output.dwWidth             = surfOutput->osSurface->dwWidth;
+    m_Params.output.dwHeight            = surfOutput->osSurface->dwHeight;
+    m_Params.output.rcSrc               = surfOutput->rcSrc;
+    m_Params.output.rcDst               = surfOutput->rcDst;
+    m_Params.output.rcMaxSrc            = surfOutput->rcMaxSrc;
+    m_Params.output.sampleType          = surfOutput->SampleType;
+
+    m_Params.isPrimary                  = SURF_IN_PRIMARY == surfInput->SurfType;
+    m_Params.scalingMode                = VPHAL_SCALING_NEAREST;
+    m_Params.scalingPreference          = VPHAL_SCALING_PREFER_SFC;
+
+    m_Params.interlacedScalingType      = ISCALING_NONE;
+    m_Params.pColorFillParams           = nullptr;
+    m_Params.pCompAlpha                 = nullptr;
+    m_Params.bDirectionalScalar         = false;
+
+    m_Params.csc.colorSpaceOutput       = surfOutput->ColorSpace;
+    m_Params.rotation.rotationNeeded    = false;
+
+    VP_PUBLIC_NORMALMESSAGE("Configure scaling parameters by Surfaces: intput %d x %d, output %d x %d, (%d, %d, %d, %d) -> (%d, %d, %d, %d)",
+        m_Params.input.dwWidth, m_Params.input.dwHeight, m_Params.output.dwWidth, m_Params.output.dwHeight,
+        m_Params.input.rcSrc.left, m_Params.input.rcSrc.top, m_Params.input.rcSrc.right, m_Params.input.rcSrc.bottom,
+        m_Params.input.rcDst.left, m_Params.input.rcDst.top, m_Params.input.rcDst.right, m_Params.input.rcDst.bottom);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -568,6 +626,11 @@ MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
 
     // update source sample type for field to interleaved mode.
     m_Params.input.sampleType       = inputSurf->SampleType;
+
+    VP_PUBLIC_NORMALMESSAGE("Update scaling parameters: intput %d x %d, output %d x %d, (%d, %d, %d, %d) -> (%d, %d, %d, %d)",
+        m_Params.input.dwWidth, m_Params.input.dwHeight, m_Params.output.dwWidth, m_Params.output.dwHeight,
+        m_Params.input.rcSrc.left, m_Params.input.rcSrc.top, m_Params.input.rcSrc.right, m_Params.input.rcSrc.bottom,
+        m_Params.input.rcDst.left, m_Params.input.rcDst.top, m_Params.input.rcDst.right, m_Params.input.rcDst.bottom);
 
     return MOS_STATUS_SUCCESS;
 }

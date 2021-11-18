@@ -174,6 +174,11 @@ public:
     }
 
     virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps);
+
+    // true to force all layer to use bilinear if bilinear is needed by any layer.
+    // false to use nearest or bilinear based on the requirement of each layer.
+    static bool s_forceNearestToBilinearIfBilinearExists;
+
 private:
     MOS_STATUS RemoveTransparentLayers(SwFilterPipe& featurePipe);
     virtual MOS_STATUS AddInputLayerForProcess(bool &bSkip, std::vector<int> &layerIndexes, VPHAL_SCALING_MODE &scalingMode, int index, VP_SURFACE &input, SwFilterSubPipe& pipe, VP_SURFACE &output, VP_EXECUTE_CAPS& caps);
@@ -201,10 +206,6 @@ private:
             sampler  = VP_COMP_MAX_SAMPLER;
         }
     } m_resCounter = {};
-
-    // true to force all layer to use bilinear if bilinear is needed by any layer.
-    // false to use nearest or bilinear based on the requirement of each layer.
-    static bool s_forceNearestToBilinearIfBilinearExists;
 
 MEDIA_CLASS_DEFINE_END(PolicyFcHandler)
 };

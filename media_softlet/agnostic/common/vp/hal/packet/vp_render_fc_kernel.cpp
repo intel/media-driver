@@ -1357,6 +1357,8 @@ MOS_STATUS Set3DSamplerStatus(
         VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
+    // When the bit being set to 1, the items of samplerIndex 4, 5, 6 will be used, otherwise
+    // the items of samplerIndex 1, 2, 3 will be used.
     if (VPHAL_SCALING_BILINEAR == layer.scalingMode)
     {
         curbeData.DW14.Sampler3DStateSetSelection |= (1 << layer.layerID);

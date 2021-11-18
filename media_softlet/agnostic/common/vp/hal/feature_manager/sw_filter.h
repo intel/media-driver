@@ -447,6 +447,7 @@ public:
     virtual MOS_STATUS Clean();
     virtual MOS_STATUS Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex);
     virtual MOS_STATUS Configure(VEBOX_SFC_PARAMS &params);
+    virtual MOS_STATUS Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS caps);
     virtual FeatureParamScaling &GetSwFilterParams();
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
