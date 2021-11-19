@@ -1132,7 +1132,7 @@ MOS_STATUS VpRenderFcKernel::GetKernelEntry(Kdll_CacheEntry &entry)
         auto matrixId = (uint8_t)DL_CSC_DISABLED == pCscParams->MatrixID[CoeffID_0] ?
             pCscParams->MatrixID[CoeffID_1] : pCscParams->MatrixID[CoeffID_0];
 
-        if ((uint8_t)DL_CSC_DISABLED != matrixId)
+        if ((uint8_t)DL_CSC_DISABLED != matrixId && matrixId >= 0 && matrixId < DL_CSC_MAX)
         {
             auto pMatrix    = &pCscParams->Matrix[matrixId];
             kernelDllState->colorfill_cspace = kernelEntry->colorfill_cspace;
@@ -1142,6 +1142,10 @@ MOS_STATUS VpRenderFcKernel::GetKernelEntry(Kdll_CacheEntry &entry)
             {
                 kernelEntryUpdate = (m_Procamp[pMatrix->iProcampID].iProcampVersion != pMatrix->iProcampVersion) ? true : false;
             }
+        }
+        else
+        {
+            VPHAL_RENDER_NORMALMESSAGE("Array Index Out of Bounds.");
         }
     }
 

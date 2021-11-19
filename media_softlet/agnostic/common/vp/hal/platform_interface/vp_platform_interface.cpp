@@ -93,7 +93,10 @@ MOS_STATUS VpRenderKernel::InitVPKernel(
         MOS_SafeFreeMemory(pKernelBin);
         MOS_SafeFreeMemory(pFcPatchBin);
     }
-    KernelDll_SetupFunctionPointers_Ext(m_kernelDllState);
+    else
+    {
+        KernelDll_SetupFunctionPointers_Ext(m_kernelDllState);
+    }
 
     SetKernelName(VpRenderKernel::s_kernelNameNonAdvKernels);
 
