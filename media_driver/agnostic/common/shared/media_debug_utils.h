@@ -109,6 +109,7 @@ static const char *attrHuCStitchDataBuf       = "HuCStitchDataBuffer";
 static const char *attrInitSWScoreboard       = "InitSWScoreboard";
 static const char *attrSfcHistogram           = "SfcHistogram";
 static const char *attrFilmGrain              = "FilmGrain";
+static const char *attrQualityReport          = "QualityReport";
 
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";
