@@ -606,12 +606,6 @@ public:
     {
         _MHW_SETCMD_CALLBASE(MFX_WAIT);
 
-         if (this->m_currentCmdBuf == nullptr && this->m_currentBatchBuf == nullptr)
-        {
-            MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
-            return MOS_STATUS_NULL_POINTER;
-        }
-
         cmd.DW0.MfxSyncControlFlag = params.iStallVdboxPipeline;
 
         // set the protection bit based on CP status
