@@ -1057,7 +1057,7 @@ static VAStatus CreateShadowResource(DDI_MEDIA_SURFACE *surface)
         return VA_STATUS_ERROR_INVALID_SURFACE;
     }
 
-    if (surface->iWidth <= 512 || surface->iRealHeight <= 512 || surface->format == Media_Format_P016)
+    if (surface->iWidth < 64 || surface->iRealHeight < 64 || (surface->iPitch % 64 != 0) || surface->format == Media_Format_P016)
     {
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
@@ -1103,6 +1103,7 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
     MOS_CONTEXT mosCtx = { };
     PERF_DATA perfData = { };
     PDDI_MEDIA_CONTEXT mediaDrvCtx = surface->pMediaCtx;
+    VAStatus vaStatus = VA_STATUS_SUCCESS;
 
     // Get the buf manager for codechal create
     mosCtx.bufmgr          = mediaDrvCtx->pDrmBufMgr;
@@ -1140,7 +1141,8 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
         DdiMedia_MediaBufferToMosResource(surface->pShadowBuffer, &target);
     }
 
-    return mediaDrvCtx->pfnMediaMemoryTileConvert(
+    DdiMediaUtil_LockMutex(&mediaDrvCtx->MemDecompMutex);
+    vaStatus = mediaDrvCtx->pfnMediaMemoryTileConvert(
             &mosCtx,
             &source,
             &target,
@@ -1150,181 +1152,227 @@ static VAStatus SwizzleSurfaceByHW(DDI_MEDIA_SURFACE *surface, bool isDeSwizzle 
             0,
             !isDeSwizzle,
             false);
+    DdiMediaUtil_UnLockMutex(&mediaDrvCtx->MemDecompMutex);
+    return vaStatus;
+}
+
+void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE* surface, uint32_t flag)
+{
+    DDI_CHK_NULL(surface, "nullptr surface", nullptr);
+    DDI_CHK_NULL(surface->pMediaCtx, "nullptr surface->pMediaCtx", nullptr);
+    if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
+    {
+        if ((MOS_AtomicIncrement(&surface->iRefCount) == 1) && (false == surface->bMapped))
+        {
+           return  DdiMediaUtil_LockSurfaceInternal(surface, flag);
+        }
+        else
+        {
+            DDI_VERBOSEMESSAGE("line %d, invalide operation for lockSurface. the surface reference count = %d", __LINE__, surface->iRefCount);
+        }
+    }
+    else
+    {
+         if ((surface->iRefCount == 0) && (false == surface->bMapped))
+         {
+             DdiMediaUtil_LockSurfaceInternal(surface, flag);
+         }
+         else
+         {
+             // do nothing here
+         }
+         surface->iRefCount++;
+    }
+
+    return surface->pData;
+
 }
 
 // add thread protection for multiple thread?
-void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
+void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t flag)
 {
     DDI_CHK_NULL(surface, "nullptr surface", nullptr);
     DDI_CHK_NULL(surface->bo, "nullptr surface->bo", nullptr);
-    if((false == surface->bMapped) && (0 == surface->iRefCount))
+
+    if (surface->pMediaCtx->bIsAtomSOC)
     {
-        if (surface->pMediaCtx->bIsAtomSOC)
+        mos_gem_bo_map_gtt(surface->bo);
+    }
+    else
+    {
+        if (surface->TileType == I915_TILING_NONE)
+        {
+            mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+        }
+        else if ((surface->pMediaCtx->m_useSwSwizzling) && !(flag & MOS_LOCKFLAG_NO_SWIZZLE))
+        {
+            uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
+            DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
+            DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
+
+            VAStatus vaStatus = VA_STATUS_SUCCESS;
+            if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
+            {
+                if (surface->pShadowBuffer == nullptr)
+                {
+                    CreateShadowResource(surface);
+                }
+
+                if (surface->pShadowBuffer != nullptr)
+                {
+                    vaStatus = SwizzleSurfaceByHW(surface);
+                    int err = 0;
+                    if (vaStatus == VA_STATUS_SUCCESS)
+                    {
+                        err = mos_bo_map(surface->pShadowBuffer->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+                    }
+
+                    if (vaStatus != VA_STATUS_SUCCESS || err != 0)
+                    {
+                        DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
+                        MOS_FreeMemory(surface->pShadowBuffer);
+                        surface->pShadowBuffer = nullptr;
+                    }
+                }
+            }
+
+            mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+
+            if (surface->pShadowBuffer == nullptr)
+            {
+                if (surface->pSystemShadow == nullptr)
+                {
+                    surface->pSystemShadow = (uint8_t*)MOS_AllocMemory(surface->bo->size);
+                    DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
+                }
+
+                vaStatus = SwizzleSurface(surface->pMediaCtx,
+                                                   surface->pGmmResourceInfo,
+                                                   surface->bo->virt,
+                                                   (MOS_TILE_TYPE)surface->TileType,
+                                                   (uint8_t *)surface->pSystemShadow,
+                                                   false);
+                DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
+            }
+
+        }
+        else if (flag & MOS_LOCKFLAG_NO_SWIZZLE)
+        {
+            mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_READONLY);
+        }
+        else if (flag & MOS_LOCKFLAG_WRITEONLY)
         {
             mos_gem_bo_map_gtt(surface->bo);
         }
         else
         {
-            if (surface->TileType == I915_TILING_NONE)
-            {
-                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
-            }
-            else if ((surface->pMediaCtx->m_useSwSwizzling) && !(flag & MOS_LOCKFLAG_NO_SWIZZLE))
-            {
-                uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
-                DDI_CHK_CONDITION((surface->TileType != I915_TILING_Y), "Unsupported tile type", nullptr);
-                DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
-
-                VAStatus vaStatus = VA_STATUS_SUCCESS;
-                if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
-                {
-                    if (surface->pShadowBuffer == nullptr)
-                    {
-                        CreateShadowResource(surface);
-                    }
-
-                    if (surface->pShadowBuffer != nullptr)
-                    {
-                        vaStatus = SwizzleSurfaceByHW(surface);
-                        int err = 0;
-                        if (vaStatus == VA_STATUS_SUCCESS)
-                        {
-                            err = mos_bo_map(surface->pShadowBuffer->bo, flag & MOS_LOCKFLAG_WRITEONLY);
-                        }
-
-                        if (vaStatus != VA_STATUS_SUCCESS || err != 0)
-                        {
-                            DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
-                            MOS_FreeMemory(surface->pShadowBuffer);
-                            surface->pShadowBuffer = nullptr;
-                        }
-                    }
-                }
-
-                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
-
-                if (surface->pShadowBuffer == nullptr)
-                {
-                    if (surface->pSystemShadow == nullptr)
-                    {
-                        surface->pSystemShadow = (uint8_t*)MOS_AllocMemory(surface->bo->size);
-                        DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
-                    }
-
-                    vaStatus = SwizzleSurface(surface->pMediaCtx,
-                                                       surface->pGmmResourceInfo,
-                                                       surface->bo->virt,
-                                                       (MOS_TILE_TYPE)surface->TileType,
-                                                       (uint8_t *)surface->pSystemShadow,
-                                                       false);
-                    DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
-                }
-
-            }
-            else if (flag & MOS_LOCKFLAG_NO_SWIZZLE)
-            {
-                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_READONLY);
-            }
-            else if (flag & MOS_LOCKFLAG_WRITEONLY)
-            {
-                mos_gem_bo_map_gtt(surface->bo);
-            }
-            else
-            {
-                mos_gem_bo_map_unsynchronized(surface->bo);     // only call mmap_gtt ioctl
-                mos_gem_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
-            }
+            mos_gem_bo_map_unsynchronized(surface->bo);     // only call mmap_gtt ioctl
+            mos_gem_bo_start_gtt_access(surface->bo, 0);    // set to GTT domain,0 means readonly
         }
-        surface->uiMapFlag = flag;
-        if (surface->pShadowBuffer)
-        {
-            surface->pData = (uint8_t *)surface->pShadowBuffer->bo->virt;
-        }
-        else if (surface->pSystemShadow)
-        {
-            surface->pData = surface->pSystemShadow;
-        }
-        else
-        {
-            surface->pData = (uint8_t*) surface->bo->virt;
-        }
-        surface->data_size = surface->bo->size;
-        surface->bMapped = true;
+    }
+    surface->uiMapFlag = flag;
+    if (surface->pShadowBuffer)
+    {
+        surface->pData = (uint8_t *)surface->pShadowBuffer->bo->virt;
+    }
+    else if (surface->pSystemShadow)
+    {
+        surface->pData = surface->pSystemShadow;
     }
     else
     {
-        // do nothing here
+        surface->pData = (uint8_t*) surface->bo->virt;
     }
-    surface->iRefCount++;
+    surface->data_size = surface->bo->size;
+    surface->bMapped = true;
 
     return surface->pData;
 }
 
-void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE  *surface)
+void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE *surface)
 {
     DDI_CHK_NULL(surface, "nullptr surface", );
-    DDI_CHK_NULL(surface->bo, "nullptr surface->bo", );
+    DDI_CHK_NULL(surface->pMediaCtx, "nullptr surface->pMediaCtx", );
     if (0 == surface->iRefCount)
-        return;
+     return;
 
-    if((true == surface->bMapped) && (1 == surface->iRefCount))
+    if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
     {
-        if (surface->pMediaCtx->bIsAtomSOC)
+        if (MOS_AtomicDecrement(&surface->iRefCount) == 0 && (true == surface->bMapped))
         {
-            mos_gem_bo_unmap_gtt(surface->bo);
+            DdiMediaUtil_UnlockSurfaceInternal(surface);
         }
         else
         {
-            if (surface->TileType == I915_TILING_NONE)
-            {
-               mos_bo_unmap(surface->bo);
-            }
-            else if (surface->pShadowBuffer != nullptr)
-            {
-                SwizzleSurfaceByHW(surface, true);
-
-                mos_bo_unmap(surface->pShadowBuffer->bo);
-                DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
-                MOS_FreeMemory(surface->pShadowBuffer);
-                surface->pShadowBuffer = nullptr;
-
-                mos_bo_unmap(surface->bo);
-            }
-            else if (surface->pSystemShadow)
-            {
-                SwizzleSurface(surface->pMediaCtx,
-                               surface->pGmmResourceInfo,
-                               surface->bo->virt,
-                               (MOS_TILE_TYPE)surface->TileType,
-                               (uint8_t *)surface->pSystemShadow,
-                               true);
-
-                MOS_FreeMemory(surface->pSystemShadow);
-                surface->pSystemShadow = nullptr;
-
-                mos_bo_unmap(surface->bo);
-            }
-            else if(surface->uiMapFlag & MOS_LOCKFLAG_NO_SWIZZLE)
-            {
-                mos_bo_unmap(surface->bo);
-            }
-            else
-            {
-               mos_gem_bo_unmap_gtt(surface->bo);
-            }
+            DDI_VERBOSEMESSAGE("invalide operation for unlockSurface. the surface reference count = %d", surface->iRefCount);
         }
-        surface->pData       = nullptr;
-        surface->bo->virt    = nullptr;
-        surface->bMapped     = false;
     }
     else
     {
-        // do nothing here
+        if ((surface->iRefCount = 1) && (true == surface->bMapped))
+        {
+           DdiMediaUtil_UnlockSurfaceInternal(surface);
+        }
+        else
+        {
+           DDI_VERBOSEMESSAGE("invalide operation for unlockSurface. the surface reference count = %d", surface->iRefCount);
+        }
+        surface->iRefCount --;
     }
+}
 
-    surface->iRefCount--;
+void DdiMediaUtil_UnlockSurfaceInternal(DDI_MEDIA_SURFACE  *surface)
+{
+    DDI_CHK_NULL(surface, "nullptr surface",);
+    DDI_CHK_NULL(surface->bo, "nullptr surface->bo", );
 
-    return;
+    if (surface->pMediaCtx->bIsAtomSOC)
+    {
+        mos_gem_bo_unmap_gtt(surface->bo);
+    }
+    else
+    {
+        if (surface->TileType == I915_TILING_NONE)
+        {
+           mos_bo_unmap(surface->bo);
+        }
+        else if (surface->pShadowBuffer != nullptr)
+        {
+            SwizzleSurfaceByHW(surface, true);
+
+            mos_bo_unmap(surface->pShadowBuffer->bo);
+            DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
+            MOS_FreeMemory(surface->pShadowBuffer);
+            surface->pShadowBuffer = nullptr;
+
+            mos_bo_unmap(surface->bo);
+        }
+        else if (surface->pSystemShadow)
+        {
+            SwizzleSurface(surface->pMediaCtx,
+                           surface->pGmmResourceInfo,
+                           surface->bo->virt,
+                           (MOS_TILE_TYPE)surface->TileType,
+                           (uint8_t *)surface->pSystemShadow,
+                           true);
+
+            MOS_FreeMemory(surface->pSystemShadow);
+            surface->pSystemShadow = nullptr;
+
+            mos_bo_unmap(surface->bo);
+        }
+        else if(surface->uiMapFlag & MOS_LOCKFLAG_NO_SWIZZLE)
+        {
+            mos_bo_unmap(surface->bo);
+        }
+        else
+        {
+           mos_gem_bo_unmap_gtt(surface->bo);
+        }
+    }
+    surface->pData       = nullptr;
+    surface->bo->virt    = nullptr;
+    surface->bMapped     = false;
 }
 
 // add thread protection for multiple thread?
@@ -1420,7 +1468,6 @@ void DdiMediaUtil_UnlockBuffer(DDI_MEDIA_BUFFER *buf)
         // do nothing here
     }
     buf->iRefCount--;
-    return;
 }
 
 // should ref_count added for bo?
