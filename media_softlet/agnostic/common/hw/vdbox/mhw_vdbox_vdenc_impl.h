@@ -564,10 +564,12 @@ protected:
                 resourceParams.pdwCmd          = (uint32_t *)&fwdRefs[refIdx]->LowerAddress;
                 resourceParams.HwCommandType   = MOS_VDENC_PIPE_BUF_ADDR;
 
+                uint8_t mmcSkip = (params.mmcSkipMask) & (1 << refIdx);
+
                 auto mmcMode = (params.mmcStatePostDeblock != MOS_MEMCOMP_DISABLED) ? params.mmcStatePostDeblock : params.mmcStatePreDeblock;
 
-                fwdRefs[refIdx]->PictureFields.DW0.MemoryCompressionEnable = MmcEnabled(mmcMode);
-                fwdRefs[refIdx]->PictureFields.DW0.CompressionType         = MmcRcEnabled(mmcMode);
+                fwdRefs[refIdx]->PictureFields.DW0.MemoryCompressionEnable = mmcSkip ? 0 : MmcEnabled(mmcMode);
+                fwdRefs[refIdx]->PictureFields.DW0.CompressionType         = mmcSkip ? MOS_MEMCOMP_DISABLED : MmcRcEnabled(mmcMode);
                 fwdRefs[refIdx]->PictureFields.DW0.CompressionFormat = params.compressionFormatRecon;
 
                 InitMocsParams(resourceParams, &fwdRefs[refIdx]->PictureFields.DW0.Value, 1, 6);
