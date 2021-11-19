@@ -30,6 +30,9 @@
 #include "mhw_mi_hwcmd_g12_X.h"
 #include "mhw_render_hwcmd_g12_X.h"
 #include "mhw_vdbox_avp_interface.h"
+#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+#include "media_interfaces_mhw_next.h"
+#endif
 
 //!
 //! \enum MediaStatesAv1FilmGrain
@@ -62,6 +65,17 @@ public:
         CODECHAL_FUNCTION codecFunction,
         MhwInterfaces     *mhwInterfaces,
         bool              disableScalability = false);
+
+#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+    //!
+    //! \brief    Constructor
+    //!
+    CodechalHwInterfaceG12(
+        PMOS_INTERFACE    osInterface,
+        CODECHAL_FUNCTION codecFunction,
+        MhwInterfacesNext *mhwInterfacesNext,
+        bool              disableScalability = false);
+#endif
 
     //!
     //! \brief    Copy constructor
@@ -206,5 +220,11 @@ public:
     virtual MOS_STATUS GetFilmGrainKernelInfo(
                 uint8_t*    &kernelBase,
                 uint32_t    &kernelSize) override;
+
+private:
+    //!
+    //! \brief    Called by constructor
+    //!
+    void PrepareCmdSize(CODECHAL_FUNCTION codecFunction);
 };
 #endif // __CODECHAL_HW_G12_X_H__
