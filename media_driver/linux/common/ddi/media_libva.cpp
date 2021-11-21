@@ -1740,6 +1740,10 @@ VAStatus DdiMedia_InitMediaContext (
     ctx->pDriverData = (void *)mediaCtx;
     mediaCtx->fd     = devicefd;
 
+    MOS_CONTEXT mosCtx     = {};
+    mosCtx.fd              = mediaCtx->fd;
+    MosInterface::InitOsUtilities(&mosCtx);
+
     mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd);
 
 #ifdef _MMC_SUPPORTED
@@ -1752,11 +1756,9 @@ VAStatus DdiMedia_InitMediaContext (
 
     if (mediaCtx->m_apoMosEnabled)
     {
-        MOS_CONTEXT mosCtx     = {};
         mosCtx.fd              = mediaCtx->fd;
         mosCtx.m_apoMosEnabled = mediaCtx->m_apoMosEnabled;
 
-        MosInterface::InitOsUtilities(&mosCtx);
         MosOcaInterfaceSpecific::InitInterface();
 
         mediaCtx->pGtSystemInfo = (MEDIA_SYSTEM_INFO *)MOS_AllocAndZeroMemory(sizeof(MEDIA_SYSTEM_INFO));
@@ -1796,44 +1798,6 @@ VAStatus DdiMedia_InitMediaContext (
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
     {
-        // prepare m_osContext
-        MosUtilities::MosUtilitiesInit(nullptr);
-        //Read user feature key here for Per Utility Tool Enabling
-
-        if (!g_perfutility->bPerfUtilityKey)
-        {
-            MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-            MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-            MOS_UserFeature_ReadValue_ID(
-                NULL,
-                __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE_ID,
-                &UserFeatureData,
-                nullptr);
-            g_perfutility->dwPerfUtilityIsEnabled = UserFeatureData.i32Data;
-
-            char                        sFilePath[MOS_MAX_PERF_FILENAME_LEN + 1] = "";
-            MOS_USER_FEATURE_VALUE_DATA perfFilePath;
-            MOS_STATUS                  eStatus_Perf = MOS_STATUS_SUCCESS;
-
-            MOS_ZeroMemory(&perfFilePath, sizeof(perfFilePath));
-            perfFilePath.StringData.pStringData = sFilePath;
-            eStatus_Perf                        = MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_PERF_OUTPUT_DIRECTORY_ID,
-                &perfFilePath,
-                nullptr);
-            if (eStatus_Perf == MOS_STATUS_SUCCESS)
-            {
-                g_perfutility->setupFilePath(sFilePath);
-            }
-            else
-            {
-                g_perfutility->setupFilePath();
-            }
-
-            g_perfutility->bPerfUtilityKey = true;
-        }
-
         mediaCtx->pDrmBufMgr = mos_bufmgr_gem_init(mediaCtx->fd, DDI_CODEC_BATCH_BUFFER_SIZE);
         if (nullptr == mediaCtx->pDrmBufMgr)
         {
@@ -1966,7 +1930,6 @@ VAStatus DdiMedia_InitMediaContext (
         }
 
         // fill in the mos context struct as input to initialize m_osContext
-        MOS_CONTEXT mosCtx           = {};
         mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
         mosCtx.fd                    = mediaCtx->fd;
         mosCtx.iDeviceId             = mediaCtx->iDeviceId;
