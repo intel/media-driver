@@ -279,7 +279,7 @@ bool PolicyDiHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
     VP_FUNC_CALL();
 
-    return vpExecuteCaps.bDI && vpExecuteCaps.bVebox;
+    return vpExecuteCaps.bDI && (vpExecuteCaps.bVebox || vpExecuteCaps.bDIFmdKernel);
 }
 
 HwFilterParameter* PolicyDiHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
@@ -369,6 +369,9 @@ MOS_STATUS PolicyDiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
         filter2ndPass->SetFeatureType(FeatureTypeDi);
         filter2ndPass->SetRenderTargetType(RenderTargetTypeParameter);
         filter2ndPass->GetFilterEngineCaps().value = 0;
+        filter2ndPass->GetFilterEngineCaps().bEnabled     = 1;
+        filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
+        filter2ndPass->GetFilterEngineCaps().isolated     = 1;
 
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
     }
