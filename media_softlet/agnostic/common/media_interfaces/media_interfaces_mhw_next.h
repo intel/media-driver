@@ -104,6 +104,7 @@ public:
     MhwVdboxHucInterface *m_hucInterface = nullptr;
     MhwVdboxVdencInterface *m_vdencInterface = nullptr;
     MhwBltInterface *m_bltInterface = nullptr;
+    MhwVdboxAvpInterface *m_avpInterface = nullptr;
 
     /* New mhw sub interfaces*/
     std::shared_ptr<mhw::vdbox::avp::Itf> m_avpItf = nullptr;

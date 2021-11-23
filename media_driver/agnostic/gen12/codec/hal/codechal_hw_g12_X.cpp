@@ -111,8 +111,24 @@ const CODECHAL_SSEU_SETTING CodechalHwInterfaceG12::m_defaultSsEuLutG12[CODECHAL
     { 2,        3,        8,         0 },
 };
 
-void CodechalHwInterfaceG12::PrepareCmdSize(CODECHAL_FUNCTION codecFunction)
+CodechalHwInterfaceG12::CodechalHwInterfaceG12(
+    PMOS_INTERFACE    osInterface,
+    CODECHAL_FUNCTION codecFunction,
+    MhwInterfaces     *mhwInterfaces,
+    bool              disableScalability)
+    : CodechalHwInterface(osInterface, codecFunction, mhwInterfaces, disableScalability)
 {
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    m_avpInterface = static_cast<MhwInterfacesG12Tgllp*>(mhwInterfaces)->m_avpInterface;
+
+    InitCacheabilityControlSettings(codecFunction);
+
+    m_isVdencSuperSliceEnabled = true;
+
+    m_ssEuTable = m_defaultSsEuLutG12;
+    m_numMediaStates = CODECHAL_NUM_MEDIA_STATES_G12;
+
     // Set platform dependent parameters
     m_sizeOfCmdBatchBufferEnd = mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
     m_sizeOfCmdMediaReset = mhw_mi_g12_X::MI_LOAD_REGISTER_IMM_CMD::byteSize * 8;
@@ -181,41 +197,6 @@ void CodechalHwInterfaceG12::PrepareCmdSize(CODECHAL_FUNCTION codecFunction)
     m_sizeOfCmdMediaStateFlush = mhw_mi_g12_X::MEDIA_STATE_FLUSH_CMD::byteSize;
 }
 
-CodechalHwInterfaceG12::CodechalHwInterfaceG12(
-    PMOS_INTERFACE    osInterface,
-    CODECHAL_FUNCTION codecFunction,
-    MhwInterfaces     *mhwInterfaces,
-    bool              disableScalability)
-    : CodechalHwInterface(osInterface, codecFunction, mhwInterfaces, disableScalability)
-{
-    CODECHAL_HW_FUNCTION_ENTER;
-    m_avpInterface = static_cast<MhwInterfacesG12Tgllp*>(mhwInterfaces)->m_avpInterface;
-
-    InitCacheabilityControlSettings(codecFunction);
-    m_isVdencSuperSliceEnabled = true;
-    m_ssEuTable = m_defaultSsEuLutG12;
-    m_numMediaStates = CODECHAL_NUM_MEDIA_STATES_G12;
-
-    PrepareCmdSize(codecFunction);
-}
-#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
-CodechalHwInterfaceG12::CodechalHwInterfaceG12(
-    PMOS_INTERFACE    osInterface,
-    CODECHAL_FUNCTION codecFunction,
-    MhwInterfacesNext *mhwInterfacesNext,
-    bool              disableScalability)
-    : CodechalHwInterface(osInterface, codecFunction, mhwInterfacesNext, disableScalability)
-{
-    CODECHAL_HW_FUNCTION_ENTER;
-
-    InitCacheabilityControlSettings(codecFunction);
-    m_isVdencSuperSliceEnabled = true;
-    m_ssEuTable = m_defaultSsEuLutG12;
-    m_numMediaStates = CODECHAL_NUM_MEDIA_STATES_G12;
-
-    PrepareCmdSize(codecFunction);
-}
-#endif
 MOS_STATUS CodechalHwInterfaceG12::InitL3CacheSettings()
 {
     // Get default L3 cache settings
