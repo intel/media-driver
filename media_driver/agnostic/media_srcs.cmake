@@ -396,4 +396,7 @@ if(GEN12_TGLLP)
     media_include_subdirectory(gen12_tgllp)
 endif()
 
+media_include_subdirectory(Xe_M)
+media_include_subdirectory(Xe_R)
+
 include(${MEDIA_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)
