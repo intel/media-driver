@@ -27,6 +27,7 @@
 #ifndef __CODEC_DEF_ENCODE_VP9_H__
 #define __CODEC_DEF_ENCODE_VP9_H__
 
+#include "codec_def_common.h"
 #include "codec_def_common_encode.h"
 
 #define CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS 8
