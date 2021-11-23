@@ -876,11 +876,11 @@ MOS_STATUS Mhw_CalcPolyphaseTablesY(
 
             if (bUse8x8Filter)
             {
-                fPhaseCoefs[j] = fPhaseCoefsCopy[j] = MOS_Lanczos(fPos * fScaleFactor, dwNumEntries, fLanczosT);
+                fPhaseCoefs[j] = fPhaseCoefsCopy[j] = MosUtilities::MosLanczos(fPos * fScaleFactor, dwNumEntries, fLanczosT);
             }
             else
             {
-                fPhaseCoefs[j] = fPhaseCoefsCopy[j] = MOS_Lanczos_g(fPos * fScaleFactor, NUM_POLYPHASE_5x5_Y_ENTRIES, fLanczosT);
+                fPhaseCoefs[j] = fPhaseCoefsCopy[j] = MosUtilities::MosLanczosG(fPos * fScaleFactor, NUM_POLYPHASE_5x5_Y_ENTRIES, fLanczosT);
             }
 
             fSumCoefs += fPhaseCoefs[j];
@@ -897,7 +897,7 @@ MOS_STATUS Mhw_CalcPolyphaseTablesY(
             {
                 fHPHalfPhase = (float)(NUM_POLYPHASE_TABLES - i) / (float)NUM_POLYPHASE_TABLES;
             }
-            fHPFilter[0] = fHPFilter[2] = -fHPStrength * MOS_Sinc(fHPHalfPhase * MOS_PI);
+            fHPFilter[0] = fHPFilter[2] = -fHPStrength * MosUtilities::MosSinc(fHPHalfPhase * MOS_PI);
             fHPFilter[1] = 1.0F + 2.0F * fHPStrength;
 
             for (j = 0; j < dwNumEntries; j++)
@@ -991,7 +991,7 @@ MOS_STATUS Mhw_CalcPolyphaseTablesUV(
         for(j = 0; j < MHW_SCALER_UV_WIN_SIZE; ++j)
         {
             pos             = base + (double) j;
-            phaseCoefs[j]   = MOS_Lanczos((float)(pos * sf), MHW_SCALER_UV_WIN_SIZE, fLanczosT);
+            phaseCoefs[j]   = MosUtilities::MosLanczos((float)(pos * sf), MHW_SCALER_UV_WIN_SIZE, fLanczosT);
             sumCoefs        += phaseCoefs[j];
         }
         // Normalize coefs and save
@@ -1086,7 +1086,7 @@ MOS_STATUS Mhw_CalcPolyphaseTablesUVOffset(
         for (j = 0; j < MHW_SCALER_UV_WIN_SIZE; ++j)
         {
             pos = base + (double)j;
-            phaseCoefs[j] = MOS_Lanczos((float)(pos * sf), 6/*MHW_SCALER_UV_WIN_SIZE*/, fLanczosT);
+            phaseCoefs[j] = MosUtilities::MosLanczos((float)(pos * sf), 6/*MHW_SCALER_UV_WIN_SIZE*/, fLanczosT);
             sumCoefs += phaseCoefs[j];
         }
         // Normalize coefs and save

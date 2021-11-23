@@ -94,7 +94,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_SOFTPIN_ID,
             &UserFeatureData,
-            nullptr);
+            osDriverContext);
         if (UserFeatureData.i32Data)
         {
             mos_bufmgr_gem_enable_softpin(m_bufmgr);

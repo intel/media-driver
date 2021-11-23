@@ -7324,7 +7324,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE_ID,
             &userFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)osInterface->pOsContext);
         osInterface->bHcpDecScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
         if(osInterface->bHcpDecScalabilityMode
             && (eStatusUserFeature == MOS_STATUS_SUCCESS))
@@ -7340,7 +7340,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT_ID,
             &userFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)osInterface->pOsContext);
         osInterface->frameSplit = (uint32_t)userFeatureData.i32Data;
 
         MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -7348,7 +7348,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_GUC_SUBMISSION_ID,
             &userFeatureData,
-        nullptr);
+            (MOS_CONTEXT_HANDLE)osInterface->pOsContext);
         osInterface->bGucSubmission = osInterface->bGucSubmission && ((uint32_t)userFeatureData.i32Data);
 
         // read the "Force VEBOX" user feature key
@@ -7358,7 +7358,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
             &userFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)osInterface->pOsContext);
         osInterface->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
 
         //KMD Virtual Engine DebugOverride
@@ -7368,7 +7368,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE_ID,
             &userFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)osInterface->pOsContext);
         osInterface->bEnableDbgOvrdInVE = userFeatureData.u32Data ? true : false;
 #endif
 
@@ -7379,7 +7379,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
             &userFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)osInterface->pOsContext);
         osInterface->bVeboxScalabilityMode = userFeatureData.u32Data ? MOS_SCALABILITY_ENABLE_MODE_DEFAULT : MOS_SCALABILITY_ENABLE_MODE_FALSE;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -7407,7 +7407,7 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
             NULL,
             __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX_ID,
             &userFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)osInterface->pOsContext);
         osInterface->eForceVebox = (MOS_FORCE_VEBOX)userFeatureData.u32Data;
 #endif
     }
@@ -7534,7 +7534,7 @@ MOS_STATUS Mos_Specific_InitInterface(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
         &UserFeatureData,
-        nullptr);
+        (MOS_CONTEXT_HANDLE)pOsContext);
 #endif
     pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
     if (!pOsInterface->apoMosEnabled)
@@ -7749,7 +7749,7 @@ MOS_STATUS Mos_Specific_InitInterface(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
         &UserFeatureData,
-        nullptr);
+        (MOS_CONTEXT_HANDLE)pOsContext);
     pOsInterface->eForceVdbox = UserFeatureData.u32Data;
 
     // Force TileYf/Ys
@@ -7759,7 +7759,7 @@ MOS_STATUS Mos_Specific_InitInterface(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_YFYS_ID,
         &UserFeatureData,
-        nullptr);
+        (MOS_CONTEXT_HANDLE)pOsContext);
     pOsInterface->dwForceTileYfYs = (uint32_t)UserFeatureData.i32Data;
 
     // Null HW Driver
@@ -7769,7 +7769,7 @@ MOS_STATUS Mos_Specific_InitInterface(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
         &UserFeatureData,
-        nullptr));
+        (MOS_CONTEXT_HANDLE)pOsContext));
     pOsInterface->NullHWAccelerationEnable.Value = UserFeatureData.u32Data;
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
@@ -7784,7 +7784,7 @@ MOS_STATUS Mos_Specific_InitInterface(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
             &UserFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)pOsContext);
         pOsContext->bDisableKmdWatchdog = (UserFeatureData.i32Data) ? true : false;
 
         // read "Linux PerformanceTag Enable" user feature key
@@ -7793,7 +7793,7 @@ MOS_STATUS Mos_Specific_InitInterface(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
             &UserFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)pOsContext);
         pOsContext->uEnablePerfTag = UserFeatureData.i32Data;
     }
     eStatus = Mos_Specific_InitInterface_Ve(pOsInterface);

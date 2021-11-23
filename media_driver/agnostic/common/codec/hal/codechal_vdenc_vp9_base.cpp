@@ -630,7 +630,7 @@ uint32_t CodechalVdencVp9State::CalculateNormalizedDenominator(
         return normalizedDenominator;
     }
 
-    normalizedDenominator = normalizedDenominator * frameRates[numberOfLayers - 1].uiDenominator / MOS_GCD(normalizedDenominator, frameRates[numberOfLayers - 1].uiDenominator);
+    normalizedDenominator = normalizedDenominator * frameRates[numberOfLayers - 1].uiDenominator / MosUtilities::MosGCD(normalizedDenominator, frameRates[numberOfLayers - 1].uiDenominator);
 
     return CalculateNormalizedDenominator(frameRates, numberOfLayers - 1, normalizedDenominator);
 }

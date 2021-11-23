@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -274,7 +274,7 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_MEDIASOLO_ENABLE_ID,
         &UserFeatureData,
-        nullptr);
+        (MOS_CONTEXT_HANDLE)nullptr);
     //Disable plarform checks to support pre-si features (e.g., MMCD) on MediaSolo
     MEDIA_WR_WA(waTable, WaDisregardPlatformChecks, (UserFeatureData.i32Data) ? true : false);
 #endif

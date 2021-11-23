@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1303,6 +1303,9 @@ void DdiMediaDecode::GetDummyReferenceFromDPB(
 void DdiMediaDecode::ReportDecodeMode(
     uint16_t      wMode)
  {
+    PMOS_INTERFACE      osInterface = m_ddiDecodeCtx->pCodecHal ? m_ddiDecodeCtx->pCodecHal->GetOsInterface() : nullptr;
+    MOS_CONTEXT_HANDLE  ctxHandle   = osInterface ? (MOS_CONTEXT_HANDLE)osInterface->pOsContext : nullptr;
+
     MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
     MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
     userFeatureWriteData.Value.i32Data = wMode;
@@ -1311,36 +1314,36 @@ void DdiMediaDecode::ReportDecodeMode(
         case CODECHAL_DECODE_MODE_MPEG2IDCT:
         case CODECHAL_DECODE_MODE_MPEG2VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_MPEG2_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         case CODECHAL_DECODE_MODE_VC1IT:
         case CODECHAL_DECODE_MODE_VC1VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VC1_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         case CODECHAL_DECODE_MODE_AVCVLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_AVC_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         case CODECHAL_DECODE_MODE_JPEG:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_JPEG_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         case CODECHAL_DECODE_MODE_VP8VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VP8_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         case CODECHAL_DECODE_MODE_HEVCVLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_HEVC_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         case CODECHAL_DECODE_MODE_VP9VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_VP9_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         case CODECHAL_DECODE_MODE_AV1VLD:
             userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_DECODE_AV1_MODE_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, nullptr);
+            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, ctxHandle);
             break;
         default:
             break;

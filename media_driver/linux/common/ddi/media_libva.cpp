@@ -1915,7 +1915,7 @@ VAStatus DdiMedia_InitMediaContext (
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
             &UserFeatureData,
-            nullptr);
+            (MOS_CONTEXT_HANDLE)nullptr);
 #endif
 
         mediaCtx->m_useSwSwizzling = UserFeatureData.i32Data || MEDIA_IS_SKU(&mediaCtx->SkuTable, FtrUseSwSwizzling);

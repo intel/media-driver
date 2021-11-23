@@ -463,7 +463,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
         {
             if (pOsInterface->bDumpCommandBufferToFile)
             {
-                MOS_OS_CHK_STATUS(MOS_AppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+                MOS_OS_CHK_STATUS(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
             }
             if (pOsInterface->bDumpCommandBufferAsMessages)
             {
@@ -477,7 +477,7 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     if (pOsInterface->bDumpCommandBufferToFile)
     {
-        MOS_OS_CHK_STATUS(MOS_AppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
     }
 
     if (pOsInterface->bDumpCommandBufferAsMessages)

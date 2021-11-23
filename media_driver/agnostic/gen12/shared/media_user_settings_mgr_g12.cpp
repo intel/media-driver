@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2019, Intel Corporation
+* Copyright (c) 2011-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -163,11 +163,10 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureValueDescFields_g12[MOS_NUM_USER_FEA
 
 MediaUserSettingsMgr_g12::MediaUserSettingsMgr_g12()
 {
-    MOS_STATUS eStatus = MOS_DeclareUserFeatureKeysFromDescFields(
+    MOS_STATUS eStatus = MosUtilities::MosDeclareUserFeatureKeysFromDescFields(
         MOSUserFeatureValueDescFields_g12,
         MOS_NUM_USER_FEATURE_VALUES_G12,
-        __MOS_USER_FEATURE_KEY_G12_MAX_ID,
-        nullptr);
+        __MOS_USER_FEATURE_KEY_G12_MAX_ID);
 
     if (MOS_FAILED(eStatus))
     {
@@ -179,11 +178,10 @@ MediaUserSettingsMgr_g12::MediaUserSettingsMgr_g12()
 MediaUserSettingsMgr_g12::~MediaUserSettingsMgr_g12()
 {
 
-    MOS_STATUS eStatus = MOS_DestroyUserFeatureKeysFromDescFields(
+    MOS_STATUS eStatus = MosUtilities::MosDestroyUserFeatureKeysFromDescFields(
         MOSUserFeatureValueDescFields_g12,
         MOS_NUM_USER_FEATURE_VALUES_G12,
-        __MOS_USER_FEATURE_KEY_G12_MAX_ID,
-        nullptr);
+        __MOS_USER_FEATURE_KEY_G12_MAX_ID);
 
     if (MOS_FAILED(eStatus))
     {

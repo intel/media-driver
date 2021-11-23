@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +41,7 @@ public:
 
     //!
     //! \brief    Add a user feature key to the m_userFeatureKeyMap
-    //! \details  Each component call MOS_DeclareUserFeatureKeysFromDescFields to add their specifc user key vlaue to the m_userFeatureKeyMap
+    //! \details  Each component call MosUtilities::MosDeclareUserFeatureKeysFromDescFields to add their specifc user key vlaue to the m_userFeatureKeyMap
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
@@ -50,7 +50,7 @@ public:
 
     //!
     //! \brief    Del a user feature key from the m_userFeatureKeyMap
-    //! \details  Each component call MOS_DestroyUserFeatureKeysFromDescFields to delete their regostered user key from the m_userFeatureKeyMap
+    //! \details  Each component call MosUtilities::MosDestroyUserFeatureKeysFromDescFields to delete their regostered user key from the m_userFeatureKeyMap
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS

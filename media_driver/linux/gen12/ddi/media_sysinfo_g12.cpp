@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-Copyright (c) 2017-2020, Intel Corporation
+Copyright (c) 2017-2021, Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -116,7 +116,7 @@ static bool InitTglShadowSku(struct GfxDeviceInfo *devInfo,
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_DISABLE_MMC_ID,
         &userFeatureData,
-        nullptr);
+        (MOS_CONTEXT_HANDLE)nullptr);
     if (userFeatureData.bData)
     {
         disableMMC = true;
