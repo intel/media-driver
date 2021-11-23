@@ -5174,7 +5174,7 @@ static VAStatus DdiMedia_CopySurfaceToImage(
             DDI_NORMALMESSAGE("surface Decompression fail, continue next steps.");
         }
     }
-    void *surfData = DdiMediaUtil_LockSurface(surface, (MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_NO_SWIZZLE));
+    void *surfData = DdiMediaUtil_LockSurface(surface, MOS_LOCKFLAG_READONLY);
     if (surfData == nullptr)
     {
         DDI_ASSERTMESSAGE("nullptr surfData.");
@@ -5192,17 +5192,8 @@ static VAStatus DdiMedia_CopySurfaceToImage(
 
     uint8_t *ySrc = nullptr;
     uint8_t *yDst = (uint8_t*)imageData;
-    uint8_t *swizzleData = (uint8_t*)MOS_AllocMemory(surface->data_size);
 
-    if (!surface->pMediaCtx->bIsAtomSOC && surface->TileType != I915_TILING_NONE)
-    {
-        SwizzleSurface(surface->pMediaCtx, surface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)surface->TileType, (uint8_t *)swizzleData, false);
-        ySrc = swizzleData;
-    }
-    else
-    {
-        ySrc = (uint8_t*)surfData;
-    }
+    ySrc = (uint8_t*)surfData;
 
     DdiMedia_CopyPlane(yDst, image->pitches[0], ySrc, surface->iPitch, image->height);
     if (image->num_planes > 1)
@@ -5224,8 +5215,6 @@ static VAStatus DdiMedia_CopySurfaceToImage(
             DdiMedia_CopyPlane(vDst, image->pitches[2], vSrc, chromaPitch, imageChromaHeight);
         }
     }
-
-    MOS_FreeMemory(swizzleData);
 
     vaStatus = DdiMedia_UnmapBuffer(ctx, image->buf);
     if (vaStatus != VA_STATUS_SUCCESS)
@@ -5302,11 +5291,7 @@ VAStatus DdiMedia_GetImage(
     VASurfaceID output_surface = surface;
 
     if (inputSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
-        width != vaimg->width || height != vaimg->height ||
-        (MEDIA_IS_WA(&mediaCtx->WaTable, WaEnableVPPCopy) &&
-        vaimg->format.fourcc != VA_FOURCC_444P &&
-        vaimg->format.fourcc != VA_FOURCC_422V &&
-        vaimg->format.fourcc != VA_FOURCC_422H))
+        width != vaimg->width || height != vaimg->height)
     {
         VAContextID context = VA_INVALID_ID;
         //Create VP Context.
