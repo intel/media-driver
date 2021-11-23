@@ -1958,6 +1958,16 @@ public:
     static PMOS_RESOURCE GetMarkerResource(
         MOS_STREAM_HANDLE streamState);
 
+    //!
+    //! \brief    Get plane offset inside surface
+    //! \details  Returns the offset
+    //! \param    MOS_PLANE_OFFSET planeOffset
+    //!           [in] Reference to MOS_PLANE_OFFSET structure
+    //! \return   int - offset of the plane
+    //!
+    static int GetPlaneSurfaceOffset(
+        const MOS_PLANE_OFFSET &planeOffset);
+
 private:
     //!
     //! \brief    Init per stream parameters

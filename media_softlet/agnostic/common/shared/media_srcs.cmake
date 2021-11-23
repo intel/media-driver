@@ -33,12 +33,21 @@ media_include_subdirectory(mediacopy)
 media_include_subdirectory(media_sfc_interface)
 media_include_subdirectory(classtrace)
 
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_config_manager.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.cpp
+)
+
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_utils.h
     ${CMAKE_CURRENT_LIST_DIR}/media_common_defs.h
     ${CMAKE_CURRENT_LIST_DIR}/media_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/media_capstable.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_config_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_debug_utils.h
 )
 
 set(SOURCES_

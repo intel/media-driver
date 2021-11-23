@@ -2893,6 +2893,11 @@ PMOS_RESOURCE MosInterface::GetMarkerResource(
     return nullptr;
 }
 
+int MosInterface::GetPlaneSurfaceOffset(const MOS_PLANE_OFFSET &planeOffset)
+{
+    return planeOffset.iSurfaceOffset;
+}
+
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 MOS_STATUS MosInterface::DumpCommandBufferInit(
     MOS_STREAM_HANDLE streamState)
