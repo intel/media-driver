@@ -135,8 +135,8 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
 
         /* HEVC VDENC Main8/10 422/444 Encoding. */
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain444, codecInfo->hevcVdenc);
-        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10, codecInfo->hevcVdenc);
-        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit422, codecInfo->hevcVdenc);
+        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain422, 0);
+        MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit422, 0);
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit444, codecInfo->hevcVdenc);
 
         /* HEVC VDENC Main8/10bit-420/422/444 Scc Encoding. */
