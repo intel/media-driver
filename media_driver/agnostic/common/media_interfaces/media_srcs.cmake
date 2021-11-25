@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2020-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,6 @@ set(TMP_SOURCES_ "")
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_cmhal.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_codechal.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mhw.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_nv12top010.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mosutil.h
@@ -33,7 +32,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_factory.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mcpy.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_hwinfo_device.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_hwinfo.h
 )
 
 if(${MMC_Supported} STREQUAL "yes")
@@ -42,13 +40,6 @@ if(${MMC_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd.h
     )
 endif()
-
-
-# no sources for now
-#set(SOURCES_
-#    ${SOURCES_}
-#    ${TMP_SOURCES_}
-#)
 
 set(HEADERS_
     ${HEADERS_}

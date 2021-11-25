@@ -28,9 +28,11 @@
 #define __CODECHAL_ENCODE_HEVC_BASE_H__
 
 #include "codechal_encoder_base.h"
+
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par.h"
 #endif
+
 //*------------------------------------------------------------------------------
 //* Codec Definitions
 //*------------------------------------------------------------------------------
@@ -128,8 +130,6 @@
 #define CODECHAL_HEVC_PAK_STREAMOUT_SIZE 0x500000  //size is accounted for 4Kx4K with all 8x8 CU,based on streamout0 and streamout1 requirements
 //(4096*4096)/64 *16 (streamout0) + 1MB(streamout 1). there is scope to reduce streamout1 size. Need to check with HW team.
 // 8K is just an estimation
-#define CODECHAL_HEVC_FRAME_HEADER_SIZE   8192
-
 #define CODECHAL_HEVC_BRC_QP_ADJUST_SIZE    576
 
 #define CODECHAL_ENCODE_HEVC_NUM_MAX_VDENC_L0_REF_G10  3 // multiref, hevc vdenc
