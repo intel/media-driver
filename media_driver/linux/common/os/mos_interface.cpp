@@ -1711,7 +1711,7 @@ MOS_STATUS MosInterface::GetResourceInfo(
     GMM_RESOURCE_FLAG   gmmFlags = {};
     MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
 
-    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_UNUSED(streamState);
     MOS_OS_CHK_NULL_RETURN(resource);
 
     // Get Gmm resource info
