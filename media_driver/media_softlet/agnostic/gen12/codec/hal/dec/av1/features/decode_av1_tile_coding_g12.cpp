@@ -68,6 +68,7 @@ namespace decode
             m_tileGroupId       = -1;
             m_isTruncatedTile   = false;
             m_decPassNum        = 1;
+            m_hasTileMissing    = false;
         }
 
         if (m_numTiles > av1MaxTileNum)
@@ -83,11 +84,17 @@ namespace decode
         }
 
         uint16_t tileNumLimit = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? av1MaxTileNum : (picParams.m_tileCols * picParams.m_tileRows);
-        if (nullptr != m_tileDesc &&
-            (m_prevFrmTileNum < tileNumLimit))
+        if (nullptr != m_tileDesc)
         {
-            free(m_tileDesc);
-            m_tileDesc = nullptr;
+            if (m_prevFrmTileNum < tileNumLimit)
+            {
+                free(m_tileDesc);
+                m_tileDesc = nullptr;
+            }
+            else
+            {
+                memset(m_tileDesc, 0, (sizeof(TileDesc) * m_prevFrmTileNum));
+            }
         }
         if (nullptr == m_tileDesc)
         {
@@ -111,9 +118,23 @@ namespace decode
         DECODE_CHK_NULL(m_tileDesc);
 
         // Error Concealment for Tile size
-        // m_numTiles means the total number of tile, m_lastTileId means the last tile index
-        for (uint32_t i = 0; i < m_numTiles; i++)
+        // m_numTiles means the tile number from application
+        // m_totalTileNum means the total number of tile, m_lastTileId means the last tile index
+        for (uint32_t i = 0; i < m_totalTileNum; i++)
         {
+            // For tile missing scenario
+            if (m_tileDesc[i].m_size == 0)
+            {
+                DECODE_ASSERTMESSAGE("The %d tile is missing, set 4 byte dummy WL!\n", i);
+                m_tileDesc[i].m_size          = 4;
+                m_tileDesc[i].m_offset        = 0;
+                m_tileDesc[i].m_tileRow       = i / m_basicFeature->m_av1PicParams->m_tileCols;
+                m_tileDesc[i].m_tileColumn    = i % m_basicFeature->m_av1PicParams->m_tileCols;
+                if (!m_hasTileMissing)
+                {
+                    m_hasTileMissing = true;
+                }
+            }
             if (m_tileDesc[i].m_size + m_tileDesc[i].m_offset > m_basicFeature->m_dataSize)
             {
                 if (i == m_lastTileId)

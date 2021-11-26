@@ -50,7 +50,12 @@ namespace decode
         m_isLastTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId)) ? 1 : 0;
         m_isFirstTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId
             - m_av1BasicFeature->m_tileCoding.m_numTiles + 1)) ? 1 : 0;
-
+        // For tile missing scenario
+        if (m_av1BasicFeature->m_tileCoding.m_hasTileMissing)
+        {
+            m_isFirstTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId
+                - m_av1BasicFeature->m_tileCoding.m_totalTileNum + 1)) ? 1 : 0;
+        }
         // For frame based submission mode, these cmds only need to be programed once per frame, otherwise need program per tile.
         if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
             (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))

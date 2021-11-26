@@ -63,6 +63,7 @@ namespace decode
         uint16_t        m_tileGroupId            = 0;            //!< record the last tile group ID
         bool            m_isTruncatedTile        = false;        //!< flag to indicate if the last tile is truncated tile
         TileDesc        *m_tileDesc              = nullptr;      //!< tile descriptors for each tile of the frame
+        bool            m_hasTileMissing         = false;        //! flag to indicate if having tile missing
         uint32_t        m_tileStartOffset        = 0;            //!< record the tile or tile group header start address offset against the first byte of the bitstream buffer
         bool            m_newFrameStart          = true;         //!< flag to indicate a new frame is coming, which means m_lastTileId should be reset to -1.
         uint32_t        m_numTiles               = 0;            //!< Num of tiles
