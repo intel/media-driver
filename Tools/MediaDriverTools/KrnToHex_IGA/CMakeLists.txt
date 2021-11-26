@@ -26,6 +26,4 @@ set(SOURCE_
     KrnToHex_IGA.cpp
 )
 
-add_definitions(-DLINUX_)
-
 add_executable(KrnToHex_IGA ${SOURCE_})
