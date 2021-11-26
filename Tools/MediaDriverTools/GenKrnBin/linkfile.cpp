@@ -9,12 +9,12 @@
 #include <stdlib.h>
 #include "linkfile.h"
 
-#ifdef LINUX_
+#ifdef __linux__
 #include <strings.h>
 #include <cstring>
 #endif
 
-#ifdef LINUX_
+#ifdef __linux__
 #define StrCmp strcasecmp
 #else
 #define StrCmp stricmp
@@ -81,7 +81,7 @@ void CreateLinkFile(char *pDirectoryName, list <string> &kernels)
     string name_hex;
 
     // Create full LinkFile binary name
-#ifdef LINUX_
+#ifdef __linux__
     sprintf(LinkFileTxt, "%s/%s", pDirectoryName, "LinkFile.txt");
 #else
     sprintf(LinkFileTxt, "%s\\%s", pDirectoryName, "LinkFile.txt");
@@ -90,7 +90,7 @@ void CreateLinkFile(char *pDirectoryName, list <string> &kernels)
     if (hText == NULL) goto done;
 
     // Create full LinkFile binary name - remove pre-existing file
-#ifdef LINUX_
+#ifdef __linux__
     sprintf(LinkFileBin, "%s/%s", pDirectoryName, "LinkFile.krn");
 #else
     sprintf(LinkFileBin, "%s\\%s", pDirectoryName, "LinkFile.krn");

@@ -27,7 +27,7 @@
 #define MAX_FILE_PATH 4096
 #define MAX_FILE_NAME 260
 
-#ifdef LINUX_
+#ifdef __linux__
 #define StrCmp strcasecmp
 #else
 #define StrCmp stricmp
