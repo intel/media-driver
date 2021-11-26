@@ -32,7 +32,7 @@
 #include <sstream>
 #include <iomanip>
 
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
 #endif
 
@@ -86,7 +86,7 @@ MOS_STATUS MediaDebugInterface::SetOutputFilePath()
 
     MEDIA_DEBUG_FUNCTION_ENTER;
 
-#ifdef LINUX
+#ifdef __linux__
     char *customizedOutputPath = getenv("MOS_DEBUG_OUTPUT_LOCATION");
     if (customizedOutputPath != nullptr && strlen(customizedOutputPath) != 0)
     {
@@ -124,7 +124,7 @@ MOS_STATUS MediaDebugInterface::SetOutputFilePath()
         }
         else
         {
-#if defined(LINUX) || defined(ANDROID)
+#if defined(__linux__) || defined(ANDROID)
             m_outputFilePath = MOS_DEBUG_DEFAULT_OUTPUT_LOCATION;
 #else
             // Use state separation APIs to obtain appropriate storage location
@@ -461,7 +461,7 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurfaceToBuffer(PMOS_SURFACE surface,
         uint32_t        sizeToBeCopied = 0;
         MOS_GFXRES_TYPE ResType;
 
-#if LINUX
+#if __linux__
         // Linux does not have OsResource->ResType
         ResType = surface->Type;
 #else
@@ -604,7 +604,7 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurfaceToBuffer(PMOS_SURFACE surface,
         }
 
         uint8_t *vPlaneData = surfBaseAddr;
-#ifdef LINUX
+#ifdef __linux__
         data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
         if (surface->Format == Format_422V || surface->Format == Format_IMC3)
         {
@@ -931,7 +931,7 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurface(
         uint32_t        sizeToBeCopied = 0;
         MOS_GFXRES_TYPE ResType;
 
-#if LINUX
+#if __linux__
         // Linux does not have OsResource->ResType
         ResType = surface->Type;
 #else
@@ -1117,7 +1117,7 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurface(
         }
 
         uint8_t *vPlaneData = surfBaseAddr;
-#ifdef LINUX
+#ifdef __linux__
         data = surfBaseAddr + surface->UPlaneOffset.iSurfaceOffset;
         if (surface->Format == Format_422V || surface->Format == Format_IMC3)
         {
@@ -1397,7 +1397,7 @@ MOS_STATUS MediaDebugInterface::DumpSurfaceInfo(
     FIELD_TO_OFS(bOverlay, );
     FIELD_TO_OFS(bFlipChain, );
 
-#if !defined(LINUX)
+#if !defined(__linux__)
     EMPTY_TO_OFS();
     UNION_STRUCT_START_TO_OFS();
     UNION_STRUCT_FIELD_TO_OFS(dwFirstArraySlice);
@@ -1473,7 +1473,7 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
 
     PMOS_RESOURCE ptr = pOsResource;
     ofs << "MOS_RESOURCE:" << std::endl;
-#if !defined(LINUX)
+#if !defined(__linux__)
     FIELD_TO_OFS(RunTimeHandle, );
 #else
     FIELD_TO_OFS(iWidth, );
@@ -1590,7 +1590,7 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
             FIELD_TO_OFS_8SHIFT(Info.Shared);
             FIELD_TO_OFS_8SHIFT(Info.SoftwareProtected);
             FIELD_TO_OFS_8SHIFT(Info.SVM);
-#if !defined(LINUX)
+#if !defined(__linux__)
             FIELD_TO_OFS_8SHIFT(Info.Tile4);
             FIELD_TO_OFS_8SHIFT(Info.Tile64);
 #endif
@@ -1601,7 +1601,7 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
             FIELD_TO_OFS_8SHIFT(Info.TiledYs);
             FIELD_TO_OFS_8SHIFT(Info.XAdapter);
             FIELD_TO_OFS_8SHIFT(Info.__PreallocatedResInfo);
-#if !defined(LINUX)
+#if !defined(__linux__)
             FIELD_TO_OFS_8SHIFT(Info.LMemBarPreferred);
             FIELD_TO_OFS_8SHIFT(Info.LMemBarOrNonlocalOnly);
             FIELD_TO_OFS_8SHIFT(Info.LMemBarIndifferent);
@@ -1621,7 +1621,7 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
             FIELD_TO_OFS_8SHIFT(Wa.DisableDisplayCcsClearColor);
             FIELD_TO_OFS_8SHIFT(Wa.DisableDisplayCcsCompression);
             FIELD_TO_OFS_8SHIFT(Wa.PreGen12FastClearOnly);
-#if !defined(LINUX)
+#if !defined(__linux__)
             FIELD_TO_OFS_8SHIFT(Wa.ForceStdAllocAlign);
 #endif
         }
@@ -1659,7 +1659,7 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
         FIELD_TO_OFS(GetSizeMainSurface(), );
         FIELD_TO_OFS(GmmGetTileMode(), );
 
-#if !defined(LINUX)
+#if !defined(__linux__)
         EMPTY_TO_OFS();
         FIELD_TO_OFS(GetMultiTileArch().Enable, );
 #endif
@@ -1905,7 +1905,7 @@ MOS_STATUS MediaDebugInterface::DumpNotSwizzled(
     const char *funcName = (m_mediafunction == MEDIA_FUNCTION_VP) ? "_VP" : ((m_mediafunction == MEDIA_FUNCTION_ENCODE) ? "_ENC" : "_DEC");
     int         YOffset  = surf.dwOffset + surf.YPlaneOffset.iYOffset * surf.dwPitch;
 
-#ifdef LINUX
+#ifdef __linux__
     int UOffset = surf.UPlaneOffset.iSurfaceOffset;
     int VOffset = surf.VPlaneOffset.iSurfaceOffset;
 #else

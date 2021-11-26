@@ -286,7 +286,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MOS_CONTEXT_HANDLE mosCtx)
     MosLogFileNamePrefix(fileNamePrefix, mosCtx);
     MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "log");
 
-#if defined(LINUX) || defined(ANDROID)
+#if defined(__linux__) || defined(ANDROID)
     eStatus = MosUtilities::MosCreateDirectory(fileNamePrefix);
     if (MOS_FAILED(eStatus))
     {

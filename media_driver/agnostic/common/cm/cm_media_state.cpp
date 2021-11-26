@@ -88,7 +88,7 @@ MOS_STATUS CmMediaState::Submit()
     return MOS_STATUS_SUCCESS;
 }
 
-#if defined(ANDROID) || defined(LINUX)
+#if defined(ANDROID) || defined(__linux__)
 #define PLATFORM_DIR_SEPERATOR   "/"
 #else
 #define PLATFORM_DIR_SEPERATOR   "\\"

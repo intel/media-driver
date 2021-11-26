@@ -531,7 +531,7 @@ MOS_STATUS CmSSH::PrepareResourcesForCp()
 
 using namespace std;
 
-#if defined(ANDROID) || defined(LINUX)
+#if defined(ANDROID) || defined(__linux__)
 #define PLATFORM_DIR_SEPERATOR   "/"
 #else
 #define PLATFORM_DIR_SEPERATOR   "\\"

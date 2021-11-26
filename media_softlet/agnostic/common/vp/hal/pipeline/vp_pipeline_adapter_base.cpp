@@ -244,7 +244,7 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
             continue;
         }
 
-#if (LINUX || ANDROID)
+#if (__linux__ || ANDROID)
         dwGpuTag = pOsContext->GetGPUTag(m_pOsInterface, pStatusEntry->GpuContextOrdinal);
 #else
         dwGpuTag = m_pOsInterface->pfnGetGpuStatusSyncTag(m_pOsInterface, pStatusEntry->GpuContextOrdinal);
@@ -271,7 +271,7 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
         }
         else
         {  // here we have the first not ready entry.
-#if (LINUX || ANDROID)
+#if (__linux__ || ANDROID)
             uiNewHead = (uiIndex + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
 #else
             uiNewHead = uiIndex;

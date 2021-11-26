@@ -36,7 +36,7 @@
 #include "vphal_common.h"       // Common interfaces and structures
 #include "vp_pipeline_common.h"
 
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
 #endif
 

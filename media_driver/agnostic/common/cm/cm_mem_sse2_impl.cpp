@@ -27,7 +27,7 @@
 #include "cm_mem.h"
 #include "cm_mem_sse2_impl.h"
 
-#if defined(__SSE2__) || !(defined(LINUX) || defined(ANDROID))
+#if defined(__SSE2__) || !(defined(__linux__) || defined(ANDROID))
 
 #include <mmintrin.h>
 
@@ -311,4 +311,4 @@ void CmFastMemCopyWC_SSE2( void* dst, const void* src, const size_t bytes )
   }
 }
 
-#endif // __SSE2__ || !(LINUX || ANDROID)
+#endif // __SSE2__ || !(__linux__ || ANDROID)

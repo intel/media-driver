@@ -28,7 +28,7 @@
 #include "renderhal_platform_interface.h"
 
 #if (MDF_COMMAND_BUFFER_DUMP || MDF_CURBE_DATA_DUMP || MDF_SURFACE_STATE_DUMP)
-#if defined(ANDROID) || defined(LINUX)
+#if defined(ANDROID) || defined(__linux__)
 #define PlatformSNPrintf snprintf
 #define PLATFORM_DIR_SEPERATOR   "/"
 #else

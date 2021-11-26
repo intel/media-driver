@@ -34,8 +34,8 @@
 #if EMUL || VPHAL_LIB
 #include <math.h>
 #include "support.h"
-#elif LINUX
-#else  // !(EMUL | VPHAL_LIB) && !LINUX
+#elif __linux__
+#else  // !(EMUL | VPHAL_LIB) && !__linux__
 
 #endif // EMUL | VPHAL_LIB
 
@@ -4943,7 +4943,7 @@ bool KernelDll_BuildKernel_CmFc(Kdll_State *pState, Kdll_SearchState *pSearchSta
     VPHAL_RENDER_FUNCTION_ENTER;
 
     // Disable pop-up box window for STL assertion to avoid VM hang in auto test.
-#if (!LINUX)
+#if (!__linux__)
     ::SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 #if defined(_MSC_VER)
     ::_set_error_mode(_OUT_TO_STDERR);

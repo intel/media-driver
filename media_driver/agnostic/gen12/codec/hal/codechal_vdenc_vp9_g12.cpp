@@ -3324,7 +3324,7 @@ MOS_STATUS CodechalVdencVp9StateG12::SetSequenceStructs()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifdef LINUX
+#ifdef __linux__
     MOS_SURFACE rawSurface;
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)m_encodeParams.pSeqParams;
     rawSurface = *(m_encodeParams.psRawSurface);
