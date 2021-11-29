@@ -220,6 +220,9 @@ static bool InitIclMediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, Wa16KInputHeightNV12Planar420, 1);
     MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
 
+    /*software wa to prevent error propagation for vertical intra refresh on H264 VDEnc*/
+    MEDIA_WR_WA(waTable, Wa_18011246551, 1);
+
     return true;
 }
 
