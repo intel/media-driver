@@ -293,7 +293,7 @@ protected:
 
         auto hevcPicParams = params->pHevcPicParams;
 
-        cmd.DW1.Framewidthinmincbminus1 = hevcPicParams->PicWidthInMinCbsY - 1;
+        cmd.DW1.Framewidthinmincbminus1  = hevcPicParams->PicWidthInMinCbsY - 1;
         cmd.DW1.Frameheightinmincbminus1 = hevcPicParams->PicHeightInMinCbsY - 1;
 
         cmd.DW2.Mincusize = (hevcPicParams->log2_min_luma_coding_block_size_minus3) & 0x3;
@@ -312,32 +312,32 @@ protected:
         cmd.DW3.Colpicisi = 0;
         cmd.DW3.Curpicisi = 0;
 
-        cmd.DW4.SampleAdaptiveOffsetEnabledFlag = hevcPicParams->sample_adaptive_offset_enabled_flag;
-        cmd.DW4.PcmEnabledFlag = hevcPicParams->pcm_enabled_flag;
-        cmd.DW4.CuQpDeltaEnabledFlag = hevcPicParams->cu_qp_delta_enabled_flag;
-        cmd.DW4.DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth = hevcPicParams->diff_cu_qp_delta_depth;
-        cmd.DW4.PcmLoopFilterDisableFlag = hevcPicParams->pcm_loop_filter_disabled_flag;
-        cmd.DW4.ConstrainedIntraPredFlag = hevcPicParams->constrained_intra_pred_flag;
-        cmd.DW4.Log2ParallelMergeLevelMinus2 = hevcPicParams->log2_parallel_merge_level_minus2;
-        cmd.DW4.SignDataHidingFlag = hevcPicParams->sign_data_hiding_enabled_flag;
-        cmd.DW4.LoopFilterAcrossTilesEnabledFlag = hevcPicParams->loop_filter_across_tiles_enabled_flag;
-        cmd.DW4.EntropyCodingSyncEnabledFlag = hevcPicParams->entropy_coding_sync_enabled_flag;
-        cmd.DW4.TilesEnabledFlag = hevcPicParams->tiles_enabled_flag;
-        cmd.DW4.WeightedPredFlag = hevcPicParams->weighted_pred_flag;
-        cmd.DW4.WeightedBipredFlag = hevcPicParams->weighted_bipred_flag;
-        cmd.DW4.Fieldpic = (hevcPicParams->RefFieldPicFlag >> 15) & 0x01;
-        cmd.DW4.Bottomfield = ((hevcPicParams->RefBottomFieldFlag >> 15) & 0x01) ? 0 : 1;
-        cmd.DW4.TransformSkipEnabledFlag = hevcPicParams->transform_skip_enabled_flag;
-        cmd.DW4.AmpEnabledFlag = hevcPicParams->amp_enabled_flag;
-        cmd.DW4.TransquantBypassEnableFlag = hevcPicParams->transquant_bypass_enabled_flag;
-        cmd.DW4.StrongIntraSmoothingEnableFlag = hevcPicParams->strong_intra_smoothing_enabled_flag;
+        cmd.DW4.SampleAdaptiveOffsetEnabledFlag         = hevcPicParams->sample_adaptive_offset_enabled_flag;
+        cmd.DW4.PcmEnabledFlag                          = hevcPicParams->pcm_enabled_flag;
+        cmd.DW4.CuQpDeltaEnabledFlag                    = hevcPicParams->cu_qp_delta_enabled_flag;
+        cmd.DW4.DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth  = hevcPicParams->diff_cu_qp_delta_depth;
+        cmd.DW4.PcmLoopFilterDisableFlag                = hevcPicParams->pcm_loop_filter_disabled_flag;
+        cmd.DW4.ConstrainedIntraPredFlag                = hevcPicParams->constrained_intra_pred_flag;
+        cmd.DW4.Log2ParallelMergeLevelMinus2            = hevcPicParams->log2_parallel_merge_level_minus2;
+        cmd.DW4.SignDataHidingFlag                      = hevcPicParams->sign_data_hiding_enabled_flag;
+        cmd.DW4.LoopFilterAcrossTilesEnabledFlag        = hevcPicParams->loop_filter_across_tiles_enabled_flag;
+        cmd.DW4.EntropyCodingSyncEnabledFlag            = hevcPicParams->entropy_coding_sync_enabled_flag;
+        cmd.DW4.TilesEnabledFlag                        = hevcPicParams->tiles_enabled_flag;
+        cmd.DW4.WeightedPredFlag                        = hevcPicParams->weighted_pred_flag;
+        cmd.DW4.WeightedBipredFlag                      = hevcPicParams->weighted_bipred_flag;
+        cmd.DW4.Fieldpic                                = (hevcPicParams->RefFieldPicFlag >> 15) & 0x01;
+        cmd.DW4.Bottomfield                             = ((hevcPicParams->RefBottomFieldFlag >> 15) & 0x01) ? 0 : 1;
+        cmd.DW4.TransformSkipEnabledFlag                = hevcPicParams->transform_skip_enabled_flag;
+        cmd.DW4.AmpEnabledFlag                          = hevcPicParams->amp_enabled_flag;
+        cmd.DW4.TransquantBypassEnableFlag              = hevcPicParams->transquant_bypass_enabled_flag;
+        cmd.DW4.StrongIntraSmoothingEnableFlag          = hevcPicParams->strong_intra_smoothing_enabled_flag;
 
         cmd.DW5.PicCbQpOffset = hevcPicParams->pps_cb_qp_offset & 0x1f;
         cmd.DW5.PicCrQpOffset = hevcPicParams->pps_cr_qp_offset & 0x1f;
         cmd.DW5.MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra = hevcPicParams->max_transform_hierarchy_depth_intra & 0x7;
         cmd.DW5.MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter = hevcPicParams->max_transform_hierarchy_depth_inter & 0x7;
         cmd.DW5.PcmSampleBitDepthChromaMinus1 = hevcPicParams->pcm_sample_bit_depth_chroma_minus1;
-        cmd.DW5.PcmSampleBitDepthLumaMinus1 = hevcPicParams->pcm_sample_bit_depth_luma_minus1;
+        cmd.DW5.PcmSampleBitDepthLumaMinus1   = hevcPicParams->pcm_sample_bit_depth_luma_minus1;
 
         MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 

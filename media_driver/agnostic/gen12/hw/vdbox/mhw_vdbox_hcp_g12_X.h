@@ -695,6 +695,7 @@ public:
         uint32_t                        *size);
 };
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
 typedef struct _DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT
 {
     uint32_t DW0_Value;
@@ -912,6 +913,116 @@ typedef struct _DECODE_EVENTDATA_CMD_HCPVP9PICSTATE
     uint32_t DW10_FirstPartitionSizeInBytes150;
 } DECODE_EVENTDATA_CMD_HCPVP9PICSTATE;
 
+typedef struct _DECODE_EVENTDATA_CMD_HCPHEVCPICSTATE
+{
+    uint32_t DW0_Value;
+    uint32_t DW1_Value;
+    uint32_t DW2_Value;
+    uint32_t DW4_Value;
+    uint32_t DW5_Value;    
+    uint32_t DW36_Value; 
+    uint32_t DW1_Framewidthinmincbminus1;              
+    uint32_t DW1_Frameheightinmincbminus1;             
+    uint32_t DW2_ChromaSubsampling;                   
+    uint32_t DW2_Mincusize;                     
+    uint32_t DW2_CtbsizeLcusize;                    
+    uint32_t DW2_Maxtusize;                      
+    uint32_t DW2_Mintusize;                      
+    uint32_t DW2_Minpcmsize;                       
+    uint32_t DW2_Maxpcmsize;                       
+    uint32_t DW4_SampleAdaptiveOffsetEnabledFlag;      
+    uint32_t DW4_PcmEnabledFlag;             
+    uint32_t DW4_CuQpDeltaEnabledFlag;            
+    uint32_t DW4_DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth;
+    uint32_t DW4_PcmLoopFilterDisableFlag;
+    uint32_t DW4_ConstrainedIntraPredFlag;   
+    uint32_t DW4_Log2ParallelMergeLevelMinus2;
+    uint32_t DW4_SignDataHidingFlag;  
+    uint32_t DW4_LoopFilterAcrossTilesEnabledFlag;    
+    uint32_t DW4_EntropyCodingSyncEnabledFlag;    
+    uint32_t DW4_TilesEnabledFlag;        
+    uint32_t DW4_WeightedPredFlag;         
+    uint32_t DW4_WeightedBipredFlag;         
+    uint32_t DW4_Fieldpic;
+    uint32_t DW4_Bottomfield;
+    uint32_t DW4_TransformSkipEnabledFlag;
+    uint32_t DW4_AmpEnabledFlag;
+    uint32_t DW4_TransquantBypassEnableFlag;
+    uint32_t DW4_StrongIntraSmoothingEnableFlag;
+    uint32_t DW5_BitDepthChromaMinus8;
+    uint32_t DW5_BitDepthLumaMinus8;              
+    uint32_t DW5_PicCbQpOffset;                   
+    uint32_t DW5_PicCrQpOffset;   
+    uint32_t DW5_MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra;
+    uint32_t DW5_MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter;
+    uint32_t DW5_PcmSampleBitDepthChromaMinus1;
+    uint32_t DW5_PcmSampleBitDepthLumaMinus1;
+    uint32_t DW36_FrameCrcEnable;
+    uint32_t DW36_FrameCrcType;
+} DECODE_EVENTDATA_CMD_HCPHEVCPICSTATE;
+
+typedef struct _DECODE_EVENTDATA_CMD_HCPHEVCREXTPICSTATE
+{
+    uint32_t DW0_Value;
+    uint32_t DW2_Value;
+    uint32_t DW3_Value;
+    uint32_t DW32_Value;
+    uint32_t DW33_Value;
+    uint32_t DW2_ChromaQpOffsetListEnabledFlag;
+    uint32_t DW2_DiffCuChromaQpOffsetDepth;
+    uint32_t DW2_ChromaQpOffsetListLenMinus1;
+    uint32_t DW2_Log2SaoOffsetScaleLuma;
+    uint32_t DW2_Log2SaoOffsetScaleChroma;
+    uint32_t DW3_Log2Maxtransformskipsize;     
+    uint32_t DW3_CrossComponentPredictionEnabledFlag;
+    uint32_t DW3_CabacBypassAlignmentEnabledFlag;   
+    uint32_t DW3_PersistentRiceAdaptationEnabledFlag;
+    uint32_t DW3_IntraSmoothingDisabledFlag;      
+    uint32_t DW3_ExplicitRdpcmEnabledFlag;        
+    uint32_t DW3_ImplicitRdpcmEnabledFlag;         
+    uint32_t DW3_TransformSkipContextEnabledFlag;  
+    uint32_t DW3_TransformSkipRotationEnabledFlag;  
+    uint32_t DW3_HighPrecisionOffsetsEnableFlag;
+    uint32_t DW32_CbQpOffsetList0;
+    uint32_t DW32_CbQpOffsetList1;
+    uint32_t DW32_CbQpOffsetList2;
+    uint32_t DW32_CbQpOffsetList3;
+    uint32_t DW32_CbQpOffsetList4;
+    uint32_t DW32_CbQpOffsetList5;
+    uint32_t DW33_CrQpOffsetList0;
+    uint32_t DW33_CrQpOffsetList1;
+    uint32_t DW33_CrQpOffsetList2;
+    uint32_t DW33_CrQpOffsetList3;
+    uint32_t DW33_CrQpOffsetList4;
+    uint32_t DW33_CrQpOffsetList5;
+} DECODE_EVENTDATA_CMD_HCPHEVCREXTPICSTATE;
+
+typedef struct _DECODE_EVENTDATA_CMD_HCPHEVCSCCPICSTATE
+{
+    uint32_t DW0_Value;
+    uint32_t DW34_Value;
+    uint32_t DW35_Value;
+    uint32_t DW34_IbcMotionCompensationBufferReferenceIdc;  
+    uint32_t DW34_PpsActCrQpOffsetPlus3;                
+    uint32_t DW34_PpsActCbQpOffsetPlus5;                  
+    uint32_t DW34_PpsActYOffsetPlus5;                    
+    uint32_t DW34_PpsSliceActQpOffsetsPresentFlag;         
+    uint32_t DW34_ResidualAdaptiveColourTransformEnabledFlag;
+    uint32_t DW34_PpsCurrPicRefEnabledFlag;        
+    uint32_t DW34_MotionVectorResolutionControlIdc;       
+    uint32_t DW34_IntraBoundaryFilteringDisabledFlag;
+    uint32_t DW34_DeblockingFilterOverrideEnabledFlag;      
+    uint32_t DW34_PpsDeblockingFilterDisabledFlag;        
+    uint32_t DW35_PaletteMaxSize;              
+    uint32_t DW35_DeltaPaletteMaxPredictorSize;           
+    uint32_t DW35_IbcMotionVectorErrorHandlingDisable;     
+    uint32_t DW35_ChromaBitDepthEntryMinus8;           
+    uint32_t DW35_LumaBitDepthEntryMinus8;              
+    uint32_t DW35_IbcConfiguration;                 
+    uint32_t DW35_MonochromePaletteFlag;                   
+    uint32_t DW35_PaletteModeEnabledFlag;
+} DECODE_EVENTDATA_CMD_HCPHEVCSCCPICSTATE;
+
 void DecodeEventDataCmdHcpPipeModeSelectInit(
     DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT        *pEventData,
     mhw_vdbox_hcp_g12_X::HCP_PIPE_MODE_SELECT_CMD *pCmd);
@@ -930,11 +1041,25 @@ void DecodeEventDataCmdHcpIndObjBaseAddrStateInit(
     mhw_vdbox_hcp_g12_X::HCP_IND_OBJ_BASE_ADDR_STATE_CMD *pCmd);
 
 void DecodeEventDataCmdHcpVp9SegmentStateInit(
-    _DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE       *pEventData,
+    DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE        *pEventData,
     mhw_vdbox_hcp_g12_X::HCP_VP9_SEGMENT_STATE_CMD *pCmd);
 
 void DecodeEventDataCmdHcpVp9PicStateInit(
     DECODE_EVENTDATA_CMD_HCPVP9PICSTATE        *pEventData,
     mhw_vdbox_hcp_g12_X::HCP_VP9_PIC_STATE_CMD *pCmd);
+
+void DecodeEventDataCmdHcpHevcPicStateInit(
+    DECODE_EVENTDATA_CMD_HCPHEVCPICSTATE   *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD *pCmd);
+
+void DecodeEventDataCmdHcpHevcRextPicStateInit(
+    DECODE_EVENTDATA_CMD_HCPHEVCREXTPICSTATE *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD *  pCmd);
+
+void DecodeEventDataCmdHcpHevcSccPicStateInit(
+    DECODE_EVENTDATA_CMD_HCPHEVCSCCPICSTATE *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD  *pCmd);
+
+#endif
 
 #endif

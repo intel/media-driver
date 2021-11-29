@@ -180,6 +180,19 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_CMD_HCP_SEGMENTSTATE_VP9,         //! event for Decode HcpVp9SegmentState Cmd
     EVENT_DECODE_CMD_HCP_PICSTATE_VP9,             //! event for Decode HcpVp9PicState Cmd
     EVENT_DECODE_CMD_HCP_BSDOBJECT,                //! event for Decode HcpBsdObject Cmd
+    EVENT_DECODE_BUFFER_PICPARAM_AV1,              //! event for Decode AV1 Pic Paramters
+    EVENT_DECODE_BUFFER_SEGPARAM_AV1,              //! event for Decode AV1 Segment Paramters
+    EVENT_DECODE_BUFFER_FILMGRAINPARAM_AV1,        //! event for Decode AV1 Film Grain Paramters
+    EVENT_DECODE_BUFFER_TILEPARAM_AV1,             //! event for Decode AV1 Tile Paramters
+    EVENT_DECODE_BUFFER_PICPARAM_AVC,              //! event for Decode AVC Pic Paramters
+    EVENT_DECODE_BUFFER_SLICEPARAM_AVC,            //! event for Decode AVC Slice Paramters
+    EVENT_DECODE_BUFFER_PICPARAM_HEVC,             //! event for Decode HEVC Pic Paramters
+    EVENT_DECODE_BUFFER_EXTPICPARAM_HEVC,          //! event for Decode HEVC EXT Pic Paramters
+    EVENT_DECODE_BUFFER_SCCPICPARAM_HEVC,          //! event for Decode HEVC SCC Pic Paramters
+    EVENT_DECODE_BUFFER_SLICEPARAM_HEVC,           //! event for Decode HEVC Slice Paramters
+    EVENT_DECODE_CMD_HCP_PICSTATE_HEVC,            //! event for Decode HcpHevcPicState Cmd
+    EVENT_DECODE_CMD_HCP_REXTPICSTATE_HEVC,        //! event for Decode HcpHevcRextPicState Cmd
+    EVENT_DECODE_CMD_HCP_SCCPICSTATE_HEVC,         //! event for Decode HcpHevcSccPicState Cmd
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

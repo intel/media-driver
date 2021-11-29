@@ -2696,7 +2696,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodePicStateCmd(
     }
 
     cmd->DW5.BitDepthChromaMinus8 = hevcPicParams->bit_depth_chroma_minus8;
-    cmd->DW5.BitDepthLumaMinus8 = hevcPicParams->bit_depth_luma_minus8;
+    cmd->DW5.BitDepthLumaMinus8   = hevcPicParams->bit_depth_luma_minus8;
 
     if (hevcSccPicParams)
     {
@@ -2730,6 +2730,29 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodePicStateCmd(
         cmd->DW36.FrameCrcType                               = 0;
     }
     
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    {
+        DECODE_EVENTDATA_CMD_HCPHEVCPICSTATE eventData;
+        DecodeEventDataCmdHcpHevcPicStateInit(&eventData, cmd);
+        MOS_TraceEvent(EVENT_DECODE_CMD_HCP_PICSTATE_HEVC, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+
+        if (hevcExtPicParams)
+        { 
+            DECODE_EVENTDATA_CMD_HCPHEVCREXTPICSTATE rextEventData;
+            DecodeEventDataCmdHcpHevcRextPicStateInit(&rextEventData, cmd);
+            MOS_TraceEvent(EVENT_DECODE_CMD_HCP_REXTPICSTATE_HEVC, EVENT_TYPE_INFO, &rextEventData, sizeof(rextEventData), NULL, 0);
+        }
+
+        if (hevcSccPicParams)
+        {
+            DECODE_EVENTDATA_CMD_HCPHEVCSCCPICSTATE sccEventData;
+            DecodeEventDataCmdHcpHevcSccPicStateInit(&sccEventData, cmd);
+            MOS_TraceEvent(EVENT_DECODE_CMD_HCP_SCCPICSTATE_HEVC, EVENT_TYPE_INFO, &sccEventData, sizeof(sccEventData), NULL, 0);
+        }
+    }
+#endif
+
     return eStatus;
 }
 
@@ -4509,8 +4532,9 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileCodingCmd(
     return eStatus;
 }
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
 void DecodeEventDataCmdHcpPipeModeSelectInit(
-    DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT *       pEventData,
+    DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT        *pEventData,
     mhw_vdbox_hcp_g12_X::HCP_PIPE_MODE_SELECT_CMD *pCmd)
 {
     pEventData->DW0_Value                              = pCmd->DW0.Value;
@@ -4662,7 +4686,7 @@ void DecodeEventDataCmdHcpIndObjBaseAddrStateInit(
 }
 
 void DecodeEventDataCmdHcpVp9SegmentStateInit(
-    _DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE       *pEventData,
+    DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE        *pEventData,
     mhw_vdbox_hcp_g12_X::HCP_VP9_SEGMENT_STATE_CMD *pCmd)
 {
     pEventData->DW0_Value                            = pCmd->DW0.Value;
@@ -4746,3 +4770,120 @@ void DecodeEventDataCmdHcpVp9PicStateInit(
     pEventData->DW10_UncompressedHeaderLengthInBytes7   = pCmd->DW10.UncompressedHeaderLengthInBytes70;
     pEventData->DW10_FirstPartitionSizeInBytes150       = pCmd->DW10.FirstPartitionSizeInBytes150; 
 }
+
+void DecodeEventDataCmdHcpHevcPicStateInit(
+    DECODE_EVENTDATA_CMD_HCPHEVCPICSTATE        *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD *pCmd)
+{
+    pEventData->DW0_Value                                   = pCmd->DW0.Value;
+    pEventData->DW1_Value                                   = pCmd->DW1.Value;
+    pEventData->DW2_Value                                   = pCmd->DW2.Value;
+    pEventData->DW4_Value                                   = pCmd->DW4.Value;
+    pEventData->DW5_Value                                   = pCmd->DW5.Value;   
+    pEventData->DW36_Value                                  = pCmd->DW36.Value;
+    pEventData->DW1_Framewidthinmincbminus1                 = pCmd->DW1.Framewidthinmincbminus1;
+    pEventData->DW1_Frameheightinmincbminus1                = pCmd->DW1.Frameheightinmincbminus1;
+    pEventData->DW2_ChromaSubsampling                       = pCmd->DW2.ChromaSubsampling;
+    pEventData->DW2_Mincusize                               = pCmd->DW2.Mincusize;
+    pEventData->DW2_CtbsizeLcusize                          = pCmd->DW2.CtbsizeLcusize;
+    pEventData->DW2_Maxtusize                               = pCmd->DW2.Maxtusize;
+    pEventData->DW2_Mintusize                               = pCmd->DW2.Mintusize;
+    pEventData->DW2_Minpcmsize                              = pCmd->DW2.Minpcmsize;
+    pEventData->DW2_Maxpcmsize                              = pCmd->DW2.Maxpcmsize;
+    pEventData->DW4_SampleAdaptiveOffsetEnabledFlag         = pCmd->DW4.SampleAdaptiveOffsetEnabledFlag;     
+    pEventData->DW4_PcmEnabledFlag                          = pCmd->DW4.PcmEnabledFlag;                       
+    pEventData->DW4_CuQpDeltaEnabledFlag                    = pCmd->DW4.CuQpDeltaEnabledFlag;                 
+    pEventData->DW4_DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth  = pCmd->DW4.DiffCuQpDeltaDepthOrNamedAsMaxDqpDepth;
+    pEventData->DW4_PcmLoopFilterDisableFlag                = pCmd->DW4.PcmLoopFilterDisableFlag;          
+    pEventData->DW4_ConstrainedIntraPredFlag                = pCmd->DW4.ConstrainedIntraPredFlag;            
+    pEventData->DW4_Log2ParallelMergeLevelMinus2            = pCmd->DW4.Log2ParallelMergeLevelMinus2;       
+    pEventData->DW4_SignDataHidingFlag                      = pCmd->DW4.SignDataHidingFlag;           
+    pEventData->DW4_LoopFilterAcrossTilesEnabledFlag        = pCmd->DW4.LoopFilterAcrossTilesEnabledFlag;
+    pEventData->DW4_EntropyCodingSyncEnabledFlag            = pCmd->DW4.EntropyCodingSyncEnabledFlag;   
+    pEventData->DW4_TilesEnabledFlag                        = pCmd->DW4.TilesEnabledFlag;                    
+    pEventData->DW4_WeightedPredFlag                        = pCmd->DW4.WeightedPredFlag;                     
+    pEventData->DW4_WeightedBipredFlag                      = pCmd->DW4.WeightedBipredFlag;                   
+    pEventData->DW4_Fieldpic                                = pCmd->DW4.Fieldpic;                         
+    pEventData->DW4_Bottomfield                             = pCmd->DW4.Bottomfield;                        
+    pEventData->DW4_TransformSkipEnabledFlag                = pCmd->DW4.TransformSkipEnabledFlag;          
+    pEventData->DW4_AmpEnabledFlag                          = pCmd->DW4.AmpEnabledFlag;                
+    pEventData->DW4_TransquantBypassEnableFlag              = pCmd->DW4.TransquantBypassEnableFlag;         
+    pEventData->DW4_StrongIntraSmoothingEnableFlag          = pCmd->DW4.StrongIntraSmoothingEnableFlag;
+    pEventData->DW5_BitDepthChromaMinus8                    = pCmd->DW5.BitDepthChromaMinus8;     
+    pEventData->DW5_BitDepthLumaMinus8                      = pCmd->DW5.BitDepthLumaMinus8;
+    pEventData->DW5_PicCbQpOffset                           = pCmd->DW5.PicCbQpOffset;
+    pEventData->DW5_PicCrQpOffset                           = pCmd->DW5.PicCrQpOffset;
+    pEventData->DW5_MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra= pCmd->DW5.MaxTransformHierarchyDepthIntraOrNamedAsTuMaxDepthIntra;
+    pEventData->DW5_MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter= pCmd->DW5.MaxTransformHierarchyDepthInterOrNamedAsTuMaxDepthInter;
+    pEventData->DW5_PcmSampleBitDepthChromaMinus1 = pCmd->DW5.PcmSampleBitDepthChromaMinus1;
+    pEventData->DW5_PcmSampleBitDepthLumaMinus1   = pCmd->DW5.PcmSampleBitDepthLumaMinus1;
+    pEventData->DW36_FrameCrcEnable               = pCmd->DW36.FrameCrcEnable;
+    pEventData->DW36_FrameCrcType                 = pCmd->DW36.FrameCrcType;
+}
+
+void DecodeEventDataCmdHcpHevcRextPicStateInit(
+    DECODE_EVENTDATA_CMD_HCPHEVCREXTPICSTATE *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD   *pCmd)
+{
+    pEventData->DW0_Value                               = pCmd->DW0.Value;
+    pEventData->DW2_Value                               = pCmd->DW2.Value;
+    pEventData->DW3_Value                               = pCmd->DW3.Value;
+    pEventData->DW32_Value                              = pCmd->DW32.Value;
+    pEventData->DW33_Value                              = pCmd->DW33.Value;    
+    pEventData->DW2_ChromaQpOffsetListEnabledFlag       = pCmd->DW2.ChromaQpOffsetListEnabledFlag;
+    pEventData->DW2_DiffCuChromaQpOffsetDepth           = pCmd->DW2.DiffCuChromaQpOffsetDepth;
+    pEventData->DW2_ChromaQpOffsetListLenMinus1         = pCmd->DW2.ChromaQpOffsetListLenMinus1;
+    pEventData->DW2_Log2SaoOffsetScaleLuma              = pCmd->DW2.Log2SaoOffsetScaleLuma;
+    pEventData->DW2_Log2SaoOffsetScaleChroma            = pCmd->DW2.Log2SaoOffsetScaleChroma;
+    pEventData->DW3_Log2Maxtransformskipsize            = pCmd->DW3.Log2Maxtransformskipsize;          
+    pEventData->DW3_CrossComponentPredictionEnabledFlag = pCmd->DW3.CrossComponentPredictionEnabledFlag;
+    pEventData->DW3_CabacBypassAlignmentEnabledFlag     = pCmd->DW3.CabacBypassAlignmentEnabledFlag;  
+    pEventData->DW3_PersistentRiceAdaptationEnabledFlag = pCmd->DW3.PersistentRiceAdaptationEnabledFlag;
+    pEventData->DW3_IntraSmoothingDisabledFlag          = pCmd->DW3.IntraSmoothingDisabledFlag;     
+    pEventData->DW3_ExplicitRdpcmEnabledFlag            = pCmd->DW3.ExplicitRdpcmEnabledFlag;       
+    pEventData->DW3_ImplicitRdpcmEnabledFlag            = pCmd->DW3.ImplicitRdpcmEnabledFlag;       
+    pEventData->DW3_TransformSkipContextEnabledFlag     = pCmd->DW3.TransformSkipContextEnabledFlag;
+    pEventData->DW3_TransformSkipRotationEnabledFlag    = pCmd->DW3.TransformSkipRotationEnabledFlag;
+    pEventData->DW3_HighPrecisionOffsetsEnableFlag      = pCmd->DW3.HighPrecisionOffsetsEnableFlag;  
+    pEventData->DW32_CbQpOffsetList0                    = pCmd->DW32.CbQpOffsetList0;
+    pEventData->DW32_CbQpOffsetList1                    = pCmd->DW32.CbQpOffsetList1;
+    pEventData->DW32_CbQpOffsetList2                    = pCmd->DW32.CbQpOffsetList2;
+    pEventData->DW32_CbQpOffsetList3                    = pCmd->DW32.CbQpOffsetList3;
+    pEventData->DW32_CbQpOffsetList4                    = pCmd->DW32.CbQpOffsetList4;
+    pEventData->DW32_CbQpOffsetList5                    = pCmd->DW32.CbQpOffsetList5;
+    pEventData->DW33_CrQpOffsetList0                    = pCmd->DW33.CrQpOffsetList0;
+    pEventData->DW33_CrQpOffsetList1                    = pCmd->DW33.CrQpOffsetList1;
+    pEventData->DW33_CrQpOffsetList2                    = pCmd->DW33.CrQpOffsetList2;
+    pEventData->DW33_CrQpOffsetList3                    = pCmd->DW33.CrQpOffsetList3;
+    pEventData->DW33_CrQpOffsetList4                    = pCmd->DW33.CrQpOffsetList4;
+    pEventData->DW33_CrQpOffsetList5                    = pCmd->DW33.CrQpOffsetList5;
+}
+
+void DecodeEventDataCmdHcpHevcSccPicStateInit(
+    DECODE_EVENTDATA_CMD_HCPHEVCSCCPICSTATE *pEventData,
+    mhw_vdbox_hcp_g12_X::HCP_PIC_STATE_CMD  *pCmd)
+{
+    pEventData->DW0_Value                                       = pCmd->DW0.Value;
+    pEventData->DW34_Value                                      = pCmd->DW34.Value;
+    pEventData->DW35_Value                                      = pCmd->DW35.Value;
+    pEventData->DW34_IbcMotionCompensationBufferReferenceIdc    = pCmd->DW34.IbcMotionCompensationBufferReferenceIdc;   
+    pEventData->DW34_PpsActCrQpOffsetPlus3                      = pCmd->DW34.PpsActCrQpOffsetPlus3;                     
+    pEventData->DW34_PpsActCbQpOffsetPlus5                      = pCmd->DW34.PpsActCbQpOffsetPlus5;                    
+    pEventData->DW34_PpsActYOffsetPlus5                         = pCmd->DW34.PpsActYOffsetPlus5;                       
+    pEventData->DW34_PpsSliceActQpOffsetsPresentFlag            = pCmd->DW34.PpsSliceActQpOffsetsPresentFlag;          
+    pEventData->DW34_ResidualAdaptiveColourTransformEnabledFlag = pCmd->DW34.ResidualAdaptiveColourTransformEnabledFlag;
+    pEventData->DW34_PpsCurrPicRefEnabledFlag                   = pCmd->DW34.PpsCurrPicRefEnabledFlag;                
+    pEventData->DW34_MotionVectorResolutionControlIdc           = pCmd->DW34.MotionVectorResolutionControlIdc;        
+    pEventData->DW34_IntraBoundaryFilteringDisabledFlag         = pCmd->DW34.IntraBoundaryFilteringDisabledFlag;       
+    pEventData->DW34_DeblockingFilterOverrideEnabledFlag        = pCmd->DW34.DeblockingFilterOverrideEnabledFlag;      
+    pEventData->DW34_PpsDeblockingFilterDisabledFlag            = pCmd->DW34.PpsDeblockingFilterDisabledFlag;
+    pEventData->DW35_PaletteMaxSize                             = pCmd->DW35.PaletteMaxSize;               
+    pEventData->DW35_DeltaPaletteMaxPredictorSize               = pCmd->DW35.DeltaPaletteMaxPredictorSize;  
+    pEventData->DW35_IbcMotionVectorErrorHandlingDisable        = pCmd->DW35.IbcMotionVectorErrorHandlingDisable;
+    pEventData->DW35_ChromaBitDepthEntryMinus8                  = pCmd->DW35.ChromaBitDepthEntryMinus8;     
+    pEventData->DW35_LumaBitDepthEntryMinus8                    = pCmd->DW35.LumaBitDepthEntryMinus8;        
+    pEventData->DW35_IbcConfiguration                           = pCmd->DW35.IbcConfiguration;           
+    pEventData->DW35_MonochromePaletteFlag                      = pCmd->DW35.MonochromePaletteFlag;           
+    pEventData->DW35_PaletteModeEnabledFlag                     = pCmd->DW35.PaletteModeEnabledFlag;
+}
+#endif
