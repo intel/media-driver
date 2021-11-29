@@ -1309,7 +1309,7 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE *surface)
     }
     else
     {
-        if ((surface->iRefCount = 1) && (true == surface->bMapped))
+        if ((1 == surface->iRefCount) && (true == surface->bMapped))
         {
            DdiMediaUtil_UnlockSurfaceInternal(surface);
         }
