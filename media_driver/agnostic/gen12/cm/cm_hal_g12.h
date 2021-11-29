@@ -28,7 +28,6 @@
 #define _CM_HAL_G12_H_
 
 #include "cm_hal.h"
-#include "mhw_render_hwcmd_g8_X.h"
 
 #define CM_NUM_HW_POLYPHASE_TABLES_G12         17
 #define CM_NUM_HW_POLYPHASE_EXTRA_TABLES_G12   15
