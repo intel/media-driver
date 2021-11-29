@@ -204,6 +204,40 @@ public:
     MOS_STATUS Initialize(
         CodechalSetting *settings) override;
 
+#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+    //!
+    //! \brief    Read AVP status for status report
+    //! \param    vdboxIndex
+    //!           [in] the vdbox index
+    //! \param    params
+    //!           [in] the parameters for AVP status read
+    //! \param    cmdBuffer
+    //!           [in, out] the command buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReadAvpStatus(
+        MHW_VDBOX_NODE_IND           vdboxIndex,
+        const EncodeStatusReadParams &params,
+        PMOS_COMMAND_BUFFER          cmdBuffer);
+
+    //!
+    //! \brief    Read AVP specific image status for status report
+    //! \param    vdboxIndex
+    //!           [in] the vdbox index
+    //! \param    params
+    //!           [in] the parameters for AVP IMG status read
+    //! \param    cmdBuffer
+    //!           [in, out] the command buffer
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReadImageStatusForAvp(
+        MHW_VDBOX_NODE_IND           vdboxIndex,
+        const EncodeStatusReadParams &params,
+        PMOS_COMMAND_BUFFER          cmdBuffer);
+#endif
+
     //!
     //! \brief    Get film grain kernel info
     //! \details  Get kernel base and size

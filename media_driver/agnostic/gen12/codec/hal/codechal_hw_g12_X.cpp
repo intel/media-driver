@@ -445,6 +445,76 @@ MOS_STATUS CodechalHwInterfaceG12::Initialize(
     return eStatus;
 }
 
+#ifdef IGFX_MHW_INTERFACES_NEXT_SUPPORT
+MOS_STATUS CodechalHwInterfaceG12::ReadAvpStatus(MHW_VDBOX_NODE_IND vdboxIndex, const EncodeStatusReadParams &params, PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    std::shared_ptr<mhw::vdbox::avp::Itf> m_avpItf = GetAvpInterfaceNext();
+    CODECHAL_HW_CHK_NULL_RETURN(m_avpItf);
+    auto mmioRegisters = m_avpItf->GetMmioRegisters(vdboxIndex);
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resBitstreamByteCountPerFrame;
+    miStoreRegMemParams.dwOffset        = params.bitstreamByteCountPerFrameOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1BitstreamByteCountTileRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resQpStatusCount;
+    miStoreRegMemParams.dwOffset        = params.qpStatusCountOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1QpStatusCountRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceG12::ReadImageStatusForAvp(MHW_VDBOX_NODE_IND vdboxIndex, const EncodeStatusReadParams &params, PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(cmdBuffer);
+
+    CODECHAL_HW_CHK_COND_RETURN((vdboxIndex > m_mfxInterface->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
+
+    std::shared_ptr<mhw::vdbox::avp::Itf> m_avpItf = GetAvpInterfaceNext();
+    CODECHAL_HW_CHK_NULL_RETURN(m_avpItf);
+    auto mmioRegisters = GetAvpInterfaceNext()->GetMmioRegisters(vdboxIndex);
+
+    MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resImageStatusMask;
+    miStoreRegMemParams.dwOffset        = params.imageStatusMaskOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusMaskRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
+    miStoreRegMemParams.presStoreBuffer = params.resImageStatusCtrl;
+    miStoreRegMemParams.dwOffset        = params.imageStatusCtrlOffset;
+    miStoreRegMemParams.dwRegister      = mmioRegisters->avpAv1ImageStatusControlRegOffset;
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &miStoreRegMemParams));
+
+    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
+    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
+    CODECHAL_HW_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+
+    return eStatus;
+}
+#endif
+
 CodechalHwInterfaceG12::~CodechalHwInterfaceG12()
 {
     if (m_renderHal != nullptr && m_renderHal->pfnDestroy != nullptr)
