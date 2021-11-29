@@ -59,6 +59,9 @@
 #define CODEC_2K_MAX_PIC_WIDTH         2048
 #define CODEC_2K_MAX_PIC_HEIGHT        2048
 
+#define CODEC_4K_VC1_MAX_PIC_WIDTH     3840
+#define CODEC_4K_VC1_MAX_PIC_HEIGHT    3840
+
 #define CODEC_4K_MAX_PIC_WIDTH         4096
 #define CODEC_4K_MAX_PIC_HEIGHT        4096
 
