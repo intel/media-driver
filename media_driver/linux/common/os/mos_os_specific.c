@@ -1190,8 +1190,6 @@ void Linux_Destroy(
         mos_gem_context_destroy(pOsContext->intel_context);
     }
 
-    pOsContext->GmmFuncs.pfnDeleteClientContext(pOsContext->pGmmClientContext);
-
     MOS_FreeMemAndSetNull(pOsContext);
 }
 
@@ -1931,7 +1929,6 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
             mos_gem_context_destroy(perStreamParameters->intel_context);
             perStreamParameters->intel_context = nullptr;
         }
-        perStreamParameters->GmmFuncs.pfnDeleteClientContext(perStreamParameters->pGmmClientContext);
         MOS_FreeMemAndSetNull(perStreamParameters);
         streamState->perStreamParameters = nullptr;
     }
@@ -7476,13 +7473,6 @@ MOS_STATUS Mos_Specific_InitInterface(
         // Create Linux OS Context
         pOsContext = (PMOS_OS_CONTEXT)MOS_AllocAndZeroMemory(sizeof(MOS_OS_CONTEXT));
         MOS_OS_CHK_NULL_RETURN(pOsContext);
-
-        if (GMM_SUCCESS != OpenGmm(&pOsContext->GmmFuncs))
-        {
-            MOS_OS_ASSERTMESSAGE("Unable to open gmm");
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
-            goto finish;
-        }
     }
 
     if (pOsInterface->modulizedMosEnabled && !Mos_Solo_IsEnabled(nullptr))
@@ -7513,12 +7503,12 @@ MOS_STATUS Mos_Specific_InitInterface(
         {
             OsContextSpecific *pOsContextSpecific = static_cast<OsContextSpecific *>(pOsInterface->osContextPtr);
             pOsContext->intel_context             = pOsContextSpecific->GetDrmContext();
-            pOsContext->pGmmClientContext         = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+            pOsContext->pGmmClientContext         = pOsDriverContext->pGmmClientContext;
         }
     }
     else
     {
-        pOsContext->pGmmClientContext = pOsContext->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        pOsContext->pGmmClientContext = pOsDriverContext->pGmmClientContext;
     }
 
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));

@@ -582,7 +582,6 @@ struct _MOS_OS_CONTEXT
     void                *pLibdrmHandle;
 
     GMM_CLIENT_CONTEXT  *pGmmClientContext;   //UMD specific ClientContext object in GMM
-    GmmExportEntries    GmmFuncs;
     AuxTableMgr         *m_auxTableMgr;
    
     // GPU Status Buffer

@@ -1815,6 +1815,22 @@ public:
         COMMAND_BUFFER_HANDLE cmdBuf,
         MOS_SUBMISSION_TYPE   type);
 
+    //!
+    //! \brief    Get Adapter BDF
+    //! \details  [System info Interface] Get Adapter BDF
+    //! \details  Caller: DDI & HAL
+    //! \details  This func is called to differentiate the behavior according to Adapter BDF.
+    //!
+    //! \param    [in] mosCtx
+    //!           Pointer of Mos context
+    //! \param    [out] adapterBDF
+    //!           Adapter BDF info
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    static MOS_STATUS GetAdapterBDF(PMOS_CONTEXT mosCtx, ADAPTER_BDF *adapterBDF);
+
 #if _DEBUG || _RELEASE_INTERNAL
     //!
     //! \brief    Get engine count

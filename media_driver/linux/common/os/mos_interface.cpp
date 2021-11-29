@@ -367,17 +367,9 @@ MOS_STATUS MosInterface::InitStreamParameters(
     context->m_osDeviceContext  = streamState->osDeviceContext;
     context->bSimIsActive       = streamState->simIsActive;
 
-    if (GMM_SUCCESS != OpenGmm(&context->GmmFuncs))
-    {
-        MOS_FreeMemAndSetNull(context);
-
-        MOS_OS_ASSERTMESSAGE("Unable to open gmm");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
     streamState->perStreamParameters = (OS_PER_STREAM_PARAMETERS)context;
 
-    context->pGmmClientContext  = context->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+    context->pGmmClientContext  = streamState->osDeviceContext->GetGmmClientContext();;
 
     context->bufmgr             = bufMgr;
     context->m_gpuContextMgr    = osDeviceContext->GetGpuContextMgr();
@@ -604,6 +596,27 @@ MOS_STATUS MosInterface::CreateGpuContext(
     MOS_OS_CHK_STATUS_RETURN(gpuContextSpecific->Init(gpuContextMgr->GetOsContext(), streamState, &createOption));
 
     gpuContextHandle = gpuContextSpecific->GetGpuContextHandle();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::GetAdapterBDF(PMOS_CONTEXT mosCtx, ADAPTER_BDF *adapterBDF)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    drmDevicePtr device;
+    
+    MOS_OS_CHK_NULL_RETURN(mosCtx);
+    if (drmGetDevice(mosCtx->fd, &device) == 0)
+    {
+        adapterBDF->Bus      = device->businfo.pci->bus;
+        adapterBDF->Device   = device->businfo.pci->dev;
+        adapterBDF->Function = device->businfo.pci->func;
+    }
+    else
+    {
+        adapterBDF->Data = 0;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

@@ -536,8 +536,6 @@ struct DDI_MEDIA_CONTEXT
 
     GMM_CLIENT_CONTEXT  *pGmmClientContext;
 
-    GmmExportEntries   GmmFuncs;
-
     // Aux Table Manager
     AuxTableMgr         *m_auxTableMgr;
 

@@ -1857,6 +1857,9 @@ VAStatus DdiMedia_InitMediaContext (
         GMM_GT_SYSTEM_INFO gmmGtInfo;
         memset(&gmmGtInfo, 0, sizeof(gmmGtInfo));
 
+        GMM_ADAPTER_BDF gmmAdapterBDF;
+        memset(&gmmAdapterBDF, 0, sizeof(gmmAdapterBDF));
+
         eStatus = HWInfo_GetGmmInfo(mediaCtx->fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
         if (MOS_STATUS_SUCCESS != eStatus)
         {
@@ -1881,32 +1884,50 @@ VAStatus DdiMedia_InitMediaContext (
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
-        GMM_STATUS gmmStatus = OpenGmm(&mediaCtx->GmmFuncs);
-        if (gmmStatus != GMM_SUCCESS)
+        // fill in the mos context struct as input to initialize m_osContext
+        MOS_CONTEXT mosCtx           = {};
+        mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
+        mosCtx.fd                    = mediaCtx->fd;
+        mosCtx.iDeviceId             = mediaCtx->iDeviceId;
+        mosCtx.SkuTable              = mediaCtx->SkuTable;
+        mosCtx.WaTable               = mediaCtx->WaTable;
+        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
+        mosCtx.platform              = mediaCtx->platform;
+        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
+        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
+        mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
+        mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
+        mosCtx.ppMediaCopyState      = &mediaCtx->pMediaCopyState;
+
+        eStatus = MosInterface::GetAdapterBDF(&mosCtx, &gmmAdapterBDF);
+        if (MOS_STATUS_SUCCESS != eStatus)
         {
-            DDI_ASSERTMESSAGE("gmm init failed.");
+            DDI_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Adapter BDF initialization");
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
-        // init GMM context
-        gmmStatus = mediaCtx->GmmFuncs.pfnCreateSingletonContext(mediaCtx->platform,
-            &gmmSkuTable,
-            &gmmWaTable,
-            &gmmGtInfo);
+        // Initialize Gmm context
+        GMM_INIT_IN_ARGS  gmmInitAgrs = {};
+        GMM_INIT_OUT_ARGS gmmOutArgs  = {};
+        gmmInitAgrs.Platform          = mediaCtx->platform;
+        gmmInitAgrs.pSkuTable         = &gmmSkuTable;
+        gmmInitAgrs.pWaTable          = &gmmWaTable;
+        gmmInitAgrs.pGtSysInfo        = &gmmGtInfo;
+        gmmInitAgrs.FileDescriptor    = gmmAdapterBDF.Data;
+        gmmInitAgrs.ClientType        = (GMM_CLIENT)GMM_LIBVA_LINUX;
 
-        if (gmmStatus != GMM_SUCCESS)
+        GMM_STATUS status = InitializeGmm(&gmmInitAgrs, &gmmOutArgs);
+        if (status != GMM_SUCCESS)
         {
-            DDI_ASSERTMESSAGE("gmm init failed.");
+            DDI_ASSERTMESSAGE("InitializeGmm fail.");
             FreeForMediaContext(mediaCtx);
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
-
-        // Create GMM Client Context
-        mediaCtx->pGmmClientContext = mediaCtx->GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        mediaCtx->pGmmClientContext = gmmOutArgs.pGmmClientContext;
 
         // Create GMM page table manager
-        mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr, &mediaCtx->SkuTable);
+        mediaCtx->m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(mediaCtx->pDrmBufMgr, &mediaCtx->SkuTable, mediaCtx->pGmmClientContext);
 
         MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
@@ -1929,19 +1950,6 @@ VAStatus DdiMedia_InitMediaContext (
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
 
-        // fill in the mos context struct as input to initialize m_osContext
-        mosCtx.bufmgr                = mediaCtx->pDrmBufMgr;
-        mosCtx.fd                    = mediaCtx->fd;
-        mosCtx.iDeviceId             = mediaCtx->iDeviceId;
-        mosCtx.SkuTable              = mediaCtx->SkuTable;
-        mosCtx.WaTable               = mediaCtx->WaTable;
-        mosCtx.gtSystemInfo          = *mediaCtx->pGtSystemInfo;
-        mosCtx.platform              = mediaCtx->platform;
-        mosCtx.ppMediaMemDecompState = &mediaCtx->pMediaMemDecompState;
-        mosCtx.pfnMemoryDecompress   = mediaCtx->pfnMemoryDecompress;
-        mosCtx.pfnMediaMemoryCopy    = mediaCtx->pfnMediaMemoryCopy;
-        mosCtx.pfnMediaMemoryCopy2D  = mediaCtx->pfnMediaMemoryCopy2D;
-        mosCtx.ppMediaCopyState      = &mediaCtx->pMediaCopyState;
         mosCtx.m_auxTableMgr         = mediaCtx->m_auxTableMgr;
         mosCtx.pGmmClientContext     = mediaCtx->pGmmClientContext;
 
@@ -2262,8 +2270,10 @@ VAStatus DdiMedia_Terminate (
         // Destroy memory allocated to store Media System Info
         MOS_FreeMemory(mediaCtx->pGtSystemInfo);
         // Free GMM memory.
-        mediaCtx->GmmFuncs.pfnDeleteClientContext(mediaCtx->pGmmClientContext);
-        mediaCtx->GmmFuncs.pfnDestroySingletonContext();
+        GMM_INIT_OUT_ARGS gmmOutArgs = {};
+        gmmOutArgs.pGmmClientContext = mediaCtx->pGmmClientContext;
+        GmmAdapterDestroy(&gmmOutArgs);
+        mediaCtx->pGmmClientContext = nullptr;
         MosUtilities::MosUtilitiesClose(nullptr);
     }
 

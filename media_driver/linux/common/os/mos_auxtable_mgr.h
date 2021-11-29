@@ -43,7 +43,7 @@ public:
     //!
     //! \brief  Constructor
     //!
-    AuxTableMgr(MOS_BUFMGR *bufMgr);
+    AuxTableMgr(MOS_BUFMGR *bufMgr, GMM_CLIENT_CONTEXT *gmmClientContext);
 
     //!
     //! \brief  Destructor
@@ -62,7 +62,7 @@ public:
     //! \return   Object pointer to AuxTableMgr
     //!           Return object pointer if success or return nullptr if failed
     //!
-    static AuxTableMgr * CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku);
+    static AuxTableMgr * CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku, GMM_CLIENT_CONTEXT *gmmClientContext);
 
     //!
     //! \brief    Map resource to aux table

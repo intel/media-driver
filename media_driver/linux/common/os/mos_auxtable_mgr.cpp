@@ -118,19 +118,13 @@ static void WaitFromCpuCb(void *bo)
     }
 }
 
-AuxTableMgr::AuxTableMgr(MOS_BUFMGR *bufMgr)
+AuxTableMgr::AuxTableMgr(MOS_BUFMGR *bufMgr, GMM_CLIENT_CONTEXT *gmmClientContext)
 {
     if (bufMgr)
     {
         GMM_DEVICE_CALLBACKS_INT deviceCb = {0};
 
-        GmmExportEntries GmmFuncs;
-        GMM_STATUS gmmStatus = OpenGmm(&GmmFuncs);
-        if(gmmStatus != GMM_SUCCESS)
-        {
-            MOS_OS_ASSERTMESSAGE("gmm init failed.");
-        }
-        m_gmmClientContext = GmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        m_gmmClientContext = gmmClientContext;
         if (m_gmmClientContext == nullptr)
         {
             MOS_OS_ASSERTMESSAGE(" nullptr returned by GmmCreateClientContext");
@@ -160,22 +154,15 @@ AuxTableMgr::~AuxTableMgr()
     }
     if (m_gmmClientContext != nullptr)
     {
-        GmmExportEntries GmmFuncs;
-        GMM_STATUS gmmStatus = OpenGmm(&GmmFuncs);
-        if(gmmStatus != GMM_SUCCESS)
-        {
-            MOS_OS_ASSERTMESSAGE("gmm init failed.");
-        }
-        GmmFuncs.pfnDeleteClientContext((GMM_CLIENT_CONTEXT *)m_gmmClientContext);
         m_gmmClientContext = nullptr;
     }
 }
 
-AuxTableMgr * AuxTableMgr::CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku)
+AuxTableMgr * AuxTableMgr::CreateAuxTableMgr(MOS_BUFMGR *bufMgr, MEDIA_FEATURE_TABLE *sku, GMM_CLIENT_CONTEXT *gmmClientContext)
 {
     if (MEDIA_IS_SKU(sku, FtrE2ECompression) && !MEDIA_IS_SKU(sku, FtrFlatPhysCCS))
     {
-        AuxTableMgr *auxTableMgr = MOS_New(AuxTableMgr, bufMgr);
+        AuxTableMgr *auxTableMgr = MOS_New(AuxTableMgr, bufMgr, gmmClientContext);
         if (auxTableMgr == nullptr)
         {
             MOS_OS_ASSERTMESSAGE(" nullptr returned by creating AuxTableMgr");

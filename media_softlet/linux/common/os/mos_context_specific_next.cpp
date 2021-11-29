@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include "hwinfo_linux.h"
+#include "mos_interface.h"
 #include <stdlib.h>
 
 #include <sys/ipc.h>
@@ -144,9 +145,10 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             m_platformInfo.eRenderCoreFamily,
             (m_platformInfo.usRevId << 16) | m_platformInfo.usDeviceID);
 
-        GMM_SKU_FEATURE_TABLE   gmmSkuTable = {};
-        GMM_WA_TABLE            gmmWaTable  = {};
-        GMM_GT_SYSTEM_INFO      gmmGtInfo   = {};
+        GMM_SKU_FEATURE_TABLE   gmmSkuTable   = {};
+        GMM_WA_TABLE            gmmWaTable    = {};
+        GMM_GT_SYSTEM_INFO      gmmGtInfo     = {};
+        GMM_ADAPTER_BDF         gmmAdapterBDF = {};
         eStatus = HWInfo_GetGmmInfo(m_fd, &gmmSkuTable, &gmmWaTable, &gmmGtInfo);
         if (MOS_STATUS_SUCCESS != eStatus)
         {
@@ -154,28 +156,32 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             return eStatus;
         }
 
-        GmmExportEntries gmmFuncs  = {};
-        GMM_STATUS       gmmStatus = OpenGmm(&gmmFuncs);
-        if (gmmStatus != GMM_SUCCESS)
+        eStatus = MosInterface::GetAdapterBDF(osDriverContext, &gmmAdapterBDF);
+        if (MOS_STATUS_SUCCESS != eStatus)
         {
-            MOS_OS_ASSERTMESSAGE("Fatal error - gmm init failed.");
-            return MOS_STATUS_INVALID_PARAMETER;
+            MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Gmm Adapter BDF initialization");
+            return eStatus;
         }
 
-        // init GMM context
-        gmmStatus = gmmFuncs.pfnCreateSingletonContext(m_platformInfo,
-            &gmmSkuTable,
-            &gmmWaTable,
-            &gmmGtInfo);
+        // Initialize Gmm context
+        GMM_INIT_IN_ARGS  gmmInitAgrs = {};
+        GMM_INIT_OUT_ARGS gmmOutArgs  = {};
+        gmmInitAgrs.Platform          = m_platformInfo;
+        gmmInitAgrs.pSkuTable         = &gmmSkuTable;
+        gmmInitAgrs.pWaTable          = &gmmWaTable;
+        gmmInitAgrs.pGtSysInfo        = &gmmGtInfo;
+        gmmInitAgrs.FileDescriptor    = gmmAdapterBDF.Data;
+        gmmInitAgrs.ClientType        = (GMM_CLIENT)GMM_LIBVA_LINUX;
 
-        if (gmmStatus != GMM_SUCCESS)
+        GMM_STATUS status = InitializeGmm(&gmmInitAgrs, &gmmOutArgs);
+        if (status != GMM_SUCCESS)
         {
-            MOS_OS_ASSERTMESSAGE("Fatal error - gmm CreateSingletonContext failed.");
+            MOS_OS_ASSERTMESSAGE("Fatal error - InitializeGmm fail.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-        m_gmmClientContext = gmmFuncs.pfnCreateClientContext((GMM_CLIENT)GMM_LIBVA_LINUX);
+        m_gmmClientContext = gmmOutArgs.pGmmClientContext;
 
-        m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(m_bufmgr, &m_skuTable);
+        m_auxTableMgr = AuxTableMgr::CreateAuxTableMgr(m_bufmgr, &m_skuTable, m_gmmClientContext);
 
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -266,18 +272,11 @@ void OsContextSpecificNext::Destroy()
 
         mos_bufmgr_destroy(m_bufmgr);
 
-        GmmExportEntries GmmFuncs;
-        GMM_STATUS       gmmStatus = OpenGmm(&GmmFuncs);
-        if (gmmStatus == GMM_SUCCESS)
-        {
-            GmmFuncs.pfnDeleteClientContext((GMM_CLIENT_CONTEXT *)m_gmmClientContext);
-            m_gmmClientContext = nullptr;
-            GmmFuncs.pfnDestroySingletonContext();
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("gmm init failed.");
-        }
+        // Delete Gmm context
+        GMM_INIT_OUT_ARGS gmmOutArgs = {};
+        gmmOutArgs.pGmmClientContext = m_gmmClientContext;
+        GmmAdapterDestroy(&gmmOutArgs);
+        m_gmmClientContext = nullptr;
 
         SetOsContextValid(false);
     }
