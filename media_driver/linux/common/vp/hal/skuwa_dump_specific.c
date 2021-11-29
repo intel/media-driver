@@ -61,7 +61,7 @@ MOS_STATUS VphalParameterDumper::SkuWa_DumpToXML(
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(true, &pcOutContents, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"));
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\n"));
 
-    VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MOS_GetPid()));
+    VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MosUtilities::MosGetPid()));
 
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t<!-- SkuTable infomation -->\n"));
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t<SkuTable>\n"));

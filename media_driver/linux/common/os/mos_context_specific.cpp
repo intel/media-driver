@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -298,7 +298,7 @@ MOS_STATUS OsContextSpecific::CreateIPC()
             break;
         }
 
-        MOS_Sleep(1); //wait and retry
+        MosUtilities::MosSleep(1);  //wait and retry
     }
 
     LockSemaphore(m_semId);

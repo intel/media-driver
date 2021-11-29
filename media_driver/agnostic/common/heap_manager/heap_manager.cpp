@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -220,7 +220,7 @@ MOS_STATUS HeapManager::Wait()
 
     for (auto waitMs = m_waitTimeout; waitMs > 0; waitMs -= m_waitIncrement)
     {
-        MOS_Sleep(m_waitIncrement);
+        MosUtilities::MosSleep(m_waitIncrement);
         HEAP_CHK_STATUS(m_blockManager.RefreshBlockStates(blocksUpdated));
         if (blocksUpdated)
         {

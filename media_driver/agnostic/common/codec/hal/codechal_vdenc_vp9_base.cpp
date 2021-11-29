@@ -2031,13 +2031,13 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
     MOS_ZeroMemory(&lpReadWrite, sizeof(lpReadWrite));
     lpReadWrite.ReadOnly = lpReadWrite.WriteOnly = 1;
 
-    BrcCreateInstance pfnCreateInstance = (BrcCreateInstance)MOS_GetProcAddress(m_swBrcMode, "VP9BRC_CreateInstance");
+    BrcCreateInstance pfnCreateInstance = (BrcCreateInstance)MosUtilities::MosGetProcAddress(m_swBrcMode, "VP9BRC_CreateInstance");
     CODECHAL_ENCODE_CHK_NULL_RETURN(pfnCreateInstance);
-    BrcReleaseInstance pfnReleaseInstance = (BrcReleaseInstance)MOS_GetProcAddress(m_swBrcMode, "VP9BRC_ReleaseInstance");
+    BrcReleaseInstance pfnReleaseInstance = (BrcReleaseInstance)MosUtilities::MosGetProcAddress(m_swBrcMode, "VP9BRC_ReleaseInstance");
     CODECHAL_ENCODE_CHK_NULL_RETURN(pfnReleaseInstance);
-    BrcProcess pfnProcess = (BrcProcess)MOS_GetProcAddress(m_swBrcMode, "VP9BRC_Process");
+    BrcProcess pfnProcess = (BrcProcess)MosUtilities::MosGetProcAddress(m_swBrcMode, "VP9BRC_Process");
     CODECHAL_ENCODE_CHK_NULL_RETURN(pfnProcess);
-    BrcSetBuff pfnSetBuffer = (BrcSetBuff)MOS_GetProcAddress(m_swBrcMode, "VP9BRC_SetBuff");
+    BrcSetBuff pfnSetBuffer = (BrcSetBuff)MosUtilities::MosGetProcAddress(m_swBrcMode, "VP9BRC_SetBuff");
     CODECHAL_ENCODE_CHK_NULL_RETURN(pfnSetBuffer);
 
     void* pvBrcIfHandle = pfnCreateInstance();
@@ -6955,7 +6955,7 @@ void CodechalVdencVp9State::FreeResources()
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_swBrcMode != nullptr)
     {
-        bool result = MOS_FreeLibrary(m_swBrcMode) ? true : false;
+        bool result = MosUtilities::MosFreeLibrary(m_swBrcMode) ? true : false;
         CODECHAL_ENCODE_ASSERT(result == true);
         m_swBrcMode = nullptr;
     }

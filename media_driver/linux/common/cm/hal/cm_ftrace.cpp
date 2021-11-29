@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2017, Intel Corporation
+* Copyright (c) 2007-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -103,7 +103,7 @@ void CmFtrace::WriteTaskProfilingInfo(CM_PROFILING_INFO *taskInfo)
     }
 
     //Note: enqueuetime/flushtime/completetime are measured in performance counter
-    //Don't need to convert to nanosec on Linux since MOS_QueryPerformanceFrequency returns 1
+    //Don't need to convert to nanosec on Linux since MosUtilities::MosQueryPerformanceFrequency returns 1
     //On linux, we can't get the gpu ticks when the command submitted, so that
     //we can't do the adjustment the ticks b/w cpu and gpu, as what we did on windoes by GetGpuTime
     //hw_start_time = flush_time; hw_end_time = hw_start_time + kernel_execution_time

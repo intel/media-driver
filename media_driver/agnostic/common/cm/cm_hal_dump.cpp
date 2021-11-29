@@ -163,7 +163,7 @@ int32_t HalCm_InitDumpCommandBuffer(PCM_HAL_STATE state)
     }
     if (userFeatureValueData.bData)
     {
-        eStatus = MOS_CreateDirectory(fileName);
+        eStatus = MosUtilities::MosCreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
@@ -301,7 +301,7 @@ int32_t HalCm_InitDumpCurbeData(PCM_HAL_STATE state)
     {
         GetLogFileLocation(HALCM_CURBE_DATA_OUTPUT_DIR, fileName,
                            state->osInterface->pOsContext);
-        eStatus = MOS_CreateDirectory(fileName);
+        eStatus = MosUtilities::MosCreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create curbe data output directory. Status = %d", eStatus);
@@ -471,7 +471,7 @@ int32_t HalCm_InitDumpSurfaceState(PCM_HAL_STATE state)
     }
     if (userFeatureValueData.bData)
     {
-        eStatus = MOS_CreateDirectory(fileName);
+        eStatus = MosUtilities::MosCreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
@@ -608,7 +608,7 @@ int32_t HalCm_InitDumpInterfaceDescriporData(PCM_HAL_STATE state)
     }
     if (userFeatureValueData.bData)
     {
-        eStatus = MOS_CreateDirectory(fileName);
+        eStatus = MosUtilities::MosCreateDirectory(fileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);

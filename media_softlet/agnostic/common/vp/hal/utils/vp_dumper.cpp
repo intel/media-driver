@@ -2693,7 +2693,7 @@ MOS_STATUS VpParameterDumper::DumpToXML(
     // Create the root element.
     VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "<VPHAL_SCENARIO>\n"));
     // General infomation
-    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MOS_GetPid()));
+    VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MosUtilities::MosGetPid()));
 
     VPHAL_DEBUG_CHK_NULL(pRenderParams->pSrc[0]);
     VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t<DESCRIPTION>%d</DESCRIPTION>\n", pRenderParams->pSrc[0]->FrameID));
@@ -3221,7 +3221,7 @@ MOS_STATUS VpDumperTool::AppendString(
     }
 
     va_start(argList, pcToAppendFmt);
-    MOS_SecureVStringPrint(pcToAppend, ALLOC_GRANULARITY, ALLOC_GRANULARITY, pcToAppendFmt, argList);
+    MosUtilities::MosSecureVStringPrint(pcToAppend, ALLOC_GRANULARITY, ALLOC_GRANULARITY, pcToAppendFmt, argList);
     va_end(argList);
 
     stStrLenToAppend = strlen(pcToAppend);

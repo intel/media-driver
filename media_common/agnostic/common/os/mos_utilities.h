@@ -302,7 +302,6 @@ do{                                                     \
 #define MOS_FillMemory(pDestination, stLength, bFill)   \
     MosUtilities::MosFillMemory(pDestination, stLength, bFill)
 
-
 //------------------------------------------------------------------------------
 //  User Settings
 //------------------------------------------------------------------------------
@@ -340,6 +339,22 @@ do{                                                     \
     MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);            \
 }
 
+//------------------------------------------------------------------------------
+//  string
+//------------------------------------------------------------------------------
+#define MOS_SecureStrcat(strDestination, numberOfElements, strSource)                               \
+    MosUtilities::MosSecureStrcat(strDestination, numberOfElements, strSource)
+
+#define MOS_SecureStrcpy(strDestination, numberOfElements, strSource)                               \
+    MosUtilities::MosSecureStrcpy(strDestination, numberOfElements, strSource)
+
+#define MOS_SecureMemcpy(pDestination, dstLength, pSource, srcLength)                               \
+    MosUtilities::MosSecureMemcpy(pDestination, dstLength, pSource, srcLength)
+
+#define MOS_SecureStringPrint(buffer, bufSize, length, format, ...)                                 \
+    MosUtilities::MosSecureStringPrint(buffer, bufSize, length, format, ##__VA_ARGS__)
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -348,144 +363,6 @@ extern "C" {
 //------------------------------------------------------------------------------
 //  File I/O Functions
 //------------------------------------------------------------------------------
-
-//!
-//! \brief    Retrieves the size of the specified File.
-//! \details  Retrieves the size of the specified File.
-//! \param    [in] hFile
-//!           Handle to the File.
-//! \param    [out] lpFileSizeLow
-//!           Pointer to a variable where filesize is returned
-//! \param    lpFileSizeHigh
-//!           Reserved for now. Used to return higher uint32_t for
-//!           filesizes more than 32 bit
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_GetFileSize(
-    HANDLE             hFile,
-    uint32_t           *lpFileSizeLow,
-    uint32_t           *lpFileSizeHigh);
-
-//!
-//! \brief    Creates a directory
-//! \details  Creates a directory
-//! \param    [in] lpPathName
-//!           Pointer to the path name
-//! \return   MOS_STATUS
-//!           Returns MOS_STATUS_SUCCESS if directory was created or was already exists,
-//!           else MOS_STATUS_DIR_CREATE_FAILED
-//!
-MOS_STATUS MOS_CreateDirectory(
-    char * const       lpPathName);
-
-//!
-//! \brief    Creates or opens a file/object
-//! \details  Creates or opens a file/object
-//!           The definitions of the mode flags for iOpenFlag are in OS's fcntl.h
-//! \param    [out] pHandle
-//!           Pointer to a variable that recieves the handle
-//!           of the file or object oepned
-//! \param    [in] lpFileName
-//!           Pointer to the file name
-//! \param    [in] iOpenFlag
-//!           Flag specifying mode and other options for Creating
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_CreateFile(
-    PHANDLE               pHandle,
-    char * const          lpFileName,
-    uint32_t              iOpenFlag);
-
-//!
-//! \brief    Read data from a file
-//! \details  Read data from a file
-//! \param    [in] hFile
-//!           Handle to the file to be read
-//! \param    [out] lpBuffer
-//!           Pointer to the buffer where the data read is placed
-//! \param    [in] bytesToRead
-//!           The maximum number of bytes to be read
-//! \param    [out] pbytesRead
-//!           Pointer to a variable that receives the number of bytes read
-//! \param    [in/out] lpOverlapped
-//!           Not used currently, can be nullptr
-//!           When the hFile parameter was opened with FILE_FLAG_OVERLAPPED
-//!           It should point to a valid OVERLAPPED structure
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_ReadFile(
-    HANDLE          hFile,
-    void            *lpBuffer,
-    uint32_t        bytesToRead,
-    uint32_t        *pbytesRead,
-    void            *lpOverlapped);
-
-//!
-//! \brief    Write data to a file
-//! \details  Write data to a file
-//! \param    [in] hFile
-//!           Handle to the file to which data will be written
-//! \param    [in] lpBuffer
-//!           Pointer to the buffer from where the data is read
-//! \param    [in] bytesToWrite
-//!           The maximum number of bytes to be written
-//! \param    [out] pbytesWritten
-//!           Pointer to a variable that receives the number of bytes written
-//! \param    [in/out] lpOverlapped
-//!           Not used currently, can be nullptr
-//!           When the hFile parameter was opened with FILE_FLAG_OVERLAPPED
-//!           It should point to a valid OVERLAPPED structure
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_WriteFile(
-    HANDLE           hFile,
-    void             *lpBuffer,
-    uint32_t         bytesToWrite,
-    uint32_t         *pbytesWritten,
-    void             *lpOverlapped);
-
-//!
-//! \brief    Moves the File pointer to the specified position
-//! \details  Moves the File pointer to the specified position
-//!           Specify dwMoveMethod as the same as fseek()
-//! \param    [in] hFile
-//!           Handle to the file
-//! \param    [in] lDistanceToMove
-//!           Specifies no. of bytes to move the pointer
-//! \param    [in] lpDistanceToMoveHigh
-//!           Pointer to the high order 32-bits of
-//!           the signed 64-bit distance to move.
-//! \param    [in] dwMoveMethod
-//!           Starting point for the file pointer move
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_SetFilePointer(
-    HANDLE                hFile,
-    int32_t               lDistanceToMove,
-    int32_t               *lpDistanceToMoveHigh,
-    int32_t               dwMoveMethod);
-
-//!
-//! \brief    Closes an open object handle
-//! \details  Closes an open object handle.
-//! \param    [in] hObject
-//!           A valid handle to an open object.
-//! \return   int32_t
-//!           true if success else false
-//!
-int32_t MOS_CloseHandle(
-    HANDLE           hObject);
-
 
 //------------------------------------------------------------------------------
 // User Feature Functions
@@ -574,252 +451,6 @@ MOS_STATUS MOS_UserFeature_ParsePath(
     char * const                 pInputPath,
     PMOS_USER_FEATURE_TYPE       pUserFeatureType,
     char                         **ppSubPath);
-
-//!
-//! \brief    String concatenation with security checks.
-//! \details  String concatenation with security checks.
-//!           Append strSource to strDestination, with buffer size checking
-//! \param    [in/out] strDestination
-//!           Pointer to destination string
-//! \param    [in] numberOfElements
-//!           Size of the destination buffer
-//! \param    [in] strSource
-//!           Pointer to the source string
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_SecureStrcat(
-    char                *strDestination,
-    size_t              numberOfElements,
-    const char * const  strSource);
-
-//!
-//! \brief    Find string token with security checks.
-//! \details  Find string token with security checks.
-//!           Subsequent calls with nullptr in strToken and same contex to get
-//!           remaining tokens
-//! \param    [in/out] strToken
-//!           String containing token or tokens
-//!           Pass nullptr for this parameter in subsequent calls
-//!           to MOS_SecureStrtok to find the remaining tokens
-//! \param    [in] strDelimit
-//!           Set of delimiter characters
-//! \param    [in/out] contex
-//!           Used to store position information between calls to MOS_SecureStrtok
-//! \return   char *
-//!           Returns tokens else nullptr
-//!
-char  *MOS_SecureStrtok(
-    char                *strToken,
-    const char          *strDelimit,
-    char                **contex);
-
-//!
-//! \brief    String copy with security checks.
-//! \details  String copy with security checks.
-//!           Copy strSource to strDestination, with buffer size checking
-//! \param    [out] strDestination
-//!           Pointer to destination string
-//! \param    [in] numberOfElements
-//!           Size of the destination buffer
-//! \param    [in] strSource
-//!           Pointer to the source string
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_SecureStrcpy(
-    char                *strDestination,
-    size_t              numberOfElements,
-    const char * const  strSource);
-
-//!
-//! \brief    Memory copy with security checks.
-//! \details  Memory copy with security checks.
-//!           Copy pSource to pDestination, with buffer size checking
-//! \param    [out] pDestination
-//!           Pointer to destination buffer
-//! \param    [in] dstLength
-//!           Size of the destination buffer
-//! \param    [in] pSource
-//!           Pointer to the source buffer
-//! \param    [in] srcLength
-//!           Number of bytes to copy from source to destination
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_SecureMemcpy(
-    void                *pDestination,
-    size_t              dstLength,
-    const void          *pSource,
-    size_t              srcLength);
-
-//!
-//! \brief    Open a file with security checks.
-//! \details  Open a file with security checks.
-//! \param    [out] ppFile
-//!           Pointer to a variable that receives the file pointer.
-//! \param    [in] filename
-//!           Pointer to the file name string
-//! \param    [in] mode
-//!           Specifies open mode such as read, write etc
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_SecureFileOpen(
-    FILE       **ppFile,
-    const char *filename,
-    const char *mode);
-
-//!
-//! \brief    Write formatted data to a string with security checks.
-//! \details  Write formatted data to a string with security checks.
-//!           Optional arguments are passed in individually
-//!           Buffer must have space for null character after copying length
-//! \param    [out] buffer
-//!           Pointer to a string to which formatted data is printed
-//! \param    [in] bufSize
-//!           Size of the buffer where the data is printed
-//! \param    [in] length
-//!           Number of characters to be printed
-//! \param    [in] format
-//!           Format string to be printed
-//! \return   int32_t
-//!           Returns the number of characters printed or -1 if an error occurs
-//!
-int32_t MOS_SecureStringPrint(
-    char                     *buffer,
-    size_t                   bufSize,
-    size_t                   length,
-    const  char * const      format,
-                                 ...);
-
-//!
-//! \brief    Write formatted data to a string with security checks, va_list version
-//! \details  Write formatted data to a string with security checks.
-//!           Pointer to an optional arguments list is passed in
-//!           Buffer must have space for null character after copying length
-//! \param    [out] buffer
-//!           Pointer to a string to which formatted data is printed
-//! \param    [in] bufSize
-//!           Size of the buffer where the data is printed
-//! \param    [in] length
-//!           Number of characters to be printed
-//! \param    [in] format
-//!           Format string to be printed
-//! \param    [in] var_args
-//!           Optional argument list
-//! \return   int32_t
-//!           Returns the number of characters printed or -1 if an error occurs
-//!
-MOS_STATUS MOS_SecureVStringPrint(
-    char                      *buffer,
-    size_t                    bufSize,
-    size_t                    length,
-    const char * const        format,
-    va_list                   var_args);
-
-//------------------------------------------------------------------------------
-// Library, process and OS related functions
-//------------------------------------------------------------------------------
-//!
-//! \brief    Maps the specified executable module into the address space of
-//!           the calling process.
-//! \details  Maps the specified executable module into the address space of
-//!           the calling process.
-//! \param    [in] lpLibFileName
-//!           A valid handle to an open object.
-//! \param    [out] phModule
-//!           Pointer variable that accepts the module handle
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_LoadLibrary(
-    const char * const lpLibFileName,
-    PHMODULE           phModule);
-
-//!
-//! \brief    Free the loaded dynamic-link library
-//! \details  Free the loaded dynamic-link library
-//! \param    [in] hLibModule
-//!           A handle to the loaded DLL module
-//! \return   int32_t
-//!           true if success else false
-//!
-int32_t MOS_FreeLibrary(HMODULE hLibModule);
-
-//!
-//! \brief    Retrieves the address of an exported function or variable from
-//!           the specified dynamic-link library
-//! \details  Retrieves the address of an exported function or variable from
-//!           the specified dynamic-link library
-//! \param    [in] hLibModule
-//!           A handle to the loaded DLL module.
-//!           The LoadLibrary function returns this handle.
-//! \param    [in] lpProcName
-//!           The function or variable name, or the function's ordinal value.
-//! \return   void *
-//!           If succeeds, the return value is the address of the exported
-//!           function or variable. If fails, the return value is NULL.
-//!           To get extended error information, call GetLastError.
-//!
-void  *MOS_GetProcAddress(
-    HMODULE     hModule,
-    const char  *lpProcName);
-
-//!
-//! \brief    Retrieves the current process id
-//! \details  Retrieves the current process id
-//! \return   int32_t
-//!           Return the current process id
-//!
-int32_t MOS_GetPid();
-
-//!
-//! \brief    Retrieves the frequency of the high-resolution performance
-//!           counter, if one exists.
-//! \details  Retrieves the frequency of the high-resolution performance
-//!           counter, if one exists.
-//! \param    [out] pFrequency
-//!           Pointer to a variable that receives the current
-//!           performance-counter frequency, in counts per second.
-//! \return   int32_t
-//!           If the installed hardware supports a high-resolution performance
-//!           counter, the return value is nonzero. If the function fails, the
-//!           return value is zero.
-//!
-int32_t MOS_QueryPerformanceFrequency(
-    uint64_t                       *pFrequency);
-
-//!
-//! \brief    Retrieves the current value of the high-resolution performance
-//!           counter
-//! \details  Retrieves the current value of the high-resolution performance
-//!           counter
-//! \param    [out] pPerformanceCount
-//!           Pointer to a variable that receives the current
-//!           performance-counter value, in counts.
-//! \return   int32_t
-//!           If the installed hardware supports a high-resolution performance
-//!           counter, the return value is nonzero. If the function fails, the
-//!           return value is zero. To get extended error information, call GetLastError.
-//!
-int32_t MOS_QueryPerformanceCounter(
-    uint64_t                     *pPerformanceCount);
-
-//!
-//! \brief    Sleep for given duration in ms
-//! \details  Sleep for given duration ms
-//! \param    [in] mSec
-//!           Sleep duration in ms
-//! \return   void
-//!
-void MOS_Sleep(
-    uint32_t   mSec);
 
 //------------------------------------------------------------------------------
 // Wrappers for OS Specific User Feature Functions Implementations

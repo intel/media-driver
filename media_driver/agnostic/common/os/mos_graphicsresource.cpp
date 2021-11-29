@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -71,7 +71,7 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
 
     void*       hFile = nullptr;
     // Open file for writing
-    eStatus = MOS_CreateFile(
+    eStatus = MosUtilities::MosCreateFile(
         &hFile,
         sPath,
         O_WRONLY|O_CREAT);
@@ -82,7 +82,7 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
         eStatus = MOS_STATUS_FILE_OPEN_FAILED;
         if (hFile != nullptr)
         {
-            MOS_CloseHandle(hFile);
+            MosUtilities::MosCloseHandle(hFile);
         }
         return eStatus;
     }
@@ -96,7 +96,7 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
         MOS_OS_ASSERTMESSAGE("Failed to lock the gpu resource");
         if (hFile != nullptr)
         {
-            MOS_CloseHandle(hFile);
+            MosUtilities::MosCloseHandle(hFile);
         }
         return MOS_STATUS_UNKNOWN;
     }
@@ -104,7 +104,7 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
     pbData += overrideOffset;
 
     // Write the file
-    if ((eStatus = MOS_WriteFile(
+    if ((eStatus = MosUtilities::MosWriteFile(
         hFile,
         pbData,
         overrideSize,
@@ -115,7 +115,7 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
         eStatus = MOS_STATUS_FILE_WRITE_FAILED;
         if (hFile != nullptr)
         {
-            MOS_CloseHandle(hFile);
+            MosUtilities::MosCloseHandle(hFile);
         }
     }
 
@@ -127,7 +127,7 @@ MOS_STATUS GraphicsResource::Dump(OsContext* osContextPtr, uint32_t overrideOffs
 
     if (hFile != nullptr)
     {
-        MOS_CloseHandle(hFile);
+        MosUtilities::MosCloseHandle(hFile);
     }
 
     return eStatus;

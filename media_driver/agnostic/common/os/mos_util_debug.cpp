@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2020, Intel Corporation
+* Copyright (c) 2013-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -422,9 +422,9 @@ MOS_STATUS MOS_DDIDumpInit(MOS_CONTEXT_HANDLE mosCtx)
 
         // set-up DDI dump file name
         MOS_SecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, DDILogPathTemplate,
-            (UserFeatureData.StringData.uSize > 0) ? UserFeatureData.StringData.pStringData : fileNamePrefix, MOS_GetPid(), "log");
+            (UserFeatureData.StringData.uSize > 0) ? UserFeatureData.StringData.pStringData : fileNamePrefix, MosUtilities::MosGetPid(), "log");
 
-        eStatus = MOS_SecureFileOpen(&g_MosMsgParams_DDI_Dump.pLogFile, cDDIDumpFilePath, "w");
+        eStatus = MosUtilities::MosSecureFileOpen(&g_MosMsgParams_DDI_Dump.pLogFile, cDDIDumpFilePath, "w");
         if (MOS_FAILED(eStatus))
         {
             MOS_OS_NORMALMESSAGE("Failed to open log file '%s'.", cDDIDumpFilePath);

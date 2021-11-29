@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -6959,7 +6959,7 @@ static uint32_t CodecHalHevcGetFileSize(char* fileName)
 {
     FILE*   fp = nullptr;
     uint32_t    fileSize = 0;
-    MOS_SecureFileOpen(&fp, fileName, "rb");
+    MosUtilities::MosSecureFileOpen(&fp, fileName, "rb");
     if (fp == nullptr)
     {
         return 0;
@@ -7014,7 +7014,7 @@ MOS_STATUS CodechalEncHevcStateG11::LoadPakCommandAndCuRecordFromFile()
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
     FILE* pakObj = nullptr;
-    eStatus = MOS_SecureFileOpen(&pakObj, pathOfPakCmd, "rb");
+    eStatus = MosUtilities::MosSecureFileOpen(&pakObj, pathOfPakCmd, "rb");
     if (pakObj == nullptr)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resMbCodeSurface);
@@ -7032,7 +7032,7 @@ MOS_STATUS CodechalEncHevcStateG11::LoadPakCommandAndCuRecordFromFile()
 
     uint8_t*   record  = data + m_mvOffset;
     FILE*      fRecord = nullptr;
-    eStatus = MOS_SecureFileOpen(&fRecord, pathOfCuRecord, "rb");
+    eStatus = MosUtilities::MosSecureFileOpen(&fRecord, pathOfCuRecord, "rb");
     if (fRecord == nullptr)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resMbCodeSurface);

@@ -64,7 +64,7 @@ MOS_STATUS MediaDebugInterface::InitDumpLocation()
     {
         std::string ThreadSubFolder = "T" + std::to_string(MOS_GetCurrentThreadId()) + MOS_DIRECTORY_DELIMITER;
         m_outputFilePath            = m_outputFilePath + ThreadSubFolder;
-        MOS_CreateDirectory(const_cast<char *>(m_outputFilePath.c_str()));
+        MosUtilities::MosCreateDirectory(const_cast<char *>(m_outputFilePath.c_str()));
     }
 
     m_ddiFileName = m_outputFilePath + "ddi.par";

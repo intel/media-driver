@@ -809,7 +809,7 @@ MOS_STATUS CreateIPC(PMOS_CONTEXT pOsContext)
             break;
         }
 
-        MOS_Sleep(1); //wait and retry
+        MosUtilities::MosSleep(1);  //wait and retry
     }
 
     LockSemaphore(pOsContext->semid);

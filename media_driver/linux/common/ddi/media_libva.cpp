@@ -692,7 +692,7 @@ static void DdiMedia_DestroyX11Connection(
         return;
     }
 
-    MOS_FreeLibrary(mediaCtx->X11FuncTable->pX11LibHandle);
+    MosUtilities::MosFreeLibrary(mediaCtx->X11FuncTable->pX11LibHandle);
     MOS_FreeMemory(mediaCtx->X11FuncTable);
     mediaCtx->X11FuncTable = nullptr;
 
@@ -713,7 +713,7 @@ static VAStatus DdiMedia_ConnectX11(
     DDI_CHK_NULL(mediaCtx->X11FuncTable, "Allocation Failed for X11FuncTable", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
     HMODULE    h_module   = nullptr;
-    MOS_STATUS mos_status = MOS_LoadLibrary(X11_LIB_NAME, &h_module);
+    MOS_STATUS mos_status = MosUtilities::MosLoadLibrary(X11_LIB_NAME, &h_module);
     if (MOS_STATUS_SUCCESS != mos_status || nullptr == h_module)
     {
         DdiMedia_DestroyX11Connection(mediaCtx);
@@ -723,15 +723,15 @@ static VAStatus DdiMedia_ConnectX11(
     mediaCtx->X11FuncTable->pX11LibHandle = h_module;
 
     mediaCtx->X11FuncTable->pfnXCreateGC =
-        MOS_GetProcAddress(h_module, "XCreateGC");
+        MosUtilities::MosGetProcAddress(h_module, "XCreateGC");
     mediaCtx->X11FuncTable->pfnXFreeGC =
-        MOS_GetProcAddress(h_module, "XFreeGC");
+        MosUtilities::MosGetProcAddress(h_module, "XFreeGC");
     mediaCtx->X11FuncTable->pfnXCreateImage =
-        MOS_GetProcAddress(h_module, "XCreateImage");
+        MosUtilities::MosGetProcAddress(h_module, "XCreateImage");
     mediaCtx->X11FuncTable->pfnXDestroyImage =
-        MOS_GetProcAddress(h_module, "XDestroyImage");
+        MosUtilities::MosGetProcAddress(h_module, "XDestroyImage");
     mediaCtx->X11FuncTable->pfnXPutImage =
-        MOS_GetProcAddress(h_module, "XPutImage");
+        MosUtilities::MosGetProcAddress(h_module, "XPutImage");
 
     if (nullptr == mediaCtx->X11FuncTable->pfnXCreateGC     ||
         nullptr == mediaCtx->X11FuncTable->pfnXFreeGC       ||

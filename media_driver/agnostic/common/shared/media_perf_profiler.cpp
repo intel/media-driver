@@ -579,7 +579,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
             miInterface,
             cmdBuffer,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, processId),
-            MOS_GetPid()));
+            MosUtilities::MosGetPid()));
     }
 
     CHK_STATUS_RETURN(StoreDataNext(
@@ -736,7 +736,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
         
         if (m_multiprocess)
         {
-            int32_t pid       = MOS_GetPid();
+            int32_t pid       = MosUtilities::MosGetPid();
             tm      localtime = {0};
             MOS_GetLocalTime(&localtime);
             char outputFileName[MOS_MAX_PATH_LENGTH + 1];

@@ -3527,7 +3527,7 @@ MOS_STATUS VphalParameterDumper::DumpToXML(
     // Create the root element.
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "<VPHAL_SCENARIO>\n"));
     // General infomation
-    VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MOS_GetPid()));
+    VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t<ID>%d</ID>\n", MosUtilities::MosGetPid()));
 
     VPHAL_DEBUG_CHK_NULL(pRenderParams->pSrc[0]);
     VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t<DESCRIPTION>%d</DESCRIPTION>\n", pRenderParams->pSrc[0]->FrameID));
@@ -4049,7 +4049,7 @@ MOS_STATUS VphalDumperTool::AppendString(
     }
 
     va_start(argList, pcToAppendFmt);
-    MOS_SecureVStringPrint(pcToAppend, ALLOC_GRANULARITY, ALLOC_GRANULARITY, pcToAppendFmt, argList);
+    MosUtilities::MosSecureVStringPrint(pcToAppend, ALLOC_GRANULARITY, ALLOC_GRANULARITY, pcToAppendFmt, argList);
     va_end(argList);
 
     stStrLenToAppend = strlen(pcToAppend);
@@ -4559,7 +4559,7 @@ void VphalOcaDumper::SetRenderParam(VPHAL_RENDER_PARAMS *pRenderParams)
         m_pOcaRenderParam->FrameID = pRenderParams->pSrc[0]->FrameID;
     }
 
-    m_pOcaRenderParam->Pid = MOS_GetPid();
+    m_pOcaRenderParam->Pid = MosUtilities::MosGetPid();
 
     m_pOcaRenderParam->uSrcCount = pRenderParams->uSrcCount;
     m_pOcaRenderParam->uDstCount = pRenderParams->uDstCount;

@@ -998,11 +998,11 @@ public:
     //! \param    [in/out] strToken
     //!           String containing token or tokens
     //!           Pass nullptr for this parameter in subsequent calls
-    //!           to MOS_SecureStrtok to find the remaining tokens
+    //!           to MosSecureStrtok to find the remaining tokens
     //! \param    [in] strDelimit
     //!           Set of delimiter characters
     //! \param    [in/out] contex
-    //!           Used to store position information between calls to MOS_SecureStrtok
+    //!           Used to store position information between calls to MosSecureStrtok
     //! \return   char *
     //!           Returns tokens else nullptr
     //!

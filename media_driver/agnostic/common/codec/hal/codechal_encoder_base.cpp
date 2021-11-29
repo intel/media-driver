@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -4768,7 +4768,7 @@ MOS_STATUS CodechalEncoderState::ExecuteEnc(
                     break;
                 }
 
-                MOS_Sleep(MHW_EVENT_TIMEOUT_MS);
+                MosUtilities::MosSleep(MHW_EVENT_TIMEOUT_MS);
             }
 
             CODECHAL_ENCODE_VERBOSEMESSAGE("Waited for %d ms", (MHW_TIMEOUT_MS_DEFAULT - waitMs));

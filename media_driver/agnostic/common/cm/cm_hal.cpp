@@ -10138,7 +10138,7 @@ MOS_STATUS HalCm_GetGlobalTime(LARGE_INTEGER *globalTime)
         return MOS_STATUS_NULL_POINTER;
     }
 
-    if (MOS_QueryPerformanceCounter((uint64_t*)&(globalTime->QuadPart)) == false)
+    if (MosUtilities::MosQueryPerformanceCounter((uint64_t *)&(globalTime->QuadPart)) == false)
     {
         return MOS_STATUS_UNKNOWN;
     }
@@ -10159,7 +10159,7 @@ MOS_STATUS HalCm_ConvertToQPCTime(uint64_t nanoseconds, LARGE_INTEGER *qpcTime)
         return MOS_STATUS_NULL_POINTER;
     }
 
-    if (MOS_QueryPerformanceFrequency((uint64_t*)&perfFreq.QuadPart) == false)
+    if (MosUtilities::MosQueryPerformanceFrequency((uint64_t*)&perfFreq.QuadPart) == false)
     {
         return MOS_STATUS_UNKNOWN;
     }
@@ -10766,7 +10766,7 @@ MOS_STATUS HalCm_Create(
         }
 
         FILE *fp1 = nullptr;
-        MOS_SecureFileOpen(&fp1, "refactor.key", "r");
+        MosUtilities::MosSecureFileOpen(&fp1, "refactor.key", "r");
         if (fp1 != nullptr)
         {
             state->refactor = true;
@@ -10775,7 +10775,7 @@ MOS_STATUS HalCm_Create(
         }
 
         FILE *fp2 = nullptr;
-        MOS_SecureFileOpen(&fp2, "origin.key", "r");
+        MosUtilities::MosSecureFileOpen(&fp2, "origin.key", "r");
         if (fp2 != nullptr)
         {
             state->refactor = false;
@@ -10878,7 +10878,7 @@ void HalCm_Destroy(
 
         if (state->hLibModule)
         {
-            MOS_FreeLibrary(state->hLibModule);
+            MosUtilities::MosFreeLibrary(state->hLibModule);
             state->hLibModule = nullptr;
         }
 

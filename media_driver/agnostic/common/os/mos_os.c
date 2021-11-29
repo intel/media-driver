@@ -548,7 +548,7 @@ MOS_STATUS Mos_DumpCommandBufferInit(
             "%c%s",
             MOS_DIR_SEPERATOR, MOS_COMMAND_BUFFER_OUT_DIR);
 
-        eStatus = MOS_CreateDirectory(sFileName);
+        eStatus = MosUtilities::MosCreateDirectory(sFileName);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create output directory. Status = %d", eStatus);
@@ -618,7 +618,7 @@ GpuCmdResInfoDump::GpuCmdResInfoDump(PMOS_CONTEXT mosCtx)
     {
         tmpPath += '/';
     }
-    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MOS_GetPid()) + ".txt";
+    m_path = tmpPath + "gpuCmdResInfo_" + std::to_string(MosUtilities::MosGetPid()) + ".txt";
 }
 
 void GpuCmdResInfoDump::Dump(PMOS_INTERFACE pOsInterface) const

@@ -477,7 +477,7 @@ VAStatus VpDumpProcPipelineParams(
             int32_t tmp = strnlen(env_value, sizeof(env_value));
             int32_t left = sizeof(env_value) - tmp;
             snprintf(env_value+tmp, left, "%ld", suffix);
-            MOS_SecureFileOpen(&pVpCtx->fpDumpFile, env_value, "w");
+            MosUtilities::MosSecureFileOpen(&pVpCtx->fpDumpFile, env_value, "w");
         }
     }
     fpLog = pVpCtx->fpDumpFile;

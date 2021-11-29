@@ -7935,7 +7935,7 @@ uint32_t CodechalEncHevcStateG12::CodecHalHevc_GetFileSize(char *fileName)
 {
     FILE *   fp       = nullptr;
     uint32_t fileSize = 0;
-    MOS_SecureFileOpen(&fp, fileName, "rb");
+    MosUtilities::MosSecureFileOpen(&fp, fileName, "rb");
     if (fp == nullptr)
     {
         return 0;
@@ -8001,7 +8001,7 @@ MOS_STATUS CodechalEncHevcStateG12::LoadSourceAndRef2xDSFromFile(
         CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
         FILE *Ref2xDS = nullptr;
-        eStatus       = MOS_SecureFileOpen(&Ref2xDS, pathOfRef2xDSCmd, "rb");
+        eStatus       = MosUtilities::MosSecureFileOpen(&Ref2xDS, pathOfRef2xDSCmd, "rb");
         if (Ref2xDS == nullptr)
         {
             m_osInterface->pfnUnlockResource(m_osInterface, &pRef2xSurface->OsResource);
@@ -8035,7 +8035,7 @@ MOS_STATUS CodechalEncHevcStateG12::LoadSourceAndRef2xDSFromFile(
         CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
         FILE *Src2xDS = nullptr;
-        eStatus       = MOS_SecureFileOpen(&Src2xDS, pathOfSrc2xDSCmd, "rb");
+        eStatus       = MosUtilities::MosSecureFileOpen(&Src2xDS, pathOfSrc2xDSCmd, "rb");
         if (Src2xDS == nullptr)
         {
             m_osInterface->pfnUnlockResource(m_osInterface, &pSrc2xSurface->OsResource);
@@ -8100,7 +8100,7 @@ MOS_STATUS CodechalEncHevcStateG12::LoadPakCommandAndCuRecordFromFile()
     CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
     FILE *pakObj = nullptr;
-    eStatus      = MOS_SecureFileOpen(&pakObj, pathOfPakCmd, "rb");
+    eStatus      = MosUtilities::MosSecureFileOpen(&pakObj, pathOfPakCmd, "rb");
     if (pakObj == nullptr)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resMbCodeSurface);
@@ -8118,7 +8118,7 @@ MOS_STATUS CodechalEncHevcStateG12::LoadPakCommandAndCuRecordFromFile()
 
     uint8_t *record  = data + m_mvOffset;
     FILE *   fRecord = nullptr;
-    eStatus          = MOS_SecureFileOpen(&fRecord, pathOfCuRecord, "rb");
+    eStatus          = MosUtilities::MosSecureFileOpen(&fRecord, pathOfCuRecord, "rb");
     if (fRecord == nullptr)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resMbCodeSurface);
@@ -8157,7 +8157,7 @@ MOS_STATUS CodechalEncHevcStateG12::LoadPakCommandAndCuRecordFromFile()
         CODECHAL_ENCODE_CHK_NULL_RETURN(data);
 
         FILE *fPicState = nullptr;
-        eStatus         = MOS_SecureFileOpen(&fPicState, pathOfPicState, "rb");
+        eStatus         = MosUtilities::MosSecureFileOpen(&fPicState, pathOfPicState, "rb");
         if (fPicState == nullptr)
         {
             m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcImageStatesWriteBuffer[m_currRecycledBufIdx]);

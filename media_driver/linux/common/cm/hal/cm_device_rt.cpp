@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2017, Intel Corporation
+* Copyright (c) 2007-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -351,10 +351,10 @@ int32_t CmDeviceRT::LoadJITDll()
         }
         if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || nullptr == m_fFreeBlock || nullptr == m_fJITVersion)
         {
-            m_fJITCompile = (pJITCompile)MOS_GetProcAddress(m_hJITDll, JITCOMPILE_FUNCTION_STR);
-            m_fJITCompile_v2 = (pJITCompile_v2)MOS_GetProcAddress(m_hJITDll, JITCOMPILEV2_FUNCTION_STR);
-            m_fFreeBlock = (pFreeBlock)MOS_GetProcAddress(m_hJITDll, FREEBLOCK_FUNCTION_STR);
-            m_fJITVersion = (pJITVersion)MOS_GetProcAddress(m_hJITDll, JITVERSION_FUNCTION_STR);
+            m_fJITCompile = (pJITCompile)MosUtilities::MosGetProcAddress(m_hJITDll, JITCOMPILE_FUNCTION_STR);
+            m_fJITCompile_v2 = (pJITCompile_v2)MosUtilities::MosGetProcAddress(m_hJITDll, JITCOMPILEV2_FUNCTION_STR);
+            m_fFreeBlock = (pFreeBlock)MosUtilities::MosGetProcAddress(m_hJITDll, FREEBLOCK_FUNCTION_STR);
+            m_fJITVersion = (pJITVersion)MosUtilities::MosGetProcAddress(m_hJITDll, JITVERSION_FUNCTION_STR);
         }
 
         if ((nullptr == m_fJITCompile && nullptr == m_fJITCompile_v2) || (nullptr == m_fFreeBlock) || (nullptr == m_fJITVersion))

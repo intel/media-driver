@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2017, Intel Corporation
+* Copyright (c) 2007-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -148,7 +148,7 @@ CmQueueRT::CmQueueRT(CmDeviceRT *device,
     m_syncBufferHandle(INVALID_SYNC_BUFFER_HANDLE)
 {
     MOS_ZeroMemory(&m_mosVeHintParams, sizeof(m_mosVeHintParams));
-    MOS_QueryPerformanceFrequency(&m_CPUperformanceFrequency);
+    MosUtilities::MosQueryPerformanceFrequency(&m_CPUperformanceFrequency);
 }
 
 //*-----------------------------------------------------------------------------
@@ -604,7 +604,7 @@ int32_t CmQueueRT::Enqueue_RT(
     }
 
     LARGE_INTEGER nEnqueueTime;
-    if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )))
+    if ( !(MosUtilities::MosQueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )))
     {
         CM_ASSERTMESSAGE("Error: Query performance counter failure.");
         CmTaskInternal::Destroy(task);
@@ -684,7 +684,7 @@ int32_t CmQueueRT::Enqueue_RT(CmKernelRT* kernelArray[],
     }
 
     LARGE_INTEGER nEnqueueTime;
-    if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )))
+    if ( !(MosUtilities::MosQueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )))
     {
         CM_ASSERTMESSAGE("Error: Query performance counter failure.");
         CmTaskInternal::Destroy(task);
@@ -798,7 +798,7 @@ int32_t CmQueueRT::Enqueue_RT( CmKernelRT* kernelArray[],
     }
 
     LARGE_INTEGER nEnqueueTime;
-    if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )) )
+    if ( !(MosUtilities::MosQueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )) )
     {
         CM_ASSERTMESSAGE("Error: Query performance counter failure.");
         CmTaskInternal::Destroy(task);
@@ -2299,13 +2299,13 @@ void BufferCopyThread(void* threadData)
     uint32_t offset = data->offset;
     uint64_t cpuMemCopySize = data->sysMemSize;
     uint64_t ts = 0, te = 0;
-    MOS_QueryPerformanceCounter(&ts);
+    MosUtilities::MosQueryPerformanceCounter(&ts);
     // CPU buffer copy call with wait event
     if(data->dir)
         hr = buffer->WriteBuffer(sysMem, wait_event, cpuMemCopySize, offset);
     else
         hr = buffer->ReadBuffer((unsigned char*)sysMem, wait_event, cpuMemCopySize, offset);
-    MOS_QueryPerformanceCounter(&te);
+    MosUtilities::MosQueryPerformanceCounter(&te);
     uint64_t etime = (te - ts)*1000000000 / data->cpuFrrequency;
     eventRT->ModifyStatus(CM_STATUS_FINISHED, etime);
 
@@ -2507,7 +2507,7 @@ void CmQueueRT::PopTaskFromFlushedQueue()
         if ( event != nullptr )
         {
             LARGE_INTEGER nTime;
-            if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nTime.QuadPart )) )
+            if ( !(MosUtilities::MosQueryPerformanceCounter( (uint64_t*)&nTime.QuadPart )) )
             {
                 CM_ASSERTMESSAGE("Error: Query performace counter failure.");
             }
@@ -2675,9 +2675,9 @@ int32_t CmQueueRT::CleanQueue( )
 
     //Used for timeout detection
     LARGE_INTEGER freq;
-    MOS_QueryPerformanceFrequency((uint64_t*)&freq.QuadPart);
+    MosUtilities::MosQueryPerformanceFrequency((uint64_t *)&freq.QuadPart);
     LARGE_INTEGER start;
-    MOS_QueryPerformanceCounter((uint64_t*)&start.QuadPart);
+    MosUtilities::MosQueryPerformanceCounter((uint64_t*)&start.QuadPart);
     int64_t timeout = start.QuadPart + (CM_MAX_TIMEOUT * freq.QuadPart * m_flushedTasks.GetCount()); //Count to timeout at
 
     while( !m_flushedTasks.IsEmpty() && status != CM_EXCEED_MAX_TIMEOUT )
@@ -2685,7 +2685,7 @@ int32_t CmQueueRT::CleanQueue( )
         QueryFlushedTasks();
 
         LARGE_INTEGER current;
-        MOS_QueryPerformanceCounter((uint64_t*)&current.QuadPart);
+        MosUtilities::MosQueryPerformanceCounter((uint64_t*)&current.QuadPart);
         if( current.QuadPart > timeout )
             status = CM_EXCEED_MAX_TIMEOUT;
     }
@@ -3459,7 +3459,7 @@ CM_RT_API int32_t CmQueueRT::EnqueueVebox(CmVebox * vebox, CmEvent* & event)
     CM_CHK_CMSTATUS_GOTOFINISH(CmTaskInternal::Create(m_device,  veboxRT, task ));
 
     LARGE_INTEGER nEnqueueTime;
-    if ( !(MOS_QueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )) )
+    if ( !(MosUtilities::MosQueryPerformanceCounter( (uint64_t*)&nEnqueueTime.QuadPart )) )
     {
         CM_ASSERTMESSAGE("Error: Query Performance counter failure.");
         hr = CM_FAILURE;

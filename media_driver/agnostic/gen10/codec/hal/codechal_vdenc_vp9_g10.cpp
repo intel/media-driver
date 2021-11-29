@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -693,7 +693,7 @@ MOS_STATUS CodechalVdencVp9StateG10::Initialize(CodechalSetting * settings)
 
         if (!userFeatureData.i32Data)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_LoadLibrary(VP9SWBRCLIB, &m_swBrcMode)); // Load Dependency (use on RS1)
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(MosUtilities::MosLoadLibrary(VP9SWBRCLIB, &m_swBrcMode)); // Load Dependency (use on RS1)
         }
         else
         {

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -347,7 +347,7 @@ void CmDeviceRTBase::DestructCommon()
     //Free DLL handle if it is there
     if (m_hJITDll)
     {
-        MOS_FreeLibrary(m_hJITDll);
+        MosUtilities::MosFreeLibrary(m_hJITDll);
     }
 }
 
@@ -3590,7 +3590,7 @@ int32_t CmDeviceRTBase::FlushPrintBufferInternal(const char *filename)
     }
     else
     {
-        int err = MOS_SecureFileOpen(&streamOutFile, filename, "wb");
+        int err = MosUtilities::MosSecureFileOpen(&streamOutFile, filename, "wb");
         if (streamOutFile == nullptr)
         {
             CM_ASSERTMESSAGE("Error: Failed to open kernel print dump file.");

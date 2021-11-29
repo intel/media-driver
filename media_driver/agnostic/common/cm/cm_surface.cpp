@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -127,9 +127,9 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* event )
     uint32_t numTasks;
     cmQueue->GetTaskCount(numTasks);
     LARGE_INTEGER freq;
-    MOS_QueryPerformanceFrequency((uint64_t*)&freq.QuadPart);
+    MosUtilities::MosQueryPerformanceFrequency((uint64_t *)&freq.QuadPart);
     LARGE_INTEGER start;
-    MOS_QueryPerformanceCounter((uint64_t*)&start.QuadPart);
+    MosUtilities::MosQueryPerformanceCounter((uint64_t*)&start.QuadPart);
     int64_t timeout = start.QuadPart + (CM_MAX_TIMEOUT * freq.QuadPart * numTasks); //Count to timeout at
 
     CM_STATUS status;
@@ -139,7 +139,7 @@ int32_t CmSurface::FlushDeviceQueue( CmEventRT* event )
     while( status == CM_STATUS_QUEUED )
     {
         LARGE_INTEGER current;
-        MOS_QueryPerformanceCounter((uint64_t*)&current.QuadPart);
+        MosUtilities::MosQueryPerformanceCounter((uint64_t*)&current.QuadPart);
 
         if( current.QuadPart > timeout )
             return CM_EXCEED_MAX_TIMEOUT;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017 - 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 
 CmTimer::CmTimer(const std::string FunctionName)
 {
-    uint32_t success = MOS_QueryPerformanceFrequency((uint64_t*)&m_freq.QuadPart);
+    uint32_t success = MosUtilities::MosQueryPerformanceFrequency((uint64_t *)&m_freq.QuadPart);
     CM_ASSERT(success);
 
     m_funcName          = FunctionName;
@@ -54,7 +54,7 @@ CmTimer::~CmTimer()
 
 void CmTimer::Start()
 {
-    uint32_t success = MOS_QueryPerformanceCounter((uint64_t*)&m_start.QuadPart);
+    uint32_t success = MosUtilities::MosQueryPerformanceCounter((uint64_t *)&m_start.QuadPart);
     CM_ASSERT(success);
 
     return;
@@ -62,7 +62,7 @@ void CmTimer::Start()
 
 void CmTimer::Stop()
 {
-    uint32_t success = MOS_QueryPerformanceCounter((uint64_t*)&m_end.QuadPart);
+    uint32_t success = MosUtilities::MosQueryPerformanceCounter((uint64_t *)&m_end.QuadPart);
     CM_ASSERT(success);
 
     m_bstopped = true;

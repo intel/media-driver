@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -109,8 +109,8 @@ double CmGetTimeInms()
     LARGE_INTEGER   count;
     double   curTime;
 
-    MOS_QueryPerformanceFrequency((uint64_t*)&freq.QuadPart);
-    MOS_QueryPerformanceCounter((uint64_t*)&count.QuadPart);
+    MosUtilities::MosQueryPerformanceFrequency((uint64_t *)&freq.QuadPart);
+    MosUtilities::MosQueryPerformanceCounter((uint64_t *)&count.QuadPart);
     curTime = (double)(1000.0 * count.QuadPart/(double)freq.QuadPart);
 
     return curTime;

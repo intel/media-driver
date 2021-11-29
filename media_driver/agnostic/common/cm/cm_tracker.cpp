@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2019, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -183,8 +183,8 @@ CM_RETURN_CODE CmTracker::WaitForAllTasksFinished()
 
     //Used for timeout detection
     uint64_t freq, start, timeout;
-    MOS_QueryPerformanceFrequency(&freq);
-    MOS_QueryPerformanceCounter(&start);
+    MosUtilities::MosQueryPerformanceFrequency(&freq);
+    MosUtilities::MosQueryPerformanceCounter(&start);
     timeout = start + (CM_MAX_TIMEOUT * freq * inExecution);
 
     // wait for the last task to be finished (largest tracker)
@@ -197,7 +197,7 @@ CM_RETURN_CODE CmTracker::WaitForAllTasksFinished()
         while (Query(targetTaskId[i]) != CM_TASK_FINISHED)
         {
             uint64_t current;
-            MOS_QueryPerformanceCounter((uint64_t*)&current);
+            MosUtilities::MosQueryPerformanceCounter((uint64_t*)&current);
             if( current > timeout )
             {
                 return CM_EXCEED_MAX_TIMEOUT;

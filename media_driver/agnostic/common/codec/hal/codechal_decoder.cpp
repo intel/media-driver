@@ -1448,7 +1448,7 @@ MOS_STATUS CodechalDecode::Execute(void *params)
                         m_debugInterface->CaptureGoldenReference(m_decodeOutputBuf, yuvSize, m_decodeStatusBuf.m_decodeStatus[curIdx].m_mmioFrameCrcReg);
                         break;
                     }
-                    MOS_Sleep(1);
+                    MosUtilities::MosSleep(1);
                 }
             }
             else  //sw crc
