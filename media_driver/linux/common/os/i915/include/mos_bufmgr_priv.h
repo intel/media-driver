@@ -348,6 +348,10 @@ struct mos_bufmgr {
     bool     has_full_vd   = true;
 };
 
+#ifdef ALIGN
+/* <sys/param.h> via <pthread_np.h> on FreeBSD also defines ALIGN */
+#undef ALIGN
+#endif
 #define ALIGN(value, alignment)    ((value + alignment - 1) & ~(alignment - 1))
 #define ROUND_UP_TO(x, y)    (((x) + (y) - 1) / (y) * (y))
 #define ROUND_UP_TO_MB(x)    ROUND_UP_TO((x), 1024*1024)
