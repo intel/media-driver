@@ -5090,7 +5090,7 @@ bool KernelDll_SetupFunctionPointers_Ext(
 {
     VPHAL_RENDER_FUNCTION_ENTER;
 
-    if (pState->bEnableCMFC)
+    if (pState && pState->bEnableCMFC)
     {
         pState->pfnBuildKernel      = KernelDll_BuildKernel_CmFc;
     }
