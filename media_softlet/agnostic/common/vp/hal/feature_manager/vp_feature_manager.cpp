@@ -234,20 +234,14 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // APG only support single frame input/output
-    if (pvpParams->uSrcCount != 1 ||
-        pvpParams->uDstCount != 1)
+    // Color fill has not enabled in APO path.
+    if (0 == pvpParams->uSrcCount)
     {
         return MOS_STATUS_SUCCESS;
     }
 
     VP_PUBLIC_CHK_NULL_RETURN(pvpParams->pSrc[0]);
     VP_PUBLIC_CHK_NULL_RETURN(pvpParams->pTarget[0]);
-
-    if (pvpParams->pSrc[0]->SurfType != SURF_IN_PRIMARY)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
 
     // align rectangle of surface
     VP_PUBLIC_CHK_STATUS_RETURN(RectSurfaceAlignment(pvpParams->pSrc[0], pvpParams->pTarget[0]->Format));
@@ -287,14 +281,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    if (pvpParams->pSrc[0]->pBlendingParams                 ||
-        pvpParams->pSrc[0]->pLumaKeyParams                  ||
-        pvpParams->pConstriction)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (pvpParams->pSrc[0]->bInterlacedScaling && !IsSfcInterlacedScalingSupported())
+    if (pvpParams->pConstriction)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -306,38 +293,11 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    if (Is2PassesCSCNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
+    // Disable FP16 mode in APO path.
+    bool bFP16 = IS_RGB64_FLOAT_FORMAT(pvpParams->pTarget[0]->Format) || IS_RGB64_FLOAT_FORMAT(pvpParams->pSrc[0]->Format);
+    if (bFP16)
     {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    // Temp removed RGB input with DN/DI/IECP case
-    if ((IS_RGB_FORMAT(pvpParams->pSrc[0]->Format)) &&
-        (pvpParams->pSrc[0]->pColorPipeParams))
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (!IsVeboxOutFeasible(pvpParams) &&
-        !IsSfcOutputFeasible(pvpParams))
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    bool bVeboxNeeded = IsVeboxSupported(pvpParams);
-    // If ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX, use SFC only when VEBOX is required
-    // For GEN12+, IEF has been removed from AVS sampler. Do not change the path if IEF is enabled.
-    if ((pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_SFC_FOR_VEBOX) &&
-        (pvpParams->pSrc[0]->pIEFParams == nullptr || (pvpParams->pSrc[0]->pIEFParams && pvpParams->pSrc[0]->pIEFParams->bEnabled == false)) &&
-        (bVeboxNeeded == false))
-    {
-        VP_PUBLIC_NORMALMESSAGE("DDI choose to use SFC only for VEBOX, and since VEBOX is not required, change to Composition.");
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (pvpParams->pSrc[0]->ScalingPreference == VPHAL_SCALING_PREFER_COMP)
-    {
-        VP_PUBLIC_NORMALMESSAGE("DDI choose to use Composition, change to Composition.");
+        VP_PUBLIC_NORMALMESSAGE("Disable FP16 mode in APO path.");
         return MOS_STATUS_SUCCESS;
     }
 
