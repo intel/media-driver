@@ -612,6 +612,7 @@ MOS_STATUS MosInterface::GetAdapterBDF(PMOS_CONTEXT mosCtx, ADAPTER_BDF *adapter
         adapterBDF->Bus      = device->businfo.pci->bus;
         adapterBDF->Device   = device->businfo.pci->dev;
         adapterBDF->Function = device->businfo.pci->func;
+        drmFreeDevice(&device);
     }
     else
     {
