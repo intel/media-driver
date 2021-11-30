@@ -178,6 +178,15 @@ public:
     //!
     static MOS_STATUS MosUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
 
+    //!
+    //! \brief    Close MediaUserSetting context
+    //! \details  througt MediaUserSetting's destroy method reset ptr
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS DestroyMediaUserSetting();
+
 private:
     //!
     //! \brief    Init Function for MOS OS specific utilitiesNext

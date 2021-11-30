@@ -251,7 +251,6 @@ MOS_STATUS MosUtilities::MosUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
     MOS_OS_FUNCTION_ENTER;
 
     MediaUserSettingsMgr::MediaUserSettingClose();
-    MediaUserSetting::MediaUserSetting::Destroy();
 
     // MOS_OS_Utilitlies_Close must be called right before end of function
     // Because Memninja will calc mem leak here.
