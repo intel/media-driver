@@ -2525,9 +2525,11 @@ DdiVp_SetProcFilterHVSDenoiseParams(
             pSrc->pDenoiseParams->bAutoDetect     = true;
     }// switch (pHVSDnParamBuff->mode)
 
-    if (pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE)
+    if (pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE ||
+        pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_SUBJECTIVE)
     {
-        pSrc->pDenoiseParams->HVSDenoise.QP       = 32;       // HVS Auto Bdrate Mode default qp 32
+        //HVS Auto Bdrate Mode and Subjective Mode default qp 32
+        pSrc->pDenoiseParams->HVSDenoise.QP       = 32;
     }
     else
     {
