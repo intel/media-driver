@@ -122,19 +122,6 @@ namespace decode
         // m_totalTileNum means the total number of tile, m_lastTileId means the last tile index
         for (uint32_t i = 0; i < m_totalTileNum; i++)
         {
-            // For tile missing scenario
-            if (m_tileDesc[i].m_size == 0)
-            {
-                DECODE_ASSERTMESSAGE("The %d tile is missing, set 4 byte dummy WL!\n", i);
-                m_tileDesc[i].m_size          = 4;
-                m_tileDesc[i].m_offset        = 0;
-                m_tileDesc[i].m_tileRow       = i / m_basicFeature->m_av1PicParams->m_tileCols;
-                m_tileDesc[i].m_tileColumn    = i % m_basicFeature->m_av1PicParams->m_tileCols;
-                if (!m_hasTileMissing)
-                {
-                    m_hasTileMissing = true;
-                }
-            }
             if (m_tileDesc[i].m_size + m_tileDesc[i].m_offset > m_basicFeature->m_dataSize)
             {
                 if (i == m_lastTileId)
@@ -146,6 +133,19 @@ namespace decode
                 {
                     DECODE_ASSERTMESSAGE("The non-last tile size is oversize! Skip Frame!");
                     return MOS_STATUS_INVALID_PARAMETER;
+                }
+            }
+            // For tile missing scenario
+            if (m_tileDesc[i].m_size == 0)
+            {
+                DECODE_ASSERTMESSAGE("The %d tile is missing, set 4 byte dummy WL!\n", i);
+                m_tileDesc[i].m_size       = 4;
+                m_tileDesc[i].m_offset     = 0;
+                m_tileDesc[i].m_tileRow    = i / m_basicFeature->m_av1PicParams->m_tileCols;
+                m_tileDesc[i].m_tileColumn = i % m_basicFeature->m_av1PicParams->m_tileCols;
+                if (!m_hasTileMissing)
+                {
+                    m_hasTileMissing = true;
                 }
             }
         }
