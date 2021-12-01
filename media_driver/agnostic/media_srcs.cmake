@@ -290,69 +290,71 @@ endif()
 
 media_include_subdirectory(common)
 
-if(GEN8)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN8)
     media_include_subdirectory(gen8)
 endif()
 
-if(GEN8_BDW)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN8_BDW)
     media_include_subdirectory(gen8_bdw)
 endif()
 
-if(GEN9)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9)
     media_include_subdirectory(gen9)
 endif()
 
-if(GEN9_CML)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_CML)
     media_include_subdirectory(gen9_cml)
 endif()
 
-if(GEN9_CMPV)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_CMPV)
     media_include_subdirectory(gen9_cmpv)
 endif()
 
-if(GEN9_BXT)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_BXT)
     media_include_subdirectory(gen9_bxt)
 endif()
 
-if(GEN9_SKL)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_SKL)
     media_include_subdirectory(gen9_skl)
 endif()
 
-if(GEN9_GLK)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_GLK)
     media_include_subdirectory(gen9_glk)
 endif()
 
-if(GEN9_KBL)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_KBL)
     media_include_subdirectory(gen9_kbl)
 endif()
 
-if(GEN10)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN10)
     media_include_subdirectory(gen10)
 endif()
 
-if(GEN11)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN11)
     media_include_subdirectory(gen11)
 endif()
 
-if(GEN11_ICLLP)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN11_ICLLP)
     media_include_subdirectory(gen11_icllp)
 endif()
 
-if(GEN11_JSL)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN11_JSL)
     media_include_subdirectory(gen11_jsl_ehl)
 endif()
 
-if(GEN12)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN12)
     media_include_subdirectory(gen12)
     media_include_subdirectory(g12)
     media_include_subdirectory(../media_softlet/agnostic/gen12)
 endif()
 
-if(GEN12_TGLLP)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN12_TGLLP)
     media_include_subdirectory(gen12_tgllp)
 endif()
 
+if(ENABLE_REQUIRED_GEN_CODE OR GEN12)
 media_include_subdirectory(Xe_M)
 media_include_subdirectory(Xe_R)
+endif()
 
 include(${MEDIA_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)

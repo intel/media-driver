@@ -20,47 +20,47 @@
 
 media_include_subdirectory(common)
 
-if(GEN8)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN8)
     media_include_subdirectory(gen8)
 endif()
 
-if(GEN9)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9)
     media_include_subdirectory(gen9)
 endif()
 
-if(GEN9_BXT)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_BXT)
     media_include_subdirectory(gen9_bxt)
 endif()
 
-if(GEN9_SKL)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_SKL)
     media_include_subdirectory(gen9_skl)
 endif()
 
-if(GEN9_SKL)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_SKL)
     media_include_subdirectory(gen9_kbl)
 endif()
 
-if(GEN9_GLK)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_GLK)
     media_include_subdirectory(gen9_glk)
 endif()
 
-if(GEN9_CFL)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN9_CFL)
     media_include_subdirectory(gen9_cfl)
 endif()
 
-if(GEN10)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN10)
     media_include_subdirectory(gen10)
 endif()
 
-if(GEN10_CNL)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN10_CNL)
     media_include_subdirectory(gen10_cnl)
 endif()
 
-if(GEN11)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN11)
     media_include_subdirectory(gen11)
 endif()
 
-if(GEN12)
+if(ENABLE_REQUIRED_GEN_CODE OR GEN12)
     media_include_subdirectory(gen12)
 endif()
 
