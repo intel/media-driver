@@ -853,6 +853,21 @@ MOS_STATUS PolicySfcCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter
         filter2ndPass->SetFeatureType(FeatureTypeCsc);
         filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
 
+        if (caps.bForceCscToRender)
+        {
+            // Switch to render engine for csc filter.
+            VP_PUBLIC_NORMALMESSAGE("Force csc to render case. VeboxNeeded: %d -> 0, SfcNeeded: %d -> %d, RenderNeeded: %d -> 1",
+                filter2ndPass->GetFilterEngineCaps().VeboxNeeded,
+                filter2ndPass->GetFilterEngineCaps().SfcNeeded,
+                caps.b1stPassOfSfc2PassScaling,
+                filter2ndPass->GetFilterEngineCaps().RenderNeeded);
+            filter2ndPass->GetFilterEngineCaps().bEnabled  = 1;
+            filter2ndPass->GetFilterEngineCaps().VeboxNeeded = 0;
+            filter2ndPass->GetFilterEngineCaps().SfcNeeded = caps.b1stPassOfSfc2PassScaling;
+            filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
+            filter2ndPass->GetFilterEngineCaps().fcSupported = 1;
+        }
+
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
     }
     else
