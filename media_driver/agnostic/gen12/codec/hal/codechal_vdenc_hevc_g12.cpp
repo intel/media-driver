@@ -2671,9 +2671,12 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     if (m_vdencHucUsed && IsFirstPipe())
     {
         // STF: HuC+VDEnc+PAK single BB, non-STF: HuC Init/HuC Update/(VDEnc+PAK) in separate BBs
-        perfTag.CallType = m_singleTaskPhaseSupported ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE :
-            CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET;
-        CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, perfTag.CallType);
+        uint16_t callType = CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET;
+        if (m_singleTaskPhaseSupported)
+        {
+            perfTag.CallType = IsFirstPass() ? CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE : CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE_SECOND_PASS;
+        }
+        CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, callType);
 
         m_resVdencBrcUpdateDmemBufferPtr[0] = (MOS_RESOURCE*)m_allocator->GetResource(m_standard, pakInfo);
 
