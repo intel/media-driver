@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN8_BDW)
+if(GEN8_BDW)
     media_include_subdirectory(media_interfaces_m8_bdw)
 endif()
 

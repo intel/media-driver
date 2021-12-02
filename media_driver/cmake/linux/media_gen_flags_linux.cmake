@@ -21,7 +21,7 @@
 # TODO: Remove this option when all Gen options can successfully disable
 #       driver code.
 # Status:
-#   GEN8:  TODO
+#   GEN8:  Done
 #   GEN9:  TODO
 #   GEN10: TODO (Remove)
 #   GEN11: TODO
