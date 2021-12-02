@@ -290,11 +290,11 @@ endif()
 
 media_include_subdirectory(common)
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN8)
+if(GEN8)
     media_include_subdirectory(gen8)
 endif()
 
-if(ENABLE_REQUIRED_GEN_CODE OR GEN8_BDW)
+if(GEN8_BDW)
     media_include_subdirectory(gen8_bdw)
 endif()
 
