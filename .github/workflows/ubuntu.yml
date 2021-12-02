@@ -538,7 +538,7 @@ jobs:
         make VERBOSE=1 -j$(nproc)
         sudo make install
 
-  gcc-10-gen10-off:
+  gcc-10-gen10-on:
     runs-on: ubuntu-20.04
     env:
       CC: /usr/bin/gcc-10
@@ -594,7 +594,7 @@ jobs:
       run: |
         cd media
         mkdir build && cd build
-        cmake -DGEN10=OFF \
+        cmake -DGEN10=ON \
           -DCMAKE_INSTALL_PREFIX=/usr \
           -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu \
           -DCMAKE_C_FLAGS_RELEASE="$_CFLAGS" \
