@@ -32,6 +32,7 @@
 #include "mos_utilities.h"
 #include "mos_os.h"
 #include "mhw_vdbox_avp_itf.h"
+#include "mhw_vdbox_vdenc_itf.h"
 
 // forward declarations
 class MhwCpInterface;
@@ -107,6 +108,7 @@ public:
 
     /* New mhw sub interfaces*/
     std::shared_ptr<mhw::vdbox::avp::Itf> m_avpItf = nullptr;
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
 
     //!
     //! \brief    Calls the factory function to initialize all requested interfaces.
