@@ -407,3 +407,328 @@ jobs:
           ..
         make VERBOSE=1 -j$(nproc)
         sudo make install
+
+  gcc-10-gen8-off:
+    runs-on: ubuntu-20.04
+    env:
+      CC: /usr/bin/gcc-10
+      CXX: /usr/bin/g++-10
+      ASM: /usr/bin/gcc-10
+    steps:
+    - name: checkout media-driver
+      uses: actions/checkout@v2
+      with:
+        path: media
+    - name: checkout libva
+      uses: actions/checkout@v2
+      with:
+        repository: intel/libva
+        path: libva
+    - name: checkout gmmlib
+      uses: actions/checkout@v2
+      with:
+        repository: intel/gmmlib
+        path: gmmlib
+    - name: install prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
+    - name: print tools versions
+      run: |
+        cmake --version
+        $CC --version
+        $CXX --version
+    - name: build libva
+      run: |
+        cd libva
+        ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+        make -j$(nproc)
+        sudo make install
+    - name: build gmmlib
+      run: |
+        cd gmmlib
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+    - name: build media-driver
+      run: |
+        cd media
+        mkdir build && cd build
+        cmake -DGEN8=OFF \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu \
+          -DCMAKE_C_FLAGS_RELEASE="$_CFLAGS" \
+          -DCMAKE_CXX_FLAGS_RELEASE="$_CFLAGS" \
+          ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+
+  gcc-10-gen9-off:
+    runs-on: ubuntu-20.04
+    env:
+      CC: /usr/bin/gcc-10
+      CXX: /usr/bin/g++-10
+      ASM: /usr/bin/gcc-10
+    steps:
+    - name: checkout media-driver
+      uses: actions/checkout@v2
+      with:
+        path: media
+    - name: checkout libva
+      uses: actions/checkout@v2
+      with:
+        repository: intel/libva
+        path: libva
+    - name: checkout gmmlib
+      uses: actions/checkout@v2
+      with:
+        repository: intel/gmmlib
+        path: gmmlib
+    - name: install prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
+    - name: print tools versions
+      run: |
+        cmake --version
+        $CC --version
+        $CXX --version
+    - name: build libva
+      run: |
+        cd libva
+        ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+        make -j$(nproc)
+        sudo make install
+    - name: build gmmlib
+      run: |
+        cd gmmlib
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+    - name: build media-driver
+      run: |
+        cd media
+        mkdir build && cd build
+        cmake -DGEN9=OFF \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu \
+          -DCMAKE_C_FLAGS_RELEASE="$_CFLAGS" \
+          -DCMAKE_CXX_FLAGS_RELEASE="$_CFLAGS" \
+          ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+
+  gcc-10-gen10-off:
+    runs-on: ubuntu-20.04
+    env:
+      CC: /usr/bin/gcc-10
+      CXX: /usr/bin/g++-10
+      ASM: /usr/bin/gcc-10
+    steps:
+    - name: checkout media-driver
+      uses: actions/checkout@v2
+      with:
+        path: media
+    - name: checkout libva
+      uses: actions/checkout@v2
+      with:
+        repository: intel/libva
+        path: libva
+    - name: checkout gmmlib
+      uses: actions/checkout@v2
+      with:
+        repository: intel/gmmlib
+        path: gmmlib
+    - name: install prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
+    - name: print tools versions
+      run: |
+        cmake --version
+        $CC --version
+        $CXX --version
+    - name: build libva
+      run: |
+        cd libva
+        ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+        make -j$(nproc)
+        sudo make install
+    - name: build gmmlib
+      run: |
+        cd gmmlib
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+    - name: build media-driver
+      run: |
+        cd media
+        mkdir build && cd build
+        cmake -DGEN10=OFF \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu \
+          -DCMAKE_C_FLAGS_RELEASE="$_CFLAGS" \
+          -DCMAKE_CXX_FLAGS_RELEASE="$_CFLAGS" \
+          ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+
+  gcc-10-gen11-off:
+    runs-on: ubuntu-20.04
+    env:
+      CC: /usr/bin/gcc-10
+      CXX: /usr/bin/g++-10
+      ASM: /usr/bin/gcc-10
+    steps:
+    - name: checkout media-driver
+      uses: actions/checkout@v2
+      with:
+        path: media
+    - name: checkout libva
+      uses: actions/checkout@v2
+      with:
+        repository: intel/libva
+        path: libva
+    - name: checkout gmmlib
+      uses: actions/checkout@v2
+      with:
+        repository: intel/gmmlib
+        path: gmmlib
+    - name: install prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
+    - name: print tools versions
+      run: |
+        cmake --version
+        $CC --version
+        $CXX --version
+    - name: build libva
+      run: |
+        cd libva
+        ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+        make -j$(nproc)
+        sudo make install
+    - name: build gmmlib
+      run: |
+        cd gmmlib
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+    - name: build media-driver
+      run: |
+        cd media
+        mkdir build && cd build
+        cmake -DGEN11=OFF \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu \
+          -DCMAKE_C_FLAGS_RELEASE="$_CFLAGS" \
+          -DCMAKE_CXX_FLAGS_RELEASE="$_CFLAGS" \
+          ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+
+  gcc-10-gen12-off:
+    runs-on: ubuntu-20.04
+    env:
+      CC: /usr/bin/gcc-10
+      CXX: /usr/bin/g++-10
+      ASM: /usr/bin/gcc-10
+    steps:
+    - name: checkout media-driver
+      uses: actions/checkout@v2
+      with:
+        path: media
+    - name: checkout libva
+      uses: actions/checkout@v2
+      with:
+        repository: intel/libva
+        path: libva
+    - name: checkout gmmlib
+      uses: actions/checkout@v2
+      with:
+        repository: intel/gmmlib
+        path: gmmlib
+    - name: install prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          cmake \
+          libdrm-dev \
+          libegl1-mesa-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          make
+    - name: print tools versions
+      run: |
+        cmake --version
+        $CC --version
+        $CXX --version
+    - name: build libva
+      run: |
+        cd libva
+        ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+        make -j$(nproc)
+        sudo make install
+    - name: build gmmlib
+      run: |
+        cd gmmlib
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+    - name: build media-driver
+      run: |
+        cd media
+        mkdir build && cd build
+        cmake -DGEN12=OFF \
+          -DCMAKE_INSTALL_PREFIX=/usr \
+          -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu \
+          -DCMAKE_C_FLAGS_RELEASE="$_CFLAGS" \
+          -DCMAKE_CXX_FLAGS_RELEASE="$_CFLAGS" \
+          ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
