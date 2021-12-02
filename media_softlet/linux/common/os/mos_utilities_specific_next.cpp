@@ -70,6 +70,7 @@ double MosUtilities::MosGetTime()
 //!
 const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker_raw";
 int32_t           MosUtilitiesSpecificNext::m_mosTraceFd    = -1;
+MosMutex          MosUtilitiesSpecificNext::m_userSettingMutex;
 
 std::map<std::string, std::map<std::string, std::string>> MosUtilitiesSpecificNext::m_regBuffer;
 
@@ -612,6 +613,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
     MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocFakeCounter);  //ulValueBuf does not count it, because it is freed after the MEMNJA final report.
     MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
 
+    m_userSettingMutex.Lock();
     if ((iPos = UserFeatureFindValue(*Key, NewKey.pValueArray[0].pcValueName)) == NOT_FOUND)
     {
         //not found, add a new value to key struct.
@@ -623,6 +625,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
             MOS_OS_ASSERTMESSAGE("user setting requires iPos (%d) < UF_CAPABILITY(64)", iPos);
             Key->valueNum = UF_CAPABILITY;
             MOS_SafeFreeMemory(ulValueBuf);
+            m_userSettingMutex.Unlock();
             return MOS_STATUS_USER_FEATURE_KEY_READ_FAILED;
         }
         MosUtilities::MosSecureStrcpy(Key->pValueArray[iPos].pcValueName,
@@ -648,6 +651,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
                      NewKey.pValueArray[0].ulValueBuf,
                      NewKey.pValueArray[0].ulValueLen);
 
+    m_userSettingMutex.Unlock();
     return MOS_STATUS_SUCCESS;
 }
 
