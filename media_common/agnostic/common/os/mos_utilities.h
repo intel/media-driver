@@ -123,7 +123,7 @@ class MosUtilities;
 
 #define MOS_MEMNINJA_GFX_ALLOC_MESSAGE(ptr, bufName, component, size, arraySize, functionName, filename, line)                                              \
     MOS_OS_MEMNINJAMESSAGE(                                                                                                                                 \
-        "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = %d, "                                      \
+        "MemNinjaGfxAlloc: Time = %f, MemNinjaCounterGfx = %d, memPtr = %p, bufName = %s, component = %d, size = 0x%llx, "                                  \
         "arraySize = %d, functionName = \"%s\", filename = \"%s\", line = %d/", MosUtilities::MosGetTime(), MosUtilities::m_mosMemAllocCounterGfx, ptr,     \
         bufName, component, size, arraySize, functionName, filename, line);                                                                                 \
 
