@@ -36,7 +36,7 @@ MhwVdboxAvpInterfaceXe_Hpm::MhwVdboxAvpInterfaceXe_Hpm(
     MhwMiInterface *miInterface,
     MhwCpInterface *cpInterface,
     bool            decodeInUse)
-    : MhwVdboxAvpInterfaceG12Ext(osInterface, miInterface, cpInterface, decodeInUse)
+    : MhwVdboxAvpInterfaceG12(osInterface, miInterface, cpInterface, decodeInUse)
 {
     MHW_FUNCTION_ENTER;
 }

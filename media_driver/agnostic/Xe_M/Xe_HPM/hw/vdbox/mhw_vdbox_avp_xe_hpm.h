@@ -29,7 +29,7 @@
 #ifndef __MHW_VDBOX_AVP_XE_HPM_H__
 #define __MHW_VDBOX_AVP_XE_HPM_H__
 
-#include "mhw_vdbox_avp_g12_X_ext.h"
+#include "mhw_vdbox_avp_g12_X.h"
 #include "mhw_vdbox_avp_impl_xe_hpm.h"
 
 class MhwVdboxAvpPipeBufAddrParamsXe_Hpm : public MhwVdboxAvpPipeBufAddrParams
@@ -58,7 +58,7 @@ public:
 /*!
 This class defines the Avp command interface for Xe_HPM platforms
 */
-class MhwVdboxAvpInterfaceXe_Hpm : public MhwVdboxAvpInterfaceG12Ext
+class MhwVdboxAvpInterfaceXe_Hpm : public MhwVdboxAvpInterfaceG12
 {
 public:
     MhwVdboxAvpInterfaceXe_Hpm(
