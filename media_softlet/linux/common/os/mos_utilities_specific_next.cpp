@@ -58,7 +58,7 @@ double MosUtilities::MosGetTime()
 }
 
 //!
-//! \brief Linux specific user feature define, used in MOS_UserFeature_ParsePath
+//! \brief Linux specific user feature define, used in MosUtilities::MosUserFeatureParsePath
 //!        They can be unified with the win definitions, since they are identical.
 //!
 #define MOS_UF_SEPARATOR  "\\"
@@ -609,14 +609,14 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
     {
          return MOS_STATUS_NO_SPACE;
     }
-    MOS_AtomicIncrement(&MosUtilities::m_mosMemAllocFakeCounter);  //ulValueBuf does not count it, because it is freed after the MEMNJA final report.
+    MosUtilities::MosAtomicIncrement(&MosUtilities::m_mosMemAllocFakeCounter);  //ulValueBuf does not count it, because it is freed after the MEMNJA final report.
     MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
 
     if ((iPos = UserFeatureFindValue(*Key, NewKey.pValueArray[0].pcValueName)) == NOT_FOUND)
     {
         //not found, add a new value to key struct.
         //reallocate memory for appending this value.
-        iPos = MOS_AtomicIncrement(&Key->valueNum);
+        iPos = MosUtilities::MosAtomicIncrement(&Key->valueNum);
         iPos = iPos - 1;
         if (iPos >= UF_CAPABILITY)
         {
@@ -633,7 +633,7 @@ MOS_STATUS MosUtilitiesSpecificNext::UserFeatureSet(MOS_PUF_KEYLIST *pKeyList, M
     {
         //if found, the previous value buffer needs to be freed before reallocating
         MOS_FreeMemory(Key->pValueArray[iPos].ulValueBuf);
-        MOS_AtomicDecrement(&MosUtilities::m_mosMemAllocFakeCounter);
+        MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocFakeCounter);
         MOS_OS_NORMALMESSAGE("ulValueBuf %p for key %s", ulValueBuf, NewKey.pValueArray[0].pcValueName);
     }
 

@@ -80,12 +80,12 @@ class Mutex
 public:
     Mutex()
     {
-        m_mutex = MOS_CreateMutex();
+        m_mutex = MosUtilities::MosCreateMutex();
         DECODE_ASSERT(m_mutex != nullptr);
     }
     ~Mutex()
     {
-        MOS_DestroyMutex(m_mutex);
+        MosUtilities::MosDestroyMutex(m_mutex);
     }
     PMOS_MUTEX Get()
     {
@@ -98,8 +98,8 @@ protected:
 class AutoLock
 {
 public:
-    AutoLock(Mutex &mutex) : m_mutex(mutex) { MOS_LockMutex(m_mutex.Get()); }
-    ~AutoLock() { MOS_UnlockMutex(m_mutex.Get()); }
+    AutoLock(Mutex &mutex) : m_mutex(mutex) { MosUtilities::MosLockMutex(m_mutex.Get()); }
+    ~AutoLock() { MosUtilities::MosUnlockMutex(m_mutex.Get()); }
 protected:
     Mutex &m_mutex;
 };
@@ -119,9 +119,9 @@ public:
     MOS_STATUS Wait(PMOS_MUTEX mutex)
     {
         MOS_STATUS status = MOS_STATUS_SUCCESS;
-        MOS_UnlockMutex(mutex);
+        MosUtilities::MosUnlockMutex(mutex);
         status = MOS_WaitSemaphore(m_sem, 5000);
-        MOS_LockMutex(mutex);
+        MosUtilities::MosLockMutex(mutex);
         return status;
     }
     MOS_STATUS Signal()

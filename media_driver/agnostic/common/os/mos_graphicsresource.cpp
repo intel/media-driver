@@ -37,14 +37,14 @@ uint32_t GraphicsResource::m_memAllocCounterGfx;
 GraphicsResource::GraphicsResource()
 {
     MOS_OS_FUNCTION_ENTER;
-    m_allocationIndexMutex = MOS_CreateMutex();
+    m_allocationIndexMutex = MosUtilities::MosCreateMutex();
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(m_allocationIndexMutex);
 }
 
 GraphicsResource::~GraphicsResource()
 {
     MOS_OS_FUNCTION_ENTER;
-    MOS_DestroyMutex(m_allocationIndexMutex);
+    MosUtilities::MosDestroyMutex(m_allocationIndexMutex);
     m_allocationIndexMutex = nullptr;
 }
 
@@ -160,7 +160,7 @@ int32_t GraphicsResource::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle
     int32_t curAllocIndex            = MOS_INVALID_ALLOC_INDEX;
     int32_t ret                      = MOS_INVALID_ALLOC_INDEX; 
 
-    MOS_LockMutex(m_allocationIndexMutex);
+    MosUtilities::MosLockMutex(m_allocationIndexMutex);
     for (auto& curAllocationIndexTp : m_allocationIndexArray)
     {
         std::tie(curGpuContext, curAllocIndex) = curAllocationIndexTp ;
@@ -171,15 +171,15 @@ int32_t GraphicsResource::GetAllocationIndex(GPU_CONTEXT_HANDLE gpuContextHandle
         }
     }
 
-    MOS_UnlockMutex(m_allocationIndexMutex);
+    MosUtilities::MosUnlockMutex(m_allocationIndexMutex);
     return ret;
 }
 
 void GraphicsResource::ResetResourceAllocationIndex()
 {
     MOS_OS_FUNCTION_ENTER;
-    MOS_LockMutex(m_allocationIndexMutex);
+    MosUtilities::MosLockMutex(m_allocationIndexMutex);
     m_allocationIndexArray.clear();
-    MOS_UnlockMutex(m_allocationIndexMutex);
+    MosUtilities::MosUnlockMutex(m_allocationIndexMutex);
 }
 

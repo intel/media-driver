@@ -68,8 +68,8 @@ protected:
 class AutoLock
 {
 public:
-    AutoLock(PMOS_MUTEX mutex) : m_mutex(mutex) { MOS_LockMutex(mutex); }
-    ~AutoLock() { MOS_UnlockMutex(m_mutex); }
+    AutoLock(PMOS_MUTEX mutex) : m_mutex(mutex) { MosUtilities::MosLockMutex(mutex); }
+    ~AutoLock() { MosUtilities::MosUnlockMutex(m_mutex); }
 protected:
     PMOS_MUTEX m_mutex;
 };
@@ -89,9 +89,9 @@ public:
     MOS_STATUS Wait(PMOS_MUTEX mutex)
     {
         MOS_STATUS status = MOS_STATUS_SUCCESS;
-        MOS_UnlockMutex(mutex);
+        MosUtilities::MosUnlockMutex(mutex);
         status = MOS_WaitSemaphore(m_sem, 5000);
-        MOS_LockMutex(mutex);
+        MosUtilities::MosLockMutex(mutex);
         return status;
     }
     MOS_STATUS Signal()

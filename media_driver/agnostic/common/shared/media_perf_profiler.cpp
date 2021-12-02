@@ -92,7 +92,7 @@ struct NodeHeader
     MOS_STATUS stmtStatus = (MOS_STATUS)(_stmt);   \
     if (stmtStatus != MOS_STATUS_SUCCESS)          \
     {                                              \
-        MOS_UnlockMutex(m_mutex);                  \
+        MosUtilities::MosUnlockMutex(m_mutex);     \
         return stmtStatus;                         \
     }                                              \
 }
@@ -101,7 +101,7 @@ struct NodeHeader
 {                                                  \
     if ((_ptr) == nullptr)                         \
     {                                              \
-        MOS_UnlockMutex(m_mutex);                  \
+        MosUtilities::MosUnlockMutex(m_mutex);     \
         return MOS_STATUS_NULL_POINTER;            \
     }                                              \
 }
@@ -115,13 +115,13 @@ MediaPerfProfiler::MediaPerfProfiler()
 
     m_profilerEnabled = 0;
 
-    m_mutex = MOS_CreateMutex();
+    m_mutex = MosUtilities::MosCreateMutex();
 
     if (m_mutex)
     {
         // m_mutex is destroyed after MemNinja report, this will cause fake memory leak,
         // the following 2 lines is to circumvent Memninja counter validation and log parser
-        MOS_AtomicDecrement(&MosUtilities::m_mosMemAllocCounter);
+        MosUtilities::MosAtomicDecrement(&MosUtilities::m_mosMemAllocCounter);
         MOS_MEMNINJA_FREE_MESSAGE(m_mutex, __FUNCTION__, __FILE__, __LINE__);
     }
     else
@@ -135,7 +135,7 @@ MediaPerfProfiler::~MediaPerfProfiler()
 {
     if (m_mutex != nullptr)
     {
-        MOS_DestroyMutex(m_mutex);
+        MosUtilities::MosDestroyMutex(m_mutex);
         m_mutex = nullptr;
     }
 }
@@ -164,7 +164,7 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
         return;
     }
 
-    MOS_LockMutex(profiler->m_mutex);
+    MosUtilities::MosLockMutex(profiler->m_mutex);
     profiler->m_ref--;
 
     osInterface->pfnWaitAllCmdCompletion(osInterface);
@@ -187,11 +187,11 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
             profiler->m_initialized = false;
         }
 
-        MOS_UnlockMutex(profiler->m_mutex);
+        MosUtilities::MosUnlockMutex(profiler->m_mutex);
     }
     else
     {
-        MOS_UnlockMutex(profiler->m_mutex);
+        MosUtilities::MosUnlockMutex(profiler->m_mutex);
     }
 }
 
@@ -217,14 +217,14 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_LockMutex(m_mutex);
+    MosUtilities::MosLockMutex(m_mutex);
 
     m_contextIndexMap[context] = 0;
     m_ref++;
 
     if (m_initialized == true)
     {
-        MOS_UnlockMutex(m_mutex);
+        MosUtilities::MosUnlockMutex(m_mutex);
         return status;
     }
 
@@ -241,7 +241,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
 
     if (status != MOS_STATUS_SUCCESS)
     {
-        MOS_UnlockMutex(m_mutex);
+        MosUtilities::MosUnlockMutex(m_mutex);
         return status;
     }
 
@@ -347,7 +347,7 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
 
     m_initialized = true;
 
-    MOS_UnlockMutex(m_mutex);
+    MosUtilities::MosUnlockMutex(m_mutex);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -552,12 +552,12 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     uint32_t perfDataIndex = 0;
 
-    MOS_LockMutex(m_mutex);
+    MosUtilities::MosLockMutex(m_mutex);
 
     perfDataIndex = m_perfDataIndex;
     m_perfDataIndex++;
 
-    MOS_UnlockMutex(m_mutex);
+    MosUtilities::MosUnlockMutex(m_mutex);
 
     if (BASE_OF_NODE(perfDataIndex) + sizeof(PerfEntry) > m_bufferSize)
     {

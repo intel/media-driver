@@ -137,9 +137,6 @@ class MosUtilities;
 
 #ifdef __cplusplus
 
-extern "C" int32_t MOS_AtomicIncrement(int32_t *pValue);   // forward declaration
-extern "C" int32_t MOS_AtomicDecrement(int32_t *pValue);   // forward declaration
-
 //template<class _Ty, class... _Types> inline
 //std::shared_ptr<_Ty> MOS_MakeShared(_Types&&... _Args)
 //{
@@ -430,352 +427,6 @@ MOS_FUNC_EXPORT MOS_STATUS MOS_EXPORT_DECL DumpUserFeatureKeyDefinitionsMedia();
 #endif
 
 //!
-//! \brief    Parses the user feature path and gets type and sub path
-//! \details  Parses the user feature path and gets type and sub path
-//!           It verifies if the user feature path is valid,
-//!           and check if it belongs to UFEXT or UFINT UFKEY.
-//!           The identified type and subpath are set accordingly.
-//! \param    [in] pOsUserFeatureInterface,
-//!           Pointer to OS User Interface structure
-//! \param    [in] pInputPath
-//!           The input user feature path
-//! \param    [out] pUserFeatureType
-//!           Pointer to the variable to receive user feature type
-//! \param    [out] ppSubPath
-//!           Pointer to a variable that accepts the pointer to the subpath
-//! \return   MOS_STATUS
-//!           Returns MOS_STATUS_INVALID_PARAMETER if failed, else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_UserFeature_ParsePath(
-    PMOS_USER_FEATURE_INTERFACE  pOsUserFeatureInterface,
-    char * const                 pInputPath,
-    PMOS_USER_FEATURE_TYPE       pUserFeatureType,
-    char                         **ppSubPath);
-
-//------------------------------------------------------------------------------
-// Wrappers for OS Specific User Feature Functions Implementations
-//------------------------------------------------------------------------------
-//!
-//! \brief    Opens the specified user feature key
-//! \details  Opens the specified user feature key
-//! \param    [in] UFKey
-//!           A handle to an open user feature key.
-//! \param    [in] lpSubKey
-//!           The name of the user feature subkey to be opened.
-//! \param    [in] lOptions
-//!           This parameter is reserved and must be zero.
-//! \param    [in] samDesired
-//!           Reserved, could be any REGSAM type value
-//! \param    [out] phkResult
-//!           A pointer to a variable that receives a handle to the opened key.
-//! \return   MOS_STATUS
-//!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-//!           If the function fails, the return value is a error code defined
-//!           in mos_utilities.h.
-//!
-MOS_STATUS MOS_UserFeatureOpenKey(
-    void              *UFKey,
-    const char        *lpSubKey,
-    uint32_t          ulOptions,
-    uint32_t          samDesired,
-    void              **phkResult,
-    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = nullptr);
-
-//!
-//! \brief    Closes a handle to the specified user feature key
-//! \details  Closes a handle to the specified user feature key
-//! \param    [in] UFKey
-//!           A handle to an open user feature key.
-//! \return   MOS_STATUS
-//!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-//!           If the function fails, the return value is a error code defined
-//!           in mos_utilities.h.
-//!
-MOS_STATUS MOS_UserFeatureCloseKey(
-    void               *UFKey);
-
-//!
-//! \brief    Retrieves the type and data for the specified user feature value
-//! \details  Retrieves the type and data for the specified user feature value
-//! \param    [in] UFKey
-//!           A handle to an open user feature key.
-//! \param    [in] lpSubKey
-//!           The name of the user feature key. This key must be a
-//!           subkey of the key specified by the hkey parameter
-//! \param    [in] lpValue
-//!           The name of the user feature value
-//! \param    [in] dwFlags
-//!           The flags that restrict the data type of value to be queried
-//! \param    [out] pdwType
-//!           A pointer to a variable that receives a code indicating the type
-//!           of data stored in the specified value.
-//! \param    [out] pvData
-//!           A pointer to a buffer that receives the value's data.
-//! \param    [in/out] pcbData
-//!           A pointer to a variable that specifies the size of the buffer
-//!           pointed to by the pvData parameter, in bytes. When the function
-//!           returns, this variable contains the size of the data copied to lpData.
-//! \return   MOS_STATUS
-//!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-//!           If the function fails, the return value is a error code defined
-//!           in mos_utilities.h.
-//!
-MOS_STATUS MOS_UserFeatureGetValue(
-    void               *UFKey,
-    const char         *lpSubKey,
-    const char         *lpValue,
-    uint32_t           dwFlags,
-    uint32_t           *pdwType,
-    void               *pvData,
-    uint32_t           *pcbData);
-
-//!
-//! \brief    Retrieves the type and data for the specified value name
-//!           associated with an open user feature key.
-//! \details  Retrieves the type and data for the specified value name
-//!           associated with an open user feature key.
-//! \param    [in] UFKey
-//!           A handle to an open user feature key
-//! \param    [in] lpValueName
-//!           The name of the user feature value
-//! \param    [in] lpReserved
-//!           This parameter is reserved and must be NULL.
-//! \param    [out] lpType
-//!           A pointer to a variable that receives a code indicating
-//!           the type of data stored in the specified value.
-//! \param    [out] lpData
-//!           A pointer to a buffer that receives the value's data.
-//! \param    [in/out] lpcbData
-//!           A pointer to a variable that specifies the size
-//!           of the buffer pointed to by the pvData parameter,
-//!           in bytes. When the function returns, this variable
-//!           contains the size of the data copied to lpData.
-//! \return   MOS_STATUS
-//!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-//!           If the function fails, the return value is a error code defined
-//!           in mos_utilities.h.
-//!
-MOS_STATUS MOS_UserFeatureQueryValueEx(
-    void                    *UFKey,
-    char                    *lpValueName,
-    uint32_t                *lpReserved,
-    uint32_t                *lpType,
-    char                    *lpData,
-    uint32_t                *lpcbData);
-
-//!
-//! \brief    Sets the data and type of a specified value under a user feature key
-//! \details  Sets the data and type of a specified value under a user feature key
-//! \param    [in] UFKey
-//!           A handle to an open user feature key
-//! \param    [in] lpValueName
-//!           The name of the user feature value
-//! \param    [in] Reserved
-//!           This parameter is reserved and must be nullptr
-//! \param    [in] dwType
-//!           The type of data pointed to by the lpData parameter
-//! \param    [in] lpData
-//!           The data to be stored.
-//! \param    [in] cbData
-//!           The size of the information pointed to by the lpData parameter, in bytes.
-//! \return   MOS_STATUS
-//!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-//!           If the function fails, the return value is a error code defined
-//!           in mos_utilities.h.
-//!
-MOS_STATUS MOS_UserFeatureSetValueEx(
-    void                 *UFKey,
-    const char           *lpValueName,
-    uint32_t             Reserved,
-    uint32_t             dwType,
-    uint8_t              *lpData,
-    uint32_t             cbData);
-
-//!
-//! \brief    Notifies the caller about changes to the attributes or contents
-//!           of a specified user feature key
-//! \details  Notifies the caller about changes to the attributes or contents
-//!           of a specified user feature key
-//!           Used internally by MOS_UserFeature_EnableNotification()
-//! \param    [in] UFKey
-//!           A handle to an open user feature key.
-//!           The key must have been opened with the KEY_NOTIFY access right.
-//! \param    [in] bWatchSubtree
-//!           true including subkey changes; false for the key itself
-//! \param    [in] hEvent
-//!           A handle to an event to be signaled when key changes if is true
-//! \param    [in] fAsynchronous
-//!           true: Return immediately and signal the hEvent when key change
-//!           false: Does not return until a change has occured
-//! \return   MOS_STATUS
-//!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
-//!           If the function fails, the return value is a error code defined
-//!           in mos_utilities.h.
-//!
-MOS_STATUS MOS_UserFeatureNotifyChangeKeyValue(
-    void                           *UFKey,
-    int32_t                        bWatchSubtree,
-    HANDLE                         hEvent,
-    int32_t                        fAsynchronous);
-
-//!
-//! \brief    Creates or opens a event object and returns a handle to the object
-//! \details  Creates or opens a event object and returns a handle to the object
-//! \param    [in] lpEventAttributes
-//!           A pointer to a SECURITY_ATTRIBUTES structure.
-//!           If lpEventAttributes is nullptr, the event handle cannot be inherited
-//!           by child processes.
-//! \param    [in] lpName
-//!           The name of the event object.If lpName is nullptr, the event object is
-//!           created without a name.
-//! \param    [in] dwFlags
-//!           Combines the following flags
-//!           CREATE_EVENT_INITIAL_SET: Singal initial state or not
-//!           CREATE_EVENT_MANUAL_RESET: Must be manually reset or not
-//! \return   HANDLE
-//!           If the function succeeds, the return value is a handle to the
-//!           event object. If failed, returns NULL. To get extended error
-//!           information, call GetLastError.
-//!
-HANDLE MOS_CreateEventEx(
-    void                 *lpEventAttributes,
-    char                 *lpName,
-    uint32_t             dwFlags);
-
-//!
-//! \brief    Create a wait thread to wait on the object
-//! \details  Create a wait thread to wait on the object
-//!           Add this function to capatible WDK-9200 on vs2012.
-//! \param    [out] phNewWaitObject
-//!           A pointer to a variable that receives a wait handle on return.
-//! \param    [in] hObject
-//!           A handle to the object
-//! \param    [in] Callback
-//!           A pointer to the application-defined function of type
-//!           WAITORTIMERCALLBACK to be executed when wait ends.
-//! \param    [in] Context
-//!           A single value that is passed to the callback function
-//! \return   int32_t
-//!           The return value is int32_t type. If the function succeeds,
-//!           the return value is nonzero. If the function fails, the
-//!           return value is zero.
-//!
-int32_t MOS_UserFeatureWaitForSingleObject(
-    PTP_WAIT                         *phNewWaitObject,
-    HANDLE                           hObject,
-    void                             *Callback,
-    void                             *Context);
-
-//!
-//! \brief    Cancels a registered wait operation issued by the
-//!           RegisterWaitForSingleObject function
-//! \details  Cancels a registered wait operation issued by the
-//!           RegisterWaitForSingleObject function
-//! \param    [in] hWaitHandle
-//!           The wait handle. This handle is returned by the
-//!           RegisterWaitForSingleObject function
-//! \return   int32_t
-//!           The return value is int32_t type. If the function succeeds,
-//!           the return value is nonzero. If the function fails, the
-//!           return value is zero.
-//!
-int32_t MOS_UnregisterWaitEx(
-    PTP_WAIT                hWaitHandle);
-
-//!
-//! \brief    Get logical core number of current CPU
-//! \details  Get logical core number of current CPU
-//! \return   uint32_t
-//!           If the function succeeds, the return value is the number of
-//!           current CPU.
-//!
-uint32_t MOS_GetLogicalCoreNumber();
-
-//!
-//! \brief    Creates or opens a thread object and returns a handle to the object
-//! \details  Creates or opens a thread object and returns a handle to the object
-//! \param    [in] ThreadFunction
-//!           A pointer to a thread function.
-//! \param    [in] ThreadData
-//!           A pointer to thread data.
-//! \return   MOS_THREADHANDLE
-//!           If the function succeeds, the return value is a handle to the
-//!           thread object. If failed, returns NULL.
-//!
-MOS_THREADHANDLE MOS_CreateThread(
-    void                        *ThreadFunction,
-    void                        *ThreadData);
-
-//!
-//! \brief    Get thread id
-//! \details  Get thread id
-//! \param    [in] hThread
-//!           A handle of thread object.
-//! \return   uint32_t
-//!           Return the current thread id
-//!
-uint32_t MOS_GetThreadId(
-    MOS_THREADHANDLE            hThread);
-
-//!
-//! \brief    Retrieves the current thread id
-//! \details  Retrieves the current thread id
-//! \return   uint32_t
-//!           Return the current thread id
-//!
-uint32_t MOS_GetCurrentThreadId();
-
-//!
-//! \brief    Wait for thread to terminate
-//! \details  Wait for thread to terminate
-//! \param    [in] hThread
-//!           A handle of thread object.
-//! \return   MOS_STATUS
-//!
-MOS_STATUS MOS_WaitThread(
-    MOS_THREADHANDLE            hThread);
-
-//!
-//! \brief    Create mutex for context protection across threads
-//! \details  Create mutex for context protection across threads
-//!           Used for multi-threading of Hybrid Decoder
-//! \param    NONE
-//! \return   PMOS_MUTEX
-//!           Pointer of mutex
-//!
-PMOS_MUTEX MOS_CreateMutex();
-
-//!
-//! \brief    Destroy mutex for context protection across threads
-//! \details  Destroy mutex for context protection across threads
-//!           Used for multi-threading of Hybrid Decoder
-//! \param    [in] pMutex
-//!           Pointer of mutex
-//! \return   MOS_STATUS
-//!
-MOS_STATUS MOS_DestroyMutex(PMOS_MUTEX pMutex);
-
-//!
-//! \brief    Lock mutex for context protection across threads
-//! \details  Lock mutex for context protection across threads
-//!           Used for multi-threading of Hybrid Decoder
-//! \param    [in] pMutex
-//!           Pointer of mutex
-//! \return   MOS_STATUS
-//!
-MOS_STATUS MOS_LockMutex(PMOS_MUTEX pMutex);
-
-//!
-//! \brief    Unlock mutex for context protection across threads
-//! \details  Unlock mutex for context protection across threads
-//!           Used for multi-threading of Hybrid Decoder
-//! \param    [in] pMutex
-//!           Pointer of mutex
-//! \return   MOS_STATUS
-//!
-MOS_STATUS MOS_UnlockMutex(PMOS_MUTEX pMutex);
-
-//!
 //! \brief    Creates or opens a semaphore object and returns a handle to the object
 //! \details  Creates or opens a semaphore object and returns a handle to the object
 //! \param    [in] uiInitialCount
@@ -862,26 +513,6 @@ uint32_t MOS_WaitForMultipleObjects(
     void                        **ppObjects,
     uint32_t                    bWaitAll,
     uint32_t                    uiMilliseconds);
-
-//!
-//! \brief    Increments (increases by one) the value of the specified int32_t variable as an atomic operation.
-//! \param    [in] pValue
-//!           A pointer to the variable to be incremented.
-//! \return   int32_t
-//!           The function returns the resulting incremented value.
-//!
-int32_t MOS_AtomicIncrement(
-    int32_t *pValue);
-
-//!
-//! \brief    Decrements (decreases by one) the value of the specified int32_t variable as an atomic operation.
-//! \param    [in] pValue
-//!           A pointer to the variable to be decremented.
-//! \return   int32_t
-//!           The function returns the resulting decremented value.
-//!
-int32_t MOS_AtomicDecrement(
-    int32_t *pValue);
 
 //!
 //! \brief      Convert MOS_STATUS to OS dependent RESULT/Status
@@ -1110,22 +741,22 @@ class MosMutex
 public:
     MosMutex(void)
     {
-        m_lock = MOS_CreateMutex();
+        m_lock = MosUtilities::MosCreateMutex();
     }
 
     ~MosMutex()
     {
-        MOS_DestroyMutex(m_lock);
+        MosUtilities::MosDestroyMutex(m_lock);
     }
 
     void Lock()
     {
-        MOS_LockMutex(m_lock);
+        MosUtilities::MosLockMutex(m_lock);
     }
 
     void Unlock()
     {
-        MOS_UnlockMutex(m_lock);
+        MosUtilities::MosUnlockMutex(m_lock);
     }
 
 private:

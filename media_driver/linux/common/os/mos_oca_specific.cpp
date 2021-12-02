@@ -662,7 +662,7 @@ void MosOcaInterfaceSpecific::Initialize()
             return;
         }
 
-        m_ocaMutex = MOS_CreateMutex();
+        m_ocaMutex = MosUtilities::MosCreateMutex();
         if (nullptr == m_ocaMutex)
         {
             return;
@@ -705,7 +705,7 @@ void MosOcaInterfaceSpecific::Uninitialize()
     {
         if (nullptr != m_ocaMutex)
         {
-            MOS_DestroyMutex(m_ocaMutex);
+            MosUtilities::MosDestroyMutex(m_ocaMutex);
             m_ocaMutex = nullptr;
         }
         if (m_resInfoPool != nullptr)
@@ -726,7 +726,7 @@ void MosOcaInterfaceSpecific::Uninitialize()
 //!
 void MosOcaInterfaceSpecific::InitInterface()
 {
-    if (MOS_AtomicIncrement(&s_refCount) == 1)
+    if (MosUtilities::MosAtomicIncrement(&s_refCount) == 1)
     {
         MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific &)MosOcaInterfaceSpecific::GetInstance();
         ins.Initialize();
@@ -739,7 +739,7 @@ void MosOcaInterfaceSpecific::InitInterface()
 //!
 void MosOcaInterfaceSpecific::UninitInterface()
 {
-    if (MOS_AtomicDecrement(&s_refCount) == 0)
+    if (MosUtilities::MosAtomicDecrement(&s_refCount) == 0)
     {
         MosOcaInterfaceSpecific &ins = (MosOcaInterfaceSpecific &)MosOcaInterfaceSpecific::GetInstance();
         ins.Uninitialize();

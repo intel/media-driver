@@ -1624,7 +1624,7 @@ public:
     //! \return   uint32_t
     //!           Return the current thread id
     //!
-    uint32_t MosGetCurrentThreadId();
+    static uint32_t MosGetCurrentThreadId();
 
     //!
     //! \brief    Wait for thread to terminate

@@ -134,7 +134,7 @@ public:
     {
         if (m_pMutex)
         {
-            MOS_LockMutex(m_pMutex);
+            MosUtilities::MosLockMutex(m_pMutex);
         }
         else
         {
@@ -145,7 +145,7 @@ public:
     {
         if (m_pMutex)
         {
-            MOS_UnlockMutex(m_pMutex);
+            MosUtilities::MosUnlockMutex(m_pMutex);
         }
         else
         {

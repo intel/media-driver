@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,10 +57,10 @@ MOS_STATUS CmdBufMgr::Initialize(OsContext *osContext, uint32_t cmdBufSize)
     {
         m_osContext          = osContext;
 
-        m_inUsePoolMutex     = MOS_CreateMutex();
+        m_inUsePoolMutex     = MosUtilities::MosCreateMutex();
         MOS_OS_CHK_NULL_RETURN(m_inUsePoolMutex);
 
-        m_availablePoolMutex = MOS_CreateMutex();
+        m_availablePoolMutex = MosUtilities::MosCreateMutex();
         MOS_OS_CHK_NULL_RETURN(m_availablePoolMutex);
 
         for (uint32_t i = 0; i < m_initBufNum; i++)
@@ -79,9 +79,9 @@ MOS_STATUS CmdBufMgr::Initialize(OsContext *osContext, uint32_t cmdBufSize)
                 return MOS_STATUS_INVALID_HANDLE;
             }
 
-            MOS_LockMutex(m_availablePoolMutex);
+            MosUtilities::MosLockMutex(m_availablePoolMutex);
             m_availableCmdBufPool.push_back(cmdBuf);
-            MOS_UnlockMutex(m_availablePoolMutex);
+            MosUtilities::MosUnlockMutex(m_availablePoolMutex);
 
             m_cmdBufTotalNum++;
         }
@@ -99,7 +99,7 @@ void CmdBufMgr::CleanUp()
     if (m_initialized)
     {
         CommandBuffer *cmdBuf = nullptr;
-        MOS_LockMutex(m_availablePoolMutex);
+        MosUtilities::MosLockMutex(m_availablePoolMutex);
     
         for (auto& cmdBuf : m_availableCmdBufPool)
         {
@@ -116,8 +116,8 @@ void CmdBufMgr::CleanUp()
     
         // clear available command buffer pool
         m_availableCmdBufPool.clear();
-        MOS_UnlockMutex(m_availablePoolMutex);
-        MOS_LockMutex(m_inUsePoolMutex);
+        MosUtilities::MosUnlockMutex(m_availablePoolMutex);
+        MosUtilities::MosLockMutex(m_inUsePoolMutex);
     
         if (!m_inUseCmdBufPool.empty())
         {
@@ -134,13 +134,13 @@ void CmdBufMgr::CleanUp()
     
         // clear in-use command buffer pool
         m_inUseCmdBufPool.clear();
-        MOS_UnlockMutex(m_inUsePoolMutex);
+        MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
     
         m_cmdBufTotalNum = 0;
         m_initialized    = false;
-        MOS_DestroyMutex(m_inUsePoolMutex);
+        MosUtilities::MosDestroyMutex(m_inUsePoolMutex);
         m_inUsePoolMutex = nullptr;
-        MOS_DestroyMutex(m_availablePoolMutex);
+        MosUtilities::MosDestroyMutex(m_availablePoolMutex);
         m_availablePoolMutex = nullptr;
     }
 }
@@ -156,8 +156,8 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
     }
 
     // lock for both in-use and available command buffer pool before pick up
-    MOS_LockMutex(m_inUsePoolMutex);
-    MOS_LockMutex(m_availablePoolMutex);
+    MosUtilities::MosLockMutex(m_inUsePoolMutex);
+    MosUtilities::MosLockMutex(m_availablePoolMutex);
 
     CommandBuffer* cmdBuf = nullptr;
     CommandBuffer* retbuf  = nullptr;
@@ -169,8 +169,8 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
         if (cmdBuf == nullptr)
         {
             MOS_OS_ASSERTMESSAGE("available command buf pool is null.");
-            MOS_UnlockMutex(m_inUsePoolMutex);
-            MOS_UnlockMutex(m_availablePoolMutex);
+            MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
+            MosUtilities::MosUnlockMutex(m_availablePoolMutex);
             return nullptr;
         }
 
@@ -258,8 +258,8 @@ CommandBuffer *CmdBufMgr::PickupOneCmdBuf(uint32_t size)
     }
 
     // unlock after got return buffer
-    MOS_UnlockMutex(m_inUsePoolMutex);
-    MOS_UnlockMutex(m_availablePoolMutex);
+    MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
+    MosUtilities::MosUnlockMutex(m_availablePoolMutex);
 
     return retbuf;
 }
@@ -285,8 +285,8 @@ MOS_STATUS CmdBufMgr::ReleaseCmdBuf(CommandBuffer *cmdBuf)
     MOS_OS_CHK_NULL_RETURN(cmdBuf);
 
     // lock for both in-use and available command buffer pool before release
-    MOS_LockMutex(m_inUsePoolMutex);
-    MOS_LockMutex(m_availablePoolMutex);
+    MosUtilities::MosLockMutex(m_inUsePoolMutex);
+    MosUtilities::MosLockMutex(m_availablePoolMutex);
 
     bool           found = false;
     for (auto iter = m_inUseCmdBufPool.begin(); iter != m_inUseCmdBufPool.end(); iter++)
@@ -310,8 +310,8 @@ MOS_STATUS CmdBufMgr::ReleaseCmdBuf(CommandBuffer *cmdBuf)
     }
 
     // unlock after release buffer
-    MOS_UnlockMutex(m_inUsePoolMutex);
-    MOS_UnlockMutex(m_availablePoolMutex);
+    MosUtilities::MosUnlockMutex(m_inUsePoolMutex);
+    MosUtilities::MosUnlockMutex(m_availablePoolMutex);
 
     return eStatus;
 }

@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,12 +33,12 @@ GpuContextMgr::GpuContextMgr(GT_SYSTEM_INFO *gtSystemInfo, OsContext *osContext)
     MOS_OS_FUNCTION_ENTER;
     m_initialized = false;
 
-    m_gpuContextArrayMutex = MOS_CreateMutex();
+    m_gpuContextArrayMutex = MosUtilities::MosCreateMutex();
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(m_gpuContextArrayMutex);
 
-    MOS_LockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
     m_gpuContextArray.clear();
-    MOS_UnlockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
     if (gtSystemInfo)
     {
@@ -69,7 +69,7 @@ GpuContextMgr::~GpuContextMgr()
 
     if (m_gpuContextArrayMutex)
     {
-        MOS_DestroyMutex(m_gpuContextArrayMutex);
+        MosUtilities::MosDestroyMutex(m_gpuContextArrayMutex);
         m_gpuContextArrayMutex = nullptr;
     }
 }
@@ -95,9 +95,9 @@ void GpuContextMgr::CleanUp()
     {
         DestroyAllGpuContexts();
 
-        MOS_LockMutex(m_gpuContextArrayMutex);
+        MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
         m_gpuContextArray.clear();
-        MOS_UnlockMutex(m_gpuContextArrayMutex);
+        MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
         m_initialized = false;
     }
@@ -147,7 +147,7 @@ GpuContext *GpuContextMgr::CreateGpuContext(
         return nullptr;
     }
 
-    MOS_LockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
 
     GPU_CONTEXT_HANDLE gpuContextHandle = 0;
 
@@ -183,7 +183,7 @@ GpuContext *GpuContextMgr::CreateGpuContext(
     }
     m_gpuContextCount++;
 
-    MOS_UnlockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
     return gpuContext;
 }
@@ -217,7 +217,7 @@ void GpuContextMgr::DestroyGpuContext(GpuContext *gpuContext)
     GpuContext *curGpuContext = nullptr;
     bool        found         = false;
 
-    MOS_LockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
     for (auto &curGpuContext : m_gpuContextArray)
     {
         if (curGpuContext == gpuContext)
@@ -235,7 +235,7 @@ void GpuContextMgr::DestroyGpuContext(GpuContext *gpuContext)
         m_gpuContextArray.clear();  // clear whole array
     }
 
-    MOS_UnlockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 
     if (!found)
     {
@@ -249,7 +249,7 @@ void GpuContextMgr::DestroyAllGpuContexts()
 
     GpuContext *curGpuContext = nullptr;
 
-    MOS_LockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
 
     // delete each instance in m_gpuContextArray
     for (auto &curGpuContext : m_gpuContextArray)
@@ -259,5 +259,5 @@ void GpuContextMgr::DestroyAllGpuContexts()
 
     m_gpuContextArray.clear();  // clear whole array
 
-    MOS_UnlockMutex(m_gpuContextArrayMutex);
+    MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
 }

@@ -1162,7 +1162,7 @@ void* DdiMediaUtil_LockSurface(DDI_MEDIA_SURFACE* surface, uint32_t flag)
     DDI_CHK_NULL(surface->pMediaCtx, "nullptr surface->pMediaCtx", nullptr);
     if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
     {
-        if ((MOS_AtomicIncrement(&surface->iRefCount) == 1) && (false == surface->bMapped))
+        if ((MosUtilities::MosAtomicIncrement(&surface->iRefCount) == 1) && (false == surface->bMapped))
         {
            return  DdiMediaUtil_LockSurfaceInternal(surface, flag);
         }
@@ -1298,7 +1298,7 @@ void DdiMediaUtil_UnlockSurface(DDI_MEDIA_SURFACE *surface)
 
     if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
     {
-        if (MOS_AtomicDecrement(&surface->iRefCount) == 0 && (true == surface->bMapped))
+        if (MosUtilities::MosAtomicDecrement(&surface->iRefCount) == 0 && (true == surface->bMapped))
         {
             DdiMediaUtil_UnlockSurfaceInternal(surface);
         }

@@ -2412,7 +2412,7 @@ int32_t CmQueueRT::EnqueueBufferCopy(CmBuffer* buffer, size_t offset, const unsi
         ((CopyThreadData*)data)->pCmQueueRT = this;
         ((CopyThreadData*)data)->cpuFrrequency = m_CPUperformanceFrequency;
 
-        workThread = MOS_CreateThread((void*)BufferCopyThread, data);
+        workThread = MosUtilities::MosCreateThread((void*)BufferCopyThread, data);
         if (workThread)
             hr = CM_SUCCESS;
         else
