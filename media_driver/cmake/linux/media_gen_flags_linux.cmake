@@ -57,7 +57,7 @@ cmake_dependent_option(GEN9_CMPV
     "Enabled CMPV support (Gen9)" ON
     "GEN9" OFF)
 
-option(GEN10 "Enable Gen10 support" ON)
+option(GEN10 "Enable Gen10 support" OFF)
 cmake_dependent_option(GEN10_CNL
     "Enabled CNL support (Gen10)" ON
     "GEN10" OFF)
