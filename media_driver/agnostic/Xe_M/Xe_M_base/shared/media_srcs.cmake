@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+﻿# Copyright (c) 2021, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,18 +18,35 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(GEN12)
-    media_include_subdirectory(Xe_M_base)
-endif()
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr_g12_plus.cpp
+)
 
-if(XEHP_SDV)
-    media_include_subdirectory(Xe_XPM)
-endif()
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/media_user_settings_mgr_g12_plus.h
+)
 
-if(DG2)
-    media_include_subdirectory(Xe_HPM)
-endif()
+set(SOURCES_
+    ${SOURCES_}
+    ${TMP_SOURCES_}
+ )
 
-if(PVC)
-    media_include_subdirectory(Xe_XPM_plus)
-endif()
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "Common Files" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+
+media_add_curr_to_include_path()

@@ -75,4 +75,17 @@ if(GEN12_ADLP)
     media_include_subdirectory(media_interfaces_m12_adlp)
 endif()
 
+if(XEHP_SDV)
+    media_include_subdirectory(media_interfaces_xehp_sdv)
+endif()
+
+if(DG2)
+    media_include_subdirectory(media_interfaces_dg2)
+endif()
+
+if(PVC)
+    media_include_subdirectory(media_interfaces_pvc)
+endif()
+
+
 include(${MEDIA_EXT}/media_interface/media_srcs.cmake OPTIONAL)
