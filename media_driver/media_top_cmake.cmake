@@ -61,12 +61,15 @@ set(LIB_NAME_STATIC "${LIB_NAME}_STATIC")
 set(SOURCES_ "")
 
 # add source
+# first
+media_include_subdirectory(../media_common/agnostic)
+media_include_subdirectory(../media_common/linux)
+
+# second
 media_include_subdirectory(agnostic)
 media_include_subdirectory(linux)
 media_include_subdirectory(media_softlet)
 media_include_subdirectory(media_interface)
-media_include_subdirectory(../media_common/agnostic)
-media_include_subdirectory(../media_common/linux)
 media_include_subdirectory(../media_softlet/agnostic)
 media_include_subdirectory(../media_softlet/linux)
 
