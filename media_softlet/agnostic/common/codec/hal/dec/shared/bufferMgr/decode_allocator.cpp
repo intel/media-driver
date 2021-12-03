@@ -155,7 +155,6 @@ MOS_SURFACE* DecodeAllocator::AllocateSurface(
     return surface;
 }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
 MOS_SURFACE *DecodeAllocator::AllocateLinearSurface(
     const uint32_t width, const uint32_t height, const char *nameOfSurface,
     MOS_FORMAT format, bool isCompressible,
@@ -193,7 +192,6 @@ MOS_SURFACE *DecodeAllocator::AllocateLinearSurface(
 
     return surface;
 }
-#endif
 
 SurfaceArray * DecodeAllocator::AllocateSurfaceArray(
     const uint32_t width, const uint32_t height, const char* nameOfSurface,

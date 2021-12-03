@@ -385,6 +385,11 @@ protected:
     virtual MOS_STATUS DumpOutput(const DecodeStatusReportData& reportData);
 #endif
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    MOS_STATUS TraceDumpOutput(const DecodeStatusReportData &reportData);
+    MOS_STATUS TraceDumpSecondLevelBatchBuffer(PMHW_BATCH_BUFFER batchBuffer);
+#endif
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief  User feature key report for Vdbox IDs
@@ -473,6 +478,8 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                m_statusCheckCount = 0;     //!< count for status check
 #endif
+
+    PMOS_SURFACE            m_tempOutputSurf = nullptr;
 
 MEDIA_CLASS_DEFINE_END(DecodePipeline)
 };

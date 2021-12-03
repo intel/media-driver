@@ -358,7 +358,7 @@ protected:
         cmd.DW2.IndirectDataStartAddress = params->dwBsdDataStartOffset;
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
         {
             struct
             {

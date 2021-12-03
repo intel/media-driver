@@ -192,6 +192,13 @@ namespace decode
                             "AV1_DEC_Secondary"));
                     })
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+                if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
+                {
+                    TraceDumpSecondLevelBatchBuffer(m_av1DecodePkt->GetSecondLvlBB());
+                }
+#endif
+
 #if (_DEBUG || _RELEASE_INTERNAL)
                 DECODE_CHK_STATUS(StatusCheck());
 #endif
@@ -368,5 +375,4 @@ namespace decode
         DECODE_CHK_NULL(m_featureManager);
         return MOS_STATUS_SUCCESS;
     }
-
 }

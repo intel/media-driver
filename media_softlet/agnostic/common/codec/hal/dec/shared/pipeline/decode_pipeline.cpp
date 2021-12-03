@@ -38,6 +38,7 @@
 #include "mos_solo_generic.h"
 #include "decode_sfc_histogram_postsubpipeline.h"
 #include "decode_common_feature_defs.h"
+#include "decode_resource_auto_lock.h"
 
 namespace decode {
 
@@ -449,6 +450,88 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 }
 #endif
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+MOS_STATUS DecodePipeline::TraceDumpOutput(const DecodeStatusReportData &reportData)
+{
+    bool bAllocate = false;
+    MOS_SURFACE dstSurface;
+    MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
+    dstSurface.Format     = Format_NV12;
+    dstSurface.OsResource = reportData.currDecodedPicRes;
+    DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
+
+    if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
+    {
+        if (m_tempOutputSurf == nullptr || m_allocator->ResourceIsNull(&m_tempOutputSurf->OsResource))
+        {
+            bAllocate = true;
+        }
+        else if (m_tempOutputSurf->dwWidth  < dstSurface.dwWidth ||
+                 m_tempOutputSurf->dwHeight < dstSurface.dwHeight)
+        {
+            bAllocate = true;
+        }
+        else
+        {
+            bAllocate = false;
+        }
+
+        if (bAllocate)
+        {
+            if (!m_allocator->ResourceIsNull(&m_tempOutputSurf->OsResource))
+            {
+                m_allocator->Destroy(m_tempOutputSurf);
+            }
+
+            m_tempOutputSurf = m_allocator->AllocateLinearSurface(
+                dstSurface.dwWidth,
+                dstSurface.dwHeight,
+                "Decode Output Surf",
+                dstSurface.Format,
+                dstSurface.bIsCompressed,
+                resourceOutputPicture,
+                lockableSystemMem,
+                MOS_TILE_LINEAR_GMM);
+        }
+
+        DECODE_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
+            m_osInterface,
+            &dstSurface.OsResource,
+            &m_tempOutputSurf->OsResource,
+            false));
+
+        ResourceAutoLock resLock(m_allocator, &m_tempOutputSurf->OsResource);
+        auto             pData = (uint8_t *)resLock.LockResourceForRead();
+
+        MOS_TraceDataDump(
+            "Decode_OutputSurf",
+            0,
+            pData,
+            (uint32_t)m_tempOutputSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodePipeline::TraceDumpSecondLevelBatchBuffer(PMHW_BATCH_BUFFER batchBuffer)
+{
+    DECODE_FUNC_CALL();
+
+    DECODE_CHK_NULL(batchBuffer);
+    batchBuffer->iLastCurrent = batchBuffer->iSize * batchBuffer->count;
+    batchBuffer->dwOffset     = 0;
+
+    DECODE_CHK_STATUS(m_osInterface->pfnDumpTraceGpuData(
+        m_osInterface,
+        "Decode_2ndLevelCmdBB",
+        0,
+        &batchBuffer->OsResource,
+        batchBuffer->iLastCurrent));
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 MOS_STATUS DecodePipeline::ReportVdboxIds(const DecodeStatusMfx& status)
 {
@@ -554,6 +637,13 @@ MOS_STATUS DecodePipeline::StatusCheck()
         ReportSfcLinearSurfaceUsage(reportData);
 #endif
         DECODE_CHK_STATUS(DumpOutput(reportData));
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DSTYUV_KEYWORD)
+        {
+            DECODE_CHK_STATUS(TraceDumpOutput(reportData));
+        }
+#endif
 
         m_debugInterface->m_bufferDumpFrameNum = bufferDumpNumTemp;
         m_debugInterface->m_currPic            = currPicTemp;

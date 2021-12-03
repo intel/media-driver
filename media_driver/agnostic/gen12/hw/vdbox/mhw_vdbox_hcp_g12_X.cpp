@@ -1454,7 +1454,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeModeSelectCmd(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
     {
         DECODE_EVENTDATA_CMD_HCPPIPEMODESELECT eventData;
         DecodeEventDataCmdHcpPipeModeSelectInit(&eventData, &cmd);
@@ -1602,7 +1602,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodeSurfaceStateCmd(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
     {
         DECODE_EVENTDATA_CMD_HCPSURFACESTATE eventData;
         DecodeEventDataCmdHcpSurfaceStateInit(&eventData, cmd);
@@ -2419,7 +2419,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpPipeBufAddrCmd(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
     {
         DECODE_EVENTDATA_CMD_HCPPIPEBUFADDRSTATE eventData;
         DecodeEventDataCmdHcpPipeBufAddrStateInit(&eventData, &cmd, params);
@@ -2473,7 +2473,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpIndObjBaseAddrCmd(
             &resourceParams));
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
         {
             DECODE_EVENTDATA_CMD_HCPINDOBJBASEADDRSTATE eventData;
             DecodeEventDataCmdHcpIndObjBaseAddrStateInit(&eventData, &cmd);
@@ -2731,7 +2731,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpDecodePicStateCmd(
     }
     
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
     {
         DECODE_EVENTDATA_CMD_HCPHEVCPICSTATE eventData;
         DecodeEventDataCmdHcpHevcPicStateInit(&eventData, cmd);
@@ -3792,7 +3792,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateCmd(
     }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
     {
         DECODE_EVENTDATA_CMD_HCPVP9PICSTATE eventData;
         DecodeEventDataCmdHcpVp9PicStateInit(&eventData, &cmd);
@@ -4054,7 +4054,7 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9SegmentStateCmd(
         cmd.DW6.ChromaAcQuantScaleDecodeModeOnly    = vp9SegData.ChromaACQuantScale;
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DUMP_KEYWORD)
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
         {
             DECODE_EVENTDATA_CMD_HCPVP9SEGMENTSTATE eventData;
             DecodeEventDataCmdHcpVp9SegmentStateInit(&eventData, &cmd);

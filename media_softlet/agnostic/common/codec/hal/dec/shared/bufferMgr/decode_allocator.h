@@ -179,7 +179,6 @@ public:
         const uint32_t numberOfSurface, MOS_FORMAT format = Format_NV12, bool isCompressed = false,
         ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     //!
     //! \brief  Allocate Linear Output Surface
     //! \param  [in] width
@@ -202,7 +201,7 @@ public:
         MOS_FORMAT format = Format_NV12, bool isCompressible = false,
         ResourceUsage resUsageType = resourceDefault, ResourceAccessReq accessReq = lockableVideoMem,
         MOS_TILE_MODE_GMM gmmTileMode = MOS_TILE_UNSET_GMM);
-#endif
+
     //!
     //! \brief  Allocate batch buffer
     //! \param  [in] sizeOfBuffer

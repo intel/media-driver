@@ -1311,6 +1311,13 @@ typedef struct _MOS_INTERFACE
     int32_t (*pfnIsGPUHung)(
         PMOS_INTERFACE              pOsInterface);
 
+    MOS_STATUS (*pfnDumpTraceGpuData)(
+        PMOS_INTERFACE              pOsInterface,
+        const char *                pcName,
+        uint32_t                    flags,
+        PMOS_RESOURCE               pOsResource,
+        uint32_t                    dwSize);
+
     //!
     //! \brief    Get Aux Table base address
     //!

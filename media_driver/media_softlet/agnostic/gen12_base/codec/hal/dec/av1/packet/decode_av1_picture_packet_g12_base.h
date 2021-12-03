@@ -148,6 +148,10 @@ namespace decode
         //!
         MOS_STATUS DumpResources(MhwVdboxAvpPipeBufAddrParams& pipeBufAddrParams);
 
+        MOS_STATUS TraceDataDumpInternalBuffers(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
+
+        MOS_STATUS TraceDataDumpReferences(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
+
         //Interfaces
         Av1PipelineG12_Base        *m_av1Pipeline     = nullptr;
         MhwVdboxAvpInterface       *m_avpInterface    = nullptr;
@@ -157,6 +161,7 @@ namespace decode
 
         CodecAv1PicParams          *m_av1PicParams    = nullptr; //!< Pointer to picture parameter
         MOS_SURFACE                 refSurface[av1TotalRefsPerFrame];
+        PMOS_SURFACE                m_tempRefSurf     = nullptr;
 
         //!
         //! \brief    Setup SkipModeFrame[0] and SkipModeFrame[1] per av1_setup_skip_mode_allowed of ref decoder
