@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,3 +19,12 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(bitstreamWriter)
+
+if(${Common_Encode_Supported} STREQUAL "yes")
+
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/encode_utils.h
+)
+endif()
+media_add_curr_to_include_path()
