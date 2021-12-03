@@ -489,24 +489,6 @@ public:
             return nullptr;
         }
     }
-
-    //!
-    //! \brief    Get vdenc interface
-    //! \details  Get vdenc interface in codechal hw interface next
-    //!
-    //! \return    pointer to new Vdenc interface
-    //!
-    inline std::shared_ptr<mhw::vdbox::vdenc::Itf> GetVdencInterfaceNext()
-    {
-        if (m_hwInterfaceNext)
-        {
-            return m_hwInterfaceNext->GetVdencInterfaceNext();
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
 #endif
 
     //!
