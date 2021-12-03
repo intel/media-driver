@@ -1785,6 +1785,8 @@ VAStatus DdiMedia_InitMediaContext (
         mediaCtx->m_useSwSwizzling          = mosCtx.bUseSwSwizzling;
         mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
         mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
+        mediaCtx->perfData                  = mosCtx.pPerfData;
+
 #ifdef _MMC_SUPPORTED
         if (mosCtx.ppMediaMemDecompState == nullptr)
         {
@@ -6195,6 +6197,7 @@ DdiMedia_Copy(
 
     mosCtx.m_osDeviceContext     = mediaCtx->m_osDeviceContext;
     mosCtx.m_apoMosEnabled       = mediaCtx->m_apoMosEnabled;
+    mosCtx.pPerfData             = mediaCtx->perfData;
 
     pCpDdiInterface = Create_DdiCpInterface(mosCtx);
 

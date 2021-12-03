@@ -137,5 +137,6 @@ private:
     int32_t             m_fd            = -1;
 
     AuxTableMgr         *m_auxTableMgr = nullptr;
+    PERF_DATA           *m_perfData =   nullptr;
 };
 #endif // #ifndef __MOS_CONTEXT_SPECIFIC_NEXT_H__

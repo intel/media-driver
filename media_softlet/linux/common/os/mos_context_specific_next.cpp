@@ -227,6 +227,10 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         m_gpuContextMgr = GpuContextMgrNext::GetObject(this);
         MOS_OS_CHK_NULL_RETURN(m_gpuContextMgr);
 
+        m_perfData = (PERF_DATA*)MOS_AllocAndZeroMemory(sizeof(PERF_DATA));
+        MOS_OS_CHK_NULL_RETURN(m_perfData);
+        osDriverContext->pPerfData = m_perfData;
+
         //It must be done with m_gpuContextMgr ready. Insides it will create gpu context.
 #ifdef _MMC_SUPPORTED
         m_mosDecompression = MOS_New(MosDecompression, osDriverContext);
@@ -279,6 +283,13 @@ void OsContextSpecificNext::Destroy()
         m_gmmClientContext = nullptr;
 
         SetOsContextValid(false);
+
+        if (m_perfData != nullptr)
+        {
+           MOS_FreeMemory(m_perfData);
+           m_perfData = nullptr;
+        }
     }
+
 }
 

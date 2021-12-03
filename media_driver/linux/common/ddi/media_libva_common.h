@@ -485,6 +485,9 @@ struct DDI_MEDIA_CONTEXT
     // Media copy data structure
     void               *pMediaCopyState;
 
+    // Perf tag
+    PERF_DATA          *perfData;
+
     // Media reset enable flag
     bool                bMediaResetEnable;
 
