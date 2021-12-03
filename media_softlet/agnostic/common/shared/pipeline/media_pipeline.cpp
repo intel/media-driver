@@ -123,17 +123,41 @@ MOS_STATUS MediaPipeline::RegisterPacket(uint32_t packetId, MediaPacket *packet)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit, uint16_t pass, uint8_t pipe, uint8_t pipeNum, uint8_t subPass, uint8_t rowNum)
+MediaPacket *MediaPipeline::GetOrCreate(uint32_t packetId)
 {
     auto iter = m_packetList.find(packetId);
-    if (iter == m_packetList.end())
+    if (iter != m_packetList.end())
     {
-        return MOS_STATUS_INVALID_PARAMETER;
+        return iter->second;
+    }
+
+    auto iterCreator = m_packetCreators.find(packetId);
+    if (iterCreator != m_packetCreators.end())
+    {
+        RegisterPacket(packetId, iterCreator->second());
+
+        iter = m_packetList.find(packetId);
+        if (iter != m_packetList.end())
+        {
+            iter->second->Init();
+            return iter->second;
+        }
+    }
+
+    return nullptr;
+}
+
+MOS_STATUS MediaPipeline::ActivatePacket(uint32_t packetId, bool immediateSubmit, uint16_t pass, uint8_t pipe, uint8_t pipeNum, uint8_t subPass, uint8_t rowNum)
+{
+    auto packet = GetOrCreate(packetId);
+    if (packet == nullptr)
+    {
+        return MOS_STATUS_NULL_POINTER;
     }
 
     PacketProperty prop;
-    prop.packetId        = iter->first;
-    prop.packet          = iter->second;
+    prop.packetId        = packetId;
+    prop.packet          = packet;
     prop.immediateSubmit = immediateSubmit;
 
     prop.stateProperty.currentPass        = pass;
