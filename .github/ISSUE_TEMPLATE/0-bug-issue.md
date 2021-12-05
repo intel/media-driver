@@ -19,4 +19,4 @@ about: Use this template for reporting a bug
 - Could you provide vainfo log if possible by `vainfo >vainfo.log 2>&1`?
 - Could you provide libva trace log if possible? Run cmd `export LIBVA_TRACE=/tmp/libva_trace.log` first then execute the case.
 - Could you attach dmesg log if it's GPU hang by `dmesg >dmesg.log 2>&1`?
-- Do you want to contribute a PR? (yes/no):
+- Do you want to contribute a patch to fix the issue? (yes/no):
