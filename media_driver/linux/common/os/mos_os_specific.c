@@ -6047,12 +6047,12 @@ MOS_STATUS Mos_Specific_InitializeMultiThreadingSyncTags(
 
     if(*pOsResource->ppReferenceFrameSemaphore == nullptr)
     {
-        *pOsResource->ppReferenceFrameSemaphore = MOS_CreateSemaphore(1, 1);
+        *pOsResource->ppReferenceFrameSemaphore = MosUtilities::MosCreateSemaphore(1, 1);
     }
 
     if(*pOsResource->ppCurrentFrameSemaphore == nullptr)
     {
-        *pOsResource->ppCurrentFrameSemaphore = MOS_CreateSemaphore(1, 1);
+        *pOsResource->ppCurrentFrameSemaphore = MosUtilities::MosCreateSemaphore(1, 1);
     }
 
     if((*pOsResource->ppReferenceFrameSemaphore != nullptr) && (*pOsResource->ppCurrentFrameSemaphore != nullptr))
@@ -6080,7 +6080,7 @@ MOS_STATUS Mos_Specific_MultiThreadingWaitCurrentFrame(
 
     MOS_OS_CHK_NULL(pOsResource);
 
-    MOS_OS_CHK_STATUS(MOS_WaitSemaphore(*pOsResource->ppCurrentFrameSemaphore, INFINITE));
+    MOS_OS_CHK_STATUS(MosUtilities::MosWaitSemaphore(*pOsResource->ppCurrentFrameSemaphore, INFINITE));
 
 finish:
     return eStatus;
@@ -6100,7 +6100,7 @@ MOS_STATUS Mos_Specific_MultiThreadingPostCurrentFrame(
 
     MOS_OS_CHK_NULL(pOsResource);
 
-    MOS_OS_CHK_STATUS(MOS_PostSemaphore(*pOsResource->ppCurrentFrameSemaphore, 1));
+    MOS_OS_CHK_STATUS(MosUtilities::MosPostSemaphore(*pOsResource->ppCurrentFrameSemaphore, 1));
 
 finish:
     return eStatus;

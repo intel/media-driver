@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -187,7 +187,7 @@
 }
 #define CM_CHK_HRESULT_GOTOFINISH_MOSERROR(stmt) \
 { \
-    eStatus = (MOS_STATUS)OsResultToMOS_Status(stmt); \
+    eStatus = (MOS_STATUS)MosUtilities::OsResultToMOSStatus(stmt); \
     _CHECK_AND_GOTO_FINISH((eStatus != MOS_STATUS_SUCCESS), eStatus, eStatus, "hr check failed [%d]", eStatus); \
 }
 #define CM_CHK_MOSSTATUS_GOTOFINISH_CMERROR(stmt) \

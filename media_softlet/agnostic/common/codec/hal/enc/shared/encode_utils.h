@@ -102,24 +102,24 @@ class Condition
 public:
     Condition()
     {
-        m_sem = MOS_CreateSemaphore(0, 1);
+        m_sem = MosUtilities::MosCreateSemaphore(0, 1);
     }
 
     ~Condition()
     {
-        MOS_DestroySemaphore(m_sem);
+        MosUtilities::MosDestroySemaphore(m_sem);
     }
     MOS_STATUS Wait(PMOS_MUTEX mutex)
     {
         MOS_STATUS status = MOS_STATUS_SUCCESS;
         MosUtilities::MosUnlockMutex(mutex);
-        status = MOS_WaitSemaphore(m_sem, 5000);
+        status = MosUtilities::MosWaitSemaphore(m_sem, 5000);
         MosUtilities::MosLockMutex(mutex);
         return status;
     }
     MOS_STATUS Signal()
     {
-        MOS_PostSemaphore(m_sem, 1);
+        MosUtilities::MosPostSemaphore(m_sem, 1);
         return MOS_STATUS_SUCCESS;
     }
 

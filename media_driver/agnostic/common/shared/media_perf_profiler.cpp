@@ -738,7 +738,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
         {
             int32_t pid       = MosUtilities::MosGetPid();
             tm      localtime = {0};
-            MOS_GetLocalTime(&localtime);
+            MosUtilities::MosGetLocalTime(&localtime);
             char outputFileName[MOS_MAX_PATH_LENGTH + 1];
 
             MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-%04d%02d%02d%02d%02d%02d.bin",
