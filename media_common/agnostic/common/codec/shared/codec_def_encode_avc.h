@@ -197,6 +197,7 @@ typedef enum
     CODECHAL_ENCODE_AVC_MAX_NAL_TYPE = 0x1f,
 } CODECHAL_ENCODE_AVC_NAL_UNIT_TYPE;
 
+// Range 0...4: all slices of the current picture can have differing slice type
 enum
 {
     SLICE_P = 0,
@@ -204,6 +205,15 @@ enum
     SLICE_I = 2,
     SLICE_SP = 3,
     SLICE_SI = 4
+};
+// Range 5...9: all slices of the current picture have the same slice type
+enum
+{
+    FRAME_P = SLICE_P + 5,
+    FRAME_B = SLICE_B + 5,
+    FRAME_I = SLICE_I + 5,
+    FRAME_SP = SLICE_SP + 5,
+    FRAME_SI = SLICE_SI + 5
 };
 typedef enum
 {
