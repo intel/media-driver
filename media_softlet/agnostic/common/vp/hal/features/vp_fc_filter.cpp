@@ -953,6 +953,7 @@ MOS_STATUS PolicyFcHandler::AddInputLayerForProcess(bool &bSkip, std::vector<int
     }
 
     VP_PUBLIC_NORMALMESSAGE("Scaling Info: scalingMode %d is selected for layer %d", scalingMode, index);
+    MT_LOG2(MT_VP_HAL_FC_SCALINGINFO, MT_NORMAL, MT_VP_HAL_FC_LAYER, index, MT_VP_HAL_SCALING_MODE, scalingMode);
 
     // Append source to compositing operation
     scaling->GetSwFilterParams().scalingMode = scalingMode;
@@ -1055,6 +1056,7 @@ MOS_STATUS PolicyFcHandler::LayerSelectForProcess(std::vector<int> &layerIndexes
             {
                 scaling->GetSwFilterParams().scalingMode = VPHAL_SCALING_BILINEAR;
                 VP_PUBLIC_NORMALMESSAGE("Scaling Info: Force nearest to bilinear for layer %d (%d)", layerIndexes[i], i);
+                MT_LOG3(MT_VP_HAL_FC_SCALINGINFO, MT_NORMAL, MT_VP_HAL_FC_LAYER, layerIndexes[i], MT_VP_HAL_SCALING_MODE, VPHAL_SCALING_NEAREST, MT_VP_HAL_SCALING_MODE_FORCE, VPHAL_SCALING_BILINEAR);
             }
         }
     }

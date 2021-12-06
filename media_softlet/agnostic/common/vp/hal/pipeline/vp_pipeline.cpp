@@ -308,6 +308,7 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
 
     VP_PUBLIC_CHK_STATUS_RETURN(CreateSwFilterPipe(m_pvpParams, swFilterPipes));
     // Notify resourceManager for start of new frame processing.
+    MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_START, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
     VP_PUBLIC_CHK_STATUS_RETURN(m_resourceManager->OnNewFrameProcessStart(*swFilterPipes[0]));
 
     for (auto &pipe : swFilterPipes)
@@ -343,6 +344,7 @@ finish:
     m_statusReport->UpdateStatusTableAfterSubmit(eStatus);
     // Notify resourceManager for end of new frame processing.
     m_resourceManager->OnNewFrameProcessEnd();
+    MT_LOG1(MT_VP_HAL_ONNEWFRAME_PROC_END, MT_NORMAL, MT_VP_HAL_ONNEWFRAME_COUNTER, m_frameCounter);
     m_frameCounter++;
     return eStatus;
 }

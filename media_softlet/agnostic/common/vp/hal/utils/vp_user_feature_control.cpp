@@ -113,6 +113,8 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, void *own
     }
     VP_PUBLIC_NORMALMESSAGE("computeContextEnabled %d", m_ctrlValDefault.computeContextEnabled);
 
+    MT_LOG3(MT_VP_USERFEATURE_CTRL, MT_NORMAL, MT_VP_UF_CTRL_DISABLE_VEOUT, m_ctrlValDefault.disableVeboxOutput,
+        MT_VP_UF_CTRL_DISABLE_SFC, m_ctrlValDefault.disableSfc, MT_VP_UF_CTRL_CCS, m_ctrlValDefault.computeContextEnabled);
 
     m_ctrlVal = m_ctrlValDefault;
 }

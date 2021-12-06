@@ -185,6 +185,7 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
         if (nullptr == surf)
         {
             Clean();
+            MT_ERR2(MT_VP_HAL_SWWFILTER, MT_CODE_LINE, __LINE__, MT_ERROR_CODE, MOS_STATUS_NULL_POINTER);
             return MOS_STATUS_NULL_POINTER;
         }
 
@@ -228,6 +229,7 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
         if (nullptr == surf)
         {
             Clean();
+            MT_ERR2(MT_VP_HAL_SWWFILTER, MT_CODE_LINE, __LINE__, MT_ERROR_CODE, MOS_STATUS_NULL_POINTER);
             return MOS_STATUS_NULL_POINTER;
         }
         m_OutputSurfaces.push_back(surf);
@@ -480,6 +482,8 @@ MOS_STATUS SwFilterPipe::ConfigFeaturesToPipe(VP_PIPELINE_PARAMS &params, Featur
             if (swFilter)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(AddSwFilterUnordered(swFilter, isInputPipe, pipeIndex));
+                MT_LOG4(MT_VP_HAL_SWWFILTER_ADD, MT_NORMAL, MT_VP_HAL_PIPE_ISINPUT, isInputPipe, MT_VP_HAL_PIPE_INDEX, pipeIndex, 
+                    MT_VP_HAL_FEATUERTYPE, swFilter->GetFeatureType(), MT_VP_HAL_ENGINECAPS, swFilter->GetFilterEngineCaps().value);
             }
         }
     }

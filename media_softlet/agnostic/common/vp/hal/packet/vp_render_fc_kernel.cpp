@@ -2335,6 +2335,8 @@ MOS_STATUS VpRenderFcKernel::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& sample
 
             VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, layerOrigin %d, entry %d, format %d, scalingMode %d, samplerType %d, samplerFilterMode %d, samplerIndex %d, yuvPlane %d",
                 layer.layerID, layer.layerIDOrigin, entryIndex, layer.surf->osSurface->Format, layer.scalingMode, samplerType, samplerStateParam.Unorm.SamplerFilterMode, samplerIndex, entry->YUVPlane);
+            MT_LOG7(MT_VP_HAL_FC_SCALINGINFO, MT_NORMAL, MT_VP_HAL_FC_LAYER, layer.layerID, MT_VP_HAL_FC_LAYER_SURFENTRY, entryIndex, MT_SURF_MOS_FORMAT, layer.surf->osSurface->Format,
+                MT_VP_HAL_SCALING_MODE, layer.scalingMode, MT_VP_HAL_SAMPLER_TYPE, samplerType, MT_VP_HAL_SAMPLER_FILTERMODE, samplerStateParam.Unorm.SamplerFilterMode, MT_VP_HAL_SAMPLER_INDEX, samplerIndex);
         }
     }
 

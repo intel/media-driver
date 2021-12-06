@@ -4867,6 +4867,8 @@ bool Kdll_AddKernelList(Kdll_KernelCache *pKernelCache,
     VPHAL_RENDER_NORMALMESSAGE("%s.", kernels->szName);
 #endif // _DEBUG
 
+    MT_LOG1(MT_VP_KERNEL_LIST_ADD, MT_NORMAL, MT_VP_KERNEL_ID, iKUID);
+
     // Append symbols to resolve, relocate symbols
     link = kernels->pLink;
     liSearch_reloc = pSymbols->pLink + pSymbols->dwCount;
