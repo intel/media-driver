@@ -34,7 +34,9 @@ namespace decode
 
 DecodeDownSamplingPkt::DecodeDownSamplingPkt(DecodePipeline *pipeline, CodechalHwInterface *hwInterface)
     : DecodeSubPacket(pipeline, hwInterface)
-{}
+{
+    MOS_ZeroMemory(&m_sfcParams, sizeof(m_sfcParams));
+}
 
 DecodeDownSamplingPkt::~DecodeDownSamplingPkt()
 {
