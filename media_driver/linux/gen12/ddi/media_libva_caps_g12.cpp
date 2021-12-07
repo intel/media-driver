@@ -1860,7 +1860,7 @@ VAStatus MediaLibvaCapsG12::CreateEncAttributes(
         else
         {
             attrib.value = VA_ENC_SLICE_STRUCTURE_EQUAL_ROWS | VA_ENC_SLICE_STRUCTURE_MAX_SLICE_SIZE |
-                       VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS;
+                       VA_ENC_SLICE_STRUCTURE_EQUAL_MULTI_ROWS | VA_ENC_SLICE_STRUCTURE_ARBITRARY_ROWS;
         }
     }
     else
