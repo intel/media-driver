@@ -98,7 +98,9 @@ namespace decode{
             m_allocator->Destroy(m_curMvBufferForDummyWL);
             m_allocator->Destroy(m_bwdAdaptCdfBufForDummyWL);
             m_allocator->Destroy(m_resDataBufferForDummyWL);
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
             m_allocator->Destroy(m_tempRefSurf);
+#endif
         }
 
         return MOS_STATUS_SUCCESS;

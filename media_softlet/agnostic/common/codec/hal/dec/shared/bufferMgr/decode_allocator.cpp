@@ -665,8 +665,8 @@ void DecodeAllocator::SetAccessRequirement(
     ResourceAccessReq accessReq, MOS_ALLOC_GFXRES_PARAMS &allocParams)
 {
     // The default setting is lockableVideoMem, just use default setting
-    // if not running with limited LMem bar config.
-    if (!m_limitedLMemBar)
+    // if not running with limited LMem bar config or not enabled HM.
+    if (!m_limitedLMemBar || !m_osInterface->osCpInterface->IsHMEnabled())
     {
         allocParams.Flags.bNotLockable = 0;
         allocParams.dwMemType = MOS_MEMPOOL_VIDEOMEMORY;
