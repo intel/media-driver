@@ -28,7 +28,6 @@
 #include "mhw_vdbox_avp_xe_hpm.h"
 #include "mhw_vdbox_avp_hwcmd_xe_hpm.h"
 #include "mhw_mi_hwcmd_xe_xpm_base.h"
-#include "mhw_vdbox_vdenc_hwcmd_xe_hpm.h"
 #include "mhw_utilities_xe_hpm.h"
 
 MhwVdboxAvpInterfaceXe_Hpm::MhwVdboxAvpInterfaceXe_Hpm(
@@ -74,7 +73,7 @@ MOS_STATUS MhwVdboxAvpInterfaceXe_Hpm::GetAvpStateCommandSize(
     uint32_t patchListMaxSize = 0;
 
     maxSize =
-        mhw::vdbox::vdenc::xe_hpm::Cmd::VD_PIPELINE_FLUSH_CMD::byteSize +
+        2 +
         mhw::mi::xe_xpm_base::Cmd::MI_FLUSH_DW_CMD::byteSize +
         mhw::vdbox::avp::xe_hpm::Cmd::AVP_PIPE_MODE_SELECT_CMD::byteSize +
         mhw::vdbox::avp::xe_hpm::Cmd::AVP_SURFACE_STATE_CMD::byteSize * 7 +

@@ -18,32 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_cmdpar.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_cmdpar.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_impl.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_itf.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_cmdpar.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_impl.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_itf.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_cmdpar.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_itf.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_impl.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_itf.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_cmdpar.h
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group( "MHW\\Vdbox" FILES ${TMP_HEADERS_} )
-
-media_add_curr_to_include_path()
+media_include_subdirectory(vp)
+media_include_subdirectory(shared)
+media_include_subdirectory(hw)

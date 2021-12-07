@@ -18,32 +18,5 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_dg2.cpp
-)
-
-set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_dg2.h
-)
-
-set(SOURCES_
-    ${SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(HEADERS_
-    ${HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-media_add_curr_to_include_path()
+media_include_subdirectory(renderhal)
+media_include_subdirectory(hw)
