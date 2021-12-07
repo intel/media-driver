@@ -28,6 +28,7 @@
 #include "mos_utilities.h"
 #include "mos_util_debug_next.h"
 #include "media_user_settings_mgr.h"
+#include "media_user_setting.h"
 #include <sstream>
 #include <fcntl.h>     //open
 #include <malloc.h>    // For memalign
@@ -251,7 +252,6 @@ MOS_STATUS MosUtilities::MosUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
     MOS_OS_FUNCTION_ENTER;
 
     MediaUserSettingsMgr::MediaUserSettingClose();
-    MediaUserSetting::MediaUserSetting::Destroy();
 
     // MOS_OS_Utilitlies_Close must be called right before end of function
     // Because Memninja will calc mem leak here.
@@ -280,6 +280,12 @@ void MosUtilities::MosFreeUserFeatureValueString(PMOS_USER_FEATURE_VALUE_STRING 
             pUserString->uSize = 0;
         }
     }
+}
+
+MOS_STATUS MosUtilities::DestroyMediaUserSetting()
+{
+    MediaUserSetting::MediaUserSetting::Destroy();
+    return MOS_STATUS_SUCCESS;
 }
 
 #if MOS_MESSAGES_ENABLED

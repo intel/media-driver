@@ -1364,6 +1364,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
     if (m_mosUtilInitCount == 0)
     {
         MosTraceEventClose();
+        DestroyMediaUserSetting();
         m_mosMemAllocCounter -= m_mosMemAllocFakeCounter;
         MemoryCounter = m_mosMemAllocCounter + m_mosMemAllocCounterGfx;
         m_mosMemAllocCounterNoUserFeature    = m_mosMemAllocCounter;
