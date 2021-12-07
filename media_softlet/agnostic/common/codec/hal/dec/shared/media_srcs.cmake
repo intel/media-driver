@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@ media_include_subdirectory(scalability)
 media_include_subdirectory(statusreport)
 media_include_subdirectory(mmc)
 media_include_subdirectory(hucItf)
+media_include_subdirectory(hucInterface)
 
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
