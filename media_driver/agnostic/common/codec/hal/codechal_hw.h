@@ -507,6 +507,41 @@ public:
             return nullptr;
         }
     }
+
+    //! \brief    Get huc interface
+    //! \details  Get huc interface in codechal hw interface next
+    //!
+    //! \return    pointer to new HUC interface
+    //!
+    inline std::shared_ptr<mhw::vdbox::huc::Itf> GetHucInterfaceNext()
+    {
+        if (m_hwInterfaceNext)
+        {
+            return m_hwInterfaceNext->GetHucInterfaceNext();
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    //!
+    //! \brief    Get mi interface
+    //! \details  Get mi interface in codechal hw interface next
+    //!
+    //! \return    pointer to new MI interface
+    //!
+    inline std::shared_ptr<mhw::mi::Itf> GetMiInterfaceNext()
+    {
+        if (m_hwInterfaceNext)
+        {
+            return m_hwInterfaceNext->GetMiInterfaceNext();
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
 #endif
 
     //!

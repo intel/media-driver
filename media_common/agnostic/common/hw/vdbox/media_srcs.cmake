@@ -20,6 +20,7 @@
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_def.h
 )
 
 set(HEADERS_

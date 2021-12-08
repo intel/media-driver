@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -257,12 +257,12 @@ protected:
     MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
     MhwCpInterface          *m_cpInterface  = nullptr;
 
+public:
     Impl(PMOS_INTERFACE osItf) : mhw::Impl(osItf)
     {
         MHW_FUNCTION_ENTER;
     }
 
-public:
     _MHW_SETCMD_OVERRIDE_DECL(MI_SEMAPHORE_WAIT)
     {
         _MHW_SETCMD_CALLBASE(MI_SEMAPHORE_WAIT);

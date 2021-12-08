@@ -30,6 +30,7 @@
 
 #include "mhw_itf.h"
 #include "mhw_mi_cmdpar.h"
+#include "mhw_cp_interface.h"
 
 #define _MI_CMD_DEF(DEF)                  \
     DEF(MI_SEMAPHORE_WAIT);               \

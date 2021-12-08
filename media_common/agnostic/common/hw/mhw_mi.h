@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2020, Intel Corporation
+* Copyright (c) 2015-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -742,7 +742,7 @@ public:
     //!
     //! \return   pointer to new render interface
     //!
-    virtual std::shared_ptr<mhw::mi::Itf> GetNewMiInterface() { return nullptr; }
+    virtual std::shared_ptr<void> GetNewMiInterface() { return nullptr; }
 
 protected:
     //!
@@ -810,7 +810,7 @@ protected:
     //! \brief Mmio registers address
     MHW_MI_MMIOREGISTERS       m_mmioRegisters = {};  //!< mfx mmio registers
 
-    std::shared_ptr<mhw::mi::Itf> m_miItfNew = nullptr;
+    std::shared_ptr<void> m_miItfNew = nullptr;
 };
 
 #endif // __MHW_MI_H__

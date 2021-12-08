@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 
 #include "mhw_vdbox.h"
 #include "mhw_mi.h"
+#include "mhw_vdbox_huc_def.h"
 
 typedef struct _MHW_VDBOX_HUC_STREAM_OBJ_PARAMS
 {
@@ -61,14 +62,6 @@ typedef struct _MHW_VDBOX_HUC_DMEM_STATE_PARAMS
     uint32_t                    dwDmemOffset;                                   // DMEM offset in the HuC Kernel. This is different for ViperOS vs GEMS.
     PMOS_RESOURCE               presHucDataSource;                              // resource for HuC data source
 } MHW_VDBOX_HUC_DMEM_STATE_PARAMS, *PMHW_VDBOX_HUC_DMEM_STATE_PARAMS;
-
-// structure for HuC VIRTUAL_ADDR commands
-typedef struct _MHW_VDBOX_HUC_REGION_PARAMS
-{
-    PMOS_RESOURCE               presRegion;
-    uint32_t                    dwOffset;
-    bool                        isWritable;
-} MHW_VDBOX_HUC_REGION_PARAMS, *PMHW_VDBOX_HUC_REGION_PARAMS;
 
 // structure for HuC VIRTUAL_ADDR commands
 typedef struct _MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS

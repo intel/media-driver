@@ -31,6 +31,7 @@
 
 #include "mhw_vdbox_cmdpar.h"
 #include "encode_utils.h"
+#include "mhw_vdbox_huc_def.h"
 
 namespace mhw
 {
