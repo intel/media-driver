@@ -56,7 +56,7 @@ namespace xe_hpm
             uint32_t    patchListMaxSize = 0;
 
             maxSize =
-                2 +
+                8 +
                 mhw_mi_g12_X::MI_FLUSH_DW_CMD::byteSize +
                 mhw::vdbox::avp::xe_hpm::Cmd::AVP_PIPE_MODE_SELECT_CMD::byteSize +
                 mhw::vdbox::avp::xe_hpm::Cmd::AVP_SURFACE_STATE_CMD::byteSize * 7 +
