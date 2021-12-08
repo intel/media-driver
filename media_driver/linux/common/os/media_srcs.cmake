@@ -19,8 +19,9 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(i915)
+
 if(ENABLE_PRODUCTION_KMD)
-media_include_subdirectory(i915_production)
+    media_include_subdirectory(i915_production)
 endif()
 
 set(TMP_SOURCES_

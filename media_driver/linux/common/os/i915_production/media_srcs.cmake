@@ -1,4 +1,4 @@
-# Copyright (c) 2020, Intel Corporation
+# Copyright (c) 2020-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,22 +20,22 @@
 
 media_include_subdirectory(include)
 
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr_priv.h
+)
+
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
 )
-
-set(TMP_HEADERS_ "")
 
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
 )
 
-# no header in this folder
-#set(HEADERS_
-#    ${HEADERS_}
-#    ${TMP_HEADERS_}
-#)
-#
 #media_add_curr_to_include_path()

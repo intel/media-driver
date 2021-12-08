@@ -81,6 +81,22 @@ cmake_dependent_option(GEN12_ADLP
     "Enabled ADLP support (Gen12)" ON
     "GEN12_TGLLP" OFF)
 
+cmake_dependent_option(Xe_M
+    "Enabled support for Xehp_sdv+ platforms" ON
+    "ENABLE_PRODUCTION_KMD" OFF)
+
+cmake_dependent_option(DG2
+    "Enabled DG2 support" ON
+    "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
+
+cmake_dependent_option(XEHP_SDV
+    "Enabled Xehp_sdv support" ON
+    "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
+
+cmake_dependent_option(PVC
+    "Enabled PVC support" ON
+    "Xe_M;ENABLE_PRODUCTION_KMD" OFF)
+
 if(GEN8)
     add_definitions(-DIGFX_GEN8_SUPPORTED)
 endif()
@@ -166,6 +182,18 @@ endif()
 
 if(GEN12_ADLP)
     add_definitions(-DIGFX_GEN12_ADLP_SUPPORTED)
+endif()
+
+if(DG2)
+    add_definitions(-DIGFX_DG2_SUPPORTED)
+endif()
+
+if(PVC)
+    add_definitions(-DIGFX_PVC_SUPPORTED)
+endif()
+
+if(XEHP_SDV)
+    add_definitions(-DIGFX_XEHP_SDV_SUPPORTED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)

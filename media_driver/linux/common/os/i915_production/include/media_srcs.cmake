@@ -1,4 +1,4 @@
-# Copyright (c) 2017, Intel Corporation
+# Copyright (c) 2017-2021, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,14 +19,14 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_HEADERS_
-     ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
+    ${CMAKE_CURRENT_LIST_DIR}/i915_drm.h
+    ${CMAKE_CURRENT_LIST_DIR}/i915_drm_prelim.h
 )
 
 set(HEADERS_
     ${HEADERS_}
     ${TMP_HEADERS_}
 )
-
 
 # use 'BEFORE' as below to make this folder higher priority in include path. This could avoid libdrm headers in system path are used unproperly.
 include_directories(BEFORE ${CMAKE_CURRENT_LIST_DIR})

@@ -29,10 +29,10 @@ set(TMP_SOURCES_
 )
 
 if(NOT ENABLE_PRODUCTION_KMD)
-set(TMP_SOURCES_
-    ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
-)
+    set(TMP_SOURCES_
+        ${TMP_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/mos_bufmgr.c
+    )
 endif()
 
 set(TMP_HEADERS_ "")
