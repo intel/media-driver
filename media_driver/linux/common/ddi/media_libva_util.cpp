@@ -1204,6 +1204,7 @@ void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t fla
         {
             mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
         }
+        //this sw-swizzling is inaccurate now. it include all of the swizzle pass except the fense based (map_gtt). so, it include vebox swizzle, sw swizzle currently, will extend it to media copy capability in future.
         else if ((surface->pMediaCtx->m_useSwSwizzling) && !(flag & MOS_LOCKFLAG_NO_SWIZZLE))
         {
             uint64_t surfSize = surface->pGmmResourceInfo->GetSizeMainSurface();
@@ -1211,6 +1212,7 @@ void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t fla
             DDI_CHK_CONDITION((surfSize <= 0 || surface->iPitch <= 0), "Invalid surface size or pitch", nullptr);
 
             VAStatus vaStatus = VA_STATUS_SUCCESS;
+            //should not use the sku configure to check whether it is local/sys memory
             if (MEDIA_IS_SKU(&surface->pMediaCtx->SkuTable, FtrLocalMemory))
             {
                 if (surface->pShadowBuffer == nullptr)
@@ -1220,7 +1222,10 @@ void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t fla
 
                 if (surface->pShadowBuffer != nullptr)
                 {
-                    vaStatus = SwizzleSurfaceByHW(surface);
+                    if (MOS_LOCKFLAG_READONLY | flag)
+                    {                   
+                        vaStatus = SwizzleSurfaceByHW(surface);
+                    }
                     int err = 0;
                     if (vaStatus == VA_STATUS_SUCCESS)
                     {
@@ -1236,7 +1241,6 @@ void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t fla
                 }
             }
 
-            mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
 
             if (surface->pShadowBuffer == nullptr)
             {
@@ -1246,13 +1250,17 @@ void* DdiMediaUtil_LockSurfaceInternal(DDI_MEDIA_SURFACE  *surface, uint32_t fla
                     DDI_CHK_CONDITION((surface->pSystemShadow == nullptr), "Failed to allocate shadow surface", nullptr);
                 }
 
-                vaStatus = SwizzleSurface(surface->pMediaCtx,
+                mos_bo_map(surface->bo, flag & MOS_LOCKFLAG_WRITEONLY);
+                if (MOS_LOCKFLAG_READONLY | flag)
+                {
+                    vaStatus = SwizzleSurface(surface->pMediaCtx,
                                                    surface->pGmmResourceInfo,
                                                    surface->bo->virt,
                                                    (MOS_TILE_TYPE)surface->TileType,
                                                    (uint8_t *)surface->pSystemShadow,
                                                    false);
-                DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
+                    DDI_CHK_CONDITION((vaStatus != VA_STATUS_SUCCESS), "SwizzleSurface failed", nullptr);
+                }
             }
 
         }
@@ -1338,7 +1346,10 @@ void DdiMediaUtil_UnlockSurfaceInternal(DDI_MEDIA_SURFACE  *surface)
         }
         else if (surface->pShadowBuffer != nullptr)
         {
-            SwizzleSurfaceByHW(surface, true);
+            if(surface->uiMapFlag & MOS_LOCKFLAG_WRITEONLY)
+            {
+                SwizzleSurfaceByHW(surface, true);
+            }
 
             mos_bo_unmap(surface->pShadowBuffer->bo);
             DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
@@ -1349,12 +1360,15 @@ void DdiMediaUtil_UnlockSurfaceInternal(DDI_MEDIA_SURFACE  *surface)
         }
         else if (surface->pSystemShadow)
         {
-            SwizzleSurface(surface->pMediaCtx,
-                           surface->pGmmResourceInfo,
-                           surface->bo->virt,
-                           (MOS_TILE_TYPE)surface->TileType,
-                           (uint8_t *)surface->pSystemShadow,
-                           true);
+            if(surface->uiMapFlag & MOS_LOCKFLAG_WRITEONLY)
+            {
+                SwizzleSurface(surface->pMediaCtx,
+                               surface->pGmmResourceInfo,
+                               surface->bo->virt,
+                               (MOS_TILE_TYPE)surface->TileType,
+                               (uint8_t *)surface->pSystemShadow,
+                               true);
+            }
 
             MOS_FreeMemory(surface->pSystemShadow);
             surface->pSystemShadow = nullptr;

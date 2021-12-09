@@ -129,6 +129,13 @@ VAStatus DdiMedia_DestroyImage (
     VAImageID        image
 );
 
+VAStatus DdiMedia_MapBuffer2(
+    VADriverContextP    ctx,
+    VABufferID          buf_id,
+    uint32_t            flags,
+    void                **pbuf
+);
+
 static PDDI_MEDIA_CONTEXT DdiMedia_CreateMediaDriverContext()
 {
     PDDI_MEDIA_CONTEXT   mediaCtx;
@@ -2164,6 +2171,9 @@ VAStatus DdiMedia_LoadFuncion (VADriverContextP ctx)
     pVTable->vaMFReleaseContext              = DdiMedia_ReleaseContextInternal;
     pVTable->vaMFSubmit                      = DdiEncode_MfeSubmit;
 #endif
+#if VA_CHECK_VERSION(1,14,0)
+    pVTable->vaMapBuffer2                    = DdiMedia_MapBuffer2;
+#endif
     return VA_STATUS_SUCCESS;
 }
 
@@ -3589,6 +3599,40 @@ VAStatus DdiMedia_MapBuffer (
 )
 {
     return DdiMedia_MapBufferInternal(ctx, buf_id, pbuf, MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY);
+}
+
+//!
+//! \brief  Map buffer 2
+//! 
+//! \param  [in] dpy
+//!         VA display
+//! \param  [in] buf_id
+//!         VA buffer ID
+//! \param  [out] pbuf
+//!         Pointer to buffer
+//! \param  [in] flag
+//!         Flag
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, else fail reason
+//!
+VAStatus DdiMedia_MapBuffer2(
+    VADriverContextP    ctx,
+    VABufferID          buf_id,
+    uint32_t            flags,
+    void                **pbuf
+)
+{
+    DDI_CHK_NULL(ctx,   "nullptr ctx",     VA_STATUS_ERROR_INVALID_CONTEXT);
+    uint32_t optFlag = 0;
+    if (flags & VA_MAP_READ)
+        optFlag |= MOS_LOCKFLAG_READONLY;
+    if (flags & VA_MAP_WRITE)
+        optFlag |= MOS_LOCKFLAG_WRITEONLY;
+    if (flags == 0)
+        optFlag = MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY;
+
+    return DdiMedia_MapBufferInternal(ctx, buf_id, pbuf, optFlag);
 }
 
 VAStatus DdiMedia_UnmapBuffer (
@@ -7408,38 +7452,6 @@ MEDIAAPI_EXPORT VAStatus DdiMedia_ExtGetSurfaceHandle(
     *prime_fd = mediaSurface->name;
 
     return VA_STATUS_SUCCESS;
-}
-
-//!
-//! \brief  Map buffer 2
-//! 
-//! \param  [in] dpy
-//!         VA display
-//! \param  [in] buf_id
-//!         VA buffer ID
-//! \param  [out] pbuf
-//!         Pointer to buffer
-//! \param  [in] flag
-//!         Flag
-//!
-//! \return VAStatus
-//!     VA_STATUS_SUCCESS if success, else fail reason
-//!
-MEDIAAPI_EXPORT VAStatus DdiMedia_MapBuffer2(
-    VADisplay           dpy,
-    VABufferID          buf_id,
-    void              **pbuf,
-    int32_t             flag
-)
-{
-    DDI_CHK_NULL(dpy,                     "nullptr dpy",                     VA_STATUS_ERROR_INVALID_DISPLAY);
-
-    VADriverContextP ctx = ((VADisplayContextP)dpy)->pDriverContext;
-
-    if ((flag == 0) || (flag & ~(MOS_LOCKFLAG_READONLY | MOS_LOCKFLAG_WRITEONLY)))
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-
-    return DdiMedia_MapBufferInternal(ctx, buf_id, pbuf, flag);
 }
 
 #ifdef __cplusplus
