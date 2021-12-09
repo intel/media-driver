@@ -1883,7 +1883,10 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
     VPHAL_SURF_DUMP_SPEC*      pDumpSpec = &m_dumpSpec;
     bool                       isDumpFromDecomp;
     bool                       orgDumpAuxEnable;
+    int32_t                    pid = MosUtilities::MosGetPid();
+    uint64_t                   timeStamp = 0;
 
+    MosUtilities::MosQueryPerformanceCounter(&timeStamp);
     eStatus = MOS_STATUS_SUCCESS;
     i       = 0;
     isDumpFromDecomp    = (Location == VPHAL_DUMP_TYPE_PRE_MEMDECOMP || Location == VPHAL_DUMP_TYPE_POST_MEMDECOMP);
@@ -1952,13 +1955,13 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                     if (!isDumpFromDecomp || (loc && loc[0] == 0))
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
                     }
                     else
                     {
                         if (loc)
                         {
-                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, loc, m_dumpLoc, uiCounter);
+                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
                         }
                     }
                     DumpSurfaceToFile(
@@ -2004,15 +2007,15 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                 if (!isDumpFromDecomp || (loc && loc[0] == 0))
                 {
-                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]",
-                        pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc_loc[%s]_lyr[%d]",
+                        pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
                 }
                 else
                 {
                     if (loc)
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]",
-                            pDumpSpec->pcOutputPath, loc, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc_loc[%s_%s]_lyr[%d]",
+                            pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
                     }
                 }
 
@@ -2060,7 +2063,10 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
     VPHAL_SURF_DUMP_SPEC*      pDumpSpec = &m_dumpSpec;
     bool                       isDumpFromDecomp;
     bool                       orgDumpAuxEnable;
+    int32_t                    pid = MosUtilities::MosGetPid();
+    uint64_t                   timeStamp = 0;
 
+    MosUtilities::MosQueryPerformanceCounter(&timeStamp);
     eStatus = MOS_STATUS_SUCCESS;
     i       = 0;
     isDumpFromDecomp    = (Location == VPHAL_DUMP_TYPE_PRE_MEMDECOMP || Location == VPHAL_DUMP_TYPE_POST_MEMDECOMP);
@@ -2129,13 +2135,13 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                     if (!isDumpFromDecomp || (loc && loc[0] == 0))
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
                     }
                     else
                     {
                         if (loc)
                         {
-                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, loc, m_dumpLoc, uiCounter);
+                            MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]", pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
                         }
                     }
                     DumpSurfaceToFile(
@@ -2181,15 +2187,15 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 
                 if (!isDumpFromDecomp || (loc && loc[0] == 0))
                 {
-                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s]_lyr[%d]",
-                        pDumpSpec->pcOutputPath, m_dumpLoc, uiCounter);
+                    MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s]_lyr[%d]",
+                        pDumpSpec->pcOutputPath, pid, timeStamp, m_dumpLoc, uiCounter);
                 }
                 else
                 {
                     if (loc)
                     {
-                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_loc[%s_%s]_lyr[%d]",
-                            pDumpSpec->pcOutputPath, loc, m_dumpLoc, uiCounter);
+                        MOS_SecureStringPrint(m_dumpPrefix, MAX_PATH, MAX_PATH, "%s/surfdump_pid%x_ts%llx_loc[%s_%s]_lyr[%d]",
+                            pDumpSpec->pcOutputPath, pid, timeStamp, loc, m_dumpLoc, uiCounter);
                     }
                 }
 
@@ -2379,7 +2385,10 @@ MOS_STATUS VpParameterDumper::DumpSourceSurface(
 
     MOS_STATUS                      eStatus;
     char                            sSurfaceFilePath[MAX_PATH] = { 0 }, sOsSurfaceFilePath[MAX_PATH] = { 0 };
+    int32_t                         pid = MosUtilities::MosGetPid();
+    uint64_t                        timeStamp = 0;
 
+    MosUtilities::MosQueryPerformanceCounter(&timeStamp);
     eStatus               = MOS_STATUS_SUCCESS;
 
     //Color Information
@@ -2555,8 +2564,8 @@ MOS_STATUS VpParameterDumper::DumpSourceSurface(
             memset(sSurfaceFilePath, 0, MAX_PATH);
             memset(sOsSurfaceFilePath, 0, MAX_PATH);
 
-            MOS_SecureStringPrint(sSurfaceFilePath, MAX_PATH, MAX_PATH, "%s%csurfdump_loc[preALL]_lyr[%d]_f[%04d]_w[%d]_h[%d]_p[%d].%s",
-                pcOutputPath, MOS_DIR_SEPERATOR, index, uiFrameCounter, pSrc->dwWidth, pSrc->dwHeight, pSrc->dwPitch, VpDumperTool::GetFormatStr(pSrc->Format));
+            MOS_SecureStringPrint(sSurfaceFilePath, MAX_PATH, MAX_PATH, "%s%csurfdump_pid%x_ts%llx_loc[preALL]_lyr[%d]_f[%04d]_w[%d]_h[%d]_p[%d].%s",
+                pcOutputPath, MOS_DIR_SEPERATOR, pid, timeStamp, index, uiFrameCounter, pSrc->dwWidth, pSrc->dwHeight, pSrc->dwPitch, VpDumperTool::GetFormatStr(pSrc->Format));
             VpDumperTool::GetOsFilePath(sSurfaceFilePath, sOsSurfaceFilePath);
         }
         VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<FILE>%s</FILE>\n", sOsSurfaceFilePath));
@@ -2673,7 +2682,10 @@ MOS_STATUS VpParameterDumper::DumpToXML(
     char*                           pCurFrameFileName;
     char*                           pBwdFrameFileName;
     VPHAL_PARAMS_DUMP_SPEC         *pParamsDumpSpec = &m_dumpSpec;
+    int32_t                         pid = MosUtilities::MosGetPid();
+    uint64_t                        timeStamp = 0;
 
+    MosUtilities::MosQueryPerformanceCounter(&timeStamp);
     eStatus               = MOS_STATUS_SUCCESS;
     dwStrLen              = 0;
     pcOutContents         = nullptr;
@@ -2741,7 +2753,7 @@ MOS_STATUS VpParameterDumper::DumpToXML(
     VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t</VPHAL_RENDER_PARAMS>\n"));
     VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "</VPHAL_SCENARIO>\n"));
 
-    MOS_SecureStringPrint(sPath, MAX_PATH, MAX_PATH, "%s%cparam_dump[%04d].xml", pParamsDumpSpec->outFileLocation, MOS_DIR_SEPERATOR, uiFrameCounter);
+    MOS_SecureStringPrint(sPath, MAX_PATH, MAX_PATH, "%s%cparam_dump_pid%x_ts%llx[%04d].xml", pParamsDumpSpec->outFileLocation, MOS_DIR_SEPERATOR, pid, timeStamp, uiFrameCounter);
 
     VpDumperTool::GetOsFilePath(sPath, sOsPath);
 
