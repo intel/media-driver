@@ -171,31 +171,31 @@ struct Vp9CmdInitializerParams
     uint8_t                             vdencHmeMvCosts[8] = { 0 };
     uint8_t                             vdencModeCosts[CODEC_VDENC_NUM_MODE_COST] = { 0 };
 
-    uint16_t                            pictureCodingType;
+    uint16_t                            pictureCodingType   = 0;
 
-    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS   seqParams;
-    PCODEC_VP9_ENCODE_PIC_PARAMS        picParams;
-    bool                                segmentationEnabled;
-    bool                                segmentMapProvided;
-    PCODEC_VP9_ENCODE_SEGMENT_PARAMS    segmentParams;
-    bool                                prevFrameSegEnabled;
-    uint8_t                             numRefFrames;
-    bool                                me16Enabled;
-    uint8_t                             dysRefFrameFlags;
-    bool                                dysVdencMultiPassEnabled;
-    int                                 currentPass;
-    bool                                singleTaskPhaseSupported;
-    bool                                lastTaskInPhase;
-    bool                                firstTaskInPhase;
-    uint32_t                            mode;
-    bool                                videoContextUsesNullHw;
-    CodechalDebugInterface*             debugInterface;
-    bool                                dynamicScalingEnabled;
-    bool                                bPrevFrameKey;
+    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS   seqParams           = nullptr;
+    PCODEC_VP9_ENCODE_PIC_PARAMS        picParams           = nullptr;
+    bool                                segmentationEnabled = false;
+    bool                                segmentMapProvided  = false;
+    PCODEC_VP9_ENCODE_SEGMENT_PARAMS    segmentParams       = nullptr;
+    bool                                prevFrameSegEnabled = false;
+    uint8_t                             numRefFrames        = 0;
+    bool                                me16Enabled         = false;
+    uint8_t                             dysRefFrameFlags    = 0;
+    bool                                dysVdencMultiPassEnabled    = false;
+    int                                 currentPass                 = 0;
+    bool                                singleTaskPhaseSupported    = false;
+    bool                                lastTaskInPhase             = false;
+    bool                                firstTaskInPhase            = false;
+    uint32_t                            mode                        = 0;
+    bool                                videoContextUsesNullHw      = false;
+    CodechalDebugInterface*             debugInterface              = nullptr;
+    bool                                dynamicScalingEnabled       = false;
+    bool                                bPrevFrameKey               = false;
     // Common
-    uint16_t                            sadQpLambda;
-    uint16_t                            rdQpLambda;
-    bool                                vdencPakOnlyMultipassEnabled;
+    uint16_t                            sadQpLambda                     = 0;
+    uint16_t                            rdQpLambda                      = 0;
+    bool                                vdencPakOnlyMultipassEnabled    = false;
 
 };
 #endif

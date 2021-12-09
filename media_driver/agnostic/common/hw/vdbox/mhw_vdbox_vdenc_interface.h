@@ -82,34 +82,34 @@ typedef struct _MHW_VDBOX_VDENC_CQPT_STATE_PARAMS
 
 typedef struct _MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS
 {
-    bool        bWeightedPredEnabled;
-    uint32_t    dwDenom;
-    uint8_t     ucList;
-    char        LumaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
-    int16_t     LumaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC];
-    char        ChromaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
-    int16_t     ChromaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2];
-    uint32_t    dwChromaDenom;
-    bool        isLowDelay = true;
+    bool        bWeightedPredEnabled    = false;
+    uint32_t    dwDenom                 = 0;
+    uint8_t     ucList                  = 0;
+    char        LumaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC]        = {};
+    int16_t     LumaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC]        = {};
+    char        ChromaWeights[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2]   = {};
+    int16_t     ChromaOffsets[2][CODEC_MAX_NUM_REF_FRAME_HEVC][2]   = {};
+    uint32_t    dwChromaDenom           = 0;
+    bool        isLowDelay              = true;
 } MHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS, *PMHW_VDBOX_VDENC_WEIGHT_OFFSET_PARAMS;
 
 typedef struct _MHW_VDBOX_VDENC_CMD1_PARAMS
 {
-    uint32_t                                Mode;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams;
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams;
-    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
-    uint8_t                                *pucVdencMvCosts;
-    uint8_t                                *pucVdencRdMvCosts;
-    uint8_t                                *pucVdencHmeMvCosts;
-    uint8_t                                *pucVdencModeCosts;
-    void                                   *pInputParams;
-    uint16_t                                usSADQPLambda = 0;
-    uint16_t                                usRDQPLambda = 0;
-    uint8_t                                 frame_type;
-    uint8_t                                 qp;
-    bool                                    isLowDelay;
+    uint32_t                                Mode                = 0;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams   = nullptr;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams   = nullptr;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams   = nullptr;
+    PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams    = nullptr;
+    uint8_t                                *pucVdencMvCosts     = nullptr;
+    uint8_t                                *pucVdencRdMvCosts   = nullptr;
+    uint8_t                                *pucVdencHmeMvCosts  = nullptr;
+    uint8_t                                *pucVdencModeCosts   = nullptr;
+    void                                   *pInputParams        = nullptr;
+    uint16_t                                usSADQPLambda       = 0;
+    uint16_t                                usRDQPLambda        = 0;
+    uint8_t                                 frame_type          = 0;
+    uint8_t                                 qp                  = 0;
+    bool                                    isLowDelay          = false;
     bool                                    bHevcVisualQualityImprovement = false;  //!< VQI enable flag
 } MHW_VDBOX_VDENC_CMD1_PARAMS, *PMHW_VDBOX_VDENC_CMD1_PARAMS;
 

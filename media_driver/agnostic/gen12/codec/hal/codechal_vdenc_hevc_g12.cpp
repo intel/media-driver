@@ -2929,7 +2929,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     SetVdencPipeModeSelectParams(*pipeModeSelectParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencPipeModeSelectCmd(&cmdBuffer, pipeModeSelectParams));
 
-    MHW_VDBOX_SURFACE_PARAMS dsSurfaceParams[2];
+    MHW_VDBOX_SURFACE_PARAMS dsSurfaceParams[2] = {};
     SetVdencSurfaceStateParams(srcSurfaceParams, reconSurfaceParams, dsSurfaceParams[0], dsSurfaceParams[1]);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSrcSurfaceStateCmd(&cmdBuffer, &srcSurfaceParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencRefSurfaceStateCmd(&cmdBuffer, &reconSurfaceParams));

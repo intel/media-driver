@@ -284,8 +284,8 @@ protected:
     KernelBinaryCallback       m_callback           = nullptr;  //!< kernel binary structure callback
     uint8_t                   *m_kernelBinary       = nullptr;  //!< kernel bianry base address
 
-    std::map<uint32_t, MHW_KERNEL_STATE*> m_kernelStatePool;     //!< pool to store kernel state with index
-    std::map<uint32_t, PMOS_SURFACE>      m_surfacePool;         //!< pool to store surface with index
+    std::map<uint32_t, MHW_KERNEL_STATE *> m_kernelStatePool = {};  //!< pool to store kernel state with index
+    std::map<uint32_t, PMOS_SURFACE>       m_surfacePool     = {};  //!< pool to store surface with index
 
     bool& m_firstTaskInPhase;
     bool& m_lastTaskInPhase;

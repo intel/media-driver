@@ -1263,10 +1263,10 @@ using PCODECHAL_ENCODE_HEVC_WALKING_CONTROL_REGION = CODECHAL_ENCODE_HEVC_WALKIN
 //!
 struct CODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ
 {
-    uint32_t                uiSemaphoreObjCount;
-    MOS_RESOURCE            resSyncObject;
-    bool                    bInUsed;
-    CODECHAL_ENCODE_BUFFER  resSemaphoreMem;
+    uint32_t                uiSemaphoreObjCount = 0;
+    MOS_RESOURCE            resSyncObject       = {};
+    bool                    bInUsed             = false;
+    CODECHAL_ENCODE_BUFFER  resSemaphoreMem     = {};
 };
 using PCODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ = CODECHAL_ENCODE_HEVC_REFFRAME_SYNC_OBJ*;
 

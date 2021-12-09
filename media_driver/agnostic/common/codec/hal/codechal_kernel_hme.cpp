@@ -335,6 +335,7 @@ MOS_STATUS CodechalKernelHme::SendSurfaces(PMOS_COMMAND_BUFFER cmd, MHW_KERNEL_S
             surfaceParams.bIs2DSurface = true;
             surfaceParams.bMediaBlockRW = true;
             surfaceParams.psSurface = GetSurface(SurfaceId::me4xDistortionBuffer);
+            CODECHAL_ENCODE_CHK_NULL_RETURN(surfaceParams.psSurface);
             surfaceParams.psSurface->dwHeight = m_surfaceParam.downScaledHeightInMb * 4 * 10;
             surfaceParams.dwOffset = m_meDistortionBottomFieldOffset;
             surfaceParams.dwBindingTableOffset = BindingTableOffset::meDistortionSurface;

@@ -210,17 +210,17 @@ public:
     //!
     struct CurbeParam
     {
-        bool          brcEnable = false;
-        uint8_t       subPelMode = 3;
-        uint8_t       sumMVThreshold = 0;
-        CODEC_PICTURE currOriginalPic;
-        uint32_t      qpPrimeY;
-        uint32_t      targetUsage;
-        uint32_t      maxMvLen;
-        uint32_t      numRefIdxL1Minus1;
-        uint32_t      numRefIdxL0Minus1;
-        uint8_t*      meMethodTable = nullptr;
-        uint8_t*      bmeMethodTable = nullptr;
+        bool          brcEnable         = false;
+        uint8_t       subPelMode        = 3;
+        uint8_t       sumMVThreshold    = 0;
+        CODEC_PICTURE currOriginalPic   = {};
+        uint32_t      qpPrimeY          = 0;
+        uint32_t      targetUsage       = 0;
+        uint32_t      maxMvLen          = 0;
+        uint32_t      numRefIdxL1Minus1 = 0;
+        uint32_t      numRefIdxL0Minus1 = 0;
+        uint8_t*      meMethodTable     = nullptr;
+        uint8_t*      bmeMethodTable    = nullptr;
 
         uint32_t list0RefID0FieldParity : MOS_BITFIELD_BIT(0);
         uint32_t list0RefID1FieldParity : MOS_BITFIELD_BIT(1);
@@ -381,8 +381,8 @@ protected:
     uint32_t      m_meDistortionBottomFieldOffset = 0;      //!< ME distortion bottom field offset
     uint8_t *     m_bmeMethodTable = genericBMEMethod;      //!< pointer to BME method table
     uint8_t *     m_meMethodTable  = genericMEMethod;       //!< pointer to ME method table
-    CurbeParam    m_curbeParam;                             //!< curbe paramters
-    SurfaceParams m_surfaceParam;                           //! surface parameters
+    CurbeParam    m_curbeParam                    = {};     //!< curbe paramters
+    SurfaceParams m_surfaceParam                  = {};     //! surface parameters
 
     static const uint32_t scalingFactor4X  = 4;
     static const uint32_t scalingFactor16X = 16;

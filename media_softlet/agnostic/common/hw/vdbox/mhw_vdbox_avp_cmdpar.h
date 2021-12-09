@@ -278,7 +278,7 @@ struct _MHW_PAR_T(AVP_INLOOP_FILTER_STATE)
     uint8_t  loopFilterLevel[4]                  = {};
     uint8_t  loopFilterSharpness                 = 0;
     bool     loopFilterDeltaEnabled              = 0;
-    uint8_t  deltaLfRes;
+    uint8_t  deltaLfRes                          = 0;
     uint8_t  deltaLfMulti                        = 0;
     bool     loopFilterDeltaUpdate               = false;
 

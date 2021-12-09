@@ -2121,6 +2121,7 @@ MOS_STATUS CodechalVdencVp9StateG12::GetStatusReport(
 
     double sum_qp = 0.0;
     uint32_t totalCU = 0;
+    CODECHAL_ENCODE_CHK_COND_RETURN((encodeStatusReport->NumberTilesInFrame == 0), "ERROR - invalid number of tiles in frame");
     for (uint32_t i = 0; i < encodeStatusReport->NumberTilesInFrame; i++)
     {
         if (tileStatusReport[i].Length == 0)
