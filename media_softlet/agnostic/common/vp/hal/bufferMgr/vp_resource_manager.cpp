@@ -606,7 +606,11 @@ MOS_STATUS VpResourceManager::GetResourceHint(std::vector<FeatureType> &featureP
     SwFilterSubPipe *inputPipe = executedFilters.GetSwFilterSubPipe(true, index);
 
     // only process Primary surface
-    VP_PUBLIC_CHK_NULL_RETURN(inputPipe);
+    if (inputPipe == nullptr)
+    {
+        VP_PUBLIC_NORMALMESSAGE("No inputPipe, so there is no hint message!");
+        return MOS_STATUS_SUCCESS;
+    }
     for (auto filterID : featurePool)
     {
         SwFilter* feature = (SwFilter*)inputPipe->GetSwFilter(FeatureType(filterID));

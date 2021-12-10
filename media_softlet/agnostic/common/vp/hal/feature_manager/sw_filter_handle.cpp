@@ -284,7 +284,7 @@ int SwFilterScalingHandler::GetPipeCountForProcessing(VP_PIPELINE_PARAMS& params
 
     // For interlaced scaling field-to-interleave mode, need two submission for top field and bottom field,
     // thus we need 2 pipe to handle it.
-    if (params.pSrc[0]->InterlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED &&
+    if (params.pSrc[0] && params.pSrc[0]->InterlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED &&
         params.pSrc[0]->pBwdRef != nullptr)
     {
         return 2;
@@ -303,7 +303,7 @@ MOS_STATUS SwFilterScalingHandler::UpdateParamsForProcessing(VP_PIPELINE_PARAMS&
 
     // For second submission of field-to-interleaved mode, we will take second field as input surface,
     // second field is stored in pBwdRef.
-    if (params.pSrc[0]->InterlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED && index == 1)
+    if (params.pSrc[0] && params.pSrc[0]->InterlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED && index == 1)
     {
         if (params.pSrc[0] && params.pSrc[0]->pBwdRef)
         {

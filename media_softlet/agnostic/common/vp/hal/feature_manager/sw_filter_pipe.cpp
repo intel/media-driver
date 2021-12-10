@@ -1031,9 +1031,11 @@ MOS_STATUS SwFilterPipe::RemoveUnusedLayers(bool bUpdateInput)
 
     std::vector<uint32_t> indexForRemove;
     uint32_t i = 0;
+    bool isInputNullValid = (!bUpdateInput && pipes.size()>0 && !pipes[0]->IsEmpty());
+
     for (i = 0; i < surfaces1.size(); ++i)
     {
-        if (nullptr == surfaces1[i] || 0 == surfaces2.size() ||
+        if (nullptr == surfaces1[i] || (!isInputNullValid && 0 == surfaces2.size()) ||
             1 == surfaces2.size() && nullptr == surfaces2[0])
         {
             indexForRemove.push_back(i);
@@ -1051,6 +1053,7 @@ MOS_STATUS SwFilterPipe::RemoveUnusedLayers(bool bUpdateInput)
         // Keep m_linkedLayerIndex same size as m_InputSurfaces.
         VP_PUBLIC_CHK_STATUS_RETURN(::RemoveUnusedLayers(indexForRemove, m_linkedLayerIndex));
     }
+
     VP_PUBLIC_CHK_STATUS_RETURN(::RemoveUnusedLayers(indexForRemove, pipes, true));
 
     return MOS_STATUS_SUCCESS;

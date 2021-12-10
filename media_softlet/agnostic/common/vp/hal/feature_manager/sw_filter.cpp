@@ -1524,8 +1524,14 @@ MOS_STATUS vp::SwFilterColorFill::Update(VP_SURFACE* inputSurf, VP_SURFACE* outp
 {
     VP_FUNC_CALL();
 
-    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
-    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    if (nullptr == inputSurf)
+    {
+        VP_PUBLIC_NORMALMESSAGE("ColorFill does not have input surface!");
+    }
+    else
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    }
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
     m_Params.formatInput = outputSurf->osSurface->Format;
@@ -1652,8 +1658,14 @@ MOS_STATUS vp::SwFilterAlpha::Update(VP_SURFACE* inputSurf, VP_SURFACE* outputSu
 {
     VP_FUNC_CALL();
 
-    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
-    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    if (nullptr == inputSurf)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Alpha does not have input surface!");
+    }
+    else
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    }
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
     m_Params.formatInput = outputSurf->osSurface->Format;

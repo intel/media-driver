@@ -234,9 +234,10 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // Color fill has not enabled in APO path.
+    // Color fill does not need to check src params.
     if (0 == pvpParams->uSrcCount)
     {
+        bApgFuncSupported = true;
         return MOS_STATUS_SUCCESS;
     }
 

@@ -206,7 +206,12 @@ MOS_STATUS HwFilterRender::SetPacketParams(VpCmdPacket &packet)
     // previousSurf can be nullptr;
     VP_SURFACE* previousSurf = m_swFilterPipe->GetPastSurface(0);
     auto& surfSetting        = m_swFilterPipe->GetSurfacesSetting();
-    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+
+    // There exist some features without input surface.
+    if (inputSurf == nullptr)
+    {
+        VP_PUBLIC_NORMALMESSAGE("No render input!");
+    }
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
     VP_PUBLIC_CHK_STATUS_RETURN(packet.PacketInit(inputSurf, outputSurf,
         previousSurf, surfSetting, m_vpExecuteCaps));
