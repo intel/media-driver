@@ -103,6 +103,8 @@ static struct LinuxCodecInfo glkCodecInfo =
     .hevc10Decoding     = 1,
     .vp9b10Decoding     = 1,
     .hevc10Encoding     = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .hevc12Encoding     = 0,
+    .vp8Encoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitSklMediaSku(struct GfxDeviceInfo *devInfo,
@@ -482,6 +484,9 @@ static bool InitGlkMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile0Decoding8bit420, codecInfo->vp9Decoding);
         MEDIA_WR_SKU(skuTable, FtrVP9VLD10bProfile2Decoding, codecInfo->vp9b10Decoding);
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile2Decoding10bit420, codecInfo->vp9b10Decoding);
+
+        /* VP8 enc */
+        MEDIA_WR_SKU(skuTable, FtrEncodeVP8, codecInfo->vp8Encoding);
     }
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
