@@ -255,6 +255,7 @@ protected:
 protected:
     MediaTask         *m_task         = nullptr;        //!< MediaTask associated with current packet
     MhwMiInterface    *m_miInterface  = nullptr;
+    std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
     MediaStatusReport *m_statusReport = nullptr;
 };
 

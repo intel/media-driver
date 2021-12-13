@@ -89,6 +89,7 @@ protected:
     PMOS_INTERFACE          m_osInterface = nullptr;
     MhwMiInterface *        m_miInterface = nullptr;
     DecodeCpInterface *     m_decodecp = nullptr;
+    std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
 
 MEDIA_CLASS_DEFINE_END(DecodeSubPacket)
 };
