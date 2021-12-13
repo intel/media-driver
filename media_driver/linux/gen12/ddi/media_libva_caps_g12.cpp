@@ -2390,8 +2390,7 @@ VAStatus MediaLibvaCapsG12::LoadAv1DecProfileEntrypoints()
 #if _AV1_DECODE_SUPPORTED
     AttribMap *attributeList = nullptr;
     if ((MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelAV1VLDDecoding8bit420)
-        ||MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelAV1VLDDecoding10bit420))
-        && m_mediaCtx->pDrmBufMgr->has_full_vd)
+        ||MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrIntelAV1VLDDecoding10bit420)))
     {
         status = CreateDecAttributes((VAProfile) VAProfileAV1Profile0, VAEntrypointVLD, &attributeList);
         DDI_CHK_RET(status, "Failed to initialize Caps!");
