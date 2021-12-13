@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2020, Intel Corporation
+* Copyright (c) 2013-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -340,90 +340,90 @@ MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx
 //! \def MOS_TraceEventExt
 //!  this is trace event interface extension, only for debug purpose.
 //!
-#define MOS_TraceEventExt MOS_TraceEvent
-#define MOS_TraceDumpExt MOS_TraceDataDump
+#define MOS_TraceEventExt MosUtilities::MosTraceEvent
+#define MOS_TraceDumpExt MosUtilities::MosTraceDataDump
 
 #define MT_LOG(id, lvl)                                                     \
     {                                                                       \
         int32_t head[] = {id, lvl};                                         \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 0, head, sizeof(head), nullptr, 0); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 0, head, sizeof(head), nullptr, 0); \
     }
 
 #define MT_LOG1(id, lvl, p1, v1)                                                      \
     {                                                                                 \
         int32_t   head[] = {id, lvl};                                                 \
         MT_PARAM param[] = {p1, v1};                                                  \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 1, head, sizeof(head), param, sizeof(param)); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 1, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_LOG2(id, lvl, p1, v1, p2, v2)                                              \
     {                                                                                 \
         int32_t   head[] = {id, lvl};                                                 \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}};                                      \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 2, head, sizeof(head), param, sizeof(param)); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 2, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_LOG3(id, lvl, p1, v1, p2, v2, p3, v3)                                      \
     {                                                                                 \
         int32_t   head[] = {id, lvl};                                                 \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}};                            \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 3, head, sizeof(head), param, sizeof(param)); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 3, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_LOG4(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4)                              \
     {                                                                                 \
         int32_t   head[] = {id, lvl};                                                 \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}};                  \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 4, head, sizeof(head), param, sizeof(param)); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 4, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_LOG5(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5)                                   \
     {                                                                                              \
         int32_t   head[] = {id, lvl};                                                              \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}};                     \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 5, head, sizeof(head), param, sizeof(param));              \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 5, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_LOG6(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6)                           \
     {                                                                                              \
         int32_t   head[] = {id, lvl};                                                              \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}, {p6, v6}};           \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 6, head, sizeof(head), param, sizeof(param));              \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 6, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_LOG7(id, lvl, p1, v1, p2, v2, p3, v3, p4, v4, p5, v5, p6, v6, p7, v7)                   \
     {                                                                                              \
         int32_t   head[] = {id, lvl};                                                              \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}, {p4, v4}, {p5, v5}, {p6, v6}, {p7, v7}}; \
-        MOS_TraceEvent(EVENT_MEDIA_LOG, 7, head, sizeof(head), param, sizeof(param));              \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_LOG, 7, head, sizeof(head), param, sizeof(param)); \
     }
 
 
 #define MT_ERR(id)                                                          \
     {                                                                       \
         int32_t head[] = {id};                                              \
-        MOS_TraceEvent(EVENT_MEDIA_ERR, 0, head, sizeof(head), nullptr, 0); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_ERR, 0, head, sizeof(head), nullptr, 0); \
     }
 
 #define MT_ERR1(id, p1, v1)                                                           \
     {                                                                                 \
         int32_t   head[] = {id};                                                      \
         MT_PARAM param[] = {p1, v1};                                                  \
-        MOS_TraceEvent(EVENT_MEDIA_ERR, 1, head, sizeof(head), param, sizeof(param)); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_ERR, 1, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_ERR2(id, p1, v1, p2, v2)                                                   \
     {                                                                                 \
         int32_t   head[] = {id};                                                      \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}};                                      \
-        MOS_TraceEvent(EVENT_MEDIA_ERR, 2, head, sizeof(head), param, sizeof(param)); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_ERR, 2, head, sizeof(head), param, sizeof(param)); \
     }
 
 #define MT_ERR3(id, p1, v1, p2, v2, p3, v3)                                           \
     {                                                                                 \
         int32_t   head[] = {id};                                                      \
         MT_PARAM param[] = {{p1, v1}, {p2, v2}, {p3, v3}};                            \
-        MOS_TraceEvent(EVENT_MEDIA_ERR, 3, head, sizeof(head), param, sizeof(param)); \
+        MosUtilities::MosTraceEvent(EVENT_MEDIA_ERR, 3, head, sizeof(head), param, sizeof(param)); \
     }
 
 #else // !MOS_MESSAGES_ENABLED

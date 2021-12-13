@@ -1837,7 +1837,7 @@ VAStatus DdiMedia_InitMediaContext (
         }
         mediaCtx->platform = platform;
 
-        MOS_TraceSetupInfo(
+        MosUtilities::MosTraceSetupInfo(
             (VA_MAJOR_VERSION << 16) | VA_MINOR_VERSION,
             platform.eProductFamily,
             platform.eRenderCoreFamily,
