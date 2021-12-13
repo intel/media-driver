@@ -83,6 +83,8 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define MAX2(A, B) ((A) > (B) ? (A) : (B))
 
+#define INITIAL_SOFTPIN_TARGET_COUNT  1024
+
 /**
  * upper_32_bits - return bits 32-63 of a number
  * @n: the number we're accessing
@@ -239,7 +241,7 @@ struct mos_bo_gem {
     /** Number softpinned BOs that are referenced by this buffer */
     int softpin_target_count;
     /** Maximum amount of softpinned BOs that are referenced by this buffer */
-    int softpin_target_size;
+    int max_softpin_target_count;
 
     /** Mapped address for the buffer, saved across map/unmap cycles */
     void *mem_virtual;
@@ -1690,7 +1692,7 @@ mos_gem_bo_unreference_final(struct mos_linux_bo *bo, time_t time)
     if (bo_gem->softpin_target) {
         free(bo_gem->softpin_target);
         bo_gem->softpin_target = nullptr;
-        bo_gem->softpin_target_size = 0;
+        bo_gem->max_softpin_target_count = 0;
     }
 
     /* Clear any left-over mappings */
@@ -2711,17 +2713,20 @@ mos_gem_bo_add_softpin_target(struct mos_linux_bo *bo, struct mos_linux_bo *targ
     if (target_bo_gem == bo_gem)
         return -EINVAL;
 
-    if (bo_gem->softpin_target_count == bo_gem->softpin_target_size) {
-        int new_size = bo_gem->softpin_target_size * 2;
-        if (new_size == 0)
-            new_size = bufmgr_gem->max_relocs;
+    if (bo_gem->softpin_target_count == bo_gem->max_softpin_target_count) {
+        int max_softpin_target_count = bo_gem->max_softpin_target_count * 2;
 
-        bo_gem->softpin_target = (struct mos_softpin_target *)realloc(bo_gem->softpin_target, new_size *
+        /* initial softpin target count*/
+        if (max_softpin_target_count == 0){
+            max_softpin_target_count = INITIAL_SOFTPIN_TARGET_COUNT;
+        }
+
+        bo_gem->softpin_target = (struct mos_softpin_target *)realloc(bo_gem->softpin_target, max_softpin_target_count *
                 sizeof(struct mos_softpin_target));
         if (!bo_gem->softpin_target)
             return -ENOMEM;
 
-        bo_gem->softpin_target_size = new_size;
+        bo_gem->max_softpin_target_count = max_softpin_target_count;
     }
 
     int flags = EXEC_OBJECT_PINNED;
