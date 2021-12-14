@@ -814,6 +814,17 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
             scalingEngine->sfcNotSupported      = 1;
             VP_PUBLIC_NORMALMESSAGE("The surface resolution is not supported by sfc.");
         }
+        else if (scalingParams->input.rcDst.left > 0    ||
+                 scalingParams->input.rcDst.top  > 0)
+        {
+            // for dst left and top non zero cases, should go SFC or Render Pipe
+            scalingEngine->bEnabled             = 1;
+            scalingEngine->SfcNeeded            = 1;
+            scalingEngine->VeboxNeeded          = 0;
+            scalingEngine->RenderNeeded         = 1;
+            scalingEngine->fcSupported          = 1;
+            VP_PUBLIC_NORMALMESSAGE("The dst left and top non zero is not supported by vebox ");
+        }
         else
         {
             // for non-Scaling cases, all engine supported
@@ -825,6 +836,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
             scalingEngine->forceEnableForRender = 1;
             scalingEngine->fcSupported          = 1;
         }
+
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
     }
