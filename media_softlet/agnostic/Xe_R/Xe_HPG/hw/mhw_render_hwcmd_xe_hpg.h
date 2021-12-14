@@ -492,7 +492,7 @@ namespace xe_hpg
 
             //! \brief INSTRUCTION_BASE_ADDRESS_MODIFY_ENABLE
             //! \details
-            //!     The other fields in this DWord and the聽following DWord聽are updated
+            //!     The other fields in this DWord and the following DWord are updated
             //!     only when this bit is set.
             enum INSTRUCTION_BASE_ADDRESS_MODIFY_ENABLE
             {

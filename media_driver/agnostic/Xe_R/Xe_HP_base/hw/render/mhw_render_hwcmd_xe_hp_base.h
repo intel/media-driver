@@ -530,7 +530,7 @@ public:
 
         //! \brief INSTRUCTION_BASE_ADDRESS_MODIFY_ENABLE
         //! \details
-        //!     The other fields in this DWord and the following DWord are updated
+        //!     The other fields in this DWord and the following DWord are updated
         //!     only when this bit is set.
         enum INSTRUCTION_BASE_ADDRESS_MODIFY_ENABLE
         {
@@ -575,7 +575,7 @@ public:
 
         //! \brief BINDLESS_SURFACE_STATE_BASE_ADDRESS_MODIFY_ENABLE
         //! \details
-        //!     The other fields in this DWord and the following two DWords are
+        //!     The other fields in this DWord and the following two DWords are
         //!     updated only when this bit is set.
         enum BINDLESS_SURFACE_STATE_BASE_ADDRESS_MODIFY_ENABLE
         {
@@ -585,7 +585,7 @@ public:
 
         //! \brief BINDLESS_SAMPLER_STATE_BASE_ADDRESS_MODIFY_ENABLE
         //! \details
-        //!     The other fields in this DWord and the following two DWords are
+        //!     The other fields in this DWord and the following two DWords are
         //!     updated only when this bit is set.
         enum BINDLESS_SAMPLER_STATE_BASE_ADDRESS_MODIFY_ENABLE
         {
@@ -1535,4 +1535,3 @@ public:
 #pragma pack()
 
 #endif  // __MHW_RENDER_HWCMD_XE_HP_BASE_H__
-    
