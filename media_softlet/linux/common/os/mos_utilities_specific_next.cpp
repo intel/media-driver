@@ -1639,6 +1639,32 @@ MOS_STATUS MosUtilities::MosCloseRegKey(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MosUtilities::MosReadEnvVariable(
+    UFKEY_NEXT keyHandle,
+    const std::string &valueName,
+    uint32_t *type,
+    std::string &data,
+    uint32_t *size)
+{
+    MOS_OS_CHK_NULL_RETURN(size);
+    MOS_UNUSED(type);
+
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    std::string name = valueName;
+    std::replace(name.begin(), name.end(), ' ', '_');
+    char *retVal = getenv(name.c_str());
+    if (retVal != nullptr)
+    {
+        std::string strData = retVal;
+        *size               = strData.length();
+        data                = strData;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    return MOS_STATUS_INVALID_PARAMETER;
+}
+
 MOS_STATUS MosUtilities::MosGetRegValue(
     UFKEY_NEXT keyHandle,
     const std::string &valueName,
@@ -1660,18 +1686,6 @@ MOS_STATUS MosUtilities::MosGetRegValue(
 
     try
     {
-        // Read the value from ENV. variable as first
-        std::string name = valueName;
-        std::replace(name.begin(),name.end(),' ','_');
-        char* retVal = getenv(name.c_str());
-        if (retVal != nullptr)
-        {
-            std::string strData = retVal;
-            *size = strData.length();
-            data = strData;
-            return MOS_STATUS_SUCCESS;
-        }
-
         auto keys = util::m_regBuffer[keyHandle];
         auto it = keys.find(valueName);
         if (it == keys.end())

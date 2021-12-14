@@ -402,6 +402,8 @@ struct _MHW_PAR_T(AVP_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     filmGrainTileColumnDataBuffer    = nullptr;
     PMOS_RESOURCE     filmGrainSampleTemplateBuffer    = nullptr;
     PMOS_RESOURCE     filmGrainOutputSurface           = nullptr;
+
+    PMOS_RESOURCE     rhoDomainThresholdTableBuffer    = nullptr;
 };
 
 struct _MHW_PAR_T(AVP_INTER_PRED_STATE)

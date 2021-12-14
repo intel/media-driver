@@ -122,14 +122,28 @@ MOS_STATUS Configure::Read(Value &value,
 
     std::string path = basePath + configPath;
 
-    UFKEY_NEXT key = {};
-    MOS_STATUS status = MosUtilities::MosOpenRegKey(m_rootKey, path, KEY_READ, &key);
+    UFKEY_NEXT  key      = {};
+    std::string strValue = "";
+    uint32_t    size     = MOS_USER_CONTROL_MAX_DATA_SIZE;
+    uint32_t    type     = 0;
 
+    // read env variable first, if env value is set, return
+    // else read the reg keys
+    MOS_STATUS status = MosUtilities::MosReadEnvVariable(key, valueName, &type, strValue, &size);
+ 
     if (status == MOS_STATUS_SUCCESS)
     {
-        std::string strValue = "";
-        uint32_t size = MOS_USER_CONTROL_MAX_DATA_SIZE;
-        uint32_t type = 0;
+        value = strValue;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    status = MosUtilities::MosOpenRegKey(m_rootKey, path, KEY_READ, &key);
+    
+    if (status == MOS_STATUS_SUCCESS)
+    {
+        strValue = "";
+        size     = MOS_USER_CONTROL_MAX_DATA_SIZE;
+        type     = 0;
 
         m_mutexLock.Lock();
         status = MosUtilities::MosGetRegValue(key, valueName, &type, strValue, &size);

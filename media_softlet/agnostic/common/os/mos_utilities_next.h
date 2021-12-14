@@ -1313,6 +1313,32 @@ public:
         UFKEY_NEXT keyHandle);
 
     //!
+    //! \brief    Retrieves the type and data for the specified env variable.
+    //! \details  Retrieves the type and data for the specified env variable.
+    //! \param    [in] keyHandle
+    //!           A handle to an open reg key.
+    //! \param    [in] valueName
+    //!           The name of the reg value.
+    //! \param    [in] type
+    //!           A pointer to a variable that receives a code indicating the
+    //!           type of data stored in the specified value.
+    //! \param    [out] data
+    //!           Buffer that receives the value's data.
+    //! \param    [out] size
+    //!           A pointer to a variable that specifies the size of the buffer
+    //!           pointed to by the data parameter, in bytes.
+    //! \return   MOS_STATUS
+    //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
+    //!           If the function fails, the return value is a error code.
+    //!
+    static MOS_STATUS MosReadEnvVariable(
+        UFKEY_NEXT keyHandle,
+        const std::string &valueName,
+        uint32_t *type,
+        std::string &data,
+        uint32_t *size);
+
+    //!
     //! \brief    Retrieves the type and data for the specified reg value.
     //! \details  Retrieves the type and data for the specified reg value.
     //! \param    [in] keyHandle
