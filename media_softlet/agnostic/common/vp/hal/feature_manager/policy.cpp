@@ -2407,6 +2407,7 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
         auto outputSurfaceExePipe = params.executedFilters->GetSurface(false, 0);
         VP_PUBLIC_CHK_NULL_RETURN(outputSurfaceExePipe);
         auto outputSurface = featurePipe.GetSurface(false, 0);
+        VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
         bool outputSurfaceInuse =
             outputSurfaceExePipe->GetAllocationHandle(osInterface) == outputSurface->GetAllocationHandle(osInterface);
 

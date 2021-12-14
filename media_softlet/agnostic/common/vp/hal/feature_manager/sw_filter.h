@@ -193,16 +193,16 @@ using  VP_SURFACE_GROUP = std::map<SurfaceType, VP_SURFACE*>;
 struct VP_SURFACE_SETTING
 {
     VP_SURFACE_GROUP    surfGroup;
-    bool                isPastHistogramValid;
-    uint32_t            imageWidthOfPastHistogram;
-    uint32_t            imageHeightOfPastHistogram;
-    uint32_t            dwVeboxPerBlockStatisticsHeight;
-    uint32_t            dwVeboxPerBlockStatisticsWidth;
-    uint32_t            aggregateBlockSize;
-    bool                laceLutValid;
-    bool                updateGlobalToneMappingCurveLUTSurface;
-    bool                updateWeitCoefSurface;
-    bool                dumpLaceSurface;
+    bool                isPastHistogramValid       = false;
+    uint32_t            imageWidthOfPastHistogram  = 0;
+    uint32_t            imageHeightOfPastHistogram = 0;
+    uint32_t            dwVeboxPerBlockStatisticsHeight = 0;
+    uint32_t            dwVeboxPerBlockStatisticsWidth  = 0;
+    uint32_t            aggregateBlockSize              = 0;
+    bool                laceLutValid                    = false;
+    bool                updateGlobalToneMappingCurveLUTSurface = false;
+    bool                updateWeitCoefSurface                  = false;
+    bool                dumpLaceSurface                        = false;
 
     void Clean()
     {
@@ -248,9 +248,9 @@ inline bool operator<(FeatureType a, FeatureType b)
 
 struct FeatureParam
 {
-    FeatureType type;
-    MOS_FORMAT  formatInput;
-    MOS_FORMAT  formatOutput;
+    FeatureType type         = FeatureTypeInvalid;
+    MOS_FORMAT  formatInput  = Format_None;
+    MOS_FORMAT  formatOutput = Format_None;
 };
 
 enum FeatureCategory
@@ -408,35 +408,35 @@ struct FeatureParamScaling : public FeatureParam
 {
     struct SCALING_PARAMS
     {
-        uint32_t                dwWidth;
-        uint32_t                dwHeight;
-        RECT                    rcSrc;
-        RECT                    rcDst;                          //!< Input dst rect without rotate being applied.
-        RECT                    rcMaxSrc;
-        VPHAL_SAMPLE_TYPE       sampleType;
+        uint32_t                dwWidth  = 0;
+        uint32_t                dwHeight = 0;
+        RECT                    rcSrc    = {0, 0, 0, 0};
+        RECT                    rcDst    = {0, 0, 0, 0};  //!< Input dst rect without rotate being applied.
+        RECT                    rcMaxSrc = {0, 0, 0, 0};
+        VPHAL_SAMPLE_TYPE       sampleType = SAMPLE_PROGRESSIVE;
     };
 
     // Parameters maintained by scaling feature parameters
-    SCALING_PARAMS              input;
-    SCALING_PARAMS              output;
-    bool                        isPrimary;
-    VPHAL_SCALING_MODE          scalingMode;
-    VPHAL_SCALING_PREFERENCE    scalingPreference;              //!< DDI indicate Scaling preference
+    SCALING_PARAMS              input       = {};
+    SCALING_PARAMS              output      = {};
+    bool                        isPrimary   = false;
+    VPHAL_SCALING_MODE          scalingMode = VPHAL_SCALING_NEAREST;
+    VPHAL_SCALING_PREFERENCE    scalingPreference  = VPHAL_SCALING_PREFER_SFC;  //!< DDI indicate Scaling preference
     bool                        bDirectionalScalar = false;     //!< Vebox Directional Scalar
-    PVPHAL_COLORFILL_PARAMS     pColorFillParams;               //!< ColorFill - BG only
-    PVPHAL_ALPHA_PARAMS         pCompAlpha;                     //!< Alpha for composited surfaces
-    VPHAL_ISCALING_TYPE         interlacedScalingType;
+    PVPHAL_COLORFILL_PARAMS     pColorFillParams = nullptr;     //!< ColorFill - BG only
+    PVPHAL_ALPHA_PARAMS         pCompAlpha       = nullptr;     //!< Alpha for composited surfaces
+    VPHAL_ISCALING_TYPE         interlacedScalingType = ISCALING_NONE;
 
     // Parameters maintained by other feature parameters.
     struct {
-        VPHAL_CSPACE            colorSpaceOutput;
+        VPHAL_CSPACE colorSpaceOutput = CSpace_None;
     } csc;
 
     struct {
-        bool                    rotationNeeded;                 //!< Whether rotate SwFilter exists on SwFilterPipe.
+        bool                    rotationNeeded = false;                 //!< Whether rotate SwFilter exists on SwFilterPipe.
     } rotation;
 
-    FeatureParamScaling        *next;                           //!< pointe to new/next generated scaling params
+    FeatureParamScaling        *next = nullptr;                           //!< pointe to new/next generated scaling params
 };
 
 class SwFilterScaling : public SwFilter
@@ -462,11 +462,11 @@ MEDIA_CLASS_DEFINE_END(SwFilterScaling)
 struct FeatureParamRotMir : public FeatureParam
 {
     // Parameters maintained by rotation feature parameters
-    VPHAL_ROTATION rotation;
+    VPHAL_ROTATION rotation = VPHAL_ROTATION_IDENTITY;
 
     // Parameters maintained by other feature parameters.
     struct {
-        MOS_TILE_TYPE  tileOutput;
+        MOS_TILE_TYPE tileOutput = MOS_TILE_X;
     } surfInfo;
 };
 
@@ -491,11 +491,11 @@ MEDIA_CLASS_DEFINE_END(SwFilterRotMir)
 
 struct FeatureParamDenoise : public FeatureParam
 {
-    VPHAL_SAMPLE_TYPE    sampleTypeInput;
-    VPHAL_DENOISE_PARAMS denoiseParams;
-    uint32_t             widthAlignUnitInput;
-    uint32_t             heightAlignUnitInput;
-    uint32_t             heightInput;
+    VPHAL_SAMPLE_TYPE    sampleTypeInput      = SAMPLE_PROGRESSIVE;
+    VPHAL_DENOISE_PARAMS denoiseParams        = {};
+    uint32_t             widthAlignUnitInput  = 0;
+    uint32_t             heightAlignUnitInput = 0;
+    uint32_t             heightInput          = 0;
 };
 
 class SwFilterDenoise : public SwFilter
@@ -518,14 +518,14 @@ MEDIA_CLASS_DEFINE_END(SwFilterDenoise)
 
 struct FeatureParamDeinterlace : public FeatureParam
 {
-    VPHAL_SAMPLE_TYPE       sampleTypeInput;
-    bool                    bHDContent;
-    PVPHAL_DI_PARAMS        diParams;
-    bool                    bFmdExtraVariance;    //!< Check if extra FMD variances need to be calculated
-    bool                    bFmdKernelEnable;     //!< FMD kernel path enabled
-    bool                    bQueryVarianceEnable; //!< Query variance enabled
-    uint32_t                heightInput;
-    RECT                    rcSrc;
+    VPHAL_SAMPLE_TYPE       sampleTypeInput      = SAMPLE_PROGRESSIVE;
+    bool                    bHDContent           = false;
+    PVPHAL_DI_PARAMS        diParams             = nullptr;
+    bool                    bFmdExtraVariance    = false;     //!< Check if extra FMD variances need to be calculated
+    bool                    bFmdKernelEnable     = false;     //!< FMD kernel path enabled
+    bool                    bQueryVarianceEnable = false;     //!< Query variance enabled
+    uint32_t                heightInput          = 0;
+    RECT                    rcSrc                = {0, 0, 0, 0};
 };
 
 class SwFilterDeinterlace : public SwFilter
@@ -578,13 +578,13 @@ MEDIA_CLASS_DEFINE_END(SwFilterSte)
 
 struct FeatureParamTcc : public FeatureParam
 {
-    bool                bEnableTCC;
-    uint8_t             Red;
-    uint8_t             Green;
-    uint8_t             Blue;
-    uint8_t             Cyan;
-    uint8_t             Magenta;
-    uint8_t             Yellow;
+    bool                bEnableTCC = false;
+    uint8_t             Red        = 0;
+    uint8_t             Green      = 0;
+    uint8_t             Blue       = 0;
+    uint8_t             Cyan       = 0;
+    uint8_t             Magenta    = 0;
+    uint8_t             Yellow     = 0;
 };
 
 class SwFilterTcc : public SwFilter
@@ -630,11 +630,11 @@ MEDIA_CLASS_DEFINE_END(SwFilterProcamp)
 
 struct FeatureParamHdr : public FeatureParam
 {
-    uint32_t        uiMaxDisplayLum;       //!< Maximum Display Luminance
-    uint32_t        uiMaxContentLevelLum;  //!< Maximum Content Level Luminance
-    VPHAL_HDR_MODE  hdrMode;
-    VPHAL_CSPACE    srcColorSpace;
-    VPHAL_CSPACE    dstColorSpace;
+    uint32_t        uiMaxDisplayLum      = 0;  //!< Maximum Display Luminance
+    uint32_t        uiMaxContentLevelLum = 0;  //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE  hdrMode              = VPHAL_HDR_MODE_NONE;
+    VPHAL_CSPACE    srcColorSpace        = CSpace_None;
+    VPHAL_CSPACE    dstColorSpace        = CSpace_None;
 };
 
 class SwFilterHdr : public SwFilter
@@ -727,8 +727,8 @@ MEDIA_CLASS_DEFINE_END(SwFilterColorFill)
 
 struct FeatureParamAlpha : public FeatureParam
 {
-    PVPHAL_ALPHA_PARAMS     compAlpha;           //!< Alpha for composited surface
-    bool                    calculatingAlpha;    //!< Alpha calculation parameters
+    PVPHAL_ALPHA_PARAMS     compAlpha         = nullptr;      //!< Alpha for composited surface
+    bool                    calculatingAlpha  = false;        //!< Alpha calculation parameters
 };
 
 class SwFilterAlpha : public SwFilter

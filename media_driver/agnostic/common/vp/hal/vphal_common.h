@@ -876,11 +876,11 @@ C_ASSERT(NOISELEVEL_VC1_HD == 1); //!< When adding, update assert & vphal_solo_s
 //!
 typedef struct _VPHAL_HVSDENOISE_PARAMS
 {
-    uint16_t            QP;
-    uint16_t            Strength;
-    VPHAL_HVSDN_MODE    Mode;
-    void*               pHVSDenoiseParam;
-    uint32_t            dwDenoiseParamSize;
+    uint16_t            QP                  = 0;
+    uint16_t            Strength            = 0;
+    VPHAL_HVSDN_MODE    Mode                = HVSDENOISE_AUTO_BDRATE;
+    void*               pHVSDenoiseParam    = nullptr;
+    uint32_t            dwDenoiseParamSize  = 0;
     uint32_t            dwGlobalNoiseLevel  = 0;  //!< Global Noise Level for Y
     uint32_t            dwGlobalNoiseLevelU = 0;  //!< Global Noise Level for U
     uint32_t            dwGlobalNoiseLevelV = 0;  //!< Global Noise Level for V
@@ -908,15 +908,15 @@ typedef struct _VPHAL_SLIMIPU_DENOISE_PARAM
 //!
 typedef struct _VPHAL_DENOISE_PARAMS
 {
-    bool                                bEnableChroma;
-    bool                                bEnableLuma;
-    bool                                bAutoDetect;
-    float                               fDenoiseFactor;
-    VPHAL_NOISELEVEL                    NoiseLevel;
-    bool                                bEnableHVSDenoise;
-    VPHAL_HVSDENOISE_PARAMS             HVSDenoise;
-    bool                                bEnableSlimIPUDenoise;
-    VPHAL_SLIMIPU_DENOISE_PARAM         SlimIPUDenoise;
+    bool                                bEnableChroma  = false;
+    bool                                bEnableLuma    = false;
+    bool                                bAutoDetect    = false;
+    float                               fDenoiseFactor = 0.0;
+    VPHAL_NOISELEVEL                    NoiseLevel     = NOISELEVEL_DEFAULT;
+    bool                                bEnableHVSDenoise = false;
+    VPHAL_HVSDENOISE_PARAMS             HVSDenoise        = {};
+    bool                                bEnableSlimIPUDenoise = false;
+    VPHAL_SLIMIPU_DENOISE_PARAM         SlimIPUDenoise        = {};
 } VPHAL_DENOISE_PARAMS, *PVPHAL_DENOISE_PARAMS;
 
 //!

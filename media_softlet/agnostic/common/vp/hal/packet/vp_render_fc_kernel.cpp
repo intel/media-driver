@@ -2351,6 +2351,7 @@ MOS_STATUS VpRenderFcKernel::SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs)
     {
         m_fcParams = (PRENDER_FC_PARAMS)MOS_AllocAndZeroMemory(sizeof(RENDER_FC_PARAMS));
     }
+    VP_RENDER_CHK_NULL_RETURN(m_fcParams);
 
     PRENDER_FC_PARAMS fcParams = nullptr;
     if (kernelConfigs.find(m_kernelId) != kernelConfigs.end())

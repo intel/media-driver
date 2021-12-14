@@ -720,7 +720,7 @@ static int16_t ShmAttachedNumber(int32_t shmid)
 
 static MOS_STATUS LockSemaphore(int32_t semid)
 {
-    struct sembuf op[2];
+    struct sembuf op[2] = {};
     op[0].sem_num = 0; // wait for [0] to be 0
     op[0].sem_op  = 0;
     op[0].sem_flg = 0;

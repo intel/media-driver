@@ -2335,12 +2335,12 @@ typedef enum _VEBOX_EXECUTION_MODE
 //!
 typedef struct _VPHAL_VEBOX_EXEC_STATE
 {
-    bool                    bEnable;                                            //!< false, legacy serial execution. true, capable of parallel vebox/render execution
-    VEBOX_EXECUTION_MODE    Mode;                                               //!< Current mode of operation.
-    bool                    bDIOutputPair01;                                    //!< Used to alternate between ADI output pairs.
-    bool                    bSpeculativeCopy;                                   //!< true, update VEBOX state for frame N+1 using frame N state
-    bool                    bFrcActive;                                         //!< When FRC is active, stay in VEBOX_EXEC_MODE_0
-    bool                    bPostponedFMDCalc;                                  //!< When in mode2, need to calc fmd variance after composition
+    bool                    bEnable                             = false;                                   //!< false, legacy serial execution. true, capable of parallel vebox/render execution
+    VEBOX_EXECUTION_MODE    Mode                                = VEBOX_EXEC_MODE_0;                       //!< Current mode of operation.
+    bool                    bDIOutputPair01                     = false;                                   //!< Used to alternate between ADI output pairs.
+    bool                    bSpeculativeCopy                    = false;                                   //!< true, update VEBOX state for frame N+1 using frame N state
+    bool                    bFrcActive                          = false;                                   //!< When FRC is active, stay in VEBOX_EXEC_MODE_0
+    bool                    bPostponedFMDCalc                   = false;                                   //!< When in mode2, need to calc fmd variance after composition
     uint32_t                ModeCount[MAX_VEBOX_EXECUTION_MODE] = {0};
 } VPHAL_VEBOX_EXEC_STATE, *PVPHAL_VEBOX_EXEC_STATE;
 

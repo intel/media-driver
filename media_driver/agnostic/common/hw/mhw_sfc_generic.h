@@ -202,6 +202,7 @@ public:
    {
        typename TSfcCmds::SFC_AVS_STATE_CMD cmd;
        MHW_CHK_NULL_RETURN(pCmdBuffer);
+       MHW_CHK_NULL_RETURN(pSfcAvsState);
 
        // Inilizatialied the SFC_AVS_STATE_CMD
        cmd.DW1.TransitionAreaWith8Pixels = 5;

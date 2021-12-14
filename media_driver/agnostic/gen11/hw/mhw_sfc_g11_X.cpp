@@ -292,6 +292,7 @@ MOS_STATUS MhwSfcInterfaceG11::AddSfcAvsState(
     PMHW_SFC_AVS_STATE              pSfcAvsState)
 {
     MHW_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_CHK_NULL_RETURN(pSfcAvsState);
 
     mhw_sfc_g11_X::SFC_AVS_STATE_CMD *cmdPtr;
     cmdPtr = (mhw_sfc_g11_X::SFC_AVS_STATE_CMD *)pCmdBuffer->pCmdPtr;
