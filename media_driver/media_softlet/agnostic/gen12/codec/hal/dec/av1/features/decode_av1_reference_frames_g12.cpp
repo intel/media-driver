@@ -160,6 +160,36 @@ namespace decode
         return &(m_basicFeature->m_destSurface.OsResource);
     }
 
+    MOS_STATUS Av1ReferenceFramesG12::GetValidReferenceIndex(uint8_t *validRefIndex)
+    {
+        DECODE_FUNC_CALL();
+
+        if (m_basicFeature->m_av1PicParams == nullptr)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        auto m_picParams = m_basicFeature->m_av1PicParams;
+
+        for (auto i = 0; i < av1NumInterRefFrames; i++)
+        {
+            auto    index    = m_picParams->m_refFrameIdx[i];
+            uint8_t frameIdx = m_picParams->m_refFrameMap[index].FrameIdx;
+            if (frameIdx >= m_basicFeature->m_maxFrameIndex)
+            {
+                continue;
+            }
+            PMOS_RESOURCE buffer = GetReferenceByFrameIndex(frameIdx);
+            if (buffer != nullptr)
+            {
+                *validRefIndex = frameIdx;
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+
+        *validRefIndex = m_basicFeature->m_av1PicParams->m_currPic.FrameIdx;
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1ReferenceFramesG12::InsertAnchorFrame(CodecAv1PicParams &picParams)
     {
         DECODE_FUNC_CALL();
@@ -474,6 +504,43 @@ namespace decode
         }
 
         return isMatched;
+    }
+
+    MOS_STATUS Av1ReferenceFramesG12::ErrorConcealment(CodecAv1PicParams &picParams)
+    {
+        DECODE_FUNC_CALL();
+        MOS_STATUS             hr           = MOS_STATUS_SUCCESS;
+        Av1ReferenceFramesG12 &refFrames    = m_basicFeature->m_refFrames;
+        PCODEC_PICTURE         refFrameList = &(picParams.m_refFrameMap[0]);
+
+        uint8_t validfPicIndex    = 0;
+        bool    hasValidRefIndex = false;
+
+        for (auto i = 0; i < av1NumInterRefFrames; i++)
+        {
+            uint8_t refPicIndex = picParams.m_refFrameIdx[i];
+            if (refPicIndex >= av1TotalRefsPerFrame)
+            {
+                continue;
+            }
+            uint8_t frameIdx = refFrameList[refPicIndex].FrameIdx;
+            auto    curframe = refFrames.GetReferenceByFrameIndex(frameIdx);
+            if (curframe == nullptr)
+            {
+                if (hasValidRefIndex == false)
+                {
+                    uint8_t validfPicIndex = 0;
+                    //Get valid reference frame index
+                    hr = GetValidReferenceIndex(&validfPicIndex);
+                    hasValidRefIndex = true;
+                }
+                //Use validfPicIndex to replace invalid Reference index for non-key frame
+                refFrameList[refPicIndex].FrameIdx = validfPicIndex;
+                DECODE_ASSERTMESSAGE("Hit invalid refFrameList[%d].FrameIdx=%d\n", refPicIndex, refFrameList[refPicIndex].FrameIdx);
+            }
+        }
+
+        return hr;
     }
 
 }  // namespace decode

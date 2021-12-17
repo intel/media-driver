@@ -380,6 +380,12 @@ namespace decode
             memset(&m_av1PicParams->m_filmGrainParams, 0, sizeof(CodecAv1FilmGrainParams));
         }
 
+        // Error Concealment for Reference List
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame && m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != intraOnlyFrame)
+        {
+            DECODE_CHK_STATUS(m_refFrames.ErrorConcealment(*m_av1PicParams));
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 

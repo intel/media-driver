@@ -101,6 +101,14 @@ public:
     //!
     PMOS_RESOURCE GetValidReference();
 
+    //!
+    //! \brief  Get valid reference index for error concealment.
+    //! \param  [out] uint8_t
+    //!         Valid reference resource index
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    MOS_STATUS GetValidReferenceIndex(uint8_t *validRefIndex);
+
     //! \brief    Identify the first nearest reference frame
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -158,6 +166,15 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS UpdateCurFrame(const CodecAv1PicParams &picParams);
+
+    //!
+    //! \brief  Error detect and concealment for reference list for picture
+    //! \param  [in] picParams
+    //!         Picture parameters
+    //! \return  MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ErrorConcealment(CodecAv1PicParams &picParams);
 
     //!
     //! \brief  Update the reference list for current frame
