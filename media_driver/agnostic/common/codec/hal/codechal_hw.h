@@ -542,6 +542,24 @@ public:
             return nullptr;
         }
     }
+
+    //!
+    //! \brief    Get hcp interface
+    //! \details  Get hcp interface in codechal hw interface next
+    //!
+    //! \return    pointer to new HCP interface
+    //!
+    inline std::shared_ptr<mhw::vdbox::hcp::Itf> GetHcpInterfaceNext()
+    {
+        if (m_hwInterfaceNext)
+        {
+            return m_hwInterfaceNext->GetHcpInterfaceNext();
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
 #endif
 
     //!

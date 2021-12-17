@@ -140,6 +140,17 @@ public:
     }
 
     //!
+    //! \brief    Get hcp interface
+    //! \details  Get hcp interface in codechal hw interface next
+    //!
+    //! \return    pointer to new HCP interface
+    //!
+    inline std::shared_ptr<mhw::vdbox::hcp::Itf> GetHcpInterfaceNext()
+    {
+        return m_hcpItf;
+    }
+
+    //!
     //! \brief    Calculates the maximum size for AVP picture level commands
     //! \details  Client facing function to calculate the maximum size for AVP picture level commands
     //! \param    [in] mode
@@ -210,10 +221,11 @@ public:
             PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
 
 protected:
-    std::shared_ptr<mhw::vdbox::avp::Itf>    m_avpItf = nullptr;      //!< Pointer to Mhw avp interface
+    std::shared_ptr<mhw::vdbox::avp::Itf>    m_avpItf   = nullptr;      //!< Pointer to Mhw avp interface
     std::shared_ptr<mhw::vdbox::vdenc::Itf>  m_vdencItf = nullptr;      //!< Pointer to Mhw vdenc interface
-    std::shared_ptr<mhw::vdbox::huc::Itf>    m_hucItf = nullptr;      //!< Pointer to Mhw huc interface
-    std::shared_ptr<mhw::mi::Itf>            m_miItf = nullptr;       //!< Pointer to Mhw mi interface
+    std::shared_ptr<mhw::vdbox::huc::Itf>    m_hucItf   = nullptr;      //!< Pointer to Mhw huc interface
+    std::shared_ptr<mhw::mi::Itf>            m_miItf    = nullptr;      //!< Pointer to Mhw mi interface
+    std::shared_ptr<mhw::vdbox::hcp::Itf>    m_hcpItf   = nullptr;      //!< Pointer to Mhw hcp interface
 
     // Next: remove legacy Interfaces
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface

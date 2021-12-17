@@ -98,7 +98,6 @@ CodechalHwInterface::CodechalHwInterface(
 #endif
 
     // Basic intialization
-    // Basic intialization
     m_osInterface = osInterface;
 
     m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
