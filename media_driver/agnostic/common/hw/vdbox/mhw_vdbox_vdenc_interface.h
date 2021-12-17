@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -314,6 +314,14 @@ public:
     //!           Vdenc img state size got
     //!
     virtual uint32_t GetVdencAvcImgStateSize() = 0;
+
+    //!
+    //! \brief    get Vdenc slc state size
+    //!
+    //! \return   uint32_t
+    //!           Vdenc slc state size got
+    //!
+    virtual uint32_t GetVdencAvcSlcStateSize() = 0;
 
     //!
     //! \brief    get Vdenc cost state size
