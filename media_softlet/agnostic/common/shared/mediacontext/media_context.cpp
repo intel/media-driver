@@ -192,6 +192,7 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
     // Be compatible to legacy MOS
     MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_gpuContextAttributeTable[index].ctxForLegacyMos));
     veStateProvided = m_gpuContextAttributeTable[index].scalabilityState;
+    MOS_OS_NORMALMESSAGE("Switched to GpuContext %d, index %d", m_gpuContextAttributeTable[index].ctxForLegacyMos, index);
 
     if (requirement->IsEnc)
     {
@@ -299,12 +300,15 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
 
     if(m_osInterface->bSetHandleInvalid)
     {
+        MOS_OS_NORMALMESSAGE("Force set INVALID_HANDLE for GpuContext %d", newAttr.ctxForLegacyMos);
         MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContextHandle(m_osInterface, MOS_GPU_CONTEXT_INVALID_HANDLE, newAttr.ctxForLegacyMos));
     }
 
     MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(m_osInterface, newAttr.ctxForLegacyMos, node, &option));
     m_osInterface->pfnSetGpuContext(m_osInterface, newAttr.ctxForLegacyMos);
     newAttr.gpuContext = m_osInterface->CurrentGpuContextHandle;
+    MOS_OS_NORMALMESSAGE("Create GpuContext %d, node %d, handle 0x%x, protectMode %d, raMode %d",
+        newAttr.ctxForLegacyMos, node, newAttr.gpuContext, option.ProtectMode, option.RAMode);
 
     // Add entry to the table
     indexReturn = m_gpuContextAttributeTable.size();
@@ -456,10 +460,10 @@ MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUC
         ctx = MOS_GPU_CONTEXT_VEBOX;
         break;
     case RenderGenericFunc:
-        ctx = MOS_GPU_CONTEXT_RENDER;
+        ctx = option.RAMode ? MOS_GPU_CONTEXT_RENDER_RA : MOS_GPU_CONTEXT_RENDER;
         break;
     case ComputeVppFunc:
-        ctx = MOS_GPU_CONTEXT_COMPUTE;
+        ctx = option.RAMode ? MOS_GPU_CONTEXT_COMPUTE_RA : MOS_GPU_CONTEXT_COMPUTE;
         break;
     case ComputeMdfFunc:
         ctx = MOS_GPU_CONTEXT_CM_COMPUTE;

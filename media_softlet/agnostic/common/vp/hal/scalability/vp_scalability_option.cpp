@@ -39,15 +39,19 @@ MOS_STATUS VpScalabilityOption::SetScalabilityOption(ScalabilityPars *params)
 {
     SCALABILITY_CHK_NULL_RETURN(params);
 
-    if (params->enableVE == false)
+    if (params->enableVE)
+    {
+        m_numPipe = params->numVebox;
+    }
+    else
     {
         m_numPipe = 1;
-        return MOS_STATUS_SUCCESS;
+        SCALABILITY_NORMALMESSAGE("Force numbPipe to 1 for enableVE == false case.");
     }
-
-    m_numPipe = params->numVebox;
     m_raMode  = params->raMode;
-    SCALABILITY_VERBOSEMESSAGE("Tile Column = %d, System VDBOX Num = %d, Decided Pipe Num = %d.", params->numTileColumns, params->numVebox, m_numPipe);
+    m_protectMode = params->protectMode;
+    SCALABILITY_NORMALMESSAGE("Tile Column = %d, System VEBOX Num = %d, Decided Pipe Num = %d, raMode = %d, protectMode = %d.",
+        params->numTileColumns, params->numVebox, m_numPipe, params->raMode, params->protectMode);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -73,10 +77,13 @@ bool VpScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params)
         m_raMode != newOption.GetRAMode() ||
         m_protectMode != newOption.GetProtectMode())
     {
+        SCALABILITY_NORMALMESSAGE("Not Matched. numPipe %d -> %d, raMode %d -> %d, protectMode %d -> %d",
+            m_numPipe, newOption.GetNumPipe(), m_raMode, newOption.GetRAMode(), m_protectMode, newOption.GetProtectMode());
         matched = false;
     }
     else
     {
+        SCALABILITY_NORMALMESSAGE("Matched. m_numPipe %d, m_raMode %d, m_protectMode %d", m_numPipe, m_raMode, m_protectMode);
         matched = true;
     }
     return matched;
