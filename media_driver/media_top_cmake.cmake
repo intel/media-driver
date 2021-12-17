@@ -151,10 +151,6 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
 endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 
-if (${CLASS_TRACE} EQUAL 1)
-    message("start to generate media_trace_offset.h in media_top_cmake.cmake")
-    execute_process(COMMAND python3 ${BS_DIR_MEDIA}/Tools/MediaDriverTools/MediaClassTrace/gen_ClassTraceOffset.py -w ${BS_DIR_MEDIA} -f ${MEDIA_SOFTLET_EXT}/agnostic/common/shared/classtrace/media_trace_offset.h)
-endif ()
 # post target attributes
 bs_set_post_target()
 
@@ -162,3 +158,12 @@ if(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS)
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
     include(${MEDIA_EXT}/media_softlet/ult/ult_top_cmake.cmake OPTIONAL)
 endif()
+
+if (${CLASS_TRACE} EQUAL 1)
+    message("start to generate media_trace_offset.h in media_top_cmake.cmake")
+    add_dependencies(${LIB_NAME} generate_classtrace)
+    add_dependencies(${LIB_NAME_OBJ} generate_classtrace)
+    add_dependencies(${LIB_NAME_STATIC} generate_classtrace)
+    add_dependencies(${LIB_NAME}_SSE2 generate_classtrace)
+    add_dependencies(${LIB_NAME}_SSE4 generate_classtrace)
+endif ()
