@@ -69,6 +69,7 @@ namespace decode
             m_isTruncatedTile   = false;
             m_decPassNum        = 1;
             m_hasTileMissing    = false;
+            m_hasDuplicateTile  = false;
         }
 
         if (m_numTiles > av1MaxTileNum)
@@ -183,11 +184,26 @@ namespace decode
                 }
             }
 
-            auto index                     = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? i : tileId;
-            m_tileDesc[index].m_offset     = tileParams[i].m_bsTileDataLocation;
-            m_tileDesc[index].m_size       = tileParams[i].m_bsTileBytesInBuffer;
-            m_tileDesc[index].m_tileRow    = tileParams[i].m_tileRow;
-            m_tileDesc[index].m_tileColumn = tileParams[i].m_tileColumn;
+            // check duplicate tile
+            auto index = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ? i : tileId; 
+            if (m_tileDesc[index].m_tileIndexCount > 0 )
+            {
+                if (tileParams[i].m_bsTileBytesInBuffer > m_tileDesc[index].m_size)
+                {
+                    m_tileDesc[index].m_offset = tileParams[i].m_bsTileDataLocation;
+                    m_tileDesc[index].m_size   = tileParams[i].m_bsTileBytesInBuffer;
+                }
+                m_tileDesc[index].m_tileIndexCount++;
+                m_hasDuplicateTile = true;
+            }
+            else
+            {
+                m_tileDesc[index].m_offset     = tileParams[i].m_bsTileDataLocation;
+                m_tileDesc[index].m_size       = tileParams[i].m_bsTileBytesInBuffer;
+                m_tileDesc[index].m_tileRow    = tileParams[i].m_tileRow;
+                m_tileDesc[index].m_tileColumn = tileParams[i].m_tileColumn;
+                m_tileDesc[index].m_tileIndexCount++;
+            }
 
             if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
             {

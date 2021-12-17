@@ -50,8 +50,8 @@ namespace decode
         m_isLastTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId)) ? 1 : 0;
         m_isFirstTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId
             - m_av1BasicFeature->m_tileCoding.m_numTiles + 1)) ? 1 : 0;
-        // For tile missing scenario
-        if (m_av1BasicFeature->m_tileCoding.m_hasTileMissing)
+        // For tile missing scenario and duplicate tile scenario
+        if (m_av1BasicFeature->m_tileCoding.m_hasTileMissing || m_av1BasicFeature->m_tileCoding.m_hasDuplicateTile)
         {
             m_isFirstTileInPartialFrm = (tileIdx == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId
                 - m_av1BasicFeature->m_tileCoding.m_totalTileNum + 1)) ? 1 : 0;
