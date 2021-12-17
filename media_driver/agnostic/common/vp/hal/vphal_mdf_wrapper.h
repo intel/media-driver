@@ -403,15 +403,15 @@ private:
         return 0;
     }
 
-    PVPHAL_SURFACE    mVphalSurface;
-    CmSurfType       *mCmSurface;
-    SurfaceIndex     *mSurfaceIndex;
-    SurfaceIndex     *mSamplerSurfaceIndex;
-    SurfaceIndex     *mSampler8x8SurfaceIndex;
+    PVPHAL_SURFACE    mVphalSurface            = nullptr;
+    CmSurfType       *mCmSurface               = nullptr;
+    SurfaceIndex     *mSurfaceIndex            = nullptr;
+    SurfaceIndex     *mSamplerSurfaceIndex     = nullptr;
+    SurfaceIndex     *mSampler8x8SurfaceIndex  = nullptr;
 
-    const int                   mWidth;
-    const int                   mHeight;
-    const int                   mDepth;
+    const int                   mWidth      = 0;
+    const int                   mHeight     = 0;
+    const int                   mDepth      = 0;
     const GMM_RESOURCE_FORMAT   mFormat;
     CmContext                  *m_cmContext = nullptr;
 };

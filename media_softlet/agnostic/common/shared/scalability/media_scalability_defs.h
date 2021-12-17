@@ -68,18 +68,18 @@ enum ScalabilitySyncType
 
 struct ScalabilityPars : public ContextRequirement
 {
-    bool    enableMdf;
-    bool    enableVE;
-    bool    forceMultiPipe;
+    bool    enableMdf      = false;
+    bool    enableVE       = false;
+    bool    forceMultiPipe = false;
 
     uint32_t frameWidth  = 0;
     uint32_t frameHeight = 0;
 
-    uint8_t numVdbox;
-    uint16_t numTileRows;
-    uint16_t numTileColumns;
+    uint8_t numVdbox     = 0;
+    uint16_t numTileRows = 0;
+    uint16_t numTileColumns = 0;
 
-    uint8_t numVebox;
+    uint8_t numVebox = 0;
     bool    enableTileReplay = false;
     uint32_t raMode = 0;
     uint32_t protectMode = 0;
