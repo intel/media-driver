@@ -90,14 +90,21 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
     }
     else
     {
+        MosOcaAutoLock autoLock(mutex);
         ocaBufHandle = pOcaInterface->LockOcaBufAvailable(&mosContext, gpuContextHandle);
         if (MOS_OCA_INVALID_BUFFER_HANDLE == ocaBufHandle)
         {
             OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
             return;
         }
-        MosOcaAutoLock autoLock(mutex);
-        s_hOcaMap.insert(std::make_pair(cmdBuffer.pCmdBase, ocaBufHandle));
+        auto success = s_hOcaMap.insert(std::make_pair(cmdBuffer.pCmdBase, ocaBufHandle));
+        if (!success.second)
+        {
+            // Should never come to here.
+            MOS_OS_ASSERTMESSAGE("ocaBufHandle has already been assigned to current cmdBuffer!");
+            OnOcaError(&mosContext, MOS_STATUS_INVALID_HANDLE, __FUNCTION__, __LINE__);
+            return;
+        }
     }
     
     status = pOcaInterface->On1stLevelBBStart(ocaBase, ocaBufHandle, &mosContext, &cmdBuffer.OsResource, 0, true, 0);
