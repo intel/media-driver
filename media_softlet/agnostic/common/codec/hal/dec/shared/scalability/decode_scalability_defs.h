@@ -41,22 +41,22 @@ enum ScalabilityMode
 
 struct DecodeScalabilityPars : public ScalabilityPars
 {
-    bool    disableScalability;
-    bool    disableRealTile;
+    bool    disableScalability = false;
+    bool    disableRealTile = false;
 
-    bool    usingSfc;
-    bool    usingHcp;
-    bool    usingSlimVdbox;
+    bool    usingSfc = false;
+    bool    usingHcp = false;
+    bool    usingSlimVdbox = false;
 
     MOS_FORMAT surfaceFormat = Format_NV12;
 
-    uint8_t maxTileColumn;
-    uint8_t maxTileRow;
+    uint8_t maxTileColumn = 0;
+    uint8_t maxTileRow = 0;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    uint32_t modeSwithThreshold1;
-    uint32_t modeSwithThreshold2;
-    uint8_t  userPipeNum;
+    uint32_t modeSwithThreshold1 = 0;
+    uint32_t modeSwithThreshold2 = 0;
+    uint8_t  userPipeNum = 0;
 #endif
 };
 }
