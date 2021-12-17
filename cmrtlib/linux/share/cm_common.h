@@ -31,9 +31,9 @@
 class SurfaceIndex
 {
 public:
-    CM_NOINLINE SurfaceIndex() { m_index = 0; };
-    CM_NOINLINE SurfaceIndex(const SurfaceIndex& src) { m_index = src.m_index; };
-    CM_NOINLINE SurfaceIndex(const unsigned int& n) { m_index = n; };
+    CM_NOINLINE SurfaceIndex() { m_index = 0;  m_extraByte = '0'; };
+    CM_NOINLINE SurfaceIndex(const SurfaceIndex& src) { m_index = src.m_index;  m_extraByte = '0'; };
+    CM_NOINLINE SurfaceIndex(const unsigned int& n) { m_index = n; m_extraByte = '0'; };
     CM_NOINLINE SurfaceIndex& operator = (const unsigned int& n) { this->m_index = n; return *this; };
     CM_NOINLINE SurfaceIndex& operator + (const unsigned int& n) { this->m_index += n; return *this; };
     virtual unsigned int get_data(void) { return m_index; };
@@ -55,9 +55,9 @@ private:
 class SamplerIndex
 {
 public:
-    CM_NOINLINE SamplerIndex() { m_index = 0; };
-    CM_NOINLINE SamplerIndex(SamplerIndex& src) { m_index = src.get_data(); };
-    CM_NOINLINE SamplerIndex(const unsigned int& n) { m_index = n; };
+    CM_NOINLINE SamplerIndex() { m_index = 0; m_extraByte = '0'; };
+    CM_NOINLINE SamplerIndex(SamplerIndex& src) { m_index = src.get_data(); m_extraByte = '0'; };
+    CM_NOINLINE SamplerIndex(const unsigned int& n) { m_index = n;  m_extraByte = '0'; };
     CM_NOINLINE SamplerIndex& operator = (const unsigned int& n) { this->m_index = n; return *this; };
     virtual unsigned int get_data(void) { return m_index; };
 
@@ -79,9 +79,9 @@ class VmeIndex
 
 {
 public:
-    CM_NOINLINE VmeIndex () { m_index = 0; };
-    CM_NOINLINE VmeIndex (VmeIndex& src) { m_index = src.get_data(); };
-    CM_NOINLINE VmeIndex (const unsigned int& n) { m_index = n; };
+    CM_NOINLINE VmeIndex () { m_index = 0;  m_extraByte = '0'; };
+    CM_NOINLINE VmeIndex (VmeIndex& src) { m_index = src.get_data();  m_extraByte = '0'; };
+    CM_NOINLINE VmeIndex (const unsigned int& n) { m_index = n;  m_extraByte = '0'; };
     CM_NOINLINE VmeIndex & operator = (const unsigned int& n) { this->m_index = n; return *this; };
     virtual unsigned int get_data(void) { return m_index; };
 private:

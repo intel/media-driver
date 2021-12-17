@@ -2744,6 +2744,7 @@ matrix<T,R,C>::matrix(const T2 initArray[])
 template <typename T, uint R, uint C>
 matrix<T,R,C>::matrix()
 {
+    number = 0;
     //number = OBJ_COUNTER ? ++CmEmulSys::_count : 0;
 }
 
