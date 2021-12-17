@@ -537,12 +537,6 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysSliceLevel()
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
 
-    if (!m_singleTaskPhaseSupported)
-    {
-        PerfTagSetting perfTag;
-        CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE);
-    }
-
     MHW_BATCH_BUFFER secondLevelBatchBuffer;
     MOS_ZeroMemory(&secondLevelBatchBuffer, sizeof(secondLevelBatchBuffer));
     secondLevelBatchBuffer.dwOffset = 0;
@@ -1774,10 +1768,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteMeKernel(
     )
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
-    if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
-    {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
-    }
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
     SendKernelCmdsParams sendKernelCmdsParams;
     sendKernelCmdsParams = SendKernelCmdsParams();
     sendKernelCmdsParams.EncFunctionType = encFunctionType;
@@ -1920,11 +1911,13 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteMeKernel(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnSubmitBlocks(
         m_stateHeapInterface,
         kernelState));
+    
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
+
     if (!m_singleTaskPhaseSupported || m_lastTaskInPhase)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_stateHeapInterface->pfnUpdateGlobalCmdBufId(
             m_stateHeapInterface));
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
@@ -2812,7 +2805,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteTileLevel()
         m_prevFrameSegEnabled                                                  = m_vp9PicParams->PicFlags.fields.segmentation_enabled;
 
         // Reset parameters for next PAK execution
-        if (!m_singleTaskPhaseSupported)
+        if ((!m_singleTaskPhaseSupported) && (IsLastPass()))
         {
             m_osInterface->pfnResetPerfBufferID(m_osInterface);
         }
@@ -3670,12 +3663,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
         // Invoke BRC init/reset FW
         if (m_brcInit || m_brcReset)
         {
-            if (!m_singleTaskPhaseSupported)
-            {
-                //Reset earlier set PAK perf tag
-                m_osInterface->pfnResetPerfBufferID(m_osInterface);
-                CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET);
-            }
+            CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_BRC_INIT_RESET);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcInitReset());
             m_brcInit = m_brcReset = false;
         }
@@ -3699,12 +3687,8 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
                 ReturnCommandBuffer(&cmdBuffer);
                 m_singleTaskPhaseSupported = false;
             }
-            if (!m_singleTaskPhaseSupported)
-            {
-                //Reset performance buffer used for BRC init
-                m_osInterface->pfnResetPerfBufferID(m_osInterface);
-                CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE);
-            }
+
+            CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_BRC_UPDATE);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCBrcUpdate());
             //Restore Original Frame Tracking Header
             if (m_dysBrc && m_dysRefFrameFlags != DYS_REF_NONE)
@@ -3724,19 +3708,10 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
     {
         if (IsFirstPipe() && (IsFirstPass() || IsLastPass() || m_vdencBrcEnabled))  // Before the first PAK pass and for RePak pass
         {
-            if (!m_singleTaskPhaseSupported)
-            {
-                //Reset earlier set PAK perf tag
-                m_osInterface->pfnResetPerfBufferID(m_osInterface);
-                // Add Hpu tag here after updated
-                CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_8X8_PU);
-            }
+            CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_8X8_PU);
             CODECHAL_ENCODE_CHK_STATUS_RETURN(HuCVp9Prob());
-            if (!m_singleTaskPhaseSupported)
-            {
-                //reset performance buffer used for HPU update
-                m_osInterface->pfnResetPerfBufferID(m_osInterface);
-            }
+            // restore perf tag to PAK
+            CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE);
         }
     }
     else
@@ -3781,11 +3756,6 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecutePictureLevel()
 
     MOS_COMMAND_BUFFER cmdBuffer;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(GetCommandBuffer(&cmdBuffer));
-
-    if (!m_singleTaskPhaseSupported)
-    {
-        CODECHAL_ENCODE_SET_PERFTAG_INFO(perfTag, CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE);
-    }
 
     // Non scalable mode header
     if ((!m_singleTaskPhaseSupported || m_firstTaskInPhase) && !m_scalableMode)
@@ -5283,13 +5253,15 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
     if ((!m_singleTaskPhaseSupported || m_firstTaskInPhase) && !m_scalableMode)
     {
         bool requestFrameTracking = false;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         // Send command buffer header at the beginning (OS dependent)
         // frame tracking tag is only added in the last command buffer header
         requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : m_lastTaskInPhase;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
         m_firstTaskInPhase = false;
     }
+    // Collect of HuC BRC Update kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
+
     int currPass = GetCurrentPass();
     if (m_scalableMode && m_isTilingSupported)
     {
@@ -5455,10 +5427,11 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCVp9Prob()
             &cmdBuffer,
             &copyMemMemParams));
     }
+    // Ending collect of HuC BRC Update kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     if ((!m_singleTaskPhaseSupported && !m_scalableMode) || m_superFrameHucPass)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
@@ -5597,13 +5570,14 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcInitReset()
 
     if ((!m_singleTaskPhaseSupported || m_firstTaskInPhase) && !m_scalableMode)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         // Send command buffer header at the beginning (OS dependent)
         bool requestFrameTracking = m_singleTaskPhaseSupported ? m_firstTaskInPhase : false;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendPrologWithFrameTracking(&cmdBuffer, requestFrameTracking));
 
         m_firstTaskInPhase = false;
     }
+    // Collect HuC Init/Reset kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     // load kernel from WOPCM into L2 storage RAM
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;
@@ -5659,10 +5633,11 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcInitReset()
     auto mmioRegisters = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, false));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
+    // End: Collect HuC Init/Reset kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
 
@@ -5812,6 +5787,8 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
 
         m_firstTaskInPhase = false;
     }
+    // Collect HuC BRC Update kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectStartCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     // For Scalability, wait here for previous pass PAK int done
     if (m_scalableMode && !IsFirstPass() && m_isTilingSupported && !m_brcInit && !m_brcReset)
@@ -5951,6 +5928,9 @@ MOS_STATUS CodechalVdencVp9StateG12::HuCBrcUpdate()
     auto mmioRegisters = m_hucInterface->GetMmioRegisters(MHW_VDBOX_NODE_1);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHucErrorStatus(mmioRegisters, &cmdBuffer, false));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InsertConditionalBBEndWithHucErrorStatus(&cmdBuffer));
+    
+    // Ending collect of HuC BRC Update kernel performance data
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_perfProfiler->AddPerfCollectEndCmd((void *)this, m_osInterface, m_miInterface, &cmdBuffer));
 
     if (!m_singleTaskPhaseSupported && (m_osInterface->bNoParsingAssistanceInKmd) && !m_scalableMode)
     {
