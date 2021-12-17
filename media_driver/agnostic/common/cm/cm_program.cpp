@@ -140,6 +140,7 @@ CmProgramRT::CmProgramRT( CmDeviceRT* device, uint32_t programId ):
     m_isHwDebugEnabled(false),
     m_refCount(0),
     m_programIndex(programId),
+    m_kernelIndex(0),
     m_fJITCompile(nullptr),
     m_fFreeBlock(nullptr),
     m_fJITVersion(nullptr),
