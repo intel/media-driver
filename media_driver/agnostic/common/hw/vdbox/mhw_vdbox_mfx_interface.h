@@ -629,6 +629,10 @@ protected:
 
     MmioRegistersMfx            m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< mfx mmio registers
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    bool bMMCReported = false;
+#endif
+
     //!
     //! \brief    Constructor
     //!

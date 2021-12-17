@@ -550,6 +550,17 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeModeSelectCmd(
     cmd.DW1.TileBasedEngine                             = paramsG12->bTileBasedReplayMode;
     cmd.DW3.PicStatusErrorReportId                      = false;
     cmd.DW5.PhaseIndicator                              = paramsG12->ucPhaseIndicator;
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (m_decodeInUse)
+    {
+        if (cmd.DW1.PipeWorkingMode == MHW_VDBOX_HCP_PIPE_WORK_MODE_CABAC_REAL_TILE)
+        {
+            MOS_TraceEvent(EVENT_DECODE_FEATURE_RT_SCALABILITY, EVENT_TYPE_INFO, NULL, 0, NULL, 0);
+        }
+    }
+#endif
+
     MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, params->pBatchBuffer, &cmd, sizeof(cmd)));
 
     // for Gen11+, we need to add MFX wait for both KIN and VRT before and after AVP Pipemode select...
@@ -1444,6 +1455,17 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpPipeBufAddrCmd(
             cmdBuffer,
             &resourceParams));
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (m_decodeInUse)
+    {
+        if (cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable && !bMMCReported)
+        {
+            MOS_TraceEvent(EVENT_DECODE_FEATURE_MMC, EVENT_TYPE_INFO, NULL, 0, NULL, 0);
+            bMMCReported = true;
+        }
+    }
+#endif
 
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, sizeof(cmd)));
 

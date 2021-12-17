@@ -381,12 +381,12 @@ This class defines the interfaces for constructing Vdbox Avp commands across all
 class MhwVdboxAvpInterface
 {
 protected:
-    PMOS_INTERFACE              m_osInterface = nullptr;        //!< Pointer to OS interface
-    MhwMiInterface              *m_miInterface = nullptr;       //!< Pointer to MI interface
-    MhwCpInterface              *m_cpInterface = nullptr;       //!< Pointer to CP interface
+    PMOS_INTERFACE              m_osInterface = nullptr;         //!< Pointer to OS interface
+    MhwMiInterface              *m_miInterface = nullptr;        //!< Pointer to MI interface
+    MhwCpInterface              *m_cpInterface = nullptr;        //!< Pointer to CP interface
     MEDIA_FEATURE_TABLE         *m_skuTable  = nullptr;          //!< Pointer to SKU table
     MEDIA_WA_TABLE              *m_waTable   = nullptr;          //!< Pointer to WA table
-    bool                        m_decodeInUse = false;          //!< Flag to indicate if the interface is for decoder or encoder use
+    bool                        m_decodeInUse = false;           //!< Flag to indicate if the interface is for decoder or encoder use
 
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};    //!< Cacheability settings
     MmioRegistersAvp                 m_mmioRegisters[MHW_VDBOX_NODE_MAX]                        = {};    //!< AVP mmio registers
@@ -402,6 +402,9 @@ protected:
 
     std::shared_ptr<void> m_avpItfNew = nullptr;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    bool bMMCReported = false;
+#endif
     //!
     //! \brief    Constructor
     //!

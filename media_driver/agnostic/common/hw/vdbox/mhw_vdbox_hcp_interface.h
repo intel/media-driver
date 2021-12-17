@@ -384,6 +384,10 @@ protected:
 
     std::shared_ptr<void> m_hcpItfNew = nullptr;
 
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    bool bMMCReported = false;
+#endif
+
     //!
     //! \brief    Constructor
     //!

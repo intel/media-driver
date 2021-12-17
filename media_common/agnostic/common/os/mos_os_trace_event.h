@@ -187,12 +187,17 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_BUFFER_PICPARAM_AVC,              //! event for Decode AVC Pic Paramters
     EVENT_DECODE_BUFFER_SLICEPARAM_AVC,            //! event for Decode AVC Slice Paramters
     EVENT_DECODE_BUFFER_PICPARAM_HEVC,             //! event for Decode HEVC Pic Paramters
-    EVENT_DECODE_BUFFER_EXTPICPARAM_HEVC,          //! event for Decode HEVC EXT Pic Paramters
+    EVENT_DECODE_BUFFER_REXTPICPARAM_HEVC,         //! event for Decode HEVC REXT Pic Paramters
     EVENT_DECODE_BUFFER_SCCPICPARAM_HEVC,          //! event for Decode HEVC SCC Pic Paramters
     EVENT_DECODE_BUFFER_SLICEPARAM_HEVC,           //! event for Decode HEVC Slice Paramters
     EVENT_DECODE_CMD_HCP_PICSTATE_HEVC,            //! event for Decode HcpHevcPicState Cmd
     EVENT_DECODE_CMD_HCP_REXTPICSTATE_HEVC,        //! event for Decode HcpHevcRextPicState Cmd
     EVENT_DECODE_CMD_HCP_SCCPICSTATE_HEVC,         //! event for Decode HcpHevcSccPicState Cmd
+    EVENT_DECODE_FEATURE_MMC,                      //! event for Decode Feature MMC
+    EVENT_DECODE_FEATURE_VT_SCALABILITY,           //! event for Decode Feature Virtual Tile Scalability
+    EVENT_DECODE_FEATURE_RT_SCALABILITY,           //! event for Decode Feature Real Tile Scalability
+    EVENT_DECODE_FEATURE_DECODEMODE_REPORT,        //! event for Decode Feature Decode Mode Report
+    EVENT_DECODE_SURFACE_DUMPINFO,                 //! event for Decode Yuv Surface Info
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

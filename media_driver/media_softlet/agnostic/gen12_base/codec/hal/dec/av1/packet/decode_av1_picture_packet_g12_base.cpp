@@ -1694,6 +1694,8 @@ namespace decode{
 
     MOS_STATUS Av1DecodePicPkt_G12_Base::TraceDataDumpReferences(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams)
     {
+        bool bReport = false;
+
         if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
         {
             if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame)
@@ -1705,6 +1707,27 @@ namespace decode{
                     MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
                     dstSurface.OsResource = *(pipeBufAddrParams.m_references[n]);
                     DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
+
+                    if (bReport)
+                    {
+                        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
+                        {
+                            PICTURE_FRAME,
+                            dstSurface.dwOffset,
+                            dstSurface.YPlaneOffset.iYOffset,
+                            dstSurface.dwPitch,
+                            dstSurface.dwWidth,
+                            dstSurface.dwHeight,
+                            (uint32_t)dstSurface.Format,
+                            dstSurface.UPlaneOffset.iLockSurfaceOffset,
+                            dstSurface.VPlaneOffset.iLockSurfaceOffset,
+                            dstSurface.UPlaneOffset.iSurfaceOffset,
+                            dstSurface.VPlaneOffset.iSurfaceOffset,
+                        };
+                        MOS_TraceEvent(EVENT_DECODE_SURFACE_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+                    
+                        bReport = true;
+                    }
 
                     if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
                     {
@@ -1758,6 +1781,7 @@ namespace decode{
                 }
             }
         }
+
         return MOS_STATUS_SUCCESS;
     }
 #endif

@@ -150,7 +150,6 @@ namespace decode
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
         MOS_STATUS TraceDataDumpInternalBuffers(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
-
         MOS_STATUS TraceDataDumpReferences(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams);
 #endif
 

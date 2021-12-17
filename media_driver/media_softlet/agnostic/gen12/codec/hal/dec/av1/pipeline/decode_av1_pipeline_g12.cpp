@@ -195,7 +195,7 @@ namespace decode
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
                 if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
                 {
-                    TraceDumpSecondLevelBatchBuffer(m_av1DecodePkt->GetSecondLvlBB());
+                    TraceDataDump2ndLevelBB(m_av1DecodePkt->GetSecondLvlBB());
                 }
 #endif
 

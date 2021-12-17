@@ -451,14 +451,29 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
 #endif
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS DecodePipeline::TraceDumpOutput(const DecodeStatusReportData &reportData)
+MOS_STATUS DecodePipeline::TraceDataDumpOutput(const DecodeStatusReportData &reportData)
 {
     bool bAllocate = false;
     MOS_SURFACE dstSurface;
     MOS_ZeroMemory(&dstSurface, sizeof(dstSurface));
-    dstSurface.Format     = Format_NV12;
     dstSurface.OsResource = reportData.currDecodedPicRes;
     DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
+
+    DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
+    {
+        (uint32_t)reportData.currDecodedPic.PicFlags,
+        dstSurface.dwOffset,
+        dstSurface.YPlaneOffset.iYOffset,
+        dstSurface.dwPitch,
+        dstSurface.dwWidth,
+        dstSurface.dwHeight,
+        (uint32_t)dstSurface.Format,
+        dstSurface.UPlaneOffset.iLockSurfaceOffset,
+        dstSurface.VPlaneOffset.iLockSurfaceOffset,
+        dstSurface.UPlaneOffset.iSurfaceOffset,
+        dstSurface.VPlaneOffset.iSurfaceOffset,
+    };
+    MOS_TraceEvent(EVENT_DECODE_SURFACE_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0); 
 
     if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
     {
@@ -513,7 +528,7 @@ MOS_STATUS DecodePipeline::TraceDumpOutput(const DecodeStatusReportData &reportD
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS DecodePipeline::TraceDumpSecondLevelBatchBuffer(PMHW_BATCH_BUFFER batchBuffer)
+MOS_STATUS DecodePipeline::TraceDataDump2ndLevelBB(PMHW_BATCH_BUFFER batchBuffer)
 {
     DECODE_FUNC_CALL();
 
@@ -638,16 +653,16 @@ MOS_STATUS DecodePipeline::StatusCheck()
 #endif
         DECODE_CHK_STATUS(DumpOutput(reportData));
 
-#if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DSTYUV_KEYWORD)
-        {
-            DECODE_CHK_STATUS(TraceDumpOutput(reportData));
-        }
-#endif
-
         m_debugInterface->m_bufferDumpFrameNum = bufferDumpNumTemp;
         m_debugInterface->m_currPic            = currPicTemp;
         m_debugInterface->m_frameType          = frameTypeTemp;
+#endif
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DSTYUV_KEYWORD)
+        {
+            DECODE_CHK_STATUS(TraceDataDumpOutput(reportData));
+        }
 #endif
 
         m_statusCheckCount++;
