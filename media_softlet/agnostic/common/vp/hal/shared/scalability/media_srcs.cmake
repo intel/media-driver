@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,23 +18,25 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+if(${Media_Scalability_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_context.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_scalability_multipipe.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_context.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_scalability_multipipe.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_phase.h
 )
 
 set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
- )
+)
 
-set(HEADERS_
-    ${HEADERS_}
+set(HEADERS_NEW
+    ${HEADERS_NEW}
     ${TMP_HEADERS_}
 )
 
@@ -47,5 +49,8 @@ set(COMMON_HEADERS_
     ${COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
+
+source_group( VpHalNext\\Shared\\Scalability FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+endif()
 
 media_add_curr_to_include_path()

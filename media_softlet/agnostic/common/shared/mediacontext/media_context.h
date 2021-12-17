@@ -171,7 +171,7 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS FunctionToNode(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_NODE& node);
-    MOS_STATUS FunctionToNodeDecode(MOS_GPU_NODE& node);
+    MOS_STATUS FunctionToNodeCodec(MOS_GPU_NODE& node);
 
     // Be compatible to Legacy MOS
     MOS_STATUS FunctionToGpuContext(MediaFunction func, const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx);
