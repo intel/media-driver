@@ -5174,8 +5174,9 @@ static VAStatus DdiMedia_CopySurfaceToImage(
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     DDI_CHK_NULL(mediaCtx,  "nullptr mediaCtx.",    VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_CHK_NULL(surface,  "nullptr meida surface.", VA_STATUS_ERROR_INVALID_BUFFER);
-
+    uint32_t flag = MOS_LOCKFLAG_READONLY;
     VAStatus vaStatus = VA_STATUS_SUCCESS;
+
     //Lock Surface
     if ((Media_Format_CPU != surface->format))
     {
@@ -5186,7 +5187,12 @@ static VAStatus DdiMedia_CopySurfaceToImage(
             DDI_NORMALMESSAGE("surface Decompression fail, continue next steps.");
         }
     }
-    void *surfData = DdiMediaUtil_LockSurface(surface, MOS_LOCKFLAG_READONLY);
+
+    if (image->format.fourcc != VA_FOURCC_NV12)
+       flag = flag | MOS_LOCKFLAG_NO_SWIZZLE;
+
+    void* surfData = DdiMediaUtil_LockSurface(surface, flag);
+
     if (surfData == nullptr)
     {
         DDI_ASSERTMESSAGE("nullptr surfData.");
@@ -5205,7 +5211,28 @@ static VAStatus DdiMedia_CopySurfaceToImage(
     uint8_t *ySrc = nullptr;
     uint8_t *yDst = (uint8_t*)imageData;
 
-    ySrc = (uint8_t*)surfData;
+    uint8_t* swizzleData = nullptr;
+
+    if (!surface->pMediaCtx->bIsAtomSOC && surface->TileType != I915_TILING_NONE && image->format.fourcc != VA_FOURCC_NV12)
+    {
+        swizzleData = (uint8_t*)MOS_AllocMemory(surface->data_size);
+        if (nullptr != swizzleData)
+        {
+            SwizzleSurface(surface->pMediaCtx, surface->pGmmResourceInfo, surfData, (MOS_TILE_TYPE)surface->TileType, (uint8_t*)swizzleData, false);
+            ySrc = swizzleData;
+        }
+        else
+        {
+             DDI_ASSERTMESSAGE("nullptr swizzleData.");
+             DdiMedia_UnmapBuffer(ctx, image->buf);
+             DdiMediaUtil_UnlockSurface(surface);
+             return VA_STATUS_ERROR_INVALID_BUFFER;
+        }
+    }
+    else
+    {
+        ySrc = (uint8_t*)surfData;
+    }
 
     DdiMedia_CopyPlane(yDst, image->pitches[0], ySrc, surface->iPitch, image->height);
     if (image->num_planes > 1)
@@ -5228,6 +5255,11 @@ static VAStatus DdiMedia_CopySurfaceToImage(
         }
     }
 
+    if (nullptr != swizzleData)
+    {
+        MOS_FreeMemory(swizzleData);
+        swizzleData = nullptr;
+    }
     vaStatus = DdiMedia_UnmapBuffer(ctx, image->buf);
     if (vaStatus != VA_STATUS_SUCCESS)
     {
@@ -5303,7 +5335,10 @@ VAStatus DdiMedia_GetImage(
     VASurfaceID output_surface = surface;
 
     if (inputSurface->format != DdiMedia_OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
-        width != vaimg->width || height != vaimg->height)
+        (width != vaimg->width || height != vaimg->height) &&
+        (vaimg->format.fourcc != VA_FOURCC_444P &&
+        vaimg->format.fourcc != VA_FOURCC_422V &&
+        vaimg->format.fourcc != VA_FOURCC_422H))
     {
         VAContextID context = VA_INVALID_ID;
         //Create VP Context.
