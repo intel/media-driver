@@ -20,15 +20,12 @@
 
 set(TMP_MI_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_hwcmd_xe_xpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_xe_xpm_base_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_xe_xpm_base.h
 )
 
 set(HEADERS_
     ${HEADERS_}
-    ${TMP_MI_HEADERS_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
     ${TMP_MI_HEADERS_}
 )
 
