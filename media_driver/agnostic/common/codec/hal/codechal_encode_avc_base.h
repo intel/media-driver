@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1613,15 +1613,6 @@ public:
         MhwMiInterface                 *miInterface,
         PMOS_COMMAND_BUFFER            cmdBuffer,
         uint32_t                       currPass);
-
-    virtual MOS_STATUS AddMfxAvcSlice(
-        PMOS_COMMAND_BUFFER        cmdBuffer,
-        PMHW_BATCH_BUFFER          batchBuffer,
-        PMHW_VDBOX_AVC_SLICE_STATE avcSliceState);
-
-    virtual MOS_STATUS AddVdencSliceStateCmd(
-        PMOS_COMMAND_BUFFER        cmdBuffer,
-        PMHW_VDBOX_AVC_SLICE_STATE params);
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpSeqParams(

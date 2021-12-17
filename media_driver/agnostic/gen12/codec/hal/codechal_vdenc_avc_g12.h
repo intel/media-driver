@@ -181,8 +181,6 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
 
    protected:
     class SfdCurbe;
-    struct BrcInitDmem;
-    struct BrcUpdateDmem;
     bool                  m_vdencUltraModeEnable = false;   //!< Enable VDEnc ultra mode
     bool                  m_forcedTCBRC = false;            //!< TCBRC forced instead of LowDelayBRC
 
@@ -209,8 +207,6 @@ protected:
 
     virtual void CopyMBQPDataToStreamIn(CODECHAL_VDENC_STREAMIN_STATE* pData, uint8_t* pInputData);
 
-    virtual uint16_t GetAdaptiveRoundingNumSlices() { return 0; }
-
 #if USE_CODECHAL_DEBUG_TOOL
 protected:
     virtual MOS_STATUS PopulateBrcInitParam(
@@ -229,6 +225,7 @@ protected:
 
     virtual MOS_STATUS ModifyEncodedFrameSizeWithFakeHeaderSize( PMOS_COMMAND_BUFFER cmdBuffer) override;
 
+private:
     MOS_STATUS DumpParsedBRCInitDmem(
         struct BrcInitDmem* dmem);
 

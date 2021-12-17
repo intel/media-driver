@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -5157,7 +5157,7 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
         }
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddVdencBrcImgBuffer(
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AddVdencBrcImgBuffer(
         &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
         imageStateParams));
     MOS_Delete(imageStateParams);
@@ -6182,10 +6182,6 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
         }
         else
         {
-            // current location to add cmds in 2nd level batch buffer
-            m_batchBufferForVdencImgStat[0].iCurrent = 0;
-            // reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
-            m_batchBufferForVdencImgStat[0].dwOffset = 0;
             secondLevelBatchBufferUsed = &(m_batchBufferForVdencImgStat[0]);
         }
         MOS_Delete(imageStateParams);
@@ -6296,14 +6292,82 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
 
     avcSlcParams = m_avcSliceParams;
 
-    CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS packSlcHeaderParams = {};
-    MHW_VDBOX_AVC_SLICE_STATE                  sliceState          = {};
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetCommonSliceState(packSlcHeaderParams, sliceState));
+    CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS packSlcHeaderParams;
+    packSlcHeaderParams.pBsBuffer          = &m_bsBuffer;
+    packSlcHeaderParams.pPicParams         = avcPicParams;
+    packSlcHeaderParams.pSeqParams         = m_avcSeqParam;
+    packSlcHeaderParams.ppRefList          = &(m_refList[0]);
+    packSlcHeaderParams.CurrPic            = m_currOriginalPic;
+    packSlcHeaderParams.CurrReconPic       = m_currReconstructedPic;
+    packSlcHeaderParams.UserFlags          = m_userFlags;
+    packSlcHeaderParams.NalUnitType        = m_nalUnitType;
+    packSlcHeaderParams.wPictureCodingType = m_pictureCodingType;
+    packSlcHeaderParams.bVdencEnabled      = true;
+
+    MHW_VDBOX_AVC_SLICE_STATE sliceState;
+    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
+    sliceState.presDataBuffer      = &m_resMbCodeSurface;
+    sliceState.pAvcPicIdx          = &(m_picIdx[0]);
+    sliceState.pEncodeAvcSeqParams = m_avcSeqParam;
+    sliceState.pEncodeAvcPicParams = avcPicParams;
+    sliceState.pBsBuffer           = &m_bsBuffer;
+    sliceState.ppNalUnitParams     = m_nalUnitParams;
+    sliceState.bBrcEnabled         = false;
+    // Disable Panic mode when min/max QP control is on. kernel may disable it, but disable in driver also.
+    sliceState.bRCPanicEnable                = m_panicEnable && (!m_minMaxQpControlEnabled);
+    sliceState.bAcceleratorHeaderPackingCaps = m_encodeParams.bAcceleratorHeaderPackingCaps;
+    sliceState.wFrameFieldHeightInMB         = m_frameFieldHeightInMb;
 
     MHW_VDBOX_VD_PIPE_FLUSH_PARAMS vdPipelineFlushParams;
     for (uint16_t slcCount = 0; slcCount < m_numSlices; slcCount++)
     {
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSliceState(packSlcHeaderParams, sliceState, slcCount));
+        if (m_currPass == 0)
+        {
+            packSlcHeaderParams.pAvcSliceParams = &avcSlcParams[slcCount];
+            if (m_acceleratorHeaderPackingCaps)
+            {
+                slcData[slcCount].SliceOffset = m_bsBuffer.SliceOffset;
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalAvcEncode_PackSliceHeader(&packSlcHeaderParams));
+                slcData[slcCount].BitSize = m_bsBuffer.BitSize;
+            }
+            if (m_sliceStructCaps != CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE)
+            {
+                slcData[slcCount].CmdOffset = slcCount * m_sliceHeight * m_picWidthInMb * 16 * 4;
+            }
+            else
+            {
+                slcData[slcCount].CmdOffset = packSlcHeaderParams.pAvcSliceParams->first_mb_in_slice * 16 * 4;
+            }
+        }
+
+        sliceState.pEncodeAvcSliceParams = &avcSlcParams[slcCount];
+        sliceState.dwDataBufferOffset =
+            m_slcData[slcCount].CmdOffset + m_mbcodeBottomFieldOffset;
+        sliceState.dwOffset                  = slcData[slcCount].SliceOffset;
+        sliceState.dwLength                  = slcData[slcCount].BitSize;
+        sliceState.uiSkipEmulationCheckCount = slcData[slcCount].SkipEmulationByteCount;
+        sliceState.dwSliceIndex              = (uint32_t)slcCount;
+        sliceState.bFirstPass                = (m_currPass == 0);
+        sliceState.bLastPass                 = (m_currPass == m_numPasses);
+        sliceState.bInsertBeforeSliceHeaders = (slcCount == 0);
+        sliceState.bVdencInUse               = true;
+        // App handles tail insertion for VDEnc dynamic slice in non-cp case
+        sliceState.bVdencNoTailInsertion = m_vdencNoTailInsertion;
+
+        uint32_t batchBufferForPakSlicesStartOffset =
+            (uint32_t)m_batchBufferForPakSlices[m_currRecycledBufIdx].iCurrent;
+
+        if (useBatchBufferForPakSlices)
+        {
+            sliceState.pBatchBufferForPakSlices =
+                &m_batchBufferForPakSlices[m_currRecycledBufIdx];
+            sliceState.bSingleTaskPhaseSupported            = true;
+            sliceState.dwBatchBufferForPakSlicesStartOffset = batchBufferForPakSlicesStartOffset;
+        }
+
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRounding(m_avcRoundingParams, &sliceState));
+
+        sliceState.oneOnOneMapping = m_oneOnOneMapping;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendSlice(&cmdBuffer, &sliceState));
 
         // Add dumps for 2nd level batch buffer
@@ -6830,7 +6894,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
         }
 
         // VDENC IMG STATE read buffer
-        allocParamsForBufferLinear.dwBytes  = GetVdencBRCImgStateBufferSize();
+        allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC BRC IMG State Read Buffer";
 
         eStatus = (MOS_STATUS)m_osInterface->pfnAllocateResource(
@@ -7040,7 +7104,7 @@ MOS_STATUS CodechalVdencAvcState::AllocateResources()
             m_osInterface,
             &m_batchBufferForVdencImgStat[0],
             nullptr,
-            GetVdencBRCImgStateBufferSize()));
+            m_hwInterface->m_vdencBrcImgStateBufferSize));
     }
 
     // Buffer to store VDEnc TLB MMIO values (registers MFX_LRA_0/1/2)
@@ -8292,129 +8356,6 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     return eStatus;
 }
 
-MOS_STATUS CodechalVdencAvcState::AddVdencBrcImgBuffer(
-    PMOS_RESOURCE             vdencBrcImgBuffer,
-    PMHW_VDBOX_AVC_IMG_PARAMS params)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    CODECHAL_ENCODE_CHK_NULL_RETURN(vdencBrcImgBuffer);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(params);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(m_hwInterface);
-
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->AddVdencBrcImgBuffer(
-        vdencBrcImgBuffer,
-        params));
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS CodechalVdencAvcState::SetCommonSliceState(
-    CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS &packSlcHeaderParams,
-    MHW_VDBOX_AVC_SLICE_STATE &                 sliceState)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-
-    auto avcSlcParams = m_avcSliceParams;
-    auto avcPicParams = m_avcPicParams[avcSlcParams->pic_parameter_set_id];
-
-    MOS_ZeroMemory(&packSlcHeaderParams, sizeof(packSlcHeaderParams));
-    packSlcHeaderParams.pBsBuffer          = &m_bsBuffer;
-    packSlcHeaderParams.pPicParams         = avcPicParams;
-    packSlcHeaderParams.pSeqParams         = m_avcSeqParam;
-    packSlcHeaderParams.ppRefList          = &(m_refList[0]);
-    packSlcHeaderParams.CurrPic            = m_currOriginalPic;
-    packSlcHeaderParams.CurrReconPic       = m_currReconstructedPic;
-    packSlcHeaderParams.UserFlags          = m_userFlags;
-    packSlcHeaderParams.NalUnitType        = m_nalUnitType;
-    packSlcHeaderParams.wPictureCodingType = m_pictureCodingType;
-    packSlcHeaderParams.bVdencEnabled      = true;
-
-    MOS_ZeroMemory(&sliceState, sizeof(sliceState));
-    sliceState.presDataBuffer      = &m_resMbCodeSurface;
-    sliceState.pAvcPicIdx          = &(m_picIdx[0]);
-    sliceState.pEncodeAvcSeqParams = m_avcSeqParam;
-    sliceState.pEncodeAvcPicParams = avcPicParams;
-    sliceState.pBsBuffer           = &m_bsBuffer;
-    sliceState.ppNalUnitParams     = m_nalUnitParams;
-    sliceState.bBrcEnabled         = false;
-    // Disable Panic mode when min/max QP control is on. kernel may disable it, but disable in driver also.
-    sliceState.bRCPanicEnable                = m_panicEnable && (!m_minMaxQpControlEnabled);
-    sliceState.bAcceleratorHeaderPackingCaps = m_encodeParams.bAcceleratorHeaderPackingCaps;
-    sliceState.wFrameFieldHeightInMB         = m_frameFieldHeightInMb;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS CodechalVdencAvcState::SetSliceState(
-    CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS &packSlcHeaderParams,
-    MHW_VDBOX_AVC_SLICE_STATE &                 sliceState,
-    uint16_t                                    slcIdx)
-{
-    CODECHAL_ENCODE_FUNCTION_ENTER;
-    auto avcSlcParams = m_avcSliceParams;
-    auto slcData      = m_slcData;
-
-    if (m_currPass == 0)
-    {
-        packSlcHeaderParams.pAvcSliceParams = &avcSlcParams[slcIdx];
-        if (m_acceleratorHeaderPackingCaps)
-        {
-            slcData[slcIdx].SliceOffset = m_bsBuffer.SliceOffset;
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalAvcEncode_PackSliceHeader(&packSlcHeaderParams));
-            slcData[slcIdx].BitSize = m_bsBuffer.BitSize;
-        }
-        if (m_sliceStructCaps != CODECHAL_SLICE_STRUCT_ARBITRARYMBSLICE)
-        {
-            slcData[slcIdx].CmdOffset = slcIdx * m_sliceHeight * m_picWidthInMb * 16 * 4;
-        }
-        else
-        {
-            slcData[slcIdx].CmdOffset = packSlcHeaderParams.pAvcSliceParams->first_mb_in_slice * 16 * 4;
-        }
-    }
-
-    sliceState.pEncodeAvcSliceParams = &avcSlcParams[slcIdx];
-    sliceState.dwDataBufferOffset =
-        m_slcData[slcIdx].CmdOffset + m_mbcodeBottomFieldOffset;
-    sliceState.dwOffset                  = slcData[slcIdx].SliceOffset;
-    sliceState.dwLength                  = slcData[slcIdx].BitSize;
-    sliceState.uiSkipEmulationCheckCount = slcData[slcIdx].SkipEmulationByteCount;
-    sliceState.dwSliceIndex              = slcIdx;
-    sliceState.bFirstPass                = (m_currPass == 0);
-    sliceState.bLastPass                 = (m_currPass == m_numPasses);
-    sliceState.bInsertBeforeSliceHeaders = (slcIdx == 0);
-    sliceState.bVdencInUse               = true;
-    // App handles tail insertion for VDEnc dynamic slice in non-cp case
-    sliceState.bVdencNoTailInsertion = m_vdencNoTailInsertion;
-
-    uint32_t batchBufferForPakSlicesStartOffset =
-        (uint32_t)m_batchBufferForPakSlices[m_currRecycledBufIdx].iCurrent;
-
-    if (m_avcRoundingParams != nullptr && m_avcRoundingParams->bEnableCustomRoudingIntra)
-    {
-        sliceState.dwRoundingIntraValue = m_avcRoundingParams->dwRoundingIntra;
-    }
-    else
-    {
-        sliceState.dwRoundingIntraValue = 5;
-    }
-    if (m_avcRoundingParams != nullptr && m_avcRoundingParams->bEnableCustomRoudingInter)
-    {
-        sliceState.bRoundingInterEnable = true;
-        sliceState.dwRoundingValue      = m_avcRoundingParams->dwRoundingInter;
-    }
-    else
-    {
-        sliceState.bRoundingInterEnable = m_roundingInterEnable;
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRounding(m_avcRoundingParams, &sliceState));
-    }
-
-    sliceState.oneOnOneMapping = m_oneOnOneMapping;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 void CodechalVdencAvcState::SetBufferToStorePakStatistics()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -8518,7 +8459,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
             &m_resVdencBrcImageStatesReadBuffer[m_currRecycledBufIdx],
             0,
-            GetVdencBRCImgStateBufferSize(),
+            m_hwInterface->m_vdencBrcImgStateBufferSize,
             3,
             "_ImageStateRead",
             isInput,
@@ -8598,7 +8539,7 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
             &m_batchBufferForVdencImgStat[0].OsResource,
             0,
-            GetVdencBRCImgStateBufferSize(),
+            m_hwInterface->m_vdencBrcImgStateBufferSize,
             6,
             "_ImageStateWrite",
             isInput,
@@ -8645,7 +8586,7 @@ MOS_STATUS CodechalVdencAvcState::DumpEncodeImgStats(
         return MOS_STATUS_SUCCESS;
     }
 
-    uint32_t size = GetVdencBRCImgStateBufferSize();
+    uint32_t size = m_mfxInterface->GetAvcImgStateSize() + m_vdencInterface->GetVdencAvcCostStateSize() + m_vdencInterface->GetVdencAvcImgStateSize();
 
     std::string SurfName = "Pak_VDEnc_Pass[" + std::to_string(static_cast<uint32_t>(m_currPass)) + "]";
 
