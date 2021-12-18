@@ -161,17 +161,17 @@ struct CodecAv1PicParams
     uint16_t        m_frameHeightMinus1;  // [0..65535] //!< Super-Res downscaled resolution
 
     CODEC_PICTURE   m_refFrameMap[8];
-    uint8_t         m_refFrameIdx[7];   // [0..7]
-    uint8_t         m_primaryRefFrame;  // [0..7]
+    uint8_t         m_refFrameIdx[7];     // [0..7]
+    uint8_t         m_primaryRefFrame;    // [0..7]
 
-    uint16_t        m_outputFrameWidthInTilesMinus1;// [0..65535]
-    uint16_t        m_outputFrameHeightInTilesMinus1;// [0..65535]
+    uint16_t        m_outputFrameWidthInTilesMinus1;  // [0..65535]
+    uint16_t        m_outputFrameHeightInTilesMinus1; // [0..65535]
     uint32_t        m_reserved32b2;
 
     // deblocking filter
     uint8_t         m_filterLevel[2];  // [0..63]
-    uint8_t         m_filterLevelU;   // [0..63]
-    uint8_t         m_filterLevelV;   // [0..63]
+    uint8_t         m_filterLevelU;    // [0..63]
+    uint8_t         m_filterLevelV;    // [0..63]
     union
     {
         struct
@@ -185,19 +185,19 @@ struct CodecAv1PicParams
     } m_loopFilterInfoFlags;
 
     uint8_t         m_orderHint;
-    uint8_t         m_superresScaleDenominator;  // [9..16]
+    uint8_t         m_superresScaleDenominator;   // [9..16]
     uint8_t         m_interpFilter;               // [0..9]
 
-    int8_t          m_refDeltas[8];   // [-63..63]
-    int8_t          m_modeDeltas[2];  // [-63..63]
+    int8_t          m_refDeltas[8];   // [-64..63]
+    int8_t          m_modeDeltas[2];  // [-64..63]
 
     // quantization
     uint16_t        m_baseQindex;  // [0..255]
-    int8_t          m_yDcDeltaQ; // [-63..63]
-    int8_t          m_uDcDeltaQ;   // [-63..63]
-    int8_t          m_uAcDeltaQ;   // [-63..63]
-    int8_t          m_vDcDeltaQ;   // [-63..63]
-    int8_t          m_vAcDeltaQ;   // [-63..63]
+    int8_t          m_yDcDeltaQ;   // [-64..63]
+    int8_t          m_uDcDeltaQ;   // [-64..63]
+    int8_t          m_uAcDeltaQ;   // [-64..63]
+    int8_t          m_vDcDeltaQ;   // [-64..63]
+    int8_t          m_vAcDeltaQ;   // [-64..63]
     uint8_t         m_reserved8b2;
 
     // quantization_matrix
