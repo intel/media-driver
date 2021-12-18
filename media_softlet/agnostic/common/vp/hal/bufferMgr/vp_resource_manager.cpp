@@ -624,17 +624,17 @@ MOS_STATUS VpResourceManager::GetResourceHint(std::vector<FeatureType> &featureP
 
 struct VP_SURFACE_PARAMS
 {
-    uint32_t                width;
-    uint32_t                height;
-    MOS_FORMAT              format;
-    MOS_TILE_TYPE           tileType;
+    uint32_t                width               = 0;
+    uint32_t                height              = 0;
+    MOS_FORMAT              format              = Format_None;
+    MOS_TILE_TYPE           tileType            = MOS_TILE_X;
     MOS_RESOURCE_MMC_MODE   surfCompressionMode = MOS_MMC_DISABLED;
-    bool                    surfCompressible   = false;
-    VPHAL_CSPACE            colorSpace;
-    RECT                    rcSrc;              //!< Source rectangle
-    RECT                    rcDst;              //!< Destination rectangle
-    RECT                    rcMaxSrc;           //!< Max source rectangle
-    VPHAL_SAMPLE_TYPE       sampleType;
+    bool                    surfCompressible    = false;
+    VPHAL_CSPACE            colorSpace          = CSpace_None;
+    RECT                    rcSrc               = {0, 0, 0, 0};  //!< Source rectangle
+    RECT                    rcDst               = {0, 0, 0, 0};  //!< Destination rectangle
+    RECT                    rcMaxSrc            = {0, 0, 0, 0};  //!< Max source rectangle
+    VPHAL_SAMPLE_TYPE       sampleType          = SAMPLE_PROGRESSIVE;
 };
 MOS_STATUS VpResourceManager::Get3DLutOutputColorAndFormat(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters)
 {
