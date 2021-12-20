@@ -6253,6 +6253,59 @@ finish:
 }
 
 //!
+//! \brief      Print Sampler Params
+//! \details 
+//! \param      PMHW_SAMPLER_STATE_PARAM pSamplerParams
+//!             [in]    SamplerParams   
+void PrintSamplerParams(int32_t iSamplerIndex, PMHW_SAMPLER_STATE_PARAM pSamplerParams)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (pSamplerParams == nullptr)
+    {
+        MHW_RENDERHAL_ASSERTMESSAGE("The SamplerParams pointer is null");
+        return;
+    }
+
+    if (pSamplerParams->SamplerType == MHW_SAMPLER_TYPE_3D)
+    {
+        MHW_RENDERHAL_VERBOSEMESSAGE("SamplerParams: index = %x, bInUse = %x, SamplerType = %x, ElementType = %x, SamplerFilterMode = %x, MagFilter = %x, MinFilter = %x",
+            iSamplerIndex,
+            pSamplerParams->bInUse,
+            pSamplerParams->SamplerType,
+            pSamplerParams->ElementType,
+            pSamplerParams->Unorm.SamplerFilterMode,
+            pSamplerParams->Unorm.MagFilter,
+            pSamplerParams->Unorm.MinFilter);
+        MHW_RENDERHAL_VERBOSEMESSAGE("SamplerParams: index = %x, AddressU = %x, AddressV = %x, AddressW = %x, SurfaceFormat = %x, BorderColorRedU = %x, BorderColorGreenU = %x",
+            iSamplerIndex,
+            pSamplerParams->Unorm.AddressU,
+            pSamplerParams->Unorm.AddressV,
+            pSamplerParams->Unorm.AddressW,
+            pSamplerParams->Unorm.SurfaceFormat,
+            pSamplerParams->Unorm.BorderColorRedU,
+            pSamplerParams->Unorm.BorderColorGreenU);
+        MHW_RENDERHAL_VERBOSEMESSAGE("SamplerParams: index = %x, BorderColorBlueU = %x, BorderColorAlphaU = %x, IndirectStateOffset = %x, bBorderColorIsValid = %x, bChromaKeyEnable = %x, ChromaKeyIndex = %x, ChromaKeyMode = %x",
+            iSamplerIndex,
+            pSamplerParams->Unorm.BorderColorBlueU,
+            pSamplerParams->Unorm.BorderColorAlphaU,
+            pSamplerParams->Unorm.IndirectStateOffset,
+            pSamplerParams->Unorm.bBorderColorIsValid,
+            pSamplerParams->Unorm.bChromaKeyEnable,
+            pSamplerParams->Unorm.ChromaKeyIndex,
+            pSamplerParams->Unorm.ChromaKeyMode);
+    }
+    else
+    {
+        MHW_RENDERHAL_VERBOSEMESSAGE("SamplerParams: index = %x, bInUse = %x, SamplerType = %x, ElementType = %x",
+            iSamplerIndex,
+            pSamplerParams->bInUse,
+            pSamplerParams->SamplerType,
+            pSamplerParams->ElementType);
+    }
+#endif
+}
+
+//!
 //! \brief      Sets Sampler States for Gen8
 //! \details    Initialize and set sampler states
 //! \param      PRENDERHAL_INTERFACE pRenderHal
@@ -6313,6 +6366,7 @@ MOS_STATUS RenderHal_SetSamplerStates(
     for (i = 0; i < iSamplers; i++, pSamplerStateParams++,
          pPtrSampler += pRenderHal->pHwSizes->dwSizeSamplerState)
     {
+        PrintSamplerParams(i, pSamplerStateParams);
         if (pSamplerStateParams->bInUse)
         {
             MHW_RENDERHAL_CHK_STATUS(pRenderHal->pOsInterface->pfnSetCmdBufferDebugInfo(

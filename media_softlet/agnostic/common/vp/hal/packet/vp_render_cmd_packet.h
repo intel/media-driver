@@ -64,6 +64,8 @@ public:
 
     virtual MOS_STATUS DumpOutput() override;
 
+    void PrintWalkerParas(MHW_WALKER_PARAMS &WalkerParams);
+
 protected:
 
     virtual MOS_STATUS LoadKernel() override;

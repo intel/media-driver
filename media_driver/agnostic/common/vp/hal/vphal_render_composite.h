@@ -339,6 +339,12 @@ public:
         PCVPHAL_RENDER_PARAMS  pcRenderParams,
         RenderpassData         *pRenderPassData);
 
+    void PrintCurbeData(MEDIA_OBJECT_KA2_STATIC_DATA *pWalkerStatic);
+
+    void PrintWalkerParas(PMHW_GPGPU_WALKER_PARAMS pWalkerParams);
+
+    void PrintSamplerParams(PMHW_SAMPLER_STATE_PARAM pSamplerParams);
+
     //!
     //! \brief    set Report data
     //! \details  set Report data for this render

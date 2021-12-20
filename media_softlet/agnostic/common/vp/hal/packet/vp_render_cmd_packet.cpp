@@ -1695,6 +1695,42 @@ MOS_STATUS VpRenderCmdPacket::DumpOutput()
     return MOS_STATUS_SUCCESS;
 }
 
+void VpRenderCmdPacket::PrintWalkerParas(MHW_WALKER_PARAMS &WalkerParams)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    VP_RENDER_VERBOSEMESSAGE("WalkerParams: InterfaceDescriptorOffset = %x, CmWalkerEnable = %x, ColorCountMinusOne = %x, UseScoreboard = %x, ScoreboardMask = %x, MidLoopUnitX = %x, MidLoopUnitY = %x, MiddleLoopExtraSteps = %x",
+        WalkerParams.InterfaceDescriptorOffset,
+        WalkerParams.CmWalkerEnable,
+        WalkerParams.ColorCountMinusOne,
+        WalkerParams.UseScoreboard,
+        WalkerParams.ScoreboardMask,
+        WalkerParams.MidLoopUnitX,
+        WalkerParams.MidLoopUnitY,
+        WalkerParams.MiddleLoopExtraSteps);
+    VP_RENDER_VERBOSEMESSAGE("WalkerParams: GroupIdLoopSelect = %x, InlineDataLength = %x, pInlineData = %x, dwLocalLoopExecCount = %x, dwGlobalLoopExecCount = %x, WalkerMode = %x, BlockResolution = %x, LocalStart = %x",
+        WalkerParams.GroupIdLoopSelect,
+        WalkerParams.InlineDataLength,
+        WalkerParams.pInlineData,
+        WalkerParams.dwLocalLoopExecCount,
+        WalkerParams.dwGlobalLoopExecCount,
+        WalkerParams.WalkerMode,
+        WalkerParams.BlockResolution,
+        WalkerParams.LocalStart);
+    VP_RENDER_VERBOSEMESSAGE("WalkerParams: LocalEnd = %x, LocalOutLoopStride = %x, LocalInnerLoopUnit = %x, GlobalResolution = %x, GlobalStart = %x, GlobalOutlerLoopStride = %x, GlobalInnerLoopUnit = %x, bAddMediaFlush = %x, bRequestSingleSlice = %x, IndirectDataLength = %x, IndirectDataStartAddress = %x",
+        WalkerParams.LocalEnd,
+        WalkerParams.LocalOutLoopStride,
+        WalkerParams.LocalInnerLoopUnit,
+        WalkerParams.GlobalResolution,
+        WalkerParams.GlobalStart,
+        WalkerParams.GlobalOutlerLoopStride,
+        WalkerParams.GlobalInnerLoopUnit,
+        WalkerParams.bAddMediaFlush,
+        WalkerParams.bRequestSingleSlice,
+        WalkerParams.IndirectDataLength,
+        WalkerParams.IndirectDataStartAddress);
+#endif
+}
+
 MOS_STATUS VpRenderCmdPacket::SendMediaStates(
     PRENDERHAL_INTERFACE pRenderHal,
     PMOS_COMMAND_BUFFER  pCmdBuffer)
@@ -1828,6 +1864,8 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
             MHW_RENDERHAL_CHK_STATUS(pMhwRender->AddMediaObjectWalkerCmd(
                 pCmdBuffer,
                 &m_mediaWalkerParams));
+
+            PrintWalkerParas(m_mediaWalkerParams);
         }
         else if (m_walkerType == WALKER_TYPE_COMPUTE)
         {
@@ -1839,6 +1877,8 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
                 pRenderHal,
                 pCmdBuffer,
                 &m_gpgpuWalkerParams));
+
+             PrintWalkerParas(m_mediaWalkerParams);
         }
         else
         {

@@ -94,6 +94,7 @@ protected:
 
     MOS_STATUS InitLayerInCurbeData(VP_FC_LAYER *layer);
     bool IsEufusionBypassed();
+    void PrintCurbeData(VP_FC_CURBE_DATA &curbeData);
 
     VP_EXECUTE_CAPS     m_executeCaps       = {};
     Kdll_FilterDesc     m_searchFilter      = {};

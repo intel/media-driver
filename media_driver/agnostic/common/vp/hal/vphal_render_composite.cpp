@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright (c) 2016-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
@@ -4894,6 +4894,8 @@ bool CompositeState::SubmitStates(
         pRenderingData->SamplerStateParams,
         MHW_RENDER_ENGINE_SAMPLERS_MAX);
 
+    PrintSamplerParams(pRenderingData->SamplerStateParams);
+
     if (MOS_FAILED(eStatus))
     {
         VPHAL_RENDER_ASSERTMESSAGE("Failed to setup sampler states.");
@@ -4914,6 +4916,7 @@ bool CompositeState::SubmitStates(
         nullptr));
 
     bResult = true;
+    PrintCurbeData(pStatic);
 
 finish:
     return bResult;
@@ -5884,6 +5887,7 @@ bool CompositeState::RenderBufferComputeWalker(
 
     bResult = true;
 
+    PrintWalkerParas(pWalkerParams);
     return bResult;
 }
 
@@ -7361,6 +7365,390 @@ bool CompositeState::IsNeeded(
     MOS_UNUSED(pcRenderParams);
 
     return pRenderPassData->bCompNeeded;
+}
+
+//!
+//! \brief    Print walkerParas
+//! \param    [in] PMHW_GPGPU_WALKER_PARAMS
+//!
+void CompositeState::PrintWalkerParas(PMHW_GPGPU_WALKER_PARAMS pWalkerParams)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (pWalkerParams == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("The WalkerParams pointer is null");
+        return;
+    }
+    VPHAL_RENDER_VERBOSEMESSAGE("WalkerParams: InterfaceDescriptorOffset = %x, GpGpuEnable = %x, ThreadWidth = %x, ThreadHeight = %x, ThreadDepth = %x, GroupWidth = %x, GroupHeight = %x, GroupDepth = %x, GroupStartingX = %x, GroupStartingY = %x, GroupStartingZ = %x, SLMSize = %x, IndirectDataLength = %x, IndirectDataStartAddress = %x, BindingTableID = %x",
+        pWalkerParams->InterfaceDescriptorOffset,
+        pWalkerParams->GpGpuEnable,
+        pWalkerParams->ThreadWidth,
+        pWalkerParams->ThreadHeight,
+        pWalkerParams->ThreadDepth,
+        pWalkerParams->GroupWidth,
+        pWalkerParams->GroupHeight,
+        pWalkerParams->GroupDepth,
+        pWalkerParams->GroupStartingX,
+        pWalkerParams->GroupStartingY,
+        pWalkerParams->GroupStartingZ,
+        pWalkerParams->SLMSize,
+        pWalkerParams->IndirectDataLength,
+        pWalkerParams->IndirectDataStartAddress,
+        pWalkerParams->BindingTableID);
+#endif
+}
+
+//!
+//! \brief    Print SampleParams
+//! \param    [in] PMHW_SAMPLER_STATE_PARAM
+//!
+void CompositeState::PrintSamplerParams(PMHW_SAMPLER_STATE_PARAM pSamplerParams)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (pSamplerParams == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("The SamplerParams pointer is null");
+        return;
+    }
+    if (pSamplerParams->SamplerType == MHW_SAMPLER_TYPE_3D)
+    {
+        VPHAL_RENDER_VERBOSEMESSAGE("SamplerParams: bInUse = %x, SamplerType = %x, ElementType = %x, SamplerFilterMode = %x, MagFilter = %x, MinFilter = %x",
+            pSamplerParams->bInUse,
+            pSamplerParams->SamplerType,
+            pSamplerParams->ElementType,
+            pSamplerParams->Unorm.SamplerFilterMode,
+            pSamplerParams->Unorm.MagFilter,
+            pSamplerParams->Unorm.MinFilter);
+        VPHAL_RENDER_VERBOSEMESSAGE("SamplerParams: AddressU = %x, AddressV = %x, AddressW = %x, SurfaceFormat = %x, BorderColorRedU = %x, BorderColorGreenU = %x",
+            pSamplerParams->Unorm.AddressU,
+            pSamplerParams->Unorm.AddressV,
+            pSamplerParams->Unorm.AddressW,
+            pSamplerParams->Unorm.SurfaceFormat,
+            pSamplerParams->Unorm.BorderColorRedU,
+            pSamplerParams->Unorm.BorderColorGreenU);
+        VPHAL_RENDER_VERBOSEMESSAGE("SamplerParams: BorderColorBlueU = %x, BorderColorAlphaU = %x, IndirectStateOffset = %x, bBorderColorIsValid = %x, bChromaKeyEnable = %x, ChromaKeyIndex = %x, ChromaKeyMode = %x",
+            pSamplerParams->Unorm.BorderColorBlueU,
+            pSamplerParams->Unorm.BorderColorAlphaU,
+            pSamplerParams->Unorm.IndirectStateOffset,
+            pSamplerParams->Unorm.bBorderColorIsValid,
+            pSamplerParams->Unorm.bChromaKeyEnable,
+            pSamplerParams->Unorm.ChromaKeyIndex,
+            pSamplerParams->Unorm.ChromaKeyMode);
+    }
+    else
+    {
+        VPHAL_RENDER_VERBOSEMESSAGE("SamplerParams: bInUse = %x, SamplerType = %x, ElementType = %x",
+            pSamplerParams->bInUse,
+            pSamplerParams->SamplerType,
+            pSamplerParams->ElementType);
+    }
+#endif
+}
+
+//!
+//! \brief    Print curbe data for legacy path
+//! \param    [in] MEDIA_WALKER_KA2_STATIC_DATA *
+//!
+void CompositeState::PrintCurbeData(MEDIA_OBJECT_KA2_STATIC_DATA *pObjectStatic)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (pObjectStatic == nullptr)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("The ObjectStatic pointer is null");
+        return;
+    }
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW00.Value = %x",pObjectStatic->DW00.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CscConstantC0 = %x, CscConstantC1 = %x, LocalDifferenceThresholdU = %x, LocalDifferenceThresholdV = %x, SobelEdgeThresholdU = %x, SobelEdgeThresholdV = %x",
+        pObjectStatic->DW00.CscConstantC0,
+        pObjectStatic->DW00.CscConstantC1,
+        pObjectStatic->DW00.LocalDifferenceThresholdU,
+        pObjectStatic->DW00.LocalDifferenceThresholdV,
+        pObjectStatic->DW00.SobelEdgeThresholdU,
+        pObjectStatic->DW00.SobelEdgeThresholdV);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW01.Value = %x",pObjectStatic->DW01.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CscConstantC2 = %x, CscConstantC3 = %x, HistoryInitialValueU = %x, HistoryInitialValueV = %x, HistoryMaxU = %x, HistoryMaxV = %x",
+        pObjectStatic->DW01.CscConstantC2,
+        pObjectStatic->DW01.CscConstantC3,
+        pObjectStatic->DW01.HistoryInitialValueU,
+        pObjectStatic->DW01.HistoryInitialValueV,
+        pObjectStatic->DW01.HistoryMaxU,
+        pObjectStatic->DW01.HistoryMaxV);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW02.Value = %x", pObjectStatic->DW02.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CscConstantC4 = %x, CscConstantC5 = %x, HistoryDeltaU = %x, HistoryDeltaV = %x, NSADThresholdU = %x, DNSADThresholdV = %x",
+        pObjectStatic->DW02.CscConstantC4,
+        pObjectStatic->DW02.CscConstantC5,
+        pObjectStatic->DW02.HistoryDeltaU,
+        pObjectStatic->DW02.HistoryDeltaV,
+        pObjectStatic->DW02.DNSADThresholdU,
+        pObjectStatic->DW02.DNSADThresholdV);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW03.Value = %x", pObjectStatic->DW03.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CscConstantC6 = %x, CscConstantC7 = %x, DNTDThresholdU = %x, HistoryDeltaV = %x, DNLTDThresholdU = %x, DNLTDThresholdV = %x",
+        pObjectStatic->DW03.CscConstantC6,
+        pObjectStatic->DW03.CscConstantC7,
+        pObjectStatic->DW03.DNTDThresholdU,
+        pObjectStatic->DW03.DNTDThresholdV,
+        pObjectStatic->DW03.DNLTDThresholdU,
+        pObjectStatic->DW03.DNLTDThresholdV);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW04.Value = %x", pObjectStatic->DW04.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CscConstantC8 = %x, CscConstantC9 = %x",
+        pObjectStatic->DW04.CscConstantC8,
+        pObjectStatic->DW04.CscConstantC9);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW05.Value = %x", pObjectStatic->DW05.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     CscConstantC10 = %x, CscConstantC11 = %x",
+        pObjectStatic->DW05.CscConstantC10,
+        pObjectStatic->DW05.CscConstantC11);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW06.Value = %x", pObjectStatic->DW06.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ConstantBlendingAlphaLayer1 = %d, ConstantBlendingAlphaLayer2 = %d, ConstantBlendingAlphaLayer3 = %d, ConstantBlendingAlphaLayer4 = %d, HalfStatisticsSurfacePitch = %d, StatisticsSurfaceHeight = %d",
+        pObjectStatic->DW06.ConstantBlendingAlphaLayer1,
+        pObjectStatic->DW06.ConstantBlendingAlphaLayer2,
+        pObjectStatic->DW06.ConstantBlendingAlphaLayer3,
+        pObjectStatic->DW06.ConstantBlendingAlphaLayer4,
+        pObjectStatic->DW06.HalfStatisticsSurfacePitch,
+        pObjectStatic->DW06.StatisticsSurfaceHeight);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW07.Value = %x", pObjectStatic->DW07.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ConstantBlendingAlphaLayer5 = %d, ConstantBlendingAlphaLayer6 = %d, ConstantBlendingAlphaLayer7 = %d, PointerToInlineParameters = %d, ConstantBlendingAlphaLayer51 = %d, ConstantBlendingAlphaLayer61 = %d, ConstantBlendingAlphaLayer71 = %d, OutputDepth = %d, TopFieldFirst = %d",
+        pObjectStatic->DW07.ConstantBlendingAlphaLayer5,
+        pObjectStatic->DW07.ConstantBlendingAlphaLayer6,
+        pObjectStatic->DW07.ConstantBlendingAlphaLayer7,
+        pObjectStatic->DW07.PointerToInlineParameters,
+        pObjectStatic->DW07.ConstantBlendingAlphaLayer51,
+        pObjectStatic->DW07.ConstantBlendingAlphaLayer61,
+        pObjectStatic->DW07.ConstantBlendingAlphaLayer71,
+        pObjectStatic->DW07.OutputDepth,
+        pObjectStatic->DW07.TopFieldFirst);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW08.Value = %x", pObjectStatic->DW08.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestinationRectangleWidth = %d, DestinationRectangleHeight = %d",
+        pObjectStatic->DW08.DestinationRectangleWidth,
+        pObjectStatic->DW08.DestinationRectangleHeight);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW09.Value = %x", pObjectStatic->DW09.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     RotationMirrorMode = %d, RotationMirrorAllLayer = %d, DualOutputMode = %d, ChannelSwap = %d",
+        pObjectStatic->DW09.RotationMirrorMode,
+        pObjectStatic->DW09.RotationMirrorAllLayer,
+        pObjectStatic->DW09.DualOutputMode,
+        pObjectStatic->DW09.ChannelSwap);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW10.Value = %x", pObjectStatic->DW10.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ChromaSitingLocation = %d",
+        pObjectStatic->DW10.ObjKa2Gen9.ChromaSitingLocation);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW11.Value = %x", pObjectStatic->DW11.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW12.Value = %x", pObjectStatic->DW12.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ColorProcessingEnable = %d, MessageFormat = %d, ColorProcessingStatePointer = %x",
+        pObjectStatic->DW12.ColorProcessingEnable,
+        pObjectStatic->DW12.MessageFormat,
+        pObjectStatic->DW12.ColorProcessingStatePointer);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW13.Value = %x", pObjectStatic->DW13.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     ColorFill_R = %x, ColorFill_G = %x, ColorFill_B = %x, ColorFill_A = %x, ColorFill_V = %x, ColorFill_Y = %x, ColorFill_U = %x",
+        pObjectStatic->DW13.ColorFill_R,
+        pObjectStatic->DW13.ColorFill_G,
+        pObjectStatic->DW13.ColorFill_B,
+        pObjectStatic->DW13.ColorFill_A,
+        pObjectStatic->DW13.ColorFill_V,
+        pObjectStatic->DW13.ColorFill_Y,
+        pObjectStatic->DW13.ColorFill_U);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW14.Value = %x", pObjectStatic->DW14.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     LumakeyLowThreshold = %x, LumakeyHighThreshold = %x, NLASEnable = %d, Reserved = %d",
+        pObjectStatic->DW14.LumakeyLowThreshold,
+        pObjectStatic->DW14.LumakeyHighThreshold,
+        pObjectStatic->DW14.NLASEnable,
+        pObjectStatic->DW14.Reserved);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW15.Value = %x", pObjectStatic->DW15.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestinationPackedYOffset = %d, DestinationPackedUOffset = %d, DestinationPackedVOffset = %d, DestinationRGBFormat = %d",
+        pObjectStatic->DW15.DestinationPackedYOffset,
+        pObjectStatic->DW15.DestinationPackedUOffset,
+        pObjectStatic->DW15.DestinationPackedVOffset,
+        pObjectStatic->DW15.DestinationRGBFormat);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW16.Value = %x", pObjectStatic->DW16.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer0 = 0x%x",
+        pObjectStatic->DW16.HorizontalScalingStepRatioLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW17.Value = %x", pObjectStatic->DW17.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer1 = 0x%x",
+        pObjectStatic->DW17.HorizontalScalingStepRatioLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW18.Value = %x", pObjectStatic->DW18.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer2 = 0x%x",
+        pObjectStatic->DW18.HorizontalScalingStepRatioLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW19.Value = %x", pObjectStatic->DW19.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer3 = 0x%x",
+        pObjectStatic->DW19.HorizontalScalingStepRatioLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW20.Value = %x", pObjectStatic->DW20.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer4 = 0x%x",
+        pObjectStatic->DW20.HorizontalScalingStepRatioLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW21.Value = %x", pObjectStatic->DW21.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer5 = 0x%x",
+        pObjectStatic->DW21.HorizontalScalingStepRatioLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW22.Value = %x", pObjectStatic->DW22.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalScalingStepRatioLayer6 = 0x%x",
+        pObjectStatic->DW22.HorizontalScalingStepRatioLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW23.Value = %x", pObjectStatic->DW23.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:    HorizontalScalingStepRatioLayer7 = 0x%x",
+        pObjectStatic->DW23.HorizontalScalingStepRatioLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW24.Value = %x", pObjectStatic->DW24.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer0 = 0x%x, SourcePackedYOffset = %d, SourcePackedUOffset = %d, SourcePackedVOffset = %d, Reserved = %d",
+        pObjectStatic->DW24.VerticalScalingStepRatioLayer0,
+        pObjectStatic->DW24.SourcePackedYOffset,
+        pObjectStatic->DW24.SourcePackedUOffset,
+        pObjectStatic->DW24.SourcePackedVOffset,
+        pObjectStatic->DW24.Reserved);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW25.Value = %x", pObjectStatic->DW25.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer1 = 0x%x",
+        pObjectStatic->DW25.VerticalScalingStepRatioLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW26.Value = %x", pObjectStatic->DW26.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer2 = 0x%x, HorizontalFrameOriginOffset = %d, VerticalFrameOriginOffset = %d",
+        pObjectStatic->DW26.VerticalScalingStepRatioLayer2,
+        pObjectStatic->DW26.HorizontalFrameOriginOffset,
+        pObjectStatic->DW26.VerticalFrameOriginOffset);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW27.Value = %x", pObjectStatic->DW27.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer3 = 0x%x",
+        pObjectStatic->DW27.VerticalScalingStepRatioLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW28.Value = %x", pObjectStatic->DW28.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer4 = 0x%x",
+        pObjectStatic->DW28.VerticalScalingStepRatioLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW29.Value = %x", pObjectStatic->DW29.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer5 = 0x%x",
+        pObjectStatic->DW29.VerticalScalingStepRatioLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW30.Value = %x", pObjectStatic->DW30.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer6 = 0x%x",
+        pObjectStatic->DW30.VerticalScalingStepRatioLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW31.Value = %x", pObjectStatic->DW31.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalScalingStepRatioLayer7 = 0x%x",
+         pObjectStatic->DW31.VerticalScalingStepRatioLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW32.Value = %x", pObjectStatic->DW32.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer0 = 0x%x",
+        pObjectStatic->DW32.VerticalFrameOriginLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW33.Value = %x", pObjectStatic->DW33.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer1 = 0x%x",
+        pObjectStatic->DW33.VerticalFrameOriginLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW34.Value = %x", pObjectStatic->DW34.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer2 = 0x%x",
+        pObjectStatic->DW34.VerticalFrameOriginLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW35.Value = %x", pObjectStatic->DW35.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer3 = 0x%x",
+        pObjectStatic->DW35.VerticalFrameOriginLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW36.Value = %x", pObjectStatic->DW36.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer4 = 0x%x",
+        pObjectStatic->DW36.VerticalFrameOriginLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW37.Value = %x", pObjectStatic->DW37.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer5 = 0x%x",
+        pObjectStatic->DW37.VerticalFrameOriginLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW38.Value = %x", pObjectStatic->DW38.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer6 = 0x%x",
+        pObjectStatic->DW38.VerticalFrameOriginLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW39.Value = %x", pObjectStatic->DW39.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VerticalFrameOriginLayer7 = 0x%x",
+        pObjectStatic->DW39.VerticalFrameOriginLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW40.Value = %x", pObjectStatic->DW40.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer0 = 0x%x",
+        pObjectStatic->DW40.HorizontalFrameOriginLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW41.Value = %x", pObjectStatic->DW41.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer1 = 0x%x",
+        pObjectStatic->DW41.HorizontalFrameOriginLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW42.Value = %x", pObjectStatic->DW42.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer2 = 0x%x",
+        pObjectStatic->DW42.HorizontalFrameOriginLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW43.Value = %x", pObjectStatic->DW43.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer3 = 0x%x",
+        pObjectStatic->DW43.HorizontalFrameOriginLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW44.Value = %x", pObjectStatic->DW44.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer4 = 0x%x",
+        pObjectStatic->DW44.HorizontalFrameOriginLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW45.Value = %x", pObjectStatic->DW45.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer5 = 0x%x",
+        pObjectStatic->DW45.HorizontalFrameOriginLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW46.Value = %x", pObjectStatic->DW46.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer6 = 0x%x",
+        pObjectStatic->DW46.HorizontalFrameOriginLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW47.Value = %x", pObjectStatic->DW47.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     HorizontalFrameOriginLayer7 = 0x%x",
+        pObjectStatic->DW47.HorizontalFrameOriginLayer7);
+
+    MEDIA_WALKER_KA2_STATIC_DATA *pWalkerStatic = (MEDIA_WALKER_KA2_STATIC_DATA *)pObjectStatic;
+
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW48.Value = %x", pWalkerStatic->DW48.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer0 = %d, DestYTopLeftLayer0 = %d",
+        pWalkerStatic->DW48.DestXTopLeftLayer0,
+        pWalkerStatic->DW48.DestYTopLeftLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW49.Value = %x", pWalkerStatic->DW49.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer1 = %d, DestYTopLeftLayer1 = %d",
+        pWalkerStatic->DW49.DestXTopLeftLayer1,
+        pWalkerStatic->DW49.DestYTopLeftLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW50.Value = %x", pWalkerStatic->DW50.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer2 = %d, DestYTopLeftLayer2 = %d",
+        pWalkerStatic->DW50.DestXTopLeftLayer2,
+        pWalkerStatic->DW50.DestYTopLeftLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW51.Value = %x", pWalkerStatic->DW51.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer3 = %d, DestYTopLeftLayer3 = %d",
+        pWalkerStatic->DW51.DestXTopLeftLayer3,
+        pWalkerStatic->DW51.DestYTopLeftLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW52.Value = %x", pWalkerStatic->DW52.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer4 = %d, DestYTopLeftLayer4 = %d",
+        pWalkerStatic->DW52.DestXTopLeftLayer4,
+        pWalkerStatic->DW52.DestYTopLeftLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW53.Value = %x", pWalkerStatic->DW53.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer5 = %d, DestYTopLeftLayer5 = %d",
+        pWalkerStatic->DW53.DestXTopLeftLayer5,
+        pWalkerStatic->DW53.DestYTopLeftLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW54.Value = %x", pWalkerStatic->DW54.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer6 = %d, DestYTopLeftLayer6 = %d",
+        pWalkerStatic->DW54.DestXTopLeftLayer6,
+        pWalkerStatic->DW54.DestYTopLeftLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW55.Value = %x", pWalkerStatic->DW55.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXTopLeftLayer7 = %d, DestYTopLeftLaye7 = %d",
+        pWalkerStatic->DW55.DestXTopLeftLayer7,
+        pWalkerStatic->DW55.DestYTopLeftLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW56.Value = %x", pWalkerStatic->DW56.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer0 = %d, DestXBottomRightLayer0 = %d",
+        pWalkerStatic->DW56.DestXBottomRightLayer0,
+        pWalkerStatic->DW56.DestXBottomRightLayer0);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW57.Value = %x", pWalkerStatic->DW57.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer1 = %d, DestXBottomRightLayer1 = %d",
+        pWalkerStatic->DW57.DestXBottomRightLayer1,
+        pWalkerStatic->DW57.DestXBottomRightLayer1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW58.Value = %x", pWalkerStatic->DW58.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer2 = %d, DestXBottomRightLayer2 = %d",
+        pWalkerStatic->DW58.DestXBottomRightLayer2,
+        pWalkerStatic->DW58.DestXBottomRightLayer2);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW59.Value = %x", pWalkerStatic->DW59.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer3 = %d, DestXBottomRightLayer3 = %d",
+        pWalkerStatic->DW59.DestXBottomRightLayer3,
+        pWalkerStatic->DW59.DestXBottomRightLayer3);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW60.Value = %x", pWalkerStatic->DW60.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer4 = %d, DestXBottomRightLayer4 = %d",
+        pWalkerStatic->DW60.DestXBottomRightLayer4,
+        pWalkerStatic->DW60.DestXBottomRightLayer4);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW61.Value = %x", pWalkerStatic->DW61.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer5 = %d, DestXBottomRightLayer5 = %d",
+        pWalkerStatic->DW61.DestXBottomRightLayer5,
+        pWalkerStatic->DW61.DestXBottomRightLayer5);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW62.Value = %x", pWalkerStatic->DW62.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer6 = %d, DestXBottomRightLayer6 = %d",
+        pWalkerStatic->DW62.DestXBottomRightLayer6,
+        pWalkerStatic->DW62.DestXBottomRightLayer6);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW63.Value = %x", pWalkerStatic->DW63.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestXBottomRightLayer7 = %d, DestXBottomRightLayer7 = %d",
+        pWalkerStatic->DW63.DestXBottomRightLayer7,
+        pWalkerStatic->DW63.DestXBottomRightLayer7);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW64.Value = %x", pWalkerStatic->DW64.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     MainVideoXScalingStepLeft = %x",
+        pWalkerStatic->DW64.MainVideoXScalingStepLeft);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW65.Value = %x", pWalkerStatic->DW65.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     VideoStepDeltaForNonLinearRegion = %x",
+        pWalkerStatic->DW65.VideoStepDeltaForNonLinearRegion);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW66.Value = %x", pWalkerStatic->DW66.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     StartofLinearScalingInPixelPositionC0 = %x, StartofRHSNonLinearScalingInPixelPositionC1 = %x",
+        pWalkerStatic->DW66.StartofLinearScalingInPixelPositionC0,
+        pWalkerStatic->DW66.StartofRHSNonLinearScalingInPixelPositionC1);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW67.Value = %x", pWalkerStatic->DW67.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     MainVideoXScalingStepCenter = %x",
+        pWalkerStatic->DW67.MainVideoXScalingStepCenter);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW68.Value = %x", pWalkerStatic->DW68.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     MainVideoXScalingStepRight = %x",
+        pWalkerStatic->DW68.MainVideoXScalingStepRight);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: DW69.Value = %x", pWalkerStatic->DW69.Value);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData:     DestHorizontalBlockOrigin = %x, DestVerticalBlockOrigin = %x",
+        pWalkerStatic->DW69.DestHorizontalBlockOrigin,
+        pWalkerStatic->DW69.DestVerticalBlockOrigin);
+    VPHAL_RENDER_VERBOSEMESSAGE("CurbeData: dwPad[0] = %x, dwPad[1] = %x",
+        pWalkerStatic->dwPad[0],
+        pWalkerStatic->dwPad[1]); 
+#endif
 }
 
 //!
