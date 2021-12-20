@@ -84,7 +84,8 @@ class HucCopyPkt : public DecodeHucBasic, public HucCopyPktItf, public mhw::vdbo
     protected:
         virtual MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer, bool prologNeeded) override;
         void SetPerfTag();
-        MOS_STATUS  AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &cmdBuffer);
+        virtual MOS_STATUS AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &cmdBuffer);
+        virtual MOS_STATUS AddHucIndState(MOS_COMMAND_BUFFER &cmdBuffer);
         virtual MHW_SETPAR_DECL_HDR(HUC_IND_OBJ_BASE_ADDR_STATE);
         virtual MHW_SETPAR_DECL_HDR(HUC_STREAM_OBJECT);
 

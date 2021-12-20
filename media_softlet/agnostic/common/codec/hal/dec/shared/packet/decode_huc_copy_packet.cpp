@@ -72,6 +72,7 @@ MOS_STATUS HucCopyPkt::Execute(MOS_COMMAND_BUFFER &cmdBuffer, bool prologNeeded)
 
         DECODE_CHK_STATUS(AddCmd_HUC_PIPE_MODE_SELECT(cmdBuffer));
         SETPAR_AND_ADDCMD(HUC_IND_OBJ_BASE_ADDR_STATE, m_hucItf, &cmdBuffer);
+        DECODE_CHK_STATUS(AddHucIndState(cmdBuffer));
         SETPAR_AND_ADDCMD(HUC_STREAM_OBJECT, m_hucItf, &cmdBuffer);
 
         // Flush the engine to ensure memory written out
@@ -99,6 +100,11 @@ MOS_STATUS HucCopyPkt::AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &cmdBuffer
     par.disableProtectionSetting            = true;
     m_hucItf->MHW_ADDCMD_F(HUC_PIPE_MODE_SELECT)(&cmdBuffer);
     MHW_MI_CHK_STATUS(m_miInterface->AddMfxWaitCmd(&cmdBuffer, nullptr, true));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HucCopyPkt::AddHucIndState(MOS_COMMAND_BUFFER &cmdBuffer)
+{
     return MOS_STATUS_SUCCESS;
 }
 
