@@ -41,6 +41,7 @@
 #define CODECHAL_NUM_INTERNAL_NV12_RT_HEVC  16
 #define CODECHAL_ENCODE_HEVC_MAX_NUM_ROI    16
 #define CODECHAL_HEVC_FRAME_HEADER_SIZE     8192
+#define CODECHAL_HEVC_MAX_LCU_SIZE_G10      64
 
 // HEVC VDENC
 #define ENCODE_HEVC_VDENC_NUM_MAX_SLICES        70
@@ -1134,4 +1135,48 @@ struct CodecEncodeHevcSliceHeaderParams
     uint16_t                    delta_poc_minus1[2][16];
     bool                        used_by_curr_pic_flag[2][16];
 };
+
+//!
+//! \struct   HEVC_TILE_STATS_INFO
+//! \brief    HEVC tiles states info
+//!
+struct HEVC_TILE_STATS_INFO
+{
+    uint32_t uiTileSizeRecord     = 0;
+    uint32_t uiHevcPakStatistics  = 0;
+    uint32_t uiVdencStatistics    = 0;
+    uint32_t uiHevcSliceStreamout = 0;
+};
+using PHEVC_TILE_STATS_INFO = HEVC_TILE_STATS_INFO*;
+
+typedef enum
+{
+    HEVC_CHROMA_FORMAT_MONOCHROME = 0,
+    HEVC_CHROMA_FORMAT_YUV420 = 1,
+    HEVC_CHROMA_FORMAT_YUV422 = 2,
+    HEVC_CHROMA_FORMAT_YUV444 = 3
+} HEVC_CHROMA_FORMAT_IDC;
+
+inline uint32_t CodecHalHevcEncode_GetBitstreamBufferSize(
+           uint32_t    frameWidth,
+           uint32_t    frameHeight,
+           uint8_t     chromaFormat,
+           bool        is10Bits)
+{
+    // 4:2:0 uncompression buffer size
+
+    frameHeight = (frameHeight * 3) / (is10Bits ? 1 : 2);
+
+    if (chromaFormat == HEVC_CHROMA_FORMAT_YUV422)
+    {
+        frameWidth = (frameWidth * 8) / 6; //4:2:2 v.s 4:2:0
+    }
+    else if (chromaFormat == HEVC_CHROMA_FORMAT_YUV444)
+    {
+        frameWidth = (frameWidth * 12) / 6; //4:4:4 v.s 4:2:0
+    }
+
+    return frameWidth * frameHeight;
+}
+
 #endif  // __CODEC_DEF_ENCODE_HEVC_H__

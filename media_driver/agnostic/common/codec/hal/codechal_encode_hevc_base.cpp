@@ -3263,28 +3263,6 @@ MOS_STATUS CodechalEncodeHevcBase::ExecuteKernelFunctions()
     return eStatus;
 }
 
-uint32_t CodecHalHevcEncode_GetBitstreamBufferSize(
-    uint32_t    frameWidth,
-    uint32_t    frameHeight,
-    uint8_t     chromaFormat,
-    bool        is10Bits)
-{
-    // 4:2:0 uncompression buffer size
-
-    frameHeight = (frameHeight * 3) / (is10Bits ? 1 : 2);
-
-    if (chromaFormat == HCP_CHROMA_FORMAT_YUV422)
-    {
-        frameWidth = (frameWidth * 8) / 6; //4:2:2 v.s 4:2:0
-    }
-    else if (chromaFormat == HCP_CHROMA_FORMAT_YUV444)
-    {
-        frameWidth = (frameWidth * 12) / 6; //4:4:4 v.s 4:2:0
-    }
-
-    return frameWidth * frameHeight;
-}
-
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS CodechalEncodeHevcBase::DumpSeqParams(
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS seqParams)

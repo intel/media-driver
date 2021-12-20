@@ -41,7 +41,6 @@
 #define CODECHAL_VDENC_HEVC_MAX_SLICE_NUM   70
 
 #define CODECHAL_HEVC_MAX_LCU_SIZE_G9          32
-#define CODECHAL_HEVC_MAX_LCU_SIZE_G10         64
 #define CODECHAL_HEVC_MIN_LCU_SIZE             16
 #define CODECHAL_HEVC_MIN_CU_SIZE              8
 #define CODECHAL_HEVC_MIN_TILE_SIZE            128
@@ -1289,19 +1288,6 @@ struct CODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM
     uint32_t                    dwNumUnitsInRegion;
 };
 using PCODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM = CODECHAL_ENCODE_HEVC_WALKINGPATTERN_PARAM*;
-
-//!
-//! \struct   HEVC_TILE_STATS_INFO
-//! \brief    HEVC tiles states info
-//!
-struct HEVC_TILE_STATS_INFO
-{
-    uint32_t uiTileSizeRecord;
-    uint32_t uiHevcPakStatistics;
-    uint32_t uiVdencStatistics;
-    uint32_t uiHevcSliceStreamout;
-};
-using PHEVC_TILE_STATS_INFO = HEVC_TILE_STATS_INFO*;
 
 //!
 //! \struct   CODECHAL_ENCODE_HEVC_PAK_STATS_BUFFER
@@ -2674,25 +2660,5 @@ public:
 
 #endif
 };
-
-//!
-//! \brief    Get bitstream buffer size
-//!
-//! \param    [in] frameWidth
-//!           The width of frame
-//! \param    [in] frameHeight
-//!           The height of frame
-//! \param    [in] chromaFormat
-//!           Chroma format
-//! \param    [in] is10Bits
-//!           Check if is 10bits
-//! \return   uint32_t
-//!           Bitstream buffer size
-//!
-uint32_t CodecHalHevcEncode_GetBitstreamBufferSize(
-    uint32_t frameWidth,
-    uint32_t frameHeight,
-    uint8_t  chromaFormat,
-    bool     is10Bits);
 
 #endif  // __CODECHAL_ENCODE_HEVC_BASE_H__
