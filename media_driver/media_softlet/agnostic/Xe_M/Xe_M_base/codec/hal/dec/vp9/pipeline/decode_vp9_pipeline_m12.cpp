@@ -120,6 +120,10 @@ MOS_STATUS Vp9PipelineG12::Prepare(void *params)
             {
                 auto frameIdx                   = m_basicFeature->m_curRenderPic.FrameIdx;
                 inputParameters.sfcOutputPicRes = &downSamplingFeature->m_outputSurfaceList[frameIdx].OsResource;
+                if (downSamplingFeature->m_histogramBuffer != nullptr)
+                {
+                    inputParameters.histogramOutputBuf = &downSamplingFeature->m_histogramBuffer->OsResource;
+                }
                 CODECHAL_DEBUG_TOOL(DumpDownSamplingParams(*downSamplingFeature));
             }
 #endif
