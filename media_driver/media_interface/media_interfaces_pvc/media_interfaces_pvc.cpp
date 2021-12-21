@@ -279,7 +279,7 @@ MOS_STATUS MmdDeviceXe_Xpm_Plus::Initialize(
             osInterface,
             mhwInterfaces->m_cpInterface,
             mhwInterfaces->m_miInterface,
-            mhwInterfaces->m_veboxInterface) != MOS_STATUS_SUCCESS)
+            mhwInterfaces->m_renderInterface) != MOS_STATUS_SUCCESS)
     {
         MMD_FAILURE();
     }

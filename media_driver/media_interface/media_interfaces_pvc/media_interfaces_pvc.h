@@ -58,7 +58,7 @@
 #else
 #include "mhw_vdbox_vdenc_g12_X.h"
 #endif
-#include "vphal_render_vebox_memdecomp_xe_xpm.h"
+#include "renderhal_memdecomp_xe_xpm_plus.h"
 #include "mhw_blt_xe_hpc.h"
 #include "vphal_xe_xpm_plus.h"
 #include "media_copy_xe_xpm_plus.h"
@@ -199,7 +199,7 @@ public:
 class MmdDeviceXe_Xpm_Plus : public MmdDevice
 {
 public:
-    using Mmd = MediaVeboxDecompStateXe_Xpm;
+    using Mmd = MediaRenderDecompStateXe_Xpm_Plus;
     MOS_STATUS Initialize(
         PMOS_INTERFACE osInterface,
         MhwInterfaces *mhwInterfaces);
