@@ -228,12 +228,10 @@ MOS_STATUS MhwInterfacesDg2::Initialize(
     {
         m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
     }
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
     }
-#endif
     if (params.Flags.m_blt)
     {
         m_bltInterface = MOS_New(Blt, osInterface);
@@ -468,14 +466,14 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
         auto ptr = std::make_shared<mhw::vdbox::huc::xe_hpm::Impl>(osInterface, m_cpInterface);
         m_hucItf = std::static_pointer_cast<mhw::vdbox::huc::Itf>(ptr);
     }
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
+#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
         auto ptr = std::make_shared<mhw::vdbox::vdenc::xe_hpm::Impl>(osInterface);
         m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
-    }
 #endif
+    }
     if (params.Flags.m_blt)
     {
         m_bltInterface = MOS_New(Blt, osInterface);

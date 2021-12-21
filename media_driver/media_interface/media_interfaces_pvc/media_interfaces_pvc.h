@@ -55,6 +55,8 @@
 #ifdef IGFX_PVC_ENABLE_NON_UPSTREAM
 #include "mhw_vdbox_vdenc_xe_xpm_plus.h"
 #include "mhw_vdbox_vdenc_xe_xpm_plus_ext.h"
+#else
+#include "mhw_vdbox_vdenc_g12_X.h"
 #endif
 #include "vphal_render_vebox_memdecomp_xe_xpm.h"
 #include "mhw_blt_xe_hpc.h"
@@ -152,6 +154,8 @@ public:
     using Huc       = MhwVdboxHucInterfaceXe_Xpm_Plus;
 #ifdef IGFX_PVC_ENABLE_NON_UPSTREAM
     using Vdenc     = MhwVdboxVdencInterfaceG12ExtPvc;
+#else
+    using Vdenc     = MhwVdboxVdencInterfaceG12X;
 #endif
     using Vebox     = MhwVeboxInterfaceXe_Xpm;
     using Blt       = MhwBltInterfaceXe_Hpc;
@@ -175,6 +179,8 @@ public:
     using Huc       = MhwVdboxHucInterfaceXe_Xpm_Plus;
 #ifdef IGFX_PVC_ENABLE_NON_UPSTREAM
     using Vdenc     = MhwVdboxVdencInterfaceG12ExtPvc;
+#else
+    using Vdenc     = MhwVdboxVdencInterfaceG12X;
 #endif
     using Vebox     = MhwVeboxInterfaceXe_Xpm;
     using Blt       = MhwBltInterfaceXe_Hpc;

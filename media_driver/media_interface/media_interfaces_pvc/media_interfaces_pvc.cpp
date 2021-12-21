@@ -140,12 +140,10 @@ MOS_STATUS MhwInterfacesPvc::Initialize(
     {
         m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
     }
-#ifdef IGFX_PVC_ENABLE_NON_UPSTREAM
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
     }
-#endif
     if (params.Flags.m_blt)
     {
         m_bltInterface = MOS_New(Blt, osInterface);
@@ -220,12 +218,10 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     {
         m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
     }
-#ifdef IGFX_PVC_ENABLE_NON_UPSTREAM   
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
     }
-#endif
     if (params.Flags.m_blt)
     {
         m_bltInterface = MOS_New(Blt, osInterface);

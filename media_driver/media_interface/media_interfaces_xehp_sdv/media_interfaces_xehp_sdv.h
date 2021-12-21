@@ -55,6 +55,8 @@
 #ifdef IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM
 #include "mhw_vdbox_vdenc_xe_xpm.h"
 #include "mhw_vdbox_vdenc_xe_xpm_ext.h"
+#else
+#include "mhw_vdbox_vdenc_g12_X.h"
 #endif
 #include "vphal_render_vebox_memdecomp_xe_xpm.h"
 #include "media_copy_xe_xpm_base.h"
@@ -161,6 +163,8 @@ public:
     using Huc       = MhwVdboxHucInterfaceG12;
 #ifdef IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM
     using Vdenc     = MhwVdboxVdencInterfaceG12ExtXehp;
+#else
+    using Vdenc     = MhwVdboxVdencInterfaceG12X;
 #endif
     using Vebox     = MhwVeboxInterfaceXe_Xpm;
     using Blt       = MhwBltInterfaceXe_Hp_Base;
