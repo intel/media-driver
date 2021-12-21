@@ -252,25 +252,6 @@ namespace decode
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        // Tile WidthInSb & HeightInSb
-        int sbShift         = m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? 5 : 4;
-        int sbSize          = sbShift + 2;
-        int maxTileWidthSb  = av1MaxTileWidth >> sbSize;
-        int maxTileHeightSb = av1MaxTileHeight >> sbSize;
-        for (int i = 0; i < 64; i++)
-        {
-            if (m_av1PicParams->m_widthInSbsMinus1[i] > maxTileWidthSb - 1)
-            {
-                DECODE_ASSERTMESSAGE("tile width is invald!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            if (m_av1PicParams->m_heightInSbsMinus1[i] > maxTileHeightSb - 1)
-            {
-                DECODE_ASSERTMESSAGE("tile height is invald!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-        }
-
         // CDF Bits & Strength
         if (m_av1PicParams->m_cdefBits > 3)
         {
