@@ -190,6 +190,7 @@ struct _MHW_PAR_T(PIPE_MODE_SELECT)
 struct _MHW_PAR_T(PIPELINE_SELECT)
 {
     uint32_t          pipelineSelection = 0;
+    bool              gpGpuPipe         = false;
 };
 
 struct _MHW_PAR_T(STATE_BASE_ADDRESS)
@@ -372,6 +373,8 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     int32_t                   iCrsThdConDataRdLn            = 0;
     PMHW_STATE_HEAP           pGeneralStateHeap             = 0;       //! General state heap in use
     MemoryBlock               *memoryBlock                  = nullptr; //! Memory block associated with the state heap
+    MOS_RESOURCE              *postsyncResource             = nullptr;
+    uint32_t                  resourceOffset                = 0;
 };
 
 struct _MHW_PAR_T(STATE_COMPUTE_MODE)

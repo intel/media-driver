@@ -179,15 +179,15 @@ public:
         cmd.DW2.IndirectDataLength = params.IndirectDataLength;
         cmd.DW3.IndirectDataStartAddress = params.IndirectDataStartAddress >> MHW_COMPUTE_INDIRECT_SHIFT;
 
-        cmd.DW4.SIMDSize = 2;
+        cmd.DW4.SIMDSize = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::SIMD_SIZE_SIMD32;
 
         cmd.DW5.ExecutionMask = 0xffffffff;
         cmd.DW6.LocalXMaximum = params.ThreadWidth - 1;
         cmd.DW6.LocalYMaximum = params.ThreadHeight - 1;
         cmd.DW6.LocalZMaximum = params.ThreadDepth - 1;
 
-        cmd.DW7.ThreadGroupIDXDimension = params.GroupWidth - params.GroupStartingX;
-        cmd.DW8.ThreadGroupIDYDimension = params.GroupHeight - params.GroupStartingY;
+        cmd.DW7.ThreadGroupIDXDimension = params.GroupWidth;
+        cmd.DW8.ThreadGroupIDYDimension = params.GroupHeight;
         cmd.DW9.ThreadGroupIDZDimension = params.GroupDepth;
         cmd.DW10.ThreadGroupIDStartingX = params.GroupStartingX;
         cmd.DW11.ThreadGroupIDStartingY = params.GroupStartingY;
@@ -197,9 +197,32 @@ public:
         cmd.interface_descriptor_data.DW3.SamplerCount = params.dwSamplerCount;
         cmd.interface_descriptor_data.DW3.SamplerStatePointer = params.dwSamplerOffset >> MHW_SAMPLER_SHIFT;
         cmd.interface_descriptor_data.DW4.BindingTablePointer = MOS_ROUNDUP_SHIFT(params.dwBindingTableOffset, MHW_BINDING_TABLE_ID_SHIFT);
-        cmd.interface_descriptor_data.DW5.BarrierEnable = params.bBarrierEnable;
         cmd.interface_descriptor_data.DW5.NumberOfThreadsInGpgpuThreadGroup = params.dwNumberofThreadsInGPGPUGroup;
         cmd.interface_descriptor_data.DW5.SharedLocalMemorySize = params.dwSharedLocalMemorySize;
+
+        // when Barriers is not 0, the EU fusion will close.
+        // Assigns barrier count.
+        if (params.bBarrierEnable)
+        {   // Bits [28:30] represent the number of barriers.
+            cmd.interface_descriptor_data.DW5.Reserved188 = 1;
+        }
+
+        if (nullptr != params.postsyncResource)
+        {
+            MHW_RESOURCE_PARAMS resourceParams = {};
+
+            InitMocsParams(resourceParams, &cmd.postsync_data.DW0.Value, 5, 10);
+            resourceParams.presResource = params.postsyncResource;
+            resourceParams.pdwCmd = cmd.postsync_data.DW1_2.Value;
+            resourceParams.dwLocationInCmd = 24;
+            resourceParams.dwOffset = params.resourceOffset;
+            resourceParams.bIsWritable = true;
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+            cmd.postsync_data.DW0.Operation = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::POSTSYNC_DATA_CMD::POSTSYNC_OPERATION_WRITE_TIMESTAMP;
+        }
 
         return MOS_STATUS_SUCCESS;
     }

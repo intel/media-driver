@@ -82,6 +82,18 @@ protected:
         InitPreemption();
     }
 
+    void inline InitMocsParams(
+        MHW_RESOURCE_PARAMS& hwResourceParam,
+        uint32_t* addr,
+        uint8_t             bitFieldLow,
+        uint8_t             bitFieldHigh)
+    {
+        hwResourceParam.mocsParams.mocsTableIndex = addr;
+        hwResourceParam.mocsParams.bitFieldLow = bitFieldLow;
+        hwResourceParam.mocsParams.bitFieldHigh = bitFieldHigh;
+        return;
+    }
+
 public:
     void InitPreemption()
     {
@@ -159,7 +171,7 @@ public:
     _MHW_SETCMD_OVERRIDE_DECL(PIPELINE_SELECT)
     {
         _MHW_SETCMD_CALLBASE(PIPELINE_SELECT);
-        cmd.DW0.PipelineSelection = true;
+        cmd.DW0.PipelineSelection = (params.gpGpuPipe) ? cmd.PIPELINE_SELECTION_GPGPU : cmd.PIPELINE_SELECTION_MEDIA;
         return MOS_STATUS_SUCCESS;
     }
 
@@ -176,7 +188,6 @@ public:
         {
             cmd.DW1_2.GeneralStateBaseAddressModifyEnable   = true;
             cmd.DW12.GeneralStateBufferSizeModifyEnable     = true;
-            cmd.DW1_2.GeneralStateMemoryObjectControlState  = params.mocs4GeneralState;
             resourceParams.presResource                     = params.presGeneralState;
             resourceParams.dwOffset                         = 0;
             resourceParams.pdwCmd                           = cmd.DW1_2.Value;
@@ -185,11 +196,16 @@ public:
             // upper bound of the allocated resource will not be set
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
+            InitMocsParams(resourceParams, &cmd.DW1_2.Value[0], 5, 10);
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
 
+            if (params.mocs4GeneralState != 0)
+            {
+                cmd.DW1_2.GeneralStateMemoryObjectControlState = params.mocs4GeneralState;
+            }
             cmd.DW12.GeneralStateBufferSize = (params.dwGeneralStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
 
@@ -205,7 +221,6 @@ public:
             // command need to have the modify
             // bit associated with it set to 1.
             cmd.DW4_5.SurfaceStateBaseAddressModifyEnable  = true;
-            cmd.DW4_5.SurfaceStateMemoryObjectControlState = params.mocs4SurfaceState;
             resourceParams.presResource                    = &(this->m_currentCmdBuf->OsResource);
             resourceParams.dwOffset                        = indirectStateOffset;
             resourceParams.pdwCmd                          = cmd.DW4_5.Value;
@@ -214,16 +229,21 @@ public:
             // upper bound of the allocated resource will not be set
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
+            InitMocsParams(resourceParams, &cmd.DW4_5.Value[0], 5, 10);
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
+
+            if (params.mocs4SurfaceState != 0)
+            {
+                cmd.DW4_5.SurfaceStateMemoryObjectControlState = params.mocs4SurfaceState;
+            }
         }
 
         if (!Mos_ResourceIsNull(params.presDynamicState))
         {
             cmd.DW6_7.DynamicStateBaseAddressModifyEnable  = true;
-            cmd.DW6_7.DynamicStateMemoryObjectControlState = params.mocs4DynamicState;
             cmd.DW13.DynamicStateBufferSizeModifyEnable    = true;
             resourceParams.presResource                     = params.presDynamicState;
             resourceParams.dwOffset                         = 0;
@@ -234,10 +254,16 @@ public:
             // upper bound of the allocated resource will not be set
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
+            InitMocsParams(resourceParams, &cmd.DW6_7.Value[0], 5, 10);
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
+
+            if (params.mocs4DynamicState != 0)
+            {
+                cmd.DW6_7.DynamicStateMemoryObjectControlState = params.mocs4DynamicState;
+            }
 
             cmd.DW13.DynamicStateBufferSize = (params.dwDynamicStateSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
 
@@ -248,7 +274,6 @@ public:
         if (!Mos_ResourceIsNull(params.presIndirectObjectBuffer))
         {
             cmd.DW8_9.IndirectObjectBaseAddressModifyEnable   = true;
-            cmd.DW8_9.IndirectObjectMemoryObjectControlState  = params.mocs4IndirectObjectBuffer;
             cmd.DW14.IndirectObjectBufferSizeModifyEnable     = true;
             resourceParams.presResource                       = params.presIndirectObjectBuffer;
             resourceParams.dwOffset                           = 0;
@@ -258,11 +283,16 @@ public:
             // upper bound of the allocated resource will not be set
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
+            InitMocsParams(resourceParams, &cmd.DW8_9.Value[0], 5, 10);
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
 
+            if (params.mocs4DynamicState != 0)
+            {
+                cmd.DW8_9.IndirectObjectMemoryObjectControlState = params.mocs4IndirectObjectBuffer;
+            }
             cmd.DW14.IndirectObjectBufferSize = (params.dwIndirectObjectBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
 
@@ -270,7 +300,6 @@ public:
         {
             cmd.DW10_11.InstructionBaseAddressModifyEnable   = true;
             cmd.DW15.InstructionBufferSizeModifyEnable       = true;
-            cmd.DW10_11.InstructionMemoryObjectControlState  = params.mocs4InstructionCache;
             resourceParams.presResource                      = params.presInstructionBuffer;
             resourceParams.dwOffset                          = 0;
             resourceParams.pdwCmd                            = cmd.DW10_11.Value;
@@ -279,11 +308,17 @@ public:
             // upper bound of the allocated resource will not be set
             resourceParams.dwUpperBoundLocationOffsetFromCmd = 0;
 
+            InitMocsParams(resourceParams, &cmd.DW10_11.Value[0], 5, 10);
+
             MHW_MI_CHK_STATUS(AddResourceToCmd(
                 this->m_osItf,
                 this->m_currentCmdBuf,
                 &resourceParams));
 
+            if (params.mocs4InstructionCache != 0)
+            {
+                cmd.DW10_11.InstructionMemoryObjectControlState = params.mocs4InstructionCache;
+            }
             cmd.DW15.InstructionBufferSize = (params.dwInstructionBufferSize + MHW_PAGE_SIZE - 1) / MHW_PAGE_SIZE;
         }
 
@@ -352,6 +387,7 @@ public:
         MHW_RESOURCE_PARAMS resource_params = {};
         if (!Mos_ResourceIsNull(&(this->m_currentCmdBuf->OsResource)))
         {
+            InitMocsParams(resource_params, &cmd.DW1_2.Value[0], 1, 6);
             resource_params.dwLsbNum        = MHW_RENDER_ENGINE_STATE_BASE_ADDRESS_SHIFT;
             resource_params.HwCommandType   = MOS_STATE_BASE_ADDR;
             resource_params.presResource    = &this->m_currentCmdBuf->OsResource;
