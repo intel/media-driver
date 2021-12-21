@@ -586,11 +586,24 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         cscParams->input.chromaSiting   == cscParams->output.chromaSiting   &&
         nullptr                         == cscParams->pIEFParams)
     {
-        if (disableVeboxOutput)
+        bool veboxSupported = m_hwCaps.m_veboxHwEntry[cscParams->formatInput].inputSupported;
+        bool sfcSupported = veboxSupported && m_hwCaps.m_sfcHwEntry[cscParams->formatInput].inputSupported;
+
+        if (!veboxSupported)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Format %d not supported by vebox. Force to render.", cscParams->formatInput);
+            cscEngine->bEnabled     = 1;
+            cscEngine->SfcNeeded    = 0;
+            cscEngine->VeboxNeeded  = 0;
+            cscEngine->RenderNeeded = 1;
+            cscEngine->fcSupported  = 1;
+            cscEngine->sfcNotSupported = 1;
+        }
+        else if (disableVeboxOutput)
         {
             VP_PUBLIC_NORMALMESSAGE("Non-csc cases. Still keep csc filter to avoid output from vebox.");
             cscEngine->bEnabled             = 1;
-            cscEngine->SfcNeeded            = disableSfc ? 0 : 1;
+            cscEngine->SfcNeeded            = (disableSfc || !sfcSupported) ? 0 : 1;
             cscEngine->VeboxNeeded          = 0;
             cscEngine->RenderNeeded         = 1;
             cscEngine->fcSupported          = 1;
@@ -602,7 +615,14 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
             cscEngine->SfcNeeded            = 0;
             cscEngine->VeboxNeeded          = 0;
             cscEngine->RenderNeeded         = 0;
-            cscEngine->forceEnableForSfc    = 1;
+            if (sfcSupported)
+            {
+                cscEngine->forceEnableForSfc = 1;
+            }
+            else
+            {
+                cscEngine->sfcNotSupported = 1;
+            }
         }
 
         PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
@@ -720,6 +740,20 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         {
             scalingEngine->usedForNextPass = false;
         }
+        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (!m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].inputSupported)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Input format %d is not support vebox, force to use fc.", scalingParams->formatInput);
+        scalingEngine->bEnabled             = 1;
+        scalingEngine->SfcNeeded            = 0;
+        scalingEngine->VeboxNeeded          = 0;
+        scalingEngine->RenderNeeded         = 1;
+        scalingEngine->fcSupported          = 1;
+        scalingEngine->forceEnableForSfc    = 0;
+        scalingEngine->forceEnableForRender = 0;
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
     }
