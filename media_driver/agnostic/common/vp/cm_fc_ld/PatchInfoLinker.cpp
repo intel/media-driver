@@ -227,7 +227,10 @@ bool PatchInfoLinker::link(cm::patch::Collection &C) {
         }
       }
       Start = Offset;
+      if (Platform < cm::patch::PP_PVC)
+      {
       Inserted += writeSync(Node->getRdTokenMask(), Node->getWrTokenMask());
+      }
     }
     Linked.append(Bin->getData() + Start, Bin->getSize() - Start);
     for (auto RI = Bin->rel_begin(), RE = Bin->rel_end(); RI != RE; ++RI) {
@@ -295,6 +298,8 @@ unsigned PatchInfoLinker::writeNOP(unsigned N) {
   uint64_t compact_nop = 0;
   switch (Platform) {
   case cm::patch::PP_TGL:
+  case cm::patch::PP_DG2:
+  case cm::patch::PP_PVC:
     regular_nop = 0x00000060U;
     compact_nop = 0x20000060U;
     break;
@@ -325,6 +330,8 @@ unsigned PatchInfoLinker::writeEOT() {
   uint64_t snd1 = 0;
   uint64_t r127_sync0 = 0;
   uint64_t r127_sync1 = 0;
+  uint64_t r127_1_sync0 = 0;
+  uint64_t r127_1_sync1 = 0;
 
   switch (Platform) {
   case cm::patch::PP_TGL:
@@ -342,6 +349,40 @@ unsigned PatchInfoLinker::writeEOT() {
       snd1 = 0x0000000070207f0cULL;
   }
     break;
+    case cm::patch::PP_DG2:
+  {
+      if (hasR127Token)
+      {
+          uint8_t  *sync0Ptr = (uint8_t *)&r127_sync0;
+          r127_sync0 = 0x0001000000002001ULL;
+          r127_sync1 = 0x0000000000000000ULL;
+          sync0Ptr[1] |= (uint8_t)r127Token;
+      }
+      mov0 = 0x7f050aa080030961ULL;
+      mov1 = 0x0000000000100004ULL;
+      snd0 = 0x0000000480000931ULL;
+      snd1 = 0x0000000030207f0cULL;
+  }
+    break;
+  case cm::patch::PP_PVC:
+  {
+      if (hasR127Token)
+      {
+          r127_sync0 = 0x0001000000008001ULL;
+          r127_sync1 = 0x0000000000000000ULL;
+          r127_1_sync0 = 0x000100000000A001ULL;
+          r127_1_sync1 = 0x0000000000000000ULL;
+          uint8_t* sync0Ptr = (uint8_t*)& r127_sync0;
+          sync0Ptr[1] |= (uint8_t)r127Token;
+          sync0Ptr = (uint8_t*)& r127_1_sync0;
+          sync0Ptr[1] |= (uint8_t)r127Token;
+      }
+      mov0 = 0x7f050aa0800c0961ULL;
+      mov1 = 0x0000000000100004ULL;
+      snd0 = 0x00000004800c0931ULL;
+      snd1 = 0x0000000030207f0cULL;
+  }
+    break;
   default:
     mov0 = 0x2fe0020c00600001ULL;
     mov1 = 0x00000000008d0000ULL;
@@ -356,6 +397,13 @@ unsigned PatchInfoLinker::writeEOT() {
       B += sizeof(r127_sync0);
       Linked.append(reinterpret_cast<char *>(&r127_sync1), sizeof(r127_sync1));
       B += sizeof(r127_sync1);
+      if (Platform == cm::patch::PP_PVC)
+      {
+          Linked.append(reinterpret_cast<char*>(&r127_1_sync0), sizeof(r127_1_sync0));
+          B += sizeof(r127_1_sync0);
+          Linked.append(reinterpret_cast<char*>(&r127_1_sync1), sizeof(r127_1_sync1));
+          B += sizeof(r127_1_sync1);
+      }
   }
   Linked.append(reinterpret_cast<char *>(&mov0), sizeof(mov0));
   B += sizeof(mov0);

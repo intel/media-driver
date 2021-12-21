@@ -186,14 +186,17 @@ endif()
 
 if(DG2)
     add_definitions(-DIGFX_DG2_SUPPORTED)
+    add_definitions(-DIGFX_DG2_CMFCPATCH_SUPPORTED)
 endif()
 
 if(PVC)
     add_definitions(-DIGFX_PVC_SUPPORTED)
+    add_definitions(-DIGFX_PVC_CMFCPATCH_SUPPORTED)
 endif()
 
 if(XEHP_SDV)
     add_definitions(-DIGFX_XEHP_SDV_SUPPORTED)
+    add_definitions(-DIGFX_XEHP_SDV_CMFCPATCH_SUPPORTED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)
