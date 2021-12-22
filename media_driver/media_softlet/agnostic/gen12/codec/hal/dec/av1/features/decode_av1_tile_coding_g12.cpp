@@ -117,13 +117,16 @@ namespace decode
     {
         DECODE_FUNC_CALL()
         DECODE_CHK_NULL(m_tileDesc);
+        uint64_t datasize = 0;
 
         // Error Concealment for Tile size
         // m_numTiles means the tile number from application
         // m_totalTileNum means the total number of tile, m_lastTileId means the last tile index
         for (uint32_t i = 0; i < m_totalTileNum; i++)
         {
-            if (m_tileDesc[i].m_size + m_tileDesc[i].m_offset > m_basicFeature->m_dataSize)
+            // m_tileDesc[i].m_size + m_tileDesc[i].m_offset could oversize the maximum of uint32_t
+            datasize = (uint64_t)m_tileDesc[i].m_size + (uint64_t)m_tileDesc[i].m_offset;
+            if (datasize > m_basicFeature->m_dataSize)
             {
                 if (i == m_lastTileId)
                 {
@@ -168,6 +171,13 @@ namespace decode
         {
             DECODE_ASSERT(tileParams[i].m_badBSBufferChopping == 0);//this is to assume the whole tile is in one single bitstream buffer
             DECODE_ASSERT(tileParams[i].m_bsTileBytesInBuffer == tileParams[i].m_bsTilePayloadSizeInBytes);//this is to assume the whole tile is in one single bitstream buffer
+
+            // Check invalid tile column and tile row
+            if (tileParams[i].m_tileColumn > picParams.m_tileCols || tileParams[i].m_tileRow > picParams.m_tileRows)
+            {
+                DECODE_ASSERTMESSAGE("Invalid tile column or tile row\n");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
 
             if (!picParams.m_picInfoFlags.m_fields.m_largeScaleTile)
             {

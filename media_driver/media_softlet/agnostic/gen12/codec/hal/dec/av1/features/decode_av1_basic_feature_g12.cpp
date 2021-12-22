@@ -159,6 +159,13 @@ namespace decode
         DECODE_FUNC_CALL()
         DECODE_CHK_NULL(m_av1PicParams);
 
+        // Frame Width/Frame Height, valid range is [15, 16383]
+        if (m_av1PicParams->m_frameWidthMinus1 < 15 || m_av1PicParams->m_frameHeightMinus1 < 15)
+        {
+            DECODE_ASSERTMESSAGE(" Frame Width/Height is invalid, out of [15, 16383].");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         // Current FrameIdx
         if (m_av1PicParams->m_currPic.FrameIdx >= CODECHAL_MAX_DPB_NUM_LST_AV1)
         {
