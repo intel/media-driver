@@ -19,11 +19,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_memdecomp_xe_xpm_plus.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/renderhal_memdecomp.cpp
 )
 
 set(TMP_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_memdecomp_xe_xpm_plus.h
+    ${CMAKE_CURRENT_LIST_DIR}/renderhal_memdecomp.h
 )
 
 set(SOURCES_
