@@ -170,33 +170,6 @@ public:
     virtual void Delete_MediaLibvaCapsCpInterface(MediaLibvaCapsCpInterface* pInterface) = 0;
 
     //!
-    //! \brief   Create CpStreamOutInterface Object
-    //!          Must use Delete_CpStreamOutInterface to delete created Object to avoid ULT Memory Leak errors
-    //!
-    //! \param   [in] pipeline
-    //!          MediaPipeline*
-    //! \param   [in] task
-    //!          MediaTask*
-    //! \param   [in] hwInterface
-    //!          CodechalHwInterface*
-    //!
-    //! \return  CpStreamOutInterface*
-    //!          Return CP Wrapper Object
-    //!
-    virtual CpStreamOutInterface *Create_CpStreamOutInterface(
-        MediaPipeline *pipeline,
-        MediaTask *task,
-        CodechalHwInterface *hwInterface) = 0;
-
-    //!
-    //! \brief   Delete the CpStreamOutInterface Object
-    //!
-    //! \param   [in] pInterface
-    //!          CpStreamOutInterface
-    //!
-    virtual void Delete_CpStreamOutInterface(CpStreamOutInterface *pInterface) = 0;
-
-    //!
     //! \brief   Create DecodeCpInterface Object
     //!          Must use Delete_DecodeCpInterface to delete created Object to avoid ULT Memory Leak errors
     //!
