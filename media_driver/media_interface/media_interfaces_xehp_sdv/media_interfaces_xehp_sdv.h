@@ -115,6 +115,9 @@
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_hevc_xe_xpm.h"
+#ifdef _APOGEIOS_SUPPORTED
+#include "decode_hevc_pipeline_adapter_m12.h"
+#endif
 #endif
 
 #ifdef _AVC_ENCODE_VME_SUPPORTED

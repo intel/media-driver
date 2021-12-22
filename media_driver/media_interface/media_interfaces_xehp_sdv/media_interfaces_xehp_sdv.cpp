@@ -478,7 +478,29 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
     #ifdef _HEVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_HEVCVLD)
         {
-            m_codechalDevice = MOS_New(Decode::Hevc, hwInterface, debugInterface);
+        #ifdef _APOGEIOS_SUPPORTED
+            bool apogeiosEnable = true;
+            MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+
+            userFeatureData.i32Data = apogeiosEnable;
+            userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_HEVCD_ENABLE_ID,
+                &userFeatureData,
+                hwInterface->GetOsInterface()->pOsContext);
+            apogeiosEnable = (userFeatureData.i32Data) ? true : false;
+
+            if (apogeiosEnable)
+            {
+                m_codechalDevice = MOS_New(DecodeHevcPipelineAdapterM12, hwInterface, debugInterface);
+            }
+            else
+        #endif
+            {
+                m_codechalDevice = MOS_New(Decode::Hevc, hwInterface, debugInterface);
+            }
         }
         else
     #endif
