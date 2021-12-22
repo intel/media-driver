@@ -378,9 +378,11 @@ MOS_STATUS VphalRendererXe_Hpm::Render(
             && (pcRenderParams->pSrc[0] != nullptr)
             && (pcRenderParams->pColorFillParams != nullptr))
         {
-            bColorFill =  (!RECT1_CONTAINS_RECT2(pcRenderParams->pSrc[0]->rcSrc, pcRenderParams->pTarget[0]->rcDst)) ? true : false;
+            bColorFill =  (!RECT1_CONTAINS_RECT2(pcRenderParams->pSrc[0]->rcDst, pcRenderParams->pTarget[0]->rcDst)) ? true : false;
             bRotation = (pcRenderParams->pSrc[0]->Rotation != VPHAL_ROTATION_IDENTITY) ? true : false;
             m_pRenderHal->eufusionBypass = bColorFill && bRotation;
+
+            VPHAL_RENDER_NORMALMESSAGE("eufusionBypass = %d", pRenderHal->eufusionBypass ? 1 : 0);
         }
         // for interlaced scaling : two field --> one interleaved mode
         if (pcRenderParams->pSrc[0]->InterlacedScalingType == ISCALING_FIELD_TO_INTERLEAVED)

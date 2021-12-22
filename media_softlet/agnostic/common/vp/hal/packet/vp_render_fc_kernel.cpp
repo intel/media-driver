@@ -2178,11 +2178,13 @@ bool VpRenderFcKernel::IsEufusionBypassed()
 
     if (nullptr == userFeatureControl || !userFeatureControl->IsEufusionBypassWaEnabled())
     {
+        VP_RENDER_NORMALMESSAGE("EufusionBypass is not needed.");
         return false;
     }
 
     if (compParams.sourceCount > 1)
     {
+        VP_RENDER_NORMALMESSAGE("EufusionBypass is needed for multi-layer composition case.");
         return true;
     }
     else if (1 == compParams.sourceCount)
@@ -2193,9 +2195,18 @@ bool VpRenderFcKernel::IsEufusionBypassed()
         if (compParams.pColorFillParams != nullptr)
         {
             // To avoid colorfill + rotation output cropution when Eu fusion is on.
-            bColorFill =  (!RECT1_CONTAINS_RECT2(layer.surf->rcSrc, compParams.target->surf->rcDst)) ? true : false;
+            bColorFill =  (!RECT1_CONTAINS_RECT2(layer.surf->rcDst, compParams.target->surf->rcDst)) ? true : false;
             bRotation = (layer.rotation != VPHAL_ROTATION_IDENTITY) ? true : false;
-            m_renderHal->eufusionBypass = bColorFill && bRotation;
+
+            if (bColorFill && bRotation)
+            {
+                VP_RENDER_NORMALMESSAGE("EufusionBypass is needed for colorfill + rotation case.");
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {

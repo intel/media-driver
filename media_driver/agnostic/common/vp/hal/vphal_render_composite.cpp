@@ -2361,6 +2361,9 @@ MOS_STATUS CompositeState::Render(
         goto finish;
     }
     pRenderHal->eufusionBypass = pRenderHal->eufusionBypass || ((iSources > 1) ? 1:0);
+
+    VPHAL_RENDER_NORMALMESSAGE("eufusionBypass = %d", pRenderHal->eufusionBypass ? 1 : 0);
+
     // Determine cspace for compositing
     ColorSpace = PrepareCSC(pcRenderParams,
                             pSources,
