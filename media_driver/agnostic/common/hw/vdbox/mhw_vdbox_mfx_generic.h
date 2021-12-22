@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2018, Intel Corporation
+* Copyright (c) 2017-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2915,6 +2915,11 @@ public:
     inline uint32_t GetAvcImgStateSize()
     {
         return TMfxCmds::MFX_AVC_IMG_STATE_CMD::byteSize;
+    }
+
+    inline uint32_t GetAvcSlcStateSize()
+    {
+        return TMfxCmds::MFX_AVC_SLICE_STATE_CMD::byteSize;
     }
 
 };
