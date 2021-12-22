@@ -50,13 +50,6 @@
 #endif // MOS_MEDIASOLO_SUPPORTED
 #include "mos_solo_generic.h"
 
-#ifndef ANDROID
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/sem.h>
-#include <sys/types.h>
-#endif
-
 #include "mos_os_virtualengine.h"
 #include "mos_util_user_interface.h"
 
@@ -558,270 +551,6 @@ int32_t Linux_Refresh(MOS_CONTEXT *pOsContext)
     return true;
 }
 
-#ifndef ANDROID
-
-#define MOS_LINUX_IPC_INVALID_ID -1
-#define MOS_LINUX_SHM_INVALID (void *)-1
-#define MOS_LINUX_SEM_MAX_TRIES 10
-
-static MOS_STATUS DetachDestroyShm(int32_t shmid, void  *pShm)
-{
-    struct shmid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    if (shmid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if ((pShm != MOS_LINUX_SHM_INVALID) && (pShm != nullptr) && shmdt(pShm) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (shmctl(shmid, IPC_STAT, &buf) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (buf.shm_nattch == 0)
-    {
-        if (shmctl(shmid, IPC_RMID, nullptr) < 0)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS ConnectCreateShm(long key, uint32_t size, int32_t *pShmid, void  **ppShm)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    MOS_OS_CHK_NULL_RETURN(pShmid);
-    MOS_OS_CHK_NULL_RETURN(ppShm);
-
-    struct shmid_ds buf;
-    int32_t         shmid     = -1;
-    key_t           key_value = (key_t)key;
-    void *          shmptr    = nullptr;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    shmid = shmget(key_value, size, IPC_CREAT | 0666);
-    if (shmid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    shmptr = shmat(shmid, 0, 0);
-    if (shmptr == MOS_LINUX_SHM_INVALID)
-    {
-        DetachDestroyShm(shmid, shmptr);
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (shmctl(shmid, IPC_STAT, &buf) < 0)
-    {
-        // can't get any status info
-        DetachDestroyShm(shmid, shmptr);
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    *ppShm = shmptr;
-    *pShmid = shmid;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS ConnectCreateSemaphore(long key, int32_t *pSemid)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    MOS_OS_CHK_NULL_RETURN(pSemid);
-    int32_t         semid = -1;
-    struct sembuf   sop;
-    struct semid_ds buf;
-    uint32_t        i         = 0;
-    key_t           key_value = (key_t)key;
-    int32_t         val       = 0;
-    MOS_ZeroMemory(&sop, sizeof(sop));
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666);
-
-    if (semid != MOS_LINUX_IPC_INVALID_ID)
-    {
-        // initialize it to 0
-        if (semctl(semid, 0, SETVAL, val) == -1)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-
-        // Perform a "no-op" semaphore operation - changes sem_otime
-        // so other processes can see we've initialized the set.
-        sop.sem_num = 0;
-        sop.sem_op  = 0; //Wait for value to equal 0
-        sop.sem_flg = 0;
-        if (semop(semid, &sop, 1) == -1)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-
-    }
-    else
-    {
-        // errno EEXIST
-        semid = semget(key, 1, 0666);
-        if (semid == MOS_LINUX_IPC_INVALID_ID)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-    }
-
-    *pSemid = semid;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS DestroySemaphore(int32_t semid)
-{
-    int32_t nwait = -1;
-
-    if (semid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    nwait = semctl(semid, 0, GETZCNT, 0);
-
-    if (nwait > 0)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    if (semctl(semid, 0, IPC_RMID, nullptr) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static int16_t ShmAttachedNumber(int32_t shmid)
-{
-    struct shmid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    if (shmctl(shmid, IPC_STAT, &buf) < 0)
-    {
-        return -1;
-    }
-
-    return buf.shm_nattch;
-}
-
-static MOS_STATUS LockSemaphore(int32_t semid)
-{
-    struct sembuf op[2] = {};
-    op[0].sem_num = 0; // wait for [0] to be 0
-    op[0].sem_op  = 0;
-    op[0].sem_flg = 0;
-    op[1].sem_num = 0;
-    op[1].sem_op  = 1; // increment
-    op[1].sem_flg = SEM_UNDO;
-
-    if (semid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (semop(semid, op, 2) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-static MOS_STATUS UnLockSemaphore(int32_t semid)
-{
-    struct sembuf op;
-    op.sem_num = 0;
-    op.sem_op  = -1; // decrement back to 0
-    op.sem_flg = SEM_UNDO;
-
-    if (semid < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    if (semop(semid, &op, 1) < 0)
-    {
-        return MOS_STATUS_UNKNOWN;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-void DestroyIPC(PMOS_CONTEXT pOsContext)
-{
-    if (MOS_LINUX_IPC_INVALID_ID != pOsContext->semid)
-    {
-        int16_t iAttachedNum = 0;
-
-        if (MOS_LINUX_IPC_INVALID_ID != pOsContext->shmid)
-        {
-            LockSemaphore(pOsContext->semid);
-            iAttachedNum = ShmAttachedNumber(pOsContext->shmid);
-
-            DetachDestroyShm(pOsContext->shmid, pOsContext->pShm);
-            pOsContext->shmid = MOS_LINUX_IPC_INVALID_ID;
-            pOsContext->pShm = MOS_LINUX_SHM_INVALID;
-
-            if (iAttachedNum) --iAttachedNum;
-            UnLockSemaphore(pOsContext->semid);
-        }
-    }
-}
-
-MOS_STATUS CreateIPC(PMOS_CONTEXT pOsContext)
-{
-    MOS_STATUS eStatus;
-
-    MOS_OS_CHK_NULL(pOsContext);
-    pOsContext->semid = MOS_LINUX_IPC_INVALID_ID;
-    pOsContext->shmid = MOS_LINUX_IPC_INVALID_ID;
-    pOsContext->pShm = MOS_LINUX_SHM_INVALID;
-
-    struct semid_ds buf;
-    MOS_ZeroMemory(&buf, sizeof(buf));
-
-    //wait and retry untill to get a valid semaphore
-    for (int i = 0; i < MOS_LINUX_SEM_MAX_TRIES; i ++)
-    {
-        ConnectCreateSemaphore(DUAL_VDBOX_KEY, &pOsContext->semid);
-
-        //check whether the semid is initialized or not
-        if (semctl(pOsContext->semid, 0, IPC_STAT, &buf) == -1)
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-        if (buf.sem_otime != 0)
-        {
-            break;
-        }
-
-        MosUtilities::MosSleep(1);  //wait and retry
-    }
-
-    LockSemaphore(pOsContext->semid);
-    eStatus = ConnectCreateShm(DUAL_VDBOX_KEY, sizeof(VDBOX_WORKLOAD), &pOsContext->shmid, &pOsContext->pShm);
-    UnLockSemaphore(pOsContext->semid);
-    MOS_CHK_STATUS_SAFE(eStatus);
-
-finish:
-    return eStatus;
-}
-#endif
-
 GpuContextSpecific* Linux_GetGpuContext(PMOS_INTERFACE pOsInterface, uint32_t gpuContextHandle)
 {
     MOS_OS_FUNCTION_ENTER;
@@ -1147,13 +876,6 @@ void Linux_Destroy(
         MOS_OS_ASSERTMESSAGE("OsContext is null.");
         return;
     }
-
- #ifndef ANDROID
-    if (pOsContext->bKMDHasVCS2)
-    {
-        DestroyIPC(pOsContext);
-    }
- #endif
 
     if (!modularizedGpuCtxEnabled)
     {
@@ -1502,11 +1224,6 @@ MOS_STATUS Linux_InitContext(
         {
             pContext->bKMDHasVCS2 = false;
         }
-    }
-    if (pContext->bKMDHasVCS2)
-    {
-        eStatus = CreateIPC(pContext);
-        MOS_CHK_STATUS_SAFE(eStatus);
     }
 #endif
 
@@ -4445,6 +4162,11 @@ MOS_STATUS Mos_Specific_SubmitCommandBuffer(
             {
                 ExecFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
+
+            if (!GFX_IS_GEN_11_OR_LATER(pOsContext->platform))
+            {
+                ExecFlag = I915_EXEC_BSD; // I915 already implement ping-pong, it is fd based ping-pong. set the I915_EXEC_BSD without I915_EXEC_BSD_RING0 and I915_EXEC_BSD_RING1, it will be dispatched to different one
+            }
         }
         else
         {
@@ -6768,55 +6490,6 @@ finish:
 
 }
 
-#ifdef ANDROID
-//!
-//! \brief    Create GPU node association.
-//! \details  Create GPU node association.
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] OS Interface
-//! \param    MOS_MEDIA_OPERATION MediaOperation
-//!           [in] Media operation
-//! \param    MOS_GPU_NODE *pVideoNodeOrdinal
-//!           [out] VCS node ordinal
-//! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if success, otherwise error code
-//!
-MOS_STATUS Mos_Specific_CreateVideoNodeAssociation(
-    PMOS_INTERFACE      pOsInterface,
-    int32_t             bSetVideoNode,
-    MOS_GPU_NODE        *pVideoNodeOrdinal)
-{
-    MOS_UNUSED(pOsInterface);
-    MOS_UNUSED(bSetVideoNode);
-    MOS_OS_ASSERT(pVideoNodeOrdinal);
-
-    // return VDBox #1 for now.
-    *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
-
-    return MOS_STATUS_SUCCESS;
-}
-
-//!
-//! \brief    Destroy GPU node association.
-//! \details  Destroy GPU node association.
-//! \param    PMOS_INTERFACE pOsInterface
-//!           [in] OS Interface
-//! \param    MOS_GPU_NODE VideoNodeOrdinal
-//!           [in] VCS node ordinal
-//! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if success, otherwise error code
-//!
-MOS_STATUS Mos_Specific_DestroyVideoNodeAssociation(
-    PMOS_INTERFACE     pOsInterface,
-    MOS_GPU_NODE       VideoNodeOrdinal)
-{
-    MOS_UNUSED(pOsInterface);
-    MOS_UNUSED(VideoNodeOrdinal);
-    return MOS_STATUS_SUCCESS;
-}
-
-#else
-
 //!
 //! \brief    Create GPU node association.
 //! \details  Create GPU node association.
@@ -6835,20 +6508,20 @@ MOS_STATUS Mos_Specific_CreateVideoNodeAssociation(
     MOS_GPU_NODE        *pVideoNodeOrdinal)
 {
     PMOS_OS_CONTEXT         pOsContext;
-    PVDBOX_WORKLOAD         pVDBoxWorkLoad = nullptr;
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
 
     MOS_OS_FUNCTION_ENTER;
 
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pVideoNodeOrdinal);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_RETURN(pVideoNodeOrdinal);
+    MOS_OS_CHK_NULL_RETURN(pOsInterface->pOsContext);
 
     pOsContext = pOsInterface->pOsContext;
 
     if (false == pOsContext->bKMDHasVCS2)
     {
         *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
-        goto finish;
+        return MOS_STATUS_SUCCESS;
     }
 
     // If node selection is forced or we have only one VDBox, turn balancing off.
@@ -6876,67 +6549,13 @@ MOS_STATUS Mos_Specific_CreateVideoNodeAssociation(
         pOsContext->bPerCmdBufferBalancing = 0;
     }
 #endif // _DEBUG || _RELEASE_INTERNAL
-   
-    if (pOsContext->semid == MOS_LINUX_IPC_INVALID_ID)
+
+    if (!bSetVideoNode)
     {
-        MOS_OS_ASSERTMESSAGE("Invalid semid in OsContext.");
-        eStatus = MOS_STATUS_UNKNOWN;
-        goto finish;
+        *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
     }
 
-    LockSemaphore(pOsContext->semid);
-
-    pVDBoxWorkLoad = (PVDBOX_WORKLOAD)pOsContext->pShm;
-    MOS_OS_ASSERT(pVDBoxWorkLoad);
-
-    if (bSetVideoNode)
-    {
-        if (*pVideoNodeOrdinal == MOS_GPU_NODE_VIDEO)
-        {
-            pVDBoxWorkLoad->uiVDBoxCount[0]++;
-        }
-        else if (*pVideoNodeOrdinal == MOS_GPU_NODE_VIDEO2)
-        {
-            pVDBoxWorkLoad->uiVDBoxCount[1]++;
-        }
-        else
-        {
-            MOS_OS_ASSERTMESSAGE("VDBoxWorkLoad not set.");
-        }
-    }
-    else
-    {
-        if (pVDBoxWorkLoad->uiVDBoxCount[0] < pVDBoxWorkLoad->uiVDBoxCount[1])
-        {
-            *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
-            pVDBoxWorkLoad->uiVDBoxCount[0]++;
-        }
-        else if (pVDBoxWorkLoad->uiVDBoxCount[0] == pVDBoxWorkLoad->uiVDBoxCount[1])
-        {
-            // this ping-pong method improves much performance for multi-session HD to HD xcode
-            if (pVDBoxWorkLoad->uiRingIndex == 0)
-            {
-                *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO;
-                pVDBoxWorkLoad->uiVDBoxCount[0]++;
-                pVDBoxWorkLoad->uiRingIndex = 1;
-            }
-            else
-            {
-                *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO2;
-                pVDBoxWorkLoad->uiVDBoxCount[1]++;
-                pVDBoxWorkLoad->uiRingIndex = 0;
-            }
-        }
-        else
-        {
-            *pVideoNodeOrdinal = MOS_GPU_NODE_VIDEO2;
-            pVDBoxWorkLoad->uiVDBoxCount[1]++;
-        }
-    }
-
-    UnLockSemaphore(pOsContext->semid);
-
-finish:
+    MOS_OS_NORMALMESSAGE("VDBoxWorkLoad use node %x.", *pVideoNodeOrdinal);
     return eStatus;
 }
 
@@ -6954,45 +6573,10 @@ MOS_STATUS Mos_Specific_DestroyVideoNodeAssociation(
     PMOS_INTERFACE     pOsInterface,
     MOS_GPU_NODE       VideoNodeOrdinal)
 {
-    PMOS_OS_CONTEXT         pOsContext = nullptr;
-    PVDBOX_WORKLOAD         pVDBoxWorkLoad = nullptr;
-
-    MOS_OS_FUNCTION_ENTER;
-    MOS_OS_CHK_NULL_RETURN(pOsInterface);
-    MOS_OS_CHK_NULL_RETURN(pOsInterface->pOsContext);
-    pOsContext    = pOsInterface->pOsContext;
-
-    // not do workload balancing in UMD just return;
-    if (pOsContext->bKMDHasVCS2 == false)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-
-     if (pOsContext->semid == MOS_LINUX_IPC_INVALID_ID)
-     {
-         MOS_OS_ASSERTMESSAGE("Invalid semid in OsContext.");
-         return MOS_STATUS_UNKNOWN;
-     }
-
-    LockSemaphore(pOsContext->semid);
-
-    pVDBoxWorkLoad = (PVDBOX_WORKLOAD)pOsContext->pShm;
-    MOS_OS_ASSERT(pVDBoxWorkLoad);
-
-    if (VideoNodeOrdinal == MOS_GPU_NODE_VIDEO)
-    {
-        pVDBoxWorkLoad->uiVDBoxCount[0]--;
-    }
-    else
-    {
-        pVDBoxWorkLoad->uiVDBoxCount[1]--;
-    }
-
-    UnLockSemaphore(pOsContext->semid);
-
+    MOS_UNUSED(pOsInterface);
+    MOS_UNUSED(VideoNodeOrdinal);
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_VDBOX_NODE_IND Mos_Specific_GetVdboxNodeId(
     PMOS_INTERFACE pOsInterface,
@@ -7229,17 +6813,10 @@ void Mos_Specific_SetSliceCount(
         PMOS_INTERFACE              pOsInterface,
         uint32_t *pSliceCount)
 {
-    MOS_OS_ASSERT(pOsInterface);
-    MOS_OS_ASSERT(pSliceCount);
+    MOS_UNUSED(pOsInterface);
+    MOS_UNUSED(pSliceCount);
 
-    if (pOsInterface->osContextPtr)
-    {
-        pOsInterface->osContextPtr->SetSliceCount(pSliceCount);
-    }
-    else
-    {
-        MOS_OS_ASSERTMESSAGE("OS context is nullptr.");
-    }
+    return;
 }
 
 //!
@@ -7429,7 +7006,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     PMOS_USER_FEATURE_INTERFACE     pOsUserFeatureInterface = nullptr;
     MOS_STATUS                      eStatus;
     MediaFeatureTable              *pSkuTable = nullptr;
-    MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
+    MOS_USER_FEATURE_VALUE_DATA     userFeatureData = {};
     uint32_t                        dwResetCount = 0;
     int32_t                         ret = 0;
     bool                            modularizedGpuCtxEnabled = false;
@@ -7452,6 +7029,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->phasedSubmission          = true;
 
     pOsInterface->apoMosEnabled             = pOsDriverContext->m_apoMosEnabled;
+
     if (pOsInterface->apoMosEnabled)
     {
         pOsInterface->streamStateIniter = true;
@@ -7511,22 +7089,23 @@ MOS_STATUS Mos_Specific_InitInterface(
         pOsContext->pGmmClientContext = pOsDriverContext->pGmmClientContext;
     }
 
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 #if MOS_MEDIASOLO_SUPPORTED
     if (pOsInterface->bSoloInUse)
     {
-        UserFeatureData.i32Data = pOsInterface->bSimIsActive;
-        UserFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
+        userFeatureData.i32Data     = pOsInterface->bSimIsActive;
+        userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     }
 #endif
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE_ID,
-        &UserFeatureData,
+        &userFeatureData,
         (MOS_CONTEXT_HANDLE)pOsContext);
 #endif
-    pOsInterface->bSimIsActive = (int32_t)UserFeatureData.i32Data;
+    pOsInterface->bSimIsActive = (int32_t)userFeatureData.i32Data;
+
     if (!pOsInterface->apoMosEnabled)
     {
         pOsContext->bSimIsActive = pOsInterface->bSimIsActive;
@@ -7734,33 +7313,33 @@ MOS_STATUS Mos_Specific_InitInterface(
 #if (_DEBUG || _RELEASE_INTERNAL)
     // read the "Force VDBOX" user feature key
     // 0: not force
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX_ID,
-        &UserFeatureData,
+        &userFeatureData,
         (MOS_CONTEXT_HANDLE)pOsContext);
-    pOsInterface->eForceVdbox = UserFeatureData.u32Data;
+    pOsInterface->eForceVdbox = userFeatureData.u32Data;
 
     // Force TileYf/Ys
     // 0: Tile Y  1: Tile Yf   2 Tile Ys
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_YFYS_ID,
-        &UserFeatureData,
+        &userFeatureData,
         (MOS_CONTEXT_HANDLE)pOsContext);
-    pOsInterface->dwForceTileYfYs = (uint32_t)UserFeatureData.i32Data;
+    pOsInterface->dwForceTileYfYs = (uint32_t)userFeatureData.i32Data;
 
     // Null HW Driver
     // 0: Disable
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE_ID,
-        &UserFeatureData,
+        &userFeatureData,
         (MOS_CONTEXT_HANDLE)pOsContext));
-    pOsInterface->NullHWAccelerationEnable.Value = UserFeatureData.u32Data;
+    pOsInterface->NullHWAccelerationEnable.Value = userFeatureData.u32Data;
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
 #if MOS_MEDIASOLO_SUPPORTED
@@ -7769,22 +7348,22 @@ MOS_STATUS Mos_Specific_InitInterface(
     if (!pOsInterface->apoMosEnabled)
     {
         // read the "Disable KMD Watchdog" user feature key
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG_ID,
-            &UserFeatureData,
+            &userFeatureData,
             (MOS_CONTEXT_HANDLE)pOsContext);
-        pOsContext->bDisableKmdWatchdog = (UserFeatureData.i32Data) ? true : false;
+        pOsContext->bDisableKmdWatchdog = (userFeatureData.i32Data) ? true : false;
 
         // read "Linux PerformanceTag Enable" user feature key
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
             __MEDIA_USER_FEATURE_VALUE_LINUX_PERFORMANCETAG_ENABLE_ID,
-            &UserFeatureData,
+            &userFeatureData,
             (MOS_CONTEXT_HANDLE)pOsContext);
-        pOsContext->uEnablePerfTag = UserFeatureData.i32Data;
+        pOsContext->uEnablePerfTag = userFeatureData.i32Data;
     }
     eStatus = Mos_Specific_InitInterface_Ve(pOsInterface);
     if(eStatus != MOS_STATUS_SUCCESS)

@@ -142,14 +142,6 @@ public:
     //!
     bool GetOsContextValid() { return m_osContextValid; };
 
-    //!
-    //! \brief  Set slice count to shared memory and KMD
-    //! \param  [in,out] pSliceCount
-    //!         pointer to the slice count. Input the slice count for current
-    //!         context, output the ruling slice count shared by all contexts.
-    //!
-    virtual void SetSliceCount(uint32_t *pSliceCount) { MOS_UNUSED(pSliceCount); };
-
     //! \brief   Flag to indicate if implicit tile setting is needed
     bool m_mediaTile64 = false;
 
