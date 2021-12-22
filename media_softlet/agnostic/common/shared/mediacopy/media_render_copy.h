@@ -67,6 +67,8 @@ public:
     MhwRenderInterface          *m_renderInterface = nullptr;
     RENDERHAL_INTERFACE         *m_renderHal       = nullptr;
     MhwCpInterface              *m_cpInterface     = nullptr;
+    void                        *m_pKernelBin      = nullptr;
+    Kdll_State                  *m_pKernelDllState = nullptr;//!< Kernel DLL state
 };
 
 #endif // __MEDIA_RENDER_COPY_H__

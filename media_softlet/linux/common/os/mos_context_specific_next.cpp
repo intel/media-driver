@@ -289,6 +289,11 @@ void OsContextSpecificNext::Destroy()
            MOS_FreeMemory(m_perfData);
            m_perfData = nullptr;
         }
+
+        if (m_mosMediaCopy != nullptr)
+        {
+           MOS_Delete(m_mosMediaCopy);
+        }
     }
 
 }

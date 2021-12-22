@@ -75,11 +75,7 @@ RenderCopy_Xe_Xpm_Plus::RenderCopy_Xe_Xpm_Plus(PMOS_INTERFACE  osInterface, MhwI
 
 RenderCopy_Xe_Xpm_Plus:: ~RenderCopy_Xe_Xpm_Plus()
 {
-    // Destroy Kernel DLL objects (cache, hash table, states)
-    if (m_pKernelDllState)
-    {
-        KernelDll_ReleaseStates(m_pKernelDllState);
-    }
+
 }
 
 int32_t RenderCopy_Xe_Xpm_Plus::GetBytesPerPixel(
@@ -426,7 +422,6 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::SetupKernel(
     uint32_t                    dwKernelBinSize;
     PRenderCopy_Xe_Xpm_Plus           pRenderCopy = this;
     PMEDIACOPY_RENDER_DATA      pRenderData = &(pRenderCopy->m_RenderData);
-    void                        *pKernelBin;
 
     if (iKDTIndex == KERNEL_CopyKernel_1D_to_2D_NV12)
     {
@@ -473,32 +468,35 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::SetupKernel(
     pcKernelBin = (const void*)IGVPKRN_XE_XPM_PLUS;
     dwKernelBinSize = IGVPKRN_XE_XPM_PLUS_SIZE;
 
-    pKernelBin = MOS_AllocMemory(dwKernelBinSize);
-    MCPY_CHK_NULL_RETURN(pKernelBin);
-    MOS_SecureMemcpy(pKernelBin,
+    if (nullptr == m_pKernelBin)
+    {
+        m_pKernelBin = MOS_AllocMemory(dwKernelBinSize);
+    }
+
+    MCPY_CHK_NULL_RETURN(m_pKernelBin);
+    MOS_SecureMemcpy(m_pKernelBin,
                      dwKernelBinSize,
                      pcKernelBin,
                      dwKernelBinSize);
 
     // Allocate KDLL state (Kernel Dynamic Linking)
-    m_pKernelDllState =  KernelDll_AllocateStates(
-                                            pKernelBin,
+    if (nullptr == m_pKernelDllState)
+    {
+        m_pKernelDllState =  KernelDll_AllocateStates(
+                                            m_pKernelBin,
                                             dwKernelBinSize,
                                             nullptr,
                                             0,
                                             nullptr,
                                             nullptr);
-    if (!m_pKernelDllState)
+    }
+    if ( nullptr == m_pKernelDllState)
     {
         MCPY_ASSERTMESSAGE("Failed to allocate KDLL state.");
-        if (pKernelBin)
+        if (m_pKernelBin)
         {
-            MOS_SafeFreeMemory(pKernelBin);
-            if (m_pKernelDllState && m_pKernelDllState->ComponentKernelCache.pCache == pKernelBin)
-            {
-               m_pKernelDllState->ComponentKernelCache.pCache = nullptr;
-            }
-            pKernelBin = nullptr;
+            MOS_SafeFreeMemory(m_pKernelBin);
+            m_pKernelBin = nullptr;
         }
         return MOS_STATUS_NULL_POINTER;
     }

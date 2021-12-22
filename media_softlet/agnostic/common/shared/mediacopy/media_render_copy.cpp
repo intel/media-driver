@@ -52,6 +52,12 @@ RenderCopyState:: ~RenderCopyState()
         m_cpInterface = nullptr;
     }
 
+    // Destroy Kernel DLL objects (cache, hash table, states)
+    if (m_pKernelDllState)
+    {
+       KernelDll_ReleaseStates(m_pKernelDllState);
+       m_pKernelBin = nullptr;
+    }
 }
 
 MOS_STATUS RenderCopyState::Initialize()

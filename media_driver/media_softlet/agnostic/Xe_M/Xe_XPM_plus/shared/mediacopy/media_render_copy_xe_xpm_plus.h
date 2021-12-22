@@ -319,7 +319,6 @@ protected:
 
 public:
 
-    Kdll_State                   *m_pKernelDllState = nullptr;                     //!< Kernel DLL state
     RENDERCOPY_KERNELID          m_currKernelId = KERNEL_CopyKernel_1D_to_2D_NV12;
     MOS_RESOURCE                 m_KernelResource = {0};                           //!<Graphics memory for Kernel access
     MEDIACOPY_RENDER_DATA        m_RenderData = {0};
