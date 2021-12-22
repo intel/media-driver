@@ -40,6 +40,12 @@
 #include <time.h>     //for simulate random OS API failure
 #endif
 
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#endif
+
 MOS_STATUS MosInterface::InitOsUtilities(DDI_DEVICE_CONTEXT ddiDeviceContext)
 {
     MOS_UNUSED(ddiDeviceContext);
@@ -746,6 +752,56 @@ MOS_STATUS MosInterface::AddCommand(
 }
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+MOS_STATUS MosInterface::DumpIndirectState(
+    MOS_STREAM_HANDLE     streamState,
+    COMMAND_BUFFER_HANDLE cmdBuffer,
+    MOS_GPU_NODE          gpuNode,
+    const char            *filePathPrefix)
+{
+    MOS_OS_CHK_NULL_RETURN(filePathPrefix);
+
+    if (MOS_GPU_NODE_COMPUTE == gpuNode || MOS_GPU_NODE_3D == gpuNode)
+    {
+        uint8_t *indirectState = nullptr;
+        uint32_t offset = 0;
+        uint32_t size = 0;
+        MosInterface::GetIndirectState(streamState, &indirectState, offset, size);
+
+        if (indirectState)
+        {
+            std::stringstream ss;
+            uint32_t dwordCount = size / 4;
+            uint32_t *data = (uint32_t *)indirectState;
+
+            for (uint32_t i = 0; i < dwordCount; ++i)
+            {
+                if (0 == i % 4)
+                {
+                    if (0 != i)
+                    {
+                        ss << std::endl;
+                    }
+                    ss << "#0    #0";
+                }
+                ss << "    " << std::hex << std::setw(8) << std::setfill('0') << data[i];
+            }
+
+            std::stringstream fileName;
+            fileName << filePathPrefix << "_binding_table.txt";
+            std::fstream fs;
+            fs.open(fileName.str(), std::ios_base::out | std::ios_base::app);
+            fs << ss.str();
+            fs.close();
+        }
+        else
+        {
+            MOS_OS_NORMALMESSAGE("nullptr == indirectState");
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::DumpCommandBuffer(
     MOS_STREAM_HANDLE     streamState,
     COMMAND_BUFFER_HANDLE cmdBuffer)
@@ -867,6 +923,7 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
     if (streamState->dumpCommandBufferToFile)
     {
         MOS_OS_CHK_STATUS_RETURN(MosUtilities::MosAppendFileFromPtr((const char *)sFileName, pOutputBuffer, dwBytesWritten));
+        MOS_OS_CHK_STATUS_RETURN(DumpIndirectState(streamState, cmdBuffer, gpuNode, sFileName));
     }
 
     if (streamState->dumpCommandBufferAsMessages)
