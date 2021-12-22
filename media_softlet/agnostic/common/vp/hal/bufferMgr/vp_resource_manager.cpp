@@ -887,7 +887,9 @@ VP_SURFACE * VpResourceManager::GetCopyInstOfExtSurface(VP_SURFACE* surf)
     return surface;
 }
 
-MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
+    std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
+    RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
 {
     VP_FUNC_CALL();
 
@@ -903,6 +905,25 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     for (size_t i = 0; i < inputSurfaces.size(); ++i)
     {
         surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
+
+        if (!resHint.isIScalingTypeNone)
+        {
+            // For Interlaced scaling, 2nd field is part of the same frame.
+            // For Field weaving, 2nd field is passed in as a ref.
+            VP_SURFACE *surfField1Dual = nullptr;
+            if (resHint.isFieldWeaving)
+            {
+                surfField1Dual = pastSurfaces[i];
+                VP_PUBLIC_NORMALMESSAGE("Field weaving case. 2nd field is passed in as a ref.");
+            }
+            else
+            {
+                surfField1Dual = GetCopyInstOfExtSurface(inputSurfaces[i]);
+                VP_PUBLIC_NORMALMESSAGE("Interlaced scaling. 2nd field is part of the same frame.");
+            }
+            VP_PUBLIC_CHK_NULL_RETURN(surfField1Dual);
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0Field1Dual + i), surfField1Dual));
+        }
     }
     surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeFcTarget0, outputSurface));
 
@@ -930,13 +951,14 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
+    std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
 {
     VP_FUNC_CALL();
 
     if (caps.bComposite)
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignFcResources(caps, inputSurfaces, outputSurface, resHint, surfSetting));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignFcResources(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, resHint, surfSetting));
     }
     else
     {
@@ -966,16 +988,20 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
 {
     VP_FUNC_CALL();
 
-    std::vector<VP_SURFACE *> inputSurfaces;
+    std::vector<VP_SURFACE *> inputSurfaces, pastSurfaces, futureSurfaces;
     for (uint32_t i = 0; i < executedFilters.GetSurfaceCount(true); ++i)
     {
         VP_SURFACE *inputSurface = GetCopyInstOfExtSurface(executedFilters.GetSurface(true, i));
         VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
         inputSurfaces.push_back(inputSurface);
+
+        VP_SURFACE *pastSurface = GetCopyInstOfExtSurface(executedFilters.GetPastSurface(i));
+        pastSurfaces.push_back(pastSurface ? pastSurface : nullptr);
+
+        VP_SURFACE *futureSurface = GetCopyInstOfExtSurface(executedFilters.GetFutureSurface(i));
+        futureSurfaces.push_back(futureSurface ? futureSurface : nullptr);
     }
     VP_SURFACE                  *outputSurface  = GetCopyInstOfExtSurface(executedFilters.GetSurface(false, 0));
-    VP_SURFACE                  *pastSurface    = GetCopyInstOfExtSurface(executedFilters.GetPastSurface(0));
-    VP_SURFACE                  *futureSurface  = GetCopyInstOfExtSurface(executedFilters.GetFutureSurface(0));
 
     RESOURCE_ASSIGNMENT_HINT    resHint         = {};
 
@@ -989,13 +1015,13 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(AssignExecuteResource(caps, inputSurfaces, outputSurface,
-        pastSurface, futureSurface, resHint, executedFilters.GetSurfacesSetting()));
+        pastSurfaces, futureSurfaces, resHint, executedFilters.GetSurfacesSetting()));
     ++m_currentPipeIndex;
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
-    VP_SURFACE *pastSurface, VP_SURFACE *futureSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+    std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
 {
     VP_FUNC_CALL();
 
@@ -1004,12 +1030,12 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, std::
     if (caps.bVebox || caps.bDnKernelUpdate)
     {
         // Create Vebox Resources
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurfaces[0], outputSurface, pastSurface, futureSurface, resHint, surfSetting));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResource(caps, inputSurfaces[0], outputSurface, pastSurfaces[0], futureSurfaces[0], resHint, surfSetting));
     }
 
     if (caps.bRender)
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignRenderResource(caps, inputSurfaces, outputSurface, resHint, surfSetting));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignRenderResource(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, resHint, surfSetting));
     }
 
     return MOS_STATUS_SUCCESS;

@@ -174,6 +174,15 @@ enum SurfaceType
     SurfaceTypeFcInputLayer6,
     SurfaceTypeFcInputLayer7,
     SurfaceTypeFcInputLayerMax = SurfaceTypeFcInputLayer7,
+    SurfaceTypeFcInputLayer0Field1Dual,
+    SurfaceTypeFcInputLayer1Field1Dual,
+    SurfaceTypeFcInputLayer2Field1Dual,
+    SurfaceTypeFcInputLayer3Field1Dual,
+    SurfaceTypeFcInputLayer4Field1Dual,
+    SurfaceTypeFcInputLayer5Field1Dual,
+    SurfaceTypeFcInputLayer6Field1Dual,
+    SurfaceTypeFcInputLayer7Field1Dual,
+    SurfaceTypeFcInputLayerMaxField1Dual = SurfaceTypeFcInputLayer7Field1Dual,
     SurfaceTypeFcTarget0,
     SurfaceTypeFcTarget1,
     SurfaceTypeFcCscCoeff,
@@ -452,6 +461,12 @@ public:
     virtual SwFilter *Clone();
     virtual bool operator == (SwFilter& swFilter);
     virtual MOS_STATUS Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS SetResourceAssignmentHint(RESOURCE_ASSIGNMENT_HINT &hint)
+    {
+        hint.isIScalingTypeNone = ISCALING_NONE == m_Params.interlacedScalingType;
+        hint.isFieldWeaving     = ISCALING_FIELD_TO_INTERLEAVED == m_Params.interlacedScalingType;
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamScaling m_Params = {};

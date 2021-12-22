@@ -52,12 +52,18 @@ using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
 #define VP_VEBOX_FLAG_ENABLE_KERNEL_FMD_SUMMATION          0x00000010
 
 #define RESOURCE_ASSIGNMENT_HINT_BITS_DI        \
-    uint32_t    bDi         : 1;                \
-    uint32_t    b60fpsDi    : 1;                \
+    uint32_t    bDi                 : 1;        \
+    uint32_t    b60fpsDi            : 1;
+
+#define RESOURCE_ASSIGNMENT_HINT_BITS_SCALING   \
+    uint32_t    isIScalingTypeNone  : 1;        \
+    uint32_t    isFieldWeaving      : 1;
 
 #define RESOURCE_ASSIGNMENT_HINT_BITS           \
-        RESOURCE_ASSIGNMENT_HINT_BITS_DI
-#define RESOURCE_ASSIGNMENT_HINT_SIZE   2
+        RESOURCE_ASSIGNMENT_HINT_BITS_DI        \
+        RESOURCE_ASSIGNMENT_HINT_BITS_SCALING
+
+#define RESOURCE_ASSIGNMENT_HINT_SIZE   4
 
 //!
 //! \brief Enumeration for the user feature key "Bypass Composition" values

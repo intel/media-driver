@@ -126,6 +126,7 @@ protected:
     VPHAL_COMPOSITE_CACHE_CNTL m_surfMemCacheCtl = {};
 
     static const int32_t s_bindingTableIndex[];
+    static const int32_t s_bindingTableIndexField[];
 
 MEDIA_CLASS_DEFINE_END(VpRenderFcKernel)
 };

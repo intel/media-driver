@@ -1356,6 +1356,7 @@ struct VP_FC_LAYER
     int32_t                 paletteID = 0;              //!<Palette Allocation
     bool                    queryVariance;
     bool                    xorComp = false;            //!< is mono-chroma composite mode.
+    VP_SURFACE              *surfField = nullptr;
 
     // Filled by hwFilter
     VP_LAYER_CALCULATED_PARAMS calculatedParams = {};   //!< Only valid in source.
@@ -1384,7 +1385,7 @@ struct VP_COMPOSITE_PARAMS
     uint32_t                sourceCount;                       //!< Number of sources
     VP_FC_LAYER             source[VP_COMP_MAX_LAYERS];
     uint32_t                targetCount;                       //!< Number of targets
-    VP_FC_LAYER             target[VPHAL_MAX_TARGETS];          //!< Render targets
+    VP_FC_LAYER             target[VPHAL_MAX_TARGETS];         //!< Render targets
     // Needed by CP during MHW VP integration, due to pTokenState->pResourceInfo
     //RENDERHAL_SURFACE       renderHalSurfaceSrc[VP_COMP_MAX_LAYERS];
     //RENDERHAL_SURFACE       renderHalSurfaceSrcField[VP_COMP_MAX_LAYERS];

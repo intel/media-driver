@@ -87,10 +87,13 @@ MOS_STATUS VpFcFilter::InitLayer(VP_FC_LAYER &layer, bool isInputPipe, int index
 {
     auto &surfGroup             = executedPipe.GetSurfacesSetting().surfGroup;
 
+    SurfaceType surfId          = isInputPipe ? (SurfaceType)(SurfaceTypeFcInputLayer0 + index) : SurfaceTypeFcTarget0;
+    layer.surf                  = surfGroup.find(surfId)->second;
+
+    VP_PUBLIC_CHK_NULL_RETURN(layer.surf);
+
     layer.layerID               = index;
     layer.layerIDOrigin         = index;
-    SurfaceType surfId = isInputPipe ? (SurfaceType)(SurfaceTypeFcInputLayer0 + index) : SurfaceTypeFcTarget0;
-    layer.surf                  = surfGroup.find(surfId)->second;
 
     SwFilterScaling *scaling    = dynamic_cast<SwFilterScaling *>(executedPipe.GetSwFilter(isInputPipe, index, FeatureType::FeatureTypeScaling));
     layer.scalingMode           = scaling ? scaling->GetSwFilterParams().scalingMode : defaultScalingMode;
@@ -119,6 +122,18 @@ MOS_STATUS VpFcFilter::InitLayer(VP_FC_LAYER &layer, bool isInputPipe, int index
 
     SwFilterProcamp *procamp    = dynamic_cast<SwFilterProcamp *>(executedPipe.GetSwFilter(isInputPipe, index, FeatureType::FeatureTypeProcamp));
     layer.procampParams         = procamp ? procamp->GetSwFilterParams().procampParams : nullptr;
+
+    surfId                      = (SurfaceType)(SurfaceTypeFcInputLayer0Field1Dual + index);
+
+    auto it = surfGroup.find(surfId);
+    if (surfGroup.end() == it)
+    {
+        layer.surfField = nullptr;
+    }
+    else
+    {
+        layer.surfField = surfGroup.find(surfId)->second;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

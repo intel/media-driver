@@ -914,6 +914,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
                 scalingEngine->RenderNeeded = 1;
                 scalingEngine->fcSupported  = 1;
                 scalingEngine->SfcNeeded    = 0;
+                VP_PUBLIC_NORMALMESSAGE("Fc selected. fScaleX %f, fScaleY %f, scalingPreference %d",
+                    fScaleX, fScaleY, scalingParams->scalingPreference);
             }
             // SFC feasible
             else
