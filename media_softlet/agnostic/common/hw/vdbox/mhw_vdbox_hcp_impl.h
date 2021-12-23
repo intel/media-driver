@@ -481,8 +481,19 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    bool IsRowStoreCachingSupported() override
+    {
+        return m_rowstoreCachingSupported;
+    }
+
+    uint32_t GetPakHWTileSizeRecordSize() override
+    {
+        return m_pakHWTileSizeRecordSize;
+    }
+
 private:
-    bool m_rowstoreCachingSupported = false;
+    bool     m_rowstoreCachingSupported = false;
+    uint32_t m_pakHWTileSizeRecordSize  = sizeof(HCPPakHWTileSizeRecord);
 
     virtual MOS_STATUS InitRowstoreUserFeatureSettings()
     {

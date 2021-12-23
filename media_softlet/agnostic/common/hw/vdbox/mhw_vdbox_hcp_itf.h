@@ -80,6 +80,10 @@ public:
 
     virtual uint32_t GetHcpPakObjSize() = 0;
 
+    virtual bool IsRowStoreCachingSupported() = 0;
+
+    virtual uint32_t GetPakHWTileSizeRecordSize() = 0;
+
     virtual MOS_STATUS SetRowstoreCachingOffsets(const HcpVdboxRowStorePar &rowstoreParams) = 0;
 
     _HCP_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);

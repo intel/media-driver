@@ -146,6 +146,28 @@ struct HcpVdboxRowStorePar
     uint8_t  ucLCUSize;
 };
 
+struct HCPPakHWTileSizeRecord
+{
+    uint32_t Address_31_0;   //DW0
+    uint32_t Address_63_32;  //DW1
+    uint32_t Length;         //DW2 Bitstream length per tile; includes header len in first tile, and tail len in last tile
+    uint32_t TileSize;       //DW3 In Vp9, it is used for back annotation, In Hevc, it is the mmio register bytecountNoHeader
+    uint32_t AddressOffset;  //DW4 Cacheline offset
+
+    //DW5
+    uint32_t
+        ByteOffset : 6,  //[5:0] // Byte offset within cacheline
+        Res_95_70 : 26;  //[31:6]
+
+    uint32_t Hcp_Bs_SE_Bitcount_Tile;  //DW6 Bitstream size for syntax element per tile
+    uint32_t Hcp_Cabac_BinCnt_Tile;    //DW7 Bitstream size for syntax element per tile
+    uint32_t Res_DW8_31_0;             //DW8
+    uint32_t Hcp_Image_Status_Ctrl;    //DW9 Image status control per tile
+    uint32_t Hcp_Qp_Status_Count;      //DW10 Qp status count per tile
+    uint32_t Hcp_Slice_Count_Tile;     //DW11 Number of slices per tile
+    uint32_t Res_DW12_DW15[4];         //DW12-15 Reserved bits added so that QwordDisables are set correctly
+};
+
 static constexpr uint32_t MAX_REF_FRAME_NUM = 15;
 
 struct _MHW_PAR_T(HCP_PIC_STATE)
