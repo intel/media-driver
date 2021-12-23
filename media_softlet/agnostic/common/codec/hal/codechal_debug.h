@@ -143,6 +143,21 @@ protected:
     MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() override;
     uint8_t *m_decodeOutputBuf = nullptr;
 };
+
+class CodechalDebugInterfaceG12 :public CodechalDebugInterface
+{
+public:
+    CodechalDebugInterfaceG12();
+    virtual ~CodechalDebugInterfaceG12();
+
+    MOS_STATUS DumpYUVSurface(
+        PMOS_SURFACE              surface,
+        const char *              attrName,
+        const char *              surfName,
+        MEDIA_DEBUG_STATE_TYPE    mediaState = CODECHAL_NUM_MEDIA_STATES,
+        uint32_t                  width_in   = 0,
+        uint32_t                  height_in  = 0) override;
+};
 #else
 #define USE_CODECHAL_DEBUG_TOOL 0
 #define CODECHAL_DEBUG_TOOL(expr) ;

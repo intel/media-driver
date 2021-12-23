@@ -28,9 +28,7 @@
 //!
 
 #include "media_interfaces_xehp_sdv.h"
-#ifdef IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM
 #include "codechal_debug_xe_xpm_ext.h"
-#endif
 #include "igcodeckrn_g12.h"
 #if defined(ENABLE_KERNELS) && defined(IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM)
 #include "cm_gpucopy_kernel_xe_xpm.h"
@@ -415,7 +413,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
         CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
-#if USE_CODECHAL_DEBUG_TOOL && IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM
+#if USE_CODECHAL_DEBUG_TOOL
     CodechalDebugInterface *debugInterface = MOS_New(CodechalDebugInterfaceXe_Xpm);
     if (debugInterface == nullptr)
     {

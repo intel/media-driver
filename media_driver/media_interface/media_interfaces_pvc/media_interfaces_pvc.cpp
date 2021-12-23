@@ -29,9 +29,7 @@
 
 #include "media_interfaces_pvc.h"
 #include "codechal.h"
-#ifdef IGFX_PVC_ENABLE_NON_UPSTREAM
 #include "codechal_debug_xe_xpm_plus_ext.h"
-#endif
 #include "igcodeckrn_g12.h"
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
@@ -797,7 +795,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
         CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
-#if USE_CODECHAL_DEBUG_TOOL && IGFX_PVC_ENABLE_NON_UPSTREAM
+#if USE_CODECHAL_DEBUG_TOOL
     pDebugInterface = MOS_New(CodechalDebugInterfaceXe_Xpm_Plus);
     if (pDebugInterface == nullptr)
     {
@@ -859,7 +857,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::CreateCodecHalInterface(MhwInterfaces 
         CODECHAL_PUBLIC_ASSERTMESSAGE("hwInterface is not valid!");
         return MOS_STATUS_NO_SPACE;
     }
-#if USE_CODECHAL_DEBUG_TOOL && IGFX_PVC_ENABLE_NON_UPSTREAM
+#if USE_CODECHAL_DEBUG_TOOL
     pDebugInterface = MOS_New(CodechalDebugInterfaceXe_Xpm_Plus);
     if (pDebugInterface == nullptr)
     {
