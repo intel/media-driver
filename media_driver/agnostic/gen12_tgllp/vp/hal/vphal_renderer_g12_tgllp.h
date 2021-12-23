@@ -74,6 +74,12 @@ public:
             if (m_pDSSurface[nIndex])
             {
                 m_pOsInterface->pfnFreeResource(m_pOsInterface, &m_pDSSurface[nIndex]->OsResource);
+                //release 3dlut params
+                if (m_pDSSurface[nIndex]->p3DLutParams)
+                {
+                    MOS_FreeMemory(m_pDSSurface[nIndex]->p3DLutParams);
+                    m_pDSSurface[nIndex]->p3DLutParams = nullptr;
+                }
             }
             MOS_FreeMemAndSetNull(m_pDSSurface[nIndex]);
         }
