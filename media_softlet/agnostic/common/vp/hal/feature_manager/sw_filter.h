@@ -113,6 +113,7 @@ enum FeatureType
     FeatureTypeColorFillOnRender = FeatureTypeColorFill | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeAlpha            = 0x1900,
     FeatureTypeAlphaOnSfc       = FeatureTypeAlpha | FEATURE_TYPE_ENGINE_BITS_SFC,
+    FeatureTypeAlphaOnVebox     = FeatureTypeAlpha | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeAlphaOnRender    = FeatureTypeAlpha | FEATURE_TYPE_ENGINE_BITS_RENDER,
     FeatureTypeCappipe          = 0x2000,
     FeatureTypeCappipeOnVebox   = FeatureTypeCappipe | FEATURE_TYPE_ENGINE_BITS_VEBOX,

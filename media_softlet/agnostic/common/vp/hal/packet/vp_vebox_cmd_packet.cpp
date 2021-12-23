@@ -428,7 +428,14 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscPara
 
     MHW_VEBOX_IECP_PARAMS& veboxIecpParams = pRenderData->GetIECPParams();
 
-    if (IS_ALPHA_FORMAT(cscParams->outputFormat))
+    bool isAlphaFromStateSelect = IS_ALPHA_FORMAT(cscParams->outputFormat)  &&
+                                cscParams->alphaParams                      &&
+                                (!IS_ALPHA_FORMAT(cscParams->inputFormat)   ||
+                                VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM != cscParams->alphaParams->AlphaMode);
+
+    VP_RENDER_NORMALMESSAGE("AlphaFromStateSelect = %d", isAlphaFromStateSelect);
+
+    if (isAlphaFromStateSelect)
     {
         veboxIecpParams.bAlphaEnable = true;
     }
@@ -439,6 +446,18 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscPara
     }
 
     MOS_FORMAT outFormat = cscParams->outputFormat;
+
+    auto SetOpaqueAlphaValue = [&](uint16_t &alphaValue)
+    {
+        if (Format_Y416 == cscParams->outputFormat)
+        {
+            alphaValue = 0xffff;
+        }
+        else
+        {
+            alphaValue = 0xff;
+        }
+    };
 
     if (cscParams->alphaParams != nullptr)
     {
@@ -452,7 +471,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscPara
             }
             else
             {
-                veboxIecpParams.wAlphaValue = 0xff;
+                SetOpaqueAlphaValue(veboxIecpParams.wAlphaValue);
             }
             break;
 
@@ -465,14 +484,16 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscPara
         case VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM:
         case VPHAL_ALPHA_FILL_MODE_OPAQUE:
         default:
-            veboxIecpParams.wAlphaValue = 0xff;
+            SetOpaqueAlphaValue(veboxIecpParams.wAlphaValue);
             break;
         }
     }
     else
     {
-        veboxIecpParams.wAlphaValue = 0xff;
+        SetOpaqueAlphaValue(veboxIecpParams.wAlphaValue);
     }
+
+    VP_RENDER_NORMALMESSAGE("wAlphaValue = %d", veboxIecpParams.wAlphaValue);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2068,7 +2089,21 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
 
     if (pRenderData->IECP.IsIecpEnabled())
     {
+        VP_PUBLIC_NORMALMESSAGE("IecpState is added. ace %d, lace %d, becsc %d, tcc %d, ste %d, procamp %d",
+            pRenderData->IECP.ACE.bAceEnabled,
+            pRenderData->IECP.LACE.bLaceEnabled,
+            pRenderData->IECP.BeCSC.bBeCSCEnabled,
+            pRenderData->IECP.TCC.bTccEnabled,
+            pRenderData->IECP.STE.bSteEnabled,
+            pRenderData->IECP.PROCAMP.bProcampEnabled);
         return pVeboxInterface->AddVeboxIecpState(&pRenderData->GetIECPParams());
+    }
+    else
+    {
+        // BeCsc may not needed for AlphaFromStateSelect == 1 case.
+        // Refer to IsBeCscNeededForAlphaFill for detail.
+        VP_PUBLIC_NORMALMESSAGE("IecpState is not added with AlphaFromStateSelect %d",
+            pRenderData->GetIECPParams().bAlphaEnable);
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -2131,18 +2166,29 @@ void VpVeboxCmdPacket::VeboxGetBeCSCMatrix(
     if (inputFormat == Format_A8R8G8B8 ||
         inputFormat == Format_X8R8G8B8)
     {
-        float   fTemp[3] = {};
-        fTemp[0] = m_fCscCoeff[0];
-        fTemp[1] = m_fCscCoeff[3];
-        fTemp[2] = m_fCscCoeff[6];
+        if (m_PacketCaps.bSFC || inputColorSpace != outputColorSpace)
+        {
+            VP_RENDER_NORMALMESSAGE("Swap R and B for format %d, sfc %d, inputColorSpace %d, outputColorSpace %d",
+                inputFormat, m_PacketCaps.bSFC, inputColorSpace, outputColorSpace);
+            float   fTemp[3] = {};
+            fTemp[0] = m_fCscCoeff[0];
+            fTemp[1] = m_fCscCoeff[3];
+            fTemp[2] = m_fCscCoeff[6];
 
-        m_fCscCoeff[0] = m_fCscCoeff[2];
-        m_fCscCoeff[3] = m_fCscCoeff[5];
-        m_fCscCoeff[6] = m_fCscCoeff[8];
+            m_fCscCoeff[0] = m_fCscCoeff[2];
+            m_fCscCoeff[3] = m_fCscCoeff[5];
+            m_fCscCoeff[6] = m_fCscCoeff[8];
 
-        m_fCscCoeff[2] = fTemp[0];
-        m_fCscCoeff[5] = fTemp[1];
-        m_fCscCoeff[8] = fTemp[2];
+            m_fCscCoeff[2] = fTemp[0];
+            m_fCscCoeff[5] = fTemp[1];
+            m_fCscCoeff[8] = fTemp[2];
+        }
+        else
+        {
+            // Do not swap since no more process needed.
+            VP_RENDER_NORMALMESSAGE("Not swap R and B for format %d, sfc %d, inputColorSpace %d, outputColorSpace %d",
+                inputFormat, m_PacketCaps.bSFC, inputColorSpace, outputColorSpace);
+        }
     }
 }
 

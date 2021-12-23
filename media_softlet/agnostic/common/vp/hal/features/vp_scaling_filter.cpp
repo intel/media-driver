@@ -172,6 +172,8 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
 
     m_sfcScalingParams->sfcColorfillParams.bColorfillEnable = m_bColorfillEnable;
 
+    VP_PUBLIC_NORMALMESSAGE("isColorfillEnable %d", m_bColorfillEnable);
+
     if (m_bColorfillEnable)
     {
         VP_PUBLIC_CHK_NULL_RETURN(m_scalingParams.pColorFillParams);
@@ -184,9 +186,11 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
             (m_colorFillSrcCspace != src_cspace)         ||
             (m_colorFillRTCspace  != dst_cspace))
         {
+            VP_PUBLIC_NORMALMESSAGE("colorFillColorDst need be recalculated.");
             // Clean history Dst BG Color if hit unsupported format
             if (!VpHal_CSC_8(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
             {
+                VP_PUBLIC_ASSERTMESSAGE("VpHal_CSC_8 failed!");
                 MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
             }
             // store the values for next iteration
@@ -194,6 +198,8 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
             m_colorFillSrcCspace = src_cspace;
             m_colorFillRTCspace  = dst_cspace;
         }
+
+        VP_PUBLIC_NORMALMESSAGE("colorFillSrc %x, src_cspace %d, colorFillDst %x, dst_cspace %d", Src.dwValue, src_cspace, m_colorFillColorDst.dwValue, dst_cspace);
 
         VP_RENDER_CHK_STATUS_RETURN(SetYUVRGBPixel());
         m_sfcScalingParams->sfcColorfillParams.fColorFillAPixel = (float)Src.A / 255.0F;
@@ -281,6 +287,13 @@ MOS_STATUS VpScalingFilter::SetAlphaPixelParams()
     case VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM:
     case VPHAL_ALPHA_FILL_MODE_OPAQUE:
     default:
+        if (Format_Y416 == m_scalingParams.formatOutput &&
+            VPHAL_ALPHA_FILL_MODE_OPAQUE == m_scalingParams.pCompAlpha->AlphaMode)
+        {
+            // AlphaDefaultValue in SfcState is 10 bits, while alpha channel of Y416 is 16.
+            // The high 4 bits alpha of Y416 will be missed.
+            VP_PUBLIC_NORMALMESSAGE("The high 4 bits alpha of Y416 will be missed.");
+        }
         m_sfcScalingParams->sfcColorfillParams.fAlphaPixel      = 1.0F;
         m_sfcScalingParams->sfcColorfillParams.fColorFillAPixel = 1.0F;
     }
@@ -924,7 +937,7 @@ MOS_STATUS PolicySfcAlphaHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilt
 {
     VP_FUNC_CALL();
 
-    if (caps.bSFC && caps.bSfcScaling)
+    if (caps.bSFC && caps.bSfcScaling || !caps.bSFC && caps.bVebox)
     {
         if (true == isInputPipe)
         {

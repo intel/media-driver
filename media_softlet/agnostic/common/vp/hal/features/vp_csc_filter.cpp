@@ -81,6 +81,7 @@ namespace vp {
 #define VP_VEBOX_CHROMA_DOWNSAMPLING_422_TYPE3_VERT_OFFSET           0
 
 MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, VPHAL_CSPACE colorSpaceOutput);
+bool IsBeCscNeededForAlphaFill(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);
 
 VpCscFilter::VpCscFilter(PVP_MHWINTERFACE vpMhwInterface) :
     VpFilter(vpMhwInterface)
@@ -217,6 +218,7 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
     m_sfcCSCParams->outputFormat    = m_cscParams.formatOutput;
 
+    // No need to check m_cscParams.pAlphaParams as CalculateVeboxEngineParams does, as alpha is done by scaling filter on SFC.
     if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace)
     {
         m_sfcCSCParams->bCSCEnabled = true;
@@ -262,12 +264,15 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
         MOS_ZeroMemory(m_veboxCSCParams, sizeof(VEBOX_CSC_PARAMS));
     }
 
+    bool isBeCscNeededForAlphaFill = IsBeCscNeededForAlphaFill(
+        m_cscParams.formatInput, m_cscParams.formatOutput, m_cscParams.pAlphaParams);
+
     m_veboxCSCParams->inputColorSpace   = m_cscParams.input.colorSpace;
     m_veboxCSCParams->outputColorSpace  = m_cscParams.output.colorSpace;
     m_veboxCSCParams->inputFormat       = m_cscParams.formatInput;
     m_veboxCSCParams->outputFormat      = m_cscParams.formatOutput;
 
-    m_veboxCSCParams->bCSCEnabled = (m_cscParams.input.colorSpace != m_cscParams.output.colorSpace);
+    m_veboxCSCParams->bCSCEnabled = (m_cscParams.input.colorSpace != m_cscParams.output.colorSpace || isBeCscNeededForAlphaFill);
     m_veboxCSCParams->alphaParams = m_cscParams.pAlphaParams;
 
     VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting(m_executeCaps));
@@ -468,6 +473,10 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
             }
         }
     }
+
+    VP_RENDER_NORMALMESSAGE("bypassCUS %d, chromaUpSamplingHorizontalCoef %d, chromaUpSamplingVerticalCoef %d",
+        m_veboxCSCParams->bypassCUS, m_veboxCSCParams->chromaUpSamplingHorizontalCoef, m_veboxCSCParams->chromaUpSamplingVerticalCoef);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -575,6 +584,10 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
             }
         }
     }
+
+    VP_RENDER_NORMALMESSAGE("bypassCDS %d, chromaDownSamplingHorizontalCoef %d, chromaDownSamplingVerticalCoef %d",
+        m_veboxCSCParams->bypassCDS, m_veboxCSCParams->chromaDownSamplingHorizontalCoef, m_veboxCSCParams->chromaDownSamplingVerticalCoef);
+
     return MOS_STATUS_SUCCESS;
 }
 

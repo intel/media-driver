@@ -163,8 +163,8 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.formatOutput           = surfOutput->Format;
     m_Params.input.chromaSiting     = surfInput->ChromaSiting;
     m_Params.output.chromaSiting    = surfOutput->ChromaSiting;
-    // Will be assigned duringPolicySfcAlphaHandler::UpdateFeaturePipe.
-    m_Params.pAlphaParams           = nullptr;
+    // Alpha should be handled in input pipe to avoid alpha data lost from image.
+    m_Params.pAlphaParams           = params.pCompAlpha;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -362,8 +362,8 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
     m_Params.csc.colorSpaceOutput   = surfOutput->ColorSpace;
     // Will be assigned during PolicySfcColorFillHandler::UpdateFeaturePipe.
     m_Params.pColorFillParams       = nullptr;
-    // Will be assigned during PolicySfcAlphaHandler::UpdateFeaturePipe.
-    m_Params.pCompAlpha             = nullptr;
+    // Alpha should be handled in input pipe to avoid alpha data lost from image.
+    m_Params.pCompAlpha             = params.pCompAlpha;
 
     if (surfInput->Rotation == VPHAL_ROTATION_IDENTITY ||
         surfInput->Rotation == VPHAL_ROTATION_180 ||
@@ -1487,6 +1487,15 @@ MOS_STATUS SwFilterColorFill::Configure(VP_PIPELINE_PARAMS& params, bool isInput
     m_Params.formatOutput   = surfOutput->Format;
     m_Params.colorFillParams = params.pColorFillParams;
 
+    if (m_Params.colorFillParams)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Color 0x%x, CSpace %d", m_Params.colorFillParams->Color, m_Params.colorFillParams->CSpace);
+    }
+    else
+    {
+        VP_PUBLIC_NORMALMESSAGE("nullptr == m_Params.colorFillParams");
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1576,6 +1585,9 @@ VP_EngineEntry SwFilterColorFill::GetCombinedFilterEngineCaps(SwFilterSubPipe *i
             engineCaps.VeboxNeeded = 0;
             engineCaps.SfcNeeded = 0;
             engineCaps.bypassIfVeboxSfcInUse = 1;
+            VP_PUBLIC_NORMALMESSAGE("engineCaps updated. value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d)",
+                engineCaps.value, engineCaps.bEnabled, engineCaps.VeboxNeeded, engineCaps.SfcNeeded,
+                engineCaps.RenderNeeded, engineCaps.fcSupported, engineCaps.isolated);
         }
 
         return engineCaps;
@@ -1620,6 +1632,15 @@ MOS_STATUS SwFilterAlpha::Configure(VP_PIPELINE_PARAMS& params, bool isInputSurf
     m_Params.formatOutput   = surfOutput->Format;
     m_Params.compAlpha      = params.pCompAlpha;
     m_Params.calculatingAlpha = params.bCalculatingAlpha;
+
+    if (m_Params.compAlpha)
+    {
+        VP_PUBLIC_NORMALMESSAGE("AlphaMode %d, fAlpha %f", m_Params.compAlpha->AlphaMode, m_Params.compAlpha->fAlpha);
+    }
+    else
+    {
+        VP_PUBLIC_NORMALMESSAGE("nullptr == m_Params.compAlpha");
+    }
 
     return MOS_STATUS_SUCCESS;
 }

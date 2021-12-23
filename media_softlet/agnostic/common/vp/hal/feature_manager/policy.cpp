@@ -33,8 +33,8 @@
 #include "sw_filter_handle.h"
 #include "vp_user_feature_control.h"
 
-using namespace vp;
-
+namespace vp
+{
 /****************************************************************************************************/
 /*                                      Policy                                                      */
 /****************************************************************************************************/
@@ -552,6 +552,124 @@ MOS_STATUS Policy::GetCSCExecutionCapsDi(SwFilter* feature)
     return MOS_STATUS_SUCCESS;
 }
 
+bool IsBeCscNeededForAlphaFill(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha)
+{
+    if (nullptr == compAlpha)
+    {
+        VP_PUBLIC_NORMALMESSAGE("No alpha setting exists.");
+        return false;
+    }
+
+    if (!IS_ALPHA_FORMAT(formatOutput))
+    {
+        VP_PUBLIC_NORMALMESSAGE("Alpha setting can be ignored for non-alpha output format.");
+        return false;
+    }
+
+    if (VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM == compAlpha->AlphaMode)
+    {
+        VP_PUBLIC_NORMALMESSAGE("No need BeCsc for VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM when output from vebox.");
+        return false;
+    }
+
+    if (VPHAL_ALPHA_FILL_MODE_OPAQUE == compAlpha->AlphaMode && !IS_ALPHA_FORMAT(formatInput))
+    {
+        // In such case, vebox will fill the alpha field with 0xff by default.
+        VP_PUBLIC_NORMALMESSAGE("No need BeCsc for VPHAL_ALPHA_FILL_MODE_OPAQUE with non-alpha input format.");
+        return false;
+    }
+
+    return true;
+}
+
+bool Policy::IsAlphaSettingSupportedBySfc(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha)
+{
+    if (!IS_ALPHA_FORMAT(formatOutput))
+    {
+        VP_PUBLIC_NORMALMESSAGE("Alpha setting can be ignored for non-alpha output format.");
+        return true;
+    }
+
+    if (compAlpha && VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM == compAlpha->AlphaMode)
+    {
+        if (IS_ALPHA_FORMAT(formatInput))
+        {
+            VP_PUBLIC_NORMALMESSAGE("VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM is not supported by SFC.");
+            if (Format_Y410 == formatOutput)
+            {
+                // Y410 is also not supported by FC Save_444Scale16_SrcY410 kernel for Alpha Source Mode.
+                // Ignore Alpha Source Mode if sfc/render being needed.
+                VP_PUBLIC_NORMALMESSAGE("Ignore VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM for Y410.");
+                return true;
+            }
+            return false;
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM can be ignored since no alpha info in input surface.");
+            return true;
+        }
+    }
+    else if (compAlpha && VPHAL_ALPHA_FILL_MODE_BACKGROUND == compAlpha->AlphaMode)
+    {
+        if (IS_ALPHA_FORMAT_RGB8(formatOutput) || IS_ALPHA_FORMAT_RGB10(formatOutput))
+        {
+            VP_PUBLIC_NORMALMESSAGE("VPHAL_ALPHA_FILL_MODE_BACKGROUND is supported by SFC for RGB8 and RGB10.");
+            return true;
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("VPHAL_ALPHA_FILL_MODE_BACKGROUND is not supported for format %d.", formatOutput);
+            if (Format_Y410 == formatOutput)
+            {
+                // Y410 is also not supported by FC Save_444Scale16_SrcY410 kernel for Alpha Background Mode.
+                // Ignore Alpha Background Mode if sfc/render being needed.
+                VP_PUBLIC_NORMALMESSAGE("Ignore VPHAL_ALPHA_FILL_MODE_BACKGROUND for Y410.");
+                return true;
+            }
+            return false;
+        }
+    }
+
+    if (compAlpha)
+    {
+        VP_PUBLIC_NORMALMESSAGE("true for AlphaMode %d.", compAlpha->AlphaMode);
+    }
+    else
+    {
+        VP_PUBLIC_NORMALMESSAGE("compAlpha == nullptr. Just return true");
+    }
+
+    return true;
+}
+
+bool Policy::IsAlphaSettingSupportedByVebox(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha)
+{
+    if (!IS_ALPHA_FORMAT(formatOutput))
+    {
+        VP_PUBLIC_NORMALMESSAGE("Alpha setting can be ignored for non-alpha output format.");
+        return true;
+    }
+
+    if (compAlpha && VPHAL_ALPHA_FILL_MODE_BACKGROUND == compAlpha->AlphaMode)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Alpha Background Mode is not supported by Vebox.");
+        return false;
+    }
+    else
+    {
+        if (compAlpha)
+        {
+            VP_PUBLIC_NORMALMESSAGE("true for AlphaMode %d.", compAlpha->AlphaMode);
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("compAlpha == nullptr. Just return true");
+        }
+        return true;
+    }
+}
+
 MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
 {
     VP_FUNC_CALL();
@@ -583,10 +701,16 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         return MOS_STATUS_SUCCESS;
     }
 
+    bool isAlphaSettingSupportedBySfc =
+        IsAlphaSettingSupportedBySfc(cscParams->formatInput, cscParams->formatOutput, cscParams->pAlphaParams);
+    bool isAlphaSettingSupportedByVebox =
+        IsAlphaSettingSupportedByVebox(cscParams->formatInput, cscParams->formatOutput, cscParams->pAlphaParams);
+
     if (cscParams->formatInput          == cscParams->formatOutput          &&
         cscParams->input.colorSpace     == cscParams->output.colorSpace     &&
         cscParams->input.chromaSiting   == cscParams->output.chromaSiting   &&
-        nullptr                         == cscParams->pIEFParams)
+        nullptr                         == cscParams->pIEFParams            &&
+        isAlphaSettingSupportedByVebox)
     {
         bool veboxSupported = m_hwCaps.m_veboxHwEntry[cscParams->formatInput].inputSupported;
         bool sfcSupported = veboxSupported && m_hwCaps.m_sfcHwEntry[cscParams->formatInput].inputSupported;
@@ -603,10 +727,19 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
         }
         else if (disableVeboxOutput)
         {
-            VP_PUBLIC_NORMALMESSAGE("Non-csc cases. Still keep csc filter to avoid output from vebox.");
+            VP_PUBLIC_NORMALMESSAGE("Non-csc cases with vebox output disabled. Still keep csc filter to avoid output from vebox.");
             cscEngine->bEnabled             = 1;
             cscEngine->SfcNeeded            = (disableSfc || !sfcSupported) ? 0 : 1;
             cscEngine->VeboxNeeded          = 0;
+            cscEngine->RenderNeeded         = 1;
+            cscEngine->fcSupported          = 1;
+        }
+        else if (IsBeCscNeededForAlphaFill(cscParams->formatInput, cscParams->formatOutput, cscParams->pAlphaParams))
+        {
+            VP_PUBLIC_NORMALMESSAGE("BeCsc is needed by Alpha when output from vebox. Keep csc filter.");
+            cscEngine->bEnabled             = 1;
+            cscEngine->SfcNeeded            = disableSfc ? 0 : 1;
+            cscEngine->VeboxNeeded          = 1;
             cscEngine->RenderNeeded         = 1;
             cscEngine->fcSupported          = 1;
         }
@@ -680,7 +813,8 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
     if (!disableSfc                                                    &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatInput].inputSupported   &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
-        m_hwCaps.m_sfcHwEntry[cscParams->formatInput].cscSupported)
+        m_hwCaps.m_sfcHwEntry[cscParams->formatInput].cscSupported     &&
+        isAlphaSettingSupportedBySfc)
     {
         cscEngine->SfcNeeded = 1;
     }
@@ -693,13 +827,12 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
     }
     else
     {
-        if (!cscParams->pIEFParams                                                   &&
-           (!cscParams->pAlphaParams                                                 ||
-             cscParams->pAlphaParams->AlphaMode != VPHAL_ALPHA_FILL_MODE_BACKGROUND) &&
+        if (!cscParams->pIEFParams                                                            &&
             m_hwCaps.m_veboxHwEntry[cscParams->formatInput].inputSupported                    &&
             m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported                  &&
             m_hwCaps.m_veboxHwEntry[cscParams->formatInput].iecp                              &&
-            m_hwCaps.m_veboxHwEntry[cscParams->formatInput].backEndCscSupported)
+            m_hwCaps.m_veboxHwEntry[cscParams->formatInput].backEndCscSupported               &&
+            isAlphaSettingSupportedByVebox)
         {
             cscEngine->VeboxNeeded = 1;
         }
@@ -733,6 +866,10 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     SwFilterScaling* scaling = (SwFilterScaling*)feature;
     FeatureParamScaling *scalingParams = &scaling->GetSwFilterParams();
     VP_EngineEntry *scalingEngine = &scaling->GetFilterEngineCaps();
+    bool isAlphaSettingSupportedBySfc =
+        IsAlphaSettingSupportedBySfc(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
+    bool isAlphaSettingSupportedByVebox =
+        IsAlphaSettingSupportedByVebox(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
 
     if (scalingEngine->value != 0)
     {
@@ -825,8 +962,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         // Only support vebox crop from left-top, which is to align with legacy path.
         0 == scalingParams->input.rcSrc.left && 0 == scalingParams->input.rcSrc.top &&
         SAME_SIZE_RECT(scalingParams->input.rcDst, scalingParams->output.rcDst) &&
-        // If Alpha enabled, which should go SFC pipe.
-        !IsAlphaEnabled(scalingParams) &&
+        // If alpha is not supported by vebox, which should go SFC pipe.
+        isAlphaSettingSupportedByVebox &&
         // If Colorfill enabled, which should go SFC pipe.
         !IsColorfillEnabled(scalingParams) &&
         scalingParams->interlacedScalingType != ISCALING_INTERLEAVED_TO_FIELD &&
@@ -864,7 +1001,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         {
             // for dst left and top non zero cases, should go SFC or Render Pipe
             scalingEngine->bEnabled             = 1;
-            scalingEngine->SfcNeeded            = 1;
+            scalingEngine->SfcNeeded            = isAlphaSettingSupportedBySfc;
             scalingEngine->VeboxNeeded          = 0;
             scalingEngine->RenderNeeded         = 1;
             scalingEngine->fcSupported          = 1;
@@ -877,9 +1014,10 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
             scalingEngine->SfcNeeded            = 0;
             scalingEngine->VeboxNeeded          = 0;
             scalingEngine->RenderNeeded         = 0;
-            scalingEngine->forceEnableForSfc    = 1;
+            scalingEngine->forceEnableForSfc    = isAlphaSettingSupportedBySfc;
             scalingEngine->forceEnableForRender = 1;
             scalingEngine->fcSupported          = 1;
+            scalingEngine->sfcNotSupported      = !isAlphaSettingSupportedBySfc;
         }
 
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
@@ -935,7 +1073,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
                 bool sfc2PassScalingNeededY = OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax);
 
                 scalingEngine->bEnabled = 1;
-                if (!m_hwCaps.m_rules.isAvsSamplerSupported && scalingParams->isPrimary)
+                if (!m_hwCaps.m_rules.isAvsSamplerSupported && scalingParams->isPrimary && isAlphaSettingSupportedBySfc)
                 {
                     // For primary layer, force to use sfc for better quailty.
                     scalingEngine->SfcNeeded = 1;
@@ -957,7 +1095,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
                     // For non-primary layer, only consider sfc for non-2-pass case.
                     if (!sfc2PassScalingNeededX && !sfc2PassScalingNeededY)
                     {
-                        scalingEngine->SfcNeeded = 1;
+                        scalingEngine->SfcNeeded = isAlphaSettingSupportedBySfc;
                     }
                 }
             }
@@ -1411,7 +1549,7 @@ MOS_STATUS Policy::GetColorFillExecutionCaps(SwFilter* feature)
     engine.bEnabled = 1;
     engine.RenderNeeded = 1;
     engine.fcSupported = 1;
-    // For disableSfc case, sfc will be filtered in SwFilterColorFill::GetCombinedFilterEngineCapss
+    // For disableSfc case, sfc will be filtered in SwFilterColorFill::GetCombinedFilterEngineCaps
     // with scaling setting.
     engine.SfcNeeded = 1;    // For SFC, the parameter in scaling is used.
 
@@ -1451,8 +1589,18 @@ MOS_STATUS Policy::GetAlphaExecutionCaps(SwFilter* feature)
     engine.RenderNeeded = 1;
     engine.fcSupported = 1;
 
-    engine.SfcNeeded = disableSfc ? 0 : 1;    // For SFC, the parameter in scaling is used.
-    engine.VeboxNeeded = params.compAlpha->AlphaMode != VPHAL_ALPHA_FILL_MODE_BACKGROUND;
+    // For Vebox, the alpha parameter in csc is used.
+    engine.VeboxNeeded = IsAlphaSettingSupportedByVebox(params.formatInput, params.formatOutput, params.compAlpha);
+
+    if (disableSfc)
+    {
+        engine.SfcNeeded = false;
+    }
+    else
+    {
+        // For SFC, the alpha parameter in scaling is used.
+        engine.SfcNeeded = IsAlphaSettingSupportedBySfc(params.formatInput, params.formatOutput, params.compAlpha);
+    }
 
     PrintFeatureExecutionCaps(__FUNCTION__, engine);
     return MOS_STATUS_SUCCESS;
@@ -1625,7 +1773,7 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
     }
 
-    VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%x (bVebox %d, bSFC %d, bRender %d, bComposite %d, bOutputPipeFeatureInuse %d, bIECP %d, bForceCscToRender %d, bDiProcess2ndField %d)",
+    VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%llx (bVebox %d, bSFC %d, bRender %d, bComposite %d, bOutputPipeFeatureInuse %d, bIECP %d, bForceCscToRender %d, bDiProcess2ndField %d)",
         caps.value, caps.bVebox, caps.bSFC, caps.bRender, caps.bComposite, caps.bOutputPipeFeatureInuse, caps.bIECP,
         caps.bForceCscToRender, caps.bDiProcess2ndField);
     PrintFeatureExecutionCaps("engineCapsInputPipe", engineCapsInputPipe);
@@ -2835,10 +2983,7 @@ MOS_STATUS Policy::AddNewFilterOnVebox(
     return status;
 }
 
-namespace vp
-{
 MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFormat, MOS_TILE_TYPE inputTileType, MOS_FORMAT outputFormat, MOS_FORMAT &veboxOutputFormat, MOS_TILE_TYPE &veboxOutputTileType);
-}
 
 MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS &caps, FeatureParamCsc &cscParams)
 {
@@ -2887,3 +3032,5 @@ void Policy::PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineC
         name, engineCaps.value, engineCaps.bEnabled, engineCaps.VeboxNeeded, engineCaps.SfcNeeded,
         engineCaps.RenderNeeded, engineCaps.fcSupported, engineCaps.isolated);
 }
+
+};
