@@ -126,6 +126,7 @@ MOS_STATUS DecodeScalabilityMultiPipe::Initialize(const MediaScalabilityOption &
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
     m_miInterface = m_hwInterface->GetMiInterface();
     SCALABILITY_CHK_NULL_RETURN(m_miInterface);
+    m_miItf = m_hwInterface->GetMiInterfaceNext();
 
     DecodeScalabilityOption *decodeScalabilityOption = MOS_New(DecodeScalabilityOption, (const DecodeScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(decodeScalabilityOption);

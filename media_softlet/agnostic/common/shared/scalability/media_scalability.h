@@ -34,6 +34,7 @@
 #include "media_scalability_option.h"
 #include "cm_rt_umd.h"
 #include "mos_interface.h"
+#include "mhw_mi_itf.h"
 
 class MediaStatusReport;
 class MediaContext;
@@ -353,7 +354,6 @@ protected:
 
     uint8_t                  m_componentType        = 0;
     PMOS_INTERFACE           m_osInterface          = nullptr;  //!< OS interface
-    MhwMiInterface *         m_miInterface          = nullptr;  //!< Mi interface used to add BB end
     MediaScalabilityOption * m_scalabilityOption    = nullptr;
     PMOS_GPUCTX_CREATOPTIONS m_gpuCtxCreateOption   = nullptr;  //!<For MultiPipe cases, it should be converted to PMOS_GPUCTX_CREATOPTIONS_ENHANCED;
     MediaStatusReport *      m_statusReport         = nullptr;  //!< Media status report ptr
@@ -365,5 +365,6 @@ protected:
     PMOS_VIRTUALENGINE_HINT_PARAMS m_veHitParams = nullptr;  //!< Virtual Engine hint parameters
 
     MOS_VE_HANDLE     m_veState = nullptr; //!< Virtual Engine State
+    std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
 };
 #endif  // !__MEDIA_SCALABILITY_H__

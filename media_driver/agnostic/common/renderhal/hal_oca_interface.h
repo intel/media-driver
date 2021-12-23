@@ -29,12 +29,13 @@
 
 #include "mhw_mi.h"
 #include "mos_os_hw.h"
+#include "hal_oca_interface_next.h"
 
 /****************************************************************************************************/
 /*                                      HalOcaInterface                                             */
 /****************************************************************************************************/
 
-class HalOcaInterface
+class HalOcaInterface: public HalOcaInterfaceNext
 {
 public:
     //!
@@ -88,56 +89,6 @@ public:
         uint32_t offsetOf1stLevelBB = 0, bool bUseSizeOfCmdBuf = true, uint32_t sizeOf1stLevelBB = 0);
 
     //!
-    //! \brief  Oca operation which should be called before adding batch buffer end command for 1st
-    //!         level batch buffer.
-    //! \param  [in/out] cmdBuffer
-    //!         Command buffer for current BB. hOcaBuf in cmdBuffer will be updated.
-    //! \param  [in] osInterface
-    //!         Reference to MOS_INTERFACE.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void On1stLevelBBEnd(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface);
-
-    //!
-    //! \brief  Oca operation which should be called before sending start sub level batch buffer command.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \param  [in] pMosResource
-    //!         Pointer to the MOS_RESOURCE.
-    //! \param  [in] offsetOfSubLevelBB
-    //!         Offset for current BB in pMosResource.
-    //! \param  [in] bUseSizeOfResource
-    //!         If true, use size of pMosResource for batch buffer, else use sizeOfIndirectState.
-    //! \param  [in] sizeOfSubLevelBB
-    //!         Size of BB. Ignore if bUseSizeOfResource == true.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void OnSubLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfSubLevelBB, bool bUseSizeOfResource, uint32_t sizeOfSubLevelBB);
-
-    //!
-    //! \brief  Oca operation which should be called when indirect states being added.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \param  [in] pMosResource
-    //!         Pointer to the MOS_RESOURCE.
-    //! \param  [in] offsetOfIndirectState
-    //!         Offset for current state in pMosResource.
-    //! \param  [in] bUseSizeOfResource
-    //!         If true, use size of pMosResource for indirect state, else use sizeOfIndirectState.
-    //! \param  [in] sizeOfIndirectState
-    //!         Size of indirect state. Ignore if bUseSizeOfResource == true.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void OnIndirectState(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pMosResource, uint32_t offsetOfIndirectState, bool bUseSizeOfResource, uint32_t sizeOfIndirectState);
-
-    //!
     //! \brief  Oca operation which should be called before adding dispatch states,
     //!         e.g. VEB_DI_IECP_STATE and MEDIA_OBJECT_WALKER.
     //! \param  [in] cmdBuffer
@@ -153,140 +104,16 @@ public:
     //!
     static void OnDispatch(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, MhwMiInterface &mhwMiInterface, MHW_MI_MMIOREGISTERS &mmioRegisters);
 
-    //!
-    //! \brief  Add string to oca log section
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \param  [in] str
-    //!         string to be added.
-    //! \param  [in] maxCount
-    //!         size of the buffer pointed by str.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void TraceMessage(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, const char *str, uint32_t maxCount);
-
-    //!
-    //! \brief  Add vp kernel info to oca log section.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] osInterface
-    //!         Reference to MOS_INTERFACE.
-    //! \param  [in] res
-    //!         Reference to MOS_RESOURCE.
-    //! \param  [in] hwCmdType
-    //!         Hw command type.
-    //! \param  [in] locationInCmd
-    //!         Location in command.
-    //! \param  [in] offsetInRes
-    //!         Offset in resource.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface, MOS_RESOURCE &res, MOS_HW_COMMAND hwCmdType, uint32_t locationInCmd, uint32_t offsetInRes);
-
-    //!
-    //! \brief  Trace OCA Sku Value.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] osInterface
-    //!         Reference to MOS_INTERFACE.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void TraceOcaSkuValue(MOS_COMMAND_BUFFER &cmdBuffer, MOS_INTERFACE &osInterface);
-
-    //!
-    //! \brief  Add vp kernel info to oca log section.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \param  [in] vpKernelID
-    //!         Value of enum VpKernelID.
-    //! \param  [in] fcKernelCount
-    //!         If vpKernelID == kernelCombinedFc, fcKernelCount is the kernel count for fc, otherwise, it's not used.
-    //! \param  [in] fcKernelList
-    //!         If vpKernelID == kernelCombinedFc, fcKernelList is the kernel list for fc, otherwise, it's not used.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList);
-
-    //!
-    //! \brief  Add vphal parameters to oca log section.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \param  [in] pVphalDumper
-    //!         Pointer to vphal dumper object.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext, void *pVphalDumper);
-
-private:
-    //!
-    //! \brief  Error handle function.
-    //! \param  [in] mosCtx
-    //!         the ddi device context.
-    //! \param  [in] status
-    //!         The MOS_STATUS for current error.
-    //! \param  [in] funcName
-    //!         The failure function name.
-    //! \param  [in] lineNumber
-    //!         The line number where OnOcaError being called in failure function.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void OnOcaError(PMOS_CONTEXT mosContext, MOS_STATUS status, const char *functionName, uint32_t lineNumber);
-
-    //!
-    //! \brief  Get OCA buffer handle from pool.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \return MOS_OCA_BUFFER_HANDLE
-    //!         MOS_OCA_BUFFER_HANDLE.
-    //!
-    static MOS_OCA_BUFFER_HANDLE GetOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
-
-    //!
-    //! \brief  Remove OCA buffer handle from pool.
-    //! \param  [in] cmdBuffer
-    //!         Command buffer for current BB.
-    //! \param  [in] mosContext
-    //!         Reference to MOS_CONTEXT.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void RemoveOcaBufferHandle(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext);
-
-    //!
-    //! \brief  Add cp parameters to oca log section.
-    //! \param  [in] ocaInterface
-    //!         Reference to MosOcaInterface.
-    //! \param  [in] hOcaBuf
-    //!         Reference to MOS_OCA_BUFFER_HANDLE.
-    //! \param  [in] mosCtx
-    //!         DDI device context.
-    //! \param  [in] pCpDumper
-    //!         Pointer to cp dumper object.
-    //! \return void
-    //!         No return value. Handle all exception inside the function.
-    //!
-    static void DumpCpParam(MosOcaInterface &ocaInterface, MOS_OCA_BUFFER_HANDLE &hOcaBuf, PMOS_CONTEXT mosCtx, void *pCpDumper);
+protected:
+    static MOS_STATUS MhwMiLoadRegisterImmCmd(
+        MhwMiInterface                   *pMiInterface,
+        PMOS_COMMAND_BUFFER              pCmdBuffer,
+        MHW_MI_LOAD_REGISTER_IMM_PARAMS  *params);
 
     // Private functions to ensure class singleton.
     HalOcaInterface();
     HalOcaInterface(HalOcaInterface &);
     HalOcaInterface& operator= (HalOcaInterface &);
-
-    static std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> s_hOcaMap;        //!< Oca buffer handle map to current command
 
 };
 

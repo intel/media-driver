@@ -251,6 +251,16 @@ public:
         return mmioRegisters;
     }
 
+    MOS_STATUS AddProtectedProlog(MOS_COMMAND_BUFFER *cmdBuffer)
+    {
+        MHW_MI_CHK_NULL(cmdBuffer);
+
+        MHW_MI_CHK_STATUS(m_cpInterface->AddProlog(this->m_osItf, cmdBuffer));
+        MHW_MI_CHK_STATUS(m_cpInterface->AddCheckForEarlyExit(this->m_osItf, cmdBuffer));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     using base_t = Itf;
 

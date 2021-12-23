@@ -33,6 +33,11 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mi_itf.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_mmio_common.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities_next.h
+)
+
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_utilities_next.cpp
 )
 
 set(SOURCES_

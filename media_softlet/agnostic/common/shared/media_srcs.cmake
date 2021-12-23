@@ -32,6 +32,7 @@ media_include_subdirectory(bufferMgr)
 media_include_subdirectory(mediacopy)
 media_include_subdirectory(media_sfc_interface)
 media_include_subdirectory(classtrace)
+media_include_subdirectory(profiler)
 
 set(TMP_SOURCES_
     ${TMP_SOURCES_}

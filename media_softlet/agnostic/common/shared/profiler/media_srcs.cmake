@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2018, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,36 +19,13 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_next.cpp
-)
-
-set(TMP_HEADERS
-    ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface_next.h
-    ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface_next.h
-
-)
-
-
-set(SOURCES_
-    ${SOURCES_}
     ${TMP_SOURCES_}
- )
+    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler_next.cpp
+)
 
-set(HEADERS_
-    ${HEADERS_}
+set(TMP_HEADERS_
     ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler_next.h
 )
-
-set(COMMON_SOURCES_
-    ${COMMON_SOURCES_}
-    ${TMP_SOURCES_}
-)
-
-set(COMMON_HEADERS_
-    ${COMMON_HEADERS_}
-    ${TMP_HEADERS_}
-)
-
-source_group( "MHW\\Render Hal" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 media_add_curr_to_include_path()

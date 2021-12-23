@@ -136,6 +136,7 @@ MOS_STATUS VpScalabilityMultiPipe::Initialize(const MediaScalabilityOption &opti
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
     m_miInterface = m_hwInterface->m_mhwMiInterface;
     SCALABILITY_CHK_NULL_RETURN(m_miInterface);
+    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_miInterface->GetNewMiInterface());
 
     VpScalabilityOption *vpScalabilityOption = MOS_New(VpScalabilityOption, (const VpScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(vpScalabilityOption);
