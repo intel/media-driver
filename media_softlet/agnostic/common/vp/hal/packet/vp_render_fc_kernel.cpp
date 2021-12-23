@@ -238,6 +238,11 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
 
         // Only need to specify binding index in surface parameters.
         surfParam.surfaceOverwriteParams.bindedKernel = true;
+        if (layer->layerID >= VP_COMP_MAX_LAYERS || layer->layerID < 0)
+        {
+            VP_RENDER_ASSERTMESSAGE("layer->layerID = d% is out of range!", layer->layerID);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
         surfParam.surfaceOverwriteParams.bindIndex = s_bindingTableIndex[layer->layerID];
 
         SetSurfaceParams(surfParam, *layer, false);
