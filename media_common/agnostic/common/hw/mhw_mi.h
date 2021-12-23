@@ -256,6 +256,7 @@ typedef struct _MHW_MI_FLUSH_DW_PARAMS
     bool                        bVideoPipelineCacheInvalidate;
     uint32_t                    postSyncOperation;
     uint32_t                    bQWordEnable;
+    bool                        bEnablePPCFlush;
 } MHW_MI_FLUSH_DW_PARAMS, *PMHW_MI_FLUSH_DW_PARAMS;
 
 typedef struct _MHW_MI_ATOMIC_PARAMS

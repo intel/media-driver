@@ -1409,6 +1409,17 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
             pCmdBufferInUse,
             &VeboxDiIecpCmdParams));
 
+        VP_RENDER_CHK_NULL_RETURN(pOsInterface);
+        VP_RENDER_CHK_NULL_RETURN(pOsInterface->pfnGetSkuTable);
+        auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+        if (skuTable && MEDIA_IS_SKU(skuTable, FtrEnablePPCFlush))
+        {
+            // Add PPC fulsh
+            MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
+            FlushDwParams.bEnablePPCFlush = true;
+            VP_RENDER_CHK_STATUS_RETURN(pMhwMiInterface->AddMiFlushDwCmd(pCmdBufferInUse, &FlushDwParams));
+        }
+
         if (bMultipipe)
         {
             // MI FlushDw, for vebox output green block issue
