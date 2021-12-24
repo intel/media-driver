@@ -460,6 +460,38 @@ static bool adlpGt2Device4626 = DeviceInfoFactory<GfxDeviceInfo>::
 
 #endif
 
+#ifdef IGFX_GEN12_ADLN_SUPPORTED
+static struct GfxDeviceInfo adlnGt1Info = {
+    .platformType     = PLATFORM_MOBILE,
+    .productFamily    = IGFX_ALDERLAKE_N,
+    .displayFamily    = IGFX_GEN12_CORE,
+    .renderFamily     = IGFX_GEN12_CORE,
+    .eGTType          = GTTYPE_GT1,
+    .L3CacheSizeInKb  = 0,
+    .L3BankCount      = 8,
+    .EUCount          = 0,
+    .SliceCount       = 0,
+    .SubSliceCount    = 0,
+    .MaxEuPerSubSlice = 0,
+    .isLCIA           = 0,
+    .hasLLC           = 0,
+    .hasERAM          = 0,
+    .InitMediaSysInfo = InitTglMediaSysInfo,
+    .InitShadowSku    = InitTglShadowSku,
+    .InitShadowWa     = InitTglShadowWa,
+};
+
+static bool adlnGt1Device46D0 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x46D0, &adlnGt1Info);
+
+static bool adlnGt1Device46D1 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x46D1, &adlnGt1Info);
+
+static bool adlnGt1Device46D2 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x46D2, &adlnGt1Info);
+#endif 
+
+
 static bool tgllpGt2Device9a40 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x9A40, &tgllpGt2Info);
 

@@ -75,6 +75,10 @@ if(GEN12_ADLP)
     media_include_subdirectory(media_interfaces_m12_adlp)
 endif()
 
+if(GEN12_ADLN)
+    media_include_subdirectory(media_interfaces_m12_adln)
+endif()
+
 if(XEHP_SDV)
     media_include_subdirectory(media_interfaces_xehp_sdv)
 endif()

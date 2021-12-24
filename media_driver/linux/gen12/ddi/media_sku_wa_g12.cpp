@@ -587,6 +587,53 @@ static bool adlpDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
 
 #endif
 
+#ifdef IGFX_GEN12_ADLN_SUPPORTED
+static bool InitAdlnMediaSku(struct GfxDeviceInfo *devInfo,
+    MediaFeatureTable *                            skuTable,
+    struct LinuxDriverInfo *                       drvInfo)
+{
+    if (!InitTglMediaSku(devInfo, skuTable, drvInfo))
+    {
+        return false;
+    }
+
+    if (devInfo->eGTType == GTTYPE_GT0_5)
+    {
+        MEDIA_WR_SKU(skuTable, FtrGT0_5, 1);
+    }
+
+    MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
+    MEDIA_WR_SKU(skuTable, FtrGucSubmission, 1);
+
+    return true;
+}
+
+static bool InitAdlnMediaWa(struct GfxDeviceInfo *devInfo,
+    MediaWaTable *                                waTable,
+    struct LinuxDriverInfo *                      drvInfo)
+{
+    if (!InitTglMediaWa(devInfo, waTable, drvInfo))
+    {
+        return false;
+    }
+
+    //ADL-N keeps below setting same as ADL-S/ADL-P
+    MEDIA_WR_WA(waTable, Wa_1409820462, 0);
+
+    return true;
+}
+
+static struct LinuxDeviceInit adlnDeviceInit =
+    {
+        .productFamily    = IGFX_ALDERLAKE_N,
+        .InitMediaFeature = InitAdlnMediaSku,
+        .InitMediaWa      = InitAdlnMediaWa,
+};
+
+static bool adlnDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
+    RegisterDevice(IGFX_ALDERLAKE_N, &adlnDeviceInit);
+
+#endif
 
 static struct LinuxDeviceInit tgllpDeviceInit =
 {
