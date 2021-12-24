@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -775,15 +775,6 @@ public:
     //!
     virtual MOS_STATUS ExecuteMeKernel();
 
-    MOS_STATUS SetCommonSliceState(
-        CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS &packSlcHeaderParams,
-        MHW_VDBOX_AVC_SLICE_STATE &                 sliceState);
-
-    MOS_STATUS SetSliceState(
-        CODECHAL_ENCODE_AVC_PACK_SLC_HEADER_PARAMS &packSlcHeaderParams,
-        MHW_VDBOX_AVC_SLICE_STATE &                 sliceState,
-        uint16_t                                    slcIdx);
-
 protected:
     // AvcGeneraicState functions
     //!
@@ -927,8 +918,6 @@ protected:
 
     virtual uint32_t GetBRCCostantDataSize() { return sizeof(AVCVdencBRCCostantData); }
 
-    virtual uint32_t GetVdencBRCImgStateBufferSize() { return MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_PAGE_SIZE); }
-
     virtual MOS_STATUS FillHucConstData(uint8_t *data, uint8_t picType);
 
     //!
@@ -947,10 +936,6 @@ protected:
         PMOS_RESOURCE       presMetadataBuffer,
         PMOS_RESOURCE       presSliceSizeStreamoutBuffer,
         PMOS_COMMAND_BUFFER cmdBuffer) override;
-
-    virtual MOS_STATUS AddVdencBrcImgBuffer(
-        PMOS_RESOURCE             vdencBrcImgBuffer,
-        PMHW_VDBOX_AVC_IMG_PARAMS params);
 
     //!
     //! \brief    Add MI_STORE commands in the command buffer to update DMEM from other HW output buffer if needed
@@ -1164,8 +1149,6 @@ protected:
 
     virtual MOS_STATUS DumpEncodeImgStats(
         PMOS_COMMAND_BUFFER        cmdbuffer);
-
-    virtual uint32_t GetPakVDEncPassDumpSize();
 
     virtual MOS_STATUS DumpSeqParFile() override;
     virtual MOS_STATUS DumpFrameParFile() override;

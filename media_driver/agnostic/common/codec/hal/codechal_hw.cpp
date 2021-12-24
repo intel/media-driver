@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -757,7 +757,7 @@ MOS_STATUS CodechalHwInterface::AddVdencBrcImgBuffer(
     // Set VDENC_COST_STATE command
     constructedCmdBuf.pCmdPtr = (uint32_t *)(data + mfxAvcImgStateSize);
     constructedCmdBuf.iOffset = mfxAvcImgStateSize;
-    MHW_MI_CHK_STATUS(m_vdencInterface->AddVdencAvcCostStateCmd(&constructedCmdBuf, nullptr, params));
+    m_vdencInterface->AddVdencAvcCostStateCmd(&constructedCmdBuf, nullptr, params);
 
     // Set VDENC_IMAGE_STATE command
     constructedCmdBuf.pCmdPtr = (uint32_t *)(data + mfxAvcImgStateSize + vdencAvcCostStateSize);
