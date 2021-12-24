@@ -308,7 +308,7 @@ class CodechalVdencAvcStateG12::SfdCurbe
 };
 // clang-format on
 
-struct BrcInitDmem
+struct CodechalVdencAvcStateG12::BrcInitDmem
 {
     uint8_t     BRCFunc_U8;                           // 0: Init; 2: Reset
     uint8_t     OpenSourceEnable_U8;                  // 0: disable opensource, 1: enable opensource
@@ -373,9 +373,8 @@ struct BrcInitDmem
     uint8_t     INIT_New_DeltaQP_Adaptation_U8;       // = 1 to enable new delta QP adaption
     uint8_t     RSVD2[55];                            // must be zero
 };
-using PBrcInitDmem = struct BrcInitDmem*;
 
-struct BrcUpdateDmem
+struct CodechalVdencAvcStateG12::BrcUpdateDmem
 {
     uint8_t     BRCFunc_U8;                           // =1 for Update, other values are reserved for future use
     uint8_t     RSVD[3];
@@ -455,9 +454,11 @@ struct BrcUpdateDmem
     uint8_t      UPD_ROM_CURRENT_U8;        // ROM average of current frame
     uint8_t      UPD_ROM_ZERO_U8;           // ROM zero percentage (255 is 100%)
     uint8_t      UPD_TCBRC_SCENARIO_U8;
-    uint8_t      RSVD2[12];
+    uint8_t      UPD_EnableFineGrainLA;
+    int8_t       UPD_DeltaQpDcOffset;
+    uint16_t     UPD_NumSlicesForRounding;
+    uint8_t      RSVD2[8];
 };
-using PBrcUpdateDmem = struct BrcUpdateDmem*;
 
 // clang-format off
 const uint32_t CodechalVdencAvcStateG12::m_mvCostSkipBiasQPel[3][8] =
@@ -1043,7 +1044,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcInitReset()
     MOS_LOCK_PARAMS lockFlagsWriteOnly;
     memset(&lockFlagsWriteOnly, 0, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
-    auto hucVDEncBrcInitDmem     = (PBrcInitDmem)m_osInterface->pfnLockResource(
+    auto hucVDEncBrcInitDmem     = (BrcInitDmem *)m_osInterface->pfnLockResource(
         m_osInterface, &m_resVdencBrcInitDmemBuffer[m_currRecycledBufIdx], &lockFlagsWriteOnly);
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVDEncBrcInitDmem);
@@ -1129,7 +1130,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     MOS_LOCK_PARAMS lockFlags;
     memset(&lockFlags, 0, sizeof(MOS_LOCK_PARAMS));
     lockFlags.WriteOnly  = 1;
-    auto hucVDEncBrcDmem = (PBrcUpdateDmem)m_osInterface->pfnLockResource(
+    auto hucVDEncBrcDmem = (BrcUpdateDmem *)m_osInterface->pfnLockResource(
         m_osInterface, &m_resVdencBrcUpdateDmemBuffer[m_currRecycledBufIdx][m_currPass], &lockFlags);
     CODECHAL_ENCODE_CHK_NULL_RETURN(hucVDEncBrcDmem);
     SetDmemHuCBrcUpdateImpl<BrcUpdateDmem>(hucVDEncBrcDmem);
@@ -1175,6 +1176,8 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     }
 
     hucVDEncBrcDmem->UPD_TCBRC_SCENARIO_U8 = m_avcSeqParam->bAutoMaxPBFrameSizeForSceneChange;
+
+    hucVDEncBrcDmem->UPD_NumSlicesForRounding = GetAdaptiveRoundingNumSlices();
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(hucVDEncBrcDmem));
@@ -1900,7 +1903,7 @@ MOS_STATUS CodechalVdencAvcStateG12::DumpParsedBRCUpdateDmem(BrcUpdateDmem* dmem
     CODECHAL_DEBUG_CHK_NULL(m_debugInterface);
 
     // To make sure that DMEM doesn't changed and parsed dump contains all DMEM fields
-    CODECHAL_DEBUG_ASSERT(sizeof(dmem->RSVD2) == 12);
+    CODECHAL_DEBUG_ASSERT(sizeof(dmem->RSVD2) == 8);
 
     if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrHuCDmem))
     {
@@ -1985,6 +1988,9 @@ MOS_STATUS CodechalVdencAvcStateG12::DumpParsedBRCUpdateDmem(BrcUpdateDmem* dmem
     FIELD_TO_SS(UPD_ROM_CURRENT_U8);
     FIELD_TO_SS(UPD_ROM_ZERO_U8);
     FIELD_TO_SS(UPD_TCBRC_SCENARIO_U8);
+    FIELD_TO_SS(UPD_EnableFineGrainLA);
+    FIELD_TO_SS(UPD_DeltaQpDcOffset);
+    FIELD_TO_SS(UPD_NumSlicesForRounding);
     ARRAY_TO_SS(RSVD2);
 
     std::string bufName = std::string("ENC-HucDmemUpdate_Parsed_PASS") + std::to_string((uint32_t)m_currPass);

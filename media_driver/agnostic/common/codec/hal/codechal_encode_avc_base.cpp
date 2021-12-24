@@ -280,7 +280,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
     }
 
     // add AVC Slice state commands
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcSlice(cmdBufferInUse, batchBufferInUse, params));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(AddMfxAvcSlice(cmdBufferInUse, batchBufferInUse, params));
 
     //insert AU, SPS, PSP headers before first slice header
     if (params->bInsertBeforeSliceHeaders)
@@ -397,7 +397,7 @@ MOS_STATUS CodechalEncodeAvcBase::SendSlice(
         {
             weightOffsetParams.pAvcPicParams = params->pEncodeAvcPicParams;
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcWeightsOffsetsStateCmd(cmdBuffer, &weightOffsetParams));
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, params));
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(AddVdencSliceStateCmd(cmdBuffer, params));
 
             vdencWalkerStateParams.Mode          = CODECHAL_ENCODE_MODE_AVC;
             vdencWalkerStateParams.slcIdx        = params->dwSliceIndex;
@@ -4622,5 +4622,30 @@ MOS_STATUS CodechalEncodeAvcBase::SetFrameStoreIds(uint8_t frameIdx)
             }
         }
     }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeAvcBase::AddMfxAvcSlice(
+    PMOS_COMMAND_BUFFER        cmdBuffer,
+    PMHW_BATCH_BUFFER          batchBuffer,
+    PMHW_VDBOX_AVC_SLICE_STATE avcSliceState)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_mfxInterface);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxAvcSlice(cmdBuffer, batchBuffer, avcSliceState));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CodechalEncodeAvcBase::AddVdencSliceStateCmd(
+    PMOS_COMMAND_BUFFER        cmdBuffer,
+    PMHW_VDBOX_AVC_SLICE_STATE params)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_vdencInterface);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencSliceStateCmd(cmdBuffer, params));
+
     return MOS_STATUS_SUCCESS;
 }

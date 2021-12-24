@@ -1069,6 +1069,14 @@ public:
     virtual uint32_t GetAvcImgStateSize() = 0;
 
     //!
+    //! \brief    get AVC slc state size
+    //!
+    //! \return   uint32_t
+    //!           AVC slc state size got
+    //!
+    virtual uint32_t GetAvcSlcStateSize() = 0;
+
+    //!
     //! \brief    Decide Which GPU Node to use for Decode
     //! \details  Client facing function to create gpu context used by decoder
     //! \param    [in] gpuNodeLimit
