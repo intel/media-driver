@@ -39,6 +39,7 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_hucItf   = mhwInterfacesNext->m_hucItf;
     m_miItf    = mhwInterfacesNext->m_miItf;
     m_hcpItf   = mhwInterfacesNext->m_hcpItf;
+    m_mfxItf   = mhwInterfacesNext->m_mfxItf;
 
     // Remove legacy mhw sub interfaces.
     m_cpInterface = mhwInterfacesNext->m_cpInterface;
@@ -130,9 +131,9 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
 
     // Next step: replace with new mhw sub interfaces, including vdenc, mfx, hcp.
     /**********************************************************************/
-    if (m_mfxInterface)
+    if (GetMfxInterfaceNext())
     {
-        CODEC_HW_CHK_STATUS_RETURN(m_mfxInterface->SetCacheabilitySettings(cacheabilitySettings));
+        CODEC_HW_CHK_STATUS_RETURN(GetMfxInterfaceNext()->SetCacheabilitySettings(cacheabilitySettings));
     }
     if (m_hcpInterface)
     {
