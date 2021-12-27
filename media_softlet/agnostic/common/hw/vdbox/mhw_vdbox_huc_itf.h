@@ -29,6 +29,7 @@
 #define __MHW_VDBOX_HUC_ITF_H__
 
 #include "mhw_itf.h"
+#include "mhw_vdbox.h"
 #include "mhw_vdbox_huc_cmdpar.h"
 
 #define _HUC_CMD_DEF(DEF)             \
@@ -60,6 +61,8 @@ public:
     virtual ~Itf() = default;
 
     virtual MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) = 0;
+
+    virtual const MmioRegistersHuc *GetMmioRegisters(const MHW_VDBOX_NODE_IND index) const = 0;
 
     _HUC_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 };

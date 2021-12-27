@@ -40,6 +40,10 @@ namespace huc
 
 static constexpr uint32_t MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK = 0xFFFFFF81;
 
+static constexpr uint32_t HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT = 0x1C2014;
+static constexpr uint32_t HUC_STATUS_REG_OFFSET_NODE_1_INIT           = 0x1C2000;
+static constexpr uint32_t HUC_STATUS2_REG_OFFSET_NODE_1_INIT          = 0x1C23B0;
+
 template <typename cmd_t>
 class Impl : public Itf, public mhw::Impl
 {
@@ -57,8 +61,43 @@ public:
         return MOS_SecureMemcpy(m_cacheabilitySettings, size, settings, size);
     }
 
+    //!
+    //! \brief    Get mmio registers
+    //!
+    //! \param    [in] index
+    //!           mmio registers index.
+    //!
+    //! \return   [out] MmioRegistersHuc*
+    //!           mmio registers got.
+    //!
+    const MmioRegistersHuc *GetMmioRegisters(MHW_VDBOX_NODE_IND index) const override
+    {
+        if (index < MHW_VDBOX_NODE_MAX)
+        {
+            return &m_mmioRegisters[index];
+        }
+        else
+        {
+            MHW_ASSERT("index is out of range!");
+            return &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        }
+    }
+
+    void InitMmioRegisters()
+    {
+        MmioRegistersHuc *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
+
+        mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT;
+        mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_1_INIT;
+        mmioRegisters->hucStatus2RegOffset        = HUC_STATUS2_REG_OFFSET_NODE_1_INIT;
+
+        m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
+    }
+
 protected:
     using base_t = Itf;
+
+    MmioRegistersHuc m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< HuC mmio registers
 
     MhwCpInterface *m_cpItf = nullptr;
 
@@ -67,6 +106,8 @@ protected:
     Impl(PMOS_INTERFACE osItf, MhwCpInterface *cpItf) : mhw::Impl(osItf)
     {
         m_cpItf = cpItf;
+
+        InitMmioRegisters();
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(HUC_PIPE_MODE_SELECT)
