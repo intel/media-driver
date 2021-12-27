@@ -18,11 +18,17 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+set(TMP_SOURCES_
+    ${TMP_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/huc_streamout_interface.cpp
+)
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_copy_packet_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator.h
 )
 
 media_add_curr_to_include_path()
