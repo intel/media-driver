@@ -225,18 +225,6 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrContextBasedScheduling, 1);
     MEDIA_WR_SKU(skuTable, FtrSfcScalability, 1);
-    // Enable context based scheduling when vebox scalabilitiy enable due to KMD didn't support GUC submission yet
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE_ID,
-        &userFeatureData,
-        (MOS_CONTEXT_HANDLE)nullptr);
-    if (userFeatureData.i32Data)
-    {
-        MEDIA_WR_SKU(skuTable, FtrContextBasedScheduling, 1);
-    }
 
     MEDIA_WR_SKU(skuTable, FtrTileY, 1);
 
@@ -250,6 +238,7 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
     }
 
     // Disable MMC for all components if set reg key
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
