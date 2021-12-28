@@ -56,6 +56,8 @@ VPHAL_VEBOX_STATE_XE_XPM::VPHAL_VEBOX_STATE_XE_XPM(
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_hvsKernelBinary     = (uint8_t *)IGVPHVS_DENOISE_XE_HPM;
     m_hvsKernelBinarySize = IGVPHVS_DENOISE_XE_HPM_SIZE;
+    m_hdr3DLutKernelBinary     = (uint32_t *)IGVP3DLUT_GENERATION_XE_XPM;
+    m_hdr3DLutKernelBinarySize = IGVP3DLUT_GENERATION_XE_XPM_SIZE;
 #endif
 
     // Vebox Scalability
@@ -405,16 +407,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::AllocateResources()
     pRenderData     = GetLastExecRenderData();
 
     VPHAL_RENDER_CHK_STATUS(VPHAL_VEBOX_STATE_G12_BASE::AllocateResources());
-
-    // re-allocate 3D LUT generator.
-    if (pRenderData->bHdr3DLut && m_hdr3DLutGenerator)
-    {
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-        MOS_Delete(m_hdr3DLutGenerator);
-        PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
-        m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_XE_XPM, IGVP3DLUT_GENERATION_XE_XPM_SIZE);
-#endif
-    }
 
     // Allocate bottom field surface for interleaved to field
     if (pVeboxState->m_currentSurface->InterlacedScalingType == ISCALING_INTERLEAVED_TO_FIELD)

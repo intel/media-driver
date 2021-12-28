@@ -1048,7 +1048,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
             {
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
                 PRENDERHAL_INTERFACE pRenderHal = pVeboxState->m_pRenderHal;
-                m_hdr3DLutGenerator = MOS_New(Hdr3DLutGenerator, pRenderHal, IGVP3DLUT_GENERATION_G12_TGLLP, IGVP3DLUT_GENERATION_G12_TGLLP_SIZE);
+                m_hdr3DLutGenerator             = MOS_New(Hdr3DLutGenerator, pRenderHal, m_hdr3DLutKernelBinary, m_hdr3DLutKernelBinarySize);
 #endif
             }
         }
@@ -3092,6 +3092,10 @@ VPHAL_VEBOX_STATE_G12_BASE::VPHAL_VEBOX_STATE_G12_BASE(
     pKernelParamTable = (PRENDERHAL_KERNEL_PARAM)g_Vebox_KernelParam_g12;
     iNumFFDISurfaces  = 2;  // PE on: 4 used. PE off: 2 used
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    m_hdr3DLutKernelBinary     = (uint32_t *)IGVP3DLUT_GENERATION_G12_TGLLP;
+    m_hdr3DLutKernelBinarySize = IGVP3DLUT_GENERATION_G12_TGLLP_SIZE;
+#endif
 }
 
 MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::Initialize(
