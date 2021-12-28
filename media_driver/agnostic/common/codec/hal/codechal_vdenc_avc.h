@@ -953,6 +953,23 @@ protected:
         PMHW_VDBOX_AVC_IMG_PARAMS params);
 
     //!
+    //! \brief    Report Slice Size to MetaData buffer
+    //! \details  Report Slice Size to MetaData buffer.
+    //! \param    [in] presMetadataBuffer
+    //!               Pointer to allocated HW MetaData buffer
+    //!           [in] cmdBuffer
+    //!               Pointer to primary cmd buffer
+    //!           [in] slcCount
+    //!               Current slice count
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ReportSliceSizeMetaData(
+        PMOS_RESOURCE presMetadataBuffer,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        uint32_t slcCount);
+
+    //!
     //! \brief    Add MI_STORE commands in the command buffer to update DMEM from other HW output buffer if needed
     //!
     //! \param    [in] cmdBuffer
