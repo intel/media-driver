@@ -240,16 +240,6 @@ public:
         return MOS_SecureMemcpy(m_cacheabilitySettings, size, settings, size);
     }
 
-    bool IsPerfModeSupported()
-    {
-        return m_perfModeSupported;
-    }
-
-    bool IsRhoDomainStatsEnabled()
-    {
-        return m_rhoDomainStatsEnabled;
-    }
-
 protected:
     using base_t = Itf;
 

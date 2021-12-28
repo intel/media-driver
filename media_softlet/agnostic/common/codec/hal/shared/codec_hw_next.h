@@ -31,6 +31,7 @@
 #include "media_interfaces_mhw_next.h"
 
 // Remove legacy header files
+#include "mhw_vdbox_mfx_interface.h"
 #include "mhw_vdbox_hcp_interface.h"
 #include "mhw_vdbox_vdenc_interface.h"
 #include "mhw_vdbox_huc_interface.h"
@@ -94,17 +95,6 @@ public:
     //! \brief    Destructor
     //!
     virtual ~CodechalHwInterfaceNext() {}
-
-    //!
-    //! \brief    Get avp interface
-    //! \details  Get avp interface in codechal hw interface next
-    //!
-    //! \return    pointer to new AVP interface
-    //!
-    inline std::shared_ptr<mhw::vdbox::mfx::Itf> GetMfxInterfaceNext()
-    {
-        return m_mfxItf;
-    }
 
     //!
     //! \brief    Get avp interface
@@ -236,7 +226,6 @@ protected:
     std::shared_ptr<mhw::vdbox::huc::Itf>    m_hucItf   = nullptr;      //!< Pointer to Mhw huc interface
     std::shared_ptr<mhw::mi::Itf>            m_miItf    = nullptr;      //!< Pointer to Mhw mi interface
     std::shared_ptr<mhw::vdbox::hcp::Itf>    m_hcpItf   = nullptr;      //!< Pointer to Mhw hcp interface
-    std::shared_ptr<mhw::vdbox::mfx::Itf>    m_mfxItf   = nullptr;      //!< Pointer to Mhw mfx interface
 
     // Next: remove legacy Interfaces
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface

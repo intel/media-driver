@@ -560,24 +560,6 @@ public:
             return nullptr;
         }
     }
-
-    //!
-    //! \brief    Get mfx interface
-    //! \details  Get mfx interface in codechal hw interface next
-    //!
-    //! \return    pointer to new MFX interface
-    //!
-    inline std::shared_ptr<mhw::vdbox::mfx::Itf> GetMfxInterfaceNext()
-    {
-        if (m_hwInterfaceNext)
-        {
-            return m_hwInterfaceNext->GetMfxInterfaceNext();
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
 #endif
 
     //!

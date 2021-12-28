@@ -60,6 +60,35 @@ enum CodecDecodeJpegChromaType
 };
 
 //!
+//! \struct CodecDecodeJpegPicParams
+//! \brief Picture Paramters buffer structure for JPEG Decode
+//!
+struct CodecDecodeJpegPicParams
+{
+    CODEC_PICTURE         m_destPic;                                    //!< Destination Picture
+    uint16_t              m_frameWidth;                                 //!< Frame Width
+    uint16_t              m_frameHeight;                                //!< Frame Height
+    uint16_t              m_numCompInFrame;                             //!< Component Number in Frame
+    uint8_t               m_componentIdentifier[jpegNumComponent];      //!< Component identifier
+    uint8_t               m_quantTableSelector[jpegNumComponent];       //!< Quant table selector
+    uint8_t               m_chromaType;                                 //!< Chroma Type
+    uint8_t               m_rotation;                                   //!< Rotation type.
+                                                                        //! 0: no rotation,
+                                                                        //! 1: rotate clockwise 90 degree,
+                                                                        //! 2: rotate counter-clockwise 90 degree (same as rotating 270 degree clockwise)
+                                                                        //! 3: rotate 180 degree (NOT the same as flipped on the x-axis)
+                                                                        //!
+
+    uint16_t              m_totalScans;                                 //!< total scans
+
+    uint32_t              m_interleavedData    : 1;                     //!< Interleaved data
+    uint32_t              m_reserved           : 31;                    //!< Reserved bits
+
+    uint32_t              m_statusReportFeedbackNumber;                 //!< Status report feedback number
+    uint32_t              m_renderTargetFormat;                         //!< Render target format
+};
+
+//!
 //! \struct CodecDecodeJpegImageLayout
 //! \brief Information pertaining to the output of the decode render target
 //!
