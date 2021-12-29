@@ -70,7 +70,7 @@ public:
     //! \return   [out] MmioRegistersHuc*
     //!           mmio registers got.
     //!
-    const MmioRegistersHuc *GetMmioRegisters(MHW_VDBOX_NODE_IND index) const override
+    HucMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
     {
         if (index < MHW_VDBOX_NODE_MAX)
         {
@@ -83,9 +83,10 @@ public:
         }
     }
 
+private:
     void InitMmioRegisters()
     {
-        MmioRegistersHuc *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        HucMmioRegisters *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
         mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT;
         mmioRegisters->hucStatusRegOffset         = HUC_STATUS_REG_OFFSET_NODE_1_INIT;
@@ -97,7 +98,7 @@ public:
 protected:
     using base_t = Itf;
 
-    MmioRegistersHuc m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< HuC mmio registers
+    HucMmioRegisters m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< HuC mmio registers
 
     MhwCpInterface *m_cpItf = nullptr;
 

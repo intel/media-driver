@@ -240,7 +240,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MmioRegistersAvpNext* GetMmioRegisters(MHW_VDBOX_NODE_IND index) override
+    AvpMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) override
     {
         if (index < MHW_VDBOX_NODE_MAX)
         {
@@ -255,11 +255,11 @@ public:
 
 private:
     bool                 m_rowstoreCachingSupported            = false;
-    MmioRegistersAvpNext m_mmioRegisters[MHW_VDBOX_NODE_MAX]   = {};    //!< AVP mmio registers
+    AvpMmioRegisters     m_mmioRegisters[MHW_VDBOX_NODE_MAX]   = {};    //!< AVP mmio registers
 
     void InitMmioRegisters()
     {
-        MmioRegistersAvpNext *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
+        AvpMmioRegisters *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
         mmioRegisters->avpAv1BitstreamByteCountTileRegOffset         = AVP_AVP_BITSTREAM_BYTECOUNT_TILE_WITH_HEADER_AWM_REG0;
         mmioRegisters->avpAv1BitstreamByteCountTileNoHeaderRegOffset = AVP_ENC_BITSTREAM_BYTE_COUNT_TILE_NO_HEADER_REG_OFFSET_INIT;

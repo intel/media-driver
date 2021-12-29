@@ -47,6 +47,14 @@ namespace vdbox
 {
 namespace huc
 {
+
+struct HucMmioRegisters
+{
+    uint32_t                    hucStatusRegOffset = 0;
+    uint32_t                    hucUKernelHdrInfoRegOffset = 0;
+    uint32_t                    hucStatus2RegOffset = 0;
+};
+
 class Itf
 {
 public:
@@ -61,8 +69,7 @@ public:
     virtual ~Itf() = default;
 
     virtual MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) = 0;
-
-    virtual const MmioRegistersHuc *GetMmioRegisters(const MHW_VDBOX_NODE_IND index) const = 0;
+    virtual HucMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
 
     _HUC_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 };

@@ -54,7 +54,7 @@ namespace avp
 //! \struct   MmioRegistersAvp
 //! \brief    MMIO registers AVP
 //!
-struct MmioRegistersAvpNext
+struct AvpMmioRegisters
 {
     uint32_t                   avpAv1BitstreamByteCountTileRegOffset         = 0;
     uint32_t                   avpAv1BitstreamByteCountTileNoHeaderRegOffset = 0;
@@ -86,7 +86,7 @@ public:
     virtual bool IsBufferRowstoreCacheEnabled(AvpBufferType bufferType) = 0; // If row store cache of a particular buffer is enabled
     virtual MOS_STATUS GetAvpPrimitiveCmdSize(uint32_t *commandsSize, uint32_t *patchListSize, PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) = 0;
     virtual MOS_STATUS GetAvpStateCmdSize(uint32_t *commandsSize, uint32_t *patchListSize, PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) = 0;
-    virtual MmioRegistersAvpNext* GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
+    virtual AvpMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
 
     _AVP_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 };
