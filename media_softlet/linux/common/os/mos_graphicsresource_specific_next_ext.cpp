@@ -25,8 +25,3 @@
 //! \brief   Container class for the Linux specific graphics resource
 
 #include "mos_graphicsresource_specific_next.h"
-
-MOS_STATUS GraphicsResourceSpecificNext::SetTileModebyForce(GMM_RESCREATE_PARAMS &gmmParams, MOS_TILE_MODE_GMM tileMode)
-{
-    return MOS_STATUS_SUCCESS;
-}
