@@ -76,7 +76,9 @@ struct CodechalVdencHevcLaData
         uint32_t encodeHints;
     };
     uint32_t pyramidDeltaQP;
-    uint32_t reserved3[9];
+    uint8_t  adaptive_rounding;
+    uint8_t  miniGopSize;
+    uint32_t reserved3[8];
 };
 
 //!
