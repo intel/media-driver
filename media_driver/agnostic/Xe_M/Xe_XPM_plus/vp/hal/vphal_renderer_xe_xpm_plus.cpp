@@ -49,35 +49,10 @@ void VphalRendererXe_Xpm_Plus::GetCacheCntl(
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
     VPHAL_RENDER_CHK_NULL_NO_STATUS_RETURN(pSettings);
 
-    // Read user feature key to control L3 on PVC. it is only Workaround for Emu limitation.
-    // after silicon, we need remove it.
-    bool l3Enabled = false;
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_RENDER_ENABLE_EUFUSION_ID,
-        &userFeatureData,
-        pOsInterface->pOsContext));
-
-    l3Enabled = userFeatureData.bData ? true : false;
-
-    if (pSettings->bCompositing && (!l3Enabled))
-    {
-        pSettings->Composite.bL3CachingEnabled = true;
-
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.PrimaryInputSurfMemObjCtl,   MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.InputSurfMemObjCtl,          MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.TargetSurfMemObjCtl,         MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
-    }
-    else
-    {
-        pSettings->Composite.bL3CachingEnabled = false;
-
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.PrimaryInputSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.InputSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
-        VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.TargetSurfMemObjCtl, MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
-    }
+    pSettings->Composite.bL3CachingEnabled = true;
+    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.PrimaryInputSurfMemObjCtl,   MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
+    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.InputSurfMemObjCtl,          MOS_MP_RESOURCE_USAGE_SurfaceState_RCS);
+    VPHAL_SET_SURF_MEMOBJCTL(pSettings->Composite.TargetSurfMemObjCtl,         MOS_MP_RESOURCE_USAGE_DEFAULT_RCS);
 
     if (pSettings->bDnDi)
     {
