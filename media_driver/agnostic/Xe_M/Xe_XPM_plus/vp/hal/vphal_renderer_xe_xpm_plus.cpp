@@ -28,8 +28,10 @@
 //!
 #include "vphal_render_vebox_xe_xpm.h"
 #include "vphal_renderer_xe_xpm_plus.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_xe_xpm_plus.h"
 #include "igvpkrn_xe_xpm_plus_cmfcpatch.h"
+#endif
 #include "vphal_render_composite_xe_xpm_plus.h"
 
 extern const Kdll_RuleEntry         g_KdllRuleTable_xe_xpm_plus[];
@@ -220,10 +222,17 @@ MOS_STATUS VphalRendererXe_Xpm_Plus::InitKdllParam()
     if (bEnableCMFC)
     {
         pKernelDllRules  = g_KdllRuleTable_xe_xpm_plus;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         pcKernelBin      = (const void *)IGVPKRN_XE_XPM_PLUS;
         dwKernelBinSize  = IGVPKRN_XE_XPM_PLUS_SIZE;
         pcFcPatchBin     = (const void *)IGVPKRN_XE_XPM_PLUS_CMFCPATCH;
         dwFcPatchBinSize = IGVPKRN_XE_XPM_PLUS_CMFCPATCH_SIZE;
+#else
+        pcKernelBin      = nullptr;
+        dwKernelBinSize  = 0;
+        pcFcPatchBin     = nullptr;
+        dwFcPatchBinSize = 0;
+#endif
     }
 
     if ((NULL == pcFcPatchBin) || (0 == dwFcPatchBinSize))

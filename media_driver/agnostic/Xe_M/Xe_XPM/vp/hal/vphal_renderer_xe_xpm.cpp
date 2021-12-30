@@ -27,8 +27,10 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_xe_xpm.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_xe_xpm.h"
 #include "igvpkrn_xe_xpm_cmfcpatch.h"
+#endif
 #include "vphal_render_vebox_xe_xpm.h"
 #include "vphal_render_composite_xe_xpm.h"
 
@@ -206,10 +208,17 @@ MOS_STATUS VphalRendererXe_Xpm::InitKdllParam()
     if (bEnableCMFC)
     {
         pKernelDllRules  = g_KdllRuleTable_Xe_Hpm;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
         pcKernelBin      = (const void *)IGVPKRN_XE_XPM;
         dwKernelBinSize  = IGVPKRN_XE_XPM_SIZE;
         pcFcPatchBin     = (const void *)IGVPKRN_XE_XPM_CMFCPATCH;
         dwFcPatchBinSize = IGVPKRN_XE_XPM_CMFCPATCH_SIZE;
+#else
+        pcKernelBin      = nullptr;
+        dwKernelBinSize  = 0;
+        pcFcPatchBin     = nullptr;
+        dwFcPatchBinSize = 0;
+#endif
     }
 
     if ((NULL == pcFcPatchBin) || (0 == dwFcPatchBinSize))

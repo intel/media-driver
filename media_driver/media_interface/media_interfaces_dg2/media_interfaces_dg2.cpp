@@ -28,7 +28,9 @@
 //!
 
 #include "media_interfaces_dg2.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
+#endif
 #include "codechal.h"
 #include "codechal_debug_xe_hpm_ext.h"
 #if defined(ENABLE_KERNELS) && defined(IGFX_DG2_ENABLE_NON_UPSTREAM)

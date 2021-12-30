@@ -28,7 +28,9 @@
 //!
 
 #include "media_render_copy_xe_xpm_plus.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_xe_xpm_plus.h"
+#endif
 
 #define RENDER_COPY_XE_XPM_PLUS_THREADS_MAX  0
 #define RENDER_COPY_XE_XPM_PLUS_NUM          9
@@ -465,8 +467,13 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::SetupKernel(
         return MOS_STATUS_UNKNOWN;
     }
 
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     pcKernelBin = (const void*)IGVPKRN_XE_XPM_PLUS;
     dwKernelBinSize = IGVPKRN_XE_XPM_PLUS_SIZE;
+#else
+    pcKernelBin = nullptr;
+    dwKernelBinSize = 0;
+#endif
 
     if (nullptr == m_pKernelBin)
     {

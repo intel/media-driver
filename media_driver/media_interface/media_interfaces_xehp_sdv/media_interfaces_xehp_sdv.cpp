@@ -29,8 +29,10 @@
 
 #include "media_interfaces_xehp_sdv.h"
 #include "codechal_debug_xe_xpm_ext.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
-#if defined(ENABLE_KERNELS) && defined(IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM)
+#endif
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE) && defined(IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM)
 #include "cm_gpucopy_kernel_xe_xpm.h"
 #include "cm_gpuinit_kernel_xe_xpm.h"
 #else

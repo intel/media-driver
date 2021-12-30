@@ -30,7 +30,9 @@
 #include "media_interfaces_pvc.h"
 #include "codechal.h"
 #include "codechal_debug_xe_xpm_plus_ext.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
+#endif
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
 extern template class MediaInterfacesFactory<MmdDevice>;
