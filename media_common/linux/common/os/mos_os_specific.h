@@ -573,6 +573,9 @@ struct _MOS_OS_CONTEXT
     //For 2VD box
     int32_t             bKMDHasVCS2;
     bool                bPerCmdBufferBalancing;
+    int32_t             semid;
+    int32_t             shmid;
+    void                *pShm;
 
     uint32_t            *pTranscryptedKernels;     //!< The cached version for current set of transcrypted and authenticated kernels
     uint32_t            uiTranscryptedKernelsSize; //!< Size in bytes of the cached version of transcrypted and authenticated kernels
