@@ -1573,6 +1573,9 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCBrcInitReset()
             dmem->Total_Level, dmem->TargetBitrate, targetFR, dmem->MaxLevel_Ratio));
     }
 
+    // lets allow huc to calculate it 
+    dmem->GoldenFrameInterval = 0;
+
     m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcInitDmemBuffer);
 
     return eStatus;
