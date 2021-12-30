@@ -935,6 +935,71 @@ MOS_STATUS CodechalVdencAvcStateG12::Initialize(CodechalSetting * settings)
     return eStatus;
 }
 
+bool CodechalVdencAvcStateG12::ProcessRoiDeltaQp()
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    // Intialize ROIDistinctDeltaQp to be min expected delta qp, setting to -128
+    // Check if forceQp is needed or not
+    // forceQp is enabled if there are greater than 3 distinct delta qps or if the deltaqp is beyond range (-8, 7)
+    for (auto k = 0; k < m_maxNumRoi; k++)
+    {
+        m_avcPicParam->ROIDistinctDeltaQp[k] = -128;
+    }
+
+    int32_t numQp = 0;
+    for (int32_t i = 0; i < m_avcPicParam->NumROI; i++)
+    {
+        bool dqpNew = true;
+
+        //Get distinct delta Qps among all ROI regions, index 0 having the lowest delta qp
+        int32_t k = numQp - 1;
+        for (; k >= 0; k--)
+        {
+            if (m_avcPicParam->ROI[i].PriorityLevelOrDQp == m_avcPicParam->ROIDistinctDeltaQp[k] ||
+                m_avcPicParam->ROI[i].PriorityLevelOrDQp == 0)
+            {
+                dqpNew = false;
+                break;
+            }
+            else if (m_avcPicParam->ROI[i].PriorityLevelOrDQp < m_avcPicParam->ROIDistinctDeltaQp[k])
+            {
+                continue;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        if (dqpNew)
+        {
+            for (int32_t j = numQp - 1; (j >= k + 1 && j >= 0); j--)
+            {
+                m_avcPicParam->ROIDistinctDeltaQp[j + 1] = m_avcPicParam->ROIDistinctDeltaQp[j];
+            }
+            m_avcPicParam->ROIDistinctDeltaQp[k + 1] = m_avcPicParam->ROI[i].PriorityLevelOrDQp;
+            numQp++;
+        }
+    }
+
+    //Set the ROI DeltaQp to zero for remaining array elements
+    for (auto k = numQp; k < m_maxNumRoi; k++)
+    {
+        m_avcPicParam->ROIDistinctDeltaQp[k] = 0;
+    }
+    m_avcPicParam->NumROIDistinctDeltaQp = (int8_t)numQp;
+
+    // return whether is native ROI or not
+    return !(numQp > m_maxNumNativeRoi || m_avcPicParam->ROIDistinctDeltaQp[0] < -8 || m_avcPicParam->ROIDistinctDeltaQp[numQp - 1] > 7);
+}
+
+bool CodechalVdencAvcStateG12::IsMBBRCControlEnabled()
+{
+    return m_mbBrcEnabled;
+}
+
+
 bool CodechalVdencAvcStateG12::CheckSupportedFormat(PMOS_SURFACE surface)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;

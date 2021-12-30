@@ -99,6 +99,10 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
 
     MOS_STATUS Initialize(CodechalSetting * settings) override;
 
+    virtual bool ProcessRoiDeltaQp() override;
+
+    virtual bool IsMBBRCControlEnabled() override;
+
     MOS_STATUS AddVdencWalkerStateCmd(
         PMOS_COMMAND_BUFFER cmdBuffer) override;
 

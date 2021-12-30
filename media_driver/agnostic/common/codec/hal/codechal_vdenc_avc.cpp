@@ -4696,8 +4696,8 @@ bool CodechalVdencAvcState::ProcessRoiDeltaQp()
     }
     m_avcPicParam->NumROIDistinctDeltaQp = (int8_t)numQp;
 
-    bool bIsNativeROI = (!(numQp > m_maxNumNativeRoi || m_avcPicParam->ROIDistinctDeltaQp[0] < -8 || m_avcPicParam->ROIDistinctDeltaQp[numQp - 1] > 7));
-    bool bIsNativeROIAllowed = !m_vdencBrcEnabled || m_mbBrcEnabled; // BRC native ROI require MBBRC on
+    bool bIsNativeROI        = (!(numQp > m_maxNumNativeRoi || m_avcPicParam->ROIDistinctDeltaQp[0] < -8 || m_avcPicParam->ROIDistinctDeltaQp[numQp - 1] > 7));
+    bool bIsNativeROIAllowed = !m_vdencBrcEnabled || m_mbBrcEnabled;  // BRC native ROI require MBBRC on
 
     // return whether is native ROI or not
     return bIsNativeROI && bIsNativeROIAllowed;
@@ -7836,6 +7836,11 @@ MOS_STATUS CodechalVdencAvcState::ExecuteMeKernel()
         m_vdencStreamInEnabled = true;
     }
     return MOS_STATUS_SUCCESS;
+}
+
+bool CodechalVdencAvcState::IsMBBRCControlEnabled()
+{
+    return m_mbBrcEnabled || m_avcPicParam->bNativeROI;
 }
 
 MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
