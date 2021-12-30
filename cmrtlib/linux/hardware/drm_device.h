@@ -53,6 +53,7 @@
 #endif
 #include <math.h>
 #include <string>
+#include <cstring>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
@@ -124,7 +125,7 @@ typedef void          *drmAddress, **drmAddressPtr; /**< For mapped regions */
 #define MAX3( A, B, C ) ((A) > (B) ? MAX2(A, C) : MAX2(B, C))
 
 #define __align_mask(value, mask)  (((value) + (mask)) & ~(mask))
-#define ALIGN(value, alignment)    __align_mask(value, (__typeof__(value))((alignment) - 1))
+#define ALIGN_CEIL(value, alignment)    __align_mask(value, (__typeof__(value))((alignment) - 1))
 #define DRM_PLATFORM_DEVICE_NAME_LEN 512
 
 typedef struct _drmPciBusInfo {
@@ -230,6 +231,21 @@ drm_device_validate_flags(uint32_t flags)
     return (flags & ~DRM_DEVICE_GET_PCI_REVISION);
 }
 
+static bool
+drm_device_has_rdev(drmDevicePtr device, dev_t find_rdev)
+{
+    struct stat sbuf;
+
+    for (int i = 0; i < DRM_NODE_MAX; i++) {
+        if (device->available_nodes & 1 << i) {
+            if (stat(device->nodes[i], &sbuf) == 0 &&
+                sbuf.st_rdev == find_rdev)
+                return true;
+        }
+    }
+    return false;
+}
+
 static int drmGetMaxNodeName(void)
 {
     return sizeof(DRM_DIR_NAME) +
@@ -289,7 +305,7 @@ static drmDevicePtr drmDeviceAlloc(unsigned int type, const char *node,
     unsigned int i;
     char *ptr;
 
-    max_node_length = ALIGN(drmGetMaxNodeName(), sizeof(void *));
+    max_node_length = ALIGN_CEIL(drmGetMaxNodeName(), sizeof(void *));
 
     extra = DRM_NODE_MAX * (sizeof(void *) + max_node_length);
 
@@ -1176,6 +1192,105 @@ int drmGetDevices(drmDevicePtr devices[], int max_devices)
     return drmGetDevices2(DRM_DEVICE_GET_PCI_REVISION, devices, max_devices);
 }
 
+/**
+ * Get information about the opened drm device
+ *
+ * \param fd file descriptor of the drm device
+ * \param flags feature/behaviour bitmask
+ * \param device the address of a drmDevicePtr where the information
+ *               will be allocated in stored
+ *
+ * \return zero on success, negative error code otherwise.
+ *
+ * \note Unlike drmGetDevice it does not retrieve the pci device revision field
+ * unless the DRM_DEVICE_GET_PCI_REVISION \p flag is set.
+ */
+int drmGetDevice2(int fd, uint32_t flags, drmDevicePtr *device)
+{
+    drmDevicePtr local_devices[MAX_DRM_NODES];
+    drmDevicePtr d;
+    DIR *sysdir;
+    struct dirent *dent;
+    struct stat sbuf;
+    int subsystem_type;
+    int maj, min;
+    int ret, i, node_count;
+    dev_t find_rdev;
+
+    if (drm_device_validate_flags(flags))
+        return -EINVAL;
+
+    if (fd == -1 || device == NULL)
+        return -EINVAL;
+
+    if (fstat(fd, &sbuf))
+        return -errno;
+
+    find_rdev = sbuf.st_rdev;
+    maj = major(sbuf.st_rdev);
+    min = minor(sbuf.st_rdev);
+
+    if (!drmNodeIsDRM(maj, min) || !S_ISCHR(sbuf.st_mode))
+        return -EINVAL;
+
+    subsystem_type = drmParseSubsystemType(maj, min);
+    if (subsystem_type < 0)
+        return subsystem_type;
+
+    sysdir = opendir(DRM_DIR_NAME);
+    if (!sysdir)
+        return -errno;
+
+    i = 0;
+    while ((dent = readdir(sysdir))) {
+        ret = process_device(&d, dent->d_name, subsystem_type, true, flags);
+        if (ret)
+            continue;
+
+        if (i >= MAX_DRM_NODES) {
+            fprintf(stderr, "More than %d drm nodes detected. "
+                    "Please report a bug - that should not happen.\n"
+                    "Skipping extra nodes\n", MAX_DRM_NODES);
+            break;
+        }
+        local_devices[i] = d;
+        i++;
+    }
+    node_count = i;
+
+    drmFoldDuplicatedDevices(local_devices, node_count);
+
+    *device = NULL;
+
+    for (i = 0; i < node_count; i++) {
+        if (!local_devices[i])
+            continue;
+
+        if (drm_device_has_rdev(local_devices[i], find_rdev))
+            *device = local_devices[i];
+        else
+            drmFreeDevice(&local_devices[i]);
+    }
+
+    closedir(sysdir);
+    if (*device == NULL)
+        return -ENODEV;
+    return 0;
+}
+
+/**
+ * Get information about the opened drm device
+ *
+ * \param fd file descriptor of the drm device
+ * \param device the address of a drmDevicePtr where the information
+ *               will be allocated in stored
+ *
+ * \return zero on success, negative error code otherwise.
+ */
+int drmGetDevice(int fd, drmDevicePtr *device)
+{
+    return drmGetDevice2(fd, DRM_DEVICE_GET_PCI_REVISION, device);
+}
 
 static int32_t GetRendererFileDescriptor(char * drm_node)
 {
