@@ -31,7 +31,7 @@
 #include "vp_render_sfc_xe_xpm_base.h"
 #include "vp_render_ief.h"
 #include "vp_render_cmd_packet.h"
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_xe_hpm.h"
 #include "igvpkrn_xe_hpm_cmfcpatch.h"
 #endif
@@ -87,7 +87,7 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpRenderHwCaps()
     VP_FUNC_CALL();
 
     m_modifyKdllFunctionPointers = KernelDll_ModifyFunctionPointers_g12hp;
-#if defined(ENABLE_KERNELS)
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     InitVPFCKernels(
        g_KdllRuleTable_Xe_Hpm,
        IGVPKRN_XE_HPM,

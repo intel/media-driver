@@ -27,7 +27,9 @@
 //! \details  Implements the MDF OLP kernel for Xe_HPM VC1.
 //!
 #include "codechal_kernel_olp_mdf_xe_hpm.h"
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "XE_HPM_VC1_OLP.h"
+#endif
 
 MOS_STATUS CodechalKernelOlpMdfXe_Hpm::Init(PMOS_INTERFACE osInterface)
 {
@@ -48,11 +50,13 @@ MOS_STATUS CodechalKernelOlpMdfXe_Hpm::Init(PMOS_INTERFACE osInterface)
         devCreateOption));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateQueue(m_cmQueue));
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->LoadProgram(
         (void *)XE_HPM_VC1_OLP,
         XE_HPM_VC1_OLP_SIZE,
         m_cmProgram,
         "-nojitter"));
+#endif
     for (int i = 0; i < 2; i++)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_cmDevice->CreateKernel(

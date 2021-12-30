@@ -352,6 +352,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateVeboxStates(
 finish:
     return eStatus;
 #else
+finish:
     return MOS_STATUS_SUCCESS;
 #endif
 }
