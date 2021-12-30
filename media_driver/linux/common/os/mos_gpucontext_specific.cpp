@@ -1117,14 +1117,13 @@ MOS_STATUS GpuContextSpecific::SubmitCommandBuffer(
             {
                 execFlag = I915_EXEC_BSD | I915_EXEC_BSD_RING2;
             }
+            else if ((gpuNode == MOS_GPU_NODE_BLT))
+            {
+                execFlag = I915_EXEC_BLT;
+            }
             else
             {
                 MOS_OS_ASSERTMESSAGE("Invalid gpuNode.");
-            }
-
-            if (!GFX_IS_GEN_11_OR_LATER(osContext->platform))
-            {
-                execFlag = I915_EXEC_BSD; // I915 already implement ping-pong, it is fd based ping-pong. set the I915_EXEC_BSD without I915_EXEC_BSD_RING0 and I915_EXEC_BSD_RING1, it will be dispatched to different one
             }
         }
         else
