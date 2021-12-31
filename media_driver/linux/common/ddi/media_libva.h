@@ -378,7 +378,7 @@ VAStatus DdiMedia_InitMediaContext (
     int32_t          devicefd,
     int32_t          *major_version,     /* out */
     int32_t          *minor_version,     /* out */
-    bool             apoDdiEnabled
+    bool             &apoDdiEnabled
 );
 
 //!

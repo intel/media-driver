@@ -1666,7 +1666,8 @@ VAStatus DdiMedia__Initialize (
 #endif
 
     DDI_CHK_NULL(ctx,          "nullptr ctx",       VA_STATUS_ERROR_INVALID_CONTEXT);
-
+    
+    VAStatus status = VA_STATUS_SUCCESS;
     bool    apoDdiEnabled = false;
     int32_t devicefd = 0;
     if(DdiMedia_GetDeviceFD(ctx, &devicefd) != VA_STATUS_SUCCESS)
@@ -1675,9 +1676,13 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-#ifdef _MANUAL_SOFTLET_
-    apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd);
-#endif
+    ctx->pDriverData = nullptr;
+    status           = DdiMedia_InitMediaContext(ctx, devicefd, major_version, minor_version, apoDdiEnabled);
+    if(status != VA_STATUS_SUCCESS)
+    {
+        DDI_ASSERTMESSAGE("Failed to init media context");
+        return status;
+    }
 
     if(!apoDdiEnabled)
     {
@@ -1687,7 +1692,6 @@ VAStatus DdiMedia__Initialize (
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
-
 #ifdef _MANUAL_SOFTLET_
     else
     {
@@ -1699,7 +1703,7 @@ VAStatus DdiMedia__Initialize (
     }
 #endif
 
-    return DdiMedia_InitMediaContext(ctx, devicefd, major_version, minor_version, apoDdiEnabled);
+    return status;
 }
 
 VAStatus DdiMedia_InitMediaContext (
@@ -1707,7 +1711,7 @@ VAStatus DdiMedia_InitMediaContext (
     int32_t          devicefd,
     int32_t          *major_version,
     int32_t          *minor_version,
-    bool             apoDdiEnabled
+    bool             &apoDdiEnabled
 )
 {
     if(major_version)
@@ -2024,10 +2028,14 @@ VAStatus DdiMedia_InitMediaContext (
     ctx->max_image_formats = mediaCtx->m_caps->GetImageFormatsMaxNum();
 
 #ifdef _MANUAL_SOFTLET_
-    if (DdiMedia__InitializeSoftlet(mediaCtx, apoDdiEnabled) != VA_STATUS_SUCCESS)
+    apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd);
+    if(apoDdiEnabled)
     {
-        DDI_ASSERTMESSAGE("Softlet initialize failed");
-        return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        if (DdiMedia__InitializeSoftlet(mediaCtx, apoDdiEnabled) != VA_STATUS_SUCCESS)
+        {
+            DDI_ASSERTMESSAGE("Softlet initialize failed");
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
     }
 #endif
 
@@ -2069,7 +2077,6 @@ VAStatus DdiMedia_LoadFuncion (VADriverContextP ctx)
     DDI_CHK_NULL(pVTableProt,  "nullptr pVTableProt",   VA_STATUS_ERROR_INVALID_CONTEXT);
 #endif
 
-    ctx->pDriverData                         = nullptr;
     ctx->version_major                       = VA_MAJOR_VERSION;
     ctx->version_minor                       = VA_MINOR_VERSION;
     ctx->max_profiles                        = DDI_CODEC_GEN_MAX_PROFILES;
