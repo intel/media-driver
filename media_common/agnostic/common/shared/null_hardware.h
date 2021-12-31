@@ -67,6 +67,18 @@ public:
     static MOS_STATUS StartPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
+    //! \brief    Start predicate. - Refactor Version
+    //! \details  Add predicate command to skip the following commands with NOOP.
+    //! \param    [in] miInterface
+    //!           Pointer to MhwMiInterface.
+    //! \param    [out] cmdBuffer
+    //!           command buffer for adding predicate command.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS StartPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
     //! \brief    Stop predicate.
     //! \details  Add predicate command to resume to normal commands execution.
     //! \param    [in] miInterface
@@ -77,6 +89,18 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     static MOS_STATUS StopPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief    Stop predicate. - Refactor
+    //! \details  Add predicate command to resume to normal commands execution.
+    //! \param    [in] miInterface
+    //!           Pointer to MhwMiInterface.
+    //! \param    [out] cmdBuffer
+    //!           command buffer for adding predicate command.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS StopPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer);
 
     //!
     //! \brief    Overwrite status report.

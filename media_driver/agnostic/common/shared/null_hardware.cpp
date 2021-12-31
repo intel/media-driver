@@ -90,6 +90,40 @@ MOS_STATUS NullHW::StopPredicate(MhwMiInterface* miInterface, PMOS_COMMAND_BUFFE
     return miInterface->AddMiSetPredicateCmd(cmdBuffer, MHW_MI_SET_PREDICATE_DISABLE);
 }
 
+MOS_STATUS NullHW::StartPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    if (!m_enabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(pMiItf);
+    MOS_OS_CHK_NULL_RETURN(miItf);
+    MOS_OS_CHK_NULL_RETURN(cmdBuffer);
+
+    auto &par           = miItf->MHW_GETPAR_F(MI_SET_PREDICATE)();
+    par                 = {};
+    par.PredicateEnable = MHW_MI_SET_PREDICATE_ENABLE_ALWAYS;
+    return miItf->MHW_ADDCMD_F(MI_SET_PREDICATE)(cmdBuffer);
+}
+
+MOS_STATUS NullHW::StopPredicateNext(std::shared_ptr<void> pMiItf, PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    if (!m_enabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(pMiItf);
+    MOS_OS_CHK_NULL_RETURN(miItf);
+    MOS_OS_CHK_NULL_RETURN(cmdBuffer);
+
+    auto &par           = miItf->MHW_GETPAR_F(MI_SET_PREDICATE)();
+    par                 = {};
+    par.PredicateEnable = MHW_MI_SET_PREDICATE_DISABLE;
+    return miItf->MHW_ADDCMD_F(MI_SET_PREDICATE)(cmdBuffer);
+}
+
 void NullHW::StatusReport(uint32_t &status, uint32_t &streamSize)
 {
     if (!m_enabled)

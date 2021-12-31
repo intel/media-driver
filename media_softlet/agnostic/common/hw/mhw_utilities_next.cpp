@@ -452,11 +452,10 @@ MOS_STATUS Mhw_SurfaceFormatToType(
 MOS_STATUS Mhw_SendGenericPrologCmdNext(
     PMOS_COMMAND_BUFFER           pCmdBuffer,
     PMHW_GENERIC_PROLOG_PARAMS    pParams,
-    std::shared_ptr<mhw::mi::Itf> miItf,
+    std::shared_ptr<void>         pMiItf,
     MHW_MI_MMIOREGISTERS          *pMmioReg)
 {
     PMOS_INTERFACE                  pOsInterface;
-    MhwMiInterface                  *pMiInterface;
     MEDIA_FEATURE_TABLE             *pSkuTable;
     MEDIA_WA_TABLE                  *pWaTable;
     MOS_GPU_CONTEXT                 GpuContext;
@@ -473,13 +472,11 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
 
     pOsInterface = pParams->pOsInterface;
 
-    MHW_CHK_NULL_RETURN(pParams->pvMiInterface);
-    pMiInterface = (MhwMiInterface *)pParams->pvMiInterface;
-    MHW_CHK_NULL_RETURN(pMiInterface);
     pSkuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
     MHW_CHK_NULL_RETURN(pSkuTable);
     pWaTable = pOsInterface->pfnGetWaTable(pOsInterface);
     MHW_CHK_NULL_RETURN(pWaTable);
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(pMiItf);
     MHW_CHK_NULL_RETURN(miItf);
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);

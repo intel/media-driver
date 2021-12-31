@@ -661,10 +661,10 @@ MOS_STATUS Mhw_SurfaceFormatToType(
     uint32_t* pdwSurfaceType);
 
 MOS_STATUS Mhw_SendGenericPrologCmdNext(
-    PMOS_COMMAND_BUFFER         pCmdBuffer,
-    PMHW_GENERIC_PROLOG_PARAMS  pParams,
-    std::shared_ptr<void>       miItf,
-    MHW_MI_MMIOREGISTERS       *pMmioReg);
+    PMOS_COMMAND_BUFFER           pCmdBuffer,
+    PMHW_GENERIC_PROLOG_PARAMS    pParams,
+    std::shared_ptr<void>         pMiItf,
+    MHW_MI_MMIOREGISTERS          *pMmioReg = nullptr);
 
 MOS_STATUS Mhw_SetNearestModeTable(
     int32_t* iCoefs,

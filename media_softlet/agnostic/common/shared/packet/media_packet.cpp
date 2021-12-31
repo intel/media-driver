@@ -53,6 +53,29 @@ MOS_STATUS MediaPacket::StartStatusReport(
     return result;
 }
 
+MOS_STATUS MediaPacket::StartStatusReportNext(
+    uint32_t srType,
+    MOS_COMMAND_BUFFER *cmdBuffer)
+{
+    MOS_STATUS result = MOS_STATUS_SUCCESS;
+
+    if (m_statusReport == nullptr)
+    {
+        return MOS_STATUS_NULL_POINTER;
+    }
+
+    PMOS_RESOURCE osResource = nullptr;
+    uint32_t      offset     = 0;
+
+    result = m_statusReport->GetAddress(srType, osResource, offset);
+
+    result = SetStartTagNext(osResource, offset, srType, cmdBuffer);
+
+    MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_miItf, cmdBuffer));
+
+    return result;
+}
+
 MOS_STATUS MediaPacket::UpdateStatusReport(
     uint32_t srType,
     MOS_COMMAND_BUFFER *cmdBuffer)
@@ -83,6 +106,35 @@ MOS_STATUS MediaPacket::UpdateStatusReport(
     return result;
 }
 
+MOS_STATUS MediaPacket::UpdateStatusReportNext(
+    uint32_t srType,
+    MOS_COMMAND_BUFFER *cmdBuffer)
+{
+    MOS_STATUS result = MOS_STATUS_SUCCESS;
+
+    if (m_statusReport == nullptr)
+    {
+        return MOS_STATUS_NULL_POINTER;
+    }
+
+    PMOS_RESOURCE osResource = nullptr;
+    uint32_t      offset     = 0;
+
+    result = m_statusReport->GetAddress(srType, osResource, offset);
+
+    auto count = m_statusReport->GetSubmittedCount();
+
+    auto &par           = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+    par                 = {};
+    par.pOsResource      = osResource;
+    par.dwResourceOffset = offset;
+    par.dwValue          = count + 1;
+
+    MEDIA_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+    return result;
+}
+
 MOS_STATUS MediaPacket::EndStatusReport(
     uint32_t srType,
     MOS_COMMAND_BUFFER *cmdBuffer)
@@ -106,6 +158,29 @@ MOS_STATUS MediaPacket::EndStatusReport(
     return result;
 }
 
+MOS_STATUS MediaPacket::EndStatusReportNext(
+    uint32_t srType,
+    MOS_COMMAND_BUFFER *cmdBuffer)
+{
+    MOS_STATUS result = MOS_STATUS_SUCCESS;
+
+    if (m_statusReport == nullptr)
+    {
+        return MOS_STATUS_NULL_POINTER;
+    }
+
+    PMOS_RESOURCE osResource = nullptr;
+    uint32_t      offset     = 0;
+
+    MEDIA_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_miItf, cmdBuffer));
+
+    result = m_statusReport->GetAddress(srType, osResource, offset);
+
+    result = SetEndTagNext(osResource, offset, srType, cmdBuffer);
+
+    return result;
+}
+
 MOS_STATUS MediaPacket::SetStartTag(
     MOS_RESOURCE *osResource,
     uint32_t offset,
@@ -124,6 +199,23 @@ MOS_STATUS MediaPacket::SetStartTag(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MediaPacket::SetStartTagNext(
+    MOS_RESOURCE *osResource,
+    uint32_t offset,
+    uint32_t srType,
+    MOS_COMMAND_BUFFER *cmdBuffer)
+{
+    auto &par           = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+    par                 = {};
+    par.pOsResource      = osResource;
+    par.dwResourceOffset = offset;
+    par.dwValue          = CODECHAL_STATUS_QUERY_START_FLAG;
+
+    MEDIA_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MediaPacket::SetEndTag(
     MOS_RESOURCE *osResource,
     uint32_t offset,
@@ -138,6 +230,23 @@ MOS_STATUS MediaPacket::SetEndTag(
     MEDIA_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(
         cmdBuffer,
         &storeDataParams));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaPacket::SetEndTagNext(
+    MOS_RESOURCE *osResource,
+    uint32_t offset,
+    uint32_t srType,
+    MOS_COMMAND_BUFFER *cmdBuffer)
+{
+    auto &par           = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+    par                 = {};
+    par.pOsResource      = osResource;
+    par.dwResourceOffset = offset;
+    par.dwValue          = CODECHAL_STATUS_QUERY_END_FLAG;
+
+    MEDIA_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
