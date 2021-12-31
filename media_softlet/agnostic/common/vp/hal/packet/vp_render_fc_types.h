@@ -1356,7 +1356,7 @@ struct VP_FC_LAYER
     int32_t                 paletteID = 0;              //!<Palette Allocation
     bool                    queryVariance;
     bool                    xorComp = false;            //!< is mono-chroma composite mode.
-    VP_SURFACE              *surfField = nullptr;
+    VP_SURFACE              *surfField = nullptr;       //!< For SurfaceTypeFcInputLayer0Field1Dual during iscaling and fieldWeaving.
 
     // Filled by hwFilter
     VP_LAYER_CALCULATED_PARAMS calculatedParams = {};   //!< Only valid in source.

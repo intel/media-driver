@@ -389,7 +389,19 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         RECT_ROTATE(m_Params.output.rcMaxSrc, surfOutput->rcMaxSrc);
     }
 
-    m_Params.interlacedScalingType  = surfInput->InterlacedScalingType;
+    if (surfInput->bInterlacedScaling)
+    {
+        m_Params.interlacedScalingType = ISCALING_INTERLEAVED_TO_INTERLEAVED;
+    }
+    else if (surfInput->bFieldWeaving)
+    {
+        m_Params.interlacedScalingType = ISCALING_FIELD_TO_INTERLEAVED;
+    }
+    else
+    {
+        m_Params.interlacedScalingType = surfInput->InterlacedScalingType;
+    }
+
     m_Params.input.sampleType       = surfInput->SampleType;
     m_Params.output.sampleType      = surfOutput->SampleType;
 

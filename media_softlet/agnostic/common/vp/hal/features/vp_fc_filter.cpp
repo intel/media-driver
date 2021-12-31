@@ -97,7 +97,7 @@ MOS_STATUS VpFcFilter::InitLayer(VP_FC_LAYER &layer, bool isInputPipe, int index
 
     SwFilterScaling *scaling    = dynamic_cast<SwFilterScaling *>(executedPipe.GetSwFilter(isInputPipe, index, FeatureType::FeatureTypeScaling));
     layer.scalingMode           = scaling ? scaling->GetSwFilterParams().scalingMode : defaultScalingMode;
-    layer.iscalingEnabled       = scaling ? ISCALING_NONE != scaling->GetSwFilterParams().interlacedScalingType : false;
+    layer.iscalingEnabled       = scaling ? ISCALING_INTERLEAVED_TO_INTERLEAVED == scaling->GetSwFilterParams().interlacedScalingType : false;
     layer.fieldWeaving          = scaling ? ISCALING_FIELD_TO_INTERLEAVED == scaling->GetSwFilterParams().interlacedScalingType : false;
 
     SwFilterRotMir *rotation    = dynamic_cast<SwFilterRotMir *>(executedPipe.GetSwFilter(isInputPipe, index, FeatureType::FeatureTypeRotMir));
@@ -822,7 +822,7 @@ static MOS_STATUS Get3DSamplerScalingMode(VPHAL_SCALING_MODE &scalingMode, SwFil
 
     SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(pipe.GetSwFilter(FeatureType::FeatureTypeScaling));
 
-    bool iscalingEnabled       = scaling ? ISCALING_NONE != scaling->GetSwFilterParams().interlacedScalingType : false;
+    bool iscalingEnabled       = scaling ? ISCALING_INTERLEAVED_TO_INTERLEAVED == scaling->GetSwFilterParams().interlacedScalingType : false;
     bool fieldWeaving          = scaling ? ISCALING_FIELD_TO_INTERLEAVED == scaling->GetSwFilterParams().interlacedScalingType : false;
 
     if ((input.rcDst.right - input.rcDst.left) == (input.rcSrc.right - input.rcSrc.left)    &&

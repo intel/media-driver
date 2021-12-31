@@ -182,9 +182,23 @@ MOS_STATUS VpRenderFcKernel::SetSurfaceParams(KERNEL_SURFACE_STATE_PARAM &surfPa
         renderSurfParams.bAVS = false;
     }
 
-    // Set interlacing flags
-    switch (layer.surf->SampleType)
+    if (layer.iscalingEnabled)
     {
+        // Top Input Field
+        renderSurfParams.bVertStrideOffs   = false;
+        renderSurfParams.bVertStride       = true;
+    }
+    else if (layer.fieldWeaving)
+    {
+        // Top Input Field
+        renderSurfParams.bVertStrideOffs   = false;
+        renderSurfParams.bVertStride       = false;
+    }
+    else
+    {
+        // Set interlacing flags
+        switch (layer.surf->SampleType)
+        {
         case SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD:
         case SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD:
             renderSurfParams.bVertStride     = true;
@@ -199,6 +213,7 @@ MOS_STATUS VpRenderFcKernel::SetSurfaceParams(KERNEL_SURFACE_STATE_PARAM &surfPa
             renderSurfParams.bVertStride     = false;
             renderSurfParams.bVertStrideOffs = 0;
             break;
+        }
     }
 
     if (layer.layerID && IsNV12SamplerLumakeyNeeded())
@@ -259,7 +274,14 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
 
         if (layer->surfField)
         {
+            // Configure for Bottom Input Field
             KERNEL_SURFACE_STATE_PARAM surfParamField = surfParam;
+
+            if (layer->iscalingEnabled)
+            {
+                surfParamField.surfaceOverwriteParams.renderSurfaceParams.bVertStrideOffs = true;
+            }
+
             surfParamField.surfaceOverwriteParams.bindIndex = s_bindingTableIndexField[layer->layerID];
             m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeFcInputLayer0Field1Dual + layer->layerID), surfParamField));
 
