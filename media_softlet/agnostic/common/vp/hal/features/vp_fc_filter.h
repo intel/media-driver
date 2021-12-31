@@ -149,6 +149,7 @@ public:
     {
         return nullptr;
     }
+    virtual MOS_STATUS UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
 
 MEDIA_CLASS_DEFINE_END(PolicyFcFeatureHandler)
 };
