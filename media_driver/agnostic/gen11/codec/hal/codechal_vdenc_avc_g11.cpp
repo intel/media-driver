@@ -969,6 +969,12 @@ MOS_STATUS CodechalVdencAvcStateG11::ExecuteSliceLevel()
         sliceState.oneOnOneMapping = m_oneOnOneMapping;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SendSlice(&cmdBuffer, &sliceState));
 
+        // Report slice size
+        if (m_presMetadataBuffer != nullptr)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(ReportSliceSizeMetaData(m_presMetadataBuffer, &cmdBuffer, slcCount));
+        }
+
         // Add dumps for 2nd level batch buffer
         if (sliceState.bSingleTaskPhaseSupported && !sliceState.bVdencInUse)
         {
