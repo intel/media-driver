@@ -188,6 +188,11 @@ protected:
             uint32_t width,
             uint32_t height) override;
 
+    virtual VAStatus CreateEncAttributes(
+        VAProfile profile,
+        VAEntrypoint entrypoint,
+        AttribMap **attributeList) override;
+
     virtual VAStatus CreateDecAttributes(
         VAProfile profile,
         VAEntrypoint entrypoint,
