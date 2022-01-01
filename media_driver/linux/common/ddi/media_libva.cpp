@@ -5696,9 +5696,11 @@ VAStatus DdiMedia_QuerySubpictureFormats(
     DDI_UNUSED(ctx);
     DDI_UNUSED(format_list);
     DDI_UNUSED(flags);
-    DDI_UNUSED(num_formats);
 
     DDI_FUNCTION_ENTER();
+
+    DDI_CHK_NULL(num_formats, "nullptr num_formats", VA_STATUS_ERROR_INVALID_PARAMETER);
+    *num_formats = 0;
 
     return VA_STATUS_SUCCESS;
 }
