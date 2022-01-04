@@ -623,7 +623,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
 
         CodechalEncoderState *encoder = nullptr;
-#if defined (_AVC_ENCODE_VDENC_SUPPORTED)
+#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             CreateCodecHalInterface(mhwInterfaces, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
@@ -634,10 +634,11 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
                 encoder = MOS_New(Encode::AvcVdenc, hwInterface, debugInterface, info);
             #endif
             }
-            else
+        else
             {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, AVC VME Encoder is not supported, please use AVC LowPower Encoder instead!");
-                return MOS_STATUS_INVALID_PARAMETER;
+            #ifdef _AVC_ENCODE_VME_SUPPORTED
+                encoder = MOS_New(Encode::AvcEnc, hwInterface, debugInterface, info);
+#endif
             }
             if (encoder == nullptr)
             {
@@ -698,12 +699,27 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
+#ifdef _MPEG2_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
-            CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, MPEG2 Encoder is not supported!");
-            return MOS_STATUS_INVALID_PARAMETER;
+            CreateCodecHalInterface(mhwInterfaces, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
+
+            // Setup encode interface functions
+            encoder = MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
+            if (encoder == nullptr)
+            {
+                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed!");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                m_codechalDevice = encoder;
+            }
+
+            encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G12;
         }
         else
+#endif
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
