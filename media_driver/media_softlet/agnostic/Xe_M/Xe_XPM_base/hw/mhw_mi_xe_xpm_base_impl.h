@@ -619,18 +619,26 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    _MHW_SETCMD_OVERRIDE_DECL(MI_CONDITIONAL_BATCH_BUFFER_END)
+    __MHW_ADDCMD_DECL(MI_CONDITIONAL_BATCH_BUFFER_END) override
     {
-        _MHW_SETCMD_CALLBASE(MI_CONDITIONAL_BATCH_BUFFER_END);
-
-        MHW_MI_CHK_NULL(this->m_currentCmdBuf);
-        MHW_MI_CHK_NULL(params.presSemaphoreBuffer);
-
         // Case 1 - Batch buffer condition matches - If this is not present then conditional
         //          batch buffer will  exit to ring with terminating CP.
         // Case 2 - Batch buffer condition DOES NOT match - Although this will disable CP
         //          but after end of conditional batch buffer CP will be re-enabled.
-        MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(this->m_osItf, this->m_currentCmdBuf));
+        MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(this->m_osItf, cmdBuf));
+
+        base_t::MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(cmdBuf, batchBuf);
+
+        MHW_MI_CHK_STATUS(m_cpInterface->AddProlog(this->m_osItf, cmdBuf));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_SETCMD_OVERRIDE_DECL(MI_CONDITIONAL_BATCH_BUFFER_END)
+    {
+        _MHW_SETCMD_CALLBASE(MI_CONDITIONAL_BATCH_BUFFER_END);
+
+        MHW_MI_CHK_NULL(params.presSemaphoreBuffer);
 
         cmd.DW0.UseGlobalGtt     = IsGlobalGttInUse();
         cmd.DW0.CompareSemaphore = 1;  // CompareDataDword is always assumed to be set
