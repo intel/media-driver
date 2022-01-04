@@ -210,10 +210,6 @@ public:
         HW_FILTER_SCALING_PARAM* scalingParam = (HW_FILTER_SCALING_PARAM*)(&param);
         return VpSfcScalingParameter::Create(*scalingParam);
     }
-
-    virtual MOS_STATUS UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
-
-
 private:
     uint32_t Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded);
 

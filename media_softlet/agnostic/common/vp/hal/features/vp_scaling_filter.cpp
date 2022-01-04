@@ -869,25 +869,6 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS PolicySfcScalingHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
-{
-    // feature.GetFilterEngineCaps().bEnabled should be used here instead of feature.IsFeatureEnabled(caps)
-    // to ensure the feature does not be enabled.
-    // feature.IsFeatureEnabled(caps) being false means the feature is not being used in current workload,
-    // in which case, the feature itself may be enable and need be processed in following workloads.
-    if (caps.bVebox && !caps.bSFC &&
-        0 == caps.bOutputPipeFeatureInuse &&
-        !feature.GetFilterEngineCaps().bEnabled)
-    {
-        // To avoid scaling filter being destroyed in Policy::UpdateFeaturePipe.
-        feature.GetFilterEngineCaps().value = 0;
-        feature.GetFilterEngineCaps().forceEnableForSfc = 1;
-        feature.GetFilterEngineCaps().forceEnableForRender = 1;
-        feature.GetFilterEngineCaps().usedForNextPass = 1;
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS PolicySfcColorFillHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
     VP_FUNC_CALL();
