@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -333,7 +333,10 @@ void* MmdDevice::CreateFactory(
     MOS_Delete(mhwInterfaces);                              \
     if (osInterface != nullptr)                             \
     {                                                       \
-        osInterface->pfnDestroy(osInterface, false);        \
+        if (osInterface->pfnDestroy)                        \
+        {                                                   \
+            osInterface->pfnDestroy(osInterface, false);    \
+        }                                                   \
         MOS_FreeMemory(osInterface);                        \
     }                                                       \
     MOS_Delete(device);                                     \
@@ -414,7 +417,10 @@ void* McpyDevice::CreateFactory(
     MOS_Delete(mhwInterfaces);                              \
     if (osInterface != nullptr)                             \
     {                                                       \
-        osInterface->pfnDestroy(osInterface, false);        \
+        if (osInterface->pfnDestroy)                        \
+        {                                                   \
+            osInterface->pfnDestroy(osInterface, false);    \
+        }                                                   \
         MOS_FreeMemory(osInterface);                        \
     }                                                       \
     MOS_Delete(device);                                     \
