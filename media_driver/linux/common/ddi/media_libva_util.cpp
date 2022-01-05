@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -656,9 +656,10 @@ VAStatus DdiMediaUtil_AllocateSurface(
             case I915_TILING_Y:
                 // Disable MMC for application required surfaces, because some cases' output streams have corruption.
                 gmmParams.Flags.Gpu.MMC    = false;
-                if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) &&
-                    (!MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableVPMmc)    &&
-                    !MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableCodecMmc)) &&
+                if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression)             &&
+                    (!MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableVPMmc)                &&
+                    !MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableCodecMmc))             &&
+                    MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrCompressibleSurfaceDefault) &&
                     bMemCompEnable)
                 {
                     gmmParams.Flags.Gpu.MMC               = true;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -329,6 +329,9 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
     {
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     }
+
+    // Create compressible surface by default
+    MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
 
     if (drvInfo->devId == 0xFF20)
     {

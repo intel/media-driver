@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -441,6 +441,7 @@ typedef enum _MOS_USER_FEATURE_VALUE_ID
     __MEDIA_USER_FEATURE_ENABLE_RENDER_ENGINE_MMC_ID,
     __MEDIA_USER_FEATURE_VALUE_DISABLE_MMC_ID,
     __MEDIA_USER_FEATURE_VALUE_FORCE_MMC_ON_ID,
+    __MEDIA_USER_FEATURE_VALUE_COMPRESSIBLE_DEFAULT_ON_ID,
     __MEDIA_USER_FEATURE_MCPY_MODE_ID,
     __MEDIA_USER_FEATURE_ENABLE_HW_DEBUG_HOOKS_ID,
     __MEDIA_USER_FEATURE_VALUE_CODECHAL_FRAME_NUMBER_TO_STOP_ID,

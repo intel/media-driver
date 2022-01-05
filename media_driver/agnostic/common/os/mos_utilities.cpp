@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3638,6 +3638,15 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_VALUE_TYPE_BOOL,
         "0",
         "Disable MMC for all components"),
+    MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_COMPRESSIBLE_DEFAULT_ON_ID,
+        "Enable Compressible Surface",
+        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+        __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+        "Media",
+        MOS_USER_FEATURE_TYPE_USER,
+        MOS_USER_FEATURE_VALUE_TYPE_BOOL,
+        "0",
+        "Enable Compressible Surface Creation"),
     MOS_DECLARE_UF_KEY(__MEDIA_USER_FEATURE_VALUE_FORCE_MMC_ON_ID,
         "Force MMC Enable",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
@@ -3646,7 +3655,7 @@ static MOS_USER_FEATURE_VALUE MOSUserFeatureDescFields[__MOS_USER_FEATURE_KEY_MA
         MOS_USER_FEATURE_TYPE_USER,
         MOS_USER_FEATURE_VALUE_TYPE_BOOL,
         "0",
-        "Disable MMC for all components"),
+        "Force Memory Compression Enable"),
     MOS_DECLARE_UF_KEY_DBGONLY(__VPHAL_VEBOX_DISABLE_TEMPORAL_DENOISE_FILTER_ID,
         "Disable Temporal Denoise Filter",
         __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,

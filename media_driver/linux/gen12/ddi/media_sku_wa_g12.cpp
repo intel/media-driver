@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -273,6 +273,9 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
     MEDIA_WR_SKU(skuTable, FtrScalingFirst, 1);
 
+    // Create compressible surface by default
+    MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
+
     return true;
 }
 
@@ -545,6 +548,23 @@ static bool InitAdlpMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrGucSubmission, 1);
+
+    // Default set as uncompressible surface
+    MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 0);
+
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_COMPRESSIBLE_DEFAULT_ON_ID,
+        &userFeatureData,
+        (MOS_CONTEXT_HANDLE)nullptr);
+
+    if (userFeatureData.bData)
+    {
+        // Create as compressible surfaceif key is set
+        MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
+    }
 
     return true;
 }
