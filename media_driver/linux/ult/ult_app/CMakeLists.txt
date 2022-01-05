@@ -63,7 +63,7 @@ endif ()
 add_executable(devult ${SOURCES})
 target_link_libraries(devult libgtest libdl.so)
 if (${CLASS_TRACE} EQUAL 1)
-    add_dependencies(${LIB_NAME_OBJ} generate_classtrace)
+    add_dependencies(devult generate_classtrace)
 endif ()
 
 if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
