@@ -76,6 +76,7 @@
 
 #define CODEC_128_MIN_PIC_WIDTH        128
 #define CODEC_96_MIN_PIC_HEIGHT        96
+#define CODEC_128_MIN_PIC_HEIGHT       128
 
 // HME
 #define SCALE_FACTOR_2x     2
