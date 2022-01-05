@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -206,6 +206,10 @@ MOS_STATUS Policy::RegisterFeatures()
     p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
+
+    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
 
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.push_back(FeatureTypeCsc);
@@ -1743,7 +1747,10 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         {
             // For vebox/sfc+render case, use 2nd workload (render) to do csc for better performance
             // in most VP common cases, e.g. NV12->RGB, to save the memory bandwidth.
-            caps.bForceCscToRender = true;
+            caps.bForceCscToRender     = true;
+            // For vebox/sfc+render case, use 2nd workload (render) to do Procamp, 
+            // especially for the scenario including Lumakey feature, which will ensure the Procamp can be done after Lumakey.
+            caps.bForceProcampToRender = true;
         }
     }
     else
@@ -2760,6 +2767,11 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Tcc, Vebox)));
             break;
         case FeatureTypeProcamp:
+            if (caps.bForceProcampToRender)
+            {
+                caps.bProcamp = 0;
+                break;
+            }
             caps.bProcamp = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Procamp, Vebox)));
             break;
@@ -2796,6 +2808,10 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeRotMir:
             caps.bComposite = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(RotMir, Render)));
+            break;
+        case FeatureTypeProcamp:
+            caps.bComposite = 1;
+            feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Procamp, Render)));
             break;
         case FeatureTypeSR:
             caps.bSR = 1;

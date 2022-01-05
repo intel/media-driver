@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -687,7 +687,8 @@ MOS_STATUS PolicyFcFeatureHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFil
         FeatureTypeCscOnRender          == type ||
         FeatureTypeScalingOnRender      == type ||
         FeatureTypeRotMirOnRender       == type ||
-        FeatureTypeDiOnRender           == type)
+        FeatureTypeDiOnRender           == type ||
+        FeatureTypeProcampOnRender      == type)
     {
         return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
     }

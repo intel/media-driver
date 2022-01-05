@@ -133,6 +133,7 @@ struct _VP_EXECUTE_CAPS
 
             uint64_t bOutputPipeFeatureInuse : 1; // Output surface of pipeline is in use.
             uint64_t bForceCscToRender : 1; // If true, force to use render for csc.
+            uint64_t bForceProcampToRender : 1;   // If true, force to use render for procamp.
             uint64_t lastSubmission : 1;    // If true, it's the last submission of current DDI.
 
             // Vebox Features

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1010,5 +1010,59 @@ HwFilterParameter* PolicyVeboxCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
     {
         return nullptr;
     }
+}
+
+MOS_STATUS PolicyVeboxCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    VP_FUNC_CALL();
+
+    SwFilterCsc *featureCsc = dynamic_cast<SwFilterCsc *>(&feature);
+    VP_PUBLIC_CHK_NULL_RETURN(featureCsc);
+
+    if (caps.bForceCscToRender)
+    {
+        SwFilterCsc *filter2ndPass = featureCsc;
+        SwFilterCsc *filter1ndPass = (SwFilterCsc *)feature.Clone();
+
+        VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
+        VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
+
+        filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
+        filter1ndPass->SetFeatureType(filter2ndPass->GetFeatureType());
+
+        FeatureParamCsc &params2ndPass = filter2ndPass->GetSwFilterParams();
+        FeatureParamCsc &params1stPass = filter1ndPass->GetSwFilterParams();
+
+        // No csc in 1st pass.
+        params1stPass.formatOutput = params1stPass.formatInput;
+        params1stPass.output       = params1stPass.input;
+
+        // vebox + render no IEF Params
+        params1stPass.pIEFParams = nullptr;
+        params2ndPass.pIEFParams = nullptr;
+
+        params1stPass.pAlphaParams = nullptr;
+
+        // Clear engine caps for filter in 2nd pass.
+        filter2ndPass->SetFeatureType(FeatureTypeCsc);
+        filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
+
+        // Switch to render engine for csc filter.
+        VP_PUBLIC_NORMALMESSAGE("Force csc to render case. VeboxNeeded: %d -> 0, RenderNeeded: %d -> 1",
+            filter2ndPass->GetFilterEngineCaps().VeboxNeeded,
+            filter2ndPass->GetFilterEngineCaps().RenderNeeded);
+        filter2ndPass->GetFilterEngineCaps().bEnabled     = 1;
+        filter2ndPass->GetFilterEngineCaps().VeboxNeeded  = 0;
+        filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
+        filter2ndPass->GetFilterEngineCaps().fcSupported  = 1;
+
+        executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
+    }
+    else
+    {
+        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 }
