@@ -1196,23 +1196,20 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
                 pCmdBufferInUse,
                 &RegisterImmParams));
 
-            // MI Atomic S[IdxofVebox] Decrease dwNumofVebox
-            MOS_ZeroMemory(&AtomicParams, sizeof(AtomicParams));
-            AtomicParams.pOsResource       = &pVeboxState->VESemaMemS[IdxofVebox];
-            AtomicParams.dwDataSize        = sizeof(uint32_t);
-            AtomicParams.Operation         = MHW_MI_ATOMIC_DEC;
-            AtomicParams.bInlineData       = true;
-            AtomicParams.dwOperand1Data[0] = dwNumofVebox;
-            VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiAtomicCmd(pCmdBufferInUse, &AtomicParams));
+            // MI Atomic S[IdxofVebox] Reset
+            MHW_MI_STORE_DATA_PARAMS dataParams = {};
+            dataParams.pOsResource      = &pVeboxState->VESemaMemS[IdxofVebox];
+            dataParams.dwResourceOffset = 0;
+            dataParams.dwValue          = 0;
+            VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiStoreDataImmCmd(
+                pCmdBufferInUse, &dataParams));
 
-            // MI Atomic SAdd[IdxofVebox] Decrease dwNumofVebox
-            MOS_ZeroMemory(&AtomicParams, sizeof(AtomicParams));
-            AtomicParams.pOsResource       = &pVeboxState->VESemaMemSAdd[IdxofVebox];
-            AtomicParams.dwDataSize        = sizeof(uint32_t);
-            AtomicParams.Operation         = MHW_MI_ATOMIC_DEC;
-            AtomicParams.bInlineData       = true;
-            AtomicParams.dwOperand1Data[0] = dwNumofVebox;
-            VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiAtomicCmd(pCmdBufferInUse, &AtomicParams));
+            // MI Atomic SAdd[IdxofVebox] Reset
+            dataParams.pOsResource      = &pVeboxState->VESemaMemSAdd[IdxofVebox];
+            dataParams.dwResourceOffset = 0;
+            dataParams.dwValue          = 0;
+            VPHAL_RENDER_CHK_STATUS(pMhwMiInterface->AddMiStoreDataImmCmd(
+                pCmdBufferInUse, &dataParams));
 
             VPHAL_RENDER_CHK_STATUS(NullHW::StopPredicate(pRenderHal->pMhwMiInterface, &CmdBuffer));
 

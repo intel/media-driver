@@ -551,6 +551,7 @@ MOS_STATUS VpScalabilityMultiPipe::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffer)
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    SCALABILITY_CHK_NULL_RETURN(m_hwInterface->m_mhwMiInterface);
 
     SCALABILITY_ASSERT(m_semaphoreIndex < m_resSemaphoreAllPipes.size());
     auto &semaphoreBufs = m_resSemaphoreAllPipes[m_semaphoreIndex];
@@ -572,12 +573,16 @@ MOS_STATUS VpScalabilityMultiPipe::SyncAllPipes(PMOS_COMMAND_BUFFER cmdBuffer)
         SCALABILITY_CHK_STATUS_RETURN(SendHwSemaphoreWaitCmd(
             &semaphoreBufs[m_currentPipe], m_pipeNum, MHW_MI_SAD_EQUAL_SDD, cmdBuffer));
 
-        for (uint32_t i = 0; i < m_pipeNum; i++)
-        {
-            // Decrement current pipe flags
-            SCALABILITY_CHK_STATUS_RETURN(SendMiAtomicDwordCmd(
-                &semaphoreBufs[m_currentPipe], 1, MHW_MI_ATOMIC_DEC, cmdBuffer));
-        }
+        PMHW_MI_INTERFACE pMhwMiInterface = m_hwInterface->m_mhwMiInterface;
+
+        MHW_MI_STORE_DATA_PARAMS dataParams = {};
+        dataParams.pOsResource      = &semaphoreBufs[m_currentPipe];
+        dataParams.dwResourceOffset = 0;
+        dataParams.dwValue          = 0;
+
+        // Reset current pipe semaphore
+        SCALABILITY_CHK_STATUS_RETURN(pMhwMiInterface->AddMiStoreDataImmCmd(
+            cmdBuffer, &dataParams));
     }
 
     m_semaphoreIndex += m_initSecondaryCmdBufNum;
