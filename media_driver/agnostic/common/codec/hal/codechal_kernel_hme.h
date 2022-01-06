@@ -240,26 +240,26 @@ public:
     //!
     struct SurfaceParams
     {
-        bool                  mbaffEnabled;
-        bool                  vdencStreamInEnabled;
-        uint32_t              numRefIdxL0ActiveMinus1;
-        uint32_t              numRefIdxL1ActiveMinus1;
-        uint32_t              downScaledWidthInMb;
-        uint32_t              downScaledHeightInMb;
-        uint32_t              downScaledBottomFieldOffset;
-        uint32_t              vdencStreamInSurfaceSize;
-        uint32_t              verticalLineStride;
-        uint32_t              verticalLineStrideOffset;
-        uint32_t              meBrcDistortionBottomFieldOffset;
-        PCODEC_REF_LIST *     refList;
-        PCODEC_PIC_ID         picIdx;
-        PCODEC_PICTURE        currOriginalPic;
-        PCODEC_PICTURE        refL0List;
-        PCODEC_PICTURE        refL1List;
-        PMOS_SURFACE          meBrcDistortionBuffer;
-        PMOS_RESOURCE         meVdencStreamInBuffer;
-        CODECHAL_ENCODE_BUFFER meSumMvandDistortionBuffer;
-        CmSurface2D          *meBrcDistortionSurface;
+        bool                  mbaffEnabled                      = false;
+        bool                  vdencStreamInEnabled              = false;
+        uint32_t              numRefIdxL0ActiveMinus1           = 0;
+        uint32_t              numRefIdxL1ActiveMinus1           = 0;
+        uint32_t              downScaledWidthInMb               = 0;
+        uint32_t              downScaledHeightInMb              = 0;
+        uint32_t              downScaledBottomFieldOffset       = 0;
+        uint32_t              vdencStreamInSurfaceSize          = 0;
+        uint32_t              verticalLineStride                = 0;
+        uint32_t              verticalLineStrideOffset          = 0;
+        uint32_t              meBrcDistortionBottomFieldOffset  = 0;
+        PCODEC_REF_LIST *     refList                           = nullptr;
+        PCODEC_PIC_ID         picIdx                            = nullptr;
+        PCODEC_PICTURE        currOriginalPic                   = nullptr;
+        PCODEC_PICTURE        refL0List                         = nullptr;
+        PCODEC_PICTURE        refL1List                         = nullptr;
+        PMOS_SURFACE          meBrcDistortionBuffer             = nullptr;
+        PMOS_RESOURCE         meVdencStreamInBuffer             = nullptr;
+        CODECHAL_ENCODE_BUFFER meSumMvandDistortionBuffer       = {};
+        CmSurface2D          *meBrcDistortionSurface            = nullptr;
     };
 
     //!

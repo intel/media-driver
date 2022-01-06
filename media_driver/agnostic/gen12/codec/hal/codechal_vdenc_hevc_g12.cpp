@@ -2884,7 +2884,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     SetHcpSrcSurfaceParams(srcSurfaceParams);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &srcSurfaceParams));
 
-    MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
+    MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams{};
     SetHcpReconSurfaceParams(reconSurfaceParams);
 #ifdef _MMC_SUPPORTED
     // Recon P010v MMC state set from RC for compression write
