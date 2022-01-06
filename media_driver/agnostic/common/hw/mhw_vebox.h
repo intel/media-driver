@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2021, Intel Corporation
+* Copyright (c) 2014-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1074,6 +1074,8 @@ public:
     virtual MOS_STATUS setVeboxPrologCmd(
         PMHW_MI_INTERFACE   mhwMiInterface,
         PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
+    virtual MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) { return MOS_STATUS_SUCCESS; }
 
 protected:
     MhwVeboxInterface(PMOS_INTERFACE pOsInterface);

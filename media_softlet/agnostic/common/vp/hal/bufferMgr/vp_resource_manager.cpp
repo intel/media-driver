@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -193,6 +193,11 @@ VpResourceManager::~VpResourceManager()
     if (m_vebox3DLookUpTables)
     {
         m_allocator.DestroyVpSurface(m_vebox3DLookUpTables);
+    }
+
+    if (m_vebox1DLookUpTables)
+    {
+        m_allocator.DestroyVpSurface(m_vebox1DLookUpTables);
     }
 
     while (!m_intermediaSurfaces.empty())
@@ -1519,6 +1524,13 @@ uint32_t VpResourceManager::Get3DLutSize()
     return VP_VEBOX_HDR_3DLUT65;
 }
 
+uint32_t VpResourceManager::Get1DLutSize()
+{
+    VP_FUNC_CALL();
+
+    return SHAPE_1K_LOOKUP_SIZE;
+}
+
 Mos_MemPool VpResourceManager::GetHistStatMemType()
 {
     VP_FUNC_CALL();
@@ -1737,6 +1749,24 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
             false,
             IsDeferredResourceDestroyNeeded()));
     }
+
+    if (caps.bDV)
+    {
+        dwSize = Get1DLutSize();
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+            m_vebox1DLookUpTables,
+            "Dv1K1DLutTableSurface",
+            Format_Buffer,
+            MOS_GFXRES_BUFFER,
+            MOS_TILE_LINEAR,
+            dwSize,
+            1,
+            false,
+            MOS_MMC_DISABLED,
+            bAllocated,
+            false,
+            IsDeferredResourceDestroyNeeded()));
+    }
     // cappipe
 
     return MOS_STATUS_SUCCESS;
@@ -1922,6 +1952,12 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
         surfGroup.insert(std::make_pair(SurfaceType3dLut, m_vebox3DLookUpTables));
     }
 
+    if (Vebox1DlutNeeded(caps))
+    {
+        // Insert DV 1Dlut surface
+        surfGroup.insert(std::make_pair(SurfaceType1k1dLut, m_vebox1DLookUpTables));
+    }
+
     // Update previous Dn output flag for next frame to use.
     if (surfGroup.find(SurfaceTypeDNOutput) != surfGroup.end() || m_sameSamples && m_pastDnOutputValid)
     {
@@ -2035,6 +2071,13 @@ bool VpResourceManager::VeboxHdr3DlutNeeded(VP_EXECUTE_CAPS &caps)
     VP_FUNC_CALL();
 
     return caps.bHDR3DLUT;
+}
+
+bool VpResourceManager::Vebox1DlutNeeded(VP_EXECUTE_CAPS &caps)
+{
+    VP_FUNC_CALL();
+
+    return caps.bDV;
 }
 
 // In some case, STMM should not be destroyed even when not being used by current workload to maintain data,

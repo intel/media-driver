@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -411,6 +411,7 @@ protected:
     bool VeboxOutputNeeded(VP_EXECUTE_CAPS& caps);
     bool VeboxDenoiseOutputNeeded(VP_EXECUTE_CAPS& caps);
     bool VeboxHdr3DlutNeeded(VP_EXECUTE_CAPS &caps);
+    bool Vebox1DlutNeeded(VP_EXECUTE_CAPS &caps);
     // In some case, STMM should not be destroyed but not be used by current workload to maintain data,
     // e.g. DI second field case.
     // If queryAssignment == true, query whether STMM needed by current workload.
@@ -418,6 +419,7 @@ protected:
     bool VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps, bool queryAssignment);
     virtual uint32_t GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight);
     virtual uint32_t Get3DLutSize();
+    virtual uint32_t Get1DLutSize();
     virtual Mos_MemPool GetHistStatMemType();
     MOS_STATUS ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, bool &allocated);
     MOS_STATUS ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated);
@@ -515,6 +517,7 @@ protected:
     VP_SURFACE *m_veboxDNTempSurface                         = nullptr;       //!< Vebox DN Update kernels temp surface
     VP_SURFACE *m_veboxDNSpatialConfigSurface                = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel
     VP_SURFACE *m_vebox3DLookUpTables                        = nullptr;
+    VP_SURFACE *m_vebox1DLookUpTables                        = nullptr;
     uint32_t    m_currentDnOutput                            = 0;
     uint32_t    m_currentStmmIndex                           = 0;
     uint32_t    m_veboxOutputCount                           = 2;             //!< PE on: 4 used. PE off: 2 used

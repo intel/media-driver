@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -147,6 +147,7 @@ enum SurfaceType
     SurfaceTypeStatistics,
     SurfaceTypeSkinScore,
     SurfaceType3dLut,
+    SurfaceType1k1dLut,
     SurfaceType1dLutHDR,
     SurfaceTypeAlphaOrVignette,
     SurfaceTypeVeboxStateHeap_Drv,
