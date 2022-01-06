@@ -693,14 +693,15 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
 
     VP_EngineEntry *cscEngine = &csc->GetFilterEngineCaps();
 
+    // Clean usedForNextPass flag.
+    if (cscEngine->usedForNextPass)
+    {
+        cscEngine->usedForNextPass = false;
+    }
     if (cscEngine->value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("CSC Feature Already been processed, Skip further process");
-        // Clean usedForNextPass flag.
-        if (cscEngine->usedForNextPass)
-        {
-            cscEngine->usedForNextPass = false;
-        }
+
         PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
         return MOS_STATUS_SUCCESS;
     }
@@ -875,14 +876,15 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     bool isAlphaSettingSupportedByVebox =
         IsAlphaSettingSupportedByVebox(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
 
+    // Clean usedForNextPass flag.
+    if (scalingEngine->usedForNextPass)
+    {
+        scalingEngine->usedForNextPass = false;
+    }
     if (scalingEngine->value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("Scaling Feature Already been processed, Skip further process");
-        // Clean usedForNextPass flag.
-        if (scalingEngine->usedForNextPass)
-        {
-            scalingEngine->usedForNextPass = false;
-        }
+
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
     }
@@ -1184,14 +1186,15 @@ MOS_STATUS Policy::GetRotationExecutionCaps(SwFilter* feature)
     FeatureParamRotMir *rotationParams = &rotation->GetSwFilterParams();
     VP_EngineEntry *rotationEngine = &rotation->GetFilterEngineCaps();
 
+    // Clean usedForNextPass flag.
+    if (rotationEngine->usedForNextPass)
+    {
+        rotationEngine->usedForNextPass = false;
+    }
     if (rotationEngine->value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("Scaling Feature Already been processed, Skip further process");
-        // Clean usedForNextPass flag.
-        if (rotationEngine->usedForNextPass)
-        {
-            rotationEngine->usedForNextPass = false;
-        }
+
         PrintFeatureExecutionCaps(__FUNCTION__, *rotationEngine);
         return MOS_STATUS_SUCCESS;
     }
@@ -1720,7 +1723,10 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         else if (engineCapsInputPipe.RenderNeeded)
         {
             caps.bRender = 1;
-            caps.bOutputPipeFeatureInuse = true;
+            if (!engineCapsInputPipe.onlyParamCalculation)
+            {
+                caps.bOutputPipeFeatureInuse = true;
+            }
         }
         else
         {
@@ -1916,6 +1922,9 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                 selectedPipeIndex = pipeIndex;
                 singlePipeSelected = featureSubPipe;
                 engineCapsIsolated = engineCaps;
+                auto renderTargetType = swFilter->GetRenderTargetType();
+                engineCapsIsolated.onlyParamCalculation =
+                    RenderTargetTypeParameter == renderTargetType;
                 break;
             }
             else if (!engineCaps.fcSupported)
@@ -2491,7 +2500,7 @@ MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeInd
                 }
             }
 
-            if (!engineCaps->bEnabled)
+            if (!engineCaps->bEnabled && !engineCaps->usedForNextPass)
             {
                 // Feature may be disabled during UpdateFeaturePipe, such as colorfill and alpha, which will
                 // be combined into scaling in sfc.
@@ -2561,7 +2570,8 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
         VP_PUBLIC_CHK_STATUS_RETURN(params.executedFilters->AddSurface(surfOutput, false, 0));
         VP_PUBLIC_NORMALMESSAGE("Output surface in use, since no filters left in featurePipe.");
     }
-    else if (RenderTargetTypeParameter == featurePipe.GetRenderTargetType())
+    else if (RenderTargetTypeParameter == featurePipe.GetRenderTargetType() ||
+             RenderTargetTypeParameter == params.executedFilters->GetRenderTargetType())
     {
         surfOutput = featurePipe.GetSurface(false, 0);
         VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
@@ -2602,7 +2612,8 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
             surfInput = featurePipe.RemoveSurface(true, layerIndexes[i]);
         }
     }
-    else if (subPipe && RenderTargetTypeParameter == subPipe->GetRenderTargetType())
+    else if (subPipe && RenderTargetTypeParameter == subPipe->GetRenderTargetType() ||
+             RenderTargetTypeParameter == params.executedFilters->GetRenderTargetType())
     {
         surfInput = featurePipe.GetSurface(true, layerIndexes[0]);
         VP_PUBLIC_CHK_NULL_RETURN(surfInput);
