@@ -35,7 +35,7 @@
 #include "codec_def_decode.h"
 #include "media_feature_manager.h"
 #include "decode_vp9_pipeline.h"
-#include "decode_huc_prob_update_packet.h"
+#include "decode_huc_packet_creator_base.h" 
 
 namespace decode {
 
