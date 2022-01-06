@@ -516,7 +516,7 @@ protected:
         if (!Mos_ResourceIsNull(params.streamInBuffer))
         {
             resourceParams.presResource    = params.streamInBuffer;
-            resourceParams.dwOffset        = 0;
+            resourceParams.dwOffset        = params.streamInBuffer->dwResourceOffset;
             resourceParams.pdwCmd          = (uint32_t *)&(cmd.StreaminDataPicture.LowerAddress);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(StreaminDataPicture.LowerAddress);
             resourceParams.bIsWritable     = false;
