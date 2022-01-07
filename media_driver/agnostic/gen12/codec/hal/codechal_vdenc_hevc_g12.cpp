@@ -4507,6 +4507,7 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
     hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 0;
 
     //QP modulation settings
+    m_hevcSeqParams->GopRefDist = m_hevcSeqParams->GopRefDist == 0 ? 1 : m_hevcSeqParams->GopRefDist;
     bool bAllowedPyramid = m_hevcSeqParams->GopRefDist != 3;
     uint16_t intraPeriod = m_hevcSeqParams->GopPicSize > 4001 ? 4000 : m_hevcSeqParams->GopPicSize - 1;
     intraPeriod = ((intraPeriod + m_hevcSeqParams->GopRefDist - 1) / m_hevcSeqParams->GopRefDist) * m_hevcSeqParams->GopRefDist;

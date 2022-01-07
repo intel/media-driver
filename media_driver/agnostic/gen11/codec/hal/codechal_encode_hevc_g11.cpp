@@ -3559,6 +3559,7 @@ MOS_STATUS CodechalEncHevcStateG11::SetCurbeBrcInitReset(
     BRC Parameters set as follows as per CModel equation
     ***********************************************************************/
     // BPyramid GOP
+    m_hevcSeqParams->GopRefDist = m_hevcSeqParams->GopRefDist == 0 ? 1 : m_hevcSeqParams->GopRefDist;
     if (m_hevcSeqParams->NumOfBInGop[1] != 0 || m_hevcSeqParams->NumOfBInGop[2] != 0)
     {
         curbe.DW8_BRCGopP      = ((m_hevcSeqParams->GopPicSize) / m_hevcSeqParams->GopRefDist);
