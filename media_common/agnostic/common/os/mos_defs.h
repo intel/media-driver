@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2017, Intel Corporation
+* Copyright (c) 2013-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@
 
 #include <stdio.h>       // FILE
 #include <stdint.h>
+#include <string>
 #include "mos_defs_specific.h"
 
 //!
@@ -345,7 +346,8 @@ typedef enum _MOS_STATUS
     MOS_STATUS_UNINITIALIZED                     = 31,
     MOS_STATUS_GPU_CONTEXT_ERROR                 = 32,
     MOS_STATUS_STILL_DRAWING                     = 33,
-    MOS_STATUS_UNKNOWN                           = 34
+    MOS_STATUS_USER_FEATURE_READ_FAILED          = 34,
+    MOS_STATUS_UNKNOWN                           = 35
 } MOS_STATUS;
 
 //!

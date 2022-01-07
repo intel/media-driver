@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@
 #include "codechal_user_settings_mgr_ext.h"
 #include "vphal_user_settings_mgr_ext.h"
 #endif // _MEDIA_RESERVED
+#include "media_user_setting.h"
+
 #include <sys/ipc.h>  // System V IPC
 #include <sys/types.h>
 #include <sys/sem.h>
@@ -1333,6 +1335,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     if (m_mosUtilInitCount == 0)
     {
         //Init MOS User Feature Key from mos desc table
+        eStatus = InitMosUserSetting();
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
         MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
 #if _MEDIA_RESERVED
@@ -1368,7 +1371,6 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
     if (m_mosUtilInitCount == 0)
     {
         MosTraceEventClose();
-        DestroyMediaUserSetting();
         m_mosMemAllocCounter -= m_mosMemAllocFakeCounter;
         MemoryCounter = m_mosMemAllocCounter + m_mosMemAllocCounterGfx;
         m_mosMemAllocCounterNoUserFeature    = m_mosMemAllocCounter;
@@ -1392,6 +1394,8 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
             m_vpUserFeatureExt = nullptr;
         }
 #endif // _MEDIA_RESERVED
+        DestroyMediaUserSetting();
+
 #if (_DEBUG || _RELEASE_INTERNAL)
         // MOS maintains a reference counter,
         // so if there still is another active lib instance, logs would still be printed.
@@ -1620,6 +1624,7 @@ MOS_STATUS MosUtilities::MosOpenRegKey(
     PUFKEY_NEXT key)
 {
     std::string tempSubKey = subKey;
+
     if (subKey.find_first_of("\\") != std::string::npos)
     {
         tempSubKey = subKey.substr(1);
@@ -1681,7 +1686,7 @@ MOS_STATUS MosUtilities::MosGetRegValue(
 
     if ( util::m_regBuffer.end() == util::m_regBuffer.find(keyHandle))
     {
-        return MOS_STATUS_INVALID_PARAMETER;
+        return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
     }
 
     try
@@ -1690,7 +1695,7 @@ MOS_STATUS MosUtilities::MosGetRegValue(
         auto it = keys.find(valueName);
         if (it == keys.end())
         {
-            return MOS_STATUS_INVALID_PARAMETER;
+            return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
         }
 
         data = it->second;
@@ -1969,19 +1974,18 @@ MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureVa
     }
 #endif
 
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    eStatus = MosUtilities::MosUserFeatureReadValueID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_APO_MOS_PATH_ENABLE_ID,
-            &userFeatureData,
-            (MOS_CONTEXT_HANDLE) nullptr);
+    uint32_t enableApoMos = 0;
+    eStatus = ReadUserSetting(enableApoMos,
+        "ApoMosEnable",
+        MediaUserSetting::Group::Device,
+        nullptr);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         // It could be there is no this use feature key.
         MOS_OS_NORMALMESSAGE("Failed to read ApoMosEnable  user feature key value, error status %d", eStatus);
     }
-    userfeatureValue = userFeatureData.u32Data ? true : false;
+    userfeatureValue = enableApoMos ? true : false;
     return eStatus;
 }
 

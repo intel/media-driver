@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -53,7 +53,9 @@ MOS_STATUS Configure::Register(
     const Value &defaultValue,
     bool isReportKey,
     bool debugOnly,
-    const std::string &customPath)
+    bool useCustomPath,
+    const std::string &customPath,
+    bool statePath)
 {
     m_mutexLock.Lock();
 
@@ -65,6 +67,16 @@ MOS_STATUS Configure::Register(
 
     auto &defs = GetDefinitions(group);
 
+    std::string subPath = customPath;
+    if (useCustomPath)
+    {
+        subPath = customPath;
+    }
+    else
+    {
+        subPath = m_configPath;
+    }
+
     defs.insert(
         std::make_pair(
             MakeHash(valueName),
@@ -73,7 +85,10 @@ MOS_STATUS Configure::Register(
                 defaultValue,
                 isReportKey,
                 debugOnly,
-                customPath)));
+                useCustomPath,
+                subPath,
+                m_rootKey,
+                statePath)));
 
     m_mutexLock.Unlock();
 
@@ -104,23 +119,17 @@ MOS_STATUS Configure::Read(Value &value,
     }
 
     std::string basePath = "";
-    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = Mos_GetDeviceUfPathInfo(mosContext);
-    if (ufInfo != nullptr && ufInfo->Path != nullptr)
+    if(def->UseStatePath())
     {
-        basePath = ufInfo->Path;
+        MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = Mos_GetDeviceUfPathInfo(mosContext);
+        if (ufInfo != nullptr && ufInfo->Path != nullptr)
+        {
+            basePath = ufInfo->Path;
+        }
     }
+    std::string subPath = def->GetSubPath();
 
-    std::string configPath = def->CustomPath();
-    if (configPath.empty())
-    {
-        configPath = m_configPath;
-    }
-    else
-    {
-        configPath = "\\" + configPath;
-    }
-
-    std::string path = basePath + configPath;
+    std::string path = basePath + subPath;
 
     UFKEY_NEXT  key      = {};
     std::string strValue = "";
@@ -161,7 +170,7 @@ MOS_STATUS Configure::Read(Value &value,
         value = useCustomValue ? customValue : def->DefaultValue();
     }
 
-    return MOS_STATUS_SUCCESS;
+    return status;
 }
 
 MOS_STATUS Configure::Write(
@@ -217,7 +226,14 @@ MOS_STATUS Configure::Write(
     if (status != MOS_STATUS_SUCCESS)
     {
         // When any fail happen, just print out a critical message, but not return error to break normal call sequence.
-        MOS_CRITICALMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, "Failed to write media user setting value.");
+        if(MosUtilities::m_mosUltFlag)
+        {
+            MOS_OS_NORMALMESSAGE("Failed to write media user setting value.");
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to write media user setting value.");
+        }
     }
 
     return MOS_STATUS_SUCCESS;

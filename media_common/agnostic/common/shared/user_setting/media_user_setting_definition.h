@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -48,11 +48,18 @@ public:
     //!           Whether this item can be reported
     //! \param    [in] debugOnly
     //!           Whether this item is only for debug/release-internal
+    //! \param    [in] useCustomPath
+    //!           Specifiy a read path
+    //! \param    [in] customPath
+    //!           The specified read path
     Definition(const std::string &itemName,
                const Value &defaultValue,
                bool isReportKey,
                bool debugOnly,
-               const std::string &customPath);
+               bool useCustomPath,
+               const std::string &subPath,
+               UFKEY_NEXT  rootKey,
+               bool        statePath);
 
     //!
     //! \brief    Constructor
@@ -96,12 +103,32 @@ public:
     bool IsReportKey() const { return m_isReportKey; }
 
     //!
+    //! \brief    Get report flag
+    //! \return   bool
+    //!           report flag
+    //!
+    bool UseCustomPath() const { return m_useCustomePath; }
+
+    //!
+    //! \brief    Get the sub path of the definition
+    //! \return   std::string
+    //!           the custom path
+    //!
+    std::string GetSubPath() const { return m_subPath; }
+
+    //!
     //! \brief    Get the custom path of the definition
     //! \return   std::string
     //!           the custom path
     //!
-    std::string CustomPath() const { return m_customPath; }
+    UFKEY_NEXT GetRootKey() const { return m_rootKey; }
 
+    //!
+    //! \brief    Get the custom path of the definition
+    //! \return   std::string
+    //!           the custom path
+    //!
+    bool UseStatePath() const { return m_statePath; }
 private:
     //!
     //! \brief    Set the values of definition
@@ -114,7 +141,10 @@ private:
     Value m_defaultValue {};    //!< Default value
     bool m_isReportKey = false; //!< This item value can be reported
     bool m_debugOnly = false;   //!< Whether the item is only enabled in debug/release-internal mode
-    std::string m_customPath{};
+    bool m_useCustomePath = false;   //!< Whether the item read from a specific path
+    std::string m_subPath{};    //!< custome path is a relative path, it could be null
+    UFKEY_NEXT m_rootKey{};    //!< root key
+    bool m_statePath      = true;    //!< Whether the item read from a specific path
 };
 
 using Definitions = std::map<std::size_t, std::shared_ptr<Definition>>;

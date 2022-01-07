@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -66,7 +66,9 @@ MOS_STATUS MediaUserSetting::Register(
     const Value &defaultValue,
     bool isReportKey,
     bool debugOnly,
-    const std::string &customPath)
+    bool useCustomPath,
+    const std::string &customPath,
+    bool statePath)
 {
     return m_configure.Register(
                     valueName,
@@ -74,7 +76,9 @@ MOS_STATUS MediaUserSetting::Register(
                     defaultValue,
                     isReportKey,
                     debugOnly,
-                    customPath);
+                    useCustomPath,
+                    customPath,
+                    statePath);
 }
 
 MOS_STATUS MediaUserSetting::Read(Value &value,

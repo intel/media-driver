@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -231,15 +231,10 @@ MOS_STATUS MosUtilities::MosUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     //Initialize MOS simulate random alloc memorflag
     MosInitAllocMemoryFailSimulateFlag(mosCtx);
 
-    MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
-
-    MosZeroMemory(&userFeatureValueData, sizeof(userFeatureValueData));
-    MosUserFeatureReadValueID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_RESOURCE_ADDR_DUMP_ENABLE_ID,
-        &userFeatureValueData,
-        mosCtx);
-    MosUtilities::m_enableAddressDump = userFeatureValueData.i32Data ? true : false;
+    eStatus = ReadUserSettingForDebug(MosUtilities::m_enableAddressDump,
+        "Resource Addr Dump Enable",
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)mosCtx);
 #endif
 
     return eStatus;

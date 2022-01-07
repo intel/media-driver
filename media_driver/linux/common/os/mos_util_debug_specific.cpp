@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2020, Intel Corporation
+* Copyright (c) 2013-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -71,60 +71,7 @@ static MOS_MUTEX gMosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
 //!
 MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx)
 {
-    int32_t                             iRet = 0;
-    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
-    MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
-
-    if (MosUltFlag)
-    {
-        iRet =  MOS_SecureStringPrint(
-                     fileNamePrefix,
-                     MOS_MAX_HLT_FILENAME_LEN,
-                     MOS_MAX_HLT_FILENAME_LEN,
-                     MosUltLogPathPrefix);
-
-        if (iRet > 0)
-        {
-            eStatus = MOS_STATUS_SUCCESS;
-        }
-
-        return eStatus;
-    }
-
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-    UserFeatureData.StringData.pStringData = fileNamePrefix;
-    eStatus = MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID,
-        &UserFeatureData,
-        mosCtx);
-
-    // If the user feature key was not found, create it with the default value.
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        iRet = MOS_SecureStringPrint(
-                     fileNamePrefix,
-                     MOS_MAX_HLT_FILENAME_LEN,
-                     MOS_MAX_HLT_FILENAME_LEN,
-                     MosLogPathPrefix);
-
-        if (iRet > 0)
-        {
-            MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
-            UserFeatureWriteData.Value.StringData.pStringData = fileNamePrefix;
-            UserFeatureWriteData.Value.StringData.uSize = strlen(fileNamePrefix) + 1;
-            UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID;
-
-            eStatus = MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
-        }
-        else
-        {
-            return MOS_STATUS_UNKNOWN;
-        }
-    }
-
-    return eStatus;
+    return MosUtilDebug::MosLogFileNamePrefix(fileNamePrefix, mosCtx);
 }
 
 //!

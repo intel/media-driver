@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -186,6 +186,15 @@ public:
     //!
     static MOS_STATUS DestroyMediaUserSetting();
 
+    //!
+    //! \brief    Init the mos user settings
+    //! \details  declare the common user settings
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitMosUserSetting();
+
 private:
     //!
     //! \brief    Init Function for MOS OS specific utilitiesNext
@@ -206,6 +215,37 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
+
+    //!
+    //! \brief    Init the mos user settings of mos message
+    //! \details  declare the common user settings
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitMosCommonUserSetting();
+
+#if MOS_MESSAGES_ENABLED
+    //!
+    //! \brief    Init the mos user settings of mos message
+    //! \details  declare the common user settings
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitMosMessageUserSetting();
+#endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief    Init the mos user settings of debug
+    //! \details  declare the common user settings for debug
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitUserSettingForDebug();
+#endif
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
