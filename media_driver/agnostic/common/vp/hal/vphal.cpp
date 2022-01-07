@@ -27,6 +27,7 @@
 //!
 #include "vphal.h"
 #include "mos_os.h"
+#include "mos_interface.h"
 #include "mhw_vebox.h"
 #include "renderhal.h"
 #include "vphal_renderer.h"
@@ -71,6 +72,17 @@ MOS_STATUS VphalState::Allocate(
         m_osInterface,
         m_renderGpuContext));
 
+    // Add gpu context entry, including stream 0 gpu contexts
+    // In legacy path, stream 0 gpu contexts could be reused, and will keep these stream 0 gpu contexts alive
+    // But its mapping relation could be overwritten in APO path
+    // Now, don't reuse these stream 0 gpu contexts overwritten by MediaContext in APO path 
+    if (IsApoEnabled() && 
+        m_osInterface->apoMosEnabled && 
+        m_osInterface->bSetHandleInvalid)
+    {
+        AddGpuContextToCheckList(m_renderGpuContext);
+    }
+
     // Register Render GPU context with the event
     VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
         m_osInterface,
@@ -92,6 +104,14 @@ MOS_STATUS VphalState::Allocate(
             VeboxGpuContext,
             VeboxGpuNode));
 
+        // Add gpu context entry, including stream 0 gpu contexts
+        if (IsApoEnabled() && 
+            m_osInterface->apoMosEnabled && 
+            m_osInterface->bSetHandleInvalid)
+        {
+            AddGpuContextToCheckList(VeboxGpuContext);
+        }
+        
         // Register Vebox GPU context with the Batch Buffer completion event
         // Ignore if creation fails
         VPHAL_PUBLIC_CHK_STATUS(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
@@ -712,6 +732,13 @@ VphalState::~VphalState()
     {
         if (m_osInterface->bDeallocateOnExit)
         {
+            //Clear some overwriten gpucontext resources
+            if (!m_gpuContextCheckList.empty())
+            {
+                DestroyGpuContextWithInvalidHandle();
+                m_gpuContextCheckList.clear();
+            }
+            
             m_osInterface->pfnDestroy(m_osInterface, true);
 
             // Deallocate OS interface structure (except if externally provided)
@@ -902,4 +929,78 @@ MOS_STATUS VphalState::GetVpMhwInterface(
     vpMhwinterface.m_statusTable    = &m_statusTable;
 
     return eStatus;
+}
+
+//!
+//! \brief    Put GPU context entry
+//! \details  Put GPU context entry in the m_gpuContextCheckList
+//! \param    MOS_GPU_CONTEXT mosGpuConext
+//!           [in] Mos GPU context
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalState::AddGpuContextToCheckList(
+    MOS_GPU_CONTEXT mosGpuConext) 
+{
+#if !EMUL 
+    MOS_GPU_CONTEXT originalGpuCtxOrdinal = m_osInterface->CurrentGpuContextOrdinal;
+    if (mosGpuConext != originalGpuCtxOrdinal)
+    {
+        // Set GPU context temporarily
+        VPHAL_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
+            m_osInterface,
+            mosGpuConext));
+    }
+    VPHAL_GPU_CONTEXT_ENTRY tmpEntry;
+    tmpEntry.gpuCtxForMos     = mosGpuConext;
+    tmpEntry.gpuContextHandle = m_osInterface->CurrentGpuContextHandle;
+    tmpEntry.pGpuContext      = m_osInterface->pfnGetGpuContextbyHandle(m_osInterface, m_osInterface->CurrentGpuContextHandle);
+    m_gpuContextCheckList.push_back(tmpEntry);
+
+    if (mosGpuConext != originalGpuCtxOrdinal)
+    {
+        //Recover original settings
+        VPHAL_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
+            m_osInterface,
+            originalGpuCtxOrdinal));
+    }
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Destroy GPU context entry with invalid handle
+//! \details  Release these GPU context overwritten by MediaContext
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VphalState::DestroyGpuContextWithInvalidHandle() 
+{
+#if !EMUL
+    MOS_GPU_CONTEXT originalGpuCtxOrdinal = m_osInterface->CurrentGpuContextOrdinal;
+    for (auto &curGpuEntry : m_gpuContextCheckList)
+    {
+        //Failure in switching GPU Context indicates that we can't find and release gpu context in normal flow later
+        //So if failed to switch GPU Context, just need to check GPU context, and release it here
+        //If switch GPU Context successfully, need to check both handle and GPU context
+        if ((MOS_FAILED(m_osInterface->pfnSetGpuContext(m_osInterface, curGpuEntry.gpuCtxForMos)) || 
+            m_osInterface->CurrentGpuContextHandle != curGpuEntry.gpuContextHandle) &&
+            m_osInterface->pfnGetGpuContextbyHandle(m_osInterface, curGpuEntry.gpuContextHandle) == curGpuEntry.pGpuContext)
+        {
+            MosInterface::WaitForCmdCompletion(m_osInterface->osStreamState, curGpuEntry.gpuContextHandle);
+
+            MosInterface::DestroyGpuContext(m_osInterface->osStreamState, curGpuEntry.gpuContextHandle);
+        }
+    }
+    if (m_osInterface->CurrentGpuContextOrdinal != originalGpuCtxOrdinal)
+    {
+        //Recover original settings
+        VPHAL_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
+            m_osInterface,
+            originalGpuCtxOrdinal));
+    }
+#endif
+
+    return MOS_STATUS_SUCCESS;
 }

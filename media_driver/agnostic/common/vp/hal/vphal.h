@@ -287,6 +287,16 @@ struct VphalSseuSetting
     uint8_t   reserved;       // Place holder for frequency setting
 };
 
+//!
+//! \brief Gpu context entry
+//!
+struct VPHAL_GPU_CONTEXT_ENTRY
+{
+    MOS_GPU_CONTEXT    gpuCtxForMos          = MOS_GPU_CONTEXT_MAX;
+    GPU_CONTEXT_HANDLE gpuContextHandle      = MOS_GPU_CONTEXT_INVALID_HANDLE;
+    void*              pGpuContext           = nullptr;
+};
+
 //-----------------------------------------------------------------------------
 // VPHAL-DDI RENDERING INTERFACE
 //
@@ -526,6 +536,13 @@ protected:
     // StatusTable indicating if command is done by gpu or not
     VPHAL_STATUS_TABLE          m_statusTable = {};
 
+
+    // Same MOS_GPU_CONTEXT may be created in MediaContext with a different handle,
+    // which will cause the gpuContext created in VphalState missed to be destroyed during
+    // m_osInterface being destroyed. m_gpuContextCheckList is used to store gpu contexts
+    // which may encounter such case.
+    std::vector<VPHAL_GPU_CONTEXT_ENTRY> m_gpuContextCheckList;
+
     //!
     //! \brief    Create instance of VphalRenderer
     //! \details  Create instance of VphalRenderer
@@ -538,6 +555,27 @@ protected:
     {
         return false;
     }
+
+private:
+    //!
+    //! \brief    Put GPU context entry
+    //! \details  Put GPU context entry in the m_gpuContextCheckList
+    //! \param    MOS_GPU_CONTEXT mosGpuConext
+    //!           [in] Mos GPU context
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS AddGpuContextToCheckList(
+        MOS_GPU_CONTEXT mosGpuConext);
+
+    //!
+    //! \brief    Destroy GPU context entry with invalid handle
+    //! \details  Release these GPU context overwritten by MediaContext
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS DestroyGpuContextWithInvalidHandle();
+
 };
 
 #endif  // __VPHAL_H__

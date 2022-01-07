@@ -2121,6 +2121,17 @@ MOS_STATUS MosInterface::LockSyncCallback(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MosInterface::WaitForCmdCompletion(
+    MOS_STREAM_HANDLE  streamState,
+    GPU_CONTEXT_HANDLE gpuCtx)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    // No need to do WaitForCmdCompletion
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::TrimResidency(
     MOS_DEVICE_HANDLE device,
     bool      periodicTrim,
