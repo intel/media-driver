@@ -201,6 +201,7 @@ namespace mi
         bool                    bIndirectStatePointersDisable = false;
         bool                    bHdcPipelineFlush             = false;
         bool                    bKernelFenceEnabled           = false;
+        bool                    bPPCFlush                     = false;
     };
 
     struct _MHW_PAR_T(MI_BATCH_BUFFER_START)
@@ -285,6 +286,7 @@ namespace mi
         bool                        bVideoPipelineCacheInvalidate = false;
         uint32_t                    postSyncOperation             = 0;
         uint32_t                    bQWordEnable                  = 0;
+        bool                        bEnablePPCFlush               = false;
     };
 
     struct _MHW_PAR_T(VD_CONTROL_STATE)

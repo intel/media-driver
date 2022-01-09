@@ -1620,6 +1620,14 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
     PipeControlParams.bGenericMediaStateClear       = true;
     PipeControlParams.bIndirectStatePointersDisable = true;
     PipeControlParams.bDisableCSStall               = false;
+
+    RENDER_PACKET_CHK_NULL_RETURN(pOsInterface->pfnGetSkuTable);
+    auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+    if (skuTable && MEDIA_IS_SKU(skuTable, FtrEnablePPCFlush))
+    {
+        // Add PPC fulsh
+        PipeControlParams.bPPCFlush = true;
+    }
     RENDER_PACKET_CHK_STATUS_RETURN(pMhwMiInterface->AddPipeControl(commandBuffer, nullptr, &PipeControlParams));
 
     if (MEDIA_IS_WA(m_renderHal->pWaTable, WaSendDummyVFEafterPipelineSelect))
