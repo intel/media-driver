@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,18 +33,12 @@ Definition::Definition(const std::string &itemName,
     const Value &defaultValue,
     bool isReportKey,
     bool debugOnly,
-    bool useCustomPath,
-    const std::string &subPath,
-    UFKEY_NEXT rootKey,
-    bool statePath):
+    const std::string &customPath):
 m_itemName(itemName),
 m_defaultValue(defaultValue),
 m_isReportKey(isReportKey),
 m_debugOnly(debugOnly),
-m_useCustomePath(useCustomPath),
-m_subPath(subPath),
-m_rootKey(rootKey),
-m_statePath(statePath)
+m_customPath(customPath)
 {
 }
 
@@ -73,10 +67,7 @@ inline void Definition::SetData(const Definition& def)
     m_debugOnly = def.m_debugOnly;
     m_defaultValue = def.m_defaultValue;
     m_isReportKey = def.m_isReportKey;
-    m_subPath = def.m_subPath;
-    m_useCustomePath = def.m_useCustomePath;
-    m_rootKey = def.m_rootKey;
-    m_statePath = def.m_statePath;
+    m_customPath = def.m_customPath;
 }
 
 }}

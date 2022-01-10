@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022 Intel Corporation
+* Copyright (c) 2019-2020, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,6 @@
 
 #include "mos_utilities_specific_next.h"
 #include "mos_utilities_next.h"
-#include "media_user_setting.h"
 #include "string.h"
 #include <time.h>      //get_clocktime
 #include <unistd.h>    //read, lseek
@@ -128,8 +127,9 @@ void MosUtilDebug::MosHltpPreface(PFILE pFile)
 MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx)
 {
     int32_t                             iRet = 0;
+    MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
+    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData;
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
-    MediaUserSetting::Value             outValue;
 
     if (MosUtilities::m_mosUltFlag)
     {
@@ -147,19 +147,17 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_
         return eStatus;
     }
 
-    eStatus = ReadUserSetting(outValue,
-        __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY,
-        MediaUserSetting::Group::Device,
-        (PMOS_CONTEXT)mosCtx);
+    MosUtilities::MosZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    UserFeatureData.StringData.pStringData = fileNamePrefix;
+    eStatus = MosUtilities::MosUserFeatureReadValueID(
+        nullptr,
+        __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID,
+        &UserFeatureData,
+        mosCtx);
 
-    if(outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_MAX_HLT_FILENAME_LEN)
+    // If the user feature key was not found, create it with the default value.
+    if (eStatus != MOS_STATUS_SUCCESS)
     {
-        MosUtilities::MosSecureStrcpy(fileNamePrefix, MOS_MAX_HLT_FILENAME_LEN, outValue.ConstString().c_str());
-    }
-    else     // If the user feature key was not found or not valid, create it with the default value.
-    {
-        MOS_OS_NORMALMESSAGE("eStatus = %x, outValue.size = %x", eStatus, outValue.ConstString().size());
-
         iRet = MosUtilities::MosSecureStringPrint(
                      fileNamePrefix,
                      MOS_MAX_HLT_FILENAME_LEN,
@@ -168,10 +166,12 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_
 
         if (iRet > 0)
         {
-             eStatus = WriteUserSetting(__MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY,
-                fileNamePrefix,
-                MediaUserSetting::Group::Device,
-                (PMOS_CONTEXT)mosCtx);
+            MosUtilities::MosZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+            UserFeatureWriteData.Value.StringData.pStringData = fileNamePrefix;
+            UserFeatureWriteData.Value.StringData.uSize = strlen(fileNamePrefix) + 1;
+            UserFeatureWriteData.ValueID = __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY_ID;
+
+            eStatus = MosUtilities::MosUserFeatureWriteValuesID(nullptr, &UserFeatureWriteData, 1, mosCtx);
         }
         else
         {

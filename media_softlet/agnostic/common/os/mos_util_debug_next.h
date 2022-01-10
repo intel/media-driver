@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -280,7 +280,7 @@ public:
 
     static const char* const m_mosLogPathTemplate;
     static const char* const m_DdiLogPathTemplate;
-    static const char* m_pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3];
+    static const MOS_USER_FEATURE_VALUE_ID (* const m_pcComponentUserFeatureKeys)[3];
     static const uint8_t* const m_subComponentCount;
     static const PCCHAR m_mosUltLogPathPrefix;
     static const PCCHAR m_mosLogPathPrefix;

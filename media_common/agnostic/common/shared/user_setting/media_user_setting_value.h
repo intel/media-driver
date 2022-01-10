@@ -30,7 +30,6 @@
 #include "mos_defs.h"
 #include <string>
 #include <sstream>
-#include <regex>
 
 namespace MediaUserSetting {
 
@@ -66,20 +65,7 @@ public:
     {
         T ret=T();
 
-        if(m_value.size() > 2)
-        {
-            std::string hexPattern{"^0[xX][0-9a-fA-F]+"}; //hex
-            std::regex re(hexPattern);
-            if(std::regex_match(m_value, re))
-            {
-                std::stringstream ssHEX;
-                ssHEX << std::hex << m_value;
-                ssHEX >> ret;
-                return ret;
-            }
-        }
         std::stringstream convert(m_value);
-
         convert >> ret;
 
         return ret;

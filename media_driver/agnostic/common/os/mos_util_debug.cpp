@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2022, Intel Corporation
+* Copyright (c) 2013-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -75,6 +75,73 @@ const char * const MOS_ComponentName[MOS_COMPONENT_COUNT] = {
 MOS_MESSAGE_PARAMS g_MosMsgParams;
 MOS_MESSAGE_PARAMS g_MosMsgParams_DDI_Dump;
 
+extern const MOS_USER_FEATURE_VALUE_ID pcComponentUserFeatureKeys[MOS_COMPONENT_COUNT][3] = {
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_OS_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_OS_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_OS_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_HW_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_HW_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_HW_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_CODEC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CODEC_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CODEC_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_VP_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_VP_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_VP_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_CP_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CP_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CP_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_DDI_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_DDI_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_DDI_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_CM_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CM_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG_ID
+    },
+
+    {// CPLIB
+    __MOS_USER_FEATURE_KEY_MESSAGE_CP_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_CP_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CP_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_SCALABILITY_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_SCALABILITY_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_MMC_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MMC_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG_ID
+    },
+
+    {
+    __MOS_USER_FEATURE_KEY_MESSAGE_MCPY_TAG_ID,
+    __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MCPY_ID,
+    __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MCPY_TAG_ID
+    }
+};
 
 extern const uint8_t subComponentCount[MOS_COMPONENT_COUNT] = {
     MOS_SUBCOMP_COUNT,
@@ -211,6 +278,110 @@ void MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
 }
 
 //!
+//! \brief    Set debug message level and asserts for a component and its sub-components.
+//! \details  Set debug message level and asserts for a component and its sub-components.
+//!              This includes registering all sub-components.
+//! \param    MOS_COMPONENT_ID compID
+//!           [in] Indicates which component
+//! \param    [in] mosCtx
+//!           os device ctx handle
+//! \return   void
+//!
+void MOS_MessageInitComponent(MOS_COMPONENT_ID compID, MOS_CONTEXT_HANDLE mosCtx)
+{
+    uint32_t                                    uiCompUserFeatureSetting = 0;
+    uint64_t                                    uiSubCompUserFeatureSetting = 0;
+    uint8_t                                     i = 0;
+    MOS_USER_FEATURE_VALUE_ID                   MessageKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
+    MOS_USER_FEATURE_VALUE_ID                   BySubComponentsKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
+    MOS_USER_FEATURE_VALUE_ID                   SubComponentsKey = __MOS_USER_FEATURE_KEY_INVALID_ID;
+    MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
+    MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
+    MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
+
+    if (compID >= MOS_COMPONENT_COUNT)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid component %d.", compID);
+        return;
+    }
+
+    MessageKey         = pcComponentUserFeatureKeys[compID][0];
+    BySubComponentsKey = pcComponentUserFeatureKeys[compID][1];
+    SubComponentsKey   = pcComponentUserFeatureKeys[compID][2];
+
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MOS_UserFeature_ReadValue_ID(
+                  nullptr,
+                  MessageKey,
+                  &UserFeatureData,
+                  mosCtx);
+
+    // If the user feature key was not found, create it with the default value.
+    if (eStatus  != MOS_STATUS_SUCCESS)
+    {
+        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+        UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
+        UserFeatureWriteData.ValueID = MessageKey;
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
+    }
+
+    uiCompUserFeatureSetting = UserFeatureData.u32Data;
+
+    // Extract the 3-bit message level and 1-bit assert flag setting for this component.
+    MOS_SetCompMessageLevel(compID, (MOS_MESSAGE_LEVEL) (uiCompUserFeatureSetting & 0x7));
+    MOS_CompAssertEnableDisable(compID, (uiCompUserFeatureSetting >> 3) & 0x1);
+
+    // Check if sub-components should be set seperately.
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        BySubComponentsKey,
+        &UserFeatureData,
+        mosCtx);
+    // If the user feature key was not found, create it with default (0) value.
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+        UserFeatureWriteData.Value.u32Data = UserFeatureData.u32Data;
+        UserFeatureWriteData.ValueID = BySubComponentsKey;
+        MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
+    }
+
+    g_MosMsgParams.components[compID].bBySubComponent = UserFeatureData.u32Data;
+
+    // Set sub components:
+    if (g_MosMsgParams.components[compID].bBySubComponent)
+    {
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            SubComponentsKey,
+            &UserFeatureData,
+            mosCtx);
+        // If the user feature key was not found, create it with default (0) value.
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_ZeroMemory(&UserFeatureWriteData, sizeof(UserFeatureWriteData));
+            UserFeatureWriteData.Value.u64Data = UserFeatureData.u64Data;
+            UserFeatureWriteData.ValueID = SubComponentsKey;
+            MOS_UserFeature_WriteValues_ID(nullptr, &UserFeatureWriteData, 1, mosCtx);
+        }
+
+        uiSubCompUserFeatureSetting = UserFeatureData.u64Data;
+
+        for(i = 0; i < subComponentCount[compID]; i++)
+        {
+            // Extract the 3-bit message level and 1-bit assert flag setting for each sub-comp
+            // from the user feature key and populate to the MOS message params structure
+            MOS_SetSubCompMessageLevel(compID, i, (MOS_MESSAGE_LEVEL)(uiSubCompUserFeatureSetting & 0x7));
+            MOS_SubCompAssertEnableDisable(compID, i, (uiSubCompUserFeatureSetting >> 3) & 0x1);
+
+            uiSubCompUserFeatureSetting = (uiSubCompUserFeatureSetting >> 4);
+        }
+    }
+}
+
+//!
 //! \brief    Initialize or refresh the DDI Dump facility
 //! \details  Initialize or refresh the DDI Dump facility
 //!           Called during MOS init
@@ -222,6 +393,45 @@ void MOS_CompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t bEnable)
 //!
 MOS_STATUS MOS_DDIDumpInit(MOS_CONTEXT_HANDLE mosCtx)
 {
+    char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN];
+    MOS_USER_FEATURE_VALUE_DATA                 UserFeatureData;
+    char                                        cDDIDumpFilePath[MOS_MAX_HLT_FILENAME_LEN] = { 0 };
+    MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
+
+    g_MosMsgParams_DDI_Dump.bUseHybridLogTrace = false;
+    g_MosMsgParams_DDI_Dump.pLogFile = nullptr;
+    g_MosMsgParams_DDI_Dump.pTraceFile = nullptr;
+
+    //Check if DDI dump is enabled
+    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    eStatus = MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_ENCODE_DDI_DUMP_ENABLE_ID,
+        &UserFeatureData,
+        mosCtx);
+
+    if (UserFeatureData.i32Data == 1)
+    {
+        //Check for the DDI dump path from the user feature key
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        eStatus = MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_DDI_DUMP_DIRECTORY_ID,
+            &UserFeatureData,
+            mosCtx);
+
+        // set-up DDI dump file name
+        MOS_SecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, DDILogPathTemplate,
+            (UserFeatureData.StringData.uSize > 0) ? UserFeatureData.StringData.pStringData : fileNamePrefix, MosUtilities::MosGetPid(), "log");
+
+        eStatus = MosUtilities::MosSecureFileOpen(&g_MosMsgParams_DDI_Dump.pLogFile, cDDIDumpFilePath, "w");
+        if (MOS_FAILED(eStatus))
+        {
+            MOS_OS_NORMALMESSAGE("Failed to open log file '%s'.", cDDIDumpFilePath);
+            g_MosMsgParams_DDI_Dump.pLogFile = nullptr;
+        }
+     }
+
     return MOS_STATUS_SUCCESS;
 }
 

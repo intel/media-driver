@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -79,10 +79,6 @@ public:
     //!           Whether this item can be reported
     //! \param    [in] debugOnly
     //!           Whether this item is only for debug/release-internal
-    //! \param    [in] useCustomPath
-    //!           Specifiy a read path
-    //! \param    [in] customPath
-    //!           The specified read path
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if no error, otherwise will return failed reason
     //!
@@ -92,9 +88,7 @@ public:
         const Value &defaultValue,
         bool isReportKey,
         bool debugOnly,
-        bool useCustomPath,
-        const std::string &customPath,
-        bool statePath);
+        const std::string &customPath);
 
     //!
     //! \brief    Read value of specific item
@@ -111,7 +105,7 @@ public:
     //! \param    [in] useCustomValue
     //!           Whether use costom value when failed
     //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if no error,MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED if user setting is not set, otherwise will return specific failed reason
+    //!           MOS_STATUS_SUCCESS if no error, otherwise will return failed reason
     //!
     MOS_STATUS Read(Value &value,
         const std::string &itemName,
@@ -164,6 +158,7 @@ public:
         return ret;
     }
 
+protected:
     //!
     //! \brief    Get media user setting definitions of specific group
     //! \param    [in] group
@@ -180,7 +175,6 @@ public:
 
         return m_definitions[group];
     }
-protected:
 
     //!
     //! \brief    Get hash value of specific string
