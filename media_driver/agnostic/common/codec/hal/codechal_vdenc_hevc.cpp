@@ -792,12 +792,31 @@ MOS_STATUS CodechalVdencHevcState::SetupMbQpStreamIn(PMOS_RESOURCE streamIn)
     auto pInputDataGfx = (uint8_t*)m_osInterface->pfnLockResource(
                                                             m_osInterface, &(m_encodeParams.psMbQpDataSurface->OsResource),
                                                             &LockFlagsReadOnly);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pInputDataGfx);
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
-                                                            m_osInterface, &(m_encodeParams.psMbQpDataSurface->OsResource),
-                                                            &surfInfo));
+    if (pInputDataGfx == nullptr)
+    {
+        MOS_SafeFreeMemory(data);
+        CODECHAL_ENCODE_ASSERTMESSAGE("Invalid (nullptr) Pointer from LockResource!");
+        return MOS_STATUS_NULL_POINTER;
+    }
+
+    eStatus = m_osInterface->pfnGetResourceInfo(
+                                        m_osInterface, &(m_encodeParams.psMbQpDataSurface->OsResource),
+                                        &surfInfo);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        MOS_SafeFreeMemory(data);
+        CODECHAL_ENCODE_ASSERTMESSAGE("Get psMbQpDataSurface ResourceInfo Failed!");
+        return eStatus;
+    }
+
     auto pInputData = (int8_t*)MOS_AllocMemory(surfInfo.dwSize);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(pInputData);
+    if (pInputData == nullptr)
+    {
+        MOS_SafeFreeMemory(data);
+        CODECHAL_ENCODE_ASSERTMESSAGE("Invalid (nullptr) Pointer from MOS_AllocMemory!");
+        return MOS_STATUS_NULL_POINTER;
+    }
+
     MOS_SecureMemcpy(pInputData, surfInfo.dwSize, pInputDataGfx, surfInfo.dwSize);
 
     MHW_VDBOX_VDENC_STREAMIN_STATE_PARAMS streaminDataParams;
