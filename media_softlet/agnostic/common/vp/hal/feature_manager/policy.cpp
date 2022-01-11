@@ -355,7 +355,7 @@ MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAM
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwFilterSubPipe& swFilterPipe)
+MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwFilterSubPipe& swFilterPipe, VP_EngineEntry& engineCapsCombined)
 {
     VP_FUNC_CALL();
 
@@ -449,6 +449,8 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         VP_PUBLIC_NORMALMESSAGE("No engine being assigned for feature %d. Will bypass it.", featureType);
     }
 
+    engineCapsCombined.value |= engineCaps.value;
+
     MT_LOG7(MT_VP_HAL_POLICY_GET_EXTCAPS4FTR, MT_NORMAL, MT_VP_HAL_FEATUERTYPE, featureType,
         MT_VP_HAL_ENGINECAPS, engineCaps.value, MT_VP_HAL_ENGINECAPS_EN, engineCaps.bEnabled, MT_VP_HAL_ENGINECAPS_VE_NEEDED,
         engineCaps.VeboxNeeded, MT_VP_HAL_ENGINECAPS_SFC_NEEDED, engineCaps.SfcNeeded, MT_VP_HAL_ENGINECAPS_RENDER_NEEDED, engineCaps.RenderNeeded,
@@ -464,6 +466,7 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInpu
     SwFilterSubPipe *pipe    = nullptr;
     SwFilter *       feature = nullptr;
     pipe                     = swFilterPipe.GetSwFilterSubPipe(isInputPipe, index);
+    VP_EngineEntry engineCapsCombined = {};
 
     VP_PUBLIC_NORMALMESSAGE("isInputPipe %d, index %d", (isInputPipe ? 1 : 0), index);
 
@@ -471,9 +474,9 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInpu
     {
         for (auto filterID : m_featurePool)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForSingleFeature(filterID, *pipe));
+            VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForSingleFeature(filterID, *pipe, engineCapsCombined));
         }
-        VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombination(swFilterPipe, isInputPipe, index));
+        VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombination(swFilterPipe, isInputPipe, index, engineCapsCombined));
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -908,14 +911,15 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         scalingEngine->fcSupported          = 1;
         scalingEngine->forceEnableForSfc    = 0;
         scalingEngine->forceEnableForRender = 0;
+        scalingEngine->veboxNotSupported    = 1;
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
     }
 
-    veboxMinWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minResolution;
-    veboxMaxWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxResolution;
-    veboxMinHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minResolution;
-    veboxMaxHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxResolution;
+    veboxMinWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minWidth;
+    veboxMaxWidth  = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxWidth;
+    veboxMinHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].minHeight;
+    veboxMaxHeight = m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].maxHeight;
     dwSfcMinWidth  = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minResolution;
     dwSfcMaxWidth  = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].maxResolution;
     dwSfcMinHeight = m_hwCaps.m_sfcHwEntry[scalingParams->formatInput].minResolution;
@@ -941,6 +945,25 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     dwSurfaceHeight = scalingParams->input.dwHeight;
     dwOutputSurfaceWidth  = scalingParams->output.dwWidth;
     dwOutputSurfaceHeight = scalingParams->output.dwHeight;
+
+    if (OUT_OF_BOUNDS(dwSurfaceWidth, veboxMinWidth, veboxMaxWidth) ||
+        OUT_OF_BOUNDS(dwSurfaceHeight, veboxMinHeight, veboxMaxHeight))
+    {
+        // for non-Scaling cases, all engine supported
+        scalingEngine->bEnabled             = 1;
+        scalingEngine->SfcNeeded            = 0;
+        scalingEngine->VeboxNeeded          = 0;
+        scalingEngine->RenderNeeded         = 1;
+        scalingEngine->fcSupported          = 1;
+        scalingEngine->forceEnableForSfc    = 0;
+        scalingEngine->forceEnableForRender = 0;
+        scalingEngine->veboxNotSupported    = 1;
+        VP_PUBLIC_NORMALMESSAGE("The surface resolution (%d x %d) is not supported by vebox (%d x %d) ~ (%d x %d).",
+            dwSurfaceWidth, dwSurfaceHeight, veboxMinWidth, veboxMinHeight, veboxMaxWidth, veboxMaxHeight);
+
+        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
+        return MOS_STATUS_SUCCESS;
+    }
 
     // Region of the input frame which needs to be processed by SFC
     uint32_t dwSourceRegionHeight = MOS_ALIGN_FLOOR(
@@ -975,20 +998,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         scalingParams->interlacedScalingType != ISCALING_INTERLEAVED_TO_FIELD &&
         scalingParams->interlacedScalingType != ISCALING_FIELD_TO_INTERLEAVED)
     {
-        if (OUT_OF_BOUNDS(dwSurfaceWidth, veboxMinWidth, veboxMaxWidth) ||
-            OUT_OF_BOUNDS(dwSurfaceHeight, veboxMinHeight, veboxMaxHeight))
-        {
-            // for non-Scaling cases, all engine supported
-            scalingEngine->bEnabled             = 1;
-            scalingEngine->SfcNeeded            = 0;
-            scalingEngine->VeboxNeeded          = 0;
-            scalingEngine->RenderNeeded         = 1;
-            scalingEngine->fcSupported          = 1;
-            scalingEngine->forceEnableForSfc    = 0;
-            scalingEngine->forceEnableForRender = 0;
-            VP_PUBLIC_NORMALMESSAGE("The surface resolution is not supported by vebox.");
-        }
-        else if (OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
+        if (OUT_OF_BOUNDS(dwSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)    ||
                 OUT_OF_BOUNDS(dwSurfaceHeight, dwSfcMinHeight, dwSfcMaxHeight))
         {
             // for non-Scaling cases, all engine supported
@@ -1000,7 +1010,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
             scalingEngine->forceEnableForRender = 1;
             scalingEngine->fcSupported          = 1;
             scalingEngine->sfcNotSupported      = 1;
-            VP_PUBLIC_NORMALMESSAGE("The surface resolution is not supported by sfc.");
+            VP_PUBLIC_NORMALMESSAGE("The surface resolution (%d x %d) is not supported by sfc (%d x %d) ~ (%d x %d).",
+                dwSurfaceWidth, dwSurfaceHeight, dwSfcMinWidth, dwSfcMinHeight, dwSfcMaxWidth, dwSfcMaxHeight);
         }
         else if (scalingParams->input.rcDst.left > 0    ||
                  scalingParams->input.rcDst.top  > 0)
@@ -2116,13 +2127,33 @@ MOS_STATUS Policy::BuildFilters(SwFilterPipe& featurePipe, HW_FILTER_PARAMS& par
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index)
+MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index, VP_EngineEntry &engineCapsCombined)
 {
     VP_FUNC_CALL();
 
     SwFilterSubPipe *pipe = nullptr;
     pipe                  = swFilterPipe.GetSwFilterSubPipe(isInputPipe, index);
     VP_PUBLIC_CHK_NULL_RETURN(pipe);
+
+    // Filter out vebox/sfc only features.
+    if (engineCapsCombined.veboxNotSupported)
+    {
+        for (auto filterID : m_featurePool)
+        {
+            auto feature = pipe->GetSwFilter(FeatureType(filterID));
+            if (feature && feature->GetFilterEngineCaps().bEnabled &&
+                (feature->GetFilterEngineCaps().VeboxNeeded ||
+                feature->GetFilterEngineCaps().SfcNeeded) &&
+                !feature->GetFilterEngineCaps().RenderNeeded)
+            {
+                feature->GetFilterEngineCaps().bEnabled = 0;
+                feature->GetFilterEngineCaps().VeboxNeeded = 0;
+                feature->GetFilterEngineCaps().SfcNeeded = 0;
+                feature->GetFilterEngineCaps().forceEnableForSfc = 0;
+                VP_PUBLIC_NORMALMESSAGE("Disable Feature 0x%x since vebox cannot be used.", filterID);
+            }
+        }
+    }
 
     auto hdr = pipe->GetSwFilter(FeatureTypeHdr);
     if (nullptr != hdr)
@@ -2148,6 +2179,7 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
             }
         }
     }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -3055,9 +3087,9 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
 
 void Policy::PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineCaps)
 {
-    VP_PUBLIC_NORMALMESSAGE("%s, value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d)",
+    VP_PUBLIC_NORMALMESSAGE("%s, value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d, veboxNotSupported %d, sfcNotSupported %d)",
         name, engineCaps.value, engineCaps.bEnabled, engineCaps.VeboxNeeded, engineCaps.SfcNeeded,
-        engineCaps.RenderNeeded, engineCaps.fcSupported, engineCaps.isolated);
+        engineCaps.RenderNeeded, engineCaps.fcSupported, engineCaps.isolated, engineCaps.veboxNotSupported, engineCaps.sfcNotSupported);
 }
 
 };

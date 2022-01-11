@@ -112,73 +112,72 @@ VP_FF_SFC_FORMAT(Format_IRW5,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_S
 VP_FF_SFC_FORMAT(Format_IRW6,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
 VP_FF_SFC_FORMAT(Format_IRW7,           1,  0, MHW_SFC_MAX_RESOLUTION_G12, MHW_SFC_MIN_RESOLUTION_G12,  1,  1,  1,  1,  1,  1,  0,  0,  0,  0,  1, MHW_SFC_MAX_SCALING_RATIO, MHW_SFC_MIN_SCALING_RATIO)
 
-#define MHW_VEBOX_MIN_RESOLUTION_G12 16;
-#define MHW_VEBOX_MAX_RESOLUTION_G12 (16 * 1024);
-// not Finished
-//#define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported,
+//#define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxWidth, _MaxHeight, _MinWidth, _MinHeight, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported,
 //                           _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported)
-/* Vebox STE Suppored ------------------------------------------------------------------------------------------------------------------------------------------------o
-      ACE Suppored -----------------------------------------------------------------------------------------------------------------------------------------------o   |
-      TCC Suppored -------------------------------------------------------------------------------------------------------------------------------------------o   |   |
-      HSB Mode Suppored --------------------------------------------------   -----------------------------------------------------------------------------o   |   |   |
-      IECP Suppored ----------------------------------------------------------------------------------------------------------------------------------o   |   |   |   |
-      3DLut Suppored -----------------------------------------------------------------------------------------------------------------------------o   |   |   |   |   |
-      BackEnd CSC Suppored -------------------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |
-      Front CSC Suppored -----------------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |
-      LACE Suppored ------------------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |
-      De-interlace Suppored ------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |
-      Denoise Suppored -------------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |
-      CapPipe Suppored ---------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |   |
-      HDR Suppored ---------------------------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |   |   |
-      Processing Unit in Vertical --------------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |   |   |   |
-      Processing Unit in Horizontal --------------------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-      MAX Process Resolution(Width/Height) ---------------------------------------------o                     |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-      MAX Process Resolution(Width/Height) ------------------o                          |                     |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-  Output Format Supported --------------------o              |                          |                     |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-  Input Format Supported -----------------o   |              |                          |                     |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-                Format                    |   |              |                          |                     |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
-VP_FF_VEBOX_FORMAT(Format_NV12,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  2,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_P010,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  2,  1,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_P016,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  2,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_YUY2,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_YUYV,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_UYVY,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_Y216,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_Y210,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_P216,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_P210,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_AYUV,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_Y416,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_Y410,           1,  1, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_YVYU,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_VYUY,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
+/* Vebox STE Suppored ----------------------------------------------------------------------------------------------------------o
+      ACE Suppored ---------------------------------------------------------------------------------------------------------o   |
+      TCC Suppored -----------------------------------------------------------------------------------------------------o   |   |
+      HSB Mode Suppored --------------------------------------------------------------------------------------------o   |   |   |
+      IECP Suppored --------------------------------------------------------------------------------------------o   |   |   |   |
+      3DLut Suppored ---------------------------------------------------------------------------------------o   |   |   |   |   |
+      BackEnd CSC Suppored -----------------------------------------------------------------------------o   |   |   |   |   |   |
+      Front CSC Suppored ---------------------------------------------------------------------------o   |   |   |   |   |   |   |
+      LACE Suppored ----------------------------------------------------------------------------o   |   |   |   |   |   |   |   |
+      De-interlace Suppored ----------------------------------------------------------------o   |   |   |   |   |   |   |   |   |
+      Denoise Suppored -----------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |
+      CapPipe Suppored -------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |   |
+      HDR Suppored -------------------------------------------------------------o   |   |   |   |   |   |   |   |   |   |   |   |
+      Processing Unit in Vertical ------------------------------------------o   |   |   |   |   |   |   |   |   |   |   |   |   |
+      Processing Unit in Horizontal ------------------------------------o   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+      MIN Process Height ------------------------------------------o    |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+      MIN Process Width ---------------------------------------o   |    |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+      MAX Process Height ---------------------------------o    |   |    |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+      MAX Process Width ---------------------------o      |    |   |    |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+  Output Format Supported --------------------o    |      |    |   |    |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+  Input Format Supported -----------------o   |    |      |    |   |    |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+                Format                    |   |    |      |    |   |    |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
+--------------------------------------------------------------------------------------------------------------------------------- */
+VP_FF_VEBOX_FORMAT(Format_NV12,           1,  1, 16384, 16384, 64, 16,  2,  2,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_P010,           1,  1, 16384, 16384, 64, 16,  2,  2,  1,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_P016,           1,  1, 16384, 16384, 64, 16,  2,  2,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_YUY2,           1,  1, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_YUYV,           1,  0, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_UYVY,           1,  1, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_Y216,           1,  1, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_Y210,           1,  1, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_P216,           1,  0, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_P210,           1,  0, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  0,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_AYUV,           1,  1, 16384, 16384, 64, 16,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_Y416,           1,  1, 16384, 16384, 64, 16,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_Y410,           1,  1, 16384, 16384, 64, 16,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_YVYU,           1,  0, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_VYUY,           1,  0, 16384, 16384, 64, 16,  2,  1,  0,  0,  1,  1,  1,  0,  1,  0,  1,  1,  1,  1,  1)
 
 // Block ARGB output from Vebox as quality issue
-VP_FF_VEBOX_FORMAT(Format_A8B8G8R8,       1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_X8B8G8R8,       1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_A8R8G8B8,       1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_X8R8G8B8,       1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_A16B16G16R16,   1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_A16R16G16B16,   1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_A16B16G16R16F,  1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_A16R16G16B16F,  1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_L8,             1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_P8,             1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_Y8,             1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_Y16S,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_Y16U,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
-VP_FF_VEBOX_FORMAT(Format_R10G10B10A2,    0,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_B10G10R10A2,    0,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_R5G6B5,         0,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_A8B8G8R8,       1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_X8B8G8R8,       1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_A8R8G8B8,       1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_X8R8G8B8,       1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_A16B16G16R16,   1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_A16R16G16B16,   1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_A16B16G16R16F,  1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_A16R16G16B16F,  1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_L8,             1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_P8,             1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_Y8,             1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_Y16S,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_Y16U,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  1,  1,  0,  0,  1,  0,  1,  1,  1,  1,  1)
+VP_FF_VEBOX_FORMAT(Format_R10G10B10A2,    0,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_B10G10R10A2,    0,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  1,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_R5G6B5,         0,  0, 16384, 16384, 64, 16,  1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0)
 
-VP_FF_VEBOX_FORMAT(Format_IRW0,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_IRW1,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_IRW2,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_IRW3,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_IRW4,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_IRW5,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_IRW6,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
-VP_FF_VEBOX_FORMAT(Format_IRW7,           1,  0, MHW_VEBOX_MAX_RESOLUTION_G12, MHW_VEBOX_MIN_RESOLUTION_G12,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW0,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW1,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW2,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW3,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW4,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW5,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW6,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
+VP_FF_VEBOX_FORMAT(Format_IRW7,           1,  0, 16384, 16384, 64, 16,  1,  1,  0,  1,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0)
 
 #endif //__VP_FEATURE_CAPS__XE_XPM_H__

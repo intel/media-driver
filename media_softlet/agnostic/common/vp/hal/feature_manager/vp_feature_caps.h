@@ -80,14 +80,16 @@ typedef struct VP_SFC_ENTRY_REC
     bool                          iefSupported;
 }VP_SFC_ENTRY_REC;
 
-#define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxResolution, _MinResolution, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported, \
+#define VP_FF_VEBOX_FORMAT(SurfaceFormat, bInput, bOutput, _MaxWidth, _MaxHeight, _MinWidth, _MinHeight, _HorizUnit, _VertUnit, _HdrSupported, _CapturePipeSupported, \
                            _DNSupported, _DISupported, _LACESupported, _FrontCscSupported, _BackEndCscSupported, _3DLutSupported, _IecpSupported, _bHsbMode, \
                            _TCCSupported, _ACESupported, _STESupported)     \
         {                                                                                                                   \
             veboxHwEntry[SurfaceFormat].inputSupported                          = bInput;                                   \
             veboxHwEntry[SurfaceFormat].outputSupported                         = bOutput;                                  \
-            veboxHwEntry[SurfaceFormat].maxResolution                           = _MaxResolution;                           \
-            veboxHwEntry[SurfaceFormat].minResolution                           = _MinResolution;                           \
+            veboxHwEntry[SurfaceFormat].maxWidth                                = _MaxWidth;                           \
+            veboxHwEntry[SurfaceFormat].maxHeight                               = _MaxHeight;                           \
+            veboxHwEntry[SurfaceFormat].minWidth                                = _MinWidth;                           \
+            veboxHwEntry[SurfaceFormat].minHeight                               = _MinHeight;                           \
             veboxHwEntry[SurfaceFormat].horizontalAlignUnit                     = _HorizUnit;                               \
             veboxHwEntry[SurfaceFormat].verticalAlignUnit                       = _VertUnit;                                \
             veboxHwEntry[SurfaceFormat].hdrSupported                            = _HdrSupported;                            \
@@ -110,8 +112,10 @@ typedef struct VP_VEBOX_ENTRY_REC
 {
     bool                          inputSupported;
     bool                          outputSupported;
-    uint32_t                      maxResolution;
-    uint32_t                      minResolution;
+    uint32_t                      maxWidth;
+    uint32_t                      maxHeight;
+    uint32_t                      minWidth;
+    uint32_t                      minHeight;
     float                         maxScalingRatio;
     float                         minScalingRatio;
     uint32_t                      horizontalAlignUnit;

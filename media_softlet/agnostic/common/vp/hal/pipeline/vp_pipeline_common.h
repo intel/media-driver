@@ -207,6 +207,7 @@ typedef struct _VP_EngineEntry
             uint32_t sfc2PassScalingNeededY : 1;
             uint32_t usedForNextPass : 1;       // true if current feature should be bypassed for current pass and be processed during next pass.
             uint32_t sfcNotSupported : 1;       // true if sfc cannot be selected.
+            uint32_t veboxNotSupported : 1;     // true if vebox cannot be selected.
             uint32_t onlyParamCalculation : 1;  // true if the feature is used for parameter calculation.
         };
         uint32_t value;

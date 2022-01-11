@@ -266,6 +266,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
 
     if (IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
     {
+        VPHAL_RENDER_NORMALMESSAGE("Disable APO Path for HDR cases.");
         return MOS_STATUS_SUCCESS;
     }
 
@@ -273,12 +274,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
     // VTd doesn't support VEBOX
     if (!MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrVERing))
     {
-        return MOS_STATUS_SUCCESS;
-    }
-
-    // Check if the Surface size is greater than 64x16 which is the minimum Width and Height VEBOX can handle
-    if (pvpParams->pSrc[0]->dwWidth < MHW_VEBOX_MIN_WIDTH || pvpParams->pSrc[0]->dwHeight < MHW_VEBOX_MIN_HEIGHT)
-    {
+        VP_PUBLIC_NORMALMESSAGE("Disable APO Path for VEBOX not available case.");
         return MOS_STATUS_SUCCESS;
     }
 
@@ -291,6 +287,7 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
     if (pvpParams->pSrc[0]->pDenoiseParams                       &&
         pvpParams->pSrc[0]->pDenoiseParams->bEnableHVSDenoise)
     {
+        VP_PUBLIC_NORMALMESSAGE("Disable APO Path for HVS.");
         return MOS_STATUS_SUCCESS;
     }
 
