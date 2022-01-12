@@ -4143,11 +4143,13 @@ public:
             //!< DWORD 5
             struct
             {
-                uint32_t                 Reserved89                                       : __CODEGEN_BITFIELD( 0,  7)    ; //!< Reserved
-                uint32_t                 StreaminRoiEnable                                : __CODEGEN_BITFIELD( 8,  8)    ; //!< StreamIn ROI Enable
-                uint32_t                 Reserved98                                       : __CODEGEN_BITFIELD( 9, 23)    ; //!< Reserved
-                uint32_t                 NumRefIdxL0Minus1                                : __CODEGEN_BITFIELD(24, 27)    ; //!< NumRefIdxL0_minus1
-                uint32_t                 NumRefIdxL1Minus1                                : __CODEGEN_BITFIELD(28, 31)    ; //!< NumRefIdxL1_minus1
+                uint32_t Reserved89             : __CODEGEN_BITFIELD(0, 7);           //!< Reserved
+                uint32_t StreaminRoiEnable      : __CODEGEN_BITFIELD(8, 8);           //!< StreamIn ROI Enable
+                uint32_t Reserved98             : __CODEGEN_BITFIELD(9, 9);           //!< Reserved
+                uint32_t SubPelMode             : __CODEGEN_BITFIELD(10, 11);         //!< SubPelMode
+                uint32_t Reserved981            : __CODEGEN_BITFIELD(12, 23);         //!< Reserved
+                uint32_t NumRefIdxL0Minus1      : __CODEGEN_BITFIELD(24, 27);         //!< NumRefIdxL0_minus1
+                uint32_t NumRefIdxL1Minus1      : __CODEGEN_BITFIELD(28, 31);         //!< NumRefIdxL1_minus1
             };
             uint32_t                     Value;
         } DW5;

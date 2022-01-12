@@ -172,6 +172,17 @@ struct EncoderParams
     MetaDataOffset                  metaDataOffset      = {};
     void *                          pSliceHeaderParams  = nullptr;          //!< [HEVC]
 
+    /*! \brief Specifies motion search modes that will be used.
+    *
+    *    SubPelMode is only valid when bEnableSubPelMode is true. Following are valid values of SubPelMode:
+    *    0:Integer mode searching
+    *    1:Half-pel mode searching
+    *    2:Reserved
+    *    3:Quarter-pel mode searching
+    */
+    bool                            bEnableSubPelMode = false;
+    uint8_t                         SubPelMode        = 0;
+
     PMOS_RESOURCE                   m_presPredication           = nullptr;      //! \brief [Predication] Resource for predication
     uint64_t                        m_predicationResOffset      = 0;            //! \brief [Predication] Offset for Predication resource
     bool                            m_predicationNotEqualZero   = false;        //! \brief [Predication] Predication mode

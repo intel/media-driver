@@ -2515,6 +2515,7 @@ public:
 
                 cmd.DW3.PocNumberForRefid1InL1 = cmd.DW3.PocNumberForRefid1InL0;
                 cmd.DW4.PocNumberForRefid2InL1 = cmd.DW4.PocNumberForRefid2InL0;
+                cmd.DW5.SubPelMode = (params->bEnableSubPelMode) ? params->SubPelMode : 3;
             }
             else
             {

@@ -118,19 +118,21 @@ struct MHW_VDBOX_VDENC_CMD2_STATE
     uint32_t                                Mode = 0;
 
     // HEVC
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS      pHevcEncSeqParams = nullptr;
-    PCODEC_HEVC_ENCODE_PICTURE_PARAMS       pHevcEncPicParams = nullptr;
-    PCODEC_HEVC_ENCODE_SLICE_PARAMS         pHevcEncSlcParams = nullptr;
-    bool                                    bSAOEnable = false;
-    bool                                    bRoundingEnabled = false;
-    bool                                    bStreamInEnabled = false;
-    bool                                    bROIStreamInEnabled = false;
-    bool                                    bUseDefaultQpDeltas = false;
-    bool                                    bPanicEnabled = false;
-    bool                                    bPartialFrameUpdateEnable = false;
-    uint32_t                                roundInterValue = 0;
-    uint32_t                                roundIntraValue = 0;
-    uint8_t                                 bStreaminRoiMode = 0;
+    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS pHevcEncSeqParams         = nullptr;
+    PCODEC_HEVC_ENCODE_PICTURE_PARAMS  pHevcEncPicParams         = nullptr;
+    PCODEC_HEVC_ENCODE_SLICE_PARAMS    pHevcEncSlcParams         = nullptr;
+    bool                               bSAOEnable                = false;
+    bool                               bRoundingEnabled          = false;
+    bool                               bStreamInEnabled          = false;
+    bool                               bROIStreamInEnabled       = false;
+    bool                               bUseDefaultQpDeltas       = false;
+    bool                               bPanicEnabled             = false;
+    bool                               bPartialFrameUpdateEnable = false;
+    uint32_t                           roundInterValue           = 0;
+    uint32_t                           roundIntraValue           = 0;
+    uint8_t                            bStreaminRoiMode          = 0;
+    bool                               bEnableSubPelMode         = false;
+    uint8_t                            SubPelMode                = 0;
 
     // VP9
     PCODEC_VP9_ENCODE_PIC_PARAMS            pVp9EncPicParams = nullptr;
