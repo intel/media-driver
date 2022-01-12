@@ -81,6 +81,7 @@ export LIBVA_DRIVER_NAME=iHD
 - JSL (Jasper Lake) / EHL (Elkhart Lake)
 - TGLx (TGL: Tiger Lake, RKL: Rocket Lake, ADL-S/P: Alder Lake)
 - DG1/SG1
+- Alchemist(DG2)/ATS-M(Arctic Sound Mainstream)
 
 
 ## Components and Features
@@ -178,11 +179,11 @@ the following settings to enable them.
     - If trying to use pre-built open source kernel binaries, please add BUILD_KERNELS=OFF(Default).
     - If trying to rebuild open source kernel from source code, please add BUILD_KERNELS=ON.
 
-Media-driver requires special i915 kernel mode driver (kmd) version to support the following
-new platforms since upstream version of i915 kmd does not fully support them
+Media-driver requires special i915 kernel mode driver (KMD) version to support the following
+new platforms since upstream version of i915 KMD does not fully support them
 (pending patches upstream):
-- DG1
-- SG1
+- DG1/SG1
+- Alchemist(DG2)/ATS-M(Arctic Sound Mainstream)
 
 By default, media-driver builds against upstream i915 kmd and will miss
 support for the platforms listed above. To enable new platforms which
