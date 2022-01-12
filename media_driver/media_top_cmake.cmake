@@ -672,7 +672,7 @@ if (NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
     endif()
 
     target_compile_options( ${LIB_NAME} PUBLIC ${LIBGMM_CFLAGS_OTHER})
-    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES})
+    target_link_libraries ( ${LIB_NAME} ${LIBGMM_LIBRARIES} drm)
 
     include(${MEDIA_EXT_CMAKE}/ext/media_feature_include_ext.cmake OPTIONAL)
 
