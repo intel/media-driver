@@ -1610,36 +1610,47 @@ VAStatus DdiMedia__InitializeSoftlet(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    if(apoDdiEnabled)
+    do
     {
-        mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
-        if (nullptr == mediaCtx->m_hwInfo)
+        if(apoDdiEnabled)
         {
-            DDI_ASSERTMESSAGE("Unregister hwinfo platform.");
-            DdiMedia_CleanUp(mediaCtx);
-            DestroyMediaContextMutex(mediaCtx);
-            FreeForMediaContext(mediaCtx);
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        }
+            mediaCtx->m_hwInfo = MediaInterfacesHwInfoDevice::CreateFactory(mediaCtx->platform);
+            if (nullptr == mediaCtx->m_hwInfo)
+            {
+                DDI_ASSERTMESSAGE("Unregister hwinfo platform.");
+                status = VA_STATUS_ERROR_ALLOCATION_FAILED;
+                break;
+            }
 
-        mediaCtx->m_capsNext = MediaLibvaCapsNext::CreateCaps(mediaCtx);
-        if (!mediaCtx->m_capsNext)
-        {
-            DDI_ASSERTMESSAGE("Caps next init failed. Not supported GFX device.");
-            DdiMedia_CleanUp(mediaCtx);
-            DestroyMediaContextMutex(mediaCtx);
-            FreeForMediaContext(mediaCtx);
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
-        }
+            mediaCtx->m_capsNext = MediaLibvaCapsNext::CreateCaps(mediaCtx);
+            if (!mediaCtx->m_capsNext)
+            {
+                DDI_ASSERTMESSAGE("Caps next create failed. Not supported GFX device.");
+                status = VA_STATUS_ERROR_ALLOCATION_FAILED;
+                break;
+            }
 
-        if (MediaLibvaInterfaceNext::InitCompList(mediaCtx) != VA_STATUS_SUCCESS)
-        {
-            DDI_ASSERTMESSAGE("Init CompList failed. Not supported GFX device.");
-            DdiMedia_CleanUp(mediaCtx);
-            DestroyMediaContextMutex(mediaCtx);
-            FreeForMediaContext(mediaCtx);
-            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+            if(mediaCtx->m_capsNext->Init() != VA_STATUS_SUCCESS)
+            {
+                DDI_ASSERTMESSAGE("Caps next init failed.");
+                status = VA_STATUS_ERROR_ALLOCATION_FAILED;
+                break;
+            }
+
+            if (MediaLibvaInterfaceNext::InitCompList(mediaCtx) != VA_STATUS_SUCCESS)
+            {
+                DDI_ASSERTMESSAGE("Init CompList failed. Not supported GFX device.");
+                status =  VA_STATUS_ERROR_ALLOCATION_FAILED;
+                break;
+            }
         }
+    } while(false);
+
+    if (status != VA_STATUS_SUCCESS)
+    {
+        DdiMedia_CleanUp(mediaCtx);
+        DestroyMediaContextMutex(mediaCtx);
+        FreeForMediaContext(mediaCtx);
     }
 
     return status;
@@ -2037,6 +2048,7 @@ VAStatus DdiMedia_InitMediaContext (
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
+    mediaCtx->m_apoDdiEnabled = apoDdiEnabled;
 #endif
 
 #if !defined(ANDROID) && defined(X11_FOUND)

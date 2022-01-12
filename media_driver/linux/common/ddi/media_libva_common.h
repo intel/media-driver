@@ -560,6 +560,7 @@ struct DDI_MEDIA_CONTEXT
     DdiMediaFunctions     *m_compList[CompCount] = {nullptr};
     MediaInterfacesHwInfo *m_hwInfo = nullptr;
     MediaLibvaCapsNext    *m_capsNext = nullptr;
+    bool                  m_apoDdiEnabled = false;
 #endif
 };
 
