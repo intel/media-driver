@@ -119,7 +119,7 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::GetCurentKernelID( )
 {
     int32_t iBytePerPixelPerPlane = GetBytesPerPixel(m_Source.Format);
 
-    if ((iBytePerPixelPerPlane < 1) && (iBytePerPixelPerPlane > 8))
+    if ((iBytePerPixelPerPlane < 1) || (iBytePerPixelPerPlane > 8))
     {
         MCPY_ASSERTMESSAGE("XE_XPM_PLUS GetCurentKernelID wrong pixel size.");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -693,7 +693,7 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::LoadStaticData(
 
     pRenderHal = pRenderCopy->m_renderHal;
 
-    if ((iBytePerPixelPerPlane < 1) && (iBytePerPixelPerPlane > 8))
+    if ((iBytePerPixelPerPlane < 1) || (iBytePerPixelPerPlane > 8))
     {
         MCPY_ASSERTMESSAGE("XE_XPM_PLUS LoadStaticData wrong pixel size.");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -780,11 +780,11 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::LoadStaticData(
 
         if ((m_currKernelId == KERNEL_CopyKernel_1D_to_2D_Packed) || (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Packed))
         {
-            WalkerSinglePlaneStatic.DW5.ThreadHeight = m_Target.dwHeight / 32;
+            WalkerSinglePlaneStatic.DW5.ThreadHeight = (m_Target.dwHeight + 32 - 1) / 32;
         }
         else if (m_currKernelId == KERNEL_CopyKernel_2D_to_2D_Packed)
         {
-            WalkerSinglePlaneStatic.DW5.ThreadHeight = m_Target.dwHeight / 8;
+            WalkerSinglePlaneStatic.DW5.ThreadHeight = (m_Target.dwHeight + 8 - 1) / 8;
         }
         else
         {
@@ -835,7 +835,7 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::LoadStaticData(
     RECT                                    AlignedRect;
     int32_t                                 iBytePerPixelPerPlane = GetBytesPerPixel(m_Target.Format);
 
-    if ((iBytePerPixelPerPlane < 1) && (iBytePerPixelPerPlane > 8))
+    if ((iBytePerPixelPerPlane < 1) || (iBytePerPixelPerPlane > 8))
     {
         MCPY_ASSERTMESSAGE("XE_XPM_PLUS RenderCopyComputerWalker wrong pixel size.");
         return MOS_STATUS_INVALID_PARAMETER;
