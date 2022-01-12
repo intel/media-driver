@@ -4732,6 +4732,7 @@ int mos_query_engines_count(struct mos_bufmgr *bufmgr,
     int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
     struct drm_i915_query query;
     struct drm_i915_query_item query_item;
+    struct drm_i915_query_engine_info *engines = nullptr;
     int ret, len;
 
     memclear(query_item);
@@ -4742,7 +4743,44 @@ int mos_query_engines_count(struct mos_bufmgr *bufmgr,
     query.items_ptr = (uintptr_t)&query_item;
 
     ret = drmIoctl(fd, DRM_IOCTL_I915_QUERY, &query);
-    *nengine = query_item.length;
+    if (ret || query_item.length == 0)
+    {
+        *nengine = 0;
+        return ret;
+    }
+
+    len = query_item.length;
+
+    engines = (drm_i915_query_engine_info *)malloc(len);
+    if (nullptr == engines)
+    {
+        *nengine = 0;
+        ret = -ENOMEM;
+        return ret;
+    }
+
+    memset(engines, 0, len);
+    memclear(query_item);
+    query_item.query_id = DRM_I915_QUERY_ENGINE_INFO;
+    query_item.length = len;
+    query_item.data_ptr = (uintptr_t)engines;
+    memclear(query);
+    query.num_items = 1;
+    query.items_ptr = (uintptr_t)&query_item;
+
+    ret = drmIoctl(fd, DRM_IOCTL_I915_QUERY, &query);
+    if(ret)
+    {
+        *nengine = 0;
+        return ret;
+    }
+    
+    *nengine = engines->num_engines;
+    
+    if(engines)
+    {
+        free(engines);
+    }
     return ret;
 }
 
@@ -4771,7 +4809,12 @@ int mos_query_engines(struct mos_bufmgr *bufmgr,
     {
         goto fini;
     }
+
     len = query_item.length;
+    if(len == 0)
+    {
+        goto fini;
+    }
 
     engines = (drm_i915_query_engine_info *)malloc(len);
     if (nullptr == engines)

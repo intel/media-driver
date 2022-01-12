@@ -180,11 +180,11 @@ MOS_STATUS HWInfo_GetGfxInfo(int32_t           fd,
     if((gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)
         || (gtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled == 0))
     {
-        if (mos_query_engines_count(pDrmBufMgr, &maxNengine))
-            {
-                MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
-                return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-            }
+        if (mos_query_engines_count(pDrmBufMgr, &maxNengine) || (maxNengine == 0))
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
+            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+        }
     }
 
     if (gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)

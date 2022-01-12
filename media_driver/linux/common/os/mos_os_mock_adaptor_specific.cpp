@@ -97,11 +97,11 @@ MOS_STATUS MosMockAdaptorSpecific::InitializeSkuWaTable(PMOS_CONTEXT context)
     if((m_pGtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)
         || (m_pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled == 0))
     {
-        if (mos_query_engines_count(context->bufmgr, &maxNengine))
-            {
-                MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
-                return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
-            }
+        if (mos_query_engines_count(context->bufmgr, &maxNengine) || (maxNengine == 0))
+        {
+            MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
+            return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+        }
     }
 
     if (m_pGtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled == 0)

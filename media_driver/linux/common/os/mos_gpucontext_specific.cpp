@@ -173,7 +173,7 @@ MOS_STATUS GpuContextSpecific::Init(OsContext *osContext,
 
         m_i915ExecFlag = I915_EXEC_DEFAULT;
 
-        if (mos_query_engines_count(osInterface->pOsContext->bufmgr, &nengine))
+        if (mos_query_engines_count(osInterface->pOsContext->bufmgr, &nengine) || (nengine == 0))
         {
             MOS_OS_ASSERTMESSAGE("Failed to query engines count.\n");
             return MOS_STATUS_UNKNOWN;

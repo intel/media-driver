@@ -4965,6 +4965,7 @@ int mos_query_engines_count(struct mos_bufmgr *bufmgr,
     int fd = ((struct mos_bufmgr_gem*)bufmgr)->fd;
     struct drm_i915_query query;
     struct drm_i915_query_item query_item;
+    struct prelim_drm_i915_query_engine_info *engines = nullptr;
     int ret, len;
 
     memclear(query_item);
@@ -4972,7 +4973,38 @@ int mos_query_engines_count(struct mos_bufmgr *bufmgr,
     query_item.length = 0;
 
     ret = mos_gem_query_items(fd, &query_item, 1);
-    *nengine = query_item.length;
+    if(ret || query_item.length == 0)
+    {
+        *nengine = 0;
+        return ret;
+    }
+
+    len = query_item.length;
+    engines = (prelim_drm_i915_query_engine_info *)malloc(len);
+    if (engines == nullptr)
+    {
+        *nengine = 0;
+        return ret;
+    }
+    
+    memset(engines, 0, len);
+    memclear(query_item);
+    query_item.query_id = PRELIM_DRM_I915_QUERY_ENGINE_INFO;
+    query_item.length = len;
+    query_item.data_ptr = (uintptr_t)engines;
+    ret = mos_gem_query_items(fd, &query_item, 1);
+    if(ret)
+    {
+        *nengine = 0;
+        return ret;
+    }
+    
+    *nengine = engines->num_engines;
+
+    if (engines)
+    {
+        free(engines);
+    }
     return ret;
 }
 
@@ -5010,6 +5042,10 @@ static int __mos_query_engines(int fd,
 
     GOTO_FINI_IF_NOT_0(ret = mos_gem_query_items(fd, &query_item, 1));
     len = query_item.length;
+    if (len == 0)
+    {
+        goto fini;
+    }
 
     engines = (prelim_drm_i915_query_engine_info *)malloc(len);
     GOTO_FINI_IF_MALLOC_FAIL(engines);
