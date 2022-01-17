@@ -32,7 +32,7 @@ include(${MEDIA_DRIVER_CMAKE}/media_feature_flags.cmake)
 
 if(NOT DEFINED SKIP_GMM_CHECK)
     # checking dependencies
-    pkg_check_modules(LIBGMM igdgmm)
+    pkg_check_modules(LIBGMM REQUIRED igdgmm>=12.0.0)
 
     if(LIBGMM_FOUND)
         include_directories(BEFORE ${LIBGMM_INCLUDE_DIRS})
