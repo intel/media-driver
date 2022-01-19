@@ -4769,13 +4769,8 @@ int mos_query_engines_count(struct mos_bufmgr *bufmgr,
     query.items_ptr = (uintptr_t)&query_item;
 
     ret = drmIoctl(fd, DRM_IOCTL_I915_QUERY, &query);
-    if(ret)
-    {
-        *nengine = 0;
-        return ret;
-    }
-    
-    *nengine = engines->num_engines;
+
+    *nengine = ret ? 0 : engines->num_engines;
     
     if(engines)
     {

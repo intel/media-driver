@@ -4993,13 +4993,8 @@ int mos_query_engines_count(struct mos_bufmgr *bufmgr,
     query_item.length = len;
     query_item.data_ptr = (uintptr_t)engines;
     ret = mos_gem_query_items(fd, &query_item, 1);
-    if(ret)
-    {
-        *nengine = 0;
-        return ret;
-    }
-    
-    *nengine = engines->num_engines;
+
+    *nengine = ret ? 0 : engines->num_engines;
 
     if (engines)
     {
