@@ -459,22 +459,6 @@ MOS_STATUS DecodePipeline::TraceDataDumpOutput(const DecodeStatusReportData &rep
     dstSurface.OsResource = reportData.currDecodedPicRes;
     DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
 
-    DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-    {
-        (uint32_t)reportData.currDecodedPic.PicFlags,
-        dstSurface.dwOffset,
-        dstSurface.YPlaneOffset.iYOffset,
-        dstSurface.dwPitch,
-        dstSurface.dwWidth,
-        dstSurface.dwHeight,
-        (uint32_t)dstSurface.Format,
-        dstSurface.UPlaneOffset.iLockSurfaceOffset,
-        dstSurface.VPlaneOffset.iLockSurfaceOffset,
-        dstSurface.UPlaneOffset.iSurfaceOffset,
-        dstSurface.VPlaneOffset.iSurfaceOffset,
-    };
-    MOS_TraceEvent(EVENT_DECODE_SURFACE_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0); 
-
     if (!m_allocator->ResourceIsNull(&dstSurface.OsResource))
     {
         if (m_tempOutputSurf == nullptr || m_allocator->ResourceIsNull(&m_tempOutputSurf->OsResource))
@@ -514,6 +498,23 @@ MOS_STATUS DecodePipeline::TraceDataDumpOutput(const DecodeStatusReportData &rep
             &dstSurface.OsResource,
             &m_tempOutputSurf->OsResource,
             false));
+
+        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
+        {
+            (uint32_t)reportData.currDecodedPic.PicFlags,
+            reportData.frameType,
+            m_tempOutputSurf->dwOffset,
+            m_tempOutputSurf->YPlaneOffset.iYOffset,
+            m_tempOutputSurf->dwPitch,
+            m_tempOutputSurf->dwWidth,
+            m_tempOutputSurf->dwHeight,
+            (uint32_t)m_tempOutputSurf->Format,
+            m_tempOutputSurf->UPlaneOffset.iLockSurfaceOffset,
+            m_tempOutputSurf->VPlaneOffset.iLockSurfaceOffset,
+            m_tempOutputSurf->UPlaneOffset.iSurfaceOffset,
+            m_tempOutputSurf->VPlaneOffset.iSurfaceOffset,
+        };
+        MOS_TraceEvent(EVENT_DECODE_DST_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0); 
 
         ResourceAutoLock resLock(m_allocator, &m_tempOutputSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
@@ -661,7 +662,8 @@ MOS_STATUS DecodePipeline::StatusCheck()
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
         if (MOS_GetTraceEventKeyword() & EVENT_DECODE_DSTYUV_KEYWORD)
         {
-            DECODE_CHK_STATUS(TraceDataDumpOutput(reportData));
+            const DecodeStatusReportData &reportETWData = statusReport->GetReportData(m_statusCheckCount);
+            DECODE_CHK_STATUS(TraceDataDumpOutput(reportETWData));
         }
 #endif
 

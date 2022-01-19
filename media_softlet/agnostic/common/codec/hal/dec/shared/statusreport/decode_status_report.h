@@ -72,9 +72,10 @@ namespace decode {
         bool                    secondField = false;
         //! \brief Applies to VC1 only, indicates whether or not the frame required OLP.
         bool                    olpNeeded = false;
-        //! \brief Applies when debug dumps are enabled, frame type (I/P/B)
-        uint16_t                frameType = 0;
 #endif // (_DEBUG || _RELEASE_INTERNAL)
+
+        //! \brief Frame type (I/P/B)
+        uint16_t                frameType = 0;
     };
 
     class DecodeStatusReport : public MediaStatusReport

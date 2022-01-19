@@ -109,12 +109,12 @@ namespace decode {
             m_statusReportData[submitIndex].codecStatus = CODECHAL_STATUS_UNAVAILABLE;
             m_statusReportData[submitIndex].statusReportNumber = inputParameters->statusReportFeedbackNumber;
             m_statusReportData[submitIndex].currDecodedPic = inputParameters->currOriginalPic;
-            m_statusReportData[submitIndex].currDecodedPicRes = inputParameters->currDecodedPicRes;
+            m_statusReportData[submitIndex].currDecodedPicRes = inputParameters->currDecodedPicRes;       
+            m_statusReportData[submitIndex].frameType          = inputParameters->pictureCodingType;
 #if (_DEBUG || _RELEASE_INTERNAL)
             m_statusReportData[submitIndex].currSfcOutputPicRes = inputParameters->sfcOutputPicRes;
-            m_statusReportData[submitIndex].currHistogramOutBuf = inputParameters->histogramOutputBuf;
-            m_statusReportData[submitIndex].frameType = inputParameters->pictureCodingType;
-            m_statusReportData[submitIndex].currFgOutputPicRes = inputParameters->fgOutputPicRes;
+            m_statusReportData[submitIndex].currHistogramOutBuf = inputParameters->histogramOutputBuf;            
+            m_statusReportData[submitIndex].currFgOutputPicRes  = inputParameters->fgOutputPicRes;
 #endif
         }
 
