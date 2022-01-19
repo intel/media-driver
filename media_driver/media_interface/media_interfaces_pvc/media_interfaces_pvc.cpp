@@ -183,10 +183,6 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     MOS_STATUS status;
     m_cpInterface = Create_MhwCpInterface(osInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
-    {
-        m_miItf = std::make_shared<mhw::mi::xe_xpm_base::Impl>(osInterface);
-        m_miItf->SetCpInterface(m_cpInterface);
-    }
 
     if (params.Flags.m_render)
     {
@@ -221,14 +217,10 @@ MOS_STATUS MhwInterfacesPvc_Next::Initialize(
     if (params.Flags.m_vdboxAll || params.Flags.m_huc)
     {
         m_hucInterface = MOS_New(Huc, osInterface, m_miInterface, m_cpInterface);
-        m_hucItf = std::make_shared<mhw::vdbox::huc::xe_xpm_plus::Impl>(osInterface, m_cpInterface);
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
-        m_vdencItf = std::make_shared<mhw::vdbox::vdenc::xe_xpm_plus::Impl>(osInterface);
-#endif
     }
     if (params.Flags.m_blt)
     {
