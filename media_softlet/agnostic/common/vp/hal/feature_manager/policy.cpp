@@ -781,35 +781,9 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
             (cscParams->output.colorSpace == CSpace_stRGB)              ||
             (cscParams->output.colorSpace == CSpace_sRGB))
         {
-            midFormat = Format_A8R8G8B8; // Vebox Gamut compression is needed, Vebox output is ARGB as SFC input
-        }
-        else
-        {
-            midFormat = Format_Any;
-        }
-    }
-
-    if (midFormat != Format_Any)
-    {
-        if (m_hwCaps.m_sfcHwEntry[midFormat].cscSupported &&
-            m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
-            m_hwCaps.m_sfcHwEntry[midFormat].inputSupported)
-        {
-            // Vebox GC + SFC CSC to handle legacy 2 pass CSC case.
-            cscEngine->bEnabled    = 1;
-            cscEngine->SfcNeeded   = 1;
-            cscEngine->VeboxNeeded = 0;
-            if (disableSfc)
-            {
-                VP_PUBLIC_ASSERTMESSAGE("Not support 2 pass csc case for render.");
-            }
-            PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
-            return MOS_STATUS_SUCCESS;
-        }
-        else
-        {
-            PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
-            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+            // Should not come here for BT2020 support.
+            VP_PUBLIC_ASSERTMESSAGE("not support BT2020 input.");
+            return MOS_STATUS_UNIMPLEMENTED;
         }
     }
 
@@ -2337,6 +2311,12 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
                 {
                     engineCaps->bEnabled = 1;
                     engineCaps->VeboxNeeded = 1;
+                }
+
+                if (!engineCaps->VeboxNeeded)
+                {
+                    // Will handle such case in PolicyVeboxCscHandler::UpdateFeaturePipe.
+                    VP_PUBLIC_NORMALMESSAGE("VeboxNeeded being false. Csc selected just for chroma sitting.");
                 }
 
                 VP_PUBLIC_CHK_STATUS_RETURN(UpdateExeCaps(feature, caps, EngineTypeVebox));

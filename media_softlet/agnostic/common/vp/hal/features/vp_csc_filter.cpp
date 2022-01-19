@@ -1019,7 +1019,7 @@ MOS_STATUS PolicyVeboxCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilt
     SwFilterCsc *featureCsc = dynamic_cast<SwFilterCsc *>(&feature);
     VP_PUBLIC_CHK_NULL_RETURN(featureCsc);
 
-    if (caps.bForceCscToRender)
+    if (!featureCsc->GetFilterEngineCaps().VeboxNeeded || caps.bForceCscToRender)
     {
         SwFilterCsc *filter2ndPass = featureCsc;
         SwFilterCsc *filter1ndPass = (SwFilterCsc *)feature.Clone();
@@ -1028,6 +1028,13 @@ MOS_STATUS PolicyVeboxCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilt
         VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
 
         filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
+
+        if (!filter1ndPass->GetFilterEngineCaps().VeboxNeeded)
+        {
+            VP_PUBLIC_NORMALMESSAGE("VeboxNeeded being false. Just do chroma sitting in current pass");
+            filter1ndPass->GetFilterEngineCaps().VeboxNeeded = 1;
+        }
+
         filter1ndPass->SetFeatureType(filter2ndPass->GetFeatureType());
 
         FeatureParamCsc &params2ndPass = filter2ndPass->GetSwFilterParams();
@@ -1047,14 +1054,24 @@ MOS_STATUS PolicyVeboxCscHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilt
         filter2ndPass->SetFeatureType(FeatureTypeCsc);
         filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
 
-        // Switch to render engine for csc filter.
-        VP_PUBLIC_NORMALMESSAGE("Force csc to render case. VeboxNeeded: %d -> 0, RenderNeeded: %d -> 1",
-            filter2ndPass->GetFilterEngineCaps().VeboxNeeded,
-            filter2ndPass->GetFilterEngineCaps().RenderNeeded);
-        filter2ndPass->GetFilterEngineCaps().bEnabled     = 1;
-        filter2ndPass->GetFilterEngineCaps().VeboxNeeded  = 0;
-        filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
-        filter2ndPass->GetFilterEngineCaps().fcSupported  = 1;
+        if (caps.bForceCscToRender)
+        {
+            // Switch to render engine for csc filter.
+            VP_PUBLIC_NORMALMESSAGE("Force csc to render case. VeboxNeeded: %d -> 0, RenderNeeded: %d -> 1",
+                filter2ndPass->GetFilterEngineCaps().VeboxNeeded,
+                filter2ndPass->GetFilterEngineCaps().RenderNeeded);
+            filter2ndPass->GetFilterEngineCaps().bEnabled     = 1;
+            filter2ndPass->GetFilterEngineCaps().VeboxNeeded  = 0;
+            filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
+            filter2ndPass->GetFilterEngineCaps().fcSupported  = 1;
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("VeboxNeeded being false.Keep engine caps for next pass no change. enable %d, SfcNeeded %d, RenderNeeded %d",
+                filter2ndPass->GetFilterEngineCaps().bEnabled,
+                filter2ndPass->GetFilterEngineCaps().SfcNeeded,
+                filter2ndPass->GetFilterEngineCaps().RenderNeeded);
+        }
 
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
     }
