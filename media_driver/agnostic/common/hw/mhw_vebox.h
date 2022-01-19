@@ -1077,6 +1077,14 @@ public:
 
     virtual MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) { return MOS_STATUS_SUCCESS; }
 
+    //!
+    //! \brief    Get new vebox interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new render interface
+    //!
+    virtual std::shared_ptr<void> GetNewVeboxInterface() { return nullptr; }
+
 protected:
     MhwVeboxInterface(PMOS_INTERFACE pOsInterface);
 
@@ -1220,6 +1228,7 @@ private:
     PMHW_VEBOX_HEAP        m_veboxHeap     = nullptr;
     MHW_VEBOX_SETTINGS     m_veboxSettings;
     bool                   m_veboxScalabilitywith4K    = false;
+    std::shared_ptr<void>  m_veboxItfNew    = nullptr;
 };
 
 #endif // __MHW_VEBOX_H__

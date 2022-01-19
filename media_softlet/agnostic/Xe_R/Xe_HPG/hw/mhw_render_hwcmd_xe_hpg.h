@@ -1,4 +1,4 @@
-﻿/*===================== begin_copyright_notice ==================================
+/*===================== begin_copyright_notice ==================================
 
 * Copyright (c) 2015-2020, Intel Corporation
 *
@@ -1630,8 +1630,7 @@ namespace xe_hpg
 }  // namespace xe_hpg
 }  // namespace render
 }  // namespace mhw
-class mhw_render_xe_hpm
-{};
+
 #pragma pack()
 
 #endif  // __MHW_RENDER_HWCMD_XE_HPG_H__
