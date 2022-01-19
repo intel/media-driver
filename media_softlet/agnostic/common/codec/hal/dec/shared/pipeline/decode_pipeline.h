@@ -48,7 +48,6 @@ namespace decode {
     typedef struct _DECODE_EVENTDATA_YUV_SURFACE_INFO
     {
         uint32_t PicFlags;
-        uint32_t FrameType;
         uint32_t dwOffset;
         int32_t  YPlaneOffset_iYOffset;
         uint32_t dwPitch;

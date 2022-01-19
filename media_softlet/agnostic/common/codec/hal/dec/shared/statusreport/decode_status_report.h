@@ -56,8 +56,6 @@ namespace decode {
         uint16_t                numMbsAffected = 0;
         //! \brief Crc of frame from MMIO
         uint32_t                frameCrc = 0;
-        //! \brief frame type (I/P/B)
-        uint16_t                frameType = 0;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         //! \brief Applies when debug dumps are enabled, pointer to SFC output resource for the picture associated with this status report
@@ -74,6 +72,8 @@ namespace decode {
         bool                    secondField = false;
         //! \brief Applies to VC1 only, indicates whether or not the frame required OLP.
         bool                    olpNeeded = false;
+        //! \brief Applies when debug dumps are enabled, frame type (I/P/B)
+        uint16_t                frameType = 0;
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     };
 

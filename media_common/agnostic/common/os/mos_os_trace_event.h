@@ -197,8 +197,7 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_FEATURE_VT_SCALABILITY,           //! event for Decode Feature Virtual Tile Scalability
     EVENT_DECODE_FEATURE_RT_SCALABILITY,           //! event for Decode Feature Real Tile Scalability
     EVENT_DECODE_FEATURE_DECODEMODE_REPORT,        //! event for Decode Feature Decode Mode Report
-    EVENT_DECODE_DST_DUMPINFO,                     //! event for Decode Dst Surface Info
-    EVENT_DECODE_REF_DUMPINFO,                     //! event for Decode Ref Surface Info
+    EVENT_DECODE_SURFACE_DUMPINFO,                 //! event for Decode Yuv Surface Info
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
