@@ -481,6 +481,21 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInpu
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Policy::Update3DLutoutputColorAndFormat(FeatureParamCsc *cscParams, FeatureParamHdr *hdrParams, MOS_FORMAT Format, VPHAL_CSPACE CSpace)
+{
+    // For vebox + render, e.g. BT2020 P010->SRGB, if not correct the format here, since forceCscToRender being enabled, outputFormat in csc filter of
+    // first pass will be set to P010 in PolicyVeboxCscHandler::UpdateFeaturePipe(). It will cause the wrong format being used for intermediate surface
+    // in VpResourceManager::GetIntermediaOutputSurfaceColorAndFormat().
+    // For vebox + sfc, GetSfcInputFormat in VpCscFilter::CalculateSfcEngineParams() will ensure the right format being used, although the format
+    // in csc will be overwritten in params.executedFilters->Update() in Policy::BuildExecuteFilter.
+    hdrParams->formatOutput     = Format;
+    hdrParams->dstColorSpace    = CSpace;
+    cscParams->formatInput      = Format;
+    cscParams->input.colorSpace = CSpace;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
 {
     VP_FUNC_CALL();
@@ -510,6 +525,8 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
     VPHAL_CSPACE hdrCSpace  = CSpace_Any;
     hdrCSpace               = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? CSpace_BT2020_RGB : CSpace_sRGB;
     hdrFormat               = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
+    VP_PUBLIC_CHK_STATUS_RETURN(Update3DLutoutputColorAndFormat(cscParams, hdrParams, hdrFormat, hdrCSpace));
+
     if (m_hwCaps.m_sfcHwEntry[hdrFormat].inputSupported &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
         m_hwCaps.m_sfcHwEntry[hdrFormat].cscSupported)
@@ -524,6 +541,8 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
         {
             cscEngine->bEnabled     = 1;
             cscEngine->SfcNeeded    = 1;
+            cscEngine->RenderNeeded = 1;
+            cscEngine->fcSupported  = 1;
         }
     }
     else
@@ -1021,6 +1040,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
         scalingEngine->RenderNeeded = 1;
         scalingEngine->fcSupported  = 1;
         scalingEngine->SfcNeeded    = 0;
+        // Set sfcNotSupported to 1 to avoid SFC being selected without scaling filter.
+        scalingEngine->sfcNotSupported = 1;
         VP_PUBLIC_NORMALMESSAGE("Force scaling to FC. disableSfc %d", disableSfc);
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
@@ -1054,6 +1075,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
                 scalingEngine->RenderNeeded = 1;
                 scalingEngine->fcSupported  = 1;
                 scalingEngine->SfcNeeded    = 0;
+                // Set sfcNotSupported to 1 to avoid SFC being selected without scaling filter.
+                scalingEngine->sfcNotSupported = 1;
                 VP_PUBLIC_NORMALMESSAGE("Fc selected. fScaleX %f, fScaleY %f, scalingPreference %d",
                     fScaleX, fScaleY, scalingParams->scalingPreference);
             }
@@ -1088,6 +1111,11 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
                     {
                         scalingEngine->SfcNeeded = isAlphaSettingSupportedBySfc;
                     }
+                    else
+                    {
+                        // Set sfcNotSupported to 1 to avoid SFC being selected without scaling filter.
+                        scalingEngine->sfcNotSupported = 1;
+                    }
                 }
             }
         }
@@ -1097,6 +1125,8 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
             scalingEngine->RenderNeeded = 1;
             scalingEngine->fcSupported  = 1;
             scalingEngine->SfcNeeded    = 0;
+            // Set sfcNotSupported to 1 to avoid SFC being selected without scaling filter.
+            scalingEngine->sfcNotSupported = 1;
             VP_PUBLIC_NORMALMESSAGE("Scaling parameters are not supported by SFC. Switch to Render.");
         }
     }
@@ -1926,6 +1956,15 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
                 }
 
+                if (engineCaps.sfcNotSupported)
+                {
+                    // sfc cannot be selected. Resolution limit is checked with scaling filter, even scaling
+                    // feature itself not being enabled.
+                    engineCapsForVeboxSfc.sfcNotSupported = engineCaps.sfcNotSupported;
+                    engineCapsForFc.sfcNotSupported       = engineCaps.sfcNotSupported;
+                    VP_PUBLIC_NORMALMESSAGE("sfcNotSupported flag is set.");
+                }
+
                 isSingleSubPipe = true;
                 selectedPipeIndex = pipeIndex;
                 singlePipeSelected = featureSubPipe;
@@ -1949,6 +1988,15 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     engineCapsForVeboxSfc.fcOnlyFeatureExists = true;
                     engineCapsForFc.fcOnlyFeatureExists = true;
                 }
+                if (engineCaps.sfcNotSupported)
+                {
+                    // sfc cannot be selected. Resolution limit is checked with scaling filter, even scaling
+                    // feature itself not being enabled.
+                    engineCapsForVeboxSfc.sfcNotSupported = engineCaps.sfcNotSupported;
+                    engineCapsForFc.sfcNotSupported       = engineCaps.sfcNotSupported;
+                    VP_PUBLIC_NORMALMESSAGE("sfcNotSupported flag is set.");
+                }
+
                 engineCapsForFc.value |= engineCaps.value;
                 engineCapsForFc.nonVeboxFeatureExists |= !engineCaps.VeboxNeeded;
             }
