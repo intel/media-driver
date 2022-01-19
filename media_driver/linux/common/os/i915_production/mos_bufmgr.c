@@ -4824,6 +4824,7 @@ struct drm_i915_gem_vm_control* mos_gem_vm_create(struct mos_bufmgr *bufmgr)
     if (ret != 0) {
         MOS_DBG("DRM_IOCTL_I915_GEM_VM_CREATE failed: %s\n",
             strerror(errno));
+        free(vm);
         return nullptr;
     }
 
