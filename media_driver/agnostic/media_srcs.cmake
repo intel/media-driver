@@ -325,10 +325,12 @@ if (BUILD_KERNELS)
         "IDR_CODEC_HME_DS_SCOREBOARD_KERNEL" IDR_CODEC_HME_DS_SCOREBOARD_KERNEL)
 
     if(GEN11_ICLLP)
-        gen_kernel_from_asm(vp gen11_icllp)
-        gen_kernel_from_cm(codec gen11 ${IDR_CODEC_HME_DS_SCOREBOARD_KERNEL} "${HME_KRN_SOURCES}")
-    elseif(GEN12_TGLLP)
-        gen_vpkernel_from_cm(vp gen12_tgllp)
+        #gen_kernel_from_asm(vp gen11_icllp)
+        #gen_kernel_from_cm(codec gen11 ${IDR_CODEC_HME_DS_SCOREBOARD_KERNEL} "${HME_KRN_SOURCES}")
+    endif()
+
+    if(GEN12_TGLLP)
+        #gen_vpkernel_from_cm(vp gen12_tgllp)
     endif()
 endif()
 

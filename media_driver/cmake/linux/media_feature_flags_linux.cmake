@@ -170,6 +170,10 @@ if(ENABLE_KERNELS)
     add_definitions(-DENABLE_KERNELS)
 endif()
 
+if(BUILD_KERNELS)
+    add_definitions(-DBUILD_KERNELS)
+endif()
+
 if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
 endif()
