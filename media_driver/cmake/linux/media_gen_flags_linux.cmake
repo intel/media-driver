@@ -81,6 +81,10 @@ cmake_dependent_option(GEN12_ADLP
     "Enabled ADLP support (Gen12)" ON
     "GEN12_TGLLP" OFF)
 
+cmake_dependent_option(GEN12_ADLN
+    "Enabled ADLN support (Gen12)" ON
+    "GEN12_TGLLP" OFF)
+
 cmake_dependent_option(Xe_M
     "Enabled support for Xehp_sdv+ platforms" ON
     "ENABLE_PRODUCTION_KMD" OFF)
@@ -182,6 +186,10 @@ endif()
 
 if(GEN12_ADLP)
     add_definitions(-DIGFX_GEN12_ADLP_SUPPORTED)
+endif()
+
+if(GEN12_ADLN)
+    add_definitions(-DIGFX_GEN12_ADLN_SUPPORTED)
 endif()
 
 if(DG2)
