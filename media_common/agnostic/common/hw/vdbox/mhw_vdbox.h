@@ -589,4 +589,12 @@ typedef struct _MHW_VDBOX_AVC_SLICE_STATE
     bool                                    bFullFrameData                          = false;
 } MHW_VDBOX_AVC_SLICE_STATE, *PMHW_VDBOX_AVC_SLICE_STATE;
 
+typedef enum _MHW_VDBOX_DECODE_JPEG_FORMAT_CODE
+{
+    MHW_VDBOX_DECODE_JPEG_FORMAT_SEPARATE_PLANE = 0,  // formats of 3 separate plane for Y, U, and V respectively
+    MHW_VDBOX_DECODE_JPEG_FORMAT_NV12           = 1,
+    MHW_VDBOX_DECODE_JPEG_FORMAT_UYVY           = 2,
+    MHW_VDBOX_DECODE_JPEG_FORMAT_YUY2           = 3
+} MHW_VDBOX_DECODE_JPEG_FORMAT_CODE;
+
 #endif

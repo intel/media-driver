@@ -72,7 +72,14 @@ public:
 
     virtual MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) = 0;
 
+    virtual bool IsPerfModeSupported() = 0;
+
+    virtual bool IsRhoDomainStatsEnabled() = 0;
+
     _VDENC_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
+
+    bool m_perfModeSupported     = false;
+    bool m_rhoDomainStatsEnabled = false;
 };
 }  // namespace vdenc
 }  // namespace vdbox

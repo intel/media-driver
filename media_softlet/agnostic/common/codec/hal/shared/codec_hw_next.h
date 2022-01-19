@@ -97,6 +97,17 @@ public:
     virtual ~CodechalHwInterfaceNext() {}
 
     //!
+    //! \brief    Get mfx interface
+    //! \details  Get mfx interface in codechal hw interface next
+    //!
+    //! \return    pointer to new MFX interface
+    //!
+    inline std::shared_ptr<mhw::vdbox::mfx::Itf> GetMfxInterfaceNext()
+    {
+        return m_mfxItf;
+    }
+
+    //!
     //! \brief    Get avp interface
     //! \details  Get avp interface in codechal hw interface next
     //!
@@ -226,6 +237,7 @@ protected:
     std::shared_ptr<mhw::vdbox::huc::Itf>    m_hucItf   = nullptr;      //!< Pointer to Mhw huc interface
     std::shared_ptr<mhw::mi::Itf>            m_miItf    = nullptr;      //!< Pointer to Mhw mi interface
     std::shared_ptr<mhw::vdbox::hcp::Itf>    m_hcpItf   = nullptr;      //!< Pointer to Mhw hcp interface
+    std::shared_ptr<mhw::vdbox::mfx::Itf>    m_mfxItf   = nullptr;      //!< Pointer to Mhw mfx interface
 
     // Next: remove legacy Interfaces
     MhwCpInterface                  *m_cpInterface = nullptr;         //!< Pointer to Mhw cp interface

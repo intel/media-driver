@@ -45,4 +45,36 @@ struct CodecMpeg2IqMatrix
     uint8_t m_chromaNonIntraQuantiserMatrix[64];//!< Chroma non intra Quantiser Matrix
 };
 
+//!
+//! \struct CodecDecodeMpeg2MbParmas
+//! \brief  Mpeg2 MB parameter
+//!
+struct CodecDecodeMpeg2MbParmas
+{
+    int32_t m_mbAddr;  //!< Macroblock address
+    union
+    {
+        struct
+        {
+            uint16_t m_intraMb : 1;           //!< Intra macroblock
+            uint16_t m_motionFwd : 1;         //!< Microblock forward motion
+            uint16_t m_motionBwd : 1;         //!< Microblock backward motion
+            uint16_t m_motion4mv : 1;         //!< Microblock 4MV motion
+            uint16_t m_h261Lpfilter : 1;      //!< low pass filter
+            uint16_t m_fieldResidual : 1;     //!< DCT type
+            uint16_t m_mbScanMethod : 2;      //!< 0: zigzag scan, 1:alternative-vertical, 2: alternative-horizontal
+            uint16_t m_motionType : 2;        //!< Invalid for I pic, for P/B pic
+            uint16_t m_hostResidualDiff : 1;  //!< Host residual difference
+            uint16_t m_reserved : 1;          //!< Reserved
+            uint16_t m_mvertFieldSel : 4;     //!< Motion vertical field select
+        };
+        uint16_t m_value;
+    } MBType;
+    uint16_t m_mbSkipFollowing;                   //!< The number of skipped macroblocks to be generated following the current macroblock.
+    uint32_t m_mbDataLoc;                         //!< Used as an index into residual difference block data buffer.
+    uint16_t m_codedBlockPattern;                 //!< Coded block pattern
+    uint8_t  m_numCoeff[CODEC_NUM_BLOCK_PER_MB];  //!< Indicates the number of coefficients in the residual difference data buffer for each block i of the macroblock.
+    int16_t  m_motionVectors[8];                  //!< Motion vector
+};
+
 #endif  // __CODEC_DEF_COMMON_MPEG2_H__

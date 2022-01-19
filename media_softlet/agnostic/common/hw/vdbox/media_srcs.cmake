@@ -32,6 +32,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_itf.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_itf.h
 )
 
 set(HEADERS_
