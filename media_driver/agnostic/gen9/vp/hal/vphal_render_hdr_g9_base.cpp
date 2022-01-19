@@ -833,6 +833,8 @@ MOS_STATUS VpHal_HdrIsInputFormatSupported_g9(
         pSrcSurface->Format == Format_B10G10R10A2  ||
         pSrcSurface->Format == Format_A16B16G16R16 ||
         pSrcSurface->Format == Format_A16R16G16B16 ||
+        pSrcSurface->Format == Format_A16B16G16R16F||
+        pSrcSurface->Format == Format_A16R16G16B16F||
         pSrcSurface->Format == Format_P016         ||
         pSrcSurface->Format == Format_NV12         ||
         pSrcSurface->Format == Format_P010         ||
