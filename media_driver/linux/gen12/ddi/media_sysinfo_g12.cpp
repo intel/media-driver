@@ -159,6 +159,10 @@ static bool InitTglShadowWa(struct GfxDeviceInfo *devInfo,
     //source and recon surfaces need to be aligned to the LCU size
     waTable->WaAlignYUVResourceToLCU = 1;
 
+    /* For TGLLP and derivative platforms HW supports both 16K and 64K Aux granularity, POR mode is 64K. On all aux based
+    platforms (where FtrFlaPhysCCS = 0) WaAuxTable64KGranular is expected to be set. */
+    waTable->WaAuxTable64KGranular = 1;
+
     return true;
 }
 
