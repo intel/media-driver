@@ -3499,19 +3499,17 @@ mos_gem_bo_set_tiling_internal(struct mos_linux_bo *bo,
         return 0;
 
     memset(&set_tiling, 0, sizeof(set_tiling));
-    do {
-        /* set_tiling is slightly broken and overwrites the
-         * input on the error path, so we have to open code
-         * rmIoctl.
-         */
-        set_tiling.handle = bo_gem->gem_handle;
-        set_tiling.tiling_mode = tiling_mode;
-        set_tiling.stride = stride;
+    /* set_tiling is slightly broken and overwrites the
+     * input on the error path, so we have to open code
+     * rmIoctl.
+     */
+    set_tiling.handle = bo_gem->gem_handle;
+    set_tiling.tiling_mode = tiling_mode;
+    set_tiling.stride = stride;
 
-        ret = ioctl(bufmgr_gem->fd,
-                DRM_IOCTL_I915_GEM_SET_TILING,
-                &set_tiling);
-    } while (ret == -1 && (errno == EINTR || errno == EAGAIN));
+    ret = drmIoctl(bufmgr_gem->fd,
+            DRM_IOCTL_I915_GEM_SET_TILING,
+            &set_tiling);
     if (ret == -1)
         return -errno;
 
