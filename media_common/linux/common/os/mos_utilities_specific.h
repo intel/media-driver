@@ -93,6 +93,9 @@
 #define UFINT_PATH_LINUX            "UFINT"
 #define UFEXT_PATH_LINUX            "UFEXT"
 
+using RegBufferMap = std::map<std::string, std::map<std::string, std::string>>;
+
+
 #define _aligned_malloc(size, alignment)  memalign(alignment, size)
 #define _aligned_free(ptr)                free(ptr)
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -131,6 +131,19 @@
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_OS_TAG                 "Mos Sub Components Tags"
 
 //!
+//! \brief User feature keys for component MHW:
+//!
+#define __MOS_USER_FEATURE_KEY_MESSAGE_MHW_TAG                       "Mhw Message Tags"
+#define __MOS_USER_FEATURE_KEY_BY_SUB_COMPONENT_MHW                  "Mhw Tags By Sub Component"
+//!
+//! \brief 63____________________________________________________________________________3__________0
+//!         |                                                                            |   Self   |
+//!         |                    Reserved (HLT can be added as a sub-comp of MOS)        |Asrt|level|
+//!         |____________________________________________________________________________|__________|
+//!
+#define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MHW_TAG                 "Mhw Sub Components Tags"
+
+//!
 //! \brief User feature keys for component CODEC:
 //!
 #define __MOS_USER_FEATURE_KEY_MESSAGE_CODEC_TAG                    "Codec Message Tags"
@@ -248,6 +261,10 @@
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MCPY_TAG       "MCPY Sub Components Tags"
 
 #define __MOS_USER_FEATURE_KEY_DISABLE_ASSERT               "DisableAssert"
+
+#define __MOS_USER_FEATURE_KEY_DDI_DUMP_DIRECTORY           "DDI Dump Directory"
+
+#define __MOS_USER_FEATURE_KEY_ENCODE_DDI_DUMP_ENABLE       "Encode DDI Dump Enable"
 
 #endif // MOS_MESSAGES_ENABLED
 

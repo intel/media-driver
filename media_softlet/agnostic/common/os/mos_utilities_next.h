@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@
 #include "mos_utilities_specific.h"
 #include "mos_resource_defs.h"
 #include "mos_os_trace_event.h"
-
 //------------------------------------------------------------------------------
 // SECTION: Media User Feature Control
 //
@@ -186,6 +185,15 @@ public:
     //!
     static MOS_STATUS DestroyMediaUserSetting();
 
+    //!
+    //! \brief    Init the mos user settings
+    //! \details  declare the common user settings
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitMosUserSetting();
+
 private:
     //!
     //! \brief    Init Function for MOS OS specific utilitiesNext
@@ -206,6 +214,37 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
+
+    //!
+    //! \brief    Init the mos user settings of mos message
+    //! \details  declare the common user settings
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitMosCommonUserSetting();
+
+#if MOS_MESSAGES_ENABLED
+    //!
+    //! \brief    Init the mos user settings of mos message
+    //! \details  declare the common user settings
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitMosMessageUserSetting();
+#endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief    Init the mos user settings of debug
+    //! \details  declare the common user settings for debug
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitUserSettingForDebug();
+#endif
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
@@ -1250,12 +1289,12 @@ public:
     //!
     //! \brief    Initialize reg related resources
     //!
-    static MOS_STATUS MosInitializeReg();
+    static MOS_STATUS MosInitializeReg(RegBufferMap &regBufferMap);
 
     //!
     //! \brief    Uninitialize reg related resources
     //!
-    static MOS_STATUS MosUninitializeReg();
+    static MOS_STATUS MosUninitializeReg(RegBufferMap &regBufferMap);
     //!
     //! \brief    Creates the specified reg key
     //! \details  Creates the specified reg key. If the key already exists,
@@ -1269,6 +1308,8 @@ public:
     //!           A mask that specifies the access rights for the key to be created.
     //! \param    [out] key
     //!           A pointer to a variable that receives a handle to the opened or created key.
+    //! \param    [in] regBufferMap
+    //!           A reference to RegBuffermap.
     //! \return   MOS_STATUS
     //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
     //!           If the function fails, the return value is a error code.
@@ -1277,7 +1318,8 @@ public:
         UFKEY_NEXT keyHandle,
         const std::string &subKey,
         uint32_t samDesired,
-        PUFKEY_NEXT key);
+        PUFKEY_NEXT key,
+        RegBufferMap &regBufferMap);
 
     //!
     //! \brief    Opens the specified reg key.
@@ -1290,6 +1332,8 @@ public:
     //!           A mask that specifies the desired access rights to the key to be opened.
     //! \param    [out] key
     //!           A pointer to a variable that receives a handle to the opened key.
+    //! \param    [in] regBufferMap
+    //!           A reference to RegBuffermap.
     //! \return   MOS_STATUS
     //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
     //!           If the function fails, the return value is a error code.
@@ -1298,7 +1342,8 @@ public:
         UFKEY_NEXT keyHandle,
         const std::string &subKey,
         uint32_t samDesired,
-        PUFKEY_NEXT key);
+        PUFKEY_NEXT key,
+        RegBufferMap &regBufferMap);
 
     //!
     //! \brief    Closes a handle to the specified reg key.
@@ -1353,6 +1398,8 @@ public:
     //! \param    [out] size
     //!           A pointer to a variable that specifies the size of the buffer
     //!           pointed to by the data parameter, in bytes.
+    //! \param    [in] regBufferMap
+    //!           A reference to RegBuffermap.
     //! \return   MOS_STATUS
     //!           If the function succeeds, the return value is MOS_STATUS_SUCCESS.
     //!           If the function fails, the return value is a error code.
@@ -1362,7 +1409,8 @@ public:
         const std::string &valueName,
         uint32_t *type,
         std::string &data,
-        uint32_t *size);
+        uint32_t *size,
+        RegBufferMap &regBufferMap);
 
     //!
     //! \brief    Sets the data and type of a specified value under a reg key.
@@ -1383,7 +1431,8 @@ public:
         UFKEY_NEXT keyHandle,
         const std::string &valueName,
         uint32_t type,
-        const std::string &data);
+        const std::string &data,
+        RegBufferMap &regBufferMap);
 
     //------------------------------------------------------------------------------
     // Wrappers for OS Specific User Feature Functions Implementations

@@ -1,6 +1,6 @@
 
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -80,6 +80,10 @@ public:
     //!           Whether this item can be reported
     //! \param    [in] debugOnly
     //!           Whether this item is only for debug/release-internal
+    //! \param    [in] useCustomPath
+    //!           Specifiy a read path
+    //! \param    [in] customPath
+    //!           The specified read path
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if no error, otherwise will return failed reason
     //!
@@ -89,7 +93,9 @@ public:
         const Value &defaultValue,
         bool isReportKey = false,
         bool debugOnly = false,
-        const std::string &customPath = "");
+        bool useCustomPath = false,
+        const std::string &customPath = "",
+        bool statePath = true);
 
     //!
     //! \brief    Read value of specific item
@@ -146,6 +152,17 @@ public:
     //!
     bool IsDeclaredUserSetting(const std::string &valueName);
 
+    //!
+    //! \brief    Get media user setting definitions of specific group
+    //! \param    [in] group
+    //!           Group of the item
+    //! \return   Media user setting definitions
+    //!           Definitions of specific group, return definitions of device group if failed
+    //!
+    inline Internal::Definitions &GetDefinitions(const Group &group)
+    {
+        return m_configure.GetDefinitions(group);
+    }
 protected:
     //!
     //! \brief    Constructor
@@ -164,22 +181,46 @@ inline MOS_STATUS DeclareUserSettingKey(
     const MediaUserSetting::Group &group,
     const MediaUserSetting::Value &defaultValue,
     bool isReportKey,
-    const std::string &customPath = "")
+    bool useCustomPath = false,
+    const std::string &customPath = "",
+    bool statePath = true)
 {
     auto instance = MediaUserSetting::MediaUserSetting::Instance();
-    return instance->Register(valueName, group, defaultValue, isReportKey, false, customPath);
+    return instance->Register(valueName, group, defaultValue, isReportKey, false, useCustomPath, customPath, statePath);
 }
 
 inline MOS_STATUS ReadUserSetting(
-    MediaUserSetting::Value &value,
-    const std::string &valueName,
-    const MediaUserSetting::Group &group,
-    PMOS_CONTEXT mosContext,
-    const MediaUserSetting::Value &customValue = MediaUserSetting::Value(),
-    bool useCustomValue = false)
+    MediaUserSetting::Value         &value,
+    const std::string               &valueName,
+    const MediaUserSetting::Group   &group,
+    PMOS_CONTEXT                    mosContext,
+    const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
+    bool                            useCustomValue = false)
 {
     auto instance = MediaUserSetting::MediaUserSetting::Instance();
-    return instance->Read(value, valueName, group, mosContext, customValue, useCustomValue);
+    auto status   =  instance->Read(value, valueName, group, mosContext, customValue, useCustomValue);
+    if(status != MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED && status != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_ASSERTMESSAGE("User setting %s read error", valueName.c_str());
+    }
+    return status;
+}
+
+template <typename T>
+inline MOS_STATUS ReadUserSetting(
+    T                               &value,
+    const std::string               &valueName,
+    const MediaUserSetting::Group   &group,
+    PMOS_CONTEXT                    mosContext,
+    const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
+    bool                            useCustomValue = false)
+{
+    MediaUserSetting::Value outValue;
+    MOS_STATUS  status = ReadUserSetting(outValue, valueName, group, mosContext, customValue, useCustomValue);
+    //If user setting is not set, outValue is the default value or customValue value if useCustomValue == true.
+    //If the user setting is not registered, it is not allowed to read a value for it. Set it with the inital outValue.
+    value = outValue.Get<T>();
+    return status;
 }
 
 inline MOS_STATUS WriteUserSetting(
@@ -214,22 +255,47 @@ inline MOS_STATUS DeclareUserSettingKeyForDebug(
     const MediaUserSetting::Group &group,
     const MediaUserSetting::Value &defaultValue,
     bool isReportKey,
-    const std::string &customPath = "")
+    bool useCustomPath = false,
+    const std::string &customPath = "",
+    bool statePath = true)
 {
     auto instance = MediaUserSetting::MediaUserSetting::Instance();
-    return instance->Register(valueName, group, defaultValue, isReportKey, true, customPath);
+    return instance->Register(valueName, group, defaultValue, isReportKey, true, useCustomPath, customPath, statePath);
 }
 
 inline MOS_STATUS ReadUserSettingForDebug(
-    MediaUserSetting::Value &value,
-    const std::string &valueName,
-    const MediaUserSetting::Group &group,
-    PMOS_CONTEXT mosContext,
-    const MediaUserSetting::Value &customValue = MediaUserSetting::Value(),
-    bool useCustomValue = false)
+    MediaUserSetting::Value         &value,
+    const std::string               &valueName,
+    const MediaUserSetting::Group   &group,
+    PMOS_CONTEXT                    mosContext,
+    const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
+    bool                            useCustomValue = false)
 {
     auto instance = MediaUserSetting::MediaUserSetting::Instance();
-    return instance->Read(value, valueName, group, mosContext, customValue, useCustomValue);
+    auto status   = instance->Read(value, valueName, group, mosContext, customValue, useCustomValue);
+    if(status != MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED && status != MOS_STATUS_SUCCESS)
+    {
+        MOS_OS_NORMALMESSAGE("User setting %s read error", valueName.c_str());
+    }
+    return status;
+}
+
+template <typename T>
+inline MOS_STATUS ReadUserSettingForDebug(
+    T                               &value,
+    const std::string               &valueName,
+    const MediaUserSetting::Group   &group,
+    PMOS_CONTEXT                    mosContext,
+    const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
+    bool                            useCustomValue = false)
+{
+    MediaUserSetting::Value outValue;
+    MOS_STATUS  status = ReadUserSettingForDebug(outValue, valueName, group, mosContext, customValue, useCustomValue);
+
+    //If user setting is not set, outValue is the default value or customValue value if useCustomValue == true.
+    //If the user setting is not registered, it is not allowed to read a value for it. Set it with the inital outValue.
+    value = outValue.Get<T>();
+    return status;
 }
 
 inline MOS_STATUS WriteUserSettingForDebug(
@@ -253,7 +319,7 @@ inline MOS_STATUS ReportUserSettingForDebug(
 }
 
 #else
-#define DeclareUserSettingKeyForDebug(valueName, group, defaultValue, isReportKey, customPath) MOS_STATUS_SUCCESS
+#define DeclareUserSettingKeyForDebug(valueName, group, defaultValue, isReportKey, ...) MOS_STATUS_SUCCESS
 #define ReadUserSettingForDebug(value, valueName, group, mosContext, customValue, useCustomValue) MOS_STATUS_SUCCESS
 #define WriteUserSettingForDebug(valueName, value, group, mosContext) MOS_STATUS_SUCCESS
 #define ReportUserSettingForDebug(valueName, value, group, mosContext) MOS_STATUS_SUCCESS

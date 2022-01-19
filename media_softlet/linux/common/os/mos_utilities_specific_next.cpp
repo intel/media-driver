@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,8 @@
 #include "codechal_user_settings_mgr_ext.h"
 #include "vphal_user_settings_mgr_ext.h"
 #endif // _MEDIA_RESERVED
+#include "media_user_setting.h"
+
 #include <sys/ipc.h>  // System V IPC
 #include <sys/types.h>
 #include <sys/sem.h>
@@ -71,8 +73,6 @@ double MosUtilities::MosGetTime()
 const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker_raw";
 int32_t           MosUtilitiesSpecificNext::m_mosTraceFd    = -1;
 MosMutex          MosUtilitiesSpecificNext::m_userSettingMutex;
-
-std::map<std::string, std::map<std::string, std::string>> MosUtilitiesSpecificNext::m_regBuffer;
 
 //!
 //! \brief for int64_t/uint64_t format print warning
@@ -1333,6 +1333,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     if (m_mosUtilInitCount == 0)
     {
         //Init MOS User Feature Key from mos desc table
+        eStatus = InitMosUserSetting();
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
         MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
 #if _MEDIA_RESERVED
@@ -1368,7 +1369,6 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
     if (m_mosUtilInitCount == 0)
     {
         MosTraceEventClose();
-        DestroyMediaUserSetting();
         m_mosMemAllocCounter -= m_mosMemAllocFakeCounter;
         MemoryCounter = m_mosMemAllocCounter + m_mosMemAllocCounterGfx;
         m_mosMemAllocCounterNoUserFeature    = m_mosMemAllocCounter;
@@ -1392,6 +1392,8 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
             m_vpUserFeatureExt = nullptr;
         }
 #endif // _MEDIA_RESERVED
+        DestroyMediaUserSetting();
+
 #if (_DEBUG || _RELEASE_INTERNAL)
         // MOS maintains a reference counter,
         // so if there still is another active lib instance, logs would still be printed.
@@ -1491,19 +1493,17 @@ MOS_STATUS MosUtilities::MosUserFeatureNotifyChangeKeyValue(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosUtilities::MosInitializeReg()
+MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
     std::ifstream regStream;
-
     try
     {
-        using util = MosUtilitiesSpecificNext;
         regStream.open(USER_FEATURE_FILE_NEXT);
         if (regStream.good())
         {
-            std::string id = "";
+            std::string id       = "";
 
             while(!regStream.eof())
             {
@@ -1535,9 +1535,8 @@ MOS_STATUS MosUtilities::MosInitializeReg()
                     {
                         std::string name = line.substr(0,pos);
                         std::string value = line.substr(pos+1);
-
-                        auto &keys = util::m_regBuffer[id];
-                        keys[name] = value;
+                        auto        &keys  = regBufferMap[id];
+                        keys[name]       = value;
                     }
                 }
             }
@@ -1554,31 +1553,34 @@ MOS_STATUS MosUtilities::MosInitializeReg()
     return status;
 }
 
-MOS_STATUS MosUtilities::MosUninitializeReg()
+MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
+    if (regBufferMap.size() == 0)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
     std::ofstream regStream;
     try
     {
-        using util = MosUtilitiesSpecificNext;
         regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
         if (regStream.good())
         {
-            for(auto pair: util::m_regBuffer)
+            for(auto pair: regBufferMap)
             {
-                regStream << pair.first << std::endl;
+                regStream << pair.first << "\n";
 
-                auto &keys = util::m_regBuffer[pair.first];
+                auto &keys = regBufferMap[pair.first];
                 for (auto key: keys)
                 {
                     auto name = key.first;
-                    regStream << key.first << "=" << key.second << std::endl;
+                    regStream << key.first << "=" << key.second << "\n";
                 }
 
                 keys.clear();
+                regStream << std::endl;
             }
-
-            util::m_regBuffer.clear();
+            regBufferMap.clear();
             regStream.flush();
         }
     }
@@ -1595,18 +1597,17 @@ MOS_STATUS MosUtilities::MosCreateRegKey(
     UFKEY_NEXT keyHandle,
     const std::string &subKey,
     uint32_t samDesired,
-    PUFKEY_NEXT key)
+    PUFKEY_NEXT key,
+    RegBufferMap &regBufferMap)
 {
     MOS_UNUSED(keyHandle);
     MOS_UNUSED(samDesired);
+    MOS_OS_CHK_NULL_RETURN(key);
+    auto ret = regBufferMap.find(subKey);
 
-    using util = MosUtilitiesSpecificNext;
-
-    auto ret = util::m_regBuffer.find(subKey);
-
-    if (ret == util::m_regBuffer.end())
+    if (ret == regBufferMap.end())
     {
-        util::m_regBuffer[subKey] = {};
+        regBufferMap[subKey] = {};
     }
 
     *key = subKey;
@@ -1617,9 +1618,11 @@ MOS_STATUS MosUtilities::MosOpenRegKey(
     UFKEY_NEXT keyHandle,
     const std::string &subKey,
     uint32_t samDesired,
-    PUFKEY_NEXT key)
+    PUFKEY_NEXT key,
+    RegBufferMap &regBufferMap)
 {
     std::string tempSubKey = subKey;
+
     if (subKey.find_first_of("\\") != std::string::npos)
     {
         tempSubKey = subKey.substr(1);
@@ -1629,7 +1632,7 @@ MOS_STATUS MosUtilities::MosOpenRegKey(
     {
         tempSubKey = "[" + tempSubKey + "]";
     }
-    return MosCreateRegKey(keyHandle, tempSubKey, samDesired, key);
+    return MosCreateRegKey(keyHandle, tempSubKey, samDesired, key, regBufferMap);
 }
 
 MOS_STATUS MosUtilities::MosCloseRegKey(
@@ -1670,27 +1673,26 @@ MOS_STATUS MosUtilities::MosGetRegValue(
     const std::string &valueName,
     uint32_t *type,
     std::string &data,
-    uint32_t *size)
+    uint32_t *size,
+    RegBufferMap &regBufferMap)
 {
     MOS_OS_CHK_NULL_RETURN(size);
     MOS_UNUSED(type);
 
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
-    using util = MosUtilitiesSpecificNext;
-
-    if ( util::m_regBuffer.end() == util::m_regBuffer.find(keyHandle))
+    if (regBufferMap.end() == regBufferMap.find(keyHandle))
     {
-        return MOS_STATUS_INVALID_PARAMETER;
+        return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
     }
 
     try
     {
-        auto keys = util::m_regBuffer[keyHandle];
+        auto keys = regBufferMap[keyHandle];
         auto it = keys.find(valueName);
         if (it == keys.end())
         {
-            return MOS_STATUS_INVALID_PARAMETER;
+            return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
         }
 
         data = it->second;
@@ -1707,13 +1709,12 @@ MOS_STATUS MosUtilities::MosSetRegValue(
     UFKEY_NEXT keyHandle,
     const std::string &valueName,
     uint32_t type,
-    const std::string &data)
+    const std::string &data,
+    RegBufferMap &regBufferMap)
 {
     MOS_UNUSED(type);
 
-    using util = MosUtilitiesSpecificNext;
-
-    if ( util::m_regBuffer.end() == util::m_regBuffer.find(keyHandle))
+    if (regBufferMap.end() == regBufferMap.find(keyHandle))
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
@@ -1721,7 +1722,7 @@ MOS_STATUS MosUtilities::MosSetRegValue(
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     try
     {
-        auto &keys = MosUtilitiesSpecificNext::m_regBuffer[keyHandle];
+        auto &keys = regBufferMap[keyHandle];
 
         keys[valueName] = data;
     }
@@ -1969,19 +1970,18 @@ MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureVa
     }
 #endif
 
-    MosUtilities::MosZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    eStatus = MosUtilities::MosUserFeatureReadValueID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_APO_MOS_PATH_ENABLE_ID,
-            &userFeatureData,
-            (MOS_CONTEXT_HANDLE) nullptr);
+    uint32_t enableApoMos = 0;
+    eStatus = ReadUserSetting(enableApoMos,
+        "ApoMosEnable",
+        MediaUserSetting::Group::Device,
+        nullptr);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         // It could be there is no this use feature key.
         MOS_OS_NORMALMESSAGE("Failed to read ApoMosEnable  user feature key value, error status %d", eStatus);
     }
-    userfeatureValue = userFeatureData.u32Data ? true : false;
+    userfeatureValue = enableApoMos ? true : false;
     return eStatus;
 }
 
