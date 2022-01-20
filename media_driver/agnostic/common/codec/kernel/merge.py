@@ -30,9 +30,14 @@ parser.add_argument('dat_files', metavar='IN_FILE', type=str, nargs='+',
     help='list of input kernels to merge into common kernel (.dat files, order is important)')
 args = parser.parse_args()
 
+removeList = []
 for filename in args.dat_files:
-    if not os.path.isfile(filename) or not os.access(filename, os.R_OK):
-        raise Exception("Can't read input: %s" % filename)
+    print("fileName: " + filename)
+    if(not os.path.exists(filename)):
+         print("File %s doesn't exist!" % filename)
+         removeList.append(filename)
+for filename in removeList:
+    args.dat_files.remove(filename)
 
 n_dats = len(args.dat_files)
 if n_dats > 15:
