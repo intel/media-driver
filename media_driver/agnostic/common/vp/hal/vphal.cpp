@@ -996,9 +996,10 @@ MOS_STATUS VphalState::DestroyGpuContextWithInvalidHandle()
     if (m_osInterface->CurrentGpuContextOrdinal != originalGpuCtxOrdinal)
     {
         //Recover original settings
-        VPHAL_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(
-            m_osInterface,
-            originalGpuCtxOrdinal));
+        if (m_osInterface->pfnSetGpuContext(m_osInterface, originalGpuCtxOrdinal) != MOS_STATUS_SUCCESS)
+        {
+            VPHAL_PUBLIC_NORMALMESSAGE("Have not recovered original GPU Context settings in m_osInterface");
+        }
     }
 #endif
 
