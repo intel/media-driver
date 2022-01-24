@@ -28,7 +28,7 @@
 #define __CODECHAL_ENCODE_HEVC_BASE_H__
 
 #include "codechal_encoder_base.h"
-
+#include "codec_def_encode_hevc.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug_encode_par.h"
 #endif
