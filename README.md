@@ -22,8 +22,8 @@ apt install autoconf libtool libdrm-dev xorg xorg-dev openbox libx11-dev libgl1-
 
 Equivalents for other distributions should work.
 
-1. Build and install libva from https://github.com/intel/libva
-2. Build and install gmmlib from https://github.com/intel/gmmlib
+1. Build and install [LibVA](https://github.com/intel/libva)
+2. Build and install [GmmLib](https://github.com/intel/gmmlib) following [GmmLib compatibility](https://github.com/intel/media-driver/wiki/Compatibility-with-GmmLib)
 3. Get media repo and format the workspace folder as below (suggest the workspace to be a dedicated one for media driver build):
 ```
 <workspace>
@@ -170,7 +170,7 @@ For more decoding and encoding features information, please refer to
 For more feature information, please refer to [Supported video processing csc/scaling format](https://github.com/intel/media-driver/blob/master/docs/media_features.md#supported-video-processing-cscscaling-format)
 
 
-### Build Options
+## Build Options
 
 Media-driver supports few build types as described below. You could refer to
 the following settings to enable them.
@@ -185,9 +185,9 @@ new platforms since upstream version of i915 KMD does not fully support them
 - DG1/SG1
 - Alchemist(DG2)/ATSM
 
-By default, media-driver builds against upstream i915 kmd and will miss
+By default, media-driver builds against upstream i915 KMD and will miss
 support for the platforms listed above. To enable new platforms which
-require special i915 kmd specify `ENABLE_PRODUCTION_KMD=ON` (default: `OFF`)
+require special i915 KMD and specify `ENABLE_PRODUCTION_KMD=ON` (default: `OFF`)
 build configuration option.
 
 ## Known Issues and Limitations
@@ -198,11 +198,12 @@ or later, which officially supported C++11.
 2. SKL: Green or other incorrect color will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: [WaEnableYV12BugFixInHalfSliceChicken7](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
 
 3. HuC firmware is necessary for AVC/HEVC/VP9 low power encoding bitrate control, including CBR, VBR, etc. As of now, HuC firmware support is disabled in Linux kernels by default. kernel command line option "i915.enable_guc=2" for HuC loading can be set e.g. by doing echo "options i915 enable_guc=2" > /etc/modprobe.d/i915.conf (as root). Mind that HuC firmware support presents in the following kernels for the specified platforms:
-   * APL/KBL: starting from kernel 4.11
-   * CFL: starting from kernel 4.15
-   * ICL: starting from kernel 5.2
-   * EHL/JSL: starting from kernel 5.8
-   * TGL: starting from kernel 5.9
-   * RKL/ADL-S/ADL-P: [drm-tip](https://cgit.freedesktop.org/drm-tip)
+   - APL/KBL: starting from kernel 4.11
+   - CFL: starting from kernel 4.15
+   - ICL: starting from kernel 5.2
+   - EHL/JSL: starting from kernel 5.8
+   - TGL: starting from kernel 5.9
+   - RKL/ADL-S/ADL-P: [drm-tip](https://cgit.freedesktop.org/drm-tip)
+   - DG1/SG1: [intel-gpu/kernel](https://github.com/intel-gpu/kernel)
 
 ##### (*) Other names and brands may be claimed as property of others.
