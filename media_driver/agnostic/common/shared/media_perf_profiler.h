@@ -258,6 +258,17 @@ public:
          MOS_INTERFACE *osInterface,
          MhwMiInterface *miInterface,
          MOS_COMMAND_BUFFER *cmdBuffer);
+
+    //!
+    //! \brief    Save performance data in to a file
+    //!
+    //! \param    [in] osInterface
+    //!           Pointer of OS interface
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SavePerfData(MOS_INTERFACE *osInterface) override;
 };
 
 #endif // __MEDIA_PERF_PROFILER_H__

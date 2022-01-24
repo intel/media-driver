@@ -125,7 +125,82 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 {
     PERF_UTILITY_PRINT;
 
-    MediaPerfProfilerNext::Destroy(profiler, context, osInterface);
+    if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
+    {
+        return;
+    }
+
+    MosUtilities::MosLockMutex(profiler->m_mutex);
+    profiler->m_ref--;
+
+    osInterface->pfnWaitAllCmdCompletion(osInterface);
+
+    profiler->m_contextIndexMap.erase(context);
+
+    if (profiler->m_ref == 0)
+    {
+        if (profiler->m_initialized == true)
+        {
+            if(profiler->m_enableProfilerDump)
+            {
+                profiler->SavePerfData(osInterface);
+            }
+
+            osInterface->pfnFreeResource(
+                osInterface,
+                &profiler->m_perfStoreBuffer);
+
+            profiler->m_initialized = false;
+        }
+
+        MosUtilities::MosUnlockMutex(profiler->m_mutex);
+    }
+    else
+    {
+        MosUtilities::MosUnlockMutex(profiler->m_mutex);
+    }
+
+    PERF_UTILITY_PRINT;
+
+    //Destroy APO perf profiler here without writting bin file again. Destroy() in APO class is not called before media softlet build done.
+    if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
+    {
+        return;
+    }
+
+    MediaPerfProfilerNext *profilerNext = MediaPerfProfilerNext::Instance();
+
+    if (!profilerNext || profilerNext->m_profilerEnabled == 0 || profilerNext->m_mutex == nullptr)
+    {
+        return;
+    }
+
+    MosUtilities::MosLockMutex(profilerNext->m_mutex);
+    profilerNext->m_ref--;
+
+    osInterface->pfnWaitAllCmdCompletion(osInterface);
+
+    profilerNext->m_contextIndexMap.erase(context);
+
+    if (profilerNext->m_ref == 0)
+    {
+        if (profilerNext->m_initialized == true)
+        {
+
+            osInterface->pfnFreeResource(
+                osInterface,
+                &profilerNext->m_perfStoreBuffer);
+
+            profilerNext->m_initialized = false;
+        }
+
+        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
+    }
+    else
+    {
+        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
+    }
+
 }
 
 MOS_STATUS MediaPerfProfiler::StoreData(
@@ -518,6 +593,74 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
             miInterface,
             cmdBuffer,
             offset));
+    }
+
+    return status;
+}
+
+MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
+{
+    MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+    CHK_NULL_RETURN(osInterface);
+
+    MediaPerfProfilerNext *profilerNext = MediaPerfProfilerNext::Instance();
+    CHK_NULL_RETURN(profilerNext);
+
+    if (m_perfDataIndex > 0 || profilerNext->m_perfDataIndex > 0)
+    {
+        MOS_LOCK_PARAMS     LockFlagsNoOverWrite;
+        MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
+
+        LockFlagsNoOverWrite.WriteOnly = 1;
+        LockFlagsNoOverWrite.NoOverWrite = 1;
+
+        uint8_t* pData = (uint8_t*)osInterface->pfnLockResource(
+            osInterface,
+            &m_perfStoreBuffer,
+            &LockFlagsNoOverWrite);
+
+        CHK_NULL_RETURN(pData);
+
+        uint8_t* pDataNext = (uint8_t*)osInterface->pfnLockResource(
+            osInterface,
+            &profilerNext->m_perfStoreBuffer,
+            &LockFlagsNoOverWrite);
+
+        if (pDataNext)
+        {
+            //Append perf data written by APO perf Profiler into legacy one to avoid file overritting.
+            MosUtilities::MosSecureMemcpy(
+                pData+BASE_OF_NODE(m_perfDataIndex),
+                BASE_OF_NODE(profilerNext->m_perfDataIndex)-sizeof(NodeHeader),
+                pDataNext+sizeof(NodeHeader),
+                BASE_OF_NODE(profilerNext->m_perfDataIndex)-sizeof(NodeHeader));
+        }
+
+        if (m_multiprocess)
+        {
+            int32_t pid = MosUtilities::MosGetPid();
+            tm      localtime = { 0 };
+            MosUtilities::MosGetLocalTime(&localtime);
+            char outputFileName[MOS_MAX_PATH_LENGTH + 1];
+
+            MOS_SecureStringPrint(outputFileName, MOS_MAX_PATH_LENGTH + 1, MOS_MAX_PATH_LENGTH + 1, "%s-pid%d-%04d%02d%02d%02d%02d%02d.bin",
+                m_outputFileName, pid, localtime.tm_year + 1900, localtime.tm_mon + 1, localtime.tm_mday, localtime.tm_hour, localtime.tm_min, localtime.tm_sec);
+
+            MosUtilities::MosWriteFileFromPtr(outputFileName, pData, BASE_OF_NODE(m_perfDataIndex)+BASE_OF_NODE(profilerNext->m_perfDataIndex)-sizeof(NodeHeader));
+        }
+        else
+        {
+            MosUtilities::MosWriteFileFromPtr(m_outputFileName, pData, BASE_OF_NODE(m_perfDataIndex)+BASE_OF_NODE(profilerNext->m_perfDataIndex)-sizeof(NodeHeader));
+        }
+
+        osInterface->pfnUnlockResource(
+            osInterface,
+            &m_perfStoreBuffer);
+
+        osInterface->pfnUnlockResource(
+            osInterface,
+            &profilerNext->m_perfStoreBuffer);
     }
 
     return status;
