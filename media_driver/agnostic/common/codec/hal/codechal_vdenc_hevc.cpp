@@ -3222,7 +3222,18 @@ MOS_STATUS CodechalVdencHevcState::GetStatusReport(
             encodeStatus->lookaheadStatus.cqmHint = 1;
         }
 
-        encodeStatus->lookaheadStatus.miniGopSize = encodeStatus->lookaheadStatus.pyramidDeltaQP == 0 ? 1 : 4;
+        if (encodeStatus->lookaheadStatus.pyramidDeltaQP == 0)
+        {
+            encodeStatus->lookaheadStatus.miniGopSize = 1;
+        }
+        else if (m_hevcSeqParams->GopRefDist == 1) // LPLA only supports P pyramid for this condition
+        {
+            encodeStatus->lookaheadStatus.miniGopSize = 4;
+        }
+        else
+        {
+            encodeStatus->lookaheadStatus.miniGopSize = m_hevcSeqParams->GopRefDist;
+        }
     }
     else
     {
