@@ -41,6 +41,7 @@
 
 #define Mos_Solo_IsEnabled(a)     false
 #define Mos_Solo_IsInUse(a)      false
+#define Mos_Solo_Extension(a)    false
 #define Mos_Solo_ReplaceSkuWaTable(a, b, c, d)
 #define Mos_Solo_ForceDumps(a, b)            MOS_STATUS_SUCCESS
 #define Mos_Solo_PreProcessDecode(a, b)      MOS_STATUS_SUCCESS
