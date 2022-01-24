@@ -281,18 +281,12 @@ public:
 #ifdef _JPEG_ENCODE_SUPPORTED
     using Jpeg = CodechalEncodeJpegStateG12;
 #endif
-#ifdef _MPEG2_ENCODE_VME_SUPPORTED
-    using Mpeg2 = CodechalEncoderStateUnsupported;
-#endif
 #ifdef _HEVC_ENCODE_VME_SUPPORTED
     using HevcEnc = CodechalEncHevcStateG12;
     using HevcMbenc = CodecHalHevcMbencXe_Xpm;
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
     using HevcVdenc = EncodeHevcVdencPipelineAdapterXe_Hpm;
-#endif
-#ifdef _AVC_ENCODE_VME_SUPPORTED
-    using AvcEnc = CodechalEncoderStateUnsupported;
 #endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateXe_Hpm;

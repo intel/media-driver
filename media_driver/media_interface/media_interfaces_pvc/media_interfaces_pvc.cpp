@@ -514,31 +514,28 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::Initialize(
         }
 
         CodechalEncoderState *encoder = nullptr;
-#if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
+#if defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             CreateCodecHalInterface(mhwInterfaces, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
-            #ifdef _AVC_ENCODE_VDENC_SUPPORTED
                 encoder = MOS_New(Encode::AvcVdenc, hwInterface, debugInterface, info);
-            #endif
-        }
-        else
+            }
+            else
             {
-            #ifdef _AVC_ENCODE_VME_SUPPORTED
-                encoder = MOS_New(Encode::AvcEnc, hwInterface, debugInterface, info);
-#endif
+                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, AVC VME Encoder is not supported, please use AVC LowPower Encoder instead!");
+                return MOS_STATUS_INVALID_PARAMETER;
             }
             if (encoder == nullptr)
-        {
+            {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
             else
             {
                 m_codechalDevice = encoder;
-    }
+            }
         }
         else
 #endif
@@ -559,26 +556,12 @@ MOS_STATUS CodechalInterfacesXe_Xpm_Plus::Initialize(
         }
         else
 #endif
-#ifdef _MPEG2_ENCODE_VME_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
         {
-            CreateCodecHalInterface(mhwInterfaces, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
-            // Setup encode interface functions
-            encoder = MOS_New(Encode::Mpeg2, hwInterface, debugInterface, info);
-            if (encoder == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            else
-            {
-                m_codechalDevice = encoder;
-            }
-
-            encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G12;
+            CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, MPEG2 Encoder is not supported!");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
         else
-#endif
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
