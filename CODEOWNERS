@@ -8,6 +8,8 @@ media_driver/agnostic/common/codec/hal/*encode_sfc* alexei.leonenko@intel.com de
 media_driver/agnostic/common/codec/hal/*vdenc_avc* alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com
 media_driver/agnostic/common/codec/hal/*encode_hevc_base* lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
 media_driver/agnostic/common/codec/hal/*vdenc_hevc* lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
+media_driver/agnostic/common/codec/hal/*encode_vp9* anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com andrey.larionov@intel.com ilya.sergeev@intel.com nikita.pletnev@intel.com
+media_driver/agnostic/common/codec/hal/*vdenc_vp9* anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com andrey.larionov@intel.com ilya.sergeev@intel.com nikita.pletnev@intel.com
 
 media_driver/agnostic/common/codec/shared/*common_hevc* lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
 media_driver/agnostic/common/codec/shared/*encode_hevc* lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
@@ -17,7 +19,9 @@ media_driver/agnostic/gen*/codec/hal/*vdenc_avc* alexei.leonenko@intel.com denis
 media_driver/agnostic/gen*/codec/hal/*encode_mpeg2* alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com
 media_driver/agnostic/gen*/codec/hal/*encode_csc_ds* alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
 media_driver/agnostic/gen*/codec/hal/*vdenc_hevc* lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
+media_driver/agnostic/gen*/codec/hal/*encode_vp9* anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com andrey.larionov@intel.com ilya.sergeev@intel.com nikita.pletnev@intel.com
+media_driver/agnostic/gen*/codec/hal/*vdenc_vp9* anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com andrey.larionov@intel.com ilya.sergeev@intel.com nikita.pletnev@intel.com
 
 # just to get timely notifications
-media_driver/linux/common/*ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
-media_driver/linux/gen*/ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
+media_driver/linux/common/*ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com
+media_driver/linux/gen*/ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com
