@@ -135,8 +135,8 @@ namespace decode
                 }
                 else
                 {
-                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize! Skip Frame!");
-                    return MOS_STATUS_INVALID_PARAMETER;
+                    m_tileDesc[i].m_size = 0;
+                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize! Take current tile as missing tile and then set 4 byte dummy WL!\n");
                 }
             }
             // For tile missing scenario
