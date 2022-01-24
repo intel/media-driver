@@ -456,89 +456,19 @@ MOS_STATUS CodechalDebugInterfaceG12::DumpYUVSurface(
         lockFlags.NoDecompress = 1;
     }
 
-    lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
-
-    if (lockedAddr == nullptr) // Failed to lock. Try to submit copy task and dump another surface
+    if (surface->bIsCompressed)
     {
-        uint32_t        sizeToBeCopied = 0;
-        MOS_GFXRES_TYPE ResType = MOS_GFXRES_2D;
-
-        CODECHAL_DEBUG_CHK_STATUS(ReAllocateSurface(
-            &m_temp2DSurfForCopy,
-            surface,
-            "Temp2DSurfForSurfDumper",
-            ResType));
-
-        if (!hasRefSurf)
-        {
-            uint32_t arraySize = surface->OsResource.pGmmResInfo->GetArraySize();
-
-            if (arraySize == 0)
-            {
-                return MOS_STATUS_UNKNOWN;
-            }
-
-            uint32_t sizeSrcSurface = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface()) / arraySize;
-            // Ensure allocated buffer size contains the source surface size
-            if (m_temp2DSurfForCopy.OsResource.pGmmResInfo->GetSizeMainSurface() >= sizeSrcSurface)
-            {
-                sizeToBeCopied = sizeSrcSurface;
-            }
-
-            if (sizeToBeCopied == 0)
-            {
-                // Currently, MOS's pfnAllocateResource does not support allocate a surface reference to another surface.
-                // When the source surface is not created from Media, it is possible that we cannot allocate the same size as source.
-                // For example, on Gen9, Render target might have GMM set CCS=1 MMC=0, but MOS cannot allocate surface with such combination.
-                // When Gmm allocation parameter is different, the resulting surface size/padding/pitch will be differnt.
-                // Once if MOS can support allocate a surface by reference another surface, we can do a bit to bit copy without problem.
-                CODECHAL_DEBUG_ASSERTMESSAGE("Cannot allocate correct size, failed to copy nonlockable resource");
-                return MOS_STATUS_NULL_POINTER;
-            }
-
-            CODECHAL_DEBUG_VERBOSEMESSAGE("Temp2DSurfaceForCopy width %d, height %d, pitch %d, TileType %d, bIsCompressed %d, CompressionMode %d",
-                m_temp2DSurfForCopy.dwWidth,
-                m_temp2DSurfForCopy.dwHeight,
-                m_temp2DSurfForCopy.dwPitch,
-                m_temp2DSurfForCopy.TileType,
-                m_temp2DSurfForCopy.bIsCompressed,
-                m_temp2DSurfForCopy.CompressionMode);
-
-            uint32_t bpp = surface->OsResource.pGmmResInfo->GetBitsPerPixel();
-
-            CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnMediaCopyResource2D(m_osInterface, &surface->OsResource, &m_temp2DSurfForCopy.OsResource, surface->dwPitch, sizeSrcSurface / (surface->dwPitch), 0, 0, bpp, false));
-        }
-        else
-        {
-            CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(m_osInterface, &surface->OsResource, &m_temp2DSurfForCopy.OsResource, false));
-        }
-
-        lockedAddr = (uint8_t*)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
+        lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &surface->OsResource, &lockFlags);
         CODECHAL_DEBUG_CHK_NULL(lockedAddr);
-
-        surface  = &m_temp2DSurfForCopy;
-        gmmFlags = surface->OsResource.pGmmResInfo->GetResFlags();
-    }
-
-    if (hasAuxSurf)
-    {
-        uint32_t sizeMain = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
-        surfBaseAddr = (uint8_t*)MOS_AllocMemory(sizeMain);
-        CODECHAL_DEBUG_CHK_NULL(surfBaseAddr);
-
-        Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch,true);
     }
     else
     {
-        surfBaseAddr = lockedAddr;
+        DumpUncompressedYUVSurface(surface);
+        lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
+        CODECHAL_DEBUG_CHK_NULL(lockedAddr);
     }
 
-    // Always use MOS swizzle instead of GMM Cpu blit
-    uint32_t sizeMain = (uint32_t)(surface->OsResource.pGmmResInfo->GetSizeMainSurface());
-    surfBaseAddr = (uint8_t*)MOS_AllocMemory(sizeMain);
-    CODECHAL_DEBUG_CHK_NULL(surfBaseAddr);
-    Mos_SwizzleData(lockedAddr, surfBaseAddr, surface->TileType, MOS_TILE_LINEAR, sizeMain / surface->dwPitch, surface->dwPitch,
-        !MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrTileY) || gmmFlags.Info.Tile4);
+    surfBaseAddr = lockedAddr;
 
     uint8_t *data = surfBaseAddr;
     data += surface->dwOffset + surface->YPlaneOffset.iYOffset * surface->dwPitch;
@@ -731,10 +661,6 @@ MOS_STATUS CodechalDebugInterfaceG12::DumpYUVSurface(
         }
     }
 
-    if (surfBaseAddr)
-    {
-        MOS_FreeMemory(surfBaseAddr);
-    }
     if (lockedAddr)
     {
         m_osInterface->pfnUnlockResource(m_osInterface, &surface->OsResource);

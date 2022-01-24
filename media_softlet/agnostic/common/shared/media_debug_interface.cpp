@@ -1164,6 +1164,40 @@ MOS_STATUS MediaDebugInterface::DumpYUVSurface(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MediaDebugInterface::DumpUncompressedYUVSurface(PMOS_SURFACE surface)
+{
+    if (surface == nullptr)
+    {
+        MEDIA_DEBUG_ASSERTMESSAGE("Surface for Dump is nullptr");
+        return MOS_STATUS_NULL_POINTER;
+    }
+
+    MEDIA_DEBUG_CHK_STATUS(ReAllocateSurface(
+        &m_temp2DSurfForCopy,
+        surface,
+        "Temp2DSurfForSurfDumper",
+        MOS_GFXRES_2D,
+        true));
+
+    MEDIA_DEBUG_VERBOSEMESSAGE("Temp2DSurfaceForCopy width %d, height %d, pitch %d, TileType %d, bIsCompressed %d, CompressionMode %d",
+        m_temp2DSurfForCopy.dwWidth,
+        m_temp2DSurfForCopy.dwHeight,
+        m_temp2DSurfForCopy.dwPitch,
+        m_temp2DSurfForCopy.TileType,
+        m_temp2DSurfForCopy.bIsCompressed,
+        m_temp2DSurfForCopy.CompressionMode);
+
+    // Copy Original Surface to a Linear/Uncompressed surface, later lock can use m_temp2DSurfForCopy for uncompresed surfaces
+    // if the return is not supported, then the lock should only happen on origianl resource
+    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnDoubleBufferCopyResource(
+        m_osInterface,
+        &surface->OsResource,
+        &m_temp2DSurfForCopy.OsResource,
+        false));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MediaDebugInterface::DumpBuffer(
     PMOS_RESOURCE          resource,
     const char *           attrName,
@@ -1693,9 +1727,10 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
     PMOS_SURFACE    pSurface,
     PMOS_SURFACE    pSrcSurf,
     PCCHAR          pSurfaceName,
-    MOS_GFXRES_TYPE DefaultResType)
+    MOS_GFXRES_TYPE defaultResType,
+    bool            useLinearResource)
 {
-    MOS_ALLOC_GFXRES_PARAMS AllocParams;
+    MOS_ALLOC_GFXRES_PARAMS allocParams;
 
     MEDIA_DEBUG_ASSERT(m_osInterface);
     MEDIA_DEBUG_ASSERT(&pSurface->OsResource);
@@ -1712,7 +1747,7 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
     {
         return MOS_STATUS_SUCCESS;
     }
-    MOS_ZeroMemory(&AllocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+    MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
 
 #if !EMUL
     //  Need to reallocate surface according to expected tiletype instead of tiletype of the surface what we have
@@ -1720,24 +1755,31 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
         (pSurface->TileType == pSrcSurf->TileType))
     {
         // Reallocate but use same tile type and resource type as current
-        AllocParams.TileType = pSurface->OsResource.TileType;
-        AllocParams.Type     = DefaultResType;
+        allocParams.TileType = pSurface->OsResource.TileType;
+        allocParams.Type     = defaultResType;
     }
     else
 #endif
     {
         // First time allocation. Caller must specify default params
-        AllocParams.TileType = pSrcSurf->TileType;
-        AllocParams.Type     = DefaultResType;
+        allocParams.TileType = pSrcSurf->TileType;
+        allocParams.Type     = defaultResType;
     }
 
-    AllocParams.dwWidth         = pSrcSurf->dwWidth;
-    AllocParams.dwHeight        = pSrcSurf->dwHeight;
-    AllocParams.Format          = pSrcSurf->Format;
-    AllocParams.bIsCompressible = pSrcSurf->bCompressible;
-    AllocParams.CompressionMode = pSrcSurf->CompressionMode;
-    AllocParams.pBufName        = pSurfaceName;
-    AllocParams.dwArraySize     = 1;
+    // Force to use tile linear for reallocated resource
+    if (useLinearResource)
+    {
+        allocParams.TileType = MOS_TILE_LINEAR;
+        allocParams.Type = MOS_GFXRES_2D;
+    }
+
+    allocParams.dwWidth         = pSrcSurf->dwWidth;
+    allocParams.dwHeight        = pSrcSurf->dwHeight;
+    allocParams.Format          = pSrcSurf->Format;
+    allocParams.bIsCompressible = pSrcSurf->bCompressible;
+    allocParams.CompressionMode = pSrcSurf->CompressionMode;
+    allocParams.pBufName        = pSurfaceName;
+    allocParams.dwArraySize     = 1;
 
     // Delete resource if already allocated
     m_osInterface->pfnFreeResource(m_osInterface, &(pSurface->OsResource));
@@ -1745,7 +1787,7 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
     // Allocate surface
     CODECHAL_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
         m_osInterface,
-        &AllocParams,
+        &allocParams,
         &pSurface->OsResource));
 
     pSurface->dwWidth         = pSrcSurf->dwWidth;

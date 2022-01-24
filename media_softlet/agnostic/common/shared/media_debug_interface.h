@@ -103,6 +103,9 @@ public:
         uint32_t               width_in   = 0,
         uint32_t               height_in  = 0);
 
+    virtual MOS_STATUS DumpUncompressedYUVSurface(
+        PMOS_SURFACE           surface);
+
     MOS_STATUS DumpBuffer(
         PMOS_RESOURCE          resource,
         const char *           attrName,
@@ -221,7 +224,8 @@ protected:
         PMOS_SURFACE    pSurface,
         PMOS_SURFACE    pSrcSurf,
         PCCHAR          pSurfaceName,
-        MOS_GFXRES_TYPE DefaultResType);
+        MOS_GFXRES_TYPE DefaultResType,
+        bool            useLinearResource = false);
 
     MOS_STATUS CopySurfaceData_Vdbox(
         uint32_t      dwDataSize,
