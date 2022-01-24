@@ -37,7 +37,6 @@ namespace vdbox
 {
 namespace huc
 {
-
 static constexpr uint32_t MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK = 0xFFFFFF81;
 
 static constexpr uint32_t HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT = 0x1C2014;
@@ -95,12 +94,28 @@ private:
         m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
     }
 
+    uint32_t GetHucStatusHevcS2lFailureMask()
+    {
+        return m_hucStatusHevcS2lFailureMask;
+    }
+
+    uint32_t GetHucStatus2ImemLoadedMask()
+    {
+        return m_hucStatus2ImemLoadedMask;
+    }
+
+    uint32_t GetHucProductFamily()
+    {
+        return m_hucFamily;
+    }
+
 protected:
     using base_t = Itf;
-
-    HucMmioRegisters m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< HuC mmio registers
-
-    MhwCpInterface *m_cpItf = nullptr;
+    HucMmioRegisters      m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< HuC mmio registers
+    MhwCpInterface        *m_cpItf = nullptr;
+    static const uint32_t m_hucStatusHevcS2lFailureMask       = 0x8000;
+    static const uint32_t m_hucStatus2ImemLoadedMask          = 0x40;
+    static const uint32_t m_hucFamily = 8;
 
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};
 
@@ -164,7 +179,7 @@ protected:
             resourceParams.pdwCmd          = cmd.HucIndirectStreamOutObjectbaseAddress.DW0_1.Value;
             resourceParams.dwLocationInCmd = 6;
             resourceParams.bIsWritable     = true;
-            resourceParams.dwSize = params.StreamOutObjectSize;
+            resourceParams.dwSize          = params.StreamOutObjectSize;
 
             InitMocsParams(resourceParams, &cmd.HucIndirectStreamOutObjectbaseAttributes.DW0.Value, 1, 6);
 
@@ -184,7 +199,7 @@ protected:
     _MHW_SETCMD_OVERRIDE_DECL(HUC_STREAM_OBJECT)
     {
         _MHW_SETCMD_CALLBASE(HUC_STREAM_OBJECT);
-#define DO_FIELDS()                                                                        \
+#define DO_FIELDS()                                                                       \
     DO_FIELD(DW1, IndirectStreamInDataLength, params.IndirectStreamInDataLength);         \
     DO_FIELD(DW2, IndirectStreamInStartAddress, params.IndirectStreamInStartAddress);     \
     DO_FIELD(DW2, HucProcessing, params.HucProcessing);                                   \

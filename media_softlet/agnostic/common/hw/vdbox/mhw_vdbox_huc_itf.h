@@ -70,6 +70,9 @@ public:
 
     virtual MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) = 0;
     virtual HucMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
+    virtual uint32_t          GetHucStatusHevcS2lFailureMask()                                                                = 0;
+    virtual uint32_t          GetHucStatus2ImemLoadedMask()                                                                   = 0;
+    virtual uint32_t          GetHucProductFamily()                                                                           = 0;
 
     _HUC_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 };
