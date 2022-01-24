@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,26 +29,6 @@
 
 #include "media_blt_copy.h"
 #include "mhw_blt_xe_hp_base.h"
-
-//!
-//! \brief  Enum for CCS read/write flag
-//!
-enum CCS_FLAG
-{
-    CCS_READ = 0,
-    CCS_WRITE,
-};
-
-//!
-//! \brief  Structure for BLT parameter
-//!
-typedef struct _BLT_STATE_XE_XPM_BASE_PARAM: public BLT_STATE_PARAM
-{
-    bool             bCopyCCS;
-    CCS_FLAG         ccsFlag;
-    PMOS_SURFACE     pSrcCCS;
-    PMOS_SURFACE     pDstCCS;
-}BLT_STATE_XE_XPM_BASE_PARAM, *PBLT_STATE_XE_XPM_BASE_PARAM;
 
 class BltStateXe_Xpm: virtual public BltState
 {
@@ -306,7 +286,7 @@ protected:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS SubmitCMD(
-        PBLT_STATE_XE_XPM_BASE_PARAM pBltStateParam);
+        PBLT_STATE_PARAM pBltStateParam);
 
 private:
     bool         initialized = false;

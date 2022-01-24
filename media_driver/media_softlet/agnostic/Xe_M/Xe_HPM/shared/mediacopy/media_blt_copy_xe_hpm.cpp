@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,22 +20,22 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_blt_copy_xe_xpm_plus.cpp
+//! \file     media_blt_copy_xe_hpm.cpp
 //! \brief    Common interface used in Blitter Engine
 //! \details  Common interface used in Blitter Engine which are platform independent
 //!
 
-#include "media_blt_copy_xe_xpm_plus.h"
+#include "media_blt_copy_xe_hpm.h"
 #include "mhw_cp_interface.h"
-#include "media_interfaces_pvc.h"
+#include "mos_os_specific_next.h"
 
 //!
-//! \brief    BltStateXe_Xpm_Plus constructor
-//! \details  Initialize the BltStateXe_Xpm_Plus members.
+//! \brief    BltState_Xe_Hpm constructor
+//! \details  Initialize the BltState_Xe_Hpm members.
 //! \param    osInterface
 //!           [in] Pointer to MOS_INTERFACE.
 //!
-BltStateXe_Xpm_Plus::BltStateXe_Xpm_Plus(PMOS_INTERFACE    osInterface) :
+BltState_Xe_Hpm::BltState_Xe_Hpm(PMOS_INTERFACE    osInterface) :
     BltState(osInterface),
     initialized(false),
     allocated(false),
@@ -50,12 +50,12 @@ BltStateXe_Xpm_Plus::BltStateXe_Xpm_Plus(PMOS_INTERFACE    osInterface) :
 }
 
 //!
-//! \brief    BltStateXe_Xpm_Plus constructor
-//! \details  Initialize the BltStateXe_Xpm_Plus members.
+//! \brief    BltState_Xe_Hpm constructor
+//! \details  Initialize the BltState_Xe_Hpm members.
 //! \param    osInterface
 //!           [in] Pointer to MOS_INTERFACE.
 //!
-BltStateXe_Xpm_Plus::BltStateXe_Xpm_Plus(PMOS_INTERFACE    osInterface, MhwInterfaces *mhwInterfaces) :
+BltState_Xe_Hpm::BltState_Xe_Hpm(PMOS_INTERFACE    osInterface, MhwInterfaces *mhwInterfaces) :
     BltState(osInterface, mhwInterfaces),
     initialized(false),
     allocated(false),
@@ -69,8 +69,7 @@ BltStateXe_Xpm_Plus::BltStateXe_Xpm_Plus(PMOS_INTERFACE    osInterface, MhwInter
 
 }
 
-
-BltStateXe_Xpm_Plus::~BltStateXe_Xpm_Plus()
+BltState_Xe_Hpm::~BltState_Xe_Hpm()
 {
     FreeResource();
     if (pMainSurface)
@@ -84,18 +83,147 @@ BltStateXe_Xpm_Plus::~BltStateXe_Xpm_Plus()
 }
 
 //!
-//! \brief    BltStateXe_Xpm_Plus initialize
-//! \details  Initialize the BltStateXe_Xpm_Plus, create BLT context.
+//! \brief    BltState_Xe_Hpm initialize
+//! \details  Initialize the BltState_Xe_Hpm, create BLT context.
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::Initialize()
+MOS_STATUS BltState_Xe_Hpm::Initialize()
 {
-    BltState::Initialize();
+    BLT_CHK_STATUS_RETURN(BltState::Initialize());
     initialized = true;
 
     return MOS_STATUS_SUCCESS;
 }
+
+//!
+//! \brief    CopyProtectResource
+//! \param    src
+//!           [in] Pointer to source resource
+//! \param    dst
+//!           [out] Pointer to destination resource
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS BltState_Xe_Hpm::CopyProtectResource(
+    PMOS_RESOURCE src,
+    PMOS_RESOURCE dst)
+{
+    BLT_CHK_NULL_RETURN(src);
+    BLT_CHK_NULL_RETURN(dst);
+    BLT_CHK_NULL_RETURN(m_osInterface);
+
+    MOS_MEMCOMP_STATE mmcState;
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, dst, &mmcState));
+
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnDoubleBufferCopyResource(
+        m_osInterface,
+        src,
+        dst,
+        ((mmcState == MOS_MEMCOMP_MC) || (mmcState == MOS_MEMCOMP_RC)) ? true : false));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    CopyProtectSurface
+//! \param    src
+//!           [in] Pointer to source surface
+//! \param    dst
+//!           [in] Pointer to destination buffer
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS BltState_Xe_Hpm::CopyProtectSurface(
+    PMOS_SURFACE src,
+    PMOS_SURFACE dst)
+{
+    BLT_CHK_NULL_RETURN(src);
+    BLT_CHK_NULL_RETURN(dst);
+    BLT_CHK_NULL_RETURN(m_miInterface);
+    BLT_CHK_NULL_RETURN(m_cpInterface);
+
+    MOS_GPUCTX_CREATOPTIONS createOption;
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnCreateGpuContext(
+        m_osInterface,
+        MOS_GPU_CONTEXT_VIDEO,
+        MOS_GPU_NODE_VIDEO,
+        &createOption));
+
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VIDEO));
+
+    MHW_ADD_CP_COPY_PARAMS cpCopyParams;
+    MOS_ZeroMemory(&cpCopyParams, sizeof(cpCopyParams));
+    cpCopyParams.size    = src->dwWidth * src->dwHeight;
+    cpCopyParams.presSrc = &src->OsResource;
+    cpCopyParams.presDst = &dst->OsResource;
+    cpCopyParams.offset  = 0;
+    MOS_COMMAND_BUFFER cmdBuffer;
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
+
+    // add CP prolog
+    BLT_CHK_STATUS_RETURN(m_miInterface->AddProtectedProlog(&cmdBuffer));
+
+    BLT_CHK_STATUS_RETURN(m_cpInterface->AddCpCopy(m_osInterface, &cmdBuffer, &cpCopyParams));
+
+    //MI flush cmd
+    MHW_MI_FLUSH_DW_PARAMS FlushDwParams;
+    MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
+    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(
+        &cmdBuffer,
+        &FlushDwParams));
+
+    //BatchBuffer end
+    BLT_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
+
+    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBuffer, 0);
+    // Flush the command buffer
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    MapTileType
+//! \param    flags
+//!           [in] GMM resource flags
+//! \param    type
+//!           [in] GMM tile type
+//! \return   MOS_TILE_TYPE
+//!           Return MOS tile type for given GMM resource and tile flags
+//!
+MOS_TILE_TYPE BltState_Xe_Hpm::MapTileType(GMM_RESOURCE_FLAG flags, GMM_TILE_TYPE type)
+{
+    switch (type)
+    {
+        case GMM_TILED_Y:
+            if (flags.Info.TiledYf)
+            {
+                return MOS_TILE_YF;
+            }
+            else if (flags.Info.TiledYs)
+            {
+                return MOS_TILE_YS;
+            }
+            else
+            {
+                return MOS_TILE_Y;
+            }
+            break;
+        case GMM_TILED_X:
+            return MOS_TILE_X;
+            break;
+        case GMM_TILED_4:
+        case GMM_TILED_64:
+            return MOS_TILE_Y;
+            break;
+        case GMM_NOT_TILED:
+        default:
+            return MOS_TILE_LINEAR;
+            break;
+    }
+}
+
 
 //!
 //! \brief    Get control surface
@@ -107,7 +235,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::Initialize()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::GetCCS(
+MOS_STATUS BltState_Xe_Hpm::GetCCS(
     PMOS_SURFACE src,
     PMOS_SURFACE dst)
 {
@@ -145,7 +273,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::GetCCS(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::PutCCS(
+MOS_STATUS BltState_Xe_Hpm::PutCCS(
     PMOS_SURFACE src,
     PMOS_SURFACE dst)
 {
@@ -181,7 +309,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::PutCCS(
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, otherwise error code
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::LockSurface(
+MOS_STATUS BltState_Xe_Hpm::LockSurface(
     PMOS_SURFACE pSurface)
 {
     MOS_STATUS eStatus    = MOS_STATUS_SUCCESS;
@@ -251,7 +379,7 @@ finish:
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, otherwise error code
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::UnLockSurface()
+MOS_STATUS BltState_Xe_Hpm::UnLockSurface()
 {
     FreeResource();
     return MOS_STATUS_SUCCESS;
@@ -269,7 +397,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::UnLockSurface()
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, otherwise error code
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::WriteCompressedSurface(
+MOS_STATUS BltState_Xe_Hpm::WriteCompressedSurface(
     void*        pSysMemory,
     uint32_t     dataSize,
     PMOS_SURFACE pSurface)
@@ -340,7 +468,7 @@ finish:
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, otherwise error code
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::AllocateResource(
+MOS_STATUS BltState_Xe_Hpm::AllocateResource(
     PMOS_SURFACE pSurface)
 {
     MOS_ALLOC_GFXRES_PARAMS AllocParams;
@@ -407,7 +535,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::AllocateResource(
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, otherwise error code
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::FreeResource()
+MOS_STATUS BltState_Xe_Hpm::FreeResource()
 {
     if (allocated)
     {
@@ -441,7 +569,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::FreeResource()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::SetupCtrlSurfCopyBltParam(
+MOS_STATUS BltState_Xe_Hpm::SetupCtrlSurfCopyBltParam(
     PMHW_CTRL_SURF_COPY_BLT_PARAM pMhwBltParams,
     PMOS_SURFACE                  inputSurface,
     PMOS_SURFACE                  outputSurface,
@@ -478,7 +606,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SetupCtrlSurfCopyBltParam(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
+MOS_STATUS BltState_Xe_Hpm::SubmitCMD(
     PBLT_STATE_PARAM pBltStateParam)
 {
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
@@ -486,7 +614,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
     MHW_FAST_COPY_BLT_PARAM      fastCopyBltParam;
     MHW_CTRL_SURF_COPY_BLT_PARAM ctrlSurfCopyBltParam;
     MOS_GPUCTX_CREATOPTIONS      createOption = {};
-    PMHW_BLT_INTERFACE_XE_HPC    pbltInterface = dynamic_cast<PMHW_BLT_INTERFACE_XE_HPC>(m_bltInterface);
+    PMHW_BLT_INTERFACE_XE_HP     pbltInterface = dynamic_cast<PMHW_BLT_INTERFACE_XE_HP>(m_bltInterface);
 
     BLT_CHK_NULL(pbltInterface);
 
@@ -520,7 +648,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
             swctrl.DW0.Tile4Source = 1;
         }
         if (pBltStateParam->pDstSurface->TileType != MOS_TILE_LINEAR)
-        {
+        {//output tiled
             swctrl.DW0.Tile4Destination = 1;
         }
 
@@ -528,8 +656,9 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
         m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &RegisterDwParams);
 
         BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
-         &cmdBuffer,
-         &fastCopyBltParam));
+            &cmdBuffer,
+            &fastCopyBltParam));
+
     }
 
     if (pBltStateParam->bCopyCCS)
@@ -539,9 +668,9 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
             pBltStateParam->pSrcCCS,
             pBltStateParam->pDstCCS,
             pBltStateParam->ccsFlag));
-        //BLT_CHK_STATUS_RETURN(pbltInterfacePvc->AddCtrlSurfCopyBlt(
-        //    &cmdBuffer,
-        //    &ctrlSurfCopyBltParam));
+        BLT_CHK_STATUS_RETURN(pbltInterface->AddCtrlSurfCopyBlt(
+            &cmdBuffer,
+            &ctrlSurfCopyBltParam));
     }
 
     // Add flush DW
@@ -559,7 +688,7 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS BltStateXe_Xpm_Plus::CopyMainSurface(
+MOS_STATUS BltState_Xe_Hpm::CopyMainSurface(
     PMOS_RESOURCE src,
     PMOS_RESOURCE dst)
 {
@@ -579,41 +708,3 @@ MOS_STATUS BltStateXe_Xpm_Plus::CopyMainSurface(
     MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return MOS_STATUS_SUCCESS;
 }
-
-uint32_t BltStateXe_Xpm_Plus::GetColorDepth(
-    GMM_RESOURCE_FORMAT dstFormat,
-    uint32_t            BytesPerTexel)
-{
-    uint32_t bitsPerTexel = BytesPerTexel * BLT_BITS_PER_BYTE;
-
-    switch (bitsPerTexel)
-    {
-     case 8:
-         return mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_8BITCOLOR;
-         break;
-     case 16:
-         switch (dstFormat)
-         {
-             case GMM_FORMAT_B5G5R5A1_UNORM:
-                 return mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
-                 break;
-             default:
-                 return mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;;
-                 break;
-         }
-         break;
-     case 64:
-         return mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_64BITCOLOR;
-         break;
-     case 96:
-         return mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_96BITCOLOR_ONLYLINEARCASEISSUPPORTED;
-         break;
-     case 128:
-         return mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_128BITCOLOR;
-         break;
-     default:
-         return mhw_blt_state_xe_hp_base::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
-         break;
-    }
-
- }

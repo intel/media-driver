@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2022 Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -22,12 +22,12 @@
 
 ======================= end_copyright_notice ==================================*/
 //!
-//! \file       media_render_copy_xe_xpm_plus.h
+//! \file       media_render_copy_xe_hpm.h
 //! \brief      render copy's implement file.
-//! \details    PVC render copy's implement file.
+//! \details    render copy's implement file.
 //!
-#ifndef __MEDIA_RENDER_COPY_XE_XPM_PLUS_H__
-#define __MEDIA_RENDER_COPY_XE_XPM_PLUS_H__
+#ifndef __MEDIA_RENDER_COPY_XE_HPM_H__
+#define __MEDIA_RENDER_COPY_XE_HPM_H__
 
 #include "media_render_copy.h"
 #include "media_interfaces_mhw.h"
@@ -37,15 +37,16 @@
 #include "mos_os.h"
 #include "mhw_render_xe_hp.h"
 
-typedef class  RenderCopy_Xe_Xpm_Plus *PRenderCopy_Xe_Xpm_Plus;
-class RenderCopy_Xe_Xpm_Plus: public RenderCopyState
+typedef class  RenderCopy_Xe_Hpm  *PRenderCopy_Xe_Hpm;
+class RenderCopy_Xe_Hpm: public RenderCopyState
 {
 public:
-    RenderCopy_Xe_Xpm_Plus(PMOS_INTERFACE  osInterface, MhwInterfaces  *mhwInterfaces);
+    RenderCopy_Xe_Hpm(PMOS_INTERFACE  osInterface, MhwInterfaces  *mhwInterfaces);
 
-    virtual ~RenderCopy_Xe_Xpm_Plus();
+    virtual ~RenderCopy_Xe_Hpm();
 
-    //!
+
+     //!
     //! \brief    Copy input surface to Output surface
     //! \details  Copy 2D surface to 2D surface
     //! \param    src
@@ -70,6 +71,7 @@ protected:
     virtual MOS_STATUS SubmitCMD( );
 
     MOS_STATUS SetupKernel(int32_t iKDTIndex);
+
 };
 
-#endif // __MEDIA_RENDER_COPY_XE_XPM_PLUS_H__
+#endif // __MEDIA_RENDER_COPY_XE_HPM_H__

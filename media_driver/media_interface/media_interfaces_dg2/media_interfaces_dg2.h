@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -60,7 +60,7 @@
 #include "mhw_vdbox_vdenc_g12_X.h"
 #endif
 #include "vphal_render_vebox_memdecomp_xe_xpm.h"
-#include "media_copy_xe_xpm_base.h"
+#include "media_copy_xe_hpm.h"
 #include "mhw_blt_xe_hp_base.h"
 
 #include "codechal_hw_xe_hpm.h"
@@ -222,7 +222,7 @@ public:
 class McpyDeviceXe_Hpm : public McpyDevice
 {
 public:
-    using Mcpy  = MediaCopyStateXe_Xpm_Base;
+    using Mcpy  = MediaCopyState_Xe_Hpm;
 
     MOS_STATUS Initialize(
         PMOS_INTERFACE osInterface,

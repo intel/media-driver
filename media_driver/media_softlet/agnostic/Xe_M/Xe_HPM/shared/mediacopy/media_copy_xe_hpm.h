@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,42 +20,33 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_copy_xe_xpm_base.h
+//! \file     media_copy_xe_hpm.h
 //! \brief    Common interface and structure used in media copy
 //! \details  Common interface and structure used in media copy which are platform independent
 //!
 
-#ifndef __MEDIA_COPY_XE_XPM_BASE_H__
-#define __MEDIA_COPY_XE_XPM_BASE_H__
+#ifndef __MEDIA_COPY_XE_HPM_H__
+#define __MEDIA_COPY_XE_HPM_H__
 
 #include "media_copy.h"
-#include "media_blt_copy_xe_xpm_base.h"
+#include "media_render_copy_xe_hpm.h"
+#include "media_blt_copy_xe_hpm.h"
 
-class MediaCopyStateXe_Xpm_Base: public MediaCopyBaseState
+class MediaCopyState_Xe_Hpm: public MediaCopyBaseState
 {
 public:
     //!
-    //! \brief    MediaCopyStateXe_Xpm_Base constructor
+    //! \brief    MediaCopyState_Xe_Hpm constructor
     //! \details  Initialize the MediaCopy members.
     //! \param    osInterface
     //!           [in] Pointer to MOS_INTERFACE.
     //!
-    MediaCopyStateXe_Xpm_Base();
-    virtual ~MediaCopyStateXe_Xpm_Base();
+    MediaCopyState_Xe_Hpm();
+    virtual ~MediaCopyState_Xe_Hpm();
 
     //!
     //! \brief    init function.
     virtual MOS_STATUS Initialize(  PMOS_INTERFACE  osInterface, MhwInterfaces *mhwInterfaces);
-
-    //!
-    //! \brief    surface copy pre process.
-    //! \details  pre process before doing surface copy.
-    //! \param    preferMethod
-    //!           [in] Preferred media copy method
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
-    //!
-    MOS_STATUS PreProcess(MCPY_METHOD preferMethod);
 
     //!
     //! \brief    render format support.
@@ -64,8 +55,8 @@ public:
     //!           [in] Pointer to source surface
     //! \param    dst
     //!           [in] Pointer to destination surface
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
+    //! \return   bool
+    //!           Return true if support, otherwise return false.
     //!
     virtual bool RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
@@ -81,11 +72,9 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
     //!
-    virtual MOS_STATUS FeatureSupport(PMOS_RESOURCE src, PMOS_RESOURCE dst,
-            MCPY_STATE_PARAMS& mcpy_src, MCPY_STATE_PARAMS& mcpy_dst, MCPY_ENGINE_CAPS& caps);
+    virtual MOS_STATUS FeatureSupport(PMOS_RESOURCE src, PMOS_RESOURCE dst, MCPY_ENGINE_CAPS& caps);
 
 protected:
-
     //!
     //! \brief    use blt engie to do surface copy.
     //! \details  implementation media blt copy.
@@ -125,9 +114,10 @@ protected:
     virtual bool IsVeboxCopySupported(PMOS_RESOURCE src, PMOS_RESOURCE dst);
 
 protected:
-
-    BltStateXe_Xpm     *m_bltState       = nullptr;
+    BltState_Xe_Hpm    *m_bltState       = nullptr;
     VeboxCopyState     *m_veboxCopyState = nullptr;
+    RenderCopy_Xe_Hpm  *m_renderCopy     = nullptr;
+
 };
-#endif // __MEDIA_COPY_XE_XPM_BASE_H__
+#endif // __MEDIA_COPY_XE_HPM_H__
 

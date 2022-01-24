@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,16 @@
 #define BLT_CHK_NULL_RETURN(_ptr)           MOS_CHK_NULL_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _ptr)
 #define BLT_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _message, ##__VA_ARGS__)
 #define BLT_BITS_PER_BYTE                   8
+
+//!
+//! \brief  Enum for CCS read/write flag
+//!
+enum CCS_FLAG
+{
+ CCS_READ = 0,
+ CCS_WRITE,
+};
+
 //!
 //! \brief  Structure for BLT parameter
 //!
@@ -47,8 +57,11 @@ typedef struct _BLT_STATE_PARAM
     bool             bCopyMainSurface;
     PMOS_RESOURCE    pSrcSurface;
     PMOS_RESOURCE    pDstSurface;
+    bool             bCopyCCS;
+    CCS_FLAG         ccsFlag;
+    PMOS_SURFACE     pSrcCCS;
+    PMOS_SURFACE     pDstCCS;
 }BLT_STATE_PARAM, *PBLT_STATE_PARAM;
-
 
 class BltState
 {

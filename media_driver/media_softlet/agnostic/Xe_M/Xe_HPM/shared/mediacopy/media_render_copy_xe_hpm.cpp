@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -22,28 +22,27 @@
 
 ======================= end_copyright_notice ==================================*/
 //!
-//! \file       media_render_copy_xe_xpm_plus.cpp
-//! \brief      implementation of Gen11 hardware functions
+//! \file       media_render_copy_xe_hpm.cpp
+//! \brief      implementation of xe hardware functions
 //! \details    Render functions
 //!
 
-#include "media_render_copy_xe_xpm_plus.h"
+#include "media_render_copy_xe_hpm.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-#include "igvpkrn_xe_xpm_plus.h"
+#include "igvpkrn_xe_hpm.h"
 #endif
 
-RenderCopy_Xe_Xpm_Plus::RenderCopy_Xe_Xpm_Plus(PMOS_INTERFACE  osInterface, MhwInterfaces *mhwInterfaces):
+RenderCopy_Xe_Hpm::RenderCopy_Xe_Hpm(PMOS_INTERFACE  osInterface, MhwInterfaces *mhwInterfaces):
     RenderCopyState(osInterface, mhwInterfaces)
 {
-
+  
 }
 
-RenderCopy_Xe_Xpm_Plus:: ~RenderCopy_Xe_Xpm_Plus()
+RenderCopy_Xe_Hpm:: ~RenderCopy_Xe_Hpm()
 {
-
 }
 
-MOS_STATUS RenderCopy_Xe_Xpm_Plus::CopySurface(
+MOS_STATUS RenderCopy_Xe_Hpm::CopySurface(
     PMOS_RESOURCE src,
     PMOS_RESOURCE dst)
 {
@@ -88,7 +87,7 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::CopySurface(
     return SubmitCMD();
 }
 
-MOS_STATUS RenderCopy_Xe_Xpm_Plus::SubmitCMD( )
+MOS_STATUS RenderCopy_Xe_Hpm::SubmitCMD( )
 {
     PRENDERHAL_INTERFACE        pRenderHal;
     PMOS_INTERFACE              pOsInterface;
@@ -97,7 +96,7 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::SubmitCMD( )
     int32_t                     iCurbeOffset;
     MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
 
-    PRenderCopy_Xe_Xpm_Plus     pRenderCopy = this;
+    PRenderCopy_Xe_Hpm         pRenderCopy = this;
     PMEDIACOPY_RENDER_DATA      pRenderData = &(pRenderCopy->m_RenderData);
     MHW_WALKER_PARAMS           WalkerParams = {0};
     PMHW_WALKER_PARAMS          pWalkerParams = nullptr;
@@ -240,7 +239,7 @@ finish:
 }
 
 
-MOS_STATUS RenderCopy_Xe_Xpm_Plus::SetupKernel(
+MOS_STATUS RenderCopy_Xe_Hpm::SetupKernel(
     int32_t iKDTIndex)
 {
     Kdll_CacheEntry             *pCacheEntryTable;                              // Kernel Cache Entry table
@@ -296,10 +295,10 @@ MOS_STATUS RenderCopy_Xe_Xpm_Plus::SetupKernel(
         return MOS_STATUS_UNKNOWN;
     }
 
-
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-    pcKernelBin = (const void*)IGVPKRN_XE_XPM_PLUS;
-    dwKernelBinSize = IGVPKRN_XE_XPM_PLUS_SIZE;
+    
+    pcKernelBin = (const void*)IGVPKRN_XE_HPM;
+    dwKernelBinSize = IGVPKRN_XE_HPM_SIZE;
 #else
     pcKernelBin = nullptr;
     dwKernelBinSize = 0;

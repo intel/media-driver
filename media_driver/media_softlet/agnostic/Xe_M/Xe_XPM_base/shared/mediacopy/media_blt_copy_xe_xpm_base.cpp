@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -362,14 +362,14 @@ MOS_STATUS BltStateXe_Xpm::GetCCS(
     PMOS_SURFACE src,
     PMOS_SURFACE dst)
 {
-    BLT_STATE_XE_XPM_BASE_PARAM bltStateParam;
+    BLT_STATE_PARAM bltStateParam;
 
     BLT_CHK_NULL_RETURN(src);
     BLT_CHK_NULL_RETURN(dst);
     BLT_CHK_NULL_RETURN(&src->OsResource);
     BLT_CHK_NULL_RETURN(&dst->OsResource);
 
-    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_XE_XPM_BASE_PARAM));
+    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
     bltStateParam.bCopyCCS = true;
     bltStateParam.ccsFlag  = CCS_READ;
     bltStateParam.pSrcCCS  = src;
@@ -400,14 +400,14 @@ MOS_STATUS BltStateXe_Xpm::PutCCS(
     PMOS_SURFACE src,
     PMOS_SURFACE dst)
 {
-    BLT_STATE_XE_XPM_BASE_PARAM bltStateParam;
+    BLT_STATE_PARAM bltStateParam;
 
     BLT_CHK_NULL_RETURN(src);
     BLT_CHK_NULL_RETURN(dst);
     BLT_CHK_NULL_RETURN(&src->OsResource);
     BLT_CHK_NULL_RETURN(&dst->OsResource);
 
-    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_XE_XPM_BASE_PARAM));
+    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
     bltStateParam.bCopyCCS = true;
     bltStateParam.ccsFlag  = CCS_WRITE;
     bltStateParam.pSrcCCS  = src;
@@ -730,7 +730,7 @@ MOS_STATUS BltStateXe_Xpm::SetupCtrlSurfCopyBltParam(
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
 MOS_STATUS BltStateXe_Xpm::SubmitCMD(
-    PBLT_STATE_XE_XPM_BASE_PARAM pBltStateParam)
+    PBLT_STATE_PARAM pBltStateParam)
 {
     MOS_STATUS                   eStatus = MOS_STATUS_SUCCESS;
     MOS_COMMAND_BUFFER           cmdBuffer;
@@ -815,13 +815,13 @@ MOS_STATUS BltStateXe_Xpm::CopyMainSurface(
     PMOS_RESOURCE src,
     PMOS_RESOURCE dst)
 {
-    BLT_STATE_XE_XPM_BASE_PARAM bltStateParam;
+    BLT_STATE_PARAM bltStateParam;
 
     BLT_CHK_NULL_RETURN(src);
     BLT_CHK_NULL_RETURN(dst);
     MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
-    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_XE_XPM_BASE_PARAM));
+    MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
     bltStateParam.bCopyMainSurface = true;
     bltStateParam.pSrcSurface      = src;
     bltStateParam.pDstSurface      = dst;

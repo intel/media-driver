@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,37 +20,61 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     media_blt_copy_xe_xpm_plus.h
+//! \file     media_blt_copy_xe_hpm.h
 //! \brief    Common interface and structure used in Blitter Engine
 //! \details  Common interface and structure used in Blitter Engine which are platform independent
 //!
-#ifndef __MEDIA_BLT_COPY_XE_XPM_PLUS_H__
-#define __MEDIA_BLT_COPY_XE_XPM_PLUS_H__
+#ifndef __MEDIA_BLT_COPY_XE_HPM_H__
+#define __MEDIA_BLT_COPY_XE_HPM_H__
 
-#include "media_blt_copy_xe_xpm_base.h"
-#include "mhw_blt_xe_hpc.h"
+#include "media_blt_copy.h"
+#include "mhw_blt_xe_hp_base.h"
 
-class BltStateXe_Xpm_Plus: virtual public BltState
+class BltState_Xe_Hpm: virtual public BltState
 {
 public:
     //!
-    //! \brief    BltStateXe_Xpm_Plus constructor
+    //! \brief    BltState_Xe_Hpm constructor
     //! \details  Initialize the BltState members.
     //! \param    osInterface
     //!           [in] Pointer to MOS_INTERFACE.
     //!
-    BltStateXe_Xpm_Plus(PMOS_INTERFACE     osInterface);
-    BltStateXe_Xpm_Plus(PMOS_INTERFACE    osInterface, MhwInterfaces *mhwInterfaces);
+    BltState_Xe_Hpm(PMOS_INTERFACE     osInterface);
+    BltState_Xe_Hpm(PMOS_INTERFACE    osInterface, MhwInterfaces *mhwInterfaces);
 
-    virtual ~BltStateXe_Xpm_Plus();
+    virtual ~BltState_Xe_Hpm();
 
     //!
-    //! \brief    BltStateXe_Xpm_Plus initialize
-    //! \details  Initialize the BltStateXe_Xpm_Plus, create BLT context.
+    //! \brief    BltState_Xe_Hpm initialize
+    //! \details  Initialize the BltState_Xe_Hpm, create BLT context.
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Initialize();
+
+    //!
+    //! \brief    CopyProtectResource
+    //! \param    src
+    //!           [in] Pointer to source resource
+    //! \param    dst
+    //!           [out] Pointer to destination resource
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS CopyProtectResource(
+        PMOS_RESOURCE src,
+        PMOS_RESOURCE dst);
+
+    //!
+    //! \brief    MapTileType
+    //! \param    flags
+    //!           [in] GMM resource flags
+    //! \param    type
+    //!           [in] GMM tile type
+    //! \return   MOS_TILE_TYPE
+    //!           Return MOS tile type for given GMM resource and tile flags
+    //!
+    MOS_TILE_TYPE MapTileType(GMM_RESOURCE_FLAG flags, GMM_TILE_TYPE type);
 
     //!
     //! \brief    Copy main surface
@@ -84,6 +108,19 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS GetCCS(
+        PMOS_SURFACE src,
+        PMOS_SURFACE dst);
+
+    //!
+    //! \brief    CopyProtectSurface
+    //! \param    src
+    //!           [in] Pointer to source surface
+    //! \param    dst
+    //!           [in] Pointer to destination buffer
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS CopyProtectSurface(
         PMOS_SURFACE src,
         PMOS_SURFACE dst);
 
@@ -181,18 +218,6 @@ public:
         return pAuxSurface;
     }
 
-    //!
-    //! \brief    Get color depth.
-    //! \details  get different format's color depth.
-    //! \param    surface
-    //!           [in] input or output surface.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    uint32_t GetColorDepth(
-        GMM_RESOURCE_FORMAT dstFormat,
-        uint32_t            BytesPerTexel);
-
 protected:
     //!
     //! \brief    Allocate resource
@@ -255,5 +280,4 @@ private:
     void*        pAuxSurface  = nullptr;
 };
 
-#endif // __MEDIA_BLT_COPY_XE_XPM_PLUS_H__
-
+#endif // __MEDIA_BLT_COPY_XE_HPM_H__

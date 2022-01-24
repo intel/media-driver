@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -159,7 +159,6 @@ MOS_STATUS MediaCopyStateXe_Xpm_Base::MediaBltCopy(PMOS_RESOURCE src, PMOS_RESOU
 
 MOS_STATUS MediaCopyStateXe_Xpm_Base::MediaRenderCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst)
 {
-    // implementation
-    // currently, still using mdf kernel.
+    // not implement yet
     return MOS_STATUS_UNIMPLEMENTED;
 }
