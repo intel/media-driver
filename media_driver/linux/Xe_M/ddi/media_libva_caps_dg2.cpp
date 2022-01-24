@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,7 +51,7 @@ VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
         DDI_CHK_RET(status, "Failed to initialize Caps!");
         (*attributeList)[VAConfigAttribEncDynamicScaling] = 0;
         (*attributeList)[VAConfigAttribEncTileSupport]    = 1;
-        (*attributeList)[VAConfigAttribEncDirtyRect]      = ENCODE_VDENC_AV1_MAX_DIRTYRECT;
+        (*attributeList)[VAConfigAttribEncDirtyRect]      = 0;
         (*attributeList)[VAConfigAttribEncMaxRefFrames]   = CODEC_AV1_NUM_REFL0P_FRAMES |
             CODEC_AV1_NUM_REFL0B_FRAMES<<8 | CODEC_AV1_NUM_REFL1B_FRAMES<<16;
 
