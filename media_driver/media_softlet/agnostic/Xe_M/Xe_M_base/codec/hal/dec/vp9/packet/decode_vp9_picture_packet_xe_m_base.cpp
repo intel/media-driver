@@ -697,6 +697,22 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
         dstSurface.OsResource = *(pipeBufAddrParams.presReferences[CodechalDecodeLastRef]);
         DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
 
+        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
+            {
+                PICTURE_FRAME,
+                dstSurface.dwOffset,
+                dstSurface.YPlaneOffset.iYOffset,
+                dstSurface.dwPitch,
+                dstSurface.dwWidth,
+                dstSurface.dwHeight,
+                (uint32_t)dstSurface.Format,
+                dstSurface.UPlaneOffset.iLockSurfaceOffset,
+                dstSurface.VPlaneOffset.iLockSurfaceOffset,
+                dstSurface.UPlaneOffset.iSurfaceOffset,
+                dstSurface.VPlaneOffset.iSurfaceOffset,
+            };
+        MOS_TraceEvent(EVENT_DECODE_SURFACE_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+
         if (m_tempLastRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempLastRefSurf->OsResource))
         {
             bAllocateLastRef = true;
@@ -735,23 +751,6 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
             &m_tempLastRefSurf->OsResource,
             false));
 
-        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-        {
-            PICTURE_FRAME,
-            0,
-            m_tempLastRefSurf->dwOffset,
-            m_tempLastRefSurf->YPlaneOffset.iYOffset,
-            m_tempLastRefSurf->dwPitch,
-            m_tempLastRefSurf->dwWidth,
-            m_tempLastRefSurf->dwHeight,
-            (uint32_t)m_tempLastRefSurf->Format,
-            m_tempLastRefSurf->UPlaneOffset.iLockSurfaceOffset,
-            m_tempLastRefSurf->VPlaneOffset.iLockSurfaceOffset,
-            m_tempLastRefSurf->UPlaneOffset.iSurfaceOffset,
-            m_tempLastRefSurf->VPlaneOffset.iSurfaceOffset,
-        };
-        MOS_TraceEvent(EVENT_DECODE_REF_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
         ResourceAutoLock resLock(m_allocator, &m_tempLastRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
 
@@ -768,6 +767,22 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
         MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
         dstSurface.OsResource = *(pipeBufAddrParams.presReferences[CodechalDecodeGoldenRef]);
         DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
+
+        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
+        {
+            PICTURE_FRAME,
+            dstSurface.dwOffset,
+            dstSurface.YPlaneOffset.iYOffset,
+            dstSurface.dwPitch,
+            dstSurface.dwWidth,
+            dstSurface.dwHeight,
+            (uint32_t)dstSurface.Format,
+            dstSurface.UPlaneOffset.iLockSurfaceOffset,
+            dstSurface.VPlaneOffset.iLockSurfaceOffset,
+            dstSurface.UPlaneOffset.iSurfaceOffset,
+            dstSurface.VPlaneOffset.iSurfaceOffset,
+        };
+        MOS_TraceEvent(EVENT_DECODE_SURFACE_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
 
         if (m_tempGoldenRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempGoldenRefSurf->OsResource))
         {
@@ -807,23 +822,6 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
             &m_tempGoldenRefSurf->OsResource,
             false));
 
-        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-        {
-            PICTURE_FRAME,
-            0,
-            m_tempGoldenRefSurf->dwOffset,
-            m_tempGoldenRefSurf->YPlaneOffset.iYOffset,
-            m_tempGoldenRefSurf->dwPitch,
-            m_tempGoldenRefSurf->dwWidth,
-            m_tempGoldenRefSurf->dwHeight,
-            (uint32_t)m_tempGoldenRefSurf->Format,
-            m_tempGoldenRefSurf->UPlaneOffset.iLockSurfaceOffset,
-            m_tempGoldenRefSurf->VPlaneOffset.iLockSurfaceOffset,
-            m_tempGoldenRefSurf->UPlaneOffset.iSurfaceOffset,
-            m_tempGoldenRefSurf->VPlaneOffset.iSurfaceOffset,
-        };
-        MOS_TraceEvent(EVENT_DECODE_REF_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
-
         ResourceAutoLock resLock(m_allocator, &m_tempGoldenRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
 
@@ -840,6 +838,22 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
         MOS_ZeroMemory(&dstSurface, sizeof(MOS_SURFACE));
         dstSurface.OsResource = *(pipeBufAddrParams.presReferences[CodechalDecodeAlternateRef]);
         DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&dstSurface));
+
+        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
+        {
+            PICTURE_FRAME,
+            dstSurface.dwOffset,
+            dstSurface.YPlaneOffset.iYOffset,
+            dstSurface.dwPitch,
+            dstSurface.dwWidth,
+            dstSurface.dwHeight,
+            (uint32_t)dstSurface.Format,
+            dstSurface.UPlaneOffset.iLockSurfaceOffset,
+            dstSurface.VPlaneOffset.iLockSurfaceOffset,
+            dstSurface.UPlaneOffset.iSurfaceOffset,
+            dstSurface.VPlaneOffset.iSurfaceOffset,
+        };
+        MOS_TraceEvent(EVENT_DECODE_SURFACE_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
 
         if (m_tempAltRefSurf == nullptr || m_allocator->ResourceIsNull(&m_tempAltRefSurf->OsResource))
         {
@@ -878,23 +892,6 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
             &dstSurface.OsResource,
             &m_tempAltRefSurf->OsResource,
             false));
-
-        DECODE_EVENTDATA_YUV_SURFACE_INFO eventData =
-        {
-            PICTURE_FRAME,
-            0,
-            m_tempAltRefSurf->dwOffset,
-            m_tempAltRefSurf->YPlaneOffset.iYOffset,
-            m_tempAltRefSurf->dwPitch,
-            m_tempAltRefSurf->dwWidth,
-            m_tempAltRefSurf->dwHeight,
-            (uint32_t)m_tempAltRefSurf->Format,
-            m_tempAltRefSurf->UPlaneOffset.iLockSurfaceOffset,
-            m_tempAltRefSurf->VPlaneOffset.iLockSurfaceOffset,
-            m_tempAltRefSurf->UPlaneOffset.iSurfaceOffset,
-            m_tempAltRefSurf->VPlaneOffset.iSurfaceOffset,
-        };
-        MOS_TraceEvent(EVENT_DECODE_REF_DUMPINFO, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
 
         ResourceAutoLock resLock(m_allocator, &m_tempAltRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
