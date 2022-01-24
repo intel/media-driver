@@ -234,6 +234,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                 tileformat = I915_TILING_NONE;
                 break;
             }
+        case Media_Format_B8G8R8A8:
         case Media_Format_A8R8G8B8:
             if (VA_SURFACE_ATTRIB_USAGE_HINT_ENCODER != mediaSurface->surfaceUsageHint     &&
                 !(mediaSurface->surfaceUsageHint & VA_SURFACE_ATTRIB_USAGE_HINT_DECODER)   &&
@@ -472,6 +473,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                                 format == Media_Format_X8B8G8R8 ||
                                 format == Media_Format_A8B8G8R8 ||
                                 format == Media_Format_A8R8G8B8 ||
+                                format == Media_Format_B8G8R8A8 ||
                                 format == Media_Format_R8G8B8A8)
                             {
                                 gmmParams.Flags.Info.MediaCompressed  = 0;
@@ -683,6 +685,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
                             format == Media_Format_X8B8G8R8 ||
                             format == Media_Format_A8B8G8R8 ||
                             format == Media_Format_A8R8G8B8 ||
+                            format == Media_Format_B8G8R8A8 ||
                             format == Media_Format_R8G8B8A8)
                         {
                             gmmParams.Flags.Info.MediaCompressed  = 0;

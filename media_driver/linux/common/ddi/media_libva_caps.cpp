@@ -3462,6 +3462,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertMediaFmtToGmmFmt(
     switch (format)
     {
         case Media_Format_X8R8G8B8   : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
+        case Media_Format_B8G8R8A8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
         case Media_Format_A8R8G8B8   : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
         case Media_Format_X8B8G8R8   : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
         case Media_Format_A8B8G8R8   : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
