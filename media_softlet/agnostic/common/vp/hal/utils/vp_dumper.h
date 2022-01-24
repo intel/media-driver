@@ -33,7 +33,7 @@
 
 #include "renderhal.h"
 #include "mhw_vebox.h"
-#include "vphal_common.h"       // Common interfaces and structures
+#include "vp_common.h"       // Common interfaces and structures
 #include "vp_pipeline_common.h"
 
 #if !defined(LINUX) && !defined(ANDROID)

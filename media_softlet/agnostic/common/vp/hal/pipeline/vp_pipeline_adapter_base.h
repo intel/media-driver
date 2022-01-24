@@ -27,7 +27,7 @@
 //!
 #ifndef __VP_PIPELINE_ADAPTER_BASE_H__
 #define __VP_PIPELINE_ADAPTER_BASE_H__
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "vphal_common_tools.h"
 #include "mhw_vebox.h"
 #include "mhw_sfc.h"

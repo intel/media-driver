@@ -23,7 +23,7 @@
 #define __VP_SFC_COMMON_H__
 
 #include "mhw_sfc.h"
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "vp_pipeline_common.h"
 
 namespace vp

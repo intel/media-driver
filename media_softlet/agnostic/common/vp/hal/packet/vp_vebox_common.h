@@ -23,7 +23,7 @@
 #define __VP_VEBOX_COMMON_H__
 
 #include "mhw_vebox.h"
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "renderhal_g12_base.h"
 #include "vp_filter.h"
 

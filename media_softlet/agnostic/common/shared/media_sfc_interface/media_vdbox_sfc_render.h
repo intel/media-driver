@@ -29,7 +29,7 @@
 
 #include "mos_os_specific.h"
 #include "mhw_vebox.h"
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "vp_platform_interface.h"
 #include "vp_pipeline.h"
 

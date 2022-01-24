@@ -28,7 +28,7 @@
 #include "media_sfc_render.h"
 #include "vp_feature_manager.h"
 #include "mhw_vebox.h"
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "vp_platform_interface.h"
 #include "vp_pipeline.h"
 #include "media_vdbox_sfc_render.h"

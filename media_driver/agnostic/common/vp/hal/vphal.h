@@ -34,6 +34,7 @@
 #include "mhw_sfc.h"
 #include "vp_pipeline_adapter_base.h"
 #include "vp_feature_report.h"
+#include "vphal_common_hdr.h"
 
 //*-----------------------------------------------------------------------------
 //| DEFINITIONS

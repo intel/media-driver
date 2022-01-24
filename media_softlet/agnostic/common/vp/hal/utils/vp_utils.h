@@ -25,7 +25,7 @@
 #include <mutex>
 #include "mos_util_debug.h"
 #include "mos_os.h"
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "media_class_trace.h"
 
 #define VP_UNUSED(param) (void)(param)

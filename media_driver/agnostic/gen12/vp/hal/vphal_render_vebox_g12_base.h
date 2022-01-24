@@ -29,7 +29,7 @@
 
 #include "vphal_render_vebox_base.h"
 #include "vphal_render_hdr_g11.h"
-#include "vphal_common_hdr.h"
+#include "vp_common_hdr.h"
 
 #define VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_G12                      (VPHAL_VEBOX_RGB_HISTOGRAM_SIZE_PER_SLICE * \
                                                                  VPHAL_NUM_RGB_CHANNEL                    * \

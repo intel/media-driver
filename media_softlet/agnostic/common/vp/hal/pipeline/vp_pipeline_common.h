@@ -28,7 +28,7 @@
 #define __VP_PIPELINE_COMMON_H__
 
 #include "mos_utilities.h"
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "renderhal.h"
 #include "vphal.h"
 

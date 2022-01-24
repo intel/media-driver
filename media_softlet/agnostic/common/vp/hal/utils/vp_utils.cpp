@@ -21,7 +21,7 @@
 */
 
 #include "vp_utils.h"
-#include "vphal_common.h"
+#include "vp_common.h"
 
 MOS_SURFACE VpUtils::VpHalConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE surface)
 {
