@@ -49,6 +49,12 @@ MOS_STATUS MosUtilities::InitMosCommonUserSetting()
         MediaUserSetting::Group::Device,
         0,
         true);
+    
+    DeclareUserSettingKey(
+        "ApoDdiEnable",
+        MediaUserSetting::Group::Device,
+        0,
+        true);
 
     return MOS_STATUS_SUCCESS;
 }

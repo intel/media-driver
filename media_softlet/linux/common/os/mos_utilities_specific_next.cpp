@@ -1900,49 +1900,20 @@ MOS_STATUS MosUtilities::MosReadMediaSoloEnabledUserFeature(bool &mediasoloEnabl
 MOS_STATUS MosUtilities::MosReadApoDdiEnabledUserFeature(uint32_t &userfeatureValue, char *path)
 {
     MOS_STATUS eStatus  = MOS_STATUS_SUCCESS;
-    void *     UFKey    = nullptr;
-    uint32_t   dwUFSize = 0;
-    uint32_t   data     = 0;
     MOS_UNUSED(path);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    eStatus = MosGetApoMosEnabledUserFeatureFile();
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        MOS_OS_NORMALMESSAGE("Failed to get user feature file, error status %d.", eStatus);
-        return eStatus;
-    }
-#endif
-
-    eStatus = MosUserFeatureOpen(
-        MOS_USER_FEATURE_TYPE_USER,
-        __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
-        KEY_READ,
-        &UFKey,
-        nullptr);
-
-    if (eStatus != MOS_STATUS_SUCCESS)
-    {
-        MOS_OS_NORMALMESSAGE("Failed to open ApoDdiEnable user feature key , error status %d.", eStatus);
-        return eStatus;
-    }
-
-    eStatus = MosUserFeatureGetValue(
-        UFKey,
-        nullptr,
+    uint32_t enableApoDdi = 0;
+    eStatus = ReadUserSetting(enableApoDdi,
         "ApoDdiEnable",
-        RRF_RT_UF_DWORD,
-        nullptr,
-        &userfeatureValue,
-        &dwUFSize);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)nullptr);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
-        // This error case can be hit if the user feature key does not exist.
+        // It could be there is no this use feature key.
         MOS_OS_NORMALMESSAGE("Failed to read ApoDdiEnable user feature key value, error status %d", eStatus);
     }
-
-    MosUserFeatureCloseKey(UFKey);  // Closes the key if not nullptr
+    userfeatureValue = enableApoDdi ? true : false;
     return eStatus;
 }
 
