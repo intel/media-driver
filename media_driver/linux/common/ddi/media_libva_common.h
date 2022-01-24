@@ -155,6 +155,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_2DBuffer    ,
     Media_Format_Perf_Buffer ,
     Media_Format_X8R8G8B8    ,
+    Media_Format_B8G8R8A8    ,
     Media_Format_A8R8G8B8    ,
     Media_Format_X8B8G8R8    ,
     Media_Format_A8B8G8R8    ,

@@ -178,6 +178,7 @@ MOS_FORMAT VpGetFormatFromMediaFormat(DDI_MEDIA_FORMAT mf)
     case Media_Format_X8B8G8R8:
         format = Format_X8B8G8R8;
         break;
+    case Media_Format_B8G8R8A8:
     case Media_Format_A8R8G8B8:
         format = Format_A8R8G8B8;
         break;
