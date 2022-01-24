@@ -164,12 +164,3 @@ if(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS AND "${CMA
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
     include(${MEDIA_EXT}/media_softlet/ult/ult_top_cmake.cmake OPTIONAL)
 endif()
-
-if (${CLASS_TRACE} EQUAL 1)
-    message("start to generate media_trace_offset.h in media_top_cmake.cmake")
-    add_dependencies(${LIB_NAME} generate_classtrace)
-    add_dependencies(${LIB_NAME_OBJ} generate_classtrace)
-    add_dependencies(${LIB_NAME_STATIC} generate_classtrace)
-    add_dependencies(${LIB_NAME}_SSE2 generate_classtrace)
-    add_dependencies(${LIB_NAME}_SSE4 generate_classtrace)
-endif ()

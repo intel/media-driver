@@ -62,9 +62,6 @@ endif ()
 
 add_executable(devult ${SOURCES})
 target_link_libraries(devult libgtest libdl.so)
-if (${CLASS_TRACE} EQUAL 1)
-    add_dependencies(devult generate_classtrace)
-endif ()
 
 if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
     # must explictly pass along BYPASS_MEDIA_ULT as yes then could bypass the running of media ult

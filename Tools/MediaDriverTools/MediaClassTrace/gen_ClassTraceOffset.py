@@ -42,12 +42,14 @@ def genHeaderFile(top, offset_head_file):
     with open(offset_head_file, 'w') as fh:
         fh.write('#ifndef __TRACE_OFFSET_H__\n')
         fh.write('#define __TRACE_OFFSET_H__\n')
+        fh.write('enum {\n')
         for idx, class_name in enumerate(class_list):
-            fh.write("#define OFFSET_%s %d\n"%(class_name, idx))
             org_files = list(set(class_info[class_name]))
             org_files.sort()
-            for org_file in org_files:
-                fh.write("//%s\n"%org_file)
+            #for org_file in org_files:
+            #    fh.write("  //%s\n"%org_file)
+            fh.write("  OFFSET_%s,\n"%(class_name))
+        fh.write('};\n')
         fh.write('#endif //__TRACE_OFFSET_H__\n')
 
 
