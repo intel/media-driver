@@ -527,6 +527,7 @@ private:
     inline bool NeedDisplayFormatSwizzle(DDI_MEDIA_SURFACE *rawSurface)
     {
         if (Media_Format_A8R8G8B8 == rawSurface->format ||
+            Media_Format_B8G8R8A8 == rawSurface->format ||
             Media_Format_B10G10R10A2 == rawSurface->format)
         {
             return true;
