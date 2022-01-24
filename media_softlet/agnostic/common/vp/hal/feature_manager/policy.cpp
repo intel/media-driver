@@ -359,6 +359,7 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
 {
     VP_FUNC_CALL();
 
+    SwFilter *hdr      = nullptr;
     SwFilter* feature = swFilterPipe.GetSwFilter(featureType);
     SwFilter* diFilter = nullptr;
 
@@ -400,7 +401,15 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         }
         break;
     case FeatureTypeScaling:
-        VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature));
+        hdr = dynamic_cast<SwFilterHdr *>(swFilterPipe.GetSwFilter(FeatureType(FeatureTypeHdr)));
+        if (hdr)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCapsHdr(feature));
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature));
+        }
         break;
     case FeatureTypeRotMir:
         VP_PUBLIC_CHK_STATUS_RETURN(GetRotationExecutionCaps(feature));
@@ -842,8 +851,21 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature)
     PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
     return MOS_STATUS_SUCCESS;
 }
+MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true));
+    return MOS_STATUS_SUCCESS;
+}
 
-MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, false));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled)
 {
     VP_FUNC_CALL();
 
@@ -866,7 +888,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
     bool disableSfc = userFeatureControl->IsSfcDisabled();
     SwFilterScaling* scaling = (SwFilterScaling*)feature;
     FeatureParamScaling *scalingParams = &scaling->GetSwFilterParams();
-    VP_EngineEntry *scalingEngine = &scaling->GetFilterEngineCaps();
+    VP_EngineEntry *scalingEngine      = &scaling->GetFilterEngineCaps();
     bool isAlphaSettingSupportedBySfc =
         IsAlphaSettingSupportedBySfc(scalingParams->formatInput, scalingParams->formatOutput, scalingParams->pCompAlpha);
     bool isAlphaSettingSupportedByVebox =
@@ -1061,12 +1083,13 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter* feature)
               OUT_OF_BOUNDS(dwOutputSurfaceWidth, dwSfcMinWidth, dwSfcMaxWidth)   ||
               OUT_OF_BOUNDS(dwOutputSurfaceHeight, dwDstMinHeight, dwSfcMaxHeight)))
         {
-            if ((m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable            &&
-                (OUT_OF_BOUNDS(fScaleX, fScaleMin2Pass, fScaleMax2Pass)         ||
-                 OUT_OF_BOUNDS(fScaleY, fScaleMin2Pass, fScaleMax2Pass)))       ||
-                (!m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable           &&
-                (OUT_OF_BOUNDS(fScaleX, fScaleMin, fScaleMax)                   ||
-                 OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax)))                 ||
+            if ((m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable             &&
+                (OUT_OF_BOUNDS(fScaleX, fScaleMin2Pass, fScaleMax2Pass)          ||
+                 OUT_OF_BOUNDS(fScaleY, fScaleMin2Pass, fScaleMax2Pass)))        ||
+                ((!m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable           ||
+                  isHdrEnabled)                                                  &&   // Ve HDR + (8, 16] && [1/16, 1/8) scaling on render, not use 2 Pass SFC for scaling,
+                (OUT_OF_BOUNDS(fScaleX, fScaleMin, fScaleMax)                    ||   // since A10R10G10B10/ARGB8 cannot be used as the input of vebox when global IECP being enabled.
+                 OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax)))                  ||
                 (scalingParams->scalingPreference == VPHAL_SCALING_PREFER_COMP))
             {
                 // Render Pipe, need to add more conditions next step for multiple SFC mode
