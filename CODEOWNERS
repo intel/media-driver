@@ -18,6 +18,22 @@ media_driver/agnostic/gen*/codec/hal/*encode_mpeg2* alexei.leonenko@intel.com de
 media_driver/agnostic/gen*/codec/hal/*encode_csc_ds* alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
 media_driver/agnostic/gen*/codec/hal/*vdenc_hevc* lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
 
+# video processing reviewers
+media_driver/agnostic/common/vp/hal/*vphal* furong.zhang@intel.com jay.yang@intel.com billy.ye@intel.com lihao.gu@intel.com
+media_driver/agnostic/gen*/vp/hal/*vphal* furong.zhang@intel.com jay.yang@intel.com billy.ye@intel.com lihao.gu@intel.com
+media_driver/linux/common/vp/* furong.zhang@intel.com jay.yang@intel.com billy.ye@intel.com lihao.gu@intel.com
+
+# media common reviewers
+media_softlet/linux/common/os/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media_softlet/agnostic/common/os/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media_softlet/agnostic/common/shared/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media_driver/agnostic/common/heap_manager/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media_driver/agnostic/common/os/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media_driver/agnostic/common/shared/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media_driver/linux/common/ddi/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media_driver/linux/common/os/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+media-driver/media_common/linux/common/os/ billy.ye@intel.com pingli.wang@intel.com molly.hu@intel.com furong.zhang@intel.com
+
 # just to get timely notifications
-media_driver/linux/common/*ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
-media_driver/linux/gen*/ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com
+media_driver/linux/common/*ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com furong.zhang@intel.com
+media_driver/linux/gen*/ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com furong.zhang@intel.com
