@@ -3219,13 +3219,11 @@ MOS_STATUS CodechalDecodeVc1::SetFrameStates()
         m_resBitplaneBuffer = *(m_decodeParams.m_bitplaneBuffer);
     }
 
-    bool pictureIsI = m_mfxInterface->IsVc1IPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType) ? true : false;
-    bool pictureIsP = m_mfxInterface->IsVc1PPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType) ? true : false;
+    bool pictureIsI = m_mfxInterface->IsVc1IPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType);
+    bool pictureIsP = m_mfxInterface->IsVc1PPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType);
     bool pictureIsB =
-        (m_mfxInterface->IsVc1BPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType) |
-            m_mfxInterface->IsVc1BIPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType))
-            ? true
-            : false;
+        (m_mfxInterface->IsVc1BPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType) ||
+            m_mfxInterface->IsVc1BIPicture(currPic, m_vc1PicParams->picture_fields.is_first_field, picType));
 
     // Save anchor picture type and field structure (TFF/BFF)
     if (!pictureIsB)
