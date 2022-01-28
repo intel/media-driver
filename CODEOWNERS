@@ -25,3 +25,17 @@ media_driver/agnostic/gen*/codec/hal/*vdenc_vp9* anastasiia.sokolova@intel.com e
 # just to get timely notifications
 media_driver/linux/common/*ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com
 media_driver/linux/gen*/ddi/ alexei.leonenko@intel.com denis.volkov@intel.com dmitry.brazhkin@intel.com Ivan.Losev@intel.com Dmitry.Menshov@intel.com lijuan.wang@intel.com thomas.li@intel.com xiaogang.li@intel.com gavin.zhang@intel.com anastasiia.sokolova@intel.com ekaterina.shiryaeva.alexandrovna@intel.com
+
+#softlet
+media_softlet/* yuchen.wang@intel.com
+media_driver/media_softlet/* yuchen.wang@intel.com
+#decoders
+media_softlet/agnostic/common/codec/hal/dec/* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_common/agnostic/common/codec/shared/*decode* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/media_softlet/agnostic/gen*/codec/hal/dec/* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/media_softlet/agnostic/Xe_*/Xe_*/codec/hal/dec/* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/linux/gen*/codec/ddi/*decode* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/linux/common/codec/ddi/*decode* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/agnostic/gen*/codec/hal/*decode* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/agnostic/Xe_*/Xe_*/codec/hal/*decode* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
+media_driver/agnostic/common/codec/hal/*decode* will.guo@intel.com steven.li@intel.com zhengguo.xu@intel.com
