@@ -105,6 +105,21 @@ bool MediaCopyStateXe_Xpm_Plus::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS
          return false;
     }
 
+     if ((Source.Format != Format_RGBP) && (Source.Format != Format_NV12) && (Source.Format != Format_RGB)
+     && (Source.Format != Format_P010) && (Source.Format != Format_P016) && (Source.Format != Format_YUY2)
+     && (Source.Format != Format_Y210) && (Source.Format != Format_Y216) && (Source.Format != Format_AYUV)
+     && (Source.Format != Format_Y410) && (Source.Format != Format_Y416) && (Source.Format != Format_A8R8G8B8))
+    {
+         MCPY_NORMALMESSAGE("render copy doesn't suppport format %d ", Source.Format);
+         return false;
+    }
+
+    if ((MOS_TILE_LINEAR == Source.TileType) && (MOS_TILE_LINEAR == Target.TileType))
+    {
+         MCPY_NORMALMESSAGE("render copy doesn't suppport  linear to linear copy");
+         return false;
+    }
+
     return true;
 }
 
@@ -156,6 +171,9 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck()
     m_mcpyEngineCaps.engineRender = 1;
     m_mcpyEngineCaps.engineVebox = 0;
 
+    // derivate class specific check. include HW engine avaliable check.
+    MCPY_CHK_STATUS_RETURN(FeatureSupport(m_mcpySrc.OsRes, m_mcpyDst.OsRes, m_mcpyEngineCaps));
+
     // common policy check
     // legal check
     // Blt engine does not support protection, allow the copy if dst is staging buffer in system mem
@@ -179,9 +197,6 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CapabilityCheck()
     {
         m_mcpyEngineCaps.engineBlt = false;
     }
-
-    // derivate class specific check. include HW engine avaliable check.
-    FeatureSupport(m_mcpySrc.OsRes, m_mcpyDst.OsRes, m_mcpyEngineCaps);
 
     if (!m_mcpyEngineCaps.engineVebox && !m_mcpyEngineCaps.engineBlt && !m_mcpyEngineCaps.engineRender)
     {

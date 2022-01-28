@@ -114,6 +114,9 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
     m_mcpyEngineCaps.engineBlt    = 1;
     m_mcpyEngineCaps.engineRender = 1;
 
+    // derivate class specific check. include HW engine avaliable check.
+    MCPY_CHK_STATUS_RETURN(FeatureSupport(m_mcpySrc.OsRes, m_mcpyDst.OsRes, m_mcpySrc, m_mcpyDst, m_mcpyEngineCaps));
+
     // common policy check
     // legal check
     // Blt engine does not support protection, allow the copy if dst is staging buffer in system mem
@@ -145,9 +148,6 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck()
     {
         m_mcpyEngineCaps.engineBlt = false;
     }
-
-    // derivate class specific check. include HW engine avaliable check.
-    FeatureSupport(m_mcpySrc.OsRes, m_mcpyDst.OsRes, m_mcpySrc, m_mcpyDst, m_mcpyEngineCaps);
 
     if (!m_mcpyEngineCaps.engineVebox && !m_mcpyEngineCaps.engineBlt && !m_mcpyEngineCaps.engineRender)
     {
