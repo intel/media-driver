@@ -436,10 +436,10 @@ MOS_STATUS RenderCopyState::LoadStaticData(
         WalkerNV12Static.DW0.Inputsurfaceindex = RENDERCOPY_SRC_INDEX;
         WalkerNV12Static.DW1.Outputsurfaceindex = RENDERCOPY_DST_INDEX;
         WalkerNV12Static.DW2.Widthdword = m_Target.dwWidth * iBytePerPixelPerPlane / 4;
-        WalkerNV12Static.DW3.Height = m_Target.dwHeight;
+        WalkerNV12Static.DW3.Height = (m_Target.dwHeight > m_Source.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
         WalkerNV12Static.DW4.ShiftLeftOffsetInBytes = m_Target.dwOffset;
         WalkerNV12Static.DW5.Widthstride = m_Target.dwWidth * iBytePerPixelPerPlane;
-        WalkerNV12Static.DW6.Heightstride = m_Target.dwHeight;
+        WalkerNV12Static.DW6.Heightstride = (m_Target.dwHeight > m_Source.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
 
         iCurbeLength = sizeof(DP_RENDERCOPY_NV12_STATIC_DATA);
 
@@ -480,7 +480,7 @@ MOS_STATUS RenderCopyState::LoadStaticData(
             WalkerPlanarStatic.DW5.OutputsurfaceBindex = RENDERCOPY_DST_INDEX + 2;
         }
         WalkerPlanarStatic.DW6.Widthdword = m_Target.dwWidth / 4;
-        WalkerPlanarStatic.DW7.Height = m_Target.dwHeight;
+        WalkerPlanarStatic.DW7.Height = (m_Target.dwHeight > m_Source.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
         WalkerPlanarStatic.DW8.ShiftLeftOffsetInBytes = m_Source.dwOffset;
         WalkerPlanarStatic.DW9.Dst2DStartX = 0;
         WalkerPlanarStatic.DW10.Dst2DStartY = 0;
