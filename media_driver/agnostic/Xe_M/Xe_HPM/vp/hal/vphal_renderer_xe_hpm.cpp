@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -27,7 +27,7 @@
 //! \details  The top renderer is responsible for coordinating the sequence of calls to low level renderers, e.g. DNDI or Comp
 //!
 #include "vphal_renderer_xe_hpm.h"
-#if !defined(_FULL_OPEN_SOURCE) || defined(BUILD_KERNELS)
+#if defined(ENABLE_KERNELS)
 #include "igvpkrn_xe_hpm.h"
 #include "igvpkrn_xe_hpm_cmfcpatch.h"
 #endif
@@ -209,7 +209,7 @@ MOS_STATUS VphalRendererXe_Hpm::InitKdllParam()
     if (bEnableCMFC)
     {
         pKernelDllRules  = g_KdllRuleTable_Xe_Hpm;
-#if !defined(_FULL_OPEN_SOURCE) || defined(BUILD_KERNELS)
+#if defined(ENABLE_KERNELS)
         pcKernelBin      = (const void *)IGVPKRN_XE_HPM;
         dwKernelBinSize  = IGVPKRN_XE_HPM_SIZE;
         pcFcPatchBin     = (const void *)IGVPKRN_XE_HPM_CMFCPATCH;
