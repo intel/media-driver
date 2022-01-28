@@ -296,6 +296,7 @@ protected:
 protected:
     static std::map<uint32_t*, MOS_OCA_BUFFER_HANDLE> s_hOcaMap;        //!< Oca buffer handle map to current command
 
+MEDIA_CLASS_DEFINE_END(HalOcaInterfaceNext)
 };
 
 

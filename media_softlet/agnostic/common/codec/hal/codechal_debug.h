@@ -142,6 +142,8 @@ protected:
     MOS_USER_FEATURE_VALUE_ID SetOutputPathKey() override;
     MOS_USER_FEATURE_VALUE_ID InitDefaultOutput() override;
     uint8_t *m_decodeOutputBuf = nullptr;
+
+MEDIA_CLASS_DEFINE_END(CodechalDebugInterface)
 };
 
 class CodechalDebugInterfaceG12 :public CodechalDebugInterface
@@ -157,6 +159,8 @@ public:
         MEDIA_DEBUG_STATE_TYPE    mediaState = CODECHAL_NUM_MEDIA_STATES,
         uint32_t                  width_in   = 0,
         uint32_t                  height_in  = 0) override;
+
+MEDIA_CLASS_DEFINE_END(CodechalDebugInterfaceG12)
 };
 #else
 #define USE_CODECHAL_DEBUG_TOOL 0

@@ -47,6 +47,8 @@ protected:
 protected:
     CodechalDebugInterface *m_debugInterface = nullptr;
     CODECHAL_FUNCTION       m_codecFunction;
+
+MEDIA_CLASS_DEFINE_END(CodecDebugConfigMgr)
 };
 
 #endif  //USE_CODECHAL_DEBUG_TOOL
