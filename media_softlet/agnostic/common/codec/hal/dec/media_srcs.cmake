@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022, Intel Corporation
+# Copyright (c) 2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -38,16 +38,14 @@ set(HEADERS_
     ${TMP_HEADERS_}
 )
 
-set(CODEC_SOURCES_
-    ${CODEC_SOURCES_}
+set(COMMON_SOURCES_
+    ${COMMON_SOURCES_}
     ${TMP_SOURCES_}
 )
 
-set(CODEC_HEADERS_
-    ${CODEC_HEADERS_}
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
     ${TMP_HEADERS_}
 )
 
 source_group( CodecHalNext\\Shared\\Decode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
-set(TMP_SOURCES_ "")
-set(TMP_HEADERS_ "")
