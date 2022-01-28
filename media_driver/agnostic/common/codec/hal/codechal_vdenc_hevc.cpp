@@ -439,6 +439,8 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcInitReset()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
     )
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
@@ -1304,6 +1306,8 @@ MOS_STATUS CodechalVdencHevcState::HuCBrcUpdate()
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
     )
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 

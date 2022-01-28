@@ -983,6 +983,7 @@ struct EncodeStatus
     uint32_t                        dwSceneChangedFlag;     //!< The flag indicate if the scene is changed
     uint64_t                        sumSquareError[3];      //!< The list of sum square error
     EncodeStatusSliceReport         sliceReport;
+    uint32_t                        HuCStatus2Reg;          //!< Register value saving HuC Status2
 };
 
 //!
@@ -1015,6 +1016,7 @@ struct EncodeStatusBuffer
     uint32_t                                dwLookaheadStatusOffset;        //!> The offset of lookahead status
     uint32_t                                dwSize;                         //!> Size of status buffer
     uint32_t                                dwReportSize;                   //!> Size of report
+    uint32_t                                dwHuCStatus2RegOffset;          //!> The offset of HuC status2 register
 };
 
 //!
@@ -2469,6 +2471,17 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    //!
+    //! \brief    Add store HUC_STATUS2 register
+    //!
+    //! \param    [in] cmdBuffer
+    //!           Pointer to the command buffer 
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StoreHuCStatus2Report(PMOS_COMMAND_BUFFER cmdBuffer);
 
 #if USE_CODECHAL_DEBUG_TOOL
     virtual MOS_STATUS DumpMbEncPakOutput(PCODEC_REF_LIST currRefList, CodechalDebugInterface* debugInterface);

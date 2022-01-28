@@ -69,7 +69,7 @@ protected:
         uint32_t standard = CodecHal_GetStandardFromMode(mode);
         uint32_t numSlices = 1;
         uint32_t numStoreDataImm = 1;
-        uint32_t numStoreReg = 1;
+        uint32_t numStoreReg = 3;
 
         MHW_MI_CHK_NULL(commandsSize);
         MHW_MI_CHK_NULL(patchListSize);
@@ -124,7 +124,7 @@ protected:
         else if (mode == CODECHAL_ENCODE_MODE_AVC)
         {
             numStoreDataImm = 2;
-            numStoreReg     = 2;
+            numStoreReg     = 4;
 
             maxSize +=
                 2 * TMiCmds::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::byteSize;

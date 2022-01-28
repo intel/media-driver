@@ -6989,6 +6989,8 @@ MOS_STATUS CodechalVdencHevcStateG12::HucPakIntegrate(
     storeRegParams.dwRegister = mmioRegisters->hucStatus2RegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegParams));
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(cmdBuffer));
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucStartCmd(cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
@@ -7084,6 +7086,8 @@ MOS_STATUS CodechalVdencHevcStateG12::HucPakIntegrateStitch(
     storeRegParams.dwOffset = sizeof(uint32_t);
     storeRegParams.dwRegister = mmioRegisters->hucStatus2RegOffset;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetHucInterface()->AddHucStartCmd(cmdBuffer, true));
 
@@ -8193,6 +8197,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
@@ -8353,6 +8358,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&cmdBuffer, &virtualAddrParams));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
@@ -8570,6 +8576,8 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcInitReset()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
     )
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
@@ -8754,6 +8762,8 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
         CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Register(&cmdBuffer));
     )
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
@@ -8878,6 +8888,8 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcTileRowUpdate(PMOS_COMMAND_BUFFER cm
     MHW_VDBOX_HUC_VIRTUAL_ADDR_PARAMS virtualAddrParams;
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetRegionsHuCTileRowBrcUpdate(&virtualAddrParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucVirtualAddrStateCmd(&tileRowBRCBatchBuf, &virtualAddrParams));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&tileRowBRCBatchBuf, true));
 

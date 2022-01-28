@@ -1431,6 +1431,7 @@ MOS_STATUS CodechalEncoderState::AllocateResources()
     m_encodeStatusBuf.dwSliceReportOffset     = CODECHAL_OFFSETOF(EncodeStatus, sliceReport);
     m_encodeStatusBuf.dwHuCStatusMaskOffset   = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusRegMask);
     m_encodeStatusBuf.dwHuCStatusRegOffset    = CODECHAL_OFFSETOF(EncodeStatus, HuCStatusReg);
+    m_encodeStatusBuf.dwHuCStatus2RegOffset   = CODECHAL_OFFSETOF(EncodeStatus, HuCStatus2Reg);
     m_encodeStatusBuf.dwLookaheadStatusOffset = CODECHAL_OFFSETOF(EncodeStatus, lookaheadStatus);
 
     m_encodeStatusBuf.wCurrIndex  = 0;
@@ -4050,6 +4051,47 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
                 m_statusReportDebugInterface->m_bufferDumpFrameNum = encodeStatus->dwStoredData;
             )
 
+            // to be discussed, how to identify whether huc invloved in pipeline
+            if (m_vdencEnabled && m_vdencBrcEnabled && (m_standard == CODECHAL_HEVC || m_standard == CODECHAL_AVC || m_standard == CODECHAL_VP9))
+            {
+                MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+                MOS_ZeroMemory(&userFeatureWriteData, sizeof(MOS_USER_FEATURE_VALUE_WRITE_DATA));
+
+                if (!MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrEnableMediaKernels))
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("Failed to load HuC firmware!");
+
+                    // Reporting
+                    MOS_ZeroMemory(&userFeatureWriteData, sizeof(MOS_USER_FEATURE_VALUE_WRITE_DATA));
+                    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+                    userFeatureWriteData.Value.i32Data  = 1;
+                    userFeatureWriteData.ValueID        = __MEDIA_USER_FEATURE_VALUE_ENCODE_HUC_FIRMWARE_LOAD_FAILED_ID;
+                    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+
+                    return MOS_STATUS_HUC_KERNEL_FAILED;
+                }
+                else if (!(encodeStatus->HuCStatus2Reg & m_hucInterface->GetHucStatus2ImemLoadedMask()))
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("HuC status2 indicates Valid Imem Load failed!");
+
+                    // Reporting
+                    MOS_ZeroMemory(&userFeatureWriteData, sizeof(MOS_USER_FEATURE_VALUE_WRITE_DATA));
+                    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+                    userFeatureWriteData.Value.i32Data  = 1;
+                    userFeatureWriteData.ValueID        = __MEDIA_USER_FEATURE_VALUE_ENCODE_HUC_IMEM_LOAD_FALIED_ID;
+                    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+                    MOS_ZeroMemory(&userFeatureWriteData, sizeof(MOS_USER_FEATURE_VALUE_WRITE_DATA));
+                    userFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+                    userFeatureWriteData.Value.u32Data  = encodeStatus->HuCStatus2Reg;
+                    userFeatureWriteData.ValueID        = __MEDIA_USER_FEATURE_VALUE_ENCODE_HUC_STATUS2_VALUE;
+                    MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+#endif
+                    return MOS_STATUS_HUC_KERNEL_FAILED;
+                }
+            }
+
             if ((m_standard == CODECHAL_HEVC && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetHevcVdencHucErrorFlagMask())) ||
                 (m_standard == CODECHAL_AVC  && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetAvcVdencHucErrorFlagMask())) ||
                 (m_standard == CODECHAL_VP9 && m_vdencEnabled && (encodeStatus->HuCStatusReg & m_hucInterface->GetVp9VdencHucErrorFlagMask())) )
@@ -5266,6 +5308,28 @@ MOS_STATUS CodechalEncoderState::ResolveMetaData(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, false));
 
     return eStatus;
+}
+
+MOS_STATUS CodechalEncoderState::StoreHuCStatus2Report(PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
+
+    EncodeStatusBuffer encodeStatusBuf = m_encodeStatusBuf;
+
+    uint32_t baseOffset =
+        (encodeStatusBuf.wCurrIndex * encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // pEncodeStatus is offset by 2 DWs in the resource
+
+    // store HUC_STATUS2 register
+    MHW_MI_STORE_REGISTER_MEM_PARAMS storeRegParams;
+    MOS_ZeroMemory(&storeRegParams, sizeof(storeRegParams));
+    storeRegParams.presStoreBuffer  = &encodeStatusBuf.resStatusBuffer;
+    storeRegParams.dwOffset         = baseOffset + encodeStatusBuf.dwHuCStatus2RegOffset;
+    storeRegParams.dwRegister       = m_hucInterface->GetMmioRegisters(m_vdboxIndex)->hucStatus2RegOffset;
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreRegisterMemCmd(cmdBuffer, &storeRegParams));
+
+    return MOS_STATUS_SUCCESS;
 }
 
 #if USE_CODECHAL_DEBUG_TOOL

@@ -5032,6 +5032,8 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcInitReset()
     // (HUC_Start command with last start bit set).
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AvcVdencStoreHuCStatus2Register(m_hwInterface, &cmdBuffer));
 
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
     // wait Huc completion (use HEVC bit for now)
@@ -5256,6 +5258,8 @@ MOS_STATUS CodechalVdencAvcState::HuCBrcUpdate()
     // BitField: VALID IMEM LOADED - This bit will be cleared by HW at the end of a HUC workload
     // (HUC_Start command with last start bit set).
     CODECHAL_ENCODE_CHK_STATUS_RETURN(AvcVdencStoreHuCStatus2Register(m_hwInterface, &cmdBuffer));
+
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(StoreHuCStatus2Report(&cmdBuffer));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucStartCmd(&cmdBuffer, true));
 
