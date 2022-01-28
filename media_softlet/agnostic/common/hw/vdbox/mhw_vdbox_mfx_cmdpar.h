@@ -492,6 +492,187 @@ struct _MHW_PAR_T(MFD_MPEG2_BSD_OBJECT)
     uint16_t NextSliceVerticalPosition   = 0;
 };
 
+/*VP8 CMDS BELOW*/
+struct _MHW_PAR_T(MFX_VP8_PIC_STATE)
+{
+    uint32_t dwCoefProbTableOffset                  = 0;
+    PMOS_RESOURCE presCoefProbBuffer                = nullptr;
+    PMOS_RESOURCE presSegmentationIdStreamBuffer    = nullptr;
+    // DW1
+    uint32_t FrameWidthMinus1                       = 0;
+    uint32_t FrameHeightMinus1                      = 0;
+    // DW2
+    uint32_t McFilterSelect                         = 0;
+    uint32_t ChromaFullPixelMcFilterMode            = 0;
+    uint32_t Dblkfiltertype                         = 0;
+    uint32_t Skeyframeflag                          = 0;
+    uint32_t SegmentationIdStreamoutEnable          = 0;
+    uint32_t SegmentationIdStreaminEnable           = 0;
+    uint32_t SegmentEnableFlag                      = 0;
+    uint32_t UpdateMbsegmentMapFlag                 = 0;
+    uint32_t MbNocoeffSkipflag                      = 0;
+    uint32_t ModeReferenceLoopFilterDeltaEnabled    = 0;
+    uint32_t GoldenRefPictureMvSignbiasFlag         = 0;
+    uint32_t AlternateRefPicMvSignbiasFlag          = 0;
+    uint32_t DeblockSharpnessLevel                  = 0;
+    // DW3
+    uint32_t DblkfilterlevelForSegment3             = 0;
+    uint32_t DblkfilterlevelForSegment2             = 0;
+    uint32_t DblkfilterlevelForSegment1             = 0;
+    uint32_t DblkfilterlevelForSegment0             = 0;
+    // DW4
+    uint32_t QuantizerValue0Blocktype0Y1Dc          = 0;
+    uint32_t QuantizerValue0Blocktype1Y1Ac          = 0;
+    // DW5
+    uint32_t QuantizerValue0Blocktype2Uvdc          = 0;
+    uint32_t QuantizerValue0Blocktype3Uvac          = 0;
+    // DW6
+    uint32_t QuantizerValue0Blocktype4Y2Dc          = 0;
+    uint32_t QuantizerValue0Blocktype5Y2Ac          = 0;
+    // DW7
+    uint32_t QuantizerValue1Blocktype0Y1Dc          = 0;
+    uint32_t QuantizerValue1Blocktype1Y1Ac          = 0;
+    // DW8
+    uint32_t QuantizerValue1Blocktype2Uvdc          = 0;
+    uint32_t QuantizerValue1Blocktype3Uvac          = 0;
+    // DW9
+    uint32_t QuantizerValue1Blocktype4Y2Dc          = 0;
+    uint32_t QuantizerValue1Blocktype5Y2Ac          = 0;
+    // DW10
+    uint32_t QuantizerValue2Blocktype0Y1Dc          = 0;
+    uint32_t QuantizerValue2Blocktype1Y1Ac          = 0;
+    // DW11
+    uint32_t QuantizerValue2Blocktype2Uvdc          = 0;
+    uint32_t QuantizerValue2Blocktype3Uvac          = 0;
+    // DW12
+    uint32_t QuantizerValue2Blocktype4Y2Dc          = 0;
+    uint32_t QuantizerValue2Blocktype5Y2Ac          = 0;
+    // DW13
+    uint32_t QuantizerValue3Blocktype0Y1Dc          = 0;
+    uint32_t QuantizerValue3Blocktype1Y1Ac          = 0;
+    // DW14
+    uint32_t QuantizerValue3Blocktype2Uvdc          = 0;
+    uint32_t QuantizerValue3Blocktype3Uvac          = 0;
+    // DW15
+    uint32_t QuantizerValue3Blocktype4Y2Dc          = 0;
+    uint32_t QuantizerValue3Blocktype5Y2Ac          = 0;
+    // DW19
+    uint32_t Mbsegmentidtreeprobs0                  = 0;
+    uint32_t Mbsegmentidtreeprobs1                  = 0;
+    uint32_t Mbsegmentidtreeprobs2                  = 0;
+    // DW20
+    uint32_t Mbnocoeffskipfalseprob                 = 0;
+    uint32_t Intrambprob                            = 0;
+    uint32_t Interpredfromlastrefprob               = 0;
+    uint32_t Interpredfromgrefrefprob               = 0;
+    // DW21
+    uint32_t Ymodeprob3                             = 0;
+    uint32_t Ymodeprob2                             = 0;
+    uint32_t Ymodeprob1                             = 0;
+    uint32_t Ymodeprob0                             = 0;
+    // DW22
+    uint32_t Uvmodeprob2                            = 0;
+    uint32_t Uvmodeprob1                            = 0;
+    uint32_t Uvmodeprob0                            = 0;
+    // DW23
+    uint32_t Mvupdateprobs00                        = 0;
+    uint32_t Mvupdateprobs01                        = 0;
+    uint32_t Mvupdateprobs02                        = 0;
+    uint32_t Mvupdateprobs03                        = 0;
+    // DW24
+    uint32_t Mvupdateprobs04                        = 0;
+    uint32_t Mvupdateprobs05                        = 0;
+    uint32_t Mvupdateprobs06                        = 0;
+    uint32_t Mvupdateprobs07                        = 0;
+    // DW25
+    uint32_t Mvupdateprobs08                        = 0;
+    uint32_t Mvupdateprobs09                        = 0;
+    uint32_t Mvupdateprobs010                       = 0;
+    uint32_t Mvupdateprobs011                       = 0;
+    // DW26
+     uint32_t Mvupdateprobs012                      = 0;
+    uint32_t Mvupdateprobs013                       = 0;
+    uint32_t Mvupdateprobs014                       = 0;
+    uint32_t Mvupdateprobs015                       = 0;
+    // DW27
+     uint32_t Mvupdateprobs016                      = 0;
+    uint32_t Mvupdateprobs017                       = 0;
+    uint32_t Mvupdateprobs018                       = 0;
+    // DW28
+    uint32_t Mvupdateprobs10                        = 0;
+    uint32_t Mvupdateprobs11                        = 0;
+    uint32_t Mvupdateprobs12                        = 0;
+    uint32_t Mvupdateprobs13                        = 0;
+    // DW29
+    uint32_t Mvupdateprobs14                        = 0;
+    uint32_t Mvupdateprobs15                        = 0;
+    uint32_t Mvupdateprobs16                        = 0;
+    uint32_t Mvupdateprobs17                        = 0;
+    // DW30
+    uint32_t Mvupdateprobs18                        = 0;
+    uint32_t Mvupdateprobs19                        = 0;
+    uint32_t Mvupdateprobs110                       = 0;
+    uint32_t Mvupdateprobs111                       = 0;
+    // DW31
+     uint32_t Mvupdateprobs112                      = 0;
+    uint32_t Mvupdateprobs113                       = 0;
+    uint32_t Mvupdateprobs114                       = 0;
+    uint32_t Mvupdateprobs115                       = 0;
+    // DW32
+    uint32_t Mvupdateprobs116                       = 0;
+    uint32_t Mvupdateprobs117                       = 0;
+    uint32_t Mvupdateprobs118                       = 0;
+    // DW33
+    uint32_t Reflfdelta0ForIntraFrame               = 0;
+    uint32_t Reflfdelta1ForLastFrame                = 0;
+    uint32_t Reflfdelta2ForGoldenFrame              = 0;
+    uint32_t Reflfdelta3ForAltrefFrame              = 0;
+    // DW34
+    uint32_t Modelfdelta0ForBPredMode               = 0;
+    uint32_t Modelfdelta1ForZeromvMode              = 0;
+    uint32_t Modelfdelta2ForNearestNearAndNewMode   = 0;
+    uint32_t Modelfdelta3ForSplitmvMode             = 0;
+};
+
+struct _MHW_PAR_T(MFD_VP8_BSD_OBJECT)
+{
+    // DW1
+    uint32_t CodedNumOfCoeffTokenPartitions     = 0;
+    uint32_t Partition0CpbacEntropyRange        = 0;
+    uint32_t Partition0CpbacEntropyCount        = 0;
+    // DW2
+    uint32_t Partition0CpbacEntropyValue        = 0;
+    // DW3
+    uint32_t IndirectPartition0DataLength       = 0;
+    // DW4
+    uint32_t IndirectPartition0DataStartOffset  = 0;
+    // DW5
+    uint32_t IndirectPartition1DataLength       = 0;
+    // DW6
+    uint32_t IndirectPartition1DataStartOffset  = 0;
+    // DW7-8
+    uint32_t IndirectPartition2DataLength       = 0;
+    uint32_t IndirectPartition2DataStartOffset  = 0;
+    // DW9-10
+    uint32_t IndirectPartition3DataLength       = 0;
+    uint32_t IndirectPartition3DataStartOffset  = 0;
+    // DW11-12
+    uint32_t IndirectPartition4DataLength       = 0;
+    uint32_t IndirectPartition4DataStartOffset  = 0;
+    // DW13-14
+    uint32_t IndirectPartition5DataLength       = 0;
+    uint32_t IndirectPartition5DataStartOffset  = 0;
+    // DW15-16
+    uint32_t IndirectPartition6DataLength       = 0;
+    uint32_t IndirectPartition6DataStartOffset  = 0;
+    // DW17-18
+    uint32_t IndirectPartition7DataLength       = 0;
+    uint32_t IndirectPartition7DataStartOffset  = 0;
+    // DW19-20
+    uint32_t IndirectPartition8DataLength       = 0;
+    uint32_t IndirectPartition8DataStartOffset  = 0;
+};
+
 struct _MHW_PAR_T(MFD_IT_OBJECT)
 {
     uint32_t dwDCTLength                           = 0;

@@ -1248,6 +1248,186 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
+    _MHW_SETCMD_OVERRIDE_DECL(MFX_VP8_PIC_STATE)
+    {
+        _MHW_SETCMD_CALLBASE(MFX_VP8_PIC_STATE);
+
+        #define DO_FIELDS()                                                                                         \
+            DO_FIELD(DW1, FrameWidthMinus1                   , params.FrameWidthMinus1);                            \
+            DO_FIELD(DW1, FrameHeightMinus1                  , params.FrameHeightMinus1);                           \
+            DO_FIELD(DW2, McFilterSelect , params.McFilterSelect);                                                  \
+            DO_FIELD(DW2, ChromaFullPixelMcFilterMode , params.ChromaFullPixelMcFilterMode);                        \
+            DO_FIELD(DW2, Dblkfiltertype , params.Dblkfiltertype);                                                  \
+            DO_FIELD(DW2, Skeyframeflag , params.Skeyframeflag);                                                    \
+            DO_FIELD(DW2, SegmentationIdStreamoutEnable , params.SegmentationIdStreamoutEnable);                    \
+            DO_FIELD(DW2, SegmentationIdStreaminEnable , params.SegmentationIdStreaminEnable);                      \
+            DO_FIELD(DW2, SegmentEnableFlag , params.SegmentEnableFlag);                                            \
+            DO_FIELD(DW2, UpdateMbsegmentMapFlag , params.UpdateMbsegmentMapFlag);                                  \
+            DO_FIELD(DW2, MbNocoeffSkipflag , params.MbNocoeffSkipflag);                                            \
+            DO_FIELD(DW2, ModeReferenceLoopFilterDeltaEnabled , params.ModeReferenceLoopFilterDeltaEnabled);        \
+            DO_FIELD(DW2, GoldenRefPictureMvSignbiasFlag , params.GoldenRefPictureMvSignbiasFlag);                  \
+            DO_FIELD(DW2, AlternateRefPicMvSignbiasFlag , params.AlternateRefPicMvSignbiasFlag);                    \
+            DO_FIELD(DW2, DeblockSharpnessLevel , params.DeblockSharpnessLevel);                                    \
+            DO_FIELD(DW3, DblkfilterlevelForSegment3 , params.DblkfilterlevelForSegment3);                          \
+            DO_FIELD(DW3, DblkfilterlevelForSegment2 , params.DblkfilterlevelForSegment2);                          \
+            DO_FIELD(DW3, DblkfilterlevelForSegment1 , params.DblkfilterlevelForSegment1);                          \
+            DO_FIELD(DW3, DblkfilterlevelForSegment0 , params.DblkfilterlevelForSegment0);                          \
+            DO_FIELD(DW8, QuantizerValue1Blocktype2Uvdc , params.QuantizerValue1Blocktype2Uvdc);                    \
+            DO_FIELD(DW8, QuantizerValue1Blocktype3Uvac , params.QuantizerValue1Blocktype3Uvac);                    \
+            DO_FIELD(DW9, QuantizerValue1Blocktype4Y2Dc , params.QuantizerValue1Blocktype4Y2Dc);                    \
+            DO_FIELD(DW9, QuantizerValue1Blocktype5Y2Ac , params.QuantizerValue1Blocktype5Y2Ac);                    \
+            DO_FIELD(DW10, QuantizerValue2Blocktype0Y1Dc , params.QuantizerValue2Blocktype0Y1Dc);                   \
+            DO_FIELD(DW10, QuantizerValue2Blocktype1Y1Ac , params.QuantizerValue2Blocktype1Y1Ac);                   \
+            DO_FIELD(DW11, QuantizerValue2Blocktype2Uvdc , params.QuantizerValue2Blocktype2Uvdc);                   \
+            DO_FIELD(DW11, QuantizerValue2Blocktype3Uvac , params.QuantizerValue2Blocktype3Uvac);                   \
+            DO_FIELD(DW12, QuantizerValue2Blocktype4Y2Dc , params.QuantizerValue2Blocktype4Y2Dc);                   \
+            DO_FIELD(DW12, QuantizerValue2Blocktype5Y2Ac , params.QuantizerValue2Blocktype5Y2Ac);                   \
+            DO_FIELD(DW13, QuantizerValue3Blocktype0Y1Dc , params.QuantizerValue3Blocktype0Y1Dc);                   \
+            DO_FIELD(DW13, QuantizerValue3Blocktype1Y1Ac , params.QuantizerValue3Blocktype1Y1Ac);                   \
+            DO_FIELD(DW14, QuantizerValue3Blocktype2Uvdc , params.QuantizerValue3Blocktype2Uvdc);                   \
+            DO_FIELD(DW14, QuantizerValue3Blocktype3Uvac , params.QuantizerValue3Blocktype3Uvac);                   \
+            DO_FIELD(DW15, QuantizerValue3Blocktype4Y2Dc , params.QuantizerValue3Blocktype4Y2Dc);                   \
+            DO_FIELD(DW15, QuantizerValue3Blocktype5Y2Ac , params.QuantizerValue3Blocktype5Y2Ac);                   \
+            DO_FIELD(DW19, Mbsegmentidtreeprobs2 , params.Mbsegmentidtreeprobs2);                                   \
+            DO_FIELD(DW19, Mbsegmentidtreeprobs1 , params.Mbsegmentidtreeprobs1);                                   \
+            DO_FIELD(DW19, Mbsegmentidtreeprobs0 , params.Mbsegmentidtreeprobs0);                                   \
+            DO_FIELD(DW20, Mbnocoeffskipfalseprob , params.Mbnocoeffskipfalseprob);                                 \
+            DO_FIELD(DW20, Intrambprob , params.Intrambprob);                                                       \
+            DO_FIELD(DW20, Interpredfromlastrefprob , params.Interpredfromlastrefprob);                             \
+            DO_FIELD(DW20, Interpredfromgrefrefprob , params.Interpredfromgrefrefprob);                             \
+            DO_FIELD(DW21, Ymodeprob3 , params.Ymodeprob3);                                                         \
+            DO_FIELD(DW21, Ymodeprob2 , params.Ymodeprob2);                                                         \
+            DO_FIELD(DW21, Ymodeprob1 , params.Ymodeprob1);                                                         \
+            DO_FIELD(DW21, Ymodeprob0 , params.Ymodeprob0);                                                         \
+            DO_FIELD(DW22, Uvmodeprob2 , params.Uvmodeprob2);                                                       \
+            DO_FIELD(DW22, Uvmodeprob1 , params.Uvmodeprob1);                                                       \
+            DO_FIELD(DW22, Uvmodeprob0 , params.Uvmodeprob0);                                                       \
+            DO_FIELD(DW23, Mvupdateprobs00 , params.Mvupdateprobs00);                                               \
+            DO_FIELD(DW23, Mvupdateprobs01 , params.Mvupdateprobs01);                                               \
+            DO_FIELD(DW23, Mvupdateprobs02 , params.Mvupdateprobs02);                                               \
+            DO_FIELD(DW23, Mvupdateprobs03 , params.Mvupdateprobs03);                                               \
+            DO_FIELD(DW24, Mvupdateprobs04 , params.Mvupdateprobs04);                                               \
+            DO_FIELD(DW24, Mvupdateprobs05 , params.Mvupdateprobs05);                                               \
+            DO_FIELD(DW24, Mvupdateprobs06 , params.Mvupdateprobs06);                                               \
+            DO_FIELD(DW24, Mvupdateprobs07 , params.Mvupdateprobs07);                                               \
+            DO_FIELD(DW25, Mvupdateprobs08 , params.Mvupdateprobs08);                                               \
+            DO_FIELD(DW25, Mvupdateprobs09 , params.Mvupdateprobs09);                                               \
+            DO_FIELD(DW25, Mvupdateprobs010 , params.Mvupdateprobs010);                                             \
+            DO_FIELD(DW25, Mvupdateprobs011 , params.Mvupdateprobs011);                                             \
+            DO_FIELD(DW26, Mvupdateprobs012 , params.Mvupdateprobs012);                                             \
+            DO_FIELD(DW26, Mvupdateprobs013 , params.Mvupdateprobs013);                                             \
+            DO_FIELD(DW26, Mvupdateprobs014 , params.Mvupdateprobs014);                                             \
+            DO_FIELD(DW26, Mvupdateprobs015 , params.Mvupdateprobs015);                                             \
+            DO_FIELD(DW27, Mvupdateprobs016 , params.Mvupdateprobs016);                                             \
+            DO_FIELD(DW27, Mvupdateprobs017 , params.Mvupdateprobs017);                                             \
+            DO_FIELD(DW27, Mvupdateprobs018 , params.Mvupdateprobs018);                                             \
+            DO_FIELD(DW28, Mvupdateprobs10 , params.Mvupdateprobs10);                                               \
+            DO_FIELD(DW28, Mvupdateprobs11 , params.Mvupdateprobs11);                                               \
+            DO_FIELD(DW28, Mvupdateprobs12 , params.Mvupdateprobs12);                                               \
+            DO_FIELD(DW28, Mvupdateprobs13 , params.Mvupdateprobs13);                                               \
+            DO_FIELD(DW29, Mvupdateprobs14 , params.Mvupdateprobs14);                                               \
+            DO_FIELD(DW29, Mvupdateprobs15 , params.Mvupdateprobs15);                                               \
+            DO_FIELD(DW29, Mvupdateprobs16 , params.Mvupdateprobs16);                                               \
+            DO_FIELD(DW29, Mvupdateprobs17 , params.Mvupdateprobs17);                                               \
+            DO_FIELD(DW30, Mvupdateprobs18 , params.Mvupdateprobs18);                                               \
+            DO_FIELD(DW30, Mvupdateprobs19 , params.Mvupdateprobs19);                                               \
+            DO_FIELD(DW30, Mvupdateprobs110 , params.Mvupdateprobs110);                                             \
+            DO_FIELD(DW30, Mvupdateprobs111 , params.Mvupdateprobs111);                                             \
+            DO_FIELD(DW31, Mvupdateprobs112 , params.Mvupdateprobs112);                                             \
+            DO_FIELD(DW31, Mvupdateprobs113 , params.Mvupdateprobs113);                                             \
+            DO_FIELD(DW31, Mvupdateprobs114 , params.Mvupdateprobs114);                                             \
+            DO_FIELD(DW31, Mvupdateprobs115 , params.Mvupdateprobs115);                                             \
+            DO_FIELD(DW32, Mvupdateprobs116 , params.Mvupdateprobs116);                                             \
+            DO_FIELD(DW32, Mvupdateprobs117 , params.Mvupdateprobs117);                                             \
+            DO_FIELD(DW32, Mvupdateprobs118 , params.Mvupdateprobs118);                                             \
+            DO_FIELD(DW33, Reflfdelta0ForIntraFrame , params.Reflfdelta0ForIntraFrame);                             \
+            DO_FIELD(DW33, Reflfdelta1ForLastFrame , params.Reflfdelta1ForLastFrame);                               \
+            DO_FIELD(DW33, Reflfdelta2ForGoldenFrame , params.Reflfdelta2ForGoldenFrame);                           \
+            DO_FIELD(DW33, Reflfdelta3ForAltrefFrame , params.Reflfdelta3ForAltrefFrame);                           \
+            DO_FIELD(DW34, Modelfdelta0ForBPredMode , params.Modelfdelta0ForBPredMode);                             \
+            DO_FIELD(DW34, Modelfdelta1ForZeromvMode , params.Modelfdelta1ForZeromvMode);                           \
+            DO_FIELD(DW34, Modelfdelta2ForNearestNearAndNewMode , params.Modelfdelta2ForNearestNearAndNewMode);     \
+            DO_FIELD(DW34, Modelfdelta3ForSplitmvMode , params.Modelfdelta3ForSplitmvMode);
+
+
+            cmd.DW4.dec.QuantizerValue0Blocktype0Y1Dc = params.QuantizerValue0Blocktype0Y1Dc;
+            cmd.DW4.dec.QuantizerValue0Blocktype1Y1Ac = params.QuantizerValue0Blocktype1Y1Ac;
+
+            cmd.DW5.dec.QuantizerValue0Blocktype2Uvdc = params.QuantizerValue0Blocktype2Uvdc;
+            cmd.DW5.dec.QuantizerValue0Blocktype3Uvac = params.QuantizerValue0Blocktype3Uvac;
+
+            cmd.DW6.dec.QuantizerValue0Blocktype4Y2Dc = params.QuantizerValue0Blocktype4Y2Dc;
+            cmd.DW6.dec.QuantizerValue0Blocktype5Y2Ac = params.QuantizerValue0Blocktype5Y2Ac;
+
+            cmd.DW7.dec.QuantizerValue1Blocktype0Y1Dc = params.QuantizerValue1Blocktype0Y1Dc;
+            cmd.DW7.dec.QuantizerValue1Blocktype1Y1Ac = params.QuantizerValue1Blocktype1Y1Ac;
+
+
+            MHW_RESOURCE_PARAMS resourceParams;
+            MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+            resourceParams.dwLsbNum = MHW_VDBOX_MFX_GENERAL_STATE_SHIFT;
+            resourceParams.HwCommandType = MOS_MFX_VP8_PIC;
+
+            resourceParams.presResource = params.presCoefProbBuffer;
+            resourceParams.dwOffset = params.dwCoefProbTableOffset;
+            resourceParams.pdwCmd = cmd.CoeffprobabilityStreaminBaseAddress.DW0_1.Value;
+            resourceParams.dwLocationInCmd = 16;
+            resourceParams.bIsWritable = false;
+
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+            
+            if (params.SegmentEnableFlag)
+            {
+                resourceParams.presResource = params.presSegmentationIdStreamBuffer;
+                resourceParams.dwOffset = 0;
+                resourceParams.pdwCmd = cmd.SegmentationIdStreamBaseAddress.DW0_1.Value;
+                resourceParams.dwLocationInCmd = 35;
+                resourceParams.bIsWritable = true;
+
+
+                MHW_MI_CHK_STATUS(AddResourceToCmd(
+                    this->m_osItf,
+                    this->m_currentCmdBuf,
+                    &resourceParams));
+            }
+            
+
+#include "mhw_hwcmd_process_cmdfields.h"
+    }
+
+    _MHW_SETCMD_OVERRIDE_DECL(MFD_VP8_BSD_OBJECT)
+    {
+        _MHW_SETCMD_CALLBASE(MFD_VP8_BSD_OBJECT);
+
+        #define DO_FIELDS()                                                                                 \
+            DO_FIELD(DW1,   CodedNumOfCoeffTokenPartitions,     params.CodedNumOfCoeffTokenPartitions);     \
+            DO_FIELD(DW1,   Partition0CpbacEntropyRange,        params.Partition0CpbacEntropyRange);        \
+            DO_FIELD(DW1,   Partition0CpbacEntropyCount,        params.Partition0CpbacEntropyCount);        \
+            DO_FIELD(DW2,   Partition0CpbacEntropyValue,        params.Partition0CpbacEntropyValue);        \
+            DO_FIELD(DW3,   IndirectPartition0DataLength,       params.IndirectPartition0DataLength);       \
+            DO_FIELD(DW4,   IndirectPartition0DataStartOffset,  params.IndirectPartition0DataStartOffset);  \
+            DO_FIELD(DW5,   IndirectPartition1DataLength,       params.IndirectPartition1DataLength);       \
+            DO_FIELD(DW6,   IndirectPartition1DataStartOffset,  params.IndirectPartition1DataStartOffset);  \
+            DO_FIELD(DW7,   IndirectPartition2DataLength,       params.IndirectPartition2DataLength);       \
+            DO_FIELD(DW8,   IndirectPartition2DataStartOffset,  params.IndirectPartition2DataStartOffset);  \
+            DO_FIELD(DW9,   IndirectPartition3DataLength,       params.IndirectPartition3DataLength);       \
+            DO_FIELD(DW10,  IndirectPartition3DataStartOffset,  params.IndirectPartition3DataStartOffset);  \
+            DO_FIELD(DW11,  IndirectPartition4DataLength,       params.IndirectPartition4DataLength);       \
+            DO_FIELD(DW12,  IndirectPartition4DataStartOffset,  params.IndirectPartition4DataStartOffset);  \
+            DO_FIELD(DW13,  IndirectPartition5DataLength,       params.IndirectPartition5DataLength);       \
+            DO_FIELD(DW14,  IndirectPartition5DataStartOffset,  params.IndirectPartition5DataStartOffset);  \
+            DO_FIELD(DW15,  IndirectPartition6DataLength,       params.IndirectPartition6DataLength);       \
+            DO_FIELD(DW16,  IndirectPartition6DataStartOffset,  params.IndirectPartition6DataStartOffset);  \
+            DO_FIELD(DW17,  IndirectPartition7DataLength,       params.IndirectPartition7DataLength);       \
+            DO_FIELD(DW18,  IndirectPartition7DataStartOffset,  params.IndirectPartition7DataStartOffset);  \
+            DO_FIELD(DW19,  IndirectPartition8DataLength,       params.IndirectPartition8DataLength);       \
+            DO_FIELD(DW20,  IndirectPartition8DataStartOffset,  params.IndirectPartition8DataStartOffset);  \
+
+#include "mhw_hwcmd_process_cmdfields.h"
+    }
 };
 }//namespace mfx
 }//namespace vdbox
