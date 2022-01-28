@@ -296,9 +296,9 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *    \n Programming note: Define the minimum value as indicated above for AVBR accuracy & convergence, clamp any value that is less than the minimum value to the minimum value.  Define the maximum value for AVBR accuracy as 100 (10%) and for AVBR convergence as 500, clamp any value that is greater than the maximum value to the maximum value. The maximum & minimum value may be adjusted when necessary. If bResetBRC is set to 1 for a non-I picture, driver shall not insert SPS into bitstream.  Driver needs to calculate the maximum allowed frame size per profile/level for all RateControlMethod except CQP, and use the calculated value to program kernel for non AVBR modes; for AVBR mode, driver needs to clamp the upper bound of UserMaxFrameSize to the calculated value and use the clamped UserMaxFrameSize to program kernel.  If IWD_VBR is set, driver programs it the same as VBR except not to enable panic mode.
     */
     uint8_t           RateControlMethod;
-    uint32_t          TargetBitRate;      //!< Target bit rate Kbit per second
-    uint32_t          MaxBitRate;         //!< Maximum bit rate Kbit per second
-    /*! \brief Minimun bit rate Kbit per second.
+    uint32_t          TargetBitRate;      //!< Target bit rate in bit per second
+    uint32_t          MaxBitRate;         //!< Maximum bit rate in bit per second
+    /*! \brief Minimun bit rate in bit per second.
     *
     *   This is used in VBR control. For CBR control, this field is ignored.
     */

@@ -149,8 +149,10 @@
 #define CODECHAL_LPLA_NUM_OF_PASSES                     2
 
 // BRC
-#define CODECHAL_ENCODE_BRC_KBPS                        1000     // 1000bps for disk storage, aligned with industry usage
+#define CODECHAL_ENCODE_BRC_KBPS                        1000  // 1000bps for disk storage, aligned with industry usage
 #define CODECHAL_ENCODE_SCENE_CHANGE_DETECTED_MASK      0xffff
+#define CODECHAL_ENCODE_MIN_BITS_PER_PIXEL              12  // 8b 420
+#define CODECHAL_ENCODE_MAX_BITSTREAM_COMPRESSION       700
 
 typedef enum _CODECHAL_ENCODE_FUNCTION_ID
 {

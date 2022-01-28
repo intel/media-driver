@@ -6444,7 +6444,7 @@ MOS_STATUS CodechalVdencAvcState::ExecuteSliceLevel()
     }
 
     // Prepare MetaData
-    if ((m_presMetadataBuffer != nullptr) && (m_currPass == m_numPasses))
+    if (m_presMetadataBuffer != nullptr)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(m_presMetadataBuffer, &m_pakSliceSizeStreamoutBuffer, &cmdBuffer));
     }

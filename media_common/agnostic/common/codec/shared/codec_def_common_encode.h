@@ -38,6 +38,8 @@
 #define BRC_IMG_STATE_SIZE_PER_PASS         128
 #define BRC_IMG_STATE_SIZE_PER_PASS_G10     144
 #define BRC_IMG_STATE_SIZE_PER_PASS_G11     192
+#define BRC_MAX_BITRATE_RATIO               1.5  // maxBitrate = BRC_MAX_BITRATE_RATIO * targetBitrate
+#define BRC_DEFAULT_CPB_IN_SEC              2    // bufferSize = BRC_DEFAULT_CPB_IN_SEC * maxBitrate
 
 // Quality/Performance differentiators for HSW AVC Encode
 #define NUM_TARGET_USAGE_MODES 8
