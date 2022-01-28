@@ -22,7 +22,9 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/hal_kerneldll_next.c
 )
 
-set(TMP_HEADERS_ "")
+set(TMP_HEADERS_ 
+    ${CMAKE_CURRENT_LIST_DIR}/hal_kerneldll_next.h
+)
 
 
 set(SOURCES_
@@ -35,13 +37,17 @@ set(COMMON_SOURCES_
     ${TMP_SOURCES_}
 )
 
-# no header for now
-#set(HEADERS_
-#    ${HEADERS_}
-#    ${TMP_HEADERS_}
-#)
+set(HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(COMMON_HEADERS_
+    ${COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
 
 source_group( "VpHalNext\\Kernel DLL" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 
-#media_add_curr_to_include_path()
+media_add_curr_to_include_path()

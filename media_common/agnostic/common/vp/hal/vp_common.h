@@ -121,6 +121,27 @@ typedef enum _VPHAL_GAMMA_TYPE
 C_ASSERT(VPHAL_GAMMA_Count == 5);  //!< When adding, update assert
 
 //!
+//! \def IS_COLOR_SPACE_BT2020_YUV(_a)
+//! Check if the color space is BT2020 YUV
+//!
+#define IS_COLOR_SPACE_BT2020_YUV(_a) (_a == CSpace_BT2020 || \
+                                       _a == CSpace_BT2020_FullRange)
+
+//!
+//! \def IS_COLOR_SPACE_BT2020_RGB(_a)
+//! Check if the color space is BT2020 RGB
+//!
+#define IS_COLOR_SPACE_BT2020_RGB(_a) (_a == CSpace_BT2020_RGB || \
+                                       _a == CSpace_BT2020_stRGB)
+
+//!
+//! \def IS_COLOR_SPACE_BT2020(_a)
+//! Check if the color space is BT2020
+//!
+#define IS_COLOR_SPACE_BT2020(_a) (IS_COLOR_SPACE_BT2020_YUV(_a) || \
+                                   IS_COLOR_SPACE_BT2020_RGB(_a))
+
+//!
 //! \brief Sample Type enum
 //!
 typedef enum _VPHAL_SAMPLE_TYPE
@@ -214,6 +235,19 @@ typedef enum _VPHAL_DI_REPORT_MODE
     VPHAL_DI_REPORT_ADI,          //!< ADI output
     VPHAL_DI_REPORT_FMD           //!< FMD output
 } VPHAL_DI_REPORT_MODE;
+
+//!
+//! \brief Colorpack enum
+//!
+typedef enum _VPHAL_COLORPACK
+{
+    VPHAL_COLORPACK_400 = 0,
+    VPHAL_COLORPACK_420,
+    VPHAL_COLORPACK_411,
+    VPHAL_COLORPACK_422,
+    VPHAL_COLORPACK_444,
+    VPHAL_COLORPACK_UNKNOWN
+} VPHAL_COLORPACK, *PVPHAL_COLORPACK;
 
 //!
 //! \brief   Output Pipe Mode enum
@@ -634,6 +668,20 @@ struct VPHAL_SURFACE
     // 3DLUT parameters
     PVPHAL_3DLUT_PARAMS p3DLutParams = nullptr;  //!< 3DLut Mapping Params
 };
+
+//!
+//! Structure VPHAL_GET_SURFACE_INFO
+//! \brief VPHAL Get Surface Infomation Parameters
+//!
+
+typedef struct VPHAL_GET_SURFACE_INFO *PVPHAL_GET_SURFACE_INFO;
+struct VPHAL_GET_SURFACE_INFO
+{
+    uint32_t        ArraySlice;
+    uint32_t        MipSlice;
+    MOS_S3D_CHANNEL S3dChannel;
+};
+
 #ifdef __cplusplus
 }
 #endif

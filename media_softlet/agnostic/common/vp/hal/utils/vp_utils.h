@@ -27,6 +27,7 @@
 #include "mos_os.h"
 #include "vp_common.h"
 #include "media_class_trace.h"
+#include "hal_kerneldll_next.h"
 
 #define VP_UNUSED(param) (void)(param)
 //------------------------------------------------------------------------------

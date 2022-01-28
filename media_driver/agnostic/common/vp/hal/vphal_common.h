@@ -338,30 +338,6 @@ typedef enum _VPHAL_DP_ROTATION_MODE
     VPHAL_DP_ROTATION_NV12_YUY2_NOT_SET          //!< nv12 -> yuy2 by chroma average or repeat, decided by scaling mode
 } VPHAL_DP_ROTATION_MODE;
 
-
-
-
-//!
-//! \def IS_COLOR_SPACE_BT2020_YUV(_a)
-//! Check if the color space is BT2020 YUV
-//!
-#define IS_COLOR_SPACE_BT2020_YUV(_a)          (_a == CSpace_BT2020           || \
-                                                _a == CSpace_BT2020_FullRange)
-
-//!
-//! \def IS_COLOR_SPACE_BT2020_RGB(_a)
-//! Check if the color space is BT2020 RGB
-//!
-#define IS_COLOR_SPACE_BT2020_RGB(_a)          (_a == CSpace_BT2020_RGB       || \
-                                                _a == CSpace_BT2020_stRGB)
-
-//!
-//! \def IS_COLOR_SPACE_BT2020(_a)
-//! Check if the color space is BT2020
-//!
-#define IS_COLOR_SPACE_BT2020(_a)              (IS_COLOR_SPACE_BT2020_YUV(_a) || \
-                                                IS_COLOR_SPACE_BT2020_RGB(_a))
-
 //!
 //! \def IS_RGB_LIMITED_RANGE(_a)
 //! Check if RGB limited range
@@ -418,21 +394,6 @@ typedef enum _VPHAL_GAMUT_MODE
     GAMUT_MODE_ADVANCED
 } VPHAL_GAMUT_MODE;
 C_ASSERT(GAMUT_MODE_ADVANCED == 2); //!< When adding, update assert & vphal_solo_scenario.cpp
-
-
-//!
-//! \brief Colorpack enum
-//!
-typedef enum _VPHAL_COLORPACK
-{
-    VPHAL_COLORPACK_400 = 0,
-    VPHAL_COLORPACK_420,
-    VPHAL_COLORPACK_411,
-    VPHAL_COLORPACK_422,
-    VPHAL_COLORPACK_444,
-    VPHAL_COLORPACK_UNKNOWN
-} VPHAL_COLORPACK, *PVPHAL_COLORPACK;
-
 
 //!
 //! \def SET_VPHAL_OUTPUT_PIPE(_a, _Pipe)
@@ -761,18 +722,6 @@ float VpHal_Lanczos(
     uint32_t    dwNumEntries,
     float        fLanczosT);
 
-//!
-//! Structure VPHAL_GET_SURFACE_INFO
-//! \brief VPHAL Get Surface Infomation Parameters
-//!
-
-typedef struct VPHAL_GET_SURFACE_INFO  *PVPHAL_GET_SURFACE_INFO;
-struct VPHAL_GET_SURFACE_INFO
-{
-  uint32_t          ArraySlice;
-  uint32_t          MipSlice;
-  MOS_S3D_CHANNEL   S3dChannel;
-};
 
 //!
 //! \brief    Get Surface Info from OsResource
