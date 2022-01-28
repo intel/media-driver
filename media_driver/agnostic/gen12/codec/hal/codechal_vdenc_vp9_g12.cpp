@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,8 @@
 #include "mhw_mi_g12_X.h"
 #include "mhw_render_g12_X.h"
 #include "codechal_mmc_encode_vp9_g12.h"
+
+#define MAXPATH 512
 
 const uint32_t CodechalVdencVp9StateG12::meCurbeInit[48] =
 {
@@ -4732,6 +4734,43 @@ MOS_STATUS CodechalVdencVp9StateG12::Initialize(CodechalSetting * settings)
 
     // Get max binding table count
     m_maxBtCount = GetMaxBtCount();    // Need to add the correct BTcount when HME is enabled
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_BRC_DLL,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+
+    if (userFeatureData.i32Data)
+    {
+        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_ENABLE_BRC_DLL_CUSTOMPATH,
+            &userFeatureData,
+            m_osInterface->pOsContext);
+
+        if (!userFeatureData.i32Data)
+        {
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(MosUtilities::MosLoadLibrary(VP9SWBRCLIB, &m_swBrcMode));  // Load Dependency (use on RS1)
+        }
+        else
+        {
+            char path_buffer[MAXPATH];
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            MOS_ZeroMemory(path_buffer, MAXPATH);
+            userFeatureData.StringData.pStringData = path_buffer;
+            MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __MEDIA_USER_FEATURE_VALUE_VP9_ENCODE_BRC_DLL_PATH,
+                &userFeatureData,
+                m_osInterface->pOsContext);
+            CODECHAL_ENCODE_CHK_STATUS_RETURN(MosInterface::MosLoadLibrary(m_osInterface->osStreamState, path_buffer, &m_swBrcMode));
+        }
+    }
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
 
     return eStatus;
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -2049,87 +2049,79 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
     if (!update) // BRC INIT / RESET
     {
         // Set DMEM
-        uint8_t* data = NULL;
-        data          = (uint8_t *)m_osInterface->pfnLockResource(
+        uint8_t* data_dmem = NULL;
+        data_dmem          = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_resVdencBrcInitDmemBuffer, &lpReadOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9INLINE_DMEM, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcInitDmemBuffer);
-
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_dmem);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_dmem, eVp9INLINE_DMEM, pvBrcIfHandle));
+        
         // Set History OUT Buffer
-        data = (uint8_t*)m_osInterface->pfnLockResource(
+        uint8_t* data_history_out = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_brcBuffers.resBrcHistoryBuffer, &lpWriteOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9HISTORY_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHistoryBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_history_out);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_history_out, eVp9HISTORY_BUFF, pvBrcIfHandle));
 
         // Execute init/reset firmware
         CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnProcess(pvBrcIfHandle, m_brcInit ? BRCInit : BRCReset));
+
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcInitDmemBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHistoryBuffer);
     }
     else // BRC UPDATE
     {
         // Set DMEM
-        uint8_t *data = (uint8_t *)m_osInterface->pfnLockResource(
+        uint8_t *data_dmem = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0], &lpReadOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9INLINE_DMEM, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0]);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_dmem);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_dmem, eVp9INLINE_DMEM, pvBrcIfHandle));
 
         // Set History IN/OUT Buffer
-        data = (uint8_t*)m_osInterface->pfnLockResource(
+        uint8_t *data_history_in_out = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_brcBuffers.resBrcHistoryBuffer, &lpReadWrite);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9HISTORY_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHistoryBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_history_in_out);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_history_in_out, eVp9HISTORY_BUFF, pvBrcIfHandle));
 
         // Set VDEnc Stats IN
-        data = (uint8_t *)m_osInterface->pfnLockResource(
+        uint8_t *data_vdenc_stat = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_resVdencBrcStatsBuffer, &lpReadOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9VDENC_STATISTICS_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcStatsBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_vdenc_stat);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_vdenc_stat, eVp9VDENC_STATISTICS_BUFF, pvBrcIfHandle));
 
         // Set Frame Stats IN
-        data = (uint8_t *)m_osInterface->pfnLockResource(
+        uint8_t *data_frame_stat = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_resFrameStatStreamOutBuffer, &lpReadOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9PAK_STATISTICS_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resFrameStatStreamOutBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_frame_stat);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_frame_stat, eVp9PAK_STATISTICS_BUFF, pvBrcIfHandle));
 
         // Set SLBB IN
-        data = (uint8_t *)m_osInterface->pfnLockResource(
+        uint8_t *data_slbb_in = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex], &lpReadOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9INPUT_SLBB_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex]);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_slbb_in);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_slbb_in, eVp9INPUT_SLBB_BUFF, pvBrcIfHandle));
 
         // Set BRC data OUT
-        data = (uint8_t*)m_osInterface->pfnLockResource(
+        uint8_t *data_brc_out = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_brcBuffers.resBrcHucDataBuffer, &lpWriteOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9BRC_DATA_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHucDataBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_brc_out);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_brc_out, eVp9BRC_DATA_BUFF, pvBrcIfHandle));
 
         // Set Const Data IN
-        data = (uint8_t*)m_osInterface->pfnLockResource(
+        uint8_t *data_const_in = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_brcBuffers.resBrcConstantDataBuffer, &lpReadOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9CONSTANT_DATA_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcConstantDataBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_const_in);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_const_in, eVp9CONSTANT_DATA_BUFF, pvBrcIfHandle));
 
         // Set SLBB OUT
-        data = (uint8_t *)m_osInterface->pfnLockResource(
+        uint8_t *data_slbb_out = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex], &lpWriteOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9OUTPUT_SLBB_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex]);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_slbb_out);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_slbb_out, eVp9OUTPUT_SLBB_BUFF, pvBrcIfHandle));
 
         // PAK MMIO IN
-        data = (uint8_t*)m_osInterface->pfnLockResource(
+        uint8_t *data_mmio_in = (uint8_t *)m_osInterface->pfnLockResource(
             m_osInterface, &m_brcBuffers.resBrcBitstreamSizeBuffer, &lpReadOnly);
-        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data, eVp9PAKMMIO_BUFF, pvBrcIfHandle));
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcBitstreamSizeBuffer);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data_mmio_in);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_mmio_in, eVp9PAKMMIO_BUFF, pvBrcIfHandle));
 
         // AUX Buffer IN/OUT (DLL extension buffer)
         HUC_AUX_BUFFER auxBuffer = { 0 };
@@ -2137,6 +2129,16 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
 
         // Execute update firmware
         pfnProcess(pvBrcIfHandle, BRCUpdate);
+
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0]);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHistoryBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcStatsBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resFrameStatStreamOutBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex]);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHucDataBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcConstantDataBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex]);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcBitstreamSizeBuffer);
     }
 
     pfnReleaseInstance(pvBrcIfHandle);
