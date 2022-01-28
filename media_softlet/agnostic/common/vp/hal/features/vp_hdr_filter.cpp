@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,10 +27,12 @@
 #include "vp_hdr_filter.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#include "vp_render_cmd_packet.h"
 
 namespace vp
 {
-VpHdrFilter::VpHdrFilter(PVP_MHWINTERFACE vpMhwInterface) : VpFilter(vpMhwInterface)
+VpHdrFilter::VpHdrFilter(PVP_MHWINTERFACE vpMhwInterface) :
+    VpFilter(vpMhwInterface), m_3DLutSurfaceWidth(LUT65_SEG_SIZE * 2), m_3DLutSurfaceHeight(LUT65_SEG_SIZE * LUT65_MUL_SIZE)
 {
 }
 
@@ -52,11 +54,6 @@ MOS_STATUS VpHdrFilter::Destroy()
 {
     VP_FUNC_CALL();
 
-    if (m_pVeboxHdrParams)
-    {
-        MOS_FreeMemAndSetNull(m_pVeboxHdrParams);
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -68,26 +65,54 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
     if (vpExecuteCaps.bVebox)
     {
         // create a filter Param buffer
-        if (!m_pVeboxHdrParams)
-        {
-            m_pVeboxHdrParams = (PVEBOX_HDR_PARAMS)MOS_AllocAndZeroMemory(sizeof(VEBOX_HDR_PARAMS));
+        MOS_ZeroMemory(&m_veboxHdrParams, sizeof(PVEBOX_HDR_PARAMS));
+        m_veboxHdrParams.uiMaxDisplayLum      = hdrParams.uiMaxDisplayLum;
+        m_veboxHdrParams.uiMaxContentLevelLum = hdrParams.uiMaxContentLevelLum;
+        m_veboxHdrParams.hdrMode              = hdrParams.hdrMode;
+        m_veboxHdrParams.srcColorSpace        = hdrParams.srcColorSpace;
+        m_veboxHdrParams.dstColorSpace        = hdrParams.dstColorSpace;
+        m_veboxHdrParams.dstFormat            = hdrParams.formatOutput;
+        m_veboxHdrParams.stage                = hdrParams.stage;
+    }
+    else if (vpExecuteCaps.bRender && HDR_STAGE_3DLUT_KERNEL == hdrParams.stage)
+    {
+        // create a filter Param buffer
+        MOS_ZeroMemory(&m_renderHdr3DLutParams, sizeof(RENDER_HDR_3DLUT_CAL_PARAMS));
+        m_renderHdr3DLutParams.maxDisplayLum       = hdrParams.uiMaxDisplayLum;
+        m_renderHdr3DLutParams.maxContentLevelLum  = hdrParams.uiMaxContentLevelLum;
+        m_renderHdr3DLutParams.hdrMode             = hdrParams.hdrMode;
+        m_renderHdr3DLutParams.kernelId            = (VpKernelID)kernelHdr3DLutCalc;
 
-            if (m_pVeboxHdrParams == nullptr)
-            {
-                VP_PUBLIC_ASSERTMESSAGE("Hdr Params buffer allocate failed, return nullpointer");
-                return MOS_STATUS_NO_SPACE;
-            }
-        }
-        else
-        {
-            MOS_ZeroMemory(m_pVeboxHdrParams, sizeof(PVEBOX_HDR_PARAMS));
-        }
-        m_pVeboxHdrParams->uiMaxDisplayLum      = hdrParams.uiMaxDisplayLum;
-        m_pVeboxHdrParams->uiMaxContentLevelLum = hdrParams.uiMaxContentLevelLum;
-        m_pVeboxHdrParams->hdrMode              = hdrParams.hdrMode;
-        m_pVeboxHdrParams->srcColorSpace        = hdrParams.srcColorSpace;
-        m_pVeboxHdrParams->dstColorSpace        = hdrParams.dstColorSpace;
-        m_pVeboxHdrParams->dstFormat            = hdrParams.formatOutput;
+        uint32_t blockWidth = 16;
+        uint32_t blockHeight = 8;
+
+        m_renderHdr3DLutParams.threadWidth = (LUT65_SEG_SIZE * 2 + blockWidth - 1) / blockWidth;
+        m_renderHdr3DLutParams.threadHeight = (LUT65_SEG_SIZE * LUT65_MUL_SIZE + blockHeight - 1) / blockHeight;
+
+        KRN_ARG krnArg  = {};
+        krnArg.uIndex   = 0;
+        krnArg.eArgKind = ARG_KIND_SURFACE;
+        krnArg.uSize    = 4;
+        krnArg.pData    = &m_surfType3DLut2D;
+        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+
+        krnArg.uIndex   = 1;
+        krnArg.eArgKind = ARG_KIND_SURFACE;
+        krnArg.uSize    = 4;
+        krnArg.pData    = &m_surfType3DLutCoef;
+        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+
+        krnArg.uIndex   = 2;
+        krnArg.eArgKind = ARG_KIND_GENERAL;
+        krnArg.uSize    = 2;
+        krnArg.pData    = &m_3DLutSurfaceWidth;
+        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
+
+        krnArg.uIndex   = 3;
+        krnArg.eArgKind = ARG_KIND_GENERAL;
+        krnArg.uSize    = 2;
+        krnArg.pData    = &m_3DLutSurfaceHeight;
+        m_renderHdr3DLutParams.kernelArgs.push_back(krnArg);
     }
     else
     {
@@ -266,4 +291,185 @@ HwFilterParameter *PolicyVeboxHdrHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vp
         return nullptr;
     }
 }
+
+
+/****************************************************************************************************/
+/*                      Packet Render Hdr 3DLut Caculation Parameter                                */
+/****************************************************************************************************/
+VpPacketParameter *VpRenderHdr3DLutCalParameter::Create(HW_FILTER_HDR_PARAM &param)
+{
+    VP_FUNC_CALL();
+
+    if (nullptr == param.pPacketParamFactory)
+    {
+        return nullptr;
+    }
+    VpRenderHdr3DLutCalParameter *p = dynamic_cast<VpRenderHdr3DLutCalParameter *>(param.pPacketParamFactory->GetPacketParameter(param.pHwInterface));
+    if (p)
+    {
+        if (MOS_FAILED(p->Initialize(param)))
+        {
+            VpPacketParameter *pParam = p;
+            param.pPacketParamFactory->ReturnPacketParameter(pParam);
+            return nullptr;
+        }
+    }
+    return p;
+}
+
+VpRenderHdr3DLutCalParameter::VpRenderHdr3DLutCalParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase *packetParamFactory) : VpPacketParameter(packetParamFactory), m_HdrFilter(pHwInterface)
+{
+}
+VpRenderHdr3DLutCalParameter::~VpRenderHdr3DLutCalParameter() {}
+
+bool VpRenderHdr3DLutCalParameter::SetPacketParam(VpCmdPacket *packet)
+{
+    VP_FUNC_CALL();
+
+    VpRenderCmdPacket *pRenderPacket = dynamic_cast<VpRenderCmdPacket *>(packet);
+    if (nullptr == pRenderPacket)
+    {
+        return false;
+    }
+
+    RENDER_HDR_3DLUT_CAL_PARAMS *params = m_HdrFilter.GetRenderHdr3DLutParams();
+    if (nullptr == params)
+    {
+        return false;
+    }
+    return MOS_SUCCEEDED(pRenderPacket->SetHdr3DLutParams(params));
+}
+
+MOS_STATUS VpRenderHdr3DLutCalParameter::Initialize(HW_FILTER_HDR_PARAM &params)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_HdrFilter.Init());
+    VP_PUBLIC_CHK_STATUS_RETURN(m_HdrFilter.CalculateEngineParams(params.hdrParams, params.vpExecuteCaps));
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
+/*                            Policy Render Hdr 3DLut Caculation Handler                            */
+/****************************************************************************************************/
+PolicyRenderHdr3DLutCalHandler::PolicyRenderHdr3DLutCalHandler(VP_HW_CAPS &hwCaps) : PolicyFeatureHandler(hwCaps)
+{
+    m_Type = FeatureTypeHdr3DLutCalOnRender;
+}
+PolicyRenderHdr3DLutCalHandler::~PolicyRenderHdr3DLutCalHandler()
+{
+}
+
+bool PolicyRenderHdr3DLutCalHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
+{
+    VP_FUNC_CALL();
+
+    //Need to check if other path activated
+    return vpExecuteCaps.b3DLutCalc;
+}
+
+HwFilterParameter *PolicyRenderHdr3DLutCalHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
+{
+    VP_FUNC_CALL();
+
+    if (IsFeatureEnabled(vpExecuteCaps))
+    {
+        if (SwFilterPipeType1To1 != swFilterPipe.GetSwFilterPipeType())
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Sfc only support 1To1 swFilterPipe!");
+            return nullptr;
+        }
+
+        SwFilterHdr *swFilter = dynamic_cast<SwFilterHdr *>(swFilterPipe.GetSwFilter(true, 0, FeatureTypeHdr3DLutCalOnRender));
+
+        if (nullptr == swFilter)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! Feature enabled in vpExecuteCaps but no swFilter exists!");
+            return nullptr;
+        }
+
+        FeatureParamHdr &param = swFilter->GetSwFilterParams();
+
+        HW_FILTER_HDR_PARAM paramHdr  = {};
+        paramHdr.type                 = m_Type;
+        paramHdr.pHwInterface         = pHwInterface;
+        paramHdr.vpExecuteCaps        = vpExecuteCaps;
+        paramHdr.pPacketParamFactory  = &m_PacketParamFactory;
+        paramHdr.hdrParams            = param;
+        paramHdr.pfnCreatePacketParam = PolicyRenderHdr3DLutCalHandler::CreatePacketParam;
+
+        HwFilterParameter *pHwFilterParam = GetHwFeatureParameterFromPool();
+
+        if (pHwFilterParam)
+        {
+            if (MOS_FAILED(((HwFilterHdrParameter *)pHwFilterParam)->Initialize(paramHdr)))
+            {
+                ReleaseHwFeatureParameter(pHwFilterParam);
+            }
+        }
+        else
+        {
+            pHwFilterParam = HwFilterHdrParameter::Create(paramHdr, m_Type);
+        }
+
+        return pHwFilterParam;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+MOS_STATUS PolicyRenderHdr3DLutCalHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
+{
+    VP_FUNC_CALL();
+
+    SwFilterHdr *featureHdr = dynamic_cast<SwFilterHdr *>(&feature);
+    VP_PUBLIC_CHK_NULL_RETURN(featureHdr);
+
+    // only stage in 3DLUT_KERNEL need update engine caps
+    if (caps.b3DLutCalc && featureHdr->GetSwFilterParams().stage == HDR_STAGE_3DLUT_KERNEL)
+    {
+        SwFilterHdr *filter2ndPass = featureHdr;
+        SwFilterHdr *filter1ndPass = (SwFilterHdr *)feature.Clone();
+
+        VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
+        VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
+
+        filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
+        filter1ndPass->SetFeatureType(filter2ndPass->GetFeatureType());
+
+        FeatureParamHdr &params2ndPass = filter2ndPass->GetSwFilterParams();
+        FeatureParamHdr &params1stPass = filter1ndPass->GetSwFilterParams();
+
+        params2ndPass.stage = HDR_STAGE_VEBOX_3DLUT_UPDATE;
+
+        // Clear engine caps for filter in 2nd pass.
+        filter2ndPass->SetFeatureType(FeatureTypeHdr);
+        filter2ndPass->SetRenderTargetType(RenderTargetTypeSurface);
+        filter2ndPass->GetFilterEngineCaps().bEnabled     = 1;
+        filter2ndPass->GetFilterEngineCaps().RenderNeeded = 0;
+        filter2ndPass->GetFilterEngineCaps().VeboxNeeded  = 1;
+        filter2ndPass->GetFilterEngineCaps().isolated     = 0;
+
+        if (featureHdr->GetSwFilterParams().formatOutput == Format_A8B8G8R8 || featureHdr->GetSwFilterParams().formatOutput == Format_A8R8G8B8)
+        {
+            filter2ndPass->GetFilterEngineCaps().VeboxARGBOut = 1;
+        }
+        else if (featureHdr->GetSwFilterParams().formatOutput == Format_B10G10R10A2 || featureHdr->GetSwFilterParams().formatOutput == Format_R10G10B10A2)
+        {
+            filter2ndPass->GetFilterEngineCaps().VeboxARGB10bitOutput = 1;
+        }
+
+        executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
+    }
+    else
+    {
+        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+
 }  // namespace vp

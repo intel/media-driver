@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -244,6 +244,7 @@ public:
         MOS_ZeroMemory(&m_veboxIecpParams, sizeof(MHW_VEBOX_IECP_PARAMS));
         MOS_ZeroMemory(&m_veboxGamutParams, sizeof(MHW_VEBOX_GAMUT_PARAMS));
         MOS_ZeroMemory(&m_HvsParams, sizeof(VPHAL_HVSDENOISE_PARAMS));
+        MOS_ZeroMemory(&HDR3DLUT, sizeof(HDR3DLUT));
 
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(&m_veboxIecpParams.AceParams,
                 sizeof(MHW_ACE_PARAMS),
@@ -313,17 +314,9 @@ public:
     {
         struct
         {
-            uint32_t bEnable3Dlut           : 1;    // 3Dlut HDR enabled;
-            uint32_t VE3DlutLength          : 30;
-        };
-    } VE3DLUT;
-
-    union
-    {
-        struct
-        {
             bool           bHdr3DLut;             //!< Enable 3DLut to process HDR
             bool           bUseVEHdrSfc;          //!< Use SFC to perform CSC/Scaling for HDR content
+            bool           is3DLutTableFilled;    //!< 3DLut is filled by kernel/
             uint32_t       uiMaxDisplayLum;       //!< Maximum Display Luminance
             uint32_t       uiMaxContentLevelLum;  //!< Maximum Content Level Luminance
             VPHAL_HDR_MODE hdrMode;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,8 @@ public:
     virtual MOS_STATUS SetDiFmdParams(PRENDER_DI_FMD_PARAMS params);
 
     virtual MOS_STATUS SetFcParams(PRENDER_FC_PARAMS params);
+
+    virtual MOS_STATUS SetHdr3DLutParams(PRENDER_HDR_3DLUT_CAL_PARAMS params);
 
     virtual MOS_STATUS DumpOutput() override;
 

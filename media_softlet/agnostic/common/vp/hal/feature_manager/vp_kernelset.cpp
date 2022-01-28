@@ -1,4 +1,4 @@
-/* Copyright (c) 2020-2021, Intel Corporation
+/* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 //!
 #include "vp_kernelset.h"
 #include "vp_render_fc_kernel.h"
+#include "vp_render_vebox_hdr_3dlut_kernel.h"
 
 using namespace vp;
 
@@ -109,10 +110,14 @@ MOS_STATUS VpKernelSet::CreateSingleKernelObject(
 {
     VP_FUNC_CALL();
     kernel = nullptr;
-    switch (kernelId)
+    switch ((uint32_t)kernelId)
     {
     case kernelCombinedFc:
         kernel = (VpRenderKernelObj*)MOS_New(VpRenderFcKernel, m_hwInterface, m_allocator);
+        VP_RENDER_CHK_NULL_RETURN(kernel);
+        break;
+    case kernelHdr3DLutCalc:
+        kernel = (VpRenderKernelObj *)MOS_New(VpRenderHdr3DLutKernel, m_hwInterface, kernelId, kernelIndex, m_allocator);
         VP_RENDER_CHK_NULL_RETURN(kernel);
         break;
     default:
@@ -187,7 +192,7 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
         {
             VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(FindAndInitKernelObj(kernel)));
 
-            VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->SetKernelConfigs(kernelParams[kernelIndex], surfacesGroup, samplerStateGroup)));
+            VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->SetKernelConfigs(kernelParams[kernelIndex], surfacesGroup, samplerStateGroup, kernelConfigs)));
 
             kernelObjs.insert(std::make_pair(kernelIndex, kernel));
         }

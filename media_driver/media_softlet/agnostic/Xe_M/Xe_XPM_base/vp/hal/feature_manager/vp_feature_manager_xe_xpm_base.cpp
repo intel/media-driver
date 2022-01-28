@@ -170,7 +170,7 @@ MOS_STATUS VPFeatureManagerXe_Xpm_Base::CheckFeatures(void * params, bool &bApgF
         return MOS_STATUS_SUCCESS;
     }
 
-    if (Is2PassesCSCNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
+    if (nullptr == pvpParams->pSrc[0]->pHDRParams && Is2PassesCSCNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
     {
         return MOS_STATUS_SUCCESS;
     }

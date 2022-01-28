@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -59,9 +59,13 @@ using PCVP_PIPELINE_PARAMS = const VPHAL_RENDER_PARAMS*;
     uint32_t    isIScalingTypeNone  : 1;        \
     uint32_t    isFieldWeaving      : 1;
 
+#define RESOURCE_ASSIGNMENT_HINT_BITS_HDR       \
+    uint32_t    is3DLut2DNeeded     : 1;
+
 #define RESOURCE_ASSIGNMENT_HINT_BITS           \
         RESOURCE_ASSIGNMENT_HINT_BITS_DI        \
-        RESOURCE_ASSIGNMENT_HINT_BITS_SCALING
+        RESOURCE_ASSIGNMENT_HINT_BITS_SCALING   \
+        RESOURCE_ASSIGNMENT_HINT_BITS_HDR
 
 #define RESOURCE_ASSIGNMENT_HINT_SIZE   4
 
@@ -171,6 +175,7 @@ struct _VP_EXECUTE_CAPS
             // Render Features
             uint64_t bComposite     : 1;
             uint64_t bSR            : 1;
+            uint64_t b3DLutCalc     : 1;
         };
         uint64_t value;
     };

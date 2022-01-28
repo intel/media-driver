@@ -195,6 +195,16 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_vebox3DLookUpTables);
     }
 
+    if (m_vebox3DLookUpTables2D)
+    {
+        m_allocator.DestroyVpSurface(m_vebox3DLookUpTables2D);
+    }
+
+    if (m_3DLutKernelCoefSurface)
+    {
+        m_allocator.DestroyVpSurface(m_3DLutKernelCoefSurface);
+    }
+
     if (m_vebox1DLookUpTables)
     {
         m_allocator.DestroyVpSurface(m_vebox1DLookUpTables);
@@ -972,6 +982,10 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AssignFcResources(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, resHint, surfSetting));
     }
+    else if (caps.b3DLutCalc)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(Assign3DLutKernelResource(caps, resHint, surfSetting));
+    }
     else
     {
         if (1 != inputSurfaces.size())
@@ -1524,9 +1538,12 @@ void VpResourceManager::DestoryVeboxSTMMSurface()
     }
 }
 
-uint32_t VpResourceManager::Get3DLutSize()
+uint32_t VpResourceManager::Get3DLutSize(uint32_t &lutWidth, uint32_t &lutHeight)
 {
     VP_FUNC_CALL();
+
+    lutWidth = LUT65_SEG_SIZE * 2;
+    lutHeight = LUT65_SEG_SIZE * LUT65_MUL_SIZE;
 
     return VP_VEBOX_HDR_3DLUT65;
 }
@@ -1738,24 +1755,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         }
     }
 
-    if (caps.bHDR3DLUT)
-    {
-        // HDR
-        dwSize = Get3DLutSize();
-        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-            m_vebox3DLookUpTables,
-            "Vebox3DLutTableSurface",
-            Format_Buffer,
-            MOS_GFXRES_BUFFER,
-            MOS_TILE_LINEAR,
-            dwSize,
-            1,
-            false,
-            MOS_MMC_DISABLED,
-            bAllocated,
-            false,
-            IsDeferredResourceDestroyNeeded()));
-    }
+    VP_PUBLIC_CHK_STATUS_RETURN(Allocate3DLut(caps));
 
     if (caps.bDV)
     {
@@ -1775,6 +1775,111 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
             IsDeferredResourceDestroyNeeded()));
     }
     // cappipe
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::Allocate3DLut(VP_EXECUTE_CAPS& caps)
+{
+    VP_FUNC_CALL();
+    uint32_t                        size = 0;
+    bool                            isAllocated          = false;
+
+    if (caps.bHDR3DLUT)
+    {
+        // HDR
+        uint32_t lutWidth = 0;
+        uint32_t lutHeight = 0;
+        size = Get3DLutSize(lutWidth, lutHeight);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+            m_vebox3DLookUpTables,
+            "Vebox3DLutTableSurface",
+            Format_Buffer,
+            MOS_GFXRES_BUFFER,
+            MOS_TILE_LINEAR,
+            size,
+            1,
+            false,
+            MOS_MMC_DISABLED,
+            isAllocated,
+            false,
+            IsDeferredResourceDestroyNeeded(),
+            MOS_HW_RESOURCE_DEF_MAX,
+            MOS_TILE_UNSET_GMM,
+            MOS_MEMPOOL_SYSTEMMEMORY));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& caps)
+{
+    VP_FUNC_CALL();
+    uint32_t    size = 0;
+    bool        isAllocated = false;
+    uint32_t    lutWidth = 0;
+    uint32_t    lutHeight = 0;
+
+    uint32_t sizeOf3DLut = Get3DLutSize(lutWidth, lutHeight);
+    if (VP_VEBOX_HDR_3DLUT65 != sizeOf3DLut)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("3DLutSize(%x) != VP_VEBOX_HDR_3DLUT65(%x)", sizeOf3DLut, VP_VEBOX_HDR_3DLUT65);
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+        m_vebox3DLookUpTables2D,
+        "Vebox3DLutTableSurface2D",
+        Format_A8R8G8B8,
+        MOS_GFXRES_2D,
+        MOS_TILE_Y,
+        lutWidth,
+        lutHeight,
+        false,
+        MOS_MMC_DISABLED,
+        isAllocated,
+        false,
+        IsDeferredResourceDestroyNeeded(),
+        MOS_HW_RESOURCE_DEF_MAX,
+        MOS_TILE_UNSET_GMM,
+        MOS_MEMPOOL_SYSTEMMEMORY));
+
+    if (isAllocated)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(Init3DLutSurface2D(m_vebox3DLookUpTables2D));
+    }
+
+    uint32_t coefWidth     = 8;
+    uint32_t coefHeight    = 8;
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+        m_3DLutKernelCoefSurface,
+        "3DLutKernelCoefSurface",
+        Format_A8R8G8B8,
+        MOS_GFXRES_2D,
+        MOS_TILE_Y,
+        coefWidth,
+        coefHeight,
+        false,
+        MOS_MMC_DISABLED,
+        isAllocated,
+        false,
+        IsDeferredResourceDestroyNeeded(),
+        MOS_HW_RESOURCE_DEF_MAX,
+        MOS_TILE_UNSET_GMM,
+        MOS_MEMPOOL_SYSTEMMEMORY));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::Assign3DLutKernelResource(VP_EXECUTE_CAPS &caps, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(AllocateResourceFor3DLutKernel(caps));
+
+    surfSetting.surfGroup.insert(std::make_pair(SurfaceType3DLut2D, m_vebox3DLookUpTables2D));
+    surfSetting.surfGroup.insert(std::make_pair(SurfaceType3DLutCoef, m_3DLutKernelCoefSurface));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1956,7 +2061,14 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     if (VeboxHdr3DlutNeeded(caps))
     {
         // Insert Vebox 3Dlut surface
-        surfGroup.insert(std::make_pair(SurfaceType3dLut, m_vebox3DLookUpTables));
+        surfGroup.insert(std::make_pair(SurfaceType3DLut, m_vebox3DLookUpTables));
+    }
+
+    if (resHint.is3DLut2DNeeded)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_vebox3DLookUpTables2D);
+        // Insert Vebox 3Dlut surface
+        surfGroup.insert(std::make_pair(SurfaceType3DLut2D, m_vebox3DLookUpTables2D));
     }
 
     if (Vebox1DlutNeeded(caps))
@@ -2103,6 +2215,83 @@ bool VpResourceManager::VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps, bool queryAssignm
     {
         return caps.bDI || caps.bDiProcess2ndField || caps.bDN;
     }
+}
+
+MOS_STATUS VpResourceManager::Init3DLutSurface2D(VP_SURFACE *surf)
+{
+    VP_FUNC_CALL();
+    int in_prec         = 16;
+    int max_input_level = ((1 << in_prec) - 1);
+    int R = 0, G = 0, B = 0;
+    int lutIndex = 0;
+    int lutMul   = 128;
+    int lutSeg   = 65;
+
+    uint32_t widthInByte = surf->osSurface->dwWidth * 4;
+    uint32_t pitchInByte = surf->osSurface->dwPitch;
+
+    uint8_t *lockedAddr = (uint8_t *)this->m_allocator.LockResourceForWrite(&surf->osSurface->OsResource);
+
+    uint32_t indexByte = 0;
+    uint32_t indexByteInLine = 0;
+
+    for (int rr = 0; rr < lutSeg; rr++)
+    {
+        for (int gg = 0; gg < lutSeg; gg++)
+        {
+            for (int bb = 0; bb < lutMul; bb++)
+            {
+                uint16_t *lut = (uint16_t *)(lockedAddr + indexByte);
+                //--- convert fixed point to floating point
+
+                if (bb >= lutSeg)
+                {
+                    lut[3] = 0;
+                }
+                else
+                {
+                    if (rr == (lutSeg - 1))
+                        R = max_input_level;
+                    else
+                        R = rr * ((max_input_level + 1) / (lutSeg - 1));
+
+                    if (gg == (lutSeg - 1))
+                        G = max_input_level;
+                    else
+                        G = gg * ((max_input_level + 1) / (lutSeg - 1));
+
+                    if (bb == (lutSeg - 1))
+                        B = max_input_level;
+                    else
+                        B = bb * ((max_input_level + 1) / (lutSeg - 1));
+
+                    lut[0] = (unsigned short)R;
+                    lut[1] = (unsigned short)G;
+                    lut[2] = (unsigned short)B;
+                    lut[3] = 0;
+                }
+
+                indexByte += 8;
+                indexByteInLine += 8;
+
+                if (indexByteInLine >= widthInByte)
+                {
+                    indexByte += pitchInByte - indexByteInLine;
+                    indexByteInLine = 0;
+                }
+            }
+        }
+    }
+
+    // Unlock
+    VP_PUBLIC_CHK_STATUS_RETURN(this->m_allocator.UnLock(&surf->osSurface->OsResource));
+
+    if (indexByte > surf->osSurface->dwSize)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 };

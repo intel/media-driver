@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,13 +62,124 @@ void VpVeboxCmdPacket::SetupSurfaceStates(
     pVeboxSurfaceStateCmdParams->b3DlutEnable  = m_PacketCaps.bHDR3DLUT;  // Need to consider cappipe
 }
 
+MOS_STATUS VpVeboxCmdPacket::Init3DLutTable(PVP_SURFACE surf3DLut)
+{
+    VP_FUNC_CALL();
+    PVP_SURFACE        surf3DLut2D  = nullptr;
+    VpVeboxRenderData *renderData   = GetLastExecRenderData();
+
+    VP_RENDER_CHK_NULL_RETURN(renderData);
+
+    if (!renderData->HDR3DLUT.is3DLutTableFilled)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    // kernel already update this surface
+    surf3DLut2D = GetSurface(SurfaceType3DLut2D);
+
+    if (nullptr == surf3DLut2D)
+    {
+        // HDR_STAGE_VEBOX_3DLUT_NO_UPDATE should come here.
+        VP_RENDER_NORMALMESSAGE("3DLut table is calculated by kernel and no need be updated.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    VP_RENDER_CHK_NULL_RETURN(m_allocator);
+    VP_RENDER_CHK_NULL_RETURN(renderData);
+    VP_RENDER_CHK_NULL_RETURN(surf3DLut);
+    VP_RENDER_CHK_NULL_RETURN(surf3DLut->osSurface);
+    VP_RENDER_CHK_NULL_RETURN(surf3DLut2D->osSurface);
+
+    VP_RENDER_NORMALMESSAGE("3DLut table is calculated by kernel.");
+
+    uint8_t *buf3DLut = (uint8_t *)m_allocator->LockResourceForWrite(&surf3DLut->osSurface->OsResource);
+    VP_RENDER_CHK_NULL_RETURN(buf3DLut);
+    uint8_t *buf3DLut2D = (uint8_t *)m_allocator->LockResourceForWrite(&surf3DLut2D->osSurface->OsResource);
+    VP_RENDER_CHK_NULL_RETURN(buf3DLut2D);
+
+    uint32_t widthInByte = surf3DLut2D->osSurface->dwWidth * 4;
+    uint32_t pitchInByte = surf3DLut2D->osSurface->dwPitch;
+    uint32_t height      = surf3DLut2D->osSurface->dwHeight;
+    uint32_t size        = surf3DLut->osSurface->dwSize;
+
+    if (size < widthInByte * height)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    uint32_t offset   = 0;
+    uint32_t offset2D = 0;
+    for (uint32_t h = 0; h < height;
+         ++h, offset += widthInByte, offset2D += pitchInByte)
+    {
+        MOS_SecureMemcpy(buf3DLut + offset, widthInByte, buf3DLut2D + offset2D, widthInByte);
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&surf3DLut2D->osSurface->OsResource));
+    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&surf3DLut->osSurface->OsResource));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetupVebox3DLutForHDR(
+    PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams)
+{
+    PMHW_VEBOX_MODE   pVeboxMode = nullptr;
+    PMHW_VEBOX_3D_LUT pLUT3D     = nullptr;
+    PVP_SURFACE       surf3DLut  = GetSurface(SurfaceType3DLut);
+
+    VP_RENDER_CHK_NULL_RETURN(m_surfMemCacheCtl);
+    VP_RENDER_CHK_NULL_RETURN(pVeboxStateCmdParams);
+    VP_RENDER_CHK_NULL_RETURN(surf3DLut);
+    VP_RENDER_CHK_NULL_RETURN(surf3DLut->osSurface);
+
+    VP_RENDER_CHK_STATUS_RETURN(Init3DLutTable(surf3DLut));
+
+    pVeboxMode  = &pVeboxStateCmdParams->VeboxMode;
+    pLUT3D      = &pVeboxStateCmdParams->LUT3D;
+
+    pLUT3D->ArbitrationPriorityControl      = 0;
+    pLUT3D->Lut3dEnable                     = true;
+    // Config 3DLut size to 65 for HDR usage.
+    pLUT3D->Lut3dSize                       = 2;
+
+    pVeboxStateCmdParams->Vebox3DLookUpTablesSurfCtrl.Value =
+        m_surfMemCacheCtl->DnDi.Vebox3DLookUpTablesSurfMemObjCtl;
+
+    pVeboxMode->ColorGamutExpansionEnable       = true;
+
+    pVeboxStateCmdParams->pVebox3DLookUpTables  = &surf3DLut->osSurface->OsResource;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetupHDRLuts(
+    PMHW_VEBOX_STATE_CMD_PARAMS veboxStateCmdParams)
+{
+    VP_FUNC_CALL();
+    VpVeboxRenderData *renderData = GetLastExecRenderData();
+    VP_RENDER_CHK_NULL_RETURN(renderData);
+    VP_RENDER_CHK_NULL_RETURN(veboxStateCmdParams);
+
+    if (renderData->HDR3DLUT.bHdr3DLut)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetupVebox3DLutForHDR(veboxStateCmdParams));
+    }
+    else
+    {
+        veboxStateCmdParams->pVebox3DLookUpTables = nullptr;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams)
 {
     VP_FUNC_CALL();
 
     PMHW_VEBOX_MODE         pVeboxMode   = nullptr;
-    MOS_STATUS              eStatus      = MOS_STATUS_SUCCESS;
 
     VP_RENDER_CHK_NULL_RETURN(pVeboxStateCmdParams);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
@@ -77,7 +188,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     VP_RENDER_CHK_NULL_RETURN(pVeboxMode);
 
     VpVeboxRenderData* pRenderData = GetLastExecRenderData();
-    VP_RENDER_ASSERT(pRenderData);
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
     MOS_ZeroMemory(pVeboxStateCmdParams, sizeof(*pVeboxStateCmdParams));
 
@@ -123,7 +234,10 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     {
         pVeboxMode->SingleSliceVeboxEnable = 0;
     }
-    return eStatus;
+
+    VP_RENDER_CHK_STATUS_RETURN(SetupHDRLuts(pVeboxStateCmdParams));
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpVeboxCmdPacket::InitCmdBufferWithVeParams(
@@ -751,6 +865,68 @@ MOS_STATUS VpVeboxCmdPacket::SetProcampParams(
         pRenderData->IECP.PROCAMP.bProcampEnabled = false;
         mhwVeboxIecpParams.ProcAmpParams.bActive = false;
         mhwVeboxIecpParams.ProcAmpParams.bEnabled = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::ValidateHDR3DLutParameters(bool is3DLutTableFilled)
+{
+    VP_FUNC_CALL();
+    if (!is3DLutTableFilled)
+    {
+        // 3DLut need be calculated and filled by 3DLut kernel.
+        VP_RENDER_ASSERTMESSAGE("3DLut is not filled!");
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
+{
+    VP_FUNC_CALL();
+    VpVeboxRenderData     *pRenderData = GetLastExecRenderData();
+    PMOS_INTERFACE        pOsInterface   = nullptr;
+    PMHW_3DLUT_PARAMS     pLutParams     = nullptr;
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface->m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(hdrParams);
+    VP_RENDER_ASSERT(pRenderData);
+    MHW_VEBOX_GAMUT_PARAMS &mhwVeboxGamutParams = pRenderData->GetGamutParams();
+    pOsInterface                       = m_hwInterface->m_osInterface;
+    pRenderData->HDR3DLUT.bHdr3DLut    = true;
+
+    pRenderData->HDR3DLUT.is3DLutTableFilled   = HDR_STAGE::HDR_STAGE_VEBOX_3DLUT_UPDATE == hdrParams->stage ||
+                                                    HDR_STAGE::HDR_STAGE_VEBOX_3DLUT_NO_UPDATE == hdrParams->stage;
+    pRenderData->HDR3DLUT.uiMaxDisplayLum      = hdrParams->uiMaxDisplayLum;
+    pRenderData->HDR3DLUT.uiMaxContentLevelLum = hdrParams->uiMaxContentLevelLum;
+    pRenderData->HDR3DLUT.hdrMode              = hdrParams->hdrMode;
+
+    VP_RENDER_CHK_STATUS_RETURN(ValidateHDR3DLutParameters(pRenderData->HDR3DLUT.is3DLutTableFilled));
+
+    // Use Gamut
+    mhwVeboxGamutParams.ColorSpace       = VpHalCspace2MhwCspace(hdrParams->srcColorSpace);
+    mhwVeboxGamutParams.dstColorSpace    = VpHalCspace2MhwCspace(hdrParams->dstColorSpace);
+    mhwVeboxGamutParams.dstFormat        = hdrParams->dstFormat;
+    mhwVeboxGamutParams.bGammaCorr       = true;
+    mhwVeboxGamutParams.InputGammaValue  = (MHW_GAMMA_VALUE)GAMMA_1P0;
+    mhwVeboxGamutParams.OutputGammaValue = (MHW_GAMMA_VALUE)GAMMA_1P0;
+    if (pRenderData->HDR3DLUT.hdrMode == VPHAL_HDR_MODE_TONE_MAPPING)
+    {
+        mhwVeboxGamutParams.bH2S     = true;
+        mhwVeboxGamutParams.uiMaxCLL = (uint16_t)pRenderData->HDR3DLUT.uiMaxContentLevelLum;
+    }
+    else if (pRenderData->HDR3DLUT.hdrMode == VPHAL_HDR_MODE_H2H)
+    {
+        mhwVeboxGamutParams.bH2S     = false;
+        mhwVeboxGamutParams.uiMaxCLL = 0;
+    }
+
+    //Report
+    if (m_hwInterface->m_reporting)
+    {
+        m_hwInterface->m_reporting->GetFeatures().hdrMode = (pRenderData->HDR3DLUT.hdrMode == VPHAL_HDR_MODE_H2H) ? VPHAL_HDR_MODE_H2H_VEBOX_3DLUT : VPHAL_HDR_MODE_TONE_MAPPING_VEBOX_3DLUT;
     }
 
     return MOS_STATUS_SUCCESS;
@@ -2105,6 +2281,59 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
         VP_PUBLIC_NORMALMESSAGE("IecpState is not added with AlphaFromStateSelect %d",
             pRenderData->GetIECPParams().bAlphaEnable);
     }
+    return MOS_STATUS_SUCCESS;
+}
+
+bool VpVeboxCmdPacket::IsVeboxGamutStateNeeded()
+{
+    VpVeboxRenderData *renderData = GetLastExecRenderData();
+    return renderData ? renderData->HDR3DLUT.bHdr3DLut : false;
+}
+
+//!
+//! \brief    Add vebox Gamut state
+//! \details  Add vebox Gamut state
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VpVeboxCmdPacket::AddVeboxGamutState()
+{
+    VP_FUNC_CALL();
+
+    PMHW_VEBOX_INTERFACE pVeboxInterface = m_hwInterface->m_veboxInterface;
+    VpVeboxRenderData *renderData = GetLastExecRenderData();
+    VP_PUBLIC_CHK_NULL_RETURN(pVeboxInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(renderData);
+
+    if (pVeboxInterface &&
+        IsVeboxGamutStateNeeded())
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(pVeboxInterface->AddVeboxGamutState(
+            &renderData->GetIECPParams(),
+            &renderData->GetGamutParams()));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Add vebox Hdr state
+//! \details  Add vebox Hdr state
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS VpVeboxCmdPacket::AddVeboxHdrState()
+{
+    VP_FUNC_CALL();
+
+    PMHW_VEBOX_INTERFACE  pVeboxInterface = m_hwInterface->m_veboxInterface;
+    VpVeboxRenderData    *renderData      = GetLastExecRenderData();
+    VP_PUBLIC_CHK_NULL_RETURN(pVeboxInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(renderData);
+    MHW_VEBOX_IECP_PARAMS &mhwVeboxIecpParams = renderData->GetIECPParams();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(pVeboxInterface->AddVeboxHdrState(&mhwVeboxIecpParams));
+
     return MOS_STATUS_SUCCESS;
 }
 

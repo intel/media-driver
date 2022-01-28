@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -275,6 +275,13 @@ enum VpKernelID
     kernelRenderCopy,
 
     baseKernelMaxNumID
+};
+
+enum VpKernelIDNext
+{
+    vpKernelIDNextBase  = 0x100,
+    kernelHdr3DLutCalc  = vpKernelIDNextBase,
+    vpKernelIDNextMax
 };
 
 //!

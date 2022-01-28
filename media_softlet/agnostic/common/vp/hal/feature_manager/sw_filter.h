@@ -89,6 +89,7 @@ enum FeatureType
     FeatureTypeCgcOnVebox       = FeatureTypeCgc | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeHdr              = 0xC00,
     FeatureTypeHdrOnVebox       = FeatureTypeHdr | FEATURE_TYPE_ENGINE_BITS_VEBOX,
+    FeatureTypeHdr3DLutCalOnRender = FeatureTypeHdr | FEATURE_TYPE_ENGINE_BITS_RENDER | FEATURE_TYPE_ENGINE_BITS_SUB_STEP,
     FeatureTypeFD               = 0xD00,
     FeatureTypeFLD              = 0xE00,
     FeatureTypeFB               = 0xF00,
@@ -146,7 +147,7 @@ enum SurfaceType
     SurfaceTypeLaceLut,
     SurfaceTypeStatistics,
     SurfaceTypeSkinScore,
-    SurfaceType3dLut,
+    SurfaceType3DLut,
     SurfaceType1k1dLut,
     SurfaceType1dLutHDR,
     SurfaceTypeAlphaOrVignette,
@@ -188,7 +189,7 @@ enum SurfaceType
     SurfaceTypeFcTarget0,
     SurfaceTypeFcTarget1,
     SurfaceTypeFcCscCoeff,
-    //LGCA related Surfaces
+    // LGCA related Surfaces
     SurfaceTypeSamplerSurfaceR,
     SurfaceTypeSamplerSurfaceG,
     SurfaceTypeSamplerSurfaceB,
@@ -196,6 +197,9 @@ enum SurfaceType
     SurfaceTypeOutputSurfaceG,
     SurfaceTypeOutputSurfaceB,
     SurfaceTypeSamplerParamsMinMax,
+    // 3DLut Kernel
+    SurfaceType3DLut2D,
+    SurfaceType3DLutCoef,
     NumberOfSurfaceType
 };
 
@@ -645,6 +649,14 @@ private:
 MEDIA_CLASS_DEFINE_END(SwFilterProcamp)
 };
 
+enum HDR_STAGE
+{
+    HDR_STAGE_DEFAULT = 0,
+    HDR_STAGE_3DLUT_KERNEL,
+    HDR_STAGE_VEBOX_3DLUT_UPDATE,
+    HDR_STAGE_VEBOX_3DLUT_NO_UPDATE,
+};
+
 struct FeatureParamHdr : public FeatureParam
 {
     uint32_t        uiMaxDisplayLum      = 0;  //!< Maximum Display Luminance
@@ -652,6 +664,8 @@ struct FeatureParamHdr : public FeatureParam
     VPHAL_HDR_MODE  hdrMode              = VPHAL_HDR_MODE_NONE;
     VPHAL_CSPACE    srcColorSpace        = CSpace_None;
     VPHAL_CSPACE    dstColorSpace        = CSpace_None;
+
+    HDR_STAGE       stage;
 };
 
 class SwFilterHdr : public SwFilter
@@ -665,6 +679,12 @@ public:
     virtual SwFilter *       Clone();
     virtual bool             operator==(SwFilter &swFilter);
     virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS SetResourceAssignmentHint(RESOURCE_ASSIGNMENT_HINT &hint)
+    {
+        hint.is3DLut2DNeeded = HDR_STAGE_3DLUT_KERNEL == m_Params.stage ||
+                               HDR_STAGE_VEBOX_3DLUT_UPDATE == m_Params.stage;
+        return MOS_STATUS_SUCCESS;
+    }
 
 private:
     FeatureParamHdr m_Params = {};

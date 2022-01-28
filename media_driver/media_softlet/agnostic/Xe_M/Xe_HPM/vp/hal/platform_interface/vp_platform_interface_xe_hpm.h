@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,8 @@
 #define __VP_PLATFORM_INTERFACE_XE_HPM_H__
 
 #include "vp_platform_interface.h"
+#include "media_class_trace.h"
+
 #define VP_VEBOX_STATISTICS_SIZE_G12 (32 * 8)
 namespace vp
 {
@@ -60,6 +62,8 @@ public:
 
 protected:
     bool m_disableSfcDithering = false;
+
+MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceXe_Hpm)
 };
 
 }

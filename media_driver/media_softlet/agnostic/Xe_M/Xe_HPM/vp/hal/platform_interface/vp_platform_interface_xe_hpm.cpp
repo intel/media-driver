@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,9 +31,12 @@
 #include "vp_render_sfc_xe_xpm_base.h"
 #include "vp_render_ief.h"
 #include "vp_render_cmd_packet.h"
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#if defined(ENABLE_KERNELS)
 #include "igvpkrn_xe_hpm.h"
 #include "igvpkrn_xe_hpm_cmfcpatch.h"
+#if !defined(_FULL_OPEN_SOURCE)
+#include "igvpkrn_isa_xe_hpm.h"
+#endif
 #endif
 #include "vp_kernel_config_m12_base.h"
 
@@ -87,7 +90,7 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpRenderHwCaps()
     VP_FUNC_CALL();
 
     m_modifyKdllFunctionPointers = KernelDll_ModifyFunctionPointers_g12hp;
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#if defined(ENABLE_KERNELS)
     InitVPFCKernels(
        g_KdllRuleTable_Xe_Hpm,
        IGVPKRN_XE_HPM,
@@ -95,7 +98,11 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpRenderHwCaps()
        IGVPKRN_XE_HPM_CMFCPATCH,
        IGVPKRN_XE_HPM_CMFCPATCH_SIZE,
        m_modifyKdllFunctionPointers);
+#if !defined(_FULL_OPEN_SOURCE)
+    VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels((const uint32_t *)IGVP3DLUT_GENERATION_XE_HPM, IGVP3DLUT_GENERATION_XE_HPM_SIZE));
 #endif
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

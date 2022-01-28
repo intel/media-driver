@@ -30,6 +30,7 @@
 #define __VP_FEATURE_MANAGER_XE_XPM_BASE_H__
 
 #include "vp_feature_manager.h"
+#include "media_class_trace.h"
 
 namespace vp
 {
@@ -78,6 +79,8 @@ protected:
     {
         return true;
     }
+
+MEDIA_CLASS_DEFINE_END(VPFeatureManagerXe_Xpm_Base)
 };
 
 }

@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -278,6 +278,7 @@ struct _VEBOX_HDR_PARAMS
     VPHAL_CSPACE                    srcColorSpace;
     VPHAL_CSPACE                    dstColorSpace;
     MOS_FORMAT                      dstFormat;
+    HDR_STAGE                       stage;
 };
 
 using SFC_SCALING_PARAMS    = _SFC_SCALING_PARAMS;
@@ -312,10 +313,24 @@ struct _VEBOX_UPDATE_PARAMS
     VpKernelID                      kernelId;
 };
 
-using VEBOX_UPDATE_PARAMS      = _VEBOX_UPDATE_PARAMS;
-using PVEBOX_UPDATE_PARAMS     = VEBOX_UPDATE_PARAMS *;
-using VEBOX_HDR_PARAMS      = _VEBOX_HDR_PARAMS;
-using PVEBOX_HDR_PARAMS     = VEBOX_HDR_PARAMS *;
+using VEBOX_UPDATE_PARAMS                 = _VEBOX_UPDATE_PARAMS;
+using PVEBOX_UPDATE_PARAMS                = VEBOX_UPDATE_PARAMS *;
+using VEBOX_HDR_PARAMS                    = _VEBOX_HDR_PARAMS;
+using PVEBOX_HDR_PARAMS                   = VEBOX_HDR_PARAMS *;
+
+struct _RENDER_HDR_3DLUT_CAL_PARAMS
+{
+    uint32_t                        maxDisplayLum;       //!< Maximum Display Luminance
+    uint32_t                        maxContentLevelLum;  //!< Maximum Content Level Luminance
+    VPHAL_HDR_MODE                  hdrMode;
+    VpKernelID                      kernelId;
+    uint32_t                        threadWidth;
+    uint32_t                        threadHeight;
+    KERNEL_ARGS                     kernelArgs;
+};
+
+using RENDER_HDR_3DLUT_CAL_PARAMS  = _RENDER_HDR_3DLUT_CAL_PARAMS;
+using PRENDER_HDR_3DLUT_CAL_PARAMS = RENDER_HDR_3DLUT_CAL_PARAMS *;
 
 struct _STATE_COPY_PARAMS
 {

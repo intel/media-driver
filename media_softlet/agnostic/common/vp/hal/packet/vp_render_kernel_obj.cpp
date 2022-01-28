@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,9 +36,10 @@ VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, PVpAllocator 
 {
 }
 
-VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelId, uint32_t kernelIndex) :
-    m_hwInterface(hwInterface), m_kernelId(kernelId), m_kernelIndex(kernelIndex)
+VpRenderKernelObj::VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelId, uint32_t kernelIndex, std::string kernelName, PVpAllocator allocator) :
+    m_hwInterface(hwInterface), m_allocator(allocator), m_kernelName(kernelName), m_kernelId(kernelId), m_kernelIndex(kernelIndex)
 {
+    VP_RENDER_NORMALMESSAGE("kernel name is %s, kernel ID is %d", kernelName.c_str(), kernelId);
 }
 
 VpRenderKernelObj::~VpRenderKernelObj()
@@ -124,9 +125,12 @@ MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS& kernelArgs)
 MOS_STATUS VpRenderKernelObj::SetKernelConfigs(
     KERNEL_PARAMS& kernelParams,
     VP_SURFACE_GROUP& surfaces,
-    KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup)
+    KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup,
+    KERNEL_CONFIGS& kernelConfigs)
 {
     VP_FUNC_CALL();
+
+    VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs));
 
     VP_RENDER_CHK_STATUS_RETURN(SetKernelArgs(kernelParams.kernelArgs));
 
@@ -143,7 +147,6 @@ MOS_STATUS VpRenderKernelObj::SetKernelConfigs(KERNEL_CONFIGS& kernelConfigs)
 {
     VP_FUNC_CALL();
 
-    //For legacy kernel usage
     return MOS_STATUS_SUCCESS;
 }
 

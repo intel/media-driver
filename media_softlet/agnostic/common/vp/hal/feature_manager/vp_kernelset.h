@@ -1,4 +1,4 @@
-/* Copyright (c) 2020-2021, Intel Corporation
+/* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,7 @@ public:
             auto it = kernelObjs.begin();
             if (m_cachedKernels.end() == m_cachedKernels.find(it->second->GetKernelId()))
             {
+                // Only destroy the kernels not exists in m_cachedKernels.
                 MOS_Delete(it->second);
             }
             kernelObjs.erase(it);

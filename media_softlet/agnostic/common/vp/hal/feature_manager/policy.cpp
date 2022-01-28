@@ -155,6 +155,10 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeHdrOnVebox, p));
 
+    p = MOS_New(PolicyRenderHdr3DLutCalHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeHdr3DLutCalOnRender, p));
+
     p = MOS_New(PolicyDiHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnVebox, p));
@@ -359,13 +363,13 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
 {
     VP_FUNC_CALL();
 
-    SwFilter *hdr      = nullptr;
     SwFilter* feature = swFilterPipe.GetSwFilter(featureType);
-    SwFilter* diFilter = nullptr;
+    SwFilter* di      = nullptr;
+    SwFilter* hdr     = nullptr;
 
     if (!feature)
     {
-        VP_PUBLIC_NORMALMESSAGE("Feature %d is not enabled in current pipe", featureType);
+        VP_PUBLIC_VERBOSEMESSAGE("Feature %d is not enabled in current pipe", featureType);
         return MOS_STATUS_SUCCESS;
     }
     else
@@ -380,12 +384,17 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
     switch (featureType)
     {
     case FeatureTypeCsc:
-        diFilter = swFilterPipe.GetSwFilter(FeatureTypeDi);
-        if (diFilter)
+        hdr = swFilterPipe.GetSwFilter(FeatureTypeHdr);
+        di  = swFilterPipe.GetSwFilter(FeatureTypeDi);
+        if (hdr)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetDeinterlaceExecutionCaps(diFilter));
+            VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCapsHdr(hdr, feature));
+        }
+        else if (di)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(GetDeinterlaceExecutionCaps(di));
 
-            VP_EngineEntry *diEngine = &diFilter->GetFilterEngineCaps();
+            VP_EngineEntry *diEngine = &di->GetFilterEngineCaps();
             if (diEngine->bEnabled && diEngine->VeboxNeeded)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCapsDi(feature));
@@ -523,6 +532,20 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
     hdrParams = &hdr->GetSwFilterParams();
     cscParams = &csc->GetSwFilterParams();
     cscEngine = &csc->GetFilterEngineCaps();
+
+    // Clean usedForNextPass flag.
+    if (cscEngine->usedForNextPass)
+    {
+        cscEngine->usedForNextPass = false;
+    }
+    if (cscEngine->value != 0)
+    {
+        VP_PUBLIC_NORMALMESSAGE("CSC Feature Already been processed, Skip further process");
+
+        PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
     //HDR CSC processing
     if (!hdrParams || hdrParams->hdrMode == VPHAL_HDR_MODE_NONE)
     {
@@ -1539,6 +1562,10 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     if (pHDREngine->value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("HDR Feature Already been processed, Skip further process");
+        if (HDR_STAGE_VEBOX_3DLUT_UPDATE == hdrParams->stage)
+        {
+            VP_PUBLIC_NORMALMESSAGE("HDR_STAGE_VEBOX_3DLUT_UPDATE");
+        }
         PrintFeatureExecutionCaps(__FUNCTION__, *pHDREngine);
         return MOS_STATUS_SUCCESS;
     }
@@ -1546,15 +1573,54 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     if (m_hwCaps.m_veboxHwEntry[hdrParams->formatInput].inputSupported &&
         m_hwCaps.m_veboxHwEntry[hdrParams->formatInput].hdrSupported)
     {
-        pHDREngine->bEnabled        = 1;
-        pHDREngine->VeboxNeeded     = 1;
-        if (hdrParams->formatOutput == Format_A8B8G8R8 || hdrParams->formatOutput == Format_A8R8G8B8)
+        if (Is3DLutKernelSupported())
         {
-            pHDREngine->VeboxARGBOut = 1;
+            if (hdrParams->uiMaxContentLevelLum != m_savedMaxCLL || hdrParams->uiMaxDisplayLum != m_savedMaxDLL ||
+                hdrParams->hdrMode != m_savedHdrMode)
+            {
+                m_savedMaxCLL = hdrParams->uiMaxContentLevelLum;
+                m_savedMaxDLL = hdrParams->uiMaxDisplayLum;
+                m_savedHdrMode = hdrParams->hdrMode;
+
+                hdrParams->stage         = HDR_STAGE_3DLUT_KERNEL;
+                pHDREngine->bEnabled     = 1;
+                pHDREngine->isolated     = 1;
+                pHDREngine->RenderNeeded = 1;
+                hdrFilter->SetRenderTargetType(RenderTargetType::RenderTargetTypeParameter);
+                VP_PUBLIC_NORMALMESSAGE("HDR_STAGE_3DLUT_KERNEL");
+                // For next stage, will be updated during UpdateFeaturePipe.
+            }
+            else
+            {
+                hdrParams->stage         = HDR_STAGE_VEBOX_3DLUT_NO_UPDATE;
+                pHDREngine->bEnabled     = 1;
+                pHDREngine->VeboxNeeded  = 1;
+                hdrFilter->SetRenderTargetType(RenderTargetType::RenderTargetTypeSurface);
+                if (hdrParams->formatOutput == Format_A8B8G8R8 || hdrParams->formatOutput == Format_A8R8G8B8)
+                {
+                    pHDREngine->VeboxARGBOut = 1;
+                }
+                else if (hdrParams->formatOutput == Format_B10G10R10A2 || hdrParams->formatOutput == Format_R10G10B10A2)
+                {
+                    pHDREngine->VeboxARGB10bitOutput = 1;
+                }
+                VP_PUBLIC_NORMALMESSAGE("HDR_STAGE_VEBOX_3DLUT_NO_UPDATE");
+            }
         }
-        else if (hdrParams->formatOutput == Format_B10G10R10A2 || hdrParams->formatOutput == Format_R10G10B10A2)
+        else
         {
-            pHDREngine->VeboxARGB10bitOutput = 1;
+            hdrParams->stage        = HDR_STAGE_DEFAULT;
+            pHDREngine->bEnabled    = 1;
+            pHDREngine->VeboxNeeded = 1;
+            if (hdrParams->formatOutput == Format_A8B8G8R8 || hdrParams->formatOutput == Format_A8R8G8B8)
+            {
+                pHDREngine->VeboxARGBOut = 1;
+            }
+            else if (hdrParams->formatOutput == Format_B10G10R10A2 || hdrParams->formatOutput == Format_R10G10B10A2)
+            {
+                pHDREngine->VeboxARGB10bitOutput = 1;
+            }
+            VP_PUBLIC_NORMALMESSAGE("HDR_STAGE_DEFAULT");
         }
     }
 
@@ -2941,6 +3007,17 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeAlpha:
             caps.bComposite = 1;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Alpha, Render)));
+            break;
+        case FeatureTypeHdr:
+            if (feature->GetFilterEngineCaps().isolated)
+            {
+                caps.b3DLutCalc = 1;
+                feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Hdr3DLutCal, Render)));
+            }
+            else
+            {
+                VP_PUBLIC_ASSERTMESSAGE("HDR Kernel has not been enabled in APO path");
+            }
             break;
         default:
             break;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -168,6 +168,10 @@ protected:
 
         return false;
     }
+    virtual bool Is3DLutKernelSupported()
+    {
+        return true;
+    }
 
     std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
@@ -176,6 +180,11 @@ protected:
     VpInterface         &m_vpInterface;
     VP_HW_CAPS          m_hwCaps = {};
     bool                m_initialized = false;
+
+    // HDR 3DLut Parameters
+    uint32_t            m_savedMaxDLL   = 1000;
+    uint32_t            m_savedMaxCLL   = 4000;
+    VPHAL_HDR_MODE      m_savedHdrMode  = VPHAL_HDR_MODE_NONE;
 
     //!
     //! \brief    Check whether Alpha Supported

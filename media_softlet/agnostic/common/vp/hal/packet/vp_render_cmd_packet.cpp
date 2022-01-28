@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -261,10 +261,14 @@ MOS_STATUS VpRenderCmdPacket::SetupSamplerStates()
     VP_RENDER_CHK_NULL_RETURN(m_renderHal);
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
-    KERNEL_SAMPLER_STATES samplerStates;
+    KERNEL_SAMPLER_STATES samplerStates = {};
 
-    // Initialize m_kernelSamplerStateGroup.
-    VP_RENDER_CHK_STATUS_RETURN(m_kernel->SetSamplerStates(m_kernelSamplerStateGroup));
+    // For AdvKernel, SetSamplerStates is called by VpRenderKernelObj::SetKernelConfigs
+    if (!m_kernel->IsAdvKernel())
+    {
+        // Initialize m_kernelSamplerStateGroup.
+        VP_RENDER_CHK_STATUS_RETURN(m_kernel->SetSamplerStates(m_kernelSamplerStateGroup));
+    }
 
     for (int samplerIndex = 0, activeSamplerLeft = m_kernelSamplerStateGroup.size(); activeSamplerLeft > 0; ++samplerIndex)
     {
@@ -1916,6 +1920,27 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
 
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId      = params->kernelId;
+    m_renderKernelParams.push_back(kernelParams);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::SetHdr3DLutParams(
+    PRENDER_HDR_3DLUT_CAL_PARAMS params)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(params);
+
+    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+
+    KERNEL_PARAMS kernelParams = {};
+    kernelParams.kernelId = params->kernelId;
+    // kernelArgs will be initialized in VpRenderHdr3DLutKernel::Init with
+    // kernel.GetKernelArgs().
+    kernelParams.kernelThreadSpace.uWidth = params->threadWidth;
+    kernelParams.kernelThreadSpace.uHeight = params->threadHeight;
+    kernelParams.kernelArgs = params->kernelArgs;
+    kernelParams.syncFlag = true;
     m_renderKernelParams.push_back(kernelParams);
 
     return MOS_STATUS_SUCCESS;

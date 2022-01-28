@@ -385,6 +385,8 @@ public:
         return false;
     }
 
+    virtual MOS_STATUS ValidateHDR3DLutParameters(bool is3DLutTableFilled);
+
     //!
     //! \brief    Setup surface states for Vebox
     //! \details  Setup surface states for use in the current Vebox Operation
@@ -501,10 +503,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
-    {
-        return MOS_STATUS_UNIMPLEMENTED;
-    }
+    virtual MOS_STATUS SetHdrParams(PVEBOX_HDR_PARAMS hdrParams);
 
     //!
     //! \brief    Setup TCC Params for Vebox
@@ -943,7 +942,9 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS AddVeboxHdrState() { return MOS_STATUS_SUCCESS; }
+    virtual MOS_STATUS AddVeboxHdrState();
+
+    virtual bool IsVeboxGamutStateNeeded();
 
     //!
     //! \brief    Add vebox Gamut state
@@ -951,7 +952,7 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    virtual MOS_STATUS AddVeboxGamutState(){return MOS_STATUS_SUCCESS;}
+    virtual MOS_STATUS AddVeboxGamutState();
 
     //!
     //! \brief    Vebox set up vebox state heap
@@ -1001,6 +1002,12 @@ protected:
     virtual MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
 
     virtual MHW_CSPACE VpHalCspace2MhwCspace(VPHAL_CSPACE cspace);
+
+    virtual MOS_STATUS SetupHDRLuts(
+        PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
+    virtual MOS_STATUS Init3DLutTable(PVP_SURFACE surf3DLut);
+    MOS_STATUS SetupVebox3DLutForHDR(
+        PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
 
 private:
 

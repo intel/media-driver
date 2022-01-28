@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -53,11 +53,21 @@ public:
         VP_EXECUTE_CAPS  vpExecuteCaps);
     PVEBOX_HDR_PARAMS GetVeboxParams()
     {
-        return m_pVeboxHdrParams;
+        return &m_veboxHdrParams;
+    }
+    PRENDER_HDR_3DLUT_CAL_PARAMS GetRenderHdr3DLutParams()
+    {
+        return &m_renderHdr3DLutParams;
     }
 
 protected:
-    PVEBOX_HDR_PARAMS m_pVeboxHdrParams = nullptr;
+    VEBOX_HDR_PARAMS m_veboxHdrParams = {};
+    RENDER_HDR_3DLUT_CAL_PARAMS m_renderHdr3DLutParams = {};
+
+    SurfaceType m_surfType3DLut2D       = SurfaceType3DLut2D;
+    SurfaceType m_surfType3DLutCoef     = SurfaceType3DLutCoef;
+    uint32_t    m_3DLutSurfaceWidth     = 0;
+    uint32_t    m_3DLutSurfaceHeight    = 0;
 
 MEDIA_CLASS_DEFINE_END(VpHdrFilter)
 };
@@ -125,5 +135,50 @@ private:
 
 MEDIA_CLASS_DEFINE_END(PolicyVeboxHdrHandler)
 };
+
+/*****************HDR 3DLUT Calculate Kernel********************/
+class VpRenderHdr3DLutCalParameter : public VpPacketParameter
+{
+public:
+    static VpPacketParameter *Create(HW_FILTER_HDR_PARAM &param);
+    VpRenderHdr3DLutCalParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase *packetParamFactory);
+    virtual ~VpRenderHdr3DLutCalParameter();
+
+    virtual bool SetPacketParam(VpCmdPacket *pPacket);
+
+private:
+    MOS_STATUS Initialize(HW_FILTER_HDR_PARAM &params);
+
+    VpHdrFilter m_HdrFilter;
+
+MEDIA_CLASS_DEFINE_END(VpRenderHdr3DLutCalParameter)
+};
+
+class PolicyRenderHdr3DLutCalHandler : public PolicyFeatureHandler
+{
+public:
+    PolicyRenderHdr3DLutCalHandler(VP_HW_CAPS &hwCaps);
+    virtual ~PolicyRenderHdr3DLutCalHandler();
+    virtual bool               IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps);
+    virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface);
+    virtual MOS_STATUS         UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
+    static VpPacketParameter * CreatePacketParam(HW_FILTER_PARAM &param)
+    {
+        if (param.type != FeatureTypeHdr3DLutCalOnRender)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid Parameter for Render Hdr 3DLut Calculation!");
+            return nullptr;
+        }
+
+        HW_FILTER_HDR_PARAM *HdrParam = (HW_FILTER_HDR_PARAM *)(&param);
+        return VpRenderHdr3DLutCalParameter::Create(*HdrParam);
+    }
+
+private:
+    PacketParamFactory<VpRenderHdr3DLutCalParameter> m_PacketParamFactory;
+
+    MEDIA_CLASS_DEFINE_END(PolicyRenderHdr3DLutCalHandler)
+};
+
 }  // namespace vp
 #endif

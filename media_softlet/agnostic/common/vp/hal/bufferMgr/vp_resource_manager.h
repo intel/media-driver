@@ -418,8 +418,9 @@ protected:
     // If queryAssignment == false, query whether STMM needed to be allocated.
     bool VeboxSTMMNeeded(VP_EXECUTE_CAPS& caps, bool queryAssignment);
     virtual uint32_t GetHistogramSurfaceSize(VP_EXECUTE_CAPS& caps, uint32_t inputWidth, uint32_t inputHeight);
-    virtual uint32_t Get3DLutSize();
+    virtual uint32_t Get3DLutSize(uint32_t &lutWidth, uint32_t &lutHeight);
     virtual uint32_t Get1DLutSize();
+    virtual MOS_STATUS  Init3DLutSurface2D(VP_SURFACE *surf);
     virtual Mos_MemPool GetHistStatMemType();
     MOS_STATUS ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, bool &allocated);
     MOS_STATUS ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated);
@@ -429,6 +430,7 @@ protected:
     void DestoryVeboxSTMMSurface();
     virtual MOS_STATUS AssignRenderResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS Assign3DLutKernelResource(VP_EXECUTE_CAPS &caps, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
@@ -500,6 +502,9 @@ protected:
     MOS_STATUS GetFormatForFcIntermediaSurface(MOS_FORMAT& format, MEDIA_CSPACE &colorSpace, SwFilterPipe &featurePipe);
     MOS_STATUS GetFcIntermediateSurfaceForOutput(VP_SURFACE *&intermediaSurface, SwFilterPipe &executedFilters);
 
+    MOS_STATUS Allocate3DLut(VP_EXECUTE_CAPS& caps);
+    MOS_STATUS AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& caps);
+
 protected:
     MOS_INTERFACE                &m_osInterface;
     VpAllocator                  &m_allocator;
@@ -517,7 +522,9 @@ protected:
     VP_SURFACE *m_veboxDNTempSurface                         = nullptr;       //!< Vebox DN Update kernels temp surface
     VP_SURFACE *m_veboxDNSpatialConfigSurface                = nullptr;       //!< Spatial Attributes Configuration Surface for DN kernel
     VP_SURFACE *m_vebox3DLookUpTables                        = nullptr;
+    VP_SURFACE *m_vebox3DLookUpTables2D                      = nullptr;
     VP_SURFACE *m_vebox1DLookUpTables                        = nullptr;
+    VP_SURFACE *m_3DLutKernelCoefSurface                     = nullptr;       //!< Coef surface for 3DLut kernel.
     uint32_t    m_currentDnOutput                            = 0;
     uint32_t    m_currentStmmIndex                           = 0;
     uint32_t    m_veboxOutputCount                           = 2;             //!< PE on: 4 used. PE off: 2 used

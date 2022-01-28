@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -326,7 +326,7 @@ class VpRenderKernelObj
 {
 public:
     VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator);
-    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex);
+    VpRenderKernelObj(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, std::string kernelName = "", PVpAllocator allocator = nullptr);
     virtual ~VpRenderKernelObj();
 
     // For Adv kernel
@@ -365,7 +365,8 @@ public:
     virtual MOS_STATUS SetKernelConfigs(
         KERNEL_PARAMS& kernelParams,
         VP_SURFACE_GROUP& surfaces,
-        KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup);
+        KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup,
+        KERNEL_CONFIGS& kernelConfigs);
 
     virtual MOS_STATUS GetScoreboardParams(PMHW_VFE_SCOREBOARD &scoreboardParams)
     {
