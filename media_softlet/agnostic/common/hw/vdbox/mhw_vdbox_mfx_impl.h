@@ -238,6 +238,127 @@ public:
         return m_maxVdboxIndex;
     }
 
+    //!
+    //! \brief    Get the vdbox num
+    //!
+    //! \return   bool
+    //!           vdbox num got
+    //!
+    uint8_t GetNumVdbox()
+    {
+        return m_numVdbox;
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_STATUS CheckScalabilityOverrideValidity()
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+        MEDIA_SYSTEM_INFO *gtSystemInfo;
+        uint32_t           forceVdbox;
+        bool               scalableDecMode;
+        bool               useVD1, useVD2, useVD3, useVD4;
+
+        MHW_MI_CHK_NULL(m_osItf);
+        scalableDecMode = m_osItf->bHcpDecScalabilityMode ? true : false;
+        forceVdbox      = m_osItf->eForceVdbox;
+        gtSystemInfo    = m_osItf->pfnGetGtSystemInfo(m_osItf);
+        MHW_MI_CHK_NULL(gtSystemInfo);
+
+        if (forceVdbox != MOS_FORCE_VDBOX_NONE &&
+            forceVdbox != MOS_FORCE_VDBOX_1 &&
+            forceVdbox != MOS_FORCE_VDBOX_2 &&
+            // 2 pipes, VDBOX1-BE1, VDBOX2-BE2
+            forceVdbox != MOS_FORCE_VDBOX_1_1_2 &&
+            forceVdbox != MOS_FORCE_VDBOX_2_1_2)
+        {
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("user feature forceVdbox value is invalid.");
+            return eStatus;
+        }
+
+        if (!scalableDecMode &&
+            (forceVdbox == MOS_FORCE_VDBOX_1_1_2 ||
+                forceVdbox == MOS_FORCE_VDBOX_2_1_2))
+        {
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("user feature forceVdbox valude does not consistent with regkey scalability mode.");
+            return eStatus;
+        }
+
+        if (scalableDecMode && !m_scalabilitySupported)
+        {
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("user feature scalability mode is not allowed on current platform!");
+            return eStatus;
+        }
+
+        useVD1 = useVD2 = false;
+        if (forceVdbox == 0)
+        {
+            useVD1 = true;
+        }
+        else
+        {
+            MHW_VDBOX_IS_VDBOX_SPECIFIED(forceVdbox, MOS_FORCE_VDBOX_1, MOS_FORCEVDBOX_VDBOXID_BITSNUM, MOS_FORCEVDBOX_MASK, useVD1);
+            MHW_VDBOX_IS_VDBOX_SPECIFIED(forceVdbox, MOS_FORCE_VDBOX_2, MOS_FORCEVDBOX_VDBOXID_BITSNUM, MOS_FORCEVDBOX_MASK, useVD2);
+        }
+
+        if (!gtSystemInfo->VDBoxInfo.IsValid ||
+            (useVD1 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox0Enabled) ||
+            (useVD2 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox1Enabled))
+        {
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("the forced VDBOX is not enabled in current platform.");
+            return eStatus;
+        }
+
+        return eStatus;
+    }
+#endif
+
+    MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit)
+    {
+        bool       setVideoNode = false;
+        MOS_STATUS eStatus      = MOS_STATUS_SUCCESS;
+
+        MOS_GPU_NODE videoGpuNode = MOS_GPU_NODE_VIDEO;
+
+        if (MOS_VE_MULTINODESCALING_SUPPORTED(m_osItf))
+        {
+            if (GetNumVdbox() == 1)
+            {
+                videoGpuNode = MOS_GPU_NODE_VIDEO;
+            }
+            else
+            {
+                MHW_MI_CHK_STATUS(m_osItf->pfnCreateVideoNodeAssociation(
+                    m_osItf,
+                    setVideoNode,
+                    &videoGpuNode));
+            }
+        }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_osItf != nullptr && m_osItf->bEnableDbgOvrdInVE &&
+            (!m_osItf->bSupportVirtualEngine || !m_scalabilitySupported))
+        {
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("not support DebugOverrid on current OS or Platform.");
+            return eStatus;
+        }
+
+        if (m_osItf != nullptr && m_osItf->bEnableDbgOvrdInVE)
+        {
+            MHW_MI_CHK_STATUS(CheckScalabilityOverrideValidity());
+        }
+#endif
+
+        gpuNodeLimit->dwGpuNodeToUse = videoGpuNode;
+
+        return eStatus;
+    }
+
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_preDeblockingMemoryCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_postDeblockingMemoryCtrl;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_OriginalUncompressedPictureSourceMemoryCtrl;

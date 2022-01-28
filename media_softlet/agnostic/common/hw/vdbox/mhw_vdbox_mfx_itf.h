@@ -221,12 +221,18 @@ public:
 
     virtual MHW_VDBOX_NODE_IND GetMaxVdboxIndex() = 0;
 
+    virtual uint8_t GetNumVdbox() = 0;
+
+    virtual MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit) = 0;
+
     vdbox::RowStoreCache m_intraRowstoreCache            = {};  //!< Intra rowstore cache
     vdbox::RowStoreCache m_deblockingFilterRowstoreCache = {};  //!< Deblocking filter row store cache
     vdbox::RowStoreCache m_bsdMpcRowstoreCache           = {};  //!< BSD/MPC row store cache
     vdbox::RowStoreCache m_mprRowstoreCache              = {};  //!< MPR row store cache
     bool                 m_rowstoreCachingSupported      = false;
     MHW_VDBOX_NODE_IND   m_maxVdboxIndex                 = MHW_VDBOX_NODE_1;  //!< max vdbox index
+    uint8_t              m_numVdbox                      = 1;                 //!< vdbox num
+    bool                 m_scalabilitySupported          = false;             //!< Indicate if scalability supported
     _MFX_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 
 };

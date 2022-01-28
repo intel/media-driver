@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -43,23 +43,6 @@ protected:
     static const uint32_t m_avcIntraMbMaxSize = 2700; //! AVC intra macroblock max size
 
     bool m_scalabilitySupported = false; //!< Indicate if scalability supported
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    #define MHW_VDBOX_IS_VDBOX_SPECIFIED(keyval, vdid, shift, mask, useVD) \
-    do\
-    {\
-        int32_t TmpVal = keyval;\
-        while (TmpVal != 0) \
-        {\
-            if (((TmpVal) & (mask)) == (vdid))\
-            {\
-                useVD = true;\
-                break;\
-            }\
-            TmpVal >>= (shift);\
-        };\
-    }while(0)
-#endif
 
     #define PATCH_LIST_COMMAND(x)  (x##_NUMBER_OF_ADDRESSES)
 

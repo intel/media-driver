@@ -425,8 +425,15 @@ MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
     MhwVdboxMfxInterface *mfxInterface = hwInterface->GetMfxInterface();
     MOS_OS_CHK_NULL_RETURN(mfxInterface);
 
-    MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = { 0 };
-    MOS_OS_CHK_STATUS_RETURN(mfxInterface->FindGpuNodeToUse(&gpuNodeLimit));
+    MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = {0};
+    if (hwInterface->GetMfxInterfaceNext())
+    {
+        MOS_OS_CHK_STATUS_RETURN(hwInterface->GetMfxInterfaceNext()->FindGpuNodeToUse(&gpuNodeLimit));
+    }
+    else
+    {
+        MOS_OS_CHK_STATUS_RETURN(mfxInterface->FindGpuNodeToUse(&gpuNodeLimit));
+    }
     node = (MOS_GPU_NODE)(gpuNodeLimit.dwGpuNodeToUse);
 
     return MOS_STATUS_SUCCESS;

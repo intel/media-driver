@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -364,14 +364,6 @@ typedef struct _MHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS
     PMOS_RESOURCE               presMprRowStoreScratchBuffer;                    // Handle of MPR Row Store Scratch data surface
     PMOS_RESOURCE               presBitplaneBuffer;
 } MHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS, *PMHW_VDBOX_BSP_BUF_BASE_ADDR_PARAMS;
-
-typedef struct _MHW_VDBOX_GPUNODE_LIMIT
-{
-    bool       bHcpInUse;
-    bool       bHuCInUse;
-    bool       bSfcInUse;
-    uint32_t   dwGpuNodeToUse;
-}MHW_VDBOX_GPUNODE_LIMIT, *PMHW_VDBOX_GPUNODE_LIMIT;
 
 typedef struct _MHW_VDBOX_AVC_IMG_BITRATE_PARAMS
 {
