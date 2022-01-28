@@ -173,6 +173,7 @@ MOS_STATUS CodechalHwInterfaceXe_Hpm::GetVdencPictureSecondLevelCommandsSize(
         commands += 132;
         commands += 248;
         commands += m_sizeOfCmdBatchBufferEnd;
+        commands += 24;  // padding for alignment on 64
     }
     else
     {

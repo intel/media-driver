@@ -457,7 +457,8 @@ struct CodechalVdencAvcStateG12::BrcUpdateDmem
     uint8_t      UPD_EnableFineGrainLA;
     int8_t       UPD_DeltaQpDcOffset;
     uint16_t     UPD_NumSlicesForRounding;
-    uint8_t      RSVD2[8];
+    uint32_t     UPD_UserMaxFramePB;        // In Bytes
+    uint8_t      RSVD2[4];
 };
 
 // clang-format off
@@ -1243,6 +1244,7 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
     hucVDEncBrcDmem->UPD_TCBRC_SCENARIO_U8 = m_avcSeqParam->bAutoMaxPBFrameSizeForSceneChange;
 
     hucVDEncBrcDmem->UPD_NumSlicesForRounding = GetAdaptiveRoundingNumSlices();
+    hucVDEncBrcDmem->UPD_UserMaxFramePB       = 2 * m_avcPicParam->TargetFrameSize;
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(PopulateBrcUpdateParam(hucVDEncBrcDmem));
@@ -1968,7 +1970,7 @@ MOS_STATUS CodechalVdencAvcStateG12::DumpParsedBRCUpdateDmem(BrcUpdateDmem* dmem
     CODECHAL_DEBUG_CHK_NULL(m_debugInterface);
 
     // To make sure that DMEM doesn't changed and parsed dump contains all DMEM fields
-    CODECHAL_DEBUG_ASSERT(sizeof(dmem->RSVD2) == 8);
+    CODECHAL_DEBUG_ASSERT(sizeof(dmem->RSVD2) == 4);
 
     if (!m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrHuCDmem))
     {
@@ -2056,6 +2058,7 @@ MOS_STATUS CodechalVdencAvcStateG12::DumpParsedBRCUpdateDmem(BrcUpdateDmem* dmem
     FIELD_TO_SS(UPD_EnableFineGrainLA);
     FIELD_TO_SS(UPD_DeltaQpDcOffset);
     FIELD_TO_SS(UPD_NumSlicesForRounding);
+    FIELD_TO_SS(UPD_UserMaxFramePB);
     ARRAY_TO_SS(RSVD2);
 
     std::string bufName = std::string("ENC-HucDmemUpdate_Parsed_PASS") + std::to_string((uint32_t)m_currPass);
