@@ -72,7 +72,24 @@ double MosUtilities::MosGetTime()
 //!
 const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker_raw";
 int32_t           MosUtilitiesSpecificNext::m_mosTraceFd    = -1;
+uint64_t          MosUtilitiesSpecificNext::m_traceKeyword  = 0;
 MosMutex          MosUtilitiesSpecificNext::m_userSettingMutex;
+
+//!
+//! \brief Keyword for GFX tracing
+//!
+#define DATA_DUMP_KEYWORD               0x10000
+#define COMP_CP_KEYWORD                 0x20000
+#define COMP_VP_KEYWORD                 0x40000
+#define COMP_CODEC_KEYWORD              0x80000
+#define COMP_ALL_KEYWORD                0x01000
+
+//!
+//! \brief trace event size definition
+//!
+#define TRACE_EVENT_MAX_SIZE           (1024)
+#define TRACE_EVENT_HEADER_SIZE        (sizeof(uint32_t)*3)
+#define TRACE_EVENT_MAX_DATA_SIZE      (TRACE_EVENT_MAX_SIZE - TRACE_EVENT_HEADER_SIZE)
 
 //!
 //! \brief for int64_t/uint64_t format print warning
@@ -2311,6 +2328,13 @@ MOS_STATUS MosUtilities::MosGetLocalTime(
 
 void MosUtilities::MosTraceEventInit()
 {
+    char *val = getenv("GFX_MEDIA_TRACE");
+    if (val == nullptr)
+    {
+        return;
+    }
+    char *tmp;
+    MosUtilitiesSpecificNext::m_traceKeyword = strtoll(val, &tmp, 0);
     // close first, if already opened.
     if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
     {
@@ -2338,11 +2362,13 @@ void MosUtilities::MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint3
 
 uint64_t MosUtilities::GetTraceEventKeyword()
 {
+    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
+    {
+        return MosUtilitiesSpecificNext::m_traceKeyword;
+    }
     return 0;
 }
 
-#define TRACE_EVENT_MAX_SIZE    (1024)
-#define TRACE_EVENT_HEADER_SIZE (sizeof(uint32_t)*3)
 void MosUtilities::MosTraceEvent(
     uint16_t         usId,
     uint8_t          ucType,
@@ -2356,6 +2382,21 @@ void MosUtilities::MosTraceEvent(
     {
         uint8_t traceBuf[256];
         uint8_t *pTraceBuf = traceBuf;
+        // special handling for media runtime log, filter by component
+        if (usId == EVENT_MEDIA_LOG && pArg1 != nullptr && dwSize1 >= 2*sizeof(int32_t))
+        {
+            int32_t comp = (*(int32_t*)pArg1) >> 24;
+            int32_t level = *((int32_t*)pArg1 + 1);
+            uint64_t keyword = MosUtilitiesSpecificNext::m_traceKeyword;
+
+            if (((keyword & COMP_ALL_KEYWORD) == 0) &&
+                ((keyword & (1ULL << (comp + 16))) == 0))
+            {
+                // keyword not set for this component, skip it
+                return;
+            }
+        }
+
         if (dwSize1 + dwSize2 + TRACE_EVENT_HEADER_SIZE > sizeof(traceBuf))
         {
             pTraceBuf = (uint8_t *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
@@ -2368,7 +2409,7 @@ void MosUtilities::MosTraceEvent(
             uint32_t    nLen = TRACE_EVENT_HEADER_SIZE;
 
             header[0] = 0x494D5445; // IMTE (IntelMediaTraceEvent) as ftrace raw marker tag
-            header[1] = usId << 16 | (dwSize1 + dwSize2);
+            header[1] = (usId << 16) | (dwSize1 + dwSize2);
             header[2] = ucType;
 
             if (pArg1 && dwSize1 > 0)
@@ -2406,6 +2447,54 @@ void MosUtilities::MosTraceDataDump(
     const void *pBuf,
     uint32_t    dwSize)
 {
+    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0 && pBuf && pcName && (MosUtilitiesSpecificNext::m_traceKeyword & DATA_DUMP_KEYWORD))
+    {
+        uint8_t *pTraceBuf = (uint8_t *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
+        size_t writeSize = 0;
+
+        if (pTraceBuf)
+        {
+            // trace header
+            uint32_t *header = (uint32_t *)pTraceBuf;
+            uint32_t    nLen = strlen(pcName) & 0xff;// 255 max pcName length
+
+            header[0] = 0x494D5445; // IMTE (IntelMediaTraceEvent) as ftrace raw marker tag
+            header[1] = (EVENT_DATA_DUMP << 16) | (8 + nLen + 1);
+            header[2] = EVENT_TYPE_START;
+            header[3] = dwSize;
+            header[4] = flags;
+            memcpy(&header[5], pcName, nLen);
+            nLen += TRACE_EVENT_HEADER_SIZE + 8 + 1;
+            writeSize = write(MosUtilitiesSpecificNext::m_mosTraceFd, pTraceBuf, nLen);
+            // send dump data
+            header[2] = EVENT_TYPE_INFO;
+            const uint8_t *pData = static_cast<const uint8_t *>(pBuf);
+            while (dwSize > 0)
+            {
+                uint32_t size = dwSize;
+                if (size > TRACE_EVENT_MAX_DATA_SIZE)
+                {
+                    size = TRACE_EVENT_MAX_DATA_SIZE;
+                }
+                uint16_t len = ((size + 3) & ~3) / sizeof(uint32_t);
+                uint8_t *pDst = (uint8_t *)&header[3];
+
+                header[1] = (EVENT_DATA_DUMP << 16) | (size + sizeof(len));
+                memcpy(pDst, &len, sizeof(len));
+                memcpy(pDst+sizeof(len), pData, size);
+                nLen = TRACE_EVENT_HEADER_SIZE + size + sizeof(len);
+                writeSize = write(MosUtilitiesSpecificNext::m_mosTraceFd, pTraceBuf, nLen);
+                dwSize -= size;
+                pData += size;
+            }
+            // send dump end
+            header[1] = EVENT_DATA_DUMP << 16;
+            header[2] = EVENT_TYPE_END;
+            writeSize = write(MosUtilitiesSpecificNext::m_mosTraceFd, pTraceBuf, TRACE_EVENT_HEADER_SIZE);
+
+            MOS_FreeMemory(pTraceBuf);
+        }
+    }
 }
 
 void MosUtilities::MosTraceDataDictionary(
