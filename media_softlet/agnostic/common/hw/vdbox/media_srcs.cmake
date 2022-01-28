@@ -27,7 +27,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_itf.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_cmdpar.h
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_itf.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_avp_itf.h

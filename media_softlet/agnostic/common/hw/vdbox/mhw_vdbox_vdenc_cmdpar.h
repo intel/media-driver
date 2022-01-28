@@ -291,6 +291,7 @@ struct _MHW_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
     uint32_t log2WeightDenomChroma         = 0;
     uint32_t hevcVp9Log2WeightDenomLuma    = 0;
     uint32_t paletteModeEnable             = 0;
+    uint32_t ibcControl                    = 0;
     uint32_t VdencHEVCVP9TileSlicePar0     = 0;
     uint32_t VdencHEVCVP9TileSlicePar1     = 0;
     uint32_t VdencHEVCVP9TileSlicePar2     = 0;
@@ -311,7 +312,6 @@ struct _MHW_PAR_T(VDENC_HEVC_VP9_TILE_SLICE_STATE)
     uint32_t VdencHEVCVP9TileSlicePar17[3] = {};
     bool     VdencHEVCVP9TileSlicePar18    = false;
     uint32_t VdencHEVCVP9TileSlicePar19    = 0;
-    uint32_t VdencHEVCVP9TileSlicePar20    = 0;
     uint32_t VdencHEVCVP9TileSlicePar22    = 0;
     uint32_t VdencHEVCVP9TileSlicePar23    = 0;
 };
