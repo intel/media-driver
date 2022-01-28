@@ -30,6 +30,8 @@
 #include "linux_skuwa_debug.h"
 #include "linux_media_skuwa.h"
 #include "mos_utilities.h"
+#include "mos_os_specific.h"
+#include "media_user_setting.h"
 
 #ifndef SI_REV_LO
 #define SI_REV_LO(SteppingID) (SteppingID & 0xFFFF)
@@ -330,8 +332,20 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     }
 
-    // Create compressible surface by default
-    MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
+    // Create uncompressible surface by default
+    MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 0);
+
+     bool compressibleSurfaceEnable = false;
+
+    ReadUserSetting(compressibleSurfaceEnable,
+        "Enable Compressible Surface Creation",
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)nullptr);
+
+    if (compressibleSurfaceEnable)
+    {
+        MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
+    }
 
     if (drvInfo->devId == 0xFF20)
     {

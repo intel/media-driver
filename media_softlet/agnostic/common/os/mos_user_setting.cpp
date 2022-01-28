@@ -56,6 +56,12 @@ MOS_STATUS MosUtilities::InitMosCommonUserSetting()
         0,
         true);
 
+    DeclareUserSettingKey(
+        "Enable Compressible Surface Creation",
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
     return MOS_STATUS_SUCCESS;
 }
 
