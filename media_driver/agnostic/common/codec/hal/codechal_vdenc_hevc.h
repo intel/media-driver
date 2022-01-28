@@ -845,11 +845,6 @@ public:
     virtual MOS_STATUS DumpHucBrcInit();
     virtual MOS_STATUS DumpHucBrcUpdate(bool isInput);
     virtual MOS_STATUS DumpVdencOutputs();
-    virtual MOS_STATUS DumpSeqParFile() override;
-    MOS_STATUS PopulateDdiParam(
-        PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
-        PCODEC_HEVC_ENCODE_PICTURE_PARAMS  hevcPicParams,
-        PCODEC_HEVC_ENCODE_SLICE_PARAMS    hevcSlcParams) override;
 
     //!
     //! \brief  Modify the frame size with fake header size

@@ -2554,6 +2554,5 @@ CodechalVdencHevcStateG10::CodechalVdencHevcStateG10(
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_encodeParState = MOS_New(CodechalDebugEncodeParG10, this));
-        CreateHevcPar();
     )
 }

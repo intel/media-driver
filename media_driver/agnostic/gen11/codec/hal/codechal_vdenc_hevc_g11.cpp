@@ -1452,7 +1452,6 @@ CodechalVdencHevcStateG11::~CodechalVdencHevcStateG11()
     //Note: virtual engine interface destroy is done in MOS layer
 
     CODECHAL_DEBUG_TOOL(
-        DestroyHevcPar();
         MOS_Delete(m_encodeParState);
     )
     return;
@@ -4822,7 +4821,6 @@ CodechalVdencHevcStateG11::CodechalVdencHevcStateG11(
 
     CODECHAL_DEBUG_TOOL(
         CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_encodeParState = MOS_New(CodechalDebugEncodeParG11, this));
-        CreateHevcPar();
     )
 }
 

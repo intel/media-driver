@@ -1794,7 +1794,6 @@ public:
     ~CodechalVdencHevcStateG10()
     {
         CODECHAL_DEBUG_TOOL(
-            DestroyHevcPar();
             MOS_Delete(m_encodeParState);
         )
     }
