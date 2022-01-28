@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -157,6 +157,10 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
     if (m_mfxItf)
     {
         CODEC_HW_CHK_STATUS_RETURN(m_mfxItf->SetCacheabilitySettings(cacheabilitySettings));
+    }
+    if (m_vdencItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_vdencItf->SetCacheabilitySettings(cacheabilitySettings));
     }
 
     return eStatus;
