@@ -1290,6 +1290,19 @@ MOS_STATUS CodechalVdencVp9State::HuCVp9Prob()
     return eStatus;
 }
 
+PMOS_RESOURCE CodechalVdencVp9State::GetBrcConstantBuffer(
+    PMOS_RESOURCE brcConstResource,
+    uint16_t pictureCodingType)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+
+    CODECHAL_ENCODE_ASSERT(brcConstResource != nullptr);
+    CODECHAL_ENCODE_ASSERT(pictureCodingType == I_TYPE || pictureCodingType == P_TYPE);
+
+    return brcConstResource + (pictureCodingType - 1);
+}
+
+
 MOS_STATUS CodechalVdencVp9State::InitBrcConstantBuffer(
     PMOS_RESOURCE brcConstResource,
     uint16_t pictureCodingType)
@@ -1298,35 +1311,76 @@ MOS_STATUS CodechalVdencVp9State::InitBrcConstantBuffer(
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+    if (m_initBrcConstantDataBuffer)
+        return eStatus;
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(brcConstResource);
     CODECHAL_ENCODE_ASSERT(pictureCodingType == I_TYPE || pictureCodingType == P_TYPE);
 
-    MOS_LOCK_PARAMS lockFlags;
-    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-    lockFlags.WriteOnly = 1;
-    uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
-        m_osInterface,
-        brcConstResource,
-        &lockFlags);
-    CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+    PMOS_RESOURCE brcConstResourceI = brcConstResource;
+    PMOS_RESOURCE brcConstResourceP = brcConstResource + 1;
 
-    // Fill surface with BRC const data corresponding to I/P frame
-    // -1 converts from frame type to index
-    eStatus = MOS_SecureMemcpy(
-        data,
-        sizeof(m_brcConstData[pictureCodingType-1]),
-        m_brcConstData[pictureCodingType-1],
-        sizeof(m_brcConstData[pictureCodingType-1]));
-
-    if (eStatus != MOS_STATUS_SUCCESS)
+    // I - frame const data
     {
-        CODECHAL_ENCODE_ASSERTMESSAGE("Failed to initialize constant memory buffer.");
-        return eStatus;
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            brcConstResourceI,
+            &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        // Fill surface with BRC const data corresponding to I/P frame
+        // -1 converts from frame type to index
+        eStatus = MOS_SecureMemcpy(
+            data,
+            sizeof(m_brcConstData[0]),
+            m_brcConstData[0],
+            sizeof(m_brcConstData[0]));
+
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to initialize constant memory buffer.");
+            return eStatus;
+        }
+
+        m_osInterface->pfnUnlockResource(
+            m_osInterface,
+            brcConstResourceI);
     }
 
-    m_osInterface->pfnUnlockResource(
-        m_osInterface,
-        brcConstResource);
+    // P - frame const data
+    {
+        MOS_LOCK_PARAMS lockFlags;
+        MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+        lockFlags.WriteOnly = 1;
+        uint8_t* data = (uint8_t*)m_osInterface->pfnLockResource(
+            m_osInterface,
+            brcConstResourceP,
+            &lockFlags);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(data);
+
+        // Fill surface with BRC const data corresponding to I/P frame
+        // -1 converts from frame type to index
+        eStatus = MOS_SecureMemcpy(
+            data,
+            sizeof(m_brcConstData[1]),
+            m_brcConstData[1],
+            sizeof(m_brcConstData[1]));
+
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to initialize constant memory buffer.");
+            return eStatus;
+        }
+
+        m_osInterface->pfnUnlockResource(
+            m_osInterface,
+            brcConstResourceP);
+    }
+
+    m_initBrcConstantDataBuffer = true;
 
     return eStatus;
 }
@@ -1389,7 +1443,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCBrcUpdate()
     // Setup BRC DMEM
     int currPass = GetCurrentPass();
     HucBrcUpdateDmem *dmem     = (HucBrcUpdateDmem *)m_osInterface->pfnLockResource(
-        m_osInterface, &m_resVdencBrcUpdateDmemBuffer[currPass], &lockFlagsWriteOnly);
+        m_osInterface, &m_resVdencBrcUpdateDmemBuffer[currPass][m_currRecycledBufIdx], &lockFlagsWriteOnly);
     CODECHAL_ENCODE_CHK_NULL_RETURN(dmem);
 
     MOS_SecureMemcpy(dmem, sizeof(HucBrcUpdateDmem),
@@ -1434,7 +1488,7 @@ MOS_STATUS CodechalVdencVp9State::SetDmemHuCBrcUpdate()
     // BRC generates the QP deltas and patches them into the segment states
     dmem->UPD_SegMapGenerating_U8 = m_vp9PicParams->PicFlags.fields.segmentation_enabled && !m_segmentMapProvided;
 
-    m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[currPass]);
+    m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[currPass][m_currRecycledBufIdx]);
 
     return eStatus;
 }
@@ -1620,7 +1674,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
     if (m_swBrcMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcUpdate());
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer, m_pictureCodingType));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType));
         // Set region params for dumping only
         MOS_ZeroMemory(&virtualAddrParams, sizeof(virtualAddrParams));
         virtualAddrParams.regionParams[0].presRegion = &m_brcBuffers.resBrcHistoryBuffer;
@@ -1630,7 +1684,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
         virtualAddrParams.regionParams[3].presRegion = &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex];
         virtualAddrParams.regionParams[4].presRegion = &m_brcBuffers.resBrcHucDataBuffer;
         virtualAddrParams.regionParams[4].isWritable = true;
-        virtualAddrParams.regionParams[5].presRegion = &m_brcBuffers.resBrcConstantDataBuffer;
+        virtualAddrParams.regionParams[5].presRegion = GetBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType);
         virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex];
         virtualAddrParams.regionParams[6].isWritable = true;
         virtualAddrParams.regionParams[7].presRegion = &m_brcBuffers.resBrcBitstreamSizeBuffer;
@@ -1648,7 +1702,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
 
-                &m_resVdencBrcUpdateDmemBuffer[m_currPass],
+                &m_resVdencBrcUpdateDmemBuffer[m_currPass][m_currRecycledBufIdx],
                 sizeof(HucBrcUpdateDmem),  // Change buffer and size to update dmem
                 m_currPass,
                 CodechalHucRegionDumpType::hucRegionDumpUpdate));
@@ -1691,7 +1745,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
         m_firstTaskInPhase = false;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer, m_pictureCodingType));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType));
 
     // load kernel from WOPCM into L2 storage RAM
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;
@@ -1709,7 +1763,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
     // set HuC DMEM param
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &m_resVdencBrcUpdateDmemBuffer[m_currPass];
+    dmemParams.presHucDataSource = &m_resVdencBrcUpdateDmemBuffer[m_currPass][m_currRecycledBufIdx];
     dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucBrcUpdateDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS; // how to set?
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
@@ -1736,7 +1790,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
     virtualAddrParams.regionParams[4].isWritable = true;
 
     // Const Data - IN
-    virtualAddrParams.regionParams[5].presRegion = &m_brcBuffers.resBrcConstantDataBuffer;
+    virtualAddrParams.regionParams[5].presRegion = GetBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType);
 
     // Output SLBB - OUT
     virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex];
@@ -1798,7 +1852,7 @@ MOS_STATUS CodechalVdencVp9State::HuCBrcUpdate()
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resVdencBrcUpdateDmemBuffer[m_currPass],
+                &m_resVdencBrcUpdateDmemBuffer[m_currPass][m_currRecycledBufIdx],
                 sizeof(HucBrcUpdateDmem),  // Change buffer and size to update dmem
                 m_currPass,
                 CodechalHucRegionDumpType::hucRegionDumpUpdate));
@@ -2071,7 +2125,7 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
     {
         // Set DMEM
         uint8_t *data_dmem = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0], &lpReadOnly);
+            m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0][m_currRecycledBufIdx], &lpReadOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(data_dmem);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_dmem, eVp9INLINE_DMEM, pvBrcIfHandle));
 
@@ -2107,7 +2161,7 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
 
         // Set Const Data IN
         uint8_t *data_const_in = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface, &m_brcBuffers.resBrcConstantDataBuffer, &lpReadOnly);
+            m_osInterface, &m_brcBuffers.resBrcConstantDataBuffer[0], &lpReadOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(data_const_in);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_const_in, eVp9CONSTANT_DATA_BUFF, pvBrcIfHandle));
 
@@ -2130,13 +2184,13 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
         // Execute update firmware
         pfnProcess(pvBrcIfHandle, BRCUpdate);
 
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0]);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0][m_currRecycledBufIdx]);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHistoryBuffer);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcStatsBuffer);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resFrameStatStreamOutBuffer);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferRead[m_currPass][m_vdencPictureState2ndLevelBBIndex]);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHucDataBuffer);
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcConstantDataBuffer);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcConstantDataBuffer[0]);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencPictureState2NdLevelBatchBufferWrite[m_vdencPictureState2ndLevelBBIndex]);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcBitstreamSizeBuffer);
     }
@@ -5960,7 +6014,11 @@ MOS_STATUS CodechalVdencVp9State::AllocateResourcesBrc()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
         m_osInterface,
         &allocParamsForBufferLinear,
-        &m_brcBuffers.resBrcConstantDataBuffer));
+        &m_brcBuffers.resBrcConstantDataBuffer[0]));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnAllocateResource(
+        m_osInterface,
+        &allocParamsForBufferLinear,
+        &m_brcBuffers.resBrcConstantDataBuffer[1]));
 
     // PicState Brc read buffer
     size = CODECHAL_ENCODE_VP9_PIC_STATE_BUFFER_SIZE_PER_PASS * m_brcMaxNumPasses;
@@ -6084,11 +6142,18 @@ void CodechalVdencVp9State::ReleaseResourcesBrc()
             &m_brcBuffers.resBrcHistoryBuffer);
     }
 
-    if (!Mos_ResourceIsNull(&m_brcBuffers.resBrcConstantDataBuffer))
+    if (!Mos_ResourceIsNull(&m_brcBuffers.resBrcConstantDataBuffer[0]))
     {
         m_osInterface->pfnFreeResource(
             m_osInterface,
-            &m_brcBuffers.resBrcConstantDataBuffer);
+            &m_brcBuffers.resBrcConstantDataBuffer[0]);
+    }
+
+    if (!Mos_ResourceIsNull(&m_brcBuffers.resBrcConstantDataBuffer[1]))
+    {
+        m_osInterface->pfnFreeResource(
+            m_osInterface,
+            &m_brcBuffers.resBrcConstantDataBuffer[1]);
     }
 
     if (!Mos_ResourceIsNull(&m_brcBuffers.resPicStateBrcReadBuffer))
@@ -6635,13 +6700,16 @@ MOS_STATUS CodechalVdencVp9State::AllocateResources()
     // BRC update DMEM
     for (auto i = 0; i < 3; i++)
     {
-        // BRC update DMEM
-        allocParamsForBufferLinear.dwBytes = MOS_ALIGN_CEIL(sizeof(HucBrcUpdateDmem), CODECHAL_CACHELINE_SIZE);
-        allocParamsForBufferLinear.pBufName = "VDENC BrcUpdate DmemBuffer";
-        eStatus                             = (MOS_STATUS)m_osInterface->pfnAllocateResource(
-            m_osInterface,
-            &allocParamsForBufferLinear,
-            &m_resVdencBrcUpdateDmemBuffer[i]);
+        for (auto ib = 0; ib < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; ib++)
+        {
+            // BRC update DMEM
+            allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(sizeof(HucBrcUpdateDmem), CODECHAL_CACHELINE_SIZE);
+            allocParamsForBufferLinear.pBufName = "VDENC BrcUpdate DmemBuffer";
+            eStatus                             = (MOS_STATUS)m_osInterface->pfnAllocateResource(
+                m_osInterface,
+                &allocParamsForBufferLinear,
+                &m_resVdencBrcUpdateDmemBuffer[i][ib]);
+        }
     }
 
     if (eStatus != MOS_STATUS_SUCCESS)
@@ -6932,7 +7000,10 @@ void CodechalVdencVp9State::FreeResources()
     m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcInitDmemBuffer);
     for (auto i = 0; i < 3; i++)
     {
-        m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[i]);
+        for (auto ib = 0; ib < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; ib++)
+        {
+            m_osInterface->pfnFreeResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[i][ib]);
+        }
     }
     m_osInterface->pfnFreeResource(m_osInterface, &m_resFrameStatStreamOutBuffer);
     m_osInterface->pfnFreeResource(m_osInterface, &m_resSseSrcPixelRowStoreBuffer);
@@ -7224,7 +7295,10 @@ CodechalVdencVp9State::CodechalVdencVp9State(
     MOS_ZeroMemory(&m_resVdencBrcInitDmemBuffer, sizeof(m_resVdencBrcInitDmemBuffer));
     for (auto i = 0; i < 3; i++)
     {
-        MOS_ZeroMemory(&m_resVdencBrcUpdateDmemBuffer[i], sizeof(m_resVdencBrcUpdateDmemBuffer[i]));
+        for (auto ib = 0; ib < CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM; ib++)
+        {
+            MOS_ZeroMemory(&m_resVdencBrcUpdateDmemBuffer[i][ib], sizeof(m_resVdencBrcUpdateDmemBuffer[i][ib]));
+        }
     }
     MOS_ZeroMemory(&m_resVdencDataExtensionBuffer, sizeof(m_resVdencDataExtensionBuffer));
 

@@ -398,7 +398,7 @@ public:
     struct HucBrcBuffers
     {
         MOS_RESOURCE           resBrcHistoryBuffer;
-        MOS_RESOURCE           resBrcConstantDataBuffer;
+        MOS_RESOURCE           resBrcConstantDataBuffer[2]; // 0 == I, 1 == P
         MOS_RESOURCE           resBrcMsdkPakBuffer;
         MOS_RESOURCE           resBrcMbEncCurbeWriteBuffer;
         MOS_RESOURCE           resMbEncAdvancedDsh;
@@ -1763,7 +1763,7 @@ public:
     uint16_t                                    m_vdencPictureState2ndLevelBBIndex = 0;
     MOS_RESOURCE                                m_resVdencDysPictureState2NdLevelBatchBuffer;
     MOS_RESOURCE                                m_resVdencBrcInitDmemBuffer;
-    MOS_RESOURCE                                m_resVdencBrcUpdateDmemBuffer[3];
+    MOS_RESOURCE                                m_resVdencBrcUpdateDmemBuffer[3][CODECHAL_VP9_ENCODE_RECYCLED_BUFFER_NUM];
     MOS_RESOURCE                                m_resVdencDataExtensionBuffer;
     CODECHAL_ENCODE_BUFFER                      m_resPakcuLevelStreamoutData;
     CODECHAL_ENCODE_BUFFER                      m_resPakSliceLevelStreamutData;
@@ -1774,6 +1774,8 @@ public:
     uint8_t                                     m_chromaFormat = 0;
     uint32_t                                    m_sizeOfSseSrcPixelRowStoreBufferPerLcu = 0;
     PCODECHAL_CMD_INITIALIZER                   m_hucCmdInitializer = nullptr;
+
+    bool                                        m_initBrcConstantDataBuffer = false;
 
 protected:
     //!
@@ -1967,6 +1969,10 @@ public:
     //!            MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS InitBrcConstantBuffer(
+        PMOS_RESOURCE brcConstResource,
+        uint16_t pictureCodingType);
+
+    PMOS_RESOURCE GetBrcConstantBuffer(
         PMOS_RESOURCE brcConstResource,
         uint16_t pictureCodingType);
 

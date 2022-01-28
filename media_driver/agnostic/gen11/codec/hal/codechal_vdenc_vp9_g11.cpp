@@ -3454,7 +3454,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
     if (m_swBrcMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcUpdate());
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer, m_pictureCodingType));
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType));
         // Set region params for dumping only
         MOS_ZeroMemory(&virtualAddrParams, sizeof(virtualAddrParams));
         virtualAddrParams.regionParams[0].presRegion = &m_brcBuffers.resBrcHistoryBuffer;
@@ -3464,7 +3464,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
         virtualAddrParams.regionParams[3].presRegion = &m_resVdencPictureState2NdLevelBatchBufferRead[currPass][m_vdencPictureState2ndLevelBBIndex];
         virtualAddrParams.regionParams[4].presRegion = &m_brcBuffers.resBrcHucDataBuffer;
         virtualAddrParams.regionParams[4].isWritable = true;
-        virtualAddrParams.regionParams[5].presRegion = &m_brcBuffers.resBrcConstantDataBuffer;
+        virtualAddrParams.regionParams[5].presRegion = GetBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType);
         virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[0];
         virtualAddrParams.regionParams[6].isWritable = true;
         virtualAddrParams.regionParams[7].presRegion = &m_brcBuffers.resBrcBitstreamSizeBuffer;
@@ -3481,7 +3481,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resVdencBrcUpdateDmemBuffer[currPass],
+                &m_resVdencBrcUpdateDmemBuffer[currPass][m_currRecycledBufIdx],
                 sizeof(HucBrcUpdateDmem),  // Change buffer and size to update dmem
                 currPass,
                 CodechalHucRegionDumpType::hucRegionDumpUpdate));
@@ -3523,7 +3523,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
         m_firstTaskInPhase = false;
     }
 
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer, m_pictureCodingType));
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(InitBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType));
 
     // load kernel from WOPCM into L2 storage RAM
     MHW_VDBOX_HUC_IMEM_STATE_PARAMS imemParams;
@@ -3540,7 +3540,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
     // set HuC DMEM param
     MHW_VDBOX_HUC_DMEM_STATE_PARAMS dmemParams;
     MOS_ZeroMemory(&dmemParams, sizeof(dmemParams));
-    dmemParams.presHucDataSource = &m_resVdencBrcUpdateDmemBuffer[currPass];
+    dmemParams.presHucDataSource = &m_resVdencBrcUpdateDmemBuffer[currPass][m_currRecycledBufIdx];
     dmemParams.dwDataLength = MOS_ALIGN_CEIL(sizeof(HucBrcUpdateDmem), CODECHAL_CACHELINE_SIZE);
     dmemParams.dwDmemOffset = HUC_DMEM_OFFSET_RTOS_GEMS; // how to set?
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hucInterface->AddHucDmemStateCmd(&cmdBuffer, &dmemParams));
@@ -3603,7 +3603,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
     virtualAddrParams.regionParams[4].isWritable = true;
 
     // Const Data - IN
-    virtualAddrParams.regionParams[5].presRegion = &m_brcBuffers.resBrcConstantDataBuffer;
+    virtualAddrParams.regionParams[5].presRegion = GetBrcConstantBuffer(&m_brcBuffers.resBrcConstantDataBuffer[0], m_pictureCodingType);
 
     // Output SLBB - OUT
     virtualAddrParams.regionParams[6].presRegion = &m_resVdencPictureState2NdLevelBatchBufferWrite[0];
@@ -3663,7 +3663,7 @@ MOS_STATUS CodechalVdencVp9StateG11::HuCBrcUpdate()
 
         CODECHAL_DEBUG_TOOL(
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucDmem(
-                &m_resVdencBrcUpdateDmemBuffer[currPass],
+                &m_resVdencBrcUpdateDmemBuffer[currPass][m_currRecycledBufIdx],
                 sizeof(HucBrcUpdateDmem),  // Change buffer and size to update dmem
                 currPass,
                 CodechalHucRegionDumpType::hucRegionDumpUpdate));
