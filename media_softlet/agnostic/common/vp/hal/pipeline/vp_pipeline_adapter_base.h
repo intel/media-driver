@@ -34,6 +34,7 @@
 #include "vp_utils.h"
 #include "media_interfaces_mhw.h"
 #include "vp_feature_report.h"
+#include "mhw_vebox_itf.h"
 
 namespace vp
 {
@@ -211,6 +212,7 @@ public:
 
     void SetMhwVeboxInterface(MhwVeboxInterface *veboxInterface)
     {
+        MOS_STATUS                  eStatus = MOS_STATUS_SUCCESS;
         if (veboxInterface == nullptr)
         {
             return;
@@ -218,9 +220,19 @@ public:
 
         if (m_veboxInterface != nullptr)
         {
-            MOS_STATUS eStatus = m_veboxInterface->DestroyHeap();
+            m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(veboxInterface->m_veboxItfNew);
+            if (m_veboxItf)
+            {
+                eStatus = m_veboxItf->DestroyHeap();
+            }
+            else
+            {
+                eStatus = m_veboxInterface->DestroyHeap();
+            }
+
             MOS_Delete(m_veboxInterface);
             m_veboxInterface = nullptr;
+            m_veboxItf       = nullptr;
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 VP_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);
@@ -260,6 +272,7 @@ protected:
     PMHW_VEBOX_INTERFACE m_veboxInterface = nullptr;
     MhwCpInterface *     m_cpInterface    = nullptr;
     PMHW_SFC_INTERFACE   m_sfcInterface   = nullptr;
+    std::shared_ptr<mhw::vebox::Itf> m_veboxItf = nullptr;
 
     // StatusTable indicating if command is done by gpu or not
     VPHAL_STATUS_TABLE       m_statusTable = {};

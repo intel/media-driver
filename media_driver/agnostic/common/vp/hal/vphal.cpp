@@ -34,6 +34,7 @@
 #include "mos_solo_generic.h"
 #include "media_interfaces_vphal.h"
 #include "media_interfaces_mhw.h"
+#include "mhw_vebox_itf.h"
 
 //!
 //! \brief    Allocate VPHAL Resources
@@ -92,17 +93,33 @@ MOS_STATUS VphalState::Allocate(
     {
         GpuNodeLimit.bSfcInUse         = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
 
-        // Check GPU Node decide logic together in this function
-        VPHAL_HW_CHK_STATUS(m_veboxInterface->FindVeboxGpuNodeToUse(&GpuNodeLimit));
+        if (m_veboxItf)
+        {
+            // Check GPU Node decide logic together in this function
+            VPHAL_HW_CHK_STATUS(m_veboxItf->FindVeboxGpuNodeToUse(&GpuNodeLimit));
 
-        VeboxGpuNode    = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
-        VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+            VeboxGpuNode    = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
+            VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
 
-        // Create VEBOX/VEBOX2 Context
-        VPHAL_PUBLIC_CHK_STATUS(m_veboxInterface->CreateGpuContext(
-            m_osInterface,
-            VeboxGpuContext,
-            VeboxGpuNode));
+            VPHAL_PUBLIC_CHK_STATUS(m_veboxItf->CreateGpuContext(
+                m_osInterface,
+                VeboxGpuContext,
+                VeboxGpuNode));
+        }
+        else
+        {
+            // Check GPU Node decide logic together in this function
+            VPHAL_HW_CHK_STATUS(m_veboxInterface->FindVeboxGpuNodeToUse(&GpuNodeLimit));
+
+            VeboxGpuNode    = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
+            VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+
+            // Create VEBOX/VEBOX2 Context
+            VPHAL_PUBLIC_CHK_STATUS(m_veboxInterface->CreateGpuContext(
+                m_osInterface,
+                VeboxGpuContext,
+                VeboxGpuNode));
+        }
 
         // Add gpu context entry, including stream 0 gpu contexts
         if (IsApoEnabled() && 
@@ -123,11 +140,23 @@ MOS_STATUS VphalState::Allocate(
     RenderHalSettings.iMediaStates  = pVpHalSettings->mediaStates;
     VPHAL_PUBLIC_CHK_STATUS(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
 
-    if (m_veboxInterface &&
+    if (m_veboxItf)
+    {
+        const MHW_VEBOX_HEAP* veboxHeap = nullptr;
+        m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
+        uint32_t uiNumInstances = m_veboxItf->GetVeboxNumInstances();
+
+        if (uiNumInstances > 0 &&
+            veboxHeap == nullptr)
+        {
+            // Allocate VEBOX Heap
+            VPHAL_PUBLIC_CHK_STATUS(m_veboxItf->CreateHeap());
+        }
+    }
+    else if (m_veboxInterface &&
         m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
         m_veboxInterface->m_veboxHeap == nullptr)
     {
-        // Allocate VEBOX Heap
         VPHAL_PUBLIC_CHK_STATUS(m_veboxInterface->CreateHeap());
     }
 
@@ -717,7 +746,15 @@ VphalState::~VphalState()
 
     if (m_veboxInterface)
     {
-        eStatus = m_veboxInterface->DestroyHeap();
+        if (m_veboxItf)
+        {
+            eStatus = m_veboxItf->DestroyHeap();
+        }
+        else
+        {
+            eStatus = m_veboxInterface->DestroyHeap();
+        }
+        //eStatus = m_veboxInterface->DestroyHeap();
         MOS_Delete(m_veboxInterface);
         m_veboxInterface = nullptr;
         if (eStatus != MOS_STATUS_SUCCESS)

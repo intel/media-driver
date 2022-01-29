@@ -25,6 +25,7 @@
 //! \details  Common Copy interface and structure used in Vebox Engine
 #include "media_vebox_copy.h"
 #include "renderhal.h"
+#include "mhw_vebox_itf.h"
 
 #define SURFACE_DW_UY_OFFSET(pSurface) \
     ((pSurface) != nullptr ? ((pSurface)->UPlaneOffset.iSurfaceOffset - (pSurface)->dwOffset) / (pSurface)->dwPitch + (pSurface)->UPlaneOffset.iYOffset : 0)
@@ -59,6 +60,11 @@ VeboxCopyState::VeboxCopyState(PMOS_INTERFACE osInterface, MhwInterfaces* mhwInt
     m_veboxInterface = mhwInterfaces->m_veboxInterface;
     m_miInterface = mhwInterfaces->m_miInterface;
     m_cpInterface = mhwInterfaces->m_cpInterface;
+
+    if (m_veboxInterface)
+    {
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->m_veboxItfNew);
+    }
 }
 
 VeboxCopyState::~VeboxCopyState()
@@ -80,26 +86,55 @@ MOS_STATUS VeboxCopyState::Initialize()
     {
         GpuNodeLimit.bCpEnabled = (m_osInterface->osCpInterface->IsCpEnabled())? true : false;
 
-        // Check GPU Node decide logic together in this function
-       VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->FindVeboxGpuNodeToUse(&GpuNodeLimit));
-
-        VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
-        VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
-
-        // Create VEBOX/VEBOX2 Context
-        VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->CreateGpuContext(
-            m_osInterface,
-            VeboxGpuContext,
-            VeboxGpuNode));
-
-        // Register Vebox GPU context with the Batch Buffer completion event
-        VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
-            m_osInterface,
-            MOS_GPU_CONTEXT_VEBOX));
-
-        if (m_veboxInterface->m_veboxHeap == nullptr)
+        if (m_veboxItf)
         {
-            m_veboxInterface->CreateHeap();
+            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->FindVeboxGpuNodeToUse(&GpuNodeLimit));
+
+            VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
+            VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+
+            // Create VEBOX/VEBOX2 Context
+            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->CreateGpuContext(
+                m_osInterface,
+                VeboxGpuContext,
+                VeboxGpuNode));
+
+            // Register Vebox GPU context with the Batch Buffer completion event
+            VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+                m_osInterface,
+                MOS_GPU_CONTEXT_VEBOX));
+
+            const MHW_VEBOX_HEAP* veboxHeap = nullptr;
+            m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
+
+            if (veboxHeap == nullptr)
+            {
+                m_veboxItf->CreateHeap();
+            }
+        }
+        else
+        {
+            // Check GPU Node decide logic together in this function
+            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->FindVeboxGpuNodeToUse(&GpuNodeLimit));
+
+            VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
+            VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+
+            // Create VEBOX/VEBOX2 Context
+            VEBOX_COPY_CHK_STATUS_RETURN(m_veboxInterface->CreateGpuContext(
+                m_osInterface,
+                VeboxGpuContext,
+                VeboxGpuNode));
+
+            // Register Vebox GPU context with the Batch Buffer completion event
+            VEBOX_COPY_CHK_STATUS_RETURN(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
+                m_osInterface,
+                MOS_GPU_CONTEXT_VEBOX));
+
+            if (m_veboxInterface->m_veboxHeap == nullptr)
+            {
+                m_veboxInterface->CreateHeap();
+            }
         }
     }
     return MOS_STATUS_SUCCESS;

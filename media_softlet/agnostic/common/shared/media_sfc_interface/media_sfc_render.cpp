@@ -78,7 +78,15 @@ void MediaSfcRender::Destroy()
 
     if (m_veboxInterface)
     {
-        status = m_veboxInterface->DestroyHeap();
+        if (m_veboxItf)
+        {
+            status = m_veboxItf->DestroyHeap();
+        }
+        else
+        {
+            status = m_veboxInterface->DestroyHeap();
+        }
+        //status = m_veboxInterface->DestroyHeap();
         if (MOS_STATUS_SUCCESS != status)
         {
             VP_PUBLIC_ASSERTMESSAGE("Failed to destroy vebox heap, eStatus:%d.\n", status);
@@ -199,8 +207,6 @@ MOS_STATUS MediaSfcRender::Initialize()
         }
     }
 
-    
-
     m_vpPipeline = vphalDevice->m_vpPipeline;
     m_vpPlatformInterface = vphalDevice->m_vpPlatformInterface;
     MOS_Delete(vphalDevice);
@@ -221,7 +227,25 @@ MOS_STATUS MediaSfcRender::Initialize()
     Delete_MhwCpInterface(mhwInterfaces->m_cpInterface);
     MOS_Delete(mhwInterfaces);
 
-    if (m_veboxInterface &&
+    if (m_veboxInterface)
+    {
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->m_veboxItfNew);
+    }
+
+    if (m_veboxItf)
+    {
+        const MHW_VEBOX_HEAP* veboxHeap = nullptr;
+        m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
+        uint32_t uiNumInstances = m_veboxItf->GetVeboxNumInstances();
+
+        if (uiNumInstances > 0 &&
+            veboxHeap == nullptr)
+        {
+            // Allocate VEBOX Heap
+            VP_PUBLIC_CHK_STATUS_RETURN(m_veboxItf->CreateHeap());
+        }
+    }
+    else if (m_veboxInterface &&
         m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
         m_veboxInterface->m_veboxHeap == nullptr)
     {

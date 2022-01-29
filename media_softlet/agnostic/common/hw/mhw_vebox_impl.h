@@ -30,7 +30,6 @@
 
 #include "mhw_vebox_itf.h"
 #include "mhw_impl.h"
-//#include "mhw_mmio.h"
 #include "hal_oca_interface.h"
 #include "mhw_mi_g12_X.h"
 #include "mos_solo_generic.h"
@@ -61,6 +60,7 @@ public:
         m_vebox1InUse = false;
         m_veboxScalabilitySupported = false;
         m_veboxSplitRatio = 50;
+        memset(&m_chromaParams, 0, sizeof(m_chromaParams));
 
         MOS_SecureMemcpy(m_BT2020InvPixelValue, sizeof(uint32_t) * 256, g_Vebox_BT2020_Inverse_Pixel_Value, sizeof(uint32_t) * 256);
         MOS_SecureMemcpy(m_BT2020FwdPixelValue, sizeof(uint32_t) * 256, g_Vebox_BT2020_Forward_Pixel_Value, sizeof(uint32_t) * 256);
@@ -68,7 +68,6 @@ public:
         MOS_SecureMemcpy(m_BT2020FwdGammaLUT, sizeof(uint32_t) * 256, g_Vebox_BT2020_Forward_Gamma_LUT, sizeof(uint32_t) * 256);
 
         MOS_ZeroMemory(&m_laceColorCorrection, sizeof(m_laceColorCorrection));
-        MOS_ZeroMemory(&m_chromaParams, sizeof(m_chromaParams));
 
         MHW_CHK_NULL_NO_STATUS_RETURN(osItf);
         MOS_STATUS eStatus = osItf->pfnGetMediaEngineInfo(osItf, mediaSysInfo);
@@ -132,6 +131,13 @@ public:
         *ppVeboxHeap = (const MHW_VEBOX_HEAP*)m_veboxHeap;
 
         return eStatus;
+    }
+
+    uint32_t GetVeboxNumInstances()
+    {
+        MHW_FUNCTION_ENTER;
+
+        return m_veboxSettings.uiNumInstances;
     }
 
     MOS_STATUS DestroyHeap()
@@ -366,24 +372,24 @@ public:
         }
 
         // Save number of instance in use
-        //m_veboxHeapInUse = iInstanceInUse;
+        m_veboxHeapInUse = iInstanceInUse;
     }
 
     MOS_STATUS SetVeboxSurfaceControlBits(
-        MHW_VEBOX_SURFACE_CNTL_PARAMS *pVeboxSurfCntlParams,
+        PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams,
         uint32_t* pSurfCtrlBits)
     {
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS SetVeboxDndiState(
-        MHW_VEBOX_DNDI_PARAMS *pVeboxDndiParams)
+        PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams)
     {
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS SetVeboxIecpState(
-        MHW_VEBOX_IECP_PARAMS* pVeboxIecpParams)
+        PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -398,14 +404,13 @@ public:
     }
 
     MOS_STATUS SetVeboxChromaParams(
-        MHW_VEBOX_CHROMA_PARAMS *chromaParams)
+        MHW_VEBOX_CHROMA_PARAMS* chromaParams)
     {
         MHW_CHK_NULL_RETURN(chromaParams);
         MOS_SecureMemcpy(&m_chromaParams, sizeof(MHW_VEBOX_CHROMA_PARAMS), chromaParams, sizeof(MHW_VEBOX_CHROMA_PARAMS));
 
         return MOS_STATUS_SUCCESS;
     }
-
 
     MOS_STATUS AssignVeboxState()
     {
@@ -493,7 +498,7 @@ public:
 
     MOS_STATUS setVeboxPrologCmd(
         PMHW_MI_INTERFACE   mhwMiInterface,
-        MOS_COMMAND_BUFFER* CmdBuffer)
+        PMOS_COMMAND_BUFFER CmdBuffer)
     {
         MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
         uint64_t                              auxTableBaseAddr = 0;
@@ -522,7 +527,7 @@ public:
     }
 
   MOS_STATUS AdjustBoundary(
-        MHW_VEBOX_SURFACE_PARAMS currSurf,
+        PMHW_VEBOX_SURFACE_PARAMS pCurrSurf,
         uint32_t *pdwSurfaceWidth,
         uint32_t *pdwSurfaceHeight,
         bool      bDIEnable)
@@ -533,13 +538,12 @@ public:
 
         MHW_CHK_NULL_RETURN(pdwSurfaceWidth);
         MHW_CHK_NULL_RETURN(pdwSurfaceHeight);
-        auto &par = MHW_GETPAR_F(VEBOX_SURFACE_STATE)();
 
         // initialize
         wHeightAlignUnit = 1;
         wWidthAlignUnit  = 1;
 
-        switch (currSurf.Format)
+        switch (pCurrSurf->Format)
         {
         case Format_NV12:
             wHeightAlignUnit = bDIEnable ? 4 : 2;
@@ -577,17 +581,17 @@ public:
         //But in dynamic Crop case, if the rcMaxSrc is larger than the rcSrc, the input pdwSurfaceHeight/pdwSurfaceWidth will be the input surface size.
         //And if the target surface size is smaller than input surface, it may lead to pagefault issue . So in Vebox Crop case, we set the pdwSurfaceHeight/pdwSurfaceWidth
         //with rcSrc to ensure Vebox input size is same with target Dstrec.
-        if (currSurf.bVEBOXCroppingUsed)
+        if (pCurrSurf->bVEBOXCroppingUsed)
         {
             *pdwSurfaceHeight = MOS_ALIGN_CEIL(
-                MOS_MIN(currSurf.dwHeight, MOS_MAX((uint32_t)currSurf.rcSrc.bottom, MHW_VEBOX_MIN_HEIGHT)),
+                MOS_MIN(pCurrSurf->dwHeight, MOS_MAX((uint32_t)pCurrSurf->rcSrc.bottom, MHW_VEBOX_MIN_HEIGHT)),
                 wHeightAlignUnit);
             *pdwSurfaceWidth = MOS_ALIGN_CEIL(
-                MOS_MIN(currSurf.dwWidth, MOS_MAX((uint32_t)currSurf.rcSrc.right, MHW_VEBOX_MIN_WIDTH)),
+                MOS_MIN(pCurrSurf->dwWidth, MOS_MAX((uint32_t)pCurrSurf->rcSrc.right, MHW_VEBOX_MIN_WIDTH)),
                 wWidthAlignUnit);
             MHW_NORMALMESSAGE("bVEBOXCroppingUsed = true, SurfInput.rcSrc.bottom: %d, par.SurfInput.rcSrc.right: %d; pdwSurfaceHeight: %d, pdwSurfaceWidth: %d;",
-                (uint32_t)currSurf.rcSrc.bottom,
-                (uint32_t)currSurf.rcSrc.right,
+                (uint32_t)pCurrSurf->rcSrc.bottom,
+                (uint32_t)pCurrSurf->rcSrc.right,
                 *pdwSurfaceHeight,
                 *pdwSurfaceWidth);
         }
@@ -599,14 +603,14 @@ public:
             // MHW_VEBOX_MIN_WIDTH/HEIGHT. The maximum of width/heigh should equal
             // to or smaller than surface width/height
             *pdwSurfaceHeight = MOS_ALIGN_CEIL(
-                MOS_MIN(currSurf.dwHeight, MOS_MAX((uint32_t)currSurf.rcMaxSrc.bottom, MHW_VEBOX_MIN_HEIGHT)),
+                MOS_MIN(pCurrSurf->dwHeight, MOS_MAX((uint32_t)pCurrSurf->rcMaxSrc.bottom, MHW_VEBOX_MIN_HEIGHT)),
                 wHeightAlignUnit);
             *pdwSurfaceWidth = MOS_ALIGN_CEIL(
-                MOS_MIN(currSurf.dwWidth, MOS_MAX((uint32_t)currSurf.rcMaxSrc.right, MHW_VEBOX_MIN_WIDTH)),
+                MOS_MIN(pCurrSurf->dwWidth, MOS_MAX((uint32_t)pCurrSurf->rcMaxSrc.right, MHW_VEBOX_MIN_WIDTH)),
                 wWidthAlignUnit);
             MHW_NORMALMESSAGE("bVEBOXCroppingUsed = false, SurfInput.rcMaxSrc.bottom: %d, SurfInput.rcMaxSrc.right: %d; pdwSurfaceHeight: %d, pdwSurfaceWidth: %d;",
-                (uint32_t)currSurf.rcMaxSrc.bottom,
-                (uint32_t)currSurf.rcMaxSrc.right,
+                (uint32_t)pCurrSurf->rcMaxSrc.bottom,
+                (uint32_t)pCurrSurf->rcMaxSrc.right,
                 *pdwSurfaceHeight,
                 *pdwSurfaceWidth);
         }
@@ -682,19 +686,27 @@ public:
         MOS_GPU_CONTEXT VeboxGpuContext,
         MOS_GPU_NODE    VeboxGpuNode)
     {
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+        MEDIA_FEATURE_TABLE *skuTable;
+        MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
 
         MHW_CHK_NULL_RETURN(pOsInterface);
 
-        Mos_SetVirtualEngineSupported(pOsInterface, true);
-        Mos_CheckVirtualEngineSupported(pOsInterface, true, true);
+        skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+        MHW_CHK_NULL_RETURN(skuTable);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (MEDIA_IS_SKU(skuTable, FtrContextBasedScheduling) && pOsInterface->bVeboxScalabilityMode)
+        {
+            pOsInterface->ctxBasedScheduling = true;
+        }
+#endif
 
         if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
         {
             MOS_GPUCTX_CREATOPTIONS createOption;
 
             // Create VEBOX/VEBOX2 Context
-            MHW_CHK_STATUS(pOsInterface->pfnCreateGpuContext(
+            MHW_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
                 pOsInterface,
                 VeboxGpuContext,
                 VeboxGpuNode,
@@ -703,9 +715,20 @@ public:
         else
         {
             MOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionenhanced;
+            MEDIA_SYSTEM_INFO*               pGtSystemInfo;
 
-            createOptionenhanced.LRCACount = 1;
-            createOptionenhanced.UsingSFC = true;
+            pGtSystemInfo = pOsInterface->pfnGetGtSystemInfo(pOsInterface);
+            MHW_CHK_NULL_RETURN(pGtSystemInfo);
+
+            if (pOsInterface->ctxBasedScheduling)
+            {
+                createOptionenhanced.LRCACount = pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled;
+            }
+            else
+            {
+                createOptionenhanced.LRCACount = 1;
+                createOptionenhanced.UsingSFC  = true;
+            }
 
             // Create VEBOX/VEBOX2 Context
             MHW_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
@@ -721,7 +744,7 @@ public:
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS ValidateVeboxScalabilityConfig()
     {
-        MEDIA_ENGINE_INFO mediaSysInfo = {};
+        MEDIA_SYSTEM_INFO* pGtSystemInfo = nullptr;
         MOS_FORCE_VEBOX   eForceVebox;
         bool              bScalableVEMode;
         bool              bUseVE1, bUseVE2, bUseVE3, bUseVE4;
@@ -729,10 +752,10 @@ public:
 
         MHW_CHK_NULL_RETURN(this->m_osItf);
 
-        eForceVebox = this->m_osItf->eForceVebox;
+        eForceVebox     = this->m_osItf->eForceVebox;
         bScalableVEMode = ((this->m_osItf->bVeboxScalabilityMode) ? true : false);
-        eStatus = this->m_osItf->pfnGetMediaEngineInfo(this->m_osItf, mediaSysInfo);
-        MHW_CHK_STATUS_RETURN(eStatus);
+        pGtSystemInfo = this->m_osItf->pfnGetGtSystemInfo(this->m_osItf);
+        MHW_CHK_NULL_RETURN(pGtSystemInfo);
 
         if (eForceVebox != MOS_FORCE_VEBOX_NONE &&
             eForceVebox != MOS_FORCE_VEBOX_1 &&
@@ -743,7 +766,7 @@ public:
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("eForceVebox value is invalid.");
-            goto finish;
+            return eStatus;
         }
 
         if (!bScalableVEMode &&
@@ -753,6 +776,7 @@ public:
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("eForceVebox value is not consistent with scalability mode.");
+
             return eStatus;
         }
 
@@ -760,6 +784,7 @@ public:
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("scalability mode is not allowed on current platform!");
+
             return eStatus;
         }
 
@@ -776,8 +801,8 @@ public:
             MHW_VEBOX_IS_VEBOX_SPECIFIED_IN_CONFIG(eForceVebox, MOS_FORCE_VEBOX_4, MOS_FORCEVEBOX_VEBOXID_BITSNUM, MOS_FORCEVEBOX_MASK, bUseVE4);
         }
 
-        if (!mediaSysInfo.VEBoxInfo.IsValid ||
-            (uint32_t)(bUseVE1 + bUseVE2 + bUseVE3 + bUseVE4) > mediaSysInfo.VEBoxInfo.NumberOfVEBoxEnabled)
+        if (!pGtSystemInfo->VEBoxInfo.IsValid ||
+            (uint32_t)(bUseVE1 + bUseVE2 + bUseVE3 + bUseVE4) > pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled)
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("the forced VEBOX is not enabled in current platform.");
@@ -788,7 +813,7 @@ public:
 #endif
 
     MOS_STATUS VeboxAdjustBoundary(
-        MHW_VEBOX_SURFACE_PARAMS  currSurf,
+        PMHW_VEBOX_SURFACE_PARAMS pcurrSurf,
         uint32_t *                pdwSurfaceWidth,
         uint32_t *                pdwSurfaceHeight,
         bool                      bDIEnable,
@@ -799,7 +824,7 @@ public:
         MHW_CHK_NULL_RETURN(pdwSurfaceWidth);
         MHW_CHK_NULL_RETURN(pdwSurfaceHeight);
 
-        MHW_CHK_STATUS_RETURN(AdjustBoundary(currSurf, pdwSurfaceWidth, pdwSurfaceHeight, bDIEnable));
+        MHW_CHK_STATUS_RETURN(AdjustBoundary(pcurrSurf, pdwSurfaceWidth, pdwSurfaceHeight, bDIEnable));
         // match the vebox width with sfc input width to fix corruption issue when sfc scalability enabled
         if (m_veboxScalabilityEnabled && m_usingSfc && this->m_osItf->bSimIsActive)
         {
@@ -853,323 +878,46 @@ public:
     }
 
     MOS_STATUS AddVeboxSurfaces(
-        MHW_VEBOX_SURFACE_STATE_CMD_PARAMS *pVeboxSurfaceStateCmdParams)
+        PMOS_COMMAND_BUFFER                pCmdBufferInUse,
+        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams)
     {
-        MOS_STATUS eStatus;
-        bool       bOutputValid;
-
-        MHW_CHK_NULL_RETURN(this->m_currentCmdBuf);
-        MHW_CHK_NULL_RETURN(this->m_osItf);
-        MHW_CHK_NULL_RETURN(pVeboxSurfaceStateCmdParams);
-        MHW_CHK_NULL_RETURN(this->m_osItf->pfnGetMemoryCompressionFormat);
-
-        eStatus      = MOS_STATUS_SUCCESS;
-        bOutputValid = pVeboxSurfaceStateCmdParams->bOutputValid;
-
-        if (!pVeboxSurfaceStateCmdParams->SurfInput.dwCompressionFormat)
-        {
-            this->m_osItf->pfnGetMemoryCompressionFormat(this->m_osItf, pVeboxSurfaceStateCmdParams->SurfInput.pOsResource, &pVeboxSurfaceStateCmdParams->SurfInput.dwCompressionFormat);
-        }
-
-        // Setup Surface State for Input surface
-        auto &par = MHW_GETPAR_F(VEBOX_SURFACE_STATE)();
-        par       = {};
-        par.SurfInput                     = pVeboxSurfaceStateCmdParams->SurfInput;
-        par.SurfSTMM                      = pVeboxSurfaceStateCmdParams->SurfSTMM;
-        par.SurfSkinScoreOutput           = {};
-        par.bDIEnable                     = pVeboxSurfaceStateCmdParams->bDIEnable;
-        par.b3DlutEnable                  = pVeboxSurfaceStateCmdParams->b3DlutEnable;
-        par.bIsOutputSurface              = false;
-        MHW_ADDCMD_F(VEBOX_SURFACE_STATE)(this->m_currentCmdBuf);
-
-        // Setup Surface State for Output surface
-        if (bOutputValid)
-        {
-            if (!pVeboxSurfaceStateCmdParams->SurfOutput.dwCompressionFormat)
-                this->m_osItf->pfnGetMemoryCompressionFormat(this->m_osItf, pVeboxSurfaceStateCmdParams->SurfOutput.pOsResource, &pVeboxSurfaceStateCmdParams->SurfOutput.dwCompressionFormat);
-
-            auto &par                         = MHW_GETPAR_F(VEBOX_SURFACE_STATE)();
-            par.SurfOutput                    = pVeboxSurfaceStateCmdParams->SurfOutput;
-            par.SurfDNOutput                  = pVeboxSurfaceStateCmdParams->SurfDNOutput;
-            par.SurfSkinScoreOutput           = pVeboxSurfaceStateCmdParams->SurfSkinScoreOutput;
-            par.bDIEnable                     = pVeboxSurfaceStateCmdParams->bDIEnable;
-            par.b3DlutEnable                  = pVeboxSurfaceStateCmdParams->b3DlutEnable;
-            par.bIsOutputSurface              = true;
-            MHW_ADDCMD_F(VEBOX_SURFACE_STATE)(this->m_currentCmdBuf);
-        }
-
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
+    bool IsVeboxScalabilitywith4K()
+    {
+        return m_veboxScalabilitywith4K;
+    }
 
     _MHW_SETCMD_OVERRIDE_DECL(VEBOX_SURFACE_STATE)
     {
         _MHW_SETCMD_CALLBASE(VEBOX_SURFACE_STATE);
+         cmd.DW1.SurfaceIdentification = params.SurfaceIdentification;
+         cmd.DW2.Width                 = params.Width;
+         cmd.DW2.Height                = params.Height;
 
-        uint32_t dwFormat;
-        uint32_t dwSurfaceWidth;
-        uint32_t dwSurfaceHeight;
-        uint32_t dwSurfacePitch;
-        bool     bHalfPitchForChroma;
-        bool     bInterleaveChroma;
-        uint16_t wUXOffset;
-        uint16_t wUYOffset;
-        uint16_t wVXOffset;
-        uint16_t wVYOffset;
-        uint8_t  bBayerOffset;
-        uint8_t  bBayerStride;
-        uint8_t  bBayerInputAlignment;
-        MHW_VEBOX_SURFACE_PARAMS currSurf = {};
-        MHW_VEBOX_SURFACE_PARAMS derivedSurf = {};
+         cmd.DW3.HalfPitchForChroma     = params.HalfPitchForChroma;
+         cmd.DW3.InterleaveChroma       = params.InterleaveChroma;
+         cmd.DW3.SurfaceFormat          = params.SurfaceFormat;
+         cmd.DW3.BayerInputAlignment    = params.BayerInputAlignment;
+         cmd.DW3.BayerPatternOffset     = params.BayerPatternOffset;
+         cmd.DW3.BayerPatternFormat     = params.BayerPatternFormat;
+         cmd.DW3.SurfacePitch           = params.SurfacePitch;
+         cmd.DW3.TileMode               = params.TileMode;
 
-        //MHW_CHK_NULL_NO_STATUS_RETURN(params.SurfInput);
+         cmd.DW4.XOffsetForU    = params.XOffsetForU;
+         cmd.DW4.YOffsetForU    = params.YOffsetForU;
+         cmd.DW5.XOffsetForV    = params.XOffsetForV;
+         cmd.DW5.YOffsetForV    = params.YOffsetForV;
+        
+         // May fix this for stereo surfaces
+         cmd.DW6.YOffsetForFrame = params.YOffsetForFrame;
+         cmd.DW6.XOffsetForFrame = params.XOffsetForFrame;
 
-        // Initialize
-        dwSurfaceWidth       = 0;
-        dwSurfaceHeight      = 0;
-        dwSurfacePitch       = 0;
-        bHalfPitchForChroma  = false;
-        bInterleaveChroma    = false;
-        wUXOffset            = 0;
-        wUYOffset            = 0;
-        wVXOffset            = 0;
-        wVYOffset            = 0;
-        bBayerOffset         = 0;
-        bBayerStride         = 0;
-        bBayerInputAlignment = 0;
-        dwFormat             = 0;
+         cmd.DW7.DerivedSurfacePitch                    = params.DerivedSurfacePitch;
+         cmd.DW8.SurfacePitchForSkinScoreOutputSurfaces = params.SurfacePitchForSkinScoreOutputSurfaces;
 
-        if (params.bIsOutputSurface)
-        {
-            currSurf = params.SurfOutput;
-            derivedSurf = params.SurfDNOutput;
-        }
-        else
-        {
-            currSurf = params.SurfInput;
-            derivedSurf = params.SurfSTMM;
-        }
-
-        switch (currSurf.Format)
-        {
-        case Format_NV12:
-            dwFormat          = cmd.SURFACE_FORMAT_PLANAR4208;
-            bInterleaveChroma = true;
-            wUYOffset         = (uint16_t)currSurf.dwUYoffset;
-            break;
-
-        case Format_YUYV:
-        case Format_YUY2:
-            dwFormat = cmd.SURFACE_FORMAT_YCRCBNORMAL;
-            break;
-
-        case Format_UYVY:
-            dwFormat = cmd.SURFACE_FORMAT_YCRCBSWAPY;
-            break;
-
-        case Format_AYUV:
-            dwFormat = cmd.SURFACE_FORMAT_PACKED444A8;
-            break;
-
-        case Format_Y416:
-            dwFormat = cmd.SURFACE_FORMAT_PACKED44416;
-            break;
-
-        case Format_Y410:
-            dwFormat = cmd.SURFACE_FORMAT_PACKED44410;
-            break;
-
-        case Format_YVYU:
-            dwFormat = cmd.SURFACE_FORMAT_YCRCBSWAPUV;
-            break;
-
-        case Format_VYUY:
-            dwFormat = cmd.SURFACE_FORMAT_YCRCBSWAPUVY;
-            break;
-
-        case Format_A8B8G8R8:
-        case Format_X8B8G8R8:
-            dwFormat = cmd.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
-            break;
-
-        case Format_A16B16G16R16:
-        case Format_A16R16G16B16:
-        case Format_A16B16G16R16F:
-        case Format_A16R16G16B16F:
-            dwFormat = cmd.SURFACE_FORMAT_R16G16B16A16;
-            break;
-
-        case Format_L8:
-        case Format_P8:
-        case Format_Y8:
-            dwFormat = cmd.SURFACE_FORMAT_Y8UNORM;
-            break;
-
-        case Format_IRW0:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISBLUE;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
-            break;
-
-        case Format_IRW1:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISRED;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
-            break;
-
-        case Format_IRW2:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISRED;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
-            break;
-
-        case Format_IRW3:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISBLUE;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
-            break;
-
-        case Format_IRW4:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISBLUE;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
-            break;
-
-        case Format_IRW5:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISRED;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
-            break;
-
-        case Format_IRW6:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISRED;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
-            break;
-
-        case Format_IRW7:
-            dwFormat     = cmd.SURFACE_FORMAT_BAYERPATTERN;
-            bBayerOffset = cmd.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISBLUE;
-            bBayerStride = cmd.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
-            break;
-
-        case Format_P010:
-        case Format_P016:
-            dwFormat          = cmd.SURFACE_FORMAT_PLANAR42016;
-            bInterleaveChroma = true;
-            wUYOffset         = (uint16_t)currSurf.dwUYoffset;
-            break;
-
-        case Format_A8R8G8B8:
-        case Format_X8R8G8B8:
-            if (params.bIsOutputSurface)
-            {
-                dwFormat = cmd.SURFACE_FORMAT_B8G8R8A8UNORM;
-            }
-            else
-            {
-                dwFormat = cmd.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
-            }
-            break;
-
-        case Format_R10G10B10A2:
-        case Format_B10G10R10A2:
-            dwFormat = cmd.SURFACE_FORMAT_R10G10B10A2UNORMR10G10B10A2UNORMSRGB;
-            break;
-
-        case Format_Y216:
-        case Format_Y210:
-            dwFormat = cmd.SURFACE_FORMAT_PACKED42216;
-            break;
-
-        case Format_P216:
-        case Format_P210:
-            dwFormat  = cmd.SURFACE_FORMAT_PLANAR42216;
-            wUYOffset = (uint16_t)currSurf.dwUYoffset;
-            break;
-
-        case Format_Y16S:
-        case Format_Y16U:
-            dwFormat = cmd.SURFACE_FORMAT_Y16UNORM;
-            break;
-
-        default:
-            MHW_ASSERTMESSAGE("Unsupported format.");
-            break;
-        }
-
-        if (!params.bIsOutputSurface)
-        {
-            // camera pipe will use 10/12/14 for LSB, 0 for MSB. For other pipeline,
-            // dwBitDepth is inherited from pSrc->dwDepth which may not among (0,10,12,14)
-            // For such cases should use MSB as default value.
-            switch (currSurf.dwBitDepth)
-            {
-            case 10:
-                bBayerInputAlignment = cmd.BAYER_INPUT_ALIGNMENT_10BITLSBALIGNEDDATA;
-                break;
-
-            case 12:
-                bBayerInputAlignment = cmd.BAYER_INPUT_ALIGNMENT_12BITLSBALIGNEDDATA;
-                break;
-
-            case 14:
-                bBayerInputAlignment = cmd.BAYER_INPUT_ALIGNMENT_14BITLSBALIGNEDDATA;
-                break;
-
-            case 0:
-            default:
-                bBayerInputAlignment = cmd.BAYER_INPUT_ALIGNMENT_MSBALIGNEDDATA;
-                break;
-            }
-        }
-        else
-        {
-            bBayerInputAlignment = cmd.BAYER_INPUT_ALIGNMENT_MSBALIGNEDDATA;
-        }
-
-        // adjust boundary for vebox
-        VeboxAdjustBoundary(
-            currSurf,
-            &dwSurfaceWidth,
-            &dwSurfaceHeight,
-            params.bDIEnable,
-            params.b3DlutEnable);
-
-        dwSurfacePitch = (currSurf.TileType == MOS_TILE_LINEAR) ? MOS_ALIGN_CEIL(currSurf.dwPitch, MHW_VEBOX_LINEAR_PITCH) : currSurf.dwPitch;
-
-        cmd.DW1.SurfaceIdentification = params.bIsOutputSurface;
-        cmd.DW2.Width                 = dwSurfaceWidth - 1;
-        cmd.DW2.Height                = dwSurfaceHeight - 1;
-
-        cmd.DW3.HalfPitchForChroma     = bHalfPitchForChroma;
-        cmd.DW3.InterleaveChroma       = bInterleaveChroma;
-        cmd.DW3.SurfaceFormat          = dwFormat;
-        cmd.DW3.BayerInputAlignment    = bBayerInputAlignment;
-        cmd.DW3.BayerPatternOffset     = bBayerOffset;
-        cmd.DW3.BayerPatternFormat     = bBayerStride;
-        cmd.DW3.SurfacePitch           = dwSurfacePitch - 1;
-        cmd.DW3.TileMode               = MosGetHWTileType(currSurf.TileType, currSurf.TileModeGMM, currSurf.bGMMTileEnabled);
-
-        cmd.DW4.XOffsetForU    = wUXOffset;
-        cmd.DW4.YOffsetForU    = wUYOffset;
-        cmd.DW5.XOffsetForV    = wVXOffset;
-        cmd.DW5.YOffsetForV    = wVYOffset;
-
-        // May fix this for stereo surfaces
-        cmd.DW6.YOffsetForFrame = currSurf.dwYoffset;
-        cmd.DW6.XOffsetForFrame = 0;
-
-        cmd.DW7.DerivedSurfacePitch                    = derivedSurf.dwPitch - 1;
-        cmd.DW8.SurfacePitchForSkinScoreOutputSurfaces = (params.bIsOutputSurface && params.SurfSkinScoreOutput.bActive) ? (params.SurfSkinScoreOutput.dwPitch - 1) : 0;
-
-        cmd.DW7.CompressionFormat = currSurf.dwCompressionFormat;
-
-        // Reset Output Format When Input/Output Format are the same
-        if (params.bIsOutputSurface && params.SurfInput.Format == params.SurfOutput.Format)
-        {
-            cmd.DW3.SurfaceFormat = cmd.DW3.SurfaceFormat;
-        }
+         cmd.DW7.CompressionFormat = params.CompressionFormat;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1177,18 +925,21 @@ public:
     _MHW_SETCMD_OVERRIDE_DECL(VEBOX_STATE)
     {
         _MHW_SETCMD_CALLBASE(VEBOX_STATE);
+
         return MOS_STATUS_SUCCESS;
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(VEBOX_TILING_CONVERT)
     {
         _MHW_SETCMD_CALLBASE(VEBOX_TILING_CONVERT);
+
         return MOS_STATUS_SUCCESS;
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(VEB_DI_IECP)
     {
         _MHW_SETCMD_CALLBASE(VEB_DI_IECP);
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1204,10 +955,10 @@ protected:
     uint32_t                  m_usingSfc                  = 0;
     uint32_t                  m_veboxSplitRatio           = 0;
     MHW_LACE_COLOR_CORRECTION m_laceColorCorrection       = {};
-    uint32_t                  m_BT2020InvPixelValue[256]  = {0};
-    uint32_t                  m_BT2020FwdPixelValue[256]  = {0};
-    uint32_t                  m_BT2020InvGammaLUT[256]    = {0};
-    uint32_t                  m_BT2020FwdGammaLUT[256]    = {0};
+    uint32_t                  m_BT2020InvPixelValue[256]  = {};
+    uint32_t                  m_BT2020FwdPixelValue[256]  = {};
+    uint32_t                  m_BT2020InvGammaLUT[256]    = {};
+    uint32_t                  m_BT2020FwdGammaLUT[256]    = {};
     uint32_t                  dwLumaStadTh                = 3200;
     uint32_t                  dwChromaStadTh              = 1600;
     uint32_t                  dw4X4TGNEThCnt              = 576;
@@ -1220,6 +971,14 @@ protected:
     MHW_VEBOX_SETTINGS        m_veboxSettings             = {};
     bool                      m_veboxScalabilitywith4K    = false;
     MHW_VEBOX_CHROMA_PARAMS   m_chromaParams              = {};
+
+    //VPHAL_HVSDENOISE_PARAMS m_HvsParams       = {};
+    MHW_VEBOX_DNDI_PARAMS   m_veboxDNDIParams = {};
+    MHW_VEBOX_IECP_PARAMS   m_veboxIecpParams = {};
+    MHW_VEBOX_CHROMA_SAMPLING m_chromaSampling = {};
+    MHW_VEBOX_GAMUT_PARAMS  m_veboxGamutParams = {};
+
+    int                    m_veboxHeapInUse = 0;
 
 };
 }  // namespace render

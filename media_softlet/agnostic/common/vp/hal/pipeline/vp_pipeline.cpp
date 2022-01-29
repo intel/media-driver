@@ -463,7 +463,18 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
     }
     else if (m_forceMultiplePipe == MOS_SCALABILITY_ENABLE_MODE_DEFAULT)
     {
-        if (m_vpMhwInterface.m_veboxInterface && !(m_vpMhwInterface.m_veboxInterface->m_veboxScalabilitywith4K))
+        std::shared_ptr<mhw::vebox::Itf> veboxItf = nullptr;
+        if (m_vpMhwInterface.m_veboxInterface)
+        {
+            veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_vpMhwInterface.m_veboxInterface->m_veboxItfNew);
+        }
+
+        if (veboxItf && !(veboxItf->IsVeboxScalabilitywith4K()))
+        {
+            m_numVebox = 1;
+            return MOS_STATUS_SUCCESS;
+        }
+        else if (m_vpMhwInterface.m_veboxInterface && !(m_vpMhwInterface.m_veboxInterface->m_veboxScalabilitywith4K))
         {
             m_numVebox = 1;
             return MOS_STATUS_SUCCESS;

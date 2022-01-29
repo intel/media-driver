@@ -787,11 +787,23 @@ MOS_STATUS VpRenderCmdPacket::InitStateHeapSurface(SurfaceType type, RENDERHAL_S
 
     // Check for Vebox Heap readiness
     const MHW_VEBOX_HEAP *pVeboxHeap = nullptr;
+    std::shared_ptr<mhw::vebox::Itf> veboxItf = nullptr;
+
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_veboxInterface);
+    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_hwInterface->m_veboxInterface->m_veboxItfNew);
 
-    VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_veboxInterface->GetVeboxHeapInfo(
-        &pVeboxHeap));
+    if (veboxItf)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(veboxItf->GetVeboxHeapInfo(
+            &pVeboxHeap));
+    }
+    else
+    {
+        VP_RENDER_CHK_STATUS_RETURN(m_hwInterface->m_veboxInterface->GetVeboxHeapInfo(
+            &pVeboxHeap));
+    }
+
     VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
 
     switch (type)

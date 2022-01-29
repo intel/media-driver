@@ -28,8 +28,6 @@
 #ifndef __MHW_VEBOX_CMDPAR_H__
 #define __MHW_VEBOX_CMDPAR_H__
 
-//#include "mhw_cmdpar.h"
-//#include "mhw_state_heap.h"
 #include "mhw_vebox.h"
 
 #define HDR_OETF_1DLUT_POINT_NUMBER          256
@@ -185,6 +183,7 @@ const int32_t g_Vebox_BT2020_Forward_Pixel_Value[256] =
     0xe150, 0xe24c, 0xe348, 0xe448, 0xe544, 0xe640, 0xe740, 0xe83c, 0xe938, 0xea38, 0xeb34, 0xec30, 0xed30, 0xee2c, 0xef28, 0xf028,
     0xf124, 0xf220, 0xf320, 0xf41c, 0xf518, 0xf618, 0xf714, 0xf814, 0xf910, 0xfa0c, 0xfb0c, 0xfc08, 0xfd04, 0xfe04, 0xff00, 0xffff
 };
+
 const int32_t g_Vebox_BT2020_Inverse_Gamma_LUT[256] =
 {
     0x0000, 0x049c, 0x04cc, 0x0503, 0x053a, 0x0574, 0x05ae, 0x05e9, 0x0626, 0x0665, 0x06a5, 0x06e5, 0x0729, 0x076c, 0x07b1, 0x07f7,
@@ -545,7 +544,7 @@ struct _MHW_PAR_T(VEBOX_STATE)
     PMOS_RESOURCE                    pVeboxParamSurf             = nullptr;
     PMOS_RESOURCE                    pVebox3DLookUpTables        = nullptr;
     PMOS_RESOURCE                    pVebox1DLookUpTables        = nullptr;
-    PMOS_RESOURCE                     DummyIecpResource          = nullptr;
+    PMOS_RESOURCE                    DummyIecpResource           = nullptr;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS LaceLookUpTablesSurfCtrl    = {};
     MHW_MEMORY_OBJECT_CONTROL_PARAMS Vebox3DLookUpTablesSurfCtrl = {};
     bool                             bNoUseVeboxHeap             = false;
@@ -554,15 +553,26 @@ struct _MHW_PAR_T(VEBOX_STATE)
 
 struct _MHW_PAR_T(VEBOX_SURFACE_STATE)
 {
-    MHW_VEBOX_SURFACE_PARAMS SurfInput           = {};
-    MHW_VEBOX_SURFACE_PARAMS SurfOutput          = {};
-    MHW_VEBOX_SURFACE_PARAMS SurfSTMM            = {};
-    MHW_VEBOX_SURFACE_PARAMS SurfDNOutput        = {};
-    MHW_VEBOX_SURFACE_PARAMS SurfSkinScoreOutput = {};
-    bool                     bDIEnable           = false;
-    bool                     b3DlutEnable        = false;
-    bool                     bOutputValid        = false;
-    bool                     bIsOutputSurface    = false;
+    uint32_t SurfaceIdentification                  = 0;
+    uint32_t Width                                  = 0;
+    uint32_t Height                                 = 0;
+    uint32_t HalfPitchForChroma                     = 0;
+    uint32_t InterleaveChroma                       = 0;
+    uint32_t SurfaceFormat                          = 0;
+    uint32_t BayerInputAlignment                    = 0;
+    uint32_t BayerPatternOffset                     = 0;
+    uint32_t BayerPatternFormat                     = 0;
+    uint32_t SurfacePitch                           = 0;
+    uint32_t TileMode                               = 0;
+    uint32_t XOffsetForU                            = 0;
+    uint32_t YOffsetForU                            = 0;
+    uint32_t XOffsetForV                            = 0;
+    uint32_t YOffsetForV                            = 0;
+    uint32_t YOffsetForFrame                        = 0;
+    uint32_t XOffsetForFrame                        = 0;
+    uint32_t DerivedSurfacePitch                    = 0;
+    uint32_t SurfacePitchForSkinScoreOutputSurfaces = 0;
+    uint32_t CompressionFormat                      = 0;
 };
 
 struct _MHW_PAR_T(VEBOX_TILING_CONVERT)
@@ -609,17 +619,17 @@ struct _MHW_PAR_T(VEB_DI_IECP)
     uint32_t dwStreamID                                              = 0;        // Stream ID for input surface
     uint32_t dwStreamIDOutput                                        = 0;  // Stream ID for output surface
 
-    PMOS_RESOURCE pOsResCurrInput                                    = {};
-    PMOS_RESOURCE pOsResPrevInput                                    = {};
-    PMOS_RESOURCE pOsResStmmInput                                    = {};
-    PMOS_RESOURCE pOsResStmmOutput                                   = {};
-    PMOS_RESOURCE pOsResDenoisedCurrOutput                           = {};
-    PMOS_RESOURCE pOsResCurrOutput                                   = {};
-    PMOS_RESOURCE pOsResPrevOutput                                   = {};
-    PMOS_RESOURCE pOsResStatisticsOutput                             = {};
-    PMOS_RESOURCE pOsResAlphaOrVignette                              = {};
-    PMOS_RESOURCE pOsResLaceOrAceOrRgbHistogram                      = {};
-    PMOS_RESOURCE pOsResSkinScoreSurface                             = {};
+    PMOS_RESOURCE pOsResCurrInput                                    = nullptr;
+    PMOS_RESOURCE pOsResPrevInput                                    = nullptr;
+    PMOS_RESOURCE pOsResStmmInput                                    = nullptr;
+    PMOS_RESOURCE pOsResStmmOutput                                   = nullptr;
+    PMOS_RESOURCE pOsResDenoisedCurrOutput                           = nullptr;
+    PMOS_RESOURCE pOsResCurrOutput                                   = nullptr;
+    PMOS_RESOURCE pOsResPrevOutput                                   = nullptr;
+    PMOS_RESOURCE pOsResStatisticsOutput                             = nullptr;
+    PMOS_RESOURCE pOsResAlphaOrVignette                              = nullptr;
+    PMOS_RESOURCE pOsResLaceOrAceOrRgbHistogram                      = nullptr;
+    PMOS_RESOURCE pOsResSkinScoreSurface                             = nullptr;
 
     MHW_MEMORY_OBJECT_CONTROL_PARAMS CurrInputSurfCtrl               = {};  //can be removed after VPHAL moving to new cmd definition
     MHW_MEMORY_OBJECT_CONTROL_PARAMS PrevInputSurfCtrl               = {};
@@ -635,7 +645,6 @@ struct _MHW_PAR_T(VEB_DI_IECP)
 
     MOS_MEMCOMP_STATE CurInputSurfMMCState                           = MOS_MEMCOMP_DISABLED;
 };
-
 }  // namespace vebox
 }  // namespace mhw
 

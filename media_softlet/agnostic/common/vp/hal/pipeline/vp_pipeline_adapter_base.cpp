@@ -155,9 +155,18 @@ VpPipelineAdapterBase::~VpPipelineAdapterBase()
 
     if (m_veboxInterface)
     {
-        eStatus = m_veboxInterface->DestroyHeap();
+        if (m_veboxItf)
+        {
+            eStatus = m_veboxItf->DestroyHeap();
+        }
+        else
+        {
+            eStatus = m_veboxInterface->DestroyHeap();
+        }
+
         MOS_Delete(m_veboxInterface);
         m_veboxInterface = nullptr;
+        m_veboxItf       = nullptr;
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);

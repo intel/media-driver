@@ -490,7 +490,18 @@ public:
 
         if (m_veboxInterface != nullptr)
         {
-            MOS_STATUS eStatus = m_veboxInterface->DestroyHeap();
+            m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->GetNewVeboxInterface());
+            MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+            if (m_veboxItf)
+            {
+                eStatus = m_veboxItf->DestroyHeap();
+            }
+            else
+            {
+                eStatus = m_veboxInterface->DestroyHeap();
+            }
+
             MOS_Delete(m_veboxInterface);
             m_veboxInterface = nullptr;
             if (eStatus != MOS_STATUS_SUCCESS)
@@ -536,6 +547,7 @@ protected:
     MhwCpInterface              *m_cpInterface;
     PMHW_SFC_INTERFACE          m_sfcInterface;
     VphalRenderer               *m_renderer;
+    std::shared_ptr<mhw::vebox::Itf> m_veboxItf = nullptr;
 
     // Render GPU context/node
     MOS_GPU_NODE                m_renderGpuNode;

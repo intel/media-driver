@@ -54,9 +54,9 @@ public:
 
     virtual ~Itf() = default;
 
-    virtual MOS_STATUS SetVeboxSurfaceControlBits(MHW_VEBOX_SURFACE_CNTL_PARAMS *pVeboxSurfCntlParams, uint32_t* pSurfCtrlBits) = 0;
+    virtual MOS_STATUS SetVeboxSurfaceControlBits(PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams, uint32_t* pSurfCtrlBits) = 0;
 
-    virtual MOS_STATUS VeboxAdjustBoundary(MHW_VEBOX_SURFACE_PARAMS currSurf, uint32_t* pdwSurfaceWidth, uint32_t* pdwSurfaceHeight, bool bDIEnable, bool b3DlutEnable) = 0;
+    virtual MOS_STATUS VeboxAdjustBoundary(PMHW_VEBOX_SURFACE_PARAMS pCurrSurf, uint32_t* pdwSurfaceWidth, uint32_t* pdwSurfaceHeight, bool bDIEnable, bool b3DlutEnable) = 0;
 
     virtual MOS_STATUS SetVeboxIndex(uint32_t dwVeboxIndex, uint32_t dwVeboxCount, uint32_t dwUsingSFC) = 0;
 
@@ -66,25 +66,35 @@ public:
 
     virtual MOS_STATUS GetVeboxHeapInfo(const MHW_VEBOX_HEAP** ppVeboxHeap) = 0;
 
-    virtual MOS_STATUS AddVeboxSurfaces(MHW_VEBOX_SURFACE_STATE_CMD_PARAMS* pVeboxSurfaceStateCmdParams) = 0;
+    virtual MOS_STATUS AddVeboxSurfaces(PMOS_COMMAND_BUFFER pCmdBufferInUse, PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams) = 0;
 
-    virtual MOS_STATUS setVeboxPrologCmd(MhwMiInterface *mhwMiInterface, MOS_COMMAND_BUFFER* CmdBuffer) = 0;
+    virtual MOS_STATUS setVeboxPrologCmd(PMHW_MI_INTERFACE pMhwMiInterface, PMOS_COMMAND_BUFFER CmdBuffer) = 0;
 
-    virtual MOS_STATUS SetVeboxDndiState(MHW_VEBOX_DNDI_PARAMS *pVeboxDndiParams) = 0;
+    virtual MOS_STATUS SetVeboxDndiState(PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams) = 0;
 
-    virtual MOS_STATUS SetVeboxIecpState(MHW_VEBOX_IECP_PARAMS *pVeboxIecpParams) = 0;
+    virtual MOS_STATUS SetVeboxIecpState(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) = 0;
 
     virtual MOS_STATUS SetVeboxLaceColorParams(MHW_LACE_COLOR_CORRECTION *pLaceColorParams)  = 0;
 
-    virtual MOS_STATUS SetVeboxIecpAceState(MHW_VEBOX_IECP_PARAMS* pVeboxIecpParams) = 0;
+    virtual MOS_STATUS SetVeboxIecpAceState(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) = 0;
 
-    virtual MOS_STATUS SetVeboxGamutState(MHW_VEBOX_IECP_PARAMS* pVeboxIecpParams, MHW_VEBOX_GAMUT_PARAMS* pVeboxGamutParams) = 0;
+    virtual MOS_STATUS SetVeboxGamutState(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams, PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams) = 0;
 
-    virtual MOS_STATUS SetVeboxChromaParams(MHW_VEBOX_CHROMA_PARAMS *chromaParams) = 0;
+    virtual MOS_STATUS SetVeboxChromaParams(MHW_VEBOX_CHROMA_PARAMS* chromaParams) = 0;
+
+    virtual MOS_STATUS AddVeboxHdrState(PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams) = 0;
 
     virtual MOS_STATUS AssignVeboxState() = 0;
 
     virtual MOS_STATUS SetgnLumaChromaWgts(uint32_t dwLumaStadTh, uint32_t dwChromaStadTh, uint32_t dw4X4TGNEThCnt, bool bTGNEEnable) = 0;
+
+    virtual MOS_STATUS FindVeboxGpuNodeToUse(PMHW_VEBOX_GPUNODE_LIMIT pVeboxGpuNodeLimit) = 0;
+
+    virtual MOS_STATUS CreateGpuContext(PMOS_INTERFACE  pOsInterface, MOS_GPU_CONTEXT VeboxGpuContext, MOS_GPU_NODE VeboxGpuNode) = 0;
+
+    virtual uint32_t GetVeboxNumInstances() = 0;
+
+    virtual bool IsVeboxScalabilitywith4K() = 0;
 
     _VEBOX_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 

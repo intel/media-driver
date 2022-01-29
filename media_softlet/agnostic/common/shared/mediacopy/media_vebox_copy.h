@@ -30,6 +30,7 @@
 #include "mos_interface.h"
 #include "media_interfaces_mhw.h"
 #include "mhw_vebox.h"
+#include "mhw_vebox_itf.h"
 
 #define VEBOX_COPY_CHK_STATUS(_stmt)               MOS_CHK_STATUS(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _stmt)
 #define VEBOX_COPY_CHK_STATUS_RETURN(_stmt)        MOS_CHK_STATUS_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _stmt)
@@ -147,6 +148,7 @@ protected:
     MhwVeboxInterface *m_veboxInterface = nullptr;
     MhwCpInterface* m_cpInterface = nullptr;
     MhwInterfaces::CreateParams params;
+    std::shared_ptr<mhw::vebox::Itf> m_veboxItf = nullptr;
 };
 
 #endif //__MEDIA_VEBOX_COPY_H__

@@ -68,11 +68,28 @@ MOS_STATUS VpPipelineAdapter::Init(
 
     vpMhwinterface.m_settings         = (void *) &settings;
 
-    if (vpMhwinterface.m_veboxInterface &&
+    if (vpMhwinterface.m_veboxInterface)
+    {
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(vpMhwinterface.m_veboxInterface->m_veboxItfNew);
+    }
+
+    if (m_veboxItf)
+    {
+        const MHW_VEBOX_HEAP* veboxHeap = nullptr;
+        m_veboxItf->GetVeboxHeapInfo(&veboxHeap);
+        uint32_t uiNumInstances = m_veboxItf->GetVeboxNumInstances();
+
+        if (uiNumInstances > 0 &&
+            veboxHeap == nullptr)
+        {
+            // Allocate VEBOX Heap
+            VP_PUBLIC_CHK_STATUS_RETURN(m_veboxItf->CreateHeap());
+        }
+    }
+    else if (vpMhwinterface.m_veboxInterface &&
         vpMhwinterface.m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
         vpMhwinterface.m_veboxInterface->m_veboxHeap == nullptr)
     {
-        // Allocate VEBOX Heap
         VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_veboxInterface->CreateHeap());
     }
 
