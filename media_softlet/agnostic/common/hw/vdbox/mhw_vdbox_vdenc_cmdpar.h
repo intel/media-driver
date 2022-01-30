@@ -178,18 +178,19 @@ struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
 
 struct _MHW_PAR_T(VDENC_SRC_SURFACE_STATE)
 {
-    uint32_t          width                = 0;
-    uint32_t          height               = 0;
-    uint32_t          pitch                = 0;
-    uint32_t          uOffset              = 0;
-    uint32_t          vOffset              = 0;
-    MOS_TILE_TYPE     tileType             = MOS_TILE_X;
-    MOS_TILE_MODE_GMM tileModeGmm          = MOS_TILE_LINEAR_GMM;
-    MOS_FORMAT        format               = Format_Any;
-    bool              gmmTileEn            = false;
-    bool              colorSpaceSelection  = false;
-    bool              displayFormatSwizzle = false;
-    uint8_t           vDirection           = 0;
+    uint32_t          width                         = 0;
+    uint32_t          height                        = 0;
+    uint32_t          pitch                         = 0;
+    uint32_t          uOffset                       = 0;
+    uint32_t          vOffset                       = 0;
+    MOS_TILE_TYPE     tileType                      = MOS_TILE_X;
+    MOS_TILE_MODE_GMM tileModeGmm                   = MOS_TILE_LINEAR_GMM;
+    MOS_FORMAT        format                        = Format_Any;
+    bool              gmmTileEn                     = false;
+    bool              colorSpaceSelection           = false;
+    bool              displayFormatSwizzle          = false;
+    uint32_t          chromaDownsampleFilterControl = 0;
+    uint8_t           vDirection                    = 0;
 };
 
 struct _MHW_PAR_T(VDENC_REF_SURFACE_STATE)
