@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -350,6 +350,14 @@ public:
     virtual uint32_t GetVdencCmd2Size() = 0;
 
     //!
+    //! \brief    get cmd3
+    //!
+    //! \return   uint32_t
+    //!           cmd3 size got
+    //!
+    virtual uint32_t GetVdencCmd3Size() = 0;
+
+    //!
     //! \brief    get Vdenc state commands data size
     //!
     //! \return   uint32_t
@@ -607,7 +615,7 @@ public:
 
     //!
     //! \brief    Adds CMD2 command in command buffer
-    //! \details  Client facing function to add VDENC HEVC VP9 IMG State command in command buffer
+    //! \details  Client facing function to add CMD2 command in command buffer
     //! \param    [in] cmdBuffer
     //!           Command buffer to which HW command is added
     //! \param    [in] batchBuffer
@@ -621,6 +629,26 @@ public:
         PMOS_COMMAND_BUFFER                 cmdBuffer,
         PMHW_BATCH_BUFFER                   batchBuffer,
         PMHW_VDBOX_VDENC_CMD2_STATE         params) = 0;
+
+    //!
+    //! \brief    Adds CMD3 command in command buffer
+    //! \details  Client facing function to add CMD3 command in command buffer
+    //! \param    [in] cmdBuffer
+    //!           Command buffer to which HW command is added
+    //! \param    [in] batchBuffer
+    //!           Batch buffer to add to VDBOX_BUFFER_START
+    //! \param    [in] params
+    //!           Params structure used to populate the HW command
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail type
+    //!
+    virtual MOS_STATUS AddVdencCmd3Cmd(
+        PMOS_COMMAND_BUFFER       cmdBuffer,
+        PMHW_BATCH_BUFFER         batchBuffer,
+        PMHW_VDBOX_AVC_IMG_PARAMS params)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
     virtual PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS CreateMhwVdboxPipeModeSelectParams() = 0;
     virtual void ReleaseMhwVdboxPipeModeSelectParams(PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams) = 0;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2021, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -298,7 +298,12 @@ public:
         return TVdencCmds::VDENC_IMG_STATE_CMD::byteSize;
     }
 
-    uint32_t GetVdencAvcCostStateSize()
+    inline uint32_t GetVdencCmd3Size()
+    {
+        return 0;
+    }
+
+    inline uint32_t GetVdencAvcCostStateSize()
     {
         return 0;
     }

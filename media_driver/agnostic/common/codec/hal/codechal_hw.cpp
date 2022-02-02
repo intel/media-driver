@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -735,6 +735,7 @@ MOS_STATUS CodechalHwInterface::AddVdencBrcImgBuffer(
 
     uint32_t mfxAvcImgStateSize = m_mfxInterface->GetAvcImgStateSize();
     uint32_t vdencAvcCostStateSize = m_vdencInterface->GetVdencAvcCostStateSize();
+    uint32_t vdencCmd3Size = m_vdencInterface->GetVdencCmd3Size();
     uint32_t vdencAvcImgStateSize = m_vdencInterface->GetVdencAvcImgStateSize();
 
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -747,7 +748,7 @@ MOS_STATUS CodechalHwInterface::AddVdencBrcImgBuffer(
 
     MOS_ZeroMemory(&constructedCmdBuf, sizeof(MOS_COMMAND_BUFFER));
     constructedCmdBuf.pCmdBase = (uint32_t *)data;
-    constructedCmdBuf.iRemaining = mfxAvcImgStateSize + vdencAvcCostStateSize + vdencAvcImgStateSize;
+    constructedCmdBuf.iRemaining = mfxAvcImgStateSize + vdencAvcCostStateSize + vdencCmd3Size + vdencAvcImgStateSize;
 
     // Set MFX_IMAGE_STATE command
     constructedCmdBuf.pCmdPtr = (uint32_t *)data;
@@ -759,10 +760,14 @@ MOS_STATUS CodechalHwInterface::AddVdencBrcImgBuffer(
     constructedCmdBuf.iOffset = mfxAvcImgStateSize;
     MHW_MI_CHK_STATUS(m_vdencInterface->AddVdencAvcCostStateCmd(&constructedCmdBuf, nullptr, params));
 
-    // Set VDENC_IMAGE_STATE command
+    // Set VDENC_CMD3 command
     constructedCmdBuf.pCmdPtr = (uint32_t *)(data + mfxAvcImgStateSize + vdencAvcCostStateSize);
     constructedCmdBuf.iOffset = mfxAvcImgStateSize + vdencAvcCostStateSize;
+    MHW_MI_CHK_STATUS(m_vdencInterface->AddVdencCmd3Cmd(&constructedCmdBuf, nullptr, params));
 
+    // Set VDENC_IMAGE_STATE command
+    constructedCmdBuf.pCmdPtr = (uint32_t *)(data + mfxAvcImgStateSize + vdencAvcCostStateSize + vdencCmd3Size);
+    constructedCmdBuf.iOffset = mfxAvcImgStateSize + vdencAvcCostStateSize + vdencCmd3Size;
     MHW_MI_CHK_STATUS(m_vdencInterface->AddVdencImgStateCmd(&constructedCmdBuf, nullptr, params));
 
     // Add batch buffer end insertion flag

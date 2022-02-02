@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -6144,6 +6144,8 @@ MOS_STATUS CodechalVdencAvcState::ExecutePictureLevel()
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencAvcCostStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencCmd3Cmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
+
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_vdencInterface->AddVdencImgStateCmd(nullptr, secondLevelBatchBufferUsed, imageStateParams));
 
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(nullptr, secondLevelBatchBufferUsed));
@@ -8599,7 +8601,10 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
 
 uint32_t CodechalVdencAvcState::GetPakVDEncPassDumpSize()
 {
-    return m_mfxInterface->GetAvcImgStateSize() + m_vdencInterface->GetVdencAvcCostStateSize() + m_vdencInterface->GetVdencAvcImgStateSize();
+    return m_mfxInterface->GetAvcImgStateSize() +
+        m_vdencInterface->GetVdencAvcCostStateSize() +
+        m_vdencInterface->GetVdencCmd3Size() +
+        m_vdencInterface->GetVdencAvcImgStateSize();
 }
 
 MOS_STATUS CodechalVdencAvcState::DumpEncodeImgStats(
