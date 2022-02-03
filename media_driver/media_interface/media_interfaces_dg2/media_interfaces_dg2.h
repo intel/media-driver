@@ -54,7 +54,6 @@
 #include "mhw_vdbox_huc_xe_hpm.h"
 #include "mhw_vdbox_avp_g12_X.h"
 #ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
-#include "mhw_vdbox_vdenc_xe_hpm.h"
 #include "mhw_vdbox_vdenc_xe_hpm_ext.h"
 #else
 #include "mhw_vdbox_vdenc_g12_X.h"
@@ -121,7 +120,7 @@
 #endif
 
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
-#include "codechal_vdenc_avc_xe_hpm.h"
+#include "codechal_vdenc_avc_xe_hpm_ext.h"
 #endif
 
 #include "codechal_memdecomp_g11_icl.h"
@@ -134,7 +133,6 @@
 #endif
 #endif
 
-#include "codechal_encoder_unsupported.h"
 #endif
 #ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
 #include "cm_hal_xe_xpm.h"
@@ -289,7 +287,7 @@ public:
     using HevcVdenc = EncodeHevcVdencPipelineAdapterXe_Hpm;
 #endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
-    using AvcVdenc = CodechalVdencAvcStateXe_Hpm;
+    using AvcVdenc = CodechalVdencAvcStateXe_HpmExt;
 #endif
 #ifdef _AV1_ENCODE_VDENC_SUPPORTED
     using Av1Vdenc = EncodeAv1VdencPipelineAdapterXe_Hpm;
