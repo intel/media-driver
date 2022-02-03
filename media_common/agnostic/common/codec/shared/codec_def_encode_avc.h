@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, 2022, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1066,7 +1066,7 @@ typedef struct _CODEC_AVC_ENCODE_SLICE_PARAMS
     *
     *    Contains field/frame information concerning the reference in PicFlags. RefPicList[i][j]:
     *        \n - i: the reference picture list (0 or 1)
-    *        \n - j: if the PicFlags are not PICTURE_INVALID, the index variable j is a reference to entry j in teh reference picture list.
+    *        \n - j: if the PicFlags are not PICTURE_INVALID, the index variable j is a reference to entry j in the reference picture list.
     */
     CODEC_PICTURE   RefPicList[CODEC_AVC_NUM_REF_LISTS][CODEC_MAX_NUM_REF_FIELD];
     /*! \brief Specifies the weights and offsets used for explicit mode weighted prediction.
