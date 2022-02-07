@@ -58,10 +58,10 @@ public:
     //!
     virtual ~Mpeg2DecodeMemComp() {};
 
-    MOS_STATUS CheckReferenceList(
+    virtual MOS_STATUS CheckReferenceList(
         Mpeg2BasicFeature &mpeg2BasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
 
-    MOS_STATUS CheckReferenceList(
+    virtual MOS_STATUS CheckReferenceList(
         Mpeg2BasicFeature &mpeg2BasicFeature, MOS_MEMCOMP_STATE &preDeblockSurfMmcState, MOS_MEMCOMP_STATE &postDeblockSurfMmcState);
 
 protected:
