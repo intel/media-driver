@@ -1669,6 +1669,7 @@ MOS_STATUS CodechalEncHevcStateG11::GetStatusReport(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CalculatePSNR(encodeStatus, encodeStatusReport));
     }
 
+    CODECHAL_ENCODE_CHK_COND_RETURN(totalCU == 0, "ERROR - totalCU cannot be zero.");
     encodeStatusReport->QpY = encodeStatusReport->AverageQp =
         (uint8_t)((sumQp / (double)totalCU) / 4.0); // due to TU is 4x4 and there are 4 TUs in one CU
 
