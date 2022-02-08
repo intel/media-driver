@@ -2132,7 +2132,7 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
     {
         // Set DMEM
         uint8_t *data_dmem = (uint8_t *)m_osInterface->pfnLockResource(
-            m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0][m_currRecycledBufIdx], &lpReadOnly);
+            m_osInterface, &m_resVdencBrcUpdateDmemBuffer[m_currPass][m_currRecycledBufIdx], &lpReadOnly);
         CODECHAL_ENCODE_CHK_NULL_RETURN(data_dmem);
         CODECHAL_ENCODE_CHK_STATUS_RETURN(pfnSetBuffer(data_dmem, eVp9INLINE_DMEM, pvBrcIfHandle));
 
@@ -2191,7 +2191,7 @@ MOS_STATUS CodechalVdencVp9State::SoftwareBRC(bool update)
         // Execute update firmware
         pfnProcess(pvBrcIfHandle, BRCUpdate);
 
-        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[0][m_currRecycledBufIdx]);
+        m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcUpdateDmemBuffer[m_currPass][m_currRecycledBufIdx]);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_brcBuffers.resBrcHistoryBuffer);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resVdencBrcStatsBuffer);
         m_osInterface->pfnUnlockResource(m_osInterface, &m_resFrameStatStreamOutBuffer);
