@@ -422,11 +422,12 @@ MOS_STATUS MediaContext::FunctionToNode(MediaFunction func, const MOS_GPUCTX_CRE
 MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
 {
     CodechalHwInterface *hwInterface = static_cast<CodechalHwInterface *>(m_hwInterface);
+    std::shared_ptr<mhw::vdbox::mfx::Itf> mfxItf       = hwInterface->GetMfxInterfaceNext();
     MhwVdboxMfxInterface *mfxInterface = hwInterface->GetMfxInterface();
     MOS_OS_CHK_NULL_RETURN(mfxInterface);
 
     MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = {0};
-    if (hwInterface->GetMfxInterfaceNext())
+    if (mfxItf)
     {
         MOS_OS_CHK_STATUS_RETURN(hwInterface->GetMfxInterfaceNext()->FindGpuNodeToUse(&gpuNodeLimit));
     }

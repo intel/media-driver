@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -77,6 +77,45 @@ namespace mfx
 class Itf
 {
 public:
+#define PATCH_LIST_COMMAND(x) (x##_NUMBER_OF_ADDRESSES)
+    //!
+    //! \enum     CommandsNumberOfAddresses
+    //! \brief    Commands number of addresses
+    //!
+    enum CommandsNumberOfAddresses
+    {
+        // MFX Engine Commands
+        MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES       = 1,   //  2 DW for  1 address field
+        MFX_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES        = 0,   //  0 DW for    address fields
+        MFX_SURFACE_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
+        MFX_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES     = 27,  // 50 DW for 25 address fields, added 2 for DownScaledReconPicAddr
+        MFX_IND_OBJ_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES = 5,   // 10 DW for  5 address fields
+        MFX_WAIT_CMD_NUMBER_OF_ADDRESSES                    = 0,   //  0 DW for    address fields
+        MFX_BSP_BUF_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES = 3,   //  2 DW for  3 address fields
+        MFD_AVC_PICID_STATE_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
+        MFX_AVC_DIRECTMODE_STATE_CMD_NUMBER_OF_ADDRESSES    = 17,  // 50 DW for 17 address fields
+        MFX_AVC_IMG_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
+        MFX_QM_STATE_CMD_NUMBER_OF_ADDRESSES                = 0,   //  0 DW for    address fields
+        MFX_FQM_STATE_CMD_NUMBER_OF_ADDRESSES               = 0,   //  0 DW for    address fields
+        MFD_VC1_LONG_PIC_STATE_CMD_NUMBER_OF_ADDRESSES      = 0,   //  0 DW for    address fields
+        MFX_VC1_PRED_PIPE_STATE_CMD_NUMBER_OF_ADDRESSES     = 0,   //  0 DW for    address fields
+        MFX_VC1_DIRECTMODE_STATE_CMD_NUMBER_OF_ADDRESSES    = 2,   //  2 DW for  2 address fields
+        MFX_MPEG2_PIC_STATE_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
+        MFX_DBK_OBJECT_CMD_NUMBER_OF_ADDRESSES              = 4,   //  2 DW for  4 address fields
+        MFX_VP8_PIC_STATE_CMD_NUMBER_OF_ADDRESSES           = 2,   //  2 DW for  2 address fields
+        MFX_AVC_SLICE_STATE_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
+        MFD_AVC_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES          = 0,   //  0 DW for    address fields
+        MFD_AVC_DPB_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
+        MFD_AVC_SLICEADDR_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
+        MFX_AVC_REF_IDX_STATE_CMD_NUMBER_OF_ADDRESSES       = 0,   //  0 DW for    address fields
+        MFX_AVC_WEIGHTOFFSET_STATE_CMD_NUMBER_OF_ADDRESSES  = 0,   //  0 DW for    address fields
+        MFC_AVC_PAK_INSERT_OBJECT_CMD_NUMBER_OF_ADDRESSES   = 0,   //  0 DW for    address fields
+        MFD_VC1_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES          = 0,   //  0 DW for    address fields
+        MFD_VC1_IT_OBJECT_CMD_NUMBER_OF_ADDRESSES           = 0,   //  0 DW for    address fields
+        MFD_MPEG2_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES        = 0,   //  0 DW for    address fields
+        MFD_MPEG2_IT_OBJECT_CMD_NUMBER_OF_ADDRESSES         = 0,   //  0 DW for    address fields
+        MFD_VP8_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES          = 0,   //  0 DW for    address fields
+    };
     bool IsVPlanePresent(MOS_FORMAT format)
     {
         switch (format)
@@ -224,6 +263,8 @@ public:
     virtual uint8_t GetNumVdbox() = 0;
 
     virtual MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit) = 0;
+
+    virtual MmioRegistersMfx *GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
 
     vdbox::RowStoreCache m_intraRowstoreCache            = {};  //!< Intra rowstore cache
     vdbox::RowStoreCache m_deblockingFilterRowstoreCache = {};  //!< Deblocking filter row store cache

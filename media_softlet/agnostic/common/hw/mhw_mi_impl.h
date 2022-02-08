@@ -39,6 +39,15 @@ namespace mhw
 {
 namespace mi
 {
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER0_LO_OFFSET_NODE_1_INIT  = 0x1C0600;
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER0_HI_OFFSET_NODE_1_INIT  = 0x1C0604;
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER4_LO_OFFSET_NODE_1_INIT  = 0x1C0620;
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER4_HI_OFFSET_NODE_1_INIT  = 0x1C0624;
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER11_LO_OFFSET_NODE_1_INIT = 0x1C0658;
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER11_HI_OFFSET_NODE_1_INIT = 0x1C065C;
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER12_LO_OFFSET_NODE_1_INIT = 0x1C0660;
+static constexpr uint32_t GENERAL_PURPOSE_REGISTER12_HI_OFFSET_NODE_1_INIT = 0x1C0664;
+
 template <typename cmd_t>
 class Impl : public Itf, public mhw::Impl
     {
