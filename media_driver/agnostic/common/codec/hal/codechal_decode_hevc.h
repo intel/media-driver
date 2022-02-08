@@ -583,6 +583,7 @@ public:
     bool                         m_dummyReferenceSlot[CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC];
 
     bool m_reportHucStatus = false;
+    bool m_reportHucCriticalError = false;
 };
 
 #endif  // __CODECHAL_DECODER_HEVC_H__

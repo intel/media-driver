@@ -458,9 +458,11 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
         m_decodeStatusBuf.m_hucErrorStatusRegOffset     = CODECHAL_OFFSETOF(CodechalDecodeStatus, m_hucErrorStatus) + sizeof(uint32_t);
 
         // Set IMEM Loaded bit (in DW1) to 1 by default in the first status buffer
-        // This bit will be changed later after storing register
+        // Set None Critical Error bit to 1 by default in the first status buffer
+        // These bits will be changed later after storing register
         if (m_hucInterface)
         {
+            m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus  = (uint64_t)m_hucInterface->GetHucStatusHevcS2lFailureMask() << 32;
             m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus2 = (uint64_t)m_hucInterface->GetHucStatus2ImemLoadedMask() << 32;
         }
 

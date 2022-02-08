@@ -708,26 +708,42 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
 
     m_frameIdx++;
 
-    // Check HuC_status2 Imem loaded bit, if 0,return error
-    // As driver doesn't know when can get reg value afer storing HuC_Status2 register,
-    // Check the reg value here at the beginning of next frame
-    // Check twice, first entry and second entry
-    if (m_shortFormatInUse && m_frameIdx < 3 && m_statusQueryReportingEnabled &&
-        (((m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus2 >> 32) & m_hucInterface->GetHucStatus2ImemLoadedMask()) == 0))
+    if (m_shortFormatInUse)
     {
-        if (!m_reportHucStatus)
+        // Check HuC_status2 Imem loaded bit, if 0,return error
+        // As driver doesn't know when can get reg value afer storing HuC_Status2 register,
+        // Check the reg value here at the beginning of next frame
+        // Check twice, first entry and second entry
+        if (m_frameIdx < 3 && m_statusQueryReportingEnabled &&
+            (((m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus2 >> 32) & m_hucInterface->GetHucStatus2ImemLoadedMask()) == 0))
         {
-            MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
-            MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
-            userFeatureWriteData.Value.i32Data                     = true;
-            userFeatureWriteData.ValueID                           = __MEDIA_USER_FEATURE_VALUE_HUC_LOAD_STATUS_ID;
-            MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
-            m_reportHucStatus = true;
+            if (!m_reportHucStatus)
+            {
+                MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
+                MOS_ZeroMemory(&userFeatureWriteData, sizeof(userFeatureWriteData));
+                userFeatureWriteData.Value.i32Data = true;
+                userFeatureWriteData.ValueID       = __MEDIA_USER_FEATURE_VALUE_HUC_LOAD_STATUS_ID;
+                MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
+                m_reportHucStatus = true;
+            }
+
+            CODECHAL_DECODE_ASSERTMESSAGE("HuC IMEM Loaded fails");
+            MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_ERROR_STATUS2, (m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus2 >> 32));
+            return MOS_STATUS_UNKNOWN;
         }
 
-        CODECHAL_DECODE_ASSERTMESSAGE("HuC IMEM Loaded fails");
-        MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_ERROR_STATUS2, (m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus2 >> 32));
-        return MOS_STATUS_UNKNOWN;
+        // Check Huc_status None Critical Error bit, bit 15. If 0, return error.
+        if (((m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus >> 32) & m_hucInterface->GetHucStatusHevcS2lFailureMask()) == 0)
+        {
+            if (!m_reportHucCriticalError)
+            {
+                WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HUC_REPORT_CRITICAL_ERROR_ID, 1, m_osInterface->pOsContext);
+                m_reportHucCriticalError = true;
+            }
+            CODECHAL_DECODE_ASSERTMESSAGE("Huc Report Critical Error!");
+            MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_STATUS_CRITICAL_ERROR, (m_decodeStatusBuf.m_decodeStatus->m_hucErrorStatus >> 32));
+            return MOS_STATUS_UNKNOWN;
+        }
     }
 
     m_cencBuf = m_decodeParams.m_cencBuf;
