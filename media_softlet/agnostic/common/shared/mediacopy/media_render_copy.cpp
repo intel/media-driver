@@ -167,20 +167,15 @@ MOS_STATUS RenderCopyState::GetCurentKernelID( )
 
     if ((m_Source.Format == Format_NV12) || (m_Source.Format == Format_P010) || (m_Source.Format == Format_P016))
     {
-        if ((m_Source.TileType == MOS_TILE_LINEAR && m_Source.dwWidth * iBytePerPixelPerPlane == m_Source.dwPitch)
-            && ((m_Target.TileType == MOS_TILE_LINEAR) && (m_Target.dwWidth * iBytePerPixelPerPlane < m_Target.dwPitch)
-            || (m_Target.TileType != MOS_TILE_LINEAR)))
+        if (m_Source.TileType == MOS_TILE_LINEAR && m_Target.TileType != MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_1D_to_2D_NV12;
         }
-        else if ((m_Target.TileType == MOS_TILE_LINEAR && m_Target.dwWidth * iBytePerPixelPerPlane == m_Target.dwPitch)
-            && ((m_Source.TileType == MOS_TILE_LINEAR) && (m_Source.dwWidth * iBytePerPixelPerPlane < m_Source.dwPitch)
-            || (m_Source.TileType != MOS_TILE_LINEAR)))
+        else if (m_Source.TileType != MOS_TILE_LINEAR && m_Target.TileType == MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_2D_to_1D_NV12;
         }
-        else if (m_Source.TileType == MOS_TILE_Y ||
-            (m_Source.TileType == MOS_TILE_LINEAR && m_Source.dwWidth * iBytePerPixelPerPlane < m_Source.dwPitch))
+        else if (m_Source.TileType != MOS_TILE_LINEAR && m_Target.TileType != MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_2D_to_2D_NV12;
         }
@@ -193,20 +188,15 @@ MOS_STATUS RenderCopyState::GetCurentKernelID( )
     }
     else if (m_Source.Format == Format_RGBP)
     {
-        if ((m_Source.TileType == MOS_TILE_LINEAR && m_Source.dwWidth == m_Source.dwPitch)
-            && ((m_Target.TileType == MOS_TILE_LINEAR) && (m_Target.dwWidth < m_Target.dwPitch)
-            || (m_Target.TileType != MOS_TILE_LINEAR)))
+        if (m_Source.TileType == MOS_TILE_LINEAR && m_Target.TileType != MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_1D_to_2D_Planar;
         }
-        else if ((m_Target.TileType == MOS_TILE_LINEAR && m_Target.dwWidth == m_Target.dwPitch)
-            && ((m_Source.TileType == MOS_TILE_LINEAR) && (m_Source.dwWidth < m_Source.dwPitch)
-            || (m_Source.TileType != MOS_TILE_LINEAR)))
+        else if (m_Source.TileType != MOS_TILE_LINEAR && m_Target.TileType == MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_2D_to_1D_Planar;
         }
-        else if (m_Source.TileType == MOS_TILE_Y ||
-            (m_Source.TileType == MOS_TILE_LINEAR && m_Source.dwWidth < m_Source.dwPitch))
+        else if (m_Source.TileType != MOS_TILE_LINEAR && m_Target.TileType != MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_2D_to_2D_Planar;
         }
@@ -221,20 +211,15 @@ MOS_STATUS RenderCopyState::GetCurentKernelID( )
               || (m_Source.Format == Format_AYUV) || (m_Source.Format == Format_Y410) || (m_Source.Format == Format_Y416)
               || (m_Source.Format == Format_A8R8G8B8))
     {
-        if ((m_Source.TileType == MOS_TILE_LINEAR && m_Source.dwWidth * iBytePerPixelPerPlane == m_Source.dwPitch)
-            && ((m_Target.TileType == MOS_TILE_LINEAR) && (m_Target.dwWidth * iBytePerPixelPerPlane < m_Target.dwPitch)
-            || (m_Target.TileType != MOS_TILE_LINEAR)))
+        if (m_Source.TileType == MOS_TILE_LINEAR && m_Target.TileType != MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_1D_to_2D_Packed;
         }
-        else if ((m_Target.TileType == MOS_TILE_LINEAR && m_Target.dwWidth * iBytePerPixelPerPlane == m_Target.dwPitch)
-            && ((m_Source.TileType == MOS_TILE_LINEAR) && (m_Source.dwWidth * iBytePerPixelPerPlane < m_Source.dwPitch)
-            || (m_Source.TileType != MOS_TILE_LINEAR)))
+        else if (m_Source.TileType != MOS_TILE_LINEAR && m_Target.TileType == MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_2D_to_1D_Packed;
         }
-        else if (m_Source.TileType != MOS_TILE_LINEAR ||
-            (m_Source.TileType == MOS_TILE_LINEAR && m_Source.dwWidth * iBytePerPixelPerPlane < m_Source.dwPitch))
+        else if (m_Source.TileType != MOS_TILE_LINEAR && m_Target.TileType != MOS_TILE_LINEAR)
         {
             m_currKernelId = KERNEL_CopyKernel_2D_to_2D_Packed;
         }
@@ -428,18 +413,31 @@ MOS_STATUS RenderCopyState::LoadStaticData(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if ((m_Target.Format == Format_NV12) || ((m_Target.Format == Format_P010) ||  (m_Target.Format == Format_P016)))
+    if ((m_Target.Format == Format_NV12) || ((m_Target.Format == Format_P010) || (m_Target.Format == Format_P016)))
     {
         // Set relevant static data
         MOS_ZeroMemory(&WalkerNV12Static, sizeof(DP_RENDERCOPY_NV12_STATIC_DATA));
 
         WalkerNV12Static.DW0.Inputsurfaceindex = RENDERCOPY_SRC_INDEX;
         WalkerNV12Static.DW1.Outputsurfaceindex = RENDERCOPY_DST_INDEX;
-        WalkerNV12Static.DW2.Widthdword = m_Target.dwWidth * iBytePerPixelPerPlane / 4;
-        WalkerNV12Static.DW3.Height = (m_Target.dwHeight > m_Source.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
-        WalkerNV12Static.DW4.ShiftLeftOffsetInBytes = m_Target.dwOffset;
-        WalkerNV12Static.DW5.Widthstride = m_Target.dwWidth * iBytePerPixelPerPlane;
-        WalkerNV12Static.DW6.Heightstride = (m_Target.dwHeight > m_Source.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
+
+        if (m_currKernelId == KERNEL_CopyKernel_1D_to_2D_NV12)
+        {
+            WalkerNV12Static.DW2.Widthdword = (m_Source.dwWidth * iBytePerPixelPerPlane + 3) / 4;
+            WalkerNV12Static.DW3.Height = m_Source.dwHeight;
+            WalkerNV12Static.DW5.Widthstride = m_Source.dwPitch;
+            WalkerNV12Static.DW6.Heightstride = m_Source.dwHeight;
+            WalkerNV12Static.DW4.ShiftLeftOffsetInBytes = m_Source.dwOffset;
+        }
+        else
+        {
+            WalkerNV12Static.DW2.Widthdword = (m_Source.dwPitch < m_Target.dwPitch) ? m_Source.dwPitch:m_Target.dwPitch;
+            WalkerNV12Static.DW2.Widthdword /= 4 ;
+            WalkerNV12Static.DW3.Height = (m_Source.dwHeight < m_Target.dwHeight) ?  m_Source.dwHeight:m_Target.dwHeight;
+            WalkerNV12Static.DW5.Widthstride = (m_Source.dwPitch < m_Target.dwPitch) ? m_Source.dwPitch : m_Target.dwPitch;
+            WalkerNV12Static.DW6.Heightstride = (m_Source.dwHeight < m_Target.dwHeight) ? m_Source.dwHeight:m_Target.dwHeight;
+            WalkerNV12Static.DW4.ShiftLeftOffsetInBytes = m_Target.dwOffset;
+        }
 
         iCurbeLength = sizeof(DP_RENDERCOPY_NV12_STATIC_DATA);
 
@@ -454,7 +452,7 @@ MOS_STATUS RenderCopyState::LoadStaticData(
         // Set relevant static data
         MOS_ZeroMemory(&WalkerPlanarStatic, sizeof(DP_RENDERCOPY_RGBP_STATIC_DATA));
 
-        if( m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Planar)
+        if (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Planar)
         {
             WalkerPlanarStatic.DW0.InputsurfaceRindex = RENDERCOPY_SRC_INDEX + 2;
             WalkerPlanarStatic.DW1.InputsurfaceGindex = RENDERCOPY_SRC_INDEX;
@@ -479,9 +477,11 @@ MOS_STATUS RenderCopyState::LoadStaticData(
             WalkerPlanarStatic.DW4.OutputsurfaceGindex = RENDERCOPY_DST_INDEX + 1;
             WalkerPlanarStatic.DW5.OutputsurfaceBindex = RENDERCOPY_DST_INDEX + 2;
         }
-        WalkerPlanarStatic.DW6.Widthdword = m_Target.dwWidth / 4;
-        WalkerPlanarStatic.DW7.Height = (m_Target.dwHeight > m_Source.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
-        WalkerPlanarStatic.DW8.ShiftLeftOffsetInBytes = m_Source.dwOffset;
+
+        WalkerPlanarStatic.DW6.Widthdword = (m_Source.dwPitch < m_Target.dwPitch) ? m_Source.dwPitch : m_Target.dwPitch;
+        WalkerPlanarStatic.DW6.Widthdword /= 4;
+        WalkerPlanarStatic.DW7.Height = (m_Source.dwHeight < m_Target.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
+        WalkerPlanarStatic.DW8.ShiftLeftOffsetInBytes = m_Target.dwOffset;
         WalkerPlanarStatic.DW9.Dst2DStartX = 0;
         WalkerPlanarStatic.DW10.Dst2DStartY = 0;
 
@@ -502,18 +502,19 @@ MOS_STATUS RenderCopyState::LoadStaticData(
 
         WalkerSinglePlaneStatic.DW0.InputSurfaceIndex = RENDERCOPY_SRC_INDEX;
         WalkerSinglePlaneStatic.DW1.OutputSurfaceIndex = RENDERCOPY_DST_INDEX;
-        WalkerSinglePlaneStatic.DW2.WidthDWord = m_Target.dwWidth * iBytePerPixelPerPlane / 4;
-
-        WalkerSinglePlaneStatic.DW3.Height = m_Target.dwHeight;
+        WalkerSinglePlaneStatic.DW2.WidthDWord = (m_Source.dwPitch < m_Target.dwPitch) ? m_Source.dwPitch :  m_Target.dwPitch;
+        WalkerSinglePlaneStatic.DW2.WidthDWord /= 4;
+        WalkerSinglePlaneStatic.DW3.Height = (m_Source.dwHeight < m_Target.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
         WalkerSinglePlaneStatic.DW4.ShiftLeftOffsetInBytes = m_Target.dwOffset;
 
         if ((m_currKernelId == KERNEL_CopyKernel_1D_to_2D_Packed) || (m_currKernelId == KERNEL_CopyKernel_2D_to_1D_Packed))
         {
-            WalkerSinglePlaneStatic.DW5.ThreadHeight = (m_Target.dwHeight + 32 - 1) / 32;
+            WalkerSinglePlaneStatic.DW5.ThreadHeight = (m_Source.dwHeight < m_Target.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
+            WalkerSinglePlaneStatic.DW5.ThreadHeight = (WalkerSinglePlaneStatic.DW5.ThreadHeight + 32 - 1) / 32;
         }
         else if (m_currKernelId == KERNEL_CopyKernel_2D_to_2D_Packed)
         {
-            WalkerSinglePlaneStatic.DW5.ThreadHeight = (m_Target.dwHeight + 8 - 1) / 8;
+            WalkerSinglePlaneStatic.DW5.ThreadHeight = (m_Source.dwHeight + 8 - 1) / 8;
         }
         else
         {
@@ -600,8 +601,8 @@ MOS_STATUS RenderCopyState::LoadStaticData(
 
     AlignedRect.left   = 0;
     AlignedRect.top    = 0;
-    AlignedRect.right  = m_Target.dwWidth;
-    AlignedRect.bottom = m_Target.dwHeight;
+    AlignedRect.right  = (m_Source.dwPitch < m_Target.dwPitch) ? m_Source.dwPitch : m_Target.dwPitch;
+    AlignedRect.bottom = (m_Source.dwHeight < m_Target.dwHeight) ? m_Source.dwHeight : m_Target.dwHeight;
     // Calculate aligned output area in order to determine the total # blocks
    // to process in case of non-16x16 aligned target.
     AlignedRect.right += m_WalkerWidthBlockSize - 1;
@@ -618,23 +619,12 @@ MOS_STATUS RenderCopyState::LoadStaticData(
 
     // Set number of blocks
     pRenderData->iBlocksX =
-        (AlignedRect.right - AlignedRect.left) * iBytePerPixelPerPlane / m_WalkerWidthBlockSize;
+        ((AlignedRect.right - AlignedRect.left) + m_WalkerWidthBlockSize - 1) / m_WalkerWidthBlockSize;
     pRenderData->iBlocksY =
-        (AlignedRect.bottom - AlignedRect.top) / m_WalkerHeightBlockSize;
+        ((AlignedRect.bottom - AlignedRect.top) + m_WalkerHeightBlockSize -1)/ m_WalkerHeightBlockSize;
 
     // Set number of blocks, block size is m_WalkerWidthBlockSize x m_WalkerHeightBlockSize.
-    if ((m_Target.Format == Format_YUY2) || (m_Target.Format == Format_Y210) || (m_Target.Format == Format_Y216)
-        || (m_Target.Format == Format_AYUV) || (m_Target.Format == Format_Y410) || (m_Target.Format == Format_Y416)
-        || (m_Target.Format == Format_A8R8G8B8))
-    {
-        pWalkerParams->GroupWidth = ((m_Target.dwWidth * iBytePerPixelPerPlane + m_WalkerWidthBlockSize - 1)
-                                      & (~(m_WalkerWidthBlockSize - 1))) /  m_WalkerWidthBlockSize;
-    }
-    else
-    {
-        pWalkerParams->GroupWidth = pRenderData->iBlocksX;
-    }
-
+    pWalkerParams->GroupWidth = pRenderData->iBlocksX;
     pWalkerParams->GroupHeight = pRenderData->iBlocksY; // hight/m_WalkerWidthBlockSize
 
     pWalkerParams->ThreadWidth = 1;
