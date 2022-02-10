@@ -4052,7 +4052,7 @@ MOS_STATUS CodechalEncoderState::GetStatusReport(
             )
 
             // to be discussed, how to identify whether huc invloved in pipeline
-            if (m_vdencEnabled && m_vdencBrcEnabled && (m_standard == CODECHAL_HEVC || m_standard == CODECHAL_AVC || m_standard == CODECHAL_VP9))
+            if (!m_swBrcMode && m_vdencEnabled && m_vdencBrcEnabled && (m_standard == CODECHAL_HEVC || m_standard == CODECHAL_AVC || m_standard == CODECHAL_VP9))
             {
                 MOS_USER_FEATURE_VALUE_WRITE_DATA userFeatureWriteData;
                 MOS_ZeroMemory(&userFeatureWriteData, sizeof(MOS_USER_FEATURE_VALUE_WRITE_DATA));
@@ -5313,6 +5313,14 @@ MOS_STATUS CodechalEncoderState::ResolveMetaData(
 MOS_STATUS CodechalEncoderState::StoreHuCStatus2Report(PMOS_COMMAND_BUFFER cmdBuffer)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_swBrcMode != nullptr)
+    {
+        // Skip check if SW BRC DLL path
+        return MOS_STATUS_SUCCESS;
+    }
+#endif // _DEBUG || _RELEASE_INTERNAL
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
