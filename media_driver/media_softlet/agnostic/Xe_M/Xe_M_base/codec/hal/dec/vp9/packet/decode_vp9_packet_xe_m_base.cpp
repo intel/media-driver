@@ -226,8 +226,8 @@ MOS_STATUS Vp9DecodePktXe_M_Base::ReadHcpStatus(MediaStatusReport *statusReport,
 
     DECODE_CHK_NULL(statusReport);
 
-    MOS_RESOURCE *osResource;
-    uint32_t      offset;
+    MOS_RESOURCE *osResource = nullptr;
+    uint32_t      offset     = 0;
 
     MHW_MI_STORE_REGISTER_MEM_PARAMS params;
     MOS_ZeroMemory(&params, sizeof(MHW_MI_STORE_REGISTER_MEM_PARAMS));

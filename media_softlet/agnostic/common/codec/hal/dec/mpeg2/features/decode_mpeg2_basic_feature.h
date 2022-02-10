@@ -49,6 +49,8 @@ public:
             m_mfxInterface = static_cast<CodechalHwInterfaceG12*>(hwInterface)->GetMfxInterface();
             m_osInterface  = hwInterface->GetOsInterface();
         }
+
+        MOS_ZeroMemory(&m_savedMpeg2MbParam, sizeof(m_savedMpeg2MbParam));
     };
 
     //!
