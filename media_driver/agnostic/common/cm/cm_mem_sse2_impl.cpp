@@ -31,6 +31,12 @@
 
 #include <mmintrin.h>
 
+// GCC>=11 gives a warning when dividing sizeof(array) with sizeof(another_type)
+// in case division was mistyped and meant to calculate array size.
+// As that's not the case here, use extra divisor parenthesis to suppress
+// the warning.
+#define DQWORD_PER_PREFETCH(P) ( sizeof(P)/(sizeof(DQWORD)) )
+
 void FastMemCopy_SSE2_movntdq_movdqa(
     void* dst,
     void* src,
@@ -39,7 +45,8 @@ void FastMemCopy_SSE2_movntdq_movdqa(
     CM_ASSERT( IsAligned( dst, sizeof(DQWORD) ) );
     CM_ASSERT( IsAligned( src, sizeof(DQWORD) ) );
 
-    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    
+    const size_t doubleQuadWordsPerPrefetch = DQWORD_PER_PREFETCH(PREFETCH);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
@@ -81,7 +88,7 @@ void FastMemCopy_SSE2_movdqu_movdqa(
 {
     CM_ASSERT( IsAligned( src, sizeof(DQWORD) ) );
 
-    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    const size_t doubleQuadWordsPerPrefetch = DQWORD_PER_PREFETCH(PREFETCH);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
@@ -123,7 +130,7 @@ void FastMemCopy_SSE2_movntdq_movdqu(
 {
     CM_ASSERT( IsAligned( dst, sizeof(DQWORD) ) );
 
-    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    const size_t doubleQuadWordsPerPrefetch = DQWORD_PER_PREFETCH(PREFETCH);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
@@ -163,7 +170,7 @@ void FastMemCopy_SSE2_movdqu_movdqu(
     const void* src,
     const size_t doubleQuadWords )
 {
-    const size_t doubleQuadWordsPerPrefetch = sizeof(PREFETCH) / sizeof(DQWORD);
+    const size_t doubleQuadWordsPerPrefetch = DQWORD_PER_PREFETCH(PREFETCH);
 
     // Prefetch the src data
     Prefetch( (uint8_t*)src );
