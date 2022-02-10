@@ -299,7 +299,6 @@ protected:
     uint32_t m_vtFrameCount = 0; //!< frame count for virtual tile decoding
     uint32_t m_spFrameCount = 0; //!< frame count for single pipe decoding
     bool     m_reportHucStatus = false; //!< Flag for reporting huc status to regkey
-    bool     m_reportHucCriticalError = false; //!< Flag for reporting huc critical error to regkey
 #endif
 
 MEDIA_CLASS_DEFINE_END(HevcPipeline)
