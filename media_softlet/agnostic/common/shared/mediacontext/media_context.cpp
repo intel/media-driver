@@ -429,7 +429,7 @@ MOS_STATUS MediaContext::FunctionToNodeCodec(MOS_GPU_NODE& node)
     MHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit = {0};
     if (mfxItf)
     {
-        MOS_OS_CHK_STATUS_RETURN(hwInterface->GetMfxInterfaceNext()->FindGpuNodeToUse(&gpuNodeLimit));
+        MOS_OS_CHK_STATUS_RETURN(mfxItf->FindGpuNodeToUse(&gpuNodeLimit));
     }
     else
     {
