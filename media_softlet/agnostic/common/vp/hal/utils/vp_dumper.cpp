@@ -934,8 +934,10 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         VPHAL_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
         auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
 
+        // RGBP and BGRP support tile output but should not transfer to linear surface due to height 16 align issue.
         if ((skuTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) || isPlanar) &&
-            (pSurface->TileType != MOS_TILE_LINEAR))
+            (pSurface->TileType != MOS_TILE_LINEAR) &&
+            !(pSurface->Format == Format_RGBP || pSurface->Format == Format_BGRP))
         {
             bool bAllocated;
 
@@ -2784,7 +2786,7 @@ const char * VpDumperTool::GetFormatStr(MOS_FORMAT format)
         case Format_A16R16G16B16: return _T("argb16");
         case Format_A16B16G16R16: return _T("abgr16");
         case Format_R5G6B5      : return _T("rgb16");
-        case Format_R8G8B8      : return _T("rgb24");
+        case Format_R8G8B8      : return _T("rgb");
         case Format_R32U        : return _T("r32u");
         case Format_RGBP        : return _T("rgbp");
         case Format_BGRP        : return _T("bgrp");
