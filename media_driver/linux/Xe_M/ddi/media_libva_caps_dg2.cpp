@@ -1029,5 +1029,35 @@ VAStatus MediaLibvaCapsDG2::AddEncSurfaceAttributes(
     return VA_STATUS_SUCCESS;
 }
 
+VAStatus MediaLibvaCapsDG2::GetDisplayAttributes(
+            VADisplayAttribute *attribList,
+            int32_t numAttribs)
+{
+    DDI_CHK_NULL(attribList, "Null attribList", VA_STATUS_ERROR_INVALID_PARAMETER);
+    for(auto i = 0; i < numAttribs; i ++)
+    {
+        switch(attribList->type)
+        {
+            case VADisplayAttribCopy:
+                attribList->min_value = attribList->value = attribList->max_value =
+                    (1 << VA_EXEC_MODE_POWER_SAVING) | (1 << VA_EXEC_MODE_PERFORMANCE) | (1 << VA_EXEC_MODE_DEFAULT);
+                // 100: perfromance model: Render copy
+                // 10:  POWER_SAVING: BLT
+                // 1:   default model: 1: vebox
+                // 0:   don't support media copy.
+                attribList->flags = VA_DISPLAY_ATTRIB_GETTABLE;
+                break;
+            default:
+                attribList->min_value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->max_value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->value = VA_ATTRIB_NOT_SUPPORTED;
+                attribList->flags = VA_DISPLAY_ATTRIB_NOT_SUPPORTED;
+                break;
+        }
+        attribList ++;
+    }
+    return VA_STATUS_SUCCESS;
+}
+
 static bool dg2Registered = MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>::
     RegisterCaps<MediaLibvaCapsDG2>((uint32_t)IGFX_DG2);

@@ -2693,7 +2693,7 @@ VAStatus MediaLibvaCapsG12::GetDisplayAttributes(
         switch(attribList->type)
         {
             case VADisplayAttribCopy:
-                attribList->min_value = attribList->value = attribList->max_value = 0;
+                attribList->min_value = attribList->value = attribList->max_value = 1 << VA_EXEC_MODE_POWER_SAVING ;
                 attribList->flags = VA_DISPLAY_ATTRIB_GETTABLE;
                 break;
             default:
