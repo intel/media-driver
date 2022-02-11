@@ -205,6 +205,8 @@ static bool InitXeHPShadowWa(struct GfxDeviceInfo *devInfo,
 
     waTable->WaDefaultTile4 = 1;
 
+    waTable->Wa_15010089951 = 1;
+
     return true;
 }
 

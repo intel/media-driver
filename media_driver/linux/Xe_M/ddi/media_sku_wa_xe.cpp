@@ -901,6 +901,9 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
             MEDIA_WR_WA(waTable, Wa_16011481064, 1);
         }
     }
+
+    MEDIA_WR_WA(waTable, Wa_15010089951, 1);
+
     return true;
 }
 
