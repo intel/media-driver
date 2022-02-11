@@ -5109,6 +5109,8 @@ CodechalEncoderState::CodechalEncoderState(
     PCODECHAL_STANDARD_INFO standardInfo):
     Codechal(hwInterface, debugInterface)
 {
+    pfnGetKernelHeaderAndSize = nullptr;
+
     // Add Null checks here for all interfaces.
     CODECHAL_ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hwInterface);
     m_mfxInterface = m_hwInterface->GetMfxInterface();
@@ -5147,8 +5149,6 @@ CodechalEncoderState::CodechalEncoderState(
     {
         m_meKernelStates[i] = MHW_KERNEL_STATE();
     }
-
-    pfnGetKernelHeaderAndSize = nullptr;
 
     MOS_ZeroMemory(&m_encodeParams, sizeof(m_encodeParams));
     MOS_ZeroMemory(&m_resHwCount, sizeof(m_resHwCount));
