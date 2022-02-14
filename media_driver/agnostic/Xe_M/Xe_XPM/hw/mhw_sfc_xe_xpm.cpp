@@ -681,6 +681,14 @@ MOS_STATUS MhwSfcInterfaceXe_Xpm::AddSfcState(
             }
         }
 
+        if (pSfcStateparamsXe_Xpm->dwScaledRegionWidth % 2)
+        {
+            for (i = 0; i < m_numofSfc - 1; i++)
+            {
+                dest_endX[i] += 1;
+            }
+        }
+
         for (i = 1; i < m_numofSfc; i++)
         {
             src_startX[i] = src_endX[i - 1] + 1 - 64;
