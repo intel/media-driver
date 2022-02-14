@@ -1804,9 +1804,7 @@ MOS_STATUS VpResourceManager::Allocate3DLut(VP_EXECUTE_CAPS& caps)
             isAllocated,
             false,
             IsDeferredResourceDestroyNeeded(),
-            MOS_HW_RESOURCE_DEF_MAX,
-            MOS_TILE_UNSET_GMM,
-            MOS_MEMPOOL_SYSTEMMEMORY));
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1840,9 +1838,7 @@ MOS_STATUS VpResourceManager::AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& ca
         isAllocated,
         false,
         IsDeferredResourceDestroyNeeded(),
-        MOS_HW_RESOURCE_DEF_MAX,
-        MOS_TILE_UNSET_GMM,
-        MOS_MEMPOOL_SYSTEMMEMORY));
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
 
     if (isAllocated)
     {
