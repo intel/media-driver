@@ -190,7 +190,7 @@ MOS_STATUS VpScalingFilter::SetColorFillParams()
             // Clean history Dst BG Color if hit unsupported format
             if (!VpHal_CSC_8(&m_colorFillColorDst, &Src, src_cspace, dst_cspace))
             {
-                VP_PUBLIC_ASSERTMESSAGE("VpHal_CSC_8 failed!");
+                VP_PUBLIC_NORMALMESSAGE("VpHal_CSC_8 failed!");
                 MOS_ZeroMemory(&m_colorFillColorDst, sizeof(m_colorFillColorDst));
             }
             // store the values for next iteration
