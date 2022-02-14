@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, Intel Corporation
+# Copyright (c) 2019-2020, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,6 @@
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decodecp_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/cp_streamout_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/cp_copy_interface.h
 )
 
 set(HEADERS_

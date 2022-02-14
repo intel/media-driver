@@ -1538,13 +1538,6 @@ void VpResourceManager::DestoryVeboxSTMMSurface()
     }
 }
 
-MOS_STATUS VpResourceManager::FillLinearBufferWithEncZero(uint32_t width, uint32_t height)
-{
-    VP_FUNC_CALL();
-
-    return MOS_STATUS_SUCCESS;
-}
-
 uint32_t VpResourceManager::Get3DLutSize(uint32_t &lutWidth, uint32_t &lutHeight)
 {
     VP_FUNC_CALL();
@@ -1741,7 +1734,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         false,
         MOS_MMC_DISABLED,
         bAllocated,
-        false,
+        true,
         IsDeferredResourceDestroyNeeded(),
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
         MOS_TILE_UNSET_GMM,
@@ -1750,11 +1743,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
 
     if (bAllocated)
     {
-        if (m_osInterface.osCpInterface && m_osInterface.osCpInterface->IsHMEnabled())
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(FillLinearBufferWithEncZero(dwWidth, dwHeight));
-        }
-        else if (MOS_MEMPOOL_DEVICEMEMORY != memTypeHistStat)
+        if (MOS_MEMPOOL_DEVICEMEMORY != memTypeHistStat)
         {
             // Initialize veboxStatisticsSurface Surface
             VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(
