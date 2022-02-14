@@ -503,7 +503,7 @@ public:
 
     uint32_t GetReserved0MaxSize()
     {
-       uint maxSize =
+       uint32_t maxSize =
             TVdencCmds::VDENC_CONTROL_STATE_CMD::byteSize +
             TVdencCmds::VDENC_PIPE_MODE_SELECT_CMD::byteSize +
             TVdencCmds::VDENC_SRC_SURFACE_STATE_CMD::byteSize +
