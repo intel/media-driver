@@ -104,7 +104,17 @@ MOS_STATUS Mos_OsFillResource(
 
     uint8_t *       pByte = nullptr;
     MOS_LOCK_PARAMS LockFlags;
-
+    uint32_t        size = 0;
+#ifndef VPSOLO_EMUL
+    if (pOsResource->pGmmResInfo)
+    {
+        size = (uint32_t)pOsResource->pGmmResInfo->GetSizeSurface();
+    }
+    if (dwSize > size)
+    {
+        MOS_OS_ASSERTMESSAGE("dwSize (%x)> size (%x)", dwSize, size);
+    }
+#endif
     // Lock the surface for writing
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
 
