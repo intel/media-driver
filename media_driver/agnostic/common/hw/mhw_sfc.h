@@ -520,6 +520,14 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    //!
+    //! \brief    Get new sfc interface, temporal solution before switching from
+    //!           old interface to new one
+    //!
+    //! \return   pointer to new render interface
+    //!
+    virtual std::shared_ptr<void> GetNewSfcInterface() { return nullptr; }
+
 protected:
 
     MhwSfcInterface(PMOS_INTERFACE pOsInterface);
@@ -603,6 +611,7 @@ public:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS           m_histogramBufferCtrl;     // Histogram Buffer caching control bits
 
     MHW_SCALING_MODE                           m_scalingMode;
+    std::shared_ptr<void>                      m_sfcItfNew = nullptr;
 };
 
 #endif // __MHW_SFC_H__

@@ -37,6 +37,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_itf.h
 )
 
 set(TMP_SOURCES_
