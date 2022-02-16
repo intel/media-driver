@@ -385,8 +385,8 @@ MOS_STATUS CodechalEncodeTrackedBuffer::AllocateSurfaceCsc()
         return MOS_STATUS_SUCCESS;
     }
 
-    uint32_t width, height;
-    MOS_FORMAT format;
+    uint32_t width = 0, height = 0;
+    MOS_FORMAT format = Format_Invalid;
     m_encoder->m_cscDsState->GetCscAllocation(width, height, format);
 
     // allocating Csc surface
