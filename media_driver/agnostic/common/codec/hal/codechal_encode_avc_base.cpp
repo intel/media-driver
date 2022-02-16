@@ -1899,18 +1899,21 @@ MOS_STATUS CodecHalAvcEncode_PackSliceHeader(
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_PackSliceHeader_PredWeightTable(params));
     }
 
-    // dec_ref_pic_marking()
-    if (nalType == CODECHAL_ENCODE_AVC_NAL_UT_IDR_SLICE)
+    if (ref)
     {
-        PutBit(bsbuffer, slcParams->no_output_of_prior_pics_flag);
-        PutBit(bsbuffer, slcParams->long_term_reference_flag);
-    }
-    else if (ref)
-    {
-        PutBit(bsbuffer, slcParams->adaptive_ref_pic_marking_mode_flag);
-        if (slcParams->adaptive_ref_pic_marking_mode_flag)
+        // dec_ref_pic_marking()
+        if (nalType == CODECHAL_ENCODE_AVC_NAL_UT_IDR_SLICE)
         {
-            CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_PackSliceHeader_MMCO(params));
+            PutBit(bsbuffer, slcParams->no_output_of_prior_pics_flag);
+            PutBit(bsbuffer, slcParams->long_term_reference_flag);
+        }
+        else
+        {
+            PutBit(bsbuffer, slcParams->adaptive_ref_pic_marking_mode_flag);
+            if (slcParams->adaptive_ref_pic_marking_mode_flag)
+            {
+                CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_PackSliceHeader_MMCO(params));
+            }
         }
     }
 
