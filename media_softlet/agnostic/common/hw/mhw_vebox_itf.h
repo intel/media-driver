@@ -56,7 +56,7 @@ public:
 
     virtual MOS_STATUS SetVeboxSurfaceControlBits(PMHW_VEBOX_SURFACE_CNTL_PARAMS pVeboxSurfCntlParams, uint32_t* pSurfCtrlBits) = 0;
 
-    virtual MOS_STATUS VeboxAdjustBoundary(PMHW_VEBOX_SURFACE_PARAMS pCurrSurf, uint32_t* pdwSurfaceWidth, uint32_t* pdwSurfaceHeight, bool bDIEnable, bool b3DlutEnable) = 0;
+    virtual MOS_STATUS VeboxAdjustBoundary(PMHW_VEBOX_SURFACE_PARAMS pCurrSurf, uint32_t* pdwSurfaceWidth, uint32_t* pdwSurfaceHeight, bool bDIEnable) = 0;
 
     virtual MOS_STATUS SetVeboxIndex(uint32_t dwVeboxIndex, uint32_t dwVeboxCount, uint32_t dwUsingSFC) = 0;
 
@@ -86,7 +86,9 @@ public:
 
     virtual MOS_STATUS AssignVeboxState() = 0;
 
-    virtual MOS_STATUS SetgnLumaChromaWgts(uint32_t dwLumaStadTh, uint32_t dwChromaStadTh, uint32_t dw4X4TGNEThCnt, bool bTGNEEnable) = 0;
+    virtual MOS_STATUS SetgnLumaWgts(uint32_t dwLumaStadTh, uint32_t dw4X4TGNEThCnt, bool bTGNEEnable) = 0;
+
+    virtual MOS_STATUS SetgnChromaWgts(uint32_t dwChromaStadTh) = 0;
 
     virtual MOS_STATUS FindVeboxGpuNodeToUse(PMHW_VEBOX_GPUNODE_LIMIT pVeboxGpuNodeLimit) = 0;
 

@@ -497,11 +497,8 @@ public:
             {
                 eStatus = m_veboxItf->DestroyHeap();
             }
-            else
-            {
-                eStatus = m_veboxInterface->DestroyHeap();
-            }
 
+            eStatus = m_veboxInterface->DestroyHeap();
             MOS_Delete(m_veboxInterface);
             m_veboxInterface = nullptr;
             if (eStatus != MOS_STATUS_SUCCESS)
@@ -511,6 +508,7 @@ public:
         }
 
         m_veboxInterface = veboxInterface;
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(veboxInterface->GetNewVeboxInterface());
     }
 
     void SetMhwSfcInterface(MhwSfcInterface* sfcInterface)

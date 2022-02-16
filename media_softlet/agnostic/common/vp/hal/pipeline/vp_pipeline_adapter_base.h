@@ -220,7 +220,8 @@ public:
 
         if (m_veboxInterface != nullptr)
         {
-            m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(veboxInterface->m_veboxItfNew);
+            m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->GetNewVeboxInterface());
+
             if (m_veboxItf)
             {
                 eStatus = m_veboxItf->DestroyHeap();
@@ -240,6 +241,7 @@ public:
         }
 
         m_veboxInterface = veboxInterface;
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(veboxInterface->GetNewVeboxInterface());
     }
 
     void SetMhwSfcInterface(MhwSfcInterface *sfcInterface)

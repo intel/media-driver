@@ -466,7 +466,7 @@ MOS_STATUS VpPipeline::GetSystemVeboxNumber()
         std::shared_ptr<mhw::vebox::Itf> veboxItf = nullptr;
         if (m_vpMhwInterface.m_veboxInterface)
         {
-            veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_vpMhwInterface.m_veboxInterface->m_veboxItfNew);
+            veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_vpMhwInterface.m_veboxInterface->GetNewVeboxInterface());
         }
 
         if (veboxItf && !(veboxItf->IsVeboxScalabilitywith4K()))

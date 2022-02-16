@@ -229,7 +229,7 @@ MOS_STATUS MediaSfcRender::Initialize()
 
     if (m_veboxInterface)
     {
-        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->m_veboxItfNew);
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->GetNewVeboxInterface());
     }
 
     if (m_veboxItf)

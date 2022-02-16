@@ -106,20 +106,18 @@ MOS_STATUS VphalState::Allocate(
                 VeboxGpuContext,
                 VeboxGpuNode));
         }
-        else
-        {
-            // Check GPU Node decide logic together in this function
-            VPHAL_HW_CHK_STATUS(m_veboxInterface->FindVeboxGpuNodeToUse(&GpuNodeLimit));
 
-            VeboxGpuNode    = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
-            VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+        // Check GPU Node decide logic together in this function
+        VPHAL_HW_CHK_STATUS(m_veboxInterface->FindVeboxGpuNodeToUse(&GpuNodeLimit));
 
-            // Create VEBOX/VEBOX2 Context
-            VPHAL_PUBLIC_CHK_STATUS(m_veboxInterface->CreateGpuContext(
-                m_osInterface,
-                VeboxGpuContext,
-                VeboxGpuNode));
-        }
+        VeboxGpuNode    = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
+        VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
+
+        // Create VEBOX/VEBOX2 Context
+        VPHAL_PUBLIC_CHK_STATUS(m_veboxInterface->CreateGpuContext(
+            m_osInterface,
+            VeboxGpuContext,
+            VeboxGpuNode));
 
         // Add gpu context entry, including stream 0 gpu contexts
         if (IsApoEnabled() && 
@@ -153,7 +151,8 @@ MOS_STATUS VphalState::Allocate(
             VPHAL_PUBLIC_CHK_STATUS(m_veboxItf->CreateHeap());
         }
     }
-    else if (m_veboxInterface &&
+
+    if (m_veboxInterface &&
         m_veboxInterface->m_veboxSettings.uiNumInstances > 0 &&
         m_veboxInterface->m_veboxHeap == nullptr)
     {
@@ -750,13 +749,11 @@ VphalState::~VphalState()
         {
             eStatus = m_veboxItf->DestroyHeap();
         }
-        else
-        {
-            eStatus = m_veboxInterface->DestroyHeap();
-        }
-        //eStatus = m_veboxInterface->DestroyHeap();
+
+        eStatus = m_veboxInterface->DestroyHeap();
         MOS_Delete(m_veboxInterface);
         m_veboxInterface = nullptr;
+        m_veboxItf       = nullptr;
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             VPHAL_PUBLIC_ASSERTMESSAGE("Failed to destroy Vebox Interface, eStatus:%d.\n", eStatus);

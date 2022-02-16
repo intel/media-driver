@@ -53,6 +53,8 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MOS_ZeroMemory(&m_veboxSettings, sizeof(m_veboxSettings));
+
         MEDIA_ENGINE_INFO mediaSysInfo = {};
 
         m_veboxSettings = g_Vebox_Settings;
@@ -307,11 +309,17 @@ public:
         return eStatus;
     }
 
-    MOS_STATUS SetgnLumaChromaWgts(uint32_t lumaStadTh, uint32_t chromaStadTh, uint32_t TGNEThCnt, bool tGNEEnable)
+    MOS_STATUS SetgnLumaWgts(uint32_t lumaStadTh, uint32_t TGNEThCnt, bool tGNEEnable)
     {
         dw4X4TGNEThCnt = TGNEThCnt;
         bTGNEEnable    = tGNEEnable;
         dwLumaStadTh   = lumaStadTh;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS SetgnChromaWgts(uint32_t chromaStadTh)
+    {
         dwChromaStadTh = chromaStadTh;
 
         return MOS_STATUS_SUCCESS;
@@ -536,6 +544,7 @@ public:
         uint16_t   wHeightAlignUnit;
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
+        MHW_CHK_NULL_RETURN(pCurrSurf);
         MHW_CHK_NULL_RETURN(pdwSurfaceWidth);
         MHW_CHK_NULL_RETURN(pdwSurfaceHeight);
 
@@ -816,8 +825,7 @@ public:
         PMHW_VEBOX_SURFACE_PARAMS pcurrSurf,
         uint32_t *                pdwSurfaceWidth,
         uint32_t *                pdwSurfaceHeight,
-        bool                      bDIEnable,
-        bool                      b3DlutEnable)
+        bool                      bDIEnable)
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 

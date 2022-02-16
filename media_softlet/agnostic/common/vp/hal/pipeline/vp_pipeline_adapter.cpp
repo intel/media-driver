@@ -70,7 +70,7 @@ MOS_STATUS VpPipelineAdapter::Init(
 
     if (vpMhwinterface.m_veboxInterface)
     {
-        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(vpMhwinterface.m_veboxInterface->m_veboxItfNew);
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(vpMhwinterface.m_veboxInterface->GetNewVeboxInterface());
     }
 
     if (m_veboxItf)

@@ -1117,8 +1117,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
                                         &MhwVeboxSurfaceParam,
                                         &dwWidth,
                                         &dwHeight,
-                                        m_PacketCaps.bDI,
-                                        false));
+                                        m_PacketCaps.bDI));
     }
     else
     {
@@ -1468,11 +1467,11 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxIndex(
 
     if(m_veboxItf)
     {
-        m_veboxItf->SetVeboxIndex(dwVeboxIndex, dwVeboxCount, m_IsSfcUsed);
+        m_veboxItf->SetVeboxIndex(dwVeboxIndex, dwVeboxCount, dwUsingSFC);
     }
     else
     {
-        pVeboxInterface->SetVeboxIndex(dwVeboxIndex, dwVeboxCount, m_IsSfcUsed);
+        pVeboxInterface->SetVeboxIndex(dwVeboxIndex, dwVeboxCount, dwUsingSFC);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -1536,7 +1535,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxState(
         par.LaceLookUpTablesSurfCtrl.Value                           = pVeboxStateCmdParams->LaceLookUpTablesSurfCtrl.Value;
         par.Vebox3DLookUpTablesSurfCtrl.Value                        = pVeboxStateCmdParams->Vebox3DLookUpTablesSurfCtrl.Value;
         par.bNoUseVeboxHeap                                          = pVeboxStateCmdParams->bNoUseVeboxHeap;
-        par.bCmBuffer                                                = 0;
+        par.bCmBuffer                                                = bCmBuffer;
 
         m_veboxItf->MHW_ADDCMD_F(VEBOX_STATE)(pCmdBufferInUse, nullptr);
     }
@@ -1680,7 +1679,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     pCmdBufferInUse = CmdBuffer;
 
     auto scalability = GetMediaScalability();
-    m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->m_veboxItfNew);
+    m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->GetNewVeboxInterface());
 
     if(m_veboxItf)
     {
@@ -2113,7 +2112,7 @@ MOS_STATUS VpVeboxCmdPacket::DumpVeboxStateHeap()
     PMHW_VEBOX_INTERFACE  pVeboxInterface = m_hwInterface->m_veboxInterface;
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
 
-    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->m_veboxItfNew);
+    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->GetNewVeboxInterface());
     VpDebugInterface*     debuginterface  = (VpDebugInterface*)m_hwInterface->m_debugInterface;
 
     if(veboxItf)
@@ -2510,7 +2509,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxDndiState()
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
-    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->m_veboxItfNew);
+    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->GetNewVeboxInterface());
 
     if (pRenderData->DN.bDnEnabled || pRenderData->DI.bDeinterlace || pRenderData->DI.bQueryVariance)
     {
@@ -2538,7 +2537,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
-    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->m_veboxItfNew);
+    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->GetNewVeboxInterface());
 
     if (pRenderData->IECP.IsIecpEnabled())
     {
@@ -2590,7 +2589,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxGamutState()
     VpVeboxRenderData *renderData = GetLastExecRenderData();
     VP_PUBLIC_CHK_NULL_RETURN(pVeboxInterface);
     VP_PUBLIC_CHK_NULL_RETURN(renderData);
-    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->m_veboxItfNew);
+    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->GetNewVeboxInterface());
 
     if (pVeboxInterface &&
         IsVeboxGamutStateNeeded())
@@ -2628,7 +2627,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxHdrState()
     VP_PUBLIC_CHK_NULL_RETURN(pVeboxInterface);
     VP_PUBLIC_CHK_NULL_RETURN(renderData);
     MHW_VEBOX_IECP_PARAMS &mhwVeboxIecpParams = renderData->GetIECPParams();
-    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->m_veboxItfNew);
+    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->GetNewVeboxInterface());
 
     if(veboxItf)
     {
@@ -2655,7 +2654,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
 
     pVeboxInterface = m_hwInterface->m_veboxInterface;
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
-    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->m_veboxItfNew);
+    veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(pVeboxInterface->GetNewVeboxInterface());
 
     // Set FMD Params
     VP_RENDER_CHK_STATUS_RETURN(ConfigFMDParams(pRenderData->GetDNDIParams().bProgressiveDN, pRenderData->DN.bAutoDetect, pRenderData->DI.bFmdEnabled));

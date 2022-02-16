@@ -58,6 +58,7 @@ public:
     MOS_STATUS AddVeboxVertexTable(
         MHW_CSPACE           ColorSpace)
     {
+        MHW_FUNCTION_ENTER;
         PMHW_VEBOX_HEAP         pVeboxHeap;
         uint32_t                uiOffset;
         uint32_t                uSize;
@@ -94,6 +95,7 @@ public:
         PMOS_COMMAND_BUFFER                     pCmdBuffer,
         PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS     pVeboxSurfaceStateCmdParams)
     {
+        MHW_FUNCTION_ENTER;
         MOS_STATUS eStatus;
         bool       bOutputValid;
 
@@ -197,6 +199,7 @@ protected:
         typename TVeboxCmds::VEBOX_STD_STE_STATE_CMD     *pVeboxStdSteState,
         PMHW_COLORPIPE_PARAMS                            pColorPipeParams)
     {
+        MHW_FUNCTION_ENTER;
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         MHW_CHK_NULL(pVeboxStdSteState);
@@ -304,6 +307,7 @@ protected:
         typename TVeboxCmds::VEBOX_ALPHA_AOI_STATE_CMD   *pVeboxAlphaAoiState,
         bool                                             bEnableLACE)
     {
+        MHW_FUNCTION_ENTER;
         MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxAceLaceState);
         MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxAlphaAoiState);
 
@@ -338,6 +342,7 @@ protected:
         typename TVeboxCmds::VEBOX_TCC_STATE_CMD *pVeboxTccState,
         PMHW_COLORPIPE_PARAMS                    pColorPipeParams)
     {
+        MHW_FUNCTION_ENTER;
         MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxTccState);
         MHW_CHK_NULL_NO_STATUS_RETURN(pColorPipeParams);
 
@@ -366,6 +371,7 @@ protected:
         typename TVeboxCmds::VEBOX_FRONT_END_CSC_STATE_CMD *pVeboxFecscState,
         PMHW_VEBOX_IECP_PARAMS                pVeboxIecpParams)
     {
+        MHW_FUNCTION_ENTER;
         PMHW_CAPPIPE_PARAMS pCapPipeParams = nullptr;
 
         MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxFecscState);
@@ -494,6 +500,7 @@ protected:
         PMHW_CAPPIPE_PARAMS                        pCapPipeParams,
         const unsigned int                         uCoeffValue)
     {
+        MHW_FUNCTION_ENTER;
         typename TVeboxCmds::VEBOX_CCM_STATE_CMD *pCcm = nullptr;
 
         MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpState);
@@ -540,6 +547,7 @@ protected:
         typename TVeboxCmds::VEBOX_PROCAMP_STATE_CMD *pVeboxProcampState,
         PMHW_PROCAMP_PARAMS                           pProcAmpParams)
     {
+        MHW_FUNCTION_ENTER;
         MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxProcampState);
         MHW_CHK_NULL_NO_STATUS_RETURN(pProcAmpParams);
 
@@ -561,6 +569,7 @@ protected:
         PMHW_VEBOX_IECP_PARAMS                    pVeboxIecpParams,
         typename TVeboxCmds::VEBOX_IECP_STATE_CMD *pVeboxIecpState)
     {
+        MHW_FUNCTION_ENTER;
         PMHW_ACE_PARAMS             pAceParams;
         PMHW_VEBOX_HEAP             pVeboxHeap;
         int32_t                     uiOffset;
@@ -613,6 +622,7 @@ protected:
     void AddVeboxCapPipeState(
         PMHW_CAPPIPE_PARAMS pCapPipeParams)
     {
+        MHW_FUNCTION_ENTER;
         typename TVeboxCmds::VEBOX_CAPTURE_PIPE_STATE_CMD *pVeboxCapPipeState, CapPipCmd;
 
         PMHW_VEBOX_HEAP pVeboxHeap;

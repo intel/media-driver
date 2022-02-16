@@ -63,7 +63,7 @@ VeboxCopyState::VeboxCopyState(PMOS_INTERFACE osInterface, MhwInterfaces* mhwInt
 
     if (m_veboxInterface)
     {
-        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->m_veboxItfNew);
+        m_veboxItf = std::static_pointer_cast<mhw::vebox::Itf>(m_veboxInterface->GetNewVeboxInterface());
     }
 }
 
@@ -71,8 +71,15 @@ VeboxCopyState::~VeboxCopyState()
 {
     if (m_veboxInterface)
     {
-        m_veboxInterface->DestroyHeap();
-        m_veboxInterface = nullptr;
+        if (m_veboxItf)
+        {
+            m_veboxItf->DestroyHeap();
+        }
+        else
+        {
+            m_veboxInterface->DestroyHeap();
+            m_veboxInterface = nullptr;
+        }
     }
 }
 
