@@ -2916,4 +2916,29 @@ public:
     }
 };
 
+struct MHW_VDBOX_VDENC_HEVC_VP9_TILE_SLICE_STATE_PARAMS
+{
+    uint32_t ctbSize          = 0;
+    uint32_t widthInPix       = 0;
+    uint32_t heightInPix      = 0;
+    uint32_t minCodingBlkSize = 0;
+
+    PMHW_VDBOX_HCP_TILE_CODING_PARAMS_G12 pTileCodingParams     = nullptr;
+    uint32_t                              dwNumberOfPipes       = 0;
+    uint32_t                              dwTileId              = 0;
+    uint32_t                              IBCControl            = 0;
+    uint32_t                              PaletteModeEnable     = 0;
+    uint32_t                              sliceQP               = 0;
+    uint32_t                              bit_depth_luma_minus8 = 0;
+    uint32_t                              RowStaticInfo_31_0    = 0;
+    uint32_t                              RowStaticInfo_63_32   = 0;
+    uint32_t                              RowStaticInfo_95_64   = 0;
+    uint32_t                              RowStaticInfo_127_96  = 0;
+    uint32_t                              Log2WeightDenomLuma   = 0;
+    uint32_t                              Log2WeightDenomChroma = 0;
+    uint8_t                               TargetUsage           = 0;
+    virtual ~MHW_VDBOX_VDENC_HEVC_VP9_TILE_SLICE_STATE_PARAMS() {}
+};
+using PMHW_VDBOX_VDENC_HEVC_VP9_TILE_SLICE_STATE_PARAMS = MHW_VDBOX_VDENC_HEVC_VP9_TILE_SLICE_STATE_PARAMS *;
+
 #endif // __MHW_VDBOX_VDENC_G12_X_H__
