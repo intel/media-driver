@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2020-2021, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,8 @@
 #include "mhw_sfc_xe_xpm.h"
 #include "mhw_sfc_hwcmd_xe_xpm.h"
 #include "mhw_utilities_xe_xpm.h"
+
+#define VALUE_XOFFSET 3
 
 MhwSfcInterfaceXe_Xpm::MhwSfcInterfaceXe_Xpm(PMOS_INTERFACE pOsInterface)
     : MhwSfcInterfaceG12(pOsInterface)
@@ -637,7 +639,8 @@ MOS_STATUS MhwSfcInterfaceXe_Xpm::AddSfcState(
             }
             else
             {
-                Xoffset   = (VpHal_GetSurfaceColorPack(pSfcStateparamsXe_Xpm->InputFrameFormat) == VPHAL_COLORPACK_444)? 3 : 8 ;
+                // Fix tdr issue with odd width output, the Xoffset was set to VALUE_XOFFSET always for vesfc workload
+                Xoffset   = VALUE_XOFFSET;
                 tile_endX = src_endX[i];
             }
 
@@ -678,14 +681,6 @@ MOS_STATUS MhwSfcInterfaceXe_Xpm::AddSfcState(
                     dest_endX[i] = pSfcStateparamsXe_Xpm->dwScaledRegionWidth - 1;
                     break;
                 }
-            }
-        }
-
-        if (pSfcStateparamsXe_Xpm->dwScaledRegionWidth % 2)
-        {
-            for (i = 0; i < m_numofSfc - 1; i++)
-            {
-                dest_endX[i] += 1;
             }
         }
 
