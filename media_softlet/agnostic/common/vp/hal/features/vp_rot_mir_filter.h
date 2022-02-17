@@ -40,7 +40,7 @@ public:
     VpRotMirFilter(
         PVP_MHWINTERFACE vpMhwInterface);
 
-    ~VpRotMirFilter()
+    virtual ~VpRotMirFilter()
     {
         Destroy();
     };

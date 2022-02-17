@@ -38,7 +38,7 @@ public:
     VpCscFilter(
         PVP_MHWINTERFACE vpMhwInterface);
 
-    ~VpCscFilter()
+    virtual ~VpCscFilter()
     {
         Destroy();
     };

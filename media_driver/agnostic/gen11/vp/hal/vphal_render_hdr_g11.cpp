@@ -101,9 +101,9 @@ template <typename T>void mat_mul_float(T *m1, T *m2, T *m3, short m_size, short
 
 static void CalcCCMMatrix()
 {
-    float mat_rgb2xyz_src[3][3], mat_rgb2xyz_dst[3][3];
-    float mat_xyz[3][3], mat_invxyz[3][3];
-    float matW[3], matE[3];
+    float mat_rgb2xyz_src[3][3] = {}, mat_rgb2xyz_dst[3][3] = {};
+    float mat_xyz[3][3] = {}, mat_invxyz[3][3] = {};
+    float matW[3] = {}, matE[3] = {};
 
     float fccmSrcZR, fccmSrcZG, fccmSrcZB, fccmSrcZW;
     float fccmDstZR, fccmDstZG, fccmDstZB, fccmDstZW;

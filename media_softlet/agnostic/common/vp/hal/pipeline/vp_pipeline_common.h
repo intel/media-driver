@@ -82,28 +82,28 @@ typedef enum _VPHAL_COMP_BYPASS_MODE
 
 struct VP_SURFACE
 {
-    MOS_SURFACE                 *osSurface;         //!< mos surface
-    bool                        isResourceOwner;    //!< true if the resource is owned by current instance.
-    VPHAL_CSPACE                ColorSpace;         //!< Color Space
-    uint32_t                    ChromaSiting;       //!< ChromaSiting
+    MOS_SURFACE                 *osSurface      = nullptr;         //!< mos surface
+    bool                        isResourceOwner = false;           //!< true if the resource is owned by current instance.
+    VPHAL_CSPACE                ColorSpace      = CSpace_None;     //!< Color Space
+    uint32_t                    ChromaSiting    = 0;               //!< ChromaSiting
 
-    bool                        bQueryVariance;     //!< enable variance query. Not in use for internal surface
-    int32_t                     FrameID;            //!< Not in use for internal surface
-    bool                        ExtendedGamut;      //!< Extended Gamut Flag. Not in use for internal surface
-    VPHAL_PALETTE               Palette;            //!< Palette data. Not in use for internal surface
-    VPHAL_SURFACE_TYPE          SurfType;           //!< Surface type (context). Not in use for internal surface
-    uint32_t                    uFwdRefCount;       //!< Not in use for internal surface
-    uint32_t                    uBwdRefCount;       //!< Not in use for internal surface
-    VPHAL_SURFACE               *pFwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
-    VPHAL_SURFACE               *pBwdRef;           //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
-    VPHAL_SAMPLE_TYPE           SampleType;         //!<  Interlaced/Progressive sample type.
+    bool                        bQueryVariance  = false;     //!< enable variance query. Not in use for internal surface
+    int32_t                     FrameID         = 0;         //!< Not in use for internal surface
+    bool                        ExtendedGamut   = false;     //!< Extended Gamut Flag. Not in use for internal surface
+    VPHAL_PALETTE               Palette         = {};        //!< Palette data. Not in use for internal surface
+    VPHAL_SURFACE_TYPE          SurfType        = SURF_NONE; //!< Surface type (context). Not in use for internal surface
+    uint32_t                    uFwdRefCount    = 0;         //!< Not in use for internal surface
+    uint32_t                    uBwdRefCount    = 0;         //!< Not in use for internal surface
+    VPHAL_SURFACE               *pFwdRef        = nullptr;   //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
+    VPHAL_SURFACE               *pBwdRef        = nullptr;   //!< Use VP_SURFACE instead of VPHAL_SURFACE later. Not in use for internal surface.
+    VPHAL_SAMPLE_TYPE            SampleType     = SAMPLE_PROGRESSIVE;  //!<  Interlaced/Progressive sample type.
     // Use index of m_InputSurfaces for layerID. No need iLayerID here anymore.
-    RECT                        rcSrc;              //!< Source rectangle
-    RECT                        rcDst;              //!< Destination rectangle
-    RECT                        rcMaxSrc;           //!< Max source rectangle
-    bool                        bVEBOXCroppingUsed; //!<Vebox crop case need use rcSrc as vebox input.
-    uint32_t                    bufferWidth;        //!< 1D buffer Width, n/a if 2D surface
-    uint32_t                    bufferHeight;       //!< 1D buffer Height, n/a if 2D surface
+    RECT                        rcSrc               = {0, 0, 0, 0};    //!< Source rectangle
+    RECT                        rcDst               = {0, 0, 0, 0};    //!< Destination rectangle
+    RECT                        rcMaxSrc            = {0, 0, 0, 0};    //!< Max source rectangle
+    bool                        bVEBOXCroppingUsed  = false;           //!<Vebox crop case need use rcSrc as vebox input.
+    uint32_t                    bufferWidth         = 0;               //!< 1D buffer Width, n/a if 2D surface
+    uint32_t                    bufferHeight        = 0;               //!< 1D buffer Height, n/a if 2D surface
 
     // Return true if no resource assigned to current vp surface.
     bool        IsEmpty();
@@ -117,10 +117,10 @@ struct VP_SURFACE
 struct _VP_SETTINGS
 {
     // For validation purpose settings
-    uint32_t               disableDnDi;                              //!< Disable DNDI(Vebox)
-    uint32_t               kernelUpdate;                             //!< For VEBox Copy and Update kernels
-    uint32_t               disableHdr;                               //!< Disable Hdr
-    uint32_t               veboxParallelExecution;                   //!< Control VEBox parallel execution with render engine
+    uint32_t               disableDnDi            = 0;                   //!< Disable DNDI(Vebox)
+    uint32_t               kernelUpdate           = 0;                   //!< For VEBox Copy and Update kernels
+    uint32_t               disableHdr             = 0;                   //!< Disable Hdr
+    uint32_t               veboxParallelExecution = 0;                   //!< Control VEBox parallel execution with render engine
 };
 
 using VP_SETTINGS = _VP_SETTINGS;

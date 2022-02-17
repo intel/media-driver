@@ -2227,6 +2227,7 @@ MOS_STATUS VpResourceManager::Init3DLutSurface2D(VP_SURFACE *surf)
     uint32_t pitchInByte = surf->osSurface->dwPitch;
 
     uint8_t *lockedAddr = (uint8_t *)this->m_allocator.LockResourceForWrite(&surf->osSurface->OsResource);
+    VP_PUBLIC_CHK_NULL_RETURN(lockedAddr);
 
     uint32_t indexByte = 0;
     uint32_t indexByteInLine = 0;

@@ -38,7 +38,7 @@ public:
     VpScalingFilter(
         PVP_MHWINTERFACE vpMhwInterface);
 
-    ~VpScalingFilter()
+    virtual ~VpScalingFilter()
     {
         Destroy();
     };
