@@ -113,7 +113,7 @@ bool MediaCopyState_Xe_Hpm::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RES
     if ((Source.Format != Format_RGBP) && (Source.Format != Format_NV12) && (Source.Format != Format_RGB)
      && (Source.Format != Format_P010) && (Source.Format != Format_P016) && (Source.Format != Format_YUY2)
      && (Source.Format != Format_Y210) && (Source.Format != Format_Y216) && (Source.Format != Format_AYUV)
-     && (Source.Format != Format_Y410) && (Source.Format != Format_Y416) && (Source.Format != Format_A8R8G8B8))
+     && (Source.Format != Format_Y410) && (Source.Format != Format_A8R8G8B8))
     {
          MCPY_NORMALMESSAGE("render copy doesn't suppport format %d ", Source.Format);
          return false;
