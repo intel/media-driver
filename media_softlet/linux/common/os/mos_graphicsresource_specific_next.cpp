@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,62 +50,6 @@ bool GraphicsResourceSpecificNext::ResourceIsNull()
 #endif // (_DEBUG || _RELEASE_INTERNAL)
     );
 
-}
-
-GMM_RESOURCE_FORMAT GraphicsResourceSpecificNext::ConvertMosFmtToGmmFmt(MOS_FORMAT format)
-{
-    switch (format)
-    {
-        case Format_Buffer      : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_Buffer_2D   : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_L8          : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_L16         : return GMM_FORMAT_L16_UNORM_TYPE;
-        case Format_STMM        : return GMM_FORMAT_R8_UNORM_TYPE;
-        case Format_AI44        : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_IA44        : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_R5G6B5      : return GMM_FORMAT_B5G6R5_UNORM_TYPE;
-        case Format_X8R8G8B8    : return GMM_FORMAT_B8G8R8X8_UNORM_TYPE;
-        case Format_A8R8G8B8    : return GMM_FORMAT_B8G8R8A8_UNORM_TYPE;
-        case Format_X8B8G8R8    : return GMM_FORMAT_R8G8B8X8_UNORM_TYPE;
-        case Format_A8B8G8R8    : return GMM_FORMAT_R8G8B8A8_UNORM_TYPE;
-        case Format_R32F        : return GMM_FORMAT_R32_FLOAT_TYPE;
-        case Format_V8U8        : return GMM_FORMAT_GENERIC_16BIT;              // matching size as format
-        case Format_YUY2        : return GMM_FORMAT_YUY2;
-        case Format_UYVY        : return GMM_FORMAT_UYVY;
-        case Format_P8          : return GMM_FORMAT_RENDER_8BIT_TYPE;           // matching size as format
-        case Format_A8          : return GMM_FORMAT_A8_UNORM_TYPE;
-        case Format_AYUV        : return GMM_FORMAT_R8G8B8A8_UINT_TYPE;
-        case Format_NV12        : return GMM_FORMAT_NV12_TYPE;
-        case Format_NV21        : return GMM_FORMAT_NV21_TYPE;
-        case Format_YV12        : return GMM_FORMAT_YV12_TYPE;
-        case Format_R32U        : return GMM_FORMAT_R32_UINT_TYPE;
-        case Format_R32S        : return GMM_FORMAT_R32_SINT_TYPE;
-        case Format_RAW         : return GMM_FORMAT_GENERIC_8BIT;
-        case Format_444P        : return GMM_FORMAT_MFX_JPEG_YUV444_TYPE;
-        case Format_422H        : return GMM_FORMAT_MFX_JPEG_YUV422H_TYPE;
-        case Format_422V        : return GMM_FORMAT_MFX_JPEG_YUV422V_TYPE;
-        case Format_IMC3        : return GMM_FORMAT_IMC3_TYPE;
-        case Format_411P        : return GMM_FORMAT_MFX_JPEG_YUV411_TYPE;
-        case Format_411R        : return GMM_FORMAT_MFX_JPEG_YUV411R_TYPE;
-        case Format_RGBP        : return GMM_FORMAT_RGBP_TYPE;
-        case Format_BGRP        : return GMM_FORMAT_BGRP_TYPE;
-        case Format_R8U         : return GMM_FORMAT_R8_UINT_TYPE;
-        case Format_R8UN        : return GMM_FORMAT_R8_UNORM;
-        case Format_R16U        : return GMM_FORMAT_R16_UINT_TYPE;
-        case Format_R16F        : return GMM_FORMAT_R16_FLOAT_TYPE;
-        case Format_P010        : return GMM_FORMAT_P010_TYPE;
-        case Format_P016        : return GMM_FORMAT_P016_TYPE;
-        case Format_Y216        : return GMM_FORMAT_Y216_TYPE;
-        case Format_Y416        : return GMM_FORMAT_Y416_TYPE;
-        case Format_P208        : return GMM_FORMAT_P208_TYPE;
-        case Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM_TYPE;
-        case Format_Y210        : return GMM_FORMAT_Y210_TYPE;
-        case Format_Y410        : return GMM_FORMAT_Y410_TYPE;
-        case Format_R10G10B10A2 : return GMM_FORMAT_R10G10B10A2_UNORM_TYPE;
-        case Format_A16B16G16R16F: return GMM_FORMAT_R16G16B16A16_FLOAT;
-        case Format_R32G32B32A32F: return GMM_FORMAT_R32G32B32A32_FLOAT;
-        default                 : return GMM_FORMAT_INVALID;
-    }
 }
 
 MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, CreateParams& params)
@@ -169,7 +113,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     }
 
     // Create GmmResourceInfo
-    gmmParams.Format = ConvertMosFmtToGmmFmt(params.m_format);
+    gmmParams.Format = MosInterface::MosFmtToGmmFmt(params.m_format);
     if (gmmParams.Format == GMM_FORMAT_INVALID)
     {
         MOS_OS_ASSERTMESSAGE("Unsupported format");
@@ -757,7 +701,7 @@ MOS_STATUS GraphicsResourceSpecificNext::AllocateExternalResource(
     gmmParams.BaseHeight = iAlignedHeight;
     gmmParams.ArraySize  = 1;
     gmmParams.Type       = resourceType;
-    gmmParams.Format     = MosOsSpecificNext::Mos_Specific_ConvertMosFmtToGmmFmt(params->Format);
+    gmmParams.Format     = MosInterface::MosFmtToGmmFmt(params->Format);
 
     MOS_OS_CHECK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID,
         "Unsupported format",

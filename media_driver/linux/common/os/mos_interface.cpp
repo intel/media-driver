@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3208,4 +3208,66 @@ bool MosInterface::MosSimulateOsApiFail(
 bool MosInterface::IsAsyncDevice(MOS_STREAM_HANDLE streamState)
 {
     return false;
+}
+
+GMM_RESOURCE_FORMAT MosInterface::MosFmtToGmmFmt(MOS_FORMAT format)
+{
+    static const std::map<MOS_FORMAT, GMM_RESOURCE_FORMAT> mos2GmmFmtMap = {
+        {Format_Buffer, GMM_FORMAT_GENERIC_8BIT},
+        {Format_Buffer_2D, GMM_FORMAT_GENERIC_8BIT},
+        {Format_L8, GMM_FORMAT_GENERIC_8BIT},
+        {Format_L16, GMM_FORMAT_L16_UNORM_TYPE},
+        {Format_STMM, GMM_FORMAT_R8_UNORM_TYPE},
+        {Format_AI44, GMM_FORMAT_GENERIC_8BIT},
+        {Format_IA44, GMM_FORMAT_GENERIC_8BIT},
+        {Format_R5G6B5, GMM_FORMAT_B5G6R5_UNORM_TYPE},
+        {Format_X8R8G8B8, GMM_FORMAT_B8G8R8X8_UNORM_TYPE},
+        {Format_A8R8G8B8, GMM_FORMAT_B8G8R8A8_UNORM_TYPE},
+        {Format_X8B8G8R8, GMM_FORMAT_R8G8B8X8_UNORM_TYPE},
+        {Format_A8B8G8R8, GMM_FORMAT_R8G8B8A8_UNORM_TYPE},
+        {Format_R32F, GMM_FORMAT_R32_FLOAT_TYPE},
+        {Format_V8U8, GMM_FORMAT_GENERIC_16BIT},  // matching size as format
+        {Format_YUY2, GMM_FORMAT_YUY2},
+        {Format_UYVY, GMM_FORMAT_UYVY},
+        {Format_P8, GMM_FORMAT_RENDER_8BIT_TYPE},  // matching size as format
+        {Format_A8, GMM_FORMAT_A8_UNORM_TYPE},
+        {Format_AYUV, GMM_FORMAT_R8G8B8A8_UINT_TYPE},
+        {Format_NV12, GMM_FORMAT_NV12_TYPE},
+        {Format_NV21, GMM_FORMAT_NV21_TYPE},
+        {Format_YV12, GMM_FORMAT_YV12_TYPE},
+        {Format_R32U, GMM_FORMAT_R32_UINT_TYPE},
+        {Format_R32S, GMM_FORMAT_R32_SINT_TYPE},
+        {Format_RAW, GMM_FORMAT_GENERIC_8BIT},
+        {Format_444P, GMM_FORMAT_MFX_JPEG_YUV444_TYPE},
+        {Format_422H, GMM_FORMAT_MFX_JPEG_YUV422H_TYPE},
+        {Format_422V, GMM_FORMAT_MFX_JPEG_YUV422V_TYPE},
+        {Format_IMC3, GMM_FORMAT_IMC3_TYPE},
+        {Format_411P, GMM_FORMAT_MFX_JPEG_YUV411_TYPE},
+        {Format_411R, GMM_FORMAT_MFX_JPEG_YUV411R_TYPE},
+        {Format_RGBP, GMM_FORMAT_RGBP_TYPE},
+        {Format_BGRP, GMM_FORMAT_BGRP_TYPE},
+        {Format_R8U, GMM_FORMAT_R8_UINT_TYPE},
+        {Format_R8UN, GMM_FORMAT_R8_UNORM},
+        {Format_R16U, GMM_FORMAT_R16_UINT_TYPE},
+        {Format_R16F, GMM_FORMAT_R16_FLOAT_TYPE},
+        {Format_P010, GMM_FORMAT_P010_TYPE},
+        {Format_P016, GMM_FORMAT_P016_TYPE},
+        {Format_Y216, GMM_FORMAT_Y216_TYPE},
+        {Format_Y416, GMM_FORMAT_Y416_TYPE},
+        {Format_P208, GMM_FORMAT_P208_TYPE},
+        {Format_A16B16G16R16, GMM_FORMAT_R16G16B16A16_UNORM_TYPE},
+        {Format_Y210, GMM_FORMAT_Y210_TYPE},
+        {Format_Y410, GMM_FORMAT_Y410_TYPE},
+        {Format_R10G10B10A2, GMM_FORMAT_R10G10B10A2_UNORM_TYPE},
+        {Format_A16B16G16R16F, GMM_FORMAT_R16G16B16A16_FLOAT},
+        {Format_R32G32B32A32F, GMM_FORMAT_R32G32B32A32_FLOAT}
+    };
+    
+    auto iter = mos2GmmFmtMap.find(format);
+    if (iter != mos2GmmFmtMap.end())
+    {
+        return iter->second;
+    }
+    return GMM_FORMAT_INVALID;
+
 }

@@ -56,13 +56,6 @@
 //! \brief Macros for enabling / disabling development features in MOS
 //!
 
-//! MediaSolo is only supported for non-production builds
-#if ((_DEBUG || _RELEASE_INTERNAL ) && !defined(ANDROID) && _MEDIA_SOLO_SUPPORTED)
-#define MOS_MEDIASOLO_SUPPORTED 1
-#else
-#define MOS_MEDIASOLO_SUPPORTED 0
-#endif
-
 //! Event Trace Logging a debug feature so should not be enabled in release builds
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define MOS_EVENT_TRACE_DUMP_SUPPORTED 1

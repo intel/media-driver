@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2021, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -647,6 +647,16 @@ struct MosStreamState
 
     bool  bGucSubmission     = false;  //!< Flag to indicate if guc submission is enabled
     OS_PER_STREAM_PARAMETERS  perStreamParameters = nullptr; //!< Parameters of OS specific per stream
+
+    static void *pvSoloContext;  //!< pointer to MediaSolo context
+
+#if MOS_MEDIASOLO_SUPPORTED
+
+    int32_t  bSupportMediaSoloVirtualEngine = 0;  //!< Flag to indicate if MediaSolo uses VE solution in cmdbuffer submission.
+    uint32_t dwEnableMediaSoloFrameNum = 0;       //!< The frame number at which MediaSolo will be enabled, 0 is not valid.
+    int32_t  bSoloInUse = 0;                      //!< Flag to indicate if MediaSolo is enabled
+#endif                                       // MOS_MEDIASOLO_SUPPORTED
+
 };
 
 // OS agnostic MOS objects

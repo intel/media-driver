@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -209,12 +209,6 @@ public:
         MOS_RESOURCE_HANDLE resource);
 
 protected:
-    //!
-    //! \brief  Converts MOS format infot GMM format.
-    //! \return the converting result.
-    //!
-    GMM_RESOURCE_FORMAT ConvertMosFmtToGmmFmt(MOS_FORMAT format);
-
     //!
     //! \brief  Set tilemode by force to GMM info flag.
     //! \return MOS_SUCCESS on success case.

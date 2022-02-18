@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1983,6 +1983,21 @@ public:
     //!
     static int GetPlaneSurfaceOffset(
         const MOS_PLANE_OFFSET &planeOffset);
+
+    //!
+    //! \brief  Translate MOS_FORMAT into GMM_RESOURCE_FORMAT
+    //!
+    static GMM_RESOURCE_FORMAT MosFmtToGmmFmt(MOS_FORMAT format);
+
+    //!
+    //! \brief  Translate MOS_FORMAT into MOS_OS_FORMAT
+    //!
+    static MOS_OS_FORMAT MosFmtToOsFmt(MOS_FORMAT format);
+
+    //!
+    //! \brief  Translate MOS_OS_FORMT into MOS_FORMAT
+    //!
+    static MOS_FORMAT OsFmtToMosFmt(MOS_OS_FORMAT format);
 
 private:
     //!

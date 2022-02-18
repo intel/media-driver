@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,9 @@
 
 #include "mos_os_solo.h"
 #include "mos_os_solo_specific.h"
+#include "mos_os_solo_next_specific.h"
+
+#include "mos_os_solo_next.h"
 
 #else
 
@@ -43,11 +46,11 @@
 #define Mos_Solo_IsInUse(a)      false
 #define Mos_Solo_Extension(a)    false
 #define Mos_Solo_ReplaceSkuWaTable(a, b, c, d)
-#define Mos_Solo_ForceDumps(a, b)            MOS_STATUS_SUCCESS
-#define Mos_Solo_PreProcessDecode(a, b)      MOS_STATUS_SUCCESS
-#define Mos_Solo_PostProcessDecode(a, b)     MOS_STATUS_SUCCESS
-#define Mos_Solo_PreProcessEncode(a, b, c)   MOS_STATUS_SUCCESS
-#define Mos_Solo_PostProcessEncode(a, b, c)  MOS_STATUS_SUCCESS
+#define Mos_Solo_ForceDumps(a, b)                 MOS_STATUS_SUCCESS
+#define Mos_Solo_PreProcessDecode(a, b)           MOS_STATUS_SUCCESS
+#define Mos_Solo_PostProcessDecode(a, b)          MOS_STATUS_SUCCESS
+#define Mos_Solo_PreProcessEncode(a, b, c)        MOS_STATUS_SUCCESS
+#define Mos_Solo_PostProcessEncode(a, b, c)       MOS_STATUS_SUCCESS
 #define Mos_Solo_CheckNodeLimitation(a, b)
 #define Mos_Solo_DisableAubcaptureOptimizations(a, b)  MOS_STATUS_SUCCESS
 
@@ -59,6 +62,9 @@
 #define Mos_Solo_SetOsResource(a, b)
 #define Mos_Solo_SetGpuAppTaskEvent(a, b)  MOS_STATUS_SUCCESS
 #define Mos_Solo_SetReadyToExecute(a, b)
+
+#define Mos_Solo_SetPlatform(a, b)
+#define Mos_Solo_SetSkuwaTable(a, b, c)
 
 #endif // MOS_MEDIASOLO_SUPPORTED
 #endif

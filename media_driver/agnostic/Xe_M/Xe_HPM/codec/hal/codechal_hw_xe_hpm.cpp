@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2020-2021, Intel Corporation
+# Copyright (c) 2020-2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -36,7 +36,6 @@
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_hcp_g12_X.h"
 #include "media_interfaces_xehp_sdv.h"// temporary include for getting avp interface
-#include "media_interfaces_xehp_sdv.h"//temporary include for getting avp interface
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "Xe_Hpm_Film_Grain.h"
 #endif
