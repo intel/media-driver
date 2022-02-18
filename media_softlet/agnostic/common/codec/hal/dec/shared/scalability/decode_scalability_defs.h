@@ -43,6 +43,7 @@ struct DecodeScalabilityPars : public ScalabilityPars
 {
     bool    disableScalability = false;
     bool    disableRealTile = false;
+    bool    disableVirtualTile = false;
 
     bool    usingSfc = false;
     bool    usingHcp = false;

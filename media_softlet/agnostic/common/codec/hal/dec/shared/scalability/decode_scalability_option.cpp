@@ -76,12 +76,13 @@ MOS_STATUS DecodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params
     }
     else
 #endif
-    if (IsResolutionMatchMultiPipeThreshold2(decPars->frameWidth, decPars->frameHeight))
+    if (!decPars->disableVirtualTile && IsResolutionMatchMultiPipeThreshold2(decPars->frameWidth, decPars->frameHeight))
     {
         m_numPipe = (decPars->numVdbox >= m_maxNumMultiPipe) ? m_maxNumMultiPipe : m_typicalNumMultiPipe;
     }
     else if (isRealTileDecode ||
-             IsResolutionMatchMultiPipeThreshold1(decPars->frameWidth, decPars->frameHeight, decPars->surfaceFormat))
+             (!decPars->disableVirtualTile &&
+              IsResolutionMatchMultiPipeThreshold1(decPars->frameWidth, decPars->frameHeight, decPars->surfaceFormat)))
     {
         m_numPipe = m_typicalNumMultiPipe;
     }

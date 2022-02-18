@@ -127,7 +127,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS InitContexOption(Vp9BasicFeature &basicFeature);
+    virtual MOS_STATUS InitContexOption(Vp9BasicFeature &basicFeature);
 
     //!
     //! \brief  Initialize VP9 decode mode
