@@ -420,9 +420,12 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
     m_cpInterface = Create_MhwCpInterface(osInterface);
     m_miInterface = MOS_New(Mi, m_cpInterface, osInterface);
     {
-        auto ptr = std::make_shared<mhw::mi::xe_xpm_base::Impl>(osInterface);
-        ptr->SetCpInterface(m_cpInterface);
-        m_miItf  = std::static_pointer_cast<mhw::mi::Itf>(ptr);
+        MHW_MI_CHK_NULL(m_miInterface);
+        m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_miInterface->GetNewMiInterface());
+        //After dependency of legacy m_miInterface is cleanup, code above will be replaced with following codes.
+        //auto ptr = std::make_shared<mhw::mi::xe_xpm_base::Impl>(osInterface);
+        //ptr->SetCpInterface(m_cpInterface);
+        //m_miItf  = std::static_pointer_cast<mhw::mi::Itf>(ptr);
     }
 
     if (params.Flags.m_render)
