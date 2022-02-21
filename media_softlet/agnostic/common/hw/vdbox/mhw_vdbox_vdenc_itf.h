@@ -43,11 +43,11 @@
     DEF(VDENC_HEVC_VP9_TILE_SLICE_STATE); \
     DEF(VDENC_WALKER_STATE);              \
     DEF(VD_PIPELINE_FLUSH);               \
+    DEF(VDENC_AVC_SLICE_STATE);           \
+    DEF(VDENC_AVC_IMG_STATE);             \
     DEF(VDENC_CMD1);                      \
     DEF(VDENC_CMD2);                      \
-    DEF(VDENC_CMD3);                      \
-    DEF(VDENC_CMD4);                      \
-    DEF(VDENC_CMD5)
+    DEF(VDENC_CMD3)
 
 namespace mhw
 {

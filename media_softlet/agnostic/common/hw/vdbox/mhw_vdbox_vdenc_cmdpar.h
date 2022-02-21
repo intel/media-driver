@@ -340,6 +340,20 @@ struct _MHW_PAR_T(VD_PIPELINE_FLUSH)
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VD_PIPELINE_FLUSH_CMDPAR_EXT);
 };
 
+struct _MHW_PAR_T(VDENC_AVC_SLICE_STATE)
+{
+    uint8_t roundIntra          = 0;
+    uint8_t roundIntraEnable    = 1;
+    uint8_t roundInter          = 0;
+    uint8_t roundInterEnable    = 0;
+    uint8_t log2WeightDenomLuma = 0;
+};
+
+struct _MHW_PAR_T(VDENC_AVC_IMG_STATE)
+{
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_CMDPAR_EXT);
+};
+
 struct _MHW_PAR_T(VDENC_CMD1)
 {
     uint16_t vdencCmd1Par0     = 0;
@@ -608,16 +622,6 @@ struct _MHW_PAR_T(VDENC_CMD2)
 struct _MHW_PAR_T(VDENC_CMD3)
 {
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD3_CMDPAR_EXT);
-};
-
-struct _MHW_PAR_T(VDENC_CMD4)
-{
-    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD4_CMDPAR_EXT);
-};
-
-struct _MHW_PAR_T(VDENC_CMD5)
-{
-    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD5_CMDPAR_EXT);
 };
 }  // namespace vdenc
 }  // namespace vdbox
