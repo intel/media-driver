@@ -205,3 +205,9 @@ MOS_STATUS Codechal::ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput
 {
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS Codechal::ReportErrorFlag(PMOS_RESOURCE pMetadataBuffer, uint32_t size,
+                                     uint32_t offset, uint32_t flag)
+{
+    return MOS_STATUS_SUCCESS;
+}

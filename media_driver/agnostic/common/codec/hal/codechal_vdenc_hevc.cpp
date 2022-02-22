@@ -3996,7 +3996,7 @@ MOS_STATUS CodechalVdencHevcState::PrepareHWMetaData(PMOS_COMMAND_BUFFER cmdBuff
     MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
     storeDataParams.pOsResource         = m_presMetadataBuffer;
     storeDataParams.dwResourceOffset    = m_metaDataOffset.dwEncodeErrorFlags;
-    storeDataParams.dwValue             = 0;
+    storeDataParams.dwValue             = 0;  // No error
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
     storeDataParams.dwResourceOffset    = m_metaDataOffset.dwWrittenSubregionsCount;

@@ -2466,6 +2466,12 @@ public:
         PMOS_RESOURCE pHwLayoutMetaData,
         PMOS_RESOURCE pResolvedLayoutMetadata) override;
 
+    MOS_STATUS ReportErrorFlag(
+        PMOS_RESOURCE pMetadataBuffer,
+        uint32_t      size,
+        uint32_t      offset,
+        uint32_t      flag) override;
+
     virtual MOS_STATUS PrepareHWMetaData(
         PMOS_RESOURCE           presMetadataBuffer,
         PMOS_RESOURCE           presLcuBaseAddressBuffer,

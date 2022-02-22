@@ -177,6 +177,23 @@ public:
     virtual MOS_STATUS ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput);
 
     //!
+    //! \brief    Report Error Flag.
+    //! \details  Report error flag to metadata buffer
+    //! \param    [in] pMetadataBuffer
+    //!           Metadata buffer.
+    //! \param    [in] size
+    //!           Metadata size.
+    //! \param    [in] offset
+    //!           Error flag offset in the metdata.
+    //! \param    [in] flag
+    //!           Flag to report.
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success else fail reason
+    //!
+    virtual MOS_STATUS ReportErrorFlag(PMOS_RESOURCE pMetadataBuffer, uint32_t size,
+                                       uint32_t offset, uint32_t flag);
+
+    //!
     //! \brief    Gets hardware interface.
     //! \return   CodechalHwInterface
     //!           return hardware interface

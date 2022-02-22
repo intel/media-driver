@@ -7878,7 +7878,7 @@ MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     // Report error flags to metadata buffer
     storeDataParams.pOsResource      = presMetadataBuffer;
     storeDataParams.dwResourceOffset = m_metaDataOffset.dwEncodeErrorFlags;
-    storeDataParams.dwValue          = 0;
+    storeDataParams.dwValue          = 0;  // No error
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiStoreDataImmCmd(cmdBuffer, &storeDataParams));
 
     // Report num of slices to metadata buffer
