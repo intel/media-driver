@@ -39,4 +39,6 @@
     #endif  // MHW_HWCMDPARSER_ENABLED
     #undef DO_FIELDS
 #endif  // DO_FIELDS
+#ifndef NO_RETURN
         return MOS_STATUS_SUCCESS;
+#endif  // NO_RETURN

@@ -28,6 +28,7 @@
 #ifndef __MHW_VDBOX_VDENC_CMDPAR_H__
 #define __MHW_VDBOX_VDENC_CMDPAR_H__
 
+#include <functional>
 #include "mhw_vdbox_cmdpar.h"
 #include "codec_def_common.h"
 #include "codec_def_common_encode.h"
@@ -498,125 +499,11 @@ struct _MHW_PAR_T(VDENC_CMD2)
     bool     vp9DynamicSlice                  = false;
     uint8_t  qpPrimeYDc                       = 0;
     uint8_t  qpPrimeYAc                       = 0;
-    uint32_t intraRefreshBoundary[3]          = {}; /* [ref0, ref1, ref2] */
+    uint32_t intraRefreshBoundary[3]          = {};
 
-    uint8_t  vdencCmd2Par0        = 0;
-    uint8_t  vdencCmd2Par1        = 0;
-    uint8_t  vdencCmd2Par2        = 3;
-    uint8_t  vdencCmd2Par3        = 1;
-    uint8_t  vdencCmd2Par4        = 16;
-    bool     vdencCmd2Par5        = false;
-    uint8_t  vdencCmd2Par6        = 2;
-    uint8_t  vdencCmd2Par7        = 2;
-    uint8_t  vdencCmd2Par8        = 3;
-    uint8_t  vdencCmd2Par9        = 1 << 4;
-    uint8_t  vdencCmd2Par10       = 0;
-    uint8_t  vdencCmd2Par11       = 0x3;
-    uint16_t vdencCmd2Par12       = 0x200;
-    uint16_t vdencCmd2Par13       = 0x200;
-    uint16_t vdencCmd2Par14       = 0x200;
-    uint8_t  vdencCmd2Par15       = 0;
-    bool     vdencCmd2Par16       = false;
-    bool     vdencCmd2Par17       = false;
-    bool     vdencCmd2Par18       = false;
-    bool     vdencCmd2Par19       = false;
-    bool     vdencCmd2Par20       = true;
-    bool     vdencCmd2Par21       = true;
-    uint8_t  vdencCmd2Par22       = 4;
-    bool     vdencCmd2Par23       = false;
-    uint8_t  vdencCmd2Par24       = 3;
-    uint8_t  vdencCmd2Par25       = 0;
-    uint8_t  vdencCmd2Par26       = 0;
-    uint8_t  vdencCmd2Par27       = 0;
-    uint8_t  vdencCmd2Par28       = 0;
-    uint8_t  vdencCmd2Par29       = 0;
-    uint8_t  vdencCmd2Par30       = 0;
-    uint8_t  vdencCmd2Par31       = 0;
-    uint8_t  vdencCmd2Par32       = 0;
-    uint8_t  vdencCmd2Par33       = 0;
-    uint8_t  vdencCmd2Par34       = 0;
-    uint8_t  vdencCmd2Par35       = 0;
-    uint8_t  vdencCmd2Par36       = 0;
-    uint8_t  vdencCmd2Par37       = 0;
-    uint8_t  vdencCmd2Par38       = 4;
-    uint8_t  vdencCmd2Par39       = 8;
-    bool     vdencCmd2Par40       = false;
-    uint16_t vdencCmd2Par41       = 0xffff;
-    uint16_t vdencCmd2Par42       = 0xffff;
-    uint8_t  vdencCmd2Par43[4]    = {};
-    uint8_t  vdencCmd2Par44[4]    = {};
-    uint8_t  vdencCmd2Par45[4]    = {};
-    uint16_t vdencCmd2Par46[3]    = {500, 5000, 5000};
-    uint8_t  vdencCmd2Par47       = 0;
-    uint8_t  vdencCmd2Par48       = 0;
-    uint8_t  vdencCmd2Par49       = 15;
-    uint8_t  vdencCmd2Par50       = 0;
-    uint32_t vdencCmd2Par51       = 1000;
-    uint8_t  vdencCmd2Par52[3]    = {};
-    uint8_t  vdencCmd2Par53[2]    = {8, 64};
-    uint8_t  vdencCmd2Par54       = 0;
-    uint8_t  vdencCmd2Par55       = 0x18;
-    bool     vdencCmd2Par56       = true;
-    uint16_t vdencCmd2Par57       = 0xffff;
-    bool     vdencCmd2Par58       = false;
-    uint8_t  vdencCmd2Par59       = 0;
-    bool     vdencCmd2Par60       = false;
-    bool     vdencCmd2Par61       = false;
-    uint8_t  vdencCmd2Par62       = 0;
-    uint16_t vdencCmd2Par63       = 0xffff;
-    uint16_t vdencCmd2Par64[3][3] = {
-        {500, 400, 300}, {1000, 800, 700}, {4000, 3000, 2000}};
-    uint8_t  vdencCmd2Par65[3][3][2] = {};
-    uint8_t  vdencCmd2Par66          = 0;
-    uint8_t  vdencCmd2Par67          = 8;
-    bool     vdencCmd2Par68          = false;
-    uint8_t  vdencCmd2Par69          = 0;
-    uint16_t vdencCmd2Par70          = 0;
-    uint8_t  vdencCmd2Par71          = 0;
-    uint8_t  vdencCmd2Par72          = 2;
-    bool     vdencCmd2Par73          = false;
-    uint8_t  vdencCmd2Par74          = 0;
-    uint8_t  vdencCmd2Par75          = 0;
-    uint8_t  vdencCmd2Par76          = 0;
-    uint8_t  vdencCmd2Par77          = 0;
-    uint8_t  vdencCmd2Par78          = 0;
-    uint8_t  vdencCmd2Par79          = 0;
-    uint32_t vdencCmd2Par80[2][8][3] = {
-        {{252, 128, 128}, {177, 170, 3}, {105, 211, 233}, {224, 3, 148}, {77, 86, 253}, {149, 45, 23}, {31, 253, 108}, {2, 128, 128}},
-        {{252, 252, 252}, {2, 252, 252}, {252, 2, 252}, {252, 252, 2}, {252, 2, 2}, {2, 252, 2}, {2, 2, 252}, {2, 2, 2}},
-    };
-    uint8_t  vdencCmd2Par81        = 0;
-    uint8_t  vdencCmd2Par82        = 0;
-    uint8_t  vdencCmd2Par83[3]     = {0, 0, 1};
-    uint8_t  vdencCmd2Par84[3]     = {1, 1, 1};
-    uint32_t vdencCmd2Par85[2]     = {};
-    bool     vdencCmd2Par86        = false;
-    uint8_t  vdencCmd2Par87[4]     = {};
-    uint8_t  vdencCmd2Par88[3][4]  = {};
-    bool     vdencCmd2Par89        = false;
-    uint8_t  vdencCmd2Par90        = 0;
-    bool     vdencCmd2Par91        = false;
-    uint16_t vdencCmd2Par92        = 0xffff;
-    uint16_t vdencCmd2Par93        = 0xffff;
-    bool     vdencCmd2Par94        = false;
-    bool     vdencCmd2Par95        = false;
-    uint8_t  vdencCmd2Par96        = 0;
-    bool     vdencCmd2Par97        = false;
-    uint8_t  vdencCmd2Par98        = 0;
-    uint8_t  vdencCmd2Par99        = 0;
-    uint8_t  vdencCmd2Par100       = 0;
-    bool     vdencCmd2Par101       = false;
-    bool     vdencCmd2Par102       = false;
-    uint8_t  vdencCmd2Par103[9]    = {};
-    bool     vdencCmd2Par104       = false;
-    bool     vdencCmd2Par105       = false;
-    uint16_t vdencCmd2Par106[2][3] = {};
-    uint16_t vdencCmd2Par107[8]    = {};
-    uint8_t  vdencCmd2Par108[2][4] = {{1, 1, 1, 1}, {1, 1, 1, 1}};
-    bool     vdencCmd2Par109       = false;
-    uint8_t  vdencCmd2Par110       = 0;
-    uint16_t vdencCmd2Par111       = 0;
-    uint16_t vdencCmd2Par112       = 0;
+    std::vector<std::function<MOS_STATUS(uint32_t*)>> extSettings;
+
+    __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_CMD2_CMDPAR_EXT);
 };
 
 struct _MHW_PAR_T(VDENC_CMD3)
