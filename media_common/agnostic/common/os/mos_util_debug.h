@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2021, Intel Corporation
+* Copyright (c) 2013-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -213,7 +213,7 @@ typedef struct _MOS_COMPONENT_DEBUG_PARAMS
 
 //!
 //! \brief MOS message params structure
-//!        Initialized by MOS_MessageInit() and cleared by  MOS_MessageClose()
+//!        Initialized by MosUtilDebug::MosMessageInit() and cleared by MosUtilDebug::MosMessageClose()
 //!
 typedef struct _MOS_MESSAGE_PARAMS
 {
@@ -229,22 +229,6 @@ typedef struct _MOS_MESSAGE_PARAMS
 } MOS_MESSAGE_PARAMS;
 
 //!
-//! \brief    Initialize the MOS message params structure and HLT.
-//! \details  Initialize the MOS message params structure and HLT,
-//!           to be called during device creation
-//! \return   void
-//!
-void MOS_MessageInit(MOS_CONTEXT_HANDLE mosCtx);
-
-//!
-//! \brief    Frees the MOS message buffer and MOS message parameters structure
-//! \details  Frees the MOS message buffer and MOS message parameters structure,
-//!           to be called during device destruction
-//! \return   void
-//!
-void MOS_MessageClose();
-
-//!
 //! \brief    Add preface information to the HLT log when initialized
 //! \details  Add preface information to the HLT log when initialized
 //!           Used internally by MOS_HLTInit().
@@ -255,17 +239,6 @@ void MOS_MessageClose();
 void MOS_HltpPreface(
     PFILE            pFile);
 
-//!
-//! \brief    Form a string that will prefix MOS's log file name
-//! \param    char  *fileNamePrefix
-//!           [out] Pointer to the string where the prefix is returned
-//! \param    [in] mosCtx
-//!           os device ctx handle
-//! \return   MOS_STATUS
-//!           Returns one of the MOS_STATUS error codes if failed,
-//!           else MOS_STATUS_SUCCESS
-//!
-MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx);
 
 //!
 //! \def MOS_FUNCTION_ENTER(_compID, _subCompID)

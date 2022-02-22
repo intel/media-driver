@@ -176,23 +176,6 @@ public:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
-    //!
-    //! \brief    Close MediaUserSetting context
-    //! \details  througt MediaUserSetting's destroy method reset ptr
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS DestroyMediaUserSetting();
-
-    //!
-    //! \brief    Init the mos user settings
-    //! \details  declare the common user settings
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS InitMosUserSetting();
 
 private:
     //!
@@ -214,37 +197,6 @@ private:
     //!           else MOS_STATUS_SUCCESS
     //!
     static MOS_STATUS MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx);
-
-    //!
-    //! \brief    Init the mos user settings of mos message
-    //! \details  declare the common user settings
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS InitMosCommonUserSetting();
-
-#if MOS_MESSAGES_ENABLED
-    //!
-    //! \brief    Init the mos user settings of mos message
-    //! \details  declare the common user settings
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS InitMosMessageUserSetting();
-#endif
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    //!
-    //! \brief    Init the mos user settings of debug
-    //! \details  declare the common user settings for debug
-    //! \return   MOS_STATUS
-    //!           Returns one of the MOS_STATUS error codes if failed,
-    //!           else MOS_STATUS_SUCCESS
-    //!
-    static MOS_STATUS InitUserSettingForDebug();
-#endif
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!

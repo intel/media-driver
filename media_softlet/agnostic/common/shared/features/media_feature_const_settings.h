@@ -30,6 +30,7 @@
 #ifndef __MEDIA_FEATURE_CONST_SETTINGS_H__
 #define __MEDIA_FEATURE_CONST_SETTINGS_H__
 #include "mos_os.h"
+#include "mos_interface.h"
 
 struct ConstTableSet
 {
@@ -49,7 +50,18 @@ public:
     //!
     //! \brief  MediaFeatureConstSettings constructor
     //!
-    MediaFeatureConstSettings() {};
+    MediaFeatureConstSettings(){};
+    MediaFeatureConstSettings(PMOS_INTERFACE osInterface)
+    {
+        if (osInterface)
+        {
+            m_userSettingPtr = MosInterface::MosGetUserSettingInstance(osInterface->osStreamState);
+        }
+        if (!m_userSettingPtr)
+        {
+            MOS_OS_NORMALMESSAGE("Initialize m_userSettingPtr instance failed!");
+        }
+    }
 
     //!
     //! \brief  MediaFeatureConstSettings deconstructor
@@ -92,6 +104,7 @@ protected:
     virtual MOS_STATUS SetCommonSettings() { return MOS_STATUS_SUCCESS; };
 
     MediaFeatureSettings *m_featureSetting = nullptr;
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
 };
 
 #endif  // !__MEDIA_FEATURE_CONST_SETTINGS_H__

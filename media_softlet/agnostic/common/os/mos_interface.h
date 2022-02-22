@@ -1999,6 +1999,14 @@ public:
     //!
     static MOS_FORMAT OsFmtToMosFmt(MOS_OS_FORMAT format);
 
+    //! \brief    Get usersetting instance for each stream
+    //! \details  the user setting instance
+    //! \param    MOS_PLANE_OFFSET planeOffset
+    //!           [in] Reference to MOS_PLANE_OFFSET structure
+    //! \return   int - offset of the plane
+    //!
+    static MediaUserSettingSharedPtr MosGetUserSettingInstance(
+        MOS_STREAM_HANDLE streamState);
 private:
     //!
     //! \brief    Init per stream parameters

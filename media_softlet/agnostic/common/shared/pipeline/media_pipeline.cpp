@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -34,6 +34,14 @@
 
 MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInterface)
 {
+    if (m_osInterface)
+    {
+        m_userSettingPtr = MosInterface::MosGetUserSettingInstance(m_osInterface->osStreamState);
+    }
+    if (!m_userSettingPtr)
+    {
+        MOS_OS_NORMALMESSAGE("Initialize m_userSettingPtr instance failed!");
+    }
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     if (!perfProfiler)
     {
@@ -43,7 +51,6 @@ MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInter
     {
         perfProfiler->Initialize((void *)this, m_osInterface);
     }
-
     //Create both Legacy/APO perf profiler to keep compatability of components/codecs not switching to APO path
     MediaPerfProfilerNext *perfProfilerNext = MediaPerfProfilerNext::Instance();
     if (!perfProfilerNext)
@@ -54,6 +61,7 @@ MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInter
     {
         perfProfilerNext->Initialize((void *)this, m_osInterface);
     }
+
 }
 
 MediaPipeline::~MediaPipeline()
