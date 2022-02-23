@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,10 +61,21 @@ public:
     MOS_STATUS CheckReferenceList(
         HevcBasicFeature &hevcBasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
 
+    MOS_STATUS CheckReferenceList(
+        HevcBasicFeature  &hevcBasicFeature,
+        MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+        MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+        PMOS_RESOURCE     *presReferences);
+
     MOS_STATUS SetRefSurfaceMask(
         HevcBasicFeature                     &hevcBasicFeature,
         const MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams,
         MHW_VDBOX_SURFACE_PARAMS             &refSurfaceParams);
+
+    MOS_STATUS SetRefSurfaceMask(
+        HevcBasicFeature    &hevcBasicFeature,
+        const PMOS_RESOURCE *presReferences,
+        uint8_t             &mmcSkipMask);
 
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;

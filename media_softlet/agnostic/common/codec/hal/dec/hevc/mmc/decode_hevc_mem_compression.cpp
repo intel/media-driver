@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,9 +39,9 @@ HevcDecodeMemComp::HevcDecodeMemComp(CodechalHwInterface *hwInterface)
 }
 
 MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
-    HevcBasicFeature                     &hevcBasicFeature,
-    const MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams,
-    MHW_VDBOX_SURFACE_PARAMS             &refSurfaceParams)
+    HevcBasicFeature    &hevcBasicFeature,
+    const PMOS_RESOURCE *presReferences,
+    uint8_t             &mmcSkipMask)
 {
     if (hevcBasicFeature.m_isSCCIBCMode)
     {
@@ -56,12 +56,12 @@ MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
         uint8_t skipMask = 0;
         for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {
-            if (pipeBufAddrParams.presReferences[i] == refFrames.GetReferenceByFrameIndex(IBCFrameIdx))
+            if (presReferences[i] == refFrames.GetReferenceByFrameIndex(IBCFrameIdx))
             {
                 skipMask |= (1 << i);
             }
         }
-        refSurfaceParams.mmcSkipMask = skipMask;
+        mmcSkipMask = skipMask;
         DECODE_NORMALMESSAGE("IBC ref index %d, MMC skip mask %d,", IBCRefIdx, skipMask);
     }
 
@@ -75,14 +75,26 @@ MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
                 skipMask |= (1 << i);
             }
         }
-        refSurfaceParams.mmcSkipMask |= skipMask;
+        mmcSkipMask |= skipMask;
     }
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HevcDecodeMemComp::CheckReferenceList(
-    HevcBasicFeature &hevcBasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
+MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
+    HevcBasicFeature                     &hevcBasicFeature,
+    const MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams,
+    MHW_VDBOX_SURFACE_PARAMS             &refSurfaceParams)
+{
+    DECODE_FUNC_CALL();
+
+    return SetRefSurfaceMask(hevcBasicFeature, pipeBufAddrParams.presReferences, refSurfaceParams.mmcSkipMask);
+}
+
+MOS_STATUS HevcDecodeMemComp::CheckReferenceList(HevcBasicFeature &hevcBasicFeature,
+        MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+        MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+        PMOS_RESOURCE     *presReferences)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(m_osInterface);
@@ -90,8 +102,8 @@ MOS_STATUS HevcDecodeMemComp::CheckReferenceList(
     // Disable MMC if self-reference is dectected (mainly for error concealment)
     if (!hevcBasicFeature.m_refFrames.m_curIsIntra)
     {
-        if (pipeBufAddrParams.PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED ||
-            pipeBufAddrParams.PreDeblockSurfMmcState  != MOS_MEMCOMP_DISABLED)
+        if (postDeblockSurfMmcState != MOS_MEMCOMP_DISABLED ||
+            preDeblockSurfMmcState  != MOS_MEMCOMP_DISABLED)
         {
             DECODE_ASSERT(hevcBasicFeature.m_hevcPicParams);
             CODEC_HEVC_PIC_PARAMS &hevcPicParams = *(hevcBasicFeature.m_hevcPicParams);
@@ -101,8 +113,8 @@ MOS_STATUS HevcDecodeMemComp::CheckReferenceList(
                 if (hevcPicParams.CurrPic.FrameIdx == hevcPicParams.RefFrameList[i].FrameIdx)
                 {
                     DECODE_NORMALMESSAGE("Self-reference is detected for P/B frames!");
-                    pipeBufAddrParams.PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
-                    pipeBufAddrParams.PreDeblockSurfMmcState  = MOS_MEMCOMP_DISABLED;
+                    postDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+                    preDeblockSurfMmcState  = MOS_MEMCOMP_DISABLED;
 
                     // Decompress current frame to avoid green corruptions in this error handling case
                     MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
@@ -125,11 +137,11 @@ MOS_STATUS HevcDecodeMemComp::CheckReferenceList(
     MOS_MEMCOMP_STATE mmcModePrev  = MOS_MEMCOMP_DISABLED;
     for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
     {
-        if (pipeBufAddrParams.presReferences[i] != nullptr)
+        if (presReferences[i] != nullptr)
         {
             MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
             DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
-                m_osInterface, pipeBufAddrParams.presReferences[i], &mmcMode));
+                m_osInterface, presReferences[i], &mmcMode));
 
             if (i == 0)
             {
@@ -147,20 +159,31 @@ MOS_STATUS HevcDecodeMemComp::CheckReferenceList(
     {
         for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {
-            if (pipeBufAddrParams.presReferences[i] != nullptr)
+            if (presReferences[i] != nullptr)
             {
                 MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
                 DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
-                    m_osInterface, pipeBufAddrParams.presReferences[i], &mmcMode));
+                    m_osInterface, presReferences[i], &mmcMode));
                 if(mmcMode != MOS_MEMCOMP_DISABLED)
                 {
-                    m_osInterface->pfnDecompResource(m_osInterface, pipeBufAddrParams.presReferences[i]);
+                    m_osInterface->pfnDecompResource(m_osInterface, presReferences[i]);
                 }
             }
         }
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcDecodeMemComp::CheckReferenceList(
+    HevcBasicFeature &hevcBasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
+{
+    DECODE_FUNC_CALL();
+
+    return CheckReferenceList(hevcBasicFeature,
+        pipeBufAddrParams.PostDeblockSurfMmcState,
+        pipeBufAddrParams.PreDeblockSurfMmcState,
+        pipeBufAddrParams.presReferences);
 }
 
 }

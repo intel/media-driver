@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -85,6 +85,118 @@ public:
     virtual uint32_t GetPakHWTileSizeRecordSize() = 0;
 
     virtual MOS_STATUS SetRowstoreCachingOffsets(const HcpVdboxRowStorePar &rowstoreParams) = 0;
+
+    virtual MOS_STATUS GetHcpStateCommandSize(
+        uint32_t                        mode,
+        uint32_t *                      commandsSize,
+        uint32_t *                      patchListSize,
+        PMHW_VDBOX_STATE_CMDSIZE_PARAMS params) = 0;
+
+    virtual MOS_STATUS GetHcpPrimitiveCommandSize(
+        uint32_t  mode,
+        uint32_t *commandsSize,
+        uint32_t *patchListSize,
+        bool      modeSpecific) = 0;
+    //!
+    //! \brief    Get Hcp Cabac Error Flags Mask
+    //!
+    //! \return   [out] uint32_t
+    //!           Mask got.
+    //!
+    virtual inline uint32_t GetHcpCabacErrorFlagsMask()
+    {
+        return m_hcpCabacErrorFlagsMask;
+    }
+
+    //!
+    //! \brief    Judge if hevc sao row store caching enabled
+    //!
+    //! \return   bool
+    //!           true if enabled, else false
+    //!
+    inline bool IsHevcSaoRowstoreCacheEnabled()
+    {
+        return m_hevcSaoRowStoreCache.enabled ? true : false;
+    }
+
+    //!
+    //! \brief    Judge if hevc df row store caching enabled
+    //!
+    //! \return   bool
+    //!           true if enabled, else false
+    //!
+    inline bool IsHevcDfRowstoreCacheEnabled()
+    {
+        return m_hevcDfRowStoreCache.enabled ? true : false;
+    }
+
+    //!
+    //! \brief    Judge if hevc dat store caching enabled
+    //!
+    //! \return   bool
+    //!           true if enabled, else false
+    //!
+    inline bool IsHevcDatRowstoreCacheEnabled()
+    {
+        return m_hevcDatRowStoreCache.enabled ? true : false;
+    }
+
+    //!
+    //! \brief    Determines if the slice is I slice
+    //! \param    [in] sliceType
+    //!           slice type
+    //! \return   bool
+    //!           True if it's I slice, otherwise return false
+    //!
+    inline bool IsHevcISlice(uint8_t sliceType)
+    {
+        return (sliceType < MHW_ARRAY_SIZE(m_hevcBsdSliceType)) ? (m_hevcBsdSliceType[sliceType] == hevcSliceI) : false;
+    }
+
+    //!
+    //! \brief    Determines if the slice is P slice
+    //! \param    [in] sliceType
+    //!           slice type
+    //! \return   bool
+    //!           True if it's P slice, otherwise return false
+    //!
+    inline bool IsHevcPSlice(uint8_t sliceType)
+    {
+        return (sliceType < MHW_ARRAY_SIZE(m_hevcBsdSliceType)) ? (m_hevcBsdSliceType[sliceType] == hevcSliceP) : false;
+    }
+
+
+    //!
+    //! \brief    Determines if the slice is B slice
+    //! \param    [in] sliceType
+    //!           slice type
+    //! \return   bool
+    //!           True if it's B slice, otherwise return false
+    //!
+    inline bool IsHevcBSlice(uint8_t sliceType)
+    {
+        return (sliceType < MHW_ARRAY_SIZE(m_hevcBsdSliceType)) ? (m_hevcBsdSliceType[sliceType] == hevcSliceB) : false;
+    }
+
+    enum HevcSliceType
+    {
+        hevcSliceB = 0,
+        hevcSliceP = 1,
+        hevcSliceI = 2
+    };
+
+    protected:
+        RowStoreCache m_hevcDatRowStoreCache  = {};
+        RowStoreCache m_hevcDfRowStoreCache   = {};
+        RowStoreCache m_hevcSaoRowStoreCache  = {};
+        RowStoreCache m_hevcHSaoRowStoreCache = {};
+        RowStoreCache m_vp9HvdRowStoreCache   = {};
+        RowStoreCache m_vp9DfRowStoreCache    = {};
+        RowStoreCache m_vp9DatRowStoreCache   = {};
+
+        static const uint32_t m_hcpCabacErrorFlagsMask = 0x0879;  //<! Hcp CABAC error flags mask
+
+        static const HevcSliceType m_hevcBsdSliceType[3];  //!< HEVC Slice Types for Long Format
 
     _HCP_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 };
