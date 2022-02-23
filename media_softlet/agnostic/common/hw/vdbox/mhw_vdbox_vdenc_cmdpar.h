@@ -500,6 +500,7 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint8_t  qpPrimeYDc                       = 0;
     uint8_t  qpPrimeYAc                       = 0;
     uint32_t intraRefreshBoundary[3]          = {};
+    uint8_t  av1RefId[2][4]                   = {{1, 1, 1, 1}, {1, 1, 1, 1}};
 
     std::vector<std::function<MOS_STATUS(uint32_t*)>> extSettings;
 
