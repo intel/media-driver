@@ -33,7 +33,6 @@
 #include "mos_util_debug.h"
 #include "mos_util_user_interface.h"
 #include "mos_interface.h"
-#include "media_user_setting.h"
 
 PerfUtility* g_perfutility = PerfUtility::getInstance();
 
@@ -525,7 +524,6 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     MOS_USER_FEATURE_VALUE_DATA         UserFeatureData;
     char                                *psFileNameAfterPrefix = nullptr;
     size_t                              nSizeFileNamePrefix = 0;
-    MediaUserSettingSharedPtr userSettingPtr = MosInterface::MosGetUserSettingInstance(pOsInterface->osStreamState);
 
     MOS_OS_CHK_NULL_RETURN(pOsInterface);
 
@@ -544,7 +542,7 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     if (pOsInterface->bDumpCommandBufferToFile)
     {
         // Create output directory.
-        eStatus = MosUtilDebug::MosLogFileNamePrefix(pOsInterface->sDirName, userSettingPtr);
+        eStatus = MOS_LogFileNamePrefix(pOsInterface->sDirName, pOsInterface->pOsContext);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);

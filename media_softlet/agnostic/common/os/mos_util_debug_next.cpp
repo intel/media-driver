@@ -203,7 +203,7 @@ void MosUtilDebug::MosCompAssertEnableDisable(MOS_COMPONENT_ID compID, int32_t b
     m_mosMsgParams.components[compID].component.bAssertEnabled = bEnable;
 }
 
-void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSettingSharedPtr userSettingPtr)
+void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MOS_CONTEXT_HANDLE mosCtx)
 {
     uint32_t                                    uiCompUserFeatureSetting = 0;
     uint64_t                                    uiSubCompUserFeatureSetting = 0;
@@ -213,7 +213,7 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSet
     const char                                  *subComponentsKey = nullptr;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
-    if (compID >= MOS_COMPONENT_COUNT )
+    if (compID >= MOS_COMPONENT_COUNT)
     {
         MOS_OS_ASSERTMESSAGE("Invalid component %d.", compID);
         return;
@@ -223,19 +223,17 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSet
     bySubComponentsKey = m_pcComponentUserFeatureKeys[compID][1];
     subComponentsKey   = m_pcComponentUserFeatureKeys[compID][2];
 
-    eStatus = ReadUserSetting(
-        userSettingPtr,
-        uiCompUserFeatureSetting,
+    eStatus = ReadUserSetting(uiCompUserFeatureSetting,
         messageKey,
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)mosCtx);
     // If the user feature key was not found, create it with the default value.
     if (eStatus  != MOS_STATUS_SUCCESS)
     {
-        ReportUserSetting(
-            userSettingPtr,
-            messageKey,
+        ReportUserSetting(messageKey,
             uiCompUserFeatureSetting,
-            MediaUserSetting::Group::Device);
+            MediaUserSetting::Group::Device,
+            (PMOS_CONTEXT)mosCtx);
     }
 
     // Extract the 3-bit message level and 1-bit assert flag setting for this component.
@@ -243,40 +241,36 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSet
     MosCompAssertEnableDisable(compID, (uiCompUserFeatureSetting >> 3) & 0x1);
 
     // Check if sub-components should be set seperately.
-    eStatus = ReadUserSetting(
-        userSettingPtr,
-        m_mosMsgParams.components[compID].bBySubComponent,
+    eStatus = ReadUserSetting(m_mosMsgParams.components[compID].bBySubComponent,
         bySubComponentsKey,
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)mosCtx);
 
     // If the user feature key was not found, create it with default (0) value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
-        ReportUserSetting(
-            userSettingPtr,
-            bySubComponentsKey,
+        ReportUserSetting(bySubComponentsKey,
             m_mosMsgParams.components[compID].bBySubComponent,
-            MediaUserSetting::Group::Device);
+            MediaUserSetting::Group::Device,
+            (PMOS_CONTEXT)mosCtx);
     }
 
     // Set sub components:
     if (m_mosMsgParams.components[compID].bBySubComponent)
     {
         // Check if sub-components should be set seperately.
-        eStatus = ReadUserSetting(
-            userSettingPtr,
-            uiSubCompUserFeatureSetting,
+        eStatus = ReadUserSetting(uiSubCompUserFeatureSetting,
             subComponentsKey,
-            MediaUserSetting::Group::Device);
+            MediaUserSetting::Group::Device,
+            (PMOS_CONTEXT)mosCtx);
 
         // If the user feature key was not found, create it with default (0) value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            ReportUserSetting(
-                userSettingPtr,
-                subComponentsKey,
+            ReportUserSetting(subComponentsKey,
                 uiSubCompUserFeatureSetting,
-                MediaUserSetting::Group::Device);
+                MediaUserSetting::Group::Device,
+                (PMOS_CONTEXT)mosCtx);
         }
 
         for(i = 0; i < m_subComponentCount[compID]; i++)
@@ -291,7 +285,7 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSet
     }
 }
 
-MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
+MOS_STATUS MosUtilDebug::MosHLTInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     uint32_t                                    nPID = 0;
     char                                        hltFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
@@ -302,7 +296,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     MOS_USER_FEATURE_VALUE_WRITE_DATA           UserFeatureWriteData;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
-    if (m_mosMsgParams.uiCounter != 0 )
+    if (m_mosMsgParams.uiCounter != 0)
     {
         MOS_OS_NORMALMESSAGE("HLT settings already set.");
         return MOS_STATUS_UNKNOWN;
@@ -313,19 +307,17 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     m_mosMsgParams.pTraceFile         = nullptr;
 
     // Check if HLT should be enabled.
-    eStatus = ReadUserSetting(
-        userSettingPtr,
-        bUseHybridLogTrace,
+    eStatus = ReadUserSetting(bUseHybridLogTrace,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED,
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)mosCtx);
     // If the user feature key was not found, create it with the default value.
     if (eStatus != MOS_STATUS_SUCCESS)
     {
-        ReportUserSetting(
-            userSettingPtr,
-            __MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED,
+        ReportUserSetting(__MOS_USER_FEATURE_KEY_MESSAGE_HLT_ENABLED,
             bUseHybridLogTrace,
-            MediaUserSetting::Group::Device);
+            MediaUserSetting::Group::Device,
+            (PMOS_CONTEXT)mosCtx);
     }
 
     bUseHybridLogTrace = MosUtilities::m_mosUltFlag ? 1 : bUseHybridLogTrace;
@@ -343,7 +335,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     nPID = MosUtilities::m_mosUltFlag ? 0 : MosUtilities::MosGetPid();
 
     // Get logfile directory.
-    MosLogFileNamePrefix(fileNamePrefix, userSettingPtr);
+    MosLogFileNamePrefix(fileNamePrefix, mosCtx);
     MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "log");
 
 #if defined(LINUX) || defined(ANDROID)
@@ -387,7 +379,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MosUtilDebug::MosDDIDumpInit(MediaUserSettingSharedPtr userSettingPtr)
+MOS_STATUS MosUtilDebug::MosDDIDumpInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     char                                        fileNamePrefix[MOS_MAX_HLT_FILENAME_LEN] = {};
     char                                        cDDIDumpFilePath[MOS_MAX_HLT_FILENAME_LEN] = { 0 };
@@ -401,22 +393,20 @@ MOS_STATUS MosUtilDebug::MosDDIDumpInit(MediaUserSettingSharedPtr userSettingPtr
 #if (_DEBUG || _RELEASE_INTERNAL)
 
     //Check if DDI dump is enabled
-    eStatus = ReadUserSettingForDebug(
-        userSettingPtr,
-        enableDump,
+    eStatus = ReadUserSettingForDebug(enableDump,
         __MOS_USER_FEATURE_KEY_ENCODE_DDI_DUMP_ENABLE,
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)mosCtx);
 
     if (enableDump == 1)
     {
         //Check for the DDI dump path from the user feature key
         MediaUserSetting::Value outValue;
 
-        eStatus = ReadUserSettingForDebug(
-            userSettingPtr, 
-            outValue,
+        eStatus = ReadUserSettingForDebug(outValue,
             __MOS_USER_FEATURE_KEY_DDI_DUMP_DIRECTORY,
-            MediaUserSetting::Group::Device);
+            MediaUserSetting::Group::Device,
+            (PMOS_CONTEXT)mosCtx);
 
         // set-up DDI dump file name
         MosUtilities::MosSecureStringPrint(cDDIDumpFilePath, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_DdiLogPathTemplate,
@@ -433,26 +423,24 @@ MOS_STATUS MosUtilDebug::MosDDIDumpInit(MediaUserSettingSharedPtr userSettingPtr
     return MOS_STATUS_SUCCESS;
 }
 
-void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
+void MosUtilDebug::MosMessageInit(MOS_CONTEXT_HANDLE mosCtx)
 {
     uint8_t                                     i = 0;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
 
     if(m_mosMsgParams.uiCounter == 0)   // first time only
     {
-        eStatus = ReadUserSetting(
-            userSettingPtr,
-            m_mosMsgParams.bDisableAssert,
+        eStatus = ReadUserSetting(m_mosMsgParams.bDisableAssert,
             __MOS_USER_FEATURE_KEY_DISABLE_ASSERT,
-            MediaUserSetting::Group::Device);
+            MediaUserSetting::Group::Device,
+            (PMOS_CONTEXT)mosCtx);
         // If the user feature key was not found, create it with default value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            ReportUserSetting(
-                userSettingPtr,
-                __MOS_USER_FEATURE_KEY_DISABLE_ASSERT,
+            ReportUserSetting(__MOS_USER_FEATURE_KEY_DISABLE_ASSERT,
                 m_mosMsgParams.bDisableAssert,
-                MediaUserSetting::Group::Device);
+                MediaUserSetting::Group::Device,
+                (PMOS_CONTEXT)mosCtx);
         }
 
         // Set all sub component messages to critical level by default.
@@ -461,24 +449,22 @@ void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
         // Set print level and asserts for each component
         for(i = 0; i < MOS_COMPONENT_COUNT; i++)
         {
-            MosMessageInitComponent((MOS_COMPONENT_ID)i, userSettingPtr);
+            MosMessageInitComponent((MOS_COMPONENT_ID)i, mosCtx);
         }
 
         // Check if MOS messages are enabled
-        eStatus = ReadUserSetting(
-            userSettingPtr,
-            m_mosMsgParams.bUseOutputDebugString,
+        eStatus = ReadUserSetting(m_mosMsgParams.bUseOutputDebugString,
             __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED,
-            MediaUserSetting::Group::Device);
+            MediaUserSetting::Group::Device,
+            (PMOS_CONTEXT)mosCtx);
 
         // If the user feature key was not found, create it with default value.
         if (eStatus != MOS_STATUS_SUCCESS)
         {
-            eStatus = ReportUserSetting(
-                userSettingPtr,
-                __MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED,
+            eStatus = ReportUserSetting(__MOS_USER_FEATURE_KEY_MESSAGE_PRINT_ENABLED,
                 m_mosMsgParams.bUseOutputDebugString,
-                MediaUserSetting::Group::Device);
+                MediaUserSetting::Group::Device,
+                (PMOS_CONTEXT)mosCtx);
         }
 
         if (MosUtilities::m_mosUltFlag)
@@ -492,8 +478,8 @@ void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
             MosCompAssertEnableDisable(MOS_COMPONENT_VP, 1);
         }
 
-        MosHLTInit(userSettingPtr);
-        MosDDIDumpInit(userSettingPtr);
+        MosHLTInit(mosCtx);
+        MosDDIDumpInit(mosCtx);
 
         // all above action should not be covered by memninja since its destroy is behind memninja counter report to test result.
         MosUtilities::m_mosMemAllocCounter     = 0;

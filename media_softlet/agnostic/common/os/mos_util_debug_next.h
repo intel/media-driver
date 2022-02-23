@@ -33,7 +33,6 @@
 #include "mos_defs.h"
 #include "mos_util_debug_specific.h"
 #include "mos_utilities.h"
-#include "media_user_setting.h"
 
 class MosUtilDebug
 {
@@ -50,7 +49,7 @@ public:
     //!           os device ctx handle
     //! \return   void
     //!
-    static void MosMessageInit(MediaUserSettingSharedPtr userSettingPtr);
+    static void MosMessageInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Frees the MOS message buffer and MOS message parameters structure
@@ -68,13 +67,13 @@ public:
     //!           depending on OS version
     //! \param    PCHAR fileNamePrefix
     //!           [out] Pointer to the string where the prefix is returned
-    //! \param    [in] userSettingPtr
-    //!           MediaUserSettingSharedPtr
+    //! \param    [in] mosCtx
+    //!           os device ctx handle
     //! \return   MOS_STATUS
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSettingSharedPtr userSettingPtr);
+    static MOS_STATUS MosLogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Enable or disable asserts of a particular component, it is used by ULT also
@@ -210,7 +209,7 @@ private:
     //!           os device ctx handle
     //! \return   void
     //!
-    static void MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSettingSharedPtr userSettingPtr);
+    static void MosMessageInitComponent(MOS_COMPONENT_ID compID, MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Initialize or refresh the Hybrid Log and Trace facility
@@ -222,7 +221,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosHLTInit( MediaUserSettingSharedPtr userSettingPtr);
+    static MOS_STATUS MosHLTInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Initialize or refresh the DDI Dump facility
@@ -234,7 +233,7 @@ private:
     //!           Returns one of the MOS_STATUS error codes if failed,
     //!           else MOS_STATUS_SUCCESS
     //!
-    static MOS_STATUS MosDDIDumpInit( MediaUserSettingSharedPtr userSettingPtr);
+    static MOS_STATUS MosDDIDumpInit(MOS_CONTEXT_HANDLE mosCtx);
 
     //!
     //! \brief    Close file handles and frees resources

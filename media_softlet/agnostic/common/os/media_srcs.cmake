@@ -43,7 +43,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_commandbuffer_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_interface_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting.h
 )
 
 set(SOURCES_

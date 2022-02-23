@@ -2981,13 +2981,6 @@ int MosInterface::GetPlaneSurfaceOffset(const MOS_PLANE_OFFSET &planeOffset)
     return planeOffset.iSurfaceOffset;
 }
 
-MediaUserSettingSharedPtr MosInterface::MosGetUserSettingInstance(
-    MOS_STREAM_HANDLE streamState)
-{
-
-    return nullptr;
-}
-
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 MOS_STATUS MosInterface::DumpCommandBufferInit(
     MOS_STREAM_HANDLE streamState)
@@ -2997,7 +2990,6 @@ MOS_STATUS MosInterface::DumpCommandBufferInit(
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData = {0};
     char *psFileNameAfterPrefix = nullptr;
     size_t nSizeFileNamePrefix = 0;
-    MediaUserSettingSharedPtr   userSettingPtr  = MosInterface::MosGetUserSettingInstance(streamState);
 
     MOS_OS_CHK_NULL_RETURN(streamState);
 
@@ -3014,7 +3006,7 @@ MOS_STATUS MosInterface::DumpCommandBufferInit(
     if (streamState->dumpCommandBufferToFile)
     {
         // Create output directory.
-        eStatus = MosUtilDebug::MosLogFileNamePrefix(streamState->sDirName, userSettingPtr);
+        eStatus = MosUtilDebug::MosLogFileNamePrefix(streamState->sDirName, nullptr);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
             MOS_OS_NORMALMESSAGE("Failed to create log file prefix. Status = %d", eStatus);

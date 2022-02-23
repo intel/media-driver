@@ -228,16 +228,13 @@ MOS_STATUS MosUtilities::MosUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     eStatus = MosOsUtilitiesInit(mosCtx);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    MediaUserSettingSharedPtr userSettingPtr = GetUserSettingInstance((PMOS_CONTEXT)mosCtx);
-
     //Initialize MOS simulate random alloc memorflag
     MosInitAllocMemoryFailSimulateFlag(mosCtx);
 
-    eStatus = ReadUserSettingForDebug(
-        userSettingPtr,
-        MosUtilities::m_enableAddressDump,
+    eStatus = ReadUserSettingForDebug(MosUtilities::m_enableAddressDump,
         "Resource Addr Dump Enable",
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)mosCtx);
 #endif
 
     return eStatus;
@@ -280,6 +277,11 @@ void MosUtilities::MosFreeUserFeatureValueString(PMOS_USER_FEATURE_VALUE_STRING 
     }
 }
 
+MOS_STATUS MosUtilities::DestroyMediaUserSetting()
+{
+    MediaUserSetting::MediaUserSetting::Destroy();
+    return MOS_STATUS_SUCCESS;
+}
 
 #if MOS_MESSAGES_ENABLED
 void *MosUtilities::MosAlignedAllocMemoryUtils(

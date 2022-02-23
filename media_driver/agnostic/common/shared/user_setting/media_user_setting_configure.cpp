@@ -33,11 +33,6 @@ const UFKEY_NEXT Configure::m_rootKey = UFKEY_INTERNAL_NEXT;
 const char *Configure::m_configPath = USER_SETTING_CONFIG_PATH;
 const char *Configure::m_reportPath = USER_SETTING_REPORT_PATH;
 
-Configure::Configure(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo):Configure()
-{
-    m_keyPathInfo = keyPathInfo;
-}
-
 Configure::Configure()
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -103,6 +98,7 @@ MOS_STATUS Configure::Register(
 MOS_STATUS Configure::Read(Value &value,
     const std::string &valueName,
     const Group &group,
+    PMOS_CONTEXT mosContext,
     const Value &customValue,
     bool useCustomValue)
 {
@@ -125,9 +121,10 @@ MOS_STATUS Configure::Read(Value &value,
     std::string basePath = "";
     if(def->UseStatePath())
     {
-        if (m_keyPathInfo != nullptr && m_keyPathInfo->Path != nullptr)
+        MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = Mos_GetDeviceUfPathInfo(mosContext);
+        if (ufInfo != nullptr && ufInfo->Path != nullptr)
         {
-            basePath = m_keyPathInfo->Path;
+            basePath = ufInfo->Path;
         }
     }
     std::string subPath = def->GetSubPath();
@@ -180,6 +177,7 @@ MOS_STATUS Configure::Write(
     const std::string &valueName,
     const Value &value,
     const Group &group,
+    PMOS_CONTEXT mosContext,
     bool isForReport)
 {
     auto &defs = GetDefinitions(group);
@@ -201,9 +199,10 @@ MOS_STATUS Configure::Write(
     }
 
     std::string basePath = "";
-    if (m_keyPathInfo != nullptr && m_keyPathInfo->Path != nullptr)
+    MOS_USER_FEATURE_KEY_PATH_INFO *ufInfo = Mos_GetDeviceUfPathInfo(mosContext);
+    if (ufInfo != nullptr && ufInfo->Path != nullptr)
     {
-        basePath = m_keyPathInfo->Path;
+        basePath = ufInfo->Path;
     }
 
     std::string path = basePath + (isForReport ? m_reportPath : m_configPath);

@@ -40,7 +40,7 @@
 #include "codechal_user_settings_mgr_ext.h"
 #include "vphal_user_settings_mgr_ext.h"
 #endif // _MEDIA_RESERVED
-#include "mos_user_setting.h"
+#include "media_user_setting.h"
 
 #include <sys/ipc.h>  // System V IPC
 #include <sys/types.h>
@@ -1350,7 +1350,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
     if (m_mosUtilInitCount == 0)
     {
         //Init MOS User Feature Key from mos desc table
-        eStatus = MosUserSetting::InitMosUserSetting(nullptr);
+        eStatus = InitMosUserSetting();
         eStatus = MosDeclareUserFeatureKeysForAllDescFields();
         MosUtilitiesSpecificNext::UserFeatureDumpFile(MosUtilitiesSpecificNext::m_szUserFeatureFile, &MosUtilitiesSpecificNext::m_ufKeyList);
 #if _MEDIA_RESERVED
@@ -1409,7 +1409,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
             m_vpUserFeatureExt = nullptr;
         }
 #endif // _MEDIA_RESERVED
-        MosUserSetting::DestroyMediaUserSetting();
+        DestroyMediaUserSetting();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         // MOS maintains a reference counter,
@@ -1920,11 +1920,10 @@ MOS_STATUS MosUtilities::MosReadApoDdiEnabledUserFeature(uint32_t &userfeatureVa
     MOS_UNUSED(path);
 
     uint32_t enableApoDdi = 0;
-    eStatus = ReadUserSetting(
-        nullptr,
-        enableApoDdi,
+    eStatus = ReadUserSetting(enableApoDdi,
         "ApoDdiEnable",
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)nullptr);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {
@@ -1960,11 +1959,10 @@ MOS_STATUS MosUtilities::MosReadApoMosEnabledUserFeature(uint32_t &userfeatureVa
 #endif
 
     uint32_t enableApoMos = 0;
-    eStatus = ReadUserSetting(
-        nullptr,
-        enableApoMos,
+    eStatus = ReadUserSetting(enableApoMos,
         "ApoMosEnable",
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        nullptr);
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {

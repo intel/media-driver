@@ -125,7 +125,7 @@ void MosUtilDebug::MosHltpPreface(PFILE pFile)
     fflush(pFile);
 }
 
-MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSettingSharedPtr userSettingPtr)
+MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx)
 {
     int32_t                             iRet = 0;
     MOS_STATUS                          eStatus = MOS_STATUS_UNKNOWN;
@@ -147,11 +147,10 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSet
         return eStatus;
     }
 
-    eStatus = ReadUserSetting(
-        userSettingPtr,
-        outValue,
+    eStatus = ReadUserSetting(outValue,
         __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY,
-        MediaUserSetting::Group::Device);
+        MediaUserSetting::Group::Device,
+        (PMOS_CONTEXT)mosCtx);
 
     if(outValue.ConstString().size() > 0 && outValue.ConstString().size() < MOS_MAX_HLT_FILENAME_LEN)
     {
@@ -169,11 +168,10 @@ MOS_STATUS MosUtilDebug::MosLogFileNamePrefix(char *fileNamePrefix, MediaUserSet
 
         if (iRet > 0)
         {
-            eStatus = ReportUserSetting(
-                userSettingPtr,
-                __MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY,
+            eStatus = ReportUserSetting(__MOS_USER_FEATURE_KEY_MESSAGE_HLT_OUTPUT_DIRECTORY,
                 fileNamePrefix,
-                MediaUserSetting::Group::Device);
+                MediaUserSetting::Group::Device,
+                (PMOS_CONTEXT)mosCtx);
         }
         else
         {

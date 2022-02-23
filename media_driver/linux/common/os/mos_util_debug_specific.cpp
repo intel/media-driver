@@ -58,6 +58,21 @@ extern MOS_MESSAGE_PARAMS g_MosMsgParams;
 extern uint8_t            MosUltFlag;
 static MOS_MUTEX gMosMsgMutex = PTHREAD_MUTEX_INITIALIZER;
 
+//!
+//! \brief    Form a string that will prefix MOS's log file name
+//! \details  Form a string that will prefix MOS's log file name
+//!           MosLogPathPrefix defines the system directory that
+//!           Mos uses to prefix the log filename by default.
+//! \param    char  *fileNamePrefix
+//!           [out] Pointer to the string where the prefix is returned
+//! \return   MOS_STATUS
+//!           Returns one of the MOS_STATUS error codes if failed,
+//!           else MOS_STATUS_SUCCESS
+//!
+MOS_STATUS MOS_LogFileNamePrefix(char *fileNamePrefix, MOS_CONTEXT_HANDLE mosCtx)
+{
+    return MosUtilDebug::MosLogFileNamePrefix(fileNamePrefix, mosCtx);
+}
 
 //!
 //! \brief    Prints debug messages when enabled
