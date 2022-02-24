@@ -1687,7 +1687,6 @@ VAStatus DdiMedia__Initialize (
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    ctx->pDriverData = nullptr;
     status           = DdiMedia_InitMediaContext(ctx, devicefd, major_version, minor_version, apoDdiEnabled);
     if(status != VA_STATUS_SUCCESS)
     {
@@ -1740,9 +1739,7 @@ VAStatus DdiMedia_InitMediaContext (
     PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
     if(mediaCtx)
     {
-        mediaCtx->uiRef++;
         FreeForMediaContext(mediaCtx);
-        return VA_STATUS_SUCCESS;
     }
 
     mediaCtx = DdiMedia_CreateMediaDriverContext();
