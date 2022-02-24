@@ -235,7 +235,6 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
         pIEFStateParams->bCSCEnable = true;
         if (m_bVdboxToSfc && m_videoConfig.codecStandard == CODECHAL_JPEG)
         {
-            m_cscInputSwapNeeded = false;
             if (m_videoConfig.jpeg.jpegChromaType == jpegRGB)
             {
                 m_cscCoeff[0] = 1.000000000f;
@@ -312,38 +311,11 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
                 m_cscCoeff[2] = fTemp[0];
                 m_cscCoeff[5] = fTemp[1];
                 m_cscCoeff[8] = fTemp[2];
-                m_cscInputSwapNeeded = true;
-            }
-            else
-            {
-                m_cscInputSwapNeeded = false;
             }
 
             m_cscInputCspace = m_renderData.SfcInputCspace;
             m_cscRTCspace    = m_renderData.pSfcPipeOutSurface->ColorSpace;
         }
-        else if (m_cscInputSwapNeeded != IsInputChannelSwapNeeded(m_renderData.SfcInputFormat))
-        {
-            float fTemp[3] = {};
-            fTemp[0]       = m_cscCoeff[0];
-            fTemp[1]       = m_cscCoeff[3];
-            fTemp[2]       = m_cscCoeff[6];
-
-            m_cscCoeff[0] = m_cscCoeff[2];
-            m_cscCoeff[3] = m_cscCoeff[5];
-            m_cscCoeff[6] = m_cscCoeff[8];
-
-            m_cscCoeff[2]   = fTemp[0];
-            m_cscCoeff[5]   = fTemp[1];
-            m_cscCoeff[8]   = fTemp[2];
-
-            m_cscInputSwapNeeded = IsInputChannelSwapNeeded(m_renderData.SfcInputFormat);
-        }
-        else
-        {
-            m_cscInputSwapNeeded = false;
-        }
-
         pIEFStateParams->pfCscCoeff     = m_cscCoeff;
         pIEFStateParams->pfCscInOffset  = m_cscInOffset;
         pIEFStateParams->pfCscOutOffset = m_cscOutOffset;

@@ -493,7 +493,6 @@ protected:
 
     VPHAL_CSPACE                    m_cscRTCspace = {};                       //!< Cspace of Render Target
     VPHAL_CSPACE                    m_cscInputCspace = {};                    //!< Cspace of input frame
-    bool                            m_cscInputSwapNeeded  = false;
 
     MHW_SFC_IEF_STATE_PARAMS        m_IefStateParams = {};                    //!< IEF Params state
     float                           m_cscCoeff[9] = {};                       //!< [3x3] Coeff matrix
