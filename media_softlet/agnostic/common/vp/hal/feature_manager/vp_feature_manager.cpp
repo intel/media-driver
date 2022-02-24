@@ -257,13 +257,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // WA: Force NV12 16K to render
-    if (pvpParams->pTarget[0]->Format == Format_NV12 && pvpParams->pTarget[0]->dwHeight > VPHAL_RNDR_16K_HEIGHT_LIMIT)
-    {
-        VPHAL_RENDER_NORMALMESSAGE("Disable VEBOX/SFC for NV12 16k resolution");
-        return MOS_STATUS_SUCCESS;
-    }
-
     if (IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
     {
         VPHAL_RENDER_NORMALMESSAGE("Disable APO Path for HDR cases.");
