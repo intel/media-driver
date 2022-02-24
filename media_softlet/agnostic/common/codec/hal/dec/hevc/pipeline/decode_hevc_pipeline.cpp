@@ -299,18 +299,35 @@ MOS_STATUS HevcPipeline::HwStatusCheck(const DecodeStatusMfx &status)
 {
     DECODE_FUNC_CALL();
 
-    // Check HuC_status2 Imem loaded bit, if 0, return error
-    if (m_shortFormatInUse &&
-        ((status.m_hucErrorStatus2 >> 32) && (m_hwInterface->GetHucInterface()->GetHucStatus2ImemLoadedMask()) == 0))
+    if (m_shortFormatInUse)
     {
-        if (!m_reportHucStatus)
+        // Check HuC_status2 Imem loaded bit, if 0, return error
+        if (((status.m_hucErrorStatus2 >> 32) && (m_hwInterface->GetHucInterface()->GetHucStatus2ImemLoadedMask())) == 0)
         {
-            WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HUC_LOAD_STATUS_ID, 1, m_osInterface->pOsContext);
-            m_reportHucStatus = true;
+            if (!m_reportHucStatus)
+            {
+                WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HUC_LOAD_STATUS_ID, 1, m_osInterface->pOsContext);
+                m_reportHucStatus = true;
+            }
+            DECODE_ASSERTMESSAGE("Huc IMEM Loaded fails");
+            MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_ERROR_STATUS2, (status.m_hucErrorStatus2 >> 32));
+            return MOS_STATUS_UNKNOWN;
         }
-        DECODE_ASSERTMESSAGE("Huc IMEM Loaded fails");
-        return MOS_STATUS_UNKNOWN;
+
+        // Check Huc_status None Critical Error bit, bit 15. If 0, return error.
+        if (((status.m_hucErrorStatus >> 32) & m_hwInterface->GetHucInterface()->GetHucStatusHevcS2lFailureMask()) == 0)
+        {
+            if (!m_reportHucCriticalError)
+            {
+                WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HUC_REPORT_CRITICAL_ERROR_ID, 1, m_osInterface->pOsContext);
+                m_reportHucCriticalError = true;
+            }
+            DECODE_ASSERTMESSAGE("Huc Report Critical Error!");
+            MT_ERR1(MT_DEC_HEVC, MT_DEC_HUC_STATUS_CRITICAL_ERROR, (status.m_hucErrorStatus >> 32));
+            return MOS_STATUS_UNKNOWN;
+        }
     }
+
     return MOS_STATUS_SUCCESS;
 }
 #endif
