@@ -53,7 +53,7 @@ DecodePipeline::DecodePipeline(
     m_hwInterface = hwInterface;
 
     m_singleTaskPhaseSupported =
-        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_SINGLE_TASK_PHASE_ENABLE_ID, m_osInterface ? m_osInterface->pOsContext : nullptr).i32Data ? true : false;
+        ReadUserFeature(__MEDIA_USER_FEATURE_VALUE_DECODE_SINGLE_TASK_PHASE_ENABLE_ID, m_osInterface ? m_osInterface->pOsContext : nullptr).i32Data ? true : false;
 
     CODECHAL_DEBUG_TOOL(
         DECODE_ASSERT(debugInterface != nullptr);
