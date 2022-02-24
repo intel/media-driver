@@ -29,6 +29,10 @@
 //!
 
 #include "renderhal_platform_interface_next.h"
+#include "mhw_mi_cmdpar.h"
+#include "mhw_mi_itf.h"
+#include "media_packet.h"
+#include "mhw_utilities.h"
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
     PRENDERHAL_INTERFACE        pRenderHal,
@@ -238,13 +242,361 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::EnablePreemption(
     m_skuTable = pRenderHal->pOsInterface->pfnGetSkuTable(pRenderHal->pOsInterface);
     MHW_MI_CHK_NULL(m_skuTable);
 
+    if (pRenderHal && pRenderHal->pMhwRenderInterface)
+    {
+        m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
+    }
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+
     if (MEDIA_IS_SKU(m_skuTable, FtrPerCtxtPreemptionGranularityControl))
     {
-        MOS_ZeroMemory(&loadRegisterParams, sizeof(loadRegisterParams));
-        loadRegisterParams.dwRegister = 0;
-        loadRegisterParams.dwData     = 0;
-        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(pCmdBuffer, &loadRegisterParams));
+        auto& par = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        par = {};
+        par.dwRegister = 0;
+        par.dwData     = 0;
+        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
     }
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SendPredicationCommand(
+    PRENDERHAL_INTERFACE        pRenderHal,
+    PMOS_COMMAND_BUFFER         pCmdBuffer)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface->GetMmioRegisters());
+
+    MOS_SYNC_PARAMS syncParams;
+    MOS_ZeroMemory(&syncParams, sizeof(syncParams));
+    syncParams.uiSemaphoreCount         = 1;
+    // Currently only sync between VEBOX and 3D, also need to consider sync between Render Engine and 3D
+    // low priority since current VP Predication test case does not cover this scenario.
+    syncParams.GpuContext               = MOS_GPU_CONTEXT_VEBOX;
+    syncParams.presSyncResource         = pRenderHal->PredicationParams.pPredicationResource;
+    syncParams.bReadOnly                = true;
+    syncParams.bDisableDecodeSyncLock   = false;
+    syncParams.bDisableLockForTranscode = false;
+
+    MHW_CHK_STATUS_RETURN(pRenderHal->pOsInterface->pfnPerformOverlaySync(pRenderHal->pOsInterface, &syncParams));
+    MHW_CHK_STATUS_RETURN(pRenderHal->pOsInterface->pfnResourceWait(pRenderHal->pOsInterface, &syncParams));
+
+    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf->GetMmioRegisters());
+
+    if (pRenderHal->PredicationParams.predicationNotEqualZero)
+    {
+        auto mmioRegistersRender = m_miItf->GetMmioRegisters();
+
+        auto& parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        parFlush = {};
+        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+
+        // load presPredication to general purpose register0
+        auto& parRegM = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+        parRegM = {};
+        parRegM.presStoreBuffer   = pRenderHal->PredicationParams.pPredicationResource;
+        parRegM.dwOffset          = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
+        parRegM.dwRegister        = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(pCmdBuffer);
+
+        auto& parImm = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        parImm = {};
+        parImm.dwData            = 0;
+        parImm.dwRegister        = mmioRegistersRender->generalPurposeRegister0HiOffset;
+        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+
+        parImm = {};
+        parImm.dwData            = 0;
+        parImm.dwRegister        = mmioRegistersRender->generalPurposeRegister4LoOffset;
+        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+
+        parImm = {};
+        parImm.dwData            = 0;
+        parImm.dwRegister        = mmioRegistersRender->generalPurposeRegister4HiOffset;
+        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+
+        //perform the add operation
+        MHW_MI_ALU_PARAMS   miAluParams[4];
+        MOS_ZeroMemory(&miAluParams, sizeof(miAluParams));
+        // load     srcA, reg0
+        miAluParams[0].AluOpcode    = MHW_MI_ALU_LOAD;
+        miAluParams[0].Operand1     = MHW_MI_ALU_SRCA;
+        miAluParams[0].Operand2     = MHW_MI_ALU_GPREG0;
+        // load     srcB, reg4
+        miAluParams[1].AluOpcode    = MHW_MI_ALU_LOAD;
+        miAluParams[1].Operand1     = MHW_MI_ALU_SRCB;
+        miAluParams[1].Operand2     = MHW_MI_ALU_GPREG4;
+        // add      srcA, srcB
+        miAluParams[2].AluOpcode    = MHW_MI_ALU_ADD;
+        miAluParams[2].Operand1     = MHW_MI_ALU_SRCB;
+        miAluParams[2].Operand2     = MHW_MI_ALU_GPREG4;
+        // store      reg0, ZF
+        miAluParams[3].AluOpcode    = MHW_MI_ALU_STORE;
+        miAluParams[3].Operand1     = MHW_MI_ALU_GPREG0;
+        miAluParams[3].Operand2     = MHW_MI_ALU_ZF;
+
+        auto& par = m_miItf->MHW_GETPAR_F(MI_MATH)();
+        par = {};
+        par.pAluPayload    = (mhw::mi::MHW_MI_ALU_PARAMS*) miAluParams;
+        par.dwNumAluParams = 4; // four ALU commands needed for this substract opertaion. see following ALU commands.
+        m_miItf->MHW_ADDCMD_F(MI_MATH)(pCmdBuffer);
+
+        // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
+        parRegM = {};
+        parRegM.presStoreBuffer  = &pRenderHal->PredicationBuffer;
+        parRegM.dwOffset         = 0x10;
+        parRegM.dwRegister       = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(pCmdBuffer);
+
+        // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
+        auto& parData = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        parData = {};
+        parData.pOsResource = &pRenderHal->PredicationBuffer;
+        parData.dwValue     = 1;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parData.dwValue = 2;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parData.dwValue = 3;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parData.dwValue = 4;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parFlush = {};
+        parFlush.postSyncOperation = 1;
+        parFlush.pOsResource       = &pRenderHal->PredicationBuffer;
+        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+
+        auto& parBatch = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+        parBatch = {};
+        parBatch.presSemaphoreBuffer = &pRenderHal->PredicationBuffer;
+        parBatch.dwOffset            = 0x10;
+        parBatch.dwValue             = 0;
+        parBatch.bDisableCompareMask = true;
+        m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(pCmdBuffer);
+
+        pRenderHal->PredicationParams.ptempPredicationBuffer = &pRenderHal->PredicationBuffer;
+    }
+    else
+    {
+        auto mmioRegistersRender = pRenderHal->pMhwMiInterface->GetMmioRegisters();
+
+        auto& parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        parFlush = {};
+        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+
+        // load presPredication to general purpose register0
+        auto& parRegM = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+        parRegM = {};
+        parRegM.presStoreBuffer = pRenderHal->PredicationParams.pPredicationResource;
+        parRegM.dwOffset        = (uint32_t)pRenderHal->PredicationParams.predicationResOffset;
+        parRegM.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(pCmdBuffer);
+
+        // if zero, the zero flag will be 0xFFFFFFFF, else zero flag will be 0x0.
+        auto& parStore = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        parStore.presStoreBuffer = &pRenderHal->PredicationBuffer;
+        parStore.dwOffset        = 0x10;
+        parStore.dwRegister      = mmioRegistersRender->generalPurposeRegister0LoOffset;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(pCmdBuffer);
+
+        // Programming of 4 dummy MI_STORE_DATA_IMM commands prior to programming of MiConditionalBatchBufferEnd
+        auto& parData = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        parData.pOsResource = &pRenderHal->PredicationBuffer;
+        parData.dwValue     = 1;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parData.dwValue = 2;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parData.dwValue = 3;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parData.dwValue = 4;
+        m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(pCmdBuffer);
+
+        parFlush = {};
+        parFlush.postSyncOperation = 1;
+        parFlush.pOsResource       = &pRenderHal->PredicationBuffer;
+        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(pCmdBuffer);
+
+        // Skip current frame if presPredication is equal to zero
+        auto& parBatch = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+        parBatch = {};
+        parBatch.presSemaphoreBuffer = &pRenderHal->PredicationBuffer;
+        parBatch.dwOffset            = 0x10;
+        parBatch.dwValue             = 0;
+        parBatch.bDisableCompareMask = true;
+        m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(pCmdBuffer);
+    }
+
+    return eStatus;
+}
+
+//!
+//! \brief    Adds marker attributes in command buffer
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//! \param    PMOS_COMMAND_BUFFER pcmdBuffer
+//!           [in] Pointer to Command Buffer
+//! \param    bool isRender
+//!           [in] Flag of Render Engine
+//! \return   MOS_STATUS
+//!
+MOS_STATUS XRenderHal_Platform_Interface_Next::SendMarkerCommand(
+    PRENDERHAL_INTERFACE    pRenderHal,
+    PMOS_COMMAND_BUFFER     cmdBuffer,
+    bool                    isRender)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    //-----------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    //-----------------------------------------
+
+    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+
+    if (isRender)
+    {
+        // Send pipe_control to get the timestamp
+        auto& params = m_miItf->MHW_GETPAR_F(PIPE_CONTROL)();
+        params = {};
+        params.presDest         = pRenderHal->SetMarkerParams.pSetMarkerResource;
+        params.dwResourceOffset = 0;
+        params.dwPostSyncOp     = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        params.dwFlushMode      = MHW_FLUSH_WRITE_CACHE;
+        m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(cmdBuffer);
+    }
+    else
+    {
+        // Send flush_dw to get the timestamp
+        auto& parFlush = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        parFlush = {};
+        parFlush.pOsResource       = pRenderHal->SetMarkerParams.pSetMarkerResource;
+        parFlush.dwResourceOffset  = 0;
+        parFlush.postSyncOperation = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+        parFlush.bQWordEnable      = 1;
+        m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer);
+    }
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiPipeControl(
+    PRENDERHAL_INTERFACE     pRenderHal,
+    PMOS_COMMAND_BUFFER      pCmdBuffer,
+    MHW_PIPE_CONTROL_PARAMS* params)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    //------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(params);
+    //------------------------------------
+
+    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_miItf);
+
+    auto& par = m_miItf->MHW_GETPAR_F(PIPE_CONTROL)();
+    par = {};
+    par.presDest = params->presDest;
+    par.dwResourceOffset = params->dwResourceOffset;
+    par.dwDataDW1 = params->dwDataDW1;
+    par.dwDataDW2 = params->dwDataDW2;
+    par.dwFlushMode = params->dwFlushMode;
+    par.dwPostSyncOp = params->dwPostSyncOp;
+    par.bDisableCSStall = params->bDisableCSStall;
+    par.bInvalidateStateCache = params->bInvalidateStateCache;
+    par.bInvalidateConstantCache = params->bInvalidateConstantCache;
+    par.bInvalidateVFECache = params->bInvalidateVFECache;
+    par.bInvalidateInstructionCache = params->bInvalidateInstructionCache;
+    par.bFlushRenderTargetCache = params->bFlushRenderTargetCache;
+    par.bTlbInvalidate = params->bTlbInvalidate;
+    par.bInvalidateTextureCache = params->bInvalidateTextureCache;
+    par.bGenericMediaStateClear = params->bGenericMediaStateClear;
+    par.bIndirectStatePointersDisable = params->bIndirectStatePointersDisable;
+    par.bHdcPipelineFlush = params->bHdcPipelineFlush;
+    par.bKernelFenceEnabled = params->bKernelFenceEnabled;
+    m_miItf->MHW_ADDCMD_F(PIPE_CONTROL)(pCmdBuffer);
+
+    return eStatus;
+}
+
+//!
+//! \brief    Adds MI_LOAD_REGISTER_IMM to the command buffer
+//! \param    PRENDERHAL_INTERFACE pRenderHal
+//!           [in] Pointer to RenderHal Interface Structure
+//! \param    [in] pCmdBuffer
+//!           Command buffer to which requested command is added
+//! \param    [in] params
+//!           Parameters used to populate the requested command
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS XRenderHal_Platform_Interface_Next::AddMiLoadRegisterImmCmd(
+    PRENDERHAL_INTERFACE             pRenderHal,
+    PMOS_COMMAND_BUFFER              pCmdBuffer,
+    PMHW_MI_LOAD_REGISTER_IMM_PARAMS params)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    //-----------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(params);
+    //-----------------------------------------
+
+    auto& par = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+    par = {};
+    par.dwData     = params->dwData;
+    par.dwRegister = params->dwRegister;
+    m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+
+    // TD_CTL, force thread breakpoint enable
+    // Also enable external halt/exceptions, because the source-level debugger
+    // needs to be able to interrupt running EU threads.
+    params->dwRegister = TD_CTL;
+    params->dwData     = TD_CTL_FORCE_THREAD_BKPT_ENABLE |
+                            TD_CTL_FORCE_EXT_EXCEPTION_ENABLE;
+
+    par = {};
+    par.dwData     = params->dwData;
+    par.dwRegister = params->dwRegister;
+    m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SendGenericPrologCmd(
+    PRENDERHAL_INTERFACE        pRenderHal,
+    PMOS_COMMAND_BUFFER         pCmdBuffer,
+    PMHW_GENERIC_PROLOG_PARAMS  pParams,
+    MHW_MI_MMIOREGISTERS*       pMmioReg)
+{
+    MOS_STATUS  eStatus = MOS_STATUS_SUCCESS;
+
+    //-----------------------------------------
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pMhwMiInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pParams);
+    //-----------------------------------------
+
+    MHW_CHK_STATUS_RETURN(Mhw_SendGenericPrologCmd_Next(pCmdBuffer, pParams, pMmioReg));
 
     return eStatus;
 }

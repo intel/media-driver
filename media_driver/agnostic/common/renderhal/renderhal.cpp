@@ -4847,7 +4847,7 @@ MOS_STATUS RenderHal_SendMarkerCommand(
         pipeControlParams.dwPostSyncOp      = MHW_FLUSH_WRITE_TIMESTAMP_REG;
         pipeControlParams.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
 
-        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddPipeControl(cmdBuffer, NULL, &pipeControlParams));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddPipeControl(cmdBuffer, nullptr, &pipeControlParams));
     }
     else
     {
@@ -4902,7 +4902,7 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     isRender = MOS_RCS_ENGINE_USED(pOsInterface->pfnGetGpuContext(pOsInterface));
     if (pRenderHal->SetMarkerParams.setMarkerEnabled)
     {
-        MHW_RENDERHAL_CHK_STATUS(RenderHal_SendMarkerCommand(
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendMarkerCommand(
             pRenderHal, pCmdBuffer, isRender));
     }
 
@@ -4959,12 +4959,16 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     genericPrologParams.pOsInterface        = pRenderHal->pOsInterface;
     genericPrologParams.pvMiInterface       = pRenderHal->pMhwMiInterface;
     genericPrologParams.bMmcEnabled         = pGenericPrologParams ? pGenericPrologParams->bMmcEnabled : false;
-    MHW_RENDERHAL_CHK_STATUS(Mhw_SendGenericPrologCmd(pCmdBuffer, &genericPrologParams));
+
+    if (pRenderHal->pRenderHalPltInterface)
+    {
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendGenericPrologCmd(pRenderHal, pCmdBuffer, &genericPrologParams));
+    }
 
     // Send predication command
     if (pRenderHal->PredicationParams.predicationEnabled)
     {
-        MHW_RENDERHAL_CHK_STATUS(RenderHal_SendPredicationCommand(pRenderHal, pCmdBuffer));
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendPredicationCommand(pRenderHal, pCmdBuffer));
     }
 
 finish:
@@ -5006,7 +5010,7 @@ MOS_STATUS RenderHal_SendSyncTag(
     PipeCtl.presDest          = &pStateHeap->GshOsResource;
     PipeCtl.dwPostSyncOp      = MHW_FLUSH_NOWRITE;
     PipeCtl.dwFlushMode       = MHW_FLUSH_WRITE_CACHE;
-    MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMiPipeControl(pRenderHal, pCmdBuffer, &PipeCtl));
 
     // Invalidate read-only caches and perform a post sync write
     PipeCtl = g_cRenderHal_InitPipeControlParams;
@@ -5015,7 +5019,7 @@ MOS_STATUS RenderHal_SendSyncTag(
     PipeCtl.dwPostSyncOp      = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
     PipeCtl.dwFlushMode       = MHW_FLUSH_READ_CACHE;
     PipeCtl.dwDataDW1         = pStateHeap->dwNextTag;
-    MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMiPipeControl(pRenderHal, pCmdBuffer, &PipeCtl));
 
 finish:
     return eStatus;
@@ -5047,7 +5051,8 @@ MOS_STATUS RenderHal_SendSyncTagIndex(
     PipeCtl.dwPostSyncOp = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
     PipeCtl.dwFlushMode = MHW_FLUSH_READ_CACHE;
     PipeCtl.dwDataDW1 = pStateHeap->dwNextTag;
-    MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
+
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMiPipeControl(pRenderHal, pCmdBuffer, &PipeCtl));
 
 finish:
     return eStatus;
@@ -5188,7 +5193,7 @@ MOS_STATUS RenderHal_SendRcsStatusTag(
     PipeCtl.dwDataDW1         = pOsInterface->pfnGetGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
     PipeCtl.dwPostSyncOp      = MHW_FLUSH_WRITE_IMMEDIATE_DATA;
     PipeCtl.dwFlushMode       = MHW_FLUSH_NONE;
-    MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
+    MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMiPipeControl(pRenderHal, pCmdBuffer, &PipeCtl));
 
     // Increment GPU Status Tag
     pOsInterface->pfnIncrementGpuStatusTag(pOsInterface, pOsInterface->CurrentGpuContextOrdinal);
@@ -5271,8 +5276,7 @@ MOS_STATUS RenderHal_SendCscCoeffSurface(
             PipeCtl.dwResourceOffset = dwOffset + sizeof(uint64_t) * i;
             PipeCtl.dwDataDW1 = dwLow;
             PipeCtl.dwDataDW2 = dwHigh;
-
-            MHW_RENDERHAL_CHK_STATUS(pMhwMiInterface->AddPipeControl(pCmdBuffer, nullptr, &PipeCtl));
+            MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->AddMiPipeControl(pRenderHal, pCmdBuffer, &PipeCtl));
         }
 
         dwOffset += Surface.dwPitch;
