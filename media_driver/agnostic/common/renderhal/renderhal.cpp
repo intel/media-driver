@@ -4962,7 +4962,7 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     MHW_RENDERHAL_CHK_STATUS(Mhw_SendGenericPrologCmd(pCmdBuffer, &genericPrologParams));
 
     // Send predication command
-    if (pRenderHal->PredicationParams.predicationEnabled)
+    if (pRenderHal->pRenderHalPltInterface && pRenderHal->PredicationParams.predicationEnabled)
     {
         MHW_RENDERHAL_CHK_STATUS(RenderHal_SendPredicationCommand(pRenderHal, pCmdBuffer));
     }
