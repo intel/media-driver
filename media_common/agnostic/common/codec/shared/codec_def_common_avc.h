@@ -41,6 +41,8 @@
 
 #define CODEC_AVC_NUM_UNCOMPRESSED_SURFACE   128 // 7 bits
 
+#define CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM (NUM_PIC_TYPES + 1)  //!< For each frame type + 1 for ref B
+
 //!
 //! \enum     CODEC_AVC_WEIGHT_SCALE_SIZE
 //! \brief    Codec AVC weight scale size

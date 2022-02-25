@@ -81,8 +81,6 @@
 #define CODECHAL_VDENC_AVC_POS_MULT_VBR                     100
 #define CODECHAL_VDENC_AVC_NEG_MULT_VBR                     -50
 
-#define CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM          (NUM_PIC_TYPES + 1) //!< For each frame type + 1 for ref B
-
 #define __CODEGEN_BITFIELD(l, h) (h) - (l) + 1
 //!
 //! \brief CODECHAL_VDENC_STREAMIN_STATE
