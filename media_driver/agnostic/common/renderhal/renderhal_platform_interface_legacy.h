@@ -126,40 +126,6 @@ public:
     MOS_STATUS EnablePreemption(
         PRENDERHAL_INTERFACE            pRenderHal,
         PMOS_COMMAND_BUFFER             pCmdBuffer);
-
-    MOS_STATUS SendPredicationCommand(
-        PRENDERHAL_INTERFACE        pRenderHal,
-        PMOS_COMMAND_BUFFER         pCmdBuffer);
-
-    //! \brief    Adds marker attributes in command buffer
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to RenderHal Interface Structure
-    //! \param    PMOS_COMMAND_BUFFER pcmdBuffer
-    //!           [in] Pointer to Command Buffer
-    //! \param    bool isRender
-    //!           [in] Flag of Render Engine
-    //! \return   MOS_STATUS
-    MOS_STATUS SendMarkerCommand(
-        PRENDERHAL_INTERFACE    pRenderHal,
-        PMOS_COMMAND_BUFFER     cmdBuffer,
-        bool                    isRender);
-
-    MOS_STATUS AddMiPipeControl(
-        PRENDERHAL_INTERFACE       pRenderHal,
-        PMOS_COMMAND_BUFFER        pCmdBuffer,
-        MHW_PIPE_CONTROL_PARAMS*   params);
-
-    MOS_STATUS AddMiLoadRegisterImmCmd(
-        PRENDERHAL_INTERFACE             pRenderHal,
-        PMOS_COMMAND_BUFFER              pCmdBuffer,
-        PMHW_MI_LOAD_REGISTER_IMM_PARAMS params);
-
-    MOS_STATUS SendGenericPrologCmd(
-        PRENDERHAL_INTERFACE        pRenderHal,
-        PMOS_COMMAND_BUFFER         pCmdBuffer,
-        PMHW_GENERIC_PROLOG_PARAMS  pParams,
-        MHW_MI_MMIOREGISTERS* pMmioReg = nullptr);
-
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_LEGACY_H__

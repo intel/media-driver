@@ -83,50 +83,6 @@ public:
         PRENDERHAL_INTERFACE            pRenderHal,
         PMOS_COMMAND_BUFFER             pCmdBuffer);
 
-    MOS_STATUS SendPredicationCommand(
-        PRENDERHAL_INTERFACE        pRenderHal,
-        PMOS_COMMAND_BUFFER         pCmdBuffer);
-
-    //! \brief    Adds marker attributes in command buffer
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to RenderHal Interface Structure
-    //! \param    PMOS_COMMAND_BUFFER pcmdBuffer
-    //!           [in] Pointer to Command Buffer
-    //! \param    bool isRender
-    //!           [in] Flag of Render Engine
-    //! \return   MOS_STATUS
-    MOS_STATUS SendMarkerCommand(
-        PRENDERHAL_INTERFACE    pRenderHal,
-        PMOS_COMMAND_BUFFER     cmdBuffer,
-        bool                    isRender);
-
-    MOS_STATUS AddMiPipeControl(
-        PRENDERHAL_INTERFACE    pRenderHal,
-        PMOS_COMMAND_BUFFER        pCmdBuffer,
-        MHW_PIPE_CONTROL_PARAMS*   params);
-
-    //!
-    //! \brief    Adds MI_LOAD_REGISTER_IMM to the command buffer
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to RenderHal Interface Structure
-    //! \param    [in] pCmdBuffer
-    //!           Command buffer to which requested command is added
-    //! \param    [in] params
-    //!           Parameters used to populate the requested command
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AddMiLoadRegisterImmCmd(
-        PRENDERHAL_INTERFACE             pRenderHal,
-        PMOS_COMMAND_BUFFER              pCmdBuffer,
-        PMHW_MI_LOAD_REGISTER_IMM_PARAMS params);
-
-    MOS_STATUS SendGenericPrologCmd(
-        PRENDERHAL_INTERFACE        pRenderHal,
-        PMOS_COMMAND_BUFFER         pCmdBuffer,
-        PMHW_GENERIC_PROLOG_PARAMS  pParams,
-        MHW_MI_MMIOREGISTERS* pMmioReg = nullptr);
-
 protected:
 
     PRENDERHAL_INTERFACE              m_renderHal = nullptr;
@@ -134,7 +90,6 @@ protected:
     PMHW_GPGPU_WALKER_PARAMS          m_gpgpuWalkerParams = nullptr;
     PMHW_ID_ENTRY_PARAMS              m_interfaceDescriptorParams = nullptr;
     std::shared_ptr<mhw::render::Itf> m_renderItf = nullptr;
-    std::shared_ptr<mhw::mi::Itf>      m_miItf                     = nullptr;
 
 MEDIA_CLASS_DEFINE_END(XRenderHal_Platform_Interface_Next)
 };

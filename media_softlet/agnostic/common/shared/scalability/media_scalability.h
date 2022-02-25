@@ -40,7 +40,7 @@ class MediaStatusReport;
 class MediaContext;
 class MhwMiInterface;
 class CodechalHwInterface;
-class MediaScalability : public mhw::mi::Itf::ParSetting
+class MediaScalability
 {
     friend class MediaContext;
 
@@ -366,6 +366,5 @@ protected:
 
     MOS_VE_HANDLE     m_veState = nullptr; //!< Virtual Engine State
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
-
 };
 #endif  // !__MEDIA_SCALABILITY_H__

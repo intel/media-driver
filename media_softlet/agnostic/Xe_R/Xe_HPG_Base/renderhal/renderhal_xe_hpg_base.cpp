@@ -761,29 +761,30 @@ MOS_STATUS XRenderHal_Interface_Xe_Hpg_Base::SetCompositePrologCmd(
     MHW_RENDERHAL_CHK_NULL(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL(pRenderHal->pMhwMiInterface);
-
+    
     auxTableBaseAddr = pRenderHal->pOsInterface->pfnGetAuxTableBaseAddr(pRenderHal->pOsInterface);
 
     if (auxTableBaseAddr)
     {
-        m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pRenderHal->pMhwMiInterface->GetNewMiInterface());
-        auto& parImm = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
-        parImm = {};
-        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_RCS_AUX_TABLE_BASE_LOW);
-        parImm.dwData = (auxTableBaseAddr & 0xffffffff);
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        MHW_MI_LOAD_REGISTER_IMM_PARAMS lriParams;
+        MOS_ZeroMemory(&lriParams, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
 
-        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_RCS_AUX_TABLE_BASE_HIGH);
-        parImm.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        lriParams.dwRegister = MhwMiInterfaceG12::m_mmioRcsAuxTableBaseLow;
+        lriParams.dwData = (auxTableBaseAddr & 0xffffffff);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(pCmdBuffer, &lriParams));
 
-        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_CCS0_AUX_TABLE_BASE_LOW);
-        parImm.dwData = (auxTableBaseAddr & 0xffffffff);
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        lriParams.dwRegister = MhwMiInterfaceG12::m_mmioRcsAuxTableBaseHigh;
+        lriParams.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(pCmdBuffer, &lriParams));
 
-        parImm.dwRegister = m_miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_CCS0_AUX_TABLE_BASE_HIGH);
-        parImm.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
-        m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(pCmdBuffer);
+        lriParams.dwRegister = MhwMiInterfaceG12::m_mmioCcs0AuxTableBaseLow;
+        lriParams.dwData = (auxTableBaseAddr & 0xffffffff);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(pCmdBuffer, &lriParams));
+
+        lriParams.dwRegister = MhwMiInterfaceG12::m_mmioCcs0AuxTableBaseHigh;
+        lriParams.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
+        MHW_RENDERHAL_CHK_STATUS(pRenderHal->pMhwMiInterface->AddMiLoadRegisterImmCmd(pCmdBuffer, &lriParams));
+
     }
 
 finish:

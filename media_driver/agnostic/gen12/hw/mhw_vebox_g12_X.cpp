@@ -31,7 +31,7 @@
 #include "media_user_settings_mgr_g12.h"
 #include "mhw_mi_g12_X.h"
 #include "hal_oca_interface.h"
-#include "mhw_mi_itf.h"
+
 
 // H2S Manual Mode Coef
 static const uint16_t g_Hdr_ColorCorrect_EOTF_SMPTE_ST2084_Input_g12[HDR_OETF_1DLUT_POINT_NUMBER] =
@@ -688,7 +688,6 @@ MOS_STATUS MhwVeboxInterfaceG12::setVeboxPrologCmd(
 {
     MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
     uint64_t                              auxTableBaseAddr = 0;
-    std::shared_ptr<mhw::mi::Itf>         miItf = nullptr;
 
     MHW_RENDERHAL_CHK_NULL(mhwMiInterface);
     MHW_RENDERHAL_CHK_NULL(cmdBuffer);
@@ -698,34 +697,16 @@ MOS_STATUS MhwVeboxInterfaceG12::setVeboxPrologCmd(
 
     if (auxTableBaseAddr)
     {
-        miItf = std::static_pointer_cast<mhw::mi::Itf>(mhwMiInterface->GetNewMiInterface());
+        MHW_MI_LOAD_REGISTER_IMM_PARAMS lriParams;
+        MOS_ZeroMemory(&lriParams, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
 
-        if (miItf)
-        {
-            auto &params             = miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
-            params                   = {};
-            params.dwRegister        = miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_VE0_AUX_TABLE_BASE_LOW);//mhw::mi::m_mmioVe0AuxTableBaseLow;
-            params.dwData            = (auxTableBaseAddr & 0xffffffff);
-            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+        lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseLow;
+        lriParams.dwData = (auxTableBaseAddr & 0xffffffff);
+        MHW_RENDERHAL_CHK_STATUS(mhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &lriParams));
 
-            params.dwRegister        = miItf->GetMmioInterfaces(mhw::mi::MHW_MMIO_VE0_AUX_TABLE_BASE_HIGH); //mhw::mi::m_mmioVe0AuxTableBaseHigh;
-            params.dwData            = ((auxTableBaseAddr >> 32) & 0xffffffff);
-            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
-        }
-        else
-        {
-            MHW_MI_LOAD_REGISTER_IMM_PARAMS lriParams;
-            MOS_ZeroMemory(&lriParams, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
-
-            lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseLow;
-            lriParams.dwData = (auxTableBaseAddr & 0xffffffff);
-            MHW_RENDERHAL_CHK_STATUS(mhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &lriParams));
-
-            lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseHigh;
-            lriParams.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
-            MHW_RENDERHAL_CHK_STATUS(mhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &lriParams));
-        }
-
+        lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseHigh;
+        lriParams.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
+        MHW_RENDERHAL_CHK_STATUS(mhwMiInterface->AddMiLoadRegisterImmCmd(cmdBuffer, &lriParams));
     }
 
 finish:
