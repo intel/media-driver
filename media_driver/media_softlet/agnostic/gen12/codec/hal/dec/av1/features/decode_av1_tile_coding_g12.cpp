@@ -267,6 +267,7 @@ namespace decode
 
         //calc for the last tile
         m_tileColStartSb[i] = start_sb;
+        DECODE_CHK_COND(sbCols < (start_sb + 1), "Invalid tile col start of the last tile");
         picParams.m_widthInSbsMinus1[i] = sbCols - start_sb - 1;
 
         return MOS_STATUS_SUCCESS;
@@ -290,6 +291,7 @@ namespace decode
 
         //calc for the last tile
         m_tileRowStartSb[i] = start_sb;
+        DECODE_CHK_COND(sbRows < (start_sb + 1), "Invalid tile row start of the last tile");
         picParams.m_heightInSbsMinus1[i] = sbRows - start_sb - 1;
 
         return MOS_STATUS_SUCCESS;
