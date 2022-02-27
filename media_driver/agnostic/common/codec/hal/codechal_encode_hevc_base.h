@@ -44,8 +44,6 @@
 #define CODECHAL_HEVC_MIN_LCU_SIZE             16
 #define CODECHAL_HEVC_MIN_CU_SIZE              8
 #define CODECHAL_HEVC_MIN_TILE_SIZE            128
-#define CODECHAL_HEVC_VDENC_MIN_TILE_WIDTH_SIZE      256
-#define CODECHAL_HEVC_VDENC_MIN_TILE_HEIGHT_SIZE     128
 #define CODECHAL_HEVC_FRAME_BRC_BLOCK_SIZE     32
 #define CODECHAL_HEVC_LCU_BRC_BLOCK_SIZE       128
 
@@ -60,8 +58,6 @@
 
 #define CODECHAL_HEVC_MAX_NUM_HCP_PIPE      8
 #define CODECHAL_HEVC_MAX_NUM_BRC_PASSES    4 // It doesn't include the 5th PAK pass for the BRC panic mode
-
-#define CODECHAL_HEVC_SAO_STRMOUT_SIZE_PERLCU   16
 
 #define ENCODE_HEVC_4K_PIC_WIDTH     3840
 #define ENCODE_HEVC_4K_PIC_HEIGHT    2160
@@ -101,7 +97,6 @@
 #define HEVC_BRC_CONSTANT_SURFACE_HEIGHT_G10        (35)
 
 #define CODECHAL_HEVC_NUM_PAK_SLICE_BATCH_BUFFERS   (3)
-#define HEVC_BRC_PAK_STATISTCS_SIZE                 (32)
 #define HEVC_CONCURRENT_SURFACE_HEIGHT              (32)
 #define HEVC_BRC_SKIP_VAL_TABLE_SIZE                (128)
 #define HEVC_BRC_LAMBDA_TABLE_SIZE                  (1024)
@@ -136,7 +131,6 @@
 
 #define CODECHAL_VDENC_HEVC_BRC_HISTORY_BUF_SIZE             964
 #define CODECHAL_VDENC_HEVC_BRC_DEBUG_BUF_SIZE               0x1000 // 0x1000 = 4096
-#define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_REENCODE_MASK     (1<<31)
 #define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_ERROR_MASK        (1<<30)
 #define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_ARITHMETIC_OVERFLOW_ERROR_MASK   (1<<29)
 #define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_MEMORY_ACCESS_ERROR_MASK         (1<<28)
@@ -144,72 +138,6 @@
 #define CODECHAL_VDENC_HEVC_BRC_HUC_STATUS_DMEM_ERROR_MASK                  (1<<26)
 
 #define CODECHAL_VDENC_HEVC_BRC_PAK_STATS_BUF_SIZE                  464     // 116 DWORDs HEVC Frame Statistics
-#define CODECHAL_HEVC_VDENC_STATS_SIZE                              1216    // VDEnc Statistic: 48DWs (3CLs) of HMDC Frame Stats + 256 DWs (16CLs) of Histogram Stats = 1216 bytes
-
-#define CODECHAL_HEVC_I_SLICE          2
-#define CODECHAL_HEVC_P_SLICE          1
-#define CODECHAL_HEVC_B_SLICE          0
-#define CODECHAL_HEVC_NUM_SLICE_TYPES  3
-
-#define CODECHAL_HEVC_NUM_MODE_MV_COSTS             171
-#define CODECHAL_HEVC_MAX_BSTRUCTRUE_GOP_SIZE       16
-#define CODECHAL_HEVC_MAX_BSTRUCTRUE_REF_NUM        8
-#define CODECHAL_HEVC_BRC_MAX_QUALITY_LAYER         16
-#define CODECHAL_HEVC_BRC_MAX_TEMPORAL_LAYER        3
-
-struct MultiPassConfig
-{
-    uint32_t SliceMaxQPOffset0;
-    uint32_t SliceMaxQPOffset1;
-    uint32_t SliceMaxQPOffset2;
-    uint32_t SliceMaxQPOffset3;
-
-    int32_t SliceMinQPOffset0;
-    int32_t SliceMinQPOffset1;
-    int32_t SliceMinQPOffset2;
-    int32_t SliceMinQPOffset3;
-    uint32_t MaxIntraConformanceLimit;
-    uint32_t MaxInterConformanceLimit;
-    uint32_t FrameRateCtrlFlag;
-    uint32_t InterMbMaxBitFlag;
-    uint32_t IntraMbMaxBitFlag;
-    uint32_t FrameMaxBitRate;
-    uint32_t FrameMinBitRate;
-    uint32_t MinFrameRateDelta;
-    uint32_t MaxFrameRateDelta;
-    int16_t NumberofPasses;
-    uint32_t MbRateCtrlFlag;
-    uint8_t FrameSzOverFlag;
-    uint8_t FrameSzUnderFlag;
-    uint8_t FrameMinBitRateUnit;
-    uint8_t FrameMaxBitRateUnit;
-    uint8_t StreamOutEnable;
-
-
-    MultiPassConfig() :
-        SliceMaxQPOffset0(0),
-        SliceMaxQPOffset1(0),
-        SliceMaxQPOffset2(0), // Set this to Default Max Limit as per Spec.,
-        SliceMaxQPOffset3(0),
-        SliceMinQPOffset0(0),
-        SliceMinQPOffset1(0),
-        SliceMinQPOffset2(0), // Set this to Default Max Limit as per Spec.,
-        SliceMinQPOffset3(0),
-        MaxIntraConformanceLimit(3180),
-        MaxInterConformanceLimit(3180),
-        FrameRateCtrlFlag(0),
-        InterMbMaxBitFlag(0),
-        IntraMbMaxBitFlag(0),
-        MinFrameRateDelta(0),
-        MaxFrameRateDelta(0),
-        MbRateCtrlFlag(0),
-        FrameSzOverFlag(0),
-        FrameSzUnderFlag(0),
-        FrameMinBitRateUnit(0),
-        FrameMaxBitRateUnit(0),
-        StreamOutEnable(0)
-    {}
-};
 
 const char QPcTable[22] = { 29, 30, 31, 32, 32, 33, 34, 34, 35, 35, 36, 36, 37, 37, 37, 38, 38, 38, 39, 39, 39, 39 };
 
@@ -755,21 +683,6 @@ enum
     CODECHAL_HEVC_FEI_P_MBENC_END = CODECHAL_HEVC_FEI_P_MBENC_BEGIN + 37,
 
     CODECHAL_HEVC_FEI_NUM_SURFACES = CODECHAL_HEVC_FEI_P_MBENC_END
-};
-
-//!
-//! \enum     HEVC_BRC_FRAME_TYPE
-//! \brief    HEVC BRC frame type
-//!
-enum HEVC_BRC_FRAME_TYPE
-{
-    HEVC_BRC_FRAME_TYPE_P_OR_LB = 0,
-    HEVC_BRC_FRAME_TYPE_B = 1,
-    HEVC_BRC_FRAME_TYPE_I = 2,
-    HEVC_BRC_FRAME_TYPE_B1 = 3,
-    HEVC_BRC_FRAME_TYPE_B2 = 4,
-    HEVC_BRC_FRAME_TYPE_INVALID
-
 };
 
 //!

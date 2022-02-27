@@ -71,6 +71,8 @@ public:
     // HEVC Encode only
     bool                     isSCCEnabled = false;          //!< Flag to indicate if HEVC SCC is enabled.
 
+    bool isMmcEnabled = false; //!< Flag to indicate if Mmc is enabled
+
     //!
     //! \brief    Destructor 
     //!
