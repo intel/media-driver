@@ -47,10 +47,11 @@ VphalSfcStateXe_Xpm::VphalSfcStateXe_Xpm(
     MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE_ID_G12,
+        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE_ID,
         &UserFeatureData,
         m_osInterface->pOsContext);
     m_disableSfcDithering = UserFeatureData.bData ? true : false;
+
 
 #if LINUX
     char *Sfc2PassPerfMode = getenv("SET_SFC2PASS_PERFMODE");
