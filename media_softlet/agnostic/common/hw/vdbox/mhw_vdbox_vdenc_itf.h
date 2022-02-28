@@ -58,6 +58,13 @@ namespace vdenc
 class Itf
 {
 public:
+    enum CommandsNumberOfAddresses
+    {
+        MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES               = 1,
+        MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES     = 1,
+        VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES = 21
+    };
+
     class ParSetting
     {
     public:

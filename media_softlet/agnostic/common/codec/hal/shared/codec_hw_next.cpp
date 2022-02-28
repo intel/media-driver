@@ -205,7 +205,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                 2 * m_miItf->MHW_GETSIZE_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
 
             patchListMaxSize +=
-                2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
+                2 * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
         }
         else if (standard == CODECHAL_CENC)
         {
@@ -217,7 +217,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                 m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
 
             patchListMaxSize +=
-                PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) * 2;
+                PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD) * 2;
 
         }
         else if (mode == CODECHAL_ENCODE_MODE_VP9)
@@ -230,7 +230,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                 m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)();
 
             patchListMaxSize +=
-                PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
+                PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD);
         }
         else if (mode == CODECHAL_ENCODE_MODE_AVC)
         {
@@ -241,7 +241,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                 2 * m_miItf->MHW_GETSIZE_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
 
             patchListMaxSize +=
-                2 * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
+                2 * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
         }
 
         maxSize +=
@@ -262,15 +262,15 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
         }
 
         patchListMaxSize +=
-            PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
-            PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
-            PATCH_LIST_COMMAND(HUC_DMEM_STATE_CMD) +
-            PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
-            PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
-            numSlices       * PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
-            numSlices       * PATCH_LIST_COMMAND(HUC_START_CMD) +
-            numStoreDataImm * PATCH_LIST_COMMAND(MI_STORE_DATA_IMM_CMD) +
-            numStoreReg     * PATCH_LIST_COMMAND(MI_STORE_REGISTER_MEM_CMD);
+            PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_PIPE_MODE_SELECT_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_IMEM_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_DMEM_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_VIRTUAL_ADDR_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
+            numSlices       * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_STREAM_OBJECT_CMD) +
+            numSlices       * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_START_CMD) +
+            numStoreDataImm * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_DATA_IMM_CMD) +
+            numStoreReg     * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_REGISTER_MEM_CMD);
 
         if(params->uNumAddConBBEnd)
         {
@@ -278,7 +278,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                 params->uNumAddConBBEnd * m_miItf->MHW_GETSIZE_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
 
             patchListMaxSize +=
-                params->uNumAddConBBEnd * PATCH_LIST_COMMAND(MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
+                params->uNumAddConBBEnd * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_CONDITIONAL_BATCH_BUFFER_END_CMD);
         }
         if(params->uNumMiCopy)
         {
@@ -286,7 +286,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                 params->uNumMiCopy * m_miItf->MHW_GETSIZE_F(MI_COPY_MEM_MEM)();
 
             patchListMaxSize +=
-                params->uNumMiCopy * PATCH_LIST_COMMAND(MI_COPY_MEM_MEM_CMD);
+                params->uNumMiCopy * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_COPY_MEM_MEM_CMD);
         }
         if(params->uNumMiFlush)
         {
@@ -294,7 +294,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                 params->uNumMiFlush * m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)();
 
             patchListMaxSize +=
-                params->uNumMiFlush * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
+                params->uNumMiFlush * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD);
         }
 
         if (params->bHucDummyStream || params->bPerformHucStreamOut)
@@ -313,14 +313,14 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                     m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)();
 
                 patchListMaxSize +=
-                    PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
-                    PATCH_LIST_COMMAND(HUC_IMEM_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_DMEM_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_VIRTUAL_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
-                    PATCH_LIST_COMMAND(HUC_START_CMD) +
-                    PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_PIPE_MODE_SELECT_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_IMEM_STATE_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_DMEM_STATE_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_VIRTUAL_ADDR_STATE_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_STREAM_OBJECT_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_START_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD);
             }
             if (params->bPerformHucStreamOut)
             {
@@ -331,10 +331,10 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
                     4 * m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)();
 
                 patchListMaxSize +=
-                    PATCH_LIST_COMMAND(HUC_PIPE_MODE_SELECT_CMD) +
-                    PATCH_LIST_COMMAND(HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(HUC_STREAM_OBJECT_CMD) +
-                    4 * PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD);
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_PIPE_MODE_SELECT_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_IND_OBJ_BASE_ADDR_STATE_CMD) +
+                    PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::HUC_STREAM_OBJECT_CMD) +
+                    4 * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD);
             }
         }
 
