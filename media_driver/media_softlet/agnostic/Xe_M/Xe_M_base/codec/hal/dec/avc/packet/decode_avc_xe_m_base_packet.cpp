@@ -271,6 +271,8 @@ MOS_STATUS AvcDecodePktXe_M_Base::StartStatusReport(uint32_t srType, MOS_COMMAND
 
     DECODE_CHK_STATUS(MediaPacket::StartStatusReport(srType, cmdBuffer));
 
+    SetPerfTag(CODECHAL_DECODE_MODE_AVCVLD, m_avcBasicFeature->m_pictureCodingType);
+
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(
@@ -285,8 +287,6 @@ MOS_STATUS AvcDecodePktXe_M_Base::EndStatusReport(uint32_t srType, MOS_COMMAND_B
     DECODE_CHK_NULL(cmdBuffer);
     DECODE_CHK_STATUS(ReadMfxStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReport(srType, cmdBuffer));
-
-    SetPerfTag(CODECHAL_DECODE_MODE_AVCVLD, m_avcBasicFeature->m_pictureCodingType);
 
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);

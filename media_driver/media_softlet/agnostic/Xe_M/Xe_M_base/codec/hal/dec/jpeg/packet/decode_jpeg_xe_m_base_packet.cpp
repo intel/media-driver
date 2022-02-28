@@ -241,6 +241,8 @@ MOS_STATUS JpegDecodePktXe_M_Base::StartStatusReport(uint32_t srType, MOS_COMMAN
 
     DECODE_CHK_STATUS(MediaPacket::StartStatusReport(srType, cmdBuffer));
 
+    SetPerfTag(CODECHAL_DECODE_MODE_JPEG, m_jpegBasicFeature->m_pictureCodingType);
+
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(

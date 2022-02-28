@@ -270,6 +270,7 @@ MOS_STATUS Vp9DecodePktXe_M_Base::StartStatusReport(uint32_t srType, MOS_COMMAND
     DECODE_CHK_NULL(cmdBuffer);
     DECODE_CHK_STATUS(MediaPacket::StartStatusReport(srType, cmdBuffer));
 
+    SetPerfTag(CODECHAL_DECODE_MODE_VP9VLD, m_vp9BasicFeature->m_pictureCodingType);
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(
@@ -285,7 +286,6 @@ MOS_STATUS Vp9DecodePktXe_M_Base::EndStatusReport(uint32_t srType, MOS_COMMAND_B
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReport(srType, cmdBuffer));
 
-    SetPerfTag(CODECHAL_DECODE_MODE_VP9VLD, m_vp9BasicFeature->m_pictureCodingType);
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd(
