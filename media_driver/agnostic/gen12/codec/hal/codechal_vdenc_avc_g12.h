@@ -58,7 +58,11 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
         numRefIdxL1Minus1 = m_avcSliceParams->num_ref_idx_l1_active_minus1;
     }
 
+    virtual void InitializeDataMember() override;
+
     MOS_STATUS InitializeState() override;
+
+    virtual MOS_STATUS AllocateResources() override;
 
     MOS_STATUS SetSequenceStructs() override;
 
@@ -183,6 +187,10 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     //!
     virtual MOS_STATUS UserFeatureKeyReport() override;
 
+    virtual void SetBufferToStorePakStatistics() override;
+
+    virtual MOS_STATUS AddMiStoreForHWOutputToHucDmem(PMOS_COMMAND_BUFFER cmdBuffer) override;
+
    protected:
     class SfdCurbe;
     struct BrcInitDmem;
@@ -204,6 +212,8 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     static const uint32_t m_singlePassMinFramePer100s = 6000;
     uint8_t* m_pMBQPShadowBuffer = nullptr;
     uint32_t m_uiMBQPShadowBufferSize = 0;
+
+    MOS_RESOURCE m_resPakOutputViaMmioBuffer; //!< Buffer for PAK statistics output via MMIO
 
 protected:
 
