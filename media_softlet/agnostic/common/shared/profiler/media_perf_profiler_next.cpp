@@ -390,7 +390,7 @@ MOS_STATUS MediaPerfProfilerNext::StoreRegister(
         storeRegMemParams.dwOption = CCS_HW_FRONT_END_MMIO_REMAP;
     }
 
-    CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+    CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
