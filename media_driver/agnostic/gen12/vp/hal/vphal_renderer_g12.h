@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2019, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,9 @@ const VphalSseuSetting VpHalDefaultSSEUTableG12[baseKernelMaxNumID] =
     { 2,            3,          8,          0 },     // VEBOX_SECUREBLOCKCOPY_KERNEL,
     { 2,            3,          8,          0 },     // VEBOX_UPDATEDNSTATE_KERNEL,
 };
+
+// Two pass down scaling for down scaling quality due to 8-Tab polyphase filter.
+#define VPHAL_MAX_NUM_DS_SURFACES 2
 
 //!
 //! \brief VPHAL renderer Gen12 class
@@ -115,6 +118,32 @@ public:
     //! \return   MOS_STATUS
     //!
     virtual MOS_STATUS InitKdllParam() = 0;
+
+    //!
+    //! \brief    Allocate surface
+    //! \details  Allocate surface according to the attributes of surface except the specified width/height/format.
+    //! \param    [in] RenderParams
+    //!           VPHAL render parameter
+    //! \param    [in] pSurface
+    //!           Pointer to the surface which specifies the attributes except the specified width/height/format.
+    //! \param    [in] pAllocatedSurface
+    //!           Pointer to the allocated surface.
+    //! \param    [in] dwSurfaceWidth
+    //!           The width of allocated surface.
+    //! \param    [in] dwSurfaceHeight
+    //!           The height of allocated surface.
+    //! \param    [in] eFormat
+    //!           The format of allocated surface.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS AllocateSurface(
+        PCVPHAL_RENDER_PARAMS       pcRenderParams,
+        PVPHAL_SURFACE              pSurface,
+        PVPHAL_SURFACE              pAllocatedSurface,
+        uint32_t                    dwSurfaceWidth,
+        uint32_t                    dwSurfaceHeight,
+        MOS_FORMAT                  eFormat);
 
 };
 

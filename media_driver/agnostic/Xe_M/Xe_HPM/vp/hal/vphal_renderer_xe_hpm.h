@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -129,6 +129,23 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS CreateSurfaceDumper();
+
+private:
+    //!
+    //! \brief    Scaling function
+    //! \details  The scaling function is only for scaling without other VP features.
+    //!           Down scaling needs 2 pass if scaling ratio is >2 for better quality.
+    //!           Pass#1 DS to 1/2 target resolution; Pass #2: DS from 1/2 target resolution to target resolution
+    //! \param    [in,out] pRenderParams
+    //!           Pointer to VPHAL render parameter
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS RenderScaling(
+        PVPHAL_RENDER_PARAMS    pRenderParams);
+
+    // Surfaces for down scaling if down scaling firstly in the use case scaling + 3dlut
+    PVPHAL_SURFACE    m_pDSSurface[VPHAL_MAX_NUM_DS_SURFACES];
 };
 
 #endif // __VPHAL_RENDER_XE_HPM_H__

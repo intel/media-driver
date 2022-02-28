@@ -786,6 +786,9 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
     // Enable AV1 Large Scale Tile decoding
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
 
+    // Enable down scaling first if 3DLUT enabled
+    MEDIA_WR_SKU(skuTable, FtrScalingFirst, 1);
+
     // Tile64
     if (drvInfo->devRev >=0x04 &&
         (drvInfo->devId == 0x4F80 ||
