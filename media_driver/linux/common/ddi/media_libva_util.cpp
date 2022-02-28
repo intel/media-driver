@@ -431,8 +431,8 @@ VAStatus DdiMediaUtil_AllocateSurface(
             cpTag = PROTECTED_SURFACE_TAG;
         }
 
-        // For secure/compressible external surface, call legacy gmm interface due to limitation of new interface
-        if (cpTag || bMemCompEnable)
+        // For compressible external surface, call legacy gmm interface due to limitation of new interface
+        if (bMemCompEnable)
         {
             MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
             gmmParams.BaseWidth         = width;
@@ -537,6 +537,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
             gmmCustomParams.Size          = mediaSurface->pSurfDesc->uiSize;
             gmmCustomParams.BaseAlignment = 4096;
             gmmCustomParams.NoOfPlanes    = mediaSurface->pSurfDesc->uiPlanes;
+            gmmCustomParams.CpTag         = cpTag;
             switch (tileformat)
             {
                 case I915_TILING_Y:
