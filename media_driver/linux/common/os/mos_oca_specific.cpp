@@ -379,7 +379,7 @@ MOS_STATUS MosOcaInterfaceSpecific::AddResourceToDumpList(MOS_OCA_BUFFER_HANDLE 
     {
         resMmcMode = MOS_MEMCOMP_DISABLED;
     }
-    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resInfoList[i].gfxAddress               = MosInterface::GetResourceGfxAddress(&steamState, &resource);
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resInfoList[i].gfxAddress               = resource.bo->offset64;
     m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resInfoList[i].sizeAllocation           = resource.pGmmResInfo->GetSizeAllocation();
     m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resInfoList[i].sizeSurface              = resource.pGmmResInfo->GetSizeSurface();
     m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resInfoList[i].sizeSurfacePhy           = resource.pGmmResInfo->GetSizeSurface();
