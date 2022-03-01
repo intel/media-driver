@@ -70,6 +70,10 @@ MOS_STATUS MediaVeboxDecompStateG12::RenderDecompCMD(PMOS_SURFACE surface)
     veboxInterface = m_veboxInterface;
 
     m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VEBOX);
+    if (m_syncResource)
+    {
+        VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(m_osInterface->pfnRegisterResource(m_osInterface, m_syncResource, true, true));
+    }
 
     // Reset allocation list and house keeping
     m_osInterface->pfnResetOsStates(m_osInterface);

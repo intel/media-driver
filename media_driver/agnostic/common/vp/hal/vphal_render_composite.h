@@ -1023,6 +1023,16 @@ private:
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams);
 
     //!
+    //! \brief    Decompress the Surface
+    //! \details  Decompress the interlaced Surface which is in the RC compression mode
+    //! \param    [in,out] pSource
+    //!           Pointer to Source Surface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    MOS_STATUS DecompressInterlacedSurfInRCMode(PVPHAL_SURFACE pSource);
+
+    //!
     //! \brief    Allocate Composite BatchBuffer
     //! \details  Allocate Composite BatchBuffer, search from existing BBs for a match. If
     //!           none, allocate new BB
@@ -1175,6 +1185,8 @@ protected:
     VPHAL_SURFACE                   m_Intermediate  = {};         //!< Intermediate surface (multiple phase / constriction support)
     VPHAL_SURFACE                   m_Intermediate1 = {};         //!< Intermediate surface (multiple phase / constriction support)
     VPHAL_SURFACE                   m_Intermediate2 = {};         //!< Rotation output intermediate surface
+    
+    VPHAL_SURFACE                   m_AuxiliarySyncSurface = {};  //!< This Auxiliary surface is used to sync engine workload
 
     Kdll_State                      *m_pKernelDllState = nullptr; //!< Compositing Kernel DLL/Search state
     RENDERHAL_KERNEL_PARAM          m_KernelParams = {0};

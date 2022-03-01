@@ -2427,6 +2427,13 @@ MOS_STATUS MosInterface::DecompResource(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MosInterface::SetDecompSyncRes(
+    MOS_STREAM_HANDLE   streamState,
+    MOS_RESOURCE_HANDLE syncResource)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 uint32_t MosInterface::GetGpuStatusTag(
         MOS_STREAM_HANDLE  streamState,
         GPU_CONTEXT_HANDLE gpuContext)

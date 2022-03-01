@@ -1058,6 +1058,10 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE              pOsInterface,
         PMOS_RESOURCE               pResource);
 
+    MOS_STATUS (* pfnSetDecompSyncRes) (
+        PMOS_INTERFACE              pOsInterface,
+        PMOS_RESOURCE               syncResource);
+
     MOS_STATUS(*pfnDoubleBufferCopyResource) (
         PMOS_INTERFACE        pOsInterface,
         PMOS_RESOURCE         pInputOsResource,

@@ -48,6 +48,20 @@ public:
     }
 
     //!
+    //! \brief    Set auxiliary resource
+    //! \details  Set auxiliary resource to sync with decompression
+    //! \param    [in] resource
+    //!           The resource will be used to sync
+    //!
+    //! \return   void
+    //!
+    void SetDecompSyncRes(
+        MOS_RESOURCE_HANDLE syncResource)
+    {
+        m_syncResource = syncResource;
+    }
+
+    //!
     //! \brief    Media memory decompression
     //! \details  Entry point to decompress media memory
     //! \param    targetResource
@@ -155,6 +169,8 @@ public:
     //! \return   mosinterface
     //!
     virtual PMOS_INTERFACE GetDecompStateMosInterface() = 0;
+
+    MOS_RESOURCE_HANDLE    m_syncResource               = nullptr;   //!> Auxiliary resource to sync with decompression
 };
 
 #endif // __MEDIAMEMORYDECOMP_H__

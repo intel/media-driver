@@ -1436,6 +1436,20 @@ public:
         MOS_RESOURCE_HANDLE resource);
 
     //!
+    //! \brief    Set auxiliary resource to sync with decompression
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] resource
+    //!           MOS Resource handle of the resource.
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS SetDecompSyncRes(
+        MOS_STREAM_HANDLE   streamState,
+        MOS_RESOURCE_HANDLE syncResource);
+
+    //!
     //! \brief  Set Memory Compression Mode
     //!
     //! \param    [in] streamState
