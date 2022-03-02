@@ -124,7 +124,7 @@ MOS_STATUS SfcRenderM12::SetSfcStateInputOrderingModeHcp(
     }
     else if (CODECHAL_VP9 == m_videoConfig.codecStandard)
     {
-        VPHAL_COLORPACK colorPack = VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
         if ((VPHAL_COLORPACK_420 == colorPack)
             || (VPHAL_COLORPACK_444 == colorPack))
         {
@@ -198,7 +198,7 @@ MOS_STATUS SfcRenderM12::SetupScalabilityParams()
 
     if (MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP == m_pipeMode)
     {
-        VPHAL_COLORPACK colorPack = VpHal_GetSurfaceColorPack(m_renderData.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
         if ((VPHAL_COLORPACK_420 == colorPack || VPHAL_COLORPACK_422 == colorPack) &&
             (!MOS_IS_ALIGNED(m_scalabilityParams.srcStartX, 2) || MOS_IS_ALIGNED(m_scalabilityParams.srcEndX, 2)))
         {

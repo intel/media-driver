@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,10 @@
 #include "vp_common.h"
 #include "media_class_trace.h"
 #include "hal_kerneldll_next.h"
+#include <functional>
+#include <algorithm>
+
+using MosFormatArray = std::vector<MOS_FORMAT>;
 
 #define VP_UNUSED(param) (void)(param)
 //------------------------------------------------------------------------------
@@ -267,6 +271,146 @@ class VpUtils
 public:
     // it is only be used by vpdata->pVpHalState->CopySurface, will be removed after mediaCopy ready
     static MOS_SURFACE VpHalConvertVphalSurfaceToMosSurface(PVPHAL_SURFACE surface);
+
+    //!
+    //! \brief    Get the color pack type of a surface
+    //! \details  Map mos surface format to color pack format and return.
+    //!           For unknown format return VPHAL_COLORPACK_UNKNOWN
+    //! \param    [in] format
+    //!           MOS_FORMAT of a surface
+    //! \return   VPHAL_COLORPACK
+    //!           Color pack type of the surface
+    //!
+    static VPHAL_COLORPACK GetSurfaceColorPack(MOS_FORMAT format);
+
+    //!
+    //! \brief    Performs Color Space Convert for Sample 8 bit
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //! \param    [out] pOutput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] pInput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \return   bool
+    //!           Return true if successful, otherwise false
+    //!
+    static bool GetCscMatrixForRender8Bit(
+        VPHAL_COLOR_SAMPLE_8  *output,
+        VPHAL_COLOR_SAMPLE_8  *input,
+        VPHAL_CSPACE          srcCspace,
+        VPHAL_CSPACE          dstCspace);
+
+    //!
+    //! \brief    Allocates the Surface
+    //! \details  Allocates the Surface
+    //!           - if the surface is not already allocated OR
+    //!           - resource dimenisions OR format changed
+    //! \param    [in] pOsInterface
+    //!           Pointer to MOS_INTERFACE
+    //! \param    [in,out] pSurface
+    //!           Pointer to VPHAL_SURFACE
+    //! \param    [in] pSurfaceName
+    //!           Pointer to surface name
+    //! \param    [in] format
+    //!           Expected MOS_FORMAT
+    //! \param    [in] DefaultResType
+    //!           Expected Resource Type
+    //! \param    [in] DefaultTileType
+    //!           Expected Surface Tile Type
+    //! \param    [in] dwWidth
+    //!           Expected Surface Width
+    //! \param    [in] dwHeight
+    //!           Expected Surface Height
+    //! \param    [in] bCompressible
+    //!           Surface being compressible or not
+    //! \param    [in] CompressionMode
+    //!           Compression Mode
+    //! \param    [out] pbAllocated
+    //!           true if allocated, false for not
+    //! \param    [in] resUsageType
+    //!           resource usage type for caching
+    //! \param    [in] tileModeByForce
+    //!           Forced tile mode
+    //! \param    [in] memType
+    //!           vidoe memory location
+    //! \param    [in] isNotLockable
+    //!           Flag to indicate whether resource being not lockable
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
+    //!
+    static MOS_STATUS ReAllocateSurface(
+        PMOS_INTERFACE        osInterface,                               
+        PVPHAL_SURFACE        surface,                                   
+        PCCHAR                surfaceName,                               
+        MOS_FORMAT            format,                                     
+        MOS_GFXRES_TYPE       defaultResType,                            
+        MOS_TILE_TYPE         defaultTileType,                            
+        uint32_t              dwWidth,                                    
+        uint32_t              dwHeight,                                   
+        bool                  bCompressible,                             
+        MOS_RESOURCE_MMC_MODE compressionMode,                            
+        bool                  *bAllocated,                                
+        MOS_HW_RESOURCE_DEF   resUsageType    = MOS_HW_RESOURCE_DEF_MAX,  
+        MOS_TILE_MODE_GMM     tileModeByForce = MOS_TILE_UNSET_GMM,       
+        Mos_MemPool           memType         = MOS_MEMPOOL_VIDEOMEMORY,  
+        bool                  isNotLockable   = false);                                         
+
+    //!
+    //! \brief
+    //! \details  Get CSC matrix in a form usable by Vebox, SFC and IECP kernels
+    //! \param    [in] SrcCspace
+    //!           Source Cspace
+    //! \param    [in] DstCspace
+    //!           Destination Cspace
+    //! \param    [out] pfCscCoeff
+    //!           [3x3] Coefficients matrix
+    //! \param    [out] pfCscInOffset
+    //!           [3x1] Input Offset matrix
+    //! \param    [out] pfCscOutOffset
+    //!           [3x1] Output Offset matrix
+    //! \return   void
+    //!
+    static void GetCscMatrixForVeSfc8Bit(
+        VPHAL_CSPACE srcCspace,
+        VPHAL_CSPACE dstCspace,
+        float        *fCscCoeff,
+        float        *fCscInOffset,
+        float        *fCscOutOffset);
+
+    //! \brief    Get the bit depth of a surface
+    //! \details  Get bit depth of input mos surface format and return.
+    //!           For unknown format return 0
+    //! \param    [in] format
+    //!           MOS_FORMAT of a surface
+    //! \return   uint32_t
+    //!           Bit depth of the surface
+    //!
+    static uint32_t GetSurfaceBitDepth(
+        MOS_FORMAT format);
+
+    static bool IsSyncFreeNeededForMMCSurface(PVPHAL_SURFACE surface, PMOS_INTERFACE osInterface);
+
+    //!
+    //! \brief    Performs Color Space Convert for Sample 8 bit Using Specified Coeff Matrix
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //            Using Secified input CSC Coeff Matrix
+    //! \param    [out] output
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] input
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \param    [in] iCscMatrix
+    //!           input CSC coeff Matrxi
+    //! \return   bool
+    //!           Return true if successful, otherwise false
+    //!
+    static bool GetCscMatrixForRender8BitWithCoeff(VPHAL_COLOR_SAMPLE_8 *output, VPHAL_COLOR_SAMPLE_8 *input, VPHAL_CSPACE srcCspace, VPHAL_CSPACE dstCspace, int32_t *iCscMatrix);
 };
 
 #endif // !__VP_UTILS_H__

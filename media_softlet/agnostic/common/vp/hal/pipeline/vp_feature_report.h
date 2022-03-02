@@ -29,7 +29,7 @@
 #ifndef __VP_FEATURE_REPORT_H__
 #define __VP_FEATURE_REPORT_H__
 
-#include "vphal_common.h"
+#include "vp_common.h"
 #include "vphal_common_tools.h"
 #include "media_class_trace.h"
 

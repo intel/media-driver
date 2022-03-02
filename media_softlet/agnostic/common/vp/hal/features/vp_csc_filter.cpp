@@ -302,7 +302,7 @@ MOS_STATUS VpCscFilter::SetSfcChromaParams(
 
     if (vpExecuteCaps.bVebox)
     {
-        if (VpHal_GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
+        if (VpUtils::GetSurfaceColorPack(m_sfcCSCParams->inputFormat) == VPHAL_COLORPACK_444)
         {
             m_sfcCSCParams->b8tapChromafiltering = true;
         }
@@ -339,7 +339,7 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
         (vpExecuteCaps.b3DlutOutput && !vpExecuteCaps.bHDR3DLUT);
     bool bDIEnabled      = vpExecuteCaps.bDI;
 
-    srcColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatInput);
+    srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatInput);
 
     // Init CUS as disabled
     m_veboxCSCParams->bypassCUS = true;
@@ -486,7 +486,7 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
 
     bool bNeedDownSampling = false;
 
-    VPHAL_COLORPACK dstColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatOutput);
+    VPHAL_COLORPACK dstColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatOutput);
 
     // Only VEBOX output, we use VEO to do downsampling.
     // Else, we use SFC/FC path to do downscaling.
@@ -605,7 +605,7 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         m_cscParams.input.chromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpHal_GetSurfaceColorPack(m_cscParams.formatInput))
+    switch (VpUtils::GetSurfaceColorPack(m_cscParams.formatInput))
     {
     case VPHAL_COLORPACK_422:
         m_cscParams.input.chromaSiting = (m_cscParams.input.chromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
@@ -621,7 +621,7 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         m_cscParams.output.chromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpHal_GetSurfaceColorPack(m_cscParams.formatOutput))
+    switch (VpUtils::GetSurfaceColorPack(m_cscParams.formatOutput))
     {
     case VPHAL_COLORPACK_422:
         m_cscParams.output.chromaSiting = (m_cscParams.output.chromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
@@ -643,8 +643,8 @@ bool VpCscFilter::IsChromaUpSamplingNeeded()
     bool                  bChromaUpSampling = false;
     VPHAL_COLORPACK       srcColorPack, dstColorPack;
 
-    srcColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatInput);
-    dstColorPack = VpHal_GetSurfaceColorPack(m_cscParams.formatOutput);
+    srcColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatInput);
+    dstColorPack = VpUtils::GetSurfaceColorPack(m_cscParams.formatOutput);
 
     if ((srcColorPack == VPHAL_COLORPACK_420 &&
         (dstColorPack == VPHAL_COLORPACK_422 || dstColorPack == VPHAL_COLORPACK_444)) ||

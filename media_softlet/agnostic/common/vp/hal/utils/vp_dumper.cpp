@@ -942,8 +942,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             bool bAllocated;
 
             PVPHAL_SURFACE m_temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
-
-            VPHAL_RENDER_CHK_STATUS(VpHal_ReAllocateSurface(
+            VPHAL_RENDER_CHK_STATUS(VpUtils::ReAllocateSurface(
                 pOsInterface,
                 m_temp2DSurfForCopy,
                 "Temp2DSurfForSurfDumper",

@@ -20,6 +20,7 @@
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_dumper_specific.c
+    ${CMAKE_CURRENT_LIST_DIR}/vphal_common_specific_next.c
 )
 
 set(TMP_HEADERS_ "")
