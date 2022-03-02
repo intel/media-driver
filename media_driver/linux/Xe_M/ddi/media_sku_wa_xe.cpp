@@ -841,9 +841,9 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
     if  (SI_WA_FROM(drvInfo->devRev, ACM_G10_MEDIA_REV_ID_B0) ||
          GFX_IS_DG2_G11_CONFIG(drvInfo->devId))
     {
-        /* Turn off MMC for codec and vpp*/
-        MEDIA_WR_WA(waTable, WaDisableCodecMmc, 1);
-        MEDIA_WR_WA(waTable, WaDisableVPMmc, 1);
+        /* Turn on MMC for codec and vpp*/
+        MEDIA_WR_WA(waTable, WaDisableCodecMmc, 0);
+        MEDIA_WR_WA(waTable, WaDisableVPMmc, 0);
     }
 
     if (GFX_IS_DG2_G11_CONFIG(drvInfo->devId) ||

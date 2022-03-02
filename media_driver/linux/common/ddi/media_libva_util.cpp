@@ -1343,10 +1343,6 @@ void DdiMediaUtil_UnlockSurfaceInternal(DDI_MEDIA_SURFACE  *surface)
             SwizzleSurfaceByHW(surface, true);
 
             mos_bo_unmap(surface->pShadowBuffer->bo);
-            DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
-            MOS_FreeMemory(surface->pShadowBuffer);
-            surface->pShadowBuffer = nullptr;
-
             mos_bo_unmap(surface->bo);
         }
         else if (surface->pSystemShadow)
@@ -1484,6 +1480,14 @@ void DdiMediaUtil_FreeSurface(DDI_MEDIA_SURFACE *surface)
     if (surface->pMediaCtx->m_auxTableMgr)
     {
         surface->pMediaCtx->m_auxTableMgr->UnmapResource(surface->pGmmResourceInfo, surface->bo);
+    }
+
+    // free shadow buffer it created
+    if (surface->pShadowBuffer != nullptr)
+    {
+        DdiMediaUtil_FreeBuffer(surface->pShadowBuffer);
+        MOS_FreeMemory(surface->pShadowBuffer);
+        surface->pShadowBuffer = nullptr;
     }
 
     if(surface->bMapped)
