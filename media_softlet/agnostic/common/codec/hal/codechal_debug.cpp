@@ -466,6 +466,7 @@ MOS_STATUS CodechalDebugInterfaceG12::DumpYUVSurface(
         DumpUncompressedYUVSurface(surface);
         lockedAddr = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, &m_temp2DSurfForCopy.OsResource, &lockFlags);
         CODECHAL_DEBUG_CHK_NULL(lockedAddr);
+        surface = &m_temp2DSurfForCopy;
     }
 
     surfBaseAddr = lockedAddr;
