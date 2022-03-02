@@ -34,9 +34,6 @@
 #include "media_libva_caps_g12.h"
 #include "linux_system_info.h"
 
-#define RESERVED0 3
-#define ENCODE_ID_RESERVED0 "VIDEO_ENCODE_RESERVED0"
-
 //!
 //! \class  MediaLibvaCapsDG2
 //! \brief  Media libva caps DG2
@@ -59,11 +56,10 @@ public:
             {VP9, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP |
              VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10 | VA_RT_FORMAT_RGB32 |
              VA_RT_FORMAT_RGB32_10BPP},
-            {(EncodeFormat)RESERVED0, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP}
+            {AV1, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP}
         };
         m_encodeFormatTable = (struct EncodeFormatTable*)(&encodeFormatTableDG2[0]);
         m_encodeFormatCount = sizeof(encodeFormatTableDG2)/sizeof(struct EncodeFormatTable);
-
         return;
     }
 

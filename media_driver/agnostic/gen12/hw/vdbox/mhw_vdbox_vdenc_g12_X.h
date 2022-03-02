@@ -459,7 +459,7 @@ public:
             }
         }
 
-        if (this->m_vdencRowStoreCache.bSupported && rowstoreParams->Mode == CODECHAL_ENCODE_RESERVED_0)
+        if (this->m_vdencRowStoreCache.bSupported && rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AV1)
         {
             this->m_vdencRowStoreCache.bEnabled  = true;
             this->m_vdencRowStoreCache.dwAddress = RESERVED_VDENC_ROWSTORE_BASEADDRESS;
@@ -573,7 +573,7 @@ public:
                 MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES +
                 VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
         }
-        else if (standard == CODECHAL_RESERVED0)
+        else if (standard == CODECHAL_AV1)
         {
             maxSize = GetReserved0MaxSize();
 
@@ -631,7 +631,7 @@ public:
             maxSize = GetAvcSliceMaxSize();
             patchListMaxSize = VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES;
         }
-        else if (standard == CODECHAL_RESERVED0)
+        else if (standard == CODECHAL_AV1)
         {
             maxSize = GetReserved0TileMaxSize();
         }
@@ -663,7 +663,7 @@ public:
 
         cmd.DW1.StandardSelect                 = CodecHal_GetStandardFromMode(params->Mode);
         cmd.DW1.ScalabilityMode                = !(paramsG12->MultiEngineMode == MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY);
-        if (CODECHAL_ENCODE_MODE_HEVC == params->Mode || CODECHAL_ENCODE_RESERVED_0 == params->Mode)
+        if (CODECHAL_ENCODE_MODE_HEVC == params->Mode || CODECHAL_ENCODE_MODE_AV1 == params->Mode)
         {
             cmd.DW1.FrameStatisticsStreamOutEnable = paramsG12->bBRCEnabled || paramsG12->bLookaheadPass;
         }
@@ -678,7 +678,7 @@ public:
         cmd.DW1.VdencStreamInEnable            = params->bVdencStreamInEnable;
         cmd.DW1.BitDepth                       = params->ucVdencBitDepthMinus8;
 
-        if (CODECHAL_ENCODE_MODE_HEVC == params->Mode || CODECHAL_ENCODE_MODE_VP9 == params->Mode || CODECHAL_ENCODE_RESERVED_0 == params->Mode)
+        if (CODECHAL_ENCODE_MODE_HEVC == params->Mode || CODECHAL_ENCODE_MODE_VP9 == params->Mode || CODECHAL_ENCODE_MODE_AV1 == params->Mode)
         {
             cmd.DW1.PakChromaSubSamplingType = params->ChromaType;
         }
@@ -700,7 +700,7 @@ public:
             cmd.DW3.PreFetchoffsetforsource = 7;
             cmd.DW3.Numverticalreqminus1Src = 0;
         }
-        else if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || CODECHAL_ENCODE_RESERVED_0 == params->Mode)
+        else if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || CODECHAL_ENCODE_MODE_AV1 == params->Mode)
         {
             cmd.DW3.PreFetchoffsetforsource = 4;
             cmd.DW3.Numverticalreqminus1Src = 1;
@@ -994,7 +994,7 @@ public:
                         cmdBuffer,
                         &resourceParams));
                 }
-                else if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_MODE_VP9 || params->Mode == CODECHAL_ENCODE_RESERVED_0)
+                else if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_MODE_VP9 || params->Mode == CODECHAL_ENCODE_MODE_AV1)
                 {
                     // 8x DS surface
                     MOS_ZeroMemory(&details, sizeof(details));
@@ -1098,7 +1098,7 @@ public:
             }
         }
 
-        if (!params->isLowDelayB && (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_RESERVED_0))
+        if (!params->isLowDelayB && (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_MODE_AV1))
         {
             if (params->presVdencReferences[refIdx])
             {
@@ -1182,7 +1182,7 @@ public:
         }
 
         // extra surface for HEVC/VP9
-        if ((params->Mode == CODECHAL_ENCODE_MODE_HEVC) || (params->Mode == CODECHAL_ENCODE_MODE_VP9) || (params->Mode == CODECHAL_ENCODE_RESERVED_0))
+        if ((params->Mode == CODECHAL_ENCODE_MODE_HEVC) || (params->Mode == CODECHAL_ENCODE_MODE_VP9) || (params->Mode == CODECHAL_ENCODE_MODE_AV1))
         {
             if (params->presColMvTempBuffer[0] != nullptr)
             {
@@ -1441,7 +1441,7 @@ public:
             }
         }
 
-        if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_RESERVED_0)
+        if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_MODE_AV1)
         {
             cmd.Dwords25.DW0.Width  = params->dwActualWidth - 1;
             cmd.Dwords25.DW0.Height = params->dwActualHeight - 1;
@@ -1507,7 +1507,7 @@ public:
 
         typename TVdencCmds::VDENC_DS_REF_SURFACE_STATE_CMD cmd;
 
-        if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_RESERVED_0)
+        if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_MODE_AV1)
         {
             cmd.Dwords25.DW0.Width  = params->dwActualWidth - 1;
             cmd.Dwords25.DW0.Height = params->dwActualHeight - 1;
@@ -1535,7 +1535,7 @@ public:
             MHW_MI_CHK_NULL(params);
             MHW_MI_CHK_NULL(params->psSurface);
 
-            if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_RESERVED_0)
+            if (params->Mode == CODECHAL_ENCODE_MODE_HEVC || params->Mode == CODECHAL_ENCODE_MODE_AV1)
             {
                 cmd.Dwords69.DW0.Width  = params->dwActualWidth - 1;
                 cmd.Dwords69.DW0.Height = params->dwActualHeight - 1;

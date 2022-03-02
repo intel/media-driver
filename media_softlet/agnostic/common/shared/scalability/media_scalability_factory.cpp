@@ -27,10 +27,8 @@
 
 #include "media_scalability_factory.h"
 #include "media_scalability_singlepipe.h"
-#if defined(IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM) || defined(IGFX_DG2_ENABLE_NON_UPSTREAM) || defined(IGFX_PVC_ENABLE_NON_UPSTREAM)
 #include "encode_scalability_singlepipe.h"
 #include "encode_scalability_multipipe.h"
-#endif
 #include "decode_scalability_singlepipe.h"
 #include "decode_scalability_multipipe.h"
 #include "media_scalability_mdf.h"
@@ -87,7 +85,6 @@ template<typename T>
 MediaScalability *MediaScalabilityFactory<T>::CreateEncodeScalability(T params, void *hwInterface, MediaContext *mediaContext, MOS_GPUCTX_CREATOPTIONS *gpuCtxCreateOption)
 {
     MediaScalability *scalabilityHandle = nullptr;
-#if defined(IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM) || defined(IGFX_DG2_ENABLE_NON_UPSTREAM) || defined(IGFX_PVC_ENABLE_NON_UPSTREAM)
     if (params == nullptr || hwInterface == nullptr)
     {
         return nullptr;
@@ -154,7 +151,6 @@ MediaScalability *MediaScalabilityFactory<T>::CreateEncodeScalability(T params, 
         MOS_Delete(option);
     }
 
-#endif
     return scalabilityHandle;
 }
 

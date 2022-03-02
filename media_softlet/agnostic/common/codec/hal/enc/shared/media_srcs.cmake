@@ -19,6 +19,13 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(bitstreamWriter)
+media_include_subdirectory(pipeline)
+media_include_subdirectory(packet)
+media_include_subdirectory(features)
+media_include_subdirectory(bufferMgr)
+media_include_subdirectory(scalability)
+media_include_subdirectory(statusreport)
+media_include_subdirectory(mmc)
 
 if(${Common_Encode_Supported} STREQUAL "yes")
 

@@ -98,11 +98,10 @@ static struct LinuxCodecInfo Dg2CodecInfo =
     .hevc10Encoding = 0,
     .hevc12Encoding = 0,
     .vp8Encoding    = 0,
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     .hevcVdenc      = 1,
+#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     .vp9Vdenc       = 1,
 #else
-    .hevcVdenc      = 0,
     .vp9Vdenc       = 0,
 #endif
     .adv0Decoding   = 1,
@@ -235,16 +234,6 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
         /* VP9 VDENC 10Bit 420/444 */
         MEDIA_WR_SKU(skuTable, FtrEncodeVP9Vdenc10bit420, codecInfo->vp9Vdenc);
         MEDIA_WR_SKU(skuTable, FtrEncodeVP9Vdenc10bit444, codecInfo->vp9Vdenc);
-
-#if defined(IGFX_XEHP_SDV_ENABLE_NON_UPSTREAM) || defined(IGFX_DG2_ENABLE_NON_UPSTREAM) || defined(IGFX_PVC_ENABLE_NON_UPSTREAM)
-        /* AV1 VDENC 8/10Bit 420 */
-        MEDIA_WR_SKU(skuTable, FtrEncodeAV1Vdenc, 1);
-        MEDIA_WR_SKU(skuTable, FtrEncodeAV1Vdenc10bit420, 1);
-#else
-        MEDIA_WR_SKU(skuTable, FtrEncodeAV1Vdenc, 0);
-        MEDIA_WR_SKU(skuTable, FtrEncodeAV1Vdenc10bit420, 0);
-#endif
-
     }
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
@@ -768,6 +757,13 @@ static bool InitDg2MediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrCCSNode, 0);
     }
 
+    if (drvInfo->hasBsd)
+    {
+        /* AV1 VDENC 8/10Bit 420 */
+        MEDIA_WR_SKU(skuTable, FtrEncodeAV1Vdenc, 1);
+        MEDIA_WR_SKU(skuTable, FtrEncodeAV1Vdenc10bit420, 1);
+    }
+
     MEDIA_WR_SKU(skuTable, FtrSfcScalability, 1);
 
     // Guc Submission
@@ -882,11 +878,7 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
             MEDIA_WR_WA(waTable, Wa_14010476401, 1);
             MEDIA_WR_WA(waTable, Wa_22011531258, 1);
             MEDIA_WR_WA(waTable, Wa_2209975292, 1);
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
             MEDIA_WR_WA(waTable, WaHEVCVDEncForceDeltaQpRoiNotSupported, 1);
-#else
-            MEDIA_WR_WA(waTable, WaHEVCVDEncForceDeltaQpRoiNotSupported, 0);
-#endif
         }
         MEDIA_WR_WA(waTable, Wa_22011549751, 1);
     }

@@ -221,6 +221,17 @@ if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
     )
 endif()
 
+if(${AV1_Encode_VDEnc_Supported} STREQUAL "yes")
+    set(TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_av1.cpp
+    )
+    set(TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_ddi_encode_av1.h
+    )
+endif()
+
 set(SOURCES_
     ${SOURCES_}
     ${TMP_1_SOURCES_}

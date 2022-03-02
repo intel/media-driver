@@ -154,7 +154,6 @@ enum CODECHAL_STANDARD
     CODECHAL_AVP_BASE   = CODECHAL_HCP_BASE + 2,
     CODECHAL_AV1        = CODECHAL_AVP_BASE,
 
-    CODECHAL_RESERVED0,
     CODECHAL_RESERVED1,
     CODECHAL_STANDARD_MAX
 };
@@ -189,7 +188,7 @@ enum CODECHAL_MODE
     CODECHAL_ENCODE_MODE_JPEG               = 20,
     CODECHAL_ENCODE_MODE_HEVC               = 22,
     CODECHAL_ENCODE_MODE_VP9                = 23,
-    CODECHAL_ENCODE_RESERVED_0              = 24,
+    CODECHAL_ENCODE_MODE_AV1                = 24,
     CODECHAL_NUM_ENCODE_MODES               = 8,
 
     CODECHAL_NUM_MODES                      = 25,   // Use the value for the last encode mode to determine this
@@ -606,8 +605,8 @@ static __inline uint32_t CodecHal_GetStandardFromMode(uint32_t mode)
     case CODECHAL_DECODE_MODE_CENC:
         standard = CODECHAL_CENC;
         break;
-    case CODECHAL_ENCODE_RESERVED_0:
-        standard = CODECHAL_RESERVED0;
+    case CODECHAL_ENCODE_MODE_AV1:
+        standard = CODECHAL_AV1;
         break;
     default:
         standard = CODECHAL_UNDEFINED;

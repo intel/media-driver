@@ -29,9 +29,7 @@
 #include "media_libva_util.h"
 #include "media_ddi_encode_const.h"
 #include "codec_def_encode_hevc_g12.h"
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
 #include "codec_def_encode_av1.h"
-#endif
 #include "media_libva_caps_dg2.h"
 #include "media_libva_caps_factory.h"
 #include "media_libva_caps_cp_interface.h"
@@ -41,7 +39,6 @@ extern template class MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT>;
 VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
 #ifdef _AV1_ENCODE_VDENC_SUPPORTED
     AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAV1Vdenc)||
@@ -94,7 +91,6 @@ VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
         AddProfileEntry(VAProfileAV1Profile0, VAEntrypointEncSliceLP, attributeList,
                 configStartIdx, m_encConfigs.size() - configStartIdx);
     }
-#endif
 #endif
     return status;
 }
@@ -181,21 +177,16 @@ std::string MediaLibvaCapsDG2::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
         case VAProfileHEVCMain12:
-        case VAProfileHEVCMain422_10:
-        case VAProfileHEVCMain422_12:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
         case VAProfileHEVCSccMain:
         case VAProfileHEVCSccMain10:
         case VAProfileHEVCSccMain444:
         case VAProfileHEVCSccMain444_10:
-            if (IsEncFei(entrypoint, feiFunction))
-                return ENCODE_ID_HEVCFEI;
-            else
-                return ENCODE_ID_HEVC;
+            return ENCODE_ID_HEVC;
         case VAProfileAV1Profile0:
         case VAProfileAV1Profile1:
-            return ENCODE_ID_RESERVED0;
+            return ENCODE_ID_AV1;
         case VAProfileNone:
             if (IsEncFei(entrypoint, feiFunction))
                 return ENCODE_ID_AVCFEI;
@@ -234,8 +225,6 @@ CODECHAL_MODE MediaLibvaCapsDG2::GetEncodeCodecMode(VAProfile profile, VAEntrypo
         case VAProfileHEVCMain:
         case VAProfileHEVCMain10:
         case VAProfileHEVCMain12:
-        case VAProfileHEVCMain422_10:
-        case VAProfileHEVCMain422_12:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
         case VAProfileHEVCSccMain:
@@ -245,7 +234,7 @@ CODECHAL_MODE MediaLibvaCapsDG2::GetEncodeCodecMode(VAProfile profile, VAEntrypo
             return CODECHAL_ENCODE_MODE_HEVC;
         case VAProfileAV1Profile0:
         case VAProfileAV1Profile1:
-            return CODECHAL_ENCODE_RESERVED_0;
+            return CODECHAL_ENCODE_MODE_AV1;
         default:
             DDI_ASSERTMESSAGE("Invalid Encode Mode");
             return CODECHAL_UNSUPPORTED_MODE;
@@ -283,8 +272,6 @@ VAStatus MediaLibvaCapsDG2::CheckEncodeResolution(
         case VAProfileHEVCMain12:
         case VAProfileHEVCMain444:
         case VAProfileHEVCMain444_10:
-        case VAProfileHEVCMain422_10:
-        case VAProfileHEVCMain422_12:
         case VAProfileHEVCSccMain:
         case VAProfileHEVCSccMain10:
         case VAProfileHEVCSccMain444:
@@ -329,7 +316,6 @@ VAStatus MediaLibvaCapsDG2::CheckEncodeResolution(
             }
             break;
     }
-
     return VA_STATUS_SUCCESS;
 }
 
@@ -339,7 +325,6 @@ VAStatus MediaLibvaCapsDG2::CheckEncRTFormat(
         VAConfigAttrib* attrib)
 {
     DDI_CHK_NULL(attrib, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-
     attrib->type = VAConfigAttribRTFormat;
     if (profile == VAProfileJPEGBaseline)
     {
@@ -352,14 +337,6 @@ VAStatus MediaLibvaCapsDG2::CheckEncRTFormat(
     else if(profile == VAProfileHEVCMain12)
     {
         attrib->value = VA_RT_FORMAT_YUV420_12;
-    }
-    else if(profile == VAProfileHEVCMain422_10)
-    {
-        attrib->value = VA_RT_FORMAT_YUV422_10;
-    }
-    else if(profile == VAProfileHEVCMain422_12)
-    {
-        attrib->value = VA_RT_FORMAT_YUV422_12;
     }
     else if(profile == VAProfileHEVCMain444 || profile == VAProfileHEVCSccMain444)
     {
@@ -392,7 +369,7 @@ VAStatus MediaLibvaCapsDG2::CheckEncRTFormat(
     }
     else if(IsAV1Profile(profile))
     {
-        format = (EncodeFormat)RESERVED0;
+        format = AV1;
     }
 
     for(uint32_t i = 0; i < m_encodeFormatCount && encodeFormatTable != nullptr; encodeFormatTable++, i++)
@@ -404,7 +381,6 @@ VAStatus MediaLibvaCapsDG2::CheckEncRTFormat(
             break;
         }
     }
-
     return VA_STATUS_SUCCESS;
 }
 
@@ -418,19 +394,6 @@ VAStatus MediaLibvaCapsDG2::GetPlatformSpecificAttrib(VAProfile profile,
     *value = VA_ATTRIB_NOT_SUPPORTED;
     switch ((int)type)
     {
-        case VAConfigAttribEncMaxRefFrames:
-        {
-            // just VAConfigAttribEncMaxRefFrames of HEVC VME is different with platforms
-            if (entrypoint == VAEntrypointEncSlice && IsHevcProfile(profile))
-            {
-                *value = ENCODE_DP_HEVC_NUM_MAX_VME_L0_REF_G12 | (ENCODE_DP_HEVC_NUM_MAX_VME_L1_REF_G12 << 16);
-            }
-            else
-            {
-                status = VA_STATUS_ERROR_INVALID_PARAMETER;
-            }
-            break;
-        }
         case VAConfigAttribDecProcessing:
         {
 #ifdef _DECODE_PROCESSING_SUPPORTED
@@ -908,15 +871,6 @@ VAStatus MediaLibvaCapsDG2::CreateEncAttributes(
         attrib.value = 1;
     }
     (*attribList)[attrib.type] = attrib.value;
-
-    if ((entrypoint == VAEntrypointFEI) && (IsAvcProfile(profile) || IsHevcProfile(profile)))
-    {
-        attrib.type = (VAConfigAttribType)VAConfigAttribFEIFunctionType;
-        attrib.value = IsAvcProfile(profile) ?
-                       (VA_FEI_FUNCTION_ENC | VA_FEI_FUNCTION_PAK | VA_FEI_FUNCTION_ENC_PAK) :
-                       VA_FEI_FUNCTION_ENC_PAK;
-        (*attribList)[attrib.type] = attrib.value;
-    }
 
     attrib.type = (VAConfigAttribType)VAConfigAttribFEIMVPredictors;
     attrib.value = 0;

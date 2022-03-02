@@ -96,27 +96,21 @@
 #include "decode_av1_pipeline_adapter_g12.h"
 #endif
 
-#ifdef _MEDIA_RESERVED
-#ifdef _JPEG_ENCODE_SUPPORTED
-#include "codechal_encode_jpeg_g12.h"
-#endif
-
-#include "codechal_encode_csc_ds_xe_xpm.h"
-#include "codechal_encode_csc_ds_mdf_xe_xpm.h"
-
-#ifdef _HEVC_ENCODE_VME_SUPPORTED
-#include "codechal_encode_hevc_g12.h"
-#include "codechal_encode_hevc_mbenc_xe_xpm.h"
-#include "codechal_encode_csc_ds_mdf_g12.h"
-#endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "encode_hevc_vdenc_pipeline_adapter_xe_hpm.h"
-#ifdef _APOGEIOS_SUPPORTED
-#endif
 #endif
 
 #ifdef _AV1_ENCODE_VDENC_SUPPORTED
 #include "encode_av1_vdenc_pipeline_adapter_xe_hpm.h"
+#endif
+
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
+#include "codechal_vdenc_avc_xe_hpm.h"
+#endif
+
+#ifdef _MEDIA_RESERVED
+#ifdef _JPEG_ENCODE_SUPPORTED
+#include "codechal_encode_jpeg_g12.h"
 #endif
 
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
@@ -133,15 +127,9 @@
 #endif
 #endif
 
-#else //_MEDIA_RESERVED
-#ifdef _AVC_ENCODE_VDENC_SUPPORTED
-#include "codechal_vdenc_avc_xe_hpm.h"
-#endif
-#endif //_MEDIA_RESERVED
-
-#ifdef _MEDIA_RESERVED
 #include "cm_hal_xe_xpm.h"
 #endif
+
 #include "vphal_xe_xpm.h"
 #include "vphal_xe_hpm.h"
 #include "renderhal_xe_hpg.h"
@@ -276,31 +264,28 @@ class CodechalEncodeInterfacesXe_Hpm
 {
 public:
 #ifdef _MEDIA_RESERVED
-    using CscDs = CodechalEncodeCscDsXe_Xpm;
-    using CscDsMdf = CodechalEncodeCscDsMdfXe_Xpm;
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
     using Vp9 = CodechalVdencVp9StateXe_Xpm;
 #endif
 #ifdef _JPEG_ENCODE_SUPPORTED
     using Jpeg = CodechalEncodeJpegStateG12;
 #endif
-#ifdef _HEVC_ENCODE_VME_SUPPORTED
-    using HevcEnc = CodechalEncHevcStateG12;
-    using HevcMbenc = CodecHalHevcMbencXe_Xpm;
-#endif
-#ifdef _HEVC_ENCODE_VDENC_SUPPORTED
-    using HevcVdenc = EncodeHevcVdencPipelineAdapterXe_Hpm;
-#endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateXe_HpmExt;
 #endif
-#ifdef _AV1_ENCODE_VDENC_SUPPORTED
-    using Av1Vdenc = EncodeAv1VdencPipelineAdapterXe_Hpm;
-#endif
+
 #else
+
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateXe_Hpm;
 #endif
+#endif
+
+#ifdef _HEVC_ENCODE_VDENC_SUPPORTED
+    using HevcVdenc = EncodeHevcVdencPipelineAdapterXe_Hpm;
+#endif
+#ifdef _AV1_ENCODE_VDENC_SUPPORTED
+    using Av1Vdenc = EncodeAv1VdencPipelineAdapterXe_Hpm;
 #endif
 };
 

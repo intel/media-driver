@@ -34,9 +34,9 @@
 #endif
 #include "mhw_vdbox_vdenc_hwcmd_xe_hpm.h"
 #include "mhw_vdbox_vdenc_g12_X.h"
-#include "codec_def_common_av1.h"
 #include "mhw_vdbox_xe_xpm.h"
 #include "mos_solo_generic.h"
+#include "mhw_vdbox_vdenc_impl_xe_hpm.h"
 
 using PMHW_VDBOX_AVC_IMG_PARAMS_XE_HPM = MHW_VDBOX_AVC_IMG_PARAMS_XE_XPM *;
 

@@ -559,7 +559,7 @@ MOS_STATUS CodechalHwInterface::GetVdencStateCommandsDataSize(
         commands += m_miInterface->GetMiFlushDwCmdSize();
         commands += m_miInterface->GetMiBatchBufferStartCmdSize();
     }
-    else if (standard == CODECHAL_RESERVED0)
+    else if (standard == CODECHAL_AV1)
     {
         commands += m_miInterface->GetMiFlushDwCmdSize();
         commands += m_miInterface->GetMiBatchBufferStartCmdSize();

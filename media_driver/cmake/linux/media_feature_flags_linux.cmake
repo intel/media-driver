@@ -69,6 +69,7 @@ bs_set_if_undefined(Media_Scalability_Supported "yes")
 bs_set_if_undefined(AVC_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
 bs_set_if_undefined(HEVC_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
 bs_set_if_undefined(VP9_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
+bs_set_if_undefined(AV1_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
 bs_set_if_undefined(JPEG_Encode_Supported "${Encode_VDEnc_Supported}")
 
 if(${Common_Encode_Supported} STREQUAL "yes")
@@ -129,6 +130,10 @@ endif()
 
 if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
     add_definitions(-D_VP9_ENCODE_VDENC_SUPPORTED)
+endif()
+
+if(${AV1_Encode_VDEnc_Supported} STREQUAL "yes")
+    add_definitions(-D_AV1_ENCODE_VDENC_SUPPORTED)
 endif()
 
 if(${VP9_Decode_Supported} STREQUAL "yes")

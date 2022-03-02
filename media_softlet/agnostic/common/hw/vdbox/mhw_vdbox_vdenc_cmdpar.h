@@ -338,6 +338,8 @@ struct _MHW_PAR_T(VD_PIPELINE_FLUSH)
     bool flushVDENC             = false;
     bool flushMFL               = false;
     bool flushMFX               = false;
+    bool waitDoneAV1            = false;
+    bool flushAV1               = false;
     __MHW_VDBOX_VDENC_WRAPPER_EXT(VD_PIPELINE_FLUSH_CMDPAR_EXT);
 };
 

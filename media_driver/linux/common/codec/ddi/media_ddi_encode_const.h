@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,5 +41,6 @@
 #define ENCODE_ID_JPEG      "VIDEO_ENCODE_JPEG"
 #define ENCODE_ID_VP8       "VIDEO_ENCODE_VP8"
 #define ENCODE_ID_VP9       "VIDEO_ENCODE_VP9"
+#define ENCODE_ID_AV1       "VIDEO_ENCODE_AV1"
 
 #endif /*  _MEDIA_LIBVA_ENCODE_CONST_H_ */

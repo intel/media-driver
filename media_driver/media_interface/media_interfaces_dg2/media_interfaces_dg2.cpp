@@ -28,9 +28,6 @@
 //!
 
 #include "media_interfaces_dg2.h"
-#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
-#include "igcodeckrn_g12.h"
-#endif
 #include "codechal.h"
 #include "codechal_debug_xe_hpm_ext.h"
 #if defined(ENABLE_KERNELS) && defined(_MEDIA_RESERVED)
@@ -44,6 +41,7 @@ unsigned char *pGPUInit_kernel_isa_dg2 = nullptr;
 #endif
 #include "vp_pipeline_adapter_xe_hpm.h"
 #include "vp_platform_interface_xe_hpm.h"
+#include "encode_av1_vdenc_pipeline_adapter_xe_hpm.h"
 
 using namespace mhw::vdbox::avp::xe_hpm;
 using namespace mhw::vdbox::vdenc::xe_hpm;
@@ -470,10 +468,8 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
-#ifdef _MEDIA_RESERVED
         auto ptr = std::make_shared<mhw::vdbox::vdenc::xe_hpm::Impl>(osInterface);
         m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
-#endif
     }
     if (params.Flags.m_blt)
     {
@@ -623,6 +619,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
 
         CodechalEncoderState *encoder = nullptr;
+
 #if defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
@@ -649,7 +646,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
-#ifdef _MEDIA_RESERVED
+#ifdef IGFX_DG2_ENABLE_NON_UPSTREAMs
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
@@ -722,6 +719,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
+#endif
 #if defined (_AV1_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == codechalEncodeModeAv1)
         {
@@ -740,14 +738,13 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
-#if defined (_HEVC_ENCODE_VME_SUPPORTED) || defined (_HEVC_ENCODE_VDENC_SUPPORTED)
+#if defined (_HEVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
             CreateCodecHalInterface(mhwInterfaces, mhwInterfacesNext, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
 
             if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
-            #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
                 m_codechalDevice = MOS_New(Encode::HevcVdenc, hwInterface, debugInterface);
                 if (m_codechalDevice == nullptr)
                 {
@@ -755,67 +752,22 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
                 RETRUN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
-            #endif
             }
-            else
-            {
-
-                // disable HEVC encode MDF path.
-
-            #ifdef _HEVC_ENCODE_VME_SUPPORTED
-                if (!mdfSupported)
-                {
-                    encoder = MOS_New(Encode::HevcEnc, hwInterface, debugInterface, info);
-                }
-                else
-                {
-                    encoder = MOS_New(Encode::HevcMbenc, hwInterface, debugInterface, info);
-                }
-            #endif
-            }
-
-            if (encoder == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            else
-            {
-                m_codechalDevice = encoder;
-            }
-
-            encoder->m_kernelBase = (uint8_t*)IGCODECKRN_G12;
         }
         else
-#endif
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-#ifdef _MEDIA_RESERVED
+#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             if (encoder == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
                 return MOS_STATUS_INVALID_PARAMETER;
-            }
-            if (mdfSupported && info->Mode == CODECHAL_ENCODE_MODE_HEVC && !CodecHalUsesVdencEngine(info->CodecFunction))
-            {
-                if ((encoder->m_cscDsState = MOS_New(Encode::CscDsMdf, encoder)) == nullptr)
-                {
-                    return MOS_STATUS_INVALID_PARAMETER;
-                }
-            }
-            else
-            {
-                // Create CSC and Downscaling interface
-                if ((encoder->m_cscDsState = MOS_New(Encode::CscDs, encoder)) == nullptr)
-                {
-                    return MOS_STATUS_INVALID_PARAMETER;
-                }
             }
         }
 #endif
