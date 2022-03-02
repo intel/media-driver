@@ -957,6 +957,8 @@ VAStatus DdiMediaUtil_Allocate2DBuffer(
     memPolicyPar.waTable = &mediaBuffer->pMediaCtx->WaTable;
     memPolicyPar.resInfo = mediaBuffer->pGmmResourceInfo;
     memPolicyPar.resName = "Media 2D Buffer";
+    memPolicyPar.uiType   = mediaBuffer->uiType;
+    memPolicyPar.preferredMemType = mediaBuffer->bUseSysGfxMem ? MOS_MEMPOOL_SYSTEMMEMORY : 0;
 
     mem_type = MemoryPolicyManager::UpdateMemoryPolicy(&memPolicyPar);
 

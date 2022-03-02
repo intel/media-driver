@@ -1146,6 +1146,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
             buf->iSize  = size;
             buf->format = Media_Format_Buffer;
         }
+        buf->bUseSysGfxMem = true;
         va = DdiMediaUtil_CreateBuffer(buf, mediaCtx->pDrmBufMgr);
         if (va != VA_STATUS_SUCCESS)
         {
