@@ -1,4 +1,4 @@
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_impl_legacy_xe_hpm.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_impl_xe_hpm.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_hcp_hwcmd_xe_hpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_hwcmd_xe_hpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_xe_hpm.h
 )
 
 set(SOURCES_

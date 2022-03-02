@@ -34,6 +34,9 @@
 #include "media_libva_caps_g12.h"
 #include "linux_system_info.h"
 
+#define RESERVED0 3
+#define ENCODE_ID_RESERVED0 "VIDEO_ENCODE_RESERVED0"
+
 //!
 //! \class  MediaLibvaCapsDG2
 //! \brief  Media libva caps DG2
@@ -46,7 +49,6 @@ public:
     //!
     MediaLibvaCapsDG2(DDI_MEDIA_CONTEXT *mediaCtx) : MediaLibvaCapsG12(mediaCtx)
     {
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
         // DG2 supported Encode format
         static struct EncodeFormatTable encodeFormatTableDG2[] =
         {
@@ -61,7 +63,7 @@ public:
         };
         m_encodeFormatTable = (struct EncodeFormatTable*)(&encodeFormatTableDG2[0]);
         m_encodeFormatCount = sizeof(encodeFormatTableDG2)/sizeof(struct EncodeFormatTable);
-#endif
+
         return;
     }
 

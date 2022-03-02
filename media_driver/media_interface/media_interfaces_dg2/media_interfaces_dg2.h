@@ -53,10 +53,10 @@
 #include "mhw_vdbox_avp_xe_hpm.h"
 #include "mhw_vdbox_huc_xe_hpm.h"
 #include "mhw_vdbox_avp_g12_X.h"
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
 #include "mhw_vdbox_vdenc_xe_hpm_ext.h"
 #else
-#include "mhw_vdbox_vdenc_g12_X.h"
+#include "mhw_vdbox_vdenc_xe_hpm.h"
 #endif
 #include "vphal_render_vebox_memdecomp_xe_xpm.h"
 #include "media_copy_xe_hpm.h"
@@ -96,7 +96,7 @@
 #include "decode_av1_pipeline_adapter_g12.h"
 #endif
 
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#ifdef _MEDIA_RESERVED
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg_g12.h"
 #endif
@@ -133,8 +133,13 @@
 #endif
 #endif
 
+#else //_MEDIA_RESERVED
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
+#include "codechal_vdenc_avc_xe_hpm.h"
 #endif
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#endif //_MEDIA_RESERVED
+
+#ifdef _MEDIA_RESERVED
 #include "cm_hal_xe_xpm.h"
 #endif
 #include "vphal_xe_xpm.h"
@@ -157,10 +162,10 @@ public:
     using Mfx       = MhwVdboxMfxInterfaceXe_Xpm;
     using Hcp       = MhwVdboxHcpInterfaceXe_Hpm;
     using Huc       = MhwVdboxHucInterfaceXe_Hpm;
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
     using Vdenc     = MhwVdboxVdencInterfaceXe_HpmExt;
 #else
-    using Vdenc     = MhwVdboxVdencInterfaceG12X;
+    using Vdenc     = MhwVdboxVdencInterfaceXe_Hpm;
 #endif
     using Vebox     = MhwVeboxInterfaceXe_Hpm;
     using Blt       = MhwBltInterfaceXe_Hp_Base;
@@ -190,10 +195,10 @@ public:
     using Hcp       = MhwVdboxHcpInterfaceXe_Hpm;
     using Avp       = MhwVdboxAvpInterfaceXe_Hpm;
     using Huc       = MhwVdboxHucInterfaceXe_Hpm;
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
     using Vdenc     = MhwVdboxVdencInterfaceXe_HpmExt;
 #else
-    using Vdenc     = MhwVdboxVdencInterfaceG12X;
+    using Vdenc     = MhwVdboxVdencInterfaceXe_Hpm;
 #endif
     using Vebox     = MhwVeboxInterfaceXe_Hpm;
     using Blt       = MhwBltInterfaceXe_Hp_Base;
@@ -267,10 +272,10 @@ public:
 #endif
 };
 
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
 class CodechalEncodeInterfacesXe_Hpm
 {
 public:
+#ifdef _MEDIA_RESERVED
     using CscDs = CodechalEncodeCscDsXe_Xpm;
     using CscDsMdf = CodechalEncodeCscDsMdfXe_Xpm;
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
@@ -292,16 +297,18 @@ public:
 #ifdef _AV1_ENCODE_VDENC_SUPPORTED
     using Av1Vdenc = EncodeAv1VdencPipelineAdapterXe_Hpm;
 #endif
-};
+#else
+#ifdef _AVC_ENCODE_VDENC_SUPPORTED
+    using AvcVdenc = CodechalVdencAvcStateXe_Hpm;
 #endif
+#endif
+};
 
 class CodechalInterfacesXe_Hpm : public CodechalDevice
 {
 public:
     using Decode = CodechalDecodeInterfacesXe_Hpm;
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     using Encode = CodechalEncodeInterfacesXe_Hpm;
-#endif
     using Hw = CodechalHwInterfaceXe_Hpm;
 
     MOS_STATUS Initialize(
@@ -339,7 +346,7 @@ static const L3ConfigRegisterValues DG2_L3_PLANES[DG2_L3_CONFIG_COUNT] =
     {0x80000000, 0x70000080, 0, 0},  //  256   0    0    224  32  512
 };
 
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#ifdef _MEDIA_RESERVED
 class CMHalInterfacesXe_Hpm : public CMHalDevice
 {
 protected:

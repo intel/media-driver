@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2021, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #endif
 #include "codechal.h"
 #include "codechal_debug_xe_hpm_ext.h"
-#if defined(ENABLE_KERNELS) && defined(IGFX_DG2_ENABLE_NON_UPSTREAM)
+#if defined(ENABLE_KERNELS) && defined(_MEDIA_RESERVED)
 #include "cm_gpucopy_kernel_xe_hpm.h"
 #include "cm_gpuinit_kernel_xe_hpm.h"
 #else
@@ -46,9 +46,7 @@ unsigned char *pGPUInit_kernel_isa_dg2 = nullptr;
 #include "vp_platform_interface_xe_hpm.h"
 
 using namespace mhw::vdbox::avp::xe_hpm;
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
 using namespace mhw::vdbox::vdenc::xe_hpm;
-#endif
 using namespace mhw::vdbox::huc::xe_hpm;
 
 extern template class MediaInterfacesFactory<MhwInterfaces>;
@@ -472,7 +470,7 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         m_vdencInterface = MOS_New(Vdenc, osInterface);
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#ifdef _MEDIA_RESERVED
         auto ptr = std::make_shared<mhw::vdbox::vdenc::xe_hpm::Impl>(osInterface);
         m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
 #endif
@@ -614,7 +612,6 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
             return MOS_STATUS_NO_SPACE;
         }
     }
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM    
     else if (CodecHalIsEncode(CodecFunction))
     {
         MhwInterfacesNext      *mhwInterfacesNext = nullptr;
@@ -652,6 +649,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
+#ifdef _MEDIA_RESERVED
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
@@ -790,11 +788,13 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
+#endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
+#ifdef _MEDIA_RESERVED
         if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
         {
             if (encoder == nullptr)
@@ -818,13 +818,13 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
                 }
             }
         }
+#endif
 
         if (mhwInterfacesNext != nullptr)
         {
             MOS_Delete(mhwInterfacesNext);
         }
     }
-#endif
     else
     {
         CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported codec function requested.");
@@ -834,7 +834,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+#ifdef _MEDIA_RESERVED
 static bool dg2RegisteredCMHal =
     MediaInterfacesFactory<CMHalDevice>::
     RegisterHal<CMHalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);

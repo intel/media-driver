@@ -102,7 +102,7 @@ VAStatus MediaLibvaCapsDG2::LoadAv1EncProfileEntrypoints()
 VAStatus MediaLibvaCapsDG2::LoadAvcEncLpProfileEntrypoints()
 {
     VAStatus status = VA_STATUS_SUCCESS;
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+
 #if defined(_AVC_ENCODE_VDENC_SUPPORTED)
     AttribMap *attributeList = nullptr;
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeAVCVdenc))
@@ -139,7 +139,7 @@ VAStatus MediaLibvaCapsDG2::LoadAvcEncLpProfileEntrypoints()
         }
     }
 #endif
-#endif
+
     return status;
 }
 
@@ -157,7 +157,6 @@ VAStatus MediaLibvaCapsDG2::LoadProfileEntrypoints()
 
 std::string MediaLibvaCapsDG2::GetEncodeCodecKey(VAProfile profile, VAEntrypoint entrypoint, uint32_t feiFunction)
 {
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     switch (profile)
     {
         case VAProfileH264High:
@@ -205,14 +204,10 @@ std::string MediaLibvaCapsDG2::GetEncodeCodecKey(VAProfile profile, VAEntrypoint
         default:
             return ENCODE_ID_NONE;
     }
-#else
-    return ENCODE_ID_NONE;
-#endif
 }
 
 CODECHAL_MODE MediaLibvaCapsDG2::GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint)
 {
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     if (entrypoint == VAEntrypointStats)
     {
         return  CODECHAL_ENCODE_MODE_AVC;
@@ -255,9 +250,6 @@ CODECHAL_MODE MediaLibvaCapsDG2::GetEncodeCodecMode(VAProfile profile, VAEntrypo
             DDI_ASSERTMESSAGE("Invalid Encode Mode");
             return CODECHAL_UNSUPPORTED_MODE;
     }
-#else
-    return CODECHAL_UNSUPPORTED_MODE;
-#endif
 }
 
 VAStatus MediaLibvaCapsDG2::CheckEncodeResolution(
@@ -265,7 +257,6 @@ VAStatus MediaLibvaCapsDG2::CheckEncodeResolution(
         uint32_t width,
         uint32_t height)
 {
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     switch (profile)
     {
         case VAProfileJPEGBaseline:
@@ -338,7 +329,7 @@ VAStatus MediaLibvaCapsDG2::CheckEncodeResolution(
             }
             break;
     }
-#endif
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -348,7 +339,7 @@ VAStatus MediaLibvaCapsDG2::CheckEncRTFormat(
         VAConfigAttrib* attrib)
 {
     DDI_CHK_NULL(attrib, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
+
     attrib->type = VAConfigAttribRTFormat;
     if (profile == VAProfileJPEGBaseline)
     {
@@ -413,7 +404,7 @@ VAStatus MediaLibvaCapsDG2::CheckEncRTFormat(
             break;
         }
     }
-#endif
+
     return VA_STATUS_SUCCESS;
 }
 
