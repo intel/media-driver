@@ -646,7 +646,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAMs
+#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
