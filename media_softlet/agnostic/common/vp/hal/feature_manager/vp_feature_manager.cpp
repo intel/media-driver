@@ -959,10 +959,10 @@ MOS_STATUS VPFeatureManager::RectSurfaceAlignment(
 {
     VP_FUNC_CALL();
 
-    uint16_t   wWidthAlignUnit;
-    uint16_t   wHeightAlignUnit;
-    uint16_t   wWidthAlignUnitForDstRect;
-    uint16_t   wHeightAlignUnitForDstRect;
+    uint16_t   wWidthAlignUnit            = 0;
+    uint16_t   wHeightAlignUnit           = 0;
+    uint16_t   wWidthAlignUnitForDstRect  = 0;
+    uint16_t   wHeightAlignUnitForDstRect = 0;
     MOS_STATUS eStatus;
 
     eStatus = MOS_STATUS_SUCCESS;
