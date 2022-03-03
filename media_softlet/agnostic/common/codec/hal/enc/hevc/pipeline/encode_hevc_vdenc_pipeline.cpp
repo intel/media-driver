@@ -58,10 +58,11 @@ MOS_STATUS HevcVdencPipeline::UserFeatureReport()
     ENCODE_CHK_STATUS_RETURN(HevcPipeline::UserFeatureReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug("VDENC In Use",
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "VDENC In Use",
         1,
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
 #endif
 
     return MOS_STATUS_SUCCESS;

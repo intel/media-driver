@@ -41,6 +41,7 @@
 #include "codechal_utilities.h"
 #include "media_perf_profiler.h"
 #include "media_copy.h"
+#include "media_user_setting.h"
 
 class MediaPacket;
 class MediaPipeline
@@ -253,7 +254,7 @@ protected:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS InitUserSetting();
+    virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr);
 
 protected:
     PMOS_INTERFACE                   m_osInterface = nullptr;      //!< OS interface
@@ -273,5 +274,6 @@ protected:
     std::map<uint32_t, std::function<MediaPacket *()>> m_packetCreators;    //!< Packets creators
     std::vector<PacketProperty>                        m_activePacketList;  //!< Active packets property list
     std::map<MediaTask::TaskType, MediaTask *>         m_taskList;          //!< Task list
+    MediaUserSettingSharedPtr                          m_userSettingPtr = nullptr;     //!< usersettingInstance
 };
 #endif // !__MEDIA_PIPELINE_H__

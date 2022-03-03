@@ -36,7 +36,7 @@ namespace encode
         EncodeAllocator *allocator,
         CodechalHwInterface *hwInterface,
         void *constSettings) :
-        MediaFeature(constSettings),
+        MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_hwInterface(hwInterface),
         m_allocator(allocator)
     {
@@ -75,10 +75,11 @@ namespace encode
         const auto& seqParams = *m_basicFeature->m_av1SeqParams;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        ReportUserSetting("Encode RateControl Method",
+        ReportUserSetting(
+            m_userSettingPtr,
+            "Encode RateControl Method",
             m_rcMode,
-            MediaUserSetting::Group::Sequence,
-            m_hwInterface && m_hwInterface->GetOsInterface() ? m_hwInterface->GetOsInterface()->pOsContext : nullptr);
+            MediaUserSetting::Group::Sequence);
 #endif
         return MOS_STATUS_SUCCESS;
     }

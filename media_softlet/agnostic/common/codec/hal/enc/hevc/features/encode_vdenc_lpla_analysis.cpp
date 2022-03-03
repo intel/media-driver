@@ -32,9 +32,9 @@ namespace encode
     VdencLplaAnalysis::VdencLplaAnalysis(
         MediaFeatureManager *featureManager,
         EncodeAllocator     *allocator,
-        CodechalHwInterface *hwInterface,    
+        CodechalHwInterface *hwInterface,
         void                *constSettings) :
-        MediaFeature(constSettings),
+        MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_hwInterface(hwInterface),
         m_allocator(allocator)
     {
@@ -48,10 +48,10 @@ namespace encode
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         MediaUserSetting::Value outValue;
-        auto statusKey = ReadUserSettingForDebug(outValue,
+        auto statusKey = ReadUserSettingForDebug(m_userSettingPtr,
+            outValue,
             "lpla ds data address",
-            MediaUserSetting::Group::Sequence,
-            m_osInterface->pOsContext);
+            MediaUserSetting::Group::Sequence);
         const char *path_buffer = outValue.ConstString().c_str();
 
         if (statusKey == MOS_STATUS_SUCCESS && strcmp(path_buffer, "") != 0)

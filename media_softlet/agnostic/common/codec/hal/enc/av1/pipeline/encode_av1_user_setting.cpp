@@ -28,59 +28,69 @@
 
 namespace encode
 {
-MOS_STATUS Av1Pipeline::InitUserSetting()
+MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr)
 {
     ENCODE_FUNC_CALL();
-    ENCODE_CHK_STATUS_RETURN(EncodePipeline::InitUserSetting());
+    ENCODE_CHK_STATUS_RETURN(EncodePipeline::InitUserSetting(userSettingPtr));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "AV1 Enable SW Back Annotation",
         MediaUserSetting::Group::Sequence,
         (int32_t)1,
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "AV1 Enable SW Stitching",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "AV1 Use Ext Costs",
         MediaUserSetting::Group::Sequence,
         uint32_t(0),
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "AV1 Ext Costs File",
         MediaUserSetting::Group::Sequence,
         "",
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Encode Enable NonDefault Mapping",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "AV1 Encode RDO Enable",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "AV1 Encode Adaptive Rounding Enable",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "AV1 Rho Domain Enable",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
 #endif
     DeclareUserSettingKey(
+        userSettingPtr,
         "AV1 Post CDEF Recon Compressible",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         true);
     DeclareUserSettingKey(
+        userSettingPtr,
         "AV1 Post CDEF Recon Compress Mode",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,

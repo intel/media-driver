@@ -27,38 +27,44 @@
 #include "encode_pipeline.h"
 namespace encode
 {
-MOS_STATUS EncodePipeline::InitUserSetting()
+MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr)
 {
     ENCODE_FUNC_CALL();
-    ENCODE_CHK_STATUS_RETURN(MediaPipeline::InitUserSetting());
+    ENCODE_CHK_STATUS_RETURN(MediaPipeline::InitUserSetting(userSettingPtr));
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC Encode",
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         false);
     DeclareUserSettingKey(
+        userSettingPtr,
         "Set Media Encode Mode",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
     DeclareUserSettingKey(
+        userSettingPtr,
         "Set Media Encode Downscaled Ratio",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
     DeclareUserSettingKey(
+        userSettingPtr,
         "Disable Media Encode Scalability",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
 
     DeclareUserSettingKey(
+        userSettingPtr,
         "HuC Firmware Load Failed",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
 
     DeclareUserSettingKey(
+        userSettingPtr,
         "HuC Valid Imem Load Failed",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
@@ -66,51 +72,61 @@ MOS_STATUS EncodePipeline::InitUserSetting()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Huc Status2 Value",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Encode RateControl Method",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Simulation In Use",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Enable Encode VE CtxBasedScheduling",
         MediaUserSetting::Group::Sequence,
         false,
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "VDENC In Use",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Encode RateControl Method",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Encode BRC In Use",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "BRC SW Simulation",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "BRC SW Simulation Modules Path",
         MediaUserSetting::Group::Sequence,
         "",
         false);
     DeclareUserSettingKey(
+        userSettingPtr,
         "TCBRC Quality Boost Mode",
         MediaUserSetting::Group::Sequence,
         int32_t(3),

@@ -34,9 +34,11 @@ class MediaFeatureManager;
 class MediaFeature
 {
 public:
+    MediaFeature(){};
     MediaFeature(void *constSettings) : m_constSettings(constSettings){};
-    MediaFeature() {};
-    virtual ~MediaFeature() { }
+    MediaFeature(void *constSettings, PMOS_INTERFACE mosInterface);
+    MediaFeature(PMOS_INTERFACE mosInterface);
+    virtual ~MediaFeature() {}
 
     //!
     //! \brief  Init parameter
@@ -80,6 +82,7 @@ protected:
 
     MediaFeatureManager *m_featureManager = nullptr;
     void                *m_constSettings = nullptr;
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
 };
 
 #endif  // !__ENCODE_FEATURE_H__

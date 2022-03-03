@@ -83,6 +83,14 @@ namespace encode
             m_statusReport   = m_pipeline->GetStatusReportInstance();
 
             m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_miInterface->GetNewMiInterface());
+            if(m_osInterface)
+            {
+                m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+            }
+            if (!m_userSettingPtr)
+            {
+                ENCODE_NORMALMESSAGE("Initialize m_userSettingPtr instance failed!");
+            }
         }
 
         //!

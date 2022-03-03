@@ -76,7 +76,7 @@ protected:
     virtual MOS_STATUS UserFeatureReport() override;
     virtual MOS_STATUS CreateBufferTracker() override;
     virtual MOS_STATUS CreateStatusReport() override;
-    virtual MOS_STATUS InitUserSetting() override;
+    virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
 
 #if USE_CODECHAL_DEBUG_TOOL
     //! \brief    Dump the Sequense parameters

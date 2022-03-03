@@ -7117,6 +7117,25 @@ static MOS_STATUS Mos_Specific_InitInterface_Ve(
     return eStatus;
 }
 
+MediaUserSettingSharedPtr Mos_Specific_GetUserSettingInstance(
+    PMOS_INTERFACE osInterface)
+{
+    MOS_OS_FUNCTION_ENTER;
+    PMOS_CONTEXT mosContext = nullptr;
+    if (!osInterface)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid mosContext ptr");
+        return nullptr;
+    }
+
+    if (osInterface->apoMosEnabled)
+    {
+        return MosInterface::MosGetUserSettingInstance(osInterface->osStreamState);
+    }
+
+    return nullptr;
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7391,6 +7410,8 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnSetGpuContextHandle                    = Mos_Specific_SetGpuContextHandle;
     pOsInterface->pfnGetGpuContextMgr                       = Mos_Specific_GetGpuContextMgr;
     pOsInterface->pfnGetGpuContextbyHandle                  = Mos_Specific_GetGpuContextbyHandle;
+
+    pOsInterface->pfnGetUserSettingInstance                 = Mos_Specific_GetUserSettingInstance;
 
     pOsUserFeatureInterface->bIsNotificationSupported   = false;
     pOsUserFeatureInterface->pOsInterface               = pOsInterface;

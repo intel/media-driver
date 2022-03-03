@@ -35,7 +35,7 @@ HevcVdencRoi::HevcVdencRoi(
     EncodeAllocator *allocator,
     CodechalHwInterface *hwInterface,
     void *constSettings) :
-    MediaFeature(constSettings),
+    MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
     m_allocator(allocator),
     m_hwInterface(hwInterface)
 {
@@ -74,10 +74,11 @@ MOS_STATUS HevcVdencRoi::Init(void *setting)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MediaUserSetting::Value outValue;
-    ReadUserSetting(outValue,
+    ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
         "Disable TCBRC ARB for HEVC VDEnc",
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
     m_isArbRoiSupported = !outValue.Get<bool>();
 #endif
 
@@ -189,10 +190,11 @@ MOS_STATUS HevcVdencRoi::Update(void *params)
 #if (_DEBUG || _RELEASE_INTERNAL)
         ENCODE_CHK_NULL_RETURN(m_hwInterface);
         ENCODE_CHK_NULL_RETURN(m_hwInterface->GetOsInterface());
-        ReportUserSettingForDebug("HEVC VDEnc Force Delta QP Enable",
+        ReportUserSettingForDebug(
+            m_userSettingPtr ,
+            "HEVC VDEnc Force Delta QP Enable",
             m_roiMode,
-            MediaUserSetting::Group::Sequence,
-            m_hwInterface->GetOsInterface()->pOsContext);
+            MediaUserSetting::Group::Sequence);
 #endif
 
         if (hevcPicParams->CodingType == I_TYPE)

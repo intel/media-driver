@@ -237,7 +237,7 @@ MOS_STATUS MOS_DDIDumpInit(MOS_CONTEXT_HANDLE mosCtx)
 //!
 void MOS_MessageInit(MOS_CONTEXT_HANDLE mosCtx)
 {
-    return MosUtilDebug::MosMessageInit(mosCtx);
+    return;
 }
 
 //!
@@ -280,17 +280,6 @@ void MOS_DDIDumpClose()
         g_MosMsgParams_DDI_Dump.pLogFile = nullptr;
         MOS_OS_NORMALMESSAGE("Encode DDI Dump file closing");
     }
-}
-
-//!
-//! \brief    Frees the MOS message buffer and MOS message parameters structure
-//! \details  Frees the MOS message buffer and MOS message parameters structure,
-//!           to be called during device destruction
-//! \return   void
-//!
-void MOS_MessageClose()
-{
-    return MosUtilDebug::MosMessageClose();
 }
 
 //!

@@ -49,22 +49,27 @@ MOS_STATUS Av1BasicFeature::Init(void *setting)
     MediaUserSetting::Value outValue;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReadUserSettingForDebug(outValue,
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
         "AV1 Enable SW Back Annotation",
         MediaUserSetting::Group::Sequence,
         m_osInterface->pOsContext);
     m_enableSWBackAnnotation = outValue.Get<bool>();
 
-    ReadUserSettingForDebug(outValue,
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
         "AV1 Enable SW Stitching",
         MediaUserSetting::Group::Sequence,
         m_osInterface->pOsContext);
     m_enableSWStitching = outValue.Get<bool>();
 
-    ReadUserSettingForDebug(outValue,
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
         "Encode Enable NonDefault Mapping",
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
     m_enableNonDefaultMapping = outValue.Get<bool>();
 #endif
 
@@ -74,10 +79,11 @@ MOS_STATUS Av1BasicFeature::Init(void *setting)
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReadUserSettingForDebug(outValue,
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
         "AV1 Encode Adaptive Rounding Enable",
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
     m_adaptiveRounding = outValue.Get<bool>();
 #endif
     return MOS_STATUS_SUCCESS;

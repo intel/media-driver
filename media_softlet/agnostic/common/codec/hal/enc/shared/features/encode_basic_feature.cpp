@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 #include "encode_basic_feature.h"
 #include "encode_utils.h"
 #include "encode_allocator.h"
+#include "mos_interface.h"
 
 namespace encode
 {
@@ -35,6 +36,7 @@ EncodeBasicFeature::EncodeBasicFeature(
     CodechalHwInterface *hwInterface,
     TrackedBuffer *trackedBuf,
     RecycleResource *recycleBuf):
+    MediaFeature(hwInterface ? hwInterface->GetOsInterface() : nullptr),
     m_trackedBuf(trackedBuf),
     m_recycleBuf(recycleBuf),
     m_allocator(allocator)
@@ -43,6 +45,7 @@ EncodeBasicFeature::EncodeBasicFeature(
     {
         m_osInterface = hwInterface->GetOsInterface();
     }
+
 }
 
 MOS_STATUS EncodeBasicFeature::Init(void *setting)

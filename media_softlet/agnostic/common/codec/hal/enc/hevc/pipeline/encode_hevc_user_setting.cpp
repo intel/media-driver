@@ -27,62 +27,73 @@
 
 namespace encode
 {
-MOS_STATUS HevcPipeline::InitUserSetting()
+MOS_STATUS HevcPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr)
 {
     ENCODE_FUNC_CALL();
-    ENCODE_CHK_STATUS_RETURN(EncodePipeline::InitUserSetting());
+    ENCODE_CHK_STATUS_RETURN(EncodePipeline::InitUserSetting(userSettingPtr));
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC Encode RDO Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Disable HEVC RDOQ Perf",
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         false);
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC VDEnc TileReplay Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC VDEnc Rounding Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         true);
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC VDEnc ACQP Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC RDOQ Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         true);
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC VDEnc LBC Only Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "HEVC VDEnc Force Delta QP Enable",
         MediaUserSetting::Group::Sequence,
         int32_t(1),
         true);
     DeclareUserSettingKey(
+        userSettingPtr,
         "HEVC Encode Mode",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Disable TCBRC ARB for HEVC VDEnc",
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
     DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "lpla ds data address",
         MediaUserSetting::Group::Sequence,
         "",

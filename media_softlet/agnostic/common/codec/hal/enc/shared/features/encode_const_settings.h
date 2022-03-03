@@ -58,6 +58,8 @@ struct VdencFeatureSettings: MediaFeatureSettings
 class VdencConstSettings : public MediaFeatureConstSettings
 {
 public:
+    VdencConstSettings(PMOS_INTERFACE osInterface) : MediaFeatureConstSettings(osInterface){};
+    VdencConstSettings() = default;
     //!
     //! \brief  Frame level update
     //! \param  [in] params

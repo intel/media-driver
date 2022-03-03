@@ -36,7 +36,7 @@ namespace encode
         EncodeAllocator *allocator,
         CodechalHwInterface *hwInterface,
         void *constSettings) :
-        MediaFeature(constSettings),
+        MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_allocator(allocator)
     {
         m_hwInterface = hwInterface;

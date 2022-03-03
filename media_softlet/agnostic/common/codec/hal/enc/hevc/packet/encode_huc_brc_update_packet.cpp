@@ -1371,10 +1371,10 @@ namespace encode
             ENCODE_CHK_NULL_RETURN(osInterface);
 #if (_DEBUG || _RELEASE_INTERNAL)
             MediaUserSetting::Value outValue;
-            ReadUserSetting(outValue,
+            ReadUserSetting(m_userSettingPtr,
+                outValue,
                 "TCBRC Quality Boost Mode",
-                MediaUserSetting::Group::Sequence,
-                osInterface->pOsContext);
+                MediaUserSetting::Group::Sequence);
             tcbrcQualityBoostFromRegkey = static_cast<uint8_t>(outValue.Get<int32_t>());
 #endif
             //if FrameSizeBoostForSceneChange is set by regkey, then override it
@@ -1388,10 +1388,10 @@ namespace encode
                 m_tcbrcQualityBoost = tcbrcQualityBoostFromScenario;
             }
 #if (_DEBUG || _RELEASE_INTERNAL)
-            ReportUserSettingForDebug("TCBRC Quality Boost Mode",
+            ReportUserSettingForDebug(m_userSettingPtr,
+                "TCBRC Quality Boost Mode",
                 m_tcbrcQualityBoost,
-                MediaUserSetting::Group::Sequence,
-                m_osInterface->pOsContext);
+                MediaUserSetting::Group::Sequence);
 #endif
         }
         return MOS_STATUS_SUCCESS;

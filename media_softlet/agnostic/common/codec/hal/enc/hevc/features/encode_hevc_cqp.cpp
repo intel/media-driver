@@ -36,8 +36,8 @@ HevcEncodeCqp::HevcEncodeCqp(
     MediaFeatureManager *featureManager,
     EncodeAllocator     *allocator,
     CodechalHwInterface *hwInterface,
-    void                *constSettings) : 
-    MediaFeature(constSettings),
+    void                *constSettings) :
+    MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface():nullptr),
     m_allocator(allocator)
 {
     m_featureManager = featureManager;
@@ -60,10 +60,11 @@ MOS_STATUS HevcEncodeCqp::Init(void *settings)
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     MediaUserSetting::Value outValue;
-    ReadUserSetting(outValue,
+    ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
         "HEVC RDOQ Enable",
-        MediaUserSetting::Group::Sequence,
-        (PMOS_CONTEXT)m_mosCtx);
+        MediaUserSetting::Group::Sequence);
     m_rdoqEnable = outValue.Get<bool>();
 #else
     m_rdoqEnable = true;
@@ -110,10 +111,11 @@ MOS_STATUS HevcEncodeCqp::Update(void *params)
     UpdateRDOQCfg();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug("HEVC RDOQ Enable",
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "HEVC RDOQ Enable",
         m_rdoqEnable,
-        MediaUserSetting::Group::Sequence,
-        (PMOS_CONTEXT)m_mosCtx);
+        MediaUserSetting::Group::Sequence);
 #endif
 
     return MOS_STATUS_SUCCESS;

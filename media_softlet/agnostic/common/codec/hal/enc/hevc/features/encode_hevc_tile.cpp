@@ -62,10 +62,11 @@ namespace encode
 #if (_DEBUG || _RELEASE_INTERNAL)
         // Tile Replay Enable should be passed from DDI, will change later when DDI is ready
         MediaUserSetting::Value outValue;
-        ReadUserSetting(outValue,
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
             "HEVC VDEnc TileReplay Enable",
-            MediaUserSetting::Group::Sequence,
-            (PMOS_CONTEXT)m_mosCtx);
+            MediaUserSetting::Group::Sequence);
         m_enableTileReplay = outValue.Get<bool>();
 #else
         m_enableTileReplay = false;

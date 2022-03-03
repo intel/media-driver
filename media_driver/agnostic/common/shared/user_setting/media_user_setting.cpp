@@ -39,6 +39,10 @@ std::shared_ptr<MediaUserSetting> MediaUserSetting::m_instance = nullptr;
 MediaUserSetting::MediaUserSetting()
 {
 }
+MediaUserSetting::MediaUserSetting(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo) : m_configure(keyPathInfo)
+{
+
+}
 
 void MediaUserSetting::Destroy()
 {
@@ -84,21 +88,19 @@ MOS_STATUS MediaUserSetting::Register(
 MOS_STATUS MediaUserSetting::Read(Value &value,
     const std::string &valueName,
     const Group &group,
-    PMOS_CONTEXT mosContext,
     const Value &customValue,
     bool useCustomValue)
 {
-    return m_configure.Read(value, valueName, group, mosContext, customValue, useCustomValue);
+    return m_configure.Read(value, valueName, group, customValue, useCustomValue);
 }
 
 MOS_STATUS MediaUserSetting::Write(
     const std::string &valueName,
     const Value &value,
     const Group &group,
-    PMOS_CONTEXT mosContext,
     bool isForReport)
 {
-    return m_configure.Write(valueName, value, group, mosContext, isForReport);
+    return m_configure.Write(valueName, value, group, isForReport);
 }
 
 bool MediaUserSetting::IsDeclaredUserSetting(const std::string &valueName)
@@ -107,3 +109,4 @@ bool MediaUserSetting::IsDeclaredUserSetting(const std::string &valueName)
 }
 
 }
+

@@ -58,10 +58,11 @@ MOS_STATUS HevcVdencPipelineXe_Xpm_Base::GetSystemVdboxNumber()
 
     MediaUserSetting::Value outValue;
     MOS_STATUS statusKey = MOS_STATUS_SUCCESS;
-    statusKey            = ReadUserSetting(outValue,
+    statusKey            = ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
         "Disable Media Encode Scalability",
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
     bool disableScalability = m_hwInterface->IsDisableScalability();
     if (statusKey == MOS_STATUS_SUCCESS)
     {
@@ -258,10 +259,11 @@ MOS_STATUS HevcVdencPipelineXe_Xpm_Base::UserFeatureReport()
     ENCODE_CHK_STATUS_RETURN(HevcVdencPipeline::UserFeatureReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug("Enable Encode VE CtxBasedScheduling",
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "Enable Encode VE CtxBasedScheduling",
         MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface),
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
 #endif
 
     return MOS_STATUS_SUCCESS;

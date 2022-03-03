@@ -280,10 +280,10 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
 
     bool compressibleSurfaceEnable = false;
 
-    ReadUserSetting(compressibleSurfaceEnable,
+    ReadUserSetting(nullptr,
+        compressibleSurfaceEnable,
         "Enable Compressible Surface Creation",
-        MediaUserSetting::Group::Device,
-        (PMOS_CONTEXT)nullptr);
+        MediaUserSetting::Group::Device);
 
     if (compressibleSurfaceEnable)
     {

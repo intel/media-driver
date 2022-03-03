@@ -1417,6 +1417,16 @@ typedef struct _MOS_INTERFACE
     void (*pfnNotifyStreamIndexSharing)(
         PMOS_INTERFACE              pOsInterface);
 
+    //!
+    //! \brief   Get User Setting instance
+    //!
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \return   MediaUserSettingSharedPtr
+    //!
+    MediaUserSettingSharedPtr (*pfnGetUserSettingInstance)(
+        PMOS_INTERFACE              pOsInterface);
+
     // Virtual Engine related
     int32_t                         bSupportVirtualEngine;                        //!< Enable virtual engine flag
     int32_t                         bUseHwSemaForResSyncInVE;                     //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface 

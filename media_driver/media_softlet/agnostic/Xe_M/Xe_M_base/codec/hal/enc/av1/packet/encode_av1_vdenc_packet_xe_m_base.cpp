@@ -35,10 +35,11 @@ namespace encode
         ENCODE_FUNC_CALL();
 
         MediaUserSetting::Value outValue;
-        ReadUserSetting(outValue,
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
             "Lockable Resource",
-            MediaUserSetting::Group::Sequence,
-            m_osInterface->pOsContext);
+            MediaUserSetting::Group::Sequence);
         m_basicFeature->m_lockableResource = outValue.Get<bool>();
 
         mhw::vdbox::avp::AvpBufferSizePar avpBufSizeParam;
@@ -584,14 +585,14 @@ namespace encode
             return MOS_STATUS_SUCCESS;
         }
         m_userFeatureUpdated_post_cdef = true;
-        ReportUserSetting("AV1 Post CDEF Recon Compressible",
+        ReportUserSetting(m_userSettingPtr,
+            "AV1 Post CDEF Recon Compressible",
             surface->bCompressible,
-            MediaUserSetting::Group::Sequence,
-            m_osInterface->pOsContext);
-        ReportUserSetting("AV1 Post CDEF Recon Compress Mode",
+            MediaUserSetting::Group::Sequence);
+        ReportUserSetting(m_userSettingPtr ,
+            "AV1 Post CDEF Recon Compress Mode",
             surface->MmcState,
-            MediaUserSetting::Group::Sequence,
-            m_osInterface->pOsContext);
+            MediaUserSetting::Group::Sequence);
         return MOS_STATUS_SUCCESS;
     }
 

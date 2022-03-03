@@ -57,14 +57,16 @@ MOS_STATUS HevcPipeline::UserFeatureReport()
     ENCODE_CHK_STATUS_RETURN(EncodePipeline::UserFeatureReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSetting("HEVC Encode Mode",
+    ReportUserSetting(
+        m_userSettingPtr,
+        "HEVC Encode Mode",
         m_codecFunction,
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
-    ReportUserSettingForDebug("Simulation In Use",
+        MediaUserSetting::Group::Sequence);
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "Simulation In Use",
         m_osInterface->bSimIsActive,
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
 #endif
 
     return MOS_STATUS_SUCCESS;

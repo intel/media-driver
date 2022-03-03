@@ -49,7 +49,7 @@ EncodePipeline::EncodePipeline(
 MOS_STATUS EncodePipeline::Initialize(void *settings)
 {
     ENCODE_FUNC_CALL();
-    ENCODE_CHK_STATUS_RETURN(InitUserSetting());
+    ENCODE_CHK_STATUS_RETURN(InitUserSetting(m_userSettingPtr));
     ENCODE_CHK_STATUS_RETURN(MediaPipeline::InitPlatform());
     ENCODE_CHK_STATUS_RETURN(MediaPipeline::CreateMediaCopy());
 

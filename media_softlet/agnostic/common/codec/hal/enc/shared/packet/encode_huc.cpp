@@ -414,10 +414,10 @@ namespace encode
 
             // Reporting
             ReportUserSetting(
+                m_userSettingPtr,
                 "HuC Firmware Load Failed",
                 1,
-                MediaUserSetting::Group::Sequence,
-                m_osInterface->pOsContext);
+                MediaUserSetting::Group::Sequence);
 
             return MOS_STATUS_HUC_KERNEL_FAILED;
         }
@@ -427,17 +427,17 @@ namespace encode
 
             // Reporting
             ReportUserSetting(
+                m_userSettingPtr,
                 "HuC Valid Imem Load Failed",
                 1,
-                MediaUserSetting::Group::Sequence,
-                m_osInterface->pOsContext);
+                MediaUserSetting::Group::Sequence);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
             ReportUserSettingForDebug(
+                m_userSettingPtr,
                 "Huc Status2 Value",
                 encodeStatusMfx->hucStatus2Reg,
-                MediaUserSetting::Group::Sequence,
-                m_osInterface->pOsContext);
+                MediaUserSetting::Group::Sequence);
 #endif
 
             return MOS_STATUS_HUC_KERNEL_FAILED;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -55,6 +55,14 @@ namespace encode{
             par.mode = mhw::vdbox::vdenc::RowStorePar::AV1;
 
             m_vdencItf->SetRowstoreCachingOffsets(par);
+        }
+        if(m_osInterface)
+        {
+            m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+        }
+        if (!m_userSettingPtr)
+        {
+            ENCODE_NORMALMESSAGE("Initialize m_userSettingPtr instance failed!");
         }
     }
 
@@ -1175,10 +1183,11 @@ namespace encode{
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         MediaUserSetting::Value outValue;
-        ReadUserSettingForDebug(outValue,
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
             "AV1 Encode RDO Enable",
-            MediaUserSetting::Group::Sequence,
-            m_osInterface->pOsContext);
+            MediaUserSetting::Group::Sequence);
         m_av1Par->RdoEnable               = outValue.Get<bool>();
 #endif
         m_av1Par->AdaptiveRounding        = m_basicFeature->m_adaptiveRounding;

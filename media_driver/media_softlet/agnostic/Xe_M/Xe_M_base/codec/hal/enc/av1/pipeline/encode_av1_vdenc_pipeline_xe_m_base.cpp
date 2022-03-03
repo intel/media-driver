@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -226,10 +226,11 @@ MOS_STATUS Av1VdencPipelineXe_M_Base::UserFeatureReport()
     ENCODE_CHK_STATUS_RETURN(Av1VdencPipeline::UserFeatureReport());
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug("Enable Encode VE CtxBasedScheduling",
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "Enable Encode VE CtxBasedScheduling",
         MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(m_osInterface),
-        MediaUserSetting::Group::Sequence,
-        m_osInterface->pOsContext);
+        MediaUserSetting::Group::Sequence);
 #endif
 
     return MOS_STATUS_SUCCESS;

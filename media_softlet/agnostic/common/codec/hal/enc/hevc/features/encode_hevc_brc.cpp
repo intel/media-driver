@@ -37,10 +37,9 @@ namespace encode
         EncodeAllocator *allocator,
         CodechalHwInterface *hwInterface,
         void *constSettings) :
-        MediaFeature(constSettings),
+        MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr),
         m_hwInterface(hwInterface),
         m_allocator(allocator)
-
     {
         m_featureManager = featureManager;
         // can be optimized after move encode parameter to feature manager.
@@ -64,10 +63,11 @@ namespace encode
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         MediaUserSetting::Value outValue;
-        ReadUserSetting(outValue,
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
             "HEVC VDEnc ACQP Enable",
-            MediaUserSetting::Group::Sequence,
-            m_hwInterface->GetOsInterface()->pOsContext);
+            MediaUserSetting::Group::Sequence);
         m_hevcVDEncAcqpEnabled = outValue.Get<bool>();
 #endif
 
@@ -87,14 +87,16 @@ namespace encode
         ENCODE_CHK_STATUS_RETURN(UpdateBrcResources(encodeParams));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        ReportUserSettingForDebug("Encode RateControl Method",
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "Encode RateControl Method",
             m_rcMode,
-            MediaUserSetting::Group::Sequence,
-            m_hwInterface->GetOsInterface()->pOsContext);
-        ReportUserSettingForDebug("HEVC VDEnc ACQP Enable",
+            MediaUserSetting::Group::Sequence);
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "HEVC VDEnc ACQP Enable",
             m_hevcVDEncAcqpEnabled,
-            MediaUserSetting::Group::Sequence,
-            m_hwInterface->GetOsInterface()->pOsContext);
+            MediaUserSetting::Group::Sequence);
 #endif
         return MOS_STATUS_SUCCESS;
     }

@@ -36,7 +36,7 @@ namespace encode
         EncodeAllocator *allocator,
         CodechalHwInterface *hwInterface,
         void *constSettings) :
-        MediaFeature(constSettings)
+        MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface() : nullptr)
     {
         CODECHAL_ENCODE_FUNCTION_ENTER;
         auto encFeatureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
@@ -68,7 +68,9 @@ namespace encode
 #if (_DEBUG || _RELEASE_INTERNAL)
         // LBC only Enable should be passed from DDI, will change later when DDI is ready
         MediaUserSetting::Value outValue;
-        ReadUserSetting(outValue,
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
             "HEVC VDEnc LBC Only Enable",
             MediaUserSetting::Group::Sequence,
             (PMOS_CONTEXT)m_mosCtx);

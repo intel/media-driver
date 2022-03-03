@@ -29,7 +29,6 @@
 
 #include <string>
 #include "mos_utilities.h"
-#include "mos_os_specific.h"
 #include "media_user_setting_value.h"
 #include "media_user_setting_definition.h"
 
@@ -61,6 +60,11 @@ public:
     //! \brief    Constructor
     //!
     Configure();
+
+    //!
+    //! \brief    Constructor
+    //!
+    Configure(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo);
 
     //!
     //! \brief    Destructor
@@ -116,7 +120,6 @@ public:
     MOS_STATUS Read(Value &value,
         const std::string &itemName,
         const Group &group,
-        PMOS_CONTEXT mosContext,
         const Value &customValue,
         bool useCustomValue = false);
 
@@ -139,7 +142,6 @@ public:
         const std::string &itemName,
         const Value &value,
         const Group &group,
-        PMOS_CONTEXT mosContext,
         bool isForReport);
 
     //!
@@ -200,6 +202,7 @@ protected:
     Definitions m_definitions[Group::MaxCount]{}; //!< definitions of media user setting
     bool m_isDebugMode = false; //!< whether in debug/release-internal mode
     RegBufferMap m_regBufferMap{};
+    MOS_USER_FEATURE_KEY_PATH_INFO *m_keyPathInfo = nullptr;
 
     static const UFKEY_NEXT m_rootKey;
     static const char *m_configPath;

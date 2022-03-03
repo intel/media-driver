@@ -29,6 +29,7 @@
 
 #include "encode_av1_vdenc_const_settings.h"
 #include "encode_utils.h"
+#include "mos_interface.h"
 
 namespace encode
 {
@@ -259,7 +260,7 @@ const uint32_t Av1VdencBrcConstSettings::hucModeCostsPFrame[52 * 6] =
         0x00000000, 0x00000000, 0x10102f1e, 0x001e1515, 0x00000000, 0x00000000, 0x00000000, 0x00000000
 };
 
-EncodeAv1VdencConstSettings::EncodeAv1VdencConstSettings(PMOS_INTERFACE osInterface)
+EncodeAv1VdencConstSettings::EncodeAv1VdencConstSettings(PMOS_INTERFACE osInterface) : VdencConstSettings(osInterface)
 {
     m_osInterface = osInterface;
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_osInterface);
