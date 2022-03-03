@@ -629,6 +629,7 @@ void VpConfigValuesInit(
     pConfigValues->dwRTCompressModeReported   = LIBVA_VP_CONFIG_NOT_REPORTED;
     pConfigValues->dwCapturePipeInUseReported = LIBVA_VP_CONFIG_NOT_REPORTED;
     pConfigValues->dwReportedCompositionMode  = LIBVA_VP_CONFIG_NOT_REPORTED;
+    pConfigValues->dwReportedHdrMode          = LIBVA_VP_CONFIG_NOT_REPORTED;
 
     pConfigValues->dwFFDICompressibleReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
     pConfigValues->dwFFDICompressModeReported    = LIBVA_VP_CONFIG_NOT_REPORTED;
@@ -647,6 +648,7 @@ void VpFeatureReport(
 {
     WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,         pConfig->dwCurrentOutputPipeMode, (MOS_CONTEXT_HANDLE)nullptr);
     WriteUserFeature(__VPHAL_VEBOX_FEATURE_INUSE_ID,           pConfig->dwCurrentVEFeatureInUse, (MOS_CONTEXT_HANDLE)nullptr);
+    WriteUserFeature(__VPHAL_VEBOX_HDR_MODE_ID,                pConfig->dwCurrentHdrMode, (MOS_CONTEXT_HANDLE)nullptr);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 #ifdef _MMC_SUPPORTED

@@ -87,6 +87,9 @@ void VpFeatureReport::SetConfigValues(
     // Report Scaling mode
     configValues->dwCurrentScalingMode = (m_features.scalingMode == VPHAL_SCALING_AVS) ? VPDDI_ADVANCEDSCALING : (m_features.scalingMode > VPHAL_SCALING_AVS) ? VPDDI_SUPERRESOLUTIONSCALING : VPDDI_SCALING;
 
+    // Report HDR Mode
+    configValues->dwCurrentHdrMode = m_features.hdrMode;
+
     // Report Output Pipe
     configValues->dwCurrentOutputPipeMode = m_features.outputPipeMode;
 
@@ -115,6 +118,7 @@ void VpFeatureReport::SetConfigValues(
     VP_PUBLIC_NORMALMESSAGE(
         "VP Feature Report: \
         OutputPipeMode %d, \
+        HDRMode %d, \
         VEFeatureInUse %d, \
         ScalingMode %d, \
         DeinterlaceMode %d, \
@@ -125,6 +129,7 @@ void VpFeatureReport::SetConfigValues(
         PrimaryCompressMode %d, \
         CompositionMode %d",
         m_features.outputPipeMode,
+        m_features.hdrMode,
         m_features.veFeatureInUse,
         m_features.scalingMode,
         m_features.deinterlaceMode,

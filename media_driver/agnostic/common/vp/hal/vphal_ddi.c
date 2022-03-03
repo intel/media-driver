@@ -192,6 +192,9 @@ void VpHal_DdiReportFeatureMode(
     // Report Output Pipe
     pConfigValues->dwCurrentOutputPipeMode = pReport->GetFeatures().outputPipeMode;
 
+    // Report HDR Mode
+    pConfigValues->dwCurrentHdrMode = pReport->GetFeatures().hdrMode;
+
     // Report VE Feature In Use
     pConfigValues->dwCurrentVEFeatureInUse = pReport->GetFeatures().veFeatureInUse;
 
@@ -216,6 +219,7 @@ void VpHal_DdiReportFeatureMode(
 
     VP_DDI_NORMALMESSAGE("VP Feature Report: \
         OutputPipeMode %d, \
+        HDRMode %d, \
         VEFeatureInUse %d, \
         ScalingMode %d, \
         DeinterlaceMode %d, \
@@ -226,6 +230,7 @@ void VpHal_DdiReportFeatureMode(
         PrimaryCompressMode %d, \
         CompositionMode %d",
         pReport->GetFeatures().outputPipeMode,
+        pReport->GetFeatures().hdrMode,
         pReport->GetFeatures().veFeatureInUse,
         pReport->GetFeatures().scalingMode,
         pReport->GetFeatures().deinterlaceMode,
