@@ -192,3 +192,22 @@ MOS_STATUS MediaCopyState_Xe_Hpm::MediaRenderCopy(PMOS_RESOURCE src, PMOS_RESOUR
       return MOS_STATUS_UNIMPLEMENTED;
      }
 }
+
+MOS_STATUS MediaCopyState_Xe_Hpm::PreProcess(MCPY_METHOD preferMethod)
+{
+    if ((preferMethod == MCPY_METHOD_POWERSAVING)
+        && m_mcpyEngineCaps.engineBlt
+        && (m_mcpySrc.CpMode == MCPY_CPMODE_CP)
+        && (m_mcpyDst.CpMode == MCPY_CPMODE_CLEAR))
+    {
+        //Allow blt engine to do copy when dst buffer is staging buffer and allocate in system mem, since protection off with blt engine.
+        //Current only used for small localbar cases.
+        m_allowCPBltCopy = true;
+    }
+    else
+    {
+        m_allowCPBltCopy = false;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}

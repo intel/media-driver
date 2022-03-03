@@ -282,7 +282,7 @@ public:
     MCPY_ENGINE         m_mcpyEngine     = MCPY_ENGINE_RENDER;
     MCPY_STATE_PARAMS   m_mcpySrc        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // source surface.
     MCPY_STATE_PARAMS   m_mcpyDst        = {nullptr, MOS_MMC_DISABLED,MOS_TILE_LINEAR, MCPY_CPMODE_CLEAR, false}; // destination surface.
-    bool                m_allowBltCopy   = false;
+    bool                m_allowCPBltCopy  = false;  // allow cp call media copy only for output clear cases.
     VphalSurfaceDumper  *m_surfaceDumper  = nullptr;
 
 protected:

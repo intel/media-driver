@@ -76,11 +76,11 @@ MOS_STATUS MediaCopyStateXe_Xpm_Base::PreProcess(MCPY_METHOD preferMethod)
         && (m_mcpyDst.CpMode == MCPY_CPMODE_CLEAR))
     {
         //Allow blt engine to do copy when dst buffer is staging buffer and allocate in system mem, since protection off with blt engine.
-        m_allowBltCopy = true;
+        m_allowCPBltCopy = true;
     }
     else
     {
-        m_allowBltCopy = false;
+        m_allowCPBltCopy = false;
     }
 
     return MOS_STATUS_SUCCESS;

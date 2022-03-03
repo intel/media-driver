@@ -74,6 +74,16 @@ public:
     //!
     virtual MOS_STATUS FeatureSupport(PMOS_RESOURCE src, PMOS_RESOURCE dst, MCPY_ENGINE_CAPS& caps);
 
+    //!
+    //! \brief    surface copy pre process.
+    //! \details  pre process before doing surface copy.
+    //! \param    preferMethod
+    //!           [in] Preferred media copy method
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if support, otherwise return unspoort.
+    //!
+    MOS_STATUS PreProcess(MCPY_METHOD preferMethod);
+
 protected:
     //!
     //! \brief    use blt engie to do surface copy.
