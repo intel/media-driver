@@ -517,6 +517,7 @@ struct FeatureParamDenoise : public FeatureParam
     uint32_t             widthAlignUnitInput  = 0;
     uint32_t             heightAlignUnitInput = 0;
     uint32_t             heightInput          = 0;
+    bool                 secureDnNeeded       = false;
 };
 
 class SwFilterDenoise : public SwFilter

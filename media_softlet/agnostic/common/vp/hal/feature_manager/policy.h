@@ -90,7 +90,7 @@ protected:
     MOS_STATUS GetScalingExecutionCapsHdr(SwFilter *feature);
     bool IsSfcRotationSupported(FeatureParamRotMir *rotationParams);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
-    MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);
+    virtual MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);
     MOS_STATUS GetSteExecutionCaps(SwFilter* feature);
     MOS_STATUS GetTccExecutionCaps(SwFilter* feature);
     MOS_STATUS GetProcampExecutionCaps(SwFilter* feature);

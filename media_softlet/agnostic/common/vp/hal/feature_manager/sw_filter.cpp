@@ -780,6 +780,21 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
     m_Params.denoiseParams.bEnableChroma =
         m_Params.denoiseParams.bEnableChroma && m_Params.denoiseParams.bEnableLuma;
 
+    GMM_RESOURCE_INFO* pSrcGmmResInfo    = surfInput->OsResource.pGmmResInfo;
+    GMM_RESOURCE_INFO* pTargetGmmResInfo = params.pTarget[0]->OsResource.pGmmResInfo;
+    VP_PUBLIC_CHK_NULL_RETURN(pSrcGmmResInfo);
+    VP_PUBLIC_CHK_NULL_RETURN(pTargetGmmResInfo);
+
+    bool inputProtected = pSrcGmmResInfo->GetSetCpSurfTag(0, 0);
+    bool outputProtected = pTargetGmmResInfo->GetSetCpSurfTag(0, 0);
+
+    if (inputProtected || outputProtected ||
+       (m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface &&
+        m_vpInterface.GetHwInterface()->m_osInterface->osCpInterface->IsHMEnabled()))
+    {
+        m_Params.secureDnNeeded = true;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
