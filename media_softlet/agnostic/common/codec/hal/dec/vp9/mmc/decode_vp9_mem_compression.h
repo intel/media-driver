@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -59,9 +59,18 @@ public:
 
     virtual MOS_STATUS CheckReferenceList(Vp9BasicFeature &vp9BasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
 
+    virtual MOS_STATUS CheckReferenceList(Vp9BasicFeature &vp9BasicFeature,
+        MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+        MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+        PMOS_RESOURCE     *presReferences);
+
     MOS_STATUS SetRefSurfaceMask(
-        Vp9BasicFeature &        vp9BasicFeature,
+        Vp9BasicFeature         &vp9BasicFeature,
         MHW_VDBOX_SURFACE_PARAMS refSurfaceParams[]);
+
+    MOS_STATUS SetRefSurfaceMask(
+        Vp9BasicFeature                       &vp9BasicFeature,
+        mhw::vdbox::hcp::HCP_SURFACE_STATE_PAR refSurfaceParams[]);
 
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;

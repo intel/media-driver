@@ -642,6 +642,8 @@ struct _MHW_PAR_T(HCP_VP9_PIC_STATE)
     uint32_t bitOffsetForLfLevel               = 0;
     uint32_t vdencPakOnlyPass                  = 0;
     uint32_t bitOffsetForFirstPartitionSize    = 0;
+    uint32_t dWordLength                       = 0;
+    bool     bDecodeInUse                      = false;
 };
 
 struct _MHW_PAR_T(HCP_VP9_SEGMENT_STATE)

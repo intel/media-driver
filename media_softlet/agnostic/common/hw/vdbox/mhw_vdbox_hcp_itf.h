@@ -74,6 +74,8 @@ public:
 
     virtual MOS_STATUS GetHcpBufSize(const HcpBufferSizePar &par, uint32_t &size) = 0;
 
+    virtual MOS_STATUS GetVP9BufSize(const HcpBufferSizePar &par, uint32_t &size) = 0;
+
     virtual const HcpMmioRegisters *GetMmioRegisters(const MHW_VDBOX_NODE_IND index) const = 0;
 
     virtual uint32_t GetEncCuRecordSize() = 0;
@@ -165,7 +167,6 @@ public:
         return (sliceType < MHW_ARRAY_SIZE(m_hevcBsdSliceType)) ? (m_hevcBsdSliceType[sliceType] == hevcSliceP) : false;
     }
 
-
     //!
     //! \brief    Determines if the slice is B slice
     //! \param    [in] sliceType
@@ -176,6 +177,11 @@ public:
     inline bool IsHevcBSlice(uint8_t sliceType)
     {
         return (sliceType < MHW_ARRAY_SIZE(m_hevcBsdSliceType)) ? (m_hevcBsdSliceType[sliceType] == hevcSliceB) : false;
+    }
+
+    bool IsVp9DfRowstoreCacheEnabled()
+    {
+        return m_vp9DfRowStoreCache.enabled ? true : false;
     }
 
     enum HevcSliceType

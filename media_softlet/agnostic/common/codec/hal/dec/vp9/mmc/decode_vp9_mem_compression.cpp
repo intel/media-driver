@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -42,12 +42,25 @@ MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(
     Vp9BasicFeature &vp9BasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
 {
     DECODE_FUNC_CALL();
+
+    return CheckReferenceList(vp9BasicFeature,
+        pipeBufAddrParams.PostDeblockSurfMmcState,
+        pipeBufAddrParams.PreDeblockSurfMmcState,
+        pipeBufAddrParams.presReferences);
+}
+
+MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(Vp9BasicFeature &vp9BasicFeature,
+    MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+    MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+    PMOS_RESOURCE     *presReferences)
+{
+    DECODE_FUNC_CALL();
     DECODE_CHK_NULL(m_osInterface);
     MOS_MEMCOMP_STATE mmcMode;
 
     //Disable MMC if self-reference is detected (mainly for error concealment)
-    if ((pipeBufAddrParams.PostDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
-        (pipeBufAddrParams.PreDeblockSurfMmcState != MOS_MEMCOMP_DISABLED))
+    if ((postDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
+        (preDeblockSurfMmcState != MOS_MEMCOMP_DISABLED))
     {
         DECODE_ASSERT(vp9BasicFeature.m_vp9PicParams);
         auto &vp9PicParams = *(vp9BasicFeature.m_vp9PicParams);
@@ -65,8 +78,8 @@ MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(
 
             if (selfReference)
             {
-                pipeBufAddrParams.PostDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
-                pipeBufAddrParams.PreDeblockSurfMmcState  = MOS_MEMCOMP_DISABLED;
+                postDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
+                preDeblockSurfMmcState  = MOS_MEMCOMP_DISABLED;
                 DECODE_NORMALMESSAGE("Self-reference is detected for P/B frames!");
 
                 // Decompress current frame to avoid green corruptions in this error handling case
@@ -87,11 +100,11 @@ MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(
     bool              firstRefPic   = true;
     for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9; i++)
     {
-        if (pipeBufAddrParams.presReferences[i])
+        if (presReferences[i])
         {
             DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
                 m_osInterface,
-                pipeBufAddrParams.presReferences[i],
+                presReferences[i],
                 &mmcMode));
             if (firstRefPic)
             {
@@ -110,17 +123,17 @@ MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(
     {
         for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9; i++)
         {
-            if (pipeBufAddrParams.presReferences[i])
+            if (presReferences[i])
             {
                 DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
                     m_osInterface,
-                    pipeBufAddrParams.presReferences[i],
+                    presReferences[i],
                     &mmcMode));
                 if (mmcMode != MOS_MEMCOMP_DISABLED)
                 {
                     m_osInterface->pfnDecompResource(
                         m_osInterface,
-                        pipeBufAddrParams.presReferences[i]);
+                        presReferences[i]);
                 }
             }
         }
@@ -129,7 +142,7 @@ MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(
 }
 
 MOS_STATUS Vp9DecodeMemComp::SetRefSurfaceMask(
-    Vp9BasicFeature &        vp9BasicFeature,
+    Vp9BasicFeature         &vp9BasicFeature,
     MHW_VDBOX_SURFACE_PARAMS refSurfaceParams[])
 {
     m_skipMask = 0xf8;
@@ -149,5 +162,28 @@ MOS_STATUS Vp9DecodeMemComp::SetRefSurfaceMask(
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS Vp9DecodeMemComp::SetRefSurfaceMask(
+    Vp9BasicFeature                       &vp9BasicFeature,
+    mhw::vdbox::hcp::HCP_SURFACE_STATE_PAR refSurfaceParams[])
+{
+    m_skipMask = 0xf8;
+    for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9; i++)
+    {
+        if (refSurfaceParams[i].mmcState == MOS_MEMCOMP_DISABLED)
+        {
+            m_skipMask |= (1 << i);
+        }
+    }
+    DECODE_NORMALMESSAGE("MMC skip mask is %d,", m_skipMask);
+    for (uint8_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9; i++)
+    {
+        refSurfaceParams[i].mmcState    = MOS_MEMCOMP_MC;
+        refSurfaceParams[i].mmcSkipMask = m_skipMask;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 
 }  // namespace decode
