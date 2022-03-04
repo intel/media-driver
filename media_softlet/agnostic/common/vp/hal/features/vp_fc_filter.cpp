@@ -846,12 +846,21 @@ static MOS_STATUS Get3DSamplerScalingMode(VPHAL_SCALING_MODE &scalingMode, SwFil
     // The rectangle in VP_SURFACE contains the rotation information.
     // The rectangle in ScalingFilter has been adjusted based on the rotation,
     // which can be used directly here.
-    auto &scalingParamsInput = scaling->GetSwFilterParams().input;
-
-    if ((scalingParamsInput.rcDst.right - scalingParamsInput.rcDst.left)
-         == (scalingParamsInput.rcSrc.right - scalingParamsInput.rcSrc.left) &&
+    bool isScalingNeeded = false;
+    if (scaling)
+    {
+        auto &scalingParamsInput = scaling->GetSwFilterParams().input;
+        isScalingNeeded = (scalingParamsInput.rcDst.right - scalingParamsInput.rcDst.left)
+        != (scalingParamsInput.rcSrc.right - scalingParamsInput.rcSrc.left) ||
         (scalingParamsInput.rcDst.bottom - scalingParamsInput.rcDst.top)
-         == (scalingParamsInput.rcSrc.bottom - scalingParamsInput.rcSrc.top) &&
+        != (scalingParamsInput.rcSrc.bottom - scalingParamsInput.rcSrc.top);
+    }
+    else
+    {
+        isScalingNeeded = false;
+    }
+
+    if (!isScalingNeeded                                                                    &&
         !isChromaUpSamplingNeeded                                                           &&
         !isChromaDownSamplingNeeded                                                         &&
         (input.SampleType == SAMPLE_PROGRESSIVE || iscalingEnabled || fieldWeaving))
