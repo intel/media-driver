@@ -662,18 +662,21 @@ VAStatus MediaLibvaCaps::CreateEncAttributes(
     }
     (*attribList)[attrib.type] = attrib.value;
 
-    attrib.type = VAConfigAttribEncJPEG;
-    VAConfigAttribValEncJPEG jpegAttribVal;
-    jpegAttribVal.bits.arithmatic_coding_mode = 0;
-    jpegAttribVal.bits.progressive_dct_mode = 0;
-    jpegAttribVal.bits.non_interleaved_mode = 0;
-    jpegAttribVal.bits.differential_mode = 0;
-    jpegAttribVal.bits.max_num_components = jpegNumComponent;
-    jpegAttribVal.bits.max_num_scans = 1;
-    jpegAttribVal.bits.max_num_huffman_tables = JPEG_MAX_NUM_HUFF_TABLE_INDEX;
-    jpegAttribVal.bits.max_num_quantization_tables = JPEG_MAX_QUANT_TABLE;
-    attrib.value = jpegAttribVal.value;
-    (*attribList)[attrib.type] = attrib.value;
+    if (profile == VAProfileJPEGBaseline)
+    {
+        attrib.type = VAConfigAttribEncJPEG;
+        VAConfigAttribValEncJPEG jpegAttribVal;
+        jpegAttribVal.bits.arithmatic_coding_mode = 0;
+        jpegAttribVal.bits.progressive_dct_mode = 0;
+        jpegAttribVal.bits.non_interleaved_mode = 0;
+        jpegAttribVal.bits.differential_mode = 0;
+        jpegAttribVal.bits.max_num_components = jpegNumComponent;
+        jpegAttribVal.bits.max_num_scans = 1;
+        jpegAttribVal.bits.max_num_huffman_tables = JPEG_MAX_NUM_HUFF_TABLE_INDEX;
+        jpegAttribVal.bits.max_num_quantization_tables = JPEG_MAX_QUANT_TABLE;
+        attrib.value = jpegAttribVal.value;
+        (*attribList)[attrib.type] = attrib.value;
+    }
 
     attrib.type = VAConfigAttribEncQualityRange;
     if (profile == VAProfileJPEGBaseline)

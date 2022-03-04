@@ -576,17 +576,20 @@ VAStatus MediaLibvaCapsDG2::CreateEncAttributes(
         VAConfigAttribMaxPictureHeight, &attrib.value);
     (*attribList)[attrib.type] = attrib.value;
 
-    attrib.type = VAConfigAttribEncJPEG;
-    attrib.value =
-        ((JPEG_MAX_QUANT_TABLE << 14)       | // max_num_quantization_tables : 3
-         (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)   | // max_num_huffman_tables : 3
-         (1 << 7)                    | // max_num_scans : 4
-         (jpegNumComponent << 4));              // max_num_components : 3
-    // arithmatic_coding_mode = 0
-    // progressive_dct_mode = 0
-    // non_interleaved_mode = 0
-    // differential_mode = 0
-    (*attribList)[attrib.type] = attrib.value;
+    if (profile == VAProfileJPEGBaseline)
+    {
+        attrib.type = VAConfigAttribEncJPEG;
+        attrib.value =
+            ((JPEG_MAX_QUANT_TABLE << 14)       | // max_num_quantization_tables : 3
+             (JPEG_MAX_NUM_HUFF_TABLE_INDEX << 11)   | // max_num_huffman_tables : 3
+             (1 << 7)                    | // max_num_scans : 4
+             (jpegNumComponent << 4));              // max_num_components : 3
+        // arithmatic_coding_mode = 0
+        // progressive_dct_mode = 0
+        // non_interleaved_mode = 0
+        // differential_mode = 0
+        (*attribList)[attrib.type] = attrib.value;
+    }
 
     attrib.type = VAConfigAttribEncQualityRange;
     if (profile == VAProfileJPEGBaseline)
