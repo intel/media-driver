@@ -130,13 +130,21 @@ namespace decode
             {
                 if (i == m_lastTileId)
                 {
-                    DECODE_ASSERTMESSAGE("The last tile size is oversize!");
-                    m_tileDesc[i].m_size = m_basicFeature->m_dataSize - m_tileDesc[i].m_offset;
+                    if (m_basicFeature->m_dataSize > m_tileDesc[i].m_offset)
+                    {
+                        m_tileDesc[i].m_size = m_basicFeature->m_dataSize - m_tileDesc[i].m_offset;
+                        DECODE_ASSERTMESSAGE("The last tile size is oversize, the remaining size is %d\n", m_tileDesc[i].m_size);
+                    }
+                    else
+                    {
+                        m_tileDesc[i].m_size = 0;
+                        DECODE_ASSERTMESSAGE("The last tile size is invalid, take current tile as missing tile and then set 4 byte dummy WL!!");
+                    }
                 }
                 else
                 {
                     m_tileDesc[i].m_size = 0;
-                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize! Take current tile as missing tile and then set 4 byte dummy WL!\n");
+                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize, take current tile as missing tile and then set 4 byte dummy WL!\n");
                 }
             }
             // For tile missing scenario
