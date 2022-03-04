@@ -318,6 +318,9 @@ namespace encode
             LoadLegacyHucRegions();
             LoadLegacyHucDmemParams();
 
+            CODECHAL_DEBUG_TOOL(
+                ENCODE_CHK_STATUS_RETURN(DumpInput());)
+
             EncodeBasicFeature *basicFeature = dynamic_cast<EncodeBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
             HUC_CHK_NULL_RETURN(basicFeature);
             return m_swBrc->SwBrcImpl(

@@ -193,8 +193,8 @@ namespace encode {
 
         // LDB case, NumP=0 & NumB=100, but GopP=100 & GopB=0
 
-        hucVdencBrcInitDmem->FrameWidth_U16 = (uint16_t)m_basicFeature->m_frameWidth;
-        hucVdencBrcInitDmem->FrameHeight_U16 = (uint16_t)m_basicFeature->m_frameHeight;
+        hucVdencBrcInitDmem->FrameWidth_U16 = (uint16_t)m_basicFeature->m_oriFrameWidth;
+        hucVdencBrcInitDmem->FrameHeight_U16 = (uint16_t)m_basicFeature->m_oriFrameHeight;
 
         hucVdencBrcInitDmem->MinQP_U8 = m_basicFeature->m_hevcPicParams->BRCMinQp < 10 ? 10 : m_basicFeature->m_hevcPicParams->BRCMinQp;                                           // Setting values from arch spec
         hucVdencBrcInitDmem->MaxQP_U8 = m_basicFeature->m_hevcPicParams->BRCMaxQp < 10 ? 51 : (m_basicFeature->m_hevcPicParams->BRCMaxQp > 51 ? 51 : m_basicFeature->m_hevcPicParams->BRCMaxQp);   // Setting values from arch spec
