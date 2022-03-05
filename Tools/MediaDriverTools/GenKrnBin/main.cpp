@@ -9,7 +9,7 @@
 #include <algorithm>
 #include "linkfile.h"
 
-#ifdef LINUX_
+#ifdef __linux__
 #include <dirent.h>
 #include <sys/stat.h>
 #include <strings.h>
@@ -80,7 +80,7 @@ static const char *COPYRIGHT        =
 #define KERNEL_ID_ENTRY(index)           "    _" "T(\"%03d\"),\\\n",                      \
     index
 
-#ifdef LINUX_
+#ifdef __linux__
 #define StrCmp strncasecmp
 #else
 #define StrCmp strnicmp
@@ -106,7 +106,7 @@ unsigned int  *g_pOffsetTable;
 unsigned int   g_dwOffsetTableSize;
 unsigned int   g_dwCurrentKernel;
 
-#ifdef LINUX_
+#ifdef __linux__
 char strupr(char *str) 
 { 
     char *ptr = str;
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
         ++idx;
     }
 
-#ifdef LINUX_
+#ifdef __linux__
     sprintf(KERNEL_COMPONENT_DIR,"%s", argv[1]);
     strncpy(KERNEL_HEADER_PREFIX, argv[2], sizeof(KERNEL_HEADER_PREFIX));
     strncpy(KERNEL_HEADER_GEN, argv[3], sizeof(KERNEL_HEADER_GEN));
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
     /////////////////////////////////////////////////
 
 
-#ifdef LINUX_
+#ifdef __linux__
     sprintf(SearchString, "%s", KERNEL_COMPONENT_DIR);
  
     struct dirent* ent = NULL;
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
     fwrite( g_pOffsetTable, 1, g_dwOffsetTableSize, (FILE *)g_hKernelBinary);
 
     // create link information for the current family folder
-#ifdef LINUX_
+#ifdef __linux__
     sprintf(KernelNameFull, "%s", KERNEL_COMPONENT_DIR);
 #else
     sprintf(KernelNameFull, "%s", KERNEL_COMPONENT_DIR);
@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
     {
         // check if this kernel exists for this platform
         // cFileName contains file name
-#ifdef LINUX_
+#ifdef __linux__
         sprintf(KernelNameFull, "%s/%s", KERNEL_COMPONENT_DIR, iterator->c_str());
 #else
         sprintf(KernelNameFull, "%s\\%s", KERNEL_COMPONENT_DIR, iterator->c_str());
@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
 
     fclose(g_hKernelBinary);
 
-#ifdef LINUX_
+#ifdef __linux__
     sprintf(KernelNameFull, "%s", KERNEL_COMPONENT_DIR);
 #else
     sprintf(KernelNameFull, "%s", KERNEL_COMPONENT_DIR);

@@ -1781,7 +1781,7 @@ void VpSurfaceDumper::GetSurfaceDumpSpec()
             UserFeatureData.StringData.pStringData,
             UserFeatureData.StringData.uSize);
     }
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
     else
     {
         std::string vphalDumpFilePath;
@@ -2326,7 +2326,7 @@ void VpParameterDumper::GetParametersDumpSpec()
             UserFeatureData.StringData.uSize);
         bDumpEnabled = true;
     }
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
     else
     {
         std::string vphalDumpFilePath;

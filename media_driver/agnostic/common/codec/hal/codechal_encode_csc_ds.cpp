@@ -1883,7 +1883,7 @@ MOS_STATUS CodechalEncodeCscDs::RawSurfaceMediaCopy(MOS_FORMAT srcFormat)
     auto cscSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
 
     // Copy through VEBOX from Linear/TileY to TileY
-#ifdef LINUX
+#ifdef __linux__
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_pMosMediaCopy->MediaCopy(
         &m_rawSurfaceToEnc->OsResource,
         &cscSurface->OsResource,
@@ -1894,7 +1894,7 @@ MOS_STATUS CodechalEncodeCscDs::RawSurfaceMediaCopy(MOS_FORMAT srcFormat)
         &cscSurface->OsResource,
         false,
         MCPY_METHOD_BALANCE));
-#endif // LINUX
+#endif // __linux__
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesToEncPak());
 

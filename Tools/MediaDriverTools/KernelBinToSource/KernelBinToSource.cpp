@@ -42,7 +42,7 @@ static const char *PARAM_V          = "-v";
 static const char *PARAM_INDEX      = "-index";
 static const char *PARAM_TOTAL      = "-t";
 
-#ifdef LINUX_
+#ifdef __linux__
 static const char *FILE_SEP         = "/";
 #else
 static const char *FILE_SEP         = "\\";
@@ -111,7 +111,7 @@ std::string appendPath(
 //-----------------------------------------------------------------------------
 std::string getFileName(const std::string &sFilePath)
 {
-#ifdef LINUX_
+#ifdef __linux__
     std::string::size_type uiLoc = sFilePath.rfind("/");
 #else
     std::string::size_type uiLoc = sFilePath.rfind("\\");

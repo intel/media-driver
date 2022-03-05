@@ -1221,7 +1221,7 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodePrimitiveLevel()
         m_osInterface,
         &syncParams));
 
- #ifdef LINUX 
+ #ifdef __linux__ 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     CODECHAL_DEBUG_TOOL(
     if (m_sfcState->m_sfcOutputSurface)

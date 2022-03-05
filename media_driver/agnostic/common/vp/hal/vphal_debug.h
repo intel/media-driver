@@ -40,7 +40,7 @@
 #include "renderhal.h"
 #include "mhw_vebox.h"
 
-#if !defined(LINUX) && !defined(ANDROID)
+#if !defined(__linux__) && !defined(ANDROID)
 #include "UmdStateSeparation.h"
 #endif
 
