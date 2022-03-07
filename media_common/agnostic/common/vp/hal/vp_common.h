@@ -667,6 +667,8 @@ typedef struct _VPHAL_HVSDENOISE_PARAMS
     uint16_t         Fallback            = 0;
     uint16_t         EnableChroma        = 0;
     uint16_t         EnableTemporalGNE   = 0;
+    uint16_t         RCMethod            = 0;
+    uint16_t         TgtKbps             = 0;
 } VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
 
 //!

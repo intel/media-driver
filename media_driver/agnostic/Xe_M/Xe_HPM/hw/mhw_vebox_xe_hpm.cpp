@@ -67,6 +67,43 @@ MhwVeboxInterfaceXe_Hpm::~MhwVeboxInterfaceXe_Hpm()
     MHW_FUNCTION_ENTER;
 }
 
+MOS_STATUS MhwVeboxInterfaceXe_Hpm::ForceGNEParams(uint8_t *pDnDiSate)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    mhw_vebox_xe_xpm::VEBOX_DNDI_STATE_CMD* pVeboxDndiState = (mhw_vebox_xe_xpm::VEBOX_DNDI_STATE_CMD *)pDnDiSate;
+
+    MHW_CHK_NULL(pDnDiSate);
+
+    //used by both SGNE and TGNE
+    pVeboxDndiState->DW6.BlockNoiseEstimateEdgeThreshold  = 900;
+    pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold = 720;
+    pVeboxDndiState->DW30.EightDirectionEdgeThreshold     = 1800; 
+    
+    //SGNE
+    pVeboxDndiState->DW31.LargeSobelThreshold             = 1290;
+    pVeboxDndiState->DW33.MaxSobelThreshold               = 1440;
+    pVeboxDndiState->DW31.SmallSobelThreshold             = 480;
+    pVeboxDndiState->DW32.BlockSigmaDiffThreshold         = dwBSDThreshold;
+    pVeboxDndiState->DW31.SmallSobelCountThreshold        = 6;
+    pVeboxDndiState->DW32.LargeSobelCountThreshold        = 6;
+    pVeboxDndiState->DW32.MedianSobelCountThreshold       = 40;
+
+    //TGNE
+    pVeboxDndiState->DW50.LumaUniformityLowTh1            = 1;
+    pVeboxDndiState->DW50.LumaUniformityLowTh2            = 1;
+    pVeboxDndiState->DW50.LumaUniformityHighTh1           = 6;
+    pVeboxDndiState->DW50.LumaUniformityHighTh2           = 0;
+    pVeboxDndiState->DW49.LumaStadTh                      = 250;
+
+    //Chroma
+    pVeboxDndiState->DW8.ChromaDenoiseMovingPixelThreshold               = 2;  //m_chromaParams.dwHotPixelThresholdChromaV;
+    pVeboxDndiState->DW8.ChromaDenoiseAsdThreshold                       = 512;
+    pVeboxDndiState->DW8.ChromaDenoiseThresholdForSumOfComplexityMeasure = 512;
+
+finish:
+    return eStatus;
+}
+
 MOS_STATUS MhwVeboxInterfaceXe_Hpm::AddVeboxDndiState(
     PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams)
 {
@@ -90,49 +127,48 @@ MOS_STATUS MhwVeboxInterfaceXe_Hpm::AddVeboxDndiState(
 
     eStatus = MhwVeboxInterfaceXe_Xpm::AddVeboxDndiState(pVeboxDndiParams);
 
-
     if (bHVSAutoBdrateEnable)
     {
         if (bTGNEEnable)
         {
             pVeboxDndiState->DW3.TemporalGneEnable                = bTGNEEnable;
-            pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold = 720;
-            pVeboxDndiState->DW6.BlockNoiseEstimateEdgeThreshold  = 200;
-            pVeboxDndiState->DW30.EightDirectionEdgeThreshold     = 3200;
             pVeboxDndiState->DW30.ValidPixelThreshold             = 336;
-            pVeboxDndiState->DW33.MaxSobelThreshold               = 448;
+            pVeboxDndiState->DW52._4X4TemporalGneThresholdCount   = dw4X4TGNEThCnt;
+            pVeboxDndiState->DW2.InitialDenoiseHistory            = dwHistoryInit;
+            pVeboxDndiState->DW33.MaxSobelThreshold               = 448; //for SGNE
+            //for chroma
             pVeboxDndiState->DW49.ChromaStadTh                    = dwChromaStadTh;
-            pVeboxDndiState->DW49.LumaStadTh                      = dwLumaStadTh;
-            pVeboxDndiState->DW50.LumaUniformityHighTh2           = 0;
-            pVeboxDndiState->DW50.LumaUniformityHighTh1           = 9;
-            pVeboxDndiState->DW50.LumaUniformityLowTh2            = 2;
-            pVeboxDndiState->DW50.LumaUniformityLowTh1            = 2;
             pVeboxDndiState->DW51.ChromaUniformityHighTh2         = 0;
             pVeboxDndiState->DW51.ChromaUniformityHighTh1         = 9;
             pVeboxDndiState->DW51.ChromaUniformityLowTh2          = 2;
             pVeboxDndiState->DW51.ChromaUniformityLowTh1          = 1;
-            pVeboxDndiState->DW52._4X4TemporalGneThresholdCount   = dw4X4TGNEThCnt;
+            
+            ForceGNEParams((uint8_t*)pVeboxDndiState);
+            pVeboxDndiState->DW2.InitialDenoiseHistory = dwHistoryInit;
         }
         else
         {
             pVeboxDndiState->DW3.TemporalGneEnable                = 0;
-            pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold = 720;
-            pVeboxDndiState->DW6.BlockNoiseEstimateEdgeThreshold  = 200;
-            pVeboxDndiState->DW30.EightDirectionEdgeThreshold     = 3200;
             pVeboxDndiState->DW30.ValidPixelThreshold             = 336;
             pVeboxDndiState->DW33.MaxSobelThreshold               = 448;
+            pVeboxDndiState->DW2.InitialDenoiseHistory            = dwHistoryInit;
+            
             pVeboxDndiState->DW49.ChromaStadTh                    = 0;
-            pVeboxDndiState->DW49.LumaStadTh                      = 0;
-            pVeboxDndiState->DW50.LumaUniformityHighTh2           = 0;
-            pVeboxDndiState->DW50.LumaUniformityHighTh1           = 0;
-            pVeboxDndiState->DW50.LumaUniformityLowTh2            = 0;
-            pVeboxDndiState->DW50.LumaUniformityLowTh1            = 0;
             pVeboxDndiState->DW51.ChromaUniformityHighTh2         = 0;
             pVeboxDndiState->DW51.ChromaUniformityHighTh1         = 0;
             pVeboxDndiState->DW51.ChromaUniformityLowTh2          = 0;
             pVeboxDndiState->DW51.ChromaUniformityLowTh1          = 0;
             pVeboxDndiState->DW52._4X4TemporalGneThresholdCount   = 0;
+
+            ForceGNEParams((uint8_t *)pVeboxDndiState);
+
+            pVeboxDndiState->DW49.LumaStadTh            = 0;
+            pVeboxDndiState->DW50.LumaUniformityHighTh2 = 0;
+            pVeboxDndiState->DW50.LumaUniformityHighTh1 = 0;
+            pVeboxDndiState->DW50.LumaUniformityLowTh2  = 0;
+            pVeboxDndiState->DW50.LumaUniformityLowTh1  = 0;
         }
+        
     }
     else if (bHVSAutoSubjectiveEnable)
     {
@@ -212,6 +248,7 @@ MOS_STATUS MhwVeboxInterfaceXe_Hpm::AddVeboxDndiState(
             pVeboxDndiState->DW52._4X4TemporalGneThresholdCount   = 0;
         }
     }
+
 finish:
     return eStatus;
 }

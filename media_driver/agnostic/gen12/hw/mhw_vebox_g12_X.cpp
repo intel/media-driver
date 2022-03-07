@@ -1951,7 +1951,6 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDndiState(
     pVeboxDndiState->DW7.ChromaLowTemporalDifferenceThreshold          = pVeboxDndiParams->dwChromaLTDThreshold;
     pVeboxDndiState->DW7.HotPixelCountChromaV                          = m_chromaParams.dwHotPixelCountChromaV;
     pVeboxDndiState->DW7.HotPixelThresholdChromaV                      = m_chromaParams.dwHotPixelThresholdChromaV;
-    pVeboxDndiState->DW8.ChromaDenoiseMovingPixelThreshold             = m_chromaParams.dwHotPixelThresholdChromaV;
 
     pVeboxDndiState->DW9.DnyWr040 = pVeboxDndiParams->dwPixRangeWeight[0];
     pVeboxDndiState->DW9.DnyWr140 = pVeboxDndiParams->dwPixRangeWeight[1];

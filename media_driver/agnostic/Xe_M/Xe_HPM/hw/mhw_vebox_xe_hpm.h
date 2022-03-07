@@ -46,6 +46,7 @@ public:
     MOS_STATUS AddVeboxDndiState(
         PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams) override;
 
+    MOS_STATUS ForceGNEParams(uint8_t *pDnDiSate);
     uint32_t dwLumaStadTh             = 3200;
     uint32_t dwChromaStadTh           = 1600;
     bool     bTGNEEnable              = false;
@@ -53,6 +54,8 @@ public:
     bool     bHVSAutoSubjectiveEnable = false;
     bool     bHVSfallback             = false;
     uint32_t dw4X4TGNEThCnt           = 576;
+    uint32_t dwBSDThreshold           = 480;
+    uint32_t dwHistoryInit            = 32;
 };
 
 #endif // __MHW_SFC_XE_HPM_H__
