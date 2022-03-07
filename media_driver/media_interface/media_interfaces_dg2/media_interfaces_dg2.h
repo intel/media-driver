@@ -108,11 +108,11 @@
 #include "codechal_vdenc_avc_xe_hpm.h"
 #endif
 
-#ifdef _MEDIA_RESERVED
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg_g12.h"
 #endif
 
+#ifdef _MEDIA_RESERVED
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_avc_xe_hpm_ext.h"
 #endif
@@ -267,9 +267,6 @@ public:
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
     using Vp9 = CodechalVdencVp9StateXe_Xpm;
 #endif
-#ifdef _JPEG_ENCODE_SUPPORTED
-    using Jpeg = CodechalEncodeJpegStateG12;
-#endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateXe_HpmExt;
 #endif
@@ -281,6 +278,9 @@ public:
 #endif
 #endif
 
+#ifdef _JPEG_ENCODE_SUPPORTED
+    using Jpeg = CodechalEncodeJpegStateG12;
+#endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
     using HevcVdenc = EncodeHevcVdencPipelineAdapterXe_Hpm;
 #endif

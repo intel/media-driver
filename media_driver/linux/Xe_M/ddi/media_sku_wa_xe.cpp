@@ -86,11 +86,7 @@ static struct LinuxCodecInfo Dg2CodecInfo =
     .mpeg2Encoding  = 0,
     .hevcDecoding   = 1,
     .hevcEncoding   = 0,
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     .jpegEncoding   = 1,
-#else
-    .jpegEncoding   = 0,
-#endif
     .avcVdenc       = 1,
     .vp9Decoding    = 1,
     .hevc10Decoding = 1,

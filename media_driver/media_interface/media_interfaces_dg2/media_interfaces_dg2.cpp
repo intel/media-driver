@@ -700,6 +700,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
             return MOS_STATUS_INVALID_PARAMETER;
         }
         else
+#endif
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
@@ -718,7 +719,6 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
             encoder->m_vdboxOneDefaultUsed = true;
         }
         else
-#endif
 #endif
 #if defined (_AV1_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == codechalEncodeModeAv1)
@@ -760,17 +760,6 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
-        if (info->Mode != CODECHAL_ENCODE_MODE_JPEG)
-        {
-            if (encoder == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-        }
-#endif
 
         if (mhwInterfacesNext != nullptr)
         {
