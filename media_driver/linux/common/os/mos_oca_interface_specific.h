@@ -30,8 +30,6 @@
 #include "mos_oca_interface.h"
 #include "mos_interface.h"
 
-#define MOS_OCA_INVALID_BUFFER_HANDLE -1
-
 typedef enum _MOS_OCA_LOG_TYPE
 {
     MOS_OCA_LOG_TYPE_INVALID = 0,
@@ -124,8 +122,6 @@ struct MOS_OCA_BUF_CONTEXT
     } logSection;
            
 };
-
-#define MAX_NUM_OF_OCA_BUF_CONTEXT 32
 
 class MosOcaAutoLock
 {
