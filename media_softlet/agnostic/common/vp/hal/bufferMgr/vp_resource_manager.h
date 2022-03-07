@@ -345,6 +345,8 @@ public:
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
 
+    virtual MOS_STATUS FillLinearBufferWithEncZero(uint32_t width, uint32_t height);
+
     bool IsSameSamples()
     {
         return m_sameSamples;
