@@ -962,10 +962,11 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
 
     params.autoBistreamStitchingInHardware = !m_enableSWStitching;
 
-    // special fix to avoid zero padding for low bitrates and restore up to 20% BdRate quality
-    if (m_av1SeqParams->RateControlMethod == RATECONTROL_CQP && m_av1PicParams->tile_cols * m_av1PicParams->tile_rows == 1)
+    // special fix to avoid zero padding for low resolution/bitrates and restore up to 20% BdRate quality
+    if (m_av1PicParams->tile_cols * m_av1PicParams->tile_rows == 1)
     {
         params.minFramSize = 0;
+        params.minFramSizeUnits                = 0;
         params.autoBistreamStitchingInHardware = false;
     }
 
