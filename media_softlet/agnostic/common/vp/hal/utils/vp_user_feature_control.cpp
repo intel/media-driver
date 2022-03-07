@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,48 +40,60 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, void *own
     // Vebox Comp Bypass is on by default
     userFeatureData.u32Data = VPHAL_COMP_BYPASS_ENABLED;
 
-    status = MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __VPHAL_BYPASS_COMPOSITION_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-
-    if (MOS_SUCCEEDED(status))
+    if (skuTable && (!MEDIA_IS_SKU(skuTable, FtrVERing)))
     {
-        m_ctrlValDefault.disableVeboxOutput = VPHAL_COMP_BYPASS_DISABLED == userFeatureData.u32Data;
+        m_ctrlValDefault.disableVeboxOutput = true;
+        m_ctrlValDefault.disableSfc         = true;
+
+        VP_PUBLIC_NORMALMESSAGE("No VeRing, disableVeboxOutput %d, disableSfc %d", (m_ctrlValDefault.disableVeboxOutput, m_ctrlValDefault.disableSfc));
     }
     else
     {
-        // Default value
-        m_ctrlValDefault.disableVeboxOutput = false;
-    }
-    VP_PUBLIC_NORMALMESSAGE("disableVeboxOutput %d", m_ctrlValDefault.disableVeboxOutput);
-
-    if (skuTable && MEDIA_IS_SKU(skuTable, FtrSFCPipe))
-    {
-        // Read user feature key to Disable SFC
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
         status = MOS_UserFeature_ReadValue_ID(
             nullptr,
-            __VPHAL_VEBOX_DISABLE_SFC_ID,
+            __VPHAL_BYPASS_COMPOSITION_ID,
             &userFeatureData,
             m_osInterface->pOsContext);
 
         if (MOS_SUCCEEDED(status))
         {
-            m_ctrlValDefault.disableSfc = userFeatureData.bData;
+            m_ctrlValDefault.disableVeboxOutput = VPHAL_COMP_BYPASS_DISABLED == userFeatureData.u32Data;
         }
         else
         {
             // Default value
-            m_ctrlValDefault.disableSfc = false;
+            m_ctrlValDefault.disableVeboxOutput = false;
         }
+
+        VP_PUBLIC_NORMALMESSAGE("disableVeboxOutput %d", m_ctrlValDefault.disableVeboxOutput);
+
+        if (skuTable && MEDIA_IS_SKU(skuTable, FtrSFCPipe))
+        {
+            // Read user feature key to Disable SFC
+            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+            status = MOS_UserFeature_ReadValue_ID(
+                nullptr,
+                __VPHAL_VEBOX_DISABLE_SFC_ID,
+                &userFeatureData,
+                m_osInterface->pOsContext);
+
+            if (MOS_SUCCEEDED(status))
+            {
+                m_ctrlValDefault.disableSfc = userFeatureData.bData;
+            }
+            else
+            {
+                // Default value
+                m_ctrlValDefault.disableSfc = false;
+            }
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("No FtrSFCPipe, disableSfc %d", m_ctrlValDefault.disableSfc);
+            m_ctrlValDefault.disableSfc = true;
+        }
+        VP_PUBLIC_NORMALMESSAGE("disableSfc %d", m_ctrlValDefault.disableSfc);
     }
-    else
-    {
-        m_ctrlValDefault.disableSfc = true;
-    }
-    VP_PUBLIC_NORMALMESSAGE("disableSfc %d", m_ctrlValDefault.disableSfc);
 
     // bComputeContextEnabled is true only if Gen12+. 
     // Gen12+, compute context(MOS_GPU_NODE_COMPUTE, MOS_GPU_CONTEXT_COMPUTE) can be used for render engine.

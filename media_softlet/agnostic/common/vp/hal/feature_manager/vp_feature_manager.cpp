@@ -263,14 +263,6 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    // Check whether VEBOX is available
-    // VTd doesn't support VEBOX
-    if (!MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrVERing))
-    {
-        VP_PUBLIC_NORMALMESSAGE("Disable APO Path for VEBOX not available case.");
-        return MOS_STATUS_SUCCESS;
-    }
-
     if (pvpParams->pConstriction)
     {
         return MOS_STATUS_SUCCESS;
