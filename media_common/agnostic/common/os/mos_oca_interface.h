@@ -40,12 +40,35 @@ typedef uint64_t MOS_OCA_BUFFER_HANDLE;
 #define MOS_OCA_MAX_STRING_LEN          (1024)          //!< The max string len for MosOcaStateHeapLog::TraceMessage.
 #define OCA_MAX_RESOURCE_INFO_COUNT_MAX 60
 
+
 typedef struct _MOS_OCA_LOG_HEADER
 {
-    uint32_t    m_Type;             //!< Oca log type. Refer to MOS_OCA_LOG_TYPE.
-    uint32_t    m_HeaderSize;       //!< The size for extented message header.
-    uint32_t    m_DataSize;         //!< The size of data block without message header.
+    uint32_t    type;             //!< Oca log type. Refer to MOS_OCA_LOG_TYPE.
+    uint32_t    headerSize;       //!< The size for extented message header.
+    uint32_t    dataSize;         //!< The size of data block without message header.
 }MOS_OCA_LOG_HEADER, *PMOS_OCA_LOG_HEADER;
+
+typedef struct _MOS_OCA_LOG_HEADER_VPHAL_PARAM
+{
+    MOS_OCA_LOG_HEADER header;
+    // Followed by VPHAL_OCA_RENDER_PARAM
+} MOS_OCA_LOG_HEADER_VPHAL_PARAM, *PMOS_OCA_LOG_HEADER_VPHAL_PARAM;
+
+typedef struct _MOS_OCA_LOG_HEADER_RESOURCE_INFO
+{
+    MOS_OCA_LOG_HEADER header;
+    uint32_t           resCount;         // Resource count dumped.
+    uint32_t           resCountSkipped;  // Resource count skiped to be dumped as total count exceeding MOS_OCA_MAX_RESOURCE_INFO_COUNT.
+    // Followed by MOS_OCA_RESOURCE_INFO lists.
+} MOS_OCA_LOG_HEADER_RESOURCE_INFO, *PMOS_OCA_LOG_HEADER_RESOURCE_INFO;
+
+typedef struct _MOS_OCA_LOG_HEADER_VP_KERNEL_INFO
+{
+    MOS_OCA_LOG_HEADER header;
+    int                vpKernelID;
+    int                fcKernelCount;
+    // Followed by fc kernel list.
+} MOS_OCA_LOG_HEADER_VP_KERNEL_INFO, *PMOS_OCA_LOG_HEADER_VP_KERNEL_INFO;
 
 class MosOcaInterface
 {

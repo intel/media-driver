@@ -431,11 +431,11 @@ void MosOcaInterfaceSpecific::AddResourceInfoToLogSection(MOS_OCA_BUFFER_HANDLE 
     }
 
     MOS_OCA_LOG_HEADER_RESOURCE_INFO header = {};
-    header.header.m_Type                  = MOS_OCA_LOG_TYPE_RESOURCE_INFO;
-    header.header.m_HeaderSize            = sizeof(MOS_OCA_LOG_HEADER_RESOURCE_INFO);
-    header.header.m_DataSize              = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCount * sizeof(MOS_OCA_RESOURCE_INFO);
-    header.resCount                       = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCount;
-    header.resCountSkipped                = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCountSkipped;
+    header.header.type                      = MOS_OCA_LOG_TYPE_RESOURCE_INFO;
+    header.header.headerSize                = sizeof(MOS_OCA_LOG_HEADER_RESOURCE_INFO);
+    header.header.dataSize                  = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCount * sizeof(MOS_OCA_RESOURCE_INFO);
+    header.resCount                         = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCount;
+    header.resCountSkipped                  = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCountSkipped;
 
     MOS_STATUS status = DumpDataBlock(ocaBufHandle, (PMOS_OCA_LOG_HEADER)&header, m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resInfoList);
     if (MOS_FAILED(status))
@@ -454,9 +454,9 @@ void MosOcaInterfaceSpecific::AddResourceInfoToLogSection(MOS_OCA_BUFFER_HANDLE 
 //! \param  [in] mosCtx
 //!         DDI device context.
 //! \param  [in] pHeader
-//!         Log header. It can be extended by user. The acutal size of header is pHeader->m_HeaderSize.
+//!         Log header. It can be extended by user. The acutal size of header is pHeader->headerSize.
 //! \param  [in] pData
-//!         Data block without log header. The acutal size of data block is pHeader->m_DataSize.
+//!         Data block without log header. The acutal size of data block is pHeader->dataSize.
 //! \return MOS_STATUS
 //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
@@ -482,23 +482,23 @@ MOS_STATUS MosOcaInterfaceSpecific::DumpDataBlock(MOS_OCA_BUFFER_HANDLE ocaBufHa
 
 MOS_STATUS MosOcaInterfaceSpecific::DumpDataBlock(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_OCA_LOG_HEADER pHeader, void *pData)
 {
-    if (pHeader->m_HeaderSize < sizeof(MOS_OCA_LOG_HEADER) ||
-        pHeader->m_Type >= MOS_OCA_LOG_TYPE_COUNT || pHeader->m_Type <= MOS_OCA_LOG_TYPE_INVALID ||
-        (pHeader->m_DataSize > 0 && nullptr == pData) || (pHeader->m_DataSize == 0 && pData))
+    if (pHeader->headerSize < sizeof(MOS_OCA_LOG_HEADER) ||
+        pHeader->type >= MOS_OCA_LOG_TYPE_COUNT || pHeader->type <= MOS_OCA_LOG_TYPE_INVALID ||
+        (pHeader->dataSize > 0 && nullptr == pData) || (pHeader->dataSize == 0 && pData))
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    uint32_t copySize = pHeader->m_HeaderSize + pHeader->m_DataSize;
+    uint32_t copySize = pHeader->headerSize + pHeader->dataSize;
     if (m_ocaBufContextList[ocaBufHandle].logSection.offset + copySize > m_ocaLogSectionSizeLimit)
     {
         return MOS_STATUS_NOT_ENOUGH_BUFFER;
     }
 
-    MOS_OS_CHK_STATUS_RETURN(InsertData(ocaBufHandle, (uint8_t *)pHeader, pHeader->m_HeaderSize));
-    if (pHeader->m_DataSize > 0)
+    MOS_OS_CHK_STATUS_RETURN(InsertData(ocaBufHandle, (uint8_t *)pHeader, pHeader->headerSize));
+    if (pHeader->dataSize > 0)
     {
-        MOS_OS_CHK_STATUS_RETURN(InsertData(ocaBufHandle, (uint8_t *)pData, pHeader->m_DataSize));
+        MOS_OS_CHK_STATUS_RETURN(InsertData(ocaBufHandle, (uint8_t *)pData, pHeader->dataSize));
     }
 
     return MOS_STATUS_SUCCESS;

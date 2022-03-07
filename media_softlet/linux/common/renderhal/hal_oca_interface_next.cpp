@@ -363,11 +363,11 @@ void HalOcaInterfaceNext::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CO
     }
 
     MOS_OCA_LOG_HEADER_VP_KERNEL_INFO header = {};
-    header.header.m_Type                     = MOS_OCA_LOG_TYPE_VP_KERNEL_INFO;
-    header.header.m_HeaderSize               = sizeof(MOS_OCA_LOG_HEADER_VP_KERNEL_INFO);
-    header.header.m_DataSize                 = fcKernelCount * sizeof(int);
-    header.vpKernelID                        = vpKernelID;
-    header.fcKernelCount                     = fcKernelCount;
+    header.header.type                      = MOS_OCA_LOG_TYPE_VP_KERNEL_INFO;
+    header.header.headerSize                = sizeof(MOS_OCA_LOG_HEADER_VP_KERNEL_INFO);
+    header.header.dataSize                  = fcKernelCount * sizeof(int);
+    header.vpKernelID                       = vpKernelID;
+    header.fcKernelCount                    = fcKernelCount;
     status = pOcaInterface->DumpDataBlock(ocaBufHandle, &mosContext, (PMOS_OCA_LOG_HEADER)&header, fcKernelList);
     if (MOS_FAILED(status))
     {
@@ -410,9 +410,9 @@ void HalOcaInterfaceNext::DumpVphalParam(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONT
     }
 
     MOS_OCA_LOG_HEADER_VPHAL_PARAM header = {};
-    header.header.m_Type                  = MOS_OCA_LOG_TYPE_VPHAL_PARAM;                   // 00000003
-    header.header.m_HeaderSize            = sizeof(MOS_OCA_LOG_HEADER_VPHAL_PARAM);
-    header.header.m_DataSize              = pVphalParam->Header.size;
+    header.header.type                = MOS_OCA_LOG_TYPE_VPHAL_PARAM;  // 00000003
+    header.header.headerSize          = sizeof(MOS_OCA_LOG_HEADER_VPHAL_PARAM);
+    header.header.dataSize            = pVphalParam->Header.size;
     status = pOcaInterface->DumpDataBlock(ocaBufHandle, &mosContext, (PMOS_OCA_LOG_HEADER)&header, pVphalParam);
     if (MOS_FAILED(status))
     {
