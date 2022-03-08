@@ -330,6 +330,13 @@ namespace decode
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
+        if (!m_av1PicParams->m_seqInfoFlags.m_fields.m_enableOrderHint &&
+            (m_av1PicParams->m_orderHint != 0))
+        {
+            DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         // CDF Upate
         if (!m_av1PicParams->m_picInfoFlags.m_fields.m_disableFrameEndUpdateCdf &&
             m_av1PicParams->m_picInfoFlags.m_fields.m_disableCdfUpdate)
