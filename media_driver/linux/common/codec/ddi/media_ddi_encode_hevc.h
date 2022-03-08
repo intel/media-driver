@@ -140,7 +140,7 @@ protected:
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if success, else fail reason
     //!
-    VAStatus ParseSeqParams(void *ptr);
+    virtual VAStatus ParseSeqParams(void *ptr);
 
     //!
     //! \brief    Parse Slice Parameter buffer to Encode Context

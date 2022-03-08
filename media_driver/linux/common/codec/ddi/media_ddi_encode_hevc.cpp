@@ -1145,7 +1145,10 @@ VAStatus DdiEncodeHevc::ParseMiscParams(void *ptr)
         // Assume only one SPS here, modify when enable multiple SPS support
         VAEncMiscParameterRateControl *vaEncMiscParamRC = (VAEncMiscParameterRateControl *)miscParamBuf->data;
 
-        seqParams->TargetBitRate = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
+        if(vaEncMiscParamRC->bits_per_second > 0)
+        {
+            seqParams->TargetBitRate = MOS_ROUNDUP_DIVIDE(vaEncMiscParamRC->bits_per_second, CODECHAL_ENCODE_BRC_KBPS);
+        }
         seqParams->MBBRC         = (vaEncMiscParamRC->rc_flags.bits.mb_rate_control <= mbBrcDisabled) ? vaEncMiscParamRC->rc_flags.bits.mb_rate_control : 0;
         //enable parallelBRC for Android and Linux
         seqParams->ParallelBRC = vaEncMiscParamRC->rc_flags.bits.enable_parallel_brc;
