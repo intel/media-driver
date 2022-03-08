@@ -41,7 +41,7 @@ namespace encode
         CODECHAL_ENCODE_FUNCTION_ENTER;
         auto encFeatureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
         ENCODE_CHK_NULL_NO_STATUS_RETURN(encFeatureManager);
-
+        ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
         CODECHAL_HW_ASSERT(hwInterface->GetOsInterface());
         m_osInterface = hwInterface->GetOsInterface();
 

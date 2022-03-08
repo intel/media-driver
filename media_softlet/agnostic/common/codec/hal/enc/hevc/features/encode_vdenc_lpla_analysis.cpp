@@ -43,7 +43,7 @@ namespace encode
 
         m_basicFeature = dynamic_cast<EncodeBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
         ENCODE_CHK_NULL_NO_STATUS_RETURN(m_basicFeature);
-
+        ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
         m_osInterface = hwInterface->GetOsInterface();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
