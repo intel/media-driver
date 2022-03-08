@@ -612,7 +612,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
     {
         MhwInterfacesNext      *mhwInterfacesNext = nullptr;
 
-        #define RETURN_STATUS_WITH_DELETE(stmt)    \
+        #define RETRUN_STATUS_WITH_DELETE(stmt)    \
         {                                          \
             MOS_Delete(mhwInterfacesNext);         \
             return stmt;                           \
@@ -646,6 +646,13 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
+#ifdef _MEDIA_RESERVED
+        if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
+        {
+            CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, MPEG2 Encoder is not supported!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        else
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
@@ -671,6 +678,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
             return MOS_STATUS_INVALID_PARAMETER;
         }
         else
+#endif
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
@@ -699,7 +707,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
             {
                 m_codechalDevice = MOS_New(Encode::Av1Vdenc, hwInterface, debugInterface);
                 CODECHAL_PUBLIC_CHK_NULL_RETURN(m_codechalDevice);
-                RETURN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
+                RETRUN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
             }
             else
             {
@@ -721,7 +729,7 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
                     CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
                     return MOS_STATUS_INVALID_PARAMETER;
                 }
-                RETURN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
+                RETRUN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
             }
         }
         else
