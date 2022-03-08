@@ -1743,8 +1743,10 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
         (pSurface->Format == pSrcSurf->Format) &&
         (pSurface->bCompressible == pSrcSurf->bCompressible) &&
         (pSurface->CompressionMode == pSrcSurf->CompressionMode) &&
-        (pSurface->TileType == pSrcSurf->TileType))
+        ((pSurface->TileType == pSrcSurf->TileType) ||
+         (pSurface->TileType == MOS_TILE_LINEAR && useLinearResource))) // when useLinearResource no reallocation needed
     {
+        MEDIA_DEBUG_VERBOSEMESSAGE("Skip to reallocate temp surface.");
         return MOS_STATUS_SUCCESS;
     }
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
