@@ -213,7 +213,7 @@ class CodechalVdencAvcStateG12 : public CodechalVdencAvcState
     uint8_t* m_pMBQPShadowBuffer = nullptr;
     uint32_t m_uiMBQPShadowBufferSize = 0;
 
-    MOS_RESOURCE m_resPakOutputViaMmioBuffer; //!< Buffer for PAK statistics output via MMIO
+    MOS_RESOURCE m_resPakOutputViaMmioBuffer = {}; //!< Buffer for PAK statistics output via MMIO
 
 protected:
 
