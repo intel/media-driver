@@ -95,7 +95,11 @@ static struct LinuxCodecInfo Dg2CodecInfo =
     .hevc12Encoding = 0,
     .vp8Encoding    = 0,
     .hevcVdenc      = 1,
+#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
     .vp9Vdenc       = 1,
+#else
+    .vp9Vdenc       = 0,
+#endif
     .adv0Decoding   = 1,
     .adv1Decoding   = 1,
 };

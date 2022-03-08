@@ -21,8 +21,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 ======================= end_copyright_notice ==================================*/
-
-
 //!
 //! \file     mhw_vdbox_vdenc_hwcmd_xe_hpm.h
 //! \brief    Auto-generated constructors for MHW and states.

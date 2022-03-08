@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022, Intel Corporation
+# Copyright (c) 2021-2022, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -62,17 +62,6 @@ if("${MMC_Supported}" STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_xe_hpm.h
     )
 endif()
-
-if ("${VP9_Encode_VDEnc_Supported}" STREQUAL "yes")
-    set (TMP_ENC_SOURCES_
-        ${TMP_ENC_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_xe_hpm.cpp
-    )
-    set (TMP_ENC_HEADERS_
-        ${TMP_ENC_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_xe_hpm.h
-    )
-endif ()
 
 set(SOURCES_
     ${SOURCES_}

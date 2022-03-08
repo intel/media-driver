@@ -22,7 +22,6 @@
 
 ======================= end_copyright_notice ==================================*/
 
-
 //! \file     mhw_vdbox_vdenc_xe_hpm.h
 //! \details  Defines functions for constructing Vdbox Vdenc commands on Xe_HPM platform
 //!
@@ -2957,8 +2956,8 @@ public:
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        static const uint32_t dw2Lut[2][3][2][2] = { { { { 0x3, 0x3,}, { 0x3, 0x100003,},}, { { 0x3, 0x3,}, { 0x3, 0x100003,},}, { { 0x20000003, 0x20000003,}, { 0x20000003, 0x20100003,},},}, { { { 0x100003, 0x100003,}, { 0x100003, 0x100003,},}, { { 0x100003, 0x100003,}, { 0x100003, 0x100003,},}, { { 0x20100003, 0x20100003,}, { 0x20100003, 0x20100003,},},},};
-        data[2] |= dw2Lut[FrameType][TargetUsageDiv3][NotSimuEnv][Wa_22011549751];
+        static const uint32_t dw2Lut[3] = { 0x3, 0x3, 0x20000003,};
+        data[2] |= dw2Lut[TargetUsageDiv3];
 
         static const uint32_t dw5Lut[3] = { 0x80ac04, 0xc0ac04, 0xc0ac04,};
         data[5] |= dw5Lut[TargetUsageDiv3];
@@ -2966,8 +2965,8 @@ public:
         static const uint32_t dw6Lut = 0x20080200;
         data[6] |= dw6Lut;
 
-        static const uint32_t dw7Lut[2][3][2][2] = { { { { 0x4000, 0x4000,}, { 0x4000, 0x84000,},}, { { 0x4000, 0x4000,}, { 0x4000, 0x84000,},}, { { 0x84100, 0x84100,}, { 0x84100, 0x84100,},},}, { { { 0x84000, 0x84000,}, { 0x84000, 0x84000,},}, { { 0x4000, 0x4000,}, { 0x4000, 0x4000,},}, { { 0x84100, 0x84100,}, { 0x84100, 0x84100,},},},};
-        data[7] |= dw7Lut[FrameType][TargetUsageDiv3][NotSimuEnv][Wa_22011549751];
+        static const uint32_t dw7Lut[2][3][2][2][2] = { { { { { 0x84003, 0x4003,}, { 0x84003, 0x4003,},}, { { 0x84003, 0x4003,}, { 0x84003, 0x84003,},},}, { { { 0x84003, 0x4003,}, { 0x84003, 0x4003,},}, { { 0x84003, 0x4003,}, { 0x84003, 0x84003,},},}, { { { 0x84103, 0x84103,}, { 0x84103, 0x84103,},}, { { 0x84103, 0x84103,}, { 0x84103, 0x84103,},},},}, { { { { 0x84003, 0x84003,}, { 0x84003, 0x84003,},}, { { 0x84003, 0x84003,}, { 0x84003, 0x84003,},},}, { { { 0x84003, 0x4003,}, { 0x84003, 0x4003,},}, { { 0x84003, 0x4003,}, { 0x84003, 0x4003,},},}, { { { 0x84103, 0x84103,}, { 0x84103, 0x84103,},}, { { 0x84103, 0x84103,}, { 0x84103, 0x84103,},},},},};
+        data[7] |= dw7Lut[FrameType][TargetUsageDiv3][NotSimuEnv][Wa_22011549751][ActiveNumRefIdxL0LargerThan2];
 
         static const uint32_t dw8Lut[3] = { 0xfffdccaa, 0xfffdccaa, 0x55550000,};
         data[8] |= dw8Lut[TargetUsageDiv3];
@@ -3020,10 +3019,10 @@ public:
         static const uint32_t dw51Lut[2][3][2][2] = { { { { 0x33331502, 0x33331502,}, { 0x33331502, 0x20001502,},}, { { 0x22333102, 0x22333102,}, { 0x22333102, 0x20003102,},}, { { 0x22227102, 0x22227102,}, { 0x22227102, 0x20007102,},},}, { { { 0x33331502, 0x33331502,}, { 0x33331502, 0x33331502,},}, { { 0x22333102, 0x22333102,}, { 0x22333102, 0x22333102,},}, { { 0x22227102, 0x22227102,}, { 0x22227102, 0x22227102,},},},};
         data[51] |= dw51Lut[FrameType][TargetUsageDiv3][NotSimuEnv][Wa_22011549751];
 
-        static const uint32_t dw52Lut[3] = { 0x77f5bdb, 0x72d5949, 0x929595a,};
+        static const uint32_t dw52Lut[3] = { 0x16fdfdb, 0x165cb49, 0x9654a5a,};
         data[52] |= dw52Lut[TargetUsageDiv3];
 
-        static const uint32_t dw53Lut[2][3][2][2][2] = { { { { { 0xffffffff, 0xffffffff,}, { 0xffffffff, 0xffffffff,},}, { { 0xffffffff, 0xffffffff,}, { 0x80000000, 0x80000000,},},}, { { { 0xfff00000, 0xfff00000,}, { 0xfff00000, 0xfff00000,},}, { { 0xfff00000, 0xfff00000,}, { 0x80000000, 0x80000000,},},}, { { { 0x80000000, 0x80000000,}, { 0x80000000, 0x80000000,},}, { { 0x80000000, 0x80000000,}, { 0x80000000, 0x80000000,},},},}, { { { { 0xffffffff, 0xffffffff,}, { 0xffffffff, 0xffffffff,},}, { { 0xffffffff, 0xfffffff0,}, { 0xffffffff, 0xfffffff0,},},}, { { { 0xfff00000, 0xfff00000,}, { 0xfff00000, 0xfff00000,},}, { { 0xfff00000, 0xfff0fff0,}, { 0xfff00000, 0xfff0fff0,},},}, { { { 0x80000000, 0x80000000,}, { 0x80000000, 0x80000000,},}, { { 0x80000000, 0x8000fff0,}, { 0x80000000, 0x8000fff0,},},},},};
+        static const uint32_t dw53Lut[2][3][2][2][2] = { { { { { 0xffffffff, 0xffffffff,}, { 0xffffffff, 0xffffffff,},}, { { 0xffffffff, 0xffffffff,}, { 0x80000000, 0x80000000,},},}, { { { 0xfff00000, 0xfff00000,}, { 0xfff00000, 0xfff00000,},}, { { 0xfff00000, 0xfff00000,}, { 0x80000000, 0x80000000,},},}, { { { 0x8000, 0x8000,}, { 0x8000, 0x8000,},}, { { 0x8000, 0x8000,}, { 0x80000000, 0x80000000,},},},}, { { { { 0xffffffff, 0xffffffff,}, { 0xffffffff, 0xffffffff,},}, { { 0xffffffff, 0xfffffff0,}, { 0xffffffff, 0xfffffff0,},},}, { { { 0xfff00000, 0xfff00000,}, { 0xfff00000, 0xfff00000,},}, { { 0xfff00000, 0xfff0fff0,}, { 0xfff00000, 0xfff0fff0,},},}, { { { 0x8000, 0x8000,}, { 0x8000, 0x8000,},}, { { 0x8000, 0xfff0,}, { 0x8000, 0xfff0,},},},},};
         data[53] |= dw53Lut[FrameType][TargetUsageDiv3][NotSimuEnv][Wa_22011549751][Wa_14010476401];
 
         static const uint32_t dw54Lut[3][2][2] = { { { 0, 0,}, { 0, 0,},}, { { 0x44000000, 0x44000000,}, { 0x44000000, 0x44000000,},}, { { 0x8c000000, 0x8c000000,}, { 0x8c000000, 0x4000000,},},};
@@ -3129,9 +3128,9 @@ public:
             cmd.DW12.Value = 0;
             cmd.DW13.Value = 0;
             cmd.DW13.VDENC_CMD1_DW13_BIT24 = 0x1E;
-            cmd.DW16.VDENC_CMD1_DW16_BIT16 = 0x07;
+            cmd.DW16.VDENC_CMD1_DW16_BIT16 = 0x0E;
 
-            cmd.DW17.Value = 0x0D0E1007;
+            cmd.DW17.Value = 0x0D0E1F0E;
             cmd.DW18.Value = 0x143A1E32;
             
             cmd.DW31.Value &= 0xFF000000;
@@ -3144,15 +3143,15 @@ public:
             cmd.DW12.Value = 0x155C175C;
             cmd.DW13.Value = 0x36040017;
 
-            cmd.DW16.VDENC_CMD1_DW16_BIT16 = 0x07;
+            cmd.DW16.VDENC_CMD1_DW16_BIT16 = 0x0E;
             cmd.DW16.VDENC_CMD1_DW16_BIT24 = 0x04;
 
-            cmd.DW17.Value = 0x14141407;
+            cmd.DW17.Value = 0x2828280E;
             cmd.DW18.Value = 0x1918441E;
 
-            cmd.DW31.VDENC_CMD1_DW31_BIT16 = 0x14;
-            cmd.DW31.VDENC_CMD1_DW31_BIT8  = 0x14;
-            cmd.DW31.VDENC_CMD1_DW31_BIT0  = 0x14;
+            cmd.DW31.VDENC_CMD1_DW31_BIT16 = 0x18;
+            cmd.DW31.VDENC_CMD1_DW31_BIT8  = 0x18;
+            cmd.DW31.VDENC_CMD1_DW31_BIT0  = 0x18;
         }
 
         cmd.DW19.Value = 0x00140000;
