@@ -156,15 +156,15 @@ namespace encode
         {
             if (8 == m_basicFeature->m_bitDepth)
             {
-                allocParamsForBuffer2D.Format   = Format_AYUV;
-                allocParamsForBuffer2D.dwWidth  = alignedWidth >> 2;
-                allocParamsForBuffer2D.dwHeight = alignedHeight * 3;
+                allocParamsForBuffer2D.Format = Format_AYUV;
+                allocParamsForBuffer2D.dwWidth  = MOS_ALIGN_CEIL(alignedWidth, 512 / 4);
+                allocParamsForBuffer2D.dwHeight = MOS_ALIGN_CEIL(alignedHeight * 3 / 4, 8);
             }
             else
             {
-                allocParamsForBuffer2D.Format   = Format_Y410;
-                allocParamsForBuffer2D.dwWidth  = alignedWidth >> 1;
-                allocParamsForBuffer2D.dwHeight = alignedHeight * 3;
+                allocParamsForBuffer2D.Format = Format_Y410;
+                allocParamsForBuffer2D.dwWidth  = MOS_ALIGN_CEIL(alignedWidth, 256 / 4);
+                allocParamsForBuffer2D.dwHeight = MOS_ALIGN_CEIL(alignedHeight * 3 / 2, 8);
             }
         }
         else
