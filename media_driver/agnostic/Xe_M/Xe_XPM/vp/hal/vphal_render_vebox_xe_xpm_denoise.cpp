@@ -78,7 +78,7 @@ void HVSDenoiseHpm::AttachPayload(void *payload)
 
 CmKernel *HVSDenoiseHpm::GetKernelToRun(std::string &name)
 {
-    name = "HVSDenoise";
+    name = "UpdateDNDITable";
     return m_cmKernel;
 }
 
@@ -136,15 +136,26 @@ void HVSDenoiseHpm::PrepareKernel(CmKernel *kernel)
     kernel->SetKernelArg(0, sizeof(SurfaceIndex), m_payload->denoiseParam->GetCmSurfaceIndex());
     kernel->SetKernelArg(1, sizeof(uint16_t),     &value_Mode);
     kernel->SetKernelArg(2, sizeof(uint16_t),     &m_payload->Format);
-    kernel->SetKernelArg(3, sizeof(uint32_t),     &m_payload->Noise_level);
-    kernel->SetKernelArg(4, sizeof(uint32_t),     &m_payload->Noise_level_u);
-    kernel->SetKernelArg(5, sizeof(uint32_t),     &m_payload->Noise_level_v);
-    kernel->SetKernelArg(6, sizeof(uint16_t),     &value_QP);
-    kernel->SetKernelArg(7, sizeof(uint16_t),     &m_payload->FirstFrame);
-    kernel->SetKernelArg(8, sizeof(uint16_t),     &m_payload->TGNE_firstFrame);
-    kernel->SetKernelArg(9, sizeof(uint16_t),     &m_payload->FallBack);
-    kernel->SetKernelArg(10, sizeof(uint16_t),    &m_payload->EnableChroma);
-    kernel->SetKernelArg(11, sizeof(uint16_t),    &m_payload->EnableTemporalGNE);
+    kernel->SetKernelArg(3, sizeof(uint16_t),     &m_payload->Width);
+    kernel->SetKernelArg(4, sizeof(uint16_t),     &m_payload->Height);
+    kernel->SetKernelArg(5, sizeof(uint32_t),     &m_payload->Noise_level);
+    kernel->SetKernelArg(6, sizeof(uint32_t),     &m_payload->Noise_level_u);
+    kernel->SetKernelArg(7, sizeof(uint32_t),     &m_payload->Noise_level_v);
+    kernel->SetKernelArg(8, sizeof(uint32_t),     &m_payload->Sgne_Level);
+    kernel->SetKernelArg(9, sizeof(uint32_t),     &m_payload->Sgne_Level_u);
+    kernel->SetKernelArg(10, sizeof(uint32_t),    &m_payload->Sgne_Level_v);
+    kernel->SetKernelArg(11, sizeof(uint32_t),    &m_payload->Sgne_Count);
+    kernel->SetKernelArg(12, sizeof(uint32_t),    &m_payload->Sgne_Count_u);
+    kernel->SetKernelArg(13, sizeof(uint32_t),    &m_payload->Sgne_Count_v);
+    kernel->SetKernelArg(14, sizeof(uint32_t),    &m_payload->PrevNslvTemporal);
+    kernel->SetKernelArg(15, sizeof(uint32_t),    &m_payload->PrevNslvTemporal_u);
+    kernel->SetKernelArg(16, sizeof(uint32_t),    &m_payload->PrevNslvTemporal_v);
+    kernel->SetKernelArg(17, sizeof(uint16_t),    &value_QP);
+    kernel->SetKernelArg(18, sizeof(uint16_t),    &m_payload->FirstFrame);
+    kernel->SetKernelArg(19, sizeof(uint16_t),    &m_payload->TGNE_firstFrame);
+    kernel->SetKernelArg(20, sizeof(uint16_t),    &m_payload->FallBack);
+    kernel->SetKernelArg(21, sizeof(uint16_t),    &m_payload->EnableChroma);
+    kernel->SetKernelArg(22, sizeof(uint16_t),    &m_payload->EnableTemporalGNE);
 }
 
 void HVSDenoiseHpm::Dump()
@@ -232,6 +243,17 @@ MOS_STATUS VphalHVSDenoiserHpm::Render(const PVPHAL_DENOISE_PARAMS pDNParams)
     denoisePayload.TGNE_firstFrame               = pDNParams->HVSDenoise.TgneFirstFrame;
     denoisePayload.Format                        = 0;                                     //Default YUV Format
     denoisePayload.EnableChroma                  = pDNParams->HVSDenoise.EnableChroma;
+    denoisePayload.Sgne_Count                    = pDNParams->HVSDenoise.Sgne_Count;
+    denoisePayload.Sgne_Count_u                  = pDNParams->HVSDenoise.Sgne_CountU;
+    denoisePayload.Sgne_Count_v                  = pDNParams->HVSDenoise.Sgne_CountV;
+    denoisePayload.Sgne_Level                    = pDNParams->HVSDenoise.Sgne_Level;
+    denoisePayload.Sgne_Level_u                  = pDNParams->HVSDenoise.Sgne_LevelU;
+    denoisePayload.Sgne_Level_v                  = pDNParams->HVSDenoise.Sgne_LevelV;
+    denoisePayload.PrevNslvTemporal              = pDNParams->HVSDenoise.PrevNslvTemporal;
+    denoisePayload.PrevNslvTemporal_u            = pDNParams->HVSDenoise.PrevNslvTemporalU;
+    denoisePayload.PrevNslvTemporal_v            = pDNParams->HVSDenoise.PrevNslvTemporalV;
+    denoisePayload.Width                         = pDNParams->HVSDenoise.Width;
+    denoisePayload.Height                        = pDNParams->HVSDenoise.Height;
 
     if (pDNParams->HVSDenoise.Mode == HVSDENOISE_MANUAL)
     {
@@ -266,6 +288,18 @@ MOS_STATUS VphalHVSDenoiserHpm::Render(const PVPHAL_DENOISE_PARAMS pDNParams)
         pDNParams->HVSDenoise.Fallback,
         pDNParams->HVSDenoise.EnableChroma);
 
+    VPHAL_RENDER_NORMALMESSAGE("Sgne_Count %d, Sgne_CountU %d!, Sgne_CountV %d, Sgne_Level %d, Sgne_LevelU %d, Sgne_LevelV %d, PrevNslvTemporal %d, PrevNslvTemporalU %d, PrevNslvTemporalV %d, Width %d, Height %d",
+        denoisePayload.Sgne_Count,
+        denoisePayload.Sgne_Count_u,
+        denoisePayload.Sgne_Count_v,
+        denoisePayload.Sgne_Level,
+        denoisePayload.Sgne_Level_u,
+        denoisePayload.Sgne_Level_v,
+        denoisePayload.PrevNslvTemporal,
+        denoisePayload.PrevNslvTemporal_u,
+        denoisePayload.PrevNslvTemporal_v,
+        denoisePayload.Width,
+        denoisePayload.Height);
     return eStatus;
 }
 

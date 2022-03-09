@@ -2525,17 +2525,26 @@ DdiVp_SetProcFilterHVSDenoiseParams(
             pSrc->pDenoiseParams->bAutoDetect     = true;
     }// switch (pHVSDnParamBuff->mode)
 
-    if (pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE ||
-        pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_SUBJECTIVE)
+    if (pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE)
     {
-        //HVS Auto Bdrate Mode and Subjective Mode default qp 32
+        pSrc->pDenoiseParams->HVSDenoise.QP       = pHVSDnParamBuff->qp;
+        if (pSrc->pDenoiseParams->HVSDenoise.QP == 0)
+        {
+            //If didn't set value, HVS Auto Bdrate Mode default qp 27
+            pSrc->pDenoiseParams->HVSDenoise.QP   = 27;
+        }
+    }
+    else if (pSrc->pDenoiseParams->HVSDenoise.Mode == HVSDENOISE_AUTO_SUBJECTIVE)
+    {
+        //HVS Subjective Mode default qp 32
         pSrc->pDenoiseParams->HVSDenoise.QP       = 32;
     }
     else
     {
-        pSrc->pDenoiseParams->HVSDenoise.QP       = pHVSDnParamBuff->qp;
+        pSrc->pDenoiseParams->HVSDenoise.QP       = 32;
         pSrc->pDenoiseParams->HVSDenoise.Strength = pHVSDnParamBuff->strength;
     }
+
     VP_DDI_NORMALMESSAGE("HVS Denoise is enabled with qp %d, strength %d, mode %d!", pSrc->pDenoiseParams->HVSDenoise.QP, pSrc->pDenoiseParams->HVSDenoise.Strength, pSrc->pDenoiseParams->HVSDenoise.Mode);
 
     return VA_STATUS_SUCCESS;

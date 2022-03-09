@@ -531,16 +531,20 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
     uint32_t *            pStatSlice0GNEPtr,
     uint32_t *            pStatSlice1GNEPtr)
 {
-    MOS_STATUS                    eStatus;
-    uint32_t                      dwGNELuma, dwGNEChromaU, dwGNEChromaV;
-    uint32_t                      dwGNECountLuma, dwGNECountChromaU, dwGNECountChromaV;
-    PVPHAL_DNUV_PARAMS            pChromaParams = nullptr;
-    VPHAL_DNUV_PARAMS             ChromaParams;
-    PMHW_VEBOX_DNDI_PARAMS        pDNDIParams;
-    PVPHAL_VEBOX_STATE_XE_HPM     pVeboxState = this;
-    PVPHAL_VEBOX_RENDER_DATA      pRenderData = GetLastExecRenderData();
-    PMHW_VEBOX_INTERFACE          pVeboxInterface;
-    MhwVeboxInterfaceXe_Hpm *     pVeboxInterfaceXe_Hpm;
+    MOS_STATUS                eStatus;
+    uint32_t                  dwGNELuma, dwGNEChromaU, dwGNEChromaV;
+    uint32_t                  dwGNECountLuma, dwGNECountChromaU, dwGNECountChromaV;
+    PVPHAL_DNUV_PARAMS        pChromaParams = nullptr;
+    VPHAL_DNUV_PARAMS         ChromaParams;
+    PMHW_VEBOX_DNDI_PARAMS    pDNDIParams;
+    PVPHAL_VEBOX_STATE_XE_HPM pVeboxState = this;
+    PVPHAL_VEBOX_RENDER_DATA  pRenderData = GetLastExecRenderData();
+    PMHW_VEBOX_INTERFACE      pVeboxInterface;
+    MhwVeboxInterfaceXe_Hpm * pVeboxInterfaceXe_Hpm;
+    int32_t                   sgne_offset     = 0;
+    uint32_t                  dwSgneCountLuma = 0, dwSgneCountU = 0, dwSgneCountV;
+    uint32_t                  dwSgneLuma = 0, dwSgneU = 0, dwSgneV = 0;
+    uint32_t                  resltn = 0;
 
     VPHAL_RENDER_CHK_NULL(pVeboxState);
     VPHAL_RENDER_CHK_NULL(pVeboxState->m_pVeboxInterface);
@@ -556,6 +560,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
     dwGNECountChromaV = 0;
     pChromaParams     = nullptr;
     pDNDIParams       = pRenderData->GetVeboxStateParams()->pVphalVeboxDndiParams;
+    resltn            = pVeboxState->m_currentSurface->dwWidth * pVeboxState->m_currentSurface->dwHeight;
 
     VPHAL_RENDER_CHK_NULL(pDNDIParams);
 
@@ -564,7 +569,6 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
     // Populate the VEBOX VEBOX parameters
     pVeboxDNDIParams = &pRenderData->VeboxDNDIParams;
     // Pick up already programmed states from clear memory, since we perform a complete refresh of VEBOX params
-    // when the kernel is ready these params will already be populated in non-clear memory by the copy kernel
     pVeboxDNDIParams->bDNDITopFirst             = pDNDIParams->bDNDITopFirst;
     pVeboxDNDIParams->bProgressiveDN            = pDNDIParams->bProgressiveDN;
     pVeboxDNDIParams->dwFMDFirstFieldCurrFrame  = pDNDIParams->dwFMDFirstFieldCurrFrame;
@@ -595,6 +599,8 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
     pDNParams->HVSDenoise.FirstFrame        = bFirstFrame;
     pDNParams->HVSDenoise.TgneFirstFrame    = !bFirstFrame && bTGNE_FirstFrame;
     pDNParams->HVSDenoise.EnableTemporalGNE = m_bTgneEnable;
+    pDNParams->HVSDenoise.Width             = (uint16_t)pVeboxState->m_currentSurface->dwWidth;
+    pDNParams->HVSDenoise.Height            = (uint16_t)pVeboxState->m_currentSurface->dwHeight;
 
     if (pDNParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE && pDNParams->bEnableHVSDenoise)
     {
@@ -603,6 +609,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
     else if (pDNParams->HVSDenoise.Mode == HVSDENOISE_AUTO_SUBJECTIVE && pDNParams->bEnableHVSDenoise)
     {
         pVeboxInterfaceXe_Hpm->bHVSAutoSubjectiveEnable = true;
+        pVeboxInterfaceXe_Hpm->dwBSDThreshold           = (resltn < RESOLUTION_THRESHOLD) ? 240 : 135;
     }
     else
     {
@@ -610,7 +617,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
         pVeboxInterfaceXe_Hpm->bHVSAutoSubjectiveEnable = false;
     }
 
-    if (m_bTgneEnable && bTGNE_FirstFrame && !bFirstFrame)
+    if (m_bTgneEnable && bTGNE_FirstFrame && !bFirstFrame)  //2nd frame
     {
         pVeboxInterfaceXe_Hpm->bTGNEEnable  = true;
         pVeboxInterfaceXe_Hpm->dwLumaStadTh = 3200;
@@ -630,9 +637,10 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
 
         if (pDNParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE)
         {
-            pVeboxInterfaceXe_Hpm->dwLumaStadTh = 250;
-            dwGNECountLuma = pStatSlice0GNEPtr[3] + pStatSlice1GNEPtr[3];
-            dwGNELuma      = dwGNELuma * 100 / (dwGNECountLuma + 1);
+            pVeboxInterfaceXe_Hpm->dwLumaStadTh  = 250;
+            pVeboxInterfaceXe_Hpm->dwHistoryInit = 27;
+            dwGNECountLuma                       = pStatSlice0GNEPtr[3] + pStatSlice1GNEPtr[3];
+            dwGNELuma                            = dwGNELuma * 100 / (dwGNECountLuma + 1);
             // Validate GNE
             if (dwGNELuma == 0xFFFFFFFF || dwGNECountLuma == 0xFFFFFFFF)
             {
@@ -640,6 +648,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
                 eStatus = MOS_STATUS_INVALID_PARAMETER;
                 goto finish;
             }
+
             // consistent check
             if (pRenderData->bChromaDenoise)
             {
@@ -648,9 +657,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
             dwGlobalNoiseLevel_Temporal = (dwGNELuma + 50) / 100;
         }
 
+        pDNParams->HVSDenoise.PrevNslvTemporal   = -1;
+        pDNParams->HVSDenoise.Sgne_Level         = dwGNELuma;
+        pDNParams->HVSDenoise.Sgne_Count         = dwGNECountLuma;
         pDNParams->HVSDenoise.dwGlobalNoiseLevel = dwGlobalNoiseLevel_Temporal;
     }
-    else if (m_bTgneEnable && bTGNE_Valid && !bFirstFrame)
+    else if (m_bTgneEnable && bTGNE_Valid && !bFirstFrame)  // middle frame
     {
         dwGNECountLuma = (pStatSlice0GNEPtr[3] & 0x7FFFFFFF) + (pStatSlice1GNEPtr[3] & 0x7FFFFFFF);
 
@@ -674,12 +686,18 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
         {
             pDNParams->HVSDenoise.dwGlobalNoiseLevel = dwGlobalNoiseLevel_Temporal;
         }
-
-        pVeboxInterfaceXe_Hpm->bTGNEEnable = true;
+        pVeboxInterfaceXe_Hpm->bTGNEEnable     = true;
+        sgne_offset                            = -12;  //VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G12 - VPHAL_VEBOX_STATISTICS_SURFACE_TGNE_OFFSET_G12;
+        dwSgneCountLuma                        = pStatSlice0GNEPtr[sgne_offset + 3] + pStatSlice1GNEPtr[sgne_offset + 3];
+        dwSgneLuma                             = pStatSlice0GNEPtr[sgne_offset] + pStatSlice1GNEPtr[sgne_offset];
+        pDNParams->HVSDenoise.Sgne_Level       = dwSgneLuma * 100 / (dwSgneCountLuma + 1);
+        pDNParams->HVSDenoise.Sgne_Count       = dwSgneCountLuma;
+        pDNParams->HVSDenoise.PrevNslvTemporal = curNoiseLevel_Temporal;
 
         if (pDNParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE)
         {
-            pVeboxInterfaceXe_Hpm->dwLumaStadTh = 250;
+            pVeboxInterfaceXe_Hpm->dwLumaStadTh  = 250;
+            pVeboxInterfaceXe_Hpm->dwHistoryInit = 27;
         }
         else
         {
@@ -700,7 +718,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
                                                     1600;
         }
     }
-    else
+    else  //first frame or fallback
     {
         dwGNECountLuma = pStatSlice0GNEPtr[3] + pStatSlice1GNEPtr[3];
 
@@ -722,16 +740,24 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
 
         if (pDNParams->HVSDenoise.Fallback)
         {
-            pVeboxInterfaceXe_Hpm->bHVSfallback = true;
+            pVeboxInterfaceXe_Hpm->bHVSfallback  = true;
+            pVeboxInterfaceXe_Hpm->dwHistoryInit = 32;
         }
         else
         {
+            if (pDNParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE && pDNParams->bEnableHVSDenoise)
+            {
+                pVeboxInterfaceXe_Hpm->dwHistoryInit = 32;
+            }
             pVeboxInterfaceXe_Hpm->bTGNEEnable    = false;
             pVeboxInterfaceXe_Hpm->dwLumaStadTh   = 0;
             pVeboxInterfaceXe_Hpm->dw4X4TGNEThCnt = 0;
         }
 
         pDNParams->HVSDenoise.dwGlobalNoiseLevel = dwGNELuma;
+        pDNParams->HVSDenoise.Sgne_Level         = dwGNELuma;
+        pDNParams->HVSDenoise.Sgne_Count         = dwGNECountLuma;
+        pDNParams->HVSDenoise.PrevNslvTemporal   = -1;
     }
 
     // -------------------------- Update Chroma -------------------------------
@@ -748,8 +774,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
         pVeboxDNDIParams->bChromaDNEnable = pRenderData->bChromaDenoise;
 
         // Combine the GNE in slice0 and slice1 to generate the global GNE and Count
-        dwGNEChromaU = pStatSlice0GNEPtr[1] + pStatSlice1GNEPtr[1];
-        dwGNEChromaV = pStatSlice0GNEPtr[2] + pStatSlice1GNEPtr[2];
+        dwGNEChromaU      = pStatSlice0GNEPtr[1] + pStatSlice1GNEPtr[1];
+        dwGNEChromaV      = pStatSlice0GNEPtr[2] + pStatSlice1GNEPtr[2];
+        dwGNECountChromaU = pStatSlice0GNEPtr[4] + pStatSlice1GNEPtr[4];
+        dwGNECountChromaV = pStatSlice0GNEPtr[5] + pStatSlice1GNEPtr[5];
+        dwGNEChromaU      = dwGNEChromaU * 100 / (dwGNECountChromaU + 1);
+        dwGNEChromaV      = dwGNEChromaV * 100 / (dwGNECountChromaV + 1);
 
         if (m_bTgneEnable && bTGNE_FirstFrame && !bFirstFrame)
         {
@@ -758,22 +788,24 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
             if (pDNParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE)
             {
                 pVeboxInterfaceXe_Hpm->dwChromaStadTh = 250;
-                dwGNECountChromaU = pStatSlice0GNEPtr[4] + pStatSlice1GNEPtr[4];
-                dwGNECountChromaV = pStatSlice0GNEPtr[5] + pStatSlice1GNEPtr[5];
 
                 // Validate GNE
                 if (dwGNEChromaU == 0xFFFFFFFF || dwGNECountChromaU == 0xFFFFFFFF ||
                     dwGNEChromaV == 0xFFFFFFFF || dwGNECountChromaV == 0xFFFFFFFF)
                 {
                     VPHAL_RENDER_ASSERTMESSAGE("Incorrect GNE / GNE count.");
-                    eStatus = MOS_STATUS_INVALID_PARAMETER;
+                    eStatus = MOS_STATUS_UNKNOWN;
                     goto finish;
                 }
-
-                dwGlobalNoiseLevelU_Temporal = (dwGNEChromaU * 100 / (dwGNECountChromaU + 1) + 50) / 100;
-                dwGlobalNoiseLevelV_Temporal = (dwGNEChromaV * 100 / (dwGNECountChromaV + 1) + 50) / 100;
+                dwGlobalNoiseLevelU_Temporal = (dwGNEChromaU + 50) / 100;
+                dwGlobalNoiseLevelV_Temporal = (dwGNEChromaV + 50) / 100;
             }
-
+            pDNParams->HVSDenoise.PrevNslvTemporalU   = -1;
+            pDNParams->HVSDenoise.PrevNslvTemporalV   = -1;
+            pDNParams->HVSDenoise.Sgne_CountU         = dwGNECountChromaU;
+            pDNParams->HVSDenoise.Sgne_CountV         = dwGNECountChromaV;
+            pDNParams->HVSDenoise.Sgne_LevelU         = dwGNEChromaU;
+            pDNParams->HVSDenoise.Sgne_LevelV         = dwGNEChromaV;
             pDNParams->HVSDenoise.dwGlobalNoiseLevelU = dwGlobalNoiseLevelU_Temporal;
             pDNParams->HVSDenoise.dwGlobalNoiseLevelV = dwGlobalNoiseLevelV_Temporal;
         }
@@ -786,12 +818,12 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
             if (dwGNECountChromaU == 0 || dwGNECountChromaV == 0)
             {
                 VPHAL_RENDER_ASSERTMESSAGE("Incorrect GNE count.");
-                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                eStatus = MOS_STATUS_UNKNOWN;
                 goto finish;
             }
 
-            curNoiseLevelU_Temporal      = dwGNEChromaU / dwGNECountChromaU;
-            curNoiseLevelV_Temporal      = dwGNEChromaV / dwGNECountChromaV;
+            curNoiseLevelU_Temporal = dwGNEChromaU / dwGNECountChromaU;
+            curNoiseLevelV_Temporal = dwGNEChromaV / dwGNECountChromaV;
 
             if (pVeboxInterfaceXe_Hpm->bHVSfallback)
             {
@@ -806,6 +838,19 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
                 pDNParams->HVSDenoise.dwGlobalNoiseLevelU = dwGlobalNoiseLevelU_Temporal;
                 pDNParams->HVSDenoise.dwGlobalNoiseLevelV = dwGlobalNoiseLevelV_Temporal;
             }
+
+            sgne_offset  = -12;  //VPHAL_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G12 - VPHAL_VEBOX_STATISTICS_SURFACE_TGNE_OFFSET_G12;
+            dwSgneCountU = pStatSlice0GNEPtr[sgne_offset + 3 + 1] + pStatSlice1GNEPtr[sgne_offset + 3 + 1];
+            dwSgneCountV = pStatSlice0GNEPtr[sgne_offset + 3 + 2] + pStatSlice1GNEPtr[sgne_offset + 3 + 2];
+            dwSgneU      = pStatSlice0GNEPtr[sgne_offset + 1] + pStatSlice1GNEPtr[sgne_offset + 1];
+            dwSgneV      = pStatSlice0GNEPtr[sgne_offset + 2] + pStatSlice1GNEPtr[sgne_offset + 2];
+
+            pDNParams->HVSDenoise.PrevNslvTemporalU = curNoiseLevelU_Temporal;
+            pDNParams->HVSDenoise.PrevNslvTemporalV = curNoiseLevelV_Temporal;
+            pDNParams->HVSDenoise.Sgne_CountU       = dwSgneCountU;
+            pDNParams->HVSDenoise.Sgne_CountV       = dwSgneCountV;
+            pDNParams->HVSDenoise.Sgne_LevelU       = dwSgneU * 100 / (dwSgneCountU + 1);
+            pDNParams->HVSDenoise.Sgne_LevelV       = dwSgneV * 100 / (dwSgneCountV + 1);
 
             if (pDNParams->HVSDenoise.Mode == HVSDENOISE_AUTO_BDRATE)
             {
@@ -826,18 +871,24 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
                 dwGNEChromaV == 0xFFFFFFFF || dwGNECountChromaV == 0xFFFFFFFF)
             {
                 VPHAL_RENDER_ASSERTMESSAGE("Incorrect GNE / GNE count.");
-                eStatus = MOS_STATUS_INVALID_PARAMETER;
+                eStatus = MOS_STATUS_UNKNOWN;
                 goto finish;
             }
 
-            dwGNEChromaU                          = dwGNEChromaU * 100 / (dwGNECountChromaU + 1);
-            dwGNEChromaV                          = dwGNEChromaV * 100 / (dwGNECountChromaV + 1);
+            dwGNEChromaU = dwGNEChromaU * 100 / (dwGNECountChromaU + 1);
+            dwGNEChromaV = dwGNEChromaV * 100 / (dwGNECountChromaV + 1);
 
             if (!pDNParams->HVSDenoise.Fallback)
             {
                 pVeboxInterfaceXe_Hpm->dwChromaStadTh = 0;
             }
 
+            pDNParams->HVSDenoise.PrevNslvTemporalU   = -1;
+            pDNParams->HVSDenoise.PrevNslvTemporalV   = -1;
+            pDNParams->HVSDenoise.Sgne_CountU         = dwGNECountChromaU;
+            pDNParams->HVSDenoise.Sgne_CountV         = dwGNECountChromaV;
+            pDNParams->HVSDenoise.Sgne_LevelU         = dwGNEChromaU;
+            pDNParams->HVSDenoise.Sgne_LevelV         = dwGNEChromaV;
             pDNParams->HVSDenoise.dwGlobalNoiseLevelU = dwGNEChromaU;
             pDNParams->HVSDenoise.dwGlobalNoiseLevelV = dwGNEChromaV;
         }
@@ -847,7 +898,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_HPM::VeboxUpdateDnStatesForHVS(
 
     if (m_bTgneEnable && bTGNE_FirstFrame && !bFirstFrame)
     {
-            bTGNE_FirstFrame = false;
+        bTGNE_FirstFrame = false;
     }
 
 finish:

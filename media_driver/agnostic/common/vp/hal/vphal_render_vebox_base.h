@@ -64,6 +64,7 @@
 #define NOISE_LOWTEMPORALPIXELDIFF_THRESHOLD_DEFAULT    6
 #define NOISE_TEMPORALPIXELDIFF_THRESHOLD_DEFAULT       12
 #define NOISE_SUMABSTEMPORALDIFF_THRESHOLD_DEFAULT      128
+#define RESOLUTION_THRESHOLD                            2073600                  //!< The size of 1080P
 
 //!
 //! \brief Spatial Denoise Definitions

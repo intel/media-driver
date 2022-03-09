@@ -669,6 +669,17 @@ typedef struct _VPHAL_HVSDENOISE_PARAMS
     uint16_t         EnableTemporalGNE   = 0;
     uint16_t         RCMethod            = 0;
     uint16_t         TgtKbps             = 0;
+    uint16_t         Width               = 0;
+    uint16_t         Height              = 0;
+    uint32_t         Sgne_Level          = 0;
+    uint32_t         Sgne_LevelU         = 0;
+    uint32_t         Sgne_LevelV         = 0;
+    uint32_t         Sgne_Count          = 0;
+    uint32_t         Sgne_CountU         = 0;
+    uint32_t         Sgne_CountV         = 0;
+    uint32_t         PrevNslvTemporal    = 0;
+    uint32_t         PrevNslvTemporalU   = 0;
+    uint32_t         PrevNslvTemporalV   = 0;
 } VPHAL_HVSDENOISE_PARAMS, *PVPHAL_HVSDENOISE_PARAMS;
 
 //!

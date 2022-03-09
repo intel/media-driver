@@ -41,9 +41,20 @@ public:
         VpCmSurfaceHolder<CmBuffer> *denoiseParam;
         uint16_t                     Mode;
         uint16_t                     Format;
+        uint16_t                     Width;
+        uint16_t                     Height;
         uint32_t                     Noise_level;
         uint32_t                     Noise_level_u;
         uint32_t                     Noise_level_v;
+        uint32_t                     Sgne_Level;
+        uint32_t                     Sgne_Level_u;
+        uint32_t                     Sgne_Level_v;
+        uint32_t                     Sgne_Count;
+        uint32_t                     Sgne_Count_u;
+        uint32_t                     Sgne_Count_v;
+        uint32_t                     PrevNslvTemporal;
+        uint32_t                     PrevNslvTemporal_u;
+        uint32_t                     PrevNslvTemporal_v;
         uint16_t                     QP;
         uint16_t                     FirstFrame;
         uint16_t                     TGNE_firstFrame;
@@ -102,7 +113,7 @@ private:
     bool     m_initHVSDenoise = false;
 
     // It is defined in Media Kernel.
-    const uint32_t m_denoiseBufferInBytes = 128;
+    const uint32_t m_denoiseBufferInBytes = 160; //32 + 8 int
     void *         m_kernelBinary         = nullptr;
     int32_t        m_kernelBinarySize     = 0;
 };
