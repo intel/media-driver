@@ -28,6 +28,9 @@
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#ifndef ENABLE_VP_SOFTLET_BUILD
+#include "vp_vebox_cmd_packet_legacy.h"
+#endif
 
 namespace vp {
 VpProcampFilter::VpProcampFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -191,18 +194,28 @@ bool VpVeboxProcampParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VP_FUNC_CALL();
 
-    VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
-    if (nullptr == pVeboxPacket)
-    {
-        return false;
-    }
-
     VEBOX_PROCAMP_PARAMS *pParams = m_procampFilter.GetVeboxParams();
     if (nullptr == pParams)
     {
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get Vebox procamp params");
         return false;
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetProcampParams(pParams));
+
+    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    if (packet)
+    {
+        return MOS_SUCCEEDED(packet->SetProcampParams(pParams));
+    }
+#ifndef ENABLE_VP_SOFTLET_BUILD
+    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
+    if (packetLegacy)
+    {
+        return MOS_SUCCEEDED(packetLegacy->SetProcampParams(pParams));
+    }
+#endif
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for Vebox procamp");
+    return false;
 }
 
 MOS_STATUS VpVeboxProcampParameter::Initialize(HW_FILTER_PROCAMP_PARAM &params)

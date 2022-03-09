@@ -28,6 +28,9 @@
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#ifndef ENABLE_VP_SOFTLET_BUILD
+#include "vp_vebox_cmd_packet_legacy.h"
+#endif
 
 namespace vp {
 VpSteFilter::VpSteFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -184,18 +187,28 @@ bool VpVeboxSteParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VP_FUNC_CALL();
 
-    VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
-    if (nullptr == pVeboxPacket)
+    VEBOX_STE_PARAMS *params = m_steFilter.GetVeboxParams();
+    if (nullptr == params)
     {
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get vebox ste params");
         return false;
     }
 
-    VEBOX_STE_PARAMS *pParams = m_steFilter.GetVeboxParams();
-    if (nullptr == pParams)
+    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    if (packet)
     {
-        return false;
+        return MOS_SUCCEEDED(packet->SetSteParams(params));
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetSteParams(pParams));
+#ifndef ENABLE_VP_SOFTLET_BUILD
+    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
+    if (packetLegacy)
+    {
+        return MOS_SUCCEEDED(packetLegacy->SetSteParams(params));
+    }
+#endif
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox ste");
+    return false;
 }
 
 MOS_STATUS VpVeboxSteParameter::Initialize(HW_FILTER_STE_PARAM &params)

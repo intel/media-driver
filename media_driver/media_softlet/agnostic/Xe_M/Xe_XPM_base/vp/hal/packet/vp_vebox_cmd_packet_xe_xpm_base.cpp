@@ -34,7 +34,7 @@ using namespace vp;
 
 VpVeboxCmdPacketXe_Xpm_Base::VpVeboxCmdPacketXe_Xpm_Base(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, bool disbaleSfcDithering) :
     CmdPacket(task),
-    VpVeboxCmdPacket(task, hwInterface, allocator, mmc),
+    VpVeboxCmdPacketLegacy(task, hwInterface, allocator, mmc),
     VpVeboxCmdPacketG12(task, hwInterface, allocator, mmc),
     m_disableSfcDithering(disbaleSfcDithering)
 {

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,9 @@
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#ifndef ENABLE_VP_SOFTLET_BUILD
+#include "vp_vebox_cmd_packet_legacy.h"
+#endif
 
 namespace vp {
 VpTccFilter::VpTccFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -189,18 +192,28 @@ bool VpVeboxTccParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VP_FUNC_CALL();
 
-    VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
-    if (nullptr == pVeboxPacket)
+    VEBOX_TCC_PARAMS *params = m_tccFilter.GetVeboxParams();
+    if (nullptr == params)
     {
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get vebox tcc params");
         return false;
     }
 
-    VEBOX_TCC_PARAMS *pParams = m_tccFilter.GetVeboxParams();
-    if (nullptr == pParams)
+    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    if (packet)
     {
-        return false;
+        return MOS_SUCCEEDED(packet->SetTccParams(params));
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetTccParams(pParams));
+#ifndef ENABLE_VP_SOFTLET_BUILD
+    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
+    if (packetLegacy)
+    {
+        return MOS_SUCCEEDED(packetLegacy->SetTccParams(params));
+    }
+#endif
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox csc");
+    return false;
 }
 
 MOS_STATUS VpVeboxTccParameter::Initialize(HW_FILTER_TCC_PARAM &params)

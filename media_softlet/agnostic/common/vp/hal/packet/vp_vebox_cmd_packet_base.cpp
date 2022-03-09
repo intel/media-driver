@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,25 +20,26 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vp_vebox_cmd_packet_xe_xpm.cpp
+//! \file     vp_vebox_cmd_packet.cpp
 //! \brief    vebox packet which used in by mediapipline.
 //! \details  vebox packet provide the structures and generate the cmd buffer which mediapipline will used.
 //!
 
-#include "vp_vebox_cmd_packet_xe_hpm.h"
-#include "mhw_sfc_xe_xpm.h"
-#include "media_user_settings_mgr_g12.h"
+#include "vp_vebox_cmd_packet_base.h"
 
-using namespace vp;
-
-VpVeboxCmdPacketXe_Hpm::VpVeboxCmdPacketXe_Hpm(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc, bool disbaleSfcDithering) :
+namespace vp {
+VpVeboxCmdPacketBase::VpVeboxCmdPacketBase(
+    MediaTask * task,
+    PVP_MHWINTERFACE hwInterface,
+    PVpAllocator &allocator,
+    VPMediaMemComp *mmc) :
     CmdPacket(task),
-    VpVeboxCmdPacketLegacy(task, hwInterface, allocator, mmc),
-    VpVeboxCmdPacketG12(task, hwInterface, allocator, mmc),
-    VpVeboxCmdPacketXe_Xpm_Base(task, hwInterface, allocator, mmc, disbaleSfcDithering)
+    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX)
 {
 }
 
-VpVeboxCmdPacketXe_Hpm::~VpVeboxCmdPacketXe_Hpm()
+VpVeboxCmdPacketBase::~VpVeboxCmdPacketBase()
 {
 }
+}
+

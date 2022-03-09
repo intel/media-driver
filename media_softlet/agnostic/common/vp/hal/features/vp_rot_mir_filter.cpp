@@ -29,6 +29,9 @@
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#ifndef ENABLE_VP_SOFTLET_BUILD
+#include "vp_vebox_cmd_packet_legacy.h"
+#endif
 
 using namespace vp;
 
@@ -248,18 +251,28 @@ bool VpSfcRotMirParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VP_FUNC_CALL();
 
-    VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
-    if (nullptr == pVeboxPacket)
-    {
-        return false;
-    }
-
     SFC_ROT_MIR_PARAMS *pParams = m_RotMirFilter.GetSfcParams();
     if (nullptr == pParams)
     {
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get sfc rotation/mirror params");
         return false;
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetSfcRotMirParams(pParams));
+
+    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    if (packet)
+    {
+        return MOS_SUCCEEDED(packet->SetSfcRotMirParams(pParams));
+    }
+#ifndef ENABLE_VP_SOFTLET_BUILD
+    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
+    if (packetLegacy)
+    {
+        return MOS_SUCCEEDED(packetLegacy->SetSfcRotMirParams(pParams));
+    }
+#endif
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for sfc rotation/mirror");
+    return false;
 }
 
 MOS_STATUS VpSfcRotMirParameter::Initialize(HW_FILTER_ROT_MIR_PARAM & params)

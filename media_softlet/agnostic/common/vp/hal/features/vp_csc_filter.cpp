@@ -29,6 +29,9 @@
 #include "vp_vebox_cmd_packet.h"
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
+#ifndef ENABLE_VP_SOFTLET_BUILD
+#include "vp_vebox_cmd_packet_legacy.h"
+#endif
 
 namespace vp {
 
@@ -728,22 +731,32 @@ VpSfcCscParameter::VpSfcCscParameter(PVP_MHWINTERFACE pHwInterface, PacketParamF
 }
 VpSfcCscParameter::~VpSfcCscParameter() {}
 
-bool VpSfcCscParameter::SetPacketParam(VpCmdPacket *pPacket)
+bool VpSfcCscParameter::SetPacketParam(VpCmdPacket *_packet)
 {
     VP_FUNC_CALL();
 
-    VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
-    if (nullptr == pVeboxPacket)
+    SFC_CSC_PARAMS *params = m_CscFilter.GetSfcParams();
+    if (nullptr == params)
     {
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get sfc csc params");
         return false;
     }
 
-    SFC_CSC_PARAMS *pParams = m_CscFilter.GetSfcParams();
-    if (nullptr == pParams)
+    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(_packet);
+    if (packet)
     {
-        return false;
+        return MOS_SUCCEEDED(packet->SetSfcCSCParams(params));
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetSfcCSCParams(pParams));
+#ifndef ENABLE_VP_SOFTLET_BUILD
+    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(_packet);
+    if (packetLegacy)
+    {
+        return MOS_SUCCEEDED(packetLegacy->SetSfcCSCParams(params));
+    }
+#endif
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for sfc csc");
+    return false;
 }
 
 MOS_STATUS VpSfcCscParameter::Initialize(HW_FILTER_CSC_PARAM &params)
@@ -925,18 +938,28 @@ bool VpVeboxCscParameter::SetPacketParam(VpCmdPacket* pPacket)
 {
     VP_FUNC_CALL();
 
-    VpVeboxCmdPacket* pVeboxPacket = dynamic_cast<VpVeboxCmdPacket*>(pPacket);
-    if (nullptr == pVeboxPacket)
+    VEBOX_CSC_PARAMS *params = m_CscFilter.GetVeboxParams();
+    if (nullptr == params)
     {
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get vebox be csc params");
         return false;
     }
 
-    VEBOX_CSC_PARAMS* pParams = m_CscFilter.GetVeboxParams();
-    if (nullptr == pParams)
+    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    if (packet)
     {
-        return false;
+        return MOS_SUCCEEDED(packet->SetVeboxBeCSCParams(params));
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetVeboxBeCSCParams(pParams));
+#ifndef ENABLE_VP_SOFTLET_BUILD
+    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
+    if (packetLegacy)
+    {
+        return MOS_SUCCEEDED(packetLegacy->SetVeboxBeCSCParams(params));
+    }
+#endif
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox be csc");
+    return false;
 }
 MOS_STATUS VpVeboxCscParameter::Initialize(HW_FILTER_CSC_PARAM& params)
 {

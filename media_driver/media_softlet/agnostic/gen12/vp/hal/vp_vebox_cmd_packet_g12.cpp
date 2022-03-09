@@ -200,7 +200,7 @@ const uint32_t   dwSTADThresholdUV[NOISEFACTOR_MAX + 1] = {
 namespace vp {
 VpVeboxCmdPacketG12::VpVeboxCmdPacketG12(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc) :
     CmdPacket(task),
-    VpVeboxCmdPacket(task, hwInterface, allocator, mmc)
+    VpVeboxCmdPacketLegacy(task, hwInterface, allocator, mmc)
 {
 
 }
@@ -397,7 +397,7 @@ MOS_STATUS VpVeboxCmdPacketG12::SetupDiIecpState(
 {
     VP_FUNC_CALL();
 
-    return VpVeboxCmdPacket::SetupDiIecpState(bDiScdEnable, pVeboxDiIecpCmdParams);
+    return VpVeboxCmdPacketLegacy::SetupDiIecpState(bDiScdEnable, pVeboxDiIecpCmdParams);
 }
 
 //!

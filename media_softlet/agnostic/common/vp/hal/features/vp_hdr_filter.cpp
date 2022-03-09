@@ -28,6 +28,9 @@
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
 #include "vp_render_cmd_packet.h"
+#ifndef ENABLE_VP_SOFTLET_BUILD
+#include "vp_vebox_cmd_packet_legacy.h"
+#endif
 
 namespace vp
 {
@@ -198,18 +201,29 @@ bool VpVeboxHdrParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VP_FUNC_CALL();
 
-    VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
-    if (nullptr == pVeboxPacket)
-    {
-        return false;
-    }
-
     VEBOX_HDR_PARAMS *pParams = m_HdrFilter.GetVeboxParams();
     if (nullptr == pParams)
     {
+        VP_PUBLIC_ASSERTMESSAGE("Failed to get vebox hdr params");
         return false;
     }
-    return MOS_SUCCEEDED(pVeboxPacket->SetHdrParams(pParams));
+
+    VpVeboxCmdPacket *packet = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
+    if (packet)
+    {
+        return MOS_SUCCEEDED(packet->SetHdrParams(pParams));
+    }
+#ifndef ENABLE_VP_SOFTLET_BUILD
+    VpVeboxCmdPacketLegacy *packetLegacy = dynamic_cast<VpVeboxCmdPacketLegacy *>(pPacket);
+    if (packetLegacy)
+    {
+        return MOS_SUCCEEDED(packetLegacy->SetHdrParams(pParams));
+    }
+#endif
+
+    VP_PUBLIC_ASSERTMESSAGE("Invalid packet for Vebox hdr");
+    return false;
+
 }
 
 MOS_STATUS VpVeboxHdrParameter::Initialize(HW_FILTER_HDR_PARAM &params)
