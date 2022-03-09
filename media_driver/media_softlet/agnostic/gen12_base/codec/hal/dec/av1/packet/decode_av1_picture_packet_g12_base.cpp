@@ -1259,10 +1259,7 @@ namespace decode{
         CODECHAL_DEBUG_TOOL(DumpResources(pipeBufAddrParams));
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
-        {
-            TraceDataDumpInternalBuffers(pipeBufAddrParams);
-        }
+        TraceDataDumpInternalBuffers(pipeBufAddrParams);
 #endif
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
@@ -1667,25 +1664,31 @@ namespace decode{
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
     MOS_STATUS Av1DecodePicPkt_G12_Base::TraceDataDumpInternalBuffers(MhwVdboxAvpPipeBufAddrParams &pipeBufAddrParams)
-    {
-        if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
+    {        
+        if (MOS_GetTraceEventKeyword() & EVENT_DECODE_INTERNAL_KEYWORD)
         {
-            m_osInterface->pfnDumpTraceGpuData(
-                m_osInterface,
-                "Decode_Av1CdfTableInitBuffer",
-                0,
-                pipeBufAddrParams.m_cdfTableInitializationBuffer,
-                m_av1BasicFeature->m_cdfMaxNumBytes);
-
-            if (pipeBufAddrParams.m_segmentIdReadBuffer != nullptr &&
-                !m_allocator->ResourceIsNull(pipeBufAddrParams.m_segmentIdReadBuffer))
+            if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
             {
                 m_osInterface->pfnDumpTraceGpuData(
                     m_osInterface,
-                    "Decode_Av1SegmentIdReadBuffer",
+                    "Decode_Av1CdfTableInitBuffer",
                     0,
-                    pipeBufAddrParams.m_segmentIdReadBuffer,
-                    m_widthInSb * m_heightInSb * CODECHAL_CACHELINE_SIZE);
+                    pipeBufAddrParams.m_cdfTableInitializationBuffer,
+                    m_av1BasicFeature->m_cdfMaxNumBytes);
+            }
+
+            if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
+            {
+                if (pipeBufAddrParams.m_segmentIdReadBuffer != nullptr &&
+                    !m_allocator->ResourceIsNull(pipeBufAddrParams.m_segmentIdReadBuffer))
+                {
+                    m_osInterface->pfnDumpTraceGpuData(
+                        m_osInterface,
+                        "Decode_Av1SegmentIdReadBuffer",
+                        0,
+                        pipeBufAddrParams.m_segmentIdReadBuffer,
+                        m_widthInSb * m_heightInSb * CODECHAL_CACHELINE_SIZE);
+                }
             }
         }
 

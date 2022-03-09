@@ -193,7 +193,7 @@ namespace decode
                     })
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-                if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
+                if (MOS_GetTraceEventKeyword() & EVENT_DECODE_COMMAND_KEYWORD)
                 {
                     TraceDataDump2ndLevelBB(m_av1DecodePkt->GetSecondLvlBB());
                 }

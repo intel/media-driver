@@ -97,10 +97,7 @@ MOS_STATUS Vp9PipelineG12::Prepare(void *params)
                 );
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            if (MOS_GetTraceEventKeyword() & EVENT_DECODE_BUFFER_KEYWORD)
-            {
-                DumpTraceDataInternalBuffers(*m_basicFeature);
-            }
+            DumpTraceDataInternalBuffers(*m_basicFeature);
 #endif
 
             DecodeStatusParameters inputParameters = {};
@@ -326,20 +323,23 @@ MOS_STATUS Vp9PipelineG12::DumpParams(Vp9BasicFeature &basicFeature)
 #endif
 
 void Vp9PipelineG12::DumpTraceDataInternalBuffers(Vp9BasicFeature &basicFeature)
-{    
-    m_osInterface->pfnDumpTraceGpuData(
-        m_osInterface,
-        "Decode_Vp9SegmentIdBeforeHCP", 
-        0, 
-        &(basicFeature.m_resVp9SegmentIdBuffer->OsResource),
-        basicFeature.m_allocatedWidthInSb * basicFeature.m_allocatedHeightInSb * CODECHAL_CACHELINE_SIZE);
+{  
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_INTERNAL_KEYWORD)
+    {
+        m_osInterface->pfnDumpTraceGpuData(
+            m_osInterface,
+            "Decode_Vp9SegmentIdBeforeHCP",
+            0,
+            &(basicFeature.m_resVp9SegmentIdBuffer->OsResource),
+            basicFeature.m_allocatedWidthInSb * basicFeature.m_allocatedHeightInSb * CODECHAL_CACHELINE_SIZE);
 
-    m_osInterface->pfnDumpTraceGpuData(
-        m_osInterface,
-        "Decode_Vp9CoeffProbsBeforeHCP",
-        0,
-        &(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource),
-        CODEC_VP9_PROB_MAX_NUM_ELEM);
+        m_osInterface->pfnDumpTraceGpuData(
+            m_osInterface,
+            "Decode_Vp9CoeffProbsBeforeHCP",
+            0,
+            &(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource),
+            CODEC_VP9_PROB_MAX_NUM_ELEM);
+    }
 }
 
 }  // namespace decode
