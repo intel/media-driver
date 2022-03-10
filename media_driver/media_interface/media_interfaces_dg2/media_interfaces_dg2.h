@@ -21,6 +21,8 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 ======================= end_copyright_notice ==================================*/
+
+
 //!
 //! \file     media_interfaces_dg2.h
 //! \brief    All interfaces used for DG2 that require factory creation
@@ -63,6 +65,7 @@
 #include "mhw_blt_xe_hp_base.h"
 
 #include "codechal_hw_xe_hpm.h"
+
 
 #ifdef _AVC_DECODE_SUPPORTED
 #include "decode_avc_pipeline_adapter_m12.h"
@@ -108,6 +111,11 @@
 #include "codechal_vdenc_avc_xe_hpm.h"
 #endif
 
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
+#include "codechal_vdenc_vp9_g12.h"
+#include "codechal_vdenc_vp9_xe_hpm.h"
+#endif
+
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg_g12.h"
 #endif
@@ -117,18 +125,17 @@
 #include "codechal_vdenc_avc_xe_hpm_ext.h"
 #endif
 
-#include "codechal_memdecomp_g11_icl.h"
-
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#include "codechal_vdenc_vp9_g12.h"
-#include "codechal_vdenc_vp9_xe_hpm.h"
 #ifdef _APOGEIOS_SUPPORTED
 #include "encode_vp9_vdenc_pipeline_adapter_xe_hpm.h"
 #endif
 #endif
 
+#include "codechal_memdecomp_g11_icl.h"
+
 #include "cm_hal_xe_xpm.h"
-#endif
+
+#endif // _MEDIA_RESERVED
 
 #include "vphal_xe_xpm.h"
 #include "vphal_xe_hpm.h"
@@ -270,9 +277,10 @@ public:
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateXe_HpmExt;
 #endif
-
 #else
-
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
+    using Vp9 = CodechalVdencVp9StateXe_Xpm;
+#endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateXe_Hpm;
 #endif

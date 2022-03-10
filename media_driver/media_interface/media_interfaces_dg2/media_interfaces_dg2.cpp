@@ -646,61 +646,6 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
         }
         else
 #endif
-#ifdef IGFX_DG2_ENABLE_NON_UPSTREAM
-#ifdef _VP9_ENCODE_VDENC_SUPPORTED
-        if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
-        {
-#ifdef _APOGEIOS_SUPPORTED
-            bool                        apogeiosEnable = false;
-            MOS_USER_FEATURE_VALUE_DATA userFeatureData;
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-
-            userFeatureData.i32Data     = apogeiosEnable;
-            userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-            MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __MEDIA_USER_FEATURE_VALUE_APOGEIOS_ENABLE_ID,
-                &userFeatureData,
-                osInterface->pOsContext);
-            apogeiosEnable = (userFeatureData.i32Data) ? true : false;
-
-            if (apogeiosEnable)
-            {
-                CreateCodecHalInterface(mhwInterfaces, mhwInterfacesNext, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
-
-                m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe_Hpm, hwInterface, debugInterface);
-                if (m_codechalDevice == nullptr)
-                {
-                    CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                    return MOS_STATUS_INVALID_PARAMETER;
-                }
-                RETURN_STATUS_WITH_DELETE(MOS_STATUS_SUCCESS);
-            }
-            else
-            {
-                CreateCodecHalInterface(mhwInterfaces, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
-#endif
-                encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
-            }
-            if (encoder == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            else
-            {
-                m_codechalDevice = encoder;
-            }
-        }
-        else
-#endif
-        if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
-        {
-            CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, MPEG2 Encoder is not supported!");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-        else
-#endif
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
@@ -717,6 +662,31 @@ MOS_STATUS CodechalInterfacesXe_Hpm::Initialize(
                 m_codechalDevice = encoder;
             }
             encoder->m_vdboxOneDefaultUsed = true;
+        }
+        else
+#endif
+        if (info->Mode == CODECHAL_ENCODE_MODE_MPEG2)
+        {
+            CODECHAL_PUBLIC_ASSERTMESSAGE("Encode allocation failed, MPEG2 Encoder is not supported!");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        else
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
+        if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
+        {
+            CreateCodecHalInterface(mhwInterfaces, hwInterface, debugInterface, osInterface, CodecFunction, disableScalability);
+
+            encoder = MOS_New(Encode::Vp9, hwInterface, debugInterface, info);
+
+            if (encoder == nullptr)
+            {
+                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            else
+            {
+                m_codechalDevice = encoder;
+            }
         }
         else
 #endif
