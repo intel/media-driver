@@ -171,7 +171,6 @@ public:
     _MHW_SETCMD_OVERRIDE_DECL(PIPELINE_SELECT)
     {
         _MHW_SETCMD_CALLBASE(PIPELINE_SELECT);
-        cmd.DW0.PipelineSelection = (params.gpGpuPipe) ? cmd.PIPELINE_SELECTION_GPGPU : cmd.PIPELINE_SELECTION_MEDIA;
         return MOS_STATUS_SUCCESS;
     }
 
@@ -324,7 +323,6 @@ public:
 
         // stateless dataport access
         cmd.DW3.StatelessDataPortAccessMemoryObjectControlState = params.mocs4StatelessDataport;
-        cmd.DW3.L1CachePolicy                                   = params.l1CacheConfig;
 
         return MOS_STATUS_SUCCESS;
     }

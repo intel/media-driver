@@ -145,6 +145,7 @@ public:
     _MHW_SETCMD_OVERRIDE_DECL(PIPELINE_SELECT)
     {
         _MHW_SETCMD_CALLBASE(PIPELINE_SELECT);
+        cmd.DW0.PipelineSelection = (params.gpGpuPipe) ? cmd.PIPELINE_SELECTION_GPGPU : cmd.PIPELINE_SELECTION_MEDIA;
         cmd.DW0.MaskBits = 0x13;
         return MOS_STATUS_SUCCESS;
     }
@@ -223,6 +224,15 @@ public:
                 &resourceParams));
             cmd.postsync_data.DW0.Operation = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::POSTSYNC_DATA_CMD::POSTSYNC_OPERATION_WRITE_TIMESTAMP;
         }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_SETCMD_OVERRIDE_DECL(STATE_BASE_ADDRESS)
+    {
+        _MHW_SETCMD_CALLBASE(STATE_BASE_ADDRESS);
+
+        cmd.DW3.L1CachePolicy                                   = params.l1CacheConfig;
 
         return MOS_STATUS_SUCCESS;
     }
