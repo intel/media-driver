@@ -197,8 +197,8 @@ namespace encode
         dmem->UPD_HRD_BUFF_FULLNESS_UPPER = seqParams->UpperVBVBufferLevelThresholdInBit;
 
         auto CalculatedMaxFrame = m_basicFeature->m_frameHeight * m_basicFeature->m_frameWidth;
-        dmem->UPD_UserMaxFrame   = seqParams->UserMaxIFrameSize  > 0 ? MOS_MIN(seqParams->UserMaxIFrameSize  << 3, CalculatedMaxFrame) : CalculatedMaxFrame;
-        dmem->UPD_UserMaxFramePB = seqParams->UserMaxPBFrameSize > 0 ? MOS_MIN(seqParams->UserMaxPBFrameSize << 3, CalculatedMaxFrame) : CalculatedMaxFrame;
+        dmem->UPD_UserMaxFrame   = seqParams->UserMaxIFrameSize  > 0 ? MOS_MIN(seqParams->UserMaxIFrameSize, CalculatedMaxFrame) : CalculatedMaxFrame;
+        dmem->UPD_UserMaxFramePB = seqParams->UserMaxPBFrameSize > 0 ? MOS_MIN(seqParams->UserMaxPBFrameSize, CalculatedMaxFrame) : CalculatedMaxFrame;
 
         dmem->UPD_CurWidth  = (uint16_t)m_basicFeature->m_oriFrameWidth;
         dmem->UPD_CurHeight = (uint16_t)m_basicFeature->m_oriFrameHeight;
