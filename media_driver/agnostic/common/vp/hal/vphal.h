@@ -335,6 +335,9 @@ using VphalFeatureReport = VpFeatureReport;
 class VphalState
 {
 public:
+    // Perf Optimize for ClearVideoView DDI
+    bool m_clearVideoViewMode = false;
+
     // factory function
     static VphalState* VphalStateFactory(
         PMOS_INTERFACE          pOsInterface,

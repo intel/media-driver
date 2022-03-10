@@ -161,6 +161,9 @@ public:
     VPHAL_SURFACE               IntermediateSurface = {};
     PVPHAL_HDR_STATE            pHdrState;
 
+    // Perf Optimize for ClearVideoView DDI
+    bool m_clearVideoViewMode = false;
+
 protected:
     // Renderer private data
     PRENDERHAL_INTERFACE        m_pRenderHal;

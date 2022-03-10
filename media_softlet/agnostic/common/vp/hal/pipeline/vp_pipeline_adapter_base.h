@@ -64,7 +64,8 @@ struct VpSettings
                       disableDnDi(0),
                       kernelUpdate(0),
                       disableHdr(0),
-                      veboxParallelExecution(0){};
+                      veboxParallelExecution(0),
+                      clearVideoViewMode(false){};
 
     int32_t  maxPhases;
     int32_t  mediaStates;
@@ -73,6 +74,7 @@ struct VpSettings
     uint32_t kernelUpdate;            //!< For VEBox Copy and Update kernels
     uint32_t disableHdr;              //!< Disable Hdr
     uint32_t veboxParallelExecution;  //!< Control VEBox parallel execution with render engine
+    uint32_t clearVideoViewMode;     //!< Perf Optimize for ClearVideoView DDI
 };
 
 //!
