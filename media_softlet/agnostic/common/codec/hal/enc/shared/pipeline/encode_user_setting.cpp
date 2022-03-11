@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -71,6 +71,12 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         true);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Enable Media Encode Scalability",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         "Huc Status2 Value",
