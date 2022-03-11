@@ -311,10 +311,9 @@ MOS_STATUS MhwVeboxInterface::CreateHeap( )
     if (MEDIA_IS_SKU(skuTable, FtrLimitedLMemBar))
     {
         // Use device memory for vebox heap kernel resource, as no cpu access on it.
-        AllocParams.dwMemType = MOS_MEMPOOL_DEVICEMEMORY;
-        AllocParams.Flags.bNotLockable = 1;
+        AllocParams.dwMemType = MOS_MEMPOOL_DEVICEMEMORY;   
     }
-
+    AllocParams.Flags.bNotLockable = 1;
     MHW_CHK_STATUS(m_osInterface->pfnAllocateResource(
         m_osInterface,
         &AllocParams,

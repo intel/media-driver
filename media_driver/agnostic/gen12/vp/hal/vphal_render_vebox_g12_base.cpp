@@ -660,7 +660,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 MOS_HW_RESOURCE_DEF_MAX,
                 MOS_TILE_UNSET_GMM,
                 memTypeSurfVideoMem,
-                MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+                VPP_INTER_RESOURCE_NOTLOCKABLE));
 
             pVeboxState->FFDISurfaces[i]->SampleType = SampleType;
 
@@ -746,7 +746,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::AllocateResources()
                 MOS_HW_RESOURCE_DEF_MAX,
                 tileModeByForce,
                 memTypeSurfVideoMem,
-                MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+                VPP_INTER_RESOURCE_NOTLOCKABLE));
 
             // if allocated, pVeboxState->PreviousSurface is not valid for DN reference.
             if (bAllocated)

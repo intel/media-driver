@@ -613,7 +613,7 @@ MOS_STATUS VphalSfcStateXe_Xpm::AllocateResources()
             MOS_HW_RESOURCE_DEF_MAX,
             MOS_TILE_UNSET_GMM,
             memTypeSurfVideoMem,
-            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+            VPP_INTER_RESOURCE_NOTLOCKABLE));
 
         // Allocate IEF Line Buffer surface for split
         dwWidth  = m_IEFLineBufferSurface.dwWidth;
@@ -635,7 +635,7 @@ MOS_STATUS VphalSfcStateXe_Xpm::AllocateResources()
             MOS_HW_RESOURCE_DEF_MAX,
             MOS_TILE_UNSET_GMM,
             memTypeSurfVideoMem,
-            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+            VPP_INTER_RESOURCE_NOTLOCKABLE));
     }
 
 finish:

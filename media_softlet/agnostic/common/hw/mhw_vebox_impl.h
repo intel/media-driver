@@ -277,9 +277,8 @@ public:
         {
             // Use device memory for vebox heap kernel resource, as no cpu access on it.
             AllocParams.dwMemType = MOS_MEMPOOL_DEVICEMEMORY;
-            AllocParams.Flags.bNotLockable = 1;
         }
-
+        AllocParams.Flags.bNotLockable = 1;
         MHW_CHK_STATUS_RETURN(this->m_osItf->pfnAllocateResource(
             this->m_osItf,
             &AllocParams,

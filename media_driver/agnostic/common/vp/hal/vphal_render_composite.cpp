@@ -7208,7 +7208,7 @@ MOS_STATUS CompositeState::Initialize(
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER,
             MOS_TILE_UNSET_GMM,
             memTypeSurfVdieoMem,
-            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVdieoMem));
+            VPP_INTER_RESOURCE_NOTLOCKABLE));
     }
 
     // Setup Procamp Parameters

@@ -41,6 +41,10 @@
 //*-----------------------------------------------------------------------------
 // Incremental size for allocating/reallocating resource
 #define VPHAL_BUFFER_SIZE_INCREMENT     128
+ 
+// VPP internal resource NotLockable flag macro
+#define VPP_INTER_RESOURCE_NOTLOCKABLE  true
+#define VPP_INTER_RESOURCE_LOCKABLE     false
 
 // YUV input ranges
 #define YUV_RANGE_16_235                1

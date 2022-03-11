@@ -966,7 +966,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER,
         MOS_TILE_UNSET_GMM,
         memTypeSurfVideoMem,
-        MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+        VPP_INTER_RESOURCE_NOTLOCKABLE));
 
     surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeFcCscCoeff, m_cmfcCoeff));
 
@@ -1207,7 +1207,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps
             MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF,
             MOS_TILE_UNSET_GMM,
             memTypeSurfVideoMem,
-            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+            VPP_INTER_RESOURCE_NOTLOCKABLE));
 
         m_veboxOutput[i]->ColorSpace = inputSurface->ColorSpace;
         m_veboxOutput[i]->rcDst      = inputSurface->rcDst;
@@ -1313,7 +1313,7 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
             MOS_HW_RESOURCE_USAGE_VP_INPUT_REFERENCE_FF,
             tileModeByForce,
             memTypeSurfVideoMem,
-            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+            VPP_INTER_RESOURCE_NOTLOCKABLE));
 
         // if allocated, pVeboxState->PastSurface is not valid for DN reference.
         if (allocated)
@@ -1703,10 +1703,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         bAllocated,
         false,
         IsDeferredResourceDestroyNeeded(),
-        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
-        MOS_TILE_UNSET_GMM,
-        memTypeHistStat,
-        MOS_MEMPOOL_DEVICEMEMORY == memTypeHistStat));
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
 
     m_isHistogramReallocated = bAllocated;
 

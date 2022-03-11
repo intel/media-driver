@@ -1288,7 +1288,7 @@ MOS_STATUS SfcRenderBase::AllocateLineBuffer(VP_SURFACE *&lineBuffer, uint32_t s
                                       MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
                                       MOS_TILE_UNSET_GMM,
                                       memTypeSurfVideoMem,
-                                      MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+                                      VPP_INTER_RESOURCE_NOTLOCKABLE));
     }
     else if (lineBuffer)
     {

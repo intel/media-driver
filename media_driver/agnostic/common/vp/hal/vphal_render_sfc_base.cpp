@@ -869,7 +869,7 @@ MOS_STATUS VphalSfcState::AllocateResources()
         MOS_HW_RESOURCE_DEF_MAX,
         MOS_TILE_UNSET_GMM,
         memTypeSurfVideoMem,
-        MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+        VPP_INTER_RESOURCE_NOTLOCKABLE));
 
     // Allocate IEF Line Buffer surface----------------------------------------------
     dwWidth  = 1;
@@ -891,7 +891,7 @@ MOS_STATUS VphalSfcState::AllocateResources()
         MOS_HW_RESOURCE_DEF_MAX,
         MOS_TILE_UNSET_GMM,
         memTypeSurfVideoMem,
-        MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+        VPP_INTER_RESOURCE_NOTLOCKABLE));
 
     // Allocate SFD Line Buffer surface----------------------------------------------
     if (NEED_SFD_LINE_BUFFER(pSfcStateParams->dwScaledRegionHeight))
@@ -913,7 +913,7 @@ MOS_STATUS VphalSfcState::AllocateResources()
             MOS_HW_RESOURCE_DEF_MAX,
             MOS_TILE_UNSET_GMM,
             memTypeSurfVideoMem,
-            MOS_MEMPOOL_DEVICEMEMORY == memTypeSurfVideoMem));
+            VPP_INTER_RESOURCE_NOTLOCKABLE));
     }
 
 finish:
