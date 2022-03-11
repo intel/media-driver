@@ -76,7 +76,7 @@ void HalOcaInterface::On1stLevelBBStart(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTE
     MosOcaInterface *pOcaInterface      = &MosOcaInterfaceSpecific::GetInstance();
     MOS_OCA_BUFFER_HANDLE ocaBufHandle  = 0;
     uint64_t  ocaBase                   = 0;
-    
+
     if (nullptr == pOcaInterface || !((MosOcaInterfaceSpecific*)pOcaInterface)->IsOcaEnabled())
     {
         return;

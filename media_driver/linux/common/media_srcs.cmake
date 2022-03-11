@@ -25,6 +25,7 @@ media_include_subdirectory(ddi)
 media_include_subdirectory(media_interfaces)
 media_include_subdirectory(os)
 media_include_subdirectory(renderhal)
+media_include_subdirectory(shared)
 media_include_subdirectory(vp)
 media_include_subdirectory(hw)
 

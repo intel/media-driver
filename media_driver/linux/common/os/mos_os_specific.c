@@ -5560,11 +5560,19 @@ void Mos_Specific_IncrementGpuStatusTag(
 //!
 uint32_t Mos_Specific_GetGpuStatusSyncTag(
     PMOS_INTERFACE            pOsInterface,
-    MOS_GPU_CONTEXT           GpuContext)
+    MOS_GPU_CONTEXT           gpuContext)
 {
-    MOS_UNUSED(pOsInterface);
-    MOS_UNUSED(GpuContext);
-    return 0;
+    MOS_OS_FUNCTION_ENTER;
+    PMOS_CONTEXT pOsContext = nullptr;
+
+    if(!pOsInterface || !pOsInterface->pOsContext)
+    {
+        MOS_OS_ASSERTMESSAGE("Invalid nullptr");
+        return 0;
+    }
+    pOsContext = pOsInterface->pOsContext;
+
+    return pOsContext->GetGPUTag(pOsInterface, gpuContext);
 }
 
 //!

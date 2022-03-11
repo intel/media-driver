@@ -21,7 +21,6 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_linux.cpp
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_dsh_specific.c
-    ${CMAKE_CURRENT_LIST_DIR}/hal_oca_interface.cpp
 )
 
 set(TMP_HEADERS_ "")
