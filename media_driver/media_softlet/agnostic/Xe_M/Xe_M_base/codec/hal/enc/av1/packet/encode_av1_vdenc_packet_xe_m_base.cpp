@@ -354,6 +354,9 @@ namespace encode
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnResourceWait(m_osInterface, &syncParams));
         m_osInterface->pfnSetResourceSyncTag(m_osInterface, &syncParams);
 
+        // Set flag to boost GPU frequency for low latency in remote gaming scenario
+        cmdBuffer.Attributes.bFrequencyBoost = (m_av1SeqParams->ScenarioInfo == ESCENARIO_REMOTEGAMING);
+
         ENCODE_CHK_STATUS_RETURN(RegisterPostCdef());
         ENCODE_CHK_STATUS_RETURN(PatchPictureLevelCommands(packetPhase, cmdBuffer));
 
