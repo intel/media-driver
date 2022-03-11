@@ -78,7 +78,6 @@ MOS_STATUS Av1ReferenceFrames::Update()
     m_refFrameBiasFlagsForRefManagement.value = 0;
 
     // save current frame infomation into m_refList
-    UpdateRefFrameSize(picParams->frame_width_minus1 + 1, picParams->frame_height_minus1 + 1);
     auto currRefIdx = picParams->CurrReconstructedPic.FrameIdx;
     m_currRefList = m_refList[currRefIdx];
 
@@ -88,8 +87,8 @@ MOS_STATUS Av1ReferenceFrames::Update()
     m_currRefList->sRefRawBuffer = m_basicFeature->m_rawSurface;
     m_currRefList->RefPic = picParams->CurrOriginalPic;
     m_currRefList->resBitstreamBuffer = m_basicFeature->m_resBitstreamBuffer;
-    m_currRefList->m_frameWidth = m_refWidth;
-    m_currRefList->m_frameHeight = m_refHeight;
+    m_currRefList->m_frameWidth = m_refWidth? m_refWidth : picParams->frame_width_minus1 + 1;
+    m_currRefList->m_frameHeight = m_refHeight? m_refHeight : picParams->frame_height_minus1 + 1;
     m_currRefList->m_orderHint = picParams->order_hint;
     m_currRefList->m_miCols = m_basicFeature->m_miCols;
     m_currRefList->m_miRows = m_basicFeature->m_miRows;
