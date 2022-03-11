@@ -556,6 +556,15 @@ void VpHal_GetScalingRatio(
 uint16_t VpHal_FloatToHalfFloat(
     float     fInput);
 
+//! \brief    Transfer float type to half precision float type
+//! \details  Transfer float type to half precision float (16bit) type
+//! \param    [in] fInput
+//!           input FP32 number
+//! \return   uint16_t
+//!           half precision float value in bit
+//!
+uint16_t VpHal_FloatToHalfFloatA(
+    float fInputA);
 
 MOS_SURFACE VpHal_ConvertVphalSurfaceToMosSurface(
     PVPHAL_SURFACE pSurface);
