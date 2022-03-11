@@ -44,6 +44,23 @@
 #define MHW_LACE_COLOR_COMPENSATION_LUT_POINT_NUMBER    16
 #define MHW_VEBOX_SLIM_IPU_DN_CMD_SIZE_INUSE            34
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+#define MHW_VEBOX_IS_VEBOX_SPECIFIED_IN_CONFIG(keyval, VDId, shift, mask, bUseVD) \
+do\
+{\
+    int32_t TmpVal = keyval;\
+    while (TmpVal != 0) \
+    {\
+        if (((TmpVal) & (mask)) == (VDId))\
+        {\
+            bUseVD = true;\
+            break;\
+        }\
+        TmpVal >>= (shift);\
+    };\
+}while(0)
+#endif
+
 namespace mhw
 {
 namespace vebox
@@ -508,23 +525,6 @@ const MHW_VEBOX_SETTINGS g_Vebox_Settings =
         MHW_PAGE_SIZE * 2,     //!< uiGammaCorrectionStateSize
         MHW_PAGE_SIZE * 18     //!< uiHdrStateSize
 };
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-#define MHW_VEBOX_IS_VEBOX_SPECIFIED_IN_CONFIG(keyval, VDId, shift, mask, bUseVD) \
-do\
-{\
-    int32_t TmpVal = keyval;\
-    while (TmpVal != 0) \
-    {\
-        if (((TmpVal) & (mask)) == (VDId))\
-        {\
-            bUseVD = true;\
-            break;\
-        }\
-        TmpVal >>= (shift);\
-    };\
-}while(0)
-#endif
 
 enum MHW_VEBOX_INDEX
 {

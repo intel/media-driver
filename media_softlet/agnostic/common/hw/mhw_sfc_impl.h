@@ -31,10 +31,6 @@
 #include "mhw_sfc_itf.h"
 #include "mhw_impl.h"
 
-#ifdef IGFX_SFC_INTERFACE_EXT_SUPPORT
-#include "mhw_sfc_impl_ext.h"
-#endif
-
 namespace mhw
 {
 namespace sfc
