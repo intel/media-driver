@@ -74,6 +74,11 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
 
     if (GetOsContextValid() == false)
     {
+        m_skuTable.reset();
+        m_waTable.reset();
+        MosUtilities::MosZeroMemory(&m_platformInfo, sizeof(m_platformInfo));
+        MosUtilities::MosZeroMemory(&m_gtSystemInfo, sizeof(m_gtSystemInfo));
+
         if( nullptr == osDriverContext  ||
             0 >= osDriverContext->fd )
         {
@@ -89,7 +94,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             return MOS_STATUS_INVALID_PARAMETER;
         }
         mos_bufmgr_gem_enable_reuse(m_bufmgr);
-        
+
         MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
         MOS_UserFeature_ReadValue_ID(
             nullptr,
@@ -98,7 +103,13 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
             osDriverContext);
         if (UserFeatureData.i32Data)
         {
-            mos_bufmgr_gem_enable_softpin(m_bufmgr);
+            bool softpin_va1Malign = false;
+            if (MEDIA_IS_SKU(&m_skuTable, Ftr1MGranularAuxTable))
+            {
+                softpin_va1Malign = true;
+            }
+
+            mos_bufmgr_gem_enable_softpin(m_bufmgr, softpin_va1Malign);
         }
 
         osDriverContext->bufmgr                 = m_bufmgr;
@@ -106,11 +117,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
         iDeviceId   = mos_bufmgr_gem_get_devid(m_bufmgr);
         m_isAtomSOC = IS_ATOMSOC(iDeviceId);
-
-        m_skuTable.reset();
-        m_waTable.reset();
-        MosUtilities::MosZeroMemory(&m_platformInfo, sizeof(m_platformInfo));
-        MosUtilities::MosZeroMemory(&m_gtSystemInfo, sizeof(m_gtSystemInfo));
 
         eStatus = NullHW::Init(osDriverContext);
         if (!NullHW::IsEnabled())

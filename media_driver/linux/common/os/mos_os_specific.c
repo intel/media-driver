@@ -2510,7 +2510,9 @@ MOS_STATUS Mos_Specific_AllocateResource(
     {
         case MOS_TILE_Y:
             tileformat_linux               = I915_TILING_Y;
-            if (pParams->bIsCompressible && MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrE2ECompression))
+            if (pParams->bIsCompressible                                             && 
+                MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrE2ECompression) &&
+                MEDIA_IS_SKU(&pOsInterface->pOsContext->SkuTable, FtrCompressibleSurfaceDefault))
             {
                 GmmParams.Flags.Gpu.MMC = true;
                 GmmParams.Flags.Info.MediaCompressed = 1;

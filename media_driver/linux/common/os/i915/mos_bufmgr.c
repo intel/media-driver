@@ -164,6 +164,7 @@ struct mos_bufmgr_gem {
     // manage address for softpin buffer object
     mos_vma_heap vma_heap[MEMZONE_COUNT];
     bool use_softpin;
+    bool softpin_va1Malign;
 } mos_bufmgr_gem;
 
 #define DRM_INTEL_RELOC_FENCE (1<<0)
@@ -3545,7 +3546,8 @@ mos_gem_bo_set_softpin(MOS_LINUX_BO *bo)
     pthread_mutex_lock(&bufmgr_gem->lock);
     if (!mos_gem_bo_is_softpin(bo))
     {
-        uint64_t offset = mos_gem_bo_vma_alloc(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, PAGE_SIZE_64K);
+        uint64_t alignment = (bufmgr_gem->softpin_va1Malign) ? PAGE_SIZE_1M : PAGE_SIZE_64K;
+        uint64_t offset = mos_gem_bo_vma_alloc(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
         ret = mos_gem_bo_set_softpin_offset(bo, offset);
     }
     pthread_mutex_unlock(&bufmgr_gem->lock);
@@ -4407,10 +4409,11 @@ mos_bufmgr_gem_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t l
     return 0;
 }
 
-void mos_bufmgr_gem_enable_softpin(struct mos_bufmgr *bufmgr)
+void mos_bufmgr_gem_enable_softpin(struct mos_bufmgr *bufmgr, bool va1m_align)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *)bufmgr;
-    bufmgr_gem->use_softpin = true;
+    bufmgr_gem->use_softpin           = true;
+    bufmgr_gem->softpin_va1Malign     = va1m_align;
 }
 
 /**
