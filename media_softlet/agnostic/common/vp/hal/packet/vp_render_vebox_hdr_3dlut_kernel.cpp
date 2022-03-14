@@ -441,15 +441,17 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
             VP_RENDER_CHK_NULL_RETURN(surf);
             VP_RENDER_CHK_NULL_RETURN(surf->osSurface);
 
-            uint32_t depth = 4;
-            uint32_t width = surf->bufferWidth / depth;
-            uint32_t height = surf->bufferHeight;
+            if (Format_Buffer == surf->osSurface->Format)
+            {
+                VP_RENDER_ASSERTMESSAGE("2D surface should be used for SurfType %d", surfType);
+                VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+            }
 
             KERNEL_SURFACE_STATE_PARAM kernelSurfaceParam = {};
             kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams  = true;
-            kernelSurfaceParam.surfaceOverwriteParams.width                 = surf->bufferWidth / depth;
-            kernelSurfaceParam.surfaceOverwriteParams.height                = surf->bufferHeight;
-            kernelSurfaceParam.surfaceOverwriteParams.pitch                 = surf->bufferWidth;
+            kernelSurfaceParam.surfaceOverwriteParams.width                 = surf->osSurface->dwWidth;
+            kernelSurfaceParam.surfaceOverwriteParams.height                = surf->osSurface->dwHeight;
+            kernelSurfaceParam.surfaceOverwriteParams.pitch                 = surf->osSurface->dwPitch;
             kernelSurfaceParam.surfaceOverwriteParams.format                = Format_A8R8G8B8;
             kernelSurfaceParam.surfaceOverwriteParams.tileType              = surf->osSurface->TileType;
             kernelSurfaceParam.surfaceOverwriteParams.surface_offset        = 0;

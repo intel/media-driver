@@ -1846,7 +1846,8 @@ MOS_STATUS VpResourceManager::AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& ca
         isAllocated,
         false,
         IsDeferredResourceDestroyNeeded(),
-        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
+        MOS_TILE_4_GMM));
 
     if (isAllocated)
     {
