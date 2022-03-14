@@ -2101,10 +2101,10 @@ MOS_STATUS MosUtilities::MosWaitThread(
     return eStatus;
 }
 
-PMOS_MUTEX MosUtilities::MosCreateMutex(uint32_t spinCount)
+PMOS_MUTEX MosUtilities::MosCreateMutex()
 {
     PMOS_MUTEX pMutex;
-    MOS_UNUSED(spinCount);
+
     pMutex = (PMOS_MUTEX)MOS_AllocMemory(sizeof(*pMutex));
     if (pMutex != nullptr)
     {

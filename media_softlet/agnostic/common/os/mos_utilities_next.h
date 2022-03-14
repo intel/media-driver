@@ -1675,12 +1675,11 @@ public:
     //! \brief    Create mutex for context protection across threads
     //! \details  Create mutex for context protection across threads
     //!           Used for multi-threading of Hybrid Decoder
-    //! \param    [in] spinCount
-    //!           The spin count for the critical section object.
+    //! \param    NONE
     //! \return   PMOS_MUTEX
     //!           Pointer of mutex
     //!
-    static PMOS_MUTEX MosCreateMutex(uint32_t spinCount = 0);
+    static PMOS_MUTEX MosCreateMutex();
 
     //!
     //! \brief    Destroy mutex for context protection across threads
