@@ -389,6 +389,9 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         RECT_ROTATE(m_Params.output.rcMaxSrc, surfOutput->rcMaxSrc);
     }
 
+    m_Params.bTargetRectangle = !((surfOutput->rcSrc.left == 0) && (surfOutput->rcSrc.top == 0) && (surfOutput->rcSrc.bottom == surfOutput->dwHeight) && (surfOutput->rcSrc.right == surfOutput->dwWidth));
+    VP_PUBLIC_NORMALMESSAGE("Target Rectangle is enabled: %d", m_Params.bTargetRectangle);
+
     if (surfInput->bInterlacedScaling)
     {
         m_Params.interlacedScalingType = ISCALING_INTERLEAVED_TO_INTERLEAVED;

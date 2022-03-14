@@ -438,6 +438,7 @@ struct FeatureParamScaling : public FeatureParam
     VPHAL_SCALING_MODE          scalingMode = VPHAL_SCALING_NEAREST;
     VPHAL_SCALING_PREFERENCE    scalingPreference  = VPHAL_SCALING_PREFER_SFC;  //!< DDI indicate Scaling preference
     bool                        bDirectionalScalar = false;     //!< Vebox Directional Scalar
+    bool                        bTargetRectangle   = false;     // Target rectangle enabled
     PVPHAL_COLORFILL_PARAMS     pColorFillParams = nullptr;     //!< ColorFill - BG only
     PVPHAL_ALPHA_PARAMS         pCompAlpha       = nullptr;     //!< Alpha for composited surfaces
     VPHAL_ISCALING_TYPE         interlacedScalingType = ISCALING_NONE;

@@ -582,6 +582,18 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     m_renderData.sfcStateParams->dwScaledRegionWidth            = scalingParams->dwScaledRegionWidth;
     m_renderData.sfcStateParams->dwScaledRegionVerticalOffset   = scalingParams->dwScaledRegionVerticalOffset;
     m_renderData.sfcStateParams->dwScaledRegionHorizontalOffset = scalingParams->dwScaledRegionHorizontalOffset;
+    if (scalingParams->bRectangleEnabled)
+    {
+        m_renderData.sfcStateParams->bRectangleEnabled                      = true;
+        m_renderData.sfcStateParams->dwTargetRectangleStartHorizontalOffset = scalingParams->dwTargetRectangleStartHorizontalOffset;
+        m_renderData.sfcStateParams->dwTargetRectangleStartVerticalOffset   = scalingParams->dwTargetRectangleStartVerticalOffset;
+        m_renderData.sfcStateParams->dwTargetRectangleEndHorizontalOffset   = scalingParams->dwTargetRectangleEndHorizontalOffset;
+        m_renderData.sfcStateParams->dwTargetRectangleEndVerticalOffset     = scalingParams->dwTargetRectangleEndVerticalOffset;
+    }
+    else
+    {
+        m_renderData.sfcStateParams->bRectangleEnabled = false;
+    }
     m_renderData.sfcStateParams->fAVSXScalingRatio              = scalingParams->fAVSXScalingRatio;
     m_renderData.sfcStateParams->fAVSYScalingRatio              = scalingParams->fAVSYScalingRatio;
 

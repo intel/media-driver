@@ -362,7 +362,82 @@ MOS_STATUS VpScalingFilter::SetRectSurfaceAlignment(bool isOutputSurf, uint32_t 
     return eStatus;
 }
 
-// Prepare
+MOS_STATUS VpScalingFilter::SetTargetRectangle(uint16_t iWidthAlignUnit, uint16_t iHeightAlignUnit, uint16_t oWidthAlignUnit, uint16_t oHeightAlignUnit, float scaleX, float scaleY)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+    if (MEDIA_IS_SKU(m_pvpMhwInterface->m_skuTable, FtrSFCTargetRectangle))
+    {
+        m_sfcScalingParams->bRectangleEnabled = m_scalingParams.bTargetRectangle;
+        uint32_t dstTargetLeftAligned  = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.output.rcDst.left, oWidthAlignUnit);
+        uint32_t dstTargetTopAligned   = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.output.rcDst.top, oHeightAlignUnit);
+        uint32_t dstTargetRightAligned = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.output.rcDst.right, oWidthAlignUnit);
+        uint32_t dstTargetDownAligned  = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.output.rcDst.bottom, oHeightAlignUnit);
+
+        // Source rectangle is not contained with target rectangle
+        uint32_t top_shift    = MOS_MAX(m_scalingParams.output.rcDst.top, m_scalingParams.input.rcDst.top) - m_scalingParams.input.rcDst.top;
+        uint32_t left_shift   = MOS_MAX(m_scalingParams.output.rcDst.left, m_scalingParams.input.rcDst.left) - m_scalingParams.input.rcDst.left;
+        uint32_t bottom_shift = m_scalingParams.input.rcDst.bottom - MOS_MIN(m_scalingParams.output.rcDst.bottom, m_scalingParams.input.rcDst.bottom);
+        uint32_t right_shift  = m_scalingParams.input.rcDst.right - MOS_MIN(m_scalingParams.output.rcDst.right, m_scalingParams.input.rcDst.right);
+
+        uint32_t srcTop = 0, srcLeft = 0, srcBottom = 0, srcRight = 0;
+        uint32_t dstTop = 0, dstLeft = 0, dstBottom = 0, dstRight = 0;
+        uint32_t dstInputLeftAligned = 0, dstInputTopAligned = 0;
+
+        if (top_shift > 0 || left_shift > 0 || bottom_shift > 0 || right_shift > 0)
+        {
+            srcTop                                  = m_scalingParams.input.rcSrc.top + MOS_UF_ROUND(top_shift / scaleY);
+            srcLeft                                 = m_scalingParams.input.rcSrc.left + MOS_UF_ROUND(left_shift / scaleX);
+            srcBottom                               = m_scalingParams.input.rcSrc.bottom - MOS_UF_ROUND(bottom_shift / scaleY);
+            srcRight                                = m_scalingParams.input.rcSrc.right - MOS_UF_ROUND(right_shift / scaleX);
+            m_sfcScalingParams->dwSourceRegionWidth  = MOS_ALIGN_FLOOR(srcRight - srcLeft, iWidthAlignUnit);
+            m_sfcScalingParams->dwSourceRegionHeight = MOS_ALIGN_FLOOR(srcBottom - srcTop, iHeightAlignUnit);
+            m_sfcScalingParams->dwSourceRegionHorizontalOffset = MOS_ALIGN_FLOOR(srcLeft, iWidthAlignUnit);
+            m_sfcScalingParams->dwSourceRegionVerticalOffset   = MOS_ALIGN_FLOOR(srcTop, iHeightAlignUnit);
+
+            dstTop = MOS_MAX(m_scalingParams.output.rcDst.top, m_scalingParams.input.rcDst.top);
+            dstLeft = MOS_MAX(m_scalingParams.output.rcDst.left, m_scalingParams.input.rcDst.left);
+            dstBottom = MOS_MIN(m_scalingParams.output.rcDst.bottom, m_scalingParams.input.rcDst.bottom);
+            dstRight  = MOS_MIN(m_scalingParams.output.rcDst.right, m_scalingParams.input.rcDst.right);
+
+            m_sfcScalingParams->dwScaledRegionWidth  = MOS_ALIGN_FLOOR(dstRight - dstLeft, oWidthAlignUnit);
+            m_sfcScalingParams->dwScaledRegionHeight = MOS_ALIGN_FLOOR(dstBottom - dstTop, oHeightAlignUnit);
+
+            dstInputLeftAligned = MOS_ALIGN_FLOOR(dstLeft, oWidthAlignUnit);
+            dstInputTopAligned  = MOS_ALIGN_FLOOR(dstTop, oHeightAlignUnit);
+        }
+        else
+        {
+            dstInputLeftAligned = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.input.rcDst.left, oWidthAlignUnit);
+            dstInputTopAligned  = MOS_ALIGN_FLOOR((uint32_t)m_scalingParams.input.rcDst.top, oHeightAlignUnit);
+        }
+
+
+        if (m_scalingParams.rotation.rotationNeeded)
+        {
+            m_sfcScalingParams->dwScaledRegionHorizontalOffset         = dstInputTopAligned;
+            m_sfcScalingParams->dwScaledRegionVerticalOffset           = dstInputLeftAligned;
+
+            m_sfcScalingParams->dwTargetRectangleStartHorizontalOffset = dstTargetTopAligned;
+            m_sfcScalingParams->dwTargetRectangleStartVerticalOffset   = dstTargetLeftAligned;
+            m_sfcScalingParams->dwTargetRectangleEndHorizontalOffset   = dstTargetDownAligned;
+            m_sfcScalingParams->dwTargetRectangleEndVerticalOffset     = dstTargetRightAligned;
+        }
+        else
+        {
+            m_sfcScalingParams->dwScaledRegionHorizontalOffset         = dstInputLeftAligned;
+            m_sfcScalingParams->dwScaledRegionVerticalOffset           = dstInputTopAligned;
+
+            m_sfcScalingParams->dwTargetRectangleStartHorizontalOffset = dstTargetLeftAligned;
+            m_sfcScalingParams->dwTargetRectangleStartVerticalOffset   = dstTargetTopAligned;
+            m_sfcScalingParams->dwTargetRectangleEndHorizontalOffset   = dstTargetRightAligned;
+            m_sfcScalingParams->dwTargetRectangleEndVerticalOffset     = dstTargetDownAligned;
+        }
+
+    }
+    return MOS_STATUS_SUCCESS;
+}
+    // Prepare
 MOS_STATUS VpScalingFilter::SetExecuteEngineCaps(
     FeatureParamScaling     &scalingParams,
     VP_EXECUTE_CAPS         vpExecuteCaps)
@@ -512,6 +587,11 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         {
             m_sfcScalingParams->dwScaledRegionHorizontalOffset = dstInputLeftAligned;
             m_sfcScalingParams->dwScaledRegionVerticalOffset   = dstInputTopAligned;
+        }
+
+        if (m_scalingParams.bTargetRectangle)
+        {
+            VP_RENDER_CHK_STATUS_RETURN(SetTargetRectangle(wInputWidthAlignUnit, wOutputHeightAlignUnit, wOutputWidthAlignUnit, wOutputHeightAlignUnit, fScaleX, fScaleY));
         }
 
         // Refine the Scaling ratios in the X and Y direction. SFC output Scaled size may be changed based on the restriction of SFC alignment.

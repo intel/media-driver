@@ -78,6 +78,14 @@ protected:
         uint32_t                   *pdwSurfaceWidth,
         uint32_t                   *pdwSurfaceHeight);
 
+    MOS_STATUS SetTargetRectangle(
+        uint16_t iWidthAlignUnit,
+        uint16_t iHeightAlignUnit,
+        uint16_t oWidthAlignUnit,
+        uint16_t oHeightAlignUnit,
+        float    scaleX,
+        float    scaleY);
+
     //!
     //! \brief    Get width and height align unit of input format
     //! \param    [in] format
