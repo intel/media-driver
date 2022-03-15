@@ -198,7 +198,7 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
     iWidthInBytes = pSurface->osSurface->dwWidth;
     iHeightInRows = pSurface->osSurface->dwHeight;
 
-    iSize = iWidthInBytes * iHeightInRows;
+    iSize = iWidthInBytes * iHeightInRows * iBpp / 8;
 
     // Write original image to file
     MOS_ZeroMemory(&LockFlags, sizeof(MOS_LOCK_PARAMS));
@@ -240,9 +240,9 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 
         for (iY = 0; iY < iHeightInRows; iY++)
         {
-            MOS_SecureMemcpy(pTmpDst, iSize, pTmpSrc, iWidthInBytes);
+            MOS_SecureMemcpy(pTmpDst, iWidthInBytes * iBpp / 8, pTmpSrc, iWidthInBytes * iBpp / 8);
             pTmpSrc += pSurface->osSurface->dwPitch;
-            pTmpDst += iWidthInBytes;
+            pTmpDst += iWidthInBytes * iBpp / 8;
         }
 
         MosUtilities::MosWriteFileFromPtr((const char*)sPath, pDst, iSize);

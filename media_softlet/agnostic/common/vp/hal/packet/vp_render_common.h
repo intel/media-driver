@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -77,6 +77,12 @@ enum KERNEL_SUBMISSION_MODE
 {
     MULTI_KERNELS_WITH_MULTI_MEDIA_STATES = 0,
     MULTI_KERNELS_WITH_ONE_MEDIA_STATE
+};
+
+enum KERNEL_BINDINGTABLE_MODE
+{
+    MULTI_KERNELS_WITH_MULTI_BINDINGTABLES = 0,
+    MULTI_KERNELS_WITH_ONE_BINDINGTABLE
 };
 
 typedef struct _VP_RENDER_CACHE_CNTL
