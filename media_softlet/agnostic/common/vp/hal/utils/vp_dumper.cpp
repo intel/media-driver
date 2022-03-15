@@ -2498,7 +2498,11 @@ MOS_STATUS VpParameterDumper::DumpSourceSurface(
             VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<ENABLE_CHROMA>%d</ENABLE_CHROMA>\n",     (pSrc->pDenoiseParams->bEnableChroma ? 1 : 0)));
             VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<AUTO_DETECT>%d</AUTO_DETECT>\n",         (pSrc->pDenoiseParams->bAutoDetect ? 1 : 0)));
             VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<DENOISE_FACTOR>%.3f</DENOISE_FACTOR>\n", (pSrc->pDenoiseParams->fDenoiseFactor)));
-            VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<NOISE_LEVEL>%s</NOISE_LEVEL>\n",    GetDenoiseModeStr(pSrc->pDenoiseParams->NoiseLevel)));
+            VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<NOISE_LEVEL>%s</NOISE_LEVEL>\n", GetDenoiseModeStr(pSrc->pDenoiseParams->NoiseLevel)));
+            VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<ENABLE_HVS_DENOISE>%d</ENABLE_HVS_DENOISE>\n", (pSrc->pDenoiseParams->bEnableHVSDenoise ? 1 : 0)));
+            VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<HVS_DENOISE_QP>%d</HVS_DENOISE_QP>\n", (pSrc->pDenoiseParams->HVSDenoise.QP)));
+            VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<HVS_DENOISE_STRENGTH>%d</HVS_DENOISE_STRENGTH>\n", (pSrc->pDenoiseParams->HVSDenoise.Strength)));
+            VPHAL_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<HVS_DENOISE_MODE>%s</HVS_DENOISE_MODE>\n", GetHVSDenoiseModeStr(pSrc->pDenoiseParams->HVSDenoise.Mode)));
         }
         else
         {
@@ -3687,6 +3691,23 @@ const char * VpParameterDumper::GetDenoiseModeStr(VPHAL_NOISELEVEL noise_level)
     case NOISELEVEL_DEFAULT:         return _T("NOISELEVEL_DEFAULT");
     case NOISELEVEL_VC1_HD:          return _T("NOISELEVEL_VC1_HD");
     default:                         return _T("Err");
+    }
+
+    return nullptr;
+}
+
+const char *VpParameterDumper::GetHVSDenoiseModeStr(VPHAL_HVSDN_MODE hvs_dn_mode)
+{
+    switch (hvs_dn_mode)
+    {
+    case HVSDENOISE_AUTO_BDRATE:
+        return _T("HVSDENOISE_AUTO_BDRATE");
+    case HVSDENOISE_AUTO_SUBJECTIVE:
+        return _T("HVSDENOISE_AUTO_SUBJECTIVE");
+    case HVSDENOISE_MANUAL:
+        return _T("HVSDENOISE_MANUAL");
+    default:
+        return _T("Err");
     }
 
     return nullptr;

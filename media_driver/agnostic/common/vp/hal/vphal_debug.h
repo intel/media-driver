@@ -1307,6 +1307,15 @@ private:
     //!           String of vphal denoise level
     //!
     const char * GetDenoiseModeStr(VPHAL_NOISELEVEL noise_level);
+
+    //!
+    //! \brief    Gets Debug HVS Denoise Mode String
+    //! \param    [in] hvs denoise mode
+    //!           vphal hvsdn mode
+    //! \return   const char *
+    //!           String of vphal hvs denoise mode
+    //!
+    const char *GetHVSDenoiseModeStr(VPHAL_HVSDN_MODE hvs_dn_mode);
 };
 
 //!
