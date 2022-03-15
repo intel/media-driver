@@ -200,6 +200,8 @@ struct CodechalDecodeParams
     void                    *m_huffmanTable = nullptr;
     //! \brief [JPEG] Describes the layout of the decode render target
     CodecDecodeJpegImageLayout m_outputSurfLayout = {{0}};
+    // JPEG incomplete bitstream flag
+    bool                    m_scanIncomplete = false;
 
     //! \brief [AVC] Indicates whethe or not PicId remapping is in use
     bool                    m_picIdRemappingInUse = false;
