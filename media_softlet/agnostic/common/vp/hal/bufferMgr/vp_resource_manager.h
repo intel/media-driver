@@ -486,7 +486,8 @@ protected:
         m_veboxSurfaceConfigMap.insert(std::make_pair(VEBOX_SURFACES_CONFIG(_b64DI, _sfcEnable, _sameSample, _outOfBound, _pastRefAvailable, _futureRefAvailable, _firstDiField).value, VEBOX_SURFACES(_currentInputSurface, _pastInputSurface, _currentOutputSurface, _pastOutputSurface)));
     }
 
-    virtual MOS_STATUS Get3DLutOutputColorAndFormat(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters);
+    virtual MOS_STATUS GetIntermediaColorAndFormat3DLutOutput(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters);
+    virtual MOS_STATUS GetIntermediaColorAndFormatBT2020toRGB(VP_EXECUTE_CAPS &caps, VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters);
     MOS_STATUS GetIntermediaOutputSurfaceParams(VP_EXECUTE_CAPS& caps, VP_SURFACE_PARAMS &params, SwFilterPipe &executedFilters);
     MOS_STATUS         GetIntermediaOutputSurfaceColorAndFormat(VP_EXECUTE_CAPS &caps, SwFilterPipe &executedFilters, MOS_FORMAT &format, VPHAL_CSPACE &colorSpace);
     MOS_STATUS AssignIntermediaSurface(VP_EXECUTE_CAPS& caps, SwFilterPipe &executedFilters);

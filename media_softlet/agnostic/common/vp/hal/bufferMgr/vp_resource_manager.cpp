@@ -662,7 +662,7 @@ struct VP_SURFACE_PARAMS
     RECT                    rcMaxSrc            = {0, 0, 0, 0};  //!< Max source rectangle
     VPHAL_SAMPLE_TYPE       sampleType          = SAMPLE_PROGRESSIVE;
 };
-MOS_STATUS VpResourceManager::Get3DLutOutputColorAndFormat(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters)
+MOS_STATUS VpResourceManager::GetIntermediaColorAndFormat3DLutOutput(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters)
 {
     SwFilterHdr *hdr = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, 0, FeatureType::FeatureTypeHdr));
     if (hdr)
@@ -678,6 +678,12 @@ MOS_STATUS VpResourceManager::Get3DLutOutputColorAndFormat(VPHAL_CSPACE &colorSp
     }
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS VpResourceManager::GetIntermediaColorAndFormatBT2020toRGB(VP_EXECUTE_CAPS &caps, VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceColorAndFormat(VP_EXECUTE_CAPS &caps, SwFilterPipe &executedFilters, MOS_FORMAT &format, VPHAL_CSPACE &colorSpace)
 {
     VP_SURFACE *inputSurface = executedFilters.GetSurface(true, 0);
@@ -705,7 +711,12 @@ MOS_STATUS VpResourceManager::GetIntermediaOutputSurfaceColorAndFormat(VP_EXECUT
     }
     else if (caps.b3DlutOutput)
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(Get3DLutOutputColorAndFormat(colorSpace, format, executedFilters));
+        VP_PUBLIC_CHK_STATUS_RETURN(GetIntermediaColorAndFormat3DLutOutput(colorSpace, format, executedFilters));
+        return MOS_STATUS_SUCCESS;
+    }
+    else if (caps.bBt2020ToRGB)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(GetIntermediaColorAndFormatBT2020toRGB(caps, colorSpace, format, executedFilters));
         return MOS_STATUS_SUCCESS;
     }
     else if (caps.bVebox)
