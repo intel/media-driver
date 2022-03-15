@@ -257,9 +257,10 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupporte
         return MOS_STATUS_SUCCESS;
     }
 
-    if (IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]))
+    bool isHdrNeeded = IsHdrNeeded(pvpParams->pSrc[0], pvpParams->pTarget[0]);
+    if (isHdrNeeded && IsCroppingNeeded(pvpParams->pSrc[0]))
     {
-        VPHAL_RENDER_NORMALMESSAGE("Disable APO Path for HDR cases.");
+        VP_PUBLIC_NORMALMESSAGE("Disable APO Path for HDR Cropping");
         return MOS_STATUS_SUCCESS;
     }
 
@@ -295,6 +296,25 @@ MOS_STATUS VPFeatureManager::CheckFeatures(void * params)
 
     bool bApgFuncSupported = false;
     return CheckFeatures(params, bApgFuncSupported);
+}
+
+bool VPFeatureManager::IsCroppingNeeded(
+    PVPHAL_SURFACE pSrc)
+{
+    VP_FUNC_CALL();
+
+    if (!pSrc)
+    {
+        return false;
+    }
+    bool bCropping = false;
+    // use comp for cropping
+    if (pSrc->rcSrc.left != 0 || pSrc->rcDst.left != 0 ||
+        pSrc->rcSrc.top != 0 || pSrc->rcDst.top != 0)
+    {
+        bCropping = true;
+    }
+    return bCropping;
 }
 
 bool VPFeatureManager::IsHdrNeeded(

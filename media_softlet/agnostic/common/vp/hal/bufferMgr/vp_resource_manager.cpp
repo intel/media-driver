@@ -1849,6 +1849,8 @@ MOS_STATUS VpResourceManager::AllocateResourceFor3DLutKernel(VP_EXECUTE_CAPS& ca
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
         MOS_TILE_4_GMM));
 
+    VP_PUBLIC_NORMALMESSAGE("m_vebox3DLookUpTables2D should be always tile-4 0x3  due to kernel alignment, current tile-mode is %d", m_vebox3DLookUpTables2D->osSurface->TileModeGMM);
+
     if (isAllocated)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(Init3DLutSurface2D(m_vebox3DLookUpTables2D));

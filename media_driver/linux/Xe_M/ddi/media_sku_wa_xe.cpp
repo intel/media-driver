@@ -389,7 +389,6 @@ static bool InitTglMediaWaExt(struct GfxDeviceInfo *devInfo,
     /*software wa to fix some corner hang cases for Scalability*/
     MEDIA_WR_WA(waTable, Wa_2209620131, 1);
 
-    MEDIA_WR_WA(waTable, WaDisableVeboxFor8K, 1);
     
     if (drvInfo->devId == 0x9A49 ||
         drvInfo->devId == 0x9AC9 ||

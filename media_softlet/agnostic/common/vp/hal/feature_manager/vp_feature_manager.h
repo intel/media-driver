@@ -89,6 +89,7 @@ protected:
         PVPHAL_SURFACE              pSrc,
         PVPHAL_SURFACE              pRenderTarget);
 
+    virtual bool IsCroppingNeeded(PVPHAL_SURFACE pSrc);
     //!
     //! \brief    Check if 2 passes CSC are needed
     //! \param    [in] pSrc
