@@ -1399,8 +1399,7 @@ MOS_STATUS Policy::GetDeinterlaceExecutionCaps(SwFilter* feature)
     }
 
     if (m_vpInterface.GetResourceManager()->IsRefValid()    &&
-        m_vpInterface.GetResourceManager()->IsSameSamples() &&
-        DI_MODE_BOB != diParams.diParams->DIMode)
+        m_vpInterface.GetResourceManager()->IsSameSamples())
     {
         diEngine.bypassVeboxFeatures    = 1;
         diEngine.diProcess2ndField      = 1;
