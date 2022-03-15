@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,17 +36,31 @@ public:
     //!
     //! \brief    constructor
     //!
-    MosMediaCopy(PMOS_CONTEXT osDriverContext);
+    MosMediaCopy(PMOS_CONTEXT mosCtx);
 
     //!
     //! \brief    destructor
     //!
     virtual ~MosMediaCopy();
 
-    void **GetMediaCopyState()
-    {
-        return (void **)&m_mediaCopyState;
-    }
+    MediaCopyBaseState **GetMediaCopyState();
+
+    //!
+    //! \brief    Media copy
+    //! \details  Entry point to copy media memory, input can support both compressed/uncompressed
+    //! \param    [in] inputResource
+    //!            The surface resource will be decompressed
+    //! \param    [out] outputResource
+    //!            The target uncompressed surface resource will be copied to
+    //! \param    [in] preferMethod
+    //!            The preferred copy mode
+    //!
+    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
+    //!
+    MOS_STATUS MediaCopy(
+        PMOS_RESOURCE inputResource,
+        PMOS_RESOURCE outputResource,
+        MCPY_METHOD   preferMethod);
 
     //!
     //! \brief    Media copy
@@ -61,11 +75,15 @@ public:
     //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
     //!
     MOS_STATUS MediaCopy(
-        PMOS_RESOURCE inputResource,
-        PMOS_RESOURCE outputResource,
-        MCPY_METHOD   preferMethod);
+        MEDIAUMD_RESOURCE   inputResource,
+        uint32_t            inputResourceIndex,
+        MEDIAUMD_RESOURCE   outputResource,
+        uint32_t            outputResourceIndex,
+        MCPY_METHOD         preferMethod);
 
 protected:
     MediaCopyBaseState *m_mediaCopyState = nullptr;
+    PMOS_CONTEXT        m_mosContext     = nullptr;
 };
+
 #endif // __MOS_MEDIACOPY_H__

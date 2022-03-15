@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021, Intel Corporation
+# Copyright (c) 2019-2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -40,7 +40,6 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_gpucontext_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.h
-    ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.h
     ${CMAKE_CURRENT_LIST_DIR}/media_skuwa_specific.h
 )
 

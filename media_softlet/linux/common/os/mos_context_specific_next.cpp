@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -255,7 +255,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
         else
         {
-            osDriverContext->ppMediaCopyState = m_mosMediaCopy->GetMediaCopyState();
+            osDriverContext->ppMediaCopyState = (void **)m_mosMediaCopy->GetMediaCopyState();
             if ((nullptr == osDriverContext->ppMediaCopyState) || (nullptr == *osDriverContext->ppMediaCopyState))
             {
                 MOS_OS_NORMALMESSAGE("Media Copy state creation failed");

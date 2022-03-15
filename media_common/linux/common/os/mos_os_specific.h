@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2020, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -156,6 +156,8 @@ typedef struct _MOS_SPECIFIC_RESOURCE  MOS_RESOURCE, *PMOS_RESOURCE;
 typedef struct _MOS_INTERFACE      *PMOS_INTERFACE;
 typedef struct _MOS_COMMAND_BUFFER *PMOS_COMMAND_BUFFER;
 typedef struct _MOS_LOCK_PARAMS    *PMOS_LOCK_PARAMS;
+
+typedef void *MEDIAUMD_RESOURCE;
 
 //!
 //! \brief enum to video device operations 

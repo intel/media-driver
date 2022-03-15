@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,10 +28,10 @@
 #include "mos_mediacopy.h"
 #include "media_interfaces_mcpy.h"
 
-MosMediaCopy::MosMediaCopy(PMOS_CONTEXT osDriverContext)
+MosMediaCopy::MosMediaCopy(PMOS_CONTEXT mosCtx)
 {
-    MOS_OS_CHK_NULL_NO_STATUS_RETURN(osDriverContext);
-    m_mediaCopyState = static_cast<MediaCopyBaseState *>(McpyDevice::CreateFactory(osDriverContext));
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(mosCtx);
+    m_mediaCopyState = static_cast<MediaCopyBaseState *>(McpyDevice::CreateFactory(mosCtx));
 }
 
 MosMediaCopy::~MosMediaCopy()
@@ -39,17 +39,30 @@ MosMediaCopy::~MosMediaCopy()
     MOS_Delete(m_mediaCopyState);
 }
 
+MediaCopyBaseState **MosMediaCopy::GetMediaCopyState()
+{
+    return &m_mediaCopyState;
+}
+
 MOS_STATUS MosMediaCopy::MediaCopy(
     PMOS_RESOURCE inputResource,
     PMOS_RESOURCE outputResource,
     MCPY_METHOD   preferMethod)
 {
-    MOS_OS_CHK_NULL_RETURN(m_mediaCopyState);
-
     MOS_OS_CHK_STATUS_RETURN(m_mediaCopyState->SurfaceCopy(
         inputResource,
         outputResource,
         preferMethod));
 
     return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosMediaCopy::MediaCopy(
+    MEDIAUMD_RESOURCE inputResource,
+    uint32_t          inputResourceIndex,
+    MEDIAUMD_RESOURCE outputResource,
+    uint32_t          outputResourceIndex,
+    MCPY_METHOD       preferMethod)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
 }

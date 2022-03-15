@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2020, Intel Corporation
+* Copyright (c) 2017-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1883,18 +1883,10 @@ MOS_STATUS CodechalEncodeCscDs::RawSurfaceMediaCopy(MOS_FORMAT srcFormat)
     auto cscSurface = m_encoder->m_trackedBuf->GetCscSurface(CODEC_CURR_TRACKED_BUFFER);
 
     // Copy through VEBOX from Linear/TileY to TileY
-#ifdef LINUX
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_pMosMediaCopy->MediaCopy(
         &m_rawSurfaceToEnc->OsResource,
         &cscSurface->OsResource,
         MCPY_METHOD_BALANCE));
-#else
-    CODECHAL_ENCODE_CHK_STATUS_RETURN(m_pMosMediaCopy->MediaCopy(
-        &m_rawSurfaceToEnc->OsResource,
-        &cscSurface->OsResource,
-        false,
-        MCPY_METHOD_BALANCE));
-#endif // LINUX
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetSurfacesToEncPak());
 
