@@ -5057,3 +5057,8 @@ int mos_query_device_blob(int fd, MEDIA_SYSTEM_INFO* gfx_info)
 {
     return -1;
 }
+
+int mos_query_hw_ip_version(int fd, struct i915_engine_class_instance engine, GFX_GMD_ID *ipVerInfo)
+{
+    return -1;
+}
