@@ -1351,7 +1351,9 @@ MOS_STATUS CodechalVdencAvcStateG12::SetDmemHuCBrcUpdate()
         hucVDEncBrcDmem->UPD_Delta_U8 = m_qpModulationStrength;
     }
 
-    hucVDEncBrcDmem->UPD_TCBRC_SCENARIO_U8 = m_avcSeqParam->bAutoMaxPBFrameSizeForSceneChange;
+    // Temporal fix because of DDI flag deprication
+    // Use Cloud Gaming mode by default
+    hucVDEncBrcDmem->UPD_TCBRC_SCENARIO_U8 = 0;
 
     hucVDEncBrcDmem->UPD_NumSlicesForRounding = GetAdaptiveRoundingNumSlices();
     hucVDEncBrcDmem->UPD_UserMaxFramePB       = 2 * m_avcPicParam->TargetFrameSize;
