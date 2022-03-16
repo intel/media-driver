@@ -2871,6 +2871,19 @@ public:
 
         mhw::vdbox::vdenc::xe_hpm::_VDENC_CMD2_CMD cmd;
 
+        AddVdencCmd2Cmd(cmd, params);
+
+        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AddVdencCmd2Cmd(
+        mhw::vdbox::vdenc::xe_hpm::_VDENC_CMD2_CMD& cmd,
+        PMHW_VDBOX_VDENC_CMD2_STATE params)
+    {
+        MHW_FUNCTION_ENTER;
+
         cmd.DW21.QpAdjustmentForRollingI = 0;
 
         MHW_MI_CHK_NULL(params->pVp9EncPicParams);
@@ -2889,22 +2902,18 @@ public:
         cmd.DW2.PictureType           = frame_type;
         cmd.DW2.TemporalMvpEnableFlag = params->temporalMVpEnable;
         cmd.DW2.TransformSkip         = 0;
-        cmd.DW5.NumRefIdxL1Minus1         = 0;
 
-        if (frame_type != CODEC_VP9_KEY_FRAME)  // P_FRAME
-        {
-            cmd.DW5.NumRefIdxL0Minus1    = params->ucNumRefIdxL0ActiveMinus1;
-        }
-        else  // I_FRAME
-        {
-            cmd.DW5.NumRefIdxL0Minus1    = 0;
-        }
-
+        cmd.DW7.Value                                   = 0x4003;
         cmd.DW7.SegmentationEnable                      = (frame_type == CODEC_VP9_KEY_FRAME) ? 0 : vp9PicParams->PicFlags.fields.segmentation_enabled;
-        cmd.DW7.SegmentationMapTemporalPredictionEnable = 0;
         cmd.DW7.TilingEnable                            = (vp9PicParams->log2_tile_columns != 0) || (vp9PicParams->log2_tile_rows != 0);
         cmd.DW7.PakOnlyMultiPassEnable                  = params->bPakOnlyMultipassEnable;
         cmd.DW7.VdencStreamInEnable                     = params->bStreamInEnabled;
+
+        if (frame_type != CODEC_VP9_KEY_FRAME)
+        {
+            cmd.DW7.Value |= 0x80000;
+        }
+
         cmd.DW17.TemporalMVEnableForIntegerSearch       = params->temporalMVpEnable;
         cmd.DW21.IntraRefreshEnable                     = 0;
         cmd.DW21.IntraRefreshMBSizeMinusOne             = 1;
@@ -2946,15 +2955,6 @@ public:
         cmd.DW27.QpPrimeYAc = vp9PicParams->LumaACQIndex;
         cmd.DW27.QpPrimeYDc = cmd.DW27.QpPrimeYAc + vp9PicParams->LumaDCQIndexDelta;
 
-        if (!m_osInterface->bSimIsActive && !Mos_Solo_Extension(m_osInterface->pOsContext))
-        {
-            if (MEDIA_IS_WA(pWaTable, Wa_22011549751) && (frame_type == CODEC_VP9_KEY_FRAME))
-            {
-                cmd.DW2.PictureType                       = 1;
-                cmd.DW17.TemporalMVEnableForIntegerSearch = 0;
-            }
-        }
-
         auto data                = (uint32_t*) &cmd;
         uint32_t FrameType       = (uint32_t) frame_type;
         uint32_t TargetUsageDiv3 = (uint32_t) vp9SeqParams->TargetUsage / 3;
@@ -2963,6 +2963,12 @@ public:
         uint32_t Wa_14010476401  = (uint32_t) (!!MEDIA_IS_WA(pWaTable, Wa_14010476401));
         uint32_t Wa_22011531258  = (uint32_t) (!!MEDIA_IS_WA(pWaTable, Wa_22011531258));
         uint32_t ActiveNumRefIdxL0LargerThan2 = (uint32_t) (params->ucNumRefIdxL0ActiveMinus1 >= 1);
+
+        if (NotSimuEnv && Wa_22011549751 && (frame_type == CODEC_VP9_KEY_FRAME))
+        {
+            cmd.DW2.PictureType                       = 1;
+            cmd.DW17.TemporalMVEnableForIntegerSearch = 0;
+        }
 
         if ((FrameType | NotSimuEnv | Wa_22011549751 | Wa_14010476401 | Wa_22011531258 | ActiveNumRefIdxL0LargerThan2) > 1 || TargetUsageDiv3 > 2)
         {
@@ -2976,11 +2982,31 @@ public:
         static const uint32_t dw5Lut[3] = { 0x80ac04, 0xc0ac04, 0xc0ac04,};
         data[5] |= dw5Lut[TargetUsageDiv3];
 
+        if (frame_type != CODEC_VP9_KEY_FRAME)
+        {
+            cmd.DW5.NumRefIdxL0Minus1    = params->ucNumRefIdxL0ActiveMinus1;
+        }
+        else
+        {
+            cmd.DW5.NumRefIdxL0Minus1    = 0;
+        }
+
         static const uint32_t dw6Lut = 0x20080200;
         data[6] |= dw6Lut;
 
-        static const uint32_t dw7Lut[2][3][2][2] = { { { { 0x4000, 0x4000,}, { 0x4000, 0x84000,},}, { { 0x4000, 0x4000,}, { 0x4000, 0x84000,},}, { { 0x84100, 0x84100,}, { 0x84100, 0x84100,},},}, { { { 0x84000, 0x84000,}, { 0x84000, 0x84000,},}, { { 0x4000, 0x4000,}, { 0x4000, 0x4000,},}, { { 0x84100, 0x84100,}, { 0x84100, 0x84100,},},},};
-        data[7] |= dw7Lut[FrameType][TargetUsageDiv3][NotSimuEnv][Wa_22011549751];
+        if (params->ucNumRefIdxL0ActiveMinus1 >= 1)
+        {
+            cmd.DW7.Value &= 0xFFF7FFFF;
+        }
+        else
+        {
+            cmd.DW7.Value |= 0x80000;
+        }
+
+        if (Wa_22011549751 && (frame_type == CODEC_VP9_KEY_FRAME))
+        {
+            cmd.DW7.Value |= 0x80000;
+        }
 
         static const uint32_t dw8Lut[3] = { 0xfffdccaa, 0xfffdccaa, 0x55550000,};
         data[8] |= dw8Lut[TargetUsageDiv3];
@@ -3041,8 +3067,6 @@ public:
 
         static const uint32_t dw54Lut[3][2][2] = { { { 0, 0,}, { 0, 0,},}, { { 0x44000000, 0x44000000,}, { 0x44000000, 0x44000000,},}, { { 0x8c000000, 0x8c000000,}, { 0x8c000000, 0x4000000,},},};
         data[54] |= dw54Lut[TargetUsageDiv3][NotSimuEnv][Wa_22011531258];
-
-        MHW_MI_CHK_STATUS(Mhw_AddCommandCmdOrBB(cmdBuffer, batchBuffer, &cmd, sizeof(cmd)));
 
         return MOS_STATUS_SUCCESS;
     }
