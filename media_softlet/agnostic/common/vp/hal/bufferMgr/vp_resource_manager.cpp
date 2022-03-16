@@ -1453,8 +1453,11 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
     uint32_t                        i                   = 0;
     MOS_TILE_MODE_GMM               tileModeByForce     = MOS_TILE_UNSET_GMM;
     auto *                          skuTable            = MosInterface::GetSkuTable(m_osInterface.osStreamState);
-    Mos_MemPool                     memTypeHistStat     = GetHistStatMemType();
+    Mos_MemPool                     memTypeHistStat     = GetHistStatMemType(caps);
     uint32_t                        dwHeight;
+
+    //STMM surface can be not lockable, if secure mode is enabled
+    bool isSTMMNotLockable = caps.bSecureVebox;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
@@ -1501,12 +1504,12 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, 
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
             tileModeByForce,
             memTypeHistStat,
-            MOS_MEMPOOL_DEVICEMEMORY == memTypeHistStat));
+            isSTMMNotLockable));
 
         if (allocated)
         {
             VP_PUBLIC_CHK_NULL_RETURN(m_veboxSTMMSurface[i]);
-            if (MOS_MEMPOOL_DEVICEMEMORY != memTypeHistStat)
+            if (!isSTMMNotLockable)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(VeboxInitSTMMHistory(m_veboxSTMMSurface[i]->osSurface));
             }
@@ -1573,7 +1576,7 @@ uint32_t VpResourceManager::Get1DLutSize()
     return SHAPE_1K_LOOKUP_SIZE;
 }
 
-Mos_MemPool VpResourceManager::GetHistStatMemType()
+Mos_MemPool VpResourceManager::GetHistStatMemType(VP_EXECUTE_CAPS &caps)
 {
     VP_FUNC_CALL();
 
@@ -1589,11 +1592,12 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
     uint32_t                        dwHeight;
     uint32_t                        dwSize;
     uint32_t                        i;
-    MOS_RESOURCE_MMC_MODE           surfCompressionMode = MOS_MMC_DISABLED;
-    bool                            bSurfCompressible   = false;
-    bool                            bAllocated          = false;
-    uint8_t                         InitValue           = 0;
-    Mos_MemPool                     memTypeHistStat     = GetHistStatMemType();
+    MOS_RESOURCE_MMC_MODE           surfCompressionMode        = MOS_MMC_DISABLED;
+    bool                            bSurfCompressible          = false;
+    bool                            bAllocated                 = false;
+    uint8_t                         InitValue                  = 0;
+    Mos_MemPool                     memTypeHistStat            = GetHistStatMemType(caps);
+    bool                            isStatisticsBufNotLockable = false;
 
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
     VP_PUBLIC_CHK_NULL_RETURN(inputSurface->osSurface);
@@ -1738,6 +1742,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
                MOS_ROUNDUP_DIVIDE(statistic_size * sizeof(uint32_t), dwWidth);
     dwSize = dwWidth * dwHeight;
 
+    //Statistics surface can be not lockable, if secure mode is enabled
+    isStatisticsBufNotLockable = caps.bSecureVebox;
+
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
         m_veboxStatisticsSurface,
         "VeboxStatisticsSurface",
@@ -1754,7 +1761,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
         MOS_TILE_UNSET_GMM,
         memTypeHistStat,
-        MOS_MEMPOOL_DEVICEMEMORY == memTypeHistStat));
+        isStatisticsBufNotLockable));
 
     if (bAllocated)
     {
@@ -1762,7 +1769,7 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         {
             VP_PUBLIC_CHK_STATUS_RETURN(FillLinearBufferWithEncZero(dwWidth, dwHeight));
         }
-        else if (MOS_MEMPOOL_DEVICEMEMORY != memTypeHistStat)
+        else
         {
             // Initialize veboxStatisticsSurface Surface
             VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.OsFillResource(

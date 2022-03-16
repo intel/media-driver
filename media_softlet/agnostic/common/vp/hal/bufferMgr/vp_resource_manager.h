@@ -423,7 +423,7 @@ protected:
     virtual uint32_t Get3DLutSize(uint32_t &lutWidth, uint32_t &lutHeight);
     virtual uint32_t Get1DLutSize();
     virtual MOS_STATUS  Init3DLutSurface2D(VP_SURFACE *surf);
-    virtual Mos_MemPool GetHistStatMemType();
+    virtual Mos_MemPool GetHistStatMemType(VP_EXECUTE_CAPS &caps);
     MOS_STATUS ReAllocateVeboxOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, VP_SURFACE *outputSurface, bool &allocated);
     MOS_STATUS ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated);
     MOS_STATUS ReAllocateVeboxSTMMSurface(VP_EXECUTE_CAPS& caps, VP_SURFACE *inputSurface, bool &allocated);
