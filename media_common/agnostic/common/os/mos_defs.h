@@ -39,6 +39,7 @@
 #include <stdint.h>
 #include <string>
 #include <map>
+#include <algorithm>
 #include "mos_defs_specific.h"
 
 //!
