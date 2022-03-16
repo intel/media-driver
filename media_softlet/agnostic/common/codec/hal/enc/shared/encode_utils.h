@@ -24,7 +24,7 @@
 #include <mutex>
 #include "mos_util_debug.h"
 
-#define _SW_BRC _WIN64 && (_DEBUG || _RELEASE_INTERNAL)
+#define _SW_BRC _MEDIA_RESERVED && (_DEBUG || _RELEASE_INTERNAL)
 
 enum HuCFunction
 {
