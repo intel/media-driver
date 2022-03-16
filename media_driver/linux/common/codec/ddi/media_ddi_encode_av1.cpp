@@ -434,6 +434,7 @@ VAStatus DdiEncodeAV1::ParseSeqParams(void *ptr)
     av1SeqParams->CodingToolFlags.fields.enable_restoration   = seqParams->seq_fields.bits.enable_restoration;
 
     av1SeqParams->order_hint_bits_minus_1 = seqParams->order_hint_bits_minus_1;
+    av1SeqParams->SeqFlags.fields.HierarchicalFlag = seqParams->reserved8b;
 
     return VA_STATUS_SUCCESS;
 }
@@ -546,6 +547,7 @@ VAStatus DdiEncodeAV1::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     av1PicParams->PicFlags.fields.DisableFrameRecon            = picParams->picture_flags.bits.disable_frame_recon;
     av1PicParams->PicFlags.fields.PaletteModeEnable            = picParams->picture_flags.bits.palette_mode_enable;
     av1PicParams->PicFlags.fields.SegIdBlockSize               = picParams->seg_id_block_size;
+    av1PicParams->HierarchLevelPlus1                           = picParams->reserved8bits0;
 
     DDI_CHK_RET(
         MOS_SecureMemcpy(av1PicParams->filter_level,
