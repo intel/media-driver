@@ -130,46 +130,6 @@ MOS_STATUS MhwRenderInterfaceXe_Hpc::AddComputeWalkerCmd(
     cmd.interface_descriptor_data.DW5.NumberOfThreadsInGpgpuThreadGroup = interfaceDescriptorParams->dwNumberofThreadsInGPGPUGroup;
     cmd.interface_descriptor_data.DW5.SharedLocalMemorySize = interfaceDescriptorParams->dwSharedLocalMemorySize;
 
-    MOS_USER_FEATURE_VALUE_DATA     userFeatureData;
-    // Check whether profiler is enabled
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-     nullptr,
-     __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_ID,
-     &userFeatureData,
-     m_osInterface->pOsContext);
-
-    // L3 flush will flush caches data after CMDbuffer submission,
-    // While Profiler still need to paraser the data when RenderHAL be released.
-    // So disable the L3 caches when profliler is enabled.
-    if ((nullptr != postsyncResource) && (!userFeatureData.bData))
-    {
-        MHW_RESOURCE_PARAMS resourceParams;
-        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
-        resourceParams.presResource = postsyncResource;
-        resourceParams.pdwCmd = cmd.postsync_data.DW1_2.Value;
-        resourceParams.dwLocationInCmd = 24;
-        resourceParams.dwOffset = resourceOffset;
-        resourceParams.bIsWritable = true;
-        MHW_MI_CHK_STATUS(AddResourceToCmd(m_osInterface,
-                                           cmdBuffer,
-                                           &resourceParams));
-
-#ifndef VPSOLO_EMUL // VPSOLO still doesn't support PPGTT adrress.
-        cmd.postsync_data.DW0.Operation
-                = mhw_render_xe_xpm_base::COMPUTE_WALKER_CMD::POSTSYNC_DATA_CMD
-                ::POSTSYNC_OPERATION_WRITE_TIMESTAMP;
-#endif
-        //Enable the L3 cache postsync due to PVC use physical L3.
-        cmd.postsync_data.DW0.MOCS = 0x2;
-        cmd.postsync_data.DW0.L3Flush = true;
-        cmd.postsync_data.DW0.HDCPipelineFlush = true;
-        //Dataport Subslice Cache Flush = 1 DW0.bit12
-        //System Memory Fence Request = 0; DW0.bit11
-        //cmd.postsync_data.DW0.Reserved11 = 2;
-        cmd.postsync_data.DW0.Value = cmd.postsync_data.DW0.Value | 0x1000;
-    }
-
     MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
     return eStatus;
 }
