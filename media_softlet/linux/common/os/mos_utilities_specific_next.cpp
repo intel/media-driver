@@ -1376,8 +1376,7 @@ MOS_STATUS MosUtilities::MosOsUtilitiesInit(MOS_CONTEXT_HANDLE mosCtx)
 
 MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
 {
-    int32_t                             MemoryCounter = 0;
-    MOS_USER_FEATURE_VALUE_WRITE_DATA   UserFeatureWriteData = __NULL_USER_FEATURE_VALUE_WRITE_DATA__;
+    int32_t                             memoryCounter = 0;
     MOS_STATUS                          eStatus = MOS_STATUS_SUCCESS;
 
     // lock mutex to avoid multi close in multi-threading env
@@ -1387,14 +1386,16 @@ MOS_STATUS MosUtilities::MosOsUtilitiesClose(MOS_CONTEXT_HANDLE mosCtx)
     {
         MosTraceEventClose();
         m_mosMemAllocCounter -= m_mosMemAllocFakeCounter;
-        MemoryCounter = m_mosMemAllocCounter + m_mosMemAllocCounterGfx;
+        memoryCounter = m_mosMemAllocCounter + m_mosMemAllocCounterGfx;
         m_mosMemAllocCounterNoUserFeature    = m_mosMemAllocCounter;
         m_mosMemAllocCounterNoUserFeatureGfx = m_mosMemAllocCounterGfx;
         MOS_OS_VERBOSEMESSAGE("MemNinja leak detection end");
 
-        UserFeatureWriteData.Value.i32Data    =   MemoryCounter;
-        UserFeatureWriteData.ValueID          = __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER_ID;
-        MosUserFeatureWriteValuesID(NULL, &UserFeatureWriteData, 1, mosCtx);
+        ReportUserSetting(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER,
+            memoryCounter,
+            MediaUserSetting::Group::Device);
 
         eStatus = MosDestroyUserFeatureKeysForAllDescFields();
 #if _MEDIA_RESERVED

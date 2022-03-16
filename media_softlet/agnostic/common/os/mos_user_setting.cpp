@@ -64,6 +64,13 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         0,
         true);
 
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MEMNINJA_COUNTER,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
     return MOS_STATUS_SUCCESS;
 }
 
