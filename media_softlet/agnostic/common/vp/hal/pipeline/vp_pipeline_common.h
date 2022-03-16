@@ -215,6 +215,7 @@ typedef struct _VP_EngineEntry
             uint32_t sfcNotSupported : 1;       // true if sfc cannot be selected.
             uint32_t veboxNotSupported : 1;     // true if vebox cannot be selected.
             uint32_t onlyParamCalculation : 1;  // true if the feature is used for parameter calculation.
+            uint32_t sfcOnlyFeatureExists : 1;  // The feature exists, which only support sfc.
         };
         uint32_t value;
     };

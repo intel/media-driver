@@ -1850,7 +1850,6 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         }
         caps.bVebox = true;
         caps.bIECP = engineCaps.VeboxIECPNeeded;
-        caps.bSFC = engineCaps.nonVeboxFeatureExists;
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
 
         if (engineCaps.fcOnlyFeatureExists)
@@ -1861,6 +1860,13 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
             // For vebox/sfc+render case, use 2nd workload (render) to do Procamp, 
             // especially for the scenario including Lumakey feature, which will ensure the Procamp can be done after Lumakey.
             caps.bForceProcampToRender = true;
+            // For vebox + render with features, which can be done on both sfc and render, 
+            // and sfc is not must have, sfc should not be selected and those features should be done on render.
+            caps.bSFC                  = engineCaps.nonVeboxFeatureExists && engineCaps.sfcOnlyFeatureExists;
+        }
+        else
+        {
+            caps.bSFC = engineCaps.nonVeboxFeatureExists;
         }
     }
     else
@@ -2052,6 +2058,11 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     engineCapsForVeboxSfc.sfcNotSupported = engineCaps.sfcNotSupported;
                     engineCapsForFc.sfcNotSupported       = engineCaps.sfcNotSupported;
                     VP_PUBLIC_NORMALMESSAGE("sfcNotSupported flag is set.");
+                }
+
+                if ((engineCaps.SfcNeeded && !engineCaps.RenderNeeded && !engineCaps.VeboxNeeded))
+                {
+                    engineCapsForVeboxSfc.sfcOnlyFeatureExists = 1;
                 }
 
                 isSingleSubPipe = true;
