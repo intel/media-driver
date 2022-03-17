@@ -195,12 +195,14 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
 
         // Keep m_pastSurface/m_futureSurface same size as m_InputSurfaces.
         VP_SURFACE *pastSurface = nullptr;
-        if (params.pSrc[i]->pBwdRef)
+        if (params.pSrc[i]->uBwdRefCount > 0 && params.pSrc[i]->pBwdRef &&
+            params.pSrc[i]->FrameID != params.pSrc[i]->pBwdRef->FrameID)
         {
             pastSurface = m_vpInterface.GetAllocator().AllocateVpSurface(*params.pSrc[i]->pBwdRef);
         }
         VP_SURFACE *futureSurface = nullptr;
-        if (params.pSrc[i]->pFwdRef)
+        if (params.pSrc[i]->uFwdRefCount > 0 && params.pSrc[i]->pFwdRef &&
+            params.pSrc[i]->FrameID != params.pSrc[i]->pFwdRef->FrameID)
         {
             futureSurface = m_vpInterface.GetAllocator().AllocateVpSurface(*params.pSrc[i]->pFwdRef);
         }
