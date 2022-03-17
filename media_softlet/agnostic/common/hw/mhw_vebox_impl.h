@@ -504,13 +504,13 @@ public:
     }
 
     MOS_STATUS setVeboxPrologCmd(
-        PMHW_MI_INTERFACE   mhwMiInterface,
+        std::shared_ptr<mhw::mi::Itf> miItf,
         PMOS_COMMAND_BUFFER CmdBuffer)
     {
         MOS_STATUS                            eStatus = MOS_STATUS_SUCCESS;
         uint64_t                              auxTableBaseAddr = 0;
 
-        MHW_CHK_NULL_RETURN(mhwMiInterface);
+        MHW_CHK_NULL_RETURN(miItf);
         MHW_CHK_NULL_RETURN(CmdBuffer);
         MHW_CHK_NULL_RETURN(this->m_osItf);
 
@@ -518,16 +518,15 @@ public:
 
         if (auxTableBaseAddr)
         {
-            MHW_MI_LOAD_REGISTER_IMM_PARAMS lriParams;
-            MOS_ZeroMemory(&lriParams, sizeof(MHW_MI_LOAD_REGISTER_IMM_PARAMS));
+            auto& par = miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+            par = {};
+            par.dwData     = (auxTableBaseAddr & 0xffffffff);
+            par.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseLow;
+            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(CmdBuffer);
 
-            lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseLow;
-            lriParams.dwData = (auxTableBaseAddr & 0xffffffff);
-            MHW_CHK_STATUS_RETURN(mhwMiInterface->AddMiLoadRegisterImmCmd(CmdBuffer, &lriParams));
-
-            lriParams.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseHigh;
-            lriParams.dwData = ((auxTableBaseAddr >> 32) & 0xffffffff);
-            MHW_CHK_STATUS_RETURN(mhwMiInterface->AddMiLoadRegisterImmCmd(CmdBuffer, &lriParams));
+            par.dwData     = ((auxTableBaseAddr >> 32) & 0xffffffff);
+            par.dwRegister = MhwMiInterfaceG12::m_mmioVe0AuxTableBaseHigh;
+            miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(CmdBuffer);
         }
 
         return eStatus;

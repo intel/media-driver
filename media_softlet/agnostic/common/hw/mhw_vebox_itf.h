@@ -68,7 +68,7 @@ public:
 
     virtual MOS_STATUS AddVeboxSurfaces(PMOS_COMMAND_BUFFER pCmdBufferInUse, PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams) = 0;
 
-    virtual MOS_STATUS setVeboxPrologCmd(PMHW_MI_INTERFACE pMhwMiInterface, PMOS_COMMAND_BUFFER CmdBuffer) = 0;
+    virtual MOS_STATUS setVeboxPrologCmd(std::shared_ptr<mhw::mi::Itf> miItf, PMOS_COMMAND_BUFFER CmdBuffer) = 0;
 
     virtual MOS_STATUS SetVeboxDndiState(PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams) = 0;
 

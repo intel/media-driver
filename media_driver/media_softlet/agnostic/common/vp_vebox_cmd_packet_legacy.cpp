@@ -1443,11 +1443,13 @@ MOS_STATUS VpVeboxCmdPacketLegacy::setVeboxProCmd(
     PMHW_VEBOX_INTERFACE  pVeboxInterface,
     MOS_COMMAND_BUFFER*   CmdBuffer)
 {
+    std::shared_ptr<mhw::mi::Itf> miItf = nullptr;
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
 
-    if(m_veboxItf)
+    miItf = std::static_pointer_cast<mhw::mi::Itf>(pMhwMiInterface->GetNewMiInterface());
+    if (m_veboxItf)
     {
-        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->setVeboxPrologCmd(pMhwMiInterface, CmdBuffer));
+        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->setVeboxPrologCmd(miItf, CmdBuffer));
     }
     else
     {

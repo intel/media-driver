@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,12 +20,12 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vp_vebox_cmd_packet.cpp
+//! \file     vp_vebox_cmd_packet_next.cpp
 //! \brief    vebox packet which used in by mediapipline.
 //! \details  vebox packet provide the structures and generate the cmd buffer which mediapipline will used.
 //!
 
-#include "vp_vebox_cmd_packet.h"
+#include "vp_vebox_cmd_packet_next.h"
 #include "vp_utils.h"
 #include "mos_resource_defs.h"
 #include "hal_oca_interface.h"
@@ -33,7 +33,6 @@
 #include "vp_render_ief.h"
 #include "vp_feature_caps.h"
 #include "vp_platform_interface.h"
-#include "mhw_vebox_itf.h"
 #include "mhw_mi_itf.h"
 #include "mhw_mi_cmdpar.h"
 #include "mhw_utilities.h"
@@ -43,16 +42,16 @@ namespace vp {
 
 #define INTERP(x0, x1, x, y0, y1)   ((uint32_t) floor(y0+(x-x0)*(y1-y0)/(double)(x1-x0)))
 
-const uint32_t  VpVeboxCmdPacket::m_satP1Table[MHW_STE_FACTOR_MAX + 1] = {
+const uint32_t  VpVeboxCmdPacketNext::m_satP1Table[MHW_STE_FACTOR_MAX + 1] = {
     0x00000000, 0xfffffffe, 0xfffffffc, 0xfffffffa, 0xfffffff6, 0xfffffff4, 0xfffffff2, 0xfffffff0, 0xffffffee, 0xffffffec };
 
-const uint32_t   VpVeboxCmdPacket::m_satS0Table[MHW_STE_FACTOR_MAX + 1] = {
+const uint32_t   VpVeboxCmdPacketNext::m_satS0Table[MHW_STE_FACTOR_MAX + 1] = {
     0x000000ef, 0x00000100, 0x00000113, 0x00000129, 0x0000017a, 0x000001a2, 0x000001d3, 0x00000211, 0x00000262, 0x000002d1 };
 
-const uint32_t   VpVeboxCmdPacket::m_satS1Table[MHW_STE_FACTOR_MAX + 1] = {
+const uint32_t   VpVeboxCmdPacketNext::m_satS1Table[MHW_STE_FACTOR_MAX + 1] = {
     0x000000ab, 0x00000080, 0x00000066, 0x00000055, 0x000000c2, 0x000000b9, 0x000000b0, 0x000000a9, 0x000000a2, 0x0000009c };
 
-void VpVeboxCmdPacket::SetupSurfaceStates(
+void VpVeboxCmdPacketNext::SetupSurfaceStates(
     PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS   pVeboxSurfaceStateCmdParams)
 {
     VP_FUNC_CALL();
@@ -67,7 +66,7 @@ void VpVeboxCmdPacket::SetupSurfaceStates(
     pVeboxSurfaceStateCmdParams->b3DlutEnable  = m_PacketCaps.bHDR3DLUT;  // Need to consider cappipe
 }
 
-MOS_STATUS VpVeboxCmdPacket::Init3DLutTable(PVP_SURFACE surf3DLut)
+MOS_STATUS VpVeboxCmdPacketNext::Init3DLutTable(PVP_SURFACE surf3DLut)
 {
     VP_FUNC_CALL();
     PVP_SURFACE        surf3DLut2D  = nullptr;
@@ -127,7 +126,7 @@ MOS_STATUS VpVeboxCmdPacket::Init3DLutTable(PVP_SURFACE surf3DLut)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetupVebox3DLutForHDR(
+MOS_STATUS VpVeboxCmdPacketNext::SetupVebox3DLutForHDR(
     PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams)
 {
     PMHW_VEBOX_MODE   pVeboxMode = nullptr;
@@ -159,7 +158,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupVebox3DLutForHDR(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetupHDRLuts(
+MOS_STATUS VpVeboxCmdPacketNext::SetupHDRLuts(
     PMHW_VEBOX_STATE_CMD_PARAMS veboxStateCmdParams)
 {
     VP_FUNC_CALL();
@@ -178,8 +177,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupHDRLuts(
 
     return MOS_STATUS_SUCCESS;
 }
-
-MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
+MOS_STATUS VpVeboxCmdPacketNext::SetupVeboxState(
     PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams)
 {
     VP_FUNC_CALL();
@@ -245,7 +243,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxState(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::InitCmdBufferWithVeParams(
+MOS_STATUS VpVeboxCmdPacketNext::InitCmdBufferWithVeParams(
     PRENDERHAL_INTERFACE pRenderHal,
     MOS_COMMAND_BUFFER & CmdBuffer,
     PRENDERHAL_GENERIC_PROLOG_PARAMS pGenericPrologParams)
@@ -317,7 +315,7 @@ MOS_STATUS VpVeboxCmdPacket::InitCmdBufferWithVeParams(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpVeboxCmdPacket::InitSTMMHistory()
+MOS_STATUS VpVeboxCmdPacketNext::InitSTMMHistory()
 {
     VP_FUNC_CALL();
 
@@ -366,7 +364,7 @@ finish:
     return eStatus;
 }
 
-bool VpVeboxCmdPacket::IsFormatMMCSupported(MOS_FORMAT Format)
+bool VpVeboxCmdPacketNext::IsFormatMMCSupported(MOS_FORMAT Format)
 {
     VP_FUNC_CALL();
 
@@ -399,7 +397,7 @@ bool VpVeboxCmdPacket::IsFormatMMCSupported(MOS_FORMAT Format)
     return true;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetSfcMmcParams()
+MOS_STATUS VpVeboxCmdPacketNext::SetSfcMmcParams()
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcRender);
@@ -414,7 +412,7 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcMmcParams()
     return MOS_STATUS_SUCCESS;
 }
 
-VP_SURFACE *VpVeboxCmdPacket::GetSurface(SurfaceType type)
+VP_SURFACE * VpVeboxCmdPacketNext::GetSurface(SurfaceType type)
 {
     VP_FUNC_CALL();
 
@@ -449,7 +447,7 @@ VP_SURFACE *VpVeboxCmdPacket::GetSurface(SurfaceType type)
     return surf;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
 {
     VP_FUNC_CALL();
 
@@ -474,7 +472,7 @@ MOS_STATUS VpVeboxCmdPacket::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     }
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetSfcCSCParams(PSFC_CSC_PARAMS cscParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetSfcCSCParams(PSFC_CSC_PARAMS cscParams)
 {
     VP_FUNC_CALL();
 
@@ -493,7 +491,7 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcCSCParams(PSFC_CSC_PARAMS cscParams)
     }
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
 {
     VP_FUNC_CALL();
 
@@ -536,7 +534,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscParams)
 {
     VP_FUNC_CALL();
 
@@ -617,7 +615,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxOutputAlphaParams(PVEBOX_CSC_PARAMS cscPara
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxChromasitingParams(PVEBOX_CSC_PARAMS cscParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxChromasitingParams(PVEBOX_CSC_PARAMS cscParams)
 {
     VP_FUNC_CALL();
 
@@ -638,7 +636,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxChromasitingParams(PVEBOX_CSC_PARAMS cscPar
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams)
 {
     VP_FUNC_CALL();
 
@@ -672,7 +670,7 @@ MOS_STATUS VpVeboxCmdPacket::SetSfcRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpVeboxCmdPacket::ConfigDnLumaChromaParams(
+MOS_STATUS VpVeboxCmdPacketNext::ConfigDnLumaChromaParams(
     bool                            bDnEnabled,
     bool                            bChromaDenoise,
     PVP_SAMPLER_STATE_DN_PARAM      pLumaParams,
@@ -724,14 +722,14 @@ MOS_STATUS VpVeboxCmdPacket::ConfigDnLumaChromaParams(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpVeboxCmdPacket::ConfigFMDParams(bool bProgressive, bool bAutoDenoise, bool bFmdEnabled)
+MOS_STATUS VpVeboxCmdPacketNext::ConfigFMDParams(bool bProgressive, bool bAutoDenoise, bool bFmdEnabled)
 {
     VP_FUNC_CALL();
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetDnParams(
+MOS_STATUS VpVeboxCmdPacketNext::SetDnParams(
     PVEBOX_DN_PARAMS                    pDnParams)
 {
     VP_FUNC_CALL();
@@ -767,7 +765,7 @@ MOS_STATUS VpVeboxCmdPacket::SetDnParams(
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetSteParams(
+MOS_STATUS VpVeboxCmdPacketNext::SetSteParams(
     PVEBOX_STE_PARAMS                    pSteParams)
 {
     VP_FUNC_CALL();
@@ -808,7 +806,7 @@ MOS_STATUS VpVeboxCmdPacket::SetSteParams(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetTccParams(
+MOS_STATUS VpVeboxCmdPacketNext::SetTccParams(
     PVEBOX_TCC_PARAMS                    pTccParams)
 {
     VP_FUNC_CALL();
@@ -840,7 +838,7 @@ MOS_STATUS VpVeboxCmdPacket::SetTccParams(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetProcampParams(
+MOS_STATUS VpVeboxCmdPacketNext::SetProcampParams(
     PVEBOX_PROCAMP_PARAMS                    pProcampParams)
 {
     VP_FUNC_CALL();
@@ -875,7 +873,7 @@ MOS_STATUS VpVeboxCmdPacket::SetProcampParams(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::ValidateHDR3DLutParameters(bool is3DLutTableFilled)
+MOS_STATUS VpVeboxCmdPacketNext::ValidateHDR3DLutParameters(bool is3DLutTableFilled)
 {
     VP_FUNC_CALL();
     if (!is3DLutTableFilled)
@@ -887,7 +885,7 @@ MOS_STATUS VpVeboxCmdPacket::ValidateHDR3DLutParameters(bool is3DLutTableFilled)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
 {
     VP_FUNC_CALL();
     VpVeboxRenderData     *pRenderData = GetLastExecRenderData();
@@ -936,14 +934,13 @@ MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
 
     return MOS_STATUS_SUCCESS;
 }
-
-bool VpVeboxCmdPacket::IsTopField(VPHAL_SAMPLE_TYPE sampleType)
+bool VpVeboxCmdPacketNext::IsTopField(VPHAL_SAMPLE_TYPE sampleType)
 {
     return sampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD ||
         sampleType == SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD;
 }
 
-bool VpVeboxCmdPacket::IsTopFieldFirst(VPHAL_SAMPLE_TYPE sampleType)
+bool VpVeboxCmdPacketNext::IsTopFieldFirst(VPHAL_SAMPLE_TYPE sampleType)
 {
     return m_DNDIFirstFrame ?
         IsTopField(sampleType) :    // For no reference case, just do DI for current field.
@@ -951,7 +948,7 @@ bool VpVeboxCmdPacket::IsTopFieldFirst(VPHAL_SAMPLE_TYPE sampleType)
          sampleType == SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD);
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetDiParams(PVEBOX_DI_PARAMS diParams)
+MOS_STATUS VpVeboxCmdPacketNext::SetDiParams(PVEBOX_DI_PARAMS diParams)
 {
     VP_FUNC_CALL();
 
@@ -1001,7 +998,7 @@ MOS_STATUS VpVeboxCmdPacket::SetDiParams(PVEBOX_DI_PARAMS diParams)
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetDiParams(bool bDiEnabled, bool bSCDEnabled, bool bHDContent, VPHAL_SAMPLE_TYPE sampleTypeInput, MHW_VEBOX_DNDI_PARAMS &param)
+MOS_STATUS VpVeboxCmdPacketNext::SetDiParams(bool bDiEnabled, bool bSCDEnabled, bool bHDContent, VPHAL_SAMPLE_TYPE sampleTypeInput, MHW_VEBOX_DNDI_PARAMS &param)
 {
     VP_FUNC_CALL();
 
@@ -1064,7 +1061,7 @@ MOS_STATUS VpVeboxCmdPacket::SetDiParams(bool bDiEnabled, bool bSCDEnabled, bool
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxSurfaceControlBits(
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxSurfaceControlBits(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     MHW_VEBOX_SURFACE_CNTL_PARAMS       *pVeboxSurfCntlParams,
     uint32_t                            *pSurfCtrlBits)
@@ -1086,8 +1083,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxSurfaceControlBits(
 
     return MOS_STATUS_SUCCESS;
 }
-
-MOS_STATUS VpVeboxCmdPacket::SetupDiIecpState(
+MOS_STATUS VpVeboxCmdPacketNext::SetupDiIecpState(
     bool                        bDiScdEnable,
     PMHW_VEBOX_DI_IECP_CMD_PARAMS   pVeboxDiIecpCmdParams)
 {
@@ -1285,14 +1281,14 @@ finish:
     return eStatus;
 }
 
-bool VpVeboxCmdPacket::UseKernelResource()
+bool VpVeboxCmdPacketNext::UseKernelResource()
 {
     VP_FUNC_CALL();
 
     return false;
 }
 
-MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceParams(
+MOS_STATUS VpVeboxCmdPacketNext::InitVeboxSurfaceParams(
     PVP_SURFACE                     pVpHalVeboxSurface,
     PMHW_VEBOX_SURFACE_PARAMS       pMhwVeboxSurface)
 {
@@ -1337,7 +1333,7 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceParams(
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SendVeboxCmd(MOS_COMMAND_BUFFER* commandBuffer)
+MOS_STATUS VpVeboxCmdPacketNext::SendVeboxCmd(MOS_COMMAND_BUFFER* commandBuffer)
 {
     VP_FUNC_CALL();
 
@@ -1386,7 +1382,7 @@ MOS_STATUS VpVeboxCmdPacket::SendVeboxCmd(MOS_COMMAND_BUFFER* commandBuffer)
     return eStatus;
 }
 
-void VpVeboxCmdPacket::CmdErrorHanlde(
+void VpVeboxCmdPacketNext::CmdErrorHanlde(
     MOS_COMMAND_BUFFER  *CmdBuffer,
     int32_t             &iRemaining)
 {
@@ -1408,7 +1404,7 @@ void VpVeboxCmdPacket::CmdErrorHanlde(
     CmdBuffer->pCmdPtr = CmdBuffer->pCmdBase + CmdBuffer->iOffset / sizeof(uint32_t);
 }
 
-MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
+MOS_STATUS VpVeboxCmdPacketNext::PrepareVeboxCmd(
     MOS_COMMAND_BUFFER*                      CmdBuffer,
     RENDERHAL_GENERIC_PROLOG_PARAMS&         GenericPrologParams,
     int32_t&                                 iRemaining)
@@ -1442,18 +1438,16 @@ MOS_STATUS VpVeboxCmdPacket::PrepareVeboxCmd(
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::setVeboxProCmd(
+MOS_STATUS VpVeboxCmdPacketNext::setVeboxProCmd(
     PMHW_MI_INTERFACE     pMhwMiInterface,
     PMHW_VEBOX_INTERFACE  pVeboxInterface,
     MOS_COMMAND_BUFFER*   CmdBuffer)
 {
-    std::shared_ptr<mhw::mi::Itf> miItf = nullptr;
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
 
-    miItf = std::static_pointer_cast<mhw::mi::Itf>(pMhwMiInterface->GetNewMiInterface());
     if(m_veboxItf)
     {
-        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->setVeboxPrologCmd(miItf, CmdBuffer));
+        VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->setVeboxPrologCmd(pMhwMiInterface, CmdBuffer));
     }
     else
     {
@@ -1463,7 +1457,7 @@ MOS_STATUS VpVeboxCmdPacket::setVeboxProCmd(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxIndex(
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxIndex(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     uint32_t                            dwVeboxIndex,
     uint32_t                            dwVeboxCount,
@@ -1483,7 +1477,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxIndex(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxState(
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxState(
     PMHW_VEBOX_INTERFACE        pVeboxInterface,
     PMOS_COMMAND_BUFFER         pCmdBufferInUse,
     PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams,
@@ -1556,7 +1550,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxState(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxSurfaces(
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxSurfaces(
     PMHW_VEBOX_INTERFACE                pVeboxInterface,
     PMOS_COMMAND_BUFFER                 pCmdBufferInUse,
     PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pMhwVeboxSurfaceStateCmdParams)
@@ -1579,7 +1573,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxSurfaces(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetVeboxDiIecp(
+MOS_STATUS VpVeboxCmdPacketNext::SetVeboxDiIecp(
     PMHW_VEBOX_INTERFACE               pVeboxInterface,
     PMOS_COMMAND_BUFFER                pCmdBufferInUse,
     PMHW_VEBOX_DI_IECP_CMD_PARAMS      pVeboxDiIecpCmdParams)
@@ -1636,8 +1630,7 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxDiIecp(
 
     return MOS_STATUS_SUCCESS;
 }
-
-MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
+MOS_STATUS VpVeboxCmdPacketNext::RenderVeboxCmd(
     MOS_COMMAND_BUFFER                      *CmdBuffer,
     MHW_VEBOX_DI_IECP_CMD_PARAMS            &VeboxDiIecpCmdParams,
     VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    &VeboxSurfaceStateCmdParams,
@@ -1698,6 +1691,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
 
     m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->m_mhwMiInterface->GetNewMiInterface());
+
 
 #ifdef _MMC_SUPPORTED
 
@@ -1808,13 +1802,14 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
                 SETPAR_AND_ADDCMD(MI_NOOP, m_miItf, pCmdBufferInUse);
                 SETPAR_AND_ADDCMD(MI_NOOP, m_miItf, pCmdBufferInUse);
                 SETPAR_AND_ADDCMD(MI_NOOP, m_miItf, pCmdBufferInUse);
+
                 if (m_IsSfcUsed)
                 {
                     SETPAR_AND_ADDCMD(MI_NOOP, m_miItf, pCmdBufferInUse);
                     SETPAR_AND_ADDCMD(MI_NOOP, m_miItf, pCmdBufferInUse);
                     SETPAR_AND_ADDCMD(MI_NOOP, m_miItf, pCmdBufferInUse);
                     SETPAR_AND_ADDCMD(MI_NOOP, m_miItf, pCmdBufferInUse);
-                }
+            }
             }
 #endif
         }
@@ -1952,7 +1947,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
+MOS_STATUS VpVeboxCmdPacketNext::InitVeboxSurfaceStateCmdParams(
     PVPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS    pVpHalVeboxSurfaceStateCmdParams,
     PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS      pMhwVeboxSurfaceStateCmdParams)
 {
@@ -2026,7 +2021,7 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParams(
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
+MOS_STATUS VpVeboxCmdPacketNext::SendVecsStatusTag(
     PMHW_MI_INTERFACE                   pMhwMiInterface,
     PMOS_INTERFACE                      pOsInterface,
     PMOS_COMMAND_BUFFER                 pCmdBuffer)
@@ -2056,6 +2051,7 @@ MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
     m_miItf = std::static_pointer_cast<mhw::mi::Itf>(pMhwMiInterface->GetNewMiInterface());
     VP_RENDER_CHK_NULL_RETURN(m_miItf);
 
+    //SETPAR_AND_ADDCMD(MI_FLUSH_DW, m_miItf, pCmdBuffer);
     auto &params             = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
     params                   = {};
     params.pOsResource       = gpuStatusBuffer;;
@@ -2069,7 +2065,7 @@ MOS_STATUS VpVeboxCmdPacket::SendVecsStatusTag(
     return eStatus;
 }
 
-bool VpVeboxCmdPacket::RndrCommonIsMiBBEndNeeded(
+bool VpVeboxCmdPacketNext::RndrCommonIsMiBBEndNeeded(
     PMOS_INTERFACE           pOsInterface)
 {
     VP_FUNC_CALL();
@@ -2082,7 +2078,7 @@ bool VpVeboxCmdPacket::RndrCommonIsMiBBEndNeeded(
     return needed;
 }
 
-MOS_STATUS VpVeboxCmdPacket::InitSfcRender()
+MOS_STATUS VpVeboxCmdPacketNext::InitSfcRender()
 {
     VP_FUNC_CALL();
 
@@ -2100,7 +2096,7 @@ MOS_STATUS VpVeboxCmdPacket::InitSfcRender()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::DumpVeboxStateHeap()
+MOS_STATUS VpVeboxCmdPacketNext::DumpVeboxStateHeap()
 {
     VP_FUNC_CALL();
 
@@ -2130,10 +2126,8 @@ MOS_STATUS VpVeboxCmdPacket::DumpVeboxStateHeap()
     }
     VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
 
-
     driverResource.osSurface = &driverSurface;
     kernelResource.osSurface = &kernelSurface;
-
     driverResource.osSurface->OsResource = pVeboxHeap->DriverResource;
     kernelResource.osSurface->OsResource = pVeboxHeap->KernelResource;
 
@@ -2160,7 +2154,7 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::Init()
+MOS_STATUS VpVeboxCmdPacketNext::Init()
 {
     VP_FUNC_CALL();
 
@@ -2206,7 +2200,7 @@ MOS_STATUS VpVeboxCmdPacket::Init()
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::Prepare()
+MOS_STATUS VpVeboxCmdPacketNext::Prepare()
 {
     VP_FUNC_CALL();
 
@@ -2215,7 +2209,7 @@ MOS_STATUS VpVeboxCmdPacket::Prepare()
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::PrepareState()
+MOS_STATUS VpVeboxCmdPacketNext::PrepareState()
 {
     VP_FUNC_CALL();
 
@@ -2236,7 +2230,7 @@ MOS_STATUS VpVeboxCmdPacket::PrepareState()
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::PacketInit(
+MOS_STATUS VpVeboxCmdPacketNext::PacketInit(
     VP_SURFACE                          *inputSurface,
     VP_SURFACE                          *outputSurface,
     VP_SURFACE                          *previousSurface,
@@ -2334,7 +2328,7 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase)
+MOS_STATUS VpVeboxCmdPacketNext::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase)
 {
     VP_FUNC_CALL();
 
@@ -2368,7 +2362,7 @@ MOS_STATUS VpVeboxCmdPacket::Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t p
     return eStatus;
 }
 
-void VpVeboxCmdPacket::CopySurfaceValue(
+void VpVeboxCmdPacketNext::CopySurfaceValue(
     VP_SURFACE                  *pTargetSurface,
     VP_SURFACE                  *pSourceSurface)
 {
@@ -2382,18 +2376,18 @@ void VpVeboxCmdPacket::CopySurfaceValue(
     *pTargetSurface = *pSourceSurface;
 }
 
-VpVeboxCmdPacket::VpVeboxCmdPacket(
+VpVeboxCmdPacketNext::VpVeboxCmdPacketNext(
     MediaTask * task,
     PVP_MHWINTERFACE hwInterface,
     PVpAllocator &allocator,
     VPMediaMemComp *mmc):
     CmdPacket(task),
-    VpVeboxCmdPacketBase(task, hwInterface, allocator, mmc)
+    VpCmdPacket(task, hwInterface, allocator, mmc, VP_PIPELINE_PACKET_VEBOX)
 {
 
 }
 
-VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
+VpVeboxCmdPacketNext:: ~VpVeboxCmdPacketNext()
 {
     VP_FUNC_CALL();
 
@@ -2458,7 +2452,7 @@ VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpVeboxCmdPacket::GetStatisticsSurfaceOffsets(
+MOS_STATUS VpVeboxCmdPacketNext::GetStatisticsSurfaceOffsets(
     int32_t*                    pStatSlice0Offset,
     int32_t*                    pStatSlice1Offset)
 {
@@ -2504,13 +2498,14 @@ finish:
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::AddVeboxDndiState()
+MOS_STATUS VpVeboxCmdPacketNext::AddVeboxDndiState()
 {
     VP_FUNC_CALL();
 
     PMHW_VEBOX_INTERFACE             pVeboxInterface = m_hwInterface->m_veboxInterface;
     std::shared_ptr<mhw::vebox::Itf> veboxItf        = nullptr;
     VpVeboxRenderData               *pRenderData     = GetLastExecRenderData();
+
     VP_RENDER_CHK_NULL_RETURN(pVeboxInterface);
     VP_RENDER_CHK_NULL_RETURN(pRenderData);
 
@@ -2531,7 +2526,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxDndiState()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
+MOS_STATUS VpVeboxCmdPacketNext::AddVeboxIECPState()
 {
     VP_FUNC_CALL();
 
@@ -2573,7 +2568,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxIECPState()
     return MOS_STATUS_SUCCESS;
 }
 
-bool VpVeboxCmdPacket::IsVeboxGamutStateNeeded()
+bool VpVeboxCmdPacketNext::IsVeboxGamutStateNeeded()
 {
     VpVeboxRenderData *renderData = GetLastExecRenderData();
     return renderData ? renderData->HDR3DLUT.bHdr3DLut : false;
@@ -2585,7 +2580,7 @@ bool VpVeboxCmdPacket::IsVeboxGamutStateNeeded()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpVeboxCmdPacket::AddVeboxGamutState()
+MOS_STATUS VpVeboxCmdPacketNext::AddVeboxGamutState()
 {
     VP_FUNC_CALL();
 
@@ -2622,7 +2617,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxGamutState()
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
-MOS_STATUS VpVeboxCmdPacket::AddVeboxHdrState()
+MOS_STATUS VpVeboxCmdPacketNext::AddVeboxHdrState()
 {
     VP_FUNC_CALL();
 
@@ -2646,7 +2641,7 @@ MOS_STATUS VpVeboxCmdPacket::AddVeboxHdrState()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
+MOS_STATUS VpVeboxCmdPacketNext::SetupIndirectStates()
 {
     VP_FUNC_CALL();
 
@@ -2691,7 +2686,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupIndirectStates()
     return MOS_STATUS_SUCCESS;
 }
 
-void VpVeboxCmdPacket::VeboxGetBeCSCMatrix(
+void VpVeboxCmdPacketNext::VeboxGetBeCSCMatrix(
     VPHAL_CSPACE    inputColorSpace,
     VPHAL_CSPACE    outputColorSpace,
     MOS_FORMAT      inputFormat)
@@ -2739,7 +2734,7 @@ void VpVeboxCmdPacket::VeboxGetBeCSCMatrix(
     }
 }
 
-MOS_STATUS VpVeboxCmdPacket::IsCmdParamsValid(
+MOS_STATUS VpVeboxCmdPacketNext::IsCmdParamsValid(
     const MHW_VEBOX_STATE_CMD_PARAMS            &VeboxStateCmdParams,
     const MHW_VEBOX_DI_IECP_CMD_PARAMS          &VeboxDiIecpCmdParams,
     const VPHAL_VEBOX_SURFACE_STATE_CMD_PARAMS  &VeboxSurfaceStateCmdParams)
@@ -2777,7 +2772,7 @@ MOS_STATUS VpVeboxCmdPacket::IsCmdParamsValid(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTag()
+MOS_STATUS VpVeboxCmdPacketNext::VeboxSetPerfTag()
 {
     VP_FUNC_CALL();
 
@@ -2859,7 +2854,7 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTag()
     return eStatus;
 }
 
-MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagNv12()
+MOS_STATUS VpVeboxCmdPacketNext::VeboxSetPerfTagNv12()
 {
     VP_FUNC_CALL();
 
@@ -2994,7 +2989,7 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagNv12()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagPaFormat()
+MOS_STATUS VpVeboxCmdPacketNext::VeboxSetPerfTagPaFormat()
 {
     VP_FUNC_CALL();
 
@@ -3134,14 +3129,14 @@ MOS_STATUS VpVeboxCmdPacket::VeboxSetPerfTagPaFormat()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::UpdateVeboxStates()
+MOS_STATUS VpVeboxCmdPacketNext::UpdateVeboxStates()
 {
     VP_FUNC_CALL();
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpVeboxCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)
+MOS_STATUS VpVeboxCmdPacketNext::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)
 {
     VP_FUNC_CALL();
 
@@ -3234,7 +3229,7 @@ MOS_STATUS VpVeboxCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps)
     return MOS_STATUS_SUCCESS;
 }
 
-MHW_CSPACE VpVeboxCmdPacket::VpHalCspace2MhwCspace(VPHAL_CSPACE cspace)
+MHW_CSPACE VpVeboxCmdPacketNext::VpHalCspace2MhwCspace(VPHAL_CSPACE cspace)
 {
     VP_FUNC_CALL();
 
@@ -3304,4 +3299,3 @@ MHW_CSPACE VpVeboxCmdPacket::VpHalCspace2MhwCspace(VPHAL_CSPACE cspace)
 }
 
 }
-

@@ -27,6 +27,7 @@
 #include "vp_kernelset.h"
 #include "vp_render_common.h"
 #include "vp_render_kernel_obj.h"
+#include "mhw_mi_itf.h"
 
 namespace vp
 {
@@ -144,6 +145,8 @@ protected:
     virtual MOS_STATUS InitFcMemCacheControlForTarget(PVP_RENDER_CACHE_CNTL settings);
     virtual MOS_STATUS InitFcMemCacheControl(PVP_RENDER_CACHE_CNTL settings);
     MOS_STATUS InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps);
+
+    MHW_SETPAR_DECL_HDR(PIPE_CONTROL);
 
 protected:
 

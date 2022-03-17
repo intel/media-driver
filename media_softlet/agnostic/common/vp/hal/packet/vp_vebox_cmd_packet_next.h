@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,16 +20,16 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vp_vebox_cmd_packet.h
+//! \file     vp_vebox_cmd_packet_next.h
 //! \brief    vebox packet which used in by mediapipline.
 //! \details  vebox packet provide the structures and generate the cmd buffer which mediapipline will used.
 //!
 
-#ifndef __VP_VEBOX_CMD_PACKET_H__
-#define __VP_VEBOX_CMD_PACKET_H__
+#ifndef __VP_VEBOX_CMD_PACKET_NEXT_H__
+#define __VP_VEBOX_CMD_PACKET_NEXT_H__
 
 #include "mhw_vebox_g12_X.h"
-#include "vp_vebox_cmd_packet_base.h"
+#include "vp_cmd_packet.h"
 #include "vp_vebox_common.h"
 #include "vp_render_sfc_base.h"
 #include "vp_filter.h"
@@ -228,7 +228,9 @@
 #define VP_VEBOX_HDR_3DLUT65                                        LUT65_SEG_SIZE *\
                                                                     LUT65_SEG_SIZE *\
                                                                     LUT65_MUL_SIZE * sizeof(int64_t)
+
 #define SHAPE_1K_LOOKUP_SIZE                                        2048 * sizeof(uint32_t)
+
 //!
 //! \brief Vebox Statistics Surface definition
 //!
@@ -329,12 +331,12 @@ typedef struct _VP_VEBOX_CACHE_CNTL
 
 namespace vp {
 
-class VpVeboxCmdPacket : public VpVeboxCmdPacketBase
+class VpVeboxCmdPacketNext : public VpCmdPacket, public mhw::mi::Itf::ParSetting
 {
 public:
-    VpVeboxCmdPacket(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc);
+    VpVeboxCmdPacketNext(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc);
 
-    virtual ~VpVeboxCmdPacket();
+    virtual ~VpVeboxCmdPacketNext();
 
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
@@ -824,7 +826,6 @@ public:
     //!
     virtual MOS_STATUS UpdateVeboxStates();
 
-
 protected:
 
     //!
@@ -843,7 +844,7 @@ protected:
       MOS_COMMAND_BUFFER*                      CmdBuffer,
       RENDERHAL_GENERIC_PROLOG_PARAMS&         GenericPrologParams,
       int32_t&                                 iRemaining);
-
+public:
     //!
     //! \brief    Render the Vebox Cmd buffer for SendVeboxCmd
     //!           Parameters might remain unchanged in case
@@ -872,7 +873,7 @@ protected:
         MHW_VEBOX_STATE_CMD_PARAMS              &VeboxStateCmdParams,
         MHW_MI_FLUSH_DW_PARAMS                  &FlushDwParams,
         PRENDERHAL_GENERIC_PROLOG_PARAMS        pGenericPrologParams);
-
+protected:
     //!
     //! \brief    handle Cmd buffer's offset when error occur
     //! \details  handle Cmd buffer's offset when error occur
@@ -1010,7 +1011,7 @@ protected:
     MOS_STATUS SetupVebox3DLutForHDR(
         PMHW_VEBOX_STATE_CMD_PARAMS pVeboxStateCmdParams);
 
-private:
+//private:
 
     //!
     //! \brief    IsFormatMMCSupported
@@ -1067,8 +1068,7 @@ private:
         PMHW_VEBOX_INTERFACE               pVeboxInterface,
         PMOS_COMMAND_BUFFER                pCmdBufferInUse,
         PMHW_VEBOX_DI_IECP_CMD_PARAMS      pVeboxDiIecpCmdParams);
-
-protected:
+//protected:
 
     // Execution state
     VpVeboxRenderData           *m_lastExecRenderData     = nullptr;                             //!< Cache last render operation info
@@ -1106,12 +1106,12 @@ protected:
     MediaScalability           *m_scalability              = nullptr;            //!< scalability
     bool                        m_useKernelResource        = false;               //!< Use Vebox Kernel Resource 
     uint32_t                    m_inputDepth               = 0;
-    std::shared_ptr<mhw::vebox::Itf> m_veboxItf            = nullptr;
     MediaFeatureManager        *m_featureManager           = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf                  = nullptr;
+    std::shared_ptr<mhw::vebox::Itf> m_veboxItf            = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacket)
+MEDIA_CLASS_DEFINE_END(VpVeboxCmdPacketNext)
 };
 
 }
-#endif // !__VP_VEBOX_CMD_PACKET_H__
+#endif // !__VP_VEBOX_CMD_PACKET_NEXT_H__
