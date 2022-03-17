@@ -45,7 +45,7 @@ public:
         bool disableVeboxOutput             = false; // If true (VPHAL_COMP_BYPASS_DISABLED), output from vebox directly is not allowed, otherwise, output from vebox is allowed.
         bool disableSfc                     = false;
         bool computeContextEnabled          = true;
-        bool eufusionBypassWaEnabled        = true;
+        bool eufusionBypassWaEnabled        = false;
     };
 
     virtual MOS_STATUS Update(PVP_PIPELINE_PARAMS params);
