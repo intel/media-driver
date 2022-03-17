@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -385,8 +385,7 @@ public:
         MOS_HW_RESOURCE_DEF     resUsageType   = MOS_HW_RESOURCE_DEF_MAX,
         MOS_TILE_MODE_GMM       tileModeByForce = MOS_TILE_UNSET_GMM,
         Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY,
-        bool                    isNotLockable = false,
-        void                    *systemMemory = nullptr);
+        bool                    isNotLockable = false);
 
     //!
     //! \brief    Allocates the Surface

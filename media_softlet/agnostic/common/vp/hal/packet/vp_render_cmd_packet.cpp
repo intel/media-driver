@@ -117,8 +117,6 @@ MOS_STATUS VpRenderCmdPacket::LoadKernel()
         return MOS_STATUS_UNKNOWN;
     }
 
-    m_renderData.kernelAllocationID = iKrnAllocation;
-
     if (m_renderData.iCurbeOffset < 0)
     {
         RENDER_PACKET_ASSERTMESSAGE("Curbe Set Fail, return error");
@@ -166,12 +164,6 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
 
     if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
     {
-        m_kernelRenderData.clear();
-        VP_RENDER_CHK_NULL_RETURN(m_renderHal->pStateHeap);
-
-        m_renderHal->pStateHeap->iCurrentBindingTable = 0;
-        m_renderHal->pStateHeap->iCurrentSurfaceState = 0;
-
         for (auto it = m_kernelObjs.begin(); it != m_kernelObjs.end(); it++)
         {
             m_kernel = it->second;
@@ -181,15 +173,6 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
 
             // reset render Data for current kernel
             MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
-
-            if (m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
-            {
-                isMultiBindingTables = true;
-            }
-            else
-            {
-                isMultiBindingTables = false;
-            }
 
             VP_RENDER_CHK_STATUS_RETURN(RenderEngineSetup());
 
@@ -327,14 +310,7 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         VP_RENDER_ASSERTMESSAGE("No Kernel Object Creation");
         return MOS_STATUS_NULL_POINTER;
     }
-    if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES   &&
-        m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
-    {
-        VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
-
-        VP_RENDER_CHK_STATUS_RETURN(SubmitWithMultiKernel(commandBuffer, packetPhase));
-    }
-    else if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
+    if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES)
     {
         VP_RENDER_CHK_STATUS_RETURN(SetupMediaWalker());
 
@@ -349,8 +325,7 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if (!m_surfSetting.dumpLaceSurface &&
-        !m_surfSetting.dumpPostSurface)
+    if (!m_surfSetting.dumpLaceSurface)
     {
         VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->DestroyKernelObjects(m_kernelObjs));
     }
@@ -1922,14 +1897,6 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
 
             MHW_RENDERHAL_CHK_STATUS(PrepareComputeWalkerParams(it->second.walkerParam, m_gpgpuWalkerParams));
 
-            if (m_submissionMode == MULTI_KERNELS_WITH_MULTI_MEDIA_STATES && m_bindingtableMode == MULTI_KERNELS_WITH_MULTI_BINDINGTABLES)
-            {
-                pRenderHal->pStateHeap->pCurMediaState = it->second.mediaState;
-                MHW_RENDERHAL_CHK_NULL(pRenderHal->pStateHeap->pCurMediaState);
-                pRenderHal->iKernelAllocationID        = it->second.kernelAllocationID;
-                pRenderHal->pStateHeap->pCurMediaState->bBusy = true;
-            }
-
             MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendComputeWalker(
                 pRenderHal,
                 pCmdBuffer,
@@ -1943,8 +1910,6 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
             goto finish;
         }
     }
-
-    m_kernelRenderData.clear();
 
 finish:
     return eStatus;

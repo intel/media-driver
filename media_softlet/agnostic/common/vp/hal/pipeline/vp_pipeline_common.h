@@ -164,7 +164,6 @@ struct _VP_EXECUTE_CAPS
             uint64_t b3DlutOutput   : 1;
             uint64_t bCappipe       : 1;
             uint64_t bLgca          : 1;
-            uint64_t bFDFB          : 1;
 
             // SFC features
             uint64_t bSfcCsc        : 1;   // Sfc Csc enabled

@@ -298,8 +298,6 @@ typedef struct _MHW_VEBOX_DNDI_PARAMS
     uint32_t  MemSizeInBytes        = 0;
     bool      bEnableSlimIPUDenoise = false;
 
-    // FDFB
-    bool      dndistateforFDFB      = false;
 } MHW_VEBOX_DNDI_PARAMS, *PMHW_VEBOX_DNDI_PARAMS;
 
 //!
@@ -625,9 +623,6 @@ typedef struct _MHW_VEBOX_IECP_PARAMS
     float                           *pfFeCscCoeff;                              // [3x3] Front End CSC Coeff matrix
     float                           *pfFeCscInOffset;                           // [3x1] Front End CSC Input Offset matrix
     float                           *pfFeCscOutOffset;                          // [3x1] Front End CSC Output Offset matrix
-
-    // FDFB
-    bool                            iecpstateforFDFB;
 } MHW_VEBOX_IECP_PARAMS, *PMHW_VEBOX_IECP_PARAMS;
 
 //!
@@ -697,9 +692,6 @@ typedef struct _MHW_VEBOX_GAMUT_PARAMS
     // HDR
     bool                                bH2S;
     uint16_t                            uiMaxCLL;
-
-    // FDFB
-    bool                                gamutstateforFDFB;
 } MHW_VEBOX_GAMUT_PARAMS, *PMHW_VEBOX_GAMUT_PARAMS;
 
 //!

@@ -102,16 +102,6 @@ public:
         m_packet = packet;
     }
 
-    //!
-    //! \brief  Get current associated media Packet
-    //! \return MediaTask*
-    //!         return the media task pointer
-    //!
-    PVP_MHWINTERFACE GetMhwInterface()
-    {
-        return m_pvpMhwInterface;
-    }
-
 protected:
 
     PVP_MHWINTERFACE      m_pvpMhwInterface = nullptr;   // vp HW interfaces

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2022, Intel Corporation
+* Copyright (c) 2020-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -270,7 +270,6 @@ MOS_STATUS RenderCmdPacket::RenderEngineSetup()
 {
     // pls make sure the context already switched to render/compute engine before submit
     RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
-    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pStateHeap);
 
     // Register the resource of GSH
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnReset(m_renderHal));
@@ -280,11 +279,7 @@ MOS_STATUS RenderCmdPacket::RenderEngineSetup()
     RENDER_PACKET_CHK_NULL_RETURN(m_renderData.mediaState);
 
     // Allocate and reset SSH instance
-    if ((isMultiBindingTables == false) || (m_renderHal->pStateHeap->iCurrentBindingTable >= m_renderHal->StateHeapSettings.iBindingTables) ||
-        (m_renderHal->pStateHeap->iCurrentSurfaceState >= m_renderHal->StateHeapSettings.iSurfaceStates))
-    {
-        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignSshInstance(m_renderHal));
-    }
+    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignSshInstance(m_renderHal));
 
     // Assign and Reset binding table
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignBindingTable(

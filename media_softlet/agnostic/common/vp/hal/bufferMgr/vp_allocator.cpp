@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2021, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -733,8 +733,7 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         MOS_HW_RESOURCE_DEF     resUsageType,
         MOS_TILE_MODE_GMM       tileModeByForce,
         Mos_MemPool             memType,
-        bool                    isNotLockable,
-        void *                  systemMemory)
+        bool                    isNotLockable)
 {
     VP_FUNC_CALL();
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
@@ -800,7 +799,6 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.m_tileModeByForce = tileModeByForce;
     allocParams.dwMemType       = memType;
     allocParams.Flags.bNotLockable = isNotLockable;
-    allocParams.pSystemMemory      = systemMemory;
 
     surface = AllocateVpSurface(allocParams, zeroOnAllocate);
     VP_PUBLIC_CHK_NULL_RETURN(surface);
