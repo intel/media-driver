@@ -45,6 +45,24 @@ public:
     {
         MHW_FUNCTION_ENTER;
 
+        MOS_ZeroMemory(&m_outputSurfCtrl, sizeof(m_outputSurfCtrl));
+        MOS_ZeroMemory(&m_avsLineBufferCtrl, sizeof(m_avsLineBufferCtrl));
+        MOS_ZeroMemory(&m_iefLineBufferCtrl, sizeof(m_iefLineBufferCtrl));
+        MOS_ZeroMemory(&m_sfdLineBufferCtrl, sizeof(m_sfdLineBufferCtrl));
+
+        m_scalingMode = MHW_SCALING_AVS;
+
+        if (osItf == nullptr)
+        {
+            MHW_ASSERTMESSAGE("Invalid input pointers provided");
+            return;
+        }
+        if (!osItf->bUsesGfxAddress && !osItf->bUsesPatchList)
+        {
+            MHW_ASSERTMESSAGE("No valid addressing mode indicated");
+            return;
+        }
+
         m_sfcScalabilitySupported = false;
         m_sfcScalabilityEnabled   = false;
         m_indexofSfc              = 0;
@@ -253,8 +271,8 @@ public:
     }
 
     MOS_STATUS SetSfcSamplerTable(
-        PMHW_SFC_AVS_LUMA_TABLE   pLumaTable,
-        PMHW_SFC_AVS_CHROMA_TABLE pChromaTable,
+        SFC_AVS_LUMA_Coeff_Table_PAR   *pLumaTable,
+        SFC_AVS_CHROMA_Coeff_Table_PAR *pChromaTable,
         PMHW_AVS_PARAMS           pAvsParams,
         MOS_FORMAT                srcFormat,
         float                     fScaleX,

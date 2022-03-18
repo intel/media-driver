@@ -31,7 +31,7 @@
 #include "mhw_vebox_g12_X.h"
 #include "vp_vebox_cmd_packet_base.h"
 #include "vp_vebox_common.h"
-#include "vp_render_sfc_base.h"
+#include "vp_render_sfc_base_legacy.h"
 #include "vp_filter.h"
 #include "mhw_mi_itf.h"
 

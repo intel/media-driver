@@ -36,7 +36,7 @@ using namespace vp;
 SfcRenderM12::SfcRenderM12(
     VP_MHWINTERFACE &vpMhwinterface,
     PVpAllocator &allocator):
-    SfcRenderBase(vpMhwinterface, allocator)
+    SfcRenderBaseLegacy(vpMhwinterface, allocator)
 {
 }
 
@@ -52,11 +52,11 @@ MOS_STATUS SfcRenderM12::SetupSfcState(
     MOS_STATUS                eStatus = MOS_STATUS_SUCCESS;
     PMHW_SFC_STATE_PARAMS_G12 sfcStateParamsM12 = nullptr;
 
-    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBase::SetupSfcState(targetSurface));
+    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBaseLegacy::SetupSfcState(targetSurface));
 
     //Set SFD Line Buffer
-    VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
-    sfcStateParamsM12 = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.sfcStateParams);
+    VP_RENDER_CHK_NULL_RETURN(m_renderDataLegacy.sfcStateParams);
+    sfcStateParamsM12 = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderDataLegacy.sfcStateParams);
     VP_RENDER_CHK_NULL_RETURN(sfcStateParamsM12);
 
     VP_RENDER_CHK_STATUS_RETURN(SetLineBuffer(sfcStateParamsM12->resAvsLineBuffer, m_AVSLineBufferSurfaceArray[m_scalabilityParams.curPipe]));
@@ -75,18 +75,18 @@ MOS_STATUS SfcRenderM12::InitSfcStateParams()
 {
     VP_FUNC_CALL();
 
-    if (nullptr == m_sfcStateParams)
+    if (nullptr == m_sfcStateParamsLegacy)
     {
-        m_sfcStateParams = (MHW_SFC_STATE_PARAMS_G12*)MOS_AllocAndZeroMemory(sizeof(MHW_SFC_STATE_PARAMS_G12));
+        m_sfcStateParamsLegacy = (MHW_SFC_STATE_PARAMS_G12*)MOS_AllocAndZeroMemory(sizeof(MHW_SFC_STATE_PARAMS_G12));
     }
     else
     {
-        MOS_ZeroMemory(m_sfcStateParams, sizeof(MHW_SFC_STATE_PARAMS_G12));
+        MOS_ZeroMemory(m_sfcStateParamsLegacy, sizeof(MHW_SFC_STATE_PARAMS_G12));
     }
 
-    VP_PUBLIC_CHK_NULL_RETURN(m_sfcStateParams);
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcStateParamsLegacy);
 
-    m_renderData.sfcStateParams = m_sfcStateParams;
+    m_renderDataLegacy.sfcStateParams = m_sfcStateParamsLegacy;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -124,7 +124,8 @@ MOS_STATUS SfcRenderM12::SetSfcStateInputOrderingModeHcp(
     }
     else if (CODECHAL_VP9 == m_videoConfig.codecStandard)
     {
-        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
+
         if ((VPHAL_COLORPACK_420 == colorPack)
             || (VPHAL_COLORPACK_444 == colorPack))
         {
@@ -147,7 +148,7 @@ MOS_STATUS SfcRenderM12::AddSfcLock(
     VP_RENDER_CHK_NULL_RETURN(m_miInterface);
 
     // Send SFC_LOCK command to acquire SFC pipe for Vebox
-    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBase::AddSfcLock(
+    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBaseLegacy::AddSfcLock(
         pCmdBuffer,
         pSfcLockParams));
 
@@ -169,8 +170,8 @@ MOS_STATUS SfcRenderM12::SetupScalabilityParams()
 
     VP_FUNC_CALL();
 
-    VP_RENDER_CHK_NULL_RETURN(m_renderData.sfcStateParams);
-    PMHW_SFC_STATE_PARAMS_G12 sfcStateParams = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderData.sfcStateParams);
+    VP_RENDER_CHK_NULL_RETURN(m_renderDataLegacy.sfcStateParams);
+    PMHW_SFC_STATE_PARAMS_G12 sfcStateParams = static_cast<PMHW_SFC_STATE_PARAMS_G12>(m_renderDataLegacy.sfcStateParams);
 
     if (MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP != m_pipeMode &&
         MhwSfcInterface::SFC_PIPE_MODE_VEBOX!= m_pipeMode)
@@ -198,12 +199,13 @@ MOS_STATUS SfcRenderM12::SetupScalabilityParams()
 
     if (MhwSfcInterfaceG12::SFC_PIPE_MODE_HCP == m_pipeMode)
     {
-        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderData.SfcInputFormat);
+        VPHAL_COLORPACK colorPack = VpUtils::GetSurfaceColorPack(m_renderDataLegacy.SfcInputFormat);
+
         if ((VPHAL_COLORPACK_420 == colorPack || VPHAL_COLORPACK_422 == colorPack) &&
             (!MOS_IS_ALIGNED(m_scalabilityParams.srcStartX, 2) || MOS_IS_ALIGNED(m_scalabilityParams.srcEndX, 2)))
         {
             VP_PUBLIC_ASSERTMESSAGE("srcStartX(%d) is not even or srcEndX(%d) is not odd with input format(%d).",
-                 m_scalabilityParams.srcStartX, m_scalabilityParams.srcEndX, m_renderData.SfcInputFormat);
+                 m_scalabilityParams.srcStartX, m_scalabilityParams.srcEndX, m_renderDataLegacy.SfcInputFormat);
         }
         sfcStateParams->tileType     = m_scalabilityParams.tileType;
         sfcStateParams->srcStartX    = m_scalabilityParams.srcStartX;

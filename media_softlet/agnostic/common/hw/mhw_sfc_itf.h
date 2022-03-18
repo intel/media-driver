@@ -38,7 +38,7 @@
     DEF(SFC_FRAME_START);                    \
     DEF(SFC_IEF_STATE);                      \
     DEF(SFC_AVS_CHROMA_Coeff_Table);         \
-    DEF(SFC_AVS_LUMA_Coeff_Table);           \
+    DEF(SFC_AVS_LUMA_Coeff_Table)
 
 namespace mhw
 {
@@ -57,8 +57,8 @@ public:
     virtual ~Itf() = default;
 
     virtual MOS_STATUS SetSfcSamplerTable(
-        PMHW_SFC_AVS_LUMA_TABLE   pLumaTable,
-        PMHW_SFC_AVS_CHROMA_TABLE pChromaTable,
+        SFC_AVS_LUMA_Coeff_Table_PAR   *pLumaTable,
+        SFC_AVS_CHROMA_Coeff_Table_PAR *pChromaTable,
         PMHW_AVS_PARAMS           pAvsParams,
         MOS_FORMAT                SrcFormat,
         float                     fScaleX,

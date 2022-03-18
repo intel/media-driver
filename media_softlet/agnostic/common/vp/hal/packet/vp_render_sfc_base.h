@@ -1,4 +1,4 @@
-/* Copyright (c) 2018-2020, Intel Corporation
+/* Copyright (c) 2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,9 +31,10 @@
 
 #include "vp_sfc_common.h"
 #include "vp_vebox_common.h"
-#include "mhw_sfc_g12_X.h"
 #include "vp_allocator.h"
 #include "codec_def_decode_jpeg.h"
+#include "mhw_sfc_itf.h"
+#include "media_feature.h"
 
 namespace vp {
 
@@ -52,31 +53,29 @@ public:
     //!
     virtual MOS_STATUS Init();
 
-    virtual MOS_STATUS Init(VIDEO_PARAMS &videoParams);
+    virtual MOS_STATUS Init(VIDEO_PARAMS& videoParams);
 
     //!
     //! \brief    Setup CSC parameters of the SFC State
-    //! \param    [in,out] pSfcStateParams
+    //! \param    [in,out] sfcStateParams
     //!           Pointer to SFC_STATE params
-    //! \param    [out] pIEFStateParams
-    //!           Pointer to MHW IEF state params
+    //! \param    [out] iEFStateParams
+    //!           MHW IEF state params
     //! \return   void
     //!
     virtual MOS_STATUS SetIefStateCscParams(
-        PMHW_SFC_STATE_PARAMS           pSfcStateParams,
-        PMHW_SFC_IEF_STATE_PARAMS       pIEFStateParams);
+        mhw::sfc::SFC_STATE_PAR              *pSfcStateParams,
+        mhw::sfc::SFC_IEF_STATE_PAR          *pIEFStateParams);
 
     //!
     //! \brief    Setup parameters related to SFC_IEF State
     //! \details  Setup the IEF and CSC params of the SFC_IEF State
     //! \param    [in,out] sfcStateParams
     //!           Pointer to SFC_STATE params
-    //! \param    [in] inputSurface
-    //!           Pointer to Input Surface
     //! \return   void
     //!
     virtual MOS_STATUS SetIefStateParams(
-        PMHW_SFC_STATE_PARAMS           sfcStateParams);
+        mhw::sfc::SFC_STATE_PAR           *pSfcStateParams);
 
     //!
     //! \brief    Setup parameters related to SFC_AVS State
@@ -236,24 +235,24 @@ protected:
     //! \return   MOS_STATUS
     //!
     virtual MOS_STATUS SetSfcStateInputChromaSubSampling(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
 
     //!
     //! \brief    Set SFC input ordering mode
     //! \details  SFC input ordering mode according to
     //!           pipe mode
     //! \param    [out] sfcStateParams
-    //!           Pointer to SFC state params
+    //!           Pointer to SFC_STATE params
     //! \return   MOS_STATUS
     //!
     virtual MOS_STATUS SetSfcStateInputOrderingMode(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
     virtual MOS_STATUS SetSfcStateInputOrderingModeJpeg(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
     virtual MOS_STATUS SetSfcStateInputOrderingModeVdbox(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
     virtual MOS_STATUS SetSfcStateInputOrderingModeHcp(
-        PMHW_SFC_STATE_PARAMS       sfcStateParams) = 0;
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
 
     //!
     //! \brief    Set codec pipe mode
@@ -269,7 +268,7 @@ protected:
     //!           Pointer to SFC_STATE params
     //! \return   void
     void SetColorFillParams(
-        PMHW_SFC_STATE_PARAMS       pSfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
 
     //!
     //! \brief    Setup Rotation and Mirrow params
@@ -279,7 +278,7 @@ protected:
     //! \return   void
     //!
     void SetRotationAndMirrowParams(
-        PMHW_SFC_STATE_PARAMS       pSfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
 
     //!
     //! \brief    Setup Chromasting params
@@ -289,7 +288,7 @@ protected:
     //! \return   void
     //!
     void SetChromasitingParams(
-        PMHW_SFC_STATE_PARAMS       pSfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
 
     //!
     //! \brief    Setup Bypass X & Y AdaptiveFilter params
@@ -299,7 +298,7 @@ protected:
     //! \return   void
     //!
     void SetXYAdaptiveFilter(
-        PMHW_SFC_STATE_PARAMS       pSfcStateParams);
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
 
     //!
     //! \brief    Setup RGB Adaptive params
@@ -309,8 +308,7 @@ protected:
     //! \return   void
     //!
     void SetRGBAdaptive(
-        PMHW_SFC_STATE_PARAMS       pSfcStateParams);
-
+        mhw::sfc::SFC_STATE_PAR       *pSfcStateParams);
 
     //!
     //! \brief    Initialize SFC Output Surface Command parameters
@@ -454,7 +452,7 @@ protected:
 
     virtual MOS_STATUS AddSfcLock(
         PMOS_COMMAND_BUFFER     pCmdBuffer,
-        PMHW_SFC_LOCK_PARAMS    pSfcLockParams);
+        mhw::sfc::SFC_LOCK_PAR *pSfcLockParams);
 
     //!
     //! \brief    Set resource of line buffer
@@ -473,11 +471,51 @@ protected:
     virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat) = 0;
     virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams) = 0;
 
+    virtual MOS_STATUS AddSfcState(
+        PMOS_COMMAND_BUFFER         pCmdBuffer,
+        mhw::sfc::SFC_STATE_PAR     *pSfcStateParams,
+        PMHW_SFC_OUT_SURFACE_PARAMS pOutSurface);
+
+    virtual MOS_STATUS AddSfcAvsState(
+        PMOS_COMMAND_BUFFER            pCmdBuffer,
+        mhw::sfc::SFC_AVS_STATE_PAR    *pSfcAvsStateParams);
+
+    virtual MOS_STATUS AddSfcIefState(
+        PMOS_COMMAND_BUFFER                 pCmdBuffer,
+        mhw::sfc::SFC_IEF_STATE_PAR         *pSfcIefStateParams);
+
+    virtual MOS_STATUS AddSfcAvsLumaTable(
+        PMOS_COMMAND_BUFFER                    pCmdBuffer,
+        mhw::sfc::SFC_AVS_LUMA_Coeff_Table_PAR *pLumaTable);
+
+    virtual MOS_STATUS AddSfcAvsChromaTable(
+        PMOS_COMMAND_BUFFER                      pCmdBuffer,
+        mhw::sfc::SFC_AVS_CHROMA_Coeff_Table_PAR *pChromaTable);
+
+    virtual MOS_STATUS AddSfcFrameStart(
+        PMOS_COMMAND_BUFFER pCmdBuffer,
+        uint8_t             sfcPipeMode);
+
+    virtual MOS_STATUS SetSfcAVSScalingMode(
+        MHW_SCALING_MODE  ScalingMode);
+
+    virtual MOS_STATUS SetSfcSamplerTable(
+        mhw::sfc::SFC_AVS_LUMA_Coeff_Table_PAR    *pLumaTable,
+        mhw::sfc::SFC_AVS_CHROMA_Coeff_Table_PAR  *pChromaTable,
+        PMHW_AVS_PARAMS                 pAvsParams,
+        MOS_FORMAT                      SrcFormat,
+        float                           fScaleX,
+        float                           fScaleY,
+        uint32_t                        dwChromaSiting,
+        bool                            bUse8x8Filter,
+        float                           fHPStrength,
+        float                           fLanczosT);
+
 protected:
 
     // HW intface to access MHW
     PMOS_INTERFACE                  m_osInterface  = nullptr;
-    PMHW_SFC_INTERFACE              m_sfcInterface = nullptr;
+    std::shared_ptr<mhw::sfc::Itf>  m_sfcItf       = nullptr;
     PMHW_MI_INTERFACE               m_miInterface = nullptr;
     MEDIA_FEATURE_TABLE             *m_skuTable = nullptr;
     MEDIA_WA_TABLE                  *m_waTable = nullptr;
@@ -488,13 +526,14 @@ protected:
     static const uint32_t           k_YCoefficientTableSize = 256 * sizeof(int32_t);
     static const uint32_t           k_UVCoefficientTableSize = 128 * sizeof(int32_t);
 
-    PMHW_SFC_STATE_PARAMS           m_sfcStateParams = nullptr;               //!< Pointer to sfc state parameters
+    mhw::sfc::SFC_STATE_PAR         *m_sfcStateParams = nullptr;               //!< Pointer to sfc state parameters
     VP_SFC_RENDER_DATA              m_renderData = {};                        //!< Transient Render data populated for every BLT call
+    //VP_SFC_RENDER_DATA              *m_renderData = nullptr;                        //!< Transient Render data populated for every BLT call
 
     VPHAL_CSPACE                    m_cscRTCspace = {};                       //!< Cspace of Render Target
     VPHAL_CSPACE                    m_cscInputCspace = {};                    //!< Cspace of input frame
 
-    MHW_SFC_IEF_STATE_PARAMS        m_IefStateParams = {};                    //!< IEF Params state
+    mhw::sfc::SFC_IEF_STATE_PAR     m_IefStateParams = {};                    //!< IEF Params state
     float                           m_cscCoeff[9] = {};                       //!< [3x3] Coeff matrix
     float                           m_cscInOffset[3] = {};                    //!< [3x1] Input Offset matrix
     float                           m_cscOutOffset[3] = {};                   //!< [3x1] Output Offset matrix
@@ -502,7 +541,7 @@ protected:
 
     VP_SURFACE                      **m_AVSLineBufferSurfaceArray = nullptr;  //!< AVS Line Buffer Surface for SFC
     VP_SURFACE                      **m_IEFLineBufferSurfaceArray = nullptr;  //!< IEF Line Buffer Surface for SFC
-    VP_SURFACE **                     m_SFDLineBufferSurfaceArray = nullptr;  //!< SFD Line Buffer Surface for SFC
+    VP_SURFACE                      **m_SFDLineBufferSurfaceArray = nullptr;  //!< SFD Line Buffer Surface for SFC
 
     VP_SURFACE                      *m_AVSLineTileBufferSurface = nullptr;    //!< AVS Line Tile Buffer Surface for SFC
     VP_SURFACE                      *m_IEFLineTileBufferSurface = nullptr;    //!< IEF Line Tile Buffer Surface for SFC
@@ -522,8 +561,12 @@ protected:
 
     MOS_SURFACE                     m_histogramSurf = {};   //!< Histogram buffer
 
+    MHW_SFC_OUT_SURFACE_PARAMS      m_outSurfaceParam = {};
+
+
 MEDIA_CLASS_DEFINE_END(SfcRenderBase)
 };
+
 
 }
 #endif // !__VP_RENDER_SFC_BASE_H__

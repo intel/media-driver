@@ -30,6 +30,15 @@
 
 #include "mhw_sfc.h"
 
+#ifdef IGFX_SFC_INTERFACE_EXT_SUPPORT
+#include "mhw_sfc_cmdpar_ext.h"
+#define __MHW_SFC_WRAPPER(STUFF)
+#define __MHW_SFC_WRAPPER_EXT(STUFF) STUFF
+#else
+#define __MHW_SFC_WRAPPER(STUFF) STUFF
+#define __MHW_SFC_WRAPPER_EXT(STUFF)
+#endif
+
 namespace mhw
 {
 namespace sfc
@@ -102,6 +111,11 @@ struct _MHW_PAR_T(SFC_STATE)
     uint32_t dwScaledRegionWidth                = 0;     // Scaled region width
     uint32_t dwScaledRegionVerticalOffset       = 0;     // Scaled region vertical offset
     uint32_t dwScaledRegionHorizontalOffset     = 0;     // Scaled region horizontal offset
+    uint32_t dwTargetRectangleStartHorizontalOffset = 0;     // Target rectangle start horizontal offset
+    uint32_t dwTargetRectangleEndHorizontalOffset   = 0;     // Target rectangle end horizontal offset
+    uint32_t dwTargetRectangleStartVerticalOffset   = 0;     // Target rectangle start vertical offset
+    uint32_t dwTargetRectangleEndVerticalOffset     = 0;     // Target rectangle end vertical offset
+    bool     bRectangleEnabled                  = false; // Target rectangle enabled
     float    fAVSXScalingRatio                  = 0.0f;  // X Scaling Ratio
     float    fAVSYScalingRatio                  = 0.0f;  // Y Scaling Ratio
     bool     bBypassXAdaptiveFilter             = false; // If true, X direction will use Default Sharpness level to blend
@@ -180,11 +194,8 @@ struct _MHW_PAR_T(SFC_STATE)
 
     PMOS_RESOURCE pOsResAVSLineBufferSplit[MHW_SFC_MAX_PIPE_NUM] = {};  //!< AVS Line buffer used by SFC
     PMOS_RESOURCE pOsResIEFLineBufferSplit[MHW_SFC_MAX_PIPE_NUM] = {};  //!< IEF Line buffer used by SFC
-
-    uint32_t av1TileRowNumber    = 0;  //!< The tile row number for AV1 codec. Only for AV1 mode. Must be set to 0 for other modes.
-    uint32_t av1TileColumnNumber = 0;  //!< The tile column number for AV1 codec. Only for AV1 mode. Must be set to 0 for other modes.
-
-    PMHW_SFC_OUT_SURFACE_PARAMS            pOutSurface = nullptr;
+    PMHW_SFC_OUT_SURFACE_PARAMS             pOutSurface = nullptr;
+    __MHW_SFC_WRAPPER_EXT(SFC_STATE_CMDPAR_EXT);
 };
 
 struct _MHW_PAR_T(SFC_AVS_STATE)
@@ -193,11 +204,6 @@ struct _MHW_PAR_T(SFC_AVS_STATE)
     uint32_t dwInputHorizontalSiting = 0;
     uint32_t dwInputVerticalSitting  = 0;
     uint32_t dwAVSFilterMode         = 0;        // Bilinear, 5x5 or 8x8
-};
-
-struct _MHW_PAR_T(SFC_FRAME_START)
-{
-    uint8_t sfcPipeMode = 0;  //!< SFC Pipe Mode
 };
 
 struct _MHW_PAR_T(SFC_IEF_STATE)
@@ -235,6 +241,11 @@ struct _MHW_PAR_T(SFC_AVS_LUMA_Coeff_Table)
 {
     uint8_t                      sfcPipeMode = 0;                          //!< SFC Pipe Mode
     SFC_AVS_LUMA_FILTER_COEFF    LumaTable[NUM_HW_POLYPHASE_TABLES] = {};
+};
+
+struct _MHW_PAR_T(SFC_FRAME_START)
+{
+    uint8_t sfcPipeMode = 0;  //!< SFC Pipe Mode
 };
 
 }  // namespace sfc

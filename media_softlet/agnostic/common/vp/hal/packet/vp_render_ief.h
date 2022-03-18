@@ -59,6 +59,10 @@ public:
         PMHW_SFC_STATE_PARAMS           pSfcStateParams,
         PMHW_SFC_IEF_STATE_PARAMS       pSfcIefStateParams);
 
+     virtual MOS_STATUS SetHwState(
+         mhw::sfc::SFC_STATE_PAR           *pSfcStateParams,
+         mhw::sfc::SFC_IEF_STATE_PAR       *pSfcIefStateParams);
+
     //!
     //! \brief    Set HW State(Sampler) according to IEF parameter
     //! \param    [in,out] pSamplerStateParams

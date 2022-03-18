@@ -51,22 +51,22 @@ MOS_STATUS SfcRenderXe_Xpm_Base::InitSfcStateParams()
 {
     VP_FUNC_CALL();
 
-    if (nullptr == m_sfcStateParams)
+    if (nullptr == m_sfcStateParamsLegacy)
     {
-        m_sfcStateParams = (MHW_SFC_STATE_PARAMS_XE_XPM*)MOS_AllocAndZeroMemory(sizeof(MHW_SFC_STATE_PARAMS_XE_XPM));
+        m_sfcStateParamsLegacy = (MHW_SFC_STATE_PARAMS_XE_XPM*)MOS_AllocAndZeroMemory(sizeof(MHW_SFC_STATE_PARAMS_XE_XPM));
     }
     else
     {
-        MOS_ZeroMemory(m_sfcStateParams, sizeof(MHW_SFC_STATE_PARAMS_XE_XPM));
+        MOS_ZeroMemory(m_sfcStateParamsLegacy, sizeof(MHW_SFC_STATE_PARAMS_XE_XPM));
     }
 
-    VP_PUBLIC_CHK_NULL_RETURN(m_sfcStateParams);
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcStateParamsLegacy);
 
-    MHW_SFC_STATE_PARAMS_XE_XPM *param = (MHW_SFC_STATE_PARAMS_XE_XPM*)m_sfcStateParams;
+    MHW_SFC_STATE_PARAMS_XE_XPM *param = (MHW_SFC_STATE_PARAMS_XE_XPM*)m_sfcStateParamsLegacy;
     // Dithering parameter
     param->ditheringEn = m_disableSfcDithering ? 0 : 1;
 
-    m_renderData.sfcStateParams = m_sfcStateParams;
+    m_renderDataLegacy.sfcStateParams = m_sfcStateParamsLegacy;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -135,14 +135,14 @@ MOS_STATUS SfcRenderXe_Xpm_Base::AllocateResources()
     PMHW_SFC_STATE_PARAMS_XE_XPM pSfcStateParam;
 
     VP_RENDER_CHK_NULL_RETURN(m_allocator);
-    VP_RENDER_CHK_NULL_RETURN(m_sfcStateParams);
-    VP_RENDER_CHK_NULL_RETURN(m_renderData.pSfcPipeOutSurface);
+    VP_RENDER_CHK_NULL_RETURN(m_sfcStateParamsLegacy);
+    VP_RENDER_CHK_NULL_RETURN(m_renderDataLegacy.pSfcPipeOutSurface);
 
     allocated = false;
-    pTarget   = m_renderData.pSfcPipeOutSurface;
-    pSfcStateParam = (PMHW_SFC_STATE_PARAMS_XE_XPM)m_sfcStateParams;
+    pTarget   = m_renderDataLegacy.pSfcPipeOutSurface;
+    pSfcStateParam = (PMHW_SFC_STATE_PARAMS_XE_XPM)m_sfcStateParamsLegacy;
 
-    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBase::AllocateResources());
+    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBaseLegacy::AllocateResources());
 
     // Allocate bottom field surface for interleaved to field
     if (pSfcStateParam->iScalingType == ISCALING_INTERLEAVED_TO_FIELD)
@@ -173,7 +173,7 @@ MOS_STATUS SfcRenderXe_Xpm_Base::FreeResources()
 
     VP_RENDER_CHK_NULL_RETURN(m_allocator);
 
-    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBase::FreeResources());
+    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBaseLegacy::FreeResources());
 
     // Free bottom field surface for interleaved to field
     m_allocator->DestroyVpSurface(m_tempFieldSurface);
@@ -185,7 +185,7 @@ MOS_STATUS SfcRenderXe_Xpm_Base::SetScalingParams(PSFC_SCALING_PARAMS scalingPar
 {
     VP_FUNC_CALL();
 
-    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBase::SetScalingParams(scalingParams));
+    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBaseLegacy::SetScalingParams(scalingParams));
     VP_RENDER_CHK_STATUS_RETURN(SetInterlacedScalingParams(scalingParams));
 
     return MOS_STATUS_SUCCESS;
@@ -198,7 +198,7 @@ MOS_STATUS SfcRenderXe_Xpm_Base::SetInterlacedScalingParams(PSFC_SCALING_PARAMS 
     PMHW_SFC_STATE_PARAMS_XE_XPM pSfcStateParam = nullptr;
     VP_RENDER_CHK_NULL_RETURN(scalingParams);
 
-    pSfcStateParam = (PMHW_SFC_STATE_PARAMS_XE_XPM)m_sfcStateParams;
+    pSfcStateParam = (PMHW_SFC_STATE_PARAMS_XE_XPM)m_sfcStateParamsLegacy;
     // Set interlaced scaling parameters
     if (scalingParams->interlacedScalingType != ISCALING_NONE)
     {

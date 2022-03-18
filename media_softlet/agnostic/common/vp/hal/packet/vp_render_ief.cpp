@@ -212,6 +212,60 @@ MOS_STATUS VpIef::SetHwState(
     return eStatus;
 }
 
+MOS_STATUS VpIef::SetHwState(
+    mhw::sfc::SFC_STATE_PAR           *pSfcStateParams,
+    mhw::sfc::SFC_IEF_STATE_PAR       *pSfcIefStateParams)
+{
+    VP_FUNC_CALL();
+
+    PVPHAL_IEF_PARAMS   pIEFParams = nullptr;
+    MOS_STATUS          eStatus = MOS_STATUS_SUCCESS;
+
+    VP_RENDER_CHK_NULL_RETURN(m_iefParams);
+
+    pIEFParams = m_iefParams;
+    VP_RENDER_CHK_NULL_RETURN(pIEFParams);
+
+    eStatus = CalculateIefParams();
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        VP_RENDER_ASSERTMESSAGE("CalculateIefParams failed.");
+    }
+
+    // Init default parameters
+    // Set IEF params
+    pSfcStateParams->bIEFEnable = true;
+    pSfcIefStateParams->bIEFEnable = true;
+    pSfcIefStateParams->StrongEdgeWeight = s_detailStrongEdgeWeight;
+    pSfcIefStateParams->RegularWeight = s_detailRegularEdgeWeight;
+    pSfcIefStateParams->StrongEdgeThreshold = IEF_STRONG_EDGE_THRESHOLD;
+
+    // Set STE params
+    pSfcStateParams->bSkinToneTunedIEFEnable = true;
+    pSfcIefStateParams->bSkinDetailFactor = false;
+    pSfcIefStateParams->bVYSTDEnable = true;
+
+    // Settings from user
+    pSfcIefStateParams->StrongEdgeWeight = (uint8_t)pIEFParams->StrongEdgeWeight;
+    pSfcIefStateParams->RegularWeight = (uint8_t)pIEFParams->RegularWeight;
+    pSfcIefStateParams->StrongEdgeThreshold = (uint8_t)pIEFParams->StrongEdgeThreshold;
+    pSfcStateParams->bSkinToneTunedIEFEnable = pIEFParams->bSkintoneTuned;
+    pSfcIefStateParams->bSkinDetailFactor = pIEFParams->bEmphasizeSkinDetail;
+
+    // Set IEF params
+    if (m_iefFactor > 0)
+    {
+        pSfcIefStateParams->dwGainFactor = m_iefFactor;
+        pSfcIefStateParams->dwR5xCoefficient = m_r5xCoefficient;
+        pSfcIefStateParams->dwR5cxCoefficient = m_r5cxCoefficient;
+        pSfcIefStateParams->dwR5cCoefficient = m_r5cCoefficient;
+        pSfcIefStateParams->dwR3xCoefficient = m_r3xCoefficient;
+        pSfcIefStateParams->dwR3cCoefficient = m_r3cCoefficient;
+    }
+
+    return eStatus;
+}
+
 VpIef::VpIef()
 {
 }
