@@ -69,9 +69,9 @@ enum MCPY_CPMODE
 
 enum MCPY_METHOD
 {
-    MCPY_METHOD_BALANCE  = 0,    // use vebox engine.
-    MCPY_METHOD_POWERSAVING,     // use BCS engine
-    MCPY_METHOD_PERFORMANCE,     // use EU to get the best perf.
+    MCPY_METHOD_BALANCE = 0,  // use vebox engine.
+    MCPY_METHOD_POWERSAVING,  // use BCS engine
+    MCPY_METHOD_PERFORMANCE,  // use EU to get the best perf.
 };
 
 typedef struct _MCPY_STATE_PARAMS
