@@ -1398,11 +1398,17 @@ if (streamState->dumpCommandBuffer)
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
     //clear command buffer relocations to fix memory leak issue
-    mos_gem_bo_clear_relocs(cmd_bo, 0);
+    for (uint32_t patchIndex = 0; patchIndex < m_currentNumPatchLocations; patchIndex++)
+    {
+        auto currentPatch = &m_patchLocationList[patchIndex];
+        MOS_OS_CHK_NULL_RETURN(currentPatch);
+
+        mos_gem_bo_clear_relocs(currentPatch->cmdBo, 0);
+    }
+
     it = m_secondaryCmdBufs.begin();
     while(it != m_secondaryCmdBufs.end())
     {
-        mos_gem_bo_clear_relocs(it->second->OsResource.bo, 0);
         MOS_FreeMemory(it->second);
         it++;
     }
