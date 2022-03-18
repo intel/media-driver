@@ -271,8 +271,8 @@ VAStatus DdiEncodeAvc::ParseMiscParamRC(void *data)
     else
     {
         seqParams->MaxBitRate    = seqParams->TargetBitRate;
-        seqParams->MinBitRate    = (uint32_t)((uint64_t)seqParams->TargetBitRate * (2 * encMiscParamRC->target_percentage - 100) / 100);
         seqParams->TargetBitRate = (uint32_t)((uint64_t)seqParams->TargetBitRate * encMiscParamRC->target_percentage / 100);
+        seqParams->MinBitRate    = seqParams->TargetBitRate;
         vuiParam->cbr_flag       = 0x0;
 
         if (VA_RC_QVBR == m_encodeCtx->uiRCMethod)
@@ -406,7 +406,7 @@ VAStatus DdiEncodeAvc::ParseMiscParamEncQuality(void *data)
 
     DDI_CHK_NULL(seqParams, "nullptr seqParams", VA_STATUS_ERROR_INVALID_PARAMETER);
 
-    seqParams->bForcePanicModeControl = 1;
+    seqParams->bForcePanicModeControl = 0;
     seqParams->bPanicModeDisable = (uint8_t)vaEncMiscParamEncQuality->PanicModeDisable;
     picParams->UserFlags.bUseRawPicForRef = vaEncMiscParamEncQuality->useRawPicForRef;
     m_qcParams->skipCheckDisable            = vaEncMiscParamEncQuality->skipCheckDisable;

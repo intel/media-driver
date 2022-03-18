@@ -128,7 +128,7 @@ public:
     //! \return   VAStatus
     //!           VA_STATUS_SUCCESS if successful, else fail reason
     //!
-    VAStatus ParseSeqParams(void *ptr);
+    virtual VAStatus ParseSeqParams(void *ptr);
 
     //!
     //! \brief    Parse slice parameters
