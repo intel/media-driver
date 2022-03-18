@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -119,6 +119,24 @@ namespace decode
         DECODE_CHK_NULL(m_tileDesc);
         uint64_t datasize = 0;
 
+        // detect if any tile missing
+        if (m_numTiles < m_totalTileNum)
+        {
+            if (!m_hasTileMissing)
+            {
+                m_hasTileMissing = true;
+            }
+        }
+
+        // make sure the last tile equals to m_totalTileNum-1
+        if (m_hasTileMissing)
+        {
+            if (m_lastTileId != m_totalTileNum - 1)
+            {
+                m_lastTileId = m_totalTileNum - 1;
+            }
+        }
+
         // Error Concealment for Tile size
         // m_numTiles means the tile number from application
         // m_totalTileNum means the total number of tile, m_lastTileId means the last tile index
@@ -155,10 +173,6 @@ namespace decode
                 m_tileDesc[i].m_offset     = 0;
                 m_tileDesc[i].m_tileRow    = i / m_basicFeature->m_av1PicParams->m_tileCols;
                 m_tileDesc[i].m_tileColumn = i % m_basicFeature->m_av1PicParams->m_tileCols;
-                if (!m_hasTileMissing)
-                {
-                    m_hasTileMissing = true;
-                }
             }
         }
         return MOS_STATUS_SUCCESS;
