@@ -309,7 +309,7 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             StageEnables.EOTFEnable = 1;
         }
 
-        if (!IS_RGB64_FLOAT_FORMAT(pTarget->Format))
+        if (!IS_RGB64_FLOAT_FORMAT(pTarget->Format) && StageEnables.EOTFEnable)
         {
             StageEnables.OETFEnable = 1;
         }
