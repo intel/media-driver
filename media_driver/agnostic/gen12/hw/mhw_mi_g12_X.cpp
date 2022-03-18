@@ -312,15 +312,29 @@ MOS_STATUS MhwMiInterfaceG12::AddMiStoreRegisterMemCmd(
     MHW_MI_CHK_NULL(cmdBuffer->pCmdPtr);
     MHW_MI_CHK_NULL(params);
     MHW_MI_CHK_NULL(m_osInterface);
-    mhw_mi_g12_X::MI_STORE_REGISTER_MEM_CMD *cmd =
-        (mhw_mi_g12_X::MI_STORE_REGISTER_MEM_CMD*)cmdBuffer->pCmdPtr;
 
-    MHW_MI_CHK_STATUS(MhwMiInterfaceGeneric<mhw_mi_g12_X>::AddMiStoreRegisterMemCmd(cmdBuffer, params));
+    mhw_mi_g12_X::MI_STORE_REGISTER_MEM_CMD cmd{};
+    MHW_RESOURCE_PARAMS resourceParams{};
+    resourceParams.presResource     = params->presStoreBuffer;
+    resourceParams.dwOffset         = params->dwOffset;
+    resourceParams.pdwCmd           = cmd.DW2_3.Value;
+    resourceParams.dwLocationInCmd  = 2;
+    resourceParams.dwLsbNum         = MHW_COMMON_MI_GENERAL_SHIFT;
+    resourceParams.HwCommandType    = MOS_MI_STORE_REGISTER_MEM;
+    resourceParams.bIsWritable      = true;
+
+    MHW_MI_CHK_STATUS(AddResourceToCmd(
+        m_osInterface,
+        cmdBuffer,
+        &resourceParams));
+
+    cmd.DW0.UseGlobalGtt = IsGlobalGttInUse();
+    cmd.DW1.RegisterAddress = params->dwRegister >> 2;
 
     if (IsRelativeMMIO(params->dwRegister))
     {
-        cmd->DW0.AddCsMmioStartOffset = 1;
-        cmd->DW1.RegisterAddress = params->dwRegister >> 2;
+        cmd.DW0.AddCsMmioStartOffset = 1;
+        cmd.DW1.RegisterAddress = params->dwRegister >> 2;
     }
 
     if (params->dwOption == CCS_HW_FRONT_END_MMIO_REMAP)
@@ -334,7 +348,9 @@ MOS_STATUS MhwMiInterfaceG12::AddMiStoreRegisterMemCmd(
         }
     }
 
-    cmd->DW0.MmioRemapEnable = IsRemappingMMIO(params->dwRegister);
+    cmd.DW0.MmioRemapEnable = IsRemappingMMIO(params->dwRegister);
+
+    MHW_MI_CHK_STATUS(Mos_AddCommand(cmdBuffer, &cmd, cmd.byteSize));
 
     return MOS_STATUS_SUCCESS;
 }
