@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -471,6 +471,16 @@ namespace decode
             m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc)
         {
             m_av1PicParams->m_loopRestorationFlags.m_value = 0;
+        }
+
+        // LRU Luma Size cannot < Superblock Size. If Superblock Size is 128x128, LRU Luma Size cannot be 64x64.
+        if (m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock)
+        {
+            if (m_av1PicParams->m_loopRestorationFlags.m_fields.m_lrUnitShift == 0)
+            {
+                DECODE_ASSERTMESSAGE("Conflict with AV1 Spec!");
+                m_av1PicParams->m_loopRestorationFlags.m_value = 0;
+            }
         }
 
         // Error Concealment for DeltaLF and DeltaQ
