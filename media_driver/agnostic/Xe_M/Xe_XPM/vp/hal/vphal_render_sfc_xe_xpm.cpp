@@ -42,15 +42,17 @@ VphalSfcStateXe_Xpm::VphalSfcStateXe_Xpm(
     VphalSfcState(osInterface, renderHal, sfcInterface),
     VphalSfcStateG12(osInterface, renderHal, sfcInterface)
 {
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
     // get dithering flag.
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    userFeatureData.bData       = 0;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE_ID,
-        &UserFeatureData,
+        &userFeatureData,
         m_osInterface->pOsContext);
-    m_disableSfcDithering = UserFeatureData.bData ? true : false;
+    m_disableSfcDithering = userFeatureData.bData ? true : false;
+    VP_PUBLIC_NORMALMESSAGE("m_disableSfcDithering = %d", m_disableSfcDithering);
 
 
 #if LINUX

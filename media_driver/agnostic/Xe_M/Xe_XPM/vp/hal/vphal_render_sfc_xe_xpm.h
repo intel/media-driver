@@ -174,7 +174,7 @@ finish:
     VPHAL_SURFACE m_AVSLineBufferSurfaceSplit[MHW_SFC_MAX_PIPE_NUM_XE_XPM] = {}; //!< AVS Line Buffer Surface for SFC
     VPHAL_SURFACE m_IEFLineBufferSurfaceSplit[MHW_SFC_MAX_PIPE_NUM_XE_XPM] = {}; //!< IEF Line Buffer Surface for SFC
 
-    bool m_disableSfcDithering;             //!< flag for dithering enable or disable, for debug purpose.
+    bool m_disableSfcDithering = false;             //!< flag for dithering enable or disable, for debug purpose.
 };
 
 #endif // __VPHAL_SFC_SUPPORTED

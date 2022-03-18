@@ -37,15 +37,17 @@ using namespace vp;
 VpPlatformInterfaceXe_Xpm::VpPlatformInterfaceXe_Xpm(PMOS_INTERFACE pOsInterface)
     : VpPlatformInterface(pOsInterface)
 {
-    MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
     // get dithering flag.
-    MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+    userFeatureData.bData       = 0;
+    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     MOS_UserFeature_ReadValue_ID(
         nullptr,
         __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE_ID,
-        &UserFeatureData,
+        &userFeatureData,
         m_pOsInterface ? pOsInterface->pOsContext : nullptr);
-    m_disableSfcDithering = UserFeatureData.bData ? true : false;
+    m_disableSfcDithering = userFeatureData.bData ? true : false;
+    VP_PUBLIC_NORMALMESSAGE("m_disableSfcDithering = %d", m_disableSfcDithering);
 
     m_sfc2PassScalingEnabled = true;
 #if LINUX
