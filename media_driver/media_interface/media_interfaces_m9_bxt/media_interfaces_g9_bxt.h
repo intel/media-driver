@@ -100,6 +100,10 @@
 #ifdef _HEVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_hevc_g9_bxt.h"
 #endif
+#ifdef _VP8_ENCODE_SUPPORTED
+#include "codechal_encode_vp8_g9.h"
+#endif
+
 #include "cm_hal_g9.h"
 #include "vphal_g9_bxt.h"
 
@@ -192,6 +196,9 @@ public:
 #endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateG9Bxt;
+#endif
+#ifdef _VP8_ENCODE_SUPPORTED
+    using Vp8 = CodechalEncodeVp8G9;
 #endif
 };
 

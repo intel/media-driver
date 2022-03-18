@@ -62,6 +62,10 @@ static struct LinuxCodecInfo bxtCodecInfo =
     .avcVdenc           = 1,
     .vp9Decoding        = 1,
     .hevc10Decoding     = 1,
+    .vp9b10Decoding     = 0,
+    .hevc10Encoding     = 0,
+    .hevc12Encoding     = 0,
+    .vp8Encoding        = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 /* This can also be applied to CFL */
@@ -252,6 +256,7 @@ static bool InitBxtMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrEncodeAVCVdenc, codecInfo->avcVdenc);
         MEDIA_WR_SKU(skuTable, FtrVP9VLDDecoding, codecInfo->vp9Decoding);
         MEDIA_WR_SKU(skuTable, FtrIntelVP9VLDProfile0Decoding8bit420, codecInfo->vp9Decoding);
+        MEDIA_WR_SKU(skuTable, FtrEncodeVP8, codecInfo->vp8Encoding);
     }
 
     MEDIA_WR_SKU(skuTable, FtrEnableMediaKernels, drvInfo->hasHuc);
