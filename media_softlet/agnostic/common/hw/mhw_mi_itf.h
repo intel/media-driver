@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,20 @@ namespace mi
 class Itf
 {
 public:
+
+    enum CommandsNumberOfAddresses
+    {
+        MFX_WAIT_CMD_NUMBER_OF_ADDRESSES                        = 0,
+        MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES           = 1,
+        MI_STORE_DATA_IMM_CMD_NUMBER_OF_ADDRESSES               = 1,
+        MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES                     = 1,
+        MI_CONDITIONAL_BATCH_BUFFER_END_CMD_NUMBER_OF_ADDRESSES = 1,
+        MI_STORE_REGISTER_MEM_CMD_NUMBER_OF_ADDRESSES           = 1,
+        MI_COPY_MEM_MEM_CMD_NUMBER_OF_ADDRESSES                 = 4,
+        MI_SEMAPHORE_WAIT_CMD_NUMBER_OF_ADDRESSES               = 1,
+        MI_ATOMIC_CMD_NUMBER_OF_ADDRESSES                       = 1
+    };
+
     class ParSetting
     {
     public:

@@ -135,7 +135,7 @@ namespace encode{
         ENCODE_CHK_STATUS_RETURN(m_statusReport->RegistObserver(this));
 
         CalculateVdencCommandsSize();
-        CalculateAvpStateCommandSize();
+        CalculateAvpCommandsSize();
 
         m_usePatchList = m_osInterface->bUsesPatchList;
 
@@ -628,10 +628,14 @@ namespace encode{
 
     MOS_STATUS Av1VdencPkt::CalculateAvpPictureStateCommandSize(uint32_t * commandsSize, uint32_t * patchListSize)
     {
+        // there are no picture level AVP commands for encode
+        commandsSize  = 0;
+        patchListSize = 0;
+
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1VdencPkt::CalculateAvpStateCommandSize()
+    MOS_STATUS Av1VdencPkt::CalculateAvpCommandsSize()
     {
         uint32_t avpPictureStatesSize    = 0;
         uint32_t avpPicturePatchListSize = 0;
@@ -645,8 +649,7 @@ namespace encode{
         m_picturePatchListSize += avpPicturePatchListSize;
 
         // Tile Level Commands
-        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetAvpPrimitiveCommandSize(
-            CODECHAL_ENCODE_MODE_AV1,
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(GetAvpPrimitiveCommandsDataSize(
             &avpTileStatesSize,
             &avpTilePatchListSize));
 
@@ -790,7 +793,7 @@ namespace encode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1VdencPkt::GetVdencStateCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize)
+    MOS_STATUS Av1VdencPkt::GetVdencStateCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const
     {
         uint32_t            maxSize          = 0;
         uint32_t            patchListMaxSize = 0;
@@ -806,8 +809,8 @@ namespace encode{
             m_vdencItf->MHW_GETSIZE_F(VD_PIPELINE_FLUSH)();
 
         patchListMaxSize = patchListMaxSize +
-            PATCH_LIST_COMMAND(mhw::vdbox::vdenc::Itf::MI_FLUSH_DW_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::vdenc::Itf::MI_BATCH_BUFFER_START_CMD) +
+            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) +
+            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_BATCH_BUFFER_START_CMD) +
             PATCH_LIST_COMMAND(mhw::vdbox::vdenc::Itf::VDENC_PIPE_BUF_ADDR_STATE_CMD);
 
         maxSize = maxSize +
@@ -824,7 +827,7 @@ namespace encode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1VdencPkt::GetVdencPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize)
+    MOS_STATUS Av1VdencPkt::GetVdencPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const
     {
         uint32_t            maxSize          = 0;
         uint32_t            patchListMaxSize = 0;
@@ -842,6 +845,47 @@ namespace encode{
 
         return MOS_STATUS_SUCCESS;
     }
+
+    MOS_STATUS Av1VdencPkt::GetAvpPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const
+    {
+        uint32_t maxSize          = 0;
+        uint32_t patchListMaxSize = 0;
+
+        maxSize = m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_START)() * 5 +
+            m_miItf->MHW_GETSIZE_F(VD_CONTROL_STATE)()                +
+            m_avpItf->MHW_GETSIZE_F(AVP_PIPE_MODE_SELECT)() * 2       +
+            m_avpItf->MHW_GETSIZE_F(AVP_SURFACE_STATE)() * 11         +
+            m_avpItf->MHW_GETSIZE_F(AVP_PIPE_BUF_ADDR_STATE)()        +
+            m_avpItf->MHW_GETSIZE_F(AVP_IND_OBJ_BASE_ADDR_STATE)()    +
+            m_avpItf->MHW_GETSIZE_F(AVP_PIC_STATE)()                  +
+            m_avpItf->MHW_GETSIZE_F(AVP_INTER_PRED_STATE)()           +
+            m_avpItf->MHW_GETSIZE_F(AVP_SEGMENT_STATE)() * 8          +
+            m_avpItf->MHW_GETSIZE_F(AVP_INLOOP_FILTER_STATE)()        +
+            m_avpItf->MHW_GETSIZE_F(AVP_TILE_CODING)()                +
+            m_avpItf->MHW_GETSIZE_F(AVP_PAK_INSERT_OBJECT)() * 9      +
+            m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
+
+        patchListMaxSize =
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::VD_PIPELINE_FLUSH_CMD)           +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_MODE_SELECT_CMD)        +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SURFACE_STATE_CMD) * 11      +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD)     +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIC_STATE_CMD)               +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INTER_PRED_STATE_CMD)        +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SEGMENT_STATE_CMD) * 8       +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INLOOP_FILTER_STATE_CMD)     +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_TILE_CODING_CMD)             +
+            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PAK_INSERT_OBJECT_CMD) * 9;
+
+        ENCODE_CHK_NULL_RETURN(commandsSize);
+        ENCODE_CHK_NULL_RETURN(patchListSize);
+        *commandsSize  = maxSize;
+        *patchListSize = patchListMaxSize;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS Av1VdencPkt::DumpResources(EncodeStatusMfx *encodeStatusMfx, EncodeStatusReportData *statusReportData)
     {

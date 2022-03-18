@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 #include "mhw_vdbox_avp_hwcmd_xe_hpm.h"
 #include "mhw_vdbox_avp_impl.h"
 #include "mhw_mi_hwcmd_g12_X.h" // refactor
+#include "mhw_mi_itf.h"
 
 namespace mhw
 {
@@ -67,15 +68,15 @@ namespace xe_hpm
                 mhw::vdbox::avp::xe_hpm::Cmd::AVP_INTER_PRED_STATE_CMD::byteSize;
 
             patchListMaxSize =
-                PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD) +
-                PATCH_LIST_COMMAND(MI_FLUSH_DW_CMD) +
-                PATCH_LIST_COMMAND(AVP_PIPE_MODE_SELECT_CMD) +
-                PATCH_LIST_COMMAND(AVP_SURFACE_STATE_CMD) * 7 +
-                PATCH_LIST_COMMAND(AVP_PIPE_BUF_ADDR_STATE_CMD) +
-                PATCH_LIST_COMMAND(AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                PATCH_LIST_COMMAND(AVP_SEGMENT_STATE_CMD) * 8 +
-                PATCH_LIST_COMMAND(AVP_INTER_PRED_STATE_CMD) +
-                PATCH_LIST_COMMAND(AVP_INLOOP_FILTER_STATE_CMD);
+                PATCH_LIST_COMMAND(avp::Itf::VD_PIPELINE_FLUSH_CMD) +
+                PATCH_LIST_COMMAND(mi::Itf::MI_FLUSH_DW_CMD) +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_MODE_SELECT_CMD) +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_SURFACE_STATE_CMD) * 7 +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD) +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_SEGMENT_STATE_CMD) * 8 +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_INTER_PRED_STATE_CMD) +
+                PATCH_LIST_COMMAND(avp::Itf::AVP_INLOOP_FILTER_STATE_CMD);
 
             if (params->bDecodeInUse)
             {
@@ -83,7 +84,7 @@ namespace xe_hpm
                     mhw::vdbox::avp::xe_hpm::Cmd::AVP_PIC_STATE_CMD::byteSize +
                     mhw_mi_g12_X::VD_CONTROL_STATE_CMD::byteSize * 2;
 
-                patchListMaxSize += PATCH_LIST_COMMAND(AVP_PIC_STATE_CMD);
+                patchListMaxSize += PATCH_LIST_COMMAND(avp::Itf::AVP_PIC_STATE_CMD);
 
                 MHW_CHK_NULL_RETURN(params);
                 auto paramsG12 = dynamic_cast<PMHW_VDBOX_STATE_CMDSIZE_PARAMS_G12>(params);
@@ -119,8 +120,8 @@ namespace xe_hpm
                     mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
                 patchListMaxSize =
-                    PATCH_LIST_COMMAND(AVP_TILE_CODING_CMD) +
-                    PATCH_LIST_COMMAND(AVP_BSD_OBJECT_CMD);
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_TILE_CODING_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_BSD_OBJECT_CMD);
             }
             else
             {
@@ -139,17 +140,17 @@ namespace xe_hpm
                     mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
                 patchListMaxSize =
-                    PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD) +
-                    PATCH_LIST_COMMAND(AVP_PIPE_MODE_SELECT_CMD) +
-                    PATCH_LIST_COMMAND(AVP_SURFACE_STATE_CMD) * 7 +
-                    PATCH_LIST_COMMAND(AVP_PIPE_BUF_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                    PATCH_LIST_COMMAND(AVP_PIC_STATE_CMD) +
-                    PATCH_LIST_COMMAND(AVP_INTER_PRED_STATE_CMD) +
-                    PATCH_LIST_COMMAND(AVP_SEGMENT_STATE_CMD) * 8 +
-                    PATCH_LIST_COMMAND(AVP_INLOOP_FILTER_STATE_CMD) +
-                    PATCH_LIST_COMMAND(AVP_TILE_CODING_CMD) +
-                    PATCH_LIST_COMMAND(AVP_PAK_INSERT_OBJECT_CMD);
+                    PATCH_LIST_COMMAND(avp::Itf::VD_PIPELINE_FLUSH_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_MODE_SELECT_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_SURFACE_STATE_CMD) * 7 +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_PIC_STATE_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_INTER_PRED_STATE_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_SEGMENT_STATE_CMD) * 8 +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_INLOOP_FILTER_STATE_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_TILE_CODING_CMD) +
+                    PATCH_LIST_COMMAND(avp::Itf::AVP_PAK_INSERT_OBJECT_CMD);
             }
 
             *commandsSize  = maxSize;

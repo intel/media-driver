@@ -205,7 +205,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CalculateAvpStateCommandSize();
+    virtual MOS_STATUS CalculateAvpCommandsSize();
 
 #if USE_CODECHAL_DEBUG_TOOL
     //! \brief    Dump the output resources in status report callback function
@@ -307,9 +307,11 @@ protected:
 
     virtual MOS_STATUS AddAllCmds_AVP_SURFACE_STATE(PMOS_COMMAND_BUFFER cmdBuffer) const;
 
-    virtual MOS_STATUS GetVdencStateCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize);
+    virtual MOS_STATUS GetVdencStateCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;
 
-    virtual MOS_STATUS GetVdencPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize);
+    virtual MOS_STATUS GetVdencPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;
+
+    virtual MOS_STATUS GetAvpPrimitiveCommandsDataSize(uint32_t *commandsSize, uint32_t *patchListSize) const;
 
 MEDIA_CLASS_DEFINE_END(Av1VdencPkt)
 };

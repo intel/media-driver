@@ -1155,6 +1155,31 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1VdencPktXe_M_Base::CalculateAvpCommandsSize()
+    {
+        uint32_t avpPictureStatesSize    = 0;
+        uint32_t avpPicturePatchListSize = 0;
+        uint32_t avpTileStatesSize       = 0;
+        uint32_t avpTilePatchListSize    = 0;
+
+        // Picture Level Commands
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(CalculateAvpPictureStateCommandSize(&avpPictureStatesSize, &avpPicturePatchListSize));
+
+        m_pictureStatesSize += avpPictureStatesSize;
+        m_picturePatchListSize += avpPicturePatchListSize;
+
+        // Tile Level Commands
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetAvpPrimitiveCommandSize(
+            CODECHAL_ENCODE_MODE_AV1,
+            &avpTileStatesSize,
+            &avpTilePatchListSize));
+
+        m_tileStatesSize += avpTileStatesSize;
+        m_tilePatchListSize += avpTilePatchListSize;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS Av1VdencPktXe_M_Base::DumpStatistics()
     {

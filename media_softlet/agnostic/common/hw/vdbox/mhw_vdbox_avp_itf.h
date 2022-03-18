@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -70,6 +70,25 @@ struct AvpMmioRegisters
 class Itf
 {
 public:
+
+    enum CommandsNumberOfAddress
+    {
+        AVP_PIPE_MODE_SELECT_CMD_NUMBER_OF_ADDRESSES        = 0,
+        AVP_SURFACE_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,
+        AVP_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES     = 65,
+        AVP_IND_OBJ_BASE_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES = 3,
+        AVP_PIC_STATE_CMD_NUMBER_OF_ADDRESSES               = 0,
+        AVP_REF_IDX_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,
+        AVP_SEGMENT_STATE_CMD_NUMBER_OF_ADDRESSES           = 0,
+        AVP_TILE_CODING_CMD_NUMBER_OF_ADDRESSES             = 0,
+        AVP_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES              = 0,
+        AVP_INLOOP_FILTER_STATE_CMD_NUMBER_OF_ADDRESSES     = 0,
+        AVP_INTER_PRED_STATE_CMD_NUMBER_OF_ADDRESSES        = 0,
+        AVP_PAK_INSERT_OBJECT_CMD_NUMBER_OF_ADDRESSES       = 0,
+        VD_PIPELINE_FLUSH_CMD_NUMBER_OF_ADDRESSES           = 0,
+        AVP_FILM_GRAIN_STATE_CMD_NUMBER_OF_ADDRESSES        = 0
+    };
+
     class ParSetting
     {
     public:

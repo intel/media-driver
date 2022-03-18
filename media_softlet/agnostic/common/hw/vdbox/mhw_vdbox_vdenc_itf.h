@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -60,8 +60,6 @@ class Itf
 public:
     enum CommandsNumberOfAddresses
     {
-        MI_FLUSH_DW_CMD_NUMBER_OF_ADDRESSES               = 1,
-        MI_BATCH_BUFFER_START_CMD_NUMBER_OF_ADDRESSES     = 1,
         VDENC_PIPE_BUF_ADDR_STATE_CMD_NUMBER_OF_ADDRESSES = 21
     };
 
