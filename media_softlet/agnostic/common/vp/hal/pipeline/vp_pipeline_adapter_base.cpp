@@ -28,13 +28,14 @@
 #include "vp_pipeline_adapter_base.h"
 #include "media_interfaces_vphal.h"
 #include "vp_platform_interface.h"
+#include "vphal_debug.h"
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,
     MOS_STATUS &eStatus):
     m_vpPlatformInterface(vpPlatformInterface)
 {
-
+    eStatus = MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
@@ -43,17 +44,17 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     VP_FUNC_CALL();
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
-    m_pOsInterface = m_vpPlatformInterface.GetOsInterface();
-    if (m_pOsInterface == nullptr)
+    m_osInterface = m_vpPlatformInterface.GetOsInterface();
+    if (m_osInterface == nullptr)
     {
         eStatus = MOS_STATUS_NULL_POINTER;
         return eStatus;
     }
 
     // Initialize platform, sku, wa tables
-    m_pOsInterface->pfnGetPlatform(m_pOsInterface, &m_platform);
-    m_skuTable = m_pOsInterface->pfnGetSkuTable(m_pOsInterface);
-    m_waTable  = m_pOsInterface->pfnGetWaTable(m_pOsInterface);
+    m_osInterface->pfnGetPlatform(m_osInterface, &m_platform);
+    m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    m_waTable  = m_osInterface->pfnGetWaTable(m_osInterface);
 
     m_vprenderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(*m_vprenderHal));
     if (m_vprenderHal == nullptr)
@@ -65,7 +66,9 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     eStatus = RenderHal_InitInterface(
         m_vprenderHal,
         &m_cpInterface,
-        m_pOsInterface);
+        m_osInterface);
+
+    VPHAL_DBG_OCA_DUMPER_CREATE(m_vprenderHal);
 
     if (MOS_FAILED(eStatus))
     {
@@ -82,7 +85,7 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
         params.Flags.m_sfc   = MEDIA_IS_SKU(m_skuTable, FtrSFCPipe);
         params.Flags.m_vebox = MEDIA_IS_SKU(m_skuTable, FtrVERing);
 
-        mhwInterfaces = MhwInterfaces::CreateFactory(params, m_pOsInterface);
+        mhwInterfaces = MhwInterfaces::CreateFactory(params, m_osInterface);
         if (mhwInterfaces)
         {
             SetMhwVeboxInterface(mhwInterfaces->m_veboxInterface);
@@ -105,7 +108,7 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     vpMhwinterface.m_platform       = m_platform;
     vpMhwinterface.m_waTable        = m_waTable;
     vpMhwinterface.m_skuTable       = m_skuTable;
-    vpMhwinterface.m_osInterface    = m_pOsInterface;
+    vpMhwinterface.m_osInterface    = m_osInterface;
     vpMhwinterface.m_renderHal      = m_vprenderHal;
     vpMhwinterface.m_veboxInterface = m_veboxInterface;
     vpMhwinterface.m_sfcInterface   = m_sfcInterface;
@@ -116,20 +119,12 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     return eStatus;
 }
 
-VpPipelineAdapterBase *VpPipelineAdapterBase::VphalStateFactory(
-    PMOS_INTERFACE pOsInterface,
-    PMOS_CONTEXT   pOsDriverContext,
-    MOS_STATUS *   peStatus)
-{
-    VP_FUNC_CALL();
-    return VphalDevice::CreateFactoryNext(pOsInterface, pOsDriverContext, peStatus);
-}
-
 VpPipelineAdapterBase::~VpPipelineAdapterBase()
 {
     MOS_STATUS eStatus;
     if (m_vprenderHal)
     {
+        VPHAL_DBG_OCA_DUMPER_DESTORY(m_vprenderHal);
         if (m_vprenderHal->pfnDestroy)
         {
             eStatus = m_vprenderHal->pfnDestroy(m_vprenderHal);
@@ -174,14 +169,14 @@ VpPipelineAdapterBase::~VpPipelineAdapterBase()
     }
 
     // Destroy OS interface objects (CBs, etc)
-    if (m_pOsInterface)
+    if (m_osInterface)
     {
-        if (m_pOsInterface->bDeallocateOnExit)
+        if (m_osInterface->bDeallocateOnExit)
         {
-            m_pOsInterface->pfnDestroy(m_pOsInterface, true);
+            m_osInterface->pfnDestroy(m_osInterface, true);
 
             // Deallocate OS interface structure (except if externally provided)
-            MOS_FreeMemory(m_pOsInterface);
+            MOS_FreeMemory(m_osInterface);
         }
     }
 
@@ -216,13 +211,13 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
     bool                bMarkNotReadyForRemains = false;
 
     VP_PUBLIC_CHK_NULL(pQueryReport);
-    VP_PUBLIC_CHK_NULL(m_pOsInterface);
-    VP_PUBLIC_CHK_NULL(m_pOsInterface->pOsContext);
+    VP_PUBLIC_CHK_NULL(m_osInterface);
+    VP_PUBLIC_CHK_NULL(m_osInterface->pOsContext);
 
     // it should be ok if we don't consider the null render
     // eNullRender = m_pOsInterface->pfnGetNullHWRenderFlags(m_pOsInterface);
 
-    pOsContext   = m_pOsInterface->pOsContext;
+    pOsContext   = m_osInterface->pOsContext;
     pStatusTable = &m_statusTable;
     uiNewHead    = pStatusTable->uiHead;  // uiNewHead start from previous head value
     // entry length from head to tail
@@ -239,10 +234,10 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
         pStatusEntry = &pStatusTable->aTableEntries[uiIndex];
 
         // for tasks using CM, different streamIndexes may be used
-        uint32_t oldStreamIndex = m_pOsInterface->streamIndex;
+        uint32_t oldStreamIndex = m_osInterface->streamIndex;
         if (pStatusEntry->isStreamIndexSet)
         {
-            m_pOsInterface->streamIndex = pStatusEntry->streamIndex;
+            m_osInterface->streamIndex = pStatusEntry->streamIndex;
         }
 
         if (bMarkNotReadyForRemains)
@@ -254,15 +249,15 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
         }
 
 #if (LINUX || ANDROID)
-        dwGpuTag = pOsContext->GetGPUTag(m_pOsInterface, pStatusEntry->GpuContextOrdinal);
+        dwGpuTag = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #else
-        dwGpuTag = m_pOsInterface->pfnGetGpuStatusSyncTag(m_pOsInterface, pStatusEntry->GpuContextOrdinal);
+        dwGpuTag = m_osInterface->pfnGetGpuStatusSyncTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
 #endif
         bDoneByGpu         = (dwGpuTag >= pStatusEntry->dwTag);
         bFailedOnSubmitCmd = (pStatusEntry->dwStatus == VPREP_ERROR);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        MOS_NULL_RENDERING_FLAGS NullRender = m_pOsInterface->pfnGetNullHWRenderFlags(m_pOsInterface);
+        MOS_NULL_RENDERING_FLAGS NullRender = m_osInterface->pfnGetNullHWRenderFlags(m_osInterface);
         if (NullRender.Value != 0)
         {
             bDoneByGpu = true;
@@ -289,7 +284,7 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
             bMarkNotReadyForRemains = true;
         }
 
-        if (m_pOsInterface->pfnIsGPUHung(m_pOsInterface))
+        if (m_osInterface->pfnIsGPUHung(m_osInterface))
         {
             pStatusEntry->dwStatus = VPREP_NOTREADY;
         }
@@ -299,7 +294,7 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
 
         if (pStatusEntry->isStreamIndexSet)
         {
-            m_pOsInterface->streamIndex = oldStreamIndex;
+            m_osInterface->streamIndex = oldStreamIndex;
         }
     }
     pStatusTable->uiHead = uiNewHead;

@@ -28,7 +28,7 @@ VpPipelineAdapterXe_Hpm::VpPipelineAdapterXe_Hpm(
     vp::VpPlatformInterface     &vpPlatformInterface,
     MOS_STATUS                  &eStatus) :
     VphalStateXe_Hpm( pOsInterface, pOsDriverContext, &eStatus),
-    VpPipelineAdapter(vpPlatformInterface, eStatus)
+    VpPipelineAdapterLegacy(vpPlatformInterface, eStatus)
 {
     if (MOS_FAILED(eStatus))
     {
@@ -46,7 +46,7 @@ MOS_STATUS VpPipelineAdapterXe_Hpm::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
 {
     VP_FUNC_CALL();
 
-    MOS_STATUS eStatus = VpPipelineAdapter::Render(pcRenderParams);
+    MOS_STATUS eStatus = VpPipelineAdapterLegacy::Render(pcRenderParams);
 
     if (eStatus == MOS_STATUS_SUCCESS)
     {
@@ -107,5 +107,5 @@ MOS_STATUS VpPipelineAdapterXe_Hpm::Execute(PVP_PIPELINE_PARAMS params)
 {
     VP_FUNC_CALL();
 
-    return VpPipelineAdapter::Execute(params, this->m_renderHal);
+    return VpPipelineAdapterLegacy::Execute(params, this->m_renderHal);
 }

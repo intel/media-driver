@@ -23,6 +23,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_feature_report.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_legacy.cpp
 )
 
 set(TMP_HEADERS_
@@ -31,6 +33,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_base.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_feature_report.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_legacy.h
 )
 
 set(SOURCES_

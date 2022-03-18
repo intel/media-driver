@@ -35,6 +35,7 @@
 #include "vp_pipeline_adapter_base.h"
 #include "vp_feature_report.h"
 #include "vphal_common_hdr.h"
+#include "vp_base.h"
 
 //*-----------------------------------------------------------------------------
 //| DEFINITIONS
@@ -336,7 +337,7 @@ using VphalFeatureReport = VpFeatureReport;
 //! Class VphalState
 //! \brief VPHAL class definition
 //!
-class VphalState
+class VphalState : public VpBase
 {
 public:
     // Perf Optimize for ClearVideoView DDI
@@ -438,12 +439,12 @@ public:
     MOS_STATUS GetStatusReportEntryLength(
         uint32_t                         *puiLength);
 
-    PLATFORM &GetPlatform()
+    virtual PLATFORM &GetPlatform()
     {
         return m_platform;
     }
 
-    MEDIA_FEATURE_TABLE* GetSkuTable()
+    virtual MEDIA_FEATURE_TABLE* GetSkuTable()
     {
         return m_skuTable;
     }
@@ -453,12 +454,12 @@ public:
         return m_waTable;
     }
 
-    PMOS_INTERFACE GetOsInterface()
+    virtual PMOS_INTERFACE GetOsInterface()
     {
         return m_osInterface;
     }
 
-    PRENDERHAL_INTERFACE GetRenderHal()
+    virtual PRENDERHAL_INTERFACE GetRenderHal()
     {
         return m_renderHal;
     }
@@ -536,8 +537,6 @@ public:
 
     virtual MOS_STATUS GetVpMhwInterface(
         VP_MHWINTERFACE &vpMhwinterface);
-
-    HANDLE                      m_gpuAppTaskEvent;
 
 protected:
     // Internals

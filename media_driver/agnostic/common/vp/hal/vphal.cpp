@@ -669,7 +669,6 @@ VphalState::VphalState(
         PMOS_INTERFACE          pOsInterface,
         PMOS_CONTEXT            pOsDriverContext,
         MOS_STATUS              *peStatus) :
-        m_gpuAppTaskEvent(nullptr),
         m_platform(),
         m_skuTable(nullptr),
         m_waTable(nullptr),

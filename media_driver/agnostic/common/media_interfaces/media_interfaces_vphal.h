@@ -46,7 +46,8 @@ public:
     virtual ~VphalDevice() {}
 
     VphalState              *m_vphalState           = nullptr;  //!< VpHal State created for specific gen.
-    VpPipelineAdapterBase   *m_vpPipelineAdapter    = nullptr;
+    VpBase                  *m_vpBase               = nullptr;
+    bool                    m_isNextEnabled         = false;
     vp::VpPipeline          *m_vpPipeline           = nullptr;  //!< vp pipeline created for specific gen, which is used for sfc service.
     vp::VpPlatformInterface *m_vpPlatformInterface  = nullptr;  //!< platform interface created for specific gen, which is used for sfc service.
 
@@ -67,7 +68,7 @@ public:
         PMOS_CONTEXT    osDriverContext,
         MOS_STATUS      *eStatus);
 
-    static VpPipelineAdapterBase *CreateFactoryNext(
+    static VpBase *CreateFactoryNext(
         PMOS_INTERFACE osInterface,
         PMOS_CONTEXT   osDriverContext,
         MOS_STATUS *   eStatus);
