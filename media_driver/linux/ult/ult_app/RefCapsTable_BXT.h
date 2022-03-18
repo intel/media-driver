@@ -45,6 +45,7 @@ std::vector<FeatureID> refFeatureIDTable_BXT = {
     { VAProfileJPEGBaseline           , VAEntrypointVLD                 },
     { VAProfileJPEGBaseline           , VAEntrypointEncPicture          },
     { VAProfileVP8Version0_3          , VAEntrypointVLD                 },
+    { VAProfileVP8Version0_3          , VAEntrypointEncSlice            },
     { VAProfileHEVCMain               , VAEntrypointVLD                 },
     { VAProfileHEVCMain               , VAEntrypointEncSlice            },
     { VAProfileHEVCMain10             , VAEntrypointVLD                 },
