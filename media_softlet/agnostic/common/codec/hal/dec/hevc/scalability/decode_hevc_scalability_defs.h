@@ -33,7 +33,7 @@ namespace decode
 
 struct HevcScalabilityPars : public DecodeScalabilityPars
 {
-    bool    isSCC;
+    bool    isSCC = false;
 };
 
 }

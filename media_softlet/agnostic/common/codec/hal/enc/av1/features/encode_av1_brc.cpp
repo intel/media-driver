@@ -605,8 +605,13 @@ namespace encode
             m_vbvSize                 = seqParams->VBVBufferSizeInBit;
 
             uint32_t nom = 0;
-            uint32_t denom = 0;
+            uint32_t denom = 1;
             std::tie(nom, denom) = GetFrameRate(*seqParams);
+
+            if (denom == 0)
+            {
+                denom = 1;
+            }
 
             m_frameRate = (int32_t)((double)nom * 100. / (double)denom);
 
