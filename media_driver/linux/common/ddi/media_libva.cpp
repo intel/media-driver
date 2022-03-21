@@ -4990,6 +4990,16 @@ VAStatus DdiMedia_DeriveImage (
         break;
     }
 
+    if ((mediaSurface->pSurfDesc != nullptr) && (mediaSurface->pSurfDesc->uiVaMemType == VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR))
+    {
+        vaimg->num_planes               = mediaSurface->pSurfDesc->uiPlanes;
+        for (uint32_t i = 0; i < vaimg->num_planes; i++)
+        {
+            vaimg->pitches[i]           = mediaSurface->pSurfDesc->uiPitches[i];
+            vaimg->offsets[i]           = mediaSurface->pSurfDesc->uiOffsets[i];
+        }
+    }
+
     mediaCtx->m_caps->PopulateColorMaskInfo(&vaimg->format);
 
     DDI_MEDIA_BUFFER *buf               = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
