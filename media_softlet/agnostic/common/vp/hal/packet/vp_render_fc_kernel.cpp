@@ -98,15 +98,18 @@ VpRenderFcKernel::VpRenderFcKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator al
     }
 
     m_renderHal = m_hwInterface ? m_hwInterface->m_renderHal : nullptr;
-    if (m_renderHal && m_kernelDllState->bEnableCMFC)
+    if (m_renderHal)
     {
-        m_renderHal->bEnableP010SinglePass = true;
+        if (m_kernelDllState && m_kernelDllState->bEnableCMFC)
+        {
+            m_renderHal->bEnableP010SinglePass = true;
+        }
+        else
+        {
+            m_renderHal->bEnableP010SinglePass = false;
+        }
+        VP_RENDER_NORMALMESSAGE("m_renderHal->bEnableP010SinglePass %d", m_renderHal->bEnableP010SinglePass);
     }
-    else
-    {
-        m_renderHal->bEnableP010SinglePass = false;
-    }
-    VP_RENDER_ASSERTMESSAGE("m_renderHal->bEnableP010SinglePass %d", m_renderHal->bEnableP010SinglePass);
 
     if (m_renderHal && m_renderHal->pRenderHalPltInterface && m_hwInterface->m_vpPlatformInterface)
     {
