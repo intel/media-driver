@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -161,9 +161,8 @@ MOS_STATUS EncodeScalabilityMultiPipe::Initialize(const MediaScalabilityOption &
     SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
     m_osInterface = m_hwInterface->GetOsInterface();
     SCALABILITY_CHK_NULL_RETURN(m_osInterface);
-    m_miInterface = m_hwInterface->GetMiInterface();
     m_miItf = m_hwInterface->GetMiInterfaceNext();
-    SCALABILITY_CHK_NULL_RETURN(m_miInterface);
+    SCALABILITY_CHK_NULL_RETURN(m_miItf);
 
     m_scalabilityOption = MOS_New(EncodeScalabilityOption, (const EncodeScalabilityOption &)option);
     SCALABILITY_CHK_NULL_RETURN(m_scalabilityOption);
@@ -575,7 +574,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
 
         MOS_COMMAND_BUFFER& cmdBufferToAddBbEnd = m_secondaryCmdBuffer[bufIdxPlus1 - 1];
         SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBufferToAddBbEnd, bufIdxPlus1));
-        SCALABILITY_CHK_STATUS_RETURN(m_miInterface->AddMiBatchBufferEnd(&cmdBufferToAddBbEnd, nullptr));
+        SCALABILITY_CHK_STATUS_RETURN(m_miItf->AddMiBatchBufferEnd(&cmdBufferToAddBbEnd, nullptr));
         SCALABILITY_CHK_STATUS_RETURN(Oca1stLevelBBEnd(cmdBufferToAddBbEnd));
         m_osInterface->pfnReturnCommandBuffer(m_osInterface, &cmdBufferToAddBbEnd, bufIdxPlus1);
     }
@@ -618,15 +617,15 @@ MOS_STATUS EncodeScalabilityMultiPipe::SyncAllPipes(uint32_t semaphoreId, PMOS_C
         cmdBuffer));
     
     // Program some placeholder cmds to resolve the hazard between pipe sync
-    MHW_MI_STORE_DATA_PARAMS dataParams;
-    dataParams.pOsResource = &m_resDelayMinus;
-    dataParams.dwResourceOffset = 0;
-    dataParams.dwValue = 0xDE1A;
+    auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+    storeDataParams                  = {};
+    storeDataParams.pOsResource      = &m_resDelayMinus;
+    storeDataParams.dwResourceOffset = 0;
+    storeDataParams.dwValue          = 0xDE1A;
+    
     for (uint32_t i = 0; i < m_numDelay; i++)
     {
-        SCALABILITY_CHK_STATUS_RETURN(m_hwInterface->GetMiInterface()->AddMiStoreDataImmCmd(
-            cmdBuffer,
-            &dataParams));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
     }
 
     //clean HW semaphore memory
@@ -638,21 +637,19 @@ MOS_STATUS EncodeScalabilityMultiPipe::SyncOnePipeWaitOthers(PMOS_COMMAND_BUFFER
     SCALABILITY_FUNCTION_ENTER;
     SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
 
-    MhwMiInterface *miInterface = m_hwInterface->GetMiInterface();
-    SCALABILITY_CHK_NULL_RETURN(miInterface);
-
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     // Send MI_FLUSH command
-    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
-    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-    flushDwParams.bVideoPipelineCacheInvalidate = true;
+    auto &miFlushDwParams            = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    miFlushDwParams                  = {};
+    miFlushDwParams.bVideoPipelineCacheInvalidate = true;
+
     if (!Mos_ResourceIsNull(&m_resSemaphoreOnePipeWait[m_currentPipe]))
     {
-        flushDwParams.pOsResource = &m_resSemaphoreOnePipeWait[m_currentPipe];
-        flushDwParams.dwDataDW1   = m_currentPass + 1;
+        miFlushDwParams.pOsResource = &m_resSemaphoreOnePipeWait[m_currentPipe];
+        miFlushDwParams.dwDataDW1   = m_currentPass + 1;
     }
-    SCALABILITY_CHK_STATUS_RETURN(miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
+    SCALABILITY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
 
     if (IsFirstPipe())
     {
@@ -874,14 +871,12 @@ MOS_STATUS EncodeScalabilityMultiPipe::Oca1stLevelBBStart(MOS_COMMAND_BUFFER &cm
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface);
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->pOsContext);
-        MhwMiInterface *miInterface = m_hwInterface->GetMiInterface();
-        SCALABILITY_CHK_NULL_RETURN(miInterface);
 
-        HalOcaInterface::On1stLevelBBStart(
+        HalOcaInterfaceNext::On1stLevelBBStart(
             cmdBuffer,
             *m_osInterface->pOsContext,
             m_osInterface->CurrentGpuContextHandle,
-            *miInterface,
+            m_miItf,
             mmioRegister);
     }
 
