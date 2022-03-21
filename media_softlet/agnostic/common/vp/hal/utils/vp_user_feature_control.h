@@ -77,8 +77,9 @@ protected:
 
     CONTROL_VALUES m_ctrlValDefault = {};
     CONTROL_VALUES m_ctrlVal        = {};
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;  //!< usersettingInstance
 
-MEDIA_CLASS_DEFINE_END(VpUserFeatureControl)
+    MEDIA_CLASS_DEFINE_END(VpUserFeatureControl)
 };
 
 

@@ -378,7 +378,7 @@ protected:
     VP_SETTINGS           *m_vpSettings = nullptr;
     VpUserFeatureControl  *m_userFeatureControl = nullptr;
 
-MEDIA_CLASS_DEFINE_END(VpPipeline)
+    MEDIA_CLASS_DEFINE_END(VpPipeline)
 };
 
 struct _VP_SFC_PACKET_PARAMS

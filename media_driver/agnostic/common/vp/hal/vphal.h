@@ -560,6 +560,7 @@ protected:
     // StatusTable indicating if command is done by gpu or not
     VPHAL_STATUS_TABLE          m_statusTable = {};
 
+    MediaUserSettingSharedPtr   m_userSettingPtr = nullptr;  //!< usersettingInstance
 
     // Same MOS_GPU_CONTEXT may be created in MediaContext with a different handle,
     // which will cause the gpuContext created in VphalState missed to be destroyed during
@@ -599,7 +600,6 @@ private:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS DestroyGpuContextWithInvalidHandle();
-
 };
 
 #endif  // __VPHAL_H__

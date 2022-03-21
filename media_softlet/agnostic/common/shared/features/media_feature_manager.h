@@ -151,7 +151,7 @@ public:
     //!
     //! \brief  MediaFeatureManager constructor
     //!
-    MediaFeatureManager() {};
+    MediaFeatureManager(){};
 
     //!
     //! \brief  MediaFeatureManager deconstructor
@@ -284,6 +284,8 @@ protected:
     MediaFeatureConstSettings *m_featureConstSettings = nullptr;
     uint8_t m_targetUsage = 0;
     uint8_t m_passNum = 1;
+    // Media user setting instance
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;
 };
 
 #endif  // !__MEDIA_FEATURE_MANAGER_H__

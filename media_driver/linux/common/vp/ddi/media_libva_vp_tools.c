@@ -646,11 +646,25 @@ void VpConfigValuesInit(
 void VpFeatureReport(
     PVP_CONFIG         pConfig)
 {
-    WriteUserFeature(__VPHAL_VEBOX_OUTPUTPIPE_MODE_ID,         pConfig->dwCurrentOutputPipeMode, (MOS_CONTEXT_HANDLE)nullptr);
-    WriteUserFeature(__VPHAL_VEBOX_FEATURE_INUSE_ID,           pConfig->dwCurrentVEFeatureInUse, (MOS_CONTEXT_HANDLE)nullptr);
-    WriteUserFeature(__VPHAL_VEBOX_HDR_MODE_ID,                pConfig->dwCurrentHdrMode, (MOS_CONTEXT_HANDLE)nullptr);
+    ReportUserSetting(
+        nullptr,
+        __VPHAL_VEBOX_OUTPUTPIPE_MODE,
+        pConfig->dwCurrentOutputPipeMode,
+        MediaUserSetting::Group::Sequence);
+
+    ReportUserSetting(
+        nullptr,
+        __VPHAL_VEBOX_FEATURE_INUSE,
+        pConfig->dwCurrentVEFeatureInUse,
+        MediaUserSetting::Group::Sequence);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+    ReportUserSettingForDebug(
+        nullptr,
+        __VPHAL_VEBOX_HDR_MODE,
+        pConfig->dwCurrentHdrMode,
+        MediaUserSetting::Group::Sequence);
+
 #ifdef _MMC_SUPPORTED
     //VP MMC In Use
     WriteUserFeature(__VPHAL_ENABLE_MMC_IN_USE_ID,             pConfig->dwVPMMCInUse, (MOS_CONTEXT_HANDLE)nullptr);

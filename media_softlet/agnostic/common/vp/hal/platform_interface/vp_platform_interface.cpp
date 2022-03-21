@@ -31,6 +31,16 @@ using namespace vp;
 
 const std::string VpRenderKernel::s_kernelNameNonAdvKernels = "vpFcKernels";
 
+VpPlatformInterface::VpPlatformInterface(PMOS_INTERFACE pOsInterface)
+{
+    m_pOsInterface = pOsInterface;
+    if (m_pOsInterface)
+    {
+        m_userSettingPtr = m_pOsInterface->pfnGetUserSettingInstance(m_pOsInterface);
+    }
+    VpUtils::DeclareUserSettings(m_userSettingPtr);
+}
+
 MOS_STATUS VpRenderKernel::InitVPKernel(
     const Kdll_RuleEntry *kernelRules,
     const uint32_t *      kernelBin,

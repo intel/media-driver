@@ -35,6 +35,7 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, void *own
     MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
     auto skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
 
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     // Read user feature key to get the Composition Bypass mode
     userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
     // Vebox Comp Bypass is on by default
@@ -70,16 +71,16 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, void *own
         if (skuTable && MEDIA_IS_SKU(skuTable, FtrSFCPipe))
         {
             // Read user feature key to Disable SFC
-            MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-            status = MOS_UserFeature_ReadValue_ID(
-                nullptr,
-                __VPHAL_VEBOX_DISABLE_SFC_ID,
-                &userFeatureData,
-                m_osInterface->pOsContext);
+            bool disableSFC = false;
+            status          = ReadUserSetting(
+                m_userSettingPtr,
+                disableSFC,
+                __VPHAL_VEBOX_DISABLE_SFC,
+                MediaUserSetting::Group::Sequence);
 
             if (MOS_SUCCEEDED(status))
             {
-                m_ctrlValDefault.disableSfc = userFeatureData.bData;
+                m_ctrlValDefault.disableSfc = disableSFC;
             }
             else
             {

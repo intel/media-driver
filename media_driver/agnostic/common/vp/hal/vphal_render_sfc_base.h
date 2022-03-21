@@ -601,6 +601,7 @@ protected:
 
     VPHAL_SFC_RENDER_DATA           m_renderData = {};                          //!< Transient Render data populated for every BLT call
 
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;                       //!< usersettingInstance
 };
 #else
 // A dummy class that does nothing when SFC is not supported

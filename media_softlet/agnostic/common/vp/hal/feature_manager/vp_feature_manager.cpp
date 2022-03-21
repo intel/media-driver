@@ -214,7 +214,10 @@ VPFeatureManager::VPFeatureManager(
     MediaFeatureManager(),
     m_hwInterface(hwInterface)
 {
-
+    if (m_hwInterface && m_hwInterface->m_osInterface)
+    {
+        m_userSettingPtr = m_hwInterface->m_osInterface->pfnGetUserSettingInstance(m_hwInterface->m_osInterface);
+    }
 }
 
 MOS_STATUS VPFeatureManager::CheckFeatures(void * params, bool &bApgFuncSupported)
@@ -594,15 +597,11 @@ bool VPFeatureManager::IsSfcOutputFeasible(PVP_PIPELINE_PARAMS params)
     if (MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrSFCPipe))
     {
         // Read user feature key to Disable SFC
-        MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_VEBOX_DISABLE_SFC_ID,
-            &UserFeatureData,
-            m_hwInterface->m_osInterface->pOsContext));
-
-        disableSFC = UserFeatureData.bData ? true : false;
+        ReadUserSetting(
+            m_userSettingPtr,
+            disableSFC,
+            __VPHAL_VEBOX_DISABLE_SFC,
+            MediaUserSetting::Group::Sequence);
 
         if (disableSFC)
         {

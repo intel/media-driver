@@ -265,6 +265,12 @@ protected:
 #define VP_FUNC_CALL()
 #endif
 
+#define __VPHAL_VEBOX_OUTPUTPIPE_MODE                                   "VPOutputPipe Mode"
+#define __VPHAL_VEBOX_FEATURE_INUSE                                     "VeBox Feature In use"
+#define __VPHAL_VEBOX_DISABLE_SFC                                       "Disable SFC"
+#define __VPHAL_VEBOX_HDR_MODE                                          "VeboxHDRMode"
+#define __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE               "Disable SFC DTR"
+
 
 class VpUtils
 {
@@ -411,6 +417,8 @@ public:
     //!           Return true if successful, otherwise false
     //!
     static bool GetCscMatrixForRender8BitWithCoeff(VPHAL_COLOR_SAMPLE_8 *output, VPHAL_COLOR_SAMPLE_8 *input, VPHAL_CSPACE srcCspace, VPHAL_CSPACE dstCspace, int32_t *iCscMatrix);
+
+    static MOS_STATUS  DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr);
 };
 
 #endif // !__VP_UTILS_H__

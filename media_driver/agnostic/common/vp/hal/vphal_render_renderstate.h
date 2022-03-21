@@ -342,6 +342,9 @@ protected:
     // Status Buffer, Video Pre-Processing Only
     STATUS_TABLE_UPDATE_PARAMS  m_StatusTableUpdateParams = { 0 };
 
+    // Media user setting instance
+    MediaUserSettingSharedPtr m_userSettingPtr = nullptr;
+
 };
 
 #endif // __VPHAL_RENDER_RENDERSTATE_H__

@@ -335,13 +335,13 @@ MOS_STATUS VPHAL_VEBOX_STATE::Initialize(
         m_sfcPipeState)
     {
         // Read user feature key to Disable SFC
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MOS_USER_FEATURE_INVALID_KEY_ASSERT(MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __VPHAL_VEBOX_DISABLE_SFC_ID,
-            &UserFeatureData,
-            m_pOsInterface->pOsContext));
-        m_sfcPipeState->SetDisable(UserFeatureData.bData ? true : false);
+        bool disableSfc = 0;
+        ReadUserSetting(
+            m_userSettingPtr,
+            disableSfc,
+            __VPHAL_VEBOX_DISABLE_SFC,
+            MediaUserSetting::Group::Sequence);
+        m_sfcPipeState->SetDisable(disableSfc ? true : false);
     }
 
     pVeboxState->bEnableMMC = 0;

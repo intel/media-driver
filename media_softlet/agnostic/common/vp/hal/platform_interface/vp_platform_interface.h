@@ -122,10 +122,7 @@ class VpPlatformInterface
 {
 public:
 
-    VpPlatformInterface(PMOS_INTERFACE pOsInterface)
-    {
-        m_pOsInterface = pOsInterface;
-    }
+    VpPlatformInterface(PMOS_INTERFACE pOsInterface);
 
     virtual ~VpPlatformInterface();
 
@@ -213,8 +210,9 @@ protected:
     bool m_sfc2PassScalingEnabled = false;
     bool m_sfc2PassScalingPerfMode = false;
     bool m_vpMmcDisabled = false;
+    MediaUserSettingSharedPtr m_userSettingPtr  = nullptr;  //!< usersettingInstance
 
-MEDIA_CLASS_DEFINE_END(VpPlatformInterface)
+    MEDIA_CLASS_DEFINE_END(VpPlatformInterface)
 };
 
 }

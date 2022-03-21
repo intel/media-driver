@@ -171,6 +171,10 @@ VphalSfcState::VphalSfcState(
     m_renderHal       = renderHal;
     m_sfcInterface    = sfcInterface;
     m_osInterface     = osInterface;
+    if (m_osInterface)
+    {
+        m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    }
 
     // Allocate AVS state
     VpHal_RndrCommonInitAVSParams(

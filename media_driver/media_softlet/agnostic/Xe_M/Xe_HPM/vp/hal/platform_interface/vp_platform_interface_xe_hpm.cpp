@@ -47,16 +47,13 @@ using namespace vp;
 VpPlatformInterfaceXe_Hpm::VpPlatformInterfaceXe_Hpm(PMOS_INTERFACE pOsInterface)
     : VpPlatformInterface(pOsInterface)
 {
-    MOS_USER_FEATURE_VALUE_DATA userFeatureData = {};
-    // get dithering flag.
-    userFeatureData.bData       = 0;
-    userFeatureData.i32DataFlag = MOS_USER_FEATURE_VALUE_DATA_FLAG_CUSTOM_DEFAULT_VALUE_TYPE;
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
-        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE_ID,
-        &userFeatureData,
-        m_pOsInterface? m_pOsInterface->pOsContext : nullptr);
-    m_disableSfcDithering = userFeatureData.bData ? true : false;
+    ReadUserSetting(
+        m_userSettingPtr,
+        m_disableSfcDithering,
+        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
     VP_PUBLIC_NORMALMESSAGE("m_disableSfcDithering = %d", m_disableSfcDithering);
 
     m_sfc2PassScalingEnabled = true;

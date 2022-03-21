@@ -562,3 +562,45 @@ uint32_t VpUtils::GetSurfaceBitDepth(
     VP_PUBLIC_ASSERTMESSAGE("Unknown Input format for bit depth.");
     return 0;
 }
+
+MOS_STATUS VpUtils::DeclareUserSettings(MediaUserSettingSharedPtr userSettingPtr)
+{
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_VEBOX_DISABLE_SFC,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_SFC_OUTPUT_DTR_DISABLE,
+        MediaUserSetting::Group::Sequence,
+        1,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_VEBOX_OUTPUTPIPE_MODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        __VPHAL_VEBOX_FEATURE_INUSE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __VPHAL_VEBOX_HDR_MODE,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true); //"HDR Mode. 0x1: H2S kernel, 0x3: H2H kernel, 0x21 65size H2S, 0x23 65size H2H, 0x31 33size H2S, 0x33 33size H2H."
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}

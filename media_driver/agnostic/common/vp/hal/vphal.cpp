@@ -692,6 +692,9 @@ VphalState::VphalState(
     m_skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
     m_waTable  = m_osInterface->pfnGetWaTable (m_osInterface);
 
+    m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    VpUtils::DeclareUserSettings(m_userSettingPtr);
+
     m_renderHal = (PRENDERHAL_INTERFACE)MOS_AllocAndZeroMemory(sizeof(*m_renderHal));
     VPHAL_PUBLIC_CHK_NULL(m_renderHal);
     VPHAL_PUBLIC_CHK_STATUS(RenderHal_InitInterface(

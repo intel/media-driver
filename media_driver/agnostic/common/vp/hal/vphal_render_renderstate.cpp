@@ -57,6 +57,11 @@ RenderState::RenderState(
 
     VPHAL_RENDER_CHK_NULL(pRenderHal);
 
+    if (m_pOsInterface)
+    {
+        m_userSettingPtr = pOsInterface->pfnGetUserSettingInstance(m_pOsInterface);
+    }
+
     // Connect renderer to other VPHAL components (HW/OS interfaces)
     m_pWaTable  = pRenderHal->pWaTable;
     m_pSkuTable = pRenderHal->pSkuTable;
