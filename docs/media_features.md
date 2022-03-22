@@ -100,6 +100,8 @@
 |               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
 | DG1/SG1       | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     | Y         | N                       |
 |               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
+| DG2/ATSM      | Input  | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y    | Y     | Y     | Y     | Y         | N                       |
+|               | Output | Y    | Y    | Y    | Y    | Y    |      | Y    | Y    | Y    | Y     | Y     | Y     | Y         | Y                       |
 
 * \* For SFC path, there are NOT real 16bit, SFC precision is 12bit; For kernel path, we support real 16bit.
 * TGL/DG1/SG1 capable of max resolution: 16K; ICL/JSL/EHL/SKL/BXT/KBL/BDW capable of max resolution: 4k.
