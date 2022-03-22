@@ -3783,7 +3783,7 @@ mos_bufmgr_gem_enable_reuse(struct mos_bufmgr *bufmgr)
 {
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
 
-    bufmgr_gem->bo_reuse = true;
+    bufmgr_gem->bo_reuse = bufmgr_gem->has_lmem ? false : true;
 }
 
 /**
