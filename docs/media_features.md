@@ -2,32 +2,32 @@
 
 ## Supported Decoding Output Format and Max Resolution
 
-| Codec      | Type     | DG1/SG1        | TGLx           | ICL            | KBLx | BXTx | SKL  | BDW  |
-|------------|----------|----------------|----------------|----------------|------|------|------|------|
-| AVC        | Output   | NV12           | NV12           | NV12           | NV12 | NV12 | NV12 | NV12 |
-|            | Max Res. | 4k             | 4k             | 4k             | 4k   | 4k   | 4k   | 4k   |
-| MPEG-2     | Output   | NV12           | NV12           | NV12           | NV12 | NV12 | NV12 | NV12 |
-|            | Max Res. | 2k             | 2k             | 2k             | 2k   | 2k   | 2k   | 2k   |
-| VC-1       | Output   | NV12           | NV12           | NV12           | NV12 | NV12 | NV12 | NV12 |
-|            | Max Res. | 4k             | 4k             | 4k             | 4k   | 4k   | 4k   | 4k   |
-| VP8        | Output   |                | NV12*          | NV12           | NV12 | NV12 | NV12 | NV12 |
-|            | Max Res. |                | 4k*            | 4k             | 4k   | 4k   | 4k   | 4k   |
-| HEVC 8bit  | Output   | NV12/YUY2/AYUV | NV12/YUY2/AYUV | NV12/YUY2/AYUV | NV12 | NV12 | NV12 |      |
-|            | Max Res. | 8k             | 8k             | 8k             | 8k   | 8k   | 8k   |      |
-| HEVC 10bit | Output   | P010/Y210/Y410 | P010/Y210/Y410 | P010/Y210/Y410 | P010 | P010 |      |      |
-|            | Max Res. | 8k             | 8k             | 8k             | 8k   | 8k   |      |      |
-| HEVC 12bit | Output   | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
-|            | Max Res. | 8k             | 8k             |                |      |      |      |      |
-| VP9 8bit   | Output   | NV12/AYUV      | NV12/AYUV      | NV12/AYUV      | NV12 | NV12 |      |      |
-|            | Max Res. | 8k             | 8k             | 8k             | 8k   | 4k   |      |      |
-| VP9 10bit  | Output   | P010/Y410      | P010/Y410      | P010/Y410      | P010 |      |      |      |
-|            | Max Res. | 8k             | 8k             | 8k             | 8k   |      |      |      |
-| VP9 12bit  | Output   | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
-|            | Max Res. | 8k             | 8k             |                |      |      |      |      |
-| AV1 8bit   | Output   | NV12           | NV12           |                |      |      |      |      |
-|            | Max Res. | 8k             | 8k             |                |      |      |      |      |
-| AV1 10bit  | Output   | P010           | P010           |                |      |      |      |      |
-|            | Max Res. | 8k             | 8k             |
+| Codec      | Type     | DG2/ATSM       | DG1/SG1        | TGLx           | ICL            | KBLx | BXTx | SKL  | BDW  |
+|------------|--------- |----------------|----------------|----------------|----------------|------|------|------|------|
+| AVC        | Output   | NV12           | NV12           | NV12           | NV12           | NV12 | NV12 | NV12 | NV12 |
+|            | Max Res. | 4k             | 4k             | 4k             | 4k             | 4k   | 4k   | 4k   | 4k   |
+| MPEG-2     | Output   | NV12           | NV12           | NV12           | NV12           | NV12 | NV12 | NV12 | NV12 |
+|            | Max Res. | 2k             | 2k             | 2k             | 2k             | 2k   | 2k   | 2k   | 2k   |
+| VC-1       | Output   |                | NV12           | NV12           | NV12           | NV12 | NV12 | NV12 | NV12 |
+|            | Max Res. |                | 4k             | 4k             | 4k             | 4k   | 4k   | 4k   | 4k   |
+| VP8        | Output   |                |                | NV12*          | NV12           | NV12 | NV12 | NV12 | NV12 |
+|            | Max Res. |                |                | 4k*            | 4k             | 4k   | 4k   | 4k   | 4k   |
+| HEVC 8bit  | Output   | NV12/YUY2/AYUV | NV12/YUY2/AYUV | NV12/YUY2/AYUV | NV12/YUY2/AYUV | NV12 | NV12 | NV12 |      |
+|            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   | 8k   | 8k   |      |
+| HEVC 10bit | Output   | P010/Y210/Y410 | P010/Y210/Y410 | P010/Y210/Y410 | P010/Y210/Y410 | P010 | P010 |      |      |
+|            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   | 8k   |      |      |
+| HEVC 12bit | Output   | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
+|            | Max Res. | 16k            | 8k             | 8k             |                |      |      |      |      |
+| VP9 8bit   | Output   | NV12/AYUV      | NV12/AYUV      | NV12/AYUV      | NV12/AYUV      | NV12 | NV12 |      |      |
+|            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   | 4k   |      |      |
+| VP9 10bit  | Output   | P010/Y410      | P010/Y410      | P010/Y410      | P010/Y410      | P010 |      |      |      |
+|            | Max Res. | 16k            | 8k             | 8k             | 8k             | 8k   |      |      |      |
+| VP9 12bit  | Output   | P016/Y216/Y416 | P016/Y216/Y416 | P016/Y216/Y416 |                |      |      |      |      |
+|            | Max Res. | 16k            | 8k             | 8k             |                |      |      |      |      |
+| AV1 8bit   | Output   | NV12           | NV12           | NV12           |                |      |      |      |      |
+|            | Max Res. | 16k            | 8k             | 8k             |                |      |      |      |      |
+| AV1 10bit  | Output   | P010           | P010           | P010           |                |      |      |      |      |
+|            | Max Res. | 16k            | 8k             | 8k             |
 
 - \* VP8 is only supported on TGL platform
 
