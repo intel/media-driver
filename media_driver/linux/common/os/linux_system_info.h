@@ -81,7 +81,6 @@ struct GfxDeviceInfo
     uint32_t  productFamily;
     uint32_t  displayFamily;
     uint32_t  renderFamily;
-    uint32_t  mediaFamily;
     uint32_t  eGTType;
     uint32_t  L3CacheSizeInKb;
     uint32_t  L3BankCount;
