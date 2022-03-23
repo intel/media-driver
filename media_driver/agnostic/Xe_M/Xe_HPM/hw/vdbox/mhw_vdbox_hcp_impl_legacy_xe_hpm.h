@@ -45,7 +45,7 @@ public:
     {
         if (!m_hcpItfNew)
         {
-            auto ptr = std::make_shared<mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Impl>(m_osInterface);
+            auto ptr = std::make_shared<mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Impl>(m_osInterface);
             ptr->SetCacheabilitySettings(m_cacheabilitySettings);
             m_hcpItfNew = ptr;
         }

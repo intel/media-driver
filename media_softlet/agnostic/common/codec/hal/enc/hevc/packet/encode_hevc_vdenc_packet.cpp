@@ -1199,13 +1199,78 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
+        uint32_t hcpCommandsSize  = 0;
+        uint32_t hcpPatchListSize = 0;
+        uint32_t cpCmdsize        = 0;
+        uint32_t cpPatchListSize  = 0;
+        uint32_t hucCommandsSize = 0;
+        uint32_t hucPatchListSize = 0;
+
         MHW_VDBOX_STATE_CMDSIZE_PARAMS_G12 stateCmdSizeParams;
-        ENCODE_CHK_STATUS_RETURN(
-            m_hwInterface->GetHxxStateCommandSize(
-                CODECHAL_ENCODE_MODE_HEVC,
-                &m_defaultPictureStatesSize,
-                &m_defaultPicturePatchListSize,
-                &stateCmdSizeParams));
+        
+        hcpCommandsSize =
+            m_vdencItf->MHW_GETSIZE_F(VD_PIPELINE_FLUSH)() +
+            m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() +
+            m_hcpItf->MHW_GETSIZE_F(HCP_PIPE_MODE_SELECT)() +
+            m_hcpItf->MHW_GETSIZE_F(HCP_SURFACE_STATE)() +
+            m_hcpItf->MHW_GETSIZE_F(HCP_PIPE_BUF_ADDR_STATE)() +
+            m_hcpItf->MHW_GETSIZE_F(HCP_IND_OBJ_BASE_ADDR_STATE)() +
+            m_miItf->MHW_GETSIZE_F(MI_LOAD_REGISTER_REG)() * 8;
+
+        hcpPatchListSize =
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::VD_PIPELINE_FLUSH_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_FLUSH_DW_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_PIPE_MODE_SELECT_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_SURFACE_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_PIPE_BUF_ADDR_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_IND_OBJ_BASE_ADDR_STATE_CMD);
+        
+        // HCP_QM_STATE_CMD may be issued up to 20 times: 3x Colour Component plus 2x intra/inter plus 4x SizeID minus 4 for the 32x32 chroma components.
+        // HCP_FQP_STATE_CMD may be issued up to 8 times: 4 scaling list per intra and inter. 
+        hcpCommandsSize +=
+            2 * m_miItf->MHW_GETSIZE_F(VD_CONTROL_STATE)() +
+            m_hcpItf->MHW_GETSIZE_F(HCP_SURFACE_STATE)() +  // encoder needs two surface state commands. One is for raw and another one is for recon surfaces.
+            20 * m_hcpItf->MHW_GETSIZE_F(HCP_QM_STATE)() +
+            8 * m_hcpItf->MHW_GETSIZE_F(HCP_FQM_STATE)() +
+            m_hcpItf->MHW_GETSIZE_F(HCP_PIC_STATE)() +
+            m_hcpItf->MHW_GETSIZE_F(HEVC_VP9_RDOQ_STATE)() +        // RDOQ
+            2 * m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)() +       // Slice level commands
+            2 * m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() +             // need for Status report, Mfc Status and
+            10 * m_miItf->MHW_GETSIZE_F(MI_STORE_REGISTER_MEM)() +  // 8 for BRCStatistics and 2 for RC6 WAs
+            m_miItf->MHW_GETSIZE_F(MI_LOAD_REGISTER_MEM)() +        // 1 for RC6 WA
+            2 * m_hcpItf->MHW_GETSIZE_F(HCP_PAK_INSERT_OBJECT)() +  // Two PAK insert object commands are for headers before the slice header and the header for the end of stream
+            4 * m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)() +       // two (BRC+reference frame) for clean-up HW semaphore memory and another two for signal it
+            17 * m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)() +      // Use HW wait command for each reference and one wait for current semaphore object
+            m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)() +           // Use HW wait command for each BRC pass
+            +m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)()            // Use HW wait command for each VDBOX
+            + 2 * m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)()       // One is for reset and another one for set per VDBOX
+            + 8 * m_miItf->MHW_GETSIZE_F(MI_COPY_MEM_MEM)()         // Need to copy SSE statistics/ Slice Size overflow into memory
+            ;
+
+        hcpPatchListSize +=
+            20 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_QM_STATE_CMD) +
+            8 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_FQM_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_PIC_STATE_CMD) +
+            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_BATCH_BUFFER_START_CMD) +       // When BRC is on, HCP_PIC_STATE_CMD command is in the BB
+            2 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_STORE_DATA_IMM_CMD) +       // Slice level commands
+            2 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_FLUSH_DW_CMD) +             // need for Status report, Mfc Status and
+            11 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_STORE_REGISTER_MEM_CMD) +  // 8 for BRCStatistics and 3 for RC6 WAs
+            22 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_STORE_DATA_IMM_CMD)        // Use HW wait commands plus its memory clean-up and signal (4+ 16 + 1 + 1)
+            + 8 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_BATCH_BUFFER_START_CMD)   // At maximal, there are 8 batch buffers for 8 VDBOXes for VE. Each box has one BB.
+            + PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_FLUSH_DW_CMD)                 // Need one flush before copy command
+            + PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MFX_WAIT_CMD)                    // Need one wait after copy command
+            + 3 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_STORE_DATA_IMM_CMD)       // one wait commands and two for reset and set semaphore memory
+            + 8 * PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::MI_COPY_MEM_MEM_CMD)         // Need to copy SSE statistics/ Slice Size overflow into memory
+            ;
+         
+        auto cpInterface = m_hwInterface->GetCpInterface();
+        cpInterface->GetCpStateLevelCmdSize(cpCmdsize, cpPatchListSize);
+
+        m_hwInterface->m_hwInterfaceNext->GetHucStateCommandSize(
+            m_basicFeature->m_mode, (uint32_t *)&hucCommandsSize, (uint32_t *)&hucPatchListSize, &stateCmdSizeParams);
+
+        m_defaultPictureStatesSize    = hcpCommandsSize + hucCommandsSize + (uint32_t)cpCmdsize;
+        m_defaultPicturePatchListSize = hcpPatchListSize + hucPatchListSize + (uint32_t)cpPatchListSize;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1963,10 +2028,22 @@ namespace encode
 
     MOS_STATUS HevcVdencPkt::GetVdencStateCommandsDataSize(uint32_t &vdencPictureStatesSize, uint32_t &vdencPicturePatchListSize)
     {
-        ENCODE_CHK_STATUS_RETURN(m_hwInterface->GetVdencStateCommandsDataSize(
-            CODECHAL_ENCODE_MODE_HEVC,
-            &vdencPictureStatesSize,
-            &vdencPicturePatchListSize));
+        vdencPictureStatesSize =
+            m_vdencItf->MHW_GETSIZE_F(VDENC_PIPE_MODE_SELECT)() +
+            m_vdencItf->MHW_GETSIZE_F(VDENC_SRC_SURFACE_STATE)() +
+            m_vdencItf->MHW_GETSIZE_F(VDENC_REF_SURFACE_STATE)() +
+            m_vdencItf->MHW_GETSIZE_F(VDENC_DS_REF_SURFACE_STATE)() +
+            m_vdencItf->MHW_GETSIZE_F(VDENC_PIPE_BUF_ADDR_STATE)() +
+            m_vdencItf->MHW_GETSIZE_F(VDENC_WEIGHTSOFFSETS_STATE)() +
+            m_vdencItf->MHW_GETSIZE_F(VDENC_WALKER_STATE)() +
+            m_vdencItf->MHW_GETSIZE_F(VD_PIPELINE_FLUSH)() +
+            m_miItf->MHW_GETSIZE_F(MI_LOAD_REGISTER_IMM)()*8 +
+            m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() +
+            m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_START)() +
+            m_hcpItf->MHW_GETSIZE_F(HEVC_VP9_RDOQ_STATE)() +
+            m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
+
+        vdencPicturePatchListSize = PATCH_LIST_COMMAND(mhw::vdbox::vdenc::Itf::VDENC_PIPE_BUF_ADDR_STATE_CMD);
 
         return MOS_STATUS_SUCCESS;
     }

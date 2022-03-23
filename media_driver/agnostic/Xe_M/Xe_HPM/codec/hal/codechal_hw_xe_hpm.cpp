@@ -66,12 +66,12 @@ void CodechalHwInterfaceXe_Hpm::PrepareCmdSize(CODECHAL_FUNCTION codecFunction)
         + 92
         + mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
-    m_vdencBatchBuffer1stGroupSize = mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Cmd::HCP_PIPE_MODE_SELECT_CMD::byteSize
+    m_vdencBatchBuffer1stGroupSize = mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Cmd::HCP_PIPE_MODE_SELECT_CMD::byteSize
         + mhw_mi_g12_X::MFX_WAIT_CMD::byteSize * 2
         + mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
     m_vdencBatchBuffer2ndGroupSize = 132
-        + mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Cmd::HCP_PIC_STATE_CMD::byteSize
+        + mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Cmd::HCP_PIC_STATE_CMD::byteSize
         + 248
         + mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
@@ -79,9 +79,9 @@ void CodechalHwInterfaceXe_Hpm::PrepareCmdSize(CODECHAL_FUNCTION codecFunction)
     m_vdenc2ndLevelBatchBufferSize = m_vdencBatchBuffer1stGroupSize
         + m_vdencBatchBuffer2ndGroupSize
         + ENCODE_HEVC_VDENC_NUM_MAX_SLICES
-        * (2 * mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Cmd::HCP_WEIGHTOFFSET_STATE_CMD::byteSize
-            + mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Cmd::HCP_SLICE_STATE_CMD::byteSize
-            + 3 * mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Cmd::HCP_PAK_INSERT_OBJECT_CMD::byteSize
+        * (2 * mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Cmd::HCP_WEIGHTOFFSET_STATE_CMD::byteSize
+            + mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Cmd::HCP_SLICE_STATE_CMD::byteSize
+            + 3 * mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Cmd::HCP_PAK_INSERT_OBJECT_CMD::byteSize
             + 28
             + mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize
             + 4 * ENCODE_VDENC_HEVC_PADDING_DW_SIZE);
@@ -91,8 +91,8 @@ void CodechalHwInterfaceXe_Hpm::PrepareCmdSize(CODECHAL_FUNCTION codecFunction)
                                     + mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 
     // HCP_WEIGHTOFFSET_STATE_CMD cmds is planned to be added in near future
-    m_vdencBatchBufferPerSliceConstSize = mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Cmd::HCP_SLICE_STATE_CMD::byteSize
-        + mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Cmd::HCP_PAK_INSERT_OBJECT_CMD::byteSize          // 1st PakInsertObject cmd is not always inserted for each slice, 2nd PakInsertObject cmd is always inserted for each slice
+    m_vdencBatchBufferPerSliceConstSize = mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Cmd::HCP_SLICE_STATE_CMD::byteSize
+        + mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Cmd::HCP_PAK_INSERT_OBJECT_CMD::byteSize          // 1st PakInsertObject cmd is not always inserted for each slice, 2nd PakInsertObject cmd is always inserted for each slice
         + 28
         + mhw_mi_g12_X::MI_BATCH_BUFFER_END_CMD::byteSize;
 

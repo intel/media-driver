@@ -37,7 +37,7 @@ namespace vdbox
 {
 namespace hcp
 {
-namespace xe_xpm_plus_base
+namespace xe_xpm_base
 {
 namespace xe_hpm
 {
@@ -50,7 +50,7 @@ public:
     Impl(PMOS_INTERFACE osItf) : base_t(osItf){};
 };
 }  // namespace xe_hpm
-}  // namespace xe_xpm_plus_base
+}  // namespace xe_xpm_base
 }  // namespace hcp
 }  // namespace vdbox
 }  // namespace mhw

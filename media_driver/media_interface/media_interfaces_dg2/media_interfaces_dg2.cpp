@@ -452,7 +452,7 @@ MOS_STATUS MhwInterfacesDg2_Next::Initialize(
     {
         m_hcpInterface =
             MOS_New(Hcp, osInterface, m_miInterface, m_cpInterface, params.m_isDecode);
-        m_hcpItf = std::make_shared<mhw::vdbox::hcp::xe_xpm_plus_base::xe_hpm::Impl>(osInterface);
+        m_hcpItf = std::make_shared<mhw::vdbox::hcp::xe_xpm_base::xe_hpm::Impl>(osInterface);
     }
     if (params.Flags.m_vdboxAll)
     {

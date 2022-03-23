@@ -47,7 +47,7 @@ namespace vdbox
 {
 namespace hcp
 {
-namespace xe_xpm_plus_base
+namespace xe_xpm_base
 {
 namespace xe_hpm
 {
@@ -4900,7 +4900,7 @@ public:
     };
 };
 }  // namespace xe_hpm
-}  // namespace xe_xpm_plus_base
+}  // namespace xe_xpm_base
 }  // namespace hcp
 }  // namespace vdbox
 }  // namespace mhw
