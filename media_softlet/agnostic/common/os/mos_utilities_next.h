@@ -90,10 +90,10 @@ public:
     template<class _Ty, class... _Types>
     static _Ty *MosNewArrayUtil(const char *functionName,
         const char *filename,
-        int32_t line, int32_t numElements)
+        int32_t line, size_t numElements)
 #else
     template<class _Ty, class... _Types>
-    static _Ty* MosNewArrayUtil(int32_t numElements)
+    static _Ty* MosNewArrayUtil(size_t numElements)
 #endif
     {
 #if (_DEBUG || _RELEASE_INTERNAL)
