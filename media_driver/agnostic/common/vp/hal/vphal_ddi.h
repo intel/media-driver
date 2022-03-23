@@ -113,7 +113,7 @@ void VpHal_DdiDeleteSurface(
 //! \return   void
 //!
 void VpHal_DdiReportFeatureMode(
-    VphalState*             pVpHalState,
+    VpBase*                 pVpHalState,
     PVP_CONFIG              pConfigValues);
 
 //!

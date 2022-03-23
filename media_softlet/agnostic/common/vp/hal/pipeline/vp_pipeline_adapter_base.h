@@ -112,6 +112,9 @@ public:
     virtual MOS_STATUS GetStatusReport(
         PQUERY_STATUS_REPORT_APP pQueryReport,
         uint16_t                 numStatus);
+    
+    virtual MOS_STATUS GetStatusReportEntryLength(
+        uint32_t                         *puiLength);
 
     virtual VpFeatureReport *GetRenderFeatureReport() = 0;
 

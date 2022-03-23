@@ -152,6 +152,9 @@ public:
     virtual MOS_STATUS GetStatusReport(
         PQUERY_STATUS_REPORT_APP pQueryReport,
         uint16_t                 numStatus) = 0;
+    
+    virtual MOS_STATUS GetStatusReportEntryLength(
+        uint32_t                         *puiLength) = 0;
 
     HANDLE m_gpuAppTaskEvent = nullptr;
 

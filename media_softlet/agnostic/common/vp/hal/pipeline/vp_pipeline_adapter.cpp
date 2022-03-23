@@ -92,6 +92,10 @@ MOS_STATUS VpPipelineAdapter::Init(
     {
         VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_veboxInterface->CreateHeap());
     }
+    RENDERHAL_SETTINGS RenderHalSettings;
+    RenderHalSettings.iMediaStates = pVpHalSettings->mediaStates;
+    VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_renderHal->pfnInitialize(vpMhwinterface.m_renderHal, &RenderHalSettings));
+    vpMhwinterface.m_renderHal->sseuTable = VpHalDefaultSSEUTable;
 
     return m_vpPipeline->Init(&vpMhwinterface);
 }

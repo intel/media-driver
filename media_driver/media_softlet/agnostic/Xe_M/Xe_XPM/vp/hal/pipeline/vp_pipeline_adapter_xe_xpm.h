@@ -25,9 +25,9 @@
 #include "vphal_xe_xpm.h"
 #include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
-#include "vp_pipeline_adapter.h"
+#include "vp_pipeline_adapter_legacy.h"
 
-class VpPipelineAdapterXe_Xpm : virtual public VphalStateXe_Xpm, virtual public VpPipelineAdapter
+class VpPipelineAdapterXe_Xpm : virtual public VphalStateXe_Xpm, virtual public VpPipelineAdapterLegacy
 {
 public:
     VpPipelineAdapterXe_Xpm(

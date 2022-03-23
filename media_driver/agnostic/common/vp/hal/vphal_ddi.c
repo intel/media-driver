@@ -158,7 +158,7 @@ bool VpHal_DdiProcAmpValuesNotDefault(VPHAL_PROCAMP_PARAMS ProcAmpParameters)
 //! \return   void
 //!
 void VpHal_DdiReportFeatureMode(
-    VphalState          *pVpHalState,
+    VpBase              *pVpHalState,
     PVP_CONFIG          pConfigValues)
 {
     VphalFeatureReport* pReport;

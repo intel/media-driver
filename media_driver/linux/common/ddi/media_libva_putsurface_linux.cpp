@@ -354,7 +354,7 @@ VAStatus DdiCodec_PutSurfaceLinuxHW(
     uint32_t         flags             /* de-interlacing flags */
 )
 {
-    VphalState             *vpHal = nullptr;
+    VpBase                  *vpHal = nullptr;
     int32_t                 ovRenderIndex = 0;
     VPHAL_SURFACE           Surf;
     VPHAL_SURFACE           target;

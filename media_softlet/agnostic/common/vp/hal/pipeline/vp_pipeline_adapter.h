@@ -26,6 +26,16 @@
 #include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
 
+const VphalSseuSetting VpHalDefaultSSEUTable[baseKernelMaxNumID] =
+    {
+        // Slice    Sub-Slice       EU      Rsvd(freq)
+        {2, 3, 8, 0},  // COMBINED_FC_KERNEL Default
+
+        // 2 VEBOX KERNELS
+        {2, 3, 8, 0},  // VEBOX_SECUREBLOCKCOPY_KERNEL,
+        {2, 3, 8, 0},  // VEBOX_UPDATEDNSTATE_KERNEL,
+};
+
 class VpPipelineAdapter : public VpPipelineAdapterBase
 {
 public:

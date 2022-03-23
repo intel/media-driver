@@ -25,9 +25,9 @@
 #include "vphal_g12_tgllp.h"
 #include "vp_pipeline.h"
 #include "vp_pipeline_common.h"
-#include "vp_pipeline_adapter.h"
+#include "vp_pipeline_adapter_legacy.h"
 
-class VpPipelineG12Adapter : public VphalStateG12Tgllp, public VpPipelineAdapter
+class VpPipelineG12Adapter : public VphalStateG12Tgllp, public VpPipelineAdapterLegacy
 {
 public:
     VpPipelineG12Adapter(

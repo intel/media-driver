@@ -83,7 +83,7 @@ typedef struct DDI_VP_CONTEXT
 {
     // VPHAL internal structure
     MOS_CONTEXT                               MosDrvCtx;
-    VphalState                                *pVpHal;
+    VpBase                                    *pVpHal;
     VPHAL_RENDER_PARAMS                       *pVpHalRenderParams;
 
     DdiCpInterface                            *pCpDdiInterface;

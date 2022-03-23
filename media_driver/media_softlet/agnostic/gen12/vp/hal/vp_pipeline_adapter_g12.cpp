@@ -28,7 +28,7 @@ VpPipelineG12Adapter::VpPipelineG12Adapter(
     vp::VpPlatformInterface     &vpPlatformInterface,
     MOS_STATUS                  &eStatus) :
     VphalStateG12Tgllp(pOsInterface, pOsDriverContext, &eStatus),
-    VpPipelineAdapter(vpPlatformInterface, eStatus)
+    VpPipelineAdapterLegacy(vpPlatformInterface, eStatus)
 {
     if (MOS_FAILED(eStatus))
     {
@@ -51,7 +51,7 @@ MOS_STATUS VpPipelineG12Adapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
 {
     VP_FUNC_CALL();
 
-    MOS_STATUS eStatus = VpPipelineAdapter::Render(pcRenderParams);
+    MOS_STATUS eStatus = VpPipelineAdapterLegacy::Render(pcRenderParams);
 
     if (eStatus == MOS_STATUS_SUCCESS)
     {
@@ -112,5 +112,5 @@ MOS_STATUS VpPipelineG12Adapter::Execute(PVP_PIPELINE_PARAMS params)
 {
     VP_FUNC_CALL();
 
-    return VpPipelineAdapter::Execute(params, this->m_renderHal);
+    return VpPipelineAdapterLegacy::Execute(params, this->m_renderHal);
 }

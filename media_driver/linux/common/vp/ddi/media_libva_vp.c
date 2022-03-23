@@ -1771,7 +1771,7 @@ DdiVp_InitVpHal(
 {
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_VP, PERF_LEVEL_DDI);
 
-    VphalState                *pVpHal;
+    VpBase                    *pVpHal;
     VphalSettings             VpHalSettings;
 
     VAStatus                  vaStatus;
@@ -1785,7 +1785,7 @@ DdiVp_InitVpHal(
 
     // Create VpHal state
     MOS_STATUS eStatus = MOS_STATUS_UNKNOWN;
-    pVpHal = VphalState::VphalStateFactory( nullptr, &(pVpCtx->MosDrvCtx), &eStatus);
+    pVpHal = VpBase::VphalStateFactory( nullptr, &(pVpCtx->MosDrvCtx), &eStatus);
 
     if (pVpHal && MOS_FAILED(eStatus))
     {
@@ -3736,7 +3736,7 @@ VAStatus DdiVp_EndPicture (
 
     PDDI_VP_CONTEXT         pVpCtx;
     uint32_t                uiCtxType;
-    VphalState              *pVpHal;
+    VpBase                  *pVpHal;
     MOS_STATUS              eStatus;
 
     VP_DDI_FUNCTION_ENTER;

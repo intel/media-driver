@@ -436,7 +436,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    MOS_STATUS GetStatusReportEntryLength(
+    virtual MOS_STATUS GetStatusReportEntryLength(
         uint32_t                         *puiLength);
 
     virtual PLATFORM &GetPlatform()

@@ -314,3 +314,22 @@ finish:
     return eStatus;
 }
 
+MOS_STATUS VpPipelineAdapterBase::GetStatusReportEntryLength(
+    uint32_t*                      puiLength)
+{
+    MOS_STATUS                     eStatus = MOS_STATUS_SUCCESS;
+#if(!EMUL)        // this function is dummy for emul
+    PVPHAL_STATUS_TABLE            pStatusTable;
+
+    VPHAL_PUBLIC_CHK_NULL(puiLength);
+
+    pStatusTable = &m_statusTable;
+
+    // entry length from head to tail
+    *puiLength = (pStatusTable->uiCurrent - pStatusTable->uiHead) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);
+finish:
+#else
+    MOS_UNUSED(puiLength);
+#endif
+    return eStatus;
+}

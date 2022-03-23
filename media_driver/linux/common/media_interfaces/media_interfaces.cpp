@@ -159,6 +159,104 @@ VphalState* VphalDevice::CreateFactory(
     return vphalState;
 }
 
+VpBase *VphalDevice::CreateFactoryNext(
+    PMOS_INTERFACE osInterface,
+    PMOS_CONTEXT   osDriverContext,
+    MOS_STATUS *   eStatus)
+{
+    VpBase                *vpBase            = nullptr;
+    VphalDevice           *vphalDevice       = nullptr;
+    PLATFORM              platform;
+
+    if (eStatus == nullptr)
+    {
+        VPHAL_DEBUG_ASSERTMESSAGE("Invalid null pointer.");
+        return nullptr;
+    }
+
+    // pOsInterface not provided - use default for the current OS
+    if (osInterface == nullptr)
+    {
+        osInterface = (PMOS_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MOS_INTERFACE));
+
+        if (osInterface == nullptr)
+        {
+            VPHAL_DEBUG_ASSERTMESSAGE("Allocate OS interface failed");
+            *eStatus = MOS_STATUS_NO_SPACE;
+            return nullptr;
+        }
+
+        if (MOS_STATUS_SUCCESS != Mos_InitInterface(osInterface, osDriverContext, COMPONENT_VPCommon))
+        {
+            VPHAL_DEBUG_ASSERTMESSAGE("Initailze OS interface failed");
+            MOS_FreeMemAndSetNull(osInterface);
+            *eStatus = MOS_STATUS_NO_SPACE;
+            return nullptr;
+        }
+
+        osInterface->bDeallocateOnExit = true;
+    }
+    else
+    // pOsInterface provided - use OS interface functions provided by DDI (OS emulation)
+    {
+        // Copy OS interface structure, save context
+        osInterface->pOsContext = (PMOS_CONTEXT)osDriverContext;
+        osInterface->bDeallocateOnExit = false;
+    }
+
+    // Initialize platform
+    osInterface->pfnGetPlatform(osInterface, &platform);
+
+    vphalDevice = VphalFactory::CreateHal(platform.eProductFamily);
+
+    if (vphalDevice == nullptr)
+    {
+        VPHAL_DEBUG_ASSERTMESSAGE("Failed to create MediaInterface on the given platform!");
+        if (osInterface->bDeallocateOnExit)
+        {
+            MOS_FreeMemAndSetNull(osInterface);
+        }
+        *eStatus = MOS_STATUS_NO_SPACE;
+        return nullptr;
+    }
+
+    if (vphalDevice->Initialize(osInterface, osDriverContext, true, eStatus) != MOS_STATUS_SUCCESS)
+    {
+        VPHAL_DEBUG_ASSERTMESSAGE("VPHal interfaces were not successfully allocated!");
+
+        // If m_vphalState has been created, osInterface should be released in VphalState::~VphalState.
+        if (osInterface->bDeallocateOnExit 
+            && ((vphalDevice->m_isNextEnabled && nullptr == vphalDevice->m_vpBase)
+            || ((!vphalDevice->m_isNextEnabled) && nullptr == vphalDevice->m_vphalState)))
+        {
+            // Deallocate OS interface structure (except if externally provided)
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, true);
+            }
+            MOS_FreeMemAndSetNull(osInterface);
+        }
+
+        vphalDevice->Destroy();
+        MOS_Delete(vphalDevice);
+
+        *eStatus = MOS_STATUS_NO_SPACE;
+        return nullptr;
+    }
+
+    if (vphalDevice->m_isNextEnabled)
+    {
+        vpBase = vphalDevice->m_vpBase;
+    }
+    else
+    {
+        vpBase = vphalDevice->m_vphalState;
+    }
+
+    MOS_Delete(vphalDevice);
+    return vpBase;
+}
+
 void VphalDevice::Destroy()
 {
     MOS_Delete(m_vphalState);
