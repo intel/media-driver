@@ -148,7 +148,7 @@ void MOS_Message(
 //!
 //! \brief HLT file name template
 //!
-#define MOS_LOG_PATH_TEMPLATE "%s/igd_%u.%s"
+#define MOS_LOG_PATH_TEMPLATE "%s/igd_Pid%u_Tid%u.%s"
 #define MOS_COMPONENT_NAME_DDI_STRING "[LIBVA]:"
 
 //!

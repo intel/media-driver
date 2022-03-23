@@ -344,7 +344,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
 
     // Get logfile directory.
     MosLogFileNamePrefix(fileNamePrefix, userSettingPtr);
-    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "log");
+    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_mosLogPathTemplate, fileNamePrefix, nPID, MosUtilities::MosGetCurrentThreadId(), "log");
 
 #if defined(LINUX) || defined(ANDROID)
     eStatus = MosUtilities::MosCreateDirectory(fileNamePrefix);
@@ -375,7 +375,7 @@ MOS_STATUS MosUtilDebug::MosHLTInit(MediaUserSettingSharedPtr userSettingPtr)
     MOS_OS_NORMALMESSAGE("HLT initialized successfuly (%s).", hltFileName);
 
     //[SH]: Trace and log are enabled with the same key right now. This can be changed to enable/disable them independently.
-    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN-1, m_mosLogPathTemplate, fileNamePrefix, nPID, "hlt");
+    MosUtilities::MosSecureStringPrint(hltFileName, MOS_MAX_HLT_FILENAME_LEN, MOS_MAX_HLT_FILENAME_LEN - 1, m_mosLogPathTemplate, fileNamePrefix, nPID, MosUtilities::MosGetCurrentThreadId(), "hlt");
 
     eStatus = MosUtilities::MosSecureFileOpen(&m_mosMsgParams.pTraceFile, hltFileName, "w");
 
