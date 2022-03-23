@@ -49,7 +49,7 @@ public:
     MEDIA_CLASS_DEFINE_END(CpCopyInterface)
 };
 
-CpCopyInterface *Create_CpCopyInterface(PMOS_CONTEXT pOsDriverContext);
+CpCopyInterface *Create_CpCopyInterface(PMOS_CONTEXT pOsDriverContext, MOS_STATUS &status);
 
 void Delete_CpCopyInterface(CpCopyInterface *pCpCopyInterface);
 
