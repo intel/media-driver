@@ -181,10 +181,10 @@ _Ty* MOS_NewUtil(_Types&&... _Args)
 template<class _Ty, class... _Types>
 _Ty *MOS_NewArrayUtil(const char *functionName,
     const char *filename,
-    int32_t line, int32_t numElements)
+    int32_t line, size_t numElements)
 #else
 template<class _Ty, class... _Types>
-_Ty* MOS_NewArrayUtil(int32_t numElements)
+_Ty* MOS_NewArrayUtil(size_t numElements)
 #endif
 {
 #if MOS_MESSAGES_ENABLED

@@ -3891,6 +3891,7 @@ MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusRe
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CODECHAL_ENCODE_CHK_NULL_RETURN(encodeStatusReport);
     uint64_t *address2Counter = nullptr;
+    uint32_t ctr[4] = { 0 };
 
     if (m_hwInterface->GetCpInterface()->IsHwCounterIncrement(m_osInterface))
     {
@@ -3923,7 +3924,6 @@ MOS_STATUS CodechalEncoderState::ReadCounterValue(uint16_t index, EncodeStatusRe
     else
     {
         //Report driver generated counter which was submitted to HW by command
-        uint32_t ctr[4] = { 0 };
         eStatus = m_hwInterface->GetCpInterface()->GetCounterValue(ctr);
         if (MOS_STATUS_SUCCESS == eStatus)
         {

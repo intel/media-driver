@@ -235,20 +235,17 @@ VAStatus DdiDecodeVP8::ParsePicParams(
     codecPicParams->ucUvModeProbs[0]            = picParam->uv_mode_probs[0];
     codecPicParams->ucUvModeProbs[1]            = picParam->uv_mode_probs[1];
     codecPicParams->ucUvModeProbs[2]            = picParam->uv_mode_probs[2];
-    if (codecPicParams->ucMvUpdateProb[0] && picParam->mv_probs[0])
-    {
-        MOS_SecureMemcpy(codecPicParams->ucMvUpdateProb[0],
-            sizeof(codecPicParams->ucMvUpdateProb[0]),
-            picParam->mv_probs[0],
-            sizeof(codecPicParams->ucMvUpdateProb[0]));
-    }
-    if (codecPicParams->ucMvUpdateProb[1] && picParam->mv_probs[1])
-    {
-        MOS_SecureMemcpy(codecPicParams->ucMvUpdateProb[1],
-            sizeof(codecPicParams->ucMvUpdateProb[1]),
-            picParam->mv_probs[1],
-            sizeof(codecPicParams->ucMvUpdateProb[1]));
-    }
+
+    MOS_SecureMemcpy(codecPicParams->ucMvUpdateProb[0],
+        sizeof(codecPicParams->ucMvUpdateProb[0]),
+        picParam->mv_probs[0],
+        sizeof(codecPicParams->ucMvUpdateProb[0]));
+
+    MOS_SecureMemcpy(codecPicParams->ucMvUpdateProb[1],
+        sizeof(codecPicParams->ucMvUpdateProb[1]),
+        picParam->mv_probs[1],
+        sizeof(codecPicParams->ucMvUpdateProb[1]));
+
     codecPicParams->ucP0EntropyCount = (8 - picParam->bool_coder_ctx.count) & 0x7;  //hardware needs used bits not remaining bits in bool decoder
     codecPicParams->ucP0EntropyValue = picParam->bool_coder_ctx.value;
     codecPicParams->uiP0EntropyRange = picParam->bool_coder_ctx.range;
