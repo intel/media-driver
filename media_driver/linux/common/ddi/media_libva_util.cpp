@@ -172,7 +172,7 @@ VAStatus DdiMediaUtil_AllocateSurface(
     uint32_t                    pitch = 0;
     MOS_LINUX_BO               *bo = nullptr;
     GMM_RESCREATE_PARAMS        gmmParams;
-    GMM_RESCREATE_CUSTOM_PARAMS gmmCustomParams;
+    GMM_RESCREATE_CUSTOM_PARAMS_2 gmmCustomParams;
     GMM_RESOURCE_INFO          *gmmResourceInfo = nullptr;
 
     DDI_CHK_NULL(mediaSurface, "mediaSurface is nullptr", VA_STATUS_ERROR_INVALID_BUFFER);
@@ -431,167 +431,163 @@ VAStatus DdiMediaUtil_AllocateSurface(
             cpTag = PROTECTED_SURFACE_TAG;
         }
 
-        // For compressible external surface, call legacy gmm interface due to limitation of new interface
-        if (bMemCompEnable)
+        int32_t baseHeight = 0;
+        DDI_CHK_CONDITION(mediaSurface->pSurfDesc->uiPlanes == 0,
+            "Invalid plane number.",
+            VA_STATUS_ERROR_INVALID_PARAMETER);
+        if (mediaSurface->pSurfDesc->uiPlanes == 1)
         {
-            MOS_ZeroMemory(&gmmParams, sizeof(gmmParams));
-            gmmParams.BaseWidth         = width;
-            gmmParams.BaseHeight        = height;
-            gmmParams.ArraySize         = 1;
-            gmmParams.Type              = RESOURCE_2D;
-            gmmParams.CpTag             = cpTag;
-            gmmParams.Format            = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
-            DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, "Unsupported format", VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
-            switch (tileformat)
-            {
-                case I915_TILING_Y:
-                    gmmParams.Flags.Gpu.MMC    = false;
-                    if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) &&
-                        (!MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableVPMmc)    &&
-                        !MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableCodecMmc)) &&
-                        bMemCompEnable)
-                    {
-                        gmmParams.Flags.Gpu.MMC               = true;
-                        gmmParams.Flags.Info.MediaCompressed  = 1;
-                        gmmParams.Flags.Info.RenderCompressed = 0;
-                        gmmParams.Flags.Gpu.CCS               = 1;
-                        gmmParams.Flags.Gpu.RenderTarget      = 1;
-                        gmmParams.Flags.Gpu.UnifiedAuxSurface = 1;
-
-                        if (bMemCompRC)
-                        {
-                            gmmParams.Flags.Info.MediaCompressed  = 0;
-                            gmmParams.Flags.Info.RenderCompressed = 1;
-                        }
-
-                        if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly))
-                        {
-                            gmmParams.Flags.Info.MediaCompressed = 0;
-
-                            if (format == Media_Format_X8R8G8B8 ||
-                                format == Media_Format_X8B8G8R8 ||
-                                format == Media_Format_A8B8G8R8 ||
-                                format == Media_Format_A8R8G8B8 ||
-                                format == Media_Format_R8G8B8A8)
-                            {
-                                gmmParams.Flags.Info.MediaCompressed  = 0;
-                                gmmParams.Flags.Info.RenderCompressed = 1;
-                            }
-                        }
-
-                        if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
-                        {
-                            gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
-                        }
-                    }
-                    break;
-                case I915_TILING_X:
-                    gmmParams.Flags.Info.TiledX    = true;
-                    break;
-                default:
-                    gmmParams.Flags.Info.Linear    = true;
-            }
-            gmmParams.Flags.Gpu.Video = true;
-            gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrLocalMemory);
-
-            gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateResInfoObject(&gmmParams);
+            DDI_CHK_CONDITION(mediaSurface->pSurfDesc->uiSize == 0,
+                "Invalid Size.",
+                VA_STATUS_ERROR_INVALID_PARAMETER);
+            baseHeight = mediaSurface->pSurfDesc->uiSize / pitch;
         }
         else
         {
-            int32_t baseHeight = 0;
-            DDI_CHK_CONDITION(mediaSurface->pSurfDesc->uiPlanes == 0,
-                "Invalid plane number.",
+            DDI_CHK_CONDITION(mediaSurface->pSurfDesc->uiOffsets[1] == 0,
+                "Invalid offset.",
                 VA_STATUS_ERROR_INVALID_PARAMETER);
+            baseHeight = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
+        }
+        // Create GmmResourceInfo
+        MOS_ZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
+        gmmCustomParams.Type          = RESOURCE_2D;
+        gmmCustomParams.Format        = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
+        if ((format == Media_Format_YV12) || \
+            (format == Media_Format_I420) || \
+            (format == Media_Format_IYUV) || \
+            (format == Media_Format_NV12) || \
+            (format == Media_Format_NV21)) {
+            // Align width to 2 for specific planar formats to handle
+            // odd dimensions for external non-compressible surfaces
+            gmmCustomParams.BaseWidth64 = MOS_ALIGN_CEIL(width, 2);
+        } else {
+            gmmCustomParams.BaseWidth64 = width;
+        }
+        gmmCustomParams.BaseHeight    = baseHeight;
+        gmmCustomParams.Pitch         = pitch;
+        gmmCustomParams.Size          = mediaSurface->pSurfDesc->uiSize;
+        gmmCustomParams.BaseAlignment = 4096;
+        gmmCustomParams.NoOfPlanes    = mediaSurface->pSurfDesc->uiPlanes;
+        gmmCustomParams.CpTag         = cpTag;
+        switch (tileformat)
+        {
+            case I915_TILING_Y:
+                gmmCustomParams.Flags.Info.TiledY = true;
+                gmmCustomParams.Flags.Gpu.MMC    = false;
+                if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrE2ECompression) &&
+                    (!MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableVPMmc)    &&
+                    !MEDIA_IS_WA(&mediaDrvCtx->WaTable, WaDisableCodecMmc)) &&
+                    bMemCompEnable)
+                {
+                    gmmCustomParams.Flags.Gpu.MMC               = true;
+                    gmmCustomParams.Flags.Info.MediaCompressed  = 1;
+                    gmmCustomParams.Flags.Info.RenderCompressed = 0;
+                    gmmCustomParams.Flags.Gpu.CCS               = 1;
+                    gmmCustomParams.Flags.Gpu.RenderTarget      = 1;
+                    gmmCustomParams.Flags.Gpu.UnifiedAuxSurface = 1;
 
-            if (mediaSurface->pSurfDesc->uiPlanes == 1)
-            {
-                DDI_CHK_CONDITION(mediaSurface->pSurfDesc->uiSize == 0,
-                    "Invalid Size.",
-                    VA_STATUS_ERROR_INVALID_PARAMETER);
-                baseHeight = mediaSurface->pSurfDesc->uiSize / pitch;
-            }
-            else
-            {
-                DDI_CHK_CONDITION(mediaSurface->pSurfDesc->uiOffsets[1] == 0,
-                    "Invalid offset.",
-                    VA_STATUS_ERROR_INVALID_PARAMETER);
-                baseHeight = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
-            }
-            // Create GmmResourceInfo
-            MOS_ZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
-            gmmCustomParams.Type          = RESOURCE_2D;
-            gmmCustomParams.Format        = mediaDrvCtx->m_caps->ConvertMediaFmtToGmmFmt(format);
-            if ((format == Media_Format_YV12) || \
-                (format == Media_Format_I420) || \
-                (format == Media_Format_IYUV) || \
-                (format == Media_Format_NV12) || \
-                (format == Media_Format_NV21)) {
-                // Align width to 2 for specific planar formats to handle
-                // odd dimensions for external non-compressible surfaces
-                gmmCustomParams.BaseWidth64 = MOS_ALIGN_CEIL(width, 2);
-            } else {
-                gmmCustomParams.BaseWidth64 = width;
-            }
-            gmmCustomParams.BaseHeight    = baseHeight;
-            gmmCustomParams.Pitch         = pitch;
-            gmmCustomParams.Size          = mediaSurface->pSurfDesc->uiSize;
-            gmmCustomParams.BaseAlignment = 4096;
-            gmmCustomParams.NoOfPlanes    = mediaSurface->pSurfDesc->uiPlanes;
-            gmmCustomParams.CpTag         = cpTag;
-            switch (tileformat)
-            {
-                case I915_TILING_Y:
-                    gmmCustomParams.Flags.Info.TiledY = true;
-                    break;
-                case I915_TILING_X:
-                    gmmCustomParams.Flags.Info.TiledX = true;
-                    break;
-                case I915_TILING_NONE:
-                default:
-                    gmmCustomParams.Flags.Info.Linear = true;
-            }
+                    if (bMemCompRC)
+                    {
+                        gmmCustomParams.Flags.Info.MediaCompressed  = 0;
+                        gmmCustomParams.Flags.Info.RenderCompressed = 1;
+                    }
 
-            switch(mediaSurface->pSurfDesc->uiPlanes)
-            {
-                case 1:
+                    if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly))
+                    {
+                        gmmCustomParams.Flags.Info.MediaCompressed = 0;
+
+                        if (format == Media_Format_X8R8G8B8 ||
+                            format == Media_Format_X8B8G8R8 ||
+                            format == Media_Format_A8B8G8R8 ||
+                            format == Media_Format_A8R8G8B8 ||
+                            format == Media_Format_R8G8B8A8)
+                        {
+                            gmmCustomParams.Flags.Info.MediaCompressed  = 0;
+                            gmmCustomParams.Flags.Info.RenderCompressed = 1;
+                        }
+                    }
+
+                    if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrFlatPhysCCS))
+                    {
+                        gmmCustomParams.Flags.Gpu.UnifiedAuxSurface = 0;
+                    }
+                }
+                break;
+            case I915_TILING_X:
+                gmmCustomParams.Flags.Info.TiledX = true;
+                break;
+            case I915_TILING_NONE:
+            default:
+                gmmCustomParams.Flags.Info.Linear = true;
+        }
+
+        uint32_t uiPlanesOrAuxPlanes = mediaSurface->pSurfDesc->uiPlanes;
+        if(bMemCompEnable)
+        {
+            uiPlanesOrAuxPlanes = mediaSurface->pSurfDesc->uiPlanes/2;
+            gmmCustomParams.AuxSurf.BaseAlignment = {0};
+            gmmCustomParams.Size = (uiPlanesOrAuxPlanes == 1) ? mediaSurface->pSurfDesc->uiOffsets[1]:mediaSurface->pSurfDesc->uiOffsets[2];
+        }
+        switch(uiPlanesOrAuxPlanes)
+        {
+            case 1:
+                gmmCustomParams.PlaneOffset.X[GMM_PLANE_Y] = 0;
+                gmmCustomParams.PlaneOffset.Y[GMM_PLANE_Y] = mediaSurface->pSurfDesc->uiOffsets[0] / pitch;
+                if (bMemCompEnable)
+                {
+                    gmmCustomParams.AuxSurf.Size = mediaSurface->pSurfDesc->uiSize - gmmCustomParams.Size;
+                    gmmCustomParams.AuxSurf.Pitch = mediaSurface->pSurfDesc->uiPitches[1];
+                    gmmCustomParams.AuxSurf.PlaneOffset.X[GMM_PLANE_Y] = 0;
+                    gmmCustomParams.AuxSurf.PlaneOffset.Y[GMM_PLANE_Y] = 0;
+                }
+                break;
+            case 2:
+                gmmCustomParams.PlaneOffset.X[GMM_PLANE_Y] = 0;
+                gmmCustomParams.PlaneOffset.Y[GMM_PLANE_Y] = mediaSurface->pSurfDesc->uiOffsets[0] / pitch;
+                gmmCustomParams.PlaneOffset.X[GMM_PLANE_U] = 0;
+                gmmCustomParams.PlaneOffset.Y[GMM_PLANE_U] = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
+                gmmCustomParams.PlaneOffset.X[GMM_PLANE_V] = 0;
+                gmmCustomParams.PlaneOffset.Y[GMM_PLANE_V] = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
+                if (bMemCompEnable)
+                {
+                    gmmCustomParams.AuxSurf.Size = (mediaSurface->pSurfDesc->uiOffsets[3] - mediaSurface->pSurfDesc->uiOffsets[2]) * 2;
+                    gmmCustomParams.AuxSurf.Pitch = mediaSurface->pSurfDesc->uiPitches[2];
+                    gmmCustomParams.AuxSurf.PlaneOffset.X[GMM_PLANE_Y] = 0;
+                    gmmCustomParams.AuxSurf.PlaneOffset.Y[GMM_PLANE_Y] = 0;
+                    gmmCustomParams.AuxSurf.PlaneOffset.X[GMM_PLANE_U] = (mediaSurface->pSurfDesc->uiOffsets[3]
+                                                                    - mediaSurface->pSurfDesc->uiOffsets[2]);
+                    gmmCustomParams.AuxSurf.PlaneOffset.Y[GMM_PLANE_U] = 0;
+                    gmmCustomParams.AuxSurf.PlaneOffset.X[GMM_PLANE_V] = (mediaSurface->pSurfDesc->uiOffsets[3]
+                                                                    - mediaSurface->pSurfDesc->uiOffsets[2]);
+                    gmmCustomParams.AuxSurf.PlaneOffset.Y[GMM_PLANE_V] = 0;
+                }
+                break;
+            case 3:
+                if (mediaSurface->format == Media_Format_YV12)
+                {
                     gmmCustomParams.PlaneOffset.X[GMM_PLANE_Y] = 0;
                     gmmCustomParams.PlaneOffset.Y[GMM_PLANE_Y] = mediaSurface->pSurfDesc->uiOffsets[0] / pitch;
-                    break;
-                case 2:
+                    gmmCustomParams.PlaneOffset.X[GMM_PLANE_U] = 0;
+                    gmmCustomParams.PlaneOffset.Y[GMM_PLANE_U] = mediaSurface->pSurfDesc->uiOffsets[2] / pitch;
+                    gmmCustomParams.PlaneOffset.X[GMM_PLANE_V] = 0;
+                    gmmCustomParams.PlaneOffset.Y[GMM_PLANE_V] = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
+                }
+                else
+                {
                     gmmCustomParams.PlaneOffset.X[GMM_PLANE_Y] = 0;
                     gmmCustomParams.PlaneOffset.Y[GMM_PLANE_Y] = mediaSurface->pSurfDesc->uiOffsets[0] / pitch;
                     gmmCustomParams.PlaneOffset.X[GMM_PLANE_U] = 0;
                     gmmCustomParams.PlaneOffset.Y[GMM_PLANE_U] = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
                     gmmCustomParams.PlaneOffset.X[GMM_PLANE_V] = 0;
-                    gmmCustomParams.PlaneOffset.Y[GMM_PLANE_V] = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
-                    break;
-                case 3:
-                    if (mediaSurface->format == Media_Format_YV12)
-                    {
-                        gmmCustomParams.PlaneOffset.X[GMM_PLANE_Y] = 0;
-                        gmmCustomParams.PlaneOffset.Y[GMM_PLANE_Y] = mediaSurface->pSurfDesc->uiOffsets[0] / pitch;
-                        gmmCustomParams.PlaneOffset.X[GMM_PLANE_U] = 0;
-                        gmmCustomParams.PlaneOffset.Y[GMM_PLANE_U] = mediaSurface->pSurfDesc->uiOffsets[2] / pitch;
-                        gmmCustomParams.PlaneOffset.X[GMM_PLANE_V] = 0;
-                        gmmCustomParams.PlaneOffset.Y[GMM_PLANE_V] = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
-                    }
-                    else
-                    {
-                        gmmCustomParams.PlaneOffset.X[GMM_PLANE_Y] = 0;
-                        gmmCustomParams.PlaneOffset.Y[GMM_PLANE_Y] = mediaSurface->pSurfDesc->uiOffsets[0] / pitch;
-                        gmmCustomParams.PlaneOffset.X[GMM_PLANE_U] = 0;
-                        gmmCustomParams.PlaneOffset.Y[GMM_PLANE_U] = mediaSurface->pSurfDesc->uiOffsets[1] / pitch;
-                        gmmCustomParams.PlaneOffset.X[GMM_PLANE_V] = 0;
-                        gmmCustomParams.PlaneOffset.Y[GMM_PLANE_V] = mediaSurface->pSurfDesc->uiOffsets[2] / pitch;
-                    }
-                    break;
-                default:
-                    DDI_ASSERTMESSAGE("Invalid plane number.");
-                    return VA_STATUS_ERROR_ALLOCATION_FAILED;
-            }
-
-            gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject(&gmmCustomParams);
+                    gmmCustomParams.PlaneOffset.Y[GMM_PLANE_V] = mediaSurface->pSurfDesc->uiOffsets[2] / pitch;
+                }
+                break;
+            default:
+                DDI_ASSERTMESSAGE("Invalid plane number.");
+                return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
+        gmmResourceInfo = mediaDrvCtx->pGmmClientContext->CreateCustomResInfoObject_2(&gmmCustomParams);
 
         if(nullptr == gmmResourceInfo)
         {
