@@ -1915,6 +1915,7 @@ MOS_STATUS CodechalEncodeMpeg2G9::SendMeSurfaces(
     CODECHAL_ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     auto meBindingTable = &m_meBindingTable;
+    CODECHAL_ENCODE_CHK_NULL_RETURN(meBindingTable);
     PMOS_SURFACE currScaledSurface = m_trackedBuf->Get4xDsSurface(CODEC_CURR_TRACKED_BUFFER);
     PMOS_SURFACE meMvDataBuffer = &m_4xMEMVDataBuffer;
 

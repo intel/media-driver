@@ -1920,6 +1920,7 @@ MOS_STATUS CodechalEncHevcStateG11::ExecutePictureLevel()
             &miConditionalBatchBufferEndParams));
 
         auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
         MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
         MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
         if (m_hucPakStitchEnabled && m_numPipe >= 2)

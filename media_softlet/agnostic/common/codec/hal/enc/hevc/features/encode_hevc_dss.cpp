@@ -155,8 +155,8 @@ namespace encode
 
         ENCODE_FUNC_CALL();
         MediaStatusReport *statusReport = pipeline->GetStatusReportInstance();
-        MOS_RESOURCE *osResource;
-        uint32_t      offset;
+        MOS_RESOURCE *osResource = nullptr;
+        uint32_t      offset = 0;
         statusReport->GetAddress(statusReportSliceReport, osResource, offset);
         
         uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
@@ -233,8 +233,8 @@ namespace encode
 
         // In multi-tile multi-pipe mode, use PAK integration kernel output
         // PAK integration kernel accumulates frame statistics across tiles, which should be used to setup slice size report
-        MOS_RESOURCE *osResource;
-        uint32_t      offset;
+        MOS_RESOURCE *osResource = nullptr;
+        uint32_t      offset = 0;
         
         statusReport->GetAddress(statusReportSliceReport, osResource, offset);
 

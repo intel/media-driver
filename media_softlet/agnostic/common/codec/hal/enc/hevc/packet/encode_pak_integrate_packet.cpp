@@ -235,8 +235,8 @@ namespace encode {
             {
                 uint8_t ucPass = (uint8_t)m_pipeline->GetCurrentPass();
                 EncodeReadBrcPakStatsParams readBrcPakStatsParams;
-                MOS_RESOURCE *osResource;
-                uint32_t      offset;
+                MOS_RESOURCE *osResource = nullptr;
+                uint32_t      offset = 0;
                 m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset);
                 RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
                 ReadBrcPakStatistics(cmdBuffer, &readBrcPakStatsParams);

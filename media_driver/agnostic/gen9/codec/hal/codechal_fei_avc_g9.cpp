@@ -6471,6 +6471,8 @@ MOS_STATUS CodechalEncodeAvcEncFeiG9::SendAvcMfeMbEncSurfaces(PMOS_COMMAND_BUFFE
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_cmDev);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_resMbencKernel);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(m_cmSurfIdx);
 
     auto kernelRes   = m_resMbencKernel;
     auto cmSurfaces  = m_cmSurfIdx;

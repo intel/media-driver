@@ -2057,7 +2057,7 @@ MOS_STATUS CodechalEncodeHevcBase::ReadBrcPakStatistics(
     }
 
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
-
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
     MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
     miStoreRegMemParams.presStoreBuffer = params->presBrcPakStatisticBuffer;
@@ -2105,6 +2105,7 @@ MOS_STATUS CodechalEncodeHevcBase::ReadHcpStatus(PMOS_COMMAND_BUFFER cmdBuffer)
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
     MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
     miStoreRegMemParams.presStoreBuffer = &encodeStatusBuf->resStatusBuffer;
@@ -2142,6 +2143,7 @@ MOS_STATUS CodechalEncodeHevcBase::ReadImageStatus(PMOS_COMMAND_BUFFER cmdBuffer
         sizeof(uint32_t) * 2;  // pEncodeStatus is offset by 2 DWs in the resource
 
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
     MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
     miStoreRegMemParams.presStoreBuffer = &encodeStatusBuf->resStatusBuffer;

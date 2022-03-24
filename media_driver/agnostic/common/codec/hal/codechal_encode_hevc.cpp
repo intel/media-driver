@@ -438,6 +438,7 @@ MOS_STATUS CodechalEncHevcState::ExecutePictureLevel()
             &miConditionalBatchBufferEndParams));
 
         auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+        CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
         MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
         MHW_MI_COPY_MEM_MEM_PARAMS miCpyMemMemParams;
         // Write back the HCP image control register for RC6 may clean it out

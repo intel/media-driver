@@ -2223,7 +2223,7 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
         if (m_numPipe == 1)
         {
             auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
-
+            CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
             uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // encodeStatus is offset by 2 DWs in the resource
 
             // Write back the HCP image control register for RC6 may clean it out

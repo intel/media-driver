@@ -1476,7 +1476,7 @@ public:
     bool                            m_statusQueryReportingEnabled = false;                            //!< Flag to indicate if we support eStatus query reporting on current Platform
     EncodeStatusBuffer              m_encodeStatusBuf = {};                         //!< Stores all the status_query related data for PAK engine
     EncodeStatusBuffer              m_encodeStatusBufRcs = {};                      //!< Stores all the status_query related data for render ring (RCS)
-    MHW_VDBOX_IMAGE_STATUS_CONTROL  m_imgStatusControlBuffer;                       //!< Stores image eStatus control data
+    MHW_VDBOX_IMAGE_STATUS_CONTROL  m_imgStatusControlBuffer = {};                  //!< Stores image eStatus control data
     uint32_t                        m_statusReportFeedbackNumber = 0;               //!< Status report feed back number
     bool                            m_frameTrackingEnabled = false;                 //!< Flag to indicate if we enable KMD frame tracking
     uint32_t                        m_numberTilesInFrame = 0;                       //!< Track number of tiles per frame

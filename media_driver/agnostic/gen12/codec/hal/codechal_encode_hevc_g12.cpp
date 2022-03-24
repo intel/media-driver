@@ -5839,6 +5839,8 @@ MOS_STATUS CodechalEncHevcStateG12::GenerateSkipFrameMbCodeSurface(SkipFrameInfo
     auto const maxNumCuInCtb    = (ctbSize / CODECHAL_HEVC_MIN_CU_SIZE) * (ctbSize / CODECHAL_HEVC_MIN_CU_SIZE);
     auto const picWidthInCtb    = MOS_ROUNDUP_DIVIDE(m_frameWidth, ctbSize);
     auto const picHeightInCtb   = MOS_ROUNDUP_DIVIDE(m_frameHeight, ctbSize);
+    CODECHAL_ENCODE_CHK_COND_RETURN(picWidthInCtb <= 0, "Invalid m_frameWidth");
+    CODECHAL_ENCODE_CHK_COND_RETURN(picHeightInCtb <= 0, "Invalid m_frameHeight");
     uint32_t   num_tile_columns = m_hevcPicParams->num_tile_columns_minus1 + 1;
     uint32_t * tileColumnsStartPosition{new uint32_t[num_tile_columns]{}};
 

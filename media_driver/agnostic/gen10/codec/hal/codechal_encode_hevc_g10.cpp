@@ -5905,7 +5905,8 @@ MOS_STATUS CodechalEncHevcStateG10::GenerateWalkingControlRegion()
         log2LCUSize = 6;
         copyBlockSize = 22;
     }
-
+    CODECHAL_ENCODE_CHK_COND_RETURN(frameWidthInUnits > 0, "invalid frameWidthInUnits");
+    CODECHAL_ENCODE_CHK_COND_RETURN(frameHeightInUnits > 0, "invalid frameHeightInUnits");
     int32_t sliceStartY[CODECHAL_HEVC_MAX_NUM_SLICES_LVL_5 + 1] = { 0 }; // Allocate +1 of max num slices
     bool isArbitrarySlices = false;
     for (uint32_t slice = 0; slice < m_numSlices; slice++)

@@ -4962,7 +4962,7 @@ MOS_STATUS CodechalVdencVp9State::ExecuteDysPictureLevel()
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()),"ERROR - vdbox index exceed the maximum");
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
-
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
     PerfTagSetting perfTag;
     perfTag.Value = 0;
     perfTag.Mode = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
@@ -7173,6 +7173,7 @@ MOS_STATUS CodechalVdencVp9State::ReadHcpStatus(
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_miInterface->AddMiFlushDwCmd(cmdBuffer, &flushDwParams));
 
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
     MHW_MI_STORE_REGISTER_MEM_PARAMS miStoreRegMemParams;
     MOS_ZeroMemory(&miStoreRegMemParams, sizeof(miStoreRegMemParams));
     miStoreRegMemParams.presStoreBuffer = &encodeStatusBuf->resStatusBuffer;

@@ -1444,9 +1444,9 @@ protected:
     bool         m_vmeKernelDump;
 
     //HW pak
-    MOS_RESOURCE m_resIntraRowStoreScratchBuffer;
-    MOS_RESOURCE m_resFrameHeader;
-    MOS_RESOURCE m_resPakIntermediateBuffer;
+    MOS_RESOURCE m_resIntraRowStoreScratchBuffer = {};
+    MOS_RESOURCE m_resFrameHeader                = {};
+    MOS_RESOURCE m_resPakIntermediateBuffer      = {};
 
     // ME
     MHW_KERNEL_STATE                 m_meKernelState;

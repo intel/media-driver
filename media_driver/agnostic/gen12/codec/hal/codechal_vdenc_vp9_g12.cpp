@@ -167,7 +167,7 @@ MOS_STATUS CodechalVdencVp9StateG12::ExecuteDysPictureLevel()
 
     CODECHAL_ENCODE_CHK_COND_RETURN((m_vdboxIndex > m_hwInterface->GetMfxInterface()->GetMaxVdboxIndex()), "ERROR - vdbox index exceed the maximum");
     auto mmioRegisters = m_hcpInterface->GetMmioRegisters(m_vdboxIndex);
-
+    CODECHAL_ENCODE_CHK_NULL_RETURN(mmioRegisters);
     PerfTagSetting perfTag;
     perfTag.Value = 0;
     perfTag.Mode = (uint16_t)m_mode & CODECHAL_ENCODE_MODE_BIT_MASK;
