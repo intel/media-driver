@@ -3286,3 +3286,12 @@ GMM_RESOURCE_FORMAT MosInterface::MosFmtToGmmFmt(MOS_FORMAT format)
     return GMM_FORMAT_INVALID;
 
 }
+
+bool MosInterface::IsCompressibelSurfaceSupported(MEDIA_FEATURE_TABLE *skuTable)
+{
+    if(skuTable)
+    {
+        return MEDIA_IS_SKU(skuTable, FtrCompressibleSurfaceDefault);
+    }
+    return true;
+}

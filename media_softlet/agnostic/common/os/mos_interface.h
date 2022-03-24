@@ -2021,6 +2021,11 @@ public:
     //!
     static MediaUserSettingSharedPtr MosGetUserSettingInstance(
         MOS_STREAM_HANDLE streamState);
+
+    //!
+    //! \brief  Translate MOS_OS_FORMT into MOS_FORMAT
+    //!
+    static bool IsCompressibelSurfaceSupported(MEDIA_FEATURE_TABLE *skuTable);
 private:
     //!
     //! \brief    Init per stream parameters

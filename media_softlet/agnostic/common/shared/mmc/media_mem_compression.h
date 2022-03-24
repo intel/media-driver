@@ -114,6 +114,11 @@ public:
     //!
     MOS_STATUS DecompressResource(PMOS_RESOURCE resource);
 
+    //!
+    //! \brief    IsCompressibleSurfaceAllocable
+    //!
+    bool IsCompressibelSurfaceSupported();
+
 protected:
     //!
     //! \brief    UpdateMmcInUseFeature
@@ -135,6 +140,7 @@ public:
 
 protected:
     bool                        m_mmcEnabled = false;
+    bool                        m_isCompSurfAllocable = false;
     bool                        m_bComponentMmcEnabled = false;
     uint32_t                    m_mmcFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;
     uint32_t                    m_mmcInuseFeatureId = __MOS_USER_FEATURE_KEY_MAX_ID;

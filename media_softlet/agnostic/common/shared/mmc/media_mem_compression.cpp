@@ -29,6 +29,7 @@
 #include "mos_defs.h"
 #include "media_mem_compression.h"
 #include "mhw_mi_g12_X.h"
+#include "mos_interface.h"
 
 MediaMemComp::MediaMemComp(PMOS_INTERFACE osInterface, MhwMiInterface *miInterface):
     m_osInterface(osInterface),
@@ -37,7 +38,8 @@ MediaMemComp::MediaMemComp(PMOS_INTERFACE osInterface, MhwMiInterface *miInterfa
     m_mmcFeatureId(__MOS_USER_FEATURE_KEY_MAX_ID),
     m_mmcInuseFeatureId(__MOS_USER_FEATURE_KEY_MAX_ID)
 {
-
+    MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    m_isCompSurfAllocable = MosInterface::IsCompressibelSurfaceSupported(skuTable);
 }
 
 MOS_STATUS MediaMemComp::InitMmcEnabled()
@@ -107,6 +109,11 @@ bool MediaMemComp::IsMmcEnabled()
 void MediaMemComp::DisableMmc()
 {
     m_mmcEnabled = false;
+}
+
+bool MediaMemComp::IsCompressibelSurfaceSupported()
+{
+    return m_isCompSurfAllocable;
 }
 
 MOS_STATUS MediaMemComp::SetSurfaceMmcMode(
