@@ -791,7 +791,8 @@ protected:
     //!
     bool AddCompLayer(
         PVPHAL_COMPOSITE_PARAMS     pComposite,
-        PVPHAL_SURFACE              pSource);
+        PVPHAL_SURFACE              pSource,
+        bool                        bDisableAvsSampler);
 
     //!
     //! \brief    Adds render target layer for composite
