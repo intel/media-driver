@@ -166,65 +166,71 @@ typedef struct _DP_RENDERCOPY_RGBP_STATIC_DATA
         uint32_t       InputsurfaceRindex;      // Input buffer surface R plane index
     } DW0;
 
-    // DWORD 1 - GRF R1.0
+    // DWORD 1 - GRF R1.1
     union
     {
         uint32_t       InputsurfaceGindex;      // Input buffer surface G plane index
     } DW1;
 
-    // DWORD 2 - GRF R1.0
+    // DWORD 2 - GRF R1.2
     union
     {
         uint32_t       InputsurfaceBindex;      // Input buffer surface B plane index
     } DW2;
 
-    // DWORD 3 - GRF R1.0
+    // DWORD 3 - GRF R1.3
     union
     {
         uint32_t       OutputsurfaceRindex;      // Output buffer surface R plane index
     } DW3;
 
-    // DWORD 4 - GRF R1.0
+    // DWORD 4 - GRF R1.4
     union
     {
         uint32_t       OutputsurfaceGindex;      // Output buffer surface G plane index
     } DW4;
 
-    // DWORD 5 - GRF R1.1
+    // DWORD 5 - GRF R1.5
     union
     {
         uint32_t       OutputsurfaceBindex;     // Output buffer surface B plane Index
     } DW5;
 
-    // DWORD 6 - GRF R1.2
+    // DWORD 6 - GRF R1.6
     union
     {
         uint32_t       Widthdword;             // Image width in pxels divided by 4
     } DW6;
 
-    // DWORD 7 - GRF R1.3
+    // DWORD 7 - GRF R1.7
     union
     {
         uint32_t        Height;               //  Image height in pixels
     } DW7;
 
-    // DWORD 8 - GRF R1.4
+    // DWORD 8 - GRF R2.0
     union
     {
         uint32_t        ShiftLeftOffsetInBytes; // Byte offset of first pixel in input buffer
     } DW8;
 
-    // DWORD 12 - GRF R2.0
+    // DWORD 9 - GRF R2.1
+    union
+    {
+        uint32_t        WidthdwordNoPadding; // excluding output padding
+    } DW9;
+
+    // DWORD 10 - GRF R2.2
     union
     {
         uint32_t        Dst2DStartX; // X-coordinate of top-left pixel in output 2D surface
-    } DW9;
+    } DW10;
 
-    // DWORD 13 - GRF R2.1
+    // DWORD 12 - GRF R2.3
     union
     {
         uint32_t        Dst2DStartY; //Y-coordinate of top-left pixel in output 2D surface
-    } DW10;
+    } DW11;
 
 }DP_RENDERCOPY_RGBP_STATIC_DATA, *PDP_RENDERCOPY_RGBP_STATIC_DATA;
 
@@ -269,14 +275,20 @@ typedef struct _DP_RENDERCOPY_PACKED_STATIC_DATA
     // DWORD 6 - GRF R1.6
     union
     {
-        uint32_t        Dst2DStartX;         // X-coordinate of top-left pixel in output 2D surface
+        uint32_t        WidthdwordNoPadding;         // Input image width in pixels divided by 4
     } DW6;
 
     // DWORD 6 - GRF R1.7
     union
     {
-        uint32_t        Dst2DStartY;         // Y-coordinate of top-left pixel in output 2D surface
+        uint32_t        Dst2DStartX;         // X-coordinate of top-left pixel in output 2D surface
     } DW7;
+
+    // DWORD 6 - GRF R2.0
+    union
+    {
+        uint32_t        Dst2DStartY;         // Y-coordinate of top-left pixel in output 2D surface
+    } DW8;
 
 }DP_RENDERCOPY_PACKED_STATIC_DATA, *PDP_RENDERCOPY_PACKED_STATIC_DATA;
 
