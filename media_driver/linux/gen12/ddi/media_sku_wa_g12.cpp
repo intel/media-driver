@@ -577,7 +577,11 @@ static bool InitAdlpMediaWa(struct GfxDeviceInfo *devInfo,
 
     //ADL-P not need this
     MEDIA_WR_WA(waTable, Wa_1409820462, 0);
-
+    
+    if(drvInfo->devId >= 0x5180 && drvInfo->devId <= 0x519F)
+    {
+        MEDIA_WR_WA(waTable, WaAv1ForceWakeUp, 0);
+    }    
     return true;
 }
 

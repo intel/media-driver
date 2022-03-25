@@ -109,12 +109,36 @@ MOS_STATUS Av1DecodePkt_G12_Base::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
     DECODE_FUNC_CALL();
 
     MHW_MI_FORCE_WAKEUP_PARAMS forceWakeupParams;
-    MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
-    forceWakeupParams.bMFXPowerWellControl = false;
-    forceWakeupParams.bMFXPowerWellControlMask = true;
-    forceWakeupParams.bHEVCPowerWellControl = true;
-    forceWakeupParams.bHEVCPowerWellControlMask = true;
+    if (MEDIA_IS_WA(m_av1Pipeline->GetWaTable(), WaAv1ForceWakeUp))
+    {
+        MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
+        forceWakeupParams.bMFXPowerWellControl      = true;
+        forceWakeupParams.bMFXPowerWellControlMask  = true;
+        forceWakeupParams.bHEVCPowerWellControl     = false;
+        forceWakeupParams.bHEVCPowerWellControlMask = true;
+        DECODE_CHK_STATUS(m_miInterface->AddMiForceWakeupCmd(&cmdBuffer, &forceWakeupParams)); 
+        forceWakeupParams.bMFXPowerWellControl      = true;
+        forceWakeupParams.bMFXPowerWellControlMask  = true;
+        forceWakeupParams.bHEVCPowerWellControl     = true;
+        forceWakeupParams.bHEVCPowerWellControlMask = true;
+        DECODE_CHK_STATUS(m_miInterface->AddMiForceWakeupCmd(&cmdBuffer, &forceWakeupParams));
+        forceWakeupParams.bMFXPowerWellControl      = false;
+        forceWakeupParams.bMFXPowerWellControlMask  = true;
+        forceWakeupParams.bHEVCPowerWellControl     = true;
+        forceWakeupParams.bHEVCPowerWellControlMask = true;
+        DECODE_CHK_STATUS(m_miInterface->AddMiForceWakeupCmd(&cmdBuffer, &forceWakeupParams));
+    }
+    else
+    {
+        MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
+        forceWakeupParams.bMFXPowerWellControl      = false;
+        forceWakeupParams.bMFXPowerWellControlMask  = true;
+        forceWakeupParams.bHEVCPowerWellControl     = true;
+        forceWakeupParams.bHEVCPowerWellControlMask = true;
 
+        DECODE_CHK_STATUS(m_miInterface->AddMiForceWakeupCmd(&cmdBuffer, &forceWakeupParams));
+    }
+ 
     DECODE_CHK_STATUS(m_miInterface->AddMiForceWakeupCmd(&cmdBuffer, &forceWakeupParams));
 
     return MOS_STATUS_SUCCESS;
