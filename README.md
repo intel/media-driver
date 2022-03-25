@@ -202,7 +202,7 @@ or later, which officially supported C++11.
    - ICL: starting from kernel 5.2
    - EHL/JSL: starting from kernel 5.8
    - TGL: starting from kernel 5.9
-   - RKL/ADL-S/ADL-P: starting from kernel 5.15
+   - RKL/ADL-S/ADL-P: starting from kernel 5.17
    - ADL-N: [drm-tip](https://cgit.freedesktop.org/drm-tip)
    - DG1/SG1: [intel-gpu/kernel](https://github.com/intel-gpu/kernel)
 
