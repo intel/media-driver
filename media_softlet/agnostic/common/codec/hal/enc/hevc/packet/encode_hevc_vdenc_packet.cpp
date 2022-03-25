@@ -1576,6 +1576,8 @@ namespace encode
 
         ENCODE_FUNC_CALL();
 
+        cmdBuffer.Attributes.bFrequencyBoost = (m_basicFeature->m_hevcSeqParams->ScenarioInfo == ESCENARIO_REMOTEGAMING);
+
 #ifdef _MMC_SUPPORTED
         CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
