@@ -685,7 +685,7 @@ VAStatus DdiEncodeAV1::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     av1PicParams->TileGroupOBUHdrInfo.value = picParams->tile_group_obu_hdr_info.value;
 
     av1PicParams->NumSkipFrames             = picParams->number_skip_frames;
-    av1PicParams->FrameSizeReducedInBytes   = picParams->skip_frames_reduced_size;
+    av1PicParams->FrameSizeReducedInBytes   = 0 - picParams->skip_frames_reduced_size;
 
     return VA_STATUS_SUCCESS;
 }
