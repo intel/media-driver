@@ -8447,13 +8447,13 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
             m_currPass,
             hucRegionDumpUpdate));
 
-        // Constant Data Buffer dump
+        // History Buffer dump
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
-            &m_resVdencBrcConstDataBuffer[GetCurrConstDataBufIdx()],
+            &m_resVdencBrcHistoryBuffer,
             0,
-            GetBRCCostantDataSize(),
-            5,
-            "_ConstData",
+            CODECHAL_VDENC_AVC_BRC_HISTORY_BUF_SIZE,
+            0,
+            "_History",
             isInput,
             m_currPass,
             hucRegionDumpUpdate));
@@ -8504,6 +8504,17 @@ MOS_STATUS CodechalVdencAvcState::DumpHucBrcUpdate(bool isInput)
                 m_currPass,
                 hucRegionDumpUpdate));
         }
+
+        // Constant Data Buffer dump
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(m_debugInterface->DumpHucRegion(
+            &m_resVdencBrcConstDataBuffer[GetCurrConstDataBufIdx()],
+            0,
+            GetBRCCostantDataSize(),
+            5,
+            "_ConstData",
+            isInput,
+            m_currPass,
+            hucRegionDumpUpdate));
 
         //  Slice size Buffer dump
         if (m_sliceSizeStreamoutSupported)

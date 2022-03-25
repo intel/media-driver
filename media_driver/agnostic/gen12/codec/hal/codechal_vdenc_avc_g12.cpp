@@ -651,7 +651,7 @@ CodechalVdencAvcStateG12::~CodechalVdencAvcStateG12()
     }
     MOS_SafeFreeMemory(m_pMBQPShadowBuffer);
 
-    if (!m_swBrcMode)
+    if (!m_swBrcMode && m_singleTaskPhaseSupported)
     {
         m_osInterface->pfnFreeResource(m_osInterface, &m_resPakOutputViaMmioBuffer);
     }
@@ -666,7 +666,7 @@ void CodechalVdencAvcStateG12::InitializeDataMember()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
     CodechalVdencAvcState::InitializeDataMember();
-    if (!m_swBrcMode)
+    if (!m_swBrcMode && m_singleTaskPhaseSupported)
     {
         MOS_ZeroMemory(&m_resPakOutputViaMmioBuffer, sizeof(MOS_RESOURCE));
     }
@@ -700,7 +700,7 @@ MOS_STATUS CodechalVdencAvcStateG12::AllocateResources()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalVdencAvcState::AllocateResources());
 
-    if (!m_swBrcMode)
+    if (!m_swBrcMode && m_singleTaskPhaseSupported)
     {
         // Initiate allocation parameters and lock flags
         MOS_ALLOC_GFXRES_PARAMS allocParamsForBufferLinear;
@@ -916,7 +916,7 @@ void CodechalVdencAvcStateG12::SetBufferToStorePakStatistics()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (!m_swBrcMode)
+    if (!m_swBrcMode && m_singleTaskPhaseSupported)
     {
         // Store PAK statistics after encode Frame_N into separate internal buffer to get rid of
         // dependency with the DMEM buffer for Frame_N+1
@@ -936,7 +936,7 @@ MOS_STATUS CodechalVdencAvcStateG12::AddMiStoreForHWOutputToHucDmem(PMOS_COMMAND
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-    if (!m_swBrcMode)
+    if (!m_swBrcMode && m_singleTaskPhaseSupported)
     {
         // Copy PAK statistics data from internal buffer to DMEM
         MHW_MI_COPY_MEM_MEM_PARAMS copyMemMemParams = {};
