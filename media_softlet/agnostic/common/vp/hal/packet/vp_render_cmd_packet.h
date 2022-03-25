@@ -164,6 +164,7 @@ protected:
     KERNEL_SAMPLER_STATE_GROUP         m_kernelSamplerStateGroup;
 
     KERNEL_SUBMISSION_MODE             m_submissionMode = MULTI_KERNELS_WITH_MULTI_MEDIA_STATES;
+    KERNEL_BINDINGTABLE_MODE           m_bindingtableMode = MULTI_KERNELS_WITH_ONE_BINDINGTABLE;
     uint32_t                           m_slmSize        = 0;
     uint32_t                           m_totalCurbeSize = 0;
     uint32_t                           m_totoalInlineSize = 0;

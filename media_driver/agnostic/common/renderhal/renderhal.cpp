@@ -4914,8 +4914,11 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     }
 #endif // _MMC_SUPPORTED
 
-    // Set indirect heap size - limits the size of the command buffer available for rendering
-    MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnSetIndirectStateSize(pOsInterface, pRenderHal->dwIndirectHeapSize));
+    if (isRender)
+    {
+        // Set indirect heap size - limits the size of the command buffer available for rendering
+        MHW_RENDERHAL_CHK_STATUS(pOsInterface->pfnSetIndirectStateSize(pOsInterface, pRenderHal->dwIndirectHeapSize));
+    }
 
     pCmdBuffer->Attributes.bIsMdfLoad = pRenderHal->IsMDFLoad;
     pCmdBuffer->Attributes.bTurboMode = pRenderHal->bTurboMode;

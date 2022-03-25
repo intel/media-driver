@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -106,6 +106,8 @@ typedef struct _KERNEL_PACKET_RENDER_DATA
     KERNEL_WALKER_PARAMS                walkerParam;
     PMHW_VFE_SCOREBOARD                 scoreboardParams;
 
+    int32_t                             kernelAllocationID;
+
     // Debug parameters
     // Kernel Used for current rendering
     char* pKernelName;
@@ -207,6 +209,8 @@ public:
     MOS_STATUS PrepareMediaWalkerParams(KERNEL_WALKER_PARAMS params, MHW_WALKER_PARAMS &mediaWalker);
 
     MOS_STATUS PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS params, MHW_GPGPU_WALKER_PARAMS &gpgpuWalker);
+
+    bool isMultiBindingTables = false;
 
 protected:
     // Step5: Load Kernel

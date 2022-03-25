@@ -268,6 +268,7 @@ MOS_STATUS RenderCmdPacketNext::RenderEngineSetup()
 {
     // pls make sure the context already switched to render/compute engine before submit
     RENDER_PACKET_CHK_NULL_RETURN(m_renderHal);
+    RENDER_PACKET_CHK_NULL_RETURN(m_renderHal->pStateHeap);
 
     // Register the resource of GSH
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnReset(m_renderHal));
@@ -277,7 +278,11 @@ MOS_STATUS RenderCmdPacketNext::RenderEngineSetup()
     RENDER_PACKET_CHK_NULL_RETURN(m_renderData.mediaState);
 
     // Allocate and reset SSH instance
-    RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignSshInstance(m_renderHal));
+    if ((isMultiBindingTables == false) || (m_renderHal->pStateHeap->iCurrentBindingTable >= m_renderHal->StateHeapSettings.iBindingTables) ||
+        (m_renderHal->pStateHeap->iCurrentSurfaceState >= m_renderHal->StateHeapSettings.iSurfaceStates))
+    {
+        RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignSshInstance(m_renderHal));
+    }
 
     // Assign and Reset binding table
     RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignBindingTable(

@@ -58,8 +58,8 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_hpg_
 
     // Surface State Heap Settings
     RENDERHAL_SSH_INSTANCES,                   //!< iSurfaceStateHeaps
-    RENDERHAL_SSH_BINDING_TABLES,              //!< iBindingTables
-    RENDERHAL_SSH_SURFACE_STATES,              //!< iSurfaceStates
+    RENDERHAL_SSH_BINDING_TABLES_MAX,          //!< iBindingTables
+    RENDERHAL_SSH_SURFACE_STATES_MAX,          //!< iSurfaceStates
     RENDERHAL_SSH_SURFACES_PER_BT,             //!< iSurfacesPerBT
     RENDERHAL_SSH_BINDING_TABLE_ALIGN          //!< iBTAlignment
 };
