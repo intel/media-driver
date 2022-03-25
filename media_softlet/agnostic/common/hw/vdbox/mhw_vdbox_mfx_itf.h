@@ -258,6 +258,8 @@ public:
 
     virtual bool IsBsdMpcRowstoreCacheEnabled() = 0;
 
+    virtual bool IsMprRowstoreCacheEnabled() = 0;
+
     virtual MHW_VDBOX_NODE_IND GetMaxVdboxIndex() = 0;
 
     virtual uint8_t GetNumVdbox() = 0;
@@ -265,6 +267,8 @@ public:
     virtual MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit) = 0;
 
     virtual MmioRegistersMfx *GetMmioRegisters(MHW_VDBOX_NODE_IND index) = 0;
+
+    inline uint32_t GetMfxErrorFlagsMask() { return m_mfxErrorFlagsMask; }
 
     vdbox::RowStoreCache m_intraRowstoreCache            = {};  //!< Intra rowstore cache
     vdbox::RowStoreCache m_deblockingFilterRowstoreCache = {};  //!< Deblocking filter row store cache
@@ -274,6 +278,8 @@ public:
     MHW_VDBOX_NODE_IND   m_maxVdboxIndex                 = MHW_VDBOX_NODE_1;  //!< max vdbox index
     uint8_t              m_numVdbox                      = 1;                 //!< vdbox num
     bool                 m_scalabilitySupported          = false;             //!< Indicate if scalability supported
+    static const uint32_t m_mfxErrorFlagsMask            = 0xFBFF;            //!< Mfx error flags mask
+                                                                               //!< Bit 10 of MFD_ERROR_STATUS register is set to a random value during RC6, so it is not used
     _MFX_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 
 };

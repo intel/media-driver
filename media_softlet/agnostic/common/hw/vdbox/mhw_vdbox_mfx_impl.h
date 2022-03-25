@@ -205,6 +205,11 @@ public:
         return m_rowstoreCachingSupported;
     }
 
+    bool IsMprRowstoreCacheEnabled()
+    {
+        return m_mprRowstoreCache.enabled;
+    }
+
     uint32_t GetViewOrder(
         MFD_AVC_DPB_STATE_PAR params,
         uint32_t              currIdx,
