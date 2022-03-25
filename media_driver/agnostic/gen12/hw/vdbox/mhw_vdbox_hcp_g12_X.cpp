@@ -3925,26 +3925,13 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpVp9PicStateEncCmd(
     cmd.DW14.ChromadcQindexdelta = Convert2SignMagnitude(vp9PicParams->ChromaDCQIndexDelta, 5);
     cmd.DW14.LumaDcQIndexDelta   = Convert2SignMagnitude(vp9PicParams->LumaDCQIndexDelta, 5);
 
-    if (vp9PicParams->filter_level > 31)
-    {
-        cmd.DW15.LfRefDelta0 = Convert2SignMagnitude((vp9PicParams->LFRefDelta[0]) * 2, 7);
-        cmd.DW15.LfRefDelta1 = Convert2SignMagnitude((vp9PicParams->LFRefDelta[1]) * 2, 7);
-        cmd.DW15.LfRefDelta2 = Convert2SignMagnitude((vp9PicParams->LFRefDelta[2]) * 2, 7);
-        cmd.DW15.LfRefDelta3 = Convert2SignMagnitude((vp9PicParams->LFRefDelta[3]) * 2, 7);
+    cmd.DW15.LfRefDelta0 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[0], 7);
+    cmd.DW15.LfRefDelta1 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[1], 7);
+    cmd.DW15.LfRefDelta2 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[2], 7);
+    cmd.DW15.LfRefDelta3 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[3], 7);
 
-        cmd.DW16.LfModeDelta0 = Convert2SignMagnitude((vp9PicParams->LFModeDelta[0]) * 2, 7);
-        cmd.DW16.LfModeDelta1 = Convert2SignMagnitude((vp9PicParams->LFModeDelta[1]) * 2, 7);
-    }
-    else
-    {
-        cmd.DW15.LfRefDelta0 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[0], 7);
-        cmd.DW15.LfRefDelta1 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[1], 7);
-        cmd.DW15.LfRefDelta2 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[2], 7);
-        cmd.DW15.LfRefDelta3 = Convert2SignMagnitude(vp9PicParams->LFRefDelta[3], 7);
-
-        cmd.DW16.LfModeDelta0 = Convert2SignMagnitude(vp9PicParams->LFModeDelta[0], 7);
-        cmd.DW16.LfModeDelta1 = Convert2SignMagnitude(vp9PicParams->LFModeDelta[1], 7);
-    }
+    cmd.DW16.LfModeDelta0 = Convert2SignMagnitude(vp9PicParams->LFModeDelta[0], 7);
+    cmd.DW16.LfModeDelta1 = Convert2SignMagnitude(vp9PicParams->LFModeDelta[1], 7);
 
     cmd.DW17.Bitoffsetforlfrefdelta         = vp9PicParams->BitOffsetForLFRefDelta;
     cmd.DW17.Bitoffsetforlfmodedelta        = vp9PicParams->BitOffsetForLFModeDelta;
