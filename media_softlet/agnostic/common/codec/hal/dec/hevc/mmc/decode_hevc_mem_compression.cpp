@@ -81,16 +81,6 @@ MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS HevcDecodeMemComp::SetRefSurfaceMask(
-    HevcBasicFeature                     &hevcBasicFeature,
-    const MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams,
-    MHW_VDBOX_SURFACE_PARAMS             &refSurfaceParams)
-{
-    DECODE_FUNC_CALL();
-
-    return SetRefSurfaceMask(hevcBasicFeature, pipeBufAddrParams.presReferences, refSurfaceParams.mmcSkipMask);
-}
-
 MOS_STATUS HevcDecodeMemComp::CheckReferenceList(HevcBasicFeature &hevcBasicFeature,
         MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
         MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
@@ -173,17 +163,6 @@ MOS_STATUS HevcDecodeMemComp::CheckReferenceList(HevcBasicFeature &hevcBasicFeat
     }
 
     return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS HevcDecodeMemComp::CheckReferenceList(
-    HevcBasicFeature &hevcBasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
-{
-    DECODE_FUNC_CALL();
-
-    return CheckReferenceList(hevcBasicFeature,
-        pipeBufAddrParams.PostDeblockSurfMmcState,
-        pipeBufAddrParams.PreDeblockSurfMmcState,
-        pipeBufAddrParams.presReferences);
 }
 
 }

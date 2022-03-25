@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -139,7 +139,8 @@ namespace decode
 #ifdef _MMC_SUPPORTED
         Vp9DecodeMemCompM12 *vp9DecodeMemComp = dynamic_cast<Vp9DecodeMemCompM12 *>(m_mmcState);
         DECODE_CHK_NULL(vp9DecodeMemComp);
-        DECODE_CHK_STATUS(vp9DecodeMemComp->CheckReferenceList(*m_vp9BasicFeature, pipeBufAddrParamsBase));
+        DECODE_CHK_STATUS(vp9DecodeMemComp->CheckReferenceList(*m_vp9BasicFeature, pipeBufAddrParamsBase.PostDeblockSurfMmcState,
+            pipeBufAddrParamsBase.PreDeblockSurfMmcState, pipeBufAddrParamsBase.presReferences));
 #endif
 
         MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12 &pipeBufAddrParams =

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -86,7 +86,7 @@ MOS_STATUS Mpeg2DecodePicPktM12::AddMfxPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuf
 #ifdef _MMC_SUPPORTED
     Mpeg2DecodeMemCompM12 *mpeg2DecodeMemComp = dynamic_cast<Mpeg2DecodeMemCompM12 *>(m_mmcState);
     DECODE_CHK_NULL(mpeg2DecodeMemComp);
-    DECODE_CHK_STATUS(mpeg2DecodeMemComp->CheckReferenceList(*m_mpeg2BasicFeature, pipeBufAddrParams));
+    DECODE_CHK_STATUS(mpeg2DecodeMemComp->CheckReferenceList(*m_mpeg2BasicFeature, pipeBufAddrParams.PreDeblockSurfMmcState, pipeBufAddrParams.PostDeblockSurfMmcState));
 #endif
 
     DECODE_CHK_STATUS(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));

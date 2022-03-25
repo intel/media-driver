@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -170,7 +170,8 @@ MOS_STATUS HevcDecodePicPktM12::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_
 #ifdef _MMC_SUPPORTED
     HevcDecodeMemCompM12 *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompM12 *>(m_mmcState);
     DECODE_CHK_NULL(hevcDecodeMemComp);
-    DECODE_CHK_STATUS(hevcDecodeMemComp->CheckReferenceList(*m_hevcBasicFeature, pipeBufAddrParamsBase));
+    DECODE_CHK_STATUS(hevcDecodeMemComp->CheckReferenceList(*m_hevcBasicFeature, pipeBufAddrParamsBase.PostDeblockSurfMmcState,
+        pipeBufAddrParamsBase.PreDeblockSurfMmcState, pipeBufAddrParamsBase.presReferences));
 #endif
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12 &pipeBufAddrParams =

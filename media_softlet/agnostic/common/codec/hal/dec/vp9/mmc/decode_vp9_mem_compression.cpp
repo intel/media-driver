@@ -38,17 +38,6 @@ Vp9DecodeMemComp::Vp9DecodeMemComp(CodechalHwInterface *hwInterface)
     m_osInterface = hwInterface->GetOsInterface();
 }
 
-MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(
-    Vp9BasicFeature &vp9BasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
-{
-    DECODE_FUNC_CALL();
-
-    return CheckReferenceList(vp9BasicFeature,
-        pipeBufAddrParams.PostDeblockSurfMmcState,
-        pipeBufAddrParams.PreDeblockSurfMmcState,
-        pipeBufAddrParams.presReferences);
-}
-
 MOS_STATUS Vp9DecodeMemComp::CheckReferenceList(Vp9BasicFeature &vp9BasicFeature,
     MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
     MOS_MEMCOMP_STATE &preDeblockSurfMmcState,

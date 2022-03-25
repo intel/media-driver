@@ -58,21 +58,13 @@ public:
     //!
     virtual ~HevcDecodeMemComp() {};
 
-    MOS_STATUS CheckReferenceList(
-        HevcBasicFeature &hevcBasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
-
-    MOS_STATUS CheckReferenceList(
+    virtual MOS_STATUS CheckReferenceList(
         HevcBasicFeature  &hevcBasicFeature,
         MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
         MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
         PMOS_RESOURCE     *presReferences);
 
-    MOS_STATUS SetRefSurfaceMask(
-        HevcBasicFeature                     &hevcBasicFeature,
-        const MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams,
-        MHW_VDBOX_SURFACE_PARAMS             &refSurfaceParams);
-
-    MOS_STATUS SetRefSurfaceMask(
+    virtual MOS_STATUS SetRefSurfaceMask(
         HevcBasicFeature    &hevcBasicFeature,
         const PMOS_RESOURCE *presReferences,
         uint8_t             &mmcSkipMask);

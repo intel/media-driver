@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -57,9 +57,6 @@ public:
     //! \brief    Destructor
     //!
     virtual ~Mpeg2DecodeMemComp() {};
-
-    virtual MOS_STATUS CheckReferenceList(
-        Mpeg2BasicFeature &mpeg2BasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
 
     virtual MOS_STATUS CheckReferenceList(
         Mpeg2BasicFeature &mpeg2BasicFeature, MOS_MEMCOMP_STATE &preDeblockSurfMmcState, MOS_MEMCOMP_STATE &postDeblockSurfMmcState);

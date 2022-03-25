@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -390,7 +390,7 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpRefSurfaceParams(
     DECODE_CHK_NULL(hevcDecodeMemComp);
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(refSurfaceParams.psSurface, &refSurfaceParams.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams.psSurface, &refSurfaceParams.dwCompressionFormat));
-    DECODE_CHK_STATUS(hevcDecodeMemComp->SetRefSurfaceMask(*m_hevcBasicFeature, pipeBufAddrParams, refSurfaceParams));
+    DECODE_CHK_STATUS(hevcDecodeMemComp->SetRefSurfaceMask(*m_hevcBasicFeature, pipeBufAddrParams.presReferences, refSurfaceParams.mmcSkipMask));
 #endif
 
     return MOS_STATUS_SUCCESS;

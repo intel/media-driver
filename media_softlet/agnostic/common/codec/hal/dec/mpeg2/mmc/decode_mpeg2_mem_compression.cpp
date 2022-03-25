@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,12 +37,6 @@ namespace decode
 Mpeg2DecodeMemComp::Mpeg2DecodeMemComp(CodechalHwInterface *hwInterface)
 {
     m_osInterface = hwInterface->GetOsInterface();
-}
-
-MOS_STATUS Mpeg2DecodeMemComp::CheckReferenceList(Mpeg2BasicFeature &mpeg2BasicFeature, MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
-{
-    DECODE_FUNC_CALL();
-    return CheckReferenceList(mpeg2BasicFeature, pipeBufAddrParams.PreDeblockSurfMmcState, pipeBufAddrParams.PostDeblockSurfMmcState);
 }
 
 MOS_STATUS Mpeg2DecodeMemComp::CheckReferenceList(
