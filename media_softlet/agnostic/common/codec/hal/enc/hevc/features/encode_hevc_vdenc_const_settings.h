@@ -115,7 +115,7 @@ struct HevcVdencArbSettings  // adaptive region boot settings
     const std::array<
         uint16_t,
         8>
-        m_rowOffsetsForBoost = {0, 3, 5, 2, 7, 4, 1, 6};
+        m_rowOffsetsForBoost = {{0, 3, 5, 2, 7, 4, 1, 6}};
 };
 
 struct HevcVdencFeatureSettings : VdencFeatureSettings
