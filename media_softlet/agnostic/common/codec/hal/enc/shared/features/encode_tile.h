@@ -503,7 +503,7 @@ protected:
     uint32_t          m_tileLevelBatchSize    = 0;    //!< Size of the 2rd level batch buffer for each tile
     uint32_t          m_numTileBatchAllocated[m_codecHalNumTileLevelBatchBuffers] ={0};    //!< The number of allocated batch buffer for tiles
     uint32_t          m_tileBatchBufferIndex = 0;     //!< Current index for tile batch buffer of same frame, updated per frame
-    PMHW_BATCH_BUFFER m_tileLevelBatchBuffer[m_codecHalNumTileLevelBatchBuffers][EncodeBasicFeature::m_vdencBrcPassNum] = {0};  //!< Tile level batch buffer for each tile
+    PMHW_BATCH_BUFFER m_tileLevelBatchBuffer[m_codecHalNumTileLevelBatchBuffers][EncodeBasicFeature::m_vdencBrcPassNum] = {{0}};  //!< Tile level batch buffer for each tile
     MOS_RESOURCE      m_resTileBasedStatisticsBuffer[EncodeBasicFeature::m_uncompressedSurfaceNum] = {};
     MOS_RESOURCE      m_resHuCPakAggregatedFrameStatsBuffer = {};
     MOS_RESOURCE      m_tileRecordBuffer[EncodeBasicFeature::m_uncompressedSurfaceNum] = {};
