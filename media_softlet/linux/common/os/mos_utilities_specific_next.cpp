@@ -72,7 +72,6 @@ double MosUtilities::MosGetTime()
 //!
 const char *const MosUtilitiesSpecificNext::m_mosTracePath  = "/sys/kernel/debug/tracing/trace_marker_raw";
 int32_t           MosUtilitiesSpecificNext::m_mosTraceFd    = -1;
-uint64_t          MosUtilitiesSpecificNext::m_traceKeyword  = 0;
 MosMutex          MosUtilitiesSpecificNext::m_userSettingMutex;
 
 //!
@@ -2336,7 +2335,7 @@ void MosUtilities::MosTraceEventInit()
         return;
     }
     char *tmp;
-    MosUtilitiesSpecificNext::m_traceKeyword = strtoll(val, &tmp, 0);
+    m_mosTraceFilter = strtoll(val, &tmp, 0);
     // close first, if already opened.
     if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
     {
@@ -2354,21 +2353,13 @@ void MosUtilities::MosTraceEventClose()
         close(MosUtilitiesSpecificNext::m_mosTraceFd);
         MosUtilitiesSpecificNext::m_mosTraceFd = -1;
     }
+    m_mosTraceFilter = 0;
     return;
 }
 
 void MosUtilities::MosTraceSetupInfo(uint32_t DrvVer, uint32_t PlatFamily, uint32_t RenderFamily, uint32_t DeviceID)
 {
     // not implemented
-}
-
-uint64_t MosUtilities::GetTraceEventKeyword()
-{
-    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0)
-    {
-        return MosUtilitiesSpecificNext::m_traceKeyword;
-    }
-    return 0;
 }
 
 void MosUtilities::MosTraceEvent(
@@ -2389,10 +2380,9 @@ void MosUtilities::MosTraceEvent(
         {
             int32_t comp = (*(int32_t*)pArg1) >> 24;
             int32_t level = *((int32_t*)pArg1 + 1);
-            uint64_t keyword = MosUtilitiesSpecificNext::m_traceKeyword;
+            uint64_t keyword = m_mosTraceFilter;
 
-            if (((keyword & COMP_ALL_KEYWORD) == 0) &&
-                ((keyword & (1ULL << (comp + 16))) == 0))
+            if ((m_mosTraceFilter & ((1ULL << TR_KEY_MOSMSG_ALL) | (1ULL << (comp + 16)))) == 0)
             {
                 // keyword not set for this component, skip it
                 return;
@@ -2449,7 +2439,7 @@ void MosUtilities::MosTraceDataDump(
     const void *pBuf,
     uint32_t    dwSize)
 {
-    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0 && pBuf && pcName && (MosUtilitiesSpecificNext::m_traceKeyword & DATA_DUMP_KEYWORD))
+    if (MosUtilitiesSpecificNext::m_mosTraceFd >= 0 && pBuf && pcName)
     {
         uint8_t *pTraceBuf = (uint8_t *)MOS_AllocAndZeroMemory(TRACE_EVENT_MAX_SIZE);
         size_t writeSize = 0;

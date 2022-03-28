@@ -29,6 +29,78 @@
 #ifndef __MOS_OS_TRACE_H__
 #define __MOS_OS_TRACE_H__
 
+//!
+//! \brief helper to expand trace event data from dynmac size Marco
+//!
+
+#define _TR_PRE(x) x
+#define _TR_CAT_(a, b) a##b
+#define _TR_CAT(a, b) _TR_CAT_(a, b)
+
+//!
+//! \brief internal marco to calc the number of args in __VA_ARGS__, support count upto 10 args
+//! Due to C99 compiler definition, _TR_COUNT_() return 1. need new marco to use.
+//!
+#define _TR_CNT_N(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, cnt, ...) cnt
+#define _TR_COUNT(...) _TR_PRE(_TR_CNT_N(__VA_ARGS__, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0))
+
+//!
+//! \brief internal marco to calc byte size of all args, and memcpy to pre-defined buffer
+//!
+#define _TR_OPsize(x)  +sizeof(x)
+#define _TR_OPfield(x) {auto _t=x;memcpy(_buf + _i, &(_t), sizeof(x));_i += sizeof(x);}
+
+//!
+//! \brief internal marco to calc byte size of all args, and memcpy to pre-defined buffer
+//!
+#define _TR_EXPAND1(o, x, ...) _TR_PRE(_TR_CAT(_TR_OP, o)(x))
+#define _TR_EXPAND2(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND1(o, __VA_ARGS__))
+#define _TR_EXPAND3(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND2(o, __VA_ARGS__))
+#define _TR_EXPAND4(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND3(o, __VA_ARGS__))
+#define _TR_EXPAND5(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND4(o, __VA_ARGS__))
+#define _TR_EXPAND6(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND5(o, __VA_ARGS__))
+#define _TR_EXPAND7(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND6(o, __VA_ARGS__))
+#define _TR_EXPAND8(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND7(o, __VA_ARGS__))
+#define _TR_EXPAND9(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND8(o, __VA_ARGS__))
+#define _TR_EXPAND10(o, x, ...) _TR_EXPAND1(o, x) _TR_PRE(_TR_EXPAND9(o, __VA_ARGS__))
+// Note: increase _TR_EXPANDxx to support more param
+
+#define _TR_PARAM_SIZE(...) _TR_PRE(_TR_CAT(_TR_EXPAND, _TR_COUNT(__VA_ARGS__))(size, __VA_ARGS__))
+#define _TR_PARAM_FIELD(...) _TR_PRE(_TR_CAT(_TR_EXPAND, _TR_COUNT(__VA_ARGS__))(field, __VA_ARGS__))
+
+//!
+//! \brief trace marco interface, for external usage, split 2 marco for customzed trace write interface
+//!
+#define TR_FILL_PARAM(...)                       \
+    int  _i = 0;                                 \
+    char _buf[0 _TR_PARAM_SIZE(__VA_ARGS__)];    \
+    _TR_PARAM_FIELD(__VA_ARGS__);
+
+#define TR_WRITE_PARAM(func, id, op)             \
+    func(id, op, _buf, sizeof(_buf), nullptr, 0);
+
+//!
+//! \brief Keyword for ETW tracing, 1bit per keyworld, total 64bits
+//!
+typedef enum _MEDIA_EVENT_FILTER_KEYID
+{
+    TR_KEY_DECODE_PICPARAM = 0,
+    TR_KEY_DECODE_SLICEPARAM,
+    TR_KEY_DECODE_TILEPARAM,
+    TR_KEY_DECODE_QMATRIX,
+    TR_KEY_DECODE_BITSTREAM_32BYTE,
+    TR_KEY_DECODE_BITSTREAM,
+    TR_KEY_DECODE_INTERNAL,
+    TR_KEY_DECODE_COMMAND,
+    TR_KEY_DECODE_DSTYUV,
+    TR_KEY_DECODE_REFYUV,
+    TR_KEY_MOSMSG_ALL = 12,
+    TR_KEY_DATA_DUMP  = 16,
+    TR_KEY_MOSMSG_CP,
+    TR_KEY_MOSMSG_VP,
+    TR_KEY_MOSMSG_CODEC
+} MEDIA_EVENT_FILTER_KEYID;
+
 typedef enum _MEDIA_EVENT
 {
     UNDEFINED_EVENT = 0,            //! reserved id, should not used in driver

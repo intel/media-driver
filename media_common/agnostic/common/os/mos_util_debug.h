@@ -40,6 +40,18 @@
 extern "C" {
 #endif
 
+//!
+//! \def MOS_TraceData new trace interface, special interface for zero trace data
+//!
+#define MOS_TraceData0(usId, usType) \
+    MosUtilities::MosTraceEvent(usId, usType, nullptr, 0, nullptr, 0);
+
+#define MOS_TraceData(usId, usType, ...)                           \
+    {                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType); \
+    }
+
 #if MOS_MESSAGES_ENABLED
 
 //!
@@ -314,7 +326,78 @@ void MOS_HltpPreface(
 //!  this is trace event interface extension, only for debug purpose.
 //!
 #define MOS_TraceEventExt MosUtilities::MosTraceEvent
-#define MOS_TraceDumpExt MosUtilities::MosTraceDataDump
+#define MOS_TraceDumpExt(name, flags, pBuf, dwSize)                                \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DATA_DUMP))         \
+    {                                                                              \
+        MosUtilities::MosTraceDataDump(name, flags, pBuf, dwSize);                 \
+    }
+
+#define MOS_TraceDataExt0 MOS_TraceData0
+#define MOS_TraceDataExt  MOS_TraceData
+
+//!
+//! \def New trace interface with keyword filter, need have at least 1 param in trace data
+//!
+#define MOS_TraceDecodePicParam(usId, usType, ...)                                 \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_PICPARAM))   \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeSliceParam(usId, usType, ...)                               \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_SLICEPARAM)) \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeTileParam(usId, usType, ...)                                \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_TILEPARAM))  \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeQMatrix(usId, usType, ...)                                  \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_QMATRIX))    \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeBitStream32(usId, usType, ...)                                    \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_BITSTREAM_32BYTE)) \
+    {                                                                                    \
+        TR_FILL_PARAM(__VA_ARGS__);                                                      \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                       \
+    }
+#define MOS_TraceDecodeBitStream(usId, usType, ...)                                \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_BITSTREAM))  \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeInternal(usId, usType, ...)                                 \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_INTERNAL))   \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeCommand(usId, usType, ...)                                  \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_COMMAND))    \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeDstYuv(usId, usType, ...)                                   \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_DSTYUV))     \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
+#define MOS_TraceDecodeRefYuv(usId, usType, ...)                                   \
+    if (MosUtilities::GetTraceEventKeyword() & (1ULL << TR_KEY_DECODE_REFYUV))     \
+    {                                                                              \
+        TR_FILL_PARAM(__VA_ARGS__);                                                \
+        TR_WRITE_PARAM(MosUtilities::MosTraceEvent, usId, usType);                 \
+    }
 
 #define MT_LOG(id, lvl)                                                     \
     {                                                                       \
@@ -407,6 +490,18 @@ void MOS_HltpPreface(
 //!
 #define MOS_TraceEventExt(usId, usType, pArg1, dwSize1, pArg2, dwSize2)
 #define MOS_TraceDumpExt(name, flags, pBuf, dwSize)
+#define MOS_TraceDataExt0(usId, usType)
+#define MOS_TraceDataExt(usId, usType, ...)
+#define MOS_TraceDecodePicParam(usId, usType, ...)
+#define MOS_TraceDecodeSliceParam(usId, usType, ...)
+#define MOS_TraceDecodeTileParam(usId, usType, ...)
+#define MOS_TraceDecodeQMatrix(usId, usType, ...)
+#define MOS_TraceDecodeBitStream32(usId, usType, ...)
+#define MOS_TraceDecodeBitStream(usId, usType, ...)
+#define MOS_TraceDecodeInternal(usId, usType, ...)
+#define MOS_TraceDecodeCommand(usId, usType, ...)
+#define MOS_TraceDecodeDstYuv(usId, usType, ...)
+#define MOS_TraceDecodeRefYuv(usId, usType, ...)
 #define MT_LOG(id, lvl)
 #define MT_LOG1(id, lvl, p1, v1)
 #define MT_LOG2(id, lvl, p1, v1, p2, v2)

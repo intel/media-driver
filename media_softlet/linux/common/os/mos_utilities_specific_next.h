@@ -296,7 +296,7 @@ public:
     static int32_t              m_mosTraceFd;
     static const char* const    m_mosTracePath;
     static std::map<std::string, std::map<std::string, std::string>> m_regBuffer;
-    static uint64_t             m_traceKeyword;
+
 private:
     static MosMutex             m_userSettingMutex;
 };

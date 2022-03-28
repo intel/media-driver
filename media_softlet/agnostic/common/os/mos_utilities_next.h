@@ -2010,7 +2010,7 @@ public:
     //!           whether the debug message should be printed.
     //! \return   uint64_t
     //!
-    static uint64_t GetTraceEventKeyword();
+    static uint64_t GetTraceEventKeyword() { return m_mosTraceFilter; }
 
     //!
     //! \brief    MOS log trace event
@@ -2037,26 +2037,6 @@ public:
         uint32_t         dwSize1,
         const void       *pArg2,
         uint32_t         dwSize2);
-
-#if MOS_MESSAGES_ENABLED
-    //!
-    //! \brief    Checks whether Event messages should be traced.
-    //! \details  Determines by the print level, component and sub-component IDs
-    //!           whether the debug message should be printed.
-   //! \param    [in] level
-    //!           Indicates msg level
-    //! \param    [in] compID
-    //!           Indicates compID
-    //! \param    [in] message
-    //!           event msg
-    //! \return   bool
-    //!
-    static bool MosShouldTraceEventMsg(
-        uint8_t              level,
-        uint8_t              compID,
-        uint8_t              subCompID,
-        const char* const    message);
-#endif
 
     //!
     //! \brief    MOS log trace event Msg
@@ -2691,6 +2671,7 @@ public:
     static uint8_t                      m_mosUltFlag;
     static int32_t                      m_mosMemAllocCounterNoUserFeature;
     static int32_t                      m_mosMemAllocCounterNoUserFeatureGfx;
+    static uint64_t                     m_mosTraceFilter;
 
     //Temporarily defined as the reference to compatible with the cases using uf key to enable/disable APG.
     static int32_t                      m_mosMemAllocCounter;
