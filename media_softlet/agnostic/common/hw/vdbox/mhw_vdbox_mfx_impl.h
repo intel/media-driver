@@ -619,7 +619,7 @@ protected:
             MHW_MI_CHK_NULL(params.presDataBuffer);
 
             InitMocsParams(resourceParams, &cmd.MfxIndirectBitstreamObjectAttributes.DW0.Value, 1, 6);
-            cmd.MfxIndirectBitstreamObjectAttributes.DW0.Value = m_mfxIndirectBitstreamCtrl.Gen12_7.Index;
+            cmd.MfxIndirectBitstreamObjectAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_mfxIndirectBitstreamCtrl.Gen12_7.Index;
 
             resourceParams.presResource                      = params.presDataBuffer;
             resourceParams.dwOffset                          = params.dwDataOffset;
@@ -640,7 +640,7 @@ protected:
         {
             MHW_MI_CHK_NULL(params.presDataBuffer);
             InitMocsParams(resourceParams, &cmd.MfdIndirectItCoeffObjectAttributes.DW0.Value, 1, 6);
-            cmd.MfdIndirectItCoeffObjectAttributes.DW0.Value = m_mfdIndirectItCoeffCtrl.Gen12_7.Index;
+            cmd.MfdIndirectItCoeffObjectAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_mfdIndirectItCoeffCtrl.Gen12_7.Index;
 
             resourceParams.presResource                      = params.presDataBuffer;
             resourceParams.dwOffset                          = params.dwDataOffset;
@@ -661,7 +661,7 @@ protected:
         if (params.presMvObjectBuffer)
         {
             InitMocsParams(resourceParams, &cmd.MfxIndirectMvObjectAttributes.DW0.Value, 1, 6);
-            cmd.MfxIndirectMvObjectAttributes.DW0.Value = m_mfxIndirectMvCtrl.Gen12_7.Index;
+            cmd.MfxIndirectMvObjectAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_mfxIndirectMvCtrl.Gen12_7.Index;
 
             resourceParams.presResource                      = params.presMvObjectBuffer;
             resourceParams.dwOffset                          = params.dwMvObjectOffset;
@@ -682,7 +682,7 @@ protected:
         if (params.presPakBaseObjectBuffer)
         {
             InitMocsParams(resourceParams, &cmd.MfcIndirectPakBseObjectAttributes.DW0.Value, 1, 6);
-            cmd.MfcIndirectPakBseObjectAttributes.DW0.Value = m_mfcIndirectPakBseCtrl.Gen12_7.Index;
+            cmd.MfcIndirectPakBseObjectAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = m_mfcIndirectPakBseCtrl.Gen12_7.Index;
 
             resourceParams.presResource                      = params.presPakBaseObjectBuffer;
             resourceParams.dwOffset                          = 0;
