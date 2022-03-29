@@ -730,6 +730,10 @@ static bool InitPvcMediaWa(struct GfxDeviceInfo *devInfo,
 
     // I as P WA
     MEDIA_WR_WA(waTable, Wa_22011549751, 1);
+
+    // Remove the WA of DummyReference
+    MEDIA_WR_WA(waTable, WaDummyReference, 0);
+
     return true;
 }
 
@@ -888,6 +892,9 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
     }
 
     MEDIA_WR_WA(waTable, Wa_15010089951, 1);
+
+    // Remove the WA of DummyReference
+    MEDIA_WR_WA(waTable, WaDummyReference, 0);
 
     return true;
 }
