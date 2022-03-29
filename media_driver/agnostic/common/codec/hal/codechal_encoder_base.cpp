@@ -961,7 +961,7 @@ MOS_STATUS CodechalEncoderState::Initialize(
         m_frameTrackingEnabled = m_osInterface->bEnableKmdMediaFrameTracking ? true: false;
     }
 
-    if (m_standard == CODECHAL_AVC)
+    if (m_standard == CODECHAL_AVC || (m_standard == CODECHAL_HEVC && m_codecFunction == CODECHAL_FUNCTION_ENC_VDENC_PAK))
     {
         if (CodecHalUsesVideoEngine(m_codecFunction) && !(MEDIA_IS_WA(m_waTable, WaForceAllocateLML3)))
         {
