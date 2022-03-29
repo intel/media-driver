@@ -287,7 +287,7 @@ MOS_STATUS RenderCopyState::SetupSurfaceStates()
         format = m_Source.Format;
         width = m_Source.dwWidth;
         m_Source.Format = Format_RAW;
-       #if defined(LINUX)
+
         if ((format == Format_NV12) || (format == Format_P010) || (format == Format_P016))
         {
            m_Source.dwWidth = (m_Source.dwHeight * m_Source.dwPitch) * 3 / 2;
@@ -303,7 +303,6 @@ MOS_STATUS RenderCopyState::SetupSurfaceStates()
            m_Source.dwWidth = m_Source.dwHeight * m_Source.dwPitch;
         }
 
-       #endif
         m_Source.dwWidth = MOS_ALIGN_CEIL(m_Source.dwWidth, 128);
         //1D surfaces
         VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetBufferSurfaceForHwAccess(
@@ -344,7 +343,6 @@ MOS_STATUS RenderCopyState::SetupSurfaceStates()
         width = m_Target.dwWidth;
         m_Target.Format = Format_RAW;
 
-       #if defined(LINUX)
           if ((format == Format_NV12) || (format == Format_P010) || (format == Format_P016))
           {
              m_Target.dwWidth = (m_Target.dwHeight * m_Target.dwPitch) * 3 / 2;
@@ -360,7 +358,6 @@ MOS_STATUS RenderCopyState::SetupSurfaceStates()
              m_Target.dwWidth = m_Target.dwHeight * m_Target.dwPitch;
           }
 
-       #endif
         m_Target.dwWidth = MOS_ALIGN_CEIL(m_Target.dwWidth, 128);
 
         //1D surface.

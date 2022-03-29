@@ -51,28 +51,32 @@ MOS_STATUS RenderCopy_Xe_Hpm::CopySurface(
     VPHAL_GET_SURFACE_INFO  Info;
     MOS_ZeroMemory(&Info, sizeof(VPHAL_GET_SURFACE_INFO));
     m_Source.OsResource = *src;
+    m_Source.Format     = Format_Invalid;
     MCPY_CHK_STATUS_RETURN(VpHal_GetSurfaceInfo(
        m_osInterface,
        &Info,
        &m_Source));
-    m_Source.rcSrc.right = m_Source.dwWidth;
-    m_Source.rcSrc.bottom = m_Source.dwHeight;
-    m_Source.rcDst.right = m_Source.dwWidth;
-    m_Source.rcDst.bottom = m_Source.dwHeight;
-    m_Source.rcMaxSrc.right = m_Source.dwWidth;
+    m_Source.rcSrc.right     = m_Source.dwWidth;
+    m_Source.rcSrc.bottom    = m_Source.dwHeight;
+    m_Source.rcDst.right     = m_Source.dwWidth;
+    m_Source.rcDst.bottom    = m_Source.dwHeight;
+    m_Source.rcMaxSrc.right  = m_Source.dwWidth;
     m_Source.rcMaxSrc.bottom = m_Source.dwHeight;
+    m_Source.ColorSpace      = CSpace_Any;
 
     m_Target.OsResource = *dst;
+    m_Target.Format     = Format_Invalid;
     MCPY_CHK_STATUS_RETURN(VpHal_GetSurfaceInfo(
        m_osInterface,
        &Info,
        &m_Target));
-    m_Target.rcSrc.right = m_Target.dwWidth;
-    m_Target.rcSrc.bottom = m_Target.dwHeight;
-    m_Target.rcDst.right = m_Target.dwWidth;
-    m_Target.rcDst.bottom = m_Target.dwHeight;
-    m_Target.rcMaxSrc.right = m_Target.dwWidth;
+    m_Target.rcSrc.right     = m_Target.dwWidth;
+    m_Target.rcSrc.bottom    = m_Target.dwHeight;
+    m_Target.rcDst.right     = m_Target.dwWidth;
+    m_Target.rcDst.bottom    = m_Target.dwHeight;
+    m_Target.rcMaxSrc.right  = m_Target.dwWidth;
     m_Target.rcMaxSrc.bottom = m_Target.dwHeight;
+    m_Target.ColorSpace      = CSpace_Any;
 
     if ((m_Target.Format != Format_RGBP) && (m_Target.Format != Format_NV12) && (m_Target.Format != Format_RGB)
         && (m_Target.Format != Format_P010) && (m_Target.Format != Format_P016) && (m_Target.Format != Format_YUY2)
@@ -125,7 +129,7 @@ MOS_STATUS RenderCopy_Xe_Hpm::SubmitCMD( )
     // Register the input resource;
     MCPY_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(
         pOsInterface,
-        (PMOS_RESOURCE)&pRenderCopy->m_KernelResource,
+        (PMOS_RESOURCE)&pRenderCopy->m_Source.OsResource,
         true,
         true));
 

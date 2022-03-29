@@ -94,11 +94,13 @@ bool MediaCopyState_Xe_Hpm::RenderFormatSupportCheck(PMOS_RESOURCE src, PMOS_RES
     MOS_ZeroMemory(&Target, sizeof(VPHAL_SURFACE));
 
     Source.OsResource = *src;
+    Source.Format     = Format_Invalid;
     eStatus1 = VpHal_GetSurfaceInfo(
                    m_osInterface,
                    &Info,
                    &Source);
     Target.OsResource = *dst;
+    Target.Format     = Format_Invalid;
     eStatus2 = VpHal_GetSurfaceInfo(
                    m_osInterface,
                    &Info,

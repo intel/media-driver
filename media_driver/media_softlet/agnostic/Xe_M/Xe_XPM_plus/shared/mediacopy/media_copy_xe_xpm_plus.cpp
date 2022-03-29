@@ -213,6 +213,7 @@ MOS_STATUS MediaCopyStateXe_Xpm_Plus::CopyEnigneSelect(MCPY_METHOD preferMethod)
     switch (preferMethod)
     {
         case MCPY_METHOD_PERFORMANCE:
+        case MCPY_METHOD_DEFAULT:
             m_mcpyEngine = m_mcpyEngineCaps.engineRender ? MCPY_ENGINE_RENDER:MCPY_ENGINE_BLT;
             break;
         default:

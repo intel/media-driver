@@ -186,6 +186,7 @@ MOS_STATUS MediaCopyBaseState::CopyEnigneSelect(MCPY_METHOD preferMethod)
     switch (preferMethod)
     {
         case MCPY_METHOD_PERFORMANCE:
+        case MCPY_METHOD_DEFAULT:
             m_mcpyEngine = m_mcpyEngineCaps.engineRender?MCPY_ENGINE_RENDER:(m_mcpyEngineCaps.engineBlt ? MCPY_ENGINE_BLT : MCPY_ENGINE_VEBOX);
             break;
         case MCPY_METHOD_BALANCE:
