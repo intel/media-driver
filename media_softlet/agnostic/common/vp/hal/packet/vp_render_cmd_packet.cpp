@@ -806,7 +806,6 @@ MOS_STATUS VpRenderCmdPacket::InitStateHeapSurface(SurfaceType type, RENDERHAL_S
 {
     VP_FUNC_CALL();
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     MOS_SURFACE mosSurface;
 
     MOS_ZeroMemory(&mosSurface, sizeof(MOS_SURFACE));
