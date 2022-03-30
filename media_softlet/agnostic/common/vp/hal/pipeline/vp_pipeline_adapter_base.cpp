@@ -248,13 +248,9 @@ MOS_STATUS VpPipelineAdapterBase::GetStatusReport(
             continue;
         }
 
-#if (LINUX || ANDROID)
-        dwGpuTag = pOsContext->GetGPUTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
-#else
-        dwGpuTag = m_osInterface->pfnGetGpuStatusSyncTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
-#endif
-        bDoneByGpu         = (dwGpuTag >= pStatusEntry->dwTag);
-        bFailedOnSubmitCmd = (pStatusEntry->dwStatus == VPREP_ERROR);
+        dwGpuTag            = m_osInterface->pfnGetGpuStatusSyncTag(m_osInterface, pStatusEntry->GpuContextOrdinal);
+        bDoneByGpu          = (dwGpuTag >= pStatusEntry->dwTag);
+        bFailedOnSubmitCmd  = (pStatusEntry->dwStatus == VPREP_ERROR);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         MOS_NULL_RENDERING_FLAGS NullRender = m_osInterface->pfnGetNullHWRenderFlags(m_osInterface);
