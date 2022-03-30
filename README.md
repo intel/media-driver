@@ -79,7 +79,7 @@ export LIBVA_DRIVER_NAME=iHD
 - KBLx (KBL: Kaby Lake, CFL: Coffe Lake, WHL: Whiskey Lake, CML: Comet Lake, AML: Amber Lake)
 - ICL (Ice Lake)
 - JSL (Jasper Lake) / EHL (Elkhart Lake)
-- TGLx (TGL: Tiger Lake, RKL: Rocket Lake, ADL-S/P/N: Alder Lake)
+- TGLx (TGL: Tiger Lake, RKL: Rocket Lake, ADL-S/P/N: Alder Lake, RPL-S: Raptor Lake)
 - DG1/SG1
 - Alchemist(DG2)/ATSM
 
@@ -203,7 +203,7 @@ or later, which officially supported C++11.
    - EHL/JSL: starting from kernel 5.8
    - TGL: starting from kernel 5.9
    - RKL/ADL-S/ADL-P: starting from kernel 5.17
-   - ADL-N: [drm-tip](https://cgit.freedesktop.org/drm-tip)
+   - ADL-N/RPL-S: [drm-tip](https://cgit.freedesktop.org/drm-tip)
    - DG1/SG1: [intel-gpu/kernel](https://github.com/intel-gpu/kernel)
 
 ##### (*) Other names and brands may be claimed as property of others.
