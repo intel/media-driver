@@ -52,6 +52,15 @@ public:
     //!
     static MOS_STATUS InitMosUserSetting(MediaUserSettingSharedPtr userSettingPtr);
 
+    //!
+    //! \brief    Init user settings
+    //! \details  declare the ddi user settings
+    //! \return   MOS_STATUS
+    //!           Returns one of the MOS_STATUS error codes if failed,
+    //!           else MOS_STATUS_SUCCESS
+    //!
+    static MOS_STATUS InitMosUserSettingSpecific(MediaUserSettingSharedPtr userSettingPtr);
+
 private:
     //!
     //! \brief    Init the mos user settings of mos message
