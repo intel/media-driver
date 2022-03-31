@@ -144,6 +144,8 @@ MOS_STATUS HevcVdencPipelineXe_Xpm_Base::Execute()
 {
     ENCODE_FUNC_CALL();
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_HAL);
+
     bool isTileReplayEnabled = false;
     RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, IsTileReplayEnabled, isTileReplayEnabled);
     if (isTileReplayEnabled)
