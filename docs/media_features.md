@@ -57,9 +57,9 @@
 | JPEG       | Input/Output | **Note             | **Note    | **Note    | **Note    | **Note | **Note | **Note |     |
 |            | Max Res.     | 16k                | 16k       | 16k       | 16k       | 16k    | 16k    | 16k    |     |
 | HEVC 8bit  | Input        | NV12/YUY2/AYUV/RGB | NV12/AYUV | NV12/AYUV | NV12/AYUV |        |        |        |     |
-|            | Max Res.     | 16k                | 8k        | 8k        | 8k        |        |        |        |     |
+|            | Max Res.     | 16k***             | 8k        | 8k        | 8k        |        |        |        |     |
 | HEVC 10bit | Input        | P010/Y210/Y410/RGB | P010/Y410 | P010/Y410 | P010/Y410 |        |        |        |     |
-|            | Max Res.     | 16k                | 8k        | 8k        | 8k        |        |        |        |     |
+|            | Max Res.     | 16k***             | 8k        | 8k        | 8k        |        |        |        |     |
 | VP9 8bit   | Input        | NV12/AYUV          | NV12/AYUV | NV12/AYUV | NV12/AYUV |        |        |        |     |
 |            | Max Res.     | 8k                 | 8k        | 8k        | 8k        |        |        |        |     |
 | VP9 10bit  | Input        | P010/Y410          | P010/Y410 | P010/Y410 | P010/Y410 |        |        |        |     |
@@ -71,6 +71,7 @@
 
 - \*More: KBL/CFL/ICL/TGL AVC encoding supported input formats: NV12/YUY2/YUYV/YVYU/UYVY/AYUV/ARGB
 - \**Note: JPEG encoding supports input format NV12/YUY2/UYVY/AYUV/ABGR/Y8 and output format YUV400/YUV420/YUV422H_2Y/YUV444/RGB24.
+- \***16k: 16384 x 12288
 
 
 ### Hardware(PAK) + Shader(media kernel+VME) Encoding
