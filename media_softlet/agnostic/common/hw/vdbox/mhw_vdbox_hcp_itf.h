@@ -123,6 +123,10 @@ public:
 
     virtual MOS_STATUS SetRowstoreCachingOffsets(const HcpVdboxRowStorePar &rowstoreParams) = 0;
 
+    virtual uint32_t   GetHcpVp9PicStateCommandSize() = 0;
+
+    virtual uint32_t   GetHcpVp9SegmentStateCommandSize() = 0;
+
     virtual MOS_STATUS GetHcpStateCommandSize(
         uint32_t                        mode,
         uint32_t *                      commandsSize,
