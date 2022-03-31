@@ -96,6 +96,21 @@ public:
     //!
     bool IsFormatSupported(PMOS_RESOURCE surface);
 
+    //!
+    //! \brief    Setup Vebox_Surface_State Command parameter
+    //! \param    [in/out] mhwVeboxSurfaceStateCmdParams
+    //!            Pointer to VEBOX_SURFACE_STATE command parameters
+    //! \param    [in] surface
+    //!           Input surface pointer
+    //! \param    [in] surface
+    //!           output surface pointer
+    //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
+    //!
+    virtual MOS_STATUS SetupVeboxSurfaceState(
+        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS mhwVeboxSurfaceStateCmdParams,
+        PMOS_SURFACE                        inputSurface,
+        PMOS_SURFACE                        outputSurface);
+
 protected:
 
     //! \brief    Get resource information
@@ -124,22 +139,6 @@ protected:
     //! \return   true if supported, else false.
     //!
     bool IsFormatSupported(PMOS_SURFACE surface);
-
-private:
-//!
-//! \brief    Setup Vebox_Surface_State Command parameter
-//! \param    [in/out] mhwVeboxSurfaceStateCmdParams
-//!            Pointer to VEBOX_SURFACE_STATE command parameters
-//! \param    [in] surface
-//!           Input surface pointer
-//! \param    [in] surface
-//!           output surface pointer
-//! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
-//!
-    MOS_STATUS SetupVeboxSurfaceState(
-        PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS mhwVeboxSurfaceStateCmdParams,
-        PMOS_SURFACE                        inputSurface,
-        PMOS_SURFACE                        outputSurface);
 
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;

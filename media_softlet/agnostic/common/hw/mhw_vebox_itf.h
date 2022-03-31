@@ -64,6 +64,10 @@ public:
 
     virtual MOS_STATUS CreateHeap() = 0;
 
+    virtual MOS_STATUS UpdateVeboxSync() = 0;
+
+    virtual MOS_STATUS AddVeboxTilingConvert(PMOS_COMMAND_BUFFER cmdBuffer, PMHW_VEBOX_SURFACE_PARAMS          inSurParams, PMHW_VEBOX_SURFACE_PARAMS outSurParams) = 0;
+
     virtual MOS_STATUS GetVeboxHeapInfo(const MHW_VEBOX_HEAP** ppVeboxHeap) = 0;
 
     virtual MOS_STATUS AddVeboxSurfaces(PMOS_COMMAND_BUFFER pCmdBufferInUse, PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS pVeboxSurfaceStateCmdParams) = 0;
