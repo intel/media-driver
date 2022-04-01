@@ -141,29 +141,29 @@ struct VP_POLICY_RULES
     {
         struct
         {
-            bool enable;                            // true if enable 2 pass scaling.
+            bool enable = false;                            // true if enable 2 pass scaling.
             struct
             {
-                float ratioFor1stPass;              // scaling ratio for 1st pass when 2 pass downscaling needed. valid value in [minSfcScalingRatio, 1).
-                float minRatioEnlarged;             // min ratio enlarged according to minSfcScalingRatio. valid value is [ratioFor1stPass, 1).
-                                                    // minRatio for 2 pass upscaling is minSfcScalingRatio * minRatioEnlarged.
-                bool scalingIn1stPassIf1PassEnough; // For 1 pass enough case, if true, do scaling in 1st pass, otherwise, do scaling in 2nd pass.
-                                                    // e.g. ratioX being 1/2 and ratioY being 1/16, if true, width will do scaling in 1st pass,
-                                                    // otherwise, width will do scaling in 2nd pass
+                float ratioFor1stPass  = 0;                 // scaling ratio for 1st pass when 2 pass downscaling needed. valid value in [minSfcScalingRatio, 1).
+                float minRatioEnlarged = 0;                 // min ratio enlarged according to minSfcScalingRatio. valid value is [ratioFor1stPass, 1).
+                                                            // minRatio for 2 pass upscaling is minSfcScalingRatio * minRatioEnlarged.
+                bool scalingIn1stPassIf1PassEnough = false; // For 1 pass enough case, if true, do scaling in 1st pass, otherwise, do scaling in 2nd pass.
+                                                            // e.g. ratioX being 1/2 and ratioY being 1/16, if true, width will do scaling in 1st pass,
+                                                            // otherwise, width will do scaling in 2nd pass
             } downScaling;
             struct
             {
-                float ratioFor1stPass;              // scaling ratio for 1st pass when 2 pass upscaling needed. valid value in (1, maxSfcScalingRatio].
-                float maxRatioEnlarged;             // Max ratio enlarged according to maxSfcScalingRatio. valid value is (1, ratioFor1stPass].
-                                                    // maxRatio for 2 pass upscaling is maxSfcScalingRatio * maxRatioEnlarged.
-                bool scalingIn1stPassIf1PassEnough; // For 1 pass enough case, if true, do scaling in 1st pass, otherwise, do scaling in 2nd pass.
-                                                    // e.g. ratioX being 2 and ratioY being 16, if true, width will do scaling in 1st pass,
-                                                    // otherwise, width will do scaling in 2nd pass
+                float ratioFor1stPass  = 0;                 // scaling ratio for 1st pass when 2 pass upscaling needed. valid value in (1, maxSfcScalingRatio].
+                float maxRatioEnlarged = 0;                 // Max ratio enlarged according to maxSfcScalingRatio. valid value is (1, ratioFor1stPass].
+                                                            // maxRatio for 2 pass upscaling is maxSfcScalingRatio * maxRatioEnlarged.
+                bool scalingIn1stPassIf1PassEnough = false; // For 1 pass enough case, if true, do scaling in 1st pass, otherwise, do scaling in 2nd pass.
+                                                            // e.g. ratioX being 2 and ratioY being 16, if true, width will do scaling in 1st pass,
+                                                            // otherwise, width will do scaling in 2nd pass
             } upScaling;
         } scaling;
         struct
         {
-            bool enable;
+            bool enable = false;
         } csc;
     } sfcMultiPassSupport;
 
