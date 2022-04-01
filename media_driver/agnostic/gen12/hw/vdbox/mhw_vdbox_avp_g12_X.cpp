@@ -1673,6 +1673,8 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodePicStateCmd(
         PCODEC_PICTURE  refFrameList = &(picParams->m_refFrameMap[0]);
         uint32_t        refFrameWidth[7], refFrameHeight[7];
         uint8_t         refPicIndex;
+        uint32_t        av1ScalingFactorMax = (1 << 15);  //!< AV1 Scaling factor range [1/16, 2]
+        uint32_t        av1ScalingFactorMin = (1 << 10);  //!< AV1 Scaling factor range [1/16, 2]
 
         union
         {
@@ -1710,6 +1712,10 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodePicStateCmd(
 
             refFrameRes[i].m_widthInPixelMinus1     = refFrameWidth[i] - 1;
             refFrameRes[i].m_heightInPixelMinus1    = refFrameHeight[i] - 1;
+            MHW_CHK_COND(refScaleFactor[i].m_horizontalScaleFactor > av1ScalingFactorMax, "Invalid parameter");
+            MHW_CHK_COND(refScaleFactor[i].m_verticalScaleFactor   > av1ScalingFactorMax, "Invalid parameter");
+            MHW_CHK_COND(refScaleFactor[i].m_horizontalScaleFactor < av1ScalingFactorMin, "Invalid parameter");
+            MHW_CHK_COND(refScaleFactor[i].m_verticalScaleFactor   < av1ScalingFactorMin, "Invalid parameter");
         }
 
         cmd.DW31.Value = CAT2SHORTS(picParams->m_frameWidthMinus1, picParams->m_frameHeightMinus1);
