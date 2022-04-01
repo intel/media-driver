@@ -198,8 +198,8 @@ MOS_STATUS VpFeatureManagerNext::UnregisterFeatures()
     {
         auto it = m_featureHandler.begin();
         SwFilterFeatureHandler* p = it->second;
-        m_featureHandler.erase(it);
         MOS_Delete(p);
+        m_featureHandler.erase(it);
     }
     m_isFeatureRegistered = false;
     return MOS_STATUS_SUCCESS;
