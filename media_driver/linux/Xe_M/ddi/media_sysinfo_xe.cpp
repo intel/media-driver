@@ -38,7 +38,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 //extern template class DeviceInfoFactory<GfxDeviceInfo>;
 typedef DeviceInfoFactory<GfxDeviceInfo> base_fact;
 
-static bool InitXeHPMediaSysInfo(struct GfxDeviceInfo *devInfo,
+bool InitXeHPMediaSysInfo(struct GfxDeviceInfo *devInfo,
                                 MEDIA_GT_SYSTEM_INFO *sysInfo)
 {
     if ((devInfo == nullptr) || (sysInfo == nullptr))
@@ -132,7 +132,7 @@ static bool InitXeHPShadowSku(struct GfxDeviceInfo *devInfo,
     return true;
 }
 
-static bool InitPvcShadowSku(struct GfxDeviceInfo *devInfo,
+bool InitPvcShadowSku(struct GfxDeviceInfo *devInfo,
                              SHADOW_MEDIA_FEATURE_TABLE *skuTable,
                              struct LinuxDriverInfo *drvInfo)
 {
@@ -210,7 +210,7 @@ static bool InitXeHPShadowWa(struct GfxDeviceInfo *devInfo,
     return true;
 }
 
-static bool InitPvcShadowWa(struct GfxDeviceInfo *devInfo,
+bool InitPvcShadowWa(struct GfxDeviceInfo *devInfo,
                             SHADOW_MEDIA_WA_TABLE *waTable,
                             struct LinuxDriverInfo *drvInfo)
 {
