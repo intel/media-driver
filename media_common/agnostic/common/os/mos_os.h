@@ -685,7 +685,7 @@ typedef struct _MOS_INTERFACE
 
     // Saved OS context
     PMOS_CONTEXT                    pOsContext;
-    MOS_GPU_CONTEXT                 CurrentGpuContextOrdinal;
+    MOS_GPU_CONTEXT                 CurrentGpuContextOrdinal = MOS_GPU_CONTEXT_MAX;
     //!< An internal handle that indexes into the list of GPU Context object
     uint32_t                        CurrentGpuContextHandle;
     //!< A handle to the graphics context device that can be used to calls back

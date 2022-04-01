@@ -600,6 +600,17 @@ private:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     MOS_STATUS DestroyGpuContextWithInvalidHandle();
+
+    //!
+    //! \brief    Check whether GPU context is reused or not
+    //! \details  Check whether GPU context is reused or not
+    //! \param    MOS_GPU_CONTEXT mosGpuConext
+    //!           [in] Mos GPU context
+    //! \return   bool
+    //!           Return true if is reused, otherwise false
+    //!
+    bool IsGpuContextReused(
+        MOS_GPU_CONTEXT mosGpuContext);
 };
 
 #endif  // __VPHAL_H__
