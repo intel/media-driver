@@ -95,23 +95,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
         mos_bufmgr_gem_enable_reuse(m_bufmgr);
 
-        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_ENABLE_SOFTPIN_ID,
-            &UserFeatureData,
-            osDriverContext);
-        if (UserFeatureData.i32Data)
-        {
-            bool softpin_va1Malign = false;
-            if (MEDIA_IS_SKU(&m_skuTable, Ftr1MGranularAuxTable))
-            {
-                softpin_va1Malign = true;
-            }
-
-            mos_bufmgr_gem_enable_softpin(m_bufmgr, softpin_va1Malign);
-        }
-
         osDriverContext->bufmgr                 = m_bufmgr;
 
         //Latency reducation:replace HWGetDeviceID to get device using ioctl from drm.
@@ -136,6 +119,23 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         {
             MOS_OS_ASSERTMESSAGE("Fatal error - unsuccesfull Sku/Wa/GtSystemInfo initialization");
             return eStatus;
+        }
+
+        MOS_ZeroMemory(&UserFeatureData, sizeof(UserFeatureData));
+        MOS_UserFeature_ReadValue_ID(
+            nullptr,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_SOFTPIN_ID,
+            &UserFeatureData,
+            osDriverContext);
+        if (UserFeatureData.i32Data)
+        {
+            bool softpin_va1Malign = false;
+            if (MEDIA_IS_SKU(&m_skuTable, Ftr1MGranularAuxTable))
+            {
+                softpin_va1Malign = true;
+            }
+
+            mos_bufmgr_gem_enable_softpin(m_bufmgr, softpin_va1Malign);
         }
 
         if (MEDIA_IS_SKU(&m_skuTable, FtrEnableMediaKernels) == 0)
