@@ -130,15 +130,34 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
         return;
     }
 
+    MediaPerfProfilerNext *profilerNext = MediaPerfProfilerNext::Instance();
+    if(profilerNext && profilerNext->m_profilerEnabled && profilerNext->m_mutex)
+    {
+        MosUtilities::MosLockMutex(profilerNext->m_mutex);
+
+        if(profilerNext->m_ref > 0)
+        {
+            profilerNext->m_ref--;
+        }
+
+        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
+    }
+
     MosUtilities::MosLockMutex(profiler->m_mutex);
-    profiler->m_ref--;
+
+    if(profiler->m_ref > 0)
+    {
+        profiler->m_ref--;
+    }
 
     osInterface->pfnWaitAllCmdCompletion(osInterface);
 
     profiler->m_contextIndexMap.erase(context);
 
-    if (profiler->m_ref == 0)
+    MosUtilities::MosLockMutex(profilerNext->m_mutex);
+    if (profiler->m_ref == 0 && profilerNext->m_ref == 0)
     {
+        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
         if (profiler->m_initialized == true)
         {
             if(profiler->m_enableProfilerDump)
@@ -157,33 +176,28 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
     }
     else
     {
+        MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
         MosUtilities::MosUnlockMutex(profiler->m_mutex);
     }
 
     PERF_UTILITY_PRINT;
 
     //Destroy APO perf profiler here without writting bin file again. Destroy() in APO class is not called before media softlet build done.
-    if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
-    {
-        return;
-    }
-
-    MediaPerfProfilerNext *profilerNext = MediaPerfProfilerNext::Instance();
-
     if (!profilerNext || profilerNext->m_profilerEnabled == 0 || profilerNext->m_mutex == nullptr)
     {
         return;
     }
 
     MosUtilities::MosLockMutex(profilerNext->m_mutex);
-    profilerNext->m_ref--;
 
     osInterface->pfnWaitAllCmdCompletion(osInterface);
 
     profilerNext->m_contextIndexMap.erase(context);
 
-    if (profilerNext->m_ref == 0)
+    MosUtilities::MosLockMutex(profiler->m_mutex);
+    if (profiler->m_ref == 0 && profilerNext->m_ref == 0)
     {
+        MosUtilities::MosUnlockMutex(profiler->m_mutex);
         if (profilerNext->m_initialized == true)
         {
 
@@ -198,6 +212,7 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
     }
     else
     {
+        MosUtilities::MosUnlockMutex(profiler->m_mutex);
         MosUtilities::MosUnlockMutex(profilerNext->m_mutex);
     }
 
@@ -440,10 +455,9 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     perfDataIndex = m_perfDataIndex;
     m_perfDataIndex++;
 
-    MosUtilities::MosUnlockMutex(m_mutex);
-
     if (BASE_OF_NODE(perfDataIndex) + sizeof(PerfEntry) > m_bufferSize)
     {
+        MosUtilities::MosUnlockMutex(m_mutex);
         MOS_OS_ASSERTMESSAGE("Reached maximum perf data buffer size, please increase it in Performance\\Perf Profiler Buffer Size");
         return MOS_STATUS_NOT_ENOUGH_BUFFER;
     }
@@ -459,20 +473,20 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (m_multiprocess)
     {
-        CHK_STATUS_RETURN(StoreDataNext(
+        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
             miInterface,
             cmdBuffer,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, processId),
             MosUtilities::MosGetPid()));
     }
 
-    CHK_STATUS_RETURN(StoreDataNext(
+    CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
         miInterface,
         cmdBuffer,
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, perfTag),
         osInterface->pfnGetPerfTag(osInterface)));
 
-    CHK_STATUS_RETURN(StoreDataNext(
+    CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
         miInterface,
         cmdBuffer,
         BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, engineTag),
@@ -480,7 +494,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (m_timerBase != 0)
     {
-        CHK_STATUS_RETURN(StoreDataNext(
+        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
             miInterface,
             cmdBuffer,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, timeStampBase),
@@ -492,7 +506,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
     {
         if (m_registers[regIndex] != 0)
         {
-            CHK_STATUS_RETURN(StoreRegisterNext(
+            CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreRegisterNext(
                 osInterface,
                 miInterface,
                 cmdBuffer,
@@ -507,7 +521,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     for (int i = 0; i < 2; i++)
     {
-        CHK_STATUS_RETURN(StoreDataNext(
+        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreDataNext(
             miInterface,
             cmdBuffer,
             BASE_OF_NODE(perfDataIndex) + OFFSET_OF(PerfEntry, beginCpuTime[i]),
@@ -520,18 +534,20 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectStartCmd(void* context,
 
     if (rcsEngineUsed)
     {
-        CHK_STATUS_RETURN(StoreTSByPipeCtrlNext(
+        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByPipeCtrlNext(
             miInterface,
             cmdBuffer,
             offset));
     }
     else
     {
-        CHK_STATUS_RETURN(StoreTSByMiFlushNext(
+        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByMiFlushNext(
             miInterface,
             cmdBuffer,
             offset));
     }
+
+    MosUtilities::MosUnlockMutex(m_mutex);
 
     return status;
 }
@@ -555,6 +571,8 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
     MOS_GPU_CONTEXT  gpuContext;
     bool             rcsEngineUsed = false;
     uint32_t         perfDataIndex = 0;
+
+    MosUtilities::MosLockMutex(m_mutex);
     m_miItf = std::static_pointer_cast<mhw::mi::Itf>(miInterface->GetNewMiInterface());
 
     gpuContext     = osInterface->pfnGetGpuContext(osInterface);
@@ -567,7 +585,7 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
     {
         if (m_registers[regIndex] != 0)
         {
-            CHK_STATUS_RETURN(StoreRegisterNext(
+            CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreRegisterNext(
                 osInterface,
                 miInterface,
                 cmdBuffer,
@@ -582,19 +600,20 @@ MOS_STATUS MediaPerfProfiler::AddPerfCollectEndCmd(void* context,
 
     if (rcsEngineUsed)
     {
-        CHK_STATUS_RETURN(StoreTSByPipeCtrlNext(
+        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByPipeCtrlNext(
             miInterface,
             cmdBuffer,
             offset));
     }
     else
     {
-        CHK_STATUS_RETURN(StoreTSByMiFlushNext(
+        CHK_STATUS_UNLOCK_MUTEX_RETURN(StoreTSByMiFlushNext(
             miInterface,
             cmdBuffer,
             offset));
     }
 
+    MosUtilities::MosUnlockMutex(m_mutex);
     return status;
 }
 
