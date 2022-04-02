@@ -584,18 +584,6 @@ public:
         return m_pakHWTileSizeRecordSize;
     }
 
-    uint32_t GetHcpVp9PicStateCommandSize()
-    {
-        // Just return success here, please implement logic in platform sepecific impl class.
-        return MOS_STATUS_SUCCESS;
-    }
-
-    uint32_t GetHcpVp9SegmentStateCommandSize()
-    {
-        // Just return success here, please implement logic in platform sepecific impl class.
-        return MOS_STATUS_SUCCESS;
-    }
-
     MOS_STATUS GetHcpStateCommandSize(
         uint32_t                        mode,
         uint32_t                       *commandsSize,
