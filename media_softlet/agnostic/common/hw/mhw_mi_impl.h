@@ -164,6 +164,18 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS AddBatchBufferEndInsertionFlag(MOS_COMMAND_BUFFER &constructedCmdBuf)
+    {
+        MHW_FUNCTION_ENTER;
+
+        typename cmd_t::MI_BATCH_BUFFER_END_CMD cmd;
+
+        MHW_CHK_NULL_RETURN(constructedCmdBuf.pCmdPtr);
+        *((typename cmd_t::MI_BATCH_BUFFER_END_CMD *)(constructedCmdBuf.pCmdPtr)) = cmd;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MHW_MI_MMIOREGISTERS* GetMmioRegisters() override
     {
         return &m_mmioRegisters;

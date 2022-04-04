@@ -95,6 +95,8 @@ public:
 
     virtual MOS_STATUS AddMiBatchBufferEnd(PMOS_COMMAND_BUFFER cmdBuffer, PMHW_BATCH_BUFFER batchBuffer) = 0;
 
+    virtual MOS_STATUS AddBatchBufferEndInsertionFlag(MOS_COMMAND_BUFFER &constructedCmdBuf) = 0;
+
     virtual MHW_MI_MMIOREGISTERS* GetMmioRegisters() = 0;
 
     virtual MOS_STATUS SetCpInterface(MhwCpInterface *cpInterface) = 0;
