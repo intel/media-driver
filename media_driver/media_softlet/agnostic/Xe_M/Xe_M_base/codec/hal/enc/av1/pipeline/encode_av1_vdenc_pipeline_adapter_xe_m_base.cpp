@@ -51,6 +51,8 @@ MOS_STATUS EncodeAv1VdencPipelineAdapterXe_M_Base::Execute(void    *params)
 {
     ENCODE_FUNC_CALL();
 
+    PERF_UTILITY_AUTO(__FUNCTION__, PERF_ENCODE, PERF_LEVEL_HAL);
+
     ENCODE_CHK_STATUS_RETURN(m_encoder->Prepare(params));
     return m_encoder->Execute();
 }
