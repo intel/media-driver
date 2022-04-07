@@ -120,7 +120,9 @@ MhwBltInterface::MhwBltInterface(PMOS_INTERFACE pOsInterface)
 
 MOS_STATUS MhwBltInterface::AddFastCopyBlt(
     PMOS_COMMAND_BUFFER      pCmdBuffer,
-    PMHW_FAST_COPY_BLT_PARAM pFastCopyBltParam)
+    PMHW_FAST_COPY_BLT_PARAM pFastCopyBltParam,
+    uint32_t                    srcOffset,
+    uint32_t                    dstOffset)
 {
     MHW_FUNCTION_ENTER;
 
@@ -157,6 +159,7 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
     // add source address
     MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
     ResourceParams.dwLsbNum        = 12;
+    ResourceParams.dwOffset        = srcOffset;
     ResourceParams.presResource    = pFastCopyBltParam->pSrcOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW8_9.Value[0]);
     ResourceParams.dwLocationInCmd = 8;
@@ -170,6 +173,7 @@ MOS_STATUS MhwBltInterface::AddFastCopyBlt(
     // add destination address
     MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
     ResourceParams.dwLsbNum        = 12;
+    ResourceParams.dwOffset        = dstOffset;
     ResourceParams.presResource    = pFastCopyBltParam->pDstOsResource;
     ResourceParams.pdwCmd          = &(cmd.DW4_5.Value[0]);
     ResourceParams.dwLocationInCmd = 4;

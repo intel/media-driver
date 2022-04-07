@@ -486,6 +486,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
     MHW_FAST_COPY_BLT_PARAM      fastCopyBltParam;
     MHW_CTRL_SURF_COPY_BLT_PARAM ctrlSurfCopyBltParam;
     MOS_GPUCTX_CREATOPTIONS      createOption = {};
+    int                          planeNum = 1;
     PMHW_BLT_INTERFACE_XE_HPC    pbltInterface = dynamic_cast<PMHW_BLT_INTERFACE_XE_HPC>(m_bltInterface);
 
     BLT_CHK_NULL(pbltInterface);
@@ -503,12 +504,27 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
     MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
     BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
+    MOS_SURFACE       srcResDetails;
+    MOS_SURFACE       dstResDetails;
+    MOS_ZeroMemory(&srcResDetails, sizeof(MOS_SURFACE));
+    MOS_ZeroMemory(&dstResDetails, sizeof(MOS_SURFACE));
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pSrcSurface, &srcResDetails));
+    BLT_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(m_osInterface, pBltStateParam->pDstSurface, &dstResDetails));
+
+    if (srcResDetails.Format != dstResDetails.Format)
+    {
+        MCPY_ASSERTMESSAGE("BLT copy can't support CSC copy. input format = %d, output format = %d", srcResDetails.Format, dstResDetails.Format);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+    planeNum = GetPlaneNum(dstResDetails.Format);
+
     if (pBltStateParam->bCopyMainSurface)
     {
-        BLT_CHK_STATUS_RETURN(SetupFastCopyBltParam(
+        BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
             &fastCopyBltParam,
             pBltStateParam->pSrcSurface,
-            pBltStateParam->pDstSurface));
+            pBltStateParam->pDstSurface,
+            0));
 
         MHW_MI_LOAD_REGISTER_IMM_PARAMS RegisterDwParams;
         MOS_ZeroMemory(&RegisterDwParams, sizeof(RegisterDwParams));
@@ -520,7 +536,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
             swctrl.DW0.Tile4Source = 1;
         }
         if (pBltStateParam->pDstSurface->TileType != MOS_TILE_LINEAR)
-        {
+        {//output tiled
             swctrl.DW0.Tile4Destination = 1;
         }
 
@@ -528,8 +544,44 @@ MOS_STATUS BltStateXe_Xpm_Plus::SubmitCMD(
         m_miInterface->AddMiLoadRegisterImmCmd(&cmdBuffer, &RegisterDwParams);
 
         BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
-         &cmdBuffer,
-         &fastCopyBltParam));
+            &cmdBuffer,
+            &fastCopyBltParam,
+            srcResDetails.YPlaneOffset.iSurfaceOffset,
+            dstResDetails.YPlaneOffset.iSurfaceOffset));
+
+        if (planeNum >= 2)
+        {
+            BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
+             &fastCopyBltParam,
+             pBltStateParam->pSrcSurface,
+             pBltStateParam->pDstSurface,
+             1));
+            BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
+                 &cmdBuffer,
+                 &fastCopyBltParam,
+                 srcResDetails.UPlaneOffset.iSurfaceOffset,
+                 dstResDetails.UPlaneOffset.iSurfaceOffset));
+
+              if (planeNum == 3)
+              {
+                  BLT_CHK_STATUS_RETURN(SetupBltCopyParam(
+                      &fastCopyBltParam,
+                      pBltStateParam->pSrcSurface,
+                      pBltStateParam->pDstSurface,
+                      2));
+                  BLT_CHK_STATUS_RETURN(m_bltInterface->AddFastCopyBlt(
+                      &cmdBuffer,
+                      &fastCopyBltParam,
+                      srcResDetails.VPlaneOffset.iSurfaceOffset,
+                      dstResDetails.VPlaneOffset.iSurfaceOffset));
+              }
+              else if(planeNum > 3)
+              {
+                  MCPY_ASSERTMESSAGE("illegal usage");
+                  return MOS_STATUS_INVALID_PARAMETER;
+              }
+         }
+
     }
 
     if (pBltStateParam->bCopyCCS)

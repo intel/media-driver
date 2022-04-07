@@ -490,12 +490,18 @@ public:
     //!           Pointer to Command buffer
     //! \param    [in] pFastCopyBltParam
     //!           Pointer to MHW_FAST_COPY_BLT_PARAM
+    //! \param    [in] srcOffset
+    //!           input surface's soruce offset
+    //! \param    [in] outOffset
+    //!           output surface's soruce offset
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS AddFastCopyBlt(
         PMOS_COMMAND_BUFFER         pCmdBuffer,
-        PMHW_FAST_COPY_BLT_PARAM    pFastCopyBltParam);
+        PMHW_FAST_COPY_BLT_PARAM    pFastCopyBltParam,
+        uint32_t                    srcOffset,
+        uint32_t                    dstOffset);
 
     //!
     //! \brief    Add Block copy
