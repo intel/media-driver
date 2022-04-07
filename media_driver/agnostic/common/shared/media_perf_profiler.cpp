@@ -87,6 +87,14 @@ struct NodeHeader
     }                                              \
 }
 
+#define CHK_NULL_NO_STATUS_RETURN(_ptr)            \
+{                                                  \
+    if ((_ptr) == nullptr)                         \
+    {                                              \
+        return;                                    \
+    }                                              \
+}
+
 #define CHK_STATUS_UNLOCK_MUTEX_RETURN(_stmt)      \
 {                                                  \
     MOS_STATUS stmtStatus = (MOS_STATUS)(_stmt);   \
@@ -125,13 +133,16 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 {
     PERF_UTILITY_PRINT;
 
+    CHK_NULL_NO_STATUS_RETURN(profiler);
     if (profiler->m_profilerEnabled == 0 || profiler->m_mutex == nullptr)
     {
         return;
     }
 
     MediaPerfProfilerNext *profilerNext = MediaPerfProfilerNext::Instance();
-    if(profilerNext && profilerNext->m_profilerEnabled && profilerNext->m_mutex)
+    CHK_NULL_NO_STATUS_RETURN(profilerNext);
+
+    if(profilerNext->m_profilerEnabled && profilerNext->m_mutex)
     {
         MosUtilities::MosLockMutex(profilerNext->m_mutex);
 
@@ -183,7 +194,7 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
     PERF_UTILITY_PRINT;
 
     //Destroy APO perf profiler here without writting bin file again. Destroy() in APO class is not called before media softlet build done.
-    if (!profilerNext || profilerNext->m_profilerEnabled == 0 || profilerNext->m_mutex == nullptr)
+    if (profilerNext->m_profilerEnabled == 0 || profilerNext->m_mutex == nullptr)
     {
         return;
     }
