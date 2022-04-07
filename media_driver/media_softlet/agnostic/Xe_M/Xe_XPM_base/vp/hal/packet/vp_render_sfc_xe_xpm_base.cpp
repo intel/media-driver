@@ -37,8 +37,7 @@ SfcRenderXe_Xpm_Base::SfcRenderXe_Xpm_Base(
     VP_MHWINTERFACE &vpMhwinterface,
     PVpAllocator &allocator,
     bool disbaleSfcDithering):
-    SfcRenderM12(vpMhwinterface, allocator),
-    m_disableSfcDithering(disbaleSfcDithering)
+    SfcRenderM12(vpMhwinterface, allocator, disbaleSfcDithering)
 {
 }
 
@@ -61,10 +60,6 @@ MOS_STATUS SfcRenderXe_Xpm_Base::InitSfcStateParams()
     }
 
     VP_PUBLIC_CHK_NULL_RETURN(m_sfcStateParamsLegacy);
-
-    MHW_SFC_STATE_PARAMS_XE_XPM *param = (MHW_SFC_STATE_PARAMS_XE_XPM*)m_sfcStateParamsLegacy;
-    // Dithering parameter
-    param->ditheringEn = m_disableSfcDithering ? 0 : 1;
 
     m_renderDataLegacy.sfcStateParams = m_sfcStateParamsLegacy;
 
@@ -190,6 +185,28 @@ MOS_STATUS SfcRenderXe_Xpm_Base::SetScalingParams(PSFC_SCALING_PARAMS scalingPar
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS SfcRenderXe_Xpm_Base::SetCSCParams(PSFC_CSC_PARAMS cscParams)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_STATUS_RETURN(SfcRenderBaseLegacy::SetCSCParams(cscParams));
+
+    MHW_SFC_STATE_PARAMS_XE_XPM *param = (MHW_SFC_STATE_PARAMS_XE_XPM *)m_renderDataLegacy.sfcStateParams;
+    if (cscParams->isDitheringNeeded && !m_disableSfcDithering)
+    {
+        param->ditheringEn = true;
+    }
+    else
+    {
+        param->ditheringEn = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("cscParams.isDitheringNeeded = %d, m_disableSfcDithering = %d, ditheringEn = %d",
+        cscParams->isDitheringNeeded,
+        m_disableSfcDithering,
+        param->ditheringEn);
+    return MOS_STATUS_SUCCESS;
+}
+
 
 MOS_STATUS SfcRenderXe_Xpm_Base::SetInterlacedScalingParams(PSFC_SCALING_PARAMS scalingParams)
 {

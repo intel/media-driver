@@ -180,6 +180,40 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
     return inputColorSpace;
 }
 
+bool VpCscFilter::IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
+{
+    uint32_t inputBitDepth = VpUtils::GetSurfaceBitDepth(formatInput);
+    if (inputBitDepth == 0)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Unknown Input format %d for bit depth, return false", formatInput);
+        return false;
+    }
+    uint32_t outputBitDepth = VpUtils::GetSurfaceBitDepth(formatOutput);
+    if (outputBitDepth == 0)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Unknown Output format %d for bit depth, return false", formatOutput);
+        return false;
+    }
+    if (inputBitDepth > outputBitDepth)
+    {
+        VP_RENDER_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return true",
+            formatInput,
+            inputBitDepth,
+            formatOutput,
+            outputBitDepth);
+        return true;
+    }
+    else
+    {
+        VP_RENDER_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return false",
+            formatInput,
+            inputBitDepth,
+            formatOutput,
+            outputBitDepth);
+        return false;
+    }
+}
+
 MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
 {
     VP_FUNC_CALL();
@@ -215,6 +249,10 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     }
 
     m_cscParams.input.colorSpace    = m_cscParams.input.colorSpace;
+
+    // IsDitheringNeeded should be called before input format being updated by GetSfcInputFormat
+    m_sfcCSCParams->isDitheringNeeded = IsDitheringNeeded(m_cscParams.formatInput, m_cscParams.formatOutput);
+
     m_sfcCSCParams->inputColorSpace = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace);
 
     m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput, m_cscParams.output.colorSpace);

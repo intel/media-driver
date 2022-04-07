@@ -118,6 +118,17 @@ protected:
     //!
     bool IsChromaUpSamplingNeeded();
 
+    //!
+    //! \brief    Check whether dithering Needed
+    //! \details  Check whether dithering Needed
+    //! \param    [in] formatInput
+    //!           The input format
+    //!           [in] formatOutput
+    //!           The output format
+    //! \return   bool
+    //!
+    bool IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
+
 protected:
     FeatureParamCsc     m_cscParams = {};
     PSFC_CSC_PARAMS     m_sfcCSCParams   = nullptr;

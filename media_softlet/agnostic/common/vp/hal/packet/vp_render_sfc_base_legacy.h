@@ -40,7 +40,7 @@ class SfcRenderBaseLegacy : public SfcRenderBase
 {
 
 public:
-    SfcRenderBaseLegacy(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator);
+    SfcRenderBaseLegacy(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator, bool disbaleSfcDithering);
     virtual ~SfcRenderBaseLegacy();
 
     //!

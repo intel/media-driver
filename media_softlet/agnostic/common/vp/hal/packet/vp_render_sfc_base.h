@@ -44,7 +44,7 @@ class SfcRenderBase
 {
 
 public:
-    SfcRenderBase(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator);
+    SfcRenderBase(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator, bool disbaleSfcDithering);
     virtual ~SfcRenderBase();
 
     //!
@@ -564,6 +564,7 @@ protected:
 
     MHW_SFC_OUT_SURFACE_PARAMS      m_outSurfaceParam = {};
 
+    bool                            m_disableSfcDithering = false;
 
 MEDIA_CLASS_DEFINE_END(SfcRenderBase)
 };

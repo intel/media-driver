@@ -38,8 +38,9 @@ namespace vp {
 
     SfcRenderBaseLegacy::SfcRenderBaseLegacy(
     VP_MHWINTERFACE &vpMhwinterface,
-    PVpAllocator &allocator):
-    SfcRenderBase(vpMhwinterface, allocator)
+    PVpAllocator &allocator,
+    bool disbaleSfcDithering) :
+    SfcRenderBase(vpMhwinterface, allocator, disbaleSfcDithering)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_sfcInterface);
 

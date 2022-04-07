@@ -103,7 +103,8 @@ MOS_STATUS VpPlatformInterfaceG12Tgllp::CreateSfcRender(SfcRenderBase *&sfcRende
 
     sfcRender = MOS_New(SfcRenderM12,
             vpMhwinterface,
-            allocator);
+            allocator,
+            true);
     VP_PUBLIC_CHK_NULL_RETURN(sfcRender);
 
     VpIef *iefObj = MOS_New(VpIef);

@@ -48,6 +48,16 @@ public:
         MOS_FORMAT                  outputFormat,
         MOS_TILE_TYPE               tileType);
     virtual MOS_STATUS SetScalingParams(PSFC_SCALING_PARAMS scalingParams);
+
+    //!
+    //! \brief    Set csc parameters
+    //! \details  Set csc parameters
+    //! \param    [in] cscParams
+    //!           Csc parameters
+    //! \return   MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetCSCParams(PSFC_CSC_PARAMS cscParams) override;
+
 protected:
     virtual MOS_STATUS SetInterlacedScalingParams(PSFC_SCALING_PARAMS scalingParams);
     virtual MOS_STATUS InitSfcStateParams();
@@ -59,7 +69,6 @@ protected:
     virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams);
 
     VP_SURFACE *m_tempFieldSurface = nullptr;
-    bool m_disableSfcDithering = false;
 };
 
 }

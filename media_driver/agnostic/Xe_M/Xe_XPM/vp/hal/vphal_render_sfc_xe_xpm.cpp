@@ -116,7 +116,19 @@ MOS_STATUS VphalSfcStateXe_Xpm::SetSfcStateParams(
     eStatus = VphalSfcStateG12::SetSfcStateParams(pRenderData, pSrcSurface, pOutSurface);
 
     // Dithering parameter
-    sfcStateParams->ditheringEn = m_disableSfcDithering ? 0 : 1;
+    bool isDitheringNeeded = IsDitheringNeeded(pSrcSurface->Format, pOutSurface->Format);
+    if (!m_disableSfcDithering && isDitheringNeeded)
+    {
+        sfcStateParams->ditheringEn = true;
+    }
+    else
+    {
+        sfcStateParams->ditheringEn = false;
+    }
+    VPHAL_RENDER_NORMALMESSAGE("cscParams.isDitheringNeeded = %d, m_disableSfcDithering = %d, ditheringEn = %d",
+        isDitheringNeeded,
+        m_disableSfcDithering,
+        sfcStateParams->ditheringEn);
 
     if (pSrcSurface->InterlacedScalingType != ISCALING_NONE)
     {
@@ -511,6 +523,40 @@ VPHAL_OUTPUT_PIPE_MODE VphalSfcStateXe_Xpm::GetOutputPipe(
     }
 finish:
     return OutputPipe;
+}
+
+bool VphalSfcStateXe_Xpm::IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOutput)
+{
+    uint32_t inputBitDepth = VpUtils::GetSurfaceBitDepth(formatInput);
+    if (inputBitDepth == 0)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Unknown Input format %d for bit depth, return false", formatInput);
+        return false;
+    }
+    uint32_t outputBitDepth = VpUtils::GetSurfaceBitDepth(formatOutput);
+    if (outputBitDepth == 0)
+    {
+        VPHAL_RENDER_ASSERTMESSAGE("Unknown Output format %d for bit depth, return false", formatOutput);
+        return false;
+    }
+    if (inputBitDepth > outputBitDepth)
+    {
+        VPHAL_RENDER_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return true",
+            formatInput,
+            inputBitDepth,
+            formatOutput,
+            outputBitDepth);
+        return true;
+    }
+    else
+    {
+        VPHAL_RENDER_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return false",
+            formatInput,
+            inputBitDepth,
+            formatOutput,
+            outputBitDepth);
+        return false;
+    }
 }
 
 //!

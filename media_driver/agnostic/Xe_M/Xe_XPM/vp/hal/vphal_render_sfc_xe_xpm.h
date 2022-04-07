@@ -171,6 +171,17 @@ finish:
         return isOutputCapable;
     }
 
+    //!
+    //! \brief    Check whether dithering Needed
+    //! \details  Check whether dithering Needed
+    //! \param    [in] formatInput
+    //!           The input format
+    //!           [in] formatOutput
+    //!           The output format
+    //! \return   bool
+    //!
+    bool IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOutput);
+
     VPHAL_SURFACE m_AVSLineBufferSurfaceSplit[MHW_SFC_MAX_PIPE_NUM_XE_XPM] = {}; //!< AVS Line Buffer Surface for SFC
     VPHAL_SURFACE m_IEFLineBufferSurfaceSplit[MHW_SFC_MAX_PIPE_NUM_XE_XPM] = {}; //!< IEF Line Buffer Surface for SFC
 

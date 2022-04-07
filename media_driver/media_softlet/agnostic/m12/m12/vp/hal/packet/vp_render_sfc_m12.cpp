@@ -35,8 +35,9 @@ using namespace vp;
 
 SfcRenderM12::SfcRenderM12(
     VP_MHWINTERFACE &vpMhwinterface,
-    PVpAllocator &allocator):
-    SfcRenderBaseLegacy(vpMhwinterface, allocator)
+    PVpAllocator &allocator,
+    bool disbaleSfcDithering) :
+    SfcRenderBaseLegacy(vpMhwinterface, allocator, disbaleSfcDithering)
 {
 }
 

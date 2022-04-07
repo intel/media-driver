@@ -37,7 +37,7 @@ namespace vp {
 class SfcRenderM12 : public SfcRenderBaseLegacy
 {
 public:
-    SfcRenderM12(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator);
+    SfcRenderM12(VP_MHWINTERFACE &vpMhwinterface, PVpAllocator &allocator, bool disbaleSfcDithering);
     virtual     ~SfcRenderM12();
 
     //!

@@ -39,8 +39,10 @@ namespace vp {
 
 SfcRenderBase::SfcRenderBase(
     VP_MHWINTERFACE &vpMhwinterface,
-    PVpAllocator &allocator):
-    m_allocator(allocator)
+    PVpAllocator &allocator,
+    bool disbaleSfcDithering) :
+    m_allocator(allocator),
+    m_disableSfcDithering(disbaleSfcDithering)
 {
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_osInterface);
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(vpMhwinterface.m_mhwMiInterface);
@@ -795,6 +797,19 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
 
     m_renderData.sfcStateParams->bRGBASwapEnable = IsOutputChannelSwapNeeded(cscParams->outputFormat);
     m_renderData.sfcStateParams->bInputColorSpace = cscParams->isInputColorSpaceRGB;
+
+    // Dithering parameter
+    if (cscParams->isDitheringNeeded && !m_disableSfcDithering)
+    {
+        m_renderData.sfcStateParams->ditheringEn = true;
+    }
+    else
+    {
+        m_renderData.sfcStateParams->ditheringEn = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("cscParams.isDitheringNeeded = %d, m_disableSfcDithering = %d, ditheringEn = %d", 
+        cscParams->isDitheringNeeded, m_disableSfcDithering, m_renderData.sfcStateParams->ditheringEn);
+
 
     // Chromasitting config
     // VEBOX use polyphase coefficients for 1x scaling for better quality,

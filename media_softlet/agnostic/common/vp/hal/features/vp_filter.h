@@ -165,6 +165,7 @@ struct _SFC_CSC_PARAMS
     bool                            bIEFEnable;                                  // IEF Enabled
     bool                            bChromaUpSamplingEnable;                     // ChromaUpSampling
     bool                            b8tapChromafiltering;                        // Enables 8 tap filtering for Chroma Channels
+    bool                            isDitheringNeeded;                           // 0: dithering is not needed; 1: dithering is needed
     VPHAL_CSPACE                    inputColorSpace;                             // Input Color Space
     MOS_FORMAT                      inputFormat;                                 // SFC Input Format
     MOS_FORMAT                      outputFormat;                                // SFC Output Format
