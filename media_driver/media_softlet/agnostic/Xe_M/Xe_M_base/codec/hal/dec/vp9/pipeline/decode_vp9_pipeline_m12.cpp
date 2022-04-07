@@ -35,6 +35,7 @@
 #include "decode_vp9_mem_compression_m12.h"
 #include "decode_vp9_downsampling_packet.h"
 #include "decode_common_feature_defs.h"
+#include "decode_resource_auto_lock.h"
 
 namespace decode
 {
@@ -97,7 +98,7 @@ MOS_STATUS Vp9PipelineG12::Prepare(void *params)
                 );
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-            DumpTraceDataInternalBuffers(*m_basicFeature);
+            TraceDataDumpInternalBuffers(*m_basicFeature);
 #endif
 
             DecodeStatusParameters inputParameters = {};
@@ -322,24 +323,44 @@ MOS_STATUS Vp9PipelineG12::DumpParams(Vp9BasicFeature &basicFeature)
 }
 #endif
 
-void Vp9PipelineG12::DumpTraceDataInternalBuffers(Vp9BasicFeature &basicFeature)
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+MOS_STATUS Vp9PipelineG12::TraceDataDumpInternalBuffers(Vp9BasicFeature &basicFeature)
 {  
     if (MOS_GetTraceEventKeyword() & EVENT_DECODE_INTERNAL_KEYWORD)
     {
-        m_osInterface->pfnDumpTraceGpuData(
-            m_osInterface,
-            "Decode_Vp9SegmentIdBeforeHCP",
-            0,
-            &(basicFeature.m_resVp9SegmentIdBuffer->OsResource),
-            basicFeature.m_allocatedWidthInSb * basicFeature.m_allocatedHeightInSb * CODECHAL_CACHELINE_SIZE);
+        if (!m_allocator->ResourceIsNull(&(basicFeature.m_resVp9SegmentIdBuffer->OsResource)))
+        {
+            ResourceAutoLock resLock(m_allocator, &(basicFeature.m_resVp9SegmentIdBuffer->OsResource));
+            auto             pData = (uint8_t *)resLock.LockResourceForRead();
+            DECODE_CHK_NULL(pData);
 
-        m_osInterface->pfnDumpTraceGpuData(
-            m_osInterface,
-            "Decode_Vp9CoeffProbsBeforeHCP",
-            0,
-            &(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource),
-            CODEC_VP9_PROB_MAX_NUM_ELEM);
+            MOS_TraceDataDump(
+                "Decode_Vp9SegmentIdBeforeHCP",
+                0,
+                pData,
+                basicFeature.m_allocatedWidthInSb * basicFeature.m_allocatedHeightInSb * CODECHAL_CACHELINE_SIZE);
+
+            m_allocator->UnLock(&(basicFeature.m_resVp9SegmentIdBuffer->OsResource));
+        }
+
+        if (!m_allocator->ResourceIsNull(&(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource)))
+        {
+            ResourceAutoLock resLock(m_allocator, &(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource));
+            auto             pData = (uint8_t *)resLock.LockResourceForRead();
+            DECODE_CHK_NULL(pData);
+
+            MOS_TraceDataDump(
+                "Decode_Vp9CoeffProbsBeforeHCP",
+                0,
+                pData,
+                CODEC_VP9_PROB_MAX_NUM_ELEM);
+
+            m_allocator->UnLock(&(basicFeature.m_resVp9ProbBuffer[basicFeature.m_frameCtxIdx]->OsResource));
+        }
     }
+
+    return MOS_STATUS_SUCCESS;
 }
+#endif
 
 }  // namespace decode

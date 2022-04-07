@@ -199,6 +199,35 @@ VAStatus DdiDecodeHEVCG12::ParseSliceParams(
         }
         codecSlcParams++;
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_SLICEPARAM_KEYWORD)
+    {
+        if (m_ddiDecodeCtx->bShortFormatInUse)
+        {
+            DECODE_EVENTDATA_SLICEPARAM_HEVC *pEventData = (DECODE_EVENTDATA_SLICEPARAM_HEVC *)MOS_AllocMemory(numSlices * sizeof(DECODE_EVENTDATA_SLICEPARAM_HEVC));
+            DecodeEventDataHEVCSliceParamInit(pEventData, (PCODEC_HEVC_SLICE_PARAMS)(m_ddiDecodeCtx->DecodeParams.m_sliceParams), numSlices);
+            MOS_TraceEvent(EVENT_DECODE_BUFFER_SLICEPARAM_HEVC, EVENT_TYPE_INFO, &numSlices, sizeof(uint32_t), pEventData, numSlices * sizeof(DECODE_EVENTDATA_SLICEPARAM_HEVC));
+            MOS_FreeMemory(pEventData);
+        }
+        else
+        {
+            DECODE_EVENTDATA_LONGSLICEPARAM_HEVC *pEventData = (DECODE_EVENTDATA_LONGSLICEPARAM_HEVC *)MOS_AllocMemory(numSlices * sizeof(DECODE_EVENTDATA_LONGSLICEPARAM_HEVC));
+            DecodeEventDataHEVCLongSliceParamInit(pEventData, (PCODEC_HEVC_SLICE_PARAMS)(m_ddiDecodeCtx->DecodeParams.m_sliceParams), numSlices);
+            MOS_TraceEvent(EVENT_DECODE_BUFFER_LONGSLICEPARAM_HEVC, EVENT_TYPE_INFO, &numSlices, sizeof(uint32_t), pEventData, numSlices * sizeof(DECODE_EVENTDATA_LONGSLICEPARAM_HEVC));
+            MOS_FreeMemory(pEventData);
+
+            if(isHevcRext)
+            {
+                DECODE_EVENTDATA_REXTLONGSLICEPARAM_HEVC *pEventData = (DECODE_EVENTDATA_REXTLONGSLICEPARAM_HEVC *)MOS_AllocMemory(numSlices * sizeof(DECODE_EVENTDATA_REXTLONGSLICEPARAM_HEVC));
+                DecodeEventDataHEVCRExtLongSliceParamInit(pEventData, (PCODEC_HEVC_EXT_SLICE_PARAMS)(m_ddiDecodeCtx->DecodeParams.m_extSliceParams), numSlices, isHevcScc);
+                MOS_TraceEvent(EVENT_DECODE_BUFFER_REXTLONGSLICEPARAM_HEVC, EVENT_TYPE_INFO, &numSlices, sizeof(uint32_t), pEventData, numSlices * sizeof(DECODE_EVENTDATA_REXTLONGSLICEPARAM_HEVC));
+                MOS_FreeMemory(pEventData);
+            }
+        }
+    }
+#endif
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -429,6 +458,29 @@ VAStatus DdiDecodeHEVCG12::ParsePicParams(
         uint32_t uiCopySize = sizeof(codecPicParamsScc->PredictorPaletteEntries);
         MOS_SecureMemcpy(&codecPicParamsScc->PredictorPaletteEntries, uiCopySize, &picParamScc->predictor_palette_entries, uiCopySize);
     }
+
+#if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_PICPARAM_KEYWORD)
+    {
+        DECODE_EVENTDATA_PICPARAM_HEVC eventData;
+        DecodeEventDataHEVCPicParamInit(&eventData, codecPicParams);
+        MOS_TraceEvent(EVENT_DECODE_BUFFER_PICPARAM_HEVC, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+
+        if (bIsHevcRext)
+        {
+            DECODE_EVENTDATA_REXTPICPARAM_HEVC eventData;
+            DecodeEventDataHEVCRExtPicParamInit(&eventData, codecPicParams, codecPicParamsExt);
+            MOS_TraceEvent(EVENT_DECODE_BUFFER_REXTPICPARAM_HEVC, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        }
+
+        if (bIsHevcScc)
+        {
+            DECODE_EVENTDATA_SCCPICPARAM_HEVC eventData;
+            DecodeEventDataHEVCSccPicParamInit(&eventData, codecPicParams, codecPicParamsScc);
+            MOS_TraceEvent(EVENT_DECODE_BUFFER_SCCPICPARAM_HEVC, EVENT_TYPE_INFO, &eventData, sizeof(eventData), NULL, 0);
+        }
+    }
+#endif
 
     return VA_STATUS_SUCCESS;
 }

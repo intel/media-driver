@@ -172,11 +172,18 @@ namespace decode
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
         //!
+        //! \brief  Dump mv resources
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS TraceDataDumpMV(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams, uint32_t size);
+        
+        //!
         //! \brief  Dump ref resources
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS TraceDataDumpRefResources(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams, Vp9BasicFeature *m_vp9BasicFeature, uint32_t size);
+        MOS_STATUS TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams);
 #endif
 
         DecodePhase                *m_phase           = nullptr;

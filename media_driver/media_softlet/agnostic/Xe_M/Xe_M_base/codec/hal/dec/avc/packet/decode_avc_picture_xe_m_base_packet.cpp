@@ -658,12 +658,15 @@ namespace decode{
 
                     ResourceAutoLock resLock(m_allocator, &m_tempRefSurf->OsResource);
                     auto             pData = (uint8_t *)resLock.LockResourceForRead();
-
+                    DECODE_CHK_NULL(pData);
+                    
                     MOS_TraceDataDump(
                         "Decode_AVCRefSurf",
                         n,
                         pData,
                         (uint32_t)m_tempRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
+                    
+                    m_allocator->UnLock(&m_tempRefSurf->OsResource);
                 }
             }
         }

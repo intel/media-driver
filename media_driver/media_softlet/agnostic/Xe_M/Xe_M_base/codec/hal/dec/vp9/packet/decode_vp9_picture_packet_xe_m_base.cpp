@@ -512,9 +512,14 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_
     CODECHAL_DEBUG_TOOL(DumpRefResources(pipeBufAddrParams, m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size));
    
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_MV_KEYWORD)
+    {
+        TraceDataDumpMV(pipeBufAddrParams, m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size);
+    }
+
     if (MOS_GetTraceEventKeyword() & EVENT_DECODE_REFYUV_KEYWORD)
     {
-        TraceDataDumpRefResources(pipeBufAddrParams, m_vp9BasicFeature, m_vp9BasicFeature->m_resVp9MvTemporalBuffer[0]->size);
+        TraceDataDumpReferences(pipeBufAddrParams);
     }
 #endif
 
@@ -681,10 +686,44 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::DumpRefResources(MHW_VDBOX_PIPE_BUF_ADDR_PA
 #endif
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
+MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpMV(
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams,
-    Vp9BasicFeature *m_vp9BasicFeature,
     uint32_t size)
+{
+    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presColMvTempBuffer[0]))
+    {
+        ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presColMvTempBuffer[0]);
+        auto             pData = (uint8_t *)resLock.LockResourceForRead();
+        DECODE_CHK_NULL(pData);
+
+        MOS_TraceDataDump(
+            "Decode_Vp9ColMvTempBuffer",
+            0,
+            pData,
+            size);
+
+        m_allocator->UnLock(pipeBufAddrParams.presColMvTempBuffer[0]);
+    };
+
+    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presCurMvTempBuffer))
+    {
+        ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presCurMvTempBuffer);
+        auto             pData = (uint8_t *)resLock.LockResourceForRead();
+        DECODE_CHK_NULL(pData);
+
+        MOS_TraceDataDump(
+            "Decode_Vp9CurMvTempBuffer",
+            0,
+            pData,
+            size);
+
+        m_allocator->UnLock(pipeBufAddrParams.presCurMvTempBuffer);
+    };
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
 {
     bool bAllocateLastRef   = false;
     bool bAllocateGoldenRef = false;
@@ -754,12 +793,15 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
 
         ResourceAutoLock resLock(m_allocator, &m_tempLastRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
+        DECODE_CHK_NULL(pData);
 
         MOS_TraceDataDump(
             "Decode_VP9LastRef",
             0, 
             pData,
             (uint32_t)m_tempLastRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
+        
+        m_allocator->UnLock(&m_tempLastRefSurf->OsResource);
     }
 
     if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[CodechalDecodeGoldenRef]))
@@ -826,12 +868,15 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
 
         ResourceAutoLock resLock(m_allocator, &m_tempGoldenRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
+        DECODE_CHK_NULL(pData);
 
         MOS_TraceDataDump(
             "Decode_VP9GoldenRef",
             0,
             pData,
             (uint32_t)m_tempGoldenRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
+        
+        m_allocator->UnLock(&m_tempGoldenRefSurf->OsResource);
     }
 
     if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[CodechalDecodeAlternateRef]))
@@ -898,33 +943,16 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::TraceDataDumpRefResources(
 
         ResourceAutoLock resLock(m_allocator, &m_tempAltRefSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
-
+        DECODE_CHK_NULL(pData);
+        
         MOS_TraceDataDump(
             "Decode_VP9AltRef",
             0,
             pData,
             (uint32_t)m_tempAltRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
+        
+        m_allocator->UnLock(&m_tempAltRefSurf->OsResource);
     }
-
-    if (pipeBufAddrParams.presColMvTempBuffer[0])
-    {
-        m_osInterface->pfnDumpTraceGpuData(
-            m_osInterface,
-            "Decode_Vp9ColMvTempBuffer",
-            0,
-            pipeBufAddrParams.presColMvTempBuffer[0],
-            size);
-    };
-
-    if (pipeBufAddrParams.presCurMvTempBuffer)
-    {
-        m_osInterface->pfnDumpTraceGpuData(
-            m_osInterface,
-            "Decode_Vp9CurMvTempBuffer",
-            0,
-            pipeBufAddrParams.presCurMvTempBuffer,
-            size);
-    };
 
     return MOS_STATUS_SUCCESS;
 }

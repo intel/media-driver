@@ -518,12 +518,15 @@ MOS_STATUS DecodePipeline::TraceDataDumpOutput(const DecodeStatusReportData &rep
 
         ResourceAutoLock resLock(m_allocator, &m_tempOutputSurf->OsResource);
         auto             pData = (uint8_t *)resLock.LockResourceForRead();
+        DECODE_CHK_NULL(pData);
 
         MOS_TraceDataDump(
             "Decode_OutputSurf",
             0,
             pData,
             (uint32_t)m_tempOutputSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
+        
+        m_allocator->UnLock(&m_tempOutputSurf->OsResource);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -537,12 +540,17 @@ MOS_STATUS DecodePipeline::TraceDataDump2ndLevelBB(PMHW_BATCH_BUFFER batchBuffer
     batchBuffer->iLastCurrent = batchBuffer->iSize * batchBuffer->count;
     batchBuffer->dwOffset     = 0;
 
-    DECODE_CHK_STATUS(m_osInterface->pfnDumpTraceGpuData(
-        m_osInterface,
+    ResourceAutoLock resLock(m_allocator, &batchBuffer->OsResource);
+    auto             pData = (uint8_t *)resLock.LockResourceForRead();
+    DECODE_CHK_NULL(pData);
+
+    MOS_TraceDataDump(
         "Decode_2ndLevelCmdBB",
         0,
-        &batchBuffer->OsResource,
-        batchBuffer->iLastCurrent));
+        pData,
+        batchBuffer->iLastCurrent);
+
+    m_allocator->UnLock(&batchBuffer->OsResource);
 
     return MOS_STATUS_SUCCESS;
 }

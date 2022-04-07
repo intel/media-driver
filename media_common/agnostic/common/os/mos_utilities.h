@@ -56,6 +56,8 @@
 #define EVENT_DECODE_COMMAND_KEYWORD          0x80
 #define EVENT_DECODE_DSTYUV_KEYWORD           0x100
 #define EVENT_DECODE_REFYUV_KEYWORD           0x200
+#define EVENT_DECODE_MV_KEYWORD               0x400
+#define EVENT_DECODE_SUBSET_KEYWORD           0x800
 
 class PerfUtility
 {

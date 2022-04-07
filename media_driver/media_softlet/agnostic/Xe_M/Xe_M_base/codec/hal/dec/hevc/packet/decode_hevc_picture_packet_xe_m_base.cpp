@@ -574,6 +574,11 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
         })
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
+    if (MOS_GetTraceEventKeyword() & EVENT_DECODE_MV_KEYWORD)
+    {
+        TraceDataDumpMV(pipeBufAddrParams);
+    }
+    
     if (MOS_GetTraceEventKeyword() & EVENT_DECODE_REFYUV_KEYWORD)
     {
         TraceDataDumpReferences(pipeBufAddrParams);
@@ -584,16 +589,58 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
 }
 
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
-MOS_STATUS HevcDecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
+MOS_STATUS HevcDecodePicPktXe_M_Base::TraceDataDumpMV(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
 {
-    bool        bReport     = false;
     auto        mvBuffers   = &(m_hevcBasicFeature->m_mvBuffers);
     PMOS_BUFFER curMvBuffer = mvBuffers->GetCurBuffer();
     DECODE_CHK_NULL(curMvBuffer);
 
     for (uint32_t n = 0; n < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; n++)
     {
-        if (pipeBufAddrParams.presReferences[n] != nullptr)
+        if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[n]))
+        {
+            if (pipeBufAddrParams.presColMvTempBuffer[n] != nullptr)
+            {
+                ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presColMvTempBuffer[n]);
+                auto             pData = (uint8_t *)resLock.LockResourceForRead();
+                DECODE_CHK_NULL(pData);
+
+                MOS_TraceDataDump(
+                    "Decode_HevcColMvTempBuffer",
+                    n,
+                    pData,
+                    curMvBuffer->size);
+                
+                m_allocator->UnLock(pipeBufAddrParams.presColMvTempBuffer[n]);
+            }
+        }
+    }
+
+    if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presCurMvTempBuffer))
+    {
+        ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.presCurMvTempBuffer);
+        auto             pData = (uint8_t *)resLock.LockResourceForRead();
+        DECODE_CHK_NULL(pData);
+
+        MOS_TraceDataDump(
+                    "Decode_HevcCurMvTempBuffer",
+                    0,
+                    pData,
+                    curMvBuffer->size);
+        
+        m_allocator->UnLock(pipeBufAddrParams.presCurMvTempBuffer);
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcDecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS &pipeBufAddrParams)
+{
+    bool        bReport     = false;
+
+    for (uint32_t n = 0; n < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; n++)
+    {
+        if (!m_allocator->ResourceIsNull(pipeBufAddrParams.presReferences[n]))
         {
             bool        bAllocate = false;
             MOS_SURFACE dstSurface;
@@ -665,34 +712,17 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::TraceDataDumpReferences(MHW_VDBOX_PIPE_BUF
 
                 ResourceAutoLock resLock(m_allocator, &m_tempRefSurf->OsResource);
                 auto             pData = (uint8_t *)resLock.LockResourceForRead();
+                DECODE_CHK_NULL(pData);
 
                 MOS_TraceDataDump(
                     "Decode_HEVCRefSurf",
                     n,
                     pData,
                     (uint32_t)m_tempRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
-            }
-
-            if (pipeBufAddrParams.presColMvTempBuffer[n] != nullptr)
-            {
-                m_osInterface->pfnDumpTraceGpuData(
-                    m_osInterface,
-                    "Decode_HevcColMvTempBuffer",
-                    n,
-                    pipeBufAddrParams.presColMvTempBuffer[n],
-                    curMvBuffer->size);
+                
+                m_allocator->UnLock(&m_tempRefSurf->OsResource);
             }
         }
-    }
-
-    if (pipeBufAddrParams.presCurMvTempBuffer != nullptr)
-    {
-        m_osInterface->pfnDumpTraceGpuData(
-            m_osInterface,
-            "Decode_HevcCurMvTempBuffer",
-            0,
-            pipeBufAddrParams.presCurMvTempBuffer,
-            curMvBuffer->size);
     }
     
     return MOS_STATUS_SUCCESS;

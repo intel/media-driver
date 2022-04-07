@@ -262,9 +262,9 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_BUFFER_REXTPICPARAM_HEVC,         //! event for Decode HEVC REXT Pic Paramters
     EVENT_DECODE_BUFFER_SCCPICPARAM_HEVC,          //! event for Decode HEVC SCC Pic Paramters
     EVENT_DECODE_BUFFER_SLICEPARAM_HEVC,           //! event for Decode HEVC Slice Paramters
-    EVENT_DECODE_CMD_HCP_PICSTATE_HEVC,            //! event for Decode HcpHevcPicState Cmd
-    EVENT_DECODE_CMD_HCP_REXTPICSTATE_HEVC,        //! event for Decode HcpHevcRextPicState Cmd
-    EVENT_DECODE_CMD_HCP_SCCPICSTATE_HEVC,         //! event for Decode HcpHevcSccPicState Cmd
+    EVENT_DECODE_BUFFER_LONGSLICEPARAM_HEVC,       //! event for Decode HEVC Long Slice Paramters
+    EVENT_DECODE_BUFFER_REXTLONGSLICEPARAM_HEVC,   //! event for Decode HEVC RExt Long Slice Paramters
+    EVENT_DECODE_BUFFER_LONGSLICEPARAM_AVC,        //! event for Decode AVC Long Slice Paramters
     EVENT_DECODE_FEATURE_MMC,                      //! event for Decode Feature MMC
     EVENT_DECODE_FEATURE_VT_SCALABILITY,           //! event for Decode Feature Virtual Tile Scalability
     EVENT_DECODE_FEATURE_RT_SCALABILITY,           //! event for Decode Feature Real Tile Scalability

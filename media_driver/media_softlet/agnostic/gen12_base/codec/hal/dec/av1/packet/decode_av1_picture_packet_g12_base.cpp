@@ -1669,12 +1669,17 @@ namespace decode{
         {
             if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
             {
-                m_osInterface->pfnDumpTraceGpuData(
-                    m_osInterface,
+                ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.m_cdfTableInitializationBuffer);
+                auto             pData = (uint8_t *)resLock.LockResourceForRead();
+                DECODE_CHK_NULL(pData);
+
+                MOS_TraceDataDump(
                     "Decode_Av1CdfTableInitBuffer",
                     0,
-                    pipeBufAddrParams.m_cdfTableInitializationBuffer,
+                    pData,
                     m_av1BasicFeature->m_cdfMaxNumBytes);
+
+                m_allocator->UnLock(pipeBufAddrParams.m_cdfTableInitializationBuffer);
             }
 
             if (m_av1BasicFeature->m_tileCoding.m_curTile == 0)
@@ -1682,12 +1687,17 @@ namespace decode{
                 if (pipeBufAddrParams.m_segmentIdReadBuffer != nullptr &&
                     !m_allocator->ResourceIsNull(pipeBufAddrParams.m_segmentIdReadBuffer))
                 {
-                    m_osInterface->pfnDumpTraceGpuData(
-                        m_osInterface,
+                    ResourceAutoLock resLock(m_allocator, pipeBufAddrParams.m_segmentIdReadBuffer);
+                    auto             pData = (uint8_t *)resLock.LockResourceForRead();
+                    DECODE_CHK_NULL(pData);
+                    
+                    MOS_TraceDataDump(
                         "Decode_Av1SegmentIdReadBuffer",
                         0,
-                        pipeBufAddrParams.m_segmentIdReadBuffer,
+                        pData,
                         m_widthInSb * m_heightInSb * CODECHAL_CACHELINE_SIZE);
+
+                    m_allocator->UnLock(pipeBufAddrParams.m_segmentIdReadBuffer);
                 }
             }
         }
@@ -1775,12 +1785,15 @@ namespace decode{
 
                         ResourceAutoLock resLock(m_allocator, &m_tempRefSurf->OsResource);
                         auto             pData = (uint8_t *)resLock.LockResourceForRead();
+                        DECODE_CHK_NULL(pData);
 
                         MOS_TraceDataDump(
                             "Decode_AV1RefSurf",
                             n,
                             pData,
                             (uint32_t)m_tempRefSurf->OsResource.pGmmResInfo->GetSizeMainSurface());
+                        
+                        m_allocator->UnLock(&m_tempRefSurf->OsResource);
                     }
                 }
             }
