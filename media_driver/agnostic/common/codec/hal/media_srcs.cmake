@@ -24,6 +24,7 @@ set(TMP_1_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/codechal_utilities.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/codechal_allocator.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_debug_misc.cpp
 )
 
 set(TMP_1_HEADERS_

@@ -191,7 +191,9 @@ public:
     MOS_SURFACE       m_temp2DSurfForCopy = {};
     PMOS_INTERFACE    m_osInterface       = nullptr;
     MhwCpInterface   *m_cpInterface       = nullptr;
+    //#ifndef softlet_build
     MhwMiInterface   *m_miInterface       = nullptr;
+    //#endif
     MediaDbgFunction  m_mediafunction     = MEDIA_FUNCTION_DEFAULT;
     CODEC_PICTURE     m_currPic;
     uint32_t          m_scaledBottomFieldOffset = 0;

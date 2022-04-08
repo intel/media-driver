@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -421,17 +421,6 @@ MOS_STATUS MediaDebugInterface::DumpToFile(const GoldenReferences &goldenReferen
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS MediaDebugInterface::StoreNumFrame(PMHW_MI_INTERFACE pMiInterface, PMOS_RESOURCE pResource, int32_t frameNum, PMOS_COMMAND_BUFFER pCmdBuffer)
-{
-    MHW_MI_STORE_DATA_PARAMS storeDataParams;
-    MOS_ZeroMemory(&storeDataParams, sizeof(storeDataParams));
-    storeDataParams.pOsResource      = pResource;
-    storeDataParams.dwResourceOffset = 0;
-    storeDataParams.dwValue          = frameNum;
-    MEDIA_DEBUG_CHK_STATUS(pMiInterface->AddMiStoreDataImmCmd(pCmdBuffer, &storeDataParams));
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MediaDebugInterface::DumpGoldenReference()
 {
     if (m_enableHwDebugHooks && !m_goldenReferenceExist && m_goldenReferences.size() > 0)
@@ -672,42 +661,6 @@ MOS_STATUS MediaDebugInterface::LoadGoldenReference()
     }
     ifs.close();
     m_goldenReferences.pop_back();
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaDebugInterface::SubmitDummyWorkload(MOS_COMMAND_BUFFER *pCmdBuffer, int32_t bNullRendering)
-{
-    MHW_MI_FLUSH_DW_PARAMS flushDwParams;
-    MOS_ZeroMemory(&flushDwParams, sizeof(flushDwParams));
-    MEDIA_DEBUG_CHK_STATUS(m_miInterface->AddMiFlushDwCmd(
-        pCmdBuffer,
-        &flushDwParams));
-    MEDIA_DEBUG_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(
-        pCmdBuffer,
-        nullptr));
-    m_osInterface->pfnReturnCommandBuffer(m_osInterface, pCmdBuffer, 0);
-    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, pCmdBuffer, bNullRendering));
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaDebugInterface::DetectCorruptionHw(CodechalHwInterface *hwInterface, PMOS_RESOURCE frameCntRes, uint32_t curIdx, uint32_t frameCrcOffset, std::vector<MOS_RESOURCE> &vStatusBuffer, PMOS_COMMAND_BUFFER pCmdBuffer, uint32_t frameNum)
-{
-    if (m_enableHwDebugHooks &&
-        m_goldenReferenceExist &&
-        m_goldenReferences.size() > 0 &&
-        vStatusBuffer.size() > 0)
-    {
-        for (uint32_t i = 0; i < vStatusBuffer.size(); i++)
-        {
-            MEDIA_DEBUG_CHK_STATUS(hwInterface->SendHwSemaphoreWaitCmd(
-                &vStatusBuffer[i],
-                m_goldenReferences[curIdx][i],
-                MHW_MI_SAD_EQUAL_SDD,
-                pCmdBuffer,
-                frameCrcOffset));
-        }
-        StoreNumFrame(m_miInterface, frameCntRes, frameNum, pCmdBuffer);
-    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1837,106 +1790,6 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
         MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnGetResourceInfo(m_osInterface, &pSurface->OsResource, pSurface));
     }
 
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS MediaDebugInterface::CopySurfaceData_Vdbox(
-    uint32_t      dwDataSize,
-    PMOS_RESOURCE presSourceSurface,
-    PMOS_RESOURCE presCopiedSurface)
-{
-    MOS_COMMAND_BUFFER        CmdBuffer;
-    MHW_MI_FLUSH_DW_PARAMS    FlushDwParams;
-    MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-    MHW_CP_COPY_PARAMS        cpCopyParams;
-    MOS_NULL_RENDERING_FLAGS  NullRenderingFlags;
-    MOS_GPU_CONTEXT           orgGpuContext;
-
-    if (!m_vdboxContextCreated)
-    {
-        MOS_GPUCTX_CREATOPTIONS createOption;
-
-        MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnCreateGpuContext(
-            m_osInterface,
-            MOS_GPU_CONTEXT_VIDEO,
-            MOS_GPU_NODE_VIDEO,
-            &createOption));
-
-        // Register VDbox GPU context with the Batch Buffer completion event
-        MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnRegisterBBCompleteNotifyEvent(
-            m_osInterface,
-            MOS_GPU_CONTEXT_VIDEO));
-
-        m_vdboxContextCreated = true;
-    }
-
-    MEDIA_DEBUG_CHK_NULL(m_cpInterface);
-    MEDIA_DEBUG_CHK_NULL(m_osInterface);
-    MEDIA_DEBUG_CHK_NULL(m_miInterface);
-    MEDIA_DEBUG_CHK_NULL(m_osInterface->pfnGetWaTable(m_osInterface));
-
-    orgGpuContext = m_osInterface->CurrentGpuContextOrdinal;
-
-    // Due to VDBOX cryto copy limitation, the size must be Cache line aligned
-    if (!MOS_IS_ALIGNED(dwDataSize, MHW_CACHELINE_SIZE))
-    {
-        MEDIA_DEBUG_ASSERTMESSAGE("Size is not CACHE line aligned, cannot use VDBOX to copy.");
-        return MOS_STATUS_INVALID_PARAMETER;
-    }
-
-    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnSetGpuContext(m_osInterface, MOS_GPU_CONTEXT_VIDEO));
-    m_osInterface->pfnResetOsStates(m_osInterface);
-
-    // Register the target resource
-    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnRegisterResource(
-        m_osInterface,
-        presCopiedSurface,
-        true,
-        true));
-
-    // Register the source resource
-    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnRegisterResource(
-        m_osInterface,
-        presSourceSurface,
-        false,
-        true));
-
-    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnGetCommandBuffer(m_osInterface, &CmdBuffer, 0));
-
-    MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-    genericPrologParams.pOsInterface  = m_osInterface;
-    genericPrologParams.pvMiInterface = m_miInterface;
-    genericPrologParams.bMmcEnabled   = false;
-    MEDIA_DEBUG_CHK_STATUS(Mhw_SendGenericPrologCmd(&CmdBuffer, &genericPrologParams));
-
-    MOS_ZeroMemory(&cpCopyParams, sizeof(cpCopyParams));
-    cpCopyParams.size          = dwDataSize;
-    cpCopyParams.presSrc       = presSourceSurface;
-    cpCopyParams.presDst       = presCopiedSurface;
-    cpCopyParams.isEncodeInUse = false;
-
-    MEDIA_DEBUG_CHK_STATUS(m_cpInterface->SetCpCopy(m_osInterface, &CmdBuffer, &cpCopyParams));
-
-    // MI_FLUSH
-    MOS_ZeroMemory(&FlushDwParams, sizeof(FlushDwParams));
-    MEDIA_DEBUG_CHK_STATUS(m_miInterface->AddMiFlushDwCmd(
-        &CmdBuffer,
-        &FlushDwParams));
-
-    MEDIA_DEBUG_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(
-        &CmdBuffer,
-        nullptr));
-
-    m_osInterface->pfnReturnCommandBuffer(m_osInterface, &CmdBuffer, 0);
-
-    NullRenderingFlags = m_osInterface->pfnGetNullHWRenderFlags(m_osInterface);
-
-    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnSubmitCommandBuffer(
-        m_osInterface,
-        &CmdBuffer,
-        NullRenderingFlags.CtxVideo || NullRenderingFlags.CodecGlobal || NullRenderingFlags.CtxVideo || NullRenderingFlags.VPGobal));
-
-    MEDIA_DEBUG_CHK_STATUS(m_osInterface->pfnSetGpuContext(m_osInterface, orgGpuContext));
     return MOS_STATUS_SUCCESS;
 }
 

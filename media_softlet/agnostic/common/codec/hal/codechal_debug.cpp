@@ -62,7 +62,9 @@ MOS_STATUS CodechalDebugInterface::Initialize(
     m_codecFunction = codecFunction;
     m_osInterface   = m_hwInterface->GetOsInterface();
     m_cpInterface   = m_hwInterface->GetCpInterface();
+    //#ifndef softlet_build
     m_miInterface   = m_hwInterface->GetMiInterface();
+    //#endif
 
     //dump loctaion is codechaldump
     MediaDebugInterface::SetOutputFilePath();
@@ -192,44 +194,6 @@ MOS_USER_FEATURE_VALUE_ID CodechalDebugInterface::InitDefaultOutput()
 {
     m_outputFilePath.append(MEDIA_DEBUG_CODECHAL_DUMP_OUTPUT_FOLDER);
     return SetOutputPathKey();
-}
-
-MOS_STATUS CodechalDebugInterface::DetectCorruptionSw(std::vector<MOS_RESOURCE> &vResource, PMOS_RESOURCE frameCntRes, uint8_t *buf, uint32_t &size, uint32_t frameNum)
-{
-    if (m_enableHwDebugHooks &&
-        m_goldenReferenceExist &&
-        m_goldenReferences.size() > 0 &&
-        vResource.size() > 0)
-    {
-        MOS_COMMAND_BUFFER cmdBuffer = {};
-        std::vector<uint32_t *> vSemaData;
-        MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
-        MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
-        genericPrologParams.pOsInterface  = m_osInterface;
-        genericPrologParams.pvMiInterface = m_miInterface;
-
-        CODECHAL_DEBUG_CHK_STATUS(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
-        CODECHAL_DEBUG_CHK_STATUS(Mhw_SendGenericPrologCmd(
-            &cmdBuffer,
-            &genericPrologParams));
-        LockSemaResource(vSemaData, vResource);
-        // for CRC mismatch detection
-        for (uint32_t i = 0; i < vResource.size(); i++)
-        {
-            CODECHAL_DEBUG_CHK_STATUS(m_hwInterface->SendHwSemaphoreWaitCmd(
-                &vResource[i],
-                m_goldenReferences[frameNum][i],
-                MHW_MI_SAD_EQUAL_SDD,
-                &cmdBuffer));
-        }
-        StoreNumFrame(m_miInterface, frameCntRes, frameNum, &cmdBuffer);
-
-        SubmitDummyWorkload(&cmdBuffer, false);
-        //Get Decode output
-        std::vector<uint32_t> data = {CalculateCRC(buf, size)};
-        CODECHAL_DEBUG_CHK_STATUS(FillSemaResource(vSemaData, data));
-    }
-    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS CodechalDebugInterface::DumpHucRegion(
