@@ -1071,8 +1071,7 @@ MOS_STATUS CodecHalHevcMbencG12::EncodeMbEncKernel(
     }
 
     CODECHAL_DEBUG_TOOL(
-        CODEC_REF_LIST currRefList;
-        currRefList        = *(m_refList[m_currReconstructedPic.FrameIdx]);
+        CODEC_REF_LIST currRefList = *(m_refList[m_currReconstructedPic.FrameIdx]);
         currRefList.RefPic = m_currOriginalPic;
 
         m_debugInterface->m_currPic            = m_currOriginalPic;

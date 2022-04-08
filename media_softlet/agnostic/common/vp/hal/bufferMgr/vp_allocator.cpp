@@ -1240,6 +1240,8 @@ uint64_t VP_SURFACE::GetAllocationHandle(MOS_INTERFACE* osIntf)
     {
         return 0;
     }
+#elif (_VULKAN)
+    return 0;
 #else
     return osSurface ? osSurface->OsResource.AllocationInfo.m_AllocationHandle : 0;
 #endif

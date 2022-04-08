@@ -200,7 +200,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy(
     targetSurface.Format     = Format_Invalid;
     targetSurface.OsResource = *outputResource;
 
-#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+#if !defined(LINUX) && !defined(ANDROID) && !EMUL && !_VULKAN
     // for Double Buffer copy, clear the allocationInfo temply
     MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
 #endif
@@ -355,7 +355,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryCopy2D(
     targetSurface.Format = Format_Invalid;
     targetSurface.OsResource = *outputResource;
 
-#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+#if !defined(LINUX) && !defined(ANDROID) && !EMUL && !_VULKAN
     // for Double Buffer copy, clear the allocationInfo temply
     MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
 #endif
@@ -470,7 +470,7 @@ MOS_STATUS MediaVeboxDecompState::MediaMemoryTileConvert(
     targetSurface.Format = Format_Invalid;
     targetSurface.OsResource = *outputResource;
 
-#if !defined(LINUX) && !defined(ANDROID) && !EMUL
+#if !defined(LINUX) && !defined(ANDROID) && !EMUL && !_VULKAN
     // for Double Buffer copy, clear the allocationInfo temply
     MOS_ZeroMemory(&targetSurface.OsResource.AllocationInfo, sizeof(SResidencyInfo));
 #endif

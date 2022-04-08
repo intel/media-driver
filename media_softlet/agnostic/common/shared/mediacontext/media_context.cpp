@@ -102,6 +102,7 @@ MediaContext::~MediaContext()
                     return;
                 }
             }
+#if !_VULKAN
             else
             {
                 auto gpuContextMgr = m_osInterface->pfnGetGpuContextMgr(m_osInterface);
@@ -126,6 +127,7 @@ MediaContext::~MediaContext()
                     }
                 }
             }
+#endif //!_VULKAN
         }
         else
         {
