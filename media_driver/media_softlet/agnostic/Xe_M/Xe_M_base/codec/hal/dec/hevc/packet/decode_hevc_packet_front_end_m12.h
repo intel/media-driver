@@ -62,6 +62,7 @@ protected:
     MOS_STATUS VdPipelineFlush(MOS_COMMAND_BUFFER &cmdBuffer);
 
     CodechalHwInterfaceG12* m_hwInterface = nullptr;
+MEDIA_CLASS_DEFINE_END(HevcDecodeFrontEndPktM12)
 };
 
 }

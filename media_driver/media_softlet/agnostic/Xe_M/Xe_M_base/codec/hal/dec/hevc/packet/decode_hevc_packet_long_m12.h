@@ -70,6 +70,7 @@ protected:
 
     CodechalHwInterfaceG12* m_hwInterface = nullptr;
     HevcDecodeTilePktM12*   m_tilePkt     = nullptr;
+MEDIA_CLASS_DEFINE_END(HevcDecodeLongPktM12)
 };
 
 }

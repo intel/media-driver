@@ -51,6 +51,7 @@ class EncodeMemCompG12 : public EncodeMemComp, public CodecMmcAuxTableG12
     virtual MOS_STATUS SendPrologCmd(
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool bRcsIsUsed);
+MEDIA_CLASS_DEFINE_END(EncodeMemCompG12)
 };
 
 #endif //__MEDIA_ENCODE_MEM_COMPRESSION_G12_H__

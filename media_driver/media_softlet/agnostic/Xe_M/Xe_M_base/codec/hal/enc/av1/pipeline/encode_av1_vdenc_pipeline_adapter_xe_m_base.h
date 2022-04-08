@@ -49,6 +49,7 @@ public:
 
 protected:
     std::shared_ptr<encode::Av1VdencPipelineXe_M_Base> m_encoder = nullptr;
+MEDIA_CLASS_DEFINE_END(EncodeAv1VdencPipelineAdapterXe_M_Base)
 };
 #endif // !__ENCODE_AV1_VDENC_PIPELINE_ADAPTER_G12_H__
 

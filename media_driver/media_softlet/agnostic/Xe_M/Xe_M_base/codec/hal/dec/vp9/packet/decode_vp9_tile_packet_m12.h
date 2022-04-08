@@ -104,6 +104,7 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                 m_dbgOvrdWidthInMinCb = 0; //!< debug override for picture width in min ctb
 #endif
+MEDIA_CLASS_DEFINE_END(Vp9DecodeTilePktM12)
 };
 
 }  // namespace decode

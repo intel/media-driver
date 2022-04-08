@@ -122,6 +122,7 @@ protected:
 
 private:
     JpegDecodePktM12 *m_jpegDecodePkt = nullptr;
+MEDIA_CLASS_DEFINE_END(JpegPipelineM12)
 };
 
 }

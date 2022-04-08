@@ -64,6 +64,7 @@ public:
         PRENDERHAL_INTERFACE        pRenderHal,
         PMOS_COMMAND_BUFFER         pCmdBuffer,
         PMHW_GPGPU_WALKER_PARAMS    pGpGpuWalkerParams);
+MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe_Hpg)
 };
 
 #endif // __RENDERHAL_XE_HPG_H__

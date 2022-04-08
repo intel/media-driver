@@ -52,6 +52,7 @@ public:
 
 protected:
     std::shared_ptr<encode::HevcVdencPipelineXe_Xpm_Base> m_encoder = nullptr;
+MEDIA_CLASS_DEFINE_END(EncodeHevcVdencPipelineAdapterXe_Xpm_Base)
 };
 #endif // !__ENCODE_HEVC_VDENC_PIPELINE_ADAPTER_XE_XPM_BASE_H__
 

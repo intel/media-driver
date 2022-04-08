@@ -52,6 +52,7 @@ public:
         MhwMiInterface    *m_mhwMiInterface,
         PMOS_COMMAND_BUFFER    cmdBuffer,
         bool    bRcsIsUsed);
+MEDIA_CLASS_DEFINE_END(CodecMmcAuxTableG12)
 };
 
 #endif //__MEDIA_CODEC_MEM_COMPRESSION_G12_H__

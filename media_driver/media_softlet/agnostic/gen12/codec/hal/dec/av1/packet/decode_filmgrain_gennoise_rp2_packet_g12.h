@@ -278,6 +278,7 @@ protected:
             rp2InputUCoeff,
             rp2InputVCoeff,
     };
+MEDIA_CLASS_DEFINE_END(FilmGrainRp2Packet)
 };
 }
 #endif

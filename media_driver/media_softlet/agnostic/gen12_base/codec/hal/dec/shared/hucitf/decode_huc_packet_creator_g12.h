@@ -48,6 +48,7 @@ public:
         MediaPipeline       *pipeline,
         MediaTask           *task,
         CodechalHwInterface *hwInterface) override;
+MEDIA_CLASS_DEFINE_END(HucPacketCreatorG12)
 };
 
 }  // namespace decode

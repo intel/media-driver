@@ -47,6 +47,7 @@ public:
     //! \brief  VPFeatureManager deconstructor
     //!
     virtual ~VPFeatureManagerXe_Xpm() {}
+MEDIA_CLASS_DEFINE_END(VPFeatureManagerXe_Xpm)
 };
 
 }

@@ -60,6 +60,7 @@ public:
 
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;
+MEDIA_CLASS_DEFINE_END(Mpeg2DecodeMemCompM12)
 };
 
 }

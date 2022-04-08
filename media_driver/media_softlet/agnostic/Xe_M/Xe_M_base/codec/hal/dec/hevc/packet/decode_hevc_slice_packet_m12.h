@@ -56,6 +56,7 @@ protected:
     MOS_STATUS AddHcpSliceState(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t sliceIdx, uint32_t subTileIdx);
 
     MOS_STATUS AddRefIdxState(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t sliceIdx);
+MEDIA_CLASS_DEFINE_END(HevcDecodeSlcPktM12)
 };
 
 }  // namespace decode

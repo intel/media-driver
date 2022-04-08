@@ -50,6 +50,7 @@ public:
     virtual ~EncodeHevcVdencPipelineAdapterXe_Hpm() {}
 
     virtual MOS_STATUS Allocate(CodechalSetting *codecHalSettings) override;
+MEDIA_CLASS_DEFINE_END(EncodeHevcVdencPipelineAdapterXe_Hpm)
 };
 #endif // !__ENCODE_HEVC_VDENC_PIPELINE_ADAPTER_XE_HPM_H__
 

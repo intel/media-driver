@@ -75,5 +75,6 @@ public:
 
 protected:
     std::shared_ptr<decode::AvcPipelineM12> m_decoder;
+MEDIA_CLASS_DEFINE_END(DecodeAvcPipelineAdapterM12)
 };
 #endif // !__DECODE_AVC_PIPELINE_ADAPTER_M12_H__

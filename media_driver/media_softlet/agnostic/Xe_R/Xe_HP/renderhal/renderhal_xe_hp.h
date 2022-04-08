@@ -41,6 +41,7 @@ public:
     }
     
     virtual ~XRenderHal_Interface_Xe_Hp() {}
+MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe_Hp)
 };
 
 #endif // __RENDERHAL_XE_HP_H__

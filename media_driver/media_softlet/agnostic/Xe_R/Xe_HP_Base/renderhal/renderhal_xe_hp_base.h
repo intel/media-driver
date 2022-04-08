@@ -162,6 +162,7 @@ public:
     virtual MOS_STATUS SendTo3DStateBindingTablePoolAlloc(
         PRENDERHAL_INTERFACE        pRenderHal,
         PMOS_COMMAND_BUFFER         pCmdBuffer);
+MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe_Hp_Base)
 };
 
 #endif // __RENDERHAL_XE_HP_BASE_H__

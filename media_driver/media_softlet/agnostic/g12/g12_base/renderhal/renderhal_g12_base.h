@@ -403,6 +403,7 @@ protected:
     bool m_renderHalMMCEnabled = false;
 
     MOS_RESOURCE m_scratchSpaceResource;
+MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_G12_Base)
 };
 
 #endif // __RENDERHAL_G12_BASE_H__

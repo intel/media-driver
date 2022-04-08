@@ -119,6 +119,7 @@ protected:
 
     uint32_t m_tileStatesSize      = 0;  //!< Tile state command size
     uint32_t m_tilePatchListSize   = 0;  //!< Tile patch list size
+MEDIA_CLASS_DEFINE_END(Av1DecodeTilePkt_G12_Base)
 };
 
 }  // namespace decode

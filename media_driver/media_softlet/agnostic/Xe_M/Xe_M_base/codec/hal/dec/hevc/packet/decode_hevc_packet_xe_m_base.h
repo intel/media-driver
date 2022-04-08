@@ -122,6 +122,7 @@ protected:
     uint32_t m_picturePatchListSize = 0;
     uint32_t m_sliceStatesSize      = 0;
     uint32_t m_slicePatchListSize   = 0;
+MEDIA_CLASS_DEFINE_END(HevcDecodePktXe_M_Base)
 };
 
 }  // namespace decode

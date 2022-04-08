@@ -68,6 +68,7 @@ public:
     {
         return VP_VEBOX_STATISTICS_SIZE_G12;
     }
+MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceG12Tgllp)
 };
 
 }

@@ -88,6 +88,7 @@ protected:
         return true;
     }
 
+MEDIA_CLASS_DEFINE_END(VpPipelineG12Adapter)
 };
 #endif // !__VP_PIPELINE_ADAPTER_G12_H__
 

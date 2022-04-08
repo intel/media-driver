@@ -55,6 +55,7 @@ namespace decode
         MOS_STATUS AddPhantomSliceCmd(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t slcIdx);
 
         bool m_firstValidSlice = true;
+    MEDIA_CLASS_DEFINE_END(AvcDecodeSlcPktM12)
     };
 }  // namespace decode
 #endif

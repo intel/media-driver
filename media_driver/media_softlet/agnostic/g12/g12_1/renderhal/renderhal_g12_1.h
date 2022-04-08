@@ -71,6 +71,7 @@ public:
         PRENDERHAL_INTERFACE            pRenderHal,
         PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
         bool                            bEnableSLM);
+MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_G12_1)
 };
 
 #endif // __RENDERHAL_G12_1_H__

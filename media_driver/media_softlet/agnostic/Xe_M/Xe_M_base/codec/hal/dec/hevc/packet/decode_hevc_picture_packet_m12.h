@@ -92,6 +92,7 @@ protected:
 
     virtual void SetHcpPicStateParams(MHW_VDBOX_HEVC_PIC_STATE &picStateParams) override;
     virtual MOS_STATUS AddHcpPicStateCmd(MOS_COMMAND_BUFFER &cmdBuffer);
+MEDIA_CLASS_DEFINE_END(HevcDecodePicPktM12)
 };
 
 }  // namespace decode

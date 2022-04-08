@@ -41,6 +41,7 @@ public:
     }
 
     virtual ~XRenderHal_Interface_G12_0() {}
+MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_G12_0)
 };
 
 #endif // __RENDERHAL_G12_0_H__

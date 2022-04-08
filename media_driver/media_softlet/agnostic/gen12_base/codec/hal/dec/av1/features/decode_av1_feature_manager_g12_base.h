@@ -70,6 +70,7 @@ class DecodeAv1FeatureManagerG12_Base : public DecodeFeatureManager
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
         virtual MOS_STATUS CreateFeatures(void *codecSettings);
+    MEDIA_CLASS_DEFINE_END(DecodeAv1FeatureManagerG12_Base)
     };
 
 }

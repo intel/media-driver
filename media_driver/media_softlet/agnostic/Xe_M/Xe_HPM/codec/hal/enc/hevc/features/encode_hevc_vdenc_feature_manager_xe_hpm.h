@@ -90,6 +90,7 @@ protected:
     MOS_STATUS ValidateASteppingNotSupportedFeatures(
         PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams,
         PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams);
+MEDIA_CLASS_DEFINE_END(EncodeHevcVdencFeatureManagerXe_Hpm)
 };
 
 }

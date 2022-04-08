@@ -87,6 +87,7 @@ protected:
     {
         return true;
     }
+MEDIA_CLASS_DEFINE_END(VpPipelineAdapterXe_Xpm)
 };
 #endif // !__VP_PIPELINE_ADAPTER_XE_XPM_H__
 

@@ -42,6 +42,7 @@ public:
     virtual ~Av1SegmentationXe_Hpm();
 
     MHW_SETPAR_DECL_HDR(VDENC_CMD2);
+MEDIA_CLASS_DEFINE_END(Av1SegmentationXe_Hpm)
 };
 
 }  // namespace encode

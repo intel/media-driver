@@ -130,6 +130,7 @@ protected:
 
 private:
     HevcDecodeLongPktM12 *m_hevcDecodePktLong = nullptr;
+MEDIA_CLASS_DEFINE_END(HevcPipelineM12)
 };
 
 }

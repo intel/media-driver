@@ -110,6 +110,7 @@ private:
 
     FilmGrainAppNoisePkt*   m_filmGrainAppPkt   = nullptr; //!< film grain apply noise kernel packet
     Av1DecodeFilmGrainG12*  m_filmGrainFeature  = nullptr; //!< film grain feature
+MEDIA_CLASS_DEFINE_END(FilmGrainPostSubPipeline)
 };
 
 }  // namespace decode

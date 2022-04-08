@@ -173,6 +173,7 @@ namespace decode
         MOS_STATUS ParseTileInfo(const CodecAv1PicParams & picParams, CodecAv1TileParams *tileParams);
 
         Av1BasicFeatureG12 *m_basicFeature = nullptr;
+    MEDIA_CLASS_DEFINE_END(Av1DecodeTileG12)
     };
 
 }  // namespace decode

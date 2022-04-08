@@ -71,5 +71,6 @@ public:
 
 protected:
     std::shared_ptr<decode::HevcPipelineM12> m_decoder;
+MEDIA_CLASS_DEFINE_END(DecodeHevcPipelineAdapterM12)
 };
 #endif // !__DECODE_HEVC_PIPELINE_ADAPTER_M12_H__

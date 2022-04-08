@@ -99,7 +99,7 @@ protected:
     Vp9DecodePicPktXe_M_Base *       m_picturePkt = nullptr;
     Vp9DecodeSlcPktXe_M_Base *       m_slicePkt   = nullptr;
 
-MEDIA_CLASS_DEFINE_END(Vp9DecodeFrontEndPkt)
+MEDIA_CLASS_DEFINE_END(Vp9DecodeFrontEndPktXe_M_Base)
 };
 
 }  // namespace decode

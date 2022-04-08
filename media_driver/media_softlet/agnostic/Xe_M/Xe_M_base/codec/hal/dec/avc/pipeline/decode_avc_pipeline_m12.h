@@ -119,6 +119,7 @@ protected:
 
 private:
     AvcDecodePktM12 *m_avcDecodePkt = nullptr;
+MEDIA_CLASS_DEFINE_END(AvcPipelineM12)
 };
 
 }

@@ -116,6 +116,7 @@ public:
 
     MOS_RESOURCE                   m_PostSyncBuffer = {0};      //!< postsynecd buffer
     PMOS_INTERFACE                 m_pOsInterface   = nullptr;
+MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe_Hpc)
 };
 
 #endif // __RENDERHAL_XE_HPC_H__

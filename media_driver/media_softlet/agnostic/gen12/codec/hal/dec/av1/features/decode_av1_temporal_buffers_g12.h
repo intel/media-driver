@@ -55,6 +55,7 @@ namespace decode
         MhwVdboxAvpInterface *m_avpInterface = nullptr;  //!< Avp interface;
         int32_t               widthInSb;
         int32_t               heightInSb;
+    MEDIA_CLASS_DEFINE_END(Av1TempBufferOpInfG12)
     };
 
 }  // namespace decode

@@ -75,6 +75,7 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS CreateFeatures(void *constSettings) override;
+MEDIA_CLASS_DEFINE_END(EncodeAv1VdencFeatureManagerXe_Hpm)
 };
 
 

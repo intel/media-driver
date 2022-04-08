@@ -243,6 +243,7 @@ namespace decode
         uint16_t chromaSamplingFormat   = 0;    //!< Chroma sampling fromat
         uint32_t m_widthInSb            = 0;    //!< Width in unit of SB
         uint32_t m_heightInSb           = 0;    //!< Height in unit of SB
+    MEDIA_CLASS_DEFINE_END(Av1DecodePicPkt_G12_Base)
     };
 
 }  // namespace decode

@@ -64,6 +64,7 @@ namespace decode
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
         MOS_STATUS CalculatePictureStateCommandSize();
+    MEDIA_CLASS_DEFINE_END(Mpeg2DecodePicPktM12)
     };
 }  // namespace decode
 #endif

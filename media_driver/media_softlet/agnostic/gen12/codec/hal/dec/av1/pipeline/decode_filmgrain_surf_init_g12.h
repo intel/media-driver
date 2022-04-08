@@ -100,6 +100,7 @@ private:
     DecodeAllocator *       m_allocator            = nullptr;        //!< Resource allocator
     HucCopyPktG12 *         m_surfInitPkt          = nullptr;        //!< Surface init packet
     PMOS_BUFFER             m_tmpInitBuf           = nullptr;        //!< Init buffer filled with 0
+MEDIA_CLASS_DEFINE_END(FilmGrainSurfaceInit)
 };
 }  // namespace decode
 #endif

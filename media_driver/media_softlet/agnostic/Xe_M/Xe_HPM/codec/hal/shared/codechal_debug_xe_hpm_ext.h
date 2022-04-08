@@ -36,6 +36,7 @@ public:
     MOS_STATUS DumpBltOutput(
         PMOS_SURFACE              surface,
         const char *              attrName) override;
+MEDIA_CLASS_DEFINE_END(CodechalDebugInterfaceXe_Hpm)
 };
 
 #endif  // USE_CODECHAL_DEBUG_TOOL

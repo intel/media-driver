@@ -63,6 +63,7 @@ protected:
     virtual MOS_STATUS Uninitialize() override;
     virtual MOS_STATUS ResetParams();
     virtual MOS_STATUS UserFeatureReport() override;
+MEDIA_CLASS_DEFINE_END(Av1VdencPipelineXe_M_Base)
 };
 
 }

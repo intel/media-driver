@@ -125,6 +125,7 @@ protected:
 
     uint32_t m_sliceStatesSize      = 0;  //!< Slice state command size
     uint32_t m_slicePatchListSize   = 0;  //!< Slice patch list size
+MEDIA_CLASS_DEFINE_END(HevcDecodeSlcPktXe_M_Base)
 };
 
 }  // namespace decode

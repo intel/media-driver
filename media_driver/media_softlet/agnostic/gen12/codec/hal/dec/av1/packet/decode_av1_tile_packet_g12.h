@@ -47,6 +47,7 @@ public:
 
     MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer, int16_t tileIdx) override;
 
+MEDIA_CLASS_DEFINE_END(Av1DecodeTilePktG12)
 };
 
 }  // namespace decode

@@ -74,5 +74,6 @@ public:
 
 protected:
     std::shared_ptr<decode::JpegPipelineM12> m_decoder;
+MEDIA_CLASS_DEFINE_END(DecodeJpegPipelineAdapterM12)
 };
 #endif // !__DECODE_JPEG_PIPELINE_ADAPTER_M12_H__

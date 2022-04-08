@@ -118,6 +118,7 @@ struct HucHevcS2lPicBssM12 : public HucHevcS2lPicBssXe_M_Base
         CodechalHwInterfaceG12 *m_hwInterface = nullptr;
 
         BufferArray *m_s2lDmemBufferArray = nullptr; //!< S2L DMEM buffer array
+    MEDIA_CLASS_DEFINE_END(HucS2lPktM12)
     };
 
 }  // namespace decode

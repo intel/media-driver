@@ -144,6 +144,7 @@ namespace decode
     private:
         Av1DecodePktG12 *m_av1DecodePkt = nullptr;
 
+    MEDIA_CLASS_DEFINE_END(Av1PipelineG12)
     };
 }
 #endif // !__DECODE_AV1_PIPELINE_G12_H__

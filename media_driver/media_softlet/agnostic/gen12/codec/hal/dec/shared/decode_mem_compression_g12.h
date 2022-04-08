@@ -52,6 +52,7 @@ class DecodeMemCompG12 : public DecodeMemComp, public CodecMmcAuxTableG12
         PMOS_COMMAND_BUFFER cmdBuffer,
         bool bRcsIsUsed);
 
+MEDIA_CLASS_DEFINE_END(DecodeMemCompG12)
 };
 
 #endif //__MEDIA_DECODE_MEM_COMPRESSION_G12_H__

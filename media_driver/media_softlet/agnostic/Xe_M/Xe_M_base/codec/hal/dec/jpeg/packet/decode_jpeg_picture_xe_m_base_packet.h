@@ -137,6 +137,7 @@ protected:
 
     uint32_t m_pictureStatesSize           = 0;    //!< Picture states size
     uint32_t m_picturePatchListSize        = 0;    //!< Picture patch list size
+MEDIA_CLASS_DEFINE_END(JpegDecodePicPktXe_M_Base)
 };
 
 }  // namespace decode

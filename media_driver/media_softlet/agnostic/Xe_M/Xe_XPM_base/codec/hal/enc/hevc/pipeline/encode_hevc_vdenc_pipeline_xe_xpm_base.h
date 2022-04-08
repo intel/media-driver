@@ -71,6 +71,7 @@ protected:
     virtual MOS_STATUS CreateFeatureManager() override;
 
     static const uint32_t       m_brcHistoryBufSize = 2304;            //!< BRC history buffer size
+MEDIA_CLASS_DEFINE_END(HevcVdencPipelineXe_Xpm_Base)
 };
 
 }

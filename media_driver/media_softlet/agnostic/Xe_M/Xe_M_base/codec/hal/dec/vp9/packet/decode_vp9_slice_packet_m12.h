@@ -50,6 +50,7 @@ public:
 protected:
      
 
+MEDIA_CLASS_DEFINE_END(Vp9DecodeSlcPktM12)
 };
 
 }  // namespace decode

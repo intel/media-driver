@@ -164,6 +164,7 @@ namespace decode {
             mpeg2Vc1BottomField,
             mpeg2Vc1Frame
         };
+    MEDIA_CLASS_DEFINE_END(Mpeg2DecodePicPktXe_M_Base)
     };
 
 }  // namespace decode

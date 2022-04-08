@@ -398,6 +398,7 @@ protected:
         anInputUGammaLut,
         anInputVGammaLut,
     };
+MEDIA_CLASS_DEFINE_END(FilmGrainAppNoisePkt)
 };
 }
 

@@ -87,6 +87,7 @@ protected:
     {
         return true;
     }
+MEDIA_CLASS_DEFINE_END(VpPipelineAdapterXe_Hpm)
 };
 #endif // !__VP_PIPELINE_ADAPTER_XE_HPM_H__
 

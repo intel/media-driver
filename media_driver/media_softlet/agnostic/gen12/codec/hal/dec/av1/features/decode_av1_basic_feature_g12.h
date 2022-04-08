@@ -162,6 +162,7 @@ namespace decode
 
         MhwVdboxAvpInterface *m_avpInterface = nullptr;
         PMOS_INTERFACE        m_osInterface  = nullptr;
+    MEDIA_CLASS_DEFINE_END(Av1BasicFeatureG12)
     };
 
 }  // namespace decode
