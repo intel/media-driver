@@ -83,7 +83,7 @@ bool InitXeHPMediaSysInfo(struct GfxDeviceInfo *devInfo,
 }
 
 
-static bool InitXeHPShadowSku(struct GfxDeviceInfo *devInfo,
+bool InitXeHPShadowSku(struct GfxDeviceInfo *devInfo,
                              SHADOW_MEDIA_FEATURE_TABLE *skuTable,
                              struct LinuxDriverInfo *drvInfo)
 {
@@ -183,7 +183,7 @@ bool InitPvcShadowSku(struct GfxDeviceInfo *devInfo,
 }
 
 
-static bool InitXeHPShadowWa(struct GfxDeviceInfo *devInfo,
+bool InitXeHPShadowWa(struct GfxDeviceInfo *devInfo,
                             SHADOW_MEDIA_WA_TABLE *waTable,
                             struct LinuxDriverInfo *drvInfo)
 {
