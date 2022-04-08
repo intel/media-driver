@@ -121,8 +121,7 @@ public:
         const std::string &itemName,
         const Group &group,
         const Value &customValue,
-        bool useCustomValue = false,
-        uint32_t option = MEDIA_USER_SETTING_INTERNAL);
+        bool useCustomValue = false);
 
     //!
     //! \brief    Write value to specific item
@@ -143,50 +142,7 @@ public:
         const std::string &itemName,
         const Value &value,
         const Group &group,
-        bool isForReport,
-        uint32_t option = MEDIA_USER_SETTING_INTERNAL);
-
-    //!
-    //! \brief    Get the path of the key
-    //! \return   std::string
-    //!           the path
-    //!
-    std::string GetPath(
-        std::shared_ptr<Definition> def,
-        uint32_t                    option,
-        bool                        bReport);
-
-    //!
-    //! \brief    Get the report path of the internal key
-    //! \return   std::string
-    //!           the path
-    //!
-    std::string GetInteranlReportPath(
-        std::shared_ptr<Definition> def);
-
-    //!
-    //! \brief    Get the read path of the internal key
-    //! \return   std::string
-    //!           the path
-    //!
-    std::string GetInteranlReadPath(
-        std::shared_ptr<Definition> def);
-
-    //!
-    //! \brief    Get the path of the internal key
-    //! \return   std::string
-    //!           the path
-    //!
-    std::string GetInternalPath(
-        std::shared_ptr<Definition> def,
-        bool                        bReport);
-
-    //!
-    //! \brief    Get the path of the external key
-    //! \return   std::string
-    //!           the path
-    //!
-    std::string GetExternalPath(uint32_t option);
+        bool isForReport);
 
     //!
     //! \brief    Check whether definition of specific item name exist in all groups
@@ -251,7 +207,6 @@ protected:
     static const UFKEY_NEXT m_rootKey;
     static const char *m_configPath;
     static const char *m_reportPath;
-    static const std::map<uint32_t, const char *> m_pathOption;
 };
 
 }}

@@ -104,8 +104,7 @@ MOS_STATUS Configure::Read(Value &value,
     const std::string &valueName,
     const Group &group,
     const Value &customValue,
-    bool useCustomValue,
-    uint32_t option)
+    bool useCustomValue)
 {
     int32_t ret = 0;
 
@@ -123,7 +122,17 @@ MOS_STATUS Configure::Read(Value &value,
         return MOS_STATUS_SUCCESS;
     }
 
-    std::string path = GetPath(def, option, false);
+    std::string basePath = "";
+    if(def->UseStatePath())
+    {
+        if (m_keyPathInfo != nullptr && m_keyPathInfo->Path != nullptr)
+        {
+            basePath = m_keyPathInfo->Path;
+        }
+    }
+    std::string subPath = def->GetSubPath();
+
+    std::string path = basePath + subPath;
 
     UFKEY_NEXT  key      = {};
     std::string strValue = "";
@@ -171,8 +180,7 @@ MOS_STATUS Configure::Write(
     const std::string &valueName,
     const Value &value,
     const Group &group,
-    bool isForReport,
-    uint32_t option)
+    bool isForReport)
 {
     auto &defs = GetDefinitions(group);
 
@@ -192,7 +200,13 @@ MOS_STATUS Configure::Write(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    std::string path = GetPath(def, option, true);
+    std::string basePath = "";
+    if (m_keyPathInfo != nullptr && m_keyPathInfo->Path != nullptr)
+    {
+        basePath = m_keyPathInfo->Path;
+    }
+
+    std::string path = basePath + (isForReport ? m_reportPath : m_configPath);
 
     UFKEY_NEXT key = {};
     MOS_STATUS status = MOS_STATUS_UNKNOWN;
@@ -224,97 +238,6 @@ MOS_STATUS Configure::Write(
     }
 
     return MOS_STATUS_SUCCESS;
-}
-
-std::string Configure::GetPath(
-    std::shared_ptr<Definition> def,
-    uint32_t option,
-    bool bReport)
-{
-    std::string path = "";
-    if (def == nullptr)
-    {
-        return path;
-    }
-
-    if (option == MEDIA_USER_SETTING_INTERNAL)
-    {
-        return GetInternalPath(def, bReport);
-    }
-    else
-    {
-        return GetExternalPath(option);
-    }
-}
-
-std::string Configure::GetInteranlReadPath(
-    std::shared_ptr<Definition> def)
-{
-    std::string path = "";
-    if (def == nullptr)
-    {
-        return path;
-    }
-
-    if (def->UseStatePath())
-    {
-        if (m_keyPathInfo != nullptr && m_keyPathInfo->Path != nullptr)
-        {
-            path = m_keyPathInfo->Path;
-        }
-    }
-    path += def->GetSubPath();
-
-    return path;
-}
-
-std::string Configure::GetInteranlReportPath(
-    std::shared_ptr<Definition> def)
-{
-    std::string path = "";
-    if (def == nullptr)
-    {
-        return path;
-    }
-
-    if (def->UseStatePath())
-    {
-        if (m_keyPathInfo != nullptr && m_keyPathInfo->Path != nullptr)
-        {
-            path = m_keyPathInfo->Path;
-        }
-    }
-    path += m_reportPath;
-
-    return path;
-}
-
-std::string Configure::GetInternalPath(
-    std::shared_ptr<Definition> def,
-    bool bReport)
-{
-    if (bReport)
-    {
-        return GetInteranlReportPath(def);
-    }
-    else
-    {
-        return GetInteranlReadPath(def);
-    }
-}
-
-std::string Configure::GetExternalPath(uint32_t option)
-{
-    auto it = m_pathOption.find(option);
-    if (it != m_pathOption.end())
-    {
-        return it->second;
-    }
-    else
-    {
-        MOS_OS_ASSERTMESSAGE("Invalid Option");
-        return "";
-    }
 }
 
 }}
