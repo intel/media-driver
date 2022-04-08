@@ -163,45 +163,11 @@ class MosUtilities;
 //}
 
 #if MOS_MESSAGES_ENABLED
-template<class _Ty, class... _Types>
-_Ty* MOS_NewUtil(const char *functionName,
-    const char *filename,
-    int32_t line, _Types&&... _Args)
+#define MOS_NewArray(classType, numElements) MosUtilities::MosNewArrayUtil<classType>(__FUNCTION__, __FILE__, __LINE__, numElements)
+#define MOS_New(classType, ...) MosUtilities::MosNewUtil<classType>(__FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
-template<class _Ty, class... _Types>
-_Ty* MOS_NewUtil(_Types&&... _Args)
-#endif
-{
-#if MOS_MESSAGES_ENABLED
-    return MosUtilities::MosNewUtil<_Ty, _Types...>(functionName, filename, line, std::forward<_Types>(_Args)...);
-#else
-    return MosUtilities::MosNewUtil<_Ty, _Types...>(std::forward<_Types>(_Args)...);
-#endif
-}
-
-#if MOS_MESSAGES_ENABLED
-template<class _Ty, class... _Types>
-_Ty *MOS_NewArrayUtil(const char *functionName,
-    const char *filename,
-    int32_t line, size_t numElements)
-#else
-template<class _Ty, class... _Types>
-_Ty* MOS_NewArrayUtil(size_t numElements)
-#endif
-{
-#if MOS_MESSAGES_ENABLED
-    return MosUtilities::MosNewArrayUtil<_Ty>(functionName, filename, line, numElements);
-#else
-    return MosUtilities::MosNewArrayUtil<_Ty>(numElements);
-#endif
-}
-
-#if MOS_MESSAGES_ENABLED
-#define MOS_NewArray(classType, numElements) MOS_NewArrayUtil<classType>(__FUNCTION__, __FILE__, __LINE__, numElements)
-#define MOS_New(classType, ...) MOS_NewUtil<classType>(__FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
-#else
-#define MOS_NewArray(classType, numElements) MOS_NewArrayUtil<classType>(numElements)
-#define MOS_New(classType, ...) MOS_NewUtil<classType>(__VA_ARGS__)
+#define MOS_NewArray(classType, numElements) MosUtilities::MosNewArrayUtil<classType>(numElements)
+#define MOS_New(classType, ...) MosUtilities::MosNewUtil<classType>(__VA_ARGS__)
 #endif
 
 #if MOS_MESSAGES_ENABLED

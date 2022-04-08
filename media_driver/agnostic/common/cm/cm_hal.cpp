@@ -10212,9 +10212,9 @@ MOS_STATUS HalCm_InitPerfTagIndexMap(PCM_HAL_STATE cmState)
     {
         cmState->currentPerfTagIndex[i] = 1;
 #if MOS_MESSAGES_ENABLED
-        cmState->perfTagIndexMap[i] = MOS_NewUtil<map<string, int> >(__FUNCTION__, __FILE__, __LINE__);
+        cmState->perfTagIndexMap[i] = MosUtilities::MosNewUtil<map<string, int> >(__FUNCTION__, __FILE__, __LINE__);
 #else
-        cmState->perfTagIndexMap[i] = MOS_NewUtil<map<string, int> >();
+        cmState->perfTagIndexMap[i] = MosUtilities::MosNewUtil<map<string, int> >();
 #endif
 
         CM_CHK_NULL_GOTOFINISH_MOSERROR(cmState->perfTagIndexMap[i]);
@@ -10598,9 +10598,9 @@ MOS_STATUS HalCm_Create(
 
     // init mapping for the state buffer
 #if MOS_MESSAGES_ENABLED
-    state->state_buffer_list_ptr = MOS_NewUtil<std::map< void *, CM_HAL_STATE_BUFFER_ENTRY> >(__FUNCTION__, __FILE__, __LINE__);
+    state->state_buffer_list_ptr = MosUtilities::MosNewUtil<std::map< void *, CM_HAL_STATE_BUFFER_ENTRY> >(__FUNCTION__, __FILE__, __LINE__);
 #else
-    state->state_buffer_list_ptr = MOS_NewUtil<std::map< void *, CM_HAL_STATE_BUFFER_ENTRY> >();
+    state->state_buffer_list_ptr = MosUtilities::MosNewUtil<std::map< void *, CM_HAL_STATE_BUFFER_ENTRY> >();
 #endif
 
     CM_CHK_NULL_GOTOFINISH_MOSERROR( state->state_buffer_list_ptr );
