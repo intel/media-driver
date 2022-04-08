@@ -198,8 +198,7 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
 
     m_vpMhwInterface = *(PVP_MHWINTERFACE)mhwInterface;
 
-    Mos_SetVirtualEngineSupported(m_osInterface, true);
-    Mos_CheckVirtualEngineSupported(m_osInterface, true, true);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_vpMhwInterface.m_vpPlatformInterface->ConfigVirtualEngine());
 
     VP_PUBLIC_CHK_STATUS_RETURN(MediaPipeline::InitPlatform());
     VP_PUBLIC_CHK_STATUS_RETURN(MediaPipeline::CreateMediaCopy());

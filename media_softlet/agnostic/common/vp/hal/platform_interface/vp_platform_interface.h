@@ -203,6 +203,8 @@ public:
     //only for get kernel binary in legacy path not being used in APO path.
     virtual MOS_STATUS GetKernelBinary(const void *&kernelBin, uint32_t &kernelSize, const void *&patchKernelBin, uint32_t &patchKernelSize);
 
+    virtual MOS_STATUS ConfigVirtualEngine() = 0;
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     KERNEL_POOL    m_kernelPool;

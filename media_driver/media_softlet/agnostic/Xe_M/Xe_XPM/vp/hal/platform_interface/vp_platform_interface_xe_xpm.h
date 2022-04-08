@@ -58,6 +58,11 @@ public:
         return VP_VEBOX_STATISTICS_SIZE_G12;
     }
 
+    virtual MOS_STATUS ConfigVirtualEngine()
+    {
+        return MOS_STATUS_SUCCESS;   // the config would be set in MhwVeboxInterfaceG12::CreateGpuContext().
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 MEDIA_CLASS_DEFINE_END(VpPlatformInterfaceXe_Xpm)
