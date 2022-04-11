@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 #ifndef __MOS_UTILITIES_SPECIFIC_H__
 #define __MOS_UTILITIES_SPECIFIC_H__
 
+#include <malloc.h>
 #include "mos_defs.h"
 
 #define NOT_FOUND            -1
