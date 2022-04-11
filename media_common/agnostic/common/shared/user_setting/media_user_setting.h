@@ -127,8 +127,7 @@ public:
         const std::string &valueName,
         const Group &group,
         const Value &customValue = Value(),
-        bool useCustomValue = false,
-        uint32_t option = MEDIA_USER_SETTING_INTERNAL);
+        bool useCustomValue = false);
 
     //!
     //! \brief    Write value to specific item
@@ -149,8 +148,7 @@ public:
         const std::string &valueName,
         const Value &value,
         const Group &group,
-        bool isForReport = false,
-        uint32_t option = MEDIA_USER_SETTING_INTERNAL);
+        bool isForReport = false);
 
     //!
     //! \brief    Check whether the key has been registered 
@@ -206,15 +204,14 @@ inline MOS_STATUS ReadUserSetting(
     const std::string               &valueName,
     const MediaUserSetting::Group   &group,
     const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
-    bool                            useCustomValue = false,
-    uint32_t                        option = MEDIA_USER_SETTING_INTERNAL)
+    bool                            useCustomValue = false)
 {
     MediaUserSettingSharedPtr  instance = userSetting;
     if (userSetting == nullptr)
     {
         instance = MediaUserSetting::MediaUserSetting::Instance();
     }
-    auto status = instance->Read(value, valueName, group, customValue, useCustomValue, option);
+    auto status = instance->Read(value, valueName, group, customValue, useCustomValue);
     if(status != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("User setting %s read error", valueName.c_str());
@@ -229,11 +226,10 @@ inline MOS_STATUS ReadUserSetting(
     const std::string               &valueName,
     const MediaUserSetting::Group   &group,
     const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
-    bool                            useCustomValue = false,
-    uint32_t                        option = MEDIA_USER_SETTING_INTERNAL)
+    bool                            useCustomValue = false)
 {
     MediaUserSetting::Value outValue;
-    MOS_STATUS  status = ReadUserSetting(userSetting, outValue, valueName, group, customValue, useCustomValue, option);
+    MOS_STATUS  status = ReadUserSetting(userSetting, outValue, valueName, group, customValue, useCustomValue);
     //If user setting is not set, outValue is the default value or customValue value if useCustomValue == true.
     //If the user setting is not registered, it is not allowed to read a value for it. Set it with the inital outValue.
     value = outValue.Get<T>();
@@ -244,8 +240,7 @@ inline MOS_STATUS WriteUserSetting(
     MediaUserSettingSharedPtr userSetting,
     const std::string &valueName,
     const MediaUserSetting::Value &value,
-    const MediaUserSetting::Group &group,
-    uint32_t option = MEDIA_USER_SETTING_INTERNAL)
+    const MediaUserSetting::Group &group)
 {
     MediaUserSettingSharedPtr instance = userSetting;
     if (userSetting == nullptr)
@@ -259,15 +254,14 @@ inline MOS_STATUS ReportUserSetting(
     MediaUserSettingSharedPtr userSetting,
     const std::string &valueName,
     const MediaUserSetting::Value &value,
-    const MediaUserSetting::Group &group,
-    uint32_t option = MEDIA_USER_SETTING_INTERNAL)
+    const MediaUserSetting::Group &group)
 {
     MediaUserSettingSharedPtr  instance = userSetting;
     if (userSetting == nullptr)
     {
         instance = MediaUserSetting::MediaUserSetting::Instance();
     }
-    return instance->Write(valueName, value, group, true, option);
+    return instance->Write(valueName, value, group, true);
 }
 
 inline bool IsDeclaredUserSetting(
@@ -307,15 +301,14 @@ inline MOS_STATUS ReadUserSettingForDebug(
     const std::string               &valueName,
     const MediaUserSetting::Group   &group,
     const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
-    bool                            useCustomValue = false,
-    uint32_t                        option = MEDIA_USER_SETTING_INTERNAL)
+    bool                            useCustomValue = false)
 {
     MediaUserSettingSharedPtr instance = userSetting;
     if (userSetting == nullptr)
     {
         instance = MediaUserSetting::MediaUserSetting::Instance();
     }
-    auto status   = instance->Read(value, valueName, group, customValue, useCustomValue, option);
+    auto status   = instance->Read(value, valueName, group, customValue, useCustomValue);
     if(status != MOS_STATUS_SUCCESS)
     {
         MOS_OS_NORMALMESSAGE("User setting %s read error", valueName.c_str());
@@ -330,11 +323,10 @@ inline MOS_STATUS ReadUserSettingForDebug(
     const std::string               &valueName,
     const MediaUserSetting::Group   &group,
     const MediaUserSetting::Value   &customValue = MediaUserSetting::Value(),
-    bool                            useCustomValue = false,
-    uint32_t                        option         = MEDIA_USER_SETTING_INTERNAL)
+    bool                            useCustomValue = false)
 {
     MediaUserSetting::Value outValue;
-    MOS_STATUS  status = ReadUserSettingForDebug(userSetting, outValue, valueName, group, customValue, useCustomValue, option);
+    MOS_STATUS  status = ReadUserSettingForDebug(userSetting, outValue, valueName, group, customValue, useCustomValue);
 
     //If user setting is not set, outValue is the default value or customValue value if useCustomValue == true.
     //If the user setting is not registered, it is not allowed to read a value for it. Set it with the inital outValue.
@@ -346,8 +338,7 @@ inline MOS_STATUS WriteUserSettingForDebug(
     MediaUserSettingSharedPtr userSetting,
     const std::string &valueName,
     const MediaUserSetting::Value &value,
-    const MediaUserSetting::Group &group,
-    uint32_t option = MEDIA_USER_SETTING_INTERNAL)
+    const MediaUserSetting::Group &group)
 {
     MediaUserSettingSharedPtr  instance = userSetting;
     if (userSetting == nullptr)
@@ -361,15 +352,14 @@ inline MOS_STATUS ReportUserSettingForDebug(
     MediaUserSettingSharedPtr userSetting,
     const std::string &valueName,
     const MediaUserSetting::Value &value,
-    const MediaUserSetting::Group &group,
-    uint32_t option = MEDIA_USER_SETTING_INTERNAL)
+    const MediaUserSetting::Group &group)
 {
     MediaUserSettingSharedPtr  instance = userSetting;
     if (userSetting == nullptr)
     {
         instance = MediaUserSetting::MediaUserSetting::Instance();
     }
-    return instance->Write(valueName, value, group, true, option);
+    return instance->Write(valueName, value, group, true);
 }
 
 #else

@@ -29,7 +29,6 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_specific_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_decompression.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_mediacopy.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/mos_user_setting_specific.cpp
 )
 
 set(TMP_HEADERS_

@@ -38,8 +38,6 @@ MOS_STATUS MosUserSetting::InitMosUserSetting(MediaUserSettingSharedPtr userSett
     InitUserSettingForDebug(userSettingPtr);
 #endif
 
-    InitMosUserSettingSpecific(userSettingPtr);
-
     return MOS_STATUS_SUCCESS;
 }
 
