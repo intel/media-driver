@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2017, Intel Corporation
+* Copyright (c) 2009-2022, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,16 @@
 #define __MEDIA_USER_FEATURE_SUBKEY_REPORT                          "Report"
 #define __MEDIA_USER_FEATURE_VALUE_VP_DBG_STATE_DUMP_LOCATION       ""
 #define __MOS_USER_FEATURE_KEY_XML_FILEPATH_LOCATION                ""
+
+/*---------------------------------------------------------------------------\
+** This table defines the bits for the Media Reg Internal DWORD.
+** ---------------------------------------------------------------------------
+** |  Bit  |                          Description                            |
+** |-------|-----------------------------------------------------------------|
+** | 31:1  | Available                                                       |
+** |   0   | Reserved for DL, but not used now                               |
+\*--------------------------------------------------------------------------*/
+#define MEDIA_USER_SETTING_INTERNAL             0x1
 
 //!
 //! \brief User feature keys to define debug message levels and assertions.

@@ -89,18 +89,20 @@ MOS_STATUS MediaUserSetting::Read(Value &value,
     const std::string &valueName,
     const Group &group,
     const Value &customValue,
-    bool useCustomValue)
+    bool useCustomValue,
+    uint32_t option)
 {
-    return m_configure.Read(value, valueName, group, customValue, useCustomValue);
+    return m_configure.Read(value, valueName, group, customValue, useCustomValue, option);
 }
 
 MOS_STATUS MediaUserSetting::Write(
     const std::string &valueName,
     const Value &value,
     const Group &group,
-    bool isForReport)
+    bool isForReport,
+    uint32_t option)
 {
-    return m_configure.Write(valueName, value, group, isForReport);
+    return m_configure.Write(valueName, value, group, isForReport, option);
 }
 
 bool MediaUserSetting::IsDeclaredUserSetting(const std::string &valueName)
