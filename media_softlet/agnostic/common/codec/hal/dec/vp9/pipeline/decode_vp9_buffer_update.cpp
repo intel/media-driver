@@ -156,55 +156,61 @@ MOS_STATUS DecodeVp9BufferUpdate ::ProbBufferPartialUpdatewithDrv()
 
     DECODE_FUNC_CALL();
 
-    ResourceAutoLock resLock(m_allocator, &(m_basicFeature->m_resVp9ProbBuffer[m_basicFeature->m_frameCtxIdx]->OsResource));
-    auto             data = (uint8_t *)resLock.LockResourceForWrite();
-
-    DECODE_CHK_NULL(data);
-
-    if (m_basicFeature->m_probUpdateFlags.bSegProbCopy)
+    if (m_basicFeature->m_probUpdateFlags.bSegProbCopy ||
+        m_basicFeature->m_probUpdateFlags.bProbSave ||
+        m_basicFeature->m_probUpdateFlags.bProbReset ||
+        m_basicFeature->m_probUpdateFlags.bProbRestore)
     {
-        DECODE_CHK_STATUS(MOS_SecureMemcpy(
-            (data + CODEC_VP9_SEG_PROB_OFFSET),
-            7,
-            m_basicFeature->m_probUpdateFlags.SegTreeProbs,
-            7));
-        DECODE_CHK_STATUS(MOS_SecureMemcpy(
-            (data + CODEC_VP9_SEG_PROB_OFFSET + 7),
-            3,
-            m_basicFeature->m_probUpdateFlags.SegPredProbs,
-            3));
-    }
+        ResourceAutoLock resLock(m_allocator, &(m_basicFeature->m_resVp9ProbBuffer[m_basicFeature->m_frameCtxIdx]->OsResource));
+        auto             data = (uint8_t *)resLock.LockResourceForWrite();
 
-    if (m_basicFeature->m_probUpdateFlags.bProbSave)
-    {
-        DECODE_CHK_STATUS(MOS_SecureMemcpy(
-            m_basicFeature->m_interProbSaved,
-            CODECHAL_VP9_INTER_PROB_SIZE,
-            data + CODEC_VP9_INTER_PROB_OFFSET,
-            CODECHAL_VP9_INTER_PROB_SIZE));
-    }
+        DECODE_CHK_NULL(data);
 
-    if (m_basicFeature->m_probUpdateFlags.bProbReset)
-    {
-        if (m_basicFeature->m_probUpdateFlags.bResetFull)
+        if (m_basicFeature->m_probUpdateFlags.bSegProbCopy)
         {
-            DECODE_CHK_STATUS(ContextBufferInit(
-                data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
+            DECODE_CHK_STATUS(MOS_SecureMemcpy(
+                (data + CODEC_VP9_SEG_PROB_OFFSET),
+                7,
+                m_basicFeature->m_probUpdateFlags.SegTreeProbs,
+                7));
+            DECODE_CHK_STATUS(MOS_SecureMemcpy(
+                (data + CODEC_VP9_SEG_PROB_OFFSET + 7),
+                3,
+                m_basicFeature->m_probUpdateFlags.SegPredProbs,
+                3));
         }
-        else
-        {
-            DECODE_CHK_STATUS(CtxBufDiffInit(
-                data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
-        }
-    }
 
-    if (m_basicFeature->m_probUpdateFlags.bProbRestore)
-    {
-        DECODE_CHK_STATUS(MOS_SecureMemcpy(
-            data + CODEC_VP9_INTER_PROB_OFFSET,
-            CODECHAL_VP9_INTER_PROB_SIZE,
-            m_basicFeature->m_interProbSaved,
-            CODECHAL_VP9_INTER_PROB_SIZE));
+        if (m_basicFeature->m_probUpdateFlags.bProbSave)
+        {
+            DECODE_CHK_STATUS(MOS_SecureMemcpy(
+                m_basicFeature->m_interProbSaved,
+                CODECHAL_VP9_INTER_PROB_SIZE,
+                data + CODEC_VP9_INTER_PROB_OFFSET,
+                CODECHAL_VP9_INTER_PROB_SIZE));
+        }
+
+        if (m_basicFeature->m_probUpdateFlags.bProbReset)
+        {
+            if (m_basicFeature->m_probUpdateFlags.bResetFull)
+            {
+                DECODE_CHK_STATUS(ContextBufferInit(
+                    data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
+            }
+            else
+            {
+                DECODE_CHK_STATUS(CtxBufDiffInit(
+                    data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
+            }
+        }
+
+        if (m_basicFeature->m_probUpdateFlags.bProbRestore)
+        {
+            DECODE_CHK_STATUS(MOS_SecureMemcpy(
+                data + CODEC_VP9_INTER_PROB_OFFSET,
+                CODECHAL_VP9_INTER_PROB_SIZE,
+                m_basicFeature->m_interProbSaved,
+                CODECHAL_VP9_INTER_PROB_SIZE));
+        }
     }
 
     return eStatus;
