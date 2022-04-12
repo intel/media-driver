@@ -518,7 +518,14 @@ VAStatus MediaLibvaCapsG12::GetPlatformSpecificAttrib(VAProfile profile,
         }
         case VAConfigAttribPredictionDirection:
         {
-            *value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+            if ((entrypoint == VAEntrypointEncSliceLP) &&
+                ((profile == VAProfileHEVCSccMain) ||
+                 (profile == VAProfileHEVCSccMain10) ||
+                 (profile == VAProfileHEVCSccMain444) ||
+                 (profile == VAProfileHEVCSccMain444_10)))
+                *value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+            else
+                *value = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_FUTURE | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
             break;
         }
 #if VA_CHECK_VERSION(1, 12, 0)
@@ -714,6 +721,9 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMainSCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
+
+        (*attributeList)[VAConfigAttribPredictionDirection] = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+
         AddEncConfig(VA_RC_CQP);
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
         {
@@ -730,6 +740,9 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain10bitSCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
+
+        (*attributeList)[VAConfigAttribPredictionDirection] = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+
         AddEncConfig(VA_RC_CQP);
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
         {
@@ -746,6 +759,9 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain444SCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
+
+        (*attributeList)[VAConfigAttribPredictionDirection] = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+
         AddEncConfig(VA_RC_CQP);
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
         {
@@ -762,6 +778,9 @@ VAStatus MediaLibvaCapsG12::LoadHevcEncLpProfileEntrypoints()
     if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEncodeHEVCVdencMain10bit444SCC))
     {
         uint32_t configStartIdx = m_encConfigs.size();
+
+        (*attributeList)[VAConfigAttribPredictionDirection] = VA_PREDICTION_DIRECTION_PREVIOUS | VA_PREDICTION_DIRECTION_BI_NOT_EMPTY;
+
         AddEncConfig(VA_RC_CQP);
         if (MEDIA_IS_SKU(&(m_mediaCtx->SkuTable), FtrEnableMediaKernels))
         {
