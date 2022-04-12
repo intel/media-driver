@@ -1307,6 +1307,11 @@ MOS_STATUS CodechalDecodeAvc::SetFrameStates()
         m_secondField = true;
     }
 
+    m_pCodechalOcaDumper->SetAvcDecodeParam(
+        m_avcPicParams,
+        m_avcSliceParams,
+        m_numSlices);
+
     CODECHAL_DEBUG_TOOL(
         m_debugInterface->m_currPic     = m_crrPic;
         m_debugInterface->m_secondField = m_secondField;
@@ -1905,6 +1910,8 @@ MOS_STATUS CodechalDecodeAvc::DecodePrimitiveLevel()
     //    m_debugInterface,
     //    &cmdBuffer));
     )
+
+    HalOcaInterface::DumpCodechalParam(cmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_AVC);
     HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));

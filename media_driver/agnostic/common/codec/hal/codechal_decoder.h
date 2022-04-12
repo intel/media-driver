@@ -32,6 +32,7 @@
 #include "codechal_setting.h"
 #include "codechal_hw.h"
 #include "codechal_debug.h"
+#include "codechal_oca_debug.h"
 #include "codechal_decode_downsampling.h"
 #include "codechal_decode_sfc.h"
 #include "codechal_mmc.h"
@@ -1102,6 +1103,8 @@ protected:
     MOS_RESOURCE               m_frameCountTypeBuf = { 0 };
 
     MOS_RESOURCE               m_crcBuf = { 0 };
+
+    CodechalOcaDumper          *m_pCodechalOcaDumper = nullptr;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //! \brief Downsampled surfaces

@@ -329,6 +329,7 @@ MOS_STATUS CodechalDecodeAvcG11::DecodePrimitiveLevel()
         CodecHalDecodeSinglePipeVE_PopulateHintParams(m_veState, &cmdBuffer, true);
     }
 
+    HalOcaInterface::DumpCodechalParam(cmdBuffer, *m_osInterface->pOsContext, m_pCodechalOcaDumper, CODECHAL_AVC);
     HalOcaInterface::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSubmitCommandBuffer(m_osInterface, &cmdBuffer, m_videoContextUsesNullHw));
