@@ -585,7 +585,13 @@ static int parse_separate_sysfs_files(int maj, int min,
     snprintf(resourcename, sizeof(resourcename), "%s/resource", pci_path);
 
     if (readlink(driverpath, drivername, PATH_MAX) < 0)
-        printf("   readlink -errno %d\n", errno);
+    {
+        /* Some devices might not be bound to a driver */
+        if (errno == ENOENT)
+            return -errno;
+        else
+            printf("   readlink -errno %d\n", errno);
+    }
 
     driver_name = strrchr(drivername, '/');
     driver_name++;
