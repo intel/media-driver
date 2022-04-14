@@ -28,7 +28,7 @@ include(os_release_info.cmake)
 get_os_release_info(os_name os_version)
 
 if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
-    set(CMAKE_INSTALL_PREFIX "/usr/lib/x86_64-linux-gnu" CACHE PATH "..." FORCE)
+    set(CMAKE_INSTALL_PREFIX "/usr/lib/x86_64-linux-gnu/" CACHE PATH "..." FORCE)
 endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
@@ -80,8 +80,12 @@ endif()
 
 add_subdirectory(media_driver)
 
+message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
+
+set(LIBVA_DRIVERS_PATH "/usr/lib/x86_64-linux-gnu/dri/")
+
 if("${LIBVA_DRIVERS_PATH}" STREQUAL "")
-    set(LIBVA_DRIVERS_PATH "${CMAKE_INSTALL_FULL_LIBDIR}/dri/")
+    set(LIBVA_DRIVERS_PATH "/usr/lib/x86_64-linux-gnu/dri/")
 endif()
 message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
 
@@ -134,4 +138,3 @@ string(TOLOWER "${BUILD_TYPE}.${CPACK_RPM_PACKAGE_ARCHITECTURE}" PACKAGE_TYPE)
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${DISTRO_INFO}-${PACKAGE_TYPE}")
 
 include(CPack)
-
