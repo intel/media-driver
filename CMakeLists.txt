@@ -28,7 +28,7 @@ include(os_release_info.cmake)
 get_os_release_info(os_name os_version)
 
 if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
-    set(CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "..." FORCE)
+    set(CMAKE_INSTALL_PREFIX "/usr/lib/x86_64-linux-gnu" CACHE PATH "..." FORCE)
 endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
