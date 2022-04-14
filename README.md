@@ -73,7 +73,34 @@ For iHD_drv_video.so please export related LIBVA environment variables.
 export LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri:/usr/lib/dri:<path-contains-iHD_drv_video.so>
 export LIBVA_DRIVER_NAME=iHD
 ```
+## Post-Install 
 
+To confirm that the installation conpleted correctly and that the new driver is loadable, use the following command and compare the VAAPI and Driver Version strings to those from `make install`
+
+    vainfo --display drm  --device /dev/dri/render[device] 
+
+
+Example on AlderLake-S iGPU (i7-12700k) loading Driver 22.3.1, VA-API 1.15 ( libva version 2.13)
+
+    vainfo --display drm  --device /dev/dri/renderD128
+
+ ```
+ libva info: VA-API version 1.15.0
+ libva info: Trying to open /usr/lib/x86_64-linux-gnu/dri/iHD_drv_video.so
+ libva info: Found init function __vaDriverInit_1_14
+ libva info: va_openDriver() returns 0
+ vainfo: VA-API version: 1.15 (libva 2.13.0)
+ vainfo: Driver version: Intel iHD driver for Intel(R) Gen Graphics - 22.3.1 (6547f4658)
+ vainfo: Supported profile and entrypoints
+       VAProfileNone                   :	VAEntrypointVideoProc
+       VAProfileNone                   :	VAEntrypointStats
+       VAProfileMPEG2Simple            :	VAEntrypointVLD
+       VAProfileMPEG2Simple            :	VAEntrypointEncSlice
+       [...]
+       VAProfileHEVCSccMain444_10      :	VAEntrypointVLD
+       VAProfileHEVCSccMain444_10      :	VAEntrypointEncSliceLP
+ 
+```
 
 ## Supported Platforms
 
