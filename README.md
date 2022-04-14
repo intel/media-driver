@@ -43,7 +43,7 @@ then the workspace looks like below
 ```
 $ cd <workspace>/build_media
 ```
-6.  Export the current LIBVA installation directory(ies)  
+6.  (Optional) Export the current LIBVA installation directory(ies)
 ```
 $  export LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri:/usr/lib/dri
 ```
@@ -68,14 +68,14 @@ This will install the following files (e.g. on Ubuntu):
 -- Installing: /usr/lib/x86_64-linux-gnu/igfxcmrt64.so
 ```
 
-For iHD_drv_video.so please export related LIBVA environment variables.
+For iHD_drv_video.so please export the relavent LIBVA environment variables.
 ```
-export LIBVA_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri:/usr/lib/dri:<path-contains-iHD_drv_video.so>
+export LIBVA_DRIVERS_PATH=<path-contains-iHD_drv_video.so>
 export LIBVA_DRIVER_NAME=iHD
 ```
 ## Post-Install 
 
-To confirm that the installation conpleted correctly and that the new driver is loadable, use the following command and compare the VAAPI and Driver Version strings to those from `make install`
+To confirm that the installation completed correctly and that the new driver is loadable, use the following command and compare the VAAPI and Driver Version strings to those from `make install`
 
     vainfo --display drm  --device /dev/dri/render[device] 
 

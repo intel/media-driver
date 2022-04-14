@@ -25,6 +25,8 @@ set(MEDIA_VERSION "22.4.0${MEDIA_VERSION_EXTRA}" CACHE STRING "" FORCE)
 
 include(os_release_info.cmake)
 
+include(GNUInstallDirs)
+
 get_os_release_info(os_name os_version)
 
 if(NOT DEFINED CMAKE_INSTALL_PREFIX OR CMAKE_INSTALL_PREFIX STREQUAL "")
@@ -53,8 +55,6 @@ option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
 
-include(GNUInstallDirs)
-
 if (BUILD_CMRTLIB)
     add_subdirectory(cmrtlib)
 endif()
@@ -80,12 +80,8 @@ endif()
 
 add_subdirectory(media_driver)
 
-message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
-
-set(LIBVA_DRIVERS_PATH "/usr/lib/x86_64-linux-gnu/dri/")
-
 if("${LIBVA_DRIVERS_PATH}" STREQUAL "")
-    set(LIBVA_DRIVERS_PATH "/usr/lib/x86_64-linux-gnu/dri/")
+    set(LIBVA_DRIVERS_PATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 message(STATUS "LIBVA_DRIVERS_PATH = ${LIBVA_DRIVERS_PATH}")
 
