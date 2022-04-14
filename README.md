@@ -210,9 +210,9 @@ or later, which officially supports C++11.
    - ADL-N/RPL-S: [drm-tip](https://cgit.freedesktop.org/drm-tip)
    - DG1/SG1: [intel-gpu/kernel](https://github.com/intel-gpu/kernel)
 
-4. Exporting  `LIBVA_DRIVER_NAME=iHD` on a plaform with multiple vendors hardware may cause a conflict when attempting to load vaapi on the second vendors device. If you experience this run `unset LIBVA_DRIVER_NAME` and see if your enviromment is funtional with both media-driver and the second vendors device.
+4. Exporting  `LIBVA_DRIVER_NAME=iHD` on a plaform with multiple vendors hardware may cause a conflict when attempting to load vaapi on the second vendors device. If you experience this run `unset LIBVA_DRIVER_NAME` and see if your enviromment is functional with both media-driver and the second vendors device.
 
-	this can be tested for using `  vainfo --display drm  --device /dev/dri/renderD128` followed by `  vainfo --display drm  --device /dev/dri/renderD129` ...   `vainfo --display drm  --device /dev/dri/renderD[n]` for each VAAPI device in the system
+	This can be tested for using `  vainfo --display drm  --device /dev/dri/renderD128` followed by `  vainfo --display drm  --device /dev/dri/renderD129` ...   `vainfo --display drm  --device /dev/dri/renderD[n]` for each VAAPI device in the system
 	 
 5. Some users have reported issues with GCC-12.0.1 prerelease when building media-driver. In this case, please build using GCC-11.2 until official support is established. 
 ##### (*) Other names and brands may be claimed as property of others.
